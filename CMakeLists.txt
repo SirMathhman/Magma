@@ -4,4 +4,4 @@ project(Magma C)
 set(CMAKE_C_STANDARD 11)
 
 add_executable(Magma main.c)
-add_executable(Magma test.c)
+add_executable(MagmaTest test.c assert.c assert.h)
