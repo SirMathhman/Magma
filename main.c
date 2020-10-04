@@ -1,6 +1,5 @@
-#include <stdio.h>
+//
+// Created by mathm on 10/4/2020.
+//
 
-int main() {
-    printf("Hello, World!\n");
-    return 0;
-}
+#include "main.h"
