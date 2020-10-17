@@ -5,7 +5,7 @@
 #include "app.h"
 #include <stdio.h>
 
-void assertTrue(char* testName_, Bool value){
+void assertTrue(char *testName_, Bool value) {
     if (!value) {
         printf("FAIL -- %s: Expected a true value, but was actually false.\n", testName_);
     } else {
@@ -13,7 +13,7 @@ void assertTrue(char* testName_, Bool value){
     }
 }
 
-void assertFalse(char* testName_, Bool value) {
+void assertFalse(char *testName_, Bool value) {
     if (value) {
         printf("PASS -- %s\n", testName_);
     } else {
@@ -21,12 +21,32 @@ void assertFalse(char* testName_, Bool value) {
     }
 }
 
-void testAssertions(){
+void testAssertions() {
     assertTrue("Assert True", true);
     assertFalse("Assert False", false);
 }
 
-int main(){
+void testSomeIsPresent() {
+    int value = 5;
+    Some some = Some_(&value);
+    Option option = some.Option(&some);
+    assertTrue("Some.isPresent", option.isPresent(&option));
+}
+
+void testSomeIsEmpty(){
+    int value = 5;
+    Some some = Some_(&value);
+    Option option = some.Option(&some);
+    assertFalse("Some.isEmpty", option.isEmpty(&option));
+}
+
+void testSome() {
+    testSomeIsPresent();
+    testSomeIsEmpty();
+}
+
+int main() {
     testAssertions();
+    testSome();
     return 0;
 }
