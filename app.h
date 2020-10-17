@@ -73,4 +73,14 @@ typedef struct CharArray {
 
 CharArray CharArray_(char *array, int length);
 
+typedef struct String {
+    CharArray array;
+
+    int (*length)(struct String *);
+} String;
+
+String String_fromArray(CharArray array);
+
+String String_(char *value);
+
 #endif //MAGMA_APP_H

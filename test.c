@@ -124,6 +124,18 @@ void assertThrowsAnything(char *testName_, Function function) {
     }
 }
 
+void assertThrowsNothing(char *testName_, Function function) {
+    void (*executable)(Any *) = function.value;
+    executable(function.caller);
+
+    Option option = catch();
+    if (option.isEmpty(&option)) {
+        printf("PASS -- %s\n", testName_);
+    } else {
+        printf("FAIL -- %s: %p was thrown.", testName_, option.get(&option));
+    }
+}
+
 int thrownDummy = 100;
 
 void testAssertThrowsImpl(Any *caller) {
@@ -184,10 +196,37 @@ void testCharArray() {
     testCharArraySet();
 }
 
+void assertIntsEqual(char* testName_, int expected, int actual){
+    if(expected == actual) {
+        printf("PASS -- %s\n", testName_);
+    } else {
+        printf("FAIL -- %s: Expected %d, but was actually %d\n", testName_, expected, actual);
+    }
+}
+
+void testStringInitImpl(){
+    String_("test");
+}
+
+void testStringInit(){
+    assertThrowsNothing("String", Global_(testStringInitImpl));
+}
+
+void testStringLength(){
+    String value = String_("test");
+    assertIntsEqual("String.length", 4, value.length(&value));
+}
+
+void testStrings(){
+    testStringInit();
+    testStringLength();
+}
+
 int main() {
     testAssertions();
     testOption();
     testAssertThrows();
     testCharArray();
+    testStrings();
     return 0;
 }

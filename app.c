@@ -139,3 +139,33 @@ CharArray CharArray_(char *array, int length) {
     CharArray result = {array, CharArray_get, CharArray_set, length};
     return result;
 }
+
+int String_length(String* this) {
+    CharArray array = this->array;
+    int length = array.length;
+    return length - 1;
+}
+
+String String_fromArray(CharArray array) {
+    int length = array.length;
+    char last = array.get(&array, length - 1);
+    if (last == '\0') {
+        String result = {array, String_length};
+        return result;
+    } else {
+        throw("Invalid array format.");
+        String result = {CharArray_("", 0), String_length};
+        return result;
+    }
+}
+
+String String_(char *value) {
+    int length;
+    for (int i = 0;; ++i) {
+        if (value[i] == '\0') {
+            length = i;
+            break;
+        }
+    }
+    return String_fromArray(CharArray_(value, length + 1));
+}
