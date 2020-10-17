@@ -1,5 +1,9 @@
 //
-// Created by mathm on 10/4/2020.
+// Created by SirMathhman on 10/17/2020.
 //
 
-#include "main.h"
+#include "app.h"
+
+int main(int argc, char *argv[] ){
+    return run(argc, argv);
+}
