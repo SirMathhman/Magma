@@ -23,14 +23,14 @@ typedef struct Option {
 
     Bool (*isEmpty)(struct Option *this);
 
-    Any* (*get)(struct Option* this);
+    Any *(*get)(struct Option *this);
 } Option;
 
 Option Option_(Any *super,
                Any *(*orElse)(struct Option *this, Any *other),
                Bool (*isPresent)(struct Option *this),
                Bool (*isEmpty)(struct Option *this),
-               Any* (*get)(struct Option* this));
+               Any *(*get)(struct Option *this));
 
 typedef struct Some {
     Any *value;
@@ -57,8 +57,20 @@ typedef struct Function {
     Any *value;
 } Function;
 
-Function Global_(Any* value);
+Function Global_(Any *value);
 
-Function Function_(Any* caller, Any* value);
+Function Function_(Any *caller, Any *value);
+
+typedef struct CharArray {
+    char *array;
+
+    char (*get)(struct CharArray *this, int index);
+
+    char (*set)(struct CharArray *this, int index, char value);
+
+    int length;
+} CharArray;
+
+CharArray CharArray_(char *array, int length);
 
 #endif //MAGMA_APP_H

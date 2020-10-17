@@ -18,7 +18,7 @@ Option Option_(Any *super,
                Any *(*orElse)(struct Option *, Any *),
                Bool (*isPresent)(struct Option *),
                Bool (*isEmpty)(struct Option *),
-               Any* (*get)(struct Option* this)) {
+               Any *(*get)(struct Option *this)) {
     Option result = {super, orElse, isPresent, isEmpty, get};
     return result;
 }
@@ -36,8 +36,8 @@ Bool Some_isEmpty(Option *this) {
     return false;
 }
 
-Any* Some_get(Option* this) {
-    Some* super = this->super;
+Any *Some_get(Option *this) {
+    Some *super = this->super;
     return super->value;
 }
 
@@ -66,7 +66,7 @@ Bool None_isEmpty(Option *this) {
     return true;
 }
 
-Any* None_get(Option* this) {
+Any *None_get(Option *this) {
     return null;
 }
 
@@ -82,9 +82,11 @@ Option None_Option(None *this) {
 Option catch() {
     if (thrown_) {
         Some some = Some_(thrown_);
+        thrown_ = null;
         return some.Option(&some);
     } else {
         None none = None_();
+        thrown_ = null;
         return none.Option(&none);
     }
 }
@@ -101,5 +103,39 @@ Function Function_(Any *caller, Any *value) {
 
 Function Global_(Any *value) {
     Function result = {null, value};
+    return result;
+}
+
+char CharArray_get(CharArray *this, int index) {
+    int length = this->length;
+    if (index < 0) {
+        throw("Index is negative.");
+        return -1;
+    }
+    if (index >= length) {
+        throw("Index exceeds or is equal to length.");
+        return -1;
+    }
+    return this->array[index];
+}
+
+char CharArray_set(CharArray *this, int index, char value) {
+    int length = this->length;
+    if (index < 0) {
+        throw("Index is negative.");
+        return -1;
+    }
+    if (index >= length) {
+        throw("Index exceeds or is equal to length.");
+        return -1;
+    }
+    char *array = this->array;
+    char previous = array[index];
+    array[index] = value;
+    return previous;
+}
+
+CharArray CharArray_(char *array, int length) {
+    CharArray result = {array, CharArray_get, CharArray_set, length};
     return result;
 }

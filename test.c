@@ -95,14 +95,14 @@ void testOption() {
     testNone();
 }
 
-void assertThrows(char* testName_, Any* expected, Function function) {
+void assertThrows(char *testName_, Any *expected, Function function) {
     void (*executable)() = function.value;
     executable(function.caller);
 
     Option option = catch();
-    if(option.isPresent(&option)) {
-        Any* actual = option.get(&option);
-        if(expected == actual) {
+    if (option.isPresent(&option)) {
+        Any *actual = option.get(&option);
+        if (expected == actual) {
             printf("PASS -- %s\n", testName_);
         } else {
             printf("FAIL -- %s: Expected %p to be thrown, but was actually %p\n.", testName_, expected, actual);
@@ -112,19 +112,82 @@ void assertThrows(char* testName_, Any* expected, Function function) {
     }
 }
 
+void assertThrowsAnything(char *testName_, Function function) {
+    void (*executable)(Any *) = function.value;
+    executable(function.caller);
+
+    Option option = catch();
+    if (option.isPresent(&option)) {
+        printf("PASS -- %s\n", testName_);
+    } else {
+        printf("FAIL -- %s: Nothing was thrown.", testName_);
+    }
+}
+
 int thrownDummy = 100;
 
-void testAssertThrowsImpl(Any* caller){
+void testAssertThrowsImpl(Any *caller) {
     throw(&thrownDummy);
 }
 
-void testAssertThrows(){
+void testAssertThrows() {
     assertThrows("Assert Throws", &thrownDummy, Global_(testAssertThrowsImpl));
+}
+
+void assertCharsEqual(char *testName_, char expected, char actual) {
+    if (expected == actual) {
+        printf("PASS -- %s\n", testName_);
+    } else {
+        printf("FAIL -- %s: Expected %c, but was actually %c\n.", testName_, expected, actual);
+    }
+}
+
+void testCharArrayGet() {
+    CharArray array = CharArray_("test", 5);
+    char value = array.get(&array, 2);
+    assertCharsEqual("CharArray.get", 's', value);
+}
+
+void testCharArrayGetInvalidLowerImpl() {
+    CharArray array = CharArray_("test", 5);
+    array.get(&array, -1);
+}
+
+void testCharArrayGetInvalidLower() {
+    assertThrowsAnything("CharArray.get Lower", Global_(testCharArrayGetInvalidLowerImpl));
+}
+
+void testCharArrayGetInvalidUpperImpl() {
+    CharArray array = CharArray_("test", 5);
+    array.get(&array, 6);
+}
+
+void testCharArrayGetInvalidUpper() {
+    assertThrowsAnything("CharArray.get Upper", Global_(testCharArrayGetInvalidUpperImpl));
+}
+
+#include "stdlib.h"
+
+void testCharArraySet() {
+    char *block = malloc(sizeof(char));
+    CharArray array = CharArray_(block, 1);
+    char previous = array.set(&array, 0, 'x');
+    assertCharsEqual("CharArray.set previous", 0, previous);
+    assertCharsEqual("CharArray.set value", 'x', block[0]);
+    free(block);
+}
+
+void testCharArray() {
+    testCharArrayGet();
+    testCharArrayGetInvalidLower();
+    testCharArrayGetInvalidUpper();
+    testCharArraySet();
 }
 
 int main() {
     testAssertions();
     testOption();
     testAssertThrows();
+    testCharArray();
     return 0;
 }
