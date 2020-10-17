@@ -10,6 +10,7 @@ typedef int Bool;
 
 #define false 0
 #define true 1
+#define null 0
 
 int run(int argc, char **argv);
 
@@ -21,12 +22,15 @@ typedef struct Option {
     Bool (*isPresent)(struct Option *this);
 
     Bool (*isEmpty)(struct Option *this);
+
+    Any* (*get)(struct Option* this);
 } Option;
 
 Option Option_(Any *super,
                Any *(*orElse)(struct Option *this, Any *other),
                Bool (*isPresent)(struct Option *this),
-               Bool (*isEmpty)(struct Option *this));
+               Bool (*isEmpty)(struct Option *this),
+               Any* (*get)(struct Option* this));
 
 typedef struct Some {
     Any *value;
@@ -47,5 +51,14 @@ None None_();
 void throw(Any *value);
 
 Option catch();
+
+typedef struct Function {
+    Any *caller;
+    Any *value;
+} Function;
+
+Function Global_(Any* value);
+
+Function Function_(Any* caller, Any* value);
 
 #endif //MAGMA_APP_H

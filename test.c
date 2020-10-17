@@ -95,8 +95,36 @@ void testOption() {
     testNone();
 }
 
+void assertThrows(char* testName_, Any* expected, Function function) {
+    void (*executable)() = function.value;
+    executable(function.caller);
+
+    Option option = catch();
+    if(option.isPresent(&option)) {
+        Any* actual = option.get(&option);
+        if(expected == actual) {
+            printf("PASS -- %s\n", testName_);
+        } else {
+            printf("FAIL -- %s: Expected %p to be thrown, but was actually %p\n.", testName_, expected, actual);
+        }
+    } else {
+        printf("FAIL -- %s: Nothing was thrown.", testName_);
+    }
+}
+
+int thrownDummy = 100;
+
+void testAssertThrowsImpl(Any* caller){
+    throw(&thrownDummy);
+}
+
+void testAssertThrows(){
+    assertThrows("Assert Throws", &thrownDummy, Global_(testAssertThrowsImpl));
+}
+
 int main() {
     testAssertions();
     testOption();
+    testAssertThrows();
     return 0;
 }

@@ -17,8 +17,9 @@ void throw(Any *value) {
 Option Option_(Any *super,
                Any *(*orElse)(struct Option *, Any *),
                Bool (*isPresent)(struct Option *),
-               Bool (*isEmpty)(struct Option *)) {
-    Option result = {super, orElse, isPresent, isEmpty};
+               Bool (*isEmpty)(struct Option *),
+               Any* (*get)(struct Option* this)) {
+    Option result = {super, orElse, isPresent, isEmpty, get};
     return result;
 }
 
@@ -35,11 +36,17 @@ Bool Some_isEmpty(Option *this) {
     return false;
 }
 
+Any* Some_get(Option* this) {
+    Some* super = this->super;
+    return super->value;
+}
+
 Option Option_Some(Some *this) {
     return Option_(this,
                    Some_orElse,
                    Some_isPresent,
-                   Some_isEmpty);
+                   Some_isEmpty,
+                   Some_get);
 }
 
 Some Some_(Any *value) {
@@ -59,11 +66,16 @@ Bool None_isEmpty(Option *this) {
     return true;
 }
 
+Any* None_get(Option* this) {
+    return null;
+}
+
 Option None_Option(None *this) {
     Option super = Option_(this,
                            None_orElse,
                            None_isPresent,
-                           None_isEmpty);
+                           None_isEmpty,
+                           None_get);
     return super;
 }
 
@@ -79,5 +91,15 @@ Option catch() {
 
 None None_() {
     None result = {None_Option};;
+    return result;
+}
+
+Function Function_(Any *caller, Any *value) {
+    Function result = {caller, value};
+    return result;
+}
+
+Function Global_(Any *value) {
+    Function result = {null, value};
     return result;
 }
