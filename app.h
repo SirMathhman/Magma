@@ -8,7 +8,7 @@
 typedef void Any;
 typedef int Bool;
 
-#define false 1
+#define false 0
 #define true 1
 
 int run(int argc, char **argv);
