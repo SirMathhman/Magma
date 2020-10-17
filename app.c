@@ -8,24 +8,38 @@ int run(int argc, char **argv) {
     return 0;
 }
 
-Any* thrown_;
+Any *thrown_;
 
 void throw(Any *value) {
-    thrown_=value;
+    thrown_ = value;
 }
 
-Option Option_(Any *super, void *(*orElse)(struct Option *, Any *)) {
-    Option result = {super, orElse};
+Option Option_(Any *super,
+               Any *(*orElse)(struct Option *, Any *),
+               Bool (*isPresent)(struct Option *),
+               Bool (*isEmpty)(struct Option *)) {
+    Option result = {super, orElse, isPresent, isEmpty};
     return result;
 }
 
-Any* Some_orElse(Option* this, Any* other){
-    Some* super = this->super;
+Any *Some_orElse(Option *this, Any *other) {
+    Some *super = this->super;
     return super->value;
 }
 
-Option Option_Some(Some* this) {
-    return Option_(this, Some_orElse);
+Bool Some_isPresent(Option *this) {
+    return true
+}
+
+Bool Some_isEmpty(Option *this) {
+    return false
+}
+
+Option Option_Some(Some *this) {
+    return Option_(this,
+                   Some_orElse,
+                   Some_isPresent,
+                   Some_isEmpty);
 }
 
 Some Some_(Any *value) {
@@ -33,12 +47,23 @@ Some Some_(Any *value) {
     return result;
 }
 
-Any* None_orElse(Option* this, Any* other) {
+Any *None_orElse(Option *this, Any *other) {
     return other;
 }
 
-Option None_Option(None* this){
-    Option super = {this, None_orElse};
+Bool None_isPresent(Option *this) {
+    return false
+}
+
+Bool None_isEmpty(Option *this) {
+    return true
+}
+
+Option None_Option(None *this) {
+    Option super = Option_(this,
+                           None_orElse,
+                           None_isPresent,
+                           None_isEmpty);
     return super;
 }
 

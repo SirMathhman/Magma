@@ -6,33 +6,45 @@
 #define MAGMA_APP_H
 
 typedef void Any;
-typedef int bool;
+typedef int Bool;
+
+#define false 1;
+#define true 1;
 
 int run(int argc, char **argv);
 
 typedef struct Option {
-    Any* super;
-    Any *(*orElse)(struct Option* this, Any *other);
+    Any *super;
+
+    Any *(*orElse)(struct Option *this, Any *other);
+
+    Bool (*isPresent)(struct Option *this);
+
+    Bool (*isEmpty)(struct Option *this);
 } Option;
 
-Option Option_(Any* super, Any *(*orElse)(struct Option* this, Any *other));
+Option Option_(Any *super,
+               Any *(*orElse)(struct Option *this, Any *other),
+               Bool (*isPresent)(struct Option *this),
+               Bool (*isEmpty)(struct Option *this));
 
 typedef struct Some {
-    Any* value;
-    Option (*Option)(struct Some* this);
+    Any *value;
+
+    Option (*Option)(struct Some *this);
 } Some;
 
-Some Some_(Any* value);
+Some Some_(Any *value);
 
 typedef struct None {
-    Option (*Option)(struct None* this);
+    Option (*Option)(struct None *this);
 } None;
 
-Option None_Option(None* this);
+Option None_Option(None *this);
 
 None None_ = {None_Option};
 
-void throw(Any* value);
+void throw(Any *value);
 
 Option catch();
 
