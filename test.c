@@ -132,7 +132,9 @@ void assertThrowsNothing(char *testName_, Function function) {
     if (option.isEmpty(&option)) {
         printf("PASS -- %s\n", testName_);
     } else {
-        printf("FAIL -- %s: %p was thrown.", testName_, option.get(&option));
+        void *value = option.get(&option);
+        char* message = value;
+        printf("FAIL -- %s: %s", testName_, message);
     }
 }
 
@@ -196,37 +198,70 @@ void testCharArray() {
     testCharArraySet();
 }
 
-void assertIntsEqual(char* testName_, int expected, int actual){
-    if(expected == actual) {
+void assertIntsEqual(char *testName_, int expected, int actual) {
+    if (expected == actual) {
         printf("PASS -- %s\n", testName_);
     } else {
         printf("FAIL -- %s: Expected %d, but was actually %d\n", testName_, expected, actual);
     }
 }
 
-void testStringInitImpl(){
+void testStringInitImpl() {
     String_("test");
 }
 
-void testStringInit(){
+void testStringInit() {
     assertThrowsNothing("String", Global_(testStringInitImpl));
 }
 
-void testStringLength(){
+void testStringLength() {
     String value = String_("test");
     assertIntsEqual("String.length", 4, value.length(&value));
 }
 
-void testStringAsNative(){
+void testStringAsNative() {
     char *expected = "test";
     String value = String_(expected);
     assertSame("String.asNative", expected, value.asNative(&value));
 }
 
-void testStrings(){
+#include <string.h>
+
+void assertStringsEqual(char *testName_, String expected, String actual) {
+    int expectedLength = expected.length(&expected);
+    int actualLength = actual.length(&actual);
+    if(expectedLength == actualLength) {
+        for (int i = 0; i < expectedLength; ++i) {
+            char expectedChar = expected.charAt(&expected, i);
+            char actualChar = actual.charAt(&actual, i);
+            if (expectedLength != actualLength) {
+                printf("FAIL -- %s: Expected a value of %c, but was actually %c, at index %d\n",
+                       testName_, expectedChar, actualChar, i);
+            }
+        }
+        printf("PASS -- %s\n", testName_);
+    } else {
+        printf("FAIL -- %s: Expected a length of %zu, but was actually %zu.\n", testName_, expectedLength, actualLength);
+    }
+}
+
+void testSliceImpl(){
+    String value = String_("test");
+    String result = value.slice(&value, 1, 2);
+    if(catchAnything()) return;
+    assertStringsEqual("String.slice", String_("e"), result);
+    result.delete(&result);
+}
+
+void testSlice() {
+    assertThrowsNothing("String.slice", Global_(testSliceImpl));
+}
+
+void testStrings() {
     testStringInit();
     testStringLength();
     testStringAsNative();
+    testSlice();
 }
 
 int main() {

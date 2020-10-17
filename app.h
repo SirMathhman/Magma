@@ -78,8 +78,18 @@ typedef struct String {
 
     int (*length)(struct String *);
 
-    char* (*asNative)(struct String*);
+    char *(*asNative)(struct String *);
+
+    struct String (*slice)(struct String *, int from, int to);
+
+    void (*delete)(struct String *);
+
+    char (*charAt)(struct String *, int index);
 } String;
+
+Bool catchAnything();
+
+String String_default();
 
 String String_init(CharArray array);
 

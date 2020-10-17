@@ -173,10 +173,52 @@ char *String_asNative(String *this) {
     return array.array;
 }
 
+#include <stdlib.h>
+
+Bool catchAnything() {
+    return thrown_ != null;
+}
+
+String slice_String(String *this, int from, int to) {
+    if (to < from) {
+        throw("To is less than from.");
+        return String_init(CharArray_("", 0));
+    }
+    int newLength = to - from;
+    CharArray oldArray = this->array;
+    char *buffer = malloc(sizeof(char) * (newLength + 1));
+    buffer[newLength] = '\0';
+    CharArray newArray = CharArray_(buffer, newLength + 1);
+    for (int i = 0; i < newLength; ++i) {
+        char oldChar = oldArray.get(&oldArray, i + from);
+        if (catchAnything()) return String_default();
+        newArray.set(&newArray, i, oldChar);
+        if (catchAnything()) return String_default();
+    }
+    return String_fromArray(newArray);
+}
+
+void delete_String(String *this) {
+    CharArray array = this->array;
+    free(array.array);
+}
+
+char charAt_String(String *this, int index) {
+    CharArray array = this->array;
+    return array.get(&array, index);
+}
+
 String String_init(CharArray array) {
     String this = {};
     this.array = array;
     this.length = String_length;
     this.asNative = String_asNative;
+    this.slice = slice_String;
+    this.delete = delete_String;
+    this.charAt = charAt_String;
     return this;
+}
+
+String String_default() {
+    return String_init(CharArray_("", 0));
 }
