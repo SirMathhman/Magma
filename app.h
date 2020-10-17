@@ -24,6 +24,14 @@ typedef struct Some {
 
 Some Some_(Any* value);
 
+typedef struct None {
+    Option (*Option)(struct None* this);
+} None;
+
+Option None_Option(None* this);
+
+None None_ = {None_Option};
+
 void throw(Any* value);
 
 Option catch();

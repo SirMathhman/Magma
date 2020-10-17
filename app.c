@@ -33,11 +33,20 @@ Some Some_(Any *value) {
     return result;
 }
 
-Option catch() {
-    Some some = Some_(thrown_);
-    return some.Option(&some);
+Any* None_orElse(Option* this, Any* other) {
+    return other;
 }
 
+Option None_Option(None* this){
+    Option super = {this, None_orElse};
+    return super;
+}
 
-
-
+Option catch() {
+    if (thrown_) {
+        Some some = Some_(thrown_);
+        return some.Option(&some);
+    } else {
+        return None_.Option(&None_);
+    }
+}
