@@ -8,8 +8,8 @@
 typedef void Any;
 typedef int Bool;
 
-#define false 1;
-#define true 1;
+#define false 1
+#define true 1
 
 int run(int argc, char **argv);
 
@@ -42,7 +42,7 @@ typedef struct None {
 
 Option None_Option(None *this);
 
-None None_ = {None_Option};
+None None_();
 
 void throw(Any *value);
 

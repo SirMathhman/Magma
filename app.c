@@ -28,11 +28,11 @@ Any *Some_orElse(Option *this, Any *other) {
 }
 
 Bool Some_isPresent(Option *this) {
-    return true
+    return true;
 }
 
 Bool Some_isEmpty(Option *this) {
-    return false
+    return false;
 }
 
 Option Option_Some(Some *this) {
@@ -52,11 +52,11 @@ Any *None_orElse(Option *this, Any *other) {
 }
 
 Bool None_isPresent(Option *this) {
-    return false
+    return false;
 }
 
 Bool None_isEmpty(Option *this) {
-    return true
+    return true;
 }
 
 Option None_Option(None *this) {
@@ -72,6 +72,12 @@ Option catch() {
         Some some = Some_(thrown_);
         return some.Option(&some);
     } else {
-        return None_.Option(&None_);
+        None none = None_();
+        return none.Option(&none);
     }
+}
+
+None None_() {
+    None result = {None_Option};;
+    return result;
 }
