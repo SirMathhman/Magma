@@ -79,6 +79,8 @@ typedef struct String {
     int (*length)(struct String *);
 } String;
 
+String String_init(CharArray array);
+
 String String_fromArray(CharArray array);
 
 String String_(char *value);

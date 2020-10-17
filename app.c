@@ -150,12 +150,10 @@ String String_fromArray(CharArray array) {
     int length = array.length;
     char last = array.get(&array, length - 1);
     if (last == '\0') {
-        String result = {array, String_length};
-        return result;
+        return String_init(array);
     } else {
         throw("Invalid array format.");
-        String result = {CharArray_("", 0), String_length};
-        return result;
+        return String_init(CharArray_("", 0));
     }
 }
 
@@ -168,4 +166,9 @@ String String_(char *value) {
         }
     }
     return String_fromArray(CharArray_(value, length + 1));
+}
+
+String String_init(CharArray array) {
+    String result = {array, String_length};
+    return result;
 }
