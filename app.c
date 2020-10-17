@@ -140,7 +140,7 @@ CharArray CharArray_(char *array, int length) {
     return result;
 }
 
-int String_length(String* this) {
+int String_length(String *this) {
     CharArray array = this->array;
     int length = array.length;
     return length - 1;
@@ -168,7 +168,15 @@ String String_(char *value) {
     return String_fromArray(CharArray_(value, length + 1));
 }
 
+char *String_asNative(String *this) {
+    CharArray array = this->array;
+    return array.array;
+}
+
 String String_init(CharArray array) {
-    String result = {array, String_length};
-    return result;
+    String this = {};
+    this.array = array;
+    this.length = String_length;
+    this.asNative = String_asNative;
+    return this;
 }

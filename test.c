@@ -217,9 +217,16 @@ void testStringLength(){
     assertIntsEqual("String.length", 4, value.length(&value));
 }
 
+void testStringAsNative(){
+    char *expected = "test";
+    String value = String_(expected);
+    assertSame("String.asNative", expected, value.asNative(&value));
+}
+
 void testStrings(){
     testStringInit();
     testStringLength();
+    testStringAsNative();
 }
 
 int main() {
