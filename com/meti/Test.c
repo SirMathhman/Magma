@@ -82,58 +82,8 @@ void testAssertThrows() {
     assertThrows("Assert Throws", &thrownDummy, Global_(testAssertThrowsImpl));
 }
 
-#include "stdlib.h"
-#include "api/core/Option.h"
-#include "api/core/Exception.h"
-#include "api/core/Core.h"
-#include "api/collect/Array.h"
-#include "api/string/String.h"
-#include "api/test/Assert.h"
 #include "api/collect/ArrayTest.h"
-
-void testStringInitImpl() {
-    String *value = Strings.of("test");
-    value->delete(value);
-}
-
-void testStringInit() {
-    assertThrowsNothing("String", Global_(testStringInitImpl));
-}
-
-void testStringLength() {
-    String *value = Strings.of("test");
-    assertIntsEqual("String.length", 4, value->length(value));
-    value->delete(value);
-}
-
-void testStringAsNative() {
-    char *expected = "test";
-    String *value = Strings.of(expected);
-    assertSame("String.asNative", expected, value->asNative(value));
-    value->delete(value);
-}
-
-#include <string.h>
-
-void testSliceImpl() {
-    String *value = Strings.of("test");
-    String *result = value->slice(value, 1, 2);
-    if (catch_()) return;
-    String *expected = Strings.of("e");
-    assertStringsEqual("String.slice", expected, result);
-    result->delete(result);
-}
-
-void testSlice() {
-    assertThrowsNothing("String.slice", Global_(testSliceImpl));
-}
-
-void testStrings() {
-    testStringInit();
-    testStringLength();
-    testStringAsNative();
-    testSlice();
-}
+#include "api/string/StringTest.h"
 
 int main() {
     testAssertions();
