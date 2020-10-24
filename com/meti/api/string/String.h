@@ -22,7 +22,7 @@ typedef struct String {
 
     char (*charAt)(struct String *, int index);
 
-    struct String (*concat)(struct String *, struct String other);
+    struct String* (*concat)(struct String *, struct String* other);
 } String;
 
 typedef struct Strings {

@@ -45,7 +45,7 @@ char charAt_String(String *this, int index) {
     return array->get(array, index);
 }
 
-String *String_concat(String *this, String *other) {
+String *concat_String(String *this, String *other) {
     int oldLength = this->length(this);
     int addedLength = other->length(other);
     int newLength = oldLength + addedLength + 1;
@@ -80,11 +80,12 @@ String *String_of(char *value) {
 String *String_(CharArray *array) {
     String *this = malloc(sizeof(String));
     this->array = array;
-    this->length = String_length;
     this->asNative = String_asNative;
-    this->slice = slice_String;
-    this->delete = delete_String;
     this->charAt = charAt_String;
+    this->concat = concat_String;
+    this->delete = delete_String;
+    this->length = String_length;
+    this->slice = slice_String;
     return this;
 }
 

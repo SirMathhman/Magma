@@ -12,7 +12,7 @@ void testStringInitImpl() {
 }
 
 void testStringInit() {
-    assertThrowsNothing("String", Global_(testStringInitImpl));
+    assertDoesNotThrow("String", Global_(testStringInitImpl));
 }
 
 void testStringLength() {
@@ -38,7 +38,23 @@ void testSliceImpl() {
 }
 
 void testSlice() {
-    assertThrowsNothing("String.slice", Global_(testSliceImpl));
+    assertDoesNotThrow("String.slice", Global_(testSliceImpl));
+}
+
+void testConcatImpl() {
+    String *first = Strings.of("te");
+    String *second = Strings.of("st");
+    String* actual = first->concat(first, second);
+    String *expected = Strings.of("test");
+    assertStringsEqual("String.concat", expected, actual);
+    first->delete(first);
+    second->delete(second);
+    expected->delete(expected);
+    actual->delete(actual);
+}
+
+void testConcat(){
+    assertDoesNotThrow("String.concat", Global_(testConcatImpl));
 }
 
 void testStrings() {
@@ -46,4 +62,5 @@ void testStrings() {
     testStringLength();
     testStringAsNative();
     testSlice();
+    testConcat();
 }

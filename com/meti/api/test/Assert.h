@@ -17,7 +17,7 @@ void assertThrows(char *testName_, Any *expected, Function function);
 
 void assertThrowsAnything(char *testName_, Function function);
 
-void assertThrowsNothing(char *testName_, Function function);
+void assertDoesNotThrow(char *testName_, Function function);
 
 void assertCharsEqual(char *testName_, char expected, char actual);
 

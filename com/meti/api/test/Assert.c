@@ -60,7 +60,7 @@ void assertThrowsAnything(char *testName_, Function function) {
     }
 }
 
-void assertThrowsNothing(char *testName_, Function function) {
+void assertDoesNotThrow(char *testName_, Function function) {
     void (*executable)(Any *) = function.value;
     executable(function.caller);
 
