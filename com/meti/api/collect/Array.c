@@ -5,8 +5,9 @@
 #include "../core/Core.h"
 #include "../core/Exception.h"
 #include "Array.h"
+#include "stdlib.h"
 
-char CharArray_get(CharArray *this, int index) {
+char get_CharArray(CharArray *this, int index) {
     int length = this->length;
     if (index < 0) {
         throw("Index is negative.");
@@ -19,7 +20,7 @@ char CharArray_get(CharArray *this, int index) {
     return this->array[index];
 }
 
-char CharArray_set(CharArray *this, int index, char value) {
+char set_CharArray(CharArray *this, int index, char value) {
     int length = this->length;
     if (index < 0) {
         throw("Index is negative.");
@@ -35,7 +36,28 @@ char CharArray_set(CharArray *this, int index, char value) {
     return previous;
 }
 
-CharArray CharArray_(char *array, int length) {
-    CharArray result = {array, CharArray_get, CharArray_set, length};
-    return result;
+void delete_CharArray(CharArray *this) {
+    free(this->array);
+    free(this);
 }
+
+CharArray *CharArray_empty(int length) {
+    char *buffer = malloc(sizeof(char) * length);
+    return CharArrays._(buffer, length);
+}
+
+CharArray *CharArray_(char *array, int length) {
+    CharArray *this = malloc(sizeof(struct CharArray));
+    this->array = array;
+    this->length = length;
+    this->set = set_CharArray;
+    this->get = get_CharArray;
+    this->delete = delete_CharArray;
+    return this;
+}
+
+CharArray *CharArray__() {
+    return CharArrays.empty(0);
+}
+
+CharArrays_ CharArrays = {CharArray_empty, CharArray_, CharArray__};

@@ -82,30 +82,6 @@ void testAssertThrows() {
     assertThrows("Assert Throws", &thrownDummy, Global_(testAssertThrowsImpl));
 }
 
-void testCharArrayGet() {
-    CharArray array = CharArray_("test", 5);
-    char value = array.get(&array, 2);
-    assertCharsEqual("CharArray.get", 's', value);
-}
-
-void testCharArrayGetInvalidLowerImpl() {
-    CharArray array = CharArray_("test", 5);
-    array.get(&array, -1);
-}
-
-void testCharArrayGetInvalidLower() {
-    assertThrowsAnything("CharArray.get Lower", Global_(testCharArrayGetInvalidLowerImpl));
-}
-
-void testCharArrayGetInvalidUpperImpl() {
-    CharArray array = CharArray_("test", 5);
-    array.get(&array, 6);
-}
-
-void testCharArrayGetInvalidUpper() {
-    assertThrowsAnything("CharArray.get Upper", Global_(testCharArrayGetInvalidUpperImpl));
-}
-
 #include "stdlib.h"
 #include "api/core/Option.h"
 #include "api/core/Exception.h"
@@ -113,25 +89,11 @@ void testCharArrayGetInvalidUpper() {
 #include "api/collect/Array.h"
 #include "api/string/String.h"
 #include "api/test/Assert.h"
-
-void testCharArraySet() {
-    char *block = malloc(sizeof(char));
-    CharArray array = CharArray_(block, 1);
-    char previous = array.set(&array, 0, 'x');
-    assertCharsEqual("CharArray.set previous", 0, previous);
-    assertCharsEqual("CharArray.set value", 'x', block[0]);
-    free(block);
-}
-
-void testCharArray() {
-    testCharArrayGet();
-    testCharArrayGetInvalidLower();
-    testCharArrayGetInvalidUpper();
-    testCharArraySet();
-}
+#include "api/collect/ArrayTest.h"
 
 void testStringInitImpl() {
-    String_("test");
+    String *value = Strings.of("test");
+    value->delete(value);
 }
 
 void testStringInit() {
@@ -139,24 +101,27 @@ void testStringInit() {
 }
 
 void testStringLength() {
-    String value = String_("test");
-    assertIntsEqual("String.length", 4, value.length(&value));
+    String *value = Strings.of("test");
+    assertIntsEqual("String.length", 4, value->length(value));
+    value->delete(value);
 }
 
 void testStringAsNative() {
     char *expected = "test";
-    String value = String_(expected);
-    assertSame("String.asNative", expected, value.asNative(&value));
+    String *value = Strings.of(expected);
+    assertSame("String.asNative", expected, value->asNative(value));
+    value->delete(value);
 }
 
 #include <string.h>
 
 void testSliceImpl() {
-    String value = String_("test");
-    String result = value.slice(&value, 1, 2);
-    if (catchAnything()) return;
-    assertStringsEqual("String.slice", String_("e"), result);
-    result.delete(&result);
+    String *value = Strings.of("test");
+    String *result = value->slice(value, 1, 2);
+    if (catch_()) return;
+    String *expected = Strings.of("e");
+    assertStringsEqual("String.slice", expected, result);
+    result->delete(result);
 }
 
 void testSlice() {

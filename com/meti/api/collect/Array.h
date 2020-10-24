@@ -5,6 +5,9 @@
 #ifndef MAGMA_ARRAY_H
 #define MAGMA_ARRAY_H
 
+#include "../core/Core.h"
+#include "../core/Option.h"
+
 typedef struct CharArray {
     char *array;
 
@@ -13,11 +16,18 @@ typedef struct CharArray {
     char (*set)(struct CharArray *this, int index, char value);
 
     int length;
+
+    void (*delete)(struct CharArray *this);
 } CharArray;
 
-struct CharArray CharArray_(char *array, int length);
+typedef struct CharArrays {
+    struct CharArray *(*empty)(int length);
 
-#include "../core/Core.h"
-#include "../core/Option.h"
+    struct CharArray *(*_)(char *array, int length);
+
+    struct CharArray *(*__)();
+} CharArrays_;
+
+CharArrays_ CharArrays;
 
 #endif //MAGMA_ARRAY_H

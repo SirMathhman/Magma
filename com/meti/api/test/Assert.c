@@ -90,13 +90,13 @@ void assertIntsEqual(char *testName_, int expected, int actual) {
     }
 }
 
-void assertStringsEqual(char *testName_, String expected, String actual) {
-    int expectedLength = expected.length(&expected);
-    int actualLength = actual.length(&actual);
+void assertStringsEqual(char *testName_, String* expected, String* actual) {
+    int expectedLength = expected->length(expected);
+    int actualLength = actual->length(actual);
     if(expectedLength == actualLength) {
         for (int i = 0; i < expectedLength; ++i) {
-            char expectedChar = expected.charAt(&expected, i);
-            char actualChar = actual.charAt(&actual, i);
+            char expectedChar = expected->charAt(expected, i);
+            char actualChar = actual->charAt(actual, i);
             if (expectedLength != actualLength) {
                 printf("FAIL -- %s: Expected a value of %c, but was actually %c, at index %d\n",
                        testName_, expectedChar, actualChar, i);

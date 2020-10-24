@@ -23,6 +23,6 @@ Option catch() {
     }
 }
 
-Bool catchAnything() {
+Bool catch_() {
     return thrown_ != null;
 }

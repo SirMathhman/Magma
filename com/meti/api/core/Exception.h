@@ -12,7 +12,7 @@ void throw(Any *value);
 
 Option catch();
 
-Bool catchAnything();
+Bool catch_();
 
 #include "../../app.h"
 

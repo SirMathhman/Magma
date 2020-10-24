@@ -5,31 +5,34 @@
 #ifndef MAGMA_STRING_H
 #define MAGMA_STRING_H
 
+#include "../core/Core.h"
+#include "../core/Option.h"
 #include "../collect/Array.h"
 
 typedef struct String {
-    CharArray array;
+    CharArray *array;
 
     int (*length)(struct String *);
 
     char *(*asNative)(struct String *);
 
-    struct String (*slice)(struct String *, int from, int to);
+    struct String *(*slice)(struct String *, int from, int to);
 
     void (*delete)(struct String *);
 
     char (*charAt)(struct String *, int index);
+
+    struct String (*concat)(struct String *, struct String other);
 } String;
 
-String String_fromArray(CharArray array);
+typedef struct Strings {
+    String *(*of)(char *value);
 
-String String_(char *value);
+    String *(*_)(CharArray *array);
 
-String String_init(CharArray array);
+    String *(*__)();
+} Strings_;
 
-String String_default();
-
-#include "../core/Core.h"
-#include "../core/Option.h"
+Strings_ Strings;
 
 #endif //MAGMA_STRING_H

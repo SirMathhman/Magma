@@ -8,58 +8,64 @@
 #include "String.h"
 
 int String_length(String *this) {
-    CharArray array = this->array;
-    int length = array.length;
-    return length - 1;
+    return this->array->length - 1;
 }
 
 char *String_asNative(String *this) {
-    CharArray array = this->array;
-    return array.array;
+    return this->array->array;
 }
 
-
-String slice_String(String *this, int from, int to) {
+String *slice_String(String *this, int from, int to) {
     if (to < from) {
         throw("To is less than from.");
-        return String_init(CharArray_("", 0));
+        return Strings.__();
     }
     int newLength = to - from;
-    CharArray oldArray = this->array;
-    char *buffer = malloc(sizeof(char) * (newLength + 1));
-    buffer[newLength] = '\0';
-    CharArray newArray = CharArray_(buffer, newLength + 1);
+    CharArray *oldArray = this->array;
+    CharArray *newArray = CharArrays.empty(newLength + 1);
     for (int i = 0; i < newLength; ++i) {
-        char oldChar = oldArray.get(&oldArray, i + from);
-        if (catchAnything()) return String_default();
-        newArray.set(&newArray, i, oldChar);
-        if (catchAnything()) return String_default();
+        char oldChar = oldArray->get(oldArray, i + from);
+        if (catch_()) return Strings.__();
+        newArray->set(newArray, i, oldChar);
+        if (catch_()) return Strings.__();
     }
-    return String_fromArray(newArray);
+    newArray->set(newArray, newLength, '\0');
+    if (catch_()) return Strings.__();
+    return Strings._(newArray);
 }
 
 void delete_String(String *this) {
-    CharArray array = this->array;
-    free(array.array);
+    CharArray *array = this->array;
+    free(array);
+    free(this);
 }
 
 char charAt_String(String *this, int index) {
-    CharArray array = this->array;
-    return array.get(&array, index);
+    CharArray *array = this->array;
+    return array->get(array, index);
 }
 
-String String_fromArray(CharArray array) {
-    int length = array.length;
-    char last = array.get(&array, length - 1);
-    if (last == '\0') {
-        return String_init(array);
-    } else {
-        throw("Invalid array format.");
-        return String_init(CharArray_("", 0));
+String *String_concat(String *this, String *other) {
+    int oldLength = this->length(this);
+    int addedLength = other->length(other);
+    int newLength = oldLength + addedLength + 1;
+    CharArray *array = CharArrays.empty(newLength);
+    for (int i = 0; i < oldLength; ++i) {
+        char oldChar = this->charAt(this, i);
+        array->set(array, i, oldChar);
+        if (catch_()) return Strings.__();
     }
+    for (int i = 0; i < addedLength; ++i) {
+        char oldChar = other->charAt(other, i);
+        array->set(array, i + oldLength, oldChar);
+        if (catch_()) return Strings.__();
+    }
+    array->set(array, array->length - 1, '\0');
+    if (catch_()) return Strings.__();
+    return Strings._(array);
 }
 
-String String_(char *value) {
+String *String_of(char *value) {
     int length;
     for (int i = 0;; ++i) {
         if (value[i] == '\0') {
@@ -67,20 +73,23 @@ String String_(char *value) {
             break;
         }
     }
-    return String_fromArray(CharArray_(value, length + 1));
+    CharArray *array = CharArrays._(value, length + 1);
+    return Strings._(array);
 }
 
-String String_init(CharArray array) {
-    String this = {};
-    this.array = array;
-    this.length = String_length;
-    this.asNative = String_asNative;
-    this.slice = slice_String;
-    this.delete = delete_String;
-    this.charAt = charAt_String;
+String *String_(CharArray *array) {
+    String *this = malloc(sizeof(String));
+    this->array = array;
+    this->length = String_length;
+    this->asNative = String_asNative;
+    this->slice = slice_String;
+    this->delete = delete_String;
+    this->charAt = charAt_String;
     return this;
 }
 
-String String_default() {
-    return String_init(CharArray_("", 0));
+String *String__() {
+    return String_(CharArrays.__());
 }
+
+Strings_ Strings = {String_of, String_, String__};

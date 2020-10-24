@@ -23,6 +23,6 @@ void assertCharsEqual(char *testName_, char expected, char actual);
 
 void assertIntsEqual(char *testName_, int expected, int actual);
 
-void assertStringsEqual(char *testName_, String expected, String actual);
+void assertStringsEqual(char *testName_, String* expected, String* actual);
 
 #endif //MAGMA_ASSERT_H
