@@ -5,7 +5,7 @@
 #ifndef MAGMA_OPTION_H
 #define MAGMA_OPTION_H
 
-#include "core.h"
+#include "Core.h"
 
 typedef struct Option {
     Any *super;

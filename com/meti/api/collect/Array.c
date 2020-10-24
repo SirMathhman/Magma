@@ -2,13 +2,9 @@
 // Created by mathm on 10/23/2020.
 //
 
-#include <stdlib.h>
-#include "core.h"
-#include "exception.h"
-#include "option.h"
-#include "app.h"
-#include "array.h"
-
+#include "../core/Core.h"
+#include "../core/Exception.h"
+#include "Array.h"
 
 char CharArray_get(CharArray *this, int index) {
     int length = this->length;

@@ -3,5 +3,5 @@ project(Magma C)
 
 set(CMAKE_C_STANDARD 11)
 
-add_executable(Magma assertion.c assertion.h array.c array.h app.c app.h main.c core.c core.h exception.c exception.h option.c option.h strings.c strings.h)
-add_executable(MagmaTest assertion.c assertion.h array.c array.h app.c app.h test.c core.c core.h exception.c exception.h option.c option.h strings.c strings.h)
+add_executable(Magma com/meti/api/test/Assert.c com/meti/api/test/Assert.h com/meti/api/collect/Array.c com/meti/api/collect/Array.h com/meti/app.c com/meti/app.h com/meti/Main.c com/meti/api/core/Core.c com/meti/api/core/Core.h com/meti/api/core/Exception.c com/meti/api/core/Exception.h com/meti/api/core/Option.c com/meti/api/core/Option.h com/meti/api/string/String.c com/meti/api/string/String.h)
+add_executable(MagmaTest com/meti/api/test/Assert.c com/meti/api/test/Assert.h com/meti/api/collect/Array.c com/meti/api/collect/Array.h com/meti/app.c com/meti/app.h com/meti/Test.c com/meti/api/core/Core.c com/meti/api/core/Core.h com/meti/api/core/Exception.c com/meti/api/core/Exception.h com/meti/api/core/Option.c com/meti/api/core/Option.h com/meti/api/string/String.c com/meti/api/string/String.h)

@@ -3,9 +3,9 @@
 //
 
 #include <stdlib.h>
-#include "array.h"
-#include "exception.h"
-#include "strings.h"
+#include "../collect/Array.h"
+#include "../core/Exception.h"
+#include "String.h"
 
 int String_length(String *this) {
     CharArray array = this->array;

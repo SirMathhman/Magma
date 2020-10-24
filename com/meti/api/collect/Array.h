@@ -17,7 +17,7 @@ typedef struct CharArray {
 
 struct CharArray CharArray_(char *array, int length);
 
-#include "core.h"
-#include "option.h"
+#include "../core/Core.h"
+#include "../core/Option.h"
 
 #endif //MAGMA_ARRAY_H

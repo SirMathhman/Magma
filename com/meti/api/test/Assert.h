@@ -2,10 +2,10 @@
 // Created by mathm on 10/23/2020.
 //
 
-#ifndef MAGMA_ASSERTION_H
-#define MAGMA_ASSERTION_H
+#ifndef MAGMA_ASSERT_H
+#define MAGMA_ASSERT_H
 
-#include "strings.h"
+#include "../string/String.h"
 
 void assertTrue(char *testName_, Bool value);
 
@@ -25,4 +25,4 @@ void assertIntsEqual(char *testName_, int expected, int actual);
 
 void assertStringsEqual(char *testName_, String expected, String actual);
 
-#endif //MAGMA_ASSERTION_H
+#endif //MAGMA_ASSERT_H

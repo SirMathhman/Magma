@@ -5,8 +5,8 @@
 #ifndef MAGMA_EXCEPTION_H
 #define MAGMA_EXCEPTION_H
 
-#include "core.h"
-#include "option.h"
+#include "Core.h"
+#include "Option.h"
 
 void throw(Any *value);
 
@@ -14,6 +14,6 @@ Option catch();
 
 Bool catchAnything();
 
-#include "app.h"
+#include "../../app.h"
 
 #endif //MAGMA_EXCEPTION_H

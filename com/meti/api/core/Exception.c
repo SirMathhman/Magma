@@ -2,8 +2,8 @@
 // Created by SirMathhman on 10/23/2020.
 //
 
-#include "option.h"
-#include "exception.h"
+#include "Option.h"
+#include "Exception.h"
 
 Any *thrown_;
 

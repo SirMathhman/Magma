@@ -2,10 +2,10 @@
 // Created by mathm on 10/23/2020.
 //
 
-#include "strings.h"
-#include "exception.h"
+#include "../string/String.h"
+#include "../core/Exception.h"
 #include <stdio.h>
-#include "assertion.h"
+#include "Assert.h"
 
 void assertTrue(char *testName_, Bool value) {
     if (value) {

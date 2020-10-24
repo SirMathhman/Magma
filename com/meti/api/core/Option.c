@@ -2,7 +2,7 @@
 // Created by SirMathhman on 10/23/2020.
 //
 
-#include "option.h"
+#include "Option.h"
 
 Any *Some_orElse(Option *this, Any *other) {
     Some *super = this->super;

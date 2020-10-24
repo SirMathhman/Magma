@@ -3,8 +3,8 @@
 //
 
 #include "app.h"
-#include "assertion.h"
-#include "exception.h"
+#include "api/test/Assert.h"
+#include "api/core/Exception.h"
 
 void testAssertions() {
     assertTrue("Assert True", true);
@@ -107,12 +107,12 @@ void testCharArrayGetInvalidUpper() {
 }
 
 #include "stdlib.h"
-#include "option.h"
-#include "exception.h"
-#include "core.h"
-#include "array.h"
-#include "strings.h"
-#include "assertion.h"
+#include "api/core/Option.h"
+#include "api/core/Exception.h"
+#include "api/core/Core.h"
+#include "api/collect/Array.h"
+#include "api/string/String.h"
+#include "api/test/Assert.h"
 
 void testCharArraySet() {
     char *block = malloc(sizeof(char));

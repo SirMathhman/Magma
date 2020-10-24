@@ -2,10 +2,10 @@
 // Created by mathm on 10/23/2020.
 //
 
-#ifndef MAGMA_STRINGS_H
-#define MAGMA_STRINGS_H
+#ifndef MAGMA_STRING_H
+#define MAGMA_STRING_H
 
-#include "array.h"
+#include "../collect/Array.h"
 
 typedef struct String {
     CharArray array;
@@ -29,7 +29,7 @@ String String_init(CharArray array);
 
 String String_default();
 
-#include "core.h"
-#include "option.h"
+#include "../core/Core.h"
+#include "../core/Option.h"
 
-#endif //MAGMA_STRINGS_H
+#endif //MAGMA_STRING_H

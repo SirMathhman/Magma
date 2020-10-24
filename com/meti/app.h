@@ -5,8 +5,8 @@
 #ifndef MAGMA_APP_H
 #define MAGMA_APP_H
 
-#include "core.h"
-#include "option.h"
+#include "api/core/Core.h"
+#include "api/core/Option.h"
 
 int run(int argc, char **argv);
 
