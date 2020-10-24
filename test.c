@@ -3,31 +3,8 @@
 //
 
 #include "app.h"
-#include <stdio.h>
-
-void assertTrue(char *testName_, Bool value) {
-    if (value) {
-        printf("PASS -- %s\n", testName_);
-    } else {
-        printf("FAIL -- %s: Expected a true value, but was actually false.\n", testName_);
-    }
-}
-
-void assertFalse(char *testName_, Bool value) {
-    if (value) {
-        printf("FAIL -- %s: Expected a false value, but was actually true.\n", testName_);
-    } else {
-        printf("PASS -- %s\n", testName_);
-    }
-}
-
-void assertSame(char *testName_, Any *expected, Any *actual) {
-    if (expected == actual) {
-        printf("PASS -- %s\n", testName_);
-    } else {
-        printf("FAIL -- %s: Expected %p, but was actually %p\n.", testName_, expected, actual);
-    }
-}
+#include "assertion.h"
+#include "exception.h"
 
 void testAssertions() {
     assertTrue("Assert True", true);
@@ -95,49 +72,6 @@ void testOption() {
     testNone();
 }
 
-void assertThrows(char *testName_, Any *expected, Function function) {
-    void (*executable)() = function.value;
-    executable(function.caller);
-
-    Option option = catch();
-    if (option.isPresent(&option)) {
-        Any *actual = option.get(&option);
-        if (expected == actual) {
-            printf("PASS -- %s\n", testName_);
-        } else {
-            printf("FAIL -- %s: Expected %p to be thrown, but was actually %p\n.", testName_, expected, actual);
-        }
-    } else {
-        printf("FAIL -- %s: Nothing was thrown.", testName_);
-    }
-}
-
-void assertThrowsAnything(char *testName_, Function function) {
-    void (*executable)(Any *) = function.value;
-    executable(function.caller);
-
-    Option option = catch();
-    if (option.isPresent(&option)) {
-        printf("PASS -- %s\n", testName_);
-    } else {
-        printf("FAIL -- %s: Nothing was thrown.", testName_);
-    }
-}
-
-void assertThrowsNothing(char *testName_, Function function) {
-    void (*executable)(Any *) = function.value;
-    executable(function.caller);
-
-    Option option = catch();
-    if (option.isEmpty(&option)) {
-        printf("PASS -- %s\n", testName_);
-    } else {
-        void *value = option.get(&option);
-        char* message = value;
-        printf("FAIL -- %s: %s", testName_, message);
-    }
-}
-
 int thrownDummy = 100;
 
 void testAssertThrowsImpl(Any *caller) {
@@ -146,14 +80,6 @@ void testAssertThrowsImpl(Any *caller) {
 
 void testAssertThrows() {
     assertThrows("Assert Throws", &thrownDummy, Global_(testAssertThrowsImpl));
-}
-
-void assertCharsEqual(char *testName_, char expected, char actual) {
-    if (expected == actual) {
-        printf("PASS -- %s\n", testName_);
-    } else {
-        printf("FAIL -- %s: Expected %c, but was actually %c\n.", testName_, expected, actual);
-    }
 }
 
 void testCharArrayGet() {
@@ -181,6 +107,12 @@ void testCharArrayGetInvalidUpper() {
 }
 
 #include "stdlib.h"
+#include "option.h"
+#include "exception.h"
+#include "core.h"
+#include "array.h"
+#include "strings.h"
+#include "assertion.h"
 
 void testCharArraySet() {
     char *block = malloc(sizeof(char));
@@ -196,14 +128,6 @@ void testCharArray() {
     testCharArrayGetInvalidLower();
     testCharArrayGetInvalidUpper();
     testCharArraySet();
-}
-
-void assertIntsEqual(char *testName_, int expected, int actual) {
-    if (expected == actual) {
-        printf("PASS -- %s\n", testName_);
-    } else {
-        printf("FAIL -- %s: Expected %d, but was actually %d\n", testName_, expected, actual);
-    }
 }
 
 void testStringInitImpl() {
@@ -227,28 +151,10 @@ void testStringAsNative() {
 
 #include <string.h>
 
-void assertStringsEqual(char *testName_, String expected, String actual) {
-    int expectedLength = expected.length(&expected);
-    int actualLength = actual.length(&actual);
-    if(expectedLength == actualLength) {
-        for (int i = 0; i < expectedLength; ++i) {
-            char expectedChar = expected.charAt(&expected, i);
-            char actualChar = actual.charAt(&actual, i);
-            if (expectedLength != actualLength) {
-                printf("FAIL -- %s: Expected a value of %c, but was actually %c, at index %d\n",
-                       testName_, expectedChar, actualChar, i);
-            }
-        }
-        printf("PASS -- %s\n", testName_);
-    } else {
-        printf("FAIL -- %s: Expected a length of %zu, but was actually %zu.\n", testName_, expectedLength, actualLength);
-    }
-}
-
-void testSliceImpl(){
+void testSliceImpl() {
     String value = String_("test");
     String result = value.slice(&value, 1, 2);
-    if(catchAnything()) return;
+    if (catchAnything()) return;
     assertStringsEqual("String.slice", String_("e"), result);
     result.delete(&result);
 }

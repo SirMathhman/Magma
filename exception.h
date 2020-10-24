@@ -1,0 +1,19 @@
+//
+// Created by mathm on 10/23/2020.
+//
+
+#ifndef MAGMA_EXCEPTION_H
+#define MAGMA_EXCEPTION_H
+
+#include "core.h"
+#include "option.h"
+
+void throw(Any *value);
+
+Option catch();
+
+Bool catchAnything();
+
+#include "app.h"
+
+#endif //MAGMA_EXCEPTION_H
