@@ -2,60 +2,13 @@
 // Created by mathm on 11/23/2020.
 //
 
+
 #include "Main.h"
+#include "Core.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <errno.h>
 #include <string.h>
-
-typedef char I8;
-typedef int I16;
-typedef void Any;
-typedef int Bool;
-typedef size_t Size;
-typedef void Void;
-
-#define false 0
-#define true 1
-
-typedef struct Option {
-    Any *value;
-
-    Bool (*isPresent)(struct Option *);
-
-    Any *(*get)(struct Option *);
-} Option;
-
-Bool isPresent_Some(Option *this) {
-    return true;
-}
-
-Any *get_Some(Option *this) {
-    return this->value;
-}
-
-Option Some(Any *value) {
-    Option this;
-    this.isPresent = isPresent_Some;
-    this.get = get_Some;
-    this.value = value;
-    return this;
-}
-
-Bool isPresent_None(Option *this) {
-    return false;
-}
-
-Any *get_None(Option *this) {
-    return 0;
-}
-
-Option None() {
-    Option this;
-    this.isPresent = isPresent_None;
-    this.get = get_None;
-    return this;
-}
 
 typedef struct AllocatorNode {
     Any *block;
