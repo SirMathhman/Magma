@@ -16,6 +16,7 @@ typedef void Void;
 
 #define false 0
 #define true 1
+#define null 0
 
 typedef struct Option {
     Any *value;

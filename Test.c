@@ -3,3 +3,8 @@
 //
 
 #include "Test.h"
+#include "AssertTest.h"
+
+int main(){
+    testAssertions();
+}

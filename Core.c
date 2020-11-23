@@ -6,7 +6,6 @@
 #include <errno.h>
 #include <stdlib.h>
 #include <stdio.h>
-#include "Core1.h"
 #include "Main.h"
 #include "Core.h"
 
