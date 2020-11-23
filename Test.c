@@ -4,7 +4,9 @@
 
 #include "Test.h"
 #include "AssertTest.h"
+#include "OptionTest.h"
 
 int main(){
     testAssertions();
+    testOptions();
 }
