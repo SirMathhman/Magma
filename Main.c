@@ -109,7 +109,7 @@ Option last_Allocator(Allocator *this) {
 
 Any *allocate_Allocator(Allocator *this, Size size) {
     AllocatorNode *node = AllocatorNode_(size);
-    Option lastOption = last_Allocator(this);
+    Option lastOption = this->last(this);
     if (lastOption.isPresent(&lastOption)) {
         AllocatorNode *last = lastOption.get(&lastOption);
         last->next = node;
@@ -121,7 +121,7 @@ Any *allocate_Allocator(Allocator *this, Size size) {
 
 Allocator *clear_Allocator(Allocator *this) {
     AllocatorNode *head = this->head;
-    head->delete(head);
+    (*head).delete(head);
     return this;
 }
 
@@ -142,7 +142,7 @@ int main() {
         fclose(file);
 
         Allocator allocator = Allocator_();
-        I8 *block = allocator.allocate(&allocator, size);
+        I16 *block = allocator.allocate(&allocator, size * sizeof(I16));
         for (int i = 0;; i++) {
             char c = fgetc(file);
             if (c == EOF) {
