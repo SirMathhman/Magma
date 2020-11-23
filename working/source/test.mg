@@ -1,5 +1,0 @@
-import app;
-
-def main() => {
-
-}
