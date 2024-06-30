@@ -9,7 +9,7 @@ import magma.build.compile.CompileError;
 import magma.build.compile.Error_;
 import magma.build.compile.annotate.State;
 import magma.build.compile.lang.Visitor;
-import magma.build.compile.rule.Node;
+import magma.build.compile.parse.Node;
 import magma.build.java.JavaList;
 
 public class TemplateNormalizer implements Visitor {

@@ -5,7 +5,7 @@ import magma.api.result.Ok;
 import magma.api.result.Result;
 import magma.build.compile.Error_;
 import magma.build.compile.annotate.State;
-import magma.build.compile.rule.Node;
+import magma.build.compile.parse.Node;
 
 /**
  * Interface representing a visitor that performs operations on nodes before and after the main visit.

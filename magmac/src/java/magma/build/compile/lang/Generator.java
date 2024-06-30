@@ -4,7 +4,7 @@ import magma.api.Tuple;
 import magma.api.result.Result;
 import magma.build.compile.Error_;
 import magma.build.compile.annotate.State;
-import magma.build.compile.rule.Node;
+import magma.build.compile.parse.Node;
 
 /**
  * Interface representing a generator that processes a node and its state

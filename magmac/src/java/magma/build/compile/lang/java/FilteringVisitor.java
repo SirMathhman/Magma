@@ -6,7 +6,7 @@ import magma.api.result.Result;
 import magma.build.compile.Error_;
 import magma.build.compile.annotate.State;
 import magma.build.compile.lang.Visitor;
-import magma.build.compile.rule.Node;
+import magma.build.compile.parse.Node;
 
 import java.util.function.BiFunction;
 

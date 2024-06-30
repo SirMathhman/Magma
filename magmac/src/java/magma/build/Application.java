@@ -35,8 +35,8 @@ import magma.build.compile.lang.magma.FunctionOptimizer;
 import magma.build.compile.lang.magma.BlockFormatter;
 import magma.build.compile.lang.magma.OperatorFormatter;
 import magma.build.compile.lang.magma.TernaryFormatter;
-import magma.build.compile.rule.Node;
-import magma.build.compile.rule.Rule;
+import magma.build.compile.parse.Node;
+import magma.build.compile.parse.Rule;
 import magma.build.java.JavaList;
 import magma.build.java.JavaMap;
 

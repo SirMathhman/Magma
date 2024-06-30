@@ -7,7 +7,7 @@ import magma.api.result.Result;
 import magma.build.compile.CompileParentError;
 import magma.build.compile.Error_;
 import magma.build.compile.annotate.State;
-import magma.build.compile.rule.Node;
+import magma.build.compile.parse.Node;
 import magma.build.java.JavaList;
 import magma.build.java.JavaOptionals;
 

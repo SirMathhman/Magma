@@ -1,6 +1,6 @@
 package magma.build.compile.attribute;
 
-import magma.build.compile.rule.Node;
+import magma.build.compile.parse.Node;
 
 import java.util.List;
 import java.util.Optional;
