@@ -7,25 +7,24 @@ import magma.build.compile.parse.Node;
 import magma.build.compile.parse.result.ErrorRuleResult;
 import magma.build.compile.parse.result.RuleResult;
 
-public abstract class FilterRule implements Rule {
+public class FilterRule implements Rule {
     protected final Rule child;
+    private final Filter filter;
 
-    public FilterRule(Rule child) {
+    public FilterRule(Rule child, Filter filter) {
         this.child = child;
+        this.filter = filter;
     }
 
     @Override
     public RuleResult toNode(String input) {
-        if (filter(input)) return child.toNode(input);
-        return new ErrorRuleResult(new CompileError("Invalid filter: " + computeMessage(), input));
+        if (filter.filter(input)) return child.toNode(input);
+        return new ErrorRuleResult(new CompileError("Invalid filter: " + filter.computeMessage(), input));
     }
-
-    protected abstract String computeMessage();
-
-    protected abstract boolean filter(String input);
 
     @Override
     public Result<String, Error_> fromNode(Node node) {
         return child.fromNode(node);
     }
+
 }

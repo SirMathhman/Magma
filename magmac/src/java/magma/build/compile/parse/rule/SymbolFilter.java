@@ -1,10 +1,6 @@
 package magma.build.compile.parse.rule;
 
-public final class SymbolRule extends FilterRule {
-    public SymbolRule(Rule child) {
-        super(child);
-    }
-
+public class SymbolFilter implements Filter {
     private static boolean isValidDigit(int i, char c) {
         return i != 0 && Character.isDigit(c);
     }
@@ -13,13 +9,17 @@ public final class SymbolRule extends FilterRule {
         return c == '_';
     }
 
+    private static boolean isDollar(char c) {
+        return c == '$';
+    }
+
     @Override
-    protected String computeMessage() {
+    public String computeMessage() {
         return "Not a symbol.";
     }
 
     @Override
-    protected boolean filter(String input) {
+    public boolean filter(String input) {
         if (input.isEmpty()) {
             return false;
         }
@@ -36,9 +36,5 @@ public final class SymbolRule extends FilterRule {
         }
 
         return true;
-    }
-
-    private static boolean isDollar(char c) {
-        return c == '$';
     }
 }

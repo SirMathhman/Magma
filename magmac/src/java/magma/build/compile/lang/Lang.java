@@ -1,29 +1,30 @@
 package magma.build.compile.lang;
 
 import magma.build.compile.error.CompileError;
+import magma.build.compile.error.Error_;
+import magma.build.compile.parse.rule.ContextRule;
+import magma.build.compile.parse.rule.EmptyRule;
+import magma.build.compile.parse.rule.FilterRule;
+import magma.build.compile.parse.rule.LazyRule;
+import magma.build.compile.parse.rule.NumberFilter;
+import magma.build.compile.parse.rule.OptionalRule;
+import magma.build.compile.parse.rule.OrRule;
+import magma.build.compile.parse.rule.Rule;
+import magma.build.compile.parse.rule.SymbolFilter;
+import magma.build.compile.parse.rule.TypeRule;
 import magma.build.compile.parse.rule.split.FirstRule;
 import magma.build.compile.parse.rule.split.LastRule;
 import magma.build.compile.parse.rule.split.MembersSplitter;
 import magma.build.compile.parse.rule.split.ParamSplitter;
-import magma.build.compile.parse.rule.text.extract.ExtractNodeRule;
-import magma.build.compile.parse.rule.text.extract.ExtractStringListRule;
-import magma.build.compile.parse.rule.text.extract.ExtractStringRule;
-import magma.build.compile.parse.rule.text.extract.SimpleExtractStringListRule;
-import magma.build.compile.error.Error_;
-import magma.build.compile.parse.rule.ContextRule;
-import magma.build.compile.parse.rule.EmptyRule;
-import magma.build.compile.parse.rule.LazyRule;
-import magma.build.compile.parse.rule.NumberRule;
-import magma.build.compile.parse.rule.OptionalRule;
-import magma.build.compile.parse.rule.OrRule;
-import magma.build.compile.parse.rule.Rule;
-import magma.build.compile.parse.rule.SymbolRule;
-import magma.build.compile.parse.rule.TypeRule;
 import magma.build.compile.parse.rule.split.SplitMultipleRule;
 import magma.build.compile.parse.rule.split.SplitOnceRule;
 import magma.build.compile.parse.rule.text.LeftRule;
 import magma.build.compile.parse.rule.text.RightRule;
 import magma.build.compile.parse.rule.text.StripRule;
+import magma.build.compile.parse.rule.text.extract.ExtractNodeRule;
+import magma.build.compile.parse.rule.text.extract.ExtractStringListRule;
+import magma.build.compile.parse.rule.text.extract.ExtractStringRule;
+import magma.build.compile.parse.rule.text.extract.SimpleExtractStringListRule;
 
 import java.util.List;
 import java.util.Optional;
@@ -57,10 +58,11 @@ public class Lang {
         var type = new LazyRule();
         var generic = createGenericTypeRule(type);
 
+        Rule child = new ExtractStringRule("value");
         type.setRule(new OrRule(List.of(
                 new TypeRule("array", new RightRule(new ExtractNodeRule("child", type), "[]")),
                 generic,
-                new TypeRule("reference", new StripRule(new SymbolRule(new ExtractStringRule("value")))),
+                new TypeRule("reference", new StripRule(new FilterRule(child, new SymbolFilter()))),
                 new TypeRule("access", new LastRule(new ExtractNodeRule("parent", type), ".", new ExtractStringRule("member"))),
                 createFunctionType(type)
         )));
@@ -157,7 +159,8 @@ public class Lang {
     }
 
     static Rule createAssignmentRule(Rule value) {
-        var reference = new StripRule(new SymbolRule(new ExtractStringRule("reference")), "", "");
+        Rule child = new ExtractStringRule("reference");
+        var reference = new StripRule(new FilterRule(child, new SymbolFilter()), "", "");
         var assignable = new OrRule(List.of(
                 reference,
                 new LastRule(reference, ".", new ExtractStringRule("member"))
@@ -189,11 +192,13 @@ public class Lang {
 
     static TypeRule createAccessRule(String type, String separator, Rule value) {
         var parent = new ExtractNodeRule("parent", new StripRule(value));
-        return new TypeRule(type, new LastRule(parent, separator, new StripRule(new SymbolRule(new ExtractStringRule("child")))));
+        Rule child = new ExtractStringRule("child");
+        return new TypeRule(type, new LastRule(parent, separator, new StripRule(new FilterRule(child, new SymbolFilter()))));
     }
 
     static TypeRule createSymbolRule() {
-        return new TypeRule("symbol", new SymbolRule(new ExtractStringRule("value")));
+        Rule child = new ExtractStringRule("value");
+        return new TypeRule("symbol", new FilterRule(child, new SymbolFilter()));
     }
 
     static TypeRule createTernaryRule(LazyRule value) {
@@ -211,7 +216,8 @@ public class Lang {
     }
 
     static TypeRule createNumberRule() {
-        return new TypeRule("number", new NumberRule(new ExtractStringRule("value")));
+        Rule child = new ExtractStringRule("value");
+        return new TypeRule("number", new FilterRule(child, new NumberFilter()));
     }
 
     static TypeRule createCharRule() {
@@ -254,7 +260,8 @@ public class Lang {
 
     static SplitMultipleRule createTypeParamsRule() {
         var typeParam = new LazyRule();
-        var symbol = new TypeRule("symbol-type", new StripRule(new SymbolRule(new ExtractStringRule("value"))));
+        Rule child = new ExtractStringRule("value");
+        var symbol = new TypeRule("symbol-type", new StripRule(new FilterRule(child, new SymbolFilter())));
         var extendsRule = new TypeRule("extends", new StripRule(new FirstRule(new ExtractStringRule("name"), " extends ", new ExtractNodeRule("child", typeParam))));
 
         typeParam.setRule(new OrRule(List.of(

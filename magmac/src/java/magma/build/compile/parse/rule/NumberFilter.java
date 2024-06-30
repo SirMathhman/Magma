@@ -1,10 +1,6 @@
 package magma.build.compile.parse.rule;
 
-public final class NumberRule extends FilterRule {
-    public NumberRule(Rule child) {
-        super(child);
-    }
-
+public class NumberFilter implements Filter {
     private static boolean allDigits(String input) {
         if (input.isEmpty()) return false;
 
@@ -20,13 +16,14 @@ public final class NumberRule extends FilterRule {
         return true;
     }
 
+
     @Override
-    protected String computeMessage() {
+    public String computeMessage() {
         return "Not a number.";
     }
 
     @Override
-    protected boolean filter(String input) {
+    public boolean filter(String input) {
         return input.startsWith("-")
                 ? allDigits(input.substring(1))
                 : allDigits(input);

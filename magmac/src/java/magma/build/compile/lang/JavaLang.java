@@ -1,5 +1,7 @@
 package magma.build.compile.lang;
 
+import magma.build.compile.parse.rule.FilterRule;
+import magma.build.compile.parse.rule.SymbolFilter;
 import magma.build.compile.parse.rule.split.FirstRule;
 import magma.build.compile.parse.rule.split.LastRule;
 import magma.build.compile.parse.rule.split.Splitter;
@@ -11,7 +13,6 @@ import magma.build.compile.parse.rule.LazyRule;
 import magma.build.compile.parse.rule.OptionalRule;
 import magma.build.compile.parse.rule.OrRule;
 import magma.build.compile.parse.rule.Rule;
-import magma.build.compile.parse.rule.SymbolRule;
 import magma.build.compile.parse.rule.TypeRule;
 import magma.build.compile.parse.rule.split.ParamSplitter;
 import magma.build.compile.parse.rule.split.SplitMultipleRule;
@@ -123,7 +124,8 @@ public class JavaLang {
         var modifiers = Lang.createModifiersRule();
         var block = new ExtractNodeRule("child", Lang.createBlock(classMember));
 
-        var name = new StripRule(new SymbolRule(new ExtractStringRule("name")));
+        Rule child = new ExtractStringRule("name");
+        var name = new StripRule(new FilterRule(child, new SymbolFilter()));
 
         var typeParams = Lang.createTypeParamsRule();
         var withTypeParams = new StripRule(new FirstRule(name, "<", new RightRule(typeParams, ">")));
@@ -175,7 +177,8 @@ public class JavaLang {
     }
 
     private static TypeRule createAccessRule(Rule parent, Rule type) {
-        var withoutTypeArguments = new StripRule(new SymbolRule(new ExtractStringRule("child")));
+        Rule child1 = new ExtractStringRule("child");
+        var withoutTypeArguments = new StripRule(new FilterRule(child1, new SymbolFilter()));
         var withTypeArguments = new StripRule(new LeftRule("<", new LastRule(new ExtractNodeRule("type", type), ">", withoutTypeArguments)));
         var child = new StripRule(new OrRule(List.of(withTypeArguments, withoutTypeArguments)));
         return new TypeRule("access", new LastRule(parent, ".", child));
@@ -183,7 +186,8 @@ public class JavaLang {
 
     private static Rule createLambdaRule(Rule value, Rule statement) {
         var asMultiple = new StripRule(new LeftRule("(", new RightRule(new SimpleExtractStringListRule("params", ","), ")")));
-        var asSingle = new StripRule(new SymbolRule(new ExtractStringRule("param")));
+        Rule child = new ExtractStringRule("param");
+        var asSingle = new StripRule(new FilterRule(child, new SymbolFilter()));
 
         var left = new OrRule(List.of(asMultiple, asSingle));
         var maybeValue = new OrRule(List.of(
