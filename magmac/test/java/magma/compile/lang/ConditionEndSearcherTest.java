@@ -1,5 +1,6 @@
 package magma.compile.lang;
 
+import magma.build.compile.lang.ConditionEndSearcher;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;

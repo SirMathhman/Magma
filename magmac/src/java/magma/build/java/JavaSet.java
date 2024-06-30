@@ -1,0 +1,64 @@
+package magma.build.java;
+
+import magma.api.contain.stream.HeadedStream;
+import magma.api.contain.collect.Collector;
+import magma.api.contain.stream.Stream;
+import magma.api.contain.stream.Streams;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.function.Function;
+
+public record JavaSet<T>(Set<T> set) implements magma.build.java.Set<T> {
+    public JavaSet() {
+        this(Collections.emptySet());
+    }
+
+    public static <T, R> magma.build.java.Set<R> fromNative(Set<T> frames, Function<T, R> mapper) {
+        return Streams.fromNativeList(new ArrayList<>(frames))
+                .map(mapper)
+                .collect(toSet());
+    }
+
+    private static <R> Collector<R, magma.build.java.Set<R>> toSet() {
+        return new Collector<R, magma.build.java.Set<R>>() {
+            @Override
+            public magma.build.java.Set<R> createInitial() {
+                return new JavaSet<>();
+            }
+
+            @Override
+            public magma.build.java.Set<R> fold(magma.build.java.Set<R> current, R next) {
+                return current.add(next);
+            }
+        };
+    }
+
+    public static <T> Collector<T, magma.build.java.Set<T>> collecting() {
+        return new Collector<>() {
+            @Override
+            public magma.build.java.Set<T> createInitial() {
+                return new JavaSet<>();
+            }
+
+            @Override
+            public magma.build.java.Set<T> fold(magma.build.java.Set<T> current, T next) {
+                return current.add(next);
+            }
+        };
+    }
+
+    @Override
+    public Stream<T> stream() {
+        return new HeadedStream<>(new NativeListHead<>(new ArrayList<>(set)));
+    }
+
+    @Override
+    public magma.build.java.Set<T> add(T next) {
+        var copy = new HashSet<>(set);
+        copy.add(next);
+        return new JavaSet<>(copy);
+    }
+}

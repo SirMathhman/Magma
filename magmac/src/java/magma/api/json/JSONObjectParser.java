@@ -5,7 +5,7 @@ import magma.api.contain.Map;
 import magma.api.contain.collect.RequiredCollector;
 import magma.api.option.None;
 import magma.api.option.Option;
-import magma.java.JavaMap;
+import magma.build.java.JavaMap;
 
 public record JSONObjectParser(JSONParser valueParser) implements JSONParser {
     @Override

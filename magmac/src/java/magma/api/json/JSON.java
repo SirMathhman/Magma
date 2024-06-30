@@ -1,7 +1,7 @@
 package magma.api.json;
 
 import magma.api.contain.List;
-import magma.java.JavaList;
+import magma.build.java.JavaList;
 
 import java.util.ArrayList;
 

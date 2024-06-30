@@ -4,7 +4,7 @@ import magma.api.contain.List;
 import magma.api.contain.collect.RequiredCollector;
 import magma.api.option.None;
 import magma.api.option.Option;
-import magma.java.JavaList;
+import magma.build.java.JavaList;
 
 public record JSONArrayParser(JSONParser valueParser) implements JSONParser {
     @Override

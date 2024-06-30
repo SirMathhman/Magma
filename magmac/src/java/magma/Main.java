@@ -10,9 +10,13 @@ import magma.api.option.Option;
 import magma.api.result.Err;
 import magma.api.result.Ok;
 import magma.api.result.Result;
-import magma.compile.CompileException;
-import magma.java.JavaList;
-import magma.java.JavaResults;
+import magma.build.Application;
+import magma.build.Build;
+import magma.build.BuildSet;
+import magma.build.Configuration;
+import magma.build.compile.CompileException;
+import magma.build.java.JavaList;
+import magma.build.java.JavaResults;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -20,7 +24,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
 
-import static magma.java.JavaResults.$Void;
+import static magma.build.java.JavaResults.$Void;
 
 public class Main {
     public static final Path CONFIG_PATH = Paths.get(".", "config.json");

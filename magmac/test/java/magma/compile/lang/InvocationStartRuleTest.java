@@ -1,5 +1,6 @@
 package magma.compile.lang;
 
+import magma.build.compile.lang.InvocationStartSearcher;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 

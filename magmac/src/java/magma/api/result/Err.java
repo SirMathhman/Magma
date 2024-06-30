@@ -1,7 +1,7 @@
 package magma.api.result;
 
 import magma.api.option.Option;
-import magma.java.JavaOptionals;
+import magma.build.java.JavaOptionals;
 
 import java.util.Optional;
 import java.util.function.Function;

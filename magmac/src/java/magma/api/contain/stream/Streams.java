@@ -3,8 +3,8 @@ package magma.api.contain.stream;
 import magma.api.option.None;
 import magma.api.option.Option;
 import magma.api.option.Some;
-import magma.java.JavaOptionals;
-import magma.java.NativeListHead;
+import magma.build.java.JavaOptionals;
+import magma.build.java.NativeListHead;
 
 import java.util.List;
 import java.util.Optional;
