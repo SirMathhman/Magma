@@ -1,7 +1,7 @@
 package magma.build.compile.lang;
 
 import magma.api.Tuple;
-import magma.build.compile.parse.split.Searcher;
+import magma.build.compile.parse.rule.split.Searcher;
 
 import java.util.LinkedList;
 import java.util.Optional;

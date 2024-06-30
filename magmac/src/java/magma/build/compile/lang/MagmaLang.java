@@ -1,20 +1,20 @@
 package magma.build.compile.lang;
 
-import magma.build.compile.parse.text.extract.ExtractStringRule;
-import magma.build.compile.parse.text.extract.SimpleExtractStringListRule;
-import magma.build.compile.parse.ContextRule;
-import magma.build.compile.parse.EmptyRule;
-import magma.build.compile.parse.LazyRule;
-import magma.build.compile.parse.OptionalRule;
-import magma.build.compile.parse.OrRule;
-import magma.build.compile.parse.Rule;
-import magma.build.compile.parse.TypeRule;
-import magma.build.compile.parse.split.FirstRule;
-import magma.build.compile.parse.split.LastRule;
-import magma.build.compile.parse.text.LeftRule;
-import magma.build.compile.parse.text.RightRule;
-import magma.build.compile.parse.text.StripRule;
-import magma.build.compile.parse.text.extract.ExtractNodeRule;
+import magma.build.compile.parse.rule.text.extract.ExtractStringRule;
+import magma.build.compile.parse.rule.text.extract.SimpleExtractStringListRule;
+import magma.build.compile.parse.rule.ContextRule;
+import magma.build.compile.parse.rule.EmptyRule;
+import magma.build.compile.parse.rule.LazyRule;
+import magma.build.compile.parse.rule.OptionalRule;
+import magma.build.compile.parse.rule.OrRule;
+import magma.build.compile.parse.rule.Rule;
+import magma.build.compile.parse.rule.TypeRule;
+import magma.build.compile.parse.rule.split.FirstRule;
+import magma.build.compile.parse.rule.split.LastRule;
+import magma.build.compile.parse.rule.text.LeftRule;
+import magma.build.compile.parse.rule.text.RightRule;
+import magma.build.compile.parse.rule.text.StripRule;
+import magma.build.compile.parse.rule.text.extract.ExtractNodeRule;
 
 import java.util.List;
 

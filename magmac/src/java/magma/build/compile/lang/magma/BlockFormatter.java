@@ -10,7 +10,7 @@ import magma.build.compile.lang.Visitor;
 import magma.build.compile.error.Error_;
 import magma.build.compile.annotate.State;
 import magma.build.compile.parse.Node;
-import magma.build.compile.parse.text.StripRule;
+import magma.build.compile.parse.rule.text.StripRule;
 import magma.build.java.JavaList;
 
 public class BlockFormatter implements Visitor {
