@@ -4,7 +4,7 @@ import magma.api.Tuple;
 import magma.api.contain.List;
 import magma.api.result.Ok;
 import magma.api.result.Result;
-import magma.build.compile.Error_;
+import magma.build.compile.error.Error_;
 import magma.build.compile.annotate.State;
 import magma.build.compile.lang.Visitor;
 import magma.build.compile.parse.Node;

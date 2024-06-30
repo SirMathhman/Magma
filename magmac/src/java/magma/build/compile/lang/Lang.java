@@ -1,6 +1,6 @@
 package magma.build.compile.lang;
 
-import magma.build.compile.CompileError;
+import magma.build.compile.error.CompileError;
 import magma.build.compile.parse.split.FirstRule;
 import magma.build.compile.parse.split.LastRule;
 import magma.build.compile.parse.split.MembersSplitter;
@@ -9,7 +9,7 @@ import magma.build.compile.parse.text.extract.ExtractNodeRule;
 import magma.build.compile.parse.text.extract.ExtractStringListRule;
 import magma.build.compile.parse.text.extract.ExtractStringRule;
 import magma.build.compile.parse.text.extract.SimpleExtractStringListRule;
-import magma.build.compile.Error_;
+import magma.build.compile.error.Error_;
 import magma.build.compile.parse.ContextRule;
 import magma.build.compile.parse.EmptyRule;
 import magma.build.compile.parse.LazyRule;

@@ -2,7 +2,7 @@ package magma.build.compile.parse.text.extract;
 
 import magma.api.result.Ok;
 import magma.api.result.Result;
-import magma.build.compile.Error_;
+import magma.build.compile.error.Error_;
 import magma.build.compile.attribute.Attribute;
 import magma.build.compile.attribute.StringAttribute;
 import magma.build.compile.parse.Node;

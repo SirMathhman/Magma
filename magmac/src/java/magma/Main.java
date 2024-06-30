@@ -14,7 +14,7 @@ import magma.build.Application;
 import magma.build.Build;
 import magma.build.BuildSet;
 import magma.build.Configuration;
-import magma.build.compile.CompileException;
+import magma.build.compile.error.CompileException;
 import magma.build.java.JavaList;
 import magma.build.java.JavaResults;
 

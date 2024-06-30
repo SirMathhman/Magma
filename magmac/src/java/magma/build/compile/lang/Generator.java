@@ -2,7 +2,7 @@ package magma.build.compile.lang;
 
 import magma.api.Tuple;
 import magma.api.result.Result;
-import magma.build.compile.Error_;
+import magma.build.compile.error.Error_;
 import magma.build.compile.annotate.State;
 import magma.build.compile.parse.Node;
 

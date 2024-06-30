@@ -11,7 +11,7 @@ import magma.api.option.Option;
 import magma.api.option.Some;
 import magma.api.result.Ok;
 import magma.api.result.Result;
-import magma.build.compile.Error_;
+import magma.build.compile.error.Error_;
 import magma.build.compile.annotate.State;
 import magma.build.compile.lang.Visitor;
 import magma.build.compile.parse.Node;

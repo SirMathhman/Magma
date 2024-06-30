@@ -1,7 +1,7 @@
 package magma.build.compile.parse;
 
 import magma.api.result.Result;
-import magma.build.compile.Error_;
+import magma.build.compile.error.Error_;
 import magma.build.compile.parse.result.RuleResult;
 
 /**

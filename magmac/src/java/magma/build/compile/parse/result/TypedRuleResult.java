@@ -1,7 +1,7 @@
 package magma.build.compile.parse.result;
 
 import magma.api.option.Option;
-import magma.build.compile.Error_;
+import magma.build.compile.error.Error_;
 import magma.build.compile.attribute.Attributes;
 import magma.build.compile.parse.ImmutableNode;
 import magma.build.compile.parse.Node;

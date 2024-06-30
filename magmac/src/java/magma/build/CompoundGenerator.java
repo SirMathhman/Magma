@@ -3,7 +3,7 @@ package magma.build;
 import magma.api.Tuple;
 import magma.api.contain.stream.Streams;
 import magma.api.result.Result;
-import magma.build.compile.Error_;
+import magma.build.compile.error.Error_;
 import magma.build.compile.annotate.State;
 import magma.build.compile.lang.Generator;
 import magma.build.compile.parse.Node;

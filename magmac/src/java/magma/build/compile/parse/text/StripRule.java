@@ -1,8 +1,8 @@
 package magma.build.compile.parse.text;
 
 import magma.api.result.Result;
-import magma.build.compile.CompileParentError;
-import magma.build.compile.Error_;
+import magma.build.compile.error.CompileParentError;
+import magma.build.compile.error.Error_;
 import magma.build.compile.parse.result.RuleResult;
 import magma.build.compile.parse.Node;
 import magma.build.compile.parse.Rule;

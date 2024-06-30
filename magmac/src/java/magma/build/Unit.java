@@ -1,7 +1,7 @@
 package magma.build;
 
 import magma.api.result.Result;
-import magma.build.compile.CompileException;
+import magma.build.compile.error.CompileException;
 
 import java.util.List;
 

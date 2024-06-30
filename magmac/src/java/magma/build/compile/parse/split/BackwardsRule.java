@@ -1,13 +1,13 @@
 package magma.build.compile.parse.split;
 
 import magma.api.result.Result;
-import magma.build.compile.CompileError;
-import magma.build.compile.CompileParentError;
+import magma.build.compile.error.CompileError;
+import magma.build.compile.error.CompileParentError;
 import magma.build.compile.parse.result.ErrorRuleResult;
 import magma.build.compile.parse.result.RuleResult;
 import magma.build.compile.parse.result.UntypedRuleResult;
-import magma.build.compile.Error_;
-import magma.build.compile.MultipleError;
+import magma.build.compile.error.Error_;
+import magma.build.compile.error.MultipleError;
 import magma.build.compile.parse.Node;
 import magma.build.compile.parse.Rule;
 import magma.build.java.JavaOptionals;

@@ -1,4 +1,4 @@
-package magma.build.compile;
+package magma.build.compile.error;
 
 import java.io.IOException;
 

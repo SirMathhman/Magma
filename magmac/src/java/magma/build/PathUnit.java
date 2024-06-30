@@ -3,7 +3,7 @@ package magma.build;
 import magma.api.result.Err;
 import magma.api.result.Ok;
 import magma.api.result.Result;
-import magma.build.compile.CompileException;
+import magma.build.compile.error.CompileException;
 
 import java.io.IOException;
 import java.nio.file.Files;

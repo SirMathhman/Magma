@@ -1,4 +1,4 @@
-package magma.build.compile;
+package magma.build.compile.error;
 
 public class GeneratingException extends Exception {
     public final String content;

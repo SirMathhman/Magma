@@ -1,6 +1,6 @@
 package magma.build.compile.parse.text.extract;
 
-import magma.build.compile.Error_;
+import magma.build.compile.error.Error_;
 import magma.build.compile.parse.Rule;
 import magma.build.compile.parse.result.RuleResult;
 import magma.build.java.JavaOptionals;

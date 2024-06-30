@@ -1,8 +1,8 @@
 package magma.build.compile.parse;
 
 import magma.api.result.Result;
-import magma.build.compile.CompileParentError;
-import magma.build.compile.Error_;
+import magma.build.compile.error.CompileParentError;
+import magma.build.compile.error.Error_;
 import magma.build.compile.parse.result.RuleResult;
 
 public record ContextRule(String message, Rule child) implements Rule {
