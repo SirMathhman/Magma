@@ -4,14 +4,14 @@ import magma.build.compile.error.CompileError;
 import magma.build.compile.error.Error_;
 import magma.build.compile.parse.rule.ContextRule;
 import magma.build.compile.parse.rule.EmptyRule;
-import magma.build.compile.parse.rule.filter.FilterRule;
 import magma.build.compile.parse.rule.LazyRule;
-import magma.build.compile.parse.rule.filter.NumberFilter;
 import magma.build.compile.parse.rule.OptionalRule;
 import magma.build.compile.parse.rule.OrRule;
 import magma.build.compile.parse.rule.Rule;
-import magma.build.compile.parse.rule.filter.SymbolFilter;
 import magma.build.compile.parse.rule.TypeRule;
+import magma.build.compile.parse.rule.filter.FilterRule;
+import magma.build.compile.parse.rule.filter.NumberFilter;
+import magma.build.compile.parse.rule.filter.SymbolFilter;
 import magma.build.compile.parse.rule.split.FirstRule;
 import magma.build.compile.parse.rule.split.LastRule;
 import magma.build.compile.parse.rule.split.MembersSplitter;
@@ -64,7 +64,8 @@ public class Lang {
                 generic,
                 new TypeRule("reference", new StripRule(new FilterRule(child, new SymbolFilter()))),
                 new TypeRule("access", new LastRule(new ExtractNodeRule("parent", type), ".", new ExtractStringRule("member"))),
-                createFunctionType(type)
+                createFunctionType(type),
+                new TypeRule("qualified", new LastRule(new ExtractNodeRule("parent", type), ".", new ExtractStringRule("child")))
         )));
 
         return type;
