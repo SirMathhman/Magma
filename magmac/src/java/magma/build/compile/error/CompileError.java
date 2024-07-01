@@ -1,5 +1,9 @@
 package magma.build.compile.error;
 
+import magma.api.option.None;
+import magma.api.option.Option;
+
+import java.time.Duration;
 import java.util.List;
 import java.util.Optional;
 
@@ -22,5 +26,10 @@ public record CompileError(String message, String context) implements Error_ {
     @Override
     public int calculateDepth() {
         return 1;
+    }
+
+    @Override
+    public Option<Duration> findDuration() {
+        return new None<>();
     }
 }

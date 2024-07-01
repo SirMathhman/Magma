@@ -11,7 +11,29 @@ import magma.build.compile.parse.result.ParsingResult;
 import magma.build.compile.parse.rule.Rule;
 import magma.build.compile.parse.rule.Rules;
 
+import java.util.function.Function;
+
 public record FilterRule(Rule child, Filter filter) implements Rule {
+    private static ParsingResult enforceTimeout(String input, ParsingResult result, Function<Error_, Error_> mapper) {
+        var errorOptional = result.findError();
+        if (errorOptional.isPresent()) {
+            var error = errorOptional.orElsePanic();
+            var duration = error.findDuration();
+            if (duration.isPresent()) {
+                return result.mapErr(mapper);
+            }
+        }
+
+        var durationOptional = result.findDuration();
+        if (!durationOptional.isPresent()) return result;
+
+        var duration = durationOptional.orElsePanic();
+        if (Rules.exceedsTimeout(duration)) {
+            return new ErrorParsingResult(new TimeoutError(input, duration));
+        }
+        return result;
+    }
+
     @Override
     public Result<String, Error_> fromNode(Node node) {
         return child.fromNode(node);
@@ -26,21 +48,6 @@ public record FilterRule(Rule child, Filter filter) implements Rule {
         }
 
         var result = Rules.toNode(child, input);
-
-        var errorOptional = result.findError();
-        if (errorOptional.isPresent()) {
-            var error = errorOptional.orElsePanic();
-            var duration = error.findDuration();
-            if (duration.isPresent()) {
-                return result.mapErr(err -> new CompileParentError("Failed to apply filter.", input, err));
-            }
-        }
-
-        var durationOptional = result.findDuration();
-        if (!durationOptional.isPresent()) return result;
-
-        var duration = durationOptional.orElsePanic();
-        if (duration.compareTo(Rules.DEFAULT_TIMEOUT) <= 0) return result;
-        return new ErrorParsingResult(new TimeoutError(input, duration));
+        return enforceTimeout(input, result, err -> new CompileParentError("Failed to apply filter.", input, err));
     }
 }

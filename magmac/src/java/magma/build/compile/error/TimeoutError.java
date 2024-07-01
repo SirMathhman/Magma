@@ -1,5 +1,8 @@
 package magma.build.compile.error;
 
+import magma.api.option.Option;
+import magma.api.option.Some;
+
 import java.time.Duration;
 import java.util.List;
 import java.util.Optional;
@@ -31,5 +34,10 @@ public class TimeoutError implements Error_ {
     @Override
     public int calculateDepth() {
         return 0;
+    }
+
+    @Override
+    public Option<Duration> findDuration() {
+        return new Some<>(duration);
     }
 }

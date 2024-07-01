@@ -1,5 +1,9 @@
 package magma.build.compile.error;
 
+import magma.api.option.None;
+import magma.api.option.Option;
+
+import java.time.Duration;
 import java.util.List;
 import java.util.Optional;
 
@@ -8,6 +12,11 @@ public class MultipleError implements Error_ {
 
     public MultipleError(List<Error_> errors) {
         this.errors = errors;
+    }
+
+    @Override
+    public Option<Duration> findDuration() {
+        return new None<>();
     }
 
     @Override

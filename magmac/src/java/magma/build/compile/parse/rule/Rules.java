@@ -20,4 +20,8 @@ public class Rules {
         var duration = Duration.between(before, after);
         return result.withDuration(duration);
     }
+
+    public static boolean exceedsTimeout(Duration duration) {
+        return duration.compareTo(DEFAULT_TIMEOUT) > 0;
+    }
 }
