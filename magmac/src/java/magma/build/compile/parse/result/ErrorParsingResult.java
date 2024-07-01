@@ -1,35 +1,25 @@
 package magma.build.compile.parse.result;
 
+import magma.api.option.None;
 import magma.api.option.Option;
+import magma.api.option.Some;
 import magma.api.result.Err;
-import magma.api.result.Ok;
 import magma.api.result.Result;
-import magma.build.compile.error.CompileError;
-import magma.build.compile.error.Error_;
 import magma.build.compile.attribute.Attributes;
+import magma.build.compile.error.Error_;
 import magma.build.compile.parse.Node;
-import magma.build.java.JavaOptionals;
 
-import java.util.Optional;
+import java.time.Duration;
 import java.util.function.Function;
 
-public record ErrorParsingResult(Error_ e) implements ParsingResult {
-
-    private Optional<Error_> findError0() {
-        return Optional.of(e);
+public record ErrorParsingResult(Error_ e, Option<Duration> duration) implements ParsingResult {
+    public ErrorParsingResult(Error_ e) {
+        this(e, new None<>());
     }
 
     @Override
     public ParsingResult mapErr(Function<Error_, Error_> mapper) {
-        return new ErrorParsingResult(mapper.apply(e));
-    }
-
-    private Optional<Attributes> findAttributes0() {
-        return Optional.empty();
-    }
-
-    private Optional<Node> tryCreate0() {
-        return Optional.empty();
+        return new ErrorParsingResult(mapper.apply(e), duration);
     }
 
     @Override
@@ -39,23 +29,31 @@ public record ErrorParsingResult(Error_ e) implements ParsingResult {
 
     @Override
     public Option<Error_> findError() {
-        return JavaOptionals.fromNative(findError0());
+        return new Some<>(e);
     }
 
     @Override
     public Option<Attributes> findAttributes() {
-        return JavaOptionals.fromNative(findAttributes0());
+        return new None<>();
     }
 
     @Override
     public Option<Node> tryCreate() {
-        return JavaOptionals.fromNative(tryCreate0());
+        return new None<>();
+    }
+
+    @Override
+    public Option<Duration> findDuration() {
+        return duration;
+    }
+
+    @Override
+    public ParsingResult withDuration(Duration duration) {
+        return new ErrorParsingResult(e, new Some<>(duration));
     }
 
     @Override
     public Result<Node, Error_> create() {
-        return tryCreate()
-                .<Result<Node, Error_>>map(Ok::new)
-                .orElseGet(() -> findError().map(err -> new Err<Node, Error_>(err)).orElseGet(() -> new Err<>(new CompileError("Neither value nor error is present.", ""))));
+        return new Err<>(e);
     }
 }
