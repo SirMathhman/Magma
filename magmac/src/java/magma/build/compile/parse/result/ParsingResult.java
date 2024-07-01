@@ -10,6 +10,7 @@ import java.time.Duration;
 import java.util.function.Function;
 
 public interface ParsingResult {
+    @Deprecated
     Option<Error_> findError();
 
     Option<Attributes> findAttributes();

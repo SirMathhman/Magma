@@ -11,9 +11,6 @@ public class CompileException extends Exception {
         super(message);
     }
 
-    public CompileException() {
-    }
-
     public CompileException(IOException cause) {
         super(cause);
     }
