@@ -171,9 +171,15 @@ public class JavaLang {
                 Lang.createOperatorRule("greater-than", ">", value),
                 Lang.createOperatorRule("or", "||", value),
                 Lang.createOperatorRule("less-than", "<", value),
-                Lang.createNotRule(value)
+                Lang.createNotRule(value),
+                createCastRule(value)
         )));
         return value;
+    }
+
+    private static TypeRule createCastRule(LazyRule value) {
+        var type = new ExtractNodeRule("type", Lang.createTypeRule());
+        return new TypeRule("cast", new StripRule(new LeftRule("(", new LastRule(type, ")", value))));
     }
 
     private static TypeRule createAccessRule(Rule parent, Rule type) {

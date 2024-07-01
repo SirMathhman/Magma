@@ -198,7 +198,7 @@ public class Lang {
 
     static TypeRule createSymbolRule() {
         Rule child = new ExtractStringRule("value");
-        return new TypeRule("symbol", new FilterRule(child, new SymbolFilter()));
+        return new TypeRule("symbol", new StripRule(new FilterRule(child, new SymbolFilter())));
     }
 
     static TypeRule createTernaryRule(LazyRule value) {
