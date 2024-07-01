@@ -8,6 +8,7 @@ import magma.build.compile.parse.Node;
 
 import java.time.Duration;
 import java.util.function.Function;
+import java.util.function.Supplier;
 
 public interface ParsingResult {
     @Deprecated
@@ -26,4 +27,8 @@ public interface ParsingResult {
     ParsingResult mapErr(Function<Error_, Error_> mapper);
 
     Result<Node, Error_> create();
+
+    ParsingResult merge(Supplier<ParsingResult> other);
+
+    ParsingResult mapCreate(Function<Node, Attributes> mapper);
 }

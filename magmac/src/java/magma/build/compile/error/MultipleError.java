@@ -4,11 +4,16 @@ import magma.api.option.None;
 import magma.api.option.Option;
 
 import java.time.Duration;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
 public class MultipleError implements Error_ {
     private final List<Error_> errors;
+
+    public MultipleError() {
+        this(new ArrayList<>());
+    }
 
     public MultipleError(List<Error_> errors) {
         this.errors = errors;

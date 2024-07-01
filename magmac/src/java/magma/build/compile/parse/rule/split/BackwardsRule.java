@@ -20,38 +20,17 @@ import java.util.List;
 public record BackwardsRule(Rule leftRule, String slice, Rule rightRule) implements Rule {
     private ParsingResult toNode0(String input) {
         var allIndexes = findAllIndexesReverse(input);
-        var errors = new ArrayList<Error_>();
+        ParsingResult current = new ErrorParsingResult(new MultipleError());
 
-        for (Integer index : allIndexes) {
+        for (var index : allIndexes) {
             var leftSlice = input.substring(0, index);
             var rightSlice = input.substring(index + slice.length());
 
             var leftResult = Rules.toNode(leftRule, leftSlice);
-            if (JavaOptionals.toNative(leftResult.findError()).isPresent()) {
-                errors.add(wrapError(leftSlice, rightSlice, JavaOptionals.toNative(leftResult.findError()).get()));
-                continue;
-            }
-
-            var rightResult = Rules.toNode(rightRule, rightSlice);
-            if (JavaOptionals.toNative(rightResult.findError()).isPresent()) {
-                errors.add(wrapError(leftSlice, rightSlice, JavaOptionals.toNative(rightResult.findError()).get()));
-                continue;
-            }
-
-            var optional = JavaOptionals.toNative(leftResult.findAttributes())
-                    .flatMap(leftAttributes -> JavaOptionals.toNative(rightResult.findAttributes()).map(rightAttributes -> rightAttributes.merge(leftAttributes)))
-                    .map(UntypedParsingResult::new);
-
-            if (optional.isPresent()) {
-                return optional.get();
-            }
+            current = current.merge(() -> leftResult.merge(() -> Rules.toNode(rightRule, rightSlice)));
         }
 
-        if (errors.isEmpty()) {
-            return new ErrorParsingResult(new CompileError("No rules were present.", input));
-        } else {
-            return new ErrorParsingResult(new MultipleError(errors));
-        }
+        return current;
     }
 
     private static CompileParentError wrapError(String leftSlice, String rightSlice, Error_ error) {
