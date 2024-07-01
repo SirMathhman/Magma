@@ -6,6 +6,7 @@ import magma.build.compile.attribute.Attributes;
 import magma.build.compile.error.Error_;
 import magma.build.compile.parse.Node;
 
+import java.time.Duration;
 import java.util.function.Function;
 
 public interface ParsingResult {
@@ -14,6 +15,10 @@ public interface ParsingResult {
     Option<Attributes> findAttributes();
 
     Option<Node> tryCreate();
+
+    Option<Duration> findDuration();
+
+    ParsingResult withDuration(Duration duration);
 
     ParsingResult withType(String type);
 

@@ -1,31 +1,25 @@
 package magma.build.compile.parse.result;
 
+import magma.api.option.None;
 import magma.api.option.Option;
-import magma.api.result.Err;
+import magma.api.option.Some;
 import magma.api.result.Ok;
 import magma.api.result.Result;
-import magma.build.compile.error.CompileError;
-import magma.build.compile.error.Error_;
 import magma.build.compile.attribute.Attributes;
+import magma.build.compile.error.Error_;
 import magma.build.compile.parse.ImmutableNode;
 import magma.build.compile.parse.Node;
-import magma.build.java.JavaOptionals;
 
-import java.util.Optional;
+import java.time.Duration;
 import java.util.function.Function;
 
-public record TypedParsingResult(String name, Attributes attributes) implements ParsingResult {
-
-    private Optional<Attributes> findAttributes0() {
-        return Optional.of(attributes);
-    }
-
-    private Optional<Node> tryCreate0() {
-        return Optional.of(new ImmutableNode(name, attributes));
-    }
-
-    private Optional<Error_> findError0() {
-        return Optional.empty();
+public record TypedParsingResult(
+        String name,
+        Attributes attributes,
+        Option<Duration> duration
+) implements ParsingResult {
+    public TypedParsingResult(String name, Attributes attributes) {
+        this(name, attributes, new None<>());
     }
 
     @Override
@@ -40,23 +34,31 @@ public record TypedParsingResult(String name, Attributes attributes) implements 
 
     @Override
     public Option<Error_> findError() {
-        return JavaOptionals.fromNative(findError0());
+        return new None<>();
     }
 
     @Override
     public Option<Attributes> findAttributes() {
-        return JavaOptionals.fromNative(findAttributes0());
+        return new Some<>(attributes);
     }
 
     @Override
     public Option<Node> tryCreate() {
-        return JavaOptionals.fromNative(tryCreate0());
+        return new Some<>(new ImmutableNode(name, attributes));
+    }
+
+    @Override
+    public Option<Duration> findDuration() {
+        return duration;
+    }
+
+    @Override
+    public ParsingResult withDuration(Duration duration) {
+        return new TypedParsingResult(name, attributes, new Some<>(duration));
     }
 
     @Override
     public Result<Node, Error_> create() {
-        return tryCreate()
-                .<Result<Node, Error_>>map(Ok::new)
-                .orElseGet(() -> findError().map(err -> new Err<Node, Error_>(err)).orElseGet(() -> new Err<>(new CompileError("Neither value nor error is present.", ""))));
+        return new Ok<>(new ImmutableNode(name, attributes));
     }
 }
