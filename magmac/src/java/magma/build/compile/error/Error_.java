@@ -1,5 +1,8 @@
 package magma.build.compile.error;
 
+import magma.api.option.Option;
+
+import java.time.Duration;
 import java.util.List;
 import java.util.Optional;
 
@@ -35,4 +38,6 @@ public interface Error_ {
      * @return an integer representing the depth of the error
      */
     int calculateDepth();
+
+    Option<Duration> findDuration();
 }

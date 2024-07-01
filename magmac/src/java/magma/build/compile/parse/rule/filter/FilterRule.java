@@ -2,6 +2,7 @@ package magma.build.compile.parse.rule.filter;
 
 import magma.api.result.Result;
 import magma.build.compile.error.CompileError;
+import magma.build.compile.error.CompileParentError;
 import magma.build.compile.error.Error_;
 import magma.build.compile.error.TimeoutError;
 import magma.build.compile.parse.Node;
@@ -25,6 +26,16 @@ public record FilterRule(Rule child, Filter filter) implements Rule {
         }
 
         var result = Rules.toNode(child, input);
+
+        var errorOptional = result.findError();
+        if (errorOptional.isPresent()) {
+            var error = errorOptional.orElsePanic();
+            var duration = error.findDuration();
+            if (duration.isPresent()) {
+                return result.mapErr(err -> new CompileParentError("Failed to apply filter.", input, err));
+            }
+        }
+
         var durationOptional = result.findDuration();
         if (!durationOptional.isPresent()) return result;
 
