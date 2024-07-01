@@ -3,9 +3,9 @@ package magma.build.compile.parse.rule.text.extract;
 import magma.api.result.Err;
 import magma.api.result.Result;
 import magma.build.compile.error.CompileError;
-import magma.build.compile.parse.result.ErrorRuleResult;
-import magma.build.compile.parse.result.RuleResult;
-import magma.build.compile.parse.result.UntypedRuleResult;
+import magma.build.compile.parse.result.ErrorParsingResult;
+import magma.build.compile.parse.result.ParsingResult;
+import magma.build.compile.parse.result.UntypedParsingResult;
 import magma.build.compile.error.Error_;
 import magma.build.compile.attribute.MapAttributes;
 import magma.build.compile.attribute.NodeAttribute;
@@ -15,15 +15,15 @@ import magma.build.java.JavaOptionals;
 
 public record ExtractNodeRule(String propertyKey, Rule child) implements Rule {
     @Override
-    public RuleResult toNode(String input) {
+    public ParsingResult toNode(String input) {
         var node = child.toNode(input);
         if (JavaOptionals.toNative(node.findError()).isPresent()) return node;
 
         return JavaOptionals.toNative(node.tryCreate())
                 .map(NodeAttribute::new)
                 .map(attribute -> new MapAttributes().with(propertyKey, attribute))
-                .<RuleResult>map(UntypedRuleResult::new)
-                .orElse(new ErrorRuleResult(new CompileError("No name present: ", input)));
+                .<ParsingResult>map(UntypedParsingResult::new)
+                .orElse(new ErrorParsingResult(new CompileError("No name present: ", input)));
     }
 
     @Override

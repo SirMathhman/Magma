@@ -4,9 +4,9 @@ import magma.api.result.Err;
 import magma.api.result.Ok;
 import magma.api.result.Result;
 import magma.build.compile.error.CompileError;
-import magma.build.compile.parse.result.ErrorRuleResult;
-import magma.build.compile.parse.result.RuleResult;
-import magma.build.compile.parse.result.UntypedRuleResult;
+import magma.build.compile.parse.result.ErrorParsingResult;
+import magma.build.compile.parse.result.ParsingResult;
+import magma.build.compile.parse.result.UntypedParsingResult;
 import magma.build.compile.error.Error_;
 import magma.build.compile.attribute.Attribute;
 import magma.build.compile.attribute.MapAttributes;
@@ -27,10 +27,10 @@ public abstract class ExtractRule implements Rule {
     protected abstract Result<Attribute, Error_> toAttribute(String content);
 
     @Override
-    public RuleResult toNode(String input) {
+    public ParsingResult toNode(String input) {
         return toAttribute(input).match(
-                attribute -> new UntypedRuleResult(new MapAttributes().with(key, attribute)),
-                ErrorRuleResult::new);
+                attribute -> new UntypedParsingResult(new MapAttributes().with(key, attribute)),
+                ErrorParsingResult::new);
     }
 
     @Override

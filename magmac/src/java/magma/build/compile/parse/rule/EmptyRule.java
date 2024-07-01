@@ -7,16 +7,16 @@ import magma.build.compile.error.CompileError;
 import magma.build.compile.error.Error_;
 import magma.build.compile.attribute.MapAttributes;
 import magma.build.compile.parse.Node;
-import magma.build.compile.parse.result.ErrorRuleResult;
-import magma.build.compile.parse.result.RuleResult;
-import magma.build.compile.parse.result.UntypedRuleResult;
+import magma.build.compile.parse.result.ErrorParsingResult;
+import magma.build.compile.parse.result.ParsingResult;
+import magma.build.compile.parse.result.UntypedParsingResult;
 
 public record EmptyRule(String name) implements Rule {
     @Override
-    public RuleResult toNode(String input) {
+    public ParsingResult toNode(String input) {
         return input.isEmpty()
-                ? new UntypedRuleResult(new MapAttributes())
-                : new ErrorRuleResult(new CompileError("Input is not empty.", input));
+                ? new UntypedParsingResult(new MapAttributes())
+                : new ErrorParsingResult(new CompileError("Input is not empty.", input));
     }
 
     @Override

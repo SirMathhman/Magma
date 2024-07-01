@@ -4,11 +4,11 @@ import magma.api.result.Result;
 import magma.build.compile.error.CompileParentError;
 import magma.build.compile.error.Error_;
 import magma.build.compile.parse.Node;
-import magma.build.compile.parse.result.RuleResult;
+import magma.build.compile.parse.result.ParsingResult;
 
 public record ContextRule(String message, Rule child) implements Rule {
     @Override
-    public RuleResult toNode(String input) {
+    public ParsingResult toNode(String input) {
         return child.toNode(input).mapErr(err -> new CompileParentError(message, input, err));
     }
 

@@ -3,7 +3,7 @@ package magma.build.compile.parse.rule.text;
 import magma.api.result.Result;
 import magma.build.compile.error.CompileParentError;
 import magma.build.compile.error.Error_;
-import magma.build.compile.parse.result.RuleResult;
+import magma.build.compile.parse.result.ParsingResult;
 import magma.build.compile.parse.Node;
 import magma.build.compile.parse.rule.Rule;
 
@@ -16,7 +16,7 @@ public record StripRule(Rule child, String left, String right) implements Rule {
     }
 
     @Override
-    public RuleResult toNode(String input) {
+    public ParsingResult toNode(String input) {
         return child.toNode(input.strip()).mapErr(error -> new CompileParentError("Cannot strip input.", input, error));
     }
 

@@ -1,6 +1,10 @@
 package magma.build.compile.parse.result;
 
 import magma.api.option.Option;
+import magma.api.result.Err;
+import magma.api.result.Ok;
+import magma.api.result.Result;
+import magma.build.compile.error.CompileError;
 import magma.build.compile.error.Error_;
 import magma.build.compile.attribute.Attributes;
 import magma.build.compile.parse.ImmutableNode;
@@ -10,7 +14,7 @@ import magma.build.java.JavaOptionals;
 import java.util.Optional;
 import java.util.function.Function;
 
-public record TypedRuleResult(String name, Attributes attributes) implements RuleResult{
+public record TypedParsingResult(String name, Attributes attributes) implements ParsingResult {
 
     private Optional<Attributes> findAttributes0() {
         return Optional.of(attributes);
@@ -25,12 +29,12 @@ public record TypedRuleResult(String name, Attributes attributes) implements Rul
     }
 
     @Override
-    public RuleResult withType(String type) {
+    public ParsingResult withType(String type) {
         return this;
     }
 
     @Override
-    public RuleResult mapErr(Function<Error_, Error_> mapper) {
+    public ParsingResult mapErr(Function<Error_, Error_> mapper) {
         return this;
     }
 
@@ -47,5 +51,12 @@ public record TypedRuleResult(String name, Attributes attributes) implements Rul
     @Override
     public Option<Node> tryCreate() {
         return JavaOptionals.fromNative(tryCreate0());
+    }
+
+    @Override
+    public Result<Node, Error_> create() {
+        return tryCreate()
+                .<Result<Node, Error_>>map(Ok::new)
+                .orElseGet(() -> findError().map(err -> new Err<Node, Error_>(err)).orElseGet(() -> new Err<>(new CompileError("Neither value nor error is present.", ""))));
     }
 }

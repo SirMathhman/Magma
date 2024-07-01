@@ -3,7 +3,7 @@ package magma.build.compile.parse.rule;
 import magma.api.result.Result;
 import magma.build.compile.error.Error_;
 import magma.build.compile.parse.Node;
-import magma.build.compile.parse.result.RuleResult;
+import magma.build.compile.parse.result.ParsingResult;
 
 /**
  * The Rule interface provides methods for converting between strings
@@ -11,7 +11,7 @@ import magma.build.compile.parse.result.RuleResult;
  * and to transform a node back into a string.
  */
 public interface Rule {
-    RuleResult toNode(String input);
+    ParsingResult toNode(String input);
 
     Result<String, Error_> fromNode(Node node);
 }

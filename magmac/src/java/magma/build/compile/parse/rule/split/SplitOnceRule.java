@@ -4,9 +4,9 @@ import magma.api.Tuple;
 import magma.api.result.Result;
 import magma.build.compile.error.CompileError;
 import magma.build.compile.error.CompileParentError;
-import magma.build.compile.parse.result.ErrorRuleResult;
-import magma.build.compile.parse.result.RuleResult;
-import magma.build.compile.parse.result.UntypedRuleResult;
+import magma.build.compile.parse.result.ErrorParsingResult;
+import magma.build.compile.parse.result.ParsingResult;
+import magma.build.compile.parse.result.UntypedParsingResult;
 import magma.build.compile.error.Error_;
 import magma.build.compile.parse.Node;
 import magma.build.compile.parse.rule.Rule;
@@ -25,7 +25,7 @@ public class SplitOnceRule implements Rule {
         this.searcher = searcher;
     }
 
-    public RuleResult toNode(String input) {
+    public ParsingResult toNode(String input) {
         var tuple = searcher.search(input).map(keywordIndex -> {
             var left1 = input.substring(0, keywordIndex);
             var right1 = input.substring(keywordIndex + slice.length());
@@ -44,12 +44,12 @@ public class SplitOnceRule implements Rule {
 
             return JavaOptionals.toNative(leftResult.findAttributes())
                     .flatMap(leftAttributes -> JavaOptionals.toNative(rightResult.findAttributes()).map(rightAttributes -> rightAttributes.merge(leftAttributes)))
-                    .map(UntypedRuleResult::new)
+                    .map(UntypedParsingResult::new)
                     .orElseThrow();
         }).orElseGet(() -> {
             var format = "Slice '%s' not present.";
             var message = format.formatted(slice);
-            return new ErrorRuleResult(new CompileError(message, input));
+            return new ErrorParsingResult(new CompileError(message, input));
         });
     }
 

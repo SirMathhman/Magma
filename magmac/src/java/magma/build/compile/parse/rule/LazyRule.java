@@ -5,8 +5,8 @@ import magma.api.result.Result;
 import magma.build.compile.error.CompileError;
 import magma.build.compile.error.Error_;
 import magma.build.compile.parse.Node;
-import magma.build.compile.parse.result.ErrorRuleResult;
-import magma.build.compile.parse.result.RuleResult;
+import magma.build.compile.parse.result.ErrorParsingResult;
+import magma.build.compile.parse.result.ParsingResult;
 
 import java.util.Optional;
 
@@ -22,10 +22,10 @@ public class LazyRule implements Rule {
     }
 
     @Override
-    public RuleResult toNode(String input) {
+    public ParsingResult toNode(String input) {
         return child
                 .map(inner -> inner.toNode(input))
-                .orElse(new ErrorRuleResult(new CompileError("Child was not set.", input)));
+                .orElse(new ErrorParsingResult(new CompileError("Child was not set.", input)));
     }
 
     @Override

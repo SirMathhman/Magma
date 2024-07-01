@@ -6,8 +6,8 @@ import magma.build.compile.error.CompileError;
 import magma.build.compile.error.CompileParentError;
 import magma.build.compile.error.Error_;
 import magma.build.compile.parse.Node;
-import magma.build.compile.parse.result.ErrorRuleResult;
-import magma.build.compile.parse.result.RuleResult;
+import magma.build.compile.parse.result.ErrorParsingResult;
+import magma.build.compile.parse.result.ParsingResult;
 import magma.build.java.JavaOptionals;
 
 public record TypeRule(String type, Rule child) implements Rule {
@@ -15,13 +15,13 @@ public record TypeRule(String type, Rule child) implements Rule {
     public static final String FORMAT = "Node was not of type '%s', but rather '%s'.";
 
     @Override
-    public RuleResult toNode(String input) {
+    public ParsingResult toNode(String input) {
         var result = child.toNode(input);
         if (JavaOptionals.toNative(result.findError()).isEmpty()) return result.withType(type);
 
         var format = "Cannot attach type '%s' because of child failure.";
         var message = format.formatted(type);
-        return new ErrorRuleResult(new CompileParentError(message, input, JavaOptionals.toNative(result.findError()).get()));
+        return new ErrorParsingResult(new CompileParentError(message, input, JavaOptionals.toNative(result.findError()).get()));
     }
 
     @Override

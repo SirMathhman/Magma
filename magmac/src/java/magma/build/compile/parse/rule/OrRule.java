@@ -6,8 +6,8 @@ import magma.build.compile.error.CompileError;
 import magma.build.compile.error.Error_;
 import magma.build.compile.error.MultipleError;
 import magma.build.compile.parse.Node;
-import magma.build.compile.parse.result.ErrorRuleResult;
-import magma.build.compile.parse.result.RuleResult;
+import magma.build.compile.parse.result.ErrorParsingResult;
+import magma.build.compile.parse.result.ParsingResult;
 import magma.build.java.JavaOptionals;
 
 import java.util.ArrayList;
@@ -23,7 +23,7 @@ public record OrRule(List<Rule> rules) implements Rule {
     }
 
     @Override
-    public RuleResult toNode(String input) {
+    public ParsingResult toNode(String input) {
         var errors = new ArrayList<Error_>();
         for (Rule rule : rules()) {
             var result = rule.toNode(input);
@@ -35,9 +35,9 @@ public record OrRule(List<Rule> rules) implements Rule {
         }
 
         if (errors.isEmpty()) {
-            return new ErrorRuleResult(new CompileError("No rules were present.", input));
+            return new ErrorParsingResult(new CompileError("No rules were present.", input));
         } else {
-            return new ErrorRuleResult(new MultipleError(errors));
+            return new ErrorParsingResult(new MultipleError(errors));
         }
     }
 

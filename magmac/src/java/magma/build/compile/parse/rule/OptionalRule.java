@@ -3,7 +3,7 @@ package magma.build.compile.parse.rule;
 import magma.api.result.Result;
 import magma.build.compile.error.Error_;
 import magma.build.compile.parse.Node;
-import magma.build.compile.parse.result.RuleResult;
+import magma.build.compile.parse.result.ParsingResult;
 
 import java.util.List;
 
@@ -21,7 +21,7 @@ public final class OptionalRule implements Rule {
     }
 
     @Override
-    public RuleResult toNode(String input) {
+    public ParsingResult toNode(String input) {
         return orRule.toNode(input);
     }
 

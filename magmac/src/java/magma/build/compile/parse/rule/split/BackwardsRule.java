@@ -3,9 +3,9 @@ package magma.build.compile.parse.rule.split;
 import magma.api.result.Result;
 import magma.build.compile.error.CompileError;
 import magma.build.compile.error.CompileParentError;
-import magma.build.compile.parse.result.ErrorRuleResult;
-import magma.build.compile.parse.result.RuleResult;
-import magma.build.compile.parse.result.UntypedRuleResult;
+import magma.build.compile.parse.result.ErrorParsingResult;
+import magma.build.compile.parse.result.ParsingResult;
+import magma.build.compile.parse.result.UntypedParsingResult;
 import magma.build.compile.error.Error_;
 import magma.build.compile.error.MultipleError;
 import magma.build.compile.parse.Node;
@@ -18,7 +18,7 @@ import java.util.List;
 
 public record BackwardsRule(Rule leftRule, String slice, Rule rightRule) implements Rule {
     @Override
-    public RuleResult toNode(String input) {
+    public ParsingResult toNode(String input) {
         var allIndexes = findAllIndexesReverse(input);
         var errors = new ArrayList<Error_>();
 
@@ -40,7 +40,7 @@ public record BackwardsRule(Rule leftRule, String slice, Rule rightRule) impleme
 
             var optional = JavaOptionals.toNative(leftResult.findAttributes())
                     .flatMap(leftAttributes -> JavaOptionals.toNative(rightResult.findAttributes()).map(rightAttributes -> rightAttributes.merge(leftAttributes)))
-                    .map(UntypedRuleResult::new);
+                    .map(UntypedParsingResult::new);
 
             if (optional.isPresent()) {
                 return optional.get();
@@ -48,9 +48,9 @@ public record BackwardsRule(Rule leftRule, String slice, Rule rightRule) impleme
         }
 
         if (errors.isEmpty()) {
-            return new ErrorRuleResult(new CompileError("No rules were present.", input));
+            return new ErrorParsingResult(new CompileError("No rules were present.", input));
         } else {
-            return new ErrorRuleResult(new MultipleError(errors));
+            return new ErrorParsingResult(new MultipleError(errors));
         }
     }
 

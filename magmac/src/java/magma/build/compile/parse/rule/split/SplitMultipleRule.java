@@ -8,9 +8,9 @@ import magma.api.result.Err;
 import magma.api.result.Result;
 import magma.build.compile.error.CompileError;
 import magma.build.compile.error.CompileParentError;
-import magma.build.compile.parse.result.ErrorRuleResult;
-import magma.build.compile.parse.result.RuleResult;
-import magma.build.compile.parse.result.UntypedRuleResult;
+import magma.build.compile.parse.result.ErrorParsingResult;
+import magma.build.compile.parse.result.ParsingResult;
+import magma.build.compile.parse.result.UntypedParsingResult;
 import magma.build.compile.error.Error_;
 import magma.build.compile.attribute.MapAttributes;
 import magma.build.compile.attribute.NodeListAttribute;
@@ -38,7 +38,7 @@ public final class SplitMultipleRule implements Rule {
     }
 
     @Override
-    public RuleResult toNode(String input) {
+    public ParsingResult toNode(String input) {
         var split = splitter.split(input);
         var members = new ArrayList<Node>();
         for (String childString : split) {
@@ -48,13 +48,13 @@ public final class SplitMultipleRule implements Rule {
 
             var optional = JavaOptionals.toNative(result.tryCreate());
             if (optional.isEmpty()) {
-                return new ErrorRuleResult(new CompileError("No name present for.", childString));
+                return new ErrorParsingResult(new CompileError("No name present for.", childString));
             }
 
             members.add(optional.get());
         }
 
-        return new UntypedRuleResult(new MapAttributes(Map.of(propertyKey, new NodeListAttribute(members))));
+        return new UntypedParsingResult(new MapAttributes(Map.of(propertyKey, new NodeListAttribute(members))));
     }
 
     private Result<String, Error_> joinNodes(List<Node> list) {
