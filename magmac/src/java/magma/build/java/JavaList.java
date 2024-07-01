@@ -180,13 +180,6 @@ public record JavaList<T>(List<T> list) implements magma.api.contain.List<T> {
     }
 
     @Override
-    public magma.api.contain.List<T> addFirst(T first) {
-        var copy = new ArrayList<>(list);
-        copy.add(0, first);
-        return new JavaList<>(copy);
-    }
-
-    @Override
     public magma.api.contain.List<T> remove(T element) {
         var copy = new ArrayList<>(list);
         copy.remove(element);
