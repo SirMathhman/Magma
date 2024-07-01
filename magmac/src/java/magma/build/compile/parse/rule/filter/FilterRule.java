@@ -8,15 +8,7 @@ import magma.build.compile.parse.result.ErrorParsingResult;
 import magma.build.compile.parse.result.ParsingResult;
 import magma.build.compile.parse.rule.Rule;
 
-public class FilterRule implements Rule {
-    protected final Rule child;
-    private final Filter filter;
-
-    public FilterRule(Rule child, Filter filter) {
-        this.child = child;
-        this.filter = filter;
-    }
-
+public record FilterRule(Rule child, Filter filter) implements Rule {
     @Override
     public ParsingResult toNode(String input) {
         if (filter.filter(input)) return child.toNode(input);
@@ -27,5 +19,4 @@ public class FilterRule implements Rule {
     public Result<String, Error_> fromNode(Node node) {
         return child.fromNode(node);
     }
-
 }
