@@ -1,4 +1,4 @@
-package magma.build.compile.parse.rule;
+package magma.build.compile.parse.rule.filter;
 
 public class NumberFilter implements Filter {
     private static boolean allDigits(String input) {

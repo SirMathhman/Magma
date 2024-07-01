@@ -1,4 +1,4 @@
-package magma.build.compile.parse.rule;
+package magma.build.compile.parse.rule.filter;
 
 public class SymbolFilter implements Filter {
     private static boolean isValidDigit(int i, char c) {
