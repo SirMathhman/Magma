@@ -20,9 +20,8 @@ public final class OptionalRule implements Rule {
         this.orRule = new OrRule(List.of(onPresent, onEmpty));
     }
 
-    @Override
-    public ParsingResult toNode(String input) {
-        return orRule.toNode(input);
+    private ParsingResult toNode0(String input) {
+        return Rules.toNode(orRule, input);
     }
 
     @Override
@@ -32,5 +31,10 @@ public final class OptionalRule implements Rule {
         } else {
             return onEmpty.fromNode(node);
         }
+    }
+
+    @Override
+    public ParsingResult toNode(String input) {
+        return toNode0(input);
     }
 }

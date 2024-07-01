@@ -6,6 +6,7 @@ import magma.build.compile.error.Error_;
 import magma.build.compile.parse.result.ParsingResult;
 import magma.build.compile.parse.Node;
 import magma.build.compile.parse.rule.Rule;
+import magma.build.compile.parse.rule.Rules;
 
 public record StripRule(Rule child, String left, String right) implements Rule {
     public static final String DEFAULT_LEFT = "left";
@@ -15,9 +16,8 @@ public record StripRule(Rule child, String left, String right) implements Rule {
         this(child, DEFAULT_LEFT, DEFAULT_RIGHT);
     }
 
-    @Override
-    public ParsingResult toNode(String input) {
-        return child.toNode(input.strip()).mapErr(error -> new CompileParentError("Cannot strip input.", input, error));
+    private ParsingResult toNode0(String input) {
+        return Rules.toNode(child, input.strip()).mapErr(error -> new CompileParentError("Cannot strip input.", input, error));
     }
 
     @Override
@@ -28,5 +28,10 @@ public record StripRule(Rule child, String left, String right) implements Rule {
         return child.fromNode(node)
                 .mapValue(inner -> leftIndent + inner + rightIndent)
                 .mapErr(err -> new CompileParentError("Cannot apply indentation: ", node.toString(), err));
+    }
+
+    @Override
+    public ParsingResult toNode(String input) {
+        return toNode0(input);
     }
 }

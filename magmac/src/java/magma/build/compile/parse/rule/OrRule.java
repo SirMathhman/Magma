@@ -22,11 +22,10 @@ public record OrRule(List<Rule> rules) implements Rule {
                 .toList()));
     }
 
-    @Override
-    public ParsingResult toNode(String input) {
+    private ParsingResult toNode0(String input) {
         var errors = new ArrayList<Error_>();
         for (Rule rule : rules()) {
-            var result = rule.toNode(input);
+            var result = Rules.toNode(rule, input);
             if (JavaOptionals.toNative(result.findAttributes()).isPresent()) {
                 return result;
             }
@@ -60,5 +59,10 @@ public record OrRule(List<Rule> rules) implements Rule {
 
         return anyOk.orElseGet(() -> toError(results));
 
+    }
+
+    @Override
+    public ParsingResult toNode(String input) {
+        return toNode0(input);
     }
 }

@@ -37,6 +37,7 @@ import magma.build.compile.lang.magma.OperatorFormatter;
 import magma.build.compile.lang.magma.TernaryFormatter;
 import magma.build.compile.parse.Node;
 import magma.build.compile.parse.rule.Rule;
+import magma.build.compile.parse.rule.Rules;
 import magma.build.java.JavaList;
 import magma.build.java.JavaMap;
 
@@ -297,7 +298,7 @@ public record Application(Configuration config) {
     private Result<Node, CompileException> parseWithInput(Build build, Unit source, String input) {
         return $(() -> {
             var s = $Result(findRootRule(build.sourceDirectory().platform()));
-            return $Result(s.toNode(input).create().match(
+            return $Result(Rules.toNode(s, input).create().match(
                     root -> parse(build, source, root),
                     err -> new Err<>(writeError(build, err, source))));
         });

@@ -10,6 +10,7 @@ import magma.build.compile.parse.result.UntypedParsingResult;
 import magma.build.compile.error.Error_;
 import magma.build.compile.parse.Node;
 import magma.build.compile.parse.rule.Rule;
+import magma.build.compile.parse.rule.Rules;
 import magma.build.java.JavaOptionals;
 
 public class SplitOnceRule implements Rule {
@@ -25,7 +26,7 @@ public class SplitOnceRule implements Rule {
         this.searcher = searcher;
     }
 
-    public ParsingResult toNode(String input) {
+    private ParsingResult toNode0(String input) {
         var tuple = searcher.search(input).map(keywordIndex -> {
             var left1 = input.substring(0, keywordIndex);
             var right1 = input.substring(keywordIndex + slice.length());
@@ -36,10 +37,10 @@ public class SplitOnceRule implements Rule {
             var left = contentStart.left();
             var right = contentStart.right();
 
-            var leftResult = leftRule.toNode(left);
+            var leftResult = Rules.toNode(leftRule, left);
             if (JavaOptionals.toNative(leftResult.findError()).isPresent()) return leftResult;
 
-            var rightResult = rightRule.toNode(right);
+            var rightResult = Rules.toNode(rightRule, right);
             if (JavaOptionals.toNative(rightResult.findError()).isPresent()) return rightResult;
 
             return JavaOptionals.toNative(leftResult.findAttributes())
@@ -67,5 +68,10 @@ public class SplitOnceRule implements Rule {
         var format = "Cannot merge node using slice '%s'.";
         var message = format.formatted(slice);
         return new CompileParentError(message, node.toString(), err);
+    }
+
+    @Override
+    public ParsingResult toNode(String input) {
+        return toNode0(input);
     }
 }

@@ -14,9 +14,8 @@ public record TypeRule(String type, Rule child) implements Rule {
 
     public static final String FORMAT = "Node was not of type '%s', but rather '%s'.";
 
-    @Override
-    public ParsingResult toNode(String input) {
-        var result = child.toNode(input);
+    private ParsingResult toNode0(String input) {
+        var result = Rules.toNode(child, input);
         if (JavaOptionals.toNative(result.findError()).isEmpty()) return result.withType(type);
 
         var format = "Cannot attach type '%s' because of child failure.";
@@ -36,5 +35,10 @@ public record TypeRule(String type, Rule child) implements Rule {
             var message = format.formatted(type);
             return new CompileParentError(message, node.toString(), err);
         });
+    }
+
+    @Override
+    public ParsingResult toNode(String input) {
+        return toNode0(input);
     }
 }

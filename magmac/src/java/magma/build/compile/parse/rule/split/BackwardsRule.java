@@ -10,6 +10,7 @@ import magma.build.compile.error.Error_;
 import magma.build.compile.error.MultipleError;
 import magma.build.compile.parse.Node;
 import magma.build.compile.parse.rule.Rule;
+import magma.build.compile.parse.rule.Rules;
 import magma.build.java.JavaOptionals;
 
 import java.util.ArrayList;
@@ -17,8 +18,7 @@ import java.util.Collections;
 import java.util.List;
 
 public record BackwardsRule(Rule leftRule, String slice, Rule rightRule) implements Rule {
-    @Override
-    public ParsingResult toNode(String input) {
+    private ParsingResult toNode0(String input) {
         var allIndexes = findAllIndexesReverse(input);
         var errors = new ArrayList<Error_>();
 
@@ -26,13 +26,13 @@ public record BackwardsRule(Rule leftRule, String slice, Rule rightRule) impleme
             var leftSlice = input.substring(0, index);
             var rightSlice = input.substring(index + slice.length());
 
-            var leftResult = leftRule.toNode(leftSlice);
+            var leftResult = Rules.toNode(leftRule, leftSlice);
             if (JavaOptionals.toNative(leftResult.findError()).isPresent()) {
                 errors.add(wrapError(leftSlice, rightSlice, JavaOptionals.toNative(leftResult.findError()).get()));
                 continue;
             }
 
-            var rightResult = rightRule.toNode(rightSlice);
+            var rightResult = Rules.toNode(rightRule, rightSlice);
             if (JavaOptionals.toNative(rightResult.findError()).isPresent()) {
                 errors.add(wrapError(leftSlice, rightSlice, JavaOptionals.toNative(rightResult.findError()).get()));
                 continue;
@@ -72,5 +72,10 @@ public record BackwardsRule(Rule leftRule, String slice, Rule rightRule) impleme
     @Override
     public Result<String, Error_> fromNode(Node node) {
         return leftRule.fromNode(node).flatMapValue(leftResult -> rightRule.fromNode(node).mapValue(rightResult -> leftResult + slice + rightResult));
+    }
+
+    @Override
+    public ParsingResult toNode(String input) {
+        return toNode0(input);
     }
 }

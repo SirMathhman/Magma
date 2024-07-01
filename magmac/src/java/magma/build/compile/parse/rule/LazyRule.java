@@ -21,10 +21,9 @@ public class LazyRule implements Rule {
         this.child = Optional.of(child);
     }
 
-    @Override
-    public ParsingResult toNode(String input) {
+    private ParsingResult toNode0(String input) {
         return child
-                .map(inner -> inner.toNode(input))
+                .map(inner -> Rules.toNode(inner, input))
                 .orElse(new ErrorParsingResult(new CompileError("Child was not set.", input)));
     }
 
@@ -32,5 +31,10 @@ public class LazyRule implements Rule {
     public Result<String, Error_> fromNode(Node node) {
         return child.map(inner -> inner.fromNode(node))
                 .orElse(new Err<>(new CompileError("No child set.", node.toString())));
+    }
+
+    @Override
+    public ParsingResult toNode(String input) {
+        return toNode0(input);
     }
 }

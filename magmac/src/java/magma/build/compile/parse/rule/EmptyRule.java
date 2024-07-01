@@ -12,8 +12,7 @@ import magma.build.compile.parse.result.ParsingResult;
 import magma.build.compile.parse.result.UntypedParsingResult;
 
 public record EmptyRule(String name) implements Rule {
-    @Override
-    public ParsingResult toNode(String input) {
+    private ParsingResult toNode0(String input) {
         return input.isEmpty()
                 ? new UntypedParsingResult(new MapAttributes())
                 : new ErrorParsingResult(new CompileError("Input is not empty.", input));
@@ -26,5 +25,10 @@ public record EmptyRule(String name) implements Rule {
         } else {
             return new Ok<>("");
         }
+    }
+
+    @Override
+    public ParsingResult toNode(String input) {
+        return toNode0(input);
     }
 }

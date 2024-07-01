@@ -16,6 +16,7 @@ import magma.build.compile.attribute.MapAttributes;
 import magma.build.compile.attribute.NodeListAttribute;
 import magma.build.compile.parse.Node;
 import magma.build.compile.parse.rule.Rule;
+import magma.build.compile.parse.rule.Rules;
 import magma.build.java.JavaList;
 import magma.build.java.JavaOptionals;
 
@@ -37,12 +38,11 @@ public final class SplitMultipleRule implements Rule {
         this.delimiter = delimiter;
     }
 
-    @Override
-    public ParsingResult toNode(String input) {
+    private ParsingResult toNode0(String input) {
         var split = splitter.split(input);
         var members = new ArrayList<Node>();
         for (String childString : split) {
-            var result = childRule.toNode(childString);
+            var result = Rules.toNode(childRule, childString);
             if (JavaOptionals.toNative(result.findError()).isPresent())
                 return result.mapErr(err -> new CompileParentError("Cannot process child.", childString, err));
 
@@ -76,5 +76,10 @@ public final class SplitMultipleRule implements Rule {
         var format = "Property '%s' does not exist on node.";
         var message = format.formatted(propertyKey);
         return new Err<>(new CompileError(message, node.toString()));
+    }
+
+    @Override
+    public ParsingResult toNode(String input) {
+        return toNode0(input);
     }
 }

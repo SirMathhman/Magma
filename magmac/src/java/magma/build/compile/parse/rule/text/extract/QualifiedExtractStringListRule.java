@@ -3,6 +3,7 @@ package magma.build.compile.parse.rule.text.extract;
 import magma.build.compile.error.Error_;
 import magma.build.compile.parse.rule.Rule;
 import magma.build.compile.parse.result.ParsingResult;
+import magma.build.compile.parse.rule.Rules;
 import magma.build.java.JavaOptionals;
 
 import java.util.Optional;
@@ -17,7 +18,7 @@ public final class QualifiedExtractStringListRule extends ExtractStringListRule 
 
     @Override
     protected Optional<Error_> qualify(String child) {
-        ParsingResult parsingResult = qualifier.toNode(child);
+        ParsingResult parsingResult = Rules.toNode(qualifier, child);
         return JavaOptionals.toNative(parsingResult.findError());
     }
 }

@@ -26,8 +26,7 @@ public abstract class ExtractRule implements Rule {
 
     protected abstract Result<Attribute, Error_> toAttribute(String content);
 
-    @Override
-    public ParsingResult toNode(String input) {
+    private ParsingResult toNode0(String input) {
         return toAttribute(input).match(
                 attribute -> new UntypedParsingResult(new MapAttributes().with(key, attribute)),
                 ErrorParsingResult::new);
@@ -48,5 +47,10 @@ public abstract class ExtractRule implements Rule {
         var format = "Property '%s' does not exist.";
         var message = format.formatted(key);
         return new Err<>(new CompileError(message, node.toString()));
+    }
+
+    @Override
+    public ParsingResult toNode(String input) {
+        return toNode0(input);
     }
 }

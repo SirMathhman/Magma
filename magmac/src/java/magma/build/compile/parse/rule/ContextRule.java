@@ -7,13 +7,17 @@ import magma.build.compile.parse.Node;
 import magma.build.compile.parse.result.ParsingResult;
 
 public record ContextRule(String message, Rule child) implements Rule {
-    @Override
-    public ParsingResult toNode(String input) {
-        return child.toNode(input).mapErr(err -> new CompileParentError(message, input, err));
+    private ParsingResult toNode0(String input) {
+        return Rules.toNode(child, input).mapErr(err -> new CompileParentError(message, input, err));
     }
 
     @Override
     public Result<String, Error_> fromNode(Node node) {
         return child.fromNode(node);
+    }
+
+    @Override
+    public ParsingResult toNode(String input) {
+        return toNode0(input);
     }
 }
