@@ -1,7 +1,7 @@
 package magma.build.compile.lang;
 
-import magma.build.compile.parse.rule.FilterRule;
-import magma.build.compile.parse.rule.SymbolFilter;
+import magma.build.compile.parse.rule.filter.FilterRule;
+import magma.build.compile.parse.rule.filter.SymbolFilter;
 import magma.build.compile.parse.rule.split.FirstRule;
 import magma.build.compile.parse.rule.split.LastRule;
 import magma.build.compile.parse.rule.split.Splitter;
