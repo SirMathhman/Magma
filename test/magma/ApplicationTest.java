@@ -31,18 +31,19 @@ public class ApplicationTest {
 
     private static void runOrFail() {
         try {
-            run();
+            run(new SingletonSourceSet(SOURCE));
         } catch (IOException e) {
             fail(e);
         }
     }
 
-    private static void run() throws IOException {
-        if (Files.exists(SOURCE)) {
-            var fileName = SOURCE.getFileName().toString();
+    private static void run(SourceSet sourceSet) throws IOException {
+        var stream = sourceSet.stream();
+        for (var source : stream.toList()) {
+            var fileName = source.getFileName().toString();
             var separator = fileName.lastIndexOf('.');
             var name = fileName.substring(0, separator);
-            Files.createFile(SOURCE.resolveSibling(resolve(name, MAGMA_EXTENSION)));
+            Files.createFile(source.resolveSibling(resolve(name, MAGMA_EXTENSION)));
         }
     }
 
