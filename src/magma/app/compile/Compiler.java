@@ -18,7 +18,7 @@ public class Compiler {
 
         var builder = new StringBuilder();
         for (String line : lines) {
-            builder.append(compileLine(line));
+            builder.append(compileLine(line.strip()));
         }
 
         return builder.toString();
@@ -56,8 +56,8 @@ public class Compiler {
         return Optional.of(input);
     }
 
-    public static String renderImport(String parent, String child) {
-        return IMPORT_KEYWORD_WITH_SPACE + parent + IMPORT_SEPARATOR + child + STATEMENT_END;
+    public static String renderImport(String leftPadding, String parent, String child) {
+        return leftPadding + IMPORT_KEYWORD_WITH_SPACE + parent + IMPORT_SEPARATOR + child + STATEMENT_END;
     }
 
     public static String renderPackage(String name) {

@@ -63,13 +63,13 @@ public class ApplicationTest {
     @ParameterizedTest
     @ValueSource(strings = {"First", "Second"})
     void importChild(String child) {
-        var value = Compiler.renderImport("parent", child);
+        var value = Compiler.renderImport("", "parent", child);
         assertRun(value, value);
     }
 
     @Test
     void importParent() {
-        var value = Compiler.renderImport("test", "Child");
+        var value = Compiler.renderImport("", "test", "Child");
         assertRun(value, value);
     }
 
