@@ -1,5 +1,7 @@
 package magma;
 
+import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
@@ -24,5 +26,10 @@ public record PathSource(Path root, Path readableChild) implements Source {
         return separator == -1
                 ? fileName
                 : fileName.substring(0, separator);
+    }
+
+    @Override
+    public String read() throws IOException {
+        return Files.readString(readableChild);
     }
 }
