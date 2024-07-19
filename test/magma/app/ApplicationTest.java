@@ -1,5 +1,8 @@
-package magma;
+package magma.app;
 
+import magma.app.compile.Compiler;
+import magma.app.io.PathTargetSet;
+import magma.app.io.SingletonSourceSet;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -10,7 +13,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
-import static magma.PathTargetSet.MAGMA_EXTENSION;
+import static magma.app.io.PathTargetSet.MAGMA_EXTENSION;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -31,7 +34,7 @@ public class ApplicationTest {
     private static void runOrFail() {
         try {
             new Application(new SingletonSourceSet(SOURCE), new PathTargetSet(Paths.get("."))).run();
-        } catch (CompileException e) {
+        } catch (ApplicationException e) {
             fail(e);
         }
     }
@@ -40,7 +43,7 @@ public class ApplicationTest {
         try {
             PathTargetSet.writeSafe(SOURCE, input);
             runOrFail();
-        } catch (CompileException e) {
+        } catch (ApplicationException e) {
             fail(e);
         }
     }

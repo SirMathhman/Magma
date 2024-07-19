@@ -1,5 +1,10 @@
 package magma;
 
+import magma.app.Application;
+import magma.app.ApplicationException;
+import magma.app.io.DirectorySourceSet;
+import magma.app.io.PathTargetSet;
+
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
@@ -9,8 +14,10 @@ public class Main {
 
     public static void main(String[] args) {
         try {
-            new Application(new DirectorySourceSet(SOURCE_DIRECTORY), new PathTargetSet(TARGET_DIRECTORY)).run();
-        } catch (CompileException e) {
+            var sourceSet = new DirectorySourceSet(SOURCE_DIRECTORY);
+            var targetSet = new PathTargetSet(TARGET_DIRECTORY);
+            new Application(sourceSet, targetSet).run();
+        } catch (ApplicationException e) {
             //noinspection CallToPrintStackTrace
             e.printStackTrace();
         }

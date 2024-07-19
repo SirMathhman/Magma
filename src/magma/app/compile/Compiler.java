@@ -1,4 +1,6 @@
-package magma;
+package magma.app.compile;
+
+import magma.app.ApplicationException;
 
 import java.util.Optional;
 
@@ -8,11 +10,11 @@ public class Compiler {
     public static final String STATEMENT_END = ";";
     public static final String PACKAGE_KEYWORD_WITH_SPACE = "package ";
 
-    static String compile(String input) throws CompileException {
+    public static String compile(String input) throws ApplicationException {
         if (input.isEmpty()) return "";
         return compilePackage(input)
                 .or(() -> compileImport(input))
-                .orElseThrow(() -> new CompileException("Unknown input: " + input));
+                .orElseThrow(() -> new ApplicationException("Unknown input: " + input));
     }
 
     private static Optional<String> compilePackage(String input) {

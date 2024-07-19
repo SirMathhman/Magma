@@ -1,18 +1,23 @@
-package magma;
+package magma.app;
+
+import magma.app.compile.Compiler;
+import magma.app.io.SourceSet;
+import magma.app.io.TargetSet;
+import magma.app.io.Unit;
 
 import java.io.IOException;
 import java.util.stream.Stream;
 
 public record Application(SourceSet sourceSet, TargetSet targetSet) {
-    static String readSafe(Unit unit) throws CompileException {
+    static String readSafe(Unit unit) throws ApplicationException {
         try {
             return unit.read();
         } catch (IOException e) {
-            throw new CompileException(e);
+            throw new ApplicationException(e);
         }
     }
 
-    void run() throws CompileException {
+    public void run() throws ApplicationException {
         var stream = stream();
         for (var source : stream.toList()) {
             var input = readSafe(source);
@@ -21,11 +26,11 @@ public record Application(SourceSet sourceSet, TargetSet targetSet) {
         }
     }
 
-    private Stream<Unit> stream() throws CompileException {
+    private Stream<Unit> stream() throws ApplicationException {
         try {
             return sourceSet().stream();
         } catch (IOException e) {
-            throw new CompileException(e);
+            throw new ApplicationException(e);
         }
     }
 }

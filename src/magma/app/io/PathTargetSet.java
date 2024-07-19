@@ -1,4 +1,7 @@
-package magma;
+package magma.app.io;
+
+import magma.app.ApplicationException;
+import magma.app.compile.Compiler;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -12,11 +15,11 @@ public class PathTargetSet implements TargetSet {
         this.root = root;
     }
 
-    static String resolve(String name, String extension) {
+    public static String resolve(String name, String extension) {
         return name + Compiler.IMPORT_SEPARATOR + extension;
     }
 
-    static void writeSafe(Path target, String output) throws CompileException {
+    public static void writeSafe(Path target, String output) throws ApplicationException {
         try {
             var parent = target.getParent();
             if (parent != null && !Files.exists(parent)) {
@@ -25,12 +28,12 @@ public class PathTargetSet implements TargetSet {
 
             Files.writeString(target, output);
         } catch (IOException e) {
-            throw new CompileException(e);
+            throw new ApplicationException(e);
         }
     }
 
     @Override
-    public void write(Unit unit, String output) throws CompileException {
+    public void write(Unit unit, String output) throws ApplicationException {
         var current = root;
 
         var namespace = unit.computeNamespace();
