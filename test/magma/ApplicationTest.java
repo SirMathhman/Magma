@@ -19,13 +19,10 @@ public class ApplicationTest {
     public static final String MAGMA_EXTENSION = "mgs";
     public static final Path SOURCE = resolveExtension("java");
     public static final Path TARGET = resolveExtension(MAGMA_EXTENSION);
+    public static final Path ROOT_PATH = Paths.get(".");
 
     private static Path resolveExtension(String extension) {
-        return Paths.get(Compiler.IMPORT_SEPARATOR, resolve("ApplicationTest", extension));
-    }
-
-    private static String resolve(String name, String extension) {
-        return name + Compiler.IMPORT_SEPARATOR + extension;
+        return Paths.get(Compiler.IMPORT_SEPARATOR, PathTargetSet.resolve("ApplicationTest", extension));
     }
 
     private static boolean doesTargetExist() {
@@ -34,50 +31,15 @@ public class ApplicationTest {
 
     private static void runOrFail() {
         try {
-            run(new SingletonSourceSet(SOURCE));
+            new Application(new SingletonSourceSet(SOURCE), new PathTargetSet()).run();
         } catch (CompileException e) {
             fail(e);
         }
     }
 
-    private static void run(SourceSet sourceSet) throws CompileException {
-        var stream = sourceSet.stream();
-        for (var source : stream.toList()) {
-            var name = source.computeName();
-            var current = Paths.get(Compiler.IMPORT_SEPARATOR);
-
-            var namespace = source.computeNamespace();
-            for (var segment : namespace.toList()) {
-                current = current.resolve(segment);
-            }
-
-            var input = readSafe(source);
-            var output = Compiler.compile(input);
-
-            var target = current.resolve(resolve(name, MAGMA_EXTENSION));
-            writeSafe(target, output);
-        }
-    }
-
-    private static void writeSafe(Path target, String output) throws CompileException {
-        try {
-            Files.writeString(target, output);
-        } catch (IOException e) {
-            throw new CompileException(e);
-        }
-    }
-
-    private static String readSafe(Source source) throws CompileException {
-        try {
-            return source.read();
-        } catch (IOException e) {
-            throw new CompileException(e);
-        }
-    }
-
     private static void runOrFail(String input) {
         try {
-            writeSafe(SOURCE, input);
+            PathTargetSet.writeSafe(SOURCE, input);
             runOrFail();
         } catch (CompileException e) {
             fail(e);

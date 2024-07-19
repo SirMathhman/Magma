@@ -6,7 +6,7 @@ import java.nio.file.Path;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
-public record PathSource(Path root, Path readableChild) implements Source {
+public record PathUnit(Path root, Path readableChild) implements Unit {
     @Override
     public Stream<String> computeNamespace() {
         var parent = readableChild.getParent();

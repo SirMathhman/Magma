@@ -3,7 +3,7 @@ package magma;
 import java.io.IOException;
 import java.util.stream.Stream;
 
-public interface Source {
+public interface Unit {
     Stream<String> computeNamespace();
 
     String computeName();
