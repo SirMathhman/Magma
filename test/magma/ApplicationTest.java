@@ -14,10 +14,15 @@ import static org.junit.jupiter.api.Assertions.fail;
 
 public class ApplicationTest {
     public static final Path SOURCE = resolveExtension("java");
-    public static final Path TARGET = resolveExtension("mgs");
+    public static final String MAGMA_EXTENSION = "mgs";
+    public static final Path TARGET = resolveExtension(MAGMA_EXTENSION);
 
     private static Path resolveExtension(String extension) {
-        return Paths.get(".", "ApplicationTest." + extension);
+        return Paths.get(".", resolve("ApplicationTest", extension));
+    }
+
+    private static String resolve(String name, String extension) {
+        return name + "." + extension;
     }
 
     private static boolean doesTargetExist() {
@@ -34,7 +39,10 @@ public class ApplicationTest {
 
     private static void run() throws IOException {
         if (Files.exists(SOURCE)) {
-            Files.createFile(TARGET);
+            var fileName = SOURCE.getFileName().toString();
+            var separator = fileName.lastIndexOf('.');
+            var name = fileName.substring(0, separator);
+            Files.createFile(SOURCE.resolveSibling(resolve(name, MAGMA_EXTENSION)));
         }
     }
 
