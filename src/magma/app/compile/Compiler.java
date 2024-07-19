@@ -11,6 +11,8 @@ public class Compiler {
     public static final String PACKAGE_KEYWORD_WITH_SPACE = "package ";
     public static final String CLASS_KEYWORD_WITH_SPACE = "class ";
     public static final String EMPTY_BLOCK = " {}";
+    public static final String PUBLIC_KEYWORD_WITH_SPACE = "public ";
+    public static final String EXPORT_KEYWORD_WITH_SPACE = "export ";
 
     public static String compile(String input) throws ApplicationException {
         var lines = Splitter.split(input).toList();
@@ -31,13 +33,16 @@ public class Compiler {
     }
 
     private static Optional<String> compileClass(String input) {
-        if (!input.startsWith(CLASS_KEYWORD_WITH_SPACE)) return Optional.empty();
-        var afterKeyword = input.substring(CLASS_KEYWORD_WITH_SPACE.length());
+        var classIndex = input.indexOf(CLASS_KEYWORD_WITH_SPACE);
+        if (classIndex == -1) return Optional.empty();
+        var afterKeyword = input.substring(classIndex + CLASS_KEYWORD_WITH_SPACE.length());
 
         if (!afterKeyword.endsWith(EMPTY_BLOCK)) return Optional.empty();
         var name = afterKeyword.substring(0, afterKeyword.length() - EMPTY_BLOCK.length());
 
-        return Optional.of(renderFunction(name));
+        var oldModifiers = input.substring(0, classIndex);
+        var newModifiers = oldModifiers.equals(PUBLIC_KEYWORD_WITH_SPACE) ? EXPORT_KEYWORD_WITH_SPACE : "";
+        return Optional.of(renderFunction(newModifiers, name));
 
     }
 
@@ -61,11 +66,11 @@ public class Compiler {
         return PACKAGE_KEYWORD_WITH_SPACE + name + STATEMENT_END;
     }
 
-    static String renderFunction(String name) {
-        return CLASS_KEYWORD_WITH_SPACE + "def " + name + "() =>" + EMPTY_BLOCK;
+    static String renderFunction(String modifiers, String name) {
+        return modifiers + CLASS_KEYWORD_WITH_SPACE + "def " + name + "() =>" + EMPTY_BLOCK;
     }
 
-    static String renderClass(String name) {
-        return CLASS_KEYWORD_WITH_SPACE + name + EMPTY_BLOCK;
+    static String renderClass(String modifiers, String name) {
+        return modifiers + CLASS_KEYWORD_WITH_SPACE + name + EMPTY_BLOCK;
     }
 }
