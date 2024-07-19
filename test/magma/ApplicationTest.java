@@ -2,6 +2,8 @@ package magma;
 
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -42,7 +44,6 @@ public class ApplicationTest {
         for (var source : stream.toList()) {
             var namespace = source.computeNamespace();
             var name = source.computeName();
-
             var current = Paths.get(".");
             for (String s : namespace.toList()) {
                 current = current.resolve(s);
@@ -50,6 +51,18 @@ public class ApplicationTest {
 
             Files.createFile(current.resolve(resolve(name, MAGMA_EXTENSION)));
         }
+    }
+
+    private static void runOrFail(String input) throws IOException {
+        Files.writeString(SOURCE, input);
+        runOrFail();
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"first", "second"})
+    void packageStatement(String name) throws IOException {
+        runOrFail("package " + name + ";");
+        assertTrue(Files.readString(TARGET).isEmpty());
     }
 
     @AfterEach
@@ -66,8 +79,7 @@ public class ApplicationTest {
 
     @Test
     void generatesTarget() throws IOException {
-        Files.createFile(SOURCE);
-        runOrFail();
+        runOrFail("");
         assertTrue(doesTargetExist());
     }
 }
