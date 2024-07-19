@@ -1,16 +1,30 @@
 package magma;
 
+import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
+import java.util.Set;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class DirectorySourceSet implements SourceSet {
-    private Stream<Path> stream0() {
-        throw new UnsupportedOperationException();
+    private final Path root;
+
+    public DirectorySourceSet(Path root) {
+        this.root = root;
+    }
+
+    private Set<Path> collect() throws IOException {
+        try (var stream = Files.walk(root)) {
+            return stream.collect(Collectors.toSet());
+        }
     }
 
     @Override
-    public Stream<Unit> stream() {
-        return stream0().map(readableChild -> new PathUnit(Paths.get("."), readableChild));
+    public Stream<Unit> stream() throws IOException {
+        return collect().stream()
+                .filter(Files::isRegularFile)
+                .filter(path -> path.toString().endsWith(".java"))
+                .map(readableChild -> new PathUnit(root, readableChild));
     }
 }
