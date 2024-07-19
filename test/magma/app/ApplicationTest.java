@@ -57,7 +57,7 @@ public class ApplicationTest {
     @ParameterizedTest
     @ValueSource(strings = {"first", "second"})
     void packageStatement(String name) {
-        assertRun(Compiler.PACKAGE_KEYWORD_WITH_SPACE + name + Compiler.STATEMENT_END, "");
+        assertRun(Compiler.renderPackage(name), "");
     }
 
     @ParameterizedTest

@@ -8,10 +8,9 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 class CompilerTest {
     @Test
     void multiple() throws ApplicationException {
-        var first = Compiler.renderImport("first", "Child");
+        var first = Compiler.renderPackage("");
         var second = Compiler.renderImport("second", "Sibling");
-        var expected = first + second;
-        var output = Compiler.compile(expected);
-        assertEquals(expected, output);
+        var output = Compiler.compile(first + second);
+        assertEquals(second, output);
     }
 }
