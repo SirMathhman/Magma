@@ -3,8 +3,12 @@ package magma;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 
 public class PathTargetSet implements TargetSet {
+    public static final String MAGMA_EXTENSION = "mgs";
+    public static final Path ROOT_PATH = Paths.get(".");
+
     static String resolve(String name, String extension) {
         return name + Compiler.IMPORT_SEPARATOR + extension;
     }
@@ -19,7 +23,7 @@ public class PathTargetSet implements TargetSet {
 
     @Override
     public void write(Unit unit, String output) throws CompileException {
-        var current = ApplicationTest.ROOT_PATH;
+        var current = ROOT_PATH;
 
         var namespace = unit.computeNamespace();
         var name = unit.computeName();
@@ -27,7 +31,7 @@ public class PathTargetSet implements TargetSet {
             current = current.resolve(segment);
         }
 
-        var target = current.resolve(resolve(name, ApplicationTest.MAGMA_EXTENSION));
+        var target = current.resolve(resolve(name, MAGMA_EXTENSION));
         writeSafe(target, output);
     }
 }

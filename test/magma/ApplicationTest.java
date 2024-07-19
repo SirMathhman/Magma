@@ -10,16 +10,15 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
+import static magma.PathTargetSet.MAGMA_EXTENSION;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 
 public class ApplicationTest {
-    public static final String MAGMA_EXTENSION = "mgs";
     public static final Path SOURCE = resolveExtension("java");
     public static final Path TARGET = resolveExtension(MAGMA_EXTENSION);
-    public static final Path ROOT_PATH = Paths.get(".");
 
     private static Path resolveExtension(String extension) {
         return Paths.get(Compiler.IMPORT_SEPARATOR, PathTargetSet.resolve("ApplicationTest", extension));
