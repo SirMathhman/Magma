@@ -10,7 +10,7 @@ public class DirectorySourceSet implements SourceSet {
     }
 
     @Override
-    public Stream<PathSource> stream() {
+    public Stream<Source> stream() {
         return stream0().map(readableChild -> new PathSource(Paths.get("."), readableChild));
     }
 }

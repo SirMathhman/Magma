@@ -16,7 +16,7 @@ public record SingletonSourceSet(Path source) implements SourceSet {
     }
 
     @Override
-    public Stream<PathSource> stream() {
+    public Stream<Source> stream() {
         return stream0().map(readableChild -> new PathSource(Paths.get("."), readableChild));
     }
 }

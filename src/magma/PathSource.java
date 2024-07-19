@@ -1,26 +1,28 @@
 package magma;
 
 import java.nio.file.Path;
-import java.util.ArrayList;
+import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
-public record PathSource(Path root, Path readableChild) {
-    Stream<String> computeNamespace() {
+public record PathSource(Path root, Path readableChild) implements Source {
+    @Override
+    public Stream<String> computeNamespace() {
         var parent = readableChild.getParent();
         if (parent == null) return Stream.empty();
 
         var relativized = root.relativize(parent);
-        var namespace = new ArrayList<String>();
-        for (int i = 0; i < relativized.getNameCount(); i++) {
-            namespace.add(relativized.getName(i).toString());
-        }
-
-        return namespace.stream();
+        var length = relativized.getNameCount();
+        return IntStream.range(0, length)
+                .mapToObj(relativized::getName)
+                .map(Path::toString);
     }
 
-    String computeName() {
+    @Override
+    public String computeName() {
         var fileName = readableChild().getFileName().toString();
         var separator = fileName.lastIndexOf('.');
-        return fileName.substring(0, separator);
+        return separator == -1
+                ? fileName
+                : fileName.substring(0, separator);
     }
 }
