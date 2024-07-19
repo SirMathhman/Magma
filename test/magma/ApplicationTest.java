@@ -40,10 +40,15 @@ public class ApplicationTest {
     private static void run(SourceSet sourceSet) throws IOException {
         var stream = sourceSet.stream();
         for (var source : stream.toList()) {
-            var fileName = source.getFileName().toString();
-            var separator = fileName.lastIndexOf('.');
-            var name = fileName.substring(0, separator);
-            Files.createFile(source.resolveSibling(resolve(name, MAGMA_EXTENSION)));
+            var namespace = source.computeNamespace();
+            var name = source.computeName();
+
+            var current = Paths.get(".");
+            for (String s : namespace.toList()) {
+                current = current.resolve(s);
+            }
+
+            Files.createFile(current.resolve(resolve(name, MAGMA_EXTENSION)));
         }
     }
 
