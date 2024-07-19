@@ -27,10 +27,6 @@ public class ApplicationTest {
         return Paths.get(Compiler.IMPORT_SEPARATOR, PathTargetSet.resolve("ApplicationTest", extension));
     }
 
-    private static boolean doesTargetExist() {
-        return Files.exists(TARGET);
-    }
-
     private static void runOrFail() {
         try {
             new Application(new SingletonSourceSet(SOURCE), new PathTargetSet(Paths.get("."))).run();
@@ -89,12 +85,12 @@ public class ApplicationTest {
     @Test
     void generatesNoTarget() {
         runOrFail();
-        assertFalse(doesTargetExist());
+        assertFalse(Files.exists(TARGET));
     }
 
     @Test
     void generatesTarget() {
         runOrFail("");
-        assertTrue(doesTargetExist());
+        assertTrue(Files.exists(TARGET));
     }
 }
