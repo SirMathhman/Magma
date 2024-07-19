@@ -1,5 +1,6 @@
 package magma.app;
 
+import magma.api.result.Results;
 import magma.app.compile.Compiler;
 import magma.app.io.SourceSet;
 import magma.app.io.TargetSet;
@@ -21,7 +22,7 @@ public record Application(SourceSet sourceSet, TargetSet targetSet) {
         var stream = stream();
         for (var source : stream.toList()) {
             var input = readSafe(source);
-            var output = Compiler.compile(input);
+            var output = Results.unwrap(Compiler.compile(input));
             targetSet().write(source, output);
         }
     }
