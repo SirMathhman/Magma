@@ -9,7 +9,6 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -18,19 +17,15 @@ import static org.junit.jupiter.api.Assertions.fail;
 
 public class ApplicationTest {
     public static final String MAGMA_EXTENSION = "mgs";
-    public static final String IMPORT_KEYWORD_WITH_SPACE = "import ";
-    public static final String IMPORT_SEPARATOR = ".";
     public static final Path SOURCE = resolveExtension("java");
     public static final Path TARGET = resolveExtension(MAGMA_EXTENSION);
-    public static final String STATEMENT_END = ";";
-    public static final String PACKAGE_KEYWORD_WITH_SPACE = "package ";
 
     private static Path resolveExtension(String extension) {
-        return Paths.get(IMPORT_SEPARATOR, resolve("ApplicationTest", extension));
+        return Paths.get(Compiler.IMPORT_SEPARATOR, resolve("ApplicationTest", extension));
     }
 
     private static String resolve(String name, String extension) {
-        return name + IMPORT_SEPARATOR + extension;
+        return name + Compiler.IMPORT_SEPARATOR + extension;
     }
 
     private static boolean doesTargetExist() {
@@ -49,7 +44,7 @@ public class ApplicationTest {
         var stream = sourceSet.stream();
         for (var source : stream.toList()) {
             var name = source.computeName();
-            var current = Paths.get(IMPORT_SEPARATOR);
+            var current = Paths.get(Compiler.IMPORT_SEPARATOR);
 
             var namespace = source.computeNamespace();
             for (var segment : namespace.toList()) {
@@ -57,24 +52,11 @@ public class ApplicationTest {
             }
 
             var input = readSafe(source);
-            var output = compile(input);
+            var output = Compiler.compile(input);
 
             var target = current.resolve(resolve(name, MAGMA_EXTENSION));
             writeSafe(target, output);
         }
-    }
-
-    private static String compile(String input) throws CompileException {
-        if (input.isEmpty()) return "";
-        return compilePackage(input)
-                .or(() -> compileImport(input))
-                .orElseThrow(() -> new CompileException("Unknown input: " + input));
-    }
-
-    private static Optional<String> compilePackage(String input) {
-        return input.startsWith(PACKAGE_KEYWORD_WITH_SPACE)
-                ? Optional.of("")
-                : Optional.empty();
     }
 
     private static void writeSafe(Path target, String output) throws CompileException {
@@ -91,14 +73,6 @@ public class ApplicationTest {
         } catch (IOException e) {
             throw new CompileException(e);
         }
-    }
-
-    private static Optional<String> compileImport(String input) {
-        if (!input.startsWith(IMPORT_KEYWORD_WITH_SPACE)) return Optional.empty();
-        var afterKeyword = input.substring(IMPORT_KEYWORD_WITH_SPACE.length());
-
-        if (!afterKeyword.endsWith(STATEMENT_END)) return Optional.empty();
-        return Optional.of(input);
     }
 
     private static void runOrFail(String input) {
@@ -120,13 +94,13 @@ public class ApplicationTest {
     }
 
     private static String renderImport(String parent, String child) {
-        return IMPORT_KEYWORD_WITH_SPACE + parent + IMPORT_SEPARATOR + child + STATEMENT_END;
+        return Compiler.IMPORT_KEYWORD_WITH_SPACE + parent + Compiler.IMPORT_SEPARATOR + child + Compiler.STATEMENT_END;
     }
 
     @ParameterizedTest
     @ValueSource(strings = {"first", "second"})
     void packageStatement(String name) {
-        assertRun(PACKAGE_KEYWORD_WITH_SPACE + name + STATEMENT_END, "");
+        assertRun(Compiler.PACKAGE_KEYWORD_WITH_SPACE + name + Compiler.STATEMENT_END, "");
     }
 
     @ParameterizedTest
