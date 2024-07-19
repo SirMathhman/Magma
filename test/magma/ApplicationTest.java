@@ -40,12 +40,12 @@ public class ApplicationTest {
     private static void runOrFail() {
         try {
             run(new SingletonSourceSet(SOURCE));
-        } catch (IOException e) {
+        } catch (CompileException e) {
             fail(e);
         }
     }
 
-    private static void run(SourceSet sourceSet) throws IOException {
+    private static void run(SourceSet sourceSet) throws CompileException {
         var stream = sourceSet.stream();
         for (var source : stream.toList()) {
             var name = source.computeName();
@@ -56,10 +56,40 @@ public class ApplicationTest {
                 current = current.resolve(segment);
             }
 
-            var input = source.read();
-            var output = compileImport(input).orElse("");
+            var input = readSafe(source);
+            var output = compile(input);
 
-            Files.writeString(current.resolve(resolve(name, MAGMA_EXTENSION)), output);
+            var target = current.resolve(resolve(name, MAGMA_EXTENSION));
+            writeSafe(target, output);
+        }
+    }
+
+    private static String compile(String input) throws CompileException {
+        if (input.isEmpty()) return "";
+        return compilePackage(input)
+                .or(() -> compileImport(input))
+                .orElseThrow(() -> new CompileException("Unknown input: " + input));
+    }
+
+    private static Optional<String> compilePackage(String input) {
+        return input.startsWith(PACKAGE_KEYWORD_WITH_SPACE)
+                ? Optional.of("")
+                : Optional.empty();
+    }
+
+    private static void writeSafe(Path target, String output) throws CompileException {
+        try {
+            Files.writeString(target, output);
+        } catch (IOException e) {
+            throw new CompileException(e);
+        }
+    }
+
+    private static String readSafe(Source source) throws CompileException {
+        try {
+            return source.read();
+        } catch (IOException e) {
+            throw new CompileException(e);
         }
     }
 
@@ -71,9 +101,13 @@ public class ApplicationTest {
         return Optional.of(input);
     }
 
-    private static void runOrFail(String input) throws IOException {
-        Files.writeString(SOURCE, input);
-        runOrFail();
+    private static void runOrFail(String input) {
+        try {
+            writeSafe(SOURCE, input);
+            runOrFail();
+        } catch (CompileException e) {
+            fail(e);
+        }
     }
 
     private static void assertRun(String input, String output) {
@@ -121,7 +155,7 @@ public class ApplicationTest {
     }
 
     @Test
-    void generatesTarget() throws IOException {
+    void generatesTarget() {
         runOrFail("");
         assertTrue(doesTargetExist());
     }
