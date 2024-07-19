@@ -5,6 +5,7 @@ import magma.api.result.Ok;
 import magma.api.result.Result;
 import magma.app.ApplicationException;
 
+import java.util.List;
 import java.util.Optional;
 
 public class Compiler {
@@ -52,10 +53,17 @@ public class Compiler {
         var blockStart = afterKeyword.indexOf(BLOCK_START);
         var name = afterKeyword.substring(0, blockStart);
         var afterBlockStart = afterKeyword.substring(blockStart + 1);
-        if (!afterBlockStart.endsWith("}")) return Optional.empty();
+        if (!afterBlockStart.endsWith(BLOCK_END)) return Optional.empty();
         var inputContent = afterBlockStart.substring(0, afterBlockStart.length() - 1);
 
         var classMembers = Splitter.split(inputContent).toList();
+        var outputContent = compileContent(classMembers);
+
+        var rendered = outputContent.mapValue(content -> renderFunction(newModifiers, name, content.toString()));
+        return Optional.of(rendered);
+    }
+
+    private static Result<StringBuilder, ApplicationException> compileContent(List<String> classMembers) {
         Result<StringBuilder, ApplicationException> outputContent = new Ok<>(new StringBuilder());
         for (String classMember : classMembers) {
             var stripped = classMember.strip();
@@ -64,10 +72,7 @@ public class Compiler {
                     .and(() -> compileClassMember(stripped))
                     .mapValue(tuple -> tuple.left().append(tuple.right()));
         }
-
-        return Optional.of(outputContent.mapValue(content -> {
-            return renderFunction(newModifiers, name, content.toString());
-        }));
+        return outputContent;
     }
 
     private static Result<String, ApplicationException> compileClassMember(String classMember) {
