@@ -30,7 +30,7 @@ public class ApplicationTest {
 
     private static void runOrFail() {
         try {
-            new Application(new SingletonSourceSet(SOURCE), new PathTargetSet()).run();
+            new Application(new SingletonSourceSet(SOURCE), new PathTargetSet(Paths.get("."))).run();
         } catch (CompileException e) {
             fail(e);
         }

@@ -16,15 +16,14 @@ import java.util.Collections;
 import java.util.stream.Collectors;
 
 class DirectorySourceSetTest {
-
     private Path root;
-    private Path parent;
     private Path child;
 
     @BeforeEach
     void setUp() throws IOException {
         root = Paths.get(".", "temp");
-        parent = root.resolve("parent");
+
+        var parent = root.resolve("parent");
         if (!Files.exists(parent)) Files.createDirectories(parent);
 
         child = parent.resolve("Child.java");
