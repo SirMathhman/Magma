@@ -30,4 +30,8 @@ public class Compiler {
         if (!afterKeyword.endsWith(STATEMENT_END)) return Optional.empty();
         return Optional.of(input);
     }
+
+    public static String renderImport(String parent, String child) {
+        return IMPORT_KEYWORD_WITH_SPACE + parent + IMPORT_SEPARATOR + child + STATEMENT_END;
+    }
 }

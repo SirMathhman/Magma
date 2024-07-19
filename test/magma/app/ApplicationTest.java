@@ -54,10 +54,6 @@ public class ApplicationTest {
         }
     }
 
-    private static String renderImport(String parent, String child) {
-        return Compiler.IMPORT_KEYWORD_WITH_SPACE + parent + Compiler.IMPORT_SEPARATOR + child + Compiler.STATEMENT_END;
-    }
-
     @ParameterizedTest
     @ValueSource(strings = {"first", "second"})
     void packageStatement(String name) {
@@ -67,13 +63,13 @@ public class ApplicationTest {
     @ParameterizedTest
     @ValueSource(strings = {"First", "Second"})
     void importChild(String child) {
-        var value = renderImport("parent", child);
+        var value = Compiler.renderImport("parent", child);
         assertRun(value, value);
     }
 
     @Test
     void importParent() {
-        var value = renderImport("test", "Child");
+        var value = Compiler.renderImport("test", "Child");
         assertRun(value, value);
     }
 
