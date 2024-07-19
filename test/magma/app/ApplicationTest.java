@@ -22,6 +22,7 @@ import static org.junit.jupiter.api.Assertions.fail;
 public class ApplicationTest {
     public static final Path SOURCE = resolveExtension("java");
     public static final Path TARGET = resolveExtension(MAGMA_EXTENSION);
+    public static final Path TARGET_ROOT = Paths.get(".");
 
     private static Path resolveExtension(String extension) {
         return Paths.get(Compiler.IMPORT_SEPARATOR, PathTargetSet.resolve("ApplicationTest", extension));
@@ -29,7 +30,7 @@ public class ApplicationTest {
 
     private static void runOrFail() {
         try {
-            new Application(new SingletonSourceSet(SOURCE), new PathTargetSet(Paths.get("."))).run();
+            new Application(new SingletonSourceSet(SOURCE), new PathTargetSet(TARGET_ROOT)).run();
         } catch (ApplicationException e) {
             fail(e);
         }
