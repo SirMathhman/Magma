@@ -47,8 +47,11 @@ public class Compiler {
 
     private static Optional<Result<String, ApplicationException>> compileRecord(String input) {
         return split(input, RECORD_KEYWORD_WITH_SPACE)
-                .map(Tuple::right)
-                .flatMap(right -> truncateRight(right, EMPTY_RECORD_CONTENT).map(name -> new Ok<>(renderFunction("", name, ""))));
+                .flatMap(tuple -> {
+                    var oldModifiers = tuple.left();
+                    var newModifiers = processModifiers(oldModifiers);
+                    return truncateRight(tuple.right(), EMPTY_RECORD_CONTENT).map(name -> new Ok<>(renderFunction(newModifiers, name, "")));
+                });
     }
 
     private static Optional<String> truncateRight(String input, String slice) {
@@ -67,13 +70,16 @@ public class Compiler {
                 return truncateRight(afterBlockStart, BLOCK_END).map(inputContent -> {
                     var classMembers = Splitter.split(inputContent).toList();
                     var outputContent = compileContent(classMembers);
-
-                    var newModifiers = oldModifiers.equals(PUBLIC_KEYWORD_WITH_SPACE) ? EXPORT_KEYWORD_WITH_SPACE : "";
+                    var newModifiers = processModifiers(oldModifiers);
 
                     return outputContent.mapValue(content -> renderFunction(newModifiers, name, content.toString()));
                 });
             });
         });
+    }
+
+    private static String processModifiers(String oldModifiers) {
+        return oldModifiers.equals(PUBLIC_KEYWORD_WITH_SPACE) ? EXPORT_KEYWORD_WITH_SPACE : "";
     }
 
     private static Optional<Tuple<String, String>> split(String input, String slice) {
@@ -126,7 +132,7 @@ public class Compiler {
         return modifiers + CLASS_KEYWORD_WITH_SPACE + name + renderBlock("");
     }
 
-    static String renderRecord(String name) {
-        return RECORD_KEYWORD_WITH_SPACE + name + EMPTY_RECORD_CONTENT;
+    static String renderRecord(String modifiers, String name) {
+        return modifiers + RECORD_KEYWORD_WITH_SPACE + name + EMPTY_RECORD_CONTENT;
     }
 }
