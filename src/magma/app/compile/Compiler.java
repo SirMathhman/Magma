@@ -21,6 +21,7 @@ public class Compiler {
     public static final String EXPORT_KEYWORD_WITH_SPACE = "export ";
     public static final String RECORD_KEYWORD_WITH_SPACE = "record ";
     public static final String EMPTY_RECORD_CONTENT = "(){}";
+    public static final String EMPTY_PARAMS = "()";
 
     private static String renderBlock(String content) {
         return BLOCK_START + content + BLOCK_END;
@@ -46,12 +47,20 @@ public class Compiler {
     }
 
     private static Optional<Result<String, ApplicationException>> compileRecord(String input) {
-        return split(input, RECORD_KEYWORD_WITH_SPACE)
-                .flatMap(tuple -> {
-                    var oldModifiers = tuple.left();
-                    var newModifiers = processModifiers(oldModifiers);
-                    return truncateRight(tuple.right(), EMPTY_RECORD_CONTENT).map(name -> new Ok<>(renderFunction(newModifiers, name, "")));
+        return split(input, RECORD_KEYWORD_WITH_SPACE).flatMap(tuple -> {
+            var oldModifiers = tuple.left();
+            var newModifiers = processModifiers(oldModifiers);
+            return split(tuple.right(), BLOCK_START).flatMap(tuple0 -> {
+                var nameAndParams = tuple0.left();
+                return truncateRight(nameAndParams, EMPTY_PARAMS).flatMap(name -> {
+                    return truncateRight(tuple0.right(), BLOCK_END).map(ok -> {
+                        var classMembers = Splitter.split(ok).toList();
+                        var outputContent = compileContent(classMembers);
+                        return outputContent.mapValue(content -> renderFunction(newModifiers, name, content.toString()));
+                    });
                 });
+            });
+        });
     }
 
     private static Optional<String> truncateRight(String input, String slice) {
