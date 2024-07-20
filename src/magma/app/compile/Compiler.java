@@ -45,19 +45,21 @@ public class Compiler {
     private static Optional<Result<String, ApplicationException>> compileClass(String input) {
         var classIndex = input.indexOf(CLASS_KEYWORD_WITH_SPACE);
         if (classIndex == -1) return Optional.empty();
+
         var afterKeyword = input.substring(classIndex + CLASS_KEYWORD_WITH_SPACE.length());
-
         var oldModifiers = input.substring(0, classIndex);
-        var newModifiers = oldModifiers.equals(PUBLIC_KEYWORD_WITH_SPACE) ? EXPORT_KEYWORD_WITH_SPACE : "";
-
         var blockStart = afterKeyword.indexOf(BLOCK_START);
+        if (blockStart == -1) return Optional.empty();
+
         var name = afterKeyword.substring(0, blockStart);
         var afterBlockStart = afterKeyword.substring(blockStart + 1);
         if (!afterBlockStart.endsWith(BLOCK_END)) return Optional.empty();
+        
         var inputContent = afterBlockStart.substring(0, afterBlockStart.length() - 1);
-
         var classMembers = Splitter.split(inputContent).toList();
         var outputContent = compileContent(classMembers);
+
+        var newModifiers = oldModifiers.equals(PUBLIC_KEYWORD_WITH_SPACE) ? EXPORT_KEYWORD_WITH_SPACE : "";
 
         var rendered = outputContent.mapValue(content -> renderFunction(newModifiers, name, content.toString()));
         return Optional.of(rendered);
