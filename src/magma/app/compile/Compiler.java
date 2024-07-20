@@ -19,6 +19,8 @@ public class Compiler {
     public static final String BLOCK_END = "}";
     public static final String PUBLIC_KEYWORD_WITH_SPACE = "public ";
     public static final String EXPORT_KEYWORD_WITH_SPACE = "export ";
+    public static final String RECORD_KEYWORD_WITH_SPACE = "record ";
+    public static final String EMPTY_RECORD_CONTENT = "(){}";
 
     private static String renderBlock(String content) {
         return BLOCK_START + content + BLOCK_END;
@@ -29,14 +31,30 @@ public class Compiler {
 
         Result<StringBuilder, ApplicationException> builder = new Ok<>(new StringBuilder());
         for (String line : lines) {
-            builder = builder.and(() -> compileLine(line.strip())).mapValue(tuple -> tuple.left().append(tuple.right()));
+            builder = builder.and(() -> compileRootMember(line.strip())).mapValue(tuple -> tuple.left().append(tuple.right()));
         }
 
         return builder.mapValue(StringBuilder::toString);
     }
 
-    private static Result<String, ApplicationException> compileLine(String input) {
-        return compilePackage(input).or(() -> compileImport(input)).or(() -> compileClass(input)).orElseGet(() -> new Err<>(new ApplicationException("Unknown input: " + input)));
+    private static Result<String, ApplicationException> compileRootMember(String input) {
+        return compilePackage(input)
+                .or(() -> compileImport(input))
+                .or(() -> compileClass(input))
+                .or(() -> compileRecord(input))
+                .orElseGet(() -> new Err<>(new ApplicationException("Unknown input: " + input)));
+    }
+
+    private static Optional<Result<String, ApplicationException>> compileRecord(String input) {
+        return split(input, RECORD_KEYWORD_WITH_SPACE)
+                .map(Tuple::right)
+                .flatMap(right -> truncateRight(right, EMPTY_RECORD_CONTENT).map(name -> new Ok<>(renderFunction("", name, ""))));
+    }
+
+    private static Optional<String> truncateRight(String input, String slice) {
+        if (!input.endsWith(slice)) return Optional.empty();
+        var name = input.substring(0, input.length() - slice.length());
+        return Optional.of(name);
     }
 
     private static Optional<Result<String, ApplicationException>> compileClass(String input) {
@@ -46,15 +64,14 @@ public class Compiler {
                 var name = tuple0.left();
                 var afterBlockStart = tuple0.right();
 
-                if (!afterBlockStart.endsWith(BLOCK_END)) return Optional.empty();
-                var inputContent = afterBlockStart.substring(0, afterBlockStart.length() - 1);
+                return truncateRight(afterBlockStart, BLOCK_END).map(inputContent -> {
+                    var classMembers = Splitter.split(inputContent).toList();
+                    var outputContent = compileContent(classMembers);
 
-                var classMembers = Splitter.split(inputContent).toList();
-                var outputContent = compileContent(classMembers);
+                    var newModifiers = oldModifiers.equals(PUBLIC_KEYWORD_WITH_SPACE) ? EXPORT_KEYWORD_WITH_SPACE : "";
 
-                var newModifiers = oldModifiers.equals(PUBLIC_KEYWORD_WITH_SPACE) ? EXPORT_KEYWORD_WITH_SPACE : "";
-
-                return Optional.of(outputContent.mapValue(content -> renderFunction(newModifiers, name, content.toString())));
+                    return outputContent.mapValue(content -> renderFunction(newModifiers, name, content.toString()));
+                });
             });
         });
     }
@@ -107,5 +124,9 @@ public class Compiler {
 
     static String renderClass(String modifiers, String name) {
         return modifiers + CLASS_KEYWORD_WITH_SPACE + name + renderBlock("");
+    }
+
+    static String renderRecord(String name) {
+        return RECORD_KEYWORD_WITH_SPACE + name + EMPTY_RECORD_CONTENT;
     }
 }

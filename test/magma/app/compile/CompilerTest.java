@@ -23,6 +23,12 @@ class CompilerTest {
 
     @ParameterizedTest
     @ValueSource(strings = {"First", "Second"})
+    void recordName(String name) {
+        assertCompile(Compiler.renderRecord(name), Compiler.renderFunction("", name, ""));
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"First", "Second"})
     void className(String name) {
         assertCompile(Compiler.renderClass("", name), Compiler.renderFunction("", name, ""));
     }
