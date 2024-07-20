@@ -1,5 +1,6 @@
 package magma.app.compile;
 
+import magma.api.Tuple;
 import magma.api.result.Err;
 import magma.api.result.Ok;
 import magma.api.result.Result;
@@ -28,41 +29,42 @@ public class Compiler {
 
         Result<StringBuilder, ApplicationException> builder = new Ok<>(new StringBuilder());
         for (String line : lines) {
-            builder = builder.and(() -> compileLine(line.strip()))
-                    .mapValue(tuple -> tuple.left().append(tuple.right()));
+            builder = builder.and(() -> compileLine(line.strip())).mapValue(tuple -> tuple.left().append(tuple.right()));
         }
 
         return builder.mapValue(StringBuilder::toString);
     }
 
     private static Result<String, ApplicationException> compileLine(String input) {
-        return compilePackage(input)
-                .or(() -> compileImport(input))
-                .or(() -> compileClass(input))
-                .orElseGet(() -> new Err<>(new ApplicationException("Unknown input: " + input)));
+        return compilePackage(input).or(() -> compileImport(input)).or(() -> compileClass(input)).orElseGet(() -> new Err<>(new ApplicationException("Unknown input: " + input)));
     }
 
     private static Optional<Result<String, ApplicationException>> compileClass(String input) {
-        var classIndex = input.indexOf(CLASS_KEYWORD_WITH_SPACE);
+        return split(input, CLASS_KEYWORD_WITH_SPACE).flatMap(tuple -> {
+            var oldModifiers = tuple.left();
+            return split(tuple.right(), BLOCK_START).flatMap(tuple0 -> {
+                var name = tuple0.left();
+                var afterBlockStart = tuple0.right();
+
+                if (!afterBlockStart.endsWith(BLOCK_END)) return Optional.empty();
+                var inputContent = afterBlockStart.substring(0, afterBlockStart.length() - 1);
+
+                var classMembers = Splitter.split(inputContent).toList();
+                var outputContent = compileContent(classMembers);
+
+                var newModifiers = oldModifiers.equals(PUBLIC_KEYWORD_WITH_SPACE) ? EXPORT_KEYWORD_WITH_SPACE : "";
+
+                return Optional.of(outputContent.mapValue(content -> renderFunction(newModifiers, name, content.toString())));
+            });
+        });
+    }
+
+    private static Optional<Tuple<String, String>> split(String input, String slice) {
+        var classIndex = input.indexOf(slice);
         if (classIndex == -1) return Optional.empty();
-
-        var afterKeyword = input.substring(classIndex + CLASS_KEYWORD_WITH_SPACE.length());
-        var oldModifiers = input.substring(0, classIndex);
-        var blockStart = afterKeyword.indexOf(BLOCK_START);
-        if (blockStart == -1) return Optional.empty();
-
-        var name = afterKeyword.substring(0, blockStart);
-        var afterBlockStart = afterKeyword.substring(blockStart + 1);
-        if (!afterBlockStart.endsWith(BLOCK_END)) return Optional.empty();
-        
-        var inputContent = afterBlockStart.substring(0, afterBlockStart.length() - 1);
-        var classMembers = Splitter.split(inputContent).toList();
-        var outputContent = compileContent(classMembers);
-
-        var newModifiers = oldModifiers.equals(PUBLIC_KEYWORD_WITH_SPACE) ? EXPORT_KEYWORD_WITH_SPACE : "";
-
-        var rendered = outputContent.mapValue(content -> renderFunction(newModifiers, name, content.toString()));
-        return Optional.of(rendered);
+        var leftSlice = input.substring(0, classIndex);
+        var rightSlice = input.substring(classIndex + slice.length());
+        return Optional.of(new Tuple<>(leftSlice, rightSlice));
     }
 
     private static Result<StringBuilder, ApplicationException> compileContent(List<String> classMembers) {
@@ -70,9 +72,7 @@ public class Compiler {
         for (String classMember : classMembers) {
             var stripped = classMember.strip();
             if (stripped.isEmpty()) continue;
-            outputContent = outputContent
-                    .and(() -> compileClassMember(stripped))
-                    .mapValue(tuple -> tuple.left().append(tuple.right()));
+            outputContent = outputContent.and(() -> compileClassMember(stripped)).mapValue(tuple -> tuple.left().append(tuple.right()));
         }
         return outputContent;
     }
