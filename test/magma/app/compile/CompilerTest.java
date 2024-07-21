@@ -30,7 +30,7 @@ class CompilerTest {
     @ParameterizedTest
     @ValueSource(strings = {"First", "Second"})
     void interfaceName(String name) {
-        assertCompile(renderInterface(name), Compiler.renderTrait(name));
+        assertCompile(renderInterface(name), renderTrait(Map.of(NAME, name)));
     }
 
     @Test

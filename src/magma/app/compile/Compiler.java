@@ -56,7 +56,8 @@ public class Compiler {
                 .map(map -> {
                     var oldModifiers = map.get(MODIFIERS);
                     var newModifiers = oldModifiers.equals(PUBLIC_KEYWORD_WITH_SPACE) ? EXPORT_KEYWORD_WITH_SPACE : "";
-                    return map.put(MODIFIERS, newModifiers);
+                    map.put(MODIFIERS, newModifiers);
+                    return map;
                 })
                 .map(Compiler::renderTrait);
     }
@@ -70,11 +71,6 @@ public class Compiler {
         return truncateLeft(IMPORT_KEYWORD_WITH_SPACE, input)
                 .flatMap(afterKeyword -> RightRule.truncateRight(afterKeyword, String.valueOf(STATEMENT_END)))
                 .map(Compiler::renderImport);
-    }
-
-    static String renderTrait(String name) {
-        var right = Map.of(NAME, name);
-        return renderTrait(right);
     }
 
     static String renderTrait(Map<String, String> node) {
