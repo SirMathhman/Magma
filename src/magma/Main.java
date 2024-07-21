@@ -9,7 +9,7 @@ public class Main {
             var sourceSet = new DirectorySourceSet(Paths.get(".", "src"));
             var targetSet = new DirectoryTargetSet(Paths.get(".", "dist"));
             new Application(sourceSet, targetSet).run();
-        } catch (IOException e) {
+        } catch (ApplicationException e) {
             //noinspection CallToPrintStackTrace
             e.printStackTrace();
         }

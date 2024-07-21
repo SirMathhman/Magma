@@ -1,6 +1,7 @@
 package magma;
 
 import java.io.IOException;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 public final class Application {
@@ -13,17 +14,36 @@ public final class Application {
         this.targetSet = targetSet;
     }
 
-    private void runWithPath(CompileUnit unit) throws IOException {
-        targetSet.writeTarget(unit);
+    private void runWithPath(CompileUnit unit) throws ApplicationException {
+        try {
+            var input = unit.read();
+            var output = compile(input);
+            targetSet.writeTarget(unit, output);
+        } catch (IOException e) {
+            throw new ApplicationException(e);
+        }
     }
 
-    void run() throws IOException {
-        var unit = sourceSet
-                .streamPaths()
-                .collect(Collectors.toSet());
+    private String compile(String input) throws CompileException {
+        if (input.isEmpty()) return "";
+        else throw new CompileException("Invalid input", input);
+    }
+
+    void run() throws ApplicationException {
+        var unit = streamAndCollect();
 
         for (var path : unit) {
             runWithPath(path);
+        }
+    }
+
+    private Set<CompileUnit> streamAndCollect() throws ApplicationException {
+        try {
+            return sourceSet
+                    .streamPaths()
+                    .collect(Collectors.toSet());
+        } catch (IOException e) {
+            throw new ApplicationException(e);
         }
     }
 }

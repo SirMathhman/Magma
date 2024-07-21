@@ -16,8 +16,8 @@ class DirectoryTargetSetTest {
     @Test
     void writeTarget() throws IOException {
         var targetSet = new DirectoryTargetSet(ROOT);
-        var unit = new InlineUnit(List.of("magma"), "Test");
-        targetSet.writeTarget(unit);
+        var unit = new InlineUnit(List.of("magma"), "Test", "");
+        targetSet.writeTarget(unit, "");
         assertTrue(Files.exists(ROOT.resolve("magma", "Test.mgs")));
     }
 

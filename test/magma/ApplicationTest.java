@@ -44,10 +44,20 @@ public class ApplicationTest {
 
     private void runOrFail() {
         try {
-            new Application(sourceSet, targetSet).run();
-        } catch (IOException e) {
+            runWithSets();
+        } catch (IOException | ApplicationException e) {
             fail(e);
         }
+    }
+
+    private void runWithSets() throws IOException, ApplicationException {
+        new Application(sourceSet, targetSet).run();
+    }
+
+    @Test
+    void throwInvalid() throws IOException {
+        Files.writeString(SOURCE, "foobar");
+        assertThrows(CompileException.class, this::runWithSets);
     }
 
     @Test

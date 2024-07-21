@@ -12,7 +12,7 @@ public class DirectoryTargetSet implements TargetSet {
     }
 
     @Override
-    public void writeTarget(CompileUnit unit) throws IOException {
+    public void writeTarget(CompileUnit unit, String output) throws IOException {
         var namespace = unit.computeNamespace().toList();
         var name = unit.computeName();
 

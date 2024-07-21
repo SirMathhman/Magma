@@ -3,5 +3,5 @@ package magma;
 import java.io.IOException;
 
 public interface TargetSet {
-    void writeTarget(CompileUnit unit) throws IOException;
+    void writeTarget(CompileUnit unit, String output) throws IOException;
 }
