@@ -12,22 +12,13 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class ApplicationTest {
-    public static final String MAGMA_EXTENSION = "mgs";
     public static final String JAVA_EXTENSION = "java";
     public static final String THIS_NAME = "ApplicationTest";
-    public static final Path TARGET = resolve(THIS_NAME, MAGMA_EXTENSION);
-    public static final Path SOURCE = resolve(THIS_NAME, JAVA_EXTENSION);
+    public static final Path TARGET = resolve(Application.MAGMA_EXTENSION);
+    public static final Path SOURCE = resolve(JAVA_EXTENSION);
 
-    private static void run() throws IOException {
-        if (!Files.exists(SOURCE)) return;
-        var fileName = SOURCE.getFileName().toString();
-        var separator = fileName.indexOf('.');
-        var name = fileName.substring(0, separator);
-        Files.createFile(resolve(name, MAGMA_EXTENSION));
-    }
-
-    private static Path resolve(String name, String extension) {
-        return Paths.get(".", name + "." + extension);
+    private static Path resolve(String extension) {
+        return Paths.get(".", ApplicationTest.THIS_NAME + "." + extension);
     }
 
     @AfterEach
@@ -38,14 +29,14 @@ public class ApplicationTest {
 
     @Test
     void generatesNoTarget() throws IOException {
-        run();
+        new Application(new SingleSourceSet(SOURCE)).run();
         assertFalse(Files.exists(TARGET));
     }
 
     @Test
     void generateTarget() throws IOException {
         Files.createFile(SOURCE);
-        run();
+        new Application(new SingleSourceSet(SOURCE)).run();
         assertTrue(Files.exists(TARGET));
     }
 }
