@@ -1,5 +1,7 @@
 package magma.app.compile.rule;
 
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
@@ -12,6 +14,10 @@ public final class Node {
         this.type = type;
     }
 
+    public Node() {
+        this(Optional.empty(), Collections.emptyMap());
+    }
+
     public Map<String, String> strings() {
         return strings;
     }
@@ -22,5 +28,11 @@ public final class Node {
 
     public boolean is(String type) {
         return this.type.isPresent() && this.type.get().equals(type);
+    }
+
+    public Node with(String propertyKey, String propertyValue) {
+        var copy = new HashMap<>(strings);
+        copy.put(propertyKey, propertyValue);
+        return new Node(type, copy);
     }
 }

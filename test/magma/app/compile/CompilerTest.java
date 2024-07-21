@@ -53,11 +53,13 @@ class CompilerTest {
 
     @Test
     void importStripLeading() {
-        Rule rule = createImportRule();
-        Rule rule1 = createImportRule();
-        assertCompile(rule1.generate(new Node(Optional.empty(), Map.of(LEADING, " ", SEGMENTS, TEST_LOWER_SYMBOL)))
-                .orElseThrow(), rule.generate(new Node(Optional.empty(), Map.of(SEGMENTS, TEST_LOWER_SYMBOL)))
-                .orElseThrow());
+        var rule = createImportRule();
+        var withoutLeading = new Node().with(SEGMENTS, TEST_LOWER_SYMBOL);
+        var withLeading = withoutLeading.with(LEADING, " ");
+
+        var input = rule.generate(withLeading).orElseThrow();
+        var output = rule.generate(withoutLeading).orElseThrow();
+        assertCompile(input, output);
     }
 
     @ParameterizedTest
