@@ -33,9 +33,7 @@ class CompilerTest {
 
     @Test
     void importStripLeading() {
-        assertCompile(
-                Compiler.renderImport(" ", TEST_LOWER_SYMBOL),
-                Compiler.renderImport(TEST_LOWER_SYMBOL));
+        assertCompile(Compiler.renderImport(" ", TEST_LOWER_SYMBOL), Compiler.renderImport(TEST_LOWER_SYMBOL));
     }
 
     @ParameterizedTest
