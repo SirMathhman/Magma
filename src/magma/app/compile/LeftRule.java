@@ -13,12 +13,12 @@ public record LeftRule(String slice, Rule child) implements Rule {
     }
 
     private Optional<String> generate0(Map<String, String> node) {
-        return child.generate(new Node(node)).map(inner -> slice + inner);
+        return child.generate(new Node(Optional.empty(), node)).map(inner -> slice + inner);
     }
 
     @Override
     public Optional<Node> parse(String input) {
-        return parse0(input).map(Node::new);
+        return parse0(input).map(strings -> new Node(Optional.empty(), strings));
     }
 
     @Override

@@ -16,7 +16,7 @@ public record OrRule(List<Rule> children) implements Rule {
 
     private Optional<String> generate0(Map<String, String> node) {
         for (Rule child : children) {
-            var result = child.generate(new Node(node));
+            var result = child.generate(new Node(Optional.empty(), node));
             if (result.isPresent()) return result;
         }
 
@@ -25,7 +25,7 @@ public record OrRule(List<Rule> children) implements Rule {
 
     @Override
     public Optional<Node> parse(String input) {
-        return parse0(input).map(Node::new);
+        return parse0(input).map(strings -> new Node(Optional.empty(), strings));
     }
 
     @Override

@@ -14,7 +14,7 @@ public record ExtractRule(String propertyKey) implements Rule {
 
     @Override
     public Optional<Node> parse(String input) {
-        return parse0(input).map(Node::new);
+        return parse0(input).map(strings -> new Node(Optional.empty(), strings));
     }
 
     @Override

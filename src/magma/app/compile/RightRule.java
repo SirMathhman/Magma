@@ -17,12 +17,12 @@ public record RightRule(Rule child, String slice) implements Rule {
     }
 
     private Optional<String> generate0(Map<String, String> node) {
-        return child.generate(new Node(node)).map(inner -> inner + slice);
+        return child.generate(new Node(Optional.empty(), node)).map(inner -> inner + slice);
     }
 
     @Override
     public Optional<Node> parse(String input) {
-        return parse0(input).map(Node::new);
+        return parse0(input).map(strings -> new Node(Optional.empty(), strings));
     }
 
     @Override

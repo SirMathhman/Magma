@@ -4,6 +4,7 @@ import magma.app.compile.rule.*;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 public class Compiler {
     public static final String PACKAGE_KEYWORD_WITH_SPACE = "package ";
@@ -48,10 +49,10 @@ public class Compiler {
         if (input.isEmpty() || input.startsWith(PACKAGE_KEYWORD_WITH_SPACE)) return "";
 
         return IMPORT_RULE.parse(input).map(Node::strings)
-                .flatMap(node1 -> IMPORT_RULE.generate(new Node(node1)))
+                .flatMap(node1 -> IMPORT_RULE.generate(new Node(Optional.empty(), node1)))
                 .or(() -> INTERFACE_RULE.parse(input).map(Node::strings)
                         .map(Compiler::modify)
-                        .flatMap(node -> STRUCT_RULE.generate(new Node(node))))
+                        .flatMap(node -> STRUCT_RULE.generate(new Node(Optional.empty(), node))))
                 .orElseThrow(() -> new CompileException("Invalid input", input));
     }
 

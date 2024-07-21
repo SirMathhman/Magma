@@ -31,12 +31,12 @@ public record FirstRule(Rule left, String slice, Rule right) implements Rule {
     }
 
     private Optional<String> generate0(Map<String, String> node) {
-        return left.generate(new Node(node)).flatMap(leftValue -> this.right().generate(new Node(node)).map(rightValue -> leftValue + slice + rightValue));
+        return left.generate(new Node(Optional.empty(), node)).flatMap(leftValue -> this.right().generate(new Node(Optional.empty(), node)).map(rightValue -> leftValue + slice + rightValue));
     }
 
     @Override
     public Optional<Node> parse(String input) {
-        return parse0(input).map(Node::new);
+        return parse0(input).map(strings -> new Node(Optional.empty(), strings));
     }
 
     @Override
