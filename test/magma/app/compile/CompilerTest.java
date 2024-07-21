@@ -33,41 +33,44 @@ class CompilerTest {
     @ParameterizedTest
     @ValueSource(strings = {"First", "Second"})
     void interfaceName(String name) {
-        assertCompile(INTERFACE_RULE.generate(new Node(Optional.empty(), Map.of(NAME, name))).orElseThrow(), STRUCT_RULE.generate(new Node(Optional.empty(), Map.of(NAME, name))).orElseThrow());
+        assertCompile(INTERFACE_RULE.generate(new Node(Optional.empty(), Map.of(NAME, name))).findValue().orElseThrow(), STRUCT_RULE.generate(new Node(Optional.empty(), Map.of(NAME, name))).findValue().orElseThrow());
     }
 
     @Test
     void interfacePublic() {
         var map = Map.of(MODIFIERS, EXPORT_KEYWORD_WITH_SPACE, NAME, TEST_UPPER_SYMBOL);
-        assertCompile(INTERFACE_RULE.generate(new Node(Optional.empty(), Map.of(MODIFIERS, PUBLIC_KEYWORD_WITH_SPACE, NAME, TEST_UPPER_SYMBOL))).orElseThrow(), STRUCT_RULE.generate(new Node(Optional.empty(), map)).orElseThrow());
+        assertCompile(INTERFACE_RULE.generate(new Node(Optional.empty(), Map.of(MODIFIERS, PUBLIC_KEYWORD_WITH_SPACE, NAME, TEST_UPPER_SYMBOL))).findValue().orElseThrow(), STRUCT_RULE.generate(new Node(Optional.empty(), map)).findValue().orElseThrow());
     }
 
     @Test
     void rootMemberMultiple() {
         Rule rule = createImportRule();
         Rule rule1 = createImportRule();
-        assertCompile(renderPackageStatement(TEST_LOWER_SYMBOL) + rule1.generate(new Node(Optional.empty(), Map.of(SEGMENTS, TEST_LOWER_SYMBOL)))
-                .orElseThrow(), rule.generate(new Node(Optional.empty(), Map.of(SEGMENTS, TEST_LOWER_SYMBOL)))
+        assertCompile(renderPackageStatement(TEST_LOWER_SYMBOL) + rule1.generate(new Node(Optional.empty(), Map.of(SEGMENTS, TEST_LOWER_SYMBOL))).findValue()
+                .orElseThrow(), rule.generate(new Node(Optional.empty(), Map.of(SEGMENTS, TEST_LOWER_SYMBOL))).findValue()
                 .orElseThrow());
     }
 
     @Test
-    void importStripLeading() {
+    void importStripLeading() throws CompileException {
         var rule = createImportRule();
-        var withoutLeading = new Node().with(SEGMENTS, TEST_LOWER_SYMBOL);
+        var withoutLeading = new Node().retype(IMPORT).with(SEGMENTS, TEST_LOWER_SYMBOL);
         var withLeading = withoutLeading.with(LEADING, " ");
 
-        var input = rule.generate(withLeading).orElseThrow();
-        var output = rule.generate(withoutLeading).orElseThrow();
+        var input = rule.generate(withLeading).$();
+        var output = rule.generate(withoutLeading).$();
         assertCompile(input, output);
     }
 
     @ParameterizedTest
     @ValueSource(strings = {"first", "second"})
-    void importName(String name) {
-        Rule rule = createImportRule();
-        var input = rule.generate(new Node(Optional.empty(), Map.of(SEGMENTS, name)))
-                .orElseThrow();
+    void importName(String name) throws CompileException {
+        var rule = createImportRule();
+        var node = new Node()
+                .retype(IMPORT)
+                .with(SEGMENTS, name);
+
+        var input = rule.generate(node).$();
         assertCompile(input, input);
     }
 

@@ -18,6 +18,14 @@ public final class Node {
         this(Optional.empty(), Collections.emptyMap());
     }
 
+    @Override
+    public String toString() {
+        return "Node{" +
+                "strings=" + strings +
+                ", type=" + type +
+                '}';
+    }
+
     public Map<String, String> strings() {
         return strings;
     }

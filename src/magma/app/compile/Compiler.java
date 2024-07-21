@@ -50,11 +50,11 @@ public class Compiler {
     private static String compileRootMember(String input) throws CompileException {
         if (input.isEmpty() || input.startsWith(PACKAGE_KEYWORD_WITH_SPACE)) return "";
 
-        return IMPORT_RULE.parse(input).map(Node::strings)
-                .flatMap(node1 -> IMPORT_RULE.generate(new Node(Optional.empty(), node1)))
-                .or(() -> INTERFACE_RULE.parse(input).map(Node::strings)
+        return IMPORT_RULE.parse(input).findValue().map(Node::strings)
+                .flatMap(node1 -> IMPORT_RULE.generate(new Node(Optional.empty(), node1)).findValue())
+                .or(() -> INTERFACE_RULE.parse(input).findValue().map(Node::strings)
                         .map(Compiler::modify)
-                        .flatMap(node -> STRUCT_RULE.generate(new Node(Optional.empty(), node))))
+                        .flatMap(node -> STRUCT_RULE.generate(new Node(Optional.empty(), node)).findValue()))
                 .orElseThrow(() -> new CompileException("Invalid input", input));
     }
 

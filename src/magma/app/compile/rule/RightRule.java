@@ -1,5 +1,10 @@
 package magma.app.compile.rule;
 
+import magma.api.result.Err;
+import magma.api.result.Ok;
+import magma.api.result.Result;
+import magma.app.compile.CompileException;
+
 import java.util.Map;
 import java.util.Optional;
 
@@ -10,20 +15,32 @@ public record RightRule(Rule child, String slice) implements Rule {
     }
 
     private Optional<Map<String, String>> parse0(String input) {
-        return truncateRight(input, slice()).flatMap(input1 -> this.child().parse(input1).map(Node::strings));
+        return truncateRight(input, slice()).flatMap(input1 -> this.child().parse(input1).findValue().map(Node::strings));
     }
 
     private Optional<String> generate0(Map<String, String> node) {
-        return child.generate(new Node(Optional.empty(), node)).map(inner -> inner + slice);
+        return child.generate(new Node(Optional.empty(), node)).findValue().map(inner -> inner + slice);
     }
 
-    @Override
-    public Optional<Node> parse(String input) {
+    private Optional<Node> parse1(String input) {
         return parse0(input).map(strings -> new Node(Optional.empty(), strings));
     }
 
-    @Override
-    public Optional<String> generate(Node node) {
+    private Optional<String> generate1(Node node) {
         return generate0(node.strings());
+    }
+
+    @Override
+    public Result<Node, CompileException> parse(String input) {
+        return parse1(input)
+                .<Result<Node, CompileException>>map(Ok::new)
+                .orElseGet(() -> new Err<>(new CompileException("Invalid input", input)));
+    }
+
+    @Override
+    public Result<String, CompileException> generate(Node node) {
+        return generate1(node)
+                .<Result<String, CompileException>>map(Ok::new)
+                .orElseGet(() -> new Err<>(new CompileException("Cannot generate", node.toString())));
     }
 }
