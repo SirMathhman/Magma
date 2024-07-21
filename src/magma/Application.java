@@ -5,7 +5,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.stream.Collectors;
 
-public record Application(SingleSourceSet sourceSet) {
+public record Application(SourceSet sourceSet) {
     public static final String MAGMA_EXTENSION = "mgs";
 
     private static void runWithPath(Path source) throws IOException {
