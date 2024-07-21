@@ -36,24 +36,25 @@ public class Compiler {
     }
 
     private static Optional<String> compileTrait(String input) {
-        if (!input.startsWith(INTERFACE_KEYWORD_WITH_SPACE)) return Optional.empty();
-        var nameAndContent = input.substring(INTERFACE_KEYWORD_WITH_SPACE.length());
+        return truncateLeft(input, INTERFACE_KEYWORD_WITH_SPACE)
+                .flatMap(nameAndContent -> truncateRight(nameAndContent, EMPTY_CONTENT))
+                .map(Compiler::renderTrait);
+    }
 
-        if (!nameAndContent.endsWith(EMPTY_CONTENT)) return Optional.empty();
-        var name = nameAndContent.substring(0, nameAndContent.length() - EMPTY_CONTENT.length());
+    private static Optional<String> truncateLeft(String input, String slice) {
+        if (!input.startsWith(slice)) return Optional.empty();
+        return Optional.of(input.substring(slice.length()));
+    }
 
-        return Optional.of(renderTrait(name));
+    private static Optional<String> truncateRight(String input, String slice) {
+        if (!input.endsWith(slice)) return Optional.empty();
+        return Optional.of(input.substring(0, input.length() - slice.length()));
     }
 
     private static Optional<String> compileImport(String input) {
-        if (!input.startsWith(IMPORT_KEYWORD_WITH_SPACE)) return Optional.empty();
-        var afterKeyword = input.substring(IMPORT_KEYWORD_WITH_SPACE.length());
-
-        if (afterKeyword.isEmpty() || afterKeyword.charAt(afterKeyword.length() - 1) != STATEMENT_END)
-            return Optional.empty();
-
-        var name = afterKeyword.substring(0, afterKeyword.length() - 1);
-        return Optional.of(renderImport(name));
+        return truncateLeft(input, IMPORT_KEYWORD_WITH_SPACE)
+                .flatMap(afterKeyword -> truncateRight(afterKeyword, String.valueOf(STATEMENT_END)))
+                .map(Compiler::renderImport);
     }
 
     static String renderTrait(String name) {
