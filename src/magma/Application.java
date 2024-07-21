@@ -17,16 +17,11 @@ public final class Application {
     private void runWithPath(CompileUnit unit) throws ApplicationException {
         try {
             var input = unit.read();
-            var output = compile(input);
+            var output = Compiler.compile(input);
             targetSet.writeTarget(unit, output);
         } catch (IOException e) {
             throw new ApplicationException(e);
         }
-    }
-
-    private String compile(String input) throws CompileException {
-        if (input.isEmpty()) return "";
-        else throw new CompileException("Invalid input", input);
     }
 
     void run() throws ApplicationException {
