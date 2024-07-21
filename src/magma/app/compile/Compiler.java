@@ -1,4 +1,4 @@
-package magma;
+package magma.app.compile;
 
 import java.util.Optional;
 
@@ -15,7 +15,7 @@ public class Compiler {
         return leading + IMPORT_KEYWORD_WITH_SPACE + name + STATEMENT_END;
     }
 
-    static String compile(String input) throws CompileException {
+    public static String compile(String input) throws CompileException {
         var segments = Splitter.split(input);
 
         var output = new StringBuilder();

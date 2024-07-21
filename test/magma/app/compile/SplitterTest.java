@@ -1,4 +1,4 @@
-package magma;
+package magma.app.compile;
 
 import org.junit.jupiter.api.Test;
 

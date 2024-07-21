@@ -1,4 +1,9 @@
-package magma;
+package magma.app;
+
+import magma.app.compile.Compiler;
+import magma.app.io.Unit;
+import magma.app.io.SourceSet;
+import magma.app.io.TargetSet;
 
 import java.io.IOException;
 import java.util.Set;
@@ -14,7 +19,7 @@ public final class Application {
         this.targetSet = targetSet;
     }
 
-    private void runWithPath(CompileUnit unit) throws ApplicationException {
+    private void runWithPath(Unit unit) throws ApplicationException {
         try {
             var input = unit.read();
             var output = Compiler.compile(input);
@@ -24,7 +29,7 @@ public final class Application {
         }
     }
 
-    void run() throws ApplicationException {
+    public void run() throws ApplicationException {
         var unit = streamAndCollect();
 
         for (var path : unit) {
@@ -32,7 +37,7 @@ public final class Application {
         }
     }
 
-    private Set<CompileUnit> streamAndCollect() throws ApplicationException {
+    private Set<Unit> streamAndCollect() throws ApplicationException {
         try {
             return sourceSet
                     .streamPaths()

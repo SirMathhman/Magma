@@ -1,4 +1,4 @@
-package magma;
+package magma.app.io;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -14,11 +14,11 @@ public class DirectorySourceSet implements SourceSet {
     }
 
     @Override
-    public Stream<CompileUnit> streamPaths() throws IOException {
+    public Stream<Unit> streamPaths() throws IOException {
         try (var resourceStream = Files.walk(root)) {
             return resourceStream
                     .filter(Files::isRegularFile)
-                    .<CompileUnit>map(source -> new PathUnit(root, source))
+                    .<Unit>map(source -> new PathUnit(root, source))
                     .collect(Collectors.toSet())
                     .stream();
         }

@@ -1,6 +1,10 @@
 package magma;
 
-import java.io.IOException;
+import magma.app.Application;
+import magma.app.ApplicationException;
+import magma.app.io.DirectorySourceSet;
+import magma.app.io.DirectoryTargetSet;
+
 import java.nio.file.Paths;
 
 public class Main {

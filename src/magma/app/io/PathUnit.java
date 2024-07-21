@@ -1,4 +1,4 @@
-package magma;
+package magma.app.io;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -6,7 +6,7 @@ import java.nio.file.Path;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
-public record PathUnit(Path root, Path child) implements CompileUnit {
+public record PathUnit(Path root, Path child) implements Unit {
     @Override
     public String computeName() {
         var fileName = child().getFileName().toString();

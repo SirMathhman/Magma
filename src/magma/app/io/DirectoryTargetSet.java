@@ -1,4 +1,6 @@
-package magma;
+package magma.app.io;
+
+import magma.app.Application;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -12,7 +14,7 @@ public class DirectoryTargetSet implements TargetSet {
     }
 
     @Override
-    public void writeTarget(CompileUnit unit, String output) throws IOException {
+    public void writeTarget(Unit unit, String output) throws IOException {
         var namespace = unit.computeNamespace().toList();
         var name = unit.computeName();
 

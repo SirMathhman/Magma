@@ -1,11 +1,11 @@
-package magma;
+package magma.app.compile;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
-import static magma.Compiler.STATEMENT_END;
-import static magma.Compiler.renderImport;
+import static magma.app.compile.Compiler.STATEMENT_END;
+import static magma.app.compile.Compiler.renderImport;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.fail;
 
