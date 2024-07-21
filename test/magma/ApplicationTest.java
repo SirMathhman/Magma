@@ -13,18 +13,21 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class ApplicationTest {
     public static final String MAGMA_EXTENSION = "mgs";
-    public static final Path TARGET = resolve(MAGMA_EXTENSION);
     public static final String JAVA_EXTENSION = "java";
-    public static final Path SOURCE = resolve(JAVA_EXTENSION);
+    public static final String THIS_NAME = "ApplicationTest";
+    public static final Path TARGET = resolve(THIS_NAME, MAGMA_EXTENSION);
+    public static final Path SOURCE = resolve(THIS_NAME, JAVA_EXTENSION);
 
     private static void run() throws IOException {
-        if (Files.exists(SOURCE)) {
-            Files.createFile(TARGET);
-        }
+        if (!Files.exists(SOURCE)) return;
+        var fileName = SOURCE.getFileName().toString();
+        var separator = fileName.indexOf('.');
+        var name = fileName.substring(0, separator);
+        Files.createFile(resolve(name, MAGMA_EXTENSION));
     }
 
-    private static Path resolve(String extension) {
-        return Paths.get(".", "ApplicationTest." + extension);
+    private static Path resolve(String name, String extension) {
+        return Paths.get(".", name + "." + extension);
     }
 
     @AfterEach
