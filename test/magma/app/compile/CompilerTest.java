@@ -4,13 +4,11 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
-import static magma.app.compile.Compiler.STATEMENT_END;
-import static magma.app.compile.Compiler.renderImport;
+import static magma.app.compile.Compiler.*;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.fail;
 
 class CompilerTest {
-
     public static final String TEST_LOWER_SYMBOL = "test";
 
     private static void assertCompile(String input, String output) {
@@ -26,8 +24,14 @@ class CompilerTest {
         return Compiler.PACKAGE_KEYWORD_WITH_SPACE + name + STATEMENT_END;
     }
 
+    @ParameterizedTest
+    @ValueSource(strings = {"First", "Second"})
+    void interfaceName(String name) {
+        assertCompile(renderInterface(name), Compiler.renderTrait(name));
+    }
+
     @Test
-    void multiple() {
+    void rootMemberMultiple() {
         assertCompile(renderPackageStatement(TEST_LOWER_SYMBOL) + renderImport(TEST_LOWER_SYMBOL), renderImport(TEST_LOWER_SYMBOL));
     }
 
