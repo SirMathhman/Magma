@@ -1,6 +1,7 @@
 package magma;
 
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
@@ -8,17 +9,19 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 
 public class ApplicationTest {
     public static final String JAVA_EXTENSION = "java";
     public static final String THIS_NAME = "ApplicationTest";
+    public static final Path ROOT = Paths.get(".");
     public static final Path TARGET = resolve(Application.MAGMA_EXTENSION);
     public static final Path SOURCE = resolve(JAVA_EXTENSION);
+    private SourceSet sourceSet;
+    private TargetSet targetSet;
 
     private static Path resolve(String extension) {
-        return Paths.get(".", ApplicationTest.THIS_NAME + "." + extension);
+        return ROOT.resolve(ApplicationTest.THIS_NAME + "." + extension);
     }
 
     @AfterEach
@@ -27,16 +30,30 @@ public class ApplicationTest {
         Files.deleteIfExists(SOURCE);
     }
 
+    @BeforeEach
+    void setUp() {
+        sourceSet = new SingleSourceSet(SOURCE);
+        targetSet = new DirectoryTargetSet(ROOT);
+    }
+
     @Test
-    void generatesNoTarget() throws IOException {
-        new Application(new SingleSourceSet(SOURCE), new DirectoryTargetSet(Paths.get("."))).run();
+    void generatesNoTarget() {
+        runOrFail();
         assertFalse(Files.exists(TARGET));
+    }
+
+    private void runOrFail() {
+        try {
+            new Application(sourceSet, targetSet).run();
+        } catch (IOException e) {
+            fail(e);
+        }
     }
 
     @Test
     void generateTarget() throws IOException {
         Files.createFile(SOURCE);
-        new Application(new SingleSourceSet(SOURCE), new DirectoryTargetSet(Paths.get("."))).run();
+        runOrFail();
         assertTrue(Files.exists(TARGET));
     }
 }
