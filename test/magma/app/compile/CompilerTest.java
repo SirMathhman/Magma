@@ -10,6 +10,7 @@ import static org.junit.jupiter.api.Assertions.fail;
 
 class CompilerTest {
     public static final String TEST_LOWER_SYMBOL = "test";
+    public static final String TEST_UPPER_SYMBOL = "Test";
 
     private static void assertCompile(String input, String output) {
         try {
@@ -28,6 +29,11 @@ class CompilerTest {
     @ValueSource(strings = {"First", "Second"})
     void interfaceName(String name) {
         assertCompile(renderInterface(name), Compiler.renderTrait(name));
+    }
+
+    @Test
+    void interfacePublic() {
+        assertCompile(renderInterface(PUBLIC_KEYWORD_WITH_SPACE, TEST_UPPER_SYMBOL), renderTrait(EXPORT_KEYWORD_WITH_SPACE, TEST_UPPER_SYMBOL));
     }
 
     @Test
