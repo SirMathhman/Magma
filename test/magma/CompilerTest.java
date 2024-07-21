@@ -5,10 +5,13 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
 import static magma.Compiler.STATEMENT_END;
+import static magma.Compiler.renderImport;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.fail;
 
 class CompilerTest {
+
+    public static final String TEST_LOWER_SYMBOL = "test";
 
     private static void assertCompile(String input, String output) {
         try {
@@ -24,8 +27,14 @@ class CompilerTest {
     }
 
     @Test
-    void importName() {
-        var input = Compiler.renderImport("test");
+    void multiple() {
+        assertCompile(renderPackageStatement(TEST_LOWER_SYMBOL) + renderImport(TEST_LOWER_SYMBOL), renderImport(TEST_LOWER_SYMBOL));
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"first", "second"})
+    void importName(String name) {
+        var input = Compiler.renderImport(name);
         assertCompile(input, input);
     }
 
