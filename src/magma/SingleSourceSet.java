@@ -6,9 +6,9 @@ import java.util.stream.Stream;
 
 public record SingleSourceSet(Path source) implements SourceSet {
     @Override
-    public Stream<Path> streamPaths() {
-        return Files.exists(source())
-                ? Stream.of(source())
+    public Stream<CompileUnit> streamPaths() {
+        return Files.exists(this.source())
+                ? Stream.of(new PathUnit(source.getParent(), source))
                 : Stream.empty();
     }
 }

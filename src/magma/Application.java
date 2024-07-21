@@ -2,25 +2,34 @@ package magma;
 
 import java.io.IOException;
 import java.nio.file.Files;
-import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.stream.Collectors;
 
 public record Application(SourceSet sourceSet) {
     public static final String MAGMA_EXTENSION = "mgs";
 
-    private static void runWithPath(Path source) throws IOException {
-        var fileName = source.getFileName().toString();
-        var separator = fileName.indexOf('.');
-        var name = fileName.substring(0, separator);
-        Files.createFile(source.resolveSibling(name + "." + MAGMA_EXTENSION));
+    private static void runWithPath(CompileUnit unit) throws IOException {
+        writeTarget(unit);
+    }
+
+    private static void writeTarget(CompileUnit unit) throws IOException {
+        var namespace = unit.computeNamespace().toList();
+        var name = unit.computeName();
+
+        var current = Paths.get(".");
+        for (String segment : namespace) {
+            current = current.resolve(segment);
+        }
+
+        Files.createFile(current.resolve(name + "." + MAGMA_EXTENSION));
     }
 
     void run() throws IOException {
-        var paths = sourceSet()
+        var unit = this.sourceSet()
                 .streamPaths()
                 .collect(Collectors.toSet());
 
-        for (Path path : paths) {
+        for (var path : unit) {
             runWithPath(path);
         }
     }

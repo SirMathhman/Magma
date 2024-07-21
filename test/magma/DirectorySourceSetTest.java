@@ -31,9 +31,8 @@ class DirectorySourceSetTest {
 
     @Test
     void test() throws IOException {
-        var expected = Collections.singleton(child);
-        var actual = new DirectorySourceSet(root)
-                .streamPaths()
+        var expected = Collections.singleton(new PathUnit(root, child));
+        var actual = new DirectorySourceSet(root).streamPaths()
                 .collect(Collectors.toSet());
 
         assertIterableEquals(expected, actual);
