@@ -10,29 +10,31 @@ public class Compiler {
     public static final String PACKAGE_KEYWORD_WITH_SPACE = "package ";
     public static final char STATEMENT_END = Splitter.STATEMENT_END;
     public static final String IMPORT_KEYWORD_WITH_SPACE = "import ";
-    public static final String STRUCT_KEYWORD_WITH_SPACE = "struct ";
+    public static final String STRUCT_KEYWORD = "struct";
     public static final String EMPTY_CONTENT = " {}";
-    public static final String INTERFACE_KEYWORD_WITH_SPACE = "interface ";
+    public static final String INTERFACE_KEYWORD = "interface";
     public static final String PUBLIC_KEYWORD_WITH_SPACE = "public ";
     public static final String EXPORT_KEYWORD_WITH_SPACE = "export ";
     public static final String MODIFIERS = "modifiers";
     public static final String NAME = "name";
-    public static final Rule INTERFACE_RULE = createStructRule(INTERFACE_KEYWORD_WITH_SPACE);
-    public static final Rule STRUCT_RULE = createStructRule(STRUCT_KEYWORD_WITH_SPACE);
+    public static final Rule INTERFACE_RULE = createStructRule(INTERFACE_KEYWORD);
+    public static final Rule STRUCT_RULE = createStructRule(STRUCT_KEYWORD);
     public static final String SEGMENTS = "segments";
     public static final String LEADING = "leading";
-    public static final StripRule IMPORT_RULE = createImportRule();
+    public static final String IMPORT = "import";
+    public static final Rule IMPORT_RULE = createImportRule();
 
     private static Rule createStructRule(String keyword) {
         var modifiers = new ExtractRule(MODIFIERS);
         var name = new ExtractRule(NAME);
-        var withModifiers = new FirstRule(modifiers, keyword, new RightRule(name, EMPTY_CONTENT));
-        return new OrRule(List.of(withModifiers, new LeftRule(keyword, new RightRule(name, EMPTY_CONTENT))));
+        var withModifiers = new FirstRule(modifiers, keyword + " ", new RightRule(name, EMPTY_CONTENT));
+        var value = new OrRule(List.of(withModifiers, new LeftRule(keyword + " ", new RightRule(name, EMPTY_CONTENT))));
+        return new TypeRule(keyword, value);
     }
 
-    public static StripRule createImportRule() {
+    public static Rule createImportRule() {
         var value = new LeftRule(IMPORT_KEYWORD_WITH_SPACE, new RightRule(new ExtractRule(SEGMENTS), String.valueOf(STATEMENT_END)));
-        return new StripRule(LEADING, value, "");
+        return new TypeRule(IMPORT, new StripRule(LEADING, value, ""));
     }
 
     public static String compile(String input) throws CompileException {

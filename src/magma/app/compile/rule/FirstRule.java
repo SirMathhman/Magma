@@ -1,8 +1,6 @@
-package magma.app.compile;
+package magma.app.compile.rule;
 
 import magma.api.Tuple;
-import magma.app.compile.rule.Node;
-import magma.app.compile.rule.Rule;
 
 import java.util.HashMap;
 import java.util.Map;

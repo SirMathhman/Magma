@@ -1,7 +1,4 @@
-package magma.app.compile;
-
-import magma.app.compile.rule.Node;
-import magma.app.compile.rule.Rule;
+package magma.app.compile.rule;
 
 import java.util.Map;
 import java.util.Optional;
