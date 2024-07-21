@@ -29,14 +29,14 @@ public class ApplicationTest {
 
     @Test
     void generatesNoTarget() throws IOException {
-        new Application(new SingleSourceSet(SOURCE)).run();
+        new Application(new SingleSourceSet(SOURCE), new DirectoryTargetSet(Paths.get("."))).run();
         assertFalse(Files.exists(TARGET));
     }
 
     @Test
     void generateTarget() throws IOException {
         Files.createFile(SOURCE);
-        new Application(new SingleSourceSet(SOURCE)).run();
+        new Application(new SingleSourceSet(SOURCE), new DirectoryTargetSet(Paths.get("."))).run();
         assertTrue(Files.exists(TARGET));
     }
 }
