@@ -1,7 +1,9 @@
 package magma.app.compile;
 
-import magma.api.Tuple;
+import magma.app.compile.rule.ExtractRule;
+import magma.app.compile.rule.Rule;
 
+import java.util.Map;
 import java.util.Optional;
 
 public class Compiler {
@@ -13,6 +15,16 @@ public class Compiler {
     public static final String INTERFACE_KEYWORD_WITH_SPACE = "interface ";
     public static final String PUBLIC_KEYWORD_WITH_SPACE = "public ";
     public static final String EXPORT_KEYWORD_WITH_SPACE = "export ";
+    public static final String MODIFIERS = "modifiers";
+    public static final String NAME = "name";
+    public static final Rule INTERFACE_RULE = createInterfaceRule();
+
+    private static FirstRule createInterfaceRule() {
+        var modifiers = new ExtractRule(MODIFIERS);
+        var name = new ExtractRule(NAME);
+
+        return new FirstRule(modifiers, new RightRule(name, EMPTY_CONTENT), INTERFACE_KEYWORD_WITH_SPACE);
+    }
 
     public static String renderImport(String name) {
         return renderImport("", name);
@@ -40,18 +52,13 @@ public class Compiler {
     }
 
     private static Optional<String> compileInterface(String input) {
-        return splitLeft(INTERFACE_KEYWORD_WITH_SPACE, input).flatMap(tuple -> truncateRight(tuple.right(), EMPTY_CONTENT).map(name -> {
-            var oldModifiers = tuple.left().equals(PUBLIC_KEYWORD_WITH_SPACE) ? EXPORT_KEYWORD_WITH_SPACE : "";
-            return renderTrait(oldModifiers, name);
-        }));
-    }
-
-    private static Optional<Tuple<String, String>> splitLeft(String slice, String input) {
-        var index = input.indexOf(slice);
-        if (index == -1) return Optional.empty();
-        var left = input.substring(0, index);
-        var right = input.substring(index + slice.length());
-        return Optional.of(new Tuple<>(left, right));
+        return INTERFACE_RULE.parse(input)
+                .map(map -> {
+                    var oldModifiers = map.get(MODIFIERS);
+                    var newModifiers = oldModifiers.equals(PUBLIC_KEYWORD_WITH_SPACE) ? EXPORT_KEYWORD_WITH_SPACE : "";
+                    return map.put(MODIFIERS, newModifiers);
+                })
+                .map(Compiler::renderTrait);
     }
 
     private static Optional<String> truncateLeft(String slice, String input) {
@@ -59,23 +66,21 @@ public class Compiler {
         return Optional.of(input.substring(slice.length()));
     }
 
-    private static Optional<String> truncateRight(String input, String slice) {
-        if (!input.endsWith(slice)) return Optional.empty();
-        return Optional.of(input.substring(0, input.length() - slice.length()));
-    }
-
     private static Optional<String> compileImport(String input) {
         return truncateLeft(IMPORT_KEYWORD_WITH_SPACE, input)
-                .flatMap(afterKeyword -> truncateRight(afterKeyword, String.valueOf(STATEMENT_END)))
+                .flatMap(afterKeyword -> RightRule.truncateRight(afterKeyword, String.valueOf(STATEMENT_END)))
                 .map(Compiler::renderImport);
     }
 
     static String renderTrait(String name) {
-        return renderTrait("", name);
+        var right = Map.of(NAME, name);
+        return renderTrait(right);
     }
 
-    static String renderTrait(String modifiers, String name) {
-        return modifiers + TRAIT_KEYWORD_WITH_SPACE + name + EMPTY_CONTENT;
+    static String renderTrait(Map<String, String> node) {
+        var modifiers0 = node.getOrDefault(MODIFIERS, "");
+        var name0 = node.get(NAME);
+        return modifiers0 + TRAIT_KEYWORD_WITH_SPACE + name0 + EMPTY_CONTENT;
     }
 
     static String renderInterface(String name) {
