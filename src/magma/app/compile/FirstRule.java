@@ -7,7 +7,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
-public record FirstRule(Rule left, Rule right, String slice) implements Rule {
+public record FirstRule(Rule left, String slice, Rule right) implements Rule {
     static Optional<Tuple<String, String>> splitFirst(String slice, String input) {
         var index = input.indexOf(slice);
         if (index == -1) return Optional.empty();
@@ -26,5 +26,10 @@ public record FirstRule(Rule left, Rule right, String slice) implements Rule {
     public Optional<Map<String, String>> parse(String input) {
         return splitFirst(slice(), input).flatMap(tuple -> left().parse(tuple.left()).flatMap(withModifiers -> right().parse(tuple.right())
                 .map(wthName -> merge(withModifiers, wthName))));
+    }
+
+    @Override
+    public Optional<String> generate(Map<String, String> node) {
+        return left.generate(node).flatMap(leftValue -> right().generate(node).map(rightValue -> leftValue + slice + rightValue));
     }
 }

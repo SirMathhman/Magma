@@ -15,4 +15,9 @@ public record RightRule(Rule child, String slice) implements Rule {
     public Optional<Map<String, String>> parse(String input) {
         return truncateRight(input, slice()).flatMap(child()::parse);
     }
+
+    @Override
+    public Optional<String> generate(Map<String, String> node) {
+        return child.generate(node).map(inner -> inner + slice);
+    }
 }

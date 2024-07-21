@@ -30,29 +30,39 @@ class CompilerTest {
     @ParameterizedTest
     @ValueSource(strings = {"First", "Second"})
     void interfaceName(String name) {
-        assertCompile(renderInterface(name), renderTrait(Map.of(NAME, name)));
+        assertCompile(INTERFACE_RULE.generate(Map.of(NAME, name)).orElseThrow(), STRUCT_RULE.generate(Map.of(NAME, name)).orElseThrow());
     }
 
     @Test
     void interfacePublic() {
         var map = Map.of(MODIFIERS, EXPORT_KEYWORD_WITH_SPACE, NAME, TEST_UPPER_SYMBOL);
-        assertCompile(renderInterface(PUBLIC_KEYWORD_WITH_SPACE, TEST_UPPER_SYMBOL), renderTrait(map));
+        assertCompile(INTERFACE_RULE.generate(Map.of(MODIFIERS, PUBLIC_KEYWORD_WITH_SPACE, NAME, TEST_UPPER_SYMBOL)).orElseThrow(), STRUCT_RULE.generate(map).orElseThrow());
     }
 
     @Test
     void rootMemberMultiple() {
-        assertCompile(renderPackageStatement(TEST_LOWER_SYMBOL) + renderImport(TEST_LOWER_SYMBOL), renderImport(TEST_LOWER_SYMBOL));
+        assertCompile(renderPackageStatement(TEST_LOWER_SYMBOL) + createImportRule()
+                .generate(Map.of(SEGMENTS, TEST_LOWER_SYMBOL))
+                .orElseThrow(), createImportRule()
+                .generate(Map.of(SEGMENTS, TEST_LOWER_SYMBOL))
+                .orElseThrow());
     }
 
     @Test
     void importStripLeading() {
-        assertCompile(Compiler.renderImport(" ", TEST_LOWER_SYMBOL), Compiler.renderImport(TEST_LOWER_SYMBOL));
+        assertCompile(createImportRule()
+                .generate(Map.of(LEADING, " ", SEGMENTS, TEST_LOWER_SYMBOL))
+                .orElseThrow(), createImportRule()
+                .generate(Map.of(SEGMENTS, TEST_LOWER_SYMBOL))
+                .orElseThrow());
     }
 
     @ParameterizedTest
     @ValueSource(strings = {"first", "second"})
     void importName(String name) {
-        var input = Compiler.renderImport(name);
+        var input = createImportRule()
+                .generate(Map.of(SEGMENTS, name))
+                .orElseThrow();
         assertCompile(input, input);
     }
 

@@ -8,4 +8,9 @@ public record ExtractRule(String propertyKey) implements Rule {
     public Optional<Map<String, String>> parse(String input) {
         return Optional.of(Map.of(propertyKey(), input));
     }
+
+    @Override
+    public Optional<String> generate(Map<String, String> node) {
+        return node.containsKey(propertyKey()) ? Optional.of(node.get(propertyKey())) : Optional.empty();
+    }
 }

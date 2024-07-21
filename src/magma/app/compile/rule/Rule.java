@@ -5,4 +5,6 @@ import java.util.Optional;
 
 public interface Rule {
     Optional<Map<String, String>> parse(String input);
+
+    Optional<String> generate(Map<String, String> node);
 }
