@@ -10,7 +10,11 @@ public class Compiler {
     public static final String IMPORT_KEYWORD_WITH_SPACE = "import ";
 
     public static String renderImport(String name) {
-        return IMPORT_KEYWORD_WITH_SPACE + name + STATEMENT_END;
+        return renderImport("", name);
+    }
+
+    public static String renderImport(String leading, String name) {
+        return leading + IMPORT_KEYWORD_WITH_SPACE + name + STATEMENT_END;
     }
 
     static String compile(String input) throws CompileException {
@@ -18,7 +22,7 @@ public class Compiler {
 
         var output = new StringBuilder();
         for (var line : segments) {
-            output.append(compileRootMember(line));
+            output.append(compileRootMember(line.strip()));
         }
         return output.toString();
     }

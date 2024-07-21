@@ -31,6 +31,13 @@ class CompilerTest {
         assertCompile(renderPackageStatement(TEST_LOWER_SYMBOL) + renderImport(TEST_LOWER_SYMBOL), renderImport(TEST_LOWER_SYMBOL));
     }
 
+    @Test
+    void importStripLeading() {
+        assertCompile(
+                Compiler.renderImport(" ", TEST_LOWER_SYMBOL),
+                Compiler.renderImport(TEST_LOWER_SYMBOL));
+    }
+
     @ParameterizedTest
     @ValueSource(strings = {"first", "second"})
     void importName(String name) {
