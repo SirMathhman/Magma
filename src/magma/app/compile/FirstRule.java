@@ -1,6 +1,7 @@
 package magma.app.compile;
 
 import magma.api.Tuple;
+import magma.app.compile.rule.Node;
 import magma.app.compile.rule.Rule;
 
 import java.util.HashMap;
@@ -22,14 +23,24 @@ public record FirstRule(Rule left, String slice, Rule right) implements Rule {
         return merged;
     }
 
-    @Override
-    public Optional<Map<String, String>> parse(String input) {
-        return splitFirst(slice(), input).flatMap(tuple -> left().parse(tuple.left()).flatMap(withModifiers -> right().parse(tuple.right())
-                .map(wthName -> merge(withModifiers, wthName))));
+    private Optional<Map<String, String>> parse0(String input) {
+        return splitFirst(slice(), input).flatMap(tuple -> this.left().parse(tuple.left()).map(Node::strings).flatMap(withModifiers -> {
+            return this.right().parse(tuple.right()).map(Node::strings)
+                    .map(wthName -> merge(withModifiers, wthName));
+        }));
+    }
+
+    private Optional<String> generate0(Map<String, String> node) {
+        return left.generate(new Node(node)).flatMap(leftValue -> this.right().generate(new Node(node)).map(rightValue -> leftValue + slice + rightValue));
     }
 
     @Override
-    public Optional<String> generate(Map<String, String> node) {
-        return left.generate(node).flatMap(leftValue -> right().generate(node).map(rightValue -> leftValue + slice + rightValue));
+    public Optional<Node> parse(String input) {
+        return parse0(input).map(Node::new);
+    }
+
+    @Override
+    public Optional<String> generate(Node node) {
+        return generate0(node.strings());
     }
 }

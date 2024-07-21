@@ -4,13 +4,21 @@ import java.util.Map;
 import java.util.Optional;
 
 public record ExtractRule(String propertyKey) implements Rule {
-    @Override
-    public Optional<Map<String, String>> parse(String input) {
+    private Optional<Map<String, String>> parse0(String input) {
         return Optional.of(Map.of(propertyKey(), input));
     }
 
-    @Override
-    public Optional<String> generate(Map<String, String> node) {
+    private Optional<String> generate0(Map<String, String> node) {
         return node.containsKey(propertyKey()) ? Optional.of(node.get(propertyKey())) : Optional.empty();
+    }
+
+    @Override
+    public Optional<Node> parse(String input) {
+        return parse0(input).map(Node::new);
+    }
+
+    @Override
+    public Optional<String> generate(Node node) {
+        return generate0(node.strings());
     }
 }

@@ -1,9 +1,6 @@
 package magma.app.compile;
 
-import magma.app.compile.rule.ExtractRule;
-import magma.app.compile.rule.OrRule;
-import magma.app.compile.rule.Rule;
-import magma.app.compile.rule.StripRule;
+import magma.app.compile.rule.*;
 
 import java.util.List;
 import java.util.Map;
@@ -50,11 +47,11 @@ public class Compiler {
     private static String compileRootMember(String input) throws CompileException {
         if (input.isEmpty() || input.startsWith(PACKAGE_KEYWORD_WITH_SPACE)) return "";
 
-        return IMPORT_RULE.parse(input)
-                .flatMap(IMPORT_RULE::generate)
-                .or(() -> INTERFACE_RULE.parse(input)
+        return IMPORT_RULE.parse(input).map(Node::strings)
+                .flatMap(node1 -> IMPORT_RULE.generate(new Node(node1)))
+                .or(() -> INTERFACE_RULE.parse(input).map(Node::strings)
                         .map(Compiler::modify)
-                        .flatMap(STRUCT_RULE::generate))
+                        .flatMap(node -> STRUCT_RULE.generate(new Node(node))))
                 .orElseThrow(() -> new CompileException("Invalid input", input));
     }
 

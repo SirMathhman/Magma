@@ -1,5 +1,7 @@
 package magma.app.compile;
 
+import magma.app.compile.rule.Node;
+import magma.app.compile.rule.Rule;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
@@ -30,38 +32,38 @@ class CompilerTest {
     @ParameterizedTest
     @ValueSource(strings = {"First", "Second"})
     void interfaceName(String name) {
-        assertCompile(INTERFACE_RULE.generate(Map.of(NAME, name)).orElseThrow(), STRUCT_RULE.generate(Map.of(NAME, name)).orElseThrow());
+        assertCompile(INTERFACE_RULE.generate(new Node(Map.of(NAME, name))).orElseThrow(), STRUCT_RULE.generate(new Node(Map.of(NAME, name))).orElseThrow());
     }
 
     @Test
     void interfacePublic() {
         var map = Map.of(MODIFIERS, EXPORT_KEYWORD_WITH_SPACE, NAME, TEST_UPPER_SYMBOL);
-        assertCompile(INTERFACE_RULE.generate(Map.of(MODIFIERS, PUBLIC_KEYWORD_WITH_SPACE, NAME, TEST_UPPER_SYMBOL)).orElseThrow(), STRUCT_RULE.generate(map).orElseThrow());
+        assertCompile(INTERFACE_RULE.generate(new Node(Map.of(MODIFIERS, PUBLIC_KEYWORD_WITH_SPACE, NAME, TEST_UPPER_SYMBOL))).orElseThrow(), STRUCT_RULE.generate(new Node(map)).orElseThrow());
     }
 
     @Test
     void rootMemberMultiple() {
-        assertCompile(renderPackageStatement(TEST_LOWER_SYMBOL) + createImportRule()
-                .generate(Map.of(SEGMENTS, TEST_LOWER_SYMBOL))
-                .orElseThrow(), createImportRule()
-                .generate(Map.of(SEGMENTS, TEST_LOWER_SYMBOL))
+        Rule rule = createImportRule();
+        Rule rule1 = createImportRule();
+        assertCompile(renderPackageStatement(TEST_LOWER_SYMBOL) + rule1.generate(new Node(Map.of(SEGMENTS, TEST_LOWER_SYMBOL)))
+                .orElseThrow(), rule.generate(new Node(Map.of(SEGMENTS, TEST_LOWER_SYMBOL)))
                 .orElseThrow());
     }
 
     @Test
     void importStripLeading() {
-        assertCompile(createImportRule()
-                .generate(Map.of(LEADING, " ", SEGMENTS, TEST_LOWER_SYMBOL))
-                .orElseThrow(), createImportRule()
-                .generate(Map.of(SEGMENTS, TEST_LOWER_SYMBOL))
+        Rule rule = createImportRule();
+        Rule rule1 = createImportRule();
+        assertCompile(rule1.generate(new Node(Map.of(LEADING, " ", SEGMENTS, TEST_LOWER_SYMBOL)))
+                .orElseThrow(), rule.generate(new Node(Map.of(SEGMENTS, TEST_LOWER_SYMBOL)))
                 .orElseThrow());
     }
 
     @ParameterizedTest
     @ValueSource(strings = {"first", "second"})
     void importName(String name) {
-        var input = createImportRule()
-                .generate(Map.of(SEGMENTS, name))
+        Rule rule = createImportRule();
+        var input = rule.generate(new Node(Map.of(SEGMENTS, name)))
                 .orElseThrow();
         assertCompile(input, input);
     }
