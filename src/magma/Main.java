@@ -48,6 +48,12 @@ public class Main {
 
     private static String compileRootMember(String input) throws CompilationException {
         if (input.startsWith("package ")) return "";
+        if (input.startsWith("import ")) {
+            var segments = input.substring("import ".length(), input.length() - 1);
+            var separator = segments.lastIndexOf('.');
+            var parent = segments.substring(0, separator);
+            return "#include <" + parent.replace(".", "\\") + ".h>\n";
+        }
         throw new CompilationException("Invalid input", input);
     }
 
