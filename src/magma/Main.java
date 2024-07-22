@@ -43,7 +43,10 @@ public class Main {
 
     private static State splitChar(State state, char c) {
         var appended = state.append(c);
-        return c == ';' ? appended.advance() : appended;
+        if (c == ';' && state.isLevel()) return appended.advance();
+        if (c == '{') return appended.enter();
+        if (c == '}') return appended.exit();
+        return appended;
     }
 
     private static String compileRootMember(String input) throws CompilationException {
@@ -61,19 +64,31 @@ public class Main {
         return Paths.get(".", "src", "magma", "Main." + extension);
     }
 
-    private record State(List<String> segments, StringBuilder buffer) {
+    private record State(List<String> segments, StringBuilder buffer, int depth) {
         public State() {
-            this(Collections.emptyList(), new StringBuilder());
+            this(Collections.emptyList(), new StringBuilder(), 0);
         }
 
         public State append(char c) {
-            return new State(segments, buffer.append(c));
+            return new State(segments, buffer.append(c), depth);
         }
 
         public State advance() {
             var copy = new ArrayList<>(segments);
             copy.add(buffer.toString());
-            return new State(copy, new StringBuilder());
+            return new State(copy, new StringBuilder(), depth);
+        }
+
+        public boolean isLevel() {
+            return this.depth == 0;
+        }
+
+        public State enter() {
+            return new State(segments, buffer, depth + 1);
+        }
+
+        public State exit() {
+            return new State(segments, buffer, depth - 1);
         }
     }
 }
