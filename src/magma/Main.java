@@ -7,6 +7,7 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 
 public class Main {
     public static void main(String[] args) {
@@ -50,14 +51,21 @@ public class Main {
     }
 
     private static String compileRootMember(String input) throws CompilationException {
-        if (input.startsWith("package ")) return "";
-        if (input.startsWith("import ")) {
-            var segments = input.substring("import ".length(), input.length() - 1);
-            var separator = segments.lastIndexOf('.');
-            var parent = segments.substring(0, separator);
-            return "#include <" + parent.replace(".", "\\") + ".h>\n";
-        }
-        throw new CompilationException("Invalid input", input);
+        return compilePackage(input)
+                .or(() -> compileImport(input))
+                .orElseThrow(() -> new CompilationException("Invalid input", input));
+    }
+
+    private static Optional<String> compilePackage(String input) {
+        return input.startsWith("package ") ? Optional.of("") : Optional.empty();
+    }
+
+    private static Optional<String> compileImport(String input) {
+        if (!input.startsWith("import ")) return Optional.empty();
+        var segments = input.substring("import ".length(), input.length() - 1);
+        var separator = segments.lastIndexOf('.');
+        var parent = segments.substring(0, separator);
+        return Optional.of("#include <" + parent.replace(".", "\\") + ".h>\n");
     }
 
     private static Path resolve(String extension) {
