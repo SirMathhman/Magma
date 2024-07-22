@@ -43,4 +43,14 @@ public final class Node {
         copy.put(propertyKey, propertyValue);
         return new Node(type, copy);
     }
+
+    public Optional<String> findString(String propertyKey) {
+        return Optional.ofNullable(strings.get(propertyKey));
+    }
+
+    public Node merge(Node other) {
+        var copy = new HashMap<>(strings);
+        copy.putAll(other.strings);
+        return new Node(type, copy);
+    }
 }

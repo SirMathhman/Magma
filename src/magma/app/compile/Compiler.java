@@ -1,10 +1,10 @@
 package magma.app.compile;
 
+import magma.api.result.Ok;
+import magma.api.result.Result;
 import magma.app.compile.rule.*;
 
 import java.util.List;
-import java.util.Map;
-import java.util.Optional;
 
 public class Compiler {
     public static final String PACKAGE_KEYWORD_WITH_SPACE = "package ";
@@ -23,6 +23,8 @@ public class Compiler {
     public static final String LEADING = "leading";
     public static final String IMPORT = "import";
     public static final Rule IMPORT_RULE = createImportRule();
+    public static final OrRule MAGMA_ROOT_MEMBER = new OrRule(List.of(IMPORT_RULE, STRUCT_RULE));
+    public static final List<Rule> JAVA_ROOT_MEMBER = List.of(IMPORT_RULE, INTERFACE_RULE);
 
     private static Rule createStructRule(String keyword) {
         var modifiers = new ExtractRule(MODIFIERS);
@@ -42,27 +44,25 @@ public class Compiler {
 
         var output = new StringBuilder();
         for (var line : segments) {
-            output.append(compileRootMember(line.strip()));
+            output.append(compileRootMember(line.strip()).$());
         }
         return output.toString();
     }
 
-    private static String compileRootMember(String input) throws CompileException {
-        if (input.isEmpty() || input.startsWith(PACKAGE_KEYWORD_WITH_SPACE)) return "";
+    private static Result<String, CompileException> compileRootMember(String input) throws CompileException {
+        if (input.isEmpty() || input.startsWith(PACKAGE_KEYWORD_WITH_SPACE)) return new Ok<>("");
 
-        return IMPORT_RULE.parse(input).findValue().map(Node::strings)
-                .flatMap(node1 -> IMPORT_RULE.generate(new Node(Optional.empty(), node1)).findValue())
-                .or(() -> INTERFACE_RULE.parse(input).findValue().map(Node::strings)
-                        .map(Compiler::modify)
-                        .flatMap(node -> STRUCT_RULE.generate(new Node(Optional.empty(), node)).findValue()))
-                .orElseThrow(() -> new CompileException("Invalid input", input));
+        return new OrRule(JAVA_ROOT_MEMBER).parse(input)
+                .mapValue(Compiler::modify)
+                .flatMapValue(MAGMA_ROOT_MEMBER::generate);
     }
 
-    private static Map<String, String> modify(Map<String, String> map) {
-        var oldModifiers = map.get(MODIFIERS);
-        var newModifiers = oldModifiers.equals(PUBLIC_KEYWORD_WITH_SPACE) ? EXPORT_KEYWORD_WITH_SPACE : "";
-        map.put(MODIFIERS, newModifiers);
-        return map;
+    private static Node modify(Node node) {
+        var oldModifiers = node.findString(MODIFIERS);
+        if (oldModifiers.isEmpty()) return node;
+
+        var newModifiers = oldModifiers.get().equals(PUBLIC_KEYWORD_WITH_SPACE) ? EXPORT_KEYWORD_WITH_SPACE : "";
+        return node.with(MODIFIERS, newModifiers);
     }
 
 }
