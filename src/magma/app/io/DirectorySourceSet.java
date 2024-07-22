@@ -3,7 +3,6 @@ package magma.app.io;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -14,17 +13,14 @@ public class DirectorySourceSet implements SourceSet {
         this.root = root;
     }
 
-    private Set<Path> collect() throws IOException {
-        try (var stream = Files.walk(root)) {
-            return stream.collect(Collectors.toSet());
-        }
-    }
-
     @Override
-    public Stream<Unit> stream() throws IOException {
-        return collect().stream()
-                .filter(Files::isRegularFile)
-                .filter(path -> path.toString().endsWith(".java"))
-                .map(readableChild -> new PathUnit(root, readableChild));
+    public Stream<Unit> streamPaths() throws IOException {
+        try (var resourceStream = Files.walk(root)) {
+            return resourceStream
+                    .filter(Files::isRegularFile)
+                    .<Unit>map(source -> new PathUnit(root, source))
+                    .collect(Collectors.toSet())
+                    .stream();
+        }
     }
 }

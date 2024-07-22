@@ -1,69 +1,94 @@
 package magma.app.compile;
 
-import magma.api.result.Results;
-import magma.app.ApplicationException;
+import magma.app.compile.rule.Node;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
-import static magma.app.compile.Compiler.EXPORT_KEYWORD_WITH_SPACE;
-import static magma.app.compile.Compiler.PUBLIC_KEYWORD_WITH_SPACE;
-import static magma.app.compile.Compiler.compile;
-import static magma.app.compile.Compiler.renderClass;
-import static magma.app.compile.Compiler.renderFunction;
-import static magma.app.compile.Compiler.renderImport;
-import static magma.app.compile.Compiler.renderPackage;
-import static magma.app.compile.Compiler.renderRecord;
+import java.util.Map;
+import java.util.Optional;
+
+import static magma.app.compile.Compiler.*;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.fail;
 
 class CompilerTest {
+    public static final String TEST_LOWER_SYMBOL = "test";
     public static final String TEST_UPPER_SYMBOL = "Test";
 
-    private static void assertCompile(String input, String expected) {
+    private static void assertCompile(String input, String output) {
         try {
-            var actual = Results.unwrap(compile(input));
-            assertEquals(expected, actual);
-        } catch (ApplicationException e) {
+            var value = Compiler.compile(input);
+            assertEquals(output, value);
+        } catch (CompileException e) {
             fail(e);
         }
     }
 
-    @ParameterizedTest
-    @ValueSource(strings = {"First", "Second"})
-    void recordName(String name) {
-        assertCompile(renderRecord("", name), renderFunction("", name, ""));
-    }
-
-    @Test
-    void recordPublic() {
-        assertCompile(renderRecord(PUBLIC_KEYWORD_WITH_SPACE, TEST_UPPER_SYMBOL), renderFunction(EXPORT_KEYWORD_WITH_SPACE, TEST_UPPER_SYMBOL, ""));
+    private static String renderPackageStatement(String name) {
+        return Compiler.PACKAGE_KEYWORD_WITH_SPACE + name + STATEMENT_END;
     }
 
     @ParameterizedTest
     @ValueSource(strings = {"First", "Second"})
-    void className(String name) {
-        assertCompile(renderClass("", name), renderFunction("", name, ""));
+    void interfaceName(String name) throws CompileException {
+        var node = new Node().with(NAME, name);
+
+        assertCompile(INTERFACE_RULE.generate(node.retype(INTERFACE)).$(),
+                STRUCT_RULE.generate(node.retype(STRUCT)).$());
     }
 
     @Test
-    void classPublic() {
-        assertCompile(
-                renderClass(PUBLIC_KEYWORD_WITH_SPACE, TEST_UPPER_SYMBOL),
-                renderFunction(EXPORT_KEYWORD_WITH_SPACE, TEST_UPPER_SYMBOL, ""));
+    void interfacePublic() throws CompileException {
+        var node = new Node()
+                .retype(INTERFACE)
+                .with(MODIFIERS, PUBLIC_KEYWORD_WITH_SPACE)
+                .with(NAME, TEST_UPPER_SYMBOL);
+        var interfaceString = INTERFACE_RULE.generate(node).$();
+
+        var structNode = new Node()
+                .retype(STRUCT)
+                .with(MODIFIERS, EXPORT_KEYWORD_WITH_SPACE)
+                .with(NAME, TEST_UPPER_SYMBOL);
+        var structString = STRUCT_RULE.generate(structNode).$();
+
+        assertCompile(interfaceString, structString);
     }
 
     @Test
-    void rootMemberStrip() {
-        var input = renderImport("\n", "second", "");
-        var output = renderImport("", "second", "");
+    void rootMemberMultiple() throws CompileException {
+        var rule = createImportRule();
+        var node = new Node().retype(IMPORT).with(SEGMENTS, TEST_LOWER_SYMBOL);
+        var importString = rule.generate(node).$();
+        assertCompile(renderPackageStatement(TEST_LOWER_SYMBOL) + importString, importString);
+    }
+
+    @Test
+    void importStripLeading() throws CompileException {
+        var rule = createImportRule();
+        var withoutLeading = new Node().retype(IMPORT).with(SEGMENTS, TEST_LOWER_SYMBOL);
+        var withLeading = withoutLeading.with(LEADING, " ");
+
+        var input = rule.generate(withLeading).$();
+        var output = rule.generate(withoutLeading).$();
         assertCompile(input, output);
     }
 
-    @Test
-    void rootMemberMultiple() {
-        var first = renderPackage("");
-        var second = renderImport("", "second", "Sibling");
-        assertCompile(first + second, second);
+    @ParameterizedTest
+    @ValueSource(strings = {"first", "second"})
+    void importName(String name) throws CompileException {
+        var rule = createImportRule();
+        var node = new Node()
+                .retype(IMPORT)
+                .with(SEGMENTS, name);
+
+        var input = rule.generate(node).$();
+        assertCompile(input, input);
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"first", "second"})
+    void packageName(String name) {
+        assertCompile(renderPackageStatement(name), "");
     }
 }

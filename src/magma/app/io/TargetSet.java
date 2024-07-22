@@ -1,7 +1,7 @@
 package magma.app.io;
 
-import magma.app.ApplicationException;
+import java.io.IOException;
 
 public interface TargetSet {
-    void write(Unit unit, String output) throws ApplicationException;
+    void writeTarget(Unit unit, String output) throws IOException;
 }

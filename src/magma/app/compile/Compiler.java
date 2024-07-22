@@ -1,147 +1,68 @@
 package magma.app.compile;
 
-import magma.api.Tuple;
-import magma.api.result.Err;
 import magma.api.result.Ok;
 import magma.api.result.Result;
-import magma.app.ApplicationException;
+import magma.app.compile.rule.*;
 
 import java.util.List;
-import java.util.Optional;
 
 public class Compiler {
-    public static final String IMPORT_KEYWORD_WITH_SPACE = "import ";
-    public static final String IMPORT_SEPARATOR = ".";
-    public static final String STATEMENT_END = ";";
     public static final String PACKAGE_KEYWORD_WITH_SPACE = "package ";
-    public static final String CLASS_KEYWORD_WITH_SPACE = "class ";
-    public static final String BLOCK_START = "{";
-    public static final String BLOCK_END = "}";
+    public static final char STATEMENT_END = Splitter.STATEMENT_END;
+    public static final String IMPORT_KEYWORD_WITH_SPACE = "import ";
+    public static final String STRUCT = "struct";
+    public static final String EMPTY_CONTENT = " {}";
+    public static final String INTERFACE = "interface";
     public static final String PUBLIC_KEYWORD_WITH_SPACE = "public ";
     public static final String EXPORT_KEYWORD_WITH_SPACE = "export ";
-    public static final String RECORD_KEYWORD_WITH_SPACE = "record ";
-    public static final String EMPTY_RECORD_CONTENT = "(){}";
-    public static final String EMPTY_PARAMS = "()";
+    public static final String MODIFIERS = "modifiers";
+    public static final String NAME = "name";
+    public static final Rule INTERFACE_RULE = createStructRule(INTERFACE);
+    public static final Rule STRUCT_RULE = createStructRule(STRUCT);
+    public static final String SEGMENTS = "segments";
+    public static final String LEADING = "leading";
+    public static final String IMPORT = "import";
+    public static final Rule IMPORT_RULE = createImportRule();
+    public static final OrRule MAGMA_ROOT_MEMBER = new OrRule(List.of(IMPORT_RULE, STRUCT_RULE));
+    public static final List<Rule> JAVA_ROOT_MEMBER = List.of(IMPORT_RULE, INTERFACE_RULE);
 
-    private static String renderBlock(String content) {
-        return BLOCK_START + content + BLOCK_END;
+    private static Rule createStructRule(String keyword) {
+        var modifiers = new ExtractRule(MODIFIERS);
+        var name = new ExtractRule(NAME);
+        var withModifiers = new FirstRule(modifiers, keyword + " ", new RightRule(name, EMPTY_CONTENT));
+        var value = new OrRule(List.of(withModifiers, new LeftRule(keyword + " ", new RightRule(name, EMPTY_CONTENT))));
+        return new TypeRule(keyword, value);
     }
 
-    public static Result<String, ApplicationException> compile(String input) {
-        var lines = Splitter.split(input).toList();
+    public static Rule createImportRule() {
+        var value = new LeftRule(IMPORT_KEYWORD_WITH_SPACE, new RightRule(new ExtractRule(SEGMENTS), String.valueOf(STATEMENT_END)));
+        return new TypeRule(IMPORT, new StripRule(LEADING, value, ""));
+    }
 
-        Result<StringBuilder, ApplicationException> builder = new Ok<>(new StringBuilder());
-        for (String line : lines) {
-            builder = builder.and(() -> compileRootMember(line.strip())).mapValue(tuple -> tuple.left().append(tuple.right()));
+    public static String compile(String input) throws CompileException {
+        var segments = Splitter.split(input);
+
+        var output = new StringBuilder();
+        for (var line : segments) {
+            output.append(compileRootMember(line.strip()).$());
         }
-
-        return builder.mapValue(StringBuilder::toString);
+        return output.toString();
     }
 
-    private static Result<String, ApplicationException> compileRootMember(String input) {
-        return compilePackage(input)
-                .or(() -> compileImport(input))
-                .or(() -> compileClass(input))
-                .or(() -> compileRecord(input))
-                .orElseGet(() -> new Err<>(new ApplicationException("Unknown input: " + input)));
+    private static Result<String, CompileException> compileRootMember(String input) throws CompileException {
+        if (input.isEmpty() || input.startsWith(PACKAGE_KEYWORD_WITH_SPACE)) return new Ok<>("");
+
+        return new OrRule(JAVA_ROOT_MEMBER).parse(input)
+                .mapValue(Compiler::modify)
+                .flatMapValue(MAGMA_ROOT_MEMBER::generate);
     }
 
-    private static Optional<Result<String, ApplicationException>> compileRecord(String input) {
-        return split(input, RECORD_KEYWORD_WITH_SPACE).flatMap(tuple -> {
-            var oldModifiers = tuple.left();
-            var newModifiers = processModifiers(oldModifiers);
-            return split(tuple.right(), BLOCK_START).flatMap(tuple0 -> {
-                var nameAndParams = tuple0.left();
-                return truncateRight(nameAndParams, EMPTY_PARAMS).flatMap(name -> {
-                    return truncateRight(tuple0.right(), BLOCK_END).map(ok -> {
-                        var classMembers = Splitter.split(ok).toList();
-                        var outputContent = compileContent(classMembers);
-                        return outputContent.mapValue(content -> renderFunction(newModifiers, name, content.toString()));
-                    });
-                });
-            });
-        });
+    private static Node modify(Node node) {
+        var oldModifiers = node.findString(MODIFIERS);
+        if (oldModifiers.isEmpty()) return node;
+
+        var newModifiers = oldModifiers.get().equals(PUBLIC_KEYWORD_WITH_SPACE) ? EXPORT_KEYWORD_WITH_SPACE : "";
+        return node.with(MODIFIERS, newModifiers);
     }
 
-    private static Optional<String> truncateRight(String input, String slice) {
-        if (!input.endsWith(slice)) return Optional.empty();
-        var name = input.substring(0, input.length() - slice.length());
-        return Optional.of(name);
-    }
-
-    private static Optional<Result<String, ApplicationException>> compileClass(String input) {
-        return split(input, CLASS_KEYWORD_WITH_SPACE).flatMap(tuple -> {
-            var oldModifiers = tuple.left();
-            return split(tuple.right(), BLOCK_START).flatMap(tuple0 -> {
-                var name = tuple0.left();
-                var afterBlockStart = tuple0.right();
-
-                return truncateRight(afterBlockStart, BLOCK_END).map(inputContent -> {
-                    var classMembers = Splitter.split(inputContent).toList();
-                    var outputContent = compileContent(classMembers);
-                    var newModifiers = processModifiers(oldModifiers);
-
-                    return outputContent.mapValue(content -> renderFunction(newModifiers, name, content.toString()));
-                });
-            });
-        });
-    }
-
-    private static String processModifiers(String oldModifiers) {
-        return oldModifiers.equals(PUBLIC_KEYWORD_WITH_SPACE) ? EXPORT_KEYWORD_WITH_SPACE : "";
-    }
-
-    private static Optional<Tuple<String, String>> split(String input, String slice) {
-        var classIndex = input.indexOf(slice);
-        if (classIndex == -1) return Optional.empty();
-        var leftSlice = input.substring(0, classIndex);
-        var rightSlice = input.substring(classIndex + slice.length());
-        return Optional.of(new Tuple<>(leftSlice, rightSlice));
-    }
-
-    private static Result<StringBuilder, ApplicationException> compileContent(List<String> classMembers) {
-        Result<StringBuilder, ApplicationException> outputContent = new Ok<>(new StringBuilder());
-        for (String classMember : classMembers) {
-            var stripped = classMember.strip();
-            if (stripped.isEmpty()) continue;
-            outputContent = outputContent.and(() -> compileClassMember(stripped)).mapValue(tuple -> tuple.left().append(tuple.right()));
-        }
-        return outputContent;
-    }
-
-    private static Result<String, ApplicationException> compileClassMember(String classMember) {
-        return new Err<>(new ApplicationException("Invalid class member: " + classMember));
-    }
-
-    private static Optional<Result<String, ApplicationException>> compilePackage(String input) {
-        return input.startsWith(PACKAGE_KEYWORD_WITH_SPACE) ? Optional.of(new Ok<>("")) : Optional.empty();
-    }
-
-    private static Optional<Result<String, ApplicationException>> compileImport(String input) {
-        if (!input.startsWith(IMPORT_KEYWORD_WITH_SPACE)) return Optional.empty();
-        var afterKeyword = input.substring(IMPORT_KEYWORD_WITH_SPACE.length());
-
-        if (!afterKeyword.endsWith(STATEMENT_END)) return Optional.empty();
-        return Optional.of(new Ok<>(input));
-    }
-
-    public static String renderImport(String leftPadding, String parent, String child) {
-        return leftPadding + IMPORT_KEYWORD_WITH_SPACE + parent + IMPORT_SEPARATOR + child + STATEMENT_END;
-    }
-
-    public static String renderPackage(String name) {
-        return PACKAGE_KEYWORD_WITH_SPACE + name + STATEMENT_END;
-    }
-
-    static String renderFunction(String modifiers, String name, String content) {
-        return modifiers + CLASS_KEYWORD_WITH_SPACE + "def " + name + "() =>" + renderBlock(content);
-    }
-
-    static String renderClass(String modifiers, String name) {
-        return modifiers + CLASS_KEYWORD_WITH_SPACE + name + renderBlock("");
-    }
-
-    static String renderRecord(String modifiers, String name) {
-        return modifiers + RECORD_KEYWORD_WITH_SPACE + name + EMPTY_RECORD_CONTENT;
-    }
 }

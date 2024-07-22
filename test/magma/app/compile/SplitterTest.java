@@ -8,10 +8,10 @@ import static org.junit.jupiter.api.Assertions.assertIterableEquals;
 
 class SplitterTest {
     @Test
-    void semicolonWithinBraces() {
-        var value = "{a;b}";
-        var expected = Collections.singletonList(value);
-        var actual = Splitter.split(value).toList();
+    void splitWithBraces() {
+        var input = "{a;b}";
+        var expected = Collections.singletonList(input);
+        var actual = Splitter.split(input);
         assertIterableEquals(expected, actual);
     }
 }

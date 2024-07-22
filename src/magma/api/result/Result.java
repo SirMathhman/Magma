@@ -6,12 +6,16 @@ import java.util.Optional;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
-public interface Result<T, E> {
-    <R> Result<Tuple<T, R>, E> and(Supplier<Result<R, E>> other);
+public interface Result<T, E extends Exception> {
+    Optional<T> findValue();
+
+    T $() throws E;
 
     <R> Result<R, E> mapValue(Function<T, R> mapper);
 
-    Optional<T> findValue();
+    <R> Result<R, E> flatMapValue(Function<T, Result<R, E>> mapper);
 
-    Optional<E> findError();
+    <R> Result<Tuple<T, R>, E> and(Supplier<Result<R, E>> supplier);
+
+    boolean isOk();
 }

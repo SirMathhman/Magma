@@ -6,30 +6,27 @@ import java.nio.file.Path;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
-public record PathUnit(Path root, Path readableChild) implements Unit {
+public record PathUnit(Path root, Path child) implements Unit {
+    @Override
+    public String computeName() {
+        var fileName = child().getFileName().toString();
+        var separator = fileName.indexOf('.');
+        return fileName.substring(0, separator);
+    }
+
     @Override
     public Stream<String> computeNamespace() {
-        var parent = readableChild.getParent();
-        if (parent == null) return Stream.empty();
+        var parent = child.getParent();
+        if(parent == null) return Stream.empty();
 
         var relativized = root.relativize(parent);
-        var length = relativized.getNameCount();
-        return IntStream.range(0, length)
+        return IntStream.range(0, relativized.getNameCount())
                 .mapToObj(relativized::getName)
                 .map(Path::toString);
     }
 
     @Override
-    public String computeName() {
-        var fileName = readableChild().getFileName().toString();
-        var separator = fileName.lastIndexOf('.');
-        return separator == -1
-                ? fileName
-                : fileName.substring(0, separator);
-    }
-
-    @Override
     public String read() throws IOException {
-        return Files.readString(readableChild);
+        return Files.readString(child);
     }
 }
