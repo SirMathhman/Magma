@@ -5,8 +5,12 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Deque;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 public class Main {
     public static void main(String[] args) {
@@ -49,23 +53,47 @@ public class Main {
     }
 
     private static List<String> split(String root) {
-        var state = new State();
         var length = root.length();
-        for (int i = 0; i < length; i++) {
-            var c = root.charAt(i);
-            state = splitAtChar(c, state);
+        var queue = IntStream.range(0, length)
+                .mapToObj(root::charAt)
+                .collect(Collectors.toCollection(LinkedList::new));
+
+        var state = new State(queue);
+        while (true) {
+            var appended = state.append();
+            if (appended.isEmpty()) break;
+
+            var tuple = appended.get();
+            state = splitAtChar(tuple.left(), tuple.right());
         }
 
         return state.advance().segments.list();
     }
 
-    private static State splitAtChar(char c, State state) {
-        var appended = state.append(c);
-        if (c == ';' && state.isLevel()) return appended.advance();
-        if (c == '}' && state.isShallow()) return appended.exit().advance();
-        if (c == '{') return appended.enter();
-        if (c == '}') return appended.exit();
-        return appended;
+    private static State splitAtChar(State state, Character right) {
+        if (right == '\'') return processSingleQuotes(state);
+
+
+        if (right == ';' && state.isLevel()) return state.advance();
+        if (right == '}' && state.isShallow()) return state.exit().advance();
+        if (right == '{') return state.enter();
+        if (right == '}') return state.exit();
+        return state;
+    }
+
+    private static State processSingleQuotes(State state) {
+        var escapeOptional = state.append();
+        if (escapeOptional.isEmpty()) return state;
+
+        var escape = escapeOptional.get();
+        var escapeState = escape.left();
+        var escapeChar = escape.right();
+
+        var withEscape = escapeChar == '\\'
+                ? escapeState.appendAndDiscard().orElse(escapeState)
+                : escapeState;
+
+        return withEscape.appendAndDiscard().orElse(withEscape);
     }
 
     private static String compileRootMember(String segment) throws CompileException {
@@ -128,24 +156,26 @@ public class Main {
         private final JavaList<String> segments;
         private final StringBuilder buffer;
         private final int depth;
+        private final Deque<Character> queue;
 
-        private State(StringBuilder buffer, JavaList<String> segments, int depth) {
+        private State(Deque<Character> queue, StringBuilder buffer, JavaList<String> segments, int depth) {
+            this.queue = queue;
             this.buffer = buffer;
             this.segments = segments;
             this.depth = depth;
         }
 
-        public State() {
-            this(new StringBuilder(), new JavaList<>(), 0);
+        public State(Deque<Character> queue) {
+            this(queue, new StringBuilder(), new JavaList<>(), 0);
         }
 
         private State advance() {
             if (buffer.isEmpty()) return this;
-            return new State(new StringBuilder(), segments.add(buffer.toString()), depth);
+            return new State(queue, new StringBuilder(), segments.add(buffer.toString()), depth);
         }
 
         public State append(char c) {
-            return new State(buffer.append(c), segments, depth);
+            return new State(queue, buffer.append(c), segments, depth);
         }
 
         public boolean isLevel() {
@@ -153,15 +183,26 @@ public class Main {
         }
 
         public State enter() {
-            return new State(buffer, segments, depth + 1);
+            return new State(queue, buffer, segments, depth + 1);
         }
 
         public State exit() {
-            return new State(buffer, segments, depth - 1);
+            return new State(queue, buffer, segments, depth - 1);
         }
 
         public boolean isShallow() {
             return depth == 1;
+        }
+
+        public Optional<Tuple<State, Character>> append() {
+            if (queue.isEmpty()) return Optional.empty();
+            var next = queue.pop();
+            var appended = append(next);
+            return Optional.of(new Tuple<>(appended, next));
+        }
+
+        public Optional<State> appendAndDiscard() {
+            return append().map(Tuple::left);
         }
     }
 }
