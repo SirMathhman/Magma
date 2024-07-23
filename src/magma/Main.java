@@ -23,8 +23,8 @@ public class Main {
     private static String compile(String root) throws CompileException {
         var segments = split(root);
         var builder = new StringBuilder();
-        for (String segment : segments) {
-            builder.append(compileRootMember(segment));
+        for (var segment : segments) {
+            builder.append(compileRootMember(segment.strip()));
         }
 
         return builder.toString();
@@ -47,6 +47,8 @@ public class Main {
     }
 
     private static String compileRootMember(String segment) throws CompileException {
+        if (segment.startsWith("package ")) return "";
+        if (segment.startsWith("import ")) return segment;
         throw new CompileException("Unknown root member", segment);
     }
 
