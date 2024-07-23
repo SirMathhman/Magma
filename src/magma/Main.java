@@ -69,6 +69,7 @@ public class Main {
     private static State splitAtChar(State state, char c) {
         var appended = state.append(c);
         if (c == ';' && state.isLevel()) return appended.advance();
+        if (c == '}' && state.isShallow()) return appended.advance();
         if (c == '{') return appended.enter();
         if (c == '}') return appended.exit();
         return appended;
@@ -100,8 +101,8 @@ public class Main {
         var content = contentAndEnd.substring(0, contentAndEnd.length() - 1);
         var inputClassMembers = split(content);
         var outputClassMembers = new ArrayList<String>();
-        for (String inputClassMember : inputClassMembers) {
-            outputClassMembers.add(compileClassMember(inputClassMember));
+        for (var inputClassMember : inputClassMembers) {
+            outputClassMembers.add(compileClassMember(inputClassMember.strip()));
         }
 
         var generated = generate(outputClassMembers);
@@ -114,10 +115,21 @@ public class Main {
             var definition = classMember.substring(0, separator).strip();
             var last = definition.lastIndexOf(' ');
             var name = definition.substring(last + 1).strip();
-            return "let " + name + " = 0;";
+
+            var valueAndEnd = classMember.substring(separator + 1).strip();
+            if (valueAndEnd.endsWith(";")) {
+                var value = valueAndEnd.substring(0, valueAndEnd.length() - 1).strip();
+                return "let " + name + " = " + compileValue(value) + ";";
+            }
         }
 
         throw new CompileException("Invalid class member", classMember);
+    }
+
+    private static String compileValue(String value) throws CompileException {
+        if (value.startsWith("\"") && value.endsWith("\"")) return value;
+
+        throw new CompileException("Unknown value", value);
     }
 
     private static class State {
@@ -143,6 +155,10 @@ public class Main {
             var copy = new ArrayList<>(segments);
             copy.add(buffer.toString());
             return new State(new StringBuilder(), copy, depth);
+        }
+
+        public boolean isShallow() {
+            return depth == 1;
         }
 
         public boolean isLevel() {
