@@ -6,8 +6,12 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 public class Main {
+
+    public static final String CLASS_KEYWORD_WITH_SPACE = "class ";
+
     public static void main(String[] args) {
         try {
             var source = resolve("java");
@@ -57,7 +61,18 @@ public class Main {
         if (rootMember.startsWith("package ")) return "";
         if (rootMember.startsWith("import ")) return rootMember;
 
-        throw new CompileException("Unknown root member", rootMember);
+        return compileClass(rootMember).orElseThrow(() -> new CompileException("Unknown root member", rootMember));
+    }
+
+    private static Optional<String> compileClass(String rootMember) {
+        var classIndex = rootMember.indexOf(CLASS_KEYWORD_WITH_SPACE);
+        if (classIndex == -1) return Optional.empty();
+
+        var contentStart = rootMember.indexOf('{');
+        if (contentStart == -1) return Optional.empty();
+
+        var name = rootMember.substring(classIndex + CLASS_KEYWORD_WITH_SPACE.length(), contentStart).strip();
+        return Optional.of(CLASS_KEYWORD_WITH_SPACE + "def " + name + "() => {}");
     }
 
     private static class State {
