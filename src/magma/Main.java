@@ -6,6 +6,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 public class Main {
     public static void main(String[] args) {
@@ -54,17 +55,21 @@ public class Main {
         if (segment.startsWith("package ")) return "";
         if (segment.startsWith("import ")) return segment;
 
-        var classIndex = segment.indexOf("class ");
-        if (classIndex != -1) {
-            var afterClass = segment.substring(classIndex + "class ".length());
-            var contentStart = afterClass.indexOf('{');
-            if(contentStart != -1) {
-                var name = afterClass.substring(0, contentStart).strip();
-                return "class def " + name + "() => {}";
-            }
-        }
+        return compileClass(segment).orElseThrow(() -> new CompileException("Unknown root member", segment));
+    }
 
-        throw new CompileException("Unknown root member", segment);
+    private static Optional<String> compileClass(String segment) {
+        var classIndex = segment.indexOf("class ");
+        if (classIndex == -1) {
+            return Optional.empty();
+        }
+        var afterClass = segment.substring(classIndex + "class ".length());
+        var contentStart = afterClass.indexOf('{');
+        if (contentStart == -1) {
+            return Optional.empty();
+        }
+        var name = afterClass.substring(0, contentStart).strip();
+        return Optional.of("class def " + name + "() => {}");
     }
 
     private static Path resolve(String extension) {
