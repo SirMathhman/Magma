@@ -112,23 +112,41 @@ public class Main {
 
     private static String compileClassMember(String classMember) throws CompileException {
         return compileDeclaration(classMember)
+                .or(() -> compileMethod(classMember))
                 .orElseGet(() -> new Err<>(new CompileException("Invalid class member", classMember)))
                 .unwrap();
+    }
+
+    private static Optional<Result<String, CompileException>> compileMethod(String classMember) {
+        var contentStart = classMember.indexOf('{');
+        if (contentStart == -1) return Optional.empty();
+
+        var definition = classMember.substring(0, contentStart).strip();
+        var compiledDefinition = compileDefinition(definition.strip());
+        return compiledDefinition.map(Ok::new);
+
     }
 
     private static Optional<Result<String, CompileException>> compileDeclaration(String classMember) {
         var separator = classMember.indexOf('=');
         if (separator == -1) return Optional.empty();
 
-        var definition = classMember.substring(0, separator).strip();
-        var last = definition.lastIndexOf(' ');
-        var name = definition.substring(last + 1).strip();
+        var definitionOptional = compileDefinition(classMember.substring(0, separator).strip());
+        if (definitionOptional.isEmpty()) return Optional.empty();
 
         var valueAndEnd = classMember.substring(separator + 1).strip();
         if (!valueAndEnd.endsWith(";")) return Optional.empty();
 
         var value = valueAndEnd.substring(0, valueAndEnd.length() - 1).strip();
-        return Optional.of(compileValue(value).mapValue(compiledValue -> "let " + name + " = " + compiledValue + ";"));
+        return Optional.of(compileValue(value).mapValue(compiledValue -> definitionOptional.get() + " = " + compiledValue + ";"));
+    }
+
+    private static Optional<String> compileDefinition(String definition) {
+        var last = definition.lastIndexOf(' ');
+        if (last == -1) return Optional.empty();
+
+        var name = definition.substring(last + 1).strip();
+        return Optional.of("let " + name);
     }
 
     private static Result<String, CompileException> compileValue(String value) {
