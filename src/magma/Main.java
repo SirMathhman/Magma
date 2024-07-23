@@ -55,6 +55,8 @@ public class Main {
     }
 
     private static String compileRootMember(String rootMember) throws CompileException {
+        if(rootMember.startsWith("package ")) return "";
+
         throw new CompileException("Unknown root member", rootMember);
     }
 
