@@ -24,20 +24,28 @@ public class Main {
 
     private static String compile(String root) throws CompileException {
         var segments = split(root);
-        var compiledSegments = new ArrayList<String>();
-        for (String segment : segments) {
-            var compiled = compileRootMember(segment.strip());
-            if (!compiled.isEmpty()) compiledSegments.add(compiled);
-        }
+        var compiledSegments = compileRootMembers(segments);
+        var builder = generateRoot(compiledSegments);
+        return builder.toString();
+    }
 
+    private static StringBuilder generateRoot(ArrayList<String> compiledSegments) {
         var builder = new StringBuilder();
         for (int i = 0; i < compiledSegments.size(); i++) {
             var segment = compiledSegments.get(i);
             var prefix = i == 0 ? "" : "\n";
             builder.append(prefix).append(segment);
         }
+        return builder;
+    }
 
-        return builder.toString();
+    private static ArrayList<String> compileRootMembers(List<String> segments) throws CompileException {
+        var compiledSegments = new ArrayList<String>();
+        for (String segment : segments) {
+            var compiled = compileRootMember(segment.strip());
+            if (!compiled.isEmpty()) compiledSegments.add(compiled);
+        }
+        return compiledSegments;
     }
 
     private static List<String> split(String root) {
@@ -66,16 +74,19 @@ public class Main {
         return compileClass(segment).orElseThrow(() -> new CompileException("Unknown root member", segment));
     }
 
-    private static Optional<String> compileClass(String segment) {
-        var classIndex = segment.indexOf("class ");
+    private static Optional<String> compileClass(String rootMember) {
+        var classIndex = rootMember.indexOf("class ");
         if (classIndex == -1) return Optional.empty();
 
-        var afterClass = segment.substring(classIndex + "class ".length());
+        var oldModifiers = rootMember.substring(0, classIndex);
+        var newModifiers = oldModifiers.equals("public ") ? "export " : "";
+
+        var afterClass = rootMember.substring(classIndex + "class ".length());
         var contentStart = afterClass.indexOf('{');
         if (contentStart == -1) return Optional.empty();
 
         var name = afterClass.substring(0, contentStart).strip();
-        return Optional.of("class def " + name + "() => {}");
+        return Optional.of(newModifiers + "class def " + name + "() => {}");
     }
 
     private static Path resolve(String extension) {
