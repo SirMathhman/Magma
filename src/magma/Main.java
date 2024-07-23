@@ -24,9 +24,17 @@ public class Main {
 
     private static String compile(String root) throws CompileException {
         var segments = split(root);
+        var compiledSegments = new ArrayList<String>();
+        for (String segment : segments) {
+            var compiled = compileRootMember(segment.strip());
+            if (!compiled.isEmpty()) compiledSegments.add(compiled);
+        }
+
         var builder = new StringBuilder();
-        for (var segment : segments) {
-            builder.append(compileRootMember(segment.strip()));
+        for (int i = 0; i < compiledSegments.size(); i++) {
+            var segment = compiledSegments.get(i);
+            var prefix = i == 0 ? "" : "\n";
+            builder.append(prefix).append(segment);
         }
 
         return builder.toString();
@@ -60,14 +68,12 @@ public class Main {
 
     private static Optional<String> compileClass(String segment) {
         var classIndex = segment.indexOf("class ");
-        if (classIndex == -1) {
-            return Optional.empty();
-        }
+        if (classIndex == -1) return Optional.empty();
+
         var afterClass = segment.substring(classIndex + "class ".length());
         var contentStart = afterClass.indexOf('{');
-        if (contentStart == -1) {
-            return Optional.empty();
-        }
+        if (contentStart == -1) return Optional.empty();
+
         var name = afterClass.substring(0, contentStart).strip();
         return Optional.of("class def " + name + "() => {}");
     }
