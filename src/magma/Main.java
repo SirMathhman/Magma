@@ -7,6 +7,7 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Function;
 
 public class Main {
 
@@ -110,13 +111,12 @@ public class Main {
     }
 
     private static String compileClassMember(String classMember) throws CompileException {
-        var name = compileDeclaration(classMember);
-        if (name.isPresent()) return name.get();
-
-        throw new CompileException("Invalid class member", classMember);
+        return compileDeclaration(classMember)
+                .orElseGet(() -> new Err<>(new CompileException("Invalid class member", classMember)))
+                .unwrap();
     }
 
-    private static Optional<String> compileDeclaration(String classMember) throws CompileException {
+    private static Optional<Result<String, CompileException>> compileDeclaration(String classMember) {
         var separator = classMember.indexOf('=');
         if (separator == -1) return Optional.empty();
 
@@ -128,13 +128,18 @@ public class Main {
         if (!valueAndEnd.endsWith(";")) return Optional.empty();
 
         var value = valueAndEnd.substring(0, valueAndEnd.length() - 1).strip();
-        return Optional.of("let " + name + " = " + compileValue(value) + ";");
+        return Optional.of(compileValue(value).mapValue(compiledValue -> "let " + name + " = " + compiledValue + ";"));
     }
 
-    private static String compileValue(String value) throws CompileException {
-        if (value.startsWith("\"") && value.endsWith("\"")) return value;
+    private static Result<String, CompileException> compileValue(String value) {
+        if (value.startsWith("\"") && value.endsWith("\"")) return new Ok<>(value);
+        return new Err<>(new CompileException("Unknown value", value));
+    }
 
-        throw new CompileException("Unknown value", value);
+    private interface Result<T, E extends Exception> {
+        <R> Result<R, E> mapValue(Function<T, R> mapper);
+
+        T unwrap() throws E;
     }
 
     private static class State {
@@ -176,6 +181,30 @@ public class Main {
 
         public State exit() {
             return new State(buffer, segments, depth - 1);
+        }
+    }
+
+    private record Ok<T, E extends Exception>(T value) implements Result<T, E> {
+        @Override
+        public <R> Result<R, E> mapValue(Function<T, R> mapper) {
+            return new Ok<>(mapper.apply(value));
+        }
+
+        @Override
+        public T unwrap() throws E {
+            return value;
+        }
+    }
+
+    private record Err<T, E extends Exception>(E value) implements Result<T, E> {
+        @Override
+        public <R> Result<R, E> mapValue(Function<T, R> mapper) {
+            return new Err<>(value);
+        }
+
+        @Override
+        public T unwrap() throws E {
+            throw value;
         }
     }
 }
