@@ -5,6 +5,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.List;
 
 public class Main {
     public static void main(String[] args) {
@@ -30,7 +31,7 @@ public class Main {
         return builder.toString();
     }
 
-    private static ArrayList<String> split(String root) {
+    private static List<String> split(String root) {
         var state = new State();
         var length = root.length();
         for (int i = 0; i < length; i++) {
@@ -43,7 +44,10 @@ public class Main {
 
     private static State processChar(char c, State state) {
         var appended = state.append(c);
-        return c == ';' ? appended.advance() : appended;
+        if (c == ';' && state.isLevel()) return appended.advance();
+        if (c == '{') return appended.enter();
+        if (c == '}') return appended.exit();
+        return appended;
     }
 
     private static String compileRootMember(String segment) throws CompileException {
@@ -57,27 +61,41 @@ public class Main {
     }
 
     private static class State {
-        private final ArrayList<String> segments;
+        private final List<String> segments;
         private final StringBuilder buffer;
+        private final int depth;
 
-        private State(StringBuilder buffer, ArrayList<String> segments) {
+        private State(StringBuilder buffer, List<String> segments, int depth) {
             this.buffer = buffer;
             this.segments = segments;
+            this.depth = depth;
         }
 
         public State() {
-            this(new StringBuilder(), new ArrayList<>());
+            this(new StringBuilder(), new ArrayList<>(), 0);
         }
 
         private State advance() {
             if (buffer.isEmpty()) return this;
             var copy = new ArrayList<>(segments);
             copy.add(buffer.toString());
-            return new State(new StringBuilder(), copy);
+            return new State(new StringBuilder(), copy, depth);
         }
 
         public State append(char c) {
-            return new State(buffer.append(c), segments);
+            return new State(buffer.append(c), segments, depth);
+        }
+
+        public boolean isLevel() {
+            return depth == 0;
+        }
+
+        public State enter() {
+            return new State(buffer, segments, depth + 1);
+        }
+
+        public State exit() {
+            return new State(buffer, segments, depth - 1);
         }
     }
 }
