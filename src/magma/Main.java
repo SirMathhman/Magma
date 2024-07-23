@@ -1,5 +1,7 @@
 package magma;
 
+import magma.lang.MagmaLang;
+
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -26,20 +28,7 @@ public class Main {
     private static String compile(String root) throws CompileException {
         var segments = Splitter.split(root);
         var compiledSegments = compileRootMembers(segments);
-        return generateBlock(compiledSegments, 0);
-    }
-
-    private static String generateBlock(List<String> compiledSegments, int depth) {
-        var builder = new StringBuilder();
-        for (int i = 0; i < compiledSegments.size(); i++) {
-            var segment = compiledSegments.get(i);
-            String prefix;
-            var isFirstStatement = i == 0 && depth == 0;
-            if (isFirstStatement) prefix = "";
-            else prefix = "\n" + "\t".repeat(depth);
-            builder.append(prefix).append(segment);
-        }
-        return builder + "\n" + "\t".repeat(depth == 0 ? 0 : depth - 1);
+        return MagmaLang.generateBlock(compiledSegments, 0);
     }
 
     private static List<String> compileRootMembers(List<String> segments) throws CompileException {
@@ -81,6 +70,11 @@ public class Main {
         var content = afterContentStart.substring(0, afterContentStart.length() - 1);
 
         var oldClassMembers = Splitter.split(content);
+        var newClassMembers = compileClassMembers(oldClassMembers);
+        return Optional.of(newClassMembers.mapValue(value -> MagmaLang.generateFunction(1, newModifiers + "class ", name, value)));
+    }
+
+    private static Result<JavaList<String>, CompileException> compileClassMembers(List<String> oldClassMembers) {
         Result<JavaList<String>, CompileException> newClassMembers = new Ok<>(new JavaList<>());
         for (String oldClassMember : oldClassMembers) {
             var stripped = oldClassMember.strip();
@@ -90,12 +84,7 @@ public class Main {
                     .and(() -> compileClassMember(stripped))
                     .mapValue(tuple -> tuple.left().add(tuple.right()));
         }
-
-        return Optional.of(newClassMembers.mapValue(value -> renderFunction(1, newModifiers + "class ", name, value)));
-    }
-
-    private static String renderFunction(int depth, String modifiers, String name, JavaList<String> content) {
-        return modifiers + "def " + name + "() => {" + generateBlock(content.list(), depth) + "}";
+        return newClassMembers;
     }
 
     private static Result<String, CompileException> compileClassMember(String classMember) {
@@ -120,7 +109,7 @@ public class Main {
         var name = definition.substring(space + 1).strip();
         var newModifiers = oldModifiers.contains("private") ? "private " : "";
 
-        return Optional.of(new Ok<>(renderFunction(2, newModifiers, name, new JavaList<>())));
+        return Optional.of(new Ok<>(MagmaLang.generateFunction(2, newModifiers, name, new JavaList<>())));
     }
 
     private static Path resolve(String extension) {
