@@ -19,6 +19,16 @@ public class Main {
     }
 
     private static String compile(String input) throws CompilationException {
+        var segments = split(input);
+        var output = new StringBuilder();
+        for (var segment : segments) {
+            output.append(compileRootMember(segment.strip()));
+        }
+
+        return output.toString();
+    }
+
+    private static ArrayList<String> split(String input) {
         var segments = new ArrayList<String>();
         var buffer = new StringBuilder();
         var length = input.length();
@@ -31,17 +41,12 @@ public class Main {
         }
 
         segments.add(buffer.toString());
-
-        var output = new StringBuilder();
-        for (var segment : segments) {
-            output.append(compileRootMember(segment));
-        }
-
-        return output.toString();
+        return segments;
     }
 
     private static String compileRootMember(String input) throws CompilationException {
         if (input.startsWith("package ")) return "";
+        if (input.startsWith("import ")) return input;
 
         throw new CompilationException("Invalid root member", input);
     }
