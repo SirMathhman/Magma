@@ -109,6 +109,14 @@ public class Main {
     }
 
     private static String compileClassMember(String classMember) throws CompileException {
+        var separator = classMember.indexOf('=');
+        if (separator != -1) {
+            var definition = classMember.substring(0, separator).strip();
+            var last = definition.lastIndexOf(' ');
+            var name = definition.substring(last + 1).strip();
+            return "let " + name + " = 0;";
+        }
+
         throw new CompileException("Invalid class member", classMember);
     }
 
