@@ -5,6 +5,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
@@ -24,7 +25,7 @@ public class Main {
 
     private static String compile(String root) throws CompileException {
         var segments = Splitter.split(root);
-        var compiledSegments = compileRootMembers(segments, 0);
+        var compiledSegments = compileRootMembers(segments);
         return generateBlock(compiledSegments, 0);
     }
 
@@ -41,28 +42,28 @@ public class Main {
         return builder + "\n" + "\t".repeat(depth == 0 ? 0 : depth - 1);
     }
 
-    private static List<String> compileRootMembers(List<String> segments, int depth) throws CompileException {
+    private static List<String> compileRootMembers(List<String> segments) throws CompileException {
         var compiledSegments = new ArrayList<String>();
         for (String segment : segments) {
             var stripped = segment.strip();
             if (stripped.isEmpty()) continue;
 
-            var compiled = compileRootMember(stripped, depth + 1);
+            var compiled = compileRootMember(stripped);
             if (!compiled.isEmpty()) compiledSegments.add(compiled);
         }
         return compiledSegments;
     }
 
-    private static String compileRootMember(String segment, int depth) throws CompileException {
+    private static String compileRootMember(String segment) throws CompileException {
         if (segment.startsWith("package ")) return "";
         if (segment.startsWith("import ")) return segment;
 
-        return compileClass(segment, depth)
+        return compileClass(segment)
                 .orElseGet(() -> new Err<>(new CompileException("Unknown root member", segment)))
                 .unwrap();
     }
 
-    private static Optional<Result<String, CompileException>> compileClass(String rootMember, int depth) {
+    private static Optional<Result<String, CompileException>> compileClass(String rootMember) {
         var classIndex = rootMember.indexOf("class ");
         if (classIndex == -1) return Optional.empty();
 
@@ -86,30 +87,40 @@ public class Main {
             if (stripped.isEmpty()) continue;
 
             newClassMembers = newClassMembers
-                    .and(() -> compileClassMember(stripped, depth + 1))
+                    .and(() -> compileClassMember(stripped))
                     .mapValue(tuple -> tuple.left().add(tuple.right()));
         }
 
-        return Optional.of(newClassMembers.mapValue(value -> renderFunction(name, newModifiers + "class ", value, depth)));
+        return Optional.of(newClassMembers.mapValue(value -> renderFunction(1, newModifiers + "class ", name, value)));
     }
 
-    private static String renderFunction(String name, String newModifiers, JavaList<String> content, int depth) {
-        return newModifiers + "def " + name + "() => {" + generateBlock(content.list(), depth) + "}";
+    private static String renderFunction(int depth, String modifiers, String name, JavaList<String> content) {
+        return modifiers + "def " + name + "() => {" + generateBlock(content.list(), depth) + "}";
     }
 
-    private static Result<String, CompileException> compileClassMember(String classMember, int depth) {
-        return compileMethod(classMember, depth)
+    private static Result<String, CompileException> compileClassMember(String classMember) {
+        return compileMethod(classMember)
                 .orElseGet(() -> new Err<>(new CompileException("Invalid class member", classMember)));
     }
 
-    private static Optional<Result<String, CompileException>> compileMethod(String classMember, int depth) {
-        var separator = classMember.indexOf('(');
-        if (separator == -1) return Optional.empty();
+    private static Optional<Result<String, CompileException>> compileMethod(String classMember) {
+        var paramStart = classMember.indexOf('(');
+        if (paramStart == -1) return Optional.empty();
 
-        var before = classMember.substring(0, separator).strip();
-        var space = before.lastIndexOf(" ");
-        var name = before.substring(space + 1).strip();
-        return Optional.of(new Ok<>(renderFunction(name, "", new JavaList<>(), depth)));
+        var definition = classMember.substring(0, paramStart).strip();
+        var space = definition.lastIndexOf(" ");
+
+        var modifiersAndType = definition.substring(0, space).strip();
+        var typeSeparator = modifiersAndType.lastIndexOf(' ');
+        if (typeSeparator == -1) return Optional.empty();
+
+        var modifiersArray = modifiersAndType.substring(0, typeSeparator).strip().split(" ");
+        var oldModifiers = Arrays.asList(modifiersArray);
+
+        var name = definition.substring(space + 1).strip();
+        var newModifiers = oldModifiers.contains("private") ? "private " : "";
+
+        return Optional.of(new Ok<>(renderFunction(2, newModifiers, name, new JavaList<>())));
     }
 
     private static Path resolve(String extension) {
