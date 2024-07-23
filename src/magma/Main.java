@@ -29,7 +29,7 @@ public class Main {
 
         var output = new StringBuilder();
         for (String segment : segments) {
-            output.append(compileRootMember(segment));
+            output.append(compileRootMember(segment.strip()));
         }
 
         return output.toString();
@@ -47,15 +47,15 @@ public class Main {
 
     private static State splitAtChar(State state, char c) {
         var appended = state.append(c);
-        if (c == ';') {
-            return appended.advance();
-        } else {
-            return appended;
-        }
+        if (c == ';' && state.isLevel()) return appended.advance();
+        if (c == '{') return appended.enter();
+        if (c == '}') return appended.exit();
+        return appended;
     }
 
     private static String compileRootMember(String rootMember) throws CompileException {
-        if(rootMember.startsWith("package ")) return "";
+        if (rootMember.startsWith("package ")) return "";
+        if (rootMember.startsWith("import ")) return rootMember;
 
         throw new CompileException("Unknown root member", rootMember);
     }
@@ -63,24 +63,38 @@ public class Main {
     private static class State {
         private final List<String> segments;
         private final StringBuilder buffer;
+        private final int depth;
 
-        private State(StringBuilder buffer, List<String> segments) {
+        private State(StringBuilder buffer, List<String> segments, int depth) {
             this.buffer = buffer;
             this.segments = segments;
+            this.depth = depth;
         }
 
         public State() {
-            this(new StringBuilder(), new ArrayList<>());
+            this(new StringBuilder(), new ArrayList<>(), 0);
         }
 
         private State append(char c) {
-            return new State(buffer.append(c), segments);
+            return new State(buffer.append(c), segments, depth);
         }
 
         private State advance() {
             var copy = new ArrayList<>(segments);
             copy.add(buffer.toString());
-            return new State(new StringBuilder(), copy);
+            return new State(new StringBuilder(), copy, depth);
+        }
+
+        public boolean isLevel() {
+            return depth == 0;
+        }
+
+        public State enter() {
+            return new State(buffer, segments, depth + 1);
+        }
+
+        public State exit() {
+            return new State(buffer, segments, depth - 1);
         }
     }
 }
