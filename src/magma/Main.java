@@ -81,11 +81,16 @@ public class Main {
         var classIndex = rootMember.indexOf(CLASS_KEYWORD_WITH_SPACE);
         if (classIndex == -1) return Optional.empty();
 
-        var contentStart = rootMember.indexOf('{');
+        var oldModifiers = rootMember.substring(0, classIndex);
+        var newModifiers = oldModifiers.equals("public ") ? "export " : "";
+
+        var right = rootMember.substring(classIndex + CLASS_KEYWORD_WITH_SPACE.length());
+
+        var contentStart = right.indexOf('{');
         if (contentStart == -1) return Optional.empty();
 
-        var name = rootMember.substring(classIndex + CLASS_KEYWORD_WITH_SPACE.length(), contentStart).strip();
-        return Optional.of(CLASS_KEYWORD_WITH_SPACE + "def " + name + "() => {}");
+        var name = right.substring(0, contentStart).strip();
+        return Optional.of(newModifiers + CLASS_KEYWORD_WITH_SPACE + "def " + name + "() => {}");
     }
 
     private static class State {
