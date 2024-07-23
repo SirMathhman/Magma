@@ -42,7 +42,10 @@ public class Main {
     private static List<String> compileRootMembers(List<String> segments) throws CompileException {
         var compiledSegments = new ArrayList<String>();
         for (String segment : segments) {
-            var compiled = compileRootMember(segment.strip());
+            var stripped = segment.strip();
+            if(stripped.isEmpty()) continue;
+
+            var compiled = compileRootMember(stripped);
             if (!compiled.isEmpty()) compiledSegments.add(compiled);
         }
         return compiledSegments;

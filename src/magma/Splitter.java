@@ -26,15 +26,34 @@ public class Splitter {
         return state.advance().segments.list();
     }
 
-    private static State splitAtChar(State state, Character right) {
-        if (right == '\'') return processSingleQuotes(state);
-        // TODO: double quotes
+    private static State splitAtChar(State state, Character appended) {
+        if (appended == '\'') return processSingleQuotes(state);
+        if (appended == '\"') return processDoubleQuotes(state);
 
-        if (right == ';' && state.isLevel()) return state.advance();
-        if (right == '}' && state.isShallow()) return state.exit().advance();
-        if (right == '{') return state.enter();
-        if (right == '}') return state.exit();
+        if (appended == ';' && state.isLevel()) return state.advance();
+        if (appended == '}' && state.isShallow()) return state.exit().advance();
+        if (appended == '{') return state.enter();
+        if (appended == '}') return state.exit();
         return state;
+    }
+
+    private static State processDoubleQuotes(State state) {
+        var current = state;
+        while (true) {
+            var optional = current.append();
+            if (optional.isEmpty()) return current;
+
+            var tuple = optional.get();
+            var nextState = tuple.left();
+            var nextChar = tuple.right();
+
+            if (nextChar == '\"') return current;
+            if (nextChar == '\\') {
+                current = nextState.appendAndDiscard().orElse(nextState);
+            } else {
+                current = nextState;
+            }
+        }
     }
 
     private static State processSingleQuotes(State state) {
