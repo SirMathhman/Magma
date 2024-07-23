@@ -31,9 +31,22 @@ public class Main {
     private static String compile(String input) throws CompileException {
         var segments = split(input);
 
-        var output = new StringBuilder();
+        var rootMembers = new ArrayList<String>();
         for (String segment : segments) {
-            output.append(compileRootMember(segment.strip()));
+            rootMembers.add(compileRootMember(segment.strip()));
+        }
+
+        var modified = new ArrayList<String>();
+        for (String segment : rootMembers) {
+            if (segment.isEmpty()) continue;
+            modified.add(segment);
+        }
+
+        var output = new StringBuilder();
+        for (int i = 0; i < modified.size(); i++) {
+            var segment = modified.get(i);
+            var prefix = i == 0 ? "" : "\n";
+            output.append(prefix).append(segment);
         }
 
         return output.toString();
