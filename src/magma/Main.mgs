@@ -2,8 +2,5 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-export class def Main() => {let CLASS_KEYWORD_WITH_SPACE = 0;
-let source = 0;}
+export class def Main() => {let args)
+let extension)}
