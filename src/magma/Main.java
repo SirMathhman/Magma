@@ -52,6 +52,16 @@ public class Main {
         if (input.startsWith("package ")) return "";
         if (input.startsWith("import ")) return input;
 
+        var index = input.indexOf("class ");
+        if(index != -1) {
+            var after = input.substring(index + "class ".length());
+
+            var contentStart = after.indexOf('{');
+            var name = after.substring(0, contentStart).strip();
+
+            return "class def " + name + "() => {}";
+        }
+
         throw new CompilationException("Invalid root member", input);
     }
 
