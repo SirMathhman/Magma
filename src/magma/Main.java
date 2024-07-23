@@ -53,6 +53,17 @@ public class Main {
     private static String compileRootMember(String segment) throws CompileException {
         if (segment.startsWith("package ")) return "";
         if (segment.startsWith("import ")) return segment;
+
+        var classIndex = segment.indexOf("class ");
+        if (classIndex != -1) {
+            var afterClass = segment.substring(classIndex + "class ".length());
+            var contentStart = afterClass.indexOf('{');
+            if(contentStart != -1) {
+                var name = afterClass.substring(0, contentStart).strip();
+                return "class def " + name + "() => {}";
+            }
+        }
+
         throw new CompileException("Unknown root member", segment);
     }
 
