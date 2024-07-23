@@ -42,6 +42,10 @@ public class Main {
             modified.add(segment);
         }
 
+        return generate(modified);
+    }
+
+    private static String generate(List<String> modified) {
         var output = new StringBuilder();
         for (int i = 0; i < modified.size(); i++) {
             var segment = modified.get(i);
@@ -77,7 +81,7 @@ public class Main {
         return compileClass(rootMember).orElseThrow(() -> new CompileException("Unknown root member", rootMember));
     }
 
-    private static Optional<String> compileClass(String rootMember) {
+    private static Optional<String> compileClass(String rootMember) throws CompileException {
         var classIndex = rootMember.indexOf(CLASS_KEYWORD_WITH_SPACE);
         if (classIndex == -1) return Optional.empty();
 
@@ -90,7 +94,22 @@ public class Main {
         if (contentStart == -1) return Optional.empty();
 
         var name = right.substring(0, contentStart).strip();
-        return Optional.of(newModifiers + CLASS_KEYWORD_WITH_SPACE + "def " + name + "() => {}");
+        var contentAndEnd = right.substring(contentStart + 1).strip();
+        if (!contentAndEnd.endsWith("}")) return Optional.empty();
+
+        var content = contentAndEnd.substring(0, contentAndEnd.length() - 1);
+        var inputClassMembers = split(content);
+        var outputClassMembers = new ArrayList<String>();
+        for (String inputClassMember : inputClassMembers) {
+            outputClassMembers.add(compileClassMember(inputClassMember));
+        }
+
+        var generated = generate(outputClassMembers);
+        return Optional.of(newModifiers + CLASS_KEYWORD_WITH_SPACE + "def " + name + "() => {" + generated + "}");
+    }
+
+    private static String compileClassMember(String classMember) throws CompileException {
+        throw new CompileException("Invalid class member", classMember);
     }
 
     private static class State {
