@@ -77,8 +77,11 @@ public class Main {
         var oldClassMembers = Splitter.split(content);
         Result<JavaList<String>, CompileException> newClassMembers = new Ok<>(new JavaList<>());
         for (String oldClassMember : oldClassMembers) {
+            var stripped = oldClassMember.strip();
+            if(stripped.isEmpty()) continue;
+
             newClassMembers = newClassMembers
-                    .and(() -> compileClassMember(oldClassMember))
+                    .and(() -> compileClassMember(stripped))
                     .mapValue(tuple -> tuple.left().add(tuple.right()));
         }
 
@@ -97,6 +100,7 @@ public class Main {
     private static Optional<Result<String, CompileException>> compileMethod(String classMember) {
         var separator = classMember.indexOf('(');
         if (separator == -1) return Optional.empty();
+
         var before = classMember.substring(0, separator).strip();
         var space = before.lastIndexOf(" ");
         var name = before.substring(space + 1).strip();
