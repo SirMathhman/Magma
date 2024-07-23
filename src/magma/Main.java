@@ -82,7 +82,11 @@ public class Main {
                     .mapValue(tuple -> tuple.left().add(tuple.right()));
         }
 
-        return Optional.of(newClassMembers.mapValue(value -> newModifiers + "class def " + name + "() => {" + String.join("", value.list()) + "}"));
+        return Optional.of(newClassMembers.mapValue(value -> renderFunction(name, newModifiers + "class ", value)));
+    }
+
+    private static String renderFunction(String name, String newModifiers, JavaList<String> content) {
+        return newModifiers + "def " + name + "() => {" + String.join("", content.list()) + "}";
     }
 
     private static Result<String, CompileException> compileClassMember(String classMember) {
@@ -96,7 +100,7 @@ public class Main {
         var before = classMember.substring(0, separator).strip();
         var space = before.lastIndexOf(" ");
         var name = before.substring(space + 1).strip();
-        return Optional.of(new Ok<>("def " + name + "() => {}"));
+        return Optional.of(new Ok<>(renderFunction(name, "", new JavaList<>())));
     }
 
     private static Path resolve(String extension) {
