@@ -3,6 +3,7 @@ package magma;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 
 public class Main {
     public static void main(String[] args) {
@@ -18,6 +19,30 @@ public class Main {
     }
 
     private static String compile(String input) throws CompilationException {
-        throw new CompilationException("Failed to compile", input);
+        var segments = new ArrayList<String>();
+        var buffer = new StringBuilder();
+        var length = input.length();
+        for (int i = 0; i < length; i++) {
+            var c = input.charAt(i);
+            buffer.append(c);
+            if (c != ';') continue;
+            segments.add(buffer.toString());
+            buffer = new StringBuilder();
+        }
+
+        segments.add(buffer.toString());
+
+        var output = new StringBuilder();
+        for (var segment : segments) {
+            output.append(compileRootMember(segment));
+        }
+
+        return output.toString();
+    }
+
+    private static String compileRootMember(String input) throws CompilationException {
+        if (input.startsWith("package ")) return "";
+
+        throw new CompilationException("Invalid root member", input);
     }
 }
