@@ -106,7 +106,18 @@ public class Main {
     }
 
     private static Result<String, CompileException> compileClassMember(String classMember) {
-        return new Err<>(new CompileException("Invalid class member", classMember));
+        return compileMethod(classMember).orElseGet(() -> {
+            return new Err<>(new CompileException("Invalid class member", classMember));
+        });
+    }
+
+    private static Optional<Result<String, CompileException>> compileMethod(String classMember) {
+        var separator = classMember.indexOf('(');
+        if (separator == -1) return Optional.empty();
+        var before = classMember.substring(0, separator).strip();
+        var space = before.lastIndexOf(" ");
+        var name = before.substring(space + 1).strip();
+        return Optional.of(new Ok<>("def " + name + "() => {}"));
     }
 
     private static Path resolve(String extension) {
