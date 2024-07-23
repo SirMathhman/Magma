@@ -71,10 +71,12 @@ public class Main {
         if (segment.startsWith("package ")) return "";
         if (segment.startsWith("import ")) return segment;
 
-        return compileClass(segment).orElseThrow(() -> new CompileException("Unknown root member", segment));
+        return compileClass(segment)
+                .orElseGet(() -> new Err<>( new CompileException("Unknown root member", segment)))
+                .unwrap();
     }
 
-    private static Optional<String> compileClass(String rootMember) {
+    private static Optional<Result<String, CompileException>> compileClass(String rootMember) {
         var classIndex = rootMember.indexOf("class ");
         if (classIndex == -1) return Optional.empty();
 
@@ -86,7 +88,26 @@ public class Main {
         if (contentStart == -1) return Optional.empty();
 
         var name = afterClass.substring(0, contentStart).strip();
-        return Optional.of(newModifiers + "class def " + name + "() => {}");
+        var afterContentStart = afterClass.substring(contentStart + 1).strip();
+        if (!afterContentStart.endsWith("}")) return Optional.empty();
+
+        var content = afterContentStart.substring(0, afterContentStart.length() - 1);
+
+        var oldClassMembers = split(content);
+        var newClassMembers = new ArrayList<String>();
+        for (String oldClassMember : oldClassMembers) {
+            try {
+                newClassMembers.add(compileClassMember(oldClassMember));
+            } catch (CompileException e) {
+                return Optional.of(new Err<>(e));
+            }
+        }
+
+        return Optional.of(new Ok<>(newModifiers + "class def " + name + "() => {" + String.join("", newClassMembers) + "}"));
+    }
+
+    private static String compileClassMember(String classMember) throws CompileException {
+        throw new CompileException("Invalid class member", classMember);
     }
 
     private static Path resolve(String extension) {
