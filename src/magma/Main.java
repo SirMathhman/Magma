@@ -29,7 +29,7 @@ public class Main {
         return builder.toString();
     }
 
-    private static StringBuilder generateRoot(ArrayList<String> compiledSegments) {
+    private static StringBuilder generateRoot(List<String> compiledSegments) {
         var builder = new StringBuilder();
         for (int i = 0; i < compiledSegments.size(); i++) {
             var segment = compiledSegments.get(i);
@@ -39,7 +39,7 @@ public class Main {
         return builder;
     }
 
-    private static ArrayList<String> compileRootMembers(List<String> segments) throws CompileException {
+    private static List<String> compileRootMembers(List<String> segments) throws CompileException {
         var compiledSegments = new ArrayList<String>();
         for (String segment : segments) {
             var compiled = compileRootMember(segment.strip());
@@ -53,13 +53,13 @@ public class Main {
         var length = root.length();
         for (int i = 0; i < length; i++) {
             var c = root.charAt(i);
-            state = processChar(c, state);
+            state = splitAtChar(c, state);
         }
 
-        return state.advance().segments;
+        return state.advance().segments.list();
     }
 
-    private static State processChar(char c, State state) {
+    private static State splitAtChar(char c, State state) {
         var appended = state.append(c);
         if (c == ';' && state.isLevel()) return appended.advance();
         if (c == '}' && state.isShallow()) return appended.exit().advance();
@@ -95,20 +95,18 @@ public class Main {
         var content = afterContentStart.substring(0, afterContentStart.length() - 1);
 
         var oldClassMembers = split(content);
-        var newClassMembers = new ArrayList<String>();
+        Result<JavaList<String>, CompileException> newClassMembers = new Ok<>(new JavaList<>());
         for (String oldClassMember : oldClassMembers) {
-            try {
-                newClassMembers.add(compileClassMember(oldClassMember));
-            } catch (CompileException e) {
-                return Optional.of(new Err<>(e));
-            }
+            newClassMembers = newClassMembers
+                    .and(() -> compileClassMember(oldClassMember))
+                    .mapValue(tuple -> tuple.left().add(tuple.right()));
         }
 
-        return Optional.of(new Ok<>(newModifiers + "class def " + name + "() => {" + String.join("", newClassMembers) + "}"));
+        return Optional.of(newClassMembers.mapValue(value -> newModifiers + "class def " + name + "() => {" + String.join("", value.list()) + "}"));
     }
 
-    private static String compileClassMember(String classMember) throws CompileException {
-        throw new CompileException("Invalid class member", classMember);
+    private static Result<String, CompileException> compileClassMember(String classMember) {
+        return new Err<>(new CompileException("Invalid class member", classMember));
     }
 
     private static Path resolve(String extension) {
@@ -116,25 +114,23 @@ public class Main {
     }
 
     private static class State {
-        private final List<String> segments;
+        private final JavaList<String> segments;
         private final StringBuilder buffer;
         private final int depth;
 
-        private State(StringBuilder buffer, List<String> segments, int depth) {
+        private State(StringBuilder buffer, JavaList<String> segments, int depth) {
             this.buffer = buffer;
             this.segments = segments;
             this.depth = depth;
         }
 
         public State() {
-            this(new StringBuilder(), new ArrayList<>(), 0);
+            this(new StringBuilder(), new JavaList<>(), 0);
         }
 
         private State advance() {
             if (buffer.isEmpty()) return this;
-            var copy = new ArrayList<>(segments);
-            copy.add(buffer.toString());
-            return new State(new StringBuilder(), copy, depth);
+            return new State(new StringBuilder(), segments.add(buffer.toString()), depth);
         }
 
         public State append(char c) {
