@@ -110,20 +110,25 @@ public class Main {
     }
 
     private static String compileClassMember(String classMember) throws CompileException {
-        var separator = classMember.indexOf('=');
-        if (separator != -1) {
-            var definition = classMember.substring(0, separator).strip();
-            var last = definition.lastIndexOf(' ');
-            var name = definition.substring(last + 1).strip();
-
-            var valueAndEnd = classMember.substring(separator + 1).strip();
-            if (valueAndEnd.endsWith(";")) {
-                var value = valueAndEnd.substring(0, valueAndEnd.length() - 1).strip();
-                return "let " + name + " = " + compileValue(value) + ";";
-            }
-        }
+        var name = compileDeclaration(classMember);
+        if (name.isPresent()) return name.get();
 
         throw new CompileException("Invalid class member", classMember);
+    }
+
+    private static Optional<String> compileDeclaration(String classMember) throws CompileException {
+        var separator = classMember.indexOf('=');
+        if (separator == -1) return Optional.empty();
+
+        var definition = classMember.substring(0, separator).strip();
+        var last = definition.lastIndexOf(' ');
+        var name = definition.substring(last + 1).strip();
+
+        var valueAndEnd = classMember.substring(separator + 1).strip();
+        if (!valueAndEnd.endsWith(";")) return Optional.empty();
+
+        var value = valueAndEnd.substring(0, valueAndEnd.length() - 1).strip();
+        return Optional.of("let " + name + " = " + compileValue(value) + ";");
     }
 
     private static String compileValue(String value) throws CompileException {
