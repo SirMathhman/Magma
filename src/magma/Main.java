@@ -32,17 +32,20 @@ public class Main {
         var builder = new StringBuilder();
         for (int i = 0; i < compiledSegments.size(); i++) {
             var segment = compiledSegments.get(i);
-            var prefix = (i == 0 && depth == 0) ? "" : "\n";
+            String prefix;
+            var isFirstStatement = i == 0 && depth == 0;
+            if (isFirstStatement) prefix = "";
+            else prefix = "\n" + "\t".repeat(depth);
             builder.append(prefix).append(segment);
         }
-        return builder.toString();
+        return builder + "\n" + "\t".repeat(depth == 0 ? 0 : depth - 1);
     }
 
     private static List<String> compileRootMembers(List<String> segments, int depth) throws CompileException {
         var compiledSegments = new ArrayList<String>();
         for (String segment : segments) {
             var stripped = segment.strip();
-            if(stripped.isEmpty()) continue;
+            if (stripped.isEmpty()) continue;
 
             var compiled = compileRootMember(stripped, depth + 1);
             if (!compiled.isEmpty()) compiledSegments.add(compiled);
@@ -80,7 +83,7 @@ public class Main {
         Result<JavaList<String>, CompileException> newClassMembers = new Ok<>(new JavaList<>());
         for (String oldClassMember : oldClassMembers) {
             var stripped = oldClassMember.strip();
-            if(stripped.isEmpty()) continue;
+            if (stripped.isEmpty()) continue;
 
             newClassMembers = newClassMembers
                     .and(() -> compileClassMember(stripped, depth + 1))

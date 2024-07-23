@@ -6,13 +6,24 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 export class def Main() => {
-def main() => {}
-def compile() => {}
-def generateBlock() => {}
-def compileRootMembers() => {}
-def compileRootMember() => {}
-def compileClass() => {}
-def renderFunction() => {}
-def compileClassMember() => {}
-def compileMethod() => {}
-def resolve() => {}}
+	def main() => {
+	}
+	def compile() => {
+	}
+	def generateBlock() => {
+	}
+	def compileRootMembers() => {
+	}
+	def compileRootMember() => {
+	}
+	def compileClass() => {
+	}
+	def renderFunction() => {
+	}
+	def compileClassMember() => {
+	}
+	def compileMethod() => {
+	}
+	def resolve() => {
+	}
+}
