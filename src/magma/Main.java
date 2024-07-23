@@ -62,6 +62,7 @@ public class Main {
     private static State processChar(char c, State state) {
         var appended = state.append(c);
         if (c == ';' && state.isLevel()) return appended.advance();
+        if (c == '}' && state.isShallow()) return appended.exit().advance();
         if (c == '{') return appended.enter();
         if (c == '}') return appended.exit();
         return appended;
@@ -72,7 +73,7 @@ public class Main {
         if (segment.startsWith("import ")) return segment;
 
         return compileClass(segment)
-                .orElseGet(() -> new Err<>( new CompileException("Unknown root member", segment)))
+                .orElseGet(() -> new Err<>(new CompileException("Unknown root member", segment)))
                 .unwrap();
     }
 
@@ -150,6 +151,10 @@ public class Main {
 
         public State exit() {
             return new State(buffer, segments, depth - 1);
+        }
+
+        public boolean isShallow() {
+            return depth == 1;
         }
     }
 }
