@@ -4,6 +4,8 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 public class Main {
     public static void main(String[] args) {
@@ -28,20 +30,22 @@ public class Main {
         return output.toString();
     }
 
-    private static ArrayList<String> split(String input) {
-        var segments = new ArrayList<String>();
-        var buffer = new StringBuilder();
+    private static List<String> split(String input) {
         var length = input.length();
-        for (int i = 0; i < length; i++) {
+        var current = new State();
+        for (var i = 0; i < length; i++) {
             var c = input.charAt(i);
-            buffer.append(c);
-            if (c != ';') continue;
-            segments.add(buffer.toString());
-            buffer = new StringBuilder();
+            current = splitAtChar(current, c);
         }
+        return current.advance().segments;
+    }
 
-        segments.add(buffer.toString());
-        return segments;
+    private static State splitAtChar(State state, char c) {
+        var appended = state.append(c);
+        if (c == ';' && state.isLevel()) return appended.advance();
+        if (c == '{') return appended.enter();
+        if (c == '}') return appended.exit();
+        return appended;
     }
 
     private static String compileRootMember(String input) throws CompilationException {
@@ -49,5 +53,43 @@ public class Main {
         if (input.startsWith("import ")) return input;
 
         throw new CompilationException("Invalid root member", input);
+    }
+
+    private static class State {
+        private final List<String> segments;
+        private final StringBuilder buffer;
+        private final int depth;
+
+        private State(StringBuilder buffer, List<String> segments, int depth) {
+            this.buffer = buffer;
+            this.segments = segments;
+            this.depth = depth;
+        }
+
+        public State() {
+            this(new StringBuilder(), Collections.emptyList(), 0);
+        }
+
+        private State advance() {
+            var copy = new ArrayList<>(segments);
+            copy.add(buffer.toString());
+            return new State(new StringBuilder(), copy, depth);
+        }
+
+        public State append(char c) {
+            return new State(buffer.append(c), segments, depth);
+        }
+
+        public State enter() {
+            return new State(buffer, segments, depth + 1);
+        }
+
+        public State exit() {
+            return new State(buffer, segments, depth - 1);
+        }
+
+        public boolean isLevel() {
+            return depth == 0;
+        }
     }
 }
