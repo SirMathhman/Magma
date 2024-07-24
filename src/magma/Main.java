@@ -1,6 +1,7 @@
 package magma;
 
 import magma.lang.MagmaLang;
+import magma.lang.Node;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -9,6 +10,7 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 public class Main {
@@ -71,7 +73,11 @@ public class Main {
 
         var oldClassMembers = Splitter.split(content);
         var newClassMembers = compileClassMembers(oldClassMembers);
-        return Optional.of(newClassMembers.mapValue(value -> MagmaLang.generateFunction(1, newModifiers + "class ", name, "", value)));
+        return Optional.of(newClassMembers.mapValue(value -> MagmaLang.generateFunction(new Node(
+                Map.of(Node.DEPTH, 1),
+                Map.of(Node.MODIFIERS, newModifiers + "class ", Node.NAME, name, Node.PARAMS, ""),
+                Map.of(Node.CONTENT, value)
+        ))));
     }
 
     private static Result<JavaList<String>, CompileException> compileClassMembers(List<String> oldClassMembers) {
@@ -113,7 +119,12 @@ public class Main {
         var newModifiers = oldModifiers.contains("private") ? "private " : "";
 
         var params = classMember.substring(paramStart + 1, paramEnd);
-        return Optional.of(new Ok<>(MagmaLang.generateFunction(2, newModifiers, name, params, new JavaList<>())));
+        JavaList<String> content = new JavaList<>();
+        return Optional.of(new Ok<>(MagmaLang.generateFunction(new Node(
+                Map.of(Node.DEPTH, 2),
+                Map.of(Node.MODIFIERS, newModifiers, Node.NAME, name, Node.PARAMS, params),
+                Map.of(Node.CONTENT, content)
+        ))));
     }
 
     private static Path resolve(String extension) {
