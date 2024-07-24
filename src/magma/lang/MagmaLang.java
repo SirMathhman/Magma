@@ -5,8 +5,15 @@ import magma.JavaList;
 import java.util.List;
 
 public class MagmaLang {
-    public static String generateFunction(int depth, String modifiers, String name, JavaList<String> content) {
-        return modifiers + "def " + name + "() => {" + generateBlock(content.list(), depth) + "}";
+    public static String generateFunction(
+            int depth,
+            String modifiers,
+            String name,
+            String params,
+            JavaList<String> content) {
+        return modifiers + "def " + name + "(" +
+               params +
+               ") => {" + generateBlock(content.list(), depth) + "}";
     }
 
     public static String generateBlock(List<String> compiledSegments, int depth) {

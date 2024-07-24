@@ -71,7 +71,7 @@ public class Main {
 
         var oldClassMembers = Splitter.split(content);
         var newClassMembers = compileClassMembers(oldClassMembers);
-        return Optional.of(newClassMembers.mapValue(value -> MagmaLang.generateFunction(1, newModifiers + "class ", name, value)));
+        return Optional.of(newClassMembers.mapValue(value -> MagmaLang.generateFunction(1, newModifiers + "class ", name, "", value)));
     }
 
     private static Result<JavaList<String>, CompileException> compileClassMembers(List<String> oldClassMembers) {
@@ -96,6 +96,9 @@ public class Main {
         var paramStart = classMember.indexOf('(');
         if (paramStart == -1) return Optional.empty();
 
+        var paramEnd = classMember.indexOf(')');
+        if (paramEnd == -1) return Optional.empty();
+
         var definition = classMember.substring(0, paramStart).strip();
         var space = definition.lastIndexOf(" ");
 
@@ -109,7 +112,8 @@ public class Main {
         var name = definition.substring(space + 1).strip();
         var newModifiers = oldModifiers.contains("private") ? "private " : "";
 
-        return Optional.of(new Ok<>(MagmaLang.generateFunction(2, newModifiers, name, new JavaList<>())));
+        var params = classMember.substring(paramStart + 1, paramEnd);
+        return Optional.of(new Ok<>(MagmaLang.generateFunction(2, newModifiers, name, params, new JavaList<>())));
     }
 
     private static Path resolve(String extension) {

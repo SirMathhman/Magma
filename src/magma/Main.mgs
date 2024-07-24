@@ -8,22 +8,22 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 export class def Main() => {
-	def main() => {
+	def main(String[] args) => {
 	}
-	private def compile() => {
+	private def compile(String root) => {
 	}
-	private def compileRootMembers() => {
+	private def compileRootMembers(List<String> segments) => {
 	}
-	private def compileRootMember() => {
+	private def compileRootMember(String segment) => {
 	}
-	private def compileClass() => {
+	private def compileClass(String rootMember) => {
 	}
-	private def compileClassMembers() => {
+	private def compileClassMembers(List<String> oldClassMembers) => {
 	}
-	private def compileClassMember() => {
+	private def compileClassMember(String classMember) => {
 	}
-	private def compileMethod() => {
+	private def compileMethod(String classMember) => {
 	}
-	private def resolve() => {
+	private def resolve(String extension) => {
 	}
 }
