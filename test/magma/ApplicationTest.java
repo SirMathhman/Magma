@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -22,10 +23,16 @@ public class ApplicationTest {
         return Paths.get(".", name + EXTENSION_SEPARATOR + extension);
     }
 
-    private static void run() throws IOException {
-        if (!Files.exists(SOURCE)) return;
+    private static void run(SourceSet sourceSet) throws IOException {
+        var set = sourceSet.collect().collect(Collectors.toSet());
 
-        var fileName = SOURCE.getFileName().toString();
+        for (var path : set) {
+            runWithSource(path);
+        }
+    }
+
+    private static void runWithSource(Path source) throws IOException {
+        var fileName = source.getFileName().toString();
         var separator = fileName.indexOf(EXTENSION_SEPARATOR);
         var name = fileName.substring(0, separator);
         Files.createFile(resolveWithExtension(name, MAGMA_EXTENSION));
@@ -39,14 +46,14 @@ public class ApplicationTest {
 
     @Test
     void generatesNoTarget() throws IOException {
-        run();
+        run(new SingleSourceSet(SOURCE));
         assertFalse(Files.exists(TARGET));
     }
 
     @Test
     void generatesTarget() throws IOException {
         Files.createFile(SOURCE);
-        run();
+        run(new SingleSourceSet(SOURCE));
         assertTrue(Files.exists(TARGET));
     }
 }
