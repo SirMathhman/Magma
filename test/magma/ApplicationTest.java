@@ -12,17 +12,23 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class ApplicationTest {
-    public static final Path SOURCE = resolveWithExtension("java");
-    public static final Path TARGET = resolveWithExtension("mgs");
+    public static final String NAME = "ApplicationTest";
+    public static final String MAGMA_EXTENSION = "mgs";
+    public static final String EXTENSION_SEPARATOR = ".";
+    public static final Path SOURCE = resolveWithExtension(NAME, "java");
+    public static final Path TARGET = resolveWithExtension(NAME, MAGMA_EXTENSION);
 
-    private static Path resolveWithExtension(String extension) {
-        return Paths.get(".", "ApplicationTest." + extension);
+    private static Path resolveWithExtension(String name, String extension) {
+        return Paths.get(".", name + EXTENSION_SEPARATOR + extension);
     }
 
     private static void run() throws IOException {
-        if (Files.exists(SOURCE)) {
-            Files.createFile(TARGET);
-        }
+        if (!Files.exists(SOURCE)) return;
+
+        var fileName = SOURCE.getFileName().toString();
+        var separator = fileName.indexOf(EXTENSION_SEPARATOR);
+        var name = fileName.substring(0, separator);
+        Files.createFile(resolveWithExtension(name, MAGMA_EXTENSION));
     }
 
     @AfterEach
