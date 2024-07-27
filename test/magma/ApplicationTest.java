@@ -15,12 +15,11 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 public class ApplicationTest {
     public static final String NAME = "ApplicationTest";
     public static final String MAGMA_EXTENSION = "mgs";
-    public static final String EXTENSION_SEPARATOR = ".";
     public static final Path SOURCE = resolveWithExtension(NAME, "java");
     public static final Path TARGET = resolveWithExtension(NAME, MAGMA_EXTENSION);
 
     private static Path resolveWithExtension(String name, String extension) {
-        return Paths.get(".", name + EXTENSION_SEPARATOR + extension);
+        return Paths.get(".", name + PathSource.EXTENSION_SEPARATOR + extension);
     }
 
     private static void run(SourceSet sourceSet) throws IOException {
@@ -31,10 +30,8 @@ public class ApplicationTest {
         }
     }
 
-    private static void runWithSource(Path source) throws IOException {
-        var fileName = source.getFileName().toString();
-        var separator = fileName.indexOf(EXTENSION_SEPARATOR);
-        var name = fileName.substring(0, separator);
+    private static void runWithSource(Source source) throws IOException {
+        var name = source.computeName();
         Files.createFile(resolveWithExtension(name, MAGMA_EXTENSION));
     }
 

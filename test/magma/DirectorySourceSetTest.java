@@ -30,10 +30,9 @@ class DirectorySourceSetTest {
         var source = ROOT.resolve("Test.java");
         Files.createFile(source);
 
-        var expected = Collections.singleton(source);
-        var actual = new DirectorySourceSet(ROOT)
-                .walk()
-                .collect(Collectors.toSet());
+        var expected = Collections.singleton(new PathSource(source));
+        SourceSet sourceSet = new DirectorySourceSet(ROOT);
+        var actual = sourceSet.walk().collect(Collectors.toSet());
 
         assertIterableEquals(expected, actual);
     }
