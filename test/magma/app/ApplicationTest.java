@@ -1,5 +1,8 @@
 package magma.app;
 
+import magma.app.io.DirectoryTargetSet;
+import magma.app.io.PathSource;
+import magma.app.io.SingleSourceSet;
 import magma.app.io.TargetSet;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
