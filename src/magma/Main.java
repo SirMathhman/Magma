@@ -1,5 +1,9 @@
 package magma;
 
+import magma.app.Application;
+import magma.app.io.DirectorySourceSet;
+import magma.app.io.DirectoryTargetSet;
+
 import java.io.IOException;
 import java.nio.file.Paths;
 
