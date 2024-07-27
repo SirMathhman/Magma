@@ -3,7 +3,8 @@ package magma.app;
 import magma.app.io.Source;
 import magma.app.io.SourceSet;
 import magma.app.io.TargetSet;
-import magma.compile.ApplicationException;
+import magma.app.compile.ApplicationException;
+import magma.app.compile.Compiler;
 
 import java.io.IOException;
 import java.util.stream.Collectors;

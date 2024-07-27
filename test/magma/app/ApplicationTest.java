@@ -4,7 +4,7 @@ import magma.app.io.DirectoryTargetSet;
 import magma.app.io.PathSource;
 import magma.app.io.SingleSourceSet;
 import magma.app.io.TargetSet;
-import magma.compile.ApplicationException;
+import magma.app.compile.ApplicationException;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 

@@ -1,12 +1,11 @@
-package magma.app;
+package magma.app.compile;
 
-import magma.compile.CompileException;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
-import static magma.app.Compiler.IMPORT_KEYWORD_WITH_SPACE;
-import static magma.app.Compiler.PACKAGE_KEYWORD_WITH_SPACE;
+import static magma.app.compile.Compiler.IMPORT_KEYWORD_WITH_SPACE;
+import static magma.app.compile.Compiler.PACKAGE_KEYWORD_WITH_SPACE;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.fail;
 
@@ -23,11 +22,11 @@ class CompilerTest {
     }
 
     private static String renderPackage(String name) {
-        return PACKAGE_KEYWORD_WITH_SPACE + name + Compiler.STATEMENT_END;
+        return PACKAGE_KEYWORD_WITH_SPACE + name + Splitter.STATEMENT_END;
     }
 
     private static String renderImport(String whitespace, String name) {
-        return whitespace + IMPORT_KEYWORD_WITH_SPACE + name + Compiler.STATEMENT_END;
+        return whitespace + IMPORT_KEYWORD_WITH_SPACE + name + Splitter.STATEMENT_END;
     }
 
     @Test

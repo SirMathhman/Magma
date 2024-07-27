@@ -3,9 +3,8 @@ package magma;
 import magma.app.Application;
 import magma.app.io.DirectorySourceSet;
 import magma.app.io.DirectoryTargetSet;
-import magma.compile.ApplicationException;
+import magma.app.compile.ApplicationException;
 
-import java.io.IOException;
 import java.nio.file.Paths;
 
 public class Main {
