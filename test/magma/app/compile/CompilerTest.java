@@ -29,6 +29,12 @@ class CompilerTest {
         return whitespace + IMPORT_KEYWORD_WITH_SPACE + name + Splitter.STATEMENT_END;
     }
 
+    @ParameterizedTest
+    @ValueSource(strings = {"First", "Second"})
+    void interfaceName(String name) {
+        assertCompile(Compiler.INTERFACE_KEYWORD_WITH_SPACE + name + Compiler.EMPTY_CONTENT, Compiler.renderTrait(name));
+    }
+
     @Test
     void rootMemberMultiple() {
         var renderedImport = renderImport("", "foo");
