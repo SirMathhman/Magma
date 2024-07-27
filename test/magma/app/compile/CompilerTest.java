@@ -29,10 +29,19 @@ class CompilerTest {
         return whitespace + IMPORT_KEYWORD_WITH_SPACE + name + Splitter.STATEMENT_END;
     }
 
+    private static String renderInterface(String modifiers, String name) {
+        return modifiers + Compiler.INTERFACE_KEYWORD_WITH_SPACE + name + Compiler.EMPTY_CONTENT;
+    }
+
+    @Test
+    void interfacePublic() {
+        assertCompile(renderInterface(Compiler.PUBLIC_KEYWORD_WITH_SPACE, "Test"), Compiler.renderTrait(Compiler.EXPORT_KEYWORD_WITH_SPACE, "Test"));
+    }
+
     @ParameterizedTest
     @ValueSource(strings = {"First", "Second"})
     void interfaceName(String name) {
-        assertCompile(Compiler.INTERFACE_KEYWORD_WITH_SPACE + name + Compiler.EMPTY_CONTENT, Compiler.renderTrait(name));
+        assertCompile(renderInterface("", name), Compiler.renderTrait("", name));
     }
 
     @Test

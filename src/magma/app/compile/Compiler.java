@@ -8,6 +8,8 @@ public class Compiler {
     public static final String EMPTY_CONTENT = " {}";
     public static final String TRAIT_KEYWORD_WITH_SPACE = "trait ";
     public static final String INTERFACE_KEYWORD_WITH_SPACE = "interface ";
+    public static final String EXPORT_KEYWORD_WITH_SPACE = "export ";
+    public static final String PUBLIC_KEYWORD_WITH_SPACE = "public ";
 
     private static String compileRootMember(String input) throws CompileException {
         if (input.isEmpty()) return "";
@@ -27,18 +29,21 @@ public class Compiler {
     }
 
     private static Optional<String> compileInterface(String input) {
-        if (!input.startsWith(INTERFACE_KEYWORD_WITH_SPACE)) return Optional.empty();
-        var after = input.substring(INTERFACE_KEYWORD_WITH_SPACE.length());
+        var keywordIndex = input.indexOf(INTERFACE_KEYWORD_WITH_SPACE);
+        if (keywordIndex == -1) return Optional.empty();
+        var oldModifiers = input.substring(0, keywordIndex);
+        var after = input.substring(keywordIndex + INTERFACE_KEYWORD_WITH_SPACE.length());
 
         var contentIndex = after.indexOf(EMPTY_CONTENT);
         if (contentIndex == -1) return Optional.empty();
-
         var name = after.substring(0, contentIndex);
-        return Optional.of(renderTrait(name));
+
+        var newModifiers = oldModifiers.equals(PUBLIC_KEYWORD_WITH_SPACE) ? EXPORT_KEYWORD_WITH_SPACE : "";
+        return Optional.of(renderTrait(newModifiers, name));
     }
 
-    static String renderTrait(String name) {
-        return TRAIT_KEYWORD_WITH_SPACE + name + EMPTY_CONTENT;
+    static String renderTrait(String modifiers, String name) {
+        return modifiers + TRAIT_KEYWORD_WITH_SPACE + name + EMPTY_CONTENT;
     }
 
     public String compile(String input) throws CompileException {
@@ -47,7 +52,7 @@ public class Compiler {
         var output = new StringBuilder();
         for (var rootMember : rootMembers) {
             var stripped = rootMember.strip();
-            if(stripped.isEmpty()) continue;
+            if (stripped.isEmpty()) continue;
             output.append(compileRootMember(stripped));
         }
 
