@@ -13,7 +13,7 @@ public record DirectorySourceSet(Path root) implements SourceSet {
             var set = stream.collect(Collectors.toSet());
             return set.stream()
                     .filter(Files::isRegularFile)
-                    .map(PathSource::new);
+                    .map((Path source) -> new PathSource(root, source));
         }
     }
 }
