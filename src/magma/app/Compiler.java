@@ -2,6 +2,7 @@ package magma.app;
 
 import magma.compile.CompileException;
 
+import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 public class Compiler {
@@ -17,14 +18,11 @@ public class Compiler {
     }
 
     private static Stream<String> split(String input) {
-        var length = input.length();
-        var state = new State();
-        for (int i = 0; i < length; i++) {
-            var c = input.charAt(i);
-            state = splitAtChar(state, c);
-        }
-
-        return state.advance().stream();
+        return IntStream.range(0, input.length())
+                .mapToObj(input::charAt)
+                .reduce(new State(), Compiler::splitAtChar, (previous, next) -> next)
+                .advance()
+                .stream();
     }
 
     private static State splitAtChar(State state, char c) {
