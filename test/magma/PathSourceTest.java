@@ -10,7 +10,7 @@ import static org.junit.jupiter.api.Assertions.*;
 class PathSourceTest {
 
     @Test
-    void computeNamespace() {
+    void streamNamespace() {
         var root = Paths.get(".");
         var example = root.resolve("first")
                 .resolve("second")
@@ -18,7 +18,7 @@ class PathSourceTest {
 
         var expected = List.of("first", "second");
         var actual = new PathSource(root, example)
-                .computeNamespace()
+                .streamNamespace()
                 .toList();
 
         assertIterableEquals(expected, actual);

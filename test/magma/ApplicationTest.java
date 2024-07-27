@@ -7,32 +7,19 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class ApplicationTest {
     public static final String NAME = "ApplicationTest";
-    public static final String MAGMA_EXTENSION = "mgs";
-    public static final Path SOURCE = resolveWithExtension(NAME, "java");
-    public static final Path TARGET = resolveWithExtension(NAME, MAGMA_EXTENSION);
+    public static final Path SOURCE = resolveWithExtension("java");
+    public static final SingleSourceSet DEFAULT_SOURCE_SET = new SingleSourceSet(SOURCE);
+    public static final Path TARGET = resolveWithExtension(DirectoryTargetSet.MAGMA_EXTENSION);
+    public static final TargetSet DEFAULT_TARGET_SET = new DirectoryTargetSet(Paths.get("."));
 
-    private static Path resolveWithExtension(String name, String extension) {
-        return Paths.get(".", name + PathSource.EXTENSION_SEPARATOR + extension);
-    }
-
-    private static void run(SourceSet sourceSet) throws IOException {
-        var set = sourceSet.walk().collect(Collectors.toSet());
-
-        for (var path : set) {
-            runWithSource(path);
-        }
-    }
-
-    private static void runWithSource(Source source) throws IOException {
-        var name = source.computeName();
-        Files.createFile(resolveWithExtension(name, MAGMA_EXTENSION));
+    private static Path resolveWithExtension(String extension) {
+        return Paths.get(".", ApplicationTest.NAME + PathSource.EXTENSION_SEPARATOR + extension);
     }
 
     @AfterEach
@@ -43,14 +30,14 @@ public class ApplicationTest {
 
     @Test
     void generatesNoTarget() throws IOException {
-        run(new SingleSourceSet(SOURCE));
+        new Application(DEFAULT_SOURCE_SET, DEFAULT_TARGET_SET).run();
         assertFalse(Files.exists(TARGET));
     }
 
     @Test
     void generatesTarget() throws IOException {
         Files.createFile(SOURCE);
-        run(new SingleSourceSet(SOURCE));
+        new Application(DEFAULT_SOURCE_SET, DEFAULT_TARGET_SET).run();
         assertTrue(Files.exists(TARGET));
     }
 }

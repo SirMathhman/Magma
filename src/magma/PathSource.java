@@ -15,7 +15,7 @@ public record PathSource(Path root, Path source) implements Source {
     }
 
     @Override
-    public Stream<String> computeNamespace() {
+    public Stream<String> streamNamespace() {
         var relativized = root.relativize(source);
         var parent = relativized.getParent();
         if (parent == null) return Stream.empty();
