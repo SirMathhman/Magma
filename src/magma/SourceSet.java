@@ -5,5 +5,5 @@ import java.nio.file.Path;
 import java.util.stream.Stream;
 
 public interface SourceSet {
-    Stream<Path> collect() throws IOException;
+    Stream<Path> walk() throws IOException;
 }

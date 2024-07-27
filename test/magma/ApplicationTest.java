@@ -24,7 +24,7 @@ public class ApplicationTest {
     }
 
     private static void run(SourceSet sourceSet) throws IOException {
-        var set = sourceSet.collect().collect(Collectors.toSet());
+        var set = sourceSet.walk().collect(Collectors.toSet());
 
         for (var path : set) {
             runWithSource(path);

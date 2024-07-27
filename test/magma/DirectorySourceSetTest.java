@@ -24,7 +24,7 @@ class DirectorySourceSetTest {
     }
 
     @Test
-    void collect() throws IOException {
+    void walk() throws IOException {
         Files.createDirectories(ROOT);
 
         var source = ROOT.resolve("Test.java");
@@ -32,7 +32,7 @@ class DirectorySourceSetTest {
 
         var expected = Collections.singleton(source);
         var actual = new DirectorySourceSet(ROOT)
-                .collect()
+                .walk()
                 .collect(Collectors.toSet());
 
         assertIterableEquals(expected, actual);
