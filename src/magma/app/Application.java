@@ -4,7 +4,6 @@ import magma.app.io.Source;
 import magma.app.io.SourceSet;
 import magma.app.io.TargetSet;
 import magma.compile.ApplicationException;
-import magma.compile.CompileException;
 
 import java.io.IOException;
 import java.util.stream.Collectors;
@@ -24,7 +23,7 @@ public record Application(SourceSet sourceSet, TargetSet targetSet) {
 
         for (var source : set) {
             var input = readSafely(source);
-            var output = compile(input);
+            var output = new Compiler().compile(input);
             writeSafely(source, output);
         }
     }
@@ -43,10 +42,5 @@ public record Application(SourceSet sourceSet, TargetSet targetSet) {
         } catch (IOException e) {
             throw new ApplicationException(e);
         }
-    }
-
-    private String compile(String input) throws CompileException {
-        if (input.isEmpty()) return "";
-        throw new CompileException("Invalid root", input);
     }
 }
