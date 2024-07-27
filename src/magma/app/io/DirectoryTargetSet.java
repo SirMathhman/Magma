@@ -8,7 +8,7 @@ public record DirectoryTargetSet(Path root) implements TargetSet {
     public static final String MAGMA_EXTENSION = "mgs";
 
     @Override
-    public void writeTarget(Source source) throws IOException {
+    public void writeTarget(Source source, String output) throws IOException {
         var name = source.computeName();
         var parent = source.streamNamespace().reduce(root(), Path::resolve, (previous, next) -> next);
         if (!Files.exists(parent)) Files.createDirectories(parent);

@@ -4,6 +4,7 @@ import magma.app.io.DirectoryTargetSet;
 import magma.app.io.PathSource;
 import magma.app.io.SingleSourceSet;
 import magma.app.io.TargetSet;
+import magma.compile.ApplicationException;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 
@@ -14,6 +15,7 @@ import java.nio.file.Paths;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 
 public class ApplicationTest {
     public static final String NAME = "ApplicationTest";
@@ -33,15 +35,23 @@ public class ApplicationTest {
     }
 
     @Test
-    void generatesNoTarget() throws IOException {
-        new Application(DEFAULT_SOURCE_SET, DEFAULT_TARGET_SET).run();
+    void generatesNoTarget() {
+        runWithDefault();
         assertFalse(Files.exists(TARGET));
+    }
+
+    private static void runWithDefault() {
+        try {
+            new Application(DEFAULT_SOURCE_SET, DEFAULT_TARGET_SET).run();
+        } catch (ApplicationException e) {
+            fail(e);
+        }
     }
 
     @Test
     void generatesTarget() throws IOException {
         Files.createFile(SOURCE);
-        new Application(DEFAULT_SOURCE_SET, DEFAULT_TARGET_SET).run();
+        runWithDefault();
         assertTrue(Files.exists(TARGET));
     }
 }

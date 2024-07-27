@@ -1,5 +1,7 @@
 package magma.app.io;
 
+import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
@@ -24,5 +26,10 @@ public record PathSource(Path root, Path source) implements Source {
         return IntStream.range(0, count)
                 .mapToObj(parent::getName)
                 .map(Path::toString);
+    }
+
+    @Override
+    public String read() throws IOException {
+        return Files.readString(source);
     }
 }

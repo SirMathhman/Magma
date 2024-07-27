@@ -3,6 +3,7 @@ package magma;
 import magma.app.Application;
 import magma.app.io.DirectorySourceSet;
 import magma.app.io.DirectoryTargetSet;
+import magma.compile.ApplicationException;
 
 import java.io.IOException;
 import java.nio.file.Paths;
@@ -14,7 +15,7 @@ public class Main {
             var targetSet = new DirectoryTargetSet(Paths.get(".", "dist"));
             var application = new Application(sourceSet, targetSet);
             application.run();
-        } catch (IOException e) {
+        } catch (ApplicationException e) {
             //noinspection CallToPrintStackTrace
             e.printStackTrace();
         }
