@@ -2,7 +2,6 @@ package magma.app;
 
 import magma.compile.CompileException;
 
-import java.util.ArrayList;
 import java.util.stream.Stream;
 
 public class Compiler {
@@ -17,6 +16,26 @@ public class Compiler {
         throw new CompileException("Invalid root member", input);
     }
 
+    private static Stream<String> split(String input) {
+        var length = input.length();
+        var state = new State();
+        for (int i = 0; i < length; i++) {
+            var c = input.charAt(i);
+            state = splitAtChar(state, c);
+        }
+
+        return state.advance().stream();
+    }
+
+    private static State splitAtChar(State state, char c) {
+        var appended = state.append(c);
+        if (c == STATEMENT_END) {
+            return appended.advance();
+        } else {
+            return appended;
+        }
+    }
+
     String compile(String input) throws CompileException {
         var rootMembers = split(input).toList();
 
@@ -26,21 +45,5 @@ public class Compiler {
         }
 
         return output.toString();
-    }
-
-    private static Stream<String> split(String input) {
-        var rootMembers = new ArrayList<String>();
-        var buffer = new StringBuilder();
-        var length = input.length();
-        for (int i = 0; i < length; i++) {
-            var c = input.charAt(i);
-            buffer.append(c);
-            if (c == STATEMENT_END) {
-                rootMembers.add(buffer.toString());
-                buffer = new StringBuilder();
-            }
-        }
-        rootMembers.add(buffer.toString());
-        return rootMembers.stream();
     }
 }
