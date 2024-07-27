@@ -38,8 +38,8 @@ public class Compiler {
         var rootMembers = split(input).toList();
 
         var output = new StringBuilder();
-        for (String rootMember : rootMembers) {
-            output.append(compileRootMember(rootMember));
+        for (var rootMember : rootMembers) {
+            output.append(compileRootMember(rootMember.strip()));
         }
 
         return output.toString();

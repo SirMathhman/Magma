@@ -26,20 +26,25 @@ class CompilerTest {
         return PACKAGE_KEYWORD_WITH_SPACE + name + Compiler.STATEMENT_END;
     }
 
-    private static String renderImport(String name) {
-        return IMPORT_KEYWORD_WITH_SPACE + name + Compiler.STATEMENT_END;
+    private static String renderImport(String whitespace, String name) {
+        return whitespace + IMPORT_KEYWORD_WITH_SPACE + name + Compiler.STATEMENT_END;
     }
 
     @Test
     void rootMemberMultiple() {
-        var renderedImport = renderImport("foo");
+        var renderedImport = renderImport("", "foo");
         assertCompile(renderPackage(TEST_LOWER_BOUND) + renderedImport, renderedImport);
+    }
+
+    @Test
+    void importPadLeft() {
+        assertCompile(renderImport(" ", TEST_LOWER_BOUND), renderImport("", TEST_LOWER_BOUND));
     }
 
     @ParameterizedTest
     @ValueSource(strings = {"first", "second"})
     void importStatement(String name) {
-        var statement = renderImport(name);
+        var statement = renderImport("", name);
         assertCompile(statement, statement);
     }
 
