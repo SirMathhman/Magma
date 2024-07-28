@@ -15,6 +15,9 @@ public class Compiler {
     public static final String VOID_KEYWORD_WITH_SPACE = "void ";
     public static final String EMPTY_PARAMS = "()";
     public static final String DEFINITION_SUFFIX = " : () => Void";
+    public static final String NAME = "name";
+    public static final PrefixRule METHOD_RULE = new PrefixRule(VOID_KEYWORD_WITH_SPACE, new FirstRule(new ExtractRule(NAME), EMPTY_PARAMS, new ExtractRule("content")));
+    public static final SuffixRule DEFINITION_RULE = new SuffixRule(new ExtractRule(NAME), DEFINITION_SUFFIX);
 
     private static String compileRootMember(String input) throws CompileException {
         if (input.isEmpty()) return "";
@@ -36,9 +39,9 @@ public class Compiler {
     private static Optional<String> compileInterface(String input) {
         var keywordIndex = input.indexOf(INTERFACE_KEYWORD_WITH_SPACE);
         if (keywordIndex == -1) return Optional.empty();
+
         var oldModifiers = input.substring(0, keywordIndex);
         var after = input.substring(keywordIndex + INTERFACE_KEYWORD_WITH_SPACE.length());
-
         var contentIndex = after.indexOf(Splitter.BLOCK_START);
         if (contentIndex == -1) return Optional.empty();
 
@@ -55,14 +58,7 @@ public class Compiler {
     }
 
     private static String compileMethod(String inputMember) {
-        if (!inputMember.startsWith(VOID_KEYWORD_WITH_SPACE)) return "";
-
-        var afterType = inputMember.substring(VOID_KEYWORD_WITH_SPACE.length());
-        var paramsIndex = afterType.indexOf(EMPTY_PARAMS);
-        if (paramsIndex == -1) return "";
-
-        var name = afterType.substring(0, paramsIndex);
-        return renderDefinition(name);
+        return METHOD_RULE.parse(inputMember).flatMap(DEFINITION_RULE::generate).orElse("");
     }
 
     static String renderTrait(String modifiers, String name, String members) {
@@ -71,10 +67,6 @@ public class Compiler {
 
     static String renderMethod(String name) {
         return VOID_KEYWORD_WITH_SPACE + name + EMPTY_PARAMS + STATEMENT_END;
-    }
-
-    static String renderDefinition(String name) {
-        return name + DEFINITION_SUFFIX;
     }
 
     public String compile(String input) throws CompileException {

@@ -4,6 +4,8 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
+import java.util.Map;
+
 import static magma.app.compile.Compiler.IMPORT_KEYWORD_WITH_SPACE;
 import static magma.app.compile.Compiler.PACKAGE_KEYWORD_WITH_SPACE;
 import static magma.app.compile.Splitter.STATEMENT_END;
@@ -39,7 +41,10 @@ class CompilerTest {
     @ValueSource(strings = {"first", "second"})
     void interfaceMember(String name) {
         var input = renderInterface("", TEST_UPPER_SYMBOL, Compiler.renderMethod(name));
-        var output = Compiler.renderTrait("", TEST_UPPER_SYMBOL, Compiler.renderDefinition(name));
+        var output = Compiler.renderTrait("", TEST_UPPER_SYMBOL, new SuffixRule(new ExtractRule(Compiler.NAME), Compiler.DEFINITION_SUFFIX)
+                .generate(new Node(Map.of(Compiler.NAME, name)))
+                .orElseThrow());
+
         assertCompile(input, output);
     }
 
