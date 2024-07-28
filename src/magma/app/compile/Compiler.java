@@ -56,9 +56,11 @@ public class Compiler {
 
     private static String compileMethod(String inputMember) {
         if (!inputMember.startsWith(VOID_KEYWORD_WITH_SPACE)) return "";
+
         var afterType = inputMember.substring(VOID_KEYWORD_WITH_SPACE.length());
         var paramsIndex = afterType.indexOf(EMPTY_PARAMS);
         if (paramsIndex == -1) return "";
+
         var name = afterType.substring(0, paramsIndex);
         return renderDefinition(name);
     }
