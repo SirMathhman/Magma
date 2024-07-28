@@ -6,11 +6,13 @@ import org.junit.jupiter.params.provider.ValueSource;
 
 import static magma.app.compile.Compiler.IMPORT_KEYWORD_WITH_SPACE;
 import static magma.app.compile.Compiler.PACKAGE_KEYWORD_WITH_SPACE;
+import static magma.app.compile.Splitter.STATEMENT_END;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.fail;
 
 class CompilerTest {
-    public static final String TEST_LOWER_BOUND = "test";
+    public static final String TEST_LOWER_SYMBOL = "test";
+    public static final String TEST_UPPER_SYMBOL = "Test";
 
     private static void assertCompile(String input, String expected) {
         try {
@@ -22,37 +24,44 @@ class CompilerTest {
     }
 
     private static String renderPackage(String name) {
-        return PACKAGE_KEYWORD_WITH_SPACE + name + Splitter.STATEMENT_END;
+        return PACKAGE_KEYWORD_WITH_SPACE + name + STATEMENT_END;
     }
 
     private static String renderImport(String whitespace, String name) {
-        return whitespace + IMPORT_KEYWORD_WITH_SPACE + name + Splitter.STATEMENT_END;
+        return whitespace + IMPORT_KEYWORD_WITH_SPACE + name + STATEMENT_END;
     }
 
-    private static String renderInterface(String modifiers, String name) {
-        return modifiers + Compiler.INTERFACE_KEYWORD_WITH_SPACE + name + Compiler.EMPTY_CONTENT;
+    private static String renderInterface(String modifiers, String name, String members) {
+        return modifiers + Compiler.INTERFACE_KEYWORD_WITH_SPACE + name + " " + Splitter.BLOCK_START + members + Splitter.BLOCK_END;
+    }
+
+    @Test
+    void interfaceMember() {
+        var input = renderInterface("", TEST_UPPER_SYMBOL, Compiler.renderMethod());
+        var output = Compiler.renderTrait("", TEST_UPPER_SYMBOL, Compiler.renderDefinition());
+        assertCompile(input, output);
     }
 
     @Test
     void interfacePublic() {
-        assertCompile(renderInterface(Compiler.PUBLIC_KEYWORD_WITH_SPACE, "Test"), Compiler.renderTrait(Compiler.EXPORT_KEYWORD_WITH_SPACE, "Test"));
+        assertCompile(renderInterface(Compiler.PUBLIC_KEYWORD_WITH_SPACE, TEST_UPPER_SYMBOL, ""), Compiler.renderTrait(Compiler.EXPORT_KEYWORD_WITH_SPACE, TEST_UPPER_SYMBOL, ""));
     }
 
     @ParameterizedTest
     @ValueSource(strings = {"First", "Second"})
     void interfaceName(String name) {
-        assertCompile(renderInterface("", name), Compiler.renderTrait("", name));
+        assertCompile(renderInterface("", name, ""), Compiler.renderTrait("", name, ""));
     }
 
     @Test
     void rootMemberMultiple() {
         var renderedImport = renderImport("", "foo");
-        assertCompile(renderPackage(TEST_LOWER_BOUND) + renderedImport, renderedImport);
+        assertCompile(renderPackage(TEST_LOWER_SYMBOL) + renderedImport, renderedImport);
     }
 
     @Test
     void importPadLeft() {
-        assertCompile(renderImport(" ", TEST_LOWER_BOUND), renderImport("", TEST_LOWER_BOUND));
+        assertCompile(renderImport(" ", TEST_LOWER_SYMBOL), renderImport("", TEST_LOWER_SYMBOL));
     }
 
     @ParameterizedTest
