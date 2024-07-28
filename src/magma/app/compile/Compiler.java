@@ -12,6 +12,9 @@ public class Compiler {
     public static final String INTERFACE_KEYWORD_WITH_SPACE = "interface ";
     public static final String EXPORT_KEYWORD_WITH_SPACE = "export ";
     public static final String PUBLIC_KEYWORD_WITH_SPACE = "public ";
+    public static final String VOID_KEYWORD_WITH_SPACE = "void ";
+    public static final String EMPTY_PARAMS = "()";
+    public static final String DEFINITION_SUFFIX = " : () => Void";
 
     private static String compileRootMember(String input) throws CompileException {
         if (input.isEmpty()) return "";
@@ -44,23 +47,32 @@ public class Compiler {
         if (!afterBlockStart.endsWith(String.valueOf(Splitter.BLOCK_END))) return Optional.empty();
 
         var inputMember = afterBlockStart.substring(0, afterBlockStart.length() - 1);
-        var outputMember = inputMember.equals(renderMethod()) ? renderDefinition() : "";
+        var outputMember = compileMethod(inputMember);
 
         var newModifiers = oldModifiers.equals(PUBLIC_KEYWORD_WITH_SPACE) ? EXPORT_KEYWORD_WITH_SPACE : "";
 
         return Optional.of(renderTrait(newModifiers, name, outputMember));
     }
 
+    private static String compileMethod(String inputMember) {
+        if (!inputMember.startsWith(VOID_KEYWORD_WITH_SPACE)) return "";
+        var afterType = inputMember.substring(VOID_KEYWORD_WITH_SPACE.length());
+        var paramsIndex = afterType.indexOf(EMPTY_PARAMS);
+        if (paramsIndex == -1) return "";
+        var name = afterType.substring(0, paramsIndex);
+        return renderDefinition(name);
+    }
+
     static String renderTrait(String modifiers, String name, String members) {
         return modifiers + TRAIT_KEYWORD_WITH_SPACE + name + " " + Splitter.BLOCK_START + members + Splitter.BLOCK_END;
     }
 
-    static String renderMethod() {
-        return "void empty()" + STATEMENT_END;
+    static String renderMethod(String name) {
+        return VOID_KEYWORD_WITH_SPACE + name + EMPTY_PARAMS + STATEMENT_END;
     }
 
-    static String renderDefinition() {
-        return "empty : () => Void";
+    static String renderDefinition(String name) {
+        return name + DEFINITION_SUFFIX;
     }
 
     public String compile(String input) throws CompileException {

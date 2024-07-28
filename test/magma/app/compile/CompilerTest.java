@@ -35,10 +35,11 @@ class CompilerTest {
         return modifiers + Compiler.INTERFACE_KEYWORD_WITH_SPACE + name + " " + Splitter.BLOCK_START + members + Splitter.BLOCK_END;
     }
 
-    @Test
-    void interfaceMember() {
-        var input = renderInterface("", TEST_UPPER_SYMBOL, Compiler.renderMethod());
-        var output = Compiler.renderTrait("", TEST_UPPER_SYMBOL, Compiler.renderDefinition());
+    @ParameterizedTest
+    @ValueSource(strings = {"first", "second"})
+    void interfaceMember(String name) {
+        var input = renderInterface("", TEST_UPPER_SYMBOL, Compiler.renderMethod(name));
+        var output = Compiler.renderTrait("", TEST_UPPER_SYMBOL, Compiler.renderDefinition(name));
         assertCompile(input, output);
     }
 
