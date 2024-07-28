@@ -18,6 +18,8 @@ public class Compiler {
     public static final String NAME = "name";
     public static final PrefixRule METHOD_RULE = new PrefixRule(VOID_KEYWORD_WITH_SPACE, new FirstRule(new ExtractRule(NAME), EMPTY_PARAMS, new ExtractRule("content")));
     public static final SuffixRule DEFINITION_RULE = new SuffixRule(new ExtractRule(NAME), DEFINITION_SUFFIX);
+    public static final String MODIFIERS = "modifiers";
+    public static final String MEMBERS = "members";
 
     private static String compileRootMember(String input) throws CompileException {
         if (input.isEmpty()) return "";
@@ -54,14 +56,21 @@ public class Compiler {
 
         var newModifiers = oldModifiers.equals(PUBLIC_KEYWORD_WITH_SPACE) ? EXPORT_KEYWORD_WITH_SPACE : "";
 
-        return Optional.of(renderTrait(newModifiers, name, outputMember));
+        return Optional.of(renderTrait(new Node()
+                .withString(MODIFIERS, newModifiers)
+                .withString(NAME, name)
+                .withString(MEMBERS, outputMember)));
     }
 
     private static String compileMethod(String inputMember) {
         return METHOD_RULE.parse(inputMember).flatMap(DEFINITION_RULE::generate).orElse("");
     }
 
-    static String renderTrait(String modifiers, String name, String members) {
+    static String renderTrait(Node node) {
+        var modifiers = node.findString(MODIFIERS).orElseThrow();
+        var name = node.findString(NAME).orElseThrow();
+        var members = node.findString(MEMBERS).orElseThrow();
+
         return modifiers + TRAIT_KEYWORD_WITH_SPACE + name + " " + Splitter.BLOCK_START + members + Splitter.BLOCK_END;
     }
 

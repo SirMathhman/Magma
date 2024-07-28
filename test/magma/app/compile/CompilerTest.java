@@ -41,22 +41,32 @@ class CompilerTest {
     @ValueSource(strings = {"first", "second"})
     void interfaceMember(String name) {
         var input = renderInterface("", TEST_UPPER_SYMBOL, Compiler.renderMethod(name));
-        var output = Compiler.renderTrait("", TEST_UPPER_SYMBOL, new SuffixRule(new ExtractRule(Compiler.NAME), Compiler.DEFINITION_SUFFIX)
+        final String members0 = new SuffixRule(new ExtractRule(Compiler.NAME), Compiler.DEFINITION_SUFFIX)
                 .generate(new Node(Map.of(Compiler.NAME, name)))
-                .orElseThrow());
+                .orElseThrow();
+        var output = Compiler.renderTrait(new Node()
+                .withString(Compiler.MODIFIERS, "")
+                .withString(Compiler.NAME, TEST_UPPER_SYMBOL)
+                .withString(Compiler.MEMBERS, members0));
 
         assertCompile(input, output);
     }
 
     @Test
     void interfacePublic() {
-        assertCompile(renderInterface(Compiler.PUBLIC_KEYWORD_WITH_SPACE, TEST_UPPER_SYMBOL, ""), Compiler.renderTrait(Compiler.EXPORT_KEYWORD_WITH_SPACE, TEST_UPPER_SYMBOL, ""));
+        assertCompile(renderInterface(Compiler.PUBLIC_KEYWORD_WITH_SPACE, TEST_UPPER_SYMBOL, ""), Compiler.renderTrait(new Node()
+                .withString(Compiler.MODIFIERS, Compiler.EXPORT_KEYWORD_WITH_SPACE)
+                .withString(Compiler.NAME, TEST_UPPER_SYMBOL)
+                .withString(Compiler.MEMBERS, "")));
     }
 
     @ParameterizedTest
     @ValueSource(strings = {"First", "Second"})
     void interfaceName(String name) {
-        assertCompile(renderInterface("", name, ""), Compiler.renderTrait("", name, ""));
+        assertCompile(renderInterface("", name, ""), Compiler.renderTrait(new Node()
+                .withString(Compiler.MODIFIERS, "")
+                .withString(Compiler.NAME, name)
+                .withString(Compiler.MEMBERS, "")));
     }
 
     @Test
