@@ -36,7 +36,8 @@ public record Application(SourceSet sourceSet, TargetSet targetSet) {
 
     private void writeSafely(Source source, String output) throws ApplicationException {
         try {
-            targetSet.writeTarget(source, output);
+            var optional = targetSet.writeTarget(source, output);
+            if (optional.isPresent()) throw optional.get();
         } catch (IOException e) {
             throw new ApplicationException(e);
         }
