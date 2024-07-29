@@ -44,26 +44,25 @@ public class Compiler {
         if (keywordIndex == -1) return Optional.empty();
 
         var oldModifiers = input.substring(0, keywordIndex);
+        var node2 = new Node().withString(MODIFIERS, oldModifiers);
+
         var after = input.substring(keywordIndex + INTERFACE_KEYWORD_WITH_SPACE.length());
         var contentIndex = after.indexOf(Splitter.BLOCK_START);
         if (contentIndex == -1) return Optional.empty();
 
         var name = after.substring(0, contentIndex).strip();
+        var node1 = node2.withString(NAME, name);
+
         var afterBlockStart = after.substring(contentIndex + 1);
         if (!afterBlockStart.endsWith(String.valueOf(Splitter.BLOCK_END))) return Optional.empty();
 
         var inputMember = afterBlockStart.substring(0, afterBlockStart.length() - 1);
         var outputMember = compileMethod(inputMember);
+        var node = node1.withString(MEMBERS, outputMember);
 
-        var newModifiers = oldModifiers.equals(PUBLIC_KEYWORD_WITH_SPACE) ? EXPORT_KEYWORD_WITH_SPACE : "";
+        var modified = node.mapString(MODIFIERS, modifiers -> modifiers.equals(PUBLIC_KEYWORD_WITH_SPACE) ? EXPORT_KEYWORD_WITH_SPACE : "");
 
-        Node node = new Node()
-                .withString(MODIFIERS, newModifiers)
-                .withString(NAME, name)
-                .withString(MEMBERS, outputMember);
-        return Optional.of(createTraitRule()
-                .generate(node)
-                .orElseThrow());
+        return createTraitRule().generate(modified);
     }
 
     private static String compileMethod(String inputMember) {
