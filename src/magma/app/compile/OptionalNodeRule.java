@@ -22,11 +22,6 @@ public final class OptionalNodeRule implements Rule {
         return parser.parse(input).findValue();
     }
 
-    private Optional<String> generate0(Node node) {
-        if (node.hasNode(propertyKey)) return rule.generate(node).findValue();
-        return Optional.empty();
-    }
-
     @Override
     public Result<Node, CompileException> parse(String input) {
         return parse0(input)
@@ -36,8 +31,7 @@ public final class OptionalNodeRule implements Rule {
 
     @Override
     public Result<String, CompileException> generate(Node node) {
-        return generate0(node)
-                .<Result<String, CompileException>>map(Ok::new)
-                .orElseGet(() -> new Err<>(new NodeException("Invalid node.", node)));
+        if (!node.hasNode(propertyKey)) return new Ok<>("");
+        return rule.generate(node).mapErr(err -> new NodeException("Property '" + propertyKey + "' was present, but could not be generated", node, err));
     }
 }

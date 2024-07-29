@@ -14,4 +14,6 @@ public interface Result<T, E extends Exception> {
     <R> Result<R, E> mapValue(Function<T, R> mapper);
 
     <R extends Exception> Result<T, R> mapErr(Function<E, R> mapper);
+
+    <R> Result<R,E> flatMapValue(Function<T, Result<R, E>> mapper);
 }

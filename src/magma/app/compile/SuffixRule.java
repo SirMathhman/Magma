@@ -8,12 +8,9 @@ import java.util.Optional;
 
 public record SuffixRule(Rule child, String suffix) implements Rule {
     private Optional<Node> parse0(String input) {
-        if(input.endsWith(suffix)) return child.parse(input.substring(0, input.length() - suffix.length())).findValue();
+        if (input.endsWith(suffix))
+            return child.parse(input.substring(0, input.length() - suffix.length())).findValue();
         return Optional.empty();
-    }
-
-    private Optional<String> generate0(Node node) {
-        return this.child().generate(node).findValue().map(value -> value + suffix());
     }
 
     @Override
@@ -25,8 +22,8 @@ public record SuffixRule(Rule child, String suffix) implements Rule {
 
     @Override
     public Result<String, CompileException> generate(Node node) {
-        return generate0(node)
-                .<Result<String, CompileException>>map(Ok::new)
-                .orElseGet(() -> new Err<>(new NodeException("Invalid node.", node)));
+        return child.generate(node)
+                .mapValue(value -> value + suffix)
+                .mapErr(err -> new NodeException("Failed to attach suffix '" + suffix + "'", node, err));
     }
 }

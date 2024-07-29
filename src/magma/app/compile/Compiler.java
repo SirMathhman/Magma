@@ -1,8 +1,12 @@
 package magma.app.compile;
 
+import magma.api.Result;
+
+import java.util.List;
 import java.util.Optional;
 
 import static magma.app.compile.Splitter.BLOCK_END;
+import static magma.app.compile.Splitter.BLOCK_START;
 import static magma.app.compile.Splitter.STATEMENT_END;
 
 public class Compiler {
@@ -21,49 +25,42 @@ public class Compiler {
     public static final SuffixRule DEFINITION_RULE = new SuffixRule(new StringRule(NAME), DEFINITION_SUFFIX);
     public static final String MODIFIERS = "modifiers";
     public static final String MEMBERS = "members";
+    public static final String NAMESPACE = "namespace";
 
     private static String compileRootMember(String input) throws CompileException {
         if (input.isEmpty()) return "";
-        return compilePackage(input)
-                .or(() -> compileImport(input))
-                .or(() -> compileInterface(input))
-                .orElseThrow(() -> new CompileException("Invalid root member", input));
+
+        return createJavaRootRule()
+                .parse(input)
+                .mapValue(Compiler::modify)
+                .flatMapValue(node -> createMagmaRootRule().generate(node))
+                .$();
     }
 
-    private static Optional<String> compilePackage(String input) {
-        return input.startsWith(PACKAGE_KEYWORD_WITH_SPACE) ? Optional.of("") : Optional.empty();
+    private static Rule createMagmaRootRule() {
+        return new DisjunctionRule(List.of(createImportRule(), createTraitRule()));
     }
 
-    private static Optional<String> compileImport(String input) {
-        if (input.startsWith(IMPORT_KEYWORD_WITH_SPACE)) return Optional.of(input);
-        return Optional.empty();
+    private static Rule createJavaRootRule() {
+        return new DisjunctionRule(List.of(createPackageRule(),
+                createImportRule(),
+                createInterfaceRule()));
     }
 
-    private static Optional<String> compileInterface(String input) {
-        var keywordIndex = input.indexOf(INTERFACE_KEYWORD_WITH_SPACE);
-        if (keywordIndex == -1) return Optional.empty();
+    private static Rule createImportRule() {
+        return new PrefixRule(IMPORT_KEYWORD_WITH_SPACE, new StringRule(NAMESPACE));
+    }
 
-        var oldModifiers = input.substring(0, keywordIndex);
-        var node2 = new Node().withString(MODIFIERS, oldModifiers);
+    private static Rule createPackageRule() {
+        return new PrefixRule(PACKAGE_KEYWORD_WITH_SPACE, new StringRule(NAMESPACE));
+    }
 
-        var after = input.substring(keywordIndex + INTERFACE_KEYWORD_WITH_SPACE.length());
-        var contentIndex = after.indexOf(Splitter.BLOCK_START);
-        if (contentIndex == -1) return Optional.empty();
+    private static Rule createInterfaceRule() {
+        return new FirstRule(new StringRule(MODIFIERS), INTERFACE_KEYWORD_WITH_SPACE, new FirstRule(new StringRule(NAME), String.valueOf(BLOCK_START), new SuffixRule(new NodeRule(MEMBERS, METHOD_RULE), String.valueOf(BLOCK_END))));
+    }
 
-        var name = after.substring(0, contentIndex).strip();
-        var node1 = node2.withString(NAME, name);
-
-        var afterBlockStart = after.substring(contentIndex + 1);
-        if (!afterBlockStart.endsWith(String.valueOf(Splitter.BLOCK_END))) return Optional.empty();
-
-        var inputMember = afterBlockStart.substring(0, afterBlockStart.length() - 1);
-        var outputMemberOptional = METHOD_RULE.parse(inputMember).findValue();
-        if (outputMemberOptional.isEmpty()) return Optional.empty();
-        var node = node1.withNode(MEMBERS, outputMemberOptional.get());
-
-        var modified = node.mapString(MODIFIERS, modifiers -> modifiers.equals(PUBLIC_KEYWORD_WITH_SPACE) ? EXPORT_KEYWORD_WITH_SPACE : "");
-        Rule rule = createTraitRule();
-        return rule.generate(modified).findValue();
+    private static Node modify(Node node) {
+        return node.mapString(MODIFIERS, modifiers -> modifiers.equals(PUBLIC_KEYWORD_WITH_SPACE) ? EXPORT_KEYWORD_WITH_SPACE : "");
     }
 
     static Rule createTraitRule() {
