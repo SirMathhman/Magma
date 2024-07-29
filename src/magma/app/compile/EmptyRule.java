@@ -17,17 +17,25 @@ public class EmptyRule implements Rule{
         return Optional.of("");
     }
 
-    @Override
-    public Result<Node, CompileException> parse(String input) {
+    private Result<Node, CompileException> parse1(String input) {
         return parse0(input)
                 .<Result<Node, CompileException>>map(Ok::new)
                 .orElseGet(() -> new Err<>(new CompileException("Invalid input", input)));
     }
 
-    @Override
-    public Result<String, CompileException> generate(Node node) {
+    private Result<String, CompileException> generate1(Node node) {
         return generate0(node)
                 .<Result<String, CompileException>>map(Ok::new)
                 .orElseGet(() -> new Err<>(new NodeException("Invalid node.", node)));
+    }
+
+    @Override
+    public CompileResult<Node> parse(String input) {
+        return new CompileResult<>(parse1(input));
+    }
+
+    @Override
+    public CompileResult<String> generate(Node node) {
+        return new CompileResult<>(generate1(node));
     }
 }

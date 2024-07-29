@@ -16,16 +16,24 @@ public final class OptionalRule implements Rule {
         parser = new DisjunctionRule(List.of(rule, EmptyRule.EMPTY));
     }
 
-    @Override
-    public Result<Node, CompileException> parse(String input) {
-        return parser.parse(input);
+    private Result<Node, CompileException> parse1(String input) {
+        return parser.parse(input).result();
+    }
+
+    private Result<String, CompileException> generate1(Node node) {
+        if (node.has(propertyKey)) {
+            return rule.generate(node).result().mapErr(err -> new NodeException("Property '" + propertyKey + "' was present, but could not be generated", node, err));
+        }
+        return new Ok<>("");
     }
 
     @Override
-    public Result<String, CompileException> generate(Node node) {
-        if (node.has(propertyKey)) {
-            return rule.generate(node).mapErr(err -> new NodeException("Property '" + propertyKey + "' was present, but could not be generated", node, err));
-        }
-        return new Ok<>("");
+    public CompileResult<Node> parse(String input) {
+        return new CompileResult<>(parse1(input));
+    }
+
+    @Override
+    public CompileResult<String> generate(Node node) {
+        return new CompileResult<>(generate1(node));
     }
 }

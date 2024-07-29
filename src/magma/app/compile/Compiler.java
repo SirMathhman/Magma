@@ -83,7 +83,8 @@ public class Compiler {
             var stripped = rootMember.strip();
             if (stripped.isEmpty()) continue;
 
-            output.add(createJavaRootRule().parse(stripped).$());
+            Rule rule = createJavaRootRule();
+            output.add(rule.parse(stripped).result().$());
         }
 
         return output;
@@ -105,7 +106,8 @@ public class Compiler {
     private String generate(List<Node> parsed) throws CompileException {
         var builder = new StringBuilder();
         for (Node node : parsed) {
-            builder.append(createMagmaRootRule().generate(node).$());
+            Rule rule = createMagmaRootRule();
+            builder.append(rule.generate(node).result().$());
         }
         return builder.toString();
     }

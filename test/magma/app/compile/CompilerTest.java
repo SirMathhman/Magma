@@ -50,7 +50,8 @@ class CompilerTest {
                 .withNode(Compiler.MEMBERS, node1)
                 .withString(AFTER_NAME, " ");
 
-        var output = Compiler.createTraitRule().generate(node).$();
+        Rule rule = Compiler.createTraitRule();
+        var output = rule.generate(node).result().$();
         assertCompile(input, output);
     }
 
@@ -63,8 +64,7 @@ class CompilerTest {
                 .withString(AFTER_NAME, " ");
 
         var rule = Compiler.createTraitRule();
-        assertCompile(renderInterface(Compiler.PUBLIC_KEYWORD_WITH_SPACE, TEST_UPPER_SYMBOL, ""), rule
-                .generate(node)
+        assertCompile(renderInterface(Compiler.PUBLIC_KEYWORD_WITH_SPACE, TEST_UPPER_SYMBOL, ""), rule.generate(node).result()
                 .$());
     }
 
@@ -77,7 +77,7 @@ class CompilerTest {
                 .withString(AFTER_NAME, " ");
 
         Rule rule = Compiler.createTraitRule();
-        assertCompile(renderInterface("", name, ""), rule.generate(node).$());
+        assertCompile(renderInterface("", name, ""), rule.generate(node).result().$());
     }
 
     @Test
