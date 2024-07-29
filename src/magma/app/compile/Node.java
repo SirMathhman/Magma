@@ -2,13 +2,15 @@ package magma.app.compile;
 
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
 
-public record Node(Optional<String> type, Map<String, String> strings, Map<String, Node> nodes) {
+public record Node(Optional<String> type, Map<String, String> strings, Map<String, Node> nodes,
+                   Map<String, List<Node>> nodeLists) {
     public Node() {
-        this(Optional.empty(), Collections.emptyMap(), Collections.emptyMap());
+        this(Optional.empty(), Collections.emptyMap(), Collections.emptyMap(), Collections.emptyMap());
     }
 
     Optional<String> findString(String key) {
@@ -18,7 +20,7 @@ public record Node(Optional<String> type, Map<String, String> strings, Map<Strin
     public Node withString(String propertyKey, String propertyValue) {
         var copy = new HashMap<>(strings);
         copy.put(propertyKey, propertyValue);
-        return new Node(type, copy, nodes);
+        return new Node(type, copy, nodes, nodeLists);
     }
 
     public Node merge(Node other) {
@@ -27,7 +29,10 @@ public record Node(Optional<String> type, Map<String, String> strings, Map<Strin
 
         var nodesCopy = new HashMap<>(nodes);
         nodesCopy.putAll(other.nodes);
-        return new Node(type, stringCopy, nodesCopy);
+
+        var nodeListsCopy = new HashMap<>(nodeLists);
+        nodeListsCopy.putAll(other.nodeLists);
+        return new Node(type, stringCopy, nodesCopy, nodeListsCopy);
     }
 
     public Node mapString(String propertyKey, Function<String, String> mapper) {
@@ -40,7 +45,7 @@ public record Node(Optional<String> type, Map<String, String> strings, Map<Strin
     public Node withNode(String propertyKey, Node value) {
         var copy = new HashMap<>(nodes);
         copy.put(propertyKey, value);
-        return new Node(type, strings, copy);
+        return new Node(type, strings, copy, nodeLists);
     }
 
     public Optional<Node> findNode(String propertyKey) {
@@ -52,10 +57,20 @@ public record Node(Optional<String> type, Map<String, String> strings, Map<Strin
     }
 
     public Node retype(String type) {
-        return new Node(Optional.of(type), strings, nodes);
+        return new Node(Optional.of(type), strings, nodes, nodeLists);
     }
 
     public boolean is(String type) {
         return this.type.isPresent() && this.type.get().equals(type);
+    }
+
+    public Node withNodeList(String propertyKey, List<Node> children) {
+        var copy = new HashMap<>(nodeLists);
+        copy.put(propertyKey, children);
+        return new Node(type, strings, nodes, copy);
+    }
+
+    public Optional<List<Node>> findNodeList(String propertyKey) {
+        return Optional.ofNullable(nodeLists.get(propertyKey));
     }
 }

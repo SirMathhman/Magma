@@ -45,4 +45,19 @@ public class Err<T, E extends Exception> implements Result<T, E> {
     public boolean isOk() {
         return false;
     }
+
+    @Override
+    public boolean isErr() {
+        return true;
+    }
+
+    @Override
+    public <R> R match(Function<T, R> onOk, Function<E, R> onErr) {
+        return onErr.apply(error);
+    }
+
+    @Override
+    public Optional<E> findErr() {
+        return Optional.of(error);
+    }
 }

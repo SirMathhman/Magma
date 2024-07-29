@@ -1,7 +1,12 @@
 package magma.app.compile;
 
+import magma.api.Err;
+import magma.api.Ok;
+import magma.api.Result;
+
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.BiFunction;
 
 import static magma.app.compile.Splitter.BLOCK_END;
 import static magma.app.compile.Splitter.BLOCK_START;
@@ -29,15 +34,18 @@ public class Compiler {
     public static final String TRAIT = "trait";
     public static final String BEFORE_NAME = "before-name";
     public static final String AFTER_NAME = "after-name";
+    public static final String CHILDREN = "children";
+    public static final String AFTER_ROOT_MEMBER = "after-root-member";
+    public static final String BEFORE_ROOT_MEMBER = "before-root-member";
 
     private static Rule createMagmaRootRule() {
         return new DisjunctionRule(List.of(createImportRule(), createTraitRule()));
     }
 
     private static Rule createJavaRootRule() {
-        return new DisjunctionRule(List.of(createPackageRule(),
+        return new StripRule(BEFORE_ROOT_MEMBER, new DisjunctionRule(List.of(createPackageRule(),
                 createImportRule(),
-                createInterfaceRule()));
+                createInterfaceRule())), AFTER_ROOT_MEMBER);
     }
 
     private static Rule createImportRule() {
@@ -77,30 +85,57 @@ public class Compiler {
         return VOID_KEYWORD_WITH_SPACE + name + EMPTY_PARAMS + STATEMENT_END;
     }
 
-    private static List<Node> parse(List<String> rootMembers) throws CompileException {
-        var output = new ArrayList<Node>();
+    private static CompileResult<Node> parse(String input, Rule rule) {
+        var rootMembers = new Splitter(input).split().toList();
+
+        var list = new ArrayList<Node>();
         for (var rootMember : rootMembers) {
             var stripped = rootMember.strip();
             if (stripped.isEmpty()) continue;
 
-            Rule rule = createJavaRootRule();
-            output.add(rule.parse(stripped).result().$());
+            var parsed = rule.parse(rootMember);
+            if (parsed.isInvalid()) return parsed;
+
+            parsed.result().findValue().ifPresent(list::add);
         }
 
-        return output;
+        return new CompileResult<>(new Ok<>(new Node().withNodeList(CHILDREN, list)));
     }
 
     public String compile(String input) throws CompileException {
-        var rootMembers = new Splitter(input).split().toList();
+        return parse(input, createJavaRootRule()).match(root -> {
+            var parsed = root.findNodeList(CHILDREN)
+                    .orElseThrow();
 
-        var parsed = parse(rootMembers);
-        var modified = new ArrayList<Node>();
-        for (Node node : parsed) {
-            if (node.is(PACKAGE)) continue;
-            modified.add(modify(node));
+            var modified = new ArrayList<Node>();
+            for (Node node : parsed) {
+                if (node.is(PACKAGE)) continue;
+                modified.add(modify(node));
+            }
+
+            return getStringCompileExceptionResult(modified);
+        }, (BiFunction<CompileException, List<CompileResult<Node>>, Result<String, CompileException>>) (e, compileResults) -> {
+            print(e, compileResults, 0);
+            return new Err<>(new CompileException("Failed to parse root", input));
+        }).$();
+    }
+
+    private <T> void print(CompileException e, List<CompileResult<T>> results, int depth) {
+        var indent = "\t".repeat(depth);
+        System.err.println(indent + depth + ": " + e.getMessage().replace("\n", "\n" + indent));
+
+        for (var result : results) {
+            var error = result.findError();
+            error.ifPresent(compileException -> print(compileException, result.children(), depth + 1));
         }
+    }
 
-        return generate(modified);
+    private Result<String, CompileException> getStringCompileExceptionResult(ArrayList<Node> modified) {
+        try {
+            return new Ok<>(generate(modified));
+        } catch (CompileException e) {
+            return new Err<>(e);
+        }
     }
 
     private String generate(List<Node> parsed) throws CompileException {
