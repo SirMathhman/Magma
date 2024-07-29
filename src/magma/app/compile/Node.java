@@ -6,9 +6,9 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
 
-public record Node(Map<String, String> strings, Map<String, Node> nodes) {
+public record Node(Optional<String> type, Map<String, String> strings, Map<String, Node> nodes) {
     public Node() {
-        this(Collections.emptyMap(), Collections.emptyMap());
+        this(Optional.empty(), Collections.emptyMap(), Collections.emptyMap());
     }
 
     Optional<String> findString(String key) {
@@ -18,13 +18,13 @@ public record Node(Map<String, String> strings, Map<String, Node> nodes) {
     public Node withString(String propertyKey, String propertyValue) {
         var copy = new HashMap<>(strings);
         copy.put(propertyKey, propertyValue);
-        return new Node(copy, nodes);
+        return new Node(type, copy, nodes);
     }
 
     public Node merge(Node other) {
         var copy = new HashMap<>(strings);
         copy.putAll(other.strings);
-        return new Node(copy, nodes);
+        return new Node(type, copy, nodes);
     }
 
     public Node mapString(String propertyKey, Function<String, String> mapper) {
@@ -37,7 +37,7 @@ public record Node(Map<String, String> strings, Map<String, Node> nodes) {
     public Node withNode(String propertyKey, Node value) {
         var copy = new HashMap<>(nodes);
         copy.put(propertyKey, value);
-        return new Node(strings, copy);
+        return new Node(type, strings, copy);
     }
 
     public Optional<Node> findNode(String propertyKey) {
@@ -46,5 +46,13 @@ public record Node(Map<String, String> strings, Map<String, Node> nodes) {
 
     public boolean hasNode(String propertyKey) {
         return nodes.containsKey(propertyKey);
+    }
+
+    public Node retype(String type) {
+        return new Node(Optional.of(type), strings, nodes);
+    }
+
+    public boolean is(String type) {
+        return this.type.isPresent() && this.type.get().equals(type);
     }
 }

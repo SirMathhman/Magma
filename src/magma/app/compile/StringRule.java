@@ -11,10 +11,6 @@ public record StringRule(String propertyKey) implements Rule {
         return Optional.of(new Node().withString(propertyKey(), input));
     }
 
-    private Optional<String> generate0(Node node) {
-        return node.findString(propertyKey);
-    }
-
     @Override
     public Result<Node, CompileException> parse(String input) {
         return parse0(input)
@@ -24,8 +20,8 @@ public record StringRule(String propertyKey) implements Rule {
 
     @Override
     public Result<String, CompileException> generate(Node node) {
-        return generate0(node)
+        return node.findString(propertyKey)
                 .<Result<String, CompileException>>map(Ok::new)
-                .orElseGet(() -> new Err<>(new NodeException("Invalid node.", node)));
+                .orElseGet(() -> new Err<>(new NodeException("String '" + propertyKey + "' was not present", node)));
     }
 }

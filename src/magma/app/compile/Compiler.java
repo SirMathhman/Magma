@@ -23,6 +23,10 @@ public class Compiler {
     public static final String MODIFIERS = "modifiers";
     public static final String MEMBERS = "members";
     public static final String NAMESPACE = "namespace";
+    public static final String PACKAGE = "package";
+    public static final String IMPORT = "import";
+    public static final String INTERFACE = "interface";
+    public static final String TRAIT = "trait";
 
     private static Rule createMagmaRootRule() {
         return new DisjunctionRule(List.of(createImportRule(), createTraitRule()));
@@ -35,11 +39,11 @@ public class Compiler {
     }
 
     private static Rule createImportRule() {
-        return new PrefixRule(IMPORT_KEYWORD_WITH_SPACE, new StringRule(NAMESPACE));
+        return new TypeRule(IMPORT, new PrefixRule(IMPORT_KEYWORD_WITH_SPACE, new StringRule(NAMESPACE)));
     }
 
     private static Rule createPackageRule() {
-        return new PrefixRule(PACKAGE_KEYWORD_WITH_SPACE, new StringRule(NAMESPACE));
+        return new TypeRule(PACKAGE, new PrefixRule(PACKAGE_KEYWORD_WITH_SPACE, new StringRule(NAMESPACE)));
     }
 
     private static Rule createInterfaceRule() {
@@ -47,11 +51,11 @@ public class Compiler {
         var name = new StringRule(NAME);
         var members = new SuffixRule(new OptionalNodeRule(MEMBERS, new NodeRule(MEMBERS, METHOD_RULE)), String.valueOf(BLOCK_END));
         var afterKeyword = new FirstRule(name, String.valueOf(BLOCK_START), members);
-        return new FirstRule(modifiers, INTERFACE_KEYWORD_WITH_SPACE, afterKeyword);
+        return new TypeRule(INTERFACE, new FirstRule(modifiers, INTERFACE_KEYWORD_WITH_SPACE, afterKeyword));
     }
 
     private static Node modify(Node node) {
-        return node.mapString(MODIFIERS, modifiers -> modifiers.equals(PUBLIC_KEYWORD_WITH_SPACE) ? EXPORT_KEYWORD_WITH_SPACE : "");
+        return node.retype(TRAIT).mapString(MODIFIERS, modifiers -> modifiers.equals(PUBLIC_KEYWORD_WITH_SPACE) ? EXPORT_KEYWORD_WITH_SPACE : "");
     }
 
     static Rule createTraitRule() {
@@ -60,7 +64,7 @@ public class Compiler {
         var members = new NodeRule(MEMBERS, DEFINITION_RULE);
         var content = new SuffixRule(new OptionalNodeRule(MEMBERS, members), String.valueOf(BLOCK_END));
         var afterKeyword = new FirstRule(name, String.valueOf(Splitter.BLOCK_START), content);
-        return new FirstRule(modifiers, TRAIT_KEYWORD_WITH_SPACE, afterKeyword);
+        return new TypeRule(TRAIT, new FirstRule(modifiers, TRAIT_KEYWORD_WITH_SPACE, afterKeyword));
     }
 
     static String renderMethod(String name) {
@@ -85,6 +89,7 @@ public class Compiler {
         var parsed = parse(rootMembers);
         var modified = new ArrayList<Node>();
         for (Node node : parsed) {
+            if(node.is(PACKAGE)) continue;
             modified.add(modify(node));
         }
 

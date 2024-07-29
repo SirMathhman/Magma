@@ -7,6 +7,7 @@ import org.junit.jupiter.params.provider.ValueSource;
 import static magma.app.compile.Compiler.IMPORT_KEYWORD_WITH_SPACE;
 import static magma.app.compile.Compiler.NAME;
 import static magma.app.compile.Compiler.PACKAGE_KEYWORD_WITH_SPACE;
+import static magma.app.compile.Compiler.TRAIT;
 import static magma.app.compile.Splitter.STATEMENT_END;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.fail;
@@ -71,7 +72,7 @@ class CompilerTest {
     @ValueSource(strings = {"First", "Second"})
     void interfaceName(String name) throws CompileException {
         Node node = new Node()
-                .withString(Compiler.MODIFIERS, "")
+                .retype(TRAIT)
                 .withString(Compiler.NAME, name);
 
         Rule rule = Compiler.createTraitRule();
