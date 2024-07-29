@@ -18,10 +18,6 @@ public record FirstRule(Rule left, String slice, Rule right) implements Rule {
         return Optionals.and(left.parse(leftSlice).findValue(), () -> right.parse(rightSlice).findValue()).map(tuple -> tuple.left().merge(tuple.right()));
     }
 
-    private Optional<String> generate0(Node node) {
-        return Optionals.and(left.generate(node).findValue(), () -> right.generate(node).findValue()).map(tuple -> tuple.left() + slice + tuple.right());
-    }
-
     @Override
     public Result<Node, CompileException> parse(String input) {
         return parse0(input)
@@ -31,8 +27,9 @@ public record FirstRule(Rule left, String slice, Rule right) implements Rule {
 
     @Override
     public Result<String, CompileException> generate(Node node) {
-        return generate0(node)
-                .<Result<String, CompileException>>map(Ok::new)
-                .orElseGet(() -> new Err<>(new NodeException("Invalid node.", node)));
+        return left.generate(node)
+                .and(() -> right.generate(node))
+                .mapValue(tuple -> tuple.left() + slice + tuple.right())
+                .mapErr(err -> new NodeException("Failed to attach slice '" + slice + "'", node, err));
     }
 }

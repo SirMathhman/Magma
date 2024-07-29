@@ -69,14 +69,13 @@ class CompilerTest {
 
     @ParameterizedTest
     @ValueSource(strings = {"First", "Second"})
-    void interfaceName(String name) {
+    void interfaceName(String name) throws CompileException {
         Node node = new Node()
                 .withString(Compiler.MODIFIERS, "")
                 .withString(Compiler.NAME, name);
 
         Rule rule = Compiler.createTraitRule();
-        assertCompile(renderInterface("", name, ""), rule.generate(node).findValue()
-                .orElseThrow());
+        assertCompile(renderInterface("", name, ""), rule.generate(node).$());
     }
 
     @Test
