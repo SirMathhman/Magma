@@ -44,29 +44,38 @@ class CompilerTest {
         final String members0 = new SuffixRule(new ExtractRule(Compiler.NAME), Compiler.DEFINITION_SUFFIX)
                 .generate(new Node(Map.of(Compiler.NAME, name)))
                 .orElseThrow();
-        var output = Compiler.renderTrait(new Node()
+        Node node = new Node()
                 .withString(Compiler.MODIFIERS, "")
                 .withString(Compiler.NAME, TEST_UPPER_SYMBOL)
-                .withString(Compiler.MEMBERS, members0));
+                .withString(Compiler.MEMBERS, members0);
+        var output = Compiler.createTraitRule()
+                .generate(node)
+                .orElseThrow();
 
         assertCompile(input, output);
     }
 
     @Test
     void interfacePublic() {
-        assertCompile(renderInterface(Compiler.PUBLIC_KEYWORD_WITH_SPACE, TEST_UPPER_SYMBOL, ""), Compiler.renderTrait(new Node()
+        Node node = new Node()
                 .withString(Compiler.MODIFIERS, Compiler.EXPORT_KEYWORD_WITH_SPACE)
                 .withString(Compiler.NAME, TEST_UPPER_SYMBOL)
-                .withString(Compiler.MEMBERS, "")));
+                .withString(Compiler.MEMBERS, "");
+        assertCompile(renderInterface(Compiler.PUBLIC_KEYWORD_WITH_SPACE, TEST_UPPER_SYMBOL, ""), Compiler.createTraitRule()
+                .generate(node)
+                .orElseThrow());
     }
 
     @ParameterizedTest
     @ValueSource(strings = {"First", "Second"})
     void interfaceName(String name) {
-        assertCompile(renderInterface("", name, ""), Compiler.renderTrait(new Node()
+        Node node = new Node()
                 .withString(Compiler.MODIFIERS, "")
                 .withString(Compiler.NAME, name)
-                .withString(Compiler.MEMBERS, "")));
+                .withString(Compiler.MEMBERS, "");
+        assertCompile(renderInterface("", name, ""), Compiler.createTraitRule()
+                .generate(node)
+                .orElseThrow());
     }
 
     @Test

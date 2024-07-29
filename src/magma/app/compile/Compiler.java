@@ -2,6 +2,7 @@ package magma.app.compile;
 
 import java.util.Optional;
 
+import static magma.app.compile.Splitter.BLOCK_END;
 import static magma.app.compile.Splitter.STATEMENT_END;
 
 public class Compiler {
@@ -56,22 +57,26 @@ public class Compiler {
 
         var newModifiers = oldModifiers.equals(PUBLIC_KEYWORD_WITH_SPACE) ? EXPORT_KEYWORD_WITH_SPACE : "";
 
-        return Optional.of(renderTrait(new Node()
+        Node node = new Node()
                 .withString(MODIFIERS, newModifiers)
                 .withString(NAME, name)
-                .withString(MEMBERS, outputMember)));
+                .withString(MEMBERS, outputMember);
+        return Optional.of(createTraitRule()
+                .generate(node)
+                .orElseThrow());
     }
 
     private static String compileMethod(String inputMember) {
         return METHOD_RULE.parse(inputMember).flatMap(DEFINITION_RULE::generate).orElse("");
     }
 
-    static String renderTrait(Node node) {
-        var modifiers = node.findString(MODIFIERS).orElseThrow();
-        var name = node.findString(NAME).orElseThrow();
-        var members = node.findString(MEMBERS).orElseThrow();
-
-        return modifiers + TRAIT_KEYWORD_WITH_SPACE + name + " " + Splitter.BLOCK_START + members + Splitter.BLOCK_END;
+    static Rule createTraitRule() {
+        var modifiers = new ExtractRule(MODIFIERS);
+        var name = new ExtractRule(NAME);
+        var members = new ExtractRule(MEMBERS);
+        var content = new SuffixRule(members, String.valueOf(BLOCK_END));
+        var afterKeyword = new FirstRule(name, String.valueOf(Splitter.BLOCK_START), content);
+        return new FirstRule(modifiers, TRAIT_KEYWORD_WITH_SPACE, afterKeyword);
     }
 
     static String renderMethod(String name) {
