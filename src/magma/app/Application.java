@@ -1,5 +1,6 @@
 package magma.app;
 
+import magma.app.compile.CompileException;
 import magma.app.io.Source;
 import magma.app.io.SourceSet;
 import magma.app.io.TargetSet;
@@ -23,7 +24,12 @@ public record Application(SourceSet sourceSet, TargetSet targetSet) {
 
         for (var source : set) {
             var input = readSafely(source);
-            var output = new Compiler().compile(input);
+            String output;
+            try {
+                output = new Compiler().compile(input);
+            } catch (CompileException e) {
+                throw new ApplicationException("Failed to read: " + source, e);
+            }
             writeSafely(source, output);
         }
     }
