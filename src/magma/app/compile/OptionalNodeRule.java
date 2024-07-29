@@ -1,5 +1,9 @@
 package magma.app.compile;
 
+import magma.api.Err;
+import magma.api.Ok;
+import magma.api.Result;
+
 import java.util.List;
 import java.util.Optional;
 
@@ -14,14 +18,26 @@ public final class OptionalNodeRule implements Rule {
         parser = new DisjunctionRule(List.of(rule, EmptyRule.EMPTY));
     }
 
-    @Override
-    public Optional<Node> parse(String input) {
-        return parser.parse(input);
+    private Optional<Node> parse0(String input) {
+        return parser.parse(input).findValue();
+    }
+
+    private Optional<String> generate0(Node node) {
+        if (node.hasNode(propertyKey)) return rule.generate(node).findValue();
+        return Optional.empty();
     }
 
     @Override
-    public Optional<String> generate(Node node) {
-        if (node.hasNode(propertyKey)) return rule.generate(node);
-        return Optional.empty();
+    public Result<Node, CompileException> parse(String input) {
+        return parse0(input)
+                .<Result<Node, CompileException>>map(Ok::new)
+                .orElseGet(() -> new Err<>(new CompileException("Invalid input", input)));
+    }
+
+    @Override
+    public Result<String, CompileException> generate(Node node) {
+        return generate0(node)
+                .<Result<String, CompileException>>map(Ok::new)
+                .orElseGet(() -> new Err<>(new NodeException("Invalid node.", node)));
     }
 }

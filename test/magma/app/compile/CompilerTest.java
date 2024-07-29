@@ -40,16 +40,17 @@ class CompilerTest {
     @ValueSource(strings = {"first", "second"})
     void interfaceMember(String name) {
         var input = renderInterface("", TEST_UPPER_SYMBOL, Compiler.renderMethod(name));
-        var members0 = new SuffixRule(new StringRule(Compiler.NAME), Compiler.DEFINITION_SUFFIX)
-                .generate(new Node().withString(NAME, name))
+        Rule rule1 = new SuffixRule(new StringRule(Compiler.NAME), Compiler.DEFINITION_SUFFIX);
+        Node node1 = new Node().withString(NAME, name);
+        var members0 = rule1.generate(node1).findValue()
                 .orElseThrow();
 
         Node node = new Node()
                 .withString(Compiler.MODIFIERS, "")
                 .withString(Compiler.NAME, TEST_UPPER_SYMBOL)
                 .withString(Compiler.MEMBERS, members0);
-        var output = Compiler.createTraitRule()
-                .generate(node)
+        Rule rule = Compiler.createTraitRule();
+        var output = rule.generate(node).findValue()
                 .orElseThrow();
 
         assertCompile(input, output);
@@ -61,8 +62,8 @@ class CompilerTest {
                 .withString(Compiler.MODIFIERS, Compiler.EXPORT_KEYWORD_WITH_SPACE)
                 .withString(Compiler.NAME, TEST_UPPER_SYMBOL);
 
-        assertCompile(renderInterface(Compiler.PUBLIC_KEYWORD_WITH_SPACE, TEST_UPPER_SYMBOL, ""), Compiler.createTraitRule()
-                .generate(node)
+        Rule rule = Compiler.createTraitRule();
+        assertCompile(renderInterface(Compiler.PUBLIC_KEYWORD_WITH_SPACE, TEST_UPPER_SYMBOL, ""), rule.generate(node).findValue()
                 .orElseThrow());
     }
 
@@ -73,8 +74,8 @@ class CompilerTest {
                 .withString(Compiler.MODIFIERS, "")
                 .withString(Compiler.NAME, name);
 
-        assertCompile(renderInterface("", name, ""), Compiler.createTraitRule()
-                .generate(node)
+        Rule rule = Compiler.createTraitRule();
+        assertCompile(renderInterface("", name, ""), rule.generate(node).findValue()
                 .orElseThrow());
     }
 

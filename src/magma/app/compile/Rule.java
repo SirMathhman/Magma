@@ -1,9 +1,9 @@
 package magma.app.compile;
 
-import java.util.Optional;
+import magma.api.Result;
 
 public interface Rule {
-    Optional<Node> parse(String input);
+    Result<Node, CompileException> parse(String input);
 
-    Optional<String> generate(Node node);
+    Result<String, CompileException> generate(Node node);
 }

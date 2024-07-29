@@ -57,12 +57,13 @@ public class Compiler {
         if (!afterBlockStart.endsWith(String.valueOf(Splitter.BLOCK_END))) return Optional.empty();
 
         var inputMember = afterBlockStart.substring(0, afterBlockStart.length() - 1);
-        var outputMemberOptional = METHOD_RULE.parse(inputMember);
+        var outputMemberOptional = METHOD_RULE.parse(inputMember).findValue();
         if (outputMemberOptional.isEmpty()) return Optional.empty();
         var node = node1.withNode(MEMBERS, outputMemberOptional.get());
 
         var modified = node.mapString(MODIFIERS, modifiers -> modifiers.equals(PUBLIC_KEYWORD_WITH_SPACE) ? EXPORT_KEYWORD_WITH_SPACE : "");
-        return createTraitRule().generate(modified);
+        Rule rule = createTraitRule();
+        return rule.generate(modified).findValue();
     }
 
     static Rule createTraitRule() {
