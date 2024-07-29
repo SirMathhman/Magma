@@ -56,7 +56,11 @@ public class Compiler {
     }
 
     private static Rule createInterfaceRule() {
-        return new FirstRule(new StringRule(MODIFIERS), INTERFACE_KEYWORD_WITH_SPACE, new FirstRule(new StringRule(NAME), String.valueOf(BLOCK_START), new SuffixRule(new NodeRule(MEMBERS, METHOD_RULE), String.valueOf(BLOCK_END))));
+        var modifiers = new StringRule(MODIFIERS);
+        var name = new StringRule(NAME);
+        var members = new SuffixRule(new OptionalNodeRule(MEMBERS, new NodeRule(MEMBERS, METHOD_RULE)), String.valueOf(BLOCK_END));
+        var afterKeyword = new FirstRule(name, String.valueOf(BLOCK_START), members);
+        return new FirstRule(modifiers, INTERFACE_KEYWORD_WITH_SPACE, afterKeyword);
     }
 
     private static Node modify(Node node) {

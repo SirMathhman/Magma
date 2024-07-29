@@ -7,11 +7,6 @@ import magma.api.Result;
 import java.util.Optional;
 
 public record PrefixRule(String slice, Rule child) implements Rule {
-    private Optional<Node> parse0(String input) {
-        if (!input.startsWith(slice())) return Optional.empty();
-        var afterType = input.substring(slice().length());
-        return this.child().parse(afterType).findValue();
-    }
 
     private Optional<String> generate0(Node node) {
         return child.generate(node).findValue().map(inner -> slice + inner);
@@ -19,9 +14,11 @@ public record PrefixRule(String slice, Rule child) implements Rule {
 
     @Override
     public Result<Node, CompileException> parse(String input) {
-        return parse0(input)
-                .<Result<Node, CompileException>>map(Ok::new)
-                .orElseGet(() -> new Err<>(new CompileException("Invalid input", input)));
+        if (!input.startsWith(this.slice))
+            return new Err<>(new CompileException("Input did not start with '" + slice + "'", input));
+
+        var afterType = input.substring(this.slice.length());
+        return this.child.parse(afterType);
     }
 
     @Override

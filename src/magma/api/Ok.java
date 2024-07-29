@@ -35,4 +35,14 @@ public class Ok<T, E extends Exception> implements Result<T, E> {
     public <R extends Exception> Result<T, R> mapErr(Function<E, R> mapper) {
         return new Ok<>(value);
     }
+
+    @Override
+    public <R> Result<R, E> flatMapValue(Function<T, Result<R, E>> mapper) {
+        return mapper.apply(value);
+    }
+
+    @Override
+    public boolean isOk() {
+        return true;
+    }
 }
