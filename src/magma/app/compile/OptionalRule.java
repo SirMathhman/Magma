@@ -5,12 +5,12 @@ import magma.api.Result;
 
 import java.util.List;
 
-public final class OptionalNodeRule implements Rule {
+public final class OptionalRule implements Rule {
     private final String propertyKey;
     private final Rule rule;
     private final DisjunctionRule parser;
 
-    public OptionalNodeRule(String propertyKey, Rule rule) {
+    public OptionalRule(String propertyKey, Rule rule) {
         this.propertyKey = propertyKey;
         this.rule = rule;
         parser = new DisjunctionRule(List.of(rule, EmptyRule.EMPTY));
@@ -23,7 +23,7 @@ public final class OptionalNodeRule implements Rule {
 
     @Override
     public Result<String, CompileException> generate(Node node) {
-        if (node.hasNode(propertyKey)) {
+        if (node.has(propertyKey)) {
             return rule.generate(node).mapErr(err -> new NodeException("Property '" + propertyKey + "' was present, but could not be generated", node, err));
         }
         return new Ok<>("");

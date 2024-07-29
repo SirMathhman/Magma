@@ -1,16 +1,14 @@
 package magma.app.compile;
 
 import magma.api.Err;
-import magma.api.Optionals;
 import magma.api.Result;
-
-import java.util.Optional;
 
 public record FirstRule(Rule left, String slice, Rule right) implements Rule {
     @Override
     public Result<Node, CompileException> parse(String input) {
         var index = input.indexOf(slice);
-        if (index == -1) return new Err<>(new CompileException("Slice '" + slice + "' was not present in input", input));
+        if (index == -1)
+            return new Err<>(new CompileException("Slice '" + slice + "' was not present in input", input));
 
         var leftSlice = input.substring(0, index);
         var rightSlice = input.substring(index + slice.length());

@@ -27,6 +27,8 @@ public class Compiler {
     public static final String IMPORT = "import";
     public static final String INTERFACE = "interface";
     public static final String TRAIT = "trait";
+    public static final String BEFORE_NAME = "before-name";
+    public static final String AFTER_NAME = "after-name";
 
     private static Rule createMagmaRootRule() {
         return new DisjunctionRule(List.of(createImportRule(), createTraitRule()));
@@ -48,21 +50,25 @@ public class Compiler {
 
     private static Rule createInterfaceRule() {
         var modifiers = new StringRule(MODIFIERS);
-        var name = new StringRule(NAME);
-        var members = new SuffixRule(new OptionalNodeRule(MEMBERS, new NodeRule(MEMBERS, METHOD_RULE)), String.valueOf(BLOCK_END));
+        var name = new StripRule(BEFORE_NAME, new StringRule(NAME), AFTER_NAME);
+        var members = new SuffixRule(new OptionalRule(MEMBERS, new NodeRule(MEMBERS, METHOD_RULE)), String.valueOf(BLOCK_END));
         var afterKeyword = new FirstRule(name, String.valueOf(BLOCK_START), members);
         return new TypeRule(INTERFACE, new FirstRule(modifiers, INTERFACE_KEYWORD_WITH_SPACE, afterKeyword));
     }
 
     private static Node modify(Node node) {
-        return node.retype(TRAIT).mapString(MODIFIERS, modifiers -> modifiers.equals(PUBLIC_KEYWORD_WITH_SPACE) ? EXPORT_KEYWORD_WITH_SPACE : "");
+        if (!node.is(INTERFACE)) return node;
+        return node.retype(TRAIT)
+                .withString(AFTER_NAME, " ")
+                .mapString(MODIFIERS, modifiers -> modifiers.equals(PUBLIC_KEYWORD_WITH_SPACE) ? EXPORT_KEYWORD_WITH_SPACE : "");
     }
 
     static Rule createTraitRule() {
-        var modifiers = new StringRule(MODIFIERS);
-        var name = new StringRule(NAME);
+        var modifiers = new OptionalRule(MODIFIERS, new StringRule(MODIFIERS));
+        var name = new StripRule(BEFORE_NAME, new StringRule(NAME), AFTER_NAME);
+
         var members = new NodeRule(MEMBERS, DEFINITION_RULE);
-        var content = new SuffixRule(new OptionalNodeRule(MEMBERS, members), String.valueOf(BLOCK_END));
+        var content = new SuffixRule(new OptionalRule(MEMBERS, members), String.valueOf(BLOCK_END));
         var afterKeyword = new FirstRule(name, String.valueOf(Splitter.BLOCK_START), content);
         return new TypeRule(TRAIT, new FirstRule(modifiers, TRAIT_KEYWORD_WITH_SPACE, afterKeyword));
     }
@@ -89,7 +95,7 @@ public class Compiler {
         var parsed = parse(rootMembers);
         var modified = new ArrayList<Node>();
         for (Node node : parsed) {
-            if(node.is(PACKAGE)) continue;
+            if (node.is(PACKAGE)) continue;
             modified.add(modify(node));
         }
 

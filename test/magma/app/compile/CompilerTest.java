@@ -4,6 +4,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
+import static magma.app.compile.Compiler.AFTER_NAME;
 import static magma.app.compile.Compiler.IMPORT_KEYWORD_WITH_SPACE;
 import static magma.app.compile.Compiler.NAME;
 import static magma.app.compile.Compiler.PACKAGE_KEYWORD_WITH_SPACE;
@@ -39,33 +40,32 @@ class CompilerTest {
 
     @ParameterizedTest
     @ValueSource(strings = {"first", "second"})
-    void interfaceMember(String name) {
+    void interfaceMember(String name) throws CompileException {
         var input = renderInterface("", TEST_UPPER_SYMBOL, Compiler.renderMethod(name));
-        Rule rule1 = new SuffixRule(new StringRule(Compiler.NAME), Compiler.DEFINITION_SUFFIX);
-        Node node1 = new Node().withString(NAME, name);
-        var members0 = rule1.generate(node1).findValue()
-                .orElseThrow();
+        var node1 = new Node().withString(NAME, name);;
 
-        Node node = new Node()
-                .withString(Compiler.MODIFIERS, "")
+        var node = new Node()
+                .retype(TRAIT)
                 .withString(Compiler.NAME, TEST_UPPER_SYMBOL)
-                .withString(Compiler.MEMBERS, members0);
-        Rule rule = Compiler.createTraitRule();
-        var output = rule.generate(node).findValue()
-                .orElseThrow();
+                .withNode(Compiler.MEMBERS, node1)
+                .withString(AFTER_NAME, " ");
 
+        var output = Compiler.createTraitRule().generate(node).$();
         assertCompile(input, output);
     }
 
     @Test
-    void interfacePublic() {
-        Node node = new Node()
+    void interfacePublic() throws CompileException {
+        var node = new Node()
+                .retype(TRAIT)
                 .withString(Compiler.MODIFIERS, Compiler.EXPORT_KEYWORD_WITH_SPACE)
-                .withString(Compiler.NAME, TEST_UPPER_SYMBOL);
+                .withString(Compiler.NAME, TEST_UPPER_SYMBOL)
+                .withString(AFTER_NAME, " ");
 
-        Rule rule = Compiler.createTraitRule();
-        assertCompile(renderInterface(Compiler.PUBLIC_KEYWORD_WITH_SPACE, TEST_UPPER_SYMBOL, ""), rule.generate(node).findValue()
-                .orElseThrow());
+        var rule = Compiler.createTraitRule();
+        assertCompile(renderInterface(Compiler.PUBLIC_KEYWORD_WITH_SPACE, TEST_UPPER_SYMBOL, ""), rule
+                .generate(node)
+                .$());
     }
 
     @ParameterizedTest
@@ -73,7 +73,8 @@ class CompilerTest {
     void interfaceName(String name) throws CompileException {
         Node node = new Node()
                 .retype(TRAIT)
-                .withString(Compiler.NAME, name);
+                .withString(Compiler.NAME, name)
+                .withString(AFTER_NAME, " ");
 
         Rule rule = Compiler.createTraitRule();
         assertCompile(renderInterface("", name, ""), rule.generate(node).$());

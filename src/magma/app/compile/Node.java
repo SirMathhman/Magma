@@ -22,9 +22,12 @@ public record Node(Optional<String> type, Map<String, String> strings, Map<Strin
     }
 
     public Node merge(Node other) {
-        var copy = new HashMap<>(strings);
-        copy.putAll(other.strings);
-        return new Node(type, copy, nodes);
+        var stringCopy = new HashMap<>(strings);
+        stringCopy.putAll(other.strings);
+
+        var nodesCopy = new HashMap<>(nodes);
+        nodesCopy.putAll(other.nodes);
+        return new Node(type, stringCopy, nodesCopy);
     }
 
     public Node mapString(String propertyKey, Function<String, String> mapper) {
@@ -44,8 +47,8 @@ public record Node(Optional<String> type, Map<String, String> strings, Map<Strin
         return Optional.ofNullable(nodes.get(propertyKey));
     }
 
-    public boolean hasNode(String propertyKey) {
-        return nodes.containsKey(propertyKey);
+    public boolean has(String propertyKey) {
+        return strings.containsKey(propertyKey) || nodes.containsKey(propertyKey);
     }
 
     public Node retype(String type) {
