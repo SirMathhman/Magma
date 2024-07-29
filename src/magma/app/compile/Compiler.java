@@ -1,9 +1,7 @@
 package magma.app.compile;
 
-import magma.api.Result;
-
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 import static magma.app.compile.Splitter.BLOCK_END;
 import static magma.app.compile.Splitter.BLOCK_START;
@@ -12,7 +10,6 @@ import static magma.app.compile.Splitter.STATEMENT_END;
 public class Compiler {
     public static final String PACKAGE_KEYWORD_WITH_SPACE = "package ";
     public static final String IMPORT_KEYWORD_WITH_SPACE = "import ";
-    public static final String EMPTY_CONTENT = " " + Splitter.BLOCK_START + Splitter.BLOCK_END;
     public static final String TRAIT_KEYWORD_WITH_SPACE = "trait ";
     public static final String INTERFACE_KEYWORD_WITH_SPACE = "interface ";
     public static final String EXPORT_KEYWORD_WITH_SPACE = "export ";
@@ -21,21 +18,11 @@ public class Compiler {
     public static final String EMPTY_PARAMS = "()";
     public static final String DEFINITION_SUFFIX = " : () => Void";
     public static final String NAME = "name";
-    public static final PrefixRule METHOD_RULE = new PrefixRule(VOID_KEYWORD_WITH_SPACE, new FirstRule(new StringRule(NAME), EMPTY_PARAMS, new StringRule("content")));
-    public static final SuffixRule DEFINITION_RULE = new SuffixRule(new StringRule(NAME), DEFINITION_SUFFIX);
+    public static final Rule METHOD_RULE = new PrefixRule(VOID_KEYWORD_WITH_SPACE, new FirstRule(new StringRule(NAME), EMPTY_PARAMS, new StringRule("content")));
+    public static final Rule DEFINITION_RULE = new SuffixRule(new StringRule(NAME), DEFINITION_SUFFIX);
     public static final String MODIFIERS = "modifiers";
     public static final String MEMBERS = "members";
     public static final String NAMESPACE = "namespace";
-
-    private static String compileRootMember(String input) throws CompileException {
-        if (input.isEmpty()) return "";
-
-        return createJavaRootRule()
-                .parse(input)
-                .mapValue(Compiler::modify)
-                .flatMapValue(node -> createMagmaRootRule().generate(node))
-                .$();
-    }
 
     private static Rule createMagmaRootRule() {
         return new DisjunctionRule(List.of(createImportRule(), createTraitRule()));
@@ -80,16 +67,35 @@ public class Compiler {
         return VOID_KEYWORD_WITH_SPACE + name + EMPTY_PARAMS + STATEMENT_END;
     }
 
-    public String compile(String input) throws CompileException {
-        var rootMembers = new Splitter(input).split().toList();
-
-        var output = new StringBuilder();
+    private static List<Node> parse(List<String> rootMembers) throws CompileException {
+        var output = new ArrayList<Node>();
         for (var rootMember : rootMembers) {
             var stripped = rootMember.strip();
             if (stripped.isEmpty()) continue;
-            output.append(compileRootMember(stripped));
+
+            output.add(createJavaRootRule().parse(stripped).$());
         }
 
-        return output.toString();
+        return output;
+    }
+
+    public String compile(String input) throws CompileException {
+        var rootMembers = new Splitter(input).split().toList();
+
+        var parsed = parse(rootMembers);
+        var modified = new ArrayList<Node>();
+        for (Node node : parsed) {
+            modified.add(modify(node));
+        }
+
+        return generate(modified);
+    }
+
+    private String generate(List<Node> parsed) throws CompileException {
+        var builder = new StringBuilder();
+        for (Node node : parsed) {
+            builder.append(createMagmaRootRule().generate(node).$());
+        }
+        return builder.toString();
     }
 }
