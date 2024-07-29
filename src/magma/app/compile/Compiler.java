@@ -17,8 +17,8 @@ public class Compiler {
     public static final String EMPTY_PARAMS = "()";
     public static final String DEFINITION_SUFFIX = " : () => Void";
     public static final String NAME = "name";
-    public static final PrefixRule METHOD_RULE = new PrefixRule(VOID_KEYWORD_WITH_SPACE, new FirstRule(new ExtractRule(NAME), EMPTY_PARAMS, new ExtractRule("content")));
-    public static final SuffixRule DEFINITION_RULE = new SuffixRule(new ExtractRule(NAME), DEFINITION_SUFFIX);
+    public static final PrefixRule METHOD_RULE = new PrefixRule(VOID_KEYWORD_WITH_SPACE, new FirstRule(new StringRule(NAME), EMPTY_PARAMS, new StringRule("content")));
+    public static final SuffixRule DEFINITION_RULE = new SuffixRule(new StringRule(NAME), DEFINITION_SUFFIX);
     public static final String MODIFIERS = "modifiers";
     public static final String MEMBERS = "members";
 
@@ -57,23 +57,19 @@ public class Compiler {
         if (!afterBlockStart.endsWith(String.valueOf(Splitter.BLOCK_END))) return Optional.empty();
 
         var inputMember = afterBlockStart.substring(0, afterBlockStart.length() - 1);
-        var outputMember = compileMethod(inputMember);
-        var node = node1.withString(MEMBERS, outputMember);
+        var outputMemberOptional = METHOD_RULE.parse(inputMember);
+        if (outputMemberOptional.isEmpty()) return Optional.empty();
+        var node = node1.withNode(MEMBERS, outputMemberOptional.get());
 
         var modified = node.mapString(MODIFIERS, modifiers -> modifiers.equals(PUBLIC_KEYWORD_WITH_SPACE) ? EXPORT_KEYWORD_WITH_SPACE : "");
-
         return createTraitRule().generate(modified);
     }
 
-    private static String compileMethod(String inputMember) {
-        return METHOD_RULE.parse(inputMember).flatMap(DEFINITION_RULE::generate).orElse("");
-    }
-
     static Rule createTraitRule() {
-        var modifiers = new ExtractRule(MODIFIERS);
-        var name = new ExtractRule(NAME);
-        var members = new ExtractRule(MEMBERS);
-        var content = new SuffixRule(members, String.valueOf(BLOCK_END));
+        var modifiers = new StringRule(MODIFIERS);
+        var name = new StringRule(NAME);
+        var members = new NodeRule(MEMBERS, DEFINITION_RULE);
+        var content = new SuffixRule(new OptionalNodeRule(MEMBERS, members), String.valueOf(BLOCK_END));
         var afterKeyword = new FirstRule(name, String.valueOf(Splitter.BLOCK_START), content);
         return new FirstRule(modifiers, TRAIT_KEYWORD_WITH_SPACE, afterKeyword);
     }

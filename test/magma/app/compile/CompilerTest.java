@@ -4,9 +4,8 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
-import java.util.Map;
-
 import static magma.app.compile.Compiler.IMPORT_KEYWORD_WITH_SPACE;
+import static magma.app.compile.Compiler.NAME;
 import static magma.app.compile.Compiler.PACKAGE_KEYWORD_WITH_SPACE;
 import static magma.app.compile.Splitter.STATEMENT_END;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -41,9 +40,10 @@ class CompilerTest {
     @ValueSource(strings = {"first", "second"})
     void interfaceMember(String name) {
         var input = renderInterface("", TEST_UPPER_SYMBOL, Compiler.renderMethod(name));
-        final String members0 = new SuffixRule(new ExtractRule(Compiler.NAME), Compiler.DEFINITION_SUFFIX)
-                .generate(new Node(Map.of(Compiler.NAME, name)))
+        var members0 = new SuffixRule(new StringRule(Compiler.NAME), Compiler.DEFINITION_SUFFIX)
+                .generate(new Node().withString(NAME, name))
                 .orElseThrow();
+
         Node node = new Node()
                 .withString(Compiler.MODIFIERS, "")
                 .withString(Compiler.NAME, TEST_UPPER_SYMBOL)
@@ -59,8 +59,8 @@ class CompilerTest {
     void interfacePublic() {
         Node node = new Node()
                 .withString(Compiler.MODIFIERS, Compiler.EXPORT_KEYWORD_WITH_SPACE)
-                .withString(Compiler.NAME, TEST_UPPER_SYMBOL)
-                .withString(Compiler.MEMBERS, "");
+                .withString(Compiler.NAME, TEST_UPPER_SYMBOL);
+
         assertCompile(renderInterface(Compiler.PUBLIC_KEYWORD_WITH_SPACE, TEST_UPPER_SYMBOL, ""), Compiler.createTraitRule()
                 .generate(node)
                 .orElseThrow());
@@ -71,8 +71,8 @@ class CompilerTest {
     void interfaceName(String name) {
         Node node = new Node()
                 .withString(Compiler.MODIFIERS, "")
-                .withString(Compiler.NAME, name)
-                .withString(Compiler.MEMBERS, "");
+                .withString(Compiler.NAME, name);
+
         assertCompile(renderInterface("", name, ""), Compiler.createTraitRule()
                 .generate(node)
                 .orElseThrow());
