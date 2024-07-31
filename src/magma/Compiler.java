@@ -10,6 +10,7 @@ public class Compiler {
     public static final String EXPORT_KEYWORD_WITH_SPACE = "export ";
     public static final String VOID_KEYWORD_WITH_SPACE = "void ";
     public static final String METHOD_SUFFIX = "(){}";
+    public static final PrefixRule METHOD_RULE = new PrefixRule(new SuffixRule(new StringRule(Node.NAME), METHOD_SUFFIX), VOID_KEYWORD_WITH_SPACE);
 
     static String renderPackage(String name) {
         return PACKAGE_KEYWORD_WITH_SPACE + name + Splitter.STATEMENT_END;
@@ -49,31 +50,23 @@ public class Compiler {
         var compiledContent = compileClassMembers(content);
         var withContent = withName.with(Node.CONTENT, compiledContent);
 
-        return Optional.of(renderFunction(withContent));
+        return Optional.of(renderFunction(withContent).orElseThrow());
     }
 
     private static String compileClassMembers(String content) throws ParseException {
         if (content.isEmpty()) return "";
-        return compileMethod(content).orElseThrow(() -> new ParseException("Unknown class member", content));
+        return METHOD_RULE.parse(content).flatMap(Compiler::renderFunction).orElseThrow(() -> new ParseException("Unknown class member", content));
     }
 
-    private static Optional<String> compileMethod(String content) {
-        if (!content.startsWith(VOID_KEYWORD_WITH_SPACE)) return Optional.empty();
-        var truncatedRight = content.substring(VOID_KEYWORD_WITH_SPACE.length());
+    static Optional<String> renderFunction(Node node) {
+        var nameOptional = node.findString(Node.NAME);
+        if (nameOptional.isEmpty()) return Optional.empty();
 
-        if (!truncatedRight.endsWith(METHOD_SUFFIX)) return Optional.empty();
-        var name = truncatedRight.substring(0, truncatedRight.length() - METHOD_SUFFIX.length());
-        Node node1 = new Node();
-        var node = node1.with(Node.NAME, name);
-        return Optional.of(renderFunction(node));
-    }
-
-    static String renderFunction(Node node) {
-        var name = node.findString(Node.NAME).orElseThrow();
+        var name = nameOptional.orElseThrow();
         var modifiers = node.findString(Node.MODIFIERS).orElse("");
         var content = node.findString(Node.CONTENT).orElse("");
 
-        return modifiers + "def " + name + "() =>" + " " + Splitter.BLOCK_START + content + Splitter.BLOCK_END;
+        return Optional.of(modifiers + "def " + name + "() =>" + " " + Splitter.BLOCK_START + content + Splitter.BLOCK_END);
     }
 
     static String renderJavaClass(String modifiers, String name, String content) {
