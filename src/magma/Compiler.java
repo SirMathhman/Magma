@@ -34,8 +34,7 @@ public class Compiler {
     }
 
     private static String compileRootMember(String input) throws ParseException {
-        if (input.isEmpty() || input.startsWith(PACKAGE_KEYWORD_WITH_SPACE)) return "";
-
+        if (input.startsWith(PACKAGE_KEYWORD_WITH_SPACE)) return "";
         if (input.startsWith(IMPORT_KEYWORD_WITH_SPACE)) return input;
 
         return createClassRule()
@@ -92,6 +91,8 @@ public class Compiler {
         var output = new StringBuilder();
         for (var rootMember : rootMembers) {
             var stripped = rootMember.strip();
+            if(stripped.isEmpty()) continue;
+
             var compiled = compileRootMember(stripped);
             output.append(compiled);
         }
