@@ -32,19 +32,23 @@ public class Compiler {
 
         if (classIndex == -1) return Optional.empty();
         var oldModifiers = input.substring(0, classIndex);
+        var newModifiers = oldModifiers.equals(PUBLIC_KEYWORD_WITH_SPACE) ? EXPORT_KEYWORD_WITH_SPACE : "";
+        var withModifiers = new Node().withModifiers(newModifiers + CLASS_KEYWORD_WITH_SPACE);
+
         var truncatedRight = input.substring(classIndex + CLASS_KEYWORD_WITH_SPACE.length());
         var startIndex = truncatedRight.indexOf(Splitter.BLOCK_START);
 
         if (startIndex == -1) return Optional.empty();
         var name = truncatedRight.substring(0, startIndex).strip();
+        var withName = withModifiers.withName(name);
         var contentAndEnd = truncatedRight.substring(startIndex + 1);
 
         if (!contentAndEnd.endsWith(String.valueOf(Splitter.BLOCK_END))) return Optional.empty();
         var content = contentAndEnd.substring(0, contentAndEnd.length() - 1);
         var compiledContent = compileClassMembers(content);
+        var withContent = withName.withContent(compiledContent);
 
-        var newModifiers = oldModifiers.equals(PUBLIC_KEYWORD_WITH_SPACE) ? EXPORT_KEYWORD_WITH_SPACE : "";
-        return Optional.of(renderMagmaClass(newModifiers, name, compiledContent));
+        return Optional.of(renderFunction(withContent));
     }
 
     private static String compileClassMembers(String content) throws ParseException {
@@ -58,15 +62,12 @@ public class Compiler {
 
         if (!truncatedRight.endsWith(METHOD_SUFFIX)) return Optional.empty();
         var name = truncatedRight.substring(0, truncatedRight.length() - METHOD_SUFFIX.length());
-        return Optional.of(renderFunction("", name, ""));
+        var node = new Node().withName(name);
+        return Optional.of(renderFunction(node));
     }
 
-    static String renderMagmaClass(String modifiers, String name, String content) {
-        return renderFunction(modifiers + CLASS_KEYWORD_WITH_SPACE, name, content);
-    }
-
-    static String renderFunction(String modifiers, String name, String content) {
-        return modifiers + "def " + name + "() =>" + " " + Splitter.BLOCK_START + content + Splitter.BLOCK_END;
+    static String renderFunction(Node node) {
+        return node.modifiers() + "def " + node.name() + "() =>" + " " + Splitter.BLOCK_START + node.content() + Splitter.BLOCK_END;
     }
 
     static String renderJavaClass(String modifiers, String name, String content) {

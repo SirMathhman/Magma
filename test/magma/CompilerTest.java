@@ -24,19 +24,32 @@ class CompilerTest {
     @ValueSource(strings = {"first", "second"})
     void methodName(String name) {
         var input = Compiler.renderJavaClass("", TEST_UPPER_SYMBOL, Compiler.renderMethod(name));
-        var output = Compiler.renderMagmaClass("", TEST_UPPER_SYMBOL, Compiler.renderFunction("", name, ""));
+        final String content = Compiler.renderFunction(new Node("", name, ""));
+        Node node = new Node()
+                .withModifiers("" + Compiler.CLASS_KEYWORD_WITH_SPACE)
+                .withName(TEST_UPPER_SYMBOL)
+                .withContent(content);
+        var output = Compiler.renderFunction(node);
         assertCompile(input, output);
     }
 
     @ParameterizedTest
     @ValueSource(strings = {"First", "Second"})
     void className(String name) {
-        assertCompile(Compiler.renderJavaClass("", name, ""), Compiler.renderMagmaClass("", name, ""));
+        Node node = new Node()
+                .withModifiers("" + Compiler.CLASS_KEYWORD_WITH_SPACE)
+                .withName(name)
+                .withContent("");
+        assertCompile(Compiler.renderJavaClass("", name, ""), Compiler.renderFunction(node));
     }
 
     @Test
     void classPublic() {
-        assertCompile(Compiler.renderJavaClass(Compiler.PUBLIC_KEYWORD_WITH_SPACE, TEST_UPPER_SYMBOL, ""), Compiler.renderMagmaClass(Compiler.EXPORT_KEYWORD_WITH_SPACE, TEST_UPPER_SYMBOL, ""));
+        Node node = new Node()
+                .withModifiers(Compiler.EXPORT_KEYWORD_WITH_SPACE + Compiler.CLASS_KEYWORD_WITH_SPACE)
+                .withName(TEST_UPPER_SYMBOL)
+                .withContent("");
+        assertCompile(Compiler.renderJavaClass(Compiler.PUBLIC_KEYWORD_WITH_SPACE, TEST_UPPER_SYMBOL, ""), Compiler.renderFunction(node));
     }
 
     @Test
