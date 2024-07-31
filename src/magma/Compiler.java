@@ -1,5 +1,6 @@
 package magma;
 
+import java.util.List;
 import java.util.Optional;
 
 public class Compiler {
@@ -10,7 +11,16 @@ public class Compiler {
     public static final String EXPORT_KEYWORD_WITH_SPACE = "export ";
     public static final String VOID_KEYWORD_WITH_SPACE = "void ";
     public static final String METHOD_SUFFIX = "(){}";
-    public static final PrefixRule METHOD_RULE = new PrefixRule(new SuffixRule(new StringRule(Node.NAME), METHOD_SUFFIX), VOID_KEYWORD_WITH_SPACE);
+    public static final String METHOD = "method";
+    public static final Rule METHOD_RULE = createMethodRule();
+    public static final DisjunctionRule CLASS_MEMBERS_RULE = new DisjunctionRule(List.of(
+            new TypeRule("empty", EmptyRule.EMPTY_RULE),
+            METHOD_RULE
+    ));
+
+    private static Rule createMethodRule() {
+        return new TypeRule(METHOD, new PrefixRule(new SuffixRule(new StringRule(Node.NAME), METHOD_SUFFIX), VOID_KEYWORD_WITH_SPACE));
+    }
 
     static String renderPackage(String name) {
         return PACKAGE_KEYWORD_WITH_SPACE + name + Splitter.STATEMENT_END;
@@ -54,8 +64,10 @@ public class Compiler {
     }
 
     private static String compileClassMembers(String content) throws ParseException {
-        if (content.isEmpty()) return "";
-        return METHOD_RULE.parse(content).flatMap(Compiler::renderFunction).orElseThrow(() -> new ParseException("Unknown class member", content));
+        return CLASS_MEMBERS_RULE
+                .parse(content)
+                .flatMap(node -> node.is(METHOD) ? renderFunction(node) : Optional.of(""))
+                .orElseThrow(() -> new ParseException("Unknown class member", content));
     }
 
     static Optional<String> renderFunction(Node node) {
