@@ -26,7 +26,7 @@ public record FirstRule(Rule leftRule, String slice, Rule rightRule) implements 
     }
 
     @Override
-    public Result<String, GeneratingException> generate(Node node) {
+    public Result<String, GenerateException> generate(Node node) {
         return leftRule.generate(node)
                 .and(() -> rightRule.generate(node))
                 .mapValue(tuple -> tuple.left() + slice + tuple.right());

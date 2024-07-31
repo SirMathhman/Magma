@@ -10,9 +10,9 @@ public record TypeRule(String type, Rule child) implements Rule {
     }
 
     @Override
-    public Result<String, GeneratingException> generate(Node node) {
+    public Result<String, GenerateException> generate(Node node) {
         return node.is(type)
-                ? child.generate(node).mapErr(err -> new GeneratingException("Cannot generate with type '" + type + "'", node, err))
-                : new Err<>(new GeneratingException("Expected type '" + type + "' not present", node));
+                ? child.generate(node).mapErr(err -> new GenerateException("Cannot generate with type '" + type + "'", node, err))
+                : new Err<>(new GenerateException("Expected type '" + type + "' not present", node));
     }
 }

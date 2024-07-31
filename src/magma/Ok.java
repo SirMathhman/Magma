@@ -35,4 +35,14 @@ public class Ok<T, E extends Exception> implements Result<T, E> {
     public <R> Result<Tuple<T, R>, E> and(Supplier<Result<R, E>> mapper) {
         return mapper.get().mapValue(inner -> new Tuple<>(value, inner));
     }
+
+    @Override
+    public <R> Result<R, E> flatMapValue(Function<T, Result<R, E>> mapper) {
+        return mapper.apply(value);
+    }
+
+    @Override
+    public boolean isOk() {
+        return true;
+    }
 }

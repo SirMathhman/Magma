@@ -14,4 +14,8 @@ public interface Result<T, E extends Exception> {
     <R extends Exception> Result<T, R> mapErr(Function<E, R> mapper);
 
     <R> Result<Tuple<T, R>, E> and(Supplier<Result<R, E>> mapper);
+
+    <R> Result<R, E> flatMapValue(Function<T, Result<R, E>> mapper);
+
+    boolean isOk();
 }

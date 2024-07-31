@@ -21,9 +21,9 @@ public record SuffixRule(Rule child, String suffix) implements Rule {
     }
 
     @Override
-    public Result<String, GeneratingException> generate(Node node) {
+    public Result<String, GenerateException> generate(Node node) {
         return generate0(node)
-                .<Result<String, GeneratingException>>map(Ok::new)
-                .orElseGet(() -> new Err<>(new GeneratingException("Invalid node", node)));
+                .<Result<String, GenerateException>>map(Ok::new)
+                .orElseGet(() -> new Err<>(new GenerateException("Invalid node", node)));
     }
 }

@@ -35,4 +35,14 @@ public class Err<T, E extends Exception> implements Result<T, E> {
     public <R> Result<Tuple<T, R>, E> and(Supplier<Result<R, E>> mapper) {
         return new Err<>(error);
     }
+
+    @Override
+    public <R> Result<R, E> flatMapValue(Function<T, Result<R, E>> mapper) {
+        return new Err<>(error);
+    }
+
+    @Override
+    public boolean isOk() {
+        return false;
+    }
 }

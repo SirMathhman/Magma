@@ -15,9 +15,9 @@ public record NodeRule(String propertyKey, Rule child) implements Rule {
     }
 
     @Override
-    public Result<String, GeneratingException> generate(Node node) {
+    public Result<String, GenerateException> generate(Node node) {
         return node.findNode(propertyKey)
                 .map(child::generate)
-                .orElseGet(() -> new Err<>(new GeneratingException("Node '" + propertyKey + "' not present", node)));
+                .orElseGet(() -> new Err<>(new GenerateException("Node '" + propertyKey + "' not present", node)));
     }
 }

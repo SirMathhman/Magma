@@ -1,5 +1,6 @@
 package magma;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class Compiler {
@@ -13,50 +14,33 @@ public class Compiler {
     public static final String METHOD = "method";
     public static final String MODIFIERS = "modifiers";
     public static final String NAME = "name";
-    public static final Rule METHOD_RULE = createMethodRule();
-    public static final DisjunctionRule CLASS_MEMBERS_RULE = new DisjunctionRule(List.of(
-            new TypeRule("empty", EmptyRule.EMPTY_RULE),
-            METHOD_RULE
-    ));
     public static final String CONTENT = "content";
     public static final String CLASS = "class";
     public static final String FUNCTION = "function";
     public static final String SEGMENTS = "segments";
     public static final String IMPORT = "import";
+    public static final String PACKAGE = "package";
+
+    private static Rule createClassMembersRule() {
+        return new DisjunctionRule(List.of(
+                new TypeRule("empty", EmptyRule.EMPTY_RULE),
+                createMethodRule()
+        ));
+    }
 
     private static Rule createMethodRule() {
         return new TypeRule(METHOD, new PrefixRule(VOID_KEYWORD_WITH_SPACE, new SuffixRule(new StringRule(NAME), METHOD_SUFFIX)));
     }
 
-    static String renderPackage(String name) {
-        return PACKAGE_KEYWORD_WITH_SPACE + name + Splitter.STATEMENT_END;
-    }
-
-    static String renderImport(String whitespace, String parent, String child) {
-        return whitespace + IMPORT_KEYWORD_WITH_SPACE + parent + "." + child + Splitter.STATEMENT_END;
-    }
-
-    private static String compileRootMember(String input) throws ParseException {
-        if (input.startsWith(PACKAGE_KEYWORD_WITH_SPACE)) return "";
-
-        Rule rule = new DisjunctionRule(List.of(createImportRule(), createClassRule()));
-        return rule.parse(input).findValue()
-                .map(Compiler::modify)
-                .flatMap(node -> {
-                    Rule rule1 = createRootMagmaRule();
-                    return rule1.generate(node).findValue();
-                }).orElseThrow(() -> new ParseException("Invalid root", input));
-    }
-
-    private static Rule createImportRule() {
+    private static Rule createImportRule(String type, String prefix) {
         var segments = new StringRule(SEGMENTS);
         var afterKeyword = new SuffixRule(segments, String.valueOf(Splitter.STATEMENT_END));
-        return new TypeRule(IMPORT, new PrefixRule(IMPORT_KEYWORD_WITH_SPACE, afterKeyword));
+        return new TypeRule(type, new PrefixRule(prefix, afterKeyword));
     }
 
-    private static Rule createRootMagmaRule() {
+    private static Rule createMagmaRootMemberRule() {
         return new DisjunctionRule(List.of(
-                createImportRule(),
+                createImportRule(IMPORT, IMPORT_KEYWORD_WITH_SPACE),
                 createStatementRule())
         );
     }
@@ -64,21 +48,11 @@ public class Compiler {
     private static Rule createClassRule() {
         var modifiers = new StringRule(MODIFIERS);
         var name = new StripRule(new StringRule(NAME));
-        var content = new NodeRule(CONTENT, CLASS_MEMBERS_RULE);
+        var content = new NodeRule(CONTENT, createClassMembersRule());
 
         var contentAndEnd = new SuffixRule(content, String.valueOf(Splitter.BLOCK_END));
         var afterKeyword = new FirstRule(name, String.valueOf(Splitter.BLOCK_START), contentAndEnd);
         return new TypeRule(CLASS, new FirstRule(modifiers, CLASS_KEYWORD_WITH_SPACE, afterKeyword));
-    }
-
-    private static Node modify(Node node) {
-        if (node.is(CLASS)) {
-            return node.retype(FUNCTION).mapString(MODIFIERS, oldModifiers -> {
-                var newAccessor = oldModifiers.equals(PUBLIC_KEYWORD_WITH_SPACE) ? EXPORT_KEYWORD_WITH_SPACE : "";
-                return newAccessor + CLASS_KEYWORD_WITH_SPACE;
-            });
-        }
-        return node;
     }
 
     static Rule createStatementRule() {
@@ -87,11 +61,8 @@ public class Compiler {
                 createFunctionRule(statement),
                 EmptyRule.EMPTY_RULE
         )));
-        return statement;
-    }
 
-    static String renderFunction(Node node, Rule statement) throws GeneratingException {
-        return createFunctionRule(statement).generate(node).$();
+        return statement;
     }
 
     static Rule createFunctionRule(Rule statement) {
@@ -103,26 +74,71 @@ public class Compiler {
         return new TypeRule(FUNCTION, new FirstRule(modifiers, "def ", right));
     }
 
-    static String renderJavaClass(String modifiers, String name, String content) {
-        return modifiers + CLASS_KEYWORD_WITH_SPACE + name + " " + Splitter.BLOCK_START + content + Splitter.BLOCK_END;
+    private static Rule createJavaRootMemberRule() {
+        return new DisjunctionRule(List.of(
+                createImportRule(PACKAGE, PACKAGE_KEYWORD_WITH_SPACE),
+                createImportRule(IMPORT, IMPORT_KEYWORD_WITH_SPACE),
+                createClassRule()
+        ));
     }
 
-    static String renderMethod(String name) {
-        return VOID_KEYWORD_WITH_SPACE + name + METHOD_SUFFIX;
-    }
-
-    String compile(String input) throws ParseException {
-        var rootMembers = Splitter.splitRootMembers(input);
-        var output = new StringBuilder();
-        for (var rootMember : rootMembers) {
-            var stripped = rootMember.strip();
-            if (stripped.isEmpty()) continue;
-
-            var compiled = compileRootMember(stripped);
-            output.append(compiled);
+    private static Result<String, CompileException> generate(List<Node> children) {
+        var rootMagmaRule = createMagmaRootMemberRule();
+        Result<StringBuilder, CompileException> builder = new Ok<>(new StringBuilder());
+        for (Node child : children) {
+            builder = builder
+                    .and(() -> rootMagmaRule.generate(child).mapErr(err -> err))
+                    .mapValue(tuple -> tuple.left().append(tuple.right()));
         }
 
-        return output.toString();
+        return builder.mapValue(StringBuilder::toString);
+    }
+
+    private static Result<List<Node>, CompileException> parse(List<String> rootMembers) {
+        var javaRootMember = createJavaRootMemberRule();
+        Result<List<Node>, CompileException> childrenResult = new Ok<>(new ArrayList<>());
+        for (var rootMember : rootMembers) {
+            var stripped = rootMember.strip();
+            if(stripped.isEmpty()) continue;
+
+            childrenResult = childrenResult
+                    .and(() -> javaRootMember.parse(stripped).mapErr(err -> err))
+                    .mapValue(Compiler::add);
+        }
+
+        return childrenResult;
+    }
+
+    private static ArrayList<Node> add(Tuple<List<Node>, Node> tuple) {
+        var copy = new ArrayList<>(tuple.left());
+        copy.add(tuple.right());
+        return copy;
+    }
+
+    private static ArrayList<Node> modify(List<Node> list) {
+        var copy = new ArrayList<Node>();
+        for (Node node : list) {
+            if (node.is(PACKAGE)) continue;
+
+            if (node.is(CLASS)) {
+                copy.add(node.retype(FUNCTION).mapString(MODIFIERS, oldModifiers -> {
+                    var newAccessor = oldModifiers.equals(PUBLIC_KEYWORD_WITH_SPACE) ? EXPORT_KEYWORD_WITH_SPACE : "";
+                    return newAccessor + CLASS_KEYWORD_WITH_SPACE;
+                }));
+            } else {
+                copy.add(node);
+            }
+        }
+        return copy;
+    }
+
+    String compile(String input) throws CompileException {
+        var rootMembers = Splitter.splitRootMembers(input);
+
+        return parse(rootMembers)
+                .mapValue(Compiler::modify)
+                .flatMapValue(Compiler::generate)
+                .$();
     }
 
 }

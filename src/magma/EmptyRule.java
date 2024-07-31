@@ -21,7 +21,7 @@ public class EmptyRule implements Rule {
     }
 
     @Override
-    public Result<String, GeneratingException> generate(Node node) {
+    public Result<String, GenerateException> generate(Node node) {
         return new Ok<>("");
     }
 }
