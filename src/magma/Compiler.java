@@ -20,6 +20,7 @@ public class Compiler {
             METHOD_RULE
     ));
     public static final String CONTENT = "content";
+    public static final String CLASS = "class";
 
     private static Rule createMethodRule() {
         return new TypeRule(METHOD, new PrefixRule(new SuffixRule(new StringRule(NAME), METHOD_SUFFIX), VOID_KEYWORD_WITH_SPACE));
@@ -43,21 +44,24 @@ public class Compiler {
                 .flatMap(Compiler::renderFunction).orElseThrow(() -> new ParseException("Invalid root", input));
     }
 
-    private static FirstRule createClassRule() {
+    private static Rule createClassRule() {
         var modifiers = new StringRule(MODIFIERS);
         var name = new StripRule(new StringRule(NAME));
         var content = new NodeRule(CLASS_MEMBERS_RULE, CONTENT);
 
         var contentAndEnd = new SuffixRule(content, String.valueOf(Splitter.BLOCK_END));
         var afterKeyword = new FirstRule(name, String.valueOf(Splitter.BLOCK_START), contentAndEnd);
-        return new FirstRule(modifiers, CLASS_KEYWORD_WITH_SPACE, afterKeyword);
+        return new TypeRule(CLASS, new FirstRule(modifiers, CLASS_KEYWORD_WITH_SPACE, afterKeyword));
     }
 
     private static Node modify(Node node) {
-        return node.mapString(MODIFIERS, oldModifiers -> {
-            var newAccessor = oldModifiers.equals(PUBLIC_KEYWORD_WITH_SPACE) ? EXPORT_KEYWORD_WITH_SPACE : "";
-            return newAccessor + CLASS_KEYWORD_WITH_SPACE;
-        });
+        if (node.is(CLASS)) {
+            return node.mapString(MODIFIERS, oldModifiers -> {
+                var newAccessor = oldModifiers.equals(PUBLIC_KEYWORD_WITH_SPACE) ? EXPORT_KEYWORD_WITH_SPACE : "";
+                return newAccessor + CLASS_KEYWORD_WITH_SPACE;
+            });
+        }
+        return node;
     }
 
     private static Optional<String> renderStatement(Node node) {
