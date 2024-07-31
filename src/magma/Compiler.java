@@ -21,6 +21,7 @@ public class Compiler {
     ));
     public static final String CONTENT = "content";
     public static final String CLASS = "class";
+    public static final String FUNCTION = "function";
 
     private static Rule createMethodRule() {
         return new TypeRule(METHOD, new PrefixRule(new SuffixRule(new StringRule(NAME), METHOD_SUFFIX), VOID_KEYWORD_WITH_SPACE));
@@ -41,7 +42,12 @@ public class Compiler {
         return createClassRule()
                 .parse(input)
                 .map(Compiler::modify)
-                .flatMap(Compiler::renderFunction).orElseThrow(() -> new ParseException("Invalid root", input));
+                .flatMap(Compiler::render).orElseThrow(() -> new ParseException("Invalid root", input));
+    }
+
+    private static Optional<String> render(Node node) {
+        if (node.is(FUNCTION)) return renderFunction(node);
+        return Optional.empty();
     }
 
     private static Rule createClassRule() {
@@ -56,7 +62,7 @@ public class Compiler {
 
     private static Node modify(Node node) {
         if (node.is(CLASS)) {
-            return node.mapString(MODIFIERS, oldModifiers -> {
+            return node.retype(FUNCTION).mapString(MODIFIERS, oldModifiers -> {
                 var newAccessor = oldModifiers.equals(PUBLIC_KEYWORD_WITH_SPACE) ? EXPORT_KEYWORD_WITH_SPACE : "";
                 return newAccessor + CLASS_KEYWORD_WITH_SPACE;
             });
@@ -95,7 +101,7 @@ public class Compiler {
         var output = new StringBuilder();
         for (var rootMember : rootMembers) {
             var stripped = rootMember.strip();
-            if(stripped.isEmpty()) continue;
+            if (stripped.isEmpty()) continue;
 
             var compiled = compileRootMember(stripped);
             output.append(compiled);
