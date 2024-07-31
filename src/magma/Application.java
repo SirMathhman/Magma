@@ -10,9 +10,9 @@ public record Application(Path source) {
     public static final Path ROOT_DIRECTORY = Paths.get(".");
 
     void run() throws IOException {
-        if (!Files.exists(source())) return;
+        if (!Files.exists(source)) return;
 
-        var fileName = source().getFileName().toString();
+        var fileName = source.getFileName().toString();
         var separator = fileName.lastIndexOf('.');
         var name = fileName.substring(0, separator);
         Files.createFile(ROOT_DIRECTORY.resolve(name + EXTENSION_SEPARATOR + "mgs"));
