@@ -24,11 +24,13 @@ class CompilerTest {
     @ValueSource(strings = {"first", "second"})
     void methodName(String name) {
         var input = Compiler.renderJavaClass("", TEST_UPPER_SYMBOL, Compiler.renderMethod(name));
-        final String content = Compiler.renderFunction(new Node("", name, ""));
-        Node node = new Node()
-                .withModifiers("" + Compiler.CLASS_KEYWORD_WITH_SPACE)
-                .withName(TEST_UPPER_SYMBOL)
-                .withContent(content);
+        var content = Compiler.renderFunction(new Node()
+                .with(Node.NAME, name));
+
+        Node node1 = new Node();
+        Node node2 = node1.with(Node.MODIFIERS, Compiler.CLASS_KEYWORD_WITH_SPACE);
+        Node node3 = node2.with(Node.NAME, TEST_UPPER_SYMBOL);
+        Node node = node3.with(Node.CONTENT, content);
         var output = Compiler.renderFunction(node);
         assertCompile(input, output);
     }
@@ -36,19 +38,19 @@ class CompilerTest {
     @ParameterizedTest
     @ValueSource(strings = {"First", "Second"})
     void className(String name) {
-        Node node = new Node()
-                .withModifiers("" + Compiler.CLASS_KEYWORD_WITH_SPACE)
-                .withName(name)
-                .withContent("");
+        Node node1 = new Node();
+        Node node2 = node1.with(Node.MODIFIERS, Compiler.CLASS_KEYWORD_WITH_SPACE);
+        Node node3 = node2.with(Node.NAME, name);
+        Node node = node3.with(Node.CONTENT, "");
         assertCompile(Compiler.renderJavaClass("", name, ""), Compiler.renderFunction(node));
     }
 
     @Test
     void classPublic() {
-        Node node = new Node()
-                .withModifiers(Compiler.EXPORT_KEYWORD_WITH_SPACE + Compiler.CLASS_KEYWORD_WITH_SPACE)
-                .withName(TEST_UPPER_SYMBOL)
-                .withContent("");
+        Node node1 = new Node();
+        Node node2 = node1.with(Node.MODIFIERS, Compiler.EXPORT_KEYWORD_WITH_SPACE + Compiler.CLASS_KEYWORD_WITH_SPACE);
+        Node node3 = node2.with(Node.NAME, TEST_UPPER_SYMBOL);
+        Node node = node3.with(Node.CONTENT, "");
         assertCompile(Compiler.renderJavaClass(Compiler.PUBLIC_KEYWORD_WITH_SPACE, TEST_UPPER_SYMBOL, ""), Compiler.renderFunction(node));
     }
 

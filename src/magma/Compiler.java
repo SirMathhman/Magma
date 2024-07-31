@@ -33,20 +33,21 @@ public class Compiler {
         if (classIndex == -1) return Optional.empty();
         var oldModifiers = input.substring(0, classIndex);
         var newModifiers = oldModifiers.equals(PUBLIC_KEYWORD_WITH_SPACE) ? EXPORT_KEYWORD_WITH_SPACE : "";
-        var withModifiers = new Node().withModifiers(newModifiers + CLASS_KEYWORD_WITH_SPACE);
+        Node node = new Node();
+        var withModifiers = node.with(Node.MODIFIERS, newModifiers + CLASS_KEYWORD_WITH_SPACE);
 
         var truncatedRight = input.substring(classIndex + CLASS_KEYWORD_WITH_SPACE.length());
         var startIndex = truncatedRight.indexOf(Splitter.BLOCK_START);
 
         if (startIndex == -1) return Optional.empty();
         var name = truncatedRight.substring(0, startIndex).strip();
-        var withName = withModifiers.withName(name);
+        var withName = withModifiers.with(Node.NAME, name);
         var contentAndEnd = truncatedRight.substring(startIndex + 1);
 
         if (!contentAndEnd.endsWith(String.valueOf(Splitter.BLOCK_END))) return Optional.empty();
         var content = contentAndEnd.substring(0, contentAndEnd.length() - 1);
         var compiledContent = compileClassMembers(content);
-        var withContent = withName.withContent(compiledContent);
+        var withContent = withName.with(Node.CONTENT, compiledContent);
 
         return Optional.of(renderFunction(withContent));
     }
@@ -62,12 +63,17 @@ public class Compiler {
 
         if (!truncatedRight.endsWith(METHOD_SUFFIX)) return Optional.empty();
         var name = truncatedRight.substring(0, truncatedRight.length() - METHOD_SUFFIX.length());
-        var node = new Node().withName(name);
+        Node node1 = new Node();
+        var node = node1.with(Node.NAME, name);
         return Optional.of(renderFunction(node));
     }
 
     static String renderFunction(Node node) {
-        return node.modifiers() + "def " + node.name() + "() =>" + " " + Splitter.BLOCK_START + node.content() + Splitter.BLOCK_END;
+        var name = node.findString(Node.NAME).orElseThrow();
+        var modifiers = node.findString(Node.MODIFIERS).orElse("");
+        var content = node.findString(Node.CONTENT).orElse("");
+
+        return modifiers + "def " + name + "() =>" + " " + Splitter.BLOCK_START + content + Splitter.BLOCK_END;
     }
 
     static String renderJavaClass(String modifiers, String name, String content) {
