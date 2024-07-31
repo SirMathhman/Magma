@@ -38,38 +38,27 @@ public class Compiler {
 
         if (input.startsWith(IMPORT_KEYWORD_WITH_SPACE)) return input;
 
-        return compileClass(input).orElseThrow(() -> new ParseException("Invalid root", input));
+        return createClassRule()
+                .parse(input)
+                .map(Compiler::modify)
+                .flatMap(Compiler::renderFunction).orElseThrow(() -> new ParseException("Invalid root", input));
     }
 
-    private static Optional<String> compileClass(String input) {
-        var classIndex = input.indexOf(CLASS_KEYWORD_WITH_SPACE);
+    private static FirstRule createClassRule() {
+        var modifiers = new StringRule(MODIFIERS);
+        var name = new StripRule(new StringRule(NAME));
+        var content = new NodeRule(CLASS_MEMBERS_RULE, CONTENT);
 
-        if (classIndex == -1) return Optional.empty();
+        var contentAndEnd = new SuffixRule(content, String.valueOf(Splitter.BLOCK_END));
+        var afterKeyword = new FirstRule(name, String.valueOf(Splitter.BLOCK_START), contentAndEnd);
+        return new FirstRule(modifiers, CLASS_KEYWORD_WITH_SPACE, afterKeyword);
+    }
 
-        var withModifiersOptional = new StringRule(MODIFIERS).parse(input.substring(0, classIndex)).map(node -> node.mapString(MODIFIERS, oldModifiers -> {
+    private static Node modify(Node node) {
+        return node.mapString(MODIFIERS, oldModifiers -> {
             var newAccessor = oldModifiers.equals(PUBLIC_KEYWORD_WITH_SPACE) ? EXPORT_KEYWORD_WITH_SPACE : "";
             return newAccessor + CLASS_KEYWORD_WITH_SPACE;
-        }));
-
-        if (withModifiersOptional.isEmpty()) return Optional.empty();
-        var withModifiers = withModifiersOptional.get();
-
-        var truncatedRight = input.substring(classIndex + CLASS_KEYWORD_WITH_SPACE.length());
-        var startIndex = truncatedRight.indexOf(Splitter.BLOCK_START);
-
-        if (startIndex == -1) return Optional.empty();
-        var name = truncatedRight.substring(0, startIndex).strip();
-        var other1 = new Node().withString(NAME, name);
-        var withName = withModifiers.merge(other1);
-
-        var contentAndEnd = truncatedRight.substring(startIndex + 1);
-        var withContentOptional = new SuffixRule(new NodeRule(CLASS_MEMBERS_RULE, CONTENT), String.valueOf(Splitter.BLOCK_END))
-                .parse(contentAndEnd);
-
-        if(withContentOptional.isEmpty()) return Optional.empty();
-        var withContent = withName.merge(withContentOptional.orElseThrow());
-
-        return Optional.of(renderFunction(withContent).orElseThrow());
+        });
     }
 
     private static Optional<String> renderStatement(Node node) {
