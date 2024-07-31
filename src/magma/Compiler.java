@@ -12,8 +12,8 @@ public class Compiler {
         return PACKAGE_KEYWORD_WITH_SPACE + name + STATEMENT_END;
     }
 
-    static String renderImport(String parent, String child) {
-        return IMPORT_KEYWORD_WITH_SPACE + parent + "." + child + STATEMENT_END;
+    static String renderImport(String whitespace, String parent, String child) {
+        return whitespace + IMPORT_KEYWORD_WITH_SPACE + parent + "." + child + STATEMENT_END;
     }
 
     private static String compileRootMember(String input) throws ParseException {
@@ -43,7 +43,9 @@ public class Compiler {
         var rootMembers = splitRootMembers(input);
         var output = new StringBuilder();
         for (var rootMember : rootMembers) {
-            output.append(compileRootMember(rootMember));
+            var stripped = rootMember.strip();
+            var compiled = compileRootMember(stripped);
+            output.append(compiled);
         }
 
         return output.toString();

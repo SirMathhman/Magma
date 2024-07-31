@@ -8,6 +8,9 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.fail;
 
 class CompilerTest {
+    public static final String TEST_LOWER_SYMBOL = "test";
+    public static final String TEST_UPPER_SYMBOL = "Test";
+
     private static void assertCompile(String input, String output) {
         try {
             assertEquals(output, new Compiler().compile(input));
@@ -18,8 +21,8 @@ class CompilerTest {
 
     @Test
     void rootStatementMultiple() {
-        var renderedPackage = Compiler.renderPackage("test");
-        var renderedImport = Compiler.renderImport("test", "Test");
+        var renderedPackage = Compiler.renderPackage(TEST_LOWER_SYMBOL);
+        var renderedImport = Compiler.renderImport("", TEST_LOWER_SYMBOL, TEST_UPPER_SYMBOL);
         assertCompile(renderedPackage + renderedImport, renderedImport);
     }
 
@@ -29,16 +32,23 @@ class CompilerTest {
         assertCompile(Compiler.renderPackage(name), "");
     }
 
+    @Test
+    void importWhitespace() {
+        var input = Compiler.renderImport(" ", TEST_LOWER_SYMBOL, TEST_UPPER_SYMBOL);
+        var output = Compiler.renderImport("", TEST_LOWER_SYMBOL, TEST_UPPER_SYMBOL);
+        assertCompile(input, output);
+    }
+
     @ParameterizedTest
     @ValueSource(strings = {"First", "Second"})
     void importChild(String name) {
-        var input = Compiler.renderImport("parent", name);
+        var input = Compiler.renderImport("", "parent", name);
         assertCompile(input, input);
     }
 
     @Test
     void importParent() {
-        var input = Compiler.renderImport("foo", "Bar");
+        var input = Compiler.renderImport("", "foo", "Bar");
         assertCompile(input, input);
     }
 }
