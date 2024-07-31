@@ -4,8 +4,8 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
-import static magma.Compiler.FUNCTION;
-import static magma.Compiler.METHOD;
+import static magma.MagmaLang.FUNCTION;
+import static magma.JavaLang.METHOD;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.fail;
@@ -23,19 +23,19 @@ class CompilerTest {
     }
 
     static String renderPackage(String name) {
-        return Compiler.PACKAGE_KEYWORD_WITH_SPACE + name + Splitter.STATEMENT_END;
+        return JavaLang.PACKAGE_KEYWORD_WITH_SPACE + name + Splitter.STATEMENT_END;
     }
 
     static String renderImport(String whitespace, String parent, String child) {
-        return whitespace + Compiler.IMPORT_KEYWORD_WITH_SPACE + parent + "." + child + Splitter.STATEMENT_END;
+        return whitespace + CommonLang.IMPORT_KEYWORD_WITH_SPACE + parent + "." + child + Splitter.STATEMENT_END;
     }
 
     static String renderMethod(String name) {
-        return Compiler.VOID_KEYWORD_WITH_SPACE + name + Compiler.METHOD_SUFFIX;
+        return JavaLang.VOID_KEYWORD_WITH_SPACE + name + JavaLang.METHOD_SUFFIX;
     }
 
     static String renderJavaClass(String modifiers, String name, String content) {
-        return modifiers + Compiler.CLASS_KEYWORD_WITH_SPACE + name + " " + Splitter.BLOCK_START + content + Splitter.BLOCK_END;
+        return modifiers + CommonLang.CLASS_KEYWORD_WITH_SPACE + name + " " + Splitter.BLOCK_START + content + Splitter.BLOCK_END;
     }
 
     @ParameterizedTest
@@ -45,16 +45,16 @@ class CompilerTest {
 
         var child = new Node()
                 .retype(METHOD)
-                .withString(Compiler.NAME, name);
+                .withString(CommonLang.NAME, name);
 
         var node = new Node()
                 .retype(FUNCTION)
-                .withString(Compiler.MODIFIERS, Compiler.CLASS_KEYWORD_WITH_SPACE)
-                .withString(Compiler.NAME, TEST_UPPER_SYMBOL)
-                .withNode(Compiler.CONTENT, child);
+                .withString(CommonLang.MODIFIERS, CommonLang.CLASS_KEYWORD_WITH_SPACE)
+                .withString(CommonLang.NAME, TEST_UPPER_SYMBOL)
+                .withNode(CommonLang.CONTENT, child);
 
-        Rule statement = Compiler.createStatementRule();
-        var output = Compiler.createFunctionRule(statement).generate(node).$();
+        Rule statement = MagmaLang.createStatementRule();
+        var output = MagmaLang.createFunctionRule(statement).generate(node).$();
         assertCompile(input, output);
     }
 
@@ -63,12 +63,12 @@ class CompilerTest {
     void className(String name) throws GenerateException {
         var node = new Node()
                 .retype(FUNCTION)
-                .withString(Compiler.MODIFIERS, Compiler.CLASS_KEYWORD_WITH_SPACE)
-                .withString(Compiler.NAME, name);
+                .withString(CommonLang.MODIFIERS, CommonLang.CLASS_KEYWORD_WITH_SPACE)
+                .withString(CommonLang.NAME, name);
 
         var input = renderJavaClass("", name, "");
-        Rule statement = Compiler.createStatementRule();
-        var output = Compiler.createFunctionRule(statement).generate(node).$();
+        Rule statement = MagmaLang.createStatementRule();
+        var output = MagmaLang.createFunctionRule(statement).generate(node).$();
 
         assertCompile(input, output);
     }
@@ -77,12 +77,12 @@ class CompilerTest {
     void classPublic() throws GenerateException {
         var node = new Node()
                 .retype(FUNCTION)
-                .withString(Compiler.MODIFIERS, Compiler.EXPORT_KEYWORD_WITH_SPACE + Compiler.CLASS_KEYWORD_WITH_SPACE)
-                .withString(Compiler.NAME, TEST_UPPER_SYMBOL)
-                .withString(Compiler.CONTENT, "");
+                .withString(CommonLang.MODIFIERS, MagmaLang.EXPORT_KEYWORD_WITH_SPACE + CommonLang.CLASS_KEYWORD_WITH_SPACE)
+                .withString(CommonLang.NAME, TEST_UPPER_SYMBOL)
+                .withString(CommonLang.CONTENT, "");
 
-        Rule statement = Compiler.createStatementRule();
-        assertCompile(renderJavaClass(Compiler.PUBLIC_KEYWORD_WITH_SPACE, TEST_UPPER_SYMBOL, ""), Compiler.createFunctionRule(statement).generate(node).$());
+        Rule statement = MagmaLang.createStatementRule();
+        assertCompile(renderJavaClass(JavaLang.PUBLIC_KEYWORD_WITH_SPACE, TEST_UPPER_SYMBOL, ""), MagmaLang.createFunctionRule(statement).generate(node).$());
     }
 
     @Test
