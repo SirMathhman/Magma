@@ -60,11 +60,10 @@ public class Compiler {
         if (!contentAndEnd.endsWith(String.valueOf(Splitter.BLOCK_END))) return Optional.empty();
         var content = contentAndEnd.substring(0, contentAndEnd.length() - 1);
 
-        var compiledContent = CLASS_MEMBERS_RULE.parse(content).orElseThrow(() -> new ParseException("Unknown class member", content));
-
-        var other = new Node().withNode(CONTENT, compiledContent);
         var withName = withModifiers.merge(other1);
-        var withContent = withName.merge(other);
+        var other = new NodeRule(CLASS_MEMBERS_RULE, CONTENT).parse(content);
+        if (other.isEmpty()) return Optional.empty();
+        var withContent = withName.merge(other.orElseThrow());
         return Optional.of(renderFunction(withContent).orElseThrow());
     }
 
