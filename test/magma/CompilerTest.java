@@ -4,6 +4,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
+import static magma.Compiler.METHOD;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.fail;
@@ -24,14 +25,16 @@ class CompilerTest {
     @ValueSource(strings = {"first", "second"})
     void methodName(String name) {
         var input = Compiler.renderJavaClass("", TEST_UPPER_SYMBOL, Compiler.renderMethod(name));
-        Node node4 = new Node()
-                .withString(Compiler.NAME, name);
-        var content = Compiler.renderFunction(node4).orElseThrow();
 
-        Node node1 = new Node();
-        Node node2 = node1.withString(Compiler.MODIFIERS, Compiler.CLASS_KEYWORD_WITH_SPACE);
-        Node node3 = node2.withString(Compiler.NAME, TEST_UPPER_SYMBOL);
-        Node node = node3.withString(Compiler.CONTENT, content);
+        var child = new Node()
+                .retype(METHOD)
+                .withString(Compiler.NAME, name);
+
+        var node = new Node()
+                .withString(Compiler.MODIFIERS, Compiler.CLASS_KEYWORD_WITH_SPACE)
+                .withString(Compiler.NAME, TEST_UPPER_SYMBOL)
+                .withNode(Compiler.CONTENT, child);
+
         var output = Compiler.renderFunction(node).orElseThrow();
         assertCompile(input, output);
     }

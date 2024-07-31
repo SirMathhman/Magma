@@ -12,13 +12,13 @@ public class Compiler {
     public static final String VOID_KEYWORD_WITH_SPACE = "void ";
     public static final String METHOD_SUFFIX = "(){}";
     public static final String METHOD = "method";
+    public static final String MODIFIERS = "modifiers";
+    public static final String NAME = "name";
     public static final Rule METHOD_RULE = createMethodRule();
     public static final DisjunctionRule CLASS_MEMBERS_RULE = new DisjunctionRule(List.of(
             new TypeRule("empty", EmptyRule.EMPTY_RULE),
             METHOD_RULE
     ));
-    public static final String MODIFIERS = "modifiers";
-    public static final String NAME = "name";
     public static final String CONTENT = "content";
 
     private static Rule createMethodRule() {
@@ -60,15 +60,16 @@ public class Compiler {
         if (!contentAndEnd.endsWith(String.valueOf(Splitter.BLOCK_END))) return Optional.empty();
         var content = contentAndEnd.substring(0, contentAndEnd.length() - 1);
 
-        var compiledContent = CLASS_MEMBERS_RULE
-                .parse(content)
-                .flatMap(node1 -> node1.is(METHOD) ? renderFunction(node1) : Optional.of(""))
-                .orElseThrow(() -> new ParseException("Unknown class member", content));
-        var other = new Node().withString(CONTENT, compiledContent);
+        var compiledContent = CLASS_MEMBERS_RULE.parse(content).orElseThrow(() -> new ParseException("Unknown class member", content));
 
+        var other = new Node().withNode(CONTENT, compiledContent);
         var withName = withModifiers.merge(other1);
         var withContent = withName.merge(other);
         return Optional.of(renderFunction(withContent).orElseThrow());
+    }
+
+    private static Optional<String> renderStatement(Node node) {
+        return node.is(METHOD) ? renderFunction(node) : Optional.of("");
     }
 
     static Optional<String> renderFunction(Node node) {
@@ -77,7 +78,10 @@ public class Compiler {
 
         var name = nameOptional.orElseThrow();
         var modifiers = node.findString(MODIFIERS).orElse("");
-        var content = node.findString(CONTENT).orElse("");
+
+        var content = node.findNode(CONTENT)
+                .flatMap(Compiler::renderStatement)
+                .orElse("");
 
         return Optional.of(modifiers + "def " + name + "() =>" + " " + Splitter.BLOCK_START + content + Splitter.BLOCK_END);
     }

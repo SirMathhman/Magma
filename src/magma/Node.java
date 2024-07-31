@@ -48,4 +48,14 @@ public final class Node {
 
         return new Node(type, stringsCopy, nodesCopy);
     }
+
+    public Optional<Node> findNode(String propertyKey) {
+        return Optional.ofNullable(nodes.get(propertyKey));
+    }
+
+    public Node withNode(String propertyKey, Node propertyValue) {
+        var copy = new HashMap<>(nodes);
+        copy.put(propertyKey, propertyValue);
+        return new Node(type, strings, copy);
+    }
 }
