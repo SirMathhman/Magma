@@ -1,6 +1,7 @@
 package magma;
 
 import java.util.ArrayList;
+import java.util.List;
 
 public class Compiler {
     public static final String PACKAGE_KEYWORD_WITH_SPACE = "package ";
@@ -22,19 +23,20 @@ public class Compiler {
         throw new ParseException("Invalid root", input);
     }
 
-    private static ArrayList<String> splitRootMembers(String input) {
-        var segments = new ArrayList<String>();
-        var buffer = new StringBuilder();
+    private static List<String> splitRootMembers(String input) {
+        var current = new State();
         var length = input.length();
         for (int i = 0; i < length; i++) {
             var c = input.charAt(i);
-            buffer.append(c);
-            if (c == ';') {
-                segments.add(buffer.toString());
-                buffer = new StringBuilder();
-            }
+            current = splitAtChar(current, c);
         }
-        return segments;
+
+        return current.advance().segments;
+    }
+
+    private static State splitAtChar(State current, char c) {
+        var appended = current.append(c);
+        return c == ';' ? appended.advance() : appended;
     }
 
     String compile(String input) throws ParseException {
@@ -45,5 +47,29 @@ public class Compiler {
         }
 
         return output.toString();
+    }
+
+    private static class State {
+        private final List<String> segments;
+        private final StringBuilder buffer;
+
+        private State() {
+            this(new ArrayList<>(), new StringBuilder());
+        }
+
+        private State(List<String> segments, StringBuilder buffer) {
+            this.segments = segments;
+            this.buffer = buffer;
+        }
+
+        private State advance() {
+            var copy = new ArrayList<>(segments);
+            copy.add(buffer.toString());
+            return new State(copy, new StringBuilder());
+        }
+
+        public State append(char c) {
+            return new State(segments, buffer.append(c));
+        }
     }
 }
