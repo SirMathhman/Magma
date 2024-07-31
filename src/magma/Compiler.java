@@ -63,11 +63,11 @@ public class Compiler {
         var withName = withModifiers.merge(other1);
 
         var contentAndEnd = truncatedRight.substring(startIndex + 1);
-        if (!contentAndEnd.endsWith(String.valueOf(Splitter.BLOCK_END))) return Optional.empty();
-        var content = contentAndEnd.substring(0, contentAndEnd.length() - 1);
-        var other = new NodeRule(CLASS_MEMBERS_RULE, CONTENT).parse(content);
-        if (other.isEmpty()) return Optional.empty();
-        var withContent = withName.merge(other.orElseThrow());
+        var withContentOptional = new SuffixRule(new NodeRule(CLASS_MEMBERS_RULE, CONTENT), String.valueOf(Splitter.BLOCK_END))
+                .parse(contentAndEnd);
+
+        if(withContentOptional.isEmpty()) return Optional.empty();
+        var withContent = withName.merge(withContentOptional.orElseThrow());
 
         return Optional.of(renderFunction(withContent).orElseThrow());
     }
