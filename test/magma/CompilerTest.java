@@ -1,5 +1,6 @@
 package magma;
 
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
@@ -7,11 +8,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.fail;
 
 class CompilerTest {
-    @ParameterizedTest
-    @ValueSource(strings = {"first", "second"})
-    void test(String name) {
-        assertCompile(Compiler.renderPackage(name), "");
-    }
 
     private static void assertCompile(String input, String output) {
         try {
@@ -19,5 +15,24 @@ class CompilerTest {
         } catch (ParseException e) {
             fail(e);
         }
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"first", "second"})
+    void packageNames(String name) {
+        assertCompile(Compiler.renderPackage(name), "");
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"First", "Second"})
+    void importChild(String name) {
+        var input = Compiler.renderImport("parent", name);
+        assertCompile(input, input);
+    }
+
+    @Test
+    void importParent() {
+        var input = Compiler.renderImport("foo", "Bar");
+        assertCompile(input, input);
     }
 }
