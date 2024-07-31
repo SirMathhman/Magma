@@ -7,25 +7,24 @@ import java.util.Optional;
 
 @SuppressWarnings("OptionalUsedAsFieldOrParameterType")
 public final class Node {
-    public static final String MODIFIERS = "modifiers";
-    public static final String NAME = "name";
-    public static final String CONTENT = "content";
     private final Map<String, String> strings;
+    private final Map<String, Node> nodes;
     private final Optional<String> type;
 
     public Node() {
-        this(Optional.empty(), Collections.emptyMap());
+        this(Optional.empty(), Collections.emptyMap(), Collections.emptyMap());
     }
 
-    public Node(Optional<String> type, Map<String, String> strings) {
-        this.strings = strings;
+    public Node(Optional<String> type, Map<String, String> strings, Map<String, Node> nodes) {
         this.type = type;
+        this.strings = strings;
+        this.nodes = nodes;
     }
 
-    public Node with(String propertyKey, String propertyValue) {
+    public Node withString(String propertyKey, String propertyValue) {
         var copy = new HashMap<>(strings);
         copy.put(propertyKey, propertyValue);
-        return new Node(type, copy);
+        return new Node(type, copy, nodes);
     }
 
     public Optional<String> findString(String propertyKey) {
@@ -33,10 +32,20 @@ public final class Node {
     }
 
     public Node retype(String type) {
-        return new Node(Optional.of(type), strings);
+        return new Node(Optional.of(type), strings, nodes);
     }
 
     public boolean is(String type) {
         return this.type.isPresent() && this.type.get().equals(type);
+    }
+
+    public Node merge(Node other) {
+        var stringsCopy = new HashMap<>(strings);
+        stringsCopy.putAll(other.strings);
+
+        var nodesCopy = new HashMap<>(nodes);
+        nodesCopy.putAll(other.nodes);
+
+        return new Node(type, stringsCopy, nodesCopy);
     }
 }

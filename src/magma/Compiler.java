@@ -17,9 +17,12 @@ public class Compiler {
             new TypeRule("empty", EmptyRule.EMPTY_RULE),
             METHOD_RULE
     ));
+    public static final String MODIFIERS = "modifiers";
+    public static final String NAME = "name";
+    public static final String CONTENT = "content";
 
     private static Rule createMethodRule() {
-        return new TypeRule(METHOD, new PrefixRule(new SuffixRule(new StringRule(Node.NAME), METHOD_SUFFIX), VOID_KEYWORD_WITH_SPACE));
+        return new TypeRule(METHOD, new PrefixRule(new SuffixRule(new StringRule(NAME), METHOD_SUFFIX), VOID_KEYWORD_WITH_SPACE));
     }
 
     static String renderPackage(String name) {
@@ -44,39 +47,37 @@ public class Compiler {
         if (classIndex == -1) return Optional.empty();
         var oldModifiers = input.substring(0, classIndex);
         var newModifiers = oldModifiers.equals(PUBLIC_KEYWORD_WITH_SPACE) ? EXPORT_KEYWORD_WITH_SPACE : "";
-        Node node = new Node();
-        var withModifiers = node.with(Node.MODIFIERS, newModifiers + CLASS_KEYWORD_WITH_SPACE);
+        var withModifiers = new Node().withString(MODIFIERS, newModifiers + CLASS_KEYWORD_WITH_SPACE);
 
         var truncatedRight = input.substring(classIndex + CLASS_KEYWORD_WITH_SPACE.length());
         var startIndex = truncatedRight.indexOf(Splitter.BLOCK_START);
 
         if (startIndex == -1) return Optional.empty();
         var name = truncatedRight.substring(0, startIndex).strip();
-        var withName = withModifiers.with(Node.NAME, name);
+        var other1 = new Node().withString(NAME, name);
         var contentAndEnd = truncatedRight.substring(startIndex + 1);
 
         if (!contentAndEnd.endsWith(String.valueOf(Splitter.BLOCK_END))) return Optional.empty();
         var content = contentAndEnd.substring(0, contentAndEnd.length() - 1);
-        var compiledContent = compileClassMembers(content);
-        var withContent = withName.with(Node.CONTENT, compiledContent);
 
+        var compiledContent = CLASS_MEMBERS_RULE
+                .parse(content)
+                .flatMap(node1 -> node1.is(METHOD) ? renderFunction(node1) : Optional.of(""))
+                .orElseThrow(() -> new ParseException("Unknown class member", content));
+        var other = new Node().withString(CONTENT, compiledContent);
+
+        var withName = withModifiers.merge(other1);
+        var withContent = withName.merge(other);
         return Optional.of(renderFunction(withContent).orElseThrow());
     }
 
-    private static String compileClassMembers(String content) throws ParseException {
-        return CLASS_MEMBERS_RULE
-                .parse(content)
-                .flatMap(node -> node.is(METHOD) ? renderFunction(node) : Optional.of(""))
-                .orElseThrow(() -> new ParseException("Unknown class member", content));
-    }
-
     static Optional<String> renderFunction(Node node) {
-        var nameOptional = node.findString(Node.NAME);
+        var nameOptional = node.findString(NAME);
         if (nameOptional.isEmpty()) return Optional.empty();
 
         var name = nameOptional.orElseThrow();
-        var modifiers = node.findString(Node.MODIFIERS).orElse("");
-        var content = node.findString(Node.CONTENT).orElse("");
+        var modifiers = node.findString(MODIFIERS).orElse("");
+        var content = node.findString(CONTENT).orElse("");
 
         return Optional.of(modifiers + "def " + name + "() =>" + " " + Splitter.BLOCK_START + content + Splitter.BLOCK_END);
     }
