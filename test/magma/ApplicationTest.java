@@ -12,17 +12,22 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class ApplicationTest {
+    public static final String EXTENSION_SEPARATOR = ".";
+    public static final Path ROOT_DIRECTORY = Paths.get(".");
     public static final Path SOURCE = resolveByExtension("java");
     public static final Path TARGET = resolveByExtension("mgs");
 
     private static Path resolveByExtension(String name) {
-        return Paths.get(".", "Main." + name);
+        return ROOT_DIRECTORY.resolve("Main" + EXTENSION_SEPARATOR + name);
     }
 
     private static void run() throws IOException {
-        if (Files.exists(SOURCE)) {
-            Files.createFile(TARGET);
-        }
+        if (!Files.exists(SOURCE)) return;
+
+        var fileName = SOURCE.getFileName().toString();
+        var separator = fileName.lastIndexOf('.');
+        var name = fileName.substring(0, separator);
+        Files.createFile(ROOT_DIRECTORY.resolve(name + EXTENSION_SEPARATOR + "mgs"));
     }
 
     @AfterEach
