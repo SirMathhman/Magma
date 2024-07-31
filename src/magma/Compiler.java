@@ -8,6 +8,8 @@ public class Compiler {
     public static final String CLASS_KEYWORD_WITH_SPACE = "class ";
     public static final String PUBLIC_KEYWORD_WITH_SPACE = "public ";
     public static final String EXPORT_KEYWORD_WITH_SPACE = "export ";
+    public static final String VOID_KEYWORD_WITH_SPACE = "void ";
+    public static final String METHOD_SUFFIX = "(){}";
 
     static String renderPackage(String name) {
         return PACKAGE_KEYWORD_WITH_SPACE + name + Splitter.STATEMENT_END;
@@ -47,7 +49,16 @@ public class Compiler {
 
     private static String compileClassMembers(String content) throws ParseException {
         if (content.isEmpty()) return "";
-        throw new ParseException("Unknown class member", content);
+        return compileMethod(content).orElseThrow(() -> new ParseException("Unknown class member", content));
+    }
+
+    private static Optional<String> compileMethod(String content) {
+        if (!content.startsWith(VOID_KEYWORD_WITH_SPACE)) return Optional.empty();
+        var truncatedRight = content.substring(VOID_KEYWORD_WITH_SPACE.length());
+
+        if (!truncatedRight.endsWith(METHOD_SUFFIX)) return Optional.empty();
+        var name = truncatedRight.substring(0, truncatedRight.length() - METHOD_SUFFIX.length());
+        return Optional.of(renderFunction("", name, ""));
     }
 
     static String renderMagmaClass(String modifiers, String name, String content) {
@@ -63,7 +74,7 @@ public class Compiler {
     }
 
     static String renderMethod(String name) {
-        return "void " + name + "(){}";
+        return VOID_KEYWORD_WITH_SPACE + name + METHOD_SUFFIX;
     }
 
     String compile(String input) throws ParseException {
