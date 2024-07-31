@@ -8,7 +8,9 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 
 public class ApplicationTest {
     public static final Path SOURCE = resolveByExtension("java");
@@ -18,6 +20,24 @@ public class ApplicationTest {
         return Application.ROOT_DIRECTORY.resolve("Main" + Application.EXTENSION_SEPARATOR + name);
     }
 
+    private static void runWithSource() {
+        try {
+            runWithSourceExceptionally();
+        } catch (ApplicationException e) {
+            fail(e);
+        }
+    }
+
+    private static void runWithSourceExceptionally() throws ApplicationException {
+        new Application(SOURCE).run();
+    }
+
+    @Test
+    void invalidate() throws IOException {
+        Files.writeString(SOURCE, "test");
+        assertThrows(CompileException.class, ApplicationTest::runWithSourceExceptionally);
+    }
+
     @AfterEach
     void tearDown() throws IOException {
         Files.deleteIfExists(TARGET);
@@ -25,15 +45,15 @@ public class ApplicationTest {
     }
 
     @Test
-    void generatesNoTarget() throws IOException {
-        new Application(SOURCE).run();
+    void generatesNoTarget() {
+        runWithSource();
         assertFalse(Files.exists(TARGET));
     }
 
     @Test
     void generatesTarget() throws IOException {
-        Files.createFile(SOURCE);
-        new Application(SOURCE).run();
+        Files.writeString(SOURCE, "");
+        runWithSource();
         assertTrue(Files.exists(TARGET));
     }
 }

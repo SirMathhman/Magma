@@ -1,7 +1,5 @@
 package magma;
 
-import java.io.IOException;
-
 public class Main {
     public static void main(String[] args) {
         try {
@@ -11,7 +9,7 @@ public class Main {
 
             var application = new Application(source);
             application.run();
-        } catch (IOException e) {
+        } catch (ApplicationException e) {
             //noinspection CallToPrintStackTrace
             e.printStackTrace();
         }
