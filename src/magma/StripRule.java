@@ -3,13 +3,25 @@ package magma;
 import java.util.Optional;
 
 public record StripRule(Rule child) implements Rule {
-    @Override
-    public Optional<Node> parse(String input) {
-        return child.parse(input.strip());
+    private Optional<Node> parse0(String input) {
+        return child.parse(input.strip()).findValue();
+    }
+
+    private Optional<String> generate0(Node node) {
+        throw new UnsupportedOperationException();
     }
 
     @Override
-    public Optional<String> generate(Node node) {
-        throw new UnsupportedOperationException();
+    public Result<Node, ParseException> parse(String input) {
+        return parse0(input)
+                .<Result<Node, ParseException>>map(Ok::new)
+                .orElseGet(() -> new Err<>(new ParseException("Invalid input", input)));
+    }
+
+    @Override
+    public Result<String, GeneratingException> generate(Node node) {
+        return generate0(node)
+                .<Result<String, GeneratingException>>map(Ok::new)
+                .orElseGet(() -> new Err<>(new GeneratingException("Invalid node", node)));
     }
 }

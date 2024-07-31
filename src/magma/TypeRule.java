@@ -1,15 +1,18 @@
 package magma;
 
-import java.util.Optional;
-
 public record TypeRule(String type, Rule child) implements Rule {
+
     @Override
-    public Optional<Node> parse(String input) {
-        return child.parse(input).map(node -> node.retype(type));
+    public Result<Node, ParseException> parse(String input) {
+        return child.parse(input)
+                .mapValue(node -> node.retype(type))
+                .mapErr(err -> new ParseException("Cannot assign type '" + type + "'", input, err));
     }
 
     @Override
-    public Optional<String> generate(Node node) {
-        return node.is(type) ? child.generate(node) : Optional.empty();
+    public Result<String, GeneratingException> generate(Node node) {
+        return node.is(type)
+                ? child.generate(node).mapErr(err -> new GeneratingException("Cannot generate with type '" + type + "'", node, err))
+                : new Err<>(new GeneratingException("Expected type '" + type + "' not present", node));
     }
 }

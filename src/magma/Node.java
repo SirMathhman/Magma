@@ -22,6 +22,15 @@ public final class Node {
         this.nodes = nodes;
     }
 
+    @Override
+    public String toString() {
+        return "Node{" +
+               "strings=" + strings +
+               ", nodes=" + nodes +
+               ", type=" + type +
+               '}';
+    }
+
     public Node withString(String propertyKey, String propertyValue) {
         var copy = new HashMap<>(strings);
         copy.put(propertyKey, propertyValue);

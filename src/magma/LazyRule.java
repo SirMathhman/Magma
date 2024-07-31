@@ -9,13 +9,25 @@ public class LazyRule implements Rule {
         this.current = Optional.of(rule);
     }
 
-    @Override
-    public Optional<Node> parse(String input) {
-        return current.flatMap(inner -> inner.parse(input));
+    private Optional<Node> parse0(String input) {
+        return current.flatMap(inner -> inner.parse(input).findValue());
+    }
+
+    private Optional<String> generate0(Node node) {
+        return current.flatMap(inner -> inner.generate(node).findValue());
     }
 
     @Override
-    public Optional<String> generate(Node node) {
-        return current.flatMap(inner -> inner.generate(node));
+    public Result<Node, ParseException> parse(String input) {
+        return parse0(input)
+                .<Result<Node, ParseException>>map(Ok::new)
+                .orElseGet(() -> new Err<>(new ParseException("Invalid input", input)));
+    }
+
+    @Override
+    public Result<String, GeneratingException> generate(Node node) {
+        return generate0(node)
+                .<Result<String, GeneratingException>>map(Ok::new)
+                .orElseGet(() -> new Err<>(new GeneratingException("Invalid node", node)));
     }
 }

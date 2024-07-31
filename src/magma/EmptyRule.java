@@ -8,13 +8,20 @@ public class EmptyRule implements Rule {
     private EmptyRule() {
     }
 
-    @Override
-    public Optional<Node> parse(String input) {
+    private Optional<Node> parse0(String input) {
         return input.isEmpty() ? Optional.of(new Node()) : Optional.empty();
     }
 
+
     @Override
-    public Optional<String> generate(Node node) {
-        throw new UnsupportedOperationException();
+    public Result<Node, ParseException> parse(String input) {
+        return parse0(input)
+                .<Result<Node, ParseException>>map(Ok::new)
+                .orElseGet(() -> new Err<>(new ParseException("Invalid input", input)));
+    }
+
+    @Override
+    public Result<String, GeneratingException> generate(Node node) {
+        return new Ok<>("");
     }
 }

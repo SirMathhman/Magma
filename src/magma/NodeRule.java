@@ -3,13 +3,21 @@ package magma;
 import java.util.Optional;
 
 public record NodeRule(String propertyKey, Rule child) implements Rule {
-    @Override
-    public Optional<Node> parse(String input) {
-        return child().parse(input).map(node -> new Node().withNode(propertyKey(), node));
+    private Optional<Node> parse0(String input) {
+        return this.child().parse(input).findValue().map(node -> new Node().withNode(propertyKey(), node));
     }
 
     @Override
-    public Optional<String> generate(Node node) {
-        throw new UnsupportedOperationException();
+    public Result<Node, ParseException> parse(String input) {
+        return parse0(input)
+                .<Result<Node, ParseException>>map(Ok::new)
+                .orElseGet(() -> new Err<>(new ParseException("Invalid input", input)));
+    }
+
+    @Override
+    public Result<String, GeneratingException> generate(Node node) {
+        return node.findNode(propertyKey)
+                .map(child::generate)
+                .orElseGet(() -> new Err<>(new GeneratingException("Node '" + propertyKey + "' not present", node)));
     }
 }

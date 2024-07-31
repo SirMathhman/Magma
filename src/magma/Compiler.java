@@ -1,7 +1,6 @@
 package magma;
 
 import java.util.List;
-import java.util.Optional;
 
 public class Compiler {
     public static final String PACKAGE_KEYWORD_WITH_SPACE = "package ";
@@ -40,10 +39,13 @@ public class Compiler {
     private static String compileRootMember(String input) throws ParseException {
         if (input.startsWith(PACKAGE_KEYWORD_WITH_SPACE)) return "";
 
-        return new DisjunctionRule(List.of(createImportRule(), createClassRule()))
-                .parse(input)
+        Rule rule = new DisjunctionRule(List.of(createImportRule(), createClassRule()));
+        return rule.parse(input).findValue()
                 .map(Compiler::modify)
-                .flatMap(node -> createRootMagmaRule().generate(node)).orElseThrow(() -> new ParseException("Invalid root", input));
+                .flatMap(node -> {
+                    Rule rule1 = createRootMagmaRule();
+                    return rule1.generate(node).findValue();
+                }).orElseThrow(() -> new ParseException("Invalid root", input));
     }
 
     private static Rule createImportRule() {
@@ -88,8 +90,8 @@ public class Compiler {
         return statement;
     }
 
-    static Optional<String> renderFunction(Node node, Rule statement) {
-        return createFunctionRule(statement).generate(node);
+    static String renderFunction(Node node, Rule statement) throws GeneratingException {
+        return createFunctionRule(statement).generate(node).$();
     }
 
     static Rule createFunctionRule(Rule statement) {

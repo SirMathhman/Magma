@@ -4,6 +4,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
+import static magma.Compiler.FUNCTION;
 import static magma.Compiler.METHOD;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -23,7 +24,7 @@ class CompilerTest {
 
     @ParameterizedTest
     @ValueSource(strings = {"first", "second"})
-    void methodName(String name) {
+    void methodName(String name) throws GeneratingException {
         var input = Compiler.renderJavaClass("", TEST_UPPER_SYMBOL, Compiler.renderMethod(name));
 
         var child = new Node()
@@ -31,34 +32,38 @@ class CompilerTest {
                 .withString(Compiler.NAME, name);
 
         var node = new Node()
+                .retype(FUNCTION)
                 .withString(Compiler.MODIFIERS, Compiler.CLASS_KEYWORD_WITH_SPACE)
                 .withString(Compiler.NAME, TEST_UPPER_SYMBOL)
                 .withNode(Compiler.CONTENT, child);
 
-        var output = Compiler.renderFunction(node, Compiler.createStatementRule()).orElseThrow();
+        var output = Compiler.renderFunction(node, Compiler.createStatementRule());
         assertCompile(input, output);
     }
 
     @ParameterizedTest
     @ValueSource(strings = {"First", "Second"})
-    void className(String name) {
+    void className(String name) throws GeneratingException {
         var node = new Node()
+                .retype(FUNCTION)
                 .withString(Compiler.MODIFIERS, Compiler.CLASS_KEYWORD_WITH_SPACE)
                 .withString(Compiler.NAME, name);
 
         var input = Compiler.renderJavaClass("", name, "");
-        var output = Compiler.renderFunction(node, Compiler.createStatementRule()).orElseThrow();
+        var output = Compiler.renderFunction(node, Compiler.createStatementRule());
 
         assertCompile(input, output);
     }
 
     @Test
-    void classPublic() {
-        Node node1 = new Node();
-        Node node2 = node1.withString(Compiler.MODIFIERS, Compiler.EXPORT_KEYWORD_WITH_SPACE + Compiler.CLASS_KEYWORD_WITH_SPACE);
-        Node node3 = node2.withString(Compiler.NAME, TEST_UPPER_SYMBOL);
-        Node node = node3.withString(Compiler.CONTENT, "");
-        assertCompile(Compiler.renderJavaClass(Compiler.PUBLIC_KEYWORD_WITH_SPACE, TEST_UPPER_SYMBOL, ""), Compiler.renderFunction(node, Compiler.createStatementRule()).orElseThrow());
+    void classPublic() throws GeneratingException {
+        var node = new Node()
+                .retype(FUNCTION)
+                .withString(Compiler.MODIFIERS, Compiler.EXPORT_KEYWORD_WITH_SPACE + Compiler.CLASS_KEYWORD_WITH_SPACE)
+                .withString(Compiler.NAME, TEST_UPPER_SYMBOL)
+                .withString(Compiler.CONTENT, "");
+
+        assertCompile(Compiler.renderJavaClass(Compiler.PUBLIC_KEYWORD_WITH_SPACE, TEST_UPPER_SYMBOL, ""), Compiler.renderFunction(node, Compiler.createStatementRule()));
     }
 
     @Test
