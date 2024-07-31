@@ -14,7 +14,7 @@ public record Application(Path source) {
             if (!Files.exists(source)) return;
 
             var input = Files.readString(source);
-            var output = compile(input);
+            var output = new Compiler().compile(input);
 
             var fileName = source.getFileName().toString();
             var separator = fileName.lastIndexOf('.');
@@ -26,11 +26,4 @@ public record Application(Path source) {
         }
     }
 
-    private static String compile(String input) throws ParseException {
-        if(input.isEmpty()) {
-            return "";
-        } else {
-            throw new ParseException("Invalid root", input);
-        }
-    }
 }
