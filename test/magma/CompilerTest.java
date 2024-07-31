@@ -35,18 +35,21 @@ class CompilerTest {
                 .withString(Compiler.NAME, TEST_UPPER_SYMBOL)
                 .withNode(Compiler.CONTENT, child);
 
-        var output = Compiler.renderFunction(node).orElseThrow();
+        var output = Compiler.renderFunction(node, Compiler.createStatementRule()).orElseThrow();
         assertCompile(input, output);
     }
 
     @ParameterizedTest
     @ValueSource(strings = {"First", "Second"})
     void className(String name) {
-        Node node1 = new Node();
-        Node node2 = node1.withString(Compiler.MODIFIERS, Compiler.CLASS_KEYWORD_WITH_SPACE);
-        Node node3 = node2.withString(Compiler.NAME, name);
-        Node node = node3.withString(Compiler.CONTENT, "");
-        assertCompile(Compiler.renderJavaClass("", name, ""), Compiler.renderFunction(node).orElseThrow());
+        var node = new Node()
+                .withString(Compiler.MODIFIERS, Compiler.CLASS_KEYWORD_WITH_SPACE)
+                .withString(Compiler.NAME, name);
+
+        var input = Compiler.renderJavaClass("", name, "");
+        var output = Compiler.renderFunction(node, Compiler.createStatementRule()).orElseThrow();
+
+        assertCompile(input, output);
     }
 
     @Test
@@ -55,7 +58,7 @@ class CompilerTest {
         Node node2 = node1.withString(Compiler.MODIFIERS, Compiler.EXPORT_KEYWORD_WITH_SPACE + Compiler.CLASS_KEYWORD_WITH_SPACE);
         Node node3 = node2.withString(Compiler.NAME, TEST_UPPER_SYMBOL);
         Node node = node3.withString(Compiler.CONTENT, "");
-        assertCompile(Compiler.renderJavaClass(Compiler.PUBLIC_KEYWORD_WITH_SPACE, TEST_UPPER_SYMBOL, ""), Compiler.renderFunction(node).orElseThrow());
+        assertCompile(Compiler.renderJavaClass(Compiler.PUBLIC_KEYWORD_WITH_SPACE, TEST_UPPER_SYMBOL, ""), Compiler.renderFunction(node, Compiler.createStatementRule()).orElseThrow());
     }
 
     @Test

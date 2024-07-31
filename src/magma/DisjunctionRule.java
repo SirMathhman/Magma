@@ -16,6 +16,11 @@ public record DisjunctionRule(List<Rule> rules) implements Rule {
 
     @Override
     public Optional<String> generate(Node node) {
-        throw new UnsupportedOperationException();
+        for (Rule rule : rules) {
+            var generated = rule.generate(node);
+            if(generated.isPresent()) return generated;
+        }
+
+        return Optional.empty();
     }
 }

@@ -43,7 +43,7 @@ public class Compiler {
         return new DisjunctionRule(List.of(createImportRule(), createClassRule()))
                 .parse(input)
                 .map(Compiler::modify)
-                .flatMap(Compiler::render).orElseThrow(() -> new ParseException("Invalid root", input));
+                .flatMap(node -> createRootMagmaRule().generate(node)).orElseThrow(() -> new ParseException("Invalid root", input));
     }
 
     private static Rule createImportRule() {
@@ -52,16 +52,17 @@ public class Compiler {
         return new TypeRule(IMPORT, new PrefixRule(IMPORT_KEYWORD_WITH_SPACE, afterKeyword));
     }
 
-    private static Optional<String> render(Node node) {
-        if (node.is(FUNCTION)) return renderFunction(node);
-        if (node.is(IMPORT)) return createImportRule().generate(node);
-        return Optional.empty();
+    private static Rule createRootMagmaRule() {
+        return new DisjunctionRule(List.of(
+                createImportRule(),
+                createStatementRule())
+        );
     }
 
     private static Rule createClassRule() {
         var modifiers = new StringRule(MODIFIERS);
         var name = new StripRule(new StringRule(NAME));
-        var content = new NodeRule(CLASS_MEMBERS_RULE, CONTENT);
+        var content = new NodeRule(CONTENT, CLASS_MEMBERS_RULE);
 
         var contentAndEnd = new SuffixRule(content, String.valueOf(Splitter.BLOCK_END));
         var afterKeyword = new FirstRule(name, String.valueOf(Splitter.BLOCK_START), contentAndEnd);
@@ -78,22 +79,26 @@ public class Compiler {
         return node;
     }
 
-    private static Optional<String> renderStatement(Node node) {
-        return node.is(METHOD) ? renderFunction(node) : Optional.of("");
+    static Rule createStatementRule() {
+        var statement = new LazyRule();
+        statement.set(new DisjunctionRule(List.of(
+                createFunctionRule(statement),
+                EmptyRule.EMPTY_RULE
+        )));
+        return statement;
     }
 
-    static Optional<String> renderFunction(Node node) {
-        var nameOptional = node.findString(NAME);
-        if (nameOptional.isEmpty()) return Optional.empty();
+    static Optional<String> renderFunction(Node node, Rule statement) {
+        return createFunctionRule(statement).generate(node);
+    }
 
-        var name = nameOptional.orElseThrow();
-        var modifiers = node.findString(MODIFIERS).orElse("");
-
-        var content = node.findNode(CONTENT)
-                .flatMap(Compiler::renderStatement)
-                .orElse("");
-
-        return Optional.of(modifiers + "def " + name + "() =>" + " " + Splitter.BLOCK_START + content + Splitter.BLOCK_END);
+    static Rule createFunctionRule(Rule statement) {
+        var modifiers = new DisjunctionRule(List.of(new StringRule(MODIFIERS), EmptyRule.EMPTY_RULE));
+        var name = new StringRule(NAME);
+        var content = new DisjunctionRule(List.of(new NodeRule(CONTENT, statement), EmptyRule.EMPTY_RULE));
+        var wrappedContent = new PrefixRule(String.valueOf(Splitter.BLOCK_START), new SuffixRule(content, String.valueOf(Splitter.BLOCK_END)));
+        var right = new FirstRule(name, "() => ", wrappedContent);
+        return new TypeRule(FUNCTION, new FirstRule(modifiers, "def ", right));
     }
 
     static String renderJavaClass(String modifiers, String name, String content) {
