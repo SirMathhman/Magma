@@ -42,7 +42,7 @@ public class Compiler {
         var compiledContent = compileClassMembers(content);
 
         var newModifiers = oldModifiers.equals(PUBLIC_KEYWORD_WITH_SPACE) ? EXPORT_KEYWORD_WITH_SPACE : "";
-        return Optional.of(renderFunction(newModifiers, name, compiledContent));
+        return Optional.of(renderMagmaClass(newModifiers, name, compiledContent));
     }
 
     private static String compileClassMembers(String content) throws ParseException {
@@ -50,12 +50,20 @@ public class Compiler {
         throw new ParseException("Unknown class member", content);
     }
 
-    static String renderFunction(String modifiers, String name, String content) {
-        return modifiers + CLASS_KEYWORD_WITH_SPACE + "def " + name + "() =>" + " " + Splitter.BLOCK_START + content + Splitter.BLOCK_END;
+    static String renderMagmaClass(String modifiers, String name, String content) {
+        return renderFunction(modifiers + CLASS_KEYWORD_WITH_SPACE, name, content);
     }
 
-    static String renderClass(String modifiers, String name, String content) {
+    static String renderFunction(String modifiers, String name, String content) {
+        return modifiers + "def " + name + "() =>" + " " + Splitter.BLOCK_START + content + Splitter.BLOCK_END;
+    }
+
+    static String renderJavaClass(String modifiers, String name, String content) {
         return modifiers + CLASS_KEYWORD_WITH_SPACE + name + " " + Splitter.BLOCK_START + content + Splitter.BLOCK_END;
+    }
+
+    static String renderMethod(String name) {
+        return "void " + name + "(){}";
     }
 
     String compile(String input) throws ParseException {

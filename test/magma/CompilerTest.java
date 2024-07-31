@@ -21,20 +21,28 @@ class CompilerTest {
     }
 
     @ParameterizedTest
+    @ValueSource(strings = {"first", "second"})
+    void methodName(String name) {
+        var input = Compiler.renderJavaClass("", TEST_UPPER_SYMBOL, Compiler.renderMethod(name));
+        var output = Compiler.renderMagmaClass("", TEST_UPPER_SYMBOL, Compiler.renderFunction("", name, ""));
+        assertCompile(input, output);
+    }
+
+    @ParameterizedTest
     @ValueSource(strings = {"First", "Second"})
     void className(String name) {
-        assertCompile(Compiler.renderClass("", name, ""), Compiler.renderFunction("", name, ""));
+        assertCompile(Compiler.renderJavaClass("", name, ""), Compiler.renderMagmaClass("", name, ""));
     }
 
     @Test
     void classPublic() {
-        assertCompile(Compiler.renderClass(Compiler.PUBLIC_KEYWORD_WITH_SPACE, TEST_UPPER_SYMBOL, ""), Compiler.renderFunction(Compiler.EXPORT_KEYWORD_WITH_SPACE, TEST_UPPER_SYMBOL, ""));
+        assertCompile(Compiler.renderJavaClass(Compiler.PUBLIC_KEYWORD_WITH_SPACE, TEST_UPPER_SYMBOL, ""), Compiler.renderMagmaClass(Compiler.EXPORT_KEYWORD_WITH_SPACE, TEST_UPPER_SYMBOL, ""));
     }
 
     @Test
     void classMemberInvalid() {
         assertThrows(ParseException.class, () -> {
-            var rendered = Compiler.renderClass("", TEST_UPPER_SYMBOL, "test");
+            var rendered = Compiler.renderJavaClass("", TEST_UPPER_SYMBOL, "test");
             new Compiler().compile(rendered);
         });
     }
