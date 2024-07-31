@@ -5,6 +5,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.fail;
 
 class CompilerTest {
@@ -22,12 +23,20 @@ class CompilerTest {
     @ParameterizedTest
     @ValueSource(strings = {"First", "Second"})
     void className(String name) {
-        assertCompile(Compiler.renderClass("", name), Compiler.renderFunction("", name));
+        assertCompile(Compiler.renderClass("", name, ""), Compiler.renderFunction("", name, ""));
     }
 
     @Test
     void classPublic() {
-        assertCompile(Compiler.renderClass(Compiler.PUBLIC_KEYWORD_WITH_SPACE, TEST_UPPER_SYMBOL), Compiler.renderFunction(Compiler.EXPORT_KEYWORD_WITH_SPACE, TEST_UPPER_SYMBOL));
+        assertCompile(Compiler.renderClass(Compiler.PUBLIC_KEYWORD_WITH_SPACE, TEST_UPPER_SYMBOL, ""), Compiler.renderFunction(Compiler.EXPORT_KEYWORD_WITH_SPACE, TEST_UPPER_SYMBOL, ""));
+    }
+
+    @Test
+    void classMemberInvalid() {
+        assertThrows(ParseException.class, () -> {
+            var rendered = Compiler.renderClass("", TEST_UPPER_SYMBOL, "test");
+            new Compiler().compile(rendered);
+        });
     }
 
     @Test

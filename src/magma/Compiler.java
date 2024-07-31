@@ -6,7 +6,7 @@ public class Compiler {
     public static final String PACKAGE_KEYWORD_WITH_SPACE = "package ";
     public static final String IMPORT_KEYWORD_WITH_SPACE = "import ";
     public static final String CLASS_KEYWORD_WITH_SPACE = "class ";
-    public static final String EMPTY_CONTENT = " {}";
+    public static final String EMPTY_CONTENT = " " + Splitter.BLOCK_START + Splitter.BLOCK_END;
     public static final String PUBLIC_KEYWORD_WITH_SPACE = "public ";
     public static final String EXPORT_KEYWORD_WITH_SPACE = "export ";
 
@@ -26,25 +26,38 @@ public class Compiler {
         return compileClass(input).orElseThrow(() -> new ParseException("Invalid root", input));
     }
 
-    private static Optional<String> compileClass(String input) {
+    private static Optional<String> compileClass(String input) throws ParseException {
         var classIndex = input.indexOf(CLASS_KEYWORD_WITH_SPACE);
         if (classIndex == -1) return Optional.empty();
 
         var oldModifiers = input.substring(0, classIndex);
+
         var truncatedRight = input.substring(classIndex + CLASS_KEYWORD_WITH_SPACE.length());
-        if (!truncatedRight.endsWith(EMPTY_CONTENT)) return Optional.empty();
 
-        var name = truncatedRight.substring(0, truncatedRight.length() - EMPTY_CONTENT.length());
+        var startIndex = truncatedRight.indexOf(Splitter.BLOCK_START);
+        if (startIndex == -1) return Optional.empty();
+
+        var name = truncatedRight.substring(0, startIndex).strip();
+        var contentAndEnd = truncatedRight.substring(startIndex + 1);
+        if(!contentAndEnd.endsWith(String.valueOf(Splitter.BLOCK_END))) return Optional.empty();
+        var content = contentAndEnd.substring(0, contentAndEnd.length() - 1);
+        var compiledContent = compileClassMembers(content);
+
         var newModifiers = oldModifiers.equals(PUBLIC_KEYWORD_WITH_SPACE) ? EXPORT_KEYWORD_WITH_SPACE : "";
-        return Optional.of(renderFunction(newModifiers, name));
+        return Optional.of(renderFunction(newModifiers, name, compiledContent));
     }
 
-    static String renderFunction(String modifiers, String name) {
-        return modifiers + CLASS_KEYWORD_WITH_SPACE + "def " + name + "() =>" + EMPTY_CONTENT;
+    private static String compileClassMembers(String content) throws ParseException {
+        if(content.isEmpty()) return "";
+        throw new ParseException("Unknown class member", content);
     }
 
-    static String renderClass(String modifiers, String name) {
-        return modifiers + CLASS_KEYWORD_WITH_SPACE + name + EMPTY_CONTENT;
+    static String renderFunction(String modifiers, String name, String content) {
+        return modifiers + CLASS_KEYWORD_WITH_SPACE + "def " + name + "() =>" + " " + Splitter.BLOCK_START + content + Splitter.BLOCK_END;
+    }
+
+    static String renderClass(String modifiers, String name, String content) {
+        return modifiers + CLASS_KEYWORD_WITH_SPACE + name + " " + Splitter.BLOCK_START + content + Splitter.BLOCK_END;
     }
 
     String compile(String input) throws ParseException {
