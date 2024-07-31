@@ -22,9 +22,11 @@ public class Compiler {
     public static final String CONTENT = "content";
     public static final String CLASS = "class";
     public static final String FUNCTION = "function";
+    public static final String SEGMENTS = "segments";
+    public static final String IMPORT = "import";
 
     private static Rule createMethodRule() {
-        return new TypeRule(METHOD, new PrefixRule(new SuffixRule(new StringRule(NAME), METHOD_SUFFIX), VOID_KEYWORD_WITH_SPACE));
+        return new TypeRule(METHOD, new PrefixRule(VOID_KEYWORD_WITH_SPACE, new SuffixRule(new StringRule(NAME), METHOD_SUFFIX)));
     }
 
     static String renderPackage(String name) {
@@ -37,16 +39,22 @@ public class Compiler {
 
     private static String compileRootMember(String input) throws ParseException {
         if (input.startsWith(PACKAGE_KEYWORD_WITH_SPACE)) return "";
-        if (input.startsWith(IMPORT_KEYWORD_WITH_SPACE)) return input;
 
-        return createClassRule()
+        return new DisjunctionRule(List.of(createImportRule(), createClassRule()))
                 .parse(input)
                 .map(Compiler::modify)
                 .flatMap(Compiler::render).orElseThrow(() -> new ParseException("Invalid root", input));
     }
 
+    private static Rule createImportRule() {
+        var segments = new StringRule(SEGMENTS);
+        var afterKeyword = new SuffixRule(segments, String.valueOf(Splitter.STATEMENT_END));
+        return new TypeRule(IMPORT, new PrefixRule(IMPORT_KEYWORD_WITH_SPACE, afterKeyword));
+    }
+
     private static Optional<String> render(Node node) {
         if (node.is(FUNCTION)) return renderFunction(node);
+        if (node.is(IMPORT)) return createImportRule().generate(node);
         return Optional.empty();
     }
 

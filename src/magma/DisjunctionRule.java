@@ -13,4 +13,9 @@ public record DisjunctionRule(List<Rule> rules) implements Rule {
 
         return Optional.empty();
     }
+
+    @Override
+    public Optional<String> generate(Node node) {
+        throw new UnsupportedOperationException();
+    }
 }

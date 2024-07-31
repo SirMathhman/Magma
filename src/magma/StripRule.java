@@ -7,4 +7,9 @@ public record StripRule(Rule child) implements Rule {
     public Optional<Node> parse(String input) {
         return child.parse(input.strip());
     }
+
+    @Override
+    public Optional<String> generate(Node node) {
+        throw new UnsupportedOperationException();
+    }
 }

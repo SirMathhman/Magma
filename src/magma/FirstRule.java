@@ -17,4 +17,9 @@ public record FirstRule(Rule leftRule, String slice, Rule rightRule) implements 
 
         return withContentOptional.map(node -> leftResult.get().merge(node));
     }
+
+    @Override
+    public Optional<String> generate(Node node) {
+        throw new UnsupportedOperationException();
+    }
 }

@@ -12,4 +12,9 @@ public class EmptyRule implements Rule {
     public Optional<Node> parse(String input) {
         return input.isEmpty() ? Optional.of(new Node()) : Optional.empty();
     }
+
+    @Override
+    public Optional<String> generate(Node node) {
+        throw new UnsupportedOperationException();
+    }
 }

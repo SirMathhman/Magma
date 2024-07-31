@@ -9,4 +9,9 @@ public record SuffixRule(Rule child, String suffix) implements Rule {
         var name = input.substring(0, input.length() - suffix().length());
         return child().parse(name);
     }
+
+    @Override
+    public Optional<String> generate(Node node) {
+        return child.generate(node).map(inner -> inner + suffix);
+    }
 }
