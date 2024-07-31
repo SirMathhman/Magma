@@ -19,6 +19,12 @@ class CompilerTest {
         }
     }
 
+    @ParameterizedTest
+    @ValueSource(strings = {"First", "Second"})
+    void className(String name) {
+        assertCompile(Compiler.renderClass(name), Compiler.renderFunction(name));
+    }
+
     @Test
     void rootStatementMultiple() {
         var renderedPackage = Compiler.renderPackage(TEST_LOWER_SYMBOL);
