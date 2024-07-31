@@ -22,7 +22,12 @@ class CompilerTest {
     @ParameterizedTest
     @ValueSource(strings = {"First", "Second"})
     void className(String name) {
-        assertCompile(Compiler.renderClass(name), Compiler.renderFunction(name));
+        assertCompile(Compiler.renderClass("", name), Compiler.renderFunction("", name));
+    }
+
+    @Test
+    void classPublic() {
+        assertCompile(Compiler.renderClass(Compiler.PUBLIC_KEYWORD_WITH_SPACE, TEST_UPPER_SYMBOL), Compiler.renderFunction(Compiler.EXPORT_KEYWORD_WITH_SPACE, TEST_UPPER_SYMBOL));
     }
 
     @Test
