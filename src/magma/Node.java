@@ -4,6 +4,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
+import java.util.function.Function;
 
 @SuppressWarnings("OptionalUsedAsFieldOrParameterType")
 public final class Node {
@@ -57,5 +58,12 @@ public final class Node {
         var copy = new HashMap<>(nodes);
         copy.put(propertyKey, propertyValue);
         return new Node(type, strings, copy);
+    }
+
+    public Node mapString(String propertyKey, Function<String, String> mapper) {
+        return findString(propertyKey)
+                .map(mapper)
+                .map(value -> withString(propertyKey, value))
+                .orElse(this);
     }
 }

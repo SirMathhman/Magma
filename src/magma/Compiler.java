@@ -41,13 +41,18 @@ public class Compiler {
         return compileClass(input).orElseThrow(() -> new ParseException("Invalid root", input));
     }
 
-    private static Optional<String> compileClass(String input) throws ParseException {
+    private static Optional<String> compileClass(String input) {
         var classIndex = input.indexOf(CLASS_KEYWORD_WITH_SPACE);
 
         if (classIndex == -1) return Optional.empty();
-        var oldModifiers = input.substring(0, classIndex);
-        var newModifiers = oldModifiers.equals(PUBLIC_KEYWORD_WITH_SPACE) ? EXPORT_KEYWORD_WITH_SPACE : "";
-        var withModifiers = new Node().withString(MODIFIERS, newModifiers + CLASS_KEYWORD_WITH_SPACE);
+
+        var withModifiersOptional = new StringRule(MODIFIERS).parse(input.substring(0, classIndex)).map(node -> node.mapString(MODIFIERS, oldModifiers -> {
+            var newAccessor = oldModifiers.equals(PUBLIC_KEYWORD_WITH_SPACE) ? EXPORT_KEYWORD_WITH_SPACE : "";
+            return newAccessor + CLASS_KEYWORD_WITH_SPACE;
+        }));
+
+        if (withModifiersOptional.isEmpty()) return Optional.empty();
+        var withModifiers = withModifiersOptional.get();
 
         var truncatedRight = input.substring(classIndex + CLASS_KEYWORD_WITH_SPACE.length());
         var startIndex = truncatedRight.indexOf(Splitter.BLOCK_START);
@@ -55,15 +60,15 @@ public class Compiler {
         if (startIndex == -1) return Optional.empty();
         var name = truncatedRight.substring(0, startIndex).strip();
         var other1 = new Node().withString(NAME, name);
-        var contentAndEnd = truncatedRight.substring(startIndex + 1);
+        var withName = withModifiers.merge(other1);
 
+        var contentAndEnd = truncatedRight.substring(startIndex + 1);
         if (!contentAndEnd.endsWith(String.valueOf(Splitter.BLOCK_END))) return Optional.empty();
         var content = contentAndEnd.substring(0, contentAndEnd.length() - 1);
-
-        var withName = withModifiers.merge(other1);
         var other = new NodeRule(CLASS_MEMBERS_RULE, CONTENT).parse(content);
         if (other.isEmpty()) return Optional.empty();
         var withContent = withName.merge(other.orElseThrow());
+
         return Optional.of(renderFunction(withContent).orElseThrow());
     }
 
