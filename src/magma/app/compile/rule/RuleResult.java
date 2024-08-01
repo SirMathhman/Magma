@@ -9,4 +9,8 @@ public record RuleResult<T, E extends Exception>(Result<T, E> result, List<RuleR
     public RuleResult(Result<T, E> result) {
         this(result, Collections.emptyList());
     }
+
+    public boolean isValid() {
+        return result.isOk();
+    }
 }
