@@ -1,4 +1,4 @@
-package magma;
+package magma.app;
 
 public class ApplicationException extends Exception {
     public ApplicationException(String message) {

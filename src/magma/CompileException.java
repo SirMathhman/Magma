@@ -1,5 +1,7 @@
 package magma;
 
+import magma.app.ApplicationException;
+
 public class CompileException extends ApplicationException {
     public CompileException(Throwable cause) {
         super(cause);

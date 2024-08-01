@@ -4,7 +4,7 @@
     <module name="Magma" />
     <extension name="coverage">
       <pattern>
-        <option name="PATTERN" value="magma.*" />
+        <option name="PATTERN" value="magma.app.*" />
         <option name="ENABLED" value="true" />
       </pattern>
     </extension>

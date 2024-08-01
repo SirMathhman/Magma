@@ -24,7 +24,7 @@ public class Compiler {
         return node.withNodeList(CommonLang.CHILDREN, copy);
     }
 
-    String compile(String input) throws CompileException {
+    public String compile(String input) throws CompileException {
         return JavaLang.createRootJavaRule().parse(input)
                 .<CompileException>mapErr(err -> err)
                 .mapValue(Compiler::modify)

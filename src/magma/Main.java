@@ -1,5 +1,8 @@
 package magma;
 
+import magma.app.Application;
+import magma.app.ApplicationException;
+
 import java.nio.file.Path;
 
 public class Main {

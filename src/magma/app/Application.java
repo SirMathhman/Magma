@@ -1,4 +1,6 @@
-package magma;
+package magma.app;
+
+import magma.Compiler;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -9,7 +11,7 @@ public record Application(Path source) {
     public static final String EXTENSION_SEPARATOR = ".";
     public static final Path ROOT_DIRECTORY = Paths.get(".");
 
-    void run() throws ApplicationException {
+    public void run() throws ApplicationException {
         try {
             if (!Files.exists(source)) return;
 
