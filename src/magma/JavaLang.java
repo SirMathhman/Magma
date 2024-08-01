@@ -1,5 +1,17 @@
 package magma;
 
+import magma.rule.DisjunctionRule;
+import magma.rule.EmptyRule;
+import magma.rule.FirstRule;
+import magma.rule.NodeRule;
+import magma.rule.PrefixRule;
+import magma.rule.Rule;
+import magma.rule.StatementsRule;
+import magma.rule.StringRule;
+import magma.rule.StripRule;
+import magma.rule.SuffixRule;
+import magma.rule.TypeRule;
+
 import java.util.List;
 
 public class JavaLang {

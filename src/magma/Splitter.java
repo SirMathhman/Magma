@@ -8,7 +8,7 @@ public class Splitter {
     public static final char BLOCK_START = '{';
     public static final char BLOCK_END = '}';
 
-    static List<String> splitRootMembers(String input) {
+    public static List<String> splitRootMembers(String input) {
         var current = new State();
         var length = input.length();
         for (int i = 0; i < length; i++) {

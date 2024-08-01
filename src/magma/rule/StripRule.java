@@ -1,18 +1,21 @@
-package magma;
+package magma.rule;
 
+import magma.GenerateException;
+import magma.Node;
+import magma.ParseException;
 import magma.api.Err;
 import magma.api.Ok;
 import magma.api.Result;
 
 import java.util.Optional;
 
-public record StringRule(String propertyKey) implements Rule {
+public record StripRule(Rule child) implements Rule {
     private Optional<Node> parse0(String input) {
-        return Optional.of(new Node().withString(propertyKey(), input));
+        return child.parse(input.strip()).findValue();
     }
 
     private Optional<String> generate0(Node node) {
-        return node.findString(propertyKey);
+        throw new UnsupportedOperationException();
     }
 
     @Override

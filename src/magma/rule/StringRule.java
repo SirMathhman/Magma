@@ -1,20 +1,21 @@
-package magma;
+package magma.rule;
 
+import magma.GenerateException;
+import magma.Node;
+import magma.ParseException;
 import magma.api.Err;
 import magma.api.Ok;
 import magma.api.Result;
 
 import java.util.Optional;
 
-public record PrefixRule(String prefix, Rule child) implements Rule {
+public record StringRule(String propertyKey) implements Rule {
     private Optional<Node> parse0(String input) {
-        if (!input.startsWith(prefix())) return Optional.empty();
-        var truncatedRight = input.substring(prefix().length());
-        return this.child().parse(truncatedRight).findValue();
+        return Optional.of(new Node().withString(propertyKey(), input));
     }
 
     private Optional<String> generate0(Node node) {
-        return child.generate(node).findValue().map(inner -> prefix + inner);
+        return node.findString(propertyKey);
     }
 
     @Override

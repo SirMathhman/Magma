@@ -1,5 +1,8 @@
-package magma;
+package magma.rule;
 
+import magma.GenerateException;
+import magma.Node;
+import magma.ParseException;
 import magma.api.Result;
 
 public interface Rule {

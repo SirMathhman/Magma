@@ -1,5 +1,9 @@
-package magma;
+package magma.rule;
 
+import magma.GenerateException;
+import magma.Node;
+import magma.ParseException;
+import magma.Splitter;
 import magma.api.Err;
 import magma.api.Ok;
 import magma.api.Result;
