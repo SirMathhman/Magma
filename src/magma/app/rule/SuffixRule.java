@@ -1,4 +1,4 @@
-package magma.rule;
+package magma.app.rule;
 
 import magma.GenerateException;
 import magma.Node;
@@ -9,13 +9,15 @@ import magma.api.Result;
 
 import java.util.Optional;
 
-public record StripRule(Rule child) implements Rule {
+public record SuffixRule(Rule child, String suffix) implements Rule {
     private Optional<Node> parse0(String input) {
-        return child.parse(input.strip()).findValue();
+        if (!input.endsWith(suffix())) return Optional.empty();
+        var name = input.substring(0, input.length() - suffix().length());
+        return this.child().parse(name).findValue();
     }
 
     private Optional<String> generate0(Node node) {
-        throw new UnsupportedOperationException();
+        return child.generate(node).findValue().map(inner -> inner + suffix);
     }
 
     @Override

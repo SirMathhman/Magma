@@ -1,12 +1,15 @@
 package magma;
 
-import magma.rule.Rule;
+import magma.app.rule.Rule;
+import magma.lang.CommonLang;
+import magma.lang.JavaLang;
+import magma.lang.MagmaLang;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
-import static magma.MagmaLang.FUNCTION;
-import static magma.JavaLang.METHOD;
+import static magma.lang.MagmaLang.FUNCTION;
+import static magma.lang.JavaLang.METHOD;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.fail;

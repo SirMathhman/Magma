@@ -1,16 +1,17 @@
-package magma;
+package magma.lang;
 
-import magma.rule.DisjunctionRule;
-import magma.rule.EmptyRule;
-import magma.rule.FirstRule;
-import magma.rule.LazyRule;
-import magma.rule.NodeRule;
-import magma.rule.PrefixRule;
-import magma.rule.Rule;
-import magma.rule.StatementsRule;
-import magma.rule.StringRule;
-import magma.rule.SuffixRule;
-import magma.rule.TypeRule;
+import magma.Splitter;
+import magma.app.rule.DisjunctionRule;
+import magma.app.rule.EmptyRule;
+import magma.app.rule.FirstRule;
+import magma.app.rule.LazyRule;
+import magma.app.rule.NodeRule;
+import magma.app.rule.PrefixRule;
+import magma.app.rule.Rule;
+import magma.app.rule.StatementsRule;
+import magma.app.rule.StringRule;
+import magma.app.rule.SuffixRule;
+import magma.app.rule.TypeRule;
 
 import java.util.List;
 

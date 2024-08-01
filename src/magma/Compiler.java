@@ -1,5 +1,9 @@
 package magma;
 
+import magma.lang.CommonLang;
+import magma.lang.JavaLang;
+import magma.lang.MagmaLang;
+
 import java.util.ArrayList;
 
 public class Compiler {

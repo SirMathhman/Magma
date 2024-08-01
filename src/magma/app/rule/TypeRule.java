@@ -1,4 +1,4 @@
-package magma.rule;
+package magma.app.rule;
 
 import magma.GenerateException;
 import magma.Node;

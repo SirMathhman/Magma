@@ -1,10 +1,11 @@
-package magma;
+package magma.lang;
 
-import magma.rule.PrefixRule;
-import magma.rule.Rule;
-import magma.rule.StringRule;
-import magma.rule.SuffixRule;
-import magma.rule.TypeRule;
+import magma.Splitter;
+import magma.app.rule.PrefixRule;
+import magma.app.rule.Rule;
+import magma.app.rule.StringRule;
+import magma.app.rule.SuffixRule;
+import magma.app.rule.TypeRule;
 
 public class CommonLang {
     public static final String IMPORT_KEYWORD_WITH_SPACE = "import ";

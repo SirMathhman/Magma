@@ -1,4 +1,4 @@
-package magma.rule;
+package magma.app.rule;
 
 import magma.GenerateException;
 import magma.Node;
@@ -9,14 +9,16 @@ import magma.api.Result;
 
 import java.util.Optional;
 
-public record StringRule(String propertyKey) implements Rule {
-    private Optional<Node> parse0(String input) {
-        return Optional.of(new Node().withString(propertyKey(), input));
+public class EmptyRule implements Rule {
+    public static final Rule EMPTY_RULE = new EmptyRule();
+
+    private EmptyRule() {
     }
 
-    private Optional<String> generate0(Node node) {
-        return node.findString(propertyKey);
+    private Optional<Node> parse0(String input) {
+        return input.isEmpty() ? Optional.of(new Node()) : Optional.empty();
     }
+
 
     @Override
     public Result<Node, ParseException> parse(String input) {
@@ -27,8 +29,6 @@ public record StringRule(String propertyKey) implements Rule {
 
     @Override
     public Result<String, GenerateException> generate(Node node) {
-        return generate0(node)
-                .<Result<String, GenerateException>>map(Ok::new)
-                .orElseGet(() -> new Err<>(new GenerateException("Invalid node", node)));
+        return new Ok<>("");
     }
 }

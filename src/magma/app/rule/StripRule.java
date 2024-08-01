@@ -1,4 +1,4 @@
-package magma.rule;
+package magma.app.rule;
 
 import magma.GenerateException;
 import magma.Node;
@@ -9,19 +9,13 @@ import magma.api.Result;
 
 import java.util.Optional;
 
-public class LazyRule implements Rule {
-    private Optional<Rule> current = Optional.empty();
-
-    public void set(Rule rule) {
-        this.current = Optional.of(rule);
-    }
-
+public record StripRule(Rule child) implements Rule {
     private Optional<Node> parse0(String input) {
-        return current.flatMap(inner -> inner.parse(input).findValue());
+        return child.parse(input.strip()).findValue();
     }
 
     private Optional<String> generate0(Node node) {
-        return current.flatMap(inner -> inner.generate(node).findValue());
+        throw new UnsupportedOperationException();
     }
 
     @Override
