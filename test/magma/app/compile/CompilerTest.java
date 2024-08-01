@@ -1,5 +1,7 @@
 package magma.app.compile;
 
+import magma.api.Result;
+import magma.api.Results;
 import magma.app.compile.rule.Rule;
 import magma.app.compile.lang.CommonLang;
 import magma.app.compile.lang.JavaLang;
@@ -20,7 +22,8 @@ class CompilerTest {
 
     private static void assertCompile(String input, String output) {
         try {
-            assertEquals(output, new Compiler().compile(input));
+            Result<String, CompileException> stringCompileExceptionResult = Compiler.compile(input);
+            assertEquals(output, Results.unwrap(stringCompileExceptionResult));
         } catch (CompileException e) {
             fail(e);
         }
@@ -59,7 +62,7 @@ class CompilerTest {
 
         Rule statement = MagmaLang.createStatementRule();
         Rule rule = MagmaLang.createFunctionRule(statement);
-        var output = rule.generate(node).result().$();
+        var output = Results.unwrap(rule.generate(node).result());
         assertCompile(input, output);
     }
 
@@ -74,7 +77,7 @@ class CompilerTest {
         var input = renderJavaClass("", name, "");
         Rule statement = MagmaLang.createStatementRule();
         Rule rule = MagmaLang.createFunctionRule(statement);
-        var output = rule.generate(node).result().$();
+        var output = Results.unwrap(rule.generate(node).result());
 
         assertCompile(input, output);
     }
@@ -89,14 +92,15 @@ class CompilerTest {
 
         Rule statement = MagmaLang.createStatementRule();
         Rule rule = MagmaLang.createFunctionRule(statement);
-        assertCompile(renderJavaClass(JavaLang.PUBLIC_KEYWORD_WITH_SPACE, TEST_UPPER_SYMBOL, ""), rule.generate(node).result().$());
+        assertCompile(renderJavaClass(JavaLang.PUBLIC_KEYWORD_WITH_SPACE, TEST_UPPER_SYMBOL, ""), Results.unwrap(rule.generate(node).result()));
     }
 
     @Test
     void classMemberInvalid() {
         assertThrows(ParseException.class, () -> {
             var rendered = renderJavaClass("", TEST_UPPER_SYMBOL, "test");
-            new Compiler().compile(rendered);
+            Result<String, CompileException> stringCompileExceptionResult = Compiler.compile(rendered);
+            Results.unwrap(stringCompileExceptionResult);
         });
     }
 

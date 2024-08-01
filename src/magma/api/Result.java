@@ -4,10 +4,8 @@ import java.util.Optional;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
-public interface Result<T, E extends Exception> {
+public interface Result<T, E> {
     Optional<T> findValue();
-
-    T $() throws E;
 
     <R> Result<R, E> mapValue(Function<T, R> mapper);
 
@@ -18,4 +16,8 @@ public interface Result<T, E extends Exception> {
     <R> Result<R, E> flatMapValue(Function<T, Result<R, E>> mapper);
 
     boolean isOk();
+
+    boolean isErr();
+
+    Optional<E> findError();
 }

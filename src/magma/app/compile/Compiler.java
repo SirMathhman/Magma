@@ -1,5 +1,6 @@
 package magma.app.compile;
 
+import magma.api.Result;
 import magma.app.compile.lang.MagmaLang;
 import magma.app.compile.lang.CommonLang;
 import magma.app.compile.lang.JavaLang;
@@ -29,15 +30,13 @@ public class Compiler {
         return node.withNodeList(CommonLang.CHILDREN, copy);
     }
 
-    public String compile(String input) throws CompileException {
-        Rule rule = JavaLang.createRootJavaRule();
-        return rule.parse(input).result()
+    public static Result<String, CompileException> compile(String input) {
+        return JavaLang.createRootJavaRule().parse(input).result()
                 .<CompileException>mapErr(err -> err)
                 .mapValue(Compiler::modify)
                 .flatMapValue((Node root) -> {
                     Rule rule1 = MagmaLang.createRootMagmaRule();
                     return rule1.generate(root).result().mapErr(err -> err);
-                })
-                .$();
+                });
     }
 }

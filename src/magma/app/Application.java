@@ -1,5 +1,8 @@
 package magma.app;
 
+import magma.api.Result;
+import magma.api.Results;
+import magma.app.compile.CompileException;
 import magma.app.compile.Compiler;
 
 import java.io.IOException;
@@ -16,7 +19,8 @@ public record Application(Path source) {
             if (!Files.exists(source)) return;
 
             var input = Files.readString(source);
-            var output = new Compiler().compile(input);
+            Result<String, CompileException> stringCompileExceptionResult = Compiler.compile(input);
+            var output = Results.unwrap(stringCompileExceptionResult);
 
             var fileName = source.getFileName().toString();
             var separator = fileName.lastIndexOf('.');

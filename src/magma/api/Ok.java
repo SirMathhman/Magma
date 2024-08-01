@@ -17,11 +17,6 @@ public class Ok<T, E extends Exception> implements Result<T, E> {
     }
 
     @Override
-    public T $() {
-        return value;
-    }
-
-    @Override
     public <R> Result<R, E> mapValue(Function<T, R> mapper) {
         return new Ok<>(mapper.apply(value));
     }
@@ -44,5 +39,15 @@ public class Ok<T, E extends Exception> implements Result<T, E> {
     @Override
     public boolean isOk() {
         return true;
+    }
+
+    @Override
+    public boolean isErr() {
+        return false;
+    }
+
+    @Override
+    public Optional<E> findError() {
+        return Optional.empty();
     }
 }

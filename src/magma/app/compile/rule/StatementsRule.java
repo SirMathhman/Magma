@@ -1,62 +1,53 @@
 package magma.app.compile.rule;
 
+import magma.api.Err;
+import magma.api.Ok;
 import magma.app.compile.GenerateException;
 import magma.app.compile.Node;
 import magma.app.compile.ParseException;
 import magma.app.compile.Splitter;
-import magma.api.Err;
-import magma.api.Ok;
-import magma.api.Result;
-import magma.api.Tuple;
 
 import java.util.ArrayList;
-import java.util.List;
 
 public record StatementsRule(Rule childRule, String propertyName) implements Rule {
-    private static ArrayList<Node> add(Tuple<List<Node>, Node> tuple) {
-        var copy = new ArrayList<>(tuple.left());
-        copy.add(tuple.right());
-        return copy;
-    }
-
-    private Result<Node, ParseException> parse1(String input) {
+    @Override
+    public RuleResult<Node, ParseException> parse(String input) {
         var rootMembers = Splitter.splitRootMembers(input);
-        Result<List<Node>, ParseException> childrenResult = new Ok<>(new ArrayList<>());
+        var children = new ArrayList<Node>();
         for (var rootMember : rootMembers) {
             var stripped = rootMember.strip();
             if (stripped.isEmpty()) continue;
 
-            childrenResult = childrenResult
-                    .and(() -> childRule.parse(stripped).result().mapErr(err -> err))
-                    .mapValue(StatementsRule::add);
+            var parsed = childRule.parse(stripped);
+            var valueOptional = parsed.findValue();
+            if (valueOptional.isPresent()) {
+                children.add(valueOptional.get());
+            } else {
+                return parsed;
+            }
         }
 
-        return childrenResult.mapValue(children -> new Node().withNodeList(propertyName, children));
-    }
-
-    private Result<String, GenerateException> generate1(Node root) {
-        var childrenOptional = root.findNodeList(propertyName());
-        if (childrenOptional.isEmpty()) {
-            return new Err<>(new GenerateException("Node list property '" + propertyName() + "' was not present", root));
-        }
-
-        Result<StringBuilder, GenerateException> builder = new Ok<>(new StringBuilder());
-        for (Node child : childrenOptional.get()) {
-            builder = builder
-                    .and(() -> this.childRule().generate(child).result().mapErr(err -> err))
-                    .mapValue(tuple -> tuple.left().append(tuple.right()));
-        }
-
-        return builder.mapValue(StringBuilder::toString);
-    }
-
-    @Override
-    public RuleResult<Node, ParseException> parse(String input) {
-        return new RuleResult<>(parse1(input));
+        return new RuleResult<>(new Ok<>(new Node().withNodeList(propertyName, children)));
     }
 
     @Override
     public RuleResult<String, GenerateException> generate(Node node) {
-        return new RuleResult<>(generate1(node));
+        var childrenOptional = node.findNodeList(this.propertyName());
+        if (childrenOptional.isEmpty()) {
+            return new RuleResult<>(new Err<>(new GenerateException("Node list property '%s' was not present".formatted(this.propertyName()), node)));
+        }
+
+        var builder = new StringBuilder();
+        for (Node child : childrenOptional.get()) {
+            var generated = childRule.generate(child);
+            var valueOptional = generated.findValue();
+            if (valueOptional.isPresent()) {
+                builder.append(valueOptional.get());
+            } else {
+                return generated;
+            }
+        }
+
+        return new RuleResult<>(new Ok<>(builder.toString()));
     }
 }
