@@ -1,5 +1,9 @@
 package magma;
 
+import magma.api.Err;
+import magma.api.Ok;
+import magma.api.Result;
+
 import java.util.Optional;
 
 public class EmptyRule implements Rule {

@@ -1,5 +1,10 @@
 package magma;
 
+import magma.api.Err;
+import magma.api.Ok;
+import magma.api.Result;
+import magma.api.Tuple;
+
 import java.util.ArrayList;
 import java.util.List;
 

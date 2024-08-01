@@ -1,5 +1,8 @@
 package magma;
 
+import magma.api.Err;
+import magma.api.Result;
+
 public record TypeRule(String type, Rule child) implements Rule {
 
     @Override

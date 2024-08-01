@@ -1,5 +1,9 @@
 package magma;
 
+import magma.api.Err;
+import magma.api.Ok;
+import magma.api.Result;
+
 import java.util.Optional;
 
 public record FirstRule(Rule leftRule, String slice, Rule rightRule) implements Rule {

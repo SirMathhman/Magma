@@ -1,5 +1,8 @@
 package magma;
 
+import magma.api.Err;
+import magma.api.Result;
+
 import java.util.List;
 
 public record DisjunctionRule(List<Rule> rules) implements Rule {

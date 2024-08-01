@@ -1,4 +1,4 @@
-package magma;
+package magma.api;
 
 import java.util.Optional;
 import java.util.function.Function;
