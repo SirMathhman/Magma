@@ -8,6 +8,7 @@ public class CommonLang {
     public static final String CONTENT = "content";
     public static final String SEGMENTS = "segments";
     public static final String IMPORT = "import";
+    public static final String CHILDREN = "children";
 
     static Rule createImportRule(String type, String prefix) {
         var segments = new StringRule(SEGMENTS);

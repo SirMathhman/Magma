@@ -2,6 +2,7 @@ package magma;
 
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
@@ -11,15 +12,17 @@ public final class Node {
     private final Map<String, String> strings;
     private final Map<String, Node> nodes;
     private final Optional<String> type;
+    private final Map<String, List<Node>> nodeLists;
 
     public Node() {
-        this(Optional.empty(), Collections.emptyMap(), Collections.emptyMap());
+        this(Optional.empty(), Collections.emptyMap(), Collections.emptyMap(), Collections.emptyMap());
     }
 
-    public Node(Optional<String> type, Map<String, String> strings, Map<String, Node> nodes) {
+    public Node(Optional<String> type, Map<String, String> strings, Map<String, Node> nodes, Map<String, List<Node>> nodeLists) {
         this.type = type;
         this.strings = strings;
         this.nodes = nodes;
+        this.nodeLists = nodeLists;
     }
 
     @Override
@@ -34,7 +37,7 @@ public final class Node {
     public Node withString(String propertyKey, String propertyValue) {
         var copy = new HashMap<>(strings);
         copy.put(propertyKey, propertyValue);
-        return new Node(type, copy, nodes);
+        return new Node(type, copy, nodes, nodeLists);
     }
 
     public Optional<String> findString(String propertyKey) {
@@ -42,7 +45,7 @@ public final class Node {
     }
 
     public Node retype(String type) {
-        return new Node(Optional.of(type), strings, nodes);
+        return new Node(Optional.of(type), strings, nodes, nodeLists);
     }
 
     public boolean is(String type) {
@@ -56,7 +59,7 @@ public final class Node {
         var nodesCopy = new HashMap<>(nodes);
         nodesCopy.putAll(other.nodes);
 
-        return new Node(type, stringsCopy, nodesCopy);
+        return new Node(type, stringsCopy, nodesCopy, nodeLists);
     }
 
     public Optional<Node> findNode(String propertyKey) {
@@ -66,7 +69,7 @@ public final class Node {
     public Node withNode(String propertyKey, Node propertyValue) {
         var copy = new HashMap<>(nodes);
         copy.put(propertyKey, propertyValue);
-        return new Node(type, strings, copy);
+        return new Node(type, strings, copy, nodeLists);
     }
 
     public Node mapString(String propertyKey, Function<String, String> mapper) {
@@ -74,5 +77,15 @@ public final class Node {
                 .map(mapper)
                 .map(value -> withString(propertyKey, value))
                 .orElse(this);
+    }
+
+    public Node withNodeList(String propertyKey, List<Node> propertyValues) {
+        var copy = new HashMap<>(nodeLists);
+        copy.put(propertyKey, propertyValues);
+        return new Node(type, strings, nodes, copy);
+    }
+
+    public Optional<List<Node>> findNodeList(String propertyKey) {
+        return Optional.ofNullable(nodeLists.get(propertyKey));
     }
 }

@@ -39,4 +39,8 @@ public class JavaLang {
                 createClassRule()
         ));
     }
+
+    static StatementsRule createRootJavaRule() {
+        return new StatementsRule(createJavaRootMemberRule(), CommonLang.CHILDREN);
+    }
 }

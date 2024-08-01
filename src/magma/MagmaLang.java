@@ -31,4 +31,8 @@ public class MagmaLang {
         var right = new FirstRule(name, "() => ", wrappedContent);
         return new TypeRule(FUNCTION, new FirstRule(modifiers, "def ", right));
     }
+
+    static StatementsRule createRootMagmaRule() {
+        return new StatementsRule(createMagmaRootMemberRule(), CommonLang.CHILDREN);
+    }
 }
