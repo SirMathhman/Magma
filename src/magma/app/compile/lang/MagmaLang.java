@@ -1,17 +1,17 @@
-package magma.lang;
+package magma.app.compile.lang;
 
-import magma.Splitter;
-import magma.app.rule.DisjunctionRule;
-import magma.app.rule.EmptyRule;
-import magma.app.rule.FirstRule;
-import magma.app.rule.LazyRule;
-import magma.app.rule.NodeRule;
-import magma.app.rule.PrefixRule;
-import magma.app.rule.Rule;
-import magma.app.rule.StatementsRule;
-import magma.app.rule.StringRule;
-import magma.app.rule.SuffixRule;
-import magma.app.rule.TypeRule;
+import magma.app.compile.Splitter;
+import magma.app.compile.rule.DisjunctionRule;
+import magma.app.compile.rule.EmptyRule;
+import magma.app.compile.rule.FirstRule;
+import magma.app.compile.rule.LazyRule;
+import magma.app.compile.rule.NodeRule;
+import magma.app.compile.rule.PrefixRule;
+import magma.app.compile.rule.Rule;
+import magma.app.compile.rule.StatementsRule;
+import magma.app.compile.rule.StringRule;
+import magma.app.compile.rule.SuffixRule;
+import magma.app.compile.rule.TypeRule;
 
 import java.util.List;
 
@@ -26,7 +26,7 @@ public class MagmaLang {
         );
     }
 
-    static Rule createStatementRule() {
+    public static Rule createStatementRule() {
         var statement = new LazyRule();
         statement.set(new DisjunctionRule(List.of(
                 createFunctionRule(statement),
@@ -36,7 +36,7 @@ public class MagmaLang {
         return statement;
     }
 
-    static Rule createFunctionRule(Rule statement) {
+    public static Rule createFunctionRule(Rule statement) {
         var modifiers = new DisjunctionRule(List.of(new StringRule(CommonLang.MODIFIERS), EmptyRule.EMPTY_RULE));
         var name = new StringRule(CommonLang.NAME);
         var content = new DisjunctionRule(List.of(new NodeRule(CommonLang.CONTENT, statement), EmptyRule.EMPTY_RULE));
@@ -45,7 +45,7 @@ public class MagmaLang {
         return new TypeRule(FUNCTION, new FirstRule(modifiers, "def ", right));
     }
 
-    static StatementsRule createRootMagmaRule() {
+    public static StatementsRule createRootMagmaRule() {
         return new StatementsRule(createMagmaRootMemberRule(), CommonLang.CHILDREN);
     }
 }

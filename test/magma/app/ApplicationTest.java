@@ -1,6 +1,6 @@
 package magma.app;
 
-import magma.CompileException;
+import magma.app.compile.CompileException;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 

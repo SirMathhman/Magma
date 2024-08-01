@@ -1,4 +1,4 @@
-package magma;
+package magma.app.compile;
 
 public class GenerateException extends CompileException {
     public GenerateException(Throwable cause) {

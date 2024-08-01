@@ -1,27 +1,21 @@
-package magma.app.rule;
+package magma.app.compile.rule;
 
-import magma.GenerateException;
-import magma.Node;
-import magma.ParseException;
+import magma.app.compile.GenerateException;
+import magma.app.compile.Node;
+import magma.app.compile.ParseException;
 import magma.api.Err;
 import magma.api.Ok;
 import magma.api.Result;
 
 import java.util.Optional;
 
-public class LazyRule implements Rule {
-    private Optional<Rule> current = Optional.empty();
-
-    public void set(Rule rule) {
-        this.current = Optional.of(rule);
-    }
-
+public record StringRule(String propertyKey) implements Rule {
     private Optional<Node> parse0(String input) {
-        return current.flatMap(inner -> inner.parse(input).findValue());
+        return Optional.of(new Node().withString(propertyKey(), input));
     }
 
     private Optional<String> generate0(Node node) {
-        return current.flatMap(inner -> inner.generate(node).findValue());
+        return node.findString(propertyKey);
     }
 
     @Override

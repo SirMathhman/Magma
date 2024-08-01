@@ -1,5 +1,6 @@
-package magma;
+package magma.app.compile.rule;
 
+import magma.app.compile.Splitter;
 import org.junit.jupiter.api.Test;
 
 import java.util.Collections;

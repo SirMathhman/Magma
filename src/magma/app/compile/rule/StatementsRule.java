@@ -1,9 +1,9 @@
-package magma.app.rule;
+package magma.app.compile.rule;
 
-import magma.GenerateException;
-import magma.Node;
-import magma.ParseException;
-import magma.Splitter;
+import magma.app.compile.GenerateException;
+import magma.app.compile.Node;
+import magma.app.compile.ParseException;
+import magma.app.compile.Splitter;
 import magma.api.Err;
 import magma.api.Ok;
 import magma.api.Result;

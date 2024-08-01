@@ -1,6 +1,6 @@
 package magma.app;
 
-import magma.Compiler;
+import magma.app.compile.Compiler;
 
 import java.io.IOException;
 import java.nio.file.Files;

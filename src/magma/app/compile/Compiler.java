@@ -1,8 +1,8 @@
-package magma;
+package magma.app.compile;
 
-import magma.lang.CommonLang;
-import magma.lang.JavaLang;
-import magma.lang.MagmaLang;
+import magma.app.compile.lang.MagmaLang;
+import magma.app.compile.lang.CommonLang;
+import magma.app.compile.lang.JavaLang;
 
 import java.util.ArrayList;
 
