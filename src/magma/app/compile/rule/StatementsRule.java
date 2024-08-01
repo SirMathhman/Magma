@@ -19,8 +19,7 @@ public record StatementsRule(Rule childRule, String propertyName) implements Rul
         return copy;
     }
 
-    @Override
-    public Result<Node, ParseException> parse(String input) {
+    private Result<Node, ParseException> parse1(String input) {
         var rootMembers = Splitter.splitRootMembers(input);
         Result<List<Node>, ParseException> childrenResult = new Ok<>(new ArrayList<>());
         for (var rootMember : rootMembers) {
@@ -28,15 +27,14 @@ public record StatementsRule(Rule childRule, String propertyName) implements Rul
             if (stripped.isEmpty()) continue;
 
             childrenResult = childrenResult
-                    .and(() -> childRule.parse(stripped).mapErr(err -> err))
+                    .and(() -> childRule.parse(stripped).result().mapErr(err -> err))
                     .mapValue(StatementsRule::add);
         }
 
         return childrenResult.mapValue(children -> new Node().withNodeList(propertyName, children));
     }
 
-    @Override
-    public Result<String, GenerateException> generate(Node root) {
+    private Result<String, GenerateException> generate1(Node root) {
         var childrenOptional = root.findNodeList(propertyName());
         if (childrenOptional.isEmpty()) {
             return new Err<>(new GenerateException("Node list property '" + propertyName() + "' was not present", root));
@@ -45,10 +43,20 @@ public record StatementsRule(Rule childRule, String propertyName) implements Rul
         Result<StringBuilder, GenerateException> builder = new Ok<>(new StringBuilder());
         for (Node child : childrenOptional.get()) {
             builder = builder
-                    .and(() -> childRule().generate(child).mapErr(err -> err))
+                    .and(() -> this.childRule().generate(child).result().mapErr(err -> err))
                     .mapValue(tuple -> tuple.left().append(tuple.right()));
         }
 
         return builder.mapValue(StringBuilder::toString);
+    }
+
+    @Override
+    public RuleResult<Node, ParseException> parse(String input) {
+        return new RuleResult<>(parse1(input));
+    }
+
+    @Override
+    public RuleResult<String, GenerateException> generate(Node node) {
+        return new RuleResult<>(generate1(node));
     }
 }

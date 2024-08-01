@@ -11,24 +11,32 @@ import java.util.Optional;
 
 public record StripRule(Rule child) implements Rule {
     private Optional<Node> parse0(String input) {
-        return child.parse(input.strip()).findValue();
+        return child.parse(input.strip()).result().findValue();
     }
 
     private Optional<String> generate0(Node node) {
         throw new UnsupportedOperationException();
     }
 
-    @Override
-    public Result<Node, ParseException> parse(String input) {
+    private Result<Node, ParseException> parse1(String input) {
         return parse0(input)
                 .<Result<Node, ParseException>>map(Ok::new)
                 .orElseGet(() -> new Err<>(new ParseException("Invalid input", input)));
     }
 
-    @Override
-    public Result<String, GenerateException> generate(Node node) {
+    private Result<String, GenerateException> generate1(Node node) {
         return generate0(node)
                 .<Result<String, GenerateException>>map(Ok::new)
                 .orElseGet(() -> new Err<>(new GenerateException("Invalid node", node)));
+    }
+
+    @Override
+    public RuleResult<Node, ParseException> parse(String input) {
+        return new RuleResult<>(parse1(input));
+    }
+
+    @Override
+    public RuleResult<String, GenerateException> generate(Node node) {
+        return new RuleResult<>(generate1(node));
     }
 }

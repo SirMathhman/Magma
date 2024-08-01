@@ -3,6 +3,7 @@ package magma.app.compile;
 import magma.app.compile.lang.MagmaLang;
 import magma.app.compile.lang.CommonLang;
 import magma.app.compile.lang.JavaLang;
+import magma.app.compile.rule.Rule;
 
 import java.util.ArrayList;
 
@@ -29,10 +30,14 @@ public class Compiler {
     }
 
     public String compile(String input) throws CompileException {
-        return JavaLang.createRootJavaRule().parse(input)
+        Rule rule = JavaLang.createRootJavaRule();
+        return rule.parse(input).result()
                 .<CompileException>mapErr(err -> err)
                 .mapValue(Compiler::modify)
-                .flatMapValue((Node root) -> MagmaLang.createRootMagmaRule().generate(root).mapErr(err -> err))
+                .flatMapValue((Node root) -> {
+                    Rule rule1 = MagmaLang.createRootMagmaRule();
+                    return rule1.generate(root).result().mapErr(err -> err);
+                })
                 .$();
     }
 }

@@ -58,7 +58,8 @@ class CompilerTest {
                 .withNode(CommonLang.CONTENT, child);
 
         Rule statement = MagmaLang.createStatementRule();
-        var output = MagmaLang.createFunctionRule(statement).generate(node).$();
+        Rule rule = MagmaLang.createFunctionRule(statement);
+        var output = rule.generate(node).result().$();
         assertCompile(input, output);
     }
 
@@ -72,7 +73,8 @@ class CompilerTest {
 
         var input = renderJavaClass("", name, "");
         Rule statement = MagmaLang.createStatementRule();
-        var output = MagmaLang.createFunctionRule(statement).generate(node).$();
+        Rule rule = MagmaLang.createFunctionRule(statement);
+        var output = rule.generate(node).result().$();
 
         assertCompile(input, output);
     }
@@ -86,7 +88,8 @@ class CompilerTest {
                 .withString(CommonLang.CONTENT, "");
 
         Rule statement = MagmaLang.createStatementRule();
-        assertCompile(renderJavaClass(JavaLang.PUBLIC_KEYWORD_WITH_SPACE, TEST_UPPER_SYMBOL, ""), MagmaLang.createFunctionRule(statement).generate(node).$());
+        Rule rule = MagmaLang.createFunctionRule(statement);
+        assertCompile(renderJavaClass(JavaLang.PUBLIC_KEYWORD_WITH_SPACE, TEST_UPPER_SYMBOL, ""), rule.generate(node).result().$());
     }
 
     @Test

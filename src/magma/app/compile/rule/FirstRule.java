@@ -15,27 +15,35 @@ public record FirstRule(Rule leftRule, String slice, Rule rightRule) implements 
         if (startIndex == -1) return Optional.empty();
         var leftSlice = input.substring(0, startIndex);
 
-        var leftResult = this.leftRule().parse(leftSlice).findValue();
+        var leftResult = this.leftRule().parse(leftSlice).result().findValue();
         if (leftResult.isEmpty()) return Optional.empty();
 
         var rightSlice = input.substring(startIndex + slice.length());
-        var withContentOptional = this.rightRule().parse(rightSlice).findValue();
+        var withContentOptional = this.rightRule().parse(rightSlice).result().findValue();
 
         return withContentOptional.map(node -> leftResult.get().merge(node));
     }
 
 
-    @Override
-    public Result<Node, ParseException> parse(String input) {
+    private Result<Node, ParseException> parse1(String input) {
         return parse0(input)
                 .<Result<Node, ParseException>>map(Ok::new)
                 .orElseGet(() -> new Err<>(new ParseException("Invalid input", input)));
     }
 
-    @Override
-    public Result<String, GenerateException> generate(Node node) {
-        return leftRule.generate(node)
-                .and(() -> rightRule.generate(node))
+    private Result<String, GenerateException> generate1(Node node) {
+        return leftRule.generate(node).result()
+                .and(() -> rightRule.generate(node).result())
                 .mapValue(tuple -> tuple.left() + slice + tuple.right());
+    }
+
+    @Override
+    public RuleResult<Node, ParseException> parse(String input) {
+        return new RuleResult<>(parse1(input));
+    }
+
+    @Override
+    public RuleResult<String, GenerateException> generate(Node node) {
+        return new RuleResult<>(generate1(node));
     }
 }

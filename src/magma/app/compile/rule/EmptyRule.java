@@ -20,15 +20,23 @@ public class EmptyRule implements Rule {
     }
 
 
-    @Override
-    public Result<Node, ParseException> parse(String input) {
+    private Result<Node, ParseException> parse1(String input) {
         return parse0(input)
                 .<Result<Node, ParseException>>map(Ok::new)
                 .orElseGet(() -> new Err<>(new ParseException("Invalid input", input)));
     }
 
-    @Override
-    public Result<String, GenerateException> generate(Node node) {
+    private Result<String, GenerateException> generate1(Node node) {
         return new Ok<>("");
+    }
+
+    @Override
+    public RuleResult<Node, ParseException> parse(String input) {
+        return new RuleResult<>(parse1(input));
+    }
+
+    @Override
+    public RuleResult<String, GenerateException> generate(Node node) {
+        return new RuleResult<>(generate1(node));
     }
 }
