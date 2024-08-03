@@ -46,6 +46,6 @@ public class MagmaLang {
     }
 
     public static StatementsRule createRootMagmaRule() {
-        return new StatementsRule(createMagmaRootMemberRule(), CommonLang.CHILDREN);
+        return new StatementsRule(CommonLang.CHILDREN, createMagmaRootMemberRule());
     }
 }

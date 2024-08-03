@@ -9,7 +9,7 @@ import magma.app.compile.Splitter;
 
 import java.util.ArrayList;
 
-public record StatementsRule(Rule childRule, String propertyName) implements Rule {
+public record StatementsRule(String propertyName, Rule childRule) implements Rule {
     @Override
     public RuleResult<Node, ParseError> parse(String input) {
         var rootMembers = Splitter.splitRootMembers(input);

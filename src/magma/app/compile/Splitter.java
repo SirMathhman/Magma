@@ -22,6 +22,7 @@ public class Splitter {
     static State splitAtChar(State current, char c) {
         var appended = current.append(c);
         if (c == STATEMENT_END && appended.isLevel()) return appended.advance();
+        if (c == BLOCK_END && appended.isShallow()) return appended.exit().advance();
         if (c == BLOCK_START) return appended.enter();
         if (c == BLOCK_END) return appended.exit();
         return appended;
@@ -62,6 +63,10 @@ public class Splitter {
 
         public State exit() {
             return new State(segments, buffer, depth - 1);
+        }
+
+        public boolean isShallow() {
+            return depth == 1;
         }
     }
 }

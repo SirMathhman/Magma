@@ -4,7 +4,6 @@ import magma.app.compile.Splitter;
 import magma.app.compile.rule.DisjunctionRule;
 import magma.app.compile.rule.EmptyRule;
 import magma.app.compile.rule.FirstRule;
-import magma.app.compile.rule.NodeRule;
 import magma.app.compile.rule.PrefixRule;
 import magma.app.compile.rule.Rule;
 import magma.app.compile.rule.StatementsRule;
@@ -38,7 +37,7 @@ public class JavaLang {
     private static Rule createClassRule() {
         var modifiers = new StringRule(CommonLang.MODIFIERS);
         var name = new StripRule(new StringRule(CommonLang.NAME));
-        var content = new NodeRule(CommonLang.CONTENT, createClassMembersRule());
+        var content = new StatementsRule(CommonLang.CONTENT, createClassMembersRule());
 
         var contentAndEnd = new SuffixRule(content, String.valueOf(Splitter.BLOCK_END));
         var afterKeyword = new FirstRule(name, String.valueOf(Splitter.BLOCK_START), contentAndEnd);
@@ -54,6 +53,6 @@ public class JavaLang {
     }
 
     public static StatementsRule createRootJavaRule() {
-        return new StatementsRule(createJavaRootMemberRule(), CommonLang.CHILDREN);
+        return new StatementsRule(CommonLang.CHILDREN, createJavaRootMemberRule());
     }
 }
