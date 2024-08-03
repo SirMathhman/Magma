@@ -13,4 +13,9 @@ public class GenerateError implements CompileError {
     public String format() {
         return message + ": " + node.format();
     }
+
+    @Override
+    public String formatWithoutContext() {
+        return message;
+    }
 }

@@ -13,4 +13,9 @@ public class ParseError implements CompileError {
     public String format() {
         return message + ": " + context;
     }
+
+    @Override
+    public String formatWithoutContext() {
+        return message;
+    }
 }

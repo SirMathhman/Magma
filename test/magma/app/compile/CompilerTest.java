@@ -7,6 +7,7 @@ import magma.app.compile.lang.CommonLang;
 import magma.app.compile.lang.JavaLang;
 import magma.app.compile.lang.MagmaLang;
 import magma.app.compile.rule.Rule;
+import magma.app.compile.rule.RuleResult;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
@@ -63,7 +64,8 @@ class CompilerTest {
 
         Rule statement = MagmaLang.createStatementRule();
         Rule rule = MagmaLang.createFunctionRule(statement);
-        var output = Results.unwrap(rule.generate(node).result().mapErr(Compiler::handleError));
+        var generated = rule.generate(node);
+        var output = Results.unwrap(generated.result().mapErr(err -> Compiler.wrapErr(generated)));
         assertCompile(input, output);
     }
 
@@ -78,7 +80,8 @@ class CompilerTest {
         var input = renderJavaClass("", name, "");
         Rule statement = MagmaLang.createStatementRule();
         Rule rule = MagmaLang.createFunctionRule(statement);
-        var output = Results.unwrap(rule.generate(node).result().mapErr(Compiler::handleError));
+        var generated = rule.generate(node);
+        var output = Results.unwrap(generated.result().mapErr(err -> Compiler.wrapErr(generated)));
         assertCompile(input, output);
     }
 
@@ -92,14 +95,15 @@ class CompilerTest {
 
         Rule statement = MagmaLang.createStatementRule();
         Rule rule = MagmaLang.createFunctionRule(statement);
-        assertCompile(renderJavaClass(JavaLang.PUBLIC_KEYWORD_WITH_SPACE, TEST_UPPER_SYMBOL, ""), Results.unwrap(rule.generate(node).result().mapErr(Compiler::handleError)));
+        var generate = rule.generate(node);
+        assertCompile(renderJavaClass(JavaLang.PUBLIC_KEYWORD_WITH_SPACE, TEST_UPPER_SYMBOL, ""), Results.unwrap(generate.result().mapErr(err -> Compiler.wrapErr(generate))));
     }
 
     @Test
     void classMemberInvalid() {
         assertThrows(ApplicationException.class, () -> {
             var rendered = renderJavaClass("", TEST_UPPER_SYMBOL, "test");
-            var stringCompileExceptionResult = Compiler.compile(rendered).mapErr(Compiler::handleError);
+            var stringCompileExceptionResult = Compiler.compile(rendered);
             Results.unwrap(stringCompileExceptionResult);
         });
     }

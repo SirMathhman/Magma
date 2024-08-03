@@ -2,10 +2,10 @@ package magma.app.compile;
 
 import magma.api.Result;
 import magma.app.ApplicationException;
-import magma.app.compile.lang.MagmaLang;
 import magma.app.compile.lang.CommonLang;
 import magma.app.compile.lang.JavaLang;
-import magma.app.compile.rule.Rule;
+import magma.app.compile.lang.MagmaLang;
+import magma.app.compile.rule.RuleResult;
 
 import java.util.ArrayList;
 
@@ -31,23 +31,24 @@ public class Compiler {
         return node.withNodeList(CommonLang.CHILDREN, copy);
     }
 
-    public static Result<String, CompileError> compile(String input) {
-        return JavaLang.createRootJavaRule().parse(input).result()
-                .<CompileError>mapErr(err -> err)
+    public static Result<String, ApplicationException> compile(String input) {
+        var sourceRootRule = JavaLang.createRootJavaRule();
+        var targetRootRule = MagmaLang.createRootMagmaRule();
+
+        var parsed = sourceRootRule.parse(input);
+        return parsed.result().mapErr(err -> wrapErr(parsed))
                 .mapValue(Compiler::modify)
                 .flatMapValue((Node root) -> {
-                    Rule rule1 = MagmaLang.createRootMagmaRule();
-                    return rule1.generate(root).result().mapErr(err -> err);
+                    var generated = targetRootRule.generate(root);
+                    return generated.result().mapErr(err -> wrapErr(generated));
                 });
     }
 
-    public static ApplicationException handleError(CompileError err) {
-        System.err.println(err.format());
-        return new ApplicationException("Compilation error.");
+    static ApplicationException wrapErr(RuleResult<?, ?> result) {
+        return new ApplicationException(result.format(0));
     }
 
     public static Result<String, ApplicationException> compileAndHandle(String input) {
-        return compile(input)
-                .mapErr(Compiler::handleError);
+        return compile(input);
     }
 }
