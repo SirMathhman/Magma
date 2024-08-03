@@ -1,6 +1,6 @@
 package magma.app;
 
-import magma.app.compile.CompileException;
+import magma.app.compile.CompileError;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 
@@ -36,7 +36,7 @@ public class ApplicationTest {
     @Test
     void invalidate() throws IOException {
         Files.writeString(SOURCE, "test");
-        assertThrows(CompileException.class, ApplicationTest::runWithSourceExceptionally);
+        assertThrows(ApplicationException.class, ApplicationTest::runWithSourceExceptionally);
     }
 
     @AfterEach

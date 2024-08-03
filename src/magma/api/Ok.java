@@ -4,7 +4,7 @@ import java.util.Optional;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
-public class Ok<T, E extends Exception> implements Result<T, E> {
+public class Ok<T, E> implements Result<T, E> {
     private final T value;
 
     public Ok(T value) {
@@ -22,7 +22,7 @@ public class Ok<T, E extends Exception> implements Result<T, E> {
     }
 
     @Override
-    public <R extends Exception> Result<T, R> mapErr(Function<E, R> mapper) {
+    public <R> Result<T, R> mapErr(Function<E, R> mapper) {
         return new Ok<>(value);
     }
 
@@ -49,5 +49,10 @@ public class Ok<T, E extends Exception> implements Result<T, E> {
     @Override
     public Optional<E> findError() {
         return Optional.empty();
+    }
+
+    @Override
+    public <R> R match(Function<T, R> onOk, Function<E, R> onErr) {
+        return onOk.apply(value);
     }
 }

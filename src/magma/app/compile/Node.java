@@ -88,4 +88,8 @@ public final class Node {
     public Optional<List<Node>> findNodeList(String propertyKey) {
         return Optional.ofNullable(nodeLists.get(propertyKey));
     }
+
+    public String format() {
+        return toString();
+    }
 }

@@ -9,7 +9,7 @@ public interface Result<T, E> {
 
     <R> Result<R, E> mapValue(Function<T, R> mapper);
 
-    <R extends Exception> Result<T, R> mapErr(Function<E, R> mapper);
+    <R> Result<T, R> mapErr(Function<E, R> mapper);
 
     <R> Result<Tuple<T, R>, E> and(Supplier<Result<R, E>> mapper);
 
@@ -20,4 +20,6 @@ public interface Result<T, E> {
     boolean isErr();
 
     Optional<E> findError();
+
+    <R> R match(Function<T, R> onOk, Function<E, R> onErr);
 }

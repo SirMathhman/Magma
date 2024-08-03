@@ -2,16 +2,16 @@ package magma.app.compile.rule;
 
 import magma.api.Err;
 import magma.api.Ok;
-import magma.app.compile.GenerateException;
+import magma.app.compile.GenerateError;
 import magma.app.compile.Node;
-import magma.app.compile.ParseException;
+import magma.app.compile.ParseError;
 import magma.app.compile.Splitter;
 
 import java.util.ArrayList;
 
 public record StatementsRule(Rule childRule, String propertyName) implements Rule {
     @Override
-    public RuleResult<Node, ParseException> parse(String input) {
+    public RuleResult<Node, ParseError> parse(String input) {
         var rootMembers = Splitter.splitRootMembers(input);
         var children = new ArrayList<Node>();
         for (var rootMember : rootMembers) {
@@ -31,10 +31,10 @@ public record StatementsRule(Rule childRule, String propertyName) implements Rul
     }
 
     @Override
-    public RuleResult<String, GenerateException> generate(Node node) {
+    public RuleResult<String, GenerateError> generate(Node node) {
         var childrenOptional = node.findNodeList(this.propertyName());
         if (childrenOptional.isEmpty()) {
-            return new RuleResult<>(new Err<>(new GenerateException("Node list property '%s' was not present".formatted(this.propertyName()), node)));
+            return new RuleResult<>(new Err<>(new GenerateError("Node list property '%s' was not present".formatted(this.propertyName()), node)));
         }
 
         var builder = new StringBuilder();

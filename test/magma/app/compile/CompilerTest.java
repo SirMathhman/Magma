@@ -2,16 +2,17 @@ package magma.app.compile;
 
 import magma.api.Result;
 import magma.api.Results;
-import magma.app.compile.rule.Rule;
+import magma.app.ApplicationException;
 import magma.app.compile.lang.CommonLang;
 import magma.app.compile.lang.JavaLang;
 import magma.app.compile.lang.MagmaLang;
+import magma.app.compile.rule.Rule;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
-import static magma.app.compile.lang.MagmaLang.FUNCTION;
 import static magma.app.compile.lang.JavaLang.METHOD;
+import static magma.app.compile.lang.MagmaLang.FUNCTION;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.fail;
@@ -22,9 +23,9 @@ class CompilerTest {
 
     private static void assertCompile(String input, String output) {
         try {
-            Result<String, CompileException> stringCompileExceptionResult = Compiler.compile(input);
+            Result<String, ApplicationException> stringCompileExceptionResult = Compiler.compileAndHandle(input);
             assertEquals(output, Results.unwrap(stringCompileExceptionResult));
-        } catch (CompileException e) {
+        } catch (ApplicationException e) {
             fail(e);
         }
     }
@@ -47,7 +48,7 @@ class CompilerTest {
 
     @ParameterizedTest
     @ValueSource(strings = {"first", "second"})
-    void methodName(String name) throws GenerateException {
+    void methodName(String name) throws ApplicationException {
         var input = renderJavaClass("", TEST_UPPER_SYMBOL, renderMethod(name));
 
         var child = new Node()
@@ -62,13 +63,13 @@ class CompilerTest {
 
         Rule statement = MagmaLang.createStatementRule();
         Rule rule = MagmaLang.createFunctionRule(statement);
-        var output = Results.unwrap(rule.generate(node).result());
+        var output = Results.unwrap(rule.generate(node).result().mapErr(Compiler::handleError));
         assertCompile(input, output);
     }
 
     @ParameterizedTest
     @ValueSource(strings = {"First", "Second"})
-    void className(String name) throws GenerateException {
+    void className(String name) throws ApplicationException {
         var node = new Node()
                 .retype(FUNCTION)
                 .withString(CommonLang.MODIFIERS, CommonLang.CLASS_KEYWORD_WITH_SPACE)
@@ -77,13 +78,12 @@ class CompilerTest {
         var input = renderJavaClass("", name, "");
         Rule statement = MagmaLang.createStatementRule();
         Rule rule = MagmaLang.createFunctionRule(statement);
-        var output = Results.unwrap(rule.generate(node).result());
-
+        var output = Results.unwrap(rule.generate(node).result().mapErr(Compiler::handleError));
         assertCompile(input, output);
     }
 
     @Test
-    void classPublic() throws GenerateException {
+    void classPublic() throws ApplicationException {
         var node = new Node()
                 .retype(FUNCTION)
                 .withString(CommonLang.MODIFIERS, MagmaLang.EXPORT_KEYWORD_WITH_SPACE + CommonLang.CLASS_KEYWORD_WITH_SPACE)
@@ -92,14 +92,14 @@ class CompilerTest {
 
         Rule statement = MagmaLang.createStatementRule();
         Rule rule = MagmaLang.createFunctionRule(statement);
-        assertCompile(renderJavaClass(JavaLang.PUBLIC_KEYWORD_WITH_SPACE, TEST_UPPER_SYMBOL, ""), Results.unwrap(rule.generate(node).result()));
+        assertCompile(renderJavaClass(JavaLang.PUBLIC_KEYWORD_WITH_SPACE, TEST_UPPER_SYMBOL, ""), Results.unwrap(rule.generate(node).result().mapErr(Compiler::handleError)));
     }
 
     @Test
     void classMemberInvalid() {
-        assertThrows(ParseException.class, () -> {
+        assertThrows(ApplicationException.class, () -> {
             var rendered = renderJavaClass("", TEST_UPPER_SYMBOL, "test");
-            Result<String, CompileException> stringCompileExceptionResult = Compiler.compile(rendered);
+            var stringCompileExceptionResult = Compiler.compile(rendered).mapErr(Compiler::handleError);
             Results.unwrap(stringCompileExceptionResult);
         });
     }
