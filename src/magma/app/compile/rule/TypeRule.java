@@ -10,7 +10,7 @@ public record TypeRule(String type, Rule child) implements Rule {
     public RuleResult<Node, ParseError> parse(String input) {
         return child.parse(input)
                 .wrapValue(node -> node.retype(type))
-                .wrapErr(err -> new ParseError("Cannot assign type '" + type + "'", input));
+                .wrapErr(() -> new ParseError("Cannot assign type '" + type + "'", input));
     }
 
     @Override
@@ -21,7 +21,7 @@ public record TypeRule(String type, Rule child) implements Rule {
     }
 
     private RuleResult<String, GenerateError> generateValid(Node node) {
-        return child.generate(node).wrapErr(err -> {
+        return child.generate(node).wrapErr(() -> {
             var format = "Cannot generate with type '%s'";
             var message = format.formatted(type);
             return new GenerateError(message, node);

@@ -17,7 +17,7 @@ public record Application(Path source) {
             if (!Files.exists(source)) return;
 
             var input = Files.readString(source);
-            var result = Compiler.compileAndHandle(input)
+            var result = Compiler.compile(input)
                     .mapValue(this::writeValue)
                     .match(value -> value, Optional::of);
 

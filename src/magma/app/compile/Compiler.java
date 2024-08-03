@@ -47,8 +47,4 @@ public class Compiler {
     static ApplicationException wrapErr(RuleResult<?, ?> result) {
         return new ApplicationException(result.format(0));
     }
-
-    public static Result<String, ApplicationException> compileAndHandle(String input) {
-        return compile(input);
-    }
 }

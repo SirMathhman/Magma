@@ -7,7 +7,6 @@ import magma.app.compile.lang.CommonLang;
 import magma.app.compile.lang.JavaLang;
 import magma.app.compile.lang.MagmaLang;
 import magma.app.compile.rule.Rule;
-import magma.app.compile.rule.RuleResult;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
@@ -24,7 +23,7 @@ class CompilerTest {
 
     private static void assertCompile(String input, String output) {
         try {
-            Result<String, ApplicationException> stringCompileExceptionResult = Compiler.compileAndHandle(input);
+            Result<String, ApplicationException> stringCompileExceptionResult = Compiler.compile(input);
             assertEquals(output, Results.unwrap(stringCompileExceptionResult));
         } catch (ApplicationException e) {
             fail(e);

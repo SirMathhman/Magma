@@ -1,0 +1,1 @@
+import magma.app.Application;import magma.app.ApplicationException;import java.nio.file.Path;export class def Main() => {}
