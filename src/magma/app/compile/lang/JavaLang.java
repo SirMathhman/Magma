@@ -60,8 +60,13 @@ public class JavaLang {
         return new TypeRule("method", new LocateRule(beforeContent, new First("{"), content));
     }
 
-    private static TypeRule createStatementRule() {
-        return new TypeRule("any", new StringRule("value"));
+    private static Rule createStatementRule() {
+        var statement = new LazyRule();
+        statement.set(new DisjunctionRule(List.of(
+                new TypeRule("try", new PrefixRule("try", new StripRule(new PrefixRule("{", new SuffixRule(new NodeListRule(new MemberSplitter(), "children", statement), "}"))))),
+                new TypeRule("any", new StringRule("value"))
+        )));
+        return statement;
     }
 
     private static TypeRule createDefinitionRule() {

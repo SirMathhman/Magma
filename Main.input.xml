@@ -48,11 +48,13 @@
 						<definition/>
 					<params/>
 					<children>
-						<any value="try {
-            var source = resolveMain();
-            var application = new Application(source);
-            application.run();
-        }"/>
+						<try>
+							<children>
+								<any value="var source = resolveMain();"/>
+								<any value="var application = new Application(source);"/>
+								<any value="application.run();"/>
+							<children/>
+						<try/>
 						<any value="catch (ApplicationException e) {
             //noinspection CallToPrintStackTrace
             e.printStackTrace();
