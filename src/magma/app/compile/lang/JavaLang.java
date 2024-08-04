@@ -1,7 +1,10 @@
 package magma.app.compile.lang;
 
 import magma.app.compile.rule.DisjunctionRule;
-import magma.app.compile.rule.FirstRule;
+import magma.app.compile.rule.First;
+import magma.app.compile.rule.Last;
+import magma.app.compile.rule.LocateRule;
+import magma.app.compile.rule.NodeRule;
 import magma.app.compile.rule.PrefixRule;
 import magma.app.compile.rule.Rule;
 import magma.app.compile.rule.StatementsRule;
@@ -35,11 +38,38 @@ public class JavaLang {
 
     private static TypeRule createClassRule() {
         var modifiers = new StripRule(new StringListRule("modifiers", " "));
-        var classMember = new TypeRule("any", new StringRule("content"));
+
+        var classMember = new DisjunctionRule(List.of(
+                createMethodRule(),
+                new TypeRule("any", new StringRule("content"))
+        ));
+
         var content = new StatementsRule("children", classMember);
 
-        var after = new FirstRule(new StripRule(new StringRule("name")), "{", new SuffixRule(content, "}"));
-        return new TypeRule("class", new FirstRule(modifiers, "class ", after));
+        var after = new LocateRule(new StripRule(new StringRule("name")), new First("{"), new SuffixRule(content, "}"));
+        return new TypeRule("class", new LocateRule(modifiers, new First("class "), after));
+    }
+
+    private static TypeRule createMethodRule() {
+        var definition = createDefinitionRule();
+        var params = new StripRule(new SuffixRule(new StringRule("params"), ")"));
+
+        var beforeContent = new LocateRule(new NodeRule("definition", definition), new First("("), params);
+        return new TypeRule("method", new LocateRule(beforeContent, new First("{"), new StringRule("content")));
+    }
+
+    private static TypeRule createDefinitionRule() {
+        var modifiers = new StripRule(new StringListRule("modifiers", " "));
+        var type = new NodeRule("type", createTypeRule());
+        var modifiersAndType = new LocateRule(modifiers, new Last(" "), type);
+        var name = new StringRule("name");
+        return new TypeRule("definition", new LocateRule(modifiersAndType, new Last(" "), name));
+    }
+
+    private static DisjunctionRule createTypeRule() {
+        return new DisjunctionRule(List.of(
+                new TypeRule("symbol", new StringRule("value"))
+        ));
     }
 
     private static Rule createNamespaceRule(String type, String prefix) {

@@ -32,7 +32,7 @@
 				<child value="public"/>
 			<string-list/>
 			<children>
-				<any content="public static void main(String[] args) {
+				<method params="String[] args" content="
         try {
             var source = resolveMain();
             var application = new Application(source);
@@ -41,12 +41,28 @@
             //noinspection CallToPrintStackTrace
             e.printStackTrace();
         }
-    }"/>
-				<any content="private static Path resolveMain() {
+    }">
+					<definition name="main" for="definition">
+						<string-list for="modifiers">
+							<child value="public"/>
+							<child value="static"/>
+						<string-list/>
+						<symbol for="type" value="void"/>
+					<definition/>
+				<method/>
+				<method params="" content="
         return Application.ROOT_DIRECTORY.resolve("src")
                 .resolve("magma")
                 .resolve("Main.java");
-    }"/>
+    }">
+					<definition name="resolveMain" for="definition">
+						<string-list for="modifiers">
+							<child value="private"/>
+							<child value="static"/>
+						<string-list/>
+						<symbol for="type" value="Path"/>
+					<definition/>
+				<method/>
 			<children/>
 		<class/>
 	<children/>

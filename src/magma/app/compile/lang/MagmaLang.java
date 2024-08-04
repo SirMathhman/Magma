@@ -3,12 +3,12 @@ package magma.app.compile.lang;
 import magma.app.compile.Splitter;
 import magma.app.compile.rule.DisjunctionRule;
 import magma.app.compile.rule.EmptyRule;
-import magma.app.compile.rule.FirstRule;
+import magma.app.compile.rule.First;
+import magma.app.compile.rule.LocateRule;
 import magma.app.compile.rule.LazyRule;
 import magma.app.compile.rule.NodeRule;
 import magma.app.compile.rule.PrefixRule;
 import magma.app.compile.rule.Rule;
-import magma.app.compile.rule.StatementsRule;
 import magma.app.compile.rule.StringRule;
 import magma.app.compile.rule.SuffixRule;
 import magma.app.compile.rule.TypeRule;
@@ -34,8 +34,8 @@ public class MagmaLang {
         var name = new StringRule(CommonLang.NAME);
         var content = new DisjunctionRule(List.of(new NodeRule(CommonLang.CONTENT, statement), EmptyRule.EMPTY_RULE));
         var wrappedContent = new PrefixRule(String.valueOf(Splitter.BLOCK_START), new SuffixRule(content, String.valueOf(Splitter.BLOCK_END)));
-        var right = new FirstRule(name, "() => ", wrappedContent);
-        return new TypeRule(FUNCTION, new FirstRule(modifiers, "def ", right));
+        var right = new LocateRule(name, new First("() => "), wrappedContent);
+        return new TypeRule(FUNCTION, new LocateRule(modifiers, new First("def "), right));
     }
 
     public static Rule createRootMagmaRule() {
