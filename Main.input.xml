@@ -1,9 +1,26 @@
-<?>
-	<children>
-		<package segments="magma"><package/>
-		<import segments="magma.app.Application"><import/>
-		<import segments="magma.app.ApplicationException"><import/>
-		<import segments="java.nio.file.Path"><import/>
-		<class modifiers="public " name="Main"><class/>
-	<children/>
-<?/>
+<any value="package magma;
+
+import magma.app.Application;
+import magma.app.ApplicationException;
+
+import java.nio.file.Path;
+
+public class Main {
+    public static void main(String[] args) {
+        try {
+            var source = resolveMain();
+            var application = new Application(source);
+            application.run();
+        } catch (ApplicationException e) {
+            //noinspection CallToPrintStackTrace
+            e.printStackTrace();
+        }
+    }
+
+    private static Path resolveMain() {
+        return Application.ROOT_DIRECTORY.resolve("src")
+                .resolve("magma")
+                .resolve("Main.java");
+    }
+}
+"><any/>
