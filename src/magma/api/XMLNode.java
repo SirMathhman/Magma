@@ -37,7 +37,7 @@ public record XMLNode(String name, Map<String, String> attributes, List<XMLNode>
         var attributesString = attributes.isEmpty() ? "" : " " + formatAttributes();
         var childrenString = children.isEmpty() ? "" : "\n" + children.stream()
                 .map(child -> child.format(depth + 1))
-                .collect(Collectors.joining("\n")) + "\n" + indent + "<" + name + "/>";
+                .collect(Collectors.joining("\n")) + "\n" + indent + "</" + name + ">";
 
         var maybe = children.isEmpty() ? "/" : "";
         return indent + "<" + name + attributesString + maybe + ">" + childrenString;
