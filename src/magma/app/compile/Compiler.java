@@ -1,6 +1,7 @@
 package magma.app.compile;
 
 import magma.api.Result;
+import magma.api.Results;
 import magma.app.ApplicationException;
 import magma.app.compile.lang.CommonLang;
 import magma.app.compile.lang.JavaLang;
@@ -31,17 +32,18 @@ public class Compiler {
         return node.withNodeList(CommonLang.CHILDREN, copy);
     }
 
-    public static Result<String, ApplicationException> compile(String input) {
+    public static Result<CompileResult, ApplicationException> compile(String input) {
         var sourceRootRule = JavaLang.createRootJavaRule();
         var targetRootRule = MagmaLang.createRootMagmaRule();
 
-        var parsed = sourceRootRule.parse(input);
-        return parsed.result().mapErr(err -> wrapErr(parsed))
-                .mapValue(Compiler::modify)
-                .flatMapValue((Node root) -> {
-                    var generated = targetRootRule.generate(root);
-                    return generated.result().mapErr(err -> wrapErr(generated));
-                });
+        return Results.$Result(() -> {
+            var parsedResult = sourceRootRule.parse(input);
+            var parsed = parsedResult.result().replaceErr(() -> wrapErr(parsedResult)).$();
+            var modified = modify(parsed);
+            var generatedResult = targetRootRule.generate(modified);
+            var generated = generatedResult.result().replaceErr(() -> wrapErr(generatedResult)).$();
+            return new CompileResult(generated, parsed, modified);
+        });
     }
 
     static ApplicationException wrapErr(RuleResult<?, ?> result) {

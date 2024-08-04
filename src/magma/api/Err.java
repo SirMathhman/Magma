@@ -55,4 +55,14 @@ public class Err<T, E> implements Result<T, E> {
     public <R> R match(Function<T, R> onOk, Function<E, R> onErr) {
         return onErr.apply(error);
     }
+
+    @Override
+    public T $() throws UnsafeException {
+        throw new UnsafeException(error);
+    }
+
+    @Override
+    public <R> Result<T, R> replaceErr(Supplier<R> supplier) {
+        return new Err<>(supplier.get());
+    }
 }

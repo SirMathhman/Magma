@@ -1,0 +1,9 @@
+<?>
+	<children>
+		<package segments="magma"><package/>
+		<import segments="magma.app.Application"><import/>
+		<import segments="magma.app.ApplicationException"><import/>
+		<import segments="java.nio.file.Path"><import/>
+		<class modifiers="public " name="Main"><class/>
+	<children/>
+<?/>

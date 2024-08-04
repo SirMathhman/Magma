@@ -31,7 +31,7 @@ public class JavaLang {
     }
 
     private static Rule createMethodRule() {
-        return new TypeRule(METHOD, new PrefixRule(VOID_KEYWORD_WITH_SPACE, new SuffixRule(new StringRule(CommonLang.NAME), METHOD_SUFFIX)));
+        return new TypeRule(METHOD, new StringRule("temp"));
     }
 
     private static Rule createClassRule() {

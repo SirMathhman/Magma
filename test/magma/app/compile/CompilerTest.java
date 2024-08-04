@@ -23,8 +23,8 @@ class CompilerTest {
 
     private static void assertCompile(String input, String output) {
         try {
-            Result<String, ApplicationException> stringCompileExceptionResult = Compiler.compile(input);
-            assertEquals(output, Results.unwrap(stringCompileExceptionResult));
+            Result<String, ApplicationException> stringCompileExceptionResult = Compiler.compile(input).mapValue(CompileResult::output);
+            assertEquals(output, Results.unwrapJava(stringCompileExceptionResult));
         } catch (ApplicationException e) {
             fail(e);
         }
@@ -64,7 +64,7 @@ class CompilerTest {
         Rule statement = MagmaLang.createStatementRule();
         Rule rule = MagmaLang.createFunctionRule(statement);
         var generated = rule.generate(node);
-        var output = Results.unwrap(generated.result().mapErr(err -> Compiler.wrapErr(generated)));
+        var output = Results.unwrapJava(generated.result().mapErr(err -> Compiler.wrapErr(generated)));
         assertCompile(input, output);
     }
 
@@ -80,7 +80,7 @@ class CompilerTest {
         Rule statement = MagmaLang.createStatementRule();
         Rule rule = MagmaLang.createFunctionRule(statement);
         var generated = rule.generate(node);
-        var output = Results.unwrap(generated.result().mapErr(err -> Compiler.wrapErr(generated)));
+        var output = Results.unwrapJava(generated.result().mapErr(err -> Compiler.wrapErr(generated)));
         assertCompile(input, output);
     }
 
@@ -95,15 +95,15 @@ class CompilerTest {
         Rule statement = MagmaLang.createStatementRule();
         Rule rule = MagmaLang.createFunctionRule(statement);
         var generate = rule.generate(node);
-        assertCompile(renderJavaClass(JavaLang.PUBLIC_KEYWORD_WITH_SPACE, TEST_UPPER_SYMBOL, ""), Results.unwrap(generate.result().mapErr(err -> Compiler.wrapErr(generate))));
+        assertCompile(renderJavaClass(JavaLang.PUBLIC_KEYWORD_WITH_SPACE, TEST_UPPER_SYMBOL, ""), Results.unwrapJava(generate.result().mapErr(err -> Compiler.wrapErr(generate))));
     }
 
     @Test
     void classMemberInvalid() {
         assertThrows(ApplicationException.class, () -> {
             var rendered = renderJavaClass("", TEST_UPPER_SYMBOL, "test");
-            var stringCompileExceptionResult = Compiler.compile(rendered);
-            Results.unwrap(stringCompileExceptionResult);
+            var stringCompileExceptionResult = Compiler.compile(rendered).mapValue(CompileResult::output);
+            Results.unwrapJava(stringCompileExceptionResult);
         });
     }
 

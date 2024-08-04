@@ -1,5 +1,7 @@
 package magma.app.compile;
 
+import magma.api.XMLNode;
+
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -91,5 +93,25 @@ public final class Node {
 
     public String format() {
         return toString();
+    }
+
+    public XMLNode toXML() {
+        var node = new XMLNode(type.orElse("?"));
+        for (Map.Entry<String, String> entry : strings.entrySet()) {
+            node = node.withAttribute(entry.getKey(), entry.getValue());
+        }
+        for (Map.Entry<String, Node> entry : nodes.entrySet()) {
+            var child = entry.getValue().toXML().withAttribute("for", entry.getKey());
+            node = node.withChild(child);
+        }
+        for (Map.Entry<String, List<Node>> stringListEntry : nodeLists.entrySet()) {
+            var parent = new XMLNode(stringListEntry.getKey());
+            var children = stringListEntry.getValue()
+                    .stream()
+                    .map(Node::toXML)
+                    .toList();
+            node = node.withChild(parent.withChildren(children));
+        }
+        return node;
     }
 }
