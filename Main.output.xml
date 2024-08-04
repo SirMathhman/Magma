@@ -1,11 +1,10 @@
-<any value="package magma;
-
-import magma.app.Application;
-import magma.app.ApplicationException;
-
-import java.nio.file.Path;
-
-public class Main {
+<block>
+	<children>
+		<any value="package magma;"><any/>
+		<any value="import magma.app.Application;"><any/>
+		<any value="import magma.app.ApplicationException;"><any/>
+		<any value="import java.nio.file.Path;"><any/>
+		<any value="public class Main {
     public static void main(String[] args) {
         try {
             var source = resolveMain();
@@ -22,5 +21,6 @@ public class Main {
                 .resolve("magma")
                 .resolve("Main.java");
     }
-}
-"><any/>
+}"><any/>
+	<children/>
+<block/>

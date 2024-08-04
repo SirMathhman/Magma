@@ -1,6 +1,7 @@
 package magma.app.compile.lang;
 
 import magma.app.compile.rule.Rule;
+import magma.app.compile.rule.StatementsRule;
 import magma.app.compile.rule.StringRule;
 import magma.app.compile.rule.TypeRule;
 
@@ -14,6 +15,7 @@ public class JavaLang {
     public static final String PACKAGE = "package";
 
     public static Rule createRootJavaRule() {
-        return new TypeRule("any", new StringRule("value"));
+        var childRule = new TypeRule("any", new StringRule("value"));
+        return new TypeRule("block", new StatementsRule("children", childRule));
     }
 }

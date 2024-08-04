@@ -8,6 +8,7 @@ import magma.app.compile.rule.LazyRule;
 import magma.app.compile.rule.NodeRule;
 import magma.app.compile.rule.PrefixRule;
 import magma.app.compile.rule.Rule;
+import magma.app.compile.rule.StatementsRule;
 import magma.app.compile.rule.StringRule;
 import magma.app.compile.rule.SuffixRule;
 import magma.app.compile.rule.TypeRule;
@@ -38,6 +39,6 @@ public class MagmaLang {
     }
 
     public static Rule createRootMagmaRule() {
-        return new TypeRule("any", new StringRule("value"));
+        return new TypeRule("block", new StatementsRule("children", new TypeRule("any", new StringRule("value"))));
     }
 }
