@@ -1,15 +1,36 @@
 package magma.app.compile;
 
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 public class MemberSplitter implements Splitter {
     public static final char STATEMENT_END = ';';
     public static final char BLOCK_START = '{';
     public static final char BLOCK_END = '}';
 
-    static State splitAtChar(State current, char c) {
+    static State splitAtChar(State current, char c, LinkedList<Character> queue) {
         var appended = current.append(c);
+        if (c == '/' && appended.isLevel()) {
+            if (queue.isEmpty()) return appended;
+            var next = queue.peek();
+            if (next == '/') {
+                var withComment = current.append(queue.pop());
+                while (!queue.isEmpty()) {
+                    var afterComment = queue.pop();
+                    if (afterComment == '\n') {
+                        withComment = withComment.advance();
+                    } else {
+                        withComment = withComment.append(afterComment);
+                    }
+                }
+
+                return withComment;
+            }
+        }
+
         if (c == STATEMENT_END && appended.isLevel()) return appended.advance();
         if (c == BLOCK_END && appended.isShallow()) return appended.exit().advance();
         if (c == BLOCK_START) return appended.enter();
@@ -19,11 +40,14 @@ public class MemberSplitter implements Splitter {
 
     @Override
     public List<String> split(String input) {
+        var queue = IntStream.range(0, input.length())
+                .mapToObj(input::charAt)
+                .collect(Collectors.toCollection(LinkedList::new));
+
         var current = new State();
-        var length = input.length();
-        for (int i = 0; i < length; i++) {
-            var c = input.charAt(i);
-            current = splitAtChar(current, c);
+        while (!queue.isEmpty()) {
+            var c = queue.pop();
+            current = splitAtChar(current, c, queue);
         }
 
         return current.advance().segments;

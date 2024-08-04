@@ -72,7 +72,8 @@ public class JavaLang {
                 createPrefixedStatementRule("catch", "catch", statement, children -> captureCatchParameters(children, definition)),
                 createDeclarationRule(definition, value),
                 new TypeRule("construction", new SuffixRule(createConstructionRule(value), ";")),
-                new TypeRule("invocation", new SuffixRule(createInvocationRule(value), ";")))
+                new TypeRule("invocation", new SuffixRule(createInvocationRule(value), ";")),
+                new TypeRule("comment", new PrefixRule("//", new StringRule("value"))))
         ));
         return statement;
     }
