@@ -73,7 +73,8 @@ public class JavaLang {
                 createDeclarationRule(definition, value),
                 new TypeRule("construction", new SuffixRule(createConstructionRule(value), ";")),
                 new TypeRule("invocation", new SuffixRule(createInvocationRule(value), ";")),
-                new TypeRule("comment", new PrefixRule("//", new StringRule("value"))))
+                new TypeRule("comment", new PrefixRule("//", new StringRule("value"))),
+                new TypeRule("return", new PrefixRule("return ", new SuffixRule(new NodeRule("value", value), ";"))))
         ));
         return statement;
     }

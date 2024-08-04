@@ -58,14 +58,39 @@
 										<symbol for="type" value="var"/>
 									<definition/>
 								<declaration/>
-								<any value="var application = new Application(source);"/>
-								<any value="application.run();"/>
+								<declaration>
+									<invocation for="value">
+										<reference for="caller" value="Application"/>
+										<arguments>
+											<reference value="source"/>
+										<arguments/>
+									<invocation/>
+									<definition name="application" for="definition">
+										<symbol for="type" value="var"/>
+									<definition/>
+								<declaration/>
+								<invocation>
+									<access member="run" for="caller">
+										<reference for="object" value="application"/>
+									<access/>
+								<invocation/>
 							<children/>
 						<try/>
-						<any value="catch (ApplicationException e) {
-            //noinspection CallToPrintStackTrace
-            e.printStackTrace();
-        }"/>
+						<catch>
+							<params>
+								<definition name="e">
+									<symbol for="type" value="ApplicationException"/>
+								<definition/>
+							<params/>
+							<children>
+								<comment value="noinspection CallToPrintStackTrace"/>
+								<invocation>
+									<access member="printStackTrace" for="caller">
+										<reference for="object" value="e"/>
+									<access/>
+								<invocation/>
+							<children/>
+						<catch/>
 					<children/>
 				<method/>
 				<method>
@@ -77,9 +102,32 @@
 						<symbol for="type" value="Path"/>
 					<definition/>
 					<children>
-						<any value="return Application.ROOT_DIRECTORY.resolve("src")
-                .resolve("magma")
-                .resolve("Main.java");"/>
+						<return>
+							<invocation for="value">
+								<access member="resolve" for="caller">
+									<invocation for="object">
+										<access member="resolve" for="caller">
+											<invocation for="object">
+												<access member="resolve" for="caller">
+													<access member="ROOT_DIRECTORY" for="object">
+														<reference for="object" value="Application"/>
+													<access/>
+												<access/>
+												<arguments>
+													<string value="src"/>
+												<arguments/>
+											<invocation/>
+										<access/>
+										<arguments>
+											<string value="magma"/>
+										<arguments/>
+									<invocation/>
+								<access/>
+								<arguments>
+									<string value="Main.java"/>
+								<arguments/>
+							<invocation/>
+						<return/>
 					<children/>
 				<method/>
 			<children/>
