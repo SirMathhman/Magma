@@ -45,7 +45,14 @@
 					<children>
 						<try>
 							<children>
-								<any value="var source = resolveMain();"/>
+								<declaration>
+									<invocation for="value">
+										<reference for="caller" value="resolveMain"/>
+									<invocation/>
+									<definition name="source" for="definition">
+										<symbol for="type" value="var"/>
+									<definition/>
+								<declaration/>
 								<any value="var application = new Application(source);"/>
 								<any value="application.run();"/>
 							<children/>
@@ -64,7 +71,6 @@
 						<string-list/>
 						<symbol for="type" value="Path"/>
 					<definition/>
-					<params/>
 					<children>
 						<any value="return Application.ROOT_DIRECTORY.resolve("src")
                 .resolve("magma")

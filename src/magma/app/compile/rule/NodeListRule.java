@@ -23,6 +23,8 @@ public final class NodeListRule implements Rule {
     @Override
     public RuleResult<Node, ParseError> parse(String input) {
         var rootMembers = splitter.split(input);
+        if(rootMembers.isEmpty()) return new RuleResult<>(new Err<>(new ParseError("No items present", input)));
+
         var children = new ArrayList<Node>();
         for (var rootMember : rootMembers) {
             var stripped = rootMember.strip();

@@ -3,6 +3,7 @@ package magma.app.compile.lang;
 import magma.app.compile.MemberSplitter;
 import magma.app.compile.ParamSplitter;
 import magma.app.compile.rule.DisjunctionRule;
+import magma.app.compile.rule.EmptyRule;
 import magma.app.compile.rule.First;
 import magma.app.compile.rule.Last;
 import magma.app.compile.rule.LazyRule;
@@ -53,20 +54,63 @@ public class JavaLang {
 
     private static TypeRule createMethodRule() {
         var definition = createDefinitionRule();
-        var params = new StripRule(new SuffixRule(new NodeListRule(new ParamSplitter(), "params", definition), ")"));
+        var params = new DisjunctionRule(List.of(
+                new NodeListRule(new ParamSplitter(), "params", definition),
+                EmptyRule.EMPTY_RULE
+        ));
 
-        var beforeContent = new LocateRule(new NodeRule("definition", definition), new First("("), params);
-        var content = new SuffixRule(new NodeListRule(new MemberSplitter(), "children", createStatementRule()), "}");
+        var beforeContent = new LocateRule(new NodeRule("definition", definition), new First("("), new StripRule(new SuffixRule(params, ")")));
+        var content = new SuffixRule(new NodeListRule(new MemberSplitter(), "children", createStatementRule(definition, createValueRule())), "}");
         return new TypeRule("method", new LocateRule(beforeContent, new First("{"), content));
     }
 
-    private static Rule createStatementRule() {
+    private static Rule createStatementRule(Rule definition, Rule value) {
         var statement = new LazyRule();
         statement.set(new DisjunctionRule(List.of(
-                new TypeRule("try", new PrefixRule("try", new StripRule(new PrefixRule("{", new SuffixRule(new NodeListRule(new MemberSplitter(), "children", statement), "}"))))),
-                new TypeRule("any", new StringRule("value"))
-        )));
+                createTryRule(statement),
+                createDeclarationRule(definition, value),
+                new TypeRule("construction", new SuffixRule(createConstructionRule(value), ";")),
+                new TypeRule("invocation", new SuffixRule(createInvocationRule(value), ";")))
+        ));
         return statement;
+    }
+
+    private static TypeRule createDeclarationRule(Rule definitionRule, Rule valueRule) {
+        var definition = new NodeRule("definition", definitionRule);
+        var value = new NodeRule("value", valueRule);
+        return new TypeRule("declaration", new LocateRule(definition, new Last("="), new SuffixRule(value, ";")));
+    }
+
+    private static Rule createValueRule() {
+        var value = new LazyRule();
+        value.set(new DisjunctionRule(List.of(
+                createConstructionRule(value),
+                createInvocationRule(value),
+                new TypeRule("reference", new StripRule(new SymbolRule(new StringRule("value"))))
+        )));
+        return value;
+    }
+
+    private static Rule createConstructionRule(Rule value) {
+        return createOperationsRule(value, new StripRule(new PrefixRule("new", new StripRule(new NodeRule("caller", value)))));
+    }
+
+    private static TypeRule createInvocationRule(Rule value) {
+        return createOperationsRule(value, new NodeRule("caller", value));
+    }
+
+    private static TypeRule createOperationsRule(Rule value, Rule caller) {
+        var arguments = new DisjunctionRule(List.of(
+                new NodeListRule(new ParamSplitter(), "arguments", value),
+                EmptyRule.EMPTY_RULE
+        ));
+
+        return new TypeRule("invocation", new LocateRule(caller, new First("("), new StripRule(new SuffixRule(arguments, ")"))));
+    }
+
+    private static TypeRule createTryRule(Rule statement) {
+        var children = new NodeListRule(new MemberSplitter(), "children", statement);
+        return new TypeRule("try", new PrefixRule("try", new StripRule(new PrefixRule("{", new SuffixRule(children, "}")))));
     }
 
     private static TypeRule createDefinitionRule() {
@@ -79,8 +123,7 @@ public class JavaLang {
         ));
 
         var name = new StringRule("name");
-
-        return new TypeRule("definition", new LocateRule(modifiersAndType, new Last(" "), name));
+        return new TypeRule("definition", new StripRule(new LocateRule(modifiersAndType, new Last(" "), name)));
     }
 
     private static Rule createTypeRule() {
