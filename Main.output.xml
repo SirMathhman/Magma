@@ -1,9 +1,28 @@
 <block>
 	<children>
-		<import namespace="magma.app.Application"/>
-		<import namespace="magma.app.ApplicationException"/>
-		<import namespace="java.nio.file.Path"/>
-		<any value="public class Main {
+		<import>
+			<string-list>
+				<child value="magma"/>
+				<child value="app"/>
+				<child value="Application"/>
+			<string-list/>
+		<import/>
+		<import>
+			<string-list>
+				<child value="magma"/>
+				<child value="app"/>
+				<child value="ApplicationException"/>
+			<string-list/>
+		<import/>
+		<import>
+			<string-list>
+				<child value="java"/>
+				<child value="nio"/>
+				<child value="file"/>
+				<child value="Path"/>
+			<string-list/>
+		<import/>
+		<function modifiers="class " after="Main {
     public static void main(String[] args) {
         try {
             var source = resolveMain();
