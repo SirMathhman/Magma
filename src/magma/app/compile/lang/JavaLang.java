@@ -56,7 +56,12 @@ public class JavaLang {
         var params = new StripRule(new SuffixRule(new NodeListRule(new ParamSplitter(), "params", definition), ")"));
 
         var beforeContent = new LocateRule(new NodeRule("definition", definition), new First("("), params);
-        return new TypeRule("method", new LocateRule(beforeContent, new First("{"), new StringRule("content")));
+        var content = new SuffixRule(new NodeListRule(new MemberSplitter(), "children", createStatementRule()), "}");
+        return new TypeRule("method", new LocateRule(beforeContent, new First("{"), content));
+    }
+
+    private static TypeRule createStatementRule() {
+        return new TypeRule("any", new StringRule("value"));
     }
 
     private static TypeRule createDefinitionRule() {

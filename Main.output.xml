@@ -27,16 +27,7 @@
 				<child value="public"/>
 			<string-list/>
 			<children>
-				<method content="
-        try {
-            var source = resolveMain();
-            var application = new Application(source);
-            application.run();
-        } catch (ApplicationException e) {
-            //noinspection CallToPrintStackTrace
-            e.printStackTrace();
-        }
-    }">
+				<method>
 					<definition name="main" for="definition">
 						<string-list for="modifiers">
 							<child value="public"/>
@@ -51,12 +42,19 @@
 							<array/>
 						<definition/>
 					<params/>
+					<children>
+						<any value="try {
+            var source = resolveMain();
+            var application = new Application(source);
+            application.run();
+        }"/>
+						<any value="catch (ApplicationException e) {
+            //noinspection CallToPrintStackTrace
+            e.printStackTrace();
+        }"/>
+					<children/>
 				<method/>
-				<method content="
-        return Application.ROOT_DIRECTORY.resolve("src")
-                .resolve("magma")
-                .resolve("Main.java");
-    }">
+				<method>
 					<definition name="resolveMain" for="definition">
 						<string-list for="modifiers">
 							<child value="private"/>
@@ -65,6 +63,11 @@
 						<symbol for="type" value="Path"/>
 					<definition/>
 					<params/>
+					<children>
+						<any value="return Application.ROOT_DIRECTORY.resolve("src")
+                .resolve("magma")
+                .resolve("Main.java");"/>
+					<children/>
 				<method/>
 			<children/>
 		<function/>
