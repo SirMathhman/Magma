@@ -21,10 +21,15 @@ public class JavaLang {
 
     public static Rule createRootJavaRule() {
         var childRule = new DisjunctionRule(List.of(
-                new TypeRule("package", new PrefixRule("package ", new SuffixRule(new StringRule("namespace"), ";"))),
+                createNamespaceRule("package", "package "),
+                createNamespaceRule("import", "import "),
                 new TypeRule("any", new StringRule("value"))
         ));
 
         return new TypeRule("block", new StatementsRule("children", childRule));
+    }
+
+    private static Rule createNamespaceRule(String type, String prefix) {
+        return new TypeRule(type, new PrefixRule(prefix, new SuffixRule(new StringRule("namespace"), ";")));
     }
 }

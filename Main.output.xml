@@ -1,8 +1,8 @@
 <block>
 	<children>
-		<any value="import magma.app.Application;"/>
-		<any value="import magma.app.ApplicationException;"/>
-		<any value="import java.nio.file.Path;"/>
+		<import namespace="magma.app.Application"/>
+		<import namespace="magma.app.ApplicationException"/>
+		<import namespace="java.nio.file.Path"/>
 		<any value="public class Main {
     public static void main(String[] args) {
         try {
