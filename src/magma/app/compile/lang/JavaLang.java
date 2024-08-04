@@ -95,7 +95,8 @@ public class JavaLang {
                 createConstructionRule(value),
                 createInvocationRule(value),
                 new TypeRule("access", new LocateRule(new NodeRule("object", value), new Last("."), new StringRule("member"))),
-                new TypeRule("reference", new StripRule(new SymbolRule(new StringRule("value"))))
+                new TypeRule("reference", new StripRule(new SymbolRule(new StringRule("value")))),
+                new TypeRule("string", new StripRule(new PrefixRule("\"", new SuffixRule(new StringRule("value"), "\""))))
         )));
         return value;
     }
@@ -114,7 +115,7 @@ public class JavaLang {
                 EmptyRule.EMPTY_RULE
         ));
 
-        return new TypeRule("invocation", new LocateRule(caller, new First("("), new StripRule(new SuffixRule(arguments, ")"))));
+        return new TypeRule("invocation", new LocateRule(caller, new Last("("), new StripRule(new SuffixRule(arguments, ")"))));
     }
 
     private static TypeRule createPrefixedStatementRule(String type, String prefix, Rule statement, Function<Rule, Rule> function) {
