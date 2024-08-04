@@ -101,7 +101,9 @@ public final class Node {
         }
 
         for (var entry : stringLists.entrySet()) {
-            var list = new XMLNode("string-list");
+            var list = new XMLNode("string-list")
+                    .withAttribute("for", entry.getKey());
+
             for (String childValue : entry.getValue()) {
                 list = list.withChild(new XMLNode("child").withAttribute("value", childValue));
             }

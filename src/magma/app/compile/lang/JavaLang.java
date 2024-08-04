@@ -26,11 +26,16 @@ public class JavaLang {
         var childRule = new DisjunctionRule(List.of(
                 createNamespaceRule("package", "package "),
                 createNamespaceRule("import", "import "),
-                new TypeRule("class", new FirstRule(new StripRule(new StringRule("modifiers")), "class ", new StringRule("after"))),
+                createClassRule(),
                 new TypeRule("any", new StringRule("value"))
         ));
 
         return new TypeRule("block", new StatementsRule("children", childRule));
+    }
+
+    private static TypeRule createClassRule() {
+        var modifiers = new StripRule(new StringListRule("modifiers", " "));
+        return new TypeRule("class", new FirstRule(modifiers, "class ", new StringRule("after")));
     }
 
     private static Rule createNamespaceRule(String type, String prefix) {
