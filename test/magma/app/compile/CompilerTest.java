@@ -31,11 +31,11 @@ class CompilerTest {
     }
 
     static String renderPackage(String name) {
-        return JavaLang.PACKAGE_KEYWORD_WITH_SPACE + name + Splitter.STATEMENT_END;
+        return JavaLang.PACKAGE_KEYWORD_WITH_SPACE + name + MemberSplitter.STATEMENT_END;
     }
 
     static String renderImport(String whitespace, String parent, String child) {
-        return whitespace + CommonLang.IMPORT_KEYWORD_WITH_SPACE + parent + "." + child + Splitter.STATEMENT_END;
+        return whitespace + CommonLang.IMPORT_KEYWORD_WITH_SPACE + parent + "." + child + MemberSplitter.STATEMENT_END;
     }
 
     static String renderMethod(String name) {
@@ -43,7 +43,7 @@ class CompilerTest {
     }
 
     static String renderJavaClass(String modifiers, String name, String content) {
-        return modifiers + CommonLang.CLASS_KEYWORD_WITH_SPACE + name + " " + Splitter.BLOCK_START + content + Splitter.BLOCK_END;
+        return modifiers + CommonLang.CLASS_KEYWORD_WITH_SPACE + name + " " + MemberSplitter.BLOCK_START + content + MemberSplitter.BLOCK_END;
     }
 
     @ParameterizedTest

@@ -1,6 +1,6 @@
 package magma.app.compile.rule;
 
-import magma.app.compile.Splitter;
+import magma.app.compile.MemberSplitter;
 import org.junit.jupiter.api.Test;
 
 import java.util.Collections;
@@ -11,7 +11,7 @@ class SplitterTest {
     @Test
     void withinBraces() {
         var input = "{a;b}";
-        var actual = Splitter.splitRootMembers(input);
+        var actual = new MemberSplitter().split(input);
         assertIterableEquals(Collections.singletonList(input), actual);
     }
 }

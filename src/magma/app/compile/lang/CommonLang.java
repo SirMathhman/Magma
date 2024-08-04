@@ -1,6 +1,6 @@
 package magma.app.compile.lang;
 
-import magma.app.compile.Splitter;
+import magma.app.compile.MemberSplitter;
 import magma.app.compile.rule.PrefixRule;
 import magma.app.compile.rule.Rule;
 import magma.app.compile.rule.StringRule;
@@ -19,7 +19,7 @@ public class CommonLang {
 
     static Rule createImportRule(String type, String prefix) {
         var segments = new StringRule(SEGMENTS);
-        var afterKeyword = new SuffixRule(segments, String.valueOf(Splitter.STATEMENT_END));
+        var afterKeyword = new SuffixRule(segments, String.valueOf(MemberSplitter.STATEMENT_END));
         return new TypeRule(type, new PrefixRule(prefix, afterKeyword));
     }
 }

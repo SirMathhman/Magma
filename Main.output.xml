@@ -27,7 +27,7 @@
 				<child value="public"/>
 			<string-list/>
 			<children>
-				<method params="String[] args" content="
+				<method content="
         try {
             var source = resolveMain();
             var application = new Application(source);
@@ -44,8 +44,15 @@
 						<string-list/>
 						<symbol for="type" value="void"/>
 					<definition/>
+					<params>
+						<definition name="args">
+							<array for="type">
+								<symbol for="child" value="String"/>
+							<array/>
+						<definition/>
+					<params/>
 				<method/>
-				<method params="" content="
+				<method content="
         return Application.ROOT_DIRECTORY.resolve("src")
                 .resolve("magma")
                 .resolve("Main.java");
@@ -57,6 +64,7 @@
 						<string-list/>
 						<symbol for="type" value="Path"/>
 					<definition/>
+					<params/>
 				<method/>
 			<children/>
 		<function/>

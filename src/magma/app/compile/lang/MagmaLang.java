@@ -1,6 +1,6 @@
 package magma.app.compile.lang;
 
-import magma.app.compile.Splitter;
+import magma.app.compile.MemberSplitter;
 import magma.app.compile.rule.DisjunctionRule;
 import magma.app.compile.rule.EmptyRule;
 import magma.app.compile.rule.First;
@@ -33,7 +33,7 @@ public class MagmaLang {
         var modifiers = new DisjunctionRule(List.of(new StringRule(CommonLang.MODIFIERS), EmptyRule.EMPTY_RULE));
         var name = new StringRule(CommonLang.NAME);
         var content = new DisjunctionRule(List.of(new NodeRule(CommonLang.CONTENT, statement), EmptyRule.EMPTY_RULE));
-        var wrappedContent = new PrefixRule(String.valueOf(Splitter.BLOCK_START), new SuffixRule(content, String.valueOf(Splitter.BLOCK_END)));
+        var wrappedContent = new PrefixRule(String.valueOf(MemberSplitter.BLOCK_START), new SuffixRule(content, String.valueOf(MemberSplitter.BLOCK_END)));
         var right = new LocateRule(name, new First("() => "), wrappedContent);
         return new TypeRule(FUNCTION, new LocateRule(modifiers, new First("def "), right));
     }

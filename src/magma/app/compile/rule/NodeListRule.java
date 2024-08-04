@@ -9,10 +9,20 @@ import magma.app.compile.Splitter;
 
 import java.util.ArrayList;
 
-public record StatementsRule(String propertyName, Rule childRule) implements Rule {
+public final class NodeListRule implements Rule {
+    private final String propertyName;
+    private final Rule childRule;
+    private final Splitter splitter;
+
+    public NodeListRule(Splitter splitter, String propertyName, Rule childRule) {
+        this.propertyName = propertyName;
+        this.childRule = childRule;
+        this.splitter = splitter;
+    }
+
     @Override
     public RuleResult<Node, ParseError> parse(String input) {
-        var rootMembers = Splitter.splitRootMembers(input);
+        var rootMembers = splitter.split(input);
         var children = new ArrayList<Node>();
         for (var rootMember : rootMembers) {
             var stripped = rootMember.strip();
@@ -32,9 +42,9 @@ public record StatementsRule(String propertyName, Rule childRule) implements Rul
 
     @Override
     public RuleResult<String, GenerateError> generate(Node node) {
-        var childrenOptional = node.findNodeList(this.propertyName());
+        var childrenOptional = node.findNodeList(propertyName);
         if (childrenOptional.isEmpty()) {
-            return new RuleResult<>(new Err<>(new GenerateError("Node list property '%s' was not present".formatted(this.propertyName()), node)));
+            return new RuleResult<>(new Err<>(new GenerateError("Node list property '%s' was not present".formatted(propertyName), node)));
         }
 
         var builder = new StringBuilder();
