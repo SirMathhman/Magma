@@ -35,7 +35,11 @@ public class JavaLang {
 
     private static TypeRule createClassRule() {
         var modifiers = new StripRule(new StringListRule("modifiers", " "));
-        return new TypeRule("class", new FirstRule(modifiers, "class ", new StringRule("after")));
+        var classMember = new TypeRule("any", new StringRule("content"));
+        var content = new StatementsRule("children", classMember);
+
+        var after = new FirstRule(new StripRule(new StringRule("name")), "{", new SuffixRule(content, "}"));
+        return new TypeRule("class", new FirstRule(modifiers, "class ", after));
     }
 
     private static Rule createNamespaceRule(String type, String prefix) {

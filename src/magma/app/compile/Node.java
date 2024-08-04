@@ -57,10 +57,16 @@ public final class Node {
         var stringsCopy = new HashMap<>(strings);
         stringsCopy.putAll(other.strings);
 
+        var stringListsCopy = new HashMap<>(stringLists);
+        stringListsCopy.putAll(other.stringLists);
+
         var nodesCopy = new HashMap<>(nodes);
         nodesCopy.putAll(other.nodes);
 
-        return new Node(type, stringsCopy, stringLists, nodesCopy, nodeLists);
+        var nodeListsCopy = new HashMap<>(nodeLists);
+        nodeListsCopy.putAll(other.nodeLists);
+
+        return new Node(type, stringsCopy, stringListsCopy, nodesCopy, nodeListsCopy);
     }
 
     public Optional<Node> findNode(String propertyKey) {
@@ -91,7 +97,7 @@ public final class Node {
     }
 
     public String format() {
-        return toString();
+        return toXML().format();
     }
 
     public XMLNode toXML() {

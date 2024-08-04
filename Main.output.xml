@@ -22,8 +22,12 @@
 				<child value="Path"/>
 			<string-list/>
 		<import/>
-		<function after="Main {
-    public static void main(String[] args) {
+		<function name="Main">
+			<string-list for="modifiers">
+				<child value="public"/>
+			<string-list/>
+			<children>
+				<any content="public static void main(String[] args) {
         try {
             var source = resolveMain();
             var application = new Application(source);
@@ -32,17 +36,13 @@
             //noinspection CallToPrintStackTrace
             e.printStackTrace();
         }
-    }
-
-    private static Path resolveMain() {
+    }"/>
+				<any content="private static Path resolveMain() {
         return Application.ROOT_DIRECTORY.resolve("src")
                 .resolve("magma")
                 .resolve("Main.java");
-    }
-}">
-			<string-list for="modifiers">
-				<child value="public"/>
-			<string-list/>
+    }"/>
+			<children/>
 		<function/>
 	<children/>
 <block/>
