@@ -1,6 +1,5 @@
 <block>
 	<children>
-		<any value="package magma;"><any/>
 		<any value="import magma.app.Application;"><any/>
 		<any value="import magma.app.ApplicationException;"><any/>
 		<any value="import java.nio.file.Path;"><any/>

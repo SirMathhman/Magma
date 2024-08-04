@@ -39,6 +39,7 @@ public class MagmaLang {
     }
 
     public static Rule createRootMagmaRule() {
-        return new TypeRule("block", new StatementsRule("children", new TypeRule("any", new StringRule("value"))));
+        var rootMember = new TypeRule("any", new StringRule("value"));
+        return new TypeRule("block", new StatementsRule("children", rootMember));
     }
 }
