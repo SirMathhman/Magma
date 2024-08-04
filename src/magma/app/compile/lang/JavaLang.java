@@ -86,6 +86,7 @@ public class JavaLang {
         value.set(new DisjunctionRule(List.of(
                 createConstructionRule(value),
                 createInvocationRule(value),
+                new TypeRule("access", new LocateRule(new NodeRule("object", value), new Last("."), new StringRule("member"))),
                 new TypeRule("reference", new StripRule(new SymbolRule(new StringRule("value"))))
         )));
         return value;
