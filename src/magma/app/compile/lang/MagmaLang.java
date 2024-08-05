@@ -46,7 +46,8 @@ public class MagmaLang {
         value.set(new DisjunctionRule(List.of(
                 CommonLang.createInvocationRule(value),
                 CommonLang.createAccessRule(value),
-                CommonLang.createReferenceRule()
+                CommonLang.createReferenceRule(),
+                CommonLang.createStringRule()
         )));
         return value;
     }

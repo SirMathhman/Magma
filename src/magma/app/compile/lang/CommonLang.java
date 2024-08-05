@@ -10,6 +10,7 @@ import magma.app.compile.rule.LazyRule;
 import magma.app.compile.rule.LocateRule;
 import magma.app.compile.rule.NodeListRule;
 import magma.app.compile.rule.NodeRule;
+import magma.app.compile.rule.OptionalRule;
 import magma.app.compile.rule.PrefixRule;
 import magma.app.compile.rule.Rule;
 import magma.app.compile.rule.StringListRule;
@@ -80,10 +81,10 @@ public class CommonLang {
     }
 
     static TypeRule createOperationsRule(Rule value, Rule caller) {
-        var arguments = new DisjunctionRule(List.of(
+        var arguments = new OptionalRule("arguments",
                 new NodeListRule(new ParamSplitter(), "arguments", value),
                 EmptyRule.EMPTY_RULE
-        ));
+        );
 
         return new TypeRule("invocation", new LocateRule(caller, new Last("("), new StripRule(new SuffixRule(arguments, ")"))));
     }
@@ -119,5 +120,9 @@ public class CommonLang {
 
     public static NodeListRule createParamsRule(Rule definition) {
         return new NodeListRule(new ParamSplitter(), PARAMS, definition);
+    }
+
+    static TypeRule createStringRule() {
+        return new TypeRule("string", new StripRule(new PrefixRule("\"", new SuffixRule(new StringRule("value"), "\""))));
     }
 }

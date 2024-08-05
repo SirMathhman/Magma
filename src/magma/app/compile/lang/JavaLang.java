@@ -86,7 +86,7 @@ public class JavaLang {
                 CommonLang.createInvocationRule(value),
                 CommonLang.createAccessRule(value),
                 CommonLang.createReferenceRule(),
-                new TypeRule("string", new StripRule(new PrefixRule("\"", new SuffixRule(new StringRule("value"), "\""))))
+                CommonLang.createStringRule()
         )));
         return value;
     }
