@@ -8,7 +8,7 @@ export class def Main => {
 			let application=Application(source);
 			application.run();
 		}
-		catch( e){
+		catch(e){
 			//noinspection CallToPrintStackTrace
 			e.printStackTrace();
 		}

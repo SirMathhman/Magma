@@ -82,8 +82,11 @@ public class MagmaLang {
     }
 
     private static Rule createDefinitionRule() {
-        var modifiers = new DisjunctionRule(List.of(CommonLang.createModifiersRule(), EmptyRule.EMPTY_RULE));
         var name = new StringRule(DEFINITION_NAME);
-        return new TypeRule(DEFINITION_TYPE, new LocateRule(modifiers, new Last(" "), name));
+        var withModifiers = new LocateRule(CommonLang.createModifiersRule(), new Last(" "), name);
+        return new TypeRule(DEFINITION_TYPE, new DisjunctionRule(List.of(
+                withModifiers,
+                name
+        )));
     }
 }
