@@ -48,7 +48,6 @@ public class JavaLang {
         ));
 
         var content = CommonLang.createMembersRule(classMember);
-
         var after = new LocateRule(new StripRule(new StringRule(CLASS_NAME)), new First("{"), new SuffixRule(content, "}"));
         return new TypeRule("class", new LocateRule(modifiers, new First("class "), after));
     }

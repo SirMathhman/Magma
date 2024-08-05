@@ -7,6 +7,7 @@ import magma.app.compile.rule.First;
 import magma.app.compile.rule.Last;
 import magma.app.compile.rule.LocateRule;
 import magma.app.compile.rule.LazyRule;
+import magma.app.compile.rule.NodeListRule;
 import magma.app.compile.rule.NodeRule;
 import magma.app.compile.rule.PrefixRule;
 import magma.app.compile.rule.Rule;
@@ -45,13 +46,19 @@ public class MagmaLang {
     public static Rule createRootMagmaRule() {
         return CommonLang.createBlockRule(new DisjunctionRule(List.of(
                 CommonLang.createImportRule(),
-                new TypeRule(FUNCTION_TYPE, new NodeRule(DEFINITION_TYPE, createDefinitionRule()))
+                createFunctionRule()
         )));
+    }
+
+    private static TypeRule createFunctionRule() {
+        var content = CommonLang.createMembersRule(new TypeRule("any", EmptyRule.EMPTY_RULE));
+        var definition = new NodeRule(DEFINITION_TYPE, createDefinitionRule());
+        return new TypeRule(FUNCTION_TYPE, new LocateRule(definition, new Last(" => "), content));
     }
 
     private static Rule createDefinitionRule() {
         var modifiers = CommonLang.createModifiersRule();
         var name = new StringRule(DEFINITION_NAME);
-        return new TypeRule(DEFINITION_TYPE, new LocateRule(modifiers, new Last(" "), new SuffixRule(name, "() => {}")));
+        return new TypeRule(DEFINITION_TYPE, new LocateRule(modifiers, new Last(" "), new SuffixRule(name, "()")));
     }
 }
