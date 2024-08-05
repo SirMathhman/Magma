@@ -28,10 +28,12 @@
 ">
 			<block for="value">
 				<children>
-					<function>
+					<function before-child="
+		">
 						<block for="value">
 							<children>
-								<try>
+								<try before-child="
+				">
 									<children>
 										<declaration>
 											<invocation for="value">
@@ -60,7 +62,7 @@
 									</children>
 								</try>
 								<catch before-child="
-">
+				">
 									<params>
 										<definition name="e">
 											<symbol for="type" value="ApplicationException"/>
@@ -93,10 +95,11 @@
 						</params>
 					</function>
 					<function before-child="
-">
+		">
 						<block for="value">
 							<children>
-								<return>
+								<return before-child="
+				">
 									<invocation for="value">
 										<access member="resolve" for="caller">
 											<invocation for="object">

@@ -15,19 +15,18 @@ import static magma.app.compile.lang.CommonLang.BEFORE_CHILD;
 import static magma.app.compile.lang.CommonLang.BLOCK_TYPE;
 import static magma.app.compile.lang.CommonLang.CHILDREN;
 import static magma.app.compile.lang.CommonLang.MODIFIERS;
-import static magma.app.compile.lang.JavaLang.CLASS_TYPE;
 import static magma.app.compile.lang.JavaLang.CLASS_NAME;
 import static magma.app.compile.lang.JavaLang.METHOD_TYPE;
 import static magma.app.compile.lang.MagmaLang.DEFINITION_NAME;
 import static magma.app.compile.lang.MagmaLang.DEFINITION_TYPE;
 
 public class Compiler {
-    private static Node modify(Node node) {
+    private static Node modify(Node node, int depth) {
         var withNodes = node;
         for (Tuple<String, Node> tuple : node.streamNodes().toList()) {
             var key = tuple.left();
             var value = tuple.right();
-            var newValue = modify(value);
+            var newValue = modify(value, depth + 1);
             withNodes = withNodes.withNode(key, newValue);
         }
 
@@ -37,16 +36,16 @@ public class Compiler {
             var oldValues = tuple.right();
             var newValues = new ArrayList<Node>();
             for (Node oldValue : oldValues) {
-                var newValue = modify(oldValue);
+                var newValue = modify(oldValue, depth + 1);
                 newValues.add(newValue);
             }
             withNodeLists = withNodeLists.withNodeList(key, newValues);
         }
 
-        return postVisit(withNodeLists);
+        return postVisit(withNodeLists, depth);
     }
 
-    private static Node postVisit(Node node) {
+    private static Node postVisit(Node node, int depth) {
         if (node.is(BLOCK_TYPE)) {
             var childrenOptional = node.findNodeList(CHILDREN);
             if (childrenOptional.isPresent()) {
@@ -84,7 +83,7 @@ public class Compiler {
                 var formatted = new ArrayList<Node>();
                 for (int i = 0; i < newChildren.size(); i++) {
                     Node newChild = newChildren.get(i);
-                    formatted.add(i == 0 ? newChild : newChild.withString(BEFORE_CHILD, "\n"));
+                    formatted.add((i == 0 && depth == 0) ? newChild : newChild.withString(BEFORE_CHILD, "\n" + "\t".repeat(depth)));
                 }
 
                 return node.withNodeList(CHILDREN, formatted);
@@ -105,7 +104,7 @@ public class Compiler {
         return Results.$Result(() -> {
             var parsedResult = sourceRootRule.parse(input);
             var parsed = parsedResult.result().replaceErr(() -> wrapErr(parsedResult)).$();
-            var modified = modify(parsed);
+            var modified = modify(parsed, 0);
             var generatedResult = targetRootRule.generate(modified);
             var generated = generatedResult.result().replaceErr(() -> wrapErr(generatedResult)).$();
             return new CompileResult(generated, parsed, modified);
