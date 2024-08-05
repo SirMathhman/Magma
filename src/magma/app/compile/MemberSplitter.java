@@ -69,7 +69,8 @@ public class MemberSplitter implements Splitter {
         }
 
         private State advance() {
-            var copy = new ArrayList<String>(segments);
+            if(buffer.isEmpty()) return this;
+            var copy = new ArrayList<>(segments);
             copy.add(buffer.toString());
             return new State(copy, new StringBuilder(), depth);
         }
