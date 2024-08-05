@@ -1,6 +1,5 @@
 package magma.app.compile.lang;
 
-import magma.app.compile.MemberSplitter;
 import magma.app.compile.ParamSplitter;
 import magma.app.compile.rule.DisjunctionRule;
 import magma.app.compile.rule.EmptyRule;
@@ -46,7 +45,7 @@ public class JavaLang {
                 createMethodRule()
         ));
 
-        var content = CommonLang.createMembersRule(classMember);
+        var content = new NodeRule("value", CommonLang.createBlockRule(classMember));
         var after = new LocateRule(new StripRule(new StringRule(CLASS_NAME)), new First("{"), new SuffixRule(content, "}"));
         return new TypeRule("class", new LocateRule(modifiers, new First("class "), after));
     }
@@ -59,7 +58,9 @@ public class JavaLang {
         ));
 
         var beforeContent = new LocateRule(new NodeRule("definition", definition), new First("("), new StripRule(new SuffixRule(params, ")")));
-        var content = new SuffixRule(new NodeListRule(new MemberSplitter(), "children", createStatementRule(definition, createValueRule())), "}");
+        var statements = createStatementRule(definition, createValueRule());
+        var children = new NodeRule("value", CommonLang.createBlockRule(statements));
+        var content = new SuffixRule(children, "}");
         return new TypeRule(METHOD_TYPE, new LocateRule(beforeContent, new First("{"), content));
     }
 

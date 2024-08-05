@@ -31,106 +31,112 @@
 			<string-list for="modifiers">
 				<child value="public"/>
 			</string-list>
-			<children>
-				<method>
-					<definition name="main" for="definition">
-						<string-list for="modifiers">
-							<child value="public"/>
-							<child value="static"/>
-						</string-list>
-						<symbol for="type" value="void"/>
-					</definition>
-					<params>
-						<definition name="args">
-							<array for="type">
-								<symbol for="child" value="String"/>
-							</array>
+			<block for="value">
+				<children>
+					<method>
+						<block for="value">
+							<children>
+								<try>
+									<children>
+										<declaration>
+											<invocation for="value">
+												<reference for="caller" value="resolveMain"/>
+											</invocation>
+											<definition name="source" for="definition">
+												<symbol for="type" value="var"/>
+											</definition>
+										</declaration>
+										<declaration>
+											<invocation for="value">
+												<reference for="caller" value="Application"/>
+												<arguments>
+													<reference value="source"/>
+												</arguments>
+											</invocation>
+											<definition name="application" for="definition">
+												<symbol for="type" value="var"/>
+											</definition>
+										</declaration>
+										<invocation>
+											<access member="run" for="caller">
+												<reference for="object" value="application"/>
+											</access>
+										</invocation>
+									</children>
+								</try>
+								<catch>
+									<params>
+										<definition name="e">
+											<symbol for="type" value="ApplicationException"/>
+										</definition>
+									</params>
+									<children>
+										<comment value="noinspection CallToPrintStackTrace"/>
+										<invocation>
+											<access member="printStackTrace" for="caller">
+												<reference for="object" value="e"/>
+											</access>
+										</invocation>
+									</children>
+								</catch>
+							</children>
+						</block>
+						<definition name="main" for="definition">
+							<string-list for="modifiers">
+								<child value="public"/>
+								<child value="static"/>
+							</string-list>
+							<symbol for="type" value="void"/>
 						</definition>
-					</params>
-					<children>
-						<try>
+						<params>
+							<definition name="args">
+								<array for="type">
+									<symbol for="child" value="String"/>
+								</array>
+							</definition>
+						</params>
+					</method>
+					<method>
+						<block for="value">
 							<children>
-								<declaration>
+								<return>
 									<invocation for="value">
-										<reference for="caller" value="resolveMain"/>
-									</invocation>
-									<definition name="source" for="definition">
-										<symbol for="type" value="var"/>
-									</definition>
-								</declaration>
-								<declaration>
-									<invocation for="value">
-										<reference for="caller" value="Application"/>
-										<arguments>
-											<reference value="source"/>
-										</arguments>
-									</invocation>
-									<definition name="application" for="definition">
-										<symbol for="type" value="var"/>
-									</definition>
-								</declaration>
-								<invocation>
-									<access member="run" for="caller">
-										<reference for="object" value="application"/>
-									</access>
-								</invocation>
-							</children>
-						</try>
-						<catch>
-							<params>
-								<definition name="e">
-									<symbol for="type" value="ApplicationException"/>
-								</definition>
-							</params>
-							<children>
-								<comment value="noinspection CallToPrintStackTrace"/>
-								<invocation>
-									<access member="printStackTrace" for="caller">
-										<reference for="object" value="e"/>
-									</access>
-								</invocation>
-							</children>
-						</catch>
-					</children>
-				</method>
-				<method>
-					<definition name="resolveMain" for="definition">
-						<string-list for="modifiers">
-							<child value="private"/>
-							<child value="static"/>
-						</string-list>
-						<symbol for="type" value="Path"/>
-					</definition>
-					<children>
-						<return>
-							<invocation for="value">
-								<access member="resolve" for="caller">
-									<invocation for="object">
 										<access member="resolve" for="caller">
 											<invocation for="object">
 												<access member="resolve" for="caller">
-													<access member="ROOT_DIRECTORY" for="object">
-														<reference for="object" value="Application"/>
-													</access>
+													<invocation for="object">
+														<access member="resolve" for="caller">
+															<access member="ROOT_DIRECTORY" for="object">
+																<reference for="object" value="Application"/>
+															</access>
+														</access>
+														<arguments>
+															<string value="src"/>
+														</arguments>
+													</invocation>
 												</access>
 												<arguments>
-													<string value="src"/>
+													<string value="magma"/>
 												</arguments>
 											</invocation>
 										</access>
 										<arguments>
-											<string value="magma"/>
+											<string value="Main.java"/>
 										</arguments>
 									</invocation>
-								</access>
-								<arguments>
-									<string value="Main.java"/>
-								</arguments>
-							</invocation>
-						</return>
-					</children>
-				</method>
-			</children>
+								</return>
+							</children>
+						</block>
+						<definition name="resolveMain" for="definition">
+							<string-list for="modifiers">
+								<child value="private"/>
+								<child value="static"/>
+							</string-list>
+							<symbol for="type" value="Path"/>
+						</definition>
+					</method>
+				</children>
+			</block>
 		</class>
 	</children>
 </block>

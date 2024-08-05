@@ -76,7 +76,7 @@ public class MagmaLang {
     }
 
     private static TypeRule createFunctionRule0(Rule definition, Rule statement) {
-        var content = CommonLang.createMembersRule(statement);
+        var content = new NodeRule("value", CommonLang.createBlockRule(statement));
         var definitionProperty = new NodeRule(DEFINITION_TYPE, definition);
         return new TypeRule(FUNCTION_TYPE, new LocateRule(definitionProperty, new Last(" => "), content));
     }
