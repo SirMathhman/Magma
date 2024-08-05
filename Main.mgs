@@ -4,8 +4,8 @@ import java.nio.file.Path;
 export class def Main() => {
 	public static main() => {
 		try{
-			 source()=resolveMain();
-			 application()=Application(source);
+			let source()=resolveMain();
+			let application()=Application(source);
 			application.run();
 		}
 		catch( e()){

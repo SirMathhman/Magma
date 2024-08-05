@@ -33,6 +33,8 @@ public class CommonLang {
     public static final String BLOCK_TYPE = "block";
     public static final String BEFORE_CHILDREN = "before-children";
     public static final String AFTER_CHILDREN = "after-children";
+    public static final String DECLARATION_TYPE = "declaration";
+    public static final String DECLARATION_DEFINITION = "definition";
 
     static Rule createMembersRule(Rule childRule) {
         var wrappedChild = new StripRule(childRule, BEFORE_CHILD, AFTER_CHILD);
@@ -67,9 +69,9 @@ public class CommonLang {
     }
 
     static TypeRule createDeclarationRule(Rule definitionRule, Rule valueRule) {
-        var definition = new NodeRule("definition", definitionRule);
+        var definition = new NodeRule(DECLARATION_DEFINITION, definitionRule);
         var value = new NodeRule("value", valueRule);
-        return new TypeRule("declaration", new LocateRule(definition, new Last("="), new SuffixRule(value, ";")));
+        return new TypeRule(DECLARATION_TYPE, new LocateRule(definition, new Last("="), new SuffixRule(value, ";")));
     }
 
     static TypeRule createInvocationRule(Rule value) {

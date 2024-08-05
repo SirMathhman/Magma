@@ -9,11 +9,15 @@ import magma.app.compile.lang.MagmaLang;
 import magma.app.compile.rule.RuleResult;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 import static magma.app.compile.lang.CommonLang.AFTER_CHILDREN;
 import static magma.app.compile.lang.CommonLang.BEFORE_CHILD;
 import static magma.app.compile.lang.CommonLang.BLOCK_TYPE;
 import static magma.app.compile.lang.CommonLang.CHILDREN;
+import static magma.app.compile.lang.CommonLang.DECLARATION_DEFINITION;
+import static magma.app.compile.lang.CommonLang.DECLARATION_TYPE;
 import static magma.app.compile.lang.CommonLang.MODIFIERS;
 import static magma.app.compile.lang.JavaLang.CLASS_NAME;
 import static magma.app.compile.lang.JavaLang.METHOD_TYPE;
@@ -67,6 +71,14 @@ public class Compiler {
     }
 
     private static Tuple<Node, Integer> postVisit(Node node, int depth) {
+        if(node.is(DECLARATION_TYPE)) {
+            var definition = node.findNode(DECLARATION_DEFINITION).orElseThrow();
+            var oldModifiers = new ArrayList<>(definition.findStringList(MODIFIERS).orElse(Collections.emptyList()));
+            oldModifiers.add("let");
+            var withModifiers = definition.withStringList(MODIFIERS, oldModifiers);
+            return new Tuple<>(node.withNode(DECLARATION_DEFINITION, withModifiers), depth);
+        }
+
         if (node.is(BLOCK_TYPE)) {
             var childrenOptional = node.findNodeList(CHILDREN);
             if (childrenOptional.isPresent()) {

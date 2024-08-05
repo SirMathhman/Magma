@@ -48,6 +48,9 @@
 															<reference for="caller" value="resolveMain"/>
 														</invocation>
 														<definition name="source" for="definition">
+															<string-list for="modifiers">
+																<child value="let"/>
+															</string-list>
 															<symbol for="type" value="var"/>
 														</definition>
 													</declaration>
@@ -64,6 +67,9 @@
 															</arguments>
 														</invocation>
 														<definition name="application" for="definition">
+															<string-list for="modifiers">
+																<child value="let"/>
+															</string-list>
 															<symbol for="type" value="var"/>
 														</definition>
 													</declaration>
