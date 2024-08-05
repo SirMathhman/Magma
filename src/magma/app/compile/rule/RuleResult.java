@@ -7,6 +7,7 @@ import magma.app.compile.CompileError;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.BiFunction;
@@ -17,6 +18,13 @@ import java.util.stream.Collectors;
 public record RuleResult<T, E extends CompileError>(Result<T, E> result, List<RuleResult<T, E>> children) {
     public RuleResult(Result<T, E> result) {
         this(result, Collections.emptyList());
+    }
+
+    public int depth() {
+        return 1 + children.stream()
+                .mapToInt(RuleResult::depth)
+                .max()
+                .orElse(0);
     }
 
     public boolean isValid() {
@@ -36,7 +44,7 @@ public record RuleResult<T, E extends CompileError>(Result<T, E> result, List<Ru
     }
 
     public RuleResult<T, E> wrapErr(Supplier<E> mapper) {
-        if(isValid()) return this;
+        if (isValid()) return this;
         return new RuleResult<>(new Err<>(mapper.get()), Collections.singletonList(this));
     }
 
@@ -54,6 +62,7 @@ public record RuleResult<T, E extends CompileError>(Result<T, E> result, List<Ru
 
     private String formatChildren(int depth) {
         return children.stream()
+                .sorted(Comparator.comparingInt(RuleResult::depth))
                 .map(teRuleResult -> teRuleResult.format(depth + 1))
                 .collect(Collectors.joining());
     }
