@@ -178,4 +178,11 @@ public final class Node {
         copy.remove(propertyKey);
         return new Node(type, strings, stringLists, nodes, copy);
     }
+
+    public boolean has(String propertyKey) {
+        return strings.containsKey(propertyKey)
+               || stringLists.containsKey(propertyKey)
+               || nodes.containsKey(propertyKey)
+               || nodeLists.containsKey(propertyKey);
+    }
 }
