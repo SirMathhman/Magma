@@ -39,6 +39,8 @@ public class MagmaLang {
     }
 
     public static Rule createRootMagmaRule() {
-        return EmptyRule.EMPTY_RULE;
+        return CommonLang.createBlockRule(new DisjunctionRule(List.of(
+                CommonLang.createImportRule()
+        )));
     }
 }

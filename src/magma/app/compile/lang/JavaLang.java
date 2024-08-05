@@ -32,12 +32,12 @@ public class JavaLang {
 
     public static Rule createRootJavaRule() {
         var childRule = new DisjunctionRule(List.of(
-                createNamespaceRule("package", "package "),
-                createNamespaceRule("import", "import "),
+                CommonLang.createNamespaceRule("package", "package "),
+                CommonLang.createImportRule(),
                 createClassRule()
         ));
 
-        return new TypeRule("block", new NodeListRule(new MemberSplitter(), "children", childRule));
+        return CommonLang.createBlockRule(childRule);
     }
 
     private static TypeRule createClassRule() {
@@ -47,7 +47,7 @@ public class JavaLang {
                 createMethodRule()
         ));
 
-        var content = new NodeListRule(new MemberSplitter(), "children", classMember);
+        var content = CommonLang.createMembersRule(classMember);
 
         var after = new LocateRule(new StripRule(new StringRule("name")), new First("{"), new SuffixRule(content, "}"));
         return new TypeRule("class", new LocateRule(modifiers, new First("class "), after));
@@ -147,7 +147,4 @@ public class JavaLang {
         return rule;
     }
 
-    private static Rule createNamespaceRule(String type, String prefix) {
-        return new TypeRule(type, new PrefixRule(prefix, new SuffixRule(new StringListRule("namespace", "."), ";")));
-    }
 }
