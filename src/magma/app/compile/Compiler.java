@@ -11,10 +11,11 @@ import magma.app.compile.rule.RuleResult;
 import java.util.ArrayList;
 import java.util.List;
 
-import static magma.app.compile.lang.CommonLang.AFTER_CHILD;
 import static magma.app.compile.lang.CommonLang.BEFORE_CHILD;
+import static magma.app.compile.lang.CommonLang.BLOCK_TYPE;
 import static magma.app.compile.lang.CommonLang.CHILDREN;
 import static magma.app.compile.lang.CommonLang.MODIFIERS;
+import static magma.app.compile.lang.JavaLang.CLASS_TYPE;
 import static magma.app.compile.lang.JavaLang.CLASS_NAME;
 import static magma.app.compile.lang.JavaLang.METHOD_TYPE;
 import static magma.app.compile.lang.MagmaLang.DEFINITION_NAME;
@@ -46,46 +47,48 @@ public class Compiler {
     }
 
     private static Node postVisit(Node node) {
-        var childrenOptional = node.findNodeList(CHILDREN);
-        if (childrenOptional.isPresent()) {
-            var newChildren = new ArrayList<Node>();
-            for (var child : childrenOptional.get()) {
-                if (child.is(JavaLang.PACKAGE)) continue;
-                if (child.is(JavaLang.CLASS)) {
-                    var oldModifiers = child.findStringList(MODIFIERS).orElseThrow();
-                    var name = child.findString(CLASS_NAME).orElseThrow();
+        if (node.is(BLOCK_TYPE)) {
+            var childrenOptional = node.findNodeList(CHILDREN);
+            if (childrenOptional.isPresent()) {
+                var newChildren = new ArrayList<Node>();
+                for (var child : childrenOptional.get()) {
+                    if (child.is(JavaLang.PACKAGE)) continue;
+                    if (child.is(JavaLang.CLASS_TYPE)) {
+                        var oldModifiers = child.findStringList(MODIFIERS).orElseThrow();
+                        var name = child.findString(CLASS_NAME).orElseThrow();
 
-                    var newModifiers = new ArrayList<>(oldModifiers
-                            .stream()
-                            .map(modifier -> modifier.equals("public") ? "export" : modifier)
-                            .toList());
+                        var newModifiers = new ArrayList<>(oldModifiers
+                                .stream()
+                                .map(modifier -> modifier.equals("public") ? "export" : modifier)
+                                .toList());
 
-                    newModifiers.add("class");
-                    newModifiers.add("def");
+                        newModifiers.add("class");
+                        newModifiers.add("def");
 
-                    var definition = new Node()
-                            .retype(DEFINITION_TYPE)
-                            .withStringList(MODIFIERS, newModifiers)
-                            .withString(DEFINITION_NAME, name);
+                        var definition = new Node()
+                                .retype(DEFINITION_TYPE)
+                                .withStringList(MODIFIERS, newModifiers)
+                                .withString(DEFINITION_NAME, name);
 
-                    var function = child.retype(MagmaLang.FUNCTION_TYPE)
-                            .removeString(CLASS_NAME)
-                            .removeStringList("modifiers")
-                            .withNode("definition", definition);
+                        var function = child.retype(MagmaLang.FUNCTION_TYPE)
+                                .removeString(CLASS_NAME)
+                                .removeStringList("modifiers")
+                                .withNode("definition", definition);
 
-                    newChildren.add(function);
-                } else {
-                    newChildren.add(child);
+                        newChildren.add(function);
+                    } else {
+                        newChildren.add(child);
+                    }
                 }
-            }
 
-            var formatted = new ArrayList<Node>();
-            for (int i = 0; i < newChildren.size(); i++) {
-                Node newChild = newChildren.get(i);
-                formatted.add(i == 0 ? newChild : newChild.withString(BEFORE_CHILD, "\n"));
-            }
+                var formatted = new ArrayList<Node>();
+                for (int i = 0; i < newChildren.size(); i++) {
+                    Node newChild = newChildren.get(i);
+                    formatted.add(i == 0 ? newChild : newChild.withString(BEFORE_CHILD, "\n"));
+                }
 
-            return node.withNodeList(CHILDREN, formatted);
+                return node.withNodeList(CHILDREN, formatted);
+            }
         }
 
         if (node.is(METHOD_TYPE)) {

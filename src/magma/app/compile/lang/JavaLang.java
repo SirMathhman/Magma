@@ -25,7 +25,7 @@ public class JavaLang {
     public static final String PUBLIC_KEYWORD_WITH_SPACE = "public ";
     public static final String VOID_KEYWORD_WITH_SPACE = "void ";
     public static final String METHOD_SUFFIX = "(){}";
-    public static final String CLASS = "class";
+    public static final String CLASS_TYPE = "class";
     public static final String PACKAGE = "package";
     public static final String CLASS_NAME = "name";
     public static final String METHOD_TYPE = "method";

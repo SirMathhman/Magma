@@ -18,13 +18,14 @@ public class CommonLang {
     public static final String CHILDREN = "children";
     public static final String BEFORE_CHILD = "before-child";
     public static final String AFTER_CHILD = "after-child";
+    public static final String BLOCK_TYPE = "block";
 
     static NodeListRule createMembersRule(Rule childRule) {
         return new NodeListRule(new MemberSplitter(), "children", new StripRule(childRule, BEFORE_CHILD, AFTER_CHILD));
     }
 
     static Rule createBlockRule(Rule childRule) {
-        return new TypeRule("block", createMembersRule(childRule));
+        return new TypeRule(BLOCK_TYPE, createMembersRule(childRule));
     }
 
     static Rule createImportRule() {
