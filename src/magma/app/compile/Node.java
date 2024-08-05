@@ -13,6 +13,7 @@ import java.util.stream.Stream;
 
 @SuppressWarnings("OptionalUsedAsFieldOrParameterType")
 public final class Node {
+    public static final String DEFAULT_TAG_NAME = "unknown";
     private final Map<String, String> strings;
     private final Map<String, List<String>> stringLists;
     private final Map<String, Node> nodes;
@@ -102,7 +103,7 @@ public final class Node {
     }
 
     public XMLNode toXML() {
-        var node = new XMLNode(type.orElse("?"));
+        var node = new XMLNode(type.orElse(DEFAULT_TAG_NAME));
         for (Map.Entry<String, String> entry : strings.entrySet()) {
             node = node.withAttribute(entry.getKey(), entry.getValue());
         }
