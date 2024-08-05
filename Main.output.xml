@@ -1,4 +1,5 @@
-<block>
+<block after-children="
+">
 	<children>
 		<import>
 			<string-list for="namespace">
@@ -26,56 +27,89 @@
 		</import>
 		<function before-child="
 ">
-			<block for="value">
+			<block for="value" after-children="
+">
 				<children>
 					<function before-child="
 	">
-						<block for="value">
+						<block for="value" after-children="
+	">
 							<children>
 								<try before-child="
 		">
-									<children>
-										<declaration>
-											<invocation for="value">
-												<reference for="caller" value="resolveMain"/>
-											</invocation>
-											<definition name="source" for="definition">
-												<symbol for="type" value="var"/>
-											</definition>
-										</declaration>
-										<declaration>
-											<invocation for="value">
-												<reference for="caller" value="Application"/>
-												<arguments>
-													<reference value="source"/>
-												</arguments>
-											</invocation>
-											<definition name="application" for="definition">
-												<symbol for="type" value="var"/>
-											</definition>
-										</declaration>
-										<invocation>
-											<access member="run" for="caller">
-												<reference for="object" value="application"/>
-											</access>
-										</invocation>
-									</children>
+									<block for="value" after-children="
+		">
+										<children>
+											<? before-child="
+			">
+												<children>
+													<declaration>
+														<invocation for="value">
+															<reference for="caller" value="resolveMain"/>
+														</invocation>
+														<definition name="source" for="definition">
+															<symbol for="type" value="var"/>
+														</definition>
+													</declaration>
+												</children>
+											</?>
+											<? before-child="
+			">
+												<children>
+													<declaration>
+														<invocation for="value">
+															<reference for="caller" value="Application"/>
+															<arguments>
+																<reference value="source"/>
+															</arguments>
+														</invocation>
+														<definition name="application" for="definition">
+															<symbol for="type" value="var"/>
+														</definition>
+													</declaration>
+												</children>
+											</?>
+											<? before-child="
+			">
+												<children>
+													<invocation>
+														<access member="run" for="caller">
+															<reference for="object" value="application"/>
+														</access>
+													</invocation>
+												</children>
+											</?>
+										</children>
+									</block>
 								</try>
 								<catch before-child="
 		">
+									<block for="value" after-children="
+		">
+										<children>
+											<? before-child="
+			">
+												<children>
+													<comment value="noinspection CallToPrintStackTrace"/>
+												</children>
+											</?>
+											<? before-child="
+			">
+												<children>
+													<invocation>
+														<access member="printStackTrace" for="caller">
+															<reference for="object" value="e"/>
+														</access>
+													</invocation>
+												</children>
+											</?>
+										</children>
+									</block>
 									<params>
 										<definition name="e">
 											<symbol for="type" value="ApplicationException"/>
 										</definition>
 									</params>
-									<children>
-										<comment value="noinspection CallToPrintStackTrace"/>
-										<invocation>
-											<access member="printStackTrace" for="caller">
-												<reference for="object" value="e"/>
-											</access>
-										</invocation>
-									</children>
 								</catch>
 							</children>
 						</block>
@@ -96,7 +130,8 @@
 					</function>
 					<function before-child="
 	">
-						<block for="value">
+						<block for="value" after-children="
+	">
 							<children>
 								<return before-child="
 		">

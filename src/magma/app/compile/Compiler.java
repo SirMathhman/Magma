@@ -10,6 +10,7 @@ import magma.app.compile.rule.RuleResult;
 
 import java.util.ArrayList;
 
+import static magma.app.compile.lang.CommonLang.AFTER_CHILDREN;
 import static magma.app.compile.lang.CommonLang.BEFORE_CHILD;
 import static magma.app.compile.lang.CommonLang.BLOCK_TYPE;
 import static magma.app.compile.lang.CommonLang.CHILDREN;
@@ -116,7 +117,11 @@ public class Compiler {
                     }
                 }
 
-                return new Tuple<>(node.withNodeList(CHILDREN, formatted), depth - 1);
+                var blockIndent = depth <= 0 ? "" : "\t".repeat(depth - 1);
+                var newNode = node.withNodeList(CHILDREN, formatted)
+                        .withString(AFTER_CHILDREN, "\n" + blockIndent);
+
+                return new Tuple<>(newNode, depth - 1);
             }
         }
 

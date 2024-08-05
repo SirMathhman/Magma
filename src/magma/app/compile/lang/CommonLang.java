@@ -31,9 +31,13 @@ public class CommonLang {
     public static final String BEFORE_CHILD = "before-child";
     public static final String AFTER_CHILD = "after-child";
     public static final String BLOCK_TYPE = "block";
+    public static final String BEFORE_CHILDREN = "before-children";
+    public static final String AFTER_CHILDREN = "after-children";
 
-    static NodeListRule createMembersRule(Rule childRule) {
-        return new NodeListRule(new MemberSplitter(), "children", new StripRule(childRule, BEFORE_CHILD, AFTER_CHILD));
+    static Rule createMembersRule(Rule childRule) {
+        var wrappedChild = new StripRule(childRule, BEFORE_CHILD, AFTER_CHILD);
+        var property = new NodeListRule(new MemberSplitter(), "children", wrappedChild);
+        return new StripRule(property, BEFORE_CHILDREN, AFTER_CHILDREN);
     }
 
     static Rule createBlockRule(Rule childRule) {
@@ -57,7 +61,7 @@ public class CommonLang {
     }
 
     static TypeRule createPrefixedStatementRule(String type, String prefix, Rule statement, Function<Rule, Rule> function) {
-        var children = createMembersRule(statement);
+        var children = new NodeRule("value", createBlockRule(createMembersRule(statement)));
         var childrenProperty = new StripRule(new PrefixRule("{", new SuffixRule(children, "}")));
         return new TypeRule(type, new PrefixRule(prefix, function.apply(childrenProperty)));
     }
