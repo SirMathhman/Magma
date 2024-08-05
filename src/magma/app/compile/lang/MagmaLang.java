@@ -17,7 +17,9 @@ import java.util.List;
 
 public class MagmaLang {
     public static final String EXPORT_KEYWORD_WITH_SPACE = "export ";
-    public static final String FUNCTION = "function";
+    public static final String FUNCTION_TYPE = "function";
+    public static final String DEFINITION_NAME = "name";
+    public static final String DEFINITION_TYPE = "definition";
 
     public static Rule createStatementRule() {
         var statement = new LazyRule();
@@ -35,13 +37,17 @@ public class MagmaLang {
         var content = new DisjunctionRule(List.of(new NodeRule(CommonLang.CONTENT, statement), EmptyRule.EMPTY_RULE));
         var wrappedContent = new PrefixRule(String.valueOf(MemberSplitter.BLOCK_START), new SuffixRule(content, String.valueOf(MemberSplitter.BLOCK_END)));
         var right = new LocateRule(name, new First("() => "), wrappedContent);
-        return new TypeRule(FUNCTION, new LocateRule(modifiers, new First("def "), right));
+        return new TypeRule(FUNCTION_TYPE, new LocateRule(modifiers, new First("def "), right));
     }
 
     public static Rule createRootMagmaRule() {
         return CommonLang.createBlockRule(new DisjunctionRule(List.of(
                 CommonLang.createImportRule(),
-                new TypeRule("function", EmptyRule.EMPTY_RULE)
+                new TypeRule(FUNCTION_TYPE, new NodeRule(DEFINITION_TYPE, createDefinitionRule()))
         )));
+    }
+
+    private static Rule createDefinitionRule() {
+        return new TypeRule(DEFINITION_TYPE, new StringRule(DEFINITION_NAME));
     }
 }

@@ -15,6 +15,8 @@ import java.util.List;
 import static magma.app.compile.lang.JavaLang.CLASS_NAME;
 import static magma.app.compile.lang.JavaLang.CLASS_MODIFIERS;
 import static magma.app.compile.lang.JavaLang.METHOD_TYPE;
+import static magma.app.compile.lang.MagmaLang.DEFINITION_NAME;
+import static magma.app.compile.lang.MagmaLang.DEFINITION_TYPE;
 
 public class Compiler {
     private static Node modify(Node node) {
@@ -52,20 +54,23 @@ public class Compiler {
                     var oldModifiers = child.findStringList(CLASS_MODIFIERS).orElseThrow();
                     var name = child.findString(CLASS_NAME).orElseThrow();
 
-                    var newModifiers = oldModifiers
+                    var newModifiers = new ArrayList<>(oldModifiers
                             .stream()
                             .map(modifier -> modifier.equals("public") ? "export" : modifier)
-                            .toList();
+                            .toList());
+
+                    newModifiers.add("class");
+                    newModifiers.add("def");
 
                     var definition = new Node()
-                            .retype("definition")
+                            .retype(DEFINITION_TYPE)
                             .withStringList("modifiers", newModifiers)
-                            .withString("name", name);
+                            .withString(DEFINITION_NAME, name);
 
-                    var function = child.retype(MagmaLang.FUNCTION)
+                    var function = child.retype(MagmaLang.FUNCTION_TYPE)
                             .removeString(CLASS_NAME)
                             .removeStringList("modifiers")
-                            .withNode("child", definition);
+                            .withNode("definition", definition);
 
                     copy.add(function);
                 } else {

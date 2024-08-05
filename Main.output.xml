@@ -23,9 +23,11 @@
 			</string-list>
 		</import>
 		<function>
-			<definition name="Main" for="child">
+			<definition name="Main" for="definition">
 				<string-list for="modifiers">
 					<child value="export"/>
+					<child value="class"/>
+					<child value="def"/>
 				</string-list>
 			</definition>
 			<children>

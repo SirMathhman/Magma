@@ -11,7 +11,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
-import static magma.app.compile.lang.MagmaLang.FUNCTION;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.fail;
@@ -55,7 +54,7 @@ class CompilerTest {
                 .withString(CommonLang.NAME, name);
 
         var node = new Node()
-                .retype(FUNCTION)
+                .retype(MagmaLang.FUNCTION_TYPE)
                 .withString(CommonLang.MODIFIERS, CommonLang.CLASS_KEYWORD_WITH_SPACE)
                 .withString(CommonLang.NAME, TEST_UPPER_SYMBOL)
                 .withNode(CommonLang.CONTENT, child);
@@ -71,7 +70,7 @@ class CompilerTest {
     @ValueSource(strings = {"First", "Second"})
     void className(String name) throws ApplicationException {
         var node = new Node()
-                .retype(FUNCTION)
+                .retype(MagmaLang.FUNCTION_TYPE)
                 .withString(CommonLang.MODIFIERS, CommonLang.CLASS_KEYWORD_WITH_SPACE)
                 .withString(CommonLang.NAME, name);
 
@@ -86,7 +85,7 @@ class CompilerTest {
     @Test
     void classPublic() throws ApplicationException {
         var node = new Node()
-                .retype(FUNCTION)
+                .retype(MagmaLang.FUNCTION_TYPE)
                 .withString(CommonLang.MODIFIERS, MagmaLang.EXPORT_KEYWORD_WITH_SPACE + CommonLang.CLASS_KEYWORD_WITH_SPACE)
                 .withString(CommonLang.NAME, TEST_UPPER_SYMBOL)
                 .withString(CommonLang.CONTENT, "");
