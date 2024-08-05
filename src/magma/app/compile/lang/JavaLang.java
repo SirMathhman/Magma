@@ -1,5 +1,6 @@
 package magma.app.compile.lang;
 
+import magma.app.compile.lang.common.Blocks;
 import magma.app.compile.lang.common.Symbols;
 import magma.app.compile.rule.DisjunctionRule;
 import magma.app.compile.rule.EmptyRule;
@@ -36,7 +37,7 @@ public class JavaLang {
                 createClassRule()
         ));
 
-        return CommonLang.createBlockRule(childRule);
+        return Blocks.createBlockRule(childRule);
     }
 
     private static TypeRule createClassRule() {
@@ -46,7 +47,7 @@ public class JavaLang {
                 createMethodRule()
         ));
 
-        var content = new NodeRule("value", CommonLang.createBlockRule(classMember));
+        var content = new NodeRule("value", Blocks.createBlockRule(classMember));
         var after = new LocateRule(new StripRule(new StringRule(CLASS_NAME)), new First("{"), new SuffixRule(content, "}"));
         return new TypeRule("class", new LocateRule(modifiers, new First("class "), after));
     }
@@ -60,7 +61,7 @@ public class JavaLang {
 
         var beforeContent = new LocateRule(new NodeRule(METHOD_DEFINITION, definition), new First("("), new StripRule(new SuffixRule(params, ")")));
         var statements = createStatementRule(definition, createValueRule());
-        var children = new NodeRule("value", CommonLang.createBlockRule(statements));
+        var children = new NodeRule("value", Blocks.createBlockRule(statements));
         var content = new SuffixRule(children, "}");
         return new TypeRule(METHOD_TYPE, new LocateRule(beforeContent, new First("{"), content));
     }

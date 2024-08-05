@@ -7,16 +7,13 @@ import magma.app.ApplicationException;
 import magma.app.compile.lang.JavaLang;
 import magma.app.compile.lang.MagmaLang;
 import magma.app.compile.lang.common.Symbols;
+import magma.app.compile.lang.magma.Functions;
 import magma.app.compile.lang.magma.MagmaDefinition;
 import magma.app.compile.rule.RuleResult;
 
 import java.util.ArrayList;
 import java.util.Collections;
 
-import static magma.app.compile.lang.CommonLang.AFTER_CHILDREN;
-import static magma.app.compile.lang.CommonLang.BEFORE_CHILD;
-import static magma.app.compile.lang.CommonLang.BLOCK_TYPE;
-import static magma.app.compile.lang.CommonLang.CHILDREN;
 import static magma.app.compile.lang.CommonLang.DECLARATION_DEFINITION;
 import static magma.app.compile.lang.CommonLang.DECLARATION_TYPE;
 import static magma.app.compile.lang.CommonLang.MODIFIERS;
@@ -25,6 +22,10 @@ import static magma.app.compile.lang.JavaLang.ARRAY;
 import static magma.app.compile.lang.JavaLang.CLASS_NAME;
 import static magma.app.compile.lang.JavaLang.METHOD_DEFINITION;
 import static magma.app.compile.lang.JavaLang.METHOD_TYPE;
+import static magma.app.compile.lang.common.Blocks.AFTER_CHILDREN;
+import static magma.app.compile.lang.common.Blocks.BEFORE_CHILD;
+import static magma.app.compile.lang.common.Blocks.BLOCK;
+import static magma.app.compile.lang.common.Blocks.CHILDREN;
 import static magma.app.compile.lang.magma.MagmaDefinition.DEFINITION;
 import static magma.app.compile.lang.magma.MagmaDefinition.SLICE;
 import static magma.app.compile.lang.magma.MagmaDefinition.TYPE;
@@ -68,7 +69,7 @@ public class Compiler {
     }
 
     private static Tuple<Node, Integer> preVisit(Node node, int state) {
-        if (node.is(BLOCK_TYPE)) {
+        if (node.is(BLOCK)) {
             return new Tuple<>(node, state + 1);
         }
 
@@ -78,7 +79,7 @@ public class Compiler {
                 var type = typeOptional.get();
                 if (type.is(Symbols.SYMBOL)) {
                     var value = type.findString(Symbols.VALUE).orElseThrow();
-                    if(value.equals("var")) {
+                    if (value.equals("var")) {
                         return new Tuple<>(node.removeNode(TYPE), state);
                     }
                 }
@@ -108,7 +109,7 @@ public class Compiler {
                 var type = typeOptional.get();
                 if (type.is(Symbols.SYMBOL)) {
                     var value = type.findString(Symbols.VALUE).orElseThrow();
-                    if(value.equals("Void")) {
+                    if (value.equals("Void")) {
                         return new Tuple<>(node.removeNode(TYPE), state);
                     }
                 }
@@ -140,7 +141,7 @@ public class Compiler {
                     .withString(MagmaDefinition.NAME, name)
                     .withStringList(MODIFIERS, newModifiers);
 
-            var function = node.retype(MagmaLang.FUNCTION_TYPE)
+            var function = node.retype(Functions.FUNCTION_TYPE)
                     .removeString(CLASS_NAME)
                     .removeStringList("modifiers")
                     .withNode("definition", definition);
@@ -148,13 +149,47 @@ public class Compiler {
             return new Tuple<>(function, state);
         }
 
-        if (node.is(BLOCK_TYPE)) {
+        if (node.is(BLOCK)) {
             var childrenOptional = node.findNodeList(CHILDREN);
             if (childrenOptional.isPresent()) {
                 var newChildren = new ArrayList<Node>();
                 for (var child : childrenOptional.get()) {
                     if (!child.is(JavaLang.PACKAGE)) {
                         newChildren.add(child);
+                    }
+
+                    if (child.is(Functions.FUNCTION_TYPE)) {
+                        var oldValue = child.findNode(Functions.VALUE).orElseThrow();
+                        var oldChildren = oldValue.findNodeList(CHILDREN).orElseThrow();
+
+                        var instanceChildren = new ArrayList<Node>();
+                        var staticChildren = new ArrayList<Node>();
+
+                        for (Node oldChild : oldChildren) {
+                            var definitionOptional = oldChild.findNode(DEFINITION);
+                            if (definitionOptional.isPresent()) {
+                                var definition = definitionOptional.get();
+                                var modifiers = definition.findStringList(MODIFIERS).orElse(Collections.emptyList());
+                                if (modifiers.contains("static")) {
+                                    staticChildren.add(oldChild);
+                                } else {
+                                    instanceChildren.add(oldChild);
+                                }
+                            } else {
+                                instanceChildren.add(oldChild);
+                            }
+                        }
+
+                        if (!instanceChildren.isEmpty()) {
+                            newChildren.add(child.withNode(Functions.VALUE, oldValue.withNodeList(CHILDREN, instanceChildren)));
+                        }
+
+                        if (!staticChildren.isEmpty()) {
+                            var block = new Node(BLOCK)
+                                    .withNodeList(CHILDREN, staticChildren);
+
+                            newChildren.add(new Node("object").withNode("value", block));
+                        }
                     }
                 }
 

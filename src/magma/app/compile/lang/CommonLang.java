@@ -1,8 +1,7 @@
 package magma.app.compile.lang;
 
-import magma.app.compile.MemberSplitter;
 import magma.app.compile.ParamSplitter;
-import magma.app.compile.rule.DisjunctionRule;
+import magma.app.compile.lang.common.Blocks;
 import magma.app.compile.rule.EmptyRule;
 import magma.app.compile.rule.First;
 import magma.app.compile.rule.Last;
@@ -19,34 +18,13 @@ import magma.app.compile.rule.StripRule;
 import magma.app.compile.rule.SuffixRule;
 import magma.app.compile.rule.TypeRule;
 
-import java.util.List;
 import java.util.function.Function;
 
 public class CommonLang {
-    public static final String IMPORT_KEYWORD_WITH_SPACE = "import ";
-    public static final String CLASS_KEYWORD_WITH_SPACE = "class ";
     public static final String MODIFIERS = "modifiers";
-    public static final String NAME = "name";
-    public static final String CONTENT = "content";
-    public static final String CHILDREN = "children";
-    public static final String BEFORE_CHILD = "before-child";
-    public static final String AFTER_CHILD = "after-child";
-    public static final String BLOCK_TYPE = "block";
-    public static final String BEFORE_CHILDREN = "before-children";
-    public static final String AFTER_CHILDREN = "after-children";
     public static final String DECLARATION_TYPE = "declaration";
     public static final String DECLARATION_DEFINITION = "definition";
     public static final String PARAMS = "params";
-
-    static Rule createMembersRule(Rule childRule) {
-        var wrappedChild = new StripRule(childRule, BEFORE_CHILD, AFTER_CHILD);
-        var property = new NodeListRule(new MemberSplitter(), "children", wrappedChild);
-        return new StripRule(property, BEFORE_CHILDREN, AFTER_CHILDREN);
-    }
-
-    static Rule createBlockRule(Rule childRule) {
-        return new TypeRule(BLOCK_TYPE, createMembersRule(childRule));
-    }
 
     static Rule createImportRule() {
         return createNamespaceRule("import", "import ");
@@ -65,7 +43,7 @@ public class CommonLang {
     }
 
     static TypeRule createPrefixedStatementRule(String type, String prefix, Rule statement, Function<Rule, Rule> function) {
-        var children = new NodeRule("value", createBlockRule(createMembersRule(statement)));
+        var children = new NodeRule("value", Blocks.createBlockRule(Blocks.createMembersRule(statement)));
         var childrenProperty = new StripRule(new PrefixRule("{", new SuffixRule(children, "}")));
         return new TypeRule(type, new PrefixRule(prefix, function.apply(childrenProperty)));
     }
