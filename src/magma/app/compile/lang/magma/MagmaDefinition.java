@@ -2,6 +2,7 @@ package magma.app.compile.lang.magma;
 
 import magma.app.compile.ParamSplitter;
 import magma.app.compile.lang.CommonLang;
+import magma.app.compile.rule.DisjunctionRule;
 import magma.app.compile.rule.EmptyRule;
 import magma.app.compile.rule.First;
 import magma.app.compile.rule.Last;
@@ -10,10 +11,13 @@ import magma.app.compile.rule.LocateRule;
 import magma.app.compile.rule.NodeListRule;
 import magma.app.compile.rule.NodeRule;
 import magma.app.compile.rule.OptionalRule;
+import magma.app.compile.rule.PrefixRule;
 import magma.app.compile.rule.Rule;
 import magma.app.compile.rule.StringRule;
 import magma.app.compile.rule.SuffixRule;
 import magma.app.compile.rule.TypeRule;
+
+import java.util.List;
 
 import static magma.app.compile.lang.CommonLang.MODIFIERS;
 
@@ -22,6 +26,7 @@ public class MagmaDefinition {
     public static final String DEFINITION = "definition";
     public static final String TYPE = "type";
     public static final String PARAMS = "params";
+    public static final String SLICE = "slice";
 
     public static Rule createRule() {
         var definition = new LazyRule();
@@ -55,7 +60,12 @@ public class MagmaDefinition {
         return definition;
     }
 
-    private static TypeRule createTypeRule() {
-        return new TypeRule("symbol", new StringRule("value"));
+    private static Rule createTypeRule() {
+        var type = new LazyRule();
+        type.set(new DisjunctionRule(List.of(
+                new TypeRule(SLICE, new PrefixRule("&[", new SuffixRule(new NodeRule("child", type), "]"))),
+                new TypeRule("symbol", new StringRule("value"))
+        )));
+        return type;
     }
 }

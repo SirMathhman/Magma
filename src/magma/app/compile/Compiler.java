@@ -19,10 +19,12 @@ import static magma.app.compile.lang.CommonLang.CHILDREN;
 import static magma.app.compile.lang.CommonLang.DECLARATION_DEFINITION;
 import static magma.app.compile.lang.CommonLang.DECLARATION_TYPE;
 import static magma.app.compile.lang.CommonLang.MODIFIERS;
+import static magma.app.compile.lang.JavaLang.ARRAY;
 import static magma.app.compile.lang.JavaLang.CLASS_NAME;
 import static magma.app.compile.lang.JavaLang.METHOD_DEFINITION;
 import static magma.app.compile.lang.JavaLang.METHOD_TYPE;
 import static magma.app.compile.lang.CommonLang.PARAMS;
+import static magma.app.compile.lang.magma.MagmaDefinition.SLICE;
 
 public class Compiler {
     private static Tuple<Node, Integer> modify(Node node, int depth) {
@@ -71,6 +73,10 @@ public class Compiler {
     }
 
     private static Tuple<Node, Integer> postVisit(Node node, int state) {
+        if(node.is(ARRAY)) {
+            return new Tuple<>(node.retype(SLICE), state);
+        }
+
         if (node.is(DECLARATION_TYPE)) {
             var definition = node.findNode(DECLARATION_DEFINITION).orElseThrow();
             var oldModifiers = new ArrayList<>(definition.findStringList(MODIFIERS).orElse(Collections.emptyList()));

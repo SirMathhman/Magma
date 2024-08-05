@@ -26,6 +26,7 @@ public class JavaLang {
     public static final String CLASS_NAME = "name";
     public static final String METHOD_TYPE = "method";
     public static final String METHOD_DEFINITION = "definition";
+    public static final String ARRAY = "array";
 
     public static Rule createRootJavaRule() {
         var childRule = new DisjunctionRule(List.of(
@@ -109,7 +110,7 @@ public class JavaLang {
     private static Rule createTypeRule() {
         var rule = new LazyRule();
         rule.set(new DisjunctionRule(List.of(
-                new TypeRule("array", new SuffixRule(new NodeRule("child", rule), "[]")),
+                new TypeRule(ARRAY, new SuffixRule(new NodeRule("child", rule), "[]")),
                 new TypeRule("symbol", new StringRule("value"))
         )));
         return rule;

@@ -111,9 +111,9 @@
 							<symbol for="type" value="void"/>
 							<params>
 								<definition name="args">
-									<array for="type">
+									<slice for="type">
 										<symbol for="child" value="String"/>
-									</array>
+									</slice>
 								</definition>
 							</params>
 						</definition>
