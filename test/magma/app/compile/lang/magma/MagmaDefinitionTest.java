@@ -30,13 +30,28 @@ class MagmaDefinitionTest {
     }
 
     @Test
+    void all() {
+        assertGenerate("public caller(value : I32) : I64", createNode()
+                .withString(NAME, "caller")
+                .withStringList(MODIFIERS, List.of("public"))
+                .withNode(TYPE, createSymbolType("I64"))
+                .withNodeList(MagmaDefinition.PARAMS, List.of(createNode()
+                        .withString(NAME, "value")
+                        .withNode(TYPE, createSymbolType("I32"))
+                )));
+    }
+
+    private static Node createSymbolType(String value) {
+        return new Node("symbol").withString("value", value);
+    }
+
+    @Test
     void parameters() {
         assertGenerate("caller(value : I32)", createNode()
                 .withString(NAME, "caller")
                 .withNodeList(MagmaDefinition.PARAMS, List.of(createNode()
                         .withString(NAME, "value")
-                        .withNode(TYPE, new Node("symbol")
-                                .withString("value", "I32"))
+                        .withNode(TYPE, createSymbolType("I32"))
                 )));
     }
 
@@ -51,8 +66,7 @@ class MagmaDefinitionTest {
     void type() {
         assertGenerate("value : I32", createNode()
                 .withString(NAME, "value")
-                .withNode(MagmaDefinition.TYPE, new Node("symbol")
-                        .withString("value", "I32")));
+                .withNode(MagmaDefinition.TYPE, createSymbolType("I32")));
     }
 
     @Test
