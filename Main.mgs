@@ -1,19 +1,19 @@
 import magma.app.Application;
 import magma.app.ApplicationException;
 import java.nio.file.Path;
-export class def Main() => {
-	public static main() => {
+export class def Main => {
+	public static main => {
 		try{
-			let source()=resolveMain();
-			let application()=Application(source);
+			let source=resolveMain();
+			let application=Application(source);
 			application.run();
 		}
-		catch( e()){
+		catch( e){
 			//noinspection CallToPrintStackTrace
 			e.printStackTrace();
 		}
 	}
-	private static resolveMain() => {
+	private static resolveMain => {
 		return Application.ROOT_DIRECTORY.resolve().resolve().resolve();
 	}
 }
