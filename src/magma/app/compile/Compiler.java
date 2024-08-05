@@ -10,7 +10,6 @@ import magma.app.compile.rule.RuleResult;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.List;
 
 import static magma.app.compile.lang.CommonLang.AFTER_CHILDREN;
 import static magma.app.compile.lang.CommonLang.BEFORE_CHILD;
@@ -20,7 +19,9 @@ import static magma.app.compile.lang.CommonLang.DECLARATION_DEFINITION;
 import static magma.app.compile.lang.CommonLang.DECLARATION_TYPE;
 import static magma.app.compile.lang.CommonLang.MODIFIERS;
 import static magma.app.compile.lang.JavaLang.CLASS_NAME;
+import static magma.app.compile.lang.JavaLang.METHOD_DEFINITION;
 import static magma.app.compile.lang.JavaLang.METHOD_TYPE;
+import static magma.app.compile.lang.CommonLang.PARAMS;
 import static magma.app.compile.lang.MagmaLang.DEFINITION_NAME;
 import static magma.app.compile.lang.MagmaLang.DEFINITION_TYPE;
 
@@ -70,13 +71,38 @@ public class Compiler {
         return new Tuple<>(node, depth);
     }
 
-    private static Tuple<Node, Integer> postVisit(Node node, int depth) {
-        if(node.is(DECLARATION_TYPE)) {
+    private static Tuple<Node, Integer> postVisit(Node node, int state) {
+        if (node.is(DECLARATION_TYPE)) {
             var definition = node.findNode(DECLARATION_DEFINITION).orElseThrow();
             var oldModifiers = new ArrayList<>(definition.findStringList(MODIFIERS).orElse(Collections.emptyList()));
             oldModifiers.add("let");
             var withModifiers = definition.withStringList(MODIFIERS, oldModifiers);
-            return new Tuple<>(node.withNode(DECLARATION_DEFINITION, withModifiers), depth);
+            return new Tuple<>(node.withNode(DECLARATION_DEFINITION, withModifiers), state);
+        }
+
+        if (node.is(JavaLang.CLASS_TYPE)) {
+            var name = node.findString(CLASS_NAME).orElseThrow();
+            var oldModifiers = node.findStringList(MODIFIERS).orElseThrow();
+
+            var newModifiers = new ArrayList<>(oldModifiers
+                    .stream()
+                    .map(modifier -> modifier.equals("public") ? "export" : modifier)
+                    .toList());
+
+            newModifiers.add("class");
+            newModifiers.add("def");
+
+            var definition = new Node()
+                    .retype(DEFINITION_TYPE)
+                    .withString(DEFINITION_NAME, name)
+                    .withStringList(MODIFIERS, newModifiers);
+
+            var function = node.retype(MagmaLang.FUNCTION_TYPE)
+                    .removeString(CLASS_NAME)
+                    .removeStringList("modifiers")
+                    .withNode("definition", definition);
+
+            return new Tuple<>(function, state);
         }
 
         if (node.is(BLOCK_TYPE)) {
@@ -84,31 +110,7 @@ public class Compiler {
             if (childrenOptional.isPresent()) {
                 var newChildren = new ArrayList<Node>();
                 for (var child : childrenOptional.get()) {
-                    if (child.is(JavaLang.PACKAGE)) continue;
-                    if (child.is(JavaLang.CLASS_TYPE)) {
-                        var oldModifiers = child.findStringList(MODIFIERS).orElseThrow();
-                        var name = child.findString(CLASS_NAME).orElseThrow();
-
-                        var newModifiers = new ArrayList<>(oldModifiers
-                                .stream()
-                                .map(modifier -> modifier.equals("public") ? "export" : modifier)
-                                .toList());
-
-                        newModifiers.add("class");
-                        newModifiers.add("def");
-
-                        var definition = new Node()
-                                .retype(DEFINITION_TYPE)
-                                .withStringList(MODIFIERS, newModifiers)
-                                .withString(DEFINITION_NAME, name);
-
-                        var function = child.retype(MagmaLang.FUNCTION_TYPE)
-                                .removeString(CLASS_NAME)
-                                .removeStringList("modifiers")
-                                .withNode("definition", definition);
-
-                        newChildren.add(function);
-                    } else {
+                    if (!child.is(JavaLang.PACKAGE)) {
                         newChildren.add(child);
                     }
                 }
@@ -116,32 +118,37 @@ public class Compiler {
                 var formatted = new ArrayList<Node>();
                 for (int i = 0; i < newChildren.size(); i++) {
                     Node newChild = newChildren.get(i);
-                    if (i == 0 && depth == 0) {
+                    if (i == 0 && state == 0) {
                         formatted.add(newChild);
                     } else {
                         String indent;
-                        if (depth < 0) {
+                        if (state < 0) {
                             indent = "\n";
                         } else {
-                            indent = "\n" + "\t".repeat(depth);
+                            indent = "\n" + "\t".repeat(state);
                         }
                         formatted.add(newChild.withString(BEFORE_CHILD, indent));
                     }
                 }
 
-                var blockIndent = depth <= 0 ? "" : "\t".repeat(depth - 1);
+                var blockIndent = state <= 0 ? "" : "\t".repeat(state - 1);
                 var newNode = node.withNodeList(CHILDREN, formatted)
                         .withString(AFTER_CHILDREN, "\n" + blockIndent);
 
-                return new Tuple<>(newNode, depth - 1);
+                return new Tuple<>(newNode, state - 1);
             }
         }
 
         if (node.is(METHOD_TYPE)) {
-            return new Tuple<>(node.retype("function"), depth);
+            var params = node.findNodeList(PARAMS).orElse(Collections.emptyList());
+            var definition = node.findNode(METHOD_DEFINITION).orElseThrow();
+            var withParams = definition.withNodeList(PARAMS, params);
+            return new Tuple<>(node.retype("function")
+                    .removeNodeList(PARAMS)
+                    .withNode(METHOD_DEFINITION, withParams), state);
         }
 
-        return new Tuple<>(node, depth);
+        return new Tuple<>(node, state);
     }
 
     public static Result<CompileResult, ApplicationException> compile(String input) {

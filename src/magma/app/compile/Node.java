@@ -168,4 +168,10 @@ public final class Node {
                 .stream()
                 .map(entry -> new Tuple<>(entry.getKey(), entry.getValue()));
     }
+
+    public Node removeNodeList(String propertyKey) {
+        var copy = new HashMap<>(nodeLists);
+        copy.remove(propertyKey);
+        return new Node(type, strings, stringLists, nodes, copy);
+    }
 }

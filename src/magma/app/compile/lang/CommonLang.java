@@ -35,6 +35,7 @@ public class CommonLang {
     public static final String AFTER_CHILDREN = "after-children";
     public static final String DECLARATION_TYPE = "declaration";
     public static final String DECLARATION_DEFINITION = "definition";
+    public static final String PARAMS = "params";
 
     static Rule createMembersRule(Rule childRule) {
         var wrappedChild = new StripRule(childRule, BEFORE_CHILD, AFTER_CHILD);
@@ -114,5 +115,9 @@ public class CommonLang {
 
     static TypeRule createReturnRule(Rule value) {
         return new TypeRule("return", new PrefixRule("return ", new SuffixRule(new NodeRule("value", value), ";")));
+    }
+
+    static NodeListRule createParamsRule(Rule definition) {
+        return new NodeListRule(new ParamSplitter(), PARAMS, definition);
     }
 }

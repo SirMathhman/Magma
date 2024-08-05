@@ -1,13 +1,11 @@
 package magma.app.compile.lang;
 
-import magma.app.compile.ParamSplitter;
 import magma.app.compile.rule.DisjunctionRule;
 import magma.app.compile.rule.EmptyRule;
 import magma.app.compile.rule.First;
 import magma.app.compile.rule.Last;
 import magma.app.compile.rule.LazyRule;
 import magma.app.compile.rule.LocateRule;
-import magma.app.compile.rule.NodeListRule;
 import magma.app.compile.rule.NodeRule;
 import magma.app.compile.rule.PrefixRule;
 import magma.app.compile.rule.Rule;
@@ -27,6 +25,7 @@ public class JavaLang {
     public static final String PACKAGE = "package";
     public static final String CLASS_NAME = "name";
     public static final String METHOD_TYPE = "method";
+    public static final String METHOD_DEFINITION = "definition";
 
     public static Rule createRootJavaRule() {
         var childRule = new DisjunctionRule(List.of(
@@ -53,11 +52,11 @@ public class JavaLang {
     private static TypeRule createMethodRule() {
         var definition = createDefinitionRule();
         var params = new DisjunctionRule(List.of(
-                new NodeListRule(new ParamSplitter(), "params", definition),
+                CommonLang.createParamsRule(definition),
                 EmptyRule.EMPTY_RULE
         ));
 
-        var beforeContent = new LocateRule(new NodeRule("definition", definition), new First("("), new StripRule(new SuffixRule(params, ")")));
+        var beforeContent = new LocateRule(new NodeRule(METHOD_DEFINITION, definition), new First("("), new StripRule(new SuffixRule(params, ")")));
         var statements = createStatementRule(definition, createValueRule());
         var children = new NodeRule("value", CommonLang.createBlockRule(statements));
         var content = new SuffixRule(children, "}");
@@ -104,7 +103,7 @@ public class JavaLang {
         ));
 
         var name = new StringRule(CLASS_NAME);
-        return new TypeRule("definition", new StripRule(new LocateRule(modifiersAndType, new Last(" "), name)));
+        return new TypeRule(METHOD_DEFINITION, new StripRule(new LocateRule(modifiersAndType, new Last(" "), name)));
     }
 
     private static Rule createTypeRule() {
