@@ -5,8 +5,9 @@ import magma.api.Results;
 import magma.api.Tuple;
 import magma.app.ApplicationException;
 import magma.app.compile.lang.JavaLang;
-import magma.app.compile.lang.magma.MagmaDefinition;
 import magma.app.compile.lang.MagmaLang;
+import magma.app.compile.lang.common.Symbols;
+import magma.app.compile.lang.magma.MagmaDefinition;
 import magma.app.compile.rule.RuleResult;
 
 import java.util.ArrayList;
@@ -19,12 +20,14 @@ import static magma.app.compile.lang.CommonLang.CHILDREN;
 import static magma.app.compile.lang.CommonLang.DECLARATION_DEFINITION;
 import static magma.app.compile.lang.CommonLang.DECLARATION_TYPE;
 import static magma.app.compile.lang.CommonLang.MODIFIERS;
+import static magma.app.compile.lang.CommonLang.PARAMS;
 import static magma.app.compile.lang.JavaLang.ARRAY;
 import static magma.app.compile.lang.JavaLang.CLASS_NAME;
 import static magma.app.compile.lang.JavaLang.METHOD_DEFINITION;
 import static magma.app.compile.lang.JavaLang.METHOD_TYPE;
-import static magma.app.compile.lang.CommonLang.PARAMS;
+import static magma.app.compile.lang.magma.MagmaDefinition.DEFINITION;
 import static magma.app.compile.lang.magma.MagmaDefinition.SLICE;
+import static magma.app.compile.lang.magma.MagmaDefinition.TYPE;
 
 public class Compiler {
     private static Tuple<Node, Integer> modify(Node node, int depth) {
@@ -69,12 +72,34 @@ public class Compiler {
             return new Tuple<>(node, depth + 1);
         }
 
+        if (node.is(Symbols.SYMBOL)) {
+            var mapped = node.mapString(Symbols.VALUE, value -> {
+                if (value.equals("void")) return "Void";
+                return value;
+            });
+
+            return new Tuple<>(mapped, depth);
+        }
+
         return new Tuple<>(node, depth);
     }
 
     private static Tuple<Node, Integer> postVisit(Node node, int state) {
-        if(node.is(ARRAY)) {
+        if (node.is(ARRAY)) {
             return new Tuple<>(node.retype(SLICE), state);
+        }
+
+        if (node.is(DEFINITION)) {
+            var typeOptional = node.findNode(TYPE);
+            if (typeOptional.isPresent()) {
+                var type = typeOptional.get();
+                if (type.is(Symbols.SYMBOL)) {
+                    var value = type.findString(Symbols.VALUE).orElseThrow();
+                    if(value.equals("Void")) {
+                        return new Tuple<>(node.removeNode(TYPE), state);
+                    }
+                }
+            }
         }
 
         if (node.is(DECLARATION_TYPE)) {

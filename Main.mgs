@@ -1,0 +1,19 @@
+import magma.app.Application;
+import magma.app.ApplicationException;
+import java.nio.file.Path;
+export class def Main => {
+	public static main(args : &[String]) => {
+		try{
+			let source : var=resolveMain();
+			let application : var=Application(source);
+			application.run();
+		}
+		catch(e : ApplicationException){
+			//noinspection CallToPrintStackTrace
+			e.printStackTrace();
+		}
+	}
+	private static resolveMain() : Path => {
+		return Application.ROOT_DIRECTORY.resolve().resolve().resolve();
+	}
+}

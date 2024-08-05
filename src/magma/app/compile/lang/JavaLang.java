@@ -1,5 +1,6 @@
 package magma.app.compile.lang;
 
+import magma.app.compile.lang.common.Symbols;
 import magma.app.compile.rule.DisjunctionRule;
 import magma.app.compile.rule.EmptyRule;
 import magma.app.compile.rule.First;
@@ -111,7 +112,7 @@ public class JavaLang {
         var rule = new LazyRule();
         rule.set(new DisjunctionRule(List.of(
                 new TypeRule(ARRAY, new SuffixRule(new NodeRule("child", rule), "[]")),
-                new TypeRule("symbol", new StringRule("value"))
+                Symbols.createSymbolRule()
         )));
         return rule;
     }

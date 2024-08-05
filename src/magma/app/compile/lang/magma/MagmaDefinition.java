@@ -2,6 +2,7 @@ package magma.app.compile.lang.magma;
 
 import magma.app.compile.ParamSplitter;
 import magma.app.compile.lang.CommonLang;
+import magma.app.compile.lang.common.Symbols;
 import magma.app.compile.rule.DisjunctionRule;
 import magma.app.compile.rule.EmptyRule;
 import magma.app.compile.rule.First;
@@ -64,7 +65,7 @@ public class MagmaDefinition {
         var type = new LazyRule();
         type.set(new DisjunctionRule(List.of(
                 new TypeRule(SLICE, new PrefixRule("&[", new SuffixRule(new NodeRule("child", type), "]"))),
-                new TypeRule("symbol", new StringRule("value"))
+                Symbols.createSymbolRule()
         )));
         return type;
     }

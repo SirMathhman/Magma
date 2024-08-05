@@ -185,4 +185,10 @@ public final class Node {
                || nodes.containsKey(propertyKey)
                || nodeLists.containsKey(propertyKey);
     }
+
+    public Node removeNode(String propertyKey) {
+        var copy = new HashMap<>(nodes);
+        copy.remove(propertyKey);
+        return new Node(type, strings, stringLists, copy, nodeLists);
+    }
 }
