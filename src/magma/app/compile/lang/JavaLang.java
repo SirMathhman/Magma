@@ -29,6 +29,8 @@ public class JavaLang {
     public static final String METHOD = "method";
     public static final String CLASS = "class";
     public static final String PACKAGE = "package";
+    public static final String CLASS_NAME = "name";
+    public static final String CLASS_MODIFIERS = "modifiers";
 
     public static Rule createRootJavaRule() {
         var childRule = new DisjunctionRule(List.of(
@@ -41,7 +43,7 @@ public class JavaLang {
     }
 
     private static TypeRule createClassRule() {
-        var modifiers = new StripRule(new StringListRule("modifiers", " "));
+        var modifiers = new StripRule(new StringListRule(CLASS_MODIFIERS, " "));
 
         var classMember = new DisjunctionRule(List.of(
                 createMethodRule()
@@ -49,7 +51,7 @@ public class JavaLang {
 
         var content = CommonLang.createMembersRule(classMember);
 
-        var after = new LocateRule(new StripRule(new StringRule("name")), new First("{"), new SuffixRule(content, "}"));
+        var after = new LocateRule(new StripRule(new StringRule(CLASS_NAME)), new First("{"), new SuffixRule(content, "}"));
         return new TypeRule("class", new LocateRule(modifiers, new First("class "), after));
     }
 
@@ -126,7 +128,7 @@ public class JavaLang {
     }
 
     private static TypeRule createDefinitionRule() {
-        var modifiers = new StripRule(new StringListRule("modifiers", " "));
+        var modifiers = new StripRule(new StringListRule(CLASS_MODIFIERS, " "));
         var type = new NodeRule("type", createTypeRule());
 
         var modifiersAndType = new DisjunctionRule(List.of(
@@ -134,7 +136,7 @@ public class JavaLang {
                 type
         ));
 
-        var name = new StringRule("name");
+        var name = new StringRule(CLASS_NAME);
         return new TypeRule("definition", new StripRule(new LocateRule(modifiersAndType, new Last(" "), name)));
     }
 

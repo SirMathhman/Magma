@@ -142,4 +142,16 @@ public final class Node {
     public Optional<List<String>> findStringList(String propertyKey) {
         return Optional.ofNullable(stringLists.get(propertyKey));
     }
+
+    public Node removeString(String propertyKey) {
+        var copy = new HashMap<>(strings);
+        copy.remove(propertyKey);
+        return new Node(type, copy, stringLists, nodes, nodeLists);
+    }
+
+    public Node removeStringList(String propertyKey) {
+        var copy = new HashMap<>(stringLists);
+        copy.remove(propertyKey);
+        return new Node(type, strings, copy, nodes, nodeLists);
+    }
 }

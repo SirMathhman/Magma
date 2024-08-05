@@ -9,6 +9,10 @@ import magma.app.compile.lang.MagmaLang;
 import magma.app.compile.rule.RuleResult;
 
 import java.util.ArrayList;
+import java.util.List;
+
+import static magma.app.compile.lang.JavaLang.CLASS_NAME;
+import static magma.app.compile.lang.JavaLang.CLASS_MODIFIERS;
 
 public class Compiler {
     private static Node modify(Node node) {
@@ -20,10 +24,25 @@ public class Compiler {
             if (child.is(JavaLang.PACKAGE)) continue;
 
             if (child.is(JavaLang.CLASS)) {
-                copy.add(child.retype(MagmaLang.FUNCTION).mapString(CommonLang.MODIFIERS, oldModifiers -> {
-                    var newAccessor = oldModifiers.equals(JavaLang.PUBLIC_KEYWORD_WITH_SPACE) ? MagmaLang.EXPORT_KEYWORD_WITH_SPACE : "";
-                    return newAccessor + CommonLang.CLASS_KEYWORD_WITH_SPACE;
-                }));
+                var oldModifiers = child.findStringList(CLASS_MODIFIERS).orElseThrow();
+                var name = child.findString(CLASS_NAME).orElseThrow();
+
+                var newModifiers = oldModifiers
+                        .stream()
+                        .map(modifier -> modifier.equals("public") ? "export" : modifier)
+                        .toList();
+
+                var definition = new Node()
+                        .retype("definition")
+                        .withStringList("modifiers", newModifiers)
+                        .withString("name", name);
+
+                var function = child.retype(MagmaLang.FUNCTION)
+                        .removeString(CLASS_NAME)
+                        .removeStringList("modifiers")
+                        .withNode("child", definition);
+
+                copy.add(function);
             } else {
                 copy.add(child);
             }
