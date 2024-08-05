@@ -9,6 +9,7 @@ import magma.app.compile.lang.MagmaLang;
 import magma.app.compile.lang.common.Symbols;
 import magma.app.compile.lang.magma.Functions;
 import magma.app.compile.lang.magma.MagmaDefinition;
+import magma.app.compile.lang.magma.Objects;
 import magma.app.compile.rule.RuleResult;
 
 import java.util.ArrayList;
@@ -27,6 +28,7 @@ import static magma.app.compile.lang.common.Blocks.BEFORE_CHILD;
 import static magma.app.compile.lang.common.Blocks.BLOCK;
 import static magma.app.compile.lang.common.Blocks.CHILDREN;
 import static magma.app.compile.lang.magma.MagmaDefinition.DEFINITION;
+import static magma.app.compile.lang.magma.MagmaDefinition.NAME;
 import static magma.app.compile.lang.magma.MagmaDefinition.SLICE;
 import static magma.app.compile.lang.magma.MagmaDefinition.TYPE;
 
@@ -141,7 +143,7 @@ public class Compiler {
                     .withString(MagmaDefinition.NAME, name)
                     .withStringList(MODIFIERS, newModifiers);
 
-            var function = node.retype(Functions.FUNCTION_TYPE)
+            var function = node.retype(Functions.FUNCTION)
                     .removeString(CLASS_NAME)
                     .removeStringList("modifiers")
                     .withNode("definition", definition);
@@ -154,43 +156,52 @@ public class Compiler {
             if (childrenOptional.isPresent()) {
                 var newChildren = new ArrayList<Node>();
                 for (var child : childrenOptional.get()) {
-                    if (!child.is(JavaLang.PACKAGE)) {
-                        newChildren.add(child);
-                    }
+                    if (child.is(JavaLang.PACKAGE)) continue;
+                    if (child.is(Functions.FUNCTION)) {
+                        var definition = child.findNode(Functions.DEFINITION).orElseThrow();
 
-                    if (child.is(Functions.FUNCTION_TYPE)) {
-                        var oldValue = child.findNode(Functions.VALUE).orElseThrow();
-                        var oldChildren = oldValue.findNodeList(CHILDREN).orElseThrow();
+                        var oldModifiers = definition.findStringList(MODIFIERS).orElse(Collections.emptyList());
+                        if (oldModifiers.contains("class")) {
+                            var name = definition.findString(MagmaDefinition.NAME).orElseThrow();
 
-                        var instanceChildren = new ArrayList<Node>();
-                        var staticChildren = new ArrayList<Node>();
+                            var oldValue = child.findNode(Functions.VALUE).orElseThrow();
+                            var oldChildren = oldValue.findNodeList(CHILDREN).orElseThrow();
 
-                        for (Node oldChild : oldChildren) {
-                            var definitionOptional = oldChild.findNode(DEFINITION);
-                            if (definitionOptional.isPresent()) {
-                                var definition = definitionOptional.get();
-                                var modifiers = definition.findStringList(MODIFIERS).orElse(Collections.emptyList());
-                                if (modifiers.contains("static")) {
-                                    staticChildren.add(oldChild);
+                            var instanceChildren = new ArrayList<Node>();
+                            var staticChildren = new ArrayList<Node>();
+
+                            for (Node oldChild : oldChildren) {
+                                var definitionOptional = oldChild.findNode(DEFINITION);
+                                if (definitionOptional.isPresent()) {
+                                    var memberDefinition = definitionOptional.get();
+                                    var modifiers = memberDefinition.findStringList(MODIFIERS).orElse(Collections.emptyList());
+                                    if (modifiers.contains("static")) {
+                                        staticChildren.add(oldChild);
+                                    } else {
+                                        instanceChildren.add(oldChild);
+                                    }
                                 } else {
                                     instanceChildren.add(oldChild);
                                 }
-                            } else {
-                                instanceChildren.add(oldChild);
                             }
-                        }
 
-                        if (!instanceChildren.isEmpty()) {
-                            newChildren.add(child.withNode(Functions.VALUE, oldValue.withNodeList(CHILDREN, instanceChildren)));
-                        }
+                            if (!instanceChildren.isEmpty()) {
+                                newChildren.add(child.withNode(Functions.VALUE, oldValue.withNodeList(CHILDREN, instanceChildren)));
+                            }
 
-                        if (!staticChildren.isEmpty()) {
-                            var block = new Node(BLOCK)
-                                    .withNodeList(CHILDREN, staticChildren);
+                            if (!staticChildren.isEmpty()) {
+                                var block = new Node(BLOCK)
+                                        .withNodeList(CHILDREN, staticChildren);
 
-                            newChildren.add(new Node("object").withNode("value", block));
+                                newChildren.add(new Node(Objects.OBJECT)
+                                        .withString(NAME, name + "s")
+                                        .withNode(Objects.VALUE, block));
+                            }
+                            continue;
                         }
                     }
+
+                    newChildren.add(child);
                 }
 
                 var formatted = new ArrayList<Node>();

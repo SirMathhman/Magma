@@ -3,6 +3,7 @@ package magma.app.compile.lang;
 import magma.app.compile.lang.common.Blocks;
 import magma.app.compile.lang.magma.Functions;
 import magma.app.compile.lang.magma.MagmaDefinition;
+import magma.app.compile.lang.magma.Objects;
 import magma.app.compile.rule.DisjunctionRule;
 import magma.app.compile.rule.LazyRule;
 import magma.app.compile.rule.Rule;
@@ -30,7 +31,8 @@ public class MagmaLang {
                 CommonLang.createDeclarationRule(definition, value),
                 CommonLang.createInvocationStatementRule(value),
                 CommonLang.createCommentRule(),
-                CommonLang.createReturnRule(value)
+                CommonLang.createReturnRule(value),
+                Objects.createObjectRule(statement)
         )));
 
         return statement;

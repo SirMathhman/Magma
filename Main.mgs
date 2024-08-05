@@ -1,7 +1,7 @@
 import magma.app.Application;
 import magma.app.ApplicationException;
 import java.nio.file.Path;
-export class def Main => {
+object Mains{
 	public static main(args : &[String]) => {
 		try{
 			let source=resolveMain();
@@ -15,5 +15,4 @@ export class def Main => {
 	}
 	private static resolveMain() : Path => {
 		return Application.ROOT_DIRECTORY.resolve("src").resolve("magma").resolve("Main.java");
-	}
-}
+	}}

@@ -22,8 +22,8 @@
 				<child value="Path"/>
 			</string-list>
 		</import>
-		<function before-child="\n">
-			<block for="value" after-children="\n">
+		<object name="Mains" before-child="\n">
+			<block for="value">
 				<children>
 					<function before-child="\n\t">
 						<block for="value" after-children="\n\t">
@@ -157,13 +157,6 @@
 					</function>
 				</children>
 			</block>
-			<definition name="Main" for="definition">
-				<string-list for="modifiers">
-					<child value="export"/>
-					<child value="class"/>
-					<child value="def"/>
-				</string-list>
-			</definition>
-		</function>
+		</object>
 	</children>
 </block>
