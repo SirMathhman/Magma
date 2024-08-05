@@ -11,6 +11,8 @@ import magma.app.compile.rule.RuleResult;
 import java.util.ArrayList;
 import java.util.List;
 
+import static magma.app.compile.lang.CommonLang.AFTER_CHILD;
+import static magma.app.compile.lang.CommonLang.BEFORE_CHILD;
 import static magma.app.compile.lang.CommonLang.CHILDREN;
 import static magma.app.compile.lang.CommonLang.MODIFIERS;
 import static magma.app.compile.lang.JavaLang.CLASS_NAME;
@@ -46,10 +48,9 @@ public class Compiler {
     private static Node postVisit(Node node) {
         var childrenOptional = node.findNodeList(CHILDREN);
         if (childrenOptional.isPresent()) {
-            var copy = new ArrayList<Node>();
+            var newChildren = new ArrayList<Node>();
             for (var child : childrenOptional.get()) {
                 if (child.is(JavaLang.PACKAGE)) continue;
-
                 if (child.is(JavaLang.CLASS)) {
                     var oldModifiers = child.findStringList(MODIFIERS).orElseThrow();
                     var name = child.findString(CLASS_NAME).orElseThrow();
@@ -72,13 +73,19 @@ public class Compiler {
                             .removeStringList("modifiers")
                             .withNode("definition", definition);
 
-                    copy.add(function);
+                    newChildren.add(function);
                 } else {
-                    copy.add(child);
+                    newChildren.add(child);
                 }
             }
 
-            return node.withNodeList(CHILDREN, copy);
+            var formatted = new ArrayList<Node>();
+            for (int i = 0; i < newChildren.size(); i++) {
+                Node newChild = newChildren.get(i);
+                formatted.add(i == 0 ? newChild : newChild.withString(BEFORE_CHILD, "\n"));
+            }
+
+            return node.withNodeList(CHILDREN, formatted);
         }
 
         if (node.is(METHOD_TYPE)) {

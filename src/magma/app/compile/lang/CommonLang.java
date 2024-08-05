@@ -5,7 +5,6 @@ import magma.app.compile.rule.NodeListRule;
 import magma.app.compile.rule.PrefixRule;
 import magma.app.compile.rule.Rule;
 import magma.app.compile.rule.StringListRule;
-import magma.app.compile.rule.StringRule;
 import magma.app.compile.rule.StripRule;
 import magma.app.compile.rule.SuffixRule;
 import magma.app.compile.rule.TypeRule;
@@ -16,17 +15,12 @@ public class CommonLang {
     public static final String MODIFIERS = "modifiers";
     public static final String NAME = "name";
     public static final String CONTENT = "content";
-    public static final String SEGMENTS = "segments";
     public static final String CHILDREN = "children";
-
-    static Rule createImportRule(String type, String prefix) {
-        var segments = new StringRule(SEGMENTS);
-        var afterKeyword = new SuffixRule(segments, String.valueOf(MemberSplitter.STATEMENT_END));
-        return new TypeRule(type, new PrefixRule(prefix, afterKeyword));
-    }
+    public static final String BEFORE_CHILD = "before-child";
+    public static final String AFTER_CHILD = "after-child";
 
     static NodeListRule createMembersRule(Rule childRule) {
-        return new NodeListRule(new MemberSplitter(), "children", childRule);
+        return new NodeListRule(new MemberSplitter(), "children", new StripRule(childRule, BEFORE_CHILD, AFTER_CHILD));
     }
 
     static Rule createBlockRule(Rule childRule) {

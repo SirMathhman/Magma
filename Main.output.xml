@@ -7,14 +7,16 @@
 				<child value="Application"/>
 			</string-list>
 		</import>
-		<import>
+		<import before-child="
+">
 			<string-list for="namespace">
 				<child value="magma"/>
 				<child value="app"/>
 				<child value="ApplicationException"/>
 			</string-list>
 		</import>
-		<import>
+		<import before-child="
+">
 			<string-list for="namespace">
 				<child value="java"/>
 				<child value="nio"/>
@@ -22,7 +24,8 @@
 				<child value="Path"/>
 			</string-list>
 		</import>
-		<function>
+		<function before-child="
+">
 			<definition name="Main" for="definition">
 				<string-list for="modifiers">
 					<child value="export"/>
@@ -57,7 +60,8 @@
 										<symbol for="type" value="var"/>
 									</definition>
 								</declaration>
-								<declaration>
+								<declaration before-child="
+">
 									<invocation for="value">
 										<reference for="caller" value="Application"/>
 										<arguments>
@@ -68,14 +72,16 @@
 										<symbol for="type" value="var"/>
 									</definition>
 								</declaration>
-								<invocation>
+								<invocation before-child="
+">
 									<access member="run" for="caller">
 										<reference for="object" value="application"/>
 									</access>
 								</invocation>
 							</children>
 						</try>
-						<catch>
+						<catch before-child="
+">
 							<params>
 								<definition name="e">
 									<symbol for="type" value="ApplicationException"/>
@@ -83,7 +89,8 @@
 							</params>
 							<children>
 								<comment value="noinspection CallToPrintStackTrace"/>
-								<invocation>
+								<invocation before-child="
+">
 									<access member="printStackTrace" for="caller">
 										<reference for="object" value="e"/>
 									</access>
@@ -92,7 +99,8 @@
 						</catch>
 					</children>
 				</method>
-				<method>
+				<method before-child="
+">
 					<definition name="resolveMain" for="definition">
 						<string-list for="modifiers">
 							<child value="private"/>
