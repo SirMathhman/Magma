@@ -11,6 +11,7 @@ import magma.app.compile.rule.NodeRule;
 import magma.app.compile.rule.PrefixRule;
 import magma.app.compile.rule.Rule;
 import magma.app.compile.rule.StringRule;
+import magma.app.compile.rule.StripRule;
 import magma.app.compile.rule.SuffixRule;
 import magma.app.compile.rule.TypeRule;
 
@@ -49,6 +50,8 @@ public class MagmaLang {
     }
 
     private static Rule createDefinitionRule() {
-        return new TypeRule(DEFINITION_TYPE, new LocateRule(CommonLang.createModifiersRule(), new Last(" "), new StringRule(DEFINITION_NAME)));
+        var modifiers = CommonLang.createModifiersRule();
+        var name = new StringRule(DEFINITION_NAME);
+        return new TypeRule(DEFINITION_TYPE, new LocateRule(modifiers, new Last(" "), new SuffixRule(name, "() => {}")));
     }
 }
