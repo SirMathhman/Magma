@@ -4,6 +4,7 @@ import magma.app.compile.MemberSplitter;
 import magma.app.compile.rule.DisjunctionRule;
 import magma.app.compile.rule.EmptyRule;
 import magma.app.compile.rule.First;
+import magma.app.compile.rule.Last;
 import magma.app.compile.rule.LocateRule;
 import magma.app.compile.rule.LazyRule;
 import magma.app.compile.rule.NodeRule;
@@ -48,6 +49,6 @@ public class MagmaLang {
     }
 
     private static Rule createDefinitionRule() {
-        return new TypeRule(DEFINITION_TYPE, new StringRule(DEFINITION_NAME));
+        return new TypeRule(DEFINITION_TYPE, new LocateRule(CommonLang.createModifiersRule(), new Last(" "), new StringRule(DEFINITION_NAME)));
     }
 }

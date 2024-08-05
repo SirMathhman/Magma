@@ -6,6 +6,7 @@ import magma.app.compile.rule.PrefixRule;
 import magma.app.compile.rule.Rule;
 import magma.app.compile.rule.StringListRule;
 import magma.app.compile.rule.StringRule;
+import magma.app.compile.rule.StripRule;
 import magma.app.compile.rule.SuffixRule;
 import magma.app.compile.rule.TypeRule;
 
@@ -16,7 +17,6 @@ public class CommonLang {
     public static final String NAME = "name";
     public static final String CONTENT = "content";
     public static final String SEGMENTS = "segments";
-    public static final String IMPORT = "import";
     public static final String CHILDREN = "children";
 
     static Rule createImportRule(String type, String prefix) {
@@ -39,5 +39,9 @@ public class CommonLang {
 
     static Rule createNamespaceRule(String type, String prefix) {
         return new TypeRule(type, new PrefixRule(prefix, new SuffixRule(new StringListRule("namespace", "."), ";")));
+    }
+
+    static StripRule createModifiersRule() {
+        return new StripRule(new StringListRule(MODIFIERS, " "));
     }
 }

@@ -4,7 +4,6 @@ import magma.api.Result;
 import magma.api.Results;
 import magma.api.Tuple;
 import magma.app.ApplicationException;
-import magma.app.compile.lang.CommonLang;
 import magma.app.compile.lang.JavaLang;
 import magma.app.compile.lang.MagmaLang;
 import magma.app.compile.rule.RuleResult;
@@ -12,8 +11,9 @@ import magma.app.compile.rule.RuleResult;
 import java.util.ArrayList;
 import java.util.List;
 
+import static magma.app.compile.lang.CommonLang.CHILDREN;
+import static magma.app.compile.lang.CommonLang.MODIFIERS;
 import static magma.app.compile.lang.JavaLang.CLASS_NAME;
-import static magma.app.compile.lang.JavaLang.CLASS_MODIFIERS;
 import static magma.app.compile.lang.JavaLang.METHOD_TYPE;
 import static magma.app.compile.lang.MagmaLang.DEFINITION_NAME;
 import static magma.app.compile.lang.MagmaLang.DEFINITION_TYPE;
@@ -44,14 +44,14 @@ public class Compiler {
     }
 
     private static Node postVisit(Node node) {
-        var childrenOptional = node.findNodeList(CommonLang.CHILDREN);
+        var childrenOptional = node.findNodeList(CHILDREN);
         if (childrenOptional.isPresent()) {
             var copy = new ArrayList<Node>();
             for (var child : childrenOptional.get()) {
                 if (child.is(JavaLang.PACKAGE)) continue;
 
                 if (child.is(JavaLang.CLASS)) {
-                    var oldModifiers = child.findStringList(CLASS_MODIFIERS).orElseThrow();
+                    var oldModifiers = child.findStringList(MODIFIERS).orElseThrow();
                     var name = child.findString(CLASS_NAME).orElseThrow();
 
                     var newModifiers = new ArrayList<>(oldModifiers
@@ -64,7 +64,7 @@ public class Compiler {
 
                     var definition = new Node()
                             .retype(DEFINITION_TYPE)
-                            .withStringList("modifiers", newModifiers)
+                            .withStringList(MODIFIERS, newModifiers)
                             .withString(DEFINITION_NAME, name);
 
                     var function = child.retype(MagmaLang.FUNCTION_TYPE)
@@ -78,10 +78,10 @@ public class Compiler {
                 }
             }
 
-            return node.withNodeList(CommonLang.CHILDREN, copy);
+            return node.withNodeList(CHILDREN, copy);
         }
 
-        if(node.is(METHOD_TYPE)) {
+        if (node.is(METHOD_TYPE)) {
             return node.retype("function");
         }
 

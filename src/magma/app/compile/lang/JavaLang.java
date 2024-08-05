@@ -12,7 +12,6 @@ import magma.app.compile.rule.NodeListRule;
 import magma.app.compile.rule.NodeRule;
 import magma.app.compile.rule.PrefixRule;
 import magma.app.compile.rule.Rule;
-import magma.app.compile.rule.StringListRule;
 import magma.app.compile.rule.StringRule;
 import magma.app.compile.rule.StripRule;
 import magma.app.compile.rule.SuffixRule;
@@ -29,7 +28,6 @@ public class JavaLang {
     public static final String CLASS = "class";
     public static final String PACKAGE = "package";
     public static final String CLASS_NAME = "name";
-    public static final String CLASS_MODIFIERS = "modifiers";
     public static final String METHOD_TYPE = "method";
 
     public static Rule createRootJavaRule() {
@@ -43,7 +41,7 @@ public class JavaLang {
     }
 
     private static TypeRule createClassRule() {
-        var modifiers = new StripRule(new StringListRule(CLASS_MODIFIERS, " "));
+        var modifiers = CommonLang.createModifiersRule();
 
         var classMember = new DisjunctionRule(List.of(
                 createMethodRule()
@@ -128,7 +126,7 @@ public class JavaLang {
     }
 
     private static TypeRule createDefinitionRule() {
-        var modifiers = new StripRule(new StringListRule(CLASS_MODIFIERS, " "));
+        var modifiers = CommonLang.createModifiersRule();
         var type = new NodeRule("type", createTypeRule());
 
         var modifiersAndType = new DisjunctionRule(List.of(
