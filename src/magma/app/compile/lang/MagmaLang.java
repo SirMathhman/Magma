@@ -1,6 +1,7 @@
 package magma.app.compile.lang;
 
 import magma.app.compile.MemberSplitter;
+import magma.app.compile.lang.magma.MagmaDefinition;
 import magma.app.compile.rule.DisjunctionRule;
 import magma.app.compile.rule.EmptyRule;
 import magma.app.compile.rule.First;
@@ -19,8 +20,6 @@ import java.util.List;
 public class MagmaLang {
     public static final String EXPORT_KEYWORD_WITH_SPACE = "export ";
     public static final String FUNCTION_TYPE = "function";
-    public static final String DEFINITION_NAME = "name";
-    public static final String DEFINITION_TYPE = "definition";
 
     public static Rule createStatementRule() {
         var statement = new LazyRule();
@@ -50,7 +49,7 @@ public class MagmaLang {
 
     private static Rule createStatementRule0() {
         var statement = new LazyRule();
-        var definition = createDefinitionRule();
+        var definition = MagmaDefinition.createRule();
         var value = createValueRule();
 
         statement.set(new DisjunctionRule(List.of(
@@ -77,25 +76,7 @@ public class MagmaLang {
 
     private static TypeRule createFunctionRule0(Rule definition, Rule statement) {
         var content = new PrefixRule("{", new SuffixRule(new NodeRule("value", CommonLang.createBlockRule(statement)), "}"));
-        var definitionProperty = new NodeRule(DEFINITION_TYPE, definition);
+        var definitionProperty = new NodeRule(MagmaDefinition.DEFINITION_TYPE, definition);
         return new TypeRule(FUNCTION_TYPE, new LocateRule(definitionProperty, new Last(" => "), content));
-    }
-
-    private static Rule createDefinitionRule() {
-        var definition = new LazyRule();
-        var name = new StringRule(DEFINITION_NAME);
-        var params = new SuffixRule(CommonLang.createParamsRule(definition), ")");
-
-        var name1 = new DisjunctionRule(List.of(
-                new LocateRule(name, new First("("), params),
-                name
-        ));
-
-        var withModifiers = new LocateRule(CommonLang.createModifiersRule(), new Last(" "), name1);
-        definition.set(new TypeRule(DEFINITION_TYPE, new DisjunctionRule(List.of(
-                withModifiers,
-                name1
-        ))));
-        return definition;
     }
 }

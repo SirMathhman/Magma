@@ -55,7 +55,7 @@ public class CommonLang {
         return new TypeRule(type, new PrefixRule(prefix, new SuffixRule(new StringListRule("namespace", "."), ";")));
     }
 
-    static StripRule createModifiersRule() {
+    public static StripRule createModifiersRule() {
         return new StripRule(new StringListRule(MODIFIERS, " "));
     }
 
@@ -117,7 +117,7 @@ public class CommonLang {
         return new TypeRule("return", new PrefixRule("return ", new SuffixRule(new NodeRule("value", value), ";")));
     }
 
-    static NodeListRule createParamsRule(Rule definition) {
+    public static NodeListRule createParamsRule(Rule definition) {
         return new NodeListRule(new ParamSplitter(), PARAMS, definition);
     }
 }

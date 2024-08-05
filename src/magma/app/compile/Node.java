@@ -32,6 +32,10 @@ public final class Node {
         this.stringLists = stringLists;
     }
 
+    public Node(String type) {
+        this(Optional.of(type), Collections.emptyMap(), Collections.emptyMap(), Collections.emptyMap(), Collections.emptyMap());
+    }
+
     @Override
     public String toString() {
         return format();

@@ -5,6 +5,7 @@ import magma.api.Results;
 import magma.api.Tuple;
 import magma.app.ApplicationException;
 import magma.app.compile.lang.JavaLang;
+import magma.app.compile.lang.magma.MagmaDefinition;
 import magma.app.compile.lang.MagmaLang;
 import magma.app.compile.rule.RuleResult;
 
@@ -22,8 +23,6 @@ import static magma.app.compile.lang.JavaLang.CLASS_NAME;
 import static magma.app.compile.lang.JavaLang.METHOD_DEFINITION;
 import static magma.app.compile.lang.JavaLang.METHOD_TYPE;
 import static magma.app.compile.lang.CommonLang.PARAMS;
-import static magma.app.compile.lang.MagmaLang.DEFINITION_NAME;
-import static magma.app.compile.lang.MagmaLang.DEFINITION_TYPE;
 
 public class Compiler {
     private static Tuple<Node, Integer> modify(Node node, int depth) {
@@ -93,8 +92,8 @@ public class Compiler {
             newModifiers.add("def");
 
             var definition = new Node()
-                    .retype(DEFINITION_TYPE)
-                    .withString(DEFINITION_NAME, name)
+                    .retype(MagmaDefinition.DEFINITION_TYPE)
+                    .withString(MagmaDefinition.DEFINITION_NAME, name)
                     .withStringList(MODIFIERS, newModifiers);
 
             var function = node.retype(MagmaLang.FUNCTION_TYPE)
