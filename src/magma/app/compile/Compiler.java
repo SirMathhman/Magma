@@ -67,9 +67,22 @@ public class Compiler {
         return withNodes;
     }
 
-    private static Tuple<Node, Integer> preVisit(Node node, int depth) {
+    private static Tuple<Node, Integer> preVisit(Node node, int state) {
         if (node.is(BLOCK_TYPE)) {
-            return new Tuple<>(node, depth + 1);
+            return new Tuple<>(node, state + 1);
+        }
+
+        if (node.is(DEFINITION)) {
+            var typeOptional = node.findNode(TYPE);
+            if (typeOptional.isPresent()) {
+                var type = typeOptional.get();
+                if (type.is(Symbols.SYMBOL)) {
+                    var value = type.findString(Symbols.VALUE).orElseThrow();
+                    if(value.equals("var")) {
+                        return new Tuple<>(node.removeNode(TYPE), state);
+                    }
+                }
+            }
         }
 
         if (node.is(Symbols.SYMBOL)) {
@@ -78,10 +91,10 @@ public class Compiler {
                 return value;
             });
 
-            return new Tuple<>(mapped, depth);
+            return new Tuple<>(mapped, state);
         }
 
-        return new Tuple<>(node, depth);
+        return new Tuple<>(node, state);
     }
 
     private static Tuple<Node, Integer> postVisit(Node node, int state) {

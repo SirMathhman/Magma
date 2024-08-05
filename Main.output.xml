@@ -41,7 +41,6 @@
 															<string-list for="modifiers">
 																<child value="let"/>
 															</string-list>
-															<symbol for="type" value="var"/>
 														</definition>
 													</declaration>
 												</children>
@@ -59,7 +58,6 @@
 															<string-list for="modifiers">
 																<child value="let"/>
 															</string-list>
-															<symbol for="type" value="var"/>
 														</definition>
 													</declaration>
 												</children>
