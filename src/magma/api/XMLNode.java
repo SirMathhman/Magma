@@ -46,7 +46,17 @@ public record XMLNode(String name, Map<String, String> attributes, List<XMLNode>
     private String formatAttributes() {
         return attributes.entrySet()
                 .stream()
-                .map(entry -> entry.getKey() + "=\"" + entry.getValue() + "\"")
+                .map(entry -> entry.getKey() + "=\"" + escape(entry.getValue()) + "\"")
                 .collect(Collectors.joining(" "));
+    }
+
+    private String escape(String value) {
+        return value.replace("&", "&amp;")
+                .replace("<", "&lt;")
+                .replace(">", "&gt;")
+                .replace("\"", "&quot;")
+                .replace("'", "&apos;")
+                .replace("\n", "\\n")
+                .replace("\t", "\\t");
     }
 }

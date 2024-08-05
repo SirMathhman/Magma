@@ -1,5 +1,4 @@
-<block after-children="
-">
+<block after-children="\n">
 	<children>
 		<import>
 			<string-list for="namespace">
@@ -8,16 +7,14 @@
 				<child value="Application"/>
 			</string-list>
 		</import>
-		<import before-child="
-">
+		<import before-child="\n">
 			<string-list for="namespace">
 				<child value="magma"/>
 				<child value="app"/>
 				<child value="ApplicationException"/>
 			</string-list>
 		</import>
-		<import before-child="
-">
+		<import before-child="\n">
 			<string-list for="namespace">
 				<child value="java"/>
 				<child value="nio"/>
@@ -25,23 +22,16 @@
 				<child value="Path"/>
 			</string-list>
 		</import>
-		<function before-child="
-">
-			<block for="value" after-children="
-">
+		<function before-child="\n">
+			<block for="value" after-children="\n">
 				<children>
-					<function before-child="
-	">
-						<block for="value" after-children="
-	">
+					<function before-child="\n\t">
+						<block for="value" after-children="\n\t">
 							<children>
-								<try before-child="
-		">
-									<block for="value" after-children="
-		">
+								<try before-child="\n\t\t">
+									<block for="value" after-children="\n\t\t">
 										<children>
-											<? before-child="
-			">
+											<? before-child="\n\t\t\t">
 												<children>
 													<declaration>
 														<invocation for="value">
@@ -56,8 +46,7 @@
 													</declaration>
 												</children>
 											</?>
-											<? before-child="
-			">
+											<? before-child="\n\t\t\t">
 												<children>
 													<declaration>
 														<invocation for="value">
@@ -75,8 +64,7 @@
 													</declaration>
 												</children>
 											</?>
-											<? before-child="
-			">
+											<? before-child="\n\t\t\t">
 												<children>
 													<invocation>
 														<access member="run" for="caller">
@@ -88,19 +76,15 @@
 										</children>
 									</block>
 								</try>
-								<catch before-child="
-		">
-									<block for="value" after-children="
-		">
+								<catch before-child="\n\t\t">
+									<block for="value" after-children="\n\t\t">
 										<children>
-											<? before-child="
-			">
+											<? before-child="\n\t\t\t">
 												<children>
 													<comment value="noinspection CallToPrintStackTrace"/>
 												</children>
 											</?>
-											<? before-child="
-			">
+											<? before-child="\n\t\t\t">
 												<children>
 													<invocation>
 														<access member="printStackTrace" for="caller">
@@ -134,13 +118,10 @@
 							</definition>
 						</params>
 					</function>
-					<function before-child="
-	">
-						<block for="value" after-children="
-	">
+					<function before-child="\n\t">
+						<block for="value" after-children="\n\t">
 							<children>
-								<return before-child="
-		">
+								<return before-child="\n\t\t">
 									<invocation for="value">
 										<access member="resolve" for="caller">
 											<invocation for="object">
