@@ -4,22 +4,16 @@ import magma.api.UnsafeException;
 import magma.app.compile.Node;
 import org.junit.jupiter.api.Test;
 
-import static org.junit.jupiter.api.Assertions.*;
+import java.util.List;
+
+import static magma.app.compile.lang.CommonLang.MODIFIERS;
+import static magma.app.compile.lang.magma.MagmaDefinition.NAME;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.fail;
 
 class MagmaDefinitionTest {
-    @Test
-    void name() {
-        assertGenerate("test", createNode()
-                .withString("name", "test"));
-    }
-
     private static Node createNode() {
-        return new Node(MagmaDefinition.DEFINITION_TYPE);
-    }
-
-    @Test
-    void empty() {
-        assertGenerate("()", createNode());
+        return new Node(MagmaDefinition.DEFINITION);
     }
 
     private static void assertGenerate(String output, Node input) {
@@ -32,5 +26,31 @@ class MagmaDefinitionTest {
         } catch (UnsafeException e) {
             fail(e);
         }
+    }
+
+    @Test
+    void modifiers() {
+        assertGenerate("let temp", createNode()
+                .withString(NAME, "temp")
+                .withStringList(MODIFIERS, List.of("let")));
+    }
+
+    @Test
+    void type() {
+        assertGenerate("value : I32", createNode()
+                .withString(NAME, "value")
+                .withNode(MagmaDefinition.TYPE, new Node("symbol")
+                        .withString("value", "I32")));
+    }
+
+    @Test
+    void name() {
+        assertGenerate("test", createNode()
+                .withString(NAME, "test"));
+    }
+
+    @Test
+    void empty() {
+        assertGenerate("()", createNode());
     }
 }

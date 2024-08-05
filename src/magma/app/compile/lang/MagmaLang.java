@@ -61,6 +61,7 @@ public class MagmaLang {
                 CommonLang.createCommentRule(),
                 CommonLang.createReturnRule(value)
         )));
+
         return statement;
     }
 
@@ -76,7 +77,7 @@ public class MagmaLang {
 
     private static TypeRule createFunctionRule0(Rule definition, Rule statement) {
         var content = new PrefixRule("{", new SuffixRule(new NodeRule("value", CommonLang.createBlockRule(statement)), "}"));
-        var definitionProperty = new NodeRule(MagmaDefinition.DEFINITION_TYPE, definition);
+        var definitionProperty = new NodeRule(MagmaDefinition.DEFINITION, definition);
         return new TypeRule(FUNCTION_TYPE, new LocateRule(definitionProperty, new Last(" => "), content));
     }
 }

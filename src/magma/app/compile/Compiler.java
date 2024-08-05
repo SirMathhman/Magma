@@ -92,8 +92,8 @@ public class Compiler {
             newModifiers.add("def");
 
             var definition = new Node()
-                    .retype(MagmaDefinition.DEFINITION_TYPE)
-                    .withString(MagmaDefinition.DEFINITION_NAME, name)
+                    .retype(MagmaDefinition.DEFINITION)
+                    .withString(MagmaDefinition.NAME, name)
                     .withStringList(MODIFIERS, newModifiers);
 
             var function = node.retype(MagmaLang.FUNCTION_TYPE)
