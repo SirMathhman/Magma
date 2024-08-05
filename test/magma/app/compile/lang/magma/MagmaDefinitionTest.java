@@ -8,6 +8,7 @@ import java.util.List;
 
 import static magma.app.compile.lang.CommonLang.MODIFIERS;
 import static magma.app.compile.lang.magma.MagmaDefinition.NAME;
+import static magma.app.compile.lang.magma.MagmaDefinition.TYPE;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.fail;
 
@@ -26,6 +27,17 @@ class MagmaDefinitionTest {
         } catch (UnsafeException e) {
             fail(e);
         }
+    }
+
+    @Test
+    void parameters() {
+        assertGenerate("caller(value : I32)", createNode()
+                .withString(NAME, "caller")
+                .withNodeList(MagmaDefinition.PARAMS, List.of(createNode()
+                        .withString(NAME, "value")
+                        .withNode(TYPE, new Node("symbol")
+                                .withString("value", "I32"))
+                )));
     }
 
     @Test
