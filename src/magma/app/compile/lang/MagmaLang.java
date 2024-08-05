@@ -40,7 +40,8 @@ public class MagmaLang {
 
     public static Rule createRootMagmaRule() {
         return CommonLang.createBlockRule(new DisjunctionRule(List.of(
-                CommonLang.createImportRule()
+                CommonLang.createImportRule(),
+                new TypeRule("function", EmptyRule.EMPTY_RULE)
         )));
     }
 }

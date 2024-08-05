@@ -22,10 +22,12 @@
 				<child value="Path"/>
 			</string-list>
 		</import>
-		<function name="Main">
-			<string-list for="modifiers">
-				<child value="public"/>
-			</string-list>
+		<function>
+			<definition name="Main" for="child">
+				<string-list for="modifiers">
+					<child value="export"/>
+				</string-list>
+			</definition>
 			<children>
 				<method>
 					<definition name="main" for="definition">

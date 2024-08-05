@@ -1,7 +1,7 @@
 package magma.app.compile;
 
+import magma.api.Tuple;
 import magma.api.XMLNode;
-import magma.app.compile.rule.RuleResult;
 
 import java.util.Collections;
 import java.util.HashMap;
@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
+import java.util.stream.Stream;
 
 @SuppressWarnings("OptionalUsedAsFieldOrParameterType")
 public final class Node {
@@ -153,5 +154,17 @@ public final class Node {
         var copy = new HashMap<>(stringLists);
         copy.remove(propertyKey);
         return new Node(type, strings, copy, nodes, nodeLists);
+    }
+
+    public Stream<Tuple<String, Node>> streamNodes() {
+        return nodes.entrySet()
+                .stream()
+                .map(entry -> new Tuple<>(entry.getKey(), entry.getValue()));
+    }
+
+    public Stream<Tuple<String, List<Node>>> streamNodeLists() {
+        return nodeLists.entrySet()
+                .stream()
+                .map(entry -> new Tuple<>(entry.getKey(), entry.getValue()));
     }
 }

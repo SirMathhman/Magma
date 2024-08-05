@@ -26,11 +26,11 @@ public class JavaLang {
     public static final String PUBLIC_KEYWORD_WITH_SPACE = "public ";
     public static final String VOID_KEYWORD_WITH_SPACE = "void ";
     public static final String METHOD_SUFFIX = "(){}";
-    public static final String METHOD = "method";
     public static final String CLASS = "class";
     public static final String PACKAGE = "package";
     public static final String CLASS_NAME = "name";
     public static final String CLASS_MODIFIERS = "modifiers";
+    public static final String METHOD_TYPE = "method";
 
     public static Rule createRootJavaRule() {
         var childRule = new DisjunctionRule(List.of(
@@ -64,7 +64,7 @@ public class JavaLang {
 
         var beforeContent = new LocateRule(new NodeRule("definition", definition), new First("("), new StripRule(new SuffixRule(params, ")")));
         var content = new SuffixRule(new NodeListRule(new MemberSplitter(), "children", createStatementRule(definition, createValueRule())), "}");
-        return new TypeRule("method", new LocateRule(beforeContent, new First("{"), content));
+        return new TypeRule(METHOD_TYPE, new LocateRule(beforeContent, new First("{"), content));
     }
 
     private static Rule createStatementRule(Rule definition, Rule value) {
