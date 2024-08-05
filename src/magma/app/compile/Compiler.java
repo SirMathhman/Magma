@@ -9,7 +9,6 @@ import magma.app.compile.lang.MagmaLang;
 import magma.app.compile.rule.RuleResult;
 
 import java.util.ArrayList;
-import java.util.List;
 
 import static magma.app.compile.lang.CommonLang.BEFORE_CHILD;
 import static magma.app.compile.lang.CommonLang.BLOCK_TYPE;
@@ -21,31 +20,52 @@ import static magma.app.compile.lang.MagmaLang.DEFINITION_NAME;
 import static magma.app.compile.lang.MagmaLang.DEFINITION_TYPE;
 
 public class Compiler {
-    private static Node modify(Node node, int depth) {
-        var withNodes = node;
-        for (Tuple<String, Node> tuple : node.streamNodes().toList()) {
-            var key = tuple.left();
-            var value = tuple.right();
-            var newValue = modify(value, depth + 1);
-            withNodes = withNodes.withNode(key, newValue);
-        }
+    private static Tuple<Node, Integer> modify(Node node, int depth) {
+        var preVisited = preVisit(node, depth);
+        var withNodes = modifyNodes(preVisited.left(), preVisited.right());
+        var withNodeLists = modifyNodeLists(withNodes.left(), withNodes.right());
+        return postVisit(withNodeLists.left(), withNodeLists.right());
+    }
 
-        var withNodeLists = withNodes;
-        for (Tuple<String, List<Node>> tuple : node.streamNodeLists().toList()) {
+    private static Tuple<Node, Integer> modifyNodeLists(Node node, Integer depth) {
+        var withNodeLists = new Tuple<>(node, depth);
+        for (var tuple : node.streamNodeLists().toList()) {
             var key = tuple.left();
             var oldValues = tuple.right();
             var newValues = new ArrayList<Node>();
+            var current = depth;
             for (Node oldValue : oldValues) {
-                var newValue = modify(oldValue, depth + 1);
-                newValues.add(newValue);
+                var newValue = modify(oldValue, depth);
+                newValues.add(newValue.left());
+                current = newValue.right();
             }
-            withNodeLists = withNodeLists.withNodeList(key, newValues);
-        }
 
-        return postVisit(withNodeLists, depth);
+            withNodeLists = new Tuple<>(withNodeLists.left().withNodeList(key, newValues), current);
+        }
+        return withNodeLists;
     }
 
-    private static Node postVisit(Node node, int depth) {
+    private static Tuple<Node, Integer> modifyNodes(Node node, int state) {
+        var withNodes = new Tuple<>(node, state);
+        for (var tuple : node.streamNodes().toList()) {
+            var key = tuple.left();
+            var value = tuple.right();
+            var newValue = modify(value, withNodes.right());
+            var newNode = withNodes.left().withNode(key, newValue.left());
+            withNodes = new Tuple<>(newNode, newValue.right());
+        }
+        return withNodes;
+    }
+
+    private static Tuple<Node, Integer> preVisit(Node node, int depth) {
+        if (node.is(BLOCK_TYPE)) {
+            return new Tuple<>(node, depth + 1);
+        }
+
+        return new Tuple<>(node, depth);
+    }
+
+    private static Tuple<Node, Integer> postVisit(Node node, int depth) {
         if (node.is(BLOCK_TYPE)) {
             var childrenOptional = node.findNodeList(CHILDREN);
             if (childrenOptional.isPresent()) {
@@ -83,18 +103,28 @@ public class Compiler {
                 var formatted = new ArrayList<Node>();
                 for (int i = 0; i < newChildren.size(); i++) {
                     Node newChild = newChildren.get(i);
-                    formatted.add((i == 0 && depth == 0) ? newChild : newChild.withString(BEFORE_CHILD, "\n" + "\t".repeat(depth)));
+                    if (i == 0 && depth == 0) {
+                        formatted.add(newChild);
+                    } else {
+                        String indent;
+                        if (depth < 0) {
+                            indent = "\n";
+                        } else {
+                            indent = "\n" + "\t".repeat(depth);
+                        }
+                        formatted.add(newChild.withString(BEFORE_CHILD, indent));
+                    }
                 }
 
-                return node.withNodeList(CHILDREN, formatted);
+                return new Tuple<>(node.withNodeList(CHILDREN, formatted), depth - 1);
             }
         }
 
         if (node.is(METHOD_TYPE)) {
-            return node.retype("function");
+            return new Tuple<>(node.retype("function"), depth);
         }
 
-        return node;
+        return new Tuple<>(node, depth);
     }
 
     public static Result<CompileResult, ApplicationException> compile(String input) {
@@ -104,10 +134,10 @@ public class Compiler {
         return Results.$Result(() -> {
             var parsedResult = sourceRootRule.parse(input);
             var parsed = parsedResult.result().replaceErr(() -> wrapErr(parsedResult)).$();
-            var modified = modify(parsed, 0);
-            var generatedResult = targetRootRule.generate(modified);
+            var modified = modify(parsed, -1);
+            var generatedResult = targetRootRule.generate(modified.left());
             var generated = generatedResult.result().replaceErr(() -> wrapErr(generatedResult)).$();
-            return new CompileResult(generated, parsed, modified);
+            return new CompileResult(generated, parsed, modified.left());
         });
     }
 

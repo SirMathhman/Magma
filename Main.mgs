@@ -2,8 +2,8 @@ import magma.app.Application;
 import magma.app.ApplicationException;
 import java.nio.file.Path;
 export class def Main() => {
-		public static main() => {
-				try{ source()=resolveMain(); application()=Application(source);application.run();}
-				catch( e()){//noinspection CallToPrintStackTracee.printStackTrace();}}
-		private static resolveMain() => {
-				return Application.ROOT_DIRECTORY.resolve().resolve().resolve();}}
+	public static main() => {
+		try{ source()=resolveMain(); application()=Application(source);application.run();}
+		catch( e()){//noinspection CallToPrintStackTracee.printStackTrace();}}
+	private static resolveMain() => {
+		return Application.ROOT_DIRECTORY.resolve().resolve().resolve();}}
