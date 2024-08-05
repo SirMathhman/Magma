@@ -5,14 +5,12 @@ import magma.app.compile.rule.DisjunctionRule;
 import magma.app.compile.rule.EmptyRule;
 import magma.app.compile.rule.First;
 import magma.app.compile.rule.Last;
-import magma.app.compile.rule.LocateRule;
 import magma.app.compile.rule.LazyRule;
-import magma.app.compile.rule.NodeListRule;
+import magma.app.compile.rule.LocateRule;
 import magma.app.compile.rule.NodeRule;
 import magma.app.compile.rule.PrefixRule;
 import magma.app.compile.rule.Rule;
 import magma.app.compile.rule.StringRule;
-import magma.app.compile.rule.StripRule;
 import magma.app.compile.rule.SuffixRule;
 import magma.app.compile.rule.TypeRule;
 
@@ -46,12 +44,20 @@ public class MagmaLang {
     public static Rule createRootMagmaRule() {
         return CommonLang.createBlockRule(new DisjunctionRule(List.of(
                 CommonLang.createImportRule(),
-                createFunctionRule()
+                createStatementRule0()
         )));
     }
 
-    private static TypeRule createFunctionRule() {
-        var content = CommonLang.createMembersRule(new TypeRule("any", EmptyRule.EMPTY_RULE));
+    private static Rule createStatementRule0() {
+        var statement = new LazyRule();
+        statement.set(new DisjunctionRule(List.of(
+                createFunctionRule0(statement)
+        )));
+        return statement;
+    }
+
+    private static TypeRule createFunctionRule0(Rule statement) {
+        var content = CommonLang.createMembersRule(statement);
         var definition = new NodeRule(DEFINITION_TYPE, createDefinitionRule());
         return new TypeRule(FUNCTION_TYPE, new LocateRule(definition, new Last(" => "), content));
     }
