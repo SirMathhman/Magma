@@ -51,10 +51,16 @@ public class MagmaLang {
     private static Rule createStatementRule0() {
         var statement = new LazyRule();
         var definition = createDefinitionRule();
+        var value = createValueRule();
+
         statement.set(new DisjunctionRule(List.of(
                 createFunctionRule0(definition, statement),
                 CommonLang.createTryRule(statement),
-                CommonLang.createDeclarationRule(definition, createValueRule())
+                CommonLang.createCatchRule(definition, statement),
+                CommonLang.createDeclarationRule(definition, value),
+                CommonLang.createInvocationStatementRule(value),
+                CommonLang.createCommentRule(),
+                CommonLang.createReturnRule(value)
         )));
         return statement;
     }
@@ -63,6 +69,7 @@ public class MagmaLang {
         var value = new LazyRule();
         value.set(new DisjunctionRule(List.of(
                 CommonLang.createInvocationRule(value),
+                CommonLang.createAccessRule(value),
                 CommonLang.createReferenceRule()
         )));
         return value;

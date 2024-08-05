@@ -4,6 +4,7 @@ import magma.app.compile.MemberSplitter;
 import magma.app.compile.ParamSplitter;
 import magma.app.compile.rule.DisjunctionRule;
 import magma.app.compile.rule.EmptyRule;
+import magma.app.compile.rule.First;
 import magma.app.compile.rule.Last;
 import magma.app.compile.rule.LazyRule;
 import magma.app.compile.rule.LocateRule;
@@ -82,5 +83,30 @@ public class CommonLang {
 
     static TypeRule createReferenceRule() {
         return new TypeRule("reference", new StripRule(new SymbolRule(new StringRule("value"))));
+    }
+
+    static TypeRule createInvocationStatementRule(Rule value) {
+        return new TypeRule("invocation", new SuffixRule(createInvocationRule(value), ";"));
+    }
+
+    static TypeRule createAccessRule(LazyRule value) {
+        return new TypeRule("access", new LocateRule(new NodeRule("object", value), new Last("."), new StringRule("member")));
+    }
+
+    static TypeRule createCatchRule(Rule definition, LazyRule statement) {
+        return createPrefixedStatementRule("catch", "catch", statement, children -> captureCatchParameters(children, definition));
+    }
+
+    private static Rule captureCatchParameters(Rule children, Rule definition) {
+        var params = new NodeListRule(new ParamSplitter(), "params", definition);
+        return new StripRule(new PrefixRule("(", new LocateRule(params, new First(")"), children)));
+    }
+
+    static TypeRule createCommentRule() {
+        return new TypeRule("comment", new PrefixRule("//", new StringRule("value")));
+    }
+
+    static TypeRule createReturnRule(Rule value) {
+        return new TypeRule("return", new PrefixRule("return ", new SuffixRule(new NodeRule("value", value), ";")));
     }
 }

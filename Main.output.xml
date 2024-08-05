@@ -34,7 +34,7 @@
 				</string-list>
 			</definition>
 			<children>
-				<method>
+				<function>
 					<definition name="main" for="definition">
 						<string-list for="modifiers">
 							<child value="public"/>
@@ -60,8 +60,7 @@
 										<symbol for="type" value="var"/>
 									</definition>
 								</declaration>
-								<declaration before-child="
-">
+								<declaration>
 									<invocation for="value">
 										<reference for="caller" value="Application"/>
 										<arguments>
@@ -72,16 +71,14 @@
 										<symbol for="type" value="var"/>
 									</definition>
 								</declaration>
-								<invocation before-child="
-">
+								<invocation>
 									<access member="run" for="caller">
 										<reference for="object" value="application"/>
 									</access>
 								</invocation>
 							</children>
 						</try>
-						<catch before-child="
-">
+						<catch>
 							<params>
 								<definition name="e">
 									<symbol for="type" value="ApplicationException"/>
@@ -89,8 +86,7 @@
 							</params>
 							<children>
 								<comment value="noinspection CallToPrintStackTrace"/>
-								<invocation before-child="
-">
+								<invocation>
 									<access member="printStackTrace" for="caller">
 										<reference for="object" value="e"/>
 									</access>
@@ -98,9 +94,8 @@
 							</children>
 						</catch>
 					</children>
-				</method>
-				<method before-child="
-">
+				</function>
+				<function>
 					<definition name="resolveMain" for="definition">
 						<string-list for="modifiers">
 							<child value="private"/>
@@ -136,7 +131,7 @@
 							</invocation>
 						</return>
 					</children>
-				</method>
+				</function>
 			</children>
 		</function>
 	</children>

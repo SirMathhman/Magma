@@ -67,19 +67,14 @@ public class JavaLang {
         var statement = new LazyRule();
         statement.set(new DisjunctionRule(List.of(
                 CommonLang.createTryRule(statement),
-                CommonLang.createPrefixedStatementRule("catch", "catch", statement, children -> captureCatchParameters(children, definition)),
+                CommonLang.createCatchRule(definition, statement),
                 CommonLang.createDeclarationRule(definition, value),
                 new TypeRule("construction", new SuffixRule(createConstructionRule(value), ";")),
-                new TypeRule("invocation", new SuffixRule(CommonLang.createInvocationRule(value), ";")),
-                new TypeRule("comment", new PrefixRule("//", new StringRule("value"))),
-                new TypeRule("return", new PrefixRule("return ", new SuffixRule(new NodeRule("value", value), ";"))))
+                CommonLang.createInvocationStatementRule(value),
+                CommonLang.createCommentRule(),
+                CommonLang.createReturnRule(value))
         ));
         return statement;
-    }
-
-    private static Rule captureCatchParameters(Rule children, Rule definition) {
-        var params = new NodeListRule(new ParamSplitter(), "params", definition);
-        return new StripRule(new PrefixRule("(", new LocateRule(params, new First(")"), children)));
     }
 
     private static Rule createValueRule() {
@@ -87,7 +82,7 @@ public class JavaLang {
         value.set(new DisjunctionRule(List.of(
                 createConstructionRule(value),
                 CommonLang.createInvocationRule(value),
-                new TypeRule("access", new LocateRule(new NodeRule("object", value), new Last("."), new StringRule("member"))),
+                CommonLang.createAccessRule(value),
                 CommonLang.createReferenceRule(),
                 new TypeRule("string", new StripRule(new PrefixRule("\"", new SuffixRule(new StringRule("value"), "\""))))
         )));
