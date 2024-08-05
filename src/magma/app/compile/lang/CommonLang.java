@@ -1,13 +1,19 @@
 package magma.app.compile.lang;
 
 import magma.app.compile.MemberSplitter;
+import magma.app.compile.rule.Last;
+import magma.app.compile.rule.LazyRule;
+import magma.app.compile.rule.LocateRule;
 import magma.app.compile.rule.NodeListRule;
+import magma.app.compile.rule.NodeRule;
 import magma.app.compile.rule.PrefixRule;
 import magma.app.compile.rule.Rule;
 import magma.app.compile.rule.StringListRule;
 import magma.app.compile.rule.StripRule;
 import magma.app.compile.rule.SuffixRule;
 import magma.app.compile.rule.TypeRule;
+
+import java.util.function.Function;
 
 public class CommonLang {
     public static final String IMPORT_KEYWORD_WITH_SPACE = "import ";
@@ -38,5 +44,21 @@ public class CommonLang {
 
     static StripRule createModifiersRule() {
         return new StripRule(new StringListRule(MODIFIERS, " "));
+    }
+
+    static TypeRule createTryRule(Rule statement) {
+        return createPrefixedStatementRule("try", "try", statement, rule -> rule);
+    }
+
+    static TypeRule createPrefixedStatementRule(String type, String prefix, Rule statement, Function<Rule, Rule> function) {
+        var children = createMembersRule(statement);
+        var childrenProperty = new StripRule(new PrefixRule("{", new SuffixRule(children, "}")));
+        return new TypeRule(type, new PrefixRule(prefix, function.apply(childrenProperty)));
+    }
+
+    static TypeRule createDeclarationRule(Rule definitionRule, Rule valueRule) {
+        var definition = new NodeRule("definition", definitionRule);
+        var value = new NodeRule("value", valueRule);
+        return new TypeRule("declaration", new LocateRule(definition, new Last("="), new SuffixRule(value, ";")));
     }
 }

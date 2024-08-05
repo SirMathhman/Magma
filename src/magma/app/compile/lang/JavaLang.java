@@ -18,7 +18,6 @@ import magma.app.compile.rule.SuffixRule;
 import magma.app.compile.rule.TypeRule;
 
 import java.util.List;
-import java.util.function.Function;
 
 public class JavaLang {
     public static final String PACKAGE_KEYWORD_WITH_SPACE = "package ";
@@ -67,9 +66,9 @@ public class JavaLang {
     private static Rule createStatementRule(Rule definition, Rule value) {
         var statement = new LazyRule();
         statement.set(new DisjunctionRule(List.of(
-                createPrefixedStatementRule("try", "try", statement, rule -> rule),
-                createPrefixedStatementRule("catch", "catch", statement, children -> captureCatchParameters(children, definition)),
-                createDeclarationRule(definition, value),
+                CommonLang.createTryRule(statement),
+                CommonLang.createPrefixedStatementRule("catch", "catch", statement, children -> captureCatchParameters(children, definition)),
+                CommonLang.createDeclarationRule(definition, value),
                 new TypeRule("construction", new SuffixRule(createConstructionRule(value), ";")),
                 new TypeRule("invocation", new SuffixRule(createInvocationRule(value), ";")),
                 new TypeRule("comment", new PrefixRule("//", new StringRule("value"))),
@@ -81,12 +80,6 @@ public class JavaLang {
     private static Rule captureCatchParameters(Rule children, Rule definition) {
         var params = new NodeListRule(new ParamSplitter(), "params", definition);
         return new StripRule(new PrefixRule("(", new LocateRule(params, new First(")"), children)));
-    }
-
-    private static TypeRule createDeclarationRule(Rule definitionRule, Rule valueRule) {
-        var definition = new NodeRule("definition", definitionRule);
-        var value = new NodeRule("value", valueRule);
-        return new TypeRule("declaration", new LocateRule(definition, new Last("="), new SuffixRule(value, ";")));
     }
 
     private static Rule createValueRule() {
@@ -116,12 +109,6 @@ public class JavaLang {
         ));
 
         return new TypeRule("invocation", new LocateRule(caller, new Last("("), new StripRule(new SuffixRule(arguments, ")"))));
-    }
-
-    private static TypeRule createPrefixedStatementRule(String type, String prefix, Rule statement, Function<Rule, Rule> function) {
-        var children = new NodeListRule(new MemberSplitter(), "children", statement);
-        var childrenProperty = new StripRule(new PrefixRule("{", new SuffixRule(children, "}")));
-        return new TypeRule(type, new PrefixRule(prefix, function.apply(childrenProperty)));
     }
 
     private static TypeRule createDefinitionRule() {

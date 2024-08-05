@@ -51,9 +51,15 @@ public class MagmaLang {
     private static Rule createStatementRule0() {
         var statement = new LazyRule();
         statement.set(new DisjunctionRule(List.of(
-                createFunctionRule0(statement)
+                createFunctionRule0(statement),
+                CommonLang.createTryRule(statement),
+                CommonLang.createDeclarationRule(statement, createValueRule())
         )));
         return statement;
+    }
+
+    private static TypeRule createValueRule() {
+        return new TypeRule("any", EmptyRule.EMPTY_RULE);
     }
 
     private static TypeRule createFunctionRule0(Rule statement) {
