@@ -50,26 +50,32 @@ public class MagmaLang {
 
     private static Rule createStatementRule0() {
         var statement = new LazyRule();
+        var definition = createDefinitionRule();
         statement.set(new DisjunctionRule(List.of(
-                createFunctionRule0(statement),
+                createFunctionRule0(definition, statement),
                 CommonLang.createTryRule(statement),
-                CommonLang.createDeclarationRule(statement, createValueRule())
+                CommonLang.createDeclarationRule(definition, createValueRule())
         )));
         return statement;
     }
 
-    private static TypeRule createValueRule() {
-        return new TypeRule("any", EmptyRule.EMPTY_RULE);
+    private static Rule createValueRule() {
+        var value = new LazyRule();
+        value.set(new DisjunctionRule(List.of(
+                CommonLang.createInvocationRule(value),
+                CommonLang.createReferenceRule()
+        )));
+        return value;
     }
 
-    private static TypeRule createFunctionRule0(Rule statement) {
+    private static TypeRule createFunctionRule0(Rule definition, Rule statement) {
         var content = CommonLang.createMembersRule(statement);
-        var definition = new NodeRule(DEFINITION_TYPE, createDefinitionRule());
-        return new TypeRule(FUNCTION_TYPE, new LocateRule(definition, new Last(" => "), content));
+        var definitionProperty = new NodeRule(DEFINITION_TYPE, definition);
+        return new TypeRule(FUNCTION_TYPE, new LocateRule(definitionProperty, new Last(" => "), content));
     }
 
     private static Rule createDefinitionRule() {
-        var modifiers = CommonLang.createModifiersRule();
+        var modifiers = new DisjunctionRule(List.of(CommonLang.createModifiersRule(), EmptyRule.EMPTY_RULE));
         var name = new StringRule(DEFINITION_NAME);
         return new TypeRule(DEFINITION_TYPE, new LocateRule(modifiers, new Last(" "), new SuffixRule(name, "()")));
     }

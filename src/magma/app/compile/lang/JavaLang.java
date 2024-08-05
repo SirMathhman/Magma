@@ -70,7 +70,7 @@ public class JavaLang {
                 CommonLang.createPrefixedStatementRule("catch", "catch", statement, children -> captureCatchParameters(children, definition)),
                 CommonLang.createDeclarationRule(definition, value),
                 new TypeRule("construction", new SuffixRule(createConstructionRule(value), ";")),
-                new TypeRule("invocation", new SuffixRule(createInvocationRule(value), ";")),
+                new TypeRule("invocation", new SuffixRule(CommonLang.createInvocationRule(value), ";")),
                 new TypeRule("comment", new PrefixRule("//", new StringRule("value"))),
                 new TypeRule("return", new PrefixRule("return ", new SuffixRule(new NodeRule("value", value), ";"))))
         ));
@@ -86,29 +86,16 @@ public class JavaLang {
         var value = new LazyRule();
         value.set(new DisjunctionRule(List.of(
                 createConstructionRule(value),
-                createInvocationRule(value),
+                CommonLang.createInvocationRule(value),
                 new TypeRule("access", new LocateRule(new NodeRule("object", value), new Last("."), new StringRule("member"))),
-                new TypeRule("reference", new StripRule(new SymbolRule(new StringRule("value")))),
+                CommonLang.createReferenceRule(),
                 new TypeRule("string", new StripRule(new PrefixRule("\"", new SuffixRule(new StringRule("value"), "\""))))
         )));
         return value;
     }
 
     private static Rule createConstructionRule(Rule value) {
-        return createOperationsRule(value, new StripRule(new PrefixRule("new", new StripRule(new NodeRule("caller", value)))));
-    }
-
-    private static TypeRule createInvocationRule(Rule value) {
-        return createOperationsRule(value, new NodeRule("caller", value));
-    }
-
-    private static TypeRule createOperationsRule(Rule value, Rule caller) {
-        var arguments = new DisjunctionRule(List.of(
-                new NodeListRule(new ParamSplitter(), "arguments", value),
-                EmptyRule.EMPTY_RULE
-        ));
-
-        return new TypeRule("invocation", new LocateRule(caller, new Last("("), new StripRule(new SuffixRule(arguments, ")"))));
+        return CommonLang.createOperationsRule(value, new StripRule(new PrefixRule("new", new StripRule(new NodeRule("caller", value)))));
     }
 
     private static TypeRule createDefinitionRule() {
