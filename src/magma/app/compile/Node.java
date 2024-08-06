@@ -191,4 +191,11 @@ public final class Node {
         copy.remove(propertyKey);
         return new Node(type, strings, stringLists, copy, nodeLists);
     }
+
+    public Node mapStringList(String propertyKey, Function<List<String>, List<String>> mapper) {
+        return findStringList(propertyKey)
+                .map(mapper)
+                .map(list -> withStringList(propertyKey, list))
+                .orElse(this);
+    }
 }

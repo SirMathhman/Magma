@@ -104,7 +104,6 @@
 						<definition name="main" for="definition">
 							<string-list for="modifiers">
 								<child value="public"/>
-								<child value="static"/>
 							</string-list>
 							<params>
 								<definition name="args">
@@ -149,7 +148,6 @@
 						<definition name="resolveMain" for="definition">
 							<string-list for="modifiers">
 								<child value="private"/>
-								<child value="static"/>
 							</string-list>
 							<symbol for="type" value="Path"/>
 							<params/>

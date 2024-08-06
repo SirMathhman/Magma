@@ -13,6 +13,8 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Optional;
 
+import static magma.app.compile.lang.CommonLang.MODIFIERS;
+
 public class DefaultVisitor implements Visitor {
     public DefaultVisitor() {
     }
@@ -38,16 +40,16 @@ public class DefaultVisitor implements Visitor {
 
         if (node.is(CommonLang.DECLARATION_TYPE)) {
             var definition = node.findNode(CommonLang.DECLARATION_DEFINITION).orElseThrow();
-            var oldModifiers = new ArrayList<>(definition.findStringList(CommonLang.MODIFIERS).orElse(Collections.emptyList()));
+            var oldModifiers = new ArrayList<>(definition.findStringList(MODIFIERS).orElse(Collections.emptyList()));
             oldModifiers.add("let");
 
-            var withModifiers = definition.withStringList(CommonLang.MODIFIERS, oldModifiers);
+            var withModifiers = definition.withStringList(MODIFIERS, oldModifiers);
             return Optional.of(new Tuple<>(node.withNode(CommonLang.DECLARATION_DEFINITION, withModifiers), state));
         }
 
         if (node.is(JavaLang.CLASS_TYPE)) {
             var name = node.findString(JavaLang.CLASS_NAME).orElseThrow();
-            var oldModifiers = node.findStringList(CommonLang.MODIFIERS).orElseThrow();
+            var oldModifiers = node.findStringList(MODIFIERS).orElseThrow();
 
             var newModifiers = new ArrayList<String>(oldModifiers
                     .stream()
@@ -60,7 +62,7 @@ public class DefaultVisitor implements Visitor {
             var definition = new Node()
                     .retype(MagmaDefinition.DEFINITION)
                     .withString(MagmaDefinition.NAME, name)
-                    .withStringList(CommonLang.MODIFIERS, newModifiers);
+                    .withStringList(MODIFIERS, newModifiers);
 
             var function = node.retype(Functions.FUNCTION)
                     .removeString(JavaLang.CLASS_NAME)
@@ -79,7 +81,7 @@ public class DefaultVisitor implements Visitor {
                     if (child.is(Functions.FUNCTION)) {
                         var definition = child.findNode(Functions.DEFINITION).orElseThrow();
 
-                        var oldModifiers = definition.findStringList(CommonLang.MODIFIERS).orElse(Collections.emptyList());
+                        var oldModifiers = definition.findStringList(MODIFIERS).orElse(Collections.emptyList());
                         if (oldModifiers.contains("class")) {
                             var name = definition.findString(MagmaDefinition.NAME).orElseThrow();
 
@@ -93,9 +95,16 @@ public class DefaultVisitor implements Visitor {
                                 var definitionOptional = oldChild.findNode(MagmaDefinition.DEFINITION);
                                 if (definitionOptional.isPresent()) {
                                     var memberDefinition = definitionOptional.get();
-                                    var modifiers = memberDefinition.findStringList(CommonLang.MODIFIERS).orElse(Collections.emptyList());
+                                    var modifiers = memberDefinition.findStringList(MODIFIERS).orElse(Collections.emptyList());
                                     if (modifiers.contains("static")) {
-                                        staticChildren.add(oldChild);
+                                        var newDefinition = memberDefinition.mapStringList(MODIFIERS, oldMemberModifiers -> {
+                                            var copy = new ArrayList<>(oldMemberModifiers);
+                                            copy.remove("static");
+                                            return copy;
+                                        });
+
+                                        var node1 = oldChild.withNode(MagmaDefinition.DEFINITION, newDefinition);
+                                        staticChildren.add(node1);
                                     } else {
                                         instanceChildren.add(oldChild);
                                     }
