@@ -15,4 +15,5 @@ object Mains{
 	}
 	private static resolveMain() : Path => {
 		return Application.ROOT_DIRECTORY.resolve("src").resolve("magma").resolve("Main.java");
-	}}
+	}
+}

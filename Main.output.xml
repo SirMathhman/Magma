@@ -23,7 +23,7 @@
 			</string-list>
 		</import>
 		<object name="Mains" before-child="\n">
-			<block for="value">
+			<block for="value" after-children="\n">
 				<children>
 					<function before-child="\n\t">
 						<block for="value" after-children="\n\t">
