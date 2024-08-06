@@ -1,7 +1,7 @@
 package magma.app.compile.lang.magma;
 
 import magma.app.compile.ParamSplitter;
-import magma.app.compile.lang.CommonLang;
+import magma.app.compile.lang.common.CommonLang;
 import magma.app.compile.lang.common.Symbols;
 import magma.app.compile.rule.DisjunctionRule;
 import magma.app.compile.rule.EmptyRule;
@@ -20,7 +20,7 @@ import magma.app.compile.rule.TypeRule;
 
 import java.util.List;
 
-import static magma.app.compile.lang.CommonLang.MODIFIERS;
+import static magma.app.compile.lang.common.CommonLang.MODIFIERS;
 
 public class MagmaDefinition {
     public static final String NAME = "name";

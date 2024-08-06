@@ -5,8 +5,8 @@ resolveMain() : Path => {
 	return Application.ROOT_DIRECTORY.resolve("src").resolve("magma").resolve("Main.java");
 }
 try {
-	let source=resolveMain();
-	let application=Application(source);
+	let source = resolveMain();
+	let application = Application(source);
 	application.run();
 }
 catch(e : ApplicationException){

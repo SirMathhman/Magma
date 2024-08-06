@@ -6,7 +6,7 @@ import org.junit.jupiter.api.Test;
 
 import java.util.List;
 
-import static magma.app.compile.lang.CommonLang.MODIFIERS;
+import static magma.app.compile.lang.common.CommonLang.MODIFIERS;
 import static magma.app.compile.lang.magma.MagmaDefinition.NAME;
 import static magma.app.compile.lang.magma.MagmaDefinition.TYPE;
 import static org.junit.jupiter.api.Assertions.assertEquals;

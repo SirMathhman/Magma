@@ -1,6 +1,8 @@
-package magma.app.compile.lang;
+package magma.app.compile.lang.java;
 
 import magma.app.compile.lang.common.Blocks;
+import magma.app.compile.lang.common.CommonLang;
+import magma.app.compile.lang.common.Declarations;
 import magma.app.compile.lang.common.PrefixedStatements;
 import magma.app.compile.lang.common.Symbols;
 import magma.app.compile.rule.DisjunctionRule;
@@ -72,7 +74,7 @@ public class JavaLang {
         statement.set(new DisjunctionRule(List.of(
                 PrefixedStatements.createTryRule(statement),
                 CommonLang.createCatchRule(definition, statement),
-                CommonLang.createDeclarationRule(definition, value),
+                Declarations.createDeclarationRule(definition, value),
                 new TypeRule("construction", new SuffixRule(createConstructionRule(value), ";")),
                 CommonLang.createInvocationStatementRule(value),
                 CommonLang.createCommentRule(),

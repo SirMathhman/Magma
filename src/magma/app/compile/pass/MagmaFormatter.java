@@ -11,6 +11,9 @@ import java.util.Optional;
 import java.util.stream.IntStream;
 
 import static magma.app.compile.lang.common.Blocks.CHILDREN;
+import static magma.app.compile.lang.common.Declarations.AFTER_DEFINITION;
+import static magma.app.compile.lang.common.Declarations.BEFORE_VALUE;
+import static magma.app.compile.lang.common.Declarations.DECLARATION;
 import static magma.app.compile.lang.common.PrefixedStatements.BEFORE_BLOCK;
 
 public class MagmaFormatter implements Passer {
@@ -55,6 +58,18 @@ public class MagmaFormatter implements Passer {
 
     @Override
     public Optional<Tuple<Node, Integer>> postVisit(Node node, int state) {
-        return postVisitTry(node, state).or(() -> postVisitBlock(node, state));
+        return postVisitTry(node, state)
+                .or(() -> postVisitBlock(node, state))
+                .or(() -> postVisitDeclaration(node, state));
+    }
+
+    private Optional<Tuple<Node, Integer>> postVisitDeclaration(Node node, int state) {
+        if (!node.is(DECLARATION)) return Optional.empty();
+
+        var newNode = node
+                .withString(AFTER_DEFINITION, " ")
+                .withString(BEFORE_VALUE, " ");
+
+        return Optional.of(new Tuple<>(newNode, state));
     }
 }

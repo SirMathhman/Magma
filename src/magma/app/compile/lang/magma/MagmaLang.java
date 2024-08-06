@@ -1,10 +1,9 @@
-package magma.app.compile.lang;
+package magma.app.compile.lang.magma;
 
 import magma.app.compile.lang.common.Blocks;
+import magma.app.compile.lang.common.CommonLang;
+import magma.app.compile.lang.common.Declarations;
 import magma.app.compile.lang.common.PrefixedStatements;
-import magma.app.compile.lang.magma.Functions;
-import magma.app.compile.lang.magma.MagmaDefinition;
-import magma.app.compile.lang.magma.Objects;
 import magma.app.compile.rule.DisjunctionRule;
 import magma.app.compile.rule.LazyRule;
 import magma.app.compile.rule.Rule;
@@ -28,7 +27,7 @@ public class MagmaLang {
                 Functions.createFunctionRule0(definition, statement),
                 PrefixedStatements.createTryRule(statement),
                 CommonLang.createCatchRule(definition, statement),
-                CommonLang.createDeclarationRule(definition, value),
+                Declarations.createDeclarationRule(definition, value),
                 CommonLang.createInvocationStatementRule(value),
                 CommonLang.createCommentRule(),
                 CommonLang.createReturnRule(value),

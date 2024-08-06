@@ -1,6 +1,6 @@
 package magma.app.compile.lang.magma;
 
-import magma.app.compile.lang.CommonLang;
+import magma.app.compile.lang.common.CommonLang;
 import magma.app.compile.lang.common.Blocks;
 import magma.app.compile.rule.DisjunctionRule;
 import magma.app.compile.rule.First;

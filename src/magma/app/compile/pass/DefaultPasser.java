@@ -3,9 +3,10 @@ package magma.app.compile.pass;
 import magma.api.Tuple;
 import magma.app.compile.Node;
 import magma.app.compile.Passer;
-import magma.app.compile.lang.CommonLang;
-import magma.app.compile.lang.JavaLang;
+import magma.app.compile.lang.common.CommonLang;
+import magma.app.compile.lang.java.JavaLang;
 import magma.app.compile.lang.common.Blocks;
+import magma.app.compile.lang.common.Declarations;
 import magma.app.compile.lang.common.Symbols;
 import magma.app.compile.lang.magma.Functions;
 import magma.app.compile.lang.magma.MagmaDefinition;
@@ -16,7 +17,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
-import static magma.app.compile.lang.CommonLang.MODIFIERS;
+import static magma.app.compile.lang.common.CommonLang.MODIFIERS;
 
 public class DefaultPasser implements Passer {
     public DefaultPasser() {
@@ -58,14 +59,14 @@ public class DefaultPasser implements Passer {
     }
 
     private static Optional<Tuple<Node, Integer>> postVisitDeclarations(Node node, int state) {
-        if (!node.is(CommonLang.DECLARATION_TYPE)) return Optional.empty();
+        if (!node.is(Declarations.DECLARATION)) return Optional.empty();
 
-        var definition = node.findNode(CommonLang.DECLARATION_DEFINITION).orElseThrow();
+        var definition = node.findNode(Declarations.DEFINITION).orElseThrow();
         var oldModifiers = new ArrayList<>(definition.findStringList(MODIFIERS).orElse(Collections.emptyList()));
         oldModifiers.add("let");
 
         var withModifiers = definition.withStringList(MODIFIERS, oldModifiers);
-        return Optional.of(new Tuple<>(node.withNode(CommonLang.DECLARATION_DEFINITION, withModifiers), state));
+        return Optional.of(new Tuple<>(node.withNode(Declarations.DEFINITION, withModifiers), state));
     }
 
     private static Optional<Tuple<Node, Integer>> postVisitClasses(Node node, int state) {

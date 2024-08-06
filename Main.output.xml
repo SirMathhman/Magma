@@ -63,7 +63,7 @@
 				<children>
 					<unknown before-child="\n\t">
 						<children>
-							<declaration>
+							<declaration after-definition=" " before-value=" ">
 								<invocation for="value">
 									<reference for="caller" value="resolveMain"/>
 								</invocation>
@@ -77,7 +77,7 @@
 					</unknown>
 					<unknown before-child="\n\t">
 						<children>
-							<declaration>
+							<declaration after-definition=" " before-value=" ">
 								<invocation for="value">
 									<reference for="caller" value="Application"/>
 									<arguments>
