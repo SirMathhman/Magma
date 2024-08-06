@@ -31,7 +31,15 @@ public record StringListRule(String propertyKey, String delimiter) implements Ru
     @Override
     public RuleResult<String, GenerateError> generate(Node node) {
         return node.findStringList(propertyKey)
-                .map(stringList -> new RuleResult<>(new Ok<String, GenerateError>(String.join(delimiter, stringList))))
+                .map(list -> generateWithList(node, list))
                 .orElseGet(() -> new RuleResult<>(new Err<>(new GenerateError("String list property '" + propertyKey + "' not present", node))));
+    }
+
+    private RuleResult<String, GenerateError> generateWithList(Node node, List<String> list) {
+        if (list.isEmpty()) {
+            return new RuleResult<>(new Err<>(new GenerateError("List cannot be empty.", node)));
+        }
+
+        return new RuleResult<>(new Ok<>(String.join(delimiter, list)));
     }
 }
