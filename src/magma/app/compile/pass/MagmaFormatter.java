@@ -4,13 +4,15 @@ import magma.api.Tuple;
 import magma.app.compile.Node;
 import magma.app.compile.Passer;
 import magma.app.compile.lang.common.Blocks;
+import magma.app.compile.lang.common.PrefixedStatements;
 
 import java.util.ArrayList;
 import java.util.Optional;
 
 import static magma.app.compile.lang.common.Blocks.CHILDREN;
+import static magma.app.compile.lang.common.PrefixedStatements.BEFORE_BLOCK;
 
-public class Formatter implements Passer {
+public class MagmaFormatter implements Passer {
     @Override
     public Optional<Tuple<Node, Integer>> preVisit(Node node, int state) {
         if (node.is(Blocks.BLOCK)) {
@@ -22,6 +24,10 @@ public class Formatter implements Passer {
 
     @Override
     public Optional<Tuple<Node, Integer>> postVisit(Node node, int state) {
+        if(node.is(PrefixedStatements.TRY)) {
+            return Optional.of(new Tuple<>(node.withString(BEFORE_BLOCK, " "), state));
+        }
+
         if (node.is(Blocks.BLOCK)) {
             var oldChildren = node.findNodeList(CHILDREN).orElseThrow();
             var newChildren = new ArrayList<Node>();

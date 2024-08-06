@@ -1,7 +1,7 @@
 package magma.app.compile.lang;
 
 import magma.app.compile.ParamSplitter;
-import magma.app.compile.lang.common.Blocks;
+import magma.app.compile.lang.common.PrefixedStatements;
 import magma.app.compile.rule.EmptyRule;
 import magma.app.compile.rule.First;
 import magma.app.compile.rule.Last;
@@ -17,8 +17,6 @@ import magma.app.compile.rule.StringRule;
 import magma.app.compile.rule.StripRule;
 import magma.app.compile.rule.SuffixRule;
 import magma.app.compile.rule.TypeRule;
-
-import java.util.function.Function;
 
 public class CommonLang {
     public static final String MODIFIERS = "modifiers";
@@ -36,16 +34,6 @@ public class CommonLang {
 
     public static StripRule createModifiersRule() {
         return new StripRule(new StringListRule(MODIFIERS, " "));
-    }
-
-    static TypeRule createTryRule(Rule statement) {
-        return createPrefixedStatementRule("try", "try", statement, rule -> rule);
-    }
-
-    static TypeRule createPrefixedStatementRule(String type, String prefix, Rule statement, Function<Rule, Rule> function) {
-        var children = new NodeRule("value", Blocks.createBlockRule(Blocks.createMembersRule(statement)));
-        var childrenProperty = new StripRule(new PrefixRule("{", new SuffixRule(children, "}")));
-        return new TypeRule(type, new PrefixRule(prefix, function.apply(childrenProperty)));
     }
 
     static TypeRule createDeclarationRule(Rule definitionRule, Rule valueRule) {
@@ -80,7 +68,7 @@ public class CommonLang {
     }
 
     static TypeRule createCatchRule(Rule definition, LazyRule statement) {
-        return createPrefixedStatementRule("catch", "catch", statement, children -> captureCatchParameters(children, definition));
+        return PrefixedStatements.createPrefixedStatementRule("catch", "catch", statement, children -> captureCatchParameters(children, definition));
     }
 
     private static Rule captureCatchParameters(Rule children, Rule definition) {

@@ -58,7 +58,7 @@
 				<params/>
 			</definition>
 		</function>
-		<try before-child="\n">
+		<try before-child="\n" before-block=" ">
 			<block for="value" after-children="\n">
 				<children>
 					<unknown before-child="\n\t">

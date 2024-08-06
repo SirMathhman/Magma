@@ -1,6 +1,7 @@
 package magma.app.compile.lang;
 
 import magma.app.compile.lang.common.Blocks;
+import magma.app.compile.lang.common.PrefixedStatements;
 import magma.app.compile.lang.magma.Functions;
 import magma.app.compile.lang.magma.MagmaDefinition;
 import magma.app.compile.lang.magma.Objects;
@@ -11,7 +12,6 @@ import magma.app.compile.rule.Rule;
 import java.util.List;
 
 public class MagmaLang {
-
     public static Rule createRootMagmaRule() {
         return Blocks.createBlockRule(new DisjunctionRule(List.of(
                 CommonLang.createImportRule(),
@@ -26,7 +26,7 @@ public class MagmaLang {
 
         statement.set(new DisjunctionRule(List.of(
                 Functions.createFunctionRule0(definition, statement),
-                CommonLang.createTryRule(statement),
+                PrefixedStatements.createTryRule(statement),
                 CommonLang.createCatchRule(definition, statement),
                 CommonLang.createDeclarationRule(definition, value),
                 CommonLang.createInvocationStatementRule(value),

@@ -7,7 +7,7 @@ import magma.app.compile.lang.JavaLang;
 import magma.app.compile.lang.MagmaLang;
 import magma.app.compile.pass.CompoundModifyingStage;
 import magma.app.compile.pass.DefaultPasser;
-import magma.app.compile.pass.Formatter;
+import magma.app.compile.pass.MagmaFormatter;
 import magma.app.compile.pass.MainPasser;
 import magma.app.compile.pass.VisitingModifyingStage;
 import magma.app.compile.rule.RuleResult;
@@ -33,7 +33,7 @@ public class Compiler {
         return new CompoundModifyingStage(List.of(
                 new VisitingModifyingStage(new DefaultPasser()),
                 new VisitingModifyingStage(new MainPasser()),
-                new VisitingModifyingStage(new Formatter())
+                new VisitingModifyingStage(new MagmaFormatter())
         ));
     }
 

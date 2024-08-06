@@ -1,6 +1,7 @@
 package magma.app.compile.lang;
 
 import magma.app.compile.lang.common.Blocks;
+import magma.app.compile.lang.common.PrefixedStatements;
 import magma.app.compile.lang.common.Symbols;
 import magma.app.compile.rule.DisjunctionRule;
 import magma.app.compile.rule.EmptyRule;
@@ -69,7 +70,7 @@ public class JavaLang {
     private static Rule createStatementRule(Rule definition, Rule value) {
         var statement = new LazyRule();
         statement.set(new DisjunctionRule(List.of(
-                CommonLang.createTryRule(statement),
+                PrefixedStatements.createTryRule(statement),
                 CommonLang.createCatchRule(definition, statement),
                 CommonLang.createDeclarationRule(definition, value),
                 new TypeRule("construction", new SuffixRule(createConstructionRule(value), ";")),

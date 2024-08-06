@@ -4,7 +4,7 @@ import java.nio.file.Path;
 resolveMain() : Path => {
 	return Application.ROOT_DIRECTORY.resolve("src").resolve("magma").resolve("Main.java");
 }
-try{
+try {
 	let source=resolveMain();
 	let application=Application(source);
 	application.run();
