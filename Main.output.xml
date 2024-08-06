@@ -146,9 +146,6 @@
 							</children>
 						</block>
 						<definition name="resolveMain" for="definition">
-							<string-list for="modifiers">
-								<child value="private"/>
-							</string-list>
 							<symbol for="type" value="Path"/>
 							<params/>
 						</definition>

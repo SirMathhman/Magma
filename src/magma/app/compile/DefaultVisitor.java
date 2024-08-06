@@ -28,16 +28,31 @@ public class DefaultVisitor implements Visitor {
 
     private static Optional<Tuple<Node, Integer>> postVisitDefinitions(Node node, int state) {
         if (!node.is(MagmaDefinition.DEFINITION)) return Optional.empty();
-        var typeOptional = node.findNode(MagmaDefinition.TYPE);
 
-        if (typeOptional.isEmpty()) return Optional.empty();
+        var oldModifiers = node.findStringList(MODIFIERS);
+        Node node0;
+        if (oldModifiers.isPresent()) {
+            var strings = oldModifiers.get();
+            if (strings.contains("private")) {
+                var copy = new ArrayList<>(strings);
+                copy.remove("private");
+                node0 = copy.isEmpty() ? node.removeStringList(MODIFIERS) : node.withStringList(MODIFIERS, copy);
+            } else {
+                node0 = node;
+            }
+        } else {
+            node0 = node;
+        }
+
+        var typeOptional = node0.findNode(MagmaDefinition.TYPE);
+        if (typeOptional.isEmpty()) return Optional.of(new Tuple<>(node0, state));
         var type = typeOptional.get();
 
-        if (!type.is(Symbols.SYMBOL)) return Optional.empty();
+        if (!type.is(Symbols.SYMBOL)) return Optional.of(new Tuple<>(node0, state));
         var value = type.findString(Symbols.VALUE).orElseThrow();
 
-        if (!value.equals("Void")) return Optional.empty();
-        return Optional.of(new Tuple<>(node.removeNode(MagmaDefinition.TYPE), state));
+        if (!value.equals("Void")) return Optional.of(new Tuple<>(node0, state));
+        return Optional.of(new Tuple<>(node0.removeNode(MagmaDefinition.TYPE), state));
     }
 
     private static Optional<Tuple<Node, Integer>> postVisitDeclarations(Node node, int state) {
@@ -133,11 +148,17 @@ public class DefaultVisitor implements Visitor {
                 continue;
             }
 
-            var newDefinition = memberDefinition.mapStringList(MODIFIERS, oldMemberModifiers -> {
-                var copy = new ArrayList<>(oldMemberModifiers);
+            Node newDefinition;
+            var modifiersOptional = memberDefinition.findStringList(MODIFIERS);
+            if (modifiersOptional.isPresent()) {
+                var copy = new ArrayList<>(modifiersOptional.get());
                 copy.remove("static");
-                return copy;
-            });
+                newDefinition = copy.isEmpty()
+                        ? memberDefinition.removeStringList(MODIFIERS)
+                        : memberDefinition.withStringList(MODIFIERS, copy);
+            } else {
+                newDefinition = memberDefinition;
+            }
 
             var node1 = oldChild.withNode(MagmaDefinition.DEFINITION, newDefinition);
             staticChildren.add(node1);

@@ -13,7 +13,7 @@ object Mains{
 			e.printStackTrace();
 		}
 	}
-	private resolveMain() : Path => {
+	resolveMain() : Path => {
 		return Application.ROOT_DIRECTORY.resolve("src").resolve("magma").resolve("Main.java");
 	}
 }
