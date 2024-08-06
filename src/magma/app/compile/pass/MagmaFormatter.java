@@ -38,12 +38,10 @@ public class MagmaFormatter implements Passer {
 
     private static Node attachIndent(int state, int index, List<Node> children) {
         var newChild = children.get(index);
-        if (index == 0 && state == 0) {
-            return newChild;
-        } else {
-            var indent = state < 0 ? "\n" : "\n" + "\t".repeat(state);
-            return newChild.withString(Blocks.BEFORE_CHILD, indent);
-        }
+        if (index == 0 && state == 0) return newChild;
+
+        var indent = state < 0 ? "\n" : "\n" + "\t".repeat(state);
+        return newChild.withString(Blocks.BEFORE_CHILD, indent);
     }
 
     @Override
