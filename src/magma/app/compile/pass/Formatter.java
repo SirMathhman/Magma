@@ -1,6 +1,8 @@
-package magma.app.compile;
+package magma.app.compile.pass;
 
 import magma.api.Tuple;
+import magma.app.compile.Node;
+import magma.app.compile.Passer;
 import magma.app.compile.lang.common.Blocks;
 
 import java.util.ArrayList;
@@ -8,7 +10,7 @@ import java.util.Optional;
 
 import static magma.app.compile.lang.common.Blocks.CHILDREN;
 
-public class Formatter implements Visitor {
+public class Formatter implements Passer {
     @Override
     public Optional<Tuple<Node, Integer>> preVisit(Node node, int state) {
         if (node.is(Blocks.BLOCK)) {

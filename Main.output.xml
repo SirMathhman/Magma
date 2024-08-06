@@ -22,136 +22,112 @@
 				<child value="Path"/>
 			</string-list>
 		</import>
-		<object name="Mains" before-child="\n">
+		<function before-child="\n">
 			<block for="value" after-children="\n">
 				<children>
-					<function before-child="\n\t">
-						<block for="value" after-children="\n\t">
-							<children>
-								<try before-child="\n\t\t">
-									<block for="value" after-children="\n\t\t">
-										<children>
-											<unknown before-child="\n\t\t\t">
-												<children>
-													<declaration>
-														<invocation for="value">
-															<reference for="caller" value="resolveMain"/>
-														</invocation>
-														<definition name="source" for="definition">
-															<string-list for="modifiers">
-																<child value="let"/>
-															</string-list>
-														</definition>
-													</declaration>
-												</children>
-											</unknown>
-											<unknown before-child="\n\t\t\t">
-												<children>
-													<declaration>
-														<invocation for="value">
-															<reference for="caller" value="Application"/>
-															<arguments>
-																<reference value="source"/>
-															</arguments>
-														</invocation>
-														<definition name="application" for="definition">
-															<string-list for="modifiers">
-																<child value="let"/>
-															</string-list>
-														</definition>
-													</declaration>
-												</children>
-											</unknown>
-											<unknown before-child="\n\t\t\t">
-												<children>
-													<invocation>
-														<access member="run" for="caller">
-															<reference for="object" value="application"/>
-														</access>
-													</invocation>
-												</children>
-											</unknown>
-										</children>
-									</block>
-								</try>
-								<catch before-child="\n\t\t">
-									<block for="value" after-children="\n\t\t">
-										<children>
-											<unknown before-child="\n\t\t\t">
-												<children>
-													<comment value="noinspection CallToPrintStackTrace"/>
-												</children>
-											</unknown>
-											<unknown before-child="\n\t\t\t">
-												<children>
-													<invocation>
-														<access member="printStackTrace" for="caller">
-															<reference for="object" value="e"/>
-														</access>
-													</invocation>
-												</children>
-											</unknown>
-										</children>
-									</block>
-									<params>
-										<definition name="e">
-											<symbol for="type" value="ApplicationException"/>
-										</definition>
-									</params>
-								</catch>
-							</children>
-						</block>
-						<definition name="main" for="definition">
-							<string-list for="modifiers">
-								<child value="public"/>
-							</string-list>
-							<params>
-								<definition name="args">
-									<slice for="type">
-										<symbol for="child" value="String"/>
-									</slice>
-								</definition>
-							</params>
-						</definition>
-					</function>
-					<function before-child="\n\t">
-						<block for="value" after-children="\n\t">
-							<children>
-								<return before-child="\n\t\t">
-									<invocation for="value">
-										<access member="resolve" for="caller">
-											<invocation for="object">
-												<access member="resolve" for="caller">
-													<invocation for="object">
-														<access member="resolve" for="caller">
-															<access member="ROOT_DIRECTORY" for="object">
-																<reference for="object" value="Application"/>
-															</access>
-														</access>
-														<arguments>
-															<string value="src"/>
-														</arguments>
-													</invocation>
+					<return before-child="\n\t">
+						<invocation for="value">
+							<access member="resolve" for="caller">
+								<invocation for="object">
+									<access member="resolve" for="caller">
+										<invocation for="object">
+											<access member="resolve" for="caller">
+												<access member="ROOT_DIRECTORY" for="object">
+													<reference for="object" value="Application"/>
 												</access>
-												<arguments>
-													<string value="magma"/>
-												</arguments>
-											</invocation>
-										</access>
-										<arguments>
-											<string value="Main.java"/>
-										</arguments>
-									</invocation>
-								</return>
-							</children>
-						</block>
-						<definition name="resolveMain" for="definition">
-							<symbol for="type" value="Path"/>
-							<params/>
-						</definition>
-					</function>
+											</access>
+											<arguments>
+												<string value="src"/>
+											</arguments>
+										</invocation>
+									</access>
+									<arguments>
+										<string value="magma"/>
+									</arguments>
+								</invocation>
+							</access>
+							<arguments>
+								<string value="Main.java"/>
+							</arguments>
+						</invocation>
+					</return>
 				</children>
 			</block>
-		</object>
+			<definition name="resolveMain" for="definition">
+				<symbol for="type" value="Path"/>
+				<params/>
+			</definition>
+		</function>
+		<try before-child="\n">
+			<block for="value" after-children="\n">
+				<children>
+					<unknown before-child="\n\t">
+						<children>
+							<declaration>
+								<invocation for="value">
+									<reference for="caller" value="resolveMain"/>
+								</invocation>
+								<definition name="source" for="definition">
+									<string-list for="modifiers">
+										<child value="let"/>
+									</string-list>
+								</definition>
+							</declaration>
+						</children>
+					</unknown>
+					<unknown before-child="\n\t">
+						<children>
+							<declaration>
+								<invocation for="value">
+									<reference for="caller" value="Application"/>
+									<arguments>
+										<reference value="source"/>
+									</arguments>
+								</invocation>
+								<definition name="application" for="definition">
+									<string-list for="modifiers">
+										<child value="let"/>
+									</string-list>
+								</definition>
+							</declaration>
+						</children>
+					</unknown>
+					<unknown before-child="\n\t">
+						<children>
+							<invocation>
+								<access member="run" for="caller">
+									<reference for="object" value="application"/>
+								</access>
+							</invocation>
+						</children>
+					</unknown>
+				</children>
+			</block>
+		</try>
+		<catch before-child="\n">
+			<block for="value" after-children="\n">
+				<children>
+					<unknown before-child="\n\t">
+						<children>
+							<comment value="noinspection CallToPrintStackTrace"/>
+						</children>
+					</unknown>
+					<unknown before-child="\n\t">
+						<children>
+							<invocation>
+								<access member="printStackTrace" for="caller">
+									<reference for="object" value="e"/>
+								</access>
+							</invocation>
+						</children>
+					</unknown>
+				</children>
+			</block>
+			<params>
+				<definition name="e">
+					<symbol for="type" value="ApplicationException"/>
+				</definition>
+			</params>
+		</catch>
 	</children>
 </block>

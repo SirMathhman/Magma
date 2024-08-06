@@ -1,6 +1,8 @@
-package magma.app.compile;
+package magma.app.compile.pass;
 
 import magma.api.Tuple;
+import magma.app.compile.Node;
+import magma.app.compile.Passer;
 import magma.app.compile.lang.CommonLang;
 import magma.app.compile.lang.JavaLang;
 import magma.app.compile.lang.common.Blocks;
@@ -16,8 +18,8 @@ import java.util.Optional;
 
 import static magma.app.compile.lang.CommonLang.MODIFIERS;
 
-public class DefaultVisitor implements Visitor {
-    public DefaultVisitor() {
+public class DefaultPasser implements Passer {
+    public DefaultPasser() {
     }
 
     private static Optional<Tuple<Node, Integer>> postVisitArrays(Node node, int state) {

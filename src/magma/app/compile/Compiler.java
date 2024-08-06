@@ -5,6 +5,11 @@ import magma.api.Results;
 import magma.app.ApplicationException;
 import magma.app.compile.lang.JavaLang;
 import magma.app.compile.lang.MagmaLang;
+import magma.app.compile.pass.CompoundModifyingStage;
+import magma.app.compile.pass.DefaultPasser;
+import magma.app.compile.pass.Formatter;
+import magma.app.compile.pass.MainPasser;
+import magma.app.compile.pass.VisitingModifyingStage;
 import magma.app.compile.rule.RuleResult;
 
 import java.util.List;
@@ -26,7 +31,8 @@ public class Compiler {
 
     private static CompoundModifyingStage createModifyingStage() {
         return new CompoundModifyingStage(List.of(
-                new VisitingModifyingStage(new DefaultVisitor()),
+                new VisitingModifyingStage(new DefaultPasser()),
+                new VisitingModifyingStage(new MainPasser()),
                 new VisitingModifyingStage(new Formatter())
         ));
     }

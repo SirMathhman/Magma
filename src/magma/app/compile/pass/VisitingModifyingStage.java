@@ -1,14 +1,16 @@
-package magma.app.compile;
+package magma.app.compile.pass;
 
 import magma.api.Tuple;
+import magma.app.compile.Node;
+import magma.app.compile.Passer;
 
 import java.util.ArrayList;
 
 public class VisitingModifyingStage implements ModifyingStage {
-    private final Visitor visitor;
+    private final Passer passer;
 
-    public VisitingModifyingStage(Visitor visitor) {
-        this.visitor = visitor;
+    public VisitingModifyingStage(Passer passer) {
+        this.passer = passer;
     }
 
     private Tuple<Node, Integer> modifyNodeLists(Node node, Integer depth) {
@@ -43,12 +45,12 @@ public class VisitingModifyingStage implements ModifyingStage {
 
     @Override
     public Tuple<Node, Integer> modify(Node node, int depth) {
-        var preVisited = visitor.preVisit(node, depth).orElse(new Tuple<>(node, depth));
+        var preVisited = passer.preVisit(node, depth).orElse(new Tuple<>(node, depth));
         var withNodes = modifyNodes(preVisited.left(), preVisited.right());
         var withNodeLists = modifyNodeLists(withNodes.left(), withNodes.right());
 
         var left = withNodeLists.left();
         var right = withNodeLists.right();
-        return visitor.postVisit(left, right).orElse(new Tuple<>(left, right));
+        return passer.postVisit(left, right).orElse(new Tuple<>(left, right));
     }
 }

@@ -1,6 +1,7 @@
-package magma.app.compile;
+package magma.app.compile.pass;
 
 import magma.api.Tuple;
+import magma.app.compile.Node;
 
 import java.util.List;
 

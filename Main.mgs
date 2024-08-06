@@ -1,19 +1,15 @@
 import magma.app.Application;
 import magma.app.ApplicationException;
 import java.nio.file.Path;
-object Mains{
-	public main(args : Slice<String>) => {
-		try{
-			let source=resolveMain();
-			let application=Application(source);
-			application.run();
-		}
-		catch(e : ApplicationException){
-			//noinspection CallToPrintStackTrace
-			e.printStackTrace();
-		}
-	}
-	resolveMain() : Path => {
-		return Application.ROOT_DIRECTORY.resolve("src").resolve("magma").resolve("Main.java");
-	}
+resolveMain() : Path => {
+	return Application.ROOT_DIRECTORY.resolve("src").resolve("magma").resolve("Main.java");
+}
+try{
+	let source=resolveMain();
+	let application=Application(source);
+	application.run();
+}
+catch(e : ApplicationException){
+	//noinspection CallToPrintStackTrace
+	e.printStackTrace();
 }

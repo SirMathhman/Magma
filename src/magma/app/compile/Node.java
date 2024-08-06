@@ -198,4 +198,11 @@ public final class Node {
                 .map(list -> withStringList(propertyKey, list))
                 .orElse(this);
     }
+
+    public Node mapNodeList(String propertyKey, Function<List<Node>, List<Node>> mapper) {
+        return findNodeList(propertyKey)
+                .map(mapper)
+                .map(list -> withNodeList(propertyKey, list))
+                .orElse(this);
+    }
 }
