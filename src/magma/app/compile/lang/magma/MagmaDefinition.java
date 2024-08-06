@@ -64,7 +64,7 @@ public class MagmaDefinition {
     private static Rule createTypeRule() {
         var type = new LazyRule();
         type.set(new DisjunctionRule(List.of(
-                new TypeRule(SLICE, new PrefixRule("&[", new SuffixRule(new NodeRule("child", type), "]"))),
+                new TypeRule(SLICE, new PrefixRule("Slice<", new SuffixRule(new NodeRule("child", type), ">"))),
                 Symbols.createSymbolRule()
         )));
         return type;
