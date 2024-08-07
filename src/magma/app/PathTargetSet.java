@@ -14,18 +14,20 @@ public record PathTargetSet(Path root) implements TargetSet {
             var namespace = unit.computeNamespace().toList();
             var name = unit.computeName();
 
-            var rootDirectory = root();
+            var parentDirectory = root();
             for (String segment : namespace) {
-                rootDirectory = rootDirectory.resolve(segment);
+                parentDirectory = parentDirectory.resolve(segment);
             }
 
-            var target = rootDirectory.resolve(name + Application.EXTENSION_SEPARATOR + "mgs");
+            if(!Files.exists(parentDirectory)) Files.createDirectories(parentDirectory);
+
+            var target = parentDirectory.resolve(name + Application.EXTENSION_SEPARATOR + "mgs");
             Files.writeString(target, value.output());
 
-            var input = rootDirectory.resolve(name + Application.EXTENSION_SEPARATOR + "input.xml");
+            var input = parentDirectory.resolve(name + Application.EXTENSION_SEPARATOR + "input.xml");
             Files.writeString(input, value.inputNode().toXML().format(0));
 
-            var output = rootDirectory.resolve(name + Application.EXTENSION_SEPARATOR + "output.xml");
+            var output = parentDirectory.resolve(name + Application.EXTENSION_SEPARATOR + "output.xml");
             Files.writeString(output, value.outputNode().toXML().format(0));
             return Optional.empty();
         } catch (IOException e) {

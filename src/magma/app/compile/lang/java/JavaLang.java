@@ -82,9 +82,19 @@ public class JavaLang {
                 new TypeRule("construction", new SuffixRule(createConstructionRule(value), ";")),
                 CommonLang.createInvocationStatementRule(value),
                 CommonLang.createCommentRule(),
-                CommonLang.createReturnRule(value))
+                CommonLang.createReturnRule(value),
+                createAssignmentRule(value))
         ));
         return statement;
+    }
+
+    private static TypeRule createAssignmentRule(Rule value) {
+        var assignable = new LazyRule();
+        assignable.set(new DisjunctionRule(List.of(
+                new StringRule("value")
+        )));
+
+        return new TypeRule("assignment", new LocateRule(assignable, new First("="), new SuffixRule(value, ";")));
     }
 
     private static Rule createValueRule() {
