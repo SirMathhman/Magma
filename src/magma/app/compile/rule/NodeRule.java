@@ -5,13 +5,20 @@ import magma.app.compile.GenerateError;
 import magma.app.compile.Node;
 import magma.app.compile.ParseError;
 
-public record NodeRule(String propertyKey, Rule child) implements Rule {
+public final class NodeRule implements Rule {
+    private final String propertyKey;
+    private final Rule child;
+
+    public NodeRule(String propertyKey, Rule child) {
+        this.propertyKey = propertyKey;
+        this.child = child;
+    }
 
     @Override
     public RuleResult<Node, ParseError> parse(String input) {
-        return this.child()
+        return child
                 .parse(input)
-                .wrapValue(node -> new Node().withNode(this.propertyKey(), node));
+                .wrapValue(node -> new Node().withNode(propertyKey, node));
     }
 
     @Override
