@@ -15,12 +15,12 @@ public class EmptyRule implements Rule {
     @Override
     public RuleResult<Node, ParseError> parse(String input) {
         return input.isEmpty()
-                ? new RuleResult<>(new Ok<>(new Node()))
-                : new RuleResult<>(Err.Err(new ParseError("Input not empty", input)));
+                ? RuleResult.RuleResult(new Ok<>(new Node()))
+                : RuleResult.RuleResult(Err.Err(new ParseError("Input not empty", input)));
     }
 
     @Override
     public RuleResult<String, GenerateError> generate(Node node) {
-        return new RuleResult<>(new Ok<>(""));
+        return RuleResult.RuleResult(new Ok<>(""));
     }
 }

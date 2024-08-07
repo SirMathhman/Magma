@@ -25,6 +25,6 @@ public final class NodeRule implements Rule {
     public RuleResult<String, GenerateError> generate(Node node) {
         return node.findNode(propertyKey)
                 .map(child::generate)
-                .orElseGet(() -> new RuleResult<>(Err.Err(new GenerateError("Node property '" + propertyKey + "' not present", node))));
+                .orElseGet(() -> RuleResult.RuleResult(Err.Err(new GenerateError("Node property '" + propertyKey + "' not present", node))));
     }
 }

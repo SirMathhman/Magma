@@ -22,8 +22,8 @@ public final class StringListRule implements Rule {
     public RuleResult<Node, ParseError> parse(String input) {
         var items = split(input);
         var isEmpty = items.isEmpty();
-        if (isEmpty) return new RuleResult<>(Err.Err(new ParseError("No items present", input)));
-        return new RuleResult<>(new Ok<>(new Node().withStringList(propertyKey, items)));
+        if (isEmpty) return RuleResult.RuleResult(Err.Err(new ParseError("No items present", input)));
+        return RuleResult.RuleResult(new Ok<>(new Node().withStringList(propertyKey, items)));
     }
 
     private List<String> split(String input) {
@@ -41,12 +41,12 @@ public final class StringListRule implements Rule {
     public RuleResult<String, GenerateError> generate(Node node) {
         return node.findStringList(propertyKey)
                 .map(list -> generateWithList(node, list))
-                .orElseGet(() -> new RuleResult<>(Err.Err(new GenerateError("String list property '" + propertyKey + "' not present", node))));
+                .orElseGet(() -> RuleResult.RuleResult(Err.Err(new GenerateError("String list property '" + propertyKey + "' not present", node))));
     }
 
     private RuleResult<String, GenerateError> generateWithList(Node node, List<String> list) {
         var isEmpty = list.isEmpty();
-        if (isEmpty) return new RuleResult<>(Err.Err(new GenerateError("List cannot be empty.", node)));
-        return new RuleResult<>(new Ok<>(String.join(delimiter, list)));
+        if (isEmpty) return RuleResult.RuleResult(Err.Err(new GenerateError("List cannot be empty.", node)));
+        return RuleResult.RuleResult(new Ok<>(String.join(delimiter, list)));
     }
 }

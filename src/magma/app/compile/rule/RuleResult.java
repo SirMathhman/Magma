@@ -9,15 +9,28 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
-public record RuleResult<T, E extends CompileError>(Result<T, E> result, List<RuleResult<T, E>> children) {
-    public RuleResult(Result<T, E> result) {
+public final class RuleResult<T, E extends CompileError> {
+    private final Result<T, E> result;
+    private final List<RuleResult<T, E>> children;
+
+    public RuleResult(Result<T, E> result, List<RuleResult<T, E>> children) {
+        this.result = result;
+        this.children = children;
+    }
+
+    private RuleResult(Result<T, E> result) {
         this(result, Collections.emptyList());
+    }
+
+    public static <T, E extends CompileError> RuleResult<T, E> RuleResult(Result<T, E> result) {
+        return new RuleResult<T, E>(result);
     }
 
     public int depth() {
@@ -82,4 +95,34 @@ public record RuleResult<T, E extends CompileError>(Result<T, E> result, List<Ru
     private Collection<RuleResult<T, E>> findChildren() {
         return children;
     }
+
+    public Result<T, E> result() {
+        return result;
+    }
+
+    public List<RuleResult<T, E>> children() {
+        return children;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj == this) return true;
+        if (obj == null || obj.getClass() != this.getClass()) return false;
+        var that = (RuleResult) obj;
+        return Objects.equals(this.result, that.result) &&
+               Objects.equals(this.children, that.children);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(result, children);
+    }
+
+    @Override
+    public String toString() {
+        return "RuleResult[" +
+               "result=" + result + ", " +
+               "children=" + children + ']';
+    }
+
 }

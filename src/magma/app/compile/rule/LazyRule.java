@@ -17,12 +17,12 @@ public class LazyRule implements Rule {
     @Override
     public RuleResult<Node, ParseError> parse(String input) {
         return current.map(inner -> inner.parse(input))
-                .orElseGet(() -> new RuleResult<>(Err.Err(new ParseError("No child set", input))));
+                .orElseGet(() -> RuleResult.RuleResult(Err.Err(new ParseError("No child set", input))));
     }
 
     @Override
     public RuleResult<String, GenerateError> generate(Node node) {
         return current.map(inner -> inner.generate(node))
-                .orElseGet(() -> new RuleResult<>(Err.Err((new GenerateError("No child set", node)))));
+                .orElseGet(() -> RuleResult.RuleResult(Err.Err((new GenerateError("No child set", node)))));
     }
 }

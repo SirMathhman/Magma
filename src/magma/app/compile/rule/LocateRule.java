@@ -20,7 +20,7 @@ public final class LocateRule implements Rule {
     public RuleResult<Node, ParseError> parse(String input) {
         var startIndex = locator.locate(input);
         if (startIndex.isEmpty())
-            return new RuleResult<>(Err.Err(new ParseError(locator.createErrorMessage(), input)));
+            return RuleResult.RuleResult(Err.Err(new ParseError(locator.createErrorMessage(), input)));
 
         var leftSlice = input.substring(0, startIndex.get());
         var leftResult = leftRule.parse(leftSlice);

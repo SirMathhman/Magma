@@ -13,7 +13,7 @@ public record SymbolRule(Rule value) implements Rule {
         if(isSymbol(input)) {
             return value.parse(input);
         } else {
-            return new RuleResult<>(Err.Err(new ParseError("Not a symbol", input)));
+            return RuleResult.RuleResult(Err.Err(new ParseError("Not a symbol", input)));
         }
     }
 

@@ -11,12 +11,12 @@ public record StringRule(String propertyKey) implements Rule {
 
     @Override
     public RuleResult<Node, ParseError> parse(String input) {
-        return new RuleResult<>(new Ok<>(new Node().withString(this.propertyKey(), input)));
+        return RuleResult.RuleResult(new Ok<>(new Node().withString(this.propertyKey(), input)));
     }
 
     @Override
     public RuleResult<String, GenerateError> generate(Node node) {
-        return new RuleResult<>(node.findString(propertyKey)
+        return RuleResult.RuleResult(node.findString(propertyKey)
                 .<Result<String, GenerateError>>map(Ok::new)
                 .orElseGet(() -> Err.Err(new GenerateError("String property '" + propertyKey + "' not present", node))));
     }
