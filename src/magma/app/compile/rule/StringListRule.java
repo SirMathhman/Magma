@@ -29,9 +29,13 @@ public final class StringListRule implements Rule {
     private List<String> split(String input) {
         List<String> result = new ArrayList<>();
         int index;
-        while ((index = input.indexOf(delimiter)) != -1) {
+        while (true) {
+            index = input.indexOf(delimiter);
+            if (index == -1) break;
+
             result.add(input.substring(0, index));
-            input = input.substring(index + delimiter.length());
+            var offset = index + delimiter.length();
+            input = input.substring(offset);
         }
         result.add(input);
         return result;
