@@ -31,6 +31,14 @@ public class MemberSplitter implements Splitter {
             }
         }
 
+        if(c == '\'') {
+            var next = queue.pop();
+            var withNext = appended.append(next);
+
+            var last = queue.pop();
+            return withNext.append(last);
+        }
+
         if (c == '\"') {
             var withString = appended;
             while (!queue.isEmpty()) {
@@ -45,8 +53,8 @@ public class MemberSplitter implements Splitter {
 
         if (c == STATEMENT_END && appended.isLevel()) return appended.advance();
         if (c == BLOCK_END && appended.isShallow()) return appended.exit().advance();
-        if (c == BLOCK_START || c == '(') return appended.enter();
-        if (c == BLOCK_END || c == ')') return appended.exit();
+        if (c == BLOCK_START) return appended.enter();
+        if (c == BLOCK_END) return appended.exit();
         return appended;
     }
 

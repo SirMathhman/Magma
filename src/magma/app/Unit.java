@@ -1,12 +1,14 @@
 package magma.app;
 
+import magma.api.Result;
+
 import java.io.IOException;
 import java.util.stream.Stream;
 
 public interface Unit {
     Stream<String> computeNamespace();
 
-    String read() throws IOException;
+    Result<String, IOException> read();
 
     String computeName();
 

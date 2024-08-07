@@ -19,11 +19,7 @@ import magma.app.compile.lang.common.Symbols;
 import magma.app.compile.lang.common.TryCatches;
 import magma.app.compile.rule.DisjunctionRule;
 import magma.app.compile.rule.EmptyRule;
-import magma.app.compile.rule.locate.BackwardsLocator;
-import magma.app.compile.rule.locate.First;
-import magma.app.compile.rule.locate.Last;
 import magma.app.compile.rule.LazyRule;
-import magma.app.compile.rule.locate.LocateRule;
 import magma.app.compile.rule.NodeRule;
 import magma.app.compile.rule.PrefixRule;
 import magma.app.compile.rule.Rule;
@@ -31,6 +27,10 @@ import magma.app.compile.rule.StringRule;
 import magma.app.compile.rule.StripRule;
 import magma.app.compile.rule.SuffixRule;
 import magma.app.compile.rule.TypeRule;
+import magma.app.compile.rule.locate.BackwardsLocator;
+import magma.app.compile.rule.locate.First;
+import magma.app.compile.rule.locate.Last;
+import magma.app.compile.rule.locate.LocateRule;
 
 import java.util.List;
 
@@ -112,7 +112,8 @@ public class JavaLang {
                 Conditions.createElseRule(statement),
                 Primitives.createPostRule("decrement", "--", value),
                 Primitives.createPostRule("increment", "++", value),
-                new TypeRule("continue", new SuffixRule(EmptyRule.EMPTY_RULE, "continue;"))
+                new TypeRule("continue", new SuffixRule(EmptyRule.EMPTY_RULE, "continue;")),
+                new TypeRule("break", new SuffixRule(EmptyRule.EMPTY_RULE, "break;"))
         )));
 
         return statement;

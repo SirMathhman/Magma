@@ -1,6 +1,5 @@
 package magma.app.compile.lang.magma;
 
-import magma.api.UnsafeException;
 import magma.app.compile.Node;
 import org.junit.jupiter.api.Test;
 
@@ -18,15 +17,17 @@ class MagmaDefinitionTest {
     }
 
     private static void assertGenerate(String output, Node input) {
-        try {
-            var actual = MagmaDefinition.createRule()
-                    .generate(input)
-                    .result()
-                    .$();
-            assertEquals(output, actual);
-        } catch (UnsafeException e) {
-            fail(e);
-        }
+        MagmaDefinition.createRule()
+                .generate(input)
+                .result()
+                .match(actual -> {
+                    assertEquals(output, actual);
+                    return null;
+                }, err -> fail(err.toString()));
+    }
+
+    private static Node createSymbolRuleType(String value) {
+        return new Node("symbol").withString("value", value);
     }
 
     @Test
@@ -39,10 +40,6 @@ class MagmaDefinitionTest {
                         .withString(NAME, "value")
                         .withNode(TYPE, createSymbolRuleType("I32"))
                 )));
-    }
-
-    private static Node createSymbolRuleType(String value) {
-        return new Node("symbol").withString("value", value);
     }
 
     @Test

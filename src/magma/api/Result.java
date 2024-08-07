@@ -23,7 +23,5 @@ public interface Result<T, E> {
 
     <R> R match(Function<T, R> onOk, Function<E, R> onErr);
 
-    T $() throws UnsafeException;
-
     <R> Result<T, R> replaceErr(Supplier<R> supplier);
 }

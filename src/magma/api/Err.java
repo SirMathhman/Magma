@@ -61,11 +61,6 @@ public class Err<T, E> implements Result<T, E> {
     }
 
     @Override
-    public T $() throws UnsafeException {
-        throw new UnsafeException(error);
-    }
-
-    @Override
     public <R> Result<T, R> replaceErr(Supplier<R> supplier) {
         return Err(supplier.get());
     }

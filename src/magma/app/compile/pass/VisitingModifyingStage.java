@@ -5,6 +5,8 @@ import magma.app.compile.Node;
 import magma.app.compile.Passer;
 
 import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
 
 public class VisitingModifyingStage implements ModifyingStage {
     private final Passer passer;
@@ -15,12 +17,16 @@ public class VisitingModifyingStage implements ModifyingStage {
 
     private Tuple<Node, Integer> modifyNodeLists(Node node, Integer depth) {
         var withNodeLists = new Tuple<>(node, depth);
-        for (var tuple : node.streamNodeLists().toList()) {
+        Iterator<Tuple<String, List<Node>>> iter = node.streamNodeLists().toList().iterator();
+        while (iter.hasNext()) {
+            var tuple = iter.next();
             var key = tuple.left();
             var oldValues = tuple.right();
             var newValues = new ArrayList<Node>();
             var current = depth;
-            for (Node oldValue : oldValues) {
+            Iterator<Node> iterator = oldValues.iterator();
+            while (iterator.hasNext()) {
+                Node oldValue = iterator.next();
                 var newValue = modify(oldValue, depth);
                 newValues.add(newValue.left());
                 current = newValue.right();
@@ -33,7 +39,9 @@ public class VisitingModifyingStage implements ModifyingStage {
 
     private Tuple<Node, Integer> modifyNodes(Node node, int state) {
         var withNodes = new Tuple<>(node, state);
-        for (var tuple : node.streamNodes().toList()) {
+        Iterator<Tuple<String, Node>> iterator = node.streamNodes().toList().iterator();
+        while (iterator.hasNext()) {
+            var tuple = iterator.next();
             var key = tuple.left();
             var value = tuple.right();
             var newValue = modify(value, withNodes.right());

@@ -57,11 +57,6 @@ public class Ok<T, E> implements Result<T, E> {
     }
 
     @Override
-    public T $() {
-        return value;
-    }
-
-    @Override
     public <R> Result<T, R> replaceErr(Supplier<R> supplier) {
         return new Ok<>(value);
     }

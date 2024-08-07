@@ -63,14 +63,20 @@ public final class RuleResult<T, E extends CompileError> {
 
     public String format(int depth) {
         var indent = "\t".repeat(depth) + depth + ") ";
-        return result.match(value -> {
-            var joined = formatChildren(depth);
-            return indent + value.toString() + "\n" + joined;
-        }, err -> {
-            var joined = formatChildren(depth);
-            var formatted = children.size() != 1 ? err.format(depth) : err.formatWithoutContext();
-            return indent + formatted + "\n" + joined;
-        });
+        return result.match(
+                value -> formatWithValue(value, indent, depth),
+                err -> formatWithErr(err, indent, depth));
+    }
+
+    private String formatWithValue(T value, String indent, int depth) {
+        var joined = formatChildren(depth);
+        return indent + value.toString() + "\n" + joined;
+    }
+
+    private String formatWithErr(E err, String indent, int depth) {
+        var joined = formatChildren(depth);
+        var formatted = children.size() != 1 ? err.format(depth) : err.formatWithoutContext();
+        return indent + formatted + "\n" + joined;
     }
 
     private String formatChildren(int depth) {

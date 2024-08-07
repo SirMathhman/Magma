@@ -10,6 +10,7 @@ import magma.app.compile.lang.magma.Objects;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Optional;
 
@@ -19,7 +20,9 @@ import static magma.app.compile.lang.common.Blocks.CHILDREN;
 public class MainPasser implements Passer {
     private static List<Node> flattenRoot(List<Node> oldChildren) {
         var newChildren = new ArrayList<Node>();
-        for (Node oldChild : oldChildren) {
+        Iterator<Node> iterator = oldChildren.iterator();
+        while (iterator.hasNext()) {
+            Node oldChild = iterator.next();
             var newChildrenSlice = flattenObjects(oldChild)
                     .orElseGet(() -> Collections.singletonList(oldChild));
 
@@ -35,7 +38,8 @@ public class MainPasser implements Passer {
         var objectChildren = value.findNodeList(CHILDREN).orElseThrow();
 
         var maybeMainChildren = Optional.<Tuple<Integer, List<Node>>>empty();
-        for (int i = 0; i < objectChildren.size(); i++) {
+        int i = 0;
+        while (i < objectChildren.size()) {
             Node child = objectChildren.get(i);
             if (child.is(Functions.FUNCTION)) {
                 var definition = child.findNode(MagmaDefinition.DEFINITION).orElseThrow();
@@ -52,6 +56,7 @@ public class MainPasser implements Passer {
                     break;
                 }
             }
+            i++;
         }
 
         if (maybeMainChildren.isPresent()) {

@@ -13,6 +13,7 @@ import magma.app.compile.lang.magma.Objects;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Optional;
 
@@ -126,7 +127,9 @@ public class DefaultPasser implements Passer {
         if (childrenOptional.isEmpty()) return Optional.empty();
 
         var newChildren = new ArrayList<Node>();
-        for (var child : childrenOptional.get()) {
+        Iterator<Node> iterator = childrenOptional.get().iterator();
+        while (iterator.hasNext()) {
+            var child = iterator.next();
             if (child.is(JavaLang.PACKAGE)) continue;
             newChildren.addAll(flattenClass(child).orElse(Collections.singletonList(child)));
         }
@@ -149,7 +152,9 @@ public class DefaultPasser implements Passer {
         var instanceChildren = new ArrayList<Node>();
         var staticChildren = new ArrayList<Node>();
 
-        for (Node oldChild : oldChildren) {
+        Iterator<Node> iterator = oldChildren.iterator();
+        while (iterator.hasNext()) {
+            Node oldChild = iterator.next();
             var definitionOptional = oldChild.findNode(MagmaDefinition.DEFINITION);
             if (definitionOptional.isEmpty()) {
                 instanceChildren.add(oldChild);

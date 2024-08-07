@@ -16,7 +16,8 @@ public class Main {
             var sourceSet = new DirectorySourceSet(sourceDirectory, "java");
             var targetSet = new PathTargetSet(targetDirectory);
             var application = new Application(sourceSet, targetSet);
-            application.run();
+            var run = application.run();
+            if (run.isPresent()) throw run.get();
         } catch (ApplicationException e) {
             //noinspection CallToPrintStackTrace
             e.printStackTrace();

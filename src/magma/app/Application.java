@@ -1,12 +1,14 @@
 package magma.app;
 
-import magma.api.Results;
+import magma.api.Result;
 import magma.app.compile.Compiler;
+import magma.app.compile.lang.java.JavaLang;
+import magma.app.compile.lang.magma.MagmaLang;
 
-import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Optional;
+import java.util.Set;
 
 public final class Application {
     public static final String EXTENSION_SEPARATOR = ".";
@@ -19,20 +21,27 @@ public final class Application {
         this.targetSet = targetSet;
     }
 
-    public void run() throws ApplicationException {
-        try {
-            var set = Results.unwrapJava(sourceSet.collectSources());
+    public Optional<ApplicationException> run() {
+        return sourceSet.collectSources().match(this::onCollect, err -> Optional.of(new ApplicationException(err)));
+    }
 
-            for (var unit : set) {
-                var input = unit.read();
-                var result = Compiler.compile(unit, input)
-                        .mapValue(value1 -> targetSet.writeValue(unit, value1))
-                        .match(value -> value, Optional::of);
+    private Optional<ApplicationException> onCollect(Set<Unit> set) {
+        return set.stream().reduce(Optional.empty(),
+                (previousError, unit) -> previousError.or(() -> compileUnit(unit)),
+                (previousError, e2) -> previousError.or(() -> e2));
+    }
 
-                if (result.isPresent()) throw result.get();
-            }
-        } catch (IOException e) {
-            throw new ApplicationException(e);
-        }
+    private Optional<ApplicationException> compileUnit(Unit unit) {
+        return readInput(unit).match(input -> compileWithInput(unit, input), Optional::of);
+    }
+
+    private Optional<ApplicationException> compileWithInput(Unit unit, String input) {
+        return new Compiler(JavaLang.createRootJavaRule(), MagmaLang.createRootMagmaRule()).compile(unit, input)
+                .mapValue(value1 -> targetSet.writeValue(unit, value1))
+                .match(value -> value, Optional::of);
+    }
+
+    private Result<String, ApplicationException> readInput(Unit unit) {
+        return unit.read().mapErr(ApplicationException::new);
     }
 }

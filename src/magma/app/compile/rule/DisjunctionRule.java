@@ -6,13 +6,23 @@ import magma.app.compile.Node;
 import magma.app.compile.ParseError;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Objects;
 
-public record DisjunctionRule(List<Rule> rules) implements Rule {
+public final class DisjunctionRule implements Rule {
+    private final List<Rule> rules;
+
+    public DisjunctionRule(List<Rule> rules) {
+        this.rules = rules;
+    }
+
     @Override
     public RuleResult<Node, ParseError> parse(String input) {
         var errors = new ArrayList<RuleResult<Node, ParseError>>();
-        for (Rule rule : rules) {
+        Iterator<Rule> iterator = rules.iterator();
+        while (iterator.hasNext()) {
+            Rule rule = iterator.next();
             var result = rule.parse(input);
             if (result.isValid()) return result;
             errors.add(result);
@@ -24,7 +34,9 @@ public record DisjunctionRule(List<Rule> rules) implements Rule {
     @Override
     public RuleResult<String, GenerateError> generate(Node node) {
         var errors = new ArrayList<RuleResult<String, GenerateError>>();
-        for (Rule rule : rules) {
+        Iterator<Rule> iterator = rules.iterator();
+        while (iterator.hasNext()) {
+            Rule rule = iterator.next();
             var generated = rule.generate(node);
             if (generated.isValid()) return generated;
             errors.add(generated);
@@ -32,4 +44,28 @@ public record DisjunctionRule(List<Rule> rules) implements Rule {
 
         return new RuleResult<>(Err.Err(new GenerateError("No valid rules found for", node)), errors);
     }
+
+    public List<Rule> rules() {
+        return rules;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj == this) return true;
+        if (obj == null || obj.getClass() != this.getClass()) return false;
+        var that = (DisjunctionRule) obj;
+        return Objects.equals(this.rules, that.rules);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(rules);
+    }
+
+    @Override
+    public String toString() {
+        return "DisjunctionRule[" +
+               "rules=" + rules + ']';
+    }
+
 }
