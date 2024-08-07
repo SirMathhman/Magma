@@ -7,10 +7,11 @@ import magma.app.compile.lang.common.PrefixedStatements;
 import magma.app.compile.lang.common.Symbols;
 import magma.app.compile.rule.DisjunctionRule;
 import magma.app.compile.rule.EmptyRule;
-import magma.app.compile.rule.First;
-import magma.app.compile.rule.Last;
+import magma.app.compile.rule.locate.BackwardsLocator;
+import magma.app.compile.rule.locate.First;
+import magma.app.compile.rule.locate.Last;
 import magma.app.compile.rule.LazyRule;
-import magma.app.compile.rule.LocateRule;
+import magma.app.compile.rule.locate.LocateRule;
 import magma.app.compile.rule.NodeRule;
 import magma.app.compile.rule.PrefixRule;
 import magma.app.compile.rule.Rule;
@@ -140,7 +141,7 @@ public class JavaLang {
         var type = new NodeRule("type", createTypeRule());
 
         var modifiersAndType = new DisjunctionRule(List.of(
-                new LocateRule(modifiers, new Last(" "), type),
+                new LocateRule(modifiers, new BackwardsLocator(" "), type),
                 type
         ));
 

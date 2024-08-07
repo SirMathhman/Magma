@@ -1,9 +1,9 @@
-package magma.app.compile.rule;
+package magma.app.compile.rule.locate;
 
-import java.util.Optional;
+import java.util.stream.Stream;
 
 public interface Locator {
-    Optional<Integer> locate(String input);
+    Stream<Integer> locate(String input);
 
     String createErrorMessage();
 

@@ -1,7 +1,7 @@
 package magma.app.compile.lang.common;
 
-import magma.app.compile.rule.Last;
-import magma.app.compile.rule.LocateRule;
+import magma.app.compile.rule.locate.Last;
+import magma.app.compile.rule.locate.LocateRule;
 import magma.app.compile.rule.NodeRule;
 import magma.app.compile.rule.Rule;
 import magma.app.compile.rule.StripRule;

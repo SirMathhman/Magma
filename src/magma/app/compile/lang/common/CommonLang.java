@@ -7,11 +7,11 @@ import magma.app.compile.lang.SymbolRule;
 import magma.app.compile.lang.java.JavaLang;
 import magma.app.compile.rule.DisjunctionRule;
 import magma.app.compile.rule.EmptyRule;
-import magma.app.compile.rule.First;
-import magma.app.compile.rule.Last;
+import magma.app.compile.rule.locate.First;
+import magma.app.compile.rule.locate.Last;
 import magma.app.compile.rule.LazyRule;
-import magma.app.compile.rule.LocateRule;
-import magma.app.compile.rule.Locator;
+import magma.app.compile.rule.locate.LocateRule;
+import magma.app.compile.rule.locate.Locator;
 import magma.app.compile.rule.NodeListRule;
 import magma.app.compile.rule.NodeRule;
 import magma.app.compile.rule.OptionalRule;
@@ -28,6 +28,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
+import java.util.stream.Stream;
 
 public class CommonLang {
     public static final String MODIFIERS = "modifiers";
@@ -154,8 +155,7 @@ public class CommonLang {
     }
 
     private static class InvocationLocator implements Locator {
-        @Override
-        public Optional<Integer> locate(String input) {
+        private Optional<Integer> locate0(String input) {
             var depth = 0;
             int i = input.length() - 1;
             while (i >= 0) {
@@ -186,11 +186,15 @@ public class CommonLang {
         public String merge(String left, String right) {
             return left + "(" + right;
         }
+
+        @Override
+        public Stream<Integer> locate(String input) {
+            return locate0(input).stream();
+        }
     }
 
     private static class ClosingParenthesesLocator implements Locator {
-        @Override
-        public Optional<Integer> locate(String input) {
+        private Optional<Integer> locate0(String input) {
             var depth = 0;
             var queue = IntStream.range(0, input.length())
                     .mapToObj(index -> new Tuple<>(index, input.charAt(index)))
@@ -235,6 +239,11 @@ public class CommonLang {
         @Override
         public String merge(String left, String right) {
             return left + ")" + right;
+        }
+
+        @Override
+        public Stream<Integer> locate(String input) {
+            return locate0(input).stream();
         }
     }
 }

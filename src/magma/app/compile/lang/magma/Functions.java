@@ -2,8 +2,8 @@ package magma.app.compile.lang.magma;
 
 import magma.app.compile.lang.common.Blocks;
 import magma.app.compile.rule.DisjunctionRule;
-import magma.app.compile.rule.Last;
-import magma.app.compile.rule.LocateRule;
+import magma.app.compile.rule.locate.Last;
+import magma.app.compile.rule.locate.LocateRule;
 import magma.app.compile.rule.NodeRule;
 import magma.app.compile.rule.PrefixRule;
 import magma.app.compile.rule.Rule;

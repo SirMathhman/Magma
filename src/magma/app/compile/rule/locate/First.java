@@ -1,10 +1,10 @@
-package magma.app.compile.rule;
+package magma.app.compile.rule.locate;
 
 import java.util.Optional;
+import java.util.stream.Stream;
 
 public record First(String slice) implements Locator {
-    @Override
-    public Optional<Integer> locate(String input) {
+    private Optional<Integer> locate0(String input) {
         var index = input.indexOf(slice());
         return index == -1 ? Optional.empty() : Optional.of(index);
     }
@@ -22,5 +22,10 @@ public record First(String slice) implements Locator {
     @Override
     public String merge(String left, String right) {
         return left + slice + right;
+    }
+
+    @Override
+    public Stream<Integer> locate(String input) {
+        return locate0(input).stream();
     }
 }
