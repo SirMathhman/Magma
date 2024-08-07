@@ -17,7 +17,9 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
+import static magma.app.compile.lang.common.CommonLang.INVOCATION;
 import static magma.app.compile.lang.common.CommonLang.MODIFIERS;
+import static magma.app.compile.lang.java.JavaLang.CONSTRUCTION;
 
 public class DefaultPasser implements Passer {
     public DefaultPasser() {
@@ -201,8 +203,13 @@ public class DefaultPasser implements Passer {
                 .or(() -> postVisitDeclarations(node, state))
                 .or(() -> postVisitClasses(node, state))
                 .or(() -> postVisitBlocks(node, state))
-                .or(() -> postVisitMethods(node, state));
+                .or(() -> postVisitMethods(node, state))
+                .or(() -> postVisitConstructions(node, state));
+    }
 
+    private Optional<? extends Tuple<Node, Integer>> postVisitConstructions(Node node, int state) {
+        if(node.is(CONSTRUCTION)) return Optional.of(new Tuple<>(node.retype(INVOCATION), state));
+        else return Optional.empty();
     }
 
     @Override

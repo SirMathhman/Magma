@@ -22,16 +22,13 @@ import magma.app.compile.rule.TypeRule;
 import java.util.List;
 
 public class JavaLang {
-    public static final String PACKAGE_KEYWORD_WITH_SPACE = "package ";
-    public static final String PUBLIC_KEYWORD_WITH_SPACE = "public ";
-    public static final String VOID_KEYWORD_WITH_SPACE = "void ";
-    public static final String METHOD_SUFFIX = "(){}";
     public static final String CLASS_TYPE = "class";
     public static final String PACKAGE = "package";
     public static final String CLASS_NAME = "name";
     public static final String METHOD_TYPE = "method";
     public static final String METHOD_DEFINITION = "definition";
     public static final String ARRAY = "array";
+    public static final String CONSTRUCTION = "construction";
 
     public static Rule createRootJavaRule() {
         var childRule = new DisjunctionRule(List.of(
@@ -49,9 +46,10 @@ public class JavaLang {
     private static TypeRule createClassRule() {
         var modifiers = CommonLang.createModifiersRule();
 
+        var definition = createDefinitionRule();
         var classMember = new DisjunctionRule(List.of(
-                createMethodRule(),
-                new TypeRule("definition", new SuffixRule(createDefinitionRule(), ";"))
+                createMethodRule(definition),
+                CommonLang.createDefinitionStatement(definition)
         ));
 
         var content = new NodeRule("value", Blocks.createBlockRule(classMember));
@@ -59,8 +57,7 @@ public class JavaLang {
         return new TypeRule("class", new LocateRule(modifiers, new First("class "), after));
     }
 
-    private static TypeRule createMethodRule() {
-        var definition = createDefinitionRule();
+    private static TypeRule createMethodRule(TypeRule definition) {
         var params = new DisjunctionRule(List.of(
                 CommonLang.createParamsRule(definition),
                 EmptyRule.EMPTY_RULE
@@ -79,22 +76,13 @@ public class JavaLang {
                 PrefixedStatements.createTryRule(statement),
                 CommonLang.createCatchRule(definition, statement),
                 Declarations.createDeclarationRule(definition, value),
-                new TypeRule("construction", new SuffixRule(createConstructionRule(value), ";")),
+                new TypeRule(CONSTRUCTION, new SuffixRule(createConstructionRule(value), ";")),
                 CommonLang.createInvocationStatementRule(value),
                 CommonLang.createCommentRule(),
                 CommonLang.createReturnRule(value),
-                createAssignmentRule(value))
+                CommonLang.createAssignmentRule(value))
         ));
         return statement;
-    }
-
-    private static TypeRule createAssignmentRule(Rule value) {
-        var assignable = new LazyRule();
-        assignable.set(new DisjunctionRule(List.of(
-                new StringRule("value")
-        )));
-
-        return new TypeRule("assignment", new LocateRule(assignable, new First("="), new SuffixRule(value, ";")));
     }
 
     private static Rule createValueRule() {
@@ -110,7 +98,7 @@ public class JavaLang {
     }
 
     private static Rule createConstructionRule(Rule value) {
-        return CommonLang.createOperationsRule("construction", value, new StripRule(new PrefixRule("new", new StripRule(new NodeRule("caller", value)))));
+        return CommonLang.createOperationsRule(CONSTRUCTION, value, new StripRule(new PrefixRule("new", new StripRule(new NodeRule("caller", value)))));
     }
 
     private static TypeRule createDefinitionRule() {

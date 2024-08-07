@@ -2,6 +2,7 @@ package magma.app.compile.lang.common;
 
 import magma.app.compile.ParamSplitter;
 import magma.app.compile.lang.SymbolRule;
+import magma.app.compile.rule.DisjunctionRule;
 import magma.app.compile.rule.EmptyRule;
 import magma.app.compile.rule.First;
 import magma.app.compile.rule.Last;
@@ -19,11 +20,13 @@ import magma.app.compile.rule.StripRule;
 import magma.app.compile.rule.SuffixRule;
 import magma.app.compile.rule.TypeRule;
 
+import java.util.List;
 import java.util.Optional;
 
 public class CommonLang {
     public static final String MODIFIERS = "modifiers";
     public static final String PARAMS = "params";
+    public static final String INVOCATION = "invocation";
 
     public static Rule createImportRule() {
         return createNamespaceRule("import", "import ");
@@ -38,7 +41,7 @@ public class CommonLang {
     }
 
     public static TypeRule createInvocationRule(Rule value) {
-        return createOperationsRule("invocation", value, new NodeRule("caller", value));
+        return createOperationsRule(INVOCATION, value, new NodeRule("caller", value));
     }
 
     public static TypeRule createOperationsRule(String type, Rule value, Rule caller) {
@@ -55,7 +58,7 @@ public class CommonLang {
     }
 
     public static TypeRule createInvocationStatementRule(Rule value) {
-        return new TypeRule("invocation", new SuffixRule(createInvocationRule(value), ";"));
+        return new TypeRule(INVOCATION, new SuffixRule(createInvocationRule(value), ";"));
     }
 
     public static TypeRule createAccessRule(LazyRule value) {
@@ -85,6 +88,20 @@ public class CommonLang {
 
     public static TypeRule createStringRule() {
         return new TypeRule("string", new StripRule(new PrefixRule("\"", new SuffixRule(new StringRule("value"), "\""))));
+    }
+
+    public static TypeRule createDefinitionStatement(Rule definition) {
+        return new TypeRule("definition", new SuffixRule(definition, ";"));
+    }
+
+    public static TypeRule createAssignmentRule(Rule value) {
+        var assignable = new LazyRule();
+        assignable.set(new DisjunctionRule(List.of(
+                new StringRule("value")
+        )));
+
+        var valueProperty = new NodeRule("value", value);
+        return new TypeRule("assignment", new LocateRule(assignable, new First("="), new SuffixRule(valueProperty, ";")));
     }
 
     private static class InvocationLocator implements Locator {

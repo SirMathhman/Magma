@@ -17,8 +17,7 @@ public class MagmaLang {
                 Blocks.createBlockRule(new DisjunctionRule(List.of(
                         CommonLang.createImportRule(),
                         createStatementRule0()
-                ))),
-                EmptyRule.EMPTY_RULE
+                )))
         ));
     }
 
@@ -35,7 +34,9 @@ public class MagmaLang {
                 CommonLang.createInvocationStatementRule(value),
                 CommonLang.createCommentRule(),
                 CommonLang.createReturnRule(value),
-                Objects.createObjectRule(statement)
+                Objects.createObjectRule(statement),
+                CommonLang.createDefinitionStatement(definition),
+                CommonLang.createAssignmentRule(value)
         )));
 
         return statement;
