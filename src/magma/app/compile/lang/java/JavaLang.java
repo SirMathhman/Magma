@@ -40,7 +40,10 @@ public class JavaLang {
                 createClassRule()
         ));
 
-        return Blocks.createBlockRule(childRule);
+        return new DisjunctionRule(List.of(
+                Blocks.createBlockRule(childRule),
+                EmptyRule.EMPTY_RULE
+        ));
     }
 
     private static TypeRule createClassRule() {

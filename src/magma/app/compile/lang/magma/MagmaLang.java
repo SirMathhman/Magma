@@ -5,6 +5,7 @@ import magma.app.compile.lang.common.CommonLang;
 import magma.app.compile.lang.common.Declarations;
 import magma.app.compile.lang.common.PrefixedStatements;
 import magma.app.compile.rule.DisjunctionRule;
+import magma.app.compile.rule.EmptyRule;
 import magma.app.compile.rule.LazyRule;
 import magma.app.compile.rule.Rule;
 
@@ -12,10 +13,13 @@ import java.util.List;
 
 public class MagmaLang {
     public static Rule createRootMagmaRule() {
-        return Blocks.createBlockRule(new DisjunctionRule(List.of(
-                CommonLang.createImportRule(),
-                createStatementRule0()
-        )));
+        return new DisjunctionRule(List.of(
+                Blocks.createBlockRule(new DisjunctionRule(List.of(
+                        CommonLang.createImportRule(),
+                        createStatementRule0()
+                ))),
+                EmptyRule.EMPTY_RULE
+        ));
     }
 
     private static Rule createStatementRule0() {

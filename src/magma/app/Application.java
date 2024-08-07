@@ -7,11 +7,17 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Objects;
 import java.util.Optional;
 
-public record Application(Path source) {
+public final class Application {
     public static final String EXTENSION_SEPARATOR = ".";
     public static final Path ROOT_DIRECTORY = Paths.get(".");
+    private final Path source;
+
+    public Application(Path source) {
+        this.source = source;
+    }
 
     public void run() throws ApplicationException {
         try {
@@ -49,5 +55,29 @@ public record Application(Path source) {
             return Optional.of(new ApplicationException(e));
         }
     }
+
+    public Path source() {
+        return source;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj == this) return true;
+        if (obj == null || obj.getClass() != this.getClass()) return false;
+        var that = (Application) obj;
+        return Objects.equals(this.source, that.source);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(source);
+    }
+
+    @Override
+    public String toString() {
+        return "Application[" +
+               "source=" + source + ']';
+    }
+
 
 }
