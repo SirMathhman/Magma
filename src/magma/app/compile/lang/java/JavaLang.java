@@ -87,15 +87,11 @@ public class JavaLang {
                 CommonLang.createConditionRule("if", "if", value, statement),
                 CommonLang.createConditionRule("while", "while", value, statement),
                 CommonLang.createDefinitionStatement(definition),
-                createElseRule(statement)
+                CommonLang.createElseRule(statement),
+                CommonLang.createPostDecrementRule(value)
         )));
 
         return statement;
-    }
-
-    private static TypeRule createElseRule(LazyRule statement) {
-        var value = new NodeRule("value", Blocks.createBlockRule(statement));
-        return new TypeRule("else", new PrefixRule("else", new StripRule(new PrefixRule("{", new SuffixRule(value, "}")))));
     }
 
     private static Rule createValueRule() {
@@ -106,16 +102,13 @@ public class JavaLang {
                 CommonLang.createAccessRule(value),
                 CommonLang.createReferenceRule(),
                 CommonLang.createStringRule(),
-                createOperatorRule("and", "&&", value),
-                createOperatorRule("equals", "==", value),
-                new TypeRule("char", new StripRule(new PrefixRule("'", new SuffixRule(new StringRule("value"), "'")))),
+                CommonLang.createOperatorRule("and", "&&", value),
+                CommonLang.createOperatorRule("equals", "==", value),
+                CommonLang.createOperatorRule("greater-than-or-equals-to", ">=", value),
+                CommonLang.createCharRule(),
                 CommonLang.createNumberRule()
         )));
         return value;
-    }
-
-    private static TypeRule createOperatorRule(String type, String operator, LazyRule value) {
-        return new TypeRule(type, new LocateRule(new NodeRule("left", value), new First(operator), new NodeRule("right", value)));
     }
 
     private static TypeRule createInvocationRule(LazyRule value) {

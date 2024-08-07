@@ -38,7 +38,9 @@ public class MagmaLang {
                 CommonLang.createDefinitionStatement(definition),
                 CommonLang.createAssignmentRule(value),
                 CommonLang.createConditionRule("if", "if", value, statement),
-                CommonLang.createConditionRule("while", "while", value, statement)
+                CommonLang.createConditionRule("while", "while", value, statement),
+                CommonLang.createElseRule(statement),
+                CommonLang.createPostDecrementRule(value)
         )));
 
         return statement;
@@ -51,7 +53,11 @@ public class MagmaLang {
                 CommonLang.createAccessRule(value),
                 CommonLang.createReferenceRule(),
                 CommonLang.createStringRule(),
-                CommonLang.createNumberRule()
+                CommonLang.createNumberRule(),
+                CommonLang.createOperatorRule("and", "&&", value),
+                CommonLang.createOperatorRule("equals", "==", value),
+                CommonLang.createOperatorRule("greater-than-or-equals-to", ">=", value),
+                CommonLang.createCharRule()
         )));
         return value;
     }

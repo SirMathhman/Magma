@@ -121,6 +121,23 @@ public class CommonLang {
         return new TypeRule("number", new StripRule(new DigitRule(new StringRule("value"))));
     }
 
+    public static TypeRule createOperatorRule(String type, String operator, LazyRule value) {
+        return new TypeRule(type, new LocateRule(new NodeRule("left", value), new First(operator), new NodeRule("right", value)));
+    }
+
+    public static TypeRule createCharRule() {
+        return new TypeRule("char", new StripRule(new PrefixRule("'", new SuffixRule(new StringRule("value"), "'"))));
+    }
+
+    public static TypeRule createElseRule(LazyRule statement) {
+        var value = new NodeRule("value", Blocks.createBlockRule(statement));
+        return new TypeRule("else", new PrefixRule("else", new StripRule(new PrefixRule("{", new SuffixRule(value, "}")))));
+    }
+
+    public static TypeRule createPostDecrementRule(Rule value) {
+        return new TypeRule("post-decrement", new StripRule(new SuffixRule(new NodeRule("child", value), "--;")));
+    }
+
     private static class InvocationLocator implements Locator {
         @Override
         public Optional<Integer> locate(String input) {
