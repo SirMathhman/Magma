@@ -5,7 +5,15 @@ import magma.app.compile.GenerateError;
 import magma.app.compile.Node;
 import magma.app.compile.ParseError;
 
-public record PrefixRule(String prefix, Rule child) implements Rule {
+public final class PrefixRule implements Rule {
+    private final String prefix;
+    private final Rule child;
+
+    public PrefixRule(String prefix, Rule child) {
+        this.prefix = prefix;
+        this.child = child;
+    }
+
     @Override
     public RuleResult<Node, ParseError> parse(String input) {
         if (!input.startsWith(this.prefix))

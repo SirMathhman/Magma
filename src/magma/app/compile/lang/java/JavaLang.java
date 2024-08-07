@@ -29,12 +29,17 @@ public class JavaLang {
     public static final String METHOD_DEFINITION = "definition";
     public static final String ARRAY = "array";
     public static final String CONSTRUCTION = "construction";
+    public static final String INTERFACE = "interface";
 
     public static Rule createRootJavaRule() {
+        var definition = createDefinitionRule();
+        var method = createMethodRule(definition);
+
         var childRule = new DisjunctionRule(List.of(
                 CommonLang.createNamespaceRule("package", "package "),
                 CommonLang.createImportRule(),
-                createClassRule()
+                createClassRule(definition, method),
+                CommonLang.createStructRule(INTERFACE, "interface ", method)
         ));
 
         return new DisjunctionRule(List.of(
@@ -43,13 +48,12 @@ public class JavaLang {
         ));
     }
 
-    private static Rule createClassRule() {
+    private static Rule createClassRule(Rule definition, Rule methodRule) {
         var classRule = new LazyRule();
         var modifiers = CommonLang.createModifiersRule();
 
-        var definition = createDefinitionRule();
         var classMember = new DisjunctionRule(List.of(
-                createMethodRule(definition),
+                methodRule,
                 CommonLang.createDefinitionStatement(definition),
                 classRule
         ));
@@ -70,7 +74,12 @@ public class JavaLang {
         var statements = createStatementRule(definition, createValueRule());
         var children = new NodeRule("value", Blocks.createBlockRule(statements));
         var content = new SuffixRule(children, "}");
-        return new TypeRule(METHOD_TYPE, new LocateRule(beforeContent, new First("{"), content));
+        var child = new LocateRule(beforeContent, new First("{"), content);
+
+        return new TypeRule(METHOD_TYPE, new DisjunctionRule(List.of(
+                child,
+                new SuffixRule(beforeContent, ";")
+        )));
     }
 
     private static Rule createStatementRule(Rule definition, Rule value) {

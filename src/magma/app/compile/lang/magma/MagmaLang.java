@@ -12,6 +12,9 @@ import magma.app.compile.rule.Rule;
 import java.util.List;
 
 public class MagmaLang {
+
+    public static final String TRAIT = "trait";
+
     public static Rule createRootMagmaRule() {
         return new DisjunctionRule(List.of(
                 Blocks.createBlockRule(new DisjunctionRule(List.of(
@@ -40,7 +43,8 @@ public class MagmaLang {
                 CommonLang.createConditionRule("if", "if", value, statement),
                 CommonLang.createConditionRule("while", "while", value, statement),
                 CommonLang.createElseRule(statement),
-                CommonLang.createPostDecrementRule(value)
+                CommonLang.createPostDecrementRule(value),
+                CommonLang.createStructRule(TRAIT, "trait ", statement)
         )));
 
         return statement;

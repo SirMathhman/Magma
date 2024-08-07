@@ -1,8 +1,10 @@
 package magma.app;
 
+import magma.api.Result;
+
 import java.io.IOException;
 import java.util.Set;
 
 public interface SourceSet {
-    Set<Unit> collectSources() throws IOException;
+    Result<Set<Unit>, IOException> collectSources();
 }

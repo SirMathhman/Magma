@@ -1,5 +1,6 @@
 package magma.app;
 
+import magma.api.Results;
 import magma.app.compile.Compiler;
 
 import java.io.IOException;
@@ -20,7 +21,7 @@ public final class Application {
 
     public void run() throws ApplicationException {
         try {
-            var set = sourceSet.collectSources();
+            var set = Results.unwrapJava(sourceSet.collectSources());
 
             for (var unit : set) {
                 var input = unit.read();

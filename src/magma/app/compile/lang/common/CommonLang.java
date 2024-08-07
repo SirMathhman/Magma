@@ -3,6 +3,7 @@ package magma.app.compile.lang.common;
 import magma.app.compile.ParamSplitter;
 import magma.app.compile.lang.DigitRule;
 import magma.app.compile.lang.SymbolRule;
+import magma.app.compile.lang.java.JavaLang;
 import magma.app.compile.rule.DisjunctionRule;
 import magma.app.compile.rule.EmptyRule;
 import magma.app.compile.rule.First;
@@ -136,6 +137,16 @@ public class CommonLang {
 
     public static TypeRule createPostDecrementRule(Rule value) {
         return new TypeRule("post-decrement", new StripRule(new SuffixRule(new NodeRule("child", value), "--;")));
+    }
+
+    public static Rule createStructRule(String type, String slice, Rule member) {
+        var classRule = new LazyRule();
+        var modifiers = createModifiersRule();
+
+        var content = new NodeRule("value", Blocks.createBlockRule(member));
+        var after = new LocateRule(new StripRule(new StringRule(JavaLang.CLASS_NAME)), new First("{"), new SuffixRule(content, "}"));
+        classRule.set(new TypeRule(type, new LocateRule(modifiers, new First(slice), after)));
+        return classRule;
     }
 
     private static class InvocationLocator implements Locator {
