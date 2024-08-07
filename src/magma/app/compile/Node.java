@@ -5,6 +5,7 @@ import magma.api.XMLNode;
 
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -38,7 +39,7 @@ public final class Node {
 
     @Override
     public String toString() {
-        return format(0);
+        return format();
     }
 
     public Node withString(String propertyKey, String propertyValue) {
@@ -102,33 +103,43 @@ public final class Node {
         return Optional.ofNullable(nodeLists.get(propertyKey));
     }
 
-    public String format(int depth) {
+    public String format() {
         return toXML().format();
     }
 
     public XMLNode toXML() {
         var node = new XMLNode(type.orElse(DEFAULT_TAG_NAME));
-        for (Map.Entry<String, String> entry : strings.entrySet()) {
+        Iterator<Map.Entry<String, String>> iterator = strings.entrySet().iterator();
+        while (iterator.hasNext()) {
+            Map.Entry<String, String> entry = iterator.next();
             node = node.withAttribute(entry.getKey(), entry.getValue());
         }
 
-        for (var entry : stringLists.entrySet()) {
+        Iterator<Map.Entry<String, List<String>>> iter = stringLists.entrySet().iterator();
+        while (iter.hasNext()) {
+            var entry = iter.next();
             var list = new XMLNode("string-list")
                     .withAttribute("for", entry.getKey());
 
-            for (String childValue : entry.getValue()) {
+            Iterator<String> it = entry.getValue().iterator();
+            while (it.hasNext()) {
+                String childValue = it.next();
                 list = list.withChild(new XMLNode("child").withAttribute("value", childValue));
             }
 
             node = node.withChild(list);
         }
 
-        for (Map.Entry<String, Node> entry : nodes.entrySet()) {
+        Iterator<Map.Entry<String, Node>> it = nodes.entrySet().iterator();
+        while (it.hasNext()) {
+            Map.Entry<String, Node> entry = it.next();
             var child = entry.getValue().toXML().withAttribute("for", entry.getKey());
             node = node.withChild(child);
         }
 
-        for (Map.Entry<String, List<Node>> stringListEntry : nodeLists.entrySet()) {
+        Iterator<Map.Entry<String, List<Node>>> iterator1 = nodeLists.entrySet().iterator();
+        while (iterator1.hasNext()) {
+            Map.Entry<String, List<Node>> stringListEntry = iterator1.next();
             var parent = new XMLNode(stringListEntry.getKey());
             var children = stringListEntry.getValue()
                     .stream()

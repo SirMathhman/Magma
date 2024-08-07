@@ -45,8 +45,8 @@ public class MemberSplitter implements Splitter {
 
         if (c == STATEMENT_END && appended.isLevel()) return appended.advance();
         if (c == BLOCK_END && appended.isShallow()) return appended.exit().advance();
-        if (c == BLOCK_START) return appended.enter();
-        if (c == BLOCK_END) return appended.exit();
+        if (c == BLOCK_START || c == '(') return appended.enter();
+        if (c == BLOCK_END || c == ')') return appended.exit();
         return appended;
     }
 

@@ -7,7 +7,17 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-public record XMLNode(String name, Map<String, String> attributes, List<XMLNode> children) {
+public final class XMLNode {
+    private final String name;
+    private final Map<String, String> attributes;
+    private final List<XMLNode> children;
+
+    public XMLNode(String name, Map<String, String> attributes, List<XMLNode> children) {
+        this.name = name;
+        this.attributes = attributes;
+        this.children = children;
+    }
+
     public XMLNode(String name) {
         this(name, Collections.emptyMap(), Collections.emptyList());
     }

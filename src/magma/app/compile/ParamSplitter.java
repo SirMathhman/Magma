@@ -18,7 +18,7 @@ public class ParamSplitter implements Splitter {
         var buffer = new StringBuilder();
         var length = input.length();
         var queue = IntStream.range(0, length)
-                .mapToObj(i -> input.charAt(i))
+                .mapToObj(input::charAt)
                 .collect(Collectors.toCollection(LinkedList::new));
 
         var depth = 0;
@@ -41,8 +41,8 @@ public class ParamSplitter implements Splitter {
                 if (!buffer.isEmpty()) list.add(buffer.toString());
                 buffer = new StringBuilder();
             } else {
-                if (c == '(') depth++;
-                if (c == ')') depth--;
+                if (c == '(' || c == '<' || c == '{') depth++;
+                if (c == ')' || c == '>' || c == '}') depth--;
                 buffer.append(c);
             }
         }

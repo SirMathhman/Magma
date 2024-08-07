@@ -1,9 +1,19 @@
 package magma.app.compile.lang.magma;
 
+import magma.app.compile.lang.common.Accesses;
 import magma.app.compile.lang.common.Blocks;
-import magma.app.compile.lang.common.CommonLang;
+import magma.app.compile.lang.common.Comments;
+import magma.app.compile.lang.common.Conditions;
 import magma.app.compile.lang.common.Declarations;
+import magma.app.compile.lang.common.Definitions;
+import magma.app.compile.lang.common.Namespace;
+import magma.app.compile.lang.common.Operations;
+import magma.app.compile.lang.common.Operators;
 import magma.app.compile.lang.common.PrefixedStatements;
+import magma.app.compile.lang.common.Primitives;
+import magma.app.compile.lang.common.References;
+import magma.app.compile.lang.common.Structs;
+import magma.app.compile.lang.common.TryCatches;
 import magma.app.compile.rule.DisjunctionRule;
 import magma.app.compile.rule.LazyRule;
 import magma.app.compile.rule.Rule;
@@ -17,7 +27,7 @@ public class MagmaLang {
     public static Rule createRootMagmaRule() {
         return new DisjunctionRule(List.of(
                 Blocks.createBlockRule(new DisjunctionRule(List.of(
-                        CommonLang.createImportRule(),
+                        Namespace.createImportRule(),
                         createStatementRule0()
                 )))
         ));
@@ -31,19 +41,19 @@ public class MagmaLang {
         statement.set(new DisjunctionRule(List.of(
                 Functions.createFunctionRule(definition, statement),
                 PrefixedStatements.createTryRule(statement),
-                CommonLang.createCatchRule(definition, statement),
+                TryCatches.createCatchRule(definition, statement),
                 Declarations.createDeclarationRule(definition, value),
-                CommonLang.createInvocationStatementRule(value),
-                CommonLang.createCommentRule(),
-                CommonLang.createReturnRule(value),
+                Operations.createInvocationStatementRule(value),
+                Comments.createCommentRule(),
+                magma.app.compile.lang.common.Functions.createReturnRule(value),
                 Objects.createObjectRule(statement),
-                CommonLang.createDefinitionStatement(definition),
-                CommonLang.createAssignmentRule(value),
-                CommonLang.createConditionRule("if", "if", value, statement),
-                CommonLang.createConditionRule("while", "while", value, statement),
-                CommonLang.createElseRule(statement),
-                CommonLang.createPostDecrementRule(value),
-                CommonLang.createStructRule(TRAIT, "trait ", statement)
+                Definitions.createDefinitionStatement(definition),
+                Definitions.createAssignmentRule(value),
+                Conditions.createConditionRule("if", "if", value, statement),
+                Conditions.createConditionRule("while", "while", value, statement),
+                Conditions.createElseRule(statement),
+                Primitives.createPostRule("decrement", "--", value),
+                Structs.createStructRule(TRAIT, "trait ", statement)
         )));
 
         return statement;
@@ -52,15 +62,15 @@ public class MagmaLang {
     private static Rule createValueRule() {
         var value = new LazyRule();
         value.set(new DisjunctionRule(List.of(
-                CommonLang.createInvocationRule(value),
-                CommonLang.createAccessRule(value),
-                CommonLang.createReferenceRule(),
-                CommonLang.createStringRule(),
-                CommonLang.createNumberRule(),
-                CommonLang.createOperatorRule("and", "&&", value),
-                CommonLang.createOperatorRule("equals", "==", value),
-                CommonLang.createOperatorRule("greater-than-or-equals-to", ">=", value),
-                CommonLang.createCharRule()
+                Operations.createInvocationRule(value),
+                Accesses.createAccessRule(value),
+                References.createReferenceRule(),
+                Primitives.createStringRule(),
+                Primitives.createNumberRule(),
+                Operators.createOperatorRule("and", "&&", value),
+                Operators.createOperatorRule("equals", "==", value),
+                Operators.createOperatorRule("greater-than-or-equals-to", ">=", value),
+                Primitives.createCharRule()
         )));
         return value;
     }

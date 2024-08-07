@@ -11,7 +11,7 @@ public class GenerateError implements CompileError {
 
     @Override
     public String format(int depth) {
-        return message + ": " + node.format(depth);
+        return message + ": " + node.format();
     }
 
     @Override

@@ -1,10 +1,14 @@
 package magma.app.compile.lang.common;
 
 import magma.app.compile.MemberSplitter;
+import magma.app.compile.rule.DisjunctionRule;
+import magma.app.compile.rule.EmptyRule;
 import magma.app.compile.rule.NodeListRule;
 import magma.app.compile.rule.Rule;
 import magma.app.compile.rule.StripRule;
 import magma.app.compile.rule.TypeRule;
+
+import java.util.List;
 
 public class Blocks {
     public static final String CHILDREN = "children";
@@ -21,6 +25,9 @@ public class Blocks {
     }
 
     public static Rule createBlockRule(Rule childRule) {
-        return new TypeRule(BLOCK, createMembersRule(childRule));
+        return new TypeRule(BLOCK, createMembersRule(new DisjunctionRule(List.of(
+                childRule,
+                new StripRule(EmptyRule.EMPTY_RULE)
+        ))));
     }
 }

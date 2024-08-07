@@ -8,6 +8,7 @@ import magma.app.compile.ParseError;
 import magma.app.compile.Splitter;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 
 public final class NodeListRule implements Rule {
     private final String propertyName;
@@ -23,10 +24,10 @@ public final class NodeListRule implements Rule {
     @Override
     public RuleResult<Node, ParseError> parse(String input) {
         var rootMembers = splitter.split(input);
-        if (rootMembers.isEmpty()) return RuleResult.RuleResult(Err.Err(new ParseError("No items present", input)));
-
         var children = new ArrayList<Node>();
-        for (var rootMember : rootMembers) {
+        Iterator<String> iterator = rootMembers.iterator();
+        while (iterator.hasNext()) {
+            var rootMember = iterator.next();
             var stripped = rootMember.strip();
             if (stripped.isEmpty()) continue;
 
@@ -50,13 +51,15 @@ public final class NodeListRule implements Rule {
         }
 
         var builder = new StringBuilder();
-        for (Node child : childrenOptional.get()) {
+        Iterator<Node> iterator = childrenOptional.get().iterator();
+        while (iterator.hasNext()) {
+            Node child = iterator.next();
             var generated = childRule.generate(child);
             var valueOptional = generated.findValue();
             if (valueOptional.isPresent()) {
                 var wasEmpty = builder.isEmpty();
                 builder.append(valueOptional.get());
-                if(!wasEmpty) builder.append(splitter.computeDelimiter());
+                if (!wasEmpty) builder.append(splitter.computeDelimiter());
             } else {
                 return generated;
             }

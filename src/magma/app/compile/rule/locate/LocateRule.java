@@ -24,7 +24,9 @@ public final class LocateRule implements Rule {
     public RuleResult<Node, ParseError> parse(String input) {
         var occurrences = locator.locate(input).toList();
         var previous = new ArrayList<RuleResult<Node, ParseError>>();
-        for (var index : occurrences) {
+        int i = 0;
+        while (i < occurrences.size()) {
+            var index = occurrences.get(i);
             var leftSlice = input.substring(0, index);
             var leftResult = leftRule.parse(leftSlice);
 
@@ -35,6 +37,7 @@ public final class LocateRule implements Rule {
             } else {
                 previous.add(result);
             }
+            i++;
         }
 
         return new RuleResult<>(Err.Err(new ParseError(locator.createErrorMessage(), input)), previous);

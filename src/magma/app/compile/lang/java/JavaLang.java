@@ -1,10 +1,22 @@
 package magma.app.compile.lang.java;
 
+import magma.app.compile.lang.common.Accesses;
 import magma.app.compile.lang.common.Blocks;
-import magma.app.compile.lang.common.CommonLang;
+import magma.app.compile.lang.common.Comments;
+import magma.app.compile.lang.common.Conditions;
 import magma.app.compile.lang.common.Declarations;
+import magma.app.compile.lang.common.Definitions;
+import magma.app.compile.lang.common.Functions;
+import magma.app.compile.lang.common.Modifiers;
+import magma.app.compile.lang.common.Namespace;
+import magma.app.compile.lang.common.Operations;
+import magma.app.compile.lang.common.Operators;
 import magma.app.compile.lang.common.PrefixedStatements;
+import magma.app.compile.lang.common.Primitives;
+import magma.app.compile.lang.common.References;
+import magma.app.compile.lang.common.Structs;
 import magma.app.compile.lang.common.Symbols;
+import magma.app.compile.lang.common.TryCatches;
 import magma.app.compile.rule.DisjunctionRule;
 import magma.app.compile.rule.EmptyRule;
 import magma.app.compile.rule.locate.BackwardsLocator;
@@ -37,10 +49,10 @@ public class JavaLang {
         var method = createMethodRule(definition);
 
         var childRule = new DisjunctionRule(List.of(
-                CommonLang.createNamespaceRule("package", "package "),
-                CommonLang.createImportRule(),
+                Namespace.createNamespaceRule("package", "package "),
+                Namespace.createImportRule(),
                 createClassRule(definition, method),
-                CommonLang.createStructRule(INTERFACE, "interface ", method)
+                Structs.createStructRule(INTERFACE, "interface ", method)
         ));
 
         return new DisjunctionRule(List.of(
@@ -51,11 +63,11 @@ public class JavaLang {
 
     private static Rule createClassRule(Rule definition, Rule methodRule) {
         var classRule = new LazyRule();
-        var modifiers = CommonLang.createModifiersRule();
+        var modifiers = Modifiers.createModifiersRule();
 
         var classMember = new DisjunctionRule(List.of(
                 methodRule,
-                CommonLang.createDefinitionStatement(definition),
+                Definitions.createDefinitionStatement(definition),
                 classRule
         ));
 
@@ -67,7 +79,7 @@ public class JavaLang {
 
     private static TypeRule createMethodRule(TypeRule definition) {
         var params = new DisjunctionRule(List.of(
-                CommonLang.createParamsRule(definition),
+                Functions.createParamsRule(definition),
                 EmptyRule.EMPTY_RULE
         ));
 
@@ -87,18 +99,19 @@ public class JavaLang {
         var statement = new LazyRule();
         statement.set(new DisjunctionRule(List.of(
                 PrefixedStatements.createTryRule(statement),
-                CommonLang.createCatchRule(definition, statement),
+                TryCatches.createCatchRule(definition, statement),
                 Declarations.createDeclarationRule(definition, value),
                 new TypeRule(CONSTRUCTION, new SuffixRule(createConstructionRule(value), ";")),
-                CommonLang.createInvocationStatementRule(value),
-                CommonLang.createCommentRule(),
-                CommonLang.createReturnRule(value),
-                CommonLang.createAssignmentRule(value),
-                CommonLang.createConditionRule("if", "if", value, statement),
-                CommonLang.createConditionRule("while", "while", value, statement),
-                CommonLang.createDefinitionStatement(definition),
-                CommonLang.createElseRule(statement),
-                CommonLang.createPostDecrementRule(value),
+                Operations.createInvocationStatementRule(value),
+                Comments.createCommentRule(),
+                Functions.createReturnRule(value),
+                Definitions.createAssignmentRule(value),
+                Conditions.createConditionRule("if", "if", value, statement),
+                Conditions.createConditionRule("while", "while", value, statement),
+                Definitions.createDefinitionStatement(definition),
+                Conditions.createElseRule(statement),
+                Primitives.createPostRule("decrement", "--", value),
+                Primitives.createPostRule("increment", "++", value),
                 new TypeRule("continue", new SuffixRule(EmptyRule.EMPTY_RULE, "continue;"))
         )));
 
@@ -110,21 +123,22 @@ public class JavaLang {
         value.set(new DisjunctionRule(List.of(
                 createConstructionRule(value),
                 createInvocationRule(value),
-                CommonLang.createAccessRule(value),
-                CommonLang.createReferenceRule(),
-                CommonLang.createStringRule(),
-                CommonLang.createOperatorRule("and", "&&", value),
-                CommonLang.createOperatorRule("equals", "==", value),
-                CommonLang.createOperatorRule("greater-than-or-equals-to", ">=", value),
-                CommonLang.createCharRule(),
-                CommonLang.createNumberRule(),
+                Accesses.createAccessRule(value),
+                References.createReferenceRule(),
+                Primitives.createStringRule(),
+                Operators.createOperatorRule("and", "&&", value),
+                Operators.createOperatorRule("equals", "==", value),
+                Operators.createOperatorRule("greater-than-or-equals-to", ">=", value),
+                Operators.createOperatorRule("less-than", "<", value),
+                Primitives.createCharRule(),
+                Primitives.createNumberRule(),
                 new TypeRule("not", new PrefixRule("!", new NodeRule("value", value)))
         )));
         return value;
     }
 
     private static TypeRule createInvocationRule(LazyRule value) {
-        return CommonLang.createOperationsRule(CommonLang.INVOCATION, new NodeRule("caller", value), value);
+        return Operations.createOperationsRule(Operations.INVOCATION, new NodeRule("caller", value), value);
     }
 
     private static Rule createConstructionRule(Rule value) {
@@ -133,11 +147,11 @@ public class JavaLang {
                 new SuffixRule(callerProperty, "<>"),
                 callerProperty
         )))));
-        return CommonLang.createOperationsRule(CONSTRUCTION, caller, value);
+        return Operations.createOperationsRule(CONSTRUCTION, caller, value);
     }
 
     private static TypeRule createDefinitionRule() {
-        var modifiers = CommonLang.createModifiersRule();
+        var modifiers = Modifiers.createModifiersRule();
         var type = new NodeRule("type", createTypeRule());
 
         var modifiersAndType = new DisjunctionRule(List.of(

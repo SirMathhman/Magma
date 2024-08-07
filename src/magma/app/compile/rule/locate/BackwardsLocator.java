@@ -15,7 +15,7 @@ public class BackwardsLocator implements Locator {
     @Override
     public Stream<Integer> locate(String input) {
         return IntStream.range(0, input.length() - slice.length() + 1)
-                .map(i -> input.length() - slice.length() - i) // Generate indices in reverse order
+                .map(i -> input.length() - slice.length() - i)
                 .filter(i -> input.substring(i, i + slice.length()).equals(slice))
                 .boxed();
     }

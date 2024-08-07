@@ -3,7 +3,6 @@ package magma.app.compile.pass;
 import magma.api.Tuple;
 import magma.app.compile.Node;
 import magma.app.compile.Passer;
-import magma.app.compile.lang.common.CommonLang;
 import magma.app.compile.lang.java.JavaLang;
 import magma.app.compile.lang.common.Blocks;
 import magma.app.compile.lang.common.Declarations;
@@ -17,8 +16,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
-import static magma.app.compile.lang.common.CommonLang.INVOCATION;
-import static magma.app.compile.lang.common.CommonLang.MODIFIERS;
+import static magma.app.compile.lang.common.Operations.INVOCATION;
+import static magma.app.compile.lang.common.Modifiers.MODIFIERS;
 import static magma.app.compile.lang.java.JavaLang.CONSTRUCTION;
 import static magma.app.compile.lang.java.JavaLang.INTERFACE;
 import static magma.app.compile.lang.magma.MagmaLang.TRAIT;
@@ -103,7 +102,7 @@ public class DefaultPasser implements Passer {
     private static Optional<Tuple<Node, Integer>> postVisitMethods(Node node, int state) {
         if (!node.is(JavaLang.METHOD_TYPE)) return Optional.empty();
 
-        var params = node.findNodeList(CommonLang.PARAMS).orElse(Collections.emptyList());
+        var params = node.findNodeList(magma.app.compile.lang.common.Functions.PARAMS).orElse(Collections.emptyList());
 
         var definition = node.findNode(JavaLang.METHOD_DEFINITION)
                 .orElseThrow()
@@ -113,10 +112,10 @@ public class DefaultPasser implements Passer {
                     return copy;
                 });
 
-        var withParams = definition.withNodeList(CommonLang.PARAMS, params);
+        var withParams = definition.withNodeList(magma.app.compile.lang.common.Functions.PARAMS, params);
 
         return Optional.of(new Tuple<>(node.retype("function")
-                .removeNodeList(CommonLang.PARAMS)
+                .removeNodeList(magma.app.compile.lang.common.Functions.PARAMS)
                 .withNode(JavaLang.METHOD_DEFINITION, withParams), state));
     }
 

@@ -1,7 +1,7 @@
 package magma.app.compile.lang.magma;
 
-import magma.app.compile.lang.common.CommonLang;
 import magma.app.compile.lang.common.Blocks;
+import magma.app.compile.lang.common.Modifiers;
 import magma.app.compile.rule.DisjunctionRule;
 import magma.app.compile.rule.locate.First;
 import magma.app.compile.rule.locate.Last;
@@ -21,7 +21,7 @@ public class Objects {
     public static final String NAME = "name";
 
     public static TypeRule createObjectRule(Rule statement) {
-        var modifiers = CommonLang.createModifiersRule();
+        var modifiers = Modifiers.createModifiersRule();
         var name = new StringRule(NAME);
         var value = new NodeRule(VALUE, Blocks.createBlockRule(statement));
 

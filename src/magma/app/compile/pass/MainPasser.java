@@ -13,7 +13,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
-import static magma.app.compile.lang.common.CommonLang.MODIFIERS;
+import static magma.app.compile.lang.common.Modifiers.MODIFIERS;
 import static magma.app.compile.lang.common.Blocks.CHILDREN;
 
 public class MainPasser implements Passer {
