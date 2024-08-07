@@ -97,7 +97,8 @@ public class JavaLang {
                 CommonLang.createConditionRule("while", "while", value, statement),
                 CommonLang.createDefinitionStatement(definition),
                 CommonLang.createElseRule(statement),
-                CommonLang.createPostDecrementRule(value)
+                CommonLang.createPostDecrementRule(value),
+                new TypeRule("continue", new SuffixRule(EmptyRule.EMPTY_RULE, "continue;"))
         )));
 
         return statement;
@@ -115,7 +116,8 @@ public class JavaLang {
                 CommonLang.createOperatorRule("equals", "==", value),
                 CommonLang.createOperatorRule("greater-than-or-equals-to", ">=", value),
                 CommonLang.createCharRule(),
-                CommonLang.createNumberRule()
+                CommonLang.createNumberRule(),
+                new TypeRule("not", new PrefixRule("!", new NodeRule("value", value)))
         )));
         return value;
     }
