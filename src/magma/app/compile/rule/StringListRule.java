@@ -9,7 +9,15 @@ import magma.app.compile.ParseError;
 import java.util.ArrayList;
 import java.util.List;
 
-public record StringListRule(String propertyKey, String delimiter) implements Rule {
+public final class StringListRule implements Rule {
+    private final String propertyKey;
+    private final String delimiter;
+
+    public StringListRule(String propertyKey, String delimiter) {
+        this.propertyKey = propertyKey;
+        this.delimiter = delimiter;
+    }
+
     @Override
     public RuleResult<Node, ParseError> parse(String input) {
         var items = split(input);
