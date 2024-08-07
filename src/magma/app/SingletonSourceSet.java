@@ -7,9 +7,9 @@ import java.util.Set;
 
 public record SingletonSourceSet(Path source) implements SourceSet {
     @Override
-    public Set<Path> collectSources() {
-        return Files.exists(source())
-                ? Collections.singleton(source())
-                : Collections.<Path>emptySet();
+    public Set<Unit> collectSources() {
+        return Files.exists(source)
+                ? Collections.singleton(new PathUnit(source.getParent(), source))
+                : Collections.<Unit>emptySet();
     }
 }

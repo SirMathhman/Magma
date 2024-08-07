@@ -29,7 +29,7 @@ public class ApplicationTest {
     }
 
     private static void runWithSourceExceptionally() throws ApplicationException {
-        new Application(new SingletonSourceSet(SOURCE)).run();
+        new Application(new SingletonSourceSet(SOURCE), new PathTargetSet(Application.ROOT_DIRECTORY)).run();
     }
 
     @Test

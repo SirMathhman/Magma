@@ -1,8 +1,8 @@
 package magma.app;
 
-import java.nio.file.Path;
+import java.io.IOException;
 import java.util.Set;
 
 public interface SourceSet {
-    Set<Path> collectSources();
+    Set<Unit> collectSources() throws IOException;
 }
