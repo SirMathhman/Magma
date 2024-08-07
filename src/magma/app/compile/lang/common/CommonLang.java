@@ -41,10 +41,10 @@ public class CommonLang {
     }
 
     public static TypeRule createInvocationRule(Rule value) {
-        return createOperationsRule(INVOCATION, value, new NodeRule("caller", value));
+        return createOperationsRule(INVOCATION, new NodeRule("caller", value), value);
     }
 
-    public static TypeRule createOperationsRule(String type, Rule value, Rule caller) {
+    public static TypeRule createOperationsRule(String type, Rule caller, Rule value) {
         var arguments = new OptionalRule("arguments",
                 new NodeListRule(new ParamSplitter(), "arguments", value),
                 EmptyRule.EMPTY_RULE

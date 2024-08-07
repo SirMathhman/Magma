@@ -101,7 +101,7 @@ public class JavaLang {
         var value = new LazyRule();
         value.set(new DisjunctionRule(List.of(
                 createConstructionRule(value),
-                CommonLang.createInvocationRule(value),
+                createInvocationRule(value),
                 CommonLang.createAccessRule(value),
                 CommonLang.createReferenceRule(),
                 CommonLang.createStringRule()
@@ -109,8 +109,17 @@ public class JavaLang {
         return value;
     }
 
+    private static TypeRule createInvocationRule(LazyRule value) {
+        return CommonLang.createOperationsRule(CommonLang.INVOCATION, new NodeRule("caller", value), value);
+    }
+
     private static Rule createConstructionRule(Rule value) {
-        return CommonLang.createOperationsRule(CONSTRUCTION, value, new StripRule(new PrefixRule("new", new StripRule(new NodeRule("caller", value)))));
+        var callerProperty = new NodeRule("caller", value);
+        var caller = new StripRule(new PrefixRule("new", new StripRule(new DisjunctionRule(List.of(
+                new SuffixRule(callerProperty, "<>"),
+                callerProperty
+        )))));
+        return CommonLang.createOperationsRule(CONSTRUCTION, caller, value);
     }
 
     private static TypeRule createDefinitionRule() {
