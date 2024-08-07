@@ -50,7 +50,8 @@ public class JavaLang {
         var modifiers = CommonLang.createModifiersRule();
 
         var classMember = new DisjunctionRule(List.of(
-                createMethodRule()
+                createMethodRule(),
+                new TypeRule("definition", new SuffixRule(createDefinitionRule(), ";"))
         ));
 
         var content = new NodeRule("value", Blocks.createBlockRule(classMember));
