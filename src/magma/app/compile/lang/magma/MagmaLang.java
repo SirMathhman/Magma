@@ -50,7 +50,8 @@ public class MagmaLang {
                 CommonLang.createInvocationRule(value),
                 CommonLang.createAccessRule(value),
                 CommonLang.createReferenceRule(),
-                CommonLang.createStringRule()
+                CommonLang.createStringRule(),
+                CommonLang.createNumberRule()
         )));
         return value;
     }

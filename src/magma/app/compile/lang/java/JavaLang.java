@@ -99,9 +99,17 @@ public class JavaLang {
                 createInvocationRule(value),
                 CommonLang.createAccessRule(value),
                 CommonLang.createReferenceRule(),
-                CommonLang.createStringRule()
+                CommonLang.createStringRule(),
+                createOperatorRule("and", "&&", value),
+                createOperatorRule("equals", "==", value),
+                new TypeRule("char", new StripRule(new PrefixRule("'", new SuffixRule(new StringRule("value"), "'")))),
+                CommonLang.createNumberRule()
         )));
         return value;
+    }
+
+    private static TypeRule createOperatorRule(String type, String operator, LazyRule value) {
+        return new TypeRule(type, new LocateRule(new NodeRule("left", value), new First(operator), new NodeRule("right", value)));
     }
 
     private static TypeRule createInvocationRule(LazyRule value) {

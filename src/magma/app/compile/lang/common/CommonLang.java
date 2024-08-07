@@ -1,6 +1,7 @@
 package magma.app.compile.lang.common;
 
 import magma.app.compile.ParamSplitter;
+import magma.app.compile.lang.DigitRule;
 import magma.app.compile.lang.SymbolRule;
 import magma.app.compile.rule.DisjunctionRule;
 import magma.app.compile.rule.EmptyRule;
@@ -116,11 +117,16 @@ public class CommonLang {
         return new TypeRule(type, new PrefixRule(prefix, new StripRule(new PrefixRule("(", child))));
     }
 
+    public static TypeRule createNumberRule() {
+        return new TypeRule("number", new StripRule(new DigitRule(new StringRule("value"))));
+    }
+
     private static class InvocationLocator implements Locator {
         @Override
         public Optional<Integer> locate(String input) {
             var depth = 0;
-            for (int i = input.length() - 1; i >= 0; i--) {
+            int i = input.length() - 1;
+            while (i >= 0) {
                 var c = input.charAt(i);
                 if (c == '(' && depth == 1) {
                     return Optional.of(i);
@@ -128,6 +134,7 @@ public class CommonLang {
                     if (c == ')') depth++;
                     if (c == '(') depth--;
                 }
+                i--;
             }
 
             return Optional.empty();
