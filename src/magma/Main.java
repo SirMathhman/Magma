@@ -2,6 +2,7 @@ package magma;
 
 import magma.app.Application;
 import magma.app.ApplicationException;
+import magma.app.SingletonSourceSet;
 
 import java.nio.file.Path;
 
@@ -9,7 +10,7 @@ public class Main {
     public static void main(String[] args) {
         try {
             var source = resolveMain();
-            var application = new Application(source);
+            var application = new Application(new SingletonSourceSet(source));
             application.run();
         } catch (ApplicationException e) {
             //noinspection CallToPrintStackTrace

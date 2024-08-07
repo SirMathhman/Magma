@@ -1,6 +1,5 @@
 package magma.app;
 
-import magma.app.compile.CompileError;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 
@@ -30,7 +29,7 @@ public class ApplicationTest {
     }
 
     private static void runWithSourceExceptionally() throws ApplicationException {
-        new Application(SOURCE).run();
+        new Application(new SingletonSourceSet(SOURCE)).run();
     }
 
     @Test

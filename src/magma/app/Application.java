@@ -7,38 +7,37 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Objects;
 import java.util.Optional;
 
 public final class Application {
     public static final String EXTENSION_SEPARATOR = ".";
     public static final Path ROOT_DIRECTORY = Paths.get(".");
-    private final Path source;
+    private final SourceSet sourceSet;
 
-    public Application(Path source) {
-        this.source = source;
+    public Application(SourceSet sourceSet) {
+        this.sourceSet = sourceSet;
     }
 
     public void run() throws ApplicationException {
         try {
-            if (!Files.exists(source)) return;
+            var set = sourceSet.collectSources();
 
-            var input = Files.readString(source);
-            var result = Compiler.compile(input)
-                    .mapValue(this::writeValue)
-                    .match(value -> value, Optional::of);
+            for (Path path : set) {
+                var input = Files.readString(path);
+                var result = Compiler.compile(input)
+                        .mapValue(value1 -> writeValue(value1, path))
+                        .match(value -> value, Optional::of);
 
-            if (result.isPresent()) {
-                throw result.get();
+                if (result.isPresent()) throw result.get();
             }
         } catch (IOException e) {
             throw new ApplicationException(e);
         }
     }
 
-    private Optional<ApplicationException> writeValue(CompileResult value) {
+    private Optional<ApplicationException> writeValue(CompileResult value, Path source1) {
         try {
-            var fileName = source.getFileName().toString();
+            var fileName = source1.getFileName().toString();
             var separator = fileName.lastIndexOf('.');
             var name = fileName.substring(0, separator);
 
@@ -55,29 +54,4 @@ public final class Application {
             return Optional.of(new ApplicationException(e));
         }
     }
-
-    public Path source() {
-        return source;
-    }
-
-    @Override
-    public boolean equals(Object obj) {
-        if (obj == this) return true;
-        if (obj == null || obj.getClass() != this.getClass()) return false;
-        var that = (Application) obj;
-        return Objects.equals(this.source, that.source);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(source);
-    }
-
-    @Override
-    public String toString() {
-        return "Application[" +
-               "source=" + source + ']';
-    }
-
-
 }
