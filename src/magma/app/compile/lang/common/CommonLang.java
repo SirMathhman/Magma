@@ -1,5 +1,6 @@
 package magma.app.compile.lang.common;
 
+import magma.api.Tuple;
 import magma.app.compile.ParamSplitter;
 import magma.app.compile.lang.DigitRule;
 import magma.app.compile.lang.SymbolRule;
@@ -22,8 +23,11 @@ import magma.app.compile.rule.StripRule;
 import magma.app.compile.rule.SuffixRule;
 import magma.app.compile.rule.TypeRule;
 
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 public class CommonLang {
     public static final String MODIFIERS = "modifiers";
@@ -113,7 +117,7 @@ public class CommonLang {
         )));
 
         var condition = new NodeRule("condition", value);
-        var child = new LocateRule(condition, new First(")"), valueProperty);
+        var child = new LocateRule(condition, new ClosingParenthesesLocator(), valueProperty);
 
         return new TypeRule(type, new PrefixRule(prefix, new StripRule(new PrefixRule("(", child))));
     }
@@ -181,6 +185,56 @@ public class CommonLang {
         @Override
         public String merge(String left, String right) {
             return left + "(" + right;
+        }
+    }
+
+    private static class ClosingParenthesesLocator implements Locator {
+        @Override
+        public Optional<Integer> locate(String input) {
+            var depth = 0;
+            var queue = IntStream.range(0, input.length())
+                    .mapToObj(index -> new Tuple<>(index, input.charAt(index)))
+                    .collect(Collectors.toCollection(LinkedList::new));
+
+            while (!queue.isEmpty()) {
+                var popped = queue.pop();
+                var i = popped.left();
+                var c = popped.right();
+
+                if (c == '\'') {
+                    var escaped = queue.pop();
+                    if (escaped.right() == '\\') {
+                        queue.pop();
+                    }
+
+                    queue.pop();
+                    continue;
+                }
+
+                if (c == ')' && depth == 0) {
+                    return Optional.of(i);
+                } else {
+                    if (c == '(') depth++;
+                    if (c == ')') depth--;
+                }
+            }
+
+            return Optional.empty();
+        }
+
+        @Override
+        public String createErrorMessage() {
+            return "No closing parentheses present";
+        }
+
+        @Override
+        public int length() {
+            return 1;
+        }
+
+        @Override
+        public String merge(String left, String right) {
+            return left + ")" + right;
         }
     }
 }
