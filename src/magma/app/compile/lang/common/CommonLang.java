@@ -38,16 +38,16 @@ public class CommonLang {
     }
 
     public static TypeRule createInvocationRule(Rule value) {
-        return createOperationsRule(value, new NodeRule("caller", value));
+        return createOperationsRule("invocation", value, new NodeRule("caller", value));
     }
 
-    public static TypeRule createOperationsRule(Rule value, Rule caller) {
+    public static TypeRule createOperationsRule(String type, Rule value, Rule caller) {
         var arguments = new OptionalRule("arguments",
                 new NodeListRule(new ParamSplitter(), "arguments", value),
                 EmptyRule.EMPTY_RULE
         );
 
-        return new TypeRule("invocation", new LocateRule(caller, new InvocationLocator(), new StripRule(new SuffixRule(arguments, ")"))));
+        return new TypeRule(type, new LocateRule(caller, new InvocationLocator(), new StripRule(new SuffixRule(arguments, ")"))));
     }
 
     public static TypeRule createReferenceRule() {

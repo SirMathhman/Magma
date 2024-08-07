@@ -110,7 +110,7 @@ public class JavaLang {
     }
 
     private static Rule createConstructionRule(Rule value) {
-        return CommonLang.createOperationsRule(value, new StripRule(new PrefixRule("new", new StripRule(new NodeRule("caller", value)))));
+        return CommonLang.createOperationsRule("construction", value, new StripRule(new PrefixRule("new", new StripRule(new NodeRule("caller", value)))));
     }
 
     private static TypeRule createDefinitionRule() {
