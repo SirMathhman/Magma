@@ -100,8 +100,17 @@ public class DefaultPasser implements Passer {
         if (!node.is(JavaLang.METHOD_TYPE)) return Optional.empty();
 
         var params = node.findNodeList(CommonLang.PARAMS).orElse(Collections.emptyList());
-        var definition = node.findNode(JavaLang.METHOD_DEFINITION).orElseThrow();
+
+        var definition = node.findNode(JavaLang.METHOD_DEFINITION)
+                .orElseThrow()
+                .mapStringList(MODIFIERS, modifiers -> {
+                    var copy = new ArrayList<>(modifiers);
+                    copy.add("def");
+                    return copy;
+                });
+
         var withParams = definition.withNodeList(CommonLang.PARAMS, params);
+
         return Optional.of(new Tuple<>(node.retype("function")
                 .removeNodeList(CommonLang.PARAMS)
                 .withNode(JavaLang.METHOD_DEFINITION, withParams), state));

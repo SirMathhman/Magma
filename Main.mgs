@@ -1,7 +1,7 @@
 import magma.app.Application;
 import magma.app.ApplicationException;
 import java.nio.file.Path;
-resolveMain() : Path => {
+def resolveMain() : Path => {
 	return Application.ROOT_DIRECTORY.resolve("src").resolve("magma").resolve("Main.java");
 }
 try {
