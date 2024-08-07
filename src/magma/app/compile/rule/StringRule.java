@@ -7,8 +7,6 @@ import magma.app.compile.GenerateError;
 import magma.app.compile.Node;
 import magma.app.compile.ParseError;
 
-import java.util.Optional;
-
 public record StringRule(String propertyKey) implements Rule {
 
     @Override
@@ -20,6 +18,6 @@ public record StringRule(String propertyKey) implements Rule {
     public RuleResult<String, GenerateError> generate(Node node) {
         return new RuleResult<>(node.findString(propertyKey)
                 .<Result<String, GenerateError>>map(Ok::new)
-                .orElseGet(() -> new Err<>(new GenerateError("String property '" + propertyKey + "' not present", node))));
+                .orElseGet(() -> Err.Err(new GenerateError("String property '" + propertyKey + "' not present", node))));
     }
 }

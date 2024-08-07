@@ -7,8 +7,12 @@ import java.util.function.Supplier;
 public class Err<T, E> implements Result<T, E> {
     private final E error;
 
-    public Err(E error) {
+    private Err(E error) {
         this.error = error;
+    }
+
+    public static <T, E> Result<T, E> Err(E error) {
+        return new Err<>(error);
     }
 
     @Override
@@ -18,22 +22,22 @@ public class Err<T, E> implements Result<T, E> {
 
     @Override
     public <R> Result<R, E> mapValue(Function<T, R> mapper) {
-        return new Err<>(error);
+        return Err(error);
     }
 
     @Override
     public <R> Result<T, R> mapErr(Function<E, R> mapper) {
-        return new Err<>(mapper.apply(error));
+        return Err(mapper.apply(error));
     }
 
     @Override
     public <R> Result<Tuple<T, R>, E> and(Supplier<Result<R, E>> mapper) {
-        return new Err<>(error);
+        return Err(error);
     }
 
     @Override
     public <R> Result<R, E> flatMapValue(Function<T, Result<R, E>> mapper) {
-        return new Err<>(error);
+        return Err(error);
     }
 
     @Override
@@ -63,6 +67,6 @@ public class Err<T, E> implements Result<T, E> {
 
     @Override
     public <R> Result<T, R> replaceErr(Supplier<R> supplier) {
-        return new Err<>(supplier.get());
+        return Err(supplier.get());
     }
 }

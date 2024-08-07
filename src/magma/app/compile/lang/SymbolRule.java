@@ -6,7 +6,6 @@ import magma.app.compile.Node;
 import magma.app.compile.ParseError;
 import magma.app.compile.rule.Rule;
 import magma.app.compile.rule.RuleResult;
-import magma.app.compile.rule.StringRule;
 
 public record SymbolRule(Rule value) implements Rule {
     @Override
@@ -14,7 +13,7 @@ public record SymbolRule(Rule value) implements Rule {
         if(isSymbol(input)) {
             return value.parse(input);
         } else {
-            return new RuleResult<>(new Err<>(new ParseError("Not a symbol", input)));
+            return new RuleResult<>(Err.Err(new ParseError("Not a symbol", input)));
         }
     }
 

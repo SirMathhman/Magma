@@ -16,6 +16,7 @@
       <option name="ignoreGettersAndSetters" value="false" />
       <option name="ignoreOverridingMethods" value="false" />
     </inspection_tool>
+    <inspection_tool class="MethodNameSameAsClassName" enabled="false" level="WARNING" enabled_by_default="false" />
     <inspection_tool class="PackageWithTooManyClasses" enabled="true" level="WARNING" enabled_by_default="true">
       <option name="limit" value="10" />
     </inspection_tool>

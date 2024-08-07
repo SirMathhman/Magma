@@ -45,7 +45,7 @@ public record RuleResult<T, E extends CompileError>(Result<T, E> result, List<Ru
 
     public RuleResult<T, E> wrapErr(Supplier<E> mapper) {
         if (isValid()) return this;
-        return new RuleResult<>(new Err<>(mapper.get()), Collections.singletonList(this));
+        return new RuleResult<>(Err.Err(mapper.get()), Collections.singletonList(this));
     }
 
     public String format(int depth) {

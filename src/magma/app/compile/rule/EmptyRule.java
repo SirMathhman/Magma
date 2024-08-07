@@ -16,7 +16,7 @@ public class EmptyRule implements Rule {
     public RuleResult<Node, ParseError> parse(String input) {
         return input.isEmpty()
                 ? new RuleResult<>(new Ok<>(new Node()))
-                : new RuleResult<>(new Err<>(new ParseError("Input not empty", input)));
+                : new RuleResult<>(Err.Err(new ParseError("Input not empty", input)));
     }
 
     @Override

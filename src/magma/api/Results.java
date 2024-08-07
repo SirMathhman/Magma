@@ -6,7 +6,7 @@ public class Results {
             return new Ok<>(action.perform());
         } catch (UnsafeException e) {
             //noinspection unchecked
-            return new Err<>((E) e.getValue());
+            return Err.Err((E) e.getValue());
         }
     }
 

@@ -9,7 +9,7 @@ public record PrefixRule(String prefix, Rule child) implements Rule {
     @Override
     public RuleResult<Node, ParseError> parse(String input) {
         if (!input.startsWith(this.prefix))
-            return new RuleResult<>(new Err<>(new ParseError("Prefix '" + prefix + "' not present", input)));
+            return new RuleResult<>(Err.Err(new ParseError("Prefix '" + prefix + "' not present", input)));
 
         var truncatedRight = input.substring(this.prefix.length());
         return this.child.parse(truncatedRight);

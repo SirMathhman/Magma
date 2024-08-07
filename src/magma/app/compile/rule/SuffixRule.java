@@ -5,12 +5,10 @@ import magma.app.compile.GenerateError;
 import magma.app.compile.Node;
 import magma.app.compile.ParseError;
 
-import java.util.Optional;
-
 public record SuffixRule(Rule child, String suffix) implements Rule {
     @Override
     public RuleResult<Node, ParseError> parse(String input) {
-        if (!input.endsWith(this.suffix())) return new RuleResult<>(new Err<>(new ParseError("Suffix not present '" + suffix + "'", input)));
+        if (!input.endsWith(this.suffix())) return new RuleResult<>(Err.Err(new ParseError("Suffix not present '" + suffix + "'", input)));
         var name = input.substring(0, input.length() - this.suffix().length());
         return this.child().parse(name);
     }

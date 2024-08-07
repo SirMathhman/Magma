@@ -31,6 +31,6 @@ public record TypeRule(String type, Rule child) implements Rule {
     private RuleResult<String, GenerateError> generateInvalid(Node node) {
         var format = "Expected type '%s' not present";
         var message = format.formatted(type);
-        return new RuleResult<>(new Err<>(new GenerateError(message, node)));
+        return new RuleResult<>(Err.Err(new GenerateError(message, node)));
     }
 }

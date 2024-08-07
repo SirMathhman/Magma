@@ -18,7 +18,7 @@ public record DisjunctionRule(List<Rule> rules) implements Rule {
             errors.add(result);
         }
 
-        return new RuleResult<>(new Err<>(new ParseError("No valid rules found for", input)), errors);
+        return new RuleResult<>(Err.Err(new ParseError("No valid rules found for", input)), errors);
     }
 
     @Override
@@ -30,6 +30,6 @@ public record DisjunctionRule(List<Rule> rules) implements Rule {
             errors.add(generated);
         }
 
-        return new RuleResult<>(new Err<>(new GenerateError("No valid rules found for", node)), errors);
+        return new RuleResult<>(Err.Err(new GenerateError("No valid rules found for", node)), errors);
     }
 }
