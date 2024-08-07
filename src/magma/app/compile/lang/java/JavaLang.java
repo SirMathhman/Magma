@@ -86,10 +86,16 @@ public class JavaLang {
                 CommonLang.createAssignmentRule(value),
                 CommonLang.createConditionRule("if", "if", value, statement),
                 CommonLang.createConditionRule("while", "while", value, statement),
-                CommonLang.createDefinitionStatement(definition)
+                CommonLang.createDefinitionStatement(definition),
+                createElseRule(statement)
         )));
 
         return statement;
+    }
+
+    private static TypeRule createElseRule(LazyRule statement) {
+        var value = new NodeRule("value", Blocks.createBlockRule(statement));
+        return new TypeRule("else", new PrefixRule("else", new StripRule(new PrefixRule("{", new SuffixRule(value, "}")))));
     }
 
     private static Rule createValueRule() {
