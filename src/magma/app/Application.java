@@ -24,7 +24,7 @@ public final class Application {
 
             for (var unit : set) {
                 var input = unit.read();
-                var result = Compiler.compile(input)
+                var result = Compiler.compile(unit, input)
                         .mapValue(value1 -> targetSet.writeValue(unit, value1))
                         .match(value -> value, Optional::of);
 

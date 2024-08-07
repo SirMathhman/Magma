@@ -10,7 +10,7 @@ public record Last(String slice) implements Locator {
     }
 
     @Override
-    public String createMessage() {
+    public String createErrorMessage() {
         return "Slice '" + slice + "' not present";
     }
 

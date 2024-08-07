@@ -26,4 +26,9 @@ public record PathUnit(Path root, Path child) implements Unit {
                 .mapToObj(relativized::getName)
                 .map(Path::toString);
     }
+
+    @Override
+    public String format() {
+        return child.toString();
+    }
 }

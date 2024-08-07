@@ -5,7 +5,7 @@ import java.util.Optional;
 public interface Locator {
     Optional<Integer> locate(String input);
 
-    String createMessage();
+    String createErrorMessage();
 
     int length();
 

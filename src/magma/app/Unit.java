@@ -9,4 +9,6 @@ public interface Unit {
     String read() throws IOException;
 
     String computeName();
+
+    String format();
 }
