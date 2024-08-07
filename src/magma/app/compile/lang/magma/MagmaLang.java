@@ -5,7 +5,6 @@ import magma.app.compile.lang.common.CommonLang;
 import magma.app.compile.lang.common.Declarations;
 import magma.app.compile.lang.common.PrefixedStatements;
 import magma.app.compile.rule.DisjunctionRule;
-import magma.app.compile.rule.EmptyRule;
 import magma.app.compile.rule.LazyRule;
 import magma.app.compile.rule.Rule;
 
@@ -30,7 +29,7 @@ public class MagmaLang {
         var value = createValueRule();
 
         statement.set(new DisjunctionRule(List.of(
-                Functions.createFunctionRule0(definition, statement),
+                Functions.createFunctionRule(definition, statement),
                 PrefixedStatements.createTryRule(statement),
                 CommonLang.createCatchRule(definition, statement),
                 Declarations.createDeclarationRule(definition, value),
