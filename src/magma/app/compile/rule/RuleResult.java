@@ -55,7 +55,7 @@ public record RuleResult<T, E extends CompileError>(Result<T, E> result, List<Ru
             return indent + value.toString() + "\n" + joined;
         }, err -> {
             var joined = formatChildren(depth);
-            var formatted = children.isEmpty() ? err.format() : err.formatWithoutContext();
+            var formatted = children.size() != 1 ? err.format() : err.formatWithoutContext();
             return indent + formatted + "\n" + joined;
         });
     }

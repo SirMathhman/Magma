@@ -80,9 +80,21 @@ public class JavaLang {
                 CommonLang.createInvocationStatementRule(value),
                 CommonLang.createCommentRule(),
                 CommonLang.createReturnRule(value),
-                CommonLang.createAssignmentRule(value))
+                CommonLang.createAssignmentRule(value),
+                createIfRule(value, statement))
         ));
         return statement;
+    }
+
+    private static TypeRule createIfRule(Rule value, Rule statement) {
+        var valueProperty = new NodeRule("value", new DisjunctionRule(List.of(
+                Blocks.createBlockRule(statement),
+                statement
+        )));
+        var condition = new NodeRule("condition", value);
+        var child = new LocateRule(condition, new First(")"), valueProperty);
+
+        return new TypeRule("if", new PrefixRule("if", new StripRule(new PrefixRule("(", child))));
     }
 
     private static Rule createValueRule() {

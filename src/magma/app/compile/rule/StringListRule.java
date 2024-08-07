@@ -21,7 +21,8 @@ public final class StringListRule implements Rule {
     @Override
     public RuleResult<Node, ParseError> parse(String input) {
         var items = split(input);
-        if (items.isEmpty()) return new RuleResult<>(Err.Err(new ParseError("No items present", input)));
+        var isEmpty = items.isEmpty();
+        if (isEmpty) return new RuleResult<>(Err.Err(new ParseError("No items present", input)));
         return new RuleResult<>(new Ok<>(new Node().withStringList(propertyKey, items)));
     }
 
@@ -44,10 +45,8 @@ public final class StringListRule implements Rule {
     }
 
     private RuleResult<String, GenerateError> generateWithList(Node node, List<String> list) {
-        if (list.isEmpty()) {
-            return new RuleResult<>(Err.Err(new GenerateError("List cannot be empty.", node)));
-        }
-
+        var isEmpty = list.isEmpty();
+        if (isEmpty) return new RuleResult<>(Err.Err(new GenerateError("List cannot be empty.", node)));
         return new RuleResult<>(new Ok<>(String.join(delimiter, list)));
     }
 }
