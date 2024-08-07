@@ -43,18 +43,21 @@ public class JavaLang {
         ));
     }
 
-    private static TypeRule createClassRule() {
+    private static Rule createClassRule() {
+        var classRule = new LazyRule();
         var modifiers = CommonLang.createModifiersRule();
 
         var definition = createDefinitionRule();
         var classMember = new DisjunctionRule(List.of(
                 createMethodRule(definition),
-                CommonLang.createDefinitionStatement(definition)
+                CommonLang.createDefinitionStatement(definition),
+                classRule
         ));
 
         var content = new NodeRule("value", Blocks.createBlockRule(classMember));
         var after = new LocateRule(new StripRule(new StringRule(CLASS_NAME)), new First("{"), new SuffixRule(content, "}"));
-        return new TypeRule("class", new LocateRule(modifiers, new First("class "), after));
+        classRule.set(new TypeRule("class", new LocateRule(modifiers, new First("class "), after)));
+        return classRule;
     }
 
     private static TypeRule createMethodRule(TypeRule definition) {
@@ -81,23 +84,12 @@ public class JavaLang {
                 CommonLang.createCommentRule(),
                 CommonLang.createReturnRule(value),
                 CommonLang.createAssignmentRule(value),
-                createConditionRule("if", "if", value, statement),
-                createConditionRule("while", "while", value, statement),
+                CommonLang.createConditionRule("if", "if", value, statement),
+                CommonLang.createConditionRule("while", "while", value, statement),
                 CommonLang.createDefinitionStatement(definition)
         )));
 
         return statement;
-    }
-
-    private static TypeRule createConditionRule(String type, String prefix, Rule value, Rule statement) {
-        var valueProperty = new NodeRule("value", new DisjunctionRule(List.of(
-                Blocks.createBlockRule(statement),
-                statement
-        )));
-        var condition = new NodeRule("condition", value);
-        var child = new LocateRule(condition, new First(")"), valueProperty);
-
-        return new TypeRule(type, new PrefixRule(prefix, new StripRule(new PrefixRule("(", child))));
     }
 
     private static Rule createValueRule() {

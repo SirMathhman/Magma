@@ -68,7 +68,7 @@ public final class RuleResult<T, E extends CompileError> {
             return indent + value.toString() + "\n" + joined;
         }, err -> {
             var joined = formatChildren(depth);
-            var formatted = children.size() != 1 ? err.format() : err.formatWithoutContext();
+            var formatted = children.size() != 1 ? err.format(depth) : err.formatWithoutContext();
             return indent + formatted + "\n" + joined;
         });
     }

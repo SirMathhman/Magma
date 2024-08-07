@@ -23,7 +23,7 @@ public final class NodeListRule implements Rule {
     @Override
     public RuleResult<Node, ParseError> parse(String input) {
         var rootMembers = splitter.split(input);
-        if(rootMembers.isEmpty()) return RuleResult.RuleResult(Err.Err(new ParseError("No items present", input)));
+        if (rootMembers.isEmpty()) return RuleResult.RuleResult(Err.Err(new ParseError("No items present", input)));
 
         var children = new ArrayList<Node>();
         for (var rootMember : rootMembers) {
@@ -35,7 +35,7 @@ public final class NodeListRule implements Rule {
             if (valueOptional.isPresent()) {
                 children.add(valueOptional.get());
             } else {
-                return parsed;
+                return parsed.wrapErr(() -> new ParseError("Cannot create node list '" + propertyName + "'", input));
             }
         }
 

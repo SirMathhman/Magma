@@ -10,8 +10,9 @@ public class ParseError implements CompileError {
     }
 
     @Override
-    public String format() {
-        return message + ": " + context;
+    public String format(int depth) {
+        var indent = depth < 2 ? "" : "\t".repeat(depth - 2);
+        return message + ": " + context.replace("\n", "\n" + indent);
     }
 
     @Override

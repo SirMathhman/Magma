@@ -36,7 +36,9 @@ public class MagmaLang {
                 CommonLang.createReturnRule(value),
                 Objects.createObjectRule(statement),
                 CommonLang.createDefinitionStatement(definition),
-                CommonLang.createAssignmentRule(value)
+                CommonLang.createAssignmentRule(value),
+                CommonLang.createConditionRule("if", "if", value, statement),
+                CommonLang.createConditionRule("while", "while", value, statement)
         )));
 
         return statement;

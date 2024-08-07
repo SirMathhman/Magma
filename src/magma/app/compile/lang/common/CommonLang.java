@@ -104,6 +104,18 @@ public class CommonLang {
         return new TypeRule("assignment", new LocateRule(assignable, new First("="), new SuffixRule(valueProperty, ";")));
     }
 
+    public static TypeRule createConditionRule(String type, String prefix, Rule value, Rule statement) {
+        var valueProperty = new NodeRule("value", new DisjunctionRule(List.of(
+                new StripRule(new PrefixRule("{", new SuffixRule(Blocks.createBlockRule(statement), "}"))),
+                statement
+        )));
+
+        var condition = new NodeRule("condition", value);
+        var child = new LocateRule(condition, new First(")"), valueProperty);
+
+        return new TypeRule(type, new PrefixRule(prefix, new StripRule(new PrefixRule("(", child))));
+    }
+
     private static class InvocationLocator implements Locator {
         @Override
         public Optional<Integer> locate(String input) {

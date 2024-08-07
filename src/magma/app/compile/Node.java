@@ -38,7 +38,7 @@ public final class Node {
 
     @Override
     public String toString() {
-        return format();
+        return format(0);
     }
 
     public Node withString(String propertyKey, String propertyValue) {
@@ -102,7 +102,7 @@ public final class Node {
         return Optional.ofNullable(nodeLists.get(propertyKey));
     }
 
-    public String format() {
+    public String format(int depth) {
         return toXML().format();
     }
 

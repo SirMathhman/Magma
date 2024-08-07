@@ -10,8 +10,8 @@ public class GenerateError implements CompileError {
     }
 
     @Override
-    public String format() {
-        return message + ": " + node.format();
+    public String format(int depth) {
+        return message + ": " + node.format(depth);
     }
 
     @Override
