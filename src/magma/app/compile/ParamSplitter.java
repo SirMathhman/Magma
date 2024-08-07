@@ -8,6 +8,11 @@ import java.util.stream.IntStream;
 
 public class ParamSplitter implements Splitter {
     @Override
+    public String computeDelimiter() {
+        return ", ";
+    }
+
+    @Override
     public List<String> split(String input) {
         var list = new ArrayList<String>();
         var buffer = new StringBuilder();
@@ -36,8 +41,8 @@ public class ParamSplitter implements Splitter {
                 if (!buffer.isEmpty()) list.add(buffer.toString());
                 buffer = new StringBuilder();
             } else {
-                if(c == '(') depth++;
-                if(c == ')') depth--;
+                if (c == '(') depth++;
+                if (c == ')') depth--;
                 buffer.append(c);
             }
         }

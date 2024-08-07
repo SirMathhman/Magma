@@ -51,6 +51,11 @@ public class MemberSplitter implements Splitter {
     }
 
     @Override
+    public String computeDelimiter() {
+        return "";
+    }
+
+    @Override
     public List<String> split(String input) {
         var queue = IntStream.range(0, input.length())
                 .mapToObj(input::charAt)

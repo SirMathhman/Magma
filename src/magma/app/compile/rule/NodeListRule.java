@@ -54,7 +54,9 @@ public final class NodeListRule implements Rule {
             var generated = childRule.generate(child);
             var valueOptional = generated.findValue();
             if (valueOptional.isPresent()) {
+                var wasEmpty = builder.isEmpty();
                 builder.append(valueOptional.get());
+                if(!wasEmpty) builder.append(splitter.computeDelimiter());
             } else {
                 return generated;
             }
