@@ -1,5 +1,6 @@
 package magma.app.compile.lang.java;
 
+import magma.app.compile.lang.SymbolRule;
 import magma.app.compile.lang.common.Accesses;
 import magma.app.compile.lang.common.Blocks;
 import magma.app.compile.lang.common.Comments;
@@ -53,7 +54,7 @@ public class JavaLang {
         var definition = createDefinitionRule(type);
         var statement = new LazyRule();
 
-        var value = createValueRule(type, statement, definition);
+        var value = createValueRule(type, definition);
         initStatementRule(definition, value, type, statement);
         var method = createMethodRule(definition, statement);
 
@@ -134,7 +135,7 @@ public class JavaLang {
         return statement;
     }
 
-    private static Rule createValueRule(Rule type, Rule statement, Rule definition) {
+    private static Rule createValueRule(Rule type, Rule definition) {
         var value = new LazyRule();
         value.set(new DisjunctionRule(List.of(
                 createConstructionRule(value, type),
@@ -158,7 +159,12 @@ public class JavaLang {
     }
 
     private static TypeRule createLambdaRule(Rule value, Rule definition) {
-        var params = new StripRule(new PrefixRule("(", new SuffixRule(Functions.createParamsRule(definition), ")")));
+        var paramsParentheses = new StripRule(new PrefixRule("(", new SuffixRule(Functions.createParamsRule(definition), ")")));
+        var params = new DisjunctionRule(List.of(
+                paramsParentheses,
+                new StripRule(new SymbolRule(new StringRule("param")))
+        ));
+
         return new TypeRule(LAMBDA, new LocateRule(params, new First("->"), new NodeRule("value", value)));
     }
 

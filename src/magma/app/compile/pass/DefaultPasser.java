@@ -220,7 +220,7 @@ public class DefaultPasser implements Passer {
     private Optional<? extends Tuple<Node, Integer>> postVisitLambda(Node node, int state) {
         if (!node.is(LAMBDA)) return Optional.empty();
 
-        var params = node.findNodeList(PARAMS).orElseThrow();
+        var params = node.findNodeList(PARAMS).orElse(Collections.emptyList());
         var definition = new Node(DEFINITION)
                 .withNodeList(MagmaDefinition.PARAMS, params);
 
