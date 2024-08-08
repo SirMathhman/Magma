@@ -16,11 +16,13 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Optional;
 
+import static magma.app.compile.lang.common.Functions.PARAMS;
 import static magma.app.compile.lang.common.Operations.INVOCATION;
 import static magma.app.compile.lang.common.Modifiers.MODIFIERS;
 import static magma.app.compile.lang.java.JavaLang.CONSTRUCTION;
 import static magma.app.compile.lang.java.JavaLang.INTERFACE;
 import static magma.app.compile.lang.java.JavaLang.LAMBDA;
+import static magma.app.compile.lang.magma.MagmaDefinition.DEFINITION;
 import static magma.app.compile.lang.magma.MagmaLang.TRAIT;
 
 public class DefaultPasser implements Passer {
@@ -34,7 +36,7 @@ public class DefaultPasser implements Passer {
     }
 
     private static Optional<Tuple<Node, Integer>> postVisitDefinitions(Node node, int state) {
-        if (!node.is(MagmaDefinition.DEFINITION)) return Optional.empty();
+        if (!node.is(DEFINITION)) return Optional.empty();
 
         var oldModifiers = node.findStringList(MODIFIERS);
         Node node0;
@@ -88,7 +90,7 @@ public class DefaultPasser implements Passer {
         newModifiers.add("def");
 
         var definition = new Node()
-                .retype(MagmaDefinition.DEFINITION)
+                .retype(DEFINITION)
                 .withString(MagmaDefinition.NAME, name)
                 .withStringList(MODIFIERS, newModifiers);
 
@@ -103,7 +105,7 @@ public class DefaultPasser implements Passer {
     private static Optional<Tuple<Node, Integer>> postVisitMethods(Node node, int state) {
         if (!node.is(JavaLang.METHOD_TYPE)) return Optional.empty();
 
-        var params = node.findNodeList(magma.app.compile.lang.common.Functions.PARAMS).orElse(Collections.emptyList());
+        var params = node.findNodeList(PARAMS).orElse(Collections.emptyList());
 
         var definition = node.findNode(JavaLang.METHOD_DEFINITION)
                 .orElseThrow()
@@ -113,10 +115,10 @@ public class DefaultPasser implements Passer {
                     return copy;
                 });
 
-        var withParams = definition.withNodeList(magma.app.compile.lang.common.Functions.PARAMS, params);
+        var withParams = definition.withNodeList(PARAMS, params);
 
         return Optional.of(new Tuple<>(node.retype("function")
-                .removeNodeList(magma.app.compile.lang.common.Functions.PARAMS)
+                .removeNodeList(PARAMS)
                 .withNode(JavaLang.METHOD_DEFINITION, withParams), state));
     }
 
@@ -155,7 +157,7 @@ public class DefaultPasser implements Passer {
         Iterator<Node> iterator = oldChildren.iterator();
         while (iterator.hasNext()) {
             Node oldChild = iterator.next();
-            var definitionOptional = oldChild.findNode(MagmaDefinition.DEFINITION);
+            var definitionOptional = oldChild.findNode(DEFINITION);
             if (definitionOptional.isEmpty()) {
                 instanceChildren.add(oldChild);
                 continue;
@@ -180,7 +182,7 @@ public class DefaultPasser implements Passer {
                 newDefinition = memberDefinition;
             }
 
-            var node1 = oldChild.withNode(MagmaDefinition.DEFINITION, newDefinition);
+            var node1 = oldChild.withNode(DEFINITION, newDefinition);
             staticChildren.add(node1);
         }
 
@@ -216,8 +218,14 @@ public class DefaultPasser implements Passer {
     }
 
     private Optional<? extends Tuple<Node, Integer>> postVisitLambda(Node node, int state) {
-        if(node.is(LAMBDA)) return Optional.of(new Tuple<>(node.retype(Functions.FUNCTION), state));
-        return Optional.empty();
+        if (!node.is(LAMBDA)) return Optional.empty();
+
+        var params = node.findNodeList(PARAMS).orElseThrow();
+        var definition = new Node(DEFINITION)
+                .withNodeList(MagmaDefinition.PARAMS, params);
+
+        return Optional.of(new Tuple<>(node.retype(Functions.FUNCTION)
+                .withNode(DEFINITION, definition), state));
     }
 
     private Optional<? extends Tuple<Node, Integer>> postVisitInterface(Node node, int state) {
@@ -236,7 +244,7 @@ public class DefaultPasser implements Passer {
             return Optional.of(new Tuple<>(node, state + 1));
         }
 
-        if (node.is(MagmaDefinition.DEFINITION)) {
+        if (node.is(DEFINITION)) {
             var typeOptional = node.findNode(MagmaDefinition.TYPE);
             if (typeOptional.isPresent()) {
                 var type = typeOptional.get();

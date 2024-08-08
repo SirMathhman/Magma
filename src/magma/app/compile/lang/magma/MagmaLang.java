@@ -35,10 +35,11 @@ public class MagmaLang {
     private static Rule createStatementRule0() {
         var statement = new LazyRule();
         var definition = MagmaDefinition.createRule();
-        var value = createValueRule();
+        var function = new LazyRule();
+        var value = createValueRule(function);
 
         statement.set(new DisjunctionRule(List.of(
-                Functions.createFunctionRule(definition, statement),
+                Functions.createFunctionRule(function, definition, statement, value),
                 PrefixedStatements.createTryRule(statement),
                 TryCatches.createCatchRule(definition, statement),
                 Declarations.createDeclarationRule(definition, value),
@@ -54,13 +55,15 @@ public class MagmaLang {
                 Primitives.createPostRule("decrement", "--", value),
                 Structs.createStructRule(TRAIT, "trait ", statement),
                 Primitives.createPostRule("decrement", "--", value),
-                Primitives.createPostRule("increment", "++", value)
+                Primitives.createPostRule("increment", "++", value),
+                Conditions.createContinueRule(),
+                Conditions.createBreakRule()
         )));
 
         return statement;
     }
 
-    private static Rule createValueRule() {
+    private static Rule createValueRule(Rule function) {
         var value = new LazyRule();
         value.set(new DisjunctionRule(List.of(
                 Operations.createInvocationRule(value),
@@ -75,7 +78,9 @@ public class MagmaLang {
                 Operators.createOperatorRule("add", "+", value),
                 Operators.createOperatorRule("subtract", "-", value),
                 Primitives.createNotRule(value),
-                Primitives.createCharRule()
+                Primitives.createCharRule(),
+                function,
+                Conditions.createTernaryRule(value)
         )));
         return value;
     }

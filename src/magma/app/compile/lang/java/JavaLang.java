@@ -53,7 +53,7 @@ public class JavaLang {
         var definition = createDefinitionRule(type);
         var statement = new LazyRule();
 
-        var value = createValueRule(type, statement);
+        var value = createValueRule(type, statement, definition);
         initStatementRule(definition, value, type, statement);
         var method = createMethodRule(definition, statement);
 
@@ -127,14 +127,14 @@ public class JavaLang {
                 Conditions.createElseRule(statement),
                 Primitives.createPostRule("decrement", "--", value),
                 Primitives.createPostRule("increment", "++", value),
-                new TypeRule("continue", new StripRule(new SuffixRule(EmptyRule.EMPTY_RULE, "continue;"))),
-                new TypeRule("break", new StripRule(new SuffixRule(EmptyRule.EMPTY_RULE, "break;")))
+                Conditions.createContinueRule(),
+                Conditions.createBreakRule()
         )));
 
         return statement;
     }
 
-    private static Rule createValueRule(Rule type, Rule statement) {
+    private static Rule createValueRule(Rule type, Rule statement, Rule definition) {
         var value = new LazyRule();
         value.set(new DisjunctionRule(List.of(
                 createConstructionRule(value, type),
@@ -151,23 +151,15 @@ public class JavaLang {
                 Primitives.createCharRule(),
                 Primitives.createNumberRule(),
                 Primitives.createNotRule(value),
-                createTernaryRule(value),
-                createLambdaRule(value)
+                Conditions.createTernaryRule(value),
+                createLambdaRule(value, definition)
         )));
         return value;
     }
 
-    private static TypeRule createLambdaRule(Rule value) {
-        var params = new StringRule("params");
+    private static TypeRule createLambdaRule(Rule value, Rule definition) {
+        var params = new StripRule(new PrefixRule("(", new SuffixRule(Functions.createParamsRule(definition), ")")));
         return new TypeRule(LAMBDA, new LocateRule(params, new First("->"), new NodeRule("value", value)));
-    }
-
-    private static TypeRule createTernaryRule(LazyRule value) {
-        var condition = new NodeRule("condition", value);
-        var whenTrue = new NodeRule("whenTrue", value);
-        var whenFalse = new NodeRule("whenFalse", value);
-        return new TypeRule("ternary", new LocateRule(condition, new First("?"),
-                new LocateRule(whenTrue, new First(":"), whenFalse)));
     }
 
     private static TypeRule createInvocationRule(LazyRule value) {
