@@ -17,7 +17,7 @@ public class Functions {
         return new TypeRule("return", new StripRule(new PrefixRule("return ", new SuffixRule(valueProperty, ";"))));
     }
 
-    public static NodeListRule createParamsRule(Rule definition) {
-        return new NodeListRule(new ParamSplitter(), PARAMS, definition);
+    public static NodeListRule createParamsRule(Rule param) {
+        return new NodeListRule(new ParamSplitter(), PARAMS, param);
     }
 }

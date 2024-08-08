@@ -61,7 +61,7 @@ public class JavaLang {
         var childRule = new DisjunctionRule(List.of(
                 Namespace.createNamespaceRule("package", "package "),
                 Namespace.createImportRule(),
-                createClassRule(definition, method, value),
+                createClassRule(definition, method, value, type),
                 Structs.createStructRule(INTERFACE, "interface ", method)
         ));
 
@@ -71,7 +71,7 @@ public class JavaLang {
         ));
     }
 
-    private static Rule createClassRule(Rule definition, Rule methodRule, Rule value) {
+    private static Rule createClassRule(Rule definition, Rule methodRule, Rule value, Rule type) {
         var classRule = new LazyRule();
         var modifiers = Modifiers.createModifiersRule();
 
@@ -84,10 +84,16 @@ public class JavaLang {
 
         var content = new NodeRule("value", Blocks.createBlockRule(classMember));
         var name = new StripRule(new StringRule(CLASS_NAME));
+        var paramsRule = new NodeListRule(new ParamSplitter(), "type-params", Symbols.createSymbolRule());
+
+        var maybeTypeParams = new DisjunctionRule(List.of(
+                new LocateRule(name, new First("<"), new StripRule(new SuffixRule(paramsRule, ">"))),
+                name
+        ));
 
         var leftRule = new DisjunctionRule(List.of(
-                new LocateRule(content, new First(" implements "), new StripRule(new StringRule("interface"))),
-                name
+                new LocateRule(maybeTypeParams, new First(" implements "), new NodeRule("interface", type)),
+                maybeTypeParams
         ));
 
         var after = new LocateRule(leftRule, new First("{"), new SuffixRule(content, "}"));
