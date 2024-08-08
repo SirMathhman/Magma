@@ -1,6 +1,5 @@
 package magma.app.compile.rule.locate;
 
-import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Stream;
 
@@ -12,7 +11,7 @@ public final class First implements Locator {
     }
 
     private Optional<Integer> locate0(String input) {
-        var index = input.indexOf(slice());
+        var index = input.indexOf(slice);
         return index == -1 ? Optional.empty() : Optional.of(index);
     }
 
@@ -35,28 +34,4 @@ public final class First implements Locator {
     public Stream<Integer> locate(String input) {
         return locate0(input).stream();
     }
-
-    public String slice() {
-        return slice;
-    }
-
-    @Override
-    public boolean equals(Object obj) {
-        if (obj == this) return true;
-        if (obj == null || obj.getClass() != this.getClass()) return false;
-        var that = (First) obj;
-        return Objects.equals(this.slice, that.slice);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(slice);
-    }
-
-    @Override
-    public String toString() {
-        return "First[" +
-               "slice=" + slice + ']';
-    }
-
 }

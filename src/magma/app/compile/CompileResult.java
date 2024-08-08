@@ -24,28 +24,4 @@ public final class CompileResult {
     public Node outputNode() {
         return outputNode;
     }
-
-    @Override
-    public boolean equals(Object obj) {
-        if (obj == this) return true;
-        if (obj == null || obj.getClass() != this.getClass()) return false;
-        var that = (CompileResult) obj;
-        return Objects.equals(this.output, that.output) &&
-               Objects.equals(this.inputNode, that.inputNode) &&
-               Objects.equals(this.outputNode, that.outputNode);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(output, inputNode, outputNode);
-    }
-
-    @Override
-    public String toString() {
-        return "CompileResult[" +
-               "output=" + output + ", " +
-               "inputNode=" + inputNode + ", " +
-               "outputNode=" + outputNode + ']';
-    }
-
 }

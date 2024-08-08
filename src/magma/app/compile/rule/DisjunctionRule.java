@@ -8,7 +8,6 @@ import magma.app.compile.ParseError;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Objects;
 
 public final class DisjunctionRule implements Rule {
     private final List<Rule> rules;
@@ -44,28 +43,4 @@ public final class DisjunctionRule implements Rule {
 
         return new RuleResult<>(Err.Err(new GenerateError("No valid rules found for", node)), errors);
     }
-
-    public List<Rule> rules() {
-        return rules;
-    }
-
-    @Override
-    public boolean equals(Object obj) {
-        if (obj == this) return true;
-        if (obj == null || obj.getClass() != this.getClass()) return false;
-        var that = (DisjunctionRule) obj;
-        return Objects.equals(this.rules, that.rules);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(rules);
-    }
-
-    @Override
-    public String toString() {
-        return "DisjunctionRule[" +
-               "rules=" + rules + ']';
-    }
-
 }

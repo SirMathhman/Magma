@@ -200,7 +200,8 @@ public class JavaLang {
         type.set(new DisjunctionRule(List.of(
                 createGenericRule(type),
                 new TypeRule(ARRAY, new SuffixRule(new NodeRule("child", type), "[]")),
-                Symbols.createSymbolRule()
+                Symbols.createSymbolRule(),
+                new TypeRule("wildcard", new StripRule(new SuffixRule(EmptyRule.EMPTY_RULE, "?")))
         )));
         return type;
     }
