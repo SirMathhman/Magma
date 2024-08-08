@@ -58,8 +58,8 @@ public final class NodeListRule implements Rule {
             var valueOptional = generated.findValue();
             if (valueOptional.isPresent()) {
                 var wasEmpty = builder.isEmpty();
-                builder.append(valueOptional.get());
                 if (!wasEmpty) builder.append(splitter.computeDelimiter());
+                builder.append(valueOptional.get());
             } else {
                 return generated;
             }
