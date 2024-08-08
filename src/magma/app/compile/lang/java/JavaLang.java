@@ -20,6 +20,7 @@ import magma.app.compile.lang.common.TryCatches;
 import magma.app.compile.rule.DisjunctionRule;
 import magma.app.compile.rule.EmptyRule;
 import magma.app.compile.rule.LazyRule;
+import magma.app.compile.rule.NodeListRule;
 import magma.app.compile.rule.NodeRule;
 import magma.app.compile.rule.PrefixRule;
 import magma.app.compile.rule.Rule;
@@ -31,6 +32,7 @@ import magma.app.compile.rule.locate.BackwardsLocator;
 import magma.app.compile.rule.locate.First;
 import magma.app.compile.rule.locate.Last;
 import magma.app.compile.rule.locate.LocateRule;
+import magma.app.compile.split.ParamSplitter;
 
 import java.util.List;
 
@@ -172,12 +174,19 @@ public class JavaLang {
     }
 
     private static Rule createTypeRule() {
-        var rule = new LazyRule();
-        rule.set(new DisjunctionRule(List.of(
-                new TypeRule(ARRAY, new SuffixRule(new NodeRule("child", rule), "[]")),
+        var type = new LazyRule();
+        type.set(new DisjunctionRule(List.of(
+                createGenericRule(type),
+                new TypeRule(ARRAY, new SuffixRule(new NodeRule("child", type), "[]")),
                 Symbols.createSymbolRule()
         )));
-        return rule;
+        return type;
+    }
+
+    private static TypeRule createGenericRule(Rule type) {
+        var genericType = new StripRule(new StringRule("generic-type"));
+        var arguments = new NodeListRule(new ParamSplitter(), "type-arguments", type);
+        return new TypeRule("generic", new LocateRule(genericType, new First("<"), new StripRule(new SuffixRule(arguments, ">"))));
     }
 
 }
