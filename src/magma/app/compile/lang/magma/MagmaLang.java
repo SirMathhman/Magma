@@ -52,7 +52,9 @@ public class MagmaLang {
                 Conditions.createConditionRule("while", "while", value, statement),
                 Conditions.createElseRule(statement),
                 Primitives.createPostRule("decrement", "--", value),
-                Structs.createStructRule(TRAIT, "trait ", statement)
+                Structs.createStructRule(TRAIT, "trait ", statement),
+                Primitives.createPostRule("decrement", "--", value),
+                Primitives.createPostRule("increment", "++", value)
         )));
 
         return statement;
@@ -69,6 +71,10 @@ public class MagmaLang {
                 Operators.createOperatorRule("and", "&&", value),
                 Operators.createOperatorRule("equals", "==", value),
                 Operators.createOperatorRule("greater-than-or-equals-to", ">=", value),
+                Operators.createOperatorRule("less-than", "<", value),
+                Operators.createOperatorRule("add", "+", value),
+                Operators.createOperatorRule("subtract", "-", value),
+                Primitives.createNotRule(value),
                 Primitives.createCharRule()
         )));
         return value;

@@ -46,6 +46,7 @@ public class JavaLang {
     public static final String ARRAY = "array";
     public static final String CONSTRUCTION = "construction";
     public static final String INTERFACE = "interface";
+    public static final String LAMBDA = "lambda";
 
     public static Rule createRootJavaRule() {
         var type = createTypeRule();
@@ -149,7 +150,7 @@ public class JavaLang {
                 Operators.createOperatorRule("subtract", "-", value),
                 Primitives.createCharRule(),
                 Primitives.createNumberRule(),
-                new TypeRule("not", new PrefixRule("!", new NodeRule("value", value))),
+                Primitives.createNotRule(value),
                 createTernaryRule(value),
                 createLambdaRule(value)
         )));
@@ -158,7 +159,7 @@ public class JavaLang {
 
     private static TypeRule createLambdaRule(Rule value) {
         var params = new StringRule("params");
-        return new TypeRule("lambda", new LocateRule(params, new First("->"), new NodeRule("value", value)));
+        return new TypeRule(LAMBDA, new LocateRule(params, new First("->"), new NodeRule("value", value)));
     }
 
     private static TypeRule createTernaryRule(LazyRule value) {

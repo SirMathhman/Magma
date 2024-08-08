@@ -2,6 +2,7 @@ package magma.app.compile.lang.magma;
 
 import magma.app.compile.lang.common.Blocks;
 import magma.app.compile.rule.DisjunctionRule;
+import magma.app.compile.rule.OptionalRule;
 import magma.app.compile.rule.locate.Last;
 import magma.app.compile.rule.locate.LocateRule;
 import magma.app.compile.rule.NodeRule;
@@ -22,9 +23,9 @@ public class Functions {
         var value = new NodeRule(VALUE, Blocks.createBlockRule(statement));
         var content = new PrefixRule("{", new SuffixRule(value, "}"));
         var withContent = new LocateRule(definitionProperty, new Last(" => "), content);
-        return new TypeRule(FUNCTION, new DisjunctionRule(List.of(
+        return new TypeRule(FUNCTION, new OptionalRule(VALUE,
                 withContent,
                 new SuffixRule(definitionProperty, ";")
-        )));
+        ));
     }
 }

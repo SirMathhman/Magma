@@ -1,6 +1,7 @@
 package magma.app.compile.lang.common;
 
 import magma.app.compile.lang.DigitRule;
+import magma.app.compile.rule.LazyRule;
 import magma.app.compile.rule.NodeRule;
 import magma.app.compile.rule.PrefixRule;
 import magma.app.compile.rule.Rule;
@@ -24,5 +25,9 @@ public class Primitives {
 
     public static TypeRule createPostRule(String type, String suffix, Rule value) {
         return new TypeRule("post-" + type, new StripRule(new SuffixRule(new NodeRule("child", value), suffix + ";")));
+    }
+
+    public static TypeRule createNotRule(LazyRule value) {
+        return new TypeRule("not", new PrefixRule("!", new NodeRule("value", value)));
     }
 }
