@@ -121,8 +121,8 @@ public class JavaLang {
                 Conditions.createElseRule(statement),
                 Primitives.createPostRule("decrement", "--", value),
                 Primitives.createPostRule("increment", "++", value),
-                new TypeRule("continue", new SuffixRule(EmptyRule.EMPTY_RULE, "continue;")),
-                new TypeRule("break", new SuffixRule(EmptyRule.EMPTY_RULE, "break;"))
+                new TypeRule("continue", new StripRule(new SuffixRule(EmptyRule.EMPTY_RULE, "continue;"))),
+                new TypeRule("break", new StripRule(new SuffixRule(EmptyRule.EMPTY_RULE, "break;")))
         )));
 
         return statement;
