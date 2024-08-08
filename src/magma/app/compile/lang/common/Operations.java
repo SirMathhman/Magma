@@ -10,10 +10,6 @@ import magma.app.compile.rule.StripRule;
 import magma.app.compile.rule.SuffixRule;
 import magma.app.compile.rule.TypeRule;
 import magma.app.compile.rule.locate.LocateRule;
-import magma.app.compile.rule.locate.Locator;
-
-import java.util.Optional;
-import java.util.stream.Stream;
 
 public class Operations {
     public static final String INVOCATION = "invocation";
@@ -28,49 +24,10 @@ public class Operations {
                 EmptyRule.EMPTY_RULE
         );
 
-        return new TypeRule(type, new LocateRule(caller, new InvocationLocator(), new StripRule(new SuffixRule(arguments, ")"))));
+        return new TypeRule(type, new LocateRule(caller, new OperatorOpeningParenthesesLocator(), new StripRule(new SuffixRule(arguments, ")"))));
     }
 
     public static TypeRule createInvocationStatementRule(Rule value) {
         return new TypeRule(INVOCATION, new SuffixRule(createInvocationRule(value), ";"));
-    }
-
-    private static class InvocationLocator implements Locator {
-        private Optional<Integer> locate0(String input) {
-            var depth = 0;
-            int i = input.length() - 1;
-            while (i >= 0) {
-                var c = input.charAt(i);
-                if (c == '(' && depth == 1) {
-                    return Optional.of(i);
-                } else {
-                    if (c == ')') depth++;
-                    if (c == '(') depth--;
-                }
-                i--;
-            }
-
-            return Optional.empty();
-        }
-
-        @Override
-        public String createErrorMessage() {
-            return "No opening parentheses present";
-        }
-
-        @Override
-        public int length() {
-            return 1;
-        }
-
-        @Override
-        public String merge(String left, String right) {
-            return left + "(" + right;
-        }
-
-        @Override
-        public Stream<Integer> locate(String input) {
-            return locate0(input).stream();
-        }
     }
 }

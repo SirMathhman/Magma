@@ -5,7 +5,6 @@ import magma.app.compile.Node;
 
 import java.util.Iterator;
 import java.util.List;
-import java.util.Objects;
 
 public final class CompoundModifyingStage implements ModifyingStage {
     private final List<ModifyingStage> children;
@@ -25,28 +24,4 @@ public final class CompoundModifyingStage implements ModifyingStage {
 
         return current;
     }
-
-    public List<ModifyingStage> children() {
-        return children;
-    }
-
-    @Override
-    public boolean equals(Object obj) {
-        if (obj == this) return true;
-        if (obj == null || obj.getClass() != this.getClass()) return false;
-        var that = (CompoundModifyingStage) obj;
-        return Objects.equals(this.children, that.children);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(children);
-    }
-
-    @Override
-    public String toString() {
-        return "CompoundModifyingStage[" +
-               "children=" + children + ']';
-    }
-
 }

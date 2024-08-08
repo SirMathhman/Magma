@@ -5,11 +5,9 @@ import magma.api.Result;
 import magma.app.compile.CompileError;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.function.BiFunction;
 import java.util.function.Function;
@@ -30,7 +28,7 @@ public final class RuleResult<T, E extends CompileError> {
     }
 
     public static <T, E extends CompileError> RuleResult<T, E> RuleResult(Result<T, E> result) {
-        return new RuleResult<T, E>(result);
+        return new RuleResult<>(result);
     }
 
     public int depth() {
@@ -62,7 +60,7 @@ public final class RuleResult<T, E extends CompileError> {
     }
 
     public String format(int depth) {
-        var indent = "\t".repeat(depth) + depth + ") ";
+        var indent = "| ".repeat(depth) + depth + ") ";
         return result.match(
                 value -> formatWithValue(value, indent, depth),
                 err -> formatWithErr(err, indent, depth));
@@ -93,42 +91,12 @@ public final class RuleResult<T, E extends CompileError> {
                 .mapValue(value -> merger.apply(value.left(), value.right()));
 
         var wrappedChildren = new ArrayList<>(children);
-        wrappedChildren.addAll(teRuleResult.findChildren());
+        wrappedChildren.addAll(teRuleResult.children);
 
         return new RuleResult<>(newResult, wrappedChildren);
-    }
-
-    private Collection<RuleResult<T, E>> findChildren() {
-        return children;
     }
 
     public Result<T, E> result() {
         return result;
     }
-
-    public List<RuleResult<T, E>> children() {
-        return children;
-    }
-
-    @Override
-    public boolean equals(Object obj) {
-        if (obj == this) return true;
-        if (obj == null || obj.getClass() != this.getClass()) return false;
-        var that = (RuleResult) obj;
-        return Objects.equals(this.result, that.result) &&
-               Objects.equals(this.children, that.children);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(result, children);
-    }
-
-    @Override
-    public String toString() {
-        return "RuleResult[" +
-               "result=" + result + ", " +
-               "children=" + children + ']';
-    }
-
 }

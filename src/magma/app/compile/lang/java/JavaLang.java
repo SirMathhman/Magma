@@ -47,9 +47,10 @@ public class JavaLang {
     public static final String INTERFACE = "interface";
 
     public static Rule createRootJavaRule() {
-        var definition = createDefinitionRule();
-        var value = createValueRule();
-        var method = createMethodRule(definition, value);
+        var type = createTypeRule();
+        var definition = createDefinitionRule(type);
+        var value = createValueRule(type);
+        var method = createMethodRule(definition, value, type);
 
         var childRule = new DisjunctionRule(List.of(
                 Namespace.createNamespaceRule("package", "package "),
@@ -88,14 +89,14 @@ public class JavaLang {
         return classRule;
     }
 
-    private static TypeRule createMethodRule(TypeRule definition, Rule value) {
+    private static Rule createMethodRule(Rule definition, Rule value, Rule type) {
         var params = new DisjunctionRule(List.of(
                 Functions.createParamsRule(definition),
                 EmptyRule.EMPTY_RULE
         ));
 
         var beforeContent = new LocateRule(new NodeRule(METHOD_DEFINITION, definition), new First("("), new StripRule(new SuffixRule(params, ")")));
-        var statements = createStatementRule(definition, value);
+        var statements = createStatementRule(definition, value, type);
         var children = new NodeRule("value", Blocks.createBlockRule(statements));
         var content = new SuffixRule(children, "}");
         var child = new LocateRule(beforeContent, new First("{"), content);
@@ -106,13 +107,13 @@ public class JavaLang {
         )));
     }
 
-    private static Rule createStatementRule(Rule definition, Rule value) {
+    private static Rule createStatementRule(Rule definition, Rule value, Rule type) {
         var statement = new LazyRule();
         statement.set(new DisjunctionRule(List.of(
                 PrefixedStatements.createTryRule(statement),
                 TryCatches.createCatchRule(definition, statement),
                 Declarations.createDeclarationRule(definition, value),
-                new TypeRule(CONSTRUCTION, new SuffixRule(createConstructionRule(value), ";")),
+                new TypeRule(CONSTRUCTION, new SuffixRule(createConstructionRule(value, type), ";")),
                 Operations.createInvocationStatementRule(value),
                 Comments.createCommentRule(),
                 Functions.createReturnRule(value),
@@ -130,10 +131,10 @@ public class JavaLang {
         return statement;
     }
 
-    private static Rule createValueRule() {
+    private static Rule createValueRule(Rule type) {
         var value = new LazyRule();
         value.set(new DisjunctionRule(List.of(
-                createConstructionRule(value),
+                createConstructionRule(value, type),
                 createInvocationRule(value),
                 Accesses.createAccessRule(value),
                 References.createReferenceRule(),
@@ -142,33 +143,45 @@ public class JavaLang {
                 Operators.createOperatorRule("equals", "==", value),
                 Operators.createOperatorRule("greater-than-or-equals-to", ">=", value),
                 Operators.createOperatorRule("less-than", "<", value),
+                Operators.createOperatorRule("add", "+", value),
+                Operators.createOperatorRule("subtract", "-", value),
                 Primitives.createCharRule(),
                 Primitives.createNumberRule(),
-                new TypeRule("not", new PrefixRule("!", new NodeRule("value", value)))
+                new TypeRule("not", new PrefixRule("!", new NodeRule("value", value))),
+                createTernaryRule(value)
         )));
         return value;
+    }
+
+    private static TypeRule createTernaryRule(LazyRule value) {
+        var condition = new NodeRule("condition", value);
+        var whenTrue = new NodeRule("whenTrue", value);
+        var whenFalse = new NodeRule("whenFalse", value);
+        return new TypeRule("ternary", new LocateRule(condition, new First("?"),
+                new LocateRule(whenTrue, new First(":"), whenFalse)));
     }
 
     private static TypeRule createInvocationRule(LazyRule value) {
         return Operations.createOperationsRule(Operations.INVOCATION, new NodeRule("caller", value), value);
     }
 
-    private static Rule createConstructionRule(Rule value) {
+    private static Rule createConstructionRule(Rule value, Rule type) {
         var callerProperty = new NodeRule("caller", value);
+        var arguments = new NodeListRule(new ParamSplitter(), "type-arguments", type);
         var caller = new StripRule(new PrefixRule("new", new StripRule(new DisjunctionRule(List.of(
-                new SuffixRule(callerProperty, "<>"),
+                new LocateRule(callerProperty, new First("<"), new StripRule(new SuffixRule(arguments, ">"))),
                 callerProperty
         )))));
         return Operations.createOperationsRule(CONSTRUCTION, caller, value);
     }
 
-    private static TypeRule createDefinitionRule() {
+    private static TypeRule createDefinitionRule(Rule type) {
         var modifiers = Modifiers.createModifiersRule();
-        var type = new NodeRule("type", createTypeRule());
+        var typeProperty = new NodeRule("type", type);
 
         var modifiersAndType = new DisjunctionRule(List.of(
-                new LocateRule(modifiers, new BackwardsLocator(" "), type),
-                type
+                new LocateRule(modifiers, new BackwardsLocator(" "), typeProperty),
+                typeProperty
         ));
 
         var name = new StringRule(CLASS_NAME);
