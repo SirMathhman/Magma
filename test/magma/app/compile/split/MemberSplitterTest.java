@@ -14,6 +14,11 @@ class MemberSplitterTest {
     }
 
     @Test
+    void bug0() {
+        assertSplit("foo{('.');}bar", List.of("foo{('.');}", "bar"));
+    }
+
+    @Test
     void doubleQuotesEscape() {
         assertSplit("\"\\\"\"", List.of("\"\\\"\""));
     }
@@ -25,7 +30,7 @@ class MemberSplitterTest {
 
     @Test
     void singleQuotesEscape() {
-        assertSplit("'\\';'a'", List.of("'\\';", "'a'"));
+        assertSplit("'\\\\';'a'", List.of("'\\\\';", "'a'"));
     }
 
     @Test

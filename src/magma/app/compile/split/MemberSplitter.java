@@ -30,11 +30,11 @@ public class MemberSplitter implements Splitter {
     }
 
     private static Optional<State> tryBlockExit(State current, char c) {
-        return c == '}' ? Optional.of(current.exit()) : Optional.empty();
+        return c == '}' || c == ')' ? Optional.of(current.exit()) : Optional.empty();
     }
 
     private static Optional<State> tryBlockEnter(State current, char c) {
-        return c == '{' ? Optional.of(current.enter()) : Optional.empty();
+        return c == '{' || c == '(' ? Optional.of(current.enter()) : Optional.empty();
     }
 
     private static Optional<State> tryStatementEnd(State current, char c) {
@@ -72,7 +72,7 @@ public class MemberSplitter implements Splitter {
             } else {
                 return Optional.of(appended.right());
             }
-        });
+        }).flatMap(State::appendAndDiscard);
     }
 
     private static Optional<State> tryComment(State state, char c) {
