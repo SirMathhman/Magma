@@ -48,12 +48,13 @@ public class JavaLang {
 
     public static Rule createRootJavaRule() {
         var definition = createDefinitionRule();
-        var method = createMethodRule(definition);
+        var value = createValueRule();
+        var method = createMethodRule(definition, value);
 
         var childRule = new DisjunctionRule(List.of(
                 Namespace.createNamespaceRule("package", "package "),
                 Namespace.createImportRule(),
-                createClassRule(definition, method),
+                createClassRule(definition, method, value),
                 Structs.createStructRule(INTERFACE, "interface ", method)
         ));
 
@@ -63,13 +64,14 @@ public class JavaLang {
         ));
     }
 
-    private static Rule createClassRule(Rule definition, Rule methodRule) {
+    private static Rule createClassRule(Rule definition, Rule methodRule, Rule value) {
         var classRule = new LazyRule();
         var modifiers = Modifiers.createModifiersRule();
 
         var classMember = new DisjunctionRule(List.of(
                 methodRule,
                 Definitions.createDefinitionStatement(definition),
+                Declarations.createDeclarationRule(definition, value),
                 classRule
         ));
 
@@ -86,14 +88,14 @@ public class JavaLang {
         return classRule;
     }
 
-    private static TypeRule createMethodRule(TypeRule definition) {
+    private static TypeRule createMethodRule(TypeRule definition, Rule value) {
         var params = new DisjunctionRule(List.of(
                 Functions.createParamsRule(definition),
                 EmptyRule.EMPTY_RULE
         ));
 
         var beforeContent = new LocateRule(new NodeRule(METHOD_DEFINITION, definition), new First("("), new StripRule(new SuffixRule(params, ")")));
-        var statements = createStatementRule(definition, createValueRule());
+        var statements = createStatementRule(definition, value);
         var children = new NodeRule("value", Blocks.createBlockRule(statements));
         var content = new SuffixRule(children, "}");
         var child = new LocateRule(beforeContent, new First("{"), content);
