@@ -45,12 +45,13 @@ class OperatorOpeningParenthesesLocator implements Locator {
                     var popped = queue.pop();
 
                     if (queue.isEmpty()) return Stream.empty();
-                    var escaped = queue.peek().right();
-                    if (escaped == '\\') {
+                    var escapeChar = queue.peek().right();
+                    var escaped = escapeChar == '\\';
+                    if (escaped) {
                         queue.pop();
                     }
 
-                    if (popped.right() == '\"') {
+                    if (!escaped && popped.right() == '\"') {
                         break;
                     }
                 }

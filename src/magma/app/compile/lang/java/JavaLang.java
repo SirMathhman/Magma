@@ -49,8 +49,11 @@ public class JavaLang {
     public static Rule createRootJavaRule() {
         var type = createTypeRule();
         var definition = createDefinitionRule(type);
-        var value = createValueRule(type);
-        var method = createMethodRule(definition, value, type);
+        var statement = new LazyRule();
+
+        var value = createValueRule(type, statement);
+        initStatementRule(definition, value, type, statement);
+        var method = createMethodRule(definition, statement);
 
         var childRule = new DisjunctionRule(List.of(
                 Namespace.createNamespaceRule("package", "package "),
@@ -89,14 +92,13 @@ public class JavaLang {
         return classRule;
     }
 
-    private static Rule createMethodRule(Rule definition, Rule value, Rule type) {
+    private static Rule createMethodRule(Rule definition, Rule statements) {
         var params = new DisjunctionRule(List.of(
                 Functions.createParamsRule(definition),
                 EmptyRule.EMPTY_RULE
         ));
 
         var beforeContent = new LocateRule(new NodeRule(METHOD_DEFINITION, definition), new First("("), new StripRule(new SuffixRule(params, ")")));
-        var statements = createStatementRule(definition, value, type);
         var children = new NodeRule("value", Blocks.createBlockRule(statements));
         var content = new SuffixRule(children, "}");
         var child = new LocateRule(beforeContent, new First("{"), content);
@@ -107,8 +109,7 @@ public class JavaLang {
         )));
     }
 
-    private static Rule createStatementRule(Rule definition, Rule value, Rule type) {
-        var statement = new LazyRule();
+    private static Rule initStatementRule(Rule definition, Rule value, Rule type, LazyRule statement) {
         statement.set(new DisjunctionRule(List.of(
                 PrefixedStatements.createTryRule(statement),
                 TryCatches.createCatchRule(definition, statement),
@@ -131,7 +132,7 @@ public class JavaLang {
         return statement;
     }
 
-    private static Rule createValueRule(Rule type) {
+    private static Rule createValueRule(Rule type, Rule statement) {
         var value = new LazyRule();
         value.set(new DisjunctionRule(List.of(
                 createConstructionRule(value, type),
@@ -148,9 +149,15 @@ public class JavaLang {
                 Primitives.createCharRule(),
                 Primitives.createNumberRule(),
                 new TypeRule("not", new PrefixRule("!", new NodeRule("value", value))),
-                createTernaryRule(value)
+                createTernaryRule(value),
+                createLambdaRule(value)
         )));
         return value;
+    }
+
+    private static TypeRule createLambdaRule(Rule value) {
+        var params = new StringRule("params");
+        return new TypeRule("lambda", new LocateRule(params, new First("->"), new NodeRule("value", value)));
     }
 
     private static TypeRule createTernaryRule(LazyRule value) {
