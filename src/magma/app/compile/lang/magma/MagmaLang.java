@@ -21,7 +21,6 @@ import magma.app.compile.rule.Rule;
 import java.util.List;
 
 public class MagmaLang {
-
     public static final String TRAIT = "trait";
 
     public static Rule createRootMagmaRule() {

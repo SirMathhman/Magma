@@ -1,5 +1,6 @@
 package magma.app.compile.lang.common;
 
+import magma.app.compile.rule.OptionalRule;
 import magma.app.compile.split.MemberSplitter;
 import magma.app.compile.rule.DisjunctionRule;
 import magma.app.compile.rule.EmptyRule;
@@ -21,13 +22,15 @@ public class Blocks {
     public static Rule createMembersRule(Rule childRule) {
         var wrappedChild = new StripRule(childRule, BEFORE_CHILD, AFTER_CHILD);
         var property = new NodeListRule(new MemberSplitter(), CHILDREN, wrappedChild);
-        return new StripRule(property, BEFORE_CHILDREN, AFTER_CHILDREN);
+
+        var onChildrenPresent = new StripRule(property, BEFORE_CHILDREN, AFTER_CHILDREN);
+        var onChildrenEmpty = new StripRule(EmptyRule.EMPTY_RULE);
+        return new OptionalRule(CHILDREN, onChildrenPresent, onChildrenEmpty);
     }
 
     public static Rule createBlockRule(Rule childRule) {
         return new TypeRule(BLOCK, createMembersRule(new DisjunctionRule(List.of(
-                childRule,
-                new StripRule(EmptyRule.EMPTY_RULE)
+                childRule
         ))));
     }
 }

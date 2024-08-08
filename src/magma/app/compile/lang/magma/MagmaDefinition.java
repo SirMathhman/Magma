@@ -1,5 +1,6 @@
 package magma.app.compile.lang.magma;
 
+import magma.app.compile.lang.common.Generics;
 import magma.app.compile.split.ParamSplitter;
 import magma.app.compile.lang.common.Modifiers;
 import magma.app.compile.lang.common.Symbols;
@@ -64,6 +65,7 @@ public class MagmaDefinition {
     private static Rule createTypeRule() {
         var type = new LazyRule();
         type.set(new DisjunctionRule(List.of(
+                Generics.createGenericRule(type),
                 new TypeRule(SLICE, new PrefixRule("Slice<", new SuffixRule(new NodeRule("child", type), ">"))),
                 Symbols.createSymbolRule()
         )));

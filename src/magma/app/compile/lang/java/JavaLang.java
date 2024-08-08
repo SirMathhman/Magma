@@ -7,6 +7,7 @@ import magma.app.compile.lang.common.Conditions;
 import magma.app.compile.lang.common.Declarations;
 import magma.app.compile.lang.common.Definitions;
 import magma.app.compile.lang.common.Functions;
+import magma.app.compile.lang.common.Generics;
 import magma.app.compile.lang.common.Modifiers;
 import magma.app.compile.lang.common.Namespace;
 import magma.app.compile.lang.common.Operations;
@@ -198,18 +199,11 @@ public class JavaLang {
     private static Rule createTypeRule() {
         var type = new LazyRule();
         type.set(new DisjunctionRule(List.of(
-                createGenericRule(type),
+                Generics.createGenericRule(type),
                 new TypeRule(ARRAY, new SuffixRule(new NodeRule("child", type), "[]")),
-                Symbols.createSymbolRule(),
-                new TypeRule("wildcard", new StripRule(new SuffixRule(EmptyRule.EMPTY_RULE, "?")))
+                Symbols.createSymbolRule()
         )));
         return type;
-    }
-
-    private static TypeRule createGenericRule(Rule type) {
-        var genericType = new StripRule(new StringRule("generic-type"));
-        var arguments = new NodeListRule(new ParamSplitter(), "type-arguments", type);
-        return new TypeRule("generic", new LocateRule(genericType, new First("<"), new StripRule(new SuffixRule(arguments, ">"))));
     }
 
 }

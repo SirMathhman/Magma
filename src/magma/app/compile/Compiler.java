@@ -22,7 +22,7 @@ public class Compiler {
         this.targetRootRule = targetRootRule;
     }
 
-    static ApplicationException wrapErr(Unit unit, RuleResult<?, ?> result) {
+    static <T, E extends CompileError> ApplicationException wrapErr(Unit unit, RuleResult<T, E> result) {
         return new ApplicationException(unit.format() + ": " + result.format(0));
     }
 
