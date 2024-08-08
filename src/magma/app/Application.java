@@ -36,7 +36,9 @@ public final class Application {
     }
 
     private Optional<ApplicationException> compileWithInput(Unit unit, String input) {
-        return new Compiler(JavaLang.createRootJavaRule(), MagmaLang.createRootMagmaRule()).compile(unit, input)
+        System.out.println(unit);
+        return new Compiler(JavaLang.createRootJavaRule(), MagmaLang.createRootMagmaRule())
+                .compile(unit, input)
                 .mapValue(value1 -> targetSet.writeValue(unit, value1))
                 .match(value -> value, Optional::of);
     }

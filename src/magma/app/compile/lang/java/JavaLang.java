@@ -72,7 +72,14 @@ public class JavaLang {
         ));
 
         var content = new NodeRule("value", Blocks.createBlockRule(classMember));
-        var after = new LocateRule(new StripRule(new StringRule(CLASS_NAME)), new First("{"), new SuffixRule(content, "}"));
+        var name = new StripRule(new StringRule(CLASS_NAME));
+
+        var leftRule = new DisjunctionRule(List.of(
+                new LocateRule(content, new First(" implements "), new StripRule(new StringRule("interface"))),
+                name
+        ));
+
+        var after = new LocateRule(leftRule, new First("{"), new SuffixRule(content, "}"));
         classRule.set(new TypeRule("class", new LocateRule(modifiers, new First("class "), after)));
         return classRule;
     }

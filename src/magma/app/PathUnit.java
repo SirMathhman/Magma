@@ -20,6 +20,11 @@ public final class PathUnit implements Unit {
     }
 
     @Override
+    public String toString() {
+        return child.toAbsolutePath().toString();
+    }
+
+    @Override
     public Result<String, IOException> read() {
         try {
             return new Ok<>(Files.readString(child));

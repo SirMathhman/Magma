@@ -2,7 +2,6 @@ package magma.app.compile.pass;
 
 import magma.api.Tuple;
 import magma.app.compile.Node;
-import magma.app.compile.Passer;
 import magma.app.compile.lang.common.Blocks;
 import magma.app.compile.lang.common.PrefixedStatements;
 
