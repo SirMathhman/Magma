@@ -48,34 +48,4 @@ public final class PathUnit implements Unit {
     public String format() {
         return child.toString();
     }
-
-    public Path root() {
-        return root;
-    }
-
-    public Path child() {
-        return child;
-    }
-
-    @Override
-    public boolean equals(Object obj) {
-        if (obj == this) return true;
-        if (obj == null || obj.getClass() != this.getClass()) return false;
-        var that = (PathUnit) obj;
-        return Objects.equals(this.root, that.root) &&
-               Objects.equals(this.child, that.child);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(root, child);
-    }
-
-    @Override
-    public String toString() {
-        return "PathUnit[" +
-               "root=" + root + ", " +
-               "child=" + child + ']';
-    }
-
 }

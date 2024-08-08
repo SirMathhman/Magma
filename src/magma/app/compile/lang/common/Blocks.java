@@ -1,6 +1,6 @@
 package magma.app.compile.lang.common;
 
-import magma.app.compile.MemberSplitter;
+import magma.app.compile.split.MemberSplitter;
 import magma.app.compile.rule.DisjunctionRule;
 import magma.app.compile.rule.EmptyRule;
 import magma.app.compile.rule.NodeListRule;

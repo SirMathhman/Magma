@@ -5,7 +5,7 @@ import magma.api.Ok;
 import magma.app.compile.GenerateError;
 import magma.app.compile.Node;
 import magma.app.compile.ParseError;
-import magma.app.compile.Splitter;
+import magma.app.compile.split.Splitter;
 
 import java.util.ArrayList;
 import java.util.Iterator;

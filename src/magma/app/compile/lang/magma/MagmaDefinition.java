@@ -1,6 +1,6 @@
 package magma.app.compile.lang.magma;
 
-import magma.app.compile.ParamSplitter;
+import magma.app.compile.split.ParamSplitter;
 import magma.app.compile.lang.common.Modifiers;
 import magma.app.compile.lang.common.Symbols;
 import magma.app.compile.rule.DisjunctionRule;

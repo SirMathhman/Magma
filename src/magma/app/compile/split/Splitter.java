@@ -1,4 +1,4 @@
-package magma.app.compile;
+package magma.app.compile.split;
 
 import java.util.List;
 
