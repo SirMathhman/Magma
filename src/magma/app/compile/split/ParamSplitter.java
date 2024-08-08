@@ -30,6 +30,11 @@ public class ParamSplitter implements Splitter {
                 while (!queue.isEmpty()) {
                     var next = queue.pop();
                     buffer.append(next);
+
+                    if(next == '\\') {
+                        buffer.append(queue.pop());
+                    }
+
                     if (next == '\"') {
                         break;
                     }
