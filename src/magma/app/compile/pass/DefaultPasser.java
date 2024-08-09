@@ -157,12 +157,9 @@ public class DefaultPasser implements Passer {
     }
 
     private static State flattenChildren(List<Node> children) {
-        var state = new State();
-        for (Node child : children) {
-            var finalState = state;
-            state = flattenChild(child, finalState).orElseGet(() -> finalState.addInstance(child));
-        }
-        return state;
+        return children.stream().reduce(new State(),
+                (state, node) -> flattenChild(node, state).orElseGet(() -> state.addInstance(node)),
+                (state, state2) -> state2);
     }
 
     private static Optional<State> flattenChild(Node oldChild, State state) {
