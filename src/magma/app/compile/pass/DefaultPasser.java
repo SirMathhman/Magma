@@ -166,24 +166,26 @@ public class DefaultPasser implements Passer {
     }
 
     private static Optional<State> flattenChild(Node oldChild, State state) {
-        var definitionOptional = oldChild.findNode(DEFINITION);
-        if (definitionOptional.isEmpty()) return Optional.empty();
-
-        var memberDefinition = definitionOptional.get();
-        var modifiers = memberDefinition.findStringList(MODIFIERS).orElse(Collections.emptyList());
-        if (!modifiers.contains("static")) return Optional.empty();
-
-        var newDefinition = memberDefinition.findStringList(MODIFIERS)
-                .map(oldModifiers -> getNode(oldModifiers, memberDefinition))
-                .orElse(memberDefinition);
-
-        var withDefinition = oldChild.withNode(DEFINITION, newDefinition);
-        return Optional.of(state.addStatic(withDefinition));
+        return oldChild.mapNode(DEFINITION, DefaultPasser::removeStaticModifierFromDefinition).map(state::addStatic);
     }
 
-    private static Node getNode(List<String> oldModifiers, Node memberDefinition) {
+    private static Optional<Node> removeStaticModifierFromDefinition(Node definition) {
+        var modifiers = definition.findStringList(MODIFIERS)
+                .orElse(Collections.emptyList());
+
+        if (!modifiers.contains("static")) return Optional.empty();
+
+        var newDefinition = definition.findStringList(MODIFIERS)
+                .map(oldModifiers -> removeStaticModifierFromList(oldModifiers, definition))
+                .orElse(definition);
+
+        return Optional.of(newDefinition);
+    }
+
+    private static Node removeStaticModifierFromList(List<String> oldModifiers, Node memberDefinition) {
         var copy = new ArrayList<>(oldModifiers);
         copy.remove("static");
+
         return copy.isEmpty()
                 ? memberDefinition.removeStringList(MODIFIERS)
                 : memberDefinition.withStringList(MODIFIERS, copy);
@@ -202,6 +204,32 @@ public class DefaultPasser implements Passer {
         var withChildren = child.withNodeList(Blocks.CHILDREN, children);
         var withValue = parent.withNode(Functions.VALUE, withChildren);
         return Stream.of(withValue);
+    }
+
+    private static Optional<Tuple<Node, Integer>> preVisitSymbol(Node node, int state) {
+        if (!node.is(Symbols.SYMBOL)) return Optional.empty();
+
+        var mapped = node.mapString(Symbols.VALUE, value -> value.equals("void") ? "Void" : value);
+        return Optional.of(new Tuple<>(mapped, state));
+    }
+
+    private static Optional<Tuple<Node, Integer>> preVisitDefinition(Node node, int state) {
+        if (!node.is(DEFINITION)) return Optional.empty();
+
+        var typeOptional = node.findNode(MagmaDefinition.TYPE);
+        if (typeOptional.isEmpty()) return Optional.empty();
+
+        var type = typeOptional.get();
+        if (!type.is(Symbols.SYMBOL)) return Optional.empty();
+
+        var value = type.findString(Symbols.VALUE).orElseThrow();
+        return value.equals("var")
+                ? Optional.of(new Tuple<>(node.removeNode(MagmaDefinition.TYPE), state))
+                : Optional.empty();
+    }
+
+    private static Optional<Tuple<Node, Integer>> preVisitBlock(Node node, int state) {
+        return node.is(Blocks.BLOCK) ? Optional.of(new Tuple<>(node, state + 1)) : Optional.empty();
     }
 
     @Override
@@ -240,33 +268,9 @@ public class DefaultPasser implements Passer {
 
     @Override
     public Optional<Tuple<Node, Integer>> preVisit(Node node, int state) {
-        if (node.is(Blocks.BLOCK)) {
-            return Optional.of(new Tuple<>(node, state + 1));
-        }
-
-        if (node.is(DEFINITION)) {
-            var typeOptional = node.findNode(MagmaDefinition.TYPE);
-            if (typeOptional.isPresent()) {
-                var type = typeOptional.get();
-                if (type.is(Symbols.SYMBOL)) {
-                    var value = type.findString(Symbols.VALUE).orElseThrow();
-                    if (value.equals("var")) {
-                        return Optional.of(new Tuple<>(node.removeNode(MagmaDefinition.TYPE), state));
-                    }
-                }
-            }
-        }
-
-        if (node.is(Symbols.SYMBOL)) {
-            var mapped = node.mapString(Symbols.VALUE, value -> {
-                if (value.equals("void")) return "Void";
-                return value;
-            });
-
-            return Optional.of(new Tuple<>(mapped, state));
-        }
-
-        return Optional.empty();
+        return preVisitBlock(node, state)
+                .or(() -> preVisitDefinition(node, state))
+                .or(() -> preVisitSymbol(node, state));
     }
 
     record State(List<Node> staticChildren, List<Node> instanceChildren) {

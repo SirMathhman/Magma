@@ -216,4 +216,10 @@ public final class Node {
                 .map(list -> withNodeList(propertyKey, list))
                 .orElse(this);
     }
+
+    public Optional<Node> mapNode(String propertyKey, Function<Node, Optional<Node>> mapper) {
+        return findNode(propertyKey)
+                .flatMap(mapper)
+                .map(node -> withNode(propertyKey, node));
+    }
 }
