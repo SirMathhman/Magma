@@ -269,34 +269,4 @@ public class DefaultPasser implements Passer {
                 .or(() -> preVisitDefinition(node, state))
                 .or(() -> preVisitSymbol(node, state));
     }
-
-    record State(List<Node> staticChildren, List<Node> instanceChildren) {
-        public State() {
-            this(Collections.emptyList(), Collections.emptyList());
-        }
-
-        public State addInstance(Node instanceNode) {
-            var copy = new ArrayList<>(instanceChildren);
-            copy.add(instanceNode);
-            return new State(staticChildren, copy);
-        }
-
-        public State addStatic(Node staticNode) {
-            var copy = new ArrayList<>(staticChildren);
-            copy.add(staticNode);
-            return new State(copy, instanceChildren);
-        }
-
-        public Optional<List<Node>> findInstanceNodes() {
-            return instanceChildren.isEmpty()
-                    ? Optional.empty()
-                    : Optional.of(instanceChildren);
-        }
-
-        public Optional<List<Node>> findStaticNodes() {
-            return staticChildren.isEmpty()
-                    ? Optional.empty()
-                    : Optional.of(staticChildren);
-        }
-    }
 }
