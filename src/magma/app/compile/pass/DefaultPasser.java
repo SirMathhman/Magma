@@ -166,7 +166,7 @@ public class DefaultPasser implements Passer {
     }
 
     private static Optional<State> flattenChild(Node oldChild, State state) {
-        return oldChild.mapNode(DEFINITION, DefaultPasser::removeStaticModifierFromDefinition).map(state::addStatic);
+        return oldChild.mapNodeOptionally(DEFINITION, DefaultPasser::removeStaticModifierFromDefinition).map(state::addStatic);
     }
 
     private static Optional<Node> removeStaticModifierFromDefinition(Node definition) {

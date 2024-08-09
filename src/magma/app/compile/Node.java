@@ -217,7 +217,7 @@ public final class Node {
                 .orElse(this);
     }
 
-    public Optional<Node> mapNode(String propertyKey, Function<Node, Optional<Node>> mapper) {
+    public Optional<Node> mapNodeOptionally(String propertyKey, Function<Node, Optional<Node>> mapper) {
         return findNode(propertyKey)
                 .flatMap(mapper)
                 .map(node -> withNode(propertyKey, node));
