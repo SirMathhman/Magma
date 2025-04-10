@@ -79,6 +79,18 @@ public class Lists {
             copy.sort(comparator::apply);
             return new JavaList<>(copy);
         }
+
+        @Override
+        public T last() {
+            return this.inner.getLast();
+        }
+
+        @Override
+        public Main.List_<T> set(int index, T element) {
+            ArrayList<T> list = new ArrayList<>(this.inner);
+            list.add(index, element);
+            return new JavaList<>(list);
+        }
     }
 
     public static <T> Main.List_<T> empty() {

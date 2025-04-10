@@ -1,24 +1,21 @@
 struct Result<T, X> {
-	<T, X, R> struct R match(R (*)(T) whenOk, R (*)(X) whenErr);
-	<T, X, R, R> Result<struct T, struct R> mapErr(R (*)(X) mapper);
-	<T, X, R, R, R> Result<struct R, struct X> flatMapValue(Result<R, X> (*)(T) mapper);
-	<T, X, R, R, R, R> Result<struct R, struct X> mapValue(R (*)(T) mapper);
+	<R> R match(R (*)(T) whenOk, R (*)(X) whenErr);
+	<R> Result<T, R> mapErr(R (*)(X) mapper);
+	<R> Result<R, X> flatMapValue(Result<R, X> (*)(T) mapper);
+	<R> Result<R, X> mapValue(R (*)(T) mapper);
 	Option<T> findValue();
 };
 struct Option<T> {
-	<T, X, R, R, R, R, T, X> {
-        <R, T, R> Option<struct R> map(R (*)(T) mapper);
+	<R> Option<R> map(R (*)(T) mapper);
 	int isPresent();
 	T orElse(T other);
 	int isEmpty();
 	void ifPresent(Consumer<T> consumer);
 	Option<T> or(Supplier<Option<T>> other);
-	<T, X, R, R, R, R, T, X> {
-        <R, T, R, R> Option<struct R> flatMap(Option<R> (*)(T) mapper);
+	<R> Option<R> flatMap(Option<R> (*)(T) mapper);
 	Tuple<int, T> toTuple(T other);
 	T orElseGet(Supplier<T> supplier);
-	<T, X, R, R, R, R, T, X> {
-        <R, T, R, R, R> struct R match(R (*)(T) whenPresent, Supplier<R> whenEmpty);
+	<R> R match(R (*)(T) whenPresent, Supplier<R> whenEmpty);
 };
 struct Error {
 	String display();
@@ -36,32 +33,25 @@ struct List_<T> {
 	Option<T> peekFirst();
 	T get(int index);
 	List_<T> sort(BiFunction<T, T, int> comparator);
+	T last();
+	List_<T> set(int index, T element);
 };
 struct Path_ {
 	Path_ resolveSibling(String sibling);
 	List_<String> asList();
 };
 struct Iterator<T> {
-	<T, X, R, R, R, R, T, X> {
-        <R, T, R, R, R, T> {
-        <R, T, T, R> struct R foldWithInitial(R initial, BiFunction<R, T, R> folder);
+	<R> R foldWithInitial(R initial, BiFunction<R, T, R> folder);
 	void forEach(Consumer<T> consumer);
-	<T, X, R, R, R, R, T, X> {
-        <R, T, R, R, R, T> {
-        <R, T, T, R, R> Iterator<struct R> map(R (*)(T) mapper);
+	<R> Iterator<R> map(R (*)(T) mapper);
 	Iterator<T> filter(Predicate<T> predicate);
 	Option<T> next();
 	Iterator<T> concat(Iterator<T> other);
-	<T, X, R, R, R, R, T, X> {
-        <R, T, R, R, R, T> {
-        <R, T, T, R, R, C> struct C collect(Collector<T, C> collector);
+	<C> C collect(Collector<T, C> collector);
 	int allMatch(Predicate<T> predicate);
-	<T, X, R, R, R, R, T, X> {
-        <R, T, R, R, R, T> {
-        <R, T, T, R, R, C, R> Option<struct R> foldWithMapper(R (*)(T) mapper, BiFunction<R, T, R> folder);
-	<T, X, R, R, R, R, T, X> {
-        <R, T, R, R, R, T> {
-        <R, T, T, R, R, C, R, R, X> Result<struct R, struct X> foldToResult(R initial, BiFunction<R, T, Result<R, X>> mapper);
+	<R> Option<R> foldWithMapper(R (*)(T) mapper, BiFunction<R, T, R> folder);
+	<R, X> Result<R, X> foldToResult(R initial, BiFunction<R, T, Result<R, X>> mapper);
+	int anyMatch(Predicate<T> filter);
 };
 struct Collector<T, C> {
 	C createInitial();
@@ -84,12 +74,7 @@ struct None<T> {
 struct EmptyHead<T> {
 };
 struct SingleHead<T> {
-	<T, X, R, R, R, R, T, X> {
-        <R, T, R, R, R, T> {
-        <R, T, T, R, R, C, R, R, X, T> {
-        <R, T, C, T, T, R, R, C, R, R, X, R, T, R, R, R, T> implements Option<T> {
-        @Override
-        public <R, T, T> struct T value;
+	T value;
 };
 struct Some<T> {
 };
@@ -98,42 +83,17 @@ struct Err<T, X> {
 struct Ok<T, X> {
 };
 struct State {
-	<T, X, R, R, R, R, T, X> {
-        <R, T, R, R, R, T> {
-        <R, T, T, R, R, C, R, R, X, T> {
-        <R, T, C, T, T, R, R, C, R, R, X, R, T, R, R, R, T> implements Option<T> {
-        @Override
-        public <R, T, T, T, R, R, R, T, X, R, R, R, R, T, X, R, R, R, R> List_<char> queue;
-	<T, X, R, R, R, R, T, X> {
-        <R, T, R, R, R, T> {
-        <R, T, T, R, R, C, R, R, X, T> {
-        <R, T, C, T, T, R, R, C, R, R, X, R, T, R, R, R, T> implements Option<T> {
-        @Override
-        public <R, T, T, T, R, R, R, T, X, R, R, R, R, T, X, R, R, R, R> List_<struct String> segments;
-	<T, X, R, R, R, R, T, X> {
-        <R, T, R, R, R, T> {
-        <R, T, T, R, R, C, R, R, X, T> {
-        <R, T, C, T, T, R, R, C, R, R, X, R, T, R, R, R, T> implements Option<T> {
-        @Override
-        public <R, T, T, T, R, R, R, T, X, R, R, R, R, T, X, R, R, R, R> struct StringBuilder buffer;
-	<T, X, R, R, R, R, T, X> {
-        <R, T, R, R, R, T> {
-        <R, T, T, R, R, C, R, R, X, T> {
-        <R, T, C, T, T, R, R, C, R, R, X, R, T, R, R, R, T> implements Option<T> {
-        @Override
-        public <R, T, T, T, R, R, R, T, X, R, R, R, R, T, X, R, R, R, R> int depth;
+	List_<char> queue;
+	List_<String> segments;
+	StringBuilder buffer;
+	int depth;
 };
 struct Tuple<A, B> {
 };
 struct Iterators {
 };
 struct RangeHead {
-	<T, X, R, R, R, R, T, X> {
-        <R, T, R, R, R, T> {
-        <R, T, T, R, R, C, R, R, X, T> {
-        <R, T, C, T, T, R, R, C, R, R, X, R, T, R, R, R, T> implements Option<T> {
-        @Override
-        public <R, T, T, T, R, R, R, T, X, R, R, R, R, T, X, R, R, R, R, A, B, T, T> int length;
+	int length;
 };
 struct ListCollector<T> {
 };
@@ -142,35 +102,17 @@ struct Joiner {
 struct DelimitedDivider {
 };
 struct CompileError {
-	<T, X, R, R, R, R, T, X> {
-        <R, T, R, R, R, T> {
-        <R, T, T, R, R, C, R, R, X, T> {
-        <R, T, C, T, T, R, R, C, R, R, X, R, T, R, R, R, T> implements Option<T> {
-        @Override
-        public <R, T, T, T, R, R, R, T, X, R, R, R, R, T, X, R, R, R, R, A, B, T, T, T> struct String format(int depth);
+	String format(int depth);
 };
 struct Max {
-	<T, X, R, R, R, R, T, X> {
-        <R, T, R, R, R, T> {
-        <R, T, T, R, R, C, R, R, X, T> {
-        <R, T, C, T, T, R, R, C, R, R, X, R, T, R, R, R, T> implements Option<T> {
-        @Override
-        public <R, T, T, T, R, R, R, T, X, R, R, R, R, T, X, R, R, R, R, A, B, T, T, T> Result<struct String, struct CompileError> apply(String input);
+	Result<String, CompileError> apply(String input);
 };
 struct Main {
-	<T, X, R, R, R, R, T, X> {
-        <R, T, R, R, R, T> {
-        <R, T, T, R, R, C, R, R, X, T> {
-        <R, T, C, T, T, R, R, C, R, R, X, R, T, R, R, R, T> implements Option<T> {
-        @Override
-        public <R, T, T, T, R, R, R, T, X, R, R, R, R, T, X, R, R, R, R, A, B, T, T, T> struct record DecoratedDivider(Divider divider);
+	record DecoratedDivider(Divider divider);
 };
 int retrieved = false;
 int counter = 0;
-<T, X, R, R, R, R, T, X> {
-        <R, T, R, R, R, T> {
-        <R, T, T, R, R, C, R, R, X, T> {
-        <R, T, C, T> struct String display() {
+String display() {
 	return this.error.display();
 }
 auto __lambda0__(auto next) {
@@ -185,10 +127,7 @@ auto __lambda2__(auto next) {
 auto __lambda3__(auto next) {
 	return folder;
 }
-<T, X, R, R, R, R, T, X> {
-        <R, T, R, R, R, T> {
-        <R, T, T, R, R, C, R, R, X, T> {
-        <R, T, C, T, T, R> struct R foldWithInitial(R initial, BiFunction<R, T, R> folder) {
+<R> R foldWithInitial(R initial, BiFunction<R, T, R> folder) {
 	R current = initial;
 	while (true) {
 		R finalCurrent = current;
@@ -201,10 +140,7 @@ auto __lambda3__(auto next) {
 		}
 	}
 }
-<T, X, R, R, R, R, T, X> {
-        <R, T, R, R, R, T> {
-        <R, T, T, R, R, C, R, R, X, T> {
-        <R, T, C, T, T, R> void forEach(Consumer<T> consumer) {
+void forEach(Consumer<T> consumer) {
 	while (true) {
 		Option<T> next = this.head.next();
 		if (next.isEmpty()) {
@@ -264,10 +200,7 @@ auto __lambda19__ {
 auto __lambda20__ {
 	return this;
 }
-<T, X, R, R, R, R, T, X> {
-        <R, T, R, R, R, T> {
-        <R, T, T, R, R, C, R, R, X, T> {
-        <R, T, C, T, T, R, R> Iterator<struct R> map(R (*)(T) mapper) {
+<R> Iterator<R> map(R (*)(T) mapper) {
 	return HeadedIterator<>(__lambda4__);
 }
 auto __lambda21__(auto value) {
@@ -275,20 +208,14 @@ auto __lambda21__(auto value) {
                     ? new SingleHead<>(value)
                     : new EmptyHead<T>());
 }
-<T, X, R, R, R, R, T, X> {
-        <R, T, R, R, R, T> {
-        <R, T, T, R, R, C, R, R, X, T> {
-        <R, T, C, T, T, R, R> Iterator<struct T> filter(Predicate<T> predicate) {
+Iterator<T> filter(Predicate<T> predicate) {
 	return this.flatMap(__lambda21__);
 }
-<T, X, R, R, R, R, T, X> {
-        <R, T, R, R, R, T> {
-        <R, T, T, R, R, C, R, R, X, T> {
-        <R, T, C, T, T, R, R> Option<struct T> next() {
+Option<T> next() {
 	return this.head.next();
 }
 auto __lambda22__ {
-	return struct other.next()
+	return other.next()
 }
 auto __lambda23__ {
 	return this.head.next().or(__lambda22__);
@@ -315,7 +242,7 @@ auto __lambda30__ {
 	return this;
 }
 auto __lambda31__ {
-	return struct other.next()
+	return other.next()
 }
 auto __lambda32__ {
 	return this.head.next();
@@ -344,19 +271,13 @@ auto __lambda39__ {
 auto __lambda40__ {
 	return this;
 }
-<T, X, R, R, R, R, T, X> {
-        <R, T, R, R, R, T> {
-        <R, T, T, R, R, C, R, R, X, T> {
-        <R, T, C, T, T, R, R> Iterator<struct T> concat(Iterator<T> other) {
+Iterator<T> concat(Iterator<T> other) {
 	return HeadedIterator<>(__lambda23__);
 }
 auto __lambda41__ {
-	return struct collector.fold()
+	return collector.fold()
 }
-<T, X, R, R, R, R, T, X> {
-        <R, T, R, R, R, T> {
-        <R, T, T, R, R, C, R, R, X, T> {
-        <R, T, C, T, T, R, R, C> struct C collect(Collector<T, C> collector) {
+<C> C collect(Collector<T, C> collector) {
 	return this.foldWithInitial(collector.createInitial(), __lambda41__);
 }
 auto __lambda42__(auto aBoolean, t) {
@@ -383,10 +304,7 @@ auto __lambda48__(auto aBoolean, t) {
 auto __lambda49__(auto aBoolean, t) {
 	return aBoolean;
 }
-<T, X, R, R, R, R, T, X> {
-        <R, T, R, R, R, T> {
-        <R, T, T, R, R, C, R, R, X, T> {
-        <R, T, C, T, T, R, R, C> int allMatch(Predicate<T> predicate) {
+int allMatch(Predicate<T> predicate) {
 	return this.foldWithInitial(true, __lambda42__);
 }
 auto __lambda50__(auto next) {
@@ -401,10 +319,7 @@ auto __lambda52__(auto next) {
 auto __lambda53__(auto next) {
 	return this;
 }
-<T, X, R, R, R, R, T, X> {
-        <R, T, R, R, R, T> {
-        <R, T, T, R, R, C, R, R, X, T> {
-        <R, T, C, T, T, R, R, C, R> Option<struct R> foldWithMapper(R (*)(T) mapper, BiFunction<R, T, R> folder) {
+<R> Option<R> foldWithMapper(R (*)(T) mapper, BiFunction<R, T, R> folder) {
 	return this.head.next().map(mapper).map(__lambda50__);
 }
 auto __lambda54__(auto current) {
@@ -447,261 +362,142 @@ auto __lambda65__(auto result, t) {
 auto __lambda66__(auto result, t) {
 	return result;
 }
-<T, X, R, R, R, R, T, X> {
-        <R, T, R, R, R, T> {
-        <R, T, T, R, R, C, R, R, X, T> {
-        <R, T, C, T, T, R, R, C, R, R, X> Result<struct R, struct X> foldToResult(R initial, BiFunction<R, T, Result<R, X>> mapper) {
+<R, X> Result<R, X> foldToResult(R initial, BiFunction<R, T, Result<R, X>> mapper) {
 	return this.<Result<R, X>>foldWithInitial(Ok<>(initial), __lambda58__);
 }
-auto __lambda67__ {
-	return struct Iterator.concat()
+auto __lambda67__(auto aBoolean, t) {
+	return aBoolean || filter.test(t);
 }
-<T, X, R, R, R, R, T, X> {
-        <R, T, R, R, R, T> {
-        <R, T, T, R, R, C, R, R, X, T> {
-        <R, T, C, T, T, R, R, C, R, R, X, R> Iterator<struct R> flatMap(Iterator<R> (*)(T) mapper) {
-	return this.map(mapper).foldWithInitial(Iterators.empty(), __lambda67__);
+auto __lambda68__(auto aBoolean, t) {
+	return aBoolean || filter.test;
 }
-<T, X, R, R, R, R, T, X> {
-        <R, T, R, R, R, T> {
-        <R, T, T, R, R, C, R, R, X, T> {
-        <R, T, C, T, T, R, R, C, R, R, X, R, T, R> Option<struct R> map(R (*)(T) mapper) {
+auto __lambda69__(auto aBoolean, t) {
+	return aBoolean || filter;
+}
+auto __lambda70__(auto aBoolean, t) {
+	return aBoolean;
+}
+auto __lambda71__(auto aBoolean, t) {
+	return aBoolean;
+}
+auto __lambda72__(auto aBoolean, t) {
+	return aBoolean || filter;
+}
+auto __lambda73__(auto aBoolean, t) {
+	return aBoolean;
+}
+auto __lambda74__(auto aBoolean, t) {
+	return aBoolean;
+}
+int anyMatch(Predicate<T> filter) {
+	return this.foldWithInitial(false, __lambda67__);
+}
+auto __lambda75__ {
+	return Iterator.concat()
+}
+<R> Iterator<R> flatMap(Iterator<R> (*)(T) mapper) {
+	return this.map(mapper).foldWithInitial(Iterators.empty(), __lambda75__);
+}
+<R> Option<R> map(R (*)(T) mapper) {
 	return None<>();
 }
-<T, X, R, R, R, R, T, X> {
-        <R, T, R, R, R, T> {
-        <R, T, T, R, R, C, R, R, X, T> {
-        <R, T, C, T, T, R, R, C, R, R, X, R, T, R> int isPresent() {
+int isPresent() {
 	return false;
 }
-<T, X, R, R, R, R, T, X> {
-        <R, T, R, R, R, T> {
-        <R, T, T, R, R, C, R, R, X, T> {
-        <R, T, C, T, T, R, R, C, R, R, X, R, T, R> struct T orElse(T other) {
+T orElse(T other) {
 	return other;
 }
-<T, X, R, R, R, R, T, X> {
-        <R, T, R, R, R, T> {
-        <R, T, T, R, R, C, R, R, X, T> {
-        <R, T, C, T, T, R, R, C, R, R, X, R, T, R> int isEmpty() {
+int isEmpty() {
 	return true;
 }
-<T, X, R, R, R, R, T, X> {
-        <R, T, R, R, R, T> {
-        <R, T, T, R, R, C, R, R, X, T> {
-        <R, T, C, T, T, R, R, C, R, R, X, R, T, R> void ifPresent(Consumer<T> consumer) {
+void ifPresent(Consumer<T> consumer) {
 }
-<T, X, R, R, R, R, T, X> {
-        <R, T, R, R, R, T> {
-        <R, T, T, R, R, C, R, R, X, T> {
-        <R, T, C, T, T, R, R, C, R, R, X, R, T, R> Option<struct T> or(Supplier<Option<T>> other) {
+Option<T> or(Supplier<Option<T>> other) {
 	return other.get();
 }
-<T, X, R, R, R, R, T, X> {
-        <R, T, R, R, R, T> {
-        <R, T, T, R, R, C, R, R, X, T> {
-        <R, T, C, T, T, R, R, C, R, R, X, R, T, R, R> Option<struct R> flatMap(Option<R> (*)(T) mapper) {
+<R> Option<R> flatMap(Option<R> (*)(T) mapper) {
 	return None<>();
 }
-<T, X, R, R, R, R, T, X> {
-        <R, T, R, R, R, T> {
-        <R, T, T, R, R, C, R, R, X, T> {
-        <R, T, C, T, T, R, R, C, R, R, X, R, T, R, R> Tuple<int, struct T> toTuple(T other) {
+Tuple<int, T> toTuple(T other) {
 	return Tuple<>(false, other);
 }
-<T, X, R, R, R, R, T, X> {
-        <R, T, R, R, R, T> {
-        <R, T, T, R, R, C, R, R, X, T> {
-        <R, T, C, T, T, R, R, C, R, R, X, R, T, R, R> struct T orElseGet(Supplier<T> supplier) {
+T orElseGet(Supplier<T> supplier) {
 	return supplier.get();
 }
-<T, X, R, R, R, R, T, X> {
-        <R, T, R, R, R, T> {
-        <R, T, T, R, R, C, R, R, X, T> {
-        <R, T, C, T, T, R, R, C, R, R, X, R, T, R, R, R> struct R match(R (*)(T) whenPresent, Supplier<R> whenEmpty) {
+<R> R match(R (*)(T) whenPresent, Supplier<R> whenEmpty) {
 	return whenEmpty.get();
 }
-<T, X, R, R, R, R, T, X> {
-        <R, T, R, R, R, T> {
-        <R, T, T, R, R, C, R, R, X, T> {
-        <R, T, C, T, T, R, R, C, R, R, X, R, T, R, R, R, T> implements Option<T> {
-        @Override
-        public <R, T> Option<struct T> next() {
+Option<T> next() {
 	return None<>();
 }
 private SingleHead(T value) {
 	this.value = value;
 }
-<T, X, R, R, R, R, T, X> {
-        <R, T, R, R, R, T> {
-        <R, T, T, R, R, C, R, R, X, T> {
-        <R, T, C, T, T, R, R, C, R, R, X, R, T, R, R, R, T> implements Option<T> {
-        @Override
-        public <R, T, T> Option<struct T> next() {
+Option<T> next() {
 	if (this.retrieved) {
 		return None<>();
 	}
 	this.retrieved = true;
 	return Some<>(this.value);
 }
-<T, X, R, R, R, R, T, X> {
-        <R, T, R, R, R, T> {
-        <R, T, T, R, R, C, R, R, X, T> {
-        <R, T, C, T, T, R, R, C, R, R, X, R, T, R, R, R, T> implements Option<T> {
-        @Override
-        public <R, T, T, T, R> Option<struct R> map(R (*)(T) mapper) {
+<R> Option<R> map(R (*)(T) mapper) {
 	return Some<>(mapper.apply(this.value));
 }
-<T, X, R, R, R, R, T, X> {
-        <R, T, R, R, R, T> {
-        <R, T, T, R, R, C, R, R, X, T> {
-        <R, T, C, T, T, R, R, C, R, R, X, R, T, R, R, R, T> implements Option<T> {
-        @Override
-        public <R, T, T, T, R> int isPresent() {
+int isPresent() {
 	return true;
 }
-<T, X, R, R, R, R, T, X> {
-        <R, T, R, R, R, T> {
-        <R, T, T, R, R, C, R, R, X, T> {
-        <R, T, C, T, T, R, R, C, R, R, X, R, T, R, R, R, T> implements Option<T> {
-        @Override
-        public <R, T, T, T, R> struct T orElse(T other) {
+T orElse(T other) {
 	return this.value;
 }
-<T, X, R, R, R, R, T, X> {
-        <R, T, R, R, R, T> {
-        <R, T, T, R, R, C, R, R, X, T> {
-        <R, T, C, T, T, R, R, C, R, R, X, R, T, R, R, R, T> implements Option<T> {
-        @Override
-        public <R, T, T, T, R> int isEmpty() {
+int isEmpty() {
 	return false;
 }
-<T, X, R, R, R, R, T, X> {
-        <R, T, R, R, R, T> {
-        <R, T, T, R, R, C, R, R, X, T> {
-        <R, T, C, T, T, R, R, C, R, R, X, R, T, R, R, R, T> implements Option<T> {
-        @Override
-        public <R, T, T, T, R> void ifPresent(Consumer<T> consumer) {
+void ifPresent(Consumer<T> consumer) {
 	consumer.accept(this.value);
 }
-<T, X, R, R, R, R, T, X> {
-        <R, T, R, R, R, T> {
-        <R, T, T, R, R, C, R, R, X, T> {
-        <R, T, C, T, T, R, R, C, R, R, X, R, T, R, R, R, T> implements Option<T> {
-        @Override
-        public <R, T, T, T, R> Option<struct T> or(Supplier<Option<T>> other) {
+Option<T> or(Supplier<Option<T>> other) {
 	return this;
 }
-<T, X, R, R, R, R, T, X> {
-        <R, T, R, R, R, T> {
-        <R, T, T, R, R, C, R, R, X, T> {
-        <R, T, C, T, T, R, R, C, R, R, X, R, T, R, R, R, T> implements Option<T> {
-        @Override
-        public <R, T, T, T, R, R> Option<struct R> flatMap(Option<R> (*)(T) mapper) {
+<R> Option<R> flatMap(Option<R> (*)(T) mapper) {
 	return mapper.apply(this.value);
 }
-<T, X, R, R, R, R, T, X> {
-        <R, T, R, R, R, T> {
-        <R, T, T, R, R, C, R, R, X, T> {
-        <R, T, C, T, T, R, R, C, R, R, X, R, T, R, R, R, T> implements Option<T> {
-        @Override
-        public <R, T, T, T, R, R> Tuple<int, struct T> toTuple(T other) {
+Tuple<int, T> toTuple(T other) {
 	return Tuple<>(true, this.value);
 }
-<T, X, R, R, R, R, T, X> {
-        <R, T, R, R, R, T> {
-        <R, T, T, R, R, C, R, R, X, T> {
-        <R, T, C, T, T, R, R, C, R, R, X, R, T, R, R, R, T> implements Option<T> {
-        @Override
-        public <R, T, T, T, R, R> struct T orElseGet(Supplier<T> supplier) {
+T orElseGet(Supplier<T> supplier) {
 	return this.value;
 }
-<T, X, R, R, R, R, T, X> {
-        <R, T, R, R, R, T> {
-        <R, T, T, R, R, C, R, R, X, T> {
-        <R, T, C, T, T, R, R, C, R, R, X, R, T, R, R, R, T> implements Option<T> {
-        @Override
-        public <R, T, T, T, R, R, R> struct R match(R (*)(T) whenPresent, Supplier<R> whenEmpty) {
+<R> R match(R (*)(T) whenPresent, Supplier<R> whenEmpty) {
 	return whenPresent.apply(this.value);
 }
-<T, X, R, R, R, R, T, X> {
-        <R, T, R, R, R, T> {
-        <R, T, T, R, R, C, R, R, X, T> {
-        <R, T, C, T, T, R, R, C, R, R, X, R, T, R, R, R, T> implements Option<T> {
-        @Override
-        public <R, T, T, T, R, R, R, T, X, R> struct R match(R (*)(T) whenOk, R (*)(X) whenErr) {
+<R> R match(R (*)(T) whenOk, R (*)(X) whenErr) {
 	return whenErr.apply(this.error);
 }
-<T, X, R, R, R, R, T, X> {
-        <R, T, R, R, R, T> {
-        <R, T, T, R, R, C, R, R, X, T> {
-        <R, T, C, T, T, R, R, C, R, R, X, R, T, R, R, R, T> implements Option<T> {
-        @Override
-        public <R, T, T, T, R, R, R, T, X, R, R> Result<struct T, struct R> mapErr(R (*)(X) mapper) {
+<R> Result<T, R> mapErr(R (*)(X) mapper) {
 	return Err<>(mapper.apply(this.error));
 }
-<T, X, R, R, R, R, T, X> {
-        <R, T, R, R, R, T> {
-        <R, T, T, R, R, C, R, R, X, T> {
-        <R, T, C, T, T, R, R, C, R, R, X, R, T, R, R, R, T> implements Option<T> {
-        @Override
-        public <R, T, T, T, R, R, R, T, X, R, R, R> Result<struct R, struct X> flatMapValue(Result<R, X> (*)(T) mapper) {
+<R> Result<R, X> flatMapValue(Result<R, X> (*)(T) mapper) {
 	return Err<>(this.error);
 }
-<T, X, R, R, R, R, T, X> {
-        <R, T, R, R, R, T> {
-        <R, T, T, R, R, C, R, R, X, T> {
-        <R, T, C, T, T, R, R, C, R, R, X, R, T, R, R, R, T> implements Option<T> {
-        @Override
-        public <R, T, T, T, R, R, R, T, X, R, R, R, R> Result<struct R, struct X> mapValue(R (*)(T) mapper) {
+<R> Result<R, X> mapValue(R (*)(T) mapper) {
 	return Err<>(this.error);
 }
-<T, X, R, R, R, R, T, X> {
-        <R, T, R, R, R, T> {
-        <R, T, T, R, R, C, R, R, X, T> {
-        <R, T, C, T, T, R, R, C, R, R, X, R, T, R, R, R, T> implements Option<T> {
-        @Override
-        public <R, T, T, T, R, R, R, T, X, R, R, R, R> Option<struct T> findValue() {
+Option<T> findValue() {
 	return None<>();
 }
-<T, X, R, R, R, R, T, X> {
-        <R, T, R, R, R, T> {
-        <R, T, T, R, R, C, R, R, X, T> {
-        <R, T, C, T, T, R, R, C, R, R, X, R, T, R, R, R, T> implements Option<T> {
-        @Override
-        public <R, T, T, T, R, R, R, T, X, R, R, R, R, T, X, R> struct R match(R (*)(T) whenOk, R (*)(X) whenErr) {
+<R> R match(R (*)(T) whenOk, R (*)(X) whenErr) {
 	return whenOk.apply(this.value);
 }
-<T, X, R, R, R, R, T, X> {
-        <R, T, R, R, R, T> {
-        <R, T, T, R, R, C, R, R, X, T> {
-        <R, T, C, T, T, R, R, C, R, R, X, R, T, R, R, R, T> implements Option<T> {
-        @Override
-        public <R, T, T, T, R, R, R, T, X, R, R, R, R, T, X, R, R> Result<struct T, struct R> mapErr(R (*)(X) mapper) {
+<R> Result<T, R> mapErr(R (*)(X) mapper) {
 	return Ok<>(this.value);
 }
-<T, X, R, R, R, R, T, X> {
-        <R, T, R, R, R, T> {
-        <R, T, T, R, R, C, R, R, X, T> {
-        <R, T, C, T, T, R, R, C, R, R, X, R, T, R, R, R, T> implements Option<T> {
-        @Override
-        public <R, T, T, T, R, R, R, T, X, R, R, R, R, T, X, R, R, R> Result<struct R, struct X> flatMapValue(Result<R, X> (*)(T) mapper) {
+<R> Result<R, X> flatMapValue(Result<R, X> (*)(T) mapper) {
 	return mapper.apply(this.value);
 }
-<T, X, R, R, R, R, T, X> {
-        <R, T, R, R, R, T> {
-        <R, T, T, R, R, C, R, R, X, T> {
-        <R, T, C, T, T, R, R, C, R, R, X, R, T, R, R, R, T> implements Option<T> {
-        @Override
-        public <R, T, T, T, R, R, R, T, X, R, R, R, R, T, X, R, R, R, R> Result<struct R, struct X> mapValue(R (*)(T) mapper) {
+<R> Result<R, X> mapValue(R (*)(T) mapper) {
 	return Ok<>(mapper.apply(this.value));
 }
-<T, X, R, R, R, R, T, X> {
-        <R, T, R, R, R, T> {
-        <R, T, T, R, R, C, R, R, X, T> {
-        <R, T, C, T, T, R, R, C, R, R, X, R, T, R, R, R, T> implements Option<T> {
-        @Override
-        public <R, T, T, T, R, R, R, T, X, R, R, R, R, T, X, R, R, R, R> Option<struct T> findValue() {
+Option<T> findValue() {
 	return Some<>(this.value);
 }
 private State(List_<char> queue, List_<String> segments, StringBuilder buffer, int depth) {
@@ -711,222 +507,127 @@ private State(List_<char> queue, List_<String> segments, StringBuilder buffer, i
 	this.depth = depth;
 }
 public State(List_<char> queue) {
-	this(queue, Lists.empty(), struct StringBuilder(), 0);
-}
-auto __lambda68__(auto tuple) {
-	return tuple.right.append(tuple.left);
-}
-auto __lambda69__(auto tuple) {
-	return tuple.right.append;
-}
-auto __lambda70__(auto tuple) {
-	return tuple.right;
-}
-auto __lambda71__(auto tuple) {
-	return tuple;
-}
-auto __lambda72__(auto tuple) {
-	return tuple.right.append(tuple;
-}
-auto __lambda73__(auto tuple) {
-	return tuple.right;
-}
-auto __lambda74__(auto tuple) {
-	return tuple;
-}
-<T, X, R, R, R, R, T, X> {
-        <R, T, R, R, R, T> {
-        <R, T, T, R, R, C, R, R, X, T> {
-        <R, T, C, T, T, R, R, C, R, R, X, R, T, R, R, R, T> implements Option<T> {
-        @Override
-        public <R, T, T, T, R, R, R, T, X, R, R, R, R, T, X, R, R, R, R> Option<struct State> popAndAppend() {
-	return this.pop().map(__lambda68__);
-}
-<T, X, R, R, R, R, T, X> {
-        <R, T, R, R, R, T> {
-        <R, T, T, R, R, C, R, R, X, T> {
-        <R, T, C, T, T, R, R, C, R, R, X, R, T, R, R, R, T> implements Option<T> {
-        @Override
-        public <R, T, T, T, R, R, R, T, X, R, R, R, R, T, X, R, R, R, R> struct State advance() {
-	return struct State(this.queue, this.segments.add(this.buffer.toString()), struct StringBuilder(), this.depth);
-}
-<T, X, R, R, R, R, T, X> {
-        <R, T, R, R, R, T> {
-        <R, T, T, R, R, C, R, R, X, T> {
-        <R, T, C, T, T, R, R, C, R, R, X, R, T, R, R, R, T> implements Option<T> {
-        @Override
-        public <R, T, T, T, R, R, R, T, X, R, R, R, R, T, X, R, R, R, R> struct State append(char c) {
-	return struct State(this.queue, this.segments, this.buffer.append(c), this.depth);
-}
-<T, X, R, R, R, R, T, X> {
-        <R, T, R, R, R, T> {
-        <R, T, T, R, R, C, R, R, X, T> {
-        <R, T, C, T, T, R, R, C, R, R, X, R, T, R, R, R, T> implements Option<T> {
-        @Override
-        public <R, T, T, T, R, R, R, T, X, R, R, R, R, T, X, R, R, R, R> int isLevel() {
-	return this.depth == 0;
-}
-auto __lambda75__(auto tuple) {
-	return Tuple<>(tuple.left, struct State(tuple.right, this.segments, this.buffer, this.depth));
-}
-<T, X, R, R, R, R, T, X> {
-        <R, T, R, R, R, T> {
-        <R, T, T, R, R, C, R, R, X, T> {
-        <R, T, C, T, T, R, R, C, R, R, X, R, T, R, R, R, T> implements Option<T> {
-        @Override
-        public <R, T, T, T, R, R, R, T, X, R, R, R, R, T, X, R, R, R, R> Option<Tuple<char, struct State>> pop() {
-	return this.queue.popFirst().map(__lambda75__);
-}
-<T, X, R, R, R, R, T, X> {
-        <R, T, R, R, R, T> {
-        <R, T, T, R, R, C, R, R, X, T> {
-        <R, T, C, T, T, R, R, C, R, R, X, R, T, R, R, R, T> implements Option<T> {
-        @Override
-        public <R, T, T, T, R, R, R, T, X, R, R, R, R, T, X, R, R, R, R> int hasElements() {
-	return !this.queue.isEmpty();
-}
-<T, X, R, R, R, R, T, X> {
-        <R, T, R, R, R, T> {
-        <R, T, T, R, R, C, R, R, X, T> {
-        <R, T, C, T, T, R, R, C, R, R, X, R, T, R, R, R, T> implements Option<T> {
-        @Override
-        public <R, T, T, T, R, R, R, T, X, R, R, R, R, T, X, R, R, R, R> struct State exit() {
-	return struct State(this.queue, this.segments, this.buffer, this.depth - 1);
-}
-<T, X, R, R, R, R, T, X> {
-        <R, T, R, R, R, T> {
-        <R, T, T, R, R, C, R, R, X, T> {
-        <R, T, C, T, T, R, R, C, R, R, X, R, T, R, R, R, T> implements Option<T> {
-        @Override
-        public <R, T, T, T, R, R, R, T, X, R, R, R, R, T, X, R, R, R, R> struct State enter() {
-	return struct State(this.queue, this.segments, this.buffer, this.depth + 1);
-}
-<T, X, R, R, R, R, T, X> {
-        <R, T, R, R, R, T> {
-        <R, T, T, R, R, C, R, R, X, T> {
-        <R, T, C, T, T, R, R, C, R, R, X, R, T, R, R, R, T> implements Option<T> {
-        @Override
-        public <R, T, T, T, R, R, R, T, X, R, R, R, R, T, X, R, R, R, R> List_<struct String> segments() {
-	return this.segments;
-}
-<T, X, R, R, R, R, T, X> {
-        <R, T, R, R, R, T> {
-        <R, T, T, R, R, C, R, R, X, T> {
-        <R, T, C, T, T, R, R, C, R, R, X, R, T, R, R, R, T> implements Option<T> {
-        @Override
-        public <R, T, T, T, R, R, R, T, X, R, R, R, R, T, X, R, R, R, R> Option<char> peek() {
-	return this.queue.peekFirst();
-}
-<T, X, R, R, R, R, T, X> {
-        <R, T, R, R, R, T> {
-        <R, T, T, R, R, C, R, R, X, T> {
-        <R, T, C, T, T, R, R, C, R, R, X, R, T, R, R, R, T> implements Option<T> {
-        @Override
-        public <R, T, T, T, R, R, R, T, X, R, R, R, R, T, X, R, R, R, R, A, B, T> Iterator<struct T> empty() {
-	return HeadedIterator<>(EmptyHead<>());
+	this(queue, Lists.empty(), StringBuilder(), 0);
 }
 auto __lambda76__(auto tuple) {
-	return tuple.right;
+	return tuple.right.append(tuple.left);
 }
 auto __lambda77__(auto tuple) {
+	return tuple.right.append;
+}
+auto __lambda78__(auto tuple) {
+	return tuple.right;
+}
+auto __lambda79__(auto tuple) {
 	return tuple;
 }
-<T, X, R, R, R, R, T, X> {
-        <R, T, R, R, R, T> {
-        <R, T, T, R, R, C, R, R, X, T> {
-        <R, T, C, T, T, R, R, C, R, R, X, R, T, R, R, R, T> implements Option<T> {
-        @Override
-        public <R, T, T, T, R, R, R, T, X, R, R, R, R, T, X, R, R, R, R, A, B, T> Iterator<char> fromString(String input) {
-	return fromStringWithIndices(input).map(__lambda76__);
+auto __lambda80__(auto tuple) {
+	return tuple.right.append(tuple;
 }
-auto __lambda78__(auto index) {
+auto __lambda81__(auto tuple) {
+	return tuple.right;
+}
+auto __lambda82__(auto tuple) {
+	return tuple;
+}
+Option<State> popAndAppend() {
+	return this.pop().map(__lambda76__);
+}
+State advance() {
+	return State(this.queue, this.segments.add(this.buffer.toString()), StringBuilder(), this.depth);
+}
+State append(char c) {
+	return State(this.queue, this.segments, this.buffer.append(c), this.depth);
+}
+int isLevel() {
+	return this.depth == 0;
+}
+auto __lambda83__(auto tuple) {
+	return Tuple<>(tuple.left, State(tuple.right, this.segments, this.buffer, this.depth));
+}
+Option<Tuple<char, State>> pop() {
+	return this.queue.popFirst().map(__lambda83__);
+}
+int hasElements() {
+	return !this.queue.isEmpty();
+}
+State exit() {
+	return State(this.queue, this.segments, this.buffer, this.depth - 1);
+}
+State enter() {
+	return State(this.queue, this.segments, this.buffer, this.depth + 1);
+}
+List_<String> segments() {
+	return this.segments;
+}
+Option<char> peek() {
+	return this.queue.peekFirst();
+}
+<T> Iterator<T> empty() {
+	return HeadedIterator<>(EmptyHead<>());
+}
+auto __lambda84__(auto tuple) {
+	return tuple.right;
+}
+auto __lambda85__(auto tuple) {
+	return tuple;
+}
+Iterator<char> fromString(String input) {
+	return fromStringWithIndices(input).map(__lambda84__);
+}
+auto __lambda86__(auto index) {
 	return Tuple<>(index, input.charAt(index));
 }
-<T, X, R, R, R, R, T, X> {
-        <R, T, R, R, R, T> {
-        <R, T, T, R, R, C, R, R, X, T> {
-        <R, T, C, T, T, R, R, C, R, R, X, R, T, R, R, R, T> implements Option<T> {
-        @Override
-        public <R, T, T, T, R, R, R, T, X, R, R, R, R, T, X, R, R, R, R, A, B, T> Iterator<Tuple<int, char>> fromStringWithIndices(String input) {
-	return HeadedIterator<>(struct RangeHead(input.length())).map(index -> new Tuple<>(index, input.charAt(index)));
+Iterator<Tuple<int, char>> fromStringWithIndices(String input) {
+	return HeadedIterator<>(RangeHead(input.length())).map(index -> new Tuple<>(index, input.charAt(index)));
 }
 public RangeHead(int length) {
 	this.length = length;
 }
-<T, X, R, R, R, R, T, X> {
-        <R, T, R, R, R, T> {
-        <R, T, T, R, R, C, R, R, X, T> {
-        <R, T, C, T, T, R, R, C, R, R, X, R, T, R, R, R, T> implements Option<T> {
-        @Override
-        public <R, T, T, T, R, R, R, T, X, R, R, R, R, T, X, R, R, R, R, A, B, T, T> Option<int> next() {
+Option<int> next() {
 	if (this.counter < this.length) {
 		int next = this.counter;this.counter++;
 		return Some<>(next);
 	}
 	return None<>();
 }
-<T, X, R, R, R, R, T, X> {
-        <R, T, R, R, R, T> {
-        <R, T, T, R, R, C, R, R, X, T> {
-        <R, T, C, T, T, R, R, C, R, R, X, R, T, R, R, R, T> implements Option<T> {
-        @Override
-        public <R, T, T, T, R, R, R, T, X, R, R, R, R, T, X, R, R, R, R, A, B, T, T, T> List_<struct T> createInitial() {
+List_<T> createInitial() {
 	return Lists.empty();
 }
-<T, X, R, R, R, R, T, X> {
-        <R, T, R, R, R, T> {
-        <R, T, T, R, R, C, R, R, X, T> {
-        <R, T, C, T, T, R, R, C, R, R, X, R, T, R, R, R, T> implements Option<T> {
-        @Override
-        public <R, T, T, T, R, R, R, T, X, R, R, R, R, T, X, R, R, R, R, A, B, T, T, T> List_<struct T> fold(List_<T> current, T element) {
+List_<T> fold(List_<T> current, T element) {
 	return current.add(element);
 }
-<T, X, R, R, R, R, T, X> {
-        <R, T, R, R, R, T> {
-        <R, T, T, R, R, C, R, R, X, T> {
-        <R, T, C, T, T, R, R, C, R, R, X, R, T, R, R, R, T> implements Option<T> {
-        @Override
-        public <R, T, T, T, R, R, R, T, X, R, R, R, R, T, X, R, R, R, R, A, B, T, T, T> Option<struct String> createInitial() {
+Option<String> createInitial() {
 	return None<>();
 }
-auto __lambda79__(auto inner) {
+auto __lambda87__(auto inner) {
 	return inner + this.delimiter + element;
 }
-auto __lambda80__(auto inner) {
+auto __lambda88__(auto inner) {
 	return inner + this;
 }
-auto __lambda81__(auto inner) {
+auto __lambda89__(auto inner) {
 	return inner;
 }
-auto __lambda82__(auto inner) {
+auto __lambda90__(auto inner) {
 	return inner;
 }
-auto __lambda83__(auto inner) {
+auto __lambda91__(auto inner) {
 	return inner + this.delimiter + element;
 }
-auto __lambda84__(auto inner) {
+auto __lambda92__(auto inner) {
 	return inner + this;
 }
-auto __lambda85__(auto inner) {
+auto __lambda93__(auto inner) {
 	return inner;
 }
-auto __lambda86__(auto inner) {
+auto __lambda94__(auto inner) {
 	return inner;
 }
-<T, X, R, R, R, R, T, X> {
-        <R, T, R, R, R, T> {
-        <R, T, T, R, R, C, R, R, X, T> {
-        <R, T, C, T, T, R, R, C, R, R, X, R, T, R, R, R, T> implements Option<T> {
-        @Override
-        public <R, T, T, T, R, R, R, T, X, R, R, R, R, T, X, R, R, R, R, A, B, T, T, T> Option<struct String> fold(Option<String> current, String element) {
-	return Some<>(current.map(__lambda79__).orElse(element));
+Option<String> fold(Option<String> current, String element) {
+	return Some<>(current.map(__lambda87__).orElse(element));
 }
-<T, X, R, R, R, R, T, X> {
-        <R, T, R, R, R, T> {
-        <R, T, T, R, R, C, R, R, X, T> {
-        <R, T, C, T, T, R, R, C, R, R, X, R, T, R, R, R, T> implements Option<T> {
-        @Override
-        public <R, T, T, T, R, R, R, T, X, R, R, R, R, T, X, R, R, R, R, A, B, T, T, T> struct State fold(State state, char c) {
+State fold(State state, char c) {
 	if (c == this.delimiter) {
 		return state.advance();
 	}
@@ -935,27 +636,12 @@ auto __lambda86__(auto inner) {
 public CompileError(String message, String context) {
 	this(message, context, Lists.empty());
 }
-<T, X, R, R, R, R, T, X> {
-        <R, T, R, R, R, T> {
-        <R, T, T, R, R, C, R, R, X, T> {
-        <R, T, C, T, T, R, R, C, R, R, X, R, T, R, R, R, T> implements Option<T> {
-        @Override
-        public <R, T, T, T, R, R, R, T, X, R, R, R, R, T, X, R, R, R, R, A, B, T, T, T> struct String display() {
+String display() {
 	return this.format(0);
 }
-<T, X, R, R, R, R, T, X> {
-        <R, T, R, R, R, T> {
-        <R, T, T, R, R, C, R, R, X, T> {
-        <R, T, C, T, T, R, R, C, R, R, X, R, T, R, R, R, T> implements Option<T> {
-        @Override
-        public <R, T, T, T, R, R, R, T, X, R, R, R, R, T, X, R, R, R, R, A, B, T, T, T> Option<int> createInitial() {
+Option<int> createInitial() {
 	return None<>();
 }
-<T, X, R, R, R, R, T, X> {
-        <R, T, R, R, R, T> {
-        <R, T, T, R, R, C, R, R, X, T> {
-        <R, T, C, T, T, R, R, C, R, R, X, R, T, R, R, R, T> implements Option<T> {
-        @Override
-        public <R, T, T, T, R, R, R, T, X, R, R, R, R, T, X, R, R, R, R, A, B, T, T, T> Option<int> fold(Option<int> current, int element) {
+Option<int> fold(Option<int> current, int element) {
 	return Some<>(current.map(inner -> inner > element ? inner : element).orElse(element));
 }

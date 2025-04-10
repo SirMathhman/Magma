@@ -68,6 +68,10 @@ public class Main {
         T get(int index);
 
         List_<T> sort(BiFunction<T, T, Integer> comparator);
+
+        T last();
+
+        List_<T> set(int index, T element);
     }
 
     public interface Path_ {
@@ -96,6 +100,8 @@ public class Main {
         <R> Option<R> foldWithMapper(Function<T, R> mapper, BiFunction<R, T, R> folder);
 
         <R, X> Result<R, X> foldToResult(R initial, BiFunction<R, T, Result<R, X>> mapper);
+
+        boolean anyMatch(Predicate<T> filter);
     }
 
     public interface Collector<T, C> {
@@ -193,6 +199,11 @@ public class Main {
             return this.<Result<R, X>>foldWithInitial(new Ok<>(initial),
                     (result, t) -> result.flatMapValue(
                             current -> mapper.apply(current, t)));
+        }
+
+        @Override
+        public boolean anyMatch(Predicate<T> filter) {
+            return this.foldWithInitial(false, (aBoolean, t) -> aBoolean || filter.test(t));
         }
 
         private <R> Iterator<R> flatMap(Function<T, Iterator<R>> mapper) {
@@ -673,6 +684,33 @@ public class Main {
         }
     }
 
+    static class ParseState {
+        private List_<List_<String>> frames;
+
+        public ParseState(List_<List_<String>> frames) {
+            this.frames = frames;
+        }
+
+        public ParseState() {
+            this(Lists.<List_<String>>empty().add(Lists.empty()));
+        }
+
+        public ParseState enter() {
+            this.frames = this.frames.add(Lists.empty());
+            return this;
+        }
+
+        public ParseState defineAll(List_<String> typeParams) {
+            List_<String> newLast = this.frames.last().addAll(typeParams);
+            this.frames = this.frames.set(this.frames.size() - 1, newLast);
+            return this;
+        }
+
+        public boolean isDefined(String typeParam) {
+            return this.frames.iter().anyMatch(frame -> Lists.contains(frame, typeParam, String::equals));
+        }
+    }
+
     public static final List_<String> FUNCTIONAL_NAMESPACE = Lists.of("java", "util", "function");
     private static final List_<String> imports = Lists.empty();
     private static final List_<String> structs = Lists.empty();
@@ -701,22 +739,18 @@ public class Main {
 
     private static Result<String, CompileError> compile(String input) {
         List_<String> segments = divide(input, new DecoratedDivider(Main::divideStatementChar));
-        return parseAll(segments, Main::compileRootSegment)
+        return parseAll(segments, input0 -> createRootSegmentRule(new ParseState()).apply(input0))
                 .mapValue(Main::mergeStatics)
                 .mapValue(compiled -> mergeAll(compiled, Main::mergeStatements));
     }
 
-    private static Result<String, CompileError> compileRootSegment(String input0) {
-        return new OrRule(listRules()).apply(input0);
-    }
-
-    private static List_<Rule> listRules() {
-        return Lists.of(
+    private static OrRule createRootSegmentRule(ParseState state) {
+        return new OrRule(Lists.of(
                 Main::compileWhitespace,
                 Main::compilePackage,
                 Main::getStringCompileErrorResult,
-                (input) -> compileToStruct(input, "class ", Lists.empty())
-        );
+                (input) -> compileToStruct(input, "class ", state)
+        ));
     }
 
     private static Result<String, CompileError> getStringCompileErrorResult(String input) {
@@ -817,7 +851,7 @@ public class Main {
         return state.depth == 1;
     }
 
-    private static Result<String, CompileError> compileToStruct(String input, String infix, List_<String> typeParams) {
+    private static Result<String, CompileError> compileToStruct(String input, String infix, ParseState typeParams) {
         int classIndex = input.indexOf(infix);
         if (classIndex < 0) {
             return createInfixErr(input, infix);
@@ -840,7 +874,7 @@ public class Main {
         return getCompileErrorResult(typeParams, strippedWithoutParams, afterKeyword, contentStart);
     }
 
-    private static Result<String, CompileError> getCompileErrorResult(List_<String> typeParams, String strippedWithoutParams, String afterKeyword, int contentStart) {
+    private static Result<String, CompileError> getCompileErrorResult(ParseState typeParams, String strippedWithoutParams, String afterKeyword, int contentStart) {
         if (strippedWithoutParams.endsWith(">")) {
             String strippedWithoutParams1 = strippedWithoutParams.substring(0, strippedWithoutParams.length() - ">".length());
             int genStart = strippedWithoutParams1.indexOf("<");
@@ -855,7 +889,7 @@ public class Main {
                         .map(String::strip)
                         .collect(new ListCollector<>());
 
-                return generateStruct(typeParams.addAll(moreTypeParams), name, afterKeyword, contentStart, moreTypeParams);
+                return generateStruct(typeParams.enter().defineAll(moreTypeParams), name, afterKeyword, contentStart, moreTypeParams);
             }
         }
         else {
@@ -864,7 +898,7 @@ public class Main {
 
     }
 
-    private static Result<String, CompileError> generateStruct(List_<String> typeParams, String name, String afterKeyword, int contentStart, List_<String> moreTypeParams) {
+    private static Result<String, CompileError> generateStruct(ParseState typeParams, String name, String afterKeyword, int contentStart, List_<String> moreTypeParams) {
         if (!isSymbol(name)) {
             return new Err<>(new CompileError("Not a symbol", name));
         }
@@ -928,7 +962,7 @@ public class Main {
         return beforeImplements;
     }
 
-    private static Result<String, CompileError> compileClassMember(String input0, List_<String> typeParams) {
+    private static Result<String, CompileError> compileClassMember(String input0, ParseState typeParams) {
         return new OrRule(Lists.of(
                 Main::compileWhitespace,
                 (input) -> compileToStruct(input, "interface ", typeParams),
@@ -940,7 +974,7 @@ public class Main {
         )).apply(input0);
     }
 
-    private static Result<String, CompileError> compileMethod(List_<String> typeParams, String input) {
+    private static Result<String, CompileError> compileMethod(ParseState state, String input) {
         int paramStart = input.indexOf("(");
         if (paramStart < 0) {
             return createInfixErr(input, "(");
@@ -949,19 +983,19 @@ public class Main {
         String inputDefinition = input.substring(0, paramStart).strip();
         String withParams = input.substring(paramStart + "(".length());
 
-        return createDefinitionRule(typeParams).apply(inputDefinition).flatMapValue(outputDefinition -> {
+        return createDefinitionRule(state).apply(inputDefinition).flatMapValue(outputDefinition -> {
             int paramEnd = withParams.indexOf(")");
             if (paramEnd < 0) {
                 return createInfixErr(withParams, ")");
             }
 
             String params = withParams.substring(0, paramEnd);
-            return compileValues(params, Main::compileParameter)
-                    .flatMapValue(outputParams -> assembleMethodBody(typeParams, outputDefinition, outputParams, withParams.substring(paramEnd + ")".length()).strip()));
+            return compileValues(params, definition -> compileParameter(definition, state))
+                    .flatMapValue(outputParams -> assembleMethodBody(state, outputDefinition, outputParams, withParams.substring(paramEnd + ")".length()).strip()));
         });
     }
 
-    private static Result<String, CompileError> compileDefinitionStatement(String input, List_<String> typeParams) {
+    private static Result<String, CompileError> compileDefinitionStatement(String input, ParseState typeParams) {
         String stripped = input.strip();
         if (stripped.endsWith(";")) {
             String content = stripped.substring(0, stripped.length() - ";".length());
@@ -974,7 +1008,7 @@ public class Main {
         return new Err<>(new CompileError("Suffix '" + suffix + "' not present", input));
     }
 
-    private static Result<String, CompileError> compileGlobalInitialization(List_<String> typeParams, String input) {
+    private static Result<String, CompileError> compileGlobalInitialization(ParseState typeParams, String input) {
         return compileInitialization(input, typeParams, 0).mapValue(generated -> {
             globals.add(generated + ";\n");
             return "";
@@ -983,7 +1017,7 @@ public class Main {
 
     private static Result<String, CompileError> compileInitialization(
             String input,
-            List_<String> typeParams,
+            ParseState state,
             int depth
     ) {
         if (!input.endsWith(";")) {
@@ -998,8 +1032,8 @@ public class Main {
 
         String definition = withoutEnd.substring(0, valueSeparator).strip();
         String value = withoutEnd.substring(valueSeparator + "=".length()).strip();
-        return createDefinitionRule(Lists.<String>empty()).apply(definition)
-                .flatMapValue(outputDefinition -> compileValue(value, typeParams, depth).mapValue(outputValue -> outputDefinition + " = " + outputValue));
+        return createDefinitionRule(state).apply(definition)
+                .flatMapValue(outputDefinition -> compileValue(value, state, depth).mapValue(outputValue -> outputDefinition + " = " + outputValue));
     }
 
     private static Result<String, CompileError> compileWhitespace(String input) {
@@ -1010,7 +1044,7 @@ public class Main {
     }
 
     private static Result<String, CompileError> assembleMethodBody(
-            List_<String> typeParams,
+            ParseState typeParams,
             String definition,
             String params,
             String body
@@ -1028,10 +1062,10 @@ public class Main {
         return new Ok<>("\t" + header + ";\n");
     }
 
-    private static Result<String, CompileError> compileParameter(String definition) {
+    private static Result<String, CompileError> compileParameter(String definition, ParseState state) {
         return new OrRule(Lists.of(
                 Main::compileWhitespace,
-                definition1 -> createDefinitionRule(Lists.<String>empty()).apply(definition1)
+                definition1 -> createDefinitionRule(state).apply(definition1)
         )).apply(definition);
     }
 
@@ -1068,7 +1102,7 @@ public class Main {
         return compileAndMerge(segments, rule, Main::mergeValues);
     }
 
-    private static Result<String, CompileError> compileStatementOrBlock(String input0, List_<String> typeParams, int depth) {
+    private static Result<String, CompileError> compileStatementOrBlock(String input0, ParseState typeParams, int depth) {
         return new OrRule(Lists.of(
                 Main::compileWhitespace,
                 input -> compileKeywordStatement(input, depth, "continue"),
@@ -1086,7 +1120,7 @@ public class Main {
         );
     }
 
-    private static Result<String, CompileError> getWrap(List_<String> typeParams, int depth, String input) {
+    private static Result<String, CompileError> getWrap(ParseState typeParams, int depth, String input) {
         String stripped = input.strip();
         if (!stripped.startsWith("else ")) {
             return createPrefixRule(stripped, "else ");
@@ -1107,7 +1141,7 @@ public class Main {
         return new Err<>(new CompileError("Prefix '" + prefix + "' not present", input));
     }
 
-    private static Result<String, CompileError> compilePostOperator(String input, List_<String> typeParams, int depth, String operator) {
+    private static Result<String, CompileError> compilePostOperator(String input, ParseState typeParams, int depth, String operator) {
         String stripped = input.strip();
         if (stripped.endsWith(operator + ";")) {
             String slice = stripped.substring(0, stripped.length() - (operator + ";").length());
@@ -1135,7 +1169,7 @@ public class Main {
         return "\n" + "\t".repeat(depth);
     }
 
-    private static Result<String, CompileError> compileConditional(String input, List_<String> typeParams, String prefix, int depth) {
+    private static Result<String, CompileError> compileConditional(String input, ParseState typeParams, String prefix, int depth) {
         String stripped = input.strip();
         if (!stripped.startsWith(prefix)) {
             return createPrefixRule(stripped, prefix);
@@ -1226,7 +1260,7 @@ public class Main {
         return conditionEnd;
     }
 
-    private static Result<String, CompileError> compileInvocationStatement(String input, List_<String> typeParams, int depth) {
+    private static Result<String, CompileError> compileInvocationStatement(String input, ParseState typeParams, int depth) {
         String stripped = input.strip();
         if (stripped.endsWith(";")) {
             String withoutEnd = stripped.substring(0, stripped.length() - ";".length());
@@ -1235,7 +1269,7 @@ public class Main {
         return createSuffixErr(stripped, ";");
     }
 
-    private static Result<String, CompileError> compileAssignment(String input, List_<String> typeParams, int depth) {
+    private static Result<String, CompileError> compileAssignment(String input, ParseState typeParams, int depth) {
         String stripped = input.strip();
         if (!stripped.endsWith(";")) {
             return createSuffixErr(stripped, ";");
@@ -1254,7 +1288,7 @@ public class Main {
                         .mapValue(newSource -> newDest + " = " + newSource));
     }
 
-    private static Result<String, CompileError> compileReturn(String input, List_<String> typeParams, int depth) {
+    private static Result<String, CompileError> compileReturn(String input, ParseState typeParams, int depth) {
         String stripped = input.strip();
         if (stripped.endsWith(";")) {
             String withoutEnd = stripped.substring(0, stripped.length() - ";".length());
@@ -1267,7 +1301,7 @@ public class Main {
         return createSuffixErr(stripped, ";");
     }
 
-    private static Result<String, CompileError> compileValue(String input0, List_<String> typeParams, int depth) {
+    private static Result<String, CompileError> compileValue(String input0, ParseState typeParams, int depth) {
         return new OrRule(Lists.of(
                 Main::compileString,
                 Main::compileChar,
@@ -1320,7 +1354,7 @@ public class Main {
         }));
     }
 
-    private static Result<String, CompileError> compileConstruction(String stripped, List_<String> typeParams, int depth) {
+    private static Result<String, CompileError> compileConstruction(String stripped, ParseState typeParams, int depth) {
         return new TypeRule("construction", new StripRule(input -> {
             if (!input.startsWith("new ")) {
                 return createPrefixRule(input, "new ");
@@ -1345,7 +1379,7 @@ public class Main {
         })).apply(stripped);
     }
 
-    private static Result<String, CompileError> createNotRule(String stripped, List_<String> typeParams, int depth) {
+    private static Result<String, CompileError> createNotRule(String stripped, ParseState typeParams, int depth) {
         if (stripped.startsWith("!")) {
             return compileValue(stripped.substring(1), typeParams, depth).mapValue(result -> "!" + result);
         }
@@ -1354,7 +1388,7 @@ public class Main {
         }
     }
 
-    private static Result<String, CompileError> compileMethodAccess(String input, List_<String> typeParams) {
+    private static Result<String, CompileError> compileMethodAccess(String input, ParseState typeParams) {
         int methodIndex = input.lastIndexOf("::");
         if (methodIndex >= 0) {
             String type = input.substring(0, methodIndex).strip();
@@ -1368,7 +1402,7 @@ public class Main {
         return createInfixErr(input, "::");
     }
 
-    private static Result<String, CompileError> compileDataAccess(String input, List_<String> typeParams, int depth) {
+    private static Result<String, CompileError> compileDataAccess(String input, ParseState typeParams, int depth) {
         int separator = input.lastIndexOf(".");
         if (separator >= 0) {
             String object = input.substring(0, separator).strip();
@@ -1378,7 +1412,7 @@ public class Main {
         return createInfixErr(input, ".");
     }
 
-    private static Result<String, CompileError> compileOperator(String input, List_<String> typeParams, int depth, String operator) {
+    private static Result<String, CompileError> compileOperator(String input, ParseState typeParams, int depth, String operator) {
         int operatorIndex = input.indexOf(operator);
         if (operatorIndex < 0) {
             return createInfixErr(input, operator);
@@ -1392,7 +1426,7 @@ public class Main {
                         .mapValue(rightResult -> leftResult + " " + operator + " " + rightResult));
     }
 
-    private static Result<String, CompileError> compileLambda(String input, List_<String> typeParams, int depth) {
+    private static Result<String, CompileError> compileLambda(String input, ParseState typeParams, int depth) {
         int arrowIndex = input.indexOf("->");
         if (arrowIndex < 0) {
             return createInfixErr(input, "->");
@@ -1448,7 +1482,7 @@ public class Main {
         });
     }
 
-    private static Result<String, CompileError> compileInvocation(String input, List_<String> typeParams, int depth) {
+    private static Result<String, CompileError> compileInvocation(String input, ParseState typeParams, int depth) {
         String stripped = input.strip();
         if (!stripped.endsWith(")")) {
             return createSuffixErr(stripped, ")");
@@ -1489,7 +1523,7 @@ public class Main {
         return argsStart;
     }
 
-    private static Result<String, CompileError> compileArgs(String argsString, List_<String> typeParams, int depth) {
+    private static Result<String, CompileError> compileArgs(String argsString, ParseState typeParams, int depth) {
         return compileValues(argsString, arg -> new OrRule(Lists.of(
                 Main::compileWhitespace,
                 value -> compileValue(value, typeParams, depth)
@@ -1503,7 +1537,7 @@ public class Main {
         return cache.append(", ").append(element);
     }
 
-    private static TypeRule createDefinitionRule(List_<String> typeParams) {
+    private static TypeRule createDefinitionRule(ParseState state) {
         return new TypeRule("definition", definition -> {
             String stripped = definition.strip();
             int nameSeparator = stripped.lastIndexOf(" ");
@@ -1518,23 +1552,18 @@ public class Main {
             }
 
             return findTypeSeparator(beforeName).match(typeSeparator -> {
-                return getStringCompileErrorResult(beforeName, typeSeparator, name, typeParams);
+                return getStringCompileErrorResult(beforeName, typeSeparator, name, state);
             }, () -> {
-                return getStringCompileErrorResult(beforeName, name);
+                return compileType(beforeName, state).mapValue(outputType -> generateDefinition(Lists.empty(), outputType, name));
             });
         });
     }
 
-    private static Result<String, CompileError> getStringCompileErrorResult(String beforeName, String name) {
-        return compileType(beforeName, Lists.empty())
-                .mapValue(outputType -> generateDefinition(Lists.empty(), outputType, name));
-    }
-
-    private static Result<String, CompileError> getStringCompileErrorResult(String beforeName, int typeSeparator, String name, List_<String> empty) {
+    private static Result<String, CompileError> getStringCompileErrorResult(String beforeName, int typeSeparator, String name, ParseState state) {
         String beforeType = beforeName.substring(0, typeSeparator).strip();
 
         if (!beforeType.endsWith(">")) {
-            return getStringCompileErrorResult(beforeName, typeSeparator, name, beforeType, empty);
+            return getStringCompileErrorResult(state, beforeName, typeSeparator, name, beforeType, Lists.empty());
         }
 
         String withoutEnd = beforeType.substring(0, beforeType.length() - ">".length());
@@ -1543,16 +1572,22 @@ public class Main {
             String more = withoutEnd.substring(0, typeParamStart);
             String substring = withoutEnd.substring(typeParamStart + 1);
             List_<String> typeParams = splitValues(substring);
-            return getStringCompileErrorResult(beforeName, typeSeparator, name, more, empty.addAll(typeParams));
+            return getStringCompileErrorResult(state.enter().defineAll(typeParams), beforeName, typeSeparator, name, more, typeParams);
         }
         else {
-            return getStringCompileErrorResult(beforeName, typeSeparator, name, beforeType, empty);
+            return getStringCompileErrorResult(state, beforeName, typeSeparator, name, beforeType, Lists.empty());
         }
     }
 
-    private static Result<String, CompileError> getStringCompileErrorResult(String beforeName, int typeSeparator, String name, String more, List_<String> typeParams) {
+    private static Result<String, CompileError> getStringCompileErrorResult(
+            ParseState state,
+            String beforeName,
+            int typeSeparator,
+            String name,
+            String more,
+            List_<String> typeParams
+    ) {
         String strippedBeforeTypeParams = more.strip();
-
         String modifiersString = removeAnnotations(strippedBeforeTypeParams);
 
         boolean allSymbols = divide(modifiersString, new DelimitedDivider(' '))
@@ -1566,7 +1601,7 @@ public class Main {
         }
 
         String inputType = beforeName.substring(typeSeparator + " ".length());
-        return compileType(inputType, typeParams).mapValue(outputType -> generateDefinition(typeParams, outputType, name));
+        return compileType(inputType, state).mapValue(outputType -> generateDefinition(typeParams, outputType, name));
     }
 
     private static String removeAnnotations(String maybeWithAnnotations) {
@@ -1616,13 +1651,14 @@ public class Main {
         if (maybeTypeParams.isEmpty()) {
             return "";
         }
+
         return maybeTypeParams.iter()
                 .collect(new Joiner(", "))
                 .map(result -> "<" + result + "> ")
                 .orElse("");
     }
 
-    private static Result<String, CompileError> compileType(String input, List_<String> typeParams) {
+    private static Result<String, CompileError> compileType(String input, ParseState typeParams) {
         return new OrRule(Lists.of(
                 Main::getWrap,
                 value -> getWrapped(typeParams, value),
@@ -1631,7 +1667,7 @@ public class Main {
         )).apply(input);
     }
 
-    private static Result<String, CompileError> compileGeneric(List_<String> typeParams, String value) {
+    private static Result<String, CompileError> compileGeneric(ParseState typeParams, String value) {
         String stripped = value.strip();
         if (!stripped.endsWith(">")) {
             return createSuffixErr(stripped, ">");
@@ -1663,12 +1699,12 @@ public class Main {
         });
     }
 
-    private static Result<String, CompileError> getStringCompileErrorResult(List_<String> typeParams, String value) {
+    private static Result<String, CompileError> getStringCompileErrorResult(ParseState state, String value) {
         if (!isSymbol(value.strip())) {
             return new Err<>(new CompileError("Not a symbol", value.strip()));
         }
 
-        if (Lists.contains(typeParams, value.strip(), String::equals)) {
+        if (state.isDefined(value.strip())) {
             return new Ok<>(value.strip());
         }
         else {
@@ -1676,7 +1712,7 @@ public class Main {
         }
     }
 
-    private static Result<String, CompileError> getWrapped(List_<String> typeParams, String value) {
+    private static Result<String, CompileError> getWrapped(ParseState typeParams, String value) {
         if (value.endsWith("[]")) {
             return compileType(value.substring(0, value.length() - "[]".length()), typeParams).mapValue(value1 -> value1 + "*");
         }
