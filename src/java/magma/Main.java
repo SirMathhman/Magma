@@ -66,6 +66,8 @@ public class Main {
         Option<T> peekFirst();
 
         T get(int index);
+
+        List_<T> sort(BiFunction<T, T, Integer> comparator);
     }
 
     public interface Path_ {
@@ -579,17 +581,28 @@ public class Main {
 
         @Override
         public String display() {
-            return format(0);
+            return this.format(0);
         }
 
         private String format(int depth) {
-            String joiner = this.errors.iter()
+            List_<CompileError> sorted = this.errors.sort((first, second) -> {
+                return first.maxDepth() - second.maxDepth();
+            });
+
+            String joiner = sorted.iter()
                     .map(compileError -> compileError.format(depth + 1))
                     .map(value -> "\n" + "\t".repeat(depth) + value)
                     .collect(new Joiner(""))
                     .orElse("");
 
             return this.message + ": " + this.context + joiner;
+        }
+
+        private int maxDepth() {
+            return 1 + this.errors.iter()
+                    .map(CompileError::maxDepth)
+                    .collect(new Max())
+                    .orElse(0);
         }
     }
 
@@ -618,6 +631,17 @@ public class Main {
         }
     }
 
+    private static class Max implements Collector<Integer, Option<Integer>> {
+        @Override
+        public Option<Integer> createInitial() {
+            return new None<>();
+        }
+
+        @Override
+        public Option<Integer> fold(Option<Integer> current, Integer element) {
+            return new Some<>(current.map(inner -> inner > element ? inner : element).orElse(element));
+        }
+    }
     public static final List_<String> FUNCTIONAL_NAMESPACE = Lists.of("java", "util", "function");
     private static final List_<String> imports = Lists.empty();
     private static final List_<String> structs = Lists.empty();

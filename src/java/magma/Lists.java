@@ -72,6 +72,13 @@ public class Lists {
         public T get(int index) {
             return this.inner.get(index);
         }
+
+        @Override
+        public Main.List_<T> sort(BiFunction<T, T, Integer> comparator) {
+            ArrayList<T> copy = new ArrayList<>(this.inner);
+            copy.sort(comparator::apply);
+            return new JavaList<>(copy);
+        }
     }
 
     public static <T> Main.List_<T> empty() {
