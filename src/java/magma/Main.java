@@ -27,6 +27,8 @@ public class Main {
         <R> Option<R> flatMap(Function<T, Option<R>> mapper);
 
         Tuple<Boolean, T> toTuple(T other);
+
+        T orElseGet(Supplier<T> supplier);
     }
 
     public interface IOError {
@@ -206,6 +208,11 @@ public class Main {
         public Tuple<Boolean, T> toTuple(T other) {
             return new Tuple<>(false, other);
         }
+
+        @Override
+        public T orElseGet(Supplier<T> supplier) {
+            return supplier.get();
+        }
     }
 
     private static class EmptyHead<T> implements Head<T> {
@@ -273,6 +280,11 @@ public class Main {
         @Override
         public Tuple<Boolean, T> toTuple(T other) {
             return new Tuple<>(true, this.value);
+        }
+
+        @Override
+        public T orElseGet(Supplier<T> supplier) {
+            return this.value;
         }
     }
 
@@ -1337,18 +1349,25 @@ public class Main {
             }
         }
 
-        if (stripped.endsWith(">")) {
-            String slice = stripped.substring(0, stripped.length() - ">".length());
-            int argsStart = slice.indexOf("<");
-            if (argsStart >= 0) {
-                String base = slice.substring(0, argsStart).strip();
-                String params = slice.substring(argsStart + "<".length()).strip();
-                return compileValues(params, type -> compileWhitespace(type).or(() -> compileType(type, typeParams)))
-                        .map(compiled -> base + "<" + compiled + ">");
-            }
+        return unwrap(compileGeneric(stripped, typeParams).<Result<String, CompileError>>map(Ok::new)
+                .orElseGet(() -> new Err<String, CompileError>(new CompileError("Invalid input: ", input))));
+    }
+
+    private static Option<String> compileGeneric(String stripped, List_<String> typeParams) {
+        if (!stripped.endsWith(">")) {
+            return new None<>();
         }
 
-        return unwrap(new Err<String, CompileError>(new CompileError("Invalid input: ", input)));
+        String slice = stripped.substring(0, stripped.length() - ">".length());
+        int argsStart = slice.indexOf("<");
+        if (argsStart < 0) {
+            return new None<>();
+        }
+
+        String base = slice.substring(0, argsStart).strip();
+        String params = slice.substring(argsStart + "<".length()).strip();
+        return compileValues(params, type -> compileWhitespace(type).or(() -> compileType(type, typeParams)))
+                .map(compiled -> base + "<" + compiled + ">");
     }
 
     private static boolean isSymbol(String input) {
