@@ -1,14 +1,11 @@
 package magma;
 
-import java.util.Deque;
-import java.util.LinkedList;
 import java.util.Optional;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 public class Main {
@@ -34,6 +31,10 @@ public class Main {
         int size();
 
         List_<T> slice(int startInclusive, int endExclusive);
+
+        Optional<Tuple<T, List_<T>>> popFirst();
+
+        Optional<T> peekFirst();
     }
 
     public interface Path_ {
@@ -187,20 +188,24 @@ public class Main {
     }
 
     private static class State {
-        private final Deque<Character> queue;
+        private final List_<Character> queue;
         private List_<String> segments;
         private StringBuilder buffer;
         private int depth;
 
-        private State(Deque<Character> queue, List_<String> segments, StringBuilder buffer, int depth) {
+        private State(List_<Character> queue, List_<String> segments, StringBuilder buffer, int depth) {
             this.queue = queue;
             this.segments = segments;
             this.buffer = buffer;
             this.depth = depth;
         }
 
-        public State(Deque<Character> queue) {
+        public State(List_<Character> queue) {
             this(queue, Lists.empty(), new StringBuilder(), 0);
+        }
+
+        private Optional<State> popAndAppend() {
+            return this.pop().map(tuple -> tuple.right.append(tuple.left));
         }
 
         private State advance() {
@@ -218,8 +223,10 @@ public class Main {
             return this.depth == 0;
         }
 
-        private char pop() {
-            return this.queue.pop();
+        private Optional<Tuple<Character, State>> pop() {
+            return this.queue.popFirst().map(tuple -> {
+                return new Tuple<>(tuple.left, new State(tuple.right, this.segments, this.buffer, this.depth));
+            });
         }
 
         private boolean hasElements() {
@@ -241,16 +248,11 @@ public class Main {
         }
 
         public Optional<Character> peek() {
-            if (!this.queue.isEmpty()) {
-                return Optional.of(this.queue.peek());
-            }
-            else {
-                return Optional.empty();
-            }
+            return this.queue.peekFirst();
         }
     }
 
-    private record Tuple<A, B>(A left, B right) {
+    public record Tuple<A, B>(A left, B right) {
     }
 
     private static class Iterators {
@@ -266,6 +268,14 @@ public class Main {
         public static <T> Iterator<T> from(T... array) {
             return new HeadedIterator<>(new RangeHead(array.length))
                     .map(index -> array[index]);
+        }
+
+        public static Iterator<Character> fromString(String input) {
+            return fromStringWithIndices(input).map(tuple -> tuple.right);
+        }
+
+        public static Iterator<Tuple<Integer, Character>> fromStringWithIndices(String input) {
+            return new HeadedIterator<>(new RangeHead(input.length())).map(index -> new Tuple<>(index, input.charAt(index)));
         }
     }
 
@@ -372,48 +382,74 @@ public class Main {
     }
 
     private static List_<String> divide(String input, BiFunction<State, Character, State> divider) {
-        Deque<Character> queue = IntStream.range(0, input.length())
-                .mapToObj(input::charAt)
-                .collect(Collectors.toCollection(LinkedList::new));
+        List_<Character> queue = Iterators.fromString(input)
+                .collect(new ListCollector<>());
 
         State state = new State(queue);
         while (state.hasElements()) {
-            char c = state.pop();
-
-            if (c == '\'') {
-                state.append(c);
-                char maybeSlash = state.pop();
-                state.append(maybeSlash);
-
-                if (maybeSlash == '\\') {
-                    state.append(state.pop());
-                }
-                state.append(state.pop());
-                continue;
+            Optional<Tuple<Character, State>> maybeNextTuple = state.pop();
+            if (maybeNextTuple.isEmpty()) {
+                break;
             }
 
-            if (c == '\"') {
-                state.append(c);
+            Tuple<Character, State> nextTuple = maybeNextTuple.orElse(new Tuple<>('\0', state));
 
-                while (state.hasElements()) {
-                    char next = state.pop();
-                    state.append(next);
+            char c = nextTuple.left;
+            state = nextTuple.right;
 
-                    if (next == '\\') {
-                        state.append(state.pop());
-                    }
-                    if (next == '"') {
-                        break;
-                    }
-                }
-
-                continue;
-            }
-
-            state = divider.apply(state, c);
+            State finalState = state;
+            state = divideSingleQuotes(state, c)
+                    .or(() -> divideDoubleQuotes(finalState, c))
+                    .orElse(divider.apply(finalState, c));
         }
 
         return state.advance().segments();
+    }
+
+    private static Optional<State> divideSingleQuotes(State state, char c) {
+        if (c != '\'') {
+            return Optional.empty();
+        }
+
+        State appended = state.append(c);
+        Optional<Tuple<Character, State>> maybeSlashTuple = appended.pop();
+        if (maybeSlashTuple.isEmpty()) {
+            return Optional.empty();
+        }
+
+        Tuple<Character, State> slashTuple = maybeSlashTuple.orElse(new Tuple<>('\0', appended));
+        var withMaybeSlash = slashTuple.right.append(slashTuple.left);
+
+        Optional<State> withSlash = slashTuple.left == '\\' ? withMaybeSlash.popAndAppend() : Optional.empty();
+        return withSlash.flatMap(State::popAndAppend);
+    }
+
+    private static Optional<State> divideDoubleQuotes(State state, char c) {
+        if (c != '\"') {
+            return Optional.empty();
+        }
+
+        State current = state.append(c);
+        while (true) {
+            Optional<Tuple<Character, State>> maybeNextTuple = current.pop();
+            if (maybeNextTuple.isEmpty()) {
+                break;
+            }
+
+            Tuple<Character, State> nextTuple = maybeNextTuple.get();
+
+            char next = nextTuple.left;
+            current = nextTuple.right.append(next);
+
+            if (next == '\\') {
+                current = current.popAndAppend().orElse(current);
+            }
+            if (next == '"') {
+                break;
+            }
+        }
+
+        return Optional.of(current);
     }
 
     private static State divideStatementChar(State state, char c) {
@@ -762,30 +798,28 @@ public class Main {
         int conditionEnd = -1;
         int depth0 = 0;
 
-        Deque<Tuple<Integer, Character>> queue = IntStream.range(0, input.length())
-                .mapToObj(index -> new Tuple<>(index, input.charAt(index)))
-                .collect(Collectors.toCollection(LinkedList::new));
+        List_<Tuple<Integer, Character>> queue = Iterators.fromStringWithIndices(input).collect(new ListCollector<>());
 
         while (!queue.isEmpty()) {
-            Tuple<Integer, Character> pair = queue.pop();
+            Tuple<Integer, Character> pair = queue.popFirst().orElseThrow().left;
             Integer i = pair.left;
             Character c = pair.right;
 
             if (c == '\'') {
-                if (queue.pop().right == '\\') {
-                    queue.pop();
+                if (queue.popFirst().orElseThrow().left.right == '\\') {
+                    queue.popFirst().orElseThrow();
                 }
 
-                queue.pop();
+                queue.popFirst().orElseThrow();
                 continue;
             }
 
             if (c == '"') {
                 while (!queue.isEmpty()) {
-                    Tuple<Integer, Character> next = queue.pop();
+                    Tuple<Integer, Character> next = queue.popFirst().orElseThrow().left;
 
                     if (next.right == '\\') {
-                        queue.pop();
+                        queue.popFirst().orElseThrow();
                     }
                     if (next.right == '"') {
                         break;

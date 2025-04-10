@@ -1,4 +1,3 @@
-#include "./java/util/Arrays"
 #include "./java/util/Deque"
 #include "./java/util/LinkedList"
 #include "./java/util/Optional"
@@ -1136,7 +1135,7 @@ Optional<String> compileDefinition(String definition) {
 		else {
 			modifiersString = strippedBeforeTypeParams;
 		}
-		int allSymbols = Arrays.stream(modifiersString.split(Pattern.quote(" "))).map(__lambda104__).filter(__lambda105__).allMatch(__lambda106__);
+		int allSymbols = Iterators.fromArray(modifiersString.split(Pattern.quote(" "))).map(__lambda104__).filter(__lambda105__).allMatch(__lambda106__);
 		if (!allSymbols) {
 			return Optional.empty();
 		}
