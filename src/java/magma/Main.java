@@ -582,6 +582,7 @@ public class Main {
         public String display() {
             String joiner = this.errors.iter()
                     .map(CompileError::display)
+                    .map(value -> "\n" + value)
                     .collect(new Joiner(""))
                     .orElse("");
 
