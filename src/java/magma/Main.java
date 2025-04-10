@@ -89,8 +89,13 @@ public class Main {
             return this.segments;
         }
 
-        public char peek() {
-            return this.queue.peek();
+        public Optional<Character> peek() {
+            if (!this.queue.isEmpty()) {
+                return Optional.of(this.queue.peek());
+            }
+            else {
+                return Optional.empty();
+            }
         }
     }
 
@@ -378,7 +383,7 @@ public class Main {
 
     private static State divideValueChar(State state, char c) {
         if (c == '-') {
-            if (state.peek() == '>') {
+            if (state.peek().orElse('\0') == '>') {
                 state.pop();
                 return state.append('-').append('>');
             }
