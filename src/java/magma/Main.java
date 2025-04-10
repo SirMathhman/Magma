@@ -1504,76 +1504,85 @@ public class Main {
                 return new Err<>(new CompileError("Not a symbol", name));
             }
 
-            int typeSeparator = -1;
-            int depth = 0;
-            int i = beforeName.length() - 1;
-            while (i >= 0) {
-                char c = beforeName.charAt(i);
-                if (c == ' ' && depth == 0) {
-                    typeSeparator = i;
-                    break;
-                }
-                else {
-                    if (c == '>') {
-                        depth++;
-                    }
-                    if (c == '<') {
-                        depth--;
-                    }
-                }
-                i--;
-            }
+            return findTypeSeparator(beforeName).match(typeSeparator -> {
+                return getStringCompileErrorResult(beforeName, typeSeparator, name);
+            }, () -> {
+                return getStringCompileErrorResult(beforeName, name);
+            });
+        });
+    }
 
-            if (typeSeparator >= 0) {
-                String beforeType = beforeName.substring(0, typeSeparator).strip();
+    private static Result<String, CompileError> getStringCompileErrorResult(String beforeName, String name) {
+        return compileType(beforeName, Lists.empty())
+                .mapValue(outputType -> generateDefinition(Lists.empty(), outputType, name));
+    }
 
-                String beforeTypeParams = beforeType;
-                List_<String> typeParams;
-                if (beforeType.endsWith(">")) {
-                    String withoutEnd = beforeType.substring(0, beforeType.length() - ">".length());
-                    int typeParamStart = withoutEnd.indexOf("<");
-                    if (typeParamStart >= 0) {
-                        beforeTypeParams = withoutEnd.substring(0, typeParamStart);
-                        String substring = withoutEnd.substring(typeParamStart + 1);
-                        typeParams = splitValues(substring);
-                    }
-                    else {
-                        typeParams = Lists.empty();
-                    }
-                }
-                else {
-                    typeParams = Lists.empty();
-                }
+    private static Result<String, CompileError> getStringCompileErrorResult(String beforeName, int typeSeparator, String name) {
+        String beforeType = beforeName.substring(0, typeSeparator).strip();
 
-                String strippedBeforeTypeParams = beforeTypeParams.strip();
-
-                String modifiersString;
-                int annotationSeparator = strippedBeforeTypeParams.lastIndexOf("\n");
-                if (annotationSeparator >= 0) {
-                    modifiersString = strippedBeforeTypeParams.substring(annotationSeparator + "\n".length());
-                }
-                else {
-                    modifiersString = strippedBeforeTypeParams;
-                }
-
-                boolean allSymbols = divide(modifiersString, new DelimitedDivider(' '))
-                        .iter()
-                        .map(String::strip)
-                        .filter(value -> !value.isEmpty())
-                        .allMatch(Main::isSymbol);
-
-                if (!allSymbols) {
-                    return new Err<>(new CompileError("Invalid modifiers", modifiersString));
-                }
-
-                String inputType = beforeName.substring(typeSeparator + " ".length());
-                return compileType(inputType, typeParams).mapValue(outputType -> generateDefinition(typeParams, outputType, name));
+        String beforeTypeParams = beforeType;
+        List_<String> typeParams;
+        if (beforeType.endsWith(">")) {
+            String withoutEnd = beforeType.substring(0, beforeType.length() - ">".length());
+            int typeParamStart = withoutEnd.indexOf("<");
+            if (typeParamStart >= 0) {
+                beforeTypeParams = withoutEnd.substring(0, typeParamStart);
+                String substring = withoutEnd.substring(typeParamStart + 1);
+                typeParams = splitValues(substring);
             }
             else {
-                return compileType(beforeName, Lists.empty())
-                        .mapValue(outputType -> generateDefinition(Lists.empty(), outputType, name));
+                typeParams = Lists.empty();
             }
-        });
+        }
+        else {
+            typeParams = Lists.empty();
+        }
+
+        String strippedBeforeTypeParams = beforeTypeParams.strip();
+
+        String modifiersString;
+        int annotationSeparator = strippedBeforeTypeParams.lastIndexOf("\n");
+        if (annotationSeparator >= 0) {
+            modifiersString = strippedBeforeTypeParams.substring(annotationSeparator + "\n".length());
+        }
+        else {
+            modifiersString = strippedBeforeTypeParams;
+        }
+
+        boolean allSymbols = divide(modifiersString, new DelimitedDivider(' '))
+                .iter()
+                .map(String::strip)
+                .filter(value -> !value.isEmpty())
+                .allMatch(Main::isSymbol);
+
+        if (!allSymbols) {
+            return new Err<>(new CompileError("Invalid modifiers", modifiersString));
+        }
+
+        String inputType = beforeName.substring(typeSeparator + " ".length());
+        return compileType(inputType, typeParams).mapValue(outputType -> generateDefinition(typeParams, outputType, name));
+    }
+
+    private static Option<Integer> findTypeSeparator(String beforeName) {
+        int depth = 0;
+        int i = beforeName.length() - 1;
+        while (i >= 0) {
+            char c = beforeName.charAt(i);
+            if (c == ' ' && depth == 0) {
+                return new Some<>(i);
+            }
+            else {
+                if (c == '>') {
+                    depth++;
+                }
+                if (c == '<') {
+                    depth--;
+                }
+            }
+            i--;
+        }
+
+        return new None<>();
     }
 
     private static List_<String> splitValues(String substring) {
