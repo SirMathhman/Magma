@@ -44,8 +44,6 @@ public class Main {
 
         boolean isEmpty();
 
-        T getFirst();
-
         int size();
 
         List_<T> slice(int startInclusive, int endExclusive);
@@ -61,8 +59,6 @@ public class Main {
         Path_ resolveSibling(String sibling);
 
         List_<String> asList();
-
-        Path_ resolveChild(String child);
     }
 
     public interface Iterator<T> {
@@ -341,9 +337,7 @@ public class Main {
         }
 
         private Option<Tuple<Character, State>> pop() {
-            return this.queue.popFirst().map(tuple -> {
-                return new Tuple<>(tuple.left, new State(tuple.right, this.segments, this.buffer, this.depth));
-            });
+            return this.queue.popFirst().map(tuple -> new Tuple<>(tuple.left, new State(tuple.right, this.segments, this.buffer, this.depth)));
         }
 
         private boolean hasElements() {

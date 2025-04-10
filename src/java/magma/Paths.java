@@ -16,10 +16,6 @@ public class Paths {
                     .collect(new Main.ListCollector<>());
         }
 
-        @Override
-        public Main.Path_ resolveChild(String child) {
-            return new NIOPath(this.path.resolve(child));
-        }
     }
 
     public static Main.Path_ get(String first, String... elements) {

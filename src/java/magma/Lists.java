@@ -40,11 +40,6 @@ public class Lists {
         }
 
         @Override
-        public T getFirst() {
-            return this.inner.getFirst();
-        }
-
-        @Override
         public int size() {
             return this.inner.size();
         }
