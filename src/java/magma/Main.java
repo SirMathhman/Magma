@@ -888,7 +888,7 @@ public class Main {
         String stripped = input.strip();
         if (stripped.endsWith(";")) {
             String content = stripped.substring(0, stripped.length() - ";".length());
-            return getWrap(content).mapValue(result -> "\t" + result + ";\n");
+            return compileDefinition(content).mapValue(result -> "\t" + result + ";\n");
         }
         return createSuffixErr(input, ";");
     }
@@ -921,7 +921,7 @@ public class Main {
 
         String definition = withoutEnd.substring(0, valueSeparator).strip();
         String value = withoutEnd.substring(valueSeparator + "=".length()).strip();
-        return unwrap(getWrap(definition)).flatMap(outputDefinition -> compileValue(value, typeParams, depth).map(outputValue -> outputDefinition + " = " + outputValue));
+        return unwrap(compileDefinition(definition)).flatMap(outputDefinition -> unwrap(compileValue(value, typeParams, depth)).map(outputValue -> outputDefinition + " = " + outputValue));
     }
 
     private static Result<String, CompileError> compileWhitespace(String input) {
@@ -940,14 +940,14 @@ public class Main {
         String inputDefinition = input.substring(0, paramStart).strip();
         String withParams = input.substring(paramStart + "(".length());
 
-        return unwrap(getWrap(inputDefinition)).flatMap(outputDefinition -> {
+        return unwrap(compileDefinition(inputDefinition)).flatMap(outputDefinition -> {
             int paramEnd = withParams.indexOf(")");
             if (paramEnd < 0) {
                 return new None<>();
             }
 
             String params = withParams.substring(0, paramEnd);
-            return compileValues(params, definition -> compileParameter(definition).findValue())
+            return compileValues(params, Main::compileParameter).findValue()
                     .flatMap(outputParams -> assembleMethodBody(typeParams, outputDefinition, outputParams, withParams.substring(paramEnd + ")".length()).strip()));
         });
     }
@@ -973,13 +973,12 @@ public class Main {
     private static Result<String, CompileError> compileParameter(String definition) {
         return compileOr(definition, Lists.of(
                 Main::compileWhitespace,
-                Main::getWrap
+                Main::compileDefinition
         ));
     }
 
-    private static Option<String> compileValues(String input, Function<String, Option<String>> compiler) {
-        List_<String> divided = divide(input, new DecoratedDivider(Main::divideValueChar));
-        return compileValues(divided, compiler);
+    private static Result<String, CompileError> compileValues(String input, Rule rule) {
+        return compileValues(divide(input, new DecoratedDivider(Main::divideValueChar)), rule);
     }
 
     private static State divideValueChar(State state, char c) {
@@ -1003,8 +1002,8 @@ public class Main {
         return appended;
     }
 
-    private static Option<String> compileValues(List_<String> params, Function<String, Option<String>> compiler) {
-        return compileAndMerge(params, s -> wrap(compiler.apply(s)), Main::mergeValues).findValue();
+    private static Result<String, CompileError> compileValues(List_<String> segments, Rule rule) {
+        return compileAndMerge(segments, rule, Main::mergeValues);
     }
 
     private static Option<String> compileStatementOrBlock(String input, List_<String> typeParams, int depth) {
@@ -1024,7 +1023,7 @@ public class Main {
                     String stripped = input.strip();
                     if (stripped.endsWith(";")) {
                         String content = stripped.substring(0, stripped.length() - ";".length());
-                        return unwrap(getWrap(content)).map(result -> "\t" + result + ";\n");
+                        return unwrap(compileDefinition(content)).map(result -> "\t" + result + ";\n");
                     }
                     return new None<>();
                 })
@@ -1035,7 +1034,7 @@ public class Main {
         String stripped = input.strip();
         if (stripped.endsWith(operator + ";")) {
             String slice = stripped.substring(0, stripped.length() - (operator + ";").length());
-            return compileValue(slice, typeParams, depth).map(value -> value + operator + ";");
+            return unwrap(compileValue(slice, typeParams, depth)).map(value -> value + operator + ";");
         }
         else {
             return new None<>();
@@ -1096,7 +1095,7 @@ public class Main {
         String oldCondition = withoutConditionStart.substring(0, conditionEnd).strip();
         String withBraces = withoutConditionStart.substring(conditionEnd + ")".length()).strip();
 
-        return compileValue(oldCondition, typeParams, depth).flatMap(newCondition -> {
+        return unwrap(compileValue(oldCondition, typeParams, depth)).flatMap(newCondition -> {
             String withCondition = createIndent(depth) + prefix + "(" + newCondition + ")";
 
             if (withBraces.startsWith("{") && withBraces.endsWith("}")) {
@@ -1189,7 +1188,7 @@ public class Main {
             if (valueSeparator >= 0) {
                 String destination = withoutEnd.substring(0, valueSeparator).strip();
                 String source = withoutEnd.substring(valueSeparator + "=".length()).strip();
-                return compileValue(destination, typeParams, depth).flatMap(newDest -> compileValue(source, typeParams, depth).map(newSource -> newDest + " = " + newSource));
+                return unwrap(compileValue(destination, typeParams, depth)).flatMap(newDest -> unwrap(compileValue(source, typeParams, depth)).map(newSource -> newDest + " = " + newSource));
             }
         }
         return new None<>();
@@ -1200,14 +1199,18 @@ public class Main {
         if (stripped.endsWith(";")) {
             String withoutEnd = stripped.substring(0, stripped.length() - ";".length());
             if (withoutEnd.startsWith("return ")) {
-                return compileValue(withoutEnd.substring("return ".length()), typeParams, depth).map(result -> "return " + result);
+                return unwrap(compileValue(withoutEnd.substring("return ".length()), typeParams, depth)).map(result -> "return " + result);
             }
         }
 
         return new None<>();
     }
 
-    private static Option<String> compileValue(String input, List_<String> typeParams, int depth) {
+    private static Result<String, CompileError> compileValue(String input, List_<String> typeParams, int depth) {
+        return wrap(getStringOption(input, typeParams, depth));
+    }
+
+    private static Option<String> getStringOption(String input, List_<String> typeParams, int depth) {
         String stripped = input.strip();
         if (stripped.startsWith("\"") && stripped.endsWith("\"")) {
             return new Some<>(stripped);
@@ -1234,7 +1237,7 @@ public class Main {
         }
 
         if (stripped.startsWith("!")) {
-            return compileValue(stripped.substring(1), typeParams, depth).map(result -> "!" + result);
+            return unwrap(compileValue(stripped.substring(1), typeParams, depth)).map(result -> "!" + result);
         }
 
         Option<String> value = compileLambda(stripped, typeParams, depth);
@@ -1261,7 +1264,7 @@ public class Main {
         if (separator >= 0) {
             String object = input.substring(0, separator).strip();
             String property = input.substring(separator + ".".length()).strip();
-            return compileValue(object, typeParams, depth).map(compiled -> compiled + "." + property);
+            return unwrap(compileValue(object, typeParams, depth)).map(compiled -> compiled + "." + property);
         }
 
         return compileOperator(input, typeParams, depth, "||")
@@ -1283,7 +1286,7 @@ public class Main {
         String left = input.substring(0, operatorIndex);
         String right = input.substring(operatorIndex + operator.length());
 
-        return compileValue(left, typeParams, depth).flatMap(leftResult -> compileValue(right, typeParams, depth).map(rightResult -> leftResult + " " + operator + " " + rightResult));
+        return unwrap(compileValue(left, typeParams, depth)).flatMap(leftResult -> unwrap(compileValue(right, typeParams, depth)).map(rightResult -> leftResult + " " + operator + " " + rightResult));
     }
 
     private static Option<String> compileLambda(String input, List_<String> typeParams, int depth) {
@@ -1316,7 +1319,7 @@ public class Main {
                     .flatMap(result -> generateLambdaWithReturn(paramNames, result));
         }
 
-        return compileValue(value, typeParams, depth).flatMap(newValue -> generateLambdaWithReturn(paramNames, "\n\treturn " + newValue + ";"));
+        return unwrap(compileValue(value, typeParams, depth)).flatMap(newValue -> generateLambdaWithReturn(paramNames, "\n\treturn " + newValue + ";"));
     }
 
     private static Option<String> generateLambdaWithReturn(List_<String> paramNames, String returnValue) {
@@ -1352,7 +1355,7 @@ public class Main {
             if (argsStart >= 0) {
                 String type = sliced.substring(0, argsStart);
                 String withEnd = sliced.substring(argsStart + "(".length()).strip();
-                return compileValue(type, typeParams, depth).flatMap(caller -> compileArgs(withEnd, typeParams, depth).map(value -> caller + value));
+                return unwrap(compileValue(type, typeParams, depth)).flatMap(caller -> compileArgs(withEnd, typeParams, depth).map(value -> caller + value));
             }
         }
         return new None<>();
@@ -1381,7 +1384,10 @@ public class Main {
     }
 
     private static Option<String> compileArgs(String argsString, List_<String> typeParams, int depth) {
-        return compileValues(argsString, arg -> unwrap(compileWhitespace(arg)).or(() -> compileValue(arg, typeParams, depth))).map(args -> "(" + args + ")");
+        return compileValues(argsString, arg -> compileOr(arg, Lists.of(
+                Main::compileWhitespace,
+                value -> compileValue(value, typeParams, depth)
+        ))).findValue().map(args -> "(" + args + ")");
     }
 
     private static StringBuilder mergeValues(StringBuilder cache, String element) {
@@ -1391,7 +1397,7 @@ public class Main {
         return cache.append(", ").append(element);
     }
 
-    private static Result<String, CompileError> getWrap(String definition) {
+    private static Result<String, CompileError> compileDefinition(String definition) {
         return wrap(getStringOption(definition));
     }
 
@@ -1540,8 +1546,15 @@ public class Main {
 
         String base = slice.substring(0, argsStart).strip();
         String params = slice.substring(argsStart + "<".length()).strip();
-        return compileValues(params, type -> unwrap(compileWhitespace(type)).or(() -> unwrap(compileType(type, typeParams))))
+        return compileValues(params, s -> getWrap(typeParams, s)).findValue()
                 .map(compiled -> base + "<" + compiled + ">");
+    }
+
+    private static Result<String, CompileError> getWrap(List_<String> typeParams, String s) {
+        return compileOr(s, Lists.of(
+                Main::compileWhitespace,
+                type -> compileType(type, typeParams)
+        ));
     }
 
     private static Option<String> compileArray(String input, List_<String> typeParams) {
