@@ -1,8 +1,3 @@
-#include "./java/util/function/BiFunction"
-#include "./java/util/function/Consumer"
-#include "./java/util/function/Function"
-#include "./java/util/function/Predicate"
-#include "./java/util/function/Supplier"
 #include "./java/util/regex/Pattern"
 #include "./java/util/stream/IntStream"
 struct Result {
@@ -30,6 +25,7 @@ struct List_ {
 	List_<T> slice(int startInclusive, int endExclusive);
 	Option<Tuple<T, List_<T>>> popFirst();
 	Option<T> peekFirst();
+	T get(int index);
 };
 struct Path_ {
 	Path_ resolveSibling(String sibling);
@@ -87,15 +83,103 @@ struct ListCollector {
 struct Joiner {
 };
 struct Main {
-	String compile(String input);
-};
+/* 
+        Files.readString(source)
+                .match(input -> compileAndWrite(source, input), Some::new)
+                .ifPresent(error -> System.err.println(error.display())); */	Option<IOError> compileAndWrite(Path_ source, String input);
+	List_<String> mergeStatics(List_<String> list);
+	Option<String> compileStatements(String input, Function<String, Option<String>> compiler);
+	Option<String> compileAndMerge(List_<String> segments, Function<String, Option<String>> compiler, BiFunction<StringBuilder, String, StringBuilder> merger);
+	String mergeAll(List_<String> compiled, BiFunction<StringBuilder, String, StringBuilder> merger);
+	Option<List_<String>> parseAll(List_<String> segments, Function<String, Option<String>> compiler);
+	StringBuilder mergeStatements(StringBuilder output, String compiled);
+	List_<String> divide(String input, BiFunction<State, Character, State> divider);
+/* 
+        while (state.hasElements()) {
+            Option<Tuple<Character, State>> maybeNextTuple = state.pop();
+            if (maybeNextTuple.isEmpty()) {
+                break;
+            }
+
+            Tuple<Character, State> nextTuple = maybeNextTuple.orElse(new Tuple<>('\0''',', state));
+
+            char c = nextTuple.left;
+            state = nextTuple.right;
+
+            State finalState = state;
+            state = divideSingleQuotes(state, c)
+                    .or(() -> divideDoubleQuotes(finalState, c))
+                    .orElse(divider.apply(finalState, c));
+        } *//* 
+
+        return state.advance().segments(); *//* 
+        if (maybeSlashTuple.isEmpty()) {
+            return new None<>();
+        } *//* 
+        return withSlash.flatMap(State::popAndAppend); *//* 
+        while (true) {
+            Option<Tuple<Character, State>> maybeNextTuple = current.pop();
+            if (maybeNextTuple.isEmpty()) {
+                break;
+            }
+
+            Tuple<Character, State> nextTuple = maybeNextTuple.orElse(null);
+
+            char next = nextTuple.left;
+            current = nextTuple.right.append(next);
+
+            if (next == '\\''')') {
+                current = current.popAndAppend().orElse(current);
+            }
+            if (next == '"'"'""')') {
+                break;
+            }
+        } *//* 
+
+        return new Some<>(current); */	State divideStatementChar(State state, char c);
+/* 
+        if (c == ';';' ' && appended.isLevel()) {
+            return appended.advance();
+        } *//* 
+        if (c == '}'} *//* ' ' && isShallow(appended)) {
+            return appended.advance().exit(); */	/* } */ if(/* c == '{'{'{'{' ' ' ' || c == '('('('('' */);
+	int isShallow(State state);
+	/* } */ if(/* input.startsWith(""""package "" */);
+/* 
+        }
+
+        String stripped = input.strip();
+        if (stripped.startsWith("""import ")) {
+            String right = stripped.substring("""import "".length()); *//* 
+            if (right.endsWith(""";")) {
+                String content = right.substring(0, right.length() - """;"".length());
+                List_<String> split = Lists.fromArray(content.split(Pattern.quote(""".")));
+                if (split.size() < 3 || !Lists.equals(split.slice(0, 3), FUNCTIONAL_NAMESPACE, String::equals)) {
+                    String joined = split.iter().collect(new Joiner("""/"")).orElse("""");
+                    imports.add("""#include \"./""" + joined + ""\"\n""");
+                }
+
+                return new Some<>(""""");
+            }
+         */};
 int retrieved = false;
 int counter = 0;
-List_<String> imports = Lists.empty();
-List_<String> structs = Lists.empty();
-List_<String> globals = Lists.empty();
-List_<String> methods = Lists.empty();
-int counter = 0;
+List_<String> FUNCTIONAL_NAMESPACE = Lists.of("java""", ""util""", "function""");
+    private static final List_<String> imports = Lists.empty();
+    private static final List_<String> structs = Lists.empty();
+    private static final List_<String> globals = Lists.empty();
+    private static final List_<String> methods = Lists.empty();
+    private static int counter = 0;
+
+    public static void main(String[] args) {
+        Path_ source = Paths.get("""."""", ""src"""", """java""""", "magma""""", """Main.java""""");
+State state = State(queue);
+State appended = state.append(c);
+Option<Tuple<char, State>> maybeSlashTuple = appended.pop();
+Tuple<char, State> slashTuple = maybeSlashTuple.orElse(Tuple<>('\0''''''''''''''',', ',', ',', ',', appended));
+var withMaybeSlash = slashTuple.right.append(slashTuple.left);
+Option<State> withSlash = slashTuple.left == '\\''' ' ? withMaybeSlash.popAndAppend() : new None<>();
+State current = state.append(c);
 auto __lambda0__(auto next) {
 	return /* > folder */.apply(finalCurrent;
 }
@@ -326,36 +410,33 @@ auto __lambda12__(auto inner) {
 Option<String> fold(Option<String> current, String element) {
 	return Some<>(current.map(__lambda12__).orElse(element));
 }
-auto __lambda13__(auto input) {
-	return /* > compileAndWrite(source */;
+Option<State> divideSingleQuotes(State state, char c) {
+	if (c != '\''''''') 
+	/* ')')') {
+            return new None */ < /* > */();
 }
-auto __lambda14__ {
-	return /* input), Some */.new()
-}
-auto __lambda15__(auto error) {
-	return /* > System */.err.println(error.display());
-}
-void main(String* args) {
-	Path_ source = Paths.get("."""""""", """"src"""""", """java"""""", """""magma""""""", ""Main.java"""""""");
-	Files.readString(source).match(__lambda13__, __lambda14__).ifPresent(__lambda15__);/* 
-    }
-
-    private static Option<IOError> compileAndWrite(Path_ source, String input) {
-        Path_ target = source.resolveSibling("""main.c"""");
-        String output = compile(input);
-        return Files.writeString(target, output);
-    " */
+Option<State> divideDoubleQuotes(State state, char c) {
+	/* if (c ! */ = /* '\"'''''')')')') {
+            return new None */ < /* > */();
 }
 /* 
 
+        Option<String> maybeClass = compileToStruct(input, "class "", Lists.empty()); *//* 
+        if (maybeClass.isPresent()) {
+            return maybeClass;
+        } *//* 
+
+        return generatePlaceholder(input); *//* 
+    }
+
     private static Option<String> compileToStruct(String input, String infix, List_<String> typeParams) {
-        int classIndex = input.indexOf(infix);
+        int classIndex = input.indexOf(infix); *//* 
         if (classIndex < 0) {
             return new None<>();
-        }
+        } *//* 
 
-        String afterKeyword = input.substring(classIndex + infix.length());
-        int contentStart = afterKeyword.indexOf("{"");
+        String afterKeyword = input.substring(classIndex + infix.length()); *//* 
+        int contentStart = afterKeyword.indexOf("{""); *//* 
         if (contentStart >= 0) {
             String beforeContent = afterKeyword.substring(0, contentStart).strip();
             int implementsIndex = beforeContent.indexOf(" implements "");
@@ -410,9 +491,9 @@ void main(String* args) {
                     });
                 }
             }
-        }
-        return new None<>();
-    } *//* 
+        } *//* 
+        return new None<>(); *//* 
+    }
 
     private static Option<String> compileClassMember(String input, List_<String> typeParams) {
         return compileWhitespace(input)
@@ -422,56 +503,56 @@ void main(String* args) {
                 .or(() -> compileGlobalInitialization(input, typeParams))
                 .or(() -> compileDefinitionStatement(input))
                 .or(() -> compileMethod(input, typeParams))
-                .or(() -> generatePlaceholder(input));
-    } *//* 
+                .or(() -> generatePlaceholder(input)); *//* 
+    }
 
     private static Option<String> compileDefinitionStatement(String input) {
-        String stripped = input.strip();
+        String stripped = input.strip(); *//* 
         if (stripped.endsWith(";"")) {
             String content = stripped.substring(0, stripped.length() - ";"".length());
             return compileDefinition(content).map(result -> "\t"" + result + ";\n"");
-        }
-        return new None<>();
-    } *//* 
+        } *//* 
+        return new None<>(); *//* 
+    }
 
     private static Option<String> compileGlobalInitialization(String input, List_<String> typeParams) {
         return compileInitialization(input, typeParams, 0).map(generated -> {
             globals.add(generated + ";\n"");
             return """;
-        });
-    } *//* 
+        }); *//* 
+    }
 
     private static Option<String> compileInitialization(String input, List_<String> typeParams, int depth) {
         if (!input.endsWith(";"")) {
             return new None<>();
-        }
+        } *//* 
 
-        String withoutEnd = input.substring(0, input.length() - ";"".length());
-        int valueSeparator = withoutEnd.indexOf("="");
+        String withoutEnd = input.substring(0, input.length() - ";"".length()); *//* 
+        int valueSeparator = withoutEnd.indexOf("=""); *//* 
         if (valueSeparator < 0) {
             return new None<>();
-        }
+        } *//* 
 
-        String definition = withoutEnd.substring(0, valueSeparator).strip();
-        String value = withoutEnd.substring(valueSeparator + "="".length()).strip();
-        return compileDefinition(definition).flatMap(outputDefinition -> compileValue(value, typeParams, depth).map(outputValue -> outputDefinition + " = "" + outputValue));
-    } *//* 
+        String definition = withoutEnd.substring(0, valueSeparator).strip(); *//* 
+        String value = withoutEnd.substring(valueSeparator + "="".length()).strip(); *//* 
+        return compileDefinition(definition).flatMap(outputDefinition -> compileValue(value, typeParams, depth).map(outputValue -> outputDefinition + " = "" + outputValue)); *//* 
+    }
 
     private static Option<String> compileWhitespace(String input) {
         if (input.isBlank()) {
             return new Some<>(""");
-        }
-        return new None<>();
-    } *//* 
+        } *//* 
+        return new None<>(); *//* 
+    }
 
     private static Option<String> compileMethod(String input, List_<String> typeParams) {
-        int paramStart = input.indexOf("("");
+        int paramStart = input.indexOf("(""); *//* 
         if (paramStart < 0) {
             return new None<>();
-        }
+        } *//* 
 
-        String inputDefinition = input.substring(0, paramStart).strip();
-        String withParams = input.substring(paramStart + "("".length());
+        String inputDefinition = input.substring(0, paramStart).strip(); *//* 
+        String withParams = input.substring(paramStart + "("".length()); *//* 
 
         return compileDefinition(inputDefinition).flatMap(outputDefinition -> {
             int paramEnd = withParams.indexOf(")"");
@@ -482,8 +563,8 @@ void main(String* args) {
             String params = withParams.substring(0, paramEnd);
             return compileValues(params, Main::compileParameter)
                     .flatMap(outputParams -> assembleMethodBody(typeParams, outputDefinition, outputParams, withParams.substring(paramEnd + ")"".length()).strip()));
-        });
-    } *//* 
+        }); *//* 
+    }
 
     private static Option<String> assembleMethodBody(
             List_<String> typeParams,
@@ -491,28 +572,28 @@ void main(String* args) {
             String params,
             String body
     ) {
-        String header = "\t"".repeat(0) + definition + "("" + params + ")"";
+        String header = "\t"".repeat(0) + definition + "("" + params + ")""; *//* 
         if (body.startsWith("{"") && body.endsWith("}"")) {
             String inputContent = body.substring("{"".length(), body.length() - "}"".length());
             return compileStatements(inputContent, input1 -> compileStatementOrBlock(input1, typeParams, 1)).flatMap(outputContent -> {
                 methods.add(header + " {"" + outputContent + "\n}\n"");
                 return new Some<>(""");
             });
-        }
+        } *//* 
 
-        return new Some<>("\t"" + header + ";\n"");
-    } *//* 
+        return new Some<>("\t"" + header + ";\n""); *//* 
+    }
 
     private static Option<String> compileParameter(String definition) {
         return compileWhitespace(definition)
                 .or(() -> compileDefinition(definition))
-                .or(() -> generatePlaceholder(definition));
-    } *//* 
+                .or(() -> generatePlaceholder(definition)); *//* 
+    }
 
     private static Option<String> compileValues(String input, Function<String, Option<String>> compiler) {
-        List_<String> divided = divide(input, Main::divideValueChar);
-        return compileValues(divided, compiler);
-    } *//* 
+        List_<String> divided = divide(input, Main::divideValueChar); *//* 
+        return compileValues(divided, compiler); *//* 
+    }
 
     private static State divideValueChar(State state, char c) {
         if (c == '-'-')') {
@@ -520,25 +601,25 @@ void main(String* args) {
                 state.pop();
                 return state.append('-'-')').append('>'>')');
             }
-        }
+        } *//* 
 
         if (c == ',',' ' && state.isLevel()) {
             return state.advance();
-        }
+        } *//* 
 
-        State appended = state.append(c);
+        State appended = state.append(c); *//* 
         if (c == '<'<' ' || c == '('(')') {
             return appended.enter();
         }
         if (c == '>'>' ' || c == ')')')') {
             return appended.exit();
-        }
-        return appended;
-    } *//* 
+        } *//* 
+        return appended; *//* 
+    }
 
     private static Option<String> compileValues(List_<String> params, Function<String, Option<String>> compiler) {
-        return compileAndMerge(params, compiler, Main::mergeValues);
-    } *//* 
+        return compileAndMerge(params, compiler, Main::mergeValues); *//* 
+    }
 
     private static Option<String> compileStatementOrBlock(String input, List_<String> typeParams, int depth) {
         return compileWhitespace(input)
@@ -554,22 +635,22 @@ void main(String* args) {
                 .or(() -> compileAssignment(input, typeParams, depth).map(result -> formatStatement(depth, result)))
                 .or(() -> compileInvocationStatement(input, typeParams, depth).map(result -> formatStatement(depth, result)))
                 .or(() -> compileDefinitionStatement(input))
-                .or(() -> generatePlaceholder(input));
-    } *//* 
+                .or(() -> generatePlaceholder(input)); *//* 
+    }
 
     private static Option<String> compilePostOperator(String input, List_<String> typeParams, int depth, String operator) {
-        String stripped = input.strip();
+        String stripped = input.strip(); *//* 
         if (stripped.endsWith(operator + ";"")) {
             String slice = stripped.substring(0, stripped.length() - (operator + ";"").length());
             return compileValue(slice, typeParams, depth).map(value -> value + operator + ";"");
-        }
+        } *//* 
         else {
             return new None<>();
-        }
-    } *//* 
+        } *//* 
+    }
 
     private static Option<String> compileElse(String input, List_<String> typeParams, int depth) {
-        String stripped = input.strip();
+        String stripped = input.strip(); *//* 
         if (stripped.startsWith("else "")) {
             String withoutKeyword = stripped.substring("else "".length()).strip();
             if (withoutKeyword.startsWith("{"") && withoutKeyword.endsWith("}"")) {
@@ -581,47 +662,47 @@ void main(String* args) {
             else {
                 return compileStatementOrBlock(withoutKeyword, typeParams, depth).map(result -> "else "" + result);
             }
-        }
+        } *//* 
 
-        return new None<>();
-    } *//* 
+        return new None<>(); *//* 
+    }
 
     private static Option<String> compileKeywordStatement(String input, int depth, String keyword) {
         if (input.strip().equals(keyword + ";"")) {
             return new Some<>(formatStatement(depth, keyword));
-        }
+        } *//* 
         else {
             return new None<>();
-        }
-    } *//* 
+        } *//* 
+    }
 
     private static String formatStatement(int depth, String value) {
-        return createIndent(depth) + value + ";"";
-    } *//* 
+        return createIndent(depth) + value + ";""; *//* 
+    }
 
     private static String createIndent(int depth) {
-        return "\n"" + "\t"".repeat(depth);
-    } *//* 
+        return "\n"" + "\t"".repeat(depth); *//* 
+    }
 
     private static Option<String> compileConditional(String input, List_<String> typeParams, String prefix, int depth) {
-        String stripped = input.strip();
+        String stripped = input.strip(); *//* 
         if (!stripped.startsWith(prefix)) {
             return new None<>();
-        }
+        } *//* 
 
-        String afterKeyword = stripped.substring(prefix.length()).strip();
+        String afterKeyword = stripped.substring(prefix.length()).strip(); *//* 
         if (!afterKeyword.startsWith("("")) {
             return new None<>();
-        }
+        } *//* 
 
-        String withoutConditionStart = afterKeyword.substring(1);
-        int conditionEnd = findConditionEnd(withoutConditionStart);
+        String withoutConditionStart = afterKeyword.substring(1); *//* 
+        int conditionEnd = findConditionEnd(withoutConditionStart); *//* 
 
         if (conditionEnd < 0) {
             return new None<>();
-        }
-        String oldCondition = withoutConditionStart.substring(0, conditionEnd).strip();
-        String withBraces = withoutConditionStart.substring(conditionEnd + ")"".length()).strip();
+        } *//* 
+        String oldCondition = withoutConditionStart.substring(0, conditionEnd).strip(); *//* 
+        String withBraces = withoutConditionStart.substring(conditionEnd + ")"".length()).strip(); *//* 
 
         return compileValue(oldCondition, typeParams, depth).flatMap(newCondition -> {
             String withCondition = createIndent(depth) + prefix + "("" + newCondition + ")"";
@@ -636,15 +717,15 @@ void main(String* args) {
             else {
                 return compileStatementOrBlock(withBraces, typeParams, depth).map(result -> withCondition + " "" + result);
             }
-        });
+        }); *//* 
 
-    } *//* 
+    }
 
     private static int findConditionEnd(String input) {
-        int conditionEnd = -1;
-        int depth0 = 0;
+        int conditionEnd = -1; *//* 
+        int depth0 = 0; *//* 
 
-        List_<Tuple<Integer, Character>> queue = Iterators.fromStringWithIndices(input).collect(new ListCollector<>());
+        List_<Tuple<Integer, Character>> queue = Iterators.fromStringWithIndices(input).collect(new ListCollector<>()); *//* 
 
         while (!queue.isEmpty()) {
             Tuple<Tuple<Integer, Character>, List_<Tuple<Integer, Character>>> tupleListTuple = queue.popFirst().orElse(null);
@@ -665,7 +746,9 @@ void main(String* args) {
 
             if (c == '"'"') {
                 while (!queue.isEmpty()) {
-                    Tuple<Integer, Character> next = queue.popFirst().orElse(null).left;
+                    Tuple<Tuple<Integer, Character>, List_<Tuple<Integer, Character>>> tupleListTuple1 = queue.popFirst().orElse(null);
+                    Tuple<Integer, Character> next = tupleListTuple1.left;
+                    queue = tupleListTuple1.right;
 
                     if (next.right == '\\') {
                         queue.popFirst().orElse(null);
@@ -673,21 +756,21 @@ void main(String* args) {
                     if (next.right == '""')') {
                         break;
                     }
-                }
+                } *//* 
 
-                continue;
-            } *//* 
+                continue; *//* 
+            }
 
             if (c == ')')' ' && depth0 == 0) {
-                conditionEnd = i; *//* 
-                break; *//* 
+                conditionEnd = i;
+                break;
             }
 
             if (c == '('(')') {
-                depth0++;
-            } *//* 
+                depth0++; *//* 
+            }
             if (c == ')')')') {
-                depth0--; *//* 
+                depth0--;
             }
         }
         return conditionEnd;
@@ -699,7 +782,7 @@ void main(String* args) {
             String withoutEnd = stripped.substring(0, stripped.length() - ";"".length());
             Option<String> maybeInvocation = compileInvocation(withoutEnd, typeParams, depth);
             if (maybeInvocation.isPresent()) {
-                return maybeInvocation; *//* 
+                return maybeInvocation;
             }
         }
         return new None<>();
@@ -711,9 +794,9 @@ void main(String* args) {
             String withoutEnd = stripped.substring(0, stripped.length() - ";"".length());
             int valueSeparator = withoutEnd.indexOf("="");
             if (valueSeparator >= 0) {
-                String destination = withoutEnd.substring(0, valueSeparator).strip(); *//* 
-                String source = withoutEnd.substring(valueSeparator + "="".length()).strip(); *//* 
-                return compileValue(destination, typeParams, depth).flatMap(newDest -> compileValue(source, typeParams, depth).map(newSource -> newDest + " = "" + newSource)); *//* 
+                String destination = withoutEnd.substring(0, valueSeparator).strip();
+                String source = withoutEnd.substring(valueSeparator + "="".length()).strip();
+                return compileValue(destination, typeParams, depth).flatMap(newDest -> compileValue(source, typeParams, depth).map(newSource -> newDest + " = "" + newSource));
             }
         }
         return new None<>();
@@ -724,7 +807,7 @@ void main(String* args) {
         if (stripped.endsWith(";"")) {
             String withoutEnd = stripped.substring(0, stripped.length() - ";"".length());
             if (withoutEnd.startsWith("return "")) {
-                return compileValue(withoutEnd.substring("return "".length()), typeParams, depth).map(result -> "return "" + result); *//* 
+                return compileValue(withoutEnd.substring("return "".length()), typeParams, depth).map(result -> "return "" + result);
             }
         }
 
@@ -748,12 +831,12 @@ void main(String* args) {
             String slice = stripped.substring("new "".length());
             int argsStart = slice.indexOf("("");
             if (argsStart >= 0) {
-                String type = slice.substring(0, argsStart); *//* 
-                String withEnd = slice.substring(argsStart + "("".length()).strip(); *//* 
+                String type = slice.substring(0, argsStart);
+                String withEnd = slice.substring(argsStart + "("".length()).strip();
                 if (withEnd.endsWith(")"")) {
-                    String argsString = withEnd.substring(0, withEnd.length() - ")"".length());
-                    return compileType(type, typeParams).flatMap(outputType -> compileArgs(argsString, typeParams, depth).map(value -> outputType + value));
-                } *//* 
+                    String argsString = withEnd.substring(0, withEnd.length() - ")"".length()); *//* 
+                    return compileType(type, typeParams).flatMap(outputType -> compileArgs(argsString, typeParams, depth).map(value -> outputType + value)); *//* 
+                }
             }
         }
 
@@ -777,7 +860,7 @@ void main(String* args) {
             String property = stripped.substring(methodIndex + "::"".length()).strip();
 
             if (isSymbol(property)) {
-                return compileType(type, typeParams).flatMap(compiled -> generateLambdaWithReturn(Lists.empty(), "\n\treturn "" + compiled + "."" + property + "()"")); *//* 
+                return compileType(type, typeParams).flatMap(compiled -> generateLambdaWithReturn(Lists.empty(), "\n\treturn "" + compiled + "."" + property + "()""));
             }
         }
 
@@ -858,8 +941,8 @@ void main(String* args) {
 
     private static boolean isNumber(String input) {
         return IntStream.range(0, input.length()).allMatch(index -> {
-            char c = input.charAt(index); *//* 
-            return (index == 0 && c == '-'-')') || Character.isDigit(c); *//* 
+            char c = input.charAt(index);
+            return (index == 0 && c == '-'-')') || Character.isDigit(c);
         });
     }
 
@@ -871,9 +954,9 @@ void main(String* args) {
             int argsStart = findInvocationStart(sliced);
 
             if (argsStart >= 0) {
-                String type = sliced.substring(0, argsStart); *//* 
-                String withEnd = sliced.substring(argsStart + "("".length()).strip(); *//* 
-                return compileValue(type, typeParams, depth).flatMap(caller -> compileArgs(withEnd, typeParams, depth).map(value -> caller + value)); *//* 
+                String type = sliced.substring(0, argsStart);
+                String withEnd = sliced.substring(argsStart + "("".length()).strip();
+                return compileValue(type, typeParams, depth).flatMap(caller -> compileArgs(withEnd, typeParams, depth).map(value -> caller + value));
             }
         }
         return new None<>();
@@ -886,17 +969,17 @@ void main(String* args) {
         while (i >= 0) {
             char c = sliced.charAt(i);
             if (c == '('(' ' && depth0 == 0) {
-                argsStart = i;
-                break;
-            } *//* 
+                argsStart = i; *//* 
+                break; *//* 
+            }
 
             if (c == ')')')') {
-                depth0++; *//* 
+                depth0++;
             }
             if (c == '('(')') {
-                depth0--;
-            } *//* 
-            i--; *//* 
+                depth0--; *//* 
+            }
+            i--;
         }
         return argsStart;
     }
@@ -907,7 +990,7 @@ void main(String* args) {
 
     private static StringBuilder mergeValues(StringBuilder cache, String element) {
         if (cache.isEmpty()) {
-            return cache.append(element); *//* 
+            return cache.append(element);
         }
         return cache.append(", "").append(element);
     }
@@ -916,81 +999,81 @@ void main(String* args) {
         String stripped = definition.strip();
         int nameSeparator = stripped.lastIndexOf(" "");
         if (nameSeparator < 0) {
-            return new None<>(); *//* 
+            return new None<>();
         }
 
         String beforeName = stripped.substring(0, nameSeparator).strip();
         String name = stripped.substring(nameSeparator + " "".length()).strip();
         if (!isSymbol(name)) {
-            return new None<>(); *//* 
+            return new None<>();
         }
 
         int typeSeparator = -1;
         int depth = 0;
         int i = beforeName.length() - 1;
         while (i >= 0) {
-            char c = beforeName.charAt(i); *//* 
+            char c = beforeName.charAt(i);
             if (c == ' ' ' ' && depth == 0) {
-                typeSeparator = i;
-                break;
-            } *//* 
+                typeSeparator = i; *//* 
+                break; *//* 
+            }
             else {
                 if (c == '>'>')') {
                     depth++;
-                }
+                } *//* 
                 if (c == '<'<')') {
                     depth--;
-                }
-            } *//* 
-            i--; *//* 
+                } *//* 
+            }
+            i--;
         }
 
         if (typeSeparator >= 0) {
-            String beforeType = beforeName.substring(0, typeSeparator).strip(); *//* 
+            String beforeType = beforeName.substring(0, typeSeparator).strip();
 
-            String beforeTypeParams = beforeType; *//* 
-            List_<String> typeParams; *//* 
+            String beforeTypeParams = beforeType;
+            List_<String> typeParams;
             if (beforeType.endsWith(">"")) {
-                String withoutEnd = beforeType.substring(0, beforeType.length() - ">"".length());
-                int typeParamStart = withoutEnd.indexOf("<"");
+                String withoutEnd = beforeType.substring(0, beforeType.length() - ">"".length()); *//* 
+                int typeParamStart = withoutEnd.indexOf("<""); *//* 
                 if (typeParamStart >= 0) {
                     beforeTypeParams = withoutEnd.substring(0, typeParamStart);
                     String substring = withoutEnd.substring(typeParamStart + 1);
                     typeParams = splitValues(substring);
-                }
+                } *//* 
                 else {
                     typeParams = Lists.empty();
-                }
-            } *//* 
+                } *//* 
+            }
             else {
-                typeParams = Lists.empty();
-            } *//* 
+                typeParams = Lists.empty(); *//* 
+            }
 
-            String strippedBeforeTypeParams = beforeTypeParams.strip(); *//* 
+            String strippedBeforeTypeParams = beforeTypeParams.strip();
 
-            String modifiersString; *//* 
-            int annotationSeparator = strippedBeforeTypeParams.lastIndexOf("\n""); *//* 
+            String modifiersString;
+            int annotationSeparator = strippedBeforeTypeParams.lastIndexOf("\n"");
             if (annotationSeparator >= 0) {
-                modifiersString = strippedBeforeTypeParams.substring(annotationSeparator + "\n"".length());
-            } *//* 
+                modifiersString = strippedBeforeTypeParams.substring(annotationSeparator + "\n"".length()); *//* 
+            }
             else {
-                modifiersString = strippedBeforeTypeParams;
-            } *//* 
+                modifiersString = strippedBeforeTypeParams; *//* 
+            }
 
             boolean allSymbols = Iterators.fromArray(modifiersString.split(Pattern.quote(" "")))
                     .map(String::strip)
                     .filter(value -> !value.isEmpty())
-                    .allMatch(Main::isSymbol); *//* 
+                    .allMatch(Main::isSymbol);
 
             if (!allSymbols) {
-                return new None<>();
-            } *//* 
+                return new None<>(); *//* 
+            }
 
-            String inputType = beforeName.substring(typeSeparator + " "".length()); *//* 
-            return compileType(inputType, typeParams).flatMap(outputType -> new Some<>(generateDefinition(typeParams, outputType, name))); *//* 
+            String inputType = beforeName.substring(typeSeparator + " "".length());
+            return compileType(inputType, typeParams).flatMap(outputType -> new Some<>(generateDefinition(typeParams, outputType, name)));
         }
         else {
-            return compileType(beforeName, Lists.empty()).flatMap(outputType -> new Some<>(generateDefinition(Lists.empty(), outputType, name))); *//* 
+            return compileType(beforeName, Lists.empty()).flatMap(outputType -> new Some<>(generateDefinition(Lists.empty(), outputType, name)));
         }
     }
 
@@ -1008,7 +1091,7 @@ void main(String* args) {
 
     private static String generateTypeParams(List_<String> maybeTypeParams) {
         if (maybeTypeParams.isEmpty()) {
-            return """; *//* 
+            return """;
         }
         return maybeTypeParams.iter()
                 .collect(new Joiner(", ""))
@@ -1018,41 +1101,41 @@ void main(String* args) {
 
     private static Option<String> compileType(String input, List_<String> typeParams) {
         if (input.equals("void"")) {
-            return new Some<>("void""); *//* 
+            return new Some<>("void"");
         }
 
         if (input.equals("int"") || input.equals("Integer"") || input.equals("boolean"") || input.equals("Boolean"")) {
-            return new Some<>("int""); *//* 
+            return new Some<>("int"");
         }
 
         if (input.equals("char"") || input.equals("Character"")) {
-            return new Some<>("char""); *//* 
+            return new Some<>("char"");
         }
 
         if (input.endsWith("[]"")) {
             return compileType(input.substring(0, input.length() - "[]"".length()), typeParams)
-                    .map(value -> value + "*""); *//* 
+                    .map(value -> value + "*"");
         }
 
         String stripped = input.strip();
         if (isSymbol(stripped)) {
             if (Lists.contains(typeParams, stripped, String::equals)) {
-                return new Some<>(stripped);
-            } *//* 
+                return new Some<>(stripped); *//* 
+            }
             else {
-                return new Some<>("struct "" + stripped);
-            } *//* 
+                return new Some<>("struct "" + stripped); *//* 
+            }
         }
 
         if (stripped.endsWith(">"")) {
-            String slice = stripped.substring(0, stripped.length() - ">"".length()); *//* 
-            int argsStart = slice.indexOf("<""); *//* 
+            String slice = stripped.substring(0, stripped.length() - ">"".length());
+            int argsStart = slice.indexOf("<"");
             if (argsStart >= 0) {
-                String base = slice.substring(0, argsStart).strip();
-                String params = slice.substring(argsStart + "<"".length()).strip();
+                String base = slice.substring(0, argsStart).strip(); *//* 
+                String params = slice.substring(argsStart + "<"".length()).strip(); *//* 
                 return compileValues(params, type -> compileWhitespace(type).or(() -> compileType(type, typeParams)))
-                        .map(compiled -> base + "<"" + compiled + ">"");
-            } *//* 
+                        .map(compiled -> base + "<"" + compiled + ">""); *//* 
+            }
         }
 
         return generatePlaceholder(input);
@@ -1060,13 +1143,13 @@ void main(String* args) {
 
     private static boolean isSymbol(String input) {
         if (input.isBlank()) {
-            return false; *//* 
+            return false;
         }
 
         return IntStream.range(0, input.length()).allMatch(index -> {
-            char c = input.charAt(index);
-            return c == '_'_' ' || Character.isLetter(c) || (index != 0 && Character.isDigit(c));
-        } *//* );
+            char c = input.charAt(index); *//* 
+            return c == '_'_' ' || Character.isLetter(c) || (index != 0 && Character.isDigit(c)); *//* 
+        });
     }
 
     private static Option<String> generatePlaceholder(String input) {

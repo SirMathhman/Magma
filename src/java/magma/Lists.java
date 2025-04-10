@@ -72,6 +72,11 @@ public class Lists {
             }
             return new Main.Some<>(this.inner.getFirst());
         }
+
+        @Override
+        public T get(int index) {
+            return this.inner.get(index);
+        }
     }
 
     public static <T> Main.List_<T> empty() {
@@ -86,5 +91,18 @@ public class Lists {
         return lists.iter().allMatch(child -> {
             return equator.apply(child, element);
         });
+    }
+
+    public static <T> Main.List_<T> fromArray(T[] array) {
+        return new JavaList<>(new ArrayList<T>(Arrays.asList(array)));
+    }
+
+    public static <T> boolean equals(Main.List_<T> first, Main.List_<T> second, BiFunction<T, T, Boolean> equator) {
+        if (first.size() != second.size()) {
+            return false;
+        }
+
+        return new Main.HeadedIterator<>(new Main.RangeHead(first.size()))
+                .allMatch(index -> equator.apply(first.get(index), second.get(index)));
     }
 }

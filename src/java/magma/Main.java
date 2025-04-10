@@ -51,6 +51,8 @@ public class Main {
         Option<Tuple<T, List_<T>>> popFirst();
 
         Option<T> peekFirst();
+
+        T get(int index);
     }
 
     public interface Path_ {
@@ -411,7 +413,7 @@ public class Main {
             return new Some<>(current.map(inner -> inner + this.delimiter + element).orElse(element));
         }
     }
-
+    public static final List_<String> FUNCTIONAL_NAMESPACE = Lists.of("java", "util", "function");
     private static final List_<String> imports = Lists.empty();
     private static final List_<String> structs = Lists.empty();
     private static final List_<String> globals = Lists.empty();
@@ -577,8 +579,12 @@ public class Main {
             String right = stripped.substring("import ".length());
             if (right.endsWith(";")) {
                 String content = right.substring(0, right.length() - ";".length());
-                String joined = String.join("/", content.split(Pattern.quote(".")));
-                imports.add("#include \"./" + joined + "\"\n");
+                List_<String> split = Lists.fromArray(content.split(Pattern.quote(".")));
+                if (split.size() < 3 || !Lists.equals(split.slice(0, 3), FUNCTIONAL_NAMESPACE, String::equals)) {
+                    String joined = split.iter().collect(new Joiner("/")).orElse("");
+                    imports.add("#include \"./" + joined + "\"\n");
+                }
+
                 return new Some<>("");
             }
         }
@@ -908,7 +914,9 @@ public class Main {
 
             if (c == '"') {
                 while (!queue.isEmpty()) {
-                    Tuple<Integer, Character> next = queue.popFirst().orElse(null).left;
+                    Tuple<Tuple<Integer, Character>, List_<Tuple<Integer, Character>>> tupleListTuple1 = queue.popFirst().orElse(null);
+                    Tuple<Integer, Character> next = tupleListTuple1.left;
+                    queue = tupleListTuple1.right;
 
                     if (next.right == '\\') {
                         queue.popFirst().orElse(null);
