@@ -1023,7 +1023,11 @@ public class Main {
     }
 
     private static Result<String, CompileError> compileValues(String input, Rule rule) {
-        return compileValues(divide(input, new DecoratedDivider(Main::divideValueChar)), rule);
+        return compileValues(divideValues(input), rule);
+    }
+
+    private static List_<String> divideValues(String input) {
+        return divide(input, new DecoratedDivider(Main::divideValueChar));
     }
 
     private static State divideValueChar(State state, char c) {
@@ -1620,8 +1624,22 @@ public class Main {
 
         String base = slice.substring(0, argsStart).strip();
         String params = slice.substring(argsStart + "<".length()).strip();
-        return compileValues(params, s -> compileType0(s, typeParams))
-                .mapValue(compiled -> base + "<" + compiled + ">");
+
+        OrRule paramRule = new OrRule(Lists.of(
+                Main::compileWhitespace,
+                type -> compileType(type, typeParams)
+        ));
+
+        List_<String> divided = divideValues(params);
+        return parseAll(divided, paramRule).mapValue(parsed -> {
+            if (base.equals("Function")) {
+                String first = parsed.get(0);
+                String second = parsed.get(1);
+
+                return second + " (*)(" + first + ")";
+            }
+            return base + "<" + mergeAll(parsed, Main::mergeValues) + ">";
+        });
     }
 
     private static Result<String, CompileError> getStringCompileErrorResult(List_<String> typeParams, String value) {
@@ -1658,13 +1676,6 @@ public class Main {
         }
 
         return new Err<>(new CompileError("Not a primitive", value));
-    }
-
-    private static Result<String, CompileError> compileType0(String s, List_<String> typeParams) {
-        return new OrRule(Lists.of(
-                Main::compileWhitespace,
-                type -> compileType(type, typeParams)
-        )).apply(s);
     }
 
     private static boolean isSymbol(String input) {

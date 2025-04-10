@@ -1,21 +1,21 @@
 struct Result {
-	<R> R match(Function<T, R> whenOk, Function<X, R> whenErr);
-	<R> Result<struct T, R> mapErr(Function<X, R> mapper);
-	<R> Result<R, struct X> flatMapValue(Function<T, Result<R, X>> mapper);
-	<R> Result<R, struct X> mapValue(Function<T, R> mapper);
+	<R> R match(R (*)(T) whenOk, R (*)(X) whenErr);
+	<R> Result<struct T, R> mapErr(R (*)(X) mapper);
+	<R> Result<R, struct X> flatMapValue(Result<R, X> (*)(T) mapper);
+	<R> Result<R, struct X> mapValue(R (*)(T) mapper);
 	Option<T> findValue();
 };
 struct Option {
-	<R> Option<R> map(Function<T, R> mapper);
+	<R> Option<R> map(R (*)(T) mapper);
 	boolean isPresent();
 	T orElse(T other);
 	boolean isEmpty();
 	void ifPresent(Consumer<T> consumer);
 	Option<T> or(Supplier<Option<T>> other);
-	<R> Option<R> flatMap(Function<T, Option<R>> mapper);
+	<R> Option<R> flatMap(Option<R> (*)(T) mapper);
 	Tuple<Boolean, T> toTuple(T other);
 	T orElseGet(Supplier<T> supplier);
-	<R> R match(Function<T, R> whenPresent, Supplier<R> whenEmpty);
+	<R> R match(R (*)(T) whenPresent, Supplier<R> whenEmpty);
 };
 struct Error {
 	String display();
@@ -41,13 +41,13 @@ struct Path_ {
 struct Iterator {
 	<R> R foldWithInitial(R initial, BiFunction<R, T, R> folder);
 	void forEach(Consumer<T> consumer);
-	<R> Iterator<R> map(Function<T, R> mapper);
+	<R> Iterator<R> map(R (*)(T) mapper);
 	Iterator<T> filter(Predicate<T> predicate);
 	Option<T> next();
 	Iterator<T> concat(Iterator<T> other);
 	<C> C collect(Collector<T, C> collector);
 	boolean allMatch(Predicate<T> predicate);
-	<R> Option<R> foldWithMapper(Function<T, R> mapper, BiFunction<R, T, R> folder);
+	<R> Option<R> foldWithMapper(R (*)(T) mapper, BiFunction<R, T, R> folder);
 	<R, X> Result<struct R, struct X> foldToResult(R initial, BiFunction<R, T, Result<R, X>> mapper);
 };
 struct Collector {
@@ -106,9 +106,9 @@ struct Max {
 };
 struct Main {
 	<T, X> {
-        <R> struct R match(Function<T, R> whenOk, Function<X, R> whenErr);
+        <R> struct R match(R (*)(T) whenOk, R (*)(X) whenErr);
 	<T> {
-        <R> Option<struct R> map(Function<T, R> mapper);
+        <R> Option<struct R> map(R (*)(T) mapper);
 	<T> {
         <R> struct R foldWithInitial(R initial, BiFunction<R, T, R> folder);
 	record ApplicationError(Error error);
@@ -207,7 +207,7 @@ auto __lambda19__ {
 auto __lambda20__ {
 	return this;
 }
-<R> Iterator<R> map(Function<T, R> mapper) {
+<R> Iterator<R> map(R (*)(T) mapper) {
 	return HeadedIterator<>(__lambda20__.head.next().map(mapper));
 }
 auto __lambda21__(auto value) {
@@ -328,7 +328,7 @@ auto __lambda52__(auto next) {
 auto __lambda53__(auto next) {
 	return this;
 }
-<R> Option<R> foldWithMapper(Function<T, R> mapper, BiFunction<R, T, R> folder) {
+<R> Option<R> foldWithMapper(R (*)(T) mapper, BiFunction<R, T, R> folder) {
 	return this.head.next().map(mapper).map(next -> this.foldWithInitial(next, folder));
 }
 auto __lambda54__(auto current) {
@@ -380,10 +380,10 @@ auto __lambda66__(auto result, t) {
 auto __lambda67__ {
 	return Iterator.concat()
 }
-<R> Iterator<R> flatMap(Function<T, Iterator<R>> mapper) {
+<R> Iterator<R> flatMap(Iterator<R> (*)(T) mapper) {
 	return this.map(mapper).foldWithInitial(Iterators.empty(), Iterator::concat);
 }
-<R> Option<R> map(Function<T, R> mapper) {
+<R> Option<R> map(R (*)(T) mapper) {
 	return None<>();
 }
 boolean isPresent() {	return false;
@@ -400,7 +400,7 @@ void ifPresent(Consumer<T> consumer) {
 Option<T> or(Supplier<Option<T>> other) {
 	return other.get();
 }
-<R> Option<R> flatMap(Function<T, Option<R>> mapper) {
+<R> Option<R> flatMap(Option<R> (*)(T) mapper) {
 	return None<>();
 }
 Tuple<Boolean, T> toTuple(T other) {
@@ -409,7 +409,7 @@ Tuple<Boolean, T> toTuple(T other) {
 T orElseGet(Supplier<T> supplier) {
 	return supplier.get();
 }
-<R> R match(Function<T, R> whenPresent, Supplier<R> whenEmpty) {
+<R> R match(R (*)(T) whenPresent, Supplier<R> whenEmpty) {
 	return whenEmpty.get();
 }
 Option<T> next() {
@@ -425,7 +425,7 @@ Option<T> next() {
 	this.retrieved = true;
 	return Some<>(this.value);
 }
-<R> Option<R> map(Function<T, R> mapper) {
+<R> Option<R> map(R (*)(T) mapper) {
 	return Some<>(mapper.apply(this.value));
 }
 boolean isPresent() {	return true;
@@ -443,7 +443,7 @@ void ifPresent(Consumer<T> consumer) {
 Option<T> or(Supplier<Option<T>> other) {	return this;
 
 }
-<R> Option<R> flatMap(Function<T, Option<R>> mapper) {
+<R> Option<R> flatMap(Option<R> (*)(T) mapper) {
 	return mapper.apply(this.value);
 }
 Tuple<Boolean, T> toTuple(T other) {
@@ -452,34 +452,34 @@ Tuple<Boolean, T> toTuple(T other) {
 T orElseGet(Supplier<T> supplier) {
 	return this.value;
 }
-<R> R match(Function<T, R> whenPresent, Supplier<R> whenEmpty) {
+<R> R match(R (*)(T) whenPresent, Supplier<R> whenEmpty) {
 	return whenPresent.apply(this.value);
 }
-<R> R match(Function<T, R> whenOk, Function<X, R> whenErr) {
+<R> R match(R (*)(T) whenOk, R (*)(X) whenErr) {
 	return whenErr.apply(this.error);
 }
-<R> Result<struct T, R> mapErr(Function<X, R> mapper) {
+<R> Result<struct T, R> mapErr(R (*)(X) mapper) {
 	return Err<>(mapper.apply(this.error));
 }
-<R> Result<R, struct X> flatMapValue(Function<T, Result<R, X>> mapper) {
+<R> Result<R, struct X> flatMapValue(Result<R, X> (*)(T) mapper) {
 	return Err<>(this.error);
 }
-<R> Result<R, struct X> mapValue(Function<T, R> mapper) {
+<R> Result<R, struct X> mapValue(R (*)(T) mapper) {
 	return Err<>(this.error);
 }
 Option<T> findValue() {
 	return None<>();
 }
-<R> R match(Function<T, R> whenOk, Function<X, R> whenErr) {
+<R> R match(R (*)(T) whenOk, R (*)(X) whenErr) {
 	return whenOk.apply(this.value);
 }
-<R> Result<struct T, R> mapErr(Function<X, R> mapper) {
+<R> Result<struct T, R> mapErr(R (*)(X) mapper) {
 	return Ok<>(this.value);
 }
-<R> Result<R, struct X> flatMapValue(Function<T, Result<R, X>> mapper) {
+<R> Result<R, struct X> flatMapValue(Result<R, X> (*)(T) mapper) {
 	return mapper.apply(this.value);
 }
-<R> Result<R, struct X> mapValue(Function<T, R> mapper) {
+<R> Result<R, struct X> mapValue(R (*)(T) mapper) {
 	return Ok<>(mapper.apply(this.value));
 }
 Option<T> findValue() {
