@@ -279,14 +279,58 @@ public class Main {
         String afterKeyword = input.substring(classIndex + infix.length());
         int contentStart = afterKeyword.indexOf("{");
         if (contentStart >= 0) {
-            String name = afterKeyword.substring(0, contentStart).strip();
-            String withEnd = afterKeyword.substring(contentStart + "{".length()).strip();
-            if (withEnd.endsWith("}")) {
-                String inputContent = withEnd.substring(0, withEnd.length() - "}".length());
-                return compileStatements(inputContent, input1 -> compileClassMember(input1, typeParams)).map(outputContent -> {
-                    structs.add("struct " + name + " {\n" + outputContent + "};\n");
-                    return "";
-                });
+            String beforeContent = afterKeyword.substring(0, contentStart).strip();
+            int implementsIndex = beforeContent.indexOf(" implements ");
+
+            String beforeImplements;
+            if (implementsIndex >= 0) {
+                beforeImplements = beforeContent.substring(0, implementsIndex);
+            }
+            else {
+                beforeImplements = beforeContent;
+            }
+            String strippedBeforeImplements = beforeImplements.strip();
+
+            String withoutParams;
+            if (strippedBeforeImplements.endsWith(")")) {
+                String withoutEnd = strippedBeforeImplements.substring(0, strippedBeforeImplements.length() - ")".length());
+                int paramStart = withoutEnd.indexOf("(");
+                if (paramStart >= 0) {
+                    withoutParams = withoutEnd.substring(0, paramStart).strip();
+                }
+                else {
+                    withoutParams = strippedBeforeImplements;
+                }
+            }
+            else {
+                withoutParams = strippedBeforeImplements;
+            }
+
+            String strippedWithoutParams = withoutParams.strip();
+
+            String name;
+            if (strippedWithoutParams.endsWith(">")) {
+                int genStart = strippedWithoutParams.indexOf("<");
+                if (genStart >= 0) {
+                    name = strippedWithoutParams.substring(0, genStart).strip();
+                }
+                else {
+                    name = strippedWithoutParams;
+                }
+            }
+            else {
+                name = strippedWithoutParams;
+            }
+
+            if (isSymbol(name)) {
+                String withEnd = afterKeyword.substring(contentStart + "{".length()).strip();
+                if (withEnd.endsWith("}")) {
+                    String inputContent = withEnd.substring(0, withEnd.length() - "}".length());
+                    return compileStatements(inputContent, input1 -> compileClassMember(input1, typeParams)).map(outputContent -> {
+                        structs.add("struct " + name + " {\n" + outputContent + "};\n");
+                        return "";
+                    });
+                }
             }
         }
         return Optional.empty();

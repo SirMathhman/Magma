@@ -12,16 +12,16 @@
 #include "./java/util/regex/Pattern"
 #include "./java/util/stream/Collectors"
 #include "./java/util/stream/IntStream"
-struct Result<T, X> {
+struct Result {
 	<R> R match(Function<struct T, struct R> whenOk, Function<struct X, struct R> whenErr);
 	<R> Result<struct T, R> mapErr(Function<struct X, struct R> mapper);
 };
 struct IOError {
 	struct String display();
 };
-struct Err<T, X>(X error) implements Result<T, X> {
+struct Err {
 };
-struct Ok<T, X>(T value) implements Result<T, X> {
+struct Ok {
 };
 struct State {
 	Deque<char> queue;
@@ -29,16 +29,8 @@ struct State {
 	struct StringBuilder buffer;
 	int depth;
 };
-struct Tuple<A, B>(A left, B right) {
+struct Tuple {
 };
-struct ", new ArrayList<>());
-        if (maybeClass.isPresent()) {
-	struct return maybeClass;
-/* 
-        }
-
-        return generatePlaceholder(input);
-     */};
 struct Main {
 };
 	List<struct String> imports = ArrayList<>();
@@ -248,12 +240,36 @@ struct State divideStatementChar(struct State state, char c) {
 int isShallow(struct State state) {
 	return state.depth == 1;
 }
+Optional<struct String> compileRootSegment(struct String input) {
+	Optional<struct String> whitespace = compileWhitespace(input);
+	if (whitespace.isPresent()) {
+		return whitespace;
+	}
+	if (input.startsWith("package ")) {
+		return Optional.of("");
+	}
+	struct String stripped = input.strip();
+	if (stripped.startsWith("import ")) {
+		struct String right = stripped.substring("import ".length());
+		if (right.endsWith(";")) {
+			struct String content = right.substring(0, right.length() - ";".length());
+			struct String joined = String.join("/", content.split(Pattern.quote(".")));
+			imports.add("#include \"./" + joined + "\"\n");
+			return Optional.of("");
+		}
+	}
+	Optional<struct String> maybeClass = compileToStruct(input, "class ", ArrayList<>());
+	if (maybeClass.isPresent()) {
+		return maybeClass;
+	}
+	return generatePlaceholder(input);
+}
 auto __lambda19__(auto input1) {
 	return compileClassMember(input1, typeParams);
 }
 auto __lambda20__(auto outputContent) {
-			structs.add("struct " + name + " {\n" + outputContent + "};\n");
-			return "";
+				structs.add("struct " + name + " {\n" + outputContent + "};\n");
+				return "";
 }
 Optional<struct String> compileToStruct(struct String input, struct String infix, List<struct String> typeParams) {
 	int classIndex = input.indexOf(infix);
@@ -263,11 +279,50 @@ Optional<struct String> compileToStruct(struct String input, struct String infix
 	struct String afterKeyword = input.substring(classIndex + infix.length());
 	int contentStart = afterKeyword.indexOf("{");
 	if (contentStart >= 0) {
-		struct String name = afterKeyword.substring(0, contentStart).strip();
-		struct String withEnd = afterKeyword.substring(contentStart + "{".length()).strip();
-		if (withEnd.endsWith("}")) {
-			struct String inputContent = withEnd.substring(0, withEnd.length() - "}".length());
-			return compileStatements(inputContent, __lambda19__).map(__lambda20__);
+		struct String beforeContent = afterKeyword.substring(0, contentStart).strip();
+		int implementsIndex = beforeContent.indexOf(" implements ");	struct String beforeImplements;
+
+		if (implementsIndex >= 0) {
+			beforeImplements = beforeContent.substring(0, implementsIndex);
+		}
+		else {
+			beforeImplements = beforeContent;
+		}
+		struct String strippedBeforeImplements = beforeImplements.strip();	struct String withoutParams;
+
+		if (strippedBeforeImplements.endsWith(")")) {
+			struct String withoutEnd = strippedBeforeImplements.substring(0, strippedBeforeImplements.length() - ")".length());
+			int paramStart = withoutEnd.indexOf("(");
+			if (paramStart >= 0) {
+				withoutParams = withoutEnd.substring(0, paramStart).strip();
+			}
+			else {
+				withoutParams = strippedBeforeImplements;
+			}
+		}
+		else {
+			withoutParams = strippedBeforeImplements;
+		}
+		struct String strippedWithoutParams = withoutParams.strip();	struct String name;
+
+		if (strippedWithoutParams.endsWith(">")) {
+			int genStart = strippedWithoutParams.indexOf("<");
+			if (genStart >= 0) {
+				name = strippedWithoutParams.substring(0, genStart).strip();
+			}
+			else {
+				name = strippedWithoutParams;
+			}
+		}
+		else {
+			name = strippedWithoutParams;
+		}
+		if (isSymbol(name)) {
+			struct String withEnd = afterKeyword.substring(contentStart + "{".length()).strip();
+			if (withEnd.endsWith("}")) {
+				struct String inputContent = withEnd.substring(0, withEnd.length() - "}".length());
+				return compileStatements(inputContent, __lambda19__).map(__lambda20__);
+			}
 		}
 	}
 	return Optional.empty();
