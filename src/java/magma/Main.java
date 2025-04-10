@@ -935,7 +935,7 @@ public class Main {
                 (input) -> compileToStruct(input, "record ", typeParams),
                 (input) -> compileToStruct(input, "class ", typeParams),
                 (input) -> compileGlobalInitialization(typeParams, input),
-                Main::compileDefinitionStatement,
+                input1 -> compileDefinitionStatement(input1, typeParams),
                 (input) -> compileMethod(typeParams, input)
         )).apply(input0);
     }
@@ -949,7 +949,7 @@ public class Main {
         String inputDefinition = input.substring(0, paramStart).strip();
         String withParams = input.substring(paramStart + "(".length());
 
-        return createDefinitionRule().apply(inputDefinition).flatMapValue(outputDefinition -> {
+        return createDefinitionRule(typeParams).apply(inputDefinition).flatMapValue(outputDefinition -> {
             int paramEnd = withParams.indexOf(")");
             if (paramEnd < 0) {
                 return createInfixErr(withParams, ")");
@@ -961,11 +961,11 @@ public class Main {
         });
     }
 
-    private static Result<String, CompileError> compileDefinitionStatement(String input) {
+    private static Result<String, CompileError> compileDefinitionStatement(String input, List_<String> typeParams) {
         String stripped = input.strip();
         if (stripped.endsWith(";")) {
             String content = stripped.substring(0, stripped.length() - ";".length());
-            return createDefinitionRule().apply(content).mapValue(result -> "\t" + result + ";\n");
+            return createDefinitionRule(typeParams).apply(content).mapValue(result -> "\t" + result + ";\n");
         }
         return createSuffixErr(input, ";");
     }
@@ -998,7 +998,7 @@ public class Main {
 
         String definition = withoutEnd.substring(0, valueSeparator).strip();
         String value = withoutEnd.substring(valueSeparator + "=".length()).strip();
-        return createDefinitionRule().apply(definition)
+        return createDefinitionRule(Lists.<String>empty()).apply(definition)
                 .flatMapValue(outputDefinition -> compileValue(value, typeParams, depth).mapValue(outputValue -> outputDefinition + " = " + outputValue));
     }
 
@@ -1031,7 +1031,7 @@ public class Main {
     private static Result<String, CompileError> compileParameter(String definition) {
         return new OrRule(Lists.of(
                 Main::compileWhitespace,
-                definition1 -> createDefinitionRule().apply(definition1)
+                definition1 -> createDefinitionRule(Lists.<String>empty()).apply(definition1)
         )).apply(definition);
     }
 
@@ -1082,7 +1082,7 @@ public class Main {
                 input -> compileInitialization(input, typeParams, depth).mapValue(result -> formatStatement(depth, result)),
                 input -> compileAssignment(input, typeParams, depth).mapValue(result -> formatStatement(depth, result)),
                 input -> compileInvocationStatement(input, typeParams, depth).mapValue(result -> formatStatement(depth, result)),
-                Main::compileDefinitionStatement)).apply(input0
+                input1 -> compileDefinitionStatement(input1, typeParams))).apply(input0
         );
     }
 
@@ -1503,7 +1503,7 @@ public class Main {
         return cache.append(", ").append(element);
     }
 
-    private static TypeRule createDefinitionRule() {
+    private static TypeRule createDefinitionRule(List_<String> typeParams) {
         return new TypeRule("definition", definition -> {
             String stripped = definition.strip();
             int nameSeparator = stripped.lastIndexOf(" ");
@@ -1518,7 +1518,7 @@ public class Main {
             }
 
             return findTypeSeparator(beforeName).match(typeSeparator -> {
-                return getStringCompileErrorResult(beforeName, typeSeparator, name);
+                return getStringCompileErrorResult(beforeName, typeSeparator, name, typeParams);
             }, () -> {
                 return getStringCompileErrorResult(beforeName, name);
             });
@@ -1530,11 +1530,11 @@ public class Main {
                 .mapValue(outputType -> generateDefinition(Lists.empty(), outputType, name));
     }
 
-    private static Result<String, CompileError> getStringCompileErrorResult(String beforeName, int typeSeparator, String name) {
+    private static Result<String, CompileError> getStringCompileErrorResult(String beforeName, int typeSeparator, String name, List_<String> empty) {
         String beforeType = beforeName.substring(0, typeSeparator).strip();
 
         if (!beforeType.endsWith(">")) {
-            return getStringCompileErrorResult(beforeName, typeSeparator, name, beforeType, Lists.empty());
+            return getStringCompileErrorResult(beforeName, typeSeparator, name, beforeType, empty);
         }
 
         String withoutEnd = beforeType.substring(0, beforeType.length() - ">".length());
@@ -1543,10 +1543,10 @@ public class Main {
             String more = withoutEnd.substring(0, typeParamStart);
             String substring = withoutEnd.substring(typeParamStart + 1);
             List_<String> typeParams = splitValues(substring);
-            return getStringCompileErrorResult(beforeName, typeSeparator, name, more, typeParams);
+            return getStringCompileErrorResult(beforeName, typeSeparator, name, more, empty.addAll(typeParams));
         }
         else {
-            return getStringCompileErrorResult(beforeName, typeSeparator, name, beforeType, Lists.empty());
+            return getStringCompileErrorResult(beforeName, typeSeparator, name, beforeType, empty);
         }
     }
 
