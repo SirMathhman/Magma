@@ -1,7 +1,5 @@
 package magma;
 
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -24,6 +22,12 @@ public class Main {
 
     public interface IOError {
         String display();
+    }
+
+    public interface Path_ {
+        Path_ resolveSibling(String sibling);
+
+        List<String> asList();
     }
 
     public record Err<T, X>(X error) implements Result<T, X> {
@@ -124,14 +128,14 @@ public class Main {
     private static int counter = 0;
 
     public static void main(String[] args) {
-        Path source = Paths.get(".", "src", "java", "magma", "Main.java");
+        Path_ source = Paths.get(".", "src", "java", "magma", "Main.java");
         Files.readString(source)
                 .match(input -> compileAndWrite(source, input), Optional::of)
                 .ifPresent(error -> System.err.println(error.display()));
     }
 
-    private static Optional<IOError> compileAndWrite(Path source, String input) {
-        Path target = source.resolveSibling("main.c");
+    private static Optional<IOError> compileAndWrite(Path_ source, String input) {
+        Path_ target = source.resolveSibling("main.c");
         String output = compile(input);
         return Files.writeString(target, output);
     }

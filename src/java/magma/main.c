@@ -1,5 +1,3 @@
-#include "./java/nio/file/Path"
-#include "./java/nio/file/Paths"
 #include "./java/util/ArrayList"
 #include "./java/util/Arrays"
 #include "./java/util/Collections"
@@ -18,6 +16,10 @@ struct Result {
 };
 struct IOError {
 	struct String display();
+};
+struct Path_ {
+	struct Path_ resolveSibling(struct String sibling);
+	List<struct String> asList();
 };
 struct Err {
 };
@@ -106,11 +108,11 @@ auto __lambda2__(auto error) {
 	return System.err.println(error.display());
 }
 void main(struct String* args) {
-	struct Path source = Paths.get(".", "src", "java", "magma", "Main.java");
+	struct Path_ source = Paths.get(".", "src", "java", "magma", "Main.java");
 	Files.readString(source).match(__lambda0__, __lambda1__).ifPresent(__lambda2__);
 }
-Optional<struct IOError> compileAndWrite(struct Path source, struct String input) {
-	struct Path target = source.resolveSibling("main.c");
+Optional<struct IOError> compileAndWrite(struct Path_ source, struct String input) {
+	struct Path_ target = source.resolveSibling("main.c");
 	struct String output = compile(input);
 	return Files.writeString(target, output);
 }
