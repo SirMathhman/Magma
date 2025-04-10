@@ -9,6 +9,8 @@ import java.util.function.Supplier;
 public class Main {
     public interface Result<T, X> {
         <R> R match(Function<T, R> whenOk, Function<X, R> whenErr);
+
+        <R> Result<T, R> mapErr(Function<X, R> mapper);
     }
 
     public interface Option<T> {
@@ -31,8 +33,11 @@ public class Main {
         T orElseGet(Supplier<T> supplier);
     }
 
-    public interface IOError {
+    public interface Error {
         String display();
+    }
+
+    public interface IOError extends Error {
     }
 
     public interface List_<T> {
@@ -93,6 +98,13 @@ public class Main {
 
     private interface Divider {
         State fold(State state, char c);
+    }
+
+    public record ApplicationError(Error error) implements Error {
+        @Override
+        public String display() {
+            return this.error.display();
+        }
     }
 
     public record HeadedIterator<T>(Head<T> head) implements Iterator<T> {
@@ -290,12 +302,21 @@ public class Main {
             return whenErr.apply(this.error);
         }
 
+        @Override
+        public <R> Result<T, R> mapErr(Function<X, R> mapper) {
+            return new Err<>(mapper.apply(this.error));
+        }
     }
 
     public record Ok<T, X>(T value) implements Result<T, X> {
         @Override
         public <R> R match(Function<T, R> whenOk, Function<X, R> whenErr) {
             return whenOk.apply(this.value);
+        }
+
+        @Override
+        public <R> Result<T, R> mapErr(Function<X, R> mapper) {
+            return new Ok<>(this.value);
         }
 
     }
@@ -495,7 +516,8 @@ public class Main {
         }
     }
 
-    private record CompileError(String message, String context) {
+    private record CompileError(String message, String context) implements Error {
+        @Override
         public String display() {
             return this.message + ": " + this.context;
         }
@@ -511,22 +533,28 @@ public class Main {
     public static void main(String[] args) {
         Path_ source = Paths.get(".", "src", "java", "magma", "Main.java");
         Files.readString(source)
+                .mapErr(ApplicationError::new)
                 .match(input -> compileAndWrite(source, input), Some::new)
                 .ifPresent(error -> System.err.println(error.display()));
     }
 
-    private static Option<IOError> compileAndWrite(Path_ source, String input) {
+    private static Option<ApplicationError> compileAndWrite(Path_ source, String input) {
         Path_ target = source.resolveSibling("main.c");
-        String output = compile(input);
-        return Files.writeString(target, output);
+        return compile(input)
+                .mapErr(ApplicationError::new)
+                .match(output -> writeWrapped(output, target), Some::new);
     }
 
-    private static String compile(String input) {
+    private static Option<ApplicationError> writeWrapped(String output, Path_ target) {
+        return Files.writeString(target, output).map(ApplicationError::new);
+    }
+
+    private static Result<String, CompileError> compile(String input) {
         List_<String> segments = divide(input, new DecoratedDivider(Main::divideStatementChar));
         return parseAll(segments, Main::compileRootSegment)
                 .map(Main::mergeStatics)
-                .map(compiled -> mergeAll(compiled, Main::mergeStatements))
-                .or(() -> unwrap(new Err<String, CompileError>(new CompileError("Invalid input: ", input)))).orElse("");
+                .<Result<String, CompileError>>map(compiled -> new Ok<>(mergeAll(compiled, Main::mergeStatements)))
+                .orElseGet(() -> new Err<String, CompileError>(new CompileError("Invalid input: ", input)));
     }
 
     private static List_<String> mergeStatics(List_<String> list) {
