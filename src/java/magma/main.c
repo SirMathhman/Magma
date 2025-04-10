@@ -1,4 +1,3 @@
-#include "./java/io/IOException"
 #include "./java/nio/file/Path"
 #include "./java/nio/file/Paths"
 #include "./java/util/ArrayList"
@@ -14,7 +13,9 @@
 #include "./java/util/stream/Collectors"
 #include "./java/util/stream/IntStream"
 struct Result<T, X> {
-<R> R match(Function<struct T, struct R> whenOk, Function<struct X, struct R> whenErr);};
+<R> R match(Function<struct T, struct R> whenOk, Function<struct X, struct R> whenErr);<R> Result<struct T, R> mapErr(Function<struct X, struct R> mapper);};
+struct IOError {
+struct String display();};
 struct Err<T, X>(X error) implements Result<T, X> {
 };
 struct Ok<T, X>(T value) implements Result<T, X> {
@@ -45,8 +46,14 @@ int counter = 0;
 <R> R match(Function<struct T, struct R> whenOk, Function<struct X, struct R> whenErr) {
 	return whenErr.apply(this.error);
 }
+<R> Result<struct T, R> mapErr(Function<struct X, struct R> mapper) {
+	return Err<>(mapper.apply(this.error));
+}
 <R> R match(Function<struct T, struct R> whenOk, Function<struct X, struct R> whenErr) {
 	return whenOk.apply(this.value);
+}
+<R> Result<struct T, R> mapErr(Function<struct X, struct R> mapper) {
+	return Ok<>(this.value);
 }
 struct private State(Deque<char> queue, List<struct String> segments, struct StringBuilder buffer, int depth) {
 	this.queue = queue;
@@ -95,22 +102,22 @@ Optional<char> peek() {
 	}
 }
 auto __lambda0__(auto input) {
-	return compileAndWrite(input, source);
+	return compileAndWrite(source, input);
 }
 auto __lambda1__() {
 	return struct Optional.of()
 }
-auto __lambda2__() {
-	return struct Throwable.printStackTrace()
+auto __lambda2__(auto error) {
+	return System.err.println(error.display());
 }
 void main(struct String* args) {
 	struct Path source = Paths.get(".", "src", "java", "magma", "Main.java");
-	magma.Files.readString(source).match(__lambda0__, __lambda1__).ifPresent(__lambda2__);
+	Files.readString(source).match(__lambda0__, __lambda1__).ifPresent(__lambda2__);
 }
-Optional<struct IOException> compileAndWrite(struct String input, struct Path source) {
+Optional<struct IOError> compileAndWrite(struct Path source, struct String input) {
 	struct Path target = source.resolveSibling("main.c");
 	struct String output = compile(input);
-	return magma.Files.writeString(target, output);
+	return Files.writeString(target, output);
 }
 auto __lambda3__() {
 	return struct Main.divideStatementChar()
