@@ -783,7 +783,9 @@ public class Main {
         String beforeImplements = getBeforeImplements(beforeContent);
         String strippedBeforeImplements = beforeImplements.strip();
 
-        String withoutParams = getString(strippedBeforeImplements);
+        String withoutExtends = removeExtends(strippedBeforeImplements);
+
+        String withoutParams = getString(withoutExtends);
         String strippedWithoutParams = withoutParams.strip();
         String name = getName(strippedWithoutParams);
 
@@ -801,6 +803,15 @@ public class Main {
             structs.add("struct " + name + " {\n" + outputContent + "};\n");
             return "";
         });
+    }
+
+    private static String removeExtends(String strippedBeforeImplements) {
+        int extendsIndex = strippedBeforeImplements.indexOf(" extends ");
+        String strippedBeforeImplements1 = extendsIndex >= 0
+                ? strippedBeforeImplements.substring(0, extendsIndex)
+                : strippedBeforeImplements;
+
+        return strippedBeforeImplements1.strip();
     }
 
     private static String getBeforeImplements(String beforeContent) {
