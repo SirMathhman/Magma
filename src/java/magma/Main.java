@@ -11,6 +11,10 @@ public class Main {
         <R> R match(Function<T, R> whenOk, Function<X, R> whenErr);
 
         <R> Result<T, R> mapErr(Function<X, R> mapper);
+
+        <R> Result<R, X> flatMapValue(Function<T, Result<R, X>> mapper);
+
+        <R> Result<R, X> mapValue(Function<T, R> mapper);
     }
 
     public interface Option<T> {
@@ -306,6 +310,16 @@ public class Main {
         public <R> Result<T, R> mapErr(Function<X, R> mapper) {
             return new Err<>(mapper.apply(this.error));
         }
+
+        @Override
+        public <R> Result<R, X> flatMapValue(Function<T, Result<R, X>> mapper) {
+            return new Err<>(this.error);
+        }
+
+        @Override
+        public <R> Result<R, X> mapValue(Function<T, R> mapper) {
+            return new Err<>(this.error);
+        }
     }
 
     public record Ok<T, X>(T value) implements Result<T, X> {
@@ -317,6 +331,16 @@ public class Main {
         @Override
         public <R> Result<T, R> mapErr(Function<X, R> mapper) {
             return new Ok<>(this.value);
+        }
+
+        @Override
+        public <R> Result<R, X> flatMapValue(Function<T, Result<R, X>> mapper) {
+            return mapper.apply(this.value);
+        }
+
+        @Override
+        public <R> Result<R, X> mapValue(Function<T, R> mapper) {
+            return new Ok<>(mapper.apply(this.value));
         }
 
     }
@@ -552,9 +576,8 @@ public class Main {
     private static Result<String, CompileError> compile(String input) {
         List_<String> segments = divide(input, new DecoratedDivider(Main::divideStatementChar));
         return parseAll(segments, Main::compileRootSegment)
-                .map(Main::mergeStatics)
-                .<Result<String, CompileError>>map(compiled -> new Ok<>(mergeAll(compiled, Main::mergeStatements)))
-                .orElseGet(() -> new Err<String, CompileError>(new CompileError("Invalid input: ", input)));
+                .mapValue(Main::mergeStatics)
+                .mapValue(compiled -> mergeAll(compiled, Main::mergeStatements));
     }
 
     private static List_<String> mergeStatics(List_<String> list) {
@@ -571,17 +594,22 @@ public class Main {
     }
 
     private static Option<String> compileAndMerge(List_<String> segments, Function<String, Option<String>> compiler, BiFunction<StringBuilder, String, StringBuilder> merger) {
-        return parseAll(segments, compiler).map(compiled -> mergeAll(compiled, merger));
+        return unwrap(parseAll(segments, compiler)).map(compiled -> mergeAll(compiled, merger));
     }
 
     private static String mergeAll(List_<String> compiled, BiFunction<StringBuilder, String, StringBuilder> merger) {
         return compiled.iter().foldWithInitial(new StringBuilder(), merger).toString();
     }
 
-    private static Option<List_<String>> parseAll(List_<String> segments, Function<String, Option<String>> compiler) {
-        return segments.iter().<Option<List_<String>>>foldWithInitial(new Some<>(Lists.empty()),
+    private static Result<List_<String>, CompileError> parseAll(List_<String> segments, Function<String, Option<String>> compiler) {
+        return wrap(segments.iter().<Option<List_<String>>>foldWithInitial(new Some<>(Lists.empty()),
                 (maybeCompiled, segment) -> maybeCompiled.flatMap(
-                        allCompiled -> compiler.apply(segment).map(allCompiled::add)));
+                        allCompiled -> compiler.apply(segment).map(allCompiled::add))));
+    }
+
+    @Deprecated
+    private static <T> Result<T, CompileError> wrap(Option<T> option) {
+        return option.<Result<T, CompileError>>map(Ok::new).orElseGet(() -> new Err<>(new CompileError("No value present", "")));
     }
 
     private static StringBuilder mergeStatements(StringBuilder output, String compiled) {
@@ -1410,8 +1438,8 @@ public class Main {
     }
 
     @Deprecated
-    private static Option<String> unwrap(Result<String, CompileError> stringCompileErrorErr) {
-        return stringCompileErrorErr.match(Some::new, error -> {
+    private static <T> Option<T> unwrap(Result<T, CompileError> result) {
+        return result.match(Some::new, error -> {
             System.err.println(error.display());
             return new None<>();
         });
