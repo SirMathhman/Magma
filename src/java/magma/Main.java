@@ -607,6 +607,13 @@ public class Main {
         }
     }
 
+    private record TypeRule(String type, Rule childRule) implements Rule {
+        @Override
+        public Result<String, CompileError> apply(String s) {
+            return this.childRule.apply(s).mapErr(err -> new CompileError("Invalid type '" + this.type + "'", s, Lists.of(err)));
+        }
+    }
+
     public static final List_<String> FUNCTIONAL_NAMESPACE = Lists.of("java", "util", "function");
     private static final List_<String> imports = Lists.empty();
     private static final List_<String> structs = Lists.empty();
@@ -880,7 +887,7 @@ public class Main {
         String inputDefinition = input.substring(0, paramStart).strip();
         String withParams = input.substring(paramStart + "(".length());
 
-        return compileDefinition(inputDefinition).flatMapValue(outputDefinition -> {
+        return createDefinitionRule().apply(inputDefinition).flatMapValue(outputDefinition -> {
             int paramEnd = withParams.indexOf(")");
             if (paramEnd < 0) {
                 return createInfixErr(withParams, ")");
@@ -896,7 +903,7 @@ public class Main {
         String stripped = input.strip();
         if (stripped.endsWith(";")) {
             String content = stripped.substring(0, stripped.length() - ";".length());
-            return compileDefinition(content).mapValue(result -> "\t" + result + ";\n");
+            return createDefinitionRule().apply(content).mapValue(result -> "\t" + result + ";\n");
         }
         return createSuffixErr(input, ";");
     }
@@ -929,7 +936,7 @@ public class Main {
 
         String definition = withoutEnd.substring(0, valueSeparator).strip();
         String value = withoutEnd.substring(valueSeparator + "=".length()).strip();
-        return compileDefinition(definition)
+        return createDefinitionRule().apply(definition)
                 .flatMapValue(outputDefinition -> compileValue(value, typeParams, depth).mapValue(outputValue -> outputDefinition + " = " + outputValue));
     }
 
@@ -962,7 +969,7 @@ public class Main {
     private static Result<String, CompileError> compileParameter(String definition) {
         return compileOr(definition, Lists.of(
                 Main::compileWhitespace,
-                Main::compileDefinition
+                definition1 -> createDefinitionRule().apply(definition1)
         ));
     }
 
@@ -1424,7 +1431,11 @@ public class Main {
         return cache.append(", ").append(element);
     }
 
-    private static Result<String, CompileError> compileDefinition(String definition) {
+    private static TypeRule createDefinitionRule() {
+        return new TypeRule("definition", Main::getCompileErrorResult);
+    }
+
+    private static Result<String, CompileError> getCompileErrorResult(String definition) {
         String stripped = definition.strip();
         int nameSeparator = stripped.lastIndexOf(" ");
         if (nameSeparator < 0) {
