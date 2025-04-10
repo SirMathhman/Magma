@@ -5,7 +5,6 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
-import java.util.regex.Pattern;
 import java.util.stream.IntStream;
 
 public class Main {
@@ -91,6 +90,10 @@ public class Main {
 
     private interface Head<T> {
         Option<T> next();
+    }
+
+    interface Divider {
+        State fold(State state, char c);
     }
 
     public record HeadedIterator<T>(Head<T> head) implements Iterator<T> {
@@ -413,6 +416,26 @@ public class Main {
             return new Some<>(current.map(inner -> inner + this.delimiter + element).orElse(element));
         }
     }
+
+    private record DecoratedDivider(Divider divider) implements Divider {
+        @Override
+        public State fold(State state, char c) {
+            return divideSingleQuotes(state, c)
+                    .or(() -> divideDoubleQuotes(state, c))
+                    .orElse(this.divider().fold(state, c));
+        }
+    }
+
+    private record DelimitedDivider(char delimiter) implements Divider {
+        @Override
+        public State fold(State state, char c) {
+            if (c == this.delimiter) {
+                return state.advance();
+            }
+            return state.append(c);
+        }
+    }
+
     public static final List_<String> FUNCTIONAL_NAMESPACE = Lists.of("java", "util", "function");
     private static final List_<String> imports = Lists.empty();
     private static final List_<String> structs = Lists.empty();
@@ -434,7 +457,7 @@ public class Main {
     }
 
     private static String compile(String input) {
-        List_<String> segments = divide(input, Main::divideStatementChar);
+        List_<String> segments = divide(input, new DecoratedDivider(Main::divideStatementChar));
         return parseAll(segments, Main::compileRootSegment)
                 .map(Main::mergeStatics)
                 .map(compiled -> mergeAll(compiled, Main::mergeStatements))
@@ -451,7 +474,7 @@ public class Main {
     }
 
     private static Option<String> compileStatements(String input, Function<String, Option<String>> compiler) {
-        return compileAndMerge(divide(input, Main::divideStatementChar), compiler, Main::mergeStatements);
+        return compileAndMerge(divide(input, new DecoratedDivider(Main::divideStatementChar)), compiler, Main::mergeStatements);
     }
 
     private static Option<String> compileAndMerge(List_<String> segments, Function<String, Option<String>> compiler, BiFunction<StringBuilder, String, StringBuilder> merger) {
@@ -472,7 +495,7 @@ public class Main {
         return output.append(compiled);
     }
 
-    private static List_<String> divide(String input, BiFunction<State, Character, State> divider) {
+    private static List_<String> divide(String input, Divider divider) {
         List_<Character> queue = Iterators.fromString(input)
                 .collect(new ListCollector<>());
 
@@ -489,9 +512,7 @@ public class Main {
             state = nextTuple.right;
 
             State finalState = state;
-            state = divideSingleQuotes(state, c)
-                    .or(() -> divideDoubleQuotes(finalState, c))
-                    .orElse(divider.apply(finalState, c));
+            state = divider.fold(state, c);
         }
 
         return state.advance().segments();
@@ -579,7 +600,7 @@ public class Main {
             String right = stripped.substring("import ".length());
             if (right.endsWith(";")) {
                 String content = right.substring(0, right.length() - ";".length());
-                List_<String> split = Lists.fromArray(content.split(Pattern.quote(".")));
+                List_<String> split = divide(content, new DelimitedDivider('.'));
                 if (split.size() < 3 || !Lists.equals(split.slice(0, 3), FUNCTIONAL_NAMESPACE, String::equals)) {
                     String joined = split.iter().collect(new Joiner("/")).orElse("");
                     imports.add("#include \"./" + joined + "\"\n");
@@ -759,7 +780,7 @@ public class Main {
     }
 
     private static Option<String> compileValues(String input, Function<String, Option<String>> compiler) {
-        List_<String> divided = divide(input, Main::divideValueChar);
+        List_<String> divided = divide(input, new DecoratedDivider(Main::divideValueChar));
         return compileValues(divided, compiler);
     }
 
@@ -1074,7 +1095,8 @@ public class Main {
         }
         else if (beforeArrow.startsWith("(") && beforeArrow.endsWith(")")) {
             String inner = beforeArrow.substring(1, beforeArrow.length() - 1);
-            paramNames = Iterators.fromArray(inner.split(Pattern.quote(",")))
+            paramNames = divide(inner, new DelimitedDivider('.'))
+                    .iter()
                     .map(String::strip)
                     .filter(value -> !value.isEmpty())
                     .collect(new ListCollector<>());
@@ -1228,7 +1250,8 @@ public class Main {
                 modifiersString = strippedBeforeTypeParams;
             }
 
-            boolean allSymbols = Iterators.fromArray(modifiersString.split(Pattern.quote(" ")))
+            boolean allSymbols = divide(modifiersString, new DelimitedDivider(' '))
+                    .iter()
                     .map(String::strip)
                     .filter(value -> !value.isEmpty())
                     .allMatch(Main::isSymbol);
@@ -1246,8 +1269,9 @@ public class Main {
     }
 
     private static List_<String> splitValues(String substring) {
-        String[] paramsArrays = substring.strip().split(Pattern.quote(","));
-        return Iterators.from(paramsArrays)
+        String stripped = substring.strip();
+        return divide(stripped, new DelimitedDivider(','))
+                .iter()
                 .map(String::strip)
                 .filter(param -> !param.isEmpty())
                 .collect(new ListCollector<>());

@@ -1,4 +1,3 @@
-#include "./java/util/regex/Pattern"
 #include "./java/util/stream/IntStream"
 struct Result {
 	<R> R match(Function<T, R> whenOk, Function<X, R> whenErr);
@@ -50,6 +49,9 @@ struct Collector {
 struct Head {
 	Option<T> next();
 };
+struct Divider {
+	State fold(State state, char c);
+};
 struct HeadedIterator {
 };
 struct None {
@@ -82,6 +84,10 @@ struct ListCollector {
 };
 struct Joiner {
 };
+struct DecoratedDivider {
+};
+struct DelimitedDivider {
+};
 struct Main {
 /* 
         Files.readString(source)
@@ -93,7 +99,7 @@ struct Main {
 	String mergeAll(List_<String> compiled, BiFunction<StringBuilder, String, StringBuilder> merger);
 	Option<List_<String>> parseAll(List_<String> segments, Function<String, Option<String>> compiler);
 	StringBuilder mergeStatements(StringBuilder output, String compiled);
-	List_<String> divide(String input, BiFunction<State, Character, State> divider);
+	List_<String> divide(String input, Divider divider);
 /* 
         while (state.hasElements()) {
             Option<Tuple<Character, State>> maybeNextTuple = state.pop();
@@ -107,9 +113,7 @@ struct Main {
             state = nextTuple.right;
 
             State finalState = state;
-            state = divideSingleQuotes(state, c)
-                    .or(() -> divideDoubleQuotes(finalState, c))
-                    .orElse(divider.apply(finalState, c));
+            state = divider.fold(state, c);
         } *//* 
 
         return state.advance().segments(); *//* 
@@ -153,9 +157,9 @@ struct Main {
             String right = stripped.substring("""import "".length()); *//* 
             if (right.endsWith(""";")) {
                 String content = right.substring(0, right.length() - """;"".length());
-                List_<String> split = Lists.fromArray(content.split(Pattern.quote(""".")));
+                List_<String> split = divide(content, new DelimitedDivider('.'.')'));
                 if (split.size() < 3 || !Lists.equals(split.slice(0, 3), FUNCTIONAL_NAMESPACE, String::equals)) {
-                    String joined = split.iter().collect(new Joiner("""/"")).orElse("""");
+                    String joined = split.iter().collect(new Joiner("""/")).orElse(""""");
                     imports.add("""#include \"./""" + joined + ""\"\n""");
                 }
 
@@ -237,7 +241,7 @@ auto __lambda5__ {
 <C> C collect(Collector<T, C> collector) {
 	return this.foldWithInitial(collector.createInitial(), __lambda5__);
 }
-auto __lambda6__(auto aBoolean, auto t) {
+auto __lambda6__(auto aBoolean, t) {
 	return /* > aBoolean  */ && predicate.test(t);
 }
 int allMatch(Predicate<T> predicate) {
@@ -409,6 +413,18 @@ auto __lambda12__(auto inner) {
 }
 Option<String> fold(Option<String> current, String element) {
 	return Some<>(current.map(__lambda12__).orElse(element));
+}
+auto __lambda13__ {
+	return /* > divideDoubleQuotes(state */;
+}
+State fold(State state, char c) {
+	return divideSingleQuotes(state, c).or(__lambda13__, /*  c) */).orElse(this.divider().fold(state, c));
+}
+State fold(State state, char c) {
+	if (c == this.delimiter) {
+		return state.advance();
+	}
+	return state.append(c);
 }
 Option<State> divideSingleQuotes(State state, char c) {
 	if (c != '\''''''') 
@@ -591,7 +607,7 @@ Option<State> divideDoubleQuotes(State state, char c) {
     }
 
     private static Option<String> compileValues(String input, Function<String, Option<String>> compiler) {
-        List_<String> divided = divide(input, Main::divideValueChar); *//* 
+        List_<String> divided = divide(input, new DecoratedDivider(Main::divideValueChar)); *//* 
         return compileValues(divided, compiler); *//* 
     }
 
@@ -906,7 +922,8 @@ Option<State> divideDoubleQuotes(State state, char c) {
         }
         else if (beforeArrow.startsWith("("") && beforeArrow.endsWith(")"")) {
             String inner = beforeArrow.substring(1, beforeArrow.length() - 1);
-            paramNames = Iterators.fromArray(inner.split(Pattern.quote(","")))
+            paramNames = divide(inner, new DelimitedDivider('.'.')'))
+                    .iter()
                     .map(String::strip)
                     .filter(value -> !value.isEmpty())
                     .collect(new ListCollector<>());
@@ -1060,7 +1077,8 @@ Option<State> divideDoubleQuotes(State state, char c) {
                 modifiersString = strippedBeforeTypeParams; *//* 
             }
 
-            boolean allSymbols = Iterators.fromArray(modifiersString.split(Pattern.quote(" "")))
+            boolean allSymbols = divide(modifiersString, new DelimitedDivider(' ' ')'))
+                    .iter()
                     .map(String::strip)
                     .filter(value -> !value.isEmpty())
                     .allMatch(Main::isSymbol);
@@ -1078,8 +1096,9 @@ Option<State> divideDoubleQuotes(State state, char c) {
     }
 
     private static List_<String> splitValues(String substring) {
-        String[] paramsArrays = substring.strip().split(Pattern.quote(",""));
-        return Iterators.from(paramsArrays)
+        String stripped = substring.strip();
+        return divide(stripped, new DelimitedDivider(',',')'))
+                .iter()
                 .map(String::strip)
                 .filter(param -> !param.isEmpty())
                 .collect(new ListCollector<>());
