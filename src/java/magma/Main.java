@@ -1,14 +1,13 @@
 package magma;
 
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.Deque;
 import java.util.LinkedList;
-import java.util.List;
 import java.util.Optional;
 import java.util.function.BiFunction;
+import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.function.Predicate;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -16,18 +15,160 @@ import java.util.stream.IntStream;
 public class Main {
     public interface Result<T, X> {
         <R> R match(Function<T, R> whenOk, Function<X, R> whenErr);
-
-        <R> Result<T, R> mapErr(Function<X, R> mapper);
     }
 
     public interface IOError {
         String display();
     }
 
+    public interface List_<T> {
+        List_<T> add(T element);
+
+        List_<T> addAll(List_<T> others);
+
+        Iterator<T> iter();
+
+        boolean isEmpty();
+
+        T getFirst();
+
+        int size();
+
+        List_<T> slice(int startInclusive, int endExclusive);
+    }
+
     public interface Path_ {
         Path_ resolveSibling(String sibling);
 
-        List<String> asList();
+        List_<String> asList();
+
+        Path_ resolveChild(String child);
+    }
+
+    public interface Iterator<T> {
+        <R> R foldWithInitial(R initial, BiFunction<R, T, R> folder);
+
+        void forEach(Consumer<T> consumer);
+
+        <R> Iterator<R> map(Function<T, R> mapper);
+
+        Iterator<T> filter(Predicate<T> predicate);
+
+        Optional<T> next();
+
+        Iterator<T> concat(Iterator<T> other);
+
+        <C> C collect(Collector<T, C> collector);
+
+        boolean allMatch(Predicate<T> predicate);
+
+        <R> Optional<R> foldWithMapper(Function<T, R> mapper, BiFunction<R, T, R> folder);
+    }
+
+    public interface Collector<T, C> {
+        C createInitial();
+
+        C fold(C current, T element);
+    }
+
+    private interface Head<T> {
+        Optional<T> next();
+    }
+
+    public record HeadedIterator<T>(Head<T> head) implements Iterator<T> {
+        @Override
+        public <R> R foldWithInitial(R initial, BiFunction<R, T, R> folder) {
+            R current = initial;
+            while (true) {
+                R finalCurrent = current;
+                Optional<R> option = this.head.next().map(next -> folder.apply(finalCurrent, next));
+
+                if (option.isPresent()) {
+                    current = option.orElse(finalCurrent);
+                }
+                else {
+                    return current;
+                }
+            }
+        }
+
+        @Override
+        public void forEach(Consumer<T> consumer) {
+            while (true) {
+                Optional<T> next = this.head.next();
+                if (next.isEmpty()) {
+                    break;
+                }
+                next.ifPresent(consumer);
+            }
+        }
+
+        @Override
+        public <R> Iterator<R> map(Function<T, R> mapper) {
+            return new HeadedIterator<>(() -> this.head.next().map(mapper));
+        }
+
+        @Override
+        public Iterator<T> filter(Predicate<T> predicate) {
+            return this.flatMap(value -> new HeadedIterator<>(predicate.test(value)
+                    ? new SingleHead<>(value)
+                    : new EmptyHead<T>()));
+        }
+
+        @Override
+        public Optional<T> next() {
+            return this.head.next();
+        }
+
+        @Override
+        public Iterator<T> concat(Iterator<T> other) {
+            return new HeadedIterator<>(() -> this.head.next().or(other::next));
+        }
+
+        @Override
+        public <C> C collect(Collector<T, C> collector) {
+            return this.foldWithInitial(collector.createInitial(), collector::fold);
+        }
+
+        @Override
+        public boolean allMatch(Predicate<T> predicate) {
+            return this.foldWithInitial(true, (aBoolean, t) -> aBoolean && predicate.test(t));
+        }
+
+        @Override
+        public <R> Optional<R> foldWithMapper(Function<T, R> mapper, BiFunction<R, T, R> folder) {
+            return this.head.next().map(mapper).map(next -> this.foldWithInitial(next, folder));
+        }
+
+        private <R> Iterator<R> flatMap(Function<T, Iterator<R>> mapper) {
+            return this.map(mapper).foldWithInitial(Iterators.empty(), Iterator::concat);
+        }
+    }
+
+    private static class EmptyHead<T> implements Head<T> {
+        @Override
+        public Optional<T> next() {
+            return Optional.empty();
+        }
+    }
+
+    private static class SingleHead<T> implements Head<T> {
+        private final T value;
+        private boolean retrieved = false;
+
+        private SingleHead(T value) {
+            this.value = value;
+        }
+
+        @Override
+        public Optional<T> next() {
+            if (this.retrieved) {
+                return Optional.empty();
+            }
+
+            this.retrieved = true;
+            return Optional.of(this.value);
+        }
     }
 
     public record Err<T, X>(X error) implements Result<T, X> {
@@ -36,10 +177,6 @@ public class Main {
             return whenErr.apply(this.error);
         }
 
-        @Override
-        public <R> Result<T, R> mapErr(Function<X, R> mapper) {
-            return new Err<>(mapper.apply(this.error));
-        }
     }
 
     public record Ok<T, X>(T value) implements Result<T, X> {
@@ -48,19 +185,15 @@ public class Main {
             return whenOk.apply(this.value);
         }
 
-        @Override
-        public <R> Result<T, R> mapErr(Function<X, R> mapper) {
-            return new Ok<>(this.value);
-        }
     }
 
     private static class State {
         private final Deque<Character> queue;
-        private final List<String> segments;
+        private List_<String> segments;
         private StringBuilder buffer;
         private int depth;
 
-        private State(Deque<Character> queue, List<String> segments, StringBuilder buffer, int depth) {
+        private State(Deque<Character> queue, List_<String> segments, StringBuilder buffer, int depth) {
             this.queue = queue;
             this.segments = segments;
             this.buffer = buffer;
@@ -68,11 +201,11 @@ public class Main {
         }
 
         public State(Deque<Character> queue) {
-            this(queue, new ArrayList<>(), new StringBuilder(), 0);
+            this(queue, Lists.empty(), new StringBuilder(), 0);
         }
 
         private State advance() {
-            this.segments.add(this.buffer.toString());
+            this.segments = this.segments.add(this.buffer.toString());
             this.buffer = new StringBuilder();
             return this;
         }
@@ -104,7 +237,7 @@ public class Main {
             return this;
         }
 
-        public List<String> segments() {
+        public List_<String> segments() {
             return this.segments;
         }
 
@@ -121,10 +254,70 @@ public class Main {
     private record Tuple<A, B>(A left, B right) {
     }
 
-    private static final List<String> imports = new ArrayList<>();
-    private static final List<String> structs = new ArrayList<>();
-    private static final List<String> globals = new ArrayList<>();
-    private static final List<String> methods = new ArrayList<>();
+    private static class Iterators {
+        public static <T> Iterator<T> fromArray(T[] array) {
+            return new HeadedIterator<>(new RangeHead(array.length))
+                    .map(index -> array[index]);
+        }
+
+        public static <T> Iterator<T> empty() {
+            return new HeadedIterator<>(new EmptyHead<>());
+        }
+
+        public static <T> Iterator<T> from(T... array) {
+            return new HeadedIterator<>(new RangeHead(array.length))
+                    .map(index -> array[index]);
+        }
+    }
+
+    public static class RangeHead implements Head<Integer> {
+        private final int length;
+        private int counter = 0;
+
+        public RangeHead(int length) {
+            this.length = length;
+        }
+
+        @Override
+        public Optional<Integer> next() {
+            if (this.counter < this.length) {
+                int next = this.counter;
+                this.counter++;
+                return Optional.of(next);
+            }
+
+            return Optional.empty();
+        }
+    }
+
+    public static class ListCollector<T> implements Collector<T, List_<T>> {
+        @Override
+        public List_<T> createInitial() {
+            return Lists.empty();
+        }
+
+        @Override
+        public List_<T> fold(List_<T> current, T element) {
+            return current.add(element);
+        }
+    }
+
+    private record Joiner(String delimiter) implements Collector<String, Optional<String>> {
+        @Override
+        public Optional<String> createInitial() {
+            return Optional.empty();
+        }
+
+        @Override
+        public Optional<String> fold(Optional<String> current, String element) {
+            return Optional.of(current.map(inner -> inner + this.delimiter + element).orElse(element));
+        }
+    }
+
+    private static final List_<String> imports = Lists.empty();
+    private static final List_<String> structs = Lists.empty();
+    private static final List_<String> globals = Lists.empty();
+    private static final List_<String> methods = Lists.empty();
     private static int counter = 0;
 
     public static void main(String[] args) {
@@ -141,46 +334,46 @@ public class Main {
     }
 
     private static String compile(String input) {
-        List<String> segments = divide(input, Main::divideStatementChar);
+        List_<String> segments = divide(input, Main::divideStatementChar);
         return parseAll(segments, Main::compileRootSegment)
-                .map(list -> {
-                    List<String> copy = new ArrayList<String>();
-                    copy.addAll(imports);
-                    copy.addAll(structs);
-                    copy.addAll(globals);
-                    copy.addAll(methods);
-                    copy.addAll(list);
-                    return copy;
-                })
+                .map(Main::mergeStatics)
                 .map(compiled -> mergeAll(compiled, Main::mergeStatements))
                 .or(() -> generatePlaceholder(input)).orElse("");
+    }
+
+    private static List_<String> mergeStatics(List_<String> list) {
+        return Lists.<String>empty()
+                .addAll(imports)
+                .addAll(structs)
+                .addAll(globals)
+                .addAll(methods)
+                .addAll(list);
     }
 
     private static Optional<String> compileStatements(String input, Function<String, Optional<String>> compiler) {
         return compileAndMerge(divide(input, Main::divideStatementChar), compiler, Main::mergeStatements);
     }
 
-    private static Optional<String> compileAndMerge(List<String> segments, Function<String, Optional<String>> compiler, BiFunction<StringBuilder, String, StringBuilder> merger) {
+    private static Optional<String> compileAndMerge(List_<String> segments, Function<String, Optional<String>> compiler, BiFunction<StringBuilder, String, StringBuilder> merger) {
         return parseAll(segments, compiler).map(compiled -> mergeAll(compiled, merger));
     }
 
-    private static String mergeAll(List<String> compiled, BiFunction<StringBuilder, String, StringBuilder> merger) {
-        return compiled.stream().reduce(new StringBuilder(), merger, (_, next) -> next).toString();
+    private static String mergeAll(List_<String> compiled, BiFunction<StringBuilder, String, StringBuilder> merger) {
+        return compiled.iter().foldWithInitial(new StringBuilder(), merger).toString();
     }
 
-    private static Optional<List<String>> parseAll(List<String> segments, Function<String, Optional<String>> compiler) {
-        return segments.stream().reduce(Optional.of(new ArrayList<String>()), (maybeCompiled, segment) -> maybeCompiled.flatMap(allCompiled -> compiler.apply(segment).map(compiledSegment -> {
-            allCompiled.add(compiledSegment);
-            return allCompiled;
-        })), (_, next) -> next);
+    private static Optional<List_<String>> parseAll(List_<String> segments, Function<String, Optional<String>> compiler) {
+        return segments.iter().foldWithInitial(Optional.of(Lists.empty()),
+                (maybeCompiled, segment) -> maybeCompiled.flatMap(
+                        allCompiled -> compiler.apply(segment).map(allCompiled::add)));
     }
 
     private static StringBuilder mergeStatements(StringBuilder output, String compiled) {
         return output.append(compiled);
     }
 
-    private static List<String> divide(String input, BiFunction<State, Character, State> divider) {
-        LinkedList<Character> queue = IntStream.range(0, input.length())
+    private static List_<String> divide(String input, BiFunction<State, Character, State> divider) {
+        Deque<Character> queue = IntStream.range(0, input.length())
                 .mapToObj(input::charAt)
                 .collect(Collectors.toCollection(LinkedList::new));
 
@@ -266,7 +459,7 @@ public class Main {
             }
         }
 
-        Optional<String> maybeClass = compileToStruct(input, "class ", new ArrayList<>());
+        Optional<String> maybeClass = compileToStruct(input, "class ", Lists.empty());
         if (maybeClass.isPresent()) {
             return maybeClass;
         }
@@ -274,7 +467,7 @@ public class Main {
         return generatePlaceholder(input);
     }
 
-    private static Optional<String> compileToStruct(String input, String infix, List<String> typeParams) {
+    private static Optional<String> compileToStruct(String input, String infix, List_<String> typeParams) {
         int classIndex = input.indexOf(infix);
         if (classIndex < 0) {
             return Optional.empty();
@@ -340,7 +533,7 @@ public class Main {
         return Optional.empty();
     }
 
-    private static Optional<String> compileClassMember(String input, List<String> typeParams) {
+    private static Optional<String> compileClassMember(String input, List_<String> typeParams) {
         return compileWhitespace(input)
                 .or(() -> compileToStruct(input, "interface ", typeParams))
                 .or(() -> compileToStruct(input, "record ", typeParams))
@@ -360,14 +553,14 @@ public class Main {
         return Optional.empty();
     }
 
-    private static Optional<String> compileGlobalInitialization(String input, List<String> typeParams) {
+    private static Optional<String> compileGlobalInitialization(String input, List_<String> typeParams) {
         return compileInitialization(input, typeParams, 0).map(generated -> {
             globals.add(generated + ";\n");
             return "";
         });
     }
 
-    private static Optional<String> compileInitialization(String input, List<String> typeParams, int depth) {
+    private static Optional<String> compileInitialization(String input, List_<String> typeParams, int depth) {
         if (!input.endsWith(";")) {
             return Optional.empty();
         }
@@ -390,7 +583,7 @@ public class Main {
         return Optional.empty();
     }
 
-    private static Optional<String> compileMethod(String input, List<String> typeParams) {
+    private static Optional<String> compileMethod(String input, List_<String> typeParams) {
         int paramStart = input.indexOf("(");
         if (paramStart < 0) {
             return Optional.empty();
@@ -412,7 +605,7 @@ public class Main {
     }
 
     private static Optional<String> assembleMethodBody(
-            List<String> typeParams,
+            List_<String> typeParams,
             String definition,
             String params,
             String body
@@ -436,7 +629,7 @@ public class Main {
     }
 
     private static Optional<String> compileValues(String input, Function<String, Optional<String>> compiler) {
-        List<String> divided = divide(input, Main::divideValueChar);
+        List_<String> divided = divide(input, Main::divideValueChar);
         return compileValues(divided, compiler);
     }
 
@@ -462,11 +655,11 @@ public class Main {
         return appended;
     }
 
-    private static Optional<String> compileValues(List<String> params, Function<String, Optional<String>> compiler) {
+    private static Optional<String> compileValues(List_<String> params, Function<String, Optional<String>> compiler) {
         return compileAndMerge(params, compiler, Main::mergeValues);
     }
 
-    private static Optional<String> compileStatementOrBlock(String input, List<String> typeParams, int depth) {
+    private static Optional<String> compileStatementOrBlock(String input, List_<String> typeParams, int depth) {
         return compileWhitespace(input)
                 .or(() -> compileKeywordStatement(input, depth, "continue"))
                 .or(() -> compileKeywordStatement(input, depth, "break"))
@@ -483,7 +676,7 @@ public class Main {
                 .or(() -> generatePlaceholder(input));
     }
 
-    private static Optional<String> compilePostOperator(String input, List<String> typeParams, int depth, String operator) {
+    private static Optional<String> compilePostOperator(String input, List_<String> typeParams, int depth, String operator) {
         String stripped = input.strip();
         if (stripped.endsWith(operator + ";")) {
             String slice = stripped.substring(0, stripped.length() - (operator + ";").length());
@@ -494,7 +687,7 @@ public class Main {
         }
     }
 
-    private static Optional<String> compileElse(String input, List<String> typeParams, int depth) {
+    private static Optional<String> compileElse(String input, List_<String> typeParams, int depth) {
         String stripped = input.strip();
         if (stripped.startsWith("else ")) {
             String withoutKeyword = stripped.substring("else ".length()).strip();
@@ -529,7 +722,7 @@ public class Main {
         return "\n" + "\t".repeat(depth);
     }
 
-    private static Optional<String> compileConditional(String input, List<String> typeParams, String prefix, int depth) {
+    private static Optional<String> compileConditional(String input, List_<String> typeParams, String prefix, int depth) {
         String stripped = input.strip();
         if (!stripped.startsWith(prefix)) {
             return Optional.empty();
@@ -570,7 +763,7 @@ public class Main {
         int conditionEnd = -1;
         int depth0 = 0;
 
-        LinkedList<Tuple<Integer, Character>> queue = IntStream.range(0, input.length())
+        Deque<Tuple<Integer, Character>> queue = IntStream.range(0, input.length())
                 .mapToObj(index -> new Tuple<>(index, input.charAt(index)))
                 .collect(Collectors.toCollection(LinkedList::new));
 
@@ -618,7 +811,7 @@ public class Main {
         return conditionEnd;
     }
 
-    private static Optional<String> compileInvocationStatement(String input, List<String> typeParams, int depth) {
+    private static Optional<String> compileInvocationStatement(String input, List_<String> typeParams, int depth) {
         String stripped = input.strip();
         if (stripped.endsWith(";")) {
             String withoutEnd = stripped.substring(0, stripped.length() - ";".length());
@@ -630,7 +823,7 @@ public class Main {
         return Optional.empty();
     }
 
-    private static Optional<String> compileAssignment(String input, List<String> typeParams, int depth) {
+    private static Optional<String> compileAssignment(String input, List_<String> typeParams, int depth) {
         String stripped = input.strip();
         if (stripped.endsWith(";")) {
             String withoutEnd = stripped.substring(0, stripped.length() - ";".length());
@@ -644,7 +837,7 @@ public class Main {
         return Optional.empty();
     }
 
-    private static Optional<String> compileReturn(String input, List<String> typeParams, int depth) {
+    private static Optional<String> compileReturn(String input, List_<String> typeParams, int depth) {
         String stripped = input.strip();
         if (stripped.endsWith(";")) {
             String withoutEnd = stripped.substring(0, stripped.length() - ";".length());
@@ -656,7 +849,7 @@ public class Main {
         return Optional.empty();
     }
 
-    private static Optional<String> compileValue(String input, List<String> typeParams, int depth) {
+    private static Optional<String> compileValue(String input, List_<String> typeParams, int depth) {
         String stripped = input.strip();
         if (stripped.startsWith("\"") && stripped.endsWith("\"")) {
             return Optional.of(stripped);
@@ -702,7 +895,7 @@ public class Main {
             String property = stripped.substring(methodIndex + "::".length()).strip();
 
             if (isSymbol(property)) {
-                return compileType(type, typeParams).flatMap(compiled -> generateLambdaWithReturn(Collections.emptyList(), "\n\treturn " + compiled + "." + property + "()"));
+                return compileType(type, typeParams).flatMap(compiled -> generateLambdaWithReturn(Lists.empty(), "\n\treturn " + compiled + "." + property + "()"));
             }
         }
 
@@ -723,7 +916,7 @@ public class Main {
                 .or(() -> generatePlaceholder(input));
     }
 
-    private static Optional<String> compileOperator(String input, List<String> typeParams, int depth, String operator) {
+    private static Optional<String> compileOperator(String input, List_<String> typeParams, int depth, String operator) {
         int operatorIndex = input.indexOf(operator);
         if (operatorIndex < 0) {
             return Optional.empty();
@@ -735,23 +928,23 @@ public class Main {
         return compileValue(left, typeParams, depth).flatMap(leftResult -> compileValue(right, typeParams, depth).map(rightResult -> leftResult + " " + operator + " " + rightResult));
     }
 
-    private static Optional<String> compileLambda(String input, List<String> typeParams, int depth) {
+    private static Optional<String> compileLambda(String input, List_<String> typeParams, int depth) {
         int arrowIndex = input.indexOf("->");
         if (arrowIndex < 0) {
             return Optional.empty();
         }
 
         String beforeArrow = input.substring(0, arrowIndex).strip();
-        List<String> paramNames;
+        List_<String> paramNames;
         if (isSymbol(beforeArrow)) {
-            paramNames = Collections.singletonList(beforeArrow);
+            paramNames = Lists.of(beforeArrow);
         }
         else if (beforeArrow.startsWith("(") && beforeArrow.endsWith(")")) {
             String inner = beforeArrow.substring(1, beforeArrow.length() - 1);
-            paramNames = Arrays.stream(inner.split(Pattern.quote(",")))
+            paramNames = Iterators.fromArray(inner.split(Pattern.quote(",")))
                     .map(String::strip)
                     .filter(value -> !value.isEmpty())
-                    .toList();
+                    .collect(new ListCollector<>());
         }
         else {
             return Optional.empty();
@@ -766,14 +959,17 @@ public class Main {
         return compileValue(value, typeParams, depth).flatMap(newValue -> generateLambdaWithReturn(paramNames, "\n\treturn " + newValue + ";"));
     }
 
-    private static Optional<String> generateLambdaWithReturn(List<String> paramNames, String returnValue) {
+    private static Optional<String> generateLambdaWithReturn(List_<String> paramNames, String returnValue) {
         int current = counter;
         counter++;
         String lambdaName = "__lambda" + current + "__";
 
-        String joined = paramNames.stream()
+        String joined = paramNames.iter()
                 .map(name -> "auto " + name)
-                .collect(Collectors.joining(", ", "(", ")"));
+                .collect(new Joiner(", "))
+                .map(value -> "(" + value + ")")
+                .orElse("");
+
         methods.add("auto " + lambdaName + joined + " {" + returnValue + "\n}\n");
         return Optional.of(lambdaName);
     }
@@ -785,7 +981,7 @@ public class Main {
         });
     }
 
-    private static Optional<String> compileInvocation(String input, List<String> typeParams, int depth) {
+    private static Optional<String> compileInvocation(String input, List_<String> typeParams, int depth) {
         String stripped = input.strip();
         if (stripped.endsWith(")")) {
             String sliced = stripped.substring(0, stripped.length() - ")".length());
@@ -823,7 +1019,7 @@ public class Main {
         return argsStart;
     }
 
-    private static Optional<String> compileArgs(String argsString, List<String> typeParams, int depth) {
+    private static Optional<String> compileArgs(String argsString, List_<String> typeParams, int depth) {
         return compileValues(argsString, arg -> compileWhitespace(arg).or(() -> compileValue(arg, typeParams, depth))).map(args -> "(" + args + ")");
     }
 
@@ -871,7 +1067,7 @@ public class Main {
             String beforeType = beforeName.substring(0, typeSeparator).strip();
 
             String beforeTypeParams = beforeType;
-            List<String> typeParams;
+            List_<String> typeParams;
             if (beforeType.endsWith(">")) {
                 String withoutEnd = beforeType.substring(0, beforeType.length() - ">".length());
                 int typeParamStart = withoutEnd.indexOf("<");
@@ -881,11 +1077,11 @@ public class Main {
                     typeParams = splitValues(substring);
                 }
                 else {
-                    typeParams = Collections.emptyList();
+                    typeParams = Lists.empty();
                 }
             }
             else {
-                typeParams = Collections.emptyList();
+                typeParams = Lists.empty();
             }
 
             String strippedBeforeTypeParams = beforeTypeParams.strip();
@@ -912,31 +1108,33 @@ public class Main {
             return compileType(inputType, typeParams).flatMap(outputType -> Optional.of(generateDefinition(typeParams, outputType, name)));
         }
         else {
-            return compileType(beforeName, Collections.emptyList()).flatMap(outputType -> Optional.of(generateDefinition(Collections.emptyList(), outputType, name)));
+            return compileType(beforeName, Lists.empty()).flatMap(outputType -> Optional.of(generateDefinition(Lists.empty(), outputType, name)));
         }
     }
 
-    private static List<String> splitValues(String substring) {
+    private static List_<String> splitValues(String substring) {
         String[] paramsArrays = substring.strip().split(Pattern.quote(","));
-        return Arrays.stream(paramsArrays)
+        return Iterators.from(paramsArrays)
                 .map(String::strip)
                 .filter(param -> !param.isEmpty())
-                .toList();
+                .collect(new ListCollector<>());
     }
 
-    private static String generateDefinition(List<String> maybeTypeParams, String type, String name) {
-        String typeParamsString;
+    private static String generateDefinition(List_<String> maybeTypeParams, String type, String name) {
+        return generateTypeParams(maybeTypeParams) + type + " " + name;
+    }
+
+    private static String generateTypeParams(List_<String> maybeTypeParams) {
         if (maybeTypeParams.isEmpty()) {
-            typeParamsString = "";
+            return "";
         }
-        else {
-            typeParamsString = "<" + String.join(", ", maybeTypeParams) + "> ";
-        }
-
-        return typeParamsString + type + " " + name;
+        return maybeTypeParams.iter()
+                .collect(new Joiner(", "))
+                .map(result -> "<" + result + "> ")
+                .orElse("");
     }
 
-    private static Optional<String> compileType(String input, List<String> typeParams) {
+    private static Optional<String> compileType(String input, List_<String> typeParams) {
         if (input.equals("void")) {
             return Optional.of("void");
         }
@@ -956,7 +1154,7 @@ public class Main {
 
         String stripped = input.strip();
         if (isSymbol(stripped)) {
-            if (typeParams.contains(stripped)) {
+            if (Lists.contains(typeParams, stripped, String::equals)) {
                 return Optional.of(stripped);
             }
             else {

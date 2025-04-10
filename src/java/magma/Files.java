@@ -5,7 +5,6 @@ import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.List;
 import java.util.Optional;
 
 public class Files {
@@ -29,13 +28,10 @@ public class Files {
     }
 
     private static Path unwrap(Main.Path_ path) {
-        List<String> list = path.asList();
-        Path first = Paths.get(list.getFirst());
-        List<String> slice = list.subList(1, list.size());
-        for (String child : slice) {
-            first = first.resolve(child);
-        }
-        return first;
+        return path.asList()
+                .iter()
+                .foldWithMapper(java.nio.file.Paths::get, Path::resolve)
+                .orElse(Paths.get("."));
     }
 
     static Main.Result<String, Main.IOError> readString(Main.Path_ source) {

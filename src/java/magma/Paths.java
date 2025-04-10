@@ -1,8 +1,6 @@
 package magma;
 
 import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.List;
 
 public class Paths {
     private record NIOPath(Path path) implements Main.Path_ {
@@ -12,14 +10,16 @@ public class Paths {
         }
 
         @Override
-        public List<String> asList() {
-            ArrayList<String> segments = new ArrayList<>();
-            for (int i = 0; i < this.path.getNameCount(); i++) {
-                segments.add(this.path.getName(i).toString());
-            }
-            return segments;
+        public Main.List_<String> asList() {
+            return new Main.HeadedIterator<>(new Main.RangeHead(this.path.getNameCount()))
+                    .map(index -> this.path.getName(index).toString())
+                    .collect(new Main.ListCollector<>());
         }
 
+        @Override
+        public Main.Path_ resolveChild(String child) {
+            return new NIOPath(this.path.resolve(child));
+        }
     }
 
     public static Main.Path_ get(String first, String... elements) {
