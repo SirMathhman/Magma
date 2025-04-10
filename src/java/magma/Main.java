@@ -110,6 +110,10 @@ public class Main {
         State fold(State state, char c);
     }
 
+    interface Rule extends Function<String, Main.Result<String, Main.CompileError>> {
+
+    }
+
     public record ApplicationError(Error error) implements Error {
         @Override
         public String display() {
@@ -637,21 +641,21 @@ public class Main {
     }
 
     private static Result<String, CompileError> compileRootSegment(String input0) {
-        return compileRootSegment(input0, listRules());
+        return compileOr(input0, listRules());
     }
 
-    private static Result<String, CompileError> compileRootSegment(String input, List_<Function<String, Result<String, CompileError>>> rules) {
+    private static Result<String, CompileError> compileOr(String input, List_<Rule> rules) {
         return rules.iter()
                 .foldWithInitial(new OrState(), (orState, rule) -> rule.apply(input).match(orState::withValue, orState::withError))
                 .toResult()
                 .mapErr(errors -> new CompileError("No valid combination present", input, errors));
     }
 
-    private static List_<Function<String, Result<String, CompileError>>> listRules() {
+    private static List_<Rule> listRules() {
         return Lists.of(
-                (input) -> compileWhitespace(input),
-                (input) -> compilePackage(input),
-                (input) -> getStringCompileErrorResult(input),
+                Main::compileWhitespace,
+                Main::compilePackage,
+                Main::getStringCompileErrorResult,
                 (input) -> compileToStruct(input, "class ", Lists.empty())
         );
     }
@@ -676,15 +680,11 @@ public class Main {
                 .addAll(list);
     }
 
-    private static Option<String> compileStatements(String input, Function<String, Option<String>> compiler) {
+    private static Result<String, CompileError> compileStatements(String input, Rule compiler) {
         return compileAndMerge(divide(input, new DecoratedDivider(Main::divideStatementChar)), compiler, Main::mergeStatements);
     }
 
-    private static Option<String> compileAndMerge(List_<String> segments, Function<String, Option<String>> compiler, BiFunction<StringBuilder, String, StringBuilder> merger) {
-        return getMap(segments, s -> wrap(compiler.apply(s)), merger).findValue();
-    }
-
-    private static Result<String, CompileError> getMap(List_<String> segments, Function<String, Result<String, CompileError>> compiler, BiFunction<StringBuilder, String, StringBuilder> merger) {
+    private static Result<String, CompileError> compileAndMerge(List_<String> segments, Rule compiler, BiFunction<StringBuilder, String, StringBuilder> merger) {
         return parseAll(segments, compiler).mapValue(compiled -> mergeAll(compiled, merger));
     }
 
@@ -692,7 +692,7 @@ public class Main {
         return compiled.iter().foldWithInitial(new StringBuilder(), merger).toString();
     }
 
-    private static Result<List_<String>, CompileError> parseAll(List_<String> segments, Function<String, Result<String, CompileError>> mapper) {
+    private static Result<List_<String>, CompileError> parseAll(List_<String> segments, Rule mapper) {
         return segments.iter().foldToResult(Lists.empty(),
                 (current, element) -> mapper.apply(element).mapValue(current::add));
     }
@@ -797,10 +797,10 @@ public class Main {
         }
 
         String inputContent = withEnd.substring(0, withEnd.length() - "}".length());
-        return wrap(compileStatements(inputContent, input1 -> compileClassMember(input1, typeParams)).map(outputContent -> {
+        return compileStatements(inputContent, s -> compileClassMember(s, typeParams)).mapValue(outputContent -> {
             structs.add("struct " + name + " {\n" + outputContent + "};\n");
             return "";
-        }));
+        });
     }
 
     private static String getBeforeImplements(String beforeContent) {
@@ -857,18 +857,31 @@ public class Main {
         return beforeImplements;
     }
 
-    private static Option<String> compileClassMember(String input, List_<String> typeParams) {
-        return unwrap(compileWhitespace(input))
-                .or(() -> compileToStruct(input, "interface ", typeParams).findValue())
-                .or(() -> compileToStruct(input, "record ", typeParams).findValue())
-                .or(() -> compileToStruct(input, "class ", typeParams).findValue())
-                .or(() -> compileGlobalInitialization(input, typeParams))
-                .or(() -> compileDefinitionStatement(input))
-                .or(() -> compileMethod(input, typeParams))
-                .or(() -> unwrap(new Err<String, CompileError>(new CompileError("Invalid input: ", input))));
+    private static Result<String, CompileError> compileClassMember(String input0, List_<String> typeParams) {
+        return compileOr(input0, Lists.of(
+                Main::compileWhitespace,
+                (input) -> compileToStruct(input, "interface ", typeParams),
+                (input) -> compileToStruct(input, "record ", typeParams),
+                (input) -> compileToStruct(input, "class ", typeParams),
+                (input) -> compileGlobalInitialization(typeParams, input),
+                Main::compileDefinitionStatement,
+                (input) -> compileMethod(typeParams, input)
+        ));
     }
 
-    private static Option<String> compileDefinitionStatement(String input) {
+    private static Result<String, CompileError> compileMethod(List_<String> typeParams, String input) {
+        return wrap(compileMethod0(input, typeParams));
+    }
+
+    private static Result<String, CompileError> compileDefinitionStatement(String input) {
+        return wrap(compileDefinitionStatement0(input));
+    }
+
+    private static Result<String, CompileError> compileGlobalInitialization(List_<String> typeParams, String input) {
+        return wrap(compileGlobalInitialization0(input, typeParams));
+    }
+
+    private static Option<String> compileDefinitionStatement0(String input) {
         String stripped = input.strip();
         if (stripped.endsWith(";")) {
             String content = stripped.substring(0, stripped.length() - ";".length());
@@ -877,7 +890,7 @@ public class Main {
         return new None<>();
     }
 
-    private static Option<String> compileGlobalInitialization(String input, List_<String> typeParams) {
+    private static Option<String> compileGlobalInitialization0(String input, List_<String> typeParams) {
         return compileInitialization(input, typeParams, 0).map(generated -> {
             globals.add(generated + ";\n");
             return "";
@@ -907,7 +920,7 @@ public class Main {
         return new Err<>(new CompileError("Not blank", input));
     }
 
-    private static Option<String> compileMethod(String input, List_<String> typeParams) {
+    private static Option<String> compileMethod0(String input, List_<String> typeParams) {
         int paramStart = input.indexOf("(");
         if (paramStart < 0) {
             return new None<>();
@@ -937,7 +950,7 @@ public class Main {
         String header = "\t".repeat(0) + definition + "(" + params + ")";
         if (body.startsWith("{") && body.endsWith("}")) {
             String inputContent = body.substring("{".length(), body.length() - "}".length());
-            return compileStatements(inputContent, input1 -> compileStatementOrBlock(input1, typeParams, 1)).flatMap(outputContent -> {
+            return unwrap(compileStatements(inputContent, s -> wrap(compileStatementOrBlock(s, typeParams, 1)))).flatMap(outputContent -> {
                 methods.add(header + " {" + outputContent + "\n}\n");
                 return new Some<>("");
             });
@@ -979,7 +992,7 @@ public class Main {
     }
 
     private static Option<String> compileValues(List_<String> params, Function<String, Option<String>> compiler) {
-        return compileAndMerge(params, compiler, Main::mergeValues);
+        return compileAndMerge(params, s -> wrap(compiler.apply(s)), Main::mergeValues).findValue();
     }
 
     private static Option<String> compileStatementOrBlock(String input, List_<String> typeParams, int depth) {
@@ -995,7 +1008,7 @@ public class Main {
                 .or(() -> compileInitialization(input, typeParams, depth).map(result -> formatStatement(depth, result)))
                 .or(() -> compileAssignment(input, typeParams, depth).map(result -> formatStatement(depth, result)))
                 .or(() -> compileInvocationStatement(input, typeParams, depth).map(result -> formatStatement(depth, result)))
-                .or(() -> compileDefinitionStatement(input))
+                .or(() -> compileDefinitionStatement0(input))
                 .or(() -> unwrap(new Err<String, CompileError>(new CompileError("Invalid input: ", input))));
     }
 
@@ -1016,8 +1029,7 @@ public class Main {
             String withoutKeyword = stripped.substring("else ".length()).strip();
             if (withoutKeyword.startsWith("{") && withoutKeyword.endsWith("}")) {
                 String indent = createIndent(depth);
-                return compileStatements(withoutKeyword.substring(1, withoutKeyword.length() - 1),
-                        statement -> compileStatementOrBlock(statement, typeParams, depth + 1))
+                return unwrap(compileStatements(withoutKeyword.substring(1, withoutKeyword.length() - 1), s -> wrap(compileStatementOrBlock(s, typeParams, depth + 1))))
                         .map(result -> indent + "else {" + result + indent + "}");
             }
             else {
@@ -1070,10 +1082,11 @@ public class Main {
 
             if (withBraces.startsWith("{") && withBraces.endsWith("}")) {
                 String content = withBraces.substring(1, withBraces.length() - 1);
-                return compileStatements(content, statement -> compileStatementOrBlock(statement, typeParams, depth + 1)).map(statements -> withCondition +
+                Result<String, CompileError> stringCompileErrorResult = compileStatements(content, s -> wrap(compileStatementOrBlock(s, typeParams, depth + 1)));
+                return stringCompileErrorResult.mapValue(statements -> withCondition +
                         " {" + statements + "\n" +
                         "\t".repeat(depth) +
-                        "}");
+                        "}").findValue();
             }
             else {
                 return compileStatementOrBlock(withBraces, typeParams, depth).map(result -> withCondition + " " + result);
@@ -1280,7 +1293,8 @@ public class Main {
         String value = input.substring(arrowIndex + "->".length()).strip();
         if (value.startsWith("{") && value.endsWith("}")) {
             String slice = value.substring(1, value.length() - 1);
-            return compileStatements(slice, statement -> compileStatementOrBlock(statement, typeParams, depth)).flatMap(result -> generateLambdaWithReturn(paramNames, result));
+            return unwrap(compileStatements(slice, s -> wrap(compileStatementOrBlock(s, typeParams, depth))))
+                    .flatMap(result -> generateLambdaWithReturn(paramNames, result));
         }
 
         return compileValue(value, typeParams, depth).flatMap(newValue -> generateLambdaWithReturn(paramNames, "\n\treturn " + newValue + ";"));
