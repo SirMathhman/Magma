@@ -1299,21 +1299,28 @@ public class Main {
     }
 
     private static Result<String, CompileError> compileConstruction(String stripped, List_<String> typeParams, int depth) {
-        if (stripped.startsWith("new ")) {
-            String slice = stripped.substring("new ".length());
-            int argsStart = slice.indexOf("(");
-            if (argsStart >= 0) {
-                String type = slice.substring(0, argsStart);
-                String withEnd = slice.substring(argsStart + "(".length()).strip();
-                if (withEnd.endsWith(")")) {
-                    String argsString = withEnd.substring(0, withEnd.length() - ")".length());
-                    return compileType(type, typeParams)
-                            .flatMapValue(outputType -> compileArgs(argsString, typeParams, depth)
-                                    .mapValue(value -> outputType + value));
-                }
+        return new TypeRule("construction", new StripRule(input -> {
+            if (!input.startsWith("new ")) {
+                return createPrefixRule(input, "new ");
             }
-        }
-        return new Err<>(new CompileError("Not a construction", stripped));
+
+            String slice = input.substring("new ".length());
+            int argsStart = slice.indexOf("(");
+            if (argsStart < 0) {
+                return createInfixErr(slice, "(");
+            }
+
+            String type = slice.substring(0, argsStart);
+            String withEnd = slice.substring(argsStart + "(".length()).strip();
+            if (!withEnd.endsWith(")")) {
+                return createSuffixErr(withEnd, ")");
+            }
+
+            String argsString = withEnd.substring(0, withEnd.length() - ")".length());
+            return compileType(type, typeParams)
+                    .flatMapValue(outputType -> compileArgs(argsString, typeParams, depth)
+                            .mapValue(value -> outputType + value));
+        })).apply(stripped);
     }
 
     private static Result<String, CompileError> createNotRule(String stripped, List_<String> typeParams, int depth) {
