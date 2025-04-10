@@ -1,4 +1,3 @@
-#include "./java/util/stream/IntStream"
 struct Result {
 	<R> R match(Function<T, R> whenOk, Function<X, R> whenErr);
 };
@@ -957,8 +956,9 @@ Option<State> divideDoubleQuotes(State state, char c) {
     }
 
     private static boolean isNumber(String input) {
-        return IntStream.range(0, input.length()).allMatch(index -> {
-            char c = input.charAt(index);
+        return Iterators.fromStringWithIndices(input).allMatch(tuple -> {
+            int index = tuple.left;
+            char c = tuple.right;
             return (index == 0 && c == '-'-')') || Character.isDigit(c);
         });
     }
@@ -1165,8 +1165,9 @@ Option<State> divideDoubleQuotes(State state, char c) {
             return false;
         }
 
-        return IntStream.range(0, input.length()).allMatch(index -> {
-            char c = input.charAt(index); *//* 
+        return Iterators.fromStringWithIndices(input).allMatch(tuple -> {
+            Integer index = tuple.left; *//* 
+            char c = tuple.right; *//* 
             return c == '_'_' ' || Character.isLetter(c) || (index != 0 && Character.isDigit(c)); *//* 
         });
     }
