@@ -25,6 +25,8 @@ public class Main {
         Option<T> or(Supplier<Option<T>> other);
 
         <R> Option<R> flatMap(Function<T, Option<R>> mapper);
+
+        Tuple<Boolean, T> toTuple(T other);
     }
 
     public interface IOError {
@@ -199,6 +201,11 @@ public class Main {
         public <R> Option<R> flatMap(Function<T, Option<R>> mapper) {
             return new None<>();
         }
+
+        @Override
+        public Tuple<Boolean, T> toTuple(T other) {
+            return new Tuple<>(false, other);
+        }
     }
 
     private static class EmptyHead<T> implements Head<T> {
@@ -261,6 +268,11 @@ public class Main {
         @Override
         public <R> Option<R> flatMap(Function<T, Option<R>> mapper) {
             return mapper.apply(this.value);
+        }
+
+        @Override
+        public Tuple<Boolean, T> toTuple(T other) {
+            return new Tuple<>(true, this.value);
         }
     }
 
@@ -358,11 +370,6 @@ public class Main {
             return new HeadedIterator<>(new EmptyHead<>());
         }
 
-        public static <T> Iterator<T> from(T... array) {
-            return new HeadedIterator<>(new RangeHead(array.length))
-                    .map(index -> array[index]);
-        }
-
         public static Iterator<Character> fromString(String input) {
             return fromStringWithIndices(input).map(tuple -> tuple.right);
         }
@@ -417,6 +424,58 @@ public class Main {
     }
 
     private record DecoratedDivider(Divider divider) implements Divider {
+        private static Option<State> divideSingleQuotes(State state, char c) {
+            if (c != '\'') {
+                return new None<>();
+            }
+
+            State appended = state.append(c);
+            Option<Tuple<Character, State>> maybeSlashTuple = appended.pop();
+            if (maybeSlashTuple.isEmpty()) {
+                return new None<>();
+            }
+
+            Tuple<Character, State> slashTuple = maybeSlashTuple.orElse(new Tuple<>('\0', appended));
+            var withMaybeSlash = slashTuple.right.append(slashTuple.left);
+
+            Option<State> withSlash = slashTuple.left == '\\' ? withMaybeSlash.popAndAppend() : new None<>();
+            return withSlash.flatMap(State::popAndAppend);
+        }
+
+        private static Option<State> divideDoubleQuotes(State state, char c) {
+            if (c != '\"') {
+                return new None<>();
+            }
+
+            State current = state.append(c);
+            while (true) {
+                Tuple<Boolean, State> maybeNextTuple = current.pop()
+                        .flatMap(DecoratedDivider::foldWithinDoubleQuotes)
+                        .toTuple(current);
+
+                if (maybeNextTuple.left) {
+                    current = maybeNextTuple.right;
+                }
+                else {
+                    return new Some<>(current);
+                }
+            }
+        }
+
+        private static Option<State> foldWithinDoubleQuotes(Tuple<Character, State> tuple) {
+            char next = tuple.left;
+            State state = tuple.right;
+
+            State appended = state.append(next);
+            if (next == '\\') {
+                return appended.popAndAppend();
+            }
+            if (next == '"') {
+                return new None<>();
+            }
+            return new Some<>(appended);
+        }
+
         @Override
         public State fold(State state, char c) {
             return divideSingleQuotes(state, c)
@@ -515,52 +574,6 @@ public class Main {
         }
 
         return state.advance().segments();
-    }
-
-    private static Option<State> divideSingleQuotes(State state, char c) {
-        if (c != '\'') {
-            return new None<>();
-        }
-
-        State appended = state.append(c);
-        Option<Tuple<Character, State>> maybeSlashTuple = appended.pop();
-        if (maybeSlashTuple.isEmpty()) {
-            return new None<>();
-        }
-
-        Tuple<Character, State> slashTuple = maybeSlashTuple.orElse(new Tuple<>('\0', appended));
-        var withMaybeSlash = slashTuple.right.append(slashTuple.left);
-
-        Option<State> withSlash = slashTuple.left == '\\' ? withMaybeSlash.popAndAppend() : new None<>();
-        return withSlash.flatMap(State::popAndAppend);
-    }
-
-    private static Option<State> divideDoubleQuotes(State state, char c) {
-        if (c != '\"') {
-            return new None<>();
-        }
-
-        State current = state.append(c);
-        while (true) {
-            Option<Tuple<Character, State>> maybeNextTuple = current.pop();
-            if (maybeNextTuple.isEmpty()) {
-                break;
-            }
-
-            Tuple<Character, State> nextTuple = maybeNextTuple.orElse(null);
-
-            char next = nextTuple.left;
-            current = nextTuple.right.append(next);
-
-            if (next == '\\') {
-                current = current.popAndAppend().orElse(current);
-            }
-            if (next == '"') {
-                break;
-            }
-        }
-
-        return new Some<>(current);
     }
 
     private static State divideStatementChar(State state, char c) {
@@ -786,8 +799,7 @@ public class Main {
     private static State divideValueChar(State state, char c) {
         if (c == '-') {
             if (state.peek().orElse('\0') == '>') {
-                state.pop();
-                return state.append('-').append('>');
+                return state.append('-').popAndAppend().orElse(state);
             }
         }
 
