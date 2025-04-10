@@ -660,6 +660,16 @@ public class Main {
         }
     }
 
+    private record OrRule(List_<Rule> rules) implements Rule {
+        @Override
+        public Result<String, CompileError> apply(String input) {
+            return this.rules.iter()
+                    .foldWithInitial(new OrState(), (orState, rule) -> rule.apply(input).match(orState::withValue, orState::withError))
+                    .toResult()
+                    .mapErr(errors -> new CompileError("No valid combination present", input, errors));
+        }
+    }
+
     public static final List_<String> FUNCTIONAL_NAMESPACE = Lists.of("java", "util", "function");
     private static final List_<String> imports = Lists.empty();
     private static final List_<String> structs = Lists.empty();
@@ -694,14 +704,7 @@ public class Main {
     }
 
     private static Result<String, CompileError> compileRootSegment(String input0) {
-        return compileOr(input0, listRules());
-    }
-
-    private static Result<String, CompileError> compileOr(String input, List_<Rule> rules) {
-        return rules.iter()
-                .foldWithInitial(new OrState(), (orState, rule) -> rule.apply(input).match(orState::withValue, orState::withError))
-                .toResult()
-                .mapErr(errors -> new CompileError("No valid combination present", input, errors));
+        return new OrRule(listRules()).apply(input0);
     }
 
     private static List_<Rule> listRules() {
@@ -913,7 +916,7 @@ public class Main {
     }
 
     private static Result<String, CompileError> compileClassMember(String input0, List_<String> typeParams) {
-        return compileOr(input0, Lists.of(
+        return new OrRule(Lists.of(
                 Main::compileWhitespace,
                 (input) -> compileToStruct(input, "interface ", typeParams),
                 (input) -> compileToStruct(input, "record ", typeParams),
@@ -921,7 +924,7 @@ public class Main {
                 (input) -> compileGlobalInitialization(typeParams, input),
                 Main::compileDefinitionStatement,
                 (input) -> compileMethod(typeParams, input)
-        ));
+        )).apply(input0);
     }
 
     private static Result<String, CompileError> compileMethod(List_<String> typeParams, String input) {
@@ -1013,10 +1016,10 @@ public class Main {
     }
 
     private static Result<String, CompileError> compileParameter(String definition) {
-        return compileOr(definition, Lists.of(
+        return new OrRule(Lists.of(
                 Main::compileWhitespace,
                 definition1 -> createDefinitionRule().apply(definition1)
-        ));
+        )).apply(definition);
     }
 
     private static Result<String, CompileError> compileValues(String input, Rule rule) {
@@ -1049,7 +1052,7 @@ public class Main {
     }
 
     private static Result<String, CompileError> compileStatementOrBlock(String input0, List_<String> typeParams, int depth) {
-        return compileOr(input0, Lists.of(
+        return new OrRule(Lists.of(
                 Main::compileWhitespace,
                 input -> compileKeywordStatement(input, depth, "continue"),
                 input -> compileKeywordStatement(input, depth, "break"),
@@ -1062,7 +1065,7 @@ public class Main {
                 input -> compileInitialization(input, typeParams, depth).mapValue(result -> formatStatement(depth, result)),
                 input -> compileAssignment(input, typeParams, depth).mapValue(result -> formatStatement(depth, result)),
                 input -> compileInvocationStatement(input, typeParams, depth).mapValue(result -> formatStatement(depth, result)),
-                Main::compileDefinitionStatement)
+                Main::compileDefinitionStatement)).apply(input0
         );
     }
 
@@ -1248,7 +1251,7 @@ public class Main {
     }
 
     private static Result<String, CompileError> compileValue(String input0, List_<String> typeParams, int depth) {
-        return compileOr(input0, Lists.of(
+        return new OrRule(Lists.of(
                 Main::compileString,
                 Main::compileChar,
                 stripped -> createSymbolRule().apply(stripped),
@@ -1266,7 +1269,7 @@ public class Main {
                 (input) -> compileOperator(input, typeParams, depth, "&&"),
                 (input) -> compileOperator(input, typeParams, depth, "=="),
                 (input) -> compileOperator(input, typeParams, depth, "!=")
-        ));
+        )).apply(input0);
     }
 
     private static Result<String, CompileError> compileString(String input) {
@@ -1470,10 +1473,10 @@ public class Main {
     }
 
     private static Result<String, CompileError> compileArgs(String argsString, List_<String> typeParams, int depth) {
-        return compileValues(argsString, arg -> compileOr(arg, Lists.of(
+        return compileValues(argsString, arg -> new OrRule(Lists.of(
                 Main::compileWhitespace,
                 value -> compileValue(value, typeParams, depth)
-        ))).mapValue(args -> "(" + args + ")");
+        )).apply(arg)).mapValue(args -> "(" + args + ")");
     }
 
     private static StringBuilder mergeValues(StringBuilder cache, String element) {
@@ -1595,15 +1598,15 @@ public class Main {
     }
 
     private static Result<String, CompileError> compileType(String input, List_<String> typeParams) {
-        return compileOr(input, Lists.of(
+        return new OrRule(Lists.of(
                 Main::getWrap,
                 value -> getWrapped(typeParams, value),
                 value -> getStringCompileErrorResult(typeParams, value),
-                value -> getCompileErrorResult(typeParams, value)
-        ));
+                value -> compileGeneric(typeParams, value)
+        )).apply(input);
     }
 
-    private static Result<String, CompileError> getCompileErrorResult(List_<String> typeParams, String value) {
+    private static Result<String, CompileError> compileGeneric(List_<String> typeParams, String value) {
         String stripped = value.strip();
         if (!stripped.endsWith(">")) {
             return createSuffixErr(stripped, ">");
@@ -1617,7 +1620,7 @@ public class Main {
 
         String base = slice.substring(0, argsStart).strip();
         String params = slice.substring(argsStart + "<".length()).strip();
-        return compileValues(params, s -> getWrap(typeParams, s))
+        return compileValues(params, s -> compileType0(s, typeParams))
                 .mapValue(compiled -> base + "<" + compiled + ">");
     }
 
@@ -1657,11 +1660,11 @@ public class Main {
         return new Err<>(new CompileError("Not a primitive", value));
     }
 
-    private static Result<String, CompileError> getWrap(List_<String> typeParams, String s) {
-        return compileOr(s, Lists.of(
+    private static Result<String, CompileError> compileType0(String s, List_<String> typeParams) {
+        return new OrRule(Lists.of(
                 Main::compileWhitespace,
                 type -> compileType(type, typeParams)
-        ));
+        )).apply(s);
     }
 
     private static boolean isSymbol(String input) {
