@@ -494,6 +494,12 @@ public class Main {
         }
     }
 
+    private record CompileError(String message, String context) {
+        public String display() {
+            return this.message + ": " + this.context;
+        }
+    }
+
     public static final List_<String> FUNCTIONAL_NAMESPACE = Lists.of("java", "util", "function");
     private static final List_<String> imports = Lists.empty();
     private static final List_<String> structs = Lists.empty();
@@ -519,7 +525,7 @@ public class Main {
         return parseAll(segments, Main::compileRootSegment)
                 .map(Main::mergeStatics)
                 .map(compiled -> mergeAll(compiled, Main::mergeStatements))
-                .or(() -> generatePlaceholder(input)).orElse("");
+                .or(() -> unwrap(new Err<String, CompileError>(new CompileError("Invalid input: ", input)))).orElse("");
     }
 
     private static List_<String> mergeStatics(List_<String> list) {
@@ -627,7 +633,7 @@ public class Main {
             return maybeClass;
         }
 
-        return generatePlaceholder(input);
+        return unwrap(new Err<String, CompileError>(new CompileError("Invalid input: ", input)));
     }
 
     private static Option<String> compileToStruct(String input, String infix, List_<String> typeParams) {
@@ -704,7 +710,7 @@ public class Main {
                 .or(() -> compileGlobalInitialization(input, typeParams))
                 .or(() -> compileDefinitionStatement(input))
                 .or(() -> compileMethod(input, typeParams))
-                .or(() -> generatePlaceholder(input));
+                .or(() -> unwrap(new Err<String, CompileError>(new CompileError("Invalid input: ", input))));
     }
 
     private static Option<String> compileDefinitionStatement(String input) {
@@ -788,7 +794,7 @@ public class Main {
     private static Option<String> compileParameter(String definition) {
         return compileWhitespace(definition)
                 .or(() -> compileDefinition(definition))
-                .or(() -> generatePlaceholder(definition));
+                .or(() -> unwrap(new Err<String, CompileError>(new CompileError("Invalid input: ", definition))));
     }
 
     private static Option<String> compileValues(String input, Function<String, Option<String>> compiler) {
@@ -835,7 +841,7 @@ public class Main {
                 .or(() -> compileAssignment(input, typeParams, depth).map(result -> formatStatement(depth, result)))
                 .or(() -> compileInvocationStatement(input, typeParams, depth).map(result -> formatStatement(depth, result)))
                 .or(() -> compileDefinitionStatement(input))
-                .or(() -> generatePlaceholder(input));
+                .or(() -> unwrap(new Err<String, CompileError>(new CompileError("Invalid input: ", input))));
     }
 
     private static Option<String> compilePostOperator(String input, List_<String> typeParams, int depth, String operator) {
@@ -1078,7 +1084,7 @@ public class Main {
                 .or(() -> compileOperator(input, typeParams, depth, "&&"))
                 .or(() -> compileOperator(input, typeParams, depth, "=="))
                 .or(() -> compileOperator(input, typeParams, depth, "!="))
-                .or(() -> generatePlaceholder(input));
+                .or(() -> unwrap(new Err<String, CompileError>(new CompileError("Invalid input: ", input))));
     }
 
     private static Option<String> compileOperator(String input, List_<String> typeParams, int depth, String operator) {
@@ -1342,7 +1348,7 @@ public class Main {
             }
         }
 
-        return generatePlaceholder(input);
+        return unwrap(new Err<String, CompileError>(new CompileError("Invalid input: ", input)));
     }
 
     private static boolean isSymbol(String input) {
@@ -1357,7 +1363,11 @@ public class Main {
         });
     }
 
-    private static Option<String> generatePlaceholder(String input) {
-        return new Some<>("/* " + input + " */");
+    @Deprecated
+    private static Option<String> unwrap(Result<String, CompileError> stringCompileErrorErr) {
+        return stringCompileErrorErr.match(Some::new, error -> {
+            System.err.println(error.display());
+            return new None<>();
+        });
     }
 }
