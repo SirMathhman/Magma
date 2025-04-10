@@ -15,6 +15,8 @@ public class Main {
         <R> Result<R, X> flatMapValue(Function<T, Result<R, X>> mapper);
 
         <R> Result<R, X> mapValue(Function<T, R> mapper);
+
+        Option<T> findValue();
     }
 
     public interface Option<T> {
@@ -35,6 +37,8 @@ public class Main {
         Tuple<Boolean, T> toTuple(T other);
 
         T orElseGet(Supplier<T> supplier);
+
+        <R> R match(Function<T, R> whenPresent, Supplier<R> whenEmpty);
     }
 
     public interface Error {
@@ -88,6 +92,8 @@ public class Main {
         boolean allMatch(Predicate<T> predicate);
 
         <R> Option<R> foldWithMapper(Function<T, R> mapper, BiFunction<R, T, R> folder);
+
+        <R, X> Result<R, X> foldToResult(R initial, BiFunction<R, T, Result<R, X>> mapper);
     }
 
     public interface Collector<T, C> {
@@ -176,6 +182,13 @@ public class Main {
             return this.head.next().map(mapper).map(next -> this.foldWithInitial(next, folder));
         }
 
+        @Override
+        public <R, X> Result<R, X> foldToResult(R initial, BiFunction<R, T, Result<R, X>> mapper) {
+            return this.<Result<R, X>>foldWithInitial(new Ok<>(initial),
+                    (result, t) -> result.flatMapValue(
+                            current -> mapper.apply(current, t)));
+        }
+
         private <R> Iterator<R> flatMap(Function<T, Iterator<R>> mapper) {
             return this.map(mapper).foldWithInitial(Iterators.empty(), Iterator::concat);
         }
@@ -224,6 +237,11 @@ public class Main {
         @Override
         public T orElseGet(Supplier<T> supplier) {
             return supplier.get();
+        }
+
+        @Override
+        public <R> R match(Function<T, R> whenPresent, Supplier<R> whenEmpty) {
+            return whenEmpty.get();
         }
     }
 
@@ -298,6 +316,11 @@ public class Main {
         public T orElseGet(Supplier<T> supplier) {
             return this.value;
         }
+
+        @Override
+        public <R> R match(Function<T, R> whenPresent, Supplier<R> whenEmpty) {
+            return whenPresent.apply(this.value);
+        }
     }
 
     public record Err<T, X>(X error) implements Result<T, X> {
@@ -320,6 +343,11 @@ public class Main {
         public <R> Result<R, X> mapValue(Function<T, R> mapper) {
             return new Err<>(this.error);
         }
+
+        @Override
+        public Option<T> findValue() {
+            return new None<>();
+        }
     }
 
     public record Ok<T, X>(T value) implements Result<T, X> {
@@ -341,6 +369,11 @@ public class Main {
         @Override
         public <R> Result<R, X> mapValue(Function<T, R> mapper) {
             return new Ok<>(mapper.apply(this.value));
+        }
+
+        @Override
+        public Option<T> findValue() {
+            return new Some<>(this.value);
         }
 
     }
@@ -540,10 +573,37 @@ public class Main {
         }
     }
 
-    private record CompileError(String message, String context) implements Error {
+    private record CompileError(String message, String context, List_<CompileError> errors) implements Error {
+        public CompileError(String message, String context) {
+            this(message, context, Lists.empty());
+        }
+
         @Override
         public String display() {
-            return this.message + ": " + this.context;
+            String joiner = this.errors.iter()
+                    .map(CompileError::display)
+                    .collect(new Joiner(""))
+                    .orElse("");
+
+            return this.message + ": " + this.context + joiner;
+        }
+    }
+
+    private record OrState(Option<String> maybeValue, List_<CompileError> errors) {
+        public OrState() {
+            this(new None<>(), Lists.empty());
+        }
+
+        public OrState withValue(String value) {
+            return new OrState(new Some<>(value), this.errors);
+        }
+
+        public OrState withError(CompileError error) {
+            return new OrState(this.maybeValue, this.errors.add(error));
+        }
+
+        public Result<String, List_<CompileError>> toResult() {
+            return this.maybeValue.<Result<String, List_<CompileError>>>match(Ok::new, () -> new Err<String, List_<CompileError>>(this.errors));
         }
     }
 
@@ -580,6 +640,26 @@ public class Main {
                 .mapValue(compiled -> mergeAll(compiled, Main::mergeStatements));
     }
 
+    private static Result<String, CompileError> compileRootSegment(String input0) {
+        return compileRootSegment(input0, listRules());
+    }
+
+    private static Result<String, CompileError> compileRootSegment(String input, List_<Function<String, Result<String, CompileError>>> rules) {
+        return rules.iter()
+                .foldWithInitial(new OrState(), (orState, rule) -> rule.apply(input).match(orState::withValue, orState::withError))
+                .toResult()
+                .mapErr(errors -> new CompileError("No valid combination present", input, errors));
+    }
+
+    private static List_<Function<String, Result<String, CompileError>>> listRules() {
+        return Lists.of(
+                (input) -> wrap(compileWhitespace(input)),
+                (input) -> wrap(compilePackage(input)),
+                (input) -> wrap(compileImport(input)),
+                (input) -> wrap(compileToStruct(input, "class ", Lists.empty()))
+        );
+    }
+
     private static List_<String> mergeStatics(List_<String> list) {
         return Lists.<String>empty()
                 .addAll(imports)
@@ -594,17 +674,20 @@ public class Main {
     }
 
     private static Option<String> compileAndMerge(List_<String> segments, Function<String, Option<String>> compiler, BiFunction<StringBuilder, String, StringBuilder> merger) {
-        return unwrap(parseAll(segments, compiler)).map(compiled -> mergeAll(compiled, merger));
+        return getMap(segments, s -> wrap(compiler.apply(s)), merger).findValue();
+    }
+
+    private static Result<String, CompileError> getMap(List_<String> segments, Function<String, Result<String, CompileError>> compiler, BiFunction<StringBuilder, String, StringBuilder> merger) {
+        return parseAll(segments, compiler).mapValue(compiled -> mergeAll(compiled, merger));
     }
 
     private static String mergeAll(List_<String> compiled, BiFunction<StringBuilder, String, StringBuilder> merger) {
         return compiled.iter().foldWithInitial(new StringBuilder(), merger).toString();
     }
 
-    private static Result<List_<String>, CompileError> parseAll(List_<String> segments, Function<String, Option<String>> compiler) {
-        return wrap(segments.iter().<Option<List_<String>>>foldWithInitial(new Some<>(Lists.empty()),
-                (maybeCompiled, segment) -> maybeCompiled.flatMap(
-                        allCompiled -> compiler.apply(segment).map(allCompiled::add))));
+    private static Result<List_<String>, CompileError> parseAll(List_<String> segments, Function<String, Result<String, CompileError>> mapper) {
+        return segments.iter().foldToResult(Lists.empty(),
+                (current, element) -> mapper.apply(element).mapValue(current::add));
     }
 
     @Deprecated
@@ -655,37 +738,33 @@ public class Main {
         return state.depth == 1;
     }
 
-    private static Option<String> compileRootSegment(String input) {
-        Option<String> whitespace = compileWhitespace(input);
-        if (whitespace.isPresent()) {
-            return whitespace;
-        }
-
+    private static Option<String> compilePackage(String input) {
         if (input.startsWith("package ")) {
             return new Some<>("");
         }
+        return new None<>();
+    }
 
+    private static Option<String> compileImport(String input) {
         String stripped = input.strip();
-        if (stripped.startsWith("import ")) {
-            String right = stripped.substring("import ".length());
-            if (right.endsWith(";")) {
-                String content = right.substring(0, right.length() - ";".length());
-                List_<String> split = divide(content, new DelimitedDivider('.'));
-                if (split.size() < 3 || !Lists.equals(split.slice(0, 3), FUNCTIONAL_NAMESPACE, String::equals)) {
-                    String joined = split.iter().collect(new Joiner("/")).orElse("");
-                    imports.add("#include \"./" + joined + "\"\n");
-                }
-
-                return new Some<>("");
-            }
+        if (!stripped.startsWith("import ")) {
+            return new None<>();
         }
 
-        Option<String> maybeClass = compileToStruct(input, "class ", Lists.empty());
-        if (maybeClass.isPresent()) {
-            return maybeClass;
+        String right = stripped.substring("import ".length());
+        if (!right.endsWith(";")) {
+            return new None<>();
         }
 
-        return unwrap(new Err<String, CompileError>(new CompileError("Invalid input: ", input)));
+        String content = right.substring(0, right.length() - ";".length());
+        List_<String> split = divide(content, new DelimitedDivider('.'));
+        if (split.size() >= 3 && Lists.equals(split.slice(0, 3), FUNCTIONAL_NAMESPACE, String::equals)) {
+            return new Some<>("");
+        }
+
+        String joined = split.iter().collect(new Joiner("/")).orElse("");
+        imports.add("#include \"./" + joined + "\"\n");
+        return new Some<>("");
     }
 
     private static Option<String> compileToStruct(String input, String infix, List_<String> typeParams) {
@@ -1367,7 +1446,7 @@ public class Main {
                 .or(() -> compileSymbol(input, typeParams))
                 .or(() -> compileGeneric(input, typeParams))
                 .<Result<String, CompileError>>map(Ok::new)
-                .orElseGet(() -> new Err<String, CompileError>(new CompileError("Invalid input: ", input)));
+                .orElseGet(() -> new Err<String, CompileError>(new CompileError("Invalid input", input)));
     }
 
     private static Option<String> compilePrimitive(String input) {
