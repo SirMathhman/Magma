@@ -3,7 +3,6 @@ package magma;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Optional;
 import java.util.function.BiFunction;
 
 public class Lists {
@@ -56,22 +55,22 @@ public class Lists {
         }
 
         @Override
-        public Optional<Main.Tuple<T, Main.List_<T>>> popFirst() {
+        public Main.Option<Main.Tuple<T, Main.List_<T>>> popFirst() {
             if (this.inner.isEmpty()) {
-                return Optional.empty();
+                return new Main.None<>();
             }
 
             T first = this.inner.getFirst();
             List<T> slice = this.inner.subList(1, this.inner.size());
-            return Optional.of(new Main.Tuple<>(first, new JavaList<>(slice)));
+            return new Main.Some<>(new Main.Tuple<>(first, new JavaList<>(slice)));
         }
 
         @Override
-        public Optional<T> peekFirst() {
+        public Main.Option<T> peekFirst() {
             if (this.inner.isEmpty()) {
-                return Optional.empty();
+                return new Main.None<>();
             }
-            return Optional.of(this.inner.getFirst());
+            return new Main.Some<>(this.inner.getFirst());
         }
     }
 

@@ -5,7 +5,6 @@ import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Optional;
 
 public class Files {
     record ExceptionalIOError(IOException exception) implements Main.IOError {
@@ -17,13 +16,13 @@ public class Files {
         }
     }
 
-    static Optional<Main.IOError> writeString(Main.Path_ target, String output) {
+    static Main.Option<Main.IOError> writeString(Main.Path_ target, String output) {
         try {
             Path first = unwrap(target);
             java.nio.file.Files.writeString(first, output);
-            return Optional.empty();
+            return new Main.None<>();
         } catch (IOException e) {
-            return Optional.of(new ExceptionalIOError(e));
+            return new Main.Some<>(new ExceptionalIOError(e));
         }
     }
 
