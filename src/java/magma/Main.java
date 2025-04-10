@@ -881,7 +881,24 @@ public class Main {
     }
 
     private static Result<String, CompileError> compileMethod(List_<String> typeParams, String input) {
-        return wrap(compileMethod0(input, typeParams));
+        int paramStart = input.indexOf("(");
+        if (paramStart < 0) {
+            return createInfixErr(input, "(");
+        }
+
+        String inputDefinition = input.substring(0, paramStart).strip();
+        String withParams = input.substring(paramStart + "(".length());
+
+        return compileDefinition(inputDefinition).flatMapValue(outputDefinition -> {
+            int paramEnd = withParams.indexOf(")");
+            if (paramEnd < 0) {
+                return createInfixErr(withParams, ")");
+            }
+
+            String params = withParams.substring(0, paramEnd);
+            return compileValues(params, Main::compileParameter)
+                    .flatMapValue(outputParams -> assembleMethodBody(typeParams, outputDefinition, outputParams, withParams.substring(paramEnd + ")".length()).strip()));
+        });
     }
 
     private static Result<String, CompileError> compileDefinitionStatement(String input) {
@@ -902,26 +919,31 @@ public class Main {
     }
 
     private static Option<String> compileGlobalInitialization0(String input, List_<String> typeParams) {
-        return compileInitialization(input, typeParams, 0).map(generated -> {
+        return compileInitialization(input, typeParams, 0).findValue().map(generated -> {
             globals.add(generated + ";\n");
             return "";
         });
     }
 
-    private static Option<String> compileInitialization(String input, List_<String> typeParams, int depth) {
+    private static Result<String, CompileError> compileInitialization(
+            String input,
+            List_<String> typeParams,
+            int depth
+    ) {
         if (!input.endsWith(";")) {
-            return new None<>();
+            return createSuffixErr(input, ";");
         }
 
         String withoutEnd = input.substring(0, input.length() - ";".length());
         int valueSeparator = withoutEnd.indexOf("=");
         if (valueSeparator < 0) {
-            return new None<>();
+            return createInfixErr(withoutEnd, "=");
         }
 
         String definition = withoutEnd.substring(0, valueSeparator).strip();
         String value = withoutEnd.substring(valueSeparator + "=".length()).strip();
-        return unwrap(compileDefinition(definition)).flatMap(outputDefinition -> unwrap(compileValue(value, typeParams, depth)).map(outputValue -> outputDefinition + " = " + outputValue));
+        return compileDefinition(definition)
+                .flatMapValue(outputDefinition -> compileValue(value, typeParams, depth).mapValue(outputValue -> outputDefinition + " = " + outputValue));
     }
 
     private static Result<String, CompileError> compileWhitespace(String input) {
@@ -931,28 +953,7 @@ public class Main {
         return new Err<>(new CompileError("Not blank", input));
     }
 
-    private static Option<String> compileMethod0(String input, List_<String> typeParams) {
-        int paramStart = input.indexOf("(");
-        if (paramStart < 0) {
-            return new None<>();
-        }
-
-        String inputDefinition = input.substring(0, paramStart).strip();
-        String withParams = input.substring(paramStart + "(".length());
-
-        return unwrap(compileDefinition(inputDefinition)).flatMap(outputDefinition -> {
-            int paramEnd = withParams.indexOf(")");
-            if (paramEnd < 0) {
-                return new None<>();
-            }
-
-            String params = withParams.substring(0, paramEnd);
-            return compileValues(params, Main::compileParameter).findValue()
-                    .flatMap(outputParams -> assembleMethodBody(typeParams, outputDefinition, outputParams, withParams.substring(paramEnd + ")".length()).strip()));
-        });
-    }
-
-    private static Option<String> assembleMethodBody(
+    private static Result<String, CompileError> assembleMethodBody(
             List_<String> typeParams,
             String definition,
             String params,
@@ -961,13 +962,14 @@ public class Main {
         String header = "\t".repeat(0) + definition + "(" + params + ")";
         if (body.startsWith("{") && body.endsWith("}")) {
             String inputContent = body.substring("{".length(), body.length() - "}".length());
-            return unwrap(compileStatements(inputContent, s -> wrap(compileStatementOrBlock(s, typeParams, 1)))).flatMap(outputContent -> {
+            Result<String, CompileError> result = compileStatements(inputContent, s -> wrap(compileStatementOrBlock(s, typeParams, 1)));
+            return result.mapValue(outputContent -> {
                 methods.add(header + " {" + outputContent + "\n}\n");
-                return new Some<>("");
+                return "";
             });
         }
 
-        return new Some<>("\t" + header + ";\n");
+        return new Ok<>("\t" + header + ";\n");
     }
 
     private static Result<String, CompileError> compileParameter(String definition) {
@@ -1016,7 +1018,7 @@ public class Main {
                 .or(() -> compilePostOperator(input, typeParams, depth, "++"))
                 .or(() -> compilePostOperator(input, typeParams, depth, "--"))
                 .or(() -> compileReturn(input, typeParams, depth).map(result -> formatStatement(depth, result)))
-                .or(() -> compileInitialization(input, typeParams, depth).map(result -> formatStatement(depth, result)))
+                .or(() -> compileInitialization(input, typeParams, depth).findValue().map(result -> formatStatement(depth, result)))
                 .or(() -> compileAssignment(input, typeParams, depth).map(result -> formatStatement(depth, result)))
                 .or(() -> compileInvocationStatement(input, typeParams, depth).map(result -> formatStatement(depth, result)))
                 .or(() -> {
