@@ -126,6 +126,10 @@ public class Main {
         Map_<K, V> with(K propertyKey, V propertyValue);
 
         Option<V> find(K propertyKey);
+
+        Map_<K, V> withAll(Map_<K, V> other);
+
+        Main.Iterator<Main.Tuple<K, V>> iter();
     }
 
     public record ApplicationError(Error error) implements Error {
@@ -462,7 +466,7 @@ public class Main {
     public record Tuple<A, B>(A left, B right) {
     }
 
-    private static class Iterators {
+    public static class Iterators {
         public static <T> Iterator<T> empty() {
             return new HeadedIterator<>(new EmptyHead<>());
         }
@@ -744,6 +748,10 @@ public class Main {
 
         public Option<List_<Node>> findNodeList(String propertyKey) {
             return this.nodeLists.find(propertyKey);
+        }
+
+        public Node merge(Node other) {
+            return new Node(this.strings.withAll(other.strings), this.nodeLists.withAll(other.nodeLists));
         }
     }
 
@@ -1588,54 +1596,75 @@ public class Main {
             }
 
             return findTypeSeparator(beforeName).match(typeSeparator -> {
-                return getStringCompileErrorResult(beforeName, typeSeparator, name, state, beforeName.substring(0, typeSeparator).strip());
+                return compileBeforeDefinitionName(state, new Node()
+                        .withString("name", name), beforeName.substring(0, typeSeparator).strip(), beforeName.substring(typeSeparator + " ".length()));
             }, () -> {
-                return compileType(beforeName, state).mapValue(outputType -> getName(Lists.empty(), name, outputType));
+                return compileType(beforeName, state).mapValue(outputType -> {
+                    return generateDefinition(new Node()
+                            .withNodeList("type-params", Lists.empty())
+                            .withString("name", name)
+                            .withString("type", outputType));
+                });
             });
         });
     }
 
-    private static Result<String, CompileError> getStringCompileErrorResult(String beforeName, int typeSeparator, String name, ParseState state, String beforeType) {
-        if (!beforeType.endsWith(">")) {
-            return getStringCompileErrorResult(state, removeAnnotations(beforeType.strip()), Lists.empty(), beforeName.substring(typeSeparator + " ".length()), name);
-        }
-
-        String withoutEnd = beforeType.substring(0, beforeType.length() - ">".length());
-        int typeParamStart = withoutEnd.indexOf("<");
-        if (typeParamStart >= 0) {
-            String more = withoutEnd.substring(0, typeParamStart);
-            String substring = withoutEnd.substring(typeParamStart + 1);
-            List_<String> typeParams = splitValues(substring);
-            return getStringCompileErrorResult(state.enter().defineAll(typeParams), removeAnnotations(more.strip()), typeParams, beforeName.substring(typeSeparator + " ".length()), name);
-        }
-        else {
-            return getStringCompileErrorResult(state, removeAnnotations(beforeType.strip()), Lists.empty(), beforeName.substring(typeSeparator + " ".length()), name);
-        }
-    }
-
-    private static Result<String, CompileError> getStringCompileErrorResult(
+    private static Result<String, CompileError> compileBeforeDefinitionName(
             ParseState state,
-            String modifiers,
-            List_<String> typeParams,
-            String inputType,
-            String name
+            Node node,
+            String beforeType,
+            String typeString
     ) {
+        if (beforeType.endsWith(">")) {
+            String withoutEnd = beforeType.substring(0, beforeType.length() - ">".length());
+            int typeParamStart = withoutEnd.indexOf("<");
+            if (typeParamStart >= 0) {
+                String more = withoutEnd.substring(0, typeParamStart);
+                String substring = withoutEnd.substring(typeParamStart + 1);
+                List_<String> typeParams = splitValues(substring);
+                ParseState state1 = state.enter().defineAll(typeParams);
+                String modifiers = removeAnnotations(more.strip());
+
+                if (!validateModifiers(modifiers)) {
+                    return new Err<>(new CompileError("Invalid modifiers", modifiers));
+                }
+
+                Result<Node, CompileError> withType = parseTypeProperty(state1, typeString)
+                        .mapValue(node::merge);
+
+                return withType
+                        .flatMapValue(outputType -> parseTypeParams(typeParams).mapValue(outputType::merge))
+                        .mapValue(Main::generateDefinition);
+            }
+        }
+
+        String modifiers = removeAnnotations(beforeType.strip());
+        List_<String> typeParams = Lists.empty();
         if (!validateModifiers(modifiers)) {
             return new Err<>(new CompileError("Invalid modifiers", modifiers));
         }
 
-        return compileType(inputType, state).mapValue(outputType -> getName(typeParams, name, outputType));
+        return parseTypeProperty(state, typeString)
+                .mapValue(node::merge)
+                .flatMapValue(outputType -> parseTypeParams(typeParams).mapValue(outputType::merge))
+                .mapValue(Main::generateDefinition);
     }
 
-    private static String getName(List_<String> typeParams, String name, String type) {
-        List_<Node> typeParamList = typeParams.iter()
+    private static Result<Node, CompileError> parseTypeParams(List_<String> typeParams) {
+        final List_<Node> typeParamList = typeParams.iter()
                 .map(value -> new Node().withString("value", value))
                 .collect(new ListCollector<>());
 
-        return generateDefinition(new Node()
-                .withNodeList("type-params", typeParamList)
-                .withString("name", name)
-                .withString("type", type));
+        return new Ok<>(new Node().withNodeList("type-params", typeParamList));
+    }
+
+    private static Result<Node, CompileError> parseTypeProperty(ParseState state, String inputType) {
+        return compileType(inputType, state)
+                .flatMapValue(outputType -> parseString("type", outputType));
+    }
+
+    private static Result<Node, CompileError> parseString(String propertyKey, String input) {
+        return new Ok<>(new Node().withString(propertyKey, input));
     }
 
     private static boolean validateModifiers(String modifiersString) {

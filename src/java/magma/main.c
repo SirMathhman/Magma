@@ -68,6 +68,8 @@ struct Rule {
 struct Map_<K, V> {
 	Map_<K, V> with(K propertyKey, V propertyValue);
 	Option<V> find(K propertyKey);
+	Map_<K, V> withAll(Map_<K, V> other);
+	Main.Iterator<Main.Tuple<K, V>> iter();
 };
 struct ApplicationError {
 };
