@@ -33,11 +33,11 @@ struct Tuple {
 };
 struct Main {
 };
-	List<struct String> imports = ArrayList<>();
-	List<struct String> structs = ArrayList<>();
-	List<struct String> globals = ArrayList<>();
-	List<struct String> methods = ArrayList<>();
-	int counter = 0;
+List<struct String> imports = ArrayList<>();
+List<struct String> structs = ArrayList<>();
+List<struct String> globals = ArrayList<>();
+List<struct String> methods = ArrayList<>();
+int counter = 0;
 <R> R match(Function<struct T, struct R> whenOk, Function<struct X, struct R> whenErr) {
 	return whenErr.apply(this.error);
 }
@@ -363,7 +363,7 @@ Optional<struct String> compileDefinitionStatement(struct String input) {
 	return Optional.empty();
 }
 auto __lambda29__(auto generated) {
-	globals.add("\t" + generated + ";\n");
+	globals.add(generated + ";\n");
 	return "";
 }
 Optional<struct String> compileGlobalInitialization(struct String input, List<struct String> typeParams) {
