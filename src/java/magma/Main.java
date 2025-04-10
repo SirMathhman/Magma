@@ -962,7 +962,7 @@ public class Main {
         String header = "\t".repeat(0) + definition + "(" + params + ")";
         if (body.startsWith("{") && body.endsWith("}")) {
             String inputContent = body.substring("{".length(), body.length() - "}".length());
-            Result<String, CompileError> result = compileStatements(inputContent, s -> wrap(compileStatementOrBlock(s, typeParams, 1)));
+            Result<String, CompileError> result = compileStatements(inputContent, s -> wrap(compileStatementOrBlock(s, typeParams, 1).findValue()));
             return result.mapValue(outputContent -> {
                 methods.add(header + " {" + outputContent + "\n}\n");
                 return "";
@@ -1008,31 +1008,29 @@ public class Main {
         return compileAndMerge(segments, rule, Main::mergeValues);
     }
 
-    private static Option<String> compileStatementOrBlock(String input, List_<String> typeParams, int depth) {
-        return unwrap(compileWhitespace(input))
-                .or(() -> compileKeywordStatement(input, depth, "continue"))
-                .or(() -> compileKeywordStatement(input, depth, "break"))
-                .or(() -> compileConditional(input, typeParams, "if ", depth))
-                .or(() -> compileConditional(input, typeParams, "while ", depth))
-                .or(() -> compileElse(input, typeParams, depth))
-                .or(() -> compilePostOperator(input, typeParams, depth, "++"))
-                .or(() -> compilePostOperator(input, typeParams, depth, "--"))
-                .or(() -> compileReturn(input, typeParams, depth).map(result -> formatStatement(depth, result)))
-                .or(() -> compileInitialization(input, typeParams, depth).findValue().map(result -> formatStatement(depth, result)))
-                .or(() -> compileAssignment(input, typeParams, depth).map(result -> formatStatement(depth, result)))
-                .or(() -> compileInvocationStatement(input, typeParams, depth).map(result -> formatStatement(depth, result)))
-                .or(() -> {
-                    String stripped = input.strip();
-                    if (stripped.endsWith(";")) {
-                        String content = stripped.substring(0, stripped.length() - ";".length());
-                        return unwrap(compileDefinition(content)).map(result -> "\t" + result + ";\n");
-                    }
-                    return new None<>();
-                })
-                .or(() -> unwrap(new Err<String, CompileError>(new CompileError("Invalid input: ", input))));
+    private static Result<String, CompileError> compileStatementOrBlock(String input0, List_<String> typeParams, int depth) {
+        return compileOr(input0, Lists.of(
+                Main::compileWhitespace,
+                input -> compileKeywordStatement(input, depth, "continue"),
+                input -> compileKeywordStatement(input, depth, "break"),
+                input -> compileConditional(input, typeParams, "if ", depth),
+                input -> compileConditional(input, typeParams, "while ", depth),
+                input -> wrap(compileElse(input, typeParams, depth)),
+                input -> compilePostOperator(input, typeParams, depth, "++"),
+                input -> compilePostOperator(input, typeParams, depth, "--"),
+                input -> compileReturn(input, typeParams, depth).mapValue(result -> formatStatement(depth, result)),
+                input -> compileInitialization(input, typeParams, depth).mapValue(result -> formatStatement(depth, result)),
+                input -> compileAssignment(input, typeParams, depth).mapValue(result -> formatStatement(depth, result)),
+                input -> compileInvocationStatement(input, typeParams, depth).mapValue(result -> formatStatement(depth, result)),
+                Main::compileDefinitionStatement)
+        );
     }
 
-    private static Option<String> compilePostOperator(String input, List_<String> typeParams, int depth, String operator) {
+    private static Result<String, CompileError> compilePostOperator(String input, List_<String> typeParams, int depth, String operator) {
+        return wrap(getStringOption(input, typeParams, depth, operator));
+    }
+
+    private static Option<String> getStringOption(String input, List_<String> typeParams, int depth, String operator) {
         String stripped = input.strip();
         if (stripped.endsWith(operator + ";")) {
             String slice = stripped.substring(0, stripped.length() - (operator + ";").length());
@@ -1049,18 +1047,22 @@ public class Main {
             String withoutKeyword = stripped.substring("else ".length()).strip();
             if (withoutKeyword.startsWith("{") && withoutKeyword.endsWith("}")) {
                 String indent = createIndent(depth);
-                return unwrap(compileStatements(withoutKeyword.substring(1, withoutKeyword.length() - 1), s -> wrap(compileStatementOrBlock(s, typeParams, depth + 1))))
+                return unwrap(compileStatements(withoutKeyword.substring(1, withoutKeyword.length() - 1), s -> wrap(compileStatementOrBlock(s, typeParams, depth + 1).findValue())))
                         .map(result -> indent + "else {" + result + indent + "}");
             }
             else {
-                return compileStatementOrBlock(withoutKeyword, typeParams, depth).map(result -> "else " + result);
+                return compileStatementOrBlock(withoutKeyword, typeParams, depth).findValue().map(result -> "else " + result);
             }
         }
 
         return new None<>();
     }
 
-    private static Option<String> compileKeywordStatement(String input, int depth, String keyword) {
+    private static Result<String, CompileError> compileKeywordStatement(String input, int depth, String keyword) {
+        return wrap(getStringOption(input, depth, keyword));
+    }
+
+    private static Option<String> getStringOption(String input, int depth, String keyword) {
         if (input.strip().equals(keyword + ";")) {
             return new Some<>(formatStatement(depth, keyword));
         }
@@ -1077,7 +1079,11 @@ public class Main {
         return "\n" + "\t".repeat(depth);
     }
 
-    private static Option<String> compileConditional(String input, List_<String> typeParams, String prefix, int depth) {
+    private static Result<String, CompileError> compileConditional(String input, List_<String> typeParams, String prefix, int depth) {
+        return wrap(getStringOption(input, typeParams, prefix, depth));
+    }
+
+    private static Option<String> getStringOption(String input, List_<String> typeParams, String prefix, int depth) {
         String stripped = input.strip();
         if (!stripped.startsWith(prefix)) {
             return new None<>();
@@ -1102,17 +1108,16 @@ public class Main {
 
             if (withBraces.startsWith("{") && withBraces.endsWith("}")) {
                 String content = withBraces.substring(1, withBraces.length() - 1);
-                Result<String, CompileError> stringCompileErrorResult = compileStatements(content, s -> wrap(compileStatementOrBlock(s, typeParams, depth + 1)));
+                Result<String, CompileError> stringCompileErrorResult = compileStatements(content, s -> wrap(compileStatementOrBlock(s, typeParams, depth + 1).findValue()));
                 return stringCompileErrorResult.mapValue(statements -> withCondition +
                         " {" + statements + "\n" +
                         "\t".repeat(depth) +
                         "}").findValue();
             }
             else {
-                return compileStatementOrBlock(withBraces, typeParams, depth).map(result -> withCondition + " " + result);
+                return compileStatementOrBlock(withBraces, typeParams, depth).findValue().map(result -> withCondition + " " + result);
             }
         });
-
     }
 
     private static int findConditionEnd(String input) {
@@ -1170,7 +1175,11 @@ public class Main {
         return conditionEnd;
     }
 
-    private static Option<String> compileInvocationStatement(String input, List_<String> typeParams, int depth) {
+    private static Result<String, CompileError> compileInvocationStatement(String input, List_<String> typeParams, int depth) {
+        return wrap(getStringOption2(input, typeParams, depth));
+    }
+
+    private static Option<String> getStringOption2(String input, List_<String> typeParams, int depth) {
         String stripped = input.strip();
         if (stripped.endsWith(";")) {
             String withoutEnd = stripped.substring(0, stripped.length() - ";".length());
@@ -1182,7 +1191,11 @@ public class Main {
         return new None<>();
     }
 
-    private static Option<String> compileAssignment(String input, List_<String> typeParams, int depth) {
+    private static Result<String, CompileError> compileAssignment(String input, List_<String> typeParams, int depth) {
+        return wrap(getStringOption1(input, typeParams, depth));
+    }
+
+    private static Option<String> getStringOption1(String input, List_<String> typeParams, int depth) {
         String stripped = input.strip();
         if (stripped.endsWith(";")) {
             String withoutEnd = stripped.substring(0, stripped.length() - ";".length());
@@ -1196,7 +1209,11 @@ public class Main {
         return new None<>();
     }
 
-    private static Option<String> compileReturn(String input, List_<String> typeParams, int depth) {
+    private static Result<String, CompileError> compileReturn(String input, List_<String> typeParams, int depth) {
+        return wrap(getOption(input, typeParams, depth));
+    }
+
+    private static Option<String> getOption(String input, List_<String> typeParams, int depth) {
         String stripped = input.strip();
         if (stripped.endsWith(";")) {
             String withoutEnd = stripped.substring(0, stripped.length() - ";".length());
@@ -1317,7 +1334,7 @@ public class Main {
         String value = input.substring(arrowIndex + "->".length()).strip();
         if (value.startsWith("{") && value.endsWith("}")) {
             String slice = value.substring(1, value.length() - 1);
-            return unwrap(compileStatements(slice, s -> wrap(compileStatementOrBlock(s, typeParams, depth))))
+            return unwrap(compileStatements(slice, s -> wrap(compileStatementOrBlock(s, typeParams, depth).findValue())))
                     .flatMap(result -> generateLambdaWithReturn(paramNames, result));
         }
 
