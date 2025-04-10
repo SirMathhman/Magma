@@ -129,8 +129,8 @@ auto __lambda0__(auto next) {
 		if (option.isPresent()) {
 			current = option.orElse(finalCurrent);
 		}
-		else {
-			return current;
+		else {	return current;
+
 		}
 	}
 }
@@ -205,14 +205,14 @@ auto __lambda10__ {
 <R> Option<R> map(Function<T, R> mapper) {
 	return None<>();
 }
-boolean isPresent() {
-	return false;
+boolean isPresent() {	return false;
+
 }
-T orElse(T other) {
-	return other;
+T orElse(T other) {	return other;
+
 }
-boolean isEmpty() {
-	return true;
+boolean isEmpty() {	return true;
+
 }
 void ifPresent(Consumer<T> consumer) {
 }
@@ -247,20 +247,20 @@ Option<T> next() {
 <R> Option<R> map(Function<T, R> mapper) {
 	return Some<>(mapper.apply(this.value));
 }
-boolean isPresent() {
-	return true;
+boolean isPresent() {	return true;
+
 }
 T orElse(T other) {
 	return this.value;
 }
-boolean isEmpty() {
-	return false;
+boolean isEmpty() {	return false;
+
 }
 void ifPresent(Consumer<T> consumer) {
 	consumer.accept(this.value);
 }
-Option<T> or(Supplier<Option<T>> other) {
-	return this;
+Option<T> or(Supplier<Option<T>> other) {	return this;
+
 }
 <R> Option<R> flatMap(Function<T, Option<R>> mapper) {
 	return mapper.apply(this.value);
