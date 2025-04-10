@@ -1,6 +1,5 @@
 package magma;
 
-import java.util.Arrays;
 import java.util.Deque;
 import java.util.LinkedList;
 import java.util.Optional;
@@ -1095,7 +1094,7 @@ public class Main {
                 modifiersString = strippedBeforeTypeParams;
             }
 
-            boolean allSymbols = Arrays.stream(modifiersString.split(Pattern.quote(" ")))
+            boolean allSymbols = Iterators.fromArray(modifiersString.split(Pattern.quote(" ")))
                     .map(String::strip)
                     .filter(value -> !value.isEmpty())
                     .allMatch(Main::isSymbol);
