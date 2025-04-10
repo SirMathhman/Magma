@@ -367,11 +367,6 @@ public class Main {
     }
 
     private static class Iterators {
-        public static <T> Iterator<T> fromArray(T[] array) {
-            return new HeadedIterator<>(new RangeHead(array.length))
-                    .map(index -> array[index]);
-        }
-
         public static <T> Iterator<T> empty() {
             return new HeadedIterator<>(new EmptyHead<>());
         }
@@ -577,12 +572,7 @@ public class Main {
             }
 
             Tuple<Character, State> nextTuple = maybeNextTuple.orElse(new Tuple<>('\0', state));
-
-            char c = nextTuple.left;
-            state = nextTuple.right;
-
-            State finalState = state;
-            state = divider.fold(state, c);
+            state = divider.fold(nextTuple.right, nextTuple.left);
         }
 
         return state.advance().segments();
