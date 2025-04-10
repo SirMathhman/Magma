@@ -1490,12 +1490,12 @@ public class Main {
     }
 
     private static Result<String, CompileError> compileType(String input, List_<String> typeParams) {
-        return compilePrimitive(input)
-                .or(() -> compileArray(input, typeParams))
-                .or(() -> compileSymbol(input, typeParams))
-                .or(() -> compileGeneric(input, typeParams))
-                .<Result<String, CompileError>>map(Ok::new)
-                .orElseGet(() -> new Err<String, CompileError>(new CompileError("Invalid input", input)));
+        return compileOr(input, Lists.of(
+                value -> wrap(compilePrimitive(value)),
+                value -> wrap(compileArray(value, typeParams)),
+                value -> wrap(compileSymbol(value, typeParams)),
+                value -> wrap(compileGeneric(value, typeParams))
+        ));
     }
 
     private static Option<String> compilePrimitive(String input) {
