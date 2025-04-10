@@ -1,8 +1,5 @@
 package magma;
 
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -123,6 +120,12 @@ public class Main {
 
     interface Rule extends Function<String, Result<String, CompileError>> {
 
+    }
+
+    public interface Map_<K, V> {
+        Map_<K, V> with(K propertyKey, V propertyValue);
+
+        Option<V> find(K propertyKey);
     }
 
     public record ApplicationError(Error error) implements Error {
@@ -715,27 +718,32 @@ public class Main {
     }
 
     private static final class Node {
-        private final Map<String, String> strings;
+        private final Map_<String, String> strings;
+        private final Map_<String, List_<Node>> nodeLists;
 
         public Node() {
-            this(Collections.emptyMap());
+            this(Maps.empty(), Maps.empty());
         }
 
-        public Node(Map<String, String> strings) {
+        public Node(Map_<String, String> strings, Map_<String, List_<Node>> nodeLists) {
             this.strings = strings;
+            this.nodeLists = nodeLists;
         }
 
         private Node withString(String propertyKey, String propertyValue) {
-            HashMap<String, String> copy = new HashMap<>(this.strings);
-            copy.put(propertyKey, propertyValue);
-            return new Node(copy);
+            return new Node(this.strings.with(propertyKey, propertyValue), this.nodeLists);
         }
 
         public Option<String> findString(String propertyKey) {
-            if (this.strings.containsKey(propertyKey)) {
-                return new Some<>(this.strings.get(propertyKey));
-            }
-            return new None<>();
+            return this.strings.find(propertyKey);
+        }
+
+        public Node withNodeList(String propertyKey, List_<Node> propertyValues) {
+            return new Node(this.strings, this.nodeLists.with(propertyKey, propertyValues));
+        }
+
+        public Option<List_<Node>> findNodeList(String propertyKey) {
+            return this.nodeLists.find(propertyKey);
         }
     }
 
@@ -1620,7 +1628,13 @@ public class Main {
     }
 
     private static String getName(List_<String> typeParams, String name, String type) {
-        return generateDefinition(typeParams, new Node().withString("name", name)
+        List_<Node> typeParamList = typeParams.iter()
+                .map(value -> new Node().withString("value", value))
+                .collect(new ListCollector<>());
+
+        return generateDefinition(new Node()
+                .withNodeList("type-params", typeParamList)
+                .withString("name", name)
                 .withString("type", type));
     }
 
@@ -1671,10 +1685,19 @@ public class Main {
                 .collect(new ListCollector<>());
     }
 
-    private static String generateDefinition(List_<String> maybeTypeParams, Node node) {
+    private static String generateDefinition(Node node) {
+        String typeParamString = generateTypeParams(node);
         String type = node.findString("type").orElse("");
         String name = node.findString("name").orElse("");
-        return generateTypeParams(maybeTypeParams) + type + " " + name;
+        return typeParamString + type + " " + name;
+    }
+
+    private static String generateTypeParams(Node node) {
+        return generateTypeParams(node.findNodeList("type-params")
+                .orElse(Lists.empty())
+                .iter()
+                .map(typeParam -> typeParam.findString("value").orElse(""))
+                .collect(new ListCollector<>()));
     }
 
     private static String generateTypeParams(List_<String> maybeTypeParams) {

@@ -1,6 +1,3 @@
-#include "./java/util/Collections"
-#include "./java/util/HashMap"
-#include "./java/util/Map"
 struct Result<T, X> {
 	<R> R match(R (*)(T) whenOk, R (*)(X) whenErr);
 	<R> Result<T, R> mapErr(R (*)(X) mapper);
@@ -67,6 +64,10 @@ struct Divider {
 	State fold(State state, char c);
 };
 struct Rule {
+};
+struct Map_<K, V> {
+	Map_<K, V> with(K propertyKey, V propertyValue);
+	Option<V> find(K propertyKey);
 };
 struct ApplicationError {
 };
