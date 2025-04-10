@@ -1322,6 +1322,15 @@ public class Main {
     }
 
     private static Option<String> compileType(String input, List_<String> typeParams) {
+        return unwrap(compilePrimitive(input)
+                .or(() -> compileArray(input, typeParams))
+                .or(() -> compileSymbol(input, typeParams))
+                .or(() -> compileGeneric(input, typeParams))
+                .<Result<String, CompileError>>map(Ok::new)
+                .orElseGet(() -> new Err<String, CompileError>(new CompileError("Invalid input: ", input))));
+    }
+
+    private static Option<String> compilePrimitive(String input) {
         if (input.equals("void")) {
             return new Some<>("void");
         }
@@ -1334,26 +1343,11 @@ public class Main {
             return new Some<>("char");
         }
 
-        if (input.endsWith("[]")) {
-            return compileType(input.substring(0, input.length() - "[]".length()), typeParams)
-                    .map(value -> value + "*");
-        }
-
-        String stripped = input.strip();
-        if (isSymbol(stripped)) {
-            if (Lists.contains(typeParams, stripped, String::equals)) {
-                return new Some<>(stripped);
-            }
-            else {
-                return new Some<>("struct " + stripped);
-            }
-        }
-
-        return unwrap(compileGeneric(stripped, typeParams).<Result<String, CompileError>>map(Ok::new)
-                .orElseGet(() -> new Err<String, CompileError>(new CompileError("Invalid input: ", input))));
+        return new None<>();
     }
 
-    private static Option<String> compileGeneric(String stripped, List_<String> typeParams) {
+    private static Option<String> compileGeneric(String input, List_<String> typeParams) {
+        String stripped = input.strip();
         if (!stripped.endsWith(">")) {
             return new None<>();
         }
@@ -1368,6 +1362,27 @@ public class Main {
         String params = slice.substring(argsStart + "<".length()).strip();
         return compileValues(params, type -> compileWhitespace(type).or(() -> compileType(type, typeParams)))
                 .map(compiled -> base + "<" + compiled + ">");
+    }
+
+    private static Option<String> compileArray(String input, List_<String> typeParams) {
+        if (input.endsWith("[]")) {
+            return compileType(input.substring(0, input.length() - "[]".length()), typeParams)
+                    .map(value -> value + "*");
+        }
+        return new None<>();
+    }
+
+    private static Option<String> compileSymbol(String input, List_<String> typeParams) {
+        if (!isSymbol(input.strip())) {
+            return new None<>();
+        }
+
+        if (Lists.contains(typeParams, input.strip(), String::equals)) {
+            return new Some<>(input.strip());
+        }
+        else {
+            return new Some<>("struct " + input.strip());
+        }
     }
 
     private static boolean isSymbol(String input) {
