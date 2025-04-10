@@ -1252,7 +1252,7 @@ public class Main {
                 Main::compileString,
                 Main::compileChar,
                 stripped -> createSymbolRule().apply(stripped),
-                stripped1 -> createNumberRule(stripped1).apply(stripped1),
+                stripped1 -> createNumberRule().apply(stripped1),
                 input -> compileConstruction(input, typeParams, depth),
                 input -> createNotRule(input, typeParams, depth),
                 input -> compileLambda(input, typeParams, depth),
@@ -1291,7 +1291,7 @@ public class Main {
         return new TypeRule("symbol", new StripRule(new SymbolRule()));
     }
 
-    private static TypeRule createNumberRule(String stripped) {
+    private static TypeRule createNumberRule() {
         return new TypeRule("number", new StripRule(s -> {
             if (isNumber(s)) {
                 return new Ok<>(s);
