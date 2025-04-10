@@ -1037,7 +1037,7 @@ public class Main {
                 String withEnd = slice.substring(argsStart + "(".length()).strip();
                 if (withEnd.endsWith(")")) {
                     String argsString = withEnd.substring(0, withEnd.length() - ")".length());
-                    return compileType(type, typeParams).flatMap(outputType -> compileArgs(argsString, typeParams, depth).map(value -> outputType + value));
+                    return unwrap(compileType(type, typeParams)).flatMap(outputType -> compileArgs(argsString, typeParams, depth).map(value -> outputType + value));
                 }
             }
         }
@@ -1062,7 +1062,7 @@ public class Main {
             String property = stripped.substring(methodIndex + "::".length()).strip();
 
             if (isSymbol(property)) {
-                return compileType(type, typeParams).flatMap(compiled -> generateLambdaWithReturn(Lists.empty(), "\n\treturn " + compiled + "." + property + "()"));
+                return unwrap(compileType(type, typeParams)).flatMap(compiled -> generateLambdaWithReturn(Lists.empty(), "\n\treturn " + compiled + "." + property + "()"));
             }
         }
 
@@ -1275,10 +1275,10 @@ public class Main {
             }
 
             String inputType = beforeName.substring(typeSeparator + " ".length());
-            return compileType(inputType, typeParams).flatMap(outputType -> new Some<>(generateDefinition(typeParams, outputType, name)));
+            return unwrap(compileType(inputType, typeParams)).flatMap(outputType -> new Some<>(generateDefinition(typeParams, outputType, name)));
         }
         else {
-            return compileType(beforeName, Lists.empty()).flatMap(outputType -> new Some<>(generateDefinition(Lists.empty(), outputType, name)));
+            return unwrap(compileType(beforeName, Lists.empty())).flatMap(outputType -> new Some<>(generateDefinition(Lists.empty(), outputType, name)));
         }
     }
 
@@ -1305,13 +1305,13 @@ public class Main {
                 .orElse("");
     }
 
-    private static Option<String> compileType(String input, List_<String> typeParams) {
-        return unwrap(compilePrimitive(input)
+    private static Result<String, CompileError> compileType(String input, List_<String> typeParams) {
+        return compilePrimitive(input)
                 .or(() -> compileArray(input, typeParams))
                 .or(() -> compileSymbol(input, typeParams))
                 .or(() -> compileGeneric(input, typeParams))
                 .<Result<String, CompileError>>map(Ok::new)
-                .orElseGet(() -> new Err<String, CompileError>(new CompileError("Invalid input: ", input))));
+                .orElseGet(() -> new Err<String, CompileError>(new CompileError("Invalid input: ", input)));
     }
 
     private static Option<String> compilePrimitive(String input) {
@@ -1344,13 +1344,13 @@ public class Main {
 
         String base = slice.substring(0, argsStart).strip();
         String params = slice.substring(argsStart + "<".length()).strip();
-        return compileValues(params, type -> compileWhitespace(type).or(() -> compileType(type, typeParams)))
+        return compileValues(params, type -> compileWhitespace(type).or(() -> unwrap(compileType(type, typeParams))))
                 .map(compiled -> base + "<" + compiled + ">");
     }
 
     private static Option<String> compileArray(String input, List_<String> typeParams) {
         if (input.endsWith("[]")) {
-            return compileType(input.substring(0, input.length() - "[]".length()), typeParams)
+            return unwrap(compileType(input.substring(0, input.length() - "[]".length()), typeParams))
                     .map(value -> value + "*");
         }
         return new None<>();
