@@ -612,6 +612,9 @@ public class Main {
         }
 
         public OrState withValue(String value) {
+            if (this.maybeValue.isPresent()) {
+                return this;
+            }
             return new OrState(new Some<>(value), this.errors);
         }
 
@@ -1520,34 +1523,27 @@ public class Main {
     private static Result<String, CompileError> getStringCompileErrorResult(String beforeName, int typeSeparator, String name) {
         String beforeType = beforeName.substring(0, typeSeparator).strip();
 
-        String beforeTypeParams = beforeType;
-        List_<String> typeParams;
-        if (beforeType.endsWith(">")) {
-            String withoutEnd = beforeType.substring(0, beforeType.length() - ">".length());
-            int typeParamStart = withoutEnd.indexOf("<");
-            if (typeParamStart >= 0) {
-                beforeTypeParams = withoutEnd.substring(0, typeParamStart);
-                String substring = withoutEnd.substring(typeParamStart + 1);
-                typeParams = splitValues(substring);
-            }
-            else {
-                typeParams = Lists.empty();
-            }
-        }
-        else {
-            typeParams = Lists.empty();
+        if (!beforeType.endsWith(">")) {
+            return getStringCompileErrorResult(beforeName, typeSeparator, name, beforeType, Lists.empty());
         }
 
-        String strippedBeforeTypeParams = beforeTypeParams.strip();
-
-        String modifiersString;
-        int annotationSeparator = strippedBeforeTypeParams.lastIndexOf("\n");
-        if (annotationSeparator >= 0) {
-            modifiersString = strippedBeforeTypeParams.substring(annotationSeparator + "\n".length());
+        String withoutEnd = beforeType.substring(0, beforeType.length() - ">".length());
+        int typeParamStart = withoutEnd.indexOf("<");
+        if (typeParamStart >= 0) {
+            String more = withoutEnd.substring(0, typeParamStart);
+            String substring = withoutEnd.substring(typeParamStart + 1);
+            List_<String> typeParams = splitValues(substring);
+            return getStringCompileErrorResult(beforeName, typeSeparator, name, more, typeParams);
         }
         else {
-            modifiersString = strippedBeforeTypeParams;
+            return getStringCompileErrorResult(beforeName, typeSeparator, name, beforeType, Lists.empty());
         }
+    }
+
+    private static Result<String, CompileError> getStringCompileErrorResult(String beforeName, int typeSeparator, String name, String more, List_<String> typeParams) {
+        String strippedBeforeTypeParams = more.strip();
+
+        String modifiersString = removeAnnotations(strippedBeforeTypeParams);
 
         boolean allSymbols = divide(modifiersString, new DelimitedDivider(' '))
                 .iter()
@@ -1561,6 +1557,14 @@ public class Main {
 
         String inputType = beforeName.substring(typeSeparator + " ".length());
         return compileType(inputType, typeParams).mapValue(outputType -> generateDefinition(typeParams, outputType, name));
+    }
+
+    private static String removeAnnotations(String maybeWithAnnotations) {
+        int annotationSeparator = maybeWithAnnotations.lastIndexOf("\n");
+        if (annotationSeparator >= 0) {
+            return maybeWithAnnotations.substring(annotationSeparator + "\n".length());
+        }
+        return maybeWithAnnotations;
     }
 
     private static Option<Integer> findTypeSeparator(String beforeName) {
@@ -1670,19 +1674,25 @@ public class Main {
     }
 
     private static Result<String, CompileError> getWrap(String value) {
-        if (value.equals("void")) {
-            return new Ok<>("void");
-        }
+        return createPrimitiveRule().apply(value);
+    }
 
-        if (value.equals("int") || value.equals("Integer") || value.equals("boolean") || value.equals("Boolean")) {
-            return new Ok<>("int");
-        }
+    private static TypeRule createPrimitiveRule() {
+        return new TypeRule("primitive", new StripRule(value -> {
+            if (value.equals("void")) {
+                return new Ok<>("void");
+            }
 
-        if (value.equals("char") || value.equals("Character")) {
-            return new Ok<>("char");
-        }
+            if (value.equals("int") || value.equals("Integer") || value.equals("boolean") || value.equals("Boolean")) {
+                return new Ok<>("int");
+            }
 
-        return new Err<>(new CompileError("Not a primitive", value));
+            if (value.equals("char") || value.equals("Character")) {
+                return new Ok<>("char");
+            }
+
+            return new Err<>(new CompileError("Not a primitive", value));
+        }));
     }
 
     private static boolean isSymbol(String input) {

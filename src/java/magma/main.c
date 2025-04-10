@@ -7,13 +7,13 @@ struct Result {
 };
 struct Option {
 	<R> Option<R> map(R (*)(T) mapper);
-	boolean isPresent();
+	int isPresent();
 	T orElse(T other);
-	boolean isEmpty();
+	int isEmpty();
 	void ifPresent(Consumer<T> consumer);
 	Option<T> or(Supplier<Option<T>> other);
 	<R> Option<R> flatMap(Option<R> (*)(T) mapper);
-	Tuple<Boolean, T> toTuple(T other);
+	Tuple<int, T> toTuple(T other);
 	T orElseGet(Supplier<T> supplier);
 	<R> R match(R (*)(T) whenPresent, Supplier<R> whenEmpty);
 };
@@ -26,13 +26,13 @@ struct List_ {
 	List_<T> add(T element);
 	List_<T> addAll(List_<T> others);
 	Iterator<T> iter();
-	boolean isEmpty();
+	int isEmpty();
 	int size();
 	List_<T> slice(int startInclusive, int endExclusive);
 	Option<Tuple<T, List_<T>>> popFirst();
 	Option<T> peekFirst();
 	T get(int index);
-	List_<T> sort(BiFunction<T, T, Integer> comparator);
+	List_<T> sort(BiFunction<T, T, int> comparator);
 };
 struct Path_ {
 	Path_ resolveSibling(String sibling);
@@ -46,7 +46,7 @@ struct Iterator {
 	Option<T> next();
 	Iterator<T> concat(Iterator<T> other);
 	<C> C collect(Collector<T, C> collector);
-	boolean allMatch(Predicate<T> predicate);
+	int allMatch(Predicate<T> predicate);
 	<R> Option<R> foldWithMapper(R (*)(T) mapper, BiFunction<R, T, R> folder);
 	<R, X> Result<struct R, struct X> foldToResult(R initial, BiFunction<R, T, Result<R, X>> mapper);
 };
@@ -80,7 +80,7 @@ struct Err {
 struct Ok {
 };
 struct State {
-	List_<Character> queue;
+	List_<char> queue;
 	List_<String> segments;
 	StringBuilder buffer;
 	int depth;
@@ -105,19 +105,9 @@ struct Max {
 	Result<String, CompileError> apply(String input);
 };
 struct Main {
-	<T, X> {
-        <R> struct R match(R (*)(T) whenOk, R (*)(X) whenErr);
-	<T> {
-        <R> Option<struct R> map(R (*)(T) mapper);
-	<T> {
-        <R> struct R foldWithInitial(R initial, BiFunction<R, T, R> folder);
-	record ApplicationError(Error error);
-	record Joiner(String delimiter);
 	record DecoratedDivider(Divider divider);
-	record DelimitedDivider(char delimiter);
-	record CompileError(String message, String context, List_<CompileError> errors);
 };
-boolean retrieved = false;
+int retrieved = false;
 int counter = 0;
 String display() {
 	return this.error.display();
@@ -138,12 +128,12 @@ auto __lambda3__(auto next) {
 	R current = initial;
 	while (true) {
 		R finalCurrent = current;
-		Option<R> option = this.head.next().map(next -> folder.apply(finalCurrent, next));
+		Option<R> option = this.head.next().map(__lambda0__);
 		if (option.isPresent()) {
 			current = option.orElse(finalCurrent);
 		}
-		else {	return current;
-
+		else {
+			return current;
 		}
 	}
 }
@@ -208,7 +198,7 @@ auto __lambda20__ {
 	return this;
 }
 <R> Iterator<R> map(R (*)(T) mapper) {
-	return HeadedIterator<>(__lambda20__.head.next().map(mapper));
+	return HeadedIterator<>(__lambda4__);
 }
 auto __lambda21__(auto value) {
 	return HeadedIterator<>(predicate.test(value)
@@ -216,9 +206,7 @@ auto __lambda21__(auto value) {
                     : new EmptyHead<T>());
 }
 Iterator<T> filter(Predicate<T> predicate) {
-	return this.flatMap(value -> new HeadedIterator<>(predicate.test(value)
-                    ? new SingleHead<>(value)
-                    : new EmptyHead<T>()));
+	return this.flatMap(__lambda21__);
 }
 Option<T> next() {
 	return this.head.next();
@@ -227,7 +215,7 @@ auto __lambda22__ {
 	return other.next()
 }
 auto __lambda23__ {
-	return this.head.next().or(other::next);
+	return this.head.next().or(__lambda22__);
 }
 auto __lambda24__ {
 	return this.head.next().or;
@@ -281,13 +269,13 @@ auto __lambda40__ {
 	return this;
 }
 Iterator<T> concat(Iterator<T> other) {
-	return HeadedIterator<>(__lambda40__.head.next().or(other::next));
+	return HeadedIterator<>(__lambda23__);
 }
 auto __lambda41__ {
 	return collector.fold()
 }
 <C> C collect(Collector<T, C> collector) {
-	return this.foldWithInitial(collector.createInitial(), collector::fold);
+	return this.foldWithInitial(collector.createInitial(), __lambda41__);
 }
 auto __lambda42__(auto aBoolean, t) {
 	return aBoolean && predicate.test(t);
@@ -313,8 +301,8 @@ auto __lambda48__(auto aBoolean, t) {
 auto __lambda49__(auto aBoolean, t) {
 	return aBoolean;
 }
-boolean allMatch(Predicate<T> predicate) {
-	return this.foldWithInitial(true, (aBoolean, t) -> aBoolean && predicate.test(t));
+int allMatch(Predicate<T> predicate) {
+	return this.foldWithInitial(true, __lambda42__);
 }
 auto __lambda50__(auto next) {
 	return this.foldWithInitial(next, folder);
@@ -329,7 +317,7 @@ auto __lambda53__(auto next) {
 	return this;
 }
 <R> Option<R> foldWithMapper(R (*)(T) mapper, BiFunction<R, T, R> folder) {
-	return this.head.next().map(mapper).map(next -> this.foldWithInitial(next, folder));
+	return this.head.next().map(mapper).map(__lambda50__);
 }
 auto __lambda54__(auto current) {
 	return mapper.apply(current, t);
@@ -344,8 +332,7 @@ auto __lambda57__(auto current) {
 	return mapper;
 }
 auto __lambda58__(auto result, t) {
-	return result.flatMapValue(
-                            current -> mapper.apply(current, t));
+	return result.flatMapValue(__lambda54__);
 }
 auto __lambda59__(auto result, t) {
 	return result.flatMapValue;
@@ -373,27 +360,25 @@ auto __lambda66__(auto result, t) {
 	return result;
 }
 <R, X> Result<struct R, struct X> foldToResult(R initial, BiFunction<R, T, Result<R, X>> mapper) {
-	return this.<Result<R, X>>foldWithInitial(new Ok<>(initial),
-                    (result, t) -> result.flatMapValue(
-                            current -> mapper.apply(current, t)));
+	return this.<Result<R, X>>foldWithInitial(Ok<>(initial), __lambda58__);
 }
 auto __lambda67__ {
 	return Iterator.concat()
 }
 <R> Iterator<R> flatMap(Iterator<R> (*)(T) mapper) {
-	return this.map(mapper).foldWithInitial(Iterators.empty(), Iterator::concat);
+	return this.map(mapper).foldWithInitial(Iterators.empty(), __lambda67__);
 }
 <R> Option<R> map(R (*)(T) mapper) {
 	return None<>();
 }
-boolean isPresent() {	return false;
-
+int isPresent() {
+	return false;
 }
-T orElse(T other) {	return other;
-
+T orElse(T other) {
+	return other;
 }
-boolean isEmpty() {	return true;
-
+int isEmpty() {
+	return true;
 }
 void ifPresent(Consumer<T> consumer) {
 }
@@ -403,7 +388,7 @@ Option<T> or(Supplier<Option<T>> other) {
 <R> Option<R> flatMap(Option<R> (*)(T) mapper) {
 	return None<>();
 }
-Tuple<Boolean, T> toTuple(T other) {
+Tuple<int, T> toTuple(T other) {
 	return Tuple<>(false, other);
 }
 T orElseGet(Supplier<T> supplier) {
@@ -428,25 +413,25 @@ Option<T> next() {
 <R> Option<R> map(R (*)(T) mapper) {
 	return Some<>(mapper.apply(this.value));
 }
-boolean isPresent() {	return true;
-
+int isPresent() {
+	return true;
 }
 T orElse(T other) {
 	return this.value;
 }
-boolean isEmpty() {	return false;
-
+int isEmpty() {
+	return false;
 }
 void ifPresent(Consumer<T> consumer) {
 	consumer.accept(this.value);
 }
-Option<T> or(Supplier<Option<T>> other) {	return this;
-
+Option<T> or(Supplier<Option<T>> other) {
+	return this;
 }
 <R> Option<R> flatMap(Option<R> (*)(T) mapper) {
 	return mapper.apply(this.value);
 }
-Tuple<Boolean, T> toTuple(T other) {
+Tuple<int, T> toTuple(T other) {
 	return Tuple<>(true, this.value);
 }
 T orElseGet(Supplier<T> supplier) {
@@ -485,13 +470,13 @@ Option<T> findValue() {
 Option<T> findValue() {
 	return Some<>(this.value);
 }
-private State(List_<Character> queue, List_<String> segments, StringBuilder buffer, int depth) {
+private State(List_<char> queue, List_<String> segments, StringBuilder buffer, int depth) {
 	this.queue = queue;
 	this.segments = segments;
 	this.buffer = buffer;
 	this.depth = depth;
 }
-public State(List_<Character> queue) {
+public State(List_<char> queue) {
 	this(queue, Lists.empty(), StringBuilder(), 0);
 }
 auto __lambda68__(auto tuple) {
@@ -516,7 +501,7 @@ auto __lambda74__(auto tuple) {
 	return tuple;
 }
 Option<State> popAndAppend() {
-	return this.pop().map(tuple -> tuple.right.append(tuple.left));
+	return this.pop().map(__lambda68__);
 }
 State advance() {
 	return State(this.queue, this.segments.add(this.buffer.toString()), StringBuilder(), this.depth);
@@ -524,16 +509,16 @@ State advance() {
 State append(char c) {
 	return State(this.queue, this.segments, this.buffer.append(c), this.depth);
 }
-boolean isLevel() {
+int isLevel() {
 	return this.depth == 0;
 }
 auto __lambda75__(auto tuple) {
 	return Tuple<>(tuple.left, State(tuple.right, this.segments, this.buffer, this.depth));
 }
-Option<Tuple<Character, State>> pop() {
-	return this.queue.popFirst().map(tuple -> new Tuple<>(tuple.left, new State(tuple.right, this.segments, this.buffer, this.depth)));
+Option<Tuple<char, State>> pop() {
+	return this.queue.popFirst().map(__lambda75__);
 }
-boolean hasElements() {
+int hasElements() {
 	return !this.queue.isEmpty();
 }
 State exit() {
@@ -545,7 +530,7 @@ State enter() {
 List_<String> segments() {
 	return this.segments;
 }
-Option<Character> peek() {
+Option<char> peek() {
 	return this.queue.peekFirst();
 }
 <T> Iterator<T> empty() {
@@ -557,19 +542,19 @@ auto __lambda76__(auto tuple) {
 auto __lambda77__(auto tuple) {
 	return tuple;
 }
-Iterator<Character> fromString(String input) {
-	return fromStringWithIndices(input).map(tuple -> tuple.right);
+Iterator<char> fromString(String input) {
+	return fromStringWithIndices(input).map(__lambda76__);
 }
 auto __lambda78__(auto index) {
 	return Tuple<>(index, input.charAt(index));
 }
-Iterator<Tuple<Integer, Character>> fromStringWithIndices(String input) {
+Iterator<Tuple<int, char>> fromStringWithIndices(String input) {
 	return HeadedIterator<>(RangeHead(input.length())).map(index -> new Tuple<>(index, input.charAt(index)));
 }
 public RangeHead(int length) {
 	this.length = length;
 }
-Option<Integer> next() {
+Option<int> next() {
 	if (this.counter < this.length) {
 		int next = this.counter;this.counter++;
 		return Some<>(next);
@@ -610,7 +595,7 @@ auto __lambda86__(auto inner) {
 	return inner;
 }
 Option<String> fold(Option<String> current, String element) {
-	return Some<>(current.map(inner -> inner + this.delimiter + element).orElse(element));
+	return Some<>(current.map(__lambda79__).orElse(element));
 }
 State fold(State state, char c) {
 	if (c == this.delimiter) {
@@ -624,9 +609,9 @@ public CompileError(String message, String context) {
 String display() {
 	return this.format(0);
 }
-Option<Integer> createInitial() {
+Option<int> createInitial() {
 	return None<>();
 }
-Option<Integer> fold(Option<Integer> current, Integer element) {
+Option<int> fold(Option<int> current, int element) {
 	return Some<>(current.map(inner -> inner > element ? inner : element).orElse(element));
 }
