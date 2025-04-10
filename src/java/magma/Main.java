@@ -801,7 +801,10 @@ public class Main {
         List_<Tuple<Integer, Character>> queue = Iterators.fromStringWithIndices(input).collect(new ListCollector<>());
 
         while (!queue.isEmpty()) {
-            Tuple<Integer, Character> pair = queue.popFirst().orElseThrow().left;
+            Tuple<Tuple<Integer, Character>, List_<Tuple<Integer, Character>>> tupleListTuple = queue.popFirst().orElseThrow();
+            Tuple<Integer, Character> pair = tupleListTuple.left;
+            queue = tupleListTuple.right;
+
             Integer i = pair.left;
             Character c = pair.right;
 
