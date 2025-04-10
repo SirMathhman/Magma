@@ -655,7 +655,7 @@ public class Main {
     private static List_<Function<String, Result<String, CompileError>>> listRules() {
         return Lists.of(
                 (input) -> compileWhitespace(input),
-                (input) -> getWrapped(input),
+                (input) -> compilePackage(input),
                 (input) -> getStringCompileErrorResult(input),
                 (input) -> compileClass(input)
         );
@@ -669,8 +669,11 @@ public class Main {
         return wrap(compileImport(input));
     }
 
-    private static Result<String, CompileError> getWrapped(String input) {
-        return wrap(compilePackage(input));
+    private static Result<String, CompileError> compilePackage(String input) {
+        if (input.startsWith("package ")) {
+            return new Ok<>("");
+        }
+        return new Err<>(new CompileError("Prefix 'package ' not present", input));
     }
 
     private static List_<String> mergeStatics(List_<String> list) {
@@ -749,13 +752,6 @@ public class Main {
 
     private static boolean isShallow(State state) {
         return state.depth == 1;
-    }
-
-    private static Option<String> compilePackage(String input) {
-        if (input.startsWith("package ")) {
-            return new Some<>("");
-        }
-        return new None<>();
     }
 
     private static Option<String> compileImport(String input) {
