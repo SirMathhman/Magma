@@ -13,9 +13,12 @@
 #include "./java/util/stream/Collectors"
 #include "./java/util/stream/IntStream"
 struct Result<T, X> {
-<R> R match(Function<struct T, struct R> whenOk, Function<struct X, struct R> whenErr);<R> Result<struct T, R> mapErr(Function<struct X, struct R> mapper);};
+	<R> R match(Function<struct T, struct R> whenOk, Function<struct X, struct R> whenErr);
+	<R> Result<struct T, R> mapErr(Function<struct X, struct R> mapper);
+};
 struct IOError {
-struct String display();};
+	struct String display();
+};
 struct Err<T, X>(X error) implements Result<T, X> {
 };
 struct Ok<T, X>(T value) implements Result<T, X> {
@@ -38,11 +41,11 @@ struct ", new ArrayList<>());
      */};
 struct Main {
 };
-List<struct String> imports = ArrayList<>();
-List<struct String> structs = ArrayList<>();
-List<struct String> globals = ArrayList<>();
-List<struct String> methods = ArrayList<>();
-int counter = 0;
+	List<struct String> imports = ArrayList<>();
+	List<struct String> structs = ArrayList<>();
+	List<struct String> globals = ArrayList<>();
+	List<struct String> methods = ArrayList<>();
+	int counter = 0;
 <R> R match(Function<struct T, struct R> whenOk, Function<struct X, struct R> whenErr) {
 	return whenErr.apply(this.error);
 }
@@ -305,7 +308,7 @@ Optional<struct String> compileDefinitionStatement(struct String input) {
 	return Optional.empty();
 }
 auto __lambda29__(auto generated) {
-	globals.add(generated + ";\n");
+	globals.add("\t" + generated + ";\n");
 	return "";
 }
 Optional<struct String> compileGlobalInitialization(struct String input, List<struct String> typeParams) {
@@ -369,7 +372,7 @@ Optional<struct String> assembleMethodBody(List<struct String> typeParams, struc
 		struct String inputContent = body.substring("{".length(), body.length() - "}".length());
 		return compileStatements(inputContent, __lambda33__).flatMap(__lambda34__);
 	}
-	return Optional.of(header + ";");
+	return Optional.of("\t" + header + ";\n");
 }
 auto __lambda35__() {
 	return compileDefinition(definition);

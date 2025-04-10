@@ -314,7 +314,7 @@ public class Main {
 
     private static Optional<String> compileGlobalInitialization(String input, List<String> typeParams) {
         return compileInitialization(input, typeParams, 0).map(generated -> {
-            globals.add(generated + ";\n");
+            globals.add("\t" + generated + ";\n");
             return "";
         });
     }
@@ -378,7 +378,7 @@ public class Main {
             });
         }
 
-        return Optional.of(header + ";");
+        return Optional.of("\t" + header + ";\n");
     }
 
     private static Optional<String> compileParameter(String definition) {
