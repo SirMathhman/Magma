@@ -642,6 +642,24 @@ public class Main {
             return new Some<>(current.map(inner -> inner > element ? inner : element).orElse(element));
         }
     }
+
+    private static class SymbolRule implements Rule {
+        @Override
+        public Result<String, CompileError> apply(String input) {
+            if (isSymbol(input)) {
+                return new Ok<>(input);
+            }
+            return new Err<>(new CompileError("Not a symbol", input));
+        }
+    }
+
+    private record StripRule(Rule childRule) implements Rule {
+        @Override
+        public Result<String, CompileError> apply(String s) {
+            return this.childRule.apply(s.strip());
+        }
+    }
+
     public static final List_<String> FUNCTIONAL_NAMESPACE = Lists.of("java", "util", "function");
     private static final List_<String> imports = Lists.empty();
     private static final List_<String> structs = Lists.empty();
@@ -1233,7 +1251,7 @@ public class Main {
         return compileOr(input0, Lists.of(
                 Main::compileString,
                 Main::compileChar,
-                Main::compileSymbol,
+                stripped -> createSymbolRule().apply(stripped),
                 Main::compileNumber,
                 input -> compileConstruction(input, typeParams, depth),
                 input -> createNotRule(input, typeParams, depth),
@@ -1269,11 +1287,8 @@ public class Main {
         }
     }
 
-    private static Result<String, CompileError> compileSymbol(String stripped) {
-        if (isSymbol(stripped)) {
-            return new Ok<>(stripped);
-        }
-        return new Err<>(new CompileError("Not a symbol", stripped));
+    private static TypeRule createSymbolRule() {
+        return new TypeRule("symbol", new StripRule(new SymbolRule()));
     }
 
     private static Result<String, CompileError> compileNumber(String stripped) {
