@@ -100,4 +100,11 @@ public class Lists {
         return new Main.HeadedIterator<>(new Main.RangeHead(first.size()))
                 .allMatch(index -> equator.apply(first.get(index), second.get(index)));
     }
+
+    public static List<String> unwrap(Main.List_<String> list) {
+        return list.iter().foldWithInitial(new ArrayList<String>(), (strings, s) -> {
+            strings.add(s);
+            return strings;
+        });
+    }
 }

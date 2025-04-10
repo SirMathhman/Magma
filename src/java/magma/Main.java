@@ -106,7 +106,7 @@ public class Main {
         Option<T> next();
     }
 
-    private interface Divider {
+    public interface Divider {
         State fold(State state, char c);
     }
 
@@ -378,11 +378,11 @@ public class Main {
 
     }
 
-    private static class State {
+    public static class State {
         private final List_<Character> queue;
         private final List_<String> segments;
         private final StringBuilder buffer;
-        private int depth;
+        private final int depth;
 
         private State(List_<Character> queue, List_<String> segments, StringBuilder buffer, int depth) {
             this.queue = queue;
@@ -497,7 +497,7 @@ public class Main {
         }
     }
 
-    private record DecoratedDivider(Divider divider) implements Divider {
+    public record DecoratedDivider(Divider divider) implements Divider {
         private static Option<State> divideSingleQuotes(State state, char c) {
             if (c != '\'') {
                 return new None<>();
@@ -512,7 +512,7 @@ public class Main {
             Tuple<Character, State> slashTuple = maybeSlashTuple.orElse(new Tuple<>('\0', appended));
             var withMaybeSlash = slashTuple.right.append(slashTuple.left);
 
-            Option<State> withSlash = slashTuple.left == '\\' ? withMaybeSlash.popAndAppend() : new None<>();
+            Option<State> withSlash = slashTuple.left == '\\' ? withMaybeSlash.popAndAppend() : new Some<>(withMaybeSlash);
             return withSlash.flatMap(State::popAndAppend);
         }
 
@@ -554,7 +554,7 @@ public class Main {
         public State fold(State state, char c) {
             return divideSingleQuotes(state, c)
                     .or(() -> divideDoubleQuotes(state, c))
-                    .orElse(this.divider().fold(state, c));
+                    .orElseGet(() -> this.divider().fold(state, c));
         }
     }
 
@@ -706,7 +706,7 @@ public class Main {
         return output.append(compiled);
     }
 
-    private static List_<String> divide(String input, Divider divider) {
+    public static List_<String> divide(String input, Divider divider) {
         List_<Character> queue = Iterators.fromString(input)
                 .collect(new ListCollector<>());
 
@@ -724,7 +724,7 @@ public class Main {
         return state.advance().segments();
     }
 
-    private static State divideStatementChar(State state, char c) {
+    public static State divideStatementChar(State state, char c) {
         State appended = state.append(c);
         if (c == ';' && appended.isLevel()) {
             return appended.advance();
