@@ -579,9 +579,13 @@ public class Main {
 
         @Override
         public String display() {
+            return format(0);
+        }
+
+        private String format(int depth) {
             String joiner = this.errors.iter()
-                    .map(CompileError::display)
-                    .map(value -> "\n" + value)
+                    .map(compileError -> compileError.format(depth + 1))
+                    .map(value -> "\n" + "\t".repeat(depth) + value)
                     .collect(new Joiner(""))
                     .orElse("");
 
