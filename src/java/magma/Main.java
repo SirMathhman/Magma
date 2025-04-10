@@ -1,5 +1,8 @@
 package magma;
 
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -118,7 +121,7 @@ public class Main {
         State fold(State state, char c);
     }
 
-    interface Rule extends Function<String, Main.Result<String, Main.CompileError>> {
+    interface Rule extends Function<String, Result<String, CompileError>> {
 
     }
 
@@ -708,6 +711,31 @@ public class Main {
 
         public boolean isDefined(String typeParam) {
             return this.frames.iter().anyMatch(frame -> Lists.contains(frame, typeParam, String::equals));
+        }
+    }
+
+    private static final class Node {
+        private final Map<String, String> strings;
+
+        public Node() {
+            this(Collections.emptyMap());
+        }
+
+        public Node(Map<String, String> strings) {
+            this.strings = strings;
+        }
+
+        private Node withString(String propertyKey, String propertyValue) {
+            HashMap<String, String> copy = new HashMap<>(this.strings);
+            copy.put(propertyKey, propertyValue);
+            return new Node(copy);
+        }
+
+        public Option<String> findString(String propertyKey) {
+            if (this.strings.containsKey(propertyKey)) {
+                return new Some<>(this.strings.get(propertyKey));
+            }
+            return new None<>();
         }
     }
 
@@ -1552,18 +1580,16 @@ public class Main {
             }
 
             return findTypeSeparator(beforeName).match(typeSeparator -> {
-                return getStringCompileErrorResult(beforeName, typeSeparator, name, state);
+                return getStringCompileErrorResult(beforeName, typeSeparator, name, state, beforeName.substring(0, typeSeparator).strip());
             }, () -> {
-                return compileType(beforeName, state).mapValue(outputType -> generateDefinition(Lists.empty(), outputType, name));
+                return compileType(beforeName, state).mapValue(outputType -> getName(Lists.empty(), name, outputType));
             });
         });
     }
 
-    private static Result<String, CompileError> getStringCompileErrorResult(String beforeName, int typeSeparator, String name, ParseState state) {
-        String beforeType = beforeName.substring(0, typeSeparator).strip();
-
+    private static Result<String, CompileError> getStringCompileErrorResult(String beforeName, int typeSeparator, String name, ParseState state, String beforeType) {
         if (!beforeType.endsWith(">")) {
-            return getStringCompileErrorResult(state, beforeName, typeSeparator, name, beforeType, Lists.empty());
+            return getStringCompileErrorResult(state, removeAnnotations(beforeType.strip()), Lists.empty(), beforeName.substring(typeSeparator + " ".length()), name);
         }
 
         String withoutEnd = beforeType.substring(0, beforeType.length() - ">".length());
@@ -1572,36 +1598,38 @@ public class Main {
             String more = withoutEnd.substring(0, typeParamStart);
             String substring = withoutEnd.substring(typeParamStart + 1);
             List_<String> typeParams = splitValues(substring);
-            return getStringCompileErrorResult(state.enter().defineAll(typeParams), beforeName, typeSeparator, name, more, typeParams);
+            return getStringCompileErrorResult(state.enter().defineAll(typeParams), removeAnnotations(more.strip()), typeParams, beforeName.substring(typeSeparator + " ".length()), name);
         }
         else {
-            return getStringCompileErrorResult(state, beforeName, typeSeparator, name, beforeType, Lists.empty());
+            return getStringCompileErrorResult(state, removeAnnotations(beforeType.strip()), Lists.empty(), beforeName.substring(typeSeparator + " ".length()), name);
         }
     }
 
     private static Result<String, CompileError> getStringCompileErrorResult(
             ParseState state,
-            String beforeName,
-            int typeSeparator,
-            String name,
-            String more,
-            List_<String> typeParams
+            String modifiers,
+            List_<String> typeParams,
+            String inputType,
+            String name
     ) {
-        String strippedBeforeTypeParams = more.strip();
-        String modifiersString = removeAnnotations(strippedBeforeTypeParams);
+        if (!validateModifiers(modifiers)) {
+            return new Err<>(new CompileError("Invalid modifiers", modifiers));
+        }
 
-        boolean allSymbols = divide(modifiersString, new DelimitedDivider(' '))
+        return compileType(inputType, state).mapValue(outputType -> getName(typeParams, name, outputType));
+    }
+
+    private static String getName(List_<String> typeParams, String name, String type) {
+        return generateDefinition(typeParams, new Node().withString("name", name)
+                .withString("type", type));
+    }
+
+    private static boolean validateModifiers(String modifiersString) {
+        return divide(modifiersString, new DelimitedDivider(' '))
                 .iter()
                 .map(String::strip)
                 .filter(value -> !value.isEmpty())
                 .allMatch(Main::isSymbol);
-
-        if (!allSymbols) {
-            return new Err<>(new CompileError("Invalid modifiers", modifiersString));
-        }
-
-        String inputType = beforeName.substring(typeSeparator + " ".length());
-        return compileType(inputType, state).mapValue(outputType -> generateDefinition(typeParams, outputType, name));
     }
 
     private static String removeAnnotations(String maybeWithAnnotations) {
@@ -1643,7 +1671,9 @@ public class Main {
                 .collect(new ListCollector<>());
     }
 
-    private static String generateDefinition(List_<String> maybeTypeParams, String type, String name) {
+    private static String generateDefinition(List_<String> maybeTypeParams, Node node) {
+        String type = node.findString("type").orElse("");
+        String name = node.findString("name").orElse("");
         return generateTypeParams(maybeTypeParams) + type + " " + name;
     }
 

@@ -1,3 +1,6 @@
+#include "./java/util/Collections"
+#include "./java/util/HashMap"
+#include "./java/util/Map"
 struct Result<T, X> {
 	<R> R match(R (*)(T) whenOk, R (*)(X) whenErr);
 	<R> Result<T, R> mapErr(R (*)(X) mapper);
