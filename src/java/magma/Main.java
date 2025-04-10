@@ -835,10 +835,36 @@ public class Main {
 
         String withoutExtends = removeExtends(strippedBeforeImplements);
 
-        String withoutParams = getString(withoutExtends);
+        String withoutParams = removeParameters(withoutExtends);
         String strippedWithoutParams = withoutParams.strip();
-        String name = getName(strippedWithoutParams);
+        return getCompileErrorResult(typeParams, strippedWithoutParams, afterKeyword, contentStart);
+    }
 
+    private static Result<String, CompileError> getCompileErrorResult(List_<String> typeParams, String strippedWithoutParams, String afterKeyword, int contentStart) {
+        if (strippedWithoutParams.endsWith(">")) {
+            String strippedWithoutParams1 = strippedWithoutParams.substring(0, strippedWithoutParams.length() - ">".length());
+            int genStart = strippedWithoutParams1.indexOf("<");
+            if (genStart < 0) {
+                return generateStruct(typeParams, strippedWithoutParams1, afterKeyword, contentStart, Lists.empty());
+            }
+            else {
+                String name = strippedWithoutParams1.substring(0, genStart).strip();
+                String substring = strippedWithoutParams1.substring(genStart + 1);
+                List_<String> moreTypeParams = divide(substring, new DelimitedDivider(','))
+                        .iter()
+                        .map(String::strip)
+                        .collect(new ListCollector<>());
+
+                return generateStruct(typeParams.addAll(moreTypeParams), name, afterKeyword, contentStart, moreTypeParams);
+            }
+        }
+        else {
+            return generateStruct(typeParams, strippedWithoutParams, afterKeyword, contentStart, Lists.empty());
+        }
+
+    }
+
+    private static Result<String, CompileError> generateStruct(List_<String> typeParams, String name, String afterKeyword, int contentStart, List_<String> moreTypeParams) {
         if (!isSymbol(name)) {
             return new Err<>(new CompileError("Not a symbol", name));
         }
@@ -850,7 +876,12 @@ public class Main {
 
         String inputContent = withEnd.substring(0, withEnd.length() - "}".length());
         return compileStatements(inputContent, s -> compileClassMember(s, typeParams)).mapValue(outputContent -> {
-            structs.add("struct " + name + " {\n" + outputContent + "};\n");
+            String typeParameters = moreTypeParams.iter()
+                    .collect(new Joiner(", "))
+                    .map(inner -> "<" + inner + ">")
+                    .orElse("");
+
+            structs.add("struct " + name + typeParameters + " {\n" + outputContent + "};\n");
             return "";
         });
     }
@@ -872,39 +903,18 @@ public class Main {
         return new Err<>(new CompileError("Infix '" + infix + "' not present", input));
     }
 
-    private static String getName(String strippedWithoutParams) {
-        String name;
-        if (strippedWithoutParams.endsWith(">")) {
-            int genStart = strippedWithoutParams.indexOf("<");
-            if (genStart >= 0) {
-                name = strippedWithoutParams.substring(0, genStart).strip();
-            }
-            else {
-                name = strippedWithoutParams;
-            }
+    private static String removeParameters(String strippedBeforeImplements) {
+        if (!strippedBeforeImplements.endsWith(")")) {
+            return strippedBeforeImplements;
         }
-        else {
-            name = strippedWithoutParams;
-        }
-        return name;
-    }
+        String withoutEnd = strippedBeforeImplements.substring(0, strippedBeforeImplements.length() - ")".length());
 
-    private static String getString(String strippedBeforeImplements) {
-        String withoutParams;
-        if (strippedBeforeImplements.endsWith(")")) {
-            String withoutEnd = strippedBeforeImplements.substring(0, strippedBeforeImplements.length() - ")".length());
-            int paramStart = withoutEnd.indexOf("(");
-            if (paramStart >= 0) {
-                withoutParams = withoutEnd.substring(0, paramStart).strip();
-            }
-            else {
-                withoutParams = strippedBeforeImplements;
-            }
+        int paramStart = withoutEnd.indexOf("(");
+        if (paramStart < 0) {
+            return strippedBeforeImplements;
         }
-        else {
-            withoutParams = strippedBeforeImplements;
-        }
-        return withoutParams;
+
+        return withoutEnd.substring(0, paramStart).strip();
     }
 
     private static String getString(int implementsIndex, String beforeContent) {

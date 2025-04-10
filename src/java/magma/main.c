@@ -1,11 +1,11 @@
-struct Result {
+struct Result<T, X> {
 	<R> R match(R (*)(T) whenOk, R (*)(X) whenErr);
 	<R> Result<struct T, R> mapErr(R (*)(X) mapper);
 	<R> Result<R, struct X> flatMapValue(Result<R, X> (*)(T) mapper);
 	<R> Result<R, struct X> mapValue(R (*)(T) mapper);
 	Option<T> findValue();
 };
-struct Option {
+struct Option<T> {
 	<R> Option<R> map(R (*)(T) mapper);
 	int isPresent();
 	T orElse(T other);
@@ -22,7 +22,7 @@ struct Error {
 };
 struct IOError {
 };
-struct List_ {
+struct List_<T> {
 	List_<T> add(T element);
 	List_<T> addAll(List_<T> others);
 	Iterator<T> iter();
@@ -38,7 +38,7 @@ struct Path_ {
 	Path_ resolveSibling(String sibling);
 	List_<String> asList();
 };
-struct Iterator {
+struct Iterator<T> {
 	<R> R foldWithInitial(R initial, BiFunction<R, T, R> folder);
 	void forEach(Consumer<T> consumer);
 	<R> Iterator<R> map(R (*)(T) mapper);
@@ -50,11 +50,11 @@ struct Iterator {
 	<R> Option<R> foldWithMapper(R (*)(T) mapper, BiFunction<R, T, R> folder);
 	<R, X> Result<struct R, struct X> foldToResult(R initial, BiFunction<R, T, Result<R, X>> mapper);
 };
-struct Collector {
+struct Collector<T, C> {
 	C createInitial();
 	C fold(C current, T element);
 };
-struct Head {
+struct Head<T> {
 	Option<T> next();
 };
 struct Divider {
@@ -64,20 +64,20 @@ struct Rule {
 };
 struct ApplicationError {
 };
-struct HeadedIterator {
+struct HeadedIterator<T> {
 };
-struct None {
+struct None<T> {
 };
-struct EmptyHead {
+struct EmptyHead<T> {
 };
-struct SingleHead {
+struct SingleHead<T> {
 	T value;
 };
-struct Some {
+struct Some<T> {
 };
-struct Err {
+struct Err<T, X> {
 };
-struct Ok {
+struct Ok<T, X> {
 };
 struct State {
 	List_<char> queue;
@@ -85,14 +85,14 @@ struct State {
 	StringBuilder buffer;
 	int depth;
 };
-struct Tuple {
+struct Tuple<A, B> {
 };
 struct Iterators {
 };
 struct RangeHead {
 	int length;
 };
-struct ListCollector {
+struct ListCollector<T> {
 };
 struct Joiner {
 };
@@ -212,7 +212,7 @@ Option<T> next() {
 	return this.head.next();
 }
 auto __lambda22__ {
-	return other.next()
+	return struct other.next()
 }
 auto __lambda23__ {
 	return this.head.next().or(__lambda22__);
@@ -239,7 +239,7 @@ auto __lambda30__ {
 	return this;
 }
 auto __lambda31__ {
-	return other.next()
+	return struct other.next()
 }
 auto __lambda32__ {
 	return this.head.next();
@@ -272,7 +272,7 @@ Iterator<T> concat(Iterator<T> other) {
 	return HeadedIterator<>(__lambda23__);
 }
 auto __lambda41__ {
-	return collector.fold()
+	return struct collector.fold()
 }
 <C> C collect(Collector<T, C> collector) {
 	return this.foldWithInitial(collector.createInitial(), __lambda41__);
@@ -363,7 +363,7 @@ auto __lambda66__(auto result, t) {
 	return this.<Result<R, X>>foldWithInitial(Ok<>(initial), __lambda58__);
 }
 auto __lambda67__ {
-	return Iterator.concat()
+	return struct Iterator.concat()
 }
 <R> Iterator<R> flatMap(Iterator<R> (*)(T) mapper) {
 	return this.map(mapper).foldWithInitial(Iterators.empty(), __lambda67__);
@@ -477,7 +477,7 @@ private State(List_<char> queue, List_<String> segments, StringBuilder buffer, i
 	this.depth = depth;
 }
 public State(List_<char> queue) {
-	this(queue, Lists.empty(), StringBuilder(), 0);
+	this(queue, Lists.empty(), struct StringBuilder(), 0);
 }
 auto __lambda68__(auto tuple) {
 	return tuple.right.append(tuple.left);
@@ -504,16 +504,16 @@ Option<State> popAndAppend() {
 	return this.pop().map(__lambda68__);
 }
 State advance() {
-	return State(this.queue, this.segments.add(this.buffer.toString()), StringBuilder(), this.depth);
+	return struct State(this.queue, this.segments.add(this.buffer.toString()), struct StringBuilder(), this.depth);
 }
 State append(char c) {
-	return State(this.queue, this.segments, this.buffer.append(c), this.depth);
+	return struct State(this.queue, this.segments, this.buffer.append(c), this.depth);
 }
 int isLevel() {
 	return this.depth == 0;
 }
 auto __lambda75__(auto tuple) {
-	return Tuple<>(tuple.left, State(tuple.right, this.segments, this.buffer, this.depth));
+	return Tuple<>(tuple.left, struct State(tuple.right, this.segments, this.buffer, this.depth));
 }
 Option<Tuple<char, State>> pop() {
 	return this.queue.popFirst().map(__lambda75__);
@@ -522,10 +522,10 @@ int hasElements() {
 	return !this.queue.isEmpty();
 }
 State exit() {
-	return State(this.queue, this.segments, this.buffer, this.depth - 1);
+	return struct State(this.queue, this.segments, this.buffer, this.depth - 1);
 }
 State enter() {
-	return State(this.queue, this.segments, this.buffer, this.depth + 1);
+	return struct State(this.queue, this.segments, this.buffer, this.depth + 1);
 }
 List_<String> segments() {
 	return this.segments;
@@ -549,7 +549,7 @@ auto __lambda78__(auto index) {
 	return Tuple<>(index, input.charAt(index));
 }
 Iterator<Tuple<int, char>> fromStringWithIndices(String input) {
-	return HeadedIterator<>(RangeHead(input.length())).map(index -> new Tuple<>(index, input.charAt(index)));
+	return HeadedIterator<>(struct RangeHead(input.length())).map(index -> new Tuple<>(index, input.charAt(index)));
 }
 public RangeHead(int length) {
 	this.length = length;
