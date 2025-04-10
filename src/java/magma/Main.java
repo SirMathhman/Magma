@@ -380,8 +380,8 @@ public class Main {
 
     private static class State {
         private final List_<Character> queue;
-        private List_<String> segments;
-        private StringBuilder buffer;
+        private final List_<String> segments;
+        private final StringBuilder buffer;
         private int depth;
 
         private State(List_<Character> queue, List_<String> segments, StringBuilder buffer, int depth) {
@@ -400,14 +400,11 @@ public class Main {
         }
 
         private State advance() {
-            this.segments = this.segments.add(this.buffer.toString());
-            this.buffer = new StringBuilder();
-            return this;
+            return new State(this.queue, this.segments.add(this.buffer.toString()), new StringBuilder(), this.depth);
         }
 
         private State append(char c) {
-            this.buffer.append(c);
-            return this;
+            return new State(this.queue, this.segments, this.buffer.append(c), this.depth);
         }
 
         private boolean isLevel() {
@@ -423,13 +420,11 @@ public class Main {
         }
 
         private State exit() {
-            this.depth = this.depth - 1;
-            return this;
+            return new State(this.queue, this.segments, this.buffer, this.depth - 1);
         }
 
         private State enter() {
-            this.depth = this.depth + 1;
-            return this;
+            return new State(this.queue, this.segments, this.buffer, this.depth + 1);
         }
 
         public List_<String> segments() {
@@ -657,12 +652,8 @@ public class Main {
                 (input) -> compileWhitespace(input),
                 (input) -> compilePackage(input),
                 (input) -> getStringCompileErrorResult(input),
-                (input) -> compileClass(input)
+                (input) -> compileToStruct(input, "class ", Lists.empty())
         );
-    }
-
-    private static Result<String, CompileError> compileClass(String input) {
-        return wrap(compileToStruct(input, "class ", Lists.empty()));
     }
 
     private static Result<String, CompileError> getStringCompileErrorResult(String input) {
@@ -776,77 +767,101 @@ public class Main {
         return new Some<>("");
     }
 
-    private static Option<String> compileToStruct(String input, String infix, List_<String> typeParams) {
+    private static Result<String, CompileError> compileToStruct(String input, String infix, List_<String> typeParams) {
         int classIndex = input.indexOf(infix);
         if (classIndex < 0) {
-            return new None<>();
+            return createInfixErr(input, infix);
         }
 
         String afterKeyword = input.substring(classIndex + infix.length());
         int contentStart = afterKeyword.indexOf("{");
-        if (contentStart >= 0) {
-            String beforeContent = afterKeyword.substring(0, contentStart).strip();
-            int implementsIndex = beforeContent.indexOf(" implements ");
+        if (contentStart < 0) {
+            return createInfixErr(afterKeyword, "{");
+        }
 
-            String beforeImplements;
-            if (implementsIndex >= 0) {
-                beforeImplements = beforeContent.substring(0, implementsIndex);
-            }
-            else {
-                beforeImplements = beforeContent;
-            }
-            String strippedBeforeImplements = beforeImplements.strip();
+        String beforeContent = afterKeyword.substring(0, contentStart).strip();
+        String beforeImplements = getBeforeImplements(beforeContent);
+        String strippedBeforeImplements = beforeImplements.strip();
 
-            String withoutParams;
-            if (strippedBeforeImplements.endsWith(")")) {
-                String withoutEnd = strippedBeforeImplements.substring(0, strippedBeforeImplements.length() - ")".length());
-                int paramStart = withoutEnd.indexOf("(");
-                if (paramStart >= 0) {
-                    withoutParams = withoutEnd.substring(0, paramStart).strip();
-                }
-                else {
-                    withoutParams = strippedBeforeImplements;
-                }
-            }
-            else {
-                withoutParams = strippedBeforeImplements;
-            }
+        String withoutParams = getString(strippedBeforeImplements);
+        String strippedWithoutParams = withoutParams.strip();
+        String name = getName(strippedWithoutParams);
 
-            String strippedWithoutParams = withoutParams.strip();
+        if (!isSymbol(name)) {
+            return new Err<>(new CompileError("Not a symbol", name));
+        }
 
-            String name;
-            if (strippedWithoutParams.endsWith(">")) {
-                int genStart = strippedWithoutParams.indexOf("<");
-                if (genStart >= 0) {
-                    name = strippedWithoutParams.substring(0, genStart).strip();
-                }
-                else {
-                    name = strippedWithoutParams;
-                }
+        String withEnd = afterKeyword.substring(contentStart + "{".length()).strip();
+        if (!withEnd.endsWith("}")) {
+            return new Err<>(new CompileError("Suffix '}' not present", withEnd));
+        }
+
+        String inputContent = withEnd.substring(0, withEnd.length() - "}".length());
+        return wrap(compileStatements(inputContent, input1 -> compileClassMember(input1, typeParams)).map(outputContent -> {
+            structs.add("struct " + name + " {\n" + outputContent + "};\n");
+            return "";
+        }));
+    }
+
+    private static String getBeforeImplements(String beforeContent) {
+        return getString(beforeContent.indexOf(" implements "), beforeContent);
+    }
+
+    private static Err<String, CompileError> createInfixErr(String input, String infix) {
+        return new Err<>(new CompileError("Infix '" + infix + "' not present", input));
+    }
+
+    private static String getName(String strippedWithoutParams) {
+        String name;
+        if (strippedWithoutParams.endsWith(">")) {
+            int genStart = strippedWithoutParams.indexOf("<");
+            if (genStart >= 0) {
+                name = strippedWithoutParams.substring(0, genStart).strip();
             }
             else {
                 name = strippedWithoutParams;
             }
+        }
+        else {
+            name = strippedWithoutParams;
+        }
+        return name;
+    }
 
-            if (isSymbol(name)) {
-                String withEnd = afterKeyword.substring(contentStart + "{".length()).strip();
-                if (withEnd.endsWith("}")) {
-                    String inputContent = withEnd.substring(0, withEnd.length() - "}".length());
-                    return compileStatements(inputContent, input1 -> compileClassMember(input1, typeParams)).map(outputContent -> {
-                        structs.add("struct " + name + " {\n" + outputContent + "};\n");
-                        return "";
-                    });
-                }
+    private static String getString(String strippedBeforeImplements) {
+        String withoutParams;
+        if (strippedBeforeImplements.endsWith(")")) {
+            String withoutEnd = strippedBeforeImplements.substring(0, strippedBeforeImplements.length() - ")".length());
+            int paramStart = withoutEnd.indexOf("(");
+            if (paramStart >= 0) {
+                withoutParams = withoutEnd.substring(0, paramStart).strip();
+            }
+            else {
+                withoutParams = strippedBeforeImplements;
             }
         }
-        return new None<>();
+        else {
+            withoutParams = strippedBeforeImplements;
+        }
+        return withoutParams;
+    }
+
+    private static String getString(int implementsIndex, String beforeContent) {
+        String beforeImplements;
+        if (implementsIndex >= 0) {
+            beforeImplements = beforeContent.substring(0, implementsIndex);
+        }
+        else {
+            beforeImplements = beforeContent;
+        }
+        return beforeImplements;
     }
 
     private static Option<String> compileClassMember(String input, List_<String> typeParams) {
         return unwrap(compileWhitespace(input))
-                .or(() -> compileToStruct(input, "interface ", typeParams))
-                .or(() -> compileToStruct(input, "record ", typeParams))
-                .or(() -> compileToStruct(input, "class ", typeParams))
+                .or(() -> compileToStruct(input, "interface ", typeParams).findValue())
+                .or(() -> compileToStruct(input, "record ", typeParams).findValue())
+                .or(() -> compileToStruct(input, "class ", typeParams).findValue())
                 .or(() -> compileGlobalInitialization(input, typeParams))
                 .or(() -> compileDefinitionStatement(input))
                 .or(() -> compileMethod(input, typeParams))
