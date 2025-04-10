@@ -7,13 +7,13 @@ struct Result {
 };
 struct Option {
 	<R> Option<R> map(Function<T, R> mapper);
-	int isPresent();
+	boolean isPresent();
 	T orElse(T other);
-	int isEmpty();
+	boolean isEmpty();
 	void ifPresent(Consumer<T> consumer);
 	Option<T> or(Supplier<Option<T>> other);
 	<R> Option<R> flatMap(Function<T, Option<R>> mapper);
-	Tuple<int, T> toTuple(T other);
+	Tuple<Boolean, T> toTuple(T other);
 	T orElseGet(Supplier<T> supplier);
 	<R> R match(Function<T, R> whenPresent, Supplier<R> whenEmpty);
 };
@@ -26,7 +26,7 @@ struct List_ {
 	List_<T> add(T element);
 	List_<T> addAll(List_<T> others);
 	Iterator<T> iter();
-	int isEmpty();
+	boolean isEmpty();
 	int size();
 	List_<T> slice(int startInclusive, int endExclusive);
 	Option<Tuple<T, List_<T>>> popFirst();
@@ -45,7 +45,7 @@ struct Iterator {
 	Option<T> next();
 	Iterator<T> concat(Iterator<T> other);
 	<C> C collect(Collector<T, C> collector);
-	int allMatch(Predicate<T> predicate);
+	boolean allMatch(Predicate<T> predicate);
 	<R> Option<R> foldWithMapper(Function<T, R> mapper, BiFunction<R, T, R> folder);
 	<R, X> Result<struct R, struct X> foldToResult(R initial, BiFunction<R, T, Result<R, X>> mapper);
 };
@@ -79,7 +79,7 @@ struct Err {
 struct Ok {
 };
 struct State {
-	List_<char> queue;
+	List_<Character> queue;
 	List_<String> segments;
 	StringBuilder buffer;
 	int depth;
@@ -113,7 +113,7 @@ struct Main {
 	record DelimitedDivider(char delimiter);
 	record CompileError(String message, String context, List_<CompileError> errors);
 };
-int retrieved = false;
+boolean retrieved = false;
 int counter = 0;
 String display() {
 	return this.error.display();
@@ -178,7 +178,7 @@ auto __lambda5__ {
 auto __lambda6__(auto aBoolean, t) {
 	return aBoolean && predicate.test(t);
 }
-int allMatch(Predicate<T> predicate) {
+boolean allMatch(Predicate<T> predicate) {
 	return this.foldWithInitial(true, __lambda6__);
 }
 auto __lambda7__(auto next) {
@@ -205,13 +205,13 @@ auto __lambda10__ {
 <R> Option<R> map(Function<T, R> mapper) {
 	return None<>();
 }
-int isPresent() {
+boolean isPresent() {
 	return false;
 }
 T orElse(T other) {
 	return other;
 }
-int isEmpty() {
+boolean isEmpty() {
 	return true;
 }
 void ifPresent(Consumer<T> consumer) {
@@ -222,7 +222,7 @@ Option<T> or(Supplier<Option<T>> other) {
 <R> Option<R> flatMap(Function<T, Option<R>> mapper) {
 	return None<>();
 }
-Tuple<int, T> toTuple(T other) {
+Tuple<Boolean, T> toTuple(T other) {
 	return Tuple<>(false, other);
 }
 T orElseGet(Supplier<T> supplier) {
@@ -247,13 +247,13 @@ Option<T> next() {
 <R> Option<R> map(Function<T, R> mapper) {
 	return Some<>(mapper.apply(this.value));
 }
-int isPresent() {
+boolean isPresent() {
 	return true;
 }
 T orElse(T other) {
 	return this.value;
 }
-int isEmpty() {
+boolean isEmpty() {
 	return false;
 }
 void ifPresent(Consumer<T> consumer) {
@@ -265,7 +265,7 @@ Option<T> or(Supplier<Option<T>> other) {
 <R> Option<R> flatMap(Function<T, Option<R>> mapper) {
 	return mapper.apply(this.value);
 }
-Tuple<int, T> toTuple(T other) {
+Tuple<Boolean, T> toTuple(T other) {
 	return Tuple<>(true, this.value);
 }
 T orElseGet(Supplier<T> supplier) {
@@ -304,13 +304,13 @@ Option<T> findValue() {
 Option<T> findValue() {
 	return Some<>(this.value);
 }
-private State(List_<char> queue, List_<String> segments, StringBuilder buffer, int depth) {
+private State(List_<Character> queue, List_<String> segments, StringBuilder buffer, int depth) {
 	this.queue = queue;
 	this.segments = segments;
 	this.buffer = buffer;
 	this.depth = depth;
 }
-public State(List_<char> queue) {
+public State(List_<Character> queue) {
 	this(queue, Lists.empty(), StringBuilder(), 0);
 }
 auto __lambda11__(auto tuple) {
@@ -325,16 +325,16 @@ State advance() {
 State append(char c) {
 	return State(this.queue, this.segments, this.buffer.append(c), this.depth);
 }
-int isLevel() {
+boolean isLevel() {
 	return this.depth == 0;
 }
 auto __lambda12__(auto tuple) {
 	return Tuple<>(tuple.left, State(tuple.right, this.segments, this.buffer, this.depth));
 }
-Option<Tuple<char, State>> pop() {
+Option<Tuple<Character, State>> pop() {
 	return this.queue.popFirst().map(__lambda12__);
 }
-int hasElements() {
+boolean hasElements() {
 	return !this.queue.isEmpty();
 }
 State exit() {
@@ -346,7 +346,7 @@ State enter() {
 List_<String> segments() {
 	return this.segments;
 }
-Option<char> peek() {
+Option<Character> peek() {
 	return this.queue.peekFirst();
 }
 <T> Iterator<T> empty() {
@@ -355,16 +355,16 @@ Option<char> peek() {
 auto __lambda13__(auto tuple) {
 	return tuple.right;
 }
-Iterator<char> fromString(String input) {
+Iterator<Character> fromString(String input) {
 	return fromStringWithIndices(input).map(__lambda13__);
 }
-Iterator<Tuple<int, Character>> fromStringWithIndices(String input) {
+Iterator<Tuple<Integer, Character>> fromStringWithIndices(String input) {
 	return HeadedIterator<>(RangeHead(input.length())).map(index -> new Tuple<>(index, input.charAt(index)));
 }
 public RangeHead(int length) {
 	this.length = length;
 }
-Option<int> next() {
+Option<Integer> next() {
 	if (this.counter < this.length) {
 		int next = this.counter;this.counter++;
 		return Some<>(next);
@@ -394,11 +394,11 @@ Option<State> divideSingleQuotes(State state, char c) {
 		return None<>();
 	}
 	State appended = state.append(c);
-	Option<Tuple<char, State>> maybeSlashTuple = appended.pop();
+	Option<Tuple<Character, State>> maybeSlashTuple = appended.pop();
 	if (maybeSlashTuple.isEmpty()) {
 		return None<>();
 	}
-	Tuple<char, State> slashTuple = maybeSlashTuple.orElse(Tuple<>('\0', appended));
+	Tuple<Character, State> slashTuple = maybeSlashTuple.orElse(Tuple<>('\0', appended));
 	var withMaybeSlash = slashTuple.right.append(slashTuple.left);
 	Option<State> withSlash = slashTuple.left == '\\' ? withMaybeSlash.popAndAppend() : new Some<>(withMaybeSlash);
 	return withSlash.flatMap(__lambda15__);

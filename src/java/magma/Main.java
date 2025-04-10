@@ -885,20 +885,20 @@ public class Main {
     }
 
     private static Result<String, CompileError> compileDefinitionStatement(String input) {
-        return wrap(compileDefinitionStatement0(input));
+        String stripped = input.strip();
+        if (stripped.endsWith(";")) {
+            String content = stripped.substring(0, stripped.length() - ";".length());
+            return getWrap(content).mapValue(result -> "\t" + result + ";\n");
+        }
+        return createSuffixErr(input, ";");
+    }
+
+    private static Err<String, CompileError> createSuffixErr(String input, String suffix) {
+        return new Err<>(new CompileError("Suffix '" + suffix + "' not present", input));
     }
 
     private static Result<String, CompileError> compileGlobalInitialization(List_<String> typeParams, String input) {
         return wrap(compileGlobalInitialization0(input, typeParams));
-    }
-
-    private static Option<String> compileDefinitionStatement0(String input) {
-        String stripped = input.strip();
-        if (stripped.endsWith(";")) {
-            String content = stripped.substring(0, stripped.length() - ";".length());
-            return compileDefinition(content).map(result -> "\t" + result + ";\n");
-        }
-        return new None<>();
     }
 
     private static Option<String> compileGlobalInitialization0(String input, List_<String> typeParams) {
@@ -921,7 +921,7 @@ public class Main {
 
         String definition = withoutEnd.substring(0, valueSeparator).strip();
         String value = withoutEnd.substring(valueSeparator + "=".length()).strip();
-        return compileDefinition(definition).flatMap(outputDefinition -> compileValue(value, typeParams, depth).map(outputValue -> outputDefinition + " = " + outputValue));
+        return unwrap(getWrap(definition)).flatMap(outputDefinition -> compileValue(value, typeParams, depth).map(outputValue -> outputDefinition + " = " + outputValue));
     }
 
     private static Result<String, CompileError> compileWhitespace(String input) {
@@ -940,14 +940,14 @@ public class Main {
         String inputDefinition = input.substring(0, paramStart).strip();
         String withParams = input.substring(paramStart + "(".length());
 
-        return compileDefinition(inputDefinition).flatMap(outputDefinition -> {
+        return unwrap(getWrap(inputDefinition)).flatMap(outputDefinition -> {
             int paramEnd = withParams.indexOf(")");
             if (paramEnd < 0) {
                 return new None<>();
             }
 
             String params = withParams.substring(0, paramEnd);
-            return compileValues(params, Main::compileParameter)
+            return compileValues(params, definition -> compileParameter(definition).findValue())
                     .flatMap(outputParams -> assembleMethodBody(typeParams, outputDefinition, outputParams, withParams.substring(paramEnd + ")".length()).strip()));
         });
     }
@@ -970,10 +970,11 @@ public class Main {
         return new Some<>("\t" + header + ";\n");
     }
 
-    private static Option<String> compileParameter(String definition) {
-        return unwrap(compileWhitespace(definition))
-                .or(() -> compileDefinition(definition))
-                .or(() -> unwrap(new Err<String, CompileError>(new CompileError("Invalid input: ", definition))));
+    private static Result<String, CompileError> compileParameter(String definition) {
+        return compileOr(definition, Lists.of(
+                Main::compileWhitespace,
+                Main::getWrap
+        ));
     }
 
     private static Option<String> compileValues(String input, Function<String, Option<String>> compiler) {
@@ -1019,7 +1020,14 @@ public class Main {
                 .or(() -> compileInitialization(input, typeParams, depth).map(result -> formatStatement(depth, result)))
                 .or(() -> compileAssignment(input, typeParams, depth).map(result -> formatStatement(depth, result)))
                 .or(() -> compileInvocationStatement(input, typeParams, depth).map(result -> formatStatement(depth, result)))
-                .or(() -> compileDefinitionStatement0(input))
+                .or(() -> {
+                    String stripped = input.strip();
+                    if (stripped.endsWith(";")) {
+                        String content = stripped.substring(0, stripped.length() - ";".length());
+                        return unwrap(getWrap(content)).map(result -> "\t" + result + ";\n");
+                    }
+                    return new None<>();
+                })
                 .or(() -> unwrap(new Err<String, CompileError>(new CompileError("Invalid input: ", input))));
     }
 
@@ -1383,7 +1391,11 @@ public class Main {
         return cache.append(", ").append(element);
     }
 
-    private static Option<String> compileDefinition(String definition) {
+    private static Result<String, CompileError> getWrap(String definition) {
+        return wrap(getStringOption(definition));
+    }
+
+    private static Option<String> getStringOption(String definition) {
         String stripped = definition.strip();
         int nameSeparator = stripped.lastIndexOf(" ");
         if (nameSeparator < 0) {
