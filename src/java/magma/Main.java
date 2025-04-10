@@ -654,11 +654,23 @@ public class Main {
 
     private static List_<Function<String, Result<String, CompileError>>> listRules() {
         return Lists.of(
-                (input) -> wrap(compileWhitespace(input)),
-                (input) -> wrap(compilePackage(input)),
-                (input) -> wrap(compileImport(input)),
-                (input) -> wrap(compileToStruct(input, "class ", Lists.empty()))
+                (input) -> compileWhitespace(input),
+                (input) -> getWrapped(input),
+                (input) -> getStringCompileErrorResult(input),
+                (input) -> compileClass(input)
         );
+    }
+
+    private static Result<String, CompileError> compileClass(String input) {
+        return wrap(compileToStruct(input, "class ", Lists.empty()));
+    }
+
+    private static Result<String, CompileError> getStringCompileErrorResult(String input) {
+        return wrap(compileImport(input));
+    }
+
+    private static Result<String, CompileError> getWrapped(String input) {
+        return wrap(compilePackage(input));
     }
 
     private static List_<String> mergeStatics(List_<String> list) {
@@ -835,7 +847,7 @@ public class Main {
     }
 
     private static Option<String> compileClassMember(String input, List_<String> typeParams) {
-        return compileWhitespace(input)
+        return unwrap(compileWhitespace(input))
                 .or(() -> compileToStruct(input, "interface ", typeParams))
                 .or(() -> compileToStruct(input, "record ", typeParams))
                 .or(() -> compileToStruct(input, "class ", typeParams))
@@ -877,11 +889,11 @@ public class Main {
         return compileDefinition(definition).flatMap(outputDefinition -> compileValue(value, typeParams, depth).map(outputValue -> outputDefinition + " = " + outputValue));
     }
 
-    private static Option<String> compileWhitespace(String input) {
+    private static Result<String, CompileError> compileWhitespace(String input) {
         if (input.isBlank()) {
-            return new Some<>("");
+            return new Ok<>("");
         }
-        return new None<>();
+        return new Err<>(new CompileError("Not blank", input));
     }
 
     private static Option<String> compileMethod(String input, List_<String> typeParams) {
@@ -924,7 +936,7 @@ public class Main {
     }
 
     private static Option<String> compileParameter(String definition) {
-        return compileWhitespace(definition)
+        return unwrap(compileWhitespace(definition))
                 .or(() -> compileDefinition(definition))
                 .or(() -> unwrap(new Err<String, CompileError>(new CompileError("Invalid input: ", definition))));
     }
@@ -960,7 +972,7 @@ public class Main {
     }
 
     private static Option<String> compileStatementOrBlock(String input, List_<String> typeParams, int depth) {
-        return compileWhitespace(input)
+        return unwrap(compileWhitespace(input))
                 .or(() -> compileKeywordStatement(input, depth, "continue"))
                 .or(() -> compileKeywordStatement(input, depth, "break"))
                 .or(() -> compileConditional(input, typeParams, "if ", depth))
@@ -1325,7 +1337,7 @@ public class Main {
     }
 
     private static Option<String> compileArgs(String argsString, List_<String> typeParams, int depth) {
-        return compileValues(argsString, arg -> compileWhitespace(arg).or(() -> compileValue(arg, typeParams, depth))).map(args -> "(" + args + ")");
+        return compileValues(argsString, arg -> unwrap(compileWhitespace(arg)).or(() -> compileValue(arg, typeParams, depth))).map(args -> "(" + args + ")");
     }
 
     private static StringBuilder mergeValues(StringBuilder cache, String element) {
@@ -1480,7 +1492,7 @@ public class Main {
 
         String base = slice.substring(0, argsStart).strip();
         String params = slice.substring(argsStart + "<".length()).strip();
-        return compileValues(params, type -> compileWhitespace(type).or(() -> unwrap(compileType(type, typeParams))))
+        return compileValues(params, type -> unwrap(compileWhitespace(type)).or(() -> unwrap(compileType(type, typeParams))))
                 .map(compiled -> base + "<" + compiled + ">");
     }
 
