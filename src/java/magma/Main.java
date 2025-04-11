@@ -793,8 +793,31 @@ public class Main {
                 createClassRule(typeParams),
                 wrap(input -> compileGlobalInitialization(input, typeParams)),
                 wrap(Main::compileDefinitionStatement),
-                wrap(input -> compileMethod(input, typeParams))
+                createMethodRule(typeParams)
         ));
+    }
+
+    private static Function<String, Result<String, CompileError>> createMethodRule(List_<String> typeParams) {
+        return wrap(input -> {
+            int paramStart = input.indexOf("(");
+            if (paramStart < 0) {
+                return new None<>();
+            }
+
+            String inputDefinition = input.substring(0, paramStart).strip();
+            String withParams = input.substring(paramStart + "(".length());
+
+            return createDefinitionRule().apply(inputDefinition).findValue().flatMap(outputDefinition -> {
+                int paramEnd = withParams.indexOf(")");
+                if (paramEnd < 0) {
+                    return new None<>();
+                }
+
+                String params = withParams.substring(0, paramEnd);
+                return compileValues(params, definition -> createParameterRule().apply(definition).findValue())
+                        .flatMap(outputParams -> assembleMethodBody(typeParams, outputDefinition, outputParams, withParams.substring(paramEnd + ")".length()).strip()));
+            });
+        });
     }
 
     private static Function<String, Result<String, CompileError>> createClassRule(List_<String> typeParams) {
@@ -805,7 +828,7 @@ public class Main {
         String stripped = input.strip();
         if (stripped.endsWith(";")) {
             String content = stripped.substring(0, stripped.length() - ";".length());
-            return compileDefinition(content).map(result -> "\n\t" + result + ";");
+            return createDefinitionRule().apply(content).findValue().map(result -> "\n\t" + result + ";");
         }
         return new None<>();
     }
@@ -830,7 +853,7 @@ public class Main {
 
         String definition = withoutEnd.substring(0, valueSeparator).strip();
         String value = withoutEnd.substring(valueSeparator + "=".length()).strip();
-        return compileDefinition(definition).flatMap(outputDefinition -> {
+        return createDefinitionRule().apply(definition).findValue().flatMap(outputDefinition -> {
             return compileValue(value, typeParams, depth).map(outputValue -> {
                 return outputDefinition + " = " + outputValue;
             });
@@ -842,27 +865,6 @@ public class Main {
             return new Some<>("");
         }
         return new None<>();
-    }
-
-    private static Option<String> compileMethod(String input, List_<String> typeParams) {
-        int paramStart = input.indexOf("(");
-        if (paramStart < 0) {
-            return new None<>();
-        }
-
-        String inputDefinition = input.substring(0, paramStart).strip();
-        String withParams = input.substring(paramStart + "(".length());
-
-        return compileDefinition(inputDefinition).flatMap(outputDefinition -> {
-            int paramEnd = withParams.indexOf(")");
-            if (paramEnd < 0) {
-                return new None<>();
-            }
-
-            String params = withParams.substring(0, paramEnd);
-            return compileValues(params, definition -> createParameterRule().apply(definition).findValue())
-                    .flatMap(outputParams -> assembleMethodBody(typeParams, outputDefinition, outputParams, withParams.substring(paramEnd + ")".length()).strip()));
-        });
     }
 
     private static Option<String> assembleMethodBody(
@@ -886,7 +888,7 @@ public class Main {
     private static Function<String, Result<String, CompileError>> createParameterRule() {
         return createOrRule(Impl.listOf(
                 wrap(Main::compileWhitespace),
-                wrap(Main::compileDefinition)
+                createDefinitionRule()
         ));
     }
 
@@ -1314,69 +1316,71 @@ public class Main {
         return cache.append(", ").append(element);
     }
 
-    private static Option<String> compileDefinition(String definition) {
-        String stripped = definition.strip();
-        int nameSeparator = stripped.lastIndexOf(" ");
-        if (nameSeparator < 0) {
-            return new None<>();
-        }
+    private static Function<String, Result<String, CompileError>> createDefinitionRule() {
+        return wrap(input -> {
+            String stripped = input.strip();
+            int nameSeparator = stripped.lastIndexOf(" ");
+            if (nameSeparator < 0) {
+                return new None<>();
+            }
 
-        String beforeName = stripped.substring(0, nameSeparator).strip();
-        String name = stripped.substring(nameSeparator + " ".length()).strip();
-        if (!isSymbol(name)) {
-            return new None<>();
-        }
+            String beforeName = stripped.substring(0, nameSeparator).strip();
+            String name = stripped.substring(nameSeparator + " ".length()).strip();
+            if (!isSymbol(name)) {
+                return new None<>();
+            }
 
-        int typeSeparator = findTypeSeparator(beforeName);
+            int typeSeparator = findTypeSeparator(beforeName);
 
-        if (typeSeparator >= 0) {
-            String beforeType = beforeName.substring(0, typeSeparator).strip();
+            if (typeSeparator >= 0) {
+                String beforeType = beforeName.substring(0, typeSeparator).strip();
 
-            String beforeTypeParams = beforeType;
-            List_<String> typeParams;
-            if (beforeType.endsWith(">")) {
-                String withoutEnd = beforeType.substring(0, beforeType.length() - ">".length());
-                int typeParamStart = withoutEnd.indexOf("<");
-                if (typeParamStart >= 0) {
-                    beforeTypeParams = withoutEnd.substring(0, typeParamStart);
-                    String substring = withoutEnd.substring(typeParamStart + 1);
-                    typeParams = splitValues(substring);
+                String beforeTypeParams = beforeType;
+                List_<String> typeParams;
+                if (beforeType.endsWith(">")) {
+                    String withoutEnd = beforeType.substring(0, beforeType.length() - ">".length());
+                    int typeParamStart = withoutEnd.indexOf("<");
+                    if (typeParamStart >= 0) {
+                        beforeTypeParams = withoutEnd.substring(0, typeParamStart);
+                        String substring = withoutEnd.substring(typeParamStart + 1);
+                        typeParams = splitValues(substring);
+                    }
+                    else {
+                        typeParams = Impl.emptyList();
+                    }
                 }
                 else {
                     typeParams = Impl.emptyList();
                 }
+
+                String strippedBeforeTypeParams = beforeTypeParams.strip();
+
+                String modifiersString;
+                int annotationSeparator = strippedBeforeTypeParams.lastIndexOf("\n");
+                if (annotationSeparator >= 0) {
+                    modifiersString = strippedBeforeTypeParams.substring(annotationSeparator + "\n".length());
+                }
+                else {
+                    modifiersString = strippedBeforeTypeParams;
+                }
+
+                boolean allSymbols = splitByDelimiter(modifiersString, ' ')
+                        .iter()
+                        .map(String::strip)
+                        .filter(value -> !value.isEmpty())
+                        .allMatch(Main::isSymbol);
+
+                if (!allSymbols) {
+                    return new None<>();
+                }
+
+                String inputType = beforeName.substring(typeSeparator + " ".length());
+                return createTypeRule(typeParams).apply(inputType).findValue().flatMap(outputType -> new Some<>(generateDefinition(typeParams, outputType, name)));
             }
             else {
-                typeParams = Impl.emptyList();
+                return createTypeRule(Impl.emptyList()).apply(beforeName).findValue().flatMap(outputType -> new Some<>(generateDefinition(Impl.emptyList(), outputType, name)));
             }
-
-            String strippedBeforeTypeParams = beforeTypeParams.strip();
-
-            String modifiersString;
-            int annotationSeparator = strippedBeforeTypeParams.lastIndexOf("\n");
-            if (annotationSeparator >= 0) {
-                modifiersString = strippedBeforeTypeParams.substring(annotationSeparator + "\n".length());
-            }
-            else {
-                modifiersString = strippedBeforeTypeParams;
-            }
-
-            boolean allSymbols = splitByDelimiter(modifiersString, ' ')
-                    .iter()
-                    .map(String::strip)
-                    .filter(value -> !value.isEmpty())
-                    .allMatch(Main::isSymbol);
-
-            if (!allSymbols) {
-                return new None<>();
-            }
-
-            String inputType = beforeName.substring(typeSeparator + " ".length());
-            return createTypeRule(typeParams).apply(inputType).findValue().flatMap(outputType -> new Some<>(generateDefinition(typeParams, outputType, name)));
-        }
-        else {
-            return createTypeRule(Impl.emptyList()).apply(beforeName).findValue().flatMap(outputType -> new Some<>(generateDefinition(Impl.emptyList(), outputType, name)));
-        }
+        });
     }
 
     private static int findTypeSeparator(String beforeName) {
