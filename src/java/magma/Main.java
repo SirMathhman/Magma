@@ -535,15 +535,15 @@ public class Main {
     }
 
     private static Function<String, Result<String, CompileError>> createRootSegmentCompiler() {
-        return createRootSegmentCompiler(Impl.listOf(
+        return createOrRule(Impl.listOf(
                 wrap(Main::compileWhitespace),
                 wrap(Main::compilePackage),
                 wrap(Main::compileImport),
-                wrap(input -> compileToStruct(input, "class ", Impl.emptyList())
-                )));
+                wrap(input -> compileToStruct(input, "class ", Impl.emptyList()))
+        ));
     }
 
-    private static Function<String, Result<String, CompileError>> createRootSegmentCompiler(List_<Function<String, Result<String, CompileError>>> aClass) {
+    private static Function<String, Result<String, CompileError>> createOrRule(List_<Function<String, Result<String, CompileError>>> aClass) {
         return input -> aClass.iter()
                 .fold(new OrState(), (state, rule) -> rule.apply(input).match(state::withValue, state::withError))
                 .toResult()
@@ -714,21 +714,22 @@ public class Main {
         }
 
         String inputContent = withEnd.substring(0, withEnd.length() - "}".length());
-        return compileStatements(inputContent, wrap(input1 -> compileClassMember(input1, typeParams))).findValue().map(outputContent -> {
+        return compileStatements(inputContent, wrap(input1 -> createClassMemberRule(typeParams).apply(input1).findValue())).findValue().map(outputContent -> {
             structs.add("struct " + beforeContent + " {" + outputContent + "\n};\n");
             return "";
         });
     }
 
-    private static Option<String> compileClassMember(String input, List_<String> typeParams) {
-        return compileWhitespace(input)
-                .or(() -> compileToStruct(input, "interface ", typeParams))
-                .or(() -> compileToStruct(input, "record ", typeParams))
-                .or(() -> compileToStruct(input, "class ", typeParams))
-                .or(() -> compileGlobalInitialization(input, typeParams))
-                .or(() -> compileDefinitionStatement(input))
-                .or(() -> compileMethod(input, typeParams))
-                .or(() -> generatePlaceholder(input));
+    private static Function<String, Result<String, CompileError>> createClassMemberRule(List_<String> typeParams) {
+        return createOrRule(Impl.listOf(
+                wrap(Main::compileWhitespace),
+                wrap(input -> compileToStruct(input, "interface ", typeParams)),
+                wrap(input -> compileToStruct(input, "record ", typeParams)),
+                wrap(input -> compileToStruct(input, "class ", typeParams)),
+                wrap(input -> compileGlobalInitialization(input, typeParams)),
+                wrap(Main::compileDefinitionStatement),
+                wrap(input -> compileMethod(input, typeParams))
+        ));
     }
 
     private static Option<String> compileDefinitionStatement(String input) {
@@ -790,7 +791,7 @@ public class Main {
             }
 
             String params = withParams.substring(0, paramEnd);
-            return compileValues(params, Main::compileParameter)
+            return compileValues(params, definition -> createParameterRule().apply(definition).findValue())
                     .flatMap(outputParams -> assembleMethodBody(typeParams, outputDefinition, outputParams, withParams.substring(paramEnd + ")".length()).strip()));
         });
     }
@@ -813,10 +814,11 @@ public class Main {
         return new Some<>("\n\t" + header + ";");
     }
 
-    private static Option<String> compileParameter(String definition) {
-        return compileWhitespace(definition)
-                .or(() -> compileDefinition(definition))
-                .or(() -> generatePlaceholder(definition));
+    private static Function<String, Result<String, CompileError>> createParameterRule() {
+        return createOrRule(Impl.listOf(
+                wrap(Main::compileWhitespace),
+                wrap(Main::compileDefinition)
+        ));
     }
 
     private static Option<String> compileValues(String input, Function<String, Option<String>> compiler) {
