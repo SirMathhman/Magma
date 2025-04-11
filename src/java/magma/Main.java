@@ -663,24 +663,24 @@ public class Main {
         }
     }
 
-    private record OrState(Option<String> maybeValue, List_<CompileError> errors) {
+    private record OrState<T>(Option<T> maybeValue, List_<CompileError> errors) {
         public OrState() {
             this(new None<>(), Lists.empty());
         }
 
-        public OrState withValue(String value) {
+        public OrState<T> withValue(T value) {
             if (this.maybeValue.isPresent()) {
                 return this;
             }
-            return new OrState(new Some<>(value), this.errors);
+            return new OrState<T>(new Some<>(value), this.errors);
         }
 
-        public OrState withError(CompileError error) {
-            return new OrState(this.maybeValue, this.errors.add(error));
+        public OrState<T> withError(CompileError error) {
+            return new OrState<T>(this.maybeValue, this.errors.add(error));
         }
 
-        public Result<String, List_<CompileError>> toResult() {
-            return this.maybeValue.<Result<String, List_<CompileError>>>match(Ok::new, () -> new Err<String, List_<CompileError>>(this.errors));
+        public Result<T, List_<CompileError>> toResult() {
+            return this.maybeValue.<Result<T, List_<CompileError>>>match(Ok::new, () -> new Err<T, List_<CompileError>>(this.errors));
         }
     }
 
@@ -802,9 +802,9 @@ public class Main {
         return childRule.apply(s.strip());
     }
 
-    private static Result<String, CompileError> compileOr(String input, List_<Function<String, Result<String, CompileError>>> rules) {
+    private static Result<Node, CompileError> compileOr(String input, List_<Rule> rules) {
         return rules.iter()
-                .foldWithInitial(new OrState(), (orState, compiler) -> compiler.apply(input).match(orState::withValue, orState::withError))
+                .foldWithInitial(new OrState<Node>(), (orState, compiler) -> compiler.apply(input).match(orState::withValue, orState::withError))
                 .toResult()
                 .mapErr(errors -> new CompileError("No valid combination present", input, errors));
     }
@@ -841,12 +841,16 @@ public class Main {
 
     private static Result<String, CompileError> compileRootSegment(String input0) {
         ParseState state = new ParseState();
-        return compileOr(input0, Lists.of(
+        List_<Rule> rules = Lists.<Function<String, Result<String, CompileError>>>of(
                 Main::compileWhitespace,
                 Main::compilePackage,
                 Main::compileImport,
                 (input) -> compileToStruct(input, "class ", state)
-        ));
+        ).iter()
+                .map(Main::wrapDefault)
+                .collect(new ListCollector<>());
+
+        return compileOr(input0, rules).mapValue(Main::unwrapDefault);
     }
 
     private static Result<String, CompileError> compileImport(String input) {
@@ -1075,7 +1079,7 @@ public class Main {
     }
 
     private static Result<String, CompileError> compileClassMember(String input0, ParseState typeParams) {
-        return compileOr(input0, Lists.of(
+        List_<Rule> rules = Lists.<Function<String, Result<String, CompileError>>>of(
                 Main::compileWhitespace,
                 (input) -> compileToStruct(input, "interface ", typeParams),
                 (input) -> compileToStruct(input, "record ", typeParams),
@@ -1083,7 +1087,11 @@ public class Main {
                 (input) -> compileGlobalInitialization(typeParams, input),
                 input1 -> compileDefinitionStatement(input1, typeParams),
                 (input) -> compileMethod(typeParams, input)
-        ));
+        ).iter()
+                .map(Main::wrapDefault)
+                .collect(new ListCollector<>());
+
+        return compileOr(input0, rules).mapValue(Main::unwrapDefault);
     }
 
     private static Result<String, CompileError> compileMethod(ParseState state, String input) {
@@ -1175,10 +1183,14 @@ public class Main {
     }
 
     private static Result<String, CompileError> compileParameter(String definition, ParseState state) {
-        return compileOr(definition, Lists.of(
+        List_<Rule> rules = Lists.<Function<String, Result<String, CompileError>>>of(
                 Main::compileWhitespace,
                 definition1 -> compileDefinition(state, definition1)
-        ));
+        ).iter()
+                .map(Main::wrapDefault)
+                .collect(new ListCollector<>());
+
+        return compileOr(definition, rules).mapValue(Main::unwrapDefault);
     }
 
     private static Result<String, CompileError> compileValues(String input, Function<String, Result<String, CompileError>> compiler) {
@@ -1216,7 +1228,7 @@ public class Main {
     }
 
     private static Result<String, CompileError> compileStatementOrBlock(String input0, ParseState typeParams, int depth) {
-        List_<Function<String, Result<String, CompileError>>> rules = Lists.of(
+        List_<Rule> rules = Lists.<Function<String, Result<String, CompileError>>>of(
                 Main::compileWhitespace,
                 input -> compileKeywordStatement(input, depth, "continue"),
                 input -> compileKeywordStatement(input, depth, "break"),
@@ -1229,9 +1241,11 @@ public class Main {
                 input -> compileInitialization(input, typeParams, depth).mapValue(result -> formatStatement(depth, result)),
                 input -> compileAssignment(input, typeParams, depth).mapValue(result -> formatStatement(depth, result)),
                 input -> compileInvocationStatement(input, typeParams, depth).mapValue(result -> formatStatement(depth, result)),
-                input1 -> compileDefinitionStatement(input1, typeParams));
-        return ((Function<String, Result<String, CompileError>>) s -> compileOr(s, rules)).apply(input0
-        );
+                input1 -> compileDefinitionStatement(input1, typeParams)).iter()
+                .map(Main::wrapDefault)
+                .collect(new ListCollector<>());
+
+        return compileOr(input0, rules).mapValue(Main::unwrapDefault);
     }
 
     private static Result<String, CompileError> getWrap(ParseState typeParams, int depth, String input) {
@@ -1447,7 +1461,13 @@ public class Main {
                 (input) -> compileOperator(input, typeParams, depth, "=="),
                 (input) -> compileOperator(input, typeParams, depth, "!=")
         );
-        return ((Function<String, Result<String, CompileError>>) s -> compileOr(s, rules)).apply(input0);
+        return ((Function<String, Result<String, CompileError>>) s -> {
+            List_<Rule> rules1 = rules.iter()
+                    .map(Main::wrapDefault)
+                    .collect(new ListCollector<>());
+
+            return compileOr(s, rules1).mapValue(Main::unwrapDefault);
+        }).apply(input0);
     }
 
     private static Result<String, CompileError> compileBoolean(String input) {
@@ -1659,7 +1679,13 @@ public class Main {
                     Main::compileWhitespace,
                     value -> compileValue(value, typeParams, depth)
             );
-            return ((Function<String, Result<String, CompileError>>) s -> compileOr(s, rules)).apply(arg);
+            return ((Function<String, Result<String, CompileError>>) s -> {
+                List_<Rule> rules1 = rules.iter()
+                        .map(Main::wrapDefault)
+                        .collect(new ListCollector<>());
+
+                return compileOr(s, rules1).mapValue(Main::unwrapDefault);
+            }).apply(arg);
         }).mapValue(args -> "(" + args + ")");
     }
 
@@ -1840,7 +1866,13 @@ public class Main {
                 value -> getStringCompileErrorResult(typeParams, value),
                 value -> compileGeneric(typeParams, value)
         );
-        return ((Function<String, Result<String, CompileError>>) s -> compileOr(s, rules)).apply(input).mapValue(result -> new Node().withString("value", result));
+        return ((Function<String, Result<String, CompileError>>) s -> {
+            List_<Rule> rules1 = rules.iter()
+                    .map(Main::wrapDefault)
+                    .collect(new ListCollector<>());
+
+            return compileOr(s, rules1).mapValue(Main::unwrapDefault);
+        }).apply(input).mapValue(result -> new Node().withString("value", result));
     }
 
     private static Result<String, CompileError> compileGeneric(ParseState typeParams, String value) {
@@ -1864,7 +1896,13 @@ public class Main {
         );
 
         List_<String> divided = divideValues(params);
-        return parseAll(divided, wrapDefault(s -> compileOr(s, rules))).mapValue(list -> {
+        return parseAll(divided, wrapDefault(s -> {
+            List_<Rule> rules1 = rules.iter()
+                    .map(Main::wrapDefault)
+                    .collect(new ListCollector<>());
+
+            return compileOr(s, rules1).mapValue(Main::unwrapDefault);
+        })).mapValue(list -> {
             return list.iter()
                     .map(Main::unwrapDefault)
                     .collect(new ListCollector<>());
