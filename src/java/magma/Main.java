@@ -583,7 +583,7 @@ public class Main {
             if (withEnd.endsWith("}")) {
                 String inputContent = withEnd.substring(0, withEnd.length() - "}".length());
                 return compileStatements(inputContent, input1 -> compileClassMember(input1, typeParams)).map(outputContent -> {
-                    structs.add("struct " + name + " {\n" + outputContent + "};\n");
+                    structs.add("struct " + name + " {" + outputContent + "\n};\n");
                     return "";
                 });
             }
@@ -681,7 +681,7 @@ public class Main {
             });
         }
 
-        return new Some<>(header + ";");
+        return new Some<>("\n\t" + header + ";");
     }
 
     private static Option<String> compileParameter(String definition) {

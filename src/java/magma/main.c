@@ -1,28 +1,61 @@
 struct Option<T> {
-<R> Option<R> map(Function<struct T, struct R> mapper);struct T orElse(struct T other);int isPresent();int isEmpty();void ifPresent(Consumer<struct T> consumer);Option<struct T> or(Supplier<Option<struct T>> supplier);<R> Option<R> flatMap(Function<struct T, Option<struct R>> mapper);};
+	<R> Option<R> map(Function<struct T, struct R> mapper);
+	struct T orElse(struct T other);
+	int isPresent();
+	int isEmpty();
+	void ifPresent(Consumer<struct T> consumer);
+	Option<struct T> or(Supplier<Option<struct T>> supplier);
+	<R> Option<R> flatMap(Function<struct T, Option<struct R>> mapper);
+};
 struct List_<T> {
-List_<struct T> add(struct T element);void addAll(List_<struct T> elements);Iterator<struct T> iter();Option<Tuple<struct T, List_<struct T>>> popFirst();struct T pop();int isEmpty();struct T peek();int size();List_<struct T> slice(int startInclusive, int endExclusive);struct T get(int index);};
+	List_<struct T> add(struct T element);
+	void addAll(List_<struct T> elements);
+	Iterator<struct T> iter();
+	Option<Tuple<struct T, List_<struct T>>> popFirst();
+	struct T pop();
+	int isEmpty();
+	struct T peek();
+	int size();
+	List_<struct T> slice(int startInclusive, int endExclusive);
+	struct T get(int index);
+};
 struct Iterator<T> {
-<R> R fold(struct R initial, BiFunction<struct R, struct T, struct R> folder);<R> Iterator<R> map(Function<struct T, struct R> mapper);<C> C collect(Collector<struct T, struct C> collector);int anyMatch(Predicate<struct T> predicate);void forEach(Consumer<struct T> consumer);Iterator<struct T> filter(Predicate<struct T> predicate);int allMatch(Predicate<struct T> predicate);Iterator<struct T> concat(Iterator<struct T> other);Option<struct T> next();};
+	<R> R fold(struct R initial, BiFunction<struct R, struct T, struct R> folder);
+	<R> Iterator<R> map(Function<struct T, struct R> mapper);
+	<C> C collect(Collector<struct T, struct C> collector);
+	int anyMatch(Predicate<struct T> predicate);
+	void forEach(Consumer<struct T> consumer);
+	Iterator<struct T> filter(Predicate<struct T> predicate);
+	int allMatch(Predicate<struct T> predicate);
+	Iterator<struct T> concat(Iterator<struct T> other);
+	Option<struct T> next();
+};
 struct Head<T> {
-Option<struct T> next();};
+	Option<struct T> next();
+};
 struct Collector<T, C> {
-struct C createInitial();struct C fold(struct C current, struct T element);};
+	struct C createInitial();
+	struct C fold(struct C current, struct T element);
+};
 struct Result<T, X> {
-<R> R match(Function<struct T, struct R> whenOk, Function<struct X, struct R> whenErr);};
+	<R> R match(Function<struct T, struct R> whenOk, Function<struct X, struct R> whenErr);
+};
 struct IOError {
-struct String display();};
+	struct String display();
+};
 struct Path_ {
-struct Path_ resolveSibling(struct String sibling);List_<struct String> listNames();};
+	struct Path_ resolveSibling(struct String sibling);
+	List_<struct String> listNames();
+};
 struct Err<T, X>(X error) implements Result<T, X> {
 };
 struct Ok<T, X>(T value) implements Result<T, X> {
 };
-struct State {
-	List_<char> queue;
+struct State {	List_<char> queue;
 	List_<struct String> segments;
 	struct StringBuilder buffer;
 	int depth;
+
 };
 struct Tuple<A, B>(A left, B right) {
 };
@@ -32,8 +65,8 @@ struct Some<T>(T value) implements Option<T> {
 };
 struct Joiner(String delimiter) implements Collector<String, Option<String>> {
 };
-struct RangeHead implements Head<Integer> {
-	int length;
+struct RangeHead implements Head<Integer> {	int length;
+
 };
 struct HeadedIterator<T>(Head<T> head) implements Iterator<T> {
 };
@@ -43,17 +76,17 @@ struct Iterators {
 };
 struct ListCollector<T> implements Collector<T, List_<T>> {
 };
-struct SingleHead<T> implements Head<T> {
-	struct T value;
+struct SingleHead<T> implements Head<T> {	struct T value;
+
 };
 struct ", Impl.emptyList());
-        if (maybeClass.isPresent()) {
-	struct return maybeClass;
+        if (maybeClass.isPresent()) {	struct return maybeClass;
 /* 
         }
 
         return generatePlaceholder(input);
-     */};
+     */
+};
 struct Main {
 };
 int counter = 0;
@@ -430,7 +463,7 @@ auto __lambda26__(auto input1) {
 	return compileClassMember(input1, typeParams);
 }
 auto __lambda27__(auto outputContent) {
-			structs.add("struct " + name + " {\n" + outputContent + "};\n");
+			structs.add("struct " + name + " {" + outputContent + "\n};\n");
 			return "";
 }
 Option<struct String> compileToStruct(struct String input, struct String infix, List_<struct String> typeParams) {
@@ -550,7 +583,7 @@ Option<struct String> assembleMethodBody(List_<struct String> typeParams, struct
 		struct String inputContent = body.substring("{".length(), body.length() - "}".length());
 		return compileStatements(inputContent, __lambda40__).flatMap(__lambda41__);
 	}
-	return Some<>(header + ";");
+	return Some<>("\n\t" + header + ";");
 }
 auto __lambda42__() {
 	return compileDefinition(definition);
