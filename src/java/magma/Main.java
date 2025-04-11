@@ -558,11 +558,23 @@ public class Main {
 
     private static Function<String, Result<String, CompileError>> createRootSegmentCompiler() {
         return createOrRule(Impl.listOf(
-                createWhitespaceRule(),
-                wrap(Main::compilePackage),
-                wrap(Main::compileImport),
-                wrap(input -> compileToStruct(input, "class ", Impl.emptyList()))
+                createTypeRule("whitespace", createWhitespaceRule()),
+                createTypeRule("package", wrap(Main::compilePackage)),
+                createTypeRule("import", wrap(Main::compileImport)),
+                getTypeRule()
         ));
+    }
+
+    private static Function<String, Result<String, CompileError>> getTypeRule() {
+        return createCompileToStructRule("class", "class ", Impl.emptyList());
+    }
+
+    private static Function<String, Result<String, CompileError>> createTypeRule(String type, Function<String, Result<String, CompileError>> childRule) {
+        return input -> childRule.apply(input).mapErr(err -> {
+            String format = "Cannot assign type to '%s'";
+            String message = format.formatted(type);
+            return new CompileError(message, input, Impl.listOf(err));
+        });
     }
 
     private static Function<String, Result<String, CompileError>> createWhitespaceRule() {
@@ -716,47 +728,53 @@ public class Main {
         return segments.add(buffer.toString());
     }
 
-    private static Option<String> compileToStruct(String input, String infix, List_<String> typeParams) {
-        int classIndex = input.indexOf(infix);
-        if (classIndex < 0) {
-            return new None<>();
-        }
+    private static Function<String, Result<String, CompileError>> createCompileToStructRule(String type, String infix, List_<String> typeParams) {
+        return createTypeRule(type, input -> {
+            int classIndex = input.indexOf(infix);
+            if (classIndex < 0) {
+                return createInfixErr(input, infix);
+            }
 
-        String afterKeyword = input.substring(classIndex + infix.length());
-        int contentStart = afterKeyword.indexOf("{");
-        if (contentStart < 0) {
-            return new None<>();
-        }
+            String afterKeyword = input.substring(classIndex + infix.length());
+            int contentStart = afterKeyword.indexOf("{");
+            if (contentStart < 0) {
+                return createInfixErr(afterKeyword, "{");
+            }
 
-        String beforeContent = afterKeyword.substring(0, contentStart).strip();
+            String beforeContent = afterKeyword.substring(0, contentStart).strip();
 
-        int typeStartIndex = beforeContent.indexOf("<");
-        if (typeStartIndex >= 0) {
-            return new None<>();
-        }
+            int typeStartIndex = beforeContent.indexOf("<");
+            if (typeStartIndex >= 0) {
+                return createInfixErr(beforeContent, "<");
+            }
 
-        String withEnd = afterKeyword.substring(contentStart + "{".length()).strip();
-        if (!withEnd.endsWith("}")) {
-            return new None<>();
-        }
+            String withEnd = afterKeyword.substring(contentStart + "{".length()).strip();
+            if (!withEnd.endsWith("}")) {
+                return new Err<>(new CompileError("Suffix '}' not present", withEnd));
+            }
 
-        if (!isSymbol(beforeContent)) {
-            return new None<>();
-        }
+            if (!isSymbol(beforeContent)) {
+                return new Err<>(new CompileError("Not a symbol", beforeContent));
+            }
 
-        String inputContent = withEnd.substring(0, withEnd.length() - "}".length());
-        return compileStatements(inputContent, wrap(input1 -> createClassMemberRule(typeParams).apply(input1).findValue())).findValue().map(outputContent -> {
-            structs.add("struct " + beforeContent + " {" + outputContent + "\n};\n");
-            return "";
+            String inputContent = withEnd.substring(0, withEnd.length() - "}".length());
+            return compileStatements(inputContent, input1 -> createClassMemberRule(typeParams).apply(input1)).mapValue(outputContent -> {
+                structs.add("struct " + beforeContent + " {" + outputContent + "\n};\n");
+                return "";
+            });
         });
+    }
+
+    private static Err<String, CompileError> createInfixErr(String input, String infix) {
+        return new Err<>(new CompileError("Infix '" + infix + "' not present", input));
     }
 
     private static Function<String, Result<String, CompileError>> createClassMemberRule(List_<String> typeParams) {
         return createOrRule(Impl.listOf(
                 createWhitespaceRule(),
-                wrap(input -> compileToStruct(input, "interface ", typeParams)),
-                wrap(input -> compileToStruct(input, "record ", typeParams)),
-                wrap(input -> compileToStruct(input, "class ", typeParams)),
+                createCompileToStructRule("interface", "interface ", typeParams),
+                createCompileToStructRule("record", "record ", typeParams),
+                createCompileToStructRule("class", "class ", typeParams),
                 wrap(input -> compileGlobalInitialization(input, typeParams)),
                 wrap(Main::compileDefinitionStatement),
                 wrap(input -> compileMethod(input, typeParams))
