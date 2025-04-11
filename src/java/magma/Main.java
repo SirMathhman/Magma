@@ -1217,8 +1217,8 @@ public class Main {
                 Main::compileWhitespace,
                 input -> compileKeywordStatement(input, depth, "continue"),
                 input -> compileKeywordStatement(input, depth, "break"),
-                input -> compileConditional(input, typeParams, "if ", depth),
-                input -> compileConditional(input, typeParams, "while ", depth),
+                input -> compileConditional("if", "if ", input, typeParams, depth),
+                input -> compileConditional("while", "while ", input, typeParams, depth),
                 input -> getWrap(typeParams, depth, input),
                 input -> compilePostOperator(input, typeParams, depth, "++"),
                 input -> compilePostOperator(input, typeParams, depth, "--"),
@@ -1279,40 +1279,42 @@ public class Main {
         return "\n" + "\t".repeat(depth);
     }
 
-    private static Result<String, CompileError> compileConditional(String input, ParseState typeParams, String prefix, int depth) {
-        String stripped = input.strip();
-        if (!stripped.startsWith(prefix)) {
-            return createPrefixRule(stripped, prefix);
-        }
-
-        String afterKeyword = stripped.substring(prefix.length()).strip();
-        if (!afterKeyword.startsWith("(")) {
-            return createPrefixRule(afterKeyword, "(");
-        }
-
-        String withoutConditionStart = afterKeyword.substring(1);
-        int conditionEnd = findConditionEnd(withoutConditionStart);
-        if (conditionEnd < 0) {
-            return createInfixErr(withoutConditionStart, ")");
-        }
-
-        String oldCondition = withoutConditionStart.substring(0, conditionEnd).strip();
-        String withBraces = withoutConditionStart.substring(conditionEnd + ")".length()).strip();
-
-        return compileValue(oldCondition, typeParams, depth).flatMapValue(newCondition -> {
-            String withCondition = createIndent(depth) + prefix + "(" + newCondition + ")";
-
-            if (!withBraces.startsWith("{") || !withBraces.endsWith("}")) {
-                return compileStatementOrBlock(withBraces, typeParams, depth).mapValue(result -> withCondition + " " + result);
+    private static Result<String, CompileError> compileConditional(String type, String prefix, String input0, ParseState typeParams, int depth) {
+        return new TypeRule(type, input -> {
+            String stripped = input.strip();
+            if (!stripped.startsWith(prefix)) {
+                return createPrefixRule(stripped, prefix);
             }
 
-            String content = withBraces.substring(1, withBraces.length() - 1);
-            Result<String, CompileError> stringCompileErrorResult = compileStatements(content, s -> compileStatementOrBlock(s, typeParams, depth + 1));
-            return stringCompileErrorResult.mapValue(statements -> withCondition +
-                    " {" + statements + "\n" +
-                    "\t".repeat(depth) +
-                    "}");
-        });
+            String afterKeyword = stripped.substring(prefix.length()).strip();
+            if (!afterKeyword.startsWith("(")) {
+                return createPrefixRule(afterKeyword, "(");
+            }
+
+            String withoutConditionStart = afterKeyword.substring(1);
+            int conditionEnd = findConditionEnd(withoutConditionStart);
+            if (conditionEnd < 0) {
+                return createInfixErr(withoutConditionStart, ")");
+            }
+
+            String oldCondition = withoutConditionStart.substring(0, conditionEnd).strip();
+            String withBraces = withoutConditionStart.substring(conditionEnd + ")".length()).strip();
+
+            return compileValue(oldCondition, typeParams, depth).flatMapValue(newCondition -> {
+                String withCondition = createIndent(depth) + prefix + "(" + newCondition + ")";
+
+                if (!withBraces.startsWith("{") || !withBraces.endsWith("}")) {
+                    return compileStatementOrBlock(withBraces, typeParams, depth).mapValue(result -> withCondition + " " + result);
+                }
+
+                String content = withBraces.substring(1, withBraces.length() - 1);
+                Result<String, CompileError> stringCompileErrorResult = compileStatements(content, s -> compileStatementOrBlock(s, typeParams, depth + 1));
+                return stringCompileErrorResult.mapValue(statements -> withCondition +
+                        " {" + statements + "\n" +
+                        "\t".repeat(depth) +
+                        "}");
+            });
+        }).apply(input0);
     }
 
     private static int findConditionEnd(String input) {
