@@ -1454,11 +1454,12 @@ public class Main {
     }
 
     private static Result<String, CompileError> compileChar(String input) {
-        if (input.startsWith("'") && input.endsWith("'")) {
-            return new Ok<>(input);
+        String stripped = input.strip();
+        if (stripped.startsWith("'") && stripped.endsWith("'")) {
+            return new Ok<>(stripped);
         }
         else {
-            return new Err<>(new CompileError("Not a char", input));
+            return new Err<>(new CompileError("Not a char", stripped));
         }
     }
 
@@ -1937,6 +1938,10 @@ public class Main {
 
     private static boolean isSymbol(String input) {
         if (input.isBlank()) {
+            return false;
+        }
+
+        if (input.equals("record")) {
             return false;
         }
 
