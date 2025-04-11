@@ -1,4 +1,6 @@
-package magma;
+package magma.java;
+
+import magma.Main;
 
 public class Strings {
     public static String unwrap(Main.String_ string) {

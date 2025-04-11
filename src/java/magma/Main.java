@@ -1,5 +1,7 @@
 package magma;
 
+import magma.java.Strings;
+
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -852,12 +854,12 @@ public class Main {
         return new OrRule(Lists.of(
                 Main::compileWhitespace,
                 Main::compilePackage,
-                Main::getStringCompileErrorResult,
+                Main::compileImport,
                 (input) -> compileToStruct(input, "class ", state)
         ));
     }
 
-    private static Result<String, CompileError> getStringCompileErrorResult(String input) {
+    private static Result<String, CompileError> compileImport(String input) {
         String stripped = input.strip();
         if (!stripped.startsWith("import ")) {
             return createPrefixRule(stripped, "import ");
@@ -875,7 +877,7 @@ public class Main {
         }
 
         String joined = split.iter().collect(new Joiner("/")).orElse("");
-        imports.add("#include \"./" + joined + "\"\n");
+        imports.add("#include \"../" + joined + ".h\"\n");
         return new Ok<>("");
     }
 

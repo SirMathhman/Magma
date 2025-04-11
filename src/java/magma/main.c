@@ -1,3 +1,4 @@
+#include "../magma/java/Strings.h"
 /*struct Result<T, X> {
 	<R> R match(R (*)(T) whenOk, R (*)(X) whenErr);
 	<R> Result<T, R> mapErr(R (*)(X) mapper);
@@ -921,6 +922,7 @@ Option<int> createInitial() {
 Option<int> fold(Option<int> current, int element) {
 	return Some<>(current.map(inner -> inner > element ? inner : element).orElse(element));
 }
+#include "../magma/java/Strings.h"
 /*struct Result<T, X> {
 	<R> R match(R (*)(T) whenOk, R (*)(X) whenErr);
 	<R> Result<T, R> mapErr(R (*)(X) mapper);
