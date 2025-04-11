@@ -1,3 +1,6 @@
+struct IOError {
+	struct String display();
+};
 struct Path_ {
 	struct Path_ resolveSibling(struct String sibling);
 	List__struct String listNames();
@@ -15,255 +18,12 @@ struct Iterators {
 };
 struct Main {
 	<T> {
-        <R> Option_struct R map(Function_struct T, struct R mapper);/* 
-
-    public interface List_<T> {
-        List_<T> add(T element);
-
-        List_<T> addAll(List_<T> elements);
-
-        Iterator<T> iter();
-
-        Option<Tuple<T, List_<T>>> popFirst();
-
-        T pop();
-
-        boolean isEmpty();
-
-        T peek();
-
-        int size();
-
-        List_<T> slice(int startInclusive, int endExclusive);
-
-        T get(int index);
-    } */
+        <R> Option_struct R map(Function_struct T, struct R mapper);
 	<T> {
-        <R> struct R fold(struct R initial, BiFunction_struct R, struct T, struct R folder);/* 
-
-    public interface Head<T> {
-        Option<T> next();
-    } *//* 
-
-    public interface Collector<T, C> {
-        C createInitial();
-
-        C fold(C current, T element);
-    } */
+        <R> struct R fold(struct R initial, BiFunction_struct R, struct T, struct R folder);
 	<T, X> {
-        <R> struct R match(Function_struct T, struct R whenOk, Function_struct X, struct R whenErr);/* 
-
-    public interface IOError extends Error {
-        String display();
-    } *//* 
-
-    public record Err<T, X>(X error) implements Result<T, X> {
-        @Override
-        public <R> R match(Function<T, R> whenOk, Function<X, R> whenErr) {
-            return whenErr.apply(this.error);
-        }
-
-        @Override
-        public <R> Result<R, X> flatMapValue(Function<T, Result<R, X>> mapper) {
-            return new Err<>(this.error);
-        }
-
-        @Override
-        public <R> Result<R, X> mapValue(Function<T, R> mapper) {
-            return new Err<>(this.error);
-        }
-
-        @Override
-        public Option<T> findValue() {
-            return new None<>();
-        }
-
-        @Override
-        public <R> Result<T, R> mapErr(Function<X, R> mapper) {
-            return new Err<>(mapper.apply(this.error));
-        }
-    } *//* 
-
-    public record Ok<T, X>(T value) implements Result<T, X> {
-        @Override
-        public <R> R match(Function<T, R> whenOk, Function<X, R> whenErr) {
-            return whenOk.apply(this.value);
-        }
-
-        @Override
-        public <R> Result<R, X> flatMapValue(Function<T, Result<R, X>> mapper) {
-            return mapper.apply(this.value);
-        }
-
-        @Override
-        public <R> Result<R, X> mapValue(Function<T, R> mapper) {
-            return new Ok<>(mapper.apply(this.value));
-        }
-
-        @Override
-        public Option<T> findValue() {
-            return new Some<>(this.value);
-        }
-
-        @Override
-        public <R> Result<T, R> mapErr(Function<X, R> mapper) {
-            return new Ok<>(this.value);
-        }
-    } *//* 
-
-    public record Tuple<A, B>(A left, B right) {
-    } *//* 
-
-    public record Some<T>(T value) implements Option<T> {
-        @Override
-        public <R> Option<R> map(Function<T, R> mapper) {
-            return new Some<>(mapper.apply(this.value));
-        }
-
-        @Override
-        public T orElse(T other) {
-            return this.value;
-        }
-
-        @Override
-        public boolean isPresent() {
-            return true;
-        }
-
-        @Override
-        public boolean isEmpty() {
-            return false;
-        }
-
-        @Override
-        public void ifPresent(Consumer<T> consumer) {
-            consumer.accept(this.value);
-        }
-
-        @Override
-        public Option<T> or(Supplier<Option<T>> supplier) {
-            return this;
-        }
-
-        @Override
-        public <R> Option<R> flatMap(Function<T, Option<R>> mapper) {
-            return mapper.apply(this.value);
-        }
-
-        @Override
-        public T orElseGet(Supplier<T> other) {
-            return this.value;
-        }
-    } */
-	struct record Joiner(struct String delimiter);/* 
-
-    static final class RangeHead implements Head<Integer> {
-        private final int length;
-        private int counter = 0;
-
-        public RangeHead(int length) {
-            this.length = length;
-        }
-
-        @Override
-        public Option<Integer> next() {
-            if (this.counter >= this.length) {
-                return new None<>();
-            }
-
-            int value = this.counter;
-            this.counter++;
-            return new Some<>(value);
-        }
-    } *//* 
-
-    record HeadedIterator<T>(Head<T> head) implements Iterator<T> {
-        @Override
-        public <R> R fold(R initial, BiFunction<R, T, R> folder) {
-            R current = initial;
-            while (true) {
-                R finalCurrent = current;
-                Option<R> maybeCurrent = this.head.next().map(next -> folder.apply(finalCurrent, next));
-                if (maybeCurrent.isPresent()) {
-                    current = maybeCurrent.orElse(null);
-                }
-                else {
-                    return current;
-                }
-            }
-        }
-
-        @Override
-        public <R> Iterator<R> map(Function<T, R> mapper) {
-            return new HeadedIterator<>(() -> this.head.next().map(mapper));
-        }
-
-        @Override
-        public <C> C collect(Collector<T, C> collector) {
-            return this.fold(collector.createInitial(), collector::fold);
-        }
-
-        @Override
-        public boolean anyMatch(Predicate<T> predicate) {
-            return this.fold(false, (aBoolean, t) -> aBoolean || predicate.test(t));
-        }
-
-        @Override
-        public void forEach(Consumer<T> consumer) {
-            while (true) {
-                Option<T> next = this.head.next();
-                if (next.isEmpty()) {
-                    break;
-                }
-                next.ifPresent(consumer);
-            }
-        }
-
-        @Override
-        public Iterator<T> filter(Predicate<T> predicate) {
-            return this.flatMap(value -> new HeadedIterator<>(predicate.test(value)
-                    ? new SingleHead<>(value)
-                    : new EmptyHead<>()));
-        }
-
-        @Override
-        public boolean allMatch(Predicate<T> predicate) {
-            return this.fold(true, (aBoolean, t) -> aBoolean && predicate.test(t));
-        }
-
-        @Override
-        public Iterator<T> concat(Iterator<T> other) {
-            return new HeadedIterator<>(() -> this.head.next().or(other::next));
-        }
-
-        @Override
-        public Option<T> next() {
-            return this.head.next();
-        }
-
-        private <R> Iterator<R> flatMap(Function<T, Iterator<R>> mapper) {
-            return this.map(mapper).fold(Iterators.empty(), Iterator::concat);
-        }
-    } *//* 
-
-    private static class SingleHead<T> implements Head<T> {
-        private final T value;
-        private boolean retrieved = false;
-
-        public SingleHead(T value) {
-            this.value = value;
-        }
-
-        @Override
-        public Option<T> next() {
-            if (this.retrieved) {
-                return new None<>();
-            }
-
-            this.retrieved = true;
-            return new Some<>(this.value);
-        }
-    } */
+        <R> struct R match(Function_struct T, struct R whenOk, Function_struct X, struct R whenErr);
+	struct record Joiner(struct String delimiter);
 	struct record CompileError(struct String message, struct String context, List__struct CompileError errors);
 	struct record ApplicationError(struct Error error);
 };
@@ -371,6 +131,25 @@ Iterator_char fromString(struct String string) {
 Iterator_Tuple_int, struct Character fromStringWithIndices(struct String string) {
 	return HeadedIterator_(struct RangeHead(string.length())).map(index -> new Tuple<>(index, string.charAt(index)));
 }
+auto __lambda1__() {
+	return struct Tuple.right()
+}
+auto __lambda2__(auto index) {
+	return Tuple_(index, string.charAt(index));
+}
+<T> Iterator_T empty() {
+	return HeadedIterator_(EmptyHead_());
+	/* }
+
+        public static Iterator */ < /* Character> fromString(String string) {
+            return fromStringWithIndices */(string).map(__lambda1__);
+	/* }
+
+        public static Iterator */ < Tuple < /* Integer, Character>> fromStringWithIndices(String string) {
+            return new HeadedIterator */ < /* > */(struct RangeHead(string.length())).map(__lambda2__);/* 
+        }
+     */
+}
 List__struct T createInitial() {
 	return Impl.emptyList();
 	/* }
@@ -378,6 +157,19 @@ List__struct T createInitial() {
         @Override
         public List_ */ < /* T> fold(List_ */ < /* T> current, T element) {
             return current */.add(element);/* 
+        }
+     */
+}
+auto __lambda3__(auto inner) {
+	return /* inner > element ? inner : element */;
+}
+Option_int createInitial() {
+	return None_();
+	/* }
+
+        @Override
+        public Option */ < /* Integer> fold(Option */ < /* Integer> current, Integer element) {
+            return new Some */ < /* > */(current.map(__lambda3__).orElse(element));/* 
         }
      */
 }
@@ -399,90 +191,103 @@ struct record OrState(Option_struct String maybeValue, List__struct CompileError
                     .orElseGet(() -> new Err<>(this.errors));
         } */
 }
-auto __lambda1__() {
+auto __lambda4__() {
 	return struct ApplicationError.new()
 }
-auto __lambda2__(auto input) {
+auto __lambda5__(auto input) {
 	return compileAndWrite(input, source);
 }
-auto __lambda3__() {
+auto __lambda6__() {
 	return struct Some.new()
 }
-auto __lambda4__(auto error) {
+auto __lambda7__(auto error) {
 	return System.err.println(error.display());
 }
 void main(struct String* args) {
 	struct Path_ source = Impl.get(".", "src", "java", "magma", "Main.java");
-	Impl.readString(source).mapErr(__lambda1__).match(__lambda2__, __lambda3__).ifPresent(__lambda4__);
-}
-auto __lambda5__() {
-	return struct ApplicationError.new()
-}
-auto __lambda6__() {
-	return struct ApplicationError.new()
-}
-auto __lambda7__(auto output) {
-	return Impl.writeString(target, output).map(__lambda6__);
+	Impl.readString(source).mapErr(__lambda4__).match(__lambda5__, __lambda6__).ifPresent(__lambda7__);
 }
 auto __lambda8__() {
+	return struct ApplicationError.new()
+}
+auto __lambda9__() {
+	return struct ApplicationError.new()
+}
+auto __lambda10__(auto output) {
+	return Impl.writeString(target, output).map(__lambda9__);
+}
+auto __lambda11__() {
 	return struct Some.new()
 }
 Option_struct ApplicationError compileAndWrite(struct String input, struct Path_ source) {
 	struct Path_ target = source.resolveSibling("main.c");
-	return compile(input).mapErr(__lambda5__).match(__lambda7__, __lambda8__);
+	return compile(input).mapErr(__lambda8__).match(__lambda10__, __lambda11__);
 }
-auto __lambda9__() {
+auto __lambda12__() {
 	return struct Main.divideStatementChar()
 }
-auto __lambda10__() {
+auto __lambda13__() {
 	return struct Main.assembleChildren()
 }
-auto __lambda11__() {
+auto __lambda14__() {
 	return struct Main.mergeStatements()
 }
-auto __lambda12__(auto compiled) {
-	return mergeAll(compiled, __lambda11__);
+auto __lambda15__(auto compiled) {
+	return mergeAll(compiled, __lambda14__);
 }
 Result_struct String, struct CompileError compile(struct String input) {
-	return parseAll(divide(input, __lambda9__), createRootSegmentCompiler()).mapValue(__lambda10__).mapValue(__lambda12__);
+	return parseAll(divide(input, __lambda12__), createRootSegmentCompiler()).mapValue(__lambda13__).mapValue(__lambda15__);
 }
 List__struct String assembleChildren(List__struct String rootChildren) {
 	return Impl.<String>emptyList().addAll(imports).addAll(structs).addAll(globals).addAll(methods).addAll(rootChildren);
 }
-auto __lambda13__() {
-	return struct Main.compileWhitespace()
-}
-auto __lambda14__() {
+auto __lambda16__() {
 	return struct Main.compilePackage()
 }
-auto __lambda15__() {
+auto __lambda17__() {
 	return struct Main.compileImport()
 }
-auto __lambda16__(auto input) {
-	return compileToStruct(input, "class ", Impl.emptyList());
-}
 Function_struct String, Result_struct String, struct CompileError createRootSegmentCompiler() {
-	return createRootSegmentCompiler(Impl.listOf(wrap(__lambda13__), wrap(__lambda14__), wrap(__lambda15__), wrap(__lambda16__)));
+	return createOrRule(Impl.listOf(createTypeRule("whitespace", createWhitespaceRule()), createTypeRule("package", wrap(__lambda16__)), createTypeRule("import", wrap(__lambda17__)), createClassRule(Impl.emptyList())));
 }
-auto __lambda17__() {
+auto __lambda18__(auto err) {
+	struct String format = "Cannot assign type to '%s'";
+	struct String message = format.formatted(type);
+	return struct CompileError(message, input, Impl.listOf(err));
+}
+auto __lambda19__(auto input) {
+	return childRule.apply(input).mapErr(__lambda18__);
+}
+Function_struct String, Result_struct String, struct CompileError createTypeRule(struct String type, Function_struct String, Result_struct String, struct CompileError childRule) {
+	return __lambda19__;
+}
+Function_struct String, Result_struct String, struct CompileError createWhitespaceRule() {/* 
+        return input -> {
+            if (input.isBlank()) {
+                return new Ok<>("");
+            }
+            return new Err<>(new CompileError("Not blank", input));
+        } *//* ; */
+}
+auto __lambda20__() {
 	return struct state.withValue()
 }
-auto __lambda18__() {
+auto __lambda21__() {
 	return struct state.withError()
 }
-auto __lambda19__(auto state, auto rule) {
-	return rule.apply(input).match(__lambda17__, __lambda18__);
+auto __lambda22__(auto state, auto rule) {
+	return rule.apply(input).match(__lambda20__, __lambda21__);
 }
-auto __lambda20__(auto children) {
+auto __lambda23__(auto children) {
 	return struct CompileError("No valid combination", input, children);
 }
-auto __lambda21__(auto input) {
-	return aClass.iter().fold(struct OrState(), __lambda19__).toResult().mapErr(__lambda20__);
+auto __lambda24__(auto input) {
+	return aClass.iter().fold(struct OrState(), __lambda22__).toResult().mapErr(__lambda23__);
 }
-Function_struct String, Result_struct String, struct CompileError createRootSegmentCompiler(List__Function_struct String, Result_struct String, struct CompileError aClass) {
-	return __lambda21__;
+Function_struct String, Result_struct String, struct CompileError createOrRule(List__Function_struct String, Result_struct String, struct CompileError aClass) {
+	return __lambda24__;
 }
-auto __lambda22__() {
+auto __lambda25__() {
 	return struct String.equals()
 }
 Option_struct String compileImport(struct String input) {
@@ -492,7 +297,7 @@ Option_struct String compileImport(struct String input) {
 		if (right.endsWith(";")) {
 			struct String content = right.substring(0, right.length() - ";".length());
 			List__struct String split = splitByDelimiter(content, '.');
-			if (split.size() >= 3 && Impl.equalsList(split.slice(0, 3), Impl.listOf("java", "util", "function"), __lambda22__)) {
+			if (split.size() >= 3 && Impl.equalsList(split.slice(0, 3), Impl.listOf("java", "util", "function"), __lambda25__)) {
 				return Some_("");
 			}
 			struct String joined = split.iter().collect(struct Joiner("/")).orElse("");
@@ -508,47 +313,47 @@ Option_struct String compilePackage(struct String input) {
 	}
 	return None_();
 }
-auto __lambda23__() {
+auto __lambda26__() {
 	return struct Main.divideStatementChar()
 }
-auto __lambda24__() {
+auto __lambda27__() {
 	return struct Main.mergeStatements()
 }
 Result_struct String, struct CompileError compileStatements(struct String input, Function_struct String, Result_struct String, struct CompileError compiler) {
-	return compileAndMerge(divide(input, __lambda23__), compiler, __lambda24__);
+	return compileAndMerge(divide(input, __lambda26__), compiler, __lambda27__);
 }
-auto __lambda25__(auto compiled) {
+auto __lambda28__(auto compiled) {
 	return mergeAll(compiled, merger);
 }
 Result_struct String, struct CompileError compileAndMerge(List__struct String segments, Function_struct String, Result_struct String, struct CompileError compiler, BiFunction_struct StringBuilder, struct String, struct StringBuilder merger) {
-	return parseAll(segments, compiler).mapValue(__lambda25__);
+	return parseAll(segments, compiler).mapValue(__lambda28__);
 }
 struct String mergeAll(List__struct String compiled, BiFunction_struct StringBuilder, struct String, struct StringBuilder merger) {
 	return compiled.iter().fold(struct StringBuilder(), merger).toString();
 }
-auto __lambda26__() {
+auto __lambda29__() {
 	return struct allCompiled.add()
 }
-auto __lambda27__(auto allCompiled) {
-	return compiler.apply(segment).mapValue(__lambda26__);
+auto __lambda30__(auto allCompiled) {
+	return compiler.apply(segment).mapValue(__lambda29__);
 }
-auto __lambda28__(auto maybeCompiled, auto segment) {
-	return maybeCompiled.flatMapValue(__lambda27__);
+auto __lambda31__(auto maybeCompiled, auto segment) {
+	return maybeCompiled.flatMapValue(__lambda30__);
 }
 Result_List__struct String, struct CompileError parseAll(List__struct String segments, Function_struct String, Result_struct String, struct CompileError compiler) {
-	return segments.iter().<Result<List_<String>, CompileError>>fold(Ok_(Impl.emptyList()), __lambda28__);
+	return segments.iter().<Result<List_<String>, CompileError>>fold(Ok_(Impl.emptyList()), __lambda31__);
 }
-auto __lambda29__() {
+auto __lambda32__() {
 	return struct Ok.new()
 }
-auto __lambda30__() {
+auto __lambda33__() {
 	return Err_(struct CompileError("Invalid value", input));
 }
-auto __lambda31__(auto input) {
-	return compiler.apply(input).<Result<String, CompileError>>map(__lambda29__).orElseGet(__lambda30__);
+auto __lambda34__(auto input) {
+	return compiler.apply(input).<Result<String, CompileError>>map(__lambda32__).orElseGet(__lambda33__);
 }
 Function_struct String, Result_struct String, struct CompileError wrap(Function_struct String, Option_struct String compiler) {
-	return __lambda31__;
+	return __lambda34__;
 }
 struct StringBuilder mergeStatements(struct StringBuilder output, struct String compiled) {
 	return output.append(compiled);
@@ -620,61 +425,63 @@ List__struct String splitByDelimiter(struct String content, char delimiter) {
         } */
 	return segments.add(buffer.toString());
 }
-auto __lambda32__(auto input1) {
-	return compileClassMember(input1, typeParams);
+auto __lambda35__(auto input1) {
+	return createClassMemberRule(typeParams).apply(input1);
 }
-auto __lambda33__(auto outputContent) {
-	structs.add("struct " + beforeContent + " {" + outputContent + "\n};\n");
+auto __lambda36__(auto outputContent) {
+	structs.add("struct " + name + " {" + outputContent + "\n};\n");
 	return "";
 }
-Option_struct String compileToStruct(struct String input, struct String infix, List__struct String typeParams) {
+auto __lambda37__(auto input) {
 	int classIndex = input.indexOf(infix);
 	if (classIndex < 0) {
-		return None_();
+		return createInfixErr(input, infix);
 	}
 	struct String afterKeyword = input.substring(classIndex + infix.length());
 	int contentStart = afterKeyword.indexOf("{");
 	if (contentStart < 0) {
-		return None_();
+		return createInfixErr(afterKeyword, "{");
 	}
 	struct String beforeContent = afterKeyword.substring(0, contentStart).strip();
-	int typeStartIndex = beforeContent.indexOf("<");
-	if (typeStartIndex >= 0) {
-		return None_();
+	int extendsIndex = beforeContent.indexOf(" extends ");
+	struct String withoutExtends = extendsIndex >= /*  0
+                    ? beforeContent */.substring(0, extendsIndex)
+                    : beforeContent;
+	int typeParamsStart = withoutExtends.indexOf("<");
+	if (typeParamsStart >= 0) {
+		return Ok_("");
+	}
+	struct String name = withoutExtends;
+	if (!isSymbol(name)) {
+		return Err_(struct CompileError("Not a symbol", name));
 	}
 	struct String withEnd = afterKeyword.substring(contentStart + "{".length()).strip();
 	if (!withEnd.endsWith("}")) {
-		return None_();
-	}
-	if (!isSymbol(beforeContent)) {
-		return None_();
+		return Err_(struct CompileError("Suffix '}' not present", withEnd));
 	}
 	struct String inputContent = withEnd.substring(0, withEnd.length() - "}".length());
-	return compileStatements(inputContent, wrap(__lambda32__)).findValue().map(__lambda33__);
+	return compileStatements(inputContent, __lambda35__).mapValue(__lambda36__);
 }
-auto __lambda34__() {
-	return compileToStruct(input, "interface ", typeParams);
+Function_struct String, Result_struct String, struct CompileError createCompileToStructRule(struct String type, struct String infix, List__struct String typeParams) {
+	return createTypeRule(type, __lambda37__);
 }
-auto __lambda35__() {
-	return compileToStruct(input, "record ", typeParams);
+Err_struct String, struct CompileError createInfixErr(struct String input, struct String infix) {
+	return Err_(struct CompileError("Infix '" + infix + "' not present", input));
 }
-auto __lambda36__() {
-	return compileToStruct(input, "class ", typeParams);
-}
-auto __lambda37__() {
+auto __lambda38__(auto input) {
 	return compileGlobalInitialization(input, typeParams);
 }
-auto __lambda38__() {
-	return compileDefinitionStatement(input);
-}
 auto __lambda39__() {
+	return struct Main.compileDefinitionStatement()
+}
+auto __lambda40__(auto input) {
 	return compileMethod(input, typeParams);
 }
-auto __lambda40__() {
-	return generatePlaceholder(input);
+Function_struct String, Result_struct String, struct CompileError createClassMemberRule(List__struct String typeParams) {
+	return createOrRule(Impl.listOf(createWhitespaceRule(), createCompileToStructRule("interface", "interface ", typeParams), createCompileToStructRule("record", "record ", typeParams), createClassRule(typeParams), wrap(__lambda38__), wrap(__lambda39__), wrap(__lambda40__)));
 }
-Option_struct String compileClassMember(struct String input, List__struct String typeParams) {
-	return compileWhitespace(input).or(__lambda34__).or(__lambda35__).or(__lambda36__).or(__lambda37__).or(__lambda38__).or(__lambda39__).or(__lambda40__);
+Function_struct String, Result_struct String, struct CompileError createClassRule(List__struct String typeParams) {
+	return createCompileToStructRule("class", "class ", typeParams);
 }
 auto __lambda41__(auto result) {
 	return "\t" + result + ";\n";
@@ -719,8 +526,8 @@ Option_struct String compileWhitespace(struct String input) {
 	}
 	return None_();
 }
-auto __lambda45__() {
-	return struct Main.compileParameter()
+auto __lambda45__(auto definition) {
+	return createParameterRule().apply(definition).findValue();
 }
 Option_struct String compileMethod(struct String input, List__struct String typeParams) {
 	int paramStart = input.indexOf("(");
@@ -755,13 +562,13 @@ Option_struct String assembleMethodBody(List__struct String typeParams, struct S
 	return Some_("\n\t" + header + ";");
 }
 auto __lambda48__() {
-	return compileDefinition(definition);
+	return struct Main.compileWhitespace()
 }
 auto __lambda49__() {
-	return generatePlaceholder(definition);
+	return struct Main.compileDefinition()
 }
-Option_struct String compileParameter(struct String definition) {
-	return compileWhitespace(definition).or(__lambda48__).or(__lambda49__);
+Function_struct String, Result_struct String, struct CompileError createParameterRule() {
+	return createOrRule(Impl.listOf(wrap(__lambda48__), wrap(__lambda49__)));
 }
 auto __lambda50__() {
 	return struct Main.divideValueChar()

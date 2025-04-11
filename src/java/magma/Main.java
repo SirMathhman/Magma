@@ -477,9 +477,14 @@ public class Main {
 
         @Override
         public String display() {
+            return this.format(0);
+        }
+
+        private String format(int depth) {
             String joined = this.errors.sort((first, second) -> first.computeMaxDepth() - second.computeMaxDepth())
                     .iter()
-                    .map(CompileError::display)
+                    .map(compileError -> compileError.format(depth + 1))
+                    .map(display -> "\n" + "\t".repeat(depth + 1) + display)
                     .collect(new Joiner(""))
                     .orElse("");
 
@@ -561,12 +566,8 @@ public class Main {
                 createTypeRule("whitespace", createWhitespaceRule()),
                 createTypeRule("package", wrap(Main::compilePackage)),
                 createTypeRule("import", wrap(Main::compileImport)),
-                getTypeRule()
+                createClassRule(Impl.emptyList())
         ));
-    }
-
-    private static Function<String, Result<String, CompileError>> getTypeRule() {
-        return createCompileToStructRule("class", "class ", Impl.emptyList());
     }
 
     private static Function<String, Result<String, CompileError>> createTypeRule(String type, Function<String, Result<String, CompileError>> childRule) {
@@ -742,10 +743,18 @@ public class Main {
             }
 
             String beforeContent = afterKeyword.substring(0, contentStart).strip();
+            int extendsIndex = beforeContent.indexOf(" extends ");
+            String withoutExtends = extendsIndex >= 0
+                    ? beforeContent.substring(0, extendsIndex)
+                    : beforeContent;
 
-            int typeStartIndex = beforeContent.indexOf("<");
-            if (typeStartIndex >= 0) {
-                return createInfixErr(beforeContent, "<");
+            int typeParamsStart = withoutExtends.indexOf("<");
+            if (typeParamsStart >= 0) {
+                return new Ok<>("");
+            }
+
+            if (!isSymbol(withoutExtends)) {
+                return new Err<>(new CompileError("Not a symbol", withoutExtends));
             }
 
             String withEnd = afterKeyword.substring(contentStart + "{".length()).strip();
@@ -753,13 +762,9 @@ public class Main {
                 return new Err<>(new CompileError("Suffix '}' not present", withEnd));
             }
 
-            if (!isSymbol(beforeContent)) {
-                return new Err<>(new CompileError("Not a symbol", beforeContent));
-            }
-
             String inputContent = withEnd.substring(0, withEnd.length() - "}".length());
             return compileStatements(inputContent, input1 -> createClassMemberRule(typeParams).apply(input1)).mapValue(outputContent -> {
-                structs.add("struct " + beforeContent + " {" + outputContent + "\n};\n");
+                structs.add("struct " + withoutExtends + " {" + outputContent + "\n};\n");
                 return "";
             });
         });
@@ -774,11 +779,15 @@ public class Main {
                 createWhitespaceRule(),
                 createCompileToStructRule("interface", "interface ", typeParams),
                 createCompileToStructRule("record", "record ", typeParams),
-                createCompileToStructRule("class", "class ", typeParams),
+                createClassRule(typeParams),
                 wrap(input -> compileGlobalInitialization(input, typeParams)),
                 wrap(Main::compileDefinitionStatement),
                 wrap(input -> compileMethod(input, typeParams))
         ));
+    }
+
+    private static Function<String, Result<String, CompileError>> createClassRule(List_<String> typeParams) {
+        return createCompileToStructRule("class", "class ", typeParams);
     }
 
     private static Option<String> compileDefinitionStatement(String input) {
