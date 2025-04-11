@@ -826,25 +826,25 @@ public class Main {
 
     private static Result<String, CompileError> compile(String input) {
         List_<String> segments = divide(input, new DecoratedDivider(Main::divideStatementChar));
-        return parseAll(segments, input0 -> createRootSegmentRule(new ParseState()).apply(input0))
+        return parseAll(segments, input0 -> compileRootSegment(input0))
                 .mapValue(Main::mergeStatics)
                 .mapValue(compiled -> mergeAll(compiled, Main::mergeStatements));
     }
 
-    private static Function<String, Result<String, CompileError>> createRootSegmentRule(ParseState state) {
-        List_<Function<String, Result<String, CompileError>>> rules = Lists.of(
+    private static Result<String, CompileError> compileRootSegment(String input0) {
+        ParseState state = new ParseState();
+        return compileOr(input0, Lists.of(
                 Main::compileWhitespace,
                 Main::compilePackage,
                 Main::compileImport,
                 (input) -> compileToStruct(input, "class ", state)
-        );
-        return s -> compileOr(s, rules);
+        ));
     }
 
     private static Result<String, CompileError> compileImport(String input) {
         String stripped = input.strip();
         if (!stripped.startsWith("import ")) {
-            return createPrefixRule(stripped, "import ");
+            return createPrefixError(stripped, "import ");
         }
 
         String right = stripped.substring("import ".length());
@@ -1078,7 +1078,7 @@ public class Main {
         String inputDefinition = input.substring(0, paramStart).strip();
         String withParams = input.substring(paramStart + "(".length());
 
-        return createDefinitionRule(state).apply(inputDefinition).flatMapValue(outputDefinition -> {
+        return ((Function<String, Result<String, CompileError>>) s -> compileDefinition(state, s)).apply(inputDefinition).flatMapValue(outputDefinition -> {
             int paramEnd = withParams.indexOf(")");
             if (paramEnd < 0) {
                 return createInfixErr(withParams, ")");
@@ -1094,7 +1094,7 @@ public class Main {
         String stripped = input.strip();
         if (stripped.endsWith(";")) {
             String content = stripped.substring(0, stripped.length() - ";".length());
-            return createDefinitionRule(typeParams).apply(content).mapValue(result -> "\t" + result + ";\n");
+            return ((Function<String, Result<String, CompileError>>) s -> compileDefinition(typeParams, s)).apply(content).mapValue(result -> "\t" + result + ";\n");
         }
         return createSuffixErr(input, ";");
     }
@@ -1127,7 +1127,7 @@ public class Main {
 
         String definition = withoutEnd.substring(0, valueSeparator).strip();
         String value = withoutEnd.substring(valueSeparator + "=".length()).strip();
-        return createDefinitionRule(state).apply(definition)
+        return ((Function<String, Result<String, CompileError>>) s -> compileDefinition(state, s)).apply(definition)
                 .flatMapValue(outputDefinition -> compileValue(value, state, depth).mapValue(outputValue -> outputDefinition + " = " + outputValue));
     }
 
@@ -1160,7 +1160,7 @@ public class Main {
     private static Result<String, CompileError> compileParameter(String definition, ParseState state) {
         List_<Function<String, Result<String, CompileError>>> rules = Lists.of(
                 Main::compileWhitespace,
-                definition1 -> createDefinitionRule(state).apply(definition1)
+                definition1 -> ((Function<String, Result<String, CompileError>>) s -> compileDefinition(state, s)).apply(definition1)
         );
         return ((Function<String, Result<String, CompileError>>) s -> compileOr(s, rules)).apply(definition);
     }
@@ -1220,7 +1220,7 @@ public class Main {
     private static Result<String, CompileError> getWrap(ParseState typeParams, int depth, String input) {
         String stripped = input.strip();
         if (!stripped.startsWith("else ")) {
-            return createPrefixRule(stripped, "else ");
+            return createPrefixError(stripped, "else ");
         }
 
         String withoutKeyword = stripped.substring("else ".length()).strip();
@@ -1234,7 +1234,7 @@ public class Main {
         return stringCompileErrorResult.mapValue(result -> "else " + result);
     }
 
-    private static Err<String, CompileError> createPrefixRule(String input, String prefix) {
+    private static Result<String, CompileError> createPrefixError(String input, String prefix) {
         return new Err<>(new CompileError("Prefix '" + prefix + "' not present", input));
     }
 
@@ -1273,12 +1273,12 @@ public class Main {
                 return compileWithType(type, s1, input -> {
                     String stripped = input.strip();
                     if (!stripped.startsWith(prefix)) {
-                        return createPrefixRule(stripped, prefix);
+                        return createPrefixError(stripped, prefix);
                     }
 
                     String afterKeyword = stripped.substring(prefix.length()).strip();
                     if (!afterKeyword.startsWith("(")) {
-                        return createPrefixRule(afterKeyword, "(");
+                        return createPrefixError(afterKeyword, "(");
                     }
 
                     String withoutConditionStart = afterKeyword.substring(1);
@@ -1414,10 +1414,20 @@ public class Main {
                 Main::compileBoolean,
                 Main::compileString,
                 Main::compileChar,
-                stripped -> createSymbolRule().apply(stripped),
-                stripped1 -> createNumberRule().apply(stripped1),
+                stripped -> ((Function<String, Result<String, CompileError>>) s -> compileWithType("symbol", s, s1 -> compileStrip(s1, new Function<String, Result<String, CompileError>>() {
+                    @Override
+                    public Result<String, CompileError> apply(String s2) {
+                        return getRecord(s2);
+                    }
+                }))).apply(stripped),
+                stripped1 -> ((Function<String, Result<String, CompileError>>) s -> compileWithType("number", s, s1 -> compileStrip(s1, s2 -> {
+                    if (isNumber(s2)) {
+                        return new Ok<>(s2);
+                    }
+                    return new Err<>(new CompileError("Not a number", s2));
+                }))).apply(stripped1),
                 input -> compileConstruction(input, typeParams, depth),
-                input -> createNotRule(input, typeParams, depth),
+                input -> compileNot(input, typeParams, depth),
                 input -> compileLambda(input, typeParams, depth),
                 input -> compileInvocation(input, typeParams, depth),
                 input -> compileMethodAccess(input, typeParams),
@@ -1462,24 +1472,6 @@ public class Main {
         }
     }
 
-    private static Function<String, Result<String, CompileError>> createSymbolRule() {
-        return s -> compileWithType("symbol", s, s1 -> compileStrip(s1, new Function<String, Result<String, CompileError>>() {
-            @Override
-            public Result<String, CompileError> apply(String s2) {
-                return getRecord(s2);
-            }
-        }));
-    }
-
-    private static Function<String, Result<String, CompileError>> createNumberRule() {
-        return s -> compileWithType("number", s, s1 -> compileStrip(s1, s2 -> {
-            if (isNumber(s2)) {
-                return new Ok<>(s2);
-            }
-            return new Err<>(new CompileError("Not a number", s2));
-        }));
-    }
-
     private static Result<String, CompileError> compileConstruction(String stripped, ParseState typeParams, int depth) {
         return new Function<String, Result<String, CompileError>>() {
             @Override
@@ -1489,7 +1481,7 @@ public class Main {
                     public Result<String, CompileError> apply(String s1) {
                         return compileStrip(s1, input -> {
                             if (!input.startsWith("new ")) {
-                                return createPrefixRule(input, "new ");
+                                return createPrefixError(input, "new ");
                             }
 
                             String slice = input.substring("new ".length());
@@ -1515,12 +1507,12 @@ public class Main {
         }.apply(stripped);
     }
 
-    private static Result<String, CompileError> createNotRule(String stripped, ParseState typeParams, int depth) {
+    private static Result<String, CompileError> compileNot(String stripped, ParseState typeParams, int depth) {
         if (stripped.startsWith("!")) {
             return compileValue(stripped.substring(1), typeParams, depth).mapValue(result -> "!" + result);
         }
         else {
-            return createPrefixRule(stripped, "!");
+            return createPrefixError(stripped, "!");
         }
     }
 
@@ -1676,8 +1668,8 @@ public class Main {
         return cache.append(", ").append(element);
     }
 
-    private static Function<String, Result<String, CompileError>> createDefinitionRule(ParseState state) {
-        return s -> compileWithType("definition", s, definition -> {
+    private static Result<String, CompileError> compileDefinition(ParseState state, String s) {
+        return compileWithType("definition", s, definition -> {
             String stripped = definition.strip();
             int nameSeparator = stripped.lastIndexOf(" ");
             if (nameSeparator < 0) {
@@ -1868,10 +1860,9 @@ public class Main {
                 Main::compileWhitespace,
                 type -> parseAnyType(type, typeParams).mapValue(Main::generateAnyType)
         );
-        Function<String, Result<String, CompileError>> paramRule = s -> compileOr(s, rules);
 
         List_<String> divided = divideValues(params);
-        return parseAll(divided, paramRule).mapValue(parsed -> {
+        return parseAll(divided, s -> compileOr(s, rules)).mapValue(parsed -> {
             if (base.equals("Function")) {
                 String first = parsed.get(0);
                 String second = parsed.get(1);
