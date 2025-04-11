@@ -891,16 +891,14 @@ public class Main {
                 .addAll(folded);
     }
 
-    private static Result<String, CompileError> compileStatements(String input, Function<String, Result<String, CompileError>> compiler) {
-        return compileAndMerge(divide(input, new DecoratedDivider(Main::divideStatementChar)), compiler, Main::mergeStatements);
+    private static Result<List_<Node>, CompileError> parseAllStatements(String input, Rule rule) {
+        return parseAll(divide(input, new DecoratedDivider(Main::divideStatementChar)), rule);
     }
 
-    private static Result<String, CompileError> compileAndMerge(List_<String> segments, Function<String, Result<String, CompileError>> compiler, BiFunction<StringBuilder, String, StringBuilder> merger) {
-        return parseAll(segments, wrapDefault(compiler)).mapValue(list -> {
-            return list.iter()
-                    .map(Main::unwrapDefault)
-                    .collect(new ListCollector<>());
-        }).mapValue(compiled -> mergeAll(compiled, merger));
+    private static String generateAll(BiFunction<StringBuilder, String, StringBuilder> merger, List_<Node> list) {
+        return mergeAll(list.iter()
+                .map(Main::unwrapDefault)
+                .collect(new ListCollector<>()), merger);
     }
 
     private static String mergeAll(List_<String> compiled, BiFunction<StringBuilder, String, StringBuilder> merger) {
@@ -1021,7 +1019,7 @@ public class Main {
         }
 
         String inputContent = withEnd.substring(0, withEnd.length() - "}".length());
-        return compileStatements(inputContent, s -> compileClassMember(s, typeParams)).mapValue(outputContent -> {
+        return parseAllStatements(inputContent, wrapDefault(s -> compileClassMember(s, typeParams))).mapValue(list -> generateAll(Main::mergeStatements, list)).mapValue(outputContent -> {
             String typeParameters = moreTypeParams.iter()
                     .collect(new Joiner(", "))
                     .map(inner -> "<" + inner + ">")
@@ -1077,7 +1075,7 @@ public class Main {
     }
 
     private static Result<String, CompileError> compileClassMember(String input0, ParseState typeParams) {
-        List_<Function<String, Result<String, CompileError>>> rules = Lists.of(
+        return compileOr(input0, Lists.of(
                 Main::compileWhitespace,
                 (input) -> compileToStruct(input, "interface ", typeParams),
                 (input) -> compileToStruct(input, "record ", typeParams),
@@ -1085,8 +1083,7 @@ public class Main {
                 (input) -> compileGlobalInitialization(typeParams, input),
                 input1 -> compileDefinitionStatement(input1, typeParams),
                 (input) -> compileMethod(typeParams, input)
-        );
-        return ((Function<String, Result<String, CompileError>>) s -> compileOr(s, rules)).apply(input0);
+        ));
     }
 
     private static Result<String, CompileError> compileMethod(ParseState state, String input) {
@@ -1098,7 +1095,7 @@ public class Main {
         String inputDefinition = input.substring(0, paramStart).strip();
         String withParams = input.substring(paramStart + "(".length());
 
-        return ((Function<String, Result<String, CompileError>>) s -> compileDefinition(state, s)).apply(inputDefinition).flatMapValue(outputDefinition -> {
+        return compileDefinition(state, inputDefinition).flatMapValue(outputDefinition -> {
             int paramEnd = withParams.indexOf(")");
             if (paramEnd < 0) {
                 return createInfixErr(withParams, ")");
@@ -1114,7 +1111,7 @@ public class Main {
         String stripped = input.strip();
         if (stripped.endsWith(";")) {
             String content = stripped.substring(0, stripped.length() - ";".length());
-            return ((Function<String, Result<String, CompileError>>) s -> compileDefinition(typeParams, s)).apply(content).mapValue(result -> "\t" + result + ";\n");
+            return compileDefinition(typeParams, content).mapValue(result -> "\t" + result + ";\n");
         }
         return createSuffixErr(input, ";");
     }
@@ -1147,7 +1144,7 @@ public class Main {
 
         String definition = withoutEnd.substring(0, valueSeparator).strip();
         String value = withoutEnd.substring(valueSeparator + "=".length()).strip();
-        return ((Function<String, Result<String, CompileError>>) s -> compileDefinition(state, s)).apply(definition)
+        return compileDefinition(state, definition)
                 .flatMapValue(outputDefinition -> compileValue(value, state, depth).mapValue(outputValue -> outputDefinition + " = " + outputValue));
     }
 
@@ -1167,7 +1164,7 @@ public class Main {
         String header = "\t".repeat(0) + definition + "(" + params + ")";
         if (body.startsWith("{") && body.endsWith("}")) {
             String inputContent = body.substring("{".length(), body.length() - "}".length());
-            Result<String, CompileError> result = compileStatements(inputContent, s -> compileStatementOrBlock(s, typeParams, 1));
+            Result<String, CompileError> result = parseAllStatements(inputContent, wrapDefault(s -> compileStatementOrBlock(s, typeParams, 1))).mapValue(list -> generateAll(Main::mergeStatements, list));
             return result.mapValue(outputContent -> {
                 methods.add(header + " {" + outputContent + "\n}\n");
                 return "";
@@ -1178,15 +1175,15 @@ public class Main {
     }
 
     private static Result<String, CompileError> compileParameter(String definition, ParseState state) {
-        List_<Function<String, Result<String, CompileError>>> rules = Lists.of(
+        return compileOr(definition, Lists.of(
                 Main::compileWhitespace,
-                definition1 -> ((Function<String, Result<String, CompileError>>) s -> compileDefinition(state, s)).apply(definition1)
-        );
-        return ((Function<String, Result<String, CompileError>>) s -> compileOr(s, rules)).apply(definition);
+                definition1 -> compileDefinition(state, definition1)
+        ));
     }
 
     private static Result<String, CompileError> compileValues(String input, Function<String, Result<String, CompileError>> compiler) {
-        return compileValues(divideValues(input), compiler);
+        List_<String> segments = divideValues(input);
+        return parseAll(segments, wrapDefault(compiler)).mapValue(Main::generateValues);
     }
 
     private static List_<String> divideValues(String input) {
@@ -1214,8 +1211,8 @@ public class Main {
         return appended;
     }
 
-    private static Result<String, CompileError> compileValues(List_<String> segments, Function<String, Result<String, CompileError>> compiler) {
-        return compileAndMerge(segments, compiler, Main::mergeValues);
+    private static String generateValues(List_<Node> list) {
+        return generateAll(Main::mergeValues, list);
     }
 
     private static Result<String, CompileError> compileStatementOrBlock(String input0, ParseState typeParams, int depth) {
@@ -1246,7 +1243,7 @@ public class Main {
         String withoutKeyword = stripped.substring("else ".length()).strip();
         if (withoutKeyword.startsWith("{") && withoutKeyword.endsWith("}")) {
             String indent = createIndent(depth);
-            return compileStatements(withoutKeyword.substring(1, withoutKeyword.length() - 1), s -> compileStatementOrBlock(s, typeParams, depth + 1))
+            return parseAllStatements(withoutKeyword.substring(1, withoutKeyword.length() - 1), wrapDefault(s -> compileStatementOrBlock(s, typeParams, depth + 1))).mapValue(list -> generateAll(Main::mergeStatements, list))
                     .mapValue(result -> indent + "else {" + result + indent + "}");
         }
 
@@ -1315,7 +1312,7 @@ public class Main {
                 }
 
                 String content = withBraces.substring(1, withBraces.length() - 1);
-                Result<String, CompileError> stringCompileErrorResult = compileStatements(content, s -> compileStatementOrBlock(s, typeParams, depth + 1));
+                Result<String, CompileError> stringCompileErrorResult = parseAllStatements(content, wrapDefault(s -> compileStatementOrBlock(s, typeParams, depth + 1))).mapValue(list -> generateAll(Main::mergeStatements, list));
                 return stringCompileErrorResult.mapValue(statements -> withCondition +
                         " {" + statements + "\n" +
                         "\t".repeat(depth) +
@@ -1585,7 +1582,7 @@ public class Main {
         String value = input.substring(arrowIndex + "->".length()).strip();
         if (value.startsWith("{") && value.endsWith("}")) {
             String slice = value.substring(1, value.length() - 1);
-            return compileStatements(slice, s -> compileStatementOrBlock(s, typeParams, depth))
+            return parseAllStatements(slice, wrapDefault(s -> compileStatementOrBlock(s, typeParams, depth))).mapValue(list -> generateAll(Main::mergeStatements, list))
                     .flatMapValue(result -> generateLambdaWithReturn(paramNames, result));
         }
 

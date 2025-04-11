@@ -73,7 +73,9 @@ struct IOError {
 	Main.Iterator<Main.Tuple<K, V>> iter();
 	Iterator<K> keys();
 };
-*/struct String_ {
+*/struct Rule {
+};
+struct String_ {
 };
 struct ApplicationError {
 };
@@ -1072,7 +1074,9 @@ struct IOError {
 	Main.Iterator<Main.Tuple<K, V>> iter();
 	Iterator<K> keys();
 };
-*/struct String_ {
+*/struct Rule {
+};
+struct String_ {
 };
 struct ApplicationError {
 };
