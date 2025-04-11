@@ -798,26 +798,28 @@ public class Main {
     }
 
     private static Function<String, Result<String, CompileError>> createMethodRule(List_<String> typeParams) {
-        return wrap(input -> {
+        return input -> {
             int paramStart = input.indexOf("(");
             if (paramStart < 0) {
-                return new None<>();
+                return createInfixErr(input, "(");
             }
 
             String inputDefinition = input.substring(0, paramStart).strip();
             String withParams = input.substring(paramStart + "(".length());
 
-            return createDefinitionRule().apply(inputDefinition).findValue().flatMap(outputDefinition -> {
+            return createDefinitionRule().apply(inputDefinition).flatMapValue(outputDefinition -> {
                 int paramEnd = withParams.indexOf(")");
                 if (paramEnd < 0) {
-                    return new None<>();
+                    return createInfixErr(withParams, ")");
                 }
 
                 String params = withParams.substring(0, paramEnd);
-                return compileValues(params, definition -> createParameterRule().apply(definition).findValue())
-                        .flatMap(outputParams -> assembleMethodBody(typeParams, outputDefinition, outputParams, withParams.substring(paramEnd + ")".length()).strip()));
+                return compileValues(params, createParameterRule()).flatMapValue(outputParams -> {
+                    String substring = withParams.substring(paramEnd + ")".length());
+                    return assembleMethodBody(typeParams, outputDefinition, outputParams, substring.strip());
+                });
             });
-        });
+        };
     }
 
     private static Function<String, Result<String, CompileError>> createClassRule(List_<String> typeParams) {
@@ -867,7 +869,7 @@ public class Main {
         return new None<>();
     }
 
-    private static Option<String> assembleMethodBody(
+    private static Result<String, CompileError> assembleMethodBody(
             List_<String> typeParams,
             String definition,
             String params,
@@ -876,13 +878,13 @@ public class Main {
         String header = "\t".repeat(0) + definition + "(" + params + ")";
         if (body.startsWith("{") && body.endsWith("}")) {
             String inputContent = body.substring("{".length(), body.length() - "}".length());
-            return compileStatements(inputContent, wrap(input1 -> compileStatementOrBlock(input1, typeParams, 1))).findValue().flatMap(outputContent -> {
+            return compileStatements(inputContent, wrap(input1 -> compileStatementOrBlock(input1, typeParams, 1))).flatMapValue(outputContent -> {
                 methods.add(header + " {" + outputContent + "\n}\n");
-                return new Some<>("");
+                return new Ok<>("");
             });
         }
 
-        return new Some<>("\n\t" + header + ";");
+        return new Ok<>("\n\t" + header + ";");
     }
 
     private static Function<String, Result<String, CompileError>> createParameterRule() {
@@ -892,9 +894,8 @@ public class Main {
         ));
     }
 
-    private static Option<String> compileValues(String input, Function<String, Option<String>> compiler) {
-        List_<String> divided = divide(input, Main::divideValueChar);
-        return compileValues(divided, compiler);
+    private static Result<String, CompileError> compileValues(String input, Function<String, Result<String, CompileError>> compiler) {
+        return compileValues(divide(input, Main::divideValueChar), compiler);
     }
 
     private static State divideValueChar(State state, char c) {
@@ -919,8 +920,8 @@ public class Main {
         return appended;
     }
 
-    private static Option<String> compileValues(List_<String> params, Function<String, Option<String>> compiler) {
-        return compileAndMerge(params, wrap(compiler), Main::mergeValues).findValue();
+    private static Result<String, CompileError> compileValues(List_<String> params, Function<String, Result<String, CompileError>> compiler) {
+        return compileAndMerge(params, compiler, Main::mergeValues);
     }
 
     private static Option<String> compileStatementOrBlock(String input, List_<String> typeParams, int depth) {
@@ -1302,9 +1303,9 @@ public class Main {
     }
 
     private static Option<String> compileArgs(String argsString, List_<String> typeParams, int depth) {
-        return compileValues(argsString, arg -> {
+        return compileValues(argsString, wrap(arg -> {
             return compileWhitespace(arg).or(() -> compileValue(arg, typeParams, depth));
-        }).map(args -> {
+        })).findValue().map(args -> {
             return "(" + args + ")";
         });
     }
@@ -1317,21 +1318,20 @@ public class Main {
     }
 
     private static Function<String, Result<String, CompileError>> createDefinitionRule() {
-        return wrap(input -> {
+        return createTypeRule("definition", input -> {
             String stripped = input.strip();
             int nameSeparator = stripped.lastIndexOf(" ");
             if (nameSeparator < 0) {
-                return new None<>();
+                return createInfixErr(stripped, " ");
             }
 
             String beforeName = stripped.substring(0, nameSeparator).strip();
             String name = stripped.substring(nameSeparator + " ".length()).strip();
             if (!isSymbol(name)) {
-                return new None<>();
+                return new Err<>(new CompileError("Not a symbol", name));
             }
 
             int typeSeparator = findTypeSeparator(beforeName);
-
             if (typeSeparator >= 0) {
                 String beforeType = beforeName.substring(0, typeSeparator).strip();
 
@@ -1371,14 +1371,18 @@ public class Main {
                         .allMatch(Main::isSymbol);
 
                 if (!allSymbols) {
-                    return new None<>();
+                    return new Err<>(new CompileError("Not all modifiers are strings", modifiersString));
                 }
 
                 String inputType = beforeName.substring(typeSeparator + " ".length());
-                return createTypeRule(typeParams).apply(inputType).findValue().flatMap(outputType -> new Some<>(generateDefinition(typeParams, outputType, name)));
+                return createTypeRule(typeParams)
+                        .apply(inputType)
+                        .flatMapValue(outputType -> new Ok<String, CompileError>(generateDefinition(typeParams, outputType, name)));
             }
             else {
-                return createTypeRule(Impl.emptyList()).apply(beforeName).findValue().flatMap(outputType -> new Some<>(generateDefinition(Impl.emptyList(), outputType, name)));
+                return createTypeRule(Impl.emptyList())
+                        .apply(beforeName)
+                        .flatMapValue(outputType -> new Ok<String, CompileError>(generateDefinition(Impl.emptyList(), outputType, name)));
             }
         });
     }
@@ -1483,9 +1487,9 @@ public class Main {
             if (argsStart >= 0) {
                 String base = slice.substring(0, argsStart).strip();
                 String params = slice.substring(argsStart + "<".length()).strip();
-                return compileValues(params, type -> {
+                return compileValues(params, wrap(type -> {
                     return compileWhitespace(type).or(() -> createTypeRule(typeParams).apply(type).findValue());
-                }).map(compiled -> {
+                })).findValue().map(compiled -> {
                     return base + "_" + compiled;
                 });
             }
