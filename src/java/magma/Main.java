@@ -142,6 +142,10 @@ public class Main {
         Iterator<K> keys();
     }
 
+    private interface Context {
+        String display();
+    }
+
     public record String_(char[] array) {
     }
 
@@ -640,8 +644,15 @@ public class Main {
         }
     }
 
-    public record CompileError(String message, String context, List_<CompileError> errors) implements Error {
-        public CompileError(String message, String context) {
+    private record StringContext(String value) implements Context {
+        @Override
+        public String display() {
+            return this.value;
+        }
+    }
+
+    public record CompileError(String message, Context context, List_<CompileError> errors) implements Error {
+        public CompileError(String message, Context context) {
             this(message, context, Lists.empty());
         }
 
@@ -660,7 +671,7 @@ public class Main {
                     .collect(new Joiner(""))
                     .orElse("");
 
-            return this.message + ": " + this.context + joiner;
+            return this.message + ": " + this.context.display() + joiner;
         }
 
         private int maxDepth() {
@@ -700,7 +711,12 @@ public class Main {
     private record TypeCompiler(String type, Compiler childCompiler) implements Compiler {
         @Override
         public Result<String, CompileError> apply(String s) {
-            return this.childCompiler.apply(s).mapErr(err -> new CompileError("Invalid type '" + this.type + "'", s, Lists.of(err)));
+            return this.childCompiler.apply(s).mapErr(err -> {
+                String format = "Invalid type '%s'";
+                String message = format.formatted(this.type);
+                StringContext context = new StringContext(s);
+                return new CompileError(message, context, Lists.of(err));
+            });
         }
     }
 
@@ -722,7 +738,7 @@ public class Main {
             if (isSymbol(input)) {
                 return new Ok<>(input);
             }
-            return new Err<>(new CompileError("Not a symbol", input));
+            return new Err<>(new CompileError("Not a symbol", new StringContext(input)));
         }
     }
 
@@ -739,7 +755,10 @@ public class Main {
             return this.rules.iter()
                     .foldWithInitial(new OrState(), (orState, compiler) -> compiler.apply(input).match(orState::withValue, orState::withError))
                     .toResult()
-                    .mapErr(errors -> new CompileError("No valid combination present", input, errors));
+                    .mapErr(errors -> {
+                        StringContext context = new StringContext(input);
+                        return new CompileError("No valid combination present", context, errors);
+                    });
         }
     }
 
@@ -785,7 +804,7 @@ public class Main {
 
         @Override
         public String toString() {
-            return this.strings.toString() + this.nodeLists.toString();
+            return this.display();
         }
 
         private Node withString(String propertyKey, String propertyValue) {
@@ -823,6 +842,17 @@ public class Main {
                     return Lists.equalsTo(nodeList, nodeList2, Node::equalsTo);
                 }
             });
+        }
+
+        public String display() {
+            return this.strings.toString() + this.nodeLists.toString();
+        }
+    }
+
+    private record NodeContext(Node node) implements Context {
+        @Override
+        public String display() {
+            return this.node.display();
         }
     }
 
@@ -899,7 +929,7 @@ public class Main {
         if (input.startsWith("package ")) {
             return new Ok<>("");
         }
-        return new Err<>(new CompileError("Prefix 'package ' not present", input));
+        return new Err<>(new CompileError("Prefix 'package ' not present", new StringContext(input)));
     }
 
     private static List_<String> mergeStatics(List_<String> list) {
@@ -1035,12 +1065,12 @@ public class Main {
 
     private static Result<String, CompileError> generateStruct(ParseState typeParams, String name, String afterKeyword, int contentStart, List_<String> moreTypeParams) {
         if (!isSymbol(name)) {
-            return new Err<>(new CompileError("Not a symbol", name));
+            return new Err<>(new CompileError("Not a symbol", new StringContext(name)));
         }
 
         String withEnd = afterKeyword.substring(contentStart + "{".length()).strip();
         if (!withEnd.endsWith("}")) {
-            return new Err<>(new CompileError("Suffix '}' not present", withEnd));
+            return new Err<>(new CompileError("Suffix '}' not present", new StringContext(withEnd)));
         }
 
         String inputContent = withEnd.substring(0, withEnd.length() - "}".length());
@@ -1071,7 +1101,7 @@ public class Main {
     }
 
     private static Err<String, CompileError> createInfixErr(String input, String infix) {
-        return new Err<>(new CompileError("Infix '" + infix + "' not present", input));
+        return new Err<>(new CompileError("Infix '" + infix + "' not present", new StringContext(input)));
     }
 
     private static String removeParameters(String strippedBeforeImplements) {
@@ -1142,7 +1172,7 @@ public class Main {
     }
 
     private static <T> Result<T, CompileError> createSuffixErr(String input, String suffix) {
-        return new Err<>(new CompileError("Suffix '" + suffix + "' not present", input));
+        return new Err<>(new CompileError("Suffix '" + suffix + "' not present", new StringContext(input)));
     }
 
     private static Result<String, CompileError> compileGlobalInitialization(ParseState typeParams, String input) {
@@ -1177,7 +1207,7 @@ public class Main {
         if (input.isBlank()) {
             return new Ok<>("");
         }
-        return new Err<>(new CompileError("Not blank", input));
+        return new Err<>(new CompileError("Not blank", new StringContext(input)));
     }
 
     private static Result<String, CompileError> assembleMethodBody(
@@ -1275,7 +1305,7 @@ public class Main {
     }
 
     private static Err<String, CompileError> createPrefixRule(String input, String prefix) {
-        return new Err<>(new CompileError("Prefix '" + prefix + "' not present", input));
+        return new Err<>(new CompileError("Prefix '" + prefix + "' not present", new StringContext(input)));
     }
 
     private static Result<String, CompileError> compilePostOperator(String input, ParseState typeParams, int depth, String operator) {
@@ -1474,7 +1504,7 @@ public class Main {
         if (input.equals("false")) {
             return new Ok<>("0");
         }
-        return new Err<>(new CompileError("Not a boolean", input));
+        return new Err<>(new CompileError("Not a boolean", new StringContext(input)));
     }
 
     private static Result<String, CompileError> compileString(String input) {
@@ -1482,7 +1512,7 @@ public class Main {
             return new Ok<>(input);
         }
         else {
-            return new Err<>(new CompileError("Not a string", input));
+            return new Err<>(new CompileError("Not a string", new StringContext(input)));
         }
     }
 
@@ -1492,7 +1522,7 @@ public class Main {
             return new Ok<>(stripped);
         }
         else {
-            return new Err<>(new CompileError("Not a char", stripped));
+            return new Err<>(new CompileError("Not a char", new StringContext(stripped)));
         }
     }
 
@@ -1505,7 +1535,7 @@ public class Main {
             if (isNumber(s)) {
                 return new Ok<>(s);
             }
-            return new Err<>(new CompileError("Not a number", s));
+            return new Err<>(new CompileError("Not a number", new StringContext(s)));
         }));
     }
 
@@ -1611,7 +1641,7 @@ public class Main {
                     .collect(new ListCollector<>());
         }
         else {
-            return new Err<>(new CompileError("No params found", beforeArrow));
+            return new Err<>(new CompileError("No params found", new StringContext(beforeArrow)));
         }
 
         String value = input.substring(arrowIndex + "->".length()).strip();
@@ -1662,8 +1692,14 @@ public class Main {
 
         String type = sliced.substring(0, argsStart);
         String withEnd = sliced.substring(argsStart + "(".length()).strip();
-        return parseValue(type, state, depth).mapValue(node -> unwrap(node))
+        return parseValue(type, state, depth)
+                .flatMapValue(node -> resolveType(node).mapValue(result -> node))
+                .mapValue(Main::unwrap)
                 .flatMapValue(caller -> compileArgs(withEnd, state, depth).mapValue(value -> caller + value));
+    }
+
+    private static Result<Node, CompileError> resolveType(Node node) {
+        return new Err<>(new CompileError("Failed to resolve type", new NodeContext(node)));
     }
 
     private static int findInvocationStart(String sliced) {
@@ -1713,7 +1749,7 @@ public class Main {
             String beforeName = stripped.substring(0, nameSeparator).strip();
             String name = stripped.substring(nameSeparator + " ".length()).strip();
             if (!isSymbol(name)) {
-                return new Err<>(new CompileError("Not a symbol", name));
+                return new Err<>(new CompileError("Not a symbol", new StringContext(name)));
             }
 
             return findTypeSeparator(beforeName).match(typeSeparator -> {
@@ -1747,7 +1783,7 @@ public class Main {
                 String modifiers = removeAnnotations(more.strip());
 
                 if (!validateModifiers(modifiers)) {
-                    return new Err<>(new CompileError("Invalid modifiers", modifiers));
+                    return new Err<>(new CompileError("Invalid modifiers", new StringContext(modifiers)));
                 }
 
                 Result<Node, CompileError> withType = parseTypeProperty(state1, typeString)
@@ -1762,7 +1798,7 @@ public class Main {
         String modifiers = removeAnnotations(beforeType.strip());
         List_<String> typeParams = Lists.empty();
         if (!validateModifiers(modifiers)) {
-            return new Err<>(new CompileError("Invalid modifiers", modifiers));
+            return new Err<>(new CompileError("Invalid modifiers", new StringContext(modifiers)));
         }
 
         return parseTypeProperty(state, typeString)
@@ -1935,7 +1971,7 @@ public class Main {
 
     private static Result<String, CompileError> getStringCompileErrorResult(ParseState state, String value) {
         if (!isSymbol(value.strip())) {
-            return new Err<>(new CompileError("Not a symbol", value.strip()));
+            return new Err<>(new CompileError("Not a symbol", new StringContext(value.strip())));
         }
 
         if (state.isDefined(value.strip())) {
@@ -1980,7 +2016,7 @@ public class Main {
             return new Ok<>("char");
         }
 
-        return new Err<>(new CompileError("Not a primitive", stripped));
+        return new Err<>(new CompileError("Not a primitive", new StringContext(stripped)));
     }
 
     private static boolean isSymbol(String input) {

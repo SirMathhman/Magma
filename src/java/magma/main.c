@@ -76,7 +76,10 @@ struct Compiler {
 	Main.Iterator<Main.Tuple<K, V>> iter();
 	Iterator<K> keys();
 };
-*/struct String_ {
+*/struct Context {
+	struct String display();
+};
+struct String_ {
 };
 struct ApplicationError {
 };
@@ -117,6 +120,8 @@ struct DecoratedDivider {
 struct DelimitedDivider {
 };
 struct Options {
+};
+struct StringContext {
 };
 struct CompileError {
 	struct String format(int depth);
@@ -920,7 +925,10 @@ auto __lambda146__(auto tuple) {
 auto __lambda147__ {
 	return second;
 }
-struct public CompileError(struct String message, struct String context) {
+struct String display() {
+	return this.value;
+}
+struct public CompileError(struct String message, struct Context context) {
 	this(message, context, Lists.empty());
 }
 struct String display0() {
@@ -1010,7 +1018,10 @@ struct Compiler {
 	Main.Iterator<Main.Tuple<K, V>> iter();
 	Iterator<K> keys();
 };
-*/struct String_ {
+*/struct Context {
+	struct String display();
+};
+struct String_ {
 };
 struct ApplicationError {
 };
@@ -1051,6 +1062,8 @@ struct DecoratedDivider {
 struct DelimitedDivider {
 };
 struct Options {
+};
+struct StringContext {
 };
 struct CompileError {
 	struct String format(int depth);
@@ -1854,7 +1867,10 @@ auto __lambda146__(auto tuple) {
 auto __lambda147__ {
 	return second;
 }
-struct public CompileError(struct String message, struct String context) {
+struct String display() {
+	return this.value;
+}
+struct public CompileError(struct String message, struct Context context) {
 	this(message, context, Lists.empty());
 }
 struct String display0() {
