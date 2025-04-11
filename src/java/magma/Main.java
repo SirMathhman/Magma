@@ -1472,7 +1472,7 @@ public class Main {
             }
 
             String argsString = withEnd.substring(0, withEnd.length() - ")".length());
-            return compileType(type, typeParams)
+            return parseAnyType(type, typeParams).mapValue(Main::generateAnyType)
                     .flatMapValue(outputType -> compileArgs(argsString, typeParams, depth)
                             .mapValue(value -> outputType + value));
         })).apply(stripped);
@@ -1494,7 +1494,7 @@ public class Main {
             String property = input.substring(methodIndex + "::".length()).strip();
 
             if (isSymbol(property)) {
-                return compileType(type, typeParams)
+                return parseAnyType(type, typeParams).mapValue(Main::generateAnyType)
                         .flatMapValue(compiled -> generateLambdaWithReturn(Lists.empty(), "\n\treturn " + compiled + "." + property + "()"));
             }
         }
@@ -1654,7 +1654,7 @@ public class Main {
                 return compileBeforeDefinitionName(state, new Node()
                         .withString("name", name), beforeName.substring(0, typeSeparator).strip(), beforeName.substring(typeSeparator + " ".length()));
             }, () -> {
-                return compileType(beforeName, state).mapValue(outputType -> {
+                return parseAnyType(beforeName, state).mapValue(Main::generateAnyType).mapValue(outputType -> {
                     return generateDefinition(new Node()
                             .withNodeList("type-params", Lists.empty())
                             .withString("name", name)
@@ -1714,7 +1714,7 @@ public class Main {
     }
 
     private static Result<Node, CompileError> parseTypeProperty(ParseState state, String inputType) {
-        return compileType(inputType, state)
+        return parseAnyType(inputType, state).mapValue(Main::generateAnyType)
                 .flatMapValue(outputType -> parseString("type", outputType));
     }
 
@@ -1795,7 +1795,16 @@ public class Main {
                 .orElse("");
     }
 
-    private static Result<String, CompileError> compileType(String input, ParseState typeParams) {
+    private static String generateAnyType(Node result) {
+        return result.findString("value").orElse("");
+    }
+
+    private static Result<Node, CompileError> parseAnyType(String input, ParseState typeParams) {
+        return getApply(input, typeParams)
+                .mapValue(result -> new Node().withString("value", result));
+    }
+
+    private static Result<String, CompileError> getApply(String input, ParseState typeParams) {
         return new OrRule(Lists.of(
                 value1 -> parsePrimitive(value1).flatMapValue(Main::generatePrimitive),
                 value -> getWrapped(typeParams, value),
@@ -1821,7 +1830,7 @@ public class Main {
 
         OrRule paramRule = new OrRule(Lists.of(
                 Main::compileWhitespace,
-                type -> compileType(type, typeParams)
+                type -> parseAnyType(type, typeParams).mapValue(Main::generateAnyType)
         ));
 
         List_<String> divided = divideValues(params);
@@ -1874,7 +1883,7 @@ public class Main {
 
     private static Result<String, CompileError> getWrapped(ParseState typeParams, String value) {
         if (value.endsWith("[]")) {
-            return compileType(value.substring(0, value.length() - "[]".length()), typeParams).mapValue(value1 -> value1 + "*");
+            return parseAnyType(value.substring(0, value.length() - "[]".length()), typeParams).mapValue(Main::generateAnyType).mapValue(value1 -> value1 + "*");
         }
         return createSuffixErr(value, "[]");
     }
