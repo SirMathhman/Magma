@@ -1252,7 +1252,7 @@ public class Main {
                 return compileValues(params, type -> {
                     return compileWhitespace(type).or(() -> compileType(type, typeParams));
                 }).map(compiled -> {
-                    return base + "<" + compiled + ">";
+                    return base + "_" + compiled;
                 });
             }
         }
