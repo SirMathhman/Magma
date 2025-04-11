@@ -593,9 +593,14 @@ public class Main {
             return new None<>();
         }
 
+        String name = beforeContent;
+        if (!isSymbol(name)) {
+            return new None<>();
+        }
+
         String inputContent = withEnd.substring(0, withEnd.length() - "}".length());
         return compileStatements(inputContent, input1 -> compileClassMember(input1, typeParams)).map(outputContent -> {
-            structs.add("struct " + beforeContent + " {" + outputContent + "\n};\n");
+            structs.add("struct " + name + " {" + outputContent + "\n};\n");
             return "";
         });
     }
