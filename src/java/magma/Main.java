@@ -1126,7 +1126,7 @@ public class Main {
                 String withEnd = slice.substring(argsStart + "(".length()).strip();
                 if (withEnd.endsWith(")")) {
                     String argsString = withEnd.substring(0, withEnd.length() - ")".length());
-                    return compileType(type, typeParams).flatMap(outputType -> compileArgs(argsString, typeParams, depth).map(value -> outputType + value));
+                    return createTypeRule(typeParams).apply(type).findValue().flatMap(outputType -> compileArgs(argsString, typeParams, depth).map(value -> outputType + value));
                 }
             }
         }
@@ -1151,7 +1151,7 @@ public class Main {
             String property = stripped.substring(methodIndex + "::".length()).strip();
 
             if (isSymbol(property)) {
-                return compileType(type, typeParams).flatMap(compiled -> {
+                return createTypeRule(typeParams).apply(type).findValue().flatMap(compiled -> {
                     return generateLambdaWithReturn(Impl.emptyList(), "\n\treturn " + compiled + "." + property + "()");
                 });
             }
@@ -1361,10 +1361,10 @@ public class Main {
             }
 
             String inputType = beforeName.substring(typeSeparator + " ".length());
-            return compileType(inputType, typeParams).flatMap(outputType -> new Some<>(generateDefinition(typeParams, outputType, name)));
+            return createTypeRule(typeParams).apply(inputType).findValue().flatMap(outputType -> new Some<>(generateDefinition(typeParams, outputType, name)));
         }
         else {
-            return compileType(beforeName, Impl.emptyList()).flatMap(outputType -> new Some<>(generateDefinition(Impl.emptyList(), outputType, name)));
+            return createTypeRule(Impl.emptyList()).apply(beforeName).findValue().flatMap(outputType -> new Some<>(generateDefinition(Impl.emptyList(), outputType, name)));
         }
     }
 
@@ -1408,34 +1408,60 @@ public class Main {
         return typeParamsString + type + " " + name;
     }
 
-    private static Option<String> compileType(String input, List_<String> typeParams) {
-        if (input.equals("void")) {
-            return new Some<>("void");
-        }
+    private static Function<String, Result<String, CompileError>> createTypeRule(List_<String> typeParams) {
+        return createOrRule(Impl.listOf(
+                createPrimitiveRule(),
+                createArrayRule(typeParams),
+                createSymbolRule(typeParams),
+                createGenericRule(typeParams)
+        ));
+    }
 
-        if (input.equals("int") || input.equals("Integer") || input.equals("boolean") || input.equals("Boolean")) {
-            return new Some<>("int");
-        }
+    private static Function<String, Result<String, CompileError>> createGenericRule(List_<String> typeParams) {
+        return wrap(input -> compileGeneric(input, typeParams));
+    }
 
-        if (input.equals("char") || input.equals("Character")) {
-            return new Some<>("char");
-        }
+    private static Function<String, Result<String, CompileError>> createSymbolRule(List_<String> typeParams) {
+        return wrap(input -> compileSymbol(input, typeParams));
+    }
 
+    private static Function<String, Result<String, CompileError>> createArrayRule(List_<String> typeParams) {
+        return wrap(input -> compileArray(input, typeParams));
+    }
+
+    private static Function<String, Result<String, CompileError>> createPrimitiveRule() {
+        return wrap(input -> {
+            if (input.equals("void")) {
+                return new Some<>("void");
+            }
+
+            if (input.equals("int") || input.equals("Integer") || input.equals("boolean") || input.equals("Boolean")) {
+                return new Some<>("int");
+            }
+
+            if (input.equals("char") || input.equals("Character")) {
+                return new Some<>("char");
+            }
+
+            return new None<>();
+        });
+    }
+
+    private static Option<String> compileArray(String input, List_<String> typeParams) {
         if (input.endsWith("[]")) {
-            return compileType(input.substring(0, input.length() - "[]".length()), typeParams)
-                    .map(value -> value + "*");
+            return createTypeRule(typeParams).apply(input.substring(0, input.length() - "[]".length())).findValue().map(value -> value + "*");
         }
+        return new None<>();
+    }
 
-        String stripped = input.strip();
-        if (isSymbol(stripped)) {
-            if (Impl.contains(typeParams, stripped, String::equals)) {
-                return new Some<>(stripped);
-            }
-            else {
-                return new Some<>("struct " + stripped);
-            }
+    private static Option<String> compileSymbol(String input, List_<String> typeParams) {
+        if (isSymbol(input.strip())) {
+            return Impl.contains(typeParams, input.strip(), String::equals) ? new Some<>(input.strip()) : new Some<>("struct " + input.strip());
         }
+        return new None<>();
+    }
 
+    private static Option<String> compileGeneric(String stripped, List_<String> typeParams) {
         if (stripped.endsWith(">")) {
             String slice = stripped.substring(0, stripped.length() - ">".length());
             int argsStart = slice.indexOf("<");
@@ -1443,14 +1469,14 @@ public class Main {
                 String base = slice.substring(0, argsStart).strip();
                 String params = slice.substring(argsStart + "<".length()).strip();
                 return compileValues(params, type -> {
-                    return compileWhitespace(type).or(() -> compileType(type, typeParams));
+                    return compileWhitespace(type).or(() -> createTypeRule(typeParams).apply(type).findValue());
                 }).map(compiled -> {
                     return base + "_" + compiled;
                 });
             }
         }
 
-        return generatePlaceholder(input);
+        return new None<>();
     }
 
     private static boolean isSymbol(String input) {
