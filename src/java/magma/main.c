@@ -118,9 +118,6 @@ struct Options {
 struct CompileError {
 	struct String format(int depth);
 };
-struct Max {
-	Result<struct String, struct CompileError> apply(struct String input);
-};
 struct Main {
 };
 // Result<T, R>
@@ -170,7 +167,11 @@ struct Main {
 // Option<struct String>
 // Tuple<int, struct State>
 // BiFunction<V, V, int>
-// Result<struct String, struct CompileError>
+// List_<List_<struct String>>
+// Map_<struct String, struct String>
+// List_<struct Node>
+// Map_<struct String, List_<struct Node>>
+// Option<List_<struct Node>>
 int retrieved = 0;
 int counter = 0;
 struct String_ display() {
@@ -917,6 +918,84 @@ Option<int> createInitial() {
 }
 Option<int> fold(Option<int> current, int element) {
 	return Some<>(current.map(inner -> inner > element ? inner : element).orElse(element));
+}
+struct public ParseState(List_<List_<struct String>> frames) {
+	this.frames = frames;
+}
+struct public ParseState() {
+	this(Lists.<List_<String>>empty().add(Lists.empty()));
+}
+struct ParseState enter() {
+	this.frames = this.frames.add(Lists.empty());
+	return this;
+}
+struct ParseState defineAll(List_<struct String> typeParams) {
+	List_<struct String> newLast = this.frames.last().addAll(typeParams);
+	this.frames = this.frames.set(this.frames.size() - 1, newLast);
+	return this;
+}
+auto __lambda147__ {
+	return struct String.equals()
+}
+auto __lambda148__(auto frame) {
+	return Lists.contains(frame, typeParam, __lambda147__);
+}
+auto __lambda149__(auto frame) {
+	return Lists.contains;
+}
+auto __lambda150__(auto frame) {
+	return Lists;
+}
+auto __lambda151__ {
+	return struct String.equals()
+}
+auto __lambda152__(auto frame) {
+	return Lists;
+}
+int isDefined(struct String typeParam) {
+	return this.frames.iter().anyMatch(__lambda148__);
+}
+struct public Node() {
+	this(Maps.empty(), Maps.empty());
+}
+struct public Node(Map_<struct String, struct String> strings, Map_<struct String, List_<struct Node>> nodeLists) {
+	this.strings = strings;
+	this.nodeLists = nodeLists;
+}
+struct String toString() {
+	return this.strings.toString() + this.nodeLists.toString();
+}
+struct Node withString(struct String propertyKey, struct String propertyValue) {
+	return struct Node(this.strings.with(propertyKey, propertyValue), this.nodeLists);
+}
+Option<struct String> findString(struct String propertyKey) {
+	return this.strings.find(propertyKey);
+}
+struct Node withNodeList(struct String propertyKey, List_<struct Node> propertyValues) {
+	return struct Node(this.strings, this.nodeLists.with(propertyKey, propertyValues));
+}
+Option<List_<struct Node>> findNodeList(struct String propertyKey) {
+	return this.nodeLists.find(propertyKey);
+}
+struct Node merge(struct Node other) {
+	return struct Node(this.strings.withAll(other.strings), this.nodeLists.withAll(other.nodeLists));
+}
+int equalsTo(struct Node node) {
+	return this.hasSameStrings(node) && this.hasSameNodeLists(node);
+}
+auto __lambda153__ {
+	return struct String.equals()
+}
+int hasSameStrings(struct Node node) {
+	return Maps.equalsTo(this.strings, node.strings, __lambda153__);
+}
+int hasSameNodeLists(struct Node node) {
+	return Maps.equalsTo(this.nodeLists, node.nodeLists, new BiFunction<List_<Node>, List_<Node>, Boolean>() {
+                @Override
+                public Boolean apply(List_<Node> nodeList, List_<Node> nodeList2) {
+                    return Lists.equalsTo(nodeList, nodeList2, Node::equalsTo);
+                }
+            });
 }
 #include "../magma/java/Strings.h"
 #include "../static magma/java/Console/printlnErr.h"
@@ -1038,9 +1117,6 @@ struct Options {
 struct CompileError {
 	struct String format(int depth);
 };
-struct Max {
-	Result<struct String, struct CompileError> apply(struct String input);
-};
 struct Main {
 };
 // Result<T, R>
@@ -1090,7 +1166,11 @@ struct Main {
 // Option<struct String>
 // Tuple<int, struct State>
 // BiFunction<V, V, int>
-// Result<struct String, struct CompileError>
+// List_<List_<struct String>>
+// Map_<struct String, struct String>
+// List_<struct Node>
+// Map_<struct String, List_<struct Node>>
+// Option<List_<struct Node>>
 int retrieved = 0;
 int counter = 0;
 struct String_ display() {
@@ -1837,4 +1917,82 @@ Option<int> createInitial() {
 }
 Option<int> fold(Option<int> current, int element) {
 	return Some<>(current.map(inner -> inner > element ? inner : element).orElse(element));
+}
+struct public ParseState(List_<List_<struct String>> frames) {
+	this.frames = frames;
+}
+struct public ParseState() {
+	this(Lists.<List_<String>>empty().add(Lists.empty()));
+}
+struct ParseState enter() {
+	this.frames = this.frames.add(Lists.empty());
+	return this;
+}
+struct ParseState defineAll(List_<struct String> typeParams) {
+	List_<struct String> newLast = this.frames.last().addAll(typeParams);
+	this.frames = this.frames.set(this.frames.size() - 1, newLast);
+	return this;
+}
+auto __lambda147__ {
+	return struct String.equals()
+}
+auto __lambda148__(auto frame) {
+	return Lists.contains(frame, typeParam, __lambda147__);
+}
+auto __lambda149__(auto frame) {
+	return Lists.contains;
+}
+auto __lambda150__(auto frame) {
+	return Lists;
+}
+auto __lambda151__ {
+	return struct String.equals()
+}
+auto __lambda152__(auto frame) {
+	return Lists;
+}
+int isDefined(struct String typeParam) {
+	return this.frames.iter().anyMatch(__lambda148__);
+}
+struct public Node() {
+	this(Maps.empty(), Maps.empty());
+}
+struct public Node(Map_<struct String, struct String> strings, Map_<struct String, List_<struct Node>> nodeLists) {
+	this.strings = strings;
+	this.nodeLists = nodeLists;
+}
+struct String toString() {
+	return this.strings.toString() + this.nodeLists.toString();
+}
+struct Node withString(struct String propertyKey, struct String propertyValue) {
+	return struct Node(this.strings.with(propertyKey, propertyValue), this.nodeLists);
+}
+Option<struct String> findString(struct String propertyKey) {
+	return this.strings.find(propertyKey);
+}
+struct Node withNodeList(struct String propertyKey, List_<struct Node> propertyValues) {
+	return struct Node(this.strings, this.nodeLists.with(propertyKey, propertyValues));
+}
+Option<List_<struct Node>> findNodeList(struct String propertyKey) {
+	return this.nodeLists.find(propertyKey);
+}
+struct Node merge(struct Node other) {
+	return struct Node(this.strings.withAll(other.strings), this.nodeLists.withAll(other.nodeLists));
+}
+int equalsTo(struct Node node) {
+	return this.hasSameStrings(node) && this.hasSameNodeLists(node);
+}
+auto __lambda153__ {
+	return struct String.equals()
+}
+int hasSameStrings(struct Node node) {
+	return Maps.equalsTo(this.strings, node.strings, __lambda153__);
+}
+int hasSameNodeLists(struct Node node) {
+	return Maps.equalsTo(this.nodeLists, node.nodeLists, new BiFunction<List_<Node>, List_<Node>, Boolean>() {
+                @Override
+                public Boolean apply(List_<Node> nodeList, List_<Node> nodeList2) {
+                    return Lists.equalsTo(nodeList, nodeList2, Node::equalsTo);
+                }
+            });
 }
