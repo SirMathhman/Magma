@@ -48,8 +48,9 @@ public class Impl {
         }
 
         @Override
-        public void addAll(Main.List_<T> elements) {
+        public Main.List_<T> addAll(Main.List_<T> elements) {
             elements.iter().forEach(this::add);
+            return this;
         }
 
         @Override
