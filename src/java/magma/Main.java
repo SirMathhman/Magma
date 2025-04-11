@@ -584,9 +584,9 @@ public class Main {
         String beforeContent = afterKeyword.substring(0, contentStart).strip();
 
         int typeStartIndex = beforeContent.indexOf("<");
-        String name = typeStartIndex >= 0
-                ? beforeContent.substring(0, typeStartIndex)
-                : beforeContent;
+        if (typeStartIndex >= 0) {
+            return new None<>();
+        }
 
         String withEnd = afterKeyword.substring(contentStart + "{".length()).strip();
         if (!withEnd.endsWith("}")) {
@@ -595,7 +595,7 @@ public class Main {
 
         String inputContent = withEnd.substring(0, withEnd.length() - "}".length());
         return compileStatements(inputContent, input1 -> compileClassMember(input1, typeParams)).map(outputContent -> {
-            structs.add("struct " + name + " {" + outputContent + "\n};\n");
+            structs.add("struct " + beforeContent + " {" + outputContent + "\n};\n");
             return "";
         });
     }
