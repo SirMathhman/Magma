@@ -18,7 +18,7 @@ public class Files {
 
         @Override
         public Main.String_ display() {
-            return Strings.from(this.display0().toCharArray());
+            return Strings.fromNativeString(this.display0());
         }
     }
 

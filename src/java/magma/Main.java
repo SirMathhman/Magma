@@ -8,6 +8,8 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 
+import static magma.java.Console.printlnErr;
+
 public class Main {
     public interface Result<T, X> {
         <R> R match(Function<T, R> whenOk, Function<X, R> whenErr);
@@ -142,13 +144,9 @@ public class Main {
     }
 
     public record ApplicationError(Error error) implements Error {
-        private String display0() {
-            return Strings.unwrap(this.error.display());
-        }
-
         @Override
         public String_ display() {
-            return Strings.from(this.display0().toCharArray());
+            return this.error.display();
         }
     }
 
@@ -662,7 +660,7 @@ public class Main {
 
         @Override
         public String_ display() {
-            return Strings.from(this.display0().toCharArray());
+            return Strings.fromNativeString(this.display0());
         }
     }
 
@@ -829,7 +827,7 @@ public class Main {
         Files.readString(source)
                 .mapErr(ApplicationError::new)
                 .match(input -> compileAndWrite(source, input), Some::new)
-                .ifPresent(error -> System.err.println(Strings.unwrap(error.display())));
+                .ifPresent(error -> printlnErr(error.display()));
     }
 
     private static Option<ApplicationError> compileAndWrite(Path_ source, String input) {
