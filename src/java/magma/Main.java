@@ -136,6 +136,9 @@ public class Main {
         Iterator<K> keys();
     }
 
+    interface Rule extends Function<String, Result<Node, CompileError>> {
+    }
+
     public record String_(char[] array) {
     }
 
@@ -1267,46 +1270,41 @@ public class Main {
     }
 
     private static Result<String, CompileError> compileConditional(String type, String prefix, String input0, ParseState typeParams, int depth) {
-        return new Function<String, Result<String, CompileError>>() {
-            @Override
-            public Result<String, CompileError> apply(String s1) {
-                return compileWithType(type, s1, input -> {
-                    String stripped = input.strip();
-                    if (!stripped.startsWith(prefix)) {
-                        return createPrefixError(stripped, prefix);
-                    }
-
-                    String afterKeyword = stripped.substring(prefix.length()).strip();
-                    if (!afterKeyword.startsWith("(")) {
-                        return createPrefixError(afterKeyword, "(");
-                    }
-
-                    String withoutConditionStart = afterKeyword.substring(1);
-                    int conditionEnd = findConditionEnd(withoutConditionStart);
-                    if (conditionEnd < 0) {
-                        return createInfixErr(withoutConditionStart, ")");
-                    }
-
-                    String oldCondition = withoutConditionStart.substring(0, conditionEnd).strip();
-                    String withBraces = withoutConditionStart.substring(conditionEnd + ")".length()).strip();
-
-                    return compileValue(oldCondition, typeParams, depth).flatMapValue(newCondition -> {
-                        String withCondition = createIndent(depth) + prefix + "(" + newCondition + ")";
-
-                        if (!withBraces.startsWith("{") || !withBraces.endsWith("}")) {
-                            return compileStatementOrBlock(withBraces, typeParams, depth).mapValue(result -> withCondition + " " + result);
-                        }
-
-                        String content = withBraces.substring(1, withBraces.length() - 1);
-                        Result<String, CompileError> stringCompileErrorResult = compileStatements(content, s -> compileStatementOrBlock(s, typeParams, depth + 1));
-                        return stringCompileErrorResult.mapValue(statements -> withCondition +
-                                " {" + statements + "\n" +
-                                "\t".repeat(depth) +
-                                "}");
-                    });
-                });
+        return compileWithType(type, input0, input -> {
+            String stripped = input.strip();
+            if (!stripped.startsWith(prefix)) {
+                return createPrefixError(stripped, prefix);
             }
-        }.apply(input0);
+
+            String afterKeyword = stripped.substring(prefix.length()).strip();
+            if (!afterKeyword.startsWith("(")) {
+                return createPrefixError(afterKeyword, "(");
+            }
+
+            String withoutConditionStart = afterKeyword.substring(1);
+            int conditionEnd = findConditionEnd(withoutConditionStart);
+            if (conditionEnd < 0) {
+                return createInfixErr(withoutConditionStart, ")");
+            }
+
+            String oldCondition = withoutConditionStart.substring(0, conditionEnd).strip();
+            String withBraces = withoutConditionStart.substring(conditionEnd + ")".length()).strip();
+
+            return compileValue(oldCondition, typeParams, depth).flatMapValue(newCondition -> {
+                String withCondition = createIndent(depth) + prefix + "(" + newCondition + ")";
+
+                if (!withBraces.startsWith("{") || !withBraces.endsWith("}")) {
+                    return compileStatementOrBlock(withBraces, typeParams, depth).mapValue(result -> withCondition + " " + result);
+                }
+
+                String content = withBraces.substring(1, withBraces.length() - 1);
+                Result<String, CompileError> stringCompileErrorResult = compileStatements(content, s -> compileStatementOrBlock(s, typeParams, depth + 1));
+                return stringCompileErrorResult.mapValue(statements -> withCondition +
+                        " {" + statements + "\n" +
+                        "\t".repeat(depth) +
+                        "}");
+            });
+        });
     }
 
     private static int findConditionEnd(String input) {
@@ -1414,18 +1412,13 @@ public class Main {
                 Main::compileBoolean,
                 Main::compileString,
                 Main::compileChar,
-                stripped -> ((Function<String, Result<String, CompileError>>) s -> compileWithType("symbol", s, s1 -> compileStrip(s1, new Function<String, Result<String, CompileError>>() {
-                    @Override
-                    public Result<String, CompileError> apply(String s2) {
-                        return getRecord(s2);
-                    }
-                }))).apply(stripped),
-                stripped1 -> ((Function<String, Result<String, CompileError>>) s -> compileWithType("number", s, s1 -> compileStrip(s1, s2 -> {
+                stripped -> compileWithType("symbol", stripped, s1 -> compileStrip(s1, Main::getRecord)),
+                stripped1 -> compileWithType("number", stripped1, s1 -> compileStrip(s1, s2 -> {
                     if (isNumber(s2)) {
                         return new Ok<>(s2);
                     }
                     return new Err<>(new CompileError("Not a number", s2));
-                }))).apply(stripped1),
+                })),
                 input -> compileConstruction(input, typeParams, depth),
                 input -> compileNot(input, typeParams, depth),
                 input -> compileLambda(input, typeParams, depth),
@@ -1473,38 +1466,33 @@ public class Main {
     }
 
     private static Result<String, CompileError> compileConstruction(String stripped, ParseState typeParams, int depth) {
-        return new Function<String, Result<String, CompileError>>() {
+        return compileWithType("construction", stripped, new Function<String, Result<String, CompileError>>() {
             @Override
-            public Result<String, CompileError> apply(String s) {
-                return compileWithType("construction", s, new Function<String, Result<String, CompileError>>() {
-                    @Override
-                    public Result<String, CompileError> apply(String s1) {
-                        return compileStrip(s1, input -> {
-                            if (!input.startsWith("new ")) {
-                                return createPrefixError(input, "new ");
-                            }
-
-                            String slice = input.substring("new ".length());
-                            int argsStart = slice.indexOf("(");
-                            if (argsStart < 0) {
-                                return createInfixErr(slice, "(");
-                            }
-
-                            String type = slice.substring(0, argsStart);
-                            String withEnd = slice.substring(argsStart + "(".length()).strip();
-                            if (!withEnd.endsWith(")")) {
-                                return createSuffixErr(withEnd, ")");
-                            }
-
-                            String argsString = withEnd.substring(0, withEnd.length() - ")".length());
-                            return parseAnyType(type, typeParams).mapValue(Main::generateAnyType)
-                                    .flatMapValue(outputType -> compileArgs(argsString, typeParams, depth)
-                                            .mapValue(value -> outputType + value));
-                        });
+            public Result<String, CompileError> apply(String s1) {
+                return compileStrip(s1, input -> {
+                    if (!input.startsWith("new ")) {
+                        return createPrefixError(input, "new ");
                     }
+
+                    String slice = input.substring("new ".length());
+                    int argsStart = slice.indexOf("(");
+                    if (argsStart < 0) {
+                        return createInfixErr(slice, "(");
+                    }
+
+                    String type = slice.substring(0, argsStart);
+                    String withEnd = slice.substring(argsStart + "(".length()).strip();
+                    if (!withEnd.endsWith(")")) {
+                        return createSuffixErr(withEnd, ")");
+                    }
+
+                    String argsString = withEnd.substring(0, withEnd.length() - ")".length());
+                    return parseAnyType(type, typeParams).mapValue(Main::generateAnyType)
+                            .flatMapValue(outputType -> compileArgs(argsString, typeParams, depth)
+                                    .mapValue(value -> outputType + value));
                 });
             }
-        }.apply(stripped);
+        });
     }
 
     private static Result<String, CompileError> compileNot(String stripped, ParseState typeParams, int depth) {
