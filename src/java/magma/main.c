@@ -8,11 +8,11 @@ struct Path_ {
 struct Error {
 	struct String display();
 };
-struct State {	List__char queue;
+struct State {
+	List__char queue;
 	List__struct String segments;
 	struct StringBuilder buffer;
 	int depth;
-
 };
 struct Iterators {
 };
@@ -429,7 +429,7 @@ auto __lambda35__(auto input1) {
 	return createClassMemberRule(typeParams).apply(input1);
 }
 auto __lambda36__(auto outputContent) {
-	structs.add("struct " + name + " {" + outputContent + "\n};\n");
+	structs.add("struct " + withoutExtends + " {" + outputContent + "\n};\n");
 	return "";
 }
 auto __lambda37__(auto input) {
@@ -451,9 +451,8 @@ auto __lambda37__(auto input) {
 	if (typeParamsStart >= 0) {
 		return Ok_("");
 	}
-	struct String name = withoutExtends;
-	if (!isSymbol(name)) {
-		return Err_(struct CompileError("Not a symbol", name));
+	if (!isSymbol(withoutExtends)) {
+		return Err_(struct CompileError("Not a symbol", withoutExtends));
 	}
 	struct String withEnd = afterKeyword.substring(contentStart + "{".length()).strip();
 	if (!withEnd.endsWith("}")) {
@@ -484,7 +483,7 @@ Function_struct String, Result_struct String, struct CompileError createClassRul
 	return createCompileToStructRule("class", "class ", typeParams);
 }
 auto __lambda41__(auto result) {
-	return "\t" + result + ";\n";
+	return "\n\t" + result + ";";
 }
 Option_struct String compileDefinitionStatement(struct String input) {
 	struct String stripped = input.strip();
@@ -947,8 +946,8 @@ Option_struct String compileLambda(struct String input, List__struct String type
 	if (arrowIndex < 0) {
 		return None_();
 	}
-	struct String beforeArrow = input.substring(0, arrowIndex).strip();	List__struct String paramNames;
-
+	struct String beforeArrow = input.substring(0, arrowIndex).strip();
+	List__struct String paramNames;
 	if (isSymbol(beforeArrow)) {
 		paramNames = Impl.listOf(beforeArrow);
 	}else 
@@ -1082,8 +1081,8 @@ Option_struct String compileDefinition(struct String definition) {
 	}
 	if (typeSeparator >= 0) {
 		struct String beforeType = beforeName.substring(0, typeSeparator).strip();
-		struct String beforeTypeParams = beforeType;	List__struct String typeParams;
-
+		struct String beforeTypeParams = beforeType;
+	List__struct String typeParams;
 		if (beforeType.endsWith(">")) {
 			struct String withoutEnd = beforeType.substring(0, beforeType.length() - ">".length());
 			int typeParamStart = withoutEnd.indexOf("<");
@@ -1099,8 +1098,8 @@ Option_struct String compileDefinition(struct String definition) {
 		else {
 			typeParams = Impl.emptyList();
 		}
-		struct String strippedBeforeTypeParams = beforeTypeParams.strip();	struct String modifiersString;
-
+		struct String strippedBeforeTypeParams = beforeTypeParams.strip();
+	struct String modifiersString;
 		int annotationSeparator = strippedBeforeTypeParams.lastIndexOf("\n");
 		if (annotationSeparator >= 0) {
 			modifiersString = strippedBeforeTypeParams.substring(annotationSeparator + "\n".length());

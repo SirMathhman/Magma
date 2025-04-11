@@ -794,7 +794,7 @@ public class Main {
         String stripped = input.strip();
         if (stripped.endsWith(";")) {
             String content = stripped.substring(0, stripped.length() - ";".length());
-            return compileDefinition(content).map(result -> "\t" + result + ";\n");
+            return compileDefinition(content).map(result -> "\n\t" + result + ";");
         }
         return new None<>();
     }
