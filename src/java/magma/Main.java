@@ -755,14 +755,14 @@ public class Main {
             this(Maps.empty(), Maps.empty());
         }
 
-        @Override
-        public String toString() {
-            return strings.toString() + nodeLists.toString();
-        }
-
         public Node(Map_<String, String> strings, Map_<String, List_<Node>> nodeLists) {
             this.strings = strings;
             this.nodeLists = nodeLists;
+        }
+
+        @Override
+        public String toString() {
+            return this.strings.toString() + this.nodeLists.toString();
         }
 
         private Node withString(String propertyKey, String propertyValue) {
@@ -1797,7 +1797,7 @@ public class Main {
 
     private static Result<String, CompileError> compileType(String input, ParseState typeParams) {
         return new OrRule(Lists.of(
-                Main::getWrap,
+                value1 -> parsePrimitive(value1).flatMapValue(Main::generatePrimitive),
                 value -> getWrapped(typeParams, value),
                 value -> getStringCompileErrorResult(typeParams, value),
                 value -> compileGeneric(typeParams, value)
@@ -1879,26 +1879,29 @@ public class Main {
         return createSuffixErr(value, "[]");
     }
 
-    private static Result<String, CompileError> getWrap(String value) {
-        return createPrimitiveRule().apply(value);
+    private static Ok<String, CompileError> generatePrimitive(Node node) {
+        return new Ok<>(node.findString("value").orElse(""));
     }
 
-    private static TypeRule createPrimitiveRule() {
-        return new TypeRule("primitive", new StripRule(value -> {
-            if (value.equals("void")) {
-                return new Ok<>("void");
-            }
+    private static Result<Node, CompileError> parsePrimitive(String input) {
+        return getRecord1(input).mapValue(value -> new Node().withString("value", value));
+    }
 
-            if (value.equals("int") || value.equals("Integer") || value.equals("boolean") || value.equals("Boolean")) {
-                return new Ok<>("int");
-            }
+    private static Result<String, CompileError> getRecord1(String value) {
+        String stripped = value.strip();
+        if (stripped.equals("void")) {
+            return new Ok<>("void");
+        }
 
-            if (value.equals("char") || value.equals("Character")) {
-                return new Ok<>("char");
-            }
+        if (stripped.equals("int") || stripped.equals("Integer") || stripped.equals("boolean") || stripped.equals("Boolean")) {
+            return new Ok<>("int");
+        }
 
-            return new Err<>(new CompileError("Not a primitive", value));
-        }));
+        if (stripped.equals("char") || stripped.equals("Character")) {
+            return new Ok<>("char");
+        }
+
+        return new Err<>(new CompileError("Not a primitive", stripped));
     }
 
     private static boolean isSymbol(String input) {

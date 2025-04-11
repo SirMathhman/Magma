@@ -113,10 +113,6 @@ public class Lists {
         return lists.iter().anyMatch(child -> equator.apply(child, element));
     }
 
-    public static <T> Main.List_<T> fromArray(T[] array) {
-        return new JavaList<>(new ArrayList<T>(Arrays.asList(array)));
-    }
-
     public static <T> boolean equalsTo(Main.List_<T> first, Main.List_<T> second, BiFunction<T, T, Boolean> equator) {
         if (first.size() != second.size()) {
             return false;
