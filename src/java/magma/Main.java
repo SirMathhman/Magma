@@ -711,13 +711,6 @@ public class Main {
         }
     }
 
-    private record StripCompiler(Function<String, Result<String, CompileError>> childCompiler) implements Function<String, Result<String, CompileError>> {
-        @Override
-        public Result<String, CompileError> apply(String s) {
-            return this.childCompiler.apply(s.strip());
-        }
-    }
-
     static class ParseState {
         private List_<List_<String>> frames;
 
@@ -807,6 +800,10 @@ public class Main {
     private static final List_<String> methods = Lists.empty();
     private static List_<Node> expansions = Lists.empty();
     private static int counter = 0;
+
+    private static Result<String, CompileError> compileStrip(String s, Function<String, Result<String, CompileError>> childRule) {
+        return childRule.apply(s.strip());
+    }
 
     private static Result<String, CompileError> compileOr(String input, List_<Function<String, Result<String, CompileError>>> rules) {
         return rules.iter()
@@ -1468,41 +1465,56 @@ public class Main {
     }
 
     private static TypeCompiler createSymbolRule() {
-        return new TypeCompiler("symbol", new StripCompiler(new SymbolCompiler()));
+        return new TypeCompiler("symbol", new Function<String, Result<String, CompileError>>() {
+            @Override
+            public Result<String, CompileError> apply(String s) {
+                return compileStrip(s, new SymbolCompiler());
+            }
+        });
     }
 
     private static TypeCompiler createNumberRule() {
-        return new TypeCompiler("number", new StripCompiler(s -> {
-            if (isNumber(s)) {
-                return new Ok<>(s);
+        return new TypeCompiler("number", new Function<String, Result<String, CompileError>>() {
+            @Override
+            public Result<String, CompileError> apply(String s1) {
+                return compileStrip(s1, s -> {
+                    if (isNumber(s)) {
+                        return new Ok<>(s);
+                    }
+                    return new Err<>(new CompileError("Not a number", s));
+                });
             }
-            return new Err<>(new CompileError("Not a number", s));
-        }));
+        });
     }
 
     private static Result<String, CompileError> compileConstruction(String stripped, ParseState typeParams, int depth) {
-        return new TypeCompiler("construction", new StripCompiler(input -> {
-            if (!input.startsWith("new ")) {
-                return createPrefixRule(input, "new ");
-            }
+        return new TypeCompiler("construction", new Function<String, Result<String, CompileError>>() {
+            @Override
+            public Result<String, CompileError> apply(String s) {
+                return compileStrip(s, input -> {
+                    if (!input.startsWith("new ")) {
+                        return createPrefixRule(input, "new ");
+                    }
 
-            String slice = input.substring("new ".length());
-            int argsStart = slice.indexOf("(");
-            if (argsStart < 0) {
-                return createInfixErr(slice, "(");
-            }
+                    String slice = input.substring("new ".length());
+                    int argsStart = slice.indexOf("(");
+                    if (argsStart < 0) {
+                        return createInfixErr(slice, "(");
+                    }
 
-            String type = slice.substring(0, argsStart);
-            String withEnd = slice.substring(argsStart + "(".length()).strip();
-            if (!withEnd.endsWith(")")) {
-                return createSuffixErr(withEnd, ")");
-            }
+                    String type = slice.substring(0, argsStart);
+                    String withEnd = slice.substring(argsStart + "(".length()).strip();
+                    if (!withEnd.endsWith(")")) {
+                        return createSuffixErr(withEnd, ")");
+                    }
 
-            String argsString = withEnd.substring(0, withEnd.length() - ")".length());
-            return parseAnyType(type, typeParams).mapValue(Main::generateAnyType)
-                    .flatMapValue(outputType -> compileArgs(argsString, typeParams, depth)
-                            .mapValue(value -> outputType + value));
-        })).apply(stripped);
+                    String argsString = withEnd.substring(0, withEnd.length() - ")".length());
+                    return parseAnyType(type, typeParams).mapValue(Main::generateAnyType)
+                            .flatMapValue(outputType -> compileArgs(argsString, typeParams, depth)
+                                    .mapValue(value -> outputType + value));
+                });
+            }
+        }).apply(stripped);
     }
 
     private static Result<String, CompileError> createNotRule(String stripped, ParseState typeParams, int depth) {
@@ -1858,7 +1870,7 @@ public class Main {
                 Main::compileWhitespace,
                 type -> parseAnyType(type, typeParams).mapValue(Main::generateAnyType)
         );
-        Function<String, Result<String, CompileError>> paramRule = (Function<String, Result<String, CompileError>>) s -> compileOr(s, rules);
+        Function<String, Result<String, CompileError>> paramRule = s -> compileOr(s, rules);
 
         List_<String> divided = divideValues(params);
         return parseAll(divided, paramRule).mapValue(parsed -> {
