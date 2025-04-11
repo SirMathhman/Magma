@@ -456,10 +456,19 @@ public class Main {
         }
     }
 
-    record CompileError(String message, String context) implements Error {
+    record CompileError(String message, String context, List_<CompileError> errors) implements Error {
+        CompileError(String message, String context) {
+            this(message, context, Impl.emptyList());
+        }
+
         @Override
         public String display() {
-            return this.message + ": " + this.context;
+            String joined = this.errors.iter()
+                    .map(CompileError::display)
+                    .collect(new Joiner(""))
+                    .orElse("");
+
+            return this.message + ": " + this.context + joined;
         }
     }
 
@@ -467,6 +476,25 @@ public class Main {
         @Override
         public String display() {
             return this.error.display();
+        }
+    }
+
+    private record OrState(Option<String> maybeValue, List_<CompileError> errors) {
+        public OrState() {
+            this(new None<>(), Impl.emptyList());
+        }
+
+        public OrState withValue(String value) {
+            return new OrState(new Some<>(value), this.errors);
+        }
+
+        public OrState withError(CompileError error) {
+            return new OrState(this.maybeValue, this.errors.add(error));
+        }
+
+        public Result<String, List_<CompileError>> toResult() {
+            return this.maybeValue.<Result<String, List_<CompileError>>>map(Ok::new)
+                    .orElseGet(() -> new Err<>(this.errors));
         }
     }
 
@@ -507,11 +535,19 @@ public class Main {
     }
 
     private static Function<String, Result<String, CompileError>> createRootSegmentCompiler() {
-        return wrap(input -> compileWhitespace(input)
-                .or(() -> compilePackage(input))
-                .or(() -> compileImport(input))
-                .or(() -> compileToStruct(input, "class ", Impl.emptyList()))
-                .or(() -> generatePlaceholder(input)));
+        return createRootSegmentCompiler(Impl.listOf(
+                wrap(Main::compileWhitespace),
+                wrap(Main::compilePackage),
+                wrap(Main::compileImport),
+                wrap(input -> compileToStruct(input, "class ", Impl.emptyList())
+                )));
+    }
+
+    private static Function<String, Result<String, CompileError>> createRootSegmentCompiler(List_<Function<String, Result<String, CompileError>>> aClass) {
+        return input -> aClass.iter()
+                .fold(new OrState(), (state, rule) -> rule.apply(input).match(state::withValue, state::withError))
+                .toResult()
+                .mapErr(children -> new CompileError("No valid combination", input, children));
     }
 
     private static Option<String> compileImport(String input) {
