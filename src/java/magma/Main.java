@@ -21,6 +21,8 @@ public class Main {
         <R> Result<R, X> mapValue(Function<T, R> mapper);
 
         Option<T> findValue();
+
+        <R> Result<Tuple<T, R>, X> and(Supplier<Result<R, X>> supplier);
     }
 
     public interface Option<T> {
@@ -396,6 +398,11 @@ public class Main {
         public Option<T> findValue() {
             return new None<>();
         }
+
+        @Override
+        public <R> Result<Tuple<T, R>, X> and(Supplier<Result<R, X>> supplier) {
+            return new Err<>(this.error);
+        }
     }
 
     public record Ok<T, X>(T value) implements Result<T, X> {
@@ -422,6 +429,11 @@ public class Main {
         @Override
         public Option<T> findValue() {
             return new Some<>(this.value);
+        }
+
+        @Override
+        public <R> Result<Tuple<T, R>, X> and(Supplier<Result<R, X>> supplier) {
+            return supplier.get().mapValue(otherValue -> new Tuple<>(this.value, otherValue));
         }
 
     }
@@ -1143,7 +1155,7 @@ public class Main {
         String definition = withoutEnd.substring(0, valueSeparator).strip();
         String value = withoutEnd.substring(valueSeparator + "=".length()).strip();
         return createDefinitionRule(state).apply(definition)
-                .flatMapValue(outputDefinition -> compileValue(value, state, depth).mapValue(outputValue -> outputDefinition + " = " + outputValue));
+                .flatMapValue(outputDefinition -> parseValue(value, state, depth).mapValue(node -> node.findString("value").orElse("")).mapValue(outputValue -> outputDefinition + " = " + outputValue));
     }
 
     private static Result<String, CompileError> compileWhitespace(String input) {
@@ -1255,7 +1267,7 @@ public class Main {
         String stripped = input.strip();
         if (stripped.endsWith(operator + ";")) {
             String slice = stripped.substring(0, stripped.length() - (operator + ";").length());
-            return compileValue(slice, typeParams, depth).mapValue(value -> value + operator + ";");
+            return parseValue(slice, typeParams, depth).mapValue(node -> node.findString("value").orElse("")).mapValue(value -> value + operator + ";");
         }
         else {
             return createSuffixErr(stripped, operator + ";");
@@ -1300,7 +1312,7 @@ public class Main {
             String oldCondition = withoutConditionStart.substring(0, conditionEnd).strip();
             String withBraces = withoutConditionStart.substring(conditionEnd + ")".length()).strip();
 
-            return compileValue(oldCondition, typeParams, depth).flatMapValue(newCondition -> {
+            return parseValue(oldCondition, typeParams, depth).mapValue(node -> node.findString("value").orElse("")).flatMapValue(newCondition -> {
                 String withCondition = createIndent(depth) + prefix + "(" + newCondition + ")";
 
                 if (!withBraces.startsWith("{") || !withBraces.endsWith("}")) {
@@ -1399,8 +1411,8 @@ public class Main {
 
         String destination = withoutEnd.substring(0, valueSeparator).strip();
         String source = withoutEnd.substring(valueSeparator + "=".length()).strip();
-        return compileValue(destination, typeParams, depth)
-                .flatMapValue(newDest -> compileValue(source, typeParams, depth)
+        return parseValue(destination, typeParams, depth).mapValue(node1 -> node1.findString("value").orElse(""))
+                .flatMapValue(newDest -> parseValue(source, typeParams, depth).mapValue(node -> node.findString("value").orElse(""))
                         .mapValue(newSource -> newDest + " = " + newSource));
     }
 
@@ -1409,7 +1421,7 @@ public class Main {
         if (stripped.endsWith(";")) {
             String withoutEnd = stripped.substring(0, stripped.length() - ";".length());
             if (withoutEnd.startsWith("return ")) {
-                return compileValue(withoutEnd.substring("return ".length()), typeParams, depth)
+                return parseValue(withoutEnd.substring("return ".length()), typeParams, depth).mapValue(node -> node.findString("value").orElse(""))
                         .mapValue(result -> "return " + result);
             }
         }
@@ -1417,7 +1429,7 @@ public class Main {
         return createSuffixErr(stripped, ";");
     }
 
-    private static Result<String, CompileError> compileValue(String input0, ParseState typeParams, int depth) {
+    private static Result<Node, CompileError> parseValue(String input0, ParseState typeParams, int depth) {
         return new OrRule(Lists.of(
                 Main::compileBoolean,
                 Main::compileString,
@@ -1437,7 +1449,7 @@ public class Main {
                 (input) -> compileOperator(input, typeParams, depth, "&&"),
                 (input) -> compileOperator(input, typeParams, depth, "=="),
                 (input) -> compileOperator(input, typeParams, depth, "!=")
-        )).apply(input0);
+        )).apply(input0).mapValue(value -> new Node().withString("value", value));
     }
 
     private static Result<String, CompileError> compileBoolean(String input) {
@@ -1509,7 +1521,7 @@ public class Main {
 
     private static Result<String, CompileError> createNotRule(String stripped, ParseState typeParams, int depth) {
         if (stripped.startsWith("!")) {
-            return compileValue(stripped.substring(1), typeParams, depth).mapValue(result -> "!" + result);
+            return parseValue(stripped.substring(1), typeParams, depth).mapValue(node -> node.findString("value").orElse("")).mapValue(result -> "!" + result);
         }
         else {
             return createPrefixRule(stripped, "!");
@@ -1535,7 +1547,7 @@ public class Main {
         if (separator >= 0) {
             String object = input.substring(0, separator).strip();
             String property = input.substring(separator + ".".length()).strip();
-            return compileValue(object, typeParams, depth).mapValue(compiled -> compiled + "." + property);
+            return parseValue(object, typeParams, depth).mapValue(node -> node.findString("value").orElse("")).mapValue(compiled -> compiled + "." + property);
         }
         return createInfixErr(input, ".");
     }
@@ -1549,9 +1561,19 @@ public class Main {
         String left = input.substring(0, operatorIndex);
         String right = input.substring(operatorIndex + operator.length());
 
-        return compileValue(left, typeParams, depth)
-                .flatMapValue(leftResult -> compileValue(right, typeParams, depth)
-                        .mapValue(rightResult -> leftResult + " " + operator + " " + rightResult));
+        return parseValue(left, typeParams, depth).mapValue(node1 -> node1.findString("value").orElse(""))
+
+                .and(() -> parseValue(right, typeParams, depth).mapValue(node -> node.findString("value").orElse(""))).flatMapValue(rightResult -> {
+            Node node = new Node()
+                    .withString("left", rightResult.left);
+            return generateOperator(node
+                    .withString("right", rightResult.right)
+                    .withString("operator", operator));
+        });
+    }
+
+    private static Result<String, CompileError> generateOperator(Node node) {
+        return new Ok<>(node.findString("left").orElse("") + " " + node.findString("operator").orElse("") + " " + node.findString("right").orElse(""));
     }
 
     private static Result<String, CompileError> compileLambda(String input, ParseState typeParams, int depth) {
@@ -1584,7 +1606,7 @@ public class Main {
                     .flatMapValue(result -> generateLambdaWithReturn(paramNames, result));
         }
 
-        return compileValue(value, typeParams, depth).flatMapValue(newValue -> generateLambdaWithReturn(paramNames, "\n\treturn " + newValue + ";"));
+        return parseValue(value, typeParams, depth).mapValue(node -> node.findString("value").orElse("")).flatMapValue(newValue -> generateLambdaWithReturn(paramNames, "\n\treturn " + newValue + ";"));
     }
 
     private static Result<String, CompileError> generateLambdaWithReturn(List_<String> paramNames, String returnValue) {
@@ -1610,7 +1632,7 @@ public class Main {
         });
     }
 
-    private static Result<String, CompileError> compileInvocation(String input, ParseState typeParams, int depth) {
+    private static Result<String, CompileError> compileInvocation(String input, ParseState state, int depth) {
         String stripped = input.strip();
         if (!stripped.endsWith(")")) {
             return createSuffixErr(stripped, ")");
@@ -1625,8 +1647,8 @@ public class Main {
 
         String type = sliced.substring(0, argsStart);
         String withEnd = sliced.substring(argsStart + "(".length()).strip();
-        return compileValue(type, typeParams, depth)
-                .flatMapValue(caller -> compileArgs(withEnd, typeParams, depth).mapValue(value -> caller + value));
+        return parseValue(type, state, depth).mapValue(node -> node.findString("value").orElse(""))
+                .flatMapValue(caller -> compileArgs(withEnd, state, depth).mapValue(value -> caller + value));
     }
 
     private static int findInvocationStart(String sliced) {
@@ -1654,7 +1676,7 @@ public class Main {
     private static Result<String, CompileError> compileArgs(String argsString, ParseState typeParams, int depth) {
         return compileValues(argsString, arg -> new OrRule(Lists.of(
                 Main::compileWhitespace,
-                value -> compileValue(value, typeParams, depth)
+                value -> parseValue(value, typeParams, depth).mapValue(node -> node.findString("value").orElse(""))
         )).apply(arg)).mapValue(args -> "(" + args + ")");
     }
 
