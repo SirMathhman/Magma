@@ -98,6 +98,12 @@ public class Impl {
         public T get(int index) {
             return this.elements.get(index);
         }
+
+        @Override
+        public Main.List_<T> sort(BiFunction<T, T, Integer> sorter) {
+            this.elements.sort(sorter::apply);
+            return this;
+        }
     }
 
     static Main.Option<Main.IOError> writeString(Main.Path_ target, String output) {

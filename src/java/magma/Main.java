@@ -45,6 +45,8 @@ public class Main {
         List_<T> slice(int startInclusive, int endExclusive);
 
         T get(int index);
+
+        List_<T> sort(BiFunction<T, T, Integer> sorter);
     }
 
     public interface Iterator<T> {
@@ -456,6 +458,18 @@ public class Main {
         }
     }
 
+    private static class Max implements Collector<Integer, Option<Integer>> {
+        @Override
+        public Option<Integer> createInitial() {
+            return new None<>();
+        }
+
+        @Override
+        public Option<Integer> fold(Option<Integer> current, Integer element) {
+            return new Some<>(current.map(inner -> inner > element ? inner : element).orElse(element));
+        }
+    }
+
     record CompileError(String message, String context, List_<CompileError> errors) implements Error {
         CompileError(String message, String context) {
             this(message, context, Impl.emptyList());
@@ -463,12 +477,20 @@ public class Main {
 
         @Override
         public String display() {
-            String joined = this.errors.iter()
+            String joined = this.errors.sort((first, second) -> first.computeMaxDepth() - second.computeMaxDepth())
+                    .iter()
                     .map(CompileError::display)
                     .collect(new Joiner(""))
                     .orElse("");
 
             return this.message + ": " + this.context + joined;
+        }
+
+        private int computeMaxDepth() {
+            return 1 + this.errors.iter()
+                    .map(CompileError::computeMaxDepth)
+                    .collect(new Max())
+                    .orElse(0);
         }
     }
 
@@ -536,11 +558,20 @@ public class Main {
 
     private static Function<String, Result<String, CompileError>> createRootSegmentCompiler() {
         return createOrRule(Impl.listOf(
-                wrap(Main::compileWhitespace),
+                createWhitespaceRule(),
                 wrap(Main::compilePackage),
                 wrap(Main::compileImport),
                 wrap(input -> compileToStruct(input, "class ", Impl.emptyList()))
         ));
+    }
+
+    private static Function<String, Result<String, CompileError>> createWhitespaceRule() {
+        return input -> {
+            if (input.isBlank()) {
+                return new Ok<>("");
+            }
+            return new Err<>(new CompileError("Not blank", input));
+        };
     }
 
     private static Function<String, Result<String, CompileError>> createOrRule(List_<Function<String, Result<String, CompileError>>> aClass) {
@@ -722,7 +753,7 @@ public class Main {
 
     private static Function<String, Result<String, CompileError>> createClassMemberRule(List_<String> typeParams) {
         return createOrRule(Impl.listOf(
-                wrap(Main::compileWhitespace),
+                createWhitespaceRule(),
                 wrap(input -> compileToStruct(input, "interface ", typeParams)),
                 wrap(input -> compileToStruct(input, "record ", typeParams)),
                 wrap(input -> compileToStruct(input, "class ", typeParams)),
