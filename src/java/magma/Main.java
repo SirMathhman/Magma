@@ -743,18 +743,29 @@ public class Main {
             }
 
             String beforeContent = afterKeyword.substring(0, contentStart).strip();
-            int extendsIndex = beforeContent.indexOf(" extends ");
-            String withoutExtends = extendsIndex >= 0
-                    ? beforeContent.substring(0, extendsIndex)
+
+            int implementsIndex = beforeContent.indexOf(" implements ");
+            String withoutImplements = implementsIndex >= 0
+                    ? beforeContent.substring(0, implementsIndex)
                     : beforeContent;
 
-            int typeParamsStart = withoutExtends.indexOf("<");
+            int extendsIndex = withoutImplements.indexOf(" extends ");
+            String withoutExtends = extendsIndex >= 0
+                    ? withoutImplements.substring(0, extendsIndex)
+                    : withoutImplements;
+
+            int paramStart = withoutExtends.indexOf("(");
+            String withoutParams = paramStart >= 0
+                    ? withoutExtends.substring(0, paramStart).strip()
+                    : withoutExtends;
+
+            int typeParamsStart = withoutParams.indexOf("<");
             if (typeParamsStart >= 0) {
                 return new Ok<>("");
             }
 
-            if (!isSymbol(withoutExtends)) {
-                return new Err<>(new CompileError("Not a symbol", withoutExtends));
+            if (!isSymbol(withoutParams)) {
+                return new Err<>(new CompileError("Not a symbol", withoutParams));
             }
 
             String withEnd = afterKeyword.substring(contentStart + "{".length()).strip();
@@ -764,7 +775,7 @@ public class Main {
 
             String inputContent = withEnd.substring(0, withEnd.length() - "}".length());
             return compileStatements(inputContent, input1 -> createClassMemberRule(typeParams).apply(input1)).mapValue(outputContent -> {
-                structs.add("struct " + withoutExtends + " {" + outputContent + "\n};\n");
+                structs.add("struct " + withoutParams + " {" + outputContent + "\n};\n");
                 return "";
             });
         });
@@ -1481,6 +1492,10 @@ public class Main {
 
     private static boolean isSymbol(String input) {
         if (input.isBlank()) {
+            return false;
+        }
+
+        if (input.equals("record")) {
             return false;
         }
 
