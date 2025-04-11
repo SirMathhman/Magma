@@ -1332,11 +1332,15 @@ public class Main {
             Character c = pair.right;
 
             if (c == '\'') {
-                if (queue.popFirst().orElse(null).left.right == '\\') {
-                    queue.popFirst().orElse(null);
+                Tuple<Tuple<Integer, Character>, List_<Tuple<Integer, Character>>> tupleListTuple1 = queue.popFirst().orElse(null);
+                queue = tupleListTuple1.right;
+
+                Character next = tupleListTuple1.left.right;
+                if (next == '\\') {
+                    queue = queue.popFirst().orElse(null).right;
                 }
 
-                queue.popFirst().orElse(null);
+                queue = queue.popFirst().orElse(null).right;
                 continue;
             }
 
