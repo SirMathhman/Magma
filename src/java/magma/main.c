@@ -190,8 +190,7 @@ auto __lambda2__(auto next) {
 auto __lambda3__(auto next) {
 	return folder;
 }
-<R> R foldWithInitial(void* self, R initial, BiFunction<R, T, R> folder) {
-	Stream<T> this = (Stream<T>*)self;
+<R> R foldWithInitial(R initial, BiFunction<R, T, R> folder) {
 	R current = initial;
 	while (1) {
 		R finalCurrent = current;
