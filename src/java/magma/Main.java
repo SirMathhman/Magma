@@ -471,7 +471,7 @@ public class Main {
     }
 
     record CompileError(String message, String context, List_<CompileError> errors) implements Error {
-        CompileError(String message, String context) {
+        public CompileError(String message, String context) {
             this(message, context, Impl.emptyList());
         }
 
@@ -1322,10 +1322,6 @@ public class Main {
             String stripped = input.strip();
             int nameSeparator = stripped.lastIndexOf(" ");
             if (nameSeparator < 0) {
-                if (isSymbol(stripped)) {
-                    return new Ok<>(stripped + " new");
-                }
-
                 return createInfixErr(stripped, " ");
             }
 

@@ -212,7 +212,7 @@ Option_struct Integer createInitial() {
         }
      */
 }
-CompileError new(struct String message, struct String context) {
+struct public CompileError(struct String message, struct String context) {
 	this(message, context, Impl.emptyList());
 }
 struct String display() {
@@ -454,7 +454,7 @@ List__struct String divide(struct String input, BiFunction_struct State, struct 
 			}
 			continue;
 		}
-		state new = divider.apply(state, c);
+		state = divider.apply(state, c);
 	}
 	return state.advance().segments();
 }
@@ -851,7 +851,7 @@ int findConditionEnd(struct String input) {
 			continue;
 		}
 		if (c == ')' && depth0 == 0) {
-			conditionEnd new = i;
+			conditionEnd = i;
 			break;
 		}
 		if (c == '(') {depth0++;
@@ -1028,11 +1028,11 @@ Option_struct String compileLambda(struct String input, List__struct String type
 	struct String beforeArrow = input.substring(0, arrowIndex).strip();
 	List__struct String paramNames;
 	if (isSymbol(beforeArrow)) {
-		paramNames new = Impl.listOf(beforeArrow);
+		paramNames = Impl.listOf(beforeArrow);
 	}else 
 	if (beforeArrow.startsWith("(") && beforeArrow.endsWith(")")) {
 		struct String inner = beforeArrow.substring(1, beforeArrow.length() - 1);
-		paramNames new = splitByDelimiter(inner, ',').iter().map(__lambda97__).filter(__lambda98__).collect(ListCollector_());
+		paramNames = splitByDelimiter(inner, ',').iter().map(__lambda97__).filter(__lambda98__).collect(ListCollector_());
 	}
 	else {
 		return None_();
@@ -1088,7 +1088,7 @@ int findInvocationStart(struct String sliced) {
 	while (i >= 0) {
 		char c = sliced.charAt(i);
 		if (c == '(' && depth0 == 0) {
-			argsStart new = i;
+			argsStart = i;
 			break;
 		}
 		if (c == ')') {depth0++;
@@ -1121,10 +1121,6 @@ auto __lambda109__(auto input) {
             String stripped = input */.strip();
             int nameSeparator = stripped.lastIndexOf(" ");
             if (nameSeparator < 0) {
-                if (isSymbol(stripped)) {
-                    return new Ok<>(stripped + " new");
-                }
-
                 return createInfixErr(stripped, " ");
             }
 
@@ -1197,7 +1193,7 @@ int findTypeSeparator(struct String beforeName) {
 	while (i >= 0) {
 		char c = beforeName.charAt(i);
 		if (c == ' ' && depth == 0) {
-			typeSeparator new = i;
+			typeSeparator = i;
 			break;
 		}
 		else {
