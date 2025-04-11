@@ -1454,15 +1454,17 @@ public class Main {
 
     private static Function<String, Result<String, CompileError>> createPrimitiveRule() {
         return wrap(input -> {
-            if (input.equals("void")) {
+            String stripped = input.strip();
+
+            if (stripped.equals("void")) {
                 return new Some<>("void");
             }
 
-            if (input.equals("int") || input.equals("Integer") || input.equals("boolean") || input.equals("Boolean")) {
+            if (stripped.equals("int") || stripped.equals("Integer") || stripped.equals("boolean") || stripped.equals("Boolean")) {
                 return new Some<>("int");
             }
 
-            if (input.equals("char") || input.equals("Character")) {
+            if (stripped.equals("char") || stripped.equals("Character")) {
                 return new Some<>("char");
             }
 
@@ -1479,7 +1481,10 @@ public class Main {
 
     private static Option<String> compileSymbol(String input, List_<String> typeParams) {
         if (isSymbol(input.strip())) {
-            return Impl.contains(typeParams, input.strip(), String::equals) ? new Some<>(input.strip()) : new Some<>("struct " + input.strip());
+            if (Impl.contains(typeParams, input.strip(), String::equals)) {
+                return new Some<>(input.strip());
+            }
+            return new Some<>("struct " + input.strip());
         }
         return new None<>();
     }
@@ -1507,7 +1512,7 @@ public class Main {
             return false;
         }
 
-        if (input.equals("record")) {
+        if (input.equals("record") || input.equals("int")) {
             return false;
         }
 
