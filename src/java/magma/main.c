@@ -1,12 +1,11 @@
+#include "../magma/java/Console.h"
 #include "../magma/java/Strings.h"
-#include "../static magma/java/Console/printlnErr.h"
 /*struct Result<T, X> {
 	<R> R match(R (*)(T) whenOk, R (*)(X) whenErr);
 	<R> Result<T, R> mapErr(R (*)(X) mapper);
 	<R> Result<R, X> flatMapValue(Result<R, X> (*)(T) mapper);
 	<R> Result<R, X> mapValue(R (*)(T) mapper);
 	Option<T> findValue();
-	<R> Result<Tuple<T, R>, X> and(Supplier<Result<R, X>> supplier);
 };
 *//*struct Option<T> {
 	<R> Option<R> map(R (*)(T) mapper);
@@ -67,7 +66,7 @@ struct IOError {
 */struct Divider {
 	struct State fold(struct State state, char c);
 };
-struct Compiler {
+struct Rule {
 };
 /*struct Map_<K, V> {
 	Map_<K, V> with(K propertyKey, V propertyValue);
@@ -129,15 +128,13 @@ struct Main {
 // Result<T, R>
 // Result<R, X>
 // Option<T>
-// Tuple<T, R>
-// Result<Tuple<T, R>, X>
-// Supplier<Result<R, X>>
 // Option<R>
 // Consumer<T>
 // Supplier<Option<T>>
 // Tuple<int, T>
 // Supplier<T>
 // Supplier<R>
+// Tuple<T, R>
 // Option<Tuple<T, R>>
 // Supplier<Option<R>>
 // List_<T>
@@ -193,7 +190,8 @@ auto __lambda2__(auto next) {
 auto __lambda3__(auto next) {
 	return folder;
 }
-<R> R foldWithInitial(R initial, BiFunction<R, T, R> folder) {
+<R> R foldWithInitial(void* self, R initial, BiFunction<R, T, R> folder) {
+	Stream<T> this = (Stream<T>*)self;
 	R current = initial;
 	while (1) {
 		R finalCurrent = current;
@@ -560,9 +558,6 @@ auto __lambda76__(auto otherValue) {
 Option<T> findValue() {
 	return None<>();
 }
-<R> Result<Tuple<T, R>, X> and(Supplier<Result<R, X>> supplier) {
-	return Err<>(this.error);
-}
 <R> R match(R (*)(T) whenOk, R (*)(X) whenErr) {
 	return whenOk.apply(this.value);
 }
@@ -578,12 +573,6 @@ Option<T> findValue() {
 Option<T> findValue() {
 	return Some<>(this.value);
 }
-auto __lambda77__(auto otherValue) {
-	return Tuple<>(this.value, otherValue);
-}
-<R> Result<Tuple<T, R>, X> and(Supplier<Result<R, X>> supplier) {
-	return supplier.get().mapValue(__lambda77__);
-}
 struct private State(List_<char> queue, List_<struct String> segments, struct StringBuilder buffer, int depth) {
 	this.queue = queue;
 	this.segments = segments;
@@ -593,29 +582,29 @@ struct private State(List_<char> queue, List_<struct String> segments, struct St
 struct public State(List_<char> queue) {
 	this(queue, Lists.empty(), struct StringBuilder(), 0);
 }
-auto __lambda78__(auto tuple) {
+auto __lambda77__(auto tuple) {
 	return tuple.right.append(tuple.left);
 }
-auto __lambda79__(auto tuple) {
+auto __lambda78__(auto tuple) {
 	return tuple.right.append;
 }
-auto __lambda80__(auto tuple) {
+auto __lambda79__(auto tuple) {
 	return tuple.right;
 }
-auto __lambda81__(auto tuple) {
+auto __lambda80__(auto tuple) {
 	return tuple;
 }
-auto __lambda82__(auto tuple) {
+auto __lambda81__(auto tuple) {
 	return tuple.right.append(tuple;
 }
-auto __lambda83__(auto tuple) {
+auto __lambda82__(auto tuple) {
 	return tuple.right;
 }
-auto __lambda84__(auto tuple) {
+auto __lambda83__(auto tuple) {
 	return tuple;
 }
 Option<struct State> popAndAppend() {
-	return this.pop().map(__lambda78__);
+	return this.pop().map(__lambda77__);
 }
 struct State advance() {
 	return struct State(this.queue, this.segments.add(this.buffer.toString()), struct StringBuilder(), this.depth);
@@ -626,11 +615,11 @@ struct State append(char c) {
 int isLevel() {
 	return this.depth == 0;
 }
-auto __lambda85__(auto tuple) {
+auto __lambda84__(auto tuple) {
 	return Tuple<>(tuple.left, struct State(tuple.right, this.segments, this.buffer, this.depth));
 }
 Option<Tuple<char, struct State>> pop() {
-	return this.queue.popFirst().map(__lambda85__);
+	return this.queue.popFirst().map(__lambda84__);
 }
 int hasElements() {
 	return !this.queue.isEmpty();
@@ -650,16 +639,16 @@ Option<char> peek() {
 <T> Iterator<T> empty() {
 	return HeadedIterator<>(EmptyHead<>());
 }
-auto __lambda86__(auto tuple) {
+auto __lambda85__(auto tuple) {
 	return tuple.right;
 }
-auto __lambda87__(auto tuple) {
+auto __lambda86__(auto tuple) {
 	return tuple;
 }
 Iterator<char> fromString(struct String input) {
-	return fromStringWithIndices(input).map(__lambda86__);
+	return fromStringWithIndices(input).map(__lambda85__);
 }
-auto __lambda88__(auto index) {
+auto __lambda87__(auto index) {
 	return Tuple<>(index, input.charAt(index));
 }
 Iterator<Tuple<int, char>> fromStringWithIndices(struct String input) {
@@ -684,34 +673,34 @@ List_<T> fold(List_<T> current, T element) {
 Option<struct String> createInitial() {
 	return None<>();
 }
-auto __lambda89__(auto inner) {
+auto __lambda88__(auto inner) {
 	return inner + this.delimiter + element;
 }
-auto __lambda90__(auto inner) {
+auto __lambda89__(auto inner) {
 	return inner + this;
+}
+auto __lambda90__(auto inner) {
+	return inner;
 }
 auto __lambda91__(auto inner) {
 	return inner;
 }
 auto __lambda92__(auto inner) {
-	return inner;
-}
-auto __lambda93__(auto inner) {
 	return inner + this.delimiter + element;
 }
-auto __lambda94__(auto inner) {
+auto __lambda93__(auto inner) {
 	return inner + this;
+}
+auto __lambda94__(auto inner) {
+	return inner;
 }
 auto __lambda95__(auto inner) {
 	return inner;
 }
-auto __lambda96__(auto inner) {
-	return inner;
-}
 Option<struct String> fold(Option<struct String> current, struct String element) {
-	return Some<>(current.map(__lambda89__).orElse(element));
+	return Some<>(current.map(__lambda88__).orElse(element));
 }
-auto __lambda97__ {
+auto __lambda96__ {
 	return struct State.popAndAppend()
 }
 Option<struct State> divideSingleQuotes(struct State state, char c) {
@@ -726,12 +715,12 @@ Option<struct State> divideSingleQuotes(struct State state, char c) {
 	Tuple<char, struct State> slashTuple = maybeSlashTuple.orElse(Tuple<>('\0', appended));
 	struct var withMaybeSlash = slashTuple.right.append(slashTuple.left);
 	Option<struct State> withSlash = slashTuple.left == '\\' ? withMaybeSlash.popAndAppend() : new Some<>(withMaybeSlash);
-	return withSlash.flatMap(__lambda97__);
+	return withSlash.flatMap(__lambda96__);
 }
-auto __lambda98__ {
+auto __lambda97__ {
 	return struct DecoratedDivider.foldWithinDoubleQuotes()
 }
-auto __lambda99__ {
+auto __lambda98__ {
 	return struct DecoratedDivider.foldWithinDoubleQuotes()
 }
 Option<struct State> divideDoubleQuotes(struct State state, char c) {
@@ -740,7 +729,7 @@ Option<struct State> divideDoubleQuotes(struct State state, char c) {
 	}
 	struct State current = state.append(c);
 	while (1) {
-		Tuple<int, struct State> maybeNextTuple = current.pop().flatMap(__lambda98__).toTuple(current);
+		Tuple<int, struct State> maybeNextTuple = current.pop().flatMap(__lambda97__).toTuple(current);
 		if (maybeNextTuple.left) {
 			current = maybeNextTuple.right;
 		}
@@ -761,56 +750,56 @@ Option<struct State> foldWithinDoubleQuotes(Tuple<char, struct State> tuple) {
 	}
 	return Some<>(appended);
 }
-auto __lambda100__ {
+auto __lambda99__ {
 	return divideDoubleQuotes(state, c);
 }
-auto __lambda101__ {
+auto __lambda100__ {
 	return divideDoubleQuotes;
 }
-auto __lambda102__ {
+auto __lambda101__ {
 	return this.divider().fold(state, c);
 }
-auto __lambda103__ {
+auto __lambda102__ {
 	return this.divider().fold;
 }
-auto __lambda104__ {
+auto __lambda103__ {
 	return this.divider();
 }
-auto __lambda105__ {
+auto __lambda104__ {
 	return this.divider;
+}
+auto __lambda105__ {
+	return this;
 }
 auto __lambda106__ {
 	return this;
 }
 auto __lambda107__ {
-	return this;
-}
-auto __lambda108__ {
 	return this.divider();
 }
-auto __lambda109__ {
+auto __lambda108__ {
 	return this.divider;
+}
+auto __lambda109__ {
+	return this;
 }
 auto __lambda110__ {
 	return this;
 }
 auto __lambda111__ {
-	return this;
+	return divideDoubleQuotes(state, c);
 }
 auto __lambda112__ {
-	return divideDoubleQuotes(state, c);
-}
-auto __lambda113__ {
 	return divideDoubleQuotes;
 }
-auto __lambda114__ {
+auto __lambda113__ {
 	return divideDoubleQuotes(state, c);
 }
-auto __lambda115__ {
+auto __lambda114__ {
 	return divideDoubleQuotes;
 }
 struct State fold(struct State state, char c) {
-	return divideSingleQuotes(state, c).or(__lambda100__).orElseGet(__lambda102__);
+	return divideSingleQuotes(state, c).or(__lambda99__).orElseGet(__lambda101__);
 }
 struct State fold(struct State state, char c) {
 	if (c == this.delimiter) {
@@ -818,106 +807,106 @@ struct State fold(struct State state, char c) {
 	}
 	return state.append(c);
 }
-auto __lambda116__ {
+auto __lambda115__ {
 	return second;
 }
-auto __lambda117__(auto tuple) {
+auto __lambda116__(auto tuple) {
 	return equator.apply(tuple.left, tuple.right);
 }
-auto __lambda118__(auto tuple) {
+auto __lambda117__(auto tuple) {
 	return equator.apply;
 }
-auto __lambda119__(auto tuple) {
+auto __lambda118__(auto tuple) {
 	return equator;
 }
-auto __lambda120__(auto tuple) {
+auto __lambda119__(auto tuple) {
 	return equator.apply(tuple.left, tuple;
 }
-auto __lambda121__(auto tuple) {
+auto __lambda120__(auto tuple) {
 	return equator.apply(tuple;
 }
-auto __lambda122__(auto tuple) {
+auto __lambda121__(auto tuple) {
 	return equator;
+}
+auto __lambda122__ {
+	return second;
 }
 auto __lambda123__ {
 	return second;
 }
-auto __lambda124__ {
-	return second;
-}
-auto __lambda125__(auto tuple) {
+auto __lambda124__(auto tuple) {
 	return equator.apply(tuple.left, tuple.right);
 }
-auto __lambda126__(auto tuple) {
+auto __lambda125__(auto tuple) {
 	return equator.apply;
 }
-auto __lambda127__(auto tuple) {
+auto __lambda126__(auto tuple) {
 	return equator;
 }
-auto __lambda128__(auto tuple) {
+auto __lambda127__(auto tuple) {
 	return equator.apply(tuple.left, tuple;
 }
-auto __lambda129__(auto tuple) {
+auto __lambda128__(auto tuple) {
 	return equator.apply(tuple;
 }
-auto __lambda130__(auto tuple) {
+auto __lambda129__(auto tuple) {
 	return equator;
 }
-auto __lambda131__ {
+auto __lambda130__ {
 	return second;
 }
 <V> int equalsTo(Option<V> first, Option<V> second, BiFunction<V, V, int> equator) {
 	if (first.isEmpty() && second.isEmpty()) {
 		return 1;
 	}
-	return first.and(__lambda116__).map(__lambda117__).orElse(0);
+	return first.and(__lambda115__).map(__lambda116__).orElse(0);
 }
-auto __lambda132__ {
+auto __lambda131__ {
 	return second;
 }
-auto __lambda133__(auto tuple) {
+auto __lambda132__(auto tuple) {
 	return equator.apply(tuple.left, tuple.right);
 }
-auto __lambda134__(auto tuple) {
+auto __lambda133__(auto tuple) {
 	return equator.apply;
 }
-auto __lambda135__(auto tuple) {
+auto __lambda134__(auto tuple) {
 	return equator;
 }
-auto __lambda136__(auto tuple) {
+auto __lambda135__(auto tuple) {
 	return equator.apply(tuple.left, tuple;
 }
-auto __lambda137__(auto tuple) {
+auto __lambda136__(auto tuple) {
 	return equator.apply(tuple;
 }
-auto __lambda138__(auto tuple) {
+auto __lambda137__(auto tuple) {
 	return equator;
+}
+auto __lambda138__ {
+	return second;
 }
 auto __lambda139__ {
 	return second;
 }
-auto __lambda140__ {
-	return second;
-}
-auto __lambda141__(auto tuple) {
+auto __lambda140__(auto tuple) {
 	return equator.apply(tuple.left, tuple.right);
 }
-auto __lambda142__(auto tuple) {
+auto __lambda141__(auto tuple) {
 	return equator.apply;
 }
-auto __lambda143__(auto tuple) {
+auto __lambda142__(auto tuple) {
 	return equator;
 }
-auto __lambda144__(auto tuple) {
+auto __lambda143__(auto tuple) {
 	return equator.apply(tuple.left, tuple;
 }
-auto __lambda145__(auto tuple) {
+auto __lambda144__(auto tuple) {
 	return equator.apply(tuple;
 }
-auto __lambda146__(auto tuple) {
+auto __lambda145__(auto tuple) {
 	return equator;
 }
-auto __lambda147__ {
+auto __lambda146__ {
 	return second;
 }
 struct public CompileError(struct String message, struct String context) {
@@ -932,15 +921,14 @@ Option<int> createInitial() {
 Option<int> fold(Option<int> current, int element) {
 	return Some<>(current.map(inner -> inner > element ? inner : element).orElse(element));
 }
+#include "../magma/java/Console.h"
 #include "../magma/java/Strings.h"
-#include "../static magma/java/Console/printlnErr.h"
 /*struct Result<T, X> {
 	<R> R match(R (*)(T) whenOk, R (*)(X) whenErr);
 	<R> Result<T, R> mapErr(R (*)(X) mapper);
 	<R> Result<R, X> flatMapValue(Result<R, X> (*)(T) mapper);
 	<R> Result<R, X> mapValue(R (*)(T) mapper);
 	Option<T> findValue();
-	<R> Result<Tuple<T, R>, X> and(Supplier<Result<R, X>> supplier);
 };
 *//*struct Option<T> {
 	<R> Option<R> map(R (*)(T) mapper);
@@ -1001,7 +989,7 @@ struct IOError {
 */struct Divider {
 	struct State fold(struct State state, char c);
 };
-struct Compiler {
+struct Rule {
 };
 /*struct Map_<K, V> {
 	Map_<K, V> with(K propertyKey, V propertyValue);
@@ -1063,15 +1051,13 @@ struct Main {
 // Result<T, R>
 // Result<R, X>
 // Option<T>
-// Tuple<T, R>
-// Result<Tuple<T, R>, X>
-// Supplier<Result<R, X>>
 // Option<R>
 // Consumer<T>
 // Supplier<Option<T>>
 // Tuple<int, T>
 // Supplier<T>
 // Supplier<R>
+// Tuple<T, R>
 // Option<Tuple<T, R>>
 // Supplier<Option<R>>
 // List_<T>
@@ -1494,9 +1480,6 @@ auto __lambda76__(auto otherValue) {
 Option<T> findValue() {
 	return None<>();
 }
-<R> Result<Tuple<T, R>, X> and(Supplier<Result<R, X>> supplier) {
-	return Err<>(this.error);
-}
 <R> R match(R (*)(T) whenOk, R (*)(X) whenErr) {
 	return whenOk.apply(this.value);
 }
@@ -1512,12 +1495,6 @@ Option<T> findValue() {
 Option<T> findValue() {
 	return Some<>(this.value);
 }
-auto __lambda77__(auto otherValue) {
-	return Tuple<>(this.value, otherValue);
-}
-<R> Result<Tuple<T, R>, X> and(Supplier<Result<R, X>> supplier) {
-	return supplier.get().mapValue(__lambda77__);
-}
 struct private State(List_<char> queue, List_<struct String> segments, struct StringBuilder buffer, int depth) {
 	this.queue = queue;
 	this.segments = segments;
@@ -1527,29 +1504,29 @@ struct private State(List_<char> queue, List_<struct String> segments, struct St
 struct public State(List_<char> queue) {
 	this(queue, Lists.empty(), struct StringBuilder(), 0);
 }
-auto __lambda78__(auto tuple) {
+auto __lambda77__(auto tuple) {
 	return tuple.right.append(tuple.left);
 }
-auto __lambda79__(auto tuple) {
+auto __lambda78__(auto tuple) {
 	return tuple.right.append;
 }
-auto __lambda80__(auto tuple) {
+auto __lambda79__(auto tuple) {
 	return tuple.right;
 }
-auto __lambda81__(auto tuple) {
+auto __lambda80__(auto tuple) {
 	return tuple;
 }
-auto __lambda82__(auto tuple) {
+auto __lambda81__(auto tuple) {
 	return tuple.right.append(tuple;
 }
-auto __lambda83__(auto tuple) {
+auto __lambda82__(auto tuple) {
 	return tuple.right;
 }
-auto __lambda84__(auto tuple) {
+auto __lambda83__(auto tuple) {
 	return tuple;
 }
 Option<struct State> popAndAppend() {
-	return this.pop().map(__lambda78__);
+	return this.pop().map(__lambda77__);
 }
 struct State advance() {
 	return struct State(this.queue, this.segments.add(this.buffer.toString()), struct StringBuilder(), this.depth);
@@ -1560,11 +1537,11 @@ struct State append(char c) {
 int isLevel() {
 	return this.depth == 0;
 }
-auto __lambda85__(auto tuple) {
+auto __lambda84__(auto tuple) {
 	return Tuple<>(tuple.left, struct State(tuple.right, this.segments, this.buffer, this.depth));
 }
 Option<Tuple<char, struct State>> pop() {
-	return this.queue.popFirst().map(__lambda85__);
+	return this.queue.popFirst().map(__lambda84__);
 }
 int hasElements() {
 	return !this.queue.isEmpty();
@@ -1584,16 +1561,16 @@ Option<char> peek() {
 <T> Iterator<T> empty() {
 	return HeadedIterator<>(EmptyHead<>());
 }
-auto __lambda86__(auto tuple) {
+auto __lambda85__(auto tuple) {
 	return tuple.right;
 }
-auto __lambda87__(auto tuple) {
+auto __lambda86__(auto tuple) {
 	return tuple;
 }
 Iterator<char> fromString(struct String input) {
-	return fromStringWithIndices(input).map(__lambda86__);
+	return fromStringWithIndices(input).map(__lambda85__);
 }
-auto __lambda88__(auto index) {
+auto __lambda87__(auto index) {
 	return Tuple<>(index, input.charAt(index));
 }
 Iterator<Tuple<int, char>> fromStringWithIndices(struct String input) {
@@ -1618,34 +1595,34 @@ List_<T> fold(List_<T> current, T element) {
 Option<struct String> createInitial() {
 	return None<>();
 }
-auto __lambda89__(auto inner) {
+auto __lambda88__(auto inner) {
 	return inner + this.delimiter + element;
 }
-auto __lambda90__(auto inner) {
+auto __lambda89__(auto inner) {
 	return inner + this;
+}
+auto __lambda90__(auto inner) {
+	return inner;
 }
 auto __lambda91__(auto inner) {
 	return inner;
 }
 auto __lambda92__(auto inner) {
-	return inner;
-}
-auto __lambda93__(auto inner) {
 	return inner + this.delimiter + element;
 }
-auto __lambda94__(auto inner) {
+auto __lambda93__(auto inner) {
 	return inner + this;
+}
+auto __lambda94__(auto inner) {
+	return inner;
 }
 auto __lambda95__(auto inner) {
 	return inner;
 }
-auto __lambda96__(auto inner) {
-	return inner;
-}
 Option<struct String> fold(Option<struct String> current, struct String element) {
-	return Some<>(current.map(__lambda89__).orElse(element));
+	return Some<>(current.map(__lambda88__).orElse(element));
 }
-auto __lambda97__ {
+auto __lambda96__ {
 	return struct State.popAndAppend()
 }
 Option<struct State> divideSingleQuotes(struct State state, char c) {
@@ -1660,12 +1637,12 @@ Option<struct State> divideSingleQuotes(struct State state, char c) {
 	Tuple<char, struct State> slashTuple = maybeSlashTuple.orElse(Tuple<>('\0', appended));
 	struct var withMaybeSlash = slashTuple.right.append(slashTuple.left);
 	Option<struct State> withSlash = slashTuple.left == '\\' ? withMaybeSlash.popAndAppend() : new Some<>(withMaybeSlash);
-	return withSlash.flatMap(__lambda97__);
+	return withSlash.flatMap(__lambda96__);
 }
-auto __lambda98__ {
+auto __lambda97__ {
 	return struct DecoratedDivider.foldWithinDoubleQuotes()
 }
-auto __lambda99__ {
+auto __lambda98__ {
 	return struct DecoratedDivider.foldWithinDoubleQuotes()
 }
 Option<struct State> divideDoubleQuotes(struct State state, char c) {
@@ -1674,7 +1651,7 @@ Option<struct State> divideDoubleQuotes(struct State state, char c) {
 	}
 	struct State current = state.append(c);
 	while (1) {
-		Tuple<int, struct State> maybeNextTuple = current.pop().flatMap(__lambda98__).toTuple(current);
+		Tuple<int, struct State> maybeNextTuple = current.pop().flatMap(__lambda97__).toTuple(current);
 		if (maybeNextTuple.left) {
 			current = maybeNextTuple.right;
 		}
@@ -1695,56 +1672,56 @@ Option<struct State> foldWithinDoubleQuotes(Tuple<char, struct State> tuple) {
 	}
 	return Some<>(appended);
 }
-auto __lambda100__ {
+auto __lambda99__ {
 	return divideDoubleQuotes(state, c);
 }
-auto __lambda101__ {
+auto __lambda100__ {
 	return divideDoubleQuotes;
 }
-auto __lambda102__ {
+auto __lambda101__ {
 	return this.divider().fold(state, c);
 }
-auto __lambda103__ {
+auto __lambda102__ {
 	return this.divider().fold;
 }
-auto __lambda104__ {
+auto __lambda103__ {
 	return this.divider();
 }
-auto __lambda105__ {
+auto __lambda104__ {
 	return this.divider;
+}
+auto __lambda105__ {
+	return this;
 }
 auto __lambda106__ {
 	return this;
 }
 auto __lambda107__ {
-	return this;
-}
-auto __lambda108__ {
 	return this.divider();
 }
-auto __lambda109__ {
+auto __lambda108__ {
 	return this.divider;
+}
+auto __lambda109__ {
+	return this;
 }
 auto __lambda110__ {
 	return this;
 }
 auto __lambda111__ {
-	return this;
+	return divideDoubleQuotes(state, c);
 }
 auto __lambda112__ {
-	return divideDoubleQuotes(state, c);
-}
-auto __lambda113__ {
 	return divideDoubleQuotes;
 }
-auto __lambda114__ {
+auto __lambda113__ {
 	return divideDoubleQuotes(state, c);
 }
-auto __lambda115__ {
+auto __lambda114__ {
 	return divideDoubleQuotes;
 }
 struct State fold(struct State state, char c) {
-	return divideSingleQuotes(state, c).or(__lambda100__).orElseGet(__lambda102__);
+	return divideSingleQuotes(state, c).or(__lambda99__).orElseGet(__lambda101__);
 }
 struct State fold(struct State state, char c) {
 	if (c == this.delimiter) {
@@ -1752,106 +1729,106 @@ struct State fold(struct State state, char c) {
 	}
 	return state.append(c);
 }
-auto __lambda116__ {
+auto __lambda115__ {
 	return second;
 }
-auto __lambda117__(auto tuple) {
+auto __lambda116__(auto tuple) {
 	return equator.apply(tuple.left, tuple.right);
 }
-auto __lambda118__(auto tuple) {
+auto __lambda117__(auto tuple) {
 	return equator.apply;
 }
-auto __lambda119__(auto tuple) {
+auto __lambda118__(auto tuple) {
 	return equator;
 }
-auto __lambda120__(auto tuple) {
+auto __lambda119__(auto tuple) {
 	return equator.apply(tuple.left, tuple;
 }
-auto __lambda121__(auto tuple) {
+auto __lambda120__(auto tuple) {
 	return equator.apply(tuple;
 }
-auto __lambda122__(auto tuple) {
+auto __lambda121__(auto tuple) {
 	return equator;
+}
+auto __lambda122__ {
+	return second;
 }
 auto __lambda123__ {
 	return second;
 }
-auto __lambda124__ {
-	return second;
-}
-auto __lambda125__(auto tuple) {
+auto __lambda124__(auto tuple) {
 	return equator.apply(tuple.left, tuple.right);
 }
-auto __lambda126__(auto tuple) {
+auto __lambda125__(auto tuple) {
 	return equator.apply;
 }
-auto __lambda127__(auto tuple) {
+auto __lambda126__(auto tuple) {
 	return equator;
 }
-auto __lambda128__(auto tuple) {
+auto __lambda127__(auto tuple) {
 	return equator.apply(tuple.left, tuple;
 }
-auto __lambda129__(auto tuple) {
+auto __lambda128__(auto tuple) {
 	return equator.apply(tuple;
 }
-auto __lambda130__(auto tuple) {
+auto __lambda129__(auto tuple) {
 	return equator;
 }
-auto __lambda131__ {
+auto __lambda130__ {
 	return second;
 }
 <V> int equalsTo(Option<V> first, Option<V> second, BiFunction<V, V, int> equator) {
 	if (first.isEmpty() && second.isEmpty()) {
 		return 1;
 	}
-	return first.and(__lambda116__).map(__lambda117__).orElse(0);
+	return first.and(__lambda115__).map(__lambda116__).orElse(0);
 }
-auto __lambda132__ {
+auto __lambda131__ {
 	return second;
 }
-auto __lambda133__(auto tuple) {
+auto __lambda132__(auto tuple) {
 	return equator.apply(tuple.left, tuple.right);
 }
-auto __lambda134__(auto tuple) {
+auto __lambda133__(auto tuple) {
 	return equator.apply;
 }
-auto __lambda135__(auto tuple) {
+auto __lambda134__(auto tuple) {
 	return equator;
 }
-auto __lambda136__(auto tuple) {
+auto __lambda135__(auto tuple) {
 	return equator.apply(tuple.left, tuple;
 }
-auto __lambda137__(auto tuple) {
+auto __lambda136__(auto tuple) {
 	return equator.apply(tuple;
 }
-auto __lambda138__(auto tuple) {
+auto __lambda137__(auto tuple) {
 	return equator;
+}
+auto __lambda138__ {
+	return second;
 }
 auto __lambda139__ {
 	return second;
 }
-auto __lambda140__ {
-	return second;
-}
-auto __lambda141__(auto tuple) {
+auto __lambda140__(auto tuple) {
 	return equator.apply(tuple.left, tuple.right);
 }
-auto __lambda142__(auto tuple) {
+auto __lambda141__(auto tuple) {
 	return equator.apply;
 }
-auto __lambda143__(auto tuple) {
+auto __lambda142__(auto tuple) {
 	return equator;
 }
-auto __lambda144__(auto tuple) {
+auto __lambda143__(auto tuple) {
 	return equator.apply(tuple.left, tuple;
 }
-auto __lambda145__(auto tuple) {
+auto __lambda144__(auto tuple) {
 	return equator.apply(tuple;
 }
-auto __lambda146__(auto tuple) {
+auto __lambda145__(auto tuple) {
 	return equator;
 }
-auto __lambda147__ {
+auto __lambda146__ {
 	return second;
 }
 struct public CompileError(struct String message, struct String context) {
