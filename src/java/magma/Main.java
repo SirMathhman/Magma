@@ -95,7 +95,7 @@ public class Main {
     }
 
     public interface Path_ {
-        Path_ resolveSibling(String sibling);
+        Path_ resolveSibling(String_ sibling);
 
         List_<String> listNames();
     }
@@ -550,7 +550,7 @@ public class Main {
     }
 
     private static Option<ApplicationError> compileAndWrite(String input, Path_ source) {
-        Path_ target = source.resolveSibling("main.c");
+        Path_ target = source.resolveSibling(new String_("main.c"));
         return compile(input).mapErr(ApplicationError::new).match(output -> {
             return Impl.writeString(target, output).map(ApplicationError::new);
         }, Some::new);

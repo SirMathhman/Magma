@@ -25,8 +25,7 @@ public class Impl {
     }
 
     private record PathImpl(Path path) implements Main.Path_ {
-        @Override
-        public Main.Path_ resolveSibling(String sibling) {
+        private Main.Path_ resolveSibling0(String sibling) {
             return new PathImpl(this.path.resolveSibling(sibling));
         }
 
@@ -37,6 +36,11 @@ public class Impl {
                 names.add(path1.toString());
             }
             return new JavaList<>(names);
+        }
+
+        @Override
+        public Main.Path_ resolveSibling(Main.String_ sibling) {
+            return this.resolveSibling0(sibling.value());
         }
     }
 
