@@ -681,14 +681,6 @@ public class Main {
         }
     }
 
-    private record TypeCompiler(String type,
-                                Function<String, Result<String, CompileError>> childCompiler) implements Function<String, Result<String, CompileError>> {
-        @Override
-        public Result<String, CompileError> apply(String s) {
-            return this.childCompiler.apply(s).mapErr(err -> new CompileError("Invalid type '" + this.type + "'", s, Lists.of(err)));
-        }
-    }
-
     private static class Max implements Collector<Integer, Option<Integer>> {
         @Override
         public Option<Integer> createInitial() {
@@ -698,16 +690,6 @@ public class Main {
         @Override
         public Option<Integer> fold(Option<Integer> current, Integer element) {
             return new Some<>(current.map(inner -> inner > element ? inner : element).orElse(element));
-        }
-    }
-
-    private static class SymbolCompiler implements Function<String, Result<String, CompileError>> {
-        @Override
-        public Result<String, CompileError> apply(String input) {
-            if (isSymbol(input)) {
-                return new Ok<>(input);
-            }
-            return new Err<>(new CompileError("Not a symbol", input));
         }
     }
 
@@ -800,6 +782,17 @@ public class Main {
     private static final List_<String> methods = Lists.empty();
     private static List_<Node> expansions = Lists.empty();
     private static int counter = 0;
+
+    private static Result<String, CompileError> getRecord(String input) {
+        if (isSymbol(input)) {
+            return new Ok<>(input);
+        }
+        return new Err<>(new CompileError("Not a symbol", input));
+    }
+
+    private static Result<String, CompileError> compileWithType(String type, String input, Function<String, Result<String, CompileError>> childRule) {
+        return childRule.apply(input).mapErr(err -> new CompileError("Invalid type '" + type + "'", input, Lists.of(err)));
+    }
 
     private static Result<String, CompileError> compileStrip(String s, Function<String, Result<String, CompileError>> childRule) {
         return childRule.apply(s.strip());
@@ -1274,41 +1267,46 @@ public class Main {
     }
 
     private static Result<String, CompileError> compileConditional(String type, String prefix, String input0, ParseState typeParams, int depth) {
-        return new TypeCompiler(type, input -> {
-            String stripped = input.strip();
-            if (!stripped.startsWith(prefix)) {
-                return createPrefixRule(stripped, prefix);
+        return new Function<String, Result<String, CompileError>>() {
+            @Override
+            public Result<String, CompileError> apply(String s1) {
+                return compileWithType(type, s1, input -> {
+                    String stripped = input.strip();
+                    if (!stripped.startsWith(prefix)) {
+                        return createPrefixRule(stripped, prefix);
+                    }
+
+                    String afterKeyword = stripped.substring(prefix.length()).strip();
+                    if (!afterKeyword.startsWith("(")) {
+                        return createPrefixRule(afterKeyword, "(");
+                    }
+
+                    String withoutConditionStart = afterKeyword.substring(1);
+                    int conditionEnd = findConditionEnd(withoutConditionStart);
+                    if (conditionEnd < 0) {
+                        return createInfixErr(withoutConditionStart, ")");
+                    }
+
+                    String oldCondition = withoutConditionStart.substring(0, conditionEnd).strip();
+                    String withBraces = withoutConditionStart.substring(conditionEnd + ")".length()).strip();
+
+                    return compileValue(oldCondition, typeParams, depth).flatMapValue(newCondition -> {
+                        String withCondition = createIndent(depth) + prefix + "(" + newCondition + ")";
+
+                        if (!withBraces.startsWith("{") || !withBraces.endsWith("}")) {
+                            return compileStatementOrBlock(withBraces, typeParams, depth).mapValue(result -> withCondition + " " + result);
+                        }
+
+                        String content = withBraces.substring(1, withBraces.length() - 1);
+                        Result<String, CompileError> stringCompileErrorResult = compileStatements(content, s -> compileStatementOrBlock(s, typeParams, depth + 1));
+                        return stringCompileErrorResult.mapValue(statements -> withCondition +
+                                " {" + statements + "\n" +
+                                "\t".repeat(depth) +
+                                "}");
+                    });
+                });
             }
-
-            String afterKeyword = stripped.substring(prefix.length()).strip();
-            if (!afterKeyword.startsWith("(")) {
-                return createPrefixRule(afterKeyword, "(");
-            }
-
-            String withoutConditionStart = afterKeyword.substring(1);
-            int conditionEnd = findConditionEnd(withoutConditionStart);
-            if (conditionEnd < 0) {
-                return createInfixErr(withoutConditionStart, ")");
-            }
-
-            String oldCondition = withoutConditionStart.substring(0, conditionEnd).strip();
-            String withBraces = withoutConditionStart.substring(conditionEnd + ")".length()).strip();
-
-            return compileValue(oldCondition, typeParams, depth).flatMapValue(newCondition -> {
-                String withCondition = createIndent(depth) + prefix + "(" + newCondition + ")";
-
-                if (!withBraces.startsWith("{") || !withBraces.endsWith("}")) {
-                    return compileStatementOrBlock(withBraces, typeParams, depth).mapValue(result -> withCondition + " " + result);
-                }
-
-                String content = withBraces.substring(1, withBraces.length() - 1);
-                Result<String, CompileError> stringCompileErrorResult = compileStatements(content, s -> compileStatementOrBlock(s, typeParams, depth + 1));
-                return stringCompileErrorResult.mapValue(statements -> withCondition +
-                        " {" + statements + "\n" +
-                        "\t".repeat(depth) +
-                        "}");
-            });
-        }).apply(input0);
+        }.apply(input0);
     }
 
     private static int findConditionEnd(String input) {
@@ -1464,57 +1462,57 @@ public class Main {
         }
     }
 
-    private static TypeCompiler createSymbolRule() {
-        return new TypeCompiler("symbol", new Function<String, Result<String, CompileError>>() {
+    private static Function<String, Result<String, CompileError>> createSymbolRule() {
+        return s -> compileWithType("symbol", s, s1 -> compileStrip(s1, new Function<String, Result<String, CompileError>>() {
             @Override
-            public Result<String, CompileError> apply(String s) {
-                return compileStrip(s, new SymbolCompiler());
+            public Result<String, CompileError> apply(String s2) {
+                return getRecord(s2);
             }
-        });
+        }));
     }
 
-    private static TypeCompiler createNumberRule() {
-        return new TypeCompiler("number", new Function<String, Result<String, CompileError>>() {
-            @Override
-            public Result<String, CompileError> apply(String s1) {
-                return compileStrip(s1, s -> {
-                    if (isNumber(s)) {
-                        return new Ok<>(s);
-                    }
-                    return new Err<>(new CompileError("Not a number", s));
-                });
+    private static Function<String, Result<String, CompileError>> createNumberRule() {
+        return s -> compileWithType("number", s, s1 -> compileStrip(s1, s2 -> {
+            if (isNumber(s2)) {
+                return new Ok<>(s2);
             }
-        });
+            return new Err<>(new CompileError("Not a number", s2));
+        }));
     }
 
     private static Result<String, CompileError> compileConstruction(String stripped, ParseState typeParams, int depth) {
-        return new TypeCompiler("construction", new Function<String, Result<String, CompileError>>() {
+        return new Function<String, Result<String, CompileError>>() {
             @Override
             public Result<String, CompileError> apply(String s) {
-                return compileStrip(s, input -> {
-                    if (!input.startsWith("new ")) {
-                        return createPrefixRule(input, "new ");
-                    }
+                return compileWithType("construction", s, new Function<String, Result<String, CompileError>>() {
+                    @Override
+                    public Result<String, CompileError> apply(String s1) {
+                        return compileStrip(s1, input -> {
+                            if (!input.startsWith("new ")) {
+                                return createPrefixRule(input, "new ");
+                            }
 
-                    String slice = input.substring("new ".length());
-                    int argsStart = slice.indexOf("(");
-                    if (argsStart < 0) {
-                        return createInfixErr(slice, "(");
-                    }
+                            String slice = input.substring("new ".length());
+                            int argsStart = slice.indexOf("(");
+                            if (argsStart < 0) {
+                                return createInfixErr(slice, "(");
+                            }
 
-                    String type = slice.substring(0, argsStart);
-                    String withEnd = slice.substring(argsStart + "(".length()).strip();
-                    if (!withEnd.endsWith(")")) {
-                        return createSuffixErr(withEnd, ")");
-                    }
+                            String type = slice.substring(0, argsStart);
+                            String withEnd = slice.substring(argsStart + "(".length()).strip();
+                            if (!withEnd.endsWith(")")) {
+                                return createSuffixErr(withEnd, ")");
+                            }
 
-                    String argsString = withEnd.substring(0, withEnd.length() - ")".length());
-                    return parseAnyType(type, typeParams).mapValue(Main::generateAnyType)
-                            .flatMapValue(outputType -> compileArgs(argsString, typeParams, depth)
-                                    .mapValue(value -> outputType + value));
+                            String argsString = withEnd.substring(0, withEnd.length() - ")".length());
+                            return parseAnyType(type, typeParams).mapValue(Main::generateAnyType)
+                                    .flatMapValue(outputType -> compileArgs(argsString, typeParams, depth)
+                                            .mapValue(value -> outputType + value));
+                        });
+                    }
                 });
             }
-        }).apply(stripped);
+        }.apply(stripped);
     }
 
     private static Result<String, CompileError> createNotRule(String stripped, ParseState typeParams, int depth) {
@@ -1678,8 +1676,8 @@ public class Main {
         return cache.append(", ").append(element);
     }
 
-    private static TypeCompiler createDefinitionRule(ParseState state) {
-        return new TypeCompiler("definition", definition -> {
+    private static Function<String, Result<String, CompileError>> createDefinitionRule(ParseState state) {
+        return s -> compileWithType("definition", s, definition -> {
             String stripped = definition.strip();
             int nameSeparator = stripped.lastIndexOf(" ");
             if (nameSeparator < 0) {
