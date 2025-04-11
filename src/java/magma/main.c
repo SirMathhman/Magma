@@ -168,7 +168,7 @@ struct Main {
 // BiFunction<V, V, int>
 // Result<struct String, struct CompileError>
 // List_<struct CompileError>
-int retrieved = false;
+int retrieved = 0;
 int counter = 0;
 struct String display() {
 	return this.error.display();
@@ -187,7 +187,7 @@ auto __lambda3__(auto next) {
 }
 <R> R foldWithInitial(R initial, BiFunction<R, T, R> folder) {
 	R current = initial;
-	while (true) {
+	while (1) {
 		R finalCurrent = current;
 		Option<R> option = this.head.next().map(__lambda0__);
 		if (option.isPresent()) {
@@ -199,7 +199,7 @@ auto __lambda3__(auto next) {
 	}
 }
 void forEach(Consumer<T> consumer) {
-	while (true) {
+	while (1) {
 		Option<T> next = this.head.next();
 		if (next.isEmpty()) {
 			break;
@@ -363,7 +363,7 @@ auto __lambda49__(auto aBoolean, t) {
 	return aBoolean;
 }
 int allMatch(Predicate<T> predicate) {
-	return this.foldWithInitial(true, __lambda42__);
+	return this.foldWithInitial(1, __lambda42__);
 }
 auto __lambda50__(auto next) {
 	return this.foldWithInitial(next, folder);
@@ -448,7 +448,7 @@ auto __lambda74__(auto aBoolean, t) {
 	return aBoolean;
 }
 int anyMatch(Predicate<T> filter) {
-	return this.foldWithInitial(false, __lambda67__);
+	return this.foldWithInitial(0, __lambda67__);
 }
 auto __lambda75__ {
 	return struct Iterator.concat()
@@ -460,13 +460,13 @@ auto __lambda75__ {
 	return None<>();
 }
 int isPresent() {
-	return false;
+	return 0;
 }
 T orElse(T other) {
 	return other;
 }
 int isEmpty() {
-	return true;
+	return 1;
 }
 void ifPresent(Consumer<T> consumer) {
 }
@@ -477,7 +477,7 @@ Option<T> or(Supplier<Option<T>> other) {
 	return None<>();
 }
 Tuple<int, T> toTuple(T other) {
-	return Tuple<>(false, other);
+	return Tuple<>(0, other);
 }
 T orElseGet(Supplier<T> supplier) {
 	return supplier.get();
@@ -498,20 +498,20 @@ Option<T> next() {
 	if (this.retrieved) {
 		return None<>();
 	}
-	this.retrieved = true;
+	this.retrieved = 1;
 	return Some<>(this.value);
 }
 <R> Option<R> map(R (*)(T) mapper) {
 	return Some<>(mapper.apply(this.value));
 }
 int isPresent() {
-	return true;
+	return 1;
 }
 T orElse(T other) {
 	return this.value;
 }
 int isEmpty() {
-	return false;
+	return 0;
 }
 void ifPresent(Consumer<T> consumer) {
 	consumer.accept(this.value);
@@ -523,7 +523,7 @@ Option<T> or(Supplier<Option<T>> other) {
 	return mapper.apply(this.value);
 }
 Tuple<int, T> toTuple(T other) {
-	return Tuple<>(true, this.value);
+	return Tuple<>(1, this.value);
 }
 T orElseGet(Supplier<T> supplier) {
 	return this.value;
@@ -750,9 +750,9 @@ auto __lambda111__ {
 }
 <V> int equalsTo(Option<V> first, Option<V> second, BiFunction<V, V, int> equator) {
 	if (first.isEmpty() && second.isEmpty()) {
-		return true;
+		return 1;
 	}
-	return first.and(__lambda96__).map(__lambda97__).orElse(false);
+	return first.and(__lambda96__).map(__lambda97__).orElse(0);
 }
 auto __lambda112__ {
 	return second;
@@ -984,7 +984,7 @@ struct Main {
 // BiFunction<V, V, int>
 // Result<struct String, struct CompileError>
 // List_<struct CompileError>
-int retrieved = false;
+int retrieved = 0;
 int counter = 0;
 struct String display() {
 	return this.error.display();
@@ -1003,7 +1003,7 @@ auto __lambda3__(auto next) {
 }
 <R> R foldWithInitial(R initial, BiFunction<R, T, R> folder) {
 	R current = initial;
-	while (true) {
+	while (1) {
 		R finalCurrent = current;
 		Option<R> option = this.head.next().map(__lambda0__);
 		if (option.isPresent()) {
@@ -1015,7 +1015,7 @@ auto __lambda3__(auto next) {
 	}
 }
 void forEach(Consumer<T> consumer) {
-	while (true) {
+	while (1) {
 		Option<T> next = this.head.next();
 		if (next.isEmpty()) {
 			break;
@@ -1179,7 +1179,7 @@ auto __lambda49__(auto aBoolean, t) {
 	return aBoolean;
 }
 int allMatch(Predicate<T> predicate) {
-	return this.foldWithInitial(true, __lambda42__);
+	return this.foldWithInitial(1, __lambda42__);
 }
 auto __lambda50__(auto next) {
 	return this.foldWithInitial(next, folder);
@@ -1264,7 +1264,7 @@ auto __lambda74__(auto aBoolean, t) {
 	return aBoolean;
 }
 int anyMatch(Predicate<T> filter) {
-	return this.foldWithInitial(false, __lambda67__);
+	return this.foldWithInitial(0, __lambda67__);
 }
 auto __lambda75__ {
 	return struct Iterator.concat()
@@ -1276,13 +1276,13 @@ auto __lambda75__ {
 	return None<>();
 }
 int isPresent() {
-	return false;
+	return 0;
 }
 T orElse(T other) {
 	return other;
 }
 int isEmpty() {
-	return true;
+	return 1;
 }
 void ifPresent(Consumer<T> consumer) {
 }
@@ -1293,7 +1293,7 @@ Option<T> or(Supplier<Option<T>> other) {
 	return None<>();
 }
 Tuple<int, T> toTuple(T other) {
-	return Tuple<>(false, other);
+	return Tuple<>(0, other);
 }
 T orElseGet(Supplier<T> supplier) {
 	return supplier.get();
@@ -1314,20 +1314,20 @@ Option<T> next() {
 	if (this.retrieved) {
 		return None<>();
 	}
-	this.retrieved = true;
+	this.retrieved = 1;
 	return Some<>(this.value);
 }
 <R> Option<R> map(R (*)(T) mapper) {
 	return Some<>(mapper.apply(this.value));
 }
 int isPresent() {
-	return true;
+	return 1;
 }
 T orElse(T other) {
 	return this.value;
 }
 int isEmpty() {
-	return false;
+	return 0;
 }
 void ifPresent(Consumer<T> consumer) {
 	consumer.accept(this.value);
@@ -1339,7 +1339,7 @@ Option<T> or(Supplier<Option<T>> other) {
 	return mapper.apply(this.value);
 }
 Tuple<int, T> toTuple(T other) {
-	return Tuple<>(true, this.value);
+	return Tuple<>(1, this.value);
 }
 T orElseGet(Supplier<T> supplier) {
 	return this.value;
@@ -1566,9 +1566,9 @@ auto __lambda111__ {
 }
 <V> int equalsTo(Option<V> first, Option<V> second, BiFunction<V, V, int> equator) {
 	if (first.isEmpty() && second.isEmpty()) {
-		return true;
+		return 1;
 	}
-	return first.and(__lambda96__).map(__lambda97__).orElse(false);
+	return first.and(__lambda96__).map(__lambda97__).orElse(0);
 }
 auto __lambda112__ {
 	return second;

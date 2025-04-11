@@ -1402,6 +1402,7 @@ public class Main {
 
     private static Result<String, CompileError> compileValue(String input0, ParseState typeParams, int depth) {
         return new OrRule(Lists.of(
+                Main::compileBoolean,
                 Main::compileString,
                 Main::compileChar,
                 stripped -> createSymbolRule().apply(stripped),
@@ -1420,6 +1421,16 @@ public class Main {
                 (input) -> compileOperator(input, typeParams, depth, "=="),
                 (input) -> compileOperator(input, typeParams, depth, "!=")
         )).apply(input0);
+    }
+
+    private static Result<String, CompileError> compileBoolean(String input) {
+        if (input.equals("true")) {
+            return new Ok<>("1");
+        }
+        if (input.equals("false")) {
+            return new Ok<>("0");
+        }
+        return new Err<>(new CompileError("Not a boolean", input));
     }
 
     private static Result<String, CompileError> compileString(String input) {
