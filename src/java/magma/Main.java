@@ -577,18 +577,27 @@ public class Main {
 
         String afterKeyword = input.substring(classIndex + infix.length());
         int contentStart = afterKeyword.indexOf("{");
-        if (contentStart >= 0) {
-            String name = afterKeyword.substring(0, contentStart).strip();
-            String withEnd = afterKeyword.substring(contentStart + "{".length()).strip();
-            if (withEnd.endsWith("}")) {
-                String inputContent = withEnd.substring(0, withEnd.length() - "}".length());
-                return compileStatements(inputContent, input1 -> compileClassMember(input1, typeParams)).map(outputContent -> {
-                    structs.add("struct " + name + " {" + outputContent + "\n};\n");
-                    return "";
-                });
-            }
+        if (contentStart < 0) {
+            return new None<>();
         }
-        return new None<>();
+
+        String beforeContent = afterKeyword.substring(0, contentStart).strip();
+
+        int typeStartIndex = beforeContent.indexOf("<");
+        String name = typeStartIndex >= 0
+                ? beforeContent.substring(0, typeStartIndex)
+                : beforeContent;
+
+        String withEnd = afterKeyword.substring(contentStart + "{".length()).strip();
+        if (!withEnd.endsWith("}")) {
+            return new None<>();
+        }
+
+        String inputContent = withEnd.substring(0, withEnd.length() - "}".length());
+        return compileStatements(inputContent, input1 -> compileClassMember(input1, typeParams)).map(outputContent -> {
+            structs.add("struct " + name + " {" + outputContent + "\n};\n");
+            return "";
+        });
     }
 
     private static Option<String> compileClassMember(String input, List_<String> typeParams) {

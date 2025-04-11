@@ -1,4 +1,4 @@
-struct Option<T> {
+struct Option {
 	<R> Option_R map(Function_struct T, struct R mapper);
 	struct T orElse(struct T other);
 	int isPresent();
@@ -7,7 +7,7 @@ struct Option<T> {
 	Option_struct T or(Supplier_Option_struct T supplier);
 	<R> Option_R flatMap(Function_struct T, Option_struct R mapper);
 };
-struct List_<T> {
+struct List_ {
 	List__struct T add(struct T element);
 	void addAll(List__struct T elements);
 	Iterator_struct T iter();
@@ -19,7 +19,7 @@ struct List_<T> {
 	List__struct T slice(int startInclusive, int endExclusive);
 	struct T get(int index);
 };
-struct Iterator<T> {
+struct Iterator {
 	<R> R fold(struct R initial, BiFunction_struct R, struct T, struct R folder);
 	<R> Iterator_R map(Function_struct T, struct R mapper);
 	<C> C collect(Collector_struct T, struct C collector);
@@ -30,14 +30,14 @@ struct Iterator<T> {
 	Iterator_struct T concat(Iterator_struct T other);
 	Option_struct T next();
 };
-struct Head<T> {
+struct Head {
 	Option_struct T next();
 };
-struct Collector<T, C> {
+struct Collector {
 	struct C createInitial();
 	struct C fold(struct C current, struct T element);
 };
-struct Result<T, X> {
+struct Result {
 	<R> R match(Function_struct T, struct R whenOk, Function_struct X, struct R whenErr);
 };
 struct IOError {
@@ -47,9 +47,9 @@ struct Path_ {
 	struct Path_ resolveSibling(struct String sibling);
 	List__struct String listNames();
 };
-struct Err<T, X>(X error) implements Result<T, X> {
+struct Err {
 };
-struct Ok<T, X>(T value) implements Result<T, X> {
+struct Ok {
 };
 struct State {	List__char queue;
 	List__struct String segments;
@@ -57,26 +57,26 @@ struct State {	List__char queue;
 	int depth;
 
 };
-struct Tuple<A, B>(A left, B right) {
+struct Tuple {
 };
-struct None<T> implements Option<T> {
+struct None {
 };
-struct Some<T>(T value) implements Option<T> {
+struct Some {
 };
-struct Joiner(String delimiter) implements Collector<String, Option<String>> {
+struct Joiner(String delimiter) implements Collector {
 };
-struct RangeHead implements Head<Integer> {	int length;
+struct RangeHead implements Head {	int length;
 
 };
-struct HeadedIterator<T>(Head<T> head) implements Iterator<T> {
+struct HeadedIterator {
 };
-struct EmptyHead<T> implements Head<T> {
+struct EmptyHead {
 };
 struct Iterators {
 };
-struct ListCollector<T> implements Collector<T, List_<T>> {
+struct ListCollector {
 };
-struct SingleHead<T> implements Head<T> {	struct T value;
+struct SingleHead {	struct T value;
 
 };
 struct ", Impl.emptyList());
@@ -463,8 +463,8 @@ auto __lambda26__(auto input1) {
 	return compileClassMember(input1, typeParams);
 }
 auto __lambda27__(auto outputContent) {
-			structs.add("struct " + name + " {" + outputContent + "\n};\n");
-			return "";
+	structs.add("struct " + name + " {" + outputContent + "\n};\n");
+	return "";
 }
 Option_struct String compileToStruct(struct String input, struct String infix, List__struct String typeParams) {
 	int classIndex = input.indexOf(infix);
@@ -473,15 +473,20 @@ Option_struct String compileToStruct(struct String input, struct String infix, L
 	}
 	struct String afterKeyword = input.substring(classIndex + infix.length());
 	int contentStart = afterKeyword.indexOf("{");
-	if (contentStart >= 0) {
-		struct String name = afterKeyword.substring(0, contentStart).strip();
-		struct String withEnd = afterKeyword.substring(contentStart + "{".length()).strip();
-		if (withEnd.endsWith("}")) {
-			struct String inputContent = withEnd.substring(0, withEnd.length() - "}".length());
-			return compileStatements(inputContent, __lambda26__).map(__lambda27__);
-		}
+	if (contentStart < 0) {
+		return None_();
 	}
-	return None_();
+	struct String beforeContent = afterKeyword.substring(0, contentStart).strip();
+	int typeStartIndex = beforeContent.indexOf("<");
+	struct String name = typeStartIndex >= /*  0
+                ? beforeContent */.substring(0, typeStartIndex)
+                : beforeContent;
+	struct String withEnd = afterKeyword.substring(contentStart + "{".length()).strip();
+	if (!withEnd.endsWith("}")) {
+		return None_();
+	}
+	struct String inputContent = withEnd.substring(0, withEnd.length() - "}".length());
+	return compileStatements(inputContent, __lambda26__).map(__lambda27__);
 }
 auto __lambda28__() {
 	return compileToStruct(input, "interface ", typeParams);
