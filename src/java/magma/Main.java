@@ -1103,7 +1103,7 @@ public class Main {
         return createSuffixErr(input, ";");
     }
 
-    private static Err<String, CompileError> createSuffixErr(String input, String suffix) {
+    private static <T> Result<T, CompileError> createSuffixErr(String input, String suffix) {
         return new Err<>(new CompileError("Suffix '" + suffix + "' not present", input));
     }
 
@@ -1800,17 +1800,12 @@ public class Main {
     }
 
     private static Result<Node, CompileError> parseAnyType(String input, ParseState typeParams) {
-        return getApply(input, typeParams)
-                .mapValue(result -> new Node().withString("value", result));
-    }
-
-    private static Result<String, CompileError> getApply(String input, ParseState typeParams) {
         return new OrRule(Lists.of(
                 value1 -> parsePrimitive(value1).flatMapValue(Main::generatePrimitive),
-                value -> getWrapped(typeParams, value),
+                value -> parseArray(typeParams, value).flatMapValue(Main::generateReference),
                 value -> getStringCompileErrorResult(typeParams, value),
                 value -> compileGeneric(typeParams, value)
-        )).apply(input);
+        )).apply(input).mapValue(result -> new Node().withString("value", result));
     }
 
     private static Result<String, CompileError> compileGeneric(ParseState typeParams, String value) {
@@ -1881,9 +1876,14 @@ public class Main {
         }
     }
 
-    private static Result<String, CompileError> getWrapped(ParseState typeParams, String value) {
+    private static Result<String, CompileError> generateReference(Node value1) {
+        return new Ok<>(generateAnyType(value1) + "*");
+    }
+
+    private static Result<Node, CompileError> parseArray(ParseState typeParams, String value) {
         if (value.endsWith("[]")) {
-            return parseAnyType(value.substring(0, value.length() - "[]".length()), typeParams).mapValue(Main::generateAnyType).mapValue(value1 -> value1 + "*");
+            String slice = value.substring(0, value.length() - "[]".length());
+            return parseAnyType(slice, typeParams);
         }
         return createSuffixErr(value, "[]");
     }
