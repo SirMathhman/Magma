@@ -778,6 +778,7 @@ public class Main {
             });
         }
     }
+
     public static final List_<String> FUNCTIONAL_NAMESPACE = Lists.of("java", "util", "function");
     private static final List_<String> imports = Lists.empty();
     private static final List_<String> structs = Lists.empty();
@@ -829,7 +830,11 @@ public class Main {
 
     private static Result<String, CompileError> compile(String input) {
         List_<String> segments = divide(input, new DecoratedDivider(Main::divideStatementChar));
-        return parseAll(segments, input0 -> compileRootSegment(input0))
+        return parseAll(segments, wrapDefault(input0 -> compileRootSegment(input0))).mapValue(list -> {
+                    return list.iter()
+                            .map(Main::unwrapDefault)
+                            .collect(new ListCollector<>());
+                })
                 .mapValue(Main::mergeStatics)
                 .mapValue(compiled -> mergeAll(compiled, Main::mergeStatements));
     }
@@ -891,16 +896,28 @@ public class Main {
     }
 
     private static Result<String, CompileError> compileAndMerge(List_<String> segments, Function<String, Result<String, CompileError>> compiler, BiFunction<StringBuilder, String, StringBuilder> merger) {
-        return parseAll(segments, compiler).mapValue(compiled -> mergeAll(compiled, merger));
+        return parseAll(segments, wrapDefault(compiler)).mapValue(list -> {
+            return list.iter()
+                    .map(Main::unwrapDefault)
+                    .collect(new ListCollector<>());
+        }).mapValue(compiled -> mergeAll(compiled, merger));
     }
 
     private static String mergeAll(List_<String> compiled, BiFunction<StringBuilder, String, StringBuilder> merger) {
         return compiled.iter().foldWithInitial(new StringBuilder(), merger).toString();
     }
 
-    private static Result<List_<String>, CompileError> parseAll(List_<String> segments, Function<String, Result<String, CompileError>> mapper) {
+    private static Result<List_<Node>, CompileError> parseAll(List_<String> segments, Rule rule) {
         return segments.iter().foldToResult(Lists.empty(),
-                (current, element) -> mapper.apply(element).mapValue(current::add));
+                (current, element) -> rule.apply(element).mapValue(current::add));
+    }
+
+    private static String unwrapDefault(Node node) {
+        return node.findString("value").orElse("");
+    }
+
+    private static Rule wrapDefault(Function<String, Result<String, CompileError>> mapper) {
+        return s -> mapper.apply(s).mapValue(value -> new Node().withString("value", value));
     }
 
     private static StringBuilder mergeStatements(StringBuilder output, String compiled) {
@@ -1850,7 +1867,11 @@ public class Main {
         );
 
         List_<String> divided = divideValues(params);
-        return parseAll(divided, s -> compileOr(s, rules)).mapValue(parsed -> {
+        return parseAll(divided, wrapDefault(s -> compileOr(s, rules))).mapValue(list -> {
+            return list.iter()
+                    .map(Main::unwrapDefault)
+                    .collect(new ListCollector<>());
+        }).mapValue(parsed -> {
             if (base.equals("Function")) {
                 String first = parsed.get(0);
                 String second = parsed.get(1);
