@@ -1,5 +1,5 @@
-#include "../magma/java/Console.h"
 #include "../magma/java/Strings.h"
+#include "../static magma/java/Console/printlnErr.h"
 /*struct Result<T, X> {
 	<R> R match(R (*)(T) whenOk, R (*)(X) whenErr);
 	<R> Result<T, R> mapErr(R (*)(X) mapper);
@@ -65,8 +65,6 @@ struct IOError {
 };
 */struct Divider {
 	struct State fold(struct State state, char c);
-};
-struct Rule {
 };
 /*struct Map_<K, V> {
 	Map_<K, V> with(K propertyKey, V propertyValue);
@@ -920,8 +918,8 @@ Option<int> createInitial() {
 Option<int> fold(Option<int> current, int element) {
 	return Some<>(current.map(inner -> inner > element ? inner : element).orElse(element));
 }
-#include "../magma/java/Console.h"
 #include "../magma/java/Strings.h"
+#include "../static magma/java/Console/printlnErr.h"
 /*struct Result<T, X> {
 	<R> R match(R (*)(T) whenOk, R (*)(X) whenErr);
 	<R> Result<T, R> mapErr(R (*)(X) mapper);
@@ -987,8 +985,6 @@ struct IOError {
 };
 */struct Divider {
 	struct State fold(struct State state, char c);
-};
-struct Rule {
 };
 /*struct Map_<K, V> {
 	Map_<K, V> with(K propertyKey, V propertyValue);
