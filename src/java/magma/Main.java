@@ -44,7 +44,7 @@ public class Main {
     }
 
     public interface Error {
-        String display();
+        String_ display();
     }
 
     public interface IOError extends Error {
@@ -136,10 +136,17 @@ public class Main {
         Iterator<K> keys();
     }
 
+    public record String_(char[] array) {
+    }
+
     public record ApplicationError(Error error) implements Error {
+        private String display0() {
+            return Strings.unwrap(this.error.display());
+        }
+
         @Override
-        public String display() {
-            return this.error.display();
+        public String_ display() {
+            return Strings.from(this.display0().toCharArray());
         }
     }
 
@@ -626,8 +633,7 @@ public class Main {
             this(message, context, Lists.empty());
         }
 
-        @Override
-        public String display() {
+        private String display0() {
             return this.format(0);
         }
 
@@ -650,6 +656,11 @@ public class Main {
                     .map(CompileError::maxDepth)
                     .collect(new Max())
                     .orElse(0);
+        }
+
+        @Override
+        public String_ display() {
+            return Strings.from(this.display0().toCharArray());
         }
     }
 
@@ -816,7 +827,7 @@ public class Main {
         Files.readString(source)
                 .mapErr(ApplicationError::new)
                 .match(input -> compileAndWrite(source, input), Some::new)
-                .ifPresent(error -> System.err.println(error.display()));
+                .ifPresent(error -> System.err.println(Strings.unwrap(error.display())));
     }
 
     private static Option<ApplicationError> compileAndWrite(Path_ source, String input) {

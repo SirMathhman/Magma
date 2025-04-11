@@ -19,7 +19,7 @@
 	<R> Option<Tuple<T, R>> and(Supplier<Option<R>> other);
 };
 */struct Error {
-	struct String display();
+	struct String_ display();
 };
 struct IOError {
 };
@@ -73,7 +73,9 @@ struct Rule {
 	Main.Iterator<Main.Tuple<K, V>> iter();
 	Iterator<K> keys();
 };
-*/struct ApplicationError {
+*/struct String_ {
+};
+struct ApplicationError {
 };
 /*struct HeadedIterator<T> {
 };
@@ -170,8 +172,13 @@ struct Main {
 // List_<struct CompileError>
 int retrieved = 0;
 int counter = 0;
-struct String display() {
-	return this.error.display();
+struct record String_(char* array) {
+}
+struct String display0() {
+	return Strings.unwrap(this.error.display());
+}
+struct String_ display() {
+	return Strings.from(this.display0().toCharArray());
 }
 auto __lambda0__(auto next) {
 	return folder.apply(finalCurrent, next);
@@ -805,7 +812,7 @@ auto __lambda127__ {
 struct public CompileError(struct String message, struct String context) {
 	this(message, context, Lists.empty());
 }
-struct String display() {
+struct String display0() {
 	return this.format(0);
 }
 Option<int> createInitial() {
@@ -835,7 +842,7 @@ Option<int> fold(Option<int> current, int element) {
 	<R> Option<Tuple<T, R>> and(Supplier<Option<R>> other);
 };
 */struct Error {
-	struct String display();
+	struct String_ display();
 };
 struct IOError {
 };
@@ -889,7 +896,9 @@ struct Rule {
 	Main.Iterator<Main.Tuple<K, V>> iter();
 	Iterator<K> keys();
 };
-*/struct ApplicationError {
+*/struct String_ {
+};
+struct ApplicationError {
 };
 /*struct HeadedIterator<T> {
 };
@@ -986,8 +995,13 @@ struct Main {
 // List_<struct CompileError>
 int retrieved = 0;
 int counter = 0;
-struct String display() {
-	return this.error.display();
+struct record String_(char* array) {
+}
+struct String display0() {
+	return Strings.unwrap(this.error.display());
+}
+struct String_ display() {
+	return Strings.from(this.display0().toCharArray());
 }
 auto __lambda0__(auto next) {
 	return folder.apply(finalCurrent, next);
@@ -1621,7 +1635,7 @@ auto __lambda127__ {
 struct public CompileError(struct String message, struct String context) {
 	this(message, context, Lists.empty());
 }
-struct String display() {
+struct String display0() {
 	return this.format(0);
 }
 Option<int> createInitial() {

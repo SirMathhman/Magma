@@ -8,11 +8,15 @@ import java.nio.file.Paths;
 
 public class Files {
     record ExceptionalIOError(IOException exception) implements Main.IOError {
-        @Override
-        public String display() {
+        private String display0() {
             StringWriter writer = new StringWriter();
             this.exception.printStackTrace(new PrintWriter(writer));
             return writer.toString();
+        }
+
+        @Override
+        public Main.String_ display() {
+            return Strings.from(this.display0().toCharArray());
         }
     }
 
