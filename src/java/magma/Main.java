@@ -1642,10 +1642,16 @@ public class Main {
             return createInfixErr(stripped, "(");
         }
 
-        String type = sliced.substring(0, argsStart);
+        String callerString = sliced.substring(0, argsStart);
         String withEnd = sliced.substring(argsStart + "(".length()).strip();
-        return parseValue(type, typeParams, depth).mapValue(Main::generateValue)
+        return parseValue(callerString, typeParams, depth)
+                .flatMapValue(Main::resolveType)
+                .mapValue(Main::generateValue)
                 .flatMapValue(caller -> compileArgs(withEnd, typeParams, depth).mapValue(value -> caller + value));
+    }
+
+    private static Result<Node, CompileError> resolveType(Node node) {
+        return new Err<>(new CompileError("", ""));
     }
 
     private static int findInvocationStart(String sliced) {
