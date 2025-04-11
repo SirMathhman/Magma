@@ -57,14 +57,14 @@ struct State advance() {
 	this.buffer = struct StringBuilder();
 	return this;
 }
-struct State append(struct char c) {
+struct State append(char c) {
 	this.buffer.append(c);
 	return this;
 }
 struct boolean isLevel() {
 	return this.depth == 0;
 }
-struct char pop() {
+char pop() {
 	return this.queue.pop();
 }
 struct boolean hasElements() {
@@ -81,7 +81,7 @@ struct State enter() {
 List__struct String segments() {
 	return this.segments;
 }
-struct char peek() {
+char peek() {
 	return this.queue.peek();
 }
 <T> implements Option<T> {
@@ -429,10 +429,10 @@ List__struct String divide(struct String input, BiFunction_struct State, struct 
 	List__struct Character queue = Iterators.fromString(input).collect(ListCollector_());
 	struct State state = struct State(queue);
 	while (state.hasElements()) {
-		struct char c = state.pop();
+		char c = state.pop();
 		if (c == '\'') {
 			state.append(c);
-			struct char maybeSlash = state.pop();
+			char maybeSlash = state.pop();
 			state.append(maybeSlash);
 			if (maybeSlash == '\\') {
 				state.append(state.pop());
@@ -443,7 +443,7 @@ List__struct String divide(struct String input, BiFunction_struct State, struct 
 		if (c == '\"') {
 			state.append(c);
 			while (state.hasElements()) {
-				struct char next = state.pop();
+				char next = state.pop();
 				state.append(next);
 				if (next == '\\') {
 					state.append(state.pop());
@@ -458,7 +458,7 @@ List__struct String divide(struct String input, BiFunction_struct State, struct 
 	}
 	return state.advance().segments();
 }
-struct State divideStatementChar(struct State state, struct char c) {
+struct State divideStatementChar(struct State state, char c) {
 	struct State appended = state.append(c);
 	if (c == ';' && appended.isLevel()) {
 		return appended.advance();
@@ -477,7 +477,7 @@ struct State divideStatementChar(struct State state, struct char c) {
 struct boolean isShallow(struct State state) {
 	return state.depth == 1;
 }
-List__struct String splitByDelimiter(struct String content, struct char delimiter) {
+List__struct String splitByDelimiter(struct String content, char delimiter) {
 	List__struct String segments = Impl.emptyList();
 	struct StringBuilder buffer = struct StringBuilder();/* 
         for (int i = 0; i < content.length(); i++) {
@@ -655,7 +655,7 @@ auto __lambda53__() {
 Result_struct String, struct CompileError compileValues(struct String input, Function_struct String, Result_struct String, struct CompileError compiler) {
 	return compileValues(divide(input, __lambda53__), compiler);
 }
-struct State divideValueChar(struct State state, struct char c) {
+struct State divideValueChar(struct State state, char c) {
 	if (c == '-') {
 		if (state.peek() == '>') {
 			state.pop();
@@ -1056,7 +1056,7 @@ Option_struct String generateLambdaWithReturn(List__struct String paramNames, st
 }
 auto __lambda103__(auto tuple) {
 	int index = tuple.left;
-	struct char c = tuple.right;
+	char c = tuple.right;
 	return (index == 0 && c == '-') || Character.isDigit(c);
 }
 struct boolean isNumber(struct String input) {
@@ -1086,7 +1086,7 @@ int findInvocationStart(struct String sliced) {
 	int depth0 = 0;
 	int i = sliced.length() - 1;
 	while (i >= 0) {
-		struct char c = sliced.charAt(i);
+		char c = sliced.charAt(i);
 		if (c == '(' && depth0 == 0) {
 			argsStart new = i;
 			break;
@@ -1195,7 +1195,7 @@ int findTypeSeparator(struct String beforeName) {
 	int depth = 0;
 	int i = beforeName.length() - 1;
 	while (i >= 0) {
-		struct char c = beforeName.charAt(i);
+		char c = beforeName.charAt(i);
 		if (c == ' ' && depth == 0) {
 			typeSeparator new = i;
 			break;
@@ -1306,14 +1306,14 @@ Option_struct String compileGeneric(struct String stripped, List__struct String 
 }
 auto __lambda124__(auto tuple) {
 	int index = tuple.left;
-	struct char c = tuple.right;
+	char c = tuple.right;
 	return c == '_' || Character.isLetter(c) ||(index != 0 && Character.isDigit(c));
 }
 struct boolean isSymbol(struct String input) {
 	if (input.isBlank()) {
 		return false;
 	}
-	if (input.equals("record") || input.equals("int")) {
+	if (input.equals("record") || input.equals("int") || input.equals("char")) {
 		return false;
 	}
 	return Iterators.fromStringWithIndices(input).allMatch(__lambda124__);

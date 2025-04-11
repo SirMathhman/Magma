@@ -1512,7 +1512,7 @@ public class Main {
             return false;
         }
 
-        if (input.equals("record") || input.equals("int")) {
+        if (input.equals("record") || input.equals("int") || input.equals("char")) {
             return false;
         }
 
