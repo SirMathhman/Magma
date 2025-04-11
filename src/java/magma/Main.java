@@ -1316,25 +1316,7 @@ public class Main {
             return new None<>();
         }
 
-        int typeSeparator = -1;
-        int depth = 0;
-        int i = beforeName.length() - 1;
-        while (i >= 0) {
-            char c = beforeName.charAt(i);
-            if (c == ' ' && depth == 0) {
-                typeSeparator = i;
-                break;
-            }
-            else {
-                if (c == '>') {
-                    depth++;
-                }
-                if (c == '<') {
-                    depth--;
-                }
-            }
-            i--;
-        }
+        int typeSeparator = findTypeSeparator(beforeName);
 
         if (typeSeparator >= 0) {
             String beforeType = beforeName.substring(0, typeSeparator).strip();
@@ -1384,6 +1366,29 @@ public class Main {
         else {
             return compileType(beforeName, Impl.emptyList()).flatMap(outputType -> new Some<>(generateDefinition(Impl.emptyList(), outputType, name)));
         }
+    }
+
+    private static int findTypeSeparator(String beforeName) {
+        int typeSeparator = -1;
+        int depth = 0;
+        int i = beforeName.length() - 1;
+        while (i >= 0) {
+            char c = beforeName.charAt(i);
+            if (c == ' ' && depth == 0) {
+                typeSeparator = i;
+                break;
+            }
+            else {
+                if (c == '>') {
+                    depth++;
+                }
+                if (c == '<') {
+                    depth--;
+                }
+            }
+            i--;
+        }
+        return typeSeparator;
     }
 
     private static List_<String> splitValues(String substring) {
