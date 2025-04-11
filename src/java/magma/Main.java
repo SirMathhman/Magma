@@ -92,7 +92,6 @@ public class Main {
     }
 
     public interface IOError extends Error {
-        String display();
     }
 
     public interface Path_ {
@@ -102,7 +101,10 @@ public class Main {
     }
 
     private interface Error {
-        String display();
+        String_ display();
+    }
+
+    public record String_(String value) {
     }
 
     public record Err<T, X>(X error) implements Result<T, X> {
@@ -475,8 +477,7 @@ public class Main {
             this(message, context, Impl.emptyList());
         }
 
-        @Override
-        public String display() {
+        private String display0() {
             return this.format(0);
         }
 
@@ -497,12 +498,21 @@ public class Main {
                     .collect(new Max())
                     .orElse(0);
         }
+
+        @Override
+        public String_ display() {
+            return new String_(this.display0());
+        }
     }
 
     private record ApplicationError(Error error) implements Error {
+        private String display0() {
+            return this.error.display().value;
+        }
+
         @Override
-        public String display() {
-            return this.error.display();
+        public String_ display() {
+            return new String_(this.display0());
         }
     }
 
@@ -536,7 +546,7 @@ public class Main {
         Impl.readString(source)
                 .mapErr(ApplicationError::new)
                 .match(input -> compileAndWrite(input, source), Some::new)
-                .ifPresent(error -> System.err.println(error.display()));
+                .ifPresent(error -> System.err.println(error.display().value));
     }
 
     private static Option<ApplicationError> compileAndWrite(String input, Path_ source) {

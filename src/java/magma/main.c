@@ -1,12 +1,13 @@
 struct IOError {
-	struct String display();
 };
 struct Path_ {
 	struct Path_ resolveSibling(struct String sibling);
 	List__struct String listNames();
 };
 struct Error {
-	struct String display();
+	struct String_ display();
+};
+struct String_ {
 };
 struct State {
 	List__struct Character queue;
@@ -215,7 +216,7 @@ Option_struct Integer createInitial() {
 struct public CompileError(struct String message, struct String context) {
 	this(message, context, Impl.emptyList());
 }
-struct String display() {
+struct String display0() {
 	return this.format(0);
 }
 auto __lambda6__(auto first, auto second) {
@@ -237,8 +238,14 @@ auto __lambda9__() {
 int computeMaxDepth() {
 	return 1 + this.errors.iter().map(__lambda9__).collect(struct Max()).orElse(0);
 }
-struct String display() {
-	return this.error.display();
+struct String_ display() {
+	return struct String_(this.display0());
+}
+struct String display0() {
+	return this.error.display().value;
+}
+struct String_ display() {
+	return struct String_(this.display0());
 }
 struct public OrState() {
 	this(None_(), Impl.emptyList());
@@ -268,7 +275,7 @@ auto __lambda14__() {
 	return struct Some.new()
 }
 auto __lambda15__(auto error) {
-	return System.err.println(error.display());
+	return System.err.println(error.display().value);
 }
 struct void main(struct String* args) {
 	struct Path_ source = Impl.get(".", "src", "java", "magma", "Main.java");
