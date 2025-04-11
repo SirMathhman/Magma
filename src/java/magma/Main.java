@@ -1322,6 +1322,10 @@ public class Main {
             String stripped = input.strip();
             int nameSeparator = stripped.lastIndexOf(" ");
             if (nameSeparator < 0) {
+                if (isSymbol(stripped)) {
+                    return new Ok<>(stripped + " new");
+                }
+
                 return createInfixErr(stripped, " ");
             }
 
