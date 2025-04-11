@@ -1256,11 +1256,11 @@ public class Main {
         String lambdaName = "__lambda" + current + "__";
 
         String joinedLambdaParams = paramNames.iter()
-                .map(name -> "auto " + name)
+                .map(name -> "int " + name)
                 .collect(new Joiner(", "))
                 .orElse("");
 
-        methods.add("auto " + lambdaName + "(" + joinedLambdaParams + ")" + " {" + returnValue + "\n}\n");
+        methods.add("int " + lambdaName + "(" + joinedLambdaParams + ")" + " {" + returnValue + "\n}\n");
         return new Some<>(lambdaName);
     }
 
