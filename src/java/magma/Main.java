@@ -959,7 +959,9 @@ public class Main {
                     .map(inner -> "<" + inner + ">")
                     .orElse("");
 
-            structs.add("struct " + name + typeParameters + " {\n" + outputContent + "};\n");
+            String element = "struct " + name + typeParameters + " {\n" + outputContent + "};\n";
+            String element1 = typeParameters.isEmpty() ? element : "/*" + element + "*/";
+            structs.add(element1);
             return "";
         });
     }

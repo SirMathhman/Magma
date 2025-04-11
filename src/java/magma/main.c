@@ -1,11 +1,11 @@
-struct Result<T, X> {
+/*struct Result<T, X> {
 	<R> R match(R (*)(T) whenOk, R (*)(X) whenErr);
 	<R> Result<T, R> mapErr(R (*)(X) mapper);
 	<R> Result<R, X> flatMapValue(Result<R, X> (*)(T) mapper);
 	<R> Result<R, X> mapValue(R (*)(T) mapper);
 	Option<T> findValue();
 };
-struct Option<T> {
+*//*struct Option<T> {
 	<R> Option<R> map(R (*)(T) mapper);
 	int isPresent();
 	T orElse(T other);
@@ -17,12 +17,12 @@ struct Option<T> {
 	T orElseGet(Supplier<T> supplier);
 	<R> R match(R (*)(T) whenPresent, Supplier<R> whenEmpty);
 };
-struct Error {
+*/struct Error {
 	String display();
 };
 struct IOError {
 };
-struct List_<T> {
+/*struct List_<T> {
 	List_<T> add(T element);
 	List_<T> addAll(List_<T> others);
 	Iterator<T> iter();
@@ -36,11 +36,11 @@ struct List_<T> {
 	T last();
 	List_<T> set(int index, T element);
 };
-struct Path_ {
+*/struct Path_ {
 	Path_ resolveSibling(String sibling);
 	List_<String> asList();
 };
-struct Iterator<T> {
+/*struct Iterator<T> {
 	<R> R foldWithInitial(R initial, BiFunction<R, T, R> folder);
 	void forEach(Consumer<T> consumer);
 	<R> Iterator<R> map(R (*)(T) mapper);
@@ -53,57 +53,57 @@ struct Iterator<T> {
 	<R, X> Result<R, X> foldToResult(R initial, BiFunction<R, T, Result<R, X>> mapper);
 	int anyMatch(Predicate<T> filter);
 };
-struct Collector<T, C> {
+*//*struct Collector<T, C> {
 	C createInitial();
 	C fold(C current, T element);
 };
-struct Head<T> {
+*//*struct Head<T> {
 	Option<T> next();
 };
-struct Divider {
+*/struct Divider {
 	State fold(State state, char c);
 };
 struct Rule {
 };
-struct Map_<K, V> {
+/*struct Map_<K, V> {
 	Map_<K, V> with(K propertyKey, V propertyValue);
 	Option<V> find(K propertyKey);
 	Map_<K, V> withAll(Map_<K, V> other);
 	Main.Iterator<Main.Tuple<K, V>> iter();
 };
-struct ApplicationError {
+*/struct ApplicationError {
 };
-struct HeadedIterator<T> {
+/*struct HeadedIterator<T> {
 };
-struct None<T> {
+*//*struct None<T> {
 };
-struct EmptyHead<T> {
+*//*struct EmptyHead<T> {
 };
-struct SingleHead<T> {
+*//*struct SingleHead<T> {
 	T value;
 };
-struct Some<T> {
+*//*struct Some<T> {
 };
-struct Err<T, X> {
+*//*struct Err<T, X> {
 };
-struct Ok<T, X> {
+*//*struct Ok<T, X> {
 };
-struct State {
+*/struct State {
 	List_<char> queue;
 	List_<String> segments;
 	StringBuilder buffer;
 	int depth;
 };
-struct Tuple<A, B> {
+/*struct Tuple<A, B> {
 };
-struct Iterators {
+*/struct Iterators {
 };
 struct RangeHead {
 	int length;
 };
-struct ListCollector<T> {
+/*struct ListCollector<T> {
 };
-struct Joiner {
+*/struct Joiner {
 };
 struct DelimitedDivider {
 };
