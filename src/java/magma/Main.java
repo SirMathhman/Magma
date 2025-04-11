@@ -39,6 +39,8 @@ public class Main {
         T orElseGet(Supplier<T> supplier);
 
         <R> R match(Function<T, R> whenPresent, Supplier<R> whenEmpty);
+
+        <R> Option<Tuple<T, R>> and(Supplier<Option<R>> other);
     }
 
     public interface Error {
@@ -130,6 +132,8 @@ public class Main {
         Map_<K, V> withAll(Map_<K, V> other);
 
         Main.Iterator<Main.Tuple<K, V>> iter();
+
+        Iterator<K> keys();
     }
 
     public record ApplicationError(Error error) implements Error {
@@ -270,6 +274,11 @@ public class Main {
         public <R> R match(Function<T, R> whenPresent, Supplier<R> whenEmpty) {
             return whenEmpty.get();
         }
+
+        @Override
+        public <R> Option<Tuple<T, R>> and(Supplier<Option<R>> other) {
+            return new None<>();
+        }
     }
 
     private static class EmptyHead<T> implements Head<T> {
@@ -347,6 +356,11 @@ public class Main {
         @Override
         public <R> R match(Function<T, R> whenPresent, Supplier<R> whenEmpty) {
             return whenPresent.apply(this.value);
+        }
+
+        @Override
+        public <R> Option<Tuple<T, R>> and(Supplier<Option<R>> other) {
+            return other.get().map(otherValue -> new Tuple<>(this.value, otherValue));
         }
     }
 
@@ -595,6 +609,18 @@ public class Main {
         }
     }
 
+    public static class Options {
+        public static <V> boolean equalsTo(Option<V> first, Option<V> second, BiFunction<V, V, Boolean> equator) {
+            if (first.isEmpty() && second.isEmpty()) {
+                return true;
+            }
+
+            return first.and(() -> second)
+                    .map(tuple -> equator.apply(tuple.left, tuple.right))
+                    .orElse(false);
+        }
+    }
+
     public record CompileError(String message, String context, List_<CompileError> errors) implements Error {
         public CompileError(String message, String context) {
             this(message, context, Lists.empty());
@@ -729,6 +755,11 @@ public class Main {
             this(Maps.empty(), Maps.empty());
         }
 
+        @Override
+        public String toString() {
+            return strings.toString() + nodeLists.toString();
+        }
+
         public Node(Map_<String, String> strings, Map_<String, List_<Node>> nodeLists) {
             this.strings = strings;
             this.nodeLists = nodeLists;
@@ -753,6 +784,23 @@ public class Main {
         public Node merge(Node other) {
             return new Node(this.strings.withAll(other.strings), this.nodeLists.withAll(other.nodeLists));
         }
+
+        public boolean equalsTo(Node node) {
+            return this.hasSameStrings(node) && this.hasSameNodeLists(node);
+        }
+
+        private boolean hasSameStrings(Node node) {
+            return Maps.equalsTo(this.strings, node.strings, String::equals);
+        }
+
+        private boolean hasSameNodeLists(Node node) {
+            return Maps.equalsTo(this.nodeLists, node.nodeLists, new BiFunction<List_<Node>, List_<Node>, Boolean>() {
+                @Override
+                public Boolean apply(List_<Node> nodeList, List_<Node> nodeList2) {
+                    return Lists.equalsTo(nodeList, nodeList2, Node::equalsTo);
+                }
+            });
+        }
     }
 
     public static final List_<String> FUNCTIONAL_NAMESPACE = Lists.of("java", "util", "function");
@@ -760,6 +808,7 @@ public class Main {
     private static final List_<String> structs = Lists.empty();
     private static final List_<String> globals = Lists.empty();
     private static final List_<String> methods = Lists.empty();
+    private static List_<Node> expansions = Lists.empty();
     private static int counter = 0;
 
     public static void main(String[] args) {
@@ -810,7 +859,7 @@ public class Main {
 
         String content = right.substring(0, right.length() - ";".length());
         List_<String> split = divide(content, new DelimitedDivider('.'));
-        if (split.size() >= 3 && Lists.equals(split.slice(0, 3), FUNCTIONAL_NAMESPACE, String::equals)) {
+        if (split.size() >= 3 && Lists.equalsTo(split.slice(0, 3), FUNCTIONAL_NAMESPACE, String::equals)) {
             return new Ok<>("");
         }
 
@@ -827,12 +876,16 @@ public class Main {
     }
 
     private static List_<String> mergeStatics(List_<String> list) {
-        return Lists.<String>empty()
+        List_<String> stringList = Lists.<String>empty()
                 .addAll(imports)
-                .addAll(structs)
-                .addAll(globals)
+                .addAll(structs);
+
+        List_<String> folded = expansions.iter().foldWithInitial(stringList,
+                (typeParams, node) -> typeParams.add("// " + generateGeneric(node) + "\n"));
+
+        return stringList.addAll(globals)
                 .addAll(methods)
-                .addAll(list);
+                .addAll(folded);
     }
 
     private static Result<String, CompileError> compileStatements(String input, Rule compiler) {
@@ -1779,8 +1832,31 @@ public class Main {
 
                 return second + " (*)(" + first + ")";
             }
-            return base + "<" + mergeAll(parsed, Main::mergeValues) + ">";
+
+            List_<Node> arguments = parsed.iter()
+                    .map(argument -> new Node().withString("value", argument))
+                    .collect(new ListCollector<>());
+
+            Node element = new Node()
+                    .withString("base", base)
+                    .withNodeList("arguments", arguments);
+
+            if (!Lists.contains(expansions, element, Node::equalsTo)) {
+                expansions = expansions.add(element);
+            }
+            return generateGeneric(element);
         });
+    }
+
+    private static String generateGeneric(Node element) {
+        List_<String> parsed = element.findNodeList("arguments")
+                .orElse(Lists.empty())
+                .iter()
+                .map(node -> node.findString("value").orElse(""))
+                .collect(new ListCollector<>());
+
+        String base = element.findString("base").orElse("");
+        return base + "<" + mergeAll(parsed, Main::mergeValues) + ">";
     }
 
     private static Result<String, CompileError> getStringCompileErrorResult(ParseState state, String value) {

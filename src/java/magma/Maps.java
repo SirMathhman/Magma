@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.BiFunction;
 
 class Maps {
     private record JavaMap<K, V>(Map<K, V> internal) implements Main.Map_<K, V> {
@@ -41,9 +42,18 @@ class Maps {
                     .map(list::get)
                     .map(entry -> new Main.Tuple<>(entry.getKey(), entry.getValue()));
         }
+
+        @Override
+        public Main.Iterator<K> keys() {
+            return new Lists.JavaList<>(new ArrayList<K>(this.internal.keySet())).iter();
+        }
     }
 
     public static <K, V> Main.Map_<K, V> empty() {
         return new JavaMap<>();
+    }
+
+    public static <K, V> boolean equalsTo(Main.Map_<K, V> first, Main.Map_<K, V> second, BiFunction<V, V, Boolean> equator) {
+        return first.keys().concat(second.keys()).allMatch(key -> Main.Options.equalsTo(first.find(key), second.find(key), equator));
     }
 }

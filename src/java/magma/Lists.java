@@ -6,7 +6,7 @@ import java.util.List;
 import java.util.function.BiFunction;
 
 public class Lists {
-    private static class JavaList<T> implements Main.List_<T> {
+    public static class JavaList<T> implements Main.List_<T> {
         private final List<T> inner;
 
         public JavaList() {
@@ -15,6 +15,11 @@ public class Lists {
 
         public JavaList(List<T> inner) {
             this.inner = inner;
+        }
+
+        @Override
+        public String toString() {
+            return this.inner.toString();
         }
 
         @Override
@@ -102,16 +107,17 @@ public class Lists {
     }
 
     public static <T> boolean contains(Main.List_<T> lists, T element, BiFunction<T, T, Boolean> equator) {
-        return lists.iter().allMatch(child -> {
-            return equator.apply(child, element);
-        });
+        if (lists.isEmpty()) {
+            return false;
+        }
+        return lists.iter().anyMatch(child -> equator.apply(child, element));
     }
 
     public static <T> Main.List_<T> fromArray(T[] array) {
         return new JavaList<>(new ArrayList<T>(Arrays.asList(array)));
     }
 
-    public static <T> boolean equals(Main.List_<T> first, Main.List_<T> second, BiFunction<T, T, Boolean> equator) {
+    public static <T> boolean equalsTo(Main.List_<T> first, Main.List_<T> second, BiFunction<T, T, Boolean> equator) {
         if (first.size() != second.size()) {
             return false;
         }
