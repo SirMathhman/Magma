@@ -7,7 +7,10 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.function.BiFunction;
 
 public class Impl {
@@ -114,6 +117,26 @@ public class Impl {
         }
     }
 
+    record JavaMap<K, V>(Map<K, V> internalMap) implements Main.Map_<K, V> {
+        public JavaMap() {
+            this(Collections.emptyMap());
+        }
+
+        @Override
+        public Main.Map_<K, V> with(K key, V value) {
+            HashMap<K, V> copy = new HashMap<>(this.internalMap);
+            copy.put(key, value);
+            return new JavaMap<>(copy);
+        }
+
+        @Override
+        public Main.Option<V> find(K key) {
+            return this.internalMap.containsKey(key)
+                    ? new Main.Some<>(this.internalMap.get(key))
+                    : new Main.None<>();
+        }
+    }
+
     static Main.Option<Main.IOError> writeString(Main.Path_ target, String output) {
         try {
             java.nio.file.Files.writeString(unwrap(target), output);
@@ -170,5 +193,9 @@ public class Impl {
         return new Main.HeadedIterator<>(new Main.RangeHead(first.size())).allMatch(index -> {
             return equator.apply(first.get(index), second.get(index));
         });
+    }
+
+    public static <K, V> Main.Map_<K, V> emptyMap() {
+        return new JavaMap<>();
     }
 }

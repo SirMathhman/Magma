@@ -104,6 +104,12 @@ public class Main {
         String_ display();
     }
 
+    public interface Map_<K, V> {
+        Map_<K, V> with(K key, V value);
+
+        Option<V> find(K key);
+    }
+
     public record String_(String value) {
     }
 
@@ -535,8 +541,34 @@ public class Main {
         }
     }
 
-    private record Node(String value) {
+    private static final class Node {
+        private final Map_<String, String> strings;
+        private final Map_<String, List_<Node>> nodeLists;
 
+        private Node() {
+            this(Impl.emptyMap(), Impl.emptyMap());
+        }
+
+        private Node(Map_<String, String> strings, Map_<String, List_<Node>> nodeLists) {
+            this.strings = strings;
+            this.nodeLists = nodeLists;
+        }
+
+        private Node withString(String propertyKey, String propertyValue) {
+            return new Node(this.strings.with(propertyKey, propertyValue), this.nodeLists);
+        }
+
+        public Option<String> findString(String propertyKey) {
+            return this.strings.find(propertyKey);
+        }
+
+        public Node withNodeList(String propertyKey, List_<Node> propertyValues) {
+            return new Node(this.strings, this.nodeLists.with(propertyKey, propertyValues));
+        }
+
+        public Option<List_<Node>> findNodeList(String propertyKey) {
+            return this.nodeLists.find(propertyKey);
+        }
     }
 
     private static final List_<String> imports = Impl.emptyList();
@@ -652,7 +684,9 @@ public class Main {
     }
 
     private static Function<String, Result<Node, CompileError>> wrapToNode(Function<String, Result<String, CompileError>> mapper) {
-        return s -> mapper.apply(s).mapValue(Node::new);
+        return s -> {
+            return mapper.apply(s).mapValue(value -> new Node().withString("value", value));
+        };
     }
 
     private static List_<String> unwrapAll(List_<Node> result) {
@@ -662,7 +696,7 @@ public class Main {
     }
 
     private static String unwrap(Node node) {
-        return node.value;
+        return node.findString("value").orElse("");
     }
 
     private static Result<List_<Node>, CompileError> parseAll(List_<String> segments, Function<String, Result<Node, CompileError>> wrapped) {
@@ -1485,15 +1519,23 @@ public class Main {
             }
 
             String base = slice.substring(0, argsStart).strip();
-            String params = slice.substring(argsStart + "<".length()).strip();
+            Node withBase = new Node().withString("base", base);
 
-            Result<List_<Node>, CompileError> paramNodes = parseValues(params, wrapToNode(createOrRule(Impl.listOf(
+            String params = slice.substring(argsStart + "<".length()).strip();
+            return parseValues(params, wrapToNode(createOrRule(Impl.listOf(
                     createWhitespaceRule(),
                     createTypeRule(typeParams)
-            ))));
-
-            return paramNodes.mapValue(Main::generateValues).mapValue(compiled -> base + "_" + compiled);
+            )))).mapValue(args -> withBase.withNodeList("args", args))
+                    .flatMapValue(Main::generateGeneric);
         };
+    }
+
+    private static Result<String, CompileError> generateGeneric(Node node) {
+        String base = node.findString("base").orElse("");
+        List_<Node> paramNodes = node.findNodeList("args").orElse(Impl.emptyList());
+
+        String joined = generateValues(paramNodes);
+        return new Ok<>(base + "_" + joined);
     }
 
     private static Err<String, CompileError> createSuffixRule(String input, String suffix) {
