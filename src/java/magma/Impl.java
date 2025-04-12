@@ -156,11 +156,6 @@ public class Impl {
         public boolean equalsTo(Main.String_ other) {
             return Impl.fromString(this).equals(Impl.fromString(other));
         }
-
-        @Override
-        public Main.String_ concat(Main.String_ other) {
-            return new JavaString(this.value + Impl.fromString(other));
-        }
     }
 
     static Main.Option<Main.IOError> writeString(Main.Path_ target, String output) {
