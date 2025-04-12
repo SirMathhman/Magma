@@ -27,6 +27,8 @@ public class Main {
         T orElseGet(Supplier<T> other);
 
         Option<T> filter(Predicate<T> predicate);
+
+        <R> Option<Tuple<T, R>> and(Supplier<Option<R>> supplier);
     }
 
     public interface List_<T> {
@@ -223,6 +225,11 @@ public class Main {
         public Option<T> filter(Predicate<T> predicate) {
             return new None<>();
         }
+
+        @Override
+        public <R> Option<Tuple<T, R>> and(Supplier<Option<R>> supplier) {
+            return new None<>();
+        }
     }
 
     public record Some<T>(T value) implements Option<T> {
@@ -269,6 +276,11 @@ public class Main {
         @Override
         public Option<T> filter(Predicate<T> predicate) {
             return predicate.test(this.value) ? this : new None<>();
+        }
+
+        @Override
+        public <R> Option<Tuple<T, R>> and(Supplier<Option<R>> supplier) {
+            return supplier.get().map(otherValue -> new Tuple<>(this.value, otherValue));
         }
     }
 
@@ -784,33 +796,49 @@ public class Main {
             }
 
             String params = withParams.substring(0, paramEnd);
-            return parseAllValues(params, wrapDefaultFunction(Main::compileParameter))
-                    .flatMap(outputParams -> getStringOption(typeParams, outputDefinition, outputParams, withParams, paramEnd));
+            String body = withParams.substring(paramEnd + ")".length()).strip();
+            return parseAllValues(params, createParamRule())
+                    .flatMap(outputParams -> getStringOption(typeParams, outputDefinition, outputParams, body));
         });
     }
 
-    private static Option<String> getStringOption(List_<String> typeParams, Node definition, List_<Node> outputParams, String withParams, int paramEnd) {
-        return generateDefinition(definition).flatMap(output -> {
-            String body = withParams.substring(paramEnd + ")".length()).strip();
+    private static Function<String, Option<Node>> createParamRule() {
+        return definition -> parseOr(definition, Impl.listOf(
+                wrapDefaultFunction(Main::compileWhitespace),
+                Main::parseDefinition
+        ));
+    }
 
-            String s = "\t" + output + "(" + mergeAllValues(outputParams, Main::unwrapDefault) + ")" + ";\n";
+    private static Option<String> getStringOption(List_<String> typeParams, Node definition, List_<Node> params, String body) {
+        List_<Node> paramTypes = params.iter()
+                .map(param -> param.findNode("type"))
+                .flatMap(Iterators::fromOption)
+                .collect(new ListCollector<>());
 
-            if (body.startsWith("{") && body.endsWith("}")) {
-                String inputContent = body.substring("{".length(), body.length() - "}".length());
-                return parseAllStatements(inputContent, wrapDefaultFunction(input1 -> compileStatementOrBlock(input1, typeParams, 1))).map(Main::mergeAllStatements).flatMap(outputContent -> {
-                    methods.add("\t".repeat(0) + output + "(" + mergeAllValues(outputParams, Main::unwrapDefault) + ")" + " {" + outputContent + "\n}\n");
-                    return new Some<>(s);
-                });
+        String name = definition.findString("name").orElse("");
+        Node returns = definition.findNode("type").orElse(new Node());
+        Node functionalDefinition = new Node()
+                .retype("functional-definition")
+                .withString("name", name)
+                .withNode("returns", returns)
+                .withNodeList("params", paramTypes);
+
+        return generateDefinition(definition).and(() -> generateDefinition(functionalDefinition)).flatMap(output -> {
+            String asContent = output.left;
+            String asType = output.right;
+
+            String entry = "\t" + asType + ";\n";
+
+            if (!body.startsWith("{") || !body.endsWith("}")) {
+                return new Some<>(entry);
             }
 
-            return new Some<>(s);
+            String inputContent = body.substring("{".length(), body.length() - "}".length());
+            return parseAllStatements(inputContent, wrapDefaultFunction(input1 -> compileStatementOrBlock(input1, typeParams, 1))).map(Main::mergeAllStatements).flatMap(outputContent -> {
+                methods.add("\t".repeat(0) + asContent + "(" + mergeAllValues(params, Main::unwrapDefault) + ")" + " {" + outputContent + "\n}\n");
+                return new Some<>(entry);
+            });
         });
-    }
-
-    private static Option<String> compileParameter(String definition) {
-        return compileWhitespace(definition)
-                .or(() -> parseDefinition(definition).flatMap(Main::generateDefinition))
-                .or(() -> generatePlaceholder(definition));
     }
 
     private static Option<List_<Node>> parseAllValues(String input, Function<String, Option<Node>> rule) {
@@ -1324,6 +1352,20 @@ public class Main {
     }
 
     private static Option<String> generateDefinition(Node node) {
+        if (node.is("functional-definition")) {
+            String name = node.findString("name").orElse("");
+            String returns = generateType(node.findNode("returns").orElse(new Node()));
+
+            String params = node.findNodeList("params")
+                    .orElseGet(Impl::listEmpty)
+                    .iter()
+                    .map(Main::generateType)
+                    .collect(new Joiner(", "))
+                    .orElse("");
+
+            return new Some<>(returns + " (*" + name + ")(" + params + ")");
+        }
+
         String typeParamsString = node.findNodeList("type-params")
                 .orElseGet(Impl::listEmpty)
                 .iter()
