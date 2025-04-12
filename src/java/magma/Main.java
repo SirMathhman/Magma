@@ -796,21 +796,21 @@ public class Main {
     }
 
     private static String expand(String input, List_<String> typeParams, Node withName, Node expansion) {
-        String stringify = stringify(expansion);
+        String stringify = generateGeneric(expansion);
 
         return generateStruct(typeParams, withName.withString("name", stringify))
                 .or(() -> generatePlaceholder(input))
                 .orElse("");
     }
 
-    private static String stringify(Node expansion) {
+    private static String generateGeneric(Node expansion) {
         if (expansion.is("generic")) {
             String base = expansion.findString("base").orElse("");
             String typeParams = expansion.findNodeList("type-params")
                     .orElse(Impl.listEmpty())
                     .iter()
                     .filter(node -> !node.is("whitespace"))
-                    .map(Main::stringify)
+                    .map(Main::generateGeneric)
                     .collect(new Joiner("_"))
                     .orElse("");
 
@@ -1605,13 +1605,6 @@ public class Main {
 
     private static Function<String, Option<Node>> parseWithType(String type, Function<String, Option<Node>> mapper) {
         return input -> mapper.apply(input).map(value -> value.retype(type));
-    }
-
-    private static String generateGeneric(Node node) {
-        List_<Node> typeParams = node.findNodeList("type-params").orElse(Impl.listEmpty());
-        String base = node.findString("base").orElse("");
-
-        return base + "<" + mergeAllValues(typeParams, Main::generateType) + ">";
     }
 
     private static Function<String, Option<Node>> wrapDefaultFunction(Function<String, Option<String>> mapper) {
