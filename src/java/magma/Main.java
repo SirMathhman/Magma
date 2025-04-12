@@ -676,12 +676,13 @@ public class Main {
         String beforeContent = afterKeyword.substring(0, contentStart).strip();
 
         int typeParamStart = beforeContent.indexOf("<");
-        String name;
         if (typeParamStart >= 0) {
             return new Some<>("");
         }
-        else {
-            name = beforeContent;
+
+        String name = beforeContent.strip();
+        if (!isSymbol(name)) {
+            return new None<>();
         }
 
         String withEnd = afterKeyword.substring(contentStart + "{".length()).strip();
