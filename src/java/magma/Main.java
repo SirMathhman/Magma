@@ -1023,7 +1023,7 @@ public class Main {
                 String withEnd = slice.substring(argsStart + "(".length()).strip();
                 if (withEnd.endsWith(")")) {
                     String argsString = withEnd.substring(0, withEnd.length() - ")".length());
-                    return compileType(type, typeParams).flatMap(outputType -> compileArgs(argsString, typeParams, depth).map(value -> outputType + value));
+                    return parseType(type, typeParams).map(Main::generateType).flatMap(outputType -> compileArgs(argsString, typeParams, depth).map(value -> outputType + value));
                 }
             }
         }
@@ -1048,7 +1048,7 @@ public class Main {
             String property = stripped.substring(methodIndex + "::".length()).strip();
 
             if (isSymbol(property)) {
-                return compileType(type, typeParams).flatMap(compiled -> {
+                return parseType(type, typeParams).map(Main::generateType).flatMap(compiled -> {
                     return generateLambdaWithReturn(Impl.emptyList(), "\n\treturn " + compiled + "." + property + "()");
                 });
             }
@@ -1254,7 +1254,7 @@ public class Main {
     }
 
     private static Option<Node> parseDefinitionTypeProperty(Node withName, String type, List_<String> typeParams) {
-        return compileType(type, typeParams).map(outputType -> withName.withString("type", outputType));
+        return parseType(type, typeParams).map(Main::generateType).map(outputType -> withName.withString("type", outputType));
     }
 
     private static Option<Node> parseDefinitionWithNoTypeParams(Node withName, String beforeType, String type) {
@@ -1337,7 +1337,11 @@ public class Main {
                 .collect(new ListCollector<>());
     }
 
-    private static Option<String> compileType(String input, List_<String> typeParams) {
+    private static String generateType(Node value) {
+        return unwrapDefault(value);
+    }
+
+    private static Option<Node> parseType(String input, List_<String> typeParams) {
         return listTypeRules(typeParams)
                 .iter()
                 .map(function -> function.apply(input))
@@ -1345,13 +1349,17 @@ public class Main {
                 .next();
     }
 
-    private static List_<Function<String, Option<String>>> listTypeRules(List_<String> typeParams) {
+    private static List_<Function<String, Option<Node>>> listTypeRules(List_<String> typeParams) {
         return Impl.listOf(
-                Main::compilePrimitive,
-                input -> compileArray(input, typeParams),
-                input -> compileSymbol(input, typeParams),
-                input -> compileGeneric(input, typeParams)
+                wrapDefaultFunction(Main::compilePrimitive),
+                wrapDefaultFunction(input -> compileArray(input, typeParams)),
+                wrapDefaultFunction(input -> compileSymbol(input, typeParams)),
+                wrapDefaultFunction(input -> compileGeneric(input, typeParams))
         );
+    }
+
+    private static Function<String, Option<Node>> wrapDefaultFunction(Function<String, Option<String>> mapper) {
+        return s -> mapper.apply(s).map(Main::wrapDefault);
     }
 
     private static Option<String> compilePrimitive(String input) {
@@ -1372,7 +1380,7 @@ public class Main {
 
     private static Option<String> compileArray(String input, List_<String> typeParams) {
         if (input.endsWith("[]")) {
-            return compileType(input.substring(0, input.length() - "[]".length()), typeParams)
+            return parseType(input.substring(0, input.length() - "[]".length()), typeParams).map(Main::generateType)
                     .map(value -> value + "*");
         }
 
@@ -1407,7 +1415,7 @@ public class Main {
 
         String base = slice.substring(0, argsStart).strip();
         String params = slice.substring(argsStart + "<".length()).strip();
-        return compileValues(params, type -> compileWhitespace(type).or(() -> compileType(type, typeParams)))
+        return compileValues(params, type -> compileWhitespace(type).or(() -> parseType(type, typeParams).map(Main::generateType)))
                 .map(compiled -> base + "<" + compiled + ">");
     }
 
