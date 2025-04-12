@@ -108,6 +108,8 @@ public class Main {
         Map_<K, V> with(K key, V value);
 
         Option<V> find(K key);
+
+        Map_<K, V> withAll(Map_<K, V> other);
     }
 
     public record String_(String value) {
@@ -569,6 +571,10 @@ public class Main {
         public Option<List_<Node>> findNodeList(String propertyKey) {
             return this.nodeLists.find(propertyKey);
         }
+
+        public Node merge(Node other) {
+            return new Node(this.strings.withAll(other.strings), this.nodeLists.withAll(other.nodeLists));
+        }
     }
 
     private static final List_<String> imports = Impl.emptyList();
@@ -848,7 +854,7 @@ public class Main {
         });
     }
 
-    private static Err<String, CompileError> createInfixErr(String input, String infix) {
+    private static <T> Result<T, CompileError> createInfixErr(String input, String infix) {
         return new Err<>(new CompileError("Infix '" + infix + "' not present", input));
     }
 
@@ -1509,25 +1515,28 @@ public class Main {
 
     private static Function<String, Result<String, CompileError>> createGenericRule(List_<String> typeParams) {
         return input -> {
-            if (!input.endsWith(">")) {
-                return createSuffixRule(input, ">");
-            }
-            String slice = input.substring(0, input.length() - ">".length());
-            int argsStart = slice.indexOf("<");
-            if (argsStart < 0) {
-                return createInfixErr(slice, "<");
-            }
-
-            String base = slice.substring(0, argsStart).strip();
-            Node withBase = new Node().withString("base", base);
-
-            String params = slice.substring(argsStart + "<".length()).strip();
-            return parseValues(params, wrapToNode(createOrRule(Impl.listOf(
-                    createWhitespaceRule(),
-                    createTypeRule(typeParams)
-            )))).mapValue(args -> withBase.withNodeList("args", args))
-                    .flatMapValue(Main::generateGeneric);
+            return parseGeneric(input, typeParams).flatMapValue(Main::generateGeneric);
         };
+    }
+
+    private static Result<Node, CompileError> parseGeneric(String input, List_<String> typeParams) {
+        if (!input.endsWith(">")) {
+            return createSuffixErr(input, ">");
+        }
+        String slice = input.substring(0, input.length() - ">".length());
+
+        int argsStart = slice.indexOf("<");
+        if (argsStart < 0) {
+            return createInfixErr(slice, "<");
+        }
+        String base = slice.substring(0, argsStart).strip();
+        Node withBase = new Node().withString("base", base);
+
+        String params = slice.substring(argsStart + "<".length()).strip();
+        return parseValues(params, wrapToNode(createOrRule(Impl.listOf(
+                createWhitespaceRule(),
+                createTypeRule(typeParams)
+        )))).mapValue(args -> withBase.merge(new Node().withNodeList("args", args)));
     }
 
     private static Result<String, CompileError> generateGeneric(Node node) {
@@ -1538,7 +1547,7 @@ public class Main {
         return new Ok<>(base + "_" + joined);
     }
 
-    private static Err<String, CompileError> createSuffixRule(String input, String suffix) {
+    private static <T> Result<T, CompileError> createSuffixErr(String input, String suffix) {
         return new Err<>(new CompileError("Suffix '" + suffix + "' not present", input));
     }
 
