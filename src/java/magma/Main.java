@@ -689,10 +689,26 @@ public class Main {
         }
     }
 
-    private record CompileError(String_ message, Context context) implements Error {
+    private record CompileError(
+            String_ message,
+            Context context,
+            List_<CompileError> errors
+    ) implements Error {
+        private CompileError(String_ message, Context context) {
+            this(message, context, Impl.listEmpty());
+        }
+
         @Override
         public String_ display() {
-            return this.message.concat(Impl.toString(": ")).concat(this.context.display());
+            String joined = this.errors.iter()
+                    .map(CompileError::display)
+                    .map(Impl::fromString)
+                    .collect(new Joiner(""))
+                    .orElse("");
+
+            return this.message.concat(Impl.toString(": "))
+                    .concat(this.context.display())
+                    .concat(Impl.toString(joined));
         }
     }
 
@@ -707,6 +723,24 @@ public class Main {
         @Override
         public String_ display() {
             return this.error.display();
+        }
+    }
+
+    private record OrState(Option<Node> maybeValue, List_<CompileError> errors) {
+        public OrState() {
+            this(new None<>(), Impl.listEmpty());
+        }
+
+        public OrState withValue(Node node) {
+            return new OrState(new Some<>(node), this.errors);
+        }
+
+        public OrState withError(CompileError error) {
+            return new OrState(this.maybeValue, this.errors.add(error));
+        }
+
+        public Result<Node, List_<CompileError>> toResult() {
+            return this.maybeValue.<Result<Node, List_<CompileError>>>map(Ok::new).orElseGet(() -> new Err<>(this.errors));
         }
     }
 
@@ -767,12 +801,15 @@ public class Main {
 
     private static Function<String_, Result<Node, CompileError>> createRootSegmentRule() {
         return string -> {
-            return parseOr(Impl.fromString(string), Impl.listOf(
-                    wrapDefaultFunction(Main::compileWhitespace),
-                    wrapDefaultFunction(Main::compilePackage),
-                    wrapDefaultFunction(Main::compileImport),
-                    wrapDefaultFunction(Main::compileClass)
-            )).<Result<Node, CompileError>>map(Ok::new).orElseGet(() -> new Err<>(new CompileError(Impl.toString("Invalid value"), new StringContext(string))));
+            List_<Function<String_, Result<Node, CompileError>>> rules = Impl.listOf(
+                            wrapDefaultFunction(Main::compileWhitespace),
+                            wrapDefaultFunction(Main::compilePackage),
+                            wrapDefaultFunction(Main::compileImport),
+                            wrapDefaultFunction(Main::compileClass)
+                    ).iter()
+                    .map(Main::wrapToResult)
+                    .collect(new ListCollector<>());
+            return parseOr(Impl.toString(Impl.fromString(string)), rules).findValue().<Result<Node, CompileError>>map(Ok::new).orElseGet(() -> new Err<>(new CompileError(Impl.toString("Invalid value"), new StringContext(string))));
         };
     }
 
@@ -1118,10 +1155,15 @@ public class Main {
     }
 
     private static Function<String, Option<Node>> createParamRule() {
-        return definition -> parseOr(definition, Impl.listOf(
-                wrapDefaultFunction(Main::compileWhitespace),
-                Main::parseDefinition
-        ));
+        return definition -> {
+            List_<Function<String_, Result<Node, CompileError>>> rules = Impl.listOf(
+                            wrapDefaultFunction(Main::compileWhitespace),
+                            Main::parseDefinition
+                    ).iter()
+                    .map(Main::wrapToResult)
+                    .collect(new ListCollector<>());
+            return parseOr(Impl.toString(definition), rules).findValue();
+        };
     }
 
     private static Option<String> getStringOption(List_<String> typeParams, Node definition, List_<Node> params, String body) {
@@ -1758,14 +1800,16 @@ public class Main {
     }
 
     private static Option<Node> parseType(String input, List_<String> typeParams) {
-        return parseOr(input, listTypeRules(typeParams));
+        return parseOr(Impl.toString(input), listTypeRules(typeParams).iter()
+                .map(Main::wrapToResult)
+                .collect(new ListCollector<>())).findValue();
     }
 
-    private static Option<Node> parseOr(String input, List_<Function<String, Option<Node>>> rules) {
+    private static Result<Node, CompileError> parseOr(String_ input, List_<Function<String_, Result<Node, CompileError>>> rules) {
         return rules.iter()
-                .map(function -> function.apply(input))
-                .flatMap(Iterators::fromOption)
-                .next();
+                .fold(new OrState(), (state, function) -> function.apply(input).match(state::withValue, state::withError))
+                .toResult()
+                .mapErr(errors -> new CompileError(Impl.toString("No valid rule"), new StringContext(input), errors));
     }
 
     private static List_<Function<String, Option<Node>>> listTypeRules(List_<String> typeParams) {
@@ -1794,10 +1838,13 @@ public class Main {
             String params = slice.substring(argsStart + "<".length()).strip();
 
             Option<List_<Node>> listOption = parseAllValues(params, inner -> {
-                return parseOr(inner, Impl.listOf(
-                        parseWithType("whitespace", wrapDefaultFunction(Main::compileWhitespace)),
-                        input0 -> parseType(input0, typeParams)
-                ));
+                List_<Function<String_, Result<Node, CompileError>>> rules = Impl.listOf(
+                                parseWithType("whitespace", wrapDefaultFunction(Main::compileWhitespace)),
+                                input0 -> parseType(input0, typeParams)
+                        ).iter()
+                        .map(Main::wrapToResult)
+                        .collect(new ListCollector<>());
+                return parseOr(Impl.toString(inner), rules).findValue();
             });
 
             return listOption.map(compiled -> {
