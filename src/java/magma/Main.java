@@ -795,16 +795,16 @@ public class Main {
             String params,
             String body
     ) {
-        String header = "\t".repeat(0) + definition + "(" + params + ")";
+        String s = "\t" + definition + "(" + params + ")" + ";\n";
         if (body.startsWith("{") && body.endsWith("}")) {
             String inputContent = body.substring("{".length(), body.length() - "}".length());
             return parseAllStatements(inputContent, wrapDefaultFunction(input1 -> compileStatementOrBlock(input1, typeParams, 1))).map(Main::mergeAllStatements).flatMap(outputContent -> {
-                methods.add(header + " {" + outputContent + "\n}\n");
-                return new Some<>("");
+                methods.add("\t".repeat(0) + definition + "(" + params + ")" + " {" + outputContent + "\n}\n");
+                return new Some<>(s);
             });
         }
 
-        return new Some<>("\t" + header + ";\n");
+        return new Some<>(s);
     }
 
     private static Option<String> compileParameter(String definition) {
