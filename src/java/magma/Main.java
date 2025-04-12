@@ -688,7 +688,7 @@ public class Main {
         String stripped = input.strip();
         if (stripped.endsWith(";")) {
             String content = stripped.substring(0, stripped.length() - ";".length());
-            return compileDefinition(content).map(result -> "\t" + result + ";\n");
+            return parseDefinition(content).flatMap(Main::generateDefinition).map(result -> "\t" + result + ";\n");
         }
         return new None<>();
     }
@@ -713,7 +713,7 @@ public class Main {
 
         String definition = withoutEnd.substring(0, valueSeparator).strip();
         String value = withoutEnd.substring(valueSeparator + "=".length()).strip();
-        return compileDefinition(definition).flatMap(outputDefinition -> {
+        return parseDefinition(definition).flatMap(Main::generateDefinition).flatMap(outputDefinition -> {
             return compileValue(value, typeParams, depth).map(outputValue -> {
                 return outputDefinition + " = " + outputValue;
             });
@@ -736,7 +736,7 @@ public class Main {
         String inputDefinition = input.substring(0, paramStart).strip();
         String withParams = input.substring(paramStart + "(".length());
 
-        return compileDefinition(inputDefinition).flatMap(outputDefinition -> {
+        return parseDefinition(inputDefinition).flatMap(Main::generateDefinition).flatMap(outputDefinition -> {
             int paramEnd = withParams.indexOf(")");
             if (paramEnd < 0) {
                 return new None<>();
@@ -768,7 +768,7 @@ public class Main {
 
     private static Option<String> compileParameter(String definition) {
         return compileWhitespace(definition)
-                .or(() -> compileDefinition(definition))
+                .or(() -> parseDefinition(definition).flatMap(Main::generateDefinition))
                 .or(() -> generatePlaceholder(definition));
     }
 
@@ -1197,7 +1197,7 @@ public class Main {
         return cache.append(", ").append(element);
     }
 
-    private static Option<String> compileDefinition(String definition) {
+    private static Option<Node> parseDefinition(String definition) {
         String stripped = definition.strip();
         int nameSeparator = stripped.lastIndexOf(" ");
         if (nameSeparator < 0) {
@@ -1211,26 +1211,26 @@ public class Main {
         }
 
         Node withName = new Node().withString("name", name);
-        return findTypeSeparator(beforeName)
-                .map(typeSeparator -> compileDefinitionWithTypeSeparator(withName, beforeName.substring(0, typeSeparator).strip(), beforeName.substring(typeSeparator + " ".length())))
-                .orElseGet(() -> compileDefinitionWithoutTypeSeparator(beforeName, withName));
+        return parseDefinitionWithName(beforeName, withName);
     }
 
-    private static Option<String> compileDefinitionWithoutTypeSeparator(String beforeName, Node withName) {
-        return compileType(beforeName, Impl.emptyList()).flatMap(outputType -> {
-            return generateDefinition(withName.withString("type", outputType));
-        });
+    private static Option<Node> parseDefinitionWithName(String beforeName, Node withName) {
+        return findTypeSeparator(beforeName).map(typeSeparator -> {
+            String beforeType = beforeName.substring(0, typeSeparator).strip();
+            String type = beforeName.substring(typeSeparator + " ".length());
+            return parseDefinitionWithTypeSeparator(withName, beforeType, type);
+        }).orElseGet(() -> compileTypePropertyWithNoTypeParams(withName, beforeName));
     }
 
-    private static Option<String> compileDefinitionWithTypeSeparator(Node withName, String beforeType, String type) {
+    private static Option<Node> parseDefinitionWithTypeSeparator(Node withName, String beforeType, String type) {
         if (!beforeType.endsWith(">")) {
-            return withNoTypeParams(withName, beforeType, type);
+            return parseDefinitionWithNoTypeParams(withName, beforeType, type);
         }
 
         String withoutEnd = beforeType.substring(0, beforeType.length() - ">".length());
         int typeParamStart = withoutEnd.indexOf("<");
         if (typeParamStart < 0) {
-            return withNoTypeParams(withName, beforeType, type);
+            return parseDefinitionWithNoTypeParams(withName, beforeType, type);
         }
 
         String beforeTypeParams = withoutEnd.substring(0, typeParamStart);
@@ -1243,24 +1243,30 @@ public class Main {
 
         boolean hasValidBeforeParams = validateLeft(beforeTypeParams);
         if (!hasValidBeforeParams) {
-            return new None<String>();
+            return new None<>();
         }
 
-        return attachTypeToDefinition(withName, typeParamsStrings, type)
-                .map(node -> node.withNodeList("type-params", typeParamsNodes))
-                .flatMap(Main::generateDefinition);
+        return compileType(type, typeParamsStrings).map(outputType -> withName.withString("type", outputType))
+                .map(node -> node.withNodeList("type-params", typeParamsNodes));
     }
 
-    private static Option<String> withNoTypeParams(Node withName, String beforeType, String type) {
+    private static Option<Node> parseDefinitionWithNoTypeParams(Node withName, String beforeType, String type) {
         boolean hasValidBeforeParams = validateLeft(beforeType);
         List_<Node> typeParamsList = Impl.emptyList();
         if (!hasValidBeforeParams) {
-            return new None<Node>().flatMap(Main::generateDefinition);
+            return new None<>();
         }
 
-        return attachTypeToDefinition(withName, Impl.emptyList(), type)
-                .map(node -> node.withNodeList("type-params", typeParamsList))
-                .flatMap(Main::generateDefinition);
+        return compileTypePropertyWithNoTypeParams(withName, type)
+                .map(node -> node.withNodeList("type-params", typeParamsList));
+    }
+
+    private static Option<Node> compileTypePropertyWithNoTypeParams(Node withName, String type) {
+        return compileTypeWithNoTypeParams(type).map(outputType -> withName.withString("type", outputType));
+    }
+
+    private static Option<String> compileTypeWithNoTypeParams(String type) {
+        return compileType(type, Impl.emptyList());
     }
 
     private static boolean validateLeft(String beforeTypeParams) {
@@ -1280,10 +1286,6 @@ public class Main {
                 .map(String::strip)
                 .filter(value -> !value.isEmpty())
                 .allMatch(Main::isSymbol);
-    }
-
-    private static Option<Node> attachTypeToDefinition(Node definition, List_<String> typeParams, String type) {
-        return compileType(type, typeParams).map(outputType -> definition.withString("type", outputType));
     }
 
     private static Option<String> generateDefinition(Node node) {
