@@ -1,5 +1,3 @@
-#include "./java/util/HashMap"
-#include "./java/util/Map"
 struct IOError {
 	struct String (*display)();
 };

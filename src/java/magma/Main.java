@@ -1,7 +1,5 @@
 package magma;
 
-import java.util.HashMap;
-import java.util.Map;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -99,7 +97,7 @@ public class Main {
         List_<String> listNames();
     }
 
-    private interface Map_<K, V> {
+    public interface Map_<K, V> {
         Map_<K, V> with(K key, V value);
 
         Option<V> find(K key);
@@ -443,39 +441,10 @@ public class Main {
         }
     }
 
-    private static class Maps {
-        private record JavaMap<K, V>(Map<K, V> internalMap) implements Map_<K, V> {
-            public JavaMap() {
-                this(new HashMap<>());
-            }
-
-            @Override
-            public Map_<K, V> with(K key, V value) {
-                HashMap<K, V> copy = new HashMap<>(this.internalMap);
-                copy.put(key, value);
-                return new JavaMap<>(copy);
-            }
-
-            @Override
-            public Option<V> find(K key) {
-                if (this.internalMap.containsKey(key)) {
-                    return new Some<>(this.internalMap.get(key));
-                }
-                else {
-                    return new None<>();
-                }
-            }
-        }
-
-        public static <K, V> Map_<K, V> empty() {
-            return new JavaMap<>();
-        }
-    }
-
     private record Node(Option<String> type, Map_<String, String> strings, Map_<String, Node> nodes,
                         Map_<String, List_<Node>> nodeLists) {
         public Node() {
-            this(new None<>(), Maps.empty(), Maps.empty(), Maps.empty());
+            this(new None<>(), Impl.mapEmpty(), Impl.mapEmpty(), Impl.mapEmpty());
         }
 
         public Node withString(String propertyKey, String propertyValue) {
