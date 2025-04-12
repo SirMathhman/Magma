@@ -685,10 +685,15 @@ public class Main {
                 .map(list1 -> list1.iter().map(Main::unwrapDefault).collect(new ListCollector<>()))
                 .map(Main::getStringList)
                 .map(compiled -> mergeAll(compiled, Main::mergeStatements))
-                .or(() -> createInvalidateError(input).mapErr(err -> {
-                    System.err.println(err.display());
-                    return err;
+                .or(() -> createInvalidateError("value", input).mapErr(err -> {
+                    return getCompileError(err);
                 }).findValue()).orElse("");
+    }
+
+    @Deprecated
+    private static CompileError getCompileError(CompileError err) {
+        System.err.println(err.display());
+        return err;
     }
 
     private static List_<String> getStringList(List_<String> list) {
@@ -839,9 +844,8 @@ public class Main {
             return maybeClass;
         }
 
-        return createInvalidateError(input).mapErr(err -> {
-            System.err.println(err.display());
-            return err;
+        return createInvalidateError("value", input).mapErr(err -> {
+            return getCompileError(err);
         }).findValue();
     }
 
@@ -907,10 +911,7 @@ public class Main {
         String stringify = stringify(expansion);
 
         return generateStruct(typeParams, withName.withString("name", stringify))
-                .or(() -> createInvalidateError(input).mapErr(err -> {
-                    System.err.println(err.display());
-                    return err;
-                }).findValue())
+                .or(() -> createInvalidateError("value", input).mapErr(Main::getCompileError).findValue())
                 .orElse("");
     }
 
@@ -960,9 +961,8 @@ public class Main {
                 .or(() -> compileGlobalInitialization(input, typeParams))
                 .or(() -> compileDefinitionStatement(input))
                 .or(() -> compileMethod(input, typeParams))
-                .or(() -> createInvalidateError(input).mapErr(err -> {
-                    System.err.println(err.display());
-                    return err;
+                .or(() -> createInvalidateError("value", input).mapErr(err -> {
+                    return getCompileError(err);
                 }).findValue());
     }
 
@@ -1114,9 +1114,8 @@ public class Main {
                 .or(() -> compileAssignment(input, typeParams, depth).map(result -> formatStatement(depth, result)))
                 .or(() -> compileInvocationStatement(input, typeParams, depth).map(result -> formatStatement(depth, result)))
                 .or(() -> compileDefinitionStatement(input))
-                .or(() -> createInvalidateError(input).mapErr(err -> {
-                    System.err.println(err.display());
-                    return err;
+                .or(() -> createInvalidateError("value", input).mapErr(err -> {
+                    return getCompileError(err);
                 }).findValue());
     }
 
@@ -1364,9 +1363,8 @@ public class Main {
                 .or(() -> compileOperator(input, typeParams, depth, "&&"))
                 .or(() -> compileOperator(input, typeParams, depth, "=="))
                 .or(() -> compileOperator(input, typeParams, depth, "!="))
-                .or(() -> createInvalidateError(input).mapErr(err -> {
-                    System.err.println(err.display());
-                    return err;
+                .or(() -> createInvalidateError("value", input).mapErr(err -> {
+                    return getCompileError(err);
                 }).findValue());
     }
 
@@ -1795,7 +1793,7 @@ public class Main {
         });
     }
 
-    private static Result<String, CompileError> createInvalidateError(String input) {
-        return new Err<String, CompileError>(new CompileError("Invalid value", input));
+    private static Result<String, CompileError> createInvalidateError(String type, String input) {
+        return new Err<String, CompileError>(new CompileError("Invalid " + type, input));
     }
 }
