@@ -535,6 +535,10 @@ public class Main {
         }
     }
 
+    private record Node(String value) {
+
+    }
+
     private static final List_<String> imports = Impl.emptyList();
     private static final List_<String> structs = Impl.emptyList();
     private static final List_<String> globals = Impl.emptyList();
@@ -557,7 +561,8 @@ public class Main {
     }
 
     private static Result<String, CompileError> compile(String input) {
-        return parseAll(divide(input, Main::divideStatementChar), createRootSegmentCompiler())
+        List_<String> segments = divide(input, Main::divideStatementChar);
+        return parseAll(segments, wrapToNode(createRootSegmentCompiler())).mapValue(Main::unwrapAll)
                 .mapValue(Main::assembleChildren)
                 .mapValue(compiled -> mergeAll(compiled, Main::mergeStatements));
     }
@@ -635,17 +640,31 @@ public class Main {
     }
 
     private static Result<String, CompileError> compileAndMerge(List_<String> segments, Function<String, Result<String, CompileError>> compiler, BiFunction<StringBuilder, String, StringBuilder> merger) {
-        return parseAll(segments, compiler).mapValue(compiled -> mergeAll(compiled, merger));
+        return parseAll(segments, wrapToNode(compiler)).mapValue(Main::unwrapAll).mapValue(compiled -> mergeAll(compiled, merger));
     }
 
     private static String mergeAll(List_<String> compiled, BiFunction<StringBuilder, String, StringBuilder> merger) {
         return compiled.iter().fold(new StringBuilder(), merger).toString();
     }
 
-    private static Result<List_<String>, CompileError> parseAll(List_<String> segments, Function<String, Result<String, CompileError>> compiler) {
+    private static Function<String, Result<Node, CompileError>> wrapToNode(Function<String, Result<String, CompileError>> mapper) {
+        return s -> mapper.apply(s).mapValue(Node::new);
+    }
+
+    private static List_<String> unwrapAll(List_<Node> result) {
+        return result.iter()
+                .map(Main::unwrap)
+                .collect(new ListCollector<>());
+    }
+
+    private static String unwrap(Node node) {
+        return node.value;
+    }
+
+    private static Result<List_<Node>, CompileError> parseAll(List_<String> segments, Function<String, Result<Node, CompileError>> wrapped) {
         return segments.iter()
-                .<Result<List_<String>, CompileError>>fold(new Ok<>(Impl.emptyList()),
-                        (maybeCompiled, segment) -> maybeCompiled.flatMapValue(allCompiled -> compiler.apply(segment).mapValue(allCompiled::add)));
+                .<Result<List_<Node>, CompileError>>fold(new Ok<>(Impl.emptyList()),
+                        (maybeCompiled, segment) -> maybeCompiled.flatMapValue(allCompiled -> wrapped.apply(segment).mapValue(allCompiled::add)));
     }
 
     private static Function<String, Result<String, CompileError>> wrap(Function<String, Option<String>> compiler) {
