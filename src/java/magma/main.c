@@ -143,6 +143,7 @@ struct Main {
 	Option<struct Node> (*parseOr)(struct String, List_<Function<struct String, Option<struct Node>>>);
 	List_<Function<struct String, Option<struct Node>>> (*listTypeRules)(List_<struct String>);
 	Function<struct String, Option<struct Node>> (*parseGeneric)(List_<struct String>);
+	Function<struct String, Option<struct Node>> (*parseWithType)(struct String, Function<struct String, Option<struct Node>>);
 	struct String (*generateGeneric)(struct Node);
 	Function<struct String, Option<struct Node>> (*wrapDefaultFunction)(Function<struct String, Option<struct String>>);
 	Option<struct String> (*compilePrimitive)(struct String);
@@ -154,12 +155,8 @@ struct Main {
 // List_<struct String>
 // List_<char>
 // Option<struct String>
-// None<>
-// Some<>
 // Option<int>
 // Iterator<T>
-// HeadedIterator<>
-// EmptyHead<>
 // Iterator<char>
 // Iterator<Tuple<int, struct Character>>
 // Tuple<int, struct Character>
@@ -178,7 +175,6 @@ struct Main {
 // List_<K>
 // List_<struct K>
 // Option<struct IOError>
-// ListCollector<>
 // Function<struct String, Option<struct Node>>
 // Function<struct Node, struct String>
 // BiFunction<struct StringBuilder, struct String, struct StringBuilder>
@@ -359,8 +355,10 @@ auto __lambda14__() {
 auto __lambda15__(auto tuple) {
 	return equator.apply(tuple.left, tuple.right);
 }
-<T> int equalsTo() {/* 
-            if(first.isEmpty() && second.isEmpty()) return true; */
+<T> int equalsTo() {
+	if (first.isEmpty() && second.isEmpty()) {
+		return true;
+	}
 	return first.and(__lambda14__).filter(__lambda15__).isPresent();
 }
 auto __lambda16__(auto kList, auto key) {
@@ -1407,10 +1405,16 @@ List_<struct String> splitValues() {
 auto __lambda144__() {
 	return struct Node.equalsTo()
 }
+auto __lambda145__(auto param) {
+	return !param.is("whitespace");
+}
 struct String generateType() {
 	if (node.is("generic")) {
 		if (!Lists.contains(expansions, node, __lambda144__)) {
-			expansions = expansions.add(node);
+			List_<struct Node> params = node.findNodeList("type-params").orElse(Impl.listEmpty()).iter().filter(__lambda145__).collect(ListCollector<>());
+			if (!params.isEmpty()) {
+				expansions = expansions.add(node);
+			}
 		}
 		return generateGeneric(node);
 	}
@@ -1419,26 +1423,26 @@ struct String generateType() {
 Option<struct Node> parseType() {
 	return parseOr(input, listTypeRules(typeParams));
 }
-auto __lambda145__(auto function) {
+auto __lambda146__(auto function) {
 	return function.apply(input);
 }
-auto __lambda146__() {
+auto __lambda147__() {
 	return struct Iterators.fromOption()
 }
 Option<struct Node> parseOr() {
-	return rules.iter().map(__lambda145__).flatMap(__lambda146__).next();
+	return rules.iter().map(__lambda146__).flatMap(__lambda147__).next();
 }
-auto __lambda147__() {
+auto __lambda148__() {
 	return struct Main.compilePrimitive()
 }
-auto __lambda148__(auto input) {
+auto __lambda149__(auto input) {
 	return compileArray(input, typeParams);
 }
-auto __lambda149__(auto input) {
+auto __lambda150__(auto input) {
 	return compileSymbol(input, typeParams);
 }
 List_<Function<struct String, Option<struct Node>>> listTypeRules() {
-	return Impl.listOf(wrapDefaultFunction(__lambda147__), wrapDefaultFunction(__lambda148__), wrapDefaultFunction(__lambda149__), parseGeneric(typeParams));
+	return Impl.listOf(wrapDefaultFunction(__lambda148__), wrapDefaultFunction(__lambda149__), wrapDefaultFunction(__lambda150__), parseGeneric(typeParams));
 }
 Function<struct String, Option<struct Node>> parseGeneric() {/* 
         return input -> {
@@ -1458,7 +1462,7 @@ Function<struct String, Option<struct Node>> parseGeneric() {/*
 
             Option<List_<Node>> listOption = parseAllValues(params, inner -> {
                 return parseOr(inner, Impl.listOf(
-                        wrapDefaultFunction(Main::compileWhitespace),
+                        parseWithType("whitespace", wrapDefaultFunction(Main::compileWhitespace)),
                         input0 -> parseType(input0, typeParams)
                 ));
             });
@@ -1470,19 +1474,28 @@ Function<struct String, Option<struct Node>> parseGeneric() {/*
             });
         } *//* ; */
 }
+auto __lambda151__(auto value) {
+	return value.retype(type);
+}
+auto __lambda152__(auto input) {
+	return mapper.apply(input).map(__lambda151__);
+}
+Function<struct String, Option<struct Node>> parseWithType() {
+	return __lambda152__;
+}
 struct String generateGeneric() {
 	List_<struct Node> typeParams = node.findNodeList("type-params").orElse(Impl.listEmpty());
 	struct String base = node.findString("base").orElse("");
 	return base + " < " + mergeAllValues(typeParams, Main::generateType) + ">";
 }
-auto __lambda150__() {
+auto __lambda153__() {
 	return struct Main.wrapDefault()
 }
-auto __lambda151__(auto input) {
-	return mapper.apply(input).map(__lambda150__);
+auto __lambda154__(auto input) {
+	return mapper.apply(input).map(__lambda153__);
 }
 Function<struct String, Option<struct Node>> wrapDefaultFunction() {
-	return __lambda151__;
+	return __lambda154__;
 }
 Option<struct String> compilePrimitive() {
 	if (input.equals("void")) {
@@ -1496,19 +1509,19 @@ Option<struct String> compilePrimitive() {
 	}
 	return None<>();
 }
-auto __lambda152__() {
+auto __lambda155__() {
 	return struct Main.generateType()
 }
-auto __lambda153__(auto value) {
+auto __lambda156__(auto value) {
 	return value + "*";
 }
 Option<struct String> compileArray() {
 	if (input.endsWith("[]")) {
-		return parseType(input.substring(0, input.length() - "[]".length()), typeParams).map(__lambda152__).map(__lambda153__);
+		return parseType(input.substring(0, input.length() - "[]".length()), typeParams).map(__lambda155__).map(__lambda156__);
 	}
 	return None<>();
 }
-auto __lambda154__() {
+auto __lambda157__() {
 	return struct String.equals()
 }
 Option<struct String> compileSymbol() {
@@ -1516,14 +1529,14 @@ Option<struct String> compileSymbol() {
 	if (!isSymbol(stripped)) {
 		return None<>();
 	}
-	if (Lists.contains(typeParams, stripped, __lambda154__)) {
+	if (Lists.contains(typeParams, stripped, __lambda157__)) {
 		return Some<>(stripped);
 	}
 	else {
 		return Some<>("struct " + stripped);
 	}
 }
-auto __lambda155__(auto tuple) {
+auto __lambda158__(auto tuple) {
 	int index = tuple.left;
 	char c = tuple.right;
 	return c == '_' || Character.isLetter(c) ||(index != 0 && Character.isDigit(c));
@@ -1532,7 +1545,7 @@ int isSymbol() {
 	if (input.isBlank()) {
 		return false;
 	}
-	return Iterators.fromStringWithIndices(input).allMatch(__lambda155__);
+	return Iterators.fromStringWithIndices(input).allMatch(__lambda158__);
 }
 Option<struct String> generatePlaceholder() {
 	return Some<>("/* " + input + " */");

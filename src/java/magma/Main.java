@@ -516,7 +516,9 @@ public class Main {
 
     private static class Options {
         public static <T> boolean equalsTo(Option<T> first, Option<T> second, BiFunction<T, T, Boolean> equator) {
-            if(first.isEmpty() && second.isEmpty()) return true;
+            if (first.isEmpty() && second.isEmpty()) {
+                return true;
+            }
 
             return first.and(() -> second)
                     .filter(tuple -> equator.apply(tuple.left, tuple.right))
@@ -1501,7 +1503,15 @@ public class Main {
     private static String generateType(Node node) {
         if (node.is("generic")) {
             if (!Lists.contains(expansions, node, Node::equalsTo)) {
-                expansions = expansions.add(node);
+                List_<Node> params = node.findNodeList("type-params")
+                        .orElse(Impl.listEmpty())
+                        .iter()
+                        .filter(param -> !param.is("whitespace"))
+                        .collect(new ListCollector<>());
+
+                if (!params.isEmpty()) {
+                    expansions = expansions.add(node);
+                }
             }
             return generateGeneric(node);
         }
@@ -1547,7 +1557,7 @@ public class Main {
 
             Option<List_<Node>> listOption = parseAllValues(params, inner -> {
                 return parseOr(inner, Impl.listOf(
-                        wrapDefaultFunction(Main::compileWhitespace),
+                        parseWithType("whitespace", wrapDefaultFunction(Main::compileWhitespace)),
                         input0 -> parseType(input0, typeParams)
                 ));
             });
@@ -1558,6 +1568,10 @@ public class Main {
                         .withNodeList("type-params", compiled).withString("base", base);
             });
         };
+    }
+
+    private static Function<String, Option<Node>> parseWithType(String type, Function<String, Option<Node>> mapper) {
+        return input -> mapper.apply(input).map(value -> value.retype(type));
     }
 
     private static String generateGeneric(Node node) {
