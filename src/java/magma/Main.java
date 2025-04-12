@@ -25,6 +25,8 @@ public class Main {
         <R> Option<R> flatMap(Function<T, Option<R>> mapper);
 
         T orElseGet(Supplier<T> other);
+
+        Option<T> filter(Predicate<T> predicate);
     }
 
     public interface List_<T> {
@@ -129,7 +131,7 @@ public class Main {
         }
 
         public State(List_<Character> queue) {
-            this(queue, Impl.emptyList(), new StringBuilder(), 0);
+            this(queue, Impl.listEmpty(), new StringBuilder(), 0);
         }
 
         private State advance() {
@@ -216,6 +218,11 @@ public class Main {
         public T orElseGet(Supplier<T> other) {
             return other.get();
         }
+
+        @Override
+        public Option<T> filter(Predicate<T> predicate) {
+            return new None<>();
+        }
     }
 
     public record Some<T>(T value) implements Option<T> {
@@ -257,6 +264,11 @@ public class Main {
         @Override
         public T orElseGet(Supplier<T> other) {
             return this.value;
+        }
+
+        @Override
+        public Option<T> filter(Predicate<T> predicate) {
+            return predicate.test(this.value) ? this : new None<>();
         }
     }
 
@@ -391,7 +403,7 @@ public class Main {
     private static class ListCollector<T> implements Collector<T, List_<T>> {
         @Override
         public List_<T> createInitial() {
-            return Impl.emptyList();
+            return Impl.listEmpty();
         }
 
         @Override
@@ -448,17 +460,18 @@ public class Main {
         }
     }
 
-    private record Node(Map_<String, String> strings, Map_<String, Node> nodes, Map_<String, List_<Node>> nodeLists) {
+    private record Node(Option<String> type, Map_<String, String> strings, Map_<String, Node> nodes,
+                        Map_<String, List_<Node>> nodeLists) {
         public Node() {
-            this(Maps.empty(), Maps.empty(), Maps.empty());
+            this(new None<>(), Maps.empty(), Maps.empty(), Maps.empty());
         }
 
         public Node withString(String propertyKey, String propertyValue) {
-            return new Node(this.strings.with(propertyKey, propertyValue), this.nodes, this.nodeLists);
+            return new Node(this.type, this.strings.with(propertyKey, propertyValue), this.nodes, this.nodeLists);
         }
 
         public Node withNodeList(String propertyKey, List_<Node> propertyValues) {
-            return new Node(this.strings, this.nodes, this.nodeLists.with(propertyKey, propertyValues));
+            return new Node(this.type, this.strings, this.nodes, this.nodeLists.with(propertyKey, propertyValues));
         }
 
         public Option<List_<Node>> findNodeList(String propertyKey) {
@@ -470,18 +483,26 @@ public class Main {
         }
 
         public Node withNode(String propertyKey, Node propertyValue) {
-            return new Node(this.strings, this.nodes.with(propertyKey, propertyValue), this.nodeLists);
+            return new Node(this.type, this.strings, this.nodes.with(propertyKey, propertyValue), this.nodeLists);
         }
 
         public Option<Node> findNode(String propertyKey) {
             return this.nodes.find(propertyKey);
         }
+
+        public boolean is(String type) {
+            return this.type.filter(inner -> inner.equals(type)).isPresent();
+        }
+
+        public Node retype(String type) {
+            return new Node(new Some<>(type), this.strings, this.nodes, this.nodeLists);
+        }
     }
 
-    private static final List_<String> imports = Impl.emptyList();
-    private static final List_<String> structs = Impl.emptyList();
-    private static final List_<String> globals = Impl.emptyList();
-    private static final List_<String> methods = Impl.emptyList();
+    private static final List_<String> imports = Impl.listEmpty();
+    private static final List_<String> structs = Impl.listEmpty();
+    private static final List_<String> globals = Impl.listEmpty();
+    private static final List_<String> methods = Impl.listEmpty();
     private static int counter = 0;
 
     public static void main(String[] args) {
@@ -502,7 +523,7 @@ public class Main {
         return parseAll(segments, wrapDefaultFunction(Main::compileRootSegment))
                 .map(list1 -> list1.iter().map(Main::unwrapDefault).collect(new ListCollector<>()))
                 .map(list -> {
-                    List_<String> copy = Impl.emptyList();
+                    List_<String> copy = Impl.listEmpty();
                     copy.addAll(imports);
                     copy.addAll(structs);
                     copy.addAll(globals);
@@ -515,7 +536,7 @@ public class Main {
     }
 
     private static String mergeAllStatements(List_<Node> compiled) {
-        return mergeAllNodes(Main::mergeStatements, compiled);
+        return generateAll(compiled, Main::unwrapDefault, Main::mergeStatements);
     }
 
     private static Option<List_<Node>> parseAllStatements(String input, Function<String, Option<Node>> rule) {
@@ -526,8 +547,10 @@ public class Main {
         return divide(input, Main::divideStatementChar);
     }
 
-    private static String mergeAllNodes(BiFunction<StringBuilder, String, StringBuilder> merger, List_<Node> compiled) {
-        return mergeAll(compiled.iter().map(Main::unwrapDefault).collect(new ListCollector<>()), merger);
+    private static String generateAll(List_<Node> compiled, Function<Node, String> generator, BiFunction<StringBuilder, String, StringBuilder> merger) {
+        return mergeAll(compiled.iter()
+                .map(generator)
+                .collect(new ListCollector<>()), merger);
     }
 
     private static String mergeAll(List_<String> compiled, BiFunction<StringBuilder, String, StringBuilder> merger) {
@@ -535,7 +558,7 @@ public class Main {
     }
 
     private static Option<List_<Node>> parseAll(List_<String> segments, Function<String, Option<Node>> rule) {
-        return segments.iter().<Option<List_<Node>>>fold(new Some<>(Impl.emptyList()),
+        return segments.iter().<Option<List_<Node>>>fold(new Some<>(Impl.listEmpty()),
                 (maybeCompiled, segment) -> maybeCompiled.flatMap(allCompiled -> rule.apply(segment).map(allCompiled::add)));
     }
 
@@ -633,7 +656,7 @@ public class Main {
             }
         }
 
-        Option<String> maybeClass = compileToStruct(input, "class ", Impl.emptyList());
+        Option<String> maybeClass = compileToStruct(input, "class ", Impl.listEmpty());
         if (maybeClass.isPresent()) {
             return maybeClass;
         }
@@ -642,7 +665,7 @@ public class Main {
     }
 
     private static List_<String> splitByDelimiter(String content, char delimiter) {
-        List_<String> segments = Impl.emptyList();
+        List_<String> segments = Impl.listEmpty();
         StringBuilder buffer = new StringBuilder();
         for (int i = 0; i < content.length(); i++) {
             char c = content.charAt(i);
@@ -761,7 +784,7 @@ public class Main {
             }
 
             String params = withParams.substring(0, paramEnd);
-            return parseAllValues(params, wrapDefaultFunction(Main::compileParameter)).map(Main::mergeAllValues)
+            return parseAllValues(params, wrapDefaultFunction(Main::compileParameter)).map(compiled -> mergeAllValues(compiled, Main::unwrapDefault))
                     .flatMap(outputParams -> assembleMethodBody(typeParams, outputDefinition, outputParams, withParams.substring(paramEnd + ")".length()).strip()));
         });
     }
@@ -816,8 +839,8 @@ public class Main {
         return appended;
     }
 
-    private static String mergeAllValues(List_<Node> compiled) {
-        return mergeAllNodes(Main::mergeValues, compiled);
+    private static String mergeAllValues(List_<Node> compiled, Function<Node, String> generator) {
+        return generateAll(compiled, generator, Main::mergeValues);
     }
 
     private static Option<String> compileStatementOrBlock(String input, List_<String> typeParams, int depth) {
@@ -1062,7 +1085,7 @@ public class Main {
 
             if (isSymbol(property)) {
                 return parseType(type, typeParams).map(Main::generateType).flatMap(compiled -> {
-                    return generateLambdaWithReturn(Impl.emptyList(), "\n\treturn " + compiled + "." + property + "()");
+                    return generateLambdaWithReturn(Impl.listEmpty(), "\n\treturn " + compiled + "." + property + "()");
                 });
             }
         }
@@ -1201,7 +1224,7 @@ public class Main {
     private static Option<String> compileArgs(String argsString, List_<String> typeParams, int depth) {
         return parseAllValues(argsString, wrapDefaultFunction(arg -> {
             return compileWhitespace(arg).or(() -> compileValue(arg, typeParams, depth));
-        })).map(Main::mergeAllValues).map(args -> {
+        })).map(compiled -> mergeAllValues(compiled, Main::unwrapDefault)).map(args -> {
             return "(" + args + ")";
         });
     }
@@ -1235,7 +1258,7 @@ public class Main {
             String beforeType = beforeName.substring(0, typeSeparator).strip();
             String type = beforeName.substring(typeSeparator + " ".length());
             return parseDefinitionWithTypeSeparator(withName, beforeType, type);
-        }).orElseGet(() -> parseDefinitionTypeProperty(withName, beforeName, Impl.emptyList()));
+        }).orElseGet(() -> parseDefinitionTypeProperty(withName, beforeName, Impl.listEmpty()));
     }
 
     private static Option<Node> parseDefinitionWithTypeSeparator(Node withName, String beforeType, String type) {
@@ -1273,12 +1296,12 @@ public class Main {
 
     private static Option<Node> parseDefinitionWithNoTypeParams(Node withName, String beforeType, String type) {
         boolean hasValidBeforeParams = validateLeft(beforeType);
-        List_<Node> typeParamsList = Impl.emptyList();
+        List_<Node> typeParamsList = Impl.listEmpty();
         if (!hasValidBeforeParams) {
             return new None<>();
         }
 
-        return parseDefinitionTypeProperty(withName, type, Impl.emptyList()).map(node -> node.withNodeList("type-params", typeParamsList));
+        return parseDefinitionTypeProperty(withName, type, Impl.listEmpty()).map(node -> node.withNodeList("type-params", typeParamsList));
     }
 
     private static boolean validateLeft(String beforeTypeParams) {
@@ -1302,7 +1325,7 @@ public class Main {
 
     private static Option<String> generateDefinition(Node node) {
         String typeParamsString = node.findNodeList("type-params")
-                .orElseGet(Impl::emptyList)
+                .orElseGet(Impl::listEmpty)
                 .iter()
                 .map(Main::unwrapDefault)
                 .collect(new Joiner(", "))
@@ -1354,13 +1377,20 @@ public class Main {
                 .collect(new ListCollector<>());
     }
 
-    private static String generateType(Node value) {
-        return unwrapDefault(value);
+    private static String generateType(Node node) {
+        if (node.is("generic")) {
+            return generateGeneric(node);
+        }
+
+        return unwrapDefault(node);
     }
 
     private static Option<Node> parseType(String input, List_<String> typeParams) {
-        return listTypeRules(typeParams)
-                .iter()
+        return parseOr(input, listTypeRules(typeParams));
+    }
+
+    private static Option<Node> parseOr(String input, List_<Function<String, Option<Node>>> rules) {
+        return rules.iter()
                 .map(function -> function.apply(input))
                 .flatMap(Iterators::fromOption)
                 .next();
@@ -1376,7 +1406,7 @@ public class Main {
     }
 
     private static Function<String, Option<Node>> parseGeneric(List_<String> typeParams) {
-        return wrapDefaultFunction(input -> {
+        return input -> {
             String stripped = input.strip();
             if (!stripped.endsWith(">")) {
                 return new None<>();
@@ -1390,10 +1420,27 @@ public class Main {
 
             String base = slice.substring(0, argsStart).strip();
             String params = slice.substring(argsStart + "<".length()).strip();
-            return parseAllValues(params, wrapDefaultFunction(type -> compileWhitespace(type).or(() -> {
-                return parseType(type, typeParams).map(Main::generateType);
-            }))).map(Main::mergeAllValues).map(compiled -> base + "<" + compiled + ">");
-        });
+
+            Option<List_<Node>> listOption = parseAllValues(params, inner -> {
+                return parseOr(inner, Impl.listOf(
+                        wrapDefaultFunction(Main::compileWhitespace),
+                        input0 -> parseType(input0, typeParams)
+                ));
+            });
+
+            return listOption.map(compiled -> {
+                return new Node()
+                        .retype("generic")
+                        .withNodeList("type-params", compiled).withString("base", base);
+            });
+        };
+    }
+
+    private static String generateGeneric(Node node) {
+        List_<Node> typeParams = node.findNodeList("type-params").orElse(Impl.listEmpty());
+        String base = node.findString("base").orElse("");
+
+        return base + "<" + mergeAllValues(typeParams, Main::generateType) + ">";
     }
 
     private static Function<String, Option<Node>> wrapDefaultFunction(Function<String, Option<String>> mapper) {

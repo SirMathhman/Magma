@@ -127,7 +127,7 @@ public class Impl {
         return new PathImpl(Paths.get(first, elements));
     }
 
-    public static <T> Main.List_<T> emptyList() {
+    public static <T> Main.List_<T> listEmpty() {
         return new JavaList<>();
     }
 
