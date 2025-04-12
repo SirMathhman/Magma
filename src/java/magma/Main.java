@@ -87,6 +87,7 @@ public class Main {
         <R> R match(Function<T, R> whenOk, Function<X, R> whenErr);
     }
 
+
     public interface IOError {
         String_ display();
     }
@@ -105,8 +106,8 @@ public class Main {
         Iterator<K> iterKeys();
     }
 
-    public record String_(String value) {
-
+    public interface String_ {
+        char[] toCharArray();
     }
 
     public record Err<T, X>(X error) implements Result<T, X> {
@@ -546,7 +547,8 @@ public class Main {
     }
 
     private static final List_<String> imports = Impl.listEmpty();
-    private static final List_<String> structs = Impl.listEmpty();
+    private static List_<String> structsForwarders = Impl.listEmpty();
+    private static List_<String> structs = Impl.listEmpty();
     private static final List_<String> globals = Impl.listEmpty();
     private static final List_<String> methods = Impl.listEmpty();
     private static List_<Node> expansions = Impl.listEmpty();
@@ -577,7 +579,7 @@ public class Main {
         Path_ source = Impl.get(".", "src", "java", "magma", "Main.java");
         Impl.readString(source)
                 .match(input -> compileAndWrite(input, source), Some::new)
-                .ifPresent(ioError -> ioError.display());
+                .ifPresent(ioError -> System.err.println(Impl.toNativeString(ioError.display())));
     }
 
     private static Option<IOError> compileAndWrite(String input, Path_ source) {
@@ -591,7 +593,7 @@ public class Main {
         return parseAll(segments, wrapDefaultFunction(Main::compileRootSegment))
                 .map(list1 -> list1.iter().map(Main::unwrapDefault).collect(new ListCollector<>()))
                 .map(list -> {
-                    List_<String> collect = expansions.iter()
+                    List_<String> expandedStructs = expansions.iter()
                             .map(expansion -> {
                                 String comment = "// " + generateGeneric(expansion) + "\n";
                                 String base = generators.find(expansion.findString("base").orElse(""))
@@ -602,8 +604,9 @@ public class Main {
                             })
                             .collect(new ListCollector<>());
 
-                    return imports.addAll(structs)
-                            .addAll(collect)
+                    return imports.addAll(structsForwarders)
+                            .addAll(structs)
+                            .addAll(expandedStructs)
                             .addAll(globals)
                             .addAll(methods)
                             .addAll(list);
@@ -839,7 +842,8 @@ public class Main {
 
         String inputContent = withEnd.substring(0, withEnd.length() - "}".length());
         return parseAllStatements(inputContent, wrapDefaultFunction(input1 -> compileClassMember(input1, typeParams))).map(Main::mergeAllStatements).map(outputContent -> {
-            structs.add("typedef struct {\n" + outputContent + "} " +
+            structsForwarders = structsForwarders.add("typedef struct " + name + " " + name + ";\n");
+            structs = structs.add("typedef struct {\n" + outputContent + "} " +
                     name +
                     ";\n");
             return "";

@@ -13,15 +13,11 @@ import java.util.Map;
 
 public class Impl {
     private record ExceptionalIOError(IOException exception) implements Main.IOError {
-        private String display1() {
-            StringWriter writer = new StringWriter();
-            this.exception.printStackTrace(new PrintWriter(writer));
-            return writer.toString();
-        }
-
         @Override
         public Main.String_ display() {
-            return new Main.String_(this.display1());
+            StringWriter writer = new StringWriter();
+            this.exception.printStackTrace(new PrintWriter(writer));
+            return new JavaString(writer.toString());
         }
     }
 
@@ -133,6 +129,19 @@ public class Impl {
         }
     }
 
+    public static final class JavaString implements Main.String_ {
+        private final String value;
+
+        public JavaString(String value) {
+            this.value = value;
+        }
+
+        @Override
+        public char[] toCharArray() {
+            return this.value.toCharArray();
+        }
+    }
+
     static Main.Option<Main.IOError> writeString(Main.Path_ target, String output) {
         try {
             java.nio.file.Files.writeString(unwrap(target), output);
@@ -171,5 +180,9 @@ public class Impl {
 
     public static <K, V> Main.Map_<K, V> mapEmpty() {
         return new JavaMap<>();
+    }
+
+    public static String toNativeString(Main.String_ string) {
+        return new String(string.toCharArray());
     }
 }

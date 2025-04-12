@@ -1,3 +1,35 @@
+typedef struct IOError IOError;
+typedef struct Path_ Path_;
+typedef struct String_ String_;
+typedef struct State State;
+typedef struct Joiner Joiner;
+typedef struct RangeHead RangeHead;
+typedef struct Iterators Iterators;
+typedef struct Node Node;
+typedef struct Lists Lists;
+typedef struct Options Options;
+typedef struct Maps Maps;
+typedef struct Main Main;
+typedef struct List__String List__String;
+typedef struct List__char List__char;
+typedef struct Option_String Option_String;
+typedef struct Option_int Option_int;
+typedef struct Iterator_T Iterator_T;
+typedef struct Iterator_char Iterator_char;
+typedef struct Iterator_Tuple_int_Character Iterator_Tuple_int_Character;
+typedef struct Option_T Option_T;
+typedef struct List__Node List__Node;
+typedef struct Option_List__Node Option_List__Node;
+typedef struct Option_Node Option_Node;
+typedef struct List__T List__T;
+typedef struct Map__K_V Map__K_V;
+typedef struct Map__String_Function_Node_String Map__String_Function_Node_String;
+typedef struct Option_V Option_V;
+typedef struct List__K List__K;
+typedef struct Option_IOError Option_IOError;
+typedef struct List__Tuple_int_Character List__Tuple_int_Character;
+typedef struct Tuple_int_Character Tuple_int_Character;
+typedef struct List__Function_String_Option_Node List__Function_String_Option_Node;
 typedef struct {
 	String_ (*display)();
 } IOError;
@@ -6,6 +38,7 @@ typedef struct {
 	struct List__String (*listNames)();
 } Path_;
 typedef struct {
+	char* (*toCharArray)();
 } String_;
 typedef struct {
 	struct List__char queue;
@@ -402,6 +435,7 @@ typedef struct {
 // struct Function_String_Option_String
 int counter = 0;
 struct List__String imports = Impl.listEmpty();
+struct List__String structsForwarders = Impl.listEmpty();
 struct List__String structs = Impl.listEmpty();
 struct List__String globals = Impl.listEmpty();
 struct List__String methods = Impl.listEmpty();
@@ -608,7 +642,7 @@ auto __lambda19__() {
 	return Some.new()
 }
 auto __lambda20__(auto ioError) {
-	return ioError.display();
+	return System.err.println(Impl.toNativeString(ioError.display()));
 }
 void main() {
 	Path_ source = Impl.get(".", "src", "java", "magma", "Main.java");
@@ -637,8 +671,8 @@ auto __lambda25__(auto expansion) {
 	return comment + base;
 }
 auto __lambda26__(auto list) {
-	struct List__String collect = expansions.iter().map(__lambda25__).collect(struct ListCollector_());
-	return imports.addAll(structs).addAll(collect).addAll(globals).addAll(methods).addAll(list);
+	struct List__String expandedStructs = expansions.iter().map(__lambda25__).collect(struct ListCollector_());
+	return imports.addAll(structsForwarders).addAll(structs).addAll(expandedStructs).addAll(globals).addAll(methods).addAll(list);
 }
 auto __lambda27__() {
 	return Main.mergeStatements()
@@ -854,7 +888,8 @@ auto __lambda42__() {
 	return Main.mergeAllStatements()
 }
 auto __lambda43__(auto outputContent) {
-	structs.add("typedef struct {\n" + outputContent + "} " +
+	structsForwarders = structsForwarders.add("typedef struct " + name + " " + name + ";\n");
+	structs = structs.add("typedef struct {\n" + outputContent + "} " +
                     name +
                     ";\n");
 	return "";
