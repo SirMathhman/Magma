@@ -161,9 +161,15 @@ public class Main {
     }
 
     private static class MapCollector<K, V> implements Collector<Tuple<K, V>, Map_<K, V>> {
+        private final BiFunction<K, K, Boolean> equator;
+
+        public MapCollector(BiFunction<K, K, Boolean> equator) {
+            this.equator = equator;
+        }
+
         @Override
         public Map_<K, V> createInitial() {
-            return Impl.mapEmpty();
+            return Impl.mapEmpty(this.equator);
         }
 
         @Override
@@ -557,7 +563,7 @@ public class Main {
             Map_<String_, List_<Node>> nodeLists
     ) implements Node {
         public MapNode() {
-            this(new None<>(), Impl.mapEmpty(), Impl.mapEmpty(), Impl.mapEmpty());
+            this(new None<>(), Impl.mapEmpty(String_::equalsTo), Impl.mapEmpty(String_::equalsTo), Impl.mapEmpty(String_::equalsTo));
         }
 
         private static boolean isABoolean(List_<Node> nodeList, List_<Node> nodeList2) {
@@ -711,7 +717,7 @@ public class Main {
     private static List_<String> structs = Impl.listEmpty();
     private static List_<Node> expansions = Impl.listEmpty();
     private static int counter = 0;
-    private static Map_<String, Function<Node, String>> generators = Impl.mapEmpty();
+    private static Map_<String, Function<Node, String>> generators = Impl.mapEmpty(String::equals);
 
     private static <K, V> boolean entryEqualsTo(
             K key,

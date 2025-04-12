@@ -10,6 +10,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.BiFunction;
 
 public class Impl {
     private record ExceptionalIOError(IOException exception) implements Main.IOError {
@@ -105,26 +106,26 @@ public class Impl {
         }
     }
 
-    record JavaMap<K, V>(Map<K, V> internalMap) implements Main.Map_<K, V> {
-        public JavaMap() {
-            this(new HashMap<>());
+    record JavaMap<K, V>(Map<K, V> internalMap, BiFunction<K, K, Boolean> equator) implements Main.Map_<K, V> {
+        public JavaMap(BiFunction<K, K, Boolean> equator1) {
+            this(new HashMap<>(), equator1);
         }
 
         @Override
         public Main.Map_<K, V> with(K key, V value) {
             HashMap<K, V> copy = new HashMap<>(this.internalMap);
             copy.put(key, value);
-            return new JavaMap<>(copy);
+            return new JavaMap<>(copy, this.equator);
         }
 
         @Override
         public Main.Option<V> find(K key) {
-            if (this.internalMap.containsKey(key)) {
-                return new Main.Some<>(this.internalMap.get(key));
-            }
-            else {
-                return new Main.None<>();
-            }
+            return this.internalMap.entrySet()
+                    .stream().filter(set -> this.equator.apply(set.getKey(), key))
+                    .findFirst()
+                    .map(Map.Entry::getValue)
+                    .<Main.Option<V>>map(Main.Some::new)
+                    .orElseGet(Main.None::new);
         }
 
         @Override
@@ -160,6 +161,11 @@ public class Impl {
         @Override
         public Main.String_ concat(Main.String_ other) {
             return new JavaString(this.value + Impl.fromString(other));
+        }
+
+        @Override
+        public String toString() {
+            return this.value;
         }
     }
 
@@ -199,8 +205,8 @@ public class Impl {
         return new JavaList<>(Arrays.asList(elements));
     }
 
-    public static <K, V> Main.Map_<K, V> mapEmpty() {
-        return new JavaMap<>();
+    public static <K, V> Main.Map_<K, V> mapEmpty(BiFunction<K, K, Boolean> equator) {
+        return new JavaMap<>(equator);
     }
 
     public static String fromString(Main.String_ string) {
