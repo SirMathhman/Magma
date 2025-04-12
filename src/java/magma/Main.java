@@ -482,10 +482,11 @@ public class Main {
         }
 
         public boolean equalsTo(Node other) {
-            return Options.equalsTo(this.type, other.type, String::equals)
-                    && Maps.equalsTo(this.strings, other.strings, String::equals, String::equals)
-                    && Maps.equalsTo(this.nodes, other.nodes, String::equals, Node::equals)
-                    && Maps.equalsTo(this.nodeLists, other.nodeLists, String::equals, this::isABoolean);
+            boolean hasSameType = Options.equalsTo(this.type, other.type, String::equals);
+            boolean hasSameStrings = Maps.equalsTo(this.strings, other.strings, String::equals, String::equals);
+            boolean hasSameNodes = Maps.equalsTo(this.nodes, other.nodes, String::equals, Node::equals);
+            boolean hasSameNodeLists = Maps.equalsTo(this.nodeLists, other.nodeLists, String::equals, this::isABoolean);
+            return hasSameType && hasSameStrings && hasSameNodes && hasSameNodeLists;
         }
 
         private boolean isABoolean(List_<Node> nodeList, List_<Node> nodeList2) {
@@ -515,6 +516,8 @@ public class Main {
 
     private static class Options {
         public static <T> boolean equalsTo(Option<T> first, Option<T> second, BiFunction<T, T, Boolean> equator) {
+            if(first.isEmpty() && second.isEmpty()) return true;
+
             return first.and(() -> second)
                     .filter(tuple -> equator.apply(tuple.left, tuple.right))
                     .isPresent();
@@ -530,7 +533,7 @@ public class Main {
         ) {
             return first.iterKeys()
                     .concat(second.iterKeys())
-                    .fold(Impl.<K>listEmpty(), (kList, key) -> foldUniquely(keyEquator, kList, key))
+                    .fold(Impl.<K>listEmpty(), (kList, key) -> foldUniquely(kList, key, keyEquator))
                     .iter()
                     .allMatch(key -> entryEqualsTo(key, first, second, valueEquator));
         }
@@ -555,7 +558,7 @@ public class Main {
         return Options.equalsTo(firstOption, secondOption, valueEquator);
     }
 
-    private static <K> List_<K> foldUniquely(BiFunction<K, K, Boolean> keyEquator, List_<K> kList, K key) {
+    private static <K> List_<K> foldUniquely(List_<K> kList, K key, BiFunction<K, K, Boolean> keyEquator) {
         if (Lists.contains(kList, key, keyEquator)) {
             return kList;
         }
