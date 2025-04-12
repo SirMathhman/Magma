@@ -760,7 +760,7 @@ public class Main {
                 .collect(new ListCollector<>());
 
         return parseAll(segments1, createRootSegmentRule())
-                .mapValue(list1 -> list1.iter().map(value -> unwrapDefault(value).map(Impl::fromString).orElse("")).collect(new ListCollector<>()))
+                .mapValue(list1 -> list1.iter().map(Main::unwrapDefault).collect(new ListCollector<>()))
                 .mapValue(Main::complete)
                 .mapValue(compiled -> mergeAll(compiled, Main::mergeStatements));
     }
@@ -824,7 +824,7 @@ public class Main {
     }
 
     private static String mergeAllStatements(List_<Node> compiled) {
-        return generateAll(compiled, value -> unwrapDefault(value).map(Impl::fromString).orElse(""), Main::mergeStatements);
+        return generateAll(compiled, Main::unwrapDefault, Main::mergeStatements);
     }
 
     private static Option<List_<Node>> parseAllStatements(String input, Function<String, Option<Node>> rule) {
@@ -1008,7 +1008,7 @@ public class Main {
             return base + "_" + typeParams;
         }
         else {
-            return unwrapDefault(expansion).map(Impl::fromString).orElse("");
+            return expansion.findString(Impl.toString("value")).map(Impl::fromString).orElse("");
         }
     }
 
@@ -1141,7 +1141,7 @@ public class Main {
 
             String inputContent = body.substring("{".length(), body.length() - "}".length());
             return parseAllStatements(inputContent, wrapDefaultFunction(input1 -> compileStatementOrBlock(input1, typeParams, 1))).map(Main::mergeAllStatements).flatMap(outputContent -> {
-                methods.add("\t".repeat(0) + asContent + "(" + mergeAllValues(params, value -> unwrapDefault(value).map(Impl::fromString).orElse("")) + ")" + " {" + outputContent + "\n}\n");
+                methods.add("\t".repeat(0) + asContent + "(" + mergeAllValues(params, Main::unwrapDefault) + ")" + " {" + outputContent + "\n}\n");
                 return new Some<>(entry);
             });
         });
@@ -1560,7 +1560,7 @@ public class Main {
     private static Option<String> compileArgs(String argsString, List_<String> typeParams, int depth) {
         return parseAllValues(argsString, wrapDefaultFunction(arg -> {
             return compileWhitespace(arg).or(() -> compileValue(arg, typeParams, depth));
-        })).map(compiled -> mergeAllValues(compiled, value -> unwrapDefault(value).map(Impl::fromString).orElse(""))).map(args -> {
+        })).map(compiled -> mergeAllValues(compiled, Main::unwrapDefault)).map(args -> {
             return "(" + args + ")";
         });
     }
@@ -1614,7 +1614,7 @@ public class Main {
 
         List_<String> typeParamsStrings = splitValues(substring);
         List_<Node> typeParamsNodes = typeParamsStrings.iter()
-                .map(typeParam -> wrapDefault(Impl.toString(typeParam)))
+                .map(Main::wrapDefault)
                 .collect(new ListCollector<>());
 
         boolean hasValidBeforeParams = validateLeft(beforeTypeParams);
@@ -1678,7 +1678,7 @@ public class Main {
         String typeParamsString = node.findNodeList(Impl.toString("type-params"))
                 .orElseGet(Impl::listEmpty)
                 .iter()
-                .map(value -> unwrapDefault(value).map(Impl::fromString).orElse(""))
+                .map(Main::unwrapDefault)
                 .collect(new Joiner(", "))
                 .map(inner -> "<" + inner + "> ")
                 .orElse("");
@@ -1691,13 +1691,13 @@ public class Main {
         return new Some<>(typeParamsString + type + " " + name);
     }
 
-    private static Option<String_> unwrapDefault(Node value) {
-        return value.findString(Impl.toString("value"));
+    private static String unwrapDefault(Node value) {
+        return value.findString(Impl.toString("value")).map(Impl::fromString).orElse("");
     }
 
-    private static Node wrapDefault(String_ value) {
+    private static Node wrapDefault(String typeParam) {
         Node node = new MapNode();
-        return node.withString_(Impl.toString("value"), value);
+        return node.withString_(Impl.toString("value"), Impl.toString(typeParam));
     }
 
     private static Option<Integer> findTypeSeparator(String beforeName) {
@@ -1745,7 +1745,7 @@ public class Main {
             return generateGeneric(node);
         }
 
-        return unwrapDefault(node).map(Impl::fromString).orElse("");
+        return unwrapDefault(node);
     }
 
     private static Option<Node> parseType(String input, List_<String> typeParams) {
@@ -1809,7 +1809,7 @@ public class Main {
     }
 
     private static Function<String, Option<Node>> wrapDefaultFunction(Function<String, Option<String>> mapper) {
-        return input -> mapper.apply(input).map(typeParam -> wrapDefault(Impl.toString(typeParam)));
+        return input -> mapper.apply(input).map(Main::wrapDefault);
     }
 
     private static Option<String> compilePrimitive(String input) {
