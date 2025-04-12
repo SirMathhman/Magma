@@ -498,8 +498,9 @@ public class Main {
     }
 
     private static String compile(String input) {
-        List_<String> segments = divide(input, Main::divideStatementChar);
-        return parseAll(segments, Main::compileRootSegment)
+        List_<String> segments = divideAllStatements(input);
+        return parseAll(segments, wrapDefaultFunction(Main::compileRootSegment))
+                .map(list1 -> list1.iter().map(Main::unwrapDefault).collect(new ListCollector<>()))
                 .map(list -> {
                     List_<String> copy = Impl.emptyList();
                     copy.addAll(imports);
@@ -513,23 +514,29 @@ public class Main {
                 .or(() -> generatePlaceholder(input)).orElse("");
     }
 
-    private static Option<String> compileStatements(String input, Function<String, Option<String>> compiler) {
-        return compileAndMerge(divide(input, Main::divideStatementChar), compiler, Main::mergeStatements);
+    private static String mergeAllStatements(List_<Node> compiled) {
+        return mergeAllNodes(Main::mergeStatements, compiled);
     }
 
-    private static Option<String> compileAndMerge(List_<String> segments, Function<String, Option<String>> compiler, BiFunction<StringBuilder, String, StringBuilder> merger) {
-        return parseAll(segments, compiler).map(compiled -> mergeAll(compiled, merger));
+    private static Option<List_<Node>> parseAllStatements(String input, Function<String, Option<Node>> rule) {
+        return parseAll(divideAllStatements(input), rule);
+    }
+
+    private static List_<String> divideAllStatements(String input) {
+        return divide(input, Main::divideStatementChar);
+    }
+
+    private static String mergeAllNodes(BiFunction<StringBuilder, String, StringBuilder> merger, List_<Node> compiled) {
+        return mergeAll(compiled.iter().map(Main::unwrapDefault).collect(new ListCollector<>()), merger);
     }
 
     private static String mergeAll(List_<String> compiled, BiFunction<StringBuilder, String, StringBuilder> merger) {
         return compiled.iter().fold(new StringBuilder(), merger).toString();
     }
 
-    private static Option<List_<String>> parseAll(List_<String> segments, Function<String, Option<String>> compiler) {
-        return segments.iter().<Option<List_<String>>>fold(new Some<>(Impl.emptyList()), (maybeCompiled, segment) -> maybeCompiled.flatMap(allCompiled -> compiler.apply(segment).map(compiledSegment -> {
-            allCompiled.add(compiledSegment);
-            return allCompiled;
-        })));
+    private static Option<List_<Node>> parseAll(List_<String> segments, Function<String, Option<Node>> rule) {
+        return segments.iter().<Option<List_<Node>>>fold(new Some<>(Impl.emptyList()),
+                (maybeCompiled, segment) -> maybeCompiled.flatMap(allCompiled -> rule.apply(segment).map(allCompiled::add)));
     }
 
     private static StringBuilder mergeStatements(StringBuilder output, String compiled) {
@@ -678,7 +685,7 @@ public class Main {
             return new None<>();
         }
         String inputContent = withEnd.substring(0, withEnd.length() - "}".length());
-        return compileStatements(inputContent, input1 -> compileClassMember(input1, typeParams)).map(outputContent -> {
+        return parseAllStatements(inputContent, wrapDefaultFunction(input1 -> compileClassMember(input1, typeParams))).map(Main::mergeAllStatements).map(outputContent -> {
             structs.add("struct " + name + " {\n" + outputContent + "};\n");
             return "";
         });
@@ -754,7 +761,7 @@ public class Main {
             }
 
             String params = withParams.substring(0, paramEnd);
-            return compileValues(params, Main::compileParameter)
+            return parseAllValues(params, wrapDefaultFunction(Main::compileParameter)).map(Main::mergeAllValues)
                     .flatMap(outputParams -> assembleMethodBody(typeParams, outputDefinition, outputParams, withParams.substring(paramEnd + ")".length()).strip()));
         });
     }
@@ -768,7 +775,7 @@ public class Main {
         String header = "\t".repeat(0) + definition + "(" + params + ")";
         if (body.startsWith("{") && body.endsWith("}")) {
             String inputContent = body.substring("{".length(), body.length() - "}".length());
-            return compileStatements(inputContent, input1 -> compileStatementOrBlock(input1, typeParams, 1)).flatMap(outputContent -> {
+            return parseAllStatements(inputContent, wrapDefaultFunction(input1 -> compileStatementOrBlock(input1, typeParams, 1))).map(Main::mergeAllStatements).flatMap(outputContent -> {
                 methods.add(header + " {" + outputContent + "\n}\n");
                 return new Some<>("");
             });
@@ -783,9 +790,8 @@ public class Main {
                 .or(() -> generatePlaceholder(definition));
     }
 
-    private static Option<String> compileValues(String input, Function<String, Option<String>> compiler) {
-        List_<String> divided = divide(input, Main::divideValueChar);
-        return compileValues(divided, compiler);
+    private static Option<List_<Node>> parseAllValues(String input, Function<String, Option<Node>> rule) {
+        return parseAll(divide(input, Main::divideValueChar), rule);
     }
 
     private static State divideValueChar(State state, char c) {
@@ -810,8 +816,8 @@ public class Main {
         return appended;
     }
 
-    private static Option<String> compileValues(List_<String> params, Function<String, Option<String>> compiler) {
-        return compileAndMerge(params, compiler, Main::mergeValues);
+    private static String mergeAllValues(List_<Node> compiled) {
+        return mergeAllNodes(Main::mergeValues, compiled);
     }
 
     private static Option<String> compileStatementOrBlock(String input, List_<String> typeParams, int depth) {
@@ -848,8 +854,7 @@ public class Main {
             String withoutKeyword = stripped.substring("else ".length()).strip();
             if (withoutKeyword.startsWith("{") && withoutKeyword.endsWith("}")) {
                 String indent = createIndent(depth);
-                return compileStatements(withoutKeyword.substring(1, withoutKeyword.length() - 1),
-                        statement -> compileStatementOrBlock(statement, typeParams, depth + 1))
+                return parseAllStatements(withoutKeyword.substring(1, withoutKeyword.length() - 1), wrapDefaultFunction(statement -> compileStatementOrBlock(statement, typeParams, depth + 1))).map(Main::mergeAllStatements)
                         .map(result -> indent + "else {" + result + indent + "}");
             }
             else {
@@ -902,7 +907,7 @@ public class Main {
 
             if (withBraces.startsWith("{") && withBraces.endsWith("}")) {
                 String content = withBraces.substring(1, withBraces.length() - 1);
-                return compileStatements(content, statement -> compileStatementOrBlock(statement, typeParams, depth + 1)).map(statements -> {
+                return parseAllStatements(content, wrapDefaultFunction(statement -> compileStatementOrBlock(statement, typeParams, depth + 1))).map(Main::mergeAllStatements).map(statements -> {
                     return withCondition +
                             " {" + statements + "\n" +
                             "\t".repeat(depth) +
@@ -1121,7 +1126,7 @@ public class Main {
         String value = input.substring(arrowIndex + "->".length()).strip();
         if (value.startsWith("{") && value.endsWith("}")) {
             String slice = value.substring(1, value.length() - 1);
-            return compileStatements(slice, statement -> compileStatementOrBlock(statement, typeParams, depth)).flatMap(result -> {
+            return parseAllStatements(slice, wrapDefaultFunction(statement -> compileStatementOrBlock(statement, typeParams, depth))).map(Main::mergeAllStatements).flatMap(result -> {
                 return generateLambdaWithReturn(paramNames, result);
             });
         }
@@ -1194,9 +1199,9 @@ public class Main {
     }
 
     private static Option<String> compileArgs(String argsString, List_<String> typeParams, int depth) {
-        return compileValues(argsString, arg -> {
+        return parseAllValues(argsString, wrapDefaultFunction(arg -> {
             return compileWhitespace(arg).or(() -> compileValue(arg, typeParams, depth));
-        }).map(args -> {
+        })).map(Main::mergeAllValues).map(args -> {
             return "(" + args + ")";
         });
     }
@@ -1366,12 +1371,33 @@ public class Main {
                 wrapDefaultFunction(Main::compilePrimitive),
                 wrapDefaultFunction(input -> compileArray(input, typeParams)),
                 wrapDefaultFunction(input -> compileSymbol(input, typeParams)),
-                wrapDefaultFunction(input -> compileGeneric(input, typeParams))
+                parseGeneric(typeParams)
         );
     }
 
+    private static Function<String, Option<Node>> parseGeneric(List_<String> typeParams) {
+        return wrapDefaultFunction(input -> {
+            String stripped = input.strip();
+            if (!stripped.endsWith(">")) {
+                return new None<>();
+            }
+
+            String slice = stripped.substring(0, stripped.length() - ">".length());
+            int argsStart = slice.indexOf("<");
+            if (argsStart < 0) {
+                return new None<>();
+            }
+
+            String base = slice.substring(0, argsStart).strip();
+            String params = slice.substring(argsStart + "<".length()).strip();
+            return parseAllValues(params, wrapDefaultFunction(type -> compileWhitespace(type).or(() -> {
+                return parseType(type, typeParams).map(Main::generateType);
+            }))).map(Main::mergeAllValues).map(compiled -> base + "<" + compiled + ">");
+        });
+    }
+
     private static Function<String, Option<Node>> wrapDefaultFunction(Function<String, Option<String>> mapper) {
-        return s -> mapper.apply(s).map(Main::wrapDefault);
+        return input -> mapper.apply(input).map(Main::wrapDefault);
     }
 
     private static Option<String> compilePrimitive(String input) {
@@ -1411,24 +1437,6 @@ public class Main {
         else {
             return new Some<>("struct " + stripped);
         }
-    }
-
-    private static Option<String> compileGeneric(String input, List_<String> typeParams) {
-        String stripped = input.strip();
-        if (!stripped.endsWith(">")) {
-            return new None<>();
-        }
-
-        String slice = stripped.substring(0, stripped.length() - ">".length());
-        int argsStart = slice.indexOf("<");
-        if (argsStart < 0) {
-            return new None<>();
-        }
-
-        String base = slice.substring(0, argsStart).strip();
-        String params = slice.substring(argsStart + "<".length()).strip();
-        return compileValues(params, type -> compileWhitespace(type).or(() -> parseType(type, typeParams).map(Main::generateType)))
-                .map(compiled -> base + "<" + compiled + ">");
     }
 
     private static boolean isSymbol(String input) {
