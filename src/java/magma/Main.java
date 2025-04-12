@@ -85,10 +85,18 @@ public class Main {
 
     public interface Result<T, X> {
         <R> R match(Function<T, R> whenOk, Function<X, R> whenErr);
+
+        <R> Result<R, X> flatMapValue(Function<T, Result<R, X>> mapper);
+
+        <R> Result<R, X> mapValue(Function<T, R> mapper);
+
+        Option<T> findValue();
+
+        <R> Result<T, R> mapErr(Function<X, R> mapper);
     }
 
 
-    public interface IOError {
+    public interface IOError extends Error {
         String_ display();
     }
 
@@ -112,6 +120,8 @@ public class Main {
         char[] toCharArray();
 
         boolean equalsTo(String_ other);
+
+        String_ concat(String_ other);
     }
 
     private interface Node {
@@ -142,6 +152,14 @@ public class Main {
         boolean equalsTo(Node other);
     }
 
+    private interface Context {
+        String_ display();
+    }
+
+    private interface Error {
+        String_ display();
+    }
+
     private static class MapCollector<K, V> implements Collector<Tuple<K, V>, Map_<K, V>> {
         @Override
         public Map_<K, V> createInitial() {
@@ -159,12 +177,52 @@ public class Main {
         public <R> R match(Function<T, R> whenOk, Function<X, R> whenErr) {
             return whenErr.apply(this.error);
         }
+
+        @Override
+        public <R> Result<R, X> flatMapValue(Function<T, Result<R, X>> mapper) {
+            return new Err<>(this.error);
+        }
+
+        @Override
+        public <R> Result<R, X> mapValue(Function<T, R> mapper) {
+            return new Err<>(this.error);
+        }
+
+        @Override
+        public Option<T> findValue() {
+            return new None<>();
+        }
+
+        @Override
+        public <R> Result<T, R> mapErr(Function<X, R> mapper) {
+            return new Err<>(mapper.apply(this.error));
+        }
     }
 
     public record Ok<T, X>(T value) implements Result<T, X> {
         @Override
         public <R> R match(Function<T, R> whenOk, Function<X, R> whenErr) {
             return whenOk.apply(this.value);
+        }
+
+        @Override
+        public <R> Result<R, X> flatMapValue(Function<T, Result<R, X>> mapper) {
+            return mapper.apply(this.value);
+        }
+
+        @Override
+        public <R> Result<R, X> mapValue(Function<T, R> mapper) {
+            return new Ok<>(mapper.apply(this.value));
+        }
+
+        @Override
+        public Option<T> findValue() {
+            return new Some<>(this.value);
+        }
+
+        @Override
+        public <R> Result<T, R> mapErr(Function<X, R> mapper) {
+            return new Ok<>(this.value);
         }
     }
 
@@ -625,6 +683,27 @@ public class Main {
         }
     }
 
+    private record CompileError(String_ message, Context context) implements Error {
+        @Override
+        public String_ display() {
+            return this.message.concat(Impl.toString(": ")).concat(this.context.display());
+        }
+    }
+
+    private record StringContext(String_ value) implements Context {
+        @Override
+        public String_ display() {
+            return this.value;
+        }
+    }
+
+    private record ApplicationError(Error error) implements Error {
+        @Override
+        public String_ display() {
+            return this.error.display();
+        }
+    }
+
     private static final List_<String> imports = Impl.listEmpty();
     private static final List_<String> globals = Impl.listEmpty();
     private static final List_<String> methods = Impl.listEmpty();
@@ -657,26 +736,34 @@ public class Main {
     public static void main(String[] args) {
         Path_ source = Impl.get(".", "src", "java", "magma", "Main.java");
         Impl.readString(source)
+                .mapErr(ApplicationError::new)
                 .match(input -> compileAndWrite(input, source), Some::new)
                 .ifPresent(ioError -> System.err.println(Impl.fromString(ioError.display())));
     }
 
-    private static Option<IOError> compileAndWrite(String input, Path_ source) {
+    private static Option<ApplicationError> compileAndWrite(String input, Path_ source) {
         Path_ target = source.resolveSibling(Impl.toString("main.c"));
-        String output = compile(input);
-        return Impl.writeString(target, output);
+        return compile(input).mapErr(ApplicationError::new).match(
+                output -> Impl.writeString(target, output).map(ApplicationError::new),
+                Some::new);
     }
 
-    private static String compile(String input) {
-        List_<String> segments = divideAllStatements(input);
-        return parseAll(segments, wrapDefaultFunction(Main::compileRootSegment))
-                .map(list1 -> list1.iter().map(Main::unwrapDefault).collect(new ListCollector<>()))
-                .map(Main::getStringList)
-                .map(compiled -> mergeAll(compiled, Main::mergeStatements))
-                .or(() -> generatePlaceholder(input)).orElse("");
+    private static Result<String, CompileError> compile(String input) {
+        List_<String_> segments1 = divideAllStatements(input).iter()
+                .map(Impl::toString)
+                .collect(new ListCollector<>());
+
+        return parseAll(segments1, wrapToResult(createRootSegmentRule()))
+                .mapValue(list1 -> list1.iter().map(Main::unwrapDefault).collect(new ListCollector<>()))
+                .mapValue(Main::complete)
+                .mapValue(compiled -> mergeAll(compiled, Main::mergeStatements));
     }
 
-    private static List_<String> getStringList(List_<String> list) {
+    private static Function<String, Option<Node>> createRootSegmentRule() {
+        return wrapDefaultFunction(Main::compileRootSegment);
+    }
+
+    private static List_<String> complete(List_<String> list) {
         List_<String> expandedStructs = expansions.iter()
                 .map(Main::getString)
                 .collect(new ListCollector<>());
@@ -703,7 +790,9 @@ public class Main {
     }
 
     private static Option<List_<Node>> parseAllStatements(String input, Function<String, Option<Node>> rule) {
-        return parseAll(divideAllStatements(input), rule);
+        return parseAll(divideAllStatements(input).iter()
+                .map(Impl::toString)
+                .collect(new ListCollector<>()), wrapToResult(rule)).findValue();
     }
 
     private static List_<String> divideAllStatements(String input) {
@@ -720,9 +809,16 @@ public class Main {
         return compiled.iter().fold(new StringBuilder(), merger).toString();
     }
 
-    private static Option<List_<Node>> parseAll(List_<String> segments, Function<String, Option<Node>> rule) {
-        return segments.iter().<Option<List_<Node>>>fold(new Some<>(Impl.listEmpty()),
-                (maybeCompiled, segment) -> maybeCompiled.flatMap(allCompiled -> rule.apply(segment).map(allCompiled::add)));
+    private static Result<List_<Node>, CompileError> parseAll(List_<String_> segments, Function<String_, Result<Node, CompileError>> rule) {
+        return segments.iter()
+                .<Result<List_<Node>, CompileError>>fold(new Ok<>(Impl.listEmpty()),
+                        (maybeCompiled, segment) -> maybeCompiled.flatMapValue(allCompiled -> rule.apply(segment).mapValue(allCompiled::add)));
+    }
+
+    private static Function<String_, Result<Node, CompileError>> wrapToResult(Function<String, Option<Node>> rule) {
+        return string -> rule.apply(Impl.fromString(string))
+                .<Result<Node, CompileError>>map(Ok::new)
+                .orElseGet(() -> new Err<>(new CompileError(Impl.toString("Invalid value"), new StringContext(string))));
     }
 
     private static StringBuilder mergeStatements(StringBuilder output, String compiled) {
@@ -1048,7 +1144,9 @@ public class Main {
     }
 
     private static Option<List_<Node>> parseAllValues(String input, Function<String, Option<Node>> rule) {
-        return parseAll(divide(input, Main::divideValueChar), rule);
+        return parseAll(divide(input, Main::divideValueChar).iter()
+                .map(Impl::toString)
+                .collect(new ListCollector<>()), wrapToResult(rule)).findValue();
     }
 
     private static State divideValueChar(State state, char c) {
