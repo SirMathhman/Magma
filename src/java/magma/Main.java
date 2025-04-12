@@ -1219,7 +1219,7 @@ public class Main {
                 String withEnd = slice.substring(argsStart + "(".length()).strip();
                 if (withEnd.endsWith(")")) {
                     String argsString = withEnd.substring(0, withEnd.length() - ")".length());
-                    return createTypeRule(typeParams).apply(type).findValue().flatMap(outputType -> compileArgs(argsString, typeParams, depth).map(value -> outputType + value));
+                    return unwrapFromNode(createTypeRule(typeParams)).apply(type).findValue().flatMap(outputType -> compileArgs(argsString, typeParams, depth).map(value -> outputType + value));
                 }
             }
         }
@@ -1244,7 +1244,7 @@ public class Main {
             String property = stripped.substring(methodIndex + "::".length()).strip();
 
             if (isSymbol(property)) {
-                return createTypeRule(typeParams).apply(type).findValue().flatMap(compiled -> {
+                return unwrapFromNode(createTypeRule(typeParams)).apply(type).findValue().flatMap(compiled -> {
                     return generateLambdaWithReturn(Impl.emptyList(), "\n\treturn " + compiled + "." + property + "()");
                 });
             }
@@ -1454,12 +1454,12 @@ public class Main {
                 }
 
                 String inputType = beforeName.substring(typeSeparator + " ".length());
-                return createTypeRule(typeParams)
+                return unwrapFromNode(createTypeRule(typeParams))
                         .apply(inputType)
                         .flatMapValue(outputType -> new Ok<String, CompileError>(generateDefinition(typeParams, outputType, name)));
             }
             else {
-                return createTypeRule(Impl.emptyList())
+                return unwrapFromNode(createTypeRule(Impl.emptyList()))
                         .apply(beforeName)
                         .flatMapValue(outputType -> new Ok<String, CompileError>(generateDefinition(Impl.emptyList(), outputType, name)));
             }
@@ -1506,19 +1506,17 @@ public class Main {
         return typeParamsString + type + " " + name;
     }
 
-    private static Function<String, Result<String, CompileError>> createTypeRule(List_<String> typeParams) {
-        return createOrRule(Impl.listOf(
+    private static Function<String, Result<Node, CompileError>> createTypeRule(List_<String> typeParams) {
+        return wrapToNode(createOrRule(Impl.listOf(
                 createPrimitiveRule(),
                 createArrayRule(typeParams),
                 createSymbolRule(typeParams),
-                createGenericRule(typeParams)
-        ));
+                input -> parseGeneric(input, typeParams).flatMapValue(Main::generateGeneric)
+        )));
     }
 
-    private static Function<String, Result<String, CompileError>> createGenericRule(List_<String> typeParams) {
-        return input -> {
-            return parseGeneric(input, typeParams).flatMapValue(Main::generateGeneric);
-        };
+    private static Function<String, Result<String, CompileError>> unwrapFromNode(Function<String, Result<Node, CompileError>> stringResultFunction) {
+        return s -> stringResultFunction.apply(s).mapValue(result -> result.findString("value").orElse(""));
     }
 
     private static Result<Node, CompileError> parseGeneric(String input, List_<String> typeParams) {
@@ -1537,7 +1535,7 @@ public class Main {
         String params = slice.substring(argsStart + "<".length()).strip();
         return parseValues(params, wrapToNode(createOrRule(Impl.listOf(
                 createWhitespaceRule(),
-                createTypeRule(typeParams)
+                unwrapFromNode(createTypeRule(typeParams))
         )))).mapValue(args -> withBase.merge(new Node().withNodeList("args", args)));
     }
 
@@ -1583,7 +1581,7 @@ public class Main {
 
     private static Option<String> compileArray(String input, List_<String> typeParams) {
         if (input.endsWith("[]")) {
-            return createTypeRule(typeParams).apply(input.substring(0, input.length() - "[]".length())).findValue().map(value -> value + "*");
+            return unwrapFromNode(createTypeRule(typeParams)).apply(input.substring(0, input.length() - "[]".length())).findValue().map(value -> value + "*");
         }
         return new None<>();
     }
