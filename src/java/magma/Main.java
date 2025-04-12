@@ -1210,41 +1210,48 @@ public class Main {
             return new None<>();
         }
 
+        Node withName = new Node().withString("name", name);
         return findTypeSeparator(beforeName)
-                .map(typeSeparator -> compileDefinitionWithTypeSeparator(typeSeparator, beforeName, name))
-                .orElseGet(() -> compileDefinitionWithoutTypeSeparator(beforeName, name));
+                .map(typeSeparator -> compileDefinitionWithTypeSeparator(withName, beforeName.substring(0, typeSeparator).strip(), beforeName.substring(typeSeparator + " ".length())))
+                .orElseGet(() -> compileDefinitionWithoutTypeSeparator(beforeName, withName));
     }
 
-    private static Option<String> compileDefinitionWithoutTypeSeparator(String beforeName, String name) {
+    private static Option<String> compileDefinitionWithoutTypeSeparator(String beforeName, Node withName) {
         return compileType(beforeName, Impl.emptyList()).flatMap(outputType -> {
-            return generateDefinition(new Node()
-                    .withString("type", outputType)
-                    .withString("name", name));
-
+            return generateDefinition(withName.withString("type", outputType));
         });
     }
 
-    private static Option<String> compileDefinitionWithTypeSeparator(Integer typeSeparator, String beforeName, String name) {
-        String beforeType = beforeName.substring(0, typeSeparator).strip();
-
-        String beforeTypeParams = beforeType;
-        List_<String> typeParams;
-        if (beforeType.endsWith(">")) {
-            String withoutEnd = beforeType.substring(0, beforeType.length() - ">".length());
-            int typeParamStart = withoutEnd.indexOf("<");
-            if (typeParamStart >= 0) {
-                beforeTypeParams = withoutEnd.substring(0, typeParamStart);
-                String substring = withoutEnd.substring(typeParamStart + 1);
-                typeParams = splitValues(substring);
-            }
-            else {
-                typeParams = Impl.emptyList();
-            }
-        }
-        else {
-            typeParams = Impl.emptyList();
+    private static Option<String> compileDefinitionWithTypeSeparator(Node withName, String beforeType, String type) {
+        if (!beforeType.endsWith(">")) {
+            return withNoTypeParams(withName, beforeType, type);
         }
 
+        String withoutEnd = beforeType.substring(0, beforeType.length() - ">".length());
+        int typeParamStart = withoutEnd.indexOf("<");
+        if (typeParamStart < 0) {
+            return withNoTypeParams(withName, beforeType, type);
+        }
+
+        String beforeTypeParams = withoutEnd.substring(0, typeParamStart);
+        String substring = withoutEnd.substring(typeParamStart + 1);
+        List_<Node> typeParamsList = splitValues(substring).iter()
+                .map(Main::wrapDefault)
+                .collect(new ListCollector<>());
+        
+        return assembleDefinition(withName, beforeTypeParams, typeParamsList, type);
+    }
+
+    private static Option<String> withNoTypeParams(Node withName, String beforeType, String type) {
+        return assembleDefinition(withName, beforeType, Impl.emptyList(), type);
+    }
+
+    private static Option<String> assembleDefinition(
+            Node withName,
+            String beforeTypeParams, 
+            List_<Node> typeParamsList,
+            String inputType
+    ) {
         String strippedBeforeTypeParams = beforeTypeParams.strip();
 
         String modifiersString;
@@ -1266,16 +1273,13 @@ public class Main {
             return new None<>();
         }
 
-        String inputType = beforeName.substring(typeSeparator + " ".length());
-        return compileType(inputType, typeParams).flatMap(outputType -> {
-            final List_<Node> typeParamsList = typeParams.iter()
-                    .map(Main::wrapDefault)
-                    .collect(new ListCollector<>());
-
-            return generateDefinition(new Node().withNodeList("type-params", typeParamsList)
-                    .withString("type", outputType)
-                    .withString("name", name));
-        });
+        List_<String> collect = typeParamsList.iter()
+                .map(Main::unwrapDefault)
+                .collect(new ListCollector<>());
+        
+        return compileType(inputType, collect)
+                .map(outputType -> withName.withString("type", outputType))
+                .flatMap(node1 -> generateDefinition(node1.withNodeList("type-params", typeParamsList)));
     }
 
     private static Option<String> generateDefinition(Node node) {
