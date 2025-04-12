@@ -486,6 +486,10 @@ public class Main {
             this(new None<>(), Impl.mapEmpty(), Impl.mapEmpty(), Impl.mapEmpty());
         }
 
+        private static boolean isABoolean(List_<Node> nodeList, List_<Node> nodeList2) {
+            return Lists.equalsTo(nodeList, nodeList2, Node::equalsTo);
+        }
+
         @Override
         public Node withString(String propertyKey, String propertyValue) {
             return new MapNode(this.type, this.strings.with(propertyKey, propertyValue), this.nodes, this.nodeLists);
@@ -533,10 +537,6 @@ public class Main {
             boolean hasSameNodes = other.hasSameNodes(this.nodes);
             boolean hasSameNodeLists = other.hasSameNodeLists(this, this.nodeLists);
             return hasSameType && hasSameStrings && hasSameNodes && hasSameNodeLists;
-        }
-
-        private static boolean isABoolean(List_<Node> nodeList, List_<Node> nodeList2) {
-            return Lists.equalsTo(nodeList, nodeList2, Node::equalsTo);
         }
 
         @Override
@@ -1699,6 +1699,10 @@ public class Main {
 
         if (input.equals("char") || input.equals("Character")) {
             return new Some<>("char");
+        }
+
+        if (input.equals("String")) {
+            return new Some<>("char*");
         }
 
         return new None<>();
