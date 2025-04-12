@@ -1616,7 +1616,7 @@ public class Main {
     }
 
     private static String generateGeneric(Node node) {
-        return "struct " + stringify(node);
+        return stringify(node);
     }
 
     private static Function<String, Option<Node>> wrapDefaultFunction(Function<String, Option<String>> mapper) {
