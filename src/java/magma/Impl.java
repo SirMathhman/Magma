@@ -135,6 +135,18 @@ public class Impl {
                     ? new Main.Some<>(this.internalMap.get(key))
                     : new Main.None<>();
         }
+
+        @Override
+        public Main.Map_<K, V> withAll(Main.Map_<K, V> other) {
+            return other.iter().<Main.Map_<K, V>>fold(this, (kvJavaMap, kvTuple) -> kvJavaMap.with(kvTuple.left(), kvTuple.right()));
+        }
+
+        @Override
+        public Main.Iterator<Main.Tuple<K, V>> iter() {
+            return listFromNative(new ArrayList<>(this.internalMap.entrySet()))
+                    .iter()
+                    .map(entry -> new Main.Tuple<>(entry.getKey(), entry.getValue()));
+        }
     }
 
     static Main.Option<Main.IOError> writeString(Main.Path_ target, String output) {

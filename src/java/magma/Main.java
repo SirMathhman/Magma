@@ -110,6 +110,8 @@ public class Main {
         Option<V> find(K key);
 
         Map_<K, V> withAll(Map_<K, V> other);
+
+        Iterator<Tuple<K, V>> iter();
     }
 
     public record String_(String value) {
