@@ -10,7 +10,6 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.function.BiFunction;
 
 public class Impl {
     private record ExceptionalIOError(IOException exception) implements Main.IOError {
@@ -50,8 +49,9 @@ public class Impl {
         }
 
         @Override
-        public void addAll(Main.List_<T> elements) {
+        public Main.List_<T> addAll(Main.List_<T> elements) {
             elements.iter().forEach(this::add);
+            return this;
         }
 
         @Override
@@ -122,6 +122,11 @@ public class Impl {
                 return new Main.None<>();
             }
         }
+
+        @Override
+        public Main.Iterator<K> iterKeys() {
+            return new JavaList<>(new ArrayList<>(this.internalMap.keySet())).iter();
+        }
     }
 
     static Main.Option<Main.IOError> writeString(Main.Path_ target, String output) {
@@ -158,24 +163,6 @@ public class Impl {
 
     public static <T> Main.List_<T> listOf(T... elements) {
         return new JavaList<>(Arrays.asList(elements));
-    }
-
-    public static <T> boolean contains(
-            Main.List_<T> list,
-            T element,
-            BiFunction<T, T, Boolean> equator
-    ) {
-        return list.iter().anyMatch(child -> equator.apply(child, element));
-    }
-
-    public static <T> boolean equalsList(Main.List_<T> first, Main.List_<T> second, BiFunction<T, T, Boolean> equator) {
-        if (first.size() != second.size()) {
-            return false;
-        }
-
-        return new Main.HeadedIterator<>(new Main.RangeHead(first.size())).allMatch(index -> {
-            return equator.apply(first.get(index), second.get(index));
-        });
     }
 
     public static <K, V> Main.Map_<K, V> mapEmpty() {

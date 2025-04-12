@@ -32,7 +32,7 @@ public class Main {
     public interface List_<T> {
         List_<T> add(T element);
 
-        void addAll(List_<T> elements);
+        List_<T> addAll(List_<T> elements);
 
         Iterator<T> iter();
 
@@ -101,6 +101,8 @@ public class Main {
         Map_<K, V> with(K key, V value);
 
         Option<V> find(K key);
+
+        Iterator<K> iterKeys();
     }
 
     public record Err<T, X>(X error) implements Result<T, X> {
@@ -478,13 +480,89 @@ public class Main {
         public Node retype(String type) {
             return new Node(new Some<>(type), this.strings, this.nodes, this.nodeLists);
         }
+
+        public boolean equalsTo(Node other) {
+            return Options.equalsTo(this.type, other.type, String::equals)
+                    && Maps.equalsTo(this.strings, other.strings, String::equals, String::equals)
+                    && Maps.equalsTo(this.nodes, other.nodes, String::equals, Node::equals)
+                    && Maps.equalsTo(this.nodeLists, other.nodeLists, String::equals, this::isABoolean);
+        }
+
+        private boolean isABoolean(List_<Node> nodeList, List_<Node> nodeList2) {
+            return Lists.equalsTo(nodeList, nodeList2, Node::equalsTo);
+        }
+    }
+
+    private static class Lists {
+        public static <T> boolean contains(
+                List_<T> list,
+                T element,
+                BiFunction<T, T, Boolean> equator
+        ) {
+            return list.iter().anyMatch(child -> equator.apply(child, element));
+        }
+
+        public static <T> boolean equalsTo(List_<T> first, List_<T> second, BiFunction<T, T, Boolean> equator) {
+            if (first.size() != second.size()) {
+                return false;
+            }
+
+            return new HeadedIterator<>(new RangeHead(first.size())).allMatch(index -> {
+                return equator.apply(first.get(index), second.get(index));
+            });
+        }
+    }
+
+    private static class Options {
+        public static <T> boolean equalsTo(Option<T> first, Option<T> second, BiFunction<T, T, Boolean> equator) {
+            return first.and(() -> second)
+                    .filter(tuple -> equator.apply(tuple.left, tuple.right))
+                    .isPresent();
+        }
+    }
+
+    private static class Maps {
+        public static <K, V> boolean equalsTo(
+                Map_<K, V> first,
+                Map_<K, V> second,
+                BiFunction<K, K, Boolean> keyEquator,
+                BiFunction<V, V, Boolean> valueEquator
+        ) {
+            return first.iterKeys()
+                    .concat(second.iterKeys())
+                    .fold(Impl.<K>listEmpty(), (kList, key) -> foldUniquely(keyEquator, kList, key))
+                    .iter()
+                    .allMatch(key -> entryEqualsTo(key, first, second, valueEquator));
+        }
     }
 
     private static final List_<String> imports = Impl.listEmpty();
     private static final List_<String> structs = Impl.listEmpty();
     private static final List_<String> globals = Impl.listEmpty();
     private static final List_<String> methods = Impl.listEmpty();
+    private static List_<Node> expansions = Impl.listEmpty();
     private static int counter = 0;
+    private static Map_<String, Function<Node, Option<String>>> structGenerators = Impl.mapEmpty();
+
+    private static <K, V> boolean entryEqualsTo(
+            K key,
+            Map_<K, V> first,
+            Map_<K, V> second,
+            BiFunction<V, V, Boolean> valueEquator
+    ) {
+        Option<V> firstOption = first.find(key);
+        Option<V> secondOption = second.find(key);
+        return Options.equalsTo(firstOption, secondOption, valueEquator);
+    }
+
+    private static <K> List_<K> foldUniquely(BiFunction<K, K, Boolean> keyEquator, List_<K> kList, K key) {
+        if (Lists.contains(kList, key, keyEquator)) {
+            return kList;
+        }
+        else {
+            return kList.add(key);
+        }
+    }
 
     public static void main(String[] args) {
         Path_ source = Impl.get(".", "src", "java", "magma", "Main.java");
@@ -504,13 +582,16 @@ public class Main {
         return parseAll(segments, wrapDefaultFunction(Main::compileRootSegment))
                 .map(list1 -> list1.iter().map(Main::unwrapDefault).collect(new ListCollector<>()))
                 .map(list -> {
-                    List_<String> copy = Impl.listEmpty();
-                    copy.addAll(imports);
-                    copy.addAll(structs);
-                    copy.addAll(globals);
-                    copy.addAll(methods);
-                    copy.addAll(list);
-                    return copy;
+                    List_<String> collect = expansions.iter()
+                            .map(Main::generateGeneric)
+                            .map(expansion -> "// " + expansion + "\n")
+                            .collect(new ListCollector<>());
+
+                    return imports.addAll(structs)
+                            .addAll(collect)
+                            .addAll(globals)
+                            .addAll(methods)
+                            .addAll(list);
                 })
                 .map(compiled -> mergeAll(compiled, Main::mergeStatements))
                 .or(() -> generatePlaceholder(input)).orElse("");
@@ -627,7 +708,7 @@ public class Main {
             if (right.endsWith(";")) {
                 String content = right.substring(0, right.length() - ";".length());
                 List_<String> split = splitByDelimiter(content, '.');
-                if (split.size() >= 3 && Impl.equalsList(split.slice(0, 3), Impl.listOf("java", "util", "function"), String::equals)) {
+                if (split.size() >= 3 && Lists.equalsTo(split.slice(0, 3), Impl.listOf("java", "util", "function"), String::equals)) {
                     return new Some<>("");
                 }
 
@@ -686,19 +767,34 @@ public class Main {
                 : beforeContent1;
 
         int typeParamStart = name1.indexOf("<");
+
+        String name = name1.strip();
+        String body = afterKeyword.substring(contentStart + "{".length());
+
+        Node node = new Node()
+                .withString("name", name)
+                .withString("body", body);
+
         if (typeParamStart >= 0) {
+            structGenerators = structGenerators.with(name, (child) -> generateStruct(typeParams, child));
             return new Some<>("// " + name1 + "\n");
         }
 
-        String name = name1.strip();
+        return generateStruct(typeParams, node);
+    }
+
+    private static Option<String> generateStruct(List_<String> typeParams, Node node) {
+        String name = node.findString("name").orElse("");
+        String body = node.findString("body").orElse("");
         if (!isSymbol(name)) {
             return new None<>();
         }
 
-        String withEnd = afterKeyword.substring(contentStart + "{".length()).strip();
+        String withEnd = body.strip();
         if (!withEnd.endsWith("}")) {
             return new None<>();
         }
+
         String inputContent = withEnd.substring(0, withEnd.length() - "}".length());
         return parseAllStatements(inputContent, wrapDefaultFunction(input1 -> compileClassMember(input1, typeParams))).map(Main::mergeAllStatements).map(outputContent -> {
             structs.add("struct " + name + " {\n" + outputContent + "};\n");
@@ -1401,6 +1497,9 @@ public class Main {
 
     private static String generateType(Node node) {
         if (node.is("generic")) {
+            if (!Lists.contains(expansions, node, Node::equalsTo)) {
+                expansions = expansions.add(node);
+            }
             return generateGeneric(node);
         }
 
@@ -1500,7 +1599,7 @@ public class Main {
             return new None<>();
         }
 
-        if (Impl.contains(typeParams, stripped, String::equals)) {
+        if (Lists.contains(typeParams, stripped, String::equals)) {
             return new Some<>(stripped);
         }
         else {
