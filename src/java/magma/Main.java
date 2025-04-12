@@ -1697,7 +1697,7 @@ public class Main {
 
     private static Node wrapDefault(String typeParam) {
         Node node = new MapNode();
-        return node.withString_(Impl.toString("value"), Impl.toString(typeParam));
+        return node.withString_(Impl.toString(typeParam), Impl.toString(typeParam));
     }
 
     private static Option<Integer> findTypeSeparator(String beforeName) {
