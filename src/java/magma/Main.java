@@ -1736,6 +1736,8 @@ public class Main {
             return false;
         }
 
+        if(input.equals("public")) return false;
+
         return Iterators.fromStringWithIndices(input).allMatch(tuple -> {
             int index = tuple.left;
             char c = tuple.right;
