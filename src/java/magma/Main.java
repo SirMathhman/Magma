@@ -675,12 +675,17 @@ public class Main {
         }
         String beforeContent = afterKeyword.substring(0, contentStart).strip();
 
-        int typeParamStart = beforeContent.indexOf("<");
+        int paramStart = beforeContent.indexOf("(");
+        String name1 = paramStart >= 0
+                ? beforeContent.substring(0, paramStart)
+                : beforeContent;
+
+        int typeParamStart = name1.indexOf("<");
         if (typeParamStart >= 0) {
-            return new Some<>("");
+            return new Some<>("// " + name1 + "\n");
         }
 
-        String name = beforeContent.strip();
+        String name = name1.strip();
         if (!isSymbol(name)) {
             return new None<>();
         }
