@@ -1,10 +1,12 @@
 typedef struct {
-	String (*display)();
+	String_ (*display)();
 } IOError;
 typedef struct {
 	Path_ (*resolveSibling)(String);
 	struct List__String (*listNames)();
 } Path_;
+typedef struct {
+} String_;
 typedef struct {
 	struct List__char queue;
 	struct List__String segments;
@@ -605,8 +607,8 @@ auto __lambda18__(auto input) {
 auto __lambda19__() {
 	return Some.new()
 }
-auto __lambda20__() {
-	return IOError.display()
+auto __lambda20__(auto ioError) {
+	return ioError.display();
 }
 void main() {
 	Path_ source = Impl.get(".", "src", "java", "magma", "Main.java");

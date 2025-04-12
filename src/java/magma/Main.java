@@ -88,7 +88,7 @@ public class Main {
     }
 
     public interface IOError {
-        String display();
+        String_ display();
     }
 
     public interface Path_ {
@@ -103,6 +103,10 @@ public class Main {
         Option<V> find(K key);
 
         Iterator<K> iterKeys();
+    }
+
+    public record String_(String value) {
+
     }
 
     public record Err<T, X>(X error) implements Result<T, X> {
@@ -573,7 +577,7 @@ public class Main {
         Path_ source = Impl.get(".", "src", "java", "magma", "Main.java");
         Impl.readString(source)
                 .match(input -> compileAndWrite(input, source), Some::new)
-                .ifPresent(IOError::display);
+                .ifPresent(ioError -> ioError.display());
     }
 
     private static Option<IOError> compileAndWrite(String input, Path_ source) {

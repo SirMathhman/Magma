@@ -13,11 +13,15 @@ import java.util.Map;
 
 public class Impl {
     private record ExceptionalIOError(IOException exception) implements Main.IOError {
-        @Override
-        public String display() {
+        private String display1() {
             StringWriter writer = new StringWriter();
             this.exception.printStackTrace(new PrintWriter(writer));
             return writer.toString();
+        }
+
+        @Override
+        public Main.String_ display() {
+            return new Main.String_(this.display1());
         }
     }
 
