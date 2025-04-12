@@ -21,6 +21,8 @@ public class Main {
         Option<T> or(Supplier<Option<T>> supplier);
 
         <R> Option<R> flatMap(Function<T, Option<R>> mapper);
+
+        T orElseGet(Supplier<T> other);
     }
 
     public interface List_<T> {
@@ -199,6 +201,11 @@ public class Main {
         public <R> Option<R> flatMap(Function<T, Option<R>> mapper) {
             return new None<>();
         }
+
+        @Override
+        public T orElseGet(Supplier<T> other) {
+            return other.get();
+        }
     }
 
     public record Some<T>(T value) implements Option<T> {
@@ -235,6 +242,11 @@ public class Main {
         @Override
         public <R> Option<R> flatMap(Function<T, Option<R>> mapper) {
             return mapper.apply(this.value);
+        }
+
+        @Override
+        public T orElseGet(Supplier<T> other) {
+            return value;
         }
     }
 
@@ -1139,14 +1151,72 @@ public class Main {
             return new None<>();
         }
 
-        int typeSeparator = -1;
+        return findTypeSeparator(beforeName)
+                .map(typeSeparator -> compileDefinitionWithTypeSeparator(typeSeparator, beforeName, name))
+                .orElseGet(() -> compileDefinitionWithoutTypeSeparator(beforeName, name));
+    }
+
+    private static Option<String> compileDefinitionWithoutTypeSeparator(String beforeName, String name) {
+        return compileType(beforeName, Impl.emptyList()).flatMap(outputType -> getStringSome(outputType, Impl.emptyList(), name));
+    }
+
+    private static Option<String> compileDefinitionWithTypeSeparator(Integer typeSeparator, String beforeName, String name) {
+        String beforeType = beforeName.substring(0, typeSeparator).strip();
+
+        String beforeTypeParams = beforeType;
+        List_<String> typeParams;
+        if (beforeType.endsWith(">")) {
+            String withoutEnd = beforeType.substring(0, beforeType.length() - ">".length());
+            int typeParamStart = withoutEnd.indexOf("<");
+            if (typeParamStart >= 0) {
+                beforeTypeParams = withoutEnd.substring(0, typeParamStart);
+                String substring = withoutEnd.substring(typeParamStart + 1);
+                typeParams = splitValues(substring);
+            }
+            else {
+                typeParams = Impl.emptyList();
+            }
+        }
+        else {
+            typeParams = Impl.emptyList();
+        }
+
+        String strippedBeforeTypeParams = beforeTypeParams.strip();
+
+        String modifiersString;
+        int annotationSeparator = strippedBeforeTypeParams.lastIndexOf("\n");
+        if (annotationSeparator >= 0) {
+            modifiersString = strippedBeforeTypeParams.substring(annotationSeparator + "\n".length());
+        }
+        else {
+            modifiersString = strippedBeforeTypeParams;
+        }
+
+        boolean allSymbols = splitByDelimiter(modifiersString, ' ')
+                .iter()
+                .map(String::strip)
+                .filter(value -> !value.isEmpty())
+                .allMatch(Main::isSymbol);
+
+        if (!allSymbols) {
+            return new None<>();
+        }
+
+        String inputType = beforeName.substring(typeSeparator + " ".length());
+        return compileType(inputType, typeParams).flatMap(outputType -> getStringSome(outputType, typeParams, name));
+    }
+
+    private static Option<String> getStringSome(String outputType, List_<String> typeParams, String name) {
+        return new Some<>(generateDefinition(typeParams, outputType, name));
+    }
+
+    private static Option<Integer> findTypeSeparator(String beforeName) {
         int depth = 0;
-        int i = beforeName.length() - 1;
-        while (i >= 0) {
-            char c = beforeName.charAt(i);
+        int index = beforeName.length() - 1;
+        while (index >= 0) {
+            char c = beforeName.charAt(index);
             if (c == ' ' && depth == 0) {
-                typeSeparator = i;
-                break;
+                return new Some<>(index);
             }
             else {
                 if (c == '>') {
@@ -1156,57 +1226,9 @@ public class Main {
                     depth--;
                 }
             }
-            i--;
+            index--;
         }
-
-        if (typeSeparator >= 0) {
-            String beforeType = beforeName.substring(0, typeSeparator).strip();
-
-            String beforeTypeParams = beforeType;
-            List_<String> typeParams;
-            if (beforeType.endsWith(">")) {
-                String withoutEnd = beforeType.substring(0, beforeType.length() - ">".length());
-                int typeParamStart = withoutEnd.indexOf("<");
-                if (typeParamStart >= 0) {
-                    beforeTypeParams = withoutEnd.substring(0, typeParamStart);
-                    String substring = withoutEnd.substring(typeParamStart + 1);
-                    typeParams = splitValues(substring);
-                }
-                else {
-                    typeParams = Impl.emptyList();
-                }
-            }
-            else {
-                typeParams = Impl.emptyList();
-            }
-
-            String strippedBeforeTypeParams = beforeTypeParams.strip();
-
-            String modifiersString;
-            int annotationSeparator = strippedBeforeTypeParams.lastIndexOf("\n");
-            if (annotationSeparator >= 0) {
-                modifiersString = strippedBeforeTypeParams.substring(annotationSeparator + "\n".length());
-            }
-            else {
-                modifiersString = strippedBeforeTypeParams;
-            }
-
-            boolean allSymbols = splitByDelimiter(modifiersString, ' ')
-                    .iter()
-                    .map(String::strip)
-                    .filter(value -> !value.isEmpty())
-                    .allMatch(Main::isSymbol);
-
-            if (!allSymbols) {
-                return new None<>();
-            }
-
-            String inputType = beforeName.substring(typeSeparator + " ".length());
-            return compileType(inputType, typeParams).flatMap(outputType -> new Some<>(generateDefinition(typeParams, outputType, name)));
-        }
-        else {
-            return compileType(beforeName, Impl.emptyList()).flatMap(outputType -> new Some<>(generateDefinition(Impl.emptyList(), outputType, name)));
-        }
+        return new None<>();
     }
 
     private static List_<String> splitValues(String substring) {
