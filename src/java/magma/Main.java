@@ -835,7 +835,9 @@ public class Main {
 
         String inputContent = withEnd.substring(0, withEnd.length() - "}".length());
         return parseAllStatements(inputContent, wrapDefaultFunction(input1 -> compileClassMember(input1, typeParams))).map(Main::mergeAllStatements).map(outputContent -> {
-            structs.add("struct " + name + " {\n" + outputContent + "};\n");
+            structs.add("typedef struct {\n" + outputContent + "} " +
+                    name +
+                    ";\n");
             return "";
         });
     }
@@ -1650,7 +1652,7 @@ public class Main {
             return new Some<>(stripped);
         }
         else {
-            return new Some<>("struct " + stripped);
+            return new Some<>(stripped);
         }
     }
 
