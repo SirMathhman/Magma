@@ -1219,7 +1219,7 @@ public class Main {
             String beforeType = beforeName.substring(0, typeSeparator).strip();
             String type = beforeName.substring(typeSeparator + " ".length());
             return parseDefinitionWithTypeSeparator(withName, beforeType, type);
-        }).orElseGet(() -> compileTypePropertyWithNoTypeParams(withName, beforeName));
+        }).orElseGet(() -> parseDefinitionTypeProperty(withName, beforeName, Impl.emptyList()));
     }
 
     private static Option<Node> parseDefinitionWithTypeSeparator(Node withName, String beforeType, String type) {
@@ -1246,8 +1246,12 @@ public class Main {
             return new None<>();
         }
 
-        return compileType(type, typeParamsStrings).map(outputType -> withName.withString("type", outputType))
+        return parseDefinitionTypeProperty(withName, type, typeParamsStrings)
                 .map(node -> node.withNodeList("type-params", typeParamsNodes));
+    }
+
+    private static Option<Node> parseDefinitionTypeProperty(Node withName, String type, List_<String> typeParams) {
+        return compileType(type, typeParams).map(outputType -> withName.withString("type", outputType));
     }
 
     private static Option<Node> parseDefinitionWithNoTypeParams(Node withName, String beforeType, String type) {
@@ -1257,16 +1261,7 @@ public class Main {
             return new None<>();
         }
 
-        return compileTypePropertyWithNoTypeParams(withName, type)
-                .map(node -> node.withNodeList("type-params", typeParamsList));
-    }
-
-    private static Option<Node> compileTypePropertyWithNoTypeParams(Node withName, String type) {
-        return compileTypeWithNoTypeParams(type).map(outputType -> withName.withString("type", outputType));
-    }
-
-    private static Option<String> compileTypeWithNoTypeParams(String type) {
-        return compileType(type, Impl.emptyList());
+        return parseDefinitionTypeProperty(withName, type, Impl.emptyList()).map(node -> node.withNodeList("type-params", typeParamsList));
     }
 
     private static boolean validateLeft(String beforeTypeParams) {
