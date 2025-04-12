@@ -1335,6 +1335,14 @@ public class Main {
     }
 
     private static Option<String> compileType(String input, List_<String> typeParams) {
+        return compilePrimitive(input)
+                .or(() -> compileArray(input, typeParams))
+                .or(() -> compileSymbol(input, typeParams))
+                .or(() -> compileGeneric(input, typeParams))
+                .or(() -> generatePlaceholder(input));
+    }
+
+    private static Option<String> compilePrimitive(String input) {
         if (input.equals("void")) {
             return new Some<>("void");
         }
@@ -1347,36 +1355,48 @@ public class Main {
             return new Some<>("char");
         }
 
+        return new None<>();
+    }
+
+    private static Option<String> compileArray(String input, List_<String> typeParams) {
         if (input.endsWith("[]")) {
             return compileType(input.substring(0, input.length() - "[]".length()), typeParams)
                     .map(value -> value + "*");
         }
 
+        return new None<>();
+    }
+
+    private static Option<String> compileSymbol(String input, List_<String> typeParams) {
         String stripped = input.strip();
-        if (isSymbol(stripped)) {
-            if (Impl.contains(typeParams, stripped, String::equals)) {
-                return new Some<>(stripped);
-            }
-            else {
-                return new Some<>("struct " + stripped);
-            }
+        if (!isSymbol(stripped)) {
+            return new None<>();
         }
 
-        if (stripped.endsWith(">")) {
-            String slice = stripped.substring(0, stripped.length() - ">".length());
-            int argsStart = slice.indexOf("<");
-            if (argsStart >= 0) {
-                String base = slice.substring(0, argsStart).strip();
-                String params = slice.substring(argsStart + "<".length()).strip();
-                return compileValues(params, type -> {
-                    return compileWhitespace(type).or(() -> compileType(type, typeParams));
-                }).map(compiled -> {
-                    return base + "<" + compiled + ">";
-                });
-            }
+        if (Impl.contains(typeParams, stripped, String::equals)) {
+            return new Some<>(stripped);
+        }
+        else {
+            return new Some<>("struct " + stripped);
+        }
+    }
+
+    private static Option<String> compileGeneric(String input, List_<String> typeParams) {
+        String stripped = input.strip();
+        if (!stripped.endsWith(">")) {
+            return new None<>();
         }
 
-        return generatePlaceholder(input);
+        String slice = stripped.substring(0, stripped.length() - ">".length());
+        int argsStart = slice.indexOf("<");
+        if (argsStart < 0) {
+            return new None<>();
+        }
+
+        String base = slice.substring(0, argsStart).strip();
+        String params = slice.substring(argsStart + "<".length()).strip();
+        return compileValues(params, type -> compileWhitespace(type).or(() -> compileType(type, typeParams)))
+                .map(compiled -> base + "<" + compiled + ">");
     }
 
     private static boolean isSymbol(String input) {
