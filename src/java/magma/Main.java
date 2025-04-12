@@ -23,6 +23,8 @@ public class Main {
         <R> Option<R> flatMap(Function<T, Option<R>> mapper);
 
         T orElseGet(Supplier<T> other);
+
+        Option<T> filter(Predicate<T> filter);
     }
 
     public interface List_<T> {
@@ -112,6 +114,10 @@ public class Main {
         Map_<K, V> withAll(Map_<K, V> other);
 
         Iterator<Tuple<K, V>> iter();
+    }
+
+    private interface Context {
+        String display();
     }
 
     public record String_(String value) {
@@ -272,6 +278,11 @@ public class Main {
         public T orElseGet(Supplier<T> other) {
             return other.get();
         }
+
+        @Override
+        public Option<T> filter(Predicate<T> filter) {
+            return new None<>();
+        }
     }
 
     public record Some<T>(T value) implements Option<T> {
@@ -313,6 +324,11 @@ public class Main {
         @Override
         public T orElseGet(Supplier<T> other) {
             return this.value;
+        }
+
+        @Override
+        public Option<T> filter(Predicate<T> filter) {
+            return filter.test(this.value) ? this : new None<>();
         }
     }
 
@@ -482,13 +498,16 @@ public class Main {
         }
     }
 
-    record CompileError(String message, String context, List_<CompileError> errors) implements Error {
-        public CompileError(String message, String context) {
-            this(message, context, Impl.emptyList());
+    private record StringContext(String value) implements Context {
+        @Override
+        public String display() {
+            return this.value;
         }
+    }
 
-        private String display0() {
-            return this.format(0);
+    record CompileError(String message, Context context, List_<CompileError> errors) implements Error {
+        public CompileError(String message, Context context) {
+            this(message, context, Impl.emptyList());
         }
 
         private String format(int depth) {
@@ -499,7 +518,7 @@ public class Main {
                     .collect(new Joiner(""))
                     .orElse("");
 
-            return this.message + ": " + this.context + joined;
+            return this.message + ": " + this.context.display() + joined;
         }
 
         private int computeMaxDepth() {
@@ -511,7 +530,7 @@ public class Main {
 
         @Override
         public String_ display() {
-            return new String_(this.display0());
+            return new String_(this.format(0));
         }
     }
 
@@ -526,40 +545,42 @@ public class Main {
         }
     }
 
-    private record OrState(Option<String> maybeValue, List_<CompileError> errors) {
+    private record OrState<T>(Option<T> maybeValue, List_<CompileError> errors) {
         public OrState() {
             this(new None<>(), Impl.emptyList());
         }
 
-        public OrState withValue(String value) {
-            return new OrState(new Some<>(value), this.errors);
+        public OrState<T> withValue(T value) {
+            return new OrState<T>(new Some<>(value), this.errors);
         }
 
-        public OrState withError(CompileError error) {
-            return new OrState(this.maybeValue, this.errors.add(error));
+        public OrState<T> withError(CompileError error) {
+            return new OrState<T>(this.maybeValue, this.errors.add(error));
         }
 
-        public Result<String, List_<CompileError>> toResult() {
-            return this.maybeValue.<Result<String, List_<CompileError>>>map(Ok::new)
+        public Result<T, List_<CompileError>> toResult() {
+            return this.maybeValue.<Result<T, List_<CompileError>>>map(Ok::new)
                     .orElseGet(() -> new Err<>(this.errors));
         }
     }
 
     private static final class Node {
+        private final Option<String> maybeType;
         private final Map_<String, String> strings;
         private final Map_<String, List_<Node>> nodeLists;
 
         private Node() {
-            this(Impl.emptyMap(), Impl.emptyMap());
+            this(new None<>(), Impl.emptyMap(), Impl.emptyMap());
         }
 
-        private Node(Map_<String, String> strings, Map_<String, List_<Node>> nodeLists) {
+        private Node(Option<String> maybeType, Map_<String, String> strings, Map_<String, List_<Node>> nodeLists) {
+            this.maybeType = maybeType;
             this.strings = strings;
             this.nodeLists = nodeLists;
         }
 
         private Node withString(String propertyKey, String propertyValue) {
-            return new Node(this.strings.with(propertyKey, propertyValue), this.nodeLists);
+            return new Node(this.maybeType, this.strings.with(propertyKey, propertyValue), this.nodeLists);
         }
 
         public Option<String> findString(String propertyKey) {
@@ -567,7 +588,7 @@ public class Main {
         }
 
         public Node withNodeList(String propertyKey, List_<Node> propertyValues) {
-            return new Node(this.strings, this.nodeLists.with(propertyKey, propertyValues));
+            return new Node(this.maybeType, this.strings, this.nodeLists.with(propertyKey, propertyValues));
         }
 
         public Option<List_<Node>> findNodeList(String propertyKey) {
@@ -575,7 +596,26 @@ public class Main {
         }
 
         public Node merge(Node other) {
-            return new Node(this.strings.withAll(other.strings), this.nodeLists.withAll(other.nodeLists));
+            return new Node(this.maybeType, this.strings.withAll(other.strings), this.nodeLists.withAll(other.nodeLists));
+        }
+
+        public String display() {
+            return this.toString();
+        }
+
+        public boolean is(String type) {
+            return this.maybeType.filter(inner -> inner.equals(type)).isPresent();
+        }
+
+        public Node retype(String type) {
+            return new Node(new Some<>(type), this.strings, this.nodeLists);
+        }
+    }
+
+    private record NodeContext(Node node) implements Context {
+        @Override
+        public String display() {
+            return this.node.display();
         }
     }
 
@@ -617,19 +657,21 @@ public class Main {
     }
 
     private static Function<String, Result<String, CompileError>> createRootSegmentCompiler() {
-        return createOrRule(Impl.listOf(
-                createTypeRule("whitespace", createWhitespaceRule()),
-                createTypeRule("package", wrap(Main::compilePackage)),
-                createTypeRule("import", wrap(Main::compileImport)),
-                createClassRule(Impl.emptyList())
-        ));
+        return unwrapFromNode(createOrRule(Impl.listOf(
+                        createTypeRule("whitespace", createWhitespaceRule()),
+                        createTypeRule("package", wrapToResult(Main::compilePackage)),
+                        createTypeRule("import", wrapToResult(Main::compileImport)),
+                        createClassRule(Impl.emptyList())
+                ).iter()
+                .map(Main::wrapToNode)
+                .collect(new ListCollector<>()), StringContext::new));
     }
 
     private static Function<String, Result<String, CompileError>> createTypeRule(String type, Function<String, Result<String, CompileError>> childRule) {
         return input -> childRule.apply(input).mapErr(err -> {
             String format = "Cannot assign type to '%s'";
             String message = format.formatted(type);
-            return new CompileError(message, input, Impl.listOf(err));
+            return new CompileError(message, new StringContext(input), Impl.listOf(err));
         });
     }
 
@@ -638,15 +680,15 @@ public class Main {
             if (input.isBlank()) {
                 return new Ok<>("");
             }
-            return new Err<>(new CompileError("Not blank", input));
+            return new Err<>(new CompileError("Not blank", new StringContext(input)));
         };
     }
 
-    private static Function<String, Result<String, CompileError>> createOrRule(List_<Function<String, Result<String, CompileError>>> aClass) {
-        return input -> aClass.iter()
-                .fold(new OrState(), (state, rule) -> rule.apply(input).match(state::withValue, state::withError))
+    private static <T, R> Function<T, Result<R, CompileError>> createOrRule(List_<Function<T, Result<R, CompileError>>> rules, Function<T, Context> contextFactory) {
+        return input -> rules.iter()
+                .fold(new OrState<R>(), (state, rule) -> rule.apply(input).match(state::withValue, state::withError))
                 .toResult()
-                .mapErr(children -> new CompileError("No valid combination", input, children));
+                .mapErr(children -> new CompileError("No valid combination", contextFactory.apply(input), children));
     }
 
     private static Option<String> compileImport(String input) {
@@ -656,7 +698,7 @@ public class Main {
             if (right.endsWith(";")) {
                 String content = right.substring(0, right.length() - ";".length());
                 List_<String> split = splitByDelimiter(content, '.');
-                if (split.size() >= 3 && Impl.equalsList(split.slice(0, 3), Impl.listOf("java", "util", "function"), String::equals)) {
+                if (split.size() >= 3 && Impl.equalsList(split.slice(0, 3), Impl.listOf("java", "util", "function"), java.lang.String::equals)) {
                     return new Some<>("");
                 }
 
@@ -713,10 +755,10 @@ public class Main {
                         (maybeCompiled, segment) -> maybeCompiled.flatMapValue(allCompiled -> wrapped.apply(segment).mapValue(allCompiled::add)));
     }
 
-    private static Function<String, Result<String, CompileError>> wrap(Function<String, Option<String>> compiler) {
+    private static Function<String, Result<String, CompileError>> wrapToResult(Function<String, Option<String>> compiler) {
         return input -> compiler.apply(input)
                 .<Result<String, CompileError>>map(Ok::new)
-                .orElseGet(() -> new Err<>(new CompileError("Invalid value", input)));
+                .orElseGet(() -> new Err<>(new CompileError("Invalid value", new StringContext(input))));
     }
 
     private static StringBuilder mergeStatements(StringBuilder output, String compiled) {
@@ -840,12 +882,12 @@ public class Main {
             }
 
             if (!isSymbol(withoutParams)) {
-                return new Err<>(new CompileError("Not a symbol", withoutParams));
+                return new Err<>(new CompileError("Not a symbol", new StringContext(withoutParams)));
             }
 
             String withEnd = afterKeyword.substring(contentStart + "{".length()).strip();
             if (!withEnd.endsWith("}")) {
-                return new Err<>(new CompileError("Suffix '}' not present", withEnd));
+                return new Err<>(new CompileError("Suffix '}' not present", new StringContext(withEnd)));
             }
 
             String inputContent = withEnd.substring(0, withEnd.length() - "}".length());
@@ -857,19 +899,21 @@ public class Main {
     }
 
     private static <T> Result<T, CompileError> createInfixErr(String input, String infix) {
-        return new Err<>(new CompileError("Infix '" + infix + "' not present", input));
+        return new Err<>(new CompileError("Infix '" + infix + "' not present", new StringContext(input)));
     }
 
     private static Function<String, Result<String, CompileError>> createClassMemberRule(List_<String> typeParams) {
-        return createOrRule(Impl.listOf(
-                createWhitespaceRule(),
-                createCompileToStructRule("interface", "interface ", typeParams),
-                createCompileToStructRule("record", "record ", typeParams),
-                createClassRule(typeParams),
-                wrap(input -> compileGlobalInitialization(input, typeParams)),
-                wrap(Main::compileDefinitionStatement),
-                createMethodRule(typeParams)
-        ));
+        return unwrapFromNode(createOrRule(Impl.listOf(
+                        createWhitespaceRule(),
+                        createCompileToStructRule("interface", "interface ", typeParams),
+                        createCompileToStructRule("record", "record ", typeParams),
+                        createClassRule(typeParams),
+                        wrapToResult(input -> compileGlobalInitialization(input, typeParams)),
+                        wrapToResult(Main::compileDefinitionStatement),
+                        createMethodRule(typeParams)
+                ).iter()
+                .map(Main::wrapToNode)
+                .collect(new ListCollector<>()), StringContext::new));
     }
 
     private static Function<String, Result<String, CompileError>> createMethodRule(List_<String> typeParams) {
@@ -953,7 +997,7 @@ public class Main {
         String header = "\t".repeat(0) + definition + "(" + params + ")";
         if (body.startsWith("{") && body.endsWith("}")) {
             String inputContent = body.substring("{".length(), body.length() - "}".length());
-            return parseStatements(inputContent, wrapToNode(wrap(input1 -> compileStatementOrBlock(input1, typeParams, 1)))).mapValue(Main::generateStatements).flatMapValue(outputContent -> {
+            return parseStatements(inputContent, wrapToNode(wrapToResult(input1 -> compileStatementOrBlock(input1, typeParams, 1)))).mapValue(Main::generateStatements).flatMapValue(outputContent -> {
                 methods.add(header + " {" + outputContent + "\n}\n");
                 return new Ok<>("");
             });
@@ -963,10 +1007,12 @@ public class Main {
     }
 
     private static Function<String, Result<String, CompileError>> createParameterRule() {
-        return createOrRule(Impl.listOf(
-                wrap(Main::compileWhitespace),
-                createDefinitionRule()
-        ));
+        return unwrapFromNode(createOrRule(Impl.listOf(
+                        wrapToResult(Main::compileWhitespace),
+                        createDefinitionRule()
+                ).iter()
+                .map(Main::wrapToNode)
+                .collect(new ListCollector<>()), StringContext::new));
     }
 
     private static String generateValues(List_<Node> compiled) {
@@ -1037,7 +1083,7 @@ public class Main {
             String withoutKeyword = stripped.substring("else ".length()).strip();
             if (withoutKeyword.startsWith("{") && withoutKeyword.endsWith("}")) {
                 String indent = createIndent(depth);
-                return parseStatements(withoutKeyword.substring(1, withoutKeyword.length() - 1), wrapToNode(wrap(statement -> compileStatementOrBlock(statement, typeParams, depth + 1)))).mapValue(Main::generateStatements).findValue()
+                return parseStatements(withoutKeyword.substring(1, withoutKeyword.length() - 1), wrapToNode(wrapToResult(statement -> compileStatementOrBlock(statement, typeParams, depth + 1)))).mapValue(Main::generateStatements).findValue()
                         .map(result -> indent + "else {" + result + indent + "}");
             }
             else {
@@ -1090,7 +1136,7 @@ public class Main {
 
             if (withBraces.startsWith("{") && withBraces.endsWith("}")) {
                 String content = withBraces.substring(1, withBraces.length() - 1);
-                return parseStatements(content, wrapToNode(wrap(statement -> compileStatementOrBlock(statement, typeParams, depth + 1)))).mapValue(Main::generateStatements).findValue().map(statements -> {
+                return parseStatements(content, wrapToNode(wrapToResult(statement -> compileStatementOrBlock(statement, typeParams, depth + 1)))).mapValue(Main::generateStatements).findValue().map(statements -> {
                     return withCondition +
                             " {" + statements + "\n" +
                             "\t".repeat(depth) +
@@ -1219,7 +1265,7 @@ public class Main {
                 String withEnd = slice.substring(argsStart + "(".length()).strip();
                 if (withEnd.endsWith(")")) {
                     String argsString = withEnd.substring(0, withEnd.length() - ")".length());
-                    return unwrapFromNode(createTypeRule(typeParams)).apply(type).findValue().flatMap(outputType -> compileArgs(argsString, typeParams, depth).map(value -> outputType + value));
+                    return ((Function<String, Result<String, CompileError>>) s -> parseType(typeParams, s).flatMapValue(Main::generateType)).apply(type).findValue().flatMap(outputType -> compileArgs(argsString, typeParams, depth).map(value -> outputType + value));
                 }
             }
         }
@@ -1244,7 +1290,7 @@ public class Main {
             String property = stripped.substring(methodIndex + "::".length()).strip();
 
             if (isSymbol(property)) {
-                return unwrapFromNode(createTypeRule(typeParams)).apply(type).findValue().flatMap(compiled -> {
+                return ((Function<String, Result<String, CompileError>>) s -> parseType(typeParams, s).flatMapValue(Main::generateType)).apply(type).findValue().flatMap(compiled -> {
                     return generateLambdaWithReturn(Impl.emptyList(), "\n\treturn " + compiled + "." + property + "()");
                 });
             }
@@ -1298,7 +1344,7 @@ public class Main {
             String inner = beforeArrow.substring(1, beforeArrow.length() - 1);
             paramNames = splitByDelimiter(inner, ',')
                     .iter()
-                    .map(String::strip)
+                    .map(java.lang.String::strip)
                     .filter(value -> !value.isEmpty())
                     .collect(new ListCollector<>());
         }
@@ -1309,7 +1355,7 @@ public class Main {
         String value = input.substring(arrowIndex + "->".length()).strip();
         if (value.startsWith("{") && value.endsWith("}")) {
             String slice = value.substring(1, value.length() - 1);
-            return parseStatements(slice, wrapToNode(wrap(statement -> compileStatementOrBlock(statement, typeParams, depth)))).mapValue(Main::generateStatements).findValue().flatMap(result -> {
+            return parseStatements(slice, wrapToNode(wrapToResult(statement -> compileStatementOrBlock(statement, typeParams, depth)))).mapValue(Main::generateStatements).findValue().flatMap(result -> {
                 return generateLambdaWithReturn(paramNames, result);
             });
         }
@@ -1382,7 +1428,7 @@ public class Main {
     }
 
     private static Option<String> compileArgs(String argsString, List_<String> typeParams, int depth) {
-        return parseValues(argsString, wrapToNode(wrap(arg -> {
+        return parseValues(argsString, wrapToNode(wrapToResult(arg -> {
             return compileWhitespace(arg).or(() -> compileValue(arg, typeParams, depth));
         }))).mapValue(Main::generateValues).findValue().map(args -> {
             return "(" + args + ")";
@@ -1407,7 +1453,7 @@ public class Main {
             String beforeName = stripped.substring(0, nameSeparator).strip();
             String name = stripped.substring(nameSeparator + " ".length()).strip();
             if (!isSymbol(name)) {
-                return new Err<>(new CompileError("Not a symbol", name));
+                return new Err<>(new CompileError("Not a symbol", new StringContext(name)));
             }
 
             int typeSeparator = findTypeSeparator(beforeName);
@@ -1445,25 +1491,37 @@ public class Main {
 
                 boolean allSymbols = splitByDelimiter(modifiersString, ' ')
                         .iter()
-                        .map(String::strip)
+                        .map(java.lang.String::strip)
                         .filter(value -> !value.isEmpty())
                         .allMatch(Main::isSymbol);
 
                 if (!allSymbols) {
-                    return new Err<>(new CompileError("Not all modifiers are strings", modifiersString));
+                    return new Err<>(new CompileError("Not all modifiers are strings", new StringContext(modifiersString)));
                 }
 
                 String inputType = beforeName.substring(typeSeparator + " ".length());
-                return unwrapFromNode(createTypeRule(typeParams))
-                        .apply(inputType)
+                return parseType(typeParams, inputType).flatMapValue(Main::generateType)
                         .flatMapValue(outputType -> new Ok<String, CompileError>(generateDefinition(typeParams, outputType, name)));
             }
             else {
-                return unwrapFromNode(createTypeRule(Impl.emptyList()))
-                        .apply(beforeName)
+                List_<String> typeParams = Impl.emptyList();
+                return parseType(typeParams, beforeName).flatMapValue(Main::generateType)
                         .flatMapValue(outputType -> new Ok<String, CompileError>(generateDefinition(Impl.emptyList(), outputType, name)));
             }
         });
+    }
+
+    private static Result<Node, CompileError> parseType(List_<String> typeParams, String s) {
+        return createTypeRule(typeParams).apply(s);
+    }
+
+    private static Result<String, CompileError> generateType(Node result) {
+        if (result.is("generic")) {
+            return generateGeneric(result);
+        }
+        else {
+            return generateDefaultValue(result);
+        }
     }
 
     private static int findTypeSeparator(String beforeName) {
@@ -1492,7 +1550,7 @@ public class Main {
     private static List_<String> splitValues(String substring) {
         return splitByDelimiter(substring.strip(), ',')
                 .iter()
-                .map(String::strip)
+                .map(java.lang.String::strip)
                 .filter(param -> !param.isEmpty())
                 .collect(new ListCollector<>());
     }
@@ -1507,16 +1565,46 @@ public class Main {
     }
 
     private static Function<String, Result<Node, CompileError>> createTypeRule(List_<String> typeParams) {
-        return wrapToNode(createOrRule(Impl.listOf(
-                createPrimitiveRule(),
+        return Main.createOrRule(Impl.listOf(
+                getStringResultFunction(),
                 createArrayRule(typeParams),
                 createSymbolRule(typeParams),
-                input -> parseGeneric(input, typeParams).flatMapValue(Main::generateGeneric)
-        )));
+                input -> parseGeneric(input, typeParams)
+        ), StringContext::new);
     }
 
-    private static Function<String, Result<String, CompileError>> unwrapFromNode(Function<String, Result<Node, CompileError>> stringResultFunction) {
-        return s -> stringResultFunction.apply(s).mapValue(result -> result.findString("value").orElse(""));
+    private static Function<String, Result<Node, CompileError>> getStringResultFunction() {
+        return wrapToNode(wrapToResult(input -> {
+            String stripped = input.strip();
+
+            if (stripped.equals("void")) {
+                return new Some<>("void");
+            }
+
+            if (stripped.equals("int") || stripped.equals("Integer") || stripped.equals("boolean") || stripped.equals("Boolean")) {
+                return new Some<>("int");
+            }
+
+            if (stripped.equals("char") || stripped.equals("Character")) {
+                return new Some<>("char");
+            }
+
+            return new None<>();
+        }));
+    }
+
+    private static Function<String, Result<String, CompileError>> unwrapFromNode(Function<String, Result<Node, CompileError>> mapper) {
+        return input -> mapper.apply(input).flatMapValue(Main::generateDefaultValue);
+    }
+
+    private static Result<String, CompileError> generateDefaultValue(Node result) {
+        return generateString(result, "value");
+    }
+
+    private static Result<String, CompileError> generateString(Node node, String propertyKey) {
+        return node.findString(propertyKey)
+                .<Result<String, CompileError>>map(Ok::new)
+                .orElseGet(() -> new Err<>(new CompileError("String '" + propertyKey + "' not present", new NodeContext(node))));
     }
 
     private static Result<Node, CompileError> parseGeneric(String input, List_<String> typeParams) {
@@ -1533,10 +1621,16 @@ public class Main {
         Node withBase = new Node().withString("base", base);
 
         String params = slice.substring(argsStart + "<".length()).strip();
-        return parseValues(params, wrapToNode(createOrRule(Impl.listOf(
-                createWhitespaceRule(),
-                unwrapFromNode(createTypeRule(typeParams))
-        )))).mapValue(args -> withBase.merge(new Node().withNodeList("args", args)));
+        Function<String, Result<Node, CompileError>> orRule = createOrRule(Impl.listOf(
+                        createWhitespaceRule(),
+                        s -> parseType(typeParams, s).flatMapValue(Main::generateType)
+                ).iter()
+                .map(Main::wrapToNode)
+                .collect(new ListCollector<>()), StringContext::new);
+
+        return parseValues(params, orRule).mapValue(args -> withBase
+                        .merge(new Node().withNodeList("args", args)))
+                .mapValue(node -> node.retype("generic"));
     }
 
     private static Result<String, CompileError> generateGeneric(Node node) {
@@ -1548,47 +1642,27 @@ public class Main {
     }
 
     private static <T> Result<T, CompileError> createSuffixErr(String input, String suffix) {
-        return new Err<>(new CompileError("Suffix '" + suffix + "' not present", input));
+        return new Err<>(new CompileError("Suffix '" + suffix + "' not present", new StringContext(input)));
     }
 
-    private static Function<String, Result<String, CompileError>> createSymbolRule(List_<String> typeParams) {
-        return wrap(input -> compileSymbol(input, typeParams));
+    private static Function<String, Result<Node, CompileError>> createSymbolRule(List_<String> typeParams) {
+        return wrapToNode(wrapToResult(input -> compileSymbol(input, typeParams)));
     }
 
-    private static Function<String, Result<String, CompileError>> createArrayRule(List_<String> typeParams) {
-        return wrap(input -> compileArray(input, typeParams));
-    }
-
-    private static Function<String, Result<String, CompileError>> createPrimitiveRule() {
-        return wrap(input -> {
-            String stripped = input.strip();
-
-            if (stripped.equals("void")) {
-                return new Some<>("void");
-            }
-
-            if (stripped.equals("int") || stripped.equals("Integer") || stripped.equals("boolean") || stripped.equals("Boolean")) {
-                return new Some<>("int");
-            }
-
-            if (stripped.equals("char") || stripped.equals("Character")) {
-                return new Some<>("char");
-            }
-
-            return new None<>();
-        });
+    private static Function<String, Result<Node, CompileError>> createArrayRule(List_<String> typeParams) {
+        return wrapToNode(wrapToResult(input -> compileArray(input, typeParams)));
     }
 
     private static Option<String> compileArray(String input, List_<String> typeParams) {
         if (input.endsWith("[]")) {
-            return unwrapFromNode(createTypeRule(typeParams)).apply(input.substring(0, input.length() - "[]".length())).findValue().map(value -> value + "*");
+            return ((Function<String, Result<String, CompileError>>) s -> parseType(typeParams, s).flatMapValue(Main::generateType)).apply(input.substring(0, input.length() - "[]".length())).findValue().map(value -> value + "*");
         }
         return new None<>();
     }
 
     private static Option<String> compileSymbol(String input, List_<String> typeParams) {
         if (isSymbol(input.strip())) {
-            if (Impl.contains(typeParams, input.strip(), String::equals)) {
+            if (Impl.contains(typeParams, input.strip(), java.lang.String::equals)) {
                 return new Some<>(input.strip());
             }
             return new Some<>("struct " + input.strip());
