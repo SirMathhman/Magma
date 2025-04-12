@@ -766,48 +766,39 @@ public class Main {
     }
 
     private static Function<String_, Result<Node, CompileError>> createRootSegmentRule() {
-        return string -> {
-            return parseOr(Impl.fromString(string), Impl.listOf(
-                    wrapDefaultFunction(Main::compileWhitespace),
-                    wrapDefaultFunction(Main::compilePackage),
-                    wrapDefaultFunction(Main::compileImport),
-                    wrapDefaultFunction(Main::compileClass)
-            )).<Result<Node, CompileError>>map(Ok::new).orElseGet(() -> new Err<>(new CompileError(Impl.toString("Invalid value"), new StringContext(string))));
-        };
-    }
+        return wrapToResult(wrapDefaultFunction(input -> {
+            Option<String> whitespace = compileWhitespace(input);
+            if (whitespace.isPresent()) {
+                return whitespace;
+            }
 
-    private static Option<String> compilePackage(String input) {
-        if (input.startsWith("package ")) {
-            return new Some<>("");
-        }
-        return new None<>();
-    }
-
-    private static Option<String> compileImport(String input) {
-        String stripped = input.strip();
-        if (stripped.startsWith("import ")) {
-            String right = stripped.substring("import ".length());
-            if (right.endsWith(";")) {
-                String content = right.substring(0, right.length() - ";".length());
-                List_<String> split = splitByDelimiter(content, '.');
-                if (split.size() >= 3 && Lists.equalsTo(split.slice(0, 3), Impl.listOf("java", "util", "function"), String::equals)) {
-                    return new Some<>("");
-                }
-
-                String joined = split.iter().collect(new Joiner("/")).orElse("");
-                imports.add("#include \"./" + joined + "\"\n");
+            if (input.startsWith("package ")) {
                 return new Some<>("");
             }
-        }
-        return new None<>();
-    }
 
-    private static Option<String> compileClass(String input) {
-        Option<String> maybeClass = compileToStruct(input, "class ", Impl.listEmpty());
-        if (maybeClass.isPresent()) {
-            return maybeClass;
-        }
-        return new None<>();
+            String stripped = input.strip();
+            if (stripped.startsWith("import ")) {
+                String right = stripped.substring("import ".length());
+                if (right.endsWith(";")) {
+                    String content = right.substring(0, right.length() - ";".length());
+                    List_<String> split = splitByDelimiter(content, '.');
+                    if (split.size() >= 3 && Lists.equalsTo(split.slice(0, 3), Impl.listOf("java", "util", "function"), String::equals)) {
+                        return new Some<>("");
+                    }
+
+                    String joined = split.iter().collect(new Joiner("/")).orElse("");
+                    imports.add("#include \"./" + joined + "\"\n");
+                    return new Some<>("");
+                }
+            }
+
+            Option<String> maybeClass = compileToStruct(input, "class ", Impl.listEmpty());
+            if (maybeClass.isPresent()) {
+                return maybeClass;
+            }
+
+            return generatePlaceholder(input);
+        }));
     }
 
     private static List_<String> complete(List_<String> list) {
