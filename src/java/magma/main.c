@@ -1,7 +1,7 @@
 struct IOError {
 };
 struct Path_ {
-	struct Path_ resolveSibling(struct String sibling);
+	struct Path_ resolveSibling(struct String_ sibling);
 	List__struct String listNames();
 };
 struct Error {
@@ -294,7 +294,7 @@ int __lambda19__() {
 	return struct Some.new()
 }
 Option_struct ApplicationError compileAndWrite(struct String input, struct Path_ source) {
-	struct Path_ target = source.resolveSibling("main.c");
+	struct Path_ target = source.resolveSibling(struct String_("main.c"));
 	return compile(input).mapErr(__lambda16__).match(__lambda18__, __lambda19__);
 }
 int __lambda20__() {

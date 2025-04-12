@@ -1447,7 +1447,30 @@ public class Main {
     }
 
     private static Function<String, Result<String, CompileError>> createGenericRule(List_<String> typeParams) {
-        return wrap(input -> compileGeneric(input, typeParams));
+        return input -> {
+            if (!input.endsWith(">")) {
+                return createSuffixRule(input, ">");
+            }
+            String slice = input.substring(0, input.length() - ">".length());
+            int argsStart = slice.indexOf("<");
+            if (argsStart < 0) {
+                return createInfixErr(slice, "<");
+            }
+
+            String base = slice.substring(0, argsStart).strip();
+            String params = slice.substring(argsStart + "<".length()).strip();
+
+            return compileValues(params, createOrRule(Impl.listOf(
+                    createWhitespaceRule(),
+                    createTypeRule(typeParams)
+            ))).mapValue(compiled -> {
+                return base + "_" + compiled;
+            });
+        };
+    }
+
+    private static Err<String, CompileError> createSuffixRule(String input, String suffix) {
+        return new Err<>(new CompileError("Suffix '" + suffix + "' not present", input));
     }
 
     private static Function<String, Result<String, CompileError>> createSymbolRule(List_<String> typeParams) {
@@ -1492,24 +1515,6 @@ public class Main {
             }
             return new Some<>("struct " + input.strip());
         }
-        return new None<>();
-    }
-
-    private static Option<String> compileGeneric(String stripped, List_<String> typeParams) {
-        if (stripped.endsWith(">")) {
-            String slice = stripped.substring(0, stripped.length() - ">".length());
-            int argsStart = slice.indexOf("<");
-            if (argsStart >= 0) {
-                String base = slice.substring(0, argsStart).strip();
-                String params = slice.substring(argsStart + "<".length()).strip();
-                return compileValues(params, wrap(type -> {
-                    return compileWhitespace(type).or(() -> createTypeRule(typeParams).apply(type).findValue());
-                })).findValue().map(compiled -> {
-                    return base + "_" + compiled;
-                });
-            }
-        }
-
         return new None<>();
     }
 
