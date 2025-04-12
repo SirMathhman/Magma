@@ -26,6 +26,11 @@ struct Joiner {
 	Option<struct String> (*createInitial)();
 	Option<struct String> (*fold)(Option<struct String>, struct String);
 };
+struct RangeHead {
+	int length;
+	struct public (*RangeHead)(int);
+	Option<int> (*next)();
+};
 struct Iterators {
 	Iterator<T> (*empty)();
 	Iterator<char> (*fromString)(struct String);
@@ -54,13 +59,12 @@ struct Main {
 // Err<T, X>
 // Ok<T, X>
 // Tuple<A, B>
-// None<T> implements Option<T>
+// None<T>
 // Some<T>
-// RangeHead implements Head<Integer>
 // HeadedIterator<T>
-// EmptyHead<T> implements Head<T>
-// ListCollector<T> implements Collector<T, List_<T>>
-// SingleHead<T> implements Head<T>
+// EmptyHead<T>
+// ListCollector<T>
+// SingleHead<T>
 	void (*main)(struct String*);
 	Option<struct IOError> (*compileAndWrite)(struct String, struct Path_);
 	struct String (*compile)(struct String);
@@ -132,6 +136,7 @@ struct Main {
 	int (*isSymbol)(struct String);
 	Option<struct String> (*generatePlaceholder)(struct String);
 };
+int counter = 0;
 List_<struct String> imports = Impl.listEmpty();
 List_<struct String> structs = Impl.listEmpty();
 List_<struct String> globals = Impl.listEmpty();
@@ -186,6 +191,16 @@ auto __lambda0__(auto inner) {
 }
 Option<struct String> fold() {
 	return Some<>(current.map(__lambda0__).orElse(element));
+}
+struct public RangeHead() {
+	this.length = length;
+}
+Option<int> next() {
+	if (this.counter >= this.length) {
+		return None<>();
+	}
+	int value = this.counter;this.counter++;
+	return Some<>(value);
 }
 <T> Iterator<T> empty() {
 	return HeadedIterator<>(EmptyHead<>());
@@ -445,10 +460,14 @@ Option<struct String> compileToStruct() {
 		return None<>();
 	}
 	struct String beforeContent = afterKeyword.substring(0, contentStart).strip();
-	int paramStart = beforeContent.indexOf("(");
-	struct String name1 = paramStart >= /*  0
-                ? beforeContent */.substring(0, paramStart)
+	int implementsIndex = beforeContent.indexOf(" implements ");
+	struct String beforeContent1 = implementsIndex >= /*  0
+                ? beforeContent */.substring(0, implementsIndex)
                 : beforeContent;
+	int paramStart = beforeContent1.indexOf("(");
+	struct String name1 = paramStart >= /*  0
+                ? beforeContent1 */.substring(0, paramStart)
+                : beforeContent1;
 	int typeParamStart = name1.indexOf("<");
 	if (typeParamStart >= 0) {
 		return Some<>("// " + name1 + "\n");

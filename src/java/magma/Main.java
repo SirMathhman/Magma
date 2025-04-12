@@ -675,10 +675,15 @@ public class Main {
         }
         String beforeContent = afterKeyword.substring(0, contentStart).strip();
 
-        int paramStart = beforeContent.indexOf("(");
-        String name1 = paramStart >= 0
-                ? beforeContent.substring(0, paramStart)
+        int implementsIndex = beforeContent.indexOf(" implements ");
+        String beforeContent1 = implementsIndex >= 0
+                ? beforeContent.substring(0, implementsIndex)
                 : beforeContent;
+
+        int paramStart = beforeContent1.indexOf("(");
+        String name1 = paramStart >= 0
+                ? beforeContent1.substring(0, paramStart)
+                : beforeContent1;
 
         int typeParamStart = name1.indexOf("<");
         if (typeParamStart >= 0) {
