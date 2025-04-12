@@ -93,7 +93,7 @@ public class Main {
     }
 
     public interface Path_ {
-        Path_ resolveSibling(String sibling);
+        Path_ resolveSibling(String_ sibling);
 
         List_<String> listNames();
     }
@@ -583,7 +583,7 @@ public class Main {
     }
 
     private static Option<IOError> compileAndWrite(String input, Path_ source) {
-        Path_ target = source.resolveSibling("main.c");
+        Path_ target = source.resolveSibling(Impl.fromNativeString("main.c"));
         String output = compile(input);
         return Impl.writeString(target, output);
     }

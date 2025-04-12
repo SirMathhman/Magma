@@ -34,7 +34,7 @@ struct IOError {
 	String_ (*display)();
 };
 struct Path_ {
-	Path_ (*resolveSibling)(String);
+	Path_ (*resolveSibling)(String_);
 	List__String (*listNames)();
 };
 struct String_ {
@@ -649,7 +649,7 @@ void main() {
 	Impl.readString(source).match(__lambda18__, __lambda19__).ifPresent(__lambda20__);
 }
 Option_IOError compileAndWrite() {
-	Path_ target = source.resolveSibling("main.c");
+	Path_ target = source.resolveSibling(Impl.fromNativeString("main.c"));
 	String output = compile(input);
 	return Impl.writeString(target, output);
 }

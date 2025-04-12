@@ -22,8 +22,7 @@ public class Impl {
     }
 
     private record PathImpl(Path path) implements Main.Path_ {
-        @Override
-        public Main.Path_ resolveSibling(String sibling) {
+        private Main.Path_ resolveSibling0(String sibling) {
             return new PathImpl(this.path.resolveSibling(sibling));
         }
 
@@ -34,6 +33,11 @@ public class Impl {
                 names.add(path1.toString());
             }
             return new JavaList<>(names);
+        }
+
+        @Override
+        public Main.Path_ resolveSibling(Main.String_ sibling) {
+            return this.resolveSibling0(Impl.toNativeString(sibling));
         }
     }
 
@@ -184,5 +188,9 @@ public class Impl {
 
     public static String toNativeString(Main.String_ string) {
         return new String(string.toCharArray());
+    }
+
+    public static Main.String_ fromNativeString(String value) {
+        return new JavaString(value);
     }
 }
