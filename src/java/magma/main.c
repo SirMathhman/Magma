@@ -1,7 +1,10 @@
 struct IOError {
-struct String display();};
+	struct String display();
+};
 struct Path_ {
-struct Path_ resolveSibling(struct String sibling);List_<struct String> listNames();};
+	struct Path_ resolveSibling(struct String sibling);
+	List_<struct String> listNames();
+};
 struct State {
 	List_<char> queue;
 	List_<struct String> segments;
@@ -361,7 +364,7 @@ Option<struct String> assembleMethodBody(List_<struct String> typeParams, struct
 		struct String inputContent = body.substring("{".length(), body.length() - "}".length());
 		return compileStatements(inputContent, __lambda30__).flatMap(__lambda31__);
 	}
-	return Some<>(header + ";");
+	return Some<>("\t" + header + ";\n");
 }
 auto __lambda32__() {
 	return compileDefinition(definition);

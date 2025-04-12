@@ -692,7 +692,7 @@ public class Main {
             });
         }
 
-        return new Some<>(header + ";");
+        return new Some<>("\t" + header + ";\n");
     }
 
     private static Option<String> compileParameter(String definition) {
