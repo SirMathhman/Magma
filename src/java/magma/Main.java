@@ -448,17 +448,17 @@ public class Main {
         }
     }
 
-    private record Node(Map_<String, String> strings, Map_<String, List_<Node>> nodeLists) {
+    private record Node(Map_<String, String> strings, Map_<String, Node> nodes, Map_<String, List_<Node>> nodeLists) {
         public Node() {
-            this(Maps.empty(), Maps.empty());
+            this(Maps.empty(), Maps.empty(), Maps.empty());
         }
 
         public Node withString(String propertyKey, String propertyValue) {
-            return new Node(this.strings.with(propertyKey, propertyValue), this.nodeLists);
+            return new Node(this.strings.with(propertyKey, propertyValue), this.nodes, this.nodeLists);
         }
 
         public Node withNodeList(String propertyKey, List_<Node> propertyValues) {
-            return new Node(this.strings, this.nodeLists.with(propertyKey, propertyValues));
+            return new Node(this.strings, this.nodes, this.nodeLists.with(propertyKey, propertyValues));
         }
 
         public Option<List_<Node>> findNodeList(String propertyKey) {
@@ -467,6 +467,14 @@ public class Main {
 
         public Option<String> findString(String propertyKey) {
             return this.strings.find(propertyKey);
+        }
+
+        public Node withNode(String propertyKey, Node propertyValue) {
+            return new Node(this.strings, this.nodes.with(propertyKey, propertyValue), this.nodeLists);
+        }
+
+        public Option<Node> findNode(String propertyKey) {
+            return this.nodes.find(propertyKey);
         }
     }
 
@@ -1254,7 +1262,8 @@ public class Main {
     }
 
     private static Option<Node> parseDefinitionTypeProperty(Node withName, String type, List_<String> typeParams) {
-        return parseType(type, typeParams).map(Main::generateType).map(outputType -> withName.withString("type", outputType));
+        return parseType(type, typeParams)
+                .map(outputType -> withName.withNode("type", outputType));
     }
 
     private static Option<Node> parseDefinitionWithNoTypeParams(Node withName, String beforeType, String type) {
@@ -1295,7 +1304,10 @@ public class Main {
                 .map(inner -> "<" + inner + "> ")
                 .orElse("");
 
-        String type = node.findString("type").orElse("");
+        String type = node.findNode("type")
+                .map(Main::generateType)
+                .orElse("");
+
         String name = node.findString("name").orElse("name");
         return new Some<>(typeParamsString + type + " " + name);
     }

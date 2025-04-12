@@ -919,16 +919,13 @@ Option<struct Node> parseDefinitionWithTypeSeparator(struct Node withName, struc
 	}
 	return parseDefinitionTypeProperty(withName, type, typeParamsStrings).map(__lambda101__);
 }
-auto __lambda102__() {
-	return struct Main.generateType()
-}
-auto __lambda103__(auto outputType) {
-	return withName.withString("type", outputType);
+auto __lambda102__(auto outputType) {
+	return withName.withNode("type", outputType);
 }
 Option<struct Node> parseDefinitionTypeProperty(struct Node withName, struct String type, List_<struct String> typeParams) {
-	return parseType(type, typeParams).map(__lambda102__).map(__lambda103__);
+	return parseType(type, typeParams).map(__lambda102__);
 }
-auto __lambda104__(auto node) {
+auto __lambda103__(auto node) {
 	return node.withNodeList("type-params", typeParamsList);
 }
 Option<struct Node> parseDefinitionWithNoTypeParams(struct Node withName, struct String beforeType, struct String type) {
@@ -937,15 +934,15 @@ Option<struct Node> parseDefinitionWithNoTypeParams(struct Node withName, struct
 	if (!hasValidBeforeParams) {
 		return None<>();
 	}
-	return parseDefinitionTypeProperty(withName, type, Impl.emptyList()).map(__lambda104__);
+	return parseDefinitionTypeProperty(withName, type, Impl.emptyList()).map(__lambda103__);
 }
-auto __lambda105__() {
+auto __lambda104__() {
 	return struct String.strip()
 }
-auto __lambda106__(auto value) {
+auto __lambda105__(auto value) {
 	return !value.isEmpty();
 }
-auto __lambda107__() {
+auto __lambda106__() {
 	return struct Main.isSymbol()
 }
 int validateLeft(struct String beforeTypeParams) {
@@ -958,20 +955,23 @@ int validateLeft(struct String beforeTypeParams) {
 	else {
 		modifiersString = strippedBeforeTypeParams;
 	}
-	return splitByDelimiter(modifiersString, ' ').iter().map(__lambda105__).filter(__lambda106__).allMatch(__lambda107__);
+	return splitByDelimiter(modifiersString, ' ').iter().map(__lambda104__).filter(__lambda105__).allMatch(__lambda106__);
 }
-auto __lambda108__() {
+auto __lambda107__() {
 	return struct Impl.emptyList()
 }
-auto __lambda109__() {
+auto __lambda108__() {
 	return struct Main.unwrapDefault()
 }
-auto __lambda110__(auto inner) {
+auto __lambda109__(auto inner) {
 	return "<" + inner + "> ";
 }
+auto __lambda110__() {
+	return struct Main.generateType()
+}
 Option<struct String> generateDefinition(struct Node node) {
-	struct String typeParamsString = node.findNodeList("type-params").orElseGet(__lambda108__).iter().map(__lambda109__).collect(struct Joiner(", ")).map(__lambda110__).orElse("");
-	struct String type = node.findString("type").orElse("");
+	struct String typeParamsString = node.findNodeList("type-params").orElseGet(__lambda107__).iter().map(__lambda108__).collect(struct Joiner(", ")).map(__lambda109__).orElse("");
+	struct String type = node.findNode("type").map(__lambda110__).orElse("");
 	struct String name = node.findString("name").orElse("name");
 	return Some<>(typeParamsString + type + " " + name);
 }
