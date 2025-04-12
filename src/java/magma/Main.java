@@ -104,54 +104,38 @@ public class Main {
         Option<V> find(K key);
 
         Iterator<K> iterKeys();
-
-        Iterator<Tuple<K, V>> iter();
     }
 
     public interface String_ {
         char[] toCharArray();
-
-        boolean equalsTo(String_ other);
     }
 
     private interface Node {
-        Node withString_(String_ propertyKey, String_ propertyValue);
+        Node withString(String propertyKey, String propertyValue);
 
-        Node withNodeList(String_ propertyKey, List_<Node> propertyValues);
+        Node withNodeList(String propertyKey, List_<Node> propertyValues);
 
-        Option<List_<Node>> findNodeList(String_ propertyKey);
+        Option<List_<Node>> findNodeList(String propertyKey);
 
-        Option<String_> findString(String_ propertyKey);
+        Option<String> findString(String propertyKey);
 
-        Node withNode(String_ propertyKey, Node propertyValue);
+        Node withNode(String propertyKey, Node propertyValue);
 
-        Option<Node> findNode(String_ propertyKey);
+        Option<Node> findNode(String propertyKey);
 
-        boolean is(String_ type);
+        boolean is(String type);
 
-        Node retype(String_ type);
-
-        boolean hasSameNodeLists(Map_<String_, List_<Node>> nodeLists);
-
-        boolean hasSameNodes(Map_<String_, Node> nodes);
-
-        boolean hasSameStrings(Map_<String_, String_> strings);
-
-        boolean hasSameTypes(Option<String_> type);
+        Node retype(String type);
 
         boolean equalsTo(Node other);
-    }
 
-    private static class MapCollector<K, V> implements Collector<Tuple<K, V>, Map_<K, V>> {
-        @Override
-        public Map_<K, V> createInitial() {
-            return Impl.mapEmpty();
-        }
+        boolean hasSameNodeLists(Node node, Map_<String, List_<Node>> nodeLists);
 
-        @Override
-        public Map_<K, V> fold(Map_<K, V> current, Tuple<K, V> element) {
-            return current.with(element.left, element.right);
-        }
+        boolean hasSameNodes(Map_<String, Node> nodes);
+
+        boolean hasSameStrings(Map_<String, String> strings);
+
+        boolean hasSameTypes(Option<String> type);
     }
 
     public record Err<T, X>(X error) implements Result<T, X> {
@@ -493,17 +477,53 @@ public class Main {
     }
 
     private record MapNode(
-            Option<String_> type,
-            Map_<String_, String_> strings,
-            Map_<String_, Node> nodes,
-            Map_<String_, List_<Node>> nodeLists
+            Option<String> type,
+            Map_<String, String> strings,
+            Map_<String, Node> nodes,
+            Map_<String, List_<Node>> nodeLists
     ) implements Node {
         public MapNode() {
             this(new None<>(), Impl.mapEmpty(), Impl.mapEmpty(), Impl.mapEmpty());
         }
 
-        private static boolean isABoolean(List_<Node> nodeList, List_<Node> nodeList2) {
-            return Lists.equalsTo(nodeList, nodeList2, Node::equalsTo);
+        @Override
+        public Node withString(String propertyKey, String propertyValue) {
+            return new MapNode(this.type, this.strings.with(propertyKey, propertyValue), this.nodes, this.nodeLists);
+        }
+
+        @Override
+        public Node withNodeList(String propertyKey, List_<Node> propertyValues) {
+            return new MapNode(this.type, this.strings, this.nodes, this.nodeLists.with(propertyKey, propertyValues));
+        }
+
+        @Override
+        public Option<List_<Node>> findNodeList(String propertyKey) {
+            return this.nodeLists.find(propertyKey);
+        }
+
+        @Override
+        public Option<String> findString(String propertyKey) {
+            return this.strings.find(propertyKey);
+        }
+
+        @Override
+        public Node withNode(String propertyKey, Node propertyValue) {
+            return new MapNode(this.type, this.strings, this.nodes.with(propertyKey, propertyValue), this.nodeLists);
+        }
+
+        @Override
+        public Option<Node> findNode(String propertyKey) {
+            return this.nodes.find(propertyKey);
+        }
+
+        @Override
+        public boolean is(String type) {
+            return this.type.filter(inner -> inner.equals(type)).isPresent();
+        }
+
+        @Override
+        public Node retype(String type) {
+            return new MapNode(new Some<>(type), this.strings, this.nodes, this.nodeLists);
         }
 
         @Override
@@ -511,70 +531,32 @@ public class Main {
             boolean hasSameType = other.hasSameTypes(this.type);
             boolean hasSameStrings = other.hasSameStrings(this.strings);
             boolean hasSameNodes = other.hasSameNodes(this.nodes);
-            boolean hasSameNodeLists = other.hasSameNodeLists(this.nodeLists);
+            boolean hasSameNodeLists = other.hasSameNodeLists(this, this.nodeLists);
             return hasSameType && hasSameStrings && hasSameNodes && hasSameNodeLists;
         }
 
-        @Override
-        public Node withString_(String_ propertyKey, String_ propertyValue) {
-            return new MapNode(this.type, this.strings.with(propertyKey, propertyValue), this.nodes, this.nodeLists);
+        private static boolean isABoolean(List_<Node> nodeList, List_<Node> nodeList2) {
+            return Lists.equalsTo(nodeList, nodeList2, Node::equalsTo);
         }
 
         @Override
-        public Node withNodeList(String_ propertyKey, List_<Node> propertyValues) {
-            return new MapNode(this.type, this.strings, this.nodes, this.nodeLists.with(propertyKey, propertyValues));
+        public boolean hasSameNodeLists(Node node, Map_<String, List_<Node>> nodeLists) {
+            return Maps.equalsTo(this.nodeLists, nodeLists, String::equals, MapNode::isABoolean);
         }
 
         @Override
-        public Option<List_<Node>> findNodeList(String_ propertyKey) {
-            return this.nodeLists.find(propertyKey);
+        public boolean hasSameNodes(Map_<String, Node> nodes) {
+            return Maps.equalsTo(this.nodes, nodes, String::equals, Node::equals);
         }
 
         @Override
-        public Option<String_> findString(String_ propertyKey) {
-            return this.strings.find(propertyKey);
+        public boolean hasSameStrings(Map_<String, String> strings) {
+            return Maps.equalsTo(this.strings, strings, String::equals, String::equals);
         }
 
         @Override
-        public Node withNode(String_ propertyKey, Node propertyValue) {
-            return new MapNode(this.type, this.strings, this.nodes.with(propertyKey, propertyValue), this.nodeLists);
-        }
-
-        @Override
-        public Option<Node> findNode(String_ propertyKey) {
-            return this.nodes.find(propertyKey);
-        }
-
-        @Override
-        public boolean is(String_ type) {
-            return this.type
-                    .filter(inner -> inner.equalsTo(type))
-                    .isPresent();
-        }
-
-        @Override
-        public boolean hasSameNodeLists(Map_<String_, List_<Node>> nodeLists) {
-            return Maps.equalsTo(this.nodeLists, nodeLists, String_::equalsTo, MapNode::isABoolean);
-        }
-
-        @Override
-        public boolean hasSameNodes(Map_<String_, Node> nodes) {
-            return Maps.equalsTo(this.nodes, nodes, String_::equals, Node::equals);
-        }
-
-        @Override
-        public boolean hasSameStrings(Map_<String_, String_> strings) {
-            return Maps.equalsTo(this.strings, strings, String_::equals, String_::equals);
-        }
-
-        @Override
-        public boolean hasSameTypes(Option<String_> type) {
-            return Options.equalsTo(this.type, type, String_::equals);
-        }
-
-        @Override
-        public Node retype(String_ type) {
-            return new MapNode(new Some<>(type), this.strings, this.nodes, this.nodeLists);
+        public boolean hasSameTypes(Option<String> type) {
+            return Options.equalsTo(this.type, type, String::equals);
         }
     }
 
@@ -658,11 +640,11 @@ public class Main {
         Path_ source = Impl.get(".", "src", "java", "magma", "Main.java");
         Impl.readString(source)
                 .match(input -> compileAndWrite(input, source), Some::new)
-                .ifPresent(ioError -> System.err.println(Impl.fromString(ioError.display())));
+                .ifPresent(ioError -> System.err.println(Impl.toNativeString(ioError.display())));
     }
 
     private static Option<IOError> compileAndWrite(String input, Path_ source) {
-        Path_ target = source.resolveSibling(Impl.toString("main.c"));
+        Path_ target = source.resolveSibling(Impl.fromNativeString("main.c"));
         String output = compile(input);
         return Impl.writeString(target, output);
     }
@@ -691,7 +673,7 @@ public class Main {
 
     private static String getString(Node expansion) {
         String comment = "// " + generateGeneric(expansion) + "\n";
-        String base = generators.find(expansion.findString(Impl.toString("base")).map(Impl::fromString).orElse(""))
+        String base = generators.find(expansion.findString("base").orElse(""))
                 .map(nodeOptionFunction -> nodeOptionFunction.apply(expansion))
                 .orElse("");
 
@@ -871,36 +853,35 @@ public class Main {
         int typeParamStart = withoutParams.indexOf("<");
         String body = afterKeyword.substring(contentStart + "{".length());
 
-        Node node = new MapNode();
-        Node withBody = node.withString_(Impl.toString(body), Impl.toString(body));
+        Node withBody = new MapNode().withString("body", body);
 
         if (typeParamStart >= 0) {
             String name = strippedWithoutParams.substring(0, typeParamStart).strip();
 
-            Node withName = withBody.withString_(Impl.toString(name), Impl.toString(name));
+            Node withName = withBody.withString("name", name);
             generators = generators.with(name, (expansion) -> expand(input, typeParams, withName, expansion));
 
             return new Some<>("// " + withoutParams + "\n");
         }
 
-        return generateStruct(typeParams, withBody.withString_(Impl.toString(strippedWithoutParams), Impl.toString(strippedWithoutParams)));
+        return generateStruct(typeParams, withBody.withString("name", strippedWithoutParams));
     }
 
     private static String expand(String input, List_<String> typeParams, Node withName, Node expansion) {
         String stringify = stringify(expansion);
 
-        return generateStruct(typeParams, withName.withString_(Impl.toString(stringify), Impl.toString(stringify)))
+        return generateStruct(typeParams, withName.withString("name", stringify))
                 .or(() -> generatePlaceholder(input))
                 .orElse("");
     }
 
     private static String stringify(Node expansion) {
-        if (expansion.is(Impl.toString("generic"))) {
-            String base = expansion.findString(Impl.toString("base")).map(Impl::fromString).orElse("");
-            String typeParams = expansion.findNodeList(Impl.toString("type-params"))
+        if (expansion.is("generic")) {
+            String base = expansion.findString("base").orElse("");
+            String typeParams = expansion.findNodeList("type-params")
                     .orElse(Impl.listEmpty())
                     .iter()
-                    .filter(node -> !node.is(Impl.toString("whitespace")))
+                    .filter(node -> !node.is("whitespace"))
                     .map(Main::stringify)
                     .collect(new Joiner("_"))
                     .orElse("");
@@ -908,13 +889,13 @@ public class Main {
             return base + "_" + typeParams;
         }
         else {
-            return expansion.findString(Impl.toString("value")).map(Impl::fromString).orElse("");
+            return expansion.findString("value").orElse("");
         }
     }
 
     private static Option<String> generateStruct(List_<String> typeParams, Node node) {
-        String name = node.findString(Impl.toString("name")).map(Impl::fromString).orElse("");
-        String body = node.findString(Impl.toString("body")).map(Impl::fromString).orElse("");
+        String name = node.findString("name").orElse("");
+        String body = node.findString("body").orElse("");
         if (!isSymbol(name)) {
             return new None<>();
         }
@@ -1017,17 +998,17 @@ public class Main {
 
     private static Option<String> getStringOption(List_<String> typeParams, Node definition, List_<Node> params, String body) {
         List_<Node> paramTypes = params.iter()
-                .map(param -> param.findNode(Impl.toString("type")))
+                .map(param -> param.findNode("type"))
                 .flatMap(Iterators::fromOption)
                 .collect(new ListCollector<>());
 
-        String name = definition.findString(Impl.toString("name")).map(Impl::fromString).orElse("");
-        Node returns = definition.findNode(Impl.toString("type")).orElse(new MapNode());
-        Node node3 = new MapNode();
-        Node node = node3.retype(Impl.toString("functional-definition"));
-        Node node2 = node.withString_(Impl.toString(name), Impl.toString(name));
-        Node node1 = node2.withNode(Impl.toString("returns"), returns);
-        Node functionalDefinition = node1.withNodeList(Impl.toString("params"), paramTypes);
+        String name = definition.findString("name").orElse("");
+        Node returns = definition.findNode("type").orElse(new MapNode());
+        Node functionalDefinition = new MapNode()
+                .retype("functional-definition")
+                .withString("name", name)
+                .withNode("returns", returns)
+                .withNodeList("params", paramTypes);
 
         return generateDefinition(definition).and(() -> generateDefinition(functionalDefinition)).flatMap(output -> {
             String asContent = output.left;
@@ -1483,8 +1464,7 @@ public class Main {
             return new None<>();
         }
 
-        Node node = new MapNode();
-        Node withName = node.withString_(Impl.toString(name), Impl.toString(name));
+        Node withName = new MapNode().withString("name", name);
         return parseDefinitionWithName(beforeName, withName);
     }
 
@@ -1521,12 +1501,12 @@ public class Main {
         }
 
         return parseDefinitionTypeProperty(withName, type, typeParamsStrings)
-                .map(node -> node.withNodeList(Impl.toString("type-params"), typeParamsNodes));
+                .map(node -> node.withNodeList("type-params", typeParamsNodes));
     }
 
     private static Option<Node> parseDefinitionTypeProperty(Node withName, String type, List_<String> typeParams) {
         return parseType(type, typeParams)
-                .map(outputType -> withName.withNode(Impl.toString("type"), outputType));
+                .map(outputType -> withName.withNode("type", outputType));
     }
 
     private static Option<Node> parseDefinitionWithNoTypeParams(Node withName, String beforeType, String type) {
@@ -1536,7 +1516,7 @@ public class Main {
             return new None<>();
         }
 
-        return parseDefinitionTypeProperty(withName, type, Impl.listEmpty()).map(node -> node.withNodeList(Impl.toString("type-params"), typeParamsList));
+        return parseDefinitionTypeProperty(withName, type, Impl.listEmpty()).map(node -> node.withNodeList("type-params", typeParamsList));
     }
 
     private static boolean validateLeft(String beforeTypeParams) {
@@ -1559,11 +1539,11 @@ public class Main {
     }
 
     private static Option<String> generateDefinition(Node node) {
-        if (node.is(Impl.toString("functional-definition"))) {
-            String name = node.findString(Impl.toString("name")).map(Impl::fromString).orElse("");
-            String returns = generateType(node.findNode(Impl.toString("returns")).orElse(new MapNode()));
+        if (node.is("functional-definition")) {
+            String name = node.findString("name").orElse("");
+            String returns = generateType(node.findNode("returns").orElse(new MapNode()));
 
-            String params = node.findNodeList(Impl.toString("params"))
+            String params = node.findNodeList("params")
                     .orElseGet(Impl::listEmpty)
                     .iter()
                     .map(Main::generateType)
@@ -1573,7 +1553,7 @@ public class Main {
             return new Some<>(returns + " (*" + name + ")(" + params + ")");
         }
 
-        String typeParamsString = node.findNodeList(Impl.toString("type-params"))
+        String typeParamsString = node.findNodeList("type-params")
                 .orElseGet(Impl::listEmpty)
                 .iter()
                 .map(Main::unwrapDefault)
@@ -1581,21 +1561,20 @@ public class Main {
                 .map(inner -> "<" + inner + "> ")
                 .orElse("");
 
-        String type = node.findNode(Impl.toString("type"))
+        String type = node.findNode("type")
                 .map(Main::generateType)
                 .orElse("");
 
-        String name = node.findString(Impl.toString("name")).map(Impl::fromString).orElse("name");
+        String name = node.findString("name").orElse("name");
         return new Some<>(typeParamsString + type + " " + name);
     }
 
     private static String unwrapDefault(Node value) {
-        return value.findString(Impl.toString("value")).map(Impl::fromString).orElse("");
+        return value.findString("value").orElse("");
     }
 
     private static Node wrapDefault(String typeParam) {
-        Node node = new MapNode();
-        return node.withString_(Impl.toString(typeParam), Impl.toString(typeParam));
+        return new MapNode().withString("value", typeParam);
     }
 
     private static Option<Integer> findTypeSeparator(String beforeName) {
@@ -1628,12 +1607,12 @@ public class Main {
     }
 
     private static String generateType(Node node) {
-        if (node.is(Impl.toString("generic"))) {
+        if (node.is("generic")) {
             if (!Lists.contains(expansions, node, Node::equalsTo)) {
-                List_<Node> params = node.findNodeList(Impl.toString("type-params"))
+                List_<Node> params = node.findNodeList("type-params")
                         .orElse(Impl.listEmpty())
                         .iter()
-                        .filter(param -> !param.is(Impl.toString("whitespace")))
+                        .filter(param -> !param.is("whitespace"))
                         .collect(new ListCollector<>());
 
                 if (!params.isEmpty()) {
@@ -1690,16 +1669,15 @@ public class Main {
             });
 
             return listOption.map(compiled -> {
-                Node node2 = new MapNode();
-                Node node1 = node2.retype(Impl.toString("generic"));
-                Node node = node1.withNodeList(Impl.toString("type-params"), compiled);
-                return node.withString_(Impl.toString(base), Impl.toString(base));
+                return new MapNode()
+                        .retype("generic")
+                        .withNodeList("type-params", compiled).withString("base", base);
             });
         };
     }
 
     private static Function<String, Option<Node>> parseWithType(String type, Function<String, Option<Node>> mapper) {
-        return input -> mapper.apply(input).map(value -> value.retype(Impl.toString(type)));
+        return input -> mapper.apply(input).map(value -> value.retype(type));
     }
 
     private static String generateGeneric(Node node) {
