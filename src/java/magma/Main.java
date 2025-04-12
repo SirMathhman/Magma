@@ -777,34 +777,34 @@ public class Main {
         String inputDefinition = input.substring(0, paramStart).strip();
         String withParams = input.substring(paramStart + "(".length());
 
-        return parseDefinition(inputDefinition).flatMap(Main::generateDefinition).flatMap(outputDefinition -> {
+        return parseDefinition(inputDefinition).flatMap(outputDefinition -> {
             int paramEnd = withParams.indexOf(")");
             if (paramEnd < 0) {
                 return new None<>();
             }
 
             String params = withParams.substring(0, paramEnd);
-            return parseAllValues(params, wrapDefaultFunction(Main::compileParameter)).map(compiled -> mergeAllValues(compiled, Main::unwrapDefault))
-                    .flatMap(outputParams -> assembleMethodBody(typeParams, outputDefinition, outputParams, withParams.substring(paramEnd + ")".length()).strip()));
+            return parseAllValues(params, wrapDefaultFunction(Main::compileParameter))
+                    .flatMap(outputParams -> getStringOption(typeParams, outputDefinition, outputParams, withParams, paramEnd));
         });
     }
 
-    private static Option<String> assembleMethodBody(
-            List_<String> typeParams,
-            String definition,
-            String params,
-            String body
-    ) {
-        String s = "\t" + definition + "(" + params + ")" + ";\n";
-        if (body.startsWith("{") && body.endsWith("}")) {
-            String inputContent = body.substring("{".length(), body.length() - "}".length());
-            return parseAllStatements(inputContent, wrapDefaultFunction(input1 -> compileStatementOrBlock(input1, typeParams, 1))).map(Main::mergeAllStatements).flatMap(outputContent -> {
-                methods.add("\t".repeat(0) + definition + "(" + params + ")" + " {" + outputContent + "\n}\n");
-                return new Some<>(s);
-            });
-        }
+    private static Option<String> getStringOption(List_<String> typeParams, Node definition, List_<Node> outputParams, String withParams, int paramEnd) {
+        return generateDefinition(definition).flatMap(output -> {
+            String body = withParams.substring(paramEnd + ")".length()).strip();
 
-        return new Some<>(s);
+            String s = "\t" + output + "(" + mergeAllValues(outputParams, Main::unwrapDefault) + ")" + ";\n";
+
+            if (body.startsWith("{") && body.endsWith("}")) {
+                String inputContent = body.substring("{".length(), body.length() - "}".length());
+                return parseAllStatements(inputContent, wrapDefaultFunction(input1 -> compileStatementOrBlock(input1, typeParams, 1))).map(Main::mergeAllStatements).flatMap(outputContent -> {
+                    methods.add("\t".repeat(0) + output + "(" + mergeAllValues(outputParams, Main::unwrapDefault) + ")" + " {" + outputContent + "\n}\n");
+                    return new Some<>(s);
+                });
+            }
+
+            return new Some<>(s);
+        });
     }
 
     private static Option<String> compileParameter(String definition) {
