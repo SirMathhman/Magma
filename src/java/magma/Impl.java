@@ -135,10 +135,6 @@ public class Impl {
         return new JavaList<>(Arrays.asList(elements));
     }
 
-    public static <T> Main.List_<T> listFromNative(List<T> list) {
-        return new JavaList<>(list);
-    }
-
     public static <T> boolean contains(
             Main.List_<T> list,
             T element,

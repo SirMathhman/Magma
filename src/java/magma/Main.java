@@ -67,6 +67,8 @@ public class Main {
         Iterator<T> concat(Iterator<T> other);
 
         Option<T> next();
+
+        <R> Iterator<R> flatMap(Function<T, Iterator<R>> mapper);
     }
 
     public interface Head<T> {
@@ -354,7 +356,8 @@ public class Main {
             return this.head.next();
         }
 
-        private <R> Iterator<R> flatMap(Function<T, Iterator<R>> mapper) {
+        @Override
+        public <R> Iterator<R> flatMap(Function<T, Iterator<R>> mapper) {
             return this.map(mapper).fold(Iterators.empty(), Iterator::concat);
         }
     }
@@ -367,10 +370,6 @@ public class Main {
     }
 
     private static class Iterators {
-        public static <T> Iterator<T> fromArray(T[] array) {
-            return new HeadedIterator<>(new RangeHead(array.length)).map(index -> array[index]);
-        }
-
         public static <T> Iterator<T> empty() {
             return new HeadedIterator<>(new EmptyHead<>());
         }
@@ -382,6 +381,10 @@ public class Main {
         public static Iterator<Tuple<Integer, Character>> fromStringWithIndices(String string) {
             return new HeadedIterator<>(new RangeHead(string.length()))
                     .map(index -> new Tuple<>(index, string.charAt(index)));
+        }
+
+        public static <T> Iterator<T> fromOption(Option<T> option) {
+            return new HeadedIterator<>(option.<Head<T>>map(SingleHead::new).orElseGet(EmptyHead::new));
         }
     }
 
@@ -1335,11 +1338,20 @@ public class Main {
     }
 
     private static Option<String> compileType(String input, List_<String> typeParams) {
-        return compilePrimitive(input)
-                .or(() -> compileArray(input, typeParams))
-                .or(() -> compileSymbol(input, typeParams))
-                .or(() -> compileGeneric(input, typeParams))
-                .or(() -> generatePlaceholder(input));
+        return listTypeRules(typeParams)
+                .iter()
+                .map(function -> function.apply(input))
+                .flatMap(Iterators::fromOption)
+                .next();
+    }
+
+    private static List_<Function<String, Option<String>>> listTypeRules(List_<String> typeParams) {
+        return Impl.listOf(
+                Main::compilePrimitive,
+                input -> compileArray(input, typeParams),
+                input -> compileSymbol(input, typeParams),
+                input -> compileGeneric(input, typeParams)
+        );
     }
 
     private static Option<String> compilePrimitive(String input) {
