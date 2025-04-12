@@ -605,8 +605,8 @@ public class Main {
                             .collect(new ListCollector<>());
 
                     return imports.addAll(structsForwarders)
-                            .addAll(structs)
                             .addAll(expandedStructs)
+                            .addAll(structs)
                             .addAll(globals)
                             .addAll(methods)
                             .addAll(list);

@@ -30,6 +30,34 @@ typedef struct Option_IOError Option_IOError;
 typedef struct List__Tuple_int_Character List__Tuple_int_Character;
 typedef struct Tuple_int_Character Tuple_int_Character;
 typedef struct List__Function_String_Option_Node List__Function_String_Option_Node;
+// List__String
+// List__char
+// Option_String
+// Option_int
+// Iterator_T
+// Iterator_char
+// Iterator_Tuple_int_Character
+// Option_T
+// List__Node
+// Option_List__Node
+// Option_Node
+// List__T
+// BiFunction_T_T_Boolean
+// Map__K_V
+// BiFunction_K_K_Boolean
+// BiFunction_V_V_Boolean
+// Map__String_Function_Node_String
+// Option_V
+// List__K
+// Option_IOError
+// Function_String_Option_Node
+// Function_Node_String
+// BiFunction_StringBuilder_String_StringBuilder
+// BiFunction_State_Character_State
+// List__Tuple_int_Character
+// Tuple_int_Character
+// List__Function_String_Option_Node
+// Function_String_Option_String
 struct IOError {
 	String_ (*display)();
 };
@@ -405,34 +433,6 @@ struct List__Function_String_Option_Node {
 	List__T (*slice)(int, int);
 	T (*get)(int);
 };
-// List__String
-// List__char
-// Option_String
-// Option_int
-// Iterator_T
-// Iterator_char
-// Iterator_Tuple_int_Character
-// Option_T
-// List__Node
-// Option_List__Node
-// Option_Node
-// List__T
-// BiFunction_T_T_Boolean
-// Map__K_V
-// BiFunction_K_K_Boolean
-// BiFunction_V_V_Boolean
-// Map__String_Function_Node_String
-// Option_V
-// List__K
-// Option_IOError
-// Function_String_Option_Node
-// Function_Node_String
-// BiFunction_StringBuilder_String_StringBuilder
-// BiFunction_State_Character_State
-// List__Tuple_int_Character
-// Tuple_int_Character
-// List__Function_String_Option_Node
-// Function_String_Option_String
 int counter = 0;
 List__String imports = Impl.listEmpty();
 List__String globals = Impl.listEmpty();
@@ -672,7 +672,7 @@ auto __lambda25__(auto expansion) {
 }
 auto __lambda26__(auto list) {
 	List__String expandedStructs = expansions.iter().map(__lambda25__).collect(ListCollector_());
-	return imports.addAll(structsForwarders).addAll(structs).addAll(expandedStructs).addAll(globals).addAll(methods).addAll(list);
+	return imports.addAll(structsForwarders).addAll(expandedStructs).addAll(structs).addAll(globals).addAll(methods).addAll(list);
 }
 auto __lambda27__() {
 	return Main.mergeStatements()
