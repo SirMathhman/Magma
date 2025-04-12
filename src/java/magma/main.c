@@ -30,17 +30,17 @@ typedef struct Option_IOError Option_IOError;
 typedef struct List__Tuple_int_Character List__Tuple_int_Character;
 typedef struct Tuple_int_Character Tuple_int_Character;
 typedef struct List__Function_String_Option_Node List__Function_String_Option_Node;
-typedef struct {
+struct IOError {
 	String_ (*display)();
-} IOError;
-typedef struct {
+};
+struct Path_ {
 	Path_ (*resolveSibling)(String);
 	struct List__String (*listNames)();
-} Path_;
-typedef struct {
+};
+struct String_ {
 	char* (*toCharArray)();
-} String_;
-typedef struct {
+};
+struct State {
 	struct List__char queue;
 	struct List__String segments;
 	StringBuilder buffer;
@@ -56,23 +56,23 @@ typedef struct {
 	State (*enter)();
 	struct List__String (*segments)();
 	char (*peek)();
-} State;
-typedef struct {
+};
+struct Joiner {
 	struct Option_String (*createInitial)();
 	struct Option_String (*fold)(struct Option_String, String);
-} Joiner;
-typedef struct {
+};
+struct RangeHead {
 	int length;
 	public (*RangeHead)(int);
 	struct Option_int (*next)();
-} RangeHead;
-typedef struct {
+};
+struct Iterators {
 	struct Iterator_T (*empty)();
 	struct Iterator_char (*fromString)(String);
 	struct Iterator_Tuple_int_Character (*fromStringWithIndices)(String);
 	struct Iterator_T (*fromOption)(struct Option_T);
-} Iterators;
-typedef struct {
+};
+struct Node {
 	public (*Node)();
 	Node (*withString)(String, String);
 	Node (*withNodeList)(String, struct List__Node);
@@ -84,18 +84,18 @@ typedef struct {
 	Node (*retype)(String);
 	int (*equalsTo)(Node);
 	int (*isABoolean)(struct List__Node, struct List__Node);
-} Node;
-typedef struct {
+};
+struct Lists {
 	int (*contains)(struct List__T, T, struct BiFunction_T_T_Boolean);
 	int (*equalsTo)(struct List__T, struct List__T, struct BiFunction_T_T_Boolean);
-} Lists;
-typedef struct {
+};
+struct Options {
 	int (*equalsTo)(struct Option_T, struct Option_T, struct BiFunction_T_T_Boolean);
-} Options;
-typedef struct {
+};
+struct Maps {
 	int (*equalsTo)(struct Map__K_V, struct Map__K_V, struct BiFunction_K_K_Boolean, struct BiFunction_V_V_Boolean);
-} Maps;
-typedef struct {
+};
+struct Main {
 // Option<T>
 // List_<T>
 // Iterator<T>
@@ -188,8 +188,8 @@ typedef struct {
 	struct Option_String (*compileSymbol)(String, struct List__String);
 	int (*isSymbol)(String);
 	struct Option_String (*generatePlaceholder)(String);
-} Main;
-typedef struct {
+};
+struct List__String {
 	struct List__T (*add)(T);
 	struct List__T (*addAll)(struct List__T);
 	struct Iterator_T (*iter)();
@@ -200,8 +200,8 @@ typedef struct {
 	int (*size)();
 	struct List__T (*slice)(int, int);
 	T (*get)(int);
-} List__String;
-typedef struct {
+};
+struct List__char {
 	struct List__T (*add)(T);
 	struct List__T (*addAll)(struct List__T);
 	struct Iterator_T (*iter)();
@@ -212,8 +212,8 @@ typedef struct {
 	int (*size)();
 	struct List__T (*slice)(int, int);
 	T (*get)(int);
-} List__char;
-typedef struct {
+};
+struct Option_String {
 	struct Option_R (*map)(struct Function_T_R);
 	T (*orElse)(T);
 	int (*isPresent)();
@@ -224,8 +224,8 @@ typedef struct {
 	T (*orElseGet)(struct Supplier_T);
 	struct Option_T (*filter)(struct Predicate_T);
 	struct Option_Tuple_T_R (*and)(struct Supplier_Option_R);
-} Option_String;
-typedef struct {
+};
+struct Option_int {
 	struct Option_R (*map)(struct Function_T_R);
 	T (*orElse)(T);
 	int (*isPresent)();
@@ -236,8 +236,8 @@ typedef struct {
 	T (*orElseGet)(struct Supplier_T);
 	struct Option_T (*filter)(struct Predicate_T);
 	struct Option_Tuple_T_R (*and)(struct Supplier_Option_R);
-} Option_int;
-typedef struct {
+};
+struct Iterator_T {
 	R (*fold)(R, struct BiFunction_R_T_R);
 	struct Iterator_R (*map)(struct Function_T_R);
 	C (*collect)(struct Collector_T_C);
@@ -248,8 +248,8 @@ typedef struct {
 	struct Iterator_T (*concat)(struct Iterator_T);
 	struct Option_T (*next)();
 	struct Iterator_R (*flatMap)(struct Function_T_Iterator_R);
-} Iterator_T;
-typedef struct {
+};
+struct Iterator_char {
 	R (*fold)(R, struct BiFunction_R_T_R);
 	struct Iterator_R (*map)(struct Function_T_R);
 	C (*collect)(struct Collector_T_C);
@@ -260,8 +260,8 @@ typedef struct {
 	struct Iterator_T (*concat)(struct Iterator_T);
 	struct Option_T (*next)();
 	struct Iterator_R (*flatMap)(struct Function_T_Iterator_R);
-} Iterator_char;
-typedef struct {
+};
+struct Iterator_Tuple_int_Character {
 	R (*fold)(R, struct BiFunction_R_T_R);
 	struct Iterator_R (*map)(struct Function_T_R);
 	C (*collect)(struct Collector_T_C);
@@ -272,8 +272,8 @@ typedef struct {
 	struct Iterator_T (*concat)(struct Iterator_T);
 	struct Option_T (*next)();
 	struct Iterator_R (*flatMap)(struct Function_T_Iterator_R);
-} Iterator_Tuple_int_Character;
-typedef struct {
+};
+struct Option_T {
 	struct Option_R (*map)(struct Function_T_R);
 	T (*orElse)(T);
 	int (*isPresent)();
@@ -284,8 +284,8 @@ typedef struct {
 	T (*orElseGet)(struct Supplier_T);
 	struct Option_T (*filter)(struct Predicate_T);
 	struct Option_Tuple_T_R (*and)(struct Supplier_Option_R);
-} Option_T;
-typedef struct {
+};
+struct List__Node {
 	struct List__T (*add)(T);
 	struct List__T (*addAll)(struct List__T);
 	struct Iterator_T (*iter)();
@@ -296,8 +296,8 @@ typedef struct {
 	int (*size)();
 	struct List__T (*slice)(int, int);
 	T (*get)(int);
-} List__Node;
-typedef struct {
+};
+struct Option_List__Node {
 	struct Option_R (*map)(struct Function_T_R);
 	T (*orElse)(T);
 	int (*isPresent)();
@@ -308,8 +308,8 @@ typedef struct {
 	T (*orElseGet)(struct Supplier_T);
 	struct Option_T (*filter)(struct Predicate_T);
 	struct Option_Tuple_T_R (*and)(struct Supplier_Option_R);
-} Option_List__Node;
-typedef struct {
+};
+struct Option_Node {
 	struct Option_R (*map)(struct Function_T_R);
 	T (*orElse)(T);
 	int (*isPresent)();
@@ -320,8 +320,8 @@ typedef struct {
 	T (*orElseGet)(struct Supplier_T);
 	struct Option_T (*filter)(struct Predicate_T);
 	struct Option_Tuple_T_R (*and)(struct Supplier_Option_R);
-} Option_Node;
-typedef struct {
+};
+struct List__T {
 	struct List__T (*add)(T);
 	struct List__T (*addAll)(struct List__T);
 	struct Iterator_T (*iter)();
@@ -332,18 +332,18 @@ typedef struct {
 	int (*size)();
 	struct List__T (*slice)(int, int);
 	T (*get)(int);
-} List__T;
-typedef struct {
+};
+struct Map__K_V {
 	struct Map__K_V (*with)(K, V);
 	struct Option_V (*find)(K);
 	struct Iterator_K (*iterKeys)();
-} Map__K_V;
-typedef struct {
+};
+struct Map__String_Function_Node_String {
 	struct Map__K_V (*with)(K, V);
 	struct Option_V (*find)(K);
 	struct Iterator_K (*iterKeys)();
-} Map__String_Function_Node_String;
-typedef struct {
+};
+struct Option_V {
 	struct Option_R (*map)(struct Function_T_R);
 	T (*orElse)(T);
 	int (*isPresent)();
@@ -354,8 +354,8 @@ typedef struct {
 	T (*orElseGet)(struct Supplier_T);
 	struct Option_T (*filter)(struct Predicate_T);
 	struct Option_Tuple_T_R (*and)(struct Supplier_Option_R);
-} Option_V;
-typedef struct {
+};
+struct List__K {
 	struct List__T (*add)(T);
 	struct List__T (*addAll)(struct List__T);
 	struct Iterator_T (*iter)();
@@ -366,8 +366,8 @@ typedef struct {
 	int (*size)();
 	struct List__T (*slice)(int, int);
 	T (*get)(int);
-} List__K;
-typedef struct {
+};
+struct Option_IOError {
 	struct Option_R (*map)(struct Function_T_R);
 	T (*orElse)(T);
 	int (*isPresent)();
@@ -378,8 +378,8 @@ typedef struct {
 	T (*orElseGet)(struct Supplier_T);
 	struct Option_T (*filter)(struct Predicate_T);
 	struct Option_Tuple_T_R (*and)(struct Supplier_Option_R);
-} Option_IOError;
-typedef struct {
+};
+struct List__Tuple_int_Character {
 	struct List__T (*add)(T);
 	struct List__T (*addAll)(struct List__T);
 	struct Iterator_T (*iter)();
@@ -390,10 +390,10 @@ typedef struct {
 	int (*size)();
 	struct List__T (*slice)(int, int);
 	T (*get)(int);
-} List__Tuple_int_Character;
-typedef struct {
-} Tuple_int_Character;
-typedef struct {
+};
+struct Tuple_int_Character {
+};
+struct List__Function_String_Option_Node {
 	struct List__T (*add)(T);
 	struct List__T (*addAll)(struct List__T);
 	struct Iterator_T (*iter)();
@@ -404,7 +404,7 @@ typedef struct {
 	int (*size)();
 	struct List__T (*slice)(int, int);
 	T (*get)(int);
-} List__Function_String_Option_Node;
+};
 // struct List__String
 // struct List__char
 // struct Option_String
@@ -435,10 +435,10 @@ typedef struct {
 // struct Function_String_Option_String
 int counter = 0;
 struct List__String imports = Impl.listEmpty();
-struct List__String structsForwarders = Impl.listEmpty();
-struct List__String structs = Impl.listEmpty();
 struct List__String globals = Impl.listEmpty();
 struct List__String methods = Impl.listEmpty();
+struct List__String structsForwarders = Impl.listEmpty();
+struct List__String structs = Impl.listEmpty();
 struct List__Node expansions = Impl.listEmpty();
 int counter = 0;
 struct Map__String_Function_Node_String generators = Impl.mapEmpty();
@@ -889,9 +889,7 @@ auto __lambda42__() {
 }
 auto __lambda43__(auto outputContent) {
 	structsForwarders = structsForwarders.add("typedef struct " + name + " " + name + ";\n");
-	structs = structs.add("typedef struct {\n" + outputContent + "} " +
-                    name +
-                    ";\n");
+	structs = structs.add("struct %s {\n%s};\n".formatted(name, outputContent));
 	return "";
 }
 struct Option_String generateStruct() {

@@ -547,10 +547,10 @@ public class Main {
     }
 
     private static final List_<String> imports = Impl.listEmpty();
-    private static List_<String> structsForwarders = Impl.listEmpty();
-    private static List_<String> structs = Impl.listEmpty();
     private static final List_<String> globals = Impl.listEmpty();
     private static final List_<String> methods = Impl.listEmpty();
+    private static List_<String> structsForwarders = Impl.listEmpty();
+    private static List_<String> structs = Impl.listEmpty();
     private static List_<Node> expansions = Impl.listEmpty();
     private static int counter = 0;
     private static Map_<String, Function<Node, String>> generators = Impl.mapEmpty();
@@ -843,9 +843,7 @@ public class Main {
         String inputContent = withEnd.substring(0, withEnd.length() - "}".length());
         return parseAllStatements(inputContent, wrapDefaultFunction(input1 -> compileClassMember(input1, typeParams))).map(Main::mergeAllStatements).map(outputContent -> {
             structsForwarders = structsForwarders.add("typedef struct " + name + " " + name + ";\n");
-            structs = structs.add("typedef struct {\n" + outputContent + "} " +
-                    name +
-                    ";\n");
+            structs = structs.add("struct %s {\n%s};\n".formatted(name, outputContent));
             return "";
         });
     }
