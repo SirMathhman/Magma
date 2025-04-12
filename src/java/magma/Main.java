@@ -547,7 +547,7 @@ public class Main {
     private static final List_<String> methods = Impl.listEmpty();
     private static List_<Node> expansions = Impl.listEmpty();
     private static int counter = 0;
-    private static Map_<String, Function<Node, Option<String>>> structGenerators = Impl.mapEmpty();
+    private static Map_<String, Function<Node, String>> generators = Impl.mapEmpty();
 
     private static <K, V> boolean entryEqualsTo(
             K key,
@@ -588,8 +588,14 @@ public class Main {
                 .map(list1 -> list1.iter().map(Main::unwrapDefault).collect(new ListCollector<>()))
                 .map(list -> {
                     List_<String> collect = expansions.iter()
-                            .map(Main::generateGeneric)
-                            .map(expansion -> "// " + expansion + "\n")
+                            .map(expansion -> {
+                                String comment = "// " + generateGeneric(expansion) + "\n";
+                                String base = generators.find(expansion.findString("base").orElse(""))
+                                        .map(nodeOptionFunction -> nodeOptionFunction.apply(expansion))
+                                        .orElse("");
+
+                                return comment + base;
+                            })
                             .collect(new ListCollector<>());
 
                     return imports.addAll(structs)
@@ -767,25 +773,52 @@ public class Main {
                 : beforeContent;
 
         int paramStart = beforeContent1.indexOf("(");
-        String name1 = paramStart >= 0
+        String withoutParams = paramStart >= 0
                 ? beforeContent1.substring(0, paramStart)
                 : beforeContent1;
 
-        int typeParamStart = name1.indexOf("<");
-
-        String name = name1.strip();
+        String strippedWithoutParams = withoutParams.strip();
+        int typeParamStart = withoutParams.indexOf("<");
         String body = afterKeyword.substring(contentStart + "{".length());
 
-        Node node = new Node()
-                .withString("name", name)
-                .withString("body", body);
+        Node withBody = new Node().withString("body", body);
 
         if (typeParamStart >= 0) {
-            structGenerators = structGenerators.with(name, (child) -> generateStruct(typeParams, child));
-            return new Some<>("// " + name1 + "\n");
+            String name = strippedWithoutParams.substring(0, typeParamStart).strip();
+
+            Node withName = withBody.withString("name", name);
+            generators = generators.with(name, (expansion) -> expand(input, typeParams, withName, expansion));
+
+            return new Some<>("// " + withoutParams + "\n");
         }
 
-        return generateStruct(typeParams, node);
+        return generateStruct(typeParams, withBody.withString("name", strippedWithoutParams));
+    }
+
+    private static String expand(String input, List_<String> typeParams, Node withName, Node expansion) {
+        String stringify = stringify(expansion);
+
+        return generateStruct(typeParams, withName.withString("name", stringify))
+                .or(() -> generatePlaceholder(input))
+                .orElse("");
+    }
+
+    private static String stringify(Node expansion) {
+        if (expansion.is("generic")) {
+            String base = expansion.findString("base").orElse("");
+            String typeParams = expansion.findNodeList("type-params")
+                    .orElse(Impl.listEmpty())
+                    .iter()
+                    .filter(node -> !node.is("whitespace"))
+                    .map(Main::stringify)
+                    .collect(new Joiner("_"))
+                    .orElse("");
+
+            return base + "_" + typeParams;
+        }
+        else {
+            return expansion.findString("value").orElse("");
+        }
     }
 
     private static Option<String> generateStruct(List_<String> typeParams, Node node) {
