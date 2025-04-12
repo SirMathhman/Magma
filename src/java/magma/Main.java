@@ -85,6 +85,10 @@ public class Main {
 
     public interface Result<T, X> {
         <R> R match(Function<T, R> whenOk, Function<X, R> whenErr);
+
+        Option<T> findValue();
+
+        <R> Result<T, R> mapErr(Function<X, R> mapper);
     }
 
 
@@ -143,12 +147,32 @@ public class Main {
         public <R> R match(Function<T, R> whenOk, Function<X, R> whenErr) {
             return whenErr.apply(this.error);
         }
+
+        @Override
+        public Option<T> findValue() {
+            return new None<>();
+        }
+
+        @Override
+        public <R> Result<T, R> mapErr(Function<X, R> mapper) {
+            return new Err<>(mapper.apply(this.error));
+        }
     }
 
     public record Ok<T, X>(T value) implements Result<T, X> {
         @Override
         public <R> R match(Function<T, R> whenOk, Function<X, R> whenErr) {
             return whenOk.apply(this.value);
+        }
+
+        @Override
+        public Option<T> findValue() {
+            return new Some<>(this.value);
+        }
+
+        @Override
+        public <R> Result<T, R> mapErr(Function<X, R> mapper) {
+            return new Ok<>(this.value);
         }
     }
 
@@ -607,6 +631,12 @@ public class Main {
         }
     }
 
+    private record CompileError(String message, String context) {
+        public String display() {
+            return this.message + ": " + this.context;
+        }
+    }
+
     private static final List_<String> imports = Impl.listEmpty();
     private static final List_<String> globals = Impl.listEmpty();
     private static final List_<String> methods = Impl.listEmpty();
@@ -655,7 +685,10 @@ public class Main {
                 .map(list1 -> list1.iter().map(Main::unwrapDefault).collect(new ListCollector<>()))
                 .map(Main::getStringList)
                 .map(compiled -> mergeAll(compiled, Main::mergeStatements))
-                .or(() -> generatePlaceholder(input)).orElse("");
+                .or(() -> createInvalidateError(input).mapErr(err -> {
+                    System.err.println(err.display());
+                    return err;
+                }).findValue()).orElse("");
     }
 
     private static List_<String> getStringList(List_<String> list) {
@@ -806,7 +839,10 @@ public class Main {
             return maybeClass;
         }
 
-        return generatePlaceholder(input);
+        return createInvalidateError(input).mapErr(err -> {
+            System.err.println(err.display());
+            return err;
+        }).findValue();
     }
 
     private static List_<String> splitByDelimiter(String content, char delimiter) {
@@ -871,7 +907,10 @@ public class Main {
         String stringify = stringify(expansion);
 
         return generateStruct(typeParams, withName.withString("name", stringify))
-                .or(() -> generatePlaceholder(input))
+                .or(() -> createInvalidateError(input).mapErr(err -> {
+                    System.err.println(err.display());
+                    return err;
+                }).findValue())
                 .orElse("");
     }
 
@@ -921,7 +960,10 @@ public class Main {
                 .or(() -> compileGlobalInitialization(input, typeParams))
                 .or(() -> compileDefinitionStatement(input))
                 .or(() -> compileMethod(input, typeParams))
-                .or(() -> generatePlaceholder(input));
+                .or(() -> createInvalidateError(input).mapErr(err -> {
+                    System.err.println(err.display());
+                    return err;
+                }).findValue());
     }
 
     private static Option<String> compileDefinitionStatement(String input) {
@@ -1072,7 +1114,10 @@ public class Main {
                 .or(() -> compileAssignment(input, typeParams, depth).map(result -> formatStatement(depth, result)))
                 .or(() -> compileInvocationStatement(input, typeParams, depth).map(result -> formatStatement(depth, result)))
                 .or(() -> compileDefinitionStatement(input))
-                .or(() -> generatePlaceholder(input));
+                .or(() -> createInvalidateError(input).mapErr(err -> {
+                    System.err.println(err.display());
+                    return err;
+                }).findValue());
     }
 
     private static Option<String> compilePostOperator(String input, List_<String> typeParams, int depth, String operator) {
@@ -1319,7 +1364,10 @@ public class Main {
                 .or(() -> compileOperator(input, typeParams, depth, "&&"))
                 .or(() -> compileOperator(input, typeParams, depth, "=="))
                 .or(() -> compileOperator(input, typeParams, depth, "!="))
-                .or(() -> generatePlaceholder(input));
+                .or(() -> createInvalidateError(input).mapErr(err -> {
+                    System.err.println(err.display());
+                    return err;
+                }).findValue());
     }
 
     private static Option<String> compileOperator(String input, List_<String> typeParams, int depth, String operator) {
@@ -1736,7 +1784,9 @@ public class Main {
             return false;
         }
 
-        if(input.equals("public")) return false;
+        if (input.equals("public")) {
+            return false;
+        }
 
         return Iterators.fromStringWithIndices(input).allMatch(tuple -> {
             int index = tuple.left;
@@ -1745,7 +1795,7 @@ public class Main {
         });
     }
 
-    private static Option<String> generatePlaceholder(String input) {
-        return new Some<>("/* " + input + " */");
+    private static Result<String, CompileError> createInvalidateError(String input) {
+        return new Err<String, CompileError>(new CompileError("Invalid value", input));
     }
 }
