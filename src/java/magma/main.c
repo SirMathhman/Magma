@@ -3,15 +3,15 @@ struct IOError {
 };
 struct Path_ {
 	struct Path_ (*resolveSibling)(struct String);
-	List__struct String (*listNames)();
+	struct List__struct String (*listNames)();
 };
 struct State {
-	List__char queue;
-	List__struct String segments;
+	struct List__char queue;
+	struct List__struct String segments;
 	struct StringBuilder buffer;
 	int depth;
-	struct private (*State)(List__char, List__struct String, struct StringBuilder, int);
-	struct public (*State)(List__char);
+	struct private (*State)(struct List__char, struct List__struct String, struct StringBuilder, int);
+	struct public (*State)(struct List__char);
 	struct State (*advance)();
 	struct State (*append)(char);
 	int (*isLevel)();
@@ -19,46 +19,46 @@ struct State {
 	int (*hasElements)();
 	struct State (*exit)();
 	struct State (*enter)();
-	List__struct String (*segments)();
+	struct List__struct String (*segments)();
 	char (*peek)();
 };
 struct Joiner {
-	Option_struct String (*createInitial)();
-	Option_struct String (*fold)(Option_struct String, struct String);
+	struct Option_struct String (*createInitial)();
+	struct Option_struct String (*fold)(struct Option_struct String, struct String);
 };
 struct RangeHead {
 	int length;
 	struct public (*RangeHead)(int);
-	Option_int (*next)();
+	struct Option_int (*next)();
 };
 struct Iterators {
-	Iterator_T (*empty)();
-	Iterator_char (*fromString)(struct String);
-	Iterator_Tuple_int_struct Character (*fromStringWithIndices)(struct String);
-	Iterator_T (*fromOption)(Option_struct T);
+	struct Iterator_T (*empty)();
+	struct Iterator_char (*fromString)(struct String);
+	struct Iterator_Tuple_int_struct Character (*fromStringWithIndices)(struct String);
+	struct Iterator_T (*fromOption)(struct Option_struct T);
 };
 struct Node {
 	struct public (*Node)();
 	struct Node (*withString)(struct String, struct String);
-	struct Node (*withNodeList)(struct String, List__struct Node);
-	Option_List__struct Node (*findNodeList)(struct String);
-	Option_struct String (*findString)(struct String);
+	struct Node (*withNodeList)(struct String, struct List__struct Node);
+	struct Option_List__struct Node (*findNodeList)(struct String);
+	struct Option_struct String (*findString)(struct String);
 	struct Node (*withNode)(struct String, struct Node);
-	Option_struct Node (*findNode)(struct String);
+	struct Option_struct Node (*findNode)(struct String);
 	int (*is)(struct String);
 	struct Node (*retype)(struct String);
 	int (*equalsTo)(struct Node);
-	int (*isABoolean)(List__struct Node, List__struct Node);
+	int (*isABoolean)(struct List__struct Node, struct List__struct Node);
 };
 struct Lists {
-	int (*contains)(List__struct T, struct T, BiFunction_struct T_struct T_struct Boolean);
-	int (*equalsTo)(List__struct T, List__struct T, BiFunction_struct T_struct T_struct Boolean);
+	int (*contains)(struct List__struct T, struct T, struct BiFunction_struct T_struct T_struct Boolean);
+	int (*equalsTo)(struct List__struct T, struct List__struct T, struct BiFunction_struct T_struct T_struct Boolean);
 };
 struct Options {
-	int (*equalsTo)(Option_struct T, Option_struct T, BiFunction_struct T_struct T_struct Boolean);
+	int (*equalsTo)(struct Option_struct T, struct Option_struct T, struct BiFunction_struct T_struct T_struct Boolean);
 };
 struct Maps {
-	int (*equalsTo)(Map__struct K_struct V, Map__struct K_struct V, BiFunction_struct K_struct K_struct Boolean, BiFunction_struct V_struct V_struct Boolean);
+	int (*equalsTo)(struct Map__struct K_struct V, struct Map__struct K_struct V, struct BiFunction_struct K_struct K_struct Boolean, struct BiFunction_struct V_struct V_struct Boolean);
 };
 struct Main {
 // Option<T>
@@ -77,143 +77,144 @@ struct Main {
 // EmptyHead<T>
 // ListCollector<T>
 // SingleHead<T>
-	int (*entryEqualsTo)(struct K, Map__struct K_struct V, Map__struct K_struct V, BiFunction_struct V_struct V_struct Boolean);
-	List__K (*foldUniquely)(List__struct K, struct K, BiFunction_struct K_struct K_struct Boolean);
+	int (*entryEqualsTo)(struct K, struct Map__struct K_struct V, struct Map__struct K_struct V, struct BiFunction_struct V_struct V_struct Boolean);
+	struct List__K (*foldUniquely)(struct List__struct K, struct K, struct BiFunction_struct K_struct K_struct Boolean);
 	void (*main)(struct String*);
-	Option_struct IOError (*compileAndWrite)(struct String, struct Path_);
+	struct Option_struct IOError (*compileAndWrite)(struct String, struct Path_);
 	struct String (*compile)(struct String);
-	struct String (*mergeAllStatements)(List__struct Node);
-	Option_List__struct Node (*parseAllStatements)(struct String, Function_struct String_Option_struct Node);
-	List__struct String (*divideAllStatements)(struct String);
-	struct String (*generateAll)(List__struct Node, Function_struct Node_struct String, BiFunction_struct StringBuilder_struct String_struct StringBuilder);
-	struct String (*mergeAll)(List__struct String, BiFunction_struct StringBuilder_struct String_struct StringBuilder);
-	Option_List__struct Node (*parseAll)(List__struct String, Function_struct String_Option_struct Node);
+	struct String (*mergeAllStatements)(struct List__struct Node);
+	struct Option_List__struct Node (*parseAllStatements)(struct String, struct Function_struct String_Option_struct Node);
+	struct List__struct String (*divideAllStatements)(struct String);
+	struct String (*generateAll)(struct List__struct Node, struct Function_struct Node_struct String, struct BiFunction_struct StringBuilder_struct String_struct StringBuilder);
+	struct String (*mergeAll)(struct List__struct String, struct BiFunction_struct StringBuilder_struct String_struct StringBuilder);
+	struct Option_List__struct Node (*parseAll)(struct List__struct String, struct Function_struct String_Option_struct Node);
 	struct StringBuilder (*mergeStatements)(struct StringBuilder, struct String);
-	List__struct String (*divide)(struct String, BiFunction_struct State_struct Character_struct State);
+	struct List__struct String (*divide)(struct String, struct BiFunction_struct State_struct Character_struct State);
 	struct State (*divideStatementChar)(struct State, char);
 	int (*isShallow)(struct State);
-	Option_struct String (*compileRootSegment)(struct String);
-	List__struct String (*splitByDelimiter)(struct String, char);
-	Option_struct String (*compileToStruct)(struct String, struct String, List__struct String);
-	struct String (*expand)(struct String, List__struct String, struct Node, struct Node);
-	struct String (*generateGeneric)(struct Node);
-	Option_struct String (*generateStruct)(List__struct String, struct Node);
-	Option_struct String (*compileClassMember)(struct String, List__struct String);
-	Option_struct String (*compileDefinitionStatement)(struct String);
-	Option_struct String (*compileGlobalInitialization)(struct String, List__struct String);
-	Option_struct String (*compileInitialization)(struct String, List__struct String, int);
-	Option_struct String (*compileWhitespace)(struct String);
-	Option_struct String (*compileMethod)(struct String, List__struct String);
-	Function_struct String_Option_struct Node (*createParamRule)();
-	Option_struct String (*getStringOption)(List__struct String, struct Node, List__struct Node, struct String);
-	Option_List__struct Node (*parseAllValues)(struct String, Function_struct String_Option_struct Node);
+	struct Option_struct String (*compileRootSegment)(struct String);
+	struct List__struct String (*splitByDelimiter)(struct String, char);
+	struct Option_struct String (*compileToStruct)(struct String, struct String, struct List__struct String);
+	struct String (*expand)(struct String, struct List__struct String, struct Node, struct Node);
+	struct String (*stringify)(struct Node);
+	struct Option_struct String (*generateStruct)(struct List__struct String, struct Node);
+	struct Option_struct String (*compileClassMember)(struct String, struct List__struct String);
+	struct Option_struct String (*compileDefinitionStatement)(struct String);
+	struct Option_struct String (*compileGlobalInitialization)(struct String, struct List__struct String);
+	struct Option_struct String (*compileInitialization)(struct String, struct List__struct String, int);
+	struct Option_struct String (*compileWhitespace)(struct String);
+	struct Option_struct String (*compileMethod)(struct String, struct List__struct String);
+	struct Function_struct String_Option_struct Node (*createParamRule)();
+	struct Option_struct String (*getStringOption)(struct List__struct String, struct Node, struct List__struct Node, struct String);
+	struct Option_List__struct Node (*parseAllValues)(struct String, struct Function_struct String_Option_struct Node);
 	struct State (*divideValueChar)(struct State, char);
-	struct String (*mergeAllValues)(List__struct Node, Function_struct Node_struct String);
-	Option_struct String (*compileStatementOrBlock)(struct String, List__struct String, int);
-	Option_struct String (*compilePostOperator)(struct String, List__struct String, int, struct String);
-	Option_struct String (*compileElse)(struct String, List__struct String, int);
-	Option_struct String (*compileKeywordStatement)(struct String, int, struct String);
+	struct String (*mergeAllValues)(struct List__struct Node, struct Function_struct Node_struct String);
+	struct Option_struct String (*compileStatementOrBlock)(struct String, struct List__struct String, int);
+	struct Option_struct String (*compilePostOperator)(struct String, struct List__struct String, int, struct String);
+	struct Option_struct String (*compileElse)(struct String, struct List__struct String, int);
+	struct Option_struct String (*compileKeywordStatement)(struct String, int, struct String);
 	struct String (*formatStatement)(int, struct String);
 	struct String (*createIndent)(int);
-	Option_struct String (*compileConditional)(struct String, List__struct String, struct String, int);
+	struct Option_struct String (*compileConditional)(struct String, struct List__struct String, struct String, int);
 	int (*findConditionEnd)(struct String);
-	Option_struct String (*compileInvocationStatement)(struct String, List__struct String, int);
-	Option_struct String (*compileAssignment)(struct String, List__struct String, int);
-	Option_struct String (*compileReturn)(struct String, List__struct String, int);
-	Option_struct String (*compileValue)(struct String, List__struct String, int);
-	Option_struct String (*compileOperator)(struct String, List__struct String, int, struct String);
-	Option_struct String (*compileLambda)(struct String, List__struct String, int);
-	Option_struct String (*generateLambdaWithReturn)(List__struct String, struct String);
+	struct Option_struct String (*compileInvocationStatement)(struct String, struct List__struct String, int);
+	struct Option_struct String (*compileAssignment)(struct String, struct List__struct String, int);
+	struct Option_struct String (*compileReturn)(struct String, struct List__struct String, int);
+	struct Option_struct String (*compileValue)(struct String, struct List__struct String, int);
+	struct Option_struct String (*compileOperator)(struct String, struct List__struct String, int, struct String);
+	struct Option_struct String (*compileLambda)(struct String, struct List__struct String, int);
+	struct Option_struct String (*generateLambdaWithReturn)(struct List__struct String, struct String);
 	int (*isNumber)(struct String);
-	Option_struct String (*compileInvocation)(struct String, List__struct String, int);
+	struct Option_struct String (*compileInvocation)(struct String, struct List__struct String, int);
 	int (*findInvocationStart)(struct String);
-	Option_struct String (*compileArgs)(struct String, List__struct String, int);
+	struct Option_struct String (*compileArgs)(struct String, struct List__struct String, int);
 	struct StringBuilder (*mergeValues)(struct StringBuilder, struct String);
-	Option_struct Node (*parseDefinition)(struct String);
-	Option_struct Node (*parseDefinitionWithName)(struct String, struct Node);
-	Option_struct Node (*parseDefinitionWithTypeSeparator)(struct Node, struct String, struct String);
-	Option_struct Node (*parseDefinitionTypeProperty)(struct Node, struct String, List__struct String);
-	Option_struct Node (*parseDefinitionWithNoTypeParams)(struct Node, struct String, struct String);
+	struct Option_struct Node (*parseDefinition)(struct String);
+	struct Option_struct Node (*parseDefinitionWithName)(struct String, struct Node);
+	struct Option_struct Node (*parseDefinitionWithTypeSeparator)(struct Node, struct String, struct String);
+	struct Option_struct Node (*parseDefinitionTypeProperty)(struct Node, struct String, struct List__struct String);
+	struct Option_struct Node (*parseDefinitionWithNoTypeParams)(struct Node, struct String, struct String);
 	int (*validateLeft)(struct String);
-	Option_struct String (*generateDefinition)(struct Node);
+	struct Option_struct String (*generateDefinition)(struct Node);
 	struct String (*unwrapDefault)(struct Node);
 	struct Node (*wrapDefault)(struct String);
-	Option_int (*findTypeSeparator)(struct String);
-	List__struct String (*splitValues)(struct String);
+	struct Option_int (*findTypeSeparator)(struct String);
+	struct List__struct String (*splitValues)(struct String);
 	struct String (*generateType)(struct Node);
-	Option_struct Node (*parseType)(struct String, List__struct String);
-	Option_struct Node (*parseOr)(struct String, List__Function_struct String_Option_struct Node);
-	List__Function_struct String_Option_struct Node (*listTypeRules)(List__struct String);
-	Function_struct String_Option_struct Node (*parseGeneric)(List__struct String);
-	Function_struct String_Option_struct Node (*parseWithType)(struct String, Function_struct String_Option_struct Node);
-	Function_struct String_Option_struct Node (*wrapDefaultFunction)(Function_struct String_Option_struct String);
-	Option_struct String (*compilePrimitive)(struct String);
-	Option_struct String (*compileArray)(struct String, List__struct String);
-	Option_struct String (*compileSymbol)(struct String, List__struct String);
+	struct Option_struct Node (*parseType)(struct String, struct List__struct String);
+	struct Option_struct Node (*parseOr)(struct String, struct List__Function_struct String_Option_struct Node);
+	struct List__Function_struct String_Option_struct Node (*listTypeRules)(struct List__struct String);
+	struct Function_struct String_Option_struct Node (*parseGeneric)(struct List__struct String);
+	struct Function_struct String_Option_struct Node (*parseWithType)(struct String, struct Function_struct String_Option_struct Node);
+	struct String (*generateGeneric)(struct Node);
+	struct Function_struct String_Option_struct Node (*wrapDefaultFunction)(struct Function_struct String_Option_struct String);
+	struct Option_struct String (*compilePrimitive)(struct String);
+	struct Option_struct String (*compileArray)(struct String, struct List__struct String);
+	struct Option_struct String (*compileSymbol)(struct String, struct List__struct String);
 	int (*isSymbol)(struct String);
-	Option_struct String (*generatePlaceholder)(struct String);
+	struct Option_struct String (*generatePlaceholder)(struct String);
 };
 struct List__char {
-	List__struct T (*add)(struct T);
-	List__struct T (*addAll)(List__struct T);
-	Iterator_struct T (*iter)();
-	Option_Tuple_struct T_List__struct T (*popFirst)();
+	struct List__struct T (*add)(struct T);
+	struct List__struct T (*addAll)(struct List__struct T);
+	struct Iterator_struct T (*iter)();
+	struct Option_Tuple_struct T_List__struct T (*popFirst)();
 	struct T (*pop)();
 	int (*isEmpty)();
 	struct T (*peek)();
 	int (*size)();
-	List__struct T (*slice)(int, int);
+	struct List__struct T (*slice)(int, int);
 	struct T (*get)(int);
 };
 struct Option_int {
-	Option_R (*map)(Function_struct T_struct R);
+	struct Option_R (*map)(struct Function_struct T_struct R);
 	struct T (*orElse)(struct T);
 	int (*isPresent)();
 	int (*isEmpty)();
-	void (*ifPresent)(Consumer_struct T);
-	Option_struct T (*or)(Supplier_Option_struct T);
-	Option_R (*flatMap)(Function_struct T_Option_struct R);
-	struct T (*orElseGet)(Supplier_struct T);
-	Option_struct T (*filter)(Predicate_struct T);
-	Option_Tuple_struct T_R (*and)(Supplier_Option_struct R);
+	void (*ifPresent)(struct Consumer_struct T);
+	struct Option_struct T (*or)(struct Supplier_Option_struct T);
+	struct Option_R (*flatMap)(struct Function_struct T_Option_struct R);
+	struct T (*orElseGet)(struct Supplier_struct T);
+	struct Option_struct T (*filter)(struct Predicate_struct T);
+	struct Option_Tuple_struct T_R (*and)(struct Supplier_Option_struct R);
 };
 struct Iterator_T {
-	R (*fold)(struct R, BiFunction_struct R_struct T_struct R);
-	Iterator_R (*map)(Function_struct T_struct R);
-	C (*collect)(Collector_struct T_struct C);
-	int (*anyMatch)(Predicate_struct T);
-	void (*forEach)(Consumer_struct T);
-	Iterator_struct T (*filter)(Predicate_struct T);
-	int (*allMatch)(Predicate_struct T);
-	Iterator_struct T (*concat)(Iterator_struct T);
-	Option_struct T (*next)();
-	Iterator_R (*flatMap)(Function_struct T_Iterator_struct R);
+	R (*fold)(struct R, struct BiFunction_struct R_struct T_struct R);
+	struct Iterator_R (*map)(struct Function_struct T_struct R);
+	C (*collect)(struct Collector_struct T_struct C);
+	int (*anyMatch)(struct Predicate_struct T);
+	void (*forEach)(struct Consumer_struct T);
+	struct Iterator_struct T (*filter)(struct Predicate_struct T);
+	int (*allMatch)(struct Predicate_struct T);
+	struct Iterator_struct T (*concat)(struct Iterator_struct T);
+	struct Option_struct T (*next)();
+	struct Iterator_R (*flatMap)(struct Function_struct T_Iterator_struct R);
 };
 struct Iterator_char {
-	R (*fold)(struct R, BiFunction_struct R_struct T_struct R);
-	Iterator_R (*map)(Function_struct T_struct R);
-	C (*collect)(Collector_struct T_struct C);
-	int (*anyMatch)(Predicate_struct T);
-	void (*forEach)(Consumer_struct T);
-	Iterator_struct T (*filter)(Predicate_struct T);
-	int (*allMatch)(Predicate_struct T);
-	Iterator_struct T (*concat)(Iterator_struct T);
-	Option_struct T (*next)();
-	Iterator_R (*flatMap)(Function_struct T_Iterator_struct R);
+	R (*fold)(struct R, struct BiFunction_struct R_struct T_struct R);
+	struct Iterator_R (*map)(struct Function_struct T_struct R);
+	C (*collect)(struct Collector_struct T_struct C);
+	int (*anyMatch)(struct Predicate_struct T);
+	void (*forEach)(struct Consumer_struct T);
+	struct Iterator_struct T (*filter)(struct Predicate_struct T);
+	int (*allMatch)(struct Predicate_struct T);
+	struct Iterator_struct T (*concat)(struct Iterator_struct T);
+	struct Option_struct T (*next)();
+	struct Iterator_R (*flatMap)(struct Function_struct T_Iterator_struct R);
 };
 struct List__K {
-	List__struct T (*add)(struct T);
-	List__struct T (*addAll)(List__struct T);
-	Iterator_struct T (*iter)();
-	Option_Tuple_struct T_List__struct T (*popFirst)();
+	struct List__struct T (*add)(struct T);
+	struct List__struct T (*addAll)(struct List__struct T);
+	struct Iterator_struct T (*iter)();
+	struct Option_Tuple_struct T_List__struct T (*popFirst)();
 	struct T (*pop)();
 	int (*isEmpty)();
 	struct T (*peek)();
 	int (*size)();
-	List__struct T (*slice)(int, int);
+	struct List__struct T (*slice)(int, int);
 	struct T (*get)(int);
 };
-// List__struct String
+// struct List__struct String
 /* 
 
     public interface List_<T> {
@@ -236,8 +237,8 @@ struct List__K {
         List_<T> slice(int startInclusive, int endExclusive);
 
         T get(int index);
-    } */// List__char
-// Option_struct String
+    } */// struct List__char
+// struct Option_struct String
 /* public interface Option<T> {
         <R> Option<R> map(Function<T, R> mapper);
 
@@ -258,10 +259,10 @@ struct List__K {
         Option<T> filter(Predicate<T> predicate);
 
         <R> Option<Tuple<T, R>> and(Supplier<Option<R>> supplier);
-    } */// Option_int
-// Iterator_T
-// Iterator_char
-// Iterator_Tuple_int_struct Character
+    } */// struct Option_int
+// struct Iterator_T
+// struct Iterator_char
+// struct Iterator_Tuple_int_struct Character
 /* 
 
     public interface Iterator<T> {
@@ -284,7 +285,7 @@ struct List__K {
         Option<T> next();
 
         <R> Iterator<R> flatMap(Function<T, Iterator<R>> mapper);
-    } */// Option_struct T
+    } */// struct Option_struct T
 /* public interface Option<T> {
         <R> Option<R> map(Function<T, R> mapper);
 
@@ -305,7 +306,7 @@ struct List__K {
         Option<T> filter(Predicate<T> predicate);
 
         <R> Option<Tuple<T, R>> and(Supplier<Option<R>> supplier);
-    } */// List__struct Node
+    } */// struct List__struct Node
 /* 
 
     public interface List_<T> {
@@ -328,7 +329,7 @@ struct List__K {
         List_<T> slice(int startInclusive, int endExclusive);
 
         T get(int index);
-    } */// Option_List__struct Node
+    } */// struct Option_List__struct Node
 /* public interface Option<T> {
         <R> Option<R> map(Function<T, R> mapper);
 
@@ -349,7 +350,7 @@ struct List__K {
         Option<T> filter(Predicate<T> predicate);
 
         <R> Option<Tuple<T, R>> and(Supplier<Option<R>> supplier);
-    } */// Option_struct Node
+    } */// struct Option_struct Node
 /* public interface Option<T> {
         <R> Option<R> map(Function<T, R> mapper);
 
@@ -370,7 +371,7 @@ struct List__K {
         Option<T> filter(Predicate<T> predicate);
 
         <R> Option<Tuple<T, R>> and(Supplier<Option<R>> supplier);
-    } */// List__struct T
+    } */// struct List__struct T
 /* 
 
     public interface List_<T> {
@@ -393,8 +394,8 @@ struct List__K {
         List_<T> slice(int startInclusive, int endExclusive);
 
         T get(int index);
-    } */// BiFunction_struct T_struct T_struct Boolean
-// Map__struct K_struct V
+    } */// struct BiFunction_struct T_struct T_struct Boolean
+// struct Map__struct K_struct V
 /* 
 
     public interface Map_<K, V> {
@@ -403,9 +404,9 @@ struct List__K {
         Option<V> find(K key);
 
         Iterator<K> iterKeys();
-    } */// BiFunction_struct K_struct K_struct Boolean
-// BiFunction_struct V_struct V_struct Boolean
-// Map__struct String_Function_struct Node_struct String
+    } */// struct BiFunction_struct K_struct K_struct Boolean
+// struct BiFunction_struct V_struct V_struct Boolean
+// struct Map__struct String_Function_struct Node_struct String
 /* 
 
     public interface Map_<K, V> {
@@ -414,7 +415,7 @@ struct List__K {
         Option<V> find(K key);
 
         Iterator<K> iterKeys();
-    } */// Option_struct V
+    } */// struct Option_struct V
 /* public interface Option<T> {
         <R> Option<R> map(Function<T, R> mapper);
 
@@ -435,8 +436,8 @@ struct List__K {
         Option<T> filter(Predicate<T> predicate);
 
         <R> Option<Tuple<T, R>> and(Supplier<Option<R>> supplier);
-    } */// List__K
-// List__struct K
+    } */// struct List__K
+// struct List__struct K
 /* 
 
     public interface List_<T> {
@@ -459,7 +460,7 @@ struct List__K {
         List_<T> slice(int startInclusive, int endExclusive);
 
         T get(int index);
-    } */// Option_struct IOError
+    } */// struct Option_struct IOError
 /* public interface Option<T> {
         <R> Option<R> map(Function<T, R> mapper);
 
@@ -480,11 +481,11 @@ struct List__K {
         Option<T> filter(Predicate<T> predicate);
 
         <R> Option<Tuple<T, R>> and(Supplier<Option<R>> supplier);
-    } */// Function_struct String_Option_struct Node
-// Function_struct Node_struct String
-// BiFunction_struct StringBuilder_struct String_struct StringBuilder
-// BiFunction_struct State_struct Character_struct State
-// List__Tuple_int_struct Character
+    } */// struct Function_struct String_Option_struct Node
+// struct Function_struct Node_struct String
+// struct BiFunction_struct StringBuilder_struct String_struct StringBuilder
+// struct BiFunction_struct State_struct Character_struct State
+// struct List__Tuple_int_struct Character
 /* 
 
     public interface List_<T> {
@@ -507,11 +508,11 @@ struct List__K {
         List_<T> slice(int startInclusive, int endExclusive);
 
         T get(int index);
-    } */// Tuple_int_struct Character
+    } */// struct Tuple_int_struct Character
 /* 
 
     public record Tuple<A, B>(A left, B right) {
-    } */// List__Function_struct String_Option_struct Node
+    } */// struct List__Function_struct String_Option_struct Node
 /* 
 
     public interface List_<T> {
@@ -534,15 +535,15 @@ struct List__K {
         List_<T> slice(int startInclusive, int endExclusive);
 
         T get(int index);
-    } */// Function_struct String_Option_struct String
+    } */// struct Function_struct String_Option_struct String
 int counter = 0;
-List__struct String imports = Impl.listEmpty();
-List__struct String structs = Impl.listEmpty();
-List__struct String globals = Impl.listEmpty();
-List__struct String methods = Impl.listEmpty();
-List__struct Node expansions = Impl.listEmpty();
+struct List__struct String imports = Impl.listEmpty();
+struct List__struct String structs = Impl.listEmpty();
+struct List__struct String globals = Impl.listEmpty();
+struct List__struct String methods = Impl.listEmpty();
+struct List__struct Node expansions = Impl.listEmpty();
 int counter = 0;
-Map__struct String_Function_struct Node_struct String generators = Impl.mapEmpty();
+struct Map__struct String_Function_struct Node_struct String generators = Impl.mapEmpty();
 struct private State() {
 	this.queue = queue;
 	this.segments = segments;
@@ -578,42 +579,42 @@ struct State enter() {
 	this.depth = this.depth + 1;
 	return this;
 }
-List__struct String segments() {
+struct List__struct String segments() {
 	return this.segments;
 }
 char peek() {
 	return this.queue.peek();
 }
-Option_struct String createInitial() {
-	return None_();
+struct Option_struct String createInitial() {
+	return struct None_();
 }
 auto __lambda0__(auto inner) {
 	return inner + this.delimiter + element;
 }
-Option_struct String fold() {
-	return Some_(current.map(__lambda0__).orElse(element));
+struct Option_struct String fold() {
+	return struct Some_(current.map(__lambda0__).orElse(element));
 }
 struct public RangeHead() {
 	this.length = length;
 }
-Option_int next() {
+struct Option_int next() {
 	if (this.counter >= this.length) {
-		return None_();
+		return struct None_();
 	}
 	int value = this.counter;this.counter++;
-	return Some_(value);
+	return struct Some_(value);
 }
-<T> Iterator_T empty() {
-	return HeadedIterator_(EmptyHead_());
+<T> struct Iterator_T empty() {
+	return struct HeadedIterator_(struct EmptyHead_());
 }
 auto __lambda1__() {
 	return struct Tuple.right()
 }
-Iterator_char fromString() {
+struct Iterator_char fromString() {
 	return fromStringWithIndices(string).map(__lambda1__);
 }
-Iterator_Tuple_int_struct Character fromStringWithIndices() {
-	return HeadedIterator_(struct RangeHead(string.length())).map(index -> new Tuple<>(index, string.charAt(index)));
+struct Iterator_Tuple_int_struct Character fromStringWithIndices() {
+	return struct HeadedIterator_(struct RangeHead(string.length())).map(index -> new Tuple<>(index, string.charAt(index)));
 }
 auto __lambda2__() {
 	return struct SingleHead.new()
@@ -621,11 +622,11 @@ auto __lambda2__() {
 auto __lambda3__() {
 	return struct EmptyHead.new()
 }
-<T> Iterator_T fromOption() {
-	return HeadedIterator_(option.<Head<T>>map(__lambda2__).orElseGet(__lambda3__));
+<T> struct Iterator_T fromOption() {
+	return struct HeadedIterator_(option.<Head<T>>map(__lambda2__).orElseGet(__lambda3__));
 }
 struct public Node() {
-	this(None_(), Impl.mapEmpty(), Impl.mapEmpty(), Impl.mapEmpty());
+	this(struct None_(), Impl.mapEmpty(), Impl.mapEmpty(), Impl.mapEmpty());
 }
 struct Node withString() {
 	return struct Node(this.type, this.strings.with(propertyKey, propertyValue), this.nodes, this.nodeLists);
@@ -633,16 +634,16 @@ struct Node withString() {
 struct Node withNodeList() {
 	return struct Node(this.type, this.strings, this.nodes, this.nodeLists.with(propertyKey, propertyValues));
 }
-Option_List__struct Node findNodeList() {
+struct Option_List__struct Node findNodeList() {
 	return this.nodeLists.find(propertyKey);
 }
-Option_struct String findString() {
+struct Option_struct String findString() {
 	return this.strings.find(propertyKey);
 }
 struct Node withNode() {
 	return struct Node(this.type, this.strings, this.nodes.with(propertyKey, propertyValue), this.nodeLists);
 }
-Option_struct Node findNode() {
+struct Option_struct Node findNode() {
 	return this.nodes.find(propertyKey);
 }
 auto __lambda4__(auto inner) {
@@ -652,7 +653,7 @@ int is() {
 	return this.type.filter(__lambda4__).isPresent();
 }
 struct Node retype() {
-	return struct Node(Some_(type), this.strings, this.nodes, this.nodeLists);
+	return struct Node(struct Some_(type), this.strings, this.nodes, this.nodeLists);
 }
 auto __lambda5__() {
 	return struct String.equals()
@@ -698,7 +699,7 @@ auto __lambda13__(auto child) {
 	if (first.size() != second.size()) {
 		return false;
 	}
-	return HeadedIterator_(struct RangeHead(first.size())).allMatch(index -> {
+	return struct HeadedIterator_(struct RangeHead(first.size())).allMatch(index -> {
                 return equator.apply(first.get(index), second.get(index));
             });
 }
@@ -724,11 +725,11 @@ auto __lambda17__(auto key) {
 	return first.iterKeys().concat(second.iterKeys()).fold(Impl.<K>listEmpty(), __lambda16__).iter().allMatch(__lambda17__);
 }
 <K, V> int entryEqualsTo() {
-	Option_struct V firstOption = first.find(key);
-	Option_struct V secondOption = second.find(key);
+	struct Option_struct V firstOption = first.find(key);
+	struct Option_struct V secondOption = second.find(key);
 	return Options.equalsTo(firstOption, secondOption, valueEquator);
 }
-<K> List__K foldUniquely() {
+<K> struct List__K foldUniquely() {
 	if (Lists.contains(kList, key, keyEquator)) {
 		return kList;
 	}
@@ -749,7 +750,7 @@ void main() {
 	struct Path_ source = Impl.get(".", "src", "java", "magma", "Main.java");
 	Impl.readString(source).match(__lambda18__, __lambda19__).ifPresent(__lambda20__);
 }
-Option_struct IOError compileAndWrite() {
+struct Option_struct IOError compileAndWrite() {
 	struct Path_ target = source.resolveSibling("main.c");
 	struct String output = compile(input);
 	return Impl.writeString(target, output);
@@ -761,7 +762,7 @@ auto __lambda22__() {
 	return struct Main.unwrapDefault()
 }
 auto __lambda23__(auto list1) {
-	return list1.iter().map(__lambda22__).collect(ListCollector_());
+	return list1.iter().map(__lambda22__).collect(struct ListCollector_());
 }
 auto __lambda24__(auto nodeOptionFunction) {
 	return nodeOptionFunction.apply(expansion);
@@ -772,7 +773,7 @@ auto __lambda25__(auto expansion) {
 	return comment + base;
 }
 auto __lambda26__(auto list) {
-	List__struct String collect = expansions.iter().map(__lambda25__).collect(ListCollector_());
+	struct List__struct String collect = expansions.iter().map(__lambda25__).collect(struct ListCollector_());
 	return imports.addAll(structs).addAll(collect).addAll(globals).addAll(methods).addAll(list);
 }
 auto __lambda27__() {
@@ -785,7 +786,7 @@ auto __lambda29__() {
 	return generatePlaceholder(input);
 }
 struct String compile() {
-	List__struct String segments = divideAllStatements(input);
+	struct List__struct String segments = divideAllStatements(input);
 	return parseAll(segments, wrapDefaultFunction(__lambda21__)).map(__lambda23__).map(__lambda26__).map(__lambda28__).or(__lambda29__).orElse("");
 }
 auto __lambda30__() {
@@ -797,17 +798,17 @@ auto __lambda31__() {
 struct String mergeAllStatements() {
 	return generateAll(compiled, __lambda30__, __lambda31__);
 }
-Option_List__struct Node parseAllStatements() {
+struct Option_List__struct Node parseAllStatements() {
 	return parseAll(divideAllStatements(input), rule);
 }
 auto __lambda32__() {
 	return struct Main.divideStatementChar()
 }
-List__struct String divideAllStatements() {
+struct List__struct String divideAllStatements() {
 	return divide(input, __lambda32__);
 }
 struct String generateAll() {
-	return mergeAll(compiled.iter().map(generator).collect(ListCollector_()), merger);
+	return mergeAll(compiled.iter().map(generator).collect(struct ListCollector_()), merger);
 }
 struct String mergeAll() {
 	return compiled.iter().fold(struct StringBuilder(), merger).toString();
@@ -821,14 +822,14 @@ auto __lambda34__(auto allCompiled) {
 auto __lambda35__(auto maybeCompiled, auto segment) {
 	return maybeCompiled.flatMap(__lambda34__);
 }
-Option_List__struct Node parseAll() {
-	return segments.iter().<Option<List_<Node>>>fold(Some_(Impl.listEmpty()), __lambda35__);
+struct Option_List__struct Node parseAll() {
+	return segments.iter().<Option<List_<Node>>>fold(struct Some_(Impl.listEmpty()), __lambda35__);
 }
 struct StringBuilder mergeStatements() {
 	return output.append(compiled);
 }
-List__struct String divide() {
-	List__char queue = Iterators.fromString(input).collect(ListCollector_());
+struct List__struct String divide() {
+	struct List__char queue = Iterators.fromString(input).collect(struct ListCollector_());
 	struct State state = struct State(queue);
 	while (state.hasElements()) {
 		char c = state.pop();
@@ -882,36 +883,36 @@ int isShallow() {
 auto __lambda36__() {
 	return struct String.equals()
 }
-Option_struct String compileRootSegment() {
-	Option_struct String whitespace = compileWhitespace(input);
+struct Option_struct String compileRootSegment() {
+	struct Option_struct String whitespace = compileWhitespace(input);
 	if (whitespace.isPresent()) {
 		return whitespace;
 	}
 	if (input.startsWith("package ")) {
-		return Some_("");
+		return struct Some_("");
 	}
 	struct String stripped = input.strip();
 	if (stripped.startsWith("import ")) {
 		struct String right = stripped.substring("import ".length());
 		if (right.endsWith(";")) {
 			struct String content = right.substring(0, right.length() - ";".length());
-			List__struct String split = splitByDelimiter(content, '.');
+			struct List__struct String split = splitByDelimiter(content, '.');
 			if (split.size() >= 3 && Lists.equalsTo(split.slice(0, 3), Impl.listOf("java", "util", "function"), __lambda36__)) {
-				return Some_("");
+				return struct Some_("");
 			}
 			struct String joined = split.iter().collect(struct Joiner("/")).orElse("");
 			imports.add("#include \"./" + joined + "\"\n");
-			return Some_("");
+			return struct Some_("");
 		}
 	}
-	Option_struct String maybeClass = compileToStruct(input, "class ", Impl.listEmpty());
+	struct Option_struct String maybeClass = compileToStruct(input, "class ", Impl.listEmpty());
 	if (maybeClass.isPresent()) {
 		return maybeClass;
 	}
 	return generatePlaceholder(input);
 }
-List__struct String splitByDelimiter() {
-	List__struct String segments = Impl.listEmpty();
+struct List__struct String splitByDelimiter() {
+	struct List__struct String segments = Impl.listEmpty();
 	struct StringBuilder buffer = struct StringBuilder();/* 
         for (int i = 0; i < content.length(); i++) {
             char c = content.charAt(i);
@@ -928,15 +929,15 @@ List__struct String splitByDelimiter() {
 auto __lambda37__(auto expansion) {
 	return expand(input, typeParams, withName, expansion);
 }
-Option_struct String compileToStruct() {
+struct Option_struct String compileToStruct() {
 	int classIndex = input.indexOf(infix);
 	if (classIndex < 0) {
-		return None_();
+		return struct None_();
 	}
 	struct String afterKeyword = input.substring(classIndex + infix.length());
 	int contentStart = afterKeyword.indexOf("{");
 	if (contentStart < 0) {
-		return None_();
+		return struct None_();
 	}
 	struct String beforeContent = afterKeyword.substring(0, contentStart).strip();
 	int implementsIndex = beforeContent.indexOf(" implements ");
@@ -955,7 +956,7 @@ Option_struct String compileToStruct() {
 		struct String name = strippedWithoutParams.substring(0, typeParamStart).strip();
 		struct Node withName = withBody.withString("name", name);
 		generators = generators.with(name, __lambda37__);
-		return Some_("// " + withoutParams + "\n");
+		return struct Some_("// " + withoutParams + "\n");
 	}
 	return generateStruct(typeParams, withBody.withString("name", strippedWithoutParams));
 }
@@ -963,16 +964,16 @@ auto __lambda38__() {
 	return generatePlaceholder(input);
 }
 struct String expand() {
-	struct String stringify = generateGeneric(expansion);
+	struct String stringify = stringify(expansion);
 	return generateStruct(typeParams, withName.withString("name", stringify)).or(__lambda38__).orElse("");
 }
 auto __lambda39__(auto node) {
 	return !node.is("whitespace");
 }
 auto __lambda40__() {
-	return struct Main.generateGeneric()
+	return struct Main.stringify()
 }
-struct String generateGeneric() {
+struct String stringify() {
 	if (expansion.is("generic")) {
 		struct String base = expansion.findString("base").orElse("");
 		struct String typeParams = expansion.findNodeList("type-params").orElse(Impl.listEmpty()).iter().filter(__lambda39__).map(__lambda40__).collect(struct Joiner("_")).orElse("");
@@ -992,15 +993,15 @@ auto __lambda43__(auto outputContent) {
 	structs.add("struct " + name + " {\n" + outputContent + "};\n");
 	return "";
 }
-Option_struct String generateStruct() {
+struct Option_struct String generateStruct() {
 	struct String name = node.findString("name").orElse("");
 	struct String body = node.findString("body").orElse("");
 	if (!isSymbol(name)) {
-		return None_();
+		return struct None_();
 	}
 	struct String withEnd = body.strip();
 	if (!withEnd.endsWith("}")) {
-		return None_();
+		return struct None_();
 	}
 	struct String inputContent = withEnd.substring(0, withEnd.length() - "}".length());
 	return parseAllStatements(inputContent, wrapDefaultFunction(__lambda41__)).map(__lambda42__).map(__lambda43__);
@@ -1026,7 +1027,7 @@ auto __lambda49__() {
 auto __lambda50__() {
 	return generatePlaceholder(input);
 }
-Option_struct String compileClassMember() {
+struct Option_struct String compileClassMember() {
 	return compileWhitespace(input).or(__lambda44__).or(__lambda45__).or(__lambda46__).or(__lambda47__).or(__lambda48__).or(__lambda49__).or(__lambda50__);
 }
 auto __lambda51__() {
@@ -1035,19 +1036,19 @@ auto __lambda51__() {
 auto __lambda52__(auto result) {
 	return "\t" + result + ";\n";
 }
-Option_struct String compileDefinitionStatement() {
+struct Option_struct String compileDefinitionStatement() {
 	struct String stripped = input.strip();
 	if (stripped.endsWith(";")) {
 		struct String content = stripped.substring(0, stripped.length() - ";".length());
 		return parseDefinition(content).flatMap(__lambda51__).map(__lambda52__);
 	}
-	return None_();
+	return struct None_();
 }
 auto __lambda53__(auto generated) {
 	globals.add(generated + ";\n");
 	return "";
 }
-Option_struct String compileGlobalInitialization() {
+struct Option_struct String compileGlobalInitialization() {
 	return compileInitialization(input, typeParams, 0).map(__lambda53__);
 }
 auto __lambda54__() {
@@ -1059,29 +1060,29 @@ auto __lambda55__(auto outputValue) {
 auto __lambda56__(auto outputDefinition) {
 	return compileValue(value, typeParams, depth).map(__lambda55__);
 }
-Option_struct String compileInitialization() {
+struct Option_struct String compileInitialization() {
 	if (!input.endsWith(";")) {
-		return None_();
+		return struct None_();
 	}
 	struct String withoutEnd = input.substring(0, input.length() - ";".length());
 	int valueSeparator = withoutEnd.indexOf("=");
 	if (valueSeparator < 0) {
-		return None_();
+		return struct None_();
 	}
 	struct String definition = withoutEnd.substring(0, valueSeparator).strip();
 	struct String value = withoutEnd.substring(valueSeparator + "=".length()).strip();
 	return parseDefinition(definition).flatMap(__lambda54__).flatMap(__lambda56__);
 }
-Option_struct String compileWhitespace() {
+struct Option_struct String compileWhitespace() {
 	if (input.isBlank()) {
-		return Some_("");
+		return struct Some_("");
 	}
-	return None_();
+	return struct None_();
 }
-Option_struct String compileMethod() {
+struct Option_struct String compileMethod() {
 	int paramStart = input.indexOf("(");
 	if (paramStart < 0) {
-		return None_();
+		return struct None_();
 	}
 	struct String inputDefinition = input.substring(0, paramStart).strip();
 	struct String withParams = input.substring(paramStart + "(".length());
@@ -1105,7 +1106,7 @@ auto __lambda58__() {
 auto __lambda59__(auto definition) {
 	return parseOr(definition, Impl.listOf(wrapDefaultFunction(__lambda57__), __lambda58__));
 }
-Function_struct String_Option_struct Node createParamRule() {
+struct Function_struct String_Option_struct Node createParamRule() {
 	return __lambda59__;
 }
 auto __lambda60__(auto param) {
@@ -1125,20 +1126,20 @@ auto __lambda64__() {
 }
 auto __lambda65__(auto outputContent) {
 	methods.add("\t".repeat(0) + asContent + "(" + mergeAllValues(params, Main::unwrapDefault) + ")" + " {" + outputContent + "\n}\n");
-	return Some_(entry);
+	return struct Some_(entry);
 }
 auto __lambda66__(auto output) {
 	struct String asContent = output.left;
 	struct String asType = output.right;
 	struct String entry = "\t" + asType + ";\n";
 	if (!body.startsWith("{") || !body.endsWith("}")) {
-		return Some_(entry);
+		return struct Some_(entry);
 	}
 	struct String inputContent = body.substring("{".length(), body.length() - "}".length());
 	return parseAllStatements(inputContent, wrapDefaultFunction(__lambda63__)).map(__lambda64__).flatMap(__lambda65__);
 }
-Option_struct String getStringOption() {
-	List__struct Node paramTypes = params.iter().map(__lambda60__).flatMap(__lambda61__).collect(ListCollector_());
+struct Option_struct String getStringOption() {
+	struct List__struct Node paramTypes = params.iter().map(__lambda60__).flatMap(__lambda61__).collect(struct ListCollector_());
 	struct String name = definition.findString("name").orElse("");
 	struct Node returns = definition.findNode("type").orElse(struct Node());
 	struct Node functionalDefinition = struct Node(/* ) */.retype("functional-definition").withString("name", /* name) */.withNode("returns", /* returns) */.withNodeList("params", paramTypes);
@@ -1147,7 +1148,7 @@ Option_struct String getStringOption() {
 auto __lambda67__() {
 	return struct Main.divideValueChar()
 }
-Option_List__struct Node parseAllValues() {
+struct Option_List__struct Node parseAllValues() {
 	return parseAll(divide(input, __lambda67__), rule);
 }
 struct State divideValueChar() {
@@ -1226,20 +1227,20 @@ auto __lambda84__() {
 auto __lambda85__() {
 	return generatePlaceholder(input);
 }
-Option_struct String compileStatementOrBlock() {
+struct Option_struct String compileStatementOrBlock() {
 	return compileWhitespace(input).or(__lambda69__).or(__lambda70__).or(__lambda71__).or(__lambda72__).or(__lambda73__).or(__lambda74__).or(__lambda75__).or(__lambda77__).or(__lambda79__).or(__lambda81__).or(__lambda83__).or(__lambda84__).or(__lambda85__);
 }
 auto __lambda86__(auto value) {
 	return value + operator + ";";
 }
-Option_struct String compilePostOperator() {
+struct Option_struct String compilePostOperator() {
 	struct String stripped = input.strip();
 	if (stripped.endsWith(operator + ";")) {
 		struct String slice = stripped.substring(0, stripped.length() -(operator + ";").length());
 		return compileValue(slice, typeParams, depth).map(__lambda86__);
 	}
 	else {
-		return None_();
+		return struct None_();
 	}
 }
 auto __lambda87__(auto statement) {
@@ -1254,7 +1255,7 @@ auto __lambda89__(auto result) {
 auto __lambda90__(auto result) {
 	return "else " + result;
 }
-Option_struct String compileElse() {
+struct Option_struct String compileElse() {
 	struct String stripped = input.strip();
 	if (stripped.startsWith("else ")) {
 		struct String withoutKeyword = stripped.substring("else ".length()).strip();
@@ -1266,14 +1267,14 @@ Option_struct String compileElse() {
 			return compileStatementOrBlock(withoutKeyword, typeParams, depth).map(__lambda90__);
 		}
 	}
-	return None_();
+	return struct None_();
 }
-Option_struct String compileKeywordStatement() {
+struct Option_struct String compileKeywordStatement() {
 	if (input.strip().equals(keyword + ";")) {
-		return Some_(formatStatement(depth, keyword));
+		return struct Some_(formatStatement(depth, keyword));
 	}
 	else {
-		return None_();
+		return struct None_();
 	}
 }
 struct String formatStatement() {
@@ -1306,19 +1307,19 @@ auto __lambda95__(auto newCondition) {
 		return compileStatementOrBlock(withBraces, typeParams, depth).map(__lambda94__);
 	}
 }
-Option_struct String compileConditional() {
+struct Option_struct String compileConditional() {
 	struct String stripped = input.strip();
 	if (!stripped.startsWith(prefix)) {
-		return None_();
+		return struct None_();
 	}
 	struct String afterKeyword = stripped.substring(prefix.length()).strip();
 	if (!afterKeyword.startsWith("(")) {
-		return None_();
+		return struct None_();
 	}
 	struct String withoutConditionStart = afterKeyword.substring(1);
 	int conditionEnd = findConditionEnd(withoutConditionStart);
 	if (conditionEnd < 0) {
-		return None_();
+		return struct None_();
 	}
 	struct String oldCondition = withoutConditionStart.substring(0, conditionEnd).strip();
 	struct String withBraces = withoutConditionStart.substring(conditionEnd + ")".length()).strip();
@@ -1327,9 +1328,9 @@ Option_struct String compileConditional() {
 int findConditionEnd() {
 	int conditionEnd = -1;
 	int depth0 = 0;
-	List__Tuple_int_struct Character queue = Iterators.fromStringWithIndices(input).collect(ListCollector_());
+	struct List__Tuple_int_struct Character queue = Iterators.fromStringWithIndices(input).collect(struct ListCollector_());
 	while (!queue.isEmpty()) {
-		Tuple_int_struct Character pair = queue.pop();
+		struct Tuple_int_struct Character pair = queue.pop();
 		int i = pair.left;
 		char c = pair.right;
 		if (c == '\'') {
@@ -1341,7 +1342,7 @@ int findConditionEnd() {
 		}
 		if (c == '"') {
 			while (!queue.isEmpty()) {
-				Tuple_int_struct Character next = queue.pop();
+				struct Tuple_int_struct Character next = queue.pop();
 				if (next.right == '\\') {
 					queue.pop();
 				}
@@ -1362,16 +1363,16 @@ int findConditionEnd() {
 	}
 	return conditionEnd;
 }
-Option_struct String compileInvocationStatement() {
+struct Option_struct String compileInvocationStatement() {
 	struct String stripped = input.strip();
 	if (stripped.endsWith(";")) {
 		struct String withoutEnd = stripped.substring(0, stripped.length() - ";".length());
-		Option_struct String maybeInvocation = compileInvocation(withoutEnd, typeParams, depth);
+		struct Option_struct String maybeInvocation = compileInvocation(withoutEnd, typeParams, depth);
 		if (maybeInvocation.isPresent()) {
 			return maybeInvocation;
 		}
 	}
-	return None_();
+	return struct None_();
 }
 auto __lambda96__(auto newSource) {
 			return newDest + " = " + newSource;
@@ -1379,7 +1380,7 @@ auto __lambda96__(auto newSource) {
 auto __lambda97__(auto newDest) {
 			return compileValue(source, typeParams, depth).map(__lambda96__);
 }
-Option_struct String compileAssignment() {
+struct Option_struct String compileAssignment() {
 	struct String stripped = input.strip();
 	if (stripped.endsWith(";")) {
 		struct String withoutEnd = stripped.substring(0, stripped.length() - ";".length());
@@ -1390,12 +1391,12 @@ Option_struct String compileAssignment() {
 			return compileValue(destination, typeParams, depth).flatMap(__lambda97__);
 		}
 	}
-	return None_();
+	return struct None_();
 }
 auto __lambda98__(auto result) {
 	return "return " + result;
 }
-Option_struct String compileReturn() {
+struct Option_struct String compileReturn() {
 	struct String stripped = input.strip();
 	if (stripped.endsWith(";")) {
 		struct String withoutEnd = stripped.substring(0, stripped.length() - ";".length());
@@ -1403,7 +1404,7 @@ Option_struct String compileReturn() {
 			return compileValue(withoutEnd.substring("return ".length()), typeParams, depth).map(__lambda98__);
 		}
 	}
-	return None_();
+	return struct None_();
 }
 auto __lambda99__() {
 	return struct Main.generateType()
@@ -1447,16 +1448,16 @@ auto __lambda111__() {
 auto __lambda112__() {
 	return generatePlaceholder(input);
 }
-Option_struct String compileValue() {
+struct Option_struct String compileValue() {
 	struct String stripped = input.strip();
 	if (stripped.startsWith("\"") && stripped.endsWith("\"")) {
-		return Some_(stripped);
+		return struct Some_(stripped);
 	}
 	if (stripped.startsWith("'") && stripped.endsWith("'")) {
-		return Some_(stripped);
+		return struct Some_(stripped);
 	}
 	if (isSymbol(stripped) || isNumber(stripped)) {
-		return Some_(stripped);
+		return struct Some_(stripped);
 	}
 	if (stripped.startsWith("new ")) {
 		struct String slice = stripped.substring("new ".length());
@@ -1473,11 +1474,11 @@ Option_struct String compileValue() {
 	if (stripped.startsWith("!")) {
 		return compileValue(stripped.substring(1), typeParams, depth).map(__lambda102__);
 	}
-	Option_struct String value = compileLambda(stripped, typeParams, depth);
+	struct Option_struct String value = compileLambda(stripped, typeParams, depth);
 	if (value.isPresent()) {
 		return value;
 	}
-	Option_struct String invocation = compileInvocation(input, typeParams, depth);
+	struct Option_struct String invocation = compileInvocation(input, typeParams, depth);
 	if (invocation.isPresent()) {
 		return invocation;
 	}
@@ -1503,10 +1504,10 @@ auto __lambda113__(auto rightResult) {
 auto __lambda114__(auto leftResult) {
 	return compileValue(right, typeParams, depth).map(__lambda113__);
 }
-Option_struct String compileOperator() {
+struct Option_struct String compileOperator() {
 	int operatorIndex = input.indexOf(operator);
 	if (operatorIndex < 0) {
-		return None_();
+		return struct None_();
 	}
 	struct String left = input.substring(0, operatorIndex);
 	struct String right = input.substring(operatorIndex + operator.length());
@@ -1530,22 +1531,22 @@ auto __lambda119__(auto result) {
 auto __lambda120__(auto newValue) {
 	return generateLambdaWithReturn(paramNames, "\n\treturn " + newValue + ";");
 }
-Option_struct String compileLambda() {
+struct Option_struct String compileLambda() {
 	int arrowIndex = input.indexOf("->");
 	if (arrowIndex < 0) {
-		return None_();
+		return struct None_();
 	}
-	struct String beforeArrow = input.substring(0, arrowIndex).strip();	List__struct String paramNames;
+	struct String beforeArrow = input.substring(0, arrowIndex).strip();	struct List__struct String paramNames;
 
 	if (isSymbol(beforeArrow)) {
 		paramNames = Impl.listOf(beforeArrow);
 	}else 
 	if (beforeArrow.startsWith("(") && beforeArrow.endsWith(")")) {
 		struct String inner = beforeArrow.substring(1, beforeArrow.length() - 1);
-		paramNames = splitByDelimiter(inner, ',').iter().map(__lambda115__).filter(__lambda116__).collect(ListCollector_());
+		paramNames = splitByDelimiter(inner, ',').iter().map(__lambda115__).filter(__lambda116__).collect(struct ListCollector_());
 	}
 	else {
-		return None_();
+		return struct None_();
 	}
 	struct String value = input.substring(arrowIndex + "->".length()).strip();
 	if (value.startsWith("{") && value.endsWith("}")) {
@@ -1557,12 +1558,12 @@ Option_struct String compileLambda() {
 auto __lambda121__(auto name) {
 	return "auto " + name;
 }
-Option_struct String generateLambdaWithReturn() {
+struct Option_struct String generateLambdaWithReturn() {
 	int current = counter;counter++;
 	struct String lambdaName = "__lambda" + current + "__";
 	struct String joinedLambdaParams = paramNames.iter().map(__lambda121__).collect(struct Joiner(", ")).orElse("");
 	methods.add("auto " + lambdaName + "(" + joinedLambdaParams + ")" + " {" + returnValue + "\n}\n");
-	return Some_(lambdaName);
+	return struct Some_(lambdaName);
 }
 auto __lambda122__(auto tuple) {
 	int index = tuple.left;
@@ -1578,7 +1579,7 @@ auto __lambda123__(auto value) {
 auto __lambda124__(auto caller) {
 			return compileArgs(withEnd, typeParams, depth).map(__lambda123__);
 }
-Option_struct String compileInvocation() {
+struct Option_struct String compileInvocation() {
 	struct String stripped = input.strip();
 	if (stripped.endsWith(")")) {
 		struct String sliced = stripped.substring(0, stripped.length() - ")".length());
@@ -1589,7 +1590,7 @@ Option_struct String compileInvocation() {
 			return compileValue(type, typeParams, depth).flatMap(__lambda124__);
 		}
 	}
-	return None_();
+	return struct None_();
 }
 int findInvocationStart() {
 	int argsStart = -1;
@@ -1623,7 +1624,7 @@ auto __lambda128__(auto compiled) {
 auto __lambda129__(auto args) {
 	return "(" + args + ")";
 }
-Option_struct String compileArgs() {
+struct Option_struct String compileArgs() {
 	return parseAllValues(argsString, wrapDefaultFunction(__lambda126__)).map(__lambda128__).map(__lambda129__);
 }
 struct StringBuilder mergeValues() {
@@ -1632,16 +1633,16 @@ struct StringBuilder mergeValues() {
 	}
 	return cache.append(", ").append(element);
 }
-Option_struct Node parseDefinition() {
+struct Option_struct Node parseDefinition() {
 	struct String stripped = definition.strip();
 	int nameSeparator = stripped.lastIndexOf(" ");
 	if (nameSeparator < 0) {
-		return None_();
+		return struct None_();
 	}
 	struct String beforeName = stripped.substring(0, nameSeparator).strip();
 	struct String name = stripped.substring(nameSeparator + " ".length()).strip();
 	if (!isSymbol(name)) {
-		return None_();
+		return struct None_();
 	}
 	struct Node withName = struct Node(/* ) */.withString("name", name);
 	return parseDefinitionWithName(beforeName, withName);
@@ -1654,7 +1655,7 @@ auto __lambda130__(auto typeSeparator) {
 auto __lambda131__() {
 	return parseDefinitionTypeProperty(withName, beforeName, Impl.listEmpty());
 }
-Option_struct Node parseDefinitionWithName() {
+struct Option_struct Node parseDefinitionWithName() {
 	return findTypeSeparator(beforeName).map(__lambda130__).orElseGet(__lambda131__);
 }
 auto __lambda132__() {
@@ -1663,7 +1664,7 @@ auto __lambda132__() {
 auto __lambda133__(auto node) {
 	return node.withNodeList("type-params", typeParamsNodes);
 }
-Option_struct Node parseDefinitionWithTypeSeparator() {
+struct Option_struct Node parseDefinitionWithTypeSeparator() {
 	if (!beforeType.endsWith(">")) {
 		return parseDefinitionWithNoTypeParams(withName, beforeType, type);
 	}
@@ -1674,28 +1675,28 @@ Option_struct Node parseDefinitionWithTypeSeparator() {
 	}
 	struct String beforeTypeParams = withoutEnd.substring(0, typeParamStart);
 	struct String substring = withoutEnd.substring(typeParamStart + 1);
-	List__struct String typeParamsStrings = splitValues(substring);
-	List__struct Node typeParamsNodes = typeParamsStrings.iter().map(__lambda132__).collect(ListCollector_());
+	struct List__struct String typeParamsStrings = splitValues(substring);
+	struct List__struct Node typeParamsNodes = typeParamsStrings.iter().map(__lambda132__).collect(struct ListCollector_());
 	int hasValidBeforeParams = validateLeft(beforeTypeParams);
 	if (!hasValidBeforeParams) {
-		return None_();
+		return struct None_();
 	}
 	return parseDefinitionTypeProperty(withName, type, typeParamsStrings).map(__lambda133__);
 }
 auto __lambda134__(auto outputType) {
 	return withName.withNode("type", outputType);
 }
-Option_struct Node parseDefinitionTypeProperty() {
+struct Option_struct Node parseDefinitionTypeProperty() {
 	return parseType(type, typeParams).map(__lambda134__);
 }
 auto __lambda135__(auto node) {
 	return node.withNodeList("type-params", typeParamsList);
 }
-Option_struct Node parseDefinitionWithNoTypeParams() {
+struct Option_struct Node parseDefinitionWithNoTypeParams() {
 	int hasValidBeforeParams = validateLeft(beforeType);
-	List__struct Node typeParamsList = Impl.listEmpty();
+	struct List__struct Node typeParamsList = Impl.listEmpty();
 	if (!hasValidBeforeParams) {
-		return None_();
+		return struct None_();
 	}
 	return parseDefinitionTypeProperty(withName, type, Impl.listEmpty()).map(__lambda135__);
 }
@@ -1738,17 +1739,17 @@ auto __lambda143__(auto inner) {
 auto __lambda144__() {
 	return struct Main.generateType()
 }
-Option_struct String generateDefinition() {
+struct Option_struct String generateDefinition() {
 	if (node.is("functional-definition")) {
 		struct String name = node.findString("name").orElse("");
 		struct String returns = generateType(node.findNode("returns").orElse(struct Node()));
 		struct String params = node.findNodeList("params").orElseGet(__lambda139__).iter().map(__lambda140__).collect(struct Joiner(", ")).orElse("");
-		return Some_(returns + " (*" + name + ")(" + params + ")");
+		return struct Some_(returns + " (*" + name + ")(" + params + ")");
 	}
 	struct String typeParamsString = node.findNodeList("type-params").orElseGet(__lambda141__).iter().map(__lambda142__).collect(struct Joiner(", ")).map(__lambda143__).orElse("");
 	struct String type = node.findNode("type").map(__lambda144__).orElse("");
 	struct String name = node.findString("name").orElse("name");
-	return Some_(typeParamsString + type + " " + name);
+	return struct Some_(typeParamsString + type + " " + name);
 }
 struct String unwrapDefault() {
 	return value.findString("value").orElse("");
@@ -1756,13 +1757,13 @@ struct String unwrapDefault() {
 struct Node wrapDefault() {
 	return struct Node(/* ) */.withString("value", typeParam);
 }
-Option_int findTypeSeparator() {
+struct Option_int findTypeSeparator() {
 	int depth = 0;
 	int index = beforeName.length() - 1;
 	while (index >= 0) {
 		char c = beforeName.charAt(index);
 		if (c == ' ' && depth == 0) {
-			return Some_(index);
+			return struct Some_(index);
 		}
 		else {
 			if (c == '>') {depth++;
@@ -1771,7 +1772,7 @@ Option_int findTypeSeparator() {
 			}
 		}index--;
 	}
-	return None_();
+	return struct None_();
 }
 auto __lambda145__() {
 	return struct String.strip()
@@ -1779,8 +1780,8 @@ auto __lambda145__() {
 auto __lambda146__(auto param) {
 	return !param.isEmpty();
 }
-List__struct String splitValues() {
-	return splitByDelimiter(substring.strip(), ',').iter().map(__lambda145__).filter(__lambda146__).collect(ListCollector_());
+struct List__struct String splitValues() {
+	return splitByDelimiter(substring.strip(), ',').iter().map(__lambda145__).filter(__lambda146__).collect(struct ListCollector_());
 }
 auto __lambda147__() {
 	return struct Node.equalsTo()
@@ -1791,7 +1792,7 @@ auto __lambda148__(auto param) {
 struct String generateType() {
 	if (node.is("generic")) {
 		if (!Lists.contains(expansions, node, __lambda147__)) {
-			List__struct Node params = node.findNodeList("type-params").orElse(Impl.listEmpty()).iter().filter(__lambda148__).collect(ListCollector_());
+			struct List__struct Node params = node.findNodeList("type-params").orElse(Impl.listEmpty()).iter().filter(__lambda148__).collect(struct ListCollector_());
 			if (!params.isEmpty()) {
 				expansions = expansions.add(node);
 			}
@@ -1800,7 +1801,7 @@ struct String generateType() {
 	}
 	return unwrapDefault(node);
 }
-Option_struct Node parseType() {
+struct Option_struct Node parseType() {
 	return parseOr(input, listTypeRules(typeParams));
 }
 auto __lambda149__(auto function) {
@@ -1809,7 +1810,7 @@ auto __lambda149__(auto function) {
 auto __lambda150__() {
 	return struct Iterators.fromOption()
 }
-Option_struct Node parseOr() {
+struct Option_struct Node parseOr() {
 	return rules.iter().map(__lambda149__).flatMap(__lambda150__).next();
 }
 auto __lambda151__() {
@@ -1821,10 +1822,10 @@ auto __lambda152__(auto input) {
 auto __lambda153__(auto input) {
 	return compileSymbol(input, typeParams);
 }
-List__Function_struct String_Option_struct Node listTypeRules() {
+struct List__Function_struct String_Option_struct Node listTypeRules() {
 	return Impl.listOf(wrapDefaultFunction(__lambda151__), wrapDefaultFunction(__lambda152__), wrapDefaultFunction(__lambda153__), parseGeneric(typeParams));
 }
-Function_struct String_Option_struct Node parseGeneric() {/* 
+struct Function_struct String_Option_struct Node parseGeneric() {/* 
         return input -> {
             String stripped = input.strip();
             if (!stripped.endsWith(">")) {
@@ -1860,8 +1861,11 @@ auto __lambda154__(auto value) {
 auto __lambda155__(auto input) {
 	return mapper.apply(input).map(__lambda154__);
 }
-Function_struct String_Option_struct Node parseWithType() {
+struct Function_struct String_Option_struct Node parseWithType() {
 	return __lambda155__;
+}
+struct String generateGeneric() {
+	return "struct " + stringify(node);
 }
 auto __lambda156__() {
 	return struct Main.wrapDefault()
@@ -1869,20 +1873,20 @@ auto __lambda156__() {
 auto __lambda157__(auto input) {
 	return mapper.apply(input).map(__lambda156__);
 }
-Function_struct String_Option_struct Node wrapDefaultFunction() {
+struct Function_struct String_Option_struct Node wrapDefaultFunction() {
 	return __lambda157__;
 }
-Option_struct String compilePrimitive() {
+struct Option_struct String compilePrimitive() {
 	if (input.equals("void")) {
-		return Some_("void");
+		return struct Some_("void");
 	}
 	if (input.equals("int") || input.equals("Integer") || input.equals("boolean") || input.equals("Boolean")) {
-		return Some_("int");
+		return struct Some_("int");
 	}
 	if (input.equals("char") || input.equals("Character")) {
-		return Some_("char");
+		return struct Some_("char");
 	}
-	return None_();
+	return struct None_();
 }
 auto __lambda158__() {
 	return struct Main.generateType()
@@ -1890,25 +1894,25 @@ auto __lambda158__() {
 auto __lambda159__(auto value) {
 	return value + "*";
 }
-Option_struct String compileArray() {
+struct Option_struct String compileArray() {
 	if (input.endsWith("[]")) {
 		return parseType(input.substring(0, input.length() - "[]".length()), typeParams).map(__lambda158__).map(__lambda159__);
 	}
-	return None_();
+	return struct None_();
 }
 auto __lambda160__() {
 	return struct String.equals()
 }
-Option_struct String compileSymbol() {
+struct Option_struct String compileSymbol() {
 	struct String stripped = input.strip();
 	if (!isSymbol(stripped)) {
-		return None_();
+		return struct None_();
 	}
 	if (Lists.contains(typeParams, stripped, __lambda160__)) {
-		return Some_(stripped);
+		return struct Some_(stripped);
 	}
 	else {
-		return Some_("struct " + stripped);
+		return struct Some_("struct " + stripped);
 	}
 }
 auto __lambda161__(auto tuple) {
@@ -1922,6 +1926,6 @@ int isSymbol() {
 	}
 	return Iterators.fromStringWithIndices(input).allMatch(__lambda161__);
 }
-Option_struct String generatePlaceholder() {
-	return Some_("/* " + input + " */");
+struct Option_struct String generatePlaceholder() {
+	return struct Some_("/* " + input + " */");
 }
