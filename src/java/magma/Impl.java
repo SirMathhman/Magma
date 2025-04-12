@@ -37,7 +37,7 @@ public class Impl {
 
         @Override
         public Main.Path_ resolveSibling(Main.String_ sibling) {
-            return this.resolveSibling0(Impl.toNativeString(sibling));
+            return this.resolveSibling0(Impl.fromString(sibling));
         }
     }
 
@@ -131,6 +131,13 @@ public class Impl {
         public Main.Iterator<K> iterKeys() {
             return new JavaList<>(new ArrayList<>(this.internalMap.keySet())).iter();
         }
+
+        @Override
+        public Main.Iterator<Main.Tuple<K, V>> iter() {
+            return new JavaList<>(new ArrayList<>(this.internalMap.entrySet()))
+                    .iter()
+                    .map(entry -> new Main.Tuple<>(entry.getKey(), entry.getValue()));
+        }
     }
 
     public static final class JavaString implements Main.String_ {
@@ -143,6 +150,11 @@ public class Impl {
         @Override
         public char[] toCharArray() {
             return this.value.toCharArray();
+        }
+
+        @Override
+        public boolean equalsTo(Main.String_ other) {
+            return Impl.fromString(this).equals(Impl.fromString(other));
         }
     }
 
@@ -186,11 +198,11 @@ public class Impl {
         return new JavaMap<>();
     }
 
-    public static String toNativeString(Main.String_ string) {
+    public static String fromString(Main.String_ string) {
         return new String(string.toCharArray());
     }
 
-    public static Main.String_ fromNativeString(String value) {
+    public static Main.String_ toString(String value) {
         return new JavaString(value);
     }
 }
