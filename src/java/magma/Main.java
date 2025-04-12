@@ -246,7 +246,7 @@ public class Main {
 
         @Override
         public T orElseGet(Supplier<T> other) {
-            return value;
+            return this.value;
         }
     }
 
@@ -1157,7 +1157,7 @@ public class Main {
     }
 
     private static Option<String> compileDefinitionWithoutTypeSeparator(String beforeName, String name) {
-        return compileType(beforeName, Impl.emptyList()).flatMap(outputType -> getStringSome(outputType, Impl.emptyList(), name));
+        return compileType(beforeName, Impl.emptyList()).flatMap(outputType -> generateDefinition(Impl.emptyList(), outputType, name));
     }
 
     private static Option<String> compileDefinitionWithTypeSeparator(Integer typeSeparator, String beforeName, String name) {
@@ -1203,11 +1203,16 @@ public class Main {
         }
 
         String inputType = beforeName.substring(typeSeparator + " ".length());
-        return compileType(inputType, typeParams).flatMap(outputType -> getStringSome(outputType, typeParams, name));
+        return compileType(inputType, typeParams).flatMap(outputType -> generateDefinition(typeParams, outputType, name));
     }
 
-    private static Option<String> getStringSome(String outputType, List_<String> typeParams, String name) {
-        return new Some<>(generateDefinition(typeParams, outputType, name));
+    private static Option<String> generateDefinition(List_<String> typeParams, String type, String name) {
+        String typeParamsString = typeParams.iter()
+                .collect(new Joiner(", "))
+                .map(inner -> "<" + inner + "> ")
+                .orElse("");
+
+        return new Some<>(typeParamsString + type + " " + name);
     }
 
     private static Option<Integer> findTypeSeparator(String beforeName) {
@@ -1237,15 +1242,6 @@ public class Main {
                 .map(String::strip)
                 .filter(param -> !param.isEmpty())
                 .collect(new ListCollector<>());
-    }
-
-    private static String generateDefinition(List_<String> maybeTypeParams, String type, String name) {
-        String typeParamsString = maybeTypeParams.iter()
-                .collect(new Joiner(", "))
-                .map(inner -> "<" + inner + "> ")
-                .orElse("");
-
-        return typeParamsString + type + " " + name;
     }
 
     private static Option<String> compileType(String input, List_<String> typeParams) {
