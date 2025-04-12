@@ -1,5 +1,7 @@
 package magma;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -89,6 +91,12 @@ public class Main {
         Path_ resolveSibling(String sibling);
 
         List_<String> listNames();
+    }
+
+    private interface Map_<K, V> {
+        Map_<K, V> with(K key, V value);
+
+        Option<V> find(K key);
     }
 
     public record Err<T, X>(X error) implements Result<T, X> {
@@ -405,6 +413,57 @@ public class Main {
 
             this.retrieved = true;
             return new Some<>(this.value);
+        }
+    }
+
+    private static class Maps {
+        private record JavaMap<K, V>(Map<K, V> internalMap) implements Map_<K, V> {
+            public JavaMap() {
+                this(new HashMap<>());
+            }
+
+            @Override
+            public Map_<K, V> with(K key, V value) {
+                HashMap<K, V> copy = new HashMap<>(this.internalMap);
+                copy.put(key, value);
+                return new JavaMap<>(copy);
+            }
+
+            @Override
+            public Option<V> find(K key) {
+                if (this.internalMap.containsKey(key)) {
+                    return new Some<>(this.internalMap.get(key));
+                }
+                else {
+                    return new None<>();
+                }
+            }
+        }
+
+        public static <K, V> Map_<K, V> empty() {
+            return new JavaMap<>();
+        }
+    }
+
+    private record Node(Map_<String, String> strings, Map_<String, List_<Node>> nodeLists) {
+        public Node() {
+            this(Maps.empty(), Maps.empty());
+        }
+
+        public Node withString(String propertyKey, String propertyValue) {
+            return new Node(this.strings.with(propertyKey, propertyValue), this.nodeLists);
+        }
+
+        public Node withNodeList(String propertyKey, List_<Node> propertyValues) {
+            return new Node(this.strings, this.nodeLists.with(propertyKey, propertyValues));
+        }
+
+        public Option<List_<Node>> findNodeList(String propertyKey) {
+            return this.nodeLists.find(propertyKey);
+        }
+
+        public Option<String> findString(String propertyKey) {
+            return this.strings.find(propertyKey);
         }
     }
 
@@ -1157,7 +1216,12 @@ public class Main {
     }
 
     private static Option<String> compileDefinitionWithoutTypeSeparator(String beforeName, String name) {
-        return compileType(beforeName, Impl.emptyList()).flatMap(outputType -> generateDefinition(Impl.emptyList(), outputType, name));
+        return compileType(beforeName, Impl.emptyList()).flatMap(outputType -> {
+            return generateDefinition(new Node()
+                    .withString("type", outputType)
+                    .withString("name", name));
+
+        });
     }
 
     private static Option<String> compileDefinitionWithTypeSeparator(Integer typeSeparator, String beforeName, String name) {
@@ -1203,16 +1267,37 @@ public class Main {
         }
 
         String inputType = beforeName.substring(typeSeparator + " ".length());
-        return compileType(inputType, typeParams).flatMap(outputType -> generateDefinition(typeParams, outputType, name));
+        return compileType(inputType, typeParams).flatMap(outputType -> {
+            final List_<Node> typeParamsList = typeParams.iter()
+                    .map(Main::wrapDefault)
+                    .collect(new ListCollector<>());
+
+            return generateDefinition(new Node().withNodeList("type-params", typeParamsList)
+                    .withString("type", outputType)
+                    .withString("name", name));
+        });
     }
 
-    private static Option<String> generateDefinition(List_<String> typeParams, String type, String name) {
-        String typeParamsString = typeParams.iter()
+    private static Option<String> generateDefinition(Node node) {
+        String typeParamsString = node.findNodeList("type-params")
+                .orElseGet(Impl::emptyList)
+                .iter()
+                .map(Main::unwrapDefault)
                 .collect(new Joiner(", "))
                 .map(inner -> "<" + inner + "> ")
                 .orElse("");
 
+        String type = node.findString("type").orElse("");
+        String name = node.findString("name").orElse("name");
         return new Some<>(typeParamsString + type + " " + name);
+    }
+
+    private static String unwrapDefault(Node value) {
+        return value.findString("value").orElse("");
+    }
+
+    private static Node wrapDefault(String typeParam) {
+        return new Node().withString("value", typeParam);
     }
 
     private static Option<Integer> findTypeSeparator(String beforeName) {

@@ -1,3 +1,5 @@
+#include "./java/util/HashMap"
+#include "./java/util/Map"
 struct IOError {
 	struct String display();
 };
@@ -863,7 +865,7 @@ Option<struct String> compileDefinition(struct String definition) {
 	return findTypeSeparator(beforeName).map(__lambda90__).orElseGet(__lambda91__);
 }
 auto __lambda92__(auto outputType) {
-	return getStringSome(outputType, Impl.emptyList(), name);
+	return generateDefinition(struct Node(/* ) */.withString("type", /* outputType) */.withString("name", name));
 }
 Option<struct String> compileDefinitionWithoutTypeSeparator(struct String beforeName, struct String name) {
 	return compileType(beforeName, Impl.emptyList()).flatMap(__lambda92__);
@@ -877,8 +879,12 @@ auto __lambda94__(auto value) {
 auto __lambda95__() {
 	return struct Main.isSymbol()
 }
-auto __lambda96__(auto outputType) {
-	return getStringSome(outputType, typeParams, name);
+auto __lambda96__() {
+	return struct Main.wrapDefault()
+}
+auto __lambda97__(auto outputType) {
+	List_<struct Node> typeParamsList = typeParams.iter().map(__lambda96__).collect(ListCollector<>());
+	return generateDefinition(struct Node(/* ) */.withNodeList("type-params", /* typeParamsList) */.withString("type", /* outputType) */.withString("name", name));
 }
 Option<struct String> compileDefinitionWithTypeSeparator(int typeSeparator, struct String beforeName, struct String name) {
 	struct String beforeType = beforeName.substring(0, typeSeparator).strip();
@@ -913,10 +919,28 @@ Option<struct String> compileDefinitionWithTypeSeparator(int typeSeparator, stru
 		return None<>();
 	}
 	struct String inputType = beforeName.substring(typeSeparator + " ".length());
-	return compileType(inputType, typeParams).flatMap(__lambda96__);
+	return compileType(inputType, typeParams).flatMap(__lambda97__);
 }
-Option<struct String> getStringSome(struct String outputType, List_<struct String> typeParams, struct String name) {
-	return Some<>(generateDefinition(typeParams, outputType, name));
+auto __lambda98__() {
+	return struct Impl.emptyList()
+}
+auto __lambda99__() {
+	return struct Main.unwrapDefault()
+}
+auto __lambda100__(auto inner) {
+	return "<" + inner + "> ";
+}
+Option<struct String> generateDefinition(struct Node node) {
+	struct String typeParamsString = node.findNodeList("type-params").orElseGet(__lambda98__).iter().map(__lambda99__).collect(struct Joiner(", ")).map(__lambda100__).orElse("");
+	struct String type = node.findString("type").orElse("");
+	struct String name = node.findString("name").orElse("name");
+	return Some<>(typeParamsString + type + " " + name);
+}
+struct String unwrapDefault(struct Node value) {
+	return value.findString("value").orElse("");
+}
+struct Node wrapDefault(struct String typeParam) {
+	return struct Node(/* ) */.withString("value", typeParam);
 }
 Option<int> findTypeSeparator(struct String beforeName) {
 	int depth = 0;
@@ -935,35 +959,28 @@ Option<int> findTypeSeparator(struct String beforeName) {
 	}
 	return None<>();
 }
-auto __lambda97__() {
+auto __lambda101__() {
 	return struct String.strip()
 }
-auto __lambda98__(auto param) {
+auto __lambda102__(auto param) {
 	return !param.isEmpty();
 }
 List_<struct String> splitValues(struct String substring) {
-	return splitByDelimiter(substring.strip(), ',').iter().map(__lambda97__).filter(__lambda98__).collect(ListCollector<>());
+	return splitByDelimiter(substring.strip(), ',').iter().map(__lambda101__).filter(__lambda102__).collect(ListCollector<>());
 }
-auto __lambda99__(auto inner) {
-	return "<" + inner + "> ";
-}
-struct String generateDefinition(List_<struct String> maybeTypeParams, struct String type, struct String name) {
-	struct String typeParamsString = maybeTypeParams.iter().collect(struct Joiner(", ")).map(__lambda99__).orElse("");
-	return typeParamsString + type + " " + name;
-}
-auto __lambda100__(auto value) {
+auto __lambda103__(auto value) {
 	return value + "*";
 }
-auto __lambda101__() {
+auto __lambda104__() {
 	return struct String.equals()
 }
-auto __lambda102__() {
+auto __lambda105__() {
 	return compileType(type, typeParams);
 }
-auto __lambda103__(auto type) {
-			return compileWhitespace(type).or(__lambda102__);
+auto __lambda106__(auto type) {
+			return compileWhitespace(type).or(__lambda105__);
 }
-auto __lambda104__(auto compiled) {
+auto __lambda107__(auto compiled) {
 			return base + " < " + compiled + ">";
 }
 Option<struct String> compileType(struct String input, List_<struct String> typeParams) {
@@ -977,11 +994,11 @@ Option<struct String> compileType(struct String input, List_<struct String> type
 		return Some<>("char");
 	}
 	if (input.endsWith("[]")) {
-		return compileType(input.substring(0, input.length() - "[]".length()), typeParams).map(__lambda100__);
+		return compileType(input.substring(0, input.length() - "[]".length()), typeParams).map(__lambda103__);
 	}
 	struct String stripped = input.strip();
 	if (isSymbol(stripped)) {
-		if (Impl.contains(typeParams, stripped, __lambda101__)) {
+		if (Impl.contains(typeParams, stripped, __lambda104__)) {
 			return Some<>(stripped);
 		}
 		else {
@@ -994,12 +1011,12 @@ Option<struct String> compileType(struct String input, List_<struct String> type
 		if (argsStart >= 0) {
 			struct String base = slice.substring(0, argsStart).strip();
 			struct String params = slice.substring(argsStart + " < ".length()).strip();
-			return compileValues(params, __lambda103__).map(__lambda104__);
+			return compileValues(params, __lambda106__).map(__lambda107__);
 		}
 	}
 	return generatePlaceholder(input);
 }
-auto __lambda105__(auto tuple) {
+auto __lambda108__(auto tuple) {
 	int index = tuple.left;
 	char c = tuple.right;
 	return c == '_' || Character.isLetter(c) ||(index != 0 && Character.isDigit(c));
@@ -1008,7 +1025,7 @@ int isSymbol(struct String input) {
 	if (input.isBlank()) {
 		return false;
 	}
-	return Iterators.fromStringWithIndices(input).allMatch(__lambda105__);
+	return Iterators.fromStringWithIndices(input).allMatch(__lambda108__);
 }
 Option<struct String> generatePlaceholder(struct String input) {
 	return Some<>("/* " + input + " */");
