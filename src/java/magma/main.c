@@ -1,26 +1,30 @@
 typedef struct IOError IOError;
 typedef struct Path_ Path_;
 typedef struct String_ String_;
+typedef struct Node Node;
 typedef struct State State;
 typedef struct Joiner Joiner;
 typedef struct RangeHead RangeHead;
 typedef struct Iterators Iterators;
-typedef struct Node Node;
+typedef struct MapNode MapNode;
 typedef struct Lists Lists;
 typedef struct Options Options;
 typedef struct Maps Maps;
 typedef struct Main Main;
 typedef struct List__String List__String;
-typedef struct List__char List__char;
+typedef struct List__Node List__Node;
+typedef struct Option_List__Node Option_List__Node;
 typedef struct Option_String Option_String;
+typedef struct Option_Node Option_Node;
+typedef struct Map__String_List__Node Map__String_List__Node;
+typedef struct Map__String_Node Map__String_Node;
+typedef struct Map__String_String Map__String_String;
+typedef struct List__char List__char;
 typedef struct Option_int Option_int;
 typedef struct Iterator_T Iterator_T;
 typedef struct Iterator_char Iterator_char;
 typedef struct Iterator_Tuple_int_Character Iterator_Tuple_int_Character;
 typedef struct Option_T Option_T;
-typedef struct List__Node List__Node;
-typedef struct Option_List__Node Option_List__Node;
-typedef struct Option_Node Option_Node;
 typedef struct List__T List__T;
 typedef struct Map__K_V Map__K_V;
 typedef struct Map__String_Function_Node_String Map__String_Function_Node_String;
@@ -31,16 +35,19 @@ typedef struct List__Tuple_int_Character List__Tuple_int_Character;
 typedef struct Tuple_int_Character Tuple_int_Character;
 typedef struct List__Function_String_Option_Node List__Function_String_Option_Node;
 // List__String
-// List__char
+// List__Node
+// Option_List__Node
 // Option_String
+// Option_Node
+// Map__String_List__Node
+// Map__String_Node
+// Map__String_String
+// List__char
 // Option_int
 // Iterator_T
 // Iterator_char
 // Iterator_Tuple_int_Character
 // Option_T
-// List__Node
-// Option_List__Node
-// Option_Node
 // List__T
 // BiFunction_T_T_Boolean
 // Map__K_V
@@ -67,6 +74,21 @@ struct Path_ {
 };
 struct String_ {
 	char* (*toCharArray)();
+};
+struct Node {
+	Node (*withString)(String, String);
+	Node (*withNodeList)(String, List__Node);
+	Option_List__Node (*findNodeList)(String);
+	Option_String (*findString)(String);
+	Node (*withNode)(String, Node);
+	Option_Node (*findNode)(String);
+	int (*is)(String);
+	Node (*retype)(String);
+	int (*equalsTo)(Node);
+	int (*hasSameNodeLists)(Node, Map__String_List__Node);
+	int (*hasSameNodes)(Map__String_Node);
+	int (*hasSameStrings)(Map__String_String);
+	int (*hasSameTypes)(Option_String);
 };
 struct State {
 	List__char queue;
@@ -100,8 +122,8 @@ struct Iterators {
 	Iterator_Tuple_int_Character (*fromStringWithIndices)(String);
 	Iterator_T (*fromOption)(Option_T);
 };
-struct Node {
-	public (*Node)();
+struct MapNode {
+	public (*MapNode)();
 	Node (*withString)(String, String);
 	Node (*withNodeList)(String, List__Node);
 	Option_List__Node (*findNodeList)(String);
@@ -112,6 +134,10 @@ struct Node {
 	Node (*retype)(String);
 	int (*equalsTo)(Node);
 	int (*isABoolean)(List__Node, List__Node);
+	int (*hasSameNodeLists)(Node, Map__String_List__Node);
+	int (*hasSameNodes)(Map__String_Node);
+	int (*hasSameStrings)(Map__String_String);
+	int (*hasSameTypes)(Option_String);
 };
 struct Lists {
 	int (*contains)(List__T, T, BiFunction_T_T_Boolean);
@@ -145,6 +171,8 @@ struct Main {
 	void (*main)(String*);
 	Option_IOError (*compileAndWrite)(String, Path_);
 	String (*compile)(String);
+	List__String (*getStringList)(List__String);
+	String (*getString)(Node);
 	String (*mergeAllStatements)(List__Node);
 	Option_List__Node (*parseAllStatements)(String, Function_String_Option_Node);
 	List__String (*divideAllStatements)(String);
@@ -229,7 +257,7 @@ struct List__String {
 	List__T (*slice)(int, int);
 	T (*get)(int);
 };
-struct List__char {
+struct List__Node {
 	List__T (*add)(T);
 	List__T (*addAll)(List__T);
 	Iterator_T (*iter)();
@@ -240,6 +268,18 @@ struct List__char {
 	int (*size)();
 	List__T (*slice)(int, int);
 	T (*get)(int);
+};
+struct Option_List__Node {
+	Option_R (*map)(Function_T_R);
+	T (*orElse)(T);
+	int (*isPresent)();
+	int (*isEmpty)();
+	void (*ifPresent)(Consumer_T);
+	Option_T (*or)(Supplier_Option_T);
+	Option_R (*flatMap)(Function_T_Option_R);
+	T (*orElseGet)(Supplier_T);
+	Option_T (*filter)(Predicate_T);
+	Option_Tuple_T_R (*and)(Supplier_Option_R);
 };
 struct Option_String {
 	Option_R (*map)(Function_T_R);
@@ -252,6 +292,45 @@ struct Option_String {
 	T (*orElseGet)(Supplier_T);
 	Option_T (*filter)(Predicate_T);
 	Option_Tuple_T_R (*and)(Supplier_Option_R);
+};
+struct Option_Node {
+	Option_R (*map)(Function_T_R);
+	T (*orElse)(T);
+	int (*isPresent)();
+	int (*isEmpty)();
+	void (*ifPresent)(Consumer_T);
+	Option_T (*or)(Supplier_Option_T);
+	Option_R (*flatMap)(Function_T_Option_R);
+	T (*orElseGet)(Supplier_T);
+	Option_T (*filter)(Predicate_T);
+	Option_Tuple_T_R (*and)(Supplier_Option_R);
+};
+struct Map__String_List__Node {
+	Map__K_V (*with)(K, V);
+	Option_V (*find)(K);
+	Iterator_K (*iterKeys)();
+};
+struct Map__String_Node {
+	Map__K_V (*with)(K, V);
+	Option_V (*find)(K);
+	Iterator_K (*iterKeys)();
+};
+struct Map__String_String {
+	Map__K_V (*with)(K, V);
+	Option_V (*find)(K);
+	Iterator_K (*iterKeys)();
+};
+struct List__char {
+	List__T (*add)(T);
+	List__T (*addAll)(List__T);
+	Iterator_T (*iter)();
+	Option_Tuple_T_List__T (*popFirst)();
+	T (*pop)();
+	int (*isEmpty)();
+	T (*peek)();
+	int (*size)();
+	List__T (*slice)(int, int);
+	T (*get)(int);
 };
 struct Option_int {
 	Option_R (*map)(Function_T_R);
@@ -302,42 +381,6 @@ struct Iterator_Tuple_int_Character {
 	Iterator_R (*flatMap)(Function_T_Iterator_R);
 };
 struct Option_T {
-	Option_R (*map)(Function_T_R);
-	T (*orElse)(T);
-	int (*isPresent)();
-	int (*isEmpty)();
-	void (*ifPresent)(Consumer_T);
-	Option_T (*or)(Supplier_Option_T);
-	Option_R (*flatMap)(Function_T_Option_R);
-	T (*orElseGet)(Supplier_T);
-	Option_T (*filter)(Predicate_T);
-	Option_Tuple_T_R (*and)(Supplier_Option_R);
-};
-struct List__Node {
-	List__T (*add)(T);
-	List__T (*addAll)(List__T);
-	Iterator_T (*iter)();
-	Option_Tuple_T_List__T (*popFirst)();
-	T (*pop)();
-	int (*isEmpty)();
-	T (*peek)();
-	int (*size)();
-	List__T (*slice)(int, int);
-	T (*get)(int);
-};
-struct Option_List__Node {
-	Option_R (*map)(Function_T_R);
-	T (*orElse)(T);
-	int (*isPresent)();
-	int (*isEmpty)();
-	void (*ifPresent)(Consumer_T);
-	Option_T (*or)(Supplier_Option_T);
-	Option_R (*flatMap)(Function_T_Option_R);
-	T (*orElseGet)(Supplier_T);
-	Option_T (*filter)(Predicate_T);
-	Option_Tuple_T_R (*and)(Supplier_Option_R);
-};
-struct Option_Node {
 	Option_R (*map)(Function_T_R);
 	T (*orElse)(T);
 	int (*isPresent)();
@@ -523,14 +566,14 @@ auto __lambda3__() {
 <T> Iterator_T fromOption() {
 	return HeadedIterator_(option.<Head<T>>map(__lambda2__).orElseGet(__lambda3__));
 }
-public Node() {
+public MapNode() {
 	this(None_(), Impl.mapEmpty(), Impl.mapEmpty(), Impl.mapEmpty());
 }
 Node withString() {
-	return Node(this.type, this.strings.with(propertyKey, propertyValue), this.nodes, this.nodeLists);
+	return MapNode(this.type, this.strings.with(propertyKey, propertyValue), this.nodes, this.nodeLists);
 }
 Node withNodeList() {
-	return Node(this.type, this.strings, this.nodes, this.nodeLists.with(propertyKey, propertyValues));
+	return MapNode(this.type, this.strings, this.nodes, this.nodeLists.with(propertyKey, propertyValues));
 }
 Option_List__Node findNodeList() {
 	return this.nodeLists.find(propertyKey);
@@ -539,7 +582,7 @@ Option_String findString() {
 	return this.strings.find(propertyKey);
 }
 Node withNode() {
-	return Node(this.type, this.strings, this.nodes.with(propertyKey, propertyValue), this.nodeLists);
+	return MapNode(this.type, this.strings, this.nodes.with(propertyKey, propertyValue), this.nodeLists);
 }
 Option_Node findNode() {
 	return this.nodes.find(propertyKey);
@@ -551,16 +594,29 @@ int is() {
 	return this.type.filter(__lambda4__).isPresent();
 }
 Node retype() {
-	return Node(Some_(type), this.strings, this.nodes, this.nodeLists);
+	return MapNode(Some_(type), this.strings, this.nodes, this.nodeLists);
+}
+int equalsTo() {
+	int hasSameType = other.hasSameTypes(this.type);
+	int hasSameStrings = other.hasSameStrings(this.strings);
+	int hasSameNodes = other.hasSameNodes(this.nodes);
+	int hasSameNodeLists = other.hasSameNodeLists(this, this.nodeLists);
+	return hasSameType && hasSameStrings && hasSameNodes && hasSameNodeLists;
 }
 auto __lambda5__() {
-	return String.equals()
+	return Node.equalsTo()
+}
+int isABoolean() {
+	return Lists.equalsTo(nodeList, nodeList2, __lambda5__);
 }
 auto __lambda6__() {
 	return String.equals()
 }
 auto __lambda7__() {
-	return String.equals()
+	return MapNode.isABoolean()
+}
+int hasSameNodeLists() {
+	return Maps.equalsTo(this.nodeLists, nodeLists, __lambda6__, __lambda7__);
 }
 auto __lambda8__() {
 	return String.equals()
@@ -568,24 +624,23 @@ auto __lambda8__() {
 auto __lambda9__() {
 	return Node.equals()
 }
+int hasSameNodes() {
+	return Maps.equalsTo(this.nodes, nodes, __lambda8__, __lambda9__);
+}
 auto __lambda10__() {
 	return String.equals()
 }
 auto __lambda11__() {
-	return this.isABoolean()
+	return String.equals()
 }
-int equalsTo() {
-	int hasSameType = Options.equalsTo(this.type, other.type, __lambda5__);
-	int hasSameStrings = Maps.equalsTo(this.strings, other.strings, __lambda6__, __lambda7__);
-	int hasSameNodes = Maps.equalsTo(this.nodes, other.nodes, __lambda8__, __lambda9__);
-	int hasSameNodeLists = Maps.equalsTo(this.nodeLists, other.nodeLists, __lambda10__, __lambda11__);
-	return hasSameType && hasSameStrings && hasSameNodes && hasSameNodeLists;
+int hasSameStrings() {
+	return Maps.equalsTo(this.strings, strings, __lambda10__, __lambda11__);
 }
 auto __lambda12__() {
-	return Node.equalsTo()
+	return String.equals()
 }
-int isABoolean() {
-	return Lists.equalsTo(nodeList, nodeList2, __lambda12__);
+int hasSameTypes() {
+	return Options.equalsTo(this.type, type, __lambda12__);
 }
 auto __lambda13__(auto child) {
 	return equator.apply(child, element);
@@ -662,30 +717,36 @@ auto __lambda22__() {
 auto __lambda23__(auto list1) {
 	return list1.iter().map(__lambda22__).collect(ListCollector_());
 }
-auto __lambda24__(auto nodeOptionFunction) {
-	return nodeOptionFunction.apply(expansion);
+auto __lambda24__() {
+	return Main.getStringList()
 }
-auto __lambda25__(auto expansion) {
-	String comment = "// " + generateGeneric(expansion) + "\n";
-	String base = generators.find(expansion.findString("base").orElse("")).map(__lambda24__).orElse("");
-	return comment + base;
-}
-auto __lambda26__(auto list) {
-	List__String expandedStructs = expansions.iter().map(__lambda25__).collect(ListCollector_());
-	return imports.addAll(structsForwarders).addAll(expandedStructs).addAll(structs).addAll(globals).addAll(methods).addAll(list);
-}
-auto __lambda27__() {
+auto __lambda25__() {
 	return Main.mergeStatements()
 }
-auto __lambda28__(auto compiled) {
-	return mergeAll(compiled, __lambda27__);
+auto __lambda26__(auto compiled) {
+	return mergeAll(compiled, __lambda25__);
 }
-auto __lambda29__() {
+auto __lambda27__() {
 	return generatePlaceholder(input);
 }
 String compile() {
 	List__String segments = divideAllStatements(input);
-	return parseAll(segments, wrapDefaultFunction(__lambda21__)).map(__lambda23__).map(__lambda26__).map(__lambda28__).or(__lambda29__).orElse("");
+	return parseAll(segments, wrapDefaultFunction(__lambda21__)).map(__lambda23__).map(__lambda24__).map(__lambda26__).or(__lambda27__).orElse("");
+}
+auto __lambda28__() {
+	return Main.getString()
+}
+List__String getStringList() {
+	List__String expandedStructs = expansions.iter().map(__lambda28__).collect(ListCollector_());
+	return imports.addAll(structsForwarders).addAll(expandedStructs).addAll(structs).addAll(globals).addAll(methods).addAll(list);
+}
+auto __lambda29__(auto nodeOptionFunction) {
+	return nodeOptionFunction.apply(expansion);
+}
+String getString() {
+	String comment = "// " + generateGeneric(expansion) + "\n";
+	String base = generators.find(expansion.findString("base").orElse("")).map(__lambda29__).orElse("");
+	return comment + base;
 }
 auto __lambda30__() {
 	return Main.unwrapDefault()
@@ -849,7 +910,7 @@ Option_String compileToStruct() {
 	String strippedWithoutParams = withoutParams.strip();
 	int typeParamStart = withoutParams.indexOf("<");
 	String body = afterKeyword.substring(contentStart + "{".length());
-	Node withBody = Node(/* ) */.withString("body", body);
+	Node withBody = MapNode(/* ) */.withString("body", body);
 	if (typeParamStart >= 0) {
 		String name = strippedWithoutParams.substring(0, typeParamStart).strip();
 		Node withName = withBody.withString("name", name);
@@ -1040,8 +1101,8 @@ auto __lambda66__(auto output) {
 Option_String getStringOption() {
 	List__Node paramTypes = params.iter().map(__lambda60__).flatMap(__lambda61__).collect(ListCollector_());
 	String name = definition.findString("name").orElse("");
-	Node returns = definition.findNode("type").orElse(Node());
-	Node functionalDefinition = Node(/* ) */.retype("functional-definition").withString("name", /* name) */.withNode("returns", /* returns) */.withNodeList("params", paramTypes);
+	Node returns = definition.findNode("type").orElse(MapNode());
+	Node functionalDefinition = MapNode(/* ) */.retype("functional-definition").withString("name", /* name) */.withNode("returns", /* returns) */.withNodeList("params", paramTypes);
 	return generateDefinition(definition).and(__lambda62__).flatMap(__lambda66__);
 }
 auto __lambda67__() {
@@ -1543,7 +1604,7 @@ Option_Node parseDefinition() {
 	if (!isSymbol(name)) {
 		return None_();
 	}
-	Node withName = Node(/* ) */.withString("name", name);
+	Node withName = MapNode(/* ) */.withString("name", name);
 	return parseDefinitionWithName(beforeName, withName);
 }
 auto __lambda130__(auto typeSeparator) {
@@ -1641,7 +1702,7 @@ auto __lambda144__() {
 Option_String generateDefinition() {
 	if (node.is("functional-definition")) {
 		String name = node.findString("name").orElse("");
-		String returns = generateType(node.findNode("returns").orElse(Node()));
+		String returns = generateType(node.findNode("returns").orElse(MapNode()));
 		String params = node.findNodeList("params").orElseGet(__lambda139__).iter().map(__lambda140__).collect(Joiner(", ")).orElse("");
 		return Some_(returns + " (*" + name + ")(" + params + ")");
 	}
@@ -1654,7 +1715,7 @@ String unwrapDefault() {
 	return value.findString("value").orElse("");
 }
 Node wrapDefault() {
-	return Node(/* ) */.withString("value", typeParam);
+	return MapNode(/* ) */.withString("value", typeParam);
 }
 Option_int findTypeSeparator() {
 	int depth = 0;
@@ -1748,7 +1809,7 @@ Function_String_Option_Node parseGeneric() {/*
             });
 
             return listOption.map(compiled -> {
-                return new Node()
+                return new MapNode()
                         .retype("generic")
                         .withNodeList("type-params", compiled).withString("base", base);
             });
