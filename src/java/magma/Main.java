@@ -145,10 +145,16 @@ public class Main {
         boolean hasSameStrings(Map_<String, String> strings);
 
         boolean hasSameTypes(Option<String> type);
+
+        String display();
     }
 
     private interface Error {
         String_ display();
+    }
+
+    private interface Context {
+        String display();
     }
 
     public record Err<T, X>(X error) implements Result<T, X> {
@@ -624,6 +630,14 @@ public class Main {
         public boolean hasSameTypes(Option<String> type) {
             return Options.equalsTo(this.type, type, String::equals);
         }
+
+        @Override
+        public String display() {
+            return this.type.toString()
+                    + this.strings.toString()
+                    + this.nodes.toString()
+                    + this.nodeLists.toString();
+        }
     }
 
     private static class Lists {
@@ -673,8 +687,15 @@ public class Main {
         }
     }
 
-    private record CompileError(String message, String context, List_<CompileError> errors) implements Error {
-        public CompileError(String message, String context) {
+    private record StringContext(String value) implements Context {
+        @Override
+        public String display() {
+            return this.value;
+        }
+    }
+
+    private record CompileError(String message, Context context, List_<CompileError> errors) implements Error {
+        public CompileError(String message, Context context) {
             this(message, context, Impl.listEmpty());
         }
 
@@ -686,7 +707,7 @@ public class Main {
                     .collect(new Joiner(""))
                     .orElse("");
 
-            return Impl.fromNativeString(this.message + ": " + this.context + joined);
+            return Impl.fromNativeString(this.message + ": " + this.context.display() + joined);
         }
     }
 
@@ -728,6 +749,19 @@ public class Main {
             return current.and(() -> element).mapValue(tuple -> {
                 return this.collector.fold(tuple.left(), tuple.right());
             });
+        }
+    }
+
+    private static class NodeContext implements Context {
+        private final Node value;
+
+        public NodeContext(Node value) {
+            this.value = value;
+        }
+
+        @Override
+        public String display() {
+            return this.value.display();
         }
     }
 
@@ -777,12 +811,12 @@ public class Main {
     private static Result<String, CompileError> compile(String input) {
         List_<String> segments = divideAllStatements(input);
         return parseAll(segments, createRootSegmentRule())
-                .mapValue(list1 -> list1.iter().map(Main::generateRootSegment).collect(new ListCollector<>()))
-                .flatMapValue(Main::getStringList)
+                .flatMapValue(list1 -> list1.iter().map(Main::generateRootSegment).collect(new Exceptional<>(new ListCollector<>())))
+                .flatMapValue(Main::expand)
                 .mapValue(compiled -> mergeAll(compiled, Main::mergeStatements));
     }
 
-    private static String generateRootSegment(Node value) {
+    private static Result<String, CompileError> generateRootSegment(Node value) {
         return unwrapDefault(value);
     }
 
@@ -803,14 +837,14 @@ public class Main {
         return err;
     }
 
-    private static Result<List_<String>, CompileError> getStringList(List_<String> list) {
+    private static Result<List_<String>, CompileError> expand(List_<String> list) {
         return expansions.iter()
                 .map(Main::getString)
                 .collect(new Exceptional<>(new ListCollector<>()))
-                .mapValue(expandedStructs -> getStringList(list, expandedStructs));
+                .mapValue(expandedStructs -> assemble(list, expandedStructs));
     }
 
-    private static List_<String> getStringList(List_<String> list, List_<String> expandedStructs) {
+    private static List_<String> assemble(List_<String> list, List_<String> expandedStructs) {
         return imports.addAll(structsForwarders)
                 .addAll(expandedStructs)
                 .addAll(structs)
@@ -824,10 +858,10 @@ public class Main {
         return generators.find(expansion.findString("base").orElse(""))
                 .map(nodeOptionFunction -> nodeOptionFunction.apply(expansion))
                 .map(result -> result.mapValue(inner -> comment + result))
-                .orElseGet(() -> new Err<>(new CompileError("Could not find generator", "")));
+                .orElseGet(() -> new Err<>(new CompileError("Could not find generator", new StringContext(""))));
     }
 
-    private static String mergeAllStatements(List_<Node> compiled) {
+    private static Result<String, CompileError> mergeAllStatements(List_<Node> compiled) {
         return generateAll(compiled, Main::unwrapDefault, Main::mergeStatements);
     }
 
@@ -839,10 +873,11 @@ public class Main {
         return divide(input, Main::divideStatementChar);
     }
 
-    private static String generateAll(List_<Node> compiled, Function<Node, String> generator, BiFunction<StringBuilder, String, StringBuilder> merger) {
-        return mergeAll(compiled.iter()
+    private static Result<String, CompileError> generateAll(List_<Node> compiled, Function<Node, Result<String, CompileError>> generator, BiFunction<StringBuilder, String, StringBuilder> merger) {
+        return compiled.iter()
                 .map(generator)
-                .collect(new ListCollector<>()), merger);
+                .collect(new Exceptional<>(new ListCollector<>()))
+                .mapValue(result -> mergeAll(result, merger));
     }
 
     private static String mergeAll(List_<String> compiled, BiFunction<StringBuilder, String, StringBuilder> merger) {
@@ -1021,7 +1056,7 @@ public class Main {
     }
 
     private static <T> Result<T, CompileError> createInfixRule(String input, String infix) {
-        return new Err<>(new CompileError("Infix '" + infix + "' not present", input));
+        return new Err<>(new CompileError("Infix '" + infix + "' not present", new StringContext(input)));
     }
 
     private static Result<String, CompileError> expand(String input, List_<String> typeParams, Node withName, Node expansion) {
@@ -1052,12 +1087,12 @@ public class Main {
         String name = node.findString("name").orElse("");
         String body = node.findString("body").orElse("");
         if (!isSymbol(name)) {
-            return new Err<>(new CompileError("Not a symbol", name));
+            return new Err<>(new CompileError("Not a symbol", new StringContext(name)));
         }
 
         String withEnd = body.strip();
         if (!withEnd.endsWith("}")) {
-            return new Err<>(new CompileError("Suffix '}' not present", withEnd));
+            return new Err<>(new CompileError("Suffix '}' not present", new StringContext(withEnd)));
         }
 
         String inputContent = withEnd.substring(0, withEnd.length() - "}".length());
@@ -1069,10 +1104,10 @@ public class Main {
     }
 
     private static Function<String, Result<Node, CompileError>> createClassMemberRule(List_<String> typeParams) {
-        return wrapToResult(wrapDefaultFunction(input1 -> compileClassMember(input1, typeParams).map(Main::generateClassMember)));
+        return input -> compileClassMember(input, typeParams);
     }
 
-    private static Option<Node> compileClassMember(String input0, List_<String> typeParams) {
+    private static Result<Node, CompileError> compileClassMember(String input0, List_<String> typeParams) {
         return parseOr(input0, Impl.listOf(
                 wrapToResult(wrapDefaultFunction(Main::compileWhitespace)),
                 input -> parseStruct(input, "interface ", typeParams),
@@ -1081,10 +1116,10 @@ public class Main {
                 wrapToResult(wrapDefaultFunction(input -> compileGlobalInitialization(input, typeParams))),
                 wrapToResult(wrapDefaultFunction(Main::compileDefinitionStatement)),
                 wrapToResult(wrapDefaultFunction(input -> compileMethod(input, typeParams)))
-        )).findValue();
+        ));
     }
 
-    private static String generateClassMember(Node node) {
+    private static Result<String, CompileError> generateClassMember(Node node) {
         return unwrapDefault(node);
     }
 
@@ -1092,7 +1127,7 @@ public class Main {
         String stripped = input.strip();
         if (stripped.endsWith(";")) {
             String content = stripped.substring(0, stripped.length() - ";".length());
-            return parseDefinition(content).flatMap(Main::generateDefinition).map(result -> "\t" + result + ";\n");
+            return parseDefinition(content).flatMap((Node node) -> generateDefinition(node).findValue()).map(result -> "\t" + result + ";\n");
         }
         return new None<>();
     }
@@ -1117,7 +1152,7 @@ public class Main {
 
         String definition = withoutEnd.substring(0, valueSeparator).strip();
         String value = withoutEnd.substring(valueSeparator + "=".length()).strip();
-        return parseDefinition(definition).flatMap(Main::generateDefinition).flatMap(outputDefinition -> {
+        return parseDefinition(definition).flatMap((Node node) -> generateDefinition(node).findValue()).flatMap(outputDefinition -> {
             return compileValue(value, typeParams, depth).map(outputValue -> {
                 return outputDefinition + " = " + outputValue;
             });
@@ -1148,8 +1183,9 @@ public class Main {
 
             String params = withParams.substring(0, paramEnd);
             String body = withParams.substring(paramEnd + ")".length()).strip();
-            return parseAllValues(params, createParamRule())
-                    .flatMap(outputParams -> getStringOption(typeParams, outputDefinition, outputParams, body));
+            return parseAllValues(params, wrapToResult(createParamRule()))
+                    .flatMapValue(outputParams -> getStringOption(typeParams, outputDefinition, outputParams, body))
+                    .findValue();
         });
     }
 
@@ -1163,7 +1199,7 @@ public class Main {
                 .findValue();
     }
 
-    private static Option<String> getStringOption(List_<String> typeParams, Node definition, List_<Node> params, String body) {
+    private static Result<String, CompileError> getStringOption(List_<String> typeParams, Node definition, List_<Node> params, String body) {
         List_<Node> paramTypes = params.iter()
                 .map(param -> param.findNode("type"))
                 .flatMap(Iterators::fromOption)
@@ -1177,27 +1213,32 @@ public class Main {
                 .withNode("returns", returns)
                 .withNodeList("params", paramTypes);
 
-        return generateDefinition(definition).and(() -> generateDefinition(functionalDefinition)).flatMap(output -> {
-            String asContent = output.left;
-            String asType = output.right;
-
-            String entry = "\t" + asType + ";\n";
-
-            if (!body.startsWith("{") || !body.endsWith("}")) {
-                return new Some<>(entry);
-            }
-
-            String inputContent = body.substring("{".length(), body.length() - "}".length());
-            return parseAllStatements(inputContent, wrapToResult(wrapDefaultFunction(input1 -> compileStatementOrBlock(input1, typeParams, 1)))).findValue().map(Main::mergeAllStatements).flatMap(outputContent -> {
-                methods.add("\t".repeat(0) + asContent + "(" + mergeAllValues(params, Main::unwrapDefault) + ")" + " {" + outputContent + "\n}\n");
-                return new Some<>(entry);
-            });
+        return generateDefinition(definition).and(() -> generateDefinition(functionalDefinition)).flatMapValue(output -> {
+            return getStringCompileErrorResult(typeParams, params, body, output);
         });
     }
 
-    private static Option<List_<Node>> parseAllValues(String input, Function<String, Option<Node>> rule) {
-        List_<String> segments = divide(input, Main::divideValueChar);
-        return parseAll(segments, wrapToResult(rule)).findValue();
+    private static Result<String, CompileError> getStringCompileErrorResult(List_<String> typeParams, List_<Node> params, String body, Tuple<String, String> output) {
+        String asContent = output.left;
+        String asType = output.right;
+
+        String entry = "\t" + asType + ";\n";
+
+        if (!body.startsWith("{") || !body.endsWith("}")) {
+            return new Ok<>(entry);
+        }
+
+        String inputContent = body.substring("{".length(), body.length() - "}".length());
+        return parseAllStatements(inputContent,
+                wrapToResult(wrapDefaultFunction(input1 -> compileStatementOrBlock(input1, typeParams, 1))))
+                .flatMapValue(Main::mergeAllStatements).flatMapValue(outputContent -> {
+                    methods.add("\t".repeat(0) + asContent + "(" + mergeAllValues(params, Main::unwrapDefault) + ")" + " {" + outputContent + "\n}\n");
+                    return new Ok<>(entry);
+                });
+    }
+
+    private static Result<List_<Node>, CompileError> parseAllValues(String input, Function<String, Result<Node, CompileError>> rule) {
+        return parseAll(divide(input, Main::divideValueChar), rule);
     }
 
     private static State divideValueChar(State state, char c) {
@@ -1222,7 +1263,7 @@ public class Main {
         return appended;
     }
 
-    private static String mergeAllValues(List_<Node> compiled, Function<Node, String> generator) {
+    private static Result<String, CompileError> mergeAllValues(List_<Node> compiled, Function<Node, Result<String, CompileError>> generator) {
         return generateAll(compiled, generator, Main::mergeValues);
     }
 
@@ -1536,9 +1577,11 @@ public class Main {
         String value = input.substring(arrowIndex + "->".length()).strip();
         if (value.startsWith("{") && value.endsWith("}")) {
             String slice = value.substring(1, value.length() - 1);
-            return parseAllStatements(slice, wrapToResult(wrapDefaultFunction(statement -> compileStatementOrBlock(statement, typeParams, depth)))).findValue().map(Main::mergeAllStatements).flatMap(result -> {
-                return generateLambdaWithReturn(paramNames, result);
-            });
+            return parseAllStatements(slice, wrapToResult(wrapDefaultFunction(statement -> compileStatementOrBlock(statement, typeParams, depth))))
+                    .flatMapValue(Main::mergeAllStatements)
+                    .mapValue(result -> generateLambdaWithReturn(paramNames, result))
+                    .findValue()
+                    .flatMap(inner -> inner);
         }
 
         return compileValue(value, typeParams, depth).flatMap(newValue -> {
@@ -1609,9 +1652,9 @@ public class Main {
     }
 
     private static Option<String> compileArgs(String argsString, List_<String> typeParams, int depth) {
-        return parseAllValues(argsString, wrapDefaultFunction(arg -> {
+        return parseAllValues(argsString, wrapToResult(wrapDefaultFunction(arg -> {
             return compileWhitespace(arg).or(() -> compileValue(arg, typeParams, depth));
-        })).map(compiled -> mergeAllValues(compiled, Main::unwrapDefault)).map(args -> {
+        }))).findValue().map(compiled -> mergeAllValues(compiled, Main::unwrapDefault)).map(args -> {
             return "(" + args + ")";
         });
     }
@@ -1710,39 +1753,40 @@ public class Main {
                 .allMatch(Main::isSymbol);
     }
 
-    private static Option<String> generateDefinition(Node node) {
+    private static Result<String, CompileError> generateDefinition(Node node) {
         if (node.is("functional-definition")) {
             String name = node.findString("name").orElse("");
-            String returns = generateType(node.findNode("returns").orElse(new MapNode()));
-
-            String params = node.findNodeList("params")
-                    .orElseGet(Impl::listEmpty)
-                    .iter()
-                    .map(Main::generateType)
-                    .collect(new Joiner(", "))
-                    .orElse("");
-
-            return new Some<>(returns + " (*" + name + ")(" + params + ")");
+            return generateType(node.findNode("returns").orElse(new MapNode())).flatMapValue(returns -> {
+                return node.findNodeList("params")
+                        .orElseGet(Impl::listEmpty)
+                        .iter()
+                        .map(Main::generateType)
+                        .collect(new Exceptional<>(new Joiner(", ")))
+                        .mapValue(inner -> inner.orElse(""))
+                        .mapValue(params -> returns + " (*" + name + ")(" + params + ")");
+            });
         }
 
-        String typeParamsString = node.findNodeList("type-params")
+        Result<String, CompileError> typeParamsString = node.findNodeList("type-params")
                 .orElseGet(Impl::listEmpty)
                 .iter()
                 .map(Main::unwrapDefault)
-                .collect(new Joiner(", "))
-                .map(inner -> "<" + inner + "> ")
-                .orElse("");
-
-        String type = node.findNode("type")
-                .map(Main::generateType)
-                .orElse("");
+                .collect(new Exceptional<>(new Joiner(", ")))
+                .mapValue(value -> value.map(inner -> "<" + inner + "> "))
+                .mapValue(value -> value.orElse(""));
 
         String name = node.findString("name").orElse("name");
-        return new Some<>(typeParamsString + type + " " + name);
+        return typeParamsString.and(() -> {
+            return node.findNode("type")
+                    .map(Main::generateType)
+                    .orElse(new Ok<>(""));
+        }).mapValue(tuple -> tuple.left + tuple.right + " " + name);
     }
 
-    private static String unwrapDefault(Node value) {
-        return value.findString("value").orElse("");
+    private static Result<String, CompileError> unwrapDefault(Node value) {
+        return value.findString("value")
+                .<Result<String, CompileError>>map(Ok::new)
+                .orElseGet(() -> new Err<>(new CompileError("No value present", new NodeContext(value))));
     }
 
     private static Node wrapDefault(String typeParam) {
@@ -1778,7 +1822,7 @@ public class Main {
                 .collect(new ListCollector<>());
     }
 
-    private static String generateType(Node node) {
+    private static Result<String, CompileError> generateType(Node node) {
         if (node.is("generic")) {
             if (!Lists.contains(expansions, node, Node::equalsTo)) {
                 List_<Node> params = node.findNodeList("type-params")
@@ -1791,7 +1835,7 @@ public class Main {
                     expansions = expansions.add(node);
                 }
             }
-            return generateGeneric(node);
+            return new Ok<>(generateGeneric(node));
         }
 
         return unwrapDefault(node);
@@ -1808,7 +1852,7 @@ public class Main {
         return rules.iter()
                 .fold(new OrState(), (state, rule) -> rule.apply(input).match(state::withValue, state::withError))
                 .toResult()
-                .mapErr(errors -> new CompileError("Invalid combination", input, errors));
+                .mapErr(errors -> new CompileError("Invalid combination", new StringContext(input), errors));
     }
 
     private static List_<Function<String, Option<Node>>> listTypeRules(List_<String> typeParams) {
@@ -1836,7 +1880,7 @@ public class Main {
             String base = slice.substring(0, argsStart).strip();
             String params = slice.substring(argsStart + "<".length()).strip();
 
-            Option<List_<Node>> listOption = parseAllValues(params, inner -> {
+            Option<List_<Node>> listOption = parseAllValues(params, wrapToResult(inner -> {
                 return parseOr(inner, Impl.listOf(
                                 parseWithType("whitespace", wrapDefaultFunction(Main::compileWhitespace)),
                                 input0 -> parseType(input0, typeParams)
@@ -1844,7 +1888,7 @@ public class Main {
                         .map(Main::wrapToResult)
                         .collect(new ListCollector<>()))
                         .findValue();
-            });
+            })).findValue();
 
             return listOption.map(compiled -> {
                 return new MapNode()
@@ -1926,6 +1970,6 @@ public class Main {
     }
 
     private static <T> Result<T, CompileError> createInvalidateError(String type, String input) {
-        return new Err<T, CompileError>(new CompileError("Invalid " + type, input));
+        return new Err<T, CompileError>(new CompileError("Invalid " + type, new StringContext(input)));
     }
 }
