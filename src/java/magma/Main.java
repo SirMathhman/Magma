@@ -721,11 +721,14 @@ public class Main {
 
     private static Result<String, CompileError> compile(String input) {
         List_<String> segments = divideAllStatements(input);
-        return parseAll(segments, wrapToResult(wrapDefaultFunction(Main::compileRootSegment))).findValue()
-                .map(list1 -> list1.iter().map(Main::unwrapDefault).collect(new ListCollector<>()))
-                .map(Main::getStringList)
-                .<Result<String, CompileError>>map(compiled -> new Ok<>(mergeAll(compiled, Main::mergeStatements)))
-                .orElseGet(() -> createInvalidateError("root", input));
+        return parseAll(segments, createRootSegmentRule())
+                .mapValue(list1 -> list1.iter().map(Main::unwrapDefault).collect(new ListCollector<>()))
+                .mapValue(Main::getStringList)
+                .mapValue(compiled -> mergeAll(compiled, Main::mergeStatements));
+    }
+
+    private static Function<String, Result<Node, CompileError>> createRootSegmentRule() {
+        return wrapToResult(wrapDefaultFunction(Main::compileRootSegment));
     }
 
     @Deprecated
@@ -1424,7 +1427,7 @@ public class Main {
                 .or(() -> compileOperator(input, typeParams, depth, "=="))
                 .or(() -> compileOperator(input, typeParams, depth, "!="))
                 .or(() -> Main.<String>createInvalidateError("value", input).mapErr(err -> {
-                    return Main.<String>getCompileError(err);
+                    return Main.getCompileError(err);
                 }).findValue());
     }
 
