@@ -332,7 +332,10 @@ public class Main {
 
         @Override
         public Option<T> filter(Predicate<T> predicate) {
-            return predicate.test(this.value) ? this : new None<>();
+            if (predicate.test(this.value)) {
+                return this;
+            }
+            return new None<>();
         }
 
         @Override
@@ -852,7 +855,8 @@ public class Main {
     private static List_<String> splitByDelimiter(String content, char delimiter) {
         List_<String> segments = Impl.listEmpty();
         StringBuilder buffer = new StringBuilder();
-        for (int i = 0; i < content.length(); i++) {
+        int i = 0;
+        while (i < content.length()) {
             char c = content.charAt(i);
             if (c == delimiter) {
                 segments = segments.add(buffer.toString());
@@ -861,6 +865,7 @@ public class Main {
             else {
                 buffer.append(c);
             }
+            i++;
         }
 
         return segments.add(buffer.toString());
@@ -880,14 +885,22 @@ public class Main {
         String beforeContent = afterKeyword.substring(0, contentStart).strip();
 
         int implementsIndex = beforeContent.indexOf(" implements ");
-        String beforeContent1 = implementsIndex >= 0
-                ? beforeContent.substring(0, implementsIndex)
-                : beforeContent;
+        String beforeContent1;
+        if (implementsIndex >= 0) {
+            beforeContent1 = beforeContent.substring(0, implementsIndex);
+        }
+        else {
+            beforeContent1 = beforeContent;
+        }
 
         int paramStart = beforeContent1.indexOf("(");
-        String withoutParams = paramStart >= 0
-                ? beforeContent1.substring(0, paramStart)
-                : beforeContent1;
+        String withoutParams;
+        if (paramStart >= 0) {
+            withoutParams = beforeContent1.substring(0, paramStart);
+        }
+        else {
+            withoutParams = beforeContent1;
+        }
 
         String strippedWithoutParams = withoutParams.strip();
         int typeParamStart = withoutParams.indexOf("<");
@@ -1515,11 +1528,11 @@ public class Main {
     }
 
     private static Option<Node> parseDefinitionWithName(String beforeName, Node withName) {
-        return findTypeSeparator(beforeName).map(typeSeparator -> {
+        return findTypeSeparator(beforeName).flatMap(typeSeparator -> {
             String beforeType = beforeName.substring(0, typeSeparator).strip();
             String type = beforeName.substring(typeSeparator + " ".length());
             return parseDefinitionWithTypeSeparator(withName, beforeType, type);
-        }).orElseGet(() -> parseDefinitionTypeProperty(withName, beforeName, Impl.listEmpty()));
+        }).or(() -> parseDefinitionTypeProperty(withName, beforeName, Impl.listEmpty())).or(() -> new Some<>(withName));
     }
 
     private static Option<Node> parseDefinitionWithTypeSeparator(Node withName, String beforeType, String type) {
