@@ -688,7 +688,7 @@ public class Main {
                 .map(list1 -> list1.iter().map(Main::unwrapDefault).collect(new ListCollector<>()))
                 .map(Main::getStringList)
                 .map(compiled -> mergeAll(compiled, Main::mergeStatements))
-                .or(() -> createInvalidateError("value", input).mapErr(err -> {
+                .or(() -> createInvalidateError("root", input).mapErr(err -> {
                     return getCompileError(err);
                 }).findValue()).orElse("");
     }
@@ -847,7 +847,7 @@ public class Main {
             return maybeClass;
         }
 
-        return createInvalidateError("value", input).mapErr(err -> {
+        return createInvalidateError("root segment", input).mapErr(err -> {
             return getCompileError(err);
         }).findValue();
     }
@@ -924,7 +924,7 @@ public class Main {
         String stringify = stringify(expansion);
 
         return generateStruct(typeParams, withName.withString("name", stringify))
-                .or(() -> createInvalidateError("value", input).mapErr(Main::getCompileError).findValue())
+                .or(() -> createInvalidateError("struct", input).mapErr(Main::getCompileError).findValue())
                 .orElse("");
     }
 
@@ -974,7 +974,7 @@ public class Main {
                 .or(() -> compileGlobalInitialization(input, typeParams))
                 .or(() -> compileDefinitionStatement(input))
                 .or(() -> compileMethod(input, typeParams))
-                .or(() -> createInvalidateError("value", input).mapErr(err -> {
+                .or(() -> createInvalidateError("class member", input).mapErr(err -> {
                     return getCompileError(err);
                 }).findValue());
     }
@@ -1127,7 +1127,7 @@ public class Main {
                 .or(() -> compileAssignment(input, typeParams, depth).map(result -> formatStatement(depth, result)))
                 .or(() -> compileInvocationStatement(input, typeParams, depth).map(result -> formatStatement(depth, result)))
                 .or(() -> compileDefinitionStatement(input))
-                .or(() -> createInvalidateError("value", input).mapErr(err -> {
+                .or(() -> createInvalidateError("statement or block", input).mapErr(err -> {
                     return getCompileError(err);
                 }).findValue());
     }
