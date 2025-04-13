@@ -826,9 +826,9 @@ public class Main {
     private static Function<String, Result<Node, CompileError>> createRootSegmentRule() {
         return input -> {
             return parseOr(input, Impl.listOf(
-                    wrapToResult(wrapDefaultFunction(Main::compileWhitespace)),
-                    wrapToResult(wrapDefaultFunction(Main::compilePackage)),
-                    wrapToResult(wrapDefaultFunction(Main::compileImport)),
+                    wrapToResult("whitespace", wrapDefaultFunction(Main::compileWhitespace)),
+                    wrapToResult("package", wrapDefaultFunction(Main::compilePackage)),
+                    wrapToResult("import", wrapDefaultFunction(Main::compileImport)),
                     input1 -> parseStruct(input1, "class ", Impl.listEmpty()))
             );
         };
@@ -893,8 +893,8 @@ public class Main {
                         .mapValue(allCompiled::add)));
     }
 
-    private static Function<String, Result<Node, CompileError>> wrapToResult(Function<String, Option<Node>> rule) {
-        return s -> rule.apply(s).<Result<Node, CompileError>>map(Ok::new).orElseGet(() -> createInvalidateError("temp", s));
+    private static Function<String, Result<Node, CompileError>> wrapToResult(String type, Function<String, Option<Node>> rule) {
+        return s -> rule.apply(s).<Result<Node, CompileError>>map(Ok::new).orElseGet(() -> createInvalidateError(type, s));
     }
 
     private static StringBuilder mergeStatements(StringBuilder output, String compiled) {
@@ -1114,13 +1114,13 @@ public class Main {
 
     private static Result<Node, CompileError> compileClassMember(String input0, List_<String> typeParams) {
         return parseOr(input0, Impl.listOf(
-                wrapToResult(wrapDefaultFunction(Main::compileWhitespace)),
+                wrapToResult("whitespace", wrapDefaultFunction(Main::compileWhitespace)),
                 input -> parseStruct(input, "interface ", typeParams),
-                input -> parseStruct(input, "recordd ", typeParams),
+                input -> parseStruct(input, "record ", typeParams),
                 input -> parseStruct(input, "class ", typeParams),
-                wrapToResult(wrapDefaultFunction(input -> compileGlobalInitialization(input, typeParams))),
-                wrapToResult(wrapDefaultFunction(Main::compileDefinitionStatement)),
-                wrapToResult(wrapDefaultFunction(input -> compileMethod(input, typeParams)))
+                wrapToResult("initialization", wrapDefaultFunction(input -> compileGlobalInitialization(input, typeParams))),
+                wrapToResult("definition-statement", wrapDefaultFunction(Main::compileDefinitionStatement)),
+                wrapToResult("method", wrapDefaultFunction(input -> compileMethod(input, typeParams)))
         ));
     }
 
@@ -1188,7 +1188,7 @@ public class Main {
 
             String params = withParams.substring(0, paramEnd);
             String body = withParams.substring(paramEnd + ")".length()).strip();
-            return parseAllValues(params, wrapToResult(createParamRule()))
+            return parseAllValues(params, wrapToResult("temp", createParamRule()))
                     .flatMapValue(outputParams -> getStringOption(typeParams, outputDefinition, outputParams, body))
                     .findValue();
         });
@@ -1199,7 +1199,7 @@ public class Main {
                         wrapDefaultFunction(Main::compileWhitespace),
                         Main::parseDefinition
                 ).iter()
-                .map(Main::wrapToResult)
+                .map(rule -> wrapToResult("temp", rule))
                 .collect(new ListCollector<>()))
                 .findValue();
     }
@@ -1235,7 +1235,7 @@ public class Main {
 
         String inputContent = body.substring("{".length(), body.length() - "}".length());
         return parseAllStatements(inputContent,
-                wrapToResult(wrapDefaultFunction(input1 -> compileStatementOrBlock(input1, typeParams, 1))))
+                wrapToResult("temp", wrapDefaultFunction(input1 -> compileStatementOrBlock(input1, typeParams, 1))))
                 .flatMapValue(compiled -> mergeAllStatements(compiled, Main::unwrapDefault)).flatMapValue(outputContent -> {
                     methods.add("\t".repeat(0) + asContent + "(" + mergeAllValues(params, Main::unwrapDefault) + ")" + " {" + outputContent + "\n}\n");
                     return new Ok<>(entry);
@@ -1308,7 +1308,7 @@ public class Main {
             String withoutKeyword = stripped.substring("else ".length()).strip();
             if (withoutKeyword.startsWith("{") && withoutKeyword.endsWith("}")) {
                 String indent = createIndent(depth);
-                return parseAllStatements(withoutKeyword.substring(1, withoutKeyword.length() - 1), wrapToResult(wrapDefaultFunction(statement -> compileStatementOrBlock(statement, typeParams, depth + 1)))).findValue().map(compiled -> mergeAllStatements(compiled, Main::unwrapDefault))
+                return parseAllStatements(withoutKeyword.substring(1, withoutKeyword.length() - 1), wrapToResult("temp", wrapDefaultFunction(statement -> compileStatementOrBlock(statement, typeParams, depth + 1)))).findValue().map(compiled -> mergeAllStatements(compiled, Main::unwrapDefault))
                         .map(result -> indent + "else {" + result + indent + "}");
             }
             else {
@@ -1361,7 +1361,7 @@ public class Main {
 
             if (withBraces.startsWith("{") && withBraces.endsWith("}")) {
                 String content = withBraces.substring(1, withBraces.length() - 1);
-                return parseAllStatements(content, wrapToResult(wrapDefaultFunction(statement -> compileStatementOrBlock(statement, typeParams, depth + 1)))).findValue().map(compiled -> mergeAllStatements(compiled, Main::unwrapDefault)).map(statements -> {
+                return parseAllStatements(content, wrapToResult("temp", wrapDefaultFunction(statement -> compileStatementOrBlock(statement, typeParams, depth + 1)))).findValue().map(compiled -> mergeAllStatements(compiled, Main::unwrapDefault)).map(statements -> {
                     return withCondition +
                             " {" + statements + "\n" +
                             "\t".repeat(depth) +
@@ -1582,7 +1582,7 @@ public class Main {
         String value = input.substring(arrowIndex + "->".length()).strip();
         if (value.startsWith("{") && value.endsWith("}")) {
             String slice = value.substring(1, value.length() - 1);
-            return parseAllStatements(slice, wrapToResult(wrapDefaultFunction(statement -> compileStatementOrBlock(statement, typeParams, depth))))
+            return parseAllStatements(slice, wrapToResult("temp", wrapDefaultFunction(statement -> compileStatementOrBlock(statement, typeParams, depth))))
                     .flatMapValue(compiled -> mergeAllStatements(compiled, Main::unwrapDefault))
                     .mapValue(result -> generateLambdaWithReturn(paramNames, result))
                     .findValue()
@@ -1657,7 +1657,7 @@ public class Main {
     }
 
     private static Option<String> compileArgs(String argsString, List_<String> typeParams, int depth) {
-        return parseAllValues(argsString, wrapToResult(wrapDefaultFunction(arg -> {
+        return parseAllValues(argsString, wrapToResult("temp", wrapDefaultFunction(arg -> {
             return compileWhitespace(arg).or(() -> compileValue(arg, typeParams, depth));
         }))).findValue().map(compiled -> mergeAllValues(compiled, Main::unwrapDefault)).map(args -> {
             return "(" + args + ")";
@@ -1848,7 +1848,7 @@ public class Main {
 
     private static Option<Node> parseType(String input, List_<String> typeParams) {
         return parseOr(input, listTypeRules(typeParams).iter()
-                .map(Main::wrapToResult)
+                .map(rule -> wrapToResult("temp", rule))
                 .collect(new ListCollector<>()))
                 .findValue();
     }
@@ -1885,12 +1885,12 @@ public class Main {
             String base = slice.substring(0, argsStart).strip();
             String params = slice.substring(argsStart + "<".length()).strip();
 
-            Option<List_<Node>> listOption = parseAllValues(params, wrapToResult(inner -> {
+            Option<List_<Node>> listOption = parseAllValues(params, wrapToResult("temp", inner -> {
                 return parseOr(inner, Impl.listOf(
                                 parseWithType("whitespace", wrapDefaultFunction(Main::compileWhitespace)),
                                 input0 -> parseType(input0, typeParams)
                         ).iter()
-                        .map(Main::wrapToResult)
+                        .map(rule -> wrapToResult("temp", rule))
                         .collect(new ListCollector<>()))
                         .findValue();
             })).findValue();
