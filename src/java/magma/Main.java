@@ -728,7 +728,10 @@ public class Main {
     }
 
     private static Function<String, Result<Node, CompileError>> createRootSegmentRule() {
-        return wrapToResult(wrapDefaultFunction(Main::compileRootSegment));
+        return wrapToResult(wrapDefaultFunction(input -> compileWhitespace(input)
+                .or(() -> compilePackage(input))
+                .or(() -> compileImport(input))
+                .or(() -> compileClass(input))));
     }
 
     @Deprecated
@@ -865,16 +868,14 @@ public class Main {
         return state.depth == 1;
     }
 
-    private static Option<String> compileRootSegment(String input) {
-        Option<String> whitespace = compileWhitespace(input);
-        if (whitespace.isPresent()) {
-            return whitespace;
-        }
-
+    private static Option<String> compilePackage(String input) {
         if (input.startsWith("package ")) {
             return new Some<>("");
         }
+        return new None<>();
+    }
 
+    private static Option<String> compileImport(String input) {
         String stripped = input.strip();
         if (stripped.startsWith("import ")) {
             String right = stripped.substring("import ".length());
@@ -890,15 +891,15 @@ public class Main {
                 return new Some<>("");
             }
         }
+        return new None<>();
+    }
 
+    private static Option<String> compileClass(String input) {
         Option<String> maybeClass = compileToStruct(input, "class ", Impl.listEmpty());
         if (maybeClass.isPresent()) {
             return maybeClass;
         }
-
-        return Main.<String>createInvalidateError("root segment", input).mapErr(err -> {
-            return getCompileError(err);
-        }).findValue();
+        return new None<>();
     }
 
     private static List_<String> splitByDelimiter(String content, char delimiter) {
