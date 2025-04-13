@@ -728,10 +728,14 @@ public class Main {
     }
 
     private static Function<String, Result<Node, CompileError>> createRootSegmentRule() {
-        return wrapToResult(wrapDefaultFunction(input -> compileWhitespace(input)
-                .or(() -> compilePackage(input))
-                .or(() -> compileImport(input))
-                .or(() -> compileClass(input))));
+        return wrapToResult(input -> {
+            return parseOr(input, Impl.listOf(
+                    wrapDefaultFunction(Main::compileWhitespace),
+                    wrapDefaultFunction(Main::compilePackage),
+                    wrapDefaultFunction(Main::compileImport),
+                    wrapDefaultFunction(Main::compileClass)
+            ));
+        });
     }
 
     @Deprecated
