@@ -817,6 +817,9 @@ public class Main {
     }
 
     private static Result<String, CompileError> generateRootSegment(Node value) {
+        if (value.is("struct")) {
+            return generateStruct(Impl.listEmpty(), value);
+        }
         return unwrapDefault(value);
     }
 
@@ -861,8 +864,8 @@ public class Main {
                 .orElseGet(() -> new Err<>(new CompileError("Could not find generator", new StringContext(""))));
     }
 
-    private static Result<String, CompileError> mergeAllStatements(List_<Node> compiled) {
-        return generateAll(compiled, Main::unwrapDefault, Main::mergeStatements);
+    private static Result<String, CompileError> mergeAllStatements(List_<Node> compiled, Function<Node, Result<String, CompileError>> generator) {
+        return generateAll(compiled, generator, Main::mergeStatements);
     }
 
     private static Result<List_<Node>, CompileError> parseAllStatements(String input, Function<String, Result<Node, CompileError>> rule) {
@@ -1041,14 +1044,14 @@ public class Main {
         String strippedWithoutParams = withoutParams.strip();
         int typeParamStart = withoutParams.indexOf("<");
         String body = afterKeyword.substring(contentStart + "{".length());
-
-        Node withBody = new MapNode().withString("body", body);
+        Node withBody = new MapNode()
+                .retype("struct")
+                .withString("body", body);
 
         if (typeParamStart >= 0) {
             String name = strippedWithoutParams.substring(0, typeParamStart).strip();
-
             Node withName = withBody.withString("name", name);
-            generators = generators.with(name, (expansion) -> expand(input, typeParams, withName, expansion));
+            generators = generators.with(name, (expansion) -> expand(typeParams, withName, expansion));
             return new Ok<>(withName);
         }
 
@@ -1059,9 +1062,8 @@ public class Main {
         return new Err<>(new CompileError("Infix '" + infix + "' not present", new StringContext(input)));
     }
 
-    private static Result<String, CompileError> expand(String input, List_<String> typeParams, Node withName, Node expansion) {
+    private static Result<String, CompileError> expand(List_<String> typeParams, Node withName, Node expansion) {
         String stringify = stringify(expansion);
-
         return generateStruct(typeParams, withName.withString("name", stringify));
     }
 
@@ -1086,6 +1088,7 @@ public class Main {
     private static Result<String, CompileError> generateStruct(List_<String> typeParams, Node node) {
         String name = node.findString("name").orElse("");
         String body = node.findString("body").orElse("");
+
         if (!isSymbol(name)) {
             return new Err<>(new CompileError("Not a symbol", new StringContext(name)));
         }
@@ -1096,11 +1099,13 @@ public class Main {
         }
 
         String inputContent = withEnd.substring(0, withEnd.length() - "}".length());
-        return parseAllStatements(inputContent, createClassMemberRule(typeParams)).mapValue(Main::mergeAllStatements).mapValue(outputContent -> {
-            structsForwarders = structsForwarders.add("typedef struct " + name + " " + name + ";\n");
-            structs = structs.add("struct %s {\n%s};\n".formatted(name, outputContent));
-            return "";
-        });
+        return parseAllStatements(inputContent, createClassMemberRule(typeParams))
+                .mapValue(compiled -> mergeAllStatements(compiled, Main::generateClassMember))
+                .mapValue(outputContent -> {
+                    structsForwarders = structsForwarders.add("typedef struct " + name + " " + name + ";\n");
+                    structs = structs.add("struct %s {\n%s};\n".formatted(name, outputContent));
+                    return "";
+                });
     }
 
     private static Function<String, Result<Node, CompileError>> createClassMemberRule(List_<String> typeParams) {
@@ -1231,7 +1236,7 @@ public class Main {
         String inputContent = body.substring("{".length(), body.length() - "}".length());
         return parseAllStatements(inputContent,
                 wrapToResult(wrapDefaultFunction(input1 -> compileStatementOrBlock(input1, typeParams, 1))))
-                .flatMapValue(Main::mergeAllStatements).flatMapValue(outputContent -> {
+                .flatMapValue(compiled -> mergeAllStatements(compiled, Main::unwrapDefault)).flatMapValue(outputContent -> {
                     methods.add("\t".repeat(0) + asContent + "(" + mergeAllValues(params, Main::unwrapDefault) + ")" + " {" + outputContent + "\n}\n");
                     return new Ok<>(entry);
                 });
@@ -1303,7 +1308,7 @@ public class Main {
             String withoutKeyword = stripped.substring("else ".length()).strip();
             if (withoutKeyword.startsWith("{") && withoutKeyword.endsWith("}")) {
                 String indent = createIndent(depth);
-                return parseAllStatements(withoutKeyword.substring(1, withoutKeyword.length() - 1), wrapToResult(wrapDefaultFunction(statement -> compileStatementOrBlock(statement, typeParams, depth + 1)))).findValue().map(Main::mergeAllStatements)
+                return parseAllStatements(withoutKeyword.substring(1, withoutKeyword.length() - 1), wrapToResult(wrapDefaultFunction(statement -> compileStatementOrBlock(statement, typeParams, depth + 1)))).findValue().map(compiled -> mergeAllStatements(compiled, Main::unwrapDefault))
                         .map(result -> indent + "else {" + result + indent + "}");
             }
             else {
@@ -1356,7 +1361,7 @@ public class Main {
 
             if (withBraces.startsWith("{") && withBraces.endsWith("}")) {
                 String content = withBraces.substring(1, withBraces.length() - 1);
-                return parseAllStatements(content, wrapToResult(wrapDefaultFunction(statement -> compileStatementOrBlock(statement, typeParams, depth + 1)))).findValue().map(Main::mergeAllStatements).map(statements -> {
+                return parseAllStatements(content, wrapToResult(wrapDefaultFunction(statement -> compileStatementOrBlock(statement, typeParams, depth + 1)))).findValue().map(compiled -> mergeAllStatements(compiled, Main::unwrapDefault)).map(statements -> {
                     return withCondition +
                             " {" + statements + "\n" +
                             "\t".repeat(depth) +
@@ -1578,7 +1583,7 @@ public class Main {
         if (value.startsWith("{") && value.endsWith("}")) {
             String slice = value.substring(1, value.length() - 1);
             return parseAllStatements(slice, wrapToResult(wrapDefaultFunction(statement -> compileStatementOrBlock(statement, typeParams, depth))))
-                    .flatMapValue(Main::mergeAllStatements)
+                    .flatMapValue(compiled -> mergeAllStatements(compiled, Main::unwrapDefault))
                     .mapValue(result -> generateLambdaWithReturn(paramNames, result))
                     .findValue()
                     .flatMap(inner -> inner);
