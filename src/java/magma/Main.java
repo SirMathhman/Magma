@@ -92,7 +92,7 @@ public class Main {
     }
 
 
-    public interface IOError {
+    public interface IOError extends Error {
         String_ display();
     }
 
@@ -140,6 +140,10 @@ public class Main {
         boolean hasSameStrings(Map_<String, String> strings);
 
         boolean hasSameTypes(Option<String> type);
+    }
+
+    private interface Error {
+        String_ display();
     }
 
     public record Err<T, X>(X error) implements Result<T, X> {
@@ -634,9 +638,17 @@ public class Main {
         }
     }
 
-    private record CompileError(String message, String context) {
-        public String display() {
-            return this.message + ": " + this.context;
+    private record CompileError(String message, String context) implements Error {
+        @Override
+        public String_ display() {
+            return Impl.fromNativeString(this.message + ": " + this.context);
+        }
+    }
+
+    private record ApplicationError(Error child) implements Error {
+        @Override
+        public String_ display() {
+            return this.child.display();
         }
     }
 
@@ -676,26 +688,25 @@ public class Main {
                 .ifPresent(ioError -> System.err.println(Impl.toNativeString(ioError.display())));
     }
 
-    private static Option<IOError> compileAndWrite(String input, Path_ source) {
+    private static Option<ApplicationError> compileAndWrite(String input, Path_ source) {
         Path_ target = source.resolveSibling(Impl.fromNativeString("main.c"));
-        String output = compile(input);
-        return Impl.writeString(target, output);
+        return compile(input)
+                .mapErr(ApplicationError::new)
+                .match(output -> Impl.writeString(target, output).map(ApplicationError::new), Some::new);
     }
 
-    private static String compile(String input) {
+    private static Result<String, CompileError> compile(String input) {
         List_<String> segments = divideAllStatements(input);
         return parseAll(segments, wrapDefaultFunction(Main::compileRootSegment))
                 .map(list1 -> list1.iter().map(Main::unwrapDefault).collect(new ListCollector<>()))
                 .map(Main::getStringList)
-                .map(compiled -> mergeAll(compiled, Main::mergeStatements))
-                .or(() -> createInvalidateError("root", input).mapErr(err -> {
-                    return getCompileError(err);
-                }).findValue()).orElse("");
+                .<Result<String, CompileError>>map(compiled -> new Ok<>(mergeAll(compiled, Main::mergeStatements)))
+                .orElseGet(() -> createInvalidateError("root", input));
     }
 
     @Deprecated
     private static CompileError getCompileError(CompileError err) {
-        System.err.println(err.display());
+        System.err.println(Impl.toNativeString(err.display()));
         return err;
     }
 
