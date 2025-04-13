@@ -89,6 +89,10 @@ public class Main {
         Option<T> findValue();
 
         <R> Result<T, R> mapErr(Function<X, R> mapper);
+
+        <R> Result<R, X> flatMapValue(Function<T, Result<R, X>> mapper);
+
+        <R> Result<R, X> mapValue(Function<T, R> mapper);
     }
 
 
@@ -161,6 +165,16 @@ public class Main {
         public <R> Result<T, R> mapErr(Function<X, R> mapper) {
             return new Err<>(mapper.apply(this.error));
         }
+
+        @Override
+        public <R> Result<R, X> flatMapValue(Function<T, Result<R, X>> mapper) {
+            return new Err<>(this.error);
+        }
+
+        @Override
+        public <R> Result<R, X> mapValue(Function<T, R> mapper) {
+            return new Err<>(this.error);
+        }
     }
 
     public record Ok<T, X>(T value) implements Result<T, X> {
@@ -177,6 +191,16 @@ public class Main {
         @Override
         public <R> Result<T, R> mapErr(Function<X, R> mapper) {
             return new Ok<>(this.value);
+        }
+
+        @Override
+        public <R> Result<R, X> flatMapValue(Function<T, Result<R, X>> mapper) {
+            return mapper.apply(this.value);
+        }
+
+        @Override
+        public <R> Result<R, X> mapValue(Function<T, R> mapper) {
+            return new Ok<>(mapper.apply(this.value));
         }
     }
 
@@ -697,7 +721,7 @@ public class Main {
 
     private static Result<String, CompileError> compile(String input) {
         List_<String> segments = divideAllStatements(input);
-        return parseAll(segments, wrapDefaultFunction(Main::compileRootSegment))
+        return parseAll(segments, wrapToResult(wrapDefaultFunction(Main::compileRootSegment))).findValue()
                 .map(list1 -> list1.iter().map(Main::unwrapDefault).collect(new ListCollector<>()))
                 .map(Main::getStringList)
                 .<Result<String, CompileError>>map(compiled -> new Ok<>(mergeAll(compiled, Main::mergeStatements)))
@@ -737,7 +761,8 @@ public class Main {
     }
 
     private static Option<List_<Node>> parseAllStatements(String input, Function<String, Option<Node>> rule) {
-        return parseAll(divideAllStatements(input), rule);
+        List_<String> segments = divideAllStatements(input);
+        return parseAll(segments, wrapToResult(rule)).findValue();
     }
 
     private static List_<String> divideAllStatements(String input) {
@@ -754,9 +779,19 @@ public class Main {
         return compiled.iter().fold(new StringBuilder(), merger).toString();
     }
 
-    private static Option<List_<Node>> parseAll(List_<String> segments, Function<String, Option<Node>> rule) {
-        return segments.iter().<Option<List_<Node>>>fold(new Some<>(Impl.listEmpty()),
-                (maybeCompiled, segment) -> maybeCompiled.flatMap(allCompiled -> rule.apply(segment).map(allCompiled::add)));
+    private static Result<List_<Node>, CompileError> parseAll(List_<String> segments, Function<String, Result<Node, CompileError>> rule) {
+        return segments.iter().<Result<List_<Node>, CompileError>>fold(new Ok<>(Impl.listEmpty()),
+                (maybeCompiled, segment) -> maybeCompiled.flatMapValue(allCompiled -> rule.apply(segment)
+                        .mapValue(allCompiled::add)));
+    }
+
+    private static Function<String, Result<Node, CompileError>> wrapToResult(Function<String, Option<Node>> rule) {
+        return new Function<String, Result<Node, CompileError>>() {
+            @Override
+            public Result<Node, CompileError> apply(String s) {
+                return rule.apply(s).<Result<Node, CompileError>>map(Ok::new).orElseGet(() -> createInvalidateError("temp", s));
+            }
+        };
     }
 
     private static StringBuilder mergeStatements(StringBuilder output, String compiled) {
@@ -858,7 +893,7 @@ public class Main {
             return maybeClass;
         }
 
-        return createInvalidateError("root segment", input).mapErr(err -> {
+        return Main.<String>createInvalidateError("root segment", input).mapErr(err -> {
             return getCompileError(err);
         }).findValue();
     }
@@ -935,7 +970,7 @@ public class Main {
         String stringify = stringify(expansion);
 
         return generateStruct(typeParams, withName.withString("name", stringify))
-                .or(() -> createInvalidateError("struct", input).mapErr(Main::getCompileError).findValue())
+                .or(() -> Main.<String>createInvalidateError("struct", input).mapErr(Main::getCompileError).findValue())
                 .orElse("");
     }
 
@@ -985,7 +1020,7 @@ public class Main {
                 .or(() -> compileGlobalInitialization(input, typeParams))
                 .or(() -> compileDefinitionStatement(input))
                 .or(() -> compileMethod(input, typeParams))
-                .or(() -> createInvalidateError("class member", input).mapErr(err -> {
+                .or(() -> Main.<String>createInvalidateError("class member", input).mapErr(err -> {
                     return getCompileError(err);
                 }).findValue());
     }
@@ -1095,7 +1130,8 @@ public class Main {
     }
 
     private static Option<List_<Node>> parseAllValues(String input, Function<String, Option<Node>> rule) {
-        return parseAll(divide(input, Main::divideValueChar), rule);
+        List_<String> segments = divide(input, Main::divideValueChar);
+        return parseAll(segments, wrapToResult(rule)).findValue();
     }
 
     private static State divideValueChar(State state, char c) {
@@ -1138,7 +1174,7 @@ public class Main {
                 .or(() -> compileAssignment(input, typeParams, depth).map(result -> formatStatement(depth, result)))
                 .or(() -> compileInvocationStatement(input, typeParams, depth).map(result -> formatStatement(depth, result)))
                 .or(() -> compileDefinitionStatement(input))
-                .or(() -> createInvalidateError("statement or block", input).mapErr(err -> {
+                .or(() -> Main.<String>createInvalidateError("statement or block", input).mapErr(err -> {
                     return getCompileError(err);
                 }).findValue());
     }
@@ -1387,8 +1423,8 @@ public class Main {
                 .or(() -> compileOperator(input, typeParams, depth, "&&"))
                 .or(() -> compileOperator(input, typeParams, depth, "=="))
                 .or(() -> compileOperator(input, typeParams, depth, "!="))
-                .or(() -> createInvalidateError("value", input).mapErr(err -> {
-                    return getCompileError(err);
+                .or(() -> Main.<String>createInvalidateError("value", input).mapErr(err -> {
+                    return Main.<String>getCompileError(err);
                 }).findValue());
     }
 
@@ -1817,7 +1853,7 @@ public class Main {
         });
     }
 
-    private static Result<String, CompileError> createInvalidateError(String type, String input) {
-        return new Err<String, CompileError>(new CompileError("Invalid " + type, input));
+    private static <T> Result<T, CompileError> createInvalidateError(String type, String input) {
+        return new Err<T, CompileError>(new CompileError("Invalid " + type, input));
     }
 }
