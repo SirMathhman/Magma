@@ -41,28 +41,28 @@ public record ImmutableContext(
 
     @Override
     public Context withLocation(Location location) {
-        return new ImmutableContext(this.maybePlatform, new Some<Location>(location), this.sources());
+        return new ImmutableContext(this.maybePlatform, new Some<Location>(location), this.sources);
     }
 
     @Override
     public Context addSource(Source source) {
-        return new ImmutableContext(this.maybePlatform, this.maybeLocation(), this.sources().addLast(source));
+        return new ImmutableContext(this.maybePlatform, this.maybeLocation, this.sources.addLast(source));
     }
 
     @Override
     public List<String> findNamespaceOrEmpty() {
         return this.maybeLocation()
-                .map(Location::namespace)
+                .map(location -> location.namespace())
                 .orElse(Lists.empty());
     }
 
     @Override
     public String findNameOrEmpty() {
-        return this.maybeLocation().map(Location::name).orElse("");
+        return this.maybeLocation.map(Location::name).orElse("");
     }
 
     @Override
     public Context withPlatform(Platform platform) {
-        return new ImmutableContext(new Some<Platform>(platform), this.maybeLocation(), this.sources());
+        return new ImmutableContext(new Some<Platform>(platform), this.maybeLocation, this.sources);
     }
 }

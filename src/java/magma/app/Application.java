@@ -20,7 +20,7 @@ import magma.app.io.Source;
 record Application(Sources sources, Targets targets) {
     private static Option<Result<CompileState, IOError>> writeAsPlantUML(CompileState result, Path diagramPath, String joinedDependencies) {
         return diagramPath
-                .writeString("@startuml\nskinparam linetype ortho\n" + result.registry().output() + joinedDependencies + "@enduml")
+                .writeString("@startuml\nskinparam linetype ortho\n" + result.findRegistry().output() + joinedDependencies + "@enduml")
                 .map((IOError error) -> new Err<CompileState, IOError>(error));
     }
 
@@ -35,13 +35,13 @@ record Application(Sources sources, Targets targets) {
         var initial = children.iter().foldWithInitial(state, (CompileState current, Source source) -> current.mapContext((Context context1) -> context1.addSource(source)));
         var folded = children.iter().foldWithInitialToResult(initial, (CompileState state1, Source source) -> this.runWithSource(state1, source));
 
-        if (!state.context().hasPlatform(Platform.PlantUML)) {
+        if (!state.findContext().hasPlatform(Platform.PlantUML)) {
             return folded;
         }
 
         return folded.flatMapValue((CompileState result) -> {
             var diagramPath = Files.get(".", "diagram.puml");
-            var joinedDependencies = result.registry().iterDependencies()
+            var joinedDependencies = result.findRegistry().iterDependencies()
                     .map((Dependency dependency) -> dependency.toPlantUML())
                     .collect(new Joiner(""))
                     .orElse("");
@@ -60,17 +60,17 @@ record Application(Sources sources, Targets targets) {
         var compiled = RootCompiler.compileRoot(state1, input, location);
         var compiledState = compiled.left();
 
-        if (compiledState.context().hasPlatform(Platform.PlantUML)) {
+        if (compiledState.findContext().hasPlatform(Platform.PlantUML)) {
             return new Ok<CompileState, IOError>(compiledState);
         }
 
         var otherOutput = compiled.right();
-        var joinedImports = compiledState.registry().queryImports()
+        var joinedImports = compiledState.findRegistry().queryImports()
                 .map((Import anImport) -> anImport.generate())
                 .collect(new Joiner(""))
                 .orElse("");
 
-        var joined = joinedImports + compiledState.registry().output() + otherOutput;
+        var joined = joinedImports + compiledState.findRegistry().output() + otherOutput;
         var cleared = state1.mapRegistry((Registry registry) -> registry.reset());
         return this.writeTarget(source, cleared, joined);
     }

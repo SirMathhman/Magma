@@ -8,7 +8,7 @@ export interface CompileState {
 	enterDepth(): CompileState;
 	exitDepth(): CompileState;
 	mapStack(mapper: (arg0 : Stack) => Stack): CompileState;
-	context(): Context;
-	registry(): Registry;
-	stack(): Stack;
+	findContext(): Context;
+	findRegistry(): Registry;
+	findStack(): Stack;
 }

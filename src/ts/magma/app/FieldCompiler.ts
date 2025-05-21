@@ -31,12 +31,12 @@ export class FieldCompiler {
 		return new SplitComposable<Tuple2<CompileState, string>>(splitter, Composable.toComposable((beforeParams: string, withParams: string) => {
 			let strippedBeforeParams = Strings.strip(beforeParams)/*unknown*/;
 			return SplitComposable.compileLast(strippedBeforeParams, " ", (_: string, name: string) => {
-				if (state.stack().isWithinLast(name)/*unknown*/){
+				if (state.findStack().isWithinLast(name)/*unknown*/){
 					return FieldCompiler.compileMethodWithBeforeParams(state, new ConstructorHeader(), withParams)/*unknown*/;
 				}
 				return new None<Tuple2<CompileState, string>>()/*unknown*/;
 			}).or(() => {
-				if (state.stack().findLastStructureName().filter((anObject: string) => Strings.equalsTo(strippedBeforeParams, anObject)/*unknown*/).isPresent()/*unknown*/){
+				if (state.findStack().findLastStructureName().filter((anObject: string) => Strings.equalsTo(strippedBeforeParams, anObject)/*unknown*/).isPresent()/*unknown*/){
 					return FieldCompiler.compileMethodWithBeforeParams(state, new ConstructorHeader(), withParams)/*unknown*/;
 				}
 				return new None<Tuple2<CompileState, string>>()/*unknown*/;
@@ -86,7 +86,7 @@ export class FieldCompiler {
 	}
 	static compileEnumValue(state: CompileState, state1: CompileState, segment: string): Option<Tuple2<CompileState, string>> {
 		return ValueCompiler.parseInvokable(state1, segment).flatMap((tuple: Tuple2<CompileState, Value>) => {
-			let structureName = state.stack().findLastStructureName().orElse("")/*unknown*/;
+			let structureName = state.findStack().findLastStructureName().orElse("")/*unknown*/;
 			return FieldCompiler.getStringOption(structureName, tuple.right()).map((stringOption: string) => new Tuple2Impl<CompileState, string>(tuple.left(), stringOption)/*unknown*/)/*unknown*/;
 		})/*unknown*/;
 	}

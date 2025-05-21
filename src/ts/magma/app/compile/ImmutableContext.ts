@@ -31,18 +31,18 @@ export class ImmutableContext implements Context {
 		return this.iterSources().filter((source: Source) => Strings.equalsTo(source.createLocation().name(), name)/*unknown*/).next()/*unknown*/;
 	}
 	withLocation(location: Location): Context {
-		return new ImmutableContext(this.maybePlatform, new Some<Location>(location), this.sources())/*unknown*/;
+		return new ImmutableContext(this.maybePlatform, new Some<Location>(location), this.sources)/*unknown*/;
 	}
 	addSource(source: Source): Context {
-		return new ImmutableContext(this.maybePlatform, this.maybeLocation(), this.sources().addLast(source))/*unknown*/;
+		return new ImmutableContext(this.maybePlatform, this.maybeLocation, this.sources.addLast(source))/*unknown*/;
 	}
 	findNamespaceOrEmpty(): List<string> {
 		return this.maybeLocation().map(Location.namespace).orElse(Lists.empty())/*unknown*/;
 	}
 	findNameOrEmpty(): string {
-		return this.maybeLocation().map(Location.name).orElse("")/*unknown*/;
+		return this.maybeLocation.map(Location.name).orElse("")/*unknown*/;
 	}
 	withPlatform(platform: Platform): Context {
-		return new ImmutableContext(new Some<Platform>(platform), this.maybeLocation(), this.sources())/*unknown*/;
+		return new ImmutableContext(new Some<Platform>(platform), this.maybeLocation, this.sources)/*unknown*/;
 	}
 }

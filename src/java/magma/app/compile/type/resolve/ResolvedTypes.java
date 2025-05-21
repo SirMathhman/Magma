@@ -17,8 +17,8 @@ public final class ResolvedTypes {
         var requestedNamespace = location.namespace();
         var requestedChild = location.name();
 
-        var namespace = ResolvedTypes.fixNamespace(requestedNamespace, state.context().findNamespaceOrEmpty());
-        if (state.registry().doesImportExistAlready(requestedChild)) {
+        var namespace = ResolvedTypes.fixNamespace(requestedNamespace, state.findContext().findNamespaceOrEmpty());
+        if (state.findRegistry().doesImportExistAlready(requestedChild)) {
             return state;
         }
 
@@ -28,11 +28,11 @@ public final class ResolvedTypes {
     }
 
     public static CompileState addResolvedImportFromCache0(CompileState state, String base) {
-        if (state.stack().hasAnyStructureName(base)) {
+        if (state.findStack().hasAnyStructureName(base)) {
             return state;
         }
 
-        return state.context()
+        return state.findContext()
                 .findSource(base)
                 .map((Source source) -> {
                     Location location = source.createLocation();
@@ -43,13 +43,13 @@ public final class ResolvedTypes {
     }
 
     private static Option<CompileState> getCompileState1(CompileState immutableCompileState, Location location) {
-        if (!immutableCompileState.context().hasPlatform(Platform.PlantUML)) {
+        if (!immutableCompileState.findContext().hasPlatform(Platform.PlantUML)) {
             return new None<CompileState>();
         }
 
-        var name = immutableCompileState.context().findNameOrEmpty();
+        var name = immutableCompileState.findContext().findNameOrEmpty();
         var dependency = new Dependency(name, location.name());
-        if (immutableCompileState.registry().containsDependency(dependency)) {
+        if (immutableCompileState.findRegistry().containsDependency(dependency)) {
             return new None<CompileState>();
         }
 

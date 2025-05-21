@@ -15,9 +15,9 @@ public interface CompileState {
 
     CompileState mapStack(Function<Stack, Stack> mapper);
 
-    Context context();
+    Context findContext();
 
-    Registry registry();
+    Registry findRegistry();
 
-    Stack stack();
+    Stack findStack();
 }

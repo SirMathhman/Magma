@@ -13,8 +13,8 @@ export class ResolvedTypes {
 	static getState(state: CompileState, location: Location): CompileState {
 		let requestedNamespace = location.namespace()/*unknown*/;
 		let requestedChild = location.name()/*unknown*/;
-		let namespace = ResolvedTypes.fixNamespace(requestedNamespace, state.context().findNamespaceOrEmpty())/*unknown*/;
-		if (state.registry().doesImportExistAlready(requestedChild)/*unknown*/){
+		let namespace = ResolvedTypes.fixNamespace(requestedNamespace, state.findContext().findNamespaceOrEmpty())/*unknown*/;
+		if (state.findRegistry().doesImportExistAlready(requestedChild)/*unknown*/){
 			return state/*CompileState*/;
 		}
 		let namespaceWithChild = namespace.addLast(requestedChild)/*unknown*/;
@@ -22,21 +22,21 @@ export class ResolvedTypes {
 		return state.mapRegistry((registry: Registry) => registry.addImport(anImport)/*unknown*/)/*unknown*/;
 	}
 	static addResolvedImportFromCache0(state: CompileState, base: string): CompileState {
-		if (state.stack().hasAnyStructureName(base)/*unknown*/){
+		if (state.findStack().hasAnyStructureName(base)/*unknown*/){
 			return state/*CompileState*/;
 		}
-		return state.context().findSource(base).map((source: Source) => {
+		return state.findContext().findSource(base).map((source: Source) => {
 			let location: Location = source.createLocation()/*unknown*/;
 			return ResolvedTypes.getCompileState1(state, location).orElseGet(() => ResolvedTypes.getState(state, location)/*unknown*/)/*unknown*/;
 		}).orElse(state)/*unknown*/;
 	}
 	static getCompileState1(immutableCompileState: CompileState, location: Location): Option<CompileState> {
-		if (!!immutableCompileState/*CompileState*/.context().hasPlatform(Platform.PlantUML)/*unknown*/){
+		if (!!immutableCompileState/*CompileState*/.findContext().hasPlatform(Platform.PlantUML)/*unknown*/){
 			return new None<CompileState>()/*unknown*/;
 		}
-		let name = immutableCompileState.context().findNameOrEmpty()/*unknown*/;
+		let name = immutableCompileState.findContext().findNameOrEmpty()/*unknown*/;
 		let dependency = new Dependency(name, location.name())/*unknown*/;
-		if (immutableCompileState.registry().containsDependency(dependency)/*unknown*/){
+		if (immutableCompileState.findRegistry().containsDependency(dependency)/*unknown*/){
 			return new None<CompileState>()/*unknown*/;
 		}
 		return new Some<CompileState>(immutableCompileState.mapRegistry((registry1: Registry) => registry1.addDependency(dependency)/*unknown*/))/*unknown*/;

@@ -118,7 +118,7 @@ public final class RootCompiler {
                 .collect(Joiner.empty())
                 .orElse("");
 
-        if (outputContentState.context().hasPlatform(Platform.PlantUML)) {
+        if (outputContentState.findContext().hasPlatform(Platform.PlantUML)) {
             var joinedImplementing = maybeImplementing
                     .map((Type type) -> type.generateSimple())
                     .map((String generated) -> name + " <|.. " + generated + "\n")
@@ -160,7 +160,7 @@ public final class RootCompiler {
     }
 
     private static String mergeEnumValues(CompileState outputContentState, String name) {
-        return outputContentState.stack()
+        return outputContentState.findStack()
                 .findLastDefinitions()
                 .iter()
                 .map((Definition definition) -> name + "." + definition.name())

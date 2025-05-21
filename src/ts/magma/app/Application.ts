@@ -26,7 +26,7 @@ export class Application {
 		this.targets = targets;
 	}
 	static writeAsPlantUML(result: CompileState, diagramPath: Path, joinedDependencies: string): Option<Result<CompileState, IOError>> {
-		return diagramPath.writeString("@startuml\nskinparam linetype ortho\n" + result.registry().output() + joinedDependencies + "@enduml").map((error: IOError) => new Err<CompileState, IOError>(error)/*unknown*/)/*unknown*/;
+		return diagramPath.writeString("@startuml\nskinparam linetype ortho\n" + result.findRegistry().output() + joinedDependencies + "@enduml").map((error: IOError) => new Err<CompileState, IOError>(error)/*unknown*/)/*unknown*/;
 	}
 	runWith(platform: Platform): Option<IOError> {
 		return this.sources.listSources().flatMapValue((children: Iterable<Source>) => this.runWithChildren(platform, children)/*unknown*/).findError()/*unknown*/;
@@ -35,12 +35,12 @@ export class Application {
 		let state: CompileState = ImmutableCompileState.createEmpty().mapContext((context: Context) => context.withPlatform(platform)/*unknown*/)/*unknown*/;
 		let initial = children.iter().foldWithInitial(state, (current: CompileState, source: Source) => current.mapContext((context1: Context) => context1.addSource(source)/*unknown*/)/*unknown*/)/*unknown*/;
 		let folded = children.iter().foldWithInitialToResult(initial, (state1: CompileState, source: Source) => this.runWithSource(state1, source)/*unknown*/)/*unknown*/;
-		if (!!state/*unknown*/.context().hasPlatform(Platform.PlantUML)/*unknown*/){
+		if (!!state/*unknown*/.findContext().hasPlatform(Platform.PlantUML)/*unknown*/){
 			return folded/*unknown*/;
 		}
 		return folded.flatMapValue((result: CompileState) => {
 			let diagramPath = Files.get(".", "diagram.puml")/*unknown*/;
-			let joinedDependencies = result.registry().iterDependencies().map((dependency: Dependency) => dependency.toPlantUML()/*unknown*/).collect(new Joiner("")).orElse("")/*unknown*/;
+			let joinedDependencies = result.findRegistry().iterDependencies().map((dependency: Dependency) => dependency.toPlantUML()/*unknown*/).collect(new Joiner("")).orElse("")/*unknown*/;
 			return Application.writeAsPlantUML(result, diagramPath, joinedDependencies).orElse(folded)/*unknown*/;
 		})/*unknown*/;
 	}
@@ -51,12 +51,12 @@ export class Application {
 		let location = source.createLocation()/*unknown*/;
 		let compiled = RootCompiler.compileRoot(state1, input, location)/*unknown*/;
 		let compiledState = compiled.left()/*unknown*/;
-		if (compiledState.context().hasPlatform(Platform.PlantUML)/*unknown*/){
+		if (compiledState.findContext().hasPlatform(Platform.PlantUML)/*unknown*/){
 			return new Ok<CompileState, IOError>(compiledState)/*unknown*/;
 		}
 		let otherOutput = compiled.right()/*unknown*/;
-		let joinedImports = compiledState.registry().queryImports().map((anImport: Import) => anImport.generate()/*unknown*/).collect(new Joiner("")).orElse("")/*unknown*/;
-		let joined = joinedImports + compiledState.registry().output() + otherOutput/*unknown*/;
+		let joinedImports = compiledState.findRegistry().queryImports().map((anImport: Import) => anImport.generate()/*unknown*/).collect(new Joiner("")).orElse("")/*unknown*/;
+		let joined = joinedImports + compiledState.findRegistry().output() + otherOutput/*unknown*/;
 		let cleared = state1.mapRegistry((registry: Registry) => registry.reset()/*unknown*/)/*unknown*/;
 		return this.writeTarget(source, cleared, joined)/*unknown*/;
 	}

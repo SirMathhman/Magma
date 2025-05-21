@@ -23,7 +23,7 @@ export class ImmutableCompileState implements CompileState {
 		return "\n" + "\t".repeat(this.depth)/*unknown*/;
 	}
 	mapRegistry(mapper: (arg0 : Registry) => Registry): CompileState {
-		return new ImmutableCompileState(this.context, mapper(this.registry()), this.stack, this.depth)/*unknown*/;
+		return new ImmutableCompileState(this.context, mapper(this.findRegistry()), this.stack, this.depth)/*unknown*/;
 	}
 	mapContext(mapper: (arg0 : Context) => Context): CompileState {
 		return new ImmutableCompileState(mapper(this.context), this.registry, this.stack, this.depth)/*unknown*/;
@@ -37,13 +37,13 @@ export class ImmutableCompileState implements CompileState {
 	mapStack(mapper: (arg0 : Stack) => Stack): CompileState {
 		return new ImmutableCompileState(this.context, this.registry, mapper(this.stack), this.depth)/*unknown*/;
 	}
-	context(): Context {
+	findContext(): Context {
 		return this.context/*unknown*/;
 	}
-	registry(): Registry {
+	findRegistry(): Registry {
 		return this.registry/*unknown*/;
 	}
-	stack(): Stack {
+	findStack(): Stack {
 		return this.stack/*unknown*/;
 	}
 }

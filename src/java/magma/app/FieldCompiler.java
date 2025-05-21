@@ -22,7 +22,6 @@ import magma.app.compile.locate.FirstLocator;
 import magma.app.compile.split.LocatingSplitter;
 import magma.app.compile.split.Splitter;
 import magma.app.compile.symbol.Symbols;
-import magma.app.compile.type.PrimitiveType;
 import magma.app.compile.value.Invokable;
 import magma.app.compile.value.Symbol;
 import magma.app.compile.value.Value;
@@ -33,13 +32,13 @@ final class FieldCompiler {
         return new SplitComposable<Tuple2<CompileState, String>>(splitter, Composable.toComposable((String beforeParams, String withParams) -> {
             var strippedBeforeParams = Strings.strip(beforeParams);
             return SplitComposable.compileLast(strippedBeforeParams, " ", (String _, String name) -> {
-                if (state.stack().isWithinLast(name)) {
+                if (state.findStack().isWithinLast(name)) {
                     return FieldCompiler.compileMethodWithBeforeParams(state, new ConstructorHeader(), withParams);
                 }
 
                 return new None<Tuple2<CompileState, String>>();
             }).or(() -> {
-                if (state.stack().findLastStructureName().filter((String anObject) -> Strings.equalsTo(strippedBeforeParams, anObject)).isPresent()) {
+                if (state.findStack().findLastStructureName().filter((String anObject) -> Strings.equalsTo(strippedBeforeParams, anObject)).isPresent()) {
                     return FieldCompiler.compileMethodWithBeforeParams(state, new ConstructorHeader(), withParams);
                 }
 
@@ -109,7 +108,7 @@ final class FieldCompiler {
 
     private static Option<Tuple2<CompileState, String>> compileEnumValue(CompileState state, CompileState state1, String segment) {
         return ValueCompiler.parseInvokable(state1, segment).flatMap((Tuple2<CompileState, Value> tuple) -> {
-            var structureName = state.stack().findLastStructureName().orElse("");
+            var structureName = state.findStack().findLastStructureName().orElse("");
             return FieldCompiler.getStringOption(structureName, tuple.right()).map((String stringOption) -> new Tuple2Impl<CompileState, String>(tuple.left(), stringOption));
         });
     }

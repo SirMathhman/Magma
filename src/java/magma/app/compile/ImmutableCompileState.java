@@ -35,7 +35,7 @@ public final class ImmutableCompileState implements CompileState {
 
     @Override
     public CompileState mapRegistry(Function<Registry, Registry> mapper) {
-        return new ImmutableCompileState(this.context, mapper.apply(this.registry()), this.stack, this.depth);
+        return new ImmutableCompileState(this.context, mapper.apply(this.findRegistry()), this.stack, this.depth);
     }
 
     @Override
@@ -59,17 +59,17 @@ public final class ImmutableCompileState implements CompileState {
     }
 
     @Override
-    public Context context() {
+    public Context findContext() {
         return this.context;
     }
 
     @Override
-    public Registry registry() {
+    public Registry findRegistry() {
         return this.registry;
     }
 
     @Override
-    public Stack stack() {
+    public Stack findStack() {
         return this.stack;
     }
 }

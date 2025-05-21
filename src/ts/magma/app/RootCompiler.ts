@@ -88,7 +88,7 @@ export class RootCompiler {
 		let implementingString = RootCompiler.generateImplementing(maybeImplementing)/*unknown*/;
 		let newModifiers = Lists.of("export")/*unknown*/;
 		let joinedModifiers = newModifiers.iter().map((value: string) => value + " "/*unknown*/).collect(Joiner.empty()).orElse("")/*unknown*/;
-		if (outputContentState.context().hasPlatform(Platform.PlantUML)/*unknown*/){
+		if (outputContentState.findContext().hasPlatform(Platform.PlantUML)/*unknown*/){
 			let joinedImplementing = maybeImplementing.map((type: Type) => type.generateSimple()/*unknown*/).map((generated: string) => name + " <|.. " + generated + "\n"/*unknown*/).orElse("")/*unknown*/;
 			let joinedSuperTypes = maybeSuperType.iter().map((type: Type) => type.generateSimple()/*unknown*/).map((generated: string) => name + " <|-- " + generated + "\n"/*unknown*/).collect(new Joiner("")).orElse("")/*unknown*/;
 			let generated = targetInfix + name + joinedTypeParams + " {\n}\n" + joinedSuperTypes + joinedImplementing/*unknown*/;
@@ -114,7 +114,7 @@ export class RootCompiler {
 		return "\n\tstatic values(): " + name + "[] {\n\t\treturn [" + joined + "];\n\t}"/*unknown*/;
 	}
 	static mergeEnumValues(outputContentState: CompileState, name: string): string {
-		return outputContentState.stack().findLastDefinitions().iter().map((definition: Definition) => name + "." + definition.name()/*unknown*/).collect(new Joiner(", ")).orElse("")/*unknown*/;
+		return outputContentState.findStack().findLastDefinitions().iter().map((definition: Definition) => name + "." + definition.name()/*unknown*/).collect(new Joiner(", ")).orElse("")/*unknown*/;
 	}
 	static joinExtends(maybeSuperType: Iterable<Type>): string {
 		return maybeSuperType.iter().map((type: Type) => TypeCompiler.generateType(type)/*unknown*/).collect(new Joiner(", ")).map((inner: string) => " extends " + inner/*unknown*/).orElse("")/*unknown*/;
