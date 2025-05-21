@@ -11,9 +11,6 @@ export class PrimitiveType implements Type {
 	constructor (value: string) {
 		this.value/*unknown*/ = value/*string*/;
 	}
-	generate(): string {
-		return this.value/*unknown*/;
-	}
 	isFunctional(): boolean {
 		return false/*unknown*/;
 	}

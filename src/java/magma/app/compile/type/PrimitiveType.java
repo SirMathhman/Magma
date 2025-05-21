@@ -10,14 +10,10 @@ public enum PrimitiveType implements Type {
     Void("void"),
     Unknown("unknown");
 
-    private final String value;
+    public final String value;
 
     PrimitiveType(String value) {
         this.value = value;
-    }
-
-    public String generate() {
-        return this.value;
     }
 
     @Override

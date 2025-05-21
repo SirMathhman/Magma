@@ -3,6 +3,7 @@ package magma.app;
 import jvm.api.collect.list.Lists;
 import magma.api.Tuple2;
 import magma.api.Tuple2Impl;
+import magma.api.collect.Joiner;
 import magma.api.collect.list.List;
 import magma.api.option.None;
 import magma.api.option.Option;
@@ -16,6 +17,8 @@ import magma.app.compile.compose.Composable;
 import magma.app.compile.compose.SplitComposable;
 import magma.app.compile.compose.SuffixComposable;
 import magma.app.compile.locate.FirstLocator;
+import magma.app.compile.merge.Merger;
+import magma.app.compile.merge.ValueMerger;
 import magma.app.compile.rule.OrRule;
 import magma.app.compile.split.LocatingSplitter;
 import magma.app.compile.split.Splitter;
@@ -206,12 +209,42 @@ public final class TypeCompiler {
 
     public static String generateType(Type type) {
         return switch (type) {
-            case FunctionType functionType -> functionType.generate();
-            case Placeholder placeholder -> placeholder.generate();
-            case PrimitiveType primitiveType -> primitiveType.generate();
-            case Symbol symbol -> symbol.generate();
-            case TemplateType templateType -> templateType.generate();
-            case VariadicType variadicType -> variadicType.generate();
+            case FunctionType functionType -> TypeCompiler.generateFunctionType(functionType);
+            case Placeholder placeholder -> TypeCompiler.generatePlaceholder(placeholder);
+            case PrimitiveType primitiveType -> TypeCompiler.generatePrimitiveType(primitiveType);
+            case Symbol symbol -> TypeCompiler.generateSymbol(symbol);
+            case TemplateType templateType -> TypeCompiler.generateTemplateType(templateType);
+            case VariadicType variadicType -> TypeCompiler.generateVariadicType(variadicType);
         };
+    }
+
+    private static String generateVariadicType(VariadicType variadicType) {
+        return TypeCompiler.generateType(variadicType.type()) + "[]";
+    }
+
+    private static String generateTemplateType(TemplateType templateType) {
+        return templateType.base() + "<" + Merger.generateAll(templateType.args(), new ValueMerger()) + ">";
+    }
+
+    private static String generateSymbol(Symbol symbol) {
+        return symbol.value();
+    }
+
+    private static String generatePrimitiveType(PrimitiveType primitiveType) {
+        return primitiveType.value;
+    }
+
+    private static String generatePlaceholder(Placeholder placeholder) {
+        return Placeholder.generatePlaceholder(placeholder.input());
+    }
+
+    private static String generateFunctionType(FunctionType functionType) {
+        var joinedArguments = functionType.args()
+                .iterWithIndices()
+                .map((Tuple2<Integer, String> tuple) -> "arg" + tuple.left() + " : " + tuple.right())
+                .collect(new Joiner(", "))
+                .orElse("");
+
+        return "(" + joinedArguments + ") => " + functionType.returns();
     }
 }

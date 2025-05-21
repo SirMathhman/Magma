@@ -29,6 +29,10 @@ import { Registry } from "../../magma/app/compile/Registry";
 import { Source } from "../../magma/app/io/Source";
 import { Platform } from "../../magma/app/Platform";
 import { Dependency } from "../../magma/app/compile/Dependency";
+import { Merger } from "../../magma/app/compile/merge/Merger";
+import { ValueMerger } from "../../magma/app/compile/merge/ValueMerger";
+import { Symbol } from "../../magma/app/compile/type/Symbol";
+import { Joiner } from "../../magma/api/collect/Joiner";
 export class TypeCompiler {
 	static compileType(state: CompileState, type: string): Option<Tuple2<CompileState, string>> {
 		return TypeCompiler.parseType(state, type).map((tuple: Tuple2<CompileState, Type>) => new Tuple2Impl<CompileState, string>(tuple.left(), TypeCompiler.generateType(tuple.right()))/*unknown*/)/*unknown*/;
@@ -154,12 +158,31 @@ export class TypeCompiler {
 		return copy/*unknown*/;
 	}
 	static generateType(type: Type): string {/*return switch (type) {
-            case FunctionType functionType -> functionType.generate();
-            case Placeholder placeholder -> placeholder.generate();
-            case PrimitiveType primitiveType -> primitiveType.generate();
-            case Symbol symbol -> symbol.generate();
-            case TemplateType templateType -> templateType.generate();
-            case VariadicType variadicType -> variadicType.generate();
+            case FunctionType functionType -> TypeCompiler.generateFunctionType(functionType);
+            case Placeholder placeholder -> TypeCompiler.generatePlaceholder(placeholder);
+            case PrimitiveType primitiveType -> TypeCompiler.generatePrimitiveType(primitiveType);
+            case Symbol symbol -> TypeCompiler.generateSymbol(symbol);
+            case TemplateType templateType -> TypeCompiler.generateTemplateType(templateType);
+            case VariadicType variadicType -> TypeCompiler.generateVariadicType(variadicType);
         }*/;
+	}
+	static generateVariadicType(variadicType: VariadicType): string {
+		return TypeCompiler.generateType(variadicType.type()) + "[]"/*unknown*/;
+	}
+	static generateTemplateType(templateType: TemplateType): string {
+		return templateType.base() + "<" + Merger.generateAll(templateType.args(), new ValueMerger()) + ">"/*unknown*/;
+	}
+	static generateSymbol(symbol: Symbol): string {
+		return symbol.value()/*unknown*/;
+	}
+	static generatePrimitiveType(primitiveType: PrimitiveType): string {
+		return primitiveType.value/*unknown*/;
+	}
+	static generatePlaceholder(placeholder: Placeholder): string {
+		return Placeholder.generatePlaceholder(placeholder.input())/*unknown*/;
+	}
+	static generateFunctionType(functionType: FunctionType): string {
+		let joinedArguments = functionType.args().iterWithIndices().map((tuple: Tuple2<number, string>) => "arg" + tuple.left() + " : " + tuple.right()/*unknown*/).collect(new Joiner(", ")).orElse("")/*unknown*/;
+		return "(" + joinedArguments + ") => " + functionType.returns()/*unknown*/;
 	}
 }

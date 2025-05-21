@@ -5,9 +5,6 @@ export class VariadicType implements Type {
 	constructor (type: Type) {
 		this.type = type;
 	}
-	generate(): string {
-		return TypeCompiler.generateType(this.type) + "[]"/*unknown*/;
-	}
 	isFunctional(): boolean {
 		return false/*unknown*/;
 	}

@@ -1,7 +1,5 @@
 import { Type } from "../../../../magma/app/compile/type/Type";
 import { Iterable } from "../../../../magma/api/collect/list/Iterable";
-import { Tuple2 } from "../../../../magma/api/Tuple2";
-import { Joiner } from "../../../../magma/api/collect/Joiner";
 import { TypeCompiler } from "../../../../magma/app/TypeCompiler";
 export class FunctionType implements Type {
 	args: Iterable<string>;
@@ -9,10 +7,6 @@ export class FunctionType implements Type {
 	constructor (args: Iterable<string>, returns: string) {
 		this.args = args;
 		this.returns = returns;
-	}
-	generate(): string {
-		let joinedArguments = this.args.iterWithIndices().map((tuple: Tuple2<number, string>) => "arg" + tuple.left() + " : " + tuple.right()/*unknown*/).collect(new Joiner(", ")).orElse("")/*unknown*/;
-		return "(" + joinedArguments + ") => " + this.returns/*unknown*/;
 	}
 	isFunctional(): boolean {
 		return true/*unknown*/;

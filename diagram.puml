@@ -571,8 +571,6 @@ Whitespace --> Option
 Whitespace --> None
 FunctionType --> Type
 FunctionType --> Iterable
-FunctionType --> Tuple2
-FunctionType --> Joiner
 FunctionType --> TypeCompiler
 Placeholder --> Value
 Placeholder --> Option
@@ -591,8 +589,6 @@ Symbol --> None
 Symbol --> TypeCompiler
 TemplateType --> Type
 TemplateType --> Iterable
-TemplateType --> Merger
-TemplateType --> ValueMerger
 VariadicType --> Type
 VariadicType --> TypeCompiler
 AccessValue --> Value
@@ -874,6 +870,10 @@ TypeCompiler --> Registry
 TypeCompiler --> Source
 TypeCompiler --> Platform
 TypeCompiler --> Dependency
+TypeCompiler --> Merger
+TypeCompiler --> ValueMerger
+TypeCompiler --> Symbol
+TypeCompiler --> Joiner
 ValueCompiler --> CompileState
 ValueCompiler --> Tuple2Impl
 ValueCompiler --> Value
