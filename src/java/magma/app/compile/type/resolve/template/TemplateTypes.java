@@ -77,7 +77,9 @@ public class TemplateTypes {
     public static Option<Tuple2<CompileState, String>> compileTypeArgument(CompileState state, String input) {
         return new OrRule<String>(Lists.of(
                 (CompileState state2, String input1) -> WhitespaceCompiler.compileWhitespace(state2, input1),
-                (CompileState state1, String type) -> TypeCompiler.compileType(state1, type)
+                (CompileState state1, String type) -> TypeCompiler.createTypeRule()
+                        .apply(state1, type)
+                        .map((Tuple2<CompileState, Type> tuple) -> new Tuple2Impl<CompileState, String>(tuple.left(), TypeCompiler.generateType(tuple.right())))
         )).apply(state, input);
     }
 

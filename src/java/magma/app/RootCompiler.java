@@ -53,12 +53,12 @@ public final class RootCompiler {
     }
 
     private static Option<Tuple2<CompileState, String>> compileStructureWithImplementing(CompileState state, List<String> annotations, List<String> modifiers, String targetInfix, String beforeContent, String content, String sourceInfix) {
-        return SplitComposable.compileLast(beforeContent, " implements ", (String s, String s2) -> TypeCompiler.parseType(state, s2).flatMap((Tuple2<CompileState, Type> implementingTuple) -> RootCompiler.compileStructureWithExtends(implementingTuple.left(), annotations, targetInfix, s, new Some<Type>(implementingTuple.right()), content, sourceInfix))).or(() -> RootCompiler.compileStructureWithExtends(state, annotations, targetInfix, beforeContent, new None<Type>(), content, sourceInfix));
+        return SplitComposable.compileLast(beforeContent, " implements ", (String s, String s2) -> TypeCompiler.createTypeRule().apply(state, s2).flatMap((Tuple2<CompileState, Type> implementingTuple) -> RootCompiler.compileStructureWithExtends(implementingTuple.left(), annotations, targetInfix, s, new Some<Type>(implementingTuple.right()), content, sourceInfix))).or(() -> RootCompiler.compileStructureWithExtends(state, annotations, targetInfix, beforeContent, new None<Type>(), content, sourceInfix));
     }
 
     private static Option<Tuple2<CompileState, String>> compileStructureWithExtends(CompileState state, List<String> annotations, String targetInfix, String beforeContent, Option<Type> maybeImplementing, String inputContent, String sourceInfix) {
         Splitter splitter = new LocatingSplitter(" extends ", new FirstLocator());
-        return new SplitComposable<Tuple2<CompileState, String>>(splitter, Composable.toComposable((String beforeExtends, String afterExtends) -> ValueCompiler.values((CompileState inner0, String inner1) -> TypeCompiler.parseType(inner0, inner1)).apply(state, afterExtends)
+        return new SplitComposable<Tuple2<CompileState, String>>(splitter, Composable.toComposable((String beforeExtends, String afterExtends) -> ValueCompiler.values((CompileState inner0, String inner1) -> TypeCompiler.createTypeRule().apply(inner0, inner1)).apply(state, afterExtends)
                 .flatMap((Tuple2<CompileState, List<Type>> compileStateListTuple2) -> RootCompiler.compileStructureWithParameters(compileStateListTuple2.left(), annotations, targetInfix, beforeExtends, compileStateListTuple2.right(), maybeImplementing, inputContent, sourceInfix)))).apply(beforeContent).or(() -> RootCompiler.compileStructureWithParameters(state, annotations, targetInfix, beforeContent, Lists.empty(), maybeImplementing, inputContent, sourceInfix));
     }
 

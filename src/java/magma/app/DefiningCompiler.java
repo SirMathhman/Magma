@@ -113,7 +113,7 @@ final class DefiningCompiler {
             String type,
             String name
     ) {
-        return TypeCompiler.parseType(state, type).flatMap((Tuple2<CompileState, Type> typeTuple) -> {
+        return TypeCompiler.createTypeRule().apply(state, type).flatMap((Tuple2<CompileState, Type> typeTuple) -> {
             var newModifiers = oldModifiers.contains("static") ? Lists.of("static") : Lists.<String>empty();
             var generated = new Definition(annotations, newModifiers, typeParams, typeTuple.right(), name);
             return new Some<Tuple2<CompileState, Definition>>(new Tuple2Impl<CompileState, Definition>(typeTuple.left(), generated));

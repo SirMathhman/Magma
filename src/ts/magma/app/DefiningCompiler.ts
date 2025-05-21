@@ -76,7 +76,7 @@ export class DefiningCompiler {
 		return new FoldedDivider(new DecoratedFolder((state1: DivideState, c: string) => new DelimitedFolder(" ").apply(state1, c)/*unknown*/)).divide(Strings.strip(beforeType)).map((s: string) => Strings.strip(s)/*unknown*/).filter((value: string) => !!Strings/*unknown*/.isEmpty(value)/*unknown*/).collect(new ListCollector<string>())/*unknown*/;
 	}
 	static parseDefinitionWithTypeParameters(state: CompileState, annotations: List<string>, typeParams: List<string>, oldModifiers: List<string>, type: string, name: string): Option<Tuple2<CompileState, Definition>> {
-		return TypeCompiler.parseType(state, type).flatMap((typeTuple: Tuple2<CompileState, Type>) => {
+		return TypeCompiler.createTypeRule().apply(state, type).flatMap((typeTuple: Tuple2<CompileState, Type>) => {
 			let newModifiers = /* oldModifiers.contains("static") ? Lists.of("static") : Lists.<String>empty()*/;
 			let generated = new Definition(annotations, newModifiers, typeParams, typeTuple.right(), name)/*unknown*/;
 			return new Some<Tuple2<CompileState, Definition>>(new Tuple2Impl<CompileState, Definition>(typeTuple.left(), generated))/*unknown*/;

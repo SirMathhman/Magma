@@ -64,7 +64,7 @@ public final class ValueCompiler {
         return new SuffixComposable<Tuple2<CompileState, Value>>(")", (String withoutEnd) -> new SplitComposable<Tuple2<CompileState, Value>>((String withoutEnd0) -> {
             Selector selector = new LastSelector("");
             return new FoldingSplitter((DivideState state1, char c) -> ValueCompiler.foldInvocationStarts(state1, c), selector).apply(withoutEnd0);
-        }, Composable.toComposable((String callerWithArgStart, String args) -> new SuffixComposable<Tuple2<CompileState, Value>>("(", (String callerString) -> new PrefixComposable<Tuple2<CompileState, Value>>("new ", (String type) -> TypeCompiler.compileType(state, type).flatMap((Tuple2<CompileState, String> callerTuple1) -> {
+        }, Composable.toComposable((String callerWithArgStart, String args) -> new SuffixComposable<Tuple2<CompileState, Value>>("(", (String callerString) -> new PrefixComposable<Tuple2<CompileState, Value>>("new ", (String type) -> TypeCompiler.createTypeRule().apply(state, type).<Tuple2<CompileState, String>>map((Tuple2<CompileState, Type> tuple) -> new Tuple2Impl<CompileState, String>(tuple.left(), TypeCompiler.generateType(tuple.right()))).flatMap((Tuple2<CompileState, String> callerTuple1) -> {
             var callerState = callerTuple1.right();
             var caller = callerTuple1.left();
             return ValueCompiler.assembleInvokable(caller, new ConstructionCaller(callerState), args);

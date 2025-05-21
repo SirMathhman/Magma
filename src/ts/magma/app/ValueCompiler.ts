@@ -5,23 +5,18 @@ import { Tuple2 } from "../../magma/api/Tuple2";
 import { Placeholder } from "../../magma/app/compile/value/Placeholder";
 import { TypeCompiler } from "../../magma/app/TypeCompiler";
 import { Option } from "../../magma/api/option/Option";
-import { SuffixComposable } from "../../magma/app/compile/compose/SuffixComposable";
-import { SplitComposable } from "../../magma/app/compile/compose/SplitComposable";
-import { LastSelector } from "../../magma/app/compile/select/LastSelector";
-import { Selector } from "../../magma/app/compile/select/Selector";
-import { FoldingSplitter } from "../../magma/app/compile/split/FoldingSplitter";
-import { DivideState } from "../../magma/app/compile/DivideState";
-import { Composable } from "../../magma/app/compile/compose/Composable";
-import { PrefixComposable } from "../../magma/app/compile/compose/PrefixComposable";
-import { ConstructionCaller } from "../../magma/app/compile/value/ConstructionCaller";
-import { Strings } from "../../magma/api/text/Strings";
 import { Rule } from "../../magma/app/compile/rule/Rule";
+import { Strings } from "../../magma/api/text/Strings";
+import { PrefixComposable } from "../../magma/app/compile/compose/PrefixComposable";
+import { SuffixComposable } from "../../magma/app/compile/compose/SuffixComposable";
 import { Some } from "../../magma/api/option/Some";
 import { StringValue } from "../../magma/app/compile/value/StringValue";
 import { Not } from "../../magma/app/compile/value/Not";
 import { LocatingSplitter } from "../../magma/app/compile/split/LocatingSplitter";
 import { FirstLocator } from "../../magma/app/compile/locate/FirstLocator";
 import { Splitter } from "../../magma/app/compile/split/Splitter";
+import { SplitComposable } from "../../magma/app/compile/compose/SplitComposable";
+import { Composable } from "../../magma/app/compile/compose/Composable";
 import { DefiningCompiler } from "../../magma/app/DefiningCompiler";
 import { Parameter } from "../../magma/app/compile/define/Parameter";
 import { List } from "../../magma/api/collect/list/List";
@@ -33,6 +28,7 @@ import { Lambda } from "../../magma/app/compile/value/Lambda";
 import { Symbols } from "../../magma/app/compile/symbol/Symbols";
 import { None } from "../../magma/api/option/None";
 import { AccessValue } from "../../magma/app/compile/value/AccessValue";
+import { FoldingSplitter } from "../../magma/app/compile/split/FoldingSplitter";
 import { OperatorFolder } from "../../magma/app/compile/fold/OperatorFolder";
 import { FirstSelector } from "../../magma/app/compile/select/FirstSelector";
 import { Operation } from "../../magma/app/compile/value/Operation";
@@ -44,6 +40,7 @@ import { Symbol } from "../../magma/app/compile/value/Symbol";
 import { PrimitiveType } from "../../magma/app/compile/type/PrimitiveType";
 import { Argument } from "../../magma/app/compile/value/Argument";
 import { Caller } from "../../magma/app/compile/value/Caller";
+import { DivideState } from "../../magma/app/compile/DivideState";
 import { Iters } from "../../magma/api/collect/Iters";
 import { ListCollector } from "../../magma/api/collect/list/ListCollector";
 import { Invokable } from "../../magma/app/compile/value/Invokable";
@@ -52,6 +49,7 @@ import { Lists } from "../../jvm/api/collect/list/Lists";
 import { DivideRule } from "../../magma/app/DivideRule";
 import { ValueFolder } from "../../magma/app/compile/fold/ValueFolder";
 import { Joiner } from "../../magma/api/collect/Joiner";
+import { ConstructionCaller } from "../../magma/app/compile/value/ConstructionCaller";
 export class ValueCompiler {
 	static generateValue(tuple: Tuple2<CompileState, Value>): Tuple2Impl<CompileState, string> {
 		let state = tuple.left()/*unknown*/;
@@ -61,14 +59,14 @@ export class ValueCompiler {
 		return new Tuple2Impl<CompileState, string>(state, generated + s)/*unknown*/;
 	}
 	static parseInvokable(state: CompileState, input: string): Option<Tuple2<CompileState, Value>> {
-		return new SuffixComposable<Tuple2<CompileState, Value>>(")", (withoutEnd: string) => new SplitComposable<Tuple2<CompileState, Value>>((withoutEnd0: string) => {
-			let selector: Selector = new LastSelector("")/*unknown*/;
-			return new FoldingSplitter((state1: DivideState, c: string) => ValueCompiler.foldInvocationStarts(state1, c)/*unknown*/, selector).apply(withoutEnd0)/*unknown*/;
-		}, Composable.toComposable((callerWithArgStart: string, args: string) => new SuffixComposable<Tuple2<CompileState, Value>>("(", (callerString: string) => new PrefixComposable<Tuple2<CompileState, Value>>("new ", (type: string) => TypeCompiler.compileType(state, type).flatMap((callerTuple1: Tuple2<CompileState, string>) => {
-			let callerState = callerTuple1.right()/*unknown*/;
-			let caller = callerTuple1.left()/*unknown*/;
-			return ValueCompiler.assembleInvokable(caller, new ConstructionCaller(callerState), args)/*unknown*/;
-		})/*unknown*/).apply(Strings.strip(callerString)).or(() => ValueCompiler.parseValue(state, callerString).flatMap((callerTuple: Tuple2<CompileState, Value>) => ValueCompiler.assembleInvokable(callerTuple.left(), callerTuple.right(), args)/*unknown*/)/*unknown*/)/*unknown*/).apply(callerWithArgStart)/*unknown*/)).apply(withoutEnd)/*unknown*/).apply(Strings.strip(input))/*unknown*/;
+		/*return new SuffixComposable<Tuple2<CompileState, Value>>(")", (String withoutEnd) -> new SplitComposable<Tuple2<CompileState, Value>>((String withoutEnd0) -> {
+            Selector selector */ = /* new LastSelector("");
+            return new FoldingSplitter((DivideState state1, char c) -> ValueCompiler.foldInvocationStarts(state1, c), selector).apply(withoutEnd0);
+        }, Composable.toComposable((String callerWithArgStart, String args) -> new SuffixComposable<Tuple2<CompileState, Value>>("(", (String callerString) -> new PrefixComposable<Tuple2<CompileState, Value>>("new ", (String type) -> TypeCompiler.createTypeRule().apply(state, type).<Tuple2<CompileState, String>>map((Tuple2<CompileState, Type> tuple) -> new Tuple2Impl<CompileState, String>(tuple.left(), TypeCompiler.generateType(tuple.right()))).flatMap((Tuple2<CompileState, String> callerTuple1) -> {
+            var callerState = callerTuple1.right();
+            var caller = callerTuple1.left();
+            return ValueCompiler.assembleInvokable(caller, new ConstructionCaller(callerState), args);
+        })).apply(Strings.strip(callerString)).or(() -> ValueCompiler.parseValue(state, callerString).flatMap((Tuple2<CompileState, Value> callerTuple) -> ValueCompiler.assembleInvokable(callerTuple.left(), callerTuple.right(), args)))).apply(callerWithArgStart))).apply(withoutEnd)).apply(Strings.strip(input))*/;
 	}
 	static createTextRule(slice: string): Rule<Value> {
 		return (state1: CompileState, input1: string) => {
