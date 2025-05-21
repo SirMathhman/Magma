@@ -262,4 +262,24 @@ public final class ValueCompiler {
     public static <T> Rule<List<T>> values(Rule<T> mapper) {
         return new DivideRule<T>(new ValueFolder(), mapper);
     }
+
+    public static String generateValue(Value value) {
+        return switch (value) {
+            case AccessValue accessValue -> accessValue.generate();
+            case Invokable invokable -> invokable.generate();
+            case Lambda lambda -> lambda.generate();
+            case Not not -> not.generate();
+            case Operation operation -> operation.generate();
+            case Placeholder placeholder -> placeholder.generate();
+            case StringValue stringValue -> stringValue.generate();
+            case Symbol symbol -> symbol.generate();
+        };
+    }
+
+    public static String generateCaller(Caller caller) {
+        return switch (caller) {
+            case ConstructionCaller constructionCaller -> constructionCaller.generate();
+            case Value value -> value.generate();
+        };
+    }
 }
