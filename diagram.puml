@@ -552,10 +552,6 @@ Splitter --> Option
 Stack --> Option
 Stack --> Definition
 Stack --> Iterable
-Symbol --> Type
-Symbol --> CompileState
-Symbol --> Definition
-Symbol --> PrimitiveType
 Symbol --> Value
 Symbol --> Option
 Symbol --> Some
@@ -917,6 +913,7 @@ ValueCompiler --> RangeHead
 ValueCompiler --> Characters
 ValueCompiler --> Type
 ValueCompiler --> Symbol
+ValueCompiler --> PrimitiveType
 ValueCompiler --> Argument
 ValueCompiler --> Caller
 ValueCompiler --> Invokable
