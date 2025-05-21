@@ -1,4 +1,4 @@
-package magma.app.compile.value;
+package magma.app.compile.symbol;
 
 import magma.api.option.None;
 import magma.api.option.Option;
@@ -7,6 +7,7 @@ import magma.app.compile.CompileState;
 import magma.app.compile.define.Definition;
 import magma.app.compile.type.PrimitiveType;
 import magma.app.compile.type.Type;
+import magma.app.compile.value.Value;
 
 public record Symbol(String value) implements Value, Type {
     @Override

@@ -23,6 +23,7 @@ import magma.app.compile.rule.OrRule;
 import magma.app.compile.rule.Rule;
 import magma.app.compile.split.LocatingSplitter;
 import magma.app.compile.split.Splitter;
+import magma.app.compile.symbol.Symbols;
 import magma.app.compile.type.Type;
 
 public final class RootCompiler {
@@ -99,7 +100,7 @@ public final class RootCompiler {
             Iterable<Type> maybeSuperType
     ) {
         var name = Strings.strip(rawName);
-        if (!ValueCompiler.isSymbol(name)) {
+        if (!Symbols.isSymbol(name)) {
             return new None<Tuple2<CompileState, String>>();
         }
 

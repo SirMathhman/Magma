@@ -19,6 +19,7 @@ import magma.app.compile.define.Definition;
 import magma.app.compile.define.MethodHeader;
 import magma.app.compile.define.Parameter;
 import magma.app.compile.split.Splitter;
+import magma.app.compile.symbol.Symbols;
 import magma.app.compile.value.Value;
 import magma.app.compile.locate.FirstLocator;
 import magma.app.compile.split.LocatingSplitter;
@@ -94,7 +95,7 @@ final class FieldCompiler {
     public static Option<Tuple2<CompileState, String>> compileEnumValues(CompileState state, String withoutEnd) {
         return ValueCompiler.values((CompileState state1, String segment) -> {
             var stripped = segment.strip();
-            if (ValueCompiler.isSymbol(stripped)) {
+            if (Symbols.isSymbol(stripped)) {
                 return new Some<Tuple2<CompileState, String>>(new Tuple2Impl<CompileState, String>(state1, "\n\t static " + stripped + " = \"" + stripped + "\";"));
             }
 

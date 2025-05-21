@@ -77,6 +77,8 @@
 	LocatingSplitter: magma.app.compile.split, 
 	Splitter: magma.app.compile.split, 
 	Stack: magma.app.compile, 
+	Symbol: magma.app.compile.symbol, 
+	Symbols: magma.app.compile.symbol, 
 	Whitespace: magma.app.compile.text, 
 	FunctionType: magma.app.compile.type, 
 	PrimitiveType: magma.app.compile.type, 
@@ -92,7 +94,6 @@
 	Operation: magma.app.compile.value, 
 	Placeholder: magma.app.compile.value, 
 	StringValue: magma.app.compile.value, 
-	Symbol: magma.app.compile.value, 
 	Value: magma.app.compile.value, 
 	CompilerUtils: magma.app, 
 	DefiningCompiler: magma.app, 
@@ -121,19 +122,19 @@ import { Type } from "../../magma/app/compile/type/Type";
 import { Tuple2Impl } from "../../magma/api/Tuple2Impl";
 import { OrRule } from "../../magma/app/compile/rule/OrRule";
 import { Lists } from "../../jvm/api/collect/list/Lists";
+import { Symbols } from "../../magma/app/compile/symbol/Symbols";
 import { Strings } from "../../magma/api/text/Strings";
 import { SuffixComposable } from "../../magma/app/compile/compose/SuffixComposable";
 import { Some } from "../../magma/api/option/Some";
 import { VariadicType } from "../../magma/app/compile/type/VariadicType";
-import { ValueCompiler } from "../../magma/app/ValueCompiler";
-import { Symbol } from "../../magma/app/compile/value/Symbol";
-import { None } from "../../magma/api/option/None";
 import { PrimitiveType } from "../../magma/app/compile/type/PrimitiveType";
+import { None } from "../../magma/api/option/None";
 import { LocatingSplitter } from "../../magma/app/compile/split/LocatingSplitter";
 import { FirstLocator } from "../../magma/app/compile/locate/FirstLocator";
 import { Splitter } from "../../magma/app/compile/split/Splitter";
 import { SplitComposable } from "../../magma/app/compile/compose/SplitComposable";
 import { Composable } from "../../magma/app/compile/compose/Composable";
+import { ValueCompiler } from "../../magma/app/ValueCompiler";
 import { List } from "../../magma/api/collect/list/List";
 import { TemplateType } from "../../magma/app/compile/type/TemplateType";
 import { FunctionType } from "../../magma/app/compile/type/FunctionType";
@@ -145,12 +146,12 @@ import { Registry } from "../../magma/app/compile/Registry";
 import { Source } from "../../magma/app/io/Source";
 import { Platform } from "../../magma/app/Platform";
 import { Dependency } from "../../magma/app/compile/Dependency";
-class TypeCompiler {
+export class TypeCompiler {
 	static compileType(state: CompileState, type: string): Option<Tuple2<CompileState, string>> {
 		return TypeCompiler.parseType(state, type).map((tuple: Tuple2<CompileState, Type>) => new Tuple2Impl<CompileState, string>(tuple.left(), tuple.right().generate())/*unknown*/)/*unknown*/;
 	}
 	static parseType(state: CompileState, type: string): Option<Tuple2<CompileState, Type>> {
-		return new OrRule<Type>(Lists.of(TypeCompiler.parseVarArgs, TypeCompiler.parseGeneric, TypeCompiler.parsePrimitive, TypeCompiler.parseSymbolType)).apply(state, type)/*unknown*/;
+		return new OrRule<Type>(Lists.of(TypeCompiler.parseVarArgs, TypeCompiler.parseGeneric, TypeCompiler.parsePrimitive, Symbols.parseSymbolType)).apply(state, type)/*unknown*/;
 	}
 	static parseVarArgs(state: CompileState, input: string): Option<Tuple2<CompileState, Type>> {
 		let stripped = Strings.strip(input)/*unknown*/;
@@ -158,13 +159,6 @@ class TypeCompiler {
 			let child = TypeCompiler.parseTypeOrPlaceholder(state, s)/*unknown*/;
 			return new Some<Tuple2<CompileState, Type>>(new Tuple2Impl<CompileState, Type>(child.left(), new VariadicType(child.right())))/*unknown*/;
 		}).apply(stripped)/*unknown*/;
-	}
-	static parseSymbolType(state: CompileState, input: string): Option<Tuple2<CompileState, Type>> {
-		let stripped = Strings.strip(input)/*unknown*/;
-		if (ValueCompiler.isSymbol(stripped)/*unknown*/){
-			return new Some<Tuple2<CompileState, Type>>(new Tuple2Impl<CompileState, Type>(TypeCompiler.addResolvedImportFromCache0(state, stripped), new Symbol(stripped)))/*unknown*/;
-		}
-		return new None<Tuple2<CompileState, Type>>()/*unknown*/;
 	}
 	static parsePrimitive(state: CompileState, input: string): Option<Tuple2<CompileState, Type>> {
 		return TypeCompiler.findPrimitiveValue(Strings.strip(input)).map((result: Type) => new Tuple2Impl<CompileState, Type>(state, result)/*unknown*/)/*unknown*/;

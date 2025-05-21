@@ -17,18 +17,18 @@ import magma.app.compile.compose.SplitComposable;
 import magma.app.compile.compose.SuffixComposable;
 import magma.app.compile.rule.OrRule;
 import magma.app.compile.split.Splitter;
+import magma.app.compile.symbol.Symbols;
 import magma.app.compile.type.FunctionType;
 import magma.app.compile.type.PrimitiveType;
 import magma.app.compile.type.TemplateType;
 import magma.app.compile.type.Type;
 import magma.app.compile.type.VariadicType;
 import magma.app.compile.value.Placeholder;
-import magma.app.compile.value.Symbol;
 import magma.app.io.Source;
 import magma.app.compile.locate.FirstLocator;
 import magma.app.compile.split.LocatingSplitter;
 
-final class TypeCompiler {
+public final class TypeCompiler {
     public static Option<Tuple2<CompileState, String>> compileType(CompileState state, String type) {
         return TypeCompiler.parseType(state, type).map((Tuple2<CompileState, Type> tuple) -> new Tuple2Impl<CompileState, String>(tuple.left(), tuple.right().generate()));
     }
@@ -38,7 +38,7 @@ final class TypeCompiler {
                 TypeCompiler::parseVarArgs,
                 TypeCompiler::parseGeneric,
                 TypeCompiler::parsePrimitive,
-                TypeCompiler::parseSymbolType
+                Symbols::parseSymbolType
         )).apply(state, type);
     }
 
@@ -48,14 +48,6 @@ final class TypeCompiler {
             var child = TypeCompiler.parseTypeOrPlaceholder(state, s);
             return new Some<Tuple2<CompileState, Type>>(new Tuple2Impl<CompileState, Type>(child.left(), new VariadicType(child.right())));
         }).apply(stripped);
-    }
-
-    private static Option<Tuple2<CompileState, Type>> parseSymbolType(CompileState state, String input) {
-        var stripped = Strings.strip(input);
-        if (ValueCompiler.isSymbol(stripped)) {
-            return new Some<Tuple2<CompileState, Type>>(new Tuple2Impl<CompileState, Type>(TypeCompiler.addResolvedImportFromCache0(state, stripped), new Symbol(stripped)));
-        }
-        return new None<Tuple2<CompileState, Type>>();
     }
 
     private static Option<Tuple2<CompileState, Type>> parsePrimitive(CompileState state, String input) {

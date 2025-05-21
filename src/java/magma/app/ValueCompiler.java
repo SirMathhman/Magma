@@ -31,6 +31,8 @@ import magma.app.compile.select.FirstSelector;
 import magma.app.compile.select.Selector;
 import magma.app.compile.split.FoldingSplitter;
 import magma.app.compile.split.Splitter;
+import magma.app.compile.symbol.Symbols;
+import magma.app.compile.type.PrimitiveType;
 import magma.app.compile.type.Type;
 import magma.app.compile.value.AccessValue;
 import magma.app.compile.value.Argument;
@@ -41,7 +43,7 @@ import magma.app.compile.value.Not;
 import magma.app.compile.value.Operation;
 import magma.app.compile.value.Placeholder;
 import magma.app.compile.value.StringValue;
-import magma.app.compile.value.Symbol;
+import magma.app.compile.symbol.Symbol;
 import magma.app.compile.value.Value;
 import magma.app.compile.fold.OperatorFolder;
 import magma.app.compile.locate.FirstLocator;
@@ -50,7 +52,7 @@ import magma.app.compile.split.LocatingSplitter;
 
 import java.util.function.Function;
 
-final class ValueCompiler {
+public final class ValueCompiler {
     static Tuple2Impl<CompileState, String> generateValue(Tuple2<CompileState, Value> tuple) {
         var state = tuple.left();
         var right = tuple.right();
@@ -118,7 +120,7 @@ final class ValueCompiler {
     private static Rule<Value> createAccessRule(String infix) {
         return (CompileState state, String input) -> SplitComposable.compileLast(input, infix, (String childString, String rawProperty) -> {
             var property = Strings.strip(rawProperty);
-            if (!ValueCompiler.isSymbol(property)) {
+            if (!Symbols.isSymbol(property)) {
                 return new None<Tuple2<CompileState, Value>>();
             }
 
@@ -138,28 +140,6 @@ final class ValueCompiler {
             })))).apply(input1);
     }
 
-    private static Option<Tuple2<CompileState, Value>> parseSymbol(CompileState state, String input) {
-        var stripped = Strings.strip(input);
-        if (ValueCompiler.isSymbol(stripped)) {
-            var withImport = TypeCompiler.addResolvedImportFromCache0(state, stripped);
-            return new Some<Tuple2<CompileState, Value>>(new Tuple2Impl<CompileState, Value>(withImport, new Symbol(stripped)));
-        }
-        else {
-            return new None<Tuple2<CompileState, Value>>();
-        }
-    }
-
-    static boolean isSymbol(String input) {
-        var query = new HeadedIter<Integer>(new RangeHead(Strings.length(input)));
-        return query.allMatch((Integer index) -> ValueCompiler.isSymbolChar(index, input.charAt(index)));
-    }
-
-    private static boolean isSymbolChar(int index, char c) {
-        return '_' == c
-                || Characters.isLetter(c)
-                || (0 != index && Characters.isDigit(c));
-    }
-
     private static boolean isNumber(String input) {
         var query = new HeadedIter<Integer>(new RangeHead(Strings.length(input)));
         return query.map(input::charAt).allMatch((Character c) -> Characters.isDigit(c));
@@ -175,6 +155,7 @@ final class ValueCompiler {
             case Placeholder placeholder -> placeholder.resolve(state);
             case StringValue stringValue -> stringValue.resolve(state);
             case Symbol symbol -> symbol.resolve(state);
+            default -> PrimitiveType.Unknown;
         };
     }
 
@@ -262,7 +243,7 @@ final class ValueCompiler {
                 ValueCompiler::parseInvokable,
                 ValueCompiler.createAccessRule("."),
                 ValueCompiler.createAccessRule("::"),
-                ValueCompiler::parseSymbol,
+                Symbols::parseSymbolValue,
                 ValueCompiler::parseNot,
                 ValueCompiler::parseNumber,
                 ValueCompiler.createOperatorRuleWithDifferentInfix("==", "==="),

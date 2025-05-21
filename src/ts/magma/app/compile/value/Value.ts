@@ -77,6 +77,8 @@
 	LocatingSplitter: magma.app.compile.split, 
 	Splitter: magma.app.compile.split, 
 	Stack: magma.app.compile, 
+	Symbol: magma.app.compile.symbol, 
+	Symbols: magma.app.compile.symbol, 
 	Whitespace: magma.app.compile.text, 
 	FunctionType: magma.app.compile.type, 
 	PrimitiveType: magma.app.compile.type, 
@@ -92,7 +94,6 @@
 	Operation: magma.app.compile.value, 
 	Placeholder: magma.app.compile.value, 
 	StringValue: magma.app.compile.value, 
-	Symbol: magma.app.compile.value, 
 	Value: magma.app.compile.value, 
 	CompilerUtils: magma.app, 
 	DefiningCompiler: magma.app, 
@@ -114,8 +115,9 @@
 	ValueCompiler: magma.app, 
 	WhitespaceCompiler: magma.app
 ]*/
-/*
-
-public sealed interface Value extends Argument, Caller permits AccessValue, Invokable, Lambda, Not, Operation, Placeholder, StringValue, Symbol {
-    Option<String> generateAsEnumValue(String structureName);
-}*/
+import { Argument } from "../../../../magma/app/compile/value/Argument";
+import { Caller } from "../../../../magma/app/compile/value/Caller";
+import { Option } from "../../../../magma/api/option/Option";
+export interface Value extends Argument, Caller {
+	generateAsEnumValue(structureName: string): Option<string>;
+}

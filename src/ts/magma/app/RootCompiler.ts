@@ -77,6 +77,8 @@
 	LocatingSplitter: magma.app.compile.split, 
 	Splitter: magma.app.compile.split, 
 	Stack: magma.app.compile, 
+	Symbol: magma.app.compile.symbol, 
+	Symbols: magma.app.compile.symbol, 
 	Whitespace: magma.app.compile.text, 
 	FunctionType: magma.app.compile.type, 
 	PrimitiveType: magma.app.compile.type, 
@@ -92,7 +94,6 @@
 	Operation: magma.app.compile.value, 
 	Placeholder: magma.app.compile.value, 
 	StringValue: magma.app.compile.value, 
-	Symbol: magma.app.compile.value, 
 	Value: magma.app.compile.value, 
 	CompilerUtils: magma.app, 
 	DefiningCompiler: magma.app, 
@@ -138,6 +139,7 @@ import { Splitter } from "../../magma/app/compile/split/Splitter";
 import { ValueCompiler } from "../../magma/app/ValueCompiler";
 import { Iterable } from "../../magma/api/collect/list/Iterable";
 import { Definition } from "../../magma/app/compile/define/Definition";
+import { Symbols } from "../../magma/app/compile/symbol/Symbols";
 import { FunctionSegmentCompiler } from "../../magma/app/FunctionSegmentCompiler";
 import { Stack } from "../../magma/app/compile/Stack";
 import { Joiner } from "../../magma/api/collect/Joiner";
@@ -192,7 +194,7 @@ export class RootCompiler {
 	}
 	static assembleStructure(state: CompileState, annotations: List<string>, oldModifiers: List<string>, infix: string, rawName: string, typeParams: Iterable<string>, parameters: Iterable<Definition>, maybeImplementing: Option<Type>, content: string, maybeSuperType: Iterable<Type>): Option<Tuple2<CompileState, string>> {
 		let name = Strings.strip(rawName)/*unknown*/;
-		if (!ValueCompiler/*unknown*/.isSymbol(name)/*unknown*/){
+		if (!Symbols/*unknown*/.isSymbol(name)/*unknown*/){
 			return new None<Tuple2<CompileState, string>>()/*unknown*/;
 		}
 		let outputContentTuple = FunctionSegmentCompiler.compileStatements(state.mapStack((stack: Stack) => stack.pushStructureName(name)/*unknown*/), content, RootCompiler.compileClassSegment)/*unknown*/;

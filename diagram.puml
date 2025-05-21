@@ -195,6 +195,10 @@ interface Splitter {
 }
 interface Stack {
 }
+class Symbol {
+}
+class Symbols {
+}
 class Whitespace {
 }
 Whitespace <|.. Parameter
@@ -236,8 +240,10 @@ class Placeholder {
 class StringValue {
 }
 StringValue <|.. Value
-class Symbol {
+interface Value {
 }
+Value <|-- Argument
+Value <|-- Caller
 class CompilerUtils {
 }
 class DefiningCompiler {
@@ -546,6 +552,28 @@ Splitter --> Option
 Stack --> Option
 Stack --> Definition
 Stack --> Iterable
+Symbol --> Type
+Symbol --> CompileState
+Symbol --> Definition
+Symbol --> PrimitiveType
+Symbol --> Value
+Symbol --> Option
+Symbol --> Some
+Symbol --> None
+Symbols --> CompileState
+Symbols --> Type
+Symbols --> Tuple2
+Symbols --> Option
+Symbols --> Strings
+Symbols --> TypeCompiler
+Symbols --> Some
+Symbols --> Tuple2Impl
+Symbols --> Symbol
+Symbols --> None
+Symbols --> HeadedIter
+Symbols --> RangeHead
+Symbols --> Characters
+Symbols --> Value
 Whitespace --> Parameter
 Whitespace --> Definition
 Whitespace --> Option
@@ -619,14 +647,9 @@ StringValue --> None
 StringValue --> Type
 StringValue --> CompileState
 StringValue --> PrimitiveType
-Symbol --> Type
-Symbol --> CompileState
-Symbol --> Definition
-Symbol --> PrimitiveType
-Symbol --> Value
-Symbol --> Option
-Symbol --> Some
-Symbol --> None
+Value --> Argument
+Value --> Caller
+Value --> Option
 DefiningCompiler --> Definition
 DefiningCompiler --> Iterable
 DefiningCompiler --> Parameter
@@ -710,6 +733,7 @@ FieldCompiler --> FunctionSegmentCompiler
 FieldCompiler --> Stack
 FieldCompiler --> Parameter
 FieldCompiler --> ValueCompiler
+FieldCompiler --> Symbols
 FieldCompiler --> List
 FieldCompiler --> Value
 FunctionSegmentCompiler --> CompileState
@@ -802,6 +826,7 @@ RootCompiler --> Splitter
 RootCompiler --> ValueCompiler
 RootCompiler --> Iterable
 RootCompiler --> Definition
+RootCompiler --> Symbols
 RootCompiler --> FunctionSegmentCompiler
 RootCompiler --> Stack
 RootCompiler --> Joiner
@@ -825,19 +850,19 @@ TypeCompiler --> Type
 TypeCompiler --> Tuple2Impl
 TypeCompiler --> OrRule
 TypeCompiler --> Lists
+TypeCompiler --> Symbols
 TypeCompiler --> Strings
 TypeCompiler --> SuffixComposable
 TypeCompiler --> Some
 TypeCompiler --> VariadicType
-TypeCompiler --> ValueCompiler
-TypeCompiler --> Symbol
-TypeCompiler --> None
 TypeCompiler --> PrimitiveType
+TypeCompiler --> None
 TypeCompiler --> LocatingSplitter
 TypeCompiler --> FirstLocator
 TypeCompiler --> Splitter
 TypeCompiler --> SplitComposable
 TypeCompiler --> Composable
+TypeCompiler --> ValueCompiler
 TypeCompiler --> List
 TypeCompiler --> TemplateType
 TypeCompiler --> FunctionType
@@ -881,16 +906,17 @@ ValueCompiler --> Iterable
 ValueCompiler --> FunctionSegmentCompiler
 ValueCompiler --> Stack
 ValueCompiler --> Lambda
+ValueCompiler --> Symbols
 ValueCompiler --> None
 ValueCompiler --> AccessValue
 ValueCompiler --> OperatorFolder
 ValueCompiler --> FirstSelector
 ValueCompiler --> Operation
-ValueCompiler --> Symbol
 ValueCompiler --> HeadedIter
 ValueCompiler --> RangeHead
 ValueCompiler --> Characters
 ValueCompiler --> Type
+ValueCompiler --> Symbol
 ValueCompiler --> Argument
 ValueCompiler --> Caller
 ValueCompiler --> Invokable

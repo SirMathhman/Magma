@@ -77,6 +77,8 @@
 	LocatingSplitter: magma.app.compile.split, 
 	Splitter: magma.app.compile.split, 
 	Stack: magma.app.compile, 
+	Symbol: magma.app.compile.symbol, 
+	Symbols: magma.app.compile.symbol, 
 	Whitespace: magma.app.compile.text, 
 	FunctionType: magma.app.compile.type, 
 	PrimitiveType: magma.app.compile.type, 
@@ -92,7 +94,6 @@
 	Operation: magma.app.compile.value, 
 	Placeholder: magma.app.compile.value, 
 	StringValue: magma.app.compile.value, 
-	Symbol: magma.app.compile.value, 
 	Value: magma.app.compile.value, 
 	CompilerUtils: magma.app, 
 	DefiningCompiler: magma.app, 
@@ -146,16 +147,17 @@ import { Iterable } from "../../magma/api/collect/list/Iterable";
 import { FunctionSegmentCompiler } from "../../magma/app/FunctionSegmentCompiler";
 import { Stack } from "../../magma/app/compile/Stack";
 import { Lambda } from "../../magma/app/compile/value/Lambda";
+import { Symbols } from "../../magma/app/compile/symbol/Symbols";
 import { None } from "../../magma/api/option/None";
 import { AccessValue } from "../../magma/app/compile/value/AccessValue";
 import { OperatorFolder } from "../../magma/app/compile/fold/OperatorFolder";
 import { FirstSelector } from "../../magma/app/compile/select/FirstSelector";
 import { Operation } from "../../magma/app/compile/value/Operation";
-import { Symbol } from "../../magma/app/compile/value/Symbol";
 import { HeadedIter } from "../../magma/api/collect/head/HeadedIter";
 import { RangeHead } from "../../magma/api/collect/head/RangeHead";
 import { Characters } from "../../magma/api/text/Characters";
 import { Type } from "../../magma/app/compile/type/Type";
+import { Symbol } from "../../magma/app/compile/symbol/Symbol";
 import { Argument } from "../../magma/app/compile/value/Argument";
 import { Caller } from "../../magma/app/compile/value/Caller";
 import { Invokable } from "../../magma/app/compile/value/Invokable";
@@ -165,7 +167,7 @@ import { OrRule } from "../../magma/app/compile/rule/OrRule";
 import { Lists } from "../../jvm/api/collect/list/Lists";
 import { DivideRule } from "../../magma/app/DivideRule";
 import { ValueFolder } from "../../magma/app/compile/fold/ValueFolder";
-class ValueCompiler {
+export class ValueCompiler {
 	static generateValue(tuple: Tuple2<CompileState, Value>): Tuple2Impl<CompileState, string> {
 		let state = tuple.left()/*unknown*/;
 		let right = tuple.right()/*unknown*/;
@@ -224,7 +226,7 @@ class ValueCompiler {
 	static createAccessRule(infix: string): Rule<Value> {
 		return (state: CompileState, input: string) => SplitComposable.compileLast(input, infix, (childString: string, rawProperty: string) => {
 			let property = Strings.strip(rawProperty)/*unknown*/;
-			if (!ValueCompiler/*unknown*/.isSymbol(property)/*unknown*/){
+			if (!Symbols/*unknown*/.isSymbol(property)/*unknown*/){
 				return new None<Tuple2<CompileState, Value>>()/*unknown*/;
 			}
 			return ValueCompiler.parseValue(state, childString).flatMap((childTuple: Tuple2<CompileState, Value>) => {
@@ -241,23 +243,6 @@ class ValueCompiler {
 			return new Some<Tuple2<CompileState, Value>>(new Tuple2Impl<CompileState, Value>(rightTuple.left(), new Operation(left, targetInfix, right)))/*unknown*/;
 		})/*unknown*/)/*unknown*/)).apply(input1)/*unknown*//*unknown*/;
 	}
-	static parseSymbol(state: CompileState, input: string): Option<Tuple2<CompileState, Value>> {
-		let stripped = Strings.strip(input)/*unknown*/;
-		if (ValueCompiler.isSymbol(stripped)/*unknown*/){
-			let withImport = TypeCompiler.addResolvedImportFromCache0(state, stripped)/*unknown*/;
-			return new Some<Tuple2<CompileState, Value>>(new Tuple2Impl<CompileState, Value>(withImport, new Symbol(stripped)))/*unknown*/;
-		}
-		else {
-			return new None<Tuple2<CompileState, Value>>()/*unknown*/;
-		}
-	}
-	static isSymbol(input: string): boolean {
-		let query = new HeadedIter<number>(new RangeHead(Strings.length(input)))/*unknown*/;
-		return query.allMatch((index: number) => ValueCompiler.isSymbolChar(index, input.charAt(index))/*unknown*/)/*unknown*/;
-	}
-	static isSymbolChar(index: number, c: string): boolean {
-		return "_" === c || Characters.isLetter(c) || (0 !== index && Characters.isDigit(c))/*unknown*/;
-	}
 	static isNumber(input: string): boolean {
 		let query = new HeadedIter<number>(new RangeHead(Strings.length(input)))/*unknown*/;
 		return query.map(input.charAt).allMatch((c: string) => Characters.isDigit(c)/*unknown*/)/*unknown*/;
@@ -271,6 +256,7 @@ class ValueCompiler {
             case Placeholder placeholder -> placeholder.resolve(state);
             case StringValue stringValue -> stringValue.resolve(state);
             case Symbol symbol -> symbol.resolve(state);
+            default -> PrimitiveType.Unknown;
         }*/;
 	}
 	static parseNumber(state: CompileState, input: string): Option<Tuple2<CompileState, Value>> {
@@ -328,7 +314,7 @@ class ValueCompiler {
 		return args.iter().map(mapper).flatMap(Iters.fromOption).collect(new ListCollector<R>())/*unknown*/;
 	}
 	static parseValue(state: CompileState, input: string): Option<Tuple2<CompileState, Value>> {
-		return new OrRule<Value>(Lists.of(ValueCompiler.parseLambda, ValueCompiler.createOperatorRule("+"), ValueCompiler.createOperatorRule("-"), ValueCompiler.createOperatorRule("<="), ValueCompiler.createOperatorRule("<"), ValueCompiler.createOperatorRule("&&"), ValueCompiler.createOperatorRule("||"), ValueCompiler.createOperatorRule(">"), ValueCompiler.createOperatorRule(">="), ValueCompiler.parseInvokable, ValueCompiler.createAccessRule("."), ValueCompiler.createAccessRule("::"), ValueCompiler.parseSymbol, ValueCompiler.parseNot, ValueCompiler.parseNumber, ValueCompiler.createOperatorRuleWithDifferentInfix("==", "==="), ValueCompiler.createOperatorRuleWithDifferentInfix("!=", "!=="), ValueCompiler.createTextRule("\""), ValueCompiler.createTextRule("'"))).apply(state, input)/*unknown*/;
+		return new OrRule<Value>(Lists.of(ValueCompiler.parseLambda, ValueCompiler.createOperatorRule("+"), ValueCompiler.createOperatorRule("-"), ValueCompiler.createOperatorRule("<="), ValueCompiler.createOperatorRule("<"), ValueCompiler.createOperatorRule("&&"), ValueCompiler.createOperatorRule("||"), ValueCompiler.createOperatorRule(">"), ValueCompiler.createOperatorRule(">="), ValueCompiler.parseInvokable, ValueCompiler.createAccessRule("."), ValueCompiler.createAccessRule("::"), Symbols.parseSymbolValue, ValueCompiler.parseNot, ValueCompiler.parseNumber, ValueCompiler.createOperatorRuleWithDifferentInfix("==", "==="), ValueCompiler.createOperatorRuleWithDifferentInfix("!=", "!=="), ValueCompiler.createTextRule("\""), ValueCompiler.createTextRule("'"))).apply(state, input)/*unknown*/;
 	}
 	static values<T>(mapper: Rule<T>): Rule<List<T>> {
 		return new DivideRule<T>(new ValueFolder(), mapper)/*unknown*/;

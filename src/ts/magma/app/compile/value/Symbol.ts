@@ -77,6 +77,7 @@
 	LocatingSplitter: magma.app.compile.split, 
 	Splitter: magma.app.compile.split, 
 	Stack: magma.app.compile, 
+	Symbols: magma.app.compile.symbol, 
 	Whitespace: magma.app.compile.text, 
 	FunctionType: magma.app.compile.type, 
 	PrimitiveType: magma.app.compile.type, 
