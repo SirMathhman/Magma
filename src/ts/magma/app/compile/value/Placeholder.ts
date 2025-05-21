@@ -1,7 +1,6 @@
-import { Value } from "../../../../magma/app/compile/value/Value";
+import { Definition } from "../../../../magma/app/compile/define/Definition";
 import { Option } from "../../../../magma/api/option/Option";
 import { None } from "../../../../magma/api/option/None";
-import { Definition } from "../../../../magma/app/compile/define/Definition";
 import { TypeCompiler } from "../../../../magma/app/TypeCompiler";
 export class Placeholder {
 	input: string;
@@ -17,9 +16,6 @@ export class Placeholder {
 	}
 	isFunctional(): boolean {
 		return false/*unknown*/;
-	}
-	findChild(): Option<Value> {
-		return new None<Value>()/*unknown*/;
 	}
 	asDefinition(): Option<Definition> {
 		return new None<Definition>()/*unknown*/;

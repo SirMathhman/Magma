@@ -10,9 +10,6 @@ export class Lambda implements Value {
 		this.parameters = parameters;
 		this.content = content;
 	}
-	findChild(): Option<Value> {
-		return new None<Value>()/*unknown*/;
-	}
 	generateAsEnumValue(structureName: string): Option<string> {
 		return new None<string>()/*unknown*/;
 	}

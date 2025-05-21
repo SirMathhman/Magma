@@ -6,9 +6,6 @@ export class StringValue implements Value {
 	constructor (value: string) {
 		this.value = value;
 	}
-	findChild(): Option<Value> {
-		return new None<Value>()/*unknown*/;
-	}
 	generateAsEnumValue(structureName: string): Option<string> {
 		return new None<string>()/*unknown*/;
 	}

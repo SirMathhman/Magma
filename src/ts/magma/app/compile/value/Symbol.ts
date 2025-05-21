@@ -1,4 +1,3 @@
-import { Value } from "../../../../magma/app/compile/value/Value";
 import { Option } from "../../../../magma/api/option/Option";
 import { None } from "../../../../magma/api/option/None";
 import { TypeCompiler } from "../../../../magma/app/TypeCompiler";
@@ -9,9 +8,6 @@ export class Symbol {
 	}
 	generate(): string {
 		return this.value/*unknown*/;
-	}
-	findChild(): Option<Value> {
-		return new None<Value>()/*unknown*/;
 	}
 	isFunctional(): boolean {
 		return false/*unknown*/;

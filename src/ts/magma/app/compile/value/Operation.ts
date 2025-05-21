@@ -10,9 +10,6 @@ export class Operation implements Value {
 		this.targetInfix = targetInfix;
 		this.right = right;
 	}
-	findChild(): Option<Value> {
-		return new None<Value>()/*unknown*/;
-	}
 	generateAsEnumValue(structureName: string): Option<string> {
 		return new None<string>()/*unknown*/;
 	}

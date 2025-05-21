@@ -6,11 +6,6 @@ import magma.api.option.Option;
 public record StringValue(String value) implements Value {
 
     @Override
-    public Option<Value> findChild() {
-        return new None<Value>();
-    }
-
-    @Override
     public Option<String> generateAsEnumValue(String structureName) {
         return new None<String>();
     }

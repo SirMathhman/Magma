@@ -8,11 +8,6 @@ import magma.app.compile.define.Definition;
 public record Lambda(Iterable<Definition> parameters, String content) implements Value {
 
     @Override
-    public Option<Value> findChild() {
-        return new None<Value>();
-    }
-
-    @Override
     public Option<String> generateAsEnumValue(String structureName) {
         return new None<String>();
     }

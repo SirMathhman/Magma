@@ -166,13 +166,13 @@ export class ValueCompiler {
 		return ValueCompiler.parseValue(state1, input).map((tuple: Tuple2<CompileState, Value>) => new Tuple2Impl<CompileState, Argument>(tuple.left(), tuple.right())/*unknown*/)/*unknown*/;
 	}
 	static transformCaller(state: CompileState, oldCaller: Caller): Caller {
-		return oldCaller.findChild().flatMap((parent: Value) => {
+		if (/*oldCaller instanceof AccessValue(var parent, _)*/){
 			let parentType = ValueCompiler.resolve(state, parent)/*unknown*/;
 			if (parentType.isFunctional()/*unknown*/){
-				return new Some<Caller>(parent)/*unknown*/;
+				return parent/*unknown*/;
 			}
-			return new None<Caller>()/*unknown*/;
-		}).orElse(oldCaller)/*unknown*/;
+		}
+		return oldCaller/*Caller*/;
 	}
 	static foldInvocationStarts(state: DivideState, c: string): DivideState {
 		let appended = state.append(c)/*unknown*/;
