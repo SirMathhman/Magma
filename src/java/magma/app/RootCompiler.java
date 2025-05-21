@@ -195,7 +195,7 @@ public final class RootCompiler {
 
     private static String generateConstructorAssignments(Iterable<Definition> parameters) {
         return parameters.iter()
-                .map((Definition definition) -> definition.toAssignment())
+                .map((Definition definition) -> "\n\t\tthis." + definition.name() + " = " + definition.name() + ";")
                 .collect(Joiner.empty())
                 .orElse("");
     }

@@ -137,12 +137,6 @@ export class Definition {
 		this.type = type;
 		this.name = name;
 	}
-	findType(): Type {
-		return this.type/*unknown*/;
-	}
-	toAssignment(): string {
-		return "\n\t\tthis." + this.name + " = " + this.name + ";"/*unknown*/;
-	}
 	generate(): string {
 		return this.generateWithAfterName("")/*unknown*/;
 	}
@@ -151,8 +145,11 @@ export class Definition {
 	}
 	generateWithAfterName(afterName: string): string {
 		let joinedTypeParams = this.joinTypeParams()/*unknown*/;
-		let joinedModifiers = this.modifiers.iter().map((value: string) => value + " "/*unknown*/).collect(new Joiner("")).orElse("")/*unknown*/;
+		let joinedModifiers = this.generateModifiers()/*unknown*/;
 		return joinedModifiers + this.type.generateBeforeName() + this.name + joinedTypeParams + afterName + this.generateType()/*unknown*/;
+	}
+	generateModifiers(): string {
+		return this.modifiers.iter().map((value: string) => value + " "/*unknown*/).collect(new Joiner("")).orElse("")/*unknown*/;
 	}
 	generateType(): string {
 		if (this.type.isVar()/*unknown*/){

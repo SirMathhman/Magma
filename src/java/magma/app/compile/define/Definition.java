@@ -16,14 +16,6 @@ public record Definition(
         Type type,
         String name
 ) implements MethodHeader, Parameter {
-    public Type findType() {
-        return this.type;
-    }
-
-    public String toAssignment() {
-        return "\n\t\tthis." + this.name + " = " + this.name + ";";
-    }
-
     @Override
     public String generate() {
         return this.generateWithAfterName("");
@@ -37,12 +29,15 @@ public record Definition(
     @Override
     public String generateWithAfterName(String afterName) {
         var joinedTypeParams = this.joinTypeParams();
-        var joinedModifiers = this.modifiers.iter()
+        var joinedModifiers = this.generateModifiers();
+        return joinedModifiers + this.type.generateBeforeName() + this.name + joinedTypeParams + afterName + this.generateType();
+    }
+
+    private String generateModifiers() {
+        return this.modifiers.iter()
                 .map((String value) -> value + " ")
                 .collect(new Joiner(""))
                 .orElse("");
-
-        return joinedModifiers + this.type.generateBeforeName() + this.name + joinedTypeParams + afterName + this.generateType();
     }
 
     private String generateType() {

@@ -161,7 +161,7 @@ public final class ValueCompiler {
 
     private static Type resolveSymbol(CompileState state, Symbol symbol) {
         return state.stack().resolveValue(symbol.value())
-                .map((Definition definition) -> definition.findType())
+                .map((Definition definition) -> definition.type())
                 .orElse(PrimitiveType.Unknown);
     }
 

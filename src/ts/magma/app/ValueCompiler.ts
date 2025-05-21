@@ -261,7 +261,7 @@ export class ValueCompiler {
         }*/;
 	}
 	static resolveSymbol(state: CompileState, symbol: Symbol): Type {
-		return state.stack().resolveValue(symbol.value()).map((definition: Definition) => definition.findType()/*unknown*/).orElse(PrimitiveType.Unknown)/*unknown*/;
+		return state.stack().resolveValue(symbol.value()).map((definition: Definition) => definition.type()/*unknown*/).orElse(PrimitiveType.Unknown)/*unknown*/;
 	}
 	static parseNumber(state: CompileState, input: string): Option<Tuple2<CompileState, Value>> {
 		let stripped = Strings.strip(input)/*unknown*/;
