@@ -4,7 +4,6 @@ import jvm.api.collect.list.Lists;
 import magma.api.Tuple2;
 import magma.api.Tuple2Impl;
 import magma.api.collect.Iters;
-import magma.api.collect.Joiner;
 import magma.api.collect.list.Iterable;
 import magma.api.collect.list.List;
 import magma.api.collect.list.ListCollector;
@@ -12,26 +11,26 @@ import magma.api.option.Option;
 import magma.api.option.Some;
 import magma.api.text.Strings;
 import magma.app.compile.CompileState;
+import magma.app.compile.DivideState;
 import magma.app.compile.compose.Composable;
 import magma.app.compile.compose.SplitComposable;
 import magma.app.compile.compose.SuffixComposable;
-import magma.app.compile.fold.DelimitedFolder;
-import magma.app.compile.DivideState;
 import magma.app.compile.define.Definition;
 import magma.app.compile.define.Parameter;
-import magma.app.compile.select.Selector;
-import magma.app.compile.split.FoldingSplitter;
-import magma.app.compile.split.Splitter;
-import magma.app.compile.text.Whitespace;
-import magma.app.compile.type.Type;
-import magma.app.compile.value.Placeholder;
 import magma.app.compile.divide.FoldedDivider;
 import magma.app.compile.fold.DecoratedFolder;
+import magma.app.compile.fold.DelimitedFolder;
 import magma.app.compile.fold.TypeSeparatorFolder;
 import magma.app.compile.fold.ValueFolder;
 import magma.app.compile.locate.FirstLocator;
 import magma.app.compile.select.LastSelector;
+import magma.app.compile.select.Selector;
+import magma.app.compile.split.FoldingSplitter;
 import magma.app.compile.split.LocatingSplitter;
+import magma.app.compile.split.Splitter;
+import magma.app.compile.text.Whitespace;
+import magma.app.compile.type.Type;
+import magma.app.compile.value.Placeholder;
 
 final class DefiningCompiler {
     public static Iterable<Definition> retainDefinitionsFromParameters(Iterable<Parameter> parameters) {
@@ -89,9 +88,9 @@ final class DefiningCompiler {
         return new SuffixComposable<Tuple2<CompileState, Definition>>(">", (String withoutTypeParamEnd) -> {
             Splitter splitter = new LocatingSplitter("<", new FirstLocator());
             return new SplitComposable<Tuple2<CompileState, Definition>>(splitter, Composable.toComposable((String beforeTypeParams, String typeParamsString) -> {
-                    var typeParams = DefiningCompiler.divideValues(typeParamsString);
-                    return DefiningCompiler.parseDefinitionWithTypeParameters(state, annotations, typeParams, DefiningCompiler.parseModifiers(beforeTypeParams), type, name);
-                })).apply(withoutTypeParamEnd);
+                var typeParams = DefiningCompiler.divideValues(typeParamsString);
+                return DefiningCompiler.parseDefinitionWithTypeParameters(state, annotations, typeParams, DefiningCompiler.parseModifiers(beforeTypeParams), type, name);
+            })).apply(withoutTypeParamEnd);
         }).apply(Strings.strip(beforeType)).or(() -> {
             var divided = DefiningCompiler.parseModifiers(beforeType);
             return DefiningCompiler.parseDefinitionWithTypeParameters(state, annotations, Lists.empty(), divided, type, name);
@@ -99,7 +98,8 @@ final class DefiningCompiler {
     }
 
     public static List<String> parseModifiers(String beforeType) {
-        return new FoldedDivider(new DecoratedFolder((DivideState state1, char c) -> new DelimitedFolder(' ').apply(state1, c))).divide(Strings.strip(beforeType))
+        return new FoldedDivider(new DecoratedFolder((DivideState state1, char c) -> new DelimitedFolder(' ').apply(state1, c)))
+                .divide(Strings.strip(beforeType))
                 .map((String s) -> Strings.strip(s))
                 .filter((String value) -> !Strings.isEmpty(value))
                 .collect(new ListCollector<String>());
@@ -114,25 +114,10 @@ final class DefiningCompiler {
             String name
     ) {
         return TypeCompiler.parseType(state, type).flatMap((Tuple2<CompileState, Type> typeTuple) -> {
-            var newModifiers = DefiningCompiler.modifyModifiers(oldModifiers);
+            var newModifiers = oldModifiers.contains("static") ? Lists.of("static") : Lists.<String>empty();
             var generated = new Definition(annotations, newModifiers, typeParams, typeTuple.right(), name);
             return new Some<Tuple2<CompileState, Definition>>(new Tuple2Impl<CompileState, Definition>(typeTuple.left(), generated));
         });
-    }
-
-    public static String joinParameters(Iterable<Definition> parameters) {
-        return parameters.iter()
-                .map((Definition definition) -> definition.generate())
-                .map((String generated) -> "\n\t" + generated + ";")
-                .collect(Joiner.empty())
-                .orElse("");
-    }
-
-    private static List<String> modifyModifiers(List<String> oldModifiers) {
-        if (oldModifiers.contains("static")) {
-            return Lists.of("static");
-        }
-        return Lists.empty();
     }
 
     static List<String> divideValues(String input) {

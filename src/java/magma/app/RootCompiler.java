@@ -138,13 +138,13 @@ public final class RootCompiler {
             String actualInfix = "interface ";
             String newName = name + "Instance";
 
-            var generated = joinedModifiers + actualInfix + newName + joinedTypeParams + implementingString + " {" + DefiningCompiler.joinParameters(parameters) + constructorString + outputContent + "\n}\n";
+            var generated = joinedModifiers + actualInfix + newName + joinedTypeParams + implementingString + " {" + joinParameters(parameters) + constructorString + outputContent + "\n}\n";
             CompileState compileState = outputContentState.mapRegistry((Registry registry) -> registry.append(generated));
             return new Some<Tuple2<CompileState, String>>(new Tuple2Impl<CompileState, String>(compileState.mapRegistry((Registry registry1) -> registry1.append("export declare const " + name + ": " + newName + ";\n")), ""));
         }
         else {
             var extendsString = RootCompiler.joinExtends(maybeSuperType);
-            var generated = joinedModifiers + infix + name + joinedTypeParams + extendsString + implementingString + " {" + DefiningCompiler.joinParameters(parameters) + constructorString + outputContent + "\n}\n";
+            var generated = joinedModifiers + infix + name + joinedTypeParams + extendsString + implementingString + " {" + joinParameters(parameters) + constructorString + outputContent + "\n}\n";
             return new Some<Tuple2<CompileState, String>>(new Tuple2Impl<CompileState, String>(outputContentState.mapRegistry((Registry registry) -> registry.append(generated)), ""));
         }
     }
@@ -224,5 +224,13 @@ public final class RootCompiler {
 
     public static Tuple2<CompileState, String> compileRoot(CompileState state, String input, Location location) {
         return FunctionSegmentCompiler.compileStatements(state.mapContext((Context context2) -> context2.withLocation(location)), input, RootCompiler::compileRootSegment);
+    }
+
+    public static String joinParameters(Iterable<Definition> parameters) {
+        return parameters.iter()
+                .map((Definition definition) -> definition.generate())
+                .map((String generated) -> "\n\t" + generated + ";")
+                .collect(Joiner.empty())
+                .orElse("");
     }
 }
