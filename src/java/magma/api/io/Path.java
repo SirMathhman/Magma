@@ -22,7 +22,7 @@ public interface Path {
 
     Path getParent();
 
-    Iter<String> query();
+    Iter<String> iter();
 
     Path resolveChildSegments(Iterable<String> children);
 

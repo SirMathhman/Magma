@@ -20,7 +20,7 @@ export class PathTargets implements Targets {
 		return parent.createDirectories()/*unknown*/;
 	}
 	writeSource(location: Location, output: string): Option<IOError> {
-		let target = this.root.resolveChildSegments(location.namespace()).resolveChild(location.name() + ".ts")/*unknown*/;
+		let target = location.iterNamespace().foldWithInitial(this.root, (path, element) -  > path.resolveChild(element)).resolveChild(location.attachExtension("ts"))/*unknown*/;
 		return PathTargets.writeTarget(target, output)/*unknown*/;
 	}
 }

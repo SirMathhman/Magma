@@ -21,7 +21,7 @@ export class PathSource implements Source {
 		return fileName.substring(0, separator)/*unknown*/;
 	}
 	computeNamespace(): List<string> {
-		return this.sourceDirectory.relativize(this.source).getParent().query().collect(new ListCollector<string>())/*unknown*/;
+		return this.sourceDirectory.relativize(this.source).getParent().iter().collect(new ListCollector<string>())/*unknown*/;
 	}
 	createLocation(): Location {
 		return new Location(this.computeNamespace(), this.computeName())/*unknown*/;

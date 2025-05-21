@@ -22,7 +22,7 @@ public record PathSource(Path sourceDirectory, Path source) implements Source {
     private List<String> computeNamespace() {
         return this.sourceDirectory.relativize(this.source)
                 .getParent()
-                .query()
+                .iter()
                 .collect(new ListCollector<String>());
     }
 

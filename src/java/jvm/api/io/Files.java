@@ -36,7 +36,7 @@ public final class Files {
         }
 
         private static java.nio.file.Path fromPath(Path path) {
-            return path.query()
+            return path.iter()
                     .foldWithMapper(Paths::get, java.nio.file.Path::resolve)
                     .orElse(Paths.get("."));
         }
@@ -95,7 +95,7 @@ public final class Files {
         }
 
         @Override
-        public Iter<String> query() {
+        public Iter<String> iter() {
             return new HeadedIter<Integer>(new RangeHead(this.path.getNameCount()))
                     .map((Integer index) -> this.path.getName(index).toString());
         }

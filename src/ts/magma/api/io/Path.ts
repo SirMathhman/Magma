@@ -12,7 +12,7 @@ export interface Path {
 	endsWith(suffix: string): boolean;
 	relativize(source: Path): Path;
 	getParent(): Path;
-	query(): Iter<string>;
+	iter(): Iter<string>;
 	resolveChildSegments(children: Iterable<string>): Path;
 	resolveChild(name: string): Path;
 	exists(): boolean;

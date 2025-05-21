@@ -21,9 +21,9 @@ public record PathTargets(Path root) implements Targets {
 
     @Override
     public Option<IOError> writeSource(Location location, String output) {
-        var target = this.root
-                .resolveChildSegments(location.namespace())
-                .resolveChild(location.name() + ".ts");
+        var target = location.iterNamespace()
+                .foldWithInitial(this.root, (Path path, String element) -> path.resolveChild(element))
+                .resolveChild(location.attachExtension("ts"));
 
         return PathTargets.writeTarget(target, output);
     }
