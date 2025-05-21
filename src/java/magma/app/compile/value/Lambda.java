@@ -14,9 +14,7 @@ public record Lambda(Iterable<Definition> paramNames, String content) implements
     @Override
     public String generate() {
         var joinedParamNames = this.paramNames.iter()
-                .map((Definition definition) -> {
-                    return definition.generate();
-                })
+                .map((Definition definition) -> definition.generate())
                 .collect(new Joiner(", "))
                 .orElse("");
 

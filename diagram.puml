@@ -320,7 +320,6 @@ Iters --> HeadedIter
 Iters --> EmptyHead
 Iters --> Head
 Iters --> SingleHead
-Iters --> RangeHead
 Joiner --> Option
 Joiner --> Collector
 Joiner --> None
@@ -490,10 +489,6 @@ Import --> Joiner
 Import --> Strings
 FirstLocator --> Locator
 LastLocator --> Locator
-Merger --> CompileState
-Merger --> Tuple2
-Merger --> List
-Merger --> Tuple2Impl
 Merger --> Iterable
 StatementsMerger --> Merger
 ValueMerger --> Merger
@@ -686,10 +681,10 @@ DivideRule --> Rule
 DivideRule --> Folder
 DivideRule --> CompileState
 DivideRule --> Tuple2
-DivideRule --> Some
 DivideRule --> Option
 DivideRule --> FoldedDivider
 DivideRule --> DecoratedFolder
+DivideRule --> Some
 DivideRule --> Tuple2Impl
 DivideRule --> Lists
 FieldCompiler --> CompileState
@@ -746,8 +741,9 @@ FunctionSegmentCompiler --> Placeholder
 FunctionSegmentCompiler --> WhitespaceCompiler
 FunctionSegmentCompiler --> DivideRule
 FunctionSegmentCompiler --> StatementsFolder
-FunctionSegmentCompiler --> Merger
+FunctionSegmentCompiler --> List
 FunctionSegmentCompiler --> StatementsMerger
+FunctionSegmentCompiler --> Merger
 PathSource --> Source
 PathSource --> Path
 PathSource --> IOError

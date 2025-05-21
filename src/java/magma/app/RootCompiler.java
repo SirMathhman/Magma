@@ -38,49 +38,27 @@ public final class RootCompiler {
     }
 
     private static Rule<String> createStructureRule(String sourceInfix, String targetInfix) {
-        return (CompileState state, String input1) -> {
-            return new SplitComposable<Tuple2<CompileState, String>>(new LocatingSplitter(sourceInfix, new FirstLocator()), Composable.toComposable((String beforeInfix, String afterInfix) -> {
-                return new SplitComposable<Tuple2<CompileState, String>>(new LocatingSplitter("{", new FirstLocator()), Composable.toComposable((String beforeContent, String withEnd) -> {
-                    return new SuffixComposable<Tuple2<CompileState, String>>("}", (String inputContent) -> {
-                        return SplitComposable.compileLast(beforeInfix, "\n", (String s, String s2) -> {
-                            var annotations = DefiningCompiler.parseAnnotations(s);
-                            if (annotations.contains("Actual")) {
-                                return new Some<Tuple2<CompileState, String>>(new Tuple2Impl<CompileState, String>(state, ""));
-                            }
+        return (CompileState state, String input1) -> new SplitComposable<Tuple2<CompileState, String>>(new LocatingSplitter(sourceInfix, new FirstLocator()), Composable.toComposable((String beforeInfix, String afterInfix) -> new SplitComposable<Tuple2<CompileState, String>>(new LocatingSplitter("{", new FirstLocator()), Composable.toComposable((String beforeContent, String withEnd) -> new SuffixComposable<Tuple2<CompileState, String>>("}", (String inputContent) -> SplitComposable.compileLast(beforeInfix, "\n", (String s, String s2) -> {
+            var annotations = DefiningCompiler.parseAnnotations(s);
+            if (annotations.contains("Actual")) {
+                return new Some<Tuple2<CompileState, String>>(new Tuple2Impl<CompileState, String>(state, ""));
+            }
 
-                            return RootCompiler.compileStructureWithImplementing(state, annotations, DefiningCompiler.parseModifiers(s2), targetInfix, beforeContent, inputContent);
-                        }).or(() -> {
-                            var modifiers = DefiningCompiler.parseModifiers(beforeContent);
-                            return RootCompiler.compileStructureWithImplementing(state, Lists.empty(), modifiers, targetInfix, beforeContent, inputContent);
-                        });
-                    }).apply(Strings.strip(withEnd));
-                })).apply(afterInfix);
-            })).apply(input1);
-        };
+            return RootCompiler.compileStructureWithImplementing(state, annotations, DefiningCompiler.parseModifiers(s2), targetInfix, beforeContent, inputContent);
+        }).or(() -> {
+            var modifiers = DefiningCompiler.parseModifiers(beforeContent);
+            return RootCompiler.compileStructureWithImplementing(state, Lists.empty(), modifiers, targetInfix, beforeContent, inputContent);
+        })).apply(Strings.strip(withEnd)))).apply(afterInfix))).apply(input1);
     }
 
     private static Option<Tuple2<CompileState, String>> compileStructureWithImplementing(CompileState state, List<String> annotations, List<String> modifiers, String targetInfix, String beforeContent, String content) {
-        return SplitComposable.compileLast(beforeContent, " implements ", (String s, String s2) -> {
-            return TypeCompiler.parseType(state, s2).flatMap((Tuple2<CompileState, Type> implementingTuple) -> {
-                return RootCompiler.compileStructureWithExtends(implementingTuple.left(), annotations, modifiers, targetInfix, s, new Some<Type>(implementingTuple.right()), content);
-            });
-        }).or(() -> {
-            return RootCompiler.compileStructureWithExtends(state, annotations, modifiers, targetInfix, beforeContent, new None<Type>(), content);
-        });
+        return SplitComposable.compileLast(beforeContent, " implements ", (String s, String s2) -> TypeCompiler.parseType(state, s2).flatMap((Tuple2<CompileState, Type> implementingTuple) -> RootCompiler.compileStructureWithExtends(implementingTuple.left(), annotations, modifiers, targetInfix, s, new Some<Type>(implementingTuple.right()), content))).or(() -> RootCompiler.compileStructureWithExtends(state, annotations, modifiers, targetInfix, beforeContent, new None<Type>(), content));
     }
 
     private static Option<Tuple2<CompileState, String>> compileStructureWithExtends(CompileState state, List<String> annotations, List<String> modifiers, String targetInfix, String beforeContent, Option<Type> maybeImplementing, String inputContent) {
         Splitter splitter = new LocatingSplitter(" extends ", new FirstLocator());
-        return new SplitComposable<Tuple2<CompileState, String>>(splitter, Composable.toComposable((String beforeExtends, String afterExtends) -> {
-            return ValueCompiler.values((CompileState inner0, String inner1) -> {
-                        return TypeCompiler.parseType(inner0, inner1);
-                    }).apply(state, afterExtends)
-                    .flatMap((Tuple2<CompileState, List<Type>> compileStateListTuple2) -> {
-                        return RootCompiler.compileStructureWithParameters(compileStateListTuple2.left(), annotations, modifiers, targetInfix, beforeExtends, compileStateListTuple2.right(), maybeImplementing, inputContent);
-                    });
-        })).apply(beforeContent).or(() -> {
-            return RootCompiler.compileStructureWithParameters(state, annotations, modifiers, targetInfix, beforeContent, Lists.empty(), maybeImplementing, inputContent);
-        });
+        return new SplitComposable<Tuple2<CompileState, String>>(splitter, Composable.toComposable((String beforeExtends, String afterExtends) -> ValueCompiler.values((CompileState inner0, String inner1) -> TypeCompiler.parseType(inner0, inner1)).apply(state, afterExtends)
+                .flatMap((Tuple2<CompileState, List<Type>> compileStateListTuple2) -> RootCompiler.compileStructureWithParameters(compileStateListTuple2.left(), annotations, modifiers, targetInfix, beforeExtends, compileStateListTuple2.right(), maybeImplementing, inputContent)))).apply(beforeContent).or(() -> RootCompiler.compileStructureWithParameters(state, annotations, modifiers, targetInfix, beforeContent, Lists.empty(), maybeImplementing, inputContent));
     }
 
     private static Option<Tuple2<CompileState, String>> compileStructureWithParameters(CompileState state, List<String> annotations, List<String> modifiers, String targetInfix, String beforeContent, Iterable<Type> maybeSuperType, Option<Type> maybeImplementing, String inputContent) {
@@ -95,9 +73,7 @@ public final class RootCompiler {
 
                 return RootCompiler.compileStructureWithTypeParams(parametersTuple.left(), targetInfix, inputContent, name, parameters, maybeImplementing, annotations, modifiers, maybeSuperType);
             })).apply(withParameters);
-        })).apply(beforeContent).or(() -> {
-            return RootCompiler.compileStructureWithTypeParams(state, targetInfix, inputContent, beforeContent, Lists.empty(), maybeImplementing, annotations, modifiers, maybeSuperType);
-        });
+        })).apply(beforeContent).or(() -> RootCompiler.compileStructureWithTypeParams(state, targetInfix, inputContent, beforeContent, Lists.empty(), maybeImplementing, annotations, modifiers, maybeSuperType));
     }
 
     private static Option<Tuple2<CompileState, String>> compileStructureWithTypeParams(CompileState state, String infix, String content, String beforeParams, Iterable<Definition> parameters, Option<Type> maybeImplementing, List<String> annotations, List<String> modifiers, Iterable<Type> maybeSuperType) {
@@ -107,9 +83,7 @@ public final class RootCompiler {
                 var typeParams = DefiningCompiler.divideValues(typeParamsString);
                 return RootCompiler.assembleStructure(state, annotations, modifiers, infix, name, typeParams, parameters, maybeImplementing, content, maybeSuperType);
             })).apply(withoutTypeParamEnd);
-        }).apply(Strings.strip(beforeParams)).or(() -> {
-            return RootCompiler.assembleStructure(state, annotations, modifiers, infix, beforeParams, Lists.empty(), parameters, maybeImplementing, content, maybeSuperType);
-        });
+        }).apply(Strings.strip(beforeParams)).or(() -> RootCompiler.assembleStructure(state, annotations, modifiers, infix, beforeParams, Lists.empty(), parameters, maybeImplementing, content, maybeSuperType));
     }
 
     private static Option<Tuple2<CompileState, String>> assembleStructure(
@@ -129,12 +103,8 @@ public final class RootCompiler {
             return new None<Tuple2<CompileState, String>>();
         }
 
-        var outputContentTuple = FunctionSegmentCompiler.compileStatements(state.mapStack((Stack stack) -> {
-            return stack.pushStructureName(name);
-        }), content, RootCompiler::compileClassSegment);
-        var outputContentState = outputContentTuple.left().mapStack((Stack stack1) -> {
-            return stack1.popStructureName();
-        });
+        var outputContentTuple = FunctionSegmentCompiler.compileStatements(state.mapStack((Stack stack) -> stack.pushStructureName(name)), content, RootCompiler::compileClassSegment);
+        var outputContentState = outputContentTuple.left().mapStack((Stack stack1) -> stack1.popStructureName());
         var outputContent = outputContentTuple.right();
 
         var constructorString = RootCompiler.generateConstructorFromRecordParameters(parameters);
@@ -143,36 +113,24 @@ public final class RootCompiler {
         var newModifiers = RootCompiler.modifyModifiers0(oldModifiers);
 
         var joinedModifiers = newModifiers.iter()
-                .map((String value) -> {
-                    return value + " ";
-                })
+                .map((String value) -> value + " ")
                 .collect(Joiner.empty())
                 .orElse("");
 
         if (outputContentState.context().hasPlatform(Platform.PlantUML)) {
             var joinedImplementing = maybeImplementing
-                    .map((Type type) -> {
-                        return type.generateSimple();
-                    })
-                    .map((String generated) -> {
-                        return name + " <|.. " + generated + "\n";
-                    })
+                    .map((Type type) -> type.generateSimple())
+                    .map((String generated) -> name + " <|.. " + generated + "\n")
                     .orElse("");
 
             var joinedSuperTypes = maybeSuperType.iter()
-                    .map((Type type) -> {
-                        return type.generateSimple();
-                    })
-                    .map((String generated) -> {
-                        return name + " <|-- " + generated + "\n";
-                    })
+                    .map((Type type) -> type.generateSimple())
+                    .map((String generated) -> name + " <|-- " + generated + "\n")
                     .collect(new Joiner(""))
                     .orElse("");
 
             var generated = infix + name + joinedTypeParams + " {\n}\n" + joinedSuperTypes + joinedImplementing;
-            return new Some<Tuple2<CompileState, String>>(new Tuple2Impl<CompileState, String>(outputContentState.mapRegistry((Registry registry) -> {
-                return registry.append(generated);
-            }), ""));
+            return new Some<Tuple2<CompileState, String>>(new Tuple2Impl<CompileState, String>(outputContentState.mapRegistry((Registry registry) -> registry.append(generated)), ""));
         }
 
         if (annotations.contains("Namespace")) {
@@ -180,31 +138,21 @@ public final class RootCompiler {
             String newName = name + "Instance";
 
             var generated = joinedModifiers + actualInfix + newName + joinedTypeParams + implementingString + " {" + DefiningCompiler.joinParameters(parameters) + constructorString + outputContent + "\n}\n";
-            CompileState compileState = outputContentState.mapRegistry((Registry registry) -> {
-                return registry.append(generated);
-            });
-            return new Some<Tuple2<CompileState, String>>(new Tuple2Impl<CompileState, String>(compileState.mapRegistry((Registry registry1) -> {
-                return registry1.append("export declare const " + name + ": " + newName + ";\n");
-            }), ""));
+            CompileState compileState = outputContentState.mapRegistry((Registry registry) -> registry.append(generated));
+            return new Some<Tuple2<CompileState, String>>(new Tuple2Impl<CompileState, String>(compileState.mapRegistry((Registry registry1) -> registry1.append("export declare const " + name + ": " + newName + ";\n")), ""));
         }
         else {
             var extendsString = RootCompiler.joinExtends(maybeSuperType);
             var generated = joinedModifiers + infix + name + joinedTypeParams + extendsString + implementingString + " {" + DefiningCompiler.joinParameters(parameters) + constructorString + outputContent + "\n}\n";
-            return new Some<Tuple2<CompileState, String>>(new Tuple2Impl<CompileState, String>(outputContentState.mapRegistry((Registry registry) -> {
-                return registry.append(generated);
-            }), ""));
+            return new Some<Tuple2<CompileState, String>>(new Tuple2Impl<CompileState, String>(outputContentState.mapRegistry((Registry registry) -> registry.append(generated)), ""));
         }
     }
 
     private static String joinExtends(Iterable<Type> maybeSuperType) {
         return maybeSuperType.iter()
-                .map((Type type) -> {
-                    return type.generate();
-                })
+                .map((Type type) -> type.generate())
                 .collect(new Joiner(", "))
-                .map((String inner) -> {
-                    return " extends " + inner;
-                })
+                .map((String inner) -> " extends " + inner)
                 .orElse("");
     }
 
@@ -216,33 +164,23 @@ public final class RootCompiler {
     }
 
     private static String generateImplementing(Option<Type> maybeImplementing) {
-        return maybeImplementing.map((Type type) -> {
-                    return type.generate();
-                })
-                .map((String inner) -> {
-                    return " implements " + inner;
-                })
+        return maybeImplementing.map((Type type) -> type.generate())
+                .map((String inner) -> " implements " + inner)
                 .orElse("");
     }
 
     public static String joinTypeParams(Iterable<String> typeParams) {
         return typeParams.iter()
                 .collect(new Joiner(", "))
-                .map((String inner) -> {
-                    return "<" + inner + ">";
-                })
+                .map((String inner) -> "<" + inner + ">")
                 .orElse("");
     }
 
     private static String generateConstructorFromRecordParameters(Iterable<Definition> parameters) {
         return parameters.iter()
-                .map((Definition definition) -> {
-                    return definition.generate();
-                })
+                .map((Definition definition) -> definition.generate())
                 .collect(new Joiner(", "))
-                .map((String generatedParameters) -> {
-                    return RootCompiler.generateConstructorWithParameterString(parameters, generatedParameters);
-                })
+                .map((String generatedParameters) -> RootCompiler.generateConstructorWithParameterString(parameters, generatedParameters))
                 .orElse("");
     }
 
@@ -256,9 +194,7 @@ public final class RootCompiler {
 
     private static String generateConstructorAssignments(Iterable<Definition> parameters) {
         return parameters.iter()
-                .map((Definition definition) -> {
-                    return definition.toAssignment();
-                })
+                .map((Definition definition) -> definition.toAssignment())
                 .collect(Joiner.empty())
                 .orElse("");
     }
@@ -286,8 +222,6 @@ public final class RootCompiler {
     }
 
     public static Tuple2<CompileState, String> compileRoot(CompileState state, String input, Location location) {
-        return FunctionSegmentCompiler.compileStatements(state.mapContext((Context context2) -> {
-            return context2.withLocation(location);
-        }), input, RootCompiler::compileRootSegment);
+        return FunctionSegmentCompiler.compileStatements(state.mapContext((Context context2) -> context2.withLocation(location)), input, RootCompiler::compileRootSegment);
     }
 }

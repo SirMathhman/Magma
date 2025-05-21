@@ -35,19 +35,13 @@ final class FieldCompiler {
 
                 return new None<Tuple2<CompileState, String>>();
             }).or(() -> {
-                if (state.stack().findLastStructureName().filter((String anObject) -> {
-                    return Strings.equalsTo(strippedBeforeParams, anObject);
-                }).isPresent()) {
+                if (state.stack().findLastStructureName().filter((String anObject) -> Strings.equalsTo(strippedBeforeParams, anObject)).isPresent()) {
                     return FieldCompiler.compileMethodWithBeforeParams(state, new ConstructorHeader(), withParams);
                 }
 
                 return new None<Tuple2<CompileState, String>>();
-            }).or(() -> {
-                return DefiningCompiler.parseDefinition(state, beforeParams)
-                        .flatMap((Tuple2<CompileState, Definition> tuple) -> {
-                            return FieldCompiler.compileMethodWithBeforeParams(tuple.left(), tuple.right(), withParams);
-                        });
-            });
+            }).or(() -> DefiningCompiler.parseDefinition(state, beforeParams)
+                    .flatMap((Tuple2<CompileState, Definition> tuple) -> FieldCompiler.compileMethodWithBeforeParams(tuple.left(), tuple.right(), withParams)));
         })).apply(input);
     }
 
@@ -61,9 +55,7 @@ final class FieldCompiler {
             var definitions = DefiningCompiler.retainDefinitionsFromParameters(parameters);
 
             var joinedDefinitions = definitions.iter()
-                    .map((Definition definition) -> {
-                        return definition.generate();
-                    })
+                    .map((Definition definition) -> definition.generate())
                     .collect(new Joiner(", "))
                     .orElse("");
 
@@ -76,16 +68,12 @@ final class FieldCompiler {
             }
 
             var headerGenerated = header.generateWithAfterName("(" + joinedDefinitions + ")");
-            return new PrefixComposable<Tuple2<CompileState, String>>("{", (String withoutContentStart) -> {
-                return new SuffixComposable<Tuple2<CompileState, String>>("}", (String withoutContentEnd) -> {
-                            CompileState compileState = parametersState.enterDepth().enterDepth();
-                            var statementsTuple = FunctionSegmentCompiler.compileFunctionStatements(compileState.mapStack((Stack stack1) -> {
-                                return stack1.defineAll(definitions);
-                            }), withoutContentEnd);
+            return new PrefixComposable<Tuple2<CompileState, String>>("{", (String withoutContentStart) -> new SuffixComposable<Tuple2<CompileState, String>>("}", (String withoutContentEnd) -> {
+                        CompileState compileState = parametersState.enterDepth().enterDepth();
+                        var statementsTuple = FunctionSegmentCompiler.compileFunctionStatements(compileState.mapStack((Stack stack1) -> stack1.defineAll(definitions)), withoutContentEnd);
 
-                            return new Some<Tuple2<CompileState, String>>(new Tuple2Impl<CompileState, String>(statementsTuple.left().exitDepth().exitDepth(), "\n\t" + headerGenerated + " {" + statementsTuple.right() + "\n\t}"));
-                        }).apply(Strings.strip(withoutContentStart));
-            }).apply(Strings.strip(afterParams)).or(() -> {
+                        return new Some<Tuple2<CompileState, String>>(new Tuple2Impl<CompileState, String>(statementsTuple.left().exitDepth().exitDepth(), "\n\t" + headerGenerated + " {" + statementsTuple.right() + "\n\t}"));
+                    }).apply(Strings.strip(withoutContentStart))).apply(Strings.strip(afterParams)).or(() -> {
                 if (Strings.equalsTo(";", Strings.strip(afterParams))) {
                     return new Some<Tuple2<CompileState, String>>(new Tuple2Impl<CompileState, String>(parametersState, "\n\t" + headerGenerated + ";"));
                 }
@@ -96,17 +84,11 @@ final class FieldCompiler {
     }
 
     public static Option<Tuple2<CompileState, String>> compileFieldDefinition(CompileState state, String input) {
-        return new SuffixComposable<Tuple2<CompileState, String>>(";", (String withoutEnd) -> {
-            return FieldCompiler.getTupleOption(state, withoutEnd).or(() -> {
-                return FieldCompiler.compileEnumValues(state, withoutEnd);
-            });
-        }).apply(Strings.strip(input));
+        return new SuffixComposable<Tuple2<CompileState, String>>(";", (String withoutEnd) -> FieldCompiler.getTupleOption(state, withoutEnd).or(() -> FieldCompiler.compileEnumValues(state, withoutEnd))).apply(Strings.strip(input));
     }
 
     private static Option<Tuple2<CompileState, String>> getTupleOption(CompileState state, String withoutEnd) {
-        return DefiningCompiler.parseParameter(state, withoutEnd).flatMap((Tuple2<CompileState, Parameter> definitionTuple) -> {
-            return new Some<Tuple2<CompileState, String>>(new Tuple2Impl<CompileState, String>(definitionTuple.left(), "\n\t" + definitionTuple.right().generate() + ";"));
-        });
+        return DefiningCompiler.parseParameter(state, withoutEnd).flatMap((Tuple2<CompileState, Parameter> definitionTuple) -> new Some<Tuple2<CompileState, String>>(new Tuple2Impl<CompileState, String>(definitionTuple.left(), "\n\t" + definitionTuple.right().generate() + ";")));
     }
 
     public static Option<Tuple2<CompileState, String>> compileEnumValues(CompileState state, String withoutEnd) {
@@ -117,17 +99,13 @@ final class FieldCompiler {
             }
 
             return FieldCompiler.getTuple2Option(state, state1, segment);
-        }).apply(state, withoutEnd).map((Tuple2<CompileState, List<String>> tuple) -> {
-            return new Tuple2Impl<CompileState, String>(tuple.left(), tuple.right().iter().collect(new Joiner("")).orElse(""));
-        });
+        }).apply(state, withoutEnd).map((Tuple2<CompileState, List<String>> tuple) -> new Tuple2Impl<CompileState, String>(tuple.left(), tuple.right().iter().collect(new Joiner("")).orElse("")));
     }
 
     private static Option<Tuple2<CompileState, String>> getTuple2Option(CompileState state, CompileState state1, String segment) {
         return ValueCompiler.parseInvokable(state1, segment).flatMap((Tuple2<CompileState, Value> tuple) -> {
             var structureName = state.stack().findLastStructureName().orElse("");
-            return tuple.right().generateAsEnumValue(structureName).map((String stringOption) -> {
-                return new Tuple2Impl<CompileState, String>(tuple.left(), stringOption);
-            });
+            return tuple.right().generateAsEnumValue(structureName).map((String stringOption) -> new Tuple2Impl<CompileState, String>(tuple.left(), stringOption));
         });
     }
 }

@@ -130,9 +130,7 @@ export class DecoratedFolder implements Folder {
 		if ("\'" !== c/*unknown*/){
 			return new None<DivideState>()/*unknown*/;
 		}
-		return state.append(c).popAndAppendToTuple().flatMap(DecoratedFolder.foldEscaped).flatMap((state1: DivideState) => {
-			return state1.popAndAppendToOption()/*unknown*/;
-		})/*unknown*/;
+		return state.append(c).popAndAppendToTuple().flatMap(DecoratedFolder.foldEscaped).flatMap((state1: DivideState) => state1.popAndAppendToOption()/*unknown*/)/*unknown*/;
 	}
 	static foldEscaped(tuple: Tuple2<DivideState, string>): Option<DivideState> {
 		let state = tuple.left()/*unknown*/;
@@ -164,10 +162,6 @@ export class DecoratedFolder implements Folder {
 		return new Some<DivideState>(appended)/*unknown*/;
 	}
 	apply(divideState: DivideState, c: string): DivideState {
-		return DecoratedFolder.foldSingleQuotes(divideState, c).or(() => {
-			return DecoratedFolder.foldDoubleQuotes(divideState, c)/*unknown*/;
-		}).orElseGet(() => {
-			return this.folder.apply(divideState, c)/*unknown*/;
-		})/*unknown*/;
+		return DecoratedFolder.foldSingleQuotes(divideState, c).or(() => DecoratedFolder.foldDoubleQuotes(divideState, c)/*unknown*/).orElseGet(() => this.folder.apply(divideState, c)/*unknown*/)/*unknown*/;
 	}
 }

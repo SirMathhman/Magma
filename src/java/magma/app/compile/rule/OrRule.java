@@ -14,17 +14,13 @@ public record OrRule<T>(Iterable<Rule<T>> rules) implements Rule<T> {
             String input,
             Iterable<Rule<String>> rules
     ) {
-        return new OrRule<String>(rules).apply(state, input).orElseGet(() -> {
-            return new Tuple2Impl<CompileState, String>(state, Placeholder.generatePlaceholder(input));
-        });
+        return new OrRule<String>(rules).apply(state, input).orElseGet(() -> new Tuple2Impl<CompileState, String>(state, Placeholder.generatePlaceholder(input)));
     }
 
     @Override
     public Option<Tuple2<CompileState, T>> apply(CompileState state, String input) {
         return this.rules.iter()
-                .map((Rule<T> rule) -> {
-                    return rule.apply(state, input);
-                })
+                .map((Rule<T> rule) -> rule.apply(state, input))
                 .flatMap(Iters::fromOption)
                 .next();
     }

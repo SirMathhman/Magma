@@ -36,34 +36,22 @@ import magma.app.compile.split.LocatingSplitter;
 final class DefiningCompiler {
     public static Iterable<Definition> retainDefinitionsFromParameters(Iterable<Parameter> parameters) {
         return parameters.iter()
-                .map((Parameter parameter) -> {
-                    return parameter.asDefinition();
-                })
+                .map((Parameter parameter) -> parameter.asDefinition())
                 .flatMap(Iters::fromOption)
                 .collect(new ListCollector<Definition>());
     }
 
     public static Tuple2<CompileState, List<Parameter>> parseParameters(CompileState state, String params) {
-        return ValueCompiler.values((CompileState state1, String s) -> {
-            return new Some<Tuple2<CompileState, Parameter>>(DefiningCompiler.parseParameterOrPlaceholder(state1, s));
-        }).apply(state, params).orElse(new Tuple2Impl<CompileState, List<Parameter>>(state, Lists.empty()));
+        return ValueCompiler.values((CompileState state1, String s) -> new Some<Tuple2<CompileState, Parameter>>(DefiningCompiler.parseParameterOrPlaceholder(state1, s))).apply(state, params).orElse(new Tuple2Impl<CompileState, List<Parameter>>(state, Lists.empty()));
     }
 
     public static Tuple2<CompileState, Parameter> parseParameterOrPlaceholder(CompileState state, String input) {
-        return DefiningCompiler.parseParameter(state, input).orElseGet(() -> {
-            return new Tuple2Impl<CompileState, Parameter>(state, new Placeholder(input));
-        });
+        return DefiningCompiler.parseParameter(state, input).orElseGet(() -> new Tuple2Impl<CompileState, Parameter>(state, new Placeholder(input)));
     }
 
     public static Option<Tuple2<CompileState, Parameter>> parseParameter(CompileState state, String input) {
-        return WhitespaceCompiler.parseWhitespace(state, input).map((Tuple2<CompileState, Whitespace> tuple) -> {
-                    return DefiningCompiler.getCompileStateParameterTuple2(tuple);
-                })
-                .or(() -> {
-                    return DefiningCompiler.parseDefinition(state, input).map((Tuple2<CompileState, Definition> tuple) -> {
-                        return new Tuple2Impl<CompileState, Parameter>(tuple.left(), tuple.right());
-                    });
-                });
+        return WhitespaceCompiler.parseWhitespace(state, input).map((Tuple2<CompileState, Whitespace> tuple) -> DefiningCompiler.getCompileStateParameterTuple2(tuple))
+                .or(() -> DefiningCompiler.parseDefinition(state, input).map((Tuple2<CompileState, Definition> tuple) -> new Tuple2Impl<CompileState, Parameter>(tuple.left(), tuple.right())));
     }
 
     private static Tuple2<CompileState, Parameter> getCompileStateParameterTuple2(Tuple2<CompileState, Whitespace> tuple) {
@@ -71,45 +59,23 @@ final class DefiningCompiler {
     }
 
     public static Option<Tuple2<CompileState, Definition>> parseDefinition(CompileState state, String input) {
-        return SplitComposable.compileLast(Strings.strip(input), " ", (String beforeName, String name) -> {
-            return new SplitComposable<Tuple2<CompileState, Definition>>((String beforeName0) -> {
-                Selector selector = new LastSelector(" ");
-                return new FoldingSplitter(new TypeSeparatorFolder(), selector).apply(Strings.strip(beforeName0));
-            }, Composable.toComposable((String beforeType, String type) -> {
-                return SplitComposable.compileLast(Strings.strip(beforeType), "\n", (String annotationsString, String afterAnnotations) -> {
-                    var annotations = DefiningCompiler.parseAnnotations(annotationsString);
-                    return DefiningCompiler.parseDefinitionWithAnnotations(state, annotations, afterAnnotations, type, name);
-                }).or(() -> {
-                    return DefiningCompiler.parseDefinitionWithAnnotations(state, Lists.empty(), beforeType, type, name);
-                });
-            })).apply(beforeName).or(() -> {
-                return DefiningCompiler.parseDefinitionWithTypeParameters(state, Lists.empty(), Lists.empty(), Lists.empty(), beforeName, name);
-            });
-        });
+        return SplitComposable.compileLast(Strings.strip(input), " ", (String beforeName, String name) -> new SplitComposable<Tuple2<CompileState, Definition>>((String beforeName0) -> {
+            Selector selector = new LastSelector(" ");
+            return new FoldingSplitter(new TypeSeparatorFolder(), selector).apply(Strings.strip(beforeName0));
+        }, Composable.toComposable((String beforeType, String type) -> SplitComposable.compileLast(Strings.strip(beforeType), "\n", (String annotationsString, String afterAnnotations) -> {
+            var annotations = DefiningCompiler.parseAnnotations(annotationsString);
+            return DefiningCompiler.parseDefinitionWithAnnotations(state, annotations, afterAnnotations, type, name);
+        }).or(() -> DefiningCompiler.parseDefinitionWithAnnotations(state, Lists.empty(), beforeType, type, name)))).apply(beforeName).or(() -> DefiningCompiler.parseDefinitionWithTypeParameters(state, Lists.empty(), Lists.empty(), Lists.empty(), beforeName, name)));
     }
 
     public static List<String> parseAnnotations(String s) {
-        return new FoldedDivider(new DecoratedFolder((DivideState state1, char c) -> {
-            return new DelimitedFolder('\n').apply(state1, c);
-        })).divide(s)
-                .map((String s2) -> {
-                    return Strings.strip(s2);
-                })
-                .filter((String value) -> {
-                    return !Strings.isEmpty(value);
-                })
-                .filter((String value) -> {
-                    return 1 <= Strings.length(value);
-                })
-                .map((String value) -> {
-                    return Strings.sliceFrom(value, 1);
-                })
-                .map((String s1) -> {
-                    return Strings.strip(s1);
-                })
-                .filter((String value) -> {
-                    return !Strings.isEmpty(value);
-                })
+        return new FoldedDivider(new DecoratedFolder((DivideState state1, char c) -> new DelimitedFolder('\n').apply(state1, c))).divide(s)
+                .map((String s2) -> Strings.strip(s2))
+                .filter((String value) -> !Strings.isEmpty(value))
+                .filter((String value) -> 1 <= Strings.length(value))
+                .map((String value) -> Strings.sliceFrom(value, 1))
+                .map((String s1) -> Strings.strip(s1))
+                .filter((String value) -> !Strings.isEmpty(value))
                 .collect(new ListCollector<String>());
     }
 
@@ -133,15 +99,9 @@ final class DefiningCompiler {
     }
 
     public static List<String> parseModifiers(String beforeType) {
-        return new FoldedDivider(new DecoratedFolder((DivideState state1, char c) -> {
-            return new DelimitedFolder(' ').apply(state1, c);
-        })).divide(Strings.strip(beforeType))
-                .map((String s) -> {
-                    return Strings.strip(s);
-                })
-                .filter((String value) -> {
-                    return !Strings.isEmpty(value);
-                })
+        return new FoldedDivider(new DecoratedFolder((DivideState state1, char c) -> new DelimitedFolder(' ').apply(state1, c))).divide(Strings.strip(beforeType))
+                .map((String s) -> Strings.strip(s))
+                .filter((String value) -> !Strings.isEmpty(value))
                 .collect(new ListCollector<String>());
     }
 
@@ -162,12 +122,8 @@ final class DefiningCompiler {
 
     public static String joinParameters(Iterable<Definition> parameters) {
         return parameters.iter()
-                .map((Definition definition) -> {
-                    return definition.generate();
-                })
-                .map((String generated) -> {
-                    return "\n\t" + generated + ";";
-                })
+                .map((Definition definition) -> definition.generate())
+                .map((String generated) -> "\n\t" + generated + ";")
                 .collect(Joiner.empty())
                 .orElse("");
     }
@@ -181,12 +137,8 @@ final class DefiningCompiler {
 
     static List<String> divideValues(String input) {
         return new FoldedDivider(new DecoratedFolder(new ValueFolder())).divide(input)
-                .map((String input1) -> {
-                    return Strings.strip(input1);
-                })
-                .filter((String value) -> {
-                    return !Strings.isEmpty(value);
-                })
+                .map((String input1) -> Strings.strip(input1))
+                .filter((String value) -> !Strings.isEmpty(value))
                 .collect(new ListCollector<String>());
     }
 }

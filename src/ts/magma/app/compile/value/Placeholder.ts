@@ -131,7 +131,7 @@ export class Placeholder {
 		return "/*" + replaced + "*/"/*unknown*/;
 	}
 	generate(): string {
-		return generatePlaceholder(this.input)/*unknown*/;
+		return Placeholder.generatePlaceholder(this.input)/*unknown*/;
 	}
 	isFunctional(): boolean {
 		return false/*unknown*/;

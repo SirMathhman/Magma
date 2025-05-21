@@ -147,9 +147,7 @@ import { Platform } from "../../magma/app/Platform";
 import { Dependency } from "../../magma/app/compile/Dependency";
 class TypeCompiler {
 	static compileType(state: CompileState, type: string): Option<Tuple2<CompileState, string>> {
-		return TypeCompiler.parseType(state, type).map((tuple: Tuple2<CompileState, Type>) => {
-			return new Tuple2Impl<CompileState, string>(tuple.left(), tuple.right().generate())/*unknown*/;
-		})/*unknown*/;
+		return TypeCompiler.parseType(state, type).map((tuple: Tuple2<CompileState, Type>) => new Tuple2Impl<CompileState, string>(tuple.left(), tuple.right().generate())/*unknown*/)/*unknown*/;
 	}
 	static parseType(state: CompileState, type: string): Option<Tuple2<CompileState, Type>> {
 		return new OrRule<Type>(Lists.of(TypeCompiler.parseVarArgs, TypeCompiler.parseGeneric, TypeCompiler.parsePrimitive, TypeCompiler.parseSymbolType)).apply(state, type)/*unknown*/;
@@ -169,9 +167,7 @@ class TypeCompiler {
 		return new None<Tuple2<CompileState, Type>>()/*unknown*/;
 	}
 	static parsePrimitive(state: CompileState, input: string): Option<Tuple2<CompileState, Type>> {
-		return TypeCompiler.findPrimitiveValue(Strings.strip(input)).map((result: Type) => {
-			return new Tuple2Impl<CompileState, Type>(state, result)/*unknown*/;
-		})/*unknown*/;
+		return TypeCompiler.findPrimitiveValue(Strings.strip(input)).map((result: Type) => new Tuple2Impl<CompileState, Type>(state, result)/*unknown*/)/*unknown*/;
 	}
 	static findPrimitiveValue(input: string): Option<Type> {
 		let stripped = Strings.strip(input)/*unknown*/;
@@ -196,9 +192,7 @@ class TypeCompiler {
 		return new SuffixComposable<Tuple2<CompileState, Type>>(">", (withoutEnd: string) => {
 			let splitter: Splitter = new LocatingSplitter("<", new FirstLocator())/*unknown*/;
 			return new SplitComposable<Tuple2<CompileState, Type>>(splitter, Composable.toComposable((baseString: string, argsString: string) => {
-				let argsTuple = ValueCompiler.values((state1: CompileState, s: string) => {
-					return TypeCompiler.compileTypeArgument(state1, s)/*unknown*/;
-				}).apply(state, argsString).orElse(new Tuple2Impl<CompileState, List<string>>(state, Lists.empty()))/*unknown*/;
+				let argsTuple = ValueCompiler.values((state1: CompileState, s: string) => TypeCompiler.compileTypeArgument(state1, s)/*unknown*/).apply(state, argsString).orElse(new Tuple2Impl<CompileState, List<string>>(state, Lists.empty()))/*unknown*/;
 				let argsState = argsTuple.left()/*unknown*/;
 				let args = argsTuple.right()/*unknown*/;
 				let base = Strings.strip(baseString)/*unknown*/;
@@ -210,57 +204,31 @@ class TypeCompiler {
 		}).apply(Strings.strip(input))/*unknown*/;
 	}
 	static assembleFunctionType(state: CompileState, base: string, args: List<string>): Option<Tuple2<CompileState, Type>> {
-		return TypeCompiler.mapFunctionType(base, args).map((generated: Type) => {
-			return new Tuple2Impl<CompileState, Type>(state, generated)/*unknown*/;
-		})/*unknown*/;
+		return TypeCompiler.mapFunctionType(base, args).map((generated: Type) => new Tuple2Impl<CompileState, Type>(state, generated)/*unknown*/)/*unknown*/;
 	}
 	static mapFunctionType(base: string, args: List<string>): Option<Type> {
 		if (Strings.equalsTo("Function", base)/*unknown*/){
-			return args.findFirst().and(() => {
-				return args.find(1)/*unknown*/;
-			}).map((tuple: Tuple2<string, string>) => {
-				return new FunctionType(Lists.of(tuple.left()), tuple.right())/*unknown*/;
-			})/*unknown*/;
+			return args.findFirst().and(() => args.find(1)/*unknown*/).map((tuple: Tuple2<string, string>) => new FunctionType(Lists.of(tuple.left()), tuple.right())/*unknown*/)/*unknown*/;
 		}
 		if (Strings.equalsTo("BiFunction", base)/*unknown*/){
-			return args.find(0).and(() => {
-				return args.find(1)/*unknown*/;
-			}).and(() => {
-				return args.find(2)/*unknown*/;
-			}).map((tuple: Tuple2<Tuple2<string, string>, string>) => {
-				return new FunctionType(Lists.of(tuple.left().left(), tuple.left().right()), tuple.right())/*unknown*/;
-			})/*unknown*/;
+			return args.find(0).and(() => args.find(1)/*unknown*/).and(() => args.find(2)/*unknown*/).map((tuple: Tuple2<Tuple2<string, string>, string>) => new FunctionType(Lists.of(tuple.left().left(), tuple.left().right()), tuple.right())/*unknown*/)/*unknown*/;
 		}
 		if (Strings.equalsTo("Supplier", base)/*unknown*/){
-			return args.findFirst().map((first: string) => {
-				return new FunctionType(Lists.empty(), first)/*unknown*/;
-			})/*unknown*/;
+			return args.findFirst().map((first: string) => new FunctionType(Lists.empty(), first)/*unknown*/)/*unknown*/;
 		}
 		if (Strings.equalsTo("Consumer", base)/*unknown*/){
-			return args.findFirst().map((first: string) => {
-				return new FunctionType(Lists.of(first), "void")/*unknown*/;
-			})/*unknown*/;
+			return args.findFirst().map((first: string) => new FunctionType(Lists.of(first), "void")/*unknown*/)/*unknown*/;
 		}
 		if (Strings.equalsTo("Predicate", base)/*unknown*/){
-			return args.findFirst().map((first: string) => {
-				return new FunctionType(Lists.of(first), "boolean")/*unknown*/;
-			})/*unknown*/;
+			return args.findFirst().map((first: string) => new FunctionType(Lists.of(first), "boolean")/*unknown*/)/*unknown*/;
 		}
 		return new None<Type>()/*unknown*/;
 	}
 	static compileTypeArgument(state: CompileState, input: string): Option<Tuple2<CompileState, string>> {
-		return new OrRule<string>(Lists.of((state2: CompileState, input1: string) => {
-			return WhitespaceCompiler.compileWhitespace(state2, input1)/*unknown*/;
-		}, (state1: CompileState, type: string) => {
-			return TypeCompiler.compileType(state1, type)/*unknown*/;
-		})).apply(state, input)/*unknown*/;
+		return new OrRule<string>(Lists.of((state2: CompileState, input1: string) => WhitespaceCompiler.compileWhitespace(state2, input1)/*unknown*/, (state1: CompileState, type: string) => TypeCompiler.compileType(state1, type)/*unknown*/)).apply(state, input)/*unknown*/;
 	}
 	static parseTypeOrPlaceholder(state: CompileState, type: string): Tuple2<CompileState, Type> {
-		return TypeCompiler.parseType(state, type).map((tuple: Tuple2<CompileState, Type>) => {
-			return new Tuple2Impl<CompileState, Type>(tuple.left(), tuple.right())/*unknown*/;
-		}).orElseGet(() => {
-			return new Tuple2Impl<CompileState, Type>(state, new Placeholder(type))/*unknown*/;
-		})/*unknown*/;
+		return TypeCompiler.parseType(state, type).map((tuple: Tuple2<CompileState, Type>) => new Tuple2Impl<CompileState, Type>(tuple.left(), tuple.right())/*unknown*/).orElseGet(() => new Tuple2Impl<CompileState, Type>(state, new Placeholder(type))/*unknown*/)/*unknown*/;
 	}
 	static getState(immutableCompileState: CompileState, location: Location): CompileState {
 		let requestedNamespace = location.namespace()/*unknown*/;
@@ -271,9 +239,7 @@ class TypeCompiler {
 		}
 		let namespaceWithChild = namespace.addLast(requestedChild)/*unknown*/;
 		let anImport = new Import(namespaceWithChild, requestedChild)/*unknown*/;
-		return immutableCompileState.mapRegistry((registry: Registry) => {
-			return registry.addImport(anImport)/*unknown*/;
-		})/*unknown*/;
+		return immutableCompileState.mapRegistry((registry: Registry) => registry.addImport(anImport)/*unknown*/)/*unknown*/;
 	}
 	static addResolvedImportFromCache0(state: CompileState, base: string): CompileState {
 		if (state.stack().hasAnyStructureName(base)/*unknown*/){
@@ -281,9 +247,7 @@ class TypeCompiler {
 		}
 		return state.context().findSource(base).map((source: Source) => {
 			let location: Location = source.createLocation()/*unknown*/;
-			return TypeCompiler.getCompileState1(state, location).orElseGet(() => {
-				return TypeCompiler.getState(state, location)/*unknown*/;
-			})/*unknown*/;
+			return TypeCompiler.getCompileState1(state, location).orElseGet(() => TypeCompiler.getState(state, location)/*unknown*/)/*unknown*/;
 		}).orElse(state)/*unknown*/;
 	}
 	static getCompileState1(immutableCompileState: CompileState, location: Location): Option<CompileState> {
@@ -295,9 +259,7 @@ class TypeCompiler {
 		if (immutableCompileState.registry().containsDependency(dependency)/*unknown*/){
 			return new None<CompileState>()/*unknown*/;
 		}
-		return new Some<CompileState>(immutableCompileState.mapRegistry((registry1: Registry) => {
-			return registry1.addDependency(dependency)/*unknown*/;
-		}))/*unknown*/;
+		return new Some<CompileState>(immutableCompileState.mapRegistry((registry1: Registry) => registry1.addDependency(dependency)/*unknown*/))/*unknown*/;
 	}
 	static fixNamespace(requestedNamespace: List<string>, thisNamespace: List<string>): List<string> {
 		if (thisNamespace.isEmpty()/*unknown*/){

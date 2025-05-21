@@ -122,11 +122,9 @@ import { Tuple2Impl } from "../../magma/api/Tuple2Impl";
 import { Strings } from "../../magma/api/text/Strings";
 import { Some } from "../../magma/api/option/Some";
 import { None } from "../../magma/api/option/None";
-export class WhitespaceCompiler {
+class WhitespaceCompiler {
 	static compileWhitespace(state: CompileState, input: string): Option<Tuple2<CompileState, string>> {
-		return WhitespaceCompiler.parseWhitespace(state, input).map((tuple: Tuple2<CompileState, Whitespace>) => {
-			return new Tuple2Impl<CompileState, string>(tuple.left(), tuple.right().generate())/*unknown*/;
-		})/*unknown*/;
+		return WhitespaceCompiler.parseWhitespace(state, input).map((tuple: Tuple2<CompileState, Whitespace>) => new Tuple2Impl<CompileState, string>(tuple.left(), tuple.right().generate())/*unknown*/)/*unknown*/;
 	}
 	static parseWhitespace(state: CompileState, input: string): Option<Tuple2<CompileState, Whitespace>> {
 		if (Strings.isBlank(input)/*unknown*/){

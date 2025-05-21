@@ -114,5 +114,5 @@
 	ValueCompiler: magma.app, 
 	WhitespaceCompiler: magma.app
 ]*/
-export class CompilerUtils {
+class CompilerUtils {
 }

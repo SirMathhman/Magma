@@ -9,11 +9,7 @@ import magma.api.option.Option;
 
 public final class Iters {
     public static <T> Iter<T> fromOption(Option<T> option) {
-        return new HeadedIter<T>(option.map((T element) -> {
-            return Iters.getTSingleHead(element);
-        }).orElseGet(() -> {
-            return new EmptyHead<T>();
-        }));
+        return new HeadedIter<T>(option.map((T element) -> Iters.getTSingleHead(element)).orElseGet(() -> new EmptyHead<T>()));
     }
 
     private static <T> Head<T> getTSingleHead(T element) {
@@ -21,8 +17,6 @@ public final class Iters {
     }
 
     public static <T> Iter<T> fromArray(T[] array) {
-        return new HeadedIter<Integer>(new RangeHead(array.length)).map((Integer index) -> {
-            return array[index];
-        });
+        return new HeadedIter<Integer>(new RangeHead(array.length)).map((Integer index) -> array[index]);
     }
 }

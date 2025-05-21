@@ -18,9 +18,7 @@ public record Invokable(Caller caller, Iterable<Value> args) implements Value {
 
     private String joinArgs() {
         return this.args.iter()
-                .map((Value value) -> {
-                    return value.generate();
-                })
+                .map((Value value) -> value.generate())
                 .collect(new Joiner(", "))
                 .orElse("");
     }

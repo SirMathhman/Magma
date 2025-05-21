@@ -19,7 +19,7 @@ public record Placeholder(String input) implements Parameter, Value, Type {
 
     @Override
     public String generate() {
-        return generatePlaceholder(this.input);
+        return Placeholder.generatePlaceholder(this.input);
     }
 
     @Override

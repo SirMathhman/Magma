@@ -3,6 +3,7 @@ package magma.app;
 import jvm.api.collect.list.Lists;
 import magma.api.Tuple2;
 import magma.api.Tuple2Impl;
+import magma.api.collect.list.List;
 import magma.api.option.None;
 import magma.api.option.Option;
 import magma.api.option.Some;
@@ -42,23 +43,15 @@ final class FunctionSegmentCompiler {
     }
 
     private static Option<Tuple2<CompileState, String>> compileBlock(CompileState state, String input) {
-        return new SuffixComposable<Tuple2<CompileState, String>>("}", (String withoutEnd) -> {
-            return new SplitComposable<Tuple2<CompileState, String>>((String withoutEnd0) -> {
-                    Selector selector = new LastSelector("");
-                    return new FoldingSplitter((DivideState state1, char c) -> {
-                        return FunctionSegmentCompiler.foldBlockStarts(state1, c);
-                    }, selector).apply(withoutEnd0);
-                }, Composable.toComposable((String beforeContentWithEnd, String content) -> {
-                    return new SuffixComposable<Tuple2<CompileState, String>>("{", (String beforeContent) -> {
-                        return FunctionSegmentCompiler.compileBlockHeader(state, beforeContent).flatMap((Tuple2<CompileState, String> headerTuple) -> {
-                            var contentTuple = FunctionSegmentCompiler.compileFunctionStatements(headerTuple.left().enterDepth(), content);
+        return new SuffixComposable<Tuple2<CompileState, String>>("}", (String withoutEnd) -> new SplitComposable<Tuple2<CompileState, String>>((String withoutEnd0) -> {
+                Selector selector = new LastSelector("");
+                return new FoldingSplitter((DivideState state1, char c) -> FunctionSegmentCompiler.foldBlockStarts(state1, c), selector).apply(withoutEnd0);
+            }, Composable.toComposable((String beforeContentWithEnd, String content) -> new SuffixComposable<Tuple2<CompileState, String>>("{", (String beforeContent) -> FunctionSegmentCompiler.compileBlockHeader(state, beforeContent).flatMap((Tuple2<CompileState, String> headerTuple) -> {
+                var contentTuple = FunctionSegmentCompiler.compileFunctionStatements(headerTuple.left().enterDepth(), content);
 
-                            var indent = state.createIndent();
-                            return new Some<Tuple2<CompileState, String>>(new Tuple2Impl<CompileState, String>(contentTuple.left().exitDepth(), indent + headerTuple.right() + "{" + contentTuple.right() + indent + "}"));
-                        });
-                    }).apply(beforeContentWithEnd);
-                })).apply(withoutEnd);
-        }).apply(Strings.strip(input));
+                var indent = state.createIndent();
+                return new Some<Tuple2<CompileState, String>>(new Tuple2Impl<CompileState, String>(contentTuple.left().exitDepth(), indent + headerTuple.right() + "{" + contentTuple.right() + indent + "}"));
+            })).apply(beforeContentWithEnd))).apply(withoutEnd)).apply(Strings.strip(input));
     }
 
     private static DivideState foldBlockStarts(DivideState state, char c) {
@@ -88,17 +81,13 @@ final class FunctionSegmentCompiler {
     }
 
     private static Rule<String> createConditionalRule(String prefix) {
-        return (CompileState state1, String input1) -> {
-            return new PrefixComposable<Tuple2<CompileState, String>>(prefix, (String withoutPrefix) -> {
-                var strippedCondition = Strings.strip(withoutPrefix);
-                return new PrefixComposable<Tuple2<CompileState, String>>("(", (String withoutConditionStart) -> {
-                    return new SuffixComposable<Tuple2<CompileState, String>>(")", (String withoutConditionEnd) -> {
-                        var tuple = ValueCompiler.compileValueOrPlaceholder(state1, withoutConditionEnd);
-                        return new Some<Tuple2<CompileState, String>>(new Tuple2Impl<CompileState, String>(tuple.left(), prefix + " (" + tuple.right() + ")"));
-                    }).apply(withoutConditionStart);
-                }).apply(strippedCondition);
-            }).apply(Strings.strip(input1));
-        };
+        return (CompileState state1, String input1) -> new PrefixComposable<Tuple2<CompileState, String>>(prefix, (String withoutPrefix) -> {
+            var strippedCondition = Strings.strip(withoutPrefix);
+            return new PrefixComposable<Tuple2<CompileState, String>>("(", (String withoutConditionStart) -> new SuffixComposable<Tuple2<CompileState, String>>(")", (String withoutConditionEnd) -> {
+                var tuple = ValueCompiler.compileValueOrPlaceholder(state1, withoutConditionEnd);
+                return new Some<Tuple2<CompileState, String>>(new Tuple2Impl<CompileState, String>(tuple.left(), prefix + " (" + tuple.right() + ")"));
+            }).apply(withoutConditionStart)).apply(strippedCondition);
+        }).apply(Strings.strip(input1));
     }
 
     private static Option<Tuple2<CompileState, String>> compileElse(CompileState state, String input) {
@@ -129,12 +118,10 @@ final class FunctionSegmentCompiler {
     }
 
     private static Rule<String> createInvokableRule() {
-        return (CompileState state1, String input) -> {
-            return ValueCompiler.parseInvokable(state1, input)
-                    .map((Tuple2<CompileState, Value> tuple) -> {
-                        return ValueCompiler.generateValue(tuple);
-                    });
-        };
+        return (CompileState state1, String input) -> ValueCompiler.parseInvokable(state1, input)
+                .map((Tuple2<CompileState, Value> tuple) -> {
+                    return ValueCompiler.generateValue(tuple);
+                });
     }
 
     private static Option<Tuple2<CompileState, String>> compileBreak(CompileState state, String input) {
@@ -147,35 +134,23 @@ final class FunctionSegmentCompiler {
     }
 
     private static Rule<String> createPostRule(String suffix) {
-        return (CompileState state1, String input) -> {
-            return new SuffixComposable<Tuple2<CompileState, String>>(suffix, (String child) -> {
-                var tuple = ValueCompiler.compileValueOrPlaceholder(state1, child);
-                return new Some<Tuple2<CompileState, String>>(new Tuple2Impl<CompileState, String>(tuple.left(), tuple.right() + suffix));
-            }).apply(Strings.strip(input));
-        };
-    }
-
-    private static Option<Tuple2<CompileState, String>> compileReturnWithValue(CompileState state, String input) {
-        return FunctionSegmentCompiler.compileReturn(input, (String value1) -> {
-            return ValueCompiler.compileValue(state, value1);
-        });
-    }
-
-    private static Option<Tuple2<CompileState, String>> compileReturn(String input, Function<String, Option<Tuple2<CompileState, String>>> mapper) {
-        return new PrefixComposable<Tuple2<CompileState, String>>("return ", (String value) -> {
-            return mapper.apply(value).flatMap((Tuple2<CompileState, String> tuple) -> {
-                return new Some<Tuple2<CompileState, String>>(new Tuple2Impl<CompileState, String>(tuple.left(), "return " + tuple.right()));
-            });
+        return (CompileState state1, String input) -> new SuffixComposable<Tuple2<CompileState, String>>(suffix, (String child) -> {
+            var tuple = ValueCompiler.compileValueOrPlaceholder(state1, child);
+            return new Some<Tuple2<CompileState, String>>(new Tuple2Impl<CompileState, String>(tuple.left(), tuple.right() + suffix));
         }).apply(Strings.strip(input));
     }
 
+    private static Option<Tuple2<CompileState, String>> compileReturnWithValue(CompileState state, String input) {
+        return FunctionSegmentCompiler.compileReturn(input, (String value1) -> ValueCompiler.compileValue(state, value1));
+    }
+
+    private static Option<Tuple2<CompileState, String>> compileReturn(String input, Function<String, Option<Tuple2<CompileState, String>>> mapper) {
+        return new PrefixComposable<Tuple2<CompileState, String>>("return ", (String value) -> mapper.apply(value).flatMap((Tuple2<CompileState, String> tuple) -> new Some<Tuple2<CompileState, String>>(new Tuple2Impl<CompileState, String>(tuple.left(), "return " + tuple.right())))).apply(Strings.strip(input));
+    }
+
     private static Option<Tuple2<CompileState, String>> compileReturnWithoutSuffix(CompileState state1, String input1) {
-        return FunctionSegmentCompiler.compileReturn(input1, (String withoutPrefix) -> {
-                    return ValueCompiler.compileValue(state1, withoutPrefix);
-                })
-                .map((Tuple2<CompileState, String> tuple) -> {
-                    return new Tuple2Impl<CompileState, String>(tuple.left(), state1.createIndent() + tuple.right());
-                });
+        return FunctionSegmentCompiler.compileReturn(input1, (String withoutPrefix) -> ValueCompiler.compileValue(state1, withoutPrefix))
+                .map((Tuple2<CompileState, String> tuple) -> new Tuple2Impl<CompileState, String>(tuple.left(), state1.createIndent() + tuple.right()));
     }
 
     private static Option<Tuple2<CompileState, String>> compileAssignment(CompileState state, String input) {
@@ -184,14 +159,8 @@ final class FunctionSegmentCompiler {
             var sourceTuple = ValueCompiler.compileValueOrPlaceholder(state, source);
 
             var destinationTuple = ValueCompiler.compileValue(sourceTuple.left(), destination)
-                    .or(() -> {
-                        return DefiningCompiler.parseDefinition(sourceTuple.left(), destination).map((Tuple2<CompileState, Definition> tuple) -> {
-                            return new Tuple2Impl<CompileState, String>(tuple.left(), "let " + tuple.right().generate());
-                        });
-                    })
-                    .orElseGet(() -> {
-                        return new Tuple2Impl<CompileState, String>(sourceTuple.left(), Placeholder.generatePlaceholder(destination));
-                    });
+                    .or(() -> DefiningCompiler.parseDefinition(sourceTuple.left(), destination).map((Tuple2<CompileState, Definition> tuple) -> new Tuple2Impl<CompileState, String>(tuple.left(), "let " + tuple.right().generate())))
+                    .orElseGet(() -> new Tuple2Impl<CompileState, String>(sourceTuple.left(), Placeholder.generatePlaceholder(destination)));
 
             return new Some<Tuple2<CompileState, String>>(new Tuple2Impl<CompileState, String>(destinationTuple.left(), destinationTuple.right() + " = " + sourceTuple.right()));
         })).apply(input);
@@ -212,9 +181,21 @@ final class FunctionSegmentCompiler {
     }
 
     static Tuple2<CompileState, String> compileStatements(CompileState state, String input, BiFunction<CompileState, String, Tuple2<CompileState, String>> mapper) {
-        return new DivideRule<>(new StatementsFolder(), DivideRule.toRule(mapper))
+        return new DivideRule<String>(new StatementsFolder(), toRule(mapper))
                 .apply(state, input)
-                .map(folded -> Merger.generateAllFromTuple(folded.left(), folded.right(), new StatementsMerger()))
+                .map((Tuple2<CompileState, List<String>> folded) -> {
+                    return generateAllFromTuple(folded.left(), folded.right(), new StatementsMerger());
+                })
                 .orElse(new Tuple2Impl<CompileState, String>(state, ""));
+    }
+
+    static Rule<String> toRule(BiFunction<CompileState, String, Tuple2<CompileState, String>> mapper) {
+        return (CompileState state1, String s) -> {
+            return new Some<Tuple2<CompileState, String>>(mapper.apply(state1, s));
+        };
+    }
+
+    public static Tuple2<CompileState, String> generateAllFromTuple(CompileState state, List<String> elements, Merger merger) {
+        return new Tuple2Impl<CompileState, String>(state, Merger.generateAll(elements, merger));
     }
 }

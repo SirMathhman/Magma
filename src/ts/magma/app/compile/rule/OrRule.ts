@@ -128,13 +128,9 @@ export class OrRule<T> implements Rule<T> {
 		this.rules = rules;
 	}
 	static compileOrPlaceholder(state: CompileState, input: string, rules: Iterable<Rule<string>>): Tuple2<CompileState, string> {
-		return new OrRule<string>(rules).apply(state, input).orElseGet(() => {
-			return new Tuple2Impl<CompileState, string>(state, Placeholder.generatePlaceholder(input))/*unknown*/;
-		})/*unknown*/;
+		return new OrRule<string>(rules).apply(state, input).orElseGet(() => new Tuple2Impl<CompileState, string>(state, Placeholder.generatePlaceholder(input))/*unknown*/)/*unknown*/;
 	}
 	apply(state: CompileState, input: string): Option<Tuple2<CompileState, T>> {
-		return this.rules.iter().map((rule: Rule<T>) => {
-			return rule.apply(state, input)/*unknown*/;
-		}).flatMap(Iters.fromOption).next()/*unknown*/;
+		return this.rules.iter().map((rule: Rule<T>) => rule.apply(state, input)/*unknown*/).flatMap(Iters.fromOption).next()/*unknown*/;
 	}
 }

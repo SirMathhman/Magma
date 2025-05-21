@@ -130,9 +130,7 @@ export class OperatorFolder implements Folder {
 			let current = state/*DivideState*/;
 			while (counter < length/*unknown*/){
 				counter/*unknown*/++;
-				current/*unknown*/ = current.pop().map((tuple: Tuple2<DivideState, string>) => {
-					return tuple.left()/*unknown*/;
-				}).orElse(current)/*unknown*/;
+				current/*unknown*/ = current.pop().map((tuple: Tuple2<DivideState, string>) => tuple.left()/*unknown*/).orElse(current)/*unknown*/;
 			}
 			return current.advance()/*unknown*/;
 		}

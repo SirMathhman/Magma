@@ -12,19 +12,13 @@ final class Main {
         var sources = new PathSources(sourceDirectory);
         var targets = new PathTargets(Files.get(".", "src", "ts"));
         Main.run(new Application(sources, targets))
-                .map((IOError error) -> {
-                    return error.display();
-                })
-                .ifPresent((String displayed) -> {
-                    Console.printErrLn(displayed);
-                });
+                .map((IOError error) -> error.display())
+                .ifPresent((String displayed) -> Console.printErrLn(displayed));
     }
 
     private static Option<IOError> run(Application application) {
         return Iters.fromArray(Platform.values())
-                .map((Platform platform) -> {
-                    return application.runWith(platform);
-                })
+                .map((Platform platform) -> application.runWith(platform))
                 .flatMap(Iters::fromOption)
                 .next();
     }

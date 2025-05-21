@@ -50,7 +50,7 @@ import magma.app.compile.split.LocatingSplitter;
 
 import java.util.function.Function;
 
-public final class ValueCompiler {
+final class ValueCompiler {
     static Tuple2Impl<CompileState, String> generateValue(Tuple2<CompileState, Value> tuple) {
         var state = tuple.left();
         var right = tuple.right();
@@ -60,42 +60,24 @@ public final class ValueCompiler {
     }
 
     static Option<Tuple2<CompileState, Value>> parseInvokable(CompileState state, String input) {
-        return new SuffixComposable<Tuple2<CompileState, Value>>(")", (String withoutEnd) -> {
-            return new SplitComposable<Tuple2<CompileState, Value>>((String withoutEnd0) -> {
-                    Selector selector = new LastSelector("");
-                    return new FoldingSplitter((DivideState state1, char c) -> {
-                        return ValueCompiler.foldInvocationStarts(state1, c);
-                    }, selector).apply(withoutEnd0);
-                }, Composable.toComposable((String callerWithArgStart, String args) -> {
-                    return new SuffixComposable<Tuple2<CompileState, Value>>("(", (String callerString) -> {
-                        return new PrefixComposable<Tuple2<CompileState, Value>>("new ", (String type) -> {
-                            return TypeCompiler.compileType(state, type).flatMap((Tuple2<CompileState, String> callerTuple1) -> {
-                                var callerState = callerTuple1.right();
-                                var caller = callerTuple1.left();
-                                return ValueCompiler.assembleInvokable(caller, new ConstructionCaller(callerState), args);
-                            });
-                        }).apply(Strings.strip(callerString)).or(() -> {
-                            return parseValue(state, callerString).flatMap((Tuple2<CompileState, Value> callerTuple) -> {
-                                return ValueCompiler.assembleInvokable(callerTuple.left(), callerTuple.right(), args);
-                            });
-                        });
-                    }).apply(callerWithArgStart);
-                })).apply(withoutEnd);
-        }).apply(Strings.strip(input));
+        return new SuffixComposable<Tuple2<CompileState, Value>>(")", (String withoutEnd) -> new SplitComposable<Tuple2<CompileState, Value>>((String withoutEnd0) -> {
+                Selector selector = new LastSelector("");
+                return new FoldingSplitter((DivideState state1, char c) -> ValueCompiler.foldInvocationStarts(state1, c), selector).apply(withoutEnd0);
+            }, Composable.toComposable((String callerWithArgStart, String args) -> new SuffixComposable<Tuple2<CompileState, Value>>("(", (String callerString) -> new PrefixComposable<Tuple2<CompileState, Value>>("new ", (String type) -> TypeCompiler.compileType(state, type).flatMap((Tuple2<CompileState, String> callerTuple1) -> {
+                var callerState = callerTuple1.right();
+                var caller = callerTuple1.left();
+                return ValueCompiler.assembleInvokable(caller, new ConstructionCaller(callerState), args);
+            })).apply(Strings.strip(callerString)).or(() -> ValueCompiler.parseValue(state, callerString).flatMap((Tuple2<CompileState, Value> callerTuple) -> ValueCompiler.assembleInvokable(callerTuple.left(), callerTuple.right(), args)))).apply(callerWithArgStart))).apply(withoutEnd)).apply(Strings.strip(input));
     }
 
-    static Rule<Value> createTextRule(String slice) {
+    private static Rule<Value> createTextRule(String slice) {
         return (CompileState state1, String input1) -> {
             var stripped = Strings.strip(input1);
-            return new PrefixComposable<Tuple2<CompileState, Value>>(slice, (String s) -> {
-                return new SuffixComposable<Tuple2<CompileState, Value>>(slice, (String s1) -> {
-                                return new Some<Tuple2<CompileState, Value>>(new Tuple2Impl<CompileState, Value>(state1, new StringValue(s1)));
-                            }).apply(s);
-            }).apply(stripped);
+            return new PrefixComposable<Tuple2<CompileState, Value>>(slice, (String s) -> new SuffixComposable<Tuple2<CompileState, Value>>(slice, (String s1) -> new Some<Tuple2<CompileState, Value>>(new Tuple2Impl<CompileState, Value>(state1, new StringValue(s1)))).apply(s)).apply(stripped);
         };
     }
 
-    static Option<Tuple2<CompileState, Value>> parseNot(CompileState state, String input) {
+    private static Option<Tuple2<CompileState, Value>> parseNot(CompileState state, String input) {
         return new PrefixComposable<Tuple2<CompileState, Value>>("!", (String withoutPrefix) -> {
             var childTuple = ValueCompiler.compileValueOrPlaceholder(state, withoutPrefix);
             var childState = childTuple.left();
@@ -104,87 +86,59 @@ public final class ValueCompiler {
         }).apply(Strings.strip(input));
     }
 
-    static Option<Tuple2<CompileState, Value>> parseLambda(CompileState state, String input) {
+    private static Option<Tuple2<CompileState, Value>> parseLambda(CompileState state, String input) {
         Splitter splitter = new LocatingSplitter("->", new FirstLocator());
         return new SplitComposable<Tuple2<CompileState, Value>>(splitter, Composable.toComposable((String beforeArrow, String afterArrow) -> {
             var strippedBeforeArrow = Strings.strip(beforeArrow);
-            return new PrefixComposable<Tuple2<CompileState, Value>>("(", (String withoutStart) -> {
-                return new SuffixComposable<Tuple2<CompileState, Value>>(")", (String withoutEnd) -> {
-                    return values((CompileState state1, String s) -> {
-                        return DefiningCompiler.parseParameter(state1, s);
-                    }).apply(state, withoutEnd).flatMap((Tuple2<CompileState, List<Parameter>> paramNames) -> {
-                                    return ValueCompiler.compileLambdaWithParameterNames(paramNames.left(), DefiningCompiler.retainDefinitionsFromParameters(paramNames.right()), afterArrow);
-                                });
-                            }).apply(withoutStart);
-            }).apply(strippedBeforeArrow);
+            return new PrefixComposable<Tuple2<CompileState, Value>>("(", (String withoutStart) -> new SuffixComposable<Tuple2<CompileState, Value>>(")", (String withoutEnd) -> ValueCompiler.values((CompileState state1, String s) -> DefiningCompiler.parseParameter(state1, s)).apply(state, withoutEnd).flatMap((Tuple2<CompileState, List<Parameter>> paramNames) -> ValueCompiler.compileLambdaWithParameterNames(paramNames.left(), DefiningCompiler.retainDefinitionsFromParameters(paramNames.right()), afterArrow))).apply(withoutStart)).apply(strippedBeforeArrow);
         })).apply(input);
     }
 
     private static Option<Tuple2<CompileState, Value>> compileLambdaWithParameterNames(CompileState state, Iterable<Definition> paramNames, String afterArrow) {
         var strippedAfterArrow = Strings.strip(afterArrow);
-        return new PrefixComposable<Tuple2<CompileState, Value>>("{", (String withoutContentStart) -> {
-            return new SuffixComposable<Tuple2<CompileState, Value>>("}", (String withoutContentEnd) -> {
-                    CompileState compileState = state.enterDepth();
-                    var statementsTuple = FunctionSegmentCompiler.compileFunctionStatements(compileState.mapStack((Stack stack1) -> {
-                        return stack1.defineAll(paramNames);
-                    }), withoutContentEnd);
-                    var statementsState = statementsTuple.left();
-                    var statements = statementsTuple.right();
+        return new PrefixComposable<Tuple2<CompileState, Value>>("{", (String withoutContentStart) -> new SuffixComposable<Tuple2<CompileState, Value>>("}", (String withoutContentEnd) -> {
+                CompileState compileState = state.enterDepth();
+                var statementsTuple = FunctionSegmentCompiler.compileFunctionStatements(compileState.mapStack((Stack stack1) -> stack1.defineAll(paramNames)), withoutContentEnd);
+                var statementsState = statementsTuple.left();
+                var statements = statementsTuple.right();
 
-                    var exited = statementsState.exitDepth();
-                    return ValueCompiler.assembleLambda(exited, paramNames, "{" + statements + exited.createIndent() + "}");
-                }).apply(withoutContentStart);
-        }).apply(strippedAfterArrow).or(() -> {
-            return ValueCompiler.compileValue(state, strippedAfterArrow).flatMap((Tuple2<CompileState, String> tuple) -> {
-                return ValueCompiler.assembleLambda(tuple.left(), paramNames, tuple.right());
-            });
-        });
+                var exited = statementsState.exitDepth();
+                return ValueCompiler.assembleLambda(exited, paramNames, "{" + statements + exited.createIndent() + "}");
+            }).apply(withoutContentStart)).apply(strippedAfterArrow).or(() -> ValueCompiler.compileValue(state, strippedAfterArrow).flatMap((Tuple2<CompileState, String> tuple) -> ValueCompiler.assembleLambda(tuple.left(), paramNames, tuple.right())));
     }
 
     private static Option<Tuple2<CompileState, Value>> assembleLambda(CompileState exited, Iterable<Definition> paramNames, String content) {
         return new Some<Tuple2<CompileState, Value>>(new Tuple2Impl<CompileState, Value>(exited, new Lambda(paramNames, content)));
     }
 
-    static Rule<Value> createOperatorRule(String infix) {
+    private static Rule<Value> createOperatorRule(String infix) {
         return ValueCompiler.createOperatorRuleWithDifferentInfix(infix, infix);
     }
 
-    static Rule<Value> createAccessRule(String infix) {
-        return (CompileState state, String input) -> {
-            return SplitComposable.compileLast(input, infix, (String childString, String rawProperty) -> {
-                var property = Strings.strip(rawProperty);
-                if (!ValueCompiler.isSymbol(property)) {
-                    return new None<Tuple2<CompileState, Value>>();
-                }
+    private static Rule<Value> createAccessRule(String infix) {
+        return (CompileState state, String input) -> SplitComposable.compileLast(input, infix, (String childString, String rawProperty) -> {
+            var property = Strings.strip(rawProperty);
+            if (!ValueCompiler.isSymbol(property)) {
+                return new None<Tuple2<CompileState, Value>>();
+            }
 
-                return parseValue(state, childString).flatMap((Tuple2<CompileState, Value> childTuple) -> {
-                    var childState = childTuple.left();
-                    var child = childTuple.right();
-                    return new Some<Tuple2<CompileState, Value>>(new Tuple2Impl<CompileState, Value>(childState, new AccessValue(child, property)));
-                });
+            return ValueCompiler.parseValue(state, childString).flatMap((Tuple2<CompileState, Value> childTuple) -> {
+                var childState = childTuple.left();
+                var child = childTuple.right();
+                return new Some<Tuple2<CompileState, Value>>(new Tuple2Impl<CompileState, Value>(childState, new AccessValue(child, property)));
             });
-        };
+        });
     }
 
-    static Rule<Value> createOperatorRuleWithDifferentInfix(String sourceInfix, String targetInfix) {
-        return (CompileState state1, String input1) -> {
-            return new SplitComposable<Tuple2<CompileState, Value>>((String slice) -> {
-                    return new FoldingSplitter(new OperatorFolder(sourceInfix), (List<String> divisions) -> {
-                            return new FirstSelector(sourceInfix).select(divisions);
-                        }).apply(slice);
-                }, Composable.toComposable((String leftString, String rightString) -> {
-                    return parseValue(state1, leftString).flatMap((Tuple2<CompileState, Value> leftTuple) -> {
-                        return parseValue(leftTuple.left(), rightString).flatMap((Tuple2<CompileState, Value> rightTuple) -> {
-                            var left = leftTuple.right();
-                            var right = rightTuple.right();
-                            return new Some<Tuple2<CompileState, Value>>(new Tuple2Impl<CompileState, Value>(rightTuple.left(), new Operation(left, targetInfix, right)));
-                        });
-                    });
-                })).apply(input1);
-        };
+    private static Rule<Value> createOperatorRuleWithDifferentInfix(String sourceInfix, String targetInfix) {
+        return (CompileState state1, String input1) -> new SplitComposable<Tuple2<CompileState, Value>>((String slice) -> new FoldingSplitter(new OperatorFolder(sourceInfix), (List<String> divisions) -> new FirstSelector(sourceInfix).select(divisions)).apply(slice), Composable.toComposable((String leftString, String rightString) -> ValueCompiler.parseValue(state1, leftString).flatMap((Tuple2<CompileState, Value> leftTuple) -> ValueCompiler.parseValue(leftTuple.left(), rightString).flatMap((Tuple2<CompileState, Value> rightTuple) -> {
+                var left = leftTuple.right();
+                var right = rightTuple.right();
+                return new Some<Tuple2<CompileState, Value>>(new Tuple2Impl<CompileState, Value>(rightTuple.left(), new Operation(left, targetInfix, right)));
+            })))).apply(input1);
     }
 
-    static Option<Tuple2<CompileState, Value>> parseSymbol(CompileState state, String input) {
+    private static Option<Tuple2<CompileState, Value>> parseSymbol(CompileState state, String input) {
         var stripped = Strings.strip(input);
         if (ValueCompiler.isSymbol(stripped)) {
             var withImport = TypeCompiler.addResolvedImportFromCache0(state, stripped);
@@ -197,9 +151,7 @@ public final class ValueCompiler {
 
     static boolean isSymbol(String input) {
         var query = new HeadedIter<Integer>(new RangeHead(Strings.length(input)));
-        return query.allMatch((Integer index) -> {
-            return ValueCompiler.isSymbolChar(index, input.charAt(index));
-        });
+        return query.allMatch((Integer index) -> ValueCompiler.isSymbolChar(index, input.charAt(index)));
     }
 
     private static boolean isSymbolChar(int index, char c) {
@@ -210,9 +162,7 @@ public final class ValueCompiler {
 
     private static boolean isNumber(String input) {
         var query = new HeadedIter<Integer>(new RangeHead(Strings.length(input)));
-        return query.map(input::charAt).allMatch((Character c) -> {
-            return Characters.isDigit(c);
-        });
+        return query.map(input::charAt).allMatch((Character c) -> Characters.isDigit(c));
     }
 
     private static Type resolve(CompileState state, Value value) {
@@ -228,7 +178,7 @@ public final class ValueCompiler {
         };
     }
 
-    static Option<Tuple2<CompileState, Value>> parseNumber(CompileState state, String input) {
+    private static Option<Tuple2<CompileState, Value>> parseNumber(CompileState state, String input) {
         var stripped = Strings.strip(input);
         if (ValueCompiler.isNumber(stripped)) {
             return new Some<Tuple2<CompileState, Value>>(new Tuple2Impl<CompileState, Value>(state, new Symbol(stripped)));
@@ -239,22 +189,16 @@ public final class ValueCompiler {
     }
 
     static Tuple2<CompileState, String> compileValueOrPlaceholder(CompileState state, String input) {
-        return ValueCompiler.compileValue(state, input).orElseGet(() -> {
-            return new Tuple2Impl<CompileState, String>(state, Placeholder.generatePlaceholder(input));
-        });
+        return ValueCompiler.compileValue(state, input).orElseGet(() -> new Tuple2Impl<CompileState, String>(state, Placeholder.generatePlaceholder(input)));
     }
 
     static Option<Tuple2<CompileState, String>> compileValue(CompileState state, String input) {
-        return parseValue(state, input).map((Tuple2<CompileState, Value> tuple) -> {
-            return ValueCompiler.generateValue(tuple);
-        });
+        return ValueCompiler.parseValue(state, input).map((Tuple2<CompileState, Value> tuple) -> ValueCompiler.generateValue(tuple));
     }
 
     private static Option<Tuple2<CompileState, Argument>> parseArgument(CompileState state1, String input) {
-        return parseValue(state1, input)
-                .map((Tuple2<CompileState, Value> tuple) -> {
-                    return new Tuple2Impl<CompileState, Argument>(tuple.left(), tuple.right());
-                });
+        return ValueCompiler.parseValue(state1, input)
+                .map((Tuple2<CompileState, Value> tuple) -> new Tuple2Impl<CompileState, Argument>(tuple.left(), tuple.right()));
     }
 
     private static Caller transformCaller(CompileState state, Caller oldCaller) {
@@ -288,51 +232,47 @@ public final class ValueCompiler {
     }
 
     private static Option<Tuple2<CompileState, Value>> assembleInvokable(CompileState state, Caller oldCaller, String argsString) {
-        return values((CompileState state1, String s) -> {
-            return ValueCompiler.parseArgument(state1, s);
-        }).apply(state, argsString).flatMap((Tuple2<CompileState, List<Argument>> argsTuple) -> {
+        return ValueCompiler.values((CompileState state1, String s) -> ValueCompiler.parseArgument(state1, s)).apply(state, argsString).flatMap((Tuple2<CompileState, List<Argument>> argsTuple) -> {
             var argsState = argsTuple.left();
-            var args = retain(argsTuple.right(), (Argument argument) -> {
-                return argument.toValue();
-            });
+            var args = ValueCompiler.retain(argsTuple.right(), (Argument argument) -> argument.toValue());
 
             var newCaller = ValueCompiler.transformCaller(argsState, oldCaller);
             return new Some<Tuple2<CompileState, Value>>(new Tuple2Impl<CompileState, Value>(argsState, new Invokable(newCaller, args)));
         });
     }
 
-    static <T, R> Iterable<R> retain(Iterable<T> args, Function<T, Option<R>> mapper) {
+    private static <T, R> Iterable<R> retain(Iterable<T> args, Function<T, Option<R>> mapper) {
         return args.iter()
                 .map(mapper)
                 .flatMap(Iters::fromOption)
                 .collect(new ListCollector<R>());
     }
 
-    public static Option<Tuple2<CompileState, Value>> parseValue(CompileState state, String input) {
+    private static Option<Tuple2<CompileState, Value>> parseValue(CompileState state, String input) {
         return new OrRule<Value>(Lists.of(
                 ValueCompiler::parseLambda,
-                createOperatorRule("+"),
-                createOperatorRule("-"),
-                createOperatorRule("<="),
-                createOperatorRule("<"),
-                createOperatorRule("&&"),
-                createOperatorRule("||"),
-                createOperatorRule(">"),
-                createOperatorRule(">="),
+                ValueCompiler.createOperatorRule("+"),
+                ValueCompiler.createOperatorRule("-"),
+                ValueCompiler.createOperatorRule("<="),
+                ValueCompiler.createOperatorRule("<"),
+                ValueCompiler.createOperatorRule("&&"),
+                ValueCompiler.createOperatorRule("||"),
+                ValueCompiler.createOperatorRule(">"),
+                ValueCompiler.createOperatorRule(">="),
                 ValueCompiler::parseInvokable,
-                createAccessRule("."),
-                createAccessRule("::"),
+                ValueCompiler.createAccessRule("."),
+                ValueCompiler.createAccessRule("::"),
                 ValueCompiler::parseSymbol,
                 ValueCompiler::parseNot,
                 ValueCompiler::parseNumber,
-                createOperatorRuleWithDifferentInfix("==", "==="),
-                createOperatorRuleWithDifferentInfix("!=", "!=="),
-                createTextRule("\""),
-                createTextRule("'")
+                ValueCompiler.createOperatorRuleWithDifferentInfix("==", "==="),
+                ValueCompiler.createOperatorRuleWithDifferentInfix("!=", "!=="),
+                ValueCompiler.createTextRule("\""),
+                ValueCompiler.createTextRule("'")
         )).apply(state, input);
     }
 
     public static <T> Rule<List<T>> values(Rule<T> mapper) {
-        return new DivideRule<>(new ValueFolder(), mapper);
+        return new DivideRule<T>(new ValueFolder(), mapper);
     }
 }

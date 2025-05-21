@@ -20,9 +20,7 @@ public class OperatorFolder implements Folder {
             while (counter < length) {
                 counter++;
 
-                current = current.pop().map((Tuple2<DivideState, Character> tuple) -> {
-                    return tuple.left();
-                }).orElse(current);
+                current = current.pop().map((Tuple2<DivideState, Character> tuple) -> tuple.left()).orElse(current);
             }
             return current.advance();
         }
