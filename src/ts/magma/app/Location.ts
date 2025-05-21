@@ -11,6 +11,6 @@ export class Location {
 		return this.name + "." + extension/*unknown*/;
 	}
 	iterNamespace(): Iter<string> {
-		return namespace().iter()/*unknown*/;
+		return this.namespace.iter()/*unknown*/;
 	}
 }

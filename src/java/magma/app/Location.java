@@ -9,7 +9,6 @@ public record Location(List<String> namespace, String name) {
     }
 
     Iter<String> iterNamespace() {
-        return namespace()
-                .iter();
+        return this.namespace.iter();
     }
 }
