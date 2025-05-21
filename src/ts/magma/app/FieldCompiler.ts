@@ -79,7 +79,7 @@ export class FieldCompiler {
 			let stripped = segment.strip()/*unknown*/;
 			let state2 = state1.mapStack(stack -  > stack.define(Definition.from(new Symbol("?"), stripped)))/*unknown*/;
 			if (Symbols.isSymbol(stripped)/*unknown*/){
-				return new Some<Tuple2<CompileState, string>>(new Tuple2Impl<CompileState, string>(state2, "\n\t static " + stripped + " = \"" + stripped + "\";"))/*unknown*/;
+				return new Some<Tuple2<CompileState, string>>(new Tuple2Impl<CompileState, string>(state2, "\n\tstatic " + stripped + " = \"" + stripped + "\";"))/*unknown*/;
 			}
 			return FieldCompiler.compileEnumValue(state, state2, segment)/*unknown*/;
 		}).apply(state, withoutEnd).map((tuple: Tuple2<CompileState, List<string>>) => new Tuple2Impl<CompileState, string>(tuple.left(), tuple.right().iter().collect(new Joiner("")).orElse(""))/*unknown*/)/*unknown*/;

@@ -100,7 +100,7 @@ final class FieldCompiler {
             var stripped = segment.strip();
             var state2 = state1.mapStack(stack -> stack.define(Definition.from(new Symbol("?"), stripped)));
             if (Symbols.isSymbol(stripped)) {
-                return new Some<Tuple2<CompileState, String>>(new Tuple2Impl<CompileState, String>(state2, "\n\t static " + stripped + " = \"" + stripped + "\";"));
+                return new Some<Tuple2<CompileState, String>>(new Tuple2Impl<CompileState, String>(state2, "\n\tstatic " + stripped + " = \"" + stripped + "\";"));
             }
 
             return FieldCompiler.compileEnumValue(state, state2, segment);
