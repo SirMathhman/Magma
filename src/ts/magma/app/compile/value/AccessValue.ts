@@ -9,9 +9,6 @@ export class AccessValue implements Value {
 		this.child = child;
 		this.property = property;
 	}
-	toValue(): Option<Value> {
-		return new Some<Value>(this)/*unknown*/;
-	}
 	findChild(): Option<Value> {
 		return new Some<Value>(this.child)/*unknown*/;
 	}

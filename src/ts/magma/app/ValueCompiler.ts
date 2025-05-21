@@ -44,9 +44,9 @@ import { Symbol } from "../../magma/app/compile/value/Symbol";
 import { PrimitiveType } from "../../magma/app/compile/type/PrimitiveType";
 import { Argument } from "../../magma/app/compile/value/Argument";
 import { Caller } from "../../magma/app/compile/value/Caller";
-import { Invokable } from "../../magma/app/compile/value/Invokable";
 import { Iters } from "../../magma/api/collect/Iters";
 import { ListCollector } from "../../magma/api/collect/list/ListCollector";
+import { Invokable } from "../../magma/app/compile/value/Invokable";
 import { OrRule } from "../../magma/app/compile/rule/OrRule";
 import { Lists } from "../../jvm/api/collect/list/Lists";
 import { DivideRule } from "../../magma/app/DivideRule";
@@ -136,10 +136,10 @@ export class ValueCompiler {
             case AccessValue accessValue -> PrimitiveType.Unknown;
             case Invokable invokable -> PrimitiveType.Unknown;
             case Lambda lambda -> PrimitiveType.Unknown;
-            case Not not -> PrimitiveType.Unknown;
+            case Not not -> PrimitiveType.Boolean;
             case Operation operation -> PrimitiveType.Unknown;
             case Placeholder placeholder -> PrimitiveType.Unknown;
-            case StringValue stringValue -> PrimitiveType.Unknown;
+            case StringValue stringValue -> PrimitiveType.String;
             case Symbol symbol -> ValueCompiler.resolveSymbol(state, symbol);
             default -> PrimitiveType.Unknown;
         }*/;
@@ -193,13 +193,18 @@ export class ValueCompiler {
 	static assembleInvokable(state: CompileState, oldCaller: Caller, argsString: string): Option<Tuple2<CompileState, Value>> {
 		return ValueCompiler.values((state1: CompileState, s: string) => ValueCompiler.parseArgument(state1, s)/*unknown*/).apply(state, argsString).flatMap((argsTuple: Tuple2<CompileState, List<Argument>>) => {
 			let argsState = argsTuple.left()/*unknown*/;
-			let args = ValueCompiler.retain(argsTuple.right(), (argument: Argument) => argument.toValue()/*unknown*/)/*unknown*/;
+			let args = argsTuple.right().iter().map(ValueCompiler.retainValue).flatMap(Iters.fromOption).collect(new ListCollector<Value>())/*unknown*/;
 			let newCaller = ValueCompiler.transformCaller(argsState, oldCaller)/*unknown*/;
 			return new Some<Tuple2<CompileState, Value>>(new Tuple2Impl<CompileState, Value>(argsState, new Invokable(newCaller, args)))/*unknown*/;
 		})/*unknown*/;
 	}
-	static retain<T, R>(args: Iterable<T>, mapper: (arg0 : T) => Option<R>): Iterable<R> {
-		return args.iter().map(mapper).flatMap(Iters.fromOption).collect(new ListCollector<R>())/*unknown*/;
+	static retainValue(argument: Argument): Option<Value> {
+		if (/*argument instanceof Value value*/){
+			return new Some<>(value)/*unknown*/;
+		}
+		else {
+			return new None<>()/*unknown*/;
+		}
 	}
 	static parseValue(state: CompileState, input: string): Option<Tuple2<CompileState, Value>> {
 		return new OrRule<Value>(Lists.of(ValueCompiler.parseLambda, ValueCompiler.createOperatorRule("+"), ValueCompiler.createOperatorRule("-"), ValueCompiler.createOperatorRule("<="), ValueCompiler.createOperatorRule("<"), ValueCompiler.createOperatorRule("&&"), ValueCompiler.createOperatorRule("||"), ValueCompiler.createOperatorRule(">"), ValueCompiler.createOperatorRule(">="), ValueCompiler.parseInvokable, ValueCompiler.createAccessRule("."), ValueCompiler.createAccessRule("::"), Symbols.parseSymbolValue, ValueCompiler.parseNot, ValueCompiler.parseNumber, ValueCompiler.createOperatorRuleWithDifferentInfix("==", "==="), ValueCompiler.createOperatorRuleWithDifferentInfix("!=", "!=="), ValueCompiler.createTextRule("\""), ValueCompiler.createTextRule("'"))).apply(state, input)/*unknown*/;

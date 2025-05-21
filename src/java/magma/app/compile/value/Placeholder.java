@@ -36,11 +36,6 @@ public record Placeholder(String input) implements Parameter, Value, Type {
     }
 
     @Override
-    public Option<Value> toValue() {
-        return new None<Value>();
-    }
-
-    @Override
     public boolean isVar() {
         return false;
     }

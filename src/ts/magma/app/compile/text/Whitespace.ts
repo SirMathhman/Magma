@@ -4,7 +4,7 @@ import { Option } from "../../../../magma/api/option/Option";
 import { None } from "../../../../magma/api/option/None";
 export class Whitespace implements Parameter {
 	generate(): string {
-		return ""/*unknown*/;
+		return ""/*string*/;
 	}
 	asDefinition(): Option<Definition> {
 		return new None<Definition>()/*unknown*/;

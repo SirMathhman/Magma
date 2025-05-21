@@ -18,7 +18,7 @@ export class PrimitiveType implements Type {
 		return PrimitiveType.Var === this/*unknown*/;
 	}
 	generateBeforeName(): string {
-		return ""/*unknown*/;
+		return ""/*string*/;
 	}
 	generateSimple(): string {
 		return TypeCompiler.generateType(this)/*unknown*/;

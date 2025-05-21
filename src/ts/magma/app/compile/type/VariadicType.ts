@@ -12,7 +12,7 @@ export class VariadicType implements Type {
 		return false/*unknown*/;
 	}
 	generateBeforeName(): string {
-		return "..."/*unknown*/;
+		return "..."/*string*/;
 	}
 	generateSimple(): string {
 		return TypeCompiler.generateType(this)/*unknown*/;

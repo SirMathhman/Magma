@@ -1,6 +1,5 @@
 import { Value } from "../../../../magma/app/compile/value/Value";
 import { Option } from "../../../../magma/api/option/Option";
-import { Some } from "../../../../magma/api/option/Some";
 import { None } from "../../../../magma/api/option/None";
 import { TypeCompiler } from "../../../../magma/app/TypeCompiler";
 export class Symbol {
@@ -10,9 +9,6 @@ export class Symbol {
 	}
 	generate(): string {
 		return this.value/*unknown*/;
-	}
-	toValue(): Option<Value> {
-		return new Some<Value>(this)/*unknown*/;
 	}
 	findChild(): Option<Value> {
 		return new None<Value>()/*unknown*/;
@@ -24,7 +20,7 @@ export class Symbol {
 		return false/*unknown*/;
 	}
 	generateBeforeName(): string {
-		return ""/*unknown*/;
+		return ""/*string*/;
 	}
 	generateAsEnumValue(structureName: string): Option<string> {
 		return new None<string>()/*unknown*/;

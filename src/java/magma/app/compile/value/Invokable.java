@@ -7,10 +7,6 @@ import magma.api.option.Some;
 import magma.app.ValueCompiler;
 
 public record Invokable(Caller caller, Iterable<Value> args) implements Value {
-    @Override
-    public Option<Value> toValue() {
-        return new Some<Value>(this);
-    }
 
     @Override
     public Option<Value> findChild() {

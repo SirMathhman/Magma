@@ -95,7 +95,7 @@ export class RootCompiler {
 			return new Some<Tuple2<CompileState, string>>(new Tuple2Impl<CompileState, string>(outputContentState.mapRegistry((registry: Registry) => registry.append(generated)/*unknown*/), ""))/*unknown*/;
 		}
 		if (annotations.contains("Namespace")/*unknown*/){
-			let actualInfix: string = "interface "/*unknown*/;
+			let actualInfix: string = "interface "/*string*/;
 			let newName: string = name + "Instance"/*unknown*/;
 			let generated = joinedModifiers + actualInfix + newName + joinedTypeParams + implementingString + " {" + DefiningCompiler.joinParameters(parameters) + constructorString + outputContent + "\n}\n"/*unknown*/;
 			let compileState: CompileState = outputContentState.mapRegistry((registry: Registry) => registry.append(generated)/*unknown*/)/*unknown*/;

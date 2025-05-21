@@ -2,14 +2,8 @@ package magma.app.compile.value;
 
 import magma.api.option.None;
 import magma.api.option.Option;
-import magma.api.option.Some;
 
 public record Not(String child) implements Value {
-
-    @Override
-    public Option<Value> toValue() {
-        return new Some<Value>(this);
-    }
 
     @Override
     public Option<Value> findChild() {

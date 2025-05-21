@@ -24,14 +24,11 @@ export class Placeholder {
 	asDefinition(): Option<Definition> {
 		return new None<Definition>()/*unknown*/;
 	}
-	toValue(): Option<Value> {
-		return new None<Value>()/*unknown*/;
-	}
 	isVar(): boolean {
 		return false/*unknown*/;
 	}
 	generateBeforeName(): string {
-		return ""/*unknown*/;
+		return ""/*string*/;
 	}
 	generateAsEnumValue(structureName: string): Option<string> {
 		return new None<string>()/*unknown*/;

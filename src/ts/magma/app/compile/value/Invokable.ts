@@ -2,8 +2,8 @@ import { Value } from "../../../../magma/app/compile/value/Value";
 import { Caller } from "../../../../magma/app/compile/value/Caller";
 import { Iterable } from "../../../../magma/api/collect/list/Iterable";
 import { Option } from "../../../../magma/api/option/Option";
-import { Some } from "../../../../magma/api/option/Some";
 import { None } from "../../../../magma/api/option/None";
+import { Some } from "../../../../magma/api/option/Some";
 import { ValueCompiler } from "../../../../magma/app/ValueCompiler";
 export class Invokable implements Value {
 	caller: Caller;
@@ -11,9 +11,6 @@ export class Invokable implements Value {
 	constructor (caller: Caller, args: Iterable<Value>) {
 		this.caller = caller;
 		this.args = args;
-	}
-	toValue(): Option<Value> {
-		return new Some<Value>(this)/*unknown*/;
 	}
 	findChild(): Option<Value> {
 		return new None<Value>()/*unknown*/;

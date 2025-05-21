@@ -7,11 +7,6 @@ import magma.api.option.Some;
 public record AccessValue(Value child, String property) implements Value {
 
     @Override
-    public Option<Value> toValue() {
-        return new Some<Value>(this);
-    }
-
-    @Override
     public Option<Value> findChild() {
         return new Some<Value>(this.child);
     }

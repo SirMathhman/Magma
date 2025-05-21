@@ -43,7 +43,7 @@ class Application {
 		let diagramPath = Files.get(".", "diagram.puml")/*unknown*/;
 		let joinedDependencies = result.registry().iterDependencies().map((dependency: Dependency) => dependency.name() + " --> " + dependency.child() + "\n"/*unknown*/).collect(new Joiner("")).orElse("")/*unknown*/;
 		let maybeError = diagramPath.writeString("@startuml\nskinparam linetype ortho\n" + result.registry().output() + joinedDependencies + "@enduml")/*unknown*/;
-		if (!!/*(maybeError instanceof Some(var error))*//*unknown*/){
+		if (!!/*(maybeError instanceof Some(var error))*//*boolean*/){
 			return folded/*unknown*/;
 		}
 		return new Err<CompileState, IOError>(error)/*unknown*/;

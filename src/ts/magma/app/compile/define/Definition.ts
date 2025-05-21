@@ -37,7 +37,7 @@ export class Definition {
 	}
 	generateType(): string {
 		if (this.type.isVar()/*unknown*/){
-			return ""/*unknown*/;
+			return ""/*string*/;
 		}
 		return ": " + TypeCompiler.generateType(this.type)/*unknown*/;
 	}

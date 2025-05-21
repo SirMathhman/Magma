@@ -51,8 +51,6 @@ import magma.app.compile.value.StringValue;
 import magma.app.compile.value.Symbol;
 import magma.app.compile.value.Value;
 
-import java.util.function.Function;
-
 public final class ValueCompiler {
     static Tuple2Impl<CompileState, String> generateValue(Tuple2<CompileState, Value> tuple) {
         var state = tuple.left();
@@ -222,18 +220,24 @@ public final class ValueCompiler {
     private static Option<Tuple2<CompileState, Value>> assembleInvokable(CompileState state, Caller oldCaller, String argsString) {
         return ValueCompiler.values((CompileState state1, String s) -> ValueCompiler.parseArgument(state1, s)).apply(state, argsString).flatMap((Tuple2<CompileState, List<Argument>> argsTuple) -> {
             var argsState = argsTuple.left();
-            var args = ValueCompiler.retain(argsTuple.right(), (Argument argument) -> argument.toValue());
+            var args = argsTuple.right()
+                    .iter()
+                    .map(ValueCompiler::retainValue)
+                    .flatMap(Iters::fromOption)
+                    .collect(new ListCollector<Value>());
 
             var newCaller = ValueCompiler.transformCaller(argsState, oldCaller);
             return new Some<Tuple2<CompileState, Value>>(new Tuple2Impl<CompileState, Value>(argsState, new Invokable(newCaller, args)));
         });
     }
 
-    private static <T, R> Iterable<R> retain(Iterable<T> args, Function<T, Option<R>> mapper) {
-        return args.iter()
-                .map(mapper)
-                .flatMap(Iters::fromOption)
-                .collect(new ListCollector<R>());
+    private static Option<Value> retainValue(Argument argument) {
+        if (argument instanceof Value value) {
+            return new Some<>(value);
+        }
+        else {
+            return new None<>();
+        }
     }
 
     private static Option<Tuple2<CompileState, Value>> parseValue(CompileState state, String input) {
