@@ -24,17 +24,17 @@ import magma.app.compile.split.Splitter;
 import magma.app.compile.type.Type;
 import magma.app.compile.type.resolve.ResolvedTypes;
 
-public class TemplateTypes {
+public final class TemplateTypes {
     public static Option<Tuple2<CompileState, Type>> parseGeneric(CompileState state, String input) {
         return new SuffixComposable<Tuple2<CompileState, Type>>(">", (String withoutEnd) -> {
             Splitter splitter = new LocatingSplitter("<", new FirstLocator());
             return new SplitComposable<Tuple2<CompileState, Type>>(splitter, Composable.toComposable((String baseString, String argsString) -> {
-                var argsTuple = ValueCompiler.values((CompileState state1, String s) -> compileTypeArgument(state1, s)).apply(state, argsString).orElse(new Tuple2Impl<CompileState, List<String>>(state, Lists.empty()));
+                var argsTuple = ValueCompiler.values((CompileState state1, String s) -> TemplateTypes.compileTypeArgument(state1, s)).apply(state, argsString).orElse(new Tuple2Impl<CompileState, List<String>>(state, Lists.empty()));
                 var argsState = argsTuple.left();
                 var args = argsTuple.right();
 
                 var base = Strings.strip(baseString);
-                return assembleFunctionType(argsState, base, args).or(() -> {
+                return TemplateTypes.assembleFunctionType(argsState, base, args).or(() -> {
                     var compileState = ResolvedTypes.addResolvedImportFromCache0(argsState, base);
                     return new Some<Tuple2<CompileState, Type>>(new Tuple2Impl<CompileState, Type>(compileState, new TemplateType(base, args)));
                 });
@@ -43,7 +43,7 @@ public class TemplateTypes {
     }
 
     public static Option<Tuple2<CompileState, Type>> assembleFunctionType(CompileState state, String base, List<String> args) {
-        return mapFunctionType(base, args).map((Type generated) -> new Tuple2Impl<CompileState, Type>(state, generated));
+        return TemplateTypes.mapFunctionType(base, args).map((Type generated) -> new Tuple2Impl<CompileState, Type>(state, generated));
     }
 
     private static Option<Type> mapFunctionType(String base, List<String> args) {

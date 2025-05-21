@@ -233,10 +233,10 @@ public final class ValueCompiler {
 
     private static Option<Value> retainValue(Argument argument) {
         if (argument instanceof Value value) {
-            return new Some<>(value);
+            return new Some<Value>(value);
         }
         else {
-            return new None<>();
+            return new None<Value>();
         }
     }
 

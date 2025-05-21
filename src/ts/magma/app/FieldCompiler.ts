@@ -77,7 +77,7 @@ export class FieldCompiler {
 	static compileEnumValues(state: CompileState, withoutEnd: string): Option<Tuple2<CompileState, string>> {
 		return ValueCompiler.values((state1: CompileState, segment: string) => {
 			let stripped = segment.strip()/*unknown*/;
-			let state2 = state1.mapStack(stack -  > stack.define(Definition.from(new Symbol("?"), stripped)))/*unknown*/;
+			let state2 = state1.mapStack((stack: Stack) => stack.define(Definition.from(new Symbol("?"), stripped))/*unknown*/)/*unknown*/;
 			if (Symbols.isSymbol(stripped)/*unknown*/){
 				return new Some<Tuple2<CompileState, string>>(new Tuple2Impl<CompileState, string>(state2, "\n\tstatic " + stripped + " = \"" + stripped + "\";"))/*unknown*/;
 			}
@@ -91,11 +91,13 @@ export class FieldCompiler {
 		})/*unknown*/;
 	}
 	static getStringOption(structureName: string, value: Value): Option<string> {
-		if (/*value instanceof Invokable invokable*/){
-			return new Some<string>("\n\tstatic " + ValueCompiler.generateCaller(invokable.caller()) + ": " + structureName + " = new " + structureName + "(" + ValueCompiler.joinArgs(invokable.args()) + ");")/*unknown*/;
+		if (/*value instanceof Invokable(
+                magma.app.compile.value.Caller caller, magma.api.collect.list.Iterable<Value> args
+        )*/){
+			return new Some<string>("\n\tstatic " + ValueCompiler.generateCaller(caller) + ": " + structureName + " = new " + structureName + "(" + ValueCompiler.joinArgs(args) + ");")/*unknown*/;
 		}
 		else {
-			return new None<>()/*unknown*/;
+			return new None<string>()/*unknown*/;
 		}
 	}
 }

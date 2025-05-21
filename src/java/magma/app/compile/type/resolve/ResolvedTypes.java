@@ -12,12 +12,12 @@ import magma.app.compile.Import;
 import magma.app.compile.Registry;
 import magma.app.io.Source;
 
-public class ResolvedTypes {
+public final class ResolvedTypes {
     public static CompileState getState(CompileState state, Location location) {
         var requestedNamespace = location.namespace();
         var requestedChild = location.name();
 
-        var namespace = fixNamespace(requestedNamespace, state.context().findNamespaceOrEmpty());
+        var namespace = ResolvedTypes.fixNamespace(requestedNamespace, state.context().findNamespaceOrEmpty());
         if (state.registry().doesImportExistAlready(requestedChild)) {
             return state;
         }
@@ -36,8 +36,8 @@ public class ResolvedTypes {
                 .findSource(base)
                 .map((Source source) -> {
                     Location location = source.createLocation();
-                    return getCompileState1(state, location)
-                            .orElseGet(() -> getState(state, location));
+                    return ResolvedTypes.getCompileState1(state, location)
+                            .orElseGet(() -> ResolvedTypes.getState(state, location));
                 })
                 .orElse(state);
     }
@@ -61,7 +61,7 @@ public class ResolvedTypes {
             return requestedNamespace.addFirst(".");
         }
 
-        return addParentSeparator(requestedNamespace, thisNamespace.size());
+        return ResolvedTypes.addParentSeparator(requestedNamespace, thisNamespace.size());
     }
 
     private static List<String> addParentSeparator(List<String> newNamespace, int count) {

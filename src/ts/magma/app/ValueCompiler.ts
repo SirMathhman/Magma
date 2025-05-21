@@ -198,10 +198,10 @@ export class ValueCompiler {
 	}
 	static retainValue(argument: Argument): Option<Value> {
 		if (/*argument instanceof Value value*/){
-			return new Some<>(value)/*unknown*/;
+			return new Some<Value>(value)/*unknown*/;
 		}
 		else {
-			return new None<>()/*unknown*/;
+			return new None<Value>()/*unknown*/;
 		}
 	}
 	static parseValue(state: CompileState, input: string): Option<Tuple2<CompileState, Value>> {

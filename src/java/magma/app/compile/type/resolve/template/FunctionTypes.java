@@ -3,7 +3,7 @@ package magma.app.compile.type.resolve.template;
 import magma.api.Tuple2;
 import magma.api.collect.Joiner;
 
-public class FunctionTypes {
+public final class FunctionTypes {
     public static String generateFunctionType(FunctionType functionType) {
         var joinedArguments = functionType.args()
                 .iterWithIndices()

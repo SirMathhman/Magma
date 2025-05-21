@@ -137,14 +137,10 @@ export class FunctionSegmentCompiler {
 		return OrRule.compileOrPlaceholder(state, input, Lists.of(WhitespaceCompiler.compileWhitespace, FunctionSegmentCompiler.compileEmptySegment, FunctionSegmentCompiler.compileBlock, FunctionSegmentCompiler.compileFunctionStatement, FunctionSegmentCompiler.compileReturnWithoutSuffix))/*unknown*/;
 	}
 	static compileStatements(state: CompileState, input: string, mapper: (arg0 : CompileState, arg1 : string) => Tuple2<CompileState, string>): Tuple2<CompileState, string> {
-		return new DivideRule<string>(new StatementsFolder(), toRule(mapper)).apply(state, input).map((folded: Tuple2<CompileState, List<string>>) => {
-			return generateAllFromTuple(folded.left(), folded.right(), new StatementsMerger())/*unknown*/;
-		}).orElse(new Tuple2Impl<CompileState, string>(state, ""))/*unknown*/;
+		return new DivideRule<string>(new StatementsFolder(), FunctionSegmentCompiler.toRule(mapper)).apply(state, input).map((folded: Tuple2<CompileState, List<string>>) => FunctionSegmentCompiler.generateAllFromTuple(folded.left(), folded.right(), new StatementsMerger())/*unknown*/).orElse(new Tuple2Impl<CompileState, string>(state, ""))/*unknown*/;
 	}
 	static toRule(mapper: (arg0 : CompileState, arg1 : string) => Tuple2<CompileState, string>): Rule<string> {
-		return (state1: CompileState, s: string) => {
-			return new Some<Tuple2<CompileState, string>>(mapper(state1, s))/*unknown*/;
-		}/*unknown*/;
+		return (state1: CompileState, s: string) => new Some<Tuple2<CompileState, string>>(mapper(state1, s))/*unknown*//*unknown*/;
 	}
 	static generateAllFromTuple(state: CompileState, elements: List<string>, merger: Merger): Tuple2<CompileState, string> {
 		return new Tuple2Impl<CompileState, string>(state, Merger.generateAll(elements, merger))/*unknown*/;

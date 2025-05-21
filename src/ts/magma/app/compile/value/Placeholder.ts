@@ -12,7 +12,7 @@ export class Placeholder {
 		return "/*" + replaced + "*/"/*unknown*/;
 	}
 	static generatePlaceholder(placeholder: Placeholder): string {
-		return generatePlaceholder(placeholder.input())/*unknown*/;
+		return Placeholder.generatePlaceholder(placeholder.input())/*unknown*/;
 	}
 	generate(): string {
 		return Placeholder.generatePlaceholder(this.input)/*unknown*/;

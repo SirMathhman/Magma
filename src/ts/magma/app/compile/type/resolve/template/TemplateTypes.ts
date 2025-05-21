@@ -28,11 +28,11 @@ export class TemplateTypes {
 		return new SuffixComposable<Tuple2<CompileState, Type>>(">", (withoutEnd: string) => {
 			let splitter: Splitter = new LocatingSplitter("<", new FirstLocator())/*unknown*/;
 			return new SplitComposable<Tuple2<CompileState, Type>>(splitter, Composable.toComposable((baseString: string, argsString: string) => {
-				let argsTuple = ValueCompiler.values((state1: CompileState, s: string) => compileTypeArgument(state1, s)/*unknown*/).apply(state, argsString).orElse(new Tuple2Impl<CompileState, List<string>>(state, Lists.empty()))/*unknown*/;
+				let argsTuple = ValueCompiler.values((state1: CompileState, s: string) => TemplateTypes.compileTypeArgument(state1, s)/*unknown*/).apply(state, argsString).orElse(new Tuple2Impl<CompileState, List<string>>(state, Lists.empty()))/*unknown*/;
 				let argsState = argsTuple.left()/*unknown*/;
 				let args = argsTuple.right()/*unknown*/;
 				let base = Strings.strip(baseString)/*unknown*/;
-				return assembleFunctionType(argsState, base, args).or(() => {
+				return TemplateTypes.assembleFunctionType(argsState, base, args).or(() => {
 					let compileState = ResolvedTypes.addResolvedImportFromCache0(argsState, base)/*unknown*/;
 					return new Some<Tuple2<CompileState, Type>>(new Tuple2Impl<CompileState, Type>(compileState, new TemplateType(base, args)))/*unknown*/;
 				})/*unknown*/;
@@ -40,7 +40,7 @@ export class TemplateTypes {
 		}).apply(Strings.strip(input))/*unknown*/;
 	}
 	static assembleFunctionType(state: CompileState, base: string, args: List<string>): Option<Tuple2<CompileState, Type>> {
-		return mapFunctionType(base, args).map((generated: Type) => new Tuple2Impl<CompileState, Type>(state, generated)/*unknown*/)/*unknown*/;
+		return TemplateTypes.mapFunctionType(base, args).map((generated: Type) => new Tuple2Impl<CompileState, Type>(state, generated)/*unknown*/)/*unknown*/;
 	}
 	static mapFunctionType(base: string, args: List<string>): Option<Type> {
 		if (Strings.equalsTo("Function", base)/*unknown*/){

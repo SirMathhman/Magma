@@ -1,18 +1,19 @@
 import { Sources } from "../../magma/app/Sources";
 import { Targets } from "../../magma/app/Targets";
-import { Source } from "../../magma/app/io/Source";
-import { Joiner } from "../../magma/api/collect/Joiner";
-import { IOError } from "../../magma/api/io/IOError";
-import { Option } from "../../magma/api/option/Option";
-import { Platform } from "../../magma/app/Platform";
-import { Iterable } from "../../magma/api/collect/list/Iterable";
 import { CompileState } from "../../magma/app/compile/CompileState";
+import { IOError } from "../../magma/api/io/IOError";
 import { Result } from "../../magma/api/result/Result";
+import { Option } from "../../magma/api/option/Option";
+import { Path } from "../../magma/api/io/Path";
+import { Err } from "../../magma/api/result/Err";
+import { Platform } from "../../magma/app/Platform";
+import { Source } from "../../magma/app/io/Source";
+import { Iterable } from "../../magma/api/collect/list/Iterable";
 import { ImmutableCompileState } from "../../magma/app/compile/ImmutableCompileState";
 import { Context } from "../../magma/app/compile/Context";
 import { Files } from "../../jvm/api/io/Files";
 import { Dependency } from "../../magma/app/compile/Dependency";
-import { Err } from "../../magma/api/result/Err";
+import { Joiner } from "../../magma/api/collect/Joiner";
 import { RootCompiler } from "../../magma/app/RootCompiler";
 import { Ok } from "../../magma/api/result/Ok";
 import { Import } from "../../magma/app/compile/Import";
@@ -24,11 +25,8 @@ export class Application {
 		this.sources = sources;
 		this.targets = targets;
 	}
-	static formatSource(source: Source): string {
-		return "\n\t" + source.createLocation().name() + ": " + Application.joinNamespace(source)/*unknown*/;
-	}
-	static joinNamespace(source: Source): string {
-		return source.createLocation().namespace().iter().collect(new Joiner(".")).orElse("")/*unknown*/;
+	static writeAsPlantUML(result: CompileState, diagramPath: Path, joinedDependencies: string): Option<Result<CompileState, IOError>> {
+		return diagramPath.writeString("@startuml\nskinparam linetype ortho\n" + result.registry().output() + joinedDependencies + "@enduml").map((error: IOError) => new Err<CompileState, IOError>(error)/*unknown*/)/*unknown*/;
 	}
 	runWith(platform: Platform): Option<IOError> {
 		return this.sources.listSources().flatMapValue((children: Iterable<Source>) => this.runWithChildren(platform, children)/*unknown*/).findError()/*unknown*/;
@@ -37,16 +35,14 @@ export class Application {
 		let state: CompileState = ImmutableCompileState.createEmpty().mapContext((context: Context) => context.withPlatform(platform)/*unknown*/)/*unknown*/;
 		let initial = children.iter().foldWithInitial(state, (current: CompileState, source: Source) => current.mapContext((context1: Context) => context1.addSource(source)/*unknown*/)/*unknown*/)/*unknown*/;
 		let folded = children.iter().foldWithInitialToResult(initial, (state1: CompileState, source: Source) => this.runWithSource(state1, source)/*unknown*/)/*unknown*/;
-		if (!!state/*unknown*/.context().hasPlatform(Platform.PlantUML) || !!/*(folded instanceof Ok(var result))*//*unknown*/){
+		if (!!state/*unknown*/.context().hasPlatform(Platform.PlantUML)/*unknown*/){
 			return folded/*unknown*/;
 		}
-		let diagramPath = Files.get(".", "diagram.puml")/*unknown*/;
-		let joinedDependencies = result.registry().iterDependencies().map((dependency: Dependency) => dependency.name() + " --> " + dependency.child() + "\n"/*unknown*/).collect(new Joiner("")).orElse("")/*unknown*/;
-		let maybeError = diagramPath.writeString("@startuml\nskinparam linetype ortho\n" + result.registry().output() + joinedDependencies + "@enduml")/*unknown*/;
-		if (!!/*(maybeError instanceof Some(var error))*//*boolean*/){
-			return folded/*unknown*/;
-		}
-		return new Err<CompileState, IOError>(error)/*unknown*/;
+		return folded.flatMapValue((result: CompileState) => {
+			let diagramPath = Files.get(".", "diagram.puml")/*unknown*/;
+			let joinedDependencies = result.registry().iterDependencies().map((dependency: Dependency) => dependency.toPlantUML()/*unknown*/).collect(new Joiner("")).orElse("")/*unknown*/;
+			return Application.writeAsPlantUML(result, diagramPath, joinedDependencies).orElse(folded)/*unknown*/;
+		})/*unknown*/;
 	}
 	runWithSource(state: CompileState, source: Source): Result<CompileState, IOError> {
 		return source.read().flatMapValue((input: string) => this.runWithInput(state, source, input)/*unknown*/)/*unknown*/;
@@ -58,7 +54,6 @@ export class Application {
 		if (compiledState.context().hasPlatform(Platform.PlantUML)/*unknown*/){
 			return new Ok<CompileState, IOError>(compiledState)/*unknown*/;
 		}
-		let segment = state1.context().iterSources().map((source1: Source) => Application.formatSource(source1)/*unknown*/).collect(new Joiner(", ")).orElse("")/*unknown*/;
 		let otherOutput = compiled.right()/*unknown*/;
 		let joinedImports = compiledState.registry().queryImports().map((anImport: Import) => anImport.generate()/*unknown*/).collect(new Joiner("")).orElse("")/*unknown*/;
 		let joined = joinedImports + compiledState.registry().output() + otherOutput/*unknown*/;
@@ -66,8 +61,9 @@ export class Application {
 		return this.writeTarget(source, cleared, joined)/*unknown*/;
 	}
 	writeTarget(source: Source, cleared: CompileState, output: string): Result<CompileState, IOError> {
-		/*return this.targets().writeSource(source.createLocation(), output)
-                .<Result<CompileState, IOError>>map((IOError error) -> new Err<CompileState, IOError>(error))
-                .orElseGet(() -> new Ok<CompileState, IOError>(cleared))*/;
+		return this.writeTargetOrError(source, output).orElseGet(() => new Ok<CompileState, IOError>(cleared)/*unknown*/)/*unknown*/;
+	}
+	writeTargetOrError(source: Source, output: string): Option<Result<CompileState, IOError>> {
+		return this.targets.writeSource(source.createLocation(), output).map((error: IOError) => new Err<CompileState, IOError>(error)/*unknown*/)/*unknown*/;
 	}
 }

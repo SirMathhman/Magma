@@ -10,9 +10,7 @@ import { VariadicType } from "../../../../../../magma/app/compile/type/collect/v
 export class VariadicTypes {
 	static parseVariadic(state: CompileState, input: string): Option<Tuple2<CompileState, Type>> {
 		let stripped = Strings.strip(input)/*unknown*/;
-		return new SuffixComposable<Tuple2<CompileState, Type>>("...", (s: string) => {
-			return TypeCompiler.createTypeRule().apply(state, s).map((tuple: Tuple2<CompileState, Type>) => new Tuple2Impl<CompileState, Type>(tuple.left(), tuple.right())/*unknown*/).map((child: Tuple2Impl<CompileState, Type>) => new Tuple2Impl<CompileState, Type>(child.left(), new VariadicType(child.right()))/*unknown*/)/*unknown*/;
-		}).apply(stripped)/*unknown*/;
+		return new SuffixComposable<Tuple2<CompileState, Type>>("...", (s: string) => TypeCompiler.createTypeRule().apply(state, s).map((tuple: Tuple2<CompileState, Type>) => new Tuple2Impl<CompileState, Type>(tuple.left(), tuple.right())/*unknown*/).map((child: Tuple2Impl<CompileState, Type>) => new Tuple2Impl<CompileState, Type>(child.left(), new VariadicType(child.right()))/*unknown*/)/*unknown*/).apply(stripped)/*unknown*/;
 	}
 	static generateVariadicType(variadicType: VariadicType): string {
 		return TypeCompiler.generateType(variadicType.type()) + "[]"/*unknown*/;

@@ -9,7 +9,7 @@ import { PrimitiveType } from "../../../../magma/app/compile/type/PrimitiveType"
 import { None } from "../../../../magma/api/option/None";
 export class PrimitiveTypes {
 	static parsePrimitive(state: CompileState, input: string): Option<Tuple2<CompileState, Type>> {
-		return findPrimitiveValue(Strings.strip(input)).map((result: Type) => new Tuple2Impl<CompileState, Type>(state, result)/*unknown*/)/*unknown*/;
+		return PrimitiveTypes.findPrimitiveValue(Strings.strip(input)).map((result: Type) => new Tuple2Impl<CompileState, Type>(state, result)/*unknown*/)/*unknown*/;
 	}
 	static findPrimitiveValue(input: string): Option<Type> {
 		let stripped = Strings.strip(input)/*unknown*/;

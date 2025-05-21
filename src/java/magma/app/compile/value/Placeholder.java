@@ -17,7 +17,7 @@ public record Placeholder(String input) implements Parameter, Value, Type {
     }
 
     public static String generatePlaceholder(Placeholder placeholder) {
-        return generatePlaceholder(placeholder.input());
+        return Placeholder.generatePlaceholder(placeholder.input());
     }
 
     public String generate() {

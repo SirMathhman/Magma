@@ -181,18 +181,14 @@ final class FunctionSegmentCompiler {
     }
 
     static Tuple2<CompileState, String> compileStatements(CompileState state, String input, BiFunction<CompileState, String, Tuple2<CompileState, String>> mapper) {
-        return new DivideRule<String>(new StatementsFolder(), toRule(mapper))
+        return new DivideRule<String>(new StatementsFolder(), FunctionSegmentCompiler.toRule(mapper))
                 .apply(state, input)
-                .map((Tuple2<CompileState, List<String>> folded) -> {
-                    return generateAllFromTuple(folded.left(), folded.right(), new StatementsMerger());
-                })
+                .map((Tuple2<CompileState, List<String>> folded) -> FunctionSegmentCompiler.generateAllFromTuple(folded.left(), folded.right(), new StatementsMerger()))
                 .orElse(new Tuple2Impl<CompileState, String>(state, ""));
     }
 
     static Rule<String> toRule(BiFunction<CompileState, String, Tuple2<CompileState, String>> mapper) {
-        return (CompileState state1, String s) -> {
-            return new Some<Tuple2<CompileState, String>>(mapper.apply(state1, s));
-        };
+        return (CompileState state1, String s) -> new Some<Tuple2<CompileState, String>>(mapper.apply(state1, s));
     }
 
     public static Tuple2<CompileState, String> generateAllFromTuple(CompileState state, List<String> elements, Merger merger) {

@@ -13,7 +13,7 @@ export class ResolvedTypes {
 	static getState(state: CompileState, location: Location): CompileState {
 		let requestedNamespace = location.namespace()/*unknown*/;
 		let requestedChild = location.name()/*unknown*/;
-		let namespace = fixNamespace(requestedNamespace, state.context().findNamespaceOrEmpty())/*unknown*/;
+		let namespace = ResolvedTypes.fixNamespace(requestedNamespace, state.context().findNamespaceOrEmpty())/*unknown*/;
 		if (state.registry().doesImportExistAlready(requestedChild)/*unknown*/){
 			return state/*CompileState*/;
 		}
@@ -27,7 +27,7 @@ export class ResolvedTypes {
 		}
 		return state.context().findSource(base).map((source: Source) => {
 			let location: Location = source.createLocation()/*unknown*/;
-			return getCompileState1(state, location).orElseGet(() => getState(state, location)/*unknown*/)/*unknown*/;
+			return ResolvedTypes.getCompileState1(state, location).orElseGet(() => ResolvedTypes.getState(state, location)/*unknown*/)/*unknown*/;
 		}).orElse(state)/*unknown*/;
 	}
 	static getCompileState1(immutableCompileState: CompileState, location: Location): Option<CompileState> {
@@ -45,7 +45,7 @@ export class ResolvedTypes {
 		if (thisNamespace.isEmpty()/*unknown*/){
 			return requestedNamespace.addFirst(".")/*unknown*/;
 		}
-		return addParentSeparator(requestedNamespace, thisNamespace.size())/*unknown*/;
+		return ResolvedTypes.addParentSeparator(requestedNamespace, thisNamespace.size())/*unknown*/;
 	}
 	static addParentSeparator(newNamespace: List<string>, count: number): List<string> {
 		let index = 0/*unknown*/;

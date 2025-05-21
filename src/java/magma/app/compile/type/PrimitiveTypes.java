@@ -8,9 +8,9 @@ import magma.api.option.Some;
 import magma.api.text.Strings;
 import magma.app.compile.CompileState;
 
-public class PrimitiveTypes {
+public final class PrimitiveTypes {
     public static Option<Tuple2<CompileState, Type>> parsePrimitive(CompileState state, String input) {
-        return findPrimitiveValue(Strings.strip(input)).map((Type result) -> new Tuple2Impl<CompileState, Type>(state, result));
+        return PrimitiveTypes.findPrimitiveValue(Strings.strip(input)).map((Type result) -> new Tuple2Impl<CompileState, Type>(state, result));
     }
 
     public static Option<Type> findPrimitiveValue(String input) {
