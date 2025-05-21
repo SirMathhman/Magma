@@ -1,5 +1,3 @@
-import { Option } from "../../../../magma/api/option/Option";
-import { None } from "../../../../magma/api/option/None";
 import { TypeCompiler } from "../../../../magma/app/TypeCompiler";
 export class Symbol {
 	value: string;
@@ -17,9 +15,6 @@ export class Symbol {
 	}
 	generateBeforeName(): string {
 		return ""/*string*/;
-	}
-	generateAsEnumValue(structureName: string): Option<string> {
-		return new None<string>()/*unknown*/;
 	}
 	generateSimple(): string {
 		return TypeCompiler.generateType(this)/*unknown*/;

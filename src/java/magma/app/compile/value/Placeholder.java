@@ -41,11 +41,6 @@ public record Placeholder(String input) implements Parameter, Value, Type {
     }
 
     @Override
-    public Option<String> generateAsEnumValue(String structureName) {
-        return new None<String>();
-    }
-
-    @Override
     public String generateSimple() {
         return TypeCompiler.generateType(this);
     }
