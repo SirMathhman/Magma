@@ -154,9 +154,15 @@ public final class ValueCompiler {
             case Operation operation -> operation.resolve(state);
             case Placeholder placeholder -> placeholder.resolve(state);
             case StringValue stringValue -> stringValue.resolve(state);
-            case Symbol symbol -> symbol.resolve(state);
+            case Symbol symbol -> resolveSymbol(state, symbol);
             default -> PrimitiveType.Unknown;
         };
+    }
+
+    private static Type resolveSymbol(CompileState state, Symbol symbol) {
+        return state.stack().resolveValue(symbol.value())
+                .map((Definition definition) -> definition.findType())
+                .orElse(PrimitiveType.Unknown);
     }
 
     private static Option<Tuple2<CompileState, Value>> parseNumber(CompileState state, String input) {

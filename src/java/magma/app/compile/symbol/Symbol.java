@@ -3,9 +3,6 @@ package magma.app.compile.symbol;
 import magma.api.option.None;
 import magma.api.option.Option;
 import magma.api.option.Some;
-import magma.app.compile.CompileState;
-import magma.app.compile.define.Definition;
-import magma.app.compile.type.PrimitiveType;
 import magma.app.compile.type.Type;
 import magma.app.compile.value.Value;
 
@@ -13,12 +10,6 @@ public record Symbol(String value) implements Value, Type {
     @Override
     public String generate() {
         return this.value;
-    }
-
-    public Type resolve(CompileState state) {
-        return state.stack().resolveValue(this.value)
-                .map((Definition definition) -> definition.findType())
-                .orElse(PrimitiveType.Unknown);
     }
 
     @Override
