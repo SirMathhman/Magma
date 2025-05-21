@@ -38,7 +38,12 @@ export class TypeCompiler {
 		return TypeCompiler.parseType(state, type).map((tuple: Tuple2<CompileState, Type>) => new Tuple2Impl<CompileState, string>(tuple.left(), TypeCompiler.generateType(tuple.right()))/*unknown*/)/*unknown*/;
 	}
 	static parseType(state: CompileState, type: string): Option<Tuple2<CompileState, Type>> {
-		return new OrRule<Type>(Lists.of(TypeCompiler.parseVarArgs, TypeCompiler.parseGeneric, TypeCompiler.parsePrimitive, Symbols.parseSymbolType)).apply(state, type)/*unknown*/;
+		return new OrRule<Type>(Lists.of(TypeCompiler.parseVarArgs, TypeCompiler.parseGeneric, TypeCompiler.parsePrimitive, Symbols.parseSymbolType, TypeCompiler.parseArray)).apply(state, type)/*unknown*/;
+	}
+	static parseArray(state: CompileState, input: string): Option<Tuple2<CompileState, Type>> {
+		/*return new StripComposable<>(new SuffixComposable<>("[]", (Composable<String, Tuple2<CompileState, Type>>) (String childString) -> TypeCompiler.parseType(state, childString).map(child -> {
+            return new Tuple2Impl<>(child.left(), new ArrayType(child.right()));
+        }))).apply(input)*/;
 	}
 	static parseVarArgs(state: CompileState, input: string): Option<Tuple2<CompileState, Type>> {
 		let stripped = Strings.strip(input)/*unknown*/;
@@ -111,16 +116,16 @@ export class TypeCompiler {
 	static parseTypeOrPlaceholder(state: CompileState, type: string): Tuple2<CompileState, Type> {
 		return TypeCompiler.parseType(state, type).map((tuple: Tuple2<CompileState, Type>) => new Tuple2Impl<CompileState, Type>(tuple.left(), tuple.right())/*unknown*/).orElseGet(() => new Tuple2Impl<CompileState, Type>(state, new Placeholder(type))/*unknown*/)/*unknown*/;
 	}
-	static getState(immutableCompileState: CompileState, location: Location): CompileState {
+	static getState(state: CompileState, location: Location): CompileState {
 		let requestedNamespace = location.namespace()/*unknown*/;
 		let requestedChild = location.name()/*unknown*/;
-		let namespace = TypeCompiler.fixNamespace(requestedNamespace, immutableCompileState.context().findNamespaceOrEmpty())/*unknown*/;
-		if (immutableCompileState.registry().doesImportExistAlready(requestedChild)/*unknown*/){
-			return immutableCompileState/*CompileState*/;
+		let namespace = TypeCompiler.fixNamespace(requestedNamespace, state.context().findNamespaceOrEmpty())/*unknown*/;
+		if (state.registry().doesImportExistAlready(requestedChild)/*unknown*/){
+			return state/*CompileState*/;
 		}
 		let namespaceWithChild = namespace.addLast(requestedChild)/*unknown*/;
 		let anImport = new Import(namespaceWithChild, requestedChild)/*unknown*/;
-		return immutableCompileState.mapRegistry((registry: Registry) => registry.addImport(anImport)/*unknown*/)/*unknown*/;
+		return state.mapRegistry((registry: Registry) => registry.addImport(anImport)/*unknown*/)/*unknown*/;
 	}
 	static addResolvedImportFromCache0(state: CompileState, base: string): CompileState {
 		if (state.stack().hasAnyStructureName(base)/*unknown*/){
@@ -164,6 +169,7 @@ export class TypeCompiler {
             case Symbol symbol -> TypeCompiler.generateSymbol(symbol);
             case TemplateType templateType -> TypeCompiler.generateTemplateType(templateType);
             case VariadicType variadicType -> TypeCompiler.generateVariadicType(variadicType);
+            case ArrayType arrayType -> TypeCompiler.generateType(arrayType.childType()) + "[]";
             default -> "?";
         }*/;
 	}

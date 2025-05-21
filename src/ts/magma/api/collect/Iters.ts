@@ -11,7 +11,7 @@ export class Iters {
 	static getTSingleHead<T>(element: T): Head<T> {
 		return new SingleHead<T>(element)/*unknown*/;
 	}
-	static fromArray<T>(): Iter<T> {
+	static fromArray<T>(array: T[]): Iter<T> {
 		/*return new HeadedIter<Integer>(new RangeHead(array.length)).map((Integer index) -> array[index])*/;
 	}
 }

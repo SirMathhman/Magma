@@ -91,6 +91,9 @@ PrefixComposable <|.. Composable
 class SplitComposable<T> {
 }
 SplitComposable <|.. Composable
+class StripComposable<T> {
+}
+StripComposable <|.. Composable
 class SuffixComposable<T> {
 }
 SuffixComposable <|.. Composable
@@ -197,6 +200,9 @@ class Symbols {
 class Whitespace {
 }
 Whitespace <|.. Parameter
+class ArrayType {
+}
+ArrayType <|.. Type
 class FunctionType {
 }
 FunctionType <|.. Type
@@ -395,6 +401,8 @@ SplitComposable --> Tuple2
 SplitComposable --> Option
 SplitComposable --> LocatingSplitter
 SplitComposable --> LastLocator
+StripComposable --> Composable
+StripComposable --> Option
 SuffixComposable --> Composable
 SuffixComposable --> Option
 SuffixComposable --> None
@@ -569,6 +577,7 @@ Whitespace --> Parameter
 Whitespace --> Definition
 Whitespace --> Option
 Whitespace --> None
+ArrayType --> Type
 FunctionType --> Type
 FunctionType --> Iterable
 FunctionType --> TypeCompiler

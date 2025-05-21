@@ -15,6 +15,7 @@ import magma.app.compile.Import;
 import magma.app.compile.Registry;
 import magma.app.compile.compose.Composable;
 import magma.app.compile.compose.SplitComposable;
+import magma.app.compile.compose.StripComposable;
 import magma.app.compile.compose.SuffixComposable;
 import magma.app.compile.locate.FirstLocator;
 import magma.app.compile.merge.Merger;
@@ -23,6 +24,7 @@ import magma.app.compile.rule.OrRule;
 import magma.app.compile.split.LocatingSplitter;
 import magma.app.compile.split.Splitter;
 import magma.app.compile.symbol.Symbols;
+import magma.app.compile.type.ArrayType;
 import magma.app.compile.type.FunctionType;
 import magma.app.compile.type.PrimitiveType;
 import magma.app.compile.type.TemplateType;
@@ -42,8 +44,15 @@ public final class TypeCompiler {
                 TypeCompiler::parseVarArgs,
                 TypeCompiler::parseGeneric,
                 TypeCompiler::parsePrimitive,
-                Symbols::parseSymbolType
+                Symbols::parseSymbolType,
+                TypeCompiler::parseArray
         )).apply(state, type);
+    }
+
+    private static Option<Tuple2<CompileState, Type>> parseArray(CompileState state, String input) {
+        return new StripComposable<>(new SuffixComposable<>("[]", (Composable<String, Tuple2<CompileState, Type>>) (String childString) -> TypeCompiler.parseType(state, childString).map(child -> {
+            return new Tuple2Impl<>(child.left(), new ArrayType(child.right()));
+        }))).apply(input);
     }
 
     private static Option<Tuple2<CompileState, Type>> parseVarArgs(CompileState state, String input) {
@@ -145,18 +154,18 @@ public final class TypeCompiler {
                 .orElseGet(() -> new Tuple2Impl<CompileState, Type>(state, new Placeholder(type)));
     }
 
-    private static CompileState getState(CompileState immutableCompileState, Location location) {
+    private static CompileState getState(CompileState state, Location location) {
         var requestedNamespace = location.namespace();
         var requestedChild = location.name();
 
-        var namespace = TypeCompiler.fixNamespace(requestedNamespace, immutableCompileState.context().findNamespaceOrEmpty());
-        if (immutableCompileState.registry().doesImportExistAlready(requestedChild)) {
-            return immutableCompileState;
+        var namespace = TypeCompiler.fixNamespace(requestedNamespace, state.context().findNamespaceOrEmpty());
+        if (state.registry().doesImportExistAlready(requestedChild)) {
+            return state;
         }
 
         var namespaceWithChild = namespace.addLast(requestedChild);
         var anImport = new Import(namespaceWithChild, requestedChild);
-        return immutableCompileState.mapRegistry((Registry registry) -> registry.addImport(anImport));
+        return state.mapRegistry((Registry registry) -> registry.addImport(anImport));
     }
 
     public static CompileState addResolvedImportFromCache0(CompileState state, String base) {
@@ -215,6 +224,7 @@ public final class TypeCompiler {
             case Symbol symbol -> TypeCompiler.generateSymbol(symbol);
             case TemplateType templateType -> TypeCompiler.generateTemplateType(templateType);
             case VariadicType variadicType -> TypeCompiler.generateVariadicType(variadicType);
+            case ArrayType arrayType -> TypeCompiler.generateType(arrayType.childType()) + "[]";
             default -> "?";
         };
     }
