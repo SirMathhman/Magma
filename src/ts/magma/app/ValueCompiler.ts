@@ -215,11 +215,13 @@ export class ValueCompiler {
             case Placeholder placeholder -> placeholder.generate();
             case StringValue stringValue -> stringValue.generate();
             case Symbol symbol -> symbol.generate();
+            default -> "?";
         }*/;
 	}
 	static generateCaller(caller: Caller): string {/*return switch (caller) {
             case ConstructionCaller constructionCaller -> ValueCompiler.getGenerate(constructionCaller);
             case Value value -> ValueCompiler.generateValue(value);
+            default -> "?";
         }*/;
 	}
 	static getGenerate(constructionCaller: ConstructionCaller): string {

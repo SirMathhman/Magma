@@ -273,6 +273,7 @@ public final class ValueCompiler {
             case Placeholder placeholder -> placeholder.generate();
             case StringValue stringValue -> stringValue.generate();
             case Symbol symbol -> symbol.generate();
+            default -> "?";
         };
     }
 
@@ -280,6 +281,7 @@ public final class ValueCompiler {
         return switch (caller) {
             case ConstructionCaller constructionCaller -> ValueCompiler.getGenerate(constructionCaller);
             case Value value -> ValueCompiler.generateValue(value);
+            default -> "?";
         };
     }
 

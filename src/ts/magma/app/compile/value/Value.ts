@@ -1,5 +1,6 @@
-/*
-
-public sealed interface Value extends Argument, Caller permits Symbol, AccessValue, Invokable, Lambda, Not, Operation, Placeholder, StringValue {
-    Option<String> generateAsEnumValue(String structureName);
-}*/
+import { Argument } from "../../../../magma/app/compile/value/Argument";
+import { Caller } from "../../../../magma/app/compile/value/Caller";
+import { Option } from "../../../../magma/api/option/Option";
+export interface Value extends Argument, Caller {
+	generateAsEnumValue(structureName: string): Option<string>;
+}

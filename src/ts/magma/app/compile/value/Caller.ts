@@ -1,5 +1,5 @@
-/*
-
-public sealed interface Caller permits ConstructionCaller, Value {
-    Option<Value> findChild();
-}*/
+import { Value } from "../../../../magma/app/compile/value/Value";
+import { Option } from "../../../../magma/api/option/Option";
+export interface Caller {
+	findChild(): Option<Value>;
+}

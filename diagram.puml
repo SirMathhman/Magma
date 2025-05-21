@@ -216,6 +216,8 @@ class AccessValue {
 AccessValue <|.. Value
 interface Argument {
 }
+interface Caller {
+}
 class ConstructionCaller {
 }
 ConstructionCaller <|.. Caller
@@ -238,6 +240,10 @@ class StringValue {
 StringValue <|.. Value
 class Symbol {
 }
+interface Value {
+}
+Value <|-- Argument
+Value <|-- Caller
 class CompilerUtils {
 }
 class DefiningCompiler {
@@ -580,6 +586,8 @@ AccessValue --> PrimitiveType
 AccessValue --> None
 Argument --> Value
 Argument --> Option
+Caller --> Value
+Caller --> Option
 ConstructionCaller --> Caller
 ConstructionCaller --> Value
 ConstructionCaller --> Option
@@ -640,6 +648,9 @@ Symbol --> Option
 Symbol --> Some
 Symbol --> None
 Symbol --> TypeCompiler
+Value --> Argument
+Value --> Caller
+Value --> Option
 DefiningCompiler --> Definition
 DefiningCompiler --> Iterable
 DefiningCompiler --> Parameter
