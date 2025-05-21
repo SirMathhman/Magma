@@ -4,6 +4,7 @@ import jvm.api.collect.list.Lists;
 import magma.api.Tuple2;
 import magma.api.Tuple2Impl;
 import magma.api.collect.Iters;
+import magma.api.collect.Joiner;
 import magma.api.collect.head.HeadedIter;
 import magma.api.collect.head.RangeHead;
 import magma.api.collect.list.Iterable;
@@ -265,16 +266,55 @@ public final class ValueCompiler {
 
     public static String generateValue(Value value) {
         return switch (value) {
-            case AccessValue accessValue -> accessValue.generate();
-            case Invokable invokable -> invokable.generate();
-            case Lambda lambda -> lambda.generate();
-            case Not not -> not.generate();
-            case Operation operation -> operation.generate();
-            case Placeholder placeholder -> placeholder.generate();
-            case StringValue stringValue -> stringValue.generate();
-            case Symbol symbol -> symbol.generate();
+            case AccessValue accessValue -> ValueCompiler.generateAccess(accessValue);
+            case Invokable invokable -> ValueCompiler.generateInvokable(invokable);
+            case Lambda lambda -> ValueCompiler.generateLambda(lambda);
+            case Not not -> ValueCompiler.generateNot(not);
+            case Operation operation -> ValueCompiler.generateOperation(operation);
+            case Placeholder placeholder -> ValueCompiler.generatePlaceholder(placeholder);
+            case StringValue stringValue -> ValueCompiler.generateStringValue(stringValue);
+            case Symbol symbol -> ValueCompiler.generateSymbol(symbol);
             default -> "?";
         };
+    }
+
+    private static String generateSymbol(Symbol symbol) {
+        return symbol.value();
+    }
+
+    private static String generateStringValue(StringValue stringValue) {
+        return "\"" + stringValue.value() + "\"";
+    }
+
+    private static String generatePlaceholder(Placeholder placeholder) {
+        return Placeholder.generatePlaceholder(placeholder.input());
+    }
+
+    private static String generateOperation(Operation operation) {
+        return generateCaller(operation.left()) + " " + operation.targetInfix() + " " + generateCaller(operation.right());
+    }
+
+    private static String generateNot(Not not) {
+        return "!" + not.child();
+    }
+
+    private static String generateLambda(Lambda lambda) {
+        var joinedParamNames = lambda.parameters()
+                .iter()
+                .map((Definition definition) -> definition.generate())
+                .collect(new Joiner(", "))
+                .orElse("");
+
+        return "(" + joinedParamNames + ")" + " => " + lambda.content();
+    }
+
+    private static String generateInvokable(Invokable invokable) {
+        var joinedArguments = ValueCompiler.joinArgs(invokable.args());
+        return ValueCompiler.generateCaller(invokable.caller()) + "(" + joinedArguments + ")";
+    }
+
+    private static String generateAccess(AccessValue accessValue) {
+        return ValueCompiler.generateCaller(accessValue.child()) + "." + accessValue.property();
     }
 
     public static String generateCaller(Caller caller) {
@@ -286,6 +326,13 @@ public final class ValueCompiler {
     }
 
     private static String getGenerate(ConstructionCaller constructionCaller) {
-        return constructionCaller.generate();
+        return "new " + constructionCaller.type();
+    }
+
+    public static String joinArgs(Iterable<Value> args1) {
+        return args1.iter()
+                .map((Value value) -> ValueCompiler.generateCaller(value))
+                .collect(new Joiner(", "))
+                .orElse("");
     }
 }

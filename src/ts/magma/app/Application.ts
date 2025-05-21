@@ -37,13 +37,13 @@ class Application {
 		let state: CompileState = ImmutableCompileState.createEmpty().mapContext((context: Context) => context.withPlatform(platform)/*unknown*/)/*unknown*/;
 		let initial = children.iter().foldWithInitial(state, (current: CompileState, source: Source) => current.mapContext((context1: Context) => context1.addSource(source)/*unknown*/)/*unknown*/)/*unknown*/;
 		let folded = children.iter().foldWithInitialToResult(initial, (state1: CompileState, source: Source) => this.runWithSource(state1, source)/*unknown*/)/*unknown*/;
-		if (!state/*unknown*/.context().hasPlatform(Platform.PlantUML) || !/*(folded instanceof Ok(var result))*//*unknown*/){
+		if (!!state/*unknown*/.context().hasPlatform(Platform.PlantUML) || !!/*(folded instanceof Ok(var result))*//*unknown*/){
 			return folded/*unknown*/;
 		}
 		let diagramPath = Files.get(".", "diagram.puml")/*unknown*/;
 		let joinedDependencies = result.registry().iterDependencies().map((dependency: Dependency) => dependency.name() + " --> " + dependency.child() + "\n"/*unknown*/).collect(new Joiner("")).orElse("")/*unknown*/;
 		let maybeError = diagramPath.writeString("@startuml\nskinparam linetype ortho\n" + result.registry().output() + joinedDependencies + "@enduml")/*unknown*/;
-		if (!/*(maybeError instanceof Some(var error))*//*unknown*/){
+		if (!!/*(maybeError instanceof Some(var error))*//*unknown*/){
 			return folded/*unknown*/;
 		}
 		return new Err<CompileState, IOError>(error)/*unknown*/;

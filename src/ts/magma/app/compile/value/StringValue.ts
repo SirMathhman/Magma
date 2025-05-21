@@ -10,9 +10,6 @@ export class StringValue implements Value {
 	constructor (value: string) {
 		this.value = value;
 	}
-	generate(): string {
-		return "\"" + this.value + "\""/*unknown*/;
-	}
 	toValue(): Option<Value> {
 		return new Some<Value>(this)/*unknown*/;
 	}

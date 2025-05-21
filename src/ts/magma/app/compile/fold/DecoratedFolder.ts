@@ -31,7 +31,7 @@ export class DecoratedFolder implements Folder {
 		let appended = state.append(c)/*unknown*/;
 		while (true/*unknown*/){
 			let maybeTuple = appended.popAndAppendToTuple().toTuple(new Tuple2Impl<DivideState, string>(appended, "\0"))/*unknown*/;
-			if (!maybeTuple/*unknown*/.left()/*unknown*/){
+			if (!!maybeTuple/*unknown*/.left()/*unknown*/){
 				break;
 			}
 			let tuple = maybeTuple.right()/*unknown*/;

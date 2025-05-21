@@ -10,9 +10,6 @@ export class Not implements Value {
 	constructor (child: string) {
 		this.child = child;
 	}
-	generate(): string {
-		return this.child/*unknown*/;
-	}
 	toValue(): Option<Value> {
 		return new Some<Value>(this)/*unknown*/;
 	}

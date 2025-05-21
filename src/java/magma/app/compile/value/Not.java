@@ -8,9 +8,6 @@ import magma.app.compile.type.PrimitiveType;
 import magma.app.compile.type.Type;
 
 public record Not(String child) implements Value {
-    public String generate() {
-        return this.child;
-    }
 
     @Override
     public Option<Value> toValue() {

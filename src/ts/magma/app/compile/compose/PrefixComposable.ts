@@ -10,7 +10,7 @@ export class PrefixComposable<T> implements Composable<string, T> {
 		this.mapper = mapper;
 	}
 	apply(input: string): Option<T> {
-		if (!input/*string*/.startsWith(this.prefix())/*unknown*/){
+		if (!!input/*string*/.startsWith(this.prefix())/*unknown*/){
 			return new None<T>()/*unknown*/;
 		}
 		let slice = Strings.sliceFrom(input, Strings.length(this.prefix()))/*unknown*/;

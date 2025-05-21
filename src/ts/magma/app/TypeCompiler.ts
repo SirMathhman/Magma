@@ -132,7 +132,7 @@ export class TypeCompiler {
 		}).orElse(state)/*unknown*/;
 	}
 	static getCompileState1(immutableCompileState: CompileState, location: Location): Option<CompileState> {
-		if (!immutableCompileState/*CompileState*/.context().hasPlatform(Platform.PlantUML)/*unknown*/){
+		if (!!immutableCompileState/*CompileState*/.context().hasPlatform(Platform.PlantUML)/*unknown*/){
 			return new None<CompileState>()/*unknown*/;
 		}
 		let name = immutableCompileState.context().findNameOrEmpty()/*unknown*/;

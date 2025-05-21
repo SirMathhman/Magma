@@ -12,7 +12,7 @@ export class FoldedDivider implements Divider {
 		let current = /* (DivideState) new ImmutableDivideState(Lists.empty(), "", 0, input, 0)*/;
 		while (true/*unknown*/){
 			let poppedTuple0 = current.pop().toTuple(new Tuple2Impl<DivideState, string>(current, "\0"))/*unknown*/;
-			if (!poppedTuple0/*unknown*/.left()/*unknown*/){
+			if (!!poppedTuple0/*unknown*/.left()/*unknown*/){
 				break;
 			}
 			let poppedTuple = poppedTuple0.right()/*unknown*/;

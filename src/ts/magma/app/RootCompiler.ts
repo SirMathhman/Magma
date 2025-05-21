@@ -77,7 +77,7 @@ export class RootCompiler {
 	}
 	static assembleStructure(state: CompileState, annotations: List<string>, oldModifiers: List<string>, infix: string, rawName: string, typeParams: Iterable<string>, parameters: Iterable<Definition>, maybeImplementing: Option<Type>, content: string, maybeSuperType: Iterable<Type>): Option<Tuple2<CompileState, string>> {
 		let name = Strings.strip(rawName)/*unknown*/;
-		if (!Symbols/*unknown*/.isSymbol(name)/*unknown*/){
+		if (!!Symbols/*unknown*/.isSymbol(name)/*unknown*/){
 			return new None<Tuple2<CompileState, string>>()/*unknown*/;
 		}
 		let outputContentTuple = FunctionSegmentCompiler.compileStatements(state.mapStack((stack: Stack) => stack.pushStructureName(name)/*unknown*/), content, RootCompiler.compileClassSegment)/*unknown*/;

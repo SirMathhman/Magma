@@ -10,7 +10,7 @@ export class SuffixComposable<T> implements Composable<string, T> {
 		this.mapper = mapper;
 	}
 	apply(input: string): Option<T> {
-		if (!input/*string*/.endsWith(this.suffix())/*unknown*/){
+		if (!!input/*string*/.endsWith(this.suffix())/*unknown*/){
 			return new None<T>()/*unknown*/;
 		}
 		let length = Strings.length(input)/*unknown*/;

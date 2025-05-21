@@ -577,7 +577,6 @@ TemplateType --> Iterable
 VariadicType --> Type
 VariadicType --> TypeCompiler
 AccessValue --> Value
-AccessValue --> ValueCompiler
 AccessValue --> Option
 AccessValue --> Some
 AccessValue --> Type
@@ -595,18 +594,16 @@ ConstructionCaller --> None
 Invokable --> Value
 Invokable --> Caller
 Invokable --> Iterable
-Invokable --> ValueCompiler
-Invokable --> Joiner
 Invokable --> Option
 Invokable --> Some
 Invokable --> None
 Invokable --> Type
 Invokable --> CompileState
 Invokable --> PrimitiveType
+Invokable --> ValueCompiler
 Lambda --> Value
 Lambda --> Definition
 Lambda --> Iterable
-Lambda --> Joiner
 Lambda --> Option
 Lambda --> Some
 Lambda --> None
@@ -621,7 +618,6 @@ Not --> Type
 Not --> CompileState
 Not --> PrimitiveType
 Operation --> Value
-Operation --> ValueCompiler
 Operation --> Option
 Operation --> Some
 Operation --> None
@@ -932,6 +928,7 @@ ValueCompiler --> OrRule
 ValueCompiler --> Lists
 ValueCompiler --> DivideRule
 ValueCompiler --> ValueFolder
+ValueCompiler --> Joiner
 WhitespaceCompiler --> CompileState
 WhitespaceCompiler --> Tuple2
 WhitespaceCompiler --> Option

@@ -51,6 +51,7 @@ import { OrRule } from "../../magma/app/compile/rule/OrRule";
 import { Lists } from "../../jvm/api/collect/list/Lists";
 import { DivideRule } from "../../magma/app/DivideRule";
 import { ValueFolder } from "../../magma/app/compile/fold/ValueFolder";
+import { Joiner } from "../../magma/api/collect/Joiner";
 export class ValueCompiler {
 	static generateValue(tuple: Tuple2<CompileState, Value>): Tuple2Impl<CompileState, string> {
 		let state = tuple.left()/*unknown*/;
@@ -110,7 +111,7 @@ export class ValueCompiler {
 	static createAccessRule(infix: string): Rule<Value> {
 		return (state: CompileState, input: string) => SplitComposable.compileLast(input, infix, (childString: string, rawProperty: string) => {
 			let property = Strings.strip(rawProperty)/*unknown*/;
-			if (!Symbols/*unknown*/.isSymbol(property)/*unknown*/){
+			if (!!Symbols/*unknown*/.isSymbol(property)/*unknown*/){
 				return new None<Tuple2<CompileState, Value>>()/*unknown*/;
 			}
 			return ValueCompiler.parseValue(state, childString).flatMap((childTuple: Tuple2<CompileState, Value>) => {
@@ -207,16 +208,42 @@ export class ValueCompiler {
 		return new DivideRule<T>(new ValueFolder(), mapper)/*unknown*/;
 	}
 	static generateValue(value: Value): string {/*return switch (value) {
-            case AccessValue accessValue -> accessValue.generate();
-            case Invokable invokable -> invokable.generate();
-            case Lambda lambda -> lambda.generate();
-            case Not not -> not.generate();
-            case Operation operation -> operation.generate();
-            case Placeholder placeholder -> placeholder.generate();
-            case StringValue stringValue -> stringValue.generate();
-            case Symbol symbol -> symbol.generate();
+            case AccessValue accessValue -> ValueCompiler.generateAccess(accessValue);
+            case Invokable invokable -> ValueCompiler.generateInvokable(invokable);
+            case Lambda lambda -> ValueCompiler.generateLambda(lambda);
+            case Not not -> ValueCompiler.generateNot(not);
+            case Operation operation -> ValueCompiler.generateOperation(operation);
+            case Placeholder placeholder -> ValueCompiler.generatePlaceholder(placeholder);
+            case StringValue stringValue -> ValueCompiler.generateStringValue(stringValue);
+            case Symbol symbol -> ValueCompiler.generateSymbol(symbol);
             default -> "?";
         }*/;
+	}
+	static generateSymbol(symbol: Symbol): string {
+		return symbol.value()/*unknown*/;
+	}
+	static generateStringValue(stringValue: StringValue): string {
+		return "\"" + stringValue.value() + "\""/*unknown*/;
+	}
+	static generatePlaceholder(placeholder: Placeholder): string {
+		return Placeholder.generatePlaceholder(placeholder.input())/*unknown*/;
+	}
+	static generateOperation(operation: Operation): string {
+		return generateCaller(operation.left()) + " " + operation.targetInfix() + " " + generateCaller(operation.right())/*unknown*/;
+	}
+	static generateNot(not: Not): string {
+		return "!" + not.child()/*unknown*/;
+	}
+	static generateLambda(lambda: Lambda): string {
+		let joinedParamNames = lambda.parameters().iter().map((definition: Definition) => definition.generate()/*unknown*/).collect(new Joiner(", ")).orElse("")/*unknown*/;
+		return "(" + joinedParamNames + ")" + " => " + lambda.content()/*unknown*/;
+	}
+	static generateInvokable(invokable: Invokable): string {
+		let joinedArguments = ValueCompiler.joinArgs(invokable.args())/*unknown*/;
+		return ValueCompiler.generateCaller(invokable.caller()) + "(" + joinedArguments + ")"/*unknown*/;
+	}
+	static generateAccess(accessValue: AccessValue): string {
+		return ValueCompiler.generateCaller(accessValue.child()) + "." + accessValue.property()/*unknown*/;
 	}
 	static generateCaller(caller: Caller): string {/*return switch (caller) {
             case ConstructionCaller constructionCaller -> ValueCompiler.getGenerate(constructionCaller);
@@ -225,6 +252,9 @@ export class ValueCompiler {
         }*/;
 	}
 	static getGenerate(constructionCaller: ConstructionCaller): string {
-		return constructionCaller.generate()/*unknown*/;
+		return "new " + constructionCaller.type()/*unknown*/;
+	}
+	static joinArgs(args1: Iterable<Value>): string {
+		return args1.iter().map((value: Value) => ValueCompiler.generateCaller(value)/*unknown*/).collect(new Joiner(", ")).orElse("")/*unknown*/;
 	}
 }
