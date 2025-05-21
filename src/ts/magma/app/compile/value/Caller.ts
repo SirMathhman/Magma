@@ -1,6 +1,7 @@
-import { Value } from "../../../../magma/app/compile/value/Value";
-import { Option } from "../../../../magma/api/option/Option";
-export interface Caller {
-	generate(): string;
-	findChild(): Option<Value>;
-}
+/*
+
+public sealed interface Caller permits ConstructionCaller, Value {
+    String generate();
+
+    Option<Value> findChild();
+}*/

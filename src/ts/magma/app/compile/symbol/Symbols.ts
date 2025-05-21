@@ -6,7 +6,7 @@ import { Strings } from "../../../../magma/api/text/Strings";
 import { TypeCompiler } from "../../../../magma/app/TypeCompiler";
 import { Some } from "../../../../magma/api/option/Some";
 import { Tuple2Impl } from "../../../../magma/api/Tuple2Impl";
-import { Symbol } from "../../../../magma/app/compile/type/Symbol";
+import { Symbol } from "../../../../magma/app/compile/value/Symbol";
 import { None } from "../../../../magma/api/option/None";
 import { HeadedIter } from "../../../../magma/api/collect/head/HeadedIter";
 import { RangeHead } from "../../../../magma/api/collect/head/RangeHead";

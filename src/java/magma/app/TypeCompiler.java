@@ -24,12 +24,12 @@ import magma.app.compile.split.LocatingSplitter;
 import magma.app.compile.split.Splitter;
 import magma.app.compile.symbol.Symbols;
 import magma.app.compile.type.FunctionType;
-import magma.app.compile.type.Placeholder;
 import magma.app.compile.type.PrimitiveType;
-import magma.app.compile.type.Symbol;
 import magma.app.compile.type.TemplateType;
 import magma.app.compile.type.Type;
 import magma.app.compile.type.VariadicType;
+import magma.app.compile.value.Placeholder;
+import magma.app.compile.value.Symbol;
 import magma.app.io.Source;
 
 public final class TypeCompiler {
@@ -215,6 +215,7 @@ public final class TypeCompiler {
             case Symbol symbol -> TypeCompiler.generateSymbol(symbol);
             case TemplateType templateType -> TypeCompiler.generateTemplateType(templateType);
             case VariadicType variadicType -> TypeCompiler.generateVariadicType(variadicType);
+            default -> "?";
         };
     }
 

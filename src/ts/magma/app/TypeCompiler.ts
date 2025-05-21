@@ -22,7 +22,7 @@ import { List } from "../../magma/api/collect/list/List";
 import { TemplateType } from "../../magma/app/compile/type/TemplateType";
 import { FunctionType } from "../../magma/app/compile/type/FunctionType";
 import { WhitespaceCompiler } from "../../magma/app/WhitespaceCompiler";
-import { Placeholder } from "../../magma/app/compile/type/Placeholder";
+import { Placeholder } from "../../magma/app/compile/value/Placeholder";
 import { Location } from "../../magma/app/Location";
 import { Import } from "../../magma/app/compile/Import";
 import { Registry } from "../../magma/app/compile/Registry";
@@ -31,7 +31,7 @@ import { Platform } from "../../magma/app/Platform";
 import { Dependency } from "../../magma/app/compile/Dependency";
 import { Merger } from "../../magma/app/compile/merge/Merger";
 import { ValueMerger } from "../../magma/app/compile/merge/ValueMerger";
-import { Symbol } from "../../magma/app/compile/type/Symbol";
+import { Symbol } from "../../magma/app/compile/value/Symbol";
 import { Joiner } from "../../magma/api/collect/Joiner";
 export class TypeCompiler {
 	static compileType(state: CompileState, type: string): Option<Tuple2<CompileState, string>> {
@@ -164,6 +164,7 @@ export class TypeCompiler {
             case Symbol symbol -> TypeCompiler.generateSymbol(symbol);
             case TemplateType templateType -> TypeCompiler.generateTemplateType(templateType);
             case VariadicType variadicType -> TypeCompiler.generateVariadicType(variadicType);
+            default -> "?";
         }*/;
 	}
 	static generateVariadicType(variadicType: VariadicType): string {

@@ -96,9 +96,6 @@ class SuffixComposable<T> {
 SuffixComposable <|.. Composable
 interface Context {
 }
-class ConstructionCaller {
-}
-ConstructionCaller <|.. Caller
 class ConstructorHeader {
 }
 ConstructorHeader <|.. MethodHeader
@@ -203,16 +200,14 @@ Whitespace <|.. Parameter
 class FunctionType {
 }
 FunctionType <|.. Type
-class Placeholder {
-}
 class PrimitiveType {
 }
 PrimitiveType <|.. Type
-class Symbol {
-}
 class TemplateType {
 }
 TemplateType <|.. Type
+interface Type {
+}
 class VariadicType {
 }
 VariadicType <|.. Type
@@ -221,8 +216,9 @@ class AccessValue {
 AccessValue <|.. Value
 interface Argument {
 }
-interface Caller {
+class ConstructionCaller {
 }
+ConstructionCaller <|.. Caller
 class Invokable {
 }
 Invokable <|.. Value
@@ -235,13 +231,13 @@ Not <|.. Value
 class Operation {
 }
 Operation <|.. Value
+class Placeholder {
+}
 class StringValue {
 }
 StringValue <|.. Value
-interface Value {
+class Symbol {
 }
-Value <|-- Argument
-Value <|-- Caller
 class CompilerUtils {
 }
 class DefiningCompiler {
@@ -403,10 +399,6 @@ Context --> Platform
 Context --> Option
 Context --> Location
 Context --> List
-ConstructionCaller --> Caller
-ConstructionCaller --> Value
-ConstructionCaller --> Option
-ConstructionCaller --> None
 ConstructorHeader --> MethodHeader
 Definition --> List
 Definition --> Iterable
@@ -572,21 +564,8 @@ Whitespace --> None
 FunctionType --> Type
 FunctionType --> Iterable
 FunctionType --> TypeCompiler
-Placeholder --> Value
-Placeholder --> Option
-Placeholder --> None
-Placeholder --> Definition
-Placeholder --> Type
-Placeholder --> CompileState
-Placeholder --> PrimitiveType
-Placeholder --> TypeCompiler
 PrimitiveType --> Type
 PrimitiveType --> TypeCompiler
-Symbol --> Value
-Symbol --> Option
-Symbol --> Some
-Symbol --> None
-Symbol --> TypeCompiler
 TemplateType --> Type
 TemplateType --> Iterable
 VariadicType --> Type
@@ -600,8 +579,10 @@ AccessValue --> PrimitiveType
 AccessValue --> None
 Argument --> Value
 Argument --> Option
-Caller --> Value
-Caller --> Option
+ConstructionCaller --> Caller
+ConstructionCaller --> Value
+ConstructionCaller --> Option
+ConstructionCaller --> None
 Invokable --> Value
 Invokable --> Caller
 Invokable --> Iterable
@@ -636,6 +617,14 @@ Operation --> None
 Operation --> Type
 Operation --> CompileState
 Operation --> PrimitiveType
+Placeholder --> Value
+Placeholder --> Option
+Placeholder --> None
+Placeholder --> Definition
+Placeholder --> Type
+Placeholder --> CompileState
+Placeholder --> PrimitiveType
+Placeholder --> TypeCompiler
 StringValue --> Value
 StringValue --> Option
 StringValue --> Some
@@ -643,9 +632,11 @@ StringValue --> None
 StringValue --> Type
 StringValue --> CompileState
 StringValue --> PrimitiveType
-Value --> Argument
-Value --> Caller
-Value --> Option
+Symbol --> Value
+Symbol --> Option
+Symbol --> Some
+Symbol --> None
+Symbol --> TypeCompiler
 DefiningCompiler --> Definition
 DefiningCompiler --> Iterable
 DefiningCompiler --> Parameter

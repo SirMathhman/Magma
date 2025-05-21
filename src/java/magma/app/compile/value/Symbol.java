@@ -1,10 +1,10 @@
-package magma.app.compile.type;
+package magma.app.compile.value;
 
 import magma.api.option.None;
 import magma.api.option.Option;
 import magma.api.option.Some;
 import magma.app.TypeCompiler;
-import magma.app.compile.value.Value;
+import magma.app.compile.type.Type;
 
 public record Symbol(String value) implements Value, Type {
     public String generate() {

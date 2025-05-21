@@ -1,9 +1,7 @@
-package magma.app.compile.define;
+package magma.app.compile.value;
 
 import magma.api.option.None;
 import magma.api.option.Option;
-import magma.app.compile.value.Caller;
-import magma.app.compile.value.Value;
 
 public record ConstructionCaller(String right) implements Caller {
     @Override

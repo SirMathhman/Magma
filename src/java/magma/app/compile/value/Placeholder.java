@@ -1,4 +1,4 @@
-package magma.app.compile.type;
+package magma.app.compile.value;
 
 import magma.api.option.None;
 import magma.api.option.Option;
@@ -6,7 +6,8 @@ import magma.app.TypeCompiler;
 import magma.app.compile.CompileState;
 import magma.app.compile.define.Definition;
 import magma.app.compile.define.Parameter;
-import magma.app.compile.value.Value;
+import magma.app.compile.type.PrimitiveType;
+import magma.app.compile.type.Type;
 
 public record Placeholder(String input) implements Parameter, Value, Type {
     public static String generatePlaceholder(String input) {

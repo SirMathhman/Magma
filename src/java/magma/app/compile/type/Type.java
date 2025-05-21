@@ -1,6 +1,6 @@
 package magma.app.compile.type;
 
-public sealed interface Type permits FunctionType, Placeholder, PrimitiveType, Symbol, TemplateType, VariadicType {
+public interface Type {
     boolean isFunctional();
 
     boolean isVar();
