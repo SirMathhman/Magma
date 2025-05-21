@@ -1,2 +1,2 @@
-class CompilerUtils {
+export class CompilerUtils {
 }

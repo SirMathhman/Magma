@@ -111,9 +111,10 @@ public final class RootCompiler {
         var constructorString = RootCompiler.generateConstructorFromRecordParameters(parameters);
         var joinedTypeParams = RootCompiler.joinTypeParams(typeParams);
         var implementingString = RootCompiler.generateImplementing(maybeImplementing);
-        var newModifiers = RootCompiler.modifyModifiers0(oldModifiers);
 
-        var joinedModifiers = newModifiers.iter()
+        var newModifiers = Lists.of("export");
+        var joinedModifiers = newModifiers
+                .iter()
                 .map((String value) -> value + " ")
                 .collect(Joiner.empty())
                 .orElse("");
@@ -155,13 +156,6 @@ public final class RootCompiler {
                 .collect(new Joiner(", "))
                 .map((String inner) -> " extends " + inner)
                 .orElse("");
-    }
-
-    private static Iterable<String> modifyModifiers0(List<String> oldModifiers) {
-        if (oldModifiers.contains("public")) {
-            return Lists.of("export");
-        }
-        return Lists.empty();
     }
 
     private static String generateImplementing(Option<Type> maybeImplementing) {

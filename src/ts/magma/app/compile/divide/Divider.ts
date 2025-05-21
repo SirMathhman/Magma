@@ -1,4 +1,4 @@
 import { Iter } from "../../../../magma/api/collect/Iter";
-interface Divider {
+export interface Divider {
 	divide(input: string): Iter<string>;
 }

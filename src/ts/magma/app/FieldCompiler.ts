@@ -24,7 +24,7 @@ import { ValueCompiler } from "../../magma/app/ValueCompiler";
 import { Symbols } from "../../magma/app/compile/symbol/Symbols";
 import { List } from "../../magma/api/collect/list/List";
 import { Value } from "../../magma/app/compile/value/Value";
-class FieldCompiler {
+export class FieldCompiler {
 	static compileMethod(state: CompileState, input: string): Option<Tuple2<CompileState, string>> {
 		let splitter: Splitter = new LocatingSplitter("(", new FirstLocator())/*unknown*/;
 		return new SplitComposable<Tuple2<CompileState, string>>(splitter, Composable.toComposable((beforeParams: string, withParams: string) => {

@@ -86,7 +86,7 @@ export class RootCompiler {
 		let constructorString = RootCompiler.generateConstructorFromRecordParameters(parameters)/*unknown*/;
 		let joinedTypeParams = RootCompiler.joinTypeParams(typeParams)/*unknown*/;
 		let implementingString = RootCompiler.generateImplementing(maybeImplementing)/*unknown*/;
-		let newModifiers = RootCompiler.modifyModifiers0(oldModifiers)/*unknown*/;
+		let newModifiers = Lists.of("export")/*unknown*/;
 		let joinedModifiers = newModifiers.iter().map((value: string) => value + " "/*unknown*/).collect(Joiner.empty()).orElse("")/*unknown*/;
 		if (outputContentState.context().hasPlatform(Platform.PlantUML)/*unknown*/){
 			let joinedImplementing = maybeImplementing.map((type: Type) => type.generateSimple()/*unknown*/).map((generated: string) => name + " <|.. " + generated + "\n"/*unknown*/).orElse("")/*unknown*/;
@@ -97,24 +97,18 @@ export class RootCompiler {
 		if (annotations.contains("Namespace")/*unknown*/){
 			let actualInfix: string = "interface "/*string*/;
 			let newName: string = name + "Instance"/*unknown*/;
-			let generated = joinedModifiers + actualInfix + newName + joinedTypeParams + implementingString + " {" + DefiningCompiler.joinParameters(parameters) + constructorString + outputContent + "\n}\n"/*unknown*/;
+			let generated = joinedModifiers + actualInfix + newName + joinedTypeParams + implementingString + " {" + joinParameters(parameters) + constructorString + outputContent + "\n}\n"/*unknown*/;
 			let compileState: CompileState = outputContentState.mapRegistry((registry: Registry) => registry.append(generated)/*unknown*/)/*unknown*/;
 			return new Some<Tuple2<CompileState, string>>(new Tuple2Impl<CompileState, string>(compileState.mapRegistry((registry1: Registry) => registry1.append("export declare const " + name + ": " + newName + ";\n")/*unknown*/), ""))/*unknown*/;
 		}
 		else {
 			let extendsString = RootCompiler.joinExtends(maybeSuperType)/*unknown*/;
-			let generated = joinedModifiers + infix + name + joinedTypeParams + extendsString + implementingString + " {" + DefiningCompiler.joinParameters(parameters) + constructorString + outputContent + "\n}\n"/*unknown*/;
+			let generated = joinedModifiers + infix + name + joinedTypeParams + extendsString + implementingString + " {" + joinParameters(parameters) + constructorString + outputContent + "\n}\n"/*unknown*/;
 			return new Some<Tuple2<CompileState, string>>(new Tuple2Impl<CompileState, string>(outputContentState.mapRegistry((registry: Registry) => registry.append(generated)/*unknown*/), ""))/*unknown*/;
 		}
 	}
 	static joinExtends(maybeSuperType: Iterable<Type>): string {
 		return maybeSuperType.iter().map((type: Type) => TypeCompiler.generateType(type)/*unknown*/).collect(new Joiner(", ")).map((inner: string) => " extends " + inner/*unknown*/).orElse("")/*unknown*/;
-	}
-	static modifyModifiers0(oldModifiers: List<string>): Iterable<string> {
-		if (oldModifiers.contains("public")/*unknown*/){
-			return Lists.of("export")/*unknown*/;
-		}
-		return Lists.empty()/*unknown*/;
 	}
 	static generateImplementing(maybeImplementing: Option<Type>): string {
 		return maybeImplementing.map((type: Type) => TypeCompiler.generateType(type)/*unknown*/).map((inner: string) => " implements " + inner/*unknown*/).orElse("")/*unknown*/;
@@ -144,5 +138,8 @@ export class RootCompiler {
 	}
 	static compileRoot(state: CompileState, input: string, location: Location): Tuple2<CompileState, string> {
 		return FunctionSegmentCompiler.compileStatements(state.mapContext((context2: Context) => context2.withLocation(location)/*unknown*/), input, RootCompiler.compileRootSegment)/*unknown*/;
+	}
+	static joinParameters(parameters: Iterable<Definition>): string {
+		return parameters.iter().map((definition: Definition) => definition.generate()/*unknown*/).map((generated: string) => "\n\t" + generated + ";"/*unknown*/).collect(Joiner.empty()).orElse("")/*unknown*/;
 	}
 }

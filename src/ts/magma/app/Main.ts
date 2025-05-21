@@ -7,7 +7,7 @@ import { Console } from "../../magma/api/io/Console";
 import { Option } from "../../magma/api/option/Option";
 import { Iters } from "../../magma/api/collect/Iters";
 import { Platform } from "../../magma/app/Platform";
-class Main {
+export class Main {
 	static main(): void {
 		let sourceDirectory = Files.get(".", "src", "java")/*unknown*/;
 		let sources = new PathSources(sourceDirectory)/*unknown*/;

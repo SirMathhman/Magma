@@ -30,7 +30,7 @@ import { StatementsFolder } from "../../magma/app/compile/fold/StatementsFolder"
 import { List } from "../../magma/api/collect/list/List";
 import { StatementsMerger } from "../../magma/app/compile/merge/StatementsMerger";
 import { Merger } from "../../magma/app/compile/merge/Merger";
-class FunctionSegmentCompiler {
+export class FunctionSegmentCompiler {
 	static compileEmptySegment(state: CompileState, input: string): Option<Tuple2<CompileState, string>> {
 		if (Strings.equalsTo(";", Strings.strip(input))/*unknown*/){
 			return new Some<Tuple2<CompileState, string>>(new Tuple2Impl<CompileState, string>(state, ";"))/*unknown*/;

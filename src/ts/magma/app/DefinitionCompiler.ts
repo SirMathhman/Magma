@@ -12,7 +12,7 @@ import { Some } from "../../magma/api/option/Some";
 import { DefiningCompiler } from "../../magma/app/DefiningCompiler";
 import { Tuple2Impl } from "../../magma/api/Tuple2Impl";
 import { Lists } from "../../jvm/api/collect/list/Lists";
-class DefinitionCompiler {
+export class DefinitionCompiler {
 	static retainDefinitionsFromParameters(parameters: Iterable<Parameter>): Iterable<Definition> {
 		return parameters.iter().map((parameter: Parameter) => parameter.asDefinition()/*unknown*/).flatMap(Iters.fromOption).collect(new ListCollector<Definition>())/*unknown*/;
 	}

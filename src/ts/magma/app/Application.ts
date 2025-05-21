@@ -17,7 +17,7 @@ import { RootCompiler } from "../../magma/app/RootCompiler";
 import { Ok } from "../../magma/api/result/Ok";
 import { Import } from "../../magma/app/compile/Import";
 import { Registry } from "../../magma/app/compile/Registry";
-class Application {
+export class Application {
 	sources: Sources;
 	targets: Targets;
 	constructor (sources: Sources, targets: Targets) {

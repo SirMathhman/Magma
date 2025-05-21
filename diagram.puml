@@ -627,7 +627,6 @@ DefiningCompiler --> FirstLocator
 DefiningCompiler --> Splitter
 DefiningCompiler --> TypeCompiler
 DefiningCompiler --> Type
-DefiningCompiler --> Joiner
 DefiningCompiler --> ValueFolder
 DefinitionCompiler --> Definition
 DefinitionCompiler --> Iterable

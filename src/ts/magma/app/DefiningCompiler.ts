@@ -31,9 +31,8 @@ import { FirstLocator } from "../../magma/app/compile/locate/FirstLocator";
 import { Splitter } from "../../magma/app/compile/split/Splitter";
 import { TypeCompiler } from "../../magma/app/TypeCompiler";
 import { Type } from "../../magma/app/compile/type/Type";
-import { Joiner } from "../../magma/api/collect/Joiner";
 import { ValueFolder } from "../../magma/app/compile/fold/ValueFolder";
-class DefiningCompiler {
+export class DefiningCompiler {
 	static retainDefinitionsFromParameters(parameters: Iterable<Parameter>): Iterable<Definition> {
 		return parameters.iter().map((parameter: Parameter) => parameter.asDefinition()/*unknown*/).flatMap(Iters.fromOption).collect(new ListCollector<Definition>())/*unknown*/;
 	}
@@ -78,19 +77,10 @@ class DefiningCompiler {
 	}
 	static parseDefinitionWithTypeParameters(state: CompileState, annotations: List<string>, typeParams: List<string>, oldModifiers: List<string>, type: string, name: string): Option<Tuple2<CompileState, Definition>> {
 		return TypeCompiler.parseType(state, type).flatMap((typeTuple: Tuple2<CompileState, Type>) => {
-			let newModifiers = DefiningCompiler.modifyModifiers(oldModifiers)/*unknown*/;
+			let newModifiers = /* oldModifiers.contains("static") ? Lists.of("static") : Lists.<String>empty()*/;
 			let generated = new Definition(annotations, newModifiers, typeParams, typeTuple.right(), name)/*unknown*/;
 			return new Some<Tuple2<CompileState, Definition>>(new Tuple2Impl<CompileState, Definition>(typeTuple.left(), generated))/*unknown*/;
 		})/*unknown*/;
-	}
-	static joinParameters(parameters: Iterable<Definition>): string {
-		return parameters.iter().map((definition: Definition) => definition.generate()/*unknown*/).map((generated: string) => "\n\t" + generated + ";"/*unknown*/).collect(Joiner.empty()).orElse("")/*unknown*/;
-	}
-	static modifyModifiers(oldModifiers: List<string>): List<string> {
-		if (oldModifiers.contains("static")/*unknown*/){
-			return Lists.of("static")/*unknown*/;
-		}
-		return Lists.empty()/*unknown*/;
 	}
 	static divideValues(input: string): List<string> {
 		return new FoldedDivider(new DecoratedFolder(new ValueFolder())).divide(input).map((input1: string) => Strings.strip(input1)/*unknown*/).filter((value: string) => !!Strings/*unknown*/.isEmpty(value)/*unknown*/).collect(new ListCollector<string>())/*unknown*/;
