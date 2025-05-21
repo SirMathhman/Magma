@@ -158,6 +158,7 @@ import { RangeHead } from "../../magma/api/collect/head/RangeHead";
 import { Characters } from "../../magma/api/text/Characters";
 import { Type } from "../../magma/app/compile/type/Type";
 import { Symbol } from "../../magma/app/compile/symbol/Symbol";
+import { PrimitiveType } from "../../magma/app/compile/type/PrimitiveType";
 import { Argument } from "../../magma/app/compile/value/Argument";
 import { Caller } from "../../magma/app/compile/value/Caller";
 import { Invokable } from "../../magma/app/compile/value/Invokable";
@@ -255,9 +256,12 @@ export class ValueCompiler {
             case Operation operation -> operation.resolve(state);
             case Placeholder placeholder -> placeholder.resolve(state);
             case StringValue stringValue -> stringValue.resolve(state);
-            case Symbol symbol -> symbol.resolve(state);
+            case Symbol symbol -> resolveSymbol(state, symbol);
             default -> PrimitiveType.Unknown;
         }*/;
+	}
+	static resolveSymbol(state: CompileState, symbol: Symbol): Type {
+		return state.stack().resolveValue(symbol.value()).map((definition: Definition) => definition.findType()/*unknown*/).orElse(PrimitiveType.Unknown)/*unknown*/;
 	}
 	static parseNumber(state: CompileState, input: string): Option<Tuple2<CompileState, Value>> {
 		let stripped = Strings.strip(input)/*unknown*/;
