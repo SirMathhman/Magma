@@ -11,8 +11,7 @@ import magma.app.io.Source;
 public record PathSources(Path sourceDirectory) implements Sources {
     @Override
     public Result<Iterable<Source>, IOError> listSources() {
-        return this.sourceDirectory()
-                .walk()
+        return this.sourceDirectory.walk()
                 .mapValue((Iterable<Path> children) -> this.retainSources(children));
     }
 
@@ -20,7 +19,11 @@ public record PathSources(Path sourceDirectory) implements Sources {
     public Iterable<Source> retainSources(Iterable<Path> children) {
         return children.iter()
                 .filter((Path source) -> source.endsWith(".java"))
-                .<Source>map((Path child) -> new PathSource(this.sourceDirectory, child))
+                .map((Path child) -> this.createSource(child))
                 .collect(new ListCollector<Source>());
+    }
+
+    private Source createSource(Path child) {
+        return new PathSource(this.sourceDirectory, child);
     }
 }

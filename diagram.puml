@@ -820,8 +820,8 @@ PathSources --> Source
 PathSources --> Iterable
 PathSources --> IOError
 PathSources --> Result
-PathSources --> PathSource
 PathSources --> ListCollector
+PathSources --> PathSource
 PathTargets --> Targets
 PathTargets --> Path
 PathTargets --> IOError
