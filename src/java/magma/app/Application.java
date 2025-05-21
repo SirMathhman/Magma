@@ -84,7 +84,7 @@ record Application(Sources sources, Targets targets) {
 
         var joined = joinedImports + compiledState.registry().output() + otherOutput;
         var cleared = state1.mapRegistry((Registry registry) -> registry.reset());
-        return this.writeTarget(source, cleared, "/*[" + segment + "\n]*/\n" + joined);
+        return this.writeTarget(source, cleared, joined);
     }
 
     private Result<CompileState, IOError> writeTarget(Source source, CompileState cleared, String output) {

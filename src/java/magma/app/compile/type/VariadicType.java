@@ -1,9 +1,10 @@
 package magma.app.compile.type;
 
+import magma.app.TypeCompiler;
+
 public record VariadicType(Type type) implements Type {
-    @Override
     public String generate() {
-        return this.type.generate() + "[]";
+        return TypeCompiler.generateType(this.type) + "[]";
     }
 
     @Override
@@ -23,6 +24,6 @@ public record VariadicType(Type type) implements Type {
 
     @Override
     public String generateSimple() {
-        return this.generate();
+        return TypeCompiler.generateType(this);
     }
 }

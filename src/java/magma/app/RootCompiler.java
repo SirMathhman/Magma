@@ -151,7 +151,7 @@ public final class RootCompiler {
 
     private static String joinExtends(Iterable<Type> maybeSuperType) {
         return maybeSuperType.iter()
-                .map((Type type) -> type.generate())
+                .map((Type type) -> TypeCompiler.generateType(type))
                 .collect(new Joiner(", "))
                 .map((String inner) -> " extends " + inner)
                 .orElse("");
@@ -165,7 +165,7 @@ public final class RootCompiler {
     }
 
     private static String generateImplementing(Option<Type> maybeImplementing) {
-        return maybeImplementing.map((Type type) -> type.generate())
+        return maybeImplementing.map((Type type) -> TypeCompiler.generateType(type))
                 .map((String inner) -> " implements " + inner)
                 .orElse("");
     }

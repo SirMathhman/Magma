@@ -3,9 +3,9 @@ package magma.app.compile.type;
 import magma.api.Tuple2;
 import magma.api.collect.Joiner;
 import magma.api.collect.list.Iterable;
+import magma.app.TypeCompiler;
 
 public record FunctionType(Iterable<String> args, String returns) implements Type {
-    @Override
     public String generate() {
         var joinedArguments = this.args
                 .iterWithIndices()
@@ -33,6 +33,6 @@ public record FunctionType(Iterable<String> args, String returns) implements Typ
 
     @Override
     public String generateSimple() {
-        return this.generate();
+        return TypeCompiler.generateType(this);
     }
 }

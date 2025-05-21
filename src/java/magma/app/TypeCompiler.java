@@ -15,22 +15,23 @@ import magma.app.compile.Registry;
 import magma.app.compile.compose.Composable;
 import magma.app.compile.compose.SplitComposable;
 import magma.app.compile.compose.SuffixComposable;
+import magma.app.compile.locate.FirstLocator;
 import magma.app.compile.rule.OrRule;
+import magma.app.compile.split.LocatingSplitter;
 import magma.app.compile.split.Splitter;
 import magma.app.compile.symbol.Symbols;
 import magma.app.compile.type.FunctionType;
+import magma.app.compile.type.Placeholder;
 import magma.app.compile.type.PrimitiveType;
+import magma.app.compile.type.Symbol;
 import magma.app.compile.type.TemplateType;
 import magma.app.compile.type.Type;
 import magma.app.compile.type.VariadicType;
-import magma.app.compile.value.Placeholder;
 import magma.app.io.Source;
-import magma.app.compile.locate.FirstLocator;
-import magma.app.compile.split.LocatingSplitter;
 
 public final class TypeCompiler {
     public static Option<Tuple2<CompileState, String>> compileType(CompileState state, String type) {
-        return TypeCompiler.parseType(state, type).map((Tuple2<CompileState, Type> tuple) -> new Tuple2Impl<CompileState, String>(tuple.left(), tuple.right().generate()));
+        return TypeCompiler.parseType(state, type).map((Tuple2<CompileState, Type> tuple) -> new Tuple2Impl<CompileState, String>(tuple.left(), TypeCompiler.generateType(tuple.right())));
     }
 
     public static Option<Tuple2<CompileState, Type>> parseType(CompileState state, String type) {
@@ -84,15 +85,15 @@ public final class TypeCompiler {
             Splitter splitter = new LocatingSplitter("<", new FirstLocator());
             return new SplitComposable<Tuple2<CompileState, Type>>(splitter, Composable.toComposable((String baseString, String argsString) -> {
                 var argsTuple = ValueCompiler.values((CompileState state1, String s) -> TypeCompiler.compileTypeArgument(state1, s)).apply(state, argsString).orElse(new Tuple2Impl<CompileState, List<String>>(state, Lists.empty()));
-                    var argsState = argsTuple.left();
-                    var args = argsTuple.right();
+                var argsState = argsTuple.left();
+                var args = argsTuple.right();
 
-                    var base = Strings.strip(baseString);
-                    return TypeCompiler.assembleFunctionType(argsState, base, args).or(() -> {
-                        var compileState = TypeCompiler.addResolvedImportFromCache0(argsState, base);
-                        return new Some<Tuple2<CompileState, Type>>(new Tuple2Impl<CompileState, Type>(compileState, new TemplateType(base, args)));
-                    });
-                })).apply(withoutEnd);
+                var base = Strings.strip(baseString);
+                return TypeCompiler.assembleFunctionType(argsState, base, args).or(() -> {
+                    var compileState = TypeCompiler.addResolvedImportFromCache0(argsState, base);
+                    return new Some<Tuple2<CompileState, Type>>(new Tuple2Impl<CompileState, Type>(compileState, new TemplateType(base, args)));
+                });
+            })).apply(withoutEnd);
         }).apply(Strings.strip(input));
     }
 
@@ -201,5 +202,16 @@ public final class TypeCompiler {
         }
 
         return copy;
+    }
+
+    public static String generateType(Type type) {
+        return switch (type) {
+            case FunctionType functionType -> functionType.generate();
+            case Placeholder placeholder -> placeholder.generate();
+            case PrimitiveType primitiveType -> primitiveType.generate();
+            case Symbol symbol -> symbol.generate();
+            case TemplateType templateType -> templateType.generate();
+            case VariadicType variadicType -> variadicType.generate();
+        };
     }
 }

@@ -24,7 +24,7 @@ import magma.app.compile.split.FoldingSplitter;
 import magma.app.compile.split.Splitter;
 import magma.app.compile.text.Whitespace;
 import magma.app.compile.type.Type;
-import magma.app.compile.value.Placeholder;
+import magma.app.compile.type.Placeholder;
 import magma.app.compile.divide.FoldedDivider;
 import magma.app.compile.fold.DecoratedFolder;
 import magma.app.compile.fold.TypeSeparatorFolder;

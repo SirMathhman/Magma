@@ -5,7 +5,6 @@ import magma.app.compile.merge.Merger;
 import magma.app.compile.merge.ValueMerger;
 
 public record TemplateType(String base, Iterable<String> args) implements Type {
-    @Override
     public String generate() {
         return this.base + "<" + Merger.generateAll(this.args, new ValueMerger()) + ">";
     }

@@ -11,6 +11,7 @@ import magma.api.text.Characters;
 import magma.api.text.Strings;
 import magma.app.TypeCompiler;
 import magma.app.compile.CompileState;
+import magma.app.compile.type.Symbol;
 import magma.app.compile.type.Type;
 import magma.app.compile.value.Value;
 

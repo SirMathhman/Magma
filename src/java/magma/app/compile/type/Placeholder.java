@@ -1,12 +1,12 @@
-package magma.app.compile.value;
+package magma.app.compile.type;
 
 import magma.api.option.None;
 import magma.api.option.Option;
+import magma.app.TypeCompiler;
 import magma.app.compile.CompileState;
 import magma.app.compile.define.Definition;
 import magma.app.compile.define.Parameter;
-import magma.app.compile.type.PrimitiveType;
-import magma.app.compile.type.Type;
+import magma.app.compile.value.Value;
 
 public record Placeholder(String input) implements Parameter, Value, Type {
     public static String generatePlaceholder(String input) {
@@ -17,7 +17,6 @@ public record Placeholder(String input) implements Parameter, Value, Type {
         return "/*" + replaced + "*/";
     }
 
-    @Override
     public String generate() {
         return Placeholder.generatePlaceholder(this.input);
     }
@@ -63,6 +62,6 @@ public record Placeholder(String input) implements Parameter, Value, Type {
 
     @Override
     public String generateSimple() {
-        return this.generate();
+        return TypeCompiler.generateType(this);
     }
 }

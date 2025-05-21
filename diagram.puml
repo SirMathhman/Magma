@@ -195,8 +195,6 @@ interface Splitter {
 }
 interface Stack {
 }
-class Symbol {
-}
 class Symbols {
 }
 class Whitespace {
@@ -205,14 +203,16 @@ Whitespace <|.. Parameter
 class FunctionType {
 }
 FunctionType <|.. Type
+class Placeholder {
+}
 class PrimitiveType {
 }
 PrimitiveType <|.. Type
+class Symbol {
+}
 class TemplateType {
 }
 TemplateType <|.. Type
-interface Type {
-}
 class VariadicType {
 }
 VariadicType <|.. Type
@@ -235,8 +235,6 @@ Not <|.. Value
 class Operation {
 }
 Operation <|.. Value
-class Placeholder {
-}
 class StringValue {
 }
 StringValue <|.. Value
@@ -416,6 +414,7 @@ Definition --> Type
 Definition --> Option
 Definition --> Some
 Definition --> Joiner
+Definition --> TypeCompiler
 Definition --> RootCompiler
 Definition --> MethodHeader
 Definition --> Strings
@@ -552,10 +551,6 @@ Splitter --> Option
 Stack --> Option
 Stack --> Definition
 Stack --> Iterable
-Symbol --> Value
-Symbol --> Option
-Symbol --> Some
-Symbol --> None
 Symbols --> CompileState
 Symbols --> Type
 Symbols --> Tuple2
@@ -578,12 +573,28 @@ FunctionType --> Type
 FunctionType --> Iterable
 FunctionType --> Tuple2
 FunctionType --> Joiner
+FunctionType --> TypeCompiler
+Placeholder --> Value
+Placeholder --> Option
+Placeholder --> None
+Placeholder --> Definition
+Placeholder --> Type
+Placeholder --> CompileState
+Placeholder --> PrimitiveType
+Placeholder --> TypeCompiler
 PrimitiveType --> Type
+PrimitiveType --> TypeCompiler
+Symbol --> Value
+Symbol --> Option
+Symbol --> Some
+Symbol --> None
+Symbol --> TypeCompiler
 TemplateType --> Type
 TemplateType --> Iterable
 TemplateType --> Merger
 TemplateType --> ValueMerger
 VariadicType --> Type
+VariadicType --> TypeCompiler
 AccessValue --> Value
 AccessValue --> Option
 AccessValue --> Some
@@ -629,13 +640,6 @@ Operation --> None
 Operation --> Type
 Operation --> CompileState
 Operation --> PrimitiveType
-Placeholder --> Value
-Placeholder --> Option
-Placeholder --> None
-Placeholder --> Definition
-Placeholder --> Type
-Placeholder --> CompileState
-Placeholder --> PrimitiveType
 StringValue --> Value
 StringValue --> Option
 StringValue --> Some
@@ -875,6 +879,7 @@ ValueCompiler --> Tuple2Impl
 ValueCompiler --> Value
 ValueCompiler --> Tuple2
 ValueCompiler --> Placeholder
+ValueCompiler --> TypeCompiler
 ValueCompiler --> Option
 ValueCompiler --> SuffixComposable
 ValueCompiler --> SplitComposable
@@ -884,7 +889,6 @@ ValueCompiler --> FoldingSplitter
 ValueCompiler --> DivideState
 ValueCompiler --> Composable
 ValueCompiler --> PrefixComposable
-ValueCompiler --> TypeCompiler
 ValueCompiler --> ConstructionCaller
 ValueCompiler --> Strings
 ValueCompiler --> Rule

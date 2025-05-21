@@ -7,6 +7,7 @@ import magma.api.option.Option;
 import magma.api.option.Some;
 import magma.api.text.Strings;
 import magma.app.RootCompiler;
+import magma.app.TypeCompiler;
 import magma.app.compile.type.Type;
 
 public record Definition(
@@ -45,7 +46,7 @@ public record Definition(
             return "";
         }
 
-        return ": " + this.type.generate();
+        return ": " + TypeCompiler.generateType(this.type);
     }
 
     private String joinTypeParams() {

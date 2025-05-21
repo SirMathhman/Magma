@@ -1,13 +1,12 @@
-package magma.app.compile.symbol;
+package magma.app.compile.type;
 
 import magma.api.option.None;
 import magma.api.option.Option;
 import magma.api.option.Some;
-import magma.app.compile.type.Type;
+import magma.app.TypeCompiler;
 import magma.app.compile.value.Value;
 
 public record Symbol(String value) implements Value, Type {
-    @Override
     public String generate() {
         return this.value;
     }
@@ -44,6 +43,6 @@ public record Symbol(String value) implements Value, Type {
 
     @Override
     public String generateSimple() {
-        return this.generate();
+        return TypeCompiler.generateType(this);
     }
 }

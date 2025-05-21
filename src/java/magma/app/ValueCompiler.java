@@ -41,9 +41,9 @@ import magma.app.compile.value.Invokable;
 import magma.app.compile.value.Lambda;
 import magma.app.compile.value.Not;
 import magma.app.compile.value.Operation;
-import magma.app.compile.value.Placeholder;
+import magma.app.compile.type.Placeholder;
 import magma.app.compile.value.StringValue;
-import magma.app.compile.symbol.Symbol;
+import magma.app.compile.type.Symbol;
 import magma.app.compile.value.Value;
 import magma.app.compile.fold.OperatorFolder;
 import magma.app.compile.locate.FirstLocator;
@@ -57,7 +57,7 @@ public final class ValueCompiler {
         var state = tuple.left();
         var right = tuple.right();
         var generated = right.generate();
-        var s = Placeholder.generatePlaceholder(ValueCompiler.resolve(state, right).generate());
+        var s = Placeholder.generatePlaceholder(TypeCompiler.generateType(ValueCompiler.resolve(state, right)));
         return new Tuple2Impl<CompileState, String>(state, generated + s);
     }
 
