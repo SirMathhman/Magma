@@ -1,6 +1,7 @@
 package magma.app.compile;
 
 import magma.api.collect.list.Iterable;
+import magma.api.collect.list.List;
 import magma.api.option.Option;
 import magma.app.compile.define.Definition;
 
@@ -18,4 +19,8 @@ public interface Stack {
     Stack defineAll(Iterable<Definition> definitions);
 
     Stack popStructureName();
+
+    List<Definition> findLastDefinitions();
+
+    Stack define(Definition definition);
 }

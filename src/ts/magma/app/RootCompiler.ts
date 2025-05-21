@@ -41,20 +41,20 @@ export class RootCompiler {
 			if (annotations.contains("Actual")/*unknown*/){
 				return new Some<Tuple2<CompileState, string>>(new Tuple2Impl<CompileState, string>(state, ""))/*unknown*/;
 			}
-			return RootCompiler.compileStructureWithImplementing(state, annotations, DefiningCompiler.parseModifiers(s2), targetInfix, beforeContent, inputContent)/*unknown*/;
+			return RootCompiler.compileStructureWithImplementing(state, annotations, DefiningCompiler.parseModifiers(s2), targetInfix, beforeContent, inputContent, sourceInfix)/*unknown*/;
 		}).or(() => {
 			let modifiers = DefiningCompiler.parseModifiers(beforeContent)/*unknown*/;
-			return RootCompiler.compileStructureWithImplementing(state, Lists.empty(), modifiers, targetInfix, beforeContent, inputContent)/*unknown*/;
+			return RootCompiler.compileStructureWithImplementing(state, Lists.empty(), modifiers, targetInfix, beforeContent, inputContent, sourceInfix)/*unknown*/;
 		})/*unknown*/).apply(Strings.strip(withEnd))/*unknown*/)).apply(afterInfix)/*unknown*/)).apply(input1)/*unknown*//*unknown*/;
 	}
-	static compileStructureWithImplementing(state: CompileState, annotations: List<string>, modifiers: List<string>, targetInfix: string, beforeContent: string, content: string): Option<Tuple2<CompileState, string>> {
-		return SplitComposable.compileLast(beforeContent, " implements ", (s: string, s2: string) => TypeCompiler.parseType(state, s2).flatMap((implementingTuple: Tuple2<CompileState, Type>) => RootCompiler.compileStructureWithExtends(implementingTuple.left(), annotations, modifiers, targetInfix, s, new Some<Type>(implementingTuple.right()), content)/*unknown*/)/*unknown*/).or(() => RootCompiler.compileStructureWithExtends(state, annotations, modifiers, targetInfix, beforeContent, new None<Type>(), content)/*unknown*/)/*unknown*/;
+	static compileStructureWithImplementing(state: CompileState, annotations: List<string>, modifiers: List<string>, targetInfix: string, beforeContent: string, content: string, sourceInfix: string): Option<Tuple2<CompileState, string>> {
+		return SplitComposable.compileLast(beforeContent, " implements ", (s: string, s2: string) => TypeCompiler.parseType(state, s2).flatMap((implementingTuple: Tuple2<CompileState, Type>) => RootCompiler.compileStructureWithExtends(implementingTuple.left(), annotations, targetInfix, s, new Some<Type>(implementingTuple.right()), content, sourceInfix)/*unknown*/)/*unknown*/).or(() => RootCompiler.compileStructureWithExtends(state, annotations, targetInfix, beforeContent, new None<Type>(), content, sourceInfix)/*unknown*/)/*unknown*/;
 	}
-	static compileStructureWithExtends(state: CompileState, annotations: List<string>, modifiers: List<string>, targetInfix: string, beforeContent: string, maybeImplementing: Option<Type>, inputContent: string): Option<Tuple2<CompileState, string>> {
+	static compileStructureWithExtends(state: CompileState, annotations: List<string>, targetInfix: string, beforeContent: string, maybeImplementing: Option<Type>, inputContent: string, sourceInfix: string): Option<Tuple2<CompileState, string>> {
 		let splitter: Splitter = new LocatingSplitter(" extends ", new FirstLocator())/*unknown*/;
-		return new SplitComposable<Tuple2<CompileState, string>>(splitter, Composable.toComposable((beforeExtends: string, afterExtends: string) => ValueCompiler.values((inner0: CompileState, inner1: string) => TypeCompiler.parseType(inner0, inner1)/*unknown*/).apply(state, afterExtends).flatMap((compileStateListTuple2: Tuple2<CompileState, List<Type>>) => RootCompiler.compileStructureWithParameters(compileStateListTuple2.left(), annotations, modifiers, targetInfix, beforeExtends, compileStateListTuple2.right(), maybeImplementing, inputContent)/*unknown*/)/*unknown*/)).apply(beforeContent).or(() => RootCompiler.compileStructureWithParameters(state, annotations, modifiers, targetInfix, beforeContent, Lists.empty(), maybeImplementing, inputContent)/*unknown*/)/*unknown*/;
+		return new SplitComposable<Tuple2<CompileState, string>>(splitter, Composable.toComposable((beforeExtends: string, afterExtends: string) => ValueCompiler.values((inner0: CompileState, inner1: string) => TypeCompiler.parseType(inner0, inner1)/*unknown*/).apply(state, afterExtends).flatMap((compileStateListTuple2: Tuple2<CompileState, List<Type>>) => RootCompiler.compileStructureWithParameters(compileStateListTuple2.left(), annotations, targetInfix, beforeExtends, compileStateListTuple2.right(), maybeImplementing, inputContent, sourceInfix)/*unknown*/)/*unknown*/)).apply(beforeContent).or(() => RootCompiler.compileStructureWithParameters(state, annotations, targetInfix, beforeContent, Lists.empty(), maybeImplementing, inputContent, sourceInfix)/*unknown*/)/*unknown*/;
 	}
-	static compileStructureWithParameters(state: CompileState, annotations: List<string>, modifiers: List<string>, targetInfix: string, beforeContent: string, maybeSuperType: Iterable<Type>, maybeImplementing: Option<Type>, inputContent: string): Option<Tuple2<CompileState, string>> {
+	static compileStructureWithParameters(state: CompileState, annotations: List<string>, targetInfix: string, beforeContent: string, maybeSuperType: Iterable<Type>, maybeImplementing: Option<Type>, inputContent: string, sourceInfix: string): Option<Tuple2<CompileState, string>> {
 		let splitter1: Splitter = new LocatingSplitter("(", new FirstLocator())/*unknown*/;
 		return new SplitComposable<Tuple2<CompileState, string>>(splitter1, Composable.toComposable((rawName: string, withParameters: string) => {
 			let splitter: Splitter = new LocatingSplitter(")", new FirstLocator())/*unknown*/;
@@ -62,20 +62,20 @@ export class RootCompiler {
 				let name = Strings.strip(rawName)/*unknown*/;
 				let parametersTuple = DefiningCompiler.parseParameters(state, parametersString)/*unknown*/;
 				let parameters = DefiningCompiler.retainDefinitionsFromParameters(parametersTuple.right())/*unknown*/;
-				return RootCompiler.compileStructureWithTypeParams(parametersTuple.left(), targetInfix, inputContent, name, parameters, maybeImplementing, annotations, modifiers, maybeSuperType)/*unknown*/;
+				return RootCompiler.compileStructureWithTypeParams(parametersTuple.left(), targetInfix, inputContent, name, parameters, maybeImplementing, annotations, maybeSuperType, sourceInfix)/*unknown*/;
 			})).apply(withParameters)/*unknown*/;
-		})).apply(beforeContent).or(() => RootCompiler.compileStructureWithTypeParams(state, targetInfix, inputContent, beforeContent, Lists.empty(), maybeImplementing, annotations, modifiers, maybeSuperType)/*unknown*/)/*unknown*/;
+		})).apply(beforeContent).or(() => RootCompiler.compileStructureWithTypeParams(state, targetInfix, inputContent, beforeContent, Lists.empty(), maybeImplementing, annotations, maybeSuperType, sourceInfix)/*unknown*/)/*unknown*/;
 	}
-	static compileStructureWithTypeParams(state: CompileState, infix: string, content: string, beforeParams: string, parameters: Iterable<Definition>, maybeImplementing: Option<Type>, annotations: List<string>, modifiers: List<string>, maybeSuperType: Iterable<Type>): Option<Tuple2<CompileState, string>> {
+	static compileStructureWithTypeParams(state: CompileState, infix: string, content: string, beforeParams: string, parameters: Iterable<Definition>, maybeImplementing: Option<Type>, annotations: List<string>, maybeSuperType: Iterable<Type>, sourceInfix: string): Option<Tuple2<CompileState, string>> {
 		return new SuffixComposable<Tuple2<CompileState, string>>(">", (withoutTypeParamEnd: string) => {
 			let splitter: Splitter = new LocatingSplitter("<", new FirstLocator())/*unknown*/;
 			return new SplitComposable<Tuple2<CompileState, string>>(splitter, Composable.toComposable((name: string, typeParamsString: string) => {
 				let typeParams = DefiningCompiler.divideValues(typeParamsString)/*unknown*/;
-				return RootCompiler.assembleStructure(state, annotations, modifiers, infix, name, typeParams, parameters, maybeImplementing, content, maybeSuperType)/*unknown*/;
+				return RootCompiler.assembleStructure(state, annotations, infix, name, typeParams, parameters, maybeImplementing, content, maybeSuperType, sourceInfix)/*unknown*/;
 			})).apply(withoutTypeParamEnd)/*unknown*/;
-		}).apply(Strings.strip(beforeParams)).or(() => RootCompiler.assembleStructure(state, annotations, modifiers, infix, beforeParams, Lists.empty(), parameters, maybeImplementing, content, maybeSuperType)/*unknown*/)/*unknown*/;
+		}).apply(Strings.strip(beforeParams)).or(() => RootCompiler.assembleStructure(state, annotations, infix, beforeParams, Lists.empty(), parameters, maybeImplementing, content, maybeSuperType, sourceInfix)/*unknown*/)/*unknown*/;
 	}
-	static assembleStructure(state: CompileState, annotations: List<string>, oldModifiers: List<string>, infix: string, rawName: string, typeParams: Iterable<string>, parameters: Iterable<Definition>, maybeImplementing: Option<Type>, content: string, maybeSuperType: Iterable<Type>): Option<Tuple2<CompileState, string>> {
+	static assembleStructure(state: CompileState, annotations: List<string>, targetInfix: string, rawName: string, typeParams: Iterable<string>, parameters: Iterable<Definition>, maybeImplementing: Option<Type>, content: string, maybeSuperType: Iterable<Type>, sourceInfix: string): Option<Tuple2<CompileState, string>> {
 		let name = Strings.strip(rawName)/*unknown*/;
 		if (!!Symbols/*unknown*/.isSymbol(name)/*unknown*/){
 			return new None<Tuple2<CompileState, string>>()/*unknown*/;
@@ -91,21 +91,30 @@ export class RootCompiler {
 		if (outputContentState.context().hasPlatform(Platform.PlantUML)/*unknown*/){
 			let joinedImplementing = maybeImplementing.map((type: Type) => type.generateSimple()/*unknown*/).map((generated: string) => name + " <|.. " + generated + "\n"/*unknown*/).orElse("")/*unknown*/;
 			let joinedSuperTypes = maybeSuperType.iter().map((type: Type) => type.generateSimple()/*unknown*/).map((generated: string) => name + " <|-- " + generated + "\n"/*unknown*/).collect(new Joiner("")).orElse("")/*unknown*/;
-			let generated = infix + name + joinedTypeParams + " {\n}\n" + joinedSuperTypes + joinedImplementing/*unknown*/;
+			let generated = targetInfix + name + joinedTypeParams + " {\n}\n" + joinedSuperTypes + joinedImplementing/*unknown*/;
 			return new Some<Tuple2<CompileState, string>>(new Tuple2Impl<CompileState, string>(outputContentState.mapRegistry((registry: Registry) => registry.append(generated)/*unknown*/), ""))/*unknown*/;
 		}
 		if (annotations.contains("Namespace")/*unknown*/){
 			let actualInfix: string = "interface "/*string*/;
 			let newName: string = name + "Instance"/*unknown*/;
-			let generated = joinedModifiers + actualInfix + newName + joinedTypeParams + implementingString + " {" + joinParameters(parameters) + constructorString + outputContent + "\n}\n"/*unknown*/;
-			let compileState: CompileState = outputContentState.mapRegistry((registry: Registry) => registry.append(generated)/*unknown*/)/*unknown*/;
+			let generated = joinedModifiers + actualInfix + newName + joinedTypeParams + implementingString + " {" + RootCompiler.joinParameters(parameters) + constructorString + outputContent + "\n}\n"/*unknown*/;
+			let compileState = outputContentState.mapRegistry((registry: Registry) => registry.append(generated)/*unknown*/)/*unknown*/;
 			return new Some<Tuple2<CompileState, string>>(new Tuple2Impl<CompileState, string>(compileState.mapRegistry((registry1: Registry) => registry1.append("export declare const " + name + ": " + newName + ";\n")/*unknown*/), ""))/*unknown*/;
 		}
-		else {
-			let extendsString = RootCompiler.joinExtends(maybeSuperType)/*unknown*/;
-			let generated = joinedModifiers + infix + name + joinedTypeParams + extendsString + implementingString + " {" + joinParameters(parameters) + constructorString + outputContent + "\n}\n"/*unknown*/;
-			return new Some<Tuple2<CompileState, string>>(new Tuple2Impl<CompileState, string>(outputContentState.mapRegistry((registry: Registry) => registry.append(generated)/*unknown*/), ""))/*unknown*/;
+		let maybeValuesMethod = RootCompiler.generateValuesMethod(sourceInfix, outputContentState, name)/*unknown*/;
+		let extendsString = RootCompiler.joinExtends(maybeSuperType)/*unknown*/;
+		let generated = joinedModifiers + targetInfix + name + joinedTypeParams + extendsString + implementingString + " {" + RootCompiler.joinParameters(parameters) + constructorString + outputContent + maybeValuesMethod + "\n}\n"/*unknown*/;
+		return new Some<Tuple2<CompileState, string>>(new Tuple2Impl<CompileState, string>(outputContentState.mapRegistry((registry: Registry) => registry.append(generated)/*unknown*/), ""))/*unknown*/;
+	}
+	static generateValuesMethod(sourceInfix: string, outputContentState: CompileState, name: string): string {
+		if (!!"enum "/*string*/.equals(sourceInfix)/*unknown*/){
+			return ""/*string*/;
 		}
+		let joined = RootCompiler.mergeEnumValues(outputContentState, name)/*unknown*/;
+		return "\n\tstatic values(): " + name + "[] {\n\t\treturn [" + joined + "];\n\t}"/*unknown*/;
+	}
+	static mergeEnumValues(outputContentState: CompileState, name: string): string {
+		return outputContentState.stack().findLastDefinitions().iter().map((definition: Definition) => name + "." + definition.name()/*unknown*/).collect(new Joiner(", ")).orElse("")/*unknown*/;
 	}
 	static joinExtends(maybeSuperType: Iterable<Type>): string {
 		return maybeSuperType.iter().map((type: Type) => TypeCompiler.generateType(type)/*unknown*/).collect(new Joiner(", ")).map((inner: string) => " extends " + inner/*unknown*/).orElse("")/*unknown*/;

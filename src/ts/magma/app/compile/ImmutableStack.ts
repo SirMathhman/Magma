@@ -36,4 +36,10 @@ export class ImmutableStack implements Stack {
 	popStructureName(): Stack {
 		return new ImmutableStack(this.structureNames().removeLast().orElse(this.structureNames()), this.definitions())/*unknown*/;
 	}
+	findLastDefinitions(): List<Definition> {
+		return this.definitions/*unknown*/;
+	}
+	define(definition: Definition): Stack {
+		return new ImmutableStack(this.structureNames, this.definitions.addLast(definition))/*unknown*/;
+	}
 }

@@ -1,6 +1,7 @@
 import { List } from "../../../../magma/api/collect/list/List";
 import { Iterable } from "../../../../magma/api/collect/list/Iterable";
 import { Type } from "../../../../magma/app/compile/type/Type";
+import { Lists } from "../../../../jvm/api/collect/list/Lists";
 import { Option } from "../../../../magma/api/option/Option";
 import { Some } from "../../../../magma/api/option/Some";
 import { Joiner } from "../../../../magma/api/collect/Joiner";
@@ -20,6 +21,9 @@ export class Definition {
 		this.typeParams = typeParams;
 		this.type = type;
 		this.name = name;
+	}
+	static from(type: Type, name: string): Definition {
+		return new Definition(Lists.empty(), Lists.empty(), Lists.empty(), type, name)/*unknown*/;
 	}
 	generate(): string {
 		return this.generateWithAfterName("")/*unknown*/;

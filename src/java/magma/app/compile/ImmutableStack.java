@@ -50,4 +50,14 @@ public record ImmutableStack(List<String> structureNames, List<Definition> defin
     public Stack popStructureName() {
         return new ImmutableStack(this.structureNames().removeLast().orElse(this.structureNames()), this.definitions());
     }
+
+    @Override
+    public List<Definition> findLastDefinitions() {
+        return this.definitions;
+    }
+
+    @Override
+    public Stack define(Definition definition) {
+        return new ImmutableStack(this.structureNames, this.definitions.addLast(definition));
+    }
 }

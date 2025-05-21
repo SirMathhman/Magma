@@ -1,5 +1,6 @@
 package magma.app.compile.define;
 
+import jvm.api.collect.list.Lists;
 import magma.api.collect.Joiner;
 import magma.api.collect.list.Iterable;
 import magma.api.collect.list.List;
@@ -17,6 +18,10 @@ public record Definition(
         Type type,
         String name
 ) implements MethodHeader, Parameter {
+    public static Definition from(Type type, String name) {
+        return new Definition(Lists.empty(), Lists.empty(), Lists.empty(), type, name);
+    }
+
     @Override
     public String generate() {
         return this.generateWithAfterName("");

@@ -22,7 +22,9 @@ import magma.app.compile.locate.FirstLocator;
 import magma.app.compile.split.LocatingSplitter;
 import magma.app.compile.split.Splitter;
 import magma.app.compile.symbol.Symbols;
+import magma.app.compile.type.PrimitiveType;
 import magma.app.compile.value.Invokable;
+import magma.app.compile.value.Symbol;
 import magma.app.compile.value.Value;
 
 final class FieldCompiler {
@@ -96,15 +98,16 @@ final class FieldCompiler {
     public static Option<Tuple2<CompileState, String>> compileEnumValues(CompileState state, String withoutEnd) {
         return ValueCompiler.values((CompileState state1, String segment) -> {
             var stripped = segment.strip();
+            var state2 = state1.mapStack(stack -> stack.define(Definition.from(new Symbol("?"), stripped)));
             if (Symbols.isSymbol(stripped)) {
-                return new Some<Tuple2<CompileState, String>>(new Tuple2Impl<CompileState, String>(state1, "\n\t static " + stripped + " = \"" + stripped + "\";"));
+                return new Some<Tuple2<CompileState, String>>(new Tuple2Impl<CompileState, String>(state2, "\n\t static " + stripped + " = \"" + stripped + "\";"));
             }
 
-            return FieldCompiler.getTuple2Option(state, state1, segment);
+            return FieldCompiler.compileEnumValue(state, state2, segment);
         }).apply(state, withoutEnd).map((Tuple2<CompileState, List<String>> tuple) -> new Tuple2Impl<CompileState, String>(tuple.left(), tuple.right().iter().collect(new Joiner("")).orElse("")));
     }
 
-    private static Option<Tuple2<CompileState, String>> getTuple2Option(CompileState state, CompileState state1, String segment) {
+    private static Option<Tuple2<CompileState, String>> compileEnumValue(CompileState state, CompileState state1, String segment) {
         return ValueCompiler.parseInvokable(state1, segment).flatMap((Tuple2<CompileState, Value> tuple) -> {
             var structureName = state.stack().findLastStructureName().orElse("");
             return FieldCompiler.getStringOption(structureName, tuple.right()).map((String stringOption) -> new Tuple2Impl<CompileState, String>(tuple.left(), stringOption));

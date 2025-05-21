@@ -23,4 +23,7 @@ export class PrimitiveType implements Type {
 	generateSimple(): string {
 		return TypeCompiler.generateType(this)/*unknown*/;
 	}
+	static values(): PrimitiveType[] {
+		return [PrimitiveType.String("string"), PrimitiveType.Number("number"), PrimitiveType.Boolean("boolean"), PrimitiveType.Var("var"), PrimitiveType.Void("void"), PrimitiveType.Unknown("unknown"), PrimitiveType.value];
+	}
 }

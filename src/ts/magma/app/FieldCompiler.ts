@@ -21,6 +21,7 @@ import { FunctionSegmentCompiler } from "../../magma/app/FunctionSegmentCompiler
 import { Stack } from "../../magma/app/compile/Stack";
 import { Parameter } from "../../magma/app/compile/define/Parameter";
 import { ValueCompiler } from "../../magma/app/ValueCompiler";
+import { Symbol } from "../../magma/app/compile/value/Symbol";
 import { Symbols } from "../../magma/app/compile/symbol/Symbols";
 import { List } from "../../magma/api/collect/list/List";
 import { Value } from "../../magma/app/compile/value/Value";
@@ -76,13 +77,14 @@ export class FieldCompiler {
 	static compileEnumValues(state: CompileState, withoutEnd: string): Option<Tuple2<CompileState, string>> {
 		return ValueCompiler.values((state1: CompileState, segment: string) => {
 			let stripped = segment.strip()/*unknown*/;
+			let state2 = state1.mapStack(stack -  > stack.define(Definition.from(new Symbol("?"), stripped)))/*unknown*/;
 			if (Symbols.isSymbol(stripped)/*unknown*/){
-				return new Some<Tuple2<CompileState, string>>(new Tuple2Impl<CompileState, string>(state1, "\n\t static " + stripped + " = \"" + stripped + "\";"))/*unknown*/;
+				return new Some<Tuple2<CompileState, string>>(new Tuple2Impl<CompileState, string>(state2, "\n\t static " + stripped + " = \"" + stripped + "\";"))/*unknown*/;
 			}
-			return FieldCompiler.getTuple2Option(state, state1, segment)/*unknown*/;
+			return FieldCompiler.compileEnumValue(state, state2, segment)/*unknown*/;
 		}).apply(state, withoutEnd).map((tuple: Tuple2<CompileState, List<string>>) => new Tuple2Impl<CompileState, string>(tuple.left(), tuple.right().iter().collect(new Joiner("")).orElse(""))/*unknown*/)/*unknown*/;
 	}
-	static getTuple2Option(state: CompileState, state1: CompileState, segment: string): Option<Tuple2<CompileState, string>> {
+	static compileEnumValue(state: CompileState, state1: CompileState, segment: string): Option<Tuple2<CompileState, string>> {
 		return ValueCompiler.parseInvokable(state1, segment).flatMap((tuple: Tuple2<CompileState, Value>) => {
 			let structureName = state.stack().findLastStructureName().orElse("")/*unknown*/;
 			return FieldCompiler.getStringOption(structureName, tuple.right()).map((stringOption: string) => new Tuple2Impl<CompileState, string>(tuple.left(), stringOption)/*unknown*/)/*unknown*/;

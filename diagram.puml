@@ -409,6 +409,7 @@ ConstructorHeader --> MethodHeader
 Definition --> List
 Definition --> Iterable
 Definition --> Type
+Definition --> Lists
 Definition --> Option
 Definition --> Some
 Definition --> Joiner
@@ -549,6 +550,7 @@ Splitter --> Option
 Stack --> Option
 Stack --> Definition
 Stack --> Iterable
+Stack --> List
 Symbols --> CompileState
 Symbols --> Type
 Symbols --> Tuple2
@@ -676,6 +678,7 @@ FieldCompiler --> FunctionSegmentCompiler
 FieldCompiler --> Stack
 FieldCompiler --> Parameter
 FieldCompiler --> ValueCompiler
+FieldCompiler --> Symbol
 FieldCompiler --> Symbols
 FieldCompiler --> List
 FieldCompiler --> Value
