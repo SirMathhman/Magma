@@ -133,13 +133,13 @@ export class ValueCompiler {
 		return query.map(input.charAt).allMatch((c: string) => Characters.isDigit(c)/*unknown*/)/*unknown*/;
 	}
 	static resolve(state: CompileState, value: Value): Type {/*return switch (value) {
-            case AccessValue accessValue -> accessValue.resolve(state);
-            case Invokable invokable -> invokable.resolve(state);
-            case Lambda lambda -> lambda.resolve(state);
-            case Not not -> not.resolve(state);
-            case Operation operation -> operation.resolve(state);
-            case Placeholder placeholder -> placeholder.resolve(state);
-            case StringValue stringValue -> stringValue.resolve(state);
+            case AccessValue accessValue -> PrimitiveType.Unknown;
+            case Invokable invokable -> PrimitiveType.Unknown;
+            case Lambda lambda -> PrimitiveType.Unknown;
+            case Not not -> PrimitiveType.Unknown;
+            case Operation operation -> PrimitiveType.Unknown;
+            case Placeholder placeholder -> PrimitiveType.Unknown;
+            case StringValue stringValue -> PrimitiveType.Unknown;
             case Symbol symbol -> ValueCompiler.resolveSymbol(state, symbol);
             default -> PrimitiveType.Unknown;
         }*/;
@@ -229,7 +229,7 @@ export class ValueCompiler {
 		return Placeholder.generatePlaceholder(placeholder.input())/*unknown*/;
 	}
 	static generateOperation(operation: Operation): string {
-		return generateCaller(operation.left()) + " " + operation.targetInfix() + " " + generateCaller(operation.right())/*unknown*/;
+		return ValueCompiler.generateCaller(operation.left()) + " " + operation.targetInfix() + " " + ValueCompiler.generateCaller(operation.right())/*unknown*/;
 	}
 	static generateNot(not: Not): string {
 		return "!" + not.child()/*unknown*/;

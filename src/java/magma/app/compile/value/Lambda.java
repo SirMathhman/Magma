@@ -4,10 +4,7 @@ import magma.api.collect.list.Iterable;
 import magma.api.option.None;
 import magma.api.option.Option;
 import magma.api.option.Some;
-import magma.app.compile.CompileState;
 import magma.app.compile.define.Definition;
-import magma.app.compile.type.PrimitiveType;
-import magma.app.compile.type.Type;
 
 public record Lambda(Iterable<Definition> parameters, String content) implements Value {
 
@@ -19,10 +16,6 @@ public record Lambda(Iterable<Definition> parameters, String content) implements
     @Override
     public Option<Value> findChild() {
         return new None<Value>();
-    }
-
-    public Type resolve(CompileState state) {
-        return PrimitiveType.Unknown;
     }
 
     @Override

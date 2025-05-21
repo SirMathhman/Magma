@@ -148,13 +148,13 @@ public final class ValueCompiler {
 
     private static Type resolve(CompileState state, Value value) {
         return switch (value) {
-            case AccessValue accessValue -> accessValue.resolve(state);
-            case Invokable invokable -> invokable.resolve(state);
-            case Lambda lambda -> lambda.resolve(state);
-            case Not not -> not.resolve(state);
-            case Operation operation -> operation.resolve(state);
-            case Placeholder placeholder -> placeholder.resolve(state);
-            case StringValue stringValue -> stringValue.resolve(state);
+            case AccessValue accessValue -> PrimitiveType.Unknown;
+            case Invokable invokable -> PrimitiveType.Unknown;
+            case Lambda lambda -> PrimitiveType.Unknown;
+            case Not not -> PrimitiveType.Boolean;
+            case Operation operation -> PrimitiveType.Unknown;
+            case Placeholder placeholder -> PrimitiveType.Unknown;
+            case StringValue stringValue -> PrimitiveType.String;
             case Symbol symbol -> ValueCompiler.resolveSymbol(state, symbol);
             default -> PrimitiveType.Unknown;
         };
@@ -291,7 +291,7 @@ public final class ValueCompiler {
     }
 
     private static String generateOperation(Operation operation) {
-        return generateCaller(operation.left()) + " " + operation.targetInfix() + " " + generateCaller(operation.right());
+        return ValueCompiler.generateCaller(operation.left()) + " " + operation.targetInfix() + " " + ValueCompiler.generateCaller(operation.right());
     }
 
     private static String generateNot(Not not) {

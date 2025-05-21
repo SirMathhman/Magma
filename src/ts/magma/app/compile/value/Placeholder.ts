@@ -2,9 +2,6 @@ import { Value } from "../../../../magma/app/compile/value/Value";
 import { Option } from "../../../../magma/api/option/Option";
 import { None } from "../../../../magma/api/option/None";
 import { Definition } from "../../../../magma/app/compile/define/Definition";
-import { Type } from "../../../../magma/app/compile/type/Type";
-import { CompileState } from "../../../../magma/app/compile/CompileState";
-import { PrimitiveType } from "../../../../magma/app/compile/type/PrimitiveType";
 import { TypeCompiler } from "../../../../magma/app/TypeCompiler";
 export class Placeholder {
 	input: string;
@@ -29,9 +26,6 @@ export class Placeholder {
 	}
 	toValue(): Option<Value> {
 		return new None<Value>()/*unknown*/;
-	}
-	resolve(state: CompileState): Type {
-		return PrimitiveType.Unknown/*unknown*/;
 	}
 	isVar(): boolean {
 		return false/*unknown*/;
