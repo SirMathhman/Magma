@@ -3,14 +3,14 @@ package magma.app.compile.value;
 import magma.api.option.None;
 import magma.api.option.Option;
 import magma.api.option.Some;
+import magma.app.ValueCompiler;
 import magma.app.compile.CompileState;
 import magma.app.compile.type.PrimitiveType;
 import magma.app.compile.type.Type;
 
 public record AccessValue(Value child, String property) implements Value {
-    @Override
     public String generate() {
-        return this.child.generate() + "." + this.property;
+        return ValueCompiler.generateCaller(this.child) + "." + this.property;
     }
 
     @Override

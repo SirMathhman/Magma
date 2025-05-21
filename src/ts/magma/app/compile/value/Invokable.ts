@@ -1,6 +1,7 @@
 import { Value } from "../../../../magma/app/compile/value/Value";
 import { Caller } from "../../../../magma/app/compile/value/Caller";
 import { Iterable } from "../../../../magma/api/collect/list/Iterable";
+import { ValueCompiler } from "../../../../magma/app/ValueCompiler";
 import { Joiner } from "../../../../magma/api/collect/Joiner";
 import { Option } from "../../../../magma/api/option/Option";
 import { Some } from "../../../../magma/api/option/Some";
@@ -17,10 +18,10 @@ export class Invokable implements Value {
 	}
 	generate(): string {
 		let joinedArguments = this.joinArgs()/*unknown*/;
-		return this.caller.generate() + "(" + joinedArguments + ")"/*unknown*/;
+		return ValueCompiler.generateCaller(this.caller) + "(" + joinedArguments + ")"/*unknown*/;
 	}
 	joinArgs(): string {
-		return this.args.iter().map((value: Value) => value.generate()/*unknown*/).collect(new Joiner(", ")).orElse("")/*unknown*/;
+		return this.args.iter().map((value: Value) => ValueCompiler.generateCaller(value)/*unknown*/).collect(new Joiner(", ")).orElse("")/*unknown*/;
 	}
 	toValue(): Option<Value> {
 		return new Some<Value>(this)/*unknown*/;
@@ -32,6 +33,6 @@ export class Invokable implements Value {
 		return PrimitiveType.Unknown/*unknown*/;
 	}
 	generateAsEnumValue(structureName: string): Option<string> {
-		return new Some<string>("\n\tstatic " + this.caller.generate() + ": " + structureName + " = new " + structureName + "(" + this.joinArgs() + ");")/*unknown*/;
+		return new Some<string>("\n\tstatic " + ValueCompiler.generateCaller(this.caller) + ": " + structureName + " = new " + structureName + "(" + this.joinArgs() + ");")/*unknown*/;
 	}
 }

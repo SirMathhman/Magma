@@ -571,6 +571,7 @@ TemplateType --> Iterable
 VariadicType --> Type
 VariadicType --> TypeCompiler
 AccessValue --> Value
+AccessValue --> ValueCompiler
 AccessValue --> Option
 AccessValue --> Some
 AccessValue --> Type
@@ -586,6 +587,7 @@ ConstructionCaller --> None
 Invokable --> Value
 Invokable --> Caller
 Invokable --> Iterable
+Invokable --> ValueCompiler
 Invokable --> Joiner
 Invokable --> Option
 Invokable --> Some
@@ -611,6 +613,7 @@ Not --> Type
 Not --> CompileState
 Not --> PrimitiveType
 Operation --> Value
+Operation --> ValueCompiler
 Operation --> Option
 Operation --> Some
 Operation --> None

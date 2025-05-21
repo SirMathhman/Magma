@@ -55,7 +55,7 @@ export class ValueCompiler {
 	static generateValue(tuple: Tuple2<CompileState, Value>): Tuple2Impl<CompileState, string> {
 		let state = tuple.left()/*unknown*/;
 		let right = tuple.right()/*unknown*/;
-		let generated = right.generate()/*unknown*/;
+		let generated = ValueCompiler.generateCaller(right)/*unknown*/;
 		let s = Placeholder.generatePlaceholder(TypeCompiler.generateType(ValueCompiler.resolve(state, right)))/*unknown*/;
 		return new Tuple2Impl<CompileState, string>(state, generated + s)/*unknown*/;
 	}
@@ -139,7 +139,7 @@ export class ValueCompiler {
             case Operation operation -> operation.resolve(state);
             case Placeholder placeholder -> placeholder.resolve(state);
             case StringValue stringValue -> stringValue.resolve(state);
-            case Symbol symbol -> resolveSymbol(state, symbol);
+            case Symbol symbol -> ValueCompiler.resolveSymbol(state, symbol);
             default -> PrimitiveType.Unknown;
         }*/;
 	}
@@ -205,5 +205,24 @@ export class ValueCompiler {
 	}
 	static values<T>(mapper: Rule<T>): Rule<List<T>> {
 		return new DivideRule<T>(new ValueFolder(), mapper)/*unknown*/;
+	}
+	static generateValue(value: Value): string {/*return switch (value) {
+            case AccessValue accessValue -> accessValue.generate();
+            case Invokable invokable -> invokable.generate();
+            case Lambda lambda -> lambda.generate();
+            case Not not -> not.generate();
+            case Operation operation -> operation.generate();
+            case Placeholder placeholder -> placeholder.generate();
+            case StringValue stringValue -> stringValue.generate();
+            case Symbol symbol -> symbol.generate();
+        }*/;
+	}
+	static generateCaller(caller: Caller): string {/*return switch (caller) {
+            case ConstructionCaller constructionCaller -> ValueCompiler.getGenerate(constructionCaller);
+            case Value value -> ValueCompiler.generateValue(value);
+        }*/;
+	}
+	static getGenerate(constructionCaller: ConstructionCaller): string {
+		return constructionCaller.generate()/*unknown*/;
 	}
 }

@@ -1,4 +1,5 @@
 import { Value } from "../../../../magma/app/compile/value/Value";
+import { ValueCompiler } from "../../../../magma/app/ValueCompiler";
 import { Option } from "../../../../magma/api/option/Option";
 import { Some } from "../../../../magma/api/option/Some";
 import { Type } from "../../../../magma/app/compile/type/Type";
@@ -13,7 +14,7 @@ export class AccessValue implements Value {
 		this.property = property;
 	}
 	generate(): string {
-		return this.child.generate() + "." + this.property/*unknown*/;
+		return ValueCompiler.generateCaller(this.child) + "." + this.property/*unknown*/;
 	}
 	toValue(): Option<Value> {
 		return new Some<Value>(this)/*unknown*/;

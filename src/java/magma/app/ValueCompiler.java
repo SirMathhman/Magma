@@ -21,15 +21,18 @@ import magma.app.compile.compose.Composable;
 import magma.app.compile.compose.PrefixComposable;
 import magma.app.compile.compose.SplitComposable;
 import magma.app.compile.compose.SuffixComposable;
-import magma.app.compile.value.ConstructionCaller;
 import magma.app.compile.define.Definition;
 import magma.app.compile.define.Parameter;
+import magma.app.compile.fold.OperatorFolder;
 import magma.app.compile.fold.ValueFolder;
+import magma.app.compile.locate.FirstLocator;
 import magma.app.compile.rule.OrRule;
 import magma.app.compile.rule.Rule;
 import magma.app.compile.select.FirstSelector;
+import magma.app.compile.select.LastSelector;
 import magma.app.compile.select.Selector;
 import magma.app.compile.split.FoldingSplitter;
+import magma.app.compile.split.LocatingSplitter;
 import magma.app.compile.split.Splitter;
 import magma.app.compile.symbol.Symbols;
 import magma.app.compile.type.PrimitiveType;
@@ -37,6 +40,7 @@ import magma.app.compile.type.Type;
 import magma.app.compile.value.AccessValue;
 import magma.app.compile.value.Argument;
 import magma.app.compile.value.Caller;
+import magma.app.compile.value.ConstructionCaller;
 import magma.app.compile.value.Invokable;
 import magma.app.compile.value.Lambda;
 import magma.app.compile.value.Not;
@@ -45,10 +49,6 @@ import magma.app.compile.value.Placeholder;
 import magma.app.compile.value.StringValue;
 import magma.app.compile.value.Symbol;
 import magma.app.compile.value.Value;
-import magma.app.compile.fold.OperatorFolder;
-import magma.app.compile.locate.FirstLocator;
-import magma.app.compile.select.LastSelector;
-import magma.app.compile.split.LocatingSplitter;
 
 import java.util.function.Function;
 
@@ -56,20 +56,20 @@ public final class ValueCompiler {
     static Tuple2Impl<CompileState, String> generateValue(Tuple2<CompileState, Value> tuple) {
         var state = tuple.left();
         var right = tuple.right();
-        var generated = right.generate();
+        var generated = ValueCompiler.generateCaller(right);
         var s = Placeholder.generatePlaceholder(TypeCompiler.generateType(ValueCompiler.resolve(state, right)));
         return new Tuple2Impl<CompileState, String>(state, generated + s);
     }
 
     static Option<Tuple2<CompileState, Value>> parseInvokable(CompileState state, String input) {
         return new SuffixComposable<Tuple2<CompileState, Value>>(")", (String withoutEnd) -> new SplitComposable<Tuple2<CompileState, Value>>((String withoutEnd0) -> {
-                Selector selector = new LastSelector("");
-                return new FoldingSplitter((DivideState state1, char c) -> ValueCompiler.foldInvocationStarts(state1, c), selector).apply(withoutEnd0);
-            }, Composable.toComposable((String callerWithArgStart, String args) -> new SuffixComposable<Tuple2<CompileState, Value>>("(", (String callerString) -> new PrefixComposable<Tuple2<CompileState, Value>>("new ", (String type) -> TypeCompiler.compileType(state, type).flatMap((Tuple2<CompileState, String> callerTuple1) -> {
-                var callerState = callerTuple1.right();
-                var caller = callerTuple1.left();
-                return ValueCompiler.assembleInvokable(caller, new ConstructionCaller(callerState), args);
-            })).apply(Strings.strip(callerString)).or(() -> ValueCompiler.parseValue(state, callerString).flatMap((Tuple2<CompileState, Value> callerTuple) -> ValueCompiler.assembleInvokable(callerTuple.left(), callerTuple.right(), args)))).apply(callerWithArgStart))).apply(withoutEnd)).apply(Strings.strip(input));
+            Selector selector = new LastSelector("");
+            return new FoldingSplitter((DivideState state1, char c) -> ValueCompiler.foldInvocationStarts(state1, c), selector).apply(withoutEnd0);
+        }, Composable.toComposable((String callerWithArgStart, String args) -> new SuffixComposable<Tuple2<CompileState, Value>>("(", (String callerString) -> new PrefixComposable<Tuple2<CompileState, Value>>("new ", (String type) -> TypeCompiler.compileType(state, type).flatMap((Tuple2<CompileState, String> callerTuple1) -> {
+            var callerState = callerTuple1.right();
+            var caller = callerTuple1.left();
+            return ValueCompiler.assembleInvokable(caller, new ConstructionCaller(callerState), args);
+        })).apply(Strings.strip(callerString)).or(() -> ValueCompiler.parseValue(state, callerString).flatMap((Tuple2<CompileState, Value> callerTuple) -> ValueCompiler.assembleInvokable(callerTuple.left(), callerTuple.right(), args)))).apply(callerWithArgStart))).apply(withoutEnd)).apply(Strings.strip(input));
     }
 
     private static Rule<Value> createTextRule(String slice) {
@@ -99,14 +99,14 @@ public final class ValueCompiler {
     private static Option<Tuple2<CompileState, Value>> compileLambdaWithParameterNames(CompileState state, Iterable<Definition> paramNames, String afterArrow) {
         var strippedAfterArrow = Strings.strip(afterArrow);
         return new PrefixComposable<Tuple2<CompileState, Value>>("{", (String withoutContentStart) -> new SuffixComposable<Tuple2<CompileState, Value>>("}", (String withoutContentEnd) -> {
-                CompileState compileState = state.enterDepth();
-                var statementsTuple = FunctionSegmentCompiler.compileFunctionStatements(compileState.mapStack((Stack stack1) -> stack1.defineAll(paramNames)), withoutContentEnd);
-                var statementsState = statementsTuple.left();
-                var statements = statementsTuple.right();
+            CompileState compileState = state.enterDepth();
+            var statementsTuple = FunctionSegmentCompiler.compileFunctionStatements(compileState.mapStack((Stack stack1) -> stack1.defineAll(paramNames)), withoutContentEnd);
+            var statementsState = statementsTuple.left();
+            var statements = statementsTuple.right();
 
-                var exited = statementsState.exitDepth();
-                return ValueCompiler.assembleLambda(exited, paramNames, "{" + statements + exited.createIndent() + "}");
-            }).apply(withoutContentStart)).apply(strippedAfterArrow).or(() -> ValueCompiler.compileValue(state, strippedAfterArrow).flatMap((Tuple2<CompileState, String> tuple) -> ValueCompiler.assembleLambda(tuple.left(), paramNames, tuple.right())));
+            var exited = statementsState.exitDepth();
+            return ValueCompiler.assembleLambda(exited, paramNames, "{" + statements + exited.createIndent() + "}");
+        }).apply(withoutContentStart)).apply(strippedAfterArrow).or(() -> ValueCompiler.compileValue(state, strippedAfterArrow).flatMap((Tuple2<CompileState, String> tuple) -> ValueCompiler.assembleLambda(tuple.left(), paramNames, tuple.right())));
     }
 
     private static Option<Tuple2<CompileState, Value>> assembleLambda(CompileState exited, Iterable<Definition> paramNames, String content) {
@@ -134,10 +134,10 @@ public final class ValueCompiler {
 
     private static Rule<Value> createOperatorRuleWithDifferentInfix(String sourceInfix, String targetInfix) {
         return (CompileState state1, String input1) -> new SplitComposable<Tuple2<CompileState, Value>>((String slice) -> new FoldingSplitter(new OperatorFolder(sourceInfix), (List<String> divisions) -> new FirstSelector(sourceInfix).select(divisions)).apply(slice), Composable.toComposable((String leftString, String rightString) -> ValueCompiler.parseValue(state1, leftString).flatMap((Tuple2<CompileState, Value> leftTuple) -> ValueCompiler.parseValue(leftTuple.left(), rightString).flatMap((Tuple2<CompileState, Value> rightTuple) -> {
-                var left = leftTuple.right();
-                var right = rightTuple.right();
-                return new Some<Tuple2<CompileState, Value>>(new Tuple2Impl<CompileState, Value>(rightTuple.left(), new Operation(left, targetInfix, right)));
-            })))).apply(input1);
+            var left = leftTuple.right();
+            var right = rightTuple.right();
+            return new Some<Tuple2<CompileState, Value>>(new Tuple2Impl<CompileState, Value>(rightTuple.left(), new Operation(left, targetInfix, right)));
+        })))).apply(input1);
     }
 
     private static boolean isNumber(String input) {
@@ -154,7 +154,7 @@ public final class ValueCompiler {
             case Operation operation -> operation.resolve(state);
             case Placeholder placeholder -> placeholder.resolve(state);
             case StringValue stringValue -> stringValue.resolve(state);
-            case Symbol symbol -> resolveSymbol(state, symbol);
+            case Symbol symbol -> ValueCompiler.resolveSymbol(state, symbol);
             default -> PrimitiveType.Unknown;
         };
     }
@@ -278,8 +278,12 @@ public final class ValueCompiler {
 
     public static String generateCaller(Caller caller) {
         return switch (caller) {
-            case ConstructionCaller constructionCaller -> constructionCaller.generate();
-            case Value value -> value.generate();
+            case ConstructionCaller constructionCaller -> ValueCompiler.getGenerate(constructionCaller);
+            case Value value -> ValueCompiler.generateValue(value);
         };
+    }
+
+    private static String getGenerate(ConstructionCaller constructionCaller) {
+        return constructionCaller.generate();
     }
 }

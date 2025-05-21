@@ -1,4 +1,5 @@
 import { Value } from "../../../../magma/app/compile/value/Value";
+import { ValueCompiler } from "../../../../magma/app/ValueCompiler";
 import { Option } from "../../../../magma/api/option/Option";
 import { Some } from "../../../../magma/api/option/Some";
 import { None } from "../../../../magma/api/option/None";
@@ -15,7 +16,7 @@ export class Operation implements Value {
 		this.right = right;
 	}
 	generate(): string {
-		return this.left.generate() + " " + this.targetInfix + " " + this.right.generate()/*unknown*/;
+		return ValueCompiler.generateCaller(this.left) + " " + this.targetInfix + " " + ValueCompiler.generateCaller(this.right)/*unknown*/;
 	}
 	toValue(): Option<Value> {
 		return new Some<Value>(this)/*unknown*/;

@@ -8,7 +8,6 @@ import magma.app.compile.type.PrimitiveType;
 import magma.app.compile.type.Type;
 
 public record StringValue(String value) implements Value {
-    @Override
     public String generate() {
         return "\"" + this.value + "\"";
     }
