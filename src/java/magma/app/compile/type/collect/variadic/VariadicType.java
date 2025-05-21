@@ -1,9 +1,9 @@
-package magma.app.compile.type;
+package magma.app.compile.type.collect.variadic;
 
 import magma.app.TypeCompiler;
+import magma.app.compile.type.Type;
 
 public record VariadicType(Type type) implements Type {
-
     @Override
     public boolean isFunctional() {
         return false;

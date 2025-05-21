@@ -1,9 +1,8 @@
-package magma.app.compile.type;
+package magma.app.compile.type.collect.array;
 
-import magma.api.collect.list.Iterable;
+import magma.app.compile.type.Type;
 
-public record TemplateType(String base, Iterable<String> args) implements Type {
-
+public record ArrayType(Type childType) implements Type {
     @Override
     public boolean isFunctional() {
         return false;
@@ -21,6 +20,6 @@ public record TemplateType(String base, Iterable<String> args) implements Type {
 
     @Override
     public String generateSimple() {
-        return this.base;
+        return "";
     }
 }

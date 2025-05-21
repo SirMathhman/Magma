@@ -1,12 +1,13 @@
-package magma.app.compile.type;
+package magma.app.compile.type.resolve.template;
 
 import magma.api.collect.list.Iterable;
-import magma.app.TypeCompiler;
+import magma.app.compile.type.Type;
 
-public record FunctionType(Iterable<String> args, String returns) implements Type {
+public record TemplateType(String base, Iterable<String> args) implements Type {
+
     @Override
     public boolean isFunctional() {
-        return true;
+        return false;
     }
 
     @Override
@@ -21,6 +22,6 @@ public record FunctionType(Iterable<String> args, String returns) implements Typ
 
     @Override
     public String generateSimple() {
-        return TypeCompiler.generateType(this);
+        return this.base;
     }
 }

@@ -203,20 +203,32 @@ Whitespace <|.. Parameter
 class ArrayType {
 }
 ArrayType <|.. Type
-class FunctionType {
-}
-FunctionType <|.. Type
-class PrimitiveType {
-}
-PrimitiveType <|.. Type
-class TemplateType {
-}
-TemplateType <|.. Type
-interface Type {
+class ArrayTypes {
 }
 class VariadicType {
 }
 VariadicType <|.. Type
+class VariadicTypes {
+}
+class PrimitiveType {
+}
+PrimitiveType <|.. Type
+class PrimitiveTypes {
+}
+class ResolvedTypes {
+}
+class FunctionType {
+}
+FunctionType <|.. Type
+class FunctionTypes {
+}
+class TemplateType {
+}
+TemplateType <|.. Type
+class TemplateTypes {
+}
+interface Type {
+}
 class AccessValue {
 }
 AccessValue <|.. Value
@@ -250,8 +262,6 @@ interface Value {
 }
 Value <|-- Argument
 Value <|-- Caller
-class CompilerUtils {
-}
 class DefiningCompiler {
 }
 class DefinitionCompiler {
@@ -564,7 +574,7 @@ Symbols --> Type
 Symbols --> Tuple2
 Symbols --> Option
 Symbols --> Strings
-Symbols --> TypeCompiler
+Symbols --> ResolvedTypes
 Symbols --> Some
 Symbols --> Tuple2Impl
 Symbols --> Symbol
@@ -578,15 +588,76 @@ Whitespace --> Definition
 Whitespace --> Option
 Whitespace --> None
 ArrayType --> Type
+ArrayTypes --> CompileState
+ArrayTypes --> Type
+ArrayTypes --> Tuple2
+ArrayTypes --> Option
+VariadicType --> Type
+VariadicType --> TypeCompiler
+VariadicTypes --> CompileState
+VariadicTypes --> Type
+VariadicTypes --> Tuple2
+VariadicTypes --> Option
+VariadicTypes --> Strings
+VariadicTypes --> SuffixComposable
+VariadicTypes --> TypeCompiler
+VariadicTypes --> Tuple2Impl
+VariadicTypes --> VariadicType
+PrimitiveType --> Type
+PrimitiveType --> TypeCompiler
+PrimitiveTypes --> CompileState
+PrimitiveTypes --> Type
+PrimitiveTypes --> Tuple2
+PrimitiveTypes --> Option
+PrimitiveTypes --> Strings
+PrimitiveTypes --> Tuple2Impl
+PrimitiveTypes --> Some
+PrimitiveTypes --> PrimitiveType
+PrimitiveTypes --> None
+ResolvedTypes --> CompileState
+ResolvedTypes --> Location
+ResolvedTypes --> Import
+ResolvedTypes --> Registry
+ResolvedTypes --> Source
+ResolvedTypes --> Option
+ResolvedTypes --> Platform
+ResolvedTypes --> None
+ResolvedTypes --> Dependency
+ResolvedTypes --> Some
+ResolvedTypes --> List
 FunctionType --> Type
 FunctionType --> Iterable
 FunctionType --> TypeCompiler
-PrimitiveType --> Type
-PrimitiveType --> TypeCompiler
+FunctionTypes --> FunctionType
+FunctionTypes --> Tuple2
+FunctionTypes --> Joiner
 TemplateType --> Type
 TemplateType --> Iterable
-VariadicType --> Type
-VariadicType --> TypeCompiler
+TemplateTypes --> CompileState
+TemplateTypes --> Type
+TemplateTypes --> Tuple2
+TemplateTypes --> Option
+TemplateTypes --> SuffixComposable
+TemplateTypes --> LocatingSplitter
+TemplateTypes --> FirstLocator
+TemplateTypes --> Splitter
+TemplateTypes --> SplitComposable
+TemplateTypes --> Composable
+TemplateTypes --> ValueCompiler
+TemplateTypes --> List
+TemplateTypes --> Tuple2Impl
+TemplateTypes --> Lists
+TemplateTypes --> Strings
+TemplateTypes --> ResolvedTypes
+TemplateTypes --> Some
+TemplateTypes --> TemplateType
+TemplateTypes --> FunctionType
+TemplateTypes --> None
+TemplateTypes --> OrRule
+TemplateTypes --> WhitespaceCompiler
+TemplateTypes --> TypeCompiler
+TemplateTypes --> Merger
+TemplateTypes --> ValueMerger
 AccessValue --> Value
 ConstructionCaller --> Caller
 Invokable --> Value
@@ -805,34 +876,11 @@ TypeCompiler --> Type
 TypeCompiler --> Tuple2Impl
 TypeCompiler --> OrRule
 TypeCompiler --> Lists
+TypeCompiler --> VariadicTypes
+TypeCompiler --> TemplateTypes
+TypeCompiler --> PrimitiveTypes
 TypeCompiler --> Symbols
-TypeCompiler --> Strings
-TypeCompiler --> SuffixComposable
-TypeCompiler --> Some
-TypeCompiler --> VariadicType
-TypeCompiler --> PrimitiveType
-TypeCompiler --> None
-TypeCompiler --> LocatingSplitter
-TypeCompiler --> FirstLocator
-TypeCompiler --> Splitter
-TypeCompiler --> SplitComposable
-TypeCompiler --> Composable
-TypeCompiler --> ValueCompiler
-TypeCompiler --> List
-TypeCompiler --> TemplateType
-TypeCompiler --> FunctionType
-TypeCompiler --> WhitespaceCompiler
-TypeCompiler --> Placeholder
-TypeCompiler --> Location
-TypeCompiler --> Import
-TypeCompiler --> Registry
-TypeCompiler --> Source
-TypeCompiler --> Platform
-TypeCompiler --> Dependency
-TypeCompiler --> Merger
-TypeCompiler --> ValueMerger
-TypeCompiler --> Symbol
-TypeCompiler --> Joiner
+TypeCompiler --> ArrayTypes
 ValueCompiler --> CompileState
 ValueCompiler --> Tuple2Impl
 ValueCompiler --> Value

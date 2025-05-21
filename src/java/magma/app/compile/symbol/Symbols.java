@@ -9,8 +9,8 @@ import magma.api.option.Option;
 import magma.api.option.Some;
 import magma.api.text.Characters;
 import magma.api.text.Strings;
-import magma.app.TypeCompiler;
 import magma.app.compile.CompileState;
+import magma.app.compile.type.resolve.ResolvedTypes;
 import magma.app.compile.value.Symbol;
 import magma.app.compile.type.Type;
 import magma.app.compile.value.Value;
@@ -19,7 +19,7 @@ public final class Symbols {
     public static Option<Tuple2<CompileState, Type>> parseSymbolType(CompileState state, String input) {
         var stripped = Strings.strip(input);
         if (Symbols.isSymbol(stripped)) {
-            var resolved = TypeCompiler.addResolvedImportFromCache0(state, stripped);
+            var resolved = ResolvedTypes.addResolvedImportFromCache0(state, stripped);
             return new Some<Tuple2<CompileState, Type>>(new Tuple2Impl<CompileState, Type>(resolved, new Symbol(stripped)));
         }
         return new None<Tuple2<CompileState, Type>>();
@@ -39,11 +39,15 @@ public final class Symbols {
     public static Option<Tuple2<CompileState, Value>> parseSymbolValue(CompileState state, String input) {
         var stripped = Strings.strip(input);
         if (Symbols.isSymbol(stripped)) {
-            var withImport = TypeCompiler.addResolvedImportFromCache0(state, stripped);
+            var withImport = ResolvedTypes.addResolvedImportFromCache0(state, stripped);
             return new Some<Tuple2<CompileState, Value>>(new Tuple2Impl<CompileState, Value>(withImport, new Symbol(stripped)));
         }
         else {
             return new None<Tuple2<CompileState, Value>>();
         }
+    }
+
+    public static String generateSymbol(Symbol symbol) {
+        return symbol.value();
     }
 }

@@ -3,36 +3,23 @@ package magma.app;
 import jvm.api.collect.list.Lists;
 import magma.api.Tuple2;
 import magma.api.Tuple2Impl;
-import magma.api.collect.Joiner;
-import magma.api.collect.list.List;
-import magma.api.option.None;
 import magma.api.option.Option;
-import magma.api.option.Some;
-import magma.api.text.Strings;
 import magma.app.compile.CompileState;
-import magma.app.compile.Dependency;
-import magma.app.compile.Import;
-import magma.app.compile.Registry;
-import magma.app.compile.compose.Composable;
-import magma.app.compile.compose.SplitComposable;
-import magma.app.compile.compose.StripComposable;
-import magma.app.compile.compose.SuffixComposable;
-import magma.app.compile.locate.FirstLocator;
-import magma.app.compile.merge.Merger;
-import magma.app.compile.merge.ValueMerger;
 import magma.app.compile.rule.OrRule;
-import magma.app.compile.split.LocatingSplitter;
-import magma.app.compile.split.Splitter;
 import magma.app.compile.symbol.Symbols;
-import magma.app.compile.type.ArrayType;
-import magma.app.compile.type.FunctionType;
+import magma.app.compile.type.resolve.template.FunctionType;
 import magma.app.compile.type.PrimitiveType;
-import magma.app.compile.type.TemplateType;
+import magma.app.compile.type.PrimitiveTypes;
+import magma.app.compile.type.resolve.template.TemplateType;
 import magma.app.compile.type.Type;
-import magma.app.compile.type.VariadicType;
+import magma.app.compile.type.collect.array.ArrayType;
+import magma.app.compile.type.collect.array.ArrayTypes;
+import magma.app.compile.type.resolve.template.FunctionTypes;
+import magma.app.compile.type.resolve.template.TemplateTypes;
+import magma.app.compile.type.collect.variadic.VariadicType;
+import magma.app.compile.type.collect.variadic.VariadicTypes;
 import magma.app.compile.value.Placeholder;
 import magma.app.compile.value.Symbol;
-import magma.app.io.Source;
 
 public final class TypeCompiler {
     public static Option<Tuple2<CompileState, String>> compileType(CompileState state, String type) {
@@ -41,221 +28,24 @@ public final class TypeCompiler {
 
     public static Option<Tuple2<CompileState, Type>> parseType(CompileState state, String type) {
         return new OrRule<Type>(Lists.of(
-                TypeCompiler::parseVarArgs,
-                TypeCompiler::parseGeneric,
-                TypeCompiler::parsePrimitive,
+                VariadicTypes::parseVariadic,
+                TemplateTypes::parseGeneric,
+                PrimitiveTypes::parsePrimitive,
                 Symbols::parseSymbolType,
-                TypeCompiler::parseArray
+                ArrayTypes::parseArray
         )).apply(state, type);
-    }
-
-    private static Option<Tuple2<CompileState, Type>> parseArray(CompileState state, String input) {
-        return new StripComposable<>(new SuffixComposable<>("[]", (Composable<String, Tuple2<CompileState, Type>>) (String childString) -> TypeCompiler.parseType(state, childString).map(child -> {
-            return new Tuple2Impl<>(child.left(), new ArrayType(child.right()));
-        }))).apply(input);
-    }
-
-    private static Option<Tuple2<CompileState, Type>> parseVarArgs(CompileState state, String input) {
-        var stripped = Strings.strip(input);
-        return new SuffixComposable<Tuple2<CompileState, Type>>("...", (String s) -> {
-            var child = TypeCompiler.parseTypeOrPlaceholder(state, s);
-            return new Some<Tuple2<CompileState, Type>>(new Tuple2Impl<CompileState, Type>(child.left(), new VariadicType(child.right())));
-        }).apply(stripped);
-    }
-
-    private static Option<Tuple2<CompileState, Type>> parsePrimitive(CompileState state, String input) {
-        return TypeCompiler.findPrimitiveValue(Strings.strip(input)).map((Type result) -> new Tuple2Impl<CompileState, Type>(state, result));
-    }
-
-    private static Option<Type> findPrimitiveValue(String input) {
-        var stripped = Strings.strip(input);
-        if (Strings.equalsTo("char", stripped) || Strings.equalsTo("Character", stripped) || Strings.equalsTo("String", stripped)) {
-            return new Some<Type>(PrimitiveType.String);
-        }
-
-        if (Strings.equalsTo("int", stripped) || Strings.equalsTo("Integer", stripped)) {
-            return new Some<Type>(PrimitiveType.Number);
-        }
-
-        if (Strings.equalsTo("boolean", stripped) || Strings.equalsTo("Boolean", stripped)) {
-            return new Some<Type>(PrimitiveType.Boolean);
-        }
-
-        if (Strings.equalsTo("var", stripped)) {
-            return new Some<Type>(PrimitiveType.Var);
-        }
-
-        if (Strings.equalsTo("void", stripped)) {
-            return new Some<Type>(PrimitiveType.Void);
-        }
-
-        return new None<Type>();
-    }
-
-    private static Option<Tuple2<CompileState, Type>> parseGeneric(CompileState state, String input) {
-        return new SuffixComposable<Tuple2<CompileState, Type>>(">", (String withoutEnd) -> {
-            Splitter splitter = new LocatingSplitter("<", new FirstLocator());
-            return new SplitComposable<Tuple2<CompileState, Type>>(splitter, Composable.toComposable((String baseString, String argsString) -> {
-                var argsTuple = ValueCompiler.values((CompileState state1, String s) -> TypeCompiler.compileTypeArgument(state1, s)).apply(state, argsString).orElse(new Tuple2Impl<CompileState, List<String>>(state, Lists.empty()));
-                var argsState = argsTuple.left();
-                var args = argsTuple.right();
-
-                var base = Strings.strip(baseString);
-                return TypeCompiler.assembleFunctionType(argsState, base, args).or(() -> {
-                    var compileState = TypeCompiler.addResolvedImportFromCache0(argsState, base);
-                    return new Some<Tuple2<CompileState, Type>>(new Tuple2Impl<CompileState, Type>(compileState, new TemplateType(base, args)));
-                });
-            })).apply(withoutEnd);
-        }).apply(Strings.strip(input));
-    }
-
-    private static Option<Tuple2<CompileState, Type>> assembleFunctionType(CompileState state, String base, List<String> args) {
-        return TypeCompiler.mapFunctionType(base, args).map((Type generated) -> new Tuple2Impl<CompileState, Type>(state, generated));
-    }
-
-    private static Option<Type> mapFunctionType(String base, List<String> args) {
-        if (Strings.equalsTo("Function", base)) {
-            return args.findFirst().and(() -> args.find(1))
-                    .map((Tuple2<String, String> tuple) -> new FunctionType(Lists.of(tuple.left()), tuple.right()));
-        }
-
-        if (Strings.equalsTo("BiFunction", base)) {
-            return args.find(0)
-                    .and(() -> args.find(1))
-                    .and(() -> args.find(2))
-                    .map((Tuple2<Tuple2<String, String>, String> tuple) -> new FunctionType(Lists.of(tuple.left().left(), tuple.left().right()), tuple.right()));
-        }
-
-        if (Strings.equalsTo("Supplier", base)) {
-            return args.findFirst().map((String first) -> new FunctionType(Lists.empty(), first));
-        }
-
-        if (Strings.equalsTo("Consumer", base)) {
-            return args.findFirst().map((String first) -> new FunctionType(Lists.of(first), "void"));
-        }
-
-        if (Strings.equalsTo("Predicate", base)) {
-            return args.findFirst().map((String first) -> new FunctionType(Lists.of(first), "boolean"));
-        }
-
-        return new None<Type>();
-    }
-
-    private static Option<Tuple2<CompileState, String>> compileTypeArgument(CompileState state, String input) {
-        return new OrRule<String>(Lists.of(
-                (CompileState state2, String input1) -> WhitespaceCompiler.compileWhitespace(state2, input1),
-                (CompileState state1, String type) -> TypeCompiler.compileType(state1, type)
-        )).apply(state, input);
-    }
-
-    private static Tuple2<CompileState, Type> parseTypeOrPlaceholder(CompileState state, String type) {
-        return TypeCompiler.parseType(state, type)
-                .map((Tuple2<CompileState, Type> tuple) -> new Tuple2Impl<CompileState, Type>(tuple.left(), tuple.right()))
-                .orElseGet(() -> new Tuple2Impl<CompileState, Type>(state, new Placeholder(type)));
-    }
-
-    private static CompileState getState(CompileState state, Location location) {
-        var requestedNamespace = location.namespace();
-        var requestedChild = location.name();
-
-        var namespace = TypeCompiler.fixNamespace(requestedNamespace, state.context().findNamespaceOrEmpty());
-        if (state.registry().doesImportExistAlready(requestedChild)) {
-            return state;
-        }
-
-        var namespaceWithChild = namespace.addLast(requestedChild);
-        var anImport = new Import(namespaceWithChild, requestedChild);
-        return state.mapRegistry((Registry registry) -> registry.addImport(anImport));
-    }
-
-    public static CompileState addResolvedImportFromCache0(CompileState state, String base) {
-        if (state.stack().hasAnyStructureName(base)) {
-            return state;
-        }
-
-        return state.context()
-                .findSource(base)
-                .map((Source source) -> {
-                    Location location = source.createLocation();
-                    return TypeCompiler.getCompileState1(state, location)
-                            .orElseGet(() -> TypeCompiler.getState(state, location));
-                })
-                .orElse(state);
-    }
-
-    private static Option<CompileState> getCompileState1(CompileState immutableCompileState, Location location) {
-        if (!immutableCompileState.context().hasPlatform(Platform.PlantUML)) {
-            return new None<CompileState>();
-        }
-
-        var name = immutableCompileState.context().findNameOrEmpty();
-        var dependency = new Dependency(name, location.name());
-        if (immutableCompileState.registry().containsDependency(dependency)) {
-            return new None<CompileState>();
-        }
-
-        return new Some<CompileState>(immutableCompileState.mapRegistry((Registry registry1) -> registry1.addDependency(dependency)));
-    }
-
-    private static List<String> fixNamespace(List<String> requestedNamespace, List<String> thisNamespace) {
-        if (thisNamespace.isEmpty()) {
-            return requestedNamespace.addFirst(".");
-        }
-
-        return TypeCompiler.addParentSeparator(requestedNamespace, thisNamespace.size());
-    }
-
-    private static List<String> addParentSeparator(List<String> newNamespace, int count) {
-        var index = 0;
-        var copy = newNamespace;
-        while (index < count) {
-            copy = copy.addFirst("..");
-            index++;
-        }
-
-        return copy;
     }
 
     public static String generateType(Type type) {
         return switch (type) {
-            case FunctionType functionType -> TypeCompiler.generateFunctionType(functionType);
-            case Placeholder placeholder -> TypeCompiler.generatePlaceholder(placeholder);
-            case PrimitiveType primitiveType -> TypeCompiler.generatePrimitiveType(primitiveType);
-            case Symbol symbol -> TypeCompiler.generateSymbol(symbol);
-            case TemplateType templateType -> TypeCompiler.generateTemplateType(templateType);
-            case VariadicType variadicType -> TypeCompiler.generateVariadicType(variadicType);
+            case FunctionType functionType -> FunctionTypes.generateFunctionType(functionType);
+            case Placeholder placeholder -> Placeholder.generatePlaceholder(placeholder);
+            case PrimitiveType primitiveType -> PrimitiveTypes.generatePrimitiveType(primitiveType);
+            case Symbol symbol -> Symbols.generateSymbol(symbol);
+            case TemplateType templateType -> TemplateTypes.generateTemplateType(templateType);
+            case VariadicType variadicType -> VariadicTypes.generateVariadicType(variadicType);
             case ArrayType arrayType -> TypeCompiler.generateType(arrayType.childType()) + "[]";
             default -> "?";
         };
-    }
-
-    private static String generateVariadicType(VariadicType variadicType) {
-        return TypeCompiler.generateType(variadicType.type()) + "[]";
-    }
-
-    private static String generateTemplateType(TemplateType templateType) {
-        return templateType.base() + "<" + Merger.generateAll(templateType.args(), new ValueMerger()) + ">";
-    }
-
-    private static String generateSymbol(Symbol symbol) {
-        return symbol.value();
-    }
-
-    private static String generatePrimitiveType(PrimitiveType primitiveType) {
-        return primitiveType.value;
-    }
-
-    private static String generatePlaceholder(Placeholder placeholder) {
-        return Placeholder.generatePlaceholder(placeholder.input());
-    }
-
-    private static String generateFunctionType(FunctionType functionType) {
-        var joinedArguments = functionType.args()
-                .iterWithIndices()
-                .map((Tuple2<Integer, String> tuple) -> "arg" + tuple.left() + " : " + tuple.right())
-                .collect(new Joiner(", "))
-                .orElse("");
-
-        return "(" + joinedArguments + ") => " + functionType.returns();
     }
 }

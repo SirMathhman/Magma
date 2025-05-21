@@ -3,7 +3,7 @@ import { Type } from "../../../../magma/app/compile/type/Type";
 import { Tuple2 } from "../../../../magma/api/Tuple2";
 import { Option } from "../../../../magma/api/option/Option";
 import { Strings } from "../../../../magma/api/text/Strings";
-import { TypeCompiler } from "../../../../magma/app/TypeCompiler";
+import { ResolvedTypes } from "../../../../magma/app/compile/type/resolve/ResolvedTypes";
 import { Some } from "../../../../magma/api/option/Some";
 import { Tuple2Impl } from "../../../../magma/api/Tuple2Impl";
 import { Symbol } from "../../../../magma/app/compile/value/Symbol";
@@ -16,7 +16,7 @@ export class Symbols {
 	static parseSymbolType(state: CompileState, input: string): Option<Tuple2<CompileState, Type>> {
 		let stripped = Strings.strip(input)/*unknown*/;
 		if (Symbols.isSymbol(stripped)/*unknown*/){
-			let resolved = TypeCompiler.addResolvedImportFromCache0(state, stripped)/*unknown*/;
+			let resolved = ResolvedTypes.addResolvedImportFromCache0(state, stripped)/*unknown*/;
 			return new Some<Tuple2<CompileState, Type>>(new Tuple2Impl<CompileState, Type>(resolved, new Symbol(stripped)))/*unknown*/;
 		}
 		return new None<Tuple2<CompileState, Type>>()/*unknown*/;
@@ -31,11 +31,14 @@ export class Symbols {
 	static parseSymbolValue(state: CompileState, input: string): Option<Tuple2<CompileState, Value>> {
 		let stripped = Strings.strip(input)/*unknown*/;
 		if (Symbols.isSymbol(stripped)/*unknown*/){
-			let withImport = TypeCompiler.addResolvedImportFromCache0(state, stripped)/*unknown*/;
+			let withImport = ResolvedTypes.addResolvedImportFromCache0(state, stripped)/*unknown*/;
 			return new Some<Tuple2<CompileState, Value>>(new Tuple2Impl<CompileState, Value>(withImport, new Symbol(stripped)))/*unknown*/;
 		}
 		else {
 			return new None<Tuple2<CompileState, Value>>()/*unknown*/;
 		}
+	}
+	static generateSymbol(symbol: Symbol): string {
+		return symbol.value()/*unknown*/;
 	}
 }
