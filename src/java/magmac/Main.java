@@ -31,19 +31,30 @@ public final class Main {
     }
 
     private static String compile(String input) {
-        return Main.createRootRule().parse(input)
-                .flatMap(node -> Main.createRootRule().generate(node))
+        return Main.createJavaRootRule().parse(input)
+                .flatMap(node -> Main.createPlantUMLRootRule().generate(node))
                 .orElse("");
     }
 
-    private static DivideRule createRootRule() {
-        return new DivideRule("children", Main.createRootSegmentRule());
+    private static DivideRule createPlantUMLRootRule() {
+        return new DivideRule("children", new OrRule(List.of(
+                Main.createPlantUMLClassRule()
+        )));
     }
 
-    private static OrRule createRootSegmentRule() {
+    private static InfixRule createPlantUMLClassRule() {
+        var afterKeyword = new SuffixRule(new StringRule("before-content"), "{\n}\n");
+        return new InfixRule(new StringRule("before-keyword"), "class ", afterKeyword);
+    }
+
+    private static DivideRule createJavaRootRule() {
+        return new DivideRule("children", Main.createJavaRootSegmentRule());
+    }
+
+    private static OrRule createJavaRootSegmentRule() {
         return new OrRule(List.of(
                 Main.createNamespacedRule(),
-                Main.createClassRule()
+                Main.createJavaClassRule()
         ));
     }
 
@@ -54,7 +65,7 @@ public final class Main {
         )));
     }
 
-    private static InfixRule createClassRule() {
+    private static InfixRule createJavaClassRule() {
         var afterKeyword = new InfixRule(new StringRule("before-content"), "{", new SuffixRule(new StringRule("content"), "}"));
         return new InfixRule(new StringRule("before-keyword"), "class ", afterKeyword);
     }

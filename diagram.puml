@@ -1,3 +1,3 @@
 @startuml
-package magmac;package magmac.compile.InfixRule;package magmac.compile.OrRule;package magmac.compile.PrefixRule;package magmac.compile.StringRule;package magmac.compile.StripRule;package magmac.compile.SuffixRule;package java.io.IOException;package java.nio.file.Files;package java.nio.file.Paths;package java.util.List;
+
 @enduml
