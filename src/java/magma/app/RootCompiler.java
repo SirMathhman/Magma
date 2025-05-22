@@ -10,11 +10,13 @@ import magma.api.text.Strings;
 import magma.app.compile.CompileState;
 import magma.app.compile.Context;
 import magma.app.compile.rule.OrRule;
+import magma.app.compile.rule.Rule;
 import magma.app.compile.structure.StructureCompiler;
+import magma.app.compile.value.Placeholder;
 
 public final class RootCompiler {
-    private static Tuple2<CompileState, String> compileRootSegment(CompileState state, String input) {
-        return OrRule.compileOrPlaceholder(state, input, Lists.of(
+    private static Rule<String> createRootSegmentRule() {
+        return new OrRule<String>(Lists.of(
                 WhitespaceCompiler::compileWhitespace,
                 RootCompiler::compileNamespaced,
                 StructureCompiler.createStructureRule("class ", "class "),
@@ -47,6 +49,6 @@ public final class RootCompiler {
     }
 
     static Tuple2<CompileState, String> compileRoot(CompileState state, String input, Location location) {
-        return FunctionSegmentCompiler.compileStatements(state.mapContext((Context context2) -> context2.withLocation(location)), input, RootCompiler::compileRootSegment);
+        return FunctionSegmentCompiler.compileStatements(state.mapContext((Context context2) -> context2.withLocation(location)), input, (state1, input1) -> RootCompiler.createRootSegmentRule().apply(state1, input1).orElseGet(() -> new Tuple2Impl<CompileState, String>(state1, Placeholder.generatePlaceholder(input1))));
     }
 }

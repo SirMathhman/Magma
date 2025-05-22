@@ -195,6 +195,9 @@ interface Splitter {
 }
 interface Stack {
 }
+class StructureRule {
+}
+StructureRule <|.. Rule
 class StructureCompiler {
 }
 class Symbols {
@@ -572,31 +575,31 @@ Stack --> List
 StructureCompiler --> Rule
 StructureCompiler --> CompileState
 StructureCompiler --> Tuple2
-StructureCompiler --> SplitComposable
-StructureCompiler --> LocatingSplitter
-StructureCompiler --> FirstLocator
-StructureCompiler --> Composable
-StructureCompiler --> SuffixComposable
-StructureCompiler --> DefiningCompiler
-StructureCompiler --> Some
-StructureCompiler --> Tuple2Impl
-StructureCompiler --> Lists
-StructureCompiler --> Strings
 StructureCompiler --> Option
 StructureCompiler --> List
+StructureCompiler --> SplitComposable
 StructureCompiler --> TypeCompiler
 StructureCompiler --> Type
+StructureCompiler --> Some
 StructureCompiler --> None
+StructureCompiler --> LocatingSplitter
+StructureCompiler --> FirstLocator
 StructureCompiler --> Splitter
+StructureCompiler --> Composable
 StructureCompiler --> ValueCompiler
+StructureCompiler --> Lists
 StructureCompiler --> Iterable
+StructureCompiler --> Strings
+StructureCompiler --> DefiningCompiler
 StructureCompiler --> Definition
+StructureCompiler --> SuffixComposable
 StructureCompiler --> Symbols
 StructureCompiler --> FunctionSegmentCompiler
 StructureCompiler --> Stack
 StructureCompiler --> RootCompiler
 StructureCompiler --> Joiner
 StructureCompiler --> Platform
+StructureCompiler --> Tuple2Impl
 StructureCompiler --> Registry
 Symbols --> CompileState
 Symbols --> Type
@@ -860,12 +863,13 @@ PathTargets --> IOError
 PathTargets --> Option
 PathTargets --> None
 PathTargets --> Location
-RootCompiler --> CompileState
-RootCompiler --> Tuple2
+RootCompiler --> Rule
 RootCompiler --> OrRule
 RootCompiler --> Lists
 RootCompiler --> WhitespaceCompiler
 RootCompiler --> StructureCompiler
+RootCompiler --> CompileState
+RootCompiler --> Tuple2
 RootCompiler --> Option
 RootCompiler --> Strings
 RootCompiler --> Some
@@ -875,6 +879,7 @@ RootCompiler --> FieldCompiler
 RootCompiler --> Location
 RootCompiler --> FunctionSegmentCompiler
 RootCompiler --> Context
+RootCompiler --> Placeholder
 Sources --> Source
 Sources --> Iterable
 Sources --> IOError
