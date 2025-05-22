@@ -12,7 +12,7 @@ import magma.app.compile.CompileState;
 import magma.app.compile.DivideState;
 import magma.app.compile.compose.Composable;
 import magma.app.compile.compose.PrefixComposable;
-import magma.app.compile.compose.SplitComposable;
+import magma.app.compile.compose.Split;
 import magma.app.compile.compose.SuffixComposable;
 import magma.app.compile.define.Definition;
 import magma.app.compile.fold.StatementsFolder;
@@ -43,7 +43,7 @@ public final class FunctionSegmentCompiler {
     }
 
     private static Option<Tuple2<CompileState, String>> compileBlock(CompileState state, String input) {
-        return new SuffixComposable<Tuple2<CompileState, String>>("}", (String withoutEnd) -> new SplitComposable<Tuple2<CompileState, String>>((String withoutEnd0) -> {
+        return new SuffixComposable<Tuple2<CompileState, String>>("}", (String withoutEnd) -> new Split<Tuple2<CompileState, String>>((String withoutEnd0) -> {
                 Selector selector = new LastSelector("");
                 return new FoldingSplitter((DivideState state1, char c) -> FunctionSegmentCompiler.foldBlockStarts(state1, c), selector).apply(withoutEnd0);
             }, Composable.toComposable((String beforeContentWithEnd, String content) -> new SuffixComposable<Tuple2<CompileState, String>>("{", (String beforeContent) -> FunctionSegmentCompiler.compileBlockHeader(state, beforeContent).flatMap((Tuple2<CompileState, String> headerTuple) -> {
@@ -155,7 +155,7 @@ public final class FunctionSegmentCompiler {
 
     private static Option<Tuple2<CompileState, String>> compileAssignment(CompileState state, String input) {
         Splitter splitter = new LocatingSplitter("=", new FirstLocator());
-        return new SplitComposable<Tuple2<CompileState, String>>(splitter, Composable.toComposable((String destination, String source) -> {
+        return new Split<Tuple2<CompileState, String>>(splitter, Composable.toComposable((String destination, String source) -> {
             var sourceTuple = ValueCompiler.compileValueOrPlaceholder(state, source);
 
             var destinationTuple = ValueCompiler.compileValue(sourceTuple.left(), destination)

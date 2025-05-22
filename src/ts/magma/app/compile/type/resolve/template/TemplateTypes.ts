@@ -6,7 +6,7 @@ import { SuffixComposable } from "../../../../../../magma/app/compile/compose/Su
 import { LocatingSplitter } from "../../../../../../magma/app/compile/split/LocatingSplitter";
 import { FirstLocator } from "../../../../../../magma/app/compile/locate/FirstLocator";
 import { Splitter } from "../../../../../../magma/app/compile/split/Splitter";
-import { SplitComposable } from "../../../../../../magma/app/compile/compose/SplitComposable";
+import { Split } from "../../../../../../magma/app/compile/compose/Split";
 import { Composable } from "../../../../../../magma/app/compile/compose/Composable";
 import { ValueCompiler } from "../../../../../../magma/app/ValueCompiler";
 import { List } from "../../../../../../magma/api/collect/list/List";
@@ -27,7 +27,7 @@ export class TemplateTypes {
 	static parseGeneric(state: CompileState, input: string): Option<Tuple2<CompileState, Type>> {
 		return new SuffixComposable<Tuple2<CompileState, Type>>(">", (withoutEnd: string) => {
 			let splitter: Splitter = new LocatingSplitter("<", new FirstLocator())/*unknown*/;
-			return new SplitComposable<Tuple2<CompileState, Type>>(splitter, Composable.toComposable((baseString: string, argsString: string) => {
+			return new Split<Tuple2<CompileState, Type>>(splitter, Composable.toComposable((baseString: string, argsString: string) => {
 				let argsTuple = ValueCompiler.values((state1: CompileState, s: string) => TemplateTypes.compileTypeArgument(state1, s)/*unknown*/).apply(state, argsString).orElse(new Tuple2Impl<CompileState, List<string>>(state, Lists.empty()))/*unknown*/;
 				let argsState = argsTuple.left()/*unknown*/;
 				let args = argsTuple.right()/*unknown*/;

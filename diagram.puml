@@ -88,9 +88,9 @@ interface Composable<T, R> {
 class PrefixComposable<T> {
 }
 PrefixComposable <|.. Composable
-class SplitComposable<T> {
+class Split<T> {
 }
-SplitComposable <|.. Composable
+Split <|.. Composable
 class StripComposable<T> {
 }
 StripComposable <|.. Composable
@@ -175,6 +175,9 @@ class NamespacedRule {
 NamespacedRule <|.. Rule
 interface Registry {
 }
+class ComposableRule {
+}
+ComposableRule <|.. Rule
 class OrRule<T> {
 }
 OrRule <|.. Rule
@@ -270,6 +273,11 @@ interface Value {
 }
 Value <|-- Argument
 Value <|-- Caller
+class InstanceOf {
+}
+InstanceOf <|.. Value
+class InstanceOfs {
+}
 class DefiningCompiler {
 }
 class DefinitionCompiler {
@@ -417,12 +425,13 @@ PrefixComposable --> Composable
 PrefixComposable --> Option
 PrefixComposable --> None
 PrefixComposable --> Strings
-SplitComposable --> Composable
-SplitComposable --> Splitter
-SplitComposable --> Tuple2
-SplitComposable --> Option
-SplitComposable --> LocatingSplitter
-SplitComposable --> LastLocator
+Split --> Composable
+Split --> Splitter
+Split --> Tuple2
+Split --> Option
+Split --> LocatingSplitter
+Split --> LastLocator
+Split --> FirstLocator
 StripComposable --> Composable
 StripComposable --> Option
 SuffixComposable --> Composable
@@ -535,6 +544,12 @@ NamespacedRule --> None
 Registry --> Dependency
 Registry --> Iter
 Registry --> Import
+ComposableRule --> Value
+ComposableRule --> Rule
+ComposableRule --> CompileState
+ComposableRule --> Tuple2
+ComposableRule --> Composable
+ComposableRule --> Option
 OrRule --> Rule
 OrRule --> Iterable
 OrRule --> CompileState
@@ -591,7 +606,7 @@ StructureCompiler --> CompileState
 StructureCompiler --> Tuple2
 StructureCompiler --> Option
 StructureCompiler --> List
-StructureCompiler --> SplitComposable
+StructureCompiler --> Split
 StructureCompiler --> TypeCompiler
 StructureCompiler --> Type
 StructureCompiler --> Some
@@ -688,7 +703,7 @@ TemplateTypes --> SuffixComposable
 TemplateTypes --> LocatingSplitter
 TemplateTypes --> FirstLocator
 TemplateTypes --> Splitter
-TemplateTypes --> SplitComposable
+TemplateTypes --> Split
 TemplateTypes --> Composable
 TemplateTypes --> ValueCompiler
 TemplateTypes --> List
@@ -723,6 +738,11 @@ StringValue --> Value
 Symbol --> TypeCompiler
 Value --> Argument
 Value --> Caller
+InstanceOfs --> Value
+InstanceOfs --> Type
+InstanceOfs --> Rule
+InstanceOfs --> ValueCompiler
+InstanceOfs --> TypeCompiler
 DefiningCompiler --> Definition
 DefiningCompiler --> Iterable
 DefiningCompiler --> Parameter
@@ -739,12 +759,12 @@ DefiningCompiler --> Placeholder
 DefiningCompiler --> Option
 DefiningCompiler --> WhitespaceCompiler
 DefiningCompiler --> Whitespace
-DefiningCompiler --> SplitComposable
-DefiningCompiler --> Strings
+DefiningCompiler --> Split
 DefiningCompiler --> LastSelector
 DefiningCompiler --> Selector
 DefiningCompiler --> FoldingSplitter
 DefiningCompiler --> TypeSeparatorFolder
+DefiningCompiler --> Strings
 DefiningCompiler --> Composable
 DefiningCompiler --> FoldedDivider
 DefiningCompiler --> DecoratedFolder
@@ -788,7 +808,7 @@ FieldCompiler --> Option
 FieldCompiler --> LocatingSplitter
 FieldCompiler --> FirstLocator
 FieldCompiler --> Splitter
-FieldCompiler --> SplitComposable
+FieldCompiler --> Split
 FieldCompiler --> Composable
 FieldCompiler --> Strings
 FieldCompiler --> ConstructorHeader
@@ -818,7 +838,7 @@ FunctionSegmentCompiler --> Some
 FunctionSegmentCompiler --> Tuple2Impl
 FunctionSegmentCompiler --> None
 FunctionSegmentCompiler --> SuffixComposable
-FunctionSegmentCompiler --> SplitComposable
+FunctionSegmentCompiler --> Split
 FunctionSegmentCompiler --> LastSelector
 FunctionSegmentCompiler --> Selector
 FunctionSegmentCompiler --> FoldingSplitter
@@ -909,6 +929,14 @@ TypeCompiler --> TemplateTypes
 TypeCompiler --> PrimitiveTypes
 TypeCompiler --> Symbols
 TypeCompiler --> ArrayTypes
+TypeCompiler --> FunctionType
+TypeCompiler --> FunctionTypes
+TypeCompiler --> Placeholder
+TypeCompiler --> PrimitiveType
+TypeCompiler --> Symbol
+TypeCompiler --> TemplateType
+TypeCompiler --> VariadicType
+TypeCompiler --> ArrayType
 ValueCompiler --> CompileState
 ValueCompiler --> Tuple2Impl
 ValueCompiler --> Value
@@ -926,7 +954,7 @@ ValueCompiler --> Not
 ValueCompiler --> LocatingSplitter
 ValueCompiler --> FirstLocator
 ValueCompiler --> Splitter
-ValueCompiler --> SplitComposable
+ValueCompiler --> Split
 ValueCompiler --> Composable
 ValueCompiler --> DefiningCompiler
 ValueCompiler --> Parameter
@@ -957,6 +985,7 @@ ValueCompiler --> ListCollector
 ValueCompiler --> Invokable
 ValueCompiler --> OrRule
 ValueCompiler --> Lists
+ValueCompiler --> InstanceOfs
 ValueCompiler --> DivideRule
 ValueCompiler --> ValueFolder
 ValueCompiler --> Joiner

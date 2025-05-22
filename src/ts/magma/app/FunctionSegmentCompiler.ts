@@ -6,7 +6,7 @@ import { Some } from "../../magma/api/option/Some";
 import { Tuple2Impl } from "../../magma/api/Tuple2Impl";
 import { None } from "../../magma/api/option/None";
 import { SuffixComposable } from "../../magma/app/compile/compose/SuffixComposable";
-import { SplitComposable } from "../../magma/app/compile/compose/SplitComposable";
+import { Split } from "../../magma/app/compile/compose/Split";
 import { LastSelector } from "../../magma/app/compile/select/LastSelector";
 import { Selector } from "../../magma/app/compile/select/Selector";
 import { FoldingSplitter } from "../../magma/app/compile/split/FoldingSplitter";
@@ -40,7 +40,7 @@ export class FunctionSegmentCompiler {
 		}
 	}
 	static compileBlock(state: CompileState, input: string): Option<Tuple2<CompileState, string>> {
-		return new SuffixComposable<Tuple2<CompileState, string>>("}", (withoutEnd: string) => new SplitComposable<Tuple2<CompileState, string>>((withoutEnd0: string) => {
+		return new SuffixComposable<Tuple2<CompileState, string>>("}", (withoutEnd: string) => new Split<Tuple2<CompileState, string>>((withoutEnd0: string) => {
 			let selector: Selector = new LastSelector("")/*unknown*/;
 			return new FoldingSplitter((state1: DivideState, c: string) => FunctionSegmentCompiler.foldBlockStarts(state1, c)/*unknown*/, selector).apply(withoutEnd0)/*unknown*/;
 		}, Composable.toComposable((beforeContentWithEnd: string, content: string) => new SuffixComposable<Tuple2<CompileState, string>>("{", (beforeContent: string) => FunctionSegmentCompiler.compileBlockHeader(state, beforeContent).flatMap((headerTuple: Tuple2<CompileState, string>) => {
@@ -124,7 +124,7 @@ export class FunctionSegmentCompiler {
 	}
 	static compileAssignment(state: CompileState, input: string): Option<Tuple2<CompileState, string>> {
 		let splitter: Splitter = new LocatingSplitter("=", new FirstLocator())/*unknown*/;
-		return new SplitComposable<Tuple2<CompileState, string>>(splitter, Composable.toComposable((destination: string, source: string) => {
+		return new Split<Tuple2<CompileState, string>>(splitter, Composable.toComposable((destination: string, source: string) => {
 			let sourceTuple = ValueCompiler.compileValueOrPlaceholder(state, source)/*unknown*/;
 			let destinationTuple = ValueCompiler.compileValue(sourceTuple.left(), destination).or(() => DefiningCompiler.parseDefinition(sourceTuple.left(), destination).map((tuple: Tuple2<CompileState, Definition>) => new Tuple2Impl<CompileState, string>(tuple.left(), "let " + tuple.right().generate())/*unknown*/)/*unknown*/).orElseGet(() => new Tuple2Impl<CompileState, string>(sourceTuple.left(), Placeholder.fromValue(destination))/*unknown*/)/*unknown*/;
 			return new Some<Tuple2<CompileState, string>>(new Tuple2Impl<CompileState, string>(destinationTuple.left(), destinationTuple.right() + " = " + sourceTuple.right()))/*unknown*/;

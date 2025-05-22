@@ -18,6 +18,8 @@ import magma.app.compile.type.resolve.template.TemplateTypes;
 import magma.app.compile.value.Placeholder;
 import magma.app.compile.value.Symbol;
 
+import java.util.Objects;
+
 public final class TypeCompiler {
     public static Rule<Type> createTypeRule() {
         return new OrRule<Type>(Lists.of(
@@ -30,15 +32,34 @@ public final class TypeCompiler {
     }
 
     public static String generateType(Type type) {
-        return switch (type) {
-            case FunctionType functionType -> FunctionTypes.generateFunctionType(functionType);
-            case Placeholder placeholder -> Placeholder.fromNode(placeholder);
-            case PrimitiveType primitiveType -> PrimitiveTypes.generatePrimitiveType(primitiveType);
-            case Symbol symbol -> Symbols.generateSymbol(symbol);
-            case TemplateType templateType -> TemplateTypes.generateTemplateType(templateType);
-            case VariadicType variadicType -> VariadicTypes.generateVariadicType(variadicType);
-            case ArrayType arrayType -> TypeCompiler.generateType(arrayType.childType()) + "[]";
-            default -> "?";
-        };
+        if (type instanceof FunctionType) {
+            FunctionType functionType = (FunctionType) type;
+            return FunctionTypes.generateFunctionType(functionType);
+        }
+        if (type instanceof Placeholder) {
+            Placeholder placeholder = (Placeholder) type;
+            return Placeholder.fromNode(placeholder);
+        }
+        if (type instanceof PrimitiveType) {
+            PrimitiveType primitiveType = (PrimitiveType) type;
+            return PrimitiveTypes.generatePrimitiveType(primitiveType);
+        }
+        if (type instanceof Symbol) {
+            Symbol symbol = (Symbol) type;
+            return Symbols.generateSymbol(symbol);
+        }
+        if (type instanceof TemplateType) {
+            TemplateType templateType = (TemplateType) type;
+            return TemplateTypes.generateTemplateType(templateType);
+        }
+        if (type instanceof VariadicType) {
+            VariadicType variadicType = (VariadicType) type;
+            return VariadicTypes.generateVariadicType(variadicType);
+        }
+        if (type instanceof ArrayType) {
+            ArrayType arrayType = (ArrayType) type;
+            return TypeCompiler.generateType(arrayType.childType()) + "[]";
+        }
+        return "?";
     }
 }

@@ -13,7 +13,7 @@ import magma.app.ValueCompiler;
 import magma.app.WhitespaceCompiler;
 import magma.app.compile.CompileState;
 import magma.app.compile.compose.Composable;
-import magma.app.compile.compose.SplitComposable;
+import magma.app.compile.compose.Split;
 import magma.app.compile.compose.SuffixComposable;
 import magma.app.compile.locate.FirstLocator;
 import magma.app.compile.merge.Merger;
@@ -28,7 +28,7 @@ public final class TemplateTypes {
     public static Option<Tuple2<CompileState, Type>> parseGeneric(CompileState state, String input) {
         return new SuffixComposable<Tuple2<CompileState, Type>>(">", (String withoutEnd) -> {
             Splitter splitter = new LocatingSplitter("<", new FirstLocator());
-            return new SplitComposable<Tuple2<CompileState, Type>>(splitter, Composable.toComposable((String baseString, String argsString) -> {
+            return new Split<Tuple2<CompileState, Type>>(splitter, Composable.toComposable((String baseString, String argsString) -> {
                 var argsTuple = ValueCompiler.values((CompileState state1, String s) -> TemplateTypes.compileTypeArgument(state1, s)).apply(state, argsString).orElse(new Tuple2Impl<CompileState, List<String>>(state, Lists.empty()));
                 var argsState = argsTuple.left();
                 var args = argsTuple.right();

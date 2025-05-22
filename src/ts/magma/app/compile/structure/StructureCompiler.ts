@@ -3,7 +3,7 @@ import { CompileState } from "../../../../magma/app/compile/CompileState";
 import { Tuple2 } from "../../../../magma/api/Tuple2";
 import { Option } from "../../../../magma/api/option/Option";
 import { List } from "../../../../magma/api/collect/list/List";
-import { SplitComposable } from "../../../../magma/app/compile/compose/SplitComposable";
+import { Split } from "../../../../magma/app/compile/compose/Split";
 import { TypeCompiler } from "../../../../magma/app/TypeCompiler";
 import { Type } from "../../../../magma/app/compile/type/Type";
 import { Some } from "../../../../magma/api/option/Some";
@@ -35,17 +35,17 @@ export class StructureRule implements Rule<string> {
 		this.targetInfix = targetInfix;
 	}
 	static compileStructureWithImplementing(state: CompileState, annotations: List<string>, modifiers: List<string>, targetInfix: string, beforeContent: string, content: string, sourceInfix: string): Option<Tuple2<CompileState, string>> {
-		return SplitComposable.compileLast(beforeContent, " implements ", (s: string, s2: string) => TypeCompiler.createTypeRule().apply(state, s2).flatMap((implementingTuple: Tuple2<CompileState, Type>) => StructureRule.compileStructureWithExtends(implementingTuple.left(), annotations, targetInfix, s, new Some<Type>(implementingTuple.right()), content, sourceInfix)/*unknown*/)/*unknown*/).or(() => StructureRule.compileStructureWithExtends(state, annotations, targetInfix, beforeContent, new None<Type>(), content, sourceInfix)/*unknown*/)/*unknown*/;
+		return Split.last(" implements ", (s: string, s2: string) => TypeCompiler.createTypeRule().apply(state, s2).flatMap((implementingTuple: Tuple2<CompileState, Type>) => StructureRule.compileStructureWithExtends(implementingTuple.left(), annotations, targetInfix, s, new Some<Type>(implementingTuple.right()), content, sourceInfix)/*unknown*/)/*unknown*/).apply(beforeContent).or(() => StructureRule.compileStructureWithExtends(state, annotations, targetInfix, beforeContent, new None<Type>(), content, sourceInfix)/*unknown*/)/*unknown*/;
 	}
 	static compileStructureWithExtends(state: CompileState, annotations: List<string>, targetInfix: string, beforeContent: string, maybeImplementing: Option<Type>, inputContent: string, sourceInfix: string): Option<Tuple2<CompileState, string>> {
 		let splitter: Splitter = new LocatingSplitter(" extends ", new FirstLocator())/*unknown*/;
-		return new SplitComposable<Tuple2<CompileState, string>>(splitter, Composable.toComposable((beforeExtends: string, afterExtends: string) => ValueCompiler.values((inner0: CompileState, inner1: string) => TypeCompiler.createTypeRule().apply(inner0, inner1)/*unknown*/).apply(state, afterExtends).flatMap((compileStateListTuple2: Tuple2<CompileState, List<Type>>) => StructureRule.compileStructureWithParameters(compileStateListTuple2.left(), annotations, targetInfix, beforeExtends, compileStateListTuple2.right(), maybeImplementing, inputContent, sourceInfix)/*unknown*/)/*unknown*/)).apply(beforeContent).or(() => StructureRule.compileStructureWithParameters(state, annotations, targetInfix, beforeContent, Lists.empty(), maybeImplementing, inputContent, sourceInfix)/*unknown*/)/*unknown*/;
+		return new Split<Tuple2<CompileState, string>>(splitter, Composable.toComposable((beforeExtends: string, afterExtends: string) => ValueCompiler.values((inner0: CompileState, inner1: string) => TypeCompiler.createTypeRule().apply(inner0, inner1)/*unknown*/).apply(state, afterExtends).flatMap((compileStateListTuple2: Tuple2<CompileState, List<Type>>) => StructureRule.compileStructureWithParameters(compileStateListTuple2.left(), annotations, targetInfix, beforeExtends, compileStateListTuple2.right(), maybeImplementing, inputContent, sourceInfix)/*unknown*/)/*unknown*/)).apply(beforeContent).or(() => StructureRule.compileStructureWithParameters(state, annotations, targetInfix, beforeContent, Lists.empty(), maybeImplementing, inputContent, sourceInfix)/*unknown*/)/*unknown*/;
 	}
 	static compileStructureWithParameters(state: CompileState, annotations: List<string>, targetInfix: string, beforeContent: string, maybeSuperType: Iterable<Type>, maybeImplementing: Option<Type>, inputContent: string, sourceInfix: string): Option<Tuple2<CompileState, string>> {
 		let splitter1: Splitter = new LocatingSplitter("(", new FirstLocator())/*unknown*/;
-		return new SplitComposable<Tuple2<CompileState, string>>(splitter1, Composable.toComposable((rawName: string, withParameters: string) => {
+		return new Split<Tuple2<CompileState, string>>(splitter1, Composable.toComposable((rawName: string, withParameters: string) => {
 			let splitter: Splitter = new LocatingSplitter(")", new FirstLocator())/*unknown*/;
-			return new SplitComposable<Tuple2<CompileState, string>>(splitter, Composable.toComposable((parametersString: string, _: string) => {
+			return new Split<Tuple2<CompileState, string>>(splitter, Composable.toComposable((parametersString: string, _: string) => {
 				let name = Strings.strip(rawName)/*unknown*/;
 				let parametersTuple = DefiningCompiler.parseParameters(state, parametersString)/*unknown*/;
 				let parameters = DefiningCompiler.retainDefinitionsFromParameters(parametersTuple.right())/*unknown*/;
@@ -56,7 +56,7 @@ export class StructureRule implements Rule<string> {
 	static compileStructureWithTypeParams(state: CompileState, infix: string, content: string, beforeParams: string, parameters: Iterable<Definition>, maybeImplementing: Option<Type>, annotations: List<string>, maybeSuperType: Iterable<Type>, sourceInfix: string): Option<Tuple2<CompileState, string>> {
 		return new SuffixComposable<Tuple2<CompileState, string>>(">", (withoutTypeParamEnd: string) => {
 			let splitter: Splitter = new LocatingSplitter("<", new FirstLocator())/*unknown*/;
-			return new SplitComposable<Tuple2<CompileState, string>>(splitter, Composable.toComposable((name: string, typeParamsString: string) => {
+			return new Split<Tuple2<CompileState, string>>(splitter, Composable.toComposable((name: string, typeParamsString: string) => {
 				let typeParams = DefiningCompiler.divideValues(typeParamsString)/*unknown*/;
 				return StructureRule.assembleStructure(state, annotations, infix, name, typeParams, parameters, maybeImplementing, content, maybeSuperType, sourceInfix)/*unknown*/;
 			})).apply(withoutTypeParamEnd)/*unknown*/;
@@ -123,13 +123,13 @@ export class StructureRule implements Rule<string> {
 		return parameters.iter().map((definition: Definition) => definition.generate()/*unknown*/).map((generated: string) => "\n\t" + generated + ";"/*unknown*/).collect(Joiner.empty()).orElse("")/*unknown*/;
 	}
 	apply(state: CompileState, input1: string): Option<Tuple2<CompileState, string>> {
-		return new SplitComposable<Tuple2<CompileState, string>>(new LocatingSplitter(this.sourceInfix, new FirstLocator()), Composable.toComposable((beforeInfix: string, afterInfix: string) => new SplitComposable<Tuple2<CompileState, string>>(new LocatingSplitter("{", new FirstLocator()), Composable.toComposable((beforeContent: string, withEnd: string) => new SuffixComposable<Tuple2<CompileState, string>>("}", (inputContent: string) => SplitComposable.compileLast(beforeInfix, "\n", (s: string, s2: string) => {
+		return new Split<Tuple2<CompileState, string>>(new LocatingSplitter(this.sourceInfix, new FirstLocator()), Composable.toComposable((beforeInfix: string, afterInfix: string) => new Split<Tuple2<CompileState, string>>(new LocatingSplitter("{", new FirstLocator()), Composable.toComposable((beforeContent: string, withEnd: string) => new SuffixComposable<Tuple2<CompileState, string>>("}", (inputContent: string) => Split.last("\n", (s: string, s2: string) => {
 			let annotations = DefiningCompiler.parseAnnotations(s)/*unknown*/;
 			if (annotations.contains("Actual")/*unknown*/){
 				return new Some<Tuple2<CompileState, string>>(new Tuple2Impl<CompileState, string>(state, ""))/*unknown*/;
 			}
 			return StructureRule.compileStructureWithImplementing(state, annotations, DefiningCompiler.parseModifiers(s2), this.targetInfix, beforeContent, inputContent, this.sourceInfix)/*unknown*/;
-		}).or(() => {
+		}).apply(beforeInfix).or(() => {
 			let modifiers = DefiningCompiler.parseModifiers(beforeContent)/*unknown*/;
 			return StructureRule.compileStructureWithImplementing(state, Lists.empty(), modifiers, this.targetInfix, beforeContent, inputContent, this.sourceInfix)/*unknown*/;
 		})/*unknown*/).apply(Strings.strip(withEnd))/*unknown*/)).apply(afterInfix)/*unknown*/)).apply(input1)/*unknown*/;

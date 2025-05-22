@@ -12,7 +12,7 @@ import magma.app.compile.CompileState;
 import magma.app.compile.Stack;
 import magma.app.compile.compose.Composable;
 import magma.app.compile.compose.PrefixComposable;
-import magma.app.compile.compose.SplitComposable;
+import magma.app.compile.compose.Split;
 import magma.app.compile.compose.SuffixComposable;
 import magma.app.compile.define.ConstructorHeader;
 import magma.app.compile.define.Definition;
@@ -30,15 +30,15 @@ import magma.app.compile.value.Value;
 final class FieldCompiler {
     public static Option<Tuple2<CompileState, String>> compileMethod(CompileState state, String input) {
         Splitter splitter = new LocatingSplitter("(", new FirstLocator());
-        return new SplitComposable<Tuple2<CompileState, String>>(splitter, Composable.toComposable((String beforeParams, String withParams) -> {
+        return new Split<Tuple2<CompileState, String>>(splitter, Composable.toComposable((String beforeParams, String withParams) -> {
             var strippedBeforeParams = Strings.strip(beforeParams);
-            return SplitComposable.compileLast(strippedBeforeParams, " ", (String _, String name) -> {
+            return Split.last(" ", (String _, String name) -> {
                 if (state.findStack().isWithinLast(name)) {
                     return FieldCompiler.compileMethodWithBeforeParams(state, new ConstructorHeader(), withParams);
                 }
 
                 return new None<Tuple2<CompileState, String>>();
-            }).or(() -> {
+            }).apply(strippedBeforeParams).or(() -> {
                 if (state.findStack().findLastStructureName().filter((String anObject) -> Strings.equalsTo(strippedBeforeParams, anObject)).isPresent()) {
                     return FieldCompiler.compileMethodWithBeforeParams(state, new ConstructorHeader(), withParams);
                 }
@@ -51,7 +51,7 @@ final class FieldCompiler {
 
     private static Option<Tuple2<CompileState, String>> compileMethodWithBeforeParams(CompileState state, MethodHeader header, String withParams) {
         Splitter splitter = new LocatingSplitter(")", new FirstLocator());
-        return new SplitComposable<Tuple2<CompileState, String>>(splitter, Composable.toComposable((String params, String afterParams) -> {
+        return new Split<Tuple2<CompileState, String>>(splitter, Composable.toComposable((String params, String afterParams) -> {
             var parametersTuple = DefiningCompiler.parseParameters(state, params);
 
             var parametersState = parametersTuple.left();
