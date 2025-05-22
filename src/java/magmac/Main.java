@@ -3,6 +3,7 @@ package magmac;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -25,9 +26,28 @@ public class Main {
     }
 
     private static String compile(String input) {
+        var segments = new ArrayList<String>();
+        var buffer = new StringBuilder();
+        for (var i = 0; i < input.length(); i++) {
+            var c = input.charAt(i);
+            buffer.append(c);
+            if (';' == c) {
+                segments.add(buffer.toString());
+                buffer = new StringBuilder();
+            }
+        }
+        segments.add(buffer.toString());
+        buffer = new StringBuilder();
 
+        var output = new StringBuilder();
+        for (var segment : segments) {
+            output.append(generatePlaceholder(segment.strip()));
+        }
 
+        return output.toString();
+    }
 
+    private static String generatePlaceholder(String input) {
         return Arrays.stream(Main.splitIntoCommentSegments(input))
                 .filter(value -> !value.isEmpty())
                 .map(value -> "'" + value + "\n")
