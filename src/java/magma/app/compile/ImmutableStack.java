@@ -14,7 +14,7 @@ public record ImmutableStack(List<String> structureNames, List<Definition> defin
 
     @Override
     public Option<String> findLastStructureName() {
-        return this.structureNames().findLast();
+        return this.structureNames.findLast();
     }
 
     @Override
@@ -26,29 +26,29 @@ public record ImmutableStack(List<String> structureNames, List<Definition> defin
 
     @Override
     public boolean hasAnyStructureName(String base) {
-        return this.structureNames().iter().anyMatch((String inner) -> Strings.equalsTo(inner, base));
+        return this.structureNames.iter().anyMatch((String inner) -> Strings.equalsTo(inner, base));
     }
 
     @Override
     public Option<Definition> resolveValue(String name) {
-        return this.definitions().iterReversed()
+        return this.definitions.iterReversed()
                 .filter((Definition definition) -> definition.isNamed(name))
                 .next();
     }
 
     @Override
     public Stack pushStructureName(String name) {
-        return new ImmutableStack(this.structureNames().addLast(name), this.definitions());
+        return new ImmutableStack(this.structureNames.addLast(name), this.definitions);
     }
 
     @Override
     public Stack defineAll(Iterable<Definition> definitions) {
-        return new ImmutableStack(this.structureNames(), this.definitions().addAll(definitions));
+        return new ImmutableStack(this.structureNames, this.definitions.addAll(definitions));
     }
 
     @Override
     public Stack popStructureName() {
-        return new ImmutableStack(this.structureNames().removeLast().orElse(this.structureNames()), this.definitions());
+        return new ImmutableStack(this.structureNames.removeLast().orElse(this.structureNames), this.definitions);
     }
 
     @Override
