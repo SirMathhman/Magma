@@ -1,9 +1,9 @@
 package magmac;
 
+import magmac.compile.DivideRule;
 import magmac.compile.InfixRule;
 import magmac.compile.OrRule;
 import magmac.compile.PrefixRule;
-import magmac.compile.State;
 import magmac.compile.StringRule;
 import magmac.compile.StripRule;
 import magmac.compile.SuffixRule;
@@ -31,50 +31,13 @@ public final class Main {
     }
 
     private static String compile(String input) {
-        var segments = Main.divide(input, new State());
-
-        var output = new StringBuilder();
-        for (var segment : segments) {
-            output.append(Main.compileRootSegment(segment));
-        }
-
-        return output.toString();
-    }
-
-    private static List<String> divide(String input, State state) {
-        var current = state;
-        var length = input.length();
-        for (var i = 0; i < length; i++) {
-            var c = input.charAt(i);
-            current = Main.fold(current, c);
-        }
-
-        return current.advance().segments();
-    }
-
-    private static State fold(State state, char c) {
-        var current = state.append(c);
-        if (';' == c && state.isLevel()) {
-            return current.advance();
-        }
-        if ('{' == c) {
-            return current.enter();
-        }
-        if ('}' == c) {
-            return current.exit();
-        }
-        return current;
-    }
-
-    private static String compileRootSegment(String input) {
-        return Main.getString(input);
-    }
-
-    private static String getString(String input) {
-        return Main.createRootSegmentRule()
-                .parse(input)
-                .flatMap(node -> Main.createRootSegmentRule().generate(node))
+        return Main.createRootRule().parse(input)
+                .flatMap(node -> Main.createRootRule().generate(node))
                 .orElse("");
+    }
+
+    private static DivideRule createRootRule() {
+        return new DivideRule("children", Main.createRootSegmentRule());
     }
 
     private static OrRule createRootSegmentRule() {
