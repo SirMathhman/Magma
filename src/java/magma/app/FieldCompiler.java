@@ -19,6 +19,7 @@ import magma.app.compile.define.Definition;
 import magma.app.compile.define.MethodHeader;
 import magma.app.compile.define.Parameter;
 import magma.app.compile.locate.FirstLocator;
+import magma.app.compile.rule.Rule;
 import magma.app.compile.split.LocatingSplitter;
 import magma.app.compile.split.Splitter;
 import magma.app.compile.symbol.Symbols;
@@ -121,5 +122,17 @@ final class FieldCompiler {
         } else {
             return new None<String>();
         }
+    }
+
+    static Rule<String> createEnumValuesRule() {
+        return FieldCompiler::compileEnumValues;
+    }
+
+    static Rule<String> createFieldDefinitionRule() {
+        return FieldCompiler::compileFieldDefinition;
+    }
+
+    static Rule<String> createMethodRule() {
+        return FieldCompiler::compileMethod;
     }
 }

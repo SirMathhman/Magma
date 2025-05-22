@@ -295,6 +295,9 @@ class PathTargets {
 PathTargets <|.. Targets
 class Platform {
 }
+class NamespacedRule {
+}
+NamespacedRule <|.. Rule
 class RootCompiler {
 }
 interface Sources {
@@ -305,6 +308,9 @@ class TypeCompiler {
 }
 class ValueCompiler {
 }
+class WhitespaceRule {
+}
+WhitespaceRule <|.. Rule
 class WhitespaceCompiler {
 }
 Lists --> List
@@ -795,6 +801,7 @@ FieldCompiler --> Symbol
 FieldCompiler --> Symbols
 FieldCompiler --> List
 FieldCompiler --> Value
+FieldCompiler --> Rule
 FunctionSegmentCompiler --> CompileState
 FunctionSegmentCompiler --> Tuple2
 FunctionSegmentCompiler --> Option
@@ -864,10 +871,6 @@ PathTargets --> Option
 PathTargets --> None
 PathTargets --> Location
 RootCompiler --> Rule
-RootCompiler --> OrRule
-RootCompiler --> Lists
-RootCompiler --> WhitespaceCompiler
-RootCompiler --> StructureCompiler
 RootCompiler --> CompileState
 RootCompiler --> Tuple2
 RootCompiler --> Option
@@ -875,6 +878,10 @@ RootCompiler --> Strings
 RootCompiler --> Some
 RootCompiler --> Tuple2Impl
 RootCompiler --> None
+RootCompiler --> OrRule
+RootCompiler --> Lists
+RootCompiler --> WhitespaceCompiler
+RootCompiler --> StructureCompiler
 RootCompiler --> FieldCompiler
 RootCompiler --> Location
 RootCompiler --> FunctionSegmentCompiler
@@ -949,6 +956,7 @@ ValueCompiler --> DivideRule
 ValueCompiler --> ValueFolder
 ValueCompiler --> Joiner
 ValueCompiler --> ConstructionCaller
+WhitespaceCompiler --> Rule
 WhitespaceCompiler --> CompileState
 WhitespaceCompiler --> Tuple2
 WhitespaceCompiler --> Option

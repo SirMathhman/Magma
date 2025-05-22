@@ -134,7 +134,7 @@ export class FunctionSegmentCompiler {
 		return FunctionSegmentCompiler.compileStatements(state, input, FunctionSegmentCompiler.compileFunctionSegment)/*unknown*/;
 	}
 	static compileFunctionSegment(state: CompileState, input: string): Tuple2<CompileState, string> {
-		return OrRule.compileOrPlaceholder(state, input, Lists.of(WhitespaceCompiler.compileWhitespace, FunctionSegmentCompiler.compileEmptySegment, FunctionSegmentCompiler.compileBlock, FunctionSegmentCompiler.compileFunctionStatement, FunctionSegmentCompiler.compileReturnWithoutSuffix))/*unknown*/;
+		return OrRule.compileOrPlaceholder(state, input, Lists.of((state1, input1) -  > WhitespaceCompiler.createWhitespaceRule().apply(state1, input1), FunctionSegmentCompiler.compileEmptySegment, FunctionSegmentCompiler.compileBlock, FunctionSegmentCompiler.compileFunctionStatement, FunctionSegmentCompiler.compileReturnWithoutSuffix))/*unknown*/;
 	}
 	static compileStatements(state: CompileState, input: string, mapper: (arg0 : CompileState, arg1 : string) => Tuple2<CompileState, string>): Tuple2<CompileState, string> {
 		return new DivideRule<string>(new StatementsFolder(), FunctionSegmentCompiler.toRule(mapper)).apply(state, input).map((folded: Tuple2<CompileState, List<string>>) => FunctionSegmentCompiler.generateAllFromTuple(folded.left(), folded.right(), new StatementsMerger())/*unknown*/).orElse(new Tuple2Impl<CompileState, string>(state, ""))/*unknown*/;

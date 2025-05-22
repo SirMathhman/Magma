@@ -172,7 +172,7 @@ public final class FunctionSegmentCompiler {
 
     private static Tuple2<CompileState, String> compileFunctionSegment(CompileState state, String input) {
         return OrRule.compileOrPlaceholder(state, input, Lists.of(
-                WhitespaceCompiler::compileWhitespace,
+                (state1, input1) -> WhitespaceCompiler.createWhitespaceRule().apply(state1, input1),
                 FunctionSegmentCompiler::compileEmptySegment,
                 FunctionSegmentCompiler::compileBlock,
                 FunctionSegmentCompiler::compileFunctionStatement,

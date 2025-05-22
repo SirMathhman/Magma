@@ -25,6 +25,7 @@ import { Symbol } from "../../magma/app/compile/value/Symbol";
 import { Symbols } from "../../magma/app/compile/symbol/Symbols";
 import { List } from "../../magma/api/collect/list/List";
 import { Value } from "../../magma/app/compile/value/Value";
+import { Rule } from "../../magma/app/compile/rule/Rule";
 export class FieldCompiler {
 	static compileMethod(state: CompileState, input: string): Option<Tuple2<CompileState, string>> {
 		let splitter: Splitter = new LocatingSplitter("(", new FirstLocator())/*unknown*/;
@@ -99,5 +100,14 @@ export class FieldCompiler {
 		else {
 			return new None<string>()/*unknown*/;
 		}
+	}
+	static createEnumValuesRule(): Rule<string> {
+		return FieldCompiler.compileEnumValues/*unknown*/;
+	}
+	static createFieldDefinitionRule(): Rule<string> {
+		return FieldCompiler.compileFieldDefinition/*unknown*/;
+	}
+	static createMethodRule(): Rule<string> {
+		return FieldCompiler.compileMethod/*unknown*/;
 	}
 }

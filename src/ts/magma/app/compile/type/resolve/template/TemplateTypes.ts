@@ -61,7 +61,7 @@ export class TemplateTypes {
 		return new None<Type>()/*unknown*/;
 	}
 	static compileTypeArgument(state: CompileState, input: string): Option<Tuple2<CompileState, string>> {
-		return new OrRule<string>(Lists.of((state2: CompileState, input1: string) => WhitespaceCompiler.compileWhitespace(state2, input1)/*unknown*/, (state1: CompileState, type: string) => TypeCompiler.createTypeRule().apply(state1, type).map((tuple: Tuple2<CompileState, Type>) => new Tuple2Impl<CompileState, string>(tuple.left(), TypeCompiler.generateType(tuple.right()))/*unknown*/)/*unknown*/)).apply(state, input)/*unknown*/;
+		return new OrRule<string>(Lists.of((state2: CompileState, input1: string) => WhitespaceCompiler.createWhitespaceRule().apply(state2, input1)/*unknown*/, (state1: CompileState, type: string) => TypeCompiler.createTypeRule().apply(state1, type).map((tuple: Tuple2<CompileState, Type>) => new Tuple2Impl<CompileState, string>(tuple.left(), TypeCompiler.generateType(tuple.right()))/*unknown*/)/*unknown*/)).apply(state, input)/*unknown*/;
 	}
 	static generateTemplateType(templateType: TemplateType): string {
 		return templateType.base() + "<" + Merger.generateAll(templateType.args(), new ValueMerger()) + ">"/*unknown*/;
