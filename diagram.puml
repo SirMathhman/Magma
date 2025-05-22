@@ -43,8 +43,12 @@ class Main {public static void main() {
         if (';' == c && state.isLevel()) {
             return current.advance();
         }
-        if(c == '{') return current.enter();
-        if(c == '}') return current.exit();
+        if ('{' == c) {
+            return current.enter();
+        }
+        if ('}' == c) {
+            return current.exit();
+        }
         return current;
     }
 
@@ -54,22 +58,35 @@ class Main {public static void main() {
             return "";
         }
 
-        var classIndex = stripped.indexOf("class ");
-        if (0 <= classIndex) {
-            var left = stripped.substring(0, classIndex);
-            var right = stripped.substring(classIndex + "class ".length());
-            var contentStart = right.indexOf("{");
-            if (0 <= contentStart) {
-                var beforeContent = right.substring(0, contentStart);
-                var withEnd = right.substring(contentStart + "{".length()).strip();
-                if (withEnd.endsWith("}")) {
-                    var content = withEnd.substring(0, withEnd.length() - 1);
-                    return Main.generatePlaceholder(left) + "class " + beforeContent + "{" + content + "}";
-                }
-            }
+        return Main.compileInfix(stripped, "class ", (beforeKeyword, afterKeyword) -> {
+            return Main.compileInfix(afterKeyword, "{", (beforeContent1, withEnd1) -> Main.compileSuffix(withEnd1, "}", content1 -> Main.generateClass(beforeKeyword, beforeContent1, content1)));
+        }).orElseGet(() -> {
+            return Main.generatePlaceholder(stripped);
+        });
+    }
+
+    private static Optional<String> compileInfix(String input, String infix, BiFunction<String, String, Optional<String>> mapper) {
+        var contentStart = input.indexOf(infix);
+        if (0 <= contentStart) {
+            var beforeContent = input.substring(0, contentStart);
+            var withEnd = input.substring(contentStart + infix.length()).strip();
+            return mapper.apply(beforeContent, withEnd);
         }
 
-        return Main.generatePlaceholder(stripped);
+        return Optional.empty();
+    }
+
+    private static Optional<String> compileSuffix(String input, String suffix, Function<String, Optional<String>> mapper) {
+        if (input.endsWith(suffix)) {
+            var content = input.substring(0, input.length() - suffix.length());
+            return mapper.apply(content);
+        }
+
+        return Optional.empty();
+    }
+
+    private static Optional<String> generateClass(String left, String beforeContent, String content) {
+        return Optional.of(Main.generatePlaceholder(left) + "class " + beforeContent + "{" + content + "}");
     }
 
     private static String generatePlaceholder(String input) {
