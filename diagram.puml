@@ -1,6 +1,6 @@
 @startuml
-'public final 
-class Main {public static void main() {
+class Main {
+    public static void main() {
         try {
             var source = Paths.get(".", "src", "java", "magmac", "Main.java");
             var diagramPath = Paths.get(".", "diagram.puml");
@@ -58,35 +58,22 @@ class Main {public static void main() {
             return "";
         }
 
-        return Main.compileInfix(stripped, "class ", (beforeKeyword, afterKeyword) -> {
-            return Main.compileInfix(afterKeyword, "{", (beforeContent1, withEnd1) -> Main.compileSuffix(withEnd1, "}", content1 -> Main.generateClass(beforeKeyword, beforeContent1, content1)));
-        }).orElseGet(() -> {
-            return Main.generatePlaceholder(stripped);
-        });
+        return Main.createClassRule()
+                .apply(stripped)
+                .flatMap(node -> Main.generateClass(node))
+                .orElseGet(() -> Main.generatePlaceholder(stripped));
     }
 
-    private static Optional<String> compileInfix(String input, String infix, BiFunction<String, String, Optional<String>> mapper) {
-        var contentStart = input.indexOf(infix);
-        if (0 <= contentStart) {
-            var beforeContent = input.substring(0, contentStart);
-            var withEnd = input.substring(contentStart + infix.length()).strip();
-            return mapper.apply(beforeContent, withEnd);
-        }
-
-        return Optional.empty();
+    private static InfixRule createClassRule() {
+        var afterKeyword = new InfixRule(new StringRule("before-content"), "{", new SuffixRule("}", new StringRule("content")));
+        return new InfixRule(new StringRule("before-content"), "class ", afterKeyword);
     }
 
-    private static Optional<String> compileSuffix(String input, String suffix, Function<String, Optional<String>> mapper) {
-        if (input.endsWith(suffix)) {
-            var content = input.substring(0, input.length() - suffix.length());
-            return mapper.apply(content);
-        }
-
-        return Optional.empty();
-    }
-
-    private static Optional<String> generateClass(String left, String beforeContent, String content) {
-        return Optional.of(Main.generatePlaceholder(left) + "class " + beforeContent + "{" + content + "}");
+    private static Optional<String> generateClass(MapNode node) {
+        var beforeKeyword = node.findStringOrEmpty("before-keyword");
+        var beforeContent = node.findStringOrEmpty("before-content");
+        var content = node.findStringOrEmpty("content");
+        return Optional.of(Main.generatePlaceholder(beforeKeyword) + "class " + beforeContent + "{" + content + "}");
     }
 
     private static String generatePlaceholder(String input) {

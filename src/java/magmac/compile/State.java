@@ -1,4 +1,4 @@
-package magmac;
+package magmac.compile;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -18,13 +18,13 @@ public class State {
         this(new ArrayList<>(), new StringBuilder());
     }
 
-    State advance() {
+    public State advance() {
         this.segments().add(this.buffer.toString());
         this.buffer = new StringBuilder();
         return this;
     }
 
-    State append(char c) {
+    public State append(char c) {
         this.buffer.append(c);
         return this;
     }
