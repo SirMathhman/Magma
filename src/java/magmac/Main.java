@@ -49,18 +49,36 @@ public final class Main {
 
     private static State fold(State state, char c) {
         var current = state.append(c);
-        if (';' == c) {
+        if (';' == c && state.isLevel()) {
             return current.advance();
         }
+        if(c == '{') return current.enter();
+        if(c == '}') return current.exit();
         return current;
     }
 
-    private static String compileRootSegment(String segment) {
-        if (segment.startsWith("package ")) {
+    private static String compileRootSegment(String input) {
+        var stripped = input.strip();
+        if (stripped.startsWith("package ") || stripped.startsWith("import ")) {
             return "";
         }
 
-        return Main.generatePlaceholder(segment.strip());
+        var classIndex = stripped.indexOf("class ");
+        if (0 <= classIndex) {
+            var left = stripped.substring(0, classIndex);
+            var right = stripped.substring(classIndex + "class ".length());
+            var contentStart = right.indexOf("{");
+            if (0 <= contentStart) {
+                var beforeContent = right.substring(0, contentStart);
+                var withEnd = right.substring(contentStart + "{".length()).strip();
+                if (withEnd.endsWith("}")) {
+                    var content = withEnd.substring(0, withEnd.length() - 1);
+                    return Main.generatePlaceholder(left) + "class " + beforeContent + "{" + content + "}";
+                }
+            }
+        }
+
+        return Main.generatePlaceholder(stripped);
     }
 
     private static String generatePlaceholder(String input) {
