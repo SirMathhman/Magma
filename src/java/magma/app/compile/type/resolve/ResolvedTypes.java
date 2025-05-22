@@ -1,5 +1,6 @@
 package magma.app.compile.type.resolve;
 
+import jvm.api.collect.list.Lists;
 import magma.api.collect.list.List;
 import magma.api.option.None;
 import magma.api.option.Option;
@@ -17,7 +18,9 @@ public final class ResolvedTypes {
         var requestedNamespace = location.namespace();
         var requestedChild = location.name();
 
-        var namespace = ResolvedTypes.fixNamespace(requestedNamespace, state.findContext().findNamespaceOrEmpty());
+        var namespace = ResolvedTypes.fixNamespace(requestedNamespace, state.findContext().findLocation()
+                .map((Location location1) -> location1.namespace())
+                .orElse(Lists.empty()));
         if (state.findRegistry().doesImportExistAlready(requestedChild)) {
             return state;
         }
@@ -47,7 +50,7 @@ public final class ResolvedTypes {
             return new None<CompileState>();
         }
 
-        var name = immutableCompileState.findContext().findNameOrEmpty();
+        var name = immutableCompileState.findContext().findLocation().map(Location::name).orElse("");
         var dependency = new Dependency(name, location.name());
         if (immutableCompileState.findRegistry().containsDependency(dependency)) {
             return new None<CompileState>();

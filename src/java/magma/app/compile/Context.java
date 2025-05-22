@@ -1,7 +1,6 @@
 package magma.app.compile;
 
 import magma.api.collect.Iter;
-import magma.api.collect.list.List;
 import magma.api.option.Option;
 import magma.app.Location;
 import magma.app.Platform;
@@ -18,13 +17,7 @@ public interface Context {
 
     Context addSource(Source source);
 
-    List<String> findNamespaceOrEmpty();
-
-    String findNameOrEmpty();
+    Option<Location> findLocation();
 
     Context withPlatform(Platform platform);
-
-    Option<Location> maybeLocation();
-
-    List<Source> sources();
 }

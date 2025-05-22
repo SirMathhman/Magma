@@ -423,7 +423,6 @@ Context --> Iter
 Context --> Platform
 Context --> Option
 Context --> Location
-Context --> List
 ConstructorHeader --> MethodHeader
 Definition --> List
 Definition --> Iterable
@@ -483,7 +482,6 @@ ImmutableContext --> List
 ImmutableContext --> None
 ImmutableContext --> Lists
 ImmutableContext --> Iter
-ImmutableContext --> Strings
 ImmutableContext --> Some
 ImmutableDivideState --> DivideState
 ImmutableDivideState --> List
@@ -617,6 +615,7 @@ PrimitiveTypes --> PrimitiveType
 PrimitiveTypes --> None
 ResolvedTypes --> CompileState
 ResolvedTypes --> Location
+ResolvedTypes --> Lists
 ResolvedTypes --> Import
 ResolvedTypes --> Registry
 ResolvedTypes --> Source
@@ -807,6 +806,7 @@ Source --> Result
 Source --> Location
 Location --> List
 Location --> Iter
+Location --> Strings
 Main --> Files
 Main --> PathSources
 Main --> PathTargets

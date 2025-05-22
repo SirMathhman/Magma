@@ -6,7 +6,6 @@ import magma.api.collect.list.List;
 import magma.api.option.None;
 import magma.api.option.Option;
 import magma.api.option.Some;
-import magma.api.text.Strings;
 import magma.app.Location;
 import magma.app.Platform;
 import magma.app.io.Source;
@@ -35,7 +34,7 @@ public record ImmutableContext(
     @Override
     public Option<Source> findSource(String name) {
         return this.iterSources()
-                .filter((Source source) -> Strings.equalsTo(source.createLocation().name(), name))
+                .filter((Source source) -> source.createLocation().hasName(name))
                 .next();
     }
 
@@ -50,15 +49,8 @@ public record ImmutableContext(
     }
 
     @Override
-    public List<String> findNamespaceOrEmpty() {
-        return this.maybeLocation()
-                .map(location -> location.namespace())
-                .orElse(Lists.empty());
-    }
-
-    @Override
-    public String findNameOrEmpty() {
-        return this.maybeLocation.map(Location::name).orElse("");
+    public Option<Location> findLocation() {
+        return this.maybeLocation;
     }
 
     @Override

@@ -1,5 +1,6 @@
 import { CompileState } from "../../../../../magma/app/compile/CompileState";
 import { Location } from "../../../../../magma/app/Location";
+import { Lists } from "../../../../../jvm/api/collect/list/Lists";
 import { Import } from "../../../../../magma/app/compile/Import";
 import { Registry } from "../../../../../magma/app/compile/Registry";
 import { Source } from "../../../../../magma/app/io/Source";
@@ -13,7 +14,7 @@ export class ResolvedTypes {
 	static getState(state: CompileState, location: Location): CompileState {
 		let requestedNamespace = location.namespace()/*unknown*/;
 		let requestedChild = location.name()/*unknown*/;
-		let namespace = ResolvedTypes.fixNamespace(requestedNamespace, state.findContext().findNamespaceOrEmpty())/*unknown*/;
+		let namespace = ResolvedTypes.fixNamespace(requestedNamespace, state.findContext().findLocation().map((location1: Location) => location1.namespace()/*unknown*/).orElse(Lists.empty()))/*unknown*/;
 		if (state.findRegistry().doesImportExistAlready(requestedChild)/*unknown*/){
 			return state/*CompileState*/;
 		}
@@ -34,7 +35,7 @@ export class ResolvedTypes {
 		if (!!immutableCompileState/*CompileState*/.findContext().hasPlatform(Platform.PlantUML)/*unknown*/){
 			return new None<CompileState>()/*unknown*/;
 		}
-		let name = immutableCompileState.findContext().findNameOrEmpty()/*unknown*/;
+		let name = immutableCompileState.findContext().findLocation().map(Location.name).orElse("")/*unknown*/;
 		let dependency = new Dependency(name, location.name())/*unknown*/;
 		if (immutableCompileState.findRegistry().containsDependency(dependency)/*unknown*/){
 			return new None<CompileState>()/*unknown*/;

@@ -7,7 +7,6 @@ import { List } from "../../../magma/api/collect/list/List";
 import { None } from "../../../magma/api/option/None";
 import { Lists } from "../../../jvm/api/collect/list/Lists";
 import { Iter } from "../../../magma/api/collect/Iter";
-import { Strings } from "../../../magma/api/text/Strings";
 import { Some } from "../../../magma/api/option/Some";
 export class ImmutableContext implements Context {
 	maybePlatform: Option<Platform>;
@@ -28,7 +27,7 @@ export class ImmutableContext implements Context {
 		return this.maybePlatform.filter((thisPlatform: Platform) => thisPlatform === platform/*unknown*/).isPresent()/*unknown*/;
 	}
 	findSource(name: string): Option<Source> {
-		return this.iterSources().filter((source: Source) => Strings.equalsTo(source.createLocation().name(), name)/*unknown*/).next()/*unknown*/;
+		return this.iterSources().filter((source: Source) => source.createLocation().hasName(name)/*unknown*/).next()/*unknown*/;
 	}
 	withLocation(location: Location): Context {
 		return new ImmutableContext(this.maybePlatform, new Some<Location>(location), this.sources)/*unknown*/;
@@ -36,11 +35,8 @@ export class ImmutableContext implements Context {
 	addSource(source: Source): Context {
 		return new ImmutableContext(this.maybePlatform, this.maybeLocation, this.sources.addLast(source))/*unknown*/;
 	}
-	findNamespaceOrEmpty(): List<string> {
-		return this.maybeLocation().map(location -  > location.namespace()).orElse(Lists.empty())/*unknown*/;
-	}
-	findNameOrEmpty(): string {
-		return this.maybeLocation.map(Location.name).orElse("")/*unknown*/;
+	findLocation(): Option<Location> {
+		return this.maybeLocation/*unknown*/;
 	}
 	withPlatform(platform: Platform): Context {
 		return new ImmutableContext(new Some<Platform>(platform), this.maybeLocation, this.sources)/*unknown*/;
