@@ -22,4 +22,13 @@ public record InfixRule(
             });
         });
     }
+
+    @Override
+    public Optional<String> generate(MapNode node) {
+        return this.leftRule.generate(node).flatMap(leftString -> {
+            return this.rightRule.generate(node).map(rightString -> {
+                return leftString + this.infix + rightString;
+            });
+        });
+    }
 }

@@ -11,7 +11,6 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Optional;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
@@ -76,20 +75,13 @@ public final class Main {
 
         return Main.createClassRule()
                 .apply(stripped)
-                .flatMap(node -> Main.generateClass(node))
+                .flatMap(node -> Main.createClassRule().generate(node))
                 .orElseGet(() -> Main.generatePlaceholder(stripped));
     }
 
     private static InfixRule createClassRule() {
-        var afterKeyword = new InfixRule(new StringRule("before-content"), "{", new SuffixRule("}", new StringRule("content")));
-        return new InfixRule(new StringRule("before-content"), "class ", afterKeyword);
-    }
-
-    private static Optional<String> generateClass(MapNode node) {
-        var beforeKeyword = node.findStringOrEmpty("before-keyword");
-        var beforeContent = node.findStringOrEmpty("before-content");
-        var content = node.findStringOrEmpty("content");
-        return Optional.of(Main.generatePlaceholder(beforeKeyword) + "class " + beforeContent + "{" + content + "}");
+        var afterKeyword = new InfixRule(new StringRule("before-content"), "{", new SuffixRule(new StringRule("content"), "}"));
+        return new InfixRule(new StringRule("before-keyword"), "class ", afterKeyword);
     }
 
     private static String generatePlaceholder(String input) {

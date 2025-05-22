@@ -2,6 +2,7 @@ package magmac.compile;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 
 public final class MapNode {
     private final Map<String, String> strings;
@@ -19,8 +20,12 @@ public final class MapNode {
         return this;
     }
 
-    public String findStringOrEmpty(String key) {
-        return this.strings.getOrDefault(key, "");
+    public Optional<String> findString(String key) {
+        if (this.strings.containsKey(key)) {
+            return Optional.of(this.strings.get(key));
+        }
+
+        return Optional.empty();
     }
 
     public MapNode merge(MapNode other) {

@@ -3,8 +3,7 @@ package magmac.compile;
 import java.util.Optional;
 
 public record SuffixRule(
-        String suffix,
-        Rule rule
+        Rule rule, String suffix
 ) implements Rule {
     @Override
     public Optional<MapNode> apply(String input) {
@@ -14,5 +13,10 @@ public record SuffixRule(
         }
 
         return Optional.empty();
+    }
+
+    @Override
+    public Optional<String> generate(MapNode node) {
+        return this.rule.generate(node).map(inner -> inner + this.suffix);
     }
 }
