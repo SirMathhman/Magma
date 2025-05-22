@@ -26,7 +26,7 @@ export class Application {
 		this.targets = targets;
 	}
 	static writeAsPlantUML(result: CompileState, diagramPath: Path, joinedDependencies: string): Option<Result<CompileState, IOError>> {
-		return diagramPath.writeString("@startuml\nskinparam linetype ortho\n" + result.findRegistry().output() + joinedDependencies + "@enduml").map((error: IOError) => new Err<CompileState, IOError>(error)/*unknown*/)/*unknown*/;
+		return diagramPath.writeString("@startuml\nskinparam linetype ortho\n" + result.findRegistry().findOutput() + joinedDependencies + "@enduml").map((error: IOError) => new Err<CompileState, IOError>(error)/*unknown*/)/*unknown*/;
 	}
 	runWith(platform: Platform): Option<IOError> {
 		return this.sources.listSources().flatMapValue((children: Iterable<Source>) => this.runWithChildren(platform, children)/*unknown*/).findError()/*unknown*/;
@@ -56,7 +56,7 @@ export class Application {
 		}
 		let otherOutput = compiled.right()/*unknown*/;
 		let joinedImports = compiledState.findRegistry().queryImports().map((anImport: Import) => anImport.generate()/*unknown*/).collect(new Joiner("")).orElse("")/*unknown*/;
-		let joined = joinedImports + compiledState.findRegistry().output() + otherOutput/*unknown*/;
+		let joined = joinedImports + compiledState.findRegistry().findOutput() + otherOutput/*unknown*/;
 		let cleared = state1.mapRegistry((registry: Registry) => registry.reset()/*unknown*/)/*unknown*/;
 		return this.writeTarget(source, cleared, joined)/*unknown*/;
 	}

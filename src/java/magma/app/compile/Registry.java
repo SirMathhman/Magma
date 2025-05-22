@@ -17,7 +17,7 @@ public interface Registry {
 
     boolean containsDependency(Dependency dependency);
 
-    String output();
+    String findOutput();
 
     Registry reset();
 }

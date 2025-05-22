@@ -9,6 +9,6 @@ export interface Registry {
 	addImport(import_: Import): Registry;
 	append(element: string): Registry;
 	containsDependency(dependency: Dependency): boolean;
-	output(): string;
+	findOutput(): string;
 	reset(): Registry;
 }

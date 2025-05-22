@@ -16,28 +16,31 @@ export class ImmutableRegistry implements Registry {
 	static createEmpty(): Registry {
 		return new ImmutableRegistry(Lists.empty(), "", Lists.empty())/*unknown*/;
 	}
+	findOutput(): string {
+		return this.output/*unknown*/;
+	}
 	iterDependencies(): Iter<Dependency> {
-		return this.dependencies().iter()/*unknown*/;
+		return this.dependencies.iter()/*unknown*/;
 	}
 	doesImportExistAlready(requestedChild: string): boolean {
-		return this.imports().iter().filter((node: Import) => node.hasSameChild(requestedChild)/*unknown*/).next().isPresent()/*unknown*/;
+		return this.imports.iter().filter((node: Import) => node.hasSameChild(requestedChild)/*unknown*/).next().isPresent()/*unknown*/;
 	}
 	queryImports(): Iter<Import> {
-		return this.imports().iter()/*unknown*/;
+		return this.imports.iter()/*unknown*/;
 	}
 	addDependency(dependency: Dependency): Registry {
-		return new ImmutableRegistry(this.imports(), this.output(), this.dependencies().addLast(dependency))/*unknown*/;
+		return new ImmutableRegistry(this.imports, this.output, this.dependencies.addLast(dependency))/*unknown*/;
 	}
 	addImport(import_: Import): Registry {
-		return new ImmutableRegistry(this.imports().addLast(import_), this.output(), this.dependencies())/*unknown*/;
+		return new ImmutableRegistry(this.imports.addLast(import_), this.output, this.dependencies)/*unknown*/;
 	}
 	append(element: string): Registry {
-		return new ImmutableRegistry(this.imports(), this.output() + element, this.dependencies())/*unknown*/;
+		return new ImmutableRegistry(this.imports, this.output + element, this.dependencies)/*unknown*/;
 	}
 	containsDependency(dependency: Dependency): boolean {
-		return this.dependencies().contains(dependency)/*unknown*/;
+		return this.dependencies.contains(dependency)/*unknown*/;
 	}
 	reset(): Registry {
-		return new ImmutableRegistry(Lists.empty(), "", this.dependencies())/*unknown*/;
+		return new ImmutableRegistry(Lists.empty(), "", this.dependencies)/*unknown*/;
 	}
 }

@@ -20,7 +20,7 @@ import magma.app.io.Source;
 record Application(Sources sources, Targets targets) {
     private static Option<Result<CompileState, IOError>> writeAsPlantUML(CompileState result, Path diagramPath, String joinedDependencies) {
         return diagramPath
-                .writeString("@startuml\nskinparam linetype ortho\n" + result.findRegistry().output() + joinedDependencies + "@enduml")
+                .writeString("@startuml\nskinparam linetype ortho\n" + result.findRegistry().findOutput() + joinedDependencies + "@enduml")
                 .map((IOError error) -> new Err<CompileState, IOError>(error));
     }
 
@@ -70,7 +70,7 @@ record Application(Sources sources, Targets targets) {
                 .collect(new Joiner(""))
                 .orElse("");
 
-        var joined = joinedImports + compiledState.findRegistry().output() + otherOutput;
+        var joined = joinedImports + compiledState.findRegistry().findOutput() + otherOutput;
         var cleared = state1.mapRegistry((Registry registry) -> registry.reset());
         return this.writeTarget(source, cleared, joined);
     }
