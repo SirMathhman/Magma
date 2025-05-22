@@ -170,6 +170,9 @@ StatementsMerger <|.. Merger
 class ValueMerger {
 }
 ValueMerger <|.. Merger
+class NamespacedRule {
+}
+NamespacedRule <|.. Rule
 interface Registry {
 }
 class OrRule<T> {
@@ -295,9 +298,6 @@ class PathTargets {
 PathTargets <|.. Targets
 class Platform {
 }
-class NamespacedRule {
-}
-NamespacedRule <|.. Rule
 class RootCompiler {
 }
 interface Sources {
@@ -524,6 +524,14 @@ Merger --> Iterable
 StatementsMerger --> Merger
 ValueMerger --> Merger
 ValueMerger --> Strings
+NamespacedRule --> Rule
+NamespacedRule --> CompileState
+NamespacedRule --> Tuple2
+NamespacedRule --> Option
+NamespacedRule --> Strings
+NamespacedRule --> Some
+NamespacedRule --> Tuple2Impl
+NamespacedRule --> None
 Registry --> Dependency
 Registry --> Iter
 Registry --> Import
@@ -871,21 +879,18 @@ PathTargets --> Option
 PathTargets --> None
 PathTargets --> Location
 RootCompiler --> Rule
-RootCompiler --> CompileState
-RootCompiler --> Tuple2
-RootCompiler --> Option
-RootCompiler --> Strings
-RootCompiler --> Some
-RootCompiler --> Tuple2Impl
-RootCompiler --> None
 RootCompiler --> OrRule
 RootCompiler --> Lists
 RootCompiler --> WhitespaceCompiler
+RootCompiler --> NamespacedRule
 RootCompiler --> StructureCompiler
+RootCompiler --> CompileState
+RootCompiler --> Tuple2
 RootCompiler --> FieldCompiler
 RootCompiler --> Location
 RootCompiler --> FunctionSegmentCompiler
 RootCompiler --> Context
+RootCompiler --> Tuple2Impl
 RootCompiler --> Placeholder
 Sources --> Source
 Sources --> Iterable
