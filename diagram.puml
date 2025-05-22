@@ -137,6 +137,8 @@ TypeSeparatorFolder <|.. Folder
 class ValueFolder {
 }
 ValueFolder <|.. Folder
+interface Generator<T> {
+}
 class ImmutableCompileState {
 }
 ImmutableCompileState <|.. CompileState
@@ -741,8 +743,7 @@ Value --> Caller
 InstanceOfs --> Value
 InstanceOfs --> Type
 InstanceOfs --> Rule
-InstanceOfs --> ValueCompiler
-InstanceOfs --> TypeCompiler
+InstanceOfs --> Generator
 DefiningCompiler --> Definition
 DefiningCompiler --> Iterable
 DefiningCompiler --> Parameter

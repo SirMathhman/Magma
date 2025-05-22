@@ -5,13 +5,14 @@ import magma.api.Tuple2Impl;
 import magma.app.TypeCompiler;
 import magma.app.ValueCompiler;
 import magma.app.compile.CompileState;
+import magma.app.compile.Generator;
 import magma.app.compile.compose.Split;
 import magma.app.compile.rule.ComposableRule;
 import magma.app.compile.rule.Rule;
 import magma.app.compile.type.Type;
 import magma.app.compile.value.Value;
 
-public class InstanceOfs {
+public final class InstanceOfs {
     public record InstanceOf(Value value, Type type) implements Value {
     }
 
@@ -23,7 +24,7 @@ public class InstanceOfs {
         })));
     }
 
-    public static String generate(InstanceOf instanceOf) {
-        return ValueCompiler.generateValue(instanceOf.value) + "._variant === " + TypeCompiler.generateType(instanceOf.type) + "._variantKey";
+    public static String generate(InstanceOf instanceOf, Generator<Value> valueGenerator, Generator<Type> typeGenerator) {
+        return valueGenerator.generate(instanceOf.value) + "._variant === " + typeGenerator.generate(instanceOf.type) + "._variantKey";
     }
 }

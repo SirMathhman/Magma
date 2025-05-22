@@ -223,7 +223,7 @@ export class ValueCompiler {
             case Placeholder placeholder -> ValueCompiler.generatePlaceholder(placeholder);
             case StringValue stringValue -> ValueCompiler.generateStringValue(stringValue);
             case Symbol symbol -> ValueCompiler.generateSymbol(symbol);
-            case InstanceOf instanceOf -> InstanceOfs.generate(instanceOf);
+            case InstanceOf instanceOf -> InstanceOfs.generate(instanceOf, ValueCompiler::generateValue, TypeCompiler::generateType);
             default -> "?";
         }*/;
 	}
