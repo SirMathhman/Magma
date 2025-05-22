@@ -7,21 +7,21 @@ import magma.app.compile.define.Definition;
 import magma.app.compile.define.Parameter;
 import magma.app.compile.type.Type;
 
-public record Placeholder(String input) implements Parameter, Value, Type {
-    public static String generatePlaceholder(String input) {
-        var replaced = input
+public record Placeholder(String value) implements Parameter, Value, Type {
+    public static String fromValue(String value) {
+        var replaced = value
                 .replace("/*", "start")
                 .replace("*/", "end");
 
         return "/*" + replaced + "*/";
     }
 
-    public static String generatePlaceholder(Placeholder placeholder) {
-        return Placeholder.generatePlaceholder(placeholder.input());
+    public static String fromNode(Placeholder placeholder) {
+        return Placeholder.fromValue(placeholder.value);
     }
 
     public String generate() {
-        return Placeholder.generatePlaceholder(this.input);
+        return Placeholder.fromValue(this.value);
     }
 
     @Override

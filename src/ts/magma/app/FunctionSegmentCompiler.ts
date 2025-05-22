@@ -126,7 +126,7 @@ export class FunctionSegmentCompiler {
 		let splitter: Splitter = new LocatingSplitter("=", new FirstLocator())/*unknown*/;
 		return new SplitComposable<Tuple2<CompileState, string>>(splitter, Composable.toComposable((destination: string, source: string) => {
 			let sourceTuple = ValueCompiler.compileValueOrPlaceholder(state, source)/*unknown*/;
-			let destinationTuple = ValueCompiler.compileValue(sourceTuple.left(), destination).or(() => DefiningCompiler.parseDefinition(sourceTuple.left(), destination).map((tuple: Tuple2<CompileState, Definition>) => new Tuple2Impl<CompileState, string>(tuple.left(), "let " + tuple.right().generate())/*unknown*/)/*unknown*/).orElseGet(() => new Tuple2Impl<CompileState, string>(sourceTuple.left(), Placeholder.generatePlaceholder(destination))/*unknown*/)/*unknown*/;
+			let destinationTuple = ValueCompiler.compileValue(sourceTuple.left(), destination).or(() => DefiningCompiler.parseDefinition(sourceTuple.left(), destination).map((tuple: Tuple2<CompileState, Definition>) => new Tuple2Impl<CompileState, string>(tuple.left(), "let " + tuple.right().generate())/*unknown*/)/*unknown*/).orElseGet(() => new Tuple2Impl<CompileState, string>(sourceTuple.left(), Placeholder.fromValue(destination))/*unknown*/)/*unknown*/;
 			return new Some<Tuple2<CompileState, string>>(new Tuple2Impl<CompileState, string>(destinationTuple.left(), destinationTuple.right() + " = " + sourceTuple.right()))/*unknown*/;
 		})).apply(input)/*unknown*/;
 	}

@@ -20,6 +20,6 @@ export class RootCompiler {
 		return OrRule.compileOrPlaceholder(state1, input1, Lists.of(WhitespaceCompiler.createWhitespaceRule(), StructureCompiler.createStructureRule("class ", "class "), StructureCompiler.createStructureRule("interface ", "interface "), StructureCompiler.createStructureRule("record ", "class "), StructureCompiler.createStructureRule("enum ", "class "), FieldCompiler.createMethodRule(), FieldCompiler.createFieldDefinitionRule(), FieldCompiler.createEnumValuesRule()))/*unknown*/;
 	}
 	static compileRoot(state: CompileState, input: string, location: Location): Tuple2<CompileState, string> {
-		return FunctionSegmentCompiler.compileStatements(state.mapContext((context2: Context) => context2.withLocation(location)/*unknown*/), input, (state1: CompileState, input1: string) => RootCompiler.createRootSegmentRule().apply(state1, input1).orElseGet(() => new Tuple2Impl<CompileState, string>(state1, Placeholder.generatePlaceholder(input1))/*unknown*/)/*unknown*/)/*unknown*/;
+		return FunctionSegmentCompiler.compileStatements(state.mapContext((context2: Context) => context2.withLocation(location)/*unknown*/), input, (state1: CompileState, input1: string) => RootCompiler.createRootSegmentRule().apply(state1, input1).orElseGet(() => new Tuple2Impl<CompileState, string>(state1, Placeholder.fromValue(input1))/*unknown*/)/*unknown*/)/*unknown*/;
 	}
 }

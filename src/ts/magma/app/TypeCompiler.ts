@@ -13,7 +13,7 @@ export class TypeCompiler {
 	}
 	static generateType(type: Type): string {/*return switch (type) {
             case FunctionType functionType -> FunctionTypes.generateFunctionType(functionType);
-            case Placeholder placeholder -> Placeholder.generatePlaceholder(placeholder);
+            case Placeholder placeholder -> Placeholder.fromNode(placeholder);
             case PrimitiveType primitiveType -> PrimitiveTypes.generatePrimitiveType(primitiveType);
             case Symbol symbol -> Symbols.generateSymbol(symbol);
             case TemplateType templateType -> TemplateTypes.generateTemplateType(templateType);

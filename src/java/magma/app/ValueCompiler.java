@@ -56,7 +56,7 @@ public final class ValueCompiler {
         var state = tuple.left();
         var right = tuple.right();
         var generated = ValueCompiler.generateCaller(right);
-        var s = Placeholder.generatePlaceholder(TypeCompiler.generateType(ValueCompiler.resolve(state, right)));
+        var s = Placeholder.fromValue(TypeCompiler.generateType(ValueCompiler.resolve(state, right)));
         return new Tuple2Impl<CompileState, String>(state, generated + s);
     }
 
@@ -175,7 +175,7 @@ public final class ValueCompiler {
     }
 
     static Tuple2<CompileState, String> compileValueOrPlaceholder(CompileState state, String input) {
-        return ValueCompiler.compileValue(state, input).orElseGet(() -> new Tuple2Impl<CompileState, String>(state, Placeholder.generatePlaceholder(input)));
+        return ValueCompiler.compileValue(state, input).orElseGet(() -> new Tuple2Impl<CompileState, String>(state, Placeholder.fromValue(input)));
     }
 
     static Option<Tuple2<CompileState, String>> compileValue(CompileState state, String input) {
@@ -291,7 +291,7 @@ public final class ValueCompiler {
     }
 
     private static String generatePlaceholder(Placeholder placeholder) {
-        return Placeholder.generatePlaceholder(placeholder.input());
+        return Placeholder.fromValue(placeholder.value());
     }
 
     private static String generateOperation(Operation operation) {

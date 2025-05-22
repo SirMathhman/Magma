@@ -14,7 +14,7 @@ public record OrRule<T>(Iterable<Rule<T>> rules) implements Rule<T> {
             String input,
             Iterable<Rule<String>> rules
     ) {
-        return new OrRule<String>(rules).apply(state, input).orElseGet(() -> new Tuple2Impl<CompileState, String>(state, Placeholder.generatePlaceholder(input)));
+        return new OrRule<String>(rules).apply(state, input).orElseGet(() -> new Tuple2Impl<CompileState, String>(state, Placeholder.fromValue(input)));
     }
 
     @Override

@@ -55,7 +55,7 @@ export class ValueCompiler {
 		let state = tuple.left()/*unknown*/;
 		let right = tuple.right()/*unknown*/;
 		let generated = ValueCompiler.generateCaller(right)/*unknown*/;
-		let s = Placeholder.generatePlaceholder(TypeCompiler.generateType(ValueCompiler.resolve(state, right)))/*unknown*/;
+		let s = Placeholder.fromValue(TypeCompiler.generateType(ValueCompiler.resolve(state, right)))/*unknown*/;
 		return new Tuple2Impl<CompileState, string>(state, generated + s)/*unknown*/;
 	}
 	static parseInvokable(state: CompileState, input: string): Option<Tuple2<CompileState, Value>> {
@@ -155,7 +155,7 @@ export class ValueCompiler {
 		}
 	}
 	static compileValueOrPlaceholder(state: CompileState, input: string): Tuple2<CompileState, string> {
-		return ValueCompiler.compileValue(state, input).orElseGet(() => new Tuple2Impl<CompileState, string>(state, Placeholder.generatePlaceholder(input))/*unknown*/)/*unknown*/;
+		return ValueCompiler.compileValue(state, input).orElseGet(() => new Tuple2Impl<CompileState, string>(state, Placeholder.fromValue(input))/*unknown*/)/*unknown*/;
 	}
 	static compileValue(state: CompileState, input: string): Option<Tuple2<CompileState, string>> {
 		return ValueCompiler.parseValue(state, input).map((tuple: Tuple2<CompileState, Value>) => ValueCompiler.generateValue(tuple)/*unknown*/)/*unknown*/;
@@ -229,7 +229,7 @@ export class ValueCompiler {
 		return "\"" + stringValue.value() + "\""/*unknown*/;
 	}
 	static generatePlaceholder(placeholder: Placeholder): string {
-		return Placeholder.generatePlaceholder(placeholder.input())/*unknown*/;
+		return Placeholder.fromValue(placeholder.value())/*unknown*/;
 	}
 	static generateOperation(operation: Operation): string {
 		return ValueCompiler.generateCaller(operation.left()) + " " + operation.targetInfix() + " " + ValueCompiler.generateCaller(operation.right())/*unknown*/;

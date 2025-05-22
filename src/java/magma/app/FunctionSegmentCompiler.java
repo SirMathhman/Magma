@@ -160,7 +160,7 @@ public final class FunctionSegmentCompiler {
 
             var destinationTuple = ValueCompiler.compileValue(sourceTuple.left(), destination)
                     .or(() -> DefiningCompiler.parseDefinition(sourceTuple.left(), destination).map((Tuple2<CompileState, Definition> tuple) -> new Tuple2Impl<CompileState, String>(tuple.left(), "let " + tuple.right().generate())))
-                    .orElseGet(() -> new Tuple2Impl<CompileState, String>(sourceTuple.left(), Placeholder.generatePlaceholder(destination)));
+                    .orElseGet(() -> new Tuple2Impl<CompileState, String>(sourceTuple.left(), Placeholder.fromValue(destination)));
 
             return new Some<Tuple2<CompileState, String>>(new Tuple2Impl<CompileState, String>(destinationTuple.left(), destinationTuple.right() + " = " + sourceTuple.right()));
         })).apply(input);

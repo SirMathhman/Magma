@@ -38,6 +38,6 @@ public final class RootCompiler {
 
     static Tuple2<CompileState, String> compileRoot(CompileState state, String input, Location location) {
         return FunctionSegmentCompiler.compileStatements(state.mapContext((Context context2) -> context2.withLocation(location)), input,
-                (CompileState state1, String input1) -> RootCompiler.createRootSegmentRule().apply(state1, input1).orElseGet(() -> new Tuple2Impl<CompileState, String>(state1, Placeholder.generatePlaceholder(input1))));
+                (CompileState state1, String input1) -> RootCompiler.createRootSegmentRule().apply(state1, input1).orElseGet(() -> new Tuple2Impl<CompileState, String>(state1, Placeholder.fromValue(input1))));
     }
 }

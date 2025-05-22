@@ -3,19 +3,19 @@ import { Option } from "../../../../magma/api/option/Option";
 import { None } from "../../../../magma/api/option/None";
 import { TypeCompiler } from "../../../../magma/app/TypeCompiler";
 export class Placeholder {
-	input: string;
-	constructor (input: string) {
-		this.input = input;
+	value: string;
+	constructor (value: string) {
+		this.value = value;
 	}
-	static generatePlaceholder(input: string): string {
-		let replaced = input.replace("/*", "start").replace("*/", "end")/*unknown*/;
+	static fromValue(value: string): string {
+		let replaced = value.replace("/*", "start").replace("*/", "end")/*unknown*/;
 		return "/*" + replaced + "*/"/*unknown*/;
 	}
-	static generatePlaceholder(placeholder: Placeholder): string {
-		return Placeholder.generatePlaceholder(placeholder.input())/*unknown*/;
+	static fromNode(placeholder: Placeholder): string {
+		return Placeholder.fromValue(placeholder.value)/*unknown*/;
 	}
 	generate(): string {
-		return Placeholder.generatePlaceholder(this.input)/*unknown*/;
+		return Placeholder.fromValue(this.value)/*unknown*/;
 	}
 	isFunctional(): boolean {
 		return false/*unknown*/;
