@@ -1,13 +1,12 @@
 @startuml
-'package magmac;
 'import java.io.IOException;
 'import java.nio.file.Files;
 'import java.nio.file.Paths;
-'import java.util.ArrayList;
 'import java.util.Arrays;
+'import java.util.List;
 'import java.util.regex.Pattern;
 'import java.util.stream.Collectors;
-'public class Main {
+'public final class Main {
 '    public static void main() {
 '        try {
 '            var source = Paths.get(".", "src", "java", "magmac", "Main.java");
@@ -23,27 +22,43 @@
 '    }
 '
 '    private static String compile(String input) {
-'        var segments = new ArrayList<String>();
-'var buffer = new StringBuilder();
-'for (var i = 0;
-'i < input.length();
-'i++) {
-'            var c = input.charAt(i);
-'buffer.append(c);
-'if (';
-'' == c) {
-'                segments.add(buffer.toString());
-'buffer = new StringBuilder();
-'}
-'        }
-'        segments.add(buffer.toString());
-'buffer = new StringBuilder();
+'        var segments = Main.divide(input, new State());
 'var output = new StringBuilder();
 'for (var segment : segments) {
-'            output.append(generatePlaceholder(segment.strip()));
+'            output.append(Main.compileRootSegment(segment));
 '}
 '
 '        return output.toString();
+'}
+'
+'    private static List<String> divide(String input, State state) {
+'        var current = state;
+'var length = input.length();
+'for (var i = 0;
+'i < length;
+'i++) {
+'            var c = input.charAt(i);
+'current = Main.fold(current, c);
+'}
+'
+'        return current.advance().segments();
+'}
+'
+'    private static State fold(State state, char c) {
+'        var current = state.append(c);
+'if (';
+'' == c) {
+'            return current.advance();
+'}
+'        return current;
+'}
+'
+'    private static String compileRootSegment(String segment) {
+'        if (segment.startsWith("package ")) {
+'            return "";
+'}
+'
+'        return Main.generatePlaceholder(segment.strip());
 '}
 '
 '    private static String generatePlaceholder(String input) {
