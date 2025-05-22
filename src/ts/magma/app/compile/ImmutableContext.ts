@@ -37,7 +37,7 @@ export class ImmutableContext implements Context {
 		return new ImmutableContext(this.maybePlatform, this.maybeLocation, this.sources.addLast(source))/*unknown*/;
 	}
 	findNamespaceOrEmpty(): List<string> {
-		return this.maybeLocation().map(Location.namespace).orElse(Lists.empty())/*unknown*/;
+		return this.maybeLocation().map(location -  > location.namespace()).orElse(Lists.empty())/*unknown*/;
 	}
 	findNameOrEmpty(): string {
 		return this.maybeLocation.map(Location.name).orElse("")/*unknown*/;
