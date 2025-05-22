@@ -8,7 +8,7 @@ public record InfixRule(
         Rule rightRule
 ) implements Rule {
     @Override
-    public Optional<MapNode> apply(String input) {
+    public Optional<MapNode> parse(String input) {
         var index = input.indexOf(this.infix);
         if (0 > index) {
             return Optional.empty();
@@ -16,8 +16,8 @@ public record InfixRule(
 
         var leftString = input.substring(0, index);
         var rightString = input.substring(index + this.infix.length());
-        return this.leftRule.apply(leftString).flatMap(leftValue -> {
-            return this.rightRule.apply(rightString).map(rightValue -> {
+        return this.leftRule.parse(leftString).flatMap(leftValue -> {
+            return this.rightRule.parse(rightString).map(rightValue -> {
                 return leftValue.merge(rightValue);
             });
         });

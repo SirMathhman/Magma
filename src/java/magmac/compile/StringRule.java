@@ -9,7 +9,7 @@ public record StringRule(String key) implements Rule {
     }
 
     @Override
-    public Optional<MapNode> apply(String input) {
+    public Optional<MapNode> parse(String input) {
         return Optional.of(new MapNode().putString(this.key, input));
     }
 }

@@ -1,8 +1,9 @@
 package magmac.compile;
 
 import java.util.Optional;
-import java.util.function.Function;
 
-public interface Rule extends Function<String, Optional<MapNode>> {
+public interface Rule {
+    Optional<MapNode> parse(String input);
+
     Optional<String> generate(MapNode node);
 }

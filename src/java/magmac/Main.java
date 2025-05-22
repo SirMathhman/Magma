@@ -1,18 +1,17 @@
 package magmac;
 
 import magmac.compile.InfixRule;
-import magmac.compile.MapNode;
+import magmac.compile.OrRule;
+import magmac.compile.PrefixRule;
 import magmac.compile.State;
 import magmac.compile.StringRule;
+import magmac.compile.StripRule;
 import magmac.compile.SuffixRule;
 
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.Arrays;
 import java.util.List;
-import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 
 public final class Main {
     public static void main() {
@@ -68,32 +67,32 @@ public final class Main {
     }
 
     private static String compileRootSegment(String input) {
-        var stripped = input.strip();
-        if (stripped.startsWith("package ") || stripped.startsWith("import ")) {
-            return "";
-        }
+        return Main.getString(input);
+    }
 
-        return Main.createClassRule()
-                .apply(stripped)
-                .flatMap(node -> Main.createClassRule().generate(node))
-                .orElseGet(() -> Main.generatePlaceholder(stripped));
+    private static String getString(String input) {
+        return Main.createRootSegmentRule()
+                .parse(input)
+                .flatMap(node -> Main.createRootSegmentRule().generate(node))
+                .orElse("");
+    }
+
+    private static OrRule createRootSegmentRule() {
+        return new OrRule(List.of(
+                Main.createNamespacedRule(),
+                Main.createClassRule()
+        ));
+    }
+
+    private static StripRule createNamespacedRule() {
+        return new StripRule(new OrRule(List.of(
+                new PrefixRule("package ", new StringRule("after")),
+                new PrefixRule("import ", new StringRule("after"))
+        )));
     }
 
     private static InfixRule createClassRule() {
         var afterKeyword = new InfixRule(new StringRule("before-content"), "{", new SuffixRule(new StringRule("content"), "}"));
         return new InfixRule(new StringRule("before-keyword"), "class ", afterKeyword);
-    }
-
-    private static String generatePlaceholder(String input) {
-        return Arrays.stream(Main.splitIntoCommentSegments(input))
-                .filter(value -> !value.isEmpty())
-                .map(value -> "'" + value + "\n")
-                .collect(Collectors.joining());
-    }
-
-    private static String[] splitIntoCommentSegments(String input) {
-        return input.replace("@startuml", "startuml")
-                .replace("@enduml", "enduml")
-                .split(Pattern.quote("\n"));
     }
 }
