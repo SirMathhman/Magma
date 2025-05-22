@@ -32,7 +32,7 @@ import magma.app.compile.text.Whitespace;
 import magma.app.compile.type.Type;
 import magma.app.compile.value.Placeholder;
 
-final class DefiningCompiler {
+public final class DefiningCompiler {
     public static Iterable<Definition> retainDefinitionsFromParameters(Iterable<Parameter> parameters) {
         return parameters.iter()
                 .map((Parameter parameter) -> parameter.asDefinition())
@@ -120,7 +120,7 @@ final class DefiningCompiler {
         });
     }
 
-    static List<String> divideValues(String input) {
+    public static List<String> divideValues(String input) {
         return new FoldedDivider(new DecoratedFolder(new ValueFolder())).divide(input)
                 .map((String input1) -> Strings.strip(input1))
                 .filter((String value) -> !Strings.isEmpty(value))

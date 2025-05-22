@@ -2,11 +2,10 @@ import { List } from "../../../../magma/api/collect/list/List";
 import { Iterable } from "../../../../magma/api/collect/list/Iterable";
 import { Type } from "../../../../magma/app/compile/type/Type";
 import { Lists } from "../../../../jvm/api/collect/list/Lists";
+import { Joiner } from "../../../../magma/api/collect/Joiner";
 import { Option } from "../../../../magma/api/option/Option";
 import { Some } from "../../../../magma/api/option/Some";
-import { Joiner } from "../../../../magma/api/collect/Joiner";
 import { TypeCompiler } from "../../../../magma/app/TypeCompiler";
-import { RootCompiler } from "../../../../magma/app/RootCompiler";
 import { MethodHeader } from "../../../../magma/app/compile/define/MethodHeader";
 import { Strings } from "../../../../magma/api/text/Strings";
 export class Definition {
@@ -24,6 +23,9 @@ export class Definition {
 	}
 	static from(type: Type, name: string): Definition {
 		return new Definition(Lists.empty(), Lists.empty(), Lists.empty(), type, name)/*unknown*/;
+	}
+	static joinTypeParams(typeParams: Iterable<string>): string {
+		return typeParams.iter().collect(new Joiner(", ")).map((inner: string) => "<" + inner + ">"/*unknown*/).orElse("")/*unknown*/;
 	}
 	generate(): string {
 		return this.generateWithAfterName("")/*unknown*/;
@@ -46,7 +48,7 @@ export class Definition {
 		return ": " + TypeCompiler.generateType(this.type)/*unknown*/;
 	}
 	joinTypeParams(): string {
-		return RootCompiler.joinTypeParams(this.typeParams)/*unknown*/;
+		return joinTypeParams(this.typeParams)/*unknown*/;
 	}
 	hasAnnotation(annotation: string): boolean {
 		return this.annotations.contains(annotation)/*unknown*/;

@@ -32,7 +32,7 @@ import magma.app.compile.value.Value;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 
-final class FunctionSegmentCompiler {
+public final class FunctionSegmentCompiler {
     private static Option<Tuple2<CompileState, String>> compileEmptySegment(CompileState state, String input) {
         if (Strings.equalsTo(";", Strings.strip(input))) {
             return new Some<Tuple2<CompileState, String>>(new Tuple2Impl<CompileState, String>(state, ";"));
@@ -180,7 +180,7 @@ final class FunctionSegmentCompiler {
         ));
     }
 
-    static Tuple2<CompileState, String> compileStatements(CompileState state, String input, BiFunction<CompileState, String, Tuple2<CompileState, String>> mapper) {
+    public static Tuple2<CompileState, String> compileStatements(CompileState state, String input, BiFunction<CompileState, String, Tuple2<CompileState, String>> mapper) {
         return new DivideRule<String>(new StatementsFolder(), FunctionSegmentCompiler.toRule(mapper))
                 .apply(state, input)
                 .map((Tuple2<CompileState, List<String>> folded) -> FunctionSegmentCompiler.generateAllFromTuple(folded.left(), folded.right(), new StatementsMerger()))

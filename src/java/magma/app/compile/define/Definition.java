@@ -7,7 +7,6 @@ import magma.api.collect.list.List;
 import magma.api.option.Option;
 import magma.api.option.Some;
 import magma.api.text.Strings;
-import magma.app.RootCompiler;
 import magma.app.TypeCompiler;
 import magma.app.compile.type.Type;
 
@@ -20,6 +19,13 @@ public record Definition(
 ) implements MethodHeader, Parameter {
     public static Definition from(Type type, String name) {
         return new Definition(Lists.empty(), Lists.empty(), Lists.empty(), type, name);
+    }
+
+    public static String joinTypeParams(Iterable<String> typeParams) {
+        return typeParams.iter()
+                .collect(new Joiner(", "))
+                .map((String inner) -> "<" + inner + ">")
+                .orElse("");
     }
 
     @Override
@@ -55,7 +61,7 @@ public record Definition(
     }
 
     private String joinTypeParams() {
-        return RootCompiler.joinTypeParams(this.typeParams);
+        return joinTypeParams(this.typeParams);
     }
 
     @Override
