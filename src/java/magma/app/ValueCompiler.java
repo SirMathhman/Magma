@@ -35,6 +35,7 @@ import magma.app.compile.select.Selector;
 import magma.app.compile.split.FoldingSplitter;
 import magma.app.compile.split.LocatingSplitter;
 import magma.app.compile.split.Splitter;
+import magma.app.compile.type.PrimitiveType;
 import magma.app.compile.type.Type;
 import magma.app.compile.value.Access;
 import magma.app.compile.value.ConstructionCaller;
@@ -215,7 +216,7 @@ public final class ValueCompiler {
 
     private static Type resolve(CompileState state, Node value) {
         return switch (value) {
-            case Access access -> access.resolve(state);
+            case Access access -> (Type) PrimitiveType.Unknown;
             case Invokable invokable -> invokable.resolve(state);
             case Lambda lambda -> lambda.resolve(state);
             case Not not -> not.resolve(state);
@@ -350,7 +351,7 @@ public final class ValueCompiler {
 
     public static String generateValue(Node value) {
         return switch (value) {
-            case Access access -> access.generate();
+            case Access access -> generateValue(access.child()) + "." + access.property();
             case Invokable invokable -> invokable.generate();
             case Lambda lambda -> lambda.generate();
             case Not not -> not.generate();

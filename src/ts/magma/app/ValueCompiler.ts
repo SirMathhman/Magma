@@ -195,7 +195,7 @@ export class ValueCompiler {
 		})/*unknown*/;
 	}
 	static resolve(state: CompileState, value: Node): Type {/*return switch (value) {
-            case Access access -> access.resolve(state);
+            case Access access -> (Type) PrimitiveType.Unknown;
             case Invokable invokable -> invokable.resolve(state);
             case Lambda lambda -> lambda.resolve(state);
             case Not not -> not.resolve(state);
@@ -288,7 +288,7 @@ export class ValueCompiler {
 		return ValueCompiler.generateValue(node)/*unknown*/;
 	}
 	static generateValue(value: Node): string {/*return switch (value) {
-            case Access access -> access.generate();
+            case Access access -> generateValue(access.child()) + "." + access.property();
             case Invokable invokable -> invokable.generate();
             case Lambda lambda -> lambda.generate();
             case Not not -> not.generate();

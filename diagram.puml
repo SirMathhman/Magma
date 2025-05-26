@@ -560,12 +560,6 @@ TemplateType --> Merger
 TemplateType --> ValueMerger
 VariadicType --> Type
 Access --> Node
-Access --> ValueCompiler
-Access --> Option
-Access --> Some
-Access --> Type
-Access --> CompileState
-Access --> PrimitiveType
 ConstructionCaller --> Node
 Invokable --> Node
 Invokable --> Iterable
