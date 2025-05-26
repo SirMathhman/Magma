@@ -29,18 +29,27 @@ import magma.app.io.Source;
 
 public final class TypeCompiler {
     public static Option<Tuple2<CompileState, String>> compileType(CompileState state, String type) {
-        return TypeCompiler.parseType(state, type).map((Tuple2<CompileState, Node> tuple) -> {
+        return TypeCompiler.lexAndParseType(state, type).map((Tuple2<CompileState, Node> tuple) -> {
             return new Tuple2Impl<CompileState, String>(tuple.left(), TypeCompiler.generateType(tuple.right()));
         });
     }
 
-    public static Option<Tuple2<CompileState, Node>> parseType(CompileState state, String type) {
+    public static Option<Tuple2<CompileState, Node>> lexAndParseType(CompileState state, String value) {
+        return TypeCompiler.lexType(value).flatMap((Node content) -> TypeCompiler.parseType(state, content));
+    }
+
+    private static Option<Tuple2<CompileState, Node>> parseType(CompileState state, Node content) {
+        String value = content.findString("value").orElse("");
         return new StatefulOrRule<Node>(Lists.of(
                 TypeCompiler::parseVarArgs,
                 TypeCompiler::parseGeneric,
                 (CompileState state2, String input1) -> Primitives.createPrimitivesRule(input1).flatMap((Node result) -> TypeCompiler.parsePrimitiveType(state2, result)),
                 (CompileState state1, String input) -> Symbols.createSymbolRule().lex(input).flatMap((Node node) -> TypeCompiler.parseSymbolType(state1, node))
-        )).apply(state, type);
+        )).apply(state, value);
+    }
+
+    private static Option<Node> lexType(String value) {
+        return new Some<>(new MapNode("content").withString("value", value));
     }
 
     private static Option<Tuple2<CompileState, Node>> parseVarArgs(CompileState state, String input) {
@@ -72,7 +81,7 @@ public final class TypeCompiler {
                                 return WhitespaceCompiler.parseWhitespace(state2, input1).map(type -> new Tuple2Impl<>(type.left(), type.right()));
                             },
                             (CompileState state2, String type) -> {
-                                return TypeCompiler.parseType(state2, type);
+                                return TypeCompiler.lexAndParseType(state2, type);
                             }
                     )).apply(state1, s);
                 }).apply(state, argsString).orElse(new Tuple2Impl<>(state, Lists.empty()));
@@ -158,7 +167,7 @@ public final class TypeCompiler {
     }
 
     private static Tuple2<CompileState, Node> parseNodeOrPlaceholder(CompileState state, String type) {
-        return TypeCompiler.parseType(state, type)
+        return TypeCompiler.lexAndParseType(state, type)
                 .map((Tuple2<CompileState, Node> tuple) -> {
                     return new Tuple2Impl<CompileState, Node>(tuple.left(), tuple.right());
                 })

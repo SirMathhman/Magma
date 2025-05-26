@@ -156,7 +156,7 @@ public final class DefiningCompiler {
             String type,
             String name
     ) {
-        return TypeCompiler.parseType(state, type).flatMap((Tuple2<CompileState, Node> typeTuple) -> {
+        return TypeCompiler.lexAndParseType(state, type).flatMap((Tuple2<CompileState, Node> typeTuple) -> {
             var newModifiers = DefiningCompiler.modifyModifiers(oldModifiers);
             var generated = new Definition(annotations, newModifiers, typeParams, typeTuple.right(), name);
             return new Some<Tuple2<CompileState, Definition>>(new Tuple2Impl<CompileState, Definition>(typeTuple.left(), generated));

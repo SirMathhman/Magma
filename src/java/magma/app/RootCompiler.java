@@ -62,7 +62,7 @@ public final class RootCompiler {
 
     private static Option<Tuple2<CompileState, String>> compileStructureWithImplementing(CompileState state, List<String> annotations, List<String> modifiers, String targetInfix, String beforeContent, String content) {
         return SplitComposable.compileLast(beforeContent, " implements ", (String s, String s2) -> {
-            return TypeCompiler.parseType(state, s2).flatMap((Tuple2<CompileState, Node> implementingTuple) -> {
+            return TypeCompiler.lexAndParseType(state, s2).flatMap((Tuple2<CompileState, Node> implementingTuple) -> {
                 return RootCompiler.compileStructureWithExtends(implementingTuple.left(), annotations, modifiers, targetInfix, s, new Some<Node>(implementingTuple.right()), content);
             });
         }).or(() -> {
@@ -74,7 +74,7 @@ public final class RootCompiler {
         Splitter splitter = new LocatingSplitter(" extends ", new FirstLocator());
         return new SplitComposable<Tuple2<CompileState, String>>(splitter, Composable.toComposable((String beforeExtends, String afterExtends) -> {
             return ValueCompiler.values((CompileState inner0, String inner1) -> {
-                        return TypeCompiler.parseType(inner0, inner1);
+                        return TypeCompiler.lexAndParseType(inner0, inner1);
                     }).apply(state, afterExtends)
                     .flatMap((Tuple2<CompileState, List<Node>> compileStateListTuple2) -> {
                         return RootCompiler.compileStructureWithParameters(compileStateListTuple2.left(), annotations, modifiers, targetInfix, beforeExtends, compileStateListTuple2.right(), maybeImplementing, inputContent);
