@@ -22,4 +22,6 @@ public interface Node {
     default Node retype(String type) {
         return this;
     }
+
+    Node withNode(String key, Node value);
 }

@@ -25,6 +25,7 @@ import magma.app.compile.split.LocatingSplitter;
 import magma.app.compile.split.Splitter;
 import magma.app.compile.text.Symbols;
 import magma.app.compile.type.Primitives;
+import magma.app.compile.type.Variadics;
 import magma.app.io.Source;
 
 public final class TypeCompiler {
@@ -48,18 +49,21 @@ public final class TypeCompiler {
         )).apply(state, value);
     }
 
-    private static Option<Node> lexType(String value) {
+    public static Option<Node> lexType(String value) {
         return new Some<>(new MapNode("content").withString("value", value));
     }
 
     private static Option<Tuple2<CompileState, Node>> parseVarArgs(CompileState state, String input) {
-        var stripped = Strings.strip(input);
-        return new SuffixComposable<Tuple2<CompileState, Node>>("...", (String s) -> {
-            var child = TypeCompiler.parseNodeOrPlaceholder(state, s);
-            Node type = child.right();
-            return new Some<Tuple2<CompileState, Node>>(new Tuple2Impl<CompileState, Node>(child.left(), new MapNode("variadic")
-                    .withNode("child", type)));
-        }).apply(stripped);
+        return Variadics.createVariadicRule(TypeCompiler::lexType)
+                .lex(input)
+                .flatMap((Node node) -> TypeCompiler.parseVariadicType(state, node));
+    }
+
+    private static Option<Tuple2<CompileState, Node>> parseVariadicType(CompileState state, Node node) {
+        Node child = node.findNode("child").orElse(new MapNode());
+        return TypeCompiler.parseType(state, child).map(childTuple -> {
+            return new Tuple2Impl<>(childTuple.left(), child.withNode("child", childTuple.right()));
+        });
     }
 
     private static Some<Tuple2<CompileState, Node>> parseSymbolType(CompileState state, Node node) {
@@ -164,16 +168,6 @@ public final class TypeCompiler {
         }
 
         return new None<Node>();
-    }
-
-    private static Tuple2<CompileState, Node> parseNodeOrPlaceholder(CompileState state, String type) {
-        return TypeCompiler.lexAndParseType(state, type)
-                .map((Tuple2<CompileState, Node> tuple) -> {
-                    return new Tuple2Impl<CompileState, Node>(tuple.left(), tuple.right());
-                })
-                .orElseGet(() -> {
-                    return new Tuple2Impl<CompileState, Node>(state, new MapNode("placeholder").withString("value", type));
-                });
     }
 
     private static CompileState getState(CompileState immutableCompileState, Location location) {
