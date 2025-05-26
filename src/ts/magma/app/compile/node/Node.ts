@@ -15,4 +15,13 @@ export interface Node {
 	retype(type: string): Node {
 		return this/*unknown*/;
 	}
+	withNode(key: string, value: Node): Node {
+		return this/*unknown*/;
+	}
+	withString(key: string, value: string): Node {
+		return this/*unknown*/;
+	}
+	withNodeList(key: string, values: List<Node>): Node {
+		return this/*unknown*/;
+	}
 }

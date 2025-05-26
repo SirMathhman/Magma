@@ -42,7 +42,7 @@ export class MapNode implements Node {
 			return new None<?>()/*unknown*/;
 		}
 	}
-	withNode(key: string, value: Node): MapNode {
+	withNode(key: string, value: Node): Node {
 		this.nodes.put(key, value)/*unknown*/;
 		return this/*unknown*/;
 	}

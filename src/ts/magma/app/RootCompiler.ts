@@ -57,7 +57,7 @@ export class RootCompiler {
 	}
 	static compileStructureWithImplementing(state: CompileState, annotations: List<string>, modifiers: List<string>, targetInfix: string, beforeContent: string, content: string): Option<Tuple2<CompileState, string>> {
 		return SplitComposable.compileLast(beforeContent, " implements ", (s: string, s2: string) => {
-			return TypeCompiler.parseType(state, s2).flatMap((implementingTuple: Tuple2<CompileState, Node>) => {
+			return TypeCompiler.lexAndParseType(state, s2).flatMap((implementingTuple: Tuple2<CompileState, Node>) => {
 				return RootCompiler.compileStructureWithExtends(implementingTuple.left(), annotations, modifiers, targetInfix, s, new Some<Node>(implementingTuple.right()), content)/*unknown*/;
 			})/*unknown*/;
 		}).or(() => {
@@ -68,7 +68,7 @@ export class RootCompiler {
 		let splitter: Splitter = new LocatingSplitter(" extends ", new FirstLocator())/*unknown*/;
 		return new SplitComposable<Tuple2<CompileState, string>>(splitter, Composable.toComposable((beforeExtends: string, afterExtends: string) => {
 			return ValueCompiler.values((inner0: CompileState, inner1: string) => {
-				return TypeCompiler.parseType(inner0, inner1)/*unknown*/;
+				return TypeCompiler.lexAndParseType(inner0, inner1)/*unknown*/;
 			}).apply(state, afterExtends).flatMap((compileStateListTuple2: Tuple2<CompileState, List<Node>>) => {
 				return RootCompiler.compileStructureWithParameters(compileStateListTuple2.left(), annotations, modifiers, targetInfix, beforeExtends, compileStateListTuple2.right(), maybeImplementing, inputContent)/*unknown*/;
 			})/*unknown*/;
