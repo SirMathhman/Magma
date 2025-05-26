@@ -117,7 +117,7 @@ class DefiningCompiler {
 		}).collect(new ListCollector<string>())/*unknown*/;
 	}
 	static parseDefinitionWithNodeParameters(state: CompileState, annotations: List<string>, typeParams: List<string>, oldModifiers: List<string>, type: string, name: string): Option<Tuple2<CompileState, Definition>> {
-		return TypeCompiler.parseNode(state, type).flatMap((typeTuple: Tuple2<CompileState, Node>) => {
+		return TypeCompiler.parseType(state, type).flatMap((typeTuple: Tuple2<CompileState, Node>) => {
 			let newModifiers = DefiningCompiler.modifyModifiers(oldModifiers)/*unknown*/;
 			let generated = new Definition(annotations, newModifiers, typeParams, typeTuple.right(), name)/*unknown*/;
 			return new Some<Tuple2<CompileState, Definition>>(new Tuple2Impl<CompileState, Definition>(typeTuple.left(), generated))/*unknown*/;

@@ -119,7 +119,7 @@ class FieldCompiler {
 			return new Some<string>("\n\tstatic " + generatedCaller + ": " + structureName + " = new " + structureName + "(" + generatedArgs + ");")/*unknown*/;
 		}
 		else {
-			return new None<>()/*unknown*/;
+			return new None<?>()/*unknown*/;
 		}
 	}
 }

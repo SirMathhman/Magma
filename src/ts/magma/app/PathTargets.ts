@@ -22,7 +22,7 @@ export class PathTargets implements Targets {
 			}
 			return parent.createDirectories()/*unknown*/;
 		}
-		return new None<>()/*unknown*/;
+		return new None<?>()/*unknown*/;
 	}
 	writeSource(location: Location, output: string): Option<IOError> {
 		let target = this.root.resolveChildSegments(location.namespace()).resolveChild(location.name() + ".ts")/*unknown*/;

@@ -44,7 +44,7 @@ export class Definition {
 		if (this.type.is("var")/*unknown*/){
 			return ""/*unknown*/;
 		}
-		return ": " + TypeCompiler.generateNode(this.type)/*unknown*/;
+		return ": " + TypeCompiler.generateType(this.type)/*unknown*/;
 	}
 	joinNodeParams(): string {
 		return RootCompiler.joinNodeParams(this.typeParams)/*unknown*/;

@@ -50,7 +50,7 @@ export class ValueCompiler {
 		let state = tuple.left()/*unknown*/;
 		let right = tuple.right()/*unknown*/;
 		let generated = ValueCompiler.generateValue(right)/*unknown*/;
-		let s = Placeholder.generatePlaceholder(TypeCompiler.generateNode(ValueCompiler.resolve(state, right)))/*unknown*/;
+		let s = Placeholder.generatePlaceholder(TypeCompiler.generateType(ValueCompiler.resolve(state, right)))/*unknown*/;
 		return new Tuple2Impl<CompileState, string>(state, generated + s)/*unknown*/;
 	}
 	static parseInvokable(state: CompileState, input: string): Option<Tuple2<CompileState, Node>> {
@@ -63,7 +63,7 @@ export class ValueCompiler {
 			}, Composable.toComposable((callerWithArgStart: string, args: string) => {
 				return new SuffixComposable<Tuple2<CompileState, Node>>("(", (callerString: string) => {
 					return new PrefixComposable<Tuple2<CompileState, Node>>("new ", (type: string) => {
-						return TypeCompiler.compileNode(state, type).flatMap((callerTuple1: Tuple2<CompileState, string>) => {
+						return TypeCompiler.compileType(state, type).flatMap((callerTuple1: Tuple2<CompileState, string>) => {
 							let callerState = callerTuple1.right()/*unknown*/;
 							let caller = callerTuple1.left()/*unknown*/;
 							return ValueCompiler.assembleInvokable(caller, new MapNode("construction").withString("type", callerState), args)/*unknown*/;
@@ -287,7 +287,7 @@ export class ValueCompiler {
 		return new OrRule<Node>(Lists.of(ValueCompiler.parseLambda, ValueCompiler.createOperatorRule("+"), ValueCompiler.createOperatorRule("-"), ValueCompiler.createOperatorRule("<="), ValueCompiler.createOperatorRule("<"), ValueCompiler.createOperatorRule("&&"), ValueCompiler.createOperatorRule("||"), ValueCompiler.createOperatorRule(">"), ValueCompiler.createOperatorRule(">="), ValueCompiler.parseInvokable, ValueCompiler.createAccessRule("."), ValueCompiler.createAccessRule("::"), ValueCompiler.parseSymbol, ValueCompiler.parseNot, ValueCompiler.parseNumber, ValueCompiler.createOperatorRuleWithDifferentInfix("==", "==="), ValueCompiler.createOperatorRuleWithDifferentInfix("!=", "!=="), ValueCompiler.createTextRule("\""), ValueCompiler.createTextRule("'"))).apply(state, input)/*unknown*/;
 	}
 	static values<T>(mapper: Rule<T>): Rule<List<T>> {
-		return new DivideRule<>(new ValueFolder(), mapper)/*unknown*/;
+		return new DivideRule<?>(new ValueFolder(), mapper)/*unknown*/;
 	}
 	static generateCaller(node: Node): string {
 		if (node.is("construction")/*unknown*/){
@@ -316,13 +316,13 @@ export class ValueCompiler {
             return operation.generate();
         }*//*
         else if (value instanceof Placeholder placeholder) {
-            return TypeCompiler.generateNode(placeholder);
+            return TypeCompiler.generateType(placeholder);
         }*//*
         else if (value instanceof StringNode stringNode) {
             return stringNode.generate();
         }*//*
         else if (value.is("symbol")) {
-            return TypeCompiler.generateNode(value);
+            return TypeCompiler.generateType(value);
         }*/
 		return "?"/*unknown*/;
 	}

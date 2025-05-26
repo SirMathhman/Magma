@@ -1,34 +1,22 @@
 import { Node } from "../../../../magma/app/compile/node/Node";
 import { Iterable } from "../../../../magma/api/collect/list/Iterable";
-import { Tuple2 } from "../../../../magma/api/Tuple2";
-import { Joiner } from "../../../../magma/api/collect/Joiner";
-import { TypeCompiler } from "../../../../magma/app/TypeCompiler";
 export class FunctionType implements Node {
-	args: Iterable<string>;
-	returns: string;
-	constructor (args: Iterable<string>, returns: string) {
-		this.args = args;
-		this.returns = returns;
+	args: Iterable<Node>;
+	returns: Node;
+	constructor (args: Iterable<Node>, returns: Node) {
+		this.args/*unknown*/ = args/*Iterable<Node>*/;
+		this.returns/*unknown*/ = returns/*Node*/;
 	}
-	generateNode(): string {
-		let joinedArguments = this.args.iterWithIndices().map((tuple: Tuple2<number, string>) => {
-			return "arg" + tuple.left() + " : " + tuple.right()/*unknown*/;
-		}).collect(new Joiner(", ")).orElse("")/*unknown*/;
-		return "(" + joinedArguments + ") => " + this.returns/*unknown*/;
-	}
-	isFunctional(): boolean {
-		return true/*unknown*/;
-	}
-	isVar(): boolean {
-		return false/*unknown*/;
-	}
-	generateBeforeName(): string {
-		return ""/*unknown*/;
-	}
-	generateSimple(): string {
-		return TypeCompiler.generateNode(this)/*unknown*/;
+	static createFunctionType(args: Iterable<Node>, returns: Node): FunctionType {
+		return new FunctionType(args, returns)/*unknown*/;
 	}
 	is(type: string): boolean {
 		return "functional".equals(type)/*unknown*/;
+	}
+	args(): Iterable<Node> {
+		return args/*Iterable<Node>*/;
+	}
+	returns(): Node {
+		return returns/*Node*/;
 	}
 }

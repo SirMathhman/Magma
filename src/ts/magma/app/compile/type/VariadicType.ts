@@ -6,7 +6,7 @@ export class VariadicType implements Node {
 		this.type = type;
 	}
 	generateNode(): string {
-		return TypeCompiler.generateNode(this.type) + "[]"/*unknown*/;
+		return TypeCompiler.generateType(this.type) + "[]"/*unknown*/;
 	}
 	isFunctional(): boolean {
 		return false/*unknown*/;
@@ -18,7 +18,7 @@ export class VariadicType implements Node {
 		return "..."/*unknown*/;
 	}
 	generateSimple(): string {
-		return TypeCompiler.generateNode(this)/*unknown*/;
+		return TypeCompiler.generateType(this)/*unknown*/;
 	}
 	is(type: string): boolean {
 		return "variadic".equals(type)/*unknown*/;

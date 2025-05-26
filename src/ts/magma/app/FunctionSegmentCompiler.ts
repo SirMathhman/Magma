@@ -168,6 +168,6 @@ class FunctionSegmentCompiler {
 		return OrRule.compileOrPlaceholder(state, input, Lists.of(WhitespaceCompiler.compileWhitespace, FunctionSegmentCompiler.compileEmptySegment, FunctionSegmentCompiler.compileBlock, FunctionSegmentCompiler.compileFunctionStatement, FunctionSegmentCompiler.compileReturnWithoutSuffix))/*unknown*/;
 	}
 	static compileStatements(state: CompileState, input: string, mapper: (arg0 : CompileState, arg1 : string) => Tuple2<CompileState, string>): Tuple2<CompileState, string> {
-		return new DivideRule<>(new StatementsFolder(), DivideRule.toRule(mapper)).apply(state, input).map(folded -  > Merger.generateAllFromTuple(folded.left(), folded.right(), new StatementsMerger())).orElse(new Tuple2Impl<CompileState, string>(state, ""))/*unknown*/;
+		return new DivideRule<?>(new StatementsFolder(), DivideRule.toRule(mapper)).apply(state, input).map(folded -  > Merger.generateAllFromTuple(folded.left(), folded.right(), new StatementsMerger())).orElse(new Tuple2Impl<CompileState, string>(state, ""))/*unknown*/;
 	}
 }

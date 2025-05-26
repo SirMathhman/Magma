@@ -21,7 +21,7 @@ export class PrimitiveNode implements Node {
 		return ""/*unknown*/;
 	}
 	generateSimple(): string {
-		return TypeCompiler.generateNode(this)/*unknown*/;
+		return TypeCompiler.generateType(this)/*unknown*/;
 	}
 	is(type: string): boolean {
 		return type.equals(this.name().toLowerCase())/*unknown*/;

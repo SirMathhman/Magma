@@ -56,7 +56,7 @@ export class RootCompiler {
 	}
 	static compileStructureWithImplementing(state: CompileState, annotations: List<string>, modifiers: List<string>, targetInfix: string, beforeContent: string, content: string): Option<Tuple2<CompileState, string>> {
 		return SplitComposable.compileLast(beforeContent, " implements ", (s: string, s2: string) => {
-			return TypeCompiler.parseNode(state, s2).flatMap((implementingTuple: Tuple2<CompileState, Node>) => {
+			return TypeCompiler.parseType(state, s2).flatMap((implementingTuple: Tuple2<CompileState, Node>) => {
 				return RootCompiler.compileStructureWithExtends(implementingTuple.left(), annotations, modifiers, targetInfix, s, new Some<Node>(implementingTuple.right()), content)/*unknown*/;
 			})/*unknown*/;
 		}).or(() => {
@@ -67,7 +67,7 @@ export class RootCompiler {
 		let splitter: Splitter = new LocatingSplitter(" extends ", new FirstLocator())/*unknown*/;
 		return new SplitComposable<Tuple2<CompileState, string>>(splitter, Composable.toComposable((beforeExtends: string, afterExtends: string) => {
 			return ValueCompiler.values((inner0: CompileState, inner1: string) => {
-				return TypeCompiler.parseNode(inner0, inner1)/*unknown*/;
+				return TypeCompiler.parseType(inner0, inner1)/*unknown*/;
 			}).apply(state, afterExtends).flatMap((compileStateListTuple2: Tuple2<CompileState, List<Node>>) => {
 				return RootCompiler.compileStructureWithParameters(compileStateListTuple2.left(), annotations, modifiers, targetInfix, beforeExtends, compileStateListTuple2.right(), maybeImplementing, inputContent)/*unknown*/;
 			})/*unknown*/;
@@ -156,7 +156,7 @@ export class RootCompiler {
 	}
 	static joinExtends(maybeSuperNode: Iterable<Node>): string {
 		return maybeSuperNode.iter().map((type: Node) => {
-			return TypeCompiler.generateNode(type)/*unknown*/;
+			return TypeCompiler.generateType(type)/*unknown*/;
 		}).collect(new Joiner(", ")).map((inner: string) => {
 			return " extends " + inner/*unknown*/;
 		}).orElse("")/*unknown*/;
@@ -169,7 +169,7 @@ export class RootCompiler {
 	}
 	static generateImplementing(maybeImplementing: Option<Node>): string {
 		return maybeImplementing.map((type: Node) => {
-			return TypeCompiler.generateNode(type)/*unknown*/;
+			return TypeCompiler.generateType(type)/*unknown*/;
 		}).map((inner: string) => {
 			return " implements " + inner/*unknown*/;
 		}).orElse("")/*unknown*/;

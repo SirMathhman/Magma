@@ -199,7 +199,6 @@ interface Stack {
 }
 class Whitespace {
 }
-Whitespace <|.. Parameter
 class FunctionType {
 }
 FunctionType <|.. Node
@@ -544,15 +543,11 @@ Splitter --> Option
 Stack --> Option
 Stack --> Definition
 Stack --> Iterable
-Whitespace --> Parameter
 Whitespace --> Definition
 Whitespace --> Option
 Whitespace --> None
 FunctionType --> Node
 FunctionType --> Iterable
-FunctionType --> Tuple2
-FunctionType --> Joiner
-FunctionType --> TypeCompiler
 Placeholder --> Definition
 Placeholder --> Option
 Placeholder --> None
@@ -560,9 +555,6 @@ Placeholder --> ValueCompiler
 PrimitiveNode --> Node
 PrimitiveNode --> TypeCompiler
 TemplateNode --> Node
-TemplateNode --> Iterable
-TemplateNode --> Merger
-TemplateNode --> ValueMerger
 VariadicType --> Node
 VariadicType --> TypeCompiler
 Lambda --> Node
@@ -795,10 +787,10 @@ TypeCompiler --> FirstLocator
 TypeCompiler --> Splitter
 TypeCompiler --> SplitComposable
 TypeCompiler --> Composable
-TypeCompiler --> List
-TypeCompiler --> TemplateNode
-TypeCompiler --> FunctionType
 TypeCompiler --> WhitespaceCompiler
+TypeCompiler --> TemplateNode
+TypeCompiler --> List
+TypeCompiler --> FunctionType
 TypeCompiler --> Placeholder
 TypeCompiler --> Location
 TypeCompiler --> Import

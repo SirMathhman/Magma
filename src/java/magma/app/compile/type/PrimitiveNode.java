@@ -30,7 +30,7 @@ public enum PrimitiveNode implements Node {
     }
 
     public String generateSimple() {
-        return TypeCompiler.generateNode(this);
+        return TypeCompiler.generateType(this);
     }
 
     public boolean is(String type) {

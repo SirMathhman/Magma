@@ -15,28 +15,28 @@ export class MapNode implements Node {
 		this.nodeLists = nodeLists;
 	}
 	constructor (type: string) {
-		this(new Some<>(type), new HashMap<>(), new HashMap<>(), new HashMap<>())/*unknown*/;
+		this(new Some<?>(type), new HashMap<?>(), new HashMap<?>(), new HashMap<?>())/*unknown*/;
 	}
 	constructor () {
-		this(new None<>(), new HashMap<>(), new HashMap<>(), new HashMap<>())/*unknown*/;
+		this(new None<?>(), new HashMap<?>(), new HashMap<?>(), new HashMap<?>())/*unknown*/;
 	}
 	is(type: string): boolean {
 		return this.type.filter((inner: string) => inner.equals(type)/*unknown*/).isPresent()/*unknown*/;
 	}
 	findNode(key: string): Option<Node> {
 		if (this.nodes.containsKey(key)/*unknown*/){
-			return new Some<>(this.nodes.get(key))/*unknown*/;
+			return new Some<?>(this.nodes.get(key))/*unknown*/;
 		}
 		else {
-			return new None<>()/*unknown*/;
+			return new None<?>()/*unknown*/;
 		}
 	}
 	findString(key: string): Option<string> {
 		if (this.strings.containsKey(key)/*unknown*/){
-			return new Some<>(this.strings.get(key))/*unknown*/;
+			return new Some<?>(this.strings.get(key))/*unknown*/;
 		}
 		else {
-			return new None<>()/*unknown*/;
+			return new None<?>()/*unknown*/;
 		}
 	}
 	withNode(key: string, value: Node): MapNode {
@@ -49,10 +49,10 @@ export class MapNode implements Node {
 	}
 	findNodeList(key: string): Option<List<Node>> {
 		if (this.nodeLists.containsKey(key)/*unknown*/){
-			return new Some<>(this.nodeLists.get(key))/*unknown*/;
+			return new Some<?>(this.nodeLists.get(key))/*unknown*/;
 		}
 		else {
-			return new None<>()/*unknown*/;
+			return new None<?>()/*unknown*/;
 		}
 	}
 	withNodeList(key: string, values: List<Node>): MapNode {

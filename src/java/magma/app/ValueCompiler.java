@@ -52,7 +52,7 @@ public final class ValueCompiler {
         var state = tuple.left();
         var right = tuple.right();
         var generated = ValueCompiler.generateValue(right);
-        var s = Placeholder.generatePlaceholder(TypeCompiler.generateNode(ValueCompiler.resolve(state, right)));
+        var s = Placeholder.generatePlaceholder(TypeCompiler.generateType(ValueCompiler.resolve(state, right)));
         return new Tuple2Impl<CompileState, String>(state, generated + s);
     }
 
@@ -66,7 +66,7 @@ public final class ValueCompiler {
             }, Composable.toComposable((String callerWithArgStart, String args) -> {
                 return new SuffixComposable<Tuple2<CompileState, Node>>("(", (String callerString) -> {
                     return new PrefixComposable<Tuple2<CompileState, Node>>("new ", (String type) -> {
-                        return TypeCompiler.compileNode(state, type).flatMap((Tuple2<CompileState, String> callerTuple1) -> {
+                        return TypeCompiler.compileType(state, type).flatMap((Tuple2<CompileState, String> callerTuple1) -> {
                             var callerState = callerTuple1.right();
                             var caller = callerTuple1.left();
                             return ValueCompiler.assembleInvokable(caller, new MapNode("construction").withString("type", callerState), args);
@@ -381,13 +381,13 @@ public final class ValueCompiler {
             return operation.generate();
         }
         else if (value instanceof Placeholder placeholder) {
-            return TypeCompiler.generateNode(placeholder);
+            return TypeCompiler.generateType(placeholder);
         }
         else if (value instanceof StringNode stringNode) {
             return stringNode.generate();
         }
         else if (value.is("symbol")) {
-            return TypeCompiler.generateNode(value);
+            return TypeCompiler.generateType(value);
         }
         return "?";
     }

@@ -53,7 +53,7 @@ public record Definition(
             return "";
         }
 
-        return ": " + TypeCompiler.generateNode(this.type);
+        return ": " + TypeCompiler.generateType(this.type);
     }
 
     private String joinNodeParams() {

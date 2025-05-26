@@ -9,7 +9,7 @@ import { None } from "../../magma/api/option/None";
 export class WhitespaceCompiler {
 	static compileWhitespace(state: CompileState, input: string): Option<Tuple2<CompileState, string>> {
 		return WhitespaceCompiler.parseWhitespace(state, input).map((tuple: Tuple2<CompileState, Whitespace>) => {
-			return new Tuple2Impl<CompileState, string>(tuple.left(), tuple.right().generate())/*unknown*/;
+			return new Tuple2Impl<CompileState, string>(tuple.left(), "")/*unknown*/;
 		})/*unknown*/;
 	}
 	static parseWhitespace(state: CompileState, input: string): Option<Tuple2<CompileState, Whitespace>> {

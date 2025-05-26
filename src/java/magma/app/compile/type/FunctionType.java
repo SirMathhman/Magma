@@ -1,41 +1,32 @@
 package magma.app.compile.type;
 
-import magma.api.Tuple2;
-import magma.api.collect.Joiner;
 import magma.api.collect.list.Iterable;
-import magma.app.TypeCompiler;
 import magma.app.compile.node.Node;
 
-public record FunctionType(Iterable<String> args, String returns) implements Node {
-    public String generateNode() {
-        var joinedArguments = this.args
-                .iterWithIndices()
-                .map((Tuple2<Integer, String> tuple) -> {
-                    return "arg" + tuple.left() + " : " + tuple.right();
-                })
-                .collect(new Joiner(", "))
-                .orElse("");
+import java.util.Objects;
 
-        return "(" + joinedArguments + ") => " + this.returns;
+public final class FunctionType implements Node {
+    private final Iterable<Node> args;
+    private final Node returns;
+
+    private FunctionType(Iterable<Node> args, Node returns) {
+        this.args = args;
+        this.returns = returns;
     }
 
-    public boolean isFunctional() {
-        return true;
-    }
-
-    public boolean isVar() {
-        return false;
-    }
-
-    public String generateBeforeName() {
-        return "";
-    }
-
-    public String generateSimple() {
-        return TypeCompiler.generateNode(this);
+    public static FunctionType createFunctionType(Iterable<Node> args, Node returns) {
+        return new FunctionType(args, returns);
     }
 
     public boolean is(String type) {
         return "functional".equals(type);
+    }
+
+    public Iterable<Node> args() {
+        return args;
+    }
+
+    public Node returns() {
+        return returns;
     }
 }
