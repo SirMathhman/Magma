@@ -14,7 +14,7 @@ import { DivideState } from "../../magma/app/compile/DivideState";
 import { Composable } from "../../magma/app/compile/compose/Composable";
 import { StatefulOrRule } from "../../magma/app/compile/rule/StatefulOrRule";
 import { Lists } from "../../jvm/api/collect/list/Lists";
-import { StatefulRule } from "../../magma/app/compile/rule/StatefulRule";
+import { StatefulRuleAlias } from "../../magma/app/compile/rule/StatefulRuleAlias";
 import { PrefixComposable } from "../../magma/app/compile/compose/PrefixComposable";
 import { ValueCompiler } from "../../magma/app/ValueCompiler";
 import { Node } from "../../magma/app/compile/node/Node";
@@ -75,7 +75,7 @@ class FunctionSegmentCompiler {
 	static compileBlockHeader(state: CompileState, input: string): Option<Tuple2<CompileState, string>> {
 		return new StatefulOrRule<string>(Lists.of(FunctionSegmentCompiler.createConditionalRule("if"), FunctionSegmentCompiler.createConditionalRule("while"), FunctionSegmentCompiler.compileElse)).apply(state, input)/*unknown*/;
 	}
-	static createConditionalRule(prefix: string): StatefulRule<string> {
+	static createConditionalRule(prefix: string): StatefulRuleAlias<string> {
 		return (state1: CompileState, input1: string) => {
 			return new PrefixComposable<Tuple2<CompileState, string>>(prefix, (withoutPrefix: string) => {
 				let strippedCondition = Strings.strip(withoutPrefix)/*unknown*/;
@@ -105,7 +105,7 @@ class FunctionSegmentCompiler {
 	static compileFunctionStatementNode(state: CompileState, withoutEnd: string): Tuple2<CompileState, string> {
 		return StatefulOrRule.compileOrPlaceholder(state, withoutEnd, Lists.of(FunctionSegmentCompiler.compileReturnWithNode, FunctionSegmentCompiler.compileAssignment, FunctionSegmentCompiler.createInvokableRule(), FunctionSegmentCompiler.createPostRule("++"), FunctionSegmentCompiler.createPostRule("--"), FunctionSegmentCompiler.compileBreak))/*unknown*/;
 	}
-	static createInvokableRule(): StatefulRule<string> {
+	static createInvokableRule(): StatefulRuleAlias<string> {
 		return (state1: CompileState, input: string) => {
 			return ValueCompiler.parseInvokable(state1, input).map((tuple: Tuple2<CompileState, Node>) => {
 				return ValueCompiler.generateNode(tuple)/*unknown*/;
@@ -120,7 +120,7 @@ class FunctionSegmentCompiler {
 			return new None<Tuple2<CompileState, string>>()/*unknown*/;
 		}
 	}
-	static createPostRule(suffix: string): StatefulRule<string> {
+	static createPostRule(suffix: string): StatefulRuleAlias<string> {
 		return (state1: CompileState, input: string) => {
 			return new SuffixRule<Tuple2<CompileState, string>>(suffix, (child: string) => {
 				let tuple = ValueCompiler.compileNodeOrPlaceholder(state1, child)/*unknown*/;

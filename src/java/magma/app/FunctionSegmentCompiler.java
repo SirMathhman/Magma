@@ -20,7 +20,7 @@ import magma.app.compile.locate.FirstLocator;
 import magma.app.compile.merge.Merger;
 import magma.app.compile.merge.StatementsMerger;
 import magma.app.compile.rule.StatefulOrRule;
-import magma.app.compile.rule.StatefulRule;
+import magma.app.compile.rule.StatefulRuleAlias;
 import magma.app.compile.select.LastSelector;
 import magma.app.compile.select.Selector;
 import magma.app.compile.split.FoldingSplitter;
@@ -87,7 +87,7 @@ final class FunctionSegmentCompiler {
         )).apply(state, input);
     }
 
-    private static StatefulRule<String> createConditionalRule(String prefix) {
+    private static StatefulRuleAlias<String> createConditionalRule(String prefix) {
         return (CompileState state1, String input1) -> {
             return new PrefixComposable<Tuple2<CompileState, String>>(prefix, (String withoutPrefix) -> {
                 var strippedCondition = Strings.strip(withoutPrefix);
@@ -128,7 +128,7 @@ final class FunctionSegmentCompiler {
         ));
     }
 
-    private static StatefulRule<String> createInvokableRule() {
+    private static StatefulRuleAlias<String> createInvokableRule() {
         return (CompileState state1, String input) -> {
             return ValueCompiler.parseInvokable(state1, input)
                     .map((Tuple2<CompileState, Node> tuple) -> {
@@ -146,7 +146,7 @@ final class FunctionSegmentCompiler {
         }
     }
 
-    private static StatefulRule<String> createPostRule(String suffix) {
+    private static StatefulRuleAlias<String> createPostRule(String suffix) {
         return (CompileState state1, String input) -> {
             return new SuffixRule<Tuple2<CompileState, String>>(suffix, (String child) -> {
                 var tuple = ValueCompiler.compileNodeOrPlaceholder(state1, child);

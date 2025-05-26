@@ -21,6 +21,7 @@ import magma.app.compile.Stack;
 import magma.app.compile.compose.Composable;
 import magma.app.compile.compose.PrefixComposable;
 import magma.app.compile.compose.SplitComposable;
+import magma.app.compile.rule.StatefulRule;
 import magma.app.compile.rule.SuffixRule;
 import magma.app.compile.define.Definition;
 import magma.app.compile.define.Placeholders;
@@ -30,7 +31,7 @@ import magma.app.compile.locate.FirstLocator;
 import magma.app.compile.node.MapNode;
 import magma.app.compile.node.Node;
 import magma.app.compile.rule.StatefulOrRule;
-import magma.app.compile.rule.StatefulRule;
+import magma.app.compile.rule.StatefulRuleAlias;
 import magma.app.compile.rule.SymbolRule;
 import magma.app.compile.select.FirstSelector;
 import magma.app.compile.select.LastSelector;
@@ -81,7 +82,7 @@ public final class ValueCompiler {
         }).lex(Strings.strip(input));
     }
 
-    static StatefulRule<Node> createTextRule(String slice) {
+    static StatefulRuleAlias<Node> createTextRule(String slice) {
         return (CompileState state1, String input1) -> {
             var stripped = Strings.strip(input1);
             return new PrefixComposable<Tuple2<CompileState, Node>>(slice, (String s) -> {
@@ -142,11 +143,11 @@ public final class ValueCompiler {
         return new Some<Tuple2<CompileState, Node>>(new Tuple2Impl<CompileState, Node>(exited, new Lambda(paramNames, content)));
     }
 
-    static StatefulRule<Node> createOperatorRule(String infix) {
+    static StatefulRuleAlias<Node> createOperatorRule(String infix) {
         return ValueCompiler.createOperatorRuleWithDifferentInfix(infix, infix);
     }
 
-    static StatefulRule<Node> createAccessRule(String infix) {
+    static StatefulRuleAlias<Node> createAccessRule(String infix) {
         return (CompileState state, String input) -> {
             return SplitComposable.compileLast(input, infix, (String childString, String rawProperty) -> {
                 var property = Strings.strip(rawProperty);
@@ -165,7 +166,7 @@ public final class ValueCompiler {
         };
     }
 
-    static StatefulRule<Node> createOperatorRuleWithDifferentInfix(String sourceInfix, String targetInfix) {
+    static StatefulRuleAlias<Node> createOperatorRuleWithDifferentInfix(String sourceInfix, String targetInfix) {
         return (CompileState state1, String input1) -> {
             return new SplitComposable<Tuple2<CompileState, Node>>((String slice) -> {
                 return new FoldingSplitter(new OperatorFolder(sourceInfix), (List<String> divisions) -> {
@@ -335,7 +336,7 @@ public final class ValueCompiler {
         )).apply(state, input);
     }
 
-    public static <T> StatefulRule<List<T>> values(StatefulRule<T> mapper) {
+    public static <T> StatefulRule<List<T>> values(StatefulRuleAlias<T> mapper) {
         return new DivideRule<>(new ValueFolder(), mapper);
     }
 

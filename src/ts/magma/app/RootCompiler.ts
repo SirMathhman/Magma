@@ -3,7 +3,7 @@ import { Tuple2 } from "../../magma/api/Tuple2";
 import { StatefulOrRule } from "../../magma/app/compile/rule/StatefulOrRule";
 import { Lists } from "../../jvm/api/collect/list/Lists";
 import { WhitespaceCompiler } from "../../magma/app/WhitespaceCompiler";
-import { StatefulRule } from "../../magma/app/compile/rule/StatefulRule";
+import { StatefulRuleAlias } from "../../magma/app/compile/rule/StatefulRuleAlias";
 import { SplitComposable } from "../../magma/app/compile/compose/SplitComposable";
 import { LocatingSplitter } from "../../magma/app/compile/split/LocatingSplitter";
 import { FirstLocator } from "../../magma/app/compile/locate/FirstLocator";
@@ -35,7 +35,7 @@ export class RootCompiler {
 	static compileRootSegment(state: CompileState, input: string): Tuple2<CompileState, string> {
 		return StatefulOrRule.compileOrPlaceholder(state, input, Lists.of(WhitespaceCompiler.compileWhitespace, RootCompiler.compileNamespaced, RootCompiler.createStructureRule("class ", "class "), RootCompiler.createStructureRule("interface ", "interface "), RootCompiler.createStructureRule("record ", "class "), RootCompiler.createStructureRule("enum ", "class ")))/*unknown*/;
 	}
-	static createStructureRule(sourceInfix: string, targetInfix: string): StatefulRule<string> {
+	static createStructureRule(sourceInfix: string, targetInfix: string): StatefulRuleAlias<string> {
 		return (state: CompileState, input1: string) => {
 			return new SplitComposable<Tuple2<CompileState, string>>(new LocatingSplitter(sourceInfix, new FirstLocator()), Composable.toComposable((beforeInfix: string, afterInfix: string) => {
 				return new SplitComposable<Tuple2<CompileState, string>>(new LocatingSplitter("{", new FirstLocator()), Composable.toComposable((beforeContent: string, withEnd: string) => {

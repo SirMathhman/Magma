@@ -11,11 +11,12 @@ import magma.app.compile.divide.FoldedDivider;
 import magma.app.compile.fold.DecoratedFolder;
 import magma.app.compile.fold.Folder;
 import magma.app.compile.rule.StatefulRule;
+import magma.app.compile.rule.StatefulRuleAlias;
 
 import java.util.function.BiFunction;
 
-public record DivideRule<T>(Folder folder, StatefulRule<T> statefulRule) implements StatefulRule<List<T>> {
-    static StatefulRule<String> toRule(BiFunction<CompileState, String, Tuple2<CompileState, String>> mapper) {
+public record DivideRule<T>(Folder folder, StatefulRuleAlias<T> statefulRule) implements StatefulRule<List<T>> {
+    static StatefulRuleAlias<String> toRule(BiFunction<CompileState, String, Tuple2<CompileState, String>> mapper) {
         return (CompileState state1, String s) -> {
             return new Some<Tuple2<CompileState, String>>(mapper.apply(state1, s));
         };

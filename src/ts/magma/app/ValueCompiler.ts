@@ -15,7 +15,7 @@ import { Composable } from "../../magma/app/compile/compose/Composable";
 import { PrefixComposable } from "../../magma/app/compile/compose/PrefixComposable";
 import { MapNode } from "../../magma/app/compile/node/MapNode";
 import { Strings } from "../../magma/api/text/Strings";
-import { StatefulRule } from "../../magma/app/compile/rule/StatefulRule";
+import { StatefulRuleAlias } from "../../magma/app/compile/rule/StatefulRuleAlias";
 import { Some } from "../../magma/api/option/Some";
 import { StringNode } from "../../magma/app/compile/value/StringNode";
 import { Not } from "../../magma/app/compile/value/Not";
@@ -42,6 +42,7 @@ import { Iters } from "../../magma/api/collect/Iters";
 import { ListCollector } from "../../magma/api/collect/list/ListCollector";
 import { StatefulOrRule } from "../../magma/app/compile/rule/StatefulOrRule";
 import { Lists } from "../../jvm/api/collect/list/Lists";
+import { StatefulRule } from "../../magma/app/compile/rule/StatefulRule";
 import { DivideRule } from "../../magma/app/DivideRule";
 import { ValueFolder } from "../../magma/app/compile/fold/ValueFolder";
 import { Joiner } from "../../magma/api/collect/Joiner";
@@ -77,7 +78,7 @@ export class ValueCompiler {
 			})).apply(withoutEnd)/*unknown*/;
 		}).lex(Strings.strip(input))/*unknown*/;
 	}
-	static createTextRule(slice: string): StatefulRule<Node> {
+	static createTextRule(slice: string): StatefulRuleAlias<Node> {
 		return (state1: CompileState, input1: string) => {
 			let stripped = Strings.strip(input1)/*unknown*/;
 			return new PrefixComposable<Tuple2<CompileState, Node>>(slice, (s: string) => {
@@ -132,10 +133,10 @@ export class ValueCompiler {
 	static assembleLambda(exited: CompileState, paramNames: Iterable<Definition>, content: string): Option<Tuple2<CompileState, Node>> {
 		return new Some<Tuple2<CompileState, Node>>(new Tuple2Impl<CompileState, Node>(exited, new Lambda(paramNames, content)))/*unknown*/;
 	}
-	static createOperatorRule(infix: string): StatefulRule<Node> {
+	static createOperatorRule(infix: string): StatefulRuleAlias<Node> {
 		return ValueCompiler.createOperatorRuleWithDifferentInfix(infix, infix)/*unknown*/;
 	}
-	static createAccessRule(infix: string): StatefulRule<Node> {
+	static createAccessRule(infix: string): StatefulRuleAlias<Node> {
 		return (state: CompileState, input: string) => {
 			return SplitComposable.compileLast(input, infix, (childString: string, rawProperty: string) => {
 				let property = Strings.strip(rawProperty)/*unknown*/;
@@ -150,7 +151,7 @@ export class ValueCompiler {
 			})/*unknown*/;
 		}/*unknown*/;
 	}
-	static createOperatorRuleWithDifferentInfix(sourceInfix: string, targetInfix: string): StatefulRule<Node> {
+	static createOperatorRuleWithDifferentInfix(sourceInfix: string, targetInfix: string): StatefulRuleAlias<Node> {
 		return (state1: CompileState, input1: string) => {
 			return new SplitComposable<Tuple2<CompileState, Node>>((slice: string) => {
 				return new FoldingSplitter(new OperatorFolder(sourceInfix), (divisions: List<string>) => {
@@ -277,7 +278,7 @@ export class ValueCompiler {
 	static parseNode(state: CompileState, input: string): Option<Tuple2<CompileState, Node>> {
 		return new StatefulOrRule<Node>(Lists.of(ValueCompiler.parseLambda, ValueCompiler.createOperatorRule("+"), ValueCompiler.createOperatorRule("-"), ValueCompiler.createOperatorRule("<="), ValueCompiler.createOperatorRule("<"), ValueCompiler.createOperatorRule("&&"), ValueCompiler.createOperatorRule("||"), ValueCompiler.createOperatorRule(">"), ValueCompiler.createOperatorRule(">="), ValueCompiler.parseInvokable, ValueCompiler.createAccessRule("."), ValueCompiler.createAccessRule("::"), ValueCompiler.parseSymbol, ValueCompiler.parseNot, ValueCompiler.parseNumber, ValueCompiler.createOperatorRuleWithDifferentInfix("==", "==="), ValueCompiler.createOperatorRuleWithDifferentInfix("!=", "!=="), ValueCompiler.createTextRule("\""), ValueCompiler.createTextRule("'"))).apply(state, input)/*unknown*/;
 	}
-	static values<T>(mapper: StatefulRule<T>): StatefulRule<List<T>> {
+	static values<T>(mapper: StatefulRuleAlias<T>): StatefulRule<List<T>> {
 		return new DivideRule<?>(new ValueFolder(), mapper)/*unknown*/;
 	}
 	static generateCaller(node: Node): string {
