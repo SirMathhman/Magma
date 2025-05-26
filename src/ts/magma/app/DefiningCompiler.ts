@@ -1,6 +1,6 @@
 import { Definition } from "../../magma/app/compile/define/Definition";
 import { Iterable } from "../../magma/api/collect/list/Iterable";
-import { Parameter } from "../../magma/app/compile/define/Parameter";
+import { Node } from "../../magma/app/compile/node/Node";
 import { Iters } from "../../magma/api/collect/Iters";
 import { ListCollector } from "../../magma/api/collect/list/ListCollector";
 import { CompileState } from "../../magma/app/compile/CompileState";
@@ -30,36 +30,35 @@ import { LocatingSplitter } from "../../magma/app/compile/split/LocatingSplitter
 import { FirstLocator } from "../../magma/app/compile/locate/FirstLocator";
 import { Splitter } from "../../magma/app/compile/split/Splitter";
 import { TypeCompiler } from "../../magma/app/TypeCompiler";
-import { Node } from "../../magma/app/compile/node/Node";
 import { Joiner } from "../../magma/api/collect/Joiner";
 import { ValueFolder } from "../../magma/app/compile/fold/ValueFolder";
 export class DefiningCompiler {
-	static retainDefinitionsFromParameters(parameters: Iterable<Parameter>): Iterable<Definition> {
-		return parameters.iter().map((parameter: Parameter) => {
-			/*return parameter instanceof Definition definition ? new Some<>(definition) : new None<Definition>()*/;
+	static retainDefinitionsFromParameters(parameters: Iterable<Node>): Iterable<Definition> {
+		return parameters.iter().map((node: Node) => {
+			/*return node instanceof Definition definition ? new Some<>(definition) : new None<Definition>()*/;
 		}).flatMap(Iters.fromOption).collect(new ListCollector<Definition>())/*unknown*/;
 	}
-	static parseParameters(state: CompileState, params: string): Tuple2<CompileState, List<Parameter>> {
+	static parseParameters(state: CompileState, params: string): Tuple2<CompileState, List<Node>> {
 		return ValueCompiler.values((state1: CompileState, s: string) => {
-			return new Some<Tuple2<CompileState, Parameter>>(DefiningCompiler.parseParameterOrPlaceholder(state1, s))/*unknown*/;
-		}).apply(state, params).orElse(new Tuple2Impl<CompileState, List<Parameter>>(state, Lists.empty()))/*unknown*/;
+			return new Some<Tuple2<CompileState, Node>>(DefiningCompiler.parseParameterOrPlaceholder(state1, s))/*unknown*/;
+		}).apply(state, params).orElse(new Tuple2Impl<CompileState, List<Node>>(state, Lists.empty()))/*unknown*/;
 	}
-	static parseParameterOrPlaceholder(state: CompileState, input: string): Tuple2<CompileState, Parameter> {
+	static parseParameterOrPlaceholder(state: CompileState, input: string): Tuple2<CompileState, Node> {
 		return DefiningCompiler.parseParameter(state, input).orElseGet(() => {
-			return new Tuple2Impl<CompileState, Parameter>(state, new Placeholder(input))/*unknown*/;
+			return new Tuple2Impl<CompileState, Node>(state, new Placeholder(input))/*unknown*/;
 		})/*unknown*/;
 	}
-	static parseParameter(state: CompileState, input: string): Option<Tuple2<CompileState, Parameter>> {
+	static parseParameter(state: CompileState, input: string): Option<Tuple2<CompileState, Node>> {
 		return WhitespaceCompiler.parseWhitespace(state, input).map((tuple: Tuple2<CompileState, Whitespace>) => {
 			return DefiningCompiler.getCompileStateParameterTuple2(tuple)/*unknown*/;
 		}).or(() => {
 			return DefiningCompiler.parseDefinition(state, input).map((tuple: Tuple2<CompileState, Definition>) => {
-				return new Tuple2Impl<CompileState, Parameter>(tuple.left(), tuple.right())/*unknown*/;
+				return new Tuple2Impl<CompileState, Node>(tuple.left(), tuple.right())/*unknown*/;
 			})/*unknown*/;
 		})/*unknown*/;
 	}
-	static getCompileStateParameterTuple2(tuple: Tuple2<CompileState, Whitespace>): Tuple2<CompileState, Parameter> {
-		return new Tuple2Impl<CompileState, Parameter>(tuple.left(), tuple.right())/*unknown*/;
+	static getCompileStateParameterTuple2(tuple: Tuple2<CompileState, Whitespace>): Tuple2<CompileState, Node> {
+		return new Tuple2Impl<CompileState, Node>(tuple.left(), tuple.right())/*unknown*/;
 	}
 	static parseDefinition(state: CompileState, input: string): Option<Tuple2<CompileState, Definition>> {
 		return SplitComposable.compileLast(Strings.strip(input), " ", (beforeName: string, name: string) => {
@@ -125,7 +124,7 @@ export class DefiningCompiler {
 	}
 	static joinParameters(parameters: Iterable<Definition>): string {
 		return parameters.iter().map((definition: Definition) => {
-			return getGenerate(definition)/*unknown*/;
+			return DefiningCompiler.getGenerate(definition)/*unknown*/;
 		}).map((generated: string) => {
 			return "\n\t" + generated + ";"/*unknown*/;
 		}).collect(Joiner.empty()).orElse("")/*unknown*/;
@@ -143,10 +142,11 @@ export class DefiningCompiler {
 			return !Strings/*unknown*/.isEmpty(value)/*unknown*/;
 		}).collect(new ListCollector<string>())/*unknown*/;
 	}
-	static getGenerate(parameter: Parameter): string {/*return switch (parameter) {
-            case Definition definition -> definition.generate();
-            case Placeholder placeholder -> placeholder.generate();
-            case Whitespace whitespace -> whitespace.generate();
+	static getGenerate(node: Node): string {/*return switch (node) {
+            case Definition definition -> definition.generateWithAfterName("");
+            case Placeholder placeholder -> Placeholder.generatePlaceholder(placeholder.input());
+            case Whitespace _ -> "";
+            default -> "?";
         }*/;
 	}
 }

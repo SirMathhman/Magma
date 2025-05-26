@@ -23,7 +23,6 @@ import { LocatingSplitter } from "../../magma/app/compile/split/LocatingSplitter
 import { FirstLocator } from "../../magma/app/compile/locate/FirstLocator";
 import { Splitter } from "../../magma/app/compile/split/Splitter";
 import { DefiningCompiler } from "../../magma/app/DefiningCompiler";
-import { Parameter } from "../../magma/app/compile/define/Parameter";
 import { List } from "../../magma/api/collect/list/List";
 import { Definition } from "../../magma/app/compile/define/Definition";
 import { Iterable } from "../../magma/api/collect/list/Iterable";
@@ -103,7 +102,7 @@ export class ValueCompiler {
 				return new SuffixComposable<Tuple2<CompileState, Node>>(")", (withoutEnd: string) => {
 					return ValueCompiler.values((state1: CompileState, s: string) => {
 						return DefiningCompiler.parseParameter(state1, s)/*unknown*/;
-					}).apply(state, withoutEnd).flatMap((paramNames: Tuple2<CompileState, List<Parameter>>) => {
+					}).apply(state, withoutEnd).flatMap((paramNames: Tuple2<CompileState, List<Node>>) => {
 						return ValueCompiler.compileLambdaWithParameterNames(paramNames.left(), DefiningCompiler.retainDefinitionsFromParameters(paramNames.right()), afterArrow)/*unknown*/;
 					})/*unknown*/;
 				}).apply(withoutStart)/*unknown*/;
@@ -210,7 +209,7 @@ export class ValueCompiler {
         }*//*
         else if (value.is("symbol")) {
             return state.stack().resolveNode(value.findString("value").orElse(""))
-                    .map((Definition definition) -> definition.findNode())
+                    .map((Definition definition) -> definition.type())
                     .orElse(PrimitiveNode.Unknown);
         }*/
 		return PrimitiveNode.Unknown/*unknown*/;

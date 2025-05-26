@@ -12,13 +12,13 @@ import magma.api.option.None;
 import magma.api.option.Some;
 import magma.app.compile.CompileState;
 import magma.app.compile.define.Definition;
-import magma.app.compile.define.Parameter;
+import magma.app.compile.node.Node;
 
 final class DefinitionCompiler {
-    public static Iterable<Definition> retainDefinitionsFromParameters(Iterable<Parameter> parameters) {
+    public static Iterable<Definition> retainDefinitionsFromParameters(Iterable<Node> parameters) {
         return parameters.iter()
-                .map((Parameter parameter) -> {
-                    return parameter instanceof Definition definition ? new Some<>(definition) : new None<Definition>();
+                .map((Node node) -> {
+                    return node instanceof Definition definition ? new Some<>(definition) : new None<Definition>();
                 })
                 .flatMap(Iters::fromOption)
                 .collect(new ListCollector<Definition>());
@@ -36,9 +36,9 @@ final class DefinitionCompiler {
                 .orElse("");
     }
 
-    public static Tuple2<CompileState, List<Parameter>> parseParameters(CompileState state, String params) {
+    public static Tuple2<CompileState, List<Node>> parseParameters(CompileState state, String params) {
         return ValueCompiler.values((CompileState state1, String s) -> {
-            return new Some<Tuple2<CompileState, Parameter>>(DefiningCompiler.parseParameterOrPlaceholder(state1, s));
-        }).apply(state, params).orElse(new Tuple2Impl<CompileState, List<Parameter>>(state, Lists.empty()));
+            return new Some<Tuple2<CompileState, Node>>(DefiningCompiler.parseParameterOrPlaceholder(state1, s));
+        }).apply(state, params).orElse(new Tuple2Impl<CompileState, List<Node>>(state, Lists.empty()));
     }
 }

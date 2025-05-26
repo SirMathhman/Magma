@@ -1,13 +1,5 @@
-import { Definition } from "../../../../magma/app/compile/define/Definition";
-import { Option } from "../../../../magma/api/option/Option";
-import { None } from "../../../../magma/api/option/None";
-export class Whitespace {
-	generate(): string {
-		return ""/*unknown*/;
-	}
-	asDefinition(): Option<Definition> {
-		return new None<Definition>()/*unknown*/;
-	}
+import { Node } from "../../../../magma/app/compile/node/Node";
+export class Whitespace implements Node {
 	is(type: string): boolean {
 		return "whitespace".equals(type)/*unknown*/;
 	}

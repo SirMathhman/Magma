@@ -23,7 +23,6 @@ import magma.app.compile.compose.PrefixComposable;
 import magma.app.compile.compose.SplitComposable;
 import magma.app.compile.compose.SuffixComposable;
 import magma.app.compile.define.Definition;
-import magma.app.compile.define.Parameter;
 import magma.app.compile.fold.OperatorFolder;
 import magma.app.compile.fold.ValueFolder;
 import magma.app.compile.locate.FirstLocator;
@@ -109,7 +108,7 @@ public final class ValueCompiler {
                 return new SuffixComposable<Tuple2<CompileState, Node>>(")", (String withoutEnd) -> {
                     return ValueCompiler.values((CompileState state1, String s) -> {
                         return DefiningCompiler.parseParameter(state1, s);
-                    }).apply(state, withoutEnd).flatMap((Tuple2<CompileState, List<Parameter>> paramNames) -> {
+                    }).apply(state, withoutEnd).flatMap((Tuple2<CompileState, List<Node>> paramNames) -> {
                         return ValueCompiler.compileLambdaWithParameterNames(paramNames.left(), DefiningCompiler.retainDefinitionsFromParameters(paramNames.right()), afterArrow);
                     });
                 }).apply(withoutStart);
@@ -232,7 +231,7 @@ public final class ValueCompiler {
         }
         else if (value.is("symbol")) {
             return state.stack().resolveNode(value.findString("value").orElse(""))
-                    .map((Definition definition) -> definition.findNode())
+                    .map((Definition definition) -> definition.type())
                     .orElse(PrimitiveNode.Unknown);
         }
         return PrimitiveNode.Unknown;

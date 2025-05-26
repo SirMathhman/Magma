@@ -191,9 +191,7 @@ export class RootCompiler {
 		return "\n\tconstructor (" + parametersString + ") {" + constructorAssignments + "\n\t}"/*unknown*/;
 	}
 	static generateConstructorAssignments(parameters: Iterable<Definition>): string {
-		return parameters.iter().map((definition: Definition) => {
-			return definition.toAssignment()/*unknown*/;
-		}).collect(Joiner.empty()).orElse("")/*unknown*/;
+		return parameters.iter().map((definition: Definition) => "\n\t\tthis." + definition.name() + " = " + definition.name() + ";"/*unknown*/).collect(Joiner.empty()).orElse("")/*unknown*/;
 	}
 	static compileNamespaced(state: CompileState, input: string): Option<Tuple2<CompileState, string>> {
 		let stripped = Strings.strip(input)/*unknown*/;

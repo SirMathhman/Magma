@@ -105,8 +105,10 @@ interface MethodHeader {
 }
 class Placeholder {
 }
+Placeholder <|.. Node
 class Whitespace {
 }
+Whitespace <|.. Node
 class Dependency {
 }
 interface Divider {
@@ -386,16 +388,13 @@ ConstructorHeader --> MethodHeader
 Definition --> List
 Definition --> Iterable
 Definition --> Node
-Definition --> Option
-Definition --> Some
 Definition --> Joiner
 Definition --> TypeCompiler
 Definition --> RootCompiler
 Definition --> MethodHeader
 Definition --> Strings
-Whitespace --> Definition
-Whitespace --> Option
-Whitespace --> None
+Placeholder --> Node
+Whitespace --> Node
 Divider --> Iter
 FoldedDivider --> Divider
 FoldedDivider --> Folder
@@ -565,7 +564,7 @@ Operation --> PrimitiveNode
 StringNode --> Node
 DefiningCompiler --> Definition
 DefiningCompiler --> Iterable
-DefiningCompiler --> Parameter
+DefiningCompiler --> Node
 DefiningCompiler --> Iters
 DefiningCompiler --> ListCollector
 DefiningCompiler --> CompileState
@@ -595,12 +594,11 @@ DefiningCompiler --> LocatingSplitter
 DefiningCompiler --> FirstLocator
 DefiningCompiler --> Splitter
 DefiningCompiler --> TypeCompiler
-DefiningCompiler --> Node
 DefiningCompiler --> Joiner
 DefiningCompiler --> ValueFolder
 DefinitionCompiler --> Definition
 DefinitionCompiler --> Iterable
-DefinitionCompiler --> Parameter
+DefinitionCompiler --> Node
 DefinitionCompiler --> Iters
 DefinitionCompiler --> ListCollector
 DefinitionCompiler --> DefiningCompiler
@@ -644,10 +642,9 @@ FieldCompiler --> PrefixComposable
 FieldCompiler --> SuffixComposable
 FieldCompiler --> FunctionSegmentCompiler
 FieldCompiler --> Stack
-FieldCompiler --> Parameter
+FieldCompiler --> Node
 FieldCompiler --> ValueCompiler
 FieldCompiler --> List
-FieldCompiler --> Node
 FieldCompiler --> MapNode
 FunctionSegmentCompiler --> CompileState
 FunctionSegmentCompiler --> Tuple2
@@ -811,7 +808,6 @@ ValueCompiler --> LocatingSplitter
 ValueCompiler --> FirstLocator
 ValueCompiler --> Splitter
 ValueCompiler --> DefiningCompiler
-ValueCompiler --> Parameter
 ValueCompiler --> List
 ValueCompiler --> Definition
 ValueCompiler --> Iterable

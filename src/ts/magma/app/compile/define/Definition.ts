@@ -1,8 +1,6 @@
 import { List } from "../../../../magma/api/collect/list/List";
 import { Iterable } from "../../../../magma/api/collect/list/Iterable";
 import { Node } from "../../../../magma/app/compile/node/Node";
-import { Option } from "../../../../magma/api/option/Option";
-import { Some } from "../../../../magma/api/option/Some";
 import { Joiner } from "../../../../magma/api/collect/Joiner";
 import { TypeCompiler } from "../../../../magma/app/TypeCompiler";
 import { RootCompiler } from "../../../../magma/app/RootCompiler";
@@ -21,23 +19,9 @@ export class Definition {
 		this.type = type;
 		this.name = name;
 	}
-	findNode(): Node {
-		return this.type/*unknown*/;
-	}
-	toAssignment(): string {
-		return "\n\t\tthis." + this.name + " = " + this.name + ";"/*unknown*/;
-	}
-	generate(): string {
-		return this.generateWithAfterName("")/*unknown*/;
-	}
-	asDefinition(): Option<Definition> {
-		return new Some<Definition>(this)/*unknown*/;
-	}
 	generateWithAfterName(afterName: string): string {
 		let joinedNodeParams = this.joinNodeParams()/*unknown*/;
-		let joinedModifiers = this.modifiers.iter().map((value: string) => {
-			return value + " "/*unknown*/;
-		}).collect(new Joiner("")).orElse("")/*unknown*/;
+		let joinedModifiers = this.modifiers.iter().map((value: string) => value + " "/*unknown*/).collect(new Joiner("")).orElse("")/*unknown*/;
 		return joinedModifiers + TypeCompiler.generateBeforeName(this.type) + this.name + joinedNodeParams + afterName + this.generateNode()/*unknown*/;
 	}
 	generateNode(): string {
@@ -57,5 +41,8 @@ export class Definition {
 	}
 	isNamed(name: string): boolean {
 		return Strings.equalsTo(this.name, name)/*unknown*/;
+	}
+	is(type: string): boolean {
+		return false/*unknown*/;
 	}
 }

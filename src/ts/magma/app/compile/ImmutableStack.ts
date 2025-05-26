@@ -29,9 +29,7 @@ export class ImmutableStack implements Stack {
 		})/*unknown*/;
 	}
 	resolveNode(name: string): Option<Definition> {
-		return this.definitions().iterReversed().filter((definition: Definition) => {
-			return definition.isNamed(name)/*unknown*/;
-		}).next()/*unknown*/;
+		return this.definitions().iterReversed().filter((definition: Definition) => definition.isNamed(name)/*unknown*/).next()/*unknown*/;
 	}
 	pushStructureName(name: string): Stack {
 		return new ImmutableStack(this.structureNames().addLast(name), this.definitions())/*unknown*/;

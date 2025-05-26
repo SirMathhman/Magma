@@ -17,7 +17,6 @@ import magma.app.compile.compose.SuffixComposable;
 import magma.app.compile.define.ConstructorHeader;
 import magma.app.compile.define.Definition;
 import magma.app.compile.define.MethodHeader;
-import magma.app.compile.define.Parameter;
 import magma.app.compile.locate.FirstLocator;
 import magma.app.compile.node.MapNode;
 import magma.app.compile.node.Node;
@@ -105,7 +104,7 @@ final class FieldCompiler {
     }
 
     private static Option<Tuple2<CompileState, String>> getTupleOption(CompileState state, String withoutEnd) {
-        return DefiningCompiler.parseParameter(state, withoutEnd).flatMap((Tuple2<CompileState, Parameter> definitionTuple) -> {
+        return DefiningCompiler.parseParameter(state, withoutEnd).flatMap((Tuple2<CompileState, Node> definitionTuple) -> {
             return new Some<Tuple2<CompileState, String>>(new Tuple2Impl<CompileState, String>(definitionTuple.left(), "\n\t" + DefiningCompiler.getGenerate(definitionTuple.right()) + ";"));
         });
     }

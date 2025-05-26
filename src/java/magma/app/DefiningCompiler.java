@@ -18,7 +18,8 @@ import magma.app.compile.compose.Composable;
 import magma.app.compile.compose.SplitComposable;
 import magma.app.compile.compose.SuffixComposable;
 import magma.app.compile.define.Definition;
-import magma.app.compile.define.Parameter;
+import magma.app.compile.define.Placeholder;
+import magma.app.compile.define.Whitespace;
 import magma.app.compile.divide.FoldedDivider;
 import magma.app.compile.fold.DecoratedFolder;
 import magma.app.compile.fold.DelimitedFolder;
@@ -31,44 +32,42 @@ import magma.app.compile.select.Selector;
 import magma.app.compile.split.FoldingSplitter;
 import magma.app.compile.split.LocatingSplitter;
 import magma.app.compile.split.Splitter;
-import magma.app.compile.define.Whitespace;
-import magma.app.compile.define.Placeholder;
 
 public final class DefiningCompiler {
-    public static Iterable<Definition> retainDefinitionsFromParameters(Iterable<Parameter> parameters) {
+    public static Iterable<Definition> retainDefinitionsFromParameters(Iterable<Node> parameters) {
         return parameters.iter()
-                .map((Parameter parameter) -> {
-                    return parameter instanceof Definition definition ? new Some<>(definition) : new None<Definition>();
+                .map((Node node) -> {
+                    return node instanceof Definition definition ? new Some<>(definition) : new None<Definition>();
                 })
                 .flatMap(Iters::fromOption)
                 .collect(new ListCollector<Definition>());
     }
 
-    public static Tuple2<CompileState, List<Parameter>> parseParameters(CompileState state, String params) {
+    public static Tuple2<CompileState, List<Node>> parseParameters(CompileState state, String params) {
         return ValueCompiler.values((CompileState state1, String s) -> {
-            return new Some<Tuple2<CompileState, Parameter>>(DefiningCompiler.parseParameterOrPlaceholder(state1, s));
-        }).apply(state, params).orElse(new Tuple2Impl<CompileState, List<Parameter>>(state, Lists.empty()));
+            return new Some<Tuple2<CompileState, Node>>(DefiningCompiler.parseParameterOrPlaceholder(state1, s));
+        }).apply(state, params).orElse(new Tuple2Impl<CompileState, List<Node>>(state, Lists.empty()));
     }
 
-    public static Tuple2<CompileState, Parameter> parseParameterOrPlaceholder(CompileState state, String input) {
+    public static Tuple2<CompileState, Node> parseParameterOrPlaceholder(CompileState state, String input) {
         return DefiningCompiler.parseParameter(state, input).orElseGet(() -> {
-            return new Tuple2Impl<CompileState, Parameter>(state, new Placeholder(input));
+            return new Tuple2Impl<CompileState, Node>(state, new Placeholder(input));
         });
     }
 
-    public static Option<Tuple2<CompileState, Parameter>> parseParameter(CompileState state, String input) {
+    public static Option<Tuple2<CompileState, Node>> parseParameter(CompileState state, String input) {
         return WhitespaceCompiler.parseWhitespace(state, input).map((Tuple2<CompileState, Whitespace> tuple) -> {
                     return DefiningCompiler.getCompileStateParameterTuple2(tuple);
                 })
                 .or(() -> {
                     return DefiningCompiler.parseDefinition(state, input).map((Tuple2<CompileState, Definition> tuple) -> {
-                        return new Tuple2Impl<CompileState, Parameter>(tuple.left(), tuple.right());
+                        return new Tuple2Impl<CompileState, Node>(tuple.left(), tuple.right());
                     });
                 });
     }
 
-    private static Tuple2<CompileState, Parameter> getCompileStateParameterTuple2(Tuple2<CompileState, Whitespace> tuple) {
-        return new Tuple2Impl<CompileState, Parameter>(tuple.left(), tuple.right());
+    private static Tuple2<CompileState, Node> getCompileStateParameterTuple2(Tuple2<CompileState, Whitespace> tuple) {
+        return new Tuple2Impl<CompileState, Node>(tuple.left(), tuple.right());
     }
 
     public static Option<Tuple2<CompileState, Definition>> parseDefinition(CompileState state, String input) {
@@ -164,7 +163,7 @@ public final class DefiningCompiler {
     public static String joinParameters(Iterable<Definition> parameters) {
         return parameters.iter()
                 .map((Definition definition) -> {
-                    return getGenerate(definition);
+                    return DefiningCompiler.getGenerate(definition);
                 })
                 .map((String generated) -> {
                     return "\n\t" + generated + ";";
@@ -191,11 +190,12 @@ public final class DefiningCompiler {
                 .collect(new ListCollector<String>());
     }
 
-    public static String getGenerate(Parameter parameter) {
-        return switch (parameter) {
-            case Definition definition -> definition.generate();
-            case Placeholder placeholder -> placeholder.generate();
-            case Whitespace whitespace -> whitespace.generate();
+    public static String getGenerate(Node node) {
+        return switch (node) {
+            case Definition definition -> definition.generateWithAfterName("");
+            case Placeholder placeholder -> Placeholder.generatePlaceholder(placeholder.input());
+            case Whitespace _ -> "";
+            default -> "?";
         };
     }
 }

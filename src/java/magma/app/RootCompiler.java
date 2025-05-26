@@ -19,11 +19,11 @@ import magma.app.compile.compose.SplitComposable;
 import magma.app.compile.compose.SuffixComposable;
 import magma.app.compile.define.Definition;
 import magma.app.compile.locate.FirstLocator;
+import magma.app.compile.node.Node;
 import magma.app.compile.rule.OrRule;
 import magma.app.compile.rule.Rule;
 import magma.app.compile.split.LocatingSplitter;
 import magma.app.compile.split.Splitter;
-import magma.app.compile.node.Node;
 
 public final class RootCompiler {
     private static Tuple2<CompileState, String> compileRootSegment(CompileState state, String input) {
@@ -256,9 +256,7 @@ public final class RootCompiler {
 
     private static String generateConstructorAssignments(Iterable<Definition> parameters) {
         return parameters.iter()
-                .map((Definition definition) -> {
-                    return definition.toAssignment();
-                })
+                .map((Definition definition) -> "\n\t\tthis." + definition.name() + " = " + definition.name() + ";")
                 .collect(Joiner.empty())
                 .orElse("");
     }

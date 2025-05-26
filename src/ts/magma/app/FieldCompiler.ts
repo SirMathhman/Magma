@@ -19,10 +19,9 @@ import { PrefixComposable } from "../../magma/app/compile/compose/PrefixComposab
 import { SuffixComposable } from "../../magma/app/compile/compose/SuffixComposable";
 import { FunctionSegmentCompiler } from "../../magma/app/FunctionSegmentCompiler";
 import { Stack } from "../../magma/app/compile/Stack";
-import { Parameter } from "../../magma/app/compile/define/Parameter";
+import { Node } from "../../magma/app/compile/node/Node";
 import { ValueCompiler } from "../../magma/app/ValueCompiler";
 import { List } from "../../magma/api/collect/list/List";
-import { Node } from "../../magma/app/compile/node/Node";
 import { MapNode } from "../../magma/app/compile/node/MapNode";
 class FieldCompiler {
 	static compileMethod(state: CompileState, input: string): Option<Tuple2<CompileState, string>> {
@@ -87,7 +86,7 @@ class FieldCompiler {
 		}).apply(Strings.strip(input))/*unknown*/;
 	}
 	static getTupleOption(state: CompileState, withoutEnd: string): Option<Tuple2<CompileState, string>> {
-		return DefiningCompiler.parseParameter(state, withoutEnd).flatMap((definitionTuple: Tuple2<CompileState, Parameter>) => {
+		return DefiningCompiler.parseParameter(state, withoutEnd).flatMap((definitionTuple: Tuple2<CompileState, Node>) => {
 			return new Some<Tuple2<CompileState, string>>(new Tuple2Impl<CompileState, string>(definitionTuple.left(), "\n\t" + DefiningCompiler.getGenerate(definitionTuple.right()) + ";"))/*unknown*/;
 		})/*unknown*/;
 	}

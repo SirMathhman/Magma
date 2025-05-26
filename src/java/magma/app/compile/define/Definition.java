@@ -3,8 +3,6 @@ package magma.app.compile.define;
 import magma.api.collect.Joiner;
 import magma.api.collect.list.Iterable;
 import magma.api.collect.list.List;
-import magma.api.option.Option;
-import magma.api.option.Some;
 import magma.api.text.Strings;
 import magma.app.RootCompiler;
 import magma.app.TypeCompiler;
@@ -16,30 +14,12 @@ public record Definition(
         Iterable<String> typeParams,
         Node type,
         String name
-) implements MethodHeader, Parameter {
-    public Node findNode() {
-        return this.type;
-    }
-
-    public String toAssignment() {
-        return "\n\t\tthis." + this.name + " = " + this.name + ";";
-    }
-
-    public String generate() {
-        return this.generateWithAfterName("");
-    }
-
-    public Option<Definition> asDefinition() {
-        return new Some<Definition>(this);
-    }
-
+) implements MethodHeader, Node {
     @Override
     public String generateWithAfterName(String afterName) {
         var joinedNodeParams = this.joinNodeParams();
         var joinedModifiers = this.modifiers.iter()
-                .map((String value) -> {
-                    return value + " ";
-                })
+                .map((String value) -> value + " ")
                 .collect(new Joiner(""))
                 .orElse("");
 
@@ -70,5 +50,10 @@ public record Definition(
 
     public boolean isNamed(String name) {
         return Strings.equalsTo(this.name, name);
+    }
+
+    @Override
+    public boolean is(String type) {
+        return false;
     }
 }
