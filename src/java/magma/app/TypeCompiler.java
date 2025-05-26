@@ -320,25 +320,25 @@ public final class TypeCompiler {
     public static String generateType(Node type) {
         if (type.is("functional")) {
             var joinedArguments = TypeCompiler.generateFunctionalArguments(type);
-            return "(" + joinedArguments + ") => " + TypeCompiler.generateType(type.findNode("returns").orElse(new MapNode()));
+            Node returns = type.findNode("returns").orElse(new MapNode());
+            return "(" + joinedArguments + ") => " + TypeCompiler.generateType(returns);
         }
-        else if (type instanceof Placeholder(java.lang.String input)) {
+
+        if (type instanceof Placeholder(java.lang.String input)) {
             return Placeholder.generatePlaceholder(input);
         }
-        else if (TypeCompiler.variants.contains(type.findString("value").orElse(""))) {
+
+        if (TypeCompiler.variants.contains(type.findString("value").orElse(""))) {
             return type.findString("value").orElse("");
         }
-        else if (type.is("symbol")) {
+
+        if (type.is("symbol")) {
             return type.findString("value").orElse("");
         }
 
         if (type.is("template")) {
             var base = type.findString("base").orElse("");
-            String joined = type.findNodeList("args").orElse(Lists.empty()).iter()
-                    .map((Node arg) -> TypeCompiler.generateType(arg))
-                    .collect(new Joiner(", "))
-                    .orElse("");
-
+            String joined = TypeCompiler.joinTemplateArguments(type);
             return base + "<" + joined + ">";
         }
 
@@ -346,7 +346,15 @@ public final class TypeCompiler {
             Node child = type.findNode("child").orElse(new MapNode());
             return TypeCompiler.generateType(child) + "[]";
         }
+
         return "?";
+    }
+
+    private static java.lang.String joinTemplateArguments(Node type) {
+        return type.findNodeList("args").orElse(Lists.empty()).iter()
+                .map((Node arg) -> TypeCompiler.generateType(arg))
+                .collect(new Joiner(", "))
+                .orElse("");
     }
 
     private static String generateFunctionalArguments(Node type) {
