@@ -13,15 +13,6 @@ public record Not(String child) implements Value {
         return this.child;
     }
 
-    public Option<Value> toValue() {
-        return new Some<Value>(this);
-    }
-
-    @Override
-    public Option<Value> findChild() {
-        return new None<Value>();
-    }
-
     public Type resolve(CompileState state) {
         return PrimitiveType.Unknown;
     }
