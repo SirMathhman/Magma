@@ -11,7 +11,7 @@ export class Placeholder {
 		let replaced = input.replace("/*", "start").replace("*/", "end")/*unknown*/;
 		return "/*" + replaced + "*/"/*unknown*/;
 	}
-	generateType(): string {
+	generateNode(): string {
 		return Placeholder.generatePlaceholder(this.input)/*unknown*/;
 	}
 	generate(): string {

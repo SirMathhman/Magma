@@ -1,4 +1,4 @@
 export class Platform {
-	 static TypeScript = "TypeScript";
+	 static NodeScript = "NodeScript";
 	 static PlantUML = "PlantUML";
 }

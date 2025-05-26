@@ -1,6 +1,6 @@
 import { List } from "../../../../magma/api/collect/list/List";
 import { Iterable } from "../../../../magma/api/collect/list/Iterable";
-import { Type } from "../../../../magma/app/compile/type/Type";
+import { Node } from "../../../../magma/app/compile/node/Node";
 import { Option } from "../../../../magma/api/option/Option";
 import { Some } from "../../../../magma/api/option/Some";
 import { Joiner } from "../../../../magma/api/collect/Joiner";
@@ -12,16 +12,16 @@ export class Definition {
 	annotations: List<string>;
 	modifiers: List<string>;
 	typeParams: Iterable<string>;
-	type: Type;
+	type: Node;
 	name: string;
-	constructor (annotations: List<string>, modifiers: List<string>, typeParams: Iterable<string>, type: Type, name: string) {
+	constructor (annotations: List<string>, modifiers: List<string>, typeParams: Iterable<string>, type: Node, name: string) {
 		this.annotations = annotations;
 		this.modifiers = modifiers;
 		this.typeParams = typeParams;
 		this.type = type;
 		this.name = name;
 	}
-	findType(): Type {
+	findNode(): Node {
 		return this.type/*unknown*/;
 	}
 	toAssignment(): string {
@@ -34,20 +34,20 @@ export class Definition {
 		return new Some<Definition>(this)/*unknown*/;
 	}
 	generateWithAfterName(afterName: string): string {
-		let joinedTypeParams = this.joinTypeParams()/*unknown*/;
+		let joinedNodeParams = this.joinNodeParams()/*unknown*/;
 		let joinedModifiers = this.modifiers.iter().map((value: string) => {
 			return value + " "/*unknown*/;
 		}).collect(new Joiner("")).orElse("")/*unknown*/;
-		return joinedModifiers + TypeCompiler.getString(this.type) + this.name + joinedTypeParams + afterName + this.generateType()/*unknown*/;
+		return joinedModifiers + TypeCompiler.generateBeforeName(this.type) + this.name + joinedNodeParams + afterName + this.generateNode()/*unknown*/;
 	}
-	generateType(): string {
+	generateNode(): string {
 		if (this.type.is("var")/*unknown*/){
 			return ""/*unknown*/;
 		}
-		return ": " + TypeCompiler.generateType(this.type)/*unknown*/;
+		return ": " + TypeCompiler.generateNode(this.type)/*unknown*/;
 	}
-	joinTypeParams(): string {
-		return RootCompiler.joinTypeParams(this.typeParams)/*unknown*/;
+	joinNodeParams(): string {
+		return RootCompiler.joinNodeParams(this.typeParams)/*unknown*/;
 	}
 	hasAnnotation(annotation: string): boolean {
 		return this.annotations.contains(annotation)/*unknown*/;

@@ -30,7 +30,7 @@ import { LocatingSplitter } from "../../magma/app/compile/split/LocatingSplitter
 import { FirstLocator } from "../../magma/app/compile/locate/FirstLocator";
 import { Splitter } from "../../magma/app/compile/split/Splitter";
 import { TypeCompiler } from "../../magma/app/TypeCompiler";
-import { Type } from "../../magma/app/compile/type/Type";
+import { Node } from "../../magma/app/compile/node/Node";
 import { Joiner } from "../../magma/api/collect/Joiner";
 import { ValueFolder } from "../../magma/app/compile/fold/ValueFolder";
 class DefiningCompiler {
@@ -66,15 +66,15 @@ class DefiningCompiler {
 			return new SplitComposable<Tuple2<CompileState, Definition>>((beforeName0: string) => {
 				let selector: Selector = new LastSelector(" ")/*unknown*/;
 				return new FoldingSplitter(new TypeSeparatorFolder(), selector).apply(Strings.strip(beforeName0))/*unknown*/;
-			}, Composable.toComposable((beforeType: string, type: string) => {
-				return SplitComposable.compileLast(Strings.strip(beforeType), "\n", (annotationsString: string, afterAnnotations: string) => {
+			}, Composable.toComposable((beforeNode: string, type: string) => {
+				return SplitComposable.compileLast(Strings.strip(beforeNode), "\n", (annotationsString: string, afterAnnotations: string) => {
 					let annotations = DefiningCompiler.parseAnnotations(annotationsString)/*unknown*/;
 					return DefiningCompiler.parseDefinitionWithAnnotations(state, annotations, afterAnnotations, type, name)/*unknown*/;
 				}).or(() => {
-					return DefiningCompiler.parseDefinitionWithAnnotations(state, Lists.empty(), beforeType, type, name)/*unknown*/;
+					return DefiningCompiler.parseDefinitionWithAnnotations(state, Lists.empty(), beforeNode, type, name)/*unknown*/;
 				})/*unknown*/;
 			})).apply(beforeName).or(() => {
-				return DefiningCompiler.parseDefinitionWithTypeParameters(state, Lists.empty(), Lists.empty(), Lists.empty(), beforeName, name)/*unknown*/;
+				return DefiningCompiler.parseDefinitionWithNodeParameters(state, Lists.empty(), Lists.empty(), Lists.empty(), beforeName, name)/*unknown*/;
 			})/*unknown*/;
 		})/*unknown*/;
 	}
@@ -95,29 +95,29 @@ class DefiningCompiler {
 			return !Strings/*unknown*/.isEmpty(value)/*unknown*/;
 		}).collect(new ListCollector<string>())/*unknown*/;
 	}
-	static parseDefinitionWithAnnotations(state: CompileState, annotations: List<string>, beforeType: string, type: string, name: string): Option<Tuple2<CompileState, Definition>> {
-		return new SuffixComposable<Tuple2<CompileState, Definition>>(">", (withoutTypeParamEnd: string) => {
+	static parseDefinitionWithAnnotations(state: CompileState, annotations: List<string>, beforeNode: string, type: string, name: string): Option<Tuple2<CompileState, Definition>> {
+		return new SuffixComposable<Tuple2<CompileState, Definition>>(">", (withoutNodeParamEnd: string) => {
 			let splitter: Splitter = new LocatingSplitter("<", new FirstLocator())/*unknown*/;
-			return new SplitComposable<Tuple2<CompileState, Definition>>(splitter, Composable.toComposable((beforeTypeParams: string, typeParamsString: string) => {
+			return new SplitComposable<Tuple2<CompileState, Definition>>(splitter, Composable.toComposable((beforeNodeParams: string, typeParamsString: string) => {
 				let typeParams = DefiningCompiler.divideNodes(typeParamsString)/*unknown*/;
-				return DefiningCompiler.parseDefinitionWithTypeParameters(state, annotations, typeParams, DefiningCompiler.parseModifiers(beforeTypeParams), type, name)/*unknown*/;
-			})).apply(withoutTypeParamEnd)/*unknown*/;
-		}).apply(Strings.strip(beforeType)).or(() => {
-			let divided = DefiningCompiler.parseModifiers(beforeType)/*unknown*/;
-			return DefiningCompiler.parseDefinitionWithTypeParameters(state, annotations, Lists.empty(), divided, type, name)/*unknown*/;
+				return DefiningCompiler.parseDefinitionWithNodeParameters(state, annotations, typeParams, DefiningCompiler.parseModifiers(beforeNodeParams), type, name)/*unknown*/;
+			})).apply(withoutNodeParamEnd)/*unknown*/;
+		}).apply(Strings.strip(beforeNode)).or(() => {
+			let divided = DefiningCompiler.parseModifiers(beforeNode)/*unknown*/;
+			return DefiningCompiler.parseDefinitionWithNodeParameters(state, annotations, Lists.empty(), divided, type, name)/*unknown*/;
 		})/*unknown*/;
 	}
-	static parseModifiers(beforeType: string): List<string> {
+	static parseModifiers(beforeNode: string): List<string> {
 		return new FoldedDivider(new DecoratedFolder((state1: DivideState, c: string) => {
 			return new DelimitedFolder(" ").apply(state1, c)/*unknown*/;
-		})).divide(Strings.strip(beforeType)).map((s: string) => {
+		})).divide(Strings.strip(beforeNode)).map((s: string) => {
 			return Strings.strip(s)/*unknown*/;
 		}).filter((value: string) => {
 			return !Strings/*unknown*/.isEmpty(value)/*unknown*/;
 		}).collect(new ListCollector<string>())/*unknown*/;
 	}
-	static parseDefinitionWithTypeParameters(state: CompileState, annotations: List<string>, typeParams: List<string>, oldModifiers: List<string>, type: string, name: string): Option<Tuple2<CompileState, Definition>> {
-		return TypeCompiler.parseType(state, type).flatMap((typeTuple: Tuple2<CompileState, Type>) => {
+	static parseDefinitionWithNodeParameters(state: CompileState, annotations: List<string>, typeParams: List<string>, oldModifiers: List<string>, type: string, name: string): Option<Tuple2<CompileState, Definition>> {
+		return TypeCompiler.parseNode(state, type).flatMap((typeTuple: Tuple2<CompileState, Node>) => {
 			let newModifiers = DefiningCompiler.modifyModifiers(oldModifiers)/*unknown*/;
 			let generated = new Definition(annotations, newModifiers, typeParams, typeTuple.right(), name)/*unknown*/;
 			return new Some<Tuple2<CompileState, Definition>>(new Tuple2Impl<CompileState, Definition>(typeTuple.left(), generated))/*unknown*/;

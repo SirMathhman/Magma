@@ -1,6 +1,6 @@
 package magma.app;
 
 public enum Platform {
-    TypeScript,
+    NodeScript,
     PlantUML
 }

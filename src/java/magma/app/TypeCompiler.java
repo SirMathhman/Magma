@@ -15,108 +15,111 @@ import magma.app.compile.Registry;
 import magma.app.compile.compose.Composable;
 import magma.app.compile.compose.SplitComposable;
 import magma.app.compile.compose.SuffixComposable;
+import magma.app.compile.locate.FirstLocator;
+import magma.app.compile.node.MapNode;
+import magma.app.compile.node.Node;
 import magma.app.compile.rule.OrRule;
+import magma.app.compile.split.LocatingSplitter;
 import magma.app.compile.split.Splitter;
 import magma.app.compile.type.FunctionType;
-import magma.app.compile.type.PrimitiveType;
-import magma.app.compile.type.TemplateType;
-import magma.app.compile.type.Type;
-import magma.app.compile.type.VariadicType;
 import magma.app.compile.type.Placeholder;
-import magma.app.compile.type.Symbol;
+import magma.app.compile.type.PrimitiveNode;
+import magma.app.compile.type.TemplateNode;
+import magma.app.compile.type.VariadicType;
 import magma.app.io.Source;
-import magma.app.compile.locate.FirstLocator;
-import magma.app.compile.split.LocatingSplitter;
+
+import java.util.Objects;
 
 public final class TypeCompiler {
-    public static Option<Tuple2<CompileState, String>> compileType(CompileState state, String type) {
-        return TypeCompiler.parseType(state, type).map((Tuple2<CompileState, Type> tuple) -> {
-            return new Tuple2Impl<CompileState, String>(tuple.left(), generateType(tuple.right()));
+    public static Option<Tuple2<CompileState, String>> compileNode(CompileState state, String type) {
+        return TypeCompiler.parseNode(state, type).map((Tuple2<CompileState, Node> tuple) -> {
+            return new Tuple2Impl<CompileState, String>(tuple.left(), TypeCompiler.generateNode(tuple.right()));
         });
     }
 
-    public static Option<Tuple2<CompileState, Type>> parseType(CompileState state, String type) {
-        return new OrRule<Type>(Lists.of(
+    public static Option<Tuple2<CompileState, Node>> parseNode(CompileState state, String type) {
+        return new OrRule<Node>(Lists.of(
                 TypeCompiler::parseVarArgs,
                 TypeCompiler::parseGeneric,
                 TypeCompiler::parsePrimitive,
-                TypeCompiler::parseSymbolType
+                TypeCompiler::parseSymbolNode
         )).apply(state, type);
     }
 
-    private static Option<Tuple2<CompileState, Type>> parseVarArgs(CompileState state, String input) {
+    private static Option<Tuple2<CompileState, Node>> parseVarArgs(CompileState state, String input) {
         var stripped = Strings.strip(input);
-        return new SuffixComposable<Tuple2<CompileState, Type>>("...", (String s) -> {
-            var child = TypeCompiler.parseTypeOrPlaceholder(state, s);
-            return new Some<Tuple2<CompileState, Type>>(new Tuple2Impl<CompileState, Type>(child.left(), new VariadicType(child.right())));
+        return new SuffixComposable<Tuple2<CompileState, Node>>("...", (String s) -> {
+            var child = TypeCompiler.parseNodeOrPlaceholder(state, s);
+            return new Some<Tuple2<CompileState, Node>>(new Tuple2Impl<CompileState, Node>(child.left(), new VariadicType(child.right())));
         }).apply(stripped);
     }
 
-    private static Option<Tuple2<CompileState, Type>> parseSymbolType(CompileState state, String input) {
+    private static Option<Tuple2<CompileState, Node>> parseSymbolNode(CompileState state, String input) {
         var stripped = Strings.strip(input);
         if (ValueCompiler.isSymbol(stripped)) {
-            return new Some<Tuple2<CompileState, Type>>(new Tuple2Impl<CompileState, Type>(TypeCompiler.addResolvedImportFromCache0(state, stripped), new Symbol(stripped)));
+            CompileState resolved = TypeCompiler.addResolvedImportFromCache0(state, stripped);
+            return new Some<Tuple2<CompileState, Node>>(new Tuple2Impl<CompileState, Node>(resolved, new MapNode("symbol").withString("value", stripped)));
         }
-        return new None<Tuple2<CompileState, Type>>();
+        return new None<Tuple2<CompileState, Node>>();
     }
 
-    private static Option<Tuple2<CompileState, Type>> parsePrimitive(CompileState state, String input) {
-        return TypeCompiler.findPrimitiveNode(Strings.strip(input)).map((Type result) -> {
-            return new Tuple2Impl<CompileState, Type>(state, result);
+    private static Option<Tuple2<CompileState, Node>> parsePrimitive(CompileState state, String input) {
+        return TypeCompiler.findPrimitiveNode(Strings.strip(input)).map((Node result) -> {
+            return new Tuple2Impl<CompileState, Node>(state, result);
         });
     }
 
-    private static Option<Type> findPrimitiveNode(String input) {
+    private static Option<Node> findPrimitiveNode(String input) {
         var stripped = Strings.strip(input);
         if (Strings.equalsTo("char", stripped) || Strings.equalsTo("Character", stripped) || Strings.equalsTo("String", stripped)) {
-            return new Some<Type>(PrimitiveType.String);
+            return new Some<Node>(PrimitiveNode.String);
         }
 
         if (Strings.equalsTo("int", stripped) || Strings.equalsTo("Integer", stripped)) {
-            return new Some<Type>(PrimitiveType.Number);
+            return new Some<Node>(PrimitiveNode.Number);
         }
 
         if (Strings.equalsTo("boolean", stripped) || Strings.equalsTo("Boolean", stripped)) {
-            return new Some<Type>(PrimitiveType.Boolean);
+            return new Some<Node>(PrimitiveNode.Boolean);
         }
 
         if (Strings.equalsTo("var", stripped)) {
-            return new Some<Type>(PrimitiveType.Var);
+            return new Some<Node>(PrimitiveNode.Var);
         }
 
         if (Strings.equalsTo("void", stripped)) {
-            return new Some<Type>(PrimitiveType.Void);
+            return new Some<Node>(PrimitiveNode.Void);
         }
 
-        return new None<Type>();
+        return new None<Node>();
     }
 
-    private static Option<Tuple2<CompileState, Type>> parseGeneric(CompileState state, String input) {
-        return new SuffixComposable<Tuple2<CompileState, Type>>(">", (String withoutEnd) -> {
+    private static Option<Tuple2<CompileState, Node>> parseGeneric(CompileState state, String input) {
+        return new SuffixComposable<Tuple2<CompileState, Node>>(">", (String withoutEnd) -> {
             Splitter splitter = new LocatingSplitter("<", new FirstLocator());
-            return new SplitComposable<Tuple2<CompileState, Type>>(splitter, Composable.toComposable((String baseString, String argsString) -> {
+            return new SplitComposable<Tuple2<CompileState, Node>>(splitter, Composable.toComposable((String baseString, String argsString) -> {
                 var argsTuple = ValueCompiler.values((CompileState state1, String s) -> {
-                    return TypeCompiler.compileTypeArgument(state1, s);
+                    return TypeCompiler.compileNodeArgument(state1, s);
                 }).apply(state, argsString).orElse(new Tuple2Impl<CompileState, List<String>>(state, Lists.empty()));
-                    var argsState = argsTuple.left();
-                    var args = argsTuple.right();
+                var argsState = argsTuple.left();
+                var args = argsTuple.right();
 
-                    var base = Strings.strip(baseString);
-                    return TypeCompiler.assembleFunctionType(argsState, base, args).or(() -> {
-                        var compileState = TypeCompiler.addResolvedImportFromCache0(argsState, base);
-                        return new Some<Tuple2<CompileState, Type>>(new Tuple2Impl<CompileState, Type>(compileState, new TemplateType(base, args)));
-                    });
-                })).apply(withoutEnd);
+                var base = Strings.strip(baseString);
+                return TypeCompiler.assembleFunctionNode(argsState, base, args).or(() -> {
+                    var compileState = TypeCompiler.addResolvedImportFromCache0(argsState, base);
+                    return new Some<Tuple2<CompileState, Node>>(new Tuple2Impl<CompileState, Node>(compileState, new TemplateNode(base, args)));
+                });
+            })).apply(withoutEnd);
         }).apply(Strings.strip(input));
     }
 
-    private static Option<Tuple2<CompileState, Type>> assembleFunctionType(CompileState state, String base, List<String> args) {
-        return TypeCompiler.mapFunctionType(base, args).map((Type generated) -> {
-            return new Tuple2Impl<CompileState, Type>(state, generated);
+    private static Option<Tuple2<CompileState, Node>> assembleFunctionNode(CompileState state, String base, List<String> args) {
+        return TypeCompiler.mapFunctionNode(base, args).map((Node generated) -> {
+            return new Tuple2Impl<CompileState, Node>(state, generated);
         });
     }
 
-    private static Option<Type> mapFunctionType(String base, List<String> args) {
+    private static Option<Node> mapFunctionNode(String base, List<String> args) {
         if (Strings.equalsTo("Function", base)) {
             return args.findFirst().and(() -> {
                         return args.find(1);
@@ -157,27 +160,27 @@ public final class TypeCompiler {
             });
         }
 
-        return new None<Type>();
+        return new None<Node>();
     }
 
-    private static Option<Tuple2<CompileState, String>> compileTypeArgument(CompileState state, String input) {
+    private static Option<Tuple2<CompileState, String>> compileNodeArgument(CompileState state, String input) {
         return new OrRule<String>(Lists.of(
                 (CompileState state2, String input1) -> {
                     return WhitespaceCompiler.compileWhitespace(state2, input1);
                 },
                 (CompileState state1, String type) -> {
-                    return TypeCompiler.compileType(state1, type);
+                    return TypeCompiler.compileNode(state1, type);
                 }
         )).apply(state, input);
     }
 
-    private static Tuple2<CompileState, Type> parseTypeOrPlaceholder(CompileState state, String type) {
-        return TypeCompiler.parseType(state, type)
-                .map((Tuple2<CompileState, Type> tuple) -> {
-                    return new Tuple2Impl<CompileState, Type>(tuple.left(), tuple.right());
+    private static Tuple2<CompileState, Node> parseNodeOrPlaceholder(CompileState state, String type) {
+        return TypeCompiler.parseNode(state, type)
+                .map((Tuple2<CompileState, Node> tuple) -> {
+                    return new Tuple2Impl<CompileState, Node>(tuple.left(), tuple.right());
                 })
                 .orElseGet(() -> {
-                    return new Tuple2Impl<CompileState, Type>(state, new Placeholder(type));
+                    return new Tuple2Impl<CompileState, Node>(state, new Placeholder(type));
                 });
     }
 
@@ -249,36 +252,70 @@ public final class TypeCompiler {
         return copy;
     }
 
-    public static String generateSimple(Type type) {
-        return switch (type) {
-            case FunctionType functionType -> functionType.generateSimple();
-            case Placeholder placeholder -> placeholder.generateSimple();
-            case PrimitiveType primitiveType -> primitiveType.generateSimple();
-            case Symbol symbol -> symbol.generateSimple();
-            case TemplateType templateType -> templateType.generateSimple();
-            case VariadicType variadicType -> variadicType.generateSimple();
-        };
+    public static String generateSimple(Node type) {
+        if (Objects.requireNonNull(type) instanceof FunctionType functionNode) {
+            return functionNode.generateSimple();
+        }
+        else if (type instanceof Placeholder placeholder) {
+            return placeholder.generateSimple();
+        }
+        else if (type instanceof PrimitiveNode primitiveNode) {
+            return primitiveNode.generateSimple();
+        }
+        else if (type.is("symbol")) {
+            return ValueCompiler.generateValue(type);
+        }
+        else if (type instanceof TemplateNode templateNode) {
+            return templateNode.generateSimple();
+        }
+        else if (type instanceof VariadicType variadicNode) {
+            return variadicNode.generateSimple();
+        }
+
+        return "?";
     }
 
-    public static String getString(Type type) {
-        return switch (type) {
-            case FunctionType functionType -> functionType.generateBeforeName();
-            case Placeholder placeholder -> placeholder.generateBeforeName();
-            case PrimitiveType primitiveType -> primitiveType.generateBeforeName();
-            case Symbol symbol -> symbol.generateBeforeName();
-            case TemplateType templateType -> templateType.generateBeforeName();
-            case VariadicType variadicType -> variadicType.generateBeforeName();
-        };
+    public static String generateBeforeName(Node type) {
+        if (Objects.requireNonNull(type) instanceof FunctionType functionNode) {
+            return functionNode.generateBeforeName();
+        }
+        else if (type instanceof Placeholder placeholder) {
+            return placeholder.generateBeforeName();
+        }
+        else if (type instanceof PrimitiveNode primitiveNode) {
+            return primitiveNode.generateBeforeName();
+        }
+        else if (type.is("symbol")) {
+            return "";
+        }
+        else if (type instanceof TemplateNode templateNode) {
+            return templateNode.generateBeforeName();
+        }
+        else if (type instanceof VariadicType variadicNode) {
+            return variadicNode.generateBeforeName();
+        }
+        throw new IllegalArgumentException();
     }
 
-    public static String generateType(Type type) {
-        return switch (type) {
-            case FunctionType functionType -> functionType.generateType();
-            case Placeholder placeholder -> placeholder.generateType();
-            case PrimitiveType primitiveType -> primitiveType.generateType();
-            case Symbol symbol -> symbol.generateType();
-            case TemplateType templateType -> templateType.generateType();
-            case VariadicType variadicType -> variadicType.generateType();
-        };
+    public static String generateNode(Node type) {
+        if (Objects.requireNonNull(type) instanceof FunctionType functionNode) {
+            return functionNode.generateNode();
+        }
+        else if (type instanceof Placeholder placeholder) {
+            return placeholder.generateNode();
+        }
+        else if (type instanceof PrimitiveNode primitiveNode) {
+            return primitiveNode.generateNode();
+        }
+        else if (type.is("symbol")) {
+            return type.findString("value").orElse("");
+        }
+        else if (type instanceof TemplateNode templateNode) {
+            return templateNode.generateNode();
+        }
+        else if (type instanceof VariadicType variadicNode) {
+            return variadicNode.generateNode();
+        }
+        return "?";
     }
 }

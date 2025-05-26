@@ -37,14 +37,12 @@ import magma.app.compile.select.Selector;
 import magma.app.compile.split.FoldingSplitter;
 import magma.app.compile.split.LocatingSplitter;
 import magma.app.compile.split.Splitter;
-import magma.app.compile.type.PrimitiveType;
-import magma.app.compile.type.Type;
+import magma.app.compile.type.Placeholder;
+import magma.app.compile.type.PrimitiveNode;
 import magma.app.compile.value.Lambda;
 import magma.app.compile.value.Not;
 import magma.app.compile.value.Operation;
-import magma.app.compile.type.Placeholder;
 import magma.app.compile.value.StringNode;
-import magma.app.compile.type.Symbol;
 
 import java.util.Objects;
 import java.util.function.Function;
@@ -54,7 +52,7 @@ public final class ValueCompiler {
         var state = tuple.left();
         var right = tuple.right();
         var generated = ValueCompiler.generateValue(right);
-        var s = Placeholder.generatePlaceholder(TypeCompiler.generateType(ValueCompiler.resolve(state, right)));
+        var s = Placeholder.generatePlaceholder(TypeCompiler.generateNode(ValueCompiler.resolve(state, right)));
         return new Tuple2Impl<CompileState, String>(state, generated + s);
     }
 
@@ -68,7 +66,7 @@ public final class ValueCompiler {
             }, Composable.toComposable((String callerWithArgStart, String args) -> {
                 return new SuffixComposable<Tuple2<CompileState, Node>>("(", (String callerString) -> {
                     return new PrefixComposable<Tuple2<CompileState, Node>>("new ", (String type) -> {
-                        return TypeCompiler.compileType(state, type).flatMap((Tuple2<CompileState, String> callerTuple1) -> {
+                        return TypeCompiler.compileNode(state, type).flatMap((Tuple2<CompileState, String> callerTuple1) -> {
                             var callerState = callerTuple1.right();
                             var caller = callerTuple1.left();
                             return ValueCompiler.assembleInvokable(caller, new MapNode("construction").withString("type", callerState), args);
@@ -189,7 +187,7 @@ public final class ValueCompiler {
         var stripped = Strings.strip(input);
         if (ValueCompiler.isSymbol(stripped)) {
             var withImport = TypeCompiler.addResolvedImportFromCache0(state, stripped);
-            return new Some<Tuple2<CompileState, Node>>(new Tuple2Impl<CompileState, Node>(withImport, new Symbol(stripped)));
+            return new Some<Tuple2<CompileState, Node>>(new Tuple2Impl<CompileState, Node>(withImport, new MapNode("symbol").withString("value", stripped)));
         }
         else {
             return new None<Tuple2<CompileState, Node>>();
@@ -216,7 +214,7 @@ public final class ValueCompiler {
         });
     }
 
-    private static Type resolve(CompileState state, Node value) {
+    private static Node resolve(CompileState state, Node value) {
         if (Objects.requireNonNull(value) instanceof Lambda lambda) {
             return lambda.resolve(state);
         }
@@ -227,21 +225,23 @@ public final class ValueCompiler {
             return operation.resolve(state);
         }
         else if (value instanceof Placeholder placeholder) {
-            return PrimitiveType.Unknown;
+            return PrimitiveNode.Unknown;
         }
         else if (value instanceof StringNode stringNode) {
-            return stringNode.resolve(state);
+            return PrimitiveNode.Unknown;
         }
-        else if (value instanceof Symbol symbol) {
-            return symbol.resolve(state);
+        else if (value.is("symbol")) {
+            return state.stack().resolveNode(value.findString("value").orElse(""))
+                    .map((Definition definition) -> definition.findNode())
+                    .orElse(PrimitiveNode.Unknown);
         }
-        return PrimitiveType.Unknown;
+        return PrimitiveNode.Unknown;
     }
 
     static Option<Tuple2<CompileState, Node>> parseNumber(CompileState state, String input) {
         var stripped = Strings.strip(input);
         if (ValueCompiler.isNumber(stripped)) {
-            return new Some<Tuple2<CompileState, Node>>(new Tuple2Impl<CompileState, Node>(state, new Symbol(stripped)));
+            return new Some<Tuple2<CompileState, Node>>(new Tuple2Impl<CompileState, Node>(state, new MapNode("symbol").withString("value", stripped)));
         }
         else {
             return new None<Tuple2<CompileState, Node>>();
@@ -268,8 +268,8 @@ public final class ValueCompiler {
 
     private static Node transformCaller(CompileState state, Node oldNode) {
         return ValueCompiler.findChild(oldNode).flatMap((Node parent) -> {
-            var parentType = ValueCompiler.resolve(state, parent);
-            if (parentType.is("functional")) {
+            var parentNode = ValueCompiler.resolve(state, parent);
+            if (parentNode.is("functional")) {
                 return new Some<Node>(parent);
             }
 
@@ -381,13 +381,13 @@ public final class ValueCompiler {
             return operation.generate();
         }
         else if (value instanceof Placeholder placeholder) {
-            return TypeCompiler.generateType(placeholder);
+            return TypeCompiler.generateNode(placeholder);
         }
         else if (value instanceof StringNode stringNode) {
             return stringNode.generate();
         }
-        else if (value instanceof Symbol symbol) {
-            return TypeCompiler.generateType(symbol);
+        else if (value.is("symbol")) {
+            return TypeCompiler.generateNode(value);
         }
         return "?";
     }

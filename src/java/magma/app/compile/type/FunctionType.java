@@ -4,9 +4,10 @@ import magma.api.Tuple2;
 import magma.api.collect.Joiner;
 import magma.api.collect.list.Iterable;
 import magma.app.TypeCompiler;
+import magma.app.compile.node.Node;
 
-public record FunctionType(Iterable<String> args, String returns) implements Type {
-    public String generateType() {
+public record FunctionType(Iterable<String> args, String returns) implements Node {
+    public String generateNode() {
         var joinedArguments = this.args
                 .iterWithIndices()
                 .map((Tuple2<Integer, String> tuple) -> {
@@ -31,7 +32,7 @@ public record FunctionType(Iterable<String> args, String returns) implements Typ
     }
 
     public String generateSimple() {
-        return TypeCompiler.generateType(this);
+        return TypeCompiler.generateNode(this);
     }
 
     public boolean is(String type) {

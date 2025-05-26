@@ -5,8 +5,7 @@ import magma.api.option.Some;
 import magma.app.ValueCompiler;
 import magma.app.compile.CompileState;
 import magma.app.compile.node.Node;
-import magma.app.compile.type.PrimitiveType;
-import magma.app.compile.type.Type;
+import magma.app.compile.type.PrimitiveNode;
 
 public record Operation(Node left, String targetInfix, Node right) implements Node {
     public String generate() {
@@ -17,8 +16,8 @@ public record Operation(Node left, String targetInfix, Node right) implements No
         return new Some<Node>(this);
     }
 
-    public Type resolve(CompileState state) {
-        return PrimitiveType.Unknown;
+    public Node resolve(CompileState state) {
+        return PrimitiveNode.Unknown;
     }
 
 

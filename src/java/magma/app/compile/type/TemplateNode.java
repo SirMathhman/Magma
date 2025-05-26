@@ -3,9 +3,10 @@ package magma.app.compile.type;
 import magma.api.collect.list.Iterable;
 import magma.app.compile.merge.Merger;
 import magma.app.compile.merge.ValueMerger;
+import magma.app.compile.node.Node;
 
-public record TemplateType(String base, Iterable<String> args) implements Type {
-    public String generateType() {
+public record TemplateNode(String base, Iterable<String> args) implements Node {
+    public String generateNode() {
         return this.base + "<" + Merger.generateAll(this.args, new ValueMerger()) + ">";
     }
 

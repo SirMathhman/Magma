@@ -1,8 +1,9 @@
 package magma.app.compile.type;
 
 import magma.app.TypeCompiler;
+import magma.app.compile.node.Node;
 
-public enum PrimitiveType implements Type {
+public enum PrimitiveNode implements Node {
     String("string"),
     Number("number"),
     Boolean("boolean"),
@@ -12,16 +13,16 @@ public enum PrimitiveType implements Type {
 
     private final String value;
 
-    PrimitiveType(String value) {
+    PrimitiveNode(String value) {
         this.value = value;
     }
 
-    public String generateType() {
+    public String generateNode() {
         return this.value;
     }
 
     public boolean isVar() {
-        return PrimitiveType.Var == this;
+        return PrimitiveNode.Var == this;
     }
 
     public String generateBeforeName() {
@@ -29,7 +30,7 @@ public enum PrimitiveType implements Type {
     }
 
     public String generateSimple() {
-        return TypeCompiler.generateType(this);
+        return TypeCompiler.generateNode(this);
     }
 
     public boolean is(String type) {

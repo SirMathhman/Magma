@@ -34,12 +34,10 @@ import { None } from "../../magma/api/option/None";
 import { OperatorFolder } from "../../magma/app/compile/fold/OperatorFolder";
 import { FirstSelector } from "../../magma/app/compile/select/FirstSelector";
 import { Operation } from "../../magma/app/compile/value/Operation";
-import { Symbol } from "../../magma/app/compile/type/Symbol";
 import { HeadedIter } from "../../magma/api/collect/head/HeadedIter";
 import { RangeHead } from "../../magma/api/collect/head/RangeHead";
 import { Characters } from "../../magma/api/text/Characters";
-import { Type } from "../../magma/app/compile/type/Type";
-import { PrimitiveType } from "../../magma/app/compile/type/PrimitiveType";
+import { PrimitiveNode } from "../../magma/app/compile/type/PrimitiveNode";
 import { Iters } from "../../magma/api/collect/Iters";
 import { ListCollector } from "../../magma/api/collect/list/ListCollector";
 import { OrRule } from "../../magma/app/compile/rule/OrRule";
@@ -52,7 +50,7 @@ export class ValueCompiler {
 		let state = tuple.left()/*unknown*/;
 		let right = tuple.right()/*unknown*/;
 		let generated = ValueCompiler.generateValue(right)/*unknown*/;
-		let s = Placeholder.generatePlaceholder(TypeCompiler.generateType(ValueCompiler.resolve(state, right)))/*unknown*/;
+		let s = Placeholder.generatePlaceholder(TypeCompiler.generateNode(ValueCompiler.resolve(state, right)))/*unknown*/;
 		return new Tuple2Impl<CompileState, string>(state, generated + s)/*unknown*/;
 	}
 	static parseInvokable(state: CompileState, input: string): Option<Tuple2<CompileState, Node>> {
@@ -65,7 +63,7 @@ export class ValueCompiler {
 			}, Composable.toComposable((callerWithArgStart: string, args: string) => {
 				return new SuffixComposable<Tuple2<CompileState, Node>>("(", (callerString: string) => {
 					return new PrefixComposable<Tuple2<CompileState, Node>>("new ", (type: string) => {
-						return TypeCompiler.compileType(state, type).flatMap((callerTuple1: Tuple2<CompileState, string>) => {
+						return TypeCompiler.compileNode(state, type).flatMap((callerTuple1: Tuple2<CompileState, string>) => {
 							let callerState = callerTuple1.right()/*unknown*/;
 							let caller = callerTuple1.left()/*unknown*/;
 							return ValueCompiler.assembleInvokable(caller, new MapNode("construction").withString("type", callerState), args)/*unknown*/;
@@ -173,7 +171,7 @@ export class ValueCompiler {
 		let stripped = Strings.strip(input)/*unknown*/;
 		if (ValueCompiler.isSymbol(stripped)/*unknown*/){
 			let withImport = TypeCompiler.addResolvedImportFromCache0(state, stripped)/*unknown*/;
-			return new Some<Tuple2<CompileState, Node>>(new Tuple2Impl<CompileState, Node>(withImport, new Symbol(stripped)))/*unknown*/;
+			return new Some<Tuple2<CompileState, Node>>(new Tuple2Impl<CompileState, Node>(withImport, new MapNode("symbol").withString("value", stripped)))/*unknown*/;
 		}
 		else {
 			return new None<Tuple2<CompileState, Node>>()/*unknown*/;
@@ -194,7 +192,7 @@ export class ValueCompiler {
 			return Characters.isDigit(c)/*unknown*/;
 		})/*unknown*/;
 	}
-	static resolve(state: CompileState, value: Node): Type {
+	static resolve(state: CompileState, value: Node): Node {
 		if (/*Objects.requireNonNull(value) instanceof Lambda lambda*/){
 			return lambda.resolve(state)/*unknown*/;
 		}/*
@@ -205,20 +203,22 @@ export class ValueCompiler {
             return operation.resolve(state);
         }*//*
         else if (value instanceof Placeholder placeholder) {
-            return PrimitiveType.Unknown;
+            return PrimitiveNode.Unknown;
         }*//*
         else if (value instanceof StringNode stringNode) {
-            return stringNode.resolve(state);
+            return PrimitiveNode.Unknown;
         }*//*
-        else if (value instanceof Symbol symbol) {
-            return symbol.resolve(state);
+        else if (value.is("symbol")) {
+            return state.stack().resolveNode(value.findString("value").orElse(""))
+                    .map((Definition definition) -> definition.findNode())
+                    .orElse(PrimitiveNode.Unknown);
         }*/
-		return PrimitiveType.Unknown/*unknown*/;
+		return PrimitiveNode.Unknown/*unknown*/;
 	}
 	static parseNumber(state: CompileState, input: string): Option<Tuple2<CompileState, Node>> {
 		let stripped = Strings.strip(input)/*unknown*/;
 		if (ValueCompiler.isNumber(stripped)/*unknown*/){
-			return new Some<Tuple2<CompileState, Node>>(new Tuple2Impl<CompileState, Node>(state, new Symbol(stripped)))/*unknown*/;
+			return new Some<Tuple2<CompileState, Node>>(new Tuple2Impl<CompileState, Node>(state, new MapNode("symbol").withString("value", stripped)))/*unknown*/;
 		}
 		else {
 			return new None<Tuple2<CompileState, Node>>()/*unknown*/;
@@ -241,8 +241,8 @@ export class ValueCompiler {
 	}
 	static transformCaller(state: CompileState, oldNode: Node): Node {
 		return ValueCompiler.findChild(oldNode).flatMap((parent: Node) => {
-			let parentType = ValueCompiler.resolve(state, parent)/*unknown*/;
-			if (parentType.is("functional")/*unknown*/){
+			let parentNode = ValueCompiler.resolve(state, parent)/*unknown*/;
+			if (parentNode.is("functional")/*unknown*/){
 				return new Some<Node>(parent)/*unknown*/;
 			}
 			return new None<Node>()/*unknown*/;
@@ -316,13 +316,13 @@ export class ValueCompiler {
             return operation.generate();
         }*//*
         else if (value instanceof Placeholder placeholder) {
-            return TypeCompiler.generateType(placeholder);
+            return TypeCompiler.generateNode(placeholder);
         }*//*
         else if (value instanceof StringNode stringNode) {
             return stringNode.generate();
         }*//*
-        else if (value instanceof Symbol symbol) {
-            return TypeCompiler.generateType(symbol);
+        else if (value.is("symbol")) {
+            return TypeCompiler.generateNode(value);
         }*/
 		return "?"/*unknown*/;
 	}

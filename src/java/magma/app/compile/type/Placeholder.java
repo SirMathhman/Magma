@@ -5,8 +5,9 @@ import magma.api.option.Option;
 import magma.app.ValueCompiler;
 import magma.app.compile.define.Definition;
 import magma.app.compile.define.Parameter;
+import magma.app.compile.node.Node;
 
-public record Placeholder(String input) implements Parameter, Type {
+public record Placeholder(String input) implements Parameter, Node {
     public static String generatePlaceholder(String input) {
         var replaced = input
                 .replace("/*", "start")
@@ -15,7 +16,7 @@ public record Placeholder(String input) implements Parameter, Type {
         return "/*" + replaced + "*/";
     }
 
-    public String generateType() {
+    public String generateNode() {
         return Placeholder.generatePlaceholder(this.input);
     }
 

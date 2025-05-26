@@ -1,7 +1,7 @@
 import { CompileState } from "../../magma/app/compile/CompileState";
 import { Tuple2 } from "../../magma/api/Tuple2";
 import { Option } from "../../magma/api/option/Option";
-import { Type } from "../../magma/app/compile/type/Type";
+import { Node } from "../../magma/app/compile/node/Node";
 import { Tuple2Impl } from "../../magma/api/Tuple2Impl";
 import { OrRule } from "../../magma/app/compile/rule/OrRule";
 import { Lists } from "../../jvm/api/collect/list/Lists";
@@ -10,16 +10,16 @@ import { SuffixComposable } from "../../magma/app/compile/compose/SuffixComposab
 import { Some } from "../../magma/api/option/Some";
 import { VariadicType } from "../../magma/app/compile/type/VariadicType";
 import { ValueCompiler } from "../../magma/app/ValueCompiler";
-import { Symbol } from "../../magma/app/compile/type/Symbol";
+import { MapNode } from "../../magma/app/compile/node/MapNode";
 import { None } from "../../magma/api/option/None";
-import { PrimitiveType } from "../../magma/app/compile/type/PrimitiveType";
+import { PrimitiveNode } from "../../magma/app/compile/type/PrimitiveNode";
 import { LocatingSplitter } from "../../magma/app/compile/split/LocatingSplitter";
 import { FirstLocator } from "../../magma/app/compile/locate/FirstLocator";
 import { Splitter } from "../../magma/app/compile/split/Splitter";
 import { SplitComposable } from "../../magma/app/compile/compose/SplitComposable";
 import { Composable } from "../../magma/app/compile/compose/Composable";
 import { List } from "../../magma/api/collect/list/List";
-import { TemplateType } from "../../magma/app/compile/type/TemplateType";
+import { TemplateNode } from "../../magma/app/compile/type/TemplateNode";
 import { FunctionType } from "../../magma/app/compile/type/FunctionType";
 import { WhitespaceCompiler } from "../../magma/app/WhitespaceCompiler";
 import { Placeholder } from "../../magma/app/compile/type/Placeholder";
@@ -30,75 +30,76 @@ import { Source } from "../../magma/app/io/Source";
 import { Platform } from "../../magma/app/Platform";
 import { Dependency } from "../../magma/app/compile/Dependency";
 export class TypeCompiler {
-	static compileType(state: CompileState, type: string): Option<Tuple2<CompileState, string>> {
-		return TypeCompiler.parseType(state, type).map((tuple: Tuple2<CompileState, Type>) => {
-			return new Tuple2Impl<CompileState, string>(tuple.left(), generateType(tuple.right()))/*unknown*/;
+	static compileNode(state: CompileState, type: string): Option<Tuple2<CompileState, string>> {
+		return TypeCompiler.parseNode(state, type).map((tuple: Tuple2<CompileState, Node>) => {
+			return new Tuple2Impl<CompileState, string>(tuple.left(), TypeCompiler.generateNode(tuple.right()))/*unknown*/;
 		})/*unknown*/;
 	}
-	static parseType(state: CompileState, type: string): Option<Tuple2<CompileState, Type>> {
-		return new OrRule<Type>(Lists.of(TypeCompiler.parseVarArgs, TypeCompiler.parseGeneric, TypeCompiler.parsePrimitive, TypeCompiler.parseSymbolType)).apply(state, type)/*unknown*/;
+	static parseNode(state: CompileState, type: string): Option<Tuple2<CompileState, Node>> {
+		return new OrRule<Node>(Lists.of(TypeCompiler.parseVarArgs, TypeCompiler.parseGeneric, TypeCompiler.parsePrimitive, TypeCompiler.parseSymbolNode)).apply(state, type)/*unknown*/;
 	}
-	static parseVarArgs(state: CompileState, input: string): Option<Tuple2<CompileState, Type>> {
+	static parseVarArgs(state: CompileState, input: string): Option<Tuple2<CompileState, Node>> {
 		let stripped = Strings.strip(input)/*unknown*/;
-		return new SuffixComposable<Tuple2<CompileState, Type>>("...", (s: string) => {
-			let child = TypeCompiler.parseTypeOrPlaceholder(state, s)/*unknown*/;
-			return new Some<Tuple2<CompileState, Type>>(new Tuple2Impl<CompileState, Type>(child.left(), new VariadicType(child.right())))/*unknown*/;
+		return new SuffixComposable<Tuple2<CompileState, Node>>("...", (s: string) => {
+			let child = TypeCompiler.parseNodeOrPlaceholder(state, s)/*unknown*/;
+			return new Some<Tuple2<CompileState, Node>>(new Tuple2Impl<CompileState, Node>(child.left(), new VariadicType(child.right())))/*unknown*/;
 		}).apply(stripped)/*unknown*/;
 	}
-	static parseSymbolType(state: CompileState, input: string): Option<Tuple2<CompileState, Type>> {
+	static parseSymbolNode(state: CompileState, input: string): Option<Tuple2<CompileState, Node>> {
 		let stripped = Strings.strip(input)/*unknown*/;
 		if (ValueCompiler.isSymbol(stripped)/*unknown*/){
-			return new Some<Tuple2<CompileState, Type>>(new Tuple2Impl<CompileState, Type>(TypeCompiler.addResolvedImportFromCache0(state, stripped), new Symbol(stripped)))/*unknown*/;
+			let resolved: CompileState = TypeCompiler.addResolvedImportFromCache0(state, stripped)/*unknown*/;
+			return new Some<Tuple2<CompileState, Node>>(new Tuple2Impl<CompileState, Node>(resolved, new MapNode("symbol").withString("value", stripped)))/*unknown*/;
 		}
-		return new None<Tuple2<CompileState, Type>>()/*unknown*/;
+		return new None<Tuple2<CompileState, Node>>()/*unknown*/;
 	}
-	static parsePrimitive(state: CompileState, input: string): Option<Tuple2<CompileState, Type>> {
-		return TypeCompiler.findPrimitiveNode(Strings.strip(input)).map((result: Type) => {
-			return new Tuple2Impl<CompileState, Type>(state, result)/*unknown*/;
+	static parsePrimitive(state: CompileState, input: string): Option<Tuple2<CompileState, Node>> {
+		return TypeCompiler.findPrimitiveNode(Strings.strip(input)).map((result: Node) => {
+			return new Tuple2Impl<CompileState, Node>(state, result)/*unknown*/;
 		})/*unknown*/;
 	}
-	static findPrimitiveNode(input: string): Option<Type> {
+	static findPrimitiveNode(input: string): Option<Node> {
 		let stripped = Strings.strip(input)/*unknown*/;
 		if (Strings.equalsTo("char", stripped) || Strings.equalsTo("Character", stripped) || Strings.equalsTo("String", stripped)/*unknown*/){
-			return new Some<Type>(PrimitiveType.String)/*unknown*/;
+			return new Some<Node>(PrimitiveNode.String)/*unknown*/;
 		}
 		if (Strings.equalsTo("int", stripped) || Strings.equalsTo("Integer", stripped)/*unknown*/){
-			return new Some<Type>(PrimitiveType.Number)/*unknown*/;
+			return new Some<Node>(PrimitiveNode.Number)/*unknown*/;
 		}
 		if (Strings.equalsTo("boolean", stripped) || Strings.equalsTo("Boolean", stripped)/*unknown*/){
-			return new Some<Type>(PrimitiveType.Boolean)/*unknown*/;
+			return new Some<Node>(PrimitiveNode.Boolean)/*unknown*/;
 		}
 		if (Strings.equalsTo("var", stripped)/*unknown*/){
-			return new Some<Type>(PrimitiveType.Var)/*unknown*/;
+			return new Some<Node>(PrimitiveNode.Var)/*unknown*/;
 		}
 		if (Strings.equalsTo("void", stripped)/*unknown*/){
-			return new Some<Type>(PrimitiveType.Void)/*unknown*/;
+			return new Some<Node>(PrimitiveNode.Void)/*unknown*/;
 		}
-		return new None<Type>()/*unknown*/;
+		return new None<Node>()/*unknown*/;
 	}
-	static parseGeneric(state: CompileState, input: string): Option<Tuple2<CompileState, Type>> {
-		return new SuffixComposable<Tuple2<CompileState, Type>>(">", (withoutEnd: string) => {
+	static parseGeneric(state: CompileState, input: string): Option<Tuple2<CompileState, Node>> {
+		return new SuffixComposable<Tuple2<CompileState, Node>>(">", (withoutEnd: string) => {
 			let splitter: Splitter = new LocatingSplitter("<", new FirstLocator())/*unknown*/;
-			return new SplitComposable<Tuple2<CompileState, Type>>(splitter, Composable.toComposable((baseString: string, argsString: string) => {
+			return new SplitComposable<Tuple2<CompileState, Node>>(splitter, Composable.toComposable((baseString: string, argsString: string) => {
 				let argsTuple = ValueCompiler.values((state1: CompileState, s: string) => {
-					return TypeCompiler.compileTypeArgument(state1, s)/*unknown*/;
+					return TypeCompiler.compileNodeArgument(state1, s)/*unknown*/;
 				}).apply(state, argsString).orElse(new Tuple2Impl<CompileState, List<string>>(state, Lists.empty()))/*unknown*/;
 				let argsState = argsTuple.left()/*unknown*/;
 				let args = argsTuple.right()/*unknown*/;
 				let base = Strings.strip(baseString)/*unknown*/;
-				return TypeCompiler.assembleFunctionType(argsState, base, args).or(() => {
+				return TypeCompiler.assembleFunctionNode(argsState, base, args).or(() => {
 					let compileState = TypeCompiler.addResolvedImportFromCache0(argsState, base)/*unknown*/;
-					return new Some<Tuple2<CompileState, Type>>(new Tuple2Impl<CompileState, Type>(compileState, new TemplateType(base, args)))/*unknown*/;
+					return new Some<Tuple2<CompileState, Node>>(new Tuple2Impl<CompileState, Node>(compileState, new TemplateNode(base, args)))/*unknown*/;
 				})/*unknown*/;
 			})).apply(withoutEnd)/*unknown*/;
 		}).apply(Strings.strip(input))/*unknown*/;
 	}
-	static assembleFunctionType(state: CompileState, base: string, args: List<string>): Option<Tuple2<CompileState, Type>> {
-		return TypeCompiler.mapFunctionType(base, args).map((generated: Type) => {
-			return new Tuple2Impl<CompileState, Type>(state, generated)/*unknown*/;
+	static assembleFunctionNode(state: CompileState, base: string, args: List<string>): Option<Tuple2<CompileState, Node>> {
+		return TypeCompiler.mapFunctionNode(base, args).map((generated: Node) => {
+			return new Tuple2Impl<CompileState, Node>(state, generated)/*unknown*/;
 		})/*unknown*/;
 	}
-	static mapFunctionType(base: string, args: List<string>): Option<Type> {
+	static mapFunctionNode(base: string, args: List<string>): Option<Node> {
 		if (Strings.equalsTo("Function", base)/*unknown*/){
 			return args.findFirst().and(() => {
 				return args.find(1)/*unknown*/;
@@ -130,20 +131,20 @@ export class TypeCompiler {
 				return new FunctionType(Lists.of(first), "boolean")/*unknown*/;
 			})/*unknown*/;
 		}
-		return new None<Type>()/*unknown*/;
+		return new None<Node>()/*unknown*/;
 	}
-	static compileTypeArgument(state: CompileState, input: string): Option<Tuple2<CompileState, string>> {
+	static compileNodeArgument(state: CompileState, input: string): Option<Tuple2<CompileState, string>> {
 		return new OrRule<string>(Lists.of((state2: CompileState, input1: string) => {
 			return WhitespaceCompiler.compileWhitespace(state2, input1)/*unknown*/;
 		}, (state1: CompileState, type: string) => {
-			return TypeCompiler.compileType(state1, type)/*unknown*/;
+			return TypeCompiler.compileNode(state1, type)/*unknown*/;
 		})).apply(state, input)/*unknown*/;
 	}
-	static parseTypeOrPlaceholder(state: CompileState, type: string): Tuple2<CompileState, Type> {
-		return TypeCompiler.parseType(state, type).map((tuple: Tuple2<CompileState, Type>) => {
-			return new Tuple2Impl<CompileState, Type>(tuple.left(), tuple.right())/*unknown*/;
+	static parseNodeOrPlaceholder(state: CompileState, type: string): Tuple2<CompileState, Node> {
+		return TypeCompiler.parseNode(state, type).map((tuple: Tuple2<CompileState, Node>) => {
+			return new Tuple2Impl<CompileState, Node>(tuple.left(), tuple.right())/*unknown*/;
 		}).orElseGet(() => {
-			return new Tuple2Impl<CompileState, Type>(state, new Placeholder(type))/*unknown*/;
+			return new Tuple2Impl<CompileState, Node>(state, new Placeholder(type))/*unknown*/;
 		})/*unknown*/;
 	}
 	static getState(immutableCompileState: CompileState, location: Location): CompileState {
@@ -198,31 +199,67 @@ export class TypeCompiler {
 		}
 		return copy/*unknown*/;
 	}
-	static generateSimple(type: Type): string {/*return switch (type) {
-            case FunctionType functionType -> functionType.generateSimple();
-            case Placeholder placeholder -> placeholder.generateSimple();
-            case PrimitiveType primitiveType -> primitiveType.generateSimple();
-            case Symbol symbol -> symbol.generateSimple();
-            case TemplateType templateType -> templateType.generateSimple();
-            case VariadicType variadicType -> variadicType.generateSimple();
-        }*/;
+	static generateSimple(type: Node): string {
+		if (/*Objects.requireNonNull(type) instanceof FunctionType functionNode*/){
+			return functionNode.generateSimple()/*unknown*/;
+		}/*
+        else if (type instanceof Placeholder placeholder) {
+            return placeholder.generateSimple();
+        }*//*
+        else if (type instanceof PrimitiveNode primitiveNode) {
+            return primitiveNode.generateSimple();
+        }*//*
+        else if (type.is("symbol")) {
+            return ValueCompiler.generateValue(type);
+        }*//*
+        else if (type instanceof TemplateNode templateNode) {
+            return templateNode.generateSimple();
+        }*//*
+        else if (type instanceof VariadicType variadicNode) {
+            return variadicNode.generateSimple();
+        }*/
+		return "?"/*unknown*/;
 	}
-	static getString(type: Type): string {/*return switch (type) {
-            case FunctionType functionType -> functionType.generateBeforeName();
-            case Placeholder placeholder -> placeholder.generateBeforeName();
-            case PrimitiveType primitiveType -> primitiveType.generateBeforeName();
-            case Symbol symbol -> symbol.generateBeforeName();
-            case TemplateType templateType -> templateType.generateBeforeName();
-            case VariadicType variadicType -> variadicType.generateBeforeName();
-        }*/;
+	static generateBeforeName(type: Node): string {
+		if (/*Objects.requireNonNull(type) instanceof FunctionType functionNode*/){
+			return functionNode.generateBeforeName()/*unknown*/;
+		}/*
+        else if (type instanceof Placeholder placeholder) {
+            return placeholder.generateBeforeName();
+        }*//*
+        else if (type instanceof PrimitiveNode primitiveNode) {
+            return primitiveNode.generateBeforeName();
+        }*//*
+        else if (type.is("symbol")) {
+            return "";
+        }*//*
+        else if (type instanceof TemplateNode templateNode) {
+            return templateNode.generateBeforeName();
+        }*//*
+        else if (type instanceof VariadicType variadicNode) {
+            return variadicNode.generateBeforeName();
+        }*/
+		/*throw new IllegalArgumentException()*/;
 	}
-	static generateType(type: Type): string {/*return switch (type) {
-            case FunctionType functionType -> functionType.generateType();
-            case Placeholder placeholder -> placeholder.generateType();
-            case PrimitiveType primitiveType -> primitiveType.generateType();
-            case Symbol symbol -> symbol.generateType();
-            case TemplateType templateType -> templateType.generateType();
-            case VariadicType variadicType -> variadicType.generateType();
-        }*/;
+	static generateNode(type: Node): string {
+		if (/*Objects.requireNonNull(type) instanceof FunctionType functionNode*/){
+			return functionNode.generateNode()/*unknown*/;
+		}/*
+        else if (type instanceof Placeholder placeholder) {
+            return placeholder.generateNode();
+        }*//*
+        else if (type instanceof PrimitiveNode primitiveNode) {
+            return primitiveNode.generateNode();
+        }*//*
+        else if (type.is("symbol")) {
+            return type.findString("value").orElse("");
+        }*//*
+        else if (type instanceof TemplateNode templateNode) {
+            return templateNode.generateNode();
+        }*//*
+        else if (type instanceof VariadicType variadicNode) {
+            return variadicNode.generateNode();
+        }*/
+		return "?"/*unknown*/;
 	}
 }

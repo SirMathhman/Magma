@@ -2,13 +2,10 @@ package magma.app.compile.value;
 
 import magma.api.collect.Joiner;
 import magma.api.collect.list.Iterable;
-import magma.api.option.Option;
-import magma.api.option.Some;
 import magma.app.compile.CompileState;
 import magma.app.compile.define.Definition;
 import magma.app.compile.node.Node;
-import magma.app.compile.type.PrimitiveType;
-import magma.app.compile.type.Type;
+import magma.app.compile.type.PrimitiveNode;
 
 public record Lambda(Iterable<Definition> paramNames, String content) implements Node {
     public String generate() {
@@ -22,12 +19,8 @@ public record Lambda(Iterable<Definition> paramNames, String content) implements
         return "(" + joinedParamNames + ")" + " => " + this.content;
     }
 
-    public Option<Node> toNode() {
-        return new Some<Node>(this);
-    }
-
-    public Type resolve(CompileState state) {
-        return PrimitiveType.Unknown;
+    public Node resolve(CompileState state) {
+        return PrimitiveNode.Unknown;
     }
 
 

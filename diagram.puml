@@ -202,21 +202,18 @@ class Whitespace {
 Whitespace <|.. Parameter
 class FunctionType {
 }
-FunctionType <|.. Type
+FunctionType <|.. Node
 class Placeholder {
 }
-class PrimitiveType {
+class PrimitiveNode {
 }
-PrimitiveType <|.. Type
-class Symbol {
+PrimitiveNode <|.. Node
+class TemplateNode {
 }
-Symbol <|.. Type
-class TemplateType {
-}
-TemplateType <|.. Type
+TemplateNode <|.. Node
 class VariadicType {
 }
-VariadicType <|.. Type
+VariadicType <|.. Node
 class Lambda {
 }
 Lambda <|.. Node
@@ -270,8 +267,6 @@ class TypeCompiler {
 class ValueCompiler {
 }
 class WhitespaceCompiler {
-}
-class TypeGE {
 }
 Lists --> List
 Files --> Path
@@ -396,7 +391,7 @@ Context --> List
 ConstructorHeader --> MethodHeader
 Definition --> List
 Definition --> Iterable
-Definition --> Type
+Definition --> Node
 Definition --> Option
 Definition --> Some
 Definition --> Joiner
@@ -553,7 +548,7 @@ Whitespace --> Parameter
 Whitespace --> Definition
 Whitespace --> Option
 Whitespace --> None
-FunctionType --> Type
+FunctionType --> Node
 FunctionType --> Iterable
 FunctionType --> Tuple2
 FunctionType --> Joiner
@@ -562,47 +557,32 @@ Placeholder --> Definition
 Placeholder --> Option
 Placeholder --> None
 Placeholder --> ValueCompiler
-PrimitiveType --> Type
-PrimitiveType --> TypeCompiler
-Symbol --> Type
-Symbol --> CompileState
-Symbol --> Definition
-Symbol --> PrimitiveType
-Symbol --> ValueCompiler
-TemplateType --> Type
-TemplateType --> Iterable
-TemplateType --> Merger
-TemplateType --> ValueMerger
-VariadicType --> Type
+PrimitiveNode --> Node
+PrimitiveNode --> TypeCompiler
+TemplateNode --> Node
+TemplateNode --> Iterable
+TemplateNode --> Merger
+TemplateNode --> ValueMerger
+VariadicType --> Node
 VariadicType --> TypeCompiler
 Lambda --> Node
 Lambda --> Definition
 Lambda --> Iterable
 Lambda --> Joiner
-Lambda --> Option
-Lambda --> Some
-Lambda --> Type
 Lambda --> CompileState
-Lambda --> PrimitiveType
+Lambda --> PrimitiveNode
 Not --> Node
 Not --> Option
 Not --> Some
-Not --> Type
 Not --> CompileState
-Not --> PrimitiveType
+Not --> PrimitiveNode
 Operation --> Node
 Operation --> ValueCompiler
 Operation --> Option
 Operation --> Some
-Operation --> Type
 Operation --> CompileState
-Operation --> PrimitiveType
+Operation --> PrimitiveNode
 StringNode --> Node
-StringNode --> Option
-StringNode --> Some
-StringNode --> Type
-StringNode --> CompileState
-StringNode --> PrimitiveType
 DefiningCompiler --> Definition
 DefiningCompiler --> Iterable
 DefiningCompiler --> Parameter
@@ -635,7 +615,7 @@ DefiningCompiler --> LocatingSplitter
 DefiningCompiler --> FirstLocator
 DefiningCompiler --> Splitter
 DefiningCompiler --> TypeCompiler
-DefiningCompiler --> Type
+DefiningCompiler --> Node
 DefiningCompiler --> Joiner
 DefiningCompiler --> ValueFolder
 DefinitionCompiler --> Definition
@@ -773,7 +753,7 @@ RootCompiler --> Strings
 RootCompiler --> Option
 RootCompiler --> List
 RootCompiler --> TypeCompiler
-RootCompiler --> Type
+RootCompiler --> Node
 RootCompiler --> None
 RootCompiler --> Splitter
 RootCompiler --> ValueCompiler
@@ -798,7 +778,7 @@ Targets --> Location
 TypeCompiler --> CompileState
 TypeCompiler --> Tuple2
 TypeCompiler --> Option
-TypeCompiler --> Type
+TypeCompiler --> Node
 TypeCompiler --> Tuple2Impl
 TypeCompiler --> OrRule
 TypeCompiler --> Lists
@@ -807,16 +787,16 @@ TypeCompiler --> SuffixComposable
 TypeCompiler --> Some
 TypeCompiler --> VariadicType
 TypeCompiler --> ValueCompiler
-TypeCompiler --> Symbol
+TypeCompiler --> MapNode
 TypeCompiler --> None
-TypeCompiler --> PrimitiveType
+TypeCompiler --> PrimitiveNode
 TypeCompiler --> LocatingSplitter
 TypeCompiler --> FirstLocator
 TypeCompiler --> Splitter
 TypeCompiler --> SplitComposable
 TypeCompiler --> Composable
 TypeCompiler --> List
-TypeCompiler --> TemplateType
+TypeCompiler --> TemplateNode
 TypeCompiler --> FunctionType
 TypeCompiler --> WhitespaceCompiler
 TypeCompiler --> Placeholder
@@ -862,12 +842,10 @@ ValueCompiler --> None
 ValueCompiler --> OperatorFolder
 ValueCompiler --> FirstSelector
 ValueCompiler --> Operation
-ValueCompiler --> Symbol
 ValueCompiler --> HeadedIter
 ValueCompiler --> RangeHead
 ValueCompiler --> Characters
-ValueCompiler --> Type
-ValueCompiler --> PrimitiveType
+ValueCompiler --> PrimitiveNode
 ValueCompiler --> Iters
 ValueCompiler --> ListCollector
 ValueCompiler --> OrRule

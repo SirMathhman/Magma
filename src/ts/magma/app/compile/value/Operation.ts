@@ -2,9 +2,8 @@ import { Node } from "../../../../magma/app/compile/node/Node";
 import { ValueCompiler } from "../../../../magma/app/ValueCompiler";
 import { Option } from "../../../../magma/api/option/Option";
 import { Some } from "../../../../magma/api/option/Some";
-import { Type } from "../../../../magma/app/compile/type/Type";
 import { CompileState } from "../../../../magma/app/compile/CompileState";
-import { PrimitiveType } from "../../../../magma/app/compile/type/PrimitiveType";
+import { PrimitiveNode } from "../../../../magma/app/compile/type/PrimitiveNode";
 export class Operation implements Node {
 	left: Node;
 	targetInfix: string;
@@ -20,8 +19,8 @@ export class Operation implements Node {
 	toNode(): Option<Node> {
 		return new Some<Node>(this)/*unknown*/;
 	}
-	resolve(state: CompileState): Type {
-		return PrimitiveType.Unknown/*unknown*/;
+	resolve(state: CompileState): Node {
+		return PrimitiveNode.Unknown/*unknown*/;
 	}
 	is(type: string): boolean {
 		return false/*unknown*/;

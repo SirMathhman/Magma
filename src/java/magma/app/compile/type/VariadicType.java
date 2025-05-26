@@ -1,10 +1,11 @@
 package magma.app.compile.type;
 
 import magma.app.TypeCompiler;
+import magma.app.compile.node.Node;
 
-public record VariadicType(Type type) implements Type {
-    public String generateType() {
-        return TypeCompiler.generateType(this.type) + "[]";
+public record VariadicType(Node type) implements Node {
+    public String generateNode() {
+        return TypeCompiler.generateNode(this.type) + "[]";
     }
 
     public boolean isFunctional() {
@@ -20,7 +21,7 @@ public record VariadicType(Type type) implements Type {
     }
 
     public String generateSimple() {
-        return TypeCompiler.generateType(this);
+        return TypeCompiler.generateNode(this);
     }
 
     public boolean is(String type) {

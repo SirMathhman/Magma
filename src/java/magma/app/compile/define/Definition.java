@@ -8,16 +8,16 @@ import magma.api.option.Some;
 import magma.api.text.Strings;
 import magma.app.RootCompiler;
 import magma.app.TypeCompiler;
-import magma.app.compile.type.Type;
+import magma.app.compile.node.Node;
 
 public record Definition(
         List<String> annotations,
         List<String> modifiers,
         Iterable<String> typeParams,
-        Type type,
+        Node type,
         String name
 ) implements MethodHeader, Parameter {
-    public Type findType() {
+    public Node findNode() {
         return this.type;
     }
 
@@ -37,7 +37,7 @@ public record Definition(
 
     @Override
     public String generateWithAfterName(String afterName) {
-        var joinedTypeParams = this.joinTypeParams();
+        var joinedNodeParams = this.joinNodeParams();
         var joinedModifiers = this.modifiers.iter()
                 .map((String value) -> {
                     return value + " ";
@@ -45,19 +45,19 @@ public record Definition(
                 .collect(new Joiner(""))
                 .orElse("");
 
-        return joinedModifiers + TypeCompiler.getString(this.type) + this.name + joinedTypeParams + afterName + this.generateType();
+        return joinedModifiers + TypeCompiler.generateBeforeName(this.type) + this.name + joinedNodeParams + afterName + this.generateNode();
     }
 
-    private String generateType() {
+    private String generateNode() {
         if (this.type.is("var")) {
             return "";
         }
 
-        return ": " + TypeCompiler.generateType(this.type);
+        return ": " + TypeCompiler.generateNode(this.type);
     }
 
-    private String joinTypeParams() {
-        return RootCompiler.joinTypeParams(this.typeParams);
+    private String joinNodeParams() {
+        return RootCompiler.joinNodeParams(this.typeParams);
     }
 
     @Override

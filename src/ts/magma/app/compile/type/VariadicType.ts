@@ -1,12 +1,12 @@
-import { Type } from "../../../../magma/app/compile/type/Type";
+import { Node } from "../../../../magma/app/compile/node/Node";
 import { TypeCompiler } from "../../../../magma/app/TypeCompiler";
-export class VariadicType implements Type {
-	type: Type;
-	constructor (type: Type) {
+export class VariadicType implements Node {
+	type: Node;
+	constructor (type: Node) {
 		this.type = type;
 	}
-	generateType(): string {
-		return TypeCompiler.generateType(this.type) + "[]"/*unknown*/;
+	generateNode(): string {
+		return TypeCompiler.generateNode(this.type) + "[]"/*unknown*/;
 	}
 	isFunctional(): boolean {
 		return false/*unknown*/;
@@ -18,7 +18,7 @@ export class VariadicType implements Type {
 		return "..."/*unknown*/;
 	}
 	generateSimple(): string {
-		return TypeCompiler.generateType(this)/*unknown*/;
+		return TypeCompiler.generateNode(this)/*unknown*/;
 	}
 	is(type: string): boolean {
 		return "variadic".equals(type)/*unknown*/;
