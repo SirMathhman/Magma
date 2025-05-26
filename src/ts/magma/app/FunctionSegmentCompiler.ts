@@ -23,7 +23,7 @@ import { FirstLocator } from "../../magma/app/compile/locate/FirstLocator";
 import { Splitter } from "../../magma/app/compile/split/Splitter";
 import { DefiningCompiler } from "../../magma/app/DefiningCompiler";
 import { Definition } from "../../magma/app/compile/define/Definition";
-import { Placeholder } from "../../magma/app/compile/define/Placeholder";
+import { Placeholders } from "../../magma/app/compile/define/Placeholders";
 import { WhitespaceCompiler } from "../../magma/app/WhitespaceCompiler";
 import { DivideRule } from "../../magma/app/DivideRule";
 import { StatementsFolder } from "../../magma/app/compile/fold/StatementsFolder";
@@ -153,10 +153,10 @@ class FunctionSegmentCompiler {
 			let sourceTuple = ValueCompiler.compileNodeOrPlaceholder(state, source)/*unknown*/;
 			let destinationTuple = ValueCompiler.compileNode(sourceTuple.left(), destination).or(() => {
 				return DefiningCompiler.parseDefinition(sourceTuple.left(), destination).map((tuple: Tuple2<CompileState, Definition>) => {
-					return new Tuple2Impl<CompileState, string>(tuple.left(), "let " + DefiningCompiler.getGenerate(tuple.right()))/*unknown*/;
+					return new Tuple2Impl<CompileState, string>(tuple.left(), "let " + DefiningCompiler.generateParameter(tuple.right()))/*unknown*/;
 				})/*unknown*/;
 			}).orElseGet(() => {
-				return new Tuple2Impl<CompileState, string>(sourceTuple.left(), Placeholder.generatePlaceholder(destination))/*unknown*/;
+				return new Tuple2Impl<CompileState, string>(sourceTuple.left(), Placeholders.generatePlaceholder(destination))/*unknown*/;
 			})/*unknown*/;
 			return new Some<Tuple2<CompileState, string>>(new Tuple2Impl<CompileState, string>(destinationTuple.left(), destinationTuple.right() + " = " + sourceTuple.right()))/*unknown*/;
 		})).apply(input)/*unknown*/;

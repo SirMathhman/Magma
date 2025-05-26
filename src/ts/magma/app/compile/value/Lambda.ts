@@ -14,7 +14,7 @@ export class Lambda implements Node {
 	}
 	generate(): string {
 		let joinedParamNames = this.paramNames.iter().map((definition: Definition) => {
-			return DefiningCompiler.getGenerate(definition)/*unknown*/;
+			return DefiningCompiler.generateParameter(definition)/*unknown*/;
 		}).collect(new Joiner(", ")).orElse("")/*unknown*/;
 		return "(" + joinedParamNames + ")" + " => " + this.content/*unknown*/;
 	}

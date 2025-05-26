@@ -14,6 +14,7 @@ import magma.app.compile.compose.PrefixComposable;
 import magma.app.compile.compose.SplitComposable;
 import magma.app.compile.compose.SuffixComposable;
 import magma.app.compile.define.Definition;
+import magma.app.compile.define.Placeholders;
 import magma.app.compile.fold.StatementsFolder;
 import magma.app.compile.locate.FirstLocator;
 import magma.app.compile.merge.Merger;
@@ -25,7 +26,6 @@ import magma.app.compile.select.Selector;
 import magma.app.compile.split.FoldingSplitter;
 import magma.app.compile.split.LocatingSplitter;
 import magma.app.compile.split.Splitter;
-import magma.app.compile.define.Placeholder;
 import magma.app.compile.node.Node;
 
 import java.util.function.BiFunction;
@@ -186,11 +186,11 @@ final class FunctionSegmentCompiler {
             var destinationTuple = ValueCompiler.compileNode(sourceTuple.left(), destination)
                     .or(() -> {
                         return DefiningCompiler.parseDefinition(sourceTuple.left(), destination).map((Tuple2<CompileState, Definition> tuple) -> {
-                            return new Tuple2Impl<CompileState, String>(tuple.left(), "let " + DefiningCompiler.getGenerate(tuple.right()));
+                            return new Tuple2Impl<CompileState, String>(tuple.left(), "let " + DefiningCompiler.generateParameter(tuple.right()));
                         });
                     })
                     .orElseGet(() -> {
-                        return new Tuple2Impl<CompileState, String>(sourceTuple.left(), Placeholder.generatePlaceholder(destination));
+                        return new Tuple2Impl<CompileState, String>(sourceTuple.left(), Placeholders.generatePlaceholder(destination));
                     });
 
             return new Some<Tuple2<CompileState, String>>(new Tuple2Impl<CompileState, String>(destinationTuple.left(), destinationTuple.right() + " = " + sourceTuple.right()));

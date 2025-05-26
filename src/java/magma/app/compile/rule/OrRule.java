@@ -6,7 +6,7 @@ import magma.api.collect.Iters;
 import magma.api.collect.list.Iterable;
 import magma.api.option.Option;
 import magma.app.compile.CompileState;
-import magma.app.compile.define.Placeholder;
+import magma.app.compile.define.Placeholders;
 
 public record OrRule<T>(Iterable<Rule<T>> rules) implements Rule<T> {
     public static Tuple2<CompileState, String> compileOrPlaceholder(
@@ -15,7 +15,7 @@ public record OrRule<T>(Iterable<Rule<T>> rules) implements Rule<T> {
             Iterable<Rule<String>> rules
     ) {
         return new OrRule<String>(rules).apply(state, input).orElseGet(() -> {
-            return new Tuple2Impl<CompileState, String>(state, Placeholder.generatePlaceholder(input));
+            return new Tuple2Impl<CompileState, String>(state, Placeholders.generatePlaceholder(input));
         });
     }
 

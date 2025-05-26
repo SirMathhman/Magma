@@ -23,6 +23,7 @@ import magma.app.compile.compose.PrefixComposable;
 import magma.app.compile.compose.SplitComposable;
 import magma.app.compile.compose.SuffixComposable;
 import magma.app.compile.define.Definition;
+import magma.app.compile.define.Placeholders;
 import magma.app.compile.fold.OperatorFolder;
 import magma.app.compile.fold.ValueFolder;
 import magma.app.compile.locate.FirstLocator;
@@ -36,7 +37,6 @@ import magma.app.compile.select.Selector;
 import magma.app.compile.split.FoldingSplitter;
 import magma.app.compile.split.LocatingSplitter;
 import magma.app.compile.split.Splitter;
-import magma.app.compile.define.Placeholder;
 import magma.app.compile.value.Lambda;
 import magma.app.compile.value.Not;
 import magma.app.compile.value.Operation;
@@ -50,7 +50,7 @@ public final class ValueCompiler {
         var state = tuple.left();
         var right = tuple.right();
         var generated = ValueCompiler.generateValue(right);
-        var s = Placeholder.generatePlaceholder(TypeCompiler.generateType(ValueCompiler.resolve(state, right)));
+        var s = Placeholders.generatePlaceholder(TypeCompiler.generateType(ValueCompiler.resolve(state, right)));
         return new Tuple2Impl<CompileState, String>(state, generated + s);
     }
 
@@ -222,7 +222,7 @@ public final class ValueCompiler {
         else if (value instanceof Operation operation) {
             return operation.resolve(state);
         }
-        else if (value instanceof Placeholder placeholder) {
+        else if (value.is("placeholder")) {
             return TypeCompiler.Unknown;
         }
         else if (value instanceof StringNode stringNode) {
@@ -248,7 +248,7 @@ public final class ValueCompiler {
 
     static Tuple2<CompileState, String> compileNodeOrPlaceholder(CompileState state, String input) {
         return ValueCompiler.compileNode(state, input).orElseGet(() -> {
-            return new Tuple2Impl<CompileState, String>(state, Placeholder.generatePlaceholder(input));
+            return new Tuple2Impl<CompileState, String>(state, Placeholders.generatePlaceholder(input));
         });
     }
 
@@ -378,8 +378,8 @@ public final class ValueCompiler {
         else if (value instanceof Operation operation) {
             return operation.generate();
         }
-        else if (value instanceof Placeholder placeholder) {
-            return TypeCompiler.generateType(placeholder);
+        else if (value.is("placeholder")) {
+            return TypeCompiler.generateType(value);
         }
         else if (value instanceof StringNode stringNode) {
             return stringNode.generate();

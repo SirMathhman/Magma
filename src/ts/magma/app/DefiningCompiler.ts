@@ -10,7 +10,7 @@ import { ValueCompiler } from "../../magma/app/ValueCompiler";
 import { Some } from "../../magma/api/option/Some";
 import { Tuple2Impl } from "../../magma/api/Tuple2Impl";
 import { Lists } from "../../jvm/api/collect/list/Lists";
-import { Placeholder } from "../../magma/app/compile/define/Placeholder";
+import { MapNode } from "../../magma/app/compile/node/MapNode";
 import { Option } from "../../magma/api/option/Option";
 import { WhitespaceCompiler } from "../../magma/app/WhitespaceCompiler";
 import { Whitespace } from "../../magma/app/compile/define/Whitespace";
@@ -32,6 +32,7 @@ import { Splitter } from "../../magma/app/compile/split/Splitter";
 import { TypeCompiler } from "../../magma/app/TypeCompiler";
 import { Joiner } from "../../magma/api/collect/Joiner";
 import { ValueFolder } from "../../magma/app/compile/fold/ValueFolder";
+import { Placeholders } from "../../magma/app/compile/define/Placeholders";
 export class DefiningCompiler {
 	static retainDefinitionsFromParameters(parameters: Iterable<Node>): Iterable<Definition> {
 		return parameters.iter().map((node: Node) => {
@@ -45,7 +46,7 @@ export class DefiningCompiler {
 	}
 	static parseParameterOrPlaceholder(state: CompileState, input: string): Tuple2<CompileState, Node> {
 		return DefiningCompiler.parseParameter(state, input).orElseGet(() => {
-			return new Tuple2Impl<CompileState, Node>(state, new Placeholder(input))/*unknown*/;
+			return new Tuple2Impl<CompileState, Node>(state, new MapNode("placeholder").withString("value", input))/*unknown*/;
 		})/*unknown*/;
 	}
 	static parseParameter(state: CompileState, input: string): Option<Tuple2<CompileState, Node>> {
@@ -124,7 +125,7 @@ export class DefiningCompiler {
 	}
 	static joinParameters(parameters: Iterable<Definition>): string {
 		return parameters.iter().map((definition: Definition) => {
-			return DefiningCompiler.getGenerate(definition)/*unknown*/;
+			return DefiningCompiler.generateParameter(definition)/*unknown*/;
 		}).map((generated: string) => {
 			return "\n\t" + generated + ";"/*unknown*/;
 		}).collect(Joiner.empty()).orElse("")/*unknown*/;
@@ -142,11 +143,17 @@ export class DefiningCompiler {
 			return !Strings/*unknown*/.isEmpty(value)/*unknown*/;
 		}).collect(new ListCollector<string>())/*unknown*/;
 	}
-	static getGenerate(node: Node): string {/*return switch (node) {
-            case Definition definition -> definition.generateWithAfterName("");
-            case Placeholder placeholder -> Placeholder.generatePlaceholder(placeholder.input());
-            case Whitespace _ -> "";
-            default -> "?";
-        }*/;
+	static generateParameter(parameter: Node): string {
+		if (/*Objects.requireNonNull(parameter) instanceof Definition definition*/){
+			return definition.generateWithAfterName("")/*unknown*/;
+		}
+		if (parameter.is("placeholder")/*unknown*/){
+			let value: string = parameter.findString("value").orElse("")/*unknown*/;
+			return Placeholders.generatePlaceholder(value)/*unknown*/;
+		}
+		if (/*parameter instanceof Whitespace*/){
+			return ""/*unknown*/;
+		}
+		return "?"/*unknown*/;
 	}
 }

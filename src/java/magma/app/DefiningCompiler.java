@@ -18,7 +18,7 @@ import magma.app.compile.compose.Composable;
 import magma.app.compile.compose.SplitComposable;
 import magma.app.compile.compose.SuffixComposable;
 import magma.app.compile.define.Definition;
-import magma.app.compile.define.Placeholder;
+import magma.app.compile.define.Placeholders;
 import magma.app.compile.define.Whitespace;
 import magma.app.compile.divide.FoldedDivider;
 import magma.app.compile.fold.DecoratedFolder;
@@ -26,12 +26,15 @@ import magma.app.compile.fold.DelimitedFolder;
 import magma.app.compile.fold.TypeSeparatorFolder;
 import magma.app.compile.fold.ValueFolder;
 import magma.app.compile.locate.FirstLocator;
+import magma.app.compile.node.MapNode;
 import magma.app.compile.node.Node;
 import magma.app.compile.select.LastSelector;
 import magma.app.compile.select.Selector;
 import magma.app.compile.split.FoldingSplitter;
 import magma.app.compile.split.LocatingSplitter;
 import magma.app.compile.split.Splitter;
+
+import java.util.Objects;
 
 public final class DefiningCompiler {
     public static Iterable<Definition> retainDefinitionsFromParameters(Iterable<Node> parameters) {
@@ -51,7 +54,7 @@ public final class DefiningCompiler {
 
     public static Tuple2<CompileState, Node> parseParameterOrPlaceholder(CompileState state, String input) {
         return DefiningCompiler.parseParameter(state, input).orElseGet(() -> {
-            return new Tuple2Impl<CompileState, Node>(state, new Placeholder(input));
+            return new Tuple2Impl<CompileState, Node>(state, new MapNode("placeholder").withString("value", input));
         });
     }
 
@@ -163,7 +166,7 @@ public final class DefiningCompiler {
     public static String joinParameters(Iterable<Definition> parameters) {
         return parameters.iter()
                 .map((Definition definition) -> {
-                    return DefiningCompiler.getGenerate(definition);
+                    return DefiningCompiler.generateParameter(definition);
                 })
                 .map((String generated) -> {
                     return "\n\t" + generated + ";";
@@ -190,12 +193,19 @@ public final class DefiningCompiler {
                 .collect(new ListCollector<String>());
     }
 
-    public static String getGenerate(Node node) {
-        return switch (node) {
-            case Definition definition -> definition.generateWithAfterName("");
-            case Placeholder placeholder -> Placeholder.generatePlaceholder(placeholder.input());
-            case Whitespace _ -> "";
-            default -> "?";
-        };
+    public static String generateParameter(Node parameter) {
+        if (Objects.requireNonNull(parameter) instanceof Definition definition) {
+            return definition.generateWithAfterName("");
+        }
+
+        if (parameter.is("placeholder")) {
+            String value = parameter.findString("value").orElse("");
+            return Placeholders.generatePlaceholder(value);
+        }
+
+        if (parameter instanceof Whitespace) {
+            return "";
+        }
+        return "?";
     }
 }

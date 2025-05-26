@@ -18,13 +18,13 @@ import { SplitComposable } from "../../magma/app/compile/compose/SplitComposable
 import { Composable } from "../../magma/app/compile/compose/Composable";
 import { WhitespaceCompiler } from "../../magma/app/WhitespaceCompiler";
 import { List } from "../../magma/api/collect/list/List";
-import { Placeholder } from "../../magma/app/compile/define/Placeholder";
 import { Location } from "../../magma/app/Location";
 import { Import } from "../../magma/app/compile/Import";
 import { Registry } from "../../magma/app/compile/Registry";
 import { Source } from "../../magma/app/io/Source";
 import { Platform } from "../../magma/app/Platform";
 import { Dependency } from "../../magma/app/compile/Dependency";
+import { Placeholders } from "../../magma/app/compile/define/Placeholders";
 import { Joiner } from "../../magma/api/collect/Joiner";
 export class TypeCompiler {/*public static final Node Boolean = new MapNode("boolean").withString("value", "boolean");*//*
     public static final Node Number = new MapNode("number").withString("value", "number");*//*
@@ -162,7 +162,7 @@ export class TypeCompiler {/*public static final Node Boolean = new MapNode("boo
 		return TypeCompiler.parseType(state, type).map((tuple: Tuple2<CompileState, Node>) => {
 			return new Tuple2Impl<CompileState, Node>(tuple.left(), tuple.right())/*unknown*/;
 		}).orElseGet(() => {
-			return new Tuple2Impl<CompileState, Node>(state, new Placeholder(type))/*unknown*/;
+			return new Tuple2Impl<CompileState, Node>(state, new MapNode("placeholder").withString("value", type))/*unknown*/;
 		})/*unknown*/;
 	}
 	static getState(immutableCompileState: CompileState, location: Location): CompileState {
@@ -221,8 +221,8 @@ export class TypeCompiler {/*public static final Node Boolean = new MapNode("boo
 		if (type.is("functional")/*unknown*/){
 			return TypeCompiler.generateType(type)/*unknown*/;
 		}/*
-        else if (type instanceof Placeholder placeholder) {
-            return ValueCompiler.generateValue(placeholder);
+        else if (type.is("placeholder")) {
+            return ValueCompiler.generateValue(type);
         }*//*
         else if (TypeCompiler.variants.contains(type.findString("value").orElse(""))) {
             return TypeCompiler.generateType(type);
@@ -242,7 +242,7 @@ export class TypeCompiler {/*public static final Node Boolean = new MapNode("boo
 		if (type.is("functional")/*unknown*/){
 			return ""/*unknown*/;
 		}/*
-        else if (type instanceof Placeholder placeholder) {
+        else if (type.is("placeholder")) {
             return "";
         }*//*
         else if (TypeCompiler.variants.contains(type.findString("value").orElse(""))) {
@@ -262,20 +262,22 @@ export class TypeCompiler {/*public static final Node Boolean = new MapNode("boo
 	static generateType(type: Node): string {
 		if (type.is("functional")/*unknown*/){
 			let joinedArguments = TypeCompiler.generateFunctionalArguments(type)/*unknown*/;
-			return "(" + joinedArguments + ") => " + TypeCompiler.generateType(type.findNode("returns").orElse(new MapNode()))/*unknown*/;
-		}/*
-        else if (type instanceof Placeholder(java.lang.String input)) {
-            return Placeholder.generatePlaceholder(input);
-        }*//*
-        else if (TypeCompiler.variants.contains(type.findString("value").orElse(""))) {
-            return type.findString("value").orElse("");
-        }*//*
-        else if (type.is("symbol")) {
-            return type.findString("value").orElse("");
-        }*/
+			let returns: Node = type.findNode("returns").orElse(new MapNode())/*unknown*/;
+			return "(" + joinedArguments + ") => " + TypeCompiler.generateType(returns)/*unknown*/;
+		}
+		if (type.is("placeholder")/*unknown*/){
+			let input = type.findString("value").orElse("")/*unknown*/;
+			return Placeholders.generatePlaceholder(input)/*unknown*/;
+		}
+		if (TypeCompiler.variants.contains(type.findString("value").orElse(""))/*unknown*/){
+			return type.findString("value").orElse("")/*unknown*/;
+		}
+		if (type.is("symbol")/*unknown*/){
+			return type.findString("value").orElse("")/*unknown*/;
+		}
 		if (type.is("template")/*unknown*/){
 			let base = type.findString("base").orElse("")/*unknown*/;
-			let joined: string = type.findNodeList("args").orElse(Lists.empty()).iter().map((arg: Node) => TypeCompiler.generateType(arg)/*unknown*/).collect(new Joiner(", ")).orElse("")/*unknown*/;
+			let joined: string = TypeCompiler.joinTemplateArguments(type)/*unknown*/;
 			return base + "<" + joined + ">"/*unknown*/;
 		}
 		if (type.is("variadic")/*unknown*/){
@@ -283,7 +285,14 @@ export class TypeCompiler {/*public static final Node Boolean = new MapNode("boo
 			return TypeCompiler.generateType(child) + "[]"/*unknown*/;
 		}
 		return "?"/*unknown*/;
-	}
+	}/*
+
+    private static java.lang.String joinTemplateArguments(Node type) {
+        return type.findNodeList("args").orElse(Lists.empty()).iter()
+                .map((Node arg) -> TypeCompiler.generateType(arg))
+                .collect(new Joiner(", "))
+                .orElse("");
+    }*/
 	static generateFunctionalArguments(type: Node): string {
 		return type.findNodeList("args").orElse(Lists.empty()).iterWithIndices().map((tuple: Tuple2<number, Node>) => "arg" + tuple.left() + " : " + TypeCompiler.generateType(tuple.right())/*unknown*/).collect(new Joiner(", ")).orElse("")/*unknown*/;
 	}

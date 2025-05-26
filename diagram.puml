@@ -103,9 +103,8 @@ class Definition {
 }
 interface MethodHeader {
 }
-class Placeholder {
+class Placeholders {
 }
-Placeholder <|.. Node
 class Whitespace {
 }
 Whitespace <|.. Node
@@ -384,7 +383,6 @@ Definition --> TypeCompiler
 Definition --> RootCompiler
 Definition --> MethodHeader
 Definition --> Strings
-Placeholder --> Node
 Whitespace --> Node
 Divider --> Iter
 FoldedDivider --> Divider
@@ -484,7 +482,7 @@ OrRule --> Iterable
 OrRule --> CompileState
 OrRule --> Tuple2
 OrRule --> Tuple2Impl
-OrRule --> Placeholder
+OrRule --> Placeholders
 OrRule --> Option
 OrRule --> Iters
 Rule --> CompileState
@@ -560,7 +558,7 @@ DefiningCompiler --> ValueCompiler
 DefiningCompiler --> Some
 DefiningCompiler --> Tuple2Impl
 DefiningCompiler --> Lists
-DefiningCompiler --> Placeholder
+DefiningCompiler --> MapNode
 DefiningCompiler --> Option
 DefiningCompiler --> WhitespaceCompiler
 DefiningCompiler --> Whitespace
@@ -582,6 +580,7 @@ DefiningCompiler --> Splitter
 DefiningCompiler --> TypeCompiler
 DefiningCompiler --> Joiner
 DefiningCompiler --> ValueFolder
+DefiningCompiler --> Placeholders
 DefinitionCompiler --> Definition
 DefinitionCompiler --> Iterable
 DefinitionCompiler --> Node
@@ -657,7 +656,7 @@ FunctionSegmentCompiler --> FirstLocator
 FunctionSegmentCompiler --> Splitter
 FunctionSegmentCompiler --> DefiningCompiler
 FunctionSegmentCompiler --> Definition
-FunctionSegmentCompiler --> Placeholder
+FunctionSegmentCompiler --> Placeholders
 FunctionSegmentCompiler --> WhitespaceCompiler
 FunctionSegmentCompiler --> DivideRule
 FunctionSegmentCompiler --> StatementsFolder
@@ -758,19 +757,19 @@ TypeCompiler --> SplitComposable
 TypeCompiler --> Composable
 TypeCompiler --> WhitespaceCompiler
 TypeCompiler --> List
-TypeCompiler --> Placeholder
 TypeCompiler --> Location
 TypeCompiler --> Import
 TypeCompiler --> Registry
 TypeCompiler --> Source
 TypeCompiler --> Platform
 TypeCompiler --> Dependency
+TypeCompiler --> Placeholders
 TypeCompiler --> Joiner
 ValueCompiler --> CompileState
 ValueCompiler --> Tuple2Impl
 ValueCompiler --> Node
 ValueCompiler --> Tuple2
-ValueCompiler --> Placeholder
+ValueCompiler --> Placeholders
 ValueCompiler --> TypeCompiler
 ValueCompiler --> Option
 ValueCompiler --> SuffixComposable

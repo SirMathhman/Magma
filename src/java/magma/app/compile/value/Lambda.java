@@ -12,7 +12,7 @@ public record Lambda(Iterable<Definition> paramNames, String content) implements
     public String generate() {
         var joinedParamNames = this.paramNames.iter()
                 .map((Definition definition) -> {
-                    return DefiningCompiler.getGenerate(definition);
+                    return DefiningCompiler.generateParameter(definition);
                 })
                 .collect(new Joiner(", "))
                 .orElse("");

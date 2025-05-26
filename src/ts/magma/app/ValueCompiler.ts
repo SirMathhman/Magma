@@ -2,7 +2,7 @@ import { CompileState } from "../../magma/app/compile/CompileState";
 import { Tuple2Impl } from "../../magma/api/Tuple2Impl";
 import { Node } from "../../magma/app/compile/node/Node";
 import { Tuple2 } from "../../magma/api/Tuple2";
-import { Placeholder } from "../../magma/app/compile/define/Placeholder";
+import { Placeholders } from "../../magma/app/compile/define/Placeholders";
 import { TypeCompiler } from "../../magma/app/TypeCompiler";
 import { Option } from "../../magma/api/option/Option";
 import { SuffixComposable } from "../../magma/app/compile/compose/SuffixComposable";
@@ -48,7 +48,7 @@ export class ValueCompiler {
 		let state = tuple.left()/*unknown*/;
 		let right = tuple.right()/*unknown*/;
 		let generated = ValueCompiler.generateValue(right)/*unknown*/;
-		let s = Placeholder.generatePlaceholder(TypeCompiler.generateType(ValueCompiler.resolve(state, right)))/*unknown*/;
+		let s = Placeholders.generatePlaceholder(TypeCompiler.generateType(ValueCompiler.resolve(state, right)))/*unknown*/;
 		return new Tuple2Impl<CompileState, string>(state, generated + s)/*unknown*/;
 	}
 	static parseInvokable(state: CompileState, input: string): Option<Tuple2<CompileState, Node>> {
@@ -200,7 +200,7 @@ export class ValueCompiler {
         else if (value instanceof Operation operation) {
             return operation.resolve(state);
         }*//*
-        else if (value instanceof Placeholder placeholder) {
+        else if (value.is("placeholder")) {
             return TypeCompiler.Unknown;
         }*//*
         else if (value instanceof StringNode stringNode) {
@@ -224,7 +224,7 @@ export class ValueCompiler {
 	}
 	static compileNodeOrPlaceholder(state: CompileState, input: string): Tuple2<CompileState, string> {
 		return ValueCompiler.compileNode(state, input).orElseGet(() => {
-			return new Tuple2Impl<CompileState, string>(state, Placeholder.generatePlaceholder(input))/*unknown*/;
+			return new Tuple2Impl<CompileState, string>(state, Placeholders.generatePlaceholder(input))/*unknown*/;
 		})/*unknown*/;
 	}
 	static compileNode(state: CompileState, input: string): Option<Tuple2<CompileState, string>> {
@@ -313,8 +313,8 @@ export class ValueCompiler {
         else if (value instanceof Operation operation) {
             return operation.generate();
         }*//*
-        else if (value instanceof Placeholder placeholder) {
-            return TypeCompiler.generateType(placeholder);
+        else if (value.is("placeholder")) {
+            return TypeCompiler.generateType(value);
         }*//*
         else if (value instanceof StringNode stringNode) {
             return stringNode.generate();

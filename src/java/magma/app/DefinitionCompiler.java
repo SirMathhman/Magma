@@ -27,7 +27,7 @@ final class DefinitionCompiler {
     public static String joinParameters(Iterable<Definition> parameters) {
         return parameters.iter()
                 .map((Definition definition) -> {
-                    return DefiningCompiler.getGenerate(definition);
+                    return DefiningCompiler.generateParameter(definition);
                 })
                 .map((String generated) -> {
                     return "\n\t" + generated + ";";

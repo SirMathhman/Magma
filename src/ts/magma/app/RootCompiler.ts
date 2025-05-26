@@ -181,7 +181,7 @@ export class RootCompiler {
 	}
 	static generateConstructorFromRecordParameters(parameters: Iterable<Definition>): string {
 		return parameters.iter().map((definition: Definition) => {
-			return DefiningCompiler.getGenerate(definition)/*unknown*/;
+			return DefiningCompiler.generateParameter(definition)/*unknown*/;
 		}).collect(new Joiner(", ")).map((generatedParameters: string) => {
 			return RootCompiler.generateConstructorWithParameterString(parameters, generatedParameters)/*unknown*/;
 		}).orElse("")/*unknown*/;

@@ -16,7 +16,7 @@ import magma.app.compile.Registry;
 import magma.app.compile.compose.Composable;
 import magma.app.compile.compose.SplitComposable;
 import magma.app.compile.compose.SuffixComposable;
-import magma.app.compile.define.Placeholder;
+import magma.app.compile.define.Placeholders;
 import magma.app.compile.locate.FirstLocator;
 import magma.app.compile.node.MapNode;
 import magma.app.compile.node.Node;
@@ -200,7 +200,7 @@ public final class TypeCompiler {
                     return new Tuple2Impl<CompileState, Node>(tuple.left(), tuple.right());
                 })
                 .orElseGet(() -> {
-                    return new Tuple2Impl<CompileState, Node>(state, new Placeholder(type));
+                    return new Tuple2Impl<CompileState, Node>(state, new MapNode("placeholder").withString("value", type));
                 });
     }
 
@@ -276,8 +276,8 @@ public final class TypeCompiler {
         if (type.is("functional")) {
             return TypeCompiler.generateType(type);
         }
-        else if (type instanceof Placeholder placeholder) {
-            return ValueCompiler.generateValue(placeholder);
+        else if (type.is("placeholder")) {
+            return ValueCompiler.generateValue(type);
         }
         else if (TypeCompiler.variants.contains(type.findString("value").orElse(""))) {
             return TypeCompiler.generateType(type);
@@ -299,7 +299,7 @@ public final class TypeCompiler {
         if (type.is("functional")) {
             return "";
         }
-        else if (type instanceof Placeholder placeholder) {
+        else if (type.is("placeholder")) {
             return "";
         }
         else if (TypeCompiler.variants.contains(type.findString("value").orElse(""))) {
@@ -324,8 +324,9 @@ public final class TypeCompiler {
             return "(" + joinedArguments + ") => " + TypeCompiler.generateType(returns);
         }
 
-        if (type instanceof Placeholder(java.lang.String input)) {
-            return Placeholder.generatePlaceholder(input);
+        if (type.is("placeholder")) {
+            var input = type.findString("value").orElse("");
+            return Placeholders.generatePlaceholder(input);
         }
 
         if (TypeCompiler.variants.contains(type.findString("value").orElse(""))) {

@@ -55,7 +55,7 @@ class FieldCompiler {
 			let parameters = parametersTuple.right()/*unknown*/;
 			let definitions = DefiningCompiler.retainDefinitionsFromParameters(parameters)/*unknown*/;
 			let joinedDefinitions = definitions.iter().map((definition: Definition) => {
-				return DefiningCompiler.getGenerate(definition)/*unknown*/;
+				return DefiningCompiler.generateParameter(definition)/*unknown*/;
 			}).collect(new Joiner(", ")).orElse("")/*unknown*/;
 			if (header.hasAnnotation("Actual")/*unknown*/){
 				let headerGenerated = header.removeModifier("static").generateWithAfterName("(" + joinedDefinitions + ")")/*unknown*/;
@@ -87,7 +87,7 @@ class FieldCompiler {
 	}
 	static getTupleOption(state: CompileState, withoutEnd: string): Option<Tuple2<CompileState, string>> {
 		return DefiningCompiler.parseParameter(state, withoutEnd).flatMap((definitionTuple: Tuple2<CompileState, Node>) => {
-			return new Some<Tuple2<CompileState, string>>(new Tuple2Impl<CompileState, string>(definitionTuple.left(), "\n\t" + DefiningCompiler.getGenerate(definitionTuple.right()) + ";"))/*unknown*/;
+			return new Some<Tuple2<CompileState, string>>(new Tuple2Impl<CompileState, string>(definitionTuple.left(), "\n\t" + DefiningCompiler.generateParameter(definitionTuple.right()) + ";"))/*unknown*/;
 		})/*unknown*/;
 	}
 	static compileEnumNodes(state: CompileState, withoutEnd: string): Option<Tuple2<CompileState, string>> {

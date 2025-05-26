@@ -20,7 +20,7 @@ class DefinitionCompiler {
 	}
 	static joinParameters(parameters: Iterable<Definition>): string {
 		return parameters.iter().map((definition: Definition) => {
-			return DefiningCompiler.getGenerate(definition)/*unknown*/;
+			return DefiningCompiler.generateParameter(definition)/*unknown*/;
 		}).map((generated: string) => {
 			return "\n\t" + generated + ";"/*unknown*/;
 		}).collect(Joiner.empty()).orElse("")/*unknown*/;
