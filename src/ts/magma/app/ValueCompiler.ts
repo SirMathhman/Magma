@@ -15,7 +15,7 @@ import { Composable } from "../../magma/app/compile/compose/Composable";
 import { PrefixComposable } from "../../magma/app/compile/compose/PrefixComposable";
 import { MapNode } from "../../magma/app/compile/node/MapNode";
 import { Strings } from "../../magma/api/text/Strings";
-import { Rule } from "../../magma/app/compile/rule/Rule";
+import { StatefulRule } from "../../magma/app/compile/rule/StatefulRule";
 import { Some } from "../../magma/api/option/Some";
 import { StringNode } from "../../magma/app/compile/value/StringNode";
 import { Not } from "../../magma/app/compile/value/Not";
@@ -39,7 +39,7 @@ import { Characters } from "../../magma/api/text/Characters";
 import { Primitives } from "../../magma/app/compile/type/Primitives";
 import { Iters } from "../../magma/api/collect/Iters";
 import { ListCollector } from "../../magma/api/collect/list/ListCollector";
-import { OrRule } from "../../magma/app/compile/rule/OrRule";
+import { StatefulOrRule } from "../../magma/app/compile/rule/StatefulOrRule";
 import { Lists } from "../../jvm/api/collect/list/Lists";
 import { DivideRule } from "../../magma/app/DivideRule";
 import { ValueFolder } from "../../magma/app/compile/fold/ValueFolder";
@@ -76,7 +76,7 @@ export class ValueCompiler {
 			})).apply(withoutEnd)/*unknown*/;
 		}).apply(Strings.strip(input))/*unknown*/;
 	}
-	static createTextRule(slice: string): Rule<Node> {
+	static createTextRule(slice: string): StatefulRule<Node> {
 		return (state1: CompileState, input1: string) => {
 			let stripped = Strings.strip(input1)/*unknown*/;
 			return new PrefixComposable<Tuple2<CompileState, Node>>(slice, (s: string) => {
@@ -131,10 +131,10 @@ export class ValueCompiler {
 	static assembleLambda(exited: CompileState, paramNames: Iterable<Definition>, content: string): Option<Tuple2<CompileState, Node>> {
 		return new Some<Tuple2<CompileState, Node>>(new Tuple2Impl<CompileState, Node>(exited, new Lambda(paramNames, content)))/*unknown*/;
 	}
-	static createOperatorRule(infix: string): Rule<Node> {
+	static createOperatorRule(infix: string): StatefulRule<Node> {
 		return ValueCompiler.createOperatorRuleWithDifferentInfix(infix, infix)/*unknown*/;
 	}
-	static createAccessRule(infix: string): Rule<Node> {
+	static createAccessRule(infix: string): StatefulRule<Node> {
 		return (state: CompileState, input: string) => {
 			return SplitComposable.compileLast(input, infix, (childString: string, rawProperty: string) => {
 				let property = Strings.strip(rawProperty)/*unknown*/;
@@ -149,7 +149,7 @@ export class ValueCompiler {
 			})/*unknown*/;
 		}/*unknown*/;
 	}
-	static createOperatorRuleWithDifferentInfix(sourceInfix: string, targetInfix: string): Rule<Node> {
+	static createOperatorRuleWithDifferentInfix(sourceInfix: string, targetInfix: string): StatefulRule<Node> {
 		return (state1: CompileState, input1: string) => {
 			return new SplitComposable<Tuple2<CompileState, Node>>((slice: string) => {
 				return new FoldingSplitter(new OperatorFolder(sourceInfix), (divisions: List<string>) => {
@@ -283,9 +283,9 @@ export class ValueCompiler {
 		return args.iter().map(mapper).flatMap(Iters.fromOption).collect(new ListCollector<R>())/*unknown*/;
 	}
 	static parseNode(state: CompileState, input: string): Option<Tuple2<CompileState, Node>> {
-		return new OrRule<Node>(Lists.of(ValueCompiler.parseLambda, ValueCompiler.createOperatorRule("+"), ValueCompiler.createOperatorRule("-"), ValueCompiler.createOperatorRule("<="), ValueCompiler.createOperatorRule("<"), ValueCompiler.createOperatorRule("&&"), ValueCompiler.createOperatorRule("||"), ValueCompiler.createOperatorRule(">"), ValueCompiler.createOperatorRule(">="), ValueCompiler.parseInvokable, ValueCompiler.createAccessRule("."), ValueCompiler.createAccessRule("::"), ValueCompiler.parseSymbol, ValueCompiler.parseNot, ValueCompiler.parseNumber, ValueCompiler.createOperatorRuleWithDifferentInfix("==", "==="), ValueCompiler.createOperatorRuleWithDifferentInfix("!=", "!=="), ValueCompiler.createTextRule("\""), ValueCompiler.createTextRule("'"))).apply(state, input)/*unknown*/;
+		return new StatefulOrRule<Node>(Lists.of(ValueCompiler.parseLambda, ValueCompiler.createOperatorRule("+"), ValueCompiler.createOperatorRule("-"), ValueCompiler.createOperatorRule("<="), ValueCompiler.createOperatorRule("<"), ValueCompiler.createOperatorRule("&&"), ValueCompiler.createOperatorRule("||"), ValueCompiler.createOperatorRule(">"), ValueCompiler.createOperatorRule(">="), ValueCompiler.parseInvokable, ValueCompiler.createAccessRule("."), ValueCompiler.createAccessRule("::"), ValueCompiler.parseSymbol, ValueCompiler.parseNot, ValueCompiler.parseNumber, ValueCompiler.createOperatorRuleWithDifferentInfix("==", "==="), ValueCompiler.createOperatorRuleWithDifferentInfix("!=", "!=="), ValueCompiler.createTextRule("\""), ValueCompiler.createTextRule("'"))).apply(state, input)/*unknown*/;
 	}
-	static values<T>(mapper: Rule<T>): Rule<List<T>> {
+	static values<T>(mapper: StatefulRule<T>): StatefulRule<List<T>> {
 		return new DivideRule<?>(new ValueFolder(), mapper)/*unknown*/;
 	}
 	static generateCaller(node: Node): string {

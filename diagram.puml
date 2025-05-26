@@ -177,10 +177,10 @@ interface Node {
 }
 interface Registry {
 }
-class OrRule<T> {
+class StatefulOrRule<T> {
 }
-OrRule <|.. Rule
-interface Rule<T> {
+StatefulOrRule <|.. StatefulRule
+interface StatefulRule<T> {
 }
 class FirstSelector {
 }
@@ -222,7 +222,7 @@ class DefinitionCompiler {
 }
 class DivideRule<T> {
 }
-DivideRule <|.. Rule
+DivideRule <|.. StatefulRule
 class FieldCompiler {
 }
 class FunctionSegmentCompiler {
@@ -479,17 +479,17 @@ Node --> List
 Registry --> Dependency
 Registry --> Iter
 Registry --> Import
-OrRule --> Rule
-OrRule --> Iterable
-OrRule --> CompileState
-OrRule --> Tuple2
-OrRule --> Tuple2Impl
-OrRule --> Placeholders
-OrRule --> Option
-OrRule --> Iters
-Rule --> CompileState
-Rule --> Tuple2
-Rule --> Option
+StatefulOrRule --> StatefulRule
+StatefulOrRule --> Iterable
+StatefulOrRule --> CompileState
+StatefulOrRule --> Tuple2
+StatefulOrRule --> Tuple2Impl
+StatefulOrRule --> Placeholders
+StatefulOrRule --> Option
+StatefulOrRule --> Iters
+StatefulRule --> CompileState
+StatefulRule --> Tuple2
+StatefulRule --> Option
 FirstSelector --> Selector
 FirstSelector --> Tuple2
 FirstSelector --> Option
@@ -603,7 +603,7 @@ DefinitionCompiler --> Some
 DefinitionCompiler --> Tuple2Impl
 DefinitionCompiler --> Lists
 DivideRule --> List
-DivideRule --> Rule
+DivideRule --> StatefulRule
 DivideRule --> Folder
 DivideRule --> CompileState
 DivideRule --> Tuple2
@@ -652,9 +652,9 @@ FunctionSegmentCompiler --> Selector
 FunctionSegmentCompiler --> FoldingSplitter
 FunctionSegmentCompiler --> DivideState
 FunctionSegmentCompiler --> Composable
-FunctionSegmentCompiler --> OrRule
+FunctionSegmentCompiler --> StatefulOrRule
 FunctionSegmentCompiler --> Lists
-FunctionSegmentCompiler --> Rule
+FunctionSegmentCompiler --> StatefulRule
 FunctionSegmentCompiler --> PrefixComposable
 FunctionSegmentCompiler --> ValueCompiler
 FunctionSegmentCompiler --> Node
@@ -706,10 +706,10 @@ PathTargets --> None
 PathTargets --> Location
 RootCompiler --> CompileState
 RootCompiler --> Tuple2
-RootCompiler --> OrRule
+RootCompiler --> StatefulOrRule
 RootCompiler --> Lists
 RootCompiler --> WhitespaceCompiler
-RootCompiler --> Rule
+RootCompiler --> StatefulRule
 RootCompiler --> SplitComposable
 RootCompiler --> LocatingSplitter
 RootCompiler --> FirstLocator
@@ -749,7 +749,7 @@ TypeCompiler --> Tuple2
 TypeCompiler --> Option
 TypeCompiler --> Node
 TypeCompiler --> Tuple2Impl
-TypeCompiler --> OrRule
+TypeCompiler --> StatefulOrRule
 TypeCompiler --> Lists
 TypeCompiler --> Strings
 TypeCompiler --> SuffixComposable
@@ -790,7 +790,7 @@ ValueCompiler --> Composable
 ValueCompiler --> PrefixComposable
 ValueCompiler --> MapNode
 ValueCompiler --> Strings
-ValueCompiler --> Rule
+ValueCompiler --> StatefulRule
 ValueCompiler --> Some
 ValueCompiler --> StringNode
 ValueCompiler --> Not
@@ -814,7 +814,7 @@ ValueCompiler --> Characters
 ValueCompiler --> Primitives
 ValueCompiler --> Iters
 ValueCompiler --> ListCollector
-ValueCompiler --> OrRule
+ValueCompiler --> StatefulOrRule
 ValueCompiler --> Lists
 ValueCompiler --> DivideRule
 ValueCompiler --> ValueFolder

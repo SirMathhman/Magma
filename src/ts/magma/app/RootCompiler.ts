@@ -1,9 +1,9 @@
 import { CompileState } from "../../magma/app/compile/CompileState";
 import { Tuple2 } from "../../magma/api/Tuple2";
-import { OrRule } from "../../magma/app/compile/rule/OrRule";
+import { StatefulOrRule } from "../../magma/app/compile/rule/StatefulOrRule";
 import { Lists } from "../../jvm/api/collect/list/Lists";
 import { WhitespaceCompiler } from "../../magma/app/WhitespaceCompiler";
-import { Rule } from "../../magma/app/compile/rule/Rule";
+import { StatefulRule } from "../../magma/app/compile/rule/StatefulRule";
 import { SplitComposable } from "../../magma/app/compile/compose/SplitComposable";
 import { LocatingSplitter } from "../../magma/app/compile/split/LocatingSplitter";
 import { FirstLocator } from "../../magma/app/compile/locate/FirstLocator";
@@ -32,9 +32,9 @@ import { Location } from "../../magma/app/Location";
 import { Context } from "../../magma/app/compile/Context";
 export class RootCompiler {
 	static compileRootSegment(state: CompileState, input: string): Tuple2<CompileState, string> {
-		return OrRule.compileOrPlaceholder(state, input, Lists.of(WhitespaceCompiler.compileWhitespace, RootCompiler.compileNamespaced, RootCompiler.createStructureRule("class ", "class "), RootCompiler.createStructureRule("interface ", "interface "), RootCompiler.createStructureRule("record ", "class "), RootCompiler.createStructureRule("enum ", "class ")))/*unknown*/;
+		return StatefulOrRule.compileOrPlaceholder(state, input, Lists.of(WhitespaceCompiler.compileWhitespace, RootCompiler.compileNamespaced, RootCompiler.createStructureRule("class ", "class "), RootCompiler.createStructureRule("interface ", "interface "), RootCompiler.createStructureRule("record ", "class "), RootCompiler.createStructureRule("enum ", "class ")))/*unknown*/;
 	}
-	static createStructureRule(sourceInfix: string, targetInfix: string): Rule<string> {
+	static createStructureRule(sourceInfix: string, targetInfix: string): StatefulRule<string> {
 		return (state: CompileState, input1: string) => {
 			return new SplitComposable<Tuple2<CompileState, string>>(new LocatingSplitter(sourceInfix, new FirstLocator()), Composable.toComposable((beforeInfix: string, afterInfix: string) => {
 				return new SplitComposable<Tuple2<CompileState, string>>(new LocatingSplitter("{", new FirstLocator()), Composable.toComposable((beforeContent: string, withEnd: string) => {
@@ -201,7 +201,7 @@ export class RootCompiler {
 		return new None<Tuple2<CompileState, string>>()/*unknown*/;
 	}
 	static compileClassSegment(state1: CompileState, input1: string): Tuple2<CompileState, string> {
-		return OrRule.compileOrPlaceholder(state1, input1, Lists.of(WhitespaceCompiler.compileWhitespace, RootCompiler.createStructureRule("class ", "class "), RootCompiler.createStructureRule("interface ", "interface "), RootCompiler.createStructureRule("record ", "class "), RootCompiler.createStructureRule("enum ", "class "), FieldCompiler.compileMethod, FieldCompiler.compileFieldDefinition, FieldCompiler.compileEnumNodes))/*unknown*/;
+		return StatefulOrRule.compileOrPlaceholder(state1, input1, Lists.of(WhitespaceCompiler.compileWhitespace, RootCompiler.createStructureRule("class ", "class "), RootCompiler.createStructureRule("interface ", "interface "), RootCompiler.createStructureRule("record ", "class "), RootCompiler.createStructureRule("enum ", "class "), FieldCompiler.compileMethod, FieldCompiler.compileFieldDefinition, FieldCompiler.compileEnumNodes))/*unknown*/;
 	}
 	static compileRoot(state: CompileState, input: string, location: Location): Tuple2<CompileState, string> {
 		return FunctionSegmentCompiler.compileStatements(state.mapContext((context2: Context) => {

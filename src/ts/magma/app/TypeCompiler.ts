@@ -3,7 +3,7 @@ import { Tuple2 } from "../../magma/api/Tuple2";
 import { Option } from "../../magma/api/option/Option";
 import { Node } from "../../magma/app/compile/node/Node";
 import { Tuple2Impl } from "../../magma/api/Tuple2Impl";
-import { OrRule } from "../../magma/app/compile/rule/OrRule";
+import { StatefulOrRule } from "../../magma/app/compile/rule/StatefulOrRule";
 import { Lists } from "../../jvm/api/collect/list/Lists";
 import { Strings } from "../../magma/api/text/Strings";
 import { SuffixComposable } from "../../magma/app/compile/compose/SuffixComposable";
@@ -34,7 +34,7 @@ export class TypeCompiler {
 		})/*unknown*/;
 	}
 	static parseType(state: CompileState, type: string): Option<Tuple2<CompileState, Node>> {
-		return new OrRule<Node>(Lists.of(TypeCompiler.parseVarArgs, TypeCompiler.parseGeneric, TypeCompiler.parsePrimitive, TypeCompiler.parseSymbolType)).apply(state, type)/*unknown*/;
+		return new StatefulOrRule<Node>(Lists.of(TypeCompiler.parseVarArgs, TypeCompiler.parseGeneric, TypeCompiler.parsePrimitive, TypeCompiler.parseSymbolType)).apply(state, type)/*unknown*/;
 	}
 	static parseVarArgs(state: CompileState, input: string): Option<Tuple2<CompileState, Node>> {
 		let stripped = Strings.strip(input)/*unknown*/;
@@ -63,7 +63,7 @@ export class TypeCompiler {
 			let splitter: Splitter = new LocatingSplitter("<", new FirstLocator())/*unknown*/;
 			return new SplitComposable<Tuple2<CompileState, Node>>(splitter, Composable.toComposable((baseString: string, argsString: string) => {
 				let argsTuple = ValueCompiler.values((state1: CompileState, s: string) => {
-					return new OrRule<Node>(Lists.of((state2: CompileState, input1: string) => {
+					return new StatefulOrRule<Node>(Lists.of((state2: CompileState, input1: string) => {
 						return WhitespaceCompiler.parseWhitespace(state2, input1).map(type -  > new Tuple2Impl<?>(type.left(), type.right()))/*unknown*/;
 					}, (state2: CompileState, type: string) => {
 						return TypeCompiler.parseType(state2, type)/*unknown*/;

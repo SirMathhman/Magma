@@ -8,13 +8,13 @@ import magma.api.option.Option;
 import magma.app.compile.CompileState;
 import magma.app.compile.define.Placeholders;
 
-public record OrRule<T>(Iterable<Rule<T>> rules) implements Rule<T> {
+public record StatefulOrRule<T>(Iterable<StatefulRule<T>> rules) implements StatefulRule<T> {
     public static Tuple2<CompileState, String> compileOrPlaceholder(
             CompileState state,
             String input,
-            Iterable<Rule<String>> rules
+            Iterable<StatefulRule<String>> rules
     ) {
-        return new OrRule<String>(rules).apply(state, input).orElseGet(() -> {
+        return new StatefulOrRule<String>(rules).apply(state, input).orElseGet(() -> {
             return new Tuple2Impl<CompileState, String>(state, Placeholders.generatePlaceholder(input));
         });
     }
@@ -22,9 +22,7 @@ public record OrRule<T>(Iterable<Rule<T>> rules) implements Rule<T> {
     @Override
     public Option<Tuple2<CompileState, T>> apply(CompileState state, String input) {
         return this.rules.iter()
-                .map((Rule<T> rule) -> {
-                    return rule.apply(state, input);
-                })
+                .map((StatefulRule<T> statefulRule) -> statefulRule.apply(state, input))
                 .flatMap(Iters::fromOption)
                 .next();
     }

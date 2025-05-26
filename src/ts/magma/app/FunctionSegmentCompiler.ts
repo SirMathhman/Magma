@@ -12,9 +12,9 @@ import { Selector } from "../../magma/app/compile/select/Selector";
 import { FoldingSplitter } from "../../magma/app/compile/split/FoldingSplitter";
 import { DivideState } from "../../magma/app/compile/DivideState";
 import { Composable } from "../../magma/app/compile/compose/Composable";
-import { OrRule } from "../../magma/app/compile/rule/OrRule";
+import { StatefulOrRule } from "../../magma/app/compile/rule/StatefulOrRule";
 import { Lists } from "../../jvm/api/collect/list/Lists";
-import { Rule } from "../../magma/app/compile/rule/Rule";
+import { StatefulRule } from "../../magma/app/compile/rule/StatefulRule";
 import { PrefixComposable } from "../../magma/app/compile/compose/PrefixComposable";
 import { ValueCompiler } from "../../magma/app/ValueCompiler";
 import { Node } from "../../magma/app/compile/node/Node";
@@ -73,9 +73,9 @@ class FunctionSegmentCompiler {
 		return appended/*unknown*/;
 	}
 	static compileBlockHeader(state: CompileState, input: string): Option<Tuple2<CompileState, string>> {
-		return new OrRule<string>(Lists.of(FunctionSegmentCompiler.createConditionalRule("if"), FunctionSegmentCompiler.createConditionalRule("while"), FunctionSegmentCompiler.compileElse)).apply(state, input)/*unknown*/;
+		return new StatefulOrRule<string>(Lists.of(FunctionSegmentCompiler.createConditionalRule("if"), FunctionSegmentCompiler.createConditionalRule("while"), FunctionSegmentCompiler.compileElse)).apply(state, input)/*unknown*/;
 	}
-	static createConditionalRule(prefix: string): Rule<string> {
+	static createConditionalRule(prefix: string): StatefulRule<string> {
 		return (state1: CompileState, input1: string) => {
 			return new PrefixComposable<Tuple2<CompileState, string>>(prefix, (withoutPrefix: string) => {
 				let strippedCondition = Strings.strip(withoutPrefix)/*unknown*/;
@@ -103,9 +103,9 @@ class FunctionSegmentCompiler {
 		}).apply(Strings.strip(input))/*unknown*/;
 	}
 	static compileFunctionStatementNode(state: CompileState, withoutEnd: string): Tuple2<CompileState, string> {
-		return OrRule.compileOrPlaceholder(state, withoutEnd, Lists.of(FunctionSegmentCompiler.compileReturnWithNode, FunctionSegmentCompiler.compileAssignment, FunctionSegmentCompiler.createInvokableRule(), FunctionSegmentCompiler.createPostRule("++"), FunctionSegmentCompiler.createPostRule("--"), FunctionSegmentCompiler.compileBreak))/*unknown*/;
+		return StatefulOrRule.compileOrPlaceholder(state, withoutEnd, Lists.of(FunctionSegmentCompiler.compileReturnWithNode, FunctionSegmentCompiler.compileAssignment, FunctionSegmentCompiler.createInvokableRule(), FunctionSegmentCompiler.createPostRule("++"), FunctionSegmentCompiler.createPostRule("--"), FunctionSegmentCompiler.compileBreak))/*unknown*/;
 	}
-	static createInvokableRule(): Rule<string> {
+	static createInvokableRule(): StatefulRule<string> {
 		return (state1: CompileState, input: string) => {
 			return ValueCompiler.parseInvokable(state1, input).map((tuple: Tuple2<CompileState, Node>) => {
 				return ValueCompiler.generateNode(tuple)/*unknown*/;
@@ -120,7 +120,7 @@ class FunctionSegmentCompiler {
 			return new None<Tuple2<CompileState, string>>()/*unknown*/;
 		}
 	}
-	static createPostRule(suffix: string): Rule<string> {
+	static createPostRule(suffix: string): StatefulRule<string> {
 		return (state1: CompileState, input: string) => {
 			return new SuffixComposable<Tuple2<CompileState, string>>(suffix, (child: string) => {
 				let tuple = ValueCompiler.compileNodeOrPlaceholder(state1, child)/*unknown*/;
@@ -165,7 +165,7 @@ class FunctionSegmentCompiler {
 		return FunctionSegmentCompiler.compileStatements(state, input, FunctionSegmentCompiler.compileFunctionSegment)/*unknown*/;
 	}
 	static compileFunctionSegment(state: CompileState, input: string): Tuple2<CompileState, string> {
-		return OrRule.compileOrPlaceholder(state, input, Lists.of(WhitespaceCompiler.compileWhitespace, FunctionSegmentCompiler.compileEmptySegment, FunctionSegmentCompiler.compileBlock, FunctionSegmentCompiler.compileFunctionStatement, FunctionSegmentCompiler.compileReturnWithoutSuffix))/*unknown*/;
+		return StatefulOrRule.compileOrPlaceholder(state, input, Lists.of(WhitespaceCompiler.compileWhitespace, FunctionSegmentCompiler.compileEmptySegment, FunctionSegmentCompiler.compileBlock, FunctionSegmentCompiler.compileFunctionStatement, FunctionSegmentCompiler.compileReturnWithoutSuffix))/*unknown*/;
 	}
 	static compileStatements(state: CompileState, input: string, mapper: (arg0 : CompileState, arg1 : string) => Tuple2<CompileState, string>): Tuple2<CompileState, string> {
 		return new DivideRule<?>(new StatementsFolder(), DivideRule.toRule(mapper)).apply(state, input).map(folded -  > Merger.generateAllFromTuple(folded.left(), folded.right(), new StatementsMerger())).orElse(new Tuple2Impl<CompileState, string>(state, ""))/*unknown*/;

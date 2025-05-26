@@ -20,14 +20,14 @@ import magma.app.compile.compose.SuffixComposable;
 import magma.app.compile.define.Definition;
 import magma.app.compile.locate.FirstLocator;
 import magma.app.compile.node.Node;
-import magma.app.compile.rule.OrRule;
-import magma.app.compile.rule.Rule;
+import magma.app.compile.rule.StatefulOrRule;
+import magma.app.compile.rule.StatefulRule;
 import magma.app.compile.split.LocatingSplitter;
 import magma.app.compile.split.Splitter;
 
 public final class RootCompiler {
     private static Tuple2<CompileState, String> compileRootSegment(CompileState state, String input) {
-        return OrRule.compileOrPlaceholder(state, input, Lists.of(
+        return StatefulOrRule.compileOrPlaceholder(state, input, Lists.of(
                 WhitespaceCompiler::compileWhitespace,
                 RootCompiler::compileNamespaced,
                 RootCompiler.createStructureRule("class ", "class "),
@@ -37,7 +37,7 @@ public final class RootCompiler {
         ));
     }
 
-    private static Rule<String> createStructureRule(String sourceInfix, String targetInfix) {
+    private static StatefulRule<String> createStructureRule(String sourceInfix, String targetInfix) {
         return (CompileState state, String input1) -> {
             return new SplitComposable<Tuple2<CompileState, String>>(new LocatingSplitter(sourceInfix, new FirstLocator()), Composable.toComposable((String beforeInfix, String afterInfix) -> {
                 return new SplitComposable<Tuple2<CompileState, String>>(new LocatingSplitter("{", new FirstLocator()), Composable.toComposable((String beforeContent, String withEnd) -> {
@@ -271,7 +271,7 @@ public final class RootCompiler {
     }
 
     private static Tuple2<CompileState, String> compileClassSegment(CompileState state1, String input1) {
-        return OrRule.compileOrPlaceholder(state1, input1, Lists.of(
+        return StatefulOrRule.compileOrPlaceholder(state1, input1, Lists.of(
                 WhitespaceCompiler::compileWhitespace,
                 RootCompiler.createStructureRule("class ", "class "),
                 RootCompiler.createStructureRule("interface ", "interface "),

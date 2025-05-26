@@ -20,7 +20,7 @@ import magma.app.compile.define.Placeholders;
 import magma.app.compile.locate.FirstLocator;
 import magma.app.compile.node.MapNode;
 import magma.app.compile.node.Node;
-import magma.app.compile.rule.OrRule;
+import magma.app.compile.rule.StatefulOrRule;
 import magma.app.compile.split.LocatingSplitter;
 import magma.app.compile.split.Splitter;
 import magma.app.compile.type.Primitives;
@@ -34,7 +34,7 @@ public final class TypeCompiler {
     }
 
     public static Option<Tuple2<CompileState, Node>> parseType(CompileState state, String type) {
-        return new OrRule<Node>(Lists.of(
+        return new StatefulOrRule<Node>(Lists.of(
                 TypeCompiler::parseVarArgs,
                 TypeCompiler::parseGeneric,
                 TypeCompiler::parsePrimitive,
@@ -74,7 +74,7 @@ public final class TypeCompiler {
             Splitter splitter = new LocatingSplitter("<", new FirstLocator());
             return new SplitComposable<Tuple2<CompileState, Node>>(splitter, Composable.toComposable((String baseString, String argsString) -> {
                 var argsTuple = ValueCompiler.values((CompileState state1, String s) -> {
-                    return new OrRule<Node>(Lists.of(
+                    return new StatefulOrRule<Node>(Lists.of(
                             (CompileState state2, String input1) -> {
                                 return WhitespaceCompiler.parseWhitespace(state2, input1).map(type -> new Tuple2Impl<>(type.left(), type.right()));
                             },
