@@ -265,22 +265,28 @@ public final class TypeCompiler {
         if (type.is("functional")) {
             return "";
         }
-        else if (type.is("placeholder")) {
+
+        if (type.is("placeholder")) {
             return "";
         }
-        else if (Primitives.TypeScriptToVariant.containsKey(type.findString("value").orElse(""))) {
+
+        if (Primitives.TypeScriptToVariant.containsKey(type.findString("value").orElse(""))) {
             return "";
         }
-        else if (type.is("symbol")) {
+
+        if (type.is("symbol")) {
             return "";
         }
-        else if (type.is("template")) {
+
+        if (type.is("template")) {
             return "";
         }
-        else if (type.is("variadic")) {
+
+        if (type.is("variadic")) {
             return "...";
         }
-        throw new IllegalArgumentException();
+
+        return "?";
     }
 
     public static String generateType(Node type) {

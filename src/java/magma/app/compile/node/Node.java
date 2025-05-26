@@ -23,5 +23,15 @@ public interface Node {
         return this;
     }
 
-    Node withNode(String key, Node value);
+    default Node withNode(String key, Node value) {
+        return this;
+    }
+
+    default Node withString(String key, String value) {
+        return this;
+    }
+
+    default Node withNodeList(String key, List<Node> values) {
+        return this;
+    }
 }
