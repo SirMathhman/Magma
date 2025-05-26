@@ -215,8 +215,6 @@ VariadicType <|.. Type
 class AccessValue {
 }
 AccessValue <|.. Value
-interface Argument {
-}
 interface Caller {
 }
 class Invokable {
@@ -225,6 +223,8 @@ Invokable <|.. Value
 class Lambda {
 }
 Lambda <|.. Value
+interface Node {
+}
 class Not {
 }
 Not <|.. Value
@@ -568,12 +568,7 @@ VariadicType --> Type
 AccessValue --> Value
 AccessValue --> Option
 AccessValue --> Some
-AccessValue --> Type
-AccessValue --> CompileState
-AccessValue --> PrimitiveType
 AccessValue --> None
-Argument --> Value
-Argument --> Option
 Caller --> Value
 Caller --> Option
 Invokable --> Value
@@ -864,7 +859,6 @@ ValueCompiler --> SplitComposable
 ValueCompiler --> LastSelector
 ValueCompiler --> Selector
 ValueCompiler --> FoldingSplitter
-ValueCompiler --> DivideState
 ValueCompiler --> Composable
 ValueCompiler --> PrefixComposable
 ValueCompiler --> TypeCompiler
@@ -895,8 +889,10 @@ ValueCompiler --> HeadedIter
 ValueCompiler --> RangeHead
 ValueCompiler --> Characters
 ValueCompiler --> Type
+ValueCompiler --> PrimitiveType
 ValueCompiler --> Argument
 ValueCompiler --> Caller
+ValueCompiler --> DivideState
 ValueCompiler --> Invokable
 ValueCompiler --> Iters
 ValueCompiler --> ListCollector

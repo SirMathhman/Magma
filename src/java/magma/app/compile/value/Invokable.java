@@ -25,7 +25,6 @@ public record Invokable(Caller caller, Iterable<Value> args) implements Value {
                 .orElse("");
     }
 
-    @Override
     public Option<Value> toValue() {
         return new Some<Value>(this);
     }
