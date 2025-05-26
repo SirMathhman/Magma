@@ -23,4 +23,7 @@ export class Operation implements Node {
 	resolve(state: CompileState): Type {
 		return PrimitiveType.Unknown/*unknown*/;
 	}
+	is(type: string): boolean {
+		return false/*unknown*/;
+	}
 }

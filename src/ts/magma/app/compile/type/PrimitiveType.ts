@@ -13,9 +13,6 @@ export class PrimitiveType implements Type {
 	generate(): string {
 		return this.value/*unknown*/;
 	}
-	isFunctional(): boolean {
-		return false/*unknown*/;
-	}
 	isVar(): boolean {
 		return PrimitiveType.Var === this/*unknown*/;
 	}
@@ -24,5 +21,8 @@ export class PrimitiveType implements Type {
 	}
 	generateSimple(): string {
 		return this.generate()/*unknown*/;
+	}
+	is(type: string): boolean {
+		return type.equals(this.name().toLowerCase())/*unknown*/;
 	}
 }

@@ -27,4 +27,7 @@ export class FunctionType implements Type {
 	generateSimple(): string {
 		return this.generate()/*unknown*/;
 	}
+	is(type: string): boolean {
+		return "functional".equals(type)/*unknown*/;
+	}
 }

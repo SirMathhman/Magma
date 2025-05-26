@@ -24,7 +24,6 @@ public record Placeholder(String input) implements Parameter, Node, Type {
         return generatePlaceholder(this.input);
     }
 
-    @Override
     public boolean isFunctional() {
         return false;
     }
@@ -37,7 +36,6 @@ public record Placeholder(String input) implements Parameter, Node, Type {
         return PrimitiveType.Unknown;
     }
 
-    @Override
     public boolean isVar() {
         return false;
     }
@@ -52,5 +50,9 @@ public record Placeholder(String input) implements Parameter, Node, Type {
     @Override
     public String generateSimple() {
         return ValueCompiler.generateValue(this);
+    }
+
+    public boolean is(String type) {
+        return false;
     }
 }

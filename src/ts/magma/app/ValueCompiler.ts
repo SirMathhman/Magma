@@ -242,7 +242,7 @@ export class ValueCompiler {
 	static transformCaller(state: CompileState, oldNode: Node): Node {
 		return ValueCompiler.findChild(oldNode).flatMap((parent: Node) => {
 			let parentType = ValueCompiler.resolve(state, parent)/*unknown*/;
-			if (parentType.isFunctional()/*unknown*/){
+			if (parentType.is("functional")/*unknown*/){
 				return new Some<Node>(parent)/*unknown*/;
 			}
 			return new None<Node>()/*unknown*/;

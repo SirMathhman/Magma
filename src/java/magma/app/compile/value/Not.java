@@ -21,4 +21,7 @@ public record Not(String child) implements Node {
     }
 
 
+    public boolean is(String type) {
+        return false;
+    }
 }

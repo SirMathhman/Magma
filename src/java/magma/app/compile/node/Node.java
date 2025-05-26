@@ -5,10 +5,6 @@ import magma.api.option.None;
 import magma.api.option.Option;
 
 public interface Node {
-    default boolean is(String type) {
-        return false;
-    }
-
     default Option<Node> findNode(String key) {
         return new None<>();
     }
@@ -20,4 +16,6 @@ public interface Node {
     default Option<List<Node>> findNodeList(String key) {
         return new None<>();
     }
+
+    boolean is(String type);
 }

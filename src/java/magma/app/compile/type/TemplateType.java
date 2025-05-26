@@ -10,12 +10,10 @@ public record TemplateType(String base, Iterable<String> args) implements Type {
         return this.base + "<" + Merger.generateAll(this.args, new ValueMerger()) + ">";
     }
 
-    @Override
     public boolean isFunctional() {
         return false;
     }
 
-    @Override
     public boolean isVar() {
         return false;
     }
@@ -28,5 +26,9 @@ public record TemplateType(String base, Iterable<String> args) implements Type {
     @Override
     public String generateSimple() {
         return this.base;
+    }
+
+    public boolean is(String type) {
+        return "template".equals(type);
     }
 }

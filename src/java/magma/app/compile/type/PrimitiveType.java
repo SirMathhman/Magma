@@ -19,12 +19,6 @@ public enum PrimitiveType implements Type {
         return this.value;
     }
 
-    @Override
-    public boolean isFunctional() {
-        return false;
-    }
-
-    @Override
     public boolean isVar() {
         return PrimitiveType.Var == this;
     }
@@ -37,5 +31,9 @@ public enum PrimitiveType implements Type {
     @Override
     public String generateSimple() {
         return this.generate();
+    }
+
+    public boolean is(String type) {
+        return type.equals(this.name().toLowerCase());
     }
 }

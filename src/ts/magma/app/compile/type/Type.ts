@@ -1,7 +1,6 @@
-export interface Type {
+import { Node } from "../../../../magma/app/compile/node/Node";
+export interface Type extends Node {
 	generate(): string;
-	isFunctional(): boolean;
-	isVar(): boolean;
 	generateBeforeName(): string;
 	generateSimple(): string;
 }

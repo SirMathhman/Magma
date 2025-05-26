@@ -22,4 +22,7 @@ public record Operation(Node left, String targetInfix, Node right) implements No
     }
 
 
+    public boolean is(String type) {
+        return false;
+    }
 }

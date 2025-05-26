@@ -34,4 +34,7 @@ export class Symbol {
 	generateSimple(): string {
 		return ValueCompiler.generateValue(this)/*unknown*/;
 	}
+	is(type: string): boolean {
+		return false/*unknown*/;
+	}
 }

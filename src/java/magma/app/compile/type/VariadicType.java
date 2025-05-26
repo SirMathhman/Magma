@@ -6,12 +6,10 @@ public record VariadicType(Type type) implements Type {
         return this.type.generate() + "[]";
     }
 
-    @Override
     public boolean isFunctional() {
         return false;
     }
 
-    @Override
     public boolean isVar() {
         return false;
     }
@@ -24,5 +22,9 @@ public record VariadicType(Type type) implements Type {
     @Override
     public String generateSimple() {
         return this.generate();
+    }
+
+    public boolean is(String type) {
+        return "variadic".equals(type);
     }
 }

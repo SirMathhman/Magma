@@ -40,7 +40,7 @@ export class Definition {
 		return joinedModifiers + this.type.generateBeforeName() + this.name + joinedTypeParams + afterName + this.generateType()/*unknown*/;
 	}
 	generateType(): string {
-		if (this.type.isVar()/*unknown*/){
+		if (this.type.is("var")/*unknown*/){
 			return ""/*unknown*/;
 		}
 		return ": " + this.type.generate()/*unknown*/;

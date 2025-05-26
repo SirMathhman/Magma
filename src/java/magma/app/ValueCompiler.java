@@ -269,7 +269,7 @@ public final class ValueCompiler {
     private static Node transformCaller(CompileState state, Node oldNode) {
         return ValueCompiler.findChild(oldNode).flatMap((Node parent) -> {
             var parentType = ValueCompiler.resolve(state, parent);
-            if (parentType.isFunctional()) {
+            if (parentType.is("functional")) {
                 return new Some<Node>(parent);
             }
 

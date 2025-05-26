@@ -21,4 +21,7 @@ public record StringNode(String value) implements Node {
     }
 
 
+    public boolean is(String type) {
+        return false;
+    }
 }

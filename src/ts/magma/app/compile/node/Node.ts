@@ -2,9 +2,6 @@ import { Option } from "../../../../magma/api/option/Option";
 import { None } from "../../../../magma/api/option/None";
 import { List } from "../../../../magma/api/collect/list/List";
 export interface Node {
-	is(type: string): boolean {
-		return false/*unknown*/;
-	}
 	findNode(key: string): Option<Node> {
 		return new None<>()/*unknown*/;
 	}
@@ -14,4 +11,5 @@ export interface Node {
 	findNodeList(key: string): Option<List<Node>> {
 		return new None<>()/*unknown*/;
 	}
+	is(type: string): boolean;
 }

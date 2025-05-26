@@ -24,4 +24,7 @@ export class TemplateType implements Type {
 	generateSimple(): string {
 		return this.base/*unknown*/;
 	}
+	is(type: string): boolean {
+		return "template".equals(type)/*unknown*/;
+	}
 }

@@ -1,11 +1,9 @@
 package magma.app.compile.type;
 
-public interface Type {
+import magma.app.compile.node.Node;
+
+public interface Type extends Node {
     String generate();
-
-    boolean isFunctional();
-
-    boolean isVar();
 
     String generateBeforeName();
 

@@ -31,4 +31,7 @@ public record Lambda(Iterable<Definition> paramNames, String content) implements
     }
 
 
+    public boolean is(String type) {
+        return false;
+    }
 }

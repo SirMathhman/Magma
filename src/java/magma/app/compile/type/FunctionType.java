@@ -18,12 +18,10 @@ public record FunctionType(Iterable<String> args, String returns) implements Typ
         return "(" + joinedArguments + ") => " + this.returns;
     }
 
-    @Override
     public boolean isFunctional() {
         return true;
     }
 
-    @Override
     public boolean isVar() {
         return false;
     }
@@ -36,5 +34,9 @@ public record FunctionType(Iterable<String> args, String returns) implements Typ
     @Override
     public String generateSimple() {
         return this.generate();
+    }
+
+    public boolean is(String type) {
+        return "functional".equals(type);
     }
 }

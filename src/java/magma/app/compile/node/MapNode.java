@@ -21,7 +21,6 @@ public record MapNode(
         this(new None<>(), new HashMap<>(), new HashMap<>(), new HashMap<>());
     }
 
-    @Override
     public boolean is(String type) {
         return this.type
                 .filter((String inner) -> inner.equals(type))

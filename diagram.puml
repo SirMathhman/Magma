@@ -211,6 +211,7 @@ class TemplateType {
 TemplateType <|.. Type
 interface Type {
 }
+Type <|-- Node
 class VariadicType {
 }
 VariadicType <|.. Type
@@ -560,6 +561,7 @@ TemplateType --> Type
 TemplateType --> Iterable
 TemplateType --> Merger
 TemplateType --> ValueMerger
+Type --> Node
 VariadicType --> Type
 Lambda --> Node
 Lambda --> Definition

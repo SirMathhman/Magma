@@ -19,4 +19,7 @@ export class VariadicType implements Type {
 	generateSimple(): string {
 		return this.generate()/*unknown*/;
 	}
+	is(type: string): boolean {
+		return "variadic".equals(type)/*unknown*/;
+	}
 }

@@ -27,12 +27,10 @@ public record Symbol(String value) implements Node, Type {
         return new Some<Node>(this);
     }
 
-    @Override
     public boolean isFunctional() {
         return false;
     }
 
-    @Override
     public boolean isVar() {
         return false;
     }
@@ -47,5 +45,9 @@ public record Symbol(String value) implements Node, Type {
     @Override
     public String generateSimple() {
         return ValueCompiler.generateValue(this);
+    }
+
+    public boolean is(String type) {
+        return false;
     }
 }

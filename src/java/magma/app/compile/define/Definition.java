@@ -48,7 +48,7 @@ public record Definition(
     }
 
     private String generateType() {
-        if (this.type.isVar()) {
+        if (this.type.is("var")) {
             return "";
         }
 
