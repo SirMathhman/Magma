@@ -9,7 +9,7 @@ export class TemplateType implements Type {
 		this.base = base;
 		this.args = args;
 	}
-	generate(): string {
+	generateType(): string {
 		return this.base + "<" + Merger.generateAll(this.args, new ValueMerger()) + ">"/*unknown*/;
 	}
 	isFunctional(): boolean {

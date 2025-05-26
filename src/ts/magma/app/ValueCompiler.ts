@@ -3,6 +3,7 @@ import { Tuple2Impl } from "../../magma/api/Tuple2Impl";
 import { Node } from "../../magma/app/compile/node/Node";
 import { Tuple2 } from "../../magma/api/Tuple2";
 import { Placeholder } from "../../magma/app/compile/type/Placeholder";
+import { TypeCompiler } from "../../magma/app/TypeCompiler";
 import { Option } from "../../magma/api/option/Option";
 import { SuffixComposable } from "../../magma/app/compile/compose/SuffixComposable";
 import { SplitComposable } from "../../magma/app/compile/compose/SplitComposable";
@@ -12,7 +13,6 @@ import { FoldingSplitter } from "../../magma/app/compile/split/FoldingSplitter";
 import { DivideState } from "../../magma/app/compile/DivideState";
 import { Composable } from "../../magma/app/compile/compose/Composable";
 import { PrefixComposable } from "../../magma/app/compile/compose/PrefixComposable";
-import { TypeCompiler } from "../../magma/app/TypeCompiler";
 import { MapNode } from "../../magma/app/compile/node/MapNode";
 import { Strings } from "../../magma/api/text/Strings";
 import { Rule } from "../../magma/app/compile/rule/Rule";
@@ -52,7 +52,7 @@ export class ValueCompiler {
 		let state = tuple.left()/*unknown*/;
 		let right = tuple.right()/*unknown*/;
 		let generated = ValueCompiler.generateValue(right)/*unknown*/;
-		let s = Placeholder.generatePlaceholder(ValueCompiler.resolve(state, right).generate())/*unknown*/;
+		let s = Placeholder.generatePlaceholder(TypeCompiler.generateType(ValueCompiler.resolve(state, right)))/*unknown*/;
 		return new Tuple2Impl<CompileState, string>(state, generated + s)/*unknown*/;
 	}
 	static parseInvokable(state: CompileState, input: string): Option<Tuple2<CompileState, Node>> {
@@ -316,13 +316,13 @@ export class ValueCompiler {
             return operation.generate();
         }*//*
         else if (value instanceof Placeholder placeholder) {
-            return placeholder.generate();
+            return TypeCompiler.generateType(placeholder);
         }*//*
         else if (value instanceof StringNode stringNode) {
             return stringNode.generate();
         }*//*
         else if (value instanceof Symbol symbol) {
-            return symbol.generate();
+            return TypeCompiler.generateType(symbol);
         }*/
 		return "?"/*unknown*/;
 	}

@@ -271,6 +271,8 @@ class ValueCompiler {
 }
 class WhitespaceCompiler {
 }
+class TypeGE {
+}
 Lists --> List
 Files --> Path
 EmptyHead --> Head
@@ -555,11 +557,13 @@ FunctionType --> Type
 FunctionType --> Iterable
 FunctionType --> Tuple2
 FunctionType --> Joiner
+FunctionType --> TypeCompiler
 Placeholder --> Definition
 Placeholder --> Option
 Placeholder --> None
 Placeholder --> ValueCompiler
 PrimitiveType --> Type
+PrimitiveType --> TypeCompiler
 Symbol --> Type
 Symbol --> CompileState
 Symbol --> Definition
@@ -570,6 +574,7 @@ TemplateType --> Iterable
 TemplateType --> Merger
 TemplateType --> ValueMerger
 VariadicType --> Type
+VariadicType --> TypeCompiler
 Lambda --> Node
 Lambda --> Definition
 Lambda --> Iterable
@@ -721,6 +726,7 @@ PathSource --> IOError
 PathSource --> Result
 PathSource --> List
 PathSource --> ListCollector
+PathSource --> Lists
 PathSource --> Location
 Source --> IOError
 Source --> Result
@@ -825,6 +831,7 @@ ValueCompiler --> Tuple2Impl
 ValueCompiler --> Node
 ValueCompiler --> Tuple2
 ValueCompiler --> Placeholder
+ValueCompiler --> TypeCompiler
 ValueCompiler --> Option
 ValueCompiler --> SuffixComposable
 ValueCompiler --> SplitComposable
@@ -834,7 +841,6 @@ ValueCompiler --> FoldingSplitter
 ValueCompiler --> DivideState
 ValueCompiler --> Composable
 ValueCompiler --> PrefixComposable
-ValueCompiler --> TypeCompiler
 ValueCompiler --> MapNode
 ValueCompiler --> Strings
 ValueCompiler --> Rule

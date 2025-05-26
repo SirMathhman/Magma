@@ -31,7 +31,7 @@ import magma.app.compile.split.LocatingSplitter;
 public final class TypeCompiler {
     public static Option<Tuple2<CompileState, String>> compileType(CompileState state, String type) {
         return TypeCompiler.parseType(state, type).map((Tuple2<CompileState, Type> tuple) -> {
-            return new Tuple2Impl<CompileState, String>(tuple.left(), tuple.right().generate());
+            return new Tuple2Impl<CompileState, String>(tuple.left(), generateType(tuple.right()));
         });
     }
 
@@ -268,6 +268,17 @@ public final class TypeCompiler {
             case Symbol symbol -> symbol.generateBeforeName();
             case TemplateType templateType -> templateType.generateBeforeName();
             case VariadicType variadicType -> variadicType.generateBeforeName();
+        };
+    }
+
+    public static String generateType(Type type) {
+        return switch (type) {
+            case FunctionType functionType -> functionType.generateType();
+            case Placeholder placeholder -> placeholder.generateType();
+            case PrimitiveType primitiveType -> primitiveType.generateType();
+            case Symbol symbol -> symbol.generateType();
+            case TemplateType templateType -> templateType.generateType();
+            case VariadicType variadicType -> variadicType.generateType();
         };
     }
 }

@@ -15,6 +15,10 @@ public record Placeholder(String input) implements Parameter, Type {
         return "/*" + replaced + "*/";
     }
 
+    public String generateType() {
+        return Placeholder.generatePlaceholder(this.input);
+    }
+
     @Override
     public String generate() {
         return Placeholder.generatePlaceholder(this.input);

@@ -1,9 +1,9 @@
 package magma.api.io;
 
-import magma.api.collect.list.Iterable;
 import magma.api.collect.Iter;
-import magma.api.result.Result;
+import magma.api.collect.list.Iterable;
 import magma.api.option.Option;
+import magma.api.result.Result;
 
 public interface Path {
     Option<IOError> writeString(String output);
@@ -20,7 +20,7 @@ public interface Path {
 
     Path relativize(Path source);
 
-    Path getParent();
+    Option<Path> findParent();
 
     Iter<String> query();
 

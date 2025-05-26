@@ -4,6 +4,7 @@ import { IOError } from "../../../magma/api/io/IOError";
 import { Result } from "../../../magma/api/result/Result";
 import { List } from "../../../magma/api/collect/list/List";
 import { ListCollector } from "../../../magma/api/collect/list/ListCollector";
+import { Lists } from "../../../jvm/api/collect/list/Lists";
 import { Location } from "../../../magma/app/Location";
 export class PathSource implements Source {
 	sourceDirectory: Path;
@@ -21,7 +22,7 @@ export class PathSource implements Source {
 		return fileName.substring(0, separator)/*unknown*/;
 	}
 	computeNamespace(): List<string> {
-		return this.sourceDirectory.relativize(this.source).getParent().query().collect(new ListCollector<string>())/*unknown*/;
+		return this.sourceDirectory.relativize(this.source).findParent().map((parent: Path) => parent.query().collect(new ListCollector<string>())/*unknown*/).orElse(Lists.empty())/*unknown*/;
 	}
 	createLocation(): Location {
 		return new Location(this.computeNamespace(), this.computeName())/*unknown*/;

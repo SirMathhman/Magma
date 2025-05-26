@@ -54,7 +54,7 @@ public final class ValueCompiler {
         var state = tuple.left();
         var right = tuple.right();
         var generated = ValueCompiler.generateValue(right);
-        var s = Placeholder.generatePlaceholder(ValueCompiler.resolve(state, right).generate());
+        var s = Placeholder.generatePlaceholder(TypeCompiler.generateType(ValueCompiler.resolve(state, right)));
         return new Tuple2Impl<CompileState, String>(state, generated + s);
     }
 
@@ -381,13 +381,13 @@ public final class ValueCompiler {
             return operation.generate();
         }
         else if (value instanceof Placeholder placeholder) {
-            return placeholder.generate();
+            return TypeCompiler.generateType(placeholder);
         }
         else if (value instanceof StringNode stringNode) {
             return stringNode.generate();
         }
         else if (value instanceof Symbol symbol) {
-            return symbol.generate();
+            return TypeCompiler.generateType(symbol);
         }
         return "?";
     }

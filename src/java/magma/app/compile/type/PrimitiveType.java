@@ -1,5 +1,7 @@
 package magma.app.compile.type;
 
+import magma.app.TypeCompiler;
+
 public enum PrimitiveType implements Type {
     String("string"),
     Number("number"),
@@ -14,8 +16,7 @@ public enum PrimitiveType implements Type {
         this.value = value;
     }
 
-    @Override
-    public String generate() {
+    public String generateType() {
         return this.value;
     }
 
@@ -28,7 +29,7 @@ public enum PrimitiveType implements Type {
     }
 
     public String generateSimple() {
-        return this.generate();
+        return TypeCompiler.generateType(this);
     }
 
     public boolean is(String type) {

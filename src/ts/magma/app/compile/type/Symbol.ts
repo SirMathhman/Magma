@@ -8,7 +8,7 @@ export class Symbol implements Type {
 	constructor (value: string) {
 		this.value = value;
 	}
-	generate(): string {
+	generateType(): string {
 		return this.value/*unknown*/;
 	}
 	resolve(state: CompileState): Type {

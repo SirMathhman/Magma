@@ -156,7 +156,7 @@ export class RootCompiler {
 	}
 	static joinExtends(maybeSuperType: Iterable<Type>): string {
 		return maybeSuperType.iter().map((type: Type) => {
-			return type.generate()/*unknown*/;
+			return TypeCompiler.generateType(type)/*unknown*/;
 		}).collect(new Joiner(", ")).map((inner: string) => {
 			return " extends " + inner/*unknown*/;
 		}).orElse("")/*unknown*/;
@@ -169,7 +169,7 @@ export class RootCompiler {
 	}
 	static generateImplementing(maybeImplementing: Option<Type>): string {
 		return maybeImplementing.map((type: Type) => {
-			return type.generate()/*unknown*/;
+			return TypeCompiler.generateType(type)/*unknown*/;
 		}).map((inner: string) => {
 			return " implements " + inner/*unknown*/;
 		}).orElse("")/*unknown*/;

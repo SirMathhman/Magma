@@ -3,10 +3,10 @@ package magma.app.compile.type;
 import magma.api.Tuple2;
 import magma.api.collect.Joiner;
 import magma.api.collect.list.Iterable;
+import magma.app.TypeCompiler;
 
 public record FunctionType(Iterable<String> args, String returns) implements Type {
-    @Override
-    public String generate() {
+    public String generateType() {
         var joinedArguments = this.args
                 .iterWithIndices()
                 .map((Tuple2<Integer, String> tuple) -> {
@@ -31,7 +31,7 @@ public record FunctionType(Iterable<String> args, String returns) implements Typ
     }
 
     public String generateSimple() {
-        return this.generate();
+        return TypeCompiler.generateType(this);
     }
 
     public boolean is(String type) {

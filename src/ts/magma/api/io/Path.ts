@@ -11,7 +11,7 @@ export interface Path {
 	findFileName(): string;
 	endsWith(suffix: string): boolean;
 	relativize(source: Path): Path;
-	getParent(): Path;
+	findParent(): Option<Path>;
 	query(): Iter<string>;
 	resolveChildSegments(children: Iterable<string>): Path;
 	resolveChild(name: string): Path;

@@ -1,4 +1,5 @@
 import { Type } from "../../../../magma/app/compile/type/Type";
+import { TypeCompiler } from "../../../../magma/app/TypeCompiler";
 export class PrimitiveType implements Type {
 	static String: PrimitiveType = new PrimitiveType("string");
 	static Number: PrimitiveType = new PrimitiveType("number");
@@ -10,7 +11,7 @@ export class PrimitiveType implements Type {
 	constructor (value: string) {
 		this.value/*unknown*/ = value/*string*/;
 	}
-	generate(): string {
+	generateType(): string {
 		return this.value/*unknown*/;
 	}
 	isVar(): boolean {
@@ -20,7 +21,7 @@ export class PrimitiveType implements Type {
 		return ""/*unknown*/;
 	}
 	generateSimple(): string {
-		return this.generate()/*unknown*/;
+		return TypeCompiler.generateType(this)/*unknown*/;
 	}
 	is(type: string): boolean {
 		return type.equals(this.name().toLowerCase())/*unknown*/;

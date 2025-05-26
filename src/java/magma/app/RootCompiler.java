@@ -199,7 +199,7 @@ public final class RootCompiler {
     private static String joinExtends(Iterable<Type> maybeSuperType) {
         return maybeSuperType.iter()
                 .map((Type type) -> {
-                    return type.generate();
+                    return TypeCompiler.generateType(type);
                 })
                 .collect(new Joiner(", "))
                 .map((String inner) -> {
@@ -217,7 +217,7 @@ public final class RootCompiler {
 
     private static String generateImplementing(Option<Type> maybeImplementing) {
         return maybeImplementing.map((Type type) -> {
-                    return type.generate();
+                    return TypeCompiler.generateType(type);
                 })
                 .map((String inner) -> {
                     return " implements " + inner;

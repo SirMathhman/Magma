@@ -1,9 +1,10 @@
 package magma.app.compile.type;
 
+import magma.app.TypeCompiler;
+
 public record VariadicType(Type type) implements Type {
-    @Override
-    public String generate() {
-        return this.type.generate() + "[]";
+    public String generateType() {
+        return TypeCompiler.generateType(this.type) + "[]";
     }
 
     public boolean isFunctional() {
@@ -19,7 +20,7 @@ public record VariadicType(Type type) implements Type {
     }
 
     public String generateSimple() {
-        return this.generate();
+        return TypeCompiler.generateType(this);
     }
 
     public boolean is(String type) {

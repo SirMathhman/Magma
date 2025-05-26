@@ -32,7 +32,7 @@ import { Dependency } from "../../magma/app/compile/Dependency";
 export class TypeCompiler {
 	static compileType(state: CompileState, type: string): Option<Tuple2<CompileState, string>> {
 		return TypeCompiler.parseType(state, type).map((tuple: Tuple2<CompileState, Type>) => {
-			return new Tuple2Impl<CompileState, string>(tuple.left(), tuple.right().generate())/*unknown*/;
+			return new Tuple2Impl<CompileState, string>(tuple.left(), generateType(tuple.right()))/*unknown*/;
 		})/*unknown*/;
 	}
 	static parseType(state: CompileState, type: string): Option<Tuple2<CompileState, Type>> {
@@ -214,6 +214,15 @@ export class TypeCompiler {
             case Symbol symbol -> symbol.generateBeforeName();
             case TemplateType templateType -> templateType.generateBeforeName();
             case VariadicType variadicType -> variadicType.generateBeforeName();
+        }*/;
+	}
+	static generateType(type: Type): string {/*return switch (type) {
+            case FunctionType functionType -> functionType.generateType();
+            case Placeholder placeholder -> placeholder.generateType();
+            case PrimitiveType primitiveType -> primitiveType.generateType();
+            case Symbol symbol -> symbol.generateType();
+            case TemplateType templateType -> templateType.generateType();
+            case VariadicType variadicType -> variadicType.generateType();
         }*/;
 	}
 }

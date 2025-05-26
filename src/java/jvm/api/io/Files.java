@@ -1,12 +1,12 @@
 package jvm.api.io;
 
+import jvm.api.collect.list.JVMList;
 import magma.annotate.Actual;
 import magma.annotate.Namespace;
-import jvm.api.collect.list.JVMList;
-import magma.api.collect.list.Iterable;
-import magma.api.collect.head.RangeHead;
-import magma.api.collect.head.HeadedIter;
 import magma.api.collect.Iter;
+import magma.api.collect.head.HeadedIter;
+import magma.api.collect.head.RangeHead;
+import magma.api.collect.list.Iterable;
 import magma.api.io.IOError;
 import magma.api.io.Path;
 import magma.api.option.None;
@@ -90,11 +90,6 @@ public final class Files {
         }
 
         @Override
-        public Path getParent() {
-            return new JVMPath(this.path.getParent());
-        }
-
-        @Override
         public Iter<String> query() {
             return new HeadedIter<Integer>(new RangeHead(this.path.getNameCount()))
                     .map((Integer index) -> {
@@ -125,6 +120,15 @@ public final class Files {
             } catch (IOException e) {
                 return new Some<IOError>(new JVMIOError(e));
             }
+        }
+
+        @Override
+        public Option<Path> findParent() {
+            java.nio.file.Path parent = this.path.getParent();
+            if (null == parent) {
+                return new None<>();
+            }
+            return new Some<>(new JVMPath(parent));
         }
     }
 

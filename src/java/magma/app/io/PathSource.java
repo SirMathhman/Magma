@@ -1,5 +1,6 @@
 package magma.app.io;
 
+import jvm.api.collect.list.Lists;
 import magma.api.collect.list.List;
 import magma.api.collect.list.ListCollector;
 import magma.api.io.IOError;
@@ -21,9 +22,9 @@ public record PathSource(Path sourceDirectory, Path source) implements Source {
 
     private List<String> computeNamespace() {
         return this.sourceDirectory.relativize(this.source)
-                .getParent()
-                .query()
-                .collect(new ListCollector<String>());
+                .findParent()
+                .map((Path parent) -> parent.query().collect(new ListCollector<String>()))
+                .orElse(Lists.empty());
     }
 
     @Override

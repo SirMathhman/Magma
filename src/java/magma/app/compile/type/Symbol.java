@@ -5,8 +5,7 @@ import magma.app.compile.CompileState;
 import magma.app.compile.define.Definition;
 
 public record Symbol(String value) implements Type {
-    @Override
-    public String generate() {
+    public String generateType() {
         return this.value;
     }
 

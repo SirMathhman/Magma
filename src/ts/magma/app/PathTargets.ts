@@ -15,11 +15,14 @@ export class PathTargets implements Targets {
 		})/*unknown*/;
 	}
 	static ensureTargetParent(target: Path): Option<IOError> {
-		let parent = target.getParent()/*unknown*/;
-		if (parent.exists()/*unknown*/){
-			return new None<IOError>()/*unknown*/;
+		let maybeParent = target.findParent()/*unknown*/;
+		if (/*maybeParent instanceof Some(var parent)*/){
+			if (parent.exists()/*unknown*/){
+				return new None<IOError>()/*unknown*/;
+			}
+			return parent.createDirectories()/*unknown*/;
 		}
-		return parent.createDirectories()/*unknown*/;
+		return new None<>()/*unknown*/;
 	}
 	writeSource(location: Location, output: string): Option<IOError> {
 		let target = this.root.resolveChildSegments(location.namespace()).resolveChild(location.name() + ".ts")/*unknown*/;
