@@ -1,7 +1,6 @@
 import { List } from "../../magma/api/collect/list/List";
 import { StatefulRule } from "../../magma/app/compile/rule/StatefulRule";
 import { Folder } from "../../magma/app/compile/fold/Folder";
-import { StatefulRuleAlias } from "../../magma/app/compile/rule/StatefulRuleAlias";
 import { CompileState } from "../../magma/app/compile/CompileState";
 import { Tuple2 } from "../../magma/api/Tuple2";
 import { Some } from "../../magma/api/option/Some";
@@ -12,12 +11,12 @@ import { Tuple2Impl } from "../../magma/api/Tuple2Impl";
 import { Lists } from "../../jvm/api/collect/list/Lists";
 export class DivideRule<T> implements StatefulRule<List<T>> {
 	folder: Folder;
-	statefulRule: StatefulRuleAlias<T>;
-	constructor (folder: Folder, statefulRule: StatefulRuleAlias<T>) {
+	statefulRule: StatefulRule<T>;
+	constructor (folder: Folder, statefulRule: StatefulRule<T>) {
 		this.folder = folder;
 		this.statefulRule = statefulRule;
 	}
-	static toRule(mapper: (arg0 : CompileState, arg1 : string) => Tuple2<CompileState, string>): StatefulRuleAlias<string> {
+	static toRule(mapper: (arg0 : CompileState, arg1 : string) => Tuple2<CompileState, string>): StatefulRule<string> {
 		return (state1: CompileState, s: string) => {
 			return new Some<Tuple2<CompileState, string>>(mapper(state1, s))/*unknown*/;
 		}/*unknown*/;

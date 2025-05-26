@@ -21,7 +21,7 @@ import magma.app.compile.define.Definition;
 import magma.app.compile.locate.FirstLocator;
 import magma.app.compile.node.Node;
 import magma.app.compile.rule.StatefulOrRule;
-import magma.app.compile.rule.StatefulRuleAlias;
+import magma.app.compile.rule.StatefulRule;
 import magma.app.compile.rule.SymbolRule;
 import magma.app.compile.split.LocatingSplitter;
 import magma.app.compile.split.Splitter;
@@ -38,7 +38,7 @@ public final class RootCompiler {
         ));
     }
 
-    private static StatefulRuleAlias<String> createStructureRule(String sourceInfix, String targetInfix) {
+    private static StatefulRule<String> createStructureRule(String sourceInfix, String targetInfix) {
         return (CompileState state, String input1) -> {
             return new SplitComposable<Tuple2<CompileState, String>>(new LocatingSplitter(sourceInfix, new FirstLocator()), Composable.toComposable((String beforeInfix, String afterInfix) -> {
                 return new SplitComposable<Tuple2<CompileState, String>>(new LocatingSplitter("{", new FirstLocator()), Composable.toComposable((String beforeContent, String withEnd) -> {

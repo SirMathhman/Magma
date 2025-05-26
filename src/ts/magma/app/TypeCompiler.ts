@@ -15,10 +15,10 @@ import { FirstLocator } from "../../magma/app/compile/locate/FirstLocator";
 import { Splitter } from "../../magma/app/compile/split/Splitter";
 import { SplitComposable } from "../../magma/app/compile/compose/SplitComposable";
 import { Composable } from "../../magma/app/compile/compose/Composable";
-import { List } from "../../magma/api/collect/list/List";
-import { Strings } from "../../magma/api/text/Strings";
 import { ValueCompiler } from "../../magma/app/ValueCompiler";
 import { WhitespaceCompiler } from "../../magma/app/WhitespaceCompiler";
+import { List } from "../../magma/api/collect/list/List";
+import { Strings } from "../../magma/api/text/Strings";
 import { None } from "../../magma/api/option/None";
 import { Location } from "../../magma/app/Location";
 import { Import } from "../../magma/app/compile/Import";
@@ -60,7 +60,13 @@ export class TypeCompiler {
 		return new SuffixRule<Tuple2<CompileState, Node>>(">", (withoutEnd: string) => {
 			let splitter: Splitter = new LocatingSplitter("<", new FirstLocator())/*unknown*/;
 			return new SplitComposable<Tuple2<CompileState, Node>>(splitter, Composable.toComposable((baseString: string, argsString: string) => {
-				let argsTuple = getApply(state, argsString).orElse(new Tuple2Impl<CompileState, List<Node>>(state, Lists.empty()))/*unknown*/;
+				let argsTuple = ValueCompiler.values((state1: CompileState, s: string) => {
+					return new StatefulOrRule<Node>(Lists.of((state2: CompileState, input1: string) => {
+						return WhitespaceCompiler.parseWhitespace(state2, input1).map(type -  > new Tuple2Impl<CompileState, Node>(type.left(), type.right()))/*unknown*/;
+					}, (state2: CompileState, type: string) => {
+						return TypeCompiler.lexType(type).flatMap((content: Node) => TypeCompiler.parseType(state2, content)/*unknown*/)/*unknown*/;
+					})).apply(state1, s)/*unknown*/;
+				}).apply(state, argsString).orElse(new Tuple2Impl<CompileState, List<Node>>(state, Lists.empty()))/*unknown*/;
 				let argsState = argsTuple.left()/*unknown*/;
 				let args = argsTuple.right()/*unknown*/;
 				let base = Strings.strip(baseString)/*unknown*/;
@@ -70,18 +76,6 @@ export class TypeCompiler {
 				})/*unknown*/;
 			})).apply(withoutEnd)/*unknown*/;
 		}).lex(Strings.strip(input))/*unknown*/;
-	}
-	static getApply(state: CompileState, argString: string): Option<Tuple2<CompileState, List<Node>>> {
-		return ValueCompiler.values((state1: CompileState, s: string) => {
-			return getNodeStatefulOrRule().apply(state1, s)/*unknown*/;
-		}).apply(state, argString)/*unknown*/;
-	}
-	static getNodeStatefulOrRule(): StatefulOrRule<Node> {
-		return new StatefulOrRule<Node>(Lists.of((state2: CompileState, input1: string) => {
-			return WhitespaceCompiler.parseWhitespace(state2, input1).map(type -  > new Tuple2Impl<CompileState, Node>(type.left(), type.right()))/*unknown*/;
-		}, (state2: CompileState, type: string) => {
-			return TypeCompiler.lexType(type).flatMap((content: Node) => TypeCompiler.parseType(state2, content)/*unknown*/)/*unknown*/;
-		}))/*unknown*/;
 	}
 	static assembleFunctionNode(state: CompileState, base: string, args: List<Node>): Option<Tuple2<CompileState, Node>> {
 		return TypeCompiler.mapFunctionNode(base, args).map((generated: Node) => {

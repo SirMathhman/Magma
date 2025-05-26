@@ -184,8 +184,6 @@ class StatefulOrRule<T> {
 StatefulOrRule <|.. StatefulRule
 interface StatefulRule<T> {
 }
-interface StatefulRuleAlias<T> {
-}
 class StringRule {
 }
 StringRule <|.. Rule
@@ -507,7 +505,6 @@ NodeRule --> Option
 NodeRule --> MapNode
 Rule --> Option
 StatefulOrRule --> StatefulRule
-StatefulOrRule --> StatefulRuleAlias
 StatefulOrRule --> Iterable
 StatefulOrRule --> CompileState
 StatefulOrRule --> Tuple2
@@ -518,9 +515,6 @@ StatefulOrRule --> Iters
 StatefulRule --> CompileState
 StatefulRule --> Tuple2
 StatefulRule --> Option
-StatefulRuleAlias --> CompileState
-StatefulRuleAlias --> Tuple2
-StatefulRuleAlias --> Option
 StringRule --> Node
 StringRule --> Rule
 StringRule --> Option
@@ -678,7 +672,6 @@ DefinitionCompiler --> Lists
 DivideRule --> List
 DivideRule --> StatefulRule
 DivideRule --> Folder
-DivideRule --> StatefulRuleAlias
 DivideRule --> CompileState
 DivideRule --> Tuple2
 DivideRule --> Some
@@ -729,7 +722,7 @@ FunctionSegmentCompiler --> DivideState
 FunctionSegmentCompiler --> Composable
 FunctionSegmentCompiler --> StatefulOrRule
 FunctionSegmentCompiler --> Lists
-FunctionSegmentCompiler --> StatefulRuleAlias
+FunctionSegmentCompiler --> StatefulRule
 FunctionSegmentCompiler --> PrefixComposable
 FunctionSegmentCompiler --> ValueCompiler
 FunctionSegmentCompiler --> Node
@@ -784,7 +777,7 @@ RootCompiler --> Tuple2
 RootCompiler --> StatefulOrRule
 RootCompiler --> Lists
 RootCompiler --> WhitespaceCompiler
-RootCompiler --> StatefulRuleAlias
+RootCompiler --> StatefulRule
 RootCompiler --> SplitComposable
 RootCompiler --> LocatingSplitter
 RootCompiler --> FirstLocator
@@ -837,10 +830,10 @@ TypeCompiler --> FirstLocator
 TypeCompiler --> Splitter
 TypeCompiler --> SplitComposable
 TypeCompiler --> Composable
-TypeCompiler --> List
-TypeCompiler --> Strings
 TypeCompiler --> ValueCompiler
 TypeCompiler --> WhitespaceCompiler
+TypeCompiler --> List
+TypeCompiler --> Strings
 TypeCompiler --> None
 TypeCompiler --> Location
 TypeCompiler --> Import
@@ -867,7 +860,7 @@ ValueCompiler --> Composable
 ValueCompiler --> PrefixComposable
 ValueCompiler --> MapNode
 ValueCompiler --> Strings
-ValueCompiler --> StatefulRuleAlias
+ValueCompiler --> StatefulRule
 ValueCompiler --> Some
 ValueCompiler --> StringNode
 ValueCompiler --> Not
@@ -894,7 +887,6 @@ ValueCompiler --> Iters
 ValueCompiler --> ListCollector
 ValueCompiler --> StatefulOrRule
 ValueCompiler --> Lists
-ValueCompiler --> StatefulRule
 ValueCompiler --> DivideRule
 ValueCompiler --> ValueFolder
 ValueCompiler --> Joiner
