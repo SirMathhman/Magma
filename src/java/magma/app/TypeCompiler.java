@@ -38,7 +38,7 @@ public final class TypeCompiler {
         return new StatefulOrRule<Node>(Lists.of(
                 TypeCompiler::parseVarArgs,
                 TypeCompiler::parseGeneric,
-                TypeCompiler::parsePrimitive,
+                (CompileState state2, String input1) -> Primitives.createPrimitivesRule(input1).flatMap((Node result) -> TypeCompiler.parsePrimitiveType(state2, result)),
                 (CompileState state1, String input) -> Symbols.createSymbolRule().lex(input).flatMap((Node node) -> TypeCompiler.parseSymbolType(state1, node))
         )).apply(state, type);
     }
@@ -58,10 +58,8 @@ public final class TypeCompiler {
         return new Some<Tuple2<CompileState, Node>>(new Tuple2Impl<CompileState, Node>(resolved, node));
     }
 
-    private static Option<Tuple2<CompileState, Node>> parsePrimitive(CompileState state, String input) {
-        return Primitives.parsePrimitive(Strings.strip(input)).map((Node result) -> {
-            return new Tuple2Impl<CompileState, Node>(state, result);
-        });
+    private static Option<Tuple2<CompileState, Node>> parsePrimitiveType(CompileState state, Node result) {
+        return new Some<>(new Tuple2Impl<CompileState, Node>(state, result));
     }
 
     private static Option<Tuple2<CompileState, Node>> parseGeneric(CompileState state, String input) {

@@ -216,6 +216,9 @@ interface Stack {
 }
 class Symbols {
 }
+class PrimitiveRule {
+}
+PrimitiveRule <|.. Rule
 class Primitives {
 }
 class Lambda {
@@ -572,11 +575,17 @@ Symbols --> StripRule
 Symbols --> SymbolRule
 Symbols --> TypeRule
 Symbols --> StringRule
+PrimitiveRule --> Rule
+PrimitiveRule --> Node
+PrimitiveRule --> Option
+PrimitiveRule --> Strings
+PrimitiveRule --> Primitives
+PrimitiveRule --> Some
+PrimitiveRule --> None
 Primitives --> Node
 Primitives --> Option
-Primitives --> Strings
-Primitives --> Some
-Primitives --> None
+Primitives --> StripRule
+Primitives --> PrimitiveRule
 Lambda --> Node
 Lambda --> Definition
 Lambda --> Iterable
@@ -796,12 +805,12 @@ TypeCompiler --> Node
 TypeCompiler --> Tuple2Impl
 TypeCompiler --> StatefulOrRule
 TypeCompiler --> Lists
+TypeCompiler --> Primitives
 TypeCompiler --> Symbols
 TypeCompiler --> Strings
 TypeCompiler --> SuffixComposable
 TypeCompiler --> Some
 TypeCompiler --> MapNode
-TypeCompiler --> Primitives
 TypeCompiler --> LocatingSplitter
 TypeCompiler --> FirstLocator
 TypeCompiler --> Splitter

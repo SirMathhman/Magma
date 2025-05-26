@@ -1,11 +1,9 @@
 package magma.app.compile.type;
 
-import magma.api.option.None;
 import magma.api.option.Option;
-import magma.api.option.Some;
-import magma.api.text.Strings;
 import magma.app.compile.node.MapNode;
 import magma.app.compile.node.Node;
+import magma.app.compile.rule.StripRule;
 
 import java.util.Map;
 
@@ -38,12 +36,7 @@ public class Primitives {
             "void", Primitives.VOID
     );
 
-    public static Option<Node> parsePrimitive(String input) {
-        var stripped = Strings.strip(input);
-        if (Primitives.JavaToVariant.containsKey(stripped)) {
-            return new Some<>(Primitives.JavaToVariant.get(stripped));
-        }
-
-        return new None<>();
+    public static Option<Node> createPrimitivesRule(String input) {
+        return new StripRule(new PrimitiveRule()).lex(input);
     }
 }

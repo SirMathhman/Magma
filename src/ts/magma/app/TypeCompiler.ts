@@ -5,12 +5,12 @@ import { Node } from "../../magma/app/compile/node/Node";
 import { Tuple2Impl } from "../../magma/api/Tuple2Impl";
 import { StatefulOrRule } from "../../magma/app/compile/rule/StatefulOrRule";
 import { Lists } from "../../jvm/api/collect/list/Lists";
+import { Primitives } from "../../magma/app/compile/type/Primitives";
 import { Symbols } from "../../magma/app/compile/text/Symbols";
 import { Strings } from "../../magma/api/text/Strings";
 import { SuffixComposable } from "../../magma/app/compile/compose/SuffixComposable";
 import { Some } from "../../magma/api/option/Some";
 import { MapNode } from "../../magma/app/compile/node/MapNode";
-import { Primitives } from "../../magma/app/compile/type/Primitives";
 import { LocatingSplitter } from "../../magma/app/compile/split/LocatingSplitter";
 import { FirstLocator } from "../../magma/app/compile/locate/FirstLocator";
 import { Splitter } from "../../magma/app/compile/split/Splitter";
@@ -35,7 +35,7 @@ export class TypeCompiler {
 		})/*unknown*/;
 	}
 	static parseType(state: CompileState, type: string): Option<Tuple2<CompileState, Node>> {
-		return new StatefulOrRule<Node>(Lists.of(TypeCompiler.parseVarArgs, TypeCompiler.parseGeneric, TypeCompiler.parsePrimitive, (state1: CompileState, input: string) => Symbols.createSymbolRule().lex(input).flatMap((node: Node) => TypeCompiler.parseSymbolType(state1, node)/*unknown*/)/*unknown*/)).apply(state, type)/*unknown*/;
+		return new StatefulOrRule<Node>(Lists.of(TypeCompiler.parseVarArgs, TypeCompiler.parseGeneric, (state2: CompileState, input1: string) => Primitives.createPrimitivesRule(input1).flatMap((result: Node) => TypeCompiler.parsePrimitiveType(state2, result)/*unknown*/)/*unknown*/, (state1: CompileState, input: string) => Symbols.createSymbolRule().lex(input).flatMap((node: Node) => TypeCompiler.parseSymbolType(state1, node)/*unknown*/)/*unknown*/)).apply(state, type)/*unknown*/;
 	}
 	static parseVarArgs(state: CompileState, input: string): Option<Tuple2<CompileState, Node>> {
 		let stripped = Strings.strip(input)/*unknown*/;
@@ -49,10 +49,8 @@ export class TypeCompiler {
 		let resolved: CompileState = TypeCompiler.addResolvedImportFromCache0(state, node.findString("value").orElse(""))/*unknown*/;
 		return new Some<Tuple2<CompileState, Node>>(new Tuple2Impl<CompileState, Node>(resolved, node))/*unknown*/;
 	}
-	static parsePrimitive(state: CompileState, input: string): Option<Tuple2<CompileState, Node>> {
-		return Primitives.parsePrimitive(Strings.strip(input)).map((result: Node) => {
-			return new Tuple2Impl<CompileState, Node>(state, result)/*unknown*/;
-		})/*unknown*/;
+	static parsePrimitiveType(state: CompileState, result: Node): Option<Tuple2<CompileState, Node>> {
+		return new Some<?>(new Tuple2Impl<CompileState, Node>(state, result))/*unknown*/;
 	}
 	static parseGeneric(state: CompileState, input: string): Option<Tuple2<CompileState, Node>> {
 		return new SuffixComposable<Tuple2<CompileState, Node>>(">", (withoutEnd: string) => {

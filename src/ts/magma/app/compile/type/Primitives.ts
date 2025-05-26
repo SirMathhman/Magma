@@ -1,8 +1,7 @@
 import { Node } from "../../../../magma/app/compile/node/Node";
 import { Option } from "../../../../magma/api/option/Option";
-import { Strings } from "../../../../magma/api/text/Strings";
-import { Some } from "../../../../magma/api/option/Some";
-import { None } from "../../../../magma/api/option/None";
+import { StripRule } from "../../../../magma/app/compile/rule/StripRule";
+import { PrimitiveRule } from "../../../../magma/app/compile/type/PrimitiveRule";
 export class Primitives {/*public static final Node BOOLEAN = new MapNode("boolean").withString("value", "boolean");*//*
     public static final Node NUMBER = new MapNode("number").withString("value", "number");*//*
     public static final Node STRING = new MapNode("string").withString("value", "string");*//*
@@ -30,11 +29,7 @@ export class Primitives {/*public static final Node BOOLEAN = new MapNode("boole
             "var", Primitives.VAR,
             "void", Primitives.VOID
     );*/
-	static parsePrimitive(input: string): Option<Node> {
-		let stripped = Strings.strip(input)/*unknown*/;
-		if (Primitives.JavaToVariant.containsKey(stripped)/*unknown*/){
-			return new Some<?>(Primitives.JavaToVariant.get(stripped))/*unknown*/;
-		}
-		return new None<?>()/*unknown*/;
+	static createPrimitivesRule(input: string): Option<Node> {
+		return new StripRule(new PrimitiveRule()).lex(input)/*unknown*/;
 	}
 }
