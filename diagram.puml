@@ -167,6 +167,9 @@ StatementsMerger <|.. Merger
 class ValueMerger {
 }
 ValueMerger <|.. Merger
+class MapNode {
+}
+MapNode <|.. Node
 interface Node {
 }
 interface Registry {
@@ -211,9 +214,6 @@ interface Type {
 class VariadicType {
 }
 VariadicType <|.. Type
-class Access {
-}
-Access <|.. Node
 class ConstructionCaller {
 }
 ConstructionCaller <|.. Node
@@ -492,6 +492,12 @@ Merger --> Iterable
 StatementsMerger --> Merger
 ValueMerger --> Merger
 ValueMerger --> Strings
+MapNode --> Node
+MapNode --> Option
+MapNode --> Some
+MapNode --> None
+Node --> Option
+Node --> None
 Registry --> Dependency
 Registry --> Iter
 Registry --> Import
@@ -559,7 +565,6 @@ TemplateType --> Iterable
 TemplateType --> Merger
 TemplateType --> ValueMerger
 VariadicType --> Type
-Access --> Node
 ConstructionCaller --> Node
 Invokable --> Node
 Invokable --> Iterable
@@ -867,7 +872,7 @@ ValueCompiler --> FunctionSegmentCompiler
 ValueCompiler --> Stack
 ValueCompiler --> Lambda
 ValueCompiler --> None
-ValueCompiler --> Access
+ValueCompiler --> MapNode
 ValueCompiler --> OperatorFolder
 ValueCompiler --> FirstSelector
 ValueCompiler --> Operation

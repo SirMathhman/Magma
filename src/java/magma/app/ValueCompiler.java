@@ -26,6 +26,7 @@ import magma.app.compile.define.Parameter;
 import magma.app.compile.fold.OperatorFolder;
 import magma.app.compile.fold.ValueFolder;
 import magma.app.compile.locate.FirstLocator;
+import magma.app.compile.node.MapNode;
 import magma.app.compile.node.Node;
 import magma.app.compile.rule.OrRule;
 import magma.app.compile.rule.Rule;
@@ -37,7 +38,6 @@ import magma.app.compile.split.LocatingSplitter;
 import magma.app.compile.split.Splitter;
 import magma.app.compile.type.PrimitiveType;
 import magma.app.compile.type.Type;
-import magma.app.compile.value.Access;
 import magma.app.compile.value.ConstructionCaller;
 import magma.app.compile.value.Invokable;
 import magma.app.compile.value.Lambda;
@@ -159,7 +159,9 @@ public final class ValueCompiler {
                 return ValueCompiler.parseNode(state, childString).flatMap((Tuple2<CompileState, Node> childTuple) -> {
                     var childState = childTuple.left();
                     var child = childTuple.right();
-                    return new Some<Tuple2<CompileState, Node>>(new Tuple2Impl<CompileState, Node>(childState, new Access(child, property)));
+                    return new Some<Tuple2<CompileState, Node>>(new Tuple2Impl<CompileState, Node>(childState, new MapNode("access")
+                            .withNode("child", child)
+                            .withString("property", property)));
                 });
             });
         };
@@ -216,7 +218,6 @@ public final class ValueCompiler {
 
     private static Type resolve(CompileState state, Node value) {
         return switch (value) {
-            case Access access -> (Type) PrimitiveType.Unknown;
             case Invokable invokable -> invokable.resolve(state);
             case Lambda lambda -> lambda.resolve(state);
             case Not not -> not.resolve(state);
@@ -224,7 +225,7 @@ public final class ValueCompiler {
             case Placeholder placeholder -> placeholder.resolve(state);
             case StringNode stringNode -> stringNode.resolve(state);
             case Symbol symbol -> symbol.resolve(state);
-            default -> throw new IllegalStateException("Unexpected value: " + value);
+            default -> PrimitiveType.Unknown;
         };
     }
 
@@ -257,7 +258,7 @@ public final class ValueCompiler {
     }
 
     private static Node transformCaller(CompileState state, Node oldNode) {
-        return ValueCompiler.getNodeOption(oldNode).flatMap((Node parent) -> {
+        return ValueCompiler.findChild(oldNode).flatMap((Node parent) -> {
             var parentType = ValueCompiler.resolve(state, parent);
             if (parentType.isFunctional()) {
                 return new Some<Node>(parent);
@@ -267,9 +268,9 @@ public final class ValueCompiler {
         }).orElse(oldNode);
     }
 
-    private static Option<Node> getNodeOption(Node oldNode) {
-        if (oldNode instanceof Access access) {
-            return new Some<Node>(access.child());
+    private static Option<Node> findChild(Node oldNode) {
+        if (oldNode.is("access")) {
+            return new Some<Node>(oldNode.findNode("child").orElseGet(MapNode::new));
         }
         return new None<Node>();
     }
@@ -350,16 +351,33 @@ public final class ValueCompiler {
     }
 
     public static String generateValue(Node value) {
-        return switch (value) {
-            case Access access -> generateValue(access.child()) + "." + access.property();
-            case Invokable invokable -> invokable.generate();
-            case Lambda lambda -> lambda.generate();
-            case Not not -> not.generate();
-            case Operation operation -> operation.generate();
-            case Placeholder placeholder -> placeholder.generate();
-            case StringNode stringNode -> stringNode.generate();
-            case Symbol symbol -> symbol.generate();
-            default -> "?";
-        };
+        if (value.is("access")) {
+            Node child = value.findNode("child").orElseGet(MapNode::new);
+            String property = value.findString("property").orElse("");
+            return ValueCompiler.generateValue(child) + "." + property;
+        }
+
+        else if (value instanceof Invokable invokable) {
+            return invokable.generate();
+        }
+        else if (value instanceof Lambda lambda) {
+            return lambda.generate();
+        }
+        else if (value instanceof Not not) {
+            return not.generate();
+        }
+        else if (value instanceof Operation operation) {
+            return operation.generate();
+        }
+        else if (value instanceof Placeholder placeholder) {
+            return placeholder.generate();
+        }
+        else if (value instanceof StringNode stringNode) {
+            return stringNode.generate();
+        }
+        else if (value instanceof Symbol symbol) {
+            return symbol.generate();
+        }
+        return "?";
     }
 }

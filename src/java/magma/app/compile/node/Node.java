@@ -1,7 +1,18 @@
 package magma.app.compile.node;
 
+import magma.api.option.None;
+import magma.api.option.Option;
+
 public interface Node {
     default boolean is(String type) {
         return false;
+    }
+
+    default Option<Node> findNode(String key) {
+        return new None<>();
+    }
+
+    default Option<String> findString(String key) {
+        return new None<>();
     }
 }
