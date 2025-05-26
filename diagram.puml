@@ -563,14 +563,8 @@ TemplateType --> Merger
 TemplateType --> ValueMerger
 VariadicType --> Type
 Invokable --> Node
+Invokable --> List
 Invokable --> Iterable
-Invokable --> ValueCompiler
-Invokable --> Joiner
-Invokable --> Option
-Invokable --> Some
-Invokable --> Type
-Invokable --> CompileState
-Invokable --> PrimitiveType
 Lambda --> Node
 Lambda --> Definition
 Lambda --> Iterable
@@ -876,6 +870,7 @@ ValueCompiler --> HeadedIter
 ValueCompiler --> RangeHead
 ValueCompiler --> Characters
 ValueCompiler --> Type
+ValueCompiler --> PrimitiveType
 ValueCompiler --> Invokable
 ValueCompiler --> Iters
 ValueCompiler --> ListCollector
@@ -883,6 +878,7 @@ ValueCompiler --> OrRule
 ValueCompiler --> Lists
 ValueCompiler --> DivideRule
 ValueCompiler --> ValueFolder
+ValueCompiler --> Joiner
 WhitespaceCompiler --> CompileState
 WhitespaceCompiler --> Tuple2
 WhitespaceCompiler --> Option

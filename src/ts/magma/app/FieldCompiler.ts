@@ -112,7 +112,7 @@ class FieldCompiler {
 	}
 	static generateAsEnumNode0(value: Node, structureName: string): Option<string> {
 		if (/*value instanceof Invokable invokable*/){
-			return new Some<string>("\n\tstatic " + ValueCompiler.getString(invokable.node()) + ": " + structureName + " = new " + structureName + "(" + invokable.joinArgs() + ");")/*unknown*/;
+			return new Some<string>("\n\tstatic " + ValueCompiler.getString(invokable.node()) + ": " + structureName + " = new " + structureName + "(" + ValueCompiler.joinArgs(invokable) + ");")/*unknown*/;
 		}
 		else {
 			return new None<>()/*unknown*/;

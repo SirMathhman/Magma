@@ -39,6 +39,7 @@ import { HeadedIter } from "../../magma/api/collect/head/HeadedIter";
 import { RangeHead } from "../../magma/api/collect/head/RangeHead";
 import { Characters } from "../../magma/api/text/Characters";
 import { Type } from "../../magma/app/compile/type/Type";
+import { PrimitiveType } from "../../magma/app/compile/type/PrimitiveType";
 import { Invokable } from "../../magma/app/compile/value/Invokable";
 import { Iters } from "../../magma/api/collect/Iters";
 import { ListCollector } from "../../magma/api/collect/list/ListCollector";
@@ -46,6 +47,7 @@ import { OrRule } from "../../magma/app/compile/rule/OrRule";
 import { Lists } from "../../jvm/api/collect/list/Lists";
 import { DivideRule } from "../../magma/app/DivideRule";
 import { ValueFolder } from "../../magma/app/compile/fold/ValueFolder";
+import { Joiner } from "../../magma/api/collect/Joiner";
 export class ValueCompiler {
 	static generateNode(tuple: Tuple2<CompileState, Node>): Tuple2Impl<CompileState, string> {
 		let state = tuple.left()/*unknown*/;
@@ -193,16 +195,26 @@ export class ValueCompiler {
 			return Characters.isDigit(c)/*unknown*/;
 		})/*unknown*/;
 	}
-	static resolve(state: CompileState, value: Node): Type {/*return switch (value) {
-            case Invokable invokable -> invokable.resolve(state);
-            case Lambda lambda -> lambda.resolve(state);
-            case Not not -> not.resolve(state);
-            case Operation operation -> operation.resolve(state);
-            case Placeholder placeholder -> placeholder.resolve(state);
-            case StringNode stringNode -> stringNode.resolve(state);
-            case Symbol symbol -> symbol.resolve(state);
-            default -> PrimitiveType.Unknown;
-        }*/;
+	static resolve(state: CompileState, value: Node): Type {
+		if (/*Objects.requireNonNull(value) instanceof Lambda lambda*/){
+			return lambda.resolve(state)/*unknown*/;
+		}/*
+        else if (value instanceof Not not) {
+            return not.resolve(state);
+        }*//*
+        else if (value instanceof Operation operation) {
+            return operation.resolve(state);
+        }*//*
+        else if (value instanceof Placeholder placeholder) {
+            return placeholder.resolve(state);
+        }*//*
+        else if (value instanceof StringNode stringNode) {
+            return stringNode.resolve(state);
+        }*//*
+        else if (value instanceof Symbol symbol) {
+            return symbol.resolve(state);
+        }*/
+		return PrimitiveType.Unknown/*unknown*/;
 	}
 	static parseNumber(state: CompileState, input: string): Option<Tuple2<CompileState, Node>> {
 		let stripped = Strings.strip(input)/*unknown*/;
@@ -292,7 +304,7 @@ export class ValueCompiler {
 		}/*
 
         else if (value instanceof Invokable invokable) {
-            return invokable.generate();
+            return generate(invokable);
         }*//*
         else if (value instanceof Lambda lambda) {
             return lambda.generate();
@@ -313,5 +325,12 @@ export class ValueCompiler {
             return symbol.generate();
         }*/
 		return "?"/*unknown*/;
+	}
+	static joinArgs(invokable: Invokable): string {
+		return invokable.args().iter().map((value: Node) => generateValue(value)/*unknown*/).collect(new Joiner(", ")).orElse("")/*unknown*/;
+	}
+	static generate(invokable: Invokable): string {
+		let joinedArguments = joinArgs(invokable)/*unknown*/;
+		return getString(invokable.node()) + "(" + joinedArguments + ")"/*unknown*/;
 	}
 }

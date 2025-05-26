@@ -4,6 +4,7 @@ import jvm.api.collect.list.Lists;
 import magma.api.Tuple2;
 import magma.api.Tuple2Impl;
 import magma.api.collect.Iters;
+import magma.api.collect.Joiner;
 import magma.api.collect.head.HeadedIter;
 import magma.api.collect.head.RangeHead;
 import magma.api.collect.list.Iterable;
@@ -46,6 +47,7 @@ import magma.app.compile.value.Placeholder;
 import magma.app.compile.value.StringNode;
 import magma.app.compile.value.Symbol;
 
+import java.util.Objects;
 import java.util.function.Function;
 
 public final class ValueCompiler {
@@ -216,16 +218,25 @@ public final class ValueCompiler {
     }
 
     private static Type resolve(CompileState state, Node value) {
-        return switch (value) {
-            case Invokable invokable -> invokable.resolve(state);
-            case Lambda lambda -> lambda.resolve(state);
-            case Not not -> not.resolve(state);
-            case Operation operation -> operation.resolve(state);
-            case Placeholder placeholder -> placeholder.resolve(state);
-            case StringNode stringNode -> stringNode.resolve(state);
-            case Symbol symbol -> symbol.resolve(state);
-            default -> PrimitiveType.Unknown;
-        };
+        if (Objects.requireNonNull(value) instanceof Lambda lambda) {
+            return lambda.resolve(state);
+        }
+        else if (value instanceof Not not) {
+            return not.resolve(state);
+        }
+        else if (value instanceof Operation operation) {
+            return operation.resolve(state);
+        }
+        else if (value instanceof Placeholder placeholder) {
+            return placeholder.resolve(state);
+        }
+        else if (value instanceof StringNode stringNode) {
+            return stringNode.resolve(state);
+        }
+        else if (value instanceof Symbol symbol) {
+            return symbol.resolve(state);
+        }
+        return PrimitiveType.Unknown;
     }
 
     static Option<Tuple2<CompileState, Node>> parseNumber(CompileState state, String input) {
@@ -356,7 +367,7 @@ public final class ValueCompiler {
         }
 
         else if (value instanceof Invokable invokable) {
-            return invokable.generate();
+            return generate(invokable);
         }
         else if (value instanceof Lambda lambda) {
             return lambda.generate();
@@ -377,5 +388,17 @@ public final class ValueCompiler {
             return symbol.generate();
         }
         return "?";
+    }
+
+    public static String joinArgs(Invokable invokable) {
+        return invokable.args().iter()
+                .map((Node value) -> generateValue(value))
+                .collect(new Joiner(", "))
+                .orElse("");
+    }
+
+    public static String generate(Invokable invokable) {
+        var joinedArguments = joinArgs(invokable);
+        return getString(invokable.node()) + "(" + joinedArguments + ")";
     }
 }
