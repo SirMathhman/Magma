@@ -21,7 +21,6 @@ import { Composable } from "../../magma/app/compile/compose/Composable";
 import { WhitespaceCompiler } from "../../magma/app/WhitespaceCompiler";
 import { TemplateNode } from "../../magma/app/compile/type/TemplateNode";
 import { List } from "../../magma/api/collect/list/List";
-import { FunctionType } from "../../magma/app/compile/type/FunctionType";
 import { Placeholder } from "../../magma/app/compile/type/Placeholder";
 import { Location } from "../../magma/app/Location";
 import { Import } from "../../magma/app/compile/Import";
@@ -29,6 +28,7 @@ import { Registry } from "../../magma/app/compile/Registry";
 import { Source } from "../../magma/app/io/Source";
 import { Platform } from "../../magma/app/Platform";
 import { Dependency } from "../../magma/app/compile/Dependency";
+import { Joiner } from "../../magma/api/collect/Joiner";
 export class TypeCompiler {
 	static compileType(state: CompileState, type: string): Option<Tuple2<CompileState, string>> {
 		return TypeCompiler.parseType(state, type).map((tuple: Tuple2<CompileState, Node>) => {
@@ -108,34 +108,48 @@ export class TypeCompiler {
 			return args.findFirst().and(() => {
 				return args.find(1)/*unknown*/;
 			}).map((tuple: Tuple2<Node, Node>) => {
-				return FunctionType.createFunctionType(Lists.of(tuple.left()), tuple.right())/*unknown*/;
+				List < Node > args1/*unknown*/ = Lists.of(tuple.left())/*unknown*/;
+				let returns: Node = tuple.right()/*unknown*/;
+				return new MapNode("functional").withNodeList("args", args1).withNode("returns", returns)/*unknown*/;
 			})/*unknown*/;
 		}
 		if (Strings.equalsTo("BiFunction", base)/*unknown*/){
-			/*return args.find(0)
-                    .and(() -> {
+			let args1: -> {
                         return args.find(1);
                     })
                     .and(() -> {
                         return args.find(2);
                     })
                     .map(tuple -> {
-                        return FunctionType.createFunctionType(Lists.of(tuple.left().left(), tuple.left().right()), tuple.right());
+                        List<Node> = /* Lists.of(tuple.left().left(), tuple.left().right());
+                        Node returns = tuple.right();
+                        return new MapNode("functional")
+                                .withNodeList("args", args1)
+                                .withNode("returns", returns);
                     })*/;
 		}
 		if (Strings.equalsTo("Supplier", base)/*unknown*/){
-			/*return args.findFirst().map((first) -> {
-                return FunctionType.createFunctionType(Lists.empty(), first);
+			let args1: -> {
+                List<Node> = /* Lists.empty();
+                return new MapNode("functional")
+                        .withNodeList("args", args1)
+                        .withNode("returns", first);
             })*/;
 		}
 		if (Strings.equalsTo("Consumer", base)/*unknown*/){
-			/*return args.findFirst().map((first) -> {
-                return FunctionType.createFunctionType(Lists.of(first), PrimitiveNode.Void);
+			let args1: -> {
+                List<Node> = /* Lists.of(first);
+                return new MapNode("functional")
+                        .withNodeList("args", args1)
+                        .withNode("returns", PrimitiveNode.Void);
             })*/;
 		}
 		if (Strings.equalsTo("Predicate", base)/*unknown*/){
-			/*return args.findFirst().map((first) -> {
-                return FunctionType.createFunctionType(Lists.of(first), PrimitiveNode.Boolean);
+			let args1: -> {
+                List<Node> = /* Lists.of(first);
+                return new MapNode("functional")
+                        .withNodeList("args", args1)
+                        .withNode("returns", PrimitiveNode.Boolean);
             })*/;
 		}
 		return new None<Node>()/*unknown*/;
@@ -200,8 +214,8 @@ export class TypeCompiler {
 		return copy/*unknown*/;
 	}
 	static generateSimple(type: Node): string {
-		if (/*Objects.requireNonNull(type) instanceof FunctionType functionNode*/){
-			return TypeCompiler.generateType(functionNode)/*unknown*/;
+		if (type.is("functional")/*unknown*/){
+			return TypeCompiler.generateType(type)/*unknown*/;
 		}/*
         else if (type instanceof Placeholder placeholder) {
             return placeholder.generateSimple();
@@ -221,7 +235,7 @@ export class TypeCompiler {
 		return "?"/*unknown*/;
 	}
 	static generateBeforeName(type: Node): string {
-		if (/*Objects.requireNonNull(type) instanceof FunctionType functionNode*/){
+		if (type.is("functional")/*unknown*/){
 			return ""/*unknown*/;
 		}/*
         else if (type instanceof Placeholder placeholder) {
@@ -242,15 +256,9 @@ export class TypeCompiler {
 		/*throw new IllegalArgumentException()*/;
 	}
 	static generateType(type: Node): string {
-		if (/*Objects.requireNonNull(type) instanceof FunctionType functionNode*/){
-			let joinedArguments = /* functionNode.args()
-                    .iterWithIndices()
-                    .map((tuple) -> {
-                        return "arg" + tuple.left() + " : " + TypeCompiler.generateType(tuple.right());
-                    })
-                    .collect(new Joiner(", "))
-                    .orElse("")*/;
-			return "(" + joinedArguments + ") => " + TypeCompiler.generateType(functionNode.returns())/*unknown*/;
+		if (type.is("functional")/*unknown*/){
+			let joinedArguments = TypeCompiler.generateFunctionalArguments(type)/*unknown*/;
+			return "(" + joinedArguments + ") => " + TypeCompiler.generateType(type.findNode("returns").orElse(new MapNode()))/*unknown*/;
 		}/*
         else if (type instanceof Placeholder placeholder) {
             return placeholder.generateNode();
@@ -261,17 +269,20 @@ export class TypeCompiler {
         else if (type.is("symbol")) {
             return type.findString("value").orElse("");
         }*//*
-        else if (type instanceof TemplateNode templateNode) {
-            String joined = templateNode.args().iter()
-                    .map(arg -> generateType(arg))
+        else if (type instanceof TemplateNode(String base, List<Node> args)) {
+            String joined = args.iter()
+                    .map((Node arg) -> TypeCompiler.generateType(arg))
                     .collect(new Joiner(", "))
                     .orElse("");
 
-            return templateNode.base() + "<" + joined + ">";
+            return base + "<" + joined + ">";
         }*//*
         else if (type instanceof VariadicType variadicNode) {
             return variadicNode.generateNode();
         }*/
 		return "?"/*unknown*/;
+	}
+	static generateFunctionalArguments(type: Node): string {
+		return type.findNodeList("args").orElse(Lists.empty()).iterWithIndices().map((tuple: Tuple2<number, Node>) => "arg" + tuple.left() + " : " + TypeCompiler.generateType(tuple.right())/*unknown*/).collect(new Joiner(", ")).orElse("")/*unknown*/;
 	}
 }

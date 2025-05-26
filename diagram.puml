@@ -199,9 +199,6 @@ interface Stack {
 }
 class Whitespace {
 }
-class FunctionType {
-}
-FunctionType <|.. Node
 class Placeholder {
 }
 class PrimitiveNode {
@@ -546,8 +543,6 @@ Stack --> Iterable
 Whitespace --> Definition
 Whitespace --> Option
 Whitespace --> None
-FunctionType --> Node
-FunctionType --> Iterable
 Placeholder --> Definition
 Placeholder --> Option
 Placeholder --> None
@@ -790,7 +785,6 @@ TypeCompiler --> Composable
 TypeCompiler --> WhitespaceCompiler
 TypeCompiler --> TemplateNode
 TypeCompiler --> List
-TypeCompiler --> FunctionType
 TypeCompiler --> Placeholder
 TypeCompiler --> Location
 TypeCompiler --> Import
@@ -798,6 +792,7 @@ TypeCompiler --> Registry
 TypeCompiler --> Source
 TypeCompiler --> Platform
 TypeCompiler --> Dependency
+TypeCompiler --> Joiner
 ValueCompiler --> CompileState
 ValueCompiler --> Tuple2Impl
 ValueCompiler --> Node

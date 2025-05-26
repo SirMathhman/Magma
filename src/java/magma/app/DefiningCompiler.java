@@ -12,26 +12,26 @@ import magma.api.option.Option;
 import magma.api.option.Some;
 import magma.api.text.Strings;
 import magma.app.compile.CompileState;
+import magma.app.compile.DivideState;
 import magma.app.compile.compose.Composable;
 import magma.app.compile.compose.SplitComposable;
 import magma.app.compile.compose.SuffixComposable;
-import magma.app.compile.fold.DelimitedFolder;
-import magma.app.compile.DivideState;
 import magma.app.compile.define.Definition;
 import magma.app.compile.define.Parameter;
-import magma.app.compile.select.Selector;
-import magma.app.compile.split.FoldingSplitter;
-import magma.app.compile.split.Splitter;
-import magma.app.compile.text.Whitespace;
-import magma.app.compile.node.Node;
-import magma.app.compile.type.Placeholder;
 import magma.app.compile.divide.FoldedDivider;
 import magma.app.compile.fold.DecoratedFolder;
+import magma.app.compile.fold.DelimitedFolder;
 import magma.app.compile.fold.TypeSeparatorFolder;
 import magma.app.compile.fold.ValueFolder;
 import magma.app.compile.locate.FirstLocator;
+import magma.app.compile.node.Node;
 import magma.app.compile.select.LastSelector;
+import magma.app.compile.select.Selector;
+import magma.app.compile.split.FoldingSplitter;
 import magma.app.compile.split.LocatingSplitter;
+import magma.app.compile.split.Splitter;
+import magma.app.compile.text.Whitespace;
+import magma.app.compile.type.Placeholder;
 
 final class DefiningCompiler {
     public static Iterable<Definition> retainDefinitionsFromParameters(Iterable<Parameter> parameters) {
@@ -123,9 +123,9 @@ final class DefiningCompiler {
         return new SuffixComposable<Tuple2<CompileState, Definition>>(">", (String withoutNodeParamEnd) -> {
             Splitter splitter = new LocatingSplitter("<", new FirstLocator());
             return new SplitComposable<Tuple2<CompileState, Definition>>(splitter, Composable.toComposable((String beforeNodeParams, String typeParamsString) -> {
-                    var typeParams = DefiningCompiler.divideNodes(typeParamsString);
-                    return DefiningCompiler.parseDefinitionWithNodeParameters(state, annotations, typeParams, DefiningCompiler.parseModifiers(beforeNodeParams), type, name);
-                })).apply(withoutNodeParamEnd);
+                var typeParams = DefiningCompiler.divideNodes(typeParamsString);
+                return DefiningCompiler.parseDefinitionWithNodeParameters(state, annotations, typeParams, DefiningCompiler.parseModifiers(beforeNodeParams), type, name);
+            })).apply(withoutNodeParamEnd);
         }).apply(Strings.strip(beforeNode)).or(() -> {
             var divided = DefiningCompiler.parseModifiers(beforeNode);
             return DefiningCompiler.parseDefinitionWithNodeParameters(state, annotations, Lists.empty(), divided, type, name);

@@ -22,14 +22,11 @@ import magma.app.compile.node.Node;
 import magma.app.compile.rule.OrRule;
 import magma.app.compile.split.LocatingSplitter;
 import magma.app.compile.split.Splitter;
-import magma.app.compile.type.FunctionType;
 import magma.app.compile.type.Placeholder;
 import magma.app.compile.type.PrimitiveNode;
 import magma.app.compile.type.TemplateNode;
 import magma.app.compile.type.VariadicType;
 import magma.app.io.Source;
-
-import java.util.Objects;
 
 public final class TypeCompiler {
     public static Option<Tuple2<CompileState, String>> compileType(CompileState state, String type) {
@@ -133,7 +130,11 @@ public final class TypeCompiler {
                         return args.find(1);
                     })
                     .map((Tuple2<Node, Node> tuple) -> {
-                        return FunctionType.createFunctionType(Lists.of(tuple.left()), tuple.right());
+                        List<Node> args1 = Lists.of(tuple.left());
+                        Node returns = tuple.right();
+                        return new MapNode("functional")
+                                .withNodeList("args", args1)
+                                .withNode("returns", returns);
                     });
         }
 
@@ -146,25 +147,38 @@ public final class TypeCompiler {
                         return args.find(2);
                     })
                     .map(tuple -> {
-                        return FunctionType.createFunctionType(Lists.of(tuple.left().left(), tuple.left().right()), tuple.right());
+                        List<Node> args1 = Lists.of(tuple.left().left(), tuple.left().right());
+                        Node returns = tuple.right();
+                        return new MapNode("functional")
+                                .withNodeList("args", args1)
+                                .withNode("returns", returns);
                     });
         }
 
         if (Strings.equalsTo("Supplier", base)) {
             return args.findFirst().map((first) -> {
-                return FunctionType.createFunctionType(Lists.empty(), first);
+                List<Node> args1 = Lists.empty();
+                return new MapNode("functional")
+                        .withNodeList("args", args1)
+                        .withNode("returns", first);
             });
         }
 
         if (Strings.equalsTo("Consumer", base)) {
             return args.findFirst().map((first) -> {
-                return FunctionType.createFunctionType(Lists.of(first), PrimitiveNode.Void);
+                List<Node> args1 = Lists.of(first);
+                return new MapNode("functional")
+                        .withNodeList("args", args1)
+                        .withNode("returns", PrimitiveNode.Void);
             });
         }
 
         if (Strings.equalsTo("Predicate", base)) {
             return args.findFirst().map((first) -> {
-                return FunctionType.createFunctionType(Lists.of(first), PrimitiveNode.Boolean);
+                List<Node> args1 = Lists.of(first);
+                return new MapNode("functional")
+                        .withNodeList("args", args1)
+                        .withNode("returns", PrimitiveNode.Boolean);
             });
         }
 
@@ -250,8 +264,8 @@ public final class TypeCompiler {
     }
 
     public static String generateSimple(Node type) {
-        if (Objects.requireNonNull(type) instanceof FunctionType functionNode) {
-            return TypeCompiler.generateType(functionNode);
+        if (type.is("functional")) {
+            return TypeCompiler.generateType(type);
         }
         else if (type instanceof Placeholder placeholder) {
             return placeholder.generateSimple();
@@ -273,7 +287,7 @@ public final class TypeCompiler {
     }
 
     public static String generateBeforeName(Node type) {
-        if (Objects.requireNonNull(type) instanceof FunctionType functionNode) {
+        if (type.is("functional")) {
             return "";
         }
         else if (type instanceof Placeholder placeholder) {
@@ -295,16 +309,9 @@ public final class TypeCompiler {
     }
 
     public static String generateType(Node type) {
-        if (Objects.requireNonNull(type) instanceof FunctionType functionNode) {
-            var joinedArguments = functionNode.args()
-                    .iterWithIndices()
-                    .map((tuple) -> {
-                        return "arg" + tuple.left() + " : " + TypeCompiler.generateType(tuple.right());
-                    })
-                    .collect(new Joiner(", "))
-                    .orElse("");
-
-            return "(" + joinedArguments + ") => " + TypeCompiler.generateType(functionNode.returns());
+        if (type.is("functional")) {
+            var joinedArguments = TypeCompiler.generateFunctionalArguments(type);
+            return "(" + joinedArguments + ") => " + TypeCompiler.generateType(type.findNode("returns").orElse(new MapNode()));
         }
         else if (type instanceof Placeholder placeholder) {
             return placeholder.generateNode();
@@ -315,17 +322,25 @@ public final class TypeCompiler {
         else if (type.is("symbol")) {
             return type.findString("value").orElse("");
         }
-        else if (type instanceof TemplateNode templateNode) {
-            String joined = templateNode.args().iter()
-                    .map(arg -> generateType(arg))
+        else if (type instanceof TemplateNode(String base, List<Node> args)) {
+            String joined = args.iter()
+                    .map((Node arg) -> TypeCompiler.generateType(arg))
                     .collect(new Joiner(", "))
                     .orElse("");
 
-            return templateNode.base() + "<" + joined + ">";
+            return base + "<" + joined + ">";
         }
         else if (type instanceof VariadicType variadicNode) {
             return variadicNode.generateNode();
         }
         return "?";
+    }
+
+    private static String generateFunctionalArguments(Node type) {
+        return type.findNodeList("args").orElse(Lists.empty())
+                .iterWithIndices()
+                .map((Tuple2<Integer, Node> tuple) -> "arg" + tuple.left() + " : " + TypeCompiler.generateType(tuple.right()))
+                .collect(new Joiner(", "))
+                .orElse("");
     }
 }
