@@ -23,6 +23,15 @@ public record Lambda(Iterable<Definition> paramNames, String content) implements
         return "(" + joinedParamNames + ")" + " => " + this.content;
     }
 
+    public Option<Value> toValue() {
+        return new Some<Value>(this);
+    }
+
+    @Override
+    public Option<Value> findChild() {
+        return new None<Value>();
+    }
+
     public Type resolve(CompileState state) {
         return PrimitiveType.Unknown;
     }
