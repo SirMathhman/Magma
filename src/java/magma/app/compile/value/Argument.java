@@ -1,6 +1,10 @@
 package magma.app.compile.value;
 
-public sealed interface Argument extends Node permits Value {
+import magma.api.option.Option;
+
+public interface Argument extends Node {
+    Option<Value> toValue();
+
     @Override
     default boolean is(String type) {
         return false;

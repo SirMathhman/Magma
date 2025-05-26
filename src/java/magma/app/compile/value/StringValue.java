@@ -13,6 +13,7 @@ public record StringValue(String value) implements Value {
         return "\"" + this.value + "\"";
     }
 
+    @Override
     public Option<Value> toValue() {
         return new Some<Value>(this);
     }

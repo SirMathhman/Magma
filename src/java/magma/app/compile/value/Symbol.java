@@ -22,6 +22,7 @@ public record Symbol(String value) implements Value, Type {
                 .orElse(PrimitiveType.Unknown);
     }
 
+    @Override
     public Option<Value> toValue() {
         return new Some<Value>(this);
     }

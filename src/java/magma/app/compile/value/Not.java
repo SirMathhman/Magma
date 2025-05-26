@@ -13,6 +13,7 @@ public record Not(String child) implements Value {
         return this.child;
     }
 
+    @Override
     public Option<Value> toValue() {
         return new Some<Value>(this);
     }

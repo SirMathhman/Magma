@@ -88,7 +88,6 @@
 	Caller: magma.app.compile.value, 
 	Invokable: magma.app.compile.value, 
 	Lambda: magma.app.compile.value, 
-	Node: magma.app.compile.value, 
 	Not: magma.app.compile.value, 
 	Operation: magma.app.compile.value, 
 	Placeholder: magma.app.compile.value, 
@@ -126,6 +125,7 @@ import { SplitComposable } from "../../magma/app/compile/compose/SplitComposable
 import { LastSelector } from "../../magma/app/compile/select/LastSelector";
 import { Selector } from "../../magma/app/compile/select/Selector";
 import { FoldingSplitter } from "../../magma/app/compile/split/FoldingSplitter";
+import { DivideState } from "../../magma/app/compile/DivideState";
 import { Composable } from "../../magma/app/compile/compose/Composable";
 import { PrefixComposable } from "../../magma/app/compile/compose/PrefixComposable";
 import { TypeCompiler } from "../../magma/app/TypeCompiler";
@@ -156,10 +156,8 @@ import { HeadedIter } from "../../magma/api/collect/head/HeadedIter";
 import { RangeHead } from "../../magma/api/collect/head/RangeHead";
 import { Characters } from "../../magma/api/text/Characters";
 import { Type } from "../../magma/app/compile/type/Type";
-import { PrimitiveType } from "../../magma/app/compile/type/PrimitiveType";
 import { Argument } from "../../magma/app/compile/value/Argument";
 import { Caller } from "../../magma/app/compile/value/Caller";
-import { DivideState } from "../../magma/app/compile/DivideState";
 import { Invokable } from "../../magma/app/compile/value/Invokable";
 import { Iters } from "../../magma/api/collect/Iters";
 import { ListCollector } from "../../magma/api/collect/list/ListCollector";
@@ -179,7 +177,9 @@ export class ValueCompiler {
 		return new SuffixComposable<Tuple2<CompileState, Value>>(")", (withoutEnd: string) => {
 			return new SplitComposable<Tuple2<CompileState, Value>>((withoutEnd0: string) => {
 				let selector: Selector = new LastSelector("")/*unknown*/;
-				return new FoldingSplitter(ValueCompiler.foldInvocationStarts, selector).apply(withoutEnd0)/*unknown*/;
+				return new FoldingSplitter((state1: DivideState, c: string) => {
+					return ValueCompiler.foldInvocationStarts(state1, c)/*unknown*/;
+				}, selector).apply(withoutEnd0)/*unknown*/;
 			}, Composable.toComposable((callerWithArgStart: string, args: string) => {
 				return new SuffixComposable<Tuple2<CompileState, Value>>("(", (callerString: string) => {
 					return new PrefixComposable<Tuple2<CompileState, Value>>("new ", (type: string) => {
@@ -189,7 +189,7 @@ export class ValueCompiler {
 							return ValueCompiler.assembleInvokable(caller, new ConstructionCaller(callerState), args)/*unknown*/;
 						})/*unknown*/;
 					}).apply(Strings.strip(callerString)).or(() => {
-						return ValueCompiler.parseValue(state, callerString).flatMap((callerTuple: Tuple2<CompileState, Value>) => {
+						return parseValue(state, callerString).flatMap((callerTuple: Tuple2<CompileState, Value>) => {
 							return ValueCompiler.assembleInvokable(callerTuple.left(), callerTuple.right(), args)/*unknown*/;
 						})/*unknown*/;
 					})/*unknown*/;
@@ -221,7 +221,9 @@ export class ValueCompiler {
 			let strippedBeforeArrow = Strings.strip(beforeArrow)/*unknown*/;
 			return new PrefixComposable<Tuple2<CompileState, Value>>("(", (withoutStart: string) => {
 				return new SuffixComposable<Tuple2<CompileState, Value>>(")", (withoutEnd: string) => {
-					return ValueCompiler.values(DefiningCompiler.parseParameter).apply(state, withoutEnd).flatMap((paramNames: Tuple2<CompileState, List<Parameter>>) => {
+					return values((state1: CompileState, s: string) => {
+						return DefiningCompiler.parseParameter(state1, s)/*unknown*/;
+					}).apply(state, withoutEnd).flatMap((paramNames: Tuple2<CompileState, List<Parameter>>) => {
 						return ValueCompiler.compileLambdaWithParameterNames(paramNames.left(), DefiningCompiler.retainDefinitionsFromParameters(paramNames.right()), afterArrow)/*unknown*/;
 					})/*unknown*/;
 				}).apply(withoutStart)/*unknown*/;
@@ -260,7 +262,7 @@ export class ValueCompiler {
 				if (!ValueCompiler/*unknown*/.isSymbol(property)/*unknown*/){
 					return new None<Tuple2<CompileState, Value>>()/*unknown*/;
 				}
-				return ValueCompiler.parseValue(state, childString).flatMap((childTuple: Tuple2<CompileState, Value>) => {
+				return parseValue(state, childString).flatMap((childTuple: Tuple2<CompileState, Value>) => {
 					let childState = childTuple.left()/*unknown*/;
 					let child = childTuple.right()/*unknown*/;
 					return new Some<Tuple2<CompileState, Value>>(new Tuple2Impl<CompileState, Value>(childState, new AccessValue(child, property)))/*unknown*/;
@@ -275,8 +277,8 @@ export class ValueCompiler {
 					return new FirstSelector(sourceInfix).select(divisions)/*unknown*/;
 				}).apply(slice)/*unknown*/;
 			}, Composable.toComposable((leftString: string, rightString: string) => {
-				return ValueCompiler.parseValue(state1, leftString).flatMap((leftTuple: Tuple2<CompileState, Value>) => {
-					return ValueCompiler.parseValue(leftTuple.left(), rightString).flatMap((rightTuple: Tuple2<CompileState, Value>) => {
+				return parseValue(state1, leftString).flatMap((leftTuple: Tuple2<CompileState, Value>) => {
+					return parseValue(leftTuple.left(), rightString).flatMap((rightTuple: Tuple2<CompileState, Value>) => {
 						let left = leftTuple.right()/*unknown*/;
 						let right = rightTuple.right()/*unknown*/;
 						return new Some<Tuple2<CompileState, Value>>(new Tuple2Impl<CompileState, Value>(rightTuple.left(), new Operation(left, targetInfix, right)))/*unknown*/;
@@ -306,35 +308,20 @@ export class ValueCompiler {
 	}
 	static isNumber(input: string): boolean {
 		let query = new HeadedIter<number>(new RangeHead(Strings.length(input)))/*unknown*/;
-		return query.map(input.charAt).allMatch(Characters.isDigit)/*unknown*/;
+		return query.map(input.charAt).allMatch((c: string) => {
+			return Characters.isDigit(c)/*unknown*/;
+		})/*unknown*/;
 	}
-	static resolve(state: CompileState, value: Value): Type {
-		if (value.is("access")/*unknown*/){
-			return PrimitiveType.Unknown/*unknown*/;
-		}/*
-
-        else if (value instanceof Invokable invokable) {
-            return invokable.resolve(state);
-        }*//*
-        else if (value instanceof Lambda lambda) {
-            return lambda.resolve(state);
-        }*//*
-        else if (value instanceof Not not) {
-            return not.resolve(state);
-        }*//*
-        else if (value instanceof Operation operation) {
-            return operation.resolve(state);
-        }*//*
-        else if (value instanceof Placeholder placeholder) {
-            return placeholder.resolve(state);
-        }*//*
-        else if (value instanceof StringValue stringValue) {
-            return stringValue.resolve(state);
-        }*//*
-        else if (value instanceof Symbol symbol) {
-            return symbol.resolve(state);
-        }*/
-		/*throw new IllegalArgumentException(value.toString())*/;
+	static resolve(state: CompileState, value: Value): Type {/*return switch (value) {
+            case AccessValue accessValue -> accessValue.resolve(state);
+            case Invokable invokable -> invokable.resolve(state);
+            case Lambda lambda -> lambda.resolve(state);
+            case Not not -> not.resolve(state);
+            case Operation operation -> operation.resolve(state);
+            case Placeholder placeholder -> placeholder.resolve(state);
+            case StringValue stringValue -> stringValue.resolve(state);
+            case Symbol symbol -> symbol.resolve(state);
+        }*/;
 	}
 	static parseNumber(state: CompileState, input: string): Option<Tuple2<CompileState, Value>> {
 		let stripped = Strings.strip(input)/*unknown*/;
@@ -351,10 +338,12 @@ export class ValueCompiler {
 		})/*unknown*/;
 	}
 	static compileValue(state: CompileState, input: string): Option<Tuple2<CompileState, string>> {
-		return ValueCompiler.parseValue(state, input).map(ValueCompiler.generateValue)/*unknown*/;
+		return parseValue(state, input).map((tuple: Tuple2<CompileState, Value>) => {
+			return ValueCompiler.generateValue(tuple)/*unknown*/;
+		})/*unknown*/;
 	}
 	static parseArgument(state1: CompileState, input: string): Option<Tuple2<CompileState, Argument>> {
-		return ValueCompiler.parseValue(state1, input).map((tuple: Tuple2<CompileState, Value>) => {
+		return parseValue(state1, input).map((tuple: Tuple2<CompileState, Value>) => {
 			return new Tuple2Impl<CompileState, Argument>(tuple.left(), tuple.right())/*unknown*/;
 		})/*unknown*/;
 	}
@@ -384,24 +373,22 @@ export class ValueCompiler {
 		return appended/*unknown*/;
 	}
 	static assembleInvokable(state: CompileState, oldCaller: Caller, argsString: string): Option<Tuple2<CompileState, Value>> {
-		return ValueCompiler.values(ValueCompiler.parseArgument).apply(state, argsString).flatMap((argsTuple: Tuple2<CompileState, List<Argument>>) => {
+		return values((state1: CompileState, s: string) => {
+			return ValueCompiler.parseArgument(state1, s)/*unknown*/;
+		}).apply(state, argsString).flatMap((argsTuple: Tuple2<CompileState, List<Argument>>) => {
 			let argsState = argsTuple.left()/*unknown*/;
-			let args = ValueCompiler.retain(argsTuple.right(), ValueCompiler.asValue)/*unknown*/;
+			let args = retain(argsTuple.right(), (argument: Argument) => {
+				return argument.toValue()/*unknown*/;
+			})/*unknown*/;
 			let newCaller = ValueCompiler.transformCaller(argsState, oldCaller)/*unknown*/;
 			return new Some<Tuple2<CompileState, Value>>(new Tuple2Impl<CompileState, Value>(argsState, new Invokable(newCaller, args)))/*unknown*/;
 		})/*unknown*/;
-	}
-	static asValue(argument: Argument): Option<Value> {
-		if (/*argument instanceof Value value*/){
-			return new Some<>(value)/*unknown*/;
-		}
-		return new None<>()/*unknown*/;
 	}
 	static retain<T, R>(args: Iterable<T>, mapper: (arg0 : T) => Option<R>): Iterable<R> {
 		return args.iter().map(mapper).flatMap(Iters.fromOption).collect(new ListCollector<R>())/*unknown*/;
 	}
 	static parseValue(state: CompileState, input: string): Option<Tuple2<CompileState, Value>> {
-		return new OrRule<Value>(Lists.of(ValueCompiler.parseLambda, ValueCompiler.createOperatorRule("+"), ValueCompiler.createOperatorRule("-"), ValueCompiler.createOperatorRule("<="), ValueCompiler.createOperatorRule("<"), ValueCompiler.createOperatorRule("&&"), ValueCompiler.createOperatorRule("||"), ValueCompiler.createOperatorRule(">"), ValueCompiler.createOperatorRule(">="), ValueCompiler.parseInvokable, ValueCompiler.createAccessRule("."), ValueCompiler.createAccessRule("::"), ValueCompiler.parseSymbol, ValueCompiler.parseNot, ValueCompiler.parseNumber, ValueCompiler.createOperatorRuleWithDifferentInfix("==", "==="), ValueCompiler.createOperatorRuleWithDifferentInfix("!=", "!=="), ValueCompiler.createTextRule("\""), ValueCompiler.createTextRule("'"))).apply(state, input)/*unknown*/;
+		return new OrRule<Value>(Lists.of(ValueCompiler.parseLambda, createOperatorRule("+"), createOperatorRule("-"), createOperatorRule("<="), createOperatorRule("<"), createOperatorRule("&&"), createOperatorRule("||"), createOperatorRule(">"), createOperatorRule(">="), ValueCompiler.parseInvokable, createAccessRule("."), createAccessRule("::"), ValueCompiler.parseSymbol, ValueCompiler.parseNot, ValueCompiler.parseNumber, createOperatorRuleWithDifferentInfix("==", "==="), createOperatorRuleWithDifferentInfix("!=", "!=="), createTextRule("\""), createTextRule("'"))).apply(state, input)/*unknown*/;
 	}
 	static values<T>(mapper: Rule<T>): Rule<List<T>> {
 		return new DivideRule<>(new ValueFolder(), mapper)/*unknown*/;
