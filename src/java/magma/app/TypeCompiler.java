@@ -15,27 +15,30 @@ import magma.app.compile.Import;
 import magma.app.compile.Registry;
 import magma.app.compile.compose.Composable;
 import magma.app.compile.compose.SplitComposable;
+import magma.app.compile.compose.SuffixComposable;
 import magma.app.compile.define.Placeholders;
 import magma.app.compile.locate.FirstLocator;
 import magma.app.compile.node.MapNode;
 import magma.app.compile.node.Node;
 import magma.app.compile.rule.StatefulOrRule;
-import magma.app.compile.rule.SuffixRule;
 import magma.app.compile.split.LocatingSplitter;
 import magma.app.compile.split.Splitter;
 import magma.app.compile.text.Symbols;
 import magma.app.compile.type.Primitives;
-import magma.app.compile.type.Variadics;
 import magma.app.io.Source;
 
 public final class TypeCompiler {
     public static Option<Tuple2<CompileState, String>> compileType(CompileState state, String type) {
-        return TypeCompiler.lexType(type).flatMap((Node content) -> TypeCompiler.parseType(state, content)).map((Tuple2<CompileState, Node> tuple) -> {
+        return TypeCompiler.lexAndParseType(state, type).map((Tuple2<CompileState, Node> tuple) -> {
             return new Tuple2Impl<CompileState, String>(tuple.left(), TypeCompiler.generateType(tuple.right()));
         });
     }
 
-    public static Option<Tuple2<CompileState, Node>> parseType(CompileState state, Node content) {
+    public static Option<Tuple2<CompileState, Node>> lexAndParseType(CompileState state, String value) {
+        return TypeCompiler.lexType(value).flatMap((Node content) -> TypeCompiler.parseType(state, content));
+    }
+
+    private static Option<Tuple2<CompileState, Node>> parseType(CompileState state, Node content) {
         String value = content.findString("value").orElse("");
         return new StatefulOrRule<Node>(Lists.of(
                 TypeCompiler::parseVarArgs,
@@ -45,17 +48,18 @@ public final class TypeCompiler {
         )).apply(state, value);
     }
 
-    public static Option<Node> lexType(String value) {
-        return new Some<Node>(new MapNode("content").withString("value", value));
+    private static Option<Node> lexType(String value) {
+        return new Some<>(new MapNode("content").withString("value", value));
     }
 
     private static Option<Tuple2<CompileState, Node>> parseVarArgs(CompileState state, String input) {
-        return Variadics.createVariadicRule().lex(input).flatMap(type -> {
-            Node child = type.findNode("child").orElse(new MapNode());
-            return TypeCompiler.parseType(state, child).map(parsed -> {
-                return new Tuple2Impl<CompileState, Node>(parsed.left(), type.withNode("child", parsed.right()));
-            });
-        });
+        var stripped = Strings.strip(input);
+        return new SuffixComposable<Tuple2<CompileState, Node>>("...", (String s) -> {
+            var child = TypeCompiler.parseNodeOrPlaceholder(state, s);
+            Node type = child.right();
+            return new Some<Tuple2<CompileState, Node>>(new Tuple2Impl<CompileState, Node>(child.left(), new MapNode("variadic")
+                    .withNode("child", type)));
+        }).apply(stripped);
     }
 
     private static Some<Tuple2<CompileState, Node>> parseSymbolType(CompileState state, Node node) {
@@ -64,23 +68,23 @@ public final class TypeCompiler {
     }
 
     private static Option<Tuple2<CompileState, Node>> parsePrimitiveType(CompileState state, Node result) {
-        return new Some<Tuple2<CompileState, Node>>(new Tuple2Impl<CompileState, Node>(state, result));
+        return new Some<>(new Tuple2Impl<CompileState, Node>(state, result));
     }
 
     private static Option<Tuple2<CompileState, Node>> parseGeneric(CompileState state, String input) {
-        return new SuffixRule<Tuple2<CompileState, Node>>(">", (String withoutEnd) -> {
+        return new SuffixComposable<Tuple2<CompileState, Node>>(">", (String withoutEnd) -> {
             Splitter splitter = new LocatingSplitter("<", new FirstLocator());
             return new SplitComposable<Tuple2<CompileState, Node>>(splitter, Composable.toComposable((String baseString, String argsString) -> {
                 var argsTuple = ValueCompiler.values((CompileState state1, String s) -> {
                     return new StatefulOrRule<Node>(Lists.of(
                             (CompileState state2, String input1) -> {
-                                return WhitespaceCompiler.parseWhitespace(state2, input1).map(type -> new Tuple2Impl<CompileState, Node>(type.left(), type.right()));
+                                return WhitespaceCompiler.parseWhitespace(state2, input1).map(type -> new Tuple2Impl<>(type.left(), type.right()));
                             },
                             (CompileState state2, String type) -> {
-                                return TypeCompiler.lexType(type).flatMap((Node content) -> TypeCompiler.parseType(state2, content));
+                                return TypeCompiler.lexAndParseType(state2, type);
                             }
                     )).apply(state1, s);
-                }).apply(state, argsString).orElse(new Tuple2Impl<CompileState, List<Node>>(state, Lists.empty()));
+                }).apply(state, argsString).orElse(new Tuple2Impl<>(state, Lists.empty()));
                 var argsState = argsTuple.left();
                 var args = argsTuple.right();
 
@@ -92,7 +96,7 @@ public final class TypeCompiler {
                             .withNodeList("args", args)));
                 });
             })).apply(withoutEnd);
-        }).lex(Strings.strip(input));
+        }).apply(Strings.strip(input));
     }
 
     private static Option<Tuple2<CompileState, Node>> assembleFunctionNode(CompileState state, String base, List<Node> args) {
@@ -160,6 +164,16 @@ public final class TypeCompiler {
         }
 
         return new None<Node>();
+    }
+
+    private static Tuple2<CompileState, Node> parseNodeOrPlaceholder(CompileState state, String type) {
+        return TypeCompiler.lexAndParseType(state, type)
+                .map((Tuple2<CompileState, Node> tuple) -> {
+                    return new Tuple2Impl<CompileState, Node>(tuple.left(), tuple.right());
+                })
+                .orElseGet(() -> {
+                    return new Tuple2Impl<CompileState, Node>(state, new MapNode("placeholder").withString("value", type));
+                });
     }
 
     private static CompileState getState(CompileState immutableCompileState, Location location) {
@@ -272,8 +286,7 @@ public final class TypeCompiler {
         else if (type.is("variadic")) {
             return "...";
         }
-
-        return "?";
+        throw new IllegalArgumentException();
     }
 
     public static String generateType(Node type) {

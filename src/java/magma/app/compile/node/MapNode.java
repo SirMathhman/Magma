@@ -52,14 +52,12 @@ public record MapNode(
         }
     }
 
-    @Override
-    public Node withNode(String key, Node value) {
+    public MapNode withNode(String key, Node value) {
         this.nodes.put(key, value);
         return this;
     }
 
-    @Override
-    public Node withString(String key, String value) {
+    public MapNode withString(String key, String value) {
         this.strings.put(key, value);
         return this;
     }
@@ -74,7 +72,6 @@ public record MapNode(
         }
     }
 
-    @Override
     public MapNode withNodeList(String key, List<Node> values) {
         this.nodeLists.put(key, values);
         return this;

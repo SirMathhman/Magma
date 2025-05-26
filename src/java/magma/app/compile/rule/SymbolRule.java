@@ -8,7 +8,7 @@ import magma.api.text.Characters;
 import magma.api.text.Strings;
 import magma.app.compile.node.Node;
 
-public record SymbolRule(TypeRule childRule) implements Rule<Node> {
+public record SymbolRule(TypeRule childRule) implements Rule {
     public static boolean isSymbol(String input) {
         var query = new HeadedIter<Integer>(new RangeHead(Strings.length(input)));
         return query.allMatch((Integer index) -> {

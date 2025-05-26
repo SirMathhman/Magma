@@ -8,20 +8,11 @@ export interface Node {
 	findString(key: string): Option<string> {
 		return new None<?>()/*unknown*/;
 	}
-	withNode(key: string, value: Node): Node {
-		return this/*unknown*/;
-	}
-	withString(key: string, value: string): Node {
-		return this/*unknown*/;
-	}
 	findNodeList(key: string): Option<List<Node>> {
 		return new None<?>()/*unknown*/;
 	}
 	is(type: string): boolean;
 	retype(type: string): Node {
-		return this/*unknown*/;
-	}
-	withNodeList(key: string, values: List<Node>): Node {
 		return this/*unknown*/;
 	}
 }

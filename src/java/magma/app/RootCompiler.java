@@ -16,7 +16,7 @@ import magma.app.compile.Registry;
 import magma.app.compile.Stack;
 import magma.app.compile.compose.Composable;
 import magma.app.compile.compose.SplitComposable;
-import magma.app.compile.rule.SuffixRule;
+import magma.app.compile.compose.SuffixComposable;
 import magma.app.compile.define.Definition;
 import magma.app.compile.locate.FirstLocator;
 import magma.app.compile.node.Node;
@@ -42,7 +42,7 @@ public final class RootCompiler {
         return (CompileState state, String input1) -> {
             return new SplitComposable<Tuple2<CompileState, String>>(new LocatingSplitter(sourceInfix, new FirstLocator()), Composable.toComposable((String beforeInfix, String afterInfix) -> {
                 return new SplitComposable<Tuple2<CompileState, String>>(new LocatingSplitter("{", new FirstLocator()), Composable.toComposable((String beforeContent, String withEnd) -> {
-                    return new SuffixRule<Tuple2<CompileState, String>>("}", (String inputContent) -> {
+                    return new SuffixComposable<Tuple2<CompileState, String>>("}", (String inputContent) -> {
                         return SplitComposable.compileLast(beforeInfix, "\n", (String s, String s2) -> {
                             var annotations = DefiningCompiler.parseAnnotations(s);
                             if (annotations.contains("Actual")) {
@@ -54,7 +54,7 @@ public final class RootCompiler {
                             var modifiers = DefiningCompiler.parseModifiers(beforeContent);
                             return RootCompiler.compileStructureWithImplementing(state, Lists.empty(), modifiers, targetInfix, beforeContent, inputContent);
                         });
-                    }).lex(Strings.strip(withEnd));
+                    }).apply(Strings.strip(withEnd));
                 })).apply(afterInfix);
             })).apply(input1);
         };
@@ -62,7 +62,7 @@ public final class RootCompiler {
 
     private static Option<Tuple2<CompileState, String>> compileStructureWithImplementing(CompileState state, List<String> annotations, List<String> modifiers, String targetInfix, String beforeContent, String content) {
         return SplitComposable.compileLast(beforeContent, " implements ", (String s, String s2) -> {
-            return TypeCompiler.lexType(s2).flatMap((Node content1) -> TypeCompiler.parseType(state, content1)).flatMap((Tuple2<CompileState, Node> implementingTuple) -> {
+            return TypeCompiler.lexAndParseType(state, s2).flatMap((Tuple2<CompileState, Node> implementingTuple) -> {
                 return RootCompiler.compileStructureWithExtends(implementingTuple.left(), annotations, modifiers, targetInfix, s, new Some<Node>(implementingTuple.right()), content);
             });
         }).or(() -> {
@@ -74,7 +74,7 @@ public final class RootCompiler {
         Splitter splitter = new LocatingSplitter(" extends ", new FirstLocator());
         return new SplitComposable<Tuple2<CompileState, String>>(splitter, Composable.toComposable((String beforeExtends, String afterExtends) -> {
             return ValueCompiler.values((CompileState inner0, String inner1) -> {
-                        return TypeCompiler.lexType(inner1).flatMap((Node content) -> TypeCompiler.parseType(inner0, content));
+                        return TypeCompiler.lexAndParseType(inner0, inner1);
                     }).apply(state, afterExtends)
                     .flatMap((Tuple2<CompileState, List<Node>> compileStateListTuple2) -> {
                         return RootCompiler.compileStructureWithParameters(compileStateListTuple2.left(), annotations, modifiers, targetInfix, beforeExtends, compileStateListTuple2.right(), maybeImplementing, inputContent);
@@ -102,13 +102,13 @@ public final class RootCompiler {
     }
 
     private static Option<Tuple2<CompileState, String>> compileStructureWithNodeParams(CompileState state, String infix, String content, String beforeParams, Iterable<Definition> parameters, Option<Node> maybeImplementing, List<String> annotations, List<String> modifiers, Iterable<Node> maybeSuperNode) {
-        return new SuffixRule<Tuple2<CompileState, String>>(">", (String withoutNodeParamEnd) -> {
+        return new SuffixComposable<Tuple2<CompileState, String>>(">", (String withoutNodeParamEnd) -> {
             Splitter splitter = new LocatingSplitter("<", new FirstLocator());
             return new SplitComposable<Tuple2<CompileState, String>>(splitter, Composable.toComposable((String name, String typeParamsString) -> {
                 var typeParams = DefiningCompiler.divideNodes(typeParamsString);
                 return RootCompiler.assembleStructure(state, annotations, modifiers, infix, name, typeParams, parameters, maybeImplementing, content, maybeSuperNode);
             })).apply(withoutNodeParamEnd);
-        }).lex(Strings.strip(beforeParams)).or(() -> {
+        }).apply(Strings.strip(beforeParams)).or(() -> {
             return RootCompiler.assembleStructure(state, annotations, modifiers, infix, beforeParams, Lists.empty(), parameters, maybeImplementing, content, maybeSuperNode);
         });
     }
