@@ -2,10 +2,10 @@ package magma.app.compile.value;
 
 import magma.api.option.Option;
 import magma.api.option.Some;
+import magma.app.TypeCompiler;
 import magma.app.ValueCompiler;
 import magma.app.compile.CompileState;
 import magma.app.compile.node.Node;
-import magma.app.compile.type.PrimitiveType;
 
 public record Operation(Node left, String targetInfix, Node right) implements Node {
     public String generate() {
@@ -17,7 +17,7 @@ public record Operation(Node left, String targetInfix, Node right) implements No
     }
 
     public Node resolve(CompileState state) {
-        return PrimitiveType.Unknown;
+        return TypeCompiler.Unknown;
     }
 
 

@@ -12,7 +12,6 @@ import { VariadicType } from "../../magma/app/compile/type/VariadicType";
 import { ValueCompiler } from "../../magma/app/ValueCompiler";
 import { MapNode } from "../../magma/app/compile/node/MapNode";
 import { None } from "../../magma/api/option/None";
-import { PrimitiveType } from "../../magma/app/compile/type/PrimitiveType";
 import { LocatingSplitter } from "../../magma/app/compile/split/LocatingSplitter";
 import { FirstLocator } from "../../magma/app/compile/locate/FirstLocator";
 import { Splitter } from "../../magma/app/compile/split/Splitter";
@@ -29,7 +28,13 @@ import { Source } from "../../magma/app/io/Source";
 import { Platform } from "../../magma/app/Platform";
 import { Dependency } from "../../magma/app/compile/Dependency";
 import { Joiner } from "../../magma/api/collect/Joiner";
-export class TypeCompiler {
+export class TypeCompiler {/*public static final Node Boolean = new MapNode("boolean").withString("value", "boolean");*//*
+    public static final Node Number = new MapNode("number").withString("value", "number");*//*
+    public static final Node String = new MapNode("string").withString("value", "string");*//*
+    public static final Node Unknown = new MapNode("unknown").withString("value", "unknown");*//*
+    public static final Node Var = new MapNode("var").withString("value", "var");*//*
+    public static final Node Void = new MapNode("void").withString("value", "void");*//*
+    public static final List<String> variants = Lists.of("boolean", "number", "string", "unknown", "var", "void");*/
 	static compileType(state: CompileState, type: string): Option<Tuple2<CompileState, string>> {
 		return TypeCompiler.parseType(state, type).map((tuple: Tuple2<CompileState, Node>) => {
 			return new Tuple2Impl<CompileState, string>(tuple.left(), TypeCompiler.generateType(tuple.right()))/*unknown*/;
@@ -61,19 +66,19 @@ export class TypeCompiler {
 	static findPrimitiveNode(input: string): Option<Node> {
 		let stripped = Strings.strip(input)/*unknown*/;
 		if (Strings.equalsTo("char", stripped) || Strings.equalsTo("Character", stripped) || Strings.equalsTo("String", stripped)/*unknown*/){
-			return new Some<Node>(PrimitiveType.String)/*unknown*/;
+			return new Some<Node>(TypeCompiler.String)/*unknown*/;
 		}
 		if (Strings.equalsTo("int", stripped) || Strings.equalsTo("Integer", stripped)/*unknown*/){
-			return new Some<Node>(PrimitiveType.Number)/*unknown*/;
+			return new Some<Node>(TypeCompiler.Number)/*unknown*/;
 		}
 		if (Strings.equalsTo("boolean", stripped) || Strings.equalsTo("Boolean", stripped)/*unknown*/){
-			return new Some<Node>(PrimitiveType.Boolean)/*unknown*/;
+			return new Some<Node>(TypeCompiler.Boolean)/*unknown*/;
 		}
 		if (Strings.equalsTo("var", stripped)/*unknown*/){
-			return new Some<Node>(PrimitiveType.Var)/*unknown*/;
+			return new Some<Node>(TypeCompiler.Var)/*unknown*/;
 		}
 		if (Strings.equalsTo("void", stripped)/*unknown*/){
-			return new Some<Node>(PrimitiveType.Void)/*unknown*/;
+			return new Some<Node>(TypeCompiler.Void)/*unknown*/;
 		}
 		return new None<Node>()/*unknown*/;
 	}
@@ -141,7 +146,7 @@ export class TypeCompiler {
                 List<Node> = /* Lists.of(first);
                 return new MapNode("functional")
                         .withNodeList("args", args1)
-                        .withNode("returns", PrimitiveType.Void);
+                        .withNode("returns", TypeCompiler.Void);
             })*/;
 		}
 		if (Strings.equalsTo("Predicate", base)/*unknown*/){
@@ -149,7 +154,7 @@ export class TypeCompiler {
                 List<Node> = /* Lists.of(first);
                 return new MapNode("functional")
                         .withNodeList("args", args1)
-                        .withNode("returns", PrimitiveType.Boolean);
+                        .withNode("returns", TypeCompiler.Boolean);
             })*/;
 		}
 		return new None<Node>()/*unknown*/;
@@ -220,8 +225,8 @@ export class TypeCompiler {
         else if (type instanceof Placeholder placeholder) {
             return ValueCompiler.generateValue(placeholder);
         }*//*
-        else if (type instanceof PrimitiveType primitiveType) {
-            return generateType(primitiveType);
+        else if (TypeCompiler.variants.contains(type.findString("value").orElse(""))) {
+            return TypeCompiler.generateType(type);
         }*//*
         else if (type.is("symbol")) {
             return ValueCompiler.generateValue(type);
@@ -241,7 +246,7 @@ export class TypeCompiler {
         else if (type instanceof Placeholder placeholder) {
             return "";
         }*//*
-        else if (type instanceof PrimitiveType primitiveType) {
+        else if (TypeCompiler.variants.contains(type.findString("value").orElse(""))) {
             return "";
         }*//*
         else if (type.is("symbol")) {
@@ -260,11 +265,11 @@ export class TypeCompiler {
 			let joinedArguments = TypeCompiler.generateFunctionalArguments(type)/*unknown*/;
 			return "(" + joinedArguments + ") => " + TypeCompiler.generateType(type.findNode("returns").orElse(new MapNode()))/*unknown*/;
 		}/*
-        else if (type instanceof Placeholder placeholder) {
-            return Placeholder.generatePlaceholder(placeholder.input());
+        else if (type instanceof Placeholder(java.lang.String input)) {
+            return Placeholder.generatePlaceholder(input);
         }*//*
-        else if (type instanceof PrimitiveType primitiveType) {
-            return primitiveType.value;
+        else if (TypeCompiler.variants.contains(type.findString("value").orElse(""))) {
+            return type.findString("value").orElse("");
         }*//*
         else if (type.is("symbol")) {
             return type.findString("value").orElse("");

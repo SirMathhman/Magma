@@ -37,7 +37,6 @@ import magma.app.compile.split.FoldingSplitter;
 import magma.app.compile.split.LocatingSplitter;
 import magma.app.compile.split.Splitter;
 import magma.app.compile.define.Placeholder;
-import magma.app.compile.type.PrimitiveType;
 import magma.app.compile.value.Lambda;
 import magma.app.compile.value.Not;
 import magma.app.compile.value.Operation;
@@ -224,17 +223,17 @@ public final class ValueCompiler {
             return operation.resolve(state);
         }
         else if (value instanceof Placeholder placeholder) {
-            return PrimitiveType.Unknown;
+            return TypeCompiler.Unknown;
         }
         else if (value instanceof StringNode stringNode) {
-            return PrimitiveType.Unknown;
+            return TypeCompiler.Unknown;
         }
         else if (value.is("symbol")) {
             return state.stack().resolveNode(value.findString("value").orElse(""))
                     .map((Definition definition) -> definition.type())
-                    .orElse(PrimitiveType.Unknown);
+                    .orElse(TypeCompiler.Unknown);
         }
-        return PrimitiveType.Unknown;
+        return TypeCompiler.Unknown;
     }
 
     static Option<Tuple2<CompileState, Node>> parseNumber(CompileState state, String input) {

@@ -201,9 +201,6 @@ interface Splitter {
 }
 interface Stack {
 }
-class PrimitiveType {
-}
-PrimitiveType <|.. Node
 class TemplateNode {
 }
 TemplateNode <|.. Node
@@ -538,7 +535,6 @@ Splitter --> Option
 Stack --> Option
 Stack --> Definition
 Stack --> Iterable
-PrimitiveType --> Node
 TemplateNode --> Node
 VariadicType --> Node
 VariadicType --> TypeCompiler
@@ -548,18 +544,18 @@ Lambda --> Iterable
 Lambda --> DefiningCompiler
 Lambda --> Joiner
 Lambda --> CompileState
-Lambda --> PrimitiveType
+Lambda --> TypeCompiler
 Not --> Node
 Not --> Option
 Not --> Some
 Not --> CompileState
-Not --> PrimitiveType
+Not --> TypeCompiler
 Operation --> Node
 Operation --> ValueCompiler
 Operation --> Option
 Operation --> Some
 Operation --> CompileState
-Operation --> PrimitiveType
+Operation --> TypeCompiler
 StringNode --> Node
 DefiningCompiler --> Definition
 DefiningCompiler --> Iterable
@@ -765,7 +761,6 @@ TypeCompiler --> VariadicType
 TypeCompiler --> ValueCompiler
 TypeCompiler --> MapNode
 TypeCompiler --> None
-TypeCompiler --> PrimitiveType
 TypeCompiler --> LocatingSplitter
 TypeCompiler --> FirstLocator
 TypeCompiler --> Splitter
@@ -820,7 +815,6 @@ ValueCompiler --> Operation
 ValueCompiler --> HeadedIter
 ValueCompiler --> RangeHead
 ValueCompiler --> Characters
-ValueCompiler --> PrimitiveType
 ValueCompiler --> Iters
 ValueCompiler --> ListCollector
 ValueCompiler --> OrRule
