@@ -38,7 +38,7 @@ public final class TypeCompiler {
                 TypeCompiler::parseVarArgs,
                 TypeCompiler::parseGeneric,
                 TypeCompiler::parsePrimitive,
-                TypeCompiler::parseSymbolType
+                TypeCompiler::lexAndParseSymbolType
         )).apply(state, type);
     }
 
@@ -52,14 +52,23 @@ public final class TypeCompiler {
         }).apply(stripped);
     }
 
-    private static Option<Tuple2<CompileState, Node>> parseSymbolType(CompileState state, String input) {
+    private static Option<Tuple2<CompileState, Node>> lexAndParseSymbolType(CompileState state, String input) {
+        return TypeCompiler.lexSymbolType(input).flatMap((Node node) -> {
+            return TypeCompiler.parseSymbolType(state, node);
+        });
+    }
+
+    private static Option<Node> lexSymbolType(String input) {
         var stripped = Strings.strip(input);
         if (!ValueCompiler.isSymbol(stripped)) {
-            return new None<Tuple2<CompileState, Node>>();
+            return new None<>();
         }
 
-        CompileState resolved = TypeCompiler.addResolvedImportFromCache0(state, stripped);
-        Node node = new MapNode("symbol").withString("value", stripped);
+        return new Some<>(new MapNode("symbol").withString("value", stripped));
+    }
+
+    private static Some<Tuple2<CompileState, Node>> parseSymbolType(CompileState state, Node node) {
+        CompileState resolved = TypeCompiler.addResolvedImportFromCache0(state, node.findString("value").orElse(""));
         return new Some<Tuple2<CompileState, Node>>(new Tuple2Impl<CompileState, Node>(resolved, node));
     }
 

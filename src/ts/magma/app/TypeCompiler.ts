@@ -34,7 +34,7 @@ export class TypeCompiler {
 		})/*unknown*/;
 	}
 	static parseType(state: CompileState, type: string): Option<Tuple2<CompileState, Node>> {
-		return new StatefulOrRule<Node>(Lists.of(TypeCompiler.parseVarArgs, TypeCompiler.parseGeneric, TypeCompiler.parsePrimitive, TypeCompiler.parseSymbolType)).apply(state, type)/*unknown*/;
+		return new StatefulOrRule<Node>(Lists.of(TypeCompiler.parseVarArgs, TypeCompiler.parseGeneric, TypeCompiler.parsePrimitive, TypeCompiler.lexAndParseSymbolType)).apply(state, type)/*unknown*/;
 	}
 	static parseVarArgs(state: CompileState, input: string): Option<Tuple2<CompileState, Node>> {
 		let stripped = Strings.strip(input)/*unknown*/;
@@ -44,13 +44,20 @@ export class TypeCompiler {
 			return new Some<Tuple2<CompileState, Node>>(new Tuple2Impl<CompileState, Node>(child.left(), new MapNode("variadic").withNode("child", type)))/*unknown*/;
 		}).apply(stripped)/*unknown*/;
 	}
-	static parseSymbolType(state: CompileState, input: string): Option<Tuple2<CompileState, Node>> {
+	static lexAndParseSymbolType(state: CompileState, input: string): Option<Tuple2<CompileState, Node>> {
+		return TypeCompiler.lexSymbolType(input).flatMap((node: Node) => {
+			return TypeCompiler.parseSymbolType(state, node)/*unknown*/;
+		})/*unknown*/;
+	}
+	static lexSymbolType(input: string): Option<Node> {
 		let stripped = Strings.strip(input)/*unknown*/;
 		if (!ValueCompiler/*unknown*/.isSymbol(stripped)/*unknown*/){
-			return new None<Tuple2<CompileState, Node>>()/*unknown*/;
+			return new None<?>()/*unknown*/;
 		}
-		let resolved: CompileState = TypeCompiler.addResolvedImportFromCache0(state, stripped)/*unknown*/;
-		let node: Node = new MapNode("symbol").withString("value", stripped)/*unknown*/;
+		return new Some<?>(new MapNode("symbol").withString("value", stripped))/*unknown*/;
+	}
+	static parseSymbolType(state: CompileState, node: Node): Some<Tuple2<CompileState, Node>> {
+		let resolved: CompileState = TypeCompiler.addResolvedImportFromCache0(state, node.findString("value").orElse(""))/*unknown*/;
 		return new Some<Tuple2<CompileState, Node>>(new Tuple2Impl<CompileState, Node>(resolved, node))/*unknown*/;
 	}
 	static parsePrimitive(state: CompileState, input: string): Option<Tuple2<CompileState, Node>> {
