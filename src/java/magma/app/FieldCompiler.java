@@ -18,11 +18,11 @@ import magma.app.compile.define.ConstructorHeader;
 import magma.app.compile.define.Definition;
 import magma.app.compile.define.MethodHeader;
 import magma.app.compile.define.Parameter;
-import magma.app.compile.split.Splitter;
-import magma.app.compile.value.Invokable;
-import magma.app.compile.node.Node;
 import magma.app.compile.locate.FirstLocator;
+import magma.app.compile.node.MapNode;
+import magma.app.compile.node.Node;
 import magma.app.compile.split.LocatingSplitter;
+import magma.app.compile.split.Splitter;
 
 final class FieldCompiler {
     public static Option<Tuple2<CompileState, String>> compileMethod(CompileState state, String input) {
@@ -79,13 +79,13 @@ final class FieldCompiler {
             var headerGenerated = header.generateWithAfterName("(" + joinedDefinitions + ")");
             return new PrefixComposable<Tuple2<CompileState, String>>("{", (String withoutContentStart) -> {
                 return new SuffixComposable<Tuple2<CompileState, String>>("}", (String withoutContentEnd) -> {
-                            CompileState compileState = parametersState.enterDepth().enterDepth();
-                            var statementsTuple = FunctionSegmentCompiler.compileFunctionStatements(compileState.mapStack((Stack stack1) -> {
-                                return stack1.defineAll(definitions);
-                            }), withoutContentEnd);
+                    CompileState compileState = parametersState.enterDepth().enterDepth();
+                    var statementsTuple = FunctionSegmentCompiler.compileFunctionStatements(compileState.mapStack((Stack stack1) -> {
+                        return stack1.defineAll(definitions);
+                    }), withoutContentEnd);
 
-                            return new Some<Tuple2<CompileState, String>>(new Tuple2Impl<CompileState, String>(statementsTuple.left().exitDepth().exitDepth(), "\n\t" + headerGenerated + " {" + statementsTuple.right() + "\n\t}"));
-                        }).apply(Strings.strip(withoutContentStart));
+                    return new Some<Tuple2<CompileState, String>>(new Tuple2Impl<CompileState, String>(statementsTuple.left().exitDepth().exitDepth(), "\n\t" + headerGenerated + " {" + statementsTuple.right() + "\n\t}"));
+                }).apply(Strings.strip(withoutContentStart));
             }).apply(Strings.strip(afterParams)).or(() -> {
                 if (Strings.equalsTo(";", Strings.strip(afterParams))) {
                     return new Some<Tuple2<CompileState, String>>(new Tuple2Impl<CompileState, String>(parametersState, "\n\t" + headerGenerated + ";"));
@@ -127,15 +127,20 @@ final class FieldCompiler {
         return ValueCompiler.parseInvokable(state1, segment).flatMap((Tuple2<CompileState, Node> tuple) -> {
             var structureName = state.stack().findLastStructureName().orElse("");
             Node value = tuple.right();
-            return generateAsEnumNode0(value, structureName).map((String stringOption) -> {
+            return FieldCompiler.generateAsEnumNode0(value, structureName).map((String stringOption) -> {
                 return new Tuple2Impl<CompileState, String>(tuple.left(), stringOption);
             });
         });
     }
 
     public static Option<String> generateAsEnumNode0(Node value, String structureName) {
-        if (value instanceof Invokable invokable) {
-            return new Some<String>("\n\tstatic " + ValueCompiler.getString(invokable.node()) + ": " + structureName + " = new " + structureName + "(" + ValueCompiler.joinArgs(invokable) + ");");
+        if (value.is("invokable")) {
+            Node caller = value.findNode("caller").orElse(new MapNode());
+
+            String generatedCaller = ValueCompiler.generateCaller(caller);
+            String generatedArgs = ValueCompiler.joinArgs(value);
+
+            return new Some<String>("\n\tstatic " + generatedCaller + ": " + structureName + " = new " + structureName + "(" + generatedArgs + ");");
         }
         else {
             return new None<>();

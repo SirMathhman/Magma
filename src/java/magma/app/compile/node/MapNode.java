@@ -1,5 +1,6 @@
 package magma.app.compile.node;
 
+import magma.api.collect.list.List;
 import magma.api.option.None;
 import magma.api.option.Option;
 import magma.api.option.Some;
@@ -7,13 +8,17 @@ import magma.api.option.Some;
 import java.util.HashMap;
 import java.util.Map;
 
-public record MapNode(Option<String> type, Map<String, String> strings, Map<String, Node> nodes) implements Node {
+public record MapNode(
+        Option<String> type,
+        Map<String, String> strings,
+        Map<String, Node> nodes,
+        Map<String, List<Node>> nodeLists) implements Node {
     public MapNode(String type) {
-        this(new Some<>(type), new HashMap<>(), new HashMap<>());
+        this(new Some<>(type), new HashMap<>(), new HashMap<>(), new HashMap<>());
     }
 
     public MapNode() {
-        this(new None<>(), new HashMap<>(), new HashMap<>());
+        this(new None<>(), new HashMap<>(), new HashMap<>(), new HashMap<>());
     }
 
     @Override
@@ -50,6 +55,21 @@ public record MapNode(Option<String> type, Map<String, String> strings, Map<Stri
 
     public MapNode withString(String key, String value) {
         this.strings.put(key, value);
+        return this;
+    }
+
+    @Override
+    public Option<List<Node>> findNodeList(String key) {
+        if (this.nodeLists.containsKey(key)) {
+            return new Some<>(this.nodeLists.get(key));
+        }
+        else {
+            return new None<>();
+        }
+    }
+
+    public MapNode withNodeList(String key, List<Node> values) {
+        this.nodeLists.put(key, values);
         return this;
     }
 }

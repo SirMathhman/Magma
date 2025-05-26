@@ -40,7 +40,6 @@ import { RangeHead } from "../../magma/api/collect/head/RangeHead";
 import { Characters } from "../../magma/api/text/Characters";
 import { Type } from "../../magma/app/compile/type/Type";
 import { PrimitiveType } from "../../magma/app/compile/type/PrimitiveType";
-import { Invokable } from "../../magma/app/compile/value/Invokable";
 import { Iters } from "../../magma/api/collect/Iters";
 import { ListCollector } from "../../magma/api/collect/list/ListCollector";
 import { OrRule } from "../../magma/app/compile/rule/OrRule";
@@ -278,7 +277,7 @@ export class ValueCompiler {
 			let argsState = argsTuple.left()/*unknown*/;
 			let args = argsTuple.right()/*unknown*/;
 			let newCaller = ValueCompiler.transformCaller(argsState, oldNode)/*unknown*/;
-			return new Some<Tuple2<CompileState, Node>>(new Tuple2Impl<CompileState, Node>(argsState, new Invokable(newCaller, args)))/*unknown*/;
+			return new Some<Tuple2<CompileState, Node>>(new Tuple2Impl<CompileState, Node>(argsState, new MapNode("invokable").withNode("caller", newCaller).withNodeList("args", args)))/*unknown*/;
 		})/*unknown*/;
 	}
 	static retain<T, R>(args: Iterable<T>, mapper: (arg0 : T) => Option<R>): Iterable<R> {
@@ -290,7 +289,7 @@ export class ValueCompiler {
 	static values<T>(mapper: Rule<T>): Rule<List<T>> {
 		return new DivideRule<>(new ValueFolder(), mapper)/*unknown*/;
 	}
-	static getString(node: Node): string {
+	static generateCaller(node: Node): string {
 		if (node.is("construction")/*unknown*/){
 			return "new " + node.findString("type").orElse("")/*unknown*/;
 		}
@@ -303,8 +302,9 @@ export class ValueCompiler {
 			return ValueCompiler.generateValue(child) + "." + property/*unknown*/;
 		}/*
 
-        else if (value instanceof Invokable invokable) {
-            return generate(invokable);
+        else if (value.is("invokable")) {
+            var joinedArguments = ValueCompiler.joinArgs(value);
+            return ValueCompiler.generateCaller(value.findNode("caller").orElse(new MapNode())) + "(" + joinedArguments + ")";
         }*//*
         else if (value instanceof Lambda lambda) {
             return lambda.generate();
@@ -326,11 +326,7 @@ export class ValueCompiler {
         }*/
 		return "?"/*unknown*/;
 	}
-	static joinArgs(invokable: Invokable): string {
-		return invokable.args().iter().map((value: Node) => generateValue(value)/*unknown*/).collect(new Joiner(", ")).orElse("")/*unknown*/;
-	}
-	static generate(invokable: Invokable): string {
-		let joinedArguments = joinArgs(invokable)/*unknown*/;
-		return getString(invokable.node()) + "(" + joinedArguments + ")"/*unknown*/;
+	static joinArgs(invokable: Node): string {
+		return invokable.findNodeList("args").orElse(Lists.empty()).iter().map((value: Node) => ValueCompiler.generateValue(value)/*unknown*/).collect(new Joiner(", ")).orElse("")/*unknown*/;
 	}
 }

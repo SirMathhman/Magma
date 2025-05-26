@@ -214,9 +214,6 @@ interface Type {
 class VariadicType {
 }
 VariadicType <|.. Type
-class Invokable {
-}
-Invokable <|.. Node
 class Lambda {
 }
 Lambda <|.. Node
@@ -491,10 +488,12 @@ ValueMerger --> Merger
 ValueMerger --> Strings
 MapNode --> Node
 MapNode --> Option
+MapNode --> List
 MapNode --> Some
 MapNode --> None
 Node --> Option
 Node --> None
+Node --> List
 Registry --> Dependency
 Registry --> Iter
 Registry --> Import
@@ -562,9 +561,6 @@ TemplateType --> Iterable
 TemplateType --> Merger
 TemplateType --> ValueMerger
 VariadicType --> Type
-Invokable --> Node
-Invokable --> List
-Invokable --> Iterable
 Lambda --> Node
 Lambda --> Definition
 Lambda --> Iterable
@@ -693,6 +689,7 @@ FieldCompiler --> Parameter
 FieldCompiler --> ValueCompiler
 FieldCompiler --> List
 FieldCompiler --> Node
+FieldCompiler --> MapNode
 FunctionSegmentCompiler --> CompileState
 FunctionSegmentCompiler --> Tuple2
 FunctionSegmentCompiler --> Option
@@ -871,7 +868,6 @@ ValueCompiler --> RangeHead
 ValueCompiler --> Characters
 ValueCompiler --> Type
 ValueCompiler --> PrimitiveType
-ValueCompiler --> Invokable
 ValueCompiler --> Iters
 ValueCompiler --> ListCollector
 ValueCompiler --> OrRule

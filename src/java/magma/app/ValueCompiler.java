@@ -39,7 +39,6 @@ import magma.app.compile.split.LocatingSplitter;
 import magma.app.compile.split.Splitter;
 import magma.app.compile.type.PrimitiveType;
 import magma.app.compile.type.Type;
-import magma.app.compile.value.Invokable;
 import magma.app.compile.value.Lambda;
 import magma.app.compile.value.Not;
 import magma.app.compile.value.Operation;
@@ -312,7 +311,9 @@ public final class ValueCompiler {
             var args = argsTuple.right();
 
             var newCaller = ValueCompiler.transformCaller(argsState, oldNode);
-            return new Some<Tuple2<CompileState, Node>>(new Tuple2Impl<CompileState, Node>(argsState, new Invokable(newCaller, args)));
+            return new Some<Tuple2<CompileState, Node>>(new Tuple2Impl<CompileState, Node>(argsState, new MapNode("invokable")
+                    .withNode("caller", newCaller)
+                    .withNodeList("args", args)));
         });
     }
 
@@ -351,7 +352,7 @@ public final class ValueCompiler {
         return new DivideRule<>(new ValueFolder(), mapper);
     }
 
-    public static String getString(Node node) {
+    public static String generateCaller(Node node) {
         if (node.is("construction")) {
             return "new " + node.findString("type").orElse("");
         }
@@ -366,8 +367,9 @@ public final class ValueCompiler {
             return ValueCompiler.generateValue(child) + "." + property;
         }
 
-        else if (value instanceof Invokable invokable) {
-            return generate(invokable);
+        else if (value.is("invokable")) {
+            var joinedArguments = ValueCompiler.joinArgs(value);
+            return ValueCompiler.generateCaller(value.findNode("caller").orElse(new MapNode())) + "(" + joinedArguments + ")";
         }
         else if (value instanceof Lambda lambda) {
             return lambda.generate();
@@ -390,15 +392,11 @@ public final class ValueCompiler {
         return "?";
     }
 
-    public static String joinArgs(Invokable invokable) {
-        return invokable.args().iter()
-                .map((Node value) -> generateValue(value))
+    public static String joinArgs(Node invokable) {
+        return invokable.findNodeList("args").orElse(Lists.empty()).iter()
+                .map((Node value) -> ValueCompiler.generateValue(value))
                 .collect(new Joiner(", "))
                 .orElse("");
     }
 
-    public static String generate(Invokable invokable) {
-        var joinedArguments = joinArgs(invokable);
-        return getString(invokable.node()) + "(" + joinedArguments + ")";
-    }
 }

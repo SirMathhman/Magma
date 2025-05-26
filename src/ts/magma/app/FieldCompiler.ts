@@ -23,6 +23,7 @@ import { Parameter } from "../../magma/app/compile/define/Parameter";
 import { ValueCompiler } from "../../magma/app/ValueCompiler";
 import { List } from "../../magma/api/collect/list/List";
 import { Node } from "../../magma/app/compile/node/Node";
+import { MapNode } from "../../magma/app/compile/node/MapNode";
 class FieldCompiler {
 	static compileMethod(state: CompileState, input: string): Option<Tuple2<CompileState, string>> {
 		let splitter: Splitter = new LocatingSplitter("(", new FirstLocator())/*unknown*/;
@@ -105,14 +106,17 @@ class FieldCompiler {
 		return ValueCompiler.parseInvokable(state1, segment).flatMap((tuple: Tuple2<CompileState, Node>) => {
 			let structureName = state.stack().findLastStructureName().orElse("")/*unknown*/;
 			let value: Node = tuple.right()/*unknown*/;
-			return generateAsEnumNode0(value, structureName).map((stringOption: string) => {
+			return FieldCompiler.generateAsEnumNode0(value, structureName).map((stringOption: string) => {
 				return new Tuple2Impl<CompileState, string>(tuple.left(), stringOption)/*unknown*/;
 			})/*unknown*/;
 		})/*unknown*/;
 	}
 	static generateAsEnumNode0(value: Node, structureName: string): Option<string> {
-		if (/*value instanceof Invokable invokable*/){
-			return new Some<string>("\n\tstatic " + ValueCompiler.getString(invokable.node()) + ": " + structureName + " = new " + structureName + "(" + ValueCompiler.joinArgs(invokable) + ");")/*unknown*/;
+		if (value.is("invokable")/*unknown*/){
+			let caller: Node = value.findNode("caller").orElse(new MapNode())/*unknown*/;
+			let generatedCaller: string = ValueCompiler.generateCaller(caller)/*unknown*/;
+			let generatedArgs: string = ValueCompiler.joinArgs(value)/*unknown*/;
+			return new Some<string>("\n\tstatic " + generatedCaller + ": " + structureName + " = new " + structureName + "(" + generatedArgs + ");")/*unknown*/;
 		}
 		else {
 			return new None<>()/*unknown*/;
