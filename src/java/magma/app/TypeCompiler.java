@@ -23,7 +23,6 @@ import magma.app.compile.node.Node;
 import magma.app.compile.rule.OrRule;
 import magma.app.compile.split.LocatingSplitter;
 import magma.app.compile.split.Splitter;
-import magma.app.compile.type.TemplateNode;
 import magma.app.compile.type.VariadicType;
 import magma.app.io.Source;
 
@@ -119,7 +118,9 @@ public final class TypeCompiler {
                 var base = Strings.strip(baseString);
                 return TypeCompiler.assembleFunctionNode(argsState, base, args).or(() -> {
                     var compileState = TypeCompiler.addResolvedImportFromCache0(argsState, base);
-                    return new Some<Tuple2<CompileState, Node>>(new Tuple2Impl<CompileState, Node>(compileState, new TemplateNode(base, args)));
+                    return new Some<Tuple2<CompileState, Node>>(new Tuple2Impl<CompileState, Node>(compileState, new MapNode("template")
+                            .withString("base", base)
+                            .withNodeList("args", args)));
                 });
             })).apply(withoutEnd);
         }).apply(Strings.strip(input));
@@ -283,8 +284,8 @@ public final class TypeCompiler {
         else if (type.is("symbol")) {
             return ValueCompiler.generateValue(type);
         }
-        else if (type instanceof TemplateNode templateNode) {
-            return templateNode.base();
+        else if (type.is("template")) {
+            return type.findString("base").orElse("");
         }
         else if (type instanceof VariadicType variadicNode) {
             return variadicNode.generateSimple();
@@ -306,7 +307,7 @@ public final class TypeCompiler {
         else if (type.is("symbol")) {
             return "";
         }
-        else if (type instanceof TemplateNode templateNode) {
+        else if (type.is("template")) {
             return "";
         }
         else if (type instanceof VariadicType variadicNode) {
@@ -329,15 +330,18 @@ public final class TypeCompiler {
         else if (type.is("symbol")) {
             return type.findString("value").orElse("");
         }
-        else if (type instanceof TemplateNode(String base, List<Node> args)) {
-            String joined = args.iter()
+
+        if (type.is("template")) {
+            var base = type.findString("base").orElse("");
+            String joined = type.findNodeList("args").orElse(Lists.empty()).iter()
                     .map((Node arg) -> TypeCompiler.generateType(arg))
                     .collect(new Joiner(", "))
                     .orElse("");
 
             return base + "<" + joined + ">";
         }
-        else if (type instanceof VariadicType variadicNode) {
+
+        if (type instanceof VariadicType variadicNode) {
             return variadicNode.generateNode();
         }
         return "?";

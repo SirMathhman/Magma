@@ -18,7 +18,6 @@ import { Splitter } from "../../magma/app/compile/split/Splitter";
 import { SplitComposable } from "../../magma/app/compile/compose/SplitComposable";
 import { Composable } from "../../magma/app/compile/compose/Composable";
 import { WhitespaceCompiler } from "../../magma/app/WhitespaceCompiler";
-import { TemplateNode } from "../../magma/app/compile/type/TemplateNode";
 import { List } from "../../magma/api/collect/list/List";
 import { Placeholder } from "../../magma/app/compile/define/Placeholder";
 import { Location } from "../../magma/app/Location";
@@ -98,7 +97,7 @@ export class TypeCompiler {/*public static final Node Boolean = new MapNode("boo
 				let base = Strings.strip(baseString)/*unknown*/;
 				return TypeCompiler.assembleFunctionNode(argsState, base, args).or(() => {
 					let compileState = TypeCompiler.addResolvedImportFromCache0(argsState, base)/*unknown*/;
-					return new Some<Tuple2<CompileState, Node>>(new Tuple2Impl<CompileState, Node>(compileState, new TemplateNode(base, args)))/*unknown*/;
+					return new Some<Tuple2<CompileState, Node>>(new Tuple2Impl<CompileState, Node>(compileState, new MapNode("template").withString("base", base).withNodeList("args", args)))/*unknown*/;
 				})/*unknown*/;
 			})).apply(withoutEnd)/*unknown*/;
 		}).apply(Strings.strip(input))/*unknown*/;
@@ -231,8 +230,8 @@ export class TypeCompiler {/*public static final Node Boolean = new MapNode("boo
         else if (type.is("symbol")) {
             return ValueCompiler.generateValue(type);
         }*//*
-        else if (type instanceof TemplateNode templateNode) {
-            return templateNode.base();
+        else if (type.is("template")) {
+            return type.findString("base").orElse("");
         }*//*
         else if (type instanceof VariadicType variadicNode) {
             return variadicNode.generateSimple();
@@ -252,7 +251,7 @@ export class TypeCompiler {/*public static final Node Boolean = new MapNode("boo
         else if (type.is("symbol")) {
             return "";
         }*//*
-        else if (type instanceof TemplateNode templateNode) {
+        else if (type.is("template")) {
             return "";
         }*//*
         else if (type instanceof VariadicType variadicNode) {
@@ -273,18 +272,15 @@ export class TypeCompiler {/*public static final Node Boolean = new MapNode("boo
         }*//*
         else if (type.is("symbol")) {
             return type.findString("value").orElse("");
-        }*//*
-        else if (type instanceof TemplateNode(String base, List<Node> args)) {
-            String joined = args.iter()
-                    .map((Node arg) -> TypeCompiler.generateType(arg))
-                    .collect(new Joiner(", "))
-                    .orElse("");
-
-            return base + "<" + joined + ">";
-        }*//*
-        else if (type instanceof VariadicType variadicNode) {
-            return variadicNode.generateNode();
         }*/
+		if (type.is("template")/*unknown*/){
+			let base = type.findString("base").orElse("")/*unknown*/;
+			let joined: string = type.findNodeList("args").orElse(Lists.empty()).iter().map((arg: Node) => TypeCompiler.generateType(arg)/*unknown*/).collect(new Joiner(", ")).orElse("")/*unknown*/;
+			return base + "<" + joined + ">"/*unknown*/;
+		}
+		if (/*type instanceof VariadicType variadicNode*/){
+			return variadicNode.generateNode()/*unknown*/;
+		}
 		return "?"/*unknown*/;
 	}
 	static generateFunctionalArguments(type: Node): string {
