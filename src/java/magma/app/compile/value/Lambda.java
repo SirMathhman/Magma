@@ -3,10 +3,10 @@ package magma.app.compile.value;
 import magma.api.collect.Joiner;
 import magma.api.collect.list.Iterable;
 import magma.app.DefiningCompiler;
-import magma.app.TypeCompiler;
 import magma.app.compile.CompileState;
 import magma.app.compile.define.Definition;
 import magma.app.compile.node.Node;
+import magma.app.compile.type.Primitives;
 
 public record Lambda(Iterable<Definition> paramNames, String content) implements Node {
     public String generate() {
@@ -21,7 +21,7 @@ public record Lambda(Iterable<Definition> paramNames, String content) implements
     }
 
     public Node resolve(CompileState state) {
-        return TypeCompiler.Unknown;
+        return Primitives.UNKNOWN;
     }
 
 

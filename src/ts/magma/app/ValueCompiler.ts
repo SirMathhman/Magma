@@ -36,6 +36,7 @@ import { Operation } from "../../magma/app/compile/value/Operation";
 import { HeadedIter } from "../../magma/api/collect/head/HeadedIter";
 import { RangeHead } from "../../magma/api/collect/head/RangeHead";
 import { Characters } from "../../magma/api/text/Characters";
+import { Primitives } from "../../magma/app/compile/type/Primitives";
 import { Iters } from "../../magma/api/collect/Iters";
 import { ListCollector } from "../../magma/api/collect/list/ListCollector";
 import { OrRule } from "../../magma/app/compile/rule/OrRule";
@@ -201,17 +202,17 @@ export class ValueCompiler {
             return operation.resolve(state);
         }*//*
         else if (value.is("placeholder")) {
-            return TypeCompiler.Unknown;
+            return Primitives.UNKNOWN;
         }*//*
         else if (value instanceof StringNode stringNode) {
-            return TypeCompiler.Unknown;
+            return Primitives.UNKNOWN;
         }*//*
         else if (value.is("symbol")) {
             return state.stack().resolveNode(value.findString("value").orElse(""))
                     .map((Definition definition) -> definition.type())
-                    .orElse(TypeCompiler.Unknown);
+                    .orElse(Primitives.UNKNOWN);
         }*/
-		return TypeCompiler.Unknown/*unknown*/;
+		return Primitives.UNKNOWN/*unknown*/;
 	}
 	static parseNumber(state: CompileState, input: string): Option<Tuple2<CompileState, Node>> {
 		let stripped = Strings.strip(input)/*unknown*/;

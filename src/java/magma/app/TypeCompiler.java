@@ -23,17 +23,10 @@ import magma.app.compile.node.Node;
 import magma.app.compile.rule.OrRule;
 import magma.app.compile.split.LocatingSplitter;
 import magma.app.compile.split.Splitter;
+import magma.app.compile.type.Primitives;
 import magma.app.io.Source;
 
 public final class TypeCompiler {
-    public static final Node Boolean = new MapNode("boolean").withString("value", "boolean");
-    public static final Node Number = new MapNode("number").withString("value", "number");
-    public static final Node String = new MapNode("string").withString("value", "string");
-    public static final Node Unknown = new MapNode("unknown").withString("value", "unknown");
-    public static final Node Var = new MapNode("var").withString("value", "var");
-    public static final Node Void = new MapNode("void").withString("value", "void");
-    public static final List<String> variants = Lists.of("boolean", "number", "string", "unknown", "var", "void");
-
     public static Option<Tuple2<CompileState, String>> compileType(CompileState state, String type) {
         return TypeCompiler.parseType(state, type).map((Tuple2<CompileState, Node> tuple) -> {
             return new Tuple2Impl<CompileState, String>(tuple.left(), TypeCompiler.generateType(tuple.right()));
@@ -45,7 +38,7 @@ public final class TypeCompiler {
                 TypeCompiler::parseVarArgs,
                 TypeCompiler::parseGeneric,
                 TypeCompiler::parsePrimitive,
-                TypeCompiler::parseSymbolNode
+                TypeCompiler::parseSymbolType
         )).apply(state, type);
     }
 
@@ -59,44 +52,21 @@ public final class TypeCompiler {
         }).apply(stripped);
     }
 
-    private static Option<Tuple2<CompileState, Node>> parseSymbolNode(CompileState state, String input) {
+    private static Option<Tuple2<CompileState, Node>> parseSymbolType(CompileState state, String input) {
         var stripped = Strings.strip(input);
-        if (ValueCompiler.isSymbol(stripped)) {
-            CompileState resolved = TypeCompiler.addResolvedImportFromCache0(state, stripped);
-            return new Some<Tuple2<CompileState, Node>>(new Tuple2Impl<CompileState, Node>(resolved, new MapNode("symbol").withString("value", stripped)));
+        if (!ValueCompiler.isSymbol(stripped)) {
+            return new None<Tuple2<CompileState, Node>>();
         }
-        return new None<Tuple2<CompileState, Node>>();
+
+        CompileState resolved = TypeCompiler.addResolvedImportFromCache0(state, stripped);
+        Node node = new MapNode("symbol").withString("value", stripped);
+        return new Some<Tuple2<CompileState, Node>>(new Tuple2Impl<CompileState, Node>(resolved, node));
     }
 
     private static Option<Tuple2<CompileState, Node>> parsePrimitive(CompileState state, String input) {
-        return TypeCompiler.findPrimitiveNode(Strings.strip(input)).map((Node result) -> {
+        return Primitives.parsePrimitive(Strings.strip(input)).map((Node result) -> {
             return new Tuple2Impl<CompileState, Node>(state, result);
         });
-    }
-
-    private static Option<Node> findPrimitiveNode(String input) {
-        var stripped = Strings.strip(input);
-        if (Strings.equalsTo("char", stripped) || Strings.equalsTo("Character", stripped) || Strings.equalsTo("String", stripped)) {
-            return new Some<Node>(TypeCompiler.String);
-        }
-
-        if (Strings.equalsTo("int", stripped) || Strings.equalsTo("Integer", stripped)) {
-            return new Some<Node>(TypeCompiler.Number);
-        }
-
-        if (Strings.equalsTo("boolean", stripped) || Strings.equalsTo("Boolean", stripped)) {
-            return new Some<Node>(TypeCompiler.Boolean);
-        }
-
-        if (Strings.equalsTo("var", stripped)) {
-            return new Some<Node>(TypeCompiler.Var);
-        }
-
-        if (Strings.equalsTo("void", stripped)) {
-            return new Some<Node>(TypeCompiler.Void);
-        }
-
-        return new None<Node>();
     }
 
     private static Option<Tuple2<CompileState, Node>> parseGeneric(CompileState state, String input) {
@@ -178,7 +148,7 @@ public final class TypeCompiler {
                 List<Node> args1 = Lists.of(first);
                 return new MapNode("functional")
                         .withNodeList("args", args1)
-                        .withNode("returns", TypeCompiler.Void);
+                        .withNode("returns", Primitives.VOID);
             });
         }
 
@@ -187,7 +157,7 @@ public final class TypeCompiler {
                 List<Node> args1 = Lists.of(first);
                 return new MapNode("functional")
                         .withNodeList("args", args1)
-                        .withNode("returns", TypeCompiler.Boolean);
+                        .withNode("returns", Primitives.BOOLEAN);
             });
         }
 
@@ -279,7 +249,7 @@ public final class TypeCompiler {
         else if (type.is("placeholder")) {
             return ValueCompiler.generateValue(type);
         }
-        else if (TypeCompiler.variants.contains(type.findString("value").orElse(""))) {
+        else if (Primitives.TypeScriptToVariant.containsKey(type.findString("value").orElse(""))) {
             return TypeCompiler.generateType(type);
         }
         else if (type.is("symbol")) {
@@ -302,7 +272,7 @@ public final class TypeCompiler {
         else if (type.is("placeholder")) {
             return "";
         }
-        else if (TypeCompiler.variants.contains(type.findString("value").orElse(""))) {
+        else if (Primitives.TypeScriptToVariant.containsKey(type.findString("value").orElse(""))) {
             return "";
         }
         else if (type.is("symbol")) {
@@ -329,7 +299,7 @@ public final class TypeCompiler {
             return Placeholders.generatePlaceholder(input);
         }
 
-        if (TypeCompiler.variants.contains(type.findString("value").orElse(""))) {
+        if (Primitives.TypeScriptToVariant.containsKey(type.findString("value").orElse(""))) {
             return type.findString("value").orElse("");
         }
 

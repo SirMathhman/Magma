@@ -2,9 +2,9 @@ package magma.app.compile.value;
 
 import magma.api.option.Option;
 import magma.api.option.Some;
-import magma.app.TypeCompiler;
 import magma.app.compile.CompileState;
 import magma.app.compile.node.Node;
+import magma.app.compile.type.Primitives;
 
 public record Not(String child) implements Node {
     public String generate() {
@@ -16,7 +16,7 @@ public record Not(String child) implements Node {
     }
 
     public Node resolve(CompileState state) {
-        return TypeCompiler.Unknown;
+        return Primitives.UNKNOWN;
     }
 
 

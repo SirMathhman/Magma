@@ -4,7 +4,7 @@ import { Iterable } from "../../../../magma/api/collect/list/Iterable";
 import { DefiningCompiler } from "../../../../magma/app/DefiningCompiler";
 import { Joiner } from "../../../../magma/api/collect/Joiner";
 import { CompileState } from "../../../../magma/app/compile/CompileState";
-import { TypeCompiler } from "../../../../magma/app/TypeCompiler";
+import { Primitives } from "../../../../magma/app/compile/type/Primitives";
 export class Lambda implements Node {
 	paramNames: Iterable<Definition>;
 	content: string;
@@ -19,7 +19,7 @@ export class Lambda implements Node {
 		return "(" + joinedParamNames + ")" + " => " + this.content/*unknown*/;
 	}
 	resolve(state: CompileState): Node {
-		return TypeCompiler.Unknown/*unknown*/;
+		return Primitives.UNKNOWN/*unknown*/;
 	}
 	is(type: string): boolean {
 		return false/*unknown*/;

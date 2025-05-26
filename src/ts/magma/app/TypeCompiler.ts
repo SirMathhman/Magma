@@ -11,6 +11,7 @@ import { Some } from "../../magma/api/option/Some";
 import { MapNode } from "../../magma/app/compile/node/MapNode";
 import { ValueCompiler } from "../../magma/app/ValueCompiler";
 import { None } from "../../magma/api/option/None";
+import { Primitives } from "../../magma/app/compile/type/Primitives";
 import { LocatingSplitter } from "../../magma/app/compile/split/LocatingSplitter";
 import { FirstLocator } from "../../magma/app/compile/locate/FirstLocator";
 import { Splitter } from "../../magma/app/compile/split/Splitter";
@@ -26,20 +27,14 @@ import { Platform } from "../../magma/app/Platform";
 import { Dependency } from "../../magma/app/compile/Dependency";
 import { Placeholders } from "../../magma/app/compile/define/Placeholders";
 import { Joiner } from "../../magma/api/collect/Joiner";
-export class TypeCompiler {/*public static final Node Boolean = new MapNode("boolean").withString("value", "boolean");*//*
-    public static final Node Number = new MapNode("number").withString("value", "number");*//*
-    public static final Node String = new MapNode("string").withString("value", "string");*//*
-    public static final Node Unknown = new MapNode("unknown").withString("value", "unknown");*//*
-    public static final Node Var = new MapNode("var").withString("value", "var");*//*
-    public static final Node Void = new MapNode("void").withString("value", "void");*//*
-    public static final List<String> variants = Lists.of("boolean", "number", "string", "unknown", "var", "void");*/
+export class TypeCompiler {
 	static compileType(state: CompileState, type: string): Option<Tuple2<CompileState, string>> {
 		return TypeCompiler.parseType(state, type).map((tuple: Tuple2<CompileState, Node>) => {
 			return new Tuple2Impl<CompileState, string>(tuple.left(), TypeCompiler.generateType(tuple.right()))/*unknown*/;
 		})/*unknown*/;
 	}
 	static parseType(state: CompileState, type: string): Option<Tuple2<CompileState, Node>> {
-		return new OrRule<Node>(Lists.of(TypeCompiler.parseVarArgs, TypeCompiler.parseGeneric, TypeCompiler.parsePrimitive, TypeCompiler.parseSymbolNode)).apply(state, type)/*unknown*/;
+		return new OrRule<Node>(Lists.of(TypeCompiler.parseVarArgs, TypeCompiler.parseGeneric, TypeCompiler.parsePrimitive, TypeCompiler.parseSymbolType)).apply(state, type)/*unknown*/;
 	}
 	static parseVarArgs(state: CompileState, input: string): Option<Tuple2<CompileState, Node>> {
 		let stripped = Strings.strip(input)/*unknown*/;
@@ -49,37 +44,19 @@ export class TypeCompiler {/*public static final Node Boolean = new MapNode("boo
 			return new Some<Tuple2<CompileState, Node>>(new Tuple2Impl<CompileState, Node>(child.left(), new MapNode("variadic").withNode("child", type)))/*unknown*/;
 		}).apply(stripped)/*unknown*/;
 	}
-	static parseSymbolNode(state: CompileState, input: string): Option<Tuple2<CompileState, Node>> {
+	static parseSymbolType(state: CompileState, input: string): Option<Tuple2<CompileState, Node>> {
 		let stripped = Strings.strip(input)/*unknown*/;
-		if (ValueCompiler.isSymbol(stripped)/*unknown*/){
-			let resolved: CompileState = TypeCompiler.addResolvedImportFromCache0(state, stripped)/*unknown*/;
-			return new Some<Tuple2<CompileState, Node>>(new Tuple2Impl<CompileState, Node>(resolved, new MapNode("symbol").withString("value", stripped)))/*unknown*/;
+		if (!ValueCompiler/*unknown*/.isSymbol(stripped)/*unknown*/){
+			return new None<Tuple2<CompileState, Node>>()/*unknown*/;
 		}
-		return new None<Tuple2<CompileState, Node>>()/*unknown*/;
+		let resolved: CompileState = TypeCompiler.addResolvedImportFromCache0(state, stripped)/*unknown*/;
+		let node: Node = new MapNode("symbol").withString("value", stripped)/*unknown*/;
+		return new Some<Tuple2<CompileState, Node>>(new Tuple2Impl<CompileState, Node>(resolved, node))/*unknown*/;
 	}
 	static parsePrimitive(state: CompileState, input: string): Option<Tuple2<CompileState, Node>> {
-		return TypeCompiler.findPrimitiveNode(Strings.strip(input)).map((result: Node) => {
+		return Primitives.parsePrimitive(Strings.strip(input)).map((result: Node) => {
 			return new Tuple2Impl<CompileState, Node>(state, result)/*unknown*/;
 		})/*unknown*/;
-	}
-	static findPrimitiveNode(input: string): Option<Node> {
-		let stripped = Strings.strip(input)/*unknown*/;
-		if (Strings.equalsTo("char", stripped) || Strings.equalsTo("Character", stripped) || Strings.equalsTo("String", stripped)/*unknown*/){
-			return new Some<Node>(TypeCompiler.String)/*unknown*/;
-		}
-		if (Strings.equalsTo("int", stripped) || Strings.equalsTo("Integer", stripped)/*unknown*/){
-			return new Some<Node>(TypeCompiler.Number)/*unknown*/;
-		}
-		if (Strings.equalsTo("boolean", stripped) || Strings.equalsTo("Boolean", stripped)/*unknown*/){
-			return new Some<Node>(TypeCompiler.Boolean)/*unknown*/;
-		}
-		if (Strings.equalsTo("var", stripped)/*unknown*/){
-			return new Some<Node>(TypeCompiler.Var)/*unknown*/;
-		}
-		if (Strings.equalsTo("void", stripped)/*unknown*/){
-			return new Some<Node>(TypeCompiler.Void)/*unknown*/;
-		}
-		return new None<Node>()/*unknown*/;
 	}
 	static parseGeneric(state: CompileState, input: string): Option<Tuple2<CompileState, Node>> {
 		return new SuffixComposable<Tuple2<CompileState, Node>>(">", (withoutEnd: string) => {
@@ -145,7 +122,7 @@ export class TypeCompiler {/*public static final Node Boolean = new MapNode("boo
                 List<Node> = /* Lists.of(first);
                 return new MapNode("functional")
                         .withNodeList("args", args1)
-                        .withNode("returns", TypeCompiler.Void);
+                        .withNode("returns", Primitives.VOID);
             })*/;
 		}
 		if (Strings.equalsTo("Predicate", base)/*unknown*/){
@@ -153,7 +130,7 @@ export class TypeCompiler {/*public static final Node Boolean = new MapNode("boo
                 List<Node> = /* Lists.of(first);
                 return new MapNode("functional")
                         .withNodeList("args", args1)
-                        .withNode("returns", TypeCompiler.Boolean);
+                        .withNode("returns", Primitives.BOOLEAN);
             })*/;
 		}
 		return new None<Node>()/*unknown*/;
@@ -224,7 +201,7 @@ export class TypeCompiler {/*public static final Node Boolean = new MapNode("boo
         else if (type.is("placeholder")) {
             return ValueCompiler.generateValue(type);
         }*//*
-        else if (TypeCompiler.variants.contains(type.findString("value").orElse(""))) {
+        else if (Primitives.TypeScriptToVariant.containsKey(type.findString("value").orElse(""))) {
             return TypeCompiler.generateType(type);
         }*//*
         else if (type.is("symbol")) {
@@ -245,7 +222,7 @@ export class TypeCompiler {/*public static final Node Boolean = new MapNode("boo
         else if (type.is("placeholder")) {
             return "";
         }*//*
-        else if (TypeCompiler.variants.contains(type.findString("value").orElse(""))) {
+        else if (Primitives.TypeScriptToVariant.containsKey(type.findString("value").orElse(""))) {
             return "";
         }*//*
         else if (type.is("symbol")) {
@@ -269,7 +246,7 @@ export class TypeCompiler {/*public static final Node Boolean = new MapNode("boo
 			let input = type.findString("value").orElse("")/*unknown*/;
 			return Placeholders.generatePlaceholder(input)/*unknown*/;
 		}
-		if (TypeCompiler.variants.contains(type.findString("value").orElse(""))/*unknown*/){
+		if (Primitives.TypeScriptToVariant.containsKey(type.findString("value").orElse(""))/*unknown*/){
 			return type.findString("value").orElse("")/*unknown*/;
 		}
 		if (type.is("symbol")/*unknown*/){
