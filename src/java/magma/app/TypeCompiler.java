@@ -42,7 +42,7 @@ public final class TypeCompiler {
     private static Option<Tuple2<CompileState, Node>> parseType(CompileState state, Node content) {
         String value = content.findString("value").orElse("");
         return new StatefulOrRule<Node>(Lists.of(
-                TypeCompiler::parseVarArgs,
+                (CompileState state3, String input2) -> Variadics.createVariadicRule(TypeCompiler::lexType).lex(input2).flatMap((Node node) -> TypeCompiler.parseVariadicType(state3, node)),
                 TypeCompiler::parseGeneric,
                 (CompileState state2, String input1) -> Primitives.createPrimitivesRule(input1).flatMap((Node result) -> TypeCompiler.parsePrimitiveType(state2, result)),
                 (CompileState state1, String input) -> Symbols.createSymbolRule().lex(input).flatMap((Node node) -> TypeCompiler.parseSymbolType(state1, node))
@@ -51,12 +51,6 @@ public final class TypeCompiler {
 
     public static Option<Node> lexType(String value) {
         return new Some<>(new MapNode("content").withString("value", value));
-    }
-
-    private static Option<Tuple2<CompileState, Node>> parseVarArgs(CompileState state, String input) {
-        return Variadics.createVariadicRule(TypeCompiler::lexType)
-                .lex(input)
-                .flatMap((Node node) -> TypeCompiler.parseVariadicType(state, node));
     }
 
     private static Option<Tuple2<CompileState, Node>> parseVariadicType(CompileState state, Node node) {
