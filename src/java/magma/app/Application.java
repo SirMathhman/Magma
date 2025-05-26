@@ -46,7 +46,9 @@ record Application(Sources sources, Targets targets) {
                 return context1.addSource(source);
             });
         });
-        var folded = children.iter().foldWithInitialToResult(initial, this::runWithSource);
+        var folded = children.iter().foldWithInitialToResult(initial, (CompileState state1, Source source) -> {
+            return this.runWithSource(state1, source);
+        });
 
         if (!state.context().hasPlatform(Platform.PlantUML) || !(folded instanceof Ok(var result))) {
             return folded;
@@ -83,20 +85,33 @@ record Application(Sources sources, Targets targets) {
             return new Ok<CompileState, IOError>(compiledState);
         }
 
+        var segment = state1.context().iterSources()
+                .map((Source source1) -> {
+                    return Application.formatSource(source1);
+                })
+                .collect(new Joiner(", "))
+                .orElse("");
+
         var otherOutput = compiled.right();
         var joinedImports = compiledState.registry().queryImports()
-                .map(Import::generate)
+                .map((Import anImport) -> {
+                    return anImport.generate();
+                })
                 .collect(new Joiner(""))
                 .orElse("");
 
         var joined = joinedImports + compiledState.registry().output() + otherOutput;
-        var cleared = state1.mapRegistry(Registry::reset);
-        return this.writeTarget(source, cleared, joined);
+        var cleared = state1.mapRegistry((Registry registry) -> {
+            return registry.reset();
+        });
+        return this.writeTarget(source, cleared, "/*[" + segment + "\n]*/\n" + joined);
     }
 
     private Result<CompileState, IOError> writeTarget(Source source, CompileState cleared, String output) {
         return this.targets().writeSource(source.createLocation(), output)
-                .<Result<CompileState, IOError>>map(Err::new)
+                .<Result<CompileState, IOError>>map((IOError error) -> {
+                    return new Err<CompileState, IOError>(error);
+                })
                 .orElseGet(() -> {
                     return new Ok<CompileState, IOError>(cleared);
                 });
