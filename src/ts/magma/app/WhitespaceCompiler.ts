@@ -1,7 +1,7 @@
 import { CompileState } from "../../magma/app/compile/CompileState";
 import { Tuple2 } from "../../magma/api/Tuple2";
 import { Option } from "../../magma/api/option/Option";
-import { Whitespace } from "../../magma/app/compile/text/Whitespace";
+import { Whitespace } from "../../magma/app/compile/define/Whitespace";
 import { Tuple2Impl } from "../../magma/api/Tuple2Impl";
 import { Strings } from "../../magma/api/text/Strings";
 import { Some } from "../../magma/api/option/Some";

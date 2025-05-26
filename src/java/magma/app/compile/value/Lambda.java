@@ -2,6 +2,7 @@ package magma.app.compile.value;
 
 import magma.api.collect.Joiner;
 import magma.api.collect.list.Iterable;
+import magma.app.DefiningCompiler;
 import magma.app.compile.CompileState;
 import magma.app.compile.define.Definition;
 import magma.app.compile.node.Node;
@@ -11,7 +12,7 @@ public record Lambda(Iterable<Definition> paramNames, String content) implements
     public String generate() {
         var joinedParamNames = this.paramNames.iter()
                 .map((Definition definition) -> {
-                    return definition.generate();
+                    return DefiningCompiler.getGenerate(definition);
                 })
                 .collect(new Joiner(", "))
                 .orElse("");

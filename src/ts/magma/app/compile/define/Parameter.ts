@@ -1,3 +1,4 @@
-export interface Parameter {
-	generate(): string;
-}
+/*
+
+public sealed interface Parameter permits Definition, Placeholder, Whitespace {
+}*/

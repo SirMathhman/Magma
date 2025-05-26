@@ -1,5 +1,4 @@
 package magma.app.compile.define;
 
-public interface Parameter {
-    String generate();
+public sealed interface Parameter permits Definition, Placeholder, Whitespace {
 }

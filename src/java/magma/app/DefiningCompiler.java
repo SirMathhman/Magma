@@ -31,10 +31,10 @@ import magma.app.compile.select.Selector;
 import magma.app.compile.split.FoldingSplitter;
 import magma.app.compile.split.LocatingSplitter;
 import magma.app.compile.split.Splitter;
-import magma.app.compile.text.Whitespace;
-import magma.app.compile.type.Placeholder;
+import magma.app.compile.define.Whitespace;
+import magma.app.compile.define.Placeholder;
 
-final class DefiningCompiler {
+public final class DefiningCompiler {
     public static Iterable<Definition> retainDefinitionsFromParameters(Iterable<Parameter> parameters) {
         return parameters.iter()
                 .map((Parameter parameter) -> {
@@ -164,7 +164,7 @@ final class DefiningCompiler {
     public static String joinParameters(Iterable<Definition> parameters) {
         return parameters.iter()
                 .map((Definition definition) -> {
-                    return definition.generate();
+                    return getGenerate(definition);
                 })
                 .map((String generated) -> {
                     return "\n\t" + generated + ";";
@@ -189,5 +189,13 @@ final class DefiningCompiler {
                     return !Strings.isEmpty(value);
                 })
                 .collect(new ListCollector<String>());
+    }
+
+    public static String getGenerate(Parameter parameter) {
+        return switch (parameter) {
+            case Definition definition -> definition.generate();
+            case Placeholder placeholder -> placeholder.generate();
+            case Whitespace whitespace -> whitespace.generate();
+        };
     }
 }

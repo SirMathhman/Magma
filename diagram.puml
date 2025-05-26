@@ -103,7 +103,9 @@ class Definition {
 }
 interface MethodHeader {
 }
-interface Parameter {
+class Placeholder {
+}
+class Whitespace {
 }
 class Dependency {
 }
@@ -196,10 +198,6 @@ LocatingSplitter <|.. Splitter
 interface Splitter {
 }
 interface Stack {
-}
-class Whitespace {
-}
-class Placeholder {
 }
 class PrimitiveNode {
 }
@@ -395,6 +393,9 @@ Definition --> TypeCompiler
 Definition --> RootCompiler
 Definition --> MethodHeader
 Definition --> Strings
+Whitespace --> Definition
+Whitespace --> Option
+Whitespace --> None
 Divider --> Iter
 FoldedDivider --> Divider
 FoldedDivider --> Folder
@@ -538,9 +539,6 @@ Splitter --> Option
 Stack --> Option
 Stack --> Definition
 Stack --> Iterable
-Whitespace --> Definition
-Whitespace --> Option
-Whitespace --> None
 PrimitiveNode --> Node
 PrimitiveNode --> TypeCompiler
 TemplateNode --> Node
@@ -549,6 +547,7 @@ VariadicType --> TypeCompiler
 Lambda --> Node
 Lambda --> Definition
 Lambda --> Iterable
+Lambda --> DefiningCompiler
 Lambda --> Joiner
 Lambda --> CompileState
 Lambda --> PrimitiveNode
@@ -604,13 +603,13 @@ DefinitionCompiler --> Iterable
 DefinitionCompiler --> Parameter
 DefinitionCompiler --> Iters
 DefinitionCompiler --> ListCollector
+DefinitionCompiler --> DefiningCompiler
 DefinitionCompiler --> Joiner
 DefinitionCompiler --> CompileState
 DefinitionCompiler --> List
 DefinitionCompiler --> Tuple2
 DefinitionCompiler --> ValueCompiler
 DefinitionCompiler --> Some
-DefinitionCompiler --> DefiningCompiler
 DefinitionCompiler --> Tuple2Impl
 DefinitionCompiler --> Lists
 DivideRule --> List

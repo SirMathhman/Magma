@@ -237,7 +237,7 @@ public final class RootCompiler {
     private static String generateConstructorFromRecordParameters(Iterable<Definition> parameters) {
         return parameters.iter()
                 .map((Definition definition) -> {
-                    return definition.generate();
+                    return DefiningCompiler.getGenerate(definition);
                 })
                 .collect(new Joiner(", "))
                 .map((String generatedParameters) -> {

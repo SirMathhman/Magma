@@ -6,7 +6,7 @@ import magma.api.collect.Iters;
 import magma.api.collect.list.Iterable;
 import magma.api.option.Option;
 import magma.app.compile.CompileState;
-import magma.app.compile.type.Placeholder;
+import magma.app.compile.define.Placeholder;
 
 public record OrRule<T>(Iterable<Rule<T>> rules) implements Rule<T> {
     public static Tuple2<CompileState, String> compileOrPlaceholder(

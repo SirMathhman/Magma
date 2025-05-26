@@ -37,7 +37,7 @@ import magma.app.compile.select.Selector;
 import magma.app.compile.split.FoldingSplitter;
 import magma.app.compile.split.LocatingSplitter;
 import magma.app.compile.split.Splitter;
-import magma.app.compile.type.Placeholder;
+import magma.app.compile.define.Placeholder;
 import magma.app.compile.type.PrimitiveNode;
 import magma.app.compile.value.Lambda;
 import magma.app.compile.value.Not;

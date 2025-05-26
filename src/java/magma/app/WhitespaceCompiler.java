@@ -7,7 +7,7 @@ import magma.api.option.Option;
 import magma.api.option.Some;
 import magma.api.text.Strings;
 import magma.app.compile.CompileState;
-import magma.app.compile.text.Whitespace;
+import magma.app.compile.define.Whitespace;
 
 public class WhitespaceCompiler {
     static Option<Tuple2<CompileState, String>> compileWhitespace(CompileState state, String input) {

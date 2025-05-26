@@ -25,7 +25,6 @@ public record Definition(
         return "\n\t\tthis." + this.name + " = " + this.name + ";";
     }
 
-    @Override
     public String generate() {
         return this.generateWithAfterName("");
     }

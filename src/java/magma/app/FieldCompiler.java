@@ -63,7 +63,7 @@ final class FieldCompiler {
 
             var joinedDefinitions = definitions.iter()
                     .map((Definition definition) -> {
-                        return definition.generate();
+                        return DefiningCompiler.getGenerate(definition);
                     })
                     .collect(new Joiner(", "))
                     .orElse("");
@@ -106,7 +106,7 @@ final class FieldCompiler {
 
     private static Option<Tuple2<CompileState, String>> getTupleOption(CompileState state, String withoutEnd) {
         return DefiningCompiler.parseParameter(state, withoutEnd).flatMap((Tuple2<CompileState, Parameter> definitionTuple) -> {
-            return new Some<Tuple2<CompileState, String>>(new Tuple2Impl<CompileState, String>(definitionTuple.left(), "\n\t" + definitionTuple.right().generate() + ";"));
+            return new Some<Tuple2<CompileState, String>>(new Tuple2Impl<CompileState, String>(definitionTuple.left(), "\n\t" + DefiningCompiler.getGenerate(definitionTuple.right()) + ";"));
         });
     }
 

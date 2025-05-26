@@ -22,7 +22,7 @@ import magma.app.compile.node.Node;
 import magma.app.compile.rule.OrRule;
 import magma.app.compile.split.LocatingSplitter;
 import magma.app.compile.split.Splitter;
-import magma.app.compile.type.Placeholder;
+import magma.app.compile.define.Placeholder;
 import magma.app.compile.type.PrimitiveNode;
 import magma.app.compile.type.TemplateNode;
 import magma.app.compile.type.VariadicType;

@@ -2,7 +2,7 @@ import { CompileState } from "../../magma/app/compile/CompileState";
 import { Tuple2Impl } from "../../magma/api/Tuple2Impl";
 import { Node } from "../../magma/app/compile/node/Node";
 import { Tuple2 } from "../../magma/api/Tuple2";
-import { Placeholder } from "../../magma/app/compile/type/Placeholder";
+import { Placeholder } from "../../magma/app/compile/define/Placeholder";
 import { TypeCompiler } from "../../magma/app/TypeCompiler";
 import { Option } from "../../magma/api/option/Option";
 import { SuffixComposable } from "../../magma/app/compile/compose/SuffixComposable";

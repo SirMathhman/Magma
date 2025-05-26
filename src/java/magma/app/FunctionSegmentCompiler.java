@@ -25,7 +25,7 @@ import magma.app.compile.select.Selector;
 import magma.app.compile.split.FoldingSplitter;
 import magma.app.compile.split.LocatingSplitter;
 import magma.app.compile.split.Splitter;
-import magma.app.compile.type.Placeholder;
+import magma.app.compile.define.Placeholder;
 import magma.app.compile.node.Node;
 
 import java.util.function.BiFunction;
@@ -186,7 +186,7 @@ final class FunctionSegmentCompiler {
             var destinationTuple = ValueCompiler.compileNode(sourceTuple.left(), destination)
                     .or(() -> {
                         return DefiningCompiler.parseDefinition(sourceTuple.left(), destination).map((Tuple2<CompileState, Definition> tuple) -> {
-                            return new Tuple2Impl<CompileState, String>(tuple.left(), "let " + tuple.right().generate());
+                            return new Tuple2Impl<CompileState, String>(tuple.left(), "let " + DefiningCompiler.getGenerate(tuple.right()));
                         });
                     })
                     .orElseGet(() -> {

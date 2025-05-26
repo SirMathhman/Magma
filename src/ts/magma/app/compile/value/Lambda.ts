@@ -1,6 +1,7 @@
 import { Node } from "../../../../magma/app/compile/node/Node";
 import { Definition } from "../../../../magma/app/compile/define/Definition";
 import { Iterable } from "../../../../magma/api/collect/list/Iterable";
+import { DefiningCompiler } from "../../../../magma/app/DefiningCompiler";
 import { Joiner } from "../../../../magma/api/collect/Joiner";
 import { CompileState } from "../../../../magma/app/compile/CompileState";
 import { PrimitiveNode } from "../../../../magma/app/compile/type/PrimitiveNode";
@@ -13,7 +14,7 @@ export class Lambda implements Node {
 	}
 	generate(): string {
 		let joinedParamNames = this.paramNames.iter().map((definition: Definition) => {
-			return definition.generate()/*unknown*/;
+			return DefiningCompiler.getGenerate(definition)/*unknown*/;
 		}).collect(new Joiner(", ")).orElse("")/*unknown*/;
 		return "(" + joinedParamNames + ")" + " => " + this.content/*unknown*/;
 	}

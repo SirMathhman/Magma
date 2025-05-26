@@ -1,6 +1,5 @@
-package magma.app.compile.type;
+package magma.app.compile.define;
 
-import magma.app.compile.define.Parameter;
 import magma.app.compile.node.Node;
 
 public record Placeholder(String input) implements Parameter, Node {
@@ -12,7 +11,6 @@ public record Placeholder(String input) implements Parameter, Node {
         return "/*" + replaced + "*/";
     }
 
-    @Override
     public String generate() {
         return Placeholder.generatePlaceholder(this.input);
     }

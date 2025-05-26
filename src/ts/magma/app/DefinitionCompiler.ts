@@ -3,13 +3,13 @@ import { Iterable } from "../../magma/api/collect/list/Iterable";
 import { Parameter } from "../../magma/app/compile/define/Parameter";
 import { Iters } from "../../magma/api/collect/Iters";
 import { ListCollector } from "../../magma/api/collect/list/ListCollector";
+import { DefiningCompiler } from "../../magma/app/DefiningCompiler";
 import { Joiner } from "../../magma/api/collect/Joiner";
 import { CompileState } from "../../magma/app/compile/CompileState";
 import { List } from "../../magma/api/collect/list/List";
 import { Tuple2 } from "../../magma/api/Tuple2";
 import { ValueCompiler } from "../../magma/app/ValueCompiler";
 import { Some } from "../../magma/api/option/Some";
-import { DefiningCompiler } from "../../magma/app/DefiningCompiler";
 import { Tuple2Impl } from "../../magma/api/Tuple2Impl";
 import { Lists } from "../../jvm/api/collect/list/Lists";
 class DefinitionCompiler {
@@ -20,7 +20,7 @@ class DefinitionCompiler {
 	}
 	static joinParameters(parameters: Iterable<Definition>): string {
 		return parameters.iter().map((definition: Definition) => {
-			return definition.generate()/*unknown*/;
+			return DefiningCompiler.getGenerate(definition)/*unknown*/;
 		}).map((generated: string) => {
 			return "\n\t" + generated + ";"/*unknown*/;
 		}).collect(Joiner.empty()).orElse("")/*unknown*/;

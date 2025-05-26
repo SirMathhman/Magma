@@ -21,7 +21,7 @@ import { Composable } from "../../magma/app/compile/compose/Composable";
 import { WhitespaceCompiler } from "../../magma/app/WhitespaceCompiler";
 import { TemplateNode } from "../../magma/app/compile/type/TemplateNode";
 import { List } from "../../magma/api/collect/list/List";
-import { Placeholder } from "../../magma/app/compile/type/Placeholder";
+import { Placeholder } from "../../magma/app/compile/define/Placeholder";
 import { Location } from "../../magma/app/Location";
 import { Import } from "../../magma/app/compile/Import";
 import { Registry } from "../../magma/app/compile/Registry";

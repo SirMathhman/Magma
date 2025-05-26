@@ -10,10 +10,10 @@ import { ValueCompiler } from "../../magma/app/ValueCompiler";
 import { Some } from "../../magma/api/option/Some";
 import { Tuple2Impl } from "../../magma/api/Tuple2Impl";
 import { Lists } from "../../jvm/api/collect/list/Lists";
-import { Placeholder } from "../../magma/app/compile/type/Placeholder";
+import { Placeholder } from "../../magma/app/compile/define/Placeholder";
 import { Option } from "../../magma/api/option/Option";
 import { WhitespaceCompiler } from "../../magma/app/WhitespaceCompiler";
-import { Whitespace } from "../../magma/app/compile/text/Whitespace";
+import { Whitespace } from "../../magma/app/compile/define/Whitespace";
 import { SplitComposable } from "../../magma/app/compile/compose/SplitComposable";
 import { Strings } from "../../magma/api/text/Strings";
 import { LastSelector } from "../../magma/app/compile/select/LastSelector";
@@ -33,7 +33,7 @@ import { TypeCompiler } from "../../magma/app/TypeCompiler";
 import { Node } from "../../magma/app/compile/node/Node";
 import { Joiner } from "../../magma/api/collect/Joiner";
 import { ValueFolder } from "../../magma/app/compile/fold/ValueFolder";
-class DefiningCompiler {
+export class DefiningCompiler {
 	static retainDefinitionsFromParameters(parameters: Iterable<Parameter>): Iterable<Definition> {
 		return parameters.iter().map((parameter: Parameter) => {
 			/*return parameter instanceof Definition definition ? new Some<>(definition) : new None<Definition>()*/;
@@ -125,7 +125,7 @@ class DefiningCompiler {
 	}
 	static joinParameters(parameters: Iterable<Definition>): string {
 		return parameters.iter().map((definition: Definition) => {
-			return definition.generate()/*unknown*/;
+			return getGenerate(definition)/*unknown*/;
 		}).map((generated: string) => {
 			return "\n\t" + generated + ";"/*unknown*/;
 		}).collect(Joiner.empty()).orElse("")/*unknown*/;
@@ -142,5 +142,11 @@ class DefiningCompiler {
 		}).filter((value: string) => {
 			return !Strings/*unknown*/.isEmpty(value)/*unknown*/;
 		}).collect(new ListCollector<string>())/*unknown*/;
+	}
+	static getGenerate(parameter: Parameter): string {/*return switch (parameter) {
+            case Definition definition -> definition.generate();
+            case Placeholder placeholder -> placeholder.generate();
+            case Whitespace whitespace -> whitespace.generate();
+        }*/;
 	}
 }
