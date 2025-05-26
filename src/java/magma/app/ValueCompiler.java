@@ -31,7 +31,6 @@ import magma.app.compile.select.FirstSelector;
 import magma.app.compile.select.Selector;
 import magma.app.compile.split.FoldingSplitter;
 import magma.app.compile.split.Splitter;
-import magma.app.compile.type.PrimitiveType;
 import magma.app.compile.type.Type;
 import magma.app.compile.value.AccessValue;
 import magma.app.compile.value.Argument;
@@ -49,7 +48,6 @@ import magma.app.compile.locate.FirstLocator;
 import magma.app.compile.select.LastSelector;
 import magma.app.compile.split.LocatingSplitter;
 
-import java.util.Objects;
 import java.util.function.Function;
 
 public final class ValueCompiler {
@@ -218,32 +216,16 @@ public final class ValueCompiler {
     }
 
     private static Type resolve(CompileState state, Value value) {
-        if (value.is("access")) {
-            return PrimitiveType.Unknown;
-        }
-
-        else if (value instanceof Invokable invokable) {
-            return invokable.resolve(state);
-        }
-        else if (value instanceof Lambda lambda) {
-            return lambda.resolve(state);
-        }
-        else if (value instanceof Not not) {
-            return not.resolve(state);
-        }
-        else if (value instanceof Operation operation) {
-            return operation.resolve(state);
-        }
-        else if (value instanceof Placeholder placeholder) {
-            return placeholder.resolve(state);
-        }
-        else if (value instanceof StringValue stringValue) {
-            return stringValue.resolve(state);
-        }
-        else if (value instanceof Symbol symbol) {
-            return symbol.resolve(state);
-        }
-        throw new IllegalArgumentException();
+        return switch (value) {
+            case AccessValue accessValue -> accessValue.resolve(state);
+            case Invokable invokable -> invokable.resolve(state);
+            case Lambda lambda -> lambda.resolve(state);
+            case Not not -> not.resolve(state);
+            case Operation operation -> operation.resolve(state);
+            case Placeholder placeholder -> placeholder.resolve(state);
+            case StringValue stringValue -> stringValue.resolve(state);
+            case Symbol symbol -> symbol.resolve(state);
+        };
     }
 
     static Option<Tuple2<CompileState, Value>> parseNumber(CompileState state, String input) {
