@@ -15,7 +15,7 @@ import { Lists } from "../../jvm/api/collect/list/Lists";
 class DefinitionCompiler {
 	static retainDefinitionsFromParameters(parameters: Iterable<Parameter>): Iterable<Definition> {
 		return parameters.iter().map((parameter: Parameter) => {
-			return parameter.asDefinition()/*unknown*/;
+			/*return parameter instanceof Definition definition ? new Some<>(definition) : new None<Definition>()*/;
 		}).flatMap(Iters.fromOption).collect(new ListCollector<Definition>())/*unknown*/;
 	}
 	static joinParameters(parameters: Iterable<Definition>): string {

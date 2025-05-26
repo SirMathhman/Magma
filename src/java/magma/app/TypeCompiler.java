@@ -268,7 +268,7 @@ public final class TypeCompiler {
             return TypeCompiler.generateType(type);
         }
         else if (type instanceof Placeholder placeholder) {
-            return placeholder.generateSimple();
+            return ValueCompiler.generateValue(placeholder);
         }
         else if (type instanceof PrimitiveNode primitiveNode) {
             return primitiveNode.generateSimple();
@@ -291,7 +291,7 @@ public final class TypeCompiler {
             return "";
         }
         else if (type instanceof Placeholder placeholder) {
-            return placeholder.generateBeforeName();
+            return "";
         }
         else if (type instanceof PrimitiveNode primitiveNode) {
             return primitiveNode.generateBeforeName();
@@ -314,7 +314,7 @@ public final class TypeCompiler {
             return "(" + joinedArguments + ") => " + TypeCompiler.generateType(type.findNode("returns").orElse(new MapNode()));
         }
         else if (type instanceof Placeholder placeholder) {
-            return placeholder.generateNode();
+            return Placeholder.generatePlaceholder(placeholder.input());
         }
         else if (type instanceof PrimitiveNode primitiveNode) {
             return primitiveNode.generateNode();

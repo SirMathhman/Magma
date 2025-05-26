@@ -12,7 +12,6 @@ public record Whitespace() implements Parameter, Node {
         return "";
     }
 
-    @Override
     public Option<Definition> asDefinition() {
         return new None<Definition>();
     }

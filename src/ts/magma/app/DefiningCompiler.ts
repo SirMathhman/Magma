@@ -36,7 +36,7 @@ import { ValueFolder } from "../../magma/app/compile/fold/ValueFolder";
 class DefiningCompiler {
 	static retainDefinitionsFromParameters(parameters: Iterable<Parameter>): Iterable<Definition> {
 		return parameters.iter().map((parameter: Parameter) => {
-			return parameter.asDefinition()/*unknown*/;
+			/*return parameter instanceof Definition definition ? new Some<>(definition) : new None<Definition>()*/;
 		}).flatMap(Iters.fromOption).collect(new ListCollector<Definition>())/*unknown*/;
 	}
 	static parseParameters(state: CompileState, params: string): Tuple2<CompileState, List<Parameter>> {

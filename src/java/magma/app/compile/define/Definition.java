@@ -30,7 +30,6 @@ public record Definition(
         return this.generateWithAfterName("");
     }
 
-    @Override
     public Option<Definition> asDefinition() {
         return new Some<Definition>(this);
     }

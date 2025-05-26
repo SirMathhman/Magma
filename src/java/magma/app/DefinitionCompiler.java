@@ -8,6 +8,7 @@ import magma.api.collect.Joiner;
 import magma.api.collect.list.Iterable;
 import magma.api.collect.list.List;
 import magma.api.collect.list.ListCollector;
+import magma.api.option.None;
 import magma.api.option.Some;
 import magma.app.compile.CompileState;
 import magma.app.compile.define.Definition;
@@ -17,7 +18,7 @@ final class DefinitionCompiler {
     public static Iterable<Definition> retainDefinitionsFromParameters(Iterable<Parameter> parameters) {
         return parameters.iter()
                 .map((Parameter parameter) -> {
-                    return parameter.asDefinition();
+                    return parameter instanceof Definition definition ? new Some<>(definition) : new None<Definition>();
                 })
                 .flatMap(Iters::fromOption)
                 .collect(new ListCollector<Definition>());

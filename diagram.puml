@@ -395,8 +395,6 @@ Definition --> TypeCompiler
 Definition --> RootCompiler
 Definition --> MethodHeader
 Definition --> Strings
-Parameter --> Definition
-Parameter --> Option
 Divider --> Iter
 FoldedDivider --> Divider
 FoldedDivider --> Folder
@@ -543,10 +541,6 @@ Stack --> Iterable
 Whitespace --> Definition
 Whitespace --> Option
 Whitespace --> None
-Placeholder --> Definition
-Placeholder --> Option
-Placeholder --> None
-Placeholder --> ValueCompiler
 PrimitiveNode --> Node
 PrimitiveNode --> TypeCompiler
 TemplateNode --> Node
