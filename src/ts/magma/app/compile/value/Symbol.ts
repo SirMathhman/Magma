@@ -120,7 +120,6 @@ import { PrimitiveType } from "../../../../magma/app/compile/type/PrimitiveType"
 import { Value } from "../../../../magma/app/compile/value/Value";
 import { Option } from "../../../../magma/api/option/Option";
 import { Some } from "../../../../magma/api/option/Some";
-import { None } from "../../../../magma/api/option/None";
 import { ValueCompiler } from "../../../../magma/app/ValueCompiler";
 export class Symbol {
 	value: string;
@@ -146,9 +145,6 @@ export class Symbol {
 	}
 	generateBeforeName(): string {
 		return ""/*unknown*/;
-	}
-	generateAsEnumValue(structureName: string): Option<string> {
-		return new None<string>()/*unknown*/;
 	}
 	generateSimple(): string {
 		return ValueCompiler.generateValue(this)/*unknown*/;

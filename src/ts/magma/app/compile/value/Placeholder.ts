@@ -147,9 +147,6 @@ export class Placeholder {
 	generateBeforeName(): string {
 		return ""/*unknown*/;
 	}
-	generateAsEnumValue(structureName: string): Option<string> {
-		return new None<string>()/*unknown*/;
-	}
 	generateSimple(): string {
 		return ValueCompiler.generateValue(this)/*unknown*/;
 	}

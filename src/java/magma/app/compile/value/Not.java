@@ -20,8 +20,5 @@ public record Not(String child) implements Value {
         return PrimitiveType.Unknown;
     }
 
-    @Override
-    public Option<String> generateAsEnumValue(String structureName) {
-        return new None<String>();
-    }
+
 }

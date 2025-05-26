@@ -145,7 +145,4 @@ export class Invokable implements Value {
 	resolve(state: CompileState): Type {
 		return PrimitiveType.Unknown/*unknown*/;
 	}
-	generateAsEnumValue(structureName: string): Option<string> {
-		return new Some<string>("\n\tstatic " + ValueCompiler.getString(this.node) + ": " + structureName + " = new " + structureName + "(" + this.joinArgs() + ");")/*unknown*/;
-	}
 }

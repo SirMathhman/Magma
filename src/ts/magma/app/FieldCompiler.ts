@@ -219,9 +219,18 @@ class FieldCompiler {
 	static getTuple2Option(state: CompileState, state1: CompileState, segment: string): Option<Tuple2<CompileState, string>> {
 		return ValueCompiler.parseInvokable(state1, segment).flatMap((tuple: Tuple2<CompileState, Value>) => {
 			let structureName = state.stack().findLastStructureName().orElse("")/*unknown*/;
-			return tuple.right().generateAsEnumValue(structureName).map((stringOption: string) => {
+			let value: Value = tuple.right()/*unknown*/;
+			return generateAsEnumValue0(value, structureName).map((stringOption: string) => {
 				return new Tuple2Impl<CompileState, string>(tuple.left(), stringOption)/*unknown*/;
 			})/*unknown*/;
 		})/*unknown*/;
+	}
+	static generateAsEnumValue0(value: Value, structureName: string): Option<string> {
+		if (/*value instanceof Invokable invokable*/){
+			return new Some<string>("\n\tstatic " + ValueCompiler.getString(invokable.node()) + ": " + structureName + " = new " + structureName + "(" + invokable.joinArgs() + ");")/*unknown*/;
+		}
+		else {
+			return new None<>()/*unknown*/;
+		}
 	}
 }

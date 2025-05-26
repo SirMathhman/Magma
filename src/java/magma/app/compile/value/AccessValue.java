@@ -20,9 +20,4 @@ public record AccessValue(Value child, String property) implements Value {
     public Type resolve(CompileState state) {
         return PrimitiveType.Unknown;
     }
-
-    @Override
-    public Option<String> generateAsEnumValue(String structureName) {
-        return new None<String>();
-    }
 }

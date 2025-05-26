@@ -19,6 +19,7 @@ import magma.app.compile.define.Definition;
 import magma.app.compile.define.MethodHeader;
 import magma.app.compile.define.Parameter;
 import magma.app.compile.split.Splitter;
+import magma.app.compile.value.Invokable;
 import magma.app.compile.value.Value;
 import magma.app.compile.locate.FirstLocator;
 import magma.app.compile.split.LocatingSplitter;
@@ -125,9 +126,19 @@ final class FieldCompiler {
     private static Option<Tuple2<CompileState, String>> getTuple2Option(CompileState state, CompileState state1, String segment) {
         return ValueCompiler.parseInvokable(state1, segment).flatMap((Tuple2<CompileState, Value> tuple) -> {
             var structureName = state.stack().findLastStructureName().orElse("");
-            return tuple.right().generateAsEnumValue(structureName).map((String stringOption) -> {
+            Value value = tuple.right();
+            return generateAsEnumValue0(value, structureName).map((String stringOption) -> {
                 return new Tuple2Impl<CompileState, String>(tuple.left(), stringOption);
             });
         });
+    }
+
+    public static Option<String> generateAsEnumValue0(Value value, String structureName) {
+        if (value instanceof Invokable invokable) {
+            return new Some<String>("\n\tstatic " + ValueCompiler.getString(invokable.node()) + ": " + structureName + " = new " + structureName + "(" + invokable.joinArgs() + ");");
+        }
+        else {
+            return new None<>();
+        }
     }
 }

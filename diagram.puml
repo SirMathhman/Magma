@@ -566,7 +566,6 @@ AccessValue --> Some
 AccessValue --> Type
 AccessValue --> CompileState
 AccessValue --> PrimitiveType
-AccessValue --> None
 ConstructionCaller --> Node
 Invokable --> Value
 Invokable --> Node
@@ -587,14 +586,12 @@ Lambda --> Some
 Lambda --> Type
 Lambda --> CompileState
 Lambda --> PrimitiveType
-Lambda --> None
 Not --> Value
 Not --> Option
 Not --> Some
 Not --> Type
 Not --> CompileState
 Not --> PrimitiveType
-Not --> None
 Operation --> Value
 Operation --> ValueCompiler
 Operation --> Option
@@ -602,7 +599,6 @@ Operation --> Some
 Operation --> Type
 Operation --> CompileState
 Operation --> PrimitiveType
-Operation --> None
 Placeholder --> Definition
 Placeholder --> Option
 Placeholder --> None
@@ -616,7 +612,6 @@ StringValue --> Some
 StringValue --> Type
 StringValue --> CompileState
 StringValue --> PrimitiveType
-StringValue --> None
 Symbol --> Type
 Symbol --> CompileState
 Symbol --> Definition
@@ -624,7 +619,6 @@ Symbol --> PrimitiveType
 Symbol --> Value
 Symbol --> Option
 Symbol --> Some
-Symbol --> None
 Symbol --> ValueCompiler
 DefiningCompiler --> Definition
 DefiningCompiler --> Iterable

@@ -30,8 +30,5 @@ public record Lambda(Iterable<Definition> paramNames, String content) implements
         return PrimitiveType.Unknown;
     }
 
-    @Override
-    public Option<String> generateAsEnumValue(String structureName) {
-        return new None<String>();
-    }
+
 }

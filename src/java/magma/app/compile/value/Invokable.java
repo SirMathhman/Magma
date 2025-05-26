@@ -16,7 +16,7 @@ public record Invokable(Node node, Iterable<Value> args) implements Value {
         return ValueCompiler.getString(this.node) + "(" + joinedArguments + ")";
     }
 
-    private String joinArgs() {
+    public String joinArgs() {
         return this.args.iter()
                 .map((Value value) -> {
                     return ValueCompiler.generateValue(value);
@@ -33,8 +33,4 @@ public record Invokable(Node node, Iterable<Value> args) implements Value {
         return PrimitiveType.Unknown;
     }
 
-    @Override
-    public Option<String> generateAsEnumValue(String structureName) {
-        return new Some<String>("\n\tstatic " + ValueCompiler.getString(this.node) + ": " + structureName + " = new " + structureName + "(" + this.joinArgs() + ");");
-    }
 }
