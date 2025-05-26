@@ -16,6 +16,11 @@ public record AccessValue(Value child, String property) implements Value {
     }
 
     @Override
+    public Option<String> generateAsEnumValue(String structureName) {
+        return new None<String>();
+    }
+
+    @Override
     public boolean is(String type) {
         return "access".equals(type);
     }

@@ -27,6 +27,11 @@ public record Symbol(String value) implements Value, Type {
     }
 
     @Override
+    public Option<Value> findChild() {
+        return new None<Value>();
+    }
+
+    @Override
     public boolean isFunctional() {
         return false;
     }

@@ -25,6 +25,15 @@ public record Invokable(Caller caller, Iterable<Value> args) implements Value {
                 .orElse("");
     }
 
+    public Option<Value> toValue() {
+        return new Some<Value>(this);
+    }
+
+    @Override
+    public Option<Value> findChild() {
+        return new None<Value>();
+    }
+
     public Type resolve(CompileState state) {
         return PrimitiveType.Unknown;
     }

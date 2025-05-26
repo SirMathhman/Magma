@@ -1,6 +1,7 @@
-import { Definition } from "../../../../magma/app/compile/define/Definition";
+import { Value } from "../../../../magma/app/compile/value/Value";
 import { Option } from "../../../../magma/api/option/Option";
 import { None } from "../../../../magma/api/option/None";
+import { Definition } from "../../../../magma/app/compile/define/Definition";
 import { Type } from "../../../../magma/app/compile/type/Type";
 import { CompileState } from "../../../../magma/app/compile/CompileState";
 import { PrimitiveType } from "../../../../magma/app/compile/type/PrimitiveType";
@@ -19,8 +20,14 @@ export class Placeholder {
 	isFunctional(): boolean {
 		return false/*unknown*/;
 	}
+	findChild(): Option<Value> {
+		return new None<Value>()/*unknown*/;
+	}
 	asDefinition(): Option<Definition> {
 		return new None<Definition>()/*unknown*/;
+	}
+	toValue(): Option<Value> {
+		return new None<Value>()/*unknown*/;
 	}
 	resolve(state: CompileState): Type {
 		return PrimitiveType.Unknown/*unknown*/;
