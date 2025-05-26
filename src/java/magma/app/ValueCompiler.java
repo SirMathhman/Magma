@@ -38,7 +38,6 @@ import magma.app.compile.split.LocatingSplitter;
 import magma.app.compile.split.Splitter;
 import magma.app.compile.type.PrimitiveType;
 import magma.app.compile.type.Type;
-import magma.app.compile.value.ConstructionCaller;
 import magma.app.compile.value.Invokable;
 import magma.app.compile.value.Lambda;
 import magma.app.compile.value.Not;
@@ -71,7 +70,7 @@ public final class ValueCompiler {
                         return TypeCompiler.compileType(state, type).flatMap((Tuple2<CompileState, String> callerTuple1) -> {
                             var callerState = callerTuple1.right();
                             var caller = callerTuple1.left();
-                            return ValueCompiler.assembleInvokable(caller, new ConstructionCaller(callerState), args);
+                            return ValueCompiler.assembleInvokable(caller, new MapNode("construction").withString("type", callerState), args);
                         });
                     }).apply(Strings.strip(callerString)).or(() -> {
                         return ValueCompiler.parseNode(state, callerString).flatMap((Tuple2<CompileState, Node> callerTuple) -> {
@@ -343,8 +342,7 @@ public final class ValueCompiler {
 
     public static String getString(Node node) {
         if (node.is("construction")) {
-            ConstructionCaller casted = (ConstructionCaller) (node);
-            return "new " + casted.type();
+            return "new " + node.findString("type").orElse("");
         }
 
         return ValueCompiler.generateValue(node);

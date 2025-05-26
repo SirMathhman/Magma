@@ -13,7 +13,7 @@ import { DivideState } from "../../magma/app/compile/DivideState";
 import { Composable } from "../../magma/app/compile/compose/Composable";
 import { PrefixComposable } from "../../magma/app/compile/compose/PrefixComposable";
 import { TypeCompiler } from "../../magma/app/TypeCompiler";
-import { ConstructionCaller } from "../../magma/app/compile/value/ConstructionCaller";
+import { MapNode } from "../../magma/app/compile/node/MapNode";
 import { Strings } from "../../magma/api/text/Strings";
 import { Rule } from "../../magma/app/compile/rule/Rule";
 import { Some } from "../../magma/api/option/Some";
@@ -31,7 +31,6 @@ import { FunctionSegmentCompiler } from "../../magma/app/FunctionSegmentCompiler
 import { Stack } from "../../magma/app/compile/Stack";
 import { Lambda } from "../../magma/app/compile/value/Lambda";
 import { None } from "../../magma/api/option/None";
-import { MapNode } from "../../magma/app/compile/node/MapNode";
 import { OperatorFolder } from "../../magma/app/compile/fold/OperatorFolder";
 import { FirstSelector } from "../../magma/app/compile/select/FirstSelector";
 import { Operation } from "../../magma/app/compile/value/Operation";
@@ -68,7 +67,7 @@ export class ValueCompiler {
 						return TypeCompiler.compileType(state, type).flatMap((callerTuple1: Tuple2<CompileState, string>) => {
 							let callerState = callerTuple1.right()/*unknown*/;
 							let caller = callerTuple1.left()/*unknown*/;
-							return ValueCompiler.assembleInvokable(caller, new ConstructionCaller(callerState), args)/*unknown*/;
+							return ValueCompiler.assembleInvokable(caller, new MapNode("construction").withString("type", callerState), args)/*unknown*/;
 						})/*unknown*/;
 					}).apply(Strings.strip(callerString)).or(() => {
 						return ValueCompiler.parseNode(state, callerString).flatMap((callerTuple: Tuple2<CompileState, Node>) => {
@@ -281,8 +280,7 @@ export class ValueCompiler {
 	}
 	static getString(node: Node): string {
 		if (node.is("construction")/*unknown*/){
-			let casted: ConstructionCaller = (ConstructionCaller)(node)/*unknown*/;
-			return "new " + casted.type()/*unknown*/;
+			return "new " + node.findString("type").orElse("")/*unknown*/;
 		}
 		return ValueCompiler.generateValue(node)/*unknown*/;
 	}

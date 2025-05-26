@@ -214,9 +214,6 @@ interface Type {
 class VariadicType {
 }
 VariadicType <|.. Type
-class ConstructionCaller {
-}
-ConstructionCaller <|.. Node
 class Invokable {
 }
 Invokable <|.. Node
@@ -565,7 +562,6 @@ TemplateType --> Iterable
 TemplateType --> Merger
 TemplateType --> ValueMerger
 VariadicType --> Type
-ConstructionCaller --> Node
 Invokable --> Node
 Invokable --> Iterable
 Invokable --> ValueCompiler
@@ -854,7 +850,7 @@ ValueCompiler --> DivideState
 ValueCompiler --> Composable
 ValueCompiler --> PrefixComposable
 ValueCompiler --> TypeCompiler
-ValueCompiler --> ConstructionCaller
+ValueCompiler --> MapNode
 ValueCompiler --> Strings
 ValueCompiler --> Rule
 ValueCompiler --> Some
@@ -872,7 +868,6 @@ ValueCompiler --> FunctionSegmentCompiler
 ValueCompiler --> Stack
 ValueCompiler --> Lambda
 ValueCompiler --> None
-ValueCompiler --> MapNode
 ValueCompiler --> OperatorFolder
 ValueCompiler --> FirstSelector
 ValueCompiler --> Operation
