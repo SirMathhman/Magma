@@ -36,21 +36,20 @@ import magma.app.compile.split.FoldingSplitter;
 import magma.app.compile.split.LocatingSplitter;
 import magma.app.compile.split.Splitter;
 import magma.app.compile.type.Type;
-import magma.app.compile.value.AccessValue;
+import magma.app.compile.value.Access;
 import magma.app.compile.value.ConstructionCaller;
 import magma.app.compile.value.Invokable;
 import magma.app.compile.value.Lambda;
 import magma.app.compile.value.Not;
 import magma.app.compile.value.Operation;
 import magma.app.compile.value.Placeholder;
-import magma.app.compile.value.StringValue;
+import magma.app.compile.value.StringNode;
 import magma.app.compile.value.Symbol;
-import magma.app.compile.value.Value;
 
 import java.util.function.Function;
 
 public final class ValueCompiler {
-    static Tuple2Impl<CompileState, String> generateValue(Tuple2<CompileState, Value> tuple) {
+    static Tuple2Impl<CompileState, String> generateNode(Tuple2<CompileState, Node> tuple) {
         var state = tuple.left();
         var right = tuple.right();
         var generated = ValueCompiler.generateValue(right);
@@ -58,23 +57,23 @@ public final class ValueCompiler {
         return new Tuple2Impl<CompileState, String>(state, generated + s);
     }
 
-    static Option<Tuple2<CompileState, Value>> parseInvokable(CompileState state, String input) {
-        return new SuffixComposable<Tuple2<CompileState, Value>>(")", (String withoutEnd) -> {
-            return new SplitComposable<Tuple2<CompileState, Value>>((String withoutEnd0) -> {
+    static Option<Tuple2<CompileState, Node>> parseInvokable(CompileState state, String input) {
+        return new SuffixComposable<Tuple2<CompileState, Node>>(")", (String withoutEnd) -> {
+            return new SplitComposable<Tuple2<CompileState, Node>>((String withoutEnd0) -> {
                 Selector selector = new LastSelector("");
                 return new FoldingSplitter((DivideState state1, char c) -> {
                     return ValueCompiler.foldInvocationStarts(state1, c);
                 }, selector).apply(withoutEnd0);
             }, Composable.toComposable((String callerWithArgStart, String args) -> {
-                return new SuffixComposable<Tuple2<CompileState, Value>>("(", (String callerString) -> {
-                    return new PrefixComposable<Tuple2<CompileState, Value>>("new ", (String type) -> {
+                return new SuffixComposable<Tuple2<CompileState, Node>>("(", (String callerString) -> {
+                    return new PrefixComposable<Tuple2<CompileState, Node>>("new ", (String type) -> {
                         return TypeCompiler.compileType(state, type).flatMap((Tuple2<CompileState, String> callerTuple1) -> {
                             var callerState = callerTuple1.right();
                             var caller = callerTuple1.left();
                             return ValueCompiler.assembleInvokable(caller, new ConstructionCaller(callerState), args);
                         });
                     }).apply(Strings.strip(callerString)).or(() -> {
-                        return ValueCompiler.parseValue(state, callerString).flatMap((Tuple2<CompileState, Value> callerTuple) -> {
+                        return ValueCompiler.parseNode(state, callerString).flatMap((Tuple2<CompileState, Node> callerTuple) -> {
                             return ValueCompiler.assembleInvokable(callerTuple.left(), callerTuple.right(), args);
                         });
                     });
@@ -83,32 +82,32 @@ public final class ValueCompiler {
         }).apply(Strings.strip(input));
     }
 
-    static Rule<Value> createTextRule(String slice) {
+    static Rule<Node> createTextRule(String slice) {
         return (CompileState state1, String input1) -> {
             var stripped = Strings.strip(input1);
-            return new PrefixComposable<Tuple2<CompileState, Value>>(slice, (String s) -> {
-                return new SuffixComposable<Tuple2<CompileState, Value>>(slice, (String s1) -> {
-                    return new Some<Tuple2<CompileState, Value>>(new Tuple2Impl<CompileState, Value>(state1, new StringValue(s1)));
+            return new PrefixComposable<Tuple2<CompileState, Node>>(slice, (String s) -> {
+                return new SuffixComposable<Tuple2<CompileState, Node>>(slice, (String s1) -> {
+                    return new Some<Tuple2<CompileState, Node>>(new Tuple2Impl<CompileState, Node>(state1, new StringNode(s1)));
                 }).apply(s);
             }).apply(stripped);
         };
     }
 
-    static Option<Tuple2<CompileState, Value>> parseNot(CompileState state, String input) {
-        return new PrefixComposable<Tuple2<CompileState, Value>>("!", (String withoutPrefix) -> {
-            var childTuple = ValueCompiler.compileValueOrPlaceholder(state, withoutPrefix);
+    static Option<Tuple2<CompileState, Node>> parseNot(CompileState state, String input) {
+        return new PrefixComposable<Tuple2<CompileState, Node>>("!", (String withoutPrefix) -> {
+            var childTuple = ValueCompiler.compileNodeOrPlaceholder(state, withoutPrefix);
             var childState = childTuple.left();
             var child = "!" + childTuple.right();
-            return new Some<Tuple2<CompileState, Value>>(new Tuple2Impl<CompileState, Value>(childState, new Not(child)));
+            return new Some<Tuple2<CompileState, Node>>(new Tuple2Impl<CompileState, Node>(childState, new Not(child)));
         }).apply(Strings.strip(input));
     }
 
-    static Option<Tuple2<CompileState, Value>> parseLambda(CompileState state, String input) {
+    static Option<Tuple2<CompileState, Node>> parseLambda(CompileState state, String input) {
         Splitter splitter = new LocatingSplitter("->", new FirstLocator());
-        return new SplitComposable<Tuple2<CompileState, Value>>(splitter, Composable.toComposable((String beforeArrow, String afterArrow) -> {
+        return new SplitComposable<Tuple2<CompileState, Node>>(splitter, Composable.toComposable((String beforeArrow, String afterArrow) -> {
             var strippedBeforeArrow = Strings.strip(beforeArrow);
-            return new PrefixComposable<Tuple2<CompileState, Value>>("(", (String withoutStart) -> {
-                return new SuffixComposable<Tuple2<CompileState, Value>>(")", (String withoutEnd) -> {
+            return new PrefixComposable<Tuple2<CompileState, Node>>("(", (String withoutStart) -> {
+                return new SuffixComposable<Tuple2<CompileState, Node>>(")", (String withoutEnd) -> {
                     return ValueCompiler.values((CompileState state1, String s) -> {
                         return DefiningCompiler.parseParameter(state1, s);
                     }).apply(state, withoutEnd).flatMap((Tuple2<CompileState, List<Parameter>> paramNames) -> {
@@ -119,10 +118,10 @@ public final class ValueCompiler {
         })).apply(input);
     }
 
-    private static Option<Tuple2<CompileState, Value>> compileLambdaWithParameterNames(CompileState state, Iterable<Definition> paramNames, String afterArrow) {
+    private static Option<Tuple2<CompileState, Node>> compileLambdaWithParameterNames(CompileState state, Iterable<Definition> paramNames, String afterArrow) {
         var strippedAfterArrow = Strings.strip(afterArrow);
-        return new PrefixComposable<Tuple2<CompileState, Value>>("{", (String withoutContentStart) -> {
-            return new SuffixComposable<Tuple2<CompileState, Value>>("}", (String withoutContentEnd) -> {
+        return new PrefixComposable<Tuple2<CompileState, Node>>("{", (String withoutContentStart) -> {
+            return new SuffixComposable<Tuple2<CompileState, Node>>("}", (String withoutContentEnd) -> {
                 CompileState compileState = state.enterDepth();
                 var statementsTuple = FunctionSegmentCompiler.compileFunctionStatements(compileState.mapStack((Stack stack1) -> {
                     return stack1.defineAll(paramNames);
@@ -134,63 +133,63 @@ public final class ValueCompiler {
                 return ValueCompiler.assembleLambda(exited, paramNames, "{" + statements + exited.createIndent() + "}");
             }).apply(withoutContentStart);
         }).apply(strippedAfterArrow).or(() -> {
-            return ValueCompiler.compileValue(state, strippedAfterArrow).flatMap((Tuple2<CompileState, String> tuple) -> {
+            return ValueCompiler.compileNode(state, strippedAfterArrow).flatMap((Tuple2<CompileState, String> tuple) -> {
                 return ValueCompiler.assembleLambda(tuple.left(), paramNames, tuple.right());
             });
         });
     }
 
-    private static Option<Tuple2<CompileState, Value>> assembleLambda(CompileState exited, Iterable<Definition> paramNames, String content) {
-        return new Some<Tuple2<CompileState, Value>>(new Tuple2Impl<CompileState, Value>(exited, new Lambda(paramNames, content)));
+    private static Option<Tuple2<CompileState, Node>> assembleLambda(CompileState exited, Iterable<Definition> paramNames, String content) {
+        return new Some<Tuple2<CompileState, Node>>(new Tuple2Impl<CompileState, Node>(exited, new Lambda(paramNames, content)));
     }
 
-    static Rule<Value> createOperatorRule(String infix) {
+    static Rule<Node> createOperatorRule(String infix) {
         return ValueCompiler.createOperatorRuleWithDifferentInfix(infix, infix);
     }
 
-    static Rule<Value> createAccessRule(String infix) {
+    static Rule<Node> createAccessRule(String infix) {
         return (CompileState state, String input) -> {
             return SplitComposable.compileLast(input, infix, (String childString, String rawProperty) -> {
                 var property = Strings.strip(rawProperty);
                 if (!ValueCompiler.isSymbol(property)) {
-                    return new None<Tuple2<CompileState, Value>>();
+                    return new None<Tuple2<CompileState, Node>>();
                 }
 
-                return ValueCompiler.parseValue(state, childString).flatMap((Tuple2<CompileState, Value> childTuple) -> {
+                return ValueCompiler.parseNode(state, childString).flatMap((Tuple2<CompileState, Node> childTuple) -> {
                     var childState = childTuple.left();
                     var child = childTuple.right();
-                    return new Some<Tuple2<CompileState, Value>>(new Tuple2Impl<CompileState, Value>(childState, new AccessValue(child, property)));
+                    return new Some<Tuple2<CompileState, Node>>(new Tuple2Impl<CompileState, Node>(childState, new Access(child, property)));
                 });
             });
         };
     }
 
-    static Rule<Value> createOperatorRuleWithDifferentInfix(String sourceInfix, String targetInfix) {
+    static Rule<Node> createOperatorRuleWithDifferentInfix(String sourceInfix, String targetInfix) {
         return (CompileState state1, String input1) -> {
-            return new SplitComposable<Tuple2<CompileState, Value>>((String slice) -> {
+            return new SplitComposable<Tuple2<CompileState, Node>>((String slice) -> {
                 return new FoldingSplitter(new OperatorFolder(sourceInfix), (List<String> divisions) -> {
                     return new FirstSelector(sourceInfix).select(divisions);
                 }).apply(slice);
             }, Composable.toComposable((String leftString, String rightString) -> {
-                return ValueCompiler.parseValue(state1, leftString).flatMap((Tuple2<CompileState, Value> leftTuple) -> {
-                    return ValueCompiler.parseValue(leftTuple.left(), rightString).flatMap((Tuple2<CompileState, Value> rightTuple) -> {
+                return ValueCompiler.parseNode(state1, leftString).flatMap((Tuple2<CompileState, Node> leftTuple) -> {
+                    return ValueCompiler.parseNode(leftTuple.left(), rightString).flatMap((Tuple2<CompileState, Node> rightTuple) -> {
                         var left = leftTuple.right();
                         var right = rightTuple.right();
-                        return new Some<Tuple2<CompileState, Value>>(new Tuple2Impl<CompileState, Value>(rightTuple.left(), new Operation(left, targetInfix, right)));
+                        return new Some<Tuple2<CompileState, Node>>(new Tuple2Impl<CompileState, Node>(rightTuple.left(), new Operation(left, targetInfix, right)));
                     });
                 });
             })).apply(input1);
         };
     }
 
-    static Option<Tuple2<CompileState, Value>> parseSymbol(CompileState state, String input) {
+    static Option<Tuple2<CompileState, Node>> parseSymbol(CompileState state, String input) {
         var stripped = Strings.strip(input);
         if (ValueCompiler.isSymbol(stripped)) {
             var withImport = TypeCompiler.addResolvedImportFromCache0(state, stripped);
-            return new Some<Tuple2<CompileState, Value>>(new Tuple2Impl<CompileState, Value>(withImport, new Symbol(stripped)));
+            return new Some<Tuple2<CompileState, Node>>(new Tuple2Impl<CompileState, Node>(withImport, new Symbol(stripped)));
         }
         else {
-            return new None<Tuple2<CompileState, Value>>();
+            return new None<Tuple2<CompileState, Node>>();
         }
     }
 
@@ -214,49 +213,50 @@ public final class ValueCompiler {
         });
     }
 
-    private static Type resolve(CompileState state, Value value) {
+    private static Type resolve(CompileState state, Node value) {
         return switch (value) {
-            case AccessValue accessValue -> accessValue.resolve(state);
+            case Access access -> access.resolve(state);
             case Invokable invokable -> invokable.resolve(state);
             case Lambda lambda -> lambda.resolve(state);
             case Not not -> not.resolve(state);
             case Operation operation -> operation.resolve(state);
             case Placeholder placeholder -> placeholder.resolve(state);
-            case StringValue stringValue -> stringValue.resolve(state);
+            case StringNode stringNode -> stringNode.resolve(state);
             case Symbol symbol -> symbol.resolve(state);
+            default -> throw new IllegalStateException("Unexpected value: " + value);
         };
     }
 
-    static Option<Tuple2<CompileState, Value>> parseNumber(CompileState state, String input) {
+    static Option<Tuple2<CompileState, Node>> parseNumber(CompileState state, String input) {
         var stripped = Strings.strip(input);
         if (ValueCompiler.isNumber(stripped)) {
-            return new Some<Tuple2<CompileState, Value>>(new Tuple2Impl<CompileState, Value>(state, new Symbol(stripped)));
+            return new Some<Tuple2<CompileState, Node>>(new Tuple2Impl<CompileState, Node>(state, new Symbol(stripped)));
         }
         else {
-            return new None<Tuple2<CompileState, Value>>();
+            return new None<Tuple2<CompileState, Node>>();
         }
     }
 
-    static Tuple2<CompileState, String> compileValueOrPlaceholder(CompileState state, String input) {
-        return ValueCompiler.compileValue(state, input).orElseGet(() -> {
+    static Tuple2<CompileState, String> compileNodeOrPlaceholder(CompileState state, String input) {
+        return ValueCompiler.compileNode(state, input).orElseGet(() -> {
             return new Tuple2Impl<CompileState, String>(state, Placeholder.generatePlaceholder(input));
         });
     }
 
-    static Option<Tuple2<CompileState, String>> compileValue(CompileState state, String input) {
-        return ValueCompiler.parseValue(state, input).map((Tuple2<CompileState, Value> tuple) -> {
-            return ValueCompiler.generateValue(tuple);
+    static Option<Tuple2<CompileState, String>> compileNode(CompileState state, String input) {
+        return ValueCompiler.parseNode(state, input).map((Tuple2<CompileState, Node> tuple) -> {
+            return ValueCompiler.generateNode(tuple);
         });
     }
 
-    private static Option<Tuple2<CompileState, Value>> parseArgument(CompileState state1, String input) {
-        return ValueCompiler.parseValue(state1, input).map((Tuple2<CompileState, Value> tuple) -> {
-            return new Tuple2Impl<CompileState, Value>(tuple.left(), tuple.right());
+    private static Option<Tuple2<CompileState, Node>> parseArgument(CompileState state1, String input) {
+        return ValueCompiler.parseNode(state1, input).map((Tuple2<CompileState, Node> tuple) -> {
+            return new Tuple2Impl<CompileState, Node>(tuple.left(), tuple.right());
         });
     }
 
     private static Node transformCaller(CompileState state, Node oldNode) {
-        return ValueCompiler.getValueOption(oldNode).flatMap((Value parent) -> {
+        return ValueCompiler.getNodeOption(oldNode).flatMap((Node parent) -> {
             var parentType = ValueCompiler.resolve(state, parent);
             if (parentType.isFunctional()) {
                 return new Some<Node>(parent);
@@ -266,11 +266,11 @@ public final class ValueCompiler {
         }).orElse(oldNode);
     }
 
-    private static Option<Value> getValueOption(Node oldNode) {
-        if (oldNode instanceof AccessValue accessValue) {
-            return new Some<Value>(accessValue.child());
+    private static Option<Node> getNodeOption(Node oldNode) {
+        if (oldNode instanceof Access access) {
+            return new Some<Node>(access.child());
         }
-        return new None<Value>();
+        return new None<Node>();
     }
 
     private static DivideState foldInvocationStarts(DivideState state, char c) {
@@ -292,15 +292,15 @@ public final class ValueCompiler {
         return appended;
     }
 
-    private static Option<Tuple2<CompileState, Value>> assembleInvokable(CompileState state, Node oldNode, String argsString) {
+    private static Option<Tuple2<CompileState, Node>> assembleInvokable(CompileState state, Node oldNode, String argsString) {
         return ValueCompiler.values((CompileState state1, String s) -> {
             return ValueCompiler.parseArgument(state1, s);
-        }).apply(state, argsString).flatMap((Tuple2<CompileState, List<Value>> argsTuple) -> {
+        }).apply(state, argsString).flatMap((Tuple2<CompileState, List<Node>> argsTuple) -> {
             var argsState = argsTuple.left();
             var args = argsTuple.right();
 
             var newCaller = ValueCompiler.transformCaller(argsState, oldNode);
-            return new Some<Tuple2<CompileState, Value>>(new Tuple2Impl<CompileState, Value>(argsState, new Invokable(newCaller, args)));
+            return new Some<Tuple2<CompileState, Node>>(new Tuple2Impl<CompileState, Node>(argsState, new Invokable(newCaller, args)));
         });
     }
 
@@ -311,8 +311,8 @@ public final class ValueCompiler {
                 .collect(new ListCollector<R>());
     }
 
-    public static Option<Tuple2<CompileState, Value>> parseValue(CompileState state, String input) {
-        return new OrRule<Value>(Lists.of(
+    public static Option<Tuple2<CompileState, Node>> parseNode(CompileState state, String input) {
+        return new OrRule<Node>(Lists.of(
                 ValueCompiler::parseLambda,
                 ValueCompiler.createOperatorRule("+"),
                 ValueCompiler.createOperatorRule("-"),
@@ -340,23 +340,25 @@ public final class ValueCompiler {
     }
 
     public static String getString(Node node) {
-        return switch (node) {
-            case Value value -> ValueCompiler.generateValue(value);
-            case ConstructionCaller constructionCaller -> constructionCaller.generate();
-            default -> "?";
-        };
+        if (node.is("construction")) {
+            ConstructionCaller casted = (ConstructionCaller) (node);
+            return "new " + casted.type();
+        }
+
+        return ValueCompiler.generateValue(node);
     }
 
-    public static String generateValue(Value value) {
+    public static String generateValue(Node value) {
         return switch (value) {
-            case AccessValue accessValue -> accessValue.generate();
+            case Access access -> access.generate();
             case Invokable invokable -> invokable.generate();
             case Lambda lambda -> lambda.generate();
             case Not not -> not.generate();
             case Operation operation -> operation.generate();
             case Placeholder placeholder -> placeholder.generate();
-            case StringValue stringValue -> stringValue.generate();
+            case StringNode stringNode -> stringNode.generate();
             case Symbol symbol -> symbol.generate();
+            default -> "?";
         };
     }
 }

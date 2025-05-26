@@ -12,7 +12,7 @@ public record Err<T, X>(X error) implements Result<T, X> {
     }
 
     @Override
-    public <R> Result<R, X> flatMapValue(Function<T, Result<R, X>> mapper) {
+    public <R> Result<R, X> flatMapNode(Function<T, Result<R, X>> mapper) {
         return new Err<R, X>(this.error);
     }
 
@@ -22,7 +22,7 @@ public record Err<T, X>(X error) implements Result<T, X> {
     }
 
     @Override
-    public <R> Result<R, X> mapValue(Function<T, R> mapper) {
+    public <R> Result<R, X> mapNode(Function<T, R> mapper) {
         return new Err<R, X>(this.error);
     }
 }

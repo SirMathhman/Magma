@@ -59,8 +59,8 @@ public record Some<T>(T value) implements Option<T> {
 
     @Override
     public <R> Option<Tuple2<T, R>> and(Supplier<Option<R>> other) {
-        return other.get().map((R otherValue) -> {
-            return new Tuple2Impl<T, R>(this.value, otherValue);
+        return other.get().map((R otherNode) -> {
+            return new Tuple2Impl<T, R>(this.value, otherNode);
         });
     }
 }

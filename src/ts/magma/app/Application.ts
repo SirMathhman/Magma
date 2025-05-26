@@ -83,16 +83,15 @@
 	TemplateType: magma.app.compile.type, 
 	Type: magma.app.compile.type, 
 	VariadicType: magma.app.compile.type, 
-	AccessValue: magma.app.compile.value, 
+	Access: magma.app.compile.value, 
 	ConstructionCaller: magma.app.compile.value, 
 	Invokable: magma.app.compile.value, 
 	Lambda: magma.app.compile.value, 
 	Not: magma.app.compile.value, 
 	Operation: magma.app.compile.value, 
 	Placeholder: magma.app.compile.value, 
-	StringValue: magma.app.compile.value, 
+	StringNode: magma.app.compile.value, 
 	Symbol: magma.app.compile.value, 
-	Value: magma.app.compile.value, 
 	CompilerUtils: magma.app, 
 	DefiningCompiler: magma.app, 
 	DefinitionCompiler: magma.app, 
@@ -146,7 +145,7 @@ class Application {
 		return source.createLocation().namespace().iter().collect(new Joiner(".")).orElse("")/*unknown*/;
 	}
 	runWith(platform: Platform): Option<IOError> {
-		return this.sources.listSources().flatMapValue((children: Iterable<Source>) => {
+		return this.sources.listSources().flatMapNode((children: Iterable<Source>) => {
 			return this.runWithChildren(platform, children)/*unknown*/;
 		}).findError()/*unknown*/;
 	}
@@ -176,7 +175,7 @@ class Application {
 		return new Err<CompileState, IOError>(error)/*unknown*/;
 	}
 	runWithSource(state: CompileState, source: Source): Result<CompileState, IOError> {
-		return source.read().flatMapValue((input: string) => {
+		return source.read().flatMapNode((input: string) => {
 			return this.runWithInput(state, source, input)/*unknown*/;
 		})/*unknown*/;
 	}

@@ -31,7 +31,7 @@ record Application(Sources sources, Targets targets) {
 
     Option<IOError> runWith(Platform platform) {
         return this.sources.listSources()
-                .flatMapValue((Iterable<Source> children) -> {
+                .flatMapNode((Iterable<Source> children) -> {
                     return this.runWithChildren(platform, children);
                 })
                 .findError();
@@ -71,7 +71,7 @@ record Application(Sources sources, Targets targets) {
     }
 
     private Result<CompileState, IOError> runWithSource(CompileState state, Source source) {
-        return source.read().flatMapValue((String input) -> {
+        return source.read().flatMapNode((String input) -> {
             return this.runWithInput(state, source, input);
         });
     }

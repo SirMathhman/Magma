@@ -83,16 +83,15 @@
 	TemplateType: magma.app.compile.type, 
 	Type: magma.app.compile.type, 
 	VariadicType: magma.app.compile.type, 
-	AccessValue: magma.app.compile.value, 
+	Access: magma.app.compile.value, 
 	ConstructionCaller: magma.app.compile.value, 
 	Invokable: magma.app.compile.value, 
 	Lambda: magma.app.compile.value, 
 	Not: magma.app.compile.value, 
 	Operation: magma.app.compile.value, 
 	Placeholder: magma.app.compile.value, 
-	StringValue: magma.app.compile.value, 
+	StringNode: magma.app.compile.value, 
 	Symbol: magma.app.compile.value, 
-	Value: magma.app.compile.value, 
 	CompilerUtils: magma.app, 
 	DefiningCompiler: magma.app, 
 	DefinitionCompiler: magma.app, 
@@ -214,7 +213,7 @@ class DefiningCompiler {
 		return new SuffixComposable<Tuple2<CompileState, Definition>>(">", (withoutTypeParamEnd: string) => {
 			let splitter: Splitter = new LocatingSplitter("<", new FirstLocator())/*unknown*/;
 			return new SplitComposable<Tuple2<CompileState, Definition>>(splitter, Composable.toComposable((beforeTypeParams: string, typeParamsString: string) => {
-				let typeParams = DefiningCompiler.divideValues(typeParamsString)/*unknown*/;
+				let typeParams = DefiningCompiler.divideNodes(typeParamsString)/*unknown*/;
 				return DefiningCompiler.parseDefinitionWithTypeParameters(state, annotations, typeParams, DefiningCompiler.parseModifiers(beforeTypeParams), type, name)/*unknown*/;
 			})).apply(withoutTypeParamEnd)/*unknown*/;
 		}).apply(Strings.strip(beforeType)).or(() => {
@@ -251,7 +250,7 @@ class DefiningCompiler {
 		}
 		return Lists.empty()/*unknown*/;
 	}
-	static divideValues(input: string): List<string> {
+	static divideNodes(input: string): List<string> {
 		return new FoldedDivider(new DecoratedFolder(new ValueFolder())).divide(input).map((input1: string) => {
 			return Strings.strip(input1)/*unknown*/;
 		}).filter((value: string) => {

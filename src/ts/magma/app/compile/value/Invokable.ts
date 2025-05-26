@@ -83,16 +83,15 @@
 	TemplateType: magma.app.compile.type, 
 	Type: magma.app.compile.type, 
 	VariadicType: magma.app.compile.type, 
-	AccessValue: magma.app.compile.value, 
+	Access: magma.app.compile.value, 
 	ConstructionCaller: magma.app.compile.value, 
 	Invokable: magma.app.compile.value, 
 	Lambda: magma.app.compile.value, 
 	Not: magma.app.compile.value, 
 	Operation: magma.app.compile.value, 
 	Placeholder: magma.app.compile.value, 
-	StringValue: magma.app.compile.value, 
+	StringNode: magma.app.compile.value, 
 	Symbol: magma.app.compile.value, 
-	Value: magma.app.compile.value, 
 	CompilerUtils: magma.app, 
 	DefiningCompiler: magma.app, 
 	DefinitionCompiler: magma.app, 
@@ -113,7 +112,6 @@
 	ValueCompiler: magma.app, 
 	WhitespaceCompiler: magma.app
 ]*/
-import { Value } from "../../../../magma/app/compile/value/Value";
 import { Node } from "../../../../magma/app/compile/node/Node";
 import { Iterable } from "../../../../magma/api/collect/list/Iterable";
 import { ValueCompiler } from "../../../../magma/app/ValueCompiler";
@@ -123,10 +121,10 @@ import { Some } from "../../../../magma/api/option/Some";
 import { Type } from "../../../../magma/app/compile/type/Type";
 import { CompileState } from "../../../../magma/app/compile/CompileState";
 import { PrimitiveType } from "../../../../magma/app/compile/type/PrimitiveType";
-export class Invokable implements Value {
+export class Invokable implements Node {
 	node: Node;
-	args: Iterable<Value>;
-	constructor (node: Node, args: Iterable<Value>) {
+	args: Iterable<Node>;
+	constructor (node: Node, args: Iterable<Node>) {
 		this.node = node;
 		this.args = args;
 	}
@@ -135,12 +133,12 @@ export class Invokable implements Value {
 		return ValueCompiler.getString(this.node) + "(" + joinedArguments + ")"/*unknown*/;
 	}
 	joinArgs(): string {
-		return this.args.iter().map((value: Value) => {
+		return this.args.iter().map((value: Node) => {
 			return ValueCompiler.generateValue(value)/*unknown*/;
 		}).collect(new Joiner(", ")).orElse("")/*unknown*/;
 	}
-	toValue(): Option<Value> {
-		return new Some<Value>(this)/*unknown*/;
+	toNode(): Option<Node> {
+		return new Some<Node>(this)/*unknown*/;
 	}
 	resolve(state: CompileState): Type {
 		return PrimitiveType.Unknown/*unknown*/;

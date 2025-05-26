@@ -211,29 +211,29 @@ interface Type {
 class VariadicType {
 }
 VariadicType <|.. Type
-class AccessValue {
+class Access {
 }
-AccessValue <|.. Value
+Access <|.. Node
 class ConstructionCaller {
 }
 ConstructionCaller <|.. Node
 class Invokable {
 }
-Invokable <|.. Value
+Invokable <|.. Node
 class Lambda {
 }
-Lambda <|.. Value
+Lambda <|.. Node
 class Not {
 }
-Not <|.. Value
+Not <|.. Node
 class Operation {
 }
-Operation <|.. Value
+Operation <|.. Node
 class Placeholder {
 }
-class StringValue {
+class StringNode {
 }
-StringValue <|.. Value
+StringNode <|.. Node
 class Symbol {
 }
 class CompilerUtils {
@@ -559,15 +559,14 @@ TemplateType --> Iterable
 TemplateType --> Merger
 TemplateType --> ValueMerger
 VariadicType --> Type
-AccessValue --> Value
-AccessValue --> ValueCompiler
-AccessValue --> Option
-AccessValue --> Some
-AccessValue --> Type
-AccessValue --> CompileState
-AccessValue --> PrimitiveType
+Access --> Node
+Access --> ValueCompiler
+Access --> Option
+Access --> Some
+Access --> Type
+Access --> CompileState
+Access --> PrimitiveType
 ConstructionCaller --> Node
-Invokable --> Value
 Invokable --> Node
 Invokable --> Iterable
 Invokable --> ValueCompiler
@@ -577,7 +576,7 @@ Invokable --> Some
 Invokable --> Type
 Invokable --> CompileState
 Invokable --> PrimitiveType
-Lambda --> Value
+Lambda --> Node
 Lambda --> Definition
 Lambda --> Iterable
 Lambda --> Joiner
@@ -586,13 +585,13 @@ Lambda --> Some
 Lambda --> Type
 Lambda --> CompileState
 Lambda --> PrimitiveType
-Not --> Value
+Not --> Node
 Not --> Option
 Not --> Some
 Not --> Type
 Not --> CompileState
 Not --> PrimitiveType
-Operation --> Value
+Operation --> Node
 Operation --> ValueCompiler
 Operation --> Option
 Operation --> Some
@@ -606,17 +605,17 @@ Placeholder --> Type
 Placeholder --> CompileState
 Placeholder --> PrimitiveType
 Placeholder --> ValueCompiler
-StringValue --> Value
-StringValue --> Option
-StringValue --> Some
-StringValue --> Type
-StringValue --> CompileState
-StringValue --> PrimitiveType
+StringNode --> Node
+StringNode --> Option
+StringNode --> Some
+StringNode --> Type
+StringNode --> CompileState
+StringNode --> PrimitiveType
 Symbol --> Type
 Symbol --> CompileState
 Symbol --> Definition
 Symbol --> PrimitiveType
-Symbol --> Value
+Symbol --> Node
 Symbol --> Option
 Symbol --> Some
 Symbol --> ValueCompiler
@@ -704,7 +703,7 @@ FieldCompiler --> Stack
 FieldCompiler --> Parameter
 FieldCompiler --> ValueCompiler
 FieldCompiler --> List
-FieldCompiler --> Value
+FieldCompiler --> Node
 FunctionSegmentCompiler --> CompileState
 FunctionSegmentCompiler --> Tuple2
 FunctionSegmentCompiler --> Option
@@ -724,7 +723,7 @@ FunctionSegmentCompiler --> Lists
 FunctionSegmentCompiler --> Rule
 FunctionSegmentCompiler --> PrefixComposable
 FunctionSegmentCompiler --> ValueCompiler
-FunctionSegmentCompiler --> Value
+FunctionSegmentCompiler --> Node
 FunctionSegmentCompiler --> LocatingSplitter
 FunctionSegmentCompiler --> FirstLocator
 FunctionSegmentCompiler --> Splitter
@@ -843,7 +842,7 @@ TypeCompiler --> Platform
 TypeCompiler --> Dependency
 ValueCompiler --> CompileState
 ValueCompiler --> Tuple2Impl
-ValueCompiler --> Value
+ValueCompiler --> Node
 ValueCompiler --> Tuple2
 ValueCompiler --> Placeholder
 ValueCompiler --> Option
@@ -860,7 +859,7 @@ ValueCompiler --> ConstructionCaller
 ValueCompiler --> Strings
 ValueCompiler --> Rule
 ValueCompiler --> Some
-ValueCompiler --> StringValue
+ValueCompiler --> StringNode
 ValueCompiler --> Not
 ValueCompiler --> LocatingSplitter
 ValueCompiler --> FirstLocator
@@ -874,7 +873,7 @@ ValueCompiler --> FunctionSegmentCompiler
 ValueCompiler --> Stack
 ValueCompiler --> Lambda
 ValueCompiler --> None
-ValueCompiler --> AccessValue
+ValueCompiler --> Access
 ValueCompiler --> OperatorFolder
 ValueCompiler --> FirstSelector
 ValueCompiler --> Operation
@@ -883,7 +882,6 @@ ValueCompiler --> HeadedIter
 ValueCompiler --> RangeHead
 ValueCompiler --> Characters
 ValueCompiler --> Type
-ValueCompiler --> Node
 ValueCompiler --> Invokable
 ValueCompiler --> Iters
 ValueCompiler --> ListCollector

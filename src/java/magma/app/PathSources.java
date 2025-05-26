@@ -13,7 +13,7 @@ public record PathSources(Path sourceDirectory) implements Sources {
     public Result<Iterable<Source>, IOError> listSources() {
         return this.sourceDirectory()
                 .walk()
-                .mapValue((Iterable<Path> children) -> {
+                .mapNode((Iterable<Path> children) -> {
                     return this.retainSources(children);
                 });
     }

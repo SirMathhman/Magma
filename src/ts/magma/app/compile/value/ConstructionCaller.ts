@@ -83,16 +83,15 @@
 	TemplateType: magma.app.compile.type, 
 	Type: magma.app.compile.type, 
 	VariadicType: magma.app.compile.type, 
-	AccessValue: magma.app.compile.value, 
+	Access: magma.app.compile.value, 
 	ConstructionCaller: magma.app.compile.value, 
 	Invokable: magma.app.compile.value, 
 	Lambda: magma.app.compile.value, 
 	Not: magma.app.compile.value, 
 	Operation: magma.app.compile.value, 
 	Placeholder: magma.app.compile.value, 
-	StringValue: magma.app.compile.value, 
+	StringNode: magma.app.compile.value, 
 	Symbol: magma.app.compile.value, 
-	Value: magma.app.compile.value, 
 	CompilerUtils: magma.app, 
 	DefiningCompiler: magma.app, 
 	DefinitionCompiler: magma.app, 
@@ -115,11 +114,14 @@
 ]*/
 import { Node } from "../../../../magma/app/compile/node/Node";
 export class ConstructionCaller implements Node {
-	right: string;
-	constructor (right: string) {
-		this.right = right;
+	type: string;
+	constructor (type: string) {
+		this.type = type;
 	}
 	generate(): string {
-		return "new " + this.right/*unknown*/;
+		return "new " + this.type/*unknown*/;
+	}
+	is(type: string): boolean {
+		return "construction".equals(type)/*unknown*/;
 	}
 }

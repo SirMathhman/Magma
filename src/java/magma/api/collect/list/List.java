@@ -11,7 +11,7 @@ public interface List<T> extends Sequence<T> {
 
     List<T> addFirst(T element);
 
-    List<T> removeValue(T element);
+    List<T> removeNode(T element);
 
     Option<List<T>> removeLast();
 }

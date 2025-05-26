@@ -12,7 +12,7 @@ public record Ok<T, X>(T value) implements Result<T, X> {
     }
 
     @Override
-    public <R> Result<R, X> flatMapValue(Function<T, Result<R, X>> mapper) {
+    public <R> Result<R, X> flatMapNode(Function<T, Result<R, X>> mapper) {
         return mapper.apply(this.value);
     }
 
@@ -22,7 +22,7 @@ public record Ok<T, X>(T value) implements Result<T, X> {
     }
 
     @Override
-    public <R> Result<R, X> mapValue(Function<T, R> mapper) {
+    public <R> Result<R, X> mapNode(Function<T, R> mapper) {
         return new Ok<R, X>(mapper.apply(this.value));
     }
 }

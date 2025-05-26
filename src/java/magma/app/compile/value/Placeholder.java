@@ -6,10 +6,11 @@ import magma.app.ValueCompiler;
 import magma.app.compile.CompileState;
 import magma.app.compile.define.Definition;
 import magma.app.compile.define.Parameter;
+import magma.app.compile.node.Node;
 import magma.app.compile.type.PrimitiveType;
 import magma.app.compile.type.Type;
 
-public record Placeholder(String input) implements Parameter, Value, Type {
+public record Placeholder(String input) implements Parameter, Node, Type {
     public static String generatePlaceholder(String input) {
         var replaced = input
                 .replace("/*", "start")

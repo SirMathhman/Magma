@@ -83,16 +83,15 @@
 	TemplateType: magma.app.compile.type, 
 	Type: magma.app.compile.type, 
 	VariadicType: magma.app.compile.type, 
-	AccessValue: magma.app.compile.value, 
+	Access: magma.app.compile.value, 
 	ConstructionCaller: magma.app.compile.value, 
 	Invokable: magma.app.compile.value, 
 	Lambda: magma.app.compile.value, 
 	Not: magma.app.compile.value, 
 	Operation: magma.app.compile.value, 
 	Placeholder: magma.app.compile.value, 
-	StringValue: magma.app.compile.value, 
+	StringNode: magma.app.compile.value, 
 	Symbol: magma.app.compile.value, 
-	Value: magma.app.compile.value, 
 	CompilerUtils: magma.app, 
 	DefiningCompiler: magma.app, 
 	DefinitionCompiler: magma.app, 
@@ -120,7 +119,7 @@ export interface Stack {
 	findLastStructureName(): Option<string>;
 	isWithinLast(name: string): boolean;
 	hasAnyStructureName(base: string): boolean;
-	resolveValue(name: string): Option<Definition>;
+	resolveNode(name: string): Option<Definition>;
 	pushStructureName(name: string): Stack;
 	defineAll(definitions: Iterable<Definition>): Stack;
 	popStructureName(): Stack;

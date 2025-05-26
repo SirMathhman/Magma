@@ -91,7 +91,7 @@ public record JVMList<T>(java.util.List<T> list) implements List<T> {
     }
 
     @Override
-    public List<T> removeValue(T element) {
+    public List<T> removeNode(T element) {
         var copy = new ArrayList<T>(this.list);
         copy.remove(element);
         return new JVMList<T>(copy);

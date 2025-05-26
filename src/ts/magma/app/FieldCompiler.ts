@@ -83,16 +83,15 @@
 	TemplateType: magma.app.compile.type, 
 	Type: magma.app.compile.type, 
 	VariadicType: magma.app.compile.type, 
-	AccessValue: magma.app.compile.value, 
+	Access: magma.app.compile.value, 
 	ConstructionCaller: magma.app.compile.value, 
 	Invokable: magma.app.compile.value, 
 	Lambda: magma.app.compile.value, 
 	Not: magma.app.compile.value, 
 	Operation: magma.app.compile.value, 
 	Placeholder: magma.app.compile.value, 
-	StringValue: magma.app.compile.value, 
+	StringNode: magma.app.compile.value, 
 	Symbol: magma.app.compile.value, 
-	Value: magma.app.compile.value, 
 	CompilerUtils: magma.app, 
 	DefiningCompiler: magma.app, 
 	DefinitionCompiler: magma.app, 
@@ -137,7 +136,7 @@ import { Stack } from "../../magma/app/compile/Stack";
 import { Parameter } from "../../magma/app/compile/define/Parameter";
 import { ValueCompiler } from "../../magma/app/ValueCompiler";
 import { List } from "../../magma/api/collect/list/List";
-import { Value } from "../../magma/app/compile/value/Value";
+import { Node } from "../../magma/app/compile/node/Node";
 class FieldCompiler {
 	static compileMethod(state: CompileState, input: string): Option<Tuple2<CompileState, string>> {
 		let splitter: Splitter = new LocatingSplitter("(", new FirstLocator())/*unknown*/;
@@ -196,7 +195,7 @@ class FieldCompiler {
 	static compileFieldDefinition(state: CompileState, input: string): Option<Tuple2<CompileState, string>> {
 		return new SuffixComposable<Tuple2<CompileState, string>>(";", (withoutEnd: string) => {
 			return FieldCompiler.getTupleOption(state, withoutEnd).or(() => {
-				return FieldCompiler.compileEnumValues(state, withoutEnd)/*unknown*/;
+				return FieldCompiler.compileEnumNodes(state, withoutEnd)/*unknown*/;
 			})/*unknown*/;
 		}).apply(Strings.strip(input))/*unknown*/;
 	}
@@ -205,7 +204,7 @@ class FieldCompiler {
 			return new Some<Tuple2<CompileState, string>>(new Tuple2Impl<CompileState, string>(definitionTuple.left(), "\n\t" + definitionTuple.right().generate() + ";"))/*unknown*/;
 		})/*unknown*/;
 	}
-	static compileEnumValues(state: CompileState, withoutEnd: string): Option<Tuple2<CompileState, string>> {
+	static compileEnumNodes(state: CompileState, withoutEnd: string): Option<Tuple2<CompileState, string>> {
 		return ValueCompiler.values((state1: CompileState, segment: string) => {
 			let stripped = segment.strip()/*unknown*/;
 			if (ValueCompiler.isSymbol(stripped)/*unknown*/){
@@ -217,15 +216,15 @@ class FieldCompiler {
 		})/*unknown*/;
 	}
 	static getTuple2Option(state: CompileState, state1: CompileState, segment: string): Option<Tuple2<CompileState, string>> {
-		return ValueCompiler.parseInvokable(state1, segment).flatMap((tuple: Tuple2<CompileState, Value>) => {
+		return ValueCompiler.parseInvokable(state1, segment).flatMap((tuple: Tuple2<CompileState, Node>) => {
 			let structureName = state.stack().findLastStructureName().orElse("")/*unknown*/;
-			let value: Value = tuple.right()/*unknown*/;
-			return generateAsEnumValue0(value, structureName).map((stringOption: string) => {
+			let value: Node = tuple.right()/*unknown*/;
+			return generateAsEnumNode0(value, structureName).map((stringOption: string) => {
 				return new Tuple2Impl<CompileState, string>(tuple.left(), stringOption)/*unknown*/;
 			})/*unknown*/;
 		})/*unknown*/;
 	}
-	static generateAsEnumValue0(value: Value, structureName: string): Option<string> {
+	static generateAsEnumNode0(value: Node, structureName: string): Option<string> {
 		if (/*value instanceof Invokable invokable*/){
 			return new Some<string>("\n\tstatic " + ValueCompiler.getString(invokable.node()) + ": " + structureName + " = new " + structureName + "(" + invokable.joinArgs() + ");")/*unknown*/;
 		}

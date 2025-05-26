@@ -104,7 +104,7 @@ public final class RootCompiler {
         return new SuffixComposable<Tuple2<CompileState, String>>(">", (String withoutTypeParamEnd) -> {
             Splitter splitter = new LocatingSplitter("<", new FirstLocator());
             return new SplitComposable<Tuple2<CompileState, String>>(splitter, Composable.toComposable((String name, String typeParamsString) -> {
-                var typeParams = DefiningCompiler.divideValues(typeParamsString);
+                var typeParams = DefiningCompiler.divideNodes(typeParamsString);
                 return RootCompiler.assembleStructure(state, annotations, modifiers, infix, name, typeParams, parameters, maybeImplementing, content, maybeSuperType);
             })).apply(withoutTypeParamEnd);
         }).apply(Strings.strip(beforeParams)).or(() -> {
@@ -281,7 +281,7 @@ public final class RootCompiler {
                 RootCompiler.createStructureRule("enum ", "class "),
                 FieldCompiler::compileMethod,
                 FieldCompiler::compileFieldDefinition,
-                FieldCompiler::compileEnumValues
+                FieldCompiler::compileEnumNodes
         ));
     }
 

@@ -83,16 +83,15 @@
 	TemplateType: magma.app.compile.type, 
 	Type: magma.app.compile.type, 
 	VariadicType: magma.app.compile.type, 
-	AccessValue: magma.app.compile.value, 
+	Access: magma.app.compile.value, 
 	ConstructionCaller: magma.app.compile.value, 
 	Invokable: magma.app.compile.value, 
 	Lambda: magma.app.compile.value, 
 	Not: magma.app.compile.value, 
 	Operation: magma.app.compile.value, 
 	Placeholder: magma.app.compile.value, 
-	StringValue: magma.app.compile.value, 
+	StringNode: magma.app.compile.value, 
 	Symbol: magma.app.compile.value, 
-	Value: magma.app.compile.value, 
 	CompilerUtils: magma.app, 
 	DefiningCompiler: magma.app, 
 	DefinitionCompiler: magma.app, 
@@ -116,7 +115,7 @@
 import { Option } from "../../../magma/api/option/Option";
 export interface Result<T, X> {
 	match<R>(whenOk: (arg0 : T) => R, whenErr: (arg0 : X) => R): R;
-	flatMapValue<R>(mapper: (arg0 : T) => Result<R, X>): Result<R, X>;
+	flatMapNode<R>(mapper: (arg0 : T) => Result<R, X>): Result<R, X>;
 	findError(): Option<X>;
-	mapValue<R>(mapper: (arg0 : T) => R): Result<R, X>;
+	mapNode<R>(mapper: (arg0 : T) => R): Result<R, X>;
 }

@@ -123,7 +123,7 @@ final class DefiningCompiler {
         return new SuffixComposable<Tuple2<CompileState, Definition>>(">", (String withoutTypeParamEnd) -> {
             Splitter splitter = new LocatingSplitter("<", new FirstLocator());
             return new SplitComposable<Tuple2<CompileState, Definition>>(splitter, Composable.toComposable((String beforeTypeParams, String typeParamsString) -> {
-                    var typeParams = DefiningCompiler.divideValues(typeParamsString);
+                    var typeParams = DefiningCompiler.divideNodes(typeParamsString);
                     return DefiningCompiler.parseDefinitionWithTypeParameters(state, annotations, typeParams, DefiningCompiler.parseModifiers(beforeTypeParams), type, name);
                 })).apply(withoutTypeParamEnd);
         }).apply(Strings.strip(beforeType)).or(() -> {
@@ -179,7 +179,7 @@ final class DefiningCompiler {
         return Lists.empty();
     }
 
-    static List<String> divideValues(String input) {
+    static List<String> divideNodes(String input) {
         return new FoldedDivider(new DecoratedFolder(new ValueFolder())).divide(input)
                 .map((String input1) -> {
                     return Strings.strip(input1);

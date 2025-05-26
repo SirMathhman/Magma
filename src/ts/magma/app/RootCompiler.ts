@@ -83,16 +83,15 @@
 	TemplateType: magma.app.compile.type, 
 	Type: magma.app.compile.type, 
 	VariadicType: magma.app.compile.type, 
-	AccessValue: magma.app.compile.value, 
+	Access: magma.app.compile.value, 
 	ConstructionCaller: magma.app.compile.value, 
 	Invokable: magma.app.compile.value, 
 	Lambda: magma.app.compile.value, 
 	Not: magma.app.compile.value, 
 	Operation: magma.app.compile.value, 
 	Placeholder: magma.app.compile.value, 
-	StringValue: magma.app.compile.value, 
+	StringNode: magma.app.compile.value, 
 	Symbol: magma.app.compile.value, 
-	Value: magma.app.compile.value, 
 	CompilerUtils: magma.app, 
 	DefiningCompiler: magma.app, 
 	DefinitionCompiler: magma.app, 
@@ -208,7 +207,7 @@ export class RootCompiler {
 		return new SuffixComposable<Tuple2<CompileState, string>>(">", (withoutTypeParamEnd: string) => {
 			let splitter: Splitter = new LocatingSplitter("<", new FirstLocator())/*unknown*/;
 			return new SplitComposable<Tuple2<CompileState, string>>(splitter, Composable.toComposable((name: string, typeParamsString: string) => {
-				let typeParams = DefiningCompiler.divideValues(typeParamsString)/*unknown*/;
+				let typeParams = DefiningCompiler.divideNodes(typeParamsString)/*unknown*/;
 				return RootCompiler.assembleStructure(state, annotations, modifiers, infix, name, typeParams, parameters, maybeImplementing, content, maybeSuperType)/*unknown*/;
 			})).apply(withoutTypeParamEnd)/*unknown*/;
 		}).apply(Strings.strip(beforeParams)).or(() => {
@@ -318,7 +317,7 @@ export class RootCompiler {
 		return new None<Tuple2<CompileState, string>>()/*unknown*/;
 	}
 	static compileClassSegment(state1: CompileState, input1: string): Tuple2<CompileState, string> {
-		return OrRule.compileOrPlaceholder(state1, input1, Lists.of(WhitespaceCompiler.compileWhitespace, RootCompiler.createStructureRule("class ", "class "), RootCompiler.createStructureRule("interface ", "interface "), RootCompiler.createStructureRule("record ", "class "), RootCompiler.createStructureRule("enum ", "class "), FieldCompiler.compileMethod, FieldCompiler.compileFieldDefinition, FieldCompiler.compileEnumValues))/*unknown*/;
+		return OrRule.compileOrPlaceholder(state1, input1, Lists.of(WhitespaceCompiler.compileWhitespace, RootCompiler.createStructureRule("class ", "class "), RootCompiler.createStructureRule("interface ", "interface "), RootCompiler.createStructureRule("record ", "class "), RootCompiler.createStructureRule("enum ", "class "), FieldCompiler.compileMethod, FieldCompiler.compileFieldDefinition, FieldCompiler.compileEnumNodes))/*unknown*/;
 	}
 	static compileRoot(state: CompileState, input: string, location: Location): Tuple2<CompileState, string> {
 		return FunctionSegmentCompiler.compileStatements(state.mapContext((context2: Context) => {

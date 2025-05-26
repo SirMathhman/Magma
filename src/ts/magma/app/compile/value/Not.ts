@@ -83,16 +83,15 @@
 	TemplateType: magma.app.compile.type, 
 	Type: magma.app.compile.type, 
 	VariadicType: magma.app.compile.type, 
-	AccessValue: magma.app.compile.value, 
+	Access: magma.app.compile.value, 
 	ConstructionCaller: magma.app.compile.value, 
 	Invokable: magma.app.compile.value, 
 	Lambda: magma.app.compile.value, 
 	Not: magma.app.compile.value, 
 	Operation: magma.app.compile.value, 
 	Placeholder: magma.app.compile.value, 
-	StringValue: magma.app.compile.value, 
+	StringNode: magma.app.compile.value, 
 	Symbol: magma.app.compile.value, 
-	Value: magma.app.compile.value, 
 	CompilerUtils: magma.app, 
 	DefiningCompiler: magma.app, 
 	DefinitionCompiler: magma.app, 
@@ -113,13 +112,13 @@
 	ValueCompiler: magma.app, 
 	WhitespaceCompiler: magma.app
 ]*/
-import { Value } from "../../../../magma/app/compile/value/Value";
+import { Node } from "../../../../magma/app/compile/node/Node";
 import { Option } from "../../../../magma/api/option/Option";
 import { Some } from "../../../../magma/api/option/Some";
 import { Type } from "../../../../magma/app/compile/type/Type";
 import { CompileState } from "../../../../magma/app/compile/CompileState";
 import { PrimitiveType } from "../../../../magma/app/compile/type/PrimitiveType";
-export class Not implements Value {
+export class Not implements Node {
 	child: string;
 	constructor (child: string) {
 		this.child = child;
@@ -127,8 +126,8 @@ export class Not implements Value {
 	generate(): string {
 		return this.child/*unknown*/;
 	}
-	toValue(): Option<Value> {
-		return new Some<Value>(this)/*unknown*/;
+	toNode(): Option<Node> {
+		return new Some<Node>(this)/*unknown*/;
 	}
 	resolve(state: CompileState): Type {
 		return PrimitiveType.Unknown/*unknown*/;

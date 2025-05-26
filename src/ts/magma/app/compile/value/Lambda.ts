@@ -83,16 +83,15 @@
 	TemplateType: magma.app.compile.type, 
 	Type: magma.app.compile.type, 
 	VariadicType: magma.app.compile.type, 
-	AccessValue: magma.app.compile.value, 
+	Access: magma.app.compile.value, 
 	ConstructionCaller: magma.app.compile.value, 
 	Invokable: magma.app.compile.value, 
 	Lambda: magma.app.compile.value, 
 	Not: magma.app.compile.value, 
 	Operation: magma.app.compile.value, 
 	Placeholder: magma.app.compile.value, 
-	StringValue: magma.app.compile.value, 
+	StringNode: magma.app.compile.value, 
 	Symbol: magma.app.compile.value, 
-	Value: magma.app.compile.value, 
 	CompilerUtils: magma.app, 
 	DefiningCompiler: magma.app, 
 	DefinitionCompiler: magma.app, 
@@ -113,7 +112,7 @@
 	ValueCompiler: magma.app, 
 	WhitespaceCompiler: magma.app
 ]*/
-import { Value } from "../../../../magma/app/compile/value/Value";
+import { Node } from "../../../../magma/app/compile/node/Node";
 import { Definition } from "../../../../magma/app/compile/define/Definition";
 import { Iterable } from "../../../../magma/api/collect/list/Iterable";
 import { Joiner } from "../../../../magma/api/collect/Joiner";
@@ -122,7 +121,7 @@ import { Some } from "../../../../magma/api/option/Some";
 import { Type } from "../../../../magma/app/compile/type/Type";
 import { CompileState } from "../../../../magma/app/compile/CompileState";
 import { PrimitiveType } from "../../../../magma/app/compile/type/PrimitiveType";
-export class Lambda implements Value {
+export class Lambda implements Node {
 	paramNames: Iterable<Definition>;
 	content: string;
 	constructor (paramNames: Iterable<Definition>, content: string) {
@@ -135,8 +134,8 @@ export class Lambda implements Value {
 		}).collect(new Joiner(", ")).orElse("")/*unknown*/;
 		return "(" + joinedParamNames + ")" + " => " + this.content/*unknown*/;
 	}
-	toValue(): Option<Value> {
-		return new Some<Value>(this)/*unknown*/;
+	toNode(): Option<Node> {
+		return new Some<Node>(this)/*unknown*/;
 	}
 	resolve(state: CompileState): Type {
 		return PrimitiveType.Unknown/*unknown*/;

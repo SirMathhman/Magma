@@ -83,16 +83,15 @@
 	TemplateType: magma.app.compile.type, 
 	Type: magma.app.compile.type, 
 	VariadicType: magma.app.compile.type, 
-	AccessValue: magma.app.compile.value, 
+	Access: magma.app.compile.value, 
 	ConstructionCaller: magma.app.compile.value, 
 	Invokable: magma.app.compile.value, 
 	Lambda: magma.app.compile.value, 
 	Not: magma.app.compile.value, 
 	Operation: magma.app.compile.value, 
 	Placeholder: magma.app.compile.value, 
-	StringValue: magma.app.compile.value, 
+	StringNode: magma.app.compile.value, 
 	Symbol: magma.app.compile.value, 
-	Value: magma.app.compile.value, 
 	CompilerUtils: magma.app, 
 	DefiningCompiler: magma.app, 
 	DefinitionCompiler: magma.app, 
@@ -115,16 +114,16 @@
 ]*/
 import { Tuple2 } from "../../magma/api/Tuple2";
 export class Tuple2Impl<A, B> implements Tuple2<A, B> {
-	leftValue: A;
-	rightValue: B;
-	constructor (leftValue: A, rightValue: B) {
-		this.leftValue = leftValue;
-		this.rightValue = rightValue;
+	leftNode: A;
+	rightNode: B;
+	constructor (leftNode: A, rightNode: B) {
+		this.leftNode = leftNode;
+		this.rightNode = rightNode;
 	}
 	left(): A {
-		return this.leftValue/*unknown*/;
+		return this.leftNode/*unknown*/;
 	}
 	right(): B {
-		return this.rightValue/*unknown*/;
+		return this.rightNode/*unknown*/;
 	}
 }

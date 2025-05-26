@@ -84,7 +84,7 @@ public record HeadedIter<T>(Head<T> head) implements Iter<T> {
     public <R, X> Result<R, X> foldWithInitialToResult(R initial, BiFunction<R, T, Result<R, X>> folder) {
         return this.foldWithInitial(new Ok<R, X>(initial),
                 (Result<R, X> rxResult, T element) -> {
-                    return rxResult.flatMapValue(
+                    return rxResult.flatMapNode(
                             (R inner) -> {
                                 return folder.apply(inner, element);
                             });

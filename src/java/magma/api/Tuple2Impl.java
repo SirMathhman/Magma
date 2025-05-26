@@ -1,13 +1,13 @@
 package magma.api;
 
-public record Tuple2Impl<A, B>(A leftValue, B rightValue) implements Tuple2<A, B> {
+public record Tuple2Impl<A, B>(A leftNode, B rightNode) implements Tuple2<A, B> {
     @Override
     public A left() {
-        return this.leftValue;
+        return this.leftNode;
     }
 
     @Override
     public B right() {
-        return this.rightValue;
+        return this.rightNode;
     }
 }

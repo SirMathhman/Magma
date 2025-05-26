@@ -34,7 +34,7 @@ public record ImmutableStack(List<String> structureNames, List<Definition> defin
     }
 
     @Override
-    public Option<Definition> resolveValue(String name) {
+    public Option<Definition> resolveNode(String name) {
         return this.definitions().iterReversed()
                 .filter((Definition definition) -> {
                     return definition.isNamed(name);

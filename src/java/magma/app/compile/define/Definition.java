@@ -66,7 +66,7 @@ public record Definition(
 
     @Override
     public MethodHeader removeModifier(String modifier) {
-        return new Definition(this.annotations, this.modifiers.removeValue(modifier), this.typeParams, this.type, this.name);
+        return new Definition(this.annotations, this.modifiers.removeNode(modifier), this.typeParams, this.type, this.name);
     }
 
     public boolean isNamed(String name) {

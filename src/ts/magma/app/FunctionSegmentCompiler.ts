@@ -83,16 +83,15 @@
 	TemplateType: magma.app.compile.type, 
 	Type: magma.app.compile.type, 
 	VariadicType: magma.app.compile.type, 
-	AccessValue: magma.app.compile.value, 
+	Access: magma.app.compile.value, 
 	ConstructionCaller: magma.app.compile.value, 
 	Invokable: magma.app.compile.value, 
 	Lambda: magma.app.compile.value, 
 	Not: magma.app.compile.value, 
 	Operation: magma.app.compile.value, 
 	Placeholder: magma.app.compile.value, 
-	StringValue: magma.app.compile.value, 
+	StringNode: magma.app.compile.value, 
 	Symbol: magma.app.compile.value, 
-	Value: magma.app.compile.value, 
 	CompilerUtils: magma.app, 
 	DefiningCompiler: magma.app, 
 	DefinitionCompiler: magma.app, 
@@ -132,7 +131,7 @@ import { Lists } from "../../jvm/api/collect/list/Lists";
 import { Rule } from "../../magma/app/compile/rule/Rule";
 import { PrefixComposable } from "../../magma/app/compile/compose/PrefixComposable";
 import { ValueCompiler } from "../../magma/app/ValueCompiler";
-import { Value } from "../../magma/app/compile/value/Value";
+import { Node } from "../../magma/app/compile/node/Node";
 import { LocatingSplitter } from "../../magma/app/compile/split/LocatingSplitter";
 import { FirstLocator } from "../../magma/app/compile/locate/FirstLocator";
 import { Splitter } from "../../magma/app/compile/split/Splitter";
@@ -196,7 +195,7 @@ class FunctionSegmentCompiler {
 				let strippedCondition = Strings.strip(withoutPrefix)/*unknown*/;
 				return new PrefixComposable<Tuple2<CompileState, string>>("(", (withoutConditionStart: string) => {
 					return new SuffixComposable<Tuple2<CompileState, string>>(")", (withoutConditionEnd: string) => {
-						let tuple = ValueCompiler.compileValueOrPlaceholder(state1, withoutConditionEnd)/*unknown*/;
+						let tuple = ValueCompiler.compileNodeOrPlaceholder(state1, withoutConditionEnd)/*unknown*/;
 						return new Some<Tuple2<CompileState, string>>(new Tuple2Impl<CompileState, string>(tuple.left(), prefix + " (" + tuple.right() + ")"))/*unknown*/;
 					}).apply(withoutConditionStart)/*unknown*/;
 				}).apply(strippedCondition)/*unknown*/;
@@ -213,17 +212,17 @@ class FunctionSegmentCompiler {
 	}
 	static compileFunctionStatement(state: CompileState, input: string): Option<Tuple2<CompileState, string>> {
 		return new SuffixComposable<Tuple2<CompileState, string>>(";", (withoutEnd: string) => {
-			let valueTuple = FunctionSegmentCompiler.compileFunctionStatementValue(state, withoutEnd)/*unknown*/;
+			let valueTuple = FunctionSegmentCompiler.compileFunctionStatementNode(state, withoutEnd)/*unknown*/;
 			return new Some<Tuple2<CompileState, string>>(new Tuple2Impl<CompileState, string>(valueTuple.left(), state.createIndent() + valueTuple.right() + ";"))/*unknown*/;
 		}).apply(Strings.strip(input))/*unknown*/;
 	}
-	static compileFunctionStatementValue(state: CompileState, withoutEnd: string): Tuple2<CompileState, string> {
-		return OrRule.compileOrPlaceholder(state, withoutEnd, Lists.of(FunctionSegmentCompiler.compileReturnWithValue, FunctionSegmentCompiler.compileAssignment, FunctionSegmentCompiler.createInvokableRule(), FunctionSegmentCompiler.createPostRule("++"), FunctionSegmentCompiler.createPostRule("--"), FunctionSegmentCompiler.compileBreak))/*unknown*/;
+	static compileFunctionStatementNode(state: CompileState, withoutEnd: string): Tuple2<CompileState, string> {
+		return OrRule.compileOrPlaceholder(state, withoutEnd, Lists.of(FunctionSegmentCompiler.compileReturnWithNode, FunctionSegmentCompiler.compileAssignment, FunctionSegmentCompiler.createInvokableRule(), FunctionSegmentCompiler.createPostRule("++"), FunctionSegmentCompiler.createPostRule("--"), FunctionSegmentCompiler.compileBreak))/*unknown*/;
 	}
 	static createInvokableRule(): Rule<string> {
 		return (state1: CompileState, input: string) => {
-			return ValueCompiler.parseInvokable(state1, input).map((tuple: Tuple2<CompileState, Value>) => {
-				return ValueCompiler.generateValue(tuple)/*unknown*/;
+			return ValueCompiler.parseInvokable(state1, input).map((tuple: Tuple2<CompileState, Node>) => {
+				return ValueCompiler.generateNode(tuple)/*unknown*/;
 			})/*unknown*/;
 		}/*unknown*/;
 	}
@@ -238,14 +237,14 @@ class FunctionSegmentCompiler {
 	static createPostRule(suffix: string): Rule<string> {
 		return (state1: CompileState, input: string) => {
 			return new SuffixComposable<Tuple2<CompileState, string>>(suffix, (child: string) => {
-				let tuple = ValueCompiler.compileValueOrPlaceholder(state1, child)/*unknown*/;
+				let tuple = ValueCompiler.compileNodeOrPlaceholder(state1, child)/*unknown*/;
 				return new Some<Tuple2<CompileState, string>>(new Tuple2Impl<CompileState, string>(tuple.left(), tuple.right() + suffix))/*unknown*/;
 			}).apply(Strings.strip(input))/*unknown*/;
 		}/*unknown*/;
 	}
-	static compileReturnWithValue(state: CompileState, input: string): Option<Tuple2<CompileState, string>> {
+	static compileReturnWithNode(state: CompileState, input: string): Option<Tuple2<CompileState, string>> {
 		return FunctionSegmentCompiler.compileReturn(input, (value1: string) => {
-			return ValueCompiler.compileValue(state, value1)/*unknown*/;
+			return ValueCompiler.compileNode(state, value1)/*unknown*/;
 		})/*unknown*/;
 	}
 	static compileReturn(input: string, mapper: (arg0 : string) => Option<Tuple2<CompileState, string>>): Option<Tuple2<CompileState, string>> {
@@ -257,7 +256,7 @@ class FunctionSegmentCompiler {
 	}
 	static compileReturnWithoutSuffix(state1: CompileState, input1: string): Option<Tuple2<CompileState, string>> {
 		return FunctionSegmentCompiler.compileReturn(input1, (withoutPrefix: string) => {
-			return ValueCompiler.compileValue(state1, withoutPrefix)/*unknown*/;
+			return ValueCompiler.compileNode(state1, withoutPrefix)/*unknown*/;
 		}).map((tuple: Tuple2<CompileState, string>) => {
 			return new Tuple2Impl<CompileState, string>(tuple.left(), state1.createIndent() + tuple.right())/*unknown*/;
 		})/*unknown*/;
@@ -265,8 +264,8 @@ class FunctionSegmentCompiler {
 	static compileAssignment(state: CompileState, input: string): Option<Tuple2<CompileState, string>> {
 		let splitter: Splitter = new LocatingSplitter("=", new FirstLocator())/*unknown*/;
 		return new SplitComposable<Tuple2<CompileState, string>>(splitter, Composable.toComposable((destination: string, source: string) => {
-			let sourceTuple = ValueCompiler.compileValueOrPlaceholder(state, source)/*unknown*/;
-			let destinationTuple = ValueCompiler.compileValue(sourceTuple.left(), destination).or(() => {
+			let sourceTuple = ValueCompiler.compileNodeOrPlaceholder(state, source)/*unknown*/;
+			let destinationTuple = ValueCompiler.compileNode(sourceTuple.left(), destination).or(() => {
 				return DefiningCompiler.parseDefinition(sourceTuple.left(), destination).map((tuple: Tuple2<CompileState, Definition>) => {
 					return new Tuple2Impl<CompileState, string>(tuple.left(), "let " + tuple.right().generate())/*unknown*/;
 				})/*unknown*/;

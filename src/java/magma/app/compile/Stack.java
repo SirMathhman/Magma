@@ -11,7 +11,7 @@ public interface Stack {
 
     boolean hasAnyStructureName(String base);
 
-    Option<Definition> resolveValue(String name);
+    Option<Definition> resolveNode(String name);
 
     Stack pushStructureName(String name);
 

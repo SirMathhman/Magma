@@ -10,7 +10,7 @@ import magma.app.compile.node.Node;
 import magma.app.compile.type.PrimitiveType;
 import magma.app.compile.type.Type;
 
-public record Invokable(Node node, Iterable<Value> args) implements Value {
+public record Invokable(Node node, Iterable<Node> args) implements Node {
     public String generate() {
         var joinedArguments = this.joinArgs();
         return ValueCompiler.getString(this.node) + "(" + joinedArguments + ")";
@@ -18,15 +18,15 @@ public record Invokable(Node node, Iterable<Value> args) implements Value {
 
     public String joinArgs() {
         return this.args.iter()
-                .map((Value value) -> {
+                .map((Node value) -> {
                     return ValueCompiler.generateValue(value);
                 })
                 .collect(new Joiner(", "))
                 .orElse("");
     }
 
-    public Option<Value> toValue() {
-        return new Some<Value>(this);
+    public Option<Node> toNode() {
+        return new Some<Node>(this);
     }
 
     public Type resolve(CompileState state) {

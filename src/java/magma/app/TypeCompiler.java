@@ -61,12 +61,12 @@ final class TypeCompiler {
     }
 
     private static Option<Tuple2<CompileState, Type>> parsePrimitive(CompileState state, String input) {
-        return TypeCompiler.findPrimitiveValue(Strings.strip(input)).map((Type result) -> {
+        return TypeCompiler.findPrimitiveNode(Strings.strip(input)).map((Type result) -> {
             return new Tuple2Impl<CompileState, Type>(state, result);
         });
     }
 
-    private static Option<Type> findPrimitiveValue(String input) {
+    private static Option<Type> findPrimitiveNode(String input) {
         var stripped = Strings.strip(input);
         if (Strings.equalsTo("char", stripped) || Strings.equalsTo("Character", stripped) || Strings.equalsTo("String", stripped)) {
             return new Some<Type>(PrimitiveType.String);

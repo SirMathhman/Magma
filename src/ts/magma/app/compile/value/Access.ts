@@ -112,24 +112,27 @@
 	ValueCompiler: magma.app, 
 	WhitespaceCompiler: magma.app
 ]*/
-import { Option } from "../../../magma/api/option/Option";
-import { Collector } from "../../../magma/api/collect/Collector";
-import { None } from "../../../magma/api/option/None";
-import { Some } from "../../../magma/api/option/Some";
-export class Joiner implements Collector<string, Option<string>> {
-	delimiter: string;
-	constructor (delimiter: string) {
-		this.delimiter = delimiter;
+import { Node } from "../../../../magma/app/compile/node/Node";
+import { ValueCompiler } from "../../../../magma/app/ValueCompiler";
+import { Option } from "../../../../magma/api/option/Option";
+import { Some } from "../../../../magma/api/option/Some";
+import { Type } from "../../../../magma/app/compile/type/Type";
+import { CompileState } from "../../../../magma/app/compile/CompileState";
+import { PrimitiveType } from "../../../../magma/app/compile/type/PrimitiveType";
+export class Access implements Node {
+	child: Node;
+	property: string;
+	constructor (child: Node, property: string) {
+		this.child = child;
+		this.property = property;
 	}
-	static empty(): Joiner {
-		return new Joiner("")/*unknown*/;
+	generate(): string {
+		return ValueCompiler.generateValue(this.child) + "." + this.property/*unknown*/;
 	}
-	createInitial(): Option<string> {
-		return new None<string>()/*unknown*/;
+	toNode(): Option<Node> {
+		return new Some<Node>(this)/*unknown*/;
 	}
-	fold(maybe: Option<string>, element: string): Option<string> {
-		return new Some<string>(maybe.map((inner: string) => {
-			return inner + this.delimiter + element/*unknown*/;
-		}).orElse(element))/*unknown*/;
+	resolve(state: CompileState): Type {
+		return PrimitiveType.Unknown/*unknown*/;
 	}
 }
