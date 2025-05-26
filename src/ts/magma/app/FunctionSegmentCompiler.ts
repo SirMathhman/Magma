@@ -23,7 +23,7 @@ import { FirstLocator } from "../../magma/app/compile/locate/FirstLocator";
 import { Splitter } from "../../magma/app/compile/split/Splitter";
 import { DefiningCompiler } from "../../magma/app/DefiningCompiler";
 import { Definition } from "../../magma/app/compile/define/Definition";
-import { Placeholder } from "../../magma/app/compile/value/Placeholder";
+import { Placeholder } from "../../magma/app/compile/type/Placeholder";
 import { WhitespaceCompiler } from "../../magma/app/WhitespaceCompiler";
 import { DivideRule } from "../../magma/app/DivideRule";
 import { StatementsFolder } from "../../magma/app/compile/fold/StatementsFolder";

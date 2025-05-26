@@ -42,9 +42,9 @@ import magma.app.compile.type.Type;
 import magma.app.compile.value.Lambda;
 import magma.app.compile.value.Not;
 import magma.app.compile.value.Operation;
-import magma.app.compile.value.Placeholder;
+import magma.app.compile.type.Placeholder;
 import magma.app.compile.value.StringNode;
-import magma.app.compile.value.Symbol;
+import magma.app.compile.type.Symbol;
 
 import java.util.Objects;
 import java.util.function.Function;
@@ -227,7 +227,7 @@ public final class ValueCompiler {
             return operation.resolve(state);
         }
         else if (value instanceof Placeholder placeholder) {
-            return placeholder.resolve(state);
+            return PrimitiveType.Unknown;
         }
         else if (value instanceof StringNode stringNode) {
             return stringNode.resolve(state);

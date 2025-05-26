@@ -10,7 +10,7 @@ import { ValueCompiler } from "../../magma/app/ValueCompiler";
 import { Some } from "../../magma/api/option/Some";
 import { Tuple2Impl } from "../../magma/api/Tuple2Impl";
 import { Lists } from "../../jvm/api/collect/list/Lists";
-import { Placeholder } from "../../magma/app/compile/value/Placeholder";
+import { Placeholder } from "../../magma/app/compile/type/Placeholder";
 import { Option } from "../../magma/api/option/Option";
 import { WhitespaceCompiler } from "../../magma/app/WhitespaceCompiler";
 import { Whitespace } from "../../magma/app/compile/text/Whitespace";

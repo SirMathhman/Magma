@@ -28,7 +28,6 @@ public enum PrimitiveType implements Type {
         return "";
     }
 
-    @Override
     public String generateSimple() {
         return this.generate();
     }

@@ -121,12 +121,12 @@ export class RootCompiler {
 		}).collect(Joiner.empty()).orElse("")/*unknown*/;
 		if (outputContentState.context().hasPlatform(Platform.PlantUML)/*unknown*/){
 			let joinedImplementing = maybeImplementing.map((type: Type) => {
-				return type.generateSimple()/*unknown*/;
+				return TypeCompiler.generateSimple(type)/*unknown*/;
 			}).map((generated: string) => {
 				return name + " <|.. " + generated + "\n"/*unknown*/;
 			}).orElse("")/*unknown*/;
 			let joinedSuperTypes = maybeSuperType.iter().map((type: Type) => {
-				return type.generateSimple()/*unknown*/;
+				return TypeCompiler.generateSimple(type)/*unknown*/;
 			}).map((generated: string) => {
 				return name + " <|-- " + generated + "\n"/*unknown*/;
 			}).collect(new Joiner("")).orElse("")/*unknown*/;

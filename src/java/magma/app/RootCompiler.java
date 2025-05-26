@@ -152,7 +152,7 @@ public final class RootCompiler {
         if (outputContentState.context().hasPlatform(Platform.PlantUML)) {
             var joinedImplementing = maybeImplementing
                     .map((Type type) -> {
-                        return type.generateSimple();
+                        return TypeCompiler.generateSimple(type);
                     })
                     .map((String generated) -> {
                         return name + " <|.. " + generated + "\n";
@@ -161,7 +161,7 @@ public final class RootCompiler {
 
             var joinedSuperTypes = maybeSuperType.iter()
                     .map((Type type) -> {
-                        return type.generateSimple();
+                        return TypeCompiler.generateSimple(type);
                     })
                     .map((String generated) -> {
                         return name + " <|-- " + generated + "\n";

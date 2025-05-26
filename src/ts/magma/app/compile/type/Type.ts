@@ -1,6 +1,7 @@
-import { Node } from "../../../../magma/app/compile/node/Node";
-export interface Type extends Node {
-	generate(): string;
-	generateBeforeName(): string;
-	generateSimple(): string;
-}
+/*
+
+public sealed interface Type extends Node permits FunctionType, Placeholder, PrimitiveType, Symbol, TemplateType, VariadicType {
+    String generate();
+
+    String generateBeforeName();
+}*/

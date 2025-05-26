@@ -31,7 +31,6 @@ public record FunctionType(Iterable<String> args, String returns) implements Typ
         return "";
     }
 
-    @Override
     public String generateSimple() {
         return this.generate();
     }

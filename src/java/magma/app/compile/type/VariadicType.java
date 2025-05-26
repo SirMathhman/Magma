@@ -19,7 +19,6 @@ public record VariadicType(Type type) implements Type {
         return "...";
     }
 
-    @Override
     public String generateSimple() {
         return this.generate();
     }

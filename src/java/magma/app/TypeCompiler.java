@@ -22,13 +22,13 @@ import magma.app.compile.type.PrimitiveType;
 import magma.app.compile.type.TemplateType;
 import magma.app.compile.type.Type;
 import magma.app.compile.type.VariadicType;
-import magma.app.compile.value.Placeholder;
-import magma.app.compile.value.Symbol;
+import magma.app.compile.type.Placeholder;
+import magma.app.compile.type.Symbol;
 import magma.app.io.Source;
 import magma.app.compile.locate.FirstLocator;
 import magma.app.compile.split.LocatingSplitter;
 
-final class TypeCompiler {
+public final class TypeCompiler {
     public static Option<Tuple2<CompileState, String>> compileType(CompileState state, String type) {
         return TypeCompiler.parseType(state, type).map((Tuple2<CompileState, Type> tuple) -> {
             return new Tuple2Impl<CompileState, String>(tuple.left(), tuple.right().generate());
@@ -247,5 +247,16 @@ final class TypeCompiler {
         }
 
         return copy;
+    }
+
+    public static String generateSimple(Type type) {
+        return switch (type) {
+            case FunctionType functionType -> functionType.generateSimple();
+            case Placeholder placeholder -> placeholder.generateSimple();
+            case PrimitiveType primitiveType -> primitiveType.generateSimple();
+            case Symbol symbol -> symbol.generateSimple();
+            case TemplateType templateType -> templateType.generateSimple();
+            case VariadicType variadicType -> variadicType.generateSimple();
+        };
     }
 }

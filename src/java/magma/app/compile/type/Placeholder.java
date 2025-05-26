@@ -1,16 +1,12 @@
-package magma.app.compile.value;
+package magma.app.compile.type;
 
 import magma.api.option.None;
 import magma.api.option.Option;
 import magma.app.ValueCompiler;
-import magma.app.compile.CompileState;
 import magma.app.compile.define.Definition;
 import magma.app.compile.define.Parameter;
-import magma.app.compile.node.Node;
-import magma.app.compile.type.PrimitiveType;
-import magma.app.compile.type.Type;
 
-public record Placeholder(String input) implements Parameter, Node, Type {
+public record Placeholder(String input) implements Parameter, Type {
     public static String generatePlaceholder(String input) {
         var replaced = input
                 .replace("/*", "start")
@@ -21,23 +17,12 @@ public record Placeholder(String input) implements Parameter, Node, Type {
 
     @Override
     public String generate() {
-        return generatePlaceholder(this.input);
+        return Placeholder.generatePlaceholder(this.input);
     }
 
-    public boolean isFunctional() {
-        return false;
-    }
     @Override
     public Option<Definition> asDefinition() {
         return new None<Definition>();
-    }
-
-    public Type resolve(CompileState state) {
-        return PrimitiveType.Unknown;
-    }
-
-    public boolean isVar() {
-        return false;
     }
 
     @Override
@@ -45,9 +30,6 @@ public record Placeholder(String input) implements Parameter, Node, Type {
         return "";
     }
 
-
-
-    @Override
     public String generateSimple() {
         return ValueCompiler.generateValue(this);
     }

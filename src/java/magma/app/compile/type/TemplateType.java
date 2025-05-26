@@ -23,7 +23,6 @@ public record TemplateType(String base, Iterable<String> args) implements Type {
         return "";
     }
 
-    @Override
     public String generateSimple() {
         return this.base;
     }

@@ -10,7 +10,7 @@ import { SuffixComposable } from "../../magma/app/compile/compose/SuffixComposab
 import { Some } from "../../magma/api/option/Some";
 import { VariadicType } from "../../magma/app/compile/type/VariadicType";
 import { ValueCompiler } from "../../magma/app/ValueCompiler";
-import { Symbol } from "../../magma/app/compile/value/Symbol";
+import { Symbol } from "../../magma/app/compile/type/Symbol";
 import { None } from "../../magma/api/option/None";
 import { PrimitiveType } from "../../magma/app/compile/type/PrimitiveType";
 import { LocatingSplitter } from "../../magma/app/compile/split/LocatingSplitter";
@@ -22,14 +22,14 @@ import { List } from "../../magma/api/collect/list/List";
 import { TemplateType } from "../../magma/app/compile/type/TemplateType";
 import { FunctionType } from "../../magma/app/compile/type/FunctionType";
 import { WhitespaceCompiler } from "../../magma/app/WhitespaceCompiler";
-import { Placeholder } from "../../magma/app/compile/value/Placeholder";
+import { Placeholder } from "../../magma/app/compile/type/Placeholder";
 import { Location } from "../../magma/app/Location";
 import { Import } from "../../magma/app/compile/Import";
 import { Registry } from "../../magma/app/compile/Registry";
 import { Source } from "../../magma/app/io/Source";
 import { Platform } from "../../magma/app/Platform";
 import { Dependency } from "../../magma/app/compile/Dependency";
-class TypeCompiler {
+export class TypeCompiler {
 	static compileType(state: CompileState, type: string): Option<Tuple2<CompileState, string>> {
 		return TypeCompiler.parseType(state, type).map((tuple: Tuple2<CompileState, Type>) => {
 			return new Tuple2Impl<CompileState, string>(tuple.left(), tuple.right().generate())/*unknown*/;
@@ -197,5 +197,14 @@ class TypeCompiler {
 			index/*unknown*/++;
 		}
 		return copy/*unknown*/;
+	}
+	static generateSimple(type: Type): string {/*return switch (type) {
+            case FunctionType functionType -> functionType.generateSimple();
+            case Placeholder placeholder -> placeholder.generateSimple();
+            case PrimitiveType primitiveType -> primitiveType.generateSimple();
+            case Symbol symbol -> symbol.generateSimple();
+            case TemplateType templateType -> templateType.generateSimple();
+            case VariadicType variadicType -> variadicType.generateSimple();
+        }*/;
 	}
 }

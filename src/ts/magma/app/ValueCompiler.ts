@@ -2,7 +2,7 @@ import { CompileState } from "../../magma/app/compile/CompileState";
 import { Tuple2Impl } from "../../magma/api/Tuple2Impl";
 import { Node } from "../../magma/app/compile/node/Node";
 import { Tuple2 } from "../../magma/api/Tuple2";
-import { Placeholder } from "../../magma/app/compile/value/Placeholder";
+import { Placeholder } from "../../magma/app/compile/type/Placeholder";
 import { Option } from "../../magma/api/option/Option";
 import { SuffixComposable } from "../../magma/app/compile/compose/SuffixComposable";
 import { SplitComposable } from "../../magma/app/compile/compose/SplitComposable";
@@ -34,7 +34,7 @@ import { None } from "../../magma/api/option/None";
 import { OperatorFolder } from "../../magma/app/compile/fold/OperatorFolder";
 import { FirstSelector } from "../../magma/app/compile/select/FirstSelector";
 import { Operation } from "../../magma/app/compile/value/Operation";
-import { Symbol } from "../../magma/app/compile/value/Symbol";
+import { Symbol } from "../../magma/app/compile/type/Symbol";
 import { HeadedIter } from "../../magma/api/collect/head/HeadedIter";
 import { RangeHead } from "../../magma/api/collect/head/RangeHead";
 import { Characters } from "../../magma/api/text/Characters";
@@ -205,7 +205,7 @@ export class ValueCompiler {
             return operation.resolve(state);
         }*//*
         else if (value instanceof Placeholder placeholder) {
-            return placeholder.resolve(state);
+            return PrimitiveType.Unknown;
         }*//*
         else if (value instanceof StringNode stringNode) {
             return stringNode.resolve(state);

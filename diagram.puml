@@ -203,15 +203,17 @@ Whitespace <|.. Parameter
 class FunctionType {
 }
 FunctionType <|.. Type
+class Placeholder {
+}
 class PrimitiveType {
 }
 PrimitiveType <|.. Type
+class Symbol {
+}
+Symbol <|.. Type
 class TemplateType {
 }
 TemplateType <|.. Type
-interface Type {
-}
-Type <|-- Node
 class VariadicType {
 }
 VariadicType <|.. Type
@@ -224,13 +226,9 @@ Not <|.. Node
 class Operation {
 }
 Operation <|.. Node
-class Placeholder {
-}
 class StringNode {
 }
 StringNode <|.. Node
-class Symbol {
-}
 class CompilerUtils {
 }
 class DefiningCompiler {
@@ -556,12 +554,20 @@ FunctionType --> Type
 FunctionType --> Iterable
 FunctionType --> Tuple2
 FunctionType --> Joiner
+Placeholder --> Definition
+Placeholder --> Option
+Placeholder --> None
+Placeholder --> ValueCompiler
 PrimitiveType --> Type
+Symbol --> Type
+Symbol --> CompileState
+Symbol --> Definition
+Symbol --> PrimitiveType
+Symbol --> ValueCompiler
 TemplateType --> Type
 TemplateType --> Iterable
 TemplateType --> Merger
 TemplateType --> ValueMerger
-Type --> Node
 VariadicType --> Type
 Lambda --> Node
 Lambda --> Definition
@@ -585,27 +591,12 @@ Operation --> Some
 Operation --> Type
 Operation --> CompileState
 Operation --> PrimitiveType
-Placeholder --> Definition
-Placeholder --> Option
-Placeholder --> None
-Placeholder --> Type
-Placeholder --> CompileState
-Placeholder --> PrimitiveType
-Placeholder --> ValueCompiler
 StringNode --> Node
 StringNode --> Option
 StringNode --> Some
 StringNode --> Type
 StringNode --> CompileState
 StringNode --> PrimitiveType
-Symbol --> Type
-Symbol --> CompileState
-Symbol --> Definition
-Symbol --> PrimitiveType
-Symbol --> Node
-Symbol --> Option
-Symbol --> Some
-Symbol --> ValueCompiler
 DefiningCompiler --> Definition
 DefiningCompiler --> Iterable
 DefiningCompiler --> Parameter
