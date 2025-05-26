@@ -1,7 +1,6 @@
 package magma.app.compile.value;
 
-public sealed interface Argument extends Node permits Value {
-    @Override
+public sealed interface Argument permits Value {
     default boolean is(String type) {
         return false;
     }

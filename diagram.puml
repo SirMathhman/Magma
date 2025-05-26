@@ -223,8 +223,6 @@ Invokable <|.. Value
 class Lambda {
 }
 Lambda <|.. Value
-interface Node {
-}
 class Not {
 }
 Not <|.. Value
