@@ -8,9 +8,8 @@ import { Lists } from "../../jvm/api/collect/list/Lists";
 import { Strings } from "../../magma/api/text/Strings";
 import { SuffixComposable } from "../../magma/app/compile/compose/SuffixComposable";
 import { Some } from "../../magma/api/option/Some";
-import { VariadicType } from "../../magma/app/compile/type/VariadicType";
-import { ValueCompiler } from "../../magma/app/ValueCompiler";
 import { MapNode } from "../../magma/app/compile/node/MapNode";
+import { ValueCompiler } from "../../magma/app/ValueCompiler";
 import { None } from "../../magma/api/option/None";
 import { LocatingSplitter } from "../../magma/app/compile/split/LocatingSplitter";
 import { FirstLocator } from "../../magma/app/compile/locate/FirstLocator";
@@ -46,7 +45,8 @@ export class TypeCompiler {/*public static final Node Boolean = new MapNode("boo
 		let stripped = Strings.strip(input)/*unknown*/;
 		return new SuffixComposable<Tuple2<CompileState, Node>>("...", (s: string) => {
 			let child = TypeCompiler.parseNodeOrPlaceholder(state, s)/*unknown*/;
-			return new Some<Tuple2<CompileState, Node>>(new Tuple2Impl<CompileState, Node>(child.left(), new VariadicType(child.right())))/*unknown*/;
+			let type: Node = child.right()/*unknown*/;
+			return new Some<Tuple2<CompileState, Node>>(new Tuple2Impl<CompileState, Node>(child.left(), new MapNode("variadic").withNode("child", type)))/*unknown*/;
 		}).apply(stripped)/*unknown*/;
 	}
 	static parseSymbolNode(state: CompileState, input: string): Option<Tuple2<CompileState, Node>> {
@@ -233,8 +233,8 @@ export class TypeCompiler {/*public static final Node Boolean = new MapNode("boo
         else if (type.is("template")) {
             return type.findString("base").orElse("");
         }*//*
-        else if (type instanceof VariadicType variadicNode) {
-            return variadicNode.generateSimple();
+        else if (type.is("variadic")) {
+            return TypeCompiler.generateType(type);
         }*/
 		return "?"/*unknown*/;
 	}
@@ -254,8 +254,8 @@ export class TypeCompiler {/*public static final Node Boolean = new MapNode("boo
         else if (type.is("template")) {
             return "";
         }*//*
-        else if (type instanceof VariadicType variadicNode) {
-            return variadicNode.generateBeforeName();
+        else if (type.is("variadic")) {
+            return "...";
         }*/
 		/*throw new IllegalArgumentException()*/;
 	}
@@ -278,8 +278,9 @@ export class TypeCompiler {/*public static final Node Boolean = new MapNode("boo
 			let joined: string = type.findNodeList("args").orElse(Lists.empty()).iter().map((arg: Node) => TypeCompiler.generateType(arg)/*unknown*/).collect(new Joiner(", ")).orElse("")/*unknown*/;
 			return base + "<" + joined + ">"/*unknown*/;
 		}
-		if (/*type instanceof VariadicType variadicNode*/){
-			return variadicNode.generateNode()/*unknown*/;
+		if (type.is("variadic")/*unknown*/){
+			let child: Node = type.findNode("child").orElse(new MapNode())/*unknown*/;
+			return TypeCompiler.generateType(child) + "[]"/*unknown*/;
 		}
 		return "?"/*unknown*/;
 	}

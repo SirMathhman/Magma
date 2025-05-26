@@ -23,7 +23,6 @@ import magma.app.compile.node.Node;
 import magma.app.compile.rule.OrRule;
 import magma.app.compile.split.LocatingSplitter;
 import magma.app.compile.split.Splitter;
-import magma.app.compile.type.VariadicType;
 import magma.app.io.Source;
 
 public final class TypeCompiler {
@@ -54,7 +53,9 @@ public final class TypeCompiler {
         var stripped = Strings.strip(input);
         return new SuffixComposable<Tuple2<CompileState, Node>>("...", (String s) -> {
             var child = TypeCompiler.parseNodeOrPlaceholder(state, s);
-            return new Some<Tuple2<CompileState, Node>>(new Tuple2Impl<CompileState, Node>(child.left(), new VariadicType(child.right())));
+            Node type = child.right();
+            return new Some<Tuple2<CompileState, Node>>(new Tuple2Impl<CompileState, Node>(child.left(), new MapNode("variadic")
+                    .withNode("child", type)));
         }).apply(stripped);
     }
 
@@ -287,8 +288,8 @@ public final class TypeCompiler {
         else if (type.is("template")) {
             return type.findString("base").orElse("");
         }
-        else if (type instanceof VariadicType variadicNode) {
-            return variadicNode.generateSimple();
+        else if (type.is("variadic")) {
+            return TypeCompiler.generateType(type);
         }
 
         return "?";
@@ -310,8 +311,8 @@ public final class TypeCompiler {
         else if (type.is("template")) {
             return "";
         }
-        else if (type instanceof VariadicType variadicNode) {
-            return variadicNode.generateBeforeName();
+        else if (type.is("variadic")) {
+            return "...";
         }
         throw new IllegalArgumentException();
     }
@@ -341,8 +342,9 @@ public final class TypeCompiler {
             return base + "<" + joined + ">";
         }
 
-        if (type instanceof VariadicType variadicNode) {
-            return variadicNode.generateNode();
+        if (type.is("variadic")) {
+            Node child = type.findNode("child").orElse(new MapNode());
+            return TypeCompiler.generateType(child) + "[]";
         }
         return "?";
     }

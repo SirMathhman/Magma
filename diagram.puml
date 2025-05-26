@@ -201,9 +201,6 @@ interface Splitter {
 }
 interface Stack {
 }
-class VariadicType {
-}
-VariadicType <|.. Node
 class Lambda {
 }
 Lambda <|.. Node
@@ -532,8 +529,6 @@ Splitter --> Option
 Stack --> Option
 Stack --> Definition
 Stack --> Iterable
-VariadicType --> Node
-VariadicType --> TypeCompiler
 Lambda --> Node
 Lambda --> Definition
 Lambda --> Iterable
@@ -753,9 +748,8 @@ TypeCompiler --> Lists
 TypeCompiler --> Strings
 TypeCompiler --> SuffixComposable
 TypeCompiler --> Some
-TypeCompiler --> VariadicType
-TypeCompiler --> ValueCompiler
 TypeCompiler --> MapNode
+TypeCompiler --> ValueCompiler
 TypeCompiler --> None
 TypeCompiler --> LocatingSplitter
 TypeCompiler --> FirstLocator
