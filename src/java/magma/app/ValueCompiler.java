@@ -24,17 +24,19 @@ import magma.app.compile.compose.SuffixComposable;
 import magma.app.compile.define.ConstructionCaller;
 import magma.app.compile.define.Definition;
 import magma.app.compile.define.Parameter;
+import magma.app.compile.fold.OperatorFolder;
 import magma.app.compile.fold.ValueFolder;
+import magma.app.compile.locate.FirstLocator;
 import magma.app.compile.rule.OrRule;
 import magma.app.compile.rule.Rule;
 import magma.app.compile.select.FirstSelector;
+import magma.app.compile.select.LastSelector;
 import magma.app.compile.select.Selector;
 import magma.app.compile.split.FoldingSplitter;
+import magma.app.compile.split.LocatingSplitter;
 import magma.app.compile.split.Splitter;
 import magma.app.compile.type.Type;
 import magma.app.compile.value.AccessValue;
-import magma.app.compile.value.Argument;
-import magma.app.compile.value.Arguments;
 import magma.app.compile.value.Caller;
 import magma.app.compile.value.Invokable;
 import magma.app.compile.value.Lambda;
@@ -44,10 +46,6 @@ import magma.app.compile.value.Placeholder;
 import magma.app.compile.value.StringValue;
 import magma.app.compile.value.Symbol;
 import magma.app.compile.value.Value;
-import magma.app.compile.fold.OperatorFolder;
-import magma.app.compile.locate.FirstLocator;
-import magma.app.compile.select.LastSelector;
-import magma.app.compile.split.LocatingSplitter;
 
 import java.util.function.Function;
 
@@ -63,25 +61,25 @@ public final class ValueCompiler {
     static Option<Tuple2<CompileState, Value>> parseInvokable(CompileState state, String input) {
         return new SuffixComposable<Tuple2<CompileState, Value>>(")", (String withoutEnd) -> {
             return new SplitComposable<Tuple2<CompileState, Value>>((String withoutEnd0) -> {
-                    Selector selector = new LastSelector("");
-                    return new FoldingSplitter((DivideState state1, char c) -> {
-                        return ValueCompiler.foldInvocationStarts(state1, c);
-                    }, selector).apply(withoutEnd0);
-                }, Composable.toComposable((String callerWithArgStart, String args) -> {
-                    return new SuffixComposable<Tuple2<CompileState, Value>>("(", (String callerString) -> {
-                        return new PrefixComposable<Tuple2<CompileState, Value>>("new ", (String type) -> {
-                            return TypeCompiler.compileType(state, type).flatMap((Tuple2<CompileState, String> callerTuple1) -> {
-                                var callerState = callerTuple1.right();
-                                var caller = callerTuple1.left();
-                                return ValueCompiler.assembleInvokable(caller, new ConstructionCaller(callerState), args);
-                            });
-                        }).apply(Strings.strip(callerString)).or(() -> {
-                            return parseValue(state, callerString).flatMap((Tuple2<CompileState, Value> callerTuple) -> {
-                                return ValueCompiler.assembleInvokable(callerTuple.left(), callerTuple.right(), args);
-                            });
+                Selector selector = new LastSelector("");
+                return new FoldingSplitter((DivideState state1, char c) -> {
+                    return ValueCompiler.foldInvocationStarts(state1, c);
+                }, selector).apply(withoutEnd0);
+            }, Composable.toComposable((String callerWithArgStart, String args) -> {
+                return new SuffixComposable<Tuple2<CompileState, Value>>("(", (String callerString) -> {
+                    return new PrefixComposable<Tuple2<CompileState, Value>>("new ", (String type) -> {
+                        return TypeCompiler.compileType(state, type).flatMap((Tuple2<CompileState, String> callerTuple1) -> {
+                            var callerState = callerTuple1.right();
+                            var caller = callerTuple1.left();
+                            return ValueCompiler.assembleInvokable(caller, new ConstructionCaller(callerState), args);
                         });
-                    }).apply(callerWithArgStart);
-                })).apply(withoutEnd);
+                    }).apply(Strings.strip(callerString)).or(() -> {
+                        return ValueCompiler.parseValue(state, callerString).flatMap((Tuple2<CompileState, Value> callerTuple) -> {
+                            return ValueCompiler.assembleInvokable(callerTuple.left(), callerTuple.right(), args);
+                        });
+                    });
+                }).apply(callerWithArgStart);
+            })).apply(withoutEnd);
         }).apply(Strings.strip(input));
     }
 
@@ -90,8 +88,8 @@ public final class ValueCompiler {
             var stripped = Strings.strip(input1);
             return new PrefixComposable<Tuple2<CompileState, Value>>(slice, (String s) -> {
                 return new SuffixComposable<Tuple2<CompileState, Value>>(slice, (String s1) -> {
-                                return new Some<Tuple2<CompileState, Value>>(new Tuple2Impl<CompileState, Value>(state1, new StringValue(s1)));
-                            }).apply(s);
+                    return new Some<Tuple2<CompileState, Value>>(new Tuple2Impl<CompileState, Value>(state1, new StringValue(s1)));
+                }).apply(s);
             }).apply(stripped);
         };
     }
@@ -111,12 +109,12 @@ public final class ValueCompiler {
             var strippedBeforeArrow = Strings.strip(beforeArrow);
             return new PrefixComposable<Tuple2<CompileState, Value>>("(", (String withoutStart) -> {
                 return new SuffixComposable<Tuple2<CompileState, Value>>(")", (String withoutEnd) -> {
-                    return values((CompileState state1, String s) -> {
+                    return ValueCompiler.values((CompileState state1, String s) -> {
                         return DefiningCompiler.parseParameter(state1, s);
                     }).apply(state, withoutEnd).flatMap((Tuple2<CompileState, List<Parameter>> paramNames) -> {
-                                    return ValueCompiler.compileLambdaWithParameterNames(paramNames.left(), DefiningCompiler.retainDefinitionsFromParameters(paramNames.right()), afterArrow);
-                                });
-                            }).apply(withoutStart);
+                        return ValueCompiler.compileLambdaWithParameterNames(paramNames.left(), DefiningCompiler.retainDefinitionsFromParameters(paramNames.right()), afterArrow);
+                    });
+                }).apply(withoutStart);
             }).apply(strippedBeforeArrow);
         })).apply(input);
     }
@@ -125,16 +123,16 @@ public final class ValueCompiler {
         var strippedAfterArrow = Strings.strip(afterArrow);
         return new PrefixComposable<Tuple2<CompileState, Value>>("{", (String withoutContentStart) -> {
             return new SuffixComposable<Tuple2<CompileState, Value>>("}", (String withoutContentEnd) -> {
-                    CompileState compileState = state.enterDepth();
-                    var statementsTuple = FunctionSegmentCompiler.compileFunctionStatements(compileState.mapStack((Stack stack1) -> {
-                        return stack1.defineAll(paramNames);
-                    }), withoutContentEnd);
-                    var statementsState = statementsTuple.left();
-                    var statements = statementsTuple.right();
+                CompileState compileState = state.enterDepth();
+                var statementsTuple = FunctionSegmentCompiler.compileFunctionStatements(compileState.mapStack((Stack stack1) -> {
+                    return stack1.defineAll(paramNames);
+                }), withoutContentEnd);
+                var statementsState = statementsTuple.left();
+                var statements = statementsTuple.right();
 
-                    var exited = statementsState.exitDepth();
-                    return ValueCompiler.assembleLambda(exited, paramNames, "{" + statements + exited.createIndent() + "}");
-                }).apply(withoutContentStart);
+                var exited = statementsState.exitDepth();
+                return ValueCompiler.assembleLambda(exited, paramNames, "{" + statements + exited.createIndent() + "}");
+            }).apply(withoutContentStart);
         }).apply(strippedAfterArrow).or(() -> {
             return ValueCompiler.compileValue(state, strippedAfterArrow).flatMap((Tuple2<CompileState, String> tuple) -> {
                 return ValueCompiler.assembleLambda(tuple.left(), paramNames, tuple.right());
@@ -158,7 +156,7 @@ public final class ValueCompiler {
                     return new None<Tuple2<CompileState, Value>>();
                 }
 
-                return parseValue(state, childString).flatMap((Tuple2<CompileState, Value> childTuple) -> {
+                return ValueCompiler.parseValue(state, childString).flatMap((Tuple2<CompileState, Value> childTuple) -> {
                     var childState = childTuple.left();
                     var child = childTuple.right();
                     return new Some<Tuple2<CompileState, Value>>(new Tuple2Impl<CompileState, Value>(childState, new AccessValue(child, property)));
@@ -170,18 +168,18 @@ public final class ValueCompiler {
     static Rule<Value> createOperatorRuleWithDifferentInfix(String sourceInfix, String targetInfix) {
         return (CompileState state1, String input1) -> {
             return new SplitComposable<Tuple2<CompileState, Value>>((String slice) -> {
-                    return new FoldingSplitter(new OperatorFolder(sourceInfix), (List<String> divisions) -> {
-                            return new FirstSelector(sourceInfix).select(divisions);
-                        }).apply(slice);
-                }, Composable.toComposable((String leftString, String rightString) -> {
-                    return parseValue(state1, leftString).flatMap((Tuple2<CompileState, Value> leftTuple) -> {
-                        return parseValue(leftTuple.left(), rightString).flatMap((Tuple2<CompileState, Value> rightTuple) -> {
-                            var left = leftTuple.right();
-                            var right = rightTuple.right();
-                            return new Some<Tuple2<CompileState, Value>>(new Tuple2Impl<CompileState, Value>(rightTuple.left(), new Operation(left, targetInfix, right)));
-                        });
+                return new FoldingSplitter(new OperatorFolder(sourceInfix), (List<String> divisions) -> {
+                    return new FirstSelector(sourceInfix).select(divisions);
+                }).apply(slice);
+            }, Composable.toComposable((String leftString, String rightString) -> {
+                return ValueCompiler.parseValue(state1, leftString).flatMap((Tuple2<CompileState, Value> leftTuple) -> {
+                    return ValueCompiler.parseValue(leftTuple.left(), rightString).flatMap((Tuple2<CompileState, Value> rightTuple) -> {
+                        var left = leftTuple.right();
+                        var right = rightTuple.right();
+                        return new Some<Tuple2<CompileState, Value>>(new Tuple2Impl<CompileState, Value>(rightTuple.left(), new Operation(left, targetInfix, right)));
                     });
-                })).apply(input1);
+                });
+            })).apply(input1);
         };
     }
 
@@ -246,16 +244,15 @@ public final class ValueCompiler {
     }
 
     static Option<Tuple2<CompileState, String>> compileValue(CompileState state, String input) {
-        return parseValue(state, input).map((Tuple2<CompileState, Value> tuple) -> {
+        return ValueCompiler.parseValue(state, input).map((Tuple2<CompileState, Value> tuple) -> {
             return ValueCompiler.generateValue(tuple);
         });
     }
 
-    private static Option<Tuple2<CompileState, Argument>> parseArgument(CompileState state1, String input) {
-        return parseValue(state1, input)
-                .map((Tuple2<CompileState, Value> tuple) -> {
-                    return new Tuple2Impl<CompileState, Argument>(tuple.left(), tuple.right());
-                });
+    private static Option<Tuple2<CompileState, Value>> parseArgument(CompileState state1, String input) {
+        return ValueCompiler.parseValue(state1, input).map((Tuple2<CompileState, Value> tuple) -> {
+            return new Tuple2Impl<CompileState, Value>(tuple.left(), tuple.right());
+        });
     }
 
     private static Caller transformCaller(CompileState state, Caller oldCaller) {
@@ -289,13 +286,11 @@ public final class ValueCompiler {
     }
 
     private static Option<Tuple2<CompileState, Value>> assembleInvokable(CompileState state, Caller oldCaller, String argsString) {
-        return values((CompileState state1, String s) -> {
+        return ValueCompiler.values((CompileState state1, String s) -> {
             return ValueCompiler.parseArgument(state1, s);
-        }).apply(state, argsString).flatMap((Tuple2<CompileState, List<Argument>> argsTuple) -> {
+        }).apply(state, argsString).flatMap((Tuple2<CompileState, List<Value>> argsTuple) -> {
             var argsState = argsTuple.left();
-            var args = retain(argsTuple.right(), (Argument argument) -> {
-                return Arguments.toValue(argument);
-            });
+            var args = argsTuple.right();
 
             var newCaller = ValueCompiler.transformCaller(argsState, oldCaller);
             return new Some<Tuple2<CompileState, Value>>(new Tuple2Impl<CompileState, Value>(argsState, new Invokable(newCaller, args)));
@@ -312,24 +307,24 @@ public final class ValueCompiler {
     public static Option<Tuple2<CompileState, Value>> parseValue(CompileState state, String input) {
         return new OrRule<Value>(Lists.of(
                 ValueCompiler::parseLambda,
-                createOperatorRule("+"),
-                createOperatorRule("-"),
-                createOperatorRule("<="),
-                createOperatorRule("<"),
-                createOperatorRule("&&"),
-                createOperatorRule("||"),
-                createOperatorRule(">"),
-                createOperatorRule(">="),
+                ValueCompiler.createOperatorRule("+"),
+                ValueCompiler.createOperatorRule("-"),
+                ValueCompiler.createOperatorRule("<="),
+                ValueCompiler.createOperatorRule("<"),
+                ValueCompiler.createOperatorRule("&&"),
+                ValueCompiler.createOperatorRule("||"),
+                ValueCompiler.createOperatorRule(">"),
+                ValueCompiler.createOperatorRule(">="),
                 ValueCompiler::parseInvokable,
-                createAccessRule("."),
-                createAccessRule("::"),
+                ValueCompiler.createAccessRule("."),
+                ValueCompiler.createAccessRule("::"),
                 ValueCompiler::parseSymbol,
                 ValueCompiler::parseNot,
                 ValueCompiler::parseNumber,
-                createOperatorRuleWithDifferentInfix("==", "==="),
-                createOperatorRuleWithDifferentInfix("!=", "!=="),
-                createTextRule("\""),
-                createTextRule("'")
+                ValueCompiler.createOperatorRuleWithDifferentInfix("==", "==="),
+                ValueCompiler.createOperatorRuleWithDifferentInfix("!=", "!=="),
+                ValueCompiler.createTextRule("\""),
+                ValueCompiler.createTextRule("'")
         )).apply(state, input);
     }
 

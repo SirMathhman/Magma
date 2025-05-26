@@ -215,8 +215,6 @@ VariadicType <|.. Type
 class AccessValue {
 }
 AccessValue <|.. Value
-interface Argument {
-}
 interface Caller {
 }
 class Invokable {
@@ -572,8 +570,6 @@ AccessValue --> Type
 AccessValue --> CompileState
 AccessValue --> PrimitiveType
 AccessValue --> None
-Argument --> Value
-Argument --> Option
 Caller --> Value
 Caller --> Option
 Invokable --> Value
@@ -895,7 +891,6 @@ ValueCompiler --> HeadedIter
 ValueCompiler --> RangeHead
 ValueCompiler --> Characters
 ValueCompiler --> Type
-ValueCompiler --> Argument
 ValueCompiler --> Caller
 ValueCompiler --> Invokable
 ValueCompiler --> Iters
