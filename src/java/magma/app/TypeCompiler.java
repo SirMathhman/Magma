@@ -71,16 +71,7 @@ public final class TypeCompiler {
         return new SuffixRule<Tuple2<CompileState, Node>>(">", (String withoutEnd) -> {
             Splitter splitter = new LocatingSplitter("<", new FirstLocator());
             return new SplitComposable<Tuple2<CompileState, Node>>(splitter, Composable.toComposable((String baseString, String argsString) -> {
-                var argsTuple = ValueCompiler.values((CompileState state1, String s) -> {
-                    return new StatefulOrRule<Node>(Lists.of(
-                            (CompileState state2, String input1) -> {
-                                return WhitespaceCompiler.parseWhitespace(state2, input1).map(type -> new Tuple2Impl<CompileState, Node>(type.left(), type.right()));
-                            },
-                            (CompileState state2, String type) -> {
-                                return TypeCompiler.lexType(type).flatMap((Node content) -> TypeCompiler.parseType(state2, content));
-                            }
-                    )).apply(state1, s);
-                }).apply(state, argsString).orElse(new Tuple2Impl<CompileState, List<Node>>(state, Lists.empty()));
+                var argsTuple = getApply(state, argsString).orElse(new Tuple2Impl<CompileState, List<Node>>(state, Lists.empty()));
                 var argsState = argsTuple.left();
                 var args = argsTuple.right();
 
@@ -93,6 +84,23 @@ public final class TypeCompiler {
                 });
             })).apply(withoutEnd);
         }).lex(Strings.strip(input));
+    }
+
+    private static Option<Tuple2<CompileState, List<Node>>> getApply(CompileState state, String argString) {
+        return ValueCompiler.values((CompileState state1, String s) -> {
+            return getNodeStatefulOrRule().apply(state1, s);
+        }).apply(state, argString);
+    }
+
+    private static StatefulOrRule<Node> getNodeStatefulOrRule() {
+        return new StatefulOrRule<Node>(Lists.of(
+                (CompileState state2, String input1) -> {
+                    return WhitespaceCompiler.parseWhitespace(state2, input1).map(type -> new Tuple2Impl<CompileState, Node>(type.left(), type.right()));
+                },
+                (CompileState state2, String type) -> {
+                    return TypeCompiler.lexType(type).flatMap((Node content) -> TypeCompiler.parseType(state2, content));
+                }
+        ));
     }
 
     private static Option<Tuple2<CompileState, Node>> assembleFunctionNode(CompileState state, String base, List<Node> args) {

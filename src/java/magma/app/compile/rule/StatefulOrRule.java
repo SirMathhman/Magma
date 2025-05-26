@@ -15,7 +15,7 @@ public record StatefulOrRule<T>(Iterable<StatefulRule<T>> rules) implements Stat
             Iterable<StatefulRule<String>> rules
     ) {
         return new StatefulOrRule<String>(rules).apply(state, input).orElseGet(() -> {
-            return new Tuple2Impl<CompileState, String>(state, Placeholders.generatePlaceholder(input));
+            return new Tuple2Impl<>(state, Placeholders.generatePlaceholder(input));
         });
     }
 
