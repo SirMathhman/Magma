@@ -36,7 +36,7 @@ import { Operation } from "../../magma/app/compile/value/Operation";
 import { HeadedIter } from "../../magma/api/collect/head/HeadedIter";
 import { RangeHead } from "../../magma/api/collect/head/RangeHead";
 import { Characters } from "../../magma/api/text/Characters";
-import { PrimitiveNode } from "../../magma/app/compile/type/PrimitiveNode";
+import { PrimitiveType } from "../../magma/app/compile/type/PrimitiveType";
 import { Iters } from "../../magma/api/collect/Iters";
 import { ListCollector } from "../../magma/api/collect/list/ListCollector";
 import { OrRule } from "../../magma/app/compile/rule/OrRule";
@@ -202,17 +202,17 @@ export class ValueCompiler {
             return operation.resolve(state);
         }*//*
         else if (value instanceof Placeholder placeholder) {
-            return PrimitiveNode.Unknown;
+            return PrimitiveType.Unknown;
         }*//*
         else if (value instanceof StringNode stringNode) {
-            return PrimitiveNode.Unknown;
+            return PrimitiveType.Unknown;
         }*//*
         else if (value.is("symbol")) {
             return state.stack().resolveNode(value.findString("value").orElse(""))
                     .map((Definition definition) -> definition.type())
-                    .orElse(PrimitiveNode.Unknown);
+                    .orElse(PrimitiveType.Unknown);
         }*/
-		return PrimitiveNode.Unknown/*unknown*/;
+		return PrimitiveType.Unknown/*unknown*/;
 	}
 	static parseNumber(state: CompileState, input: string): Option<Tuple2<CompileState, Node>> {
 		let stripped = Strings.strip(input)/*unknown*/;

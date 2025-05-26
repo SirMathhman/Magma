@@ -12,7 +12,7 @@ import { VariadicType } from "../../magma/app/compile/type/VariadicType";
 import { ValueCompiler } from "../../magma/app/ValueCompiler";
 import { MapNode } from "../../magma/app/compile/node/MapNode";
 import { None } from "../../magma/api/option/None";
-import { PrimitiveNode } from "../../magma/app/compile/type/PrimitiveNode";
+import { PrimitiveType } from "../../magma/app/compile/type/PrimitiveType";
 import { LocatingSplitter } from "../../magma/app/compile/split/LocatingSplitter";
 import { FirstLocator } from "../../magma/app/compile/locate/FirstLocator";
 import { Splitter } from "../../magma/app/compile/split/Splitter";
@@ -61,19 +61,19 @@ export class TypeCompiler {
 	static findPrimitiveNode(input: string): Option<Node> {
 		let stripped = Strings.strip(input)/*unknown*/;
 		if (Strings.equalsTo("char", stripped) || Strings.equalsTo("Character", stripped) || Strings.equalsTo("String", stripped)/*unknown*/){
-			return new Some<Node>(PrimitiveNode.String)/*unknown*/;
+			return new Some<Node>(PrimitiveType.String)/*unknown*/;
 		}
 		if (Strings.equalsTo("int", stripped) || Strings.equalsTo("Integer", stripped)/*unknown*/){
-			return new Some<Node>(PrimitiveNode.Number)/*unknown*/;
+			return new Some<Node>(PrimitiveType.Number)/*unknown*/;
 		}
 		if (Strings.equalsTo("boolean", stripped) || Strings.equalsTo("Boolean", stripped)/*unknown*/){
-			return new Some<Node>(PrimitiveNode.Boolean)/*unknown*/;
+			return new Some<Node>(PrimitiveType.Boolean)/*unknown*/;
 		}
 		if (Strings.equalsTo("var", stripped)/*unknown*/){
-			return new Some<Node>(PrimitiveNode.Var)/*unknown*/;
+			return new Some<Node>(PrimitiveType.Var)/*unknown*/;
 		}
 		if (Strings.equalsTo("void", stripped)/*unknown*/){
-			return new Some<Node>(PrimitiveNode.Void)/*unknown*/;
+			return new Some<Node>(PrimitiveType.Void)/*unknown*/;
 		}
 		return new None<Node>()/*unknown*/;
 	}
@@ -141,7 +141,7 @@ export class TypeCompiler {
                 List<Node> = /* Lists.of(first);
                 return new MapNode("functional")
                         .withNodeList("args", args1)
-                        .withNode("returns", PrimitiveNode.Void);
+                        .withNode("returns", PrimitiveType.Void);
             })*/;
 		}
 		if (Strings.equalsTo("Predicate", base)/*unknown*/){
@@ -149,7 +149,7 @@ export class TypeCompiler {
                 List<Node> = /* Lists.of(first);
                 return new MapNode("functional")
                         .withNodeList("args", args1)
-                        .withNode("returns", PrimitiveNode.Boolean);
+                        .withNode("returns", PrimitiveType.Boolean);
             })*/;
 		}
 		return new None<Node>()/*unknown*/;
@@ -220,8 +220,8 @@ export class TypeCompiler {
         else if (type instanceof Placeholder placeholder) {
             return ValueCompiler.generateValue(placeholder);
         }*//*
-        else if (type instanceof PrimitiveNode primitiveNode) {
-            return primitiveNode.generateSimple();
+        else if (type instanceof PrimitiveType primitiveType) {
+            return generateType(primitiveType);
         }*//*
         else if (type.is("symbol")) {
             return ValueCompiler.generateValue(type);
@@ -241,8 +241,8 @@ export class TypeCompiler {
         else if (type instanceof Placeholder placeholder) {
             return "";
         }*//*
-        else if (type instanceof PrimitiveNode primitiveNode) {
-            return primitiveNode.generateBeforeName();
+        else if (type instanceof PrimitiveType primitiveType) {
+            return "";
         }*//*
         else if (type.is("symbol")) {
             return "";
@@ -263,8 +263,8 @@ export class TypeCompiler {
         else if (type instanceof Placeholder placeholder) {
             return Placeholder.generatePlaceholder(placeholder.input());
         }*//*
-        else if (type instanceof PrimitiveNode primitiveNode) {
-            return primitiveNode.generateNode();
+        else if (type instanceof PrimitiveType primitiveType) {
+            return primitiveType.value;
         }*//*
         else if (type.is("symbol")) {
             return type.findString("value").orElse("");

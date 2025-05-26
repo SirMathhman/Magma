@@ -4,7 +4,7 @@ import magma.api.option.Option;
 import magma.api.option.Some;
 import magma.app.compile.CompileState;
 import magma.app.compile.node.Node;
-import magma.app.compile.type.PrimitiveNode;
+import magma.app.compile.type.PrimitiveType;
 
 public record Not(String child) implements Node {
     public String generate() {
@@ -16,7 +16,7 @@ public record Not(String child) implements Node {
     }
 
     public Node resolve(CompileState state) {
-        return PrimitiveNode.Unknown;
+        return PrimitiveType.Unknown;
     }
 
 

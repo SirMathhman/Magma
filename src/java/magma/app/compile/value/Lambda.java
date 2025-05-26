@@ -6,7 +6,7 @@ import magma.app.DefiningCompiler;
 import magma.app.compile.CompileState;
 import magma.app.compile.define.Definition;
 import magma.app.compile.node.Node;
-import magma.app.compile.type.PrimitiveNode;
+import magma.app.compile.type.PrimitiveType;
 
 public record Lambda(Iterable<Definition> paramNames, String content) implements Node {
     public String generate() {
@@ -21,7 +21,7 @@ public record Lambda(Iterable<Definition> paramNames, String content) implements
     }
 
     public Node resolve(CompileState state) {
-        return PrimitiveNode.Unknown;
+        return PrimitiveType.Unknown;
     }
 
 
