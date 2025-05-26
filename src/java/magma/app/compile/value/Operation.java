@@ -13,7 +13,6 @@ public record Operation(Value left, String targetInfix, Value right) implements 
         return this.left.generate() + " " + this.targetInfix + " " + this.right.generate();
     }
 
-    @Override
     public Option<Value> toValue() {
         return new Some<Value>(this);
     }

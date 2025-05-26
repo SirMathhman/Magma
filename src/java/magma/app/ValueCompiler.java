@@ -34,6 +34,7 @@ import magma.app.compile.split.Splitter;
 import magma.app.compile.type.Type;
 import magma.app.compile.value.AccessValue;
 import magma.app.compile.value.Argument;
+import magma.app.compile.value.Arguments;
 import magma.app.compile.value.Caller;
 import magma.app.compile.value.Invokable;
 import magma.app.compile.value.Lambda;
@@ -293,7 +294,7 @@ public final class ValueCompiler {
         }).apply(state, argsString).flatMap((Tuple2<CompileState, List<Argument>> argsTuple) -> {
             var argsState = argsTuple.left();
             var args = retain(argsTuple.right(), (Argument argument) -> {
-                return argument.toValue();
+                return Arguments.toValue(argument);
             });
 
             var newCaller = ValueCompiler.transformCaller(argsState, oldCaller);

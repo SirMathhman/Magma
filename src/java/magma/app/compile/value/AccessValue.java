@@ -13,7 +13,6 @@ public record AccessValue(Value child, String property) implements Value {
         return this.child.generate() + "." + this.property;
     }
 
-    @Override
     public Option<Value> toValue() {
         return new Some<Value>(this);
     }

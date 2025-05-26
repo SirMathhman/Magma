@@ -23,7 +23,6 @@ public record Lambda(Iterable<Definition> paramNames, String content) implements
         return "(" + joinedParamNames + ")" + " => " + this.content;
     }
 
-    @Override
     public Option<Value> toValue() {
         return new Some<Value>(this);
     }
