@@ -49,6 +49,6 @@ public record Symbol(String value) implements Value, Type {
 
     @Override
     public String generateSimple() {
-        return ValueCompiler.getString(this);
+        return ValueCompiler.generateValue(this);
     }
 }

@@ -66,6 +66,7 @@
 	Merger: magma.app.compile.merge, 
 	StatementsMerger: magma.app.compile.merge, 
 	ValueMerger: magma.app.compile.merge, 
+	Node: magma.app.compile.node, 
 	Registry: magma.app.compile, 
 	OrRule: magma.app.compile.rule, 
 	Rule: magma.app.compile.rule, 
@@ -83,7 +84,6 @@
 	Type: magma.app.compile.type, 
 	VariadicType: magma.app.compile.type, 
 	AccessValue: magma.app.compile.value, 
-	Caller: magma.app.compile.value, 
 	ConstructionCaller: magma.app.compile.value, 
 	Invokable: magma.app.compile.value, 
 	Lambda: magma.app.compile.value, 
@@ -113,8 +113,8 @@
 	ValueCompiler: magma.app, 
 	WhitespaceCompiler: magma.app
 ]*/
-import { Caller } from "../../../../magma/app/compile/value/Caller";
-export class ConstructionCaller implements Caller {
+import { Node } from "../../../../magma/app/compile/node/Node";
+export class ConstructionCaller implements Node {
 	right: string;
 	constructor (right: string) {
 		this.right = right;

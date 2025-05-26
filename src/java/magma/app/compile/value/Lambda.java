@@ -11,7 +11,6 @@ import magma.app.compile.type.PrimitiveType;
 import magma.app.compile.type.Type;
 
 public record Lambda(Iterable<Definition> paramNames, String content) implements Value {
-    @Override
     public String generate() {
         var joinedParamNames = this.paramNames.iter()
                 .map((Definition definition) -> {

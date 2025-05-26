@@ -66,6 +66,7 @@
 	Merger: magma.app.compile.merge, 
 	StatementsMerger: magma.app.compile.merge, 
 	ValueMerger: magma.app.compile.merge, 
+	Node: magma.app.compile.node, 
 	Registry: magma.app.compile, 
 	OrRule: magma.app.compile.rule, 
 	Rule: magma.app.compile.rule, 
@@ -83,7 +84,6 @@
 	Type: magma.app.compile.type, 
 	VariadicType: magma.app.compile.type, 
 	AccessValue: magma.app.compile.value, 
-	Caller: magma.app.compile.value, 
 	ConstructionCaller: magma.app.compile.value, 
 	Invokable: magma.app.compile.value, 
 	Lambda: magma.app.compile.value, 
@@ -129,7 +129,7 @@ export class AccessValue implements Value {
 		this.property = property;
 	}
 	generate(): string {
-		return ValueCompiler.getString(this.child) + "." + this.property/*unknown*/;
+		return ValueCompiler.generateValue(this.child) + "." + this.property/*unknown*/;
 	}
 	toValue(): Option<Value> {
 		return new Some<Value>(this)/*unknown*/;

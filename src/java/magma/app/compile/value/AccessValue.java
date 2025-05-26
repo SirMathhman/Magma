@@ -9,9 +9,8 @@ import magma.app.compile.type.PrimitiveType;
 import magma.app.compile.type.Type;
 
 public record AccessValue(Value child, String property) implements Value {
-    @Override
     public String generate() {
-        return ValueCompiler.getString(this.child) + "." + this.property;
+        return ValueCompiler.generateValue(this.child) + "." + this.property;
     }
 
     public Option<Value> toValue() {

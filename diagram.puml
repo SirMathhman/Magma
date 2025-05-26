@@ -167,6 +167,8 @@ StatementsMerger <|.. Merger
 class ValueMerger {
 }
 ValueMerger <|.. Merger
+interface Node {
+}
 interface Registry {
 }
 class OrRule<T> {
@@ -214,7 +216,7 @@ class AccessValue {
 AccessValue <|.. Value
 class ConstructionCaller {
 }
-ConstructionCaller <|.. Caller
+ConstructionCaller <|.. Node
 class Invokable {
 }
 Invokable <|.. Value
@@ -565,9 +567,9 @@ AccessValue --> Type
 AccessValue --> CompileState
 AccessValue --> PrimitiveType
 AccessValue --> None
-ConstructionCaller --> Caller
+ConstructionCaller --> Node
 Invokable --> Value
-Invokable --> Caller
+Invokable --> Node
 Invokable --> Iterable
 Invokable --> ValueCompiler
 Invokable --> Joiner
@@ -887,7 +889,7 @@ ValueCompiler --> HeadedIter
 ValueCompiler --> RangeHead
 ValueCompiler --> Characters
 ValueCompiler --> Type
-ValueCompiler --> Caller
+ValueCompiler --> Node
 ValueCompiler --> Invokable
 ValueCompiler --> Iters
 ValueCompiler --> ListCollector

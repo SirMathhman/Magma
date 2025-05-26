@@ -66,6 +66,7 @@
 	Merger: magma.app.compile.merge, 
 	StatementsMerger: magma.app.compile.merge, 
 	ValueMerger: magma.app.compile.merge, 
+	Node: magma.app.compile.node, 
 	Registry: magma.app.compile, 
 	OrRule: magma.app.compile.rule, 
 	Rule: magma.app.compile.rule, 
@@ -83,7 +84,6 @@
 	Type: magma.app.compile.type, 
 	VariadicType: magma.app.compile.type, 
 	AccessValue: magma.app.compile.value, 
-	Caller: magma.app.compile.value, 
 	ConstructionCaller: magma.app.compile.value, 
 	Invokable: magma.app.compile.value, 
 	Lambda: magma.app.compile.value, 
@@ -115,8 +115,6 @@
 ]*/
 /*
 
-public sealed interface Value extends Caller permits AccessValue, Invokable, Lambda, Not, Operation, Placeholder, StringValue, Symbol {
+public sealed interface Value extends Node permits AccessValue, Invokable, Lambda, Not, Operation, Placeholder, StringValue, Symbol {
     Option<String> generateAsEnumValue(String structureName);
-
-    String generate();
 }*/

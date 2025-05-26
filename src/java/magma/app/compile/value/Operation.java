@@ -9,9 +9,8 @@ import magma.app.compile.type.PrimitiveType;
 import magma.app.compile.type.Type;
 
 public record Operation(Value left, String targetInfix, Value right) implements Value {
-    @Override
     public String generate() {
-        return ValueCompiler.getString(this.left) + " " + this.targetInfix + " " + ValueCompiler.getString(this.right);
+        return ValueCompiler.generateValue(this.left) + " " + this.targetInfix + " " + ValueCompiler.generateValue(this.right);
     }
 
     public Option<Value> toValue() {

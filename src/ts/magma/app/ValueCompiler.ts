@@ -66,6 +66,7 @@
 	Merger: magma.app.compile.merge, 
 	StatementsMerger: magma.app.compile.merge, 
 	ValueMerger: magma.app.compile.merge, 
+	Node: magma.app.compile.node, 
 	Registry: magma.app.compile, 
 	OrRule: magma.app.compile.rule, 
 	Rule: magma.app.compile.rule, 
@@ -83,7 +84,6 @@
 	Type: magma.app.compile.type, 
 	VariadicType: magma.app.compile.type, 
 	AccessValue: magma.app.compile.value, 
-	Caller: magma.app.compile.value, 
 	ConstructionCaller: magma.app.compile.value, 
 	Invokable: magma.app.compile.value, 
 	Lambda: magma.app.compile.value, 
@@ -155,7 +155,7 @@ import { HeadedIter } from "../../magma/api/collect/head/HeadedIter";
 import { RangeHead } from "../../magma/api/collect/head/RangeHead";
 import { Characters } from "../../magma/api/text/Characters";
 import { Type } from "../../magma/app/compile/type/Type";
-import { Caller } from "../../magma/app/compile/value/Caller";
+import { Node } from "../../magma/app/compile/node/Node";
 import { Invokable } from "../../magma/app/compile/value/Invokable";
 import { Iters } from "../../magma/api/collect/Iters";
 import { ListCollector } from "../../magma/api/collect/list/ListCollector";
@@ -167,7 +167,7 @@ export class ValueCompiler {
 	static generateValue(tuple: Tuple2<CompileState, Value>): Tuple2Impl<CompileState, string> {
 		let state = tuple.left()/*unknown*/;
 		let right = tuple.right()/*unknown*/;
-		let generated = ValueCompiler.getString(right)/*unknown*/;
+		let generated = ValueCompiler.generateValue(right)/*unknown*/;
 		let s = Placeholder.generatePlaceholder(ValueCompiler.resolve(state, right).generate())/*unknown*/;
 		return new Tuple2Impl<CompileState, string>(state, generated + s)/*unknown*/;
 	}
@@ -345,17 +345,17 @@ export class ValueCompiler {
 			return new Tuple2Impl<CompileState, Value>(tuple.left(), tuple.right())/*unknown*/;
 		})/*unknown*/;
 	}
-	static transformCaller(state: CompileState, oldCaller: Caller): Caller {
-		return ValueCompiler.getValueOption(oldCaller).flatMap((parent: Value) => {
+	static transformCaller(state: CompileState, oldNode: Node): Node {
+		return ValueCompiler.getValueOption(oldNode).flatMap((parent: Value) => {
 			let parentType = ValueCompiler.resolve(state, parent)/*unknown*/;
 			if (parentType.isFunctional()/*unknown*/){
-				return new Some<Caller>(parent)/*unknown*/;
+				return new Some<Node>(parent)/*unknown*/;
 			}
-			return new None<Caller>()/*unknown*/;
-		}).orElse(oldCaller)/*unknown*/;
+			return new None<Node>()/*unknown*/;
+		}).orElse(oldNode)/*unknown*/;
 	}
-	static getValueOption(oldCaller: Caller): Option<Value> {
-		if (/*oldCaller instanceof AccessValue accessValue*/){
+	static getValueOption(oldNode: Node): Option<Value> {
+		if (/*oldNode instanceof AccessValue accessValue*/){
 			return new Some<Value>(accessValue.child())/*unknown*/;
 		}
 		return new None<Value>()/*unknown*/;
@@ -376,13 +376,13 @@ export class ValueCompiler {
 		}
 		return appended/*unknown*/;
 	}
-	static assembleInvokable(state: CompileState, oldCaller: Caller, argsString: string): Option<Tuple2<CompileState, Value>> {
+	static assembleInvokable(state: CompileState, oldNode: Node, argsString: string): Option<Tuple2<CompileState, Value>> {
 		return ValueCompiler.values((state1: CompileState, s: string) => {
 			return ValueCompiler.parseArgument(state1, s)/*unknown*/;
 		}).apply(state, argsString).flatMap((argsTuple: Tuple2<CompileState, List<Value>>) => {
 			let argsState = argsTuple.left()/*unknown*/;
 			let args = argsTuple.right()/*unknown*/;
-			let newCaller = ValueCompiler.transformCaller(argsState, oldCaller)/*unknown*/;
+			let newCaller = ValueCompiler.transformCaller(argsState, oldNode)/*unknown*/;
 			return new Some<Tuple2<CompileState, Value>>(new Tuple2Impl<CompileState, Value>(argsState, new Invokable(newCaller, args)))/*unknown*/;
 		})/*unknown*/;
 	}
@@ -395,9 +395,21 @@ export class ValueCompiler {
 	static values<T>(mapper: Rule<T>): Rule<List<T>> {
 		return new DivideRule<>(new ValueFolder(), mapper)/*unknown*/;
 	}
-	static getString(caller: Caller): string {/*return switch (caller) {
-            case Value value -> value.generate();
+	static getString(node: Node): string {/*return switch (node) {
+            case Value value -> ValueCompiler.generateValue(value);
             case ConstructionCaller constructionCaller -> constructionCaller.generate();
+            default -> "?";
+        }*/;
+	}
+	static generateValue(value: Value): string {/*return switch (value) {
+            case AccessValue accessValue -> accessValue.generate();
+            case Invokable invokable -> invokable.generate();
+            case Lambda lambda -> lambda.generate();
+            case Not not -> not.generate();
+            case Operation operation -> operation.generate();
+            case Placeholder placeholder -> placeholder.generate();
+            case StringValue stringValue -> stringValue.generate();
+            case Symbol symbol -> symbol.generate();
         }*/;
 	}
 }

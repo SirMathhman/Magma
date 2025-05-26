@@ -66,6 +66,7 @@
 	Merger: magma.app.compile.merge, 
 	StatementsMerger: magma.app.compile.merge, 
 	ValueMerger: magma.app.compile.merge, 
+	Node: magma.app.compile.node, 
 	Registry: magma.app.compile, 
 	OrRule: magma.app.compile.rule, 
 	Rule: magma.app.compile.rule, 
@@ -83,7 +84,6 @@
 	Type: magma.app.compile.type, 
 	VariadicType: magma.app.compile.type, 
 	AccessValue: magma.app.compile.value, 
-	Caller: magma.app.compile.value, 
 	ConstructionCaller: magma.app.compile.value, 
 	Invokable: magma.app.compile.value, 
 	Lambda: magma.app.compile.value, 
@@ -114,7 +114,7 @@
 	WhitespaceCompiler: magma.app
 ]*/
 import { Value } from "../../../../magma/app/compile/value/Value";
-import { Caller } from "../../../../magma/app/compile/value/Caller";
+import { Node } from "../../../../magma/app/compile/node/Node";
 import { Iterable } from "../../../../magma/api/collect/list/Iterable";
 import { ValueCompiler } from "../../../../magma/app/ValueCompiler";
 import { Joiner } from "../../../../magma/api/collect/Joiner";
@@ -124,19 +124,19 @@ import { Type } from "../../../../magma/app/compile/type/Type";
 import { CompileState } from "../../../../magma/app/compile/CompileState";
 import { PrimitiveType } from "../../../../magma/app/compile/type/PrimitiveType";
 export class Invokable implements Value {
-	caller: Caller;
+	node: Node;
 	args: Iterable<Value>;
-	constructor (caller: Caller, args: Iterable<Value>) {
-		this.caller = caller;
+	constructor (node: Node, args: Iterable<Value>) {
+		this.node = node;
 		this.args = args;
 	}
 	generate(): string {
 		let joinedArguments = this.joinArgs()/*unknown*/;
-		return ValueCompiler.getString(this.caller) + "(" + joinedArguments + ")"/*unknown*/;
+		return ValueCompiler.getString(this.node) + "(" + joinedArguments + ")"/*unknown*/;
 	}
 	joinArgs(): string {
 		return this.args.iter().map((value: Value) => {
-			return ValueCompiler.getString(value)/*unknown*/;
+			return ValueCompiler.generateValue(value)/*unknown*/;
 		}).collect(new Joiner(", ")).orElse("")/*unknown*/;
 	}
 	toValue(): Option<Value> {
@@ -146,6 +146,6 @@ export class Invokable implements Value {
 		return PrimitiveType.Unknown/*unknown*/;
 	}
 	generateAsEnumValue(structureName: string): Option<string> {
-		return new Some<string>("\n\tstatic " + ValueCompiler.getString(this.caller) + ": " + structureName + " = new " + structureName + "(" + this.joinArgs() + ");")/*unknown*/;
+		return new Some<string>("\n\tstatic " + ValueCompiler.getString(this.node) + ": " + structureName + " = new " + structureName + "(" + this.joinArgs() + ");")/*unknown*/;
 	}
 }

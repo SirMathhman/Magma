@@ -26,6 +26,7 @@ import magma.app.compile.define.Parameter;
 import magma.app.compile.fold.OperatorFolder;
 import magma.app.compile.fold.ValueFolder;
 import magma.app.compile.locate.FirstLocator;
+import magma.app.compile.node.Node;
 import magma.app.compile.rule.OrRule;
 import magma.app.compile.rule.Rule;
 import magma.app.compile.select.FirstSelector;
@@ -36,7 +37,6 @@ import magma.app.compile.split.LocatingSplitter;
 import magma.app.compile.split.Splitter;
 import magma.app.compile.type.Type;
 import magma.app.compile.value.AccessValue;
-import magma.app.compile.node.Node;
 import magma.app.compile.value.ConstructionCaller;
 import magma.app.compile.value.Invokable;
 import magma.app.compile.value.Lambda;
@@ -53,7 +53,7 @@ public final class ValueCompiler {
     static Tuple2Impl<CompileState, String> generateValue(Tuple2<CompileState, Value> tuple) {
         var state = tuple.left();
         var right = tuple.right();
-        var generated = ValueCompiler.getString(right);
+        var generated = ValueCompiler.generateValue(right);
         var s = Placeholder.generatePlaceholder(ValueCompiler.resolve(state, right).generate());
         return new Tuple2Impl<CompileState, String>(state, generated + s);
     }
@@ -341,8 +341,22 @@ public final class ValueCompiler {
 
     public static String getString(Node node) {
         return switch (node) {
-            case Value value -> value.generate();
+            case Value value -> ValueCompiler.generateValue(value);
             case ConstructionCaller constructionCaller -> constructionCaller.generate();
+            default -> "?";
+        };
+    }
+
+    public static String generateValue(Value value) {
+        return switch (value) {
+            case AccessValue accessValue -> accessValue.generate();
+            case Invokable invokable -> invokable.generate();
+            case Lambda lambda -> lambda.generate();
+            case Not not -> not.generate();
+            case Operation operation -> operation.generate();
+            case Placeholder placeholder -> placeholder.generate();
+            case StringValue stringValue -> stringValue.generate();
+            case Symbol symbol -> symbol.generate();
         };
     }
 }

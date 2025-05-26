@@ -11,7 +11,6 @@ import magma.app.compile.type.PrimitiveType;
 import magma.app.compile.type.Type;
 
 public record Invokable(Node node, Iterable<Value> args) implements Value {
-    @Override
     public String generate() {
         var joinedArguments = this.joinArgs();
         return ValueCompiler.getString(this.node) + "(" + joinedArguments + ")";
@@ -20,7 +19,7 @@ public record Invokable(Node node, Iterable<Value> args) implements Value {
     private String joinArgs() {
         return this.args.iter()
                 .map((Value value) -> {
-                    return ValueCompiler.getString(value);
+                    return ValueCompiler.generateValue(value);
                 })
                 .collect(new Joiner(", "))
                 .orElse("");

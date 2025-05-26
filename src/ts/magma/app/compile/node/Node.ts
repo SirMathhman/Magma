@@ -113,7 +113,5 @@
 	ValueCompiler: magma.app, 
 	WhitespaceCompiler: magma.app
 ]*/
-export class Platform {
-	 static TypeScript = "TypeScript";
-	 static PlantUML = "PlantUML";
+export interface Node {
 }

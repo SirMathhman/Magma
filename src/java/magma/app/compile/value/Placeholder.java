@@ -53,6 +53,6 @@ public record Placeholder(String input) implements Parameter, Value, Type {
 
     @Override
     public String generateSimple() {
-        return ValueCompiler.getString(this);
+        return ValueCompiler.generateValue(this);
     }
 }
