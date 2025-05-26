@@ -21,7 +21,6 @@ import magma.app.compile.compose.Composable;
 import magma.app.compile.compose.PrefixComposable;
 import magma.app.compile.compose.SplitComposable;
 import magma.app.compile.compose.SuffixComposable;
-import magma.app.compile.define.ConstructionCaller;
 import magma.app.compile.define.Definition;
 import magma.app.compile.define.Parameter;
 import magma.app.compile.fold.OperatorFolder;
@@ -38,6 +37,7 @@ import magma.app.compile.split.Splitter;
 import magma.app.compile.type.Type;
 import magma.app.compile.value.AccessValue;
 import magma.app.compile.value.Caller;
+import magma.app.compile.value.ConstructionCaller;
 import magma.app.compile.value.Invokable;
 import magma.app.compile.value.Lambda;
 import magma.app.compile.value.Not;
@@ -53,7 +53,7 @@ public final class ValueCompiler {
     static Tuple2Impl<CompileState, String> generateValue(Tuple2<CompileState, Value> tuple) {
         var state = tuple.left();
         var right = tuple.right();
-        var generated = right.generate();
+        var generated = ValueCompiler.getString(right);
         var s = Placeholder.generatePlaceholder(ValueCompiler.resolve(state, right).generate());
         return new Tuple2Impl<CompileState, String>(state, generated + s);
     }
@@ -256,7 +256,7 @@ public final class ValueCompiler {
     }
 
     private static Caller transformCaller(CompileState state, Caller oldCaller) {
-        return getValueOption(oldCaller).flatMap((Value parent) -> {
+        return ValueCompiler.getValueOption(oldCaller).flatMap((Value parent) -> {
             var parentType = ValueCompiler.resolve(state, parent);
             if (parentType.isFunctional()) {
                 return new Some<Caller>(parent);
@@ -337,5 +337,12 @@ public final class ValueCompiler {
 
     public static <T> Rule<List<T>> values(Rule<T> mapper) {
         return new DivideRule<>(new ValueFolder(), mapper);
+    }
+
+    public static String getString(Caller caller) {
+        return switch (caller) {
+            case Value value -> value.generate();
+            case ConstructionCaller constructionCaller -> constructionCaller.generate();
+        };
     }
 }

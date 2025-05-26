@@ -39,7 +39,6 @@
 	SplitComposable: magma.app.compile.compose, 
 	SuffixComposable: magma.app.compile.compose, 
 	Context: magma.app.compile, 
-	ConstructionCaller: magma.app.compile.define, 
 	ConstructorHeader: magma.app.compile.define, 
 	Definition: magma.app.compile.define, 
 	MethodHeader: magma.app.compile.define, 
@@ -85,6 +84,7 @@
 	VariadicType: magma.app.compile.type, 
 	AccessValue: magma.app.compile.value, 
 	Caller: magma.app.compile.value, 
+	ConstructionCaller: magma.app.compile.value, 
 	Invokable: magma.app.compile.value, 
 	Lambda: magma.app.compile.value, 
 	Not: magma.app.compile.value, 
@@ -113,6 +113,7 @@
 	ValueCompiler: magma.app, 
 	WhitespaceCompiler: magma.app
 ]*/
-export interface Caller {
-	generate(): string;
-}
+/*
+
+public sealed interface Caller permits ConstructionCaller, Value {
+}*/

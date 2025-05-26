@@ -3,6 +3,7 @@ package magma.app.compile.value;
 import magma.api.option.None;
 import magma.api.option.Option;
 import magma.api.option.Some;
+import magma.app.ValueCompiler;
 import magma.app.compile.CompileState;
 import magma.app.compile.define.Definition;
 import magma.app.compile.type.PrimitiveType;
@@ -48,6 +49,6 @@ public record Symbol(String value) implements Value, Type {
 
     @Override
     public String generateSimple() {
-        return this.generate();
+        return ValueCompiler.getString(this);
     }
 }

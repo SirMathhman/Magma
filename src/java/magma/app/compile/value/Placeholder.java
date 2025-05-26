@@ -2,6 +2,7 @@ package magma.app.compile.value;
 
 import magma.api.option.None;
 import magma.api.option.Option;
+import magma.app.ValueCompiler;
 import magma.app.compile.CompileState;
 import magma.app.compile.define.Definition;
 import magma.app.compile.define.Parameter;
@@ -52,6 +53,6 @@ public record Placeholder(String input) implements Parameter, Value, Type {
 
     @Override
     public String generateSimple() {
-        return this.generate();
+        return ValueCompiler.getString(this);
     }
 }

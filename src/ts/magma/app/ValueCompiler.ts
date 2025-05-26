@@ -39,7 +39,6 @@
 	SplitComposable: magma.app.compile.compose, 
 	SuffixComposable: magma.app.compile.compose, 
 	Context: magma.app.compile, 
-	ConstructionCaller: magma.app.compile.define, 
 	ConstructorHeader: magma.app.compile.define, 
 	Definition: magma.app.compile.define, 
 	MethodHeader: magma.app.compile.define, 
@@ -85,6 +84,7 @@
 	VariadicType: magma.app.compile.type, 
 	AccessValue: magma.app.compile.value, 
 	Caller: magma.app.compile.value, 
+	ConstructionCaller: magma.app.compile.value, 
 	Invokable: magma.app.compile.value, 
 	Lambda: magma.app.compile.value, 
 	Not: magma.app.compile.value, 
@@ -128,7 +128,7 @@ import { DivideState } from "../../magma/app/compile/DivideState";
 import { Composable } from "../../magma/app/compile/compose/Composable";
 import { PrefixComposable } from "../../magma/app/compile/compose/PrefixComposable";
 import { TypeCompiler } from "../../magma/app/TypeCompiler";
-import { ConstructionCaller } from "../../magma/app/compile/define/ConstructionCaller";
+import { ConstructionCaller } from "../../magma/app/compile/value/ConstructionCaller";
 import { Strings } from "../../magma/api/text/Strings";
 import { Rule } from "../../magma/app/compile/rule/Rule";
 import { Some } from "../../magma/api/option/Some";
@@ -167,7 +167,7 @@ export class ValueCompiler {
 	static generateValue(tuple: Tuple2<CompileState, Value>): Tuple2Impl<CompileState, string> {
 		let state = tuple.left()/*unknown*/;
 		let right = tuple.right()/*unknown*/;
-		let generated = right.generate()/*unknown*/;
+		let generated = ValueCompiler.getString(right)/*unknown*/;
 		let s = Placeholder.generatePlaceholder(ValueCompiler.resolve(state, right).generate())/*unknown*/;
 		return new Tuple2Impl<CompileState, string>(state, generated + s)/*unknown*/;
 	}
@@ -346,7 +346,7 @@ export class ValueCompiler {
 		})/*unknown*/;
 	}
 	static transformCaller(state: CompileState, oldCaller: Caller): Caller {
-		return getValueOption(oldCaller).flatMap((parent: Value) => {
+		return ValueCompiler.getValueOption(oldCaller).flatMap((parent: Value) => {
 			let parentType = ValueCompiler.resolve(state, parent)/*unknown*/;
 			if (parentType.isFunctional()/*unknown*/){
 				return new Some<Caller>(parent)/*unknown*/;
@@ -394,5 +394,10 @@ export class ValueCompiler {
 	}
 	static values<T>(mapper: Rule<T>): Rule<List<T>> {
 		return new DivideRule<>(new ValueFolder(), mapper)/*unknown*/;
+	}
+	static getString(caller: Caller): string {/*return switch (caller) {
+            case Value value -> value.generate();
+            case ConstructionCaller constructionCaller -> constructionCaller.generate();
+        }*/;
 	}
 }

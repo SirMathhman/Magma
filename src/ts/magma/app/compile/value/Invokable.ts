@@ -39,7 +39,6 @@
 	SplitComposable: magma.app.compile.compose, 
 	SuffixComposable: magma.app.compile.compose, 
 	Context: magma.app.compile, 
-	ConstructionCaller: magma.app.compile.define, 
 	ConstructorHeader: magma.app.compile.define, 
 	Definition: magma.app.compile.define, 
 	MethodHeader: magma.app.compile.define, 
@@ -85,6 +84,7 @@
 	VariadicType: magma.app.compile.type, 
 	AccessValue: magma.app.compile.value, 
 	Caller: magma.app.compile.value, 
+	ConstructionCaller: magma.app.compile.value, 
 	Invokable: magma.app.compile.value, 
 	Lambda: magma.app.compile.value, 
 	Not: magma.app.compile.value, 
@@ -116,6 +116,7 @@
 import { Value } from "../../../../magma/app/compile/value/Value";
 import { Caller } from "../../../../magma/app/compile/value/Caller";
 import { Iterable } from "../../../../magma/api/collect/list/Iterable";
+import { ValueCompiler } from "../../../../magma/app/ValueCompiler";
 import { Joiner } from "../../../../magma/api/collect/Joiner";
 import { Option } from "../../../../magma/api/option/Option";
 import { Some } from "../../../../magma/api/option/Some";
@@ -131,11 +132,11 @@ export class Invokable implements Value {
 	}
 	generate(): string {
 		let joinedArguments = this.joinArgs()/*unknown*/;
-		return this.caller.generate() + "(" + joinedArguments + ")"/*unknown*/;
+		return ValueCompiler.getString(this.caller) + "(" + joinedArguments + ")"/*unknown*/;
 	}
 	joinArgs(): string {
 		return this.args.iter().map((value: Value) => {
-			return value.generate()/*unknown*/;
+			return ValueCompiler.getString(value)/*unknown*/;
 		}).collect(new Joiner(", ")).orElse("")/*unknown*/;
 	}
 	toValue(): Option<Value> {
@@ -145,6 +146,6 @@ export class Invokable implements Value {
 		return PrimitiveType.Unknown/*unknown*/;
 	}
 	generateAsEnumValue(structureName: string): Option<string> {
-		return new Some<string>("\n\tstatic " + this.caller.generate() + ": " + structureName + " = new " + structureName + "(" + this.joinArgs() + ");")/*unknown*/;
+		return new Some<string>("\n\tstatic " + ValueCompiler.getString(this.caller) + ": " + structureName + " = new " + structureName + "(" + this.joinArgs() + ");")/*unknown*/;
 	}
 }

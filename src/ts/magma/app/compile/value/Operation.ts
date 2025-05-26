@@ -39,7 +39,6 @@
 	SplitComposable: magma.app.compile.compose, 
 	SuffixComposable: magma.app.compile.compose, 
 	Context: magma.app.compile, 
-	ConstructionCaller: magma.app.compile.define, 
 	ConstructorHeader: magma.app.compile.define, 
 	Definition: magma.app.compile.define, 
 	MethodHeader: magma.app.compile.define, 
@@ -85,6 +84,7 @@
 	VariadicType: magma.app.compile.type, 
 	AccessValue: magma.app.compile.value, 
 	Caller: magma.app.compile.value, 
+	ConstructionCaller: magma.app.compile.value, 
 	Invokable: magma.app.compile.value, 
 	Lambda: magma.app.compile.value, 
 	Not: magma.app.compile.value, 
@@ -114,6 +114,7 @@
 	WhitespaceCompiler: magma.app
 ]*/
 import { Value } from "../../../../magma/app/compile/value/Value";
+import { ValueCompiler } from "../../../../magma/app/ValueCompiler";
 import { Option } from "../../../../magma/api/option/Option";
 import { Some } from "../../../../magma/api/option/Some";
 import { Type } from "../../../../magma/app/compile/type/Type";
@@ -130,7 +131,7 @@ export class Operation implements Value {
 		this.right = right;
 	}
 	generate(): string {
-		return this.left.generate() + " " + this.targetInfix + " " + this.right.generate()/*unknown*/;
+		return ValueCompiler.getString(this.left) + " " + this.targetInfix + " " + ValueCompiler.getString(this.right)/*unknown*/;
 	}
 	toValue(): Option<Value> {
 		return new Some<Value>(this)/*unknown*/;

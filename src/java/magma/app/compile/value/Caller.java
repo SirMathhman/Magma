@@ -1,5 +1,4 @@
 package magma.app.compile.value;
 
-public interface Caller {
-    String generate();
+public sealed interface Caller permits ConstructionCaller, Value {
 }

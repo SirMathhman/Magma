@@ -39,7 +39,6 @@
 	SplitComposable: magma.app.compile.compose, 
 	SuffixComposable: magma.app.compile.compose, 
 	Context: magma.app.compile, 
-	ConstructionCaller: magma.app.compile.define, 
 	ConstructorHeader: magma.app.compile.define, 
 	Definition: magma.app.compile.define, 
 	MethodHeader: magma.app.compile.define, 
@@ -85,6 +84,7 @@
 	VariadicType: magma.app.compile.type, 
 	AccessValue: magma.app.compile.value, 
 	Caller: magma.app.compile.value, 
+	ConstructionCaller: magma.app.compile.value, 
 	Invokable: magma.app.compile.value, 
 	Lambda: magma.app.compile.value, 
 	Not: magma.app.compile.value, 
@@ -121,6 +121,7 @@ import { Value } from "../../../../magma/app/compile/value/Value";
 import { Option } from "../../../../magma/api/option/Option";
 import { Some } from "../../../../magma/api/option/Some";
 import { None } from "../../../../magma/api/option/None";
+import { ValueCompiler } from "../../../../magma/app/ValueCompiler";
 export class Symbol {
 	value: string;
 	constructor (value: string) {
@@ -150,6 +151,6 @@ export class Symbol {
 		return new None<string>()/*unknown*/;
 	}
 	generateSimple(): string {
-		return this.generate()/*unknown*/;
+		return ValueCompiler.getString(this)/*unknown*/;
 	}
 }

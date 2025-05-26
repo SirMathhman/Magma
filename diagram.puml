@@ -96,9 +96,6 @@ class SuffixComposable<T> {
 SuffixComposable <|.. Composable
 interface Context {
 }
-class ConstructionCaller {
-}
-ConstructionCaller <|.. Caller
 class ConstructorHeader {
 }
 ConstructorHeader <|.. MethodHeader
@@ -215,8 +212,9 @@ VariadicType <|.. Type
 class AccessValue {
 }
 AccessValue <|.. Value
-interface Caller {
+class ConstructionCaller {
 }
+ConstructionCaller <|.. Caller
 class Invokable {
 }
 Invokable <|.. Value
@@ -398,7 +396,6 @@ Context --> Platform
 Context --> Option
 Context --> Location
 Context --> List
-ConstructionCaller --> Caller
 ConstructorHeader --> MethodHeader
 Definition --> List
 Definition --> Iterable
@@ -561,15 +558,18 @@ TemplateType --> Merger
 TemplateType --> ValueMerger
 VariadicType --> Type
 AccessValue --> Value
+AccessValue --> ValueCompiler
 AccessValue --> Option
 AccessValue --> Some
 AccessValue --> Type
 AccessValue --> CompileState
 AccessValue --> PrimitiveType
 AccessValue --> None
+ConstructionCaller --> Caller
 Invokable --> Value
 Invokable --> Caller
 Invokable --> Iterable
+Invokable --> ValueCompiler
 Invokable --> Joiner
 Invokable --> Option
 Invokable --> Some
@@ -594,6 +594,7 @@ Not --> CompileState
 Not --> PrimitiveType
 Not --> None
 Operation --> Value
+Operation --> ValueCompiler
 Operation --> Option
 Operation --> Some
 Operation --> Type
@@ -606,6 +607,7 @@ Placeholder --> None
 Placeholder --> Type
 Placeholder --> CompileState
 Placeholder --> PrimitiveType
+Placeholder --> ValueCompiler
 StringValue --> Value
 StringValue --> Option
 StringValue --> Some
@@ -621,6 +623,7 @@ Symbol --> Value
 Symbol --> Option
 Symbol --> Some
 Symbol --> None
+Symbol --> ValueCompiler
 DefiningCompiler --> Definition
 DefiningCompiler --> Iterable
 DefiningCompiler --> Parameter

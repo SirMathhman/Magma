@@ -39,7 +39,6 @@
 	SplitComposable: magma.app.compile.compose, 
 	SuffixComposable: magma.app.compile.compose, 
 	Context: magma.app.compile, 
-	ConstructionCaller: magma.app.compile.define, 
 	ConstructorHeader: magma.app.compile.define, 
 	Definition: magma.app.compile.define, 
 	MethodHeader: magma.app.compile.define, 
@@ -85,6 +84,7 @@
 	VariadicType: magma.app.compile.type, 
 	AccessValue: magma.app.compile.value, 
 	Caller: magma.app.compile.value, 
+	ConstructionCaller: magma.app.compile.value, 
 	Invokable: magma.app.compile.value, 
 	Lambda: magma.app.compile.value, 
 	Not: magma.app.compile.value, 
@@ -119,6 +119,7 @@ import { None } from "../../../../magma/api/option/None";
 import { Type } from "../../../../magma/app/compile/type/Type";
 import { CompileState } from "../../../../magma/app/compile/CompileState";
 import { PrimitiveType } from "../../../../magma/app/compile/type/PrimitiveType";
+import { ValueCompiler } from "../../../../magma/app/ValueCompiler";
 export class Placeholder {
 	input: string;
 	constructor (input: string) {
@@ -150,6 +151,6 @@ export class Placeholder {
 		return new None<string>()/*unknown*/;
 	}
 	generateSimple(): string {
-		return this.generate()/*unknown*/;
+		return ValueCompiler.getString(this)/*unknown*/;
 	}
 }

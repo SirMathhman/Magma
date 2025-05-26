@@ -4,6 +4,7 @@ import magma.api.collect.Joiner;
 import magma.api.collect.list.Iterable;
 import magma.api.option.Option;
 import magma.api.option.Some;
+import magma.app.ValueCompiler;
 import magma.app.compile.CompileState;
 import magma.app.compile.type.PrimitiveType;
 import magma.app.compile.type.Type;
@@ -12,13 +13,13 @@ public record Invokable(Caller caller, Iterable<Value> args) implements Value {
     @Override
     public String generate() {
         var joinedArguments = this.joinArgs();
-        return this.caller.generate() + "(" + joinedArguments + ")";
+        return ValueCompiler.getString(this.caller) + "(" + joinedArguments + ")";
     }
 
     private String joinArgs() {
         return this.args.iter()
                 .map((Value value) -> {
-                    return value.generate();
+                    return ValueCompiler.getString(value);
                 })
                 .collect(new Joiner(", "))
                 .orElse("");
@@ -34,6 +35,6 @@ public record Invokable(Caller caller, Iterable<Value> args) implements Value {
 
     @Override
     public Option<String> generateAsEnumValue(String structureName) {
-        return new Some<String>("\n\tstatic " + this.caller.generate() + ": " + structureName + " = new " + structureName + "(" + this.joinArgs() + ");");
+        return new Some<String>("\n\tstatic " + ValueCompiler.getString(this.caller) + ": " + structureName + " = new " + structureName + "(" + this.joinArgs() + ");");
     }
 }
