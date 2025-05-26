@@ -31,6 +31,7 @@ import magma.app.compile.node.MapNode;
 import magma.app.compile.node.Node;
 import magma.app.compile.rule.StatefulOrRule;
 import magma.app.compile.rule.StatefulRule;
+import magma.app.compile.rule.SymbolRule;
 import magma.app.compile.select.FirstSelector;
 import magma.app.compile.select.LastSelector;
 import magma.app.compile.select.Selector;
@@ -149,7 +150,7 @@ public final class ValueCompiler {
         return (CompileState state, String input) -> {
             return SplitComposable.compileLast(input, infix, (String childString, String rawProperty) -> {
                 var property = Strings.strip(rawProperty);
-                if (!ValueCompiler.isSymbol(property)) {
+                if (!SymbolRule.isSymbol(property)) {
                     return new None<Tuple2<CompileState, Node>>();
                 }
 
@@ -184,26 +185,13 @@ public final class ValueCompiler {
 
     static Option<Tuple2<CompileState, Node>> parseSymbol(CompileState state, String input) {
         var stripped = Strings.strip(input);
-        if (ValueCompiler.isSymbol(stripped)) {
+        if (SymbolRule.isSymbol(stripped)) {
             var withImport = TypeCompiler.addResolvedImportFromCache0(state, stripped);
             return new Some<Tuple2<CompileState, Node>>(new Tuple2Impl<CompileState, Node>(withImport, new MapNode("symbol").withString("value", stripped)));
         }
         else {
             return new None<Tuple2<CompileState, Node>>();
         }
-    }
-
-    static boolean isSymbol(String input) {
-        var query = new HeadedIter<Integer>(new RangeHead(Strings.length(input)));
-        return query.allMatch((Integer index) -> {
-            return ValueCompiler.isSymbolChar(index, input.charAt(index));
-        });
-    }
-
-    private static boolean isSymbolChar(int index, char c) {
-        return '_' == c
-                || Characters.isLetter(c)
-                || (0 != index && Characters.isDigit(c));
     }
 
     private static boolean isNumber(String input) {

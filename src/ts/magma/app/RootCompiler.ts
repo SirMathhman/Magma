@@ -22,6 +22,7 @@ import { Splitter } from "../../magma/app/compile/split/Splitter";
 import { ValueCompiler } from "../../magma/app/ValueCompiler";
 import { Iterable } from "../../magma/api/collect/list/Iterable";
 import { Definition } from "../../magma/app/compile/define/Definition";
+import { SymbolRule } from "../../magma/app/compile/rule/SymbolRule";
 import { FunctionSegmentCompiler } from "../../magma/app/FunctionSegmentCompiler";
 import { Stack } from "../../magma/app/compile/Stack";
 import { Joiner } from "../../magma/api/collect/Joiner";
@@ -102,7 +103,7 @@ export class RootCompiler {
 	}
 	static assembleStructure(state: CompileState, annotations: List<string>, oldModifiers: List<string>, infix: string, rawName: string, typeParams: Iterable<string>, parameters: Iterable<Definition>, maybeImplementing: Option<Node>, content: string, maybeSuperNode: Iterable<Node>): Option<Tuple2<CompileState, string>> {
 		let name = Strings.strip(rawName)/*unknown*/;
-		if (!ValueCompiler/*unknown*/.isSymbol(name)/*unknown*/){
+		if (!SymbolRule/*unknown*/.isSymbol(name)/*unknown*/){
 			return new None<Tuple2<CompileState, string>>()/*unknown*/;
 		}
 		let outputContentTuple = FunctionSegmentCompiler.compileStatements(state.mapStack((stack: Stack) => {

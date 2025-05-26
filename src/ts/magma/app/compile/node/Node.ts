@@ -12,4 +12,7 @@ export interface Node {
 		return new None<?>()/*unknown*/;
 	}
 	is(type: string): boolean;
+	retype(type: string): Node {
+		return this/*unknown*/;
+	}
 }

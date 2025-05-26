@@ -23,6 +23,9 @@ export class MapNode implements Node {
 	is(type: string): boolean {
 		return this.type.filter((inner: string) => inner.equals(type)/*unknown*/).isPresent()/*unknown*/;
 	}
+	retype(type: string): Node {
+		return new MapNode(new Some<?>(type), this.strings, this.nodes, this.nodeLists)/*unknown*/;
+	}
 	findNode(key: string): Option<Node> {
 		if (this.nodes.containsKey(key)/*unknown*/){
 			return new Some<?>(this.nodes.get(key))/*unknown*/;

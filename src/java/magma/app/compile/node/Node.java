@@ -18,4 +18,8 @@ public interface Node {
     }
 
     boolean is(String type);
+
+    default Node retype(String type) {
+        return this;
+    }
 }

@@ -21,6 +21,7 @@ import { FunctionSegmentCompiler } from "../../magma/app/FunctionSegmentCompiler
 import { Stack } from "../../magma/app/compile/Stack";
 import { Node } from "../../magma/app/compile/node/Node";
 import { ValueCompiler } from "../../magma/app/ValueCompiler";
+import { SymbolRule } from "../../magma/app/compile/rule/SymbolRule";
 import { List } from "../../magma/api/collect/list/List";
 import { MapNode } from "../../magma/app/compile/node/MapNode";
 class FieldCompiler {
@@ -93,7 +94,7 @@ class FieldCompiler {
 	static compileEnumNodes(state: CompileState, withoutEnd: string): Option<Tuple2<CompileState, string>> {
 		return ValueCompiler.values((state1: CompileState, segment: string) => {
 			let stripped = segment.strip()/*unknown*/;
-			if (ValueCompiler.isSymbol(stripped)/*unknown*/){
+			if (SymbolRule.isSymbol(stripped)/*unknown*/){
 				return new Some<Tuple2<CompileState, string>>(new Tuple2Impl<CompileState, string>(state1, "\n\t static " + stripped + " = \"" + stripped + "\";"))/*unknown*/;
 			}
 			return FieldCompiler.getTuple2Option(state, state1, segment)/*unknown*/;

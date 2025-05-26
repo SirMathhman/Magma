@@ -177,11 +177,25 @@ interface Node {
 }
 interface Registry {
 }
+interface Rule {
+}
 class StatefulOrRule<T> {
 }
 StatefulOrRule <|.. StatefulRule
 interface StatefulRule<T> {
 }
+class StringRule {
+}
+StringRule <|.. Rule
+class StripRule {
+}
+StripRule <|.. Rule
+class SymbolRule {
+}
+SymbolRule <|.. Rule
+class TypeRule {
+}
+TypeRule <|.. Rule
 class FirstSelector {
 }
 FirstSelector <|.. Selector
@@ -199,6 +213,8 @@ LocatingSplitter <|.. Splitter
 interface Splitter {
 }
 interface Stack {
+}
+class Symbols {
 }
 class Primitives {
 }
@@ -479,6 +495,8 @@ Node --> List
 Registry --> Dependency
 Registry --> Iter
 Registry --> Import
+Rule --> Node
+Rule --> Option
 StatefulOrRule --> StatefulRule
 StatefulOrRule --> Iterable
 StatefulOrRule --> CompileState
@@ -490,6 +508,27 @@ StatefulOrRule --> Iters
 StatefulRule --> CompileState
 StatefulRule --> Tuple2
 StatefulRule --> Option
+StringRule --> Rule
+StringRule --> Node
+StringRule --> Option
+StringRule --> Some
+StringRule --> MapNode
+StripRule --> Rule
+StripRule --> Node
+StripRule --> Option
+StripRule --> Strings
+SymbolRule --> Rule
+SymbolRule --> TypeRule
+SymbolRule --> HeadedIter
+SymbolRule --> RangeHead
+SymbolRule --> Strings
+SymbolRule --> Characters
+SymbolRule --> Node
+SymbolRule --> Option
+SymbolRule --> None
+TypeRule --> Rule
+TypeRule --> Node
+TypeRule --> Option
 FirstSelector --> Selector
 FirstSelector --> Tuple2
 FirstSelector --> Option
@@ -529,6 +568,10 @@ Splitter --> Option
 Stack --> Option
 Stack --> Definition
 Stack --> Iterable
+Symbols --> StripRule
+Symbols --> SymbolRule
+Symbols --> TypeRule
+Symbols --> StringRule
 Primitives --> Node
 Primitives --> Option
 Primitives --> Strings
@@ -636,6 +679,7 @@ FieldCompiler --> FunctionSegmentCompiler
 FieldCompiler --> Stack
 FieldCompiler --> Node
 FieldCompiler --> ValueCompiler
+FieldCompiler --> SymbolRule
 FieldCompiler --> List
 FieldCompiler --> MapNode
 FunctionSegmentCompiler --> CompileState
@@ -728,6 +772,7 @@ RootCompiler --> Splitter
 RootCompiler --> ValueCompiler
 RootCompiler --> Iterable
 RootCompiler --> Definition
+RootCompiler --> SymbolRule
 RootCompiler --> FunctionSegmentCompiler
 RootCompiler --> Stack
 RootCompiler --> Joiner
@@ -751,20 +796,21 @@ TypeCompiler --> Node
 TypeCompiler --> Tuple2Impl
 TypeCompiler --> StatefulOrRule
 TypeCompiler --> Lists
+TypeCompiler --> Symbols
 TypeCompiler --> Strings
 TypeCompiler --> SuffixComposable
 TypeCompiler --> Some
 TypeCompiler --> MapNode
-TypeCompiler --> ValueCompiler
-TypeCompiler --> None
 TypeCompiler --> Primitives
 TypeCompiler --> LocatingSplitter
 TypeCompiler --> FirstLocator
 TypeCompiler --> Splitter
 TypeCompiler --> SplitComposable
 TypeCompiler --> Composable
+TypeCompiler --> ValueCompiler
 TypeCompiler --> WhitespaceCompiler
 TypeCompiler --> List
+TypeCompiler --> None
 TypeCompiler --> Location
 TypeCompiler --> Import
 TypeCompiler --> Registry
@@ -804,6 +850,7 @@ ValueCompiler --> Iterable
 ValueCompiler --> FunctionSegmentCompiler
 ValueCompiler --> Stack
 ValueCompiler --> Lambda
+ValueCompiler --> SymbolRule
 ValueCompiler --> None
 ValueCompiler --> OperatorFolder
 ValueCompiler --> FirstSelector

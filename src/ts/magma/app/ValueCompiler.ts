@@ -29,6 +29,7 @@ import { Iterable } from "../../magma/api/collect/list/Iterable";
 import { FunctionSegmentCompiler } from "../../magma/app/FunctionSegmentCompiler";
 import { Stack } from "../../magma/app/compile/Stack";
 import { Lambda } from "../../magma/app/compile/value/Lambda";
+import { SymbolRule } from "../../magma/app/compile/rule/SymbolRule";
 import { None } from "../../magma/api/option/None";
 import { OperatorFolder } from "../../magma/app/compile/fold/OperatorFolder";
 import { FirstSelector } from "../../magma/app/compile/select/FirstSelector";
@@ -138,7 +139,7 @@ export class ValueCompiler {
 		return (state: CompileState, input: string) => {
 			return SplitComposable.compileLast(input, infix, (childString: string, rawProperty: string) => {
 				let property = Strings.strip(rawProperty)/*unknown*/;
-				if (!ValueCompiler/*unknown*/.isSymbol(property)/*unknown*/){
+				if (!SymbolRule/*unknown*/.isSymbol(property)/*unknown*/){
 					return new None<Tuple2<CompileState, Node>>()/*unknown*/;
 				}
 				return ValueCompiler.parseNode(state, childString).flatMap((childTuple: Tuple2<CompileState, Node>) => {
@@ -168,22 +169,13 @@ export class ValueCompiler {
 	}
 	static parseSymbol(state: CompileState, input: string): Option<Tuple2<CompileState, Node>> {
 		let stripped = Strings.strip(input)/*unknown*/;
-		if (ValueCompiler.isSymbol(stripped)/*unknown*/){
+		if (SymbolRule.isSymbol(stripped)/*unknown*/){
 			let withImport = TypeCompiler.addResolvedImportFromCache0(state, stripped)/*unknown*/;
 			return new Some<Tuple2<CompileState, Node>>(new Tuple2Impl<CompileState, Node>(withImport, new MapNode("symbol").withString("value", stripped)))/*unknown*/;
 		}
 		else {
 			return new None<Tuple2<CompileState, Node>>()/*unknown*/;
 		}
-	}
-	static isSymbol(input: string): boolean {
-		let query = new HeadedIter<number>(new RangeHead(Strings.length(input)))/*unknown*/;
-		return query.allMatch((index: number) => {
-			return ValueCompiler.isSymbolChar(index, input.charAt(index))/*unknown*/;
-		})/*unknown*/;
-	}
-	static isSymbolChar(index: number, c: string): boolean {
-		return "_" === c || Characters.isLetter(c) || (0 !== index && Characters.isDigit(c))/*unknown*/;
 	}
 	static isNumber(input: string): boolean {
 		let query = new HeadedIter<number>(new RangeHead(Strings.length(input)))/*unknown*/;

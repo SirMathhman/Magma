@@ -28,6 +28,11 @@ public record MapNode(
     }
 
     @Override
+    public Node retype(String type) {
+        return new MapNode(new Some<>(type), this.strings, this.nodes, this.nodeLists);
+    }
+
+    @Override
     public Option<Node> findNode(String key) {
         if (this.nodes.containsKey(key)) {
             return new Some<>(this.nodes.get(key));

@@ -23,6 +23,7 @@ import magma.app.compile.node.Node;
 import magma.app.compile.rule.StatefulOrRule;
 import magma.app.compile.split.LocatingSplitter;
 import magma.app.compile.split.Splitter;
+import magma.app.compile.text.Symbols;
 import magma.app.compile.type.Primitives;
 import magma.app.io.Source;
 
@@ -38,7 +39,7 @@ public final class TypeCompiler {
                 TypeCompiler::parseVarArgs,
                 TypeCompiler::parseGeneric,
                 TypeCompiler::parsePrimitive,
-                TypeCompiler::lexAndParseSymbolType
+                (CompileState state1, String input) -> Symbols.createSymbolRule().lex(input).flatMap((Node node) -> TypeCompiler.parseSymbolType(state1, node))
         )).apply(state, type);
     }
 
@@ -50,21 +51,6 @@ public final class TypeCompiler {
             return new Some<Tuple2<CompileState, Node>>(new Tuple2Impl<CompileState, Node>(child.left(), new MapNode("variadic")
                     .withNode("child", type)));
         }).apply(stripped);
-    }
-
-    private static Option<Tuple2<CompileState, Node>> lexAndParseSymbolType(CompileState state, String input) {
-        return TypeCompiler.lexSymbolType(input).flatMap((Node node) -> {
-            return TypeCompiler.parseSymbolType(state, node);
-        });
-    }
-
-    private static Option<Node> lexSymbolType(String input) {
-        var stripped = Strings.strip(input);
-        if (!ValueCompiler.isSymbol(stripped)) {
-            return new None<>();
-        }
-
-        return new Some<>(new MapNode("symbol").withString("value", stripped));
     }
 
     private static Some<Tuple2<CompileState, Node>> parseSymbolType(CompileState state, Node node) {

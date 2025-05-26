@@ -22,6 +22,7 @@ import magma.app.compile.locate.FirstLocator;
 import magma.app.compile.node.Node;
 import magma.app.compile.rule.StatefulOrRule;
 import magma.app.compile.rule.StatefulRule;
+import magma.app.compile.rule.SymbolRule;
 import magma.app.compile.split.LocatingSplitter;
 import magma.app.compile.split.Splitter;
 
@@ -125,7 +126,7 @@ public final class RootCompiler {
             Iterable<Node> maybeSuperNode
     ) {
         var name = Strings.strip(rawName);
-        if (!ValueCompiler.isSymbol(name)) {
+        if (!SymbolRule.isSymbol(name)) {
             return new None<Tuple2<CompileState, String>>();
         }
 
