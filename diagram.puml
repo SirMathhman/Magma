@@ -91,9 +91,6 @@ PrefixComposable <|.. Composable
 class SplitComposable<T> {
 }
 SplitComposable <|.. Composable
-class SuffixComposable<T> {
-}
-SuffixComposable <|.. Composable
 interface Context {
 }
 class ConstructorHeader {
@@ -177,7 +174,10 @@ interface Node {
 }
 interface Registry {
 }
-interface Rule {
+class NodeRule {
+}
+NodeRule <|.. Rule
+interface Rule<T> {
 }
 class StatefulOrRule<T> {
 }
@@ -190,6 +190,9 @@ StringRule <|.. Rule
 class StripRule {
 }
 StripRule <|.. Rule
+class SuffixRule<T> {
+}
+SuffixRule <|.. Rule
 class SymbolRule {
 }
 SymbolRule <|.. Rule
@@ -220,6 +223,8 @@ class PrimitiveRule {
 }
 PrimitiveRule <|.. Rule
 class Primitives {
+}
+class Variadics {
 }
 class Lambda {
 }
@@ -385,10 +390,6 @@ SplitComposable --> Tuple2
 SplitComposable --> Option
 SplitComposable --> LocatingSplitter
 SplitComposable --> LastLocator
-SuffixComposable --> Composable
-SuffixComposable --> Option
-SuffixComposable --> None
-SuffixComposable --> Strings
 Context --> Source
 Context --> Iter
 Context --> Platform
@@ -498,7 +499,10 @@ Node --> List
 Registry --> Dependency
 Registry --> Iter
 Registry --> Import
-Rule --> Node
+NodeRule --> Node
+NodeRule --> Rule
+NodeRule --> Option
+NodeRule --> MapNode
 Rule --> Option
 StatefulOrRule --> StatefulRule
 StatefulOrRule --> Iterable
@@ -511,26 +515,30 @@ StatefulOrRule --> Iters
 StatefulRule --> CompileState
 StatefulRule --> Tuple2
 StatefulRule --> Option
-StringRule --> Rule
 StringRule --> Node
+StringRule --> Rule
 StringRule --> Option
 StringRule --> Some
 StringRule --> MapNode
-StripRule --> Rule
 StripRule --> Node
+StripRule --> Rule
 StripRule --> Option
 StripRule --> Strings
+SuffixRule --> Rule
+SuffixRule --> Option
+SuffixRule --> None
+SuffixRule --> Strings
+SymbolRule --> Node
 SymbolRule --> Rule
 SymbolRule --> TypeRule
 SymbolRule --> HeadedIter
 SymbolRule --> RangeHead
 SymbolRule --> Strings
 SymbolRule --> Characters
-SymbolRule --> Node
 SymbolRule --> Option
 SymbolRule --> None
-TypeRule --> Rule
 TypeRule --> Node
+TypeRule --> Rule
 TypeRule --> Option
 FirstSelector --> Selector
 FirstSelector --> Tuple2
@@ -575,8 +583,8 @@ Symbols --> StripRule
 Symbols --> SymbolRule
 Symbols --> TypeRule
 Symbols --> StringRule
-PrimitiveRule --> Rule
 PrimitiveRule --> Node
+PrimitiveRule --> Rule
 PrimitiveRule --> Option
 PrimitiveRule --> Strings
 PrimitiveRule --> Primitives
@@ -586,6 +594,13 @@ Primitives --> Node
 Primitives --> Option
 Primitives --> StripRule
 Primitives --> PrimitiveRule
+Variadics --> Node
+Variadics --> Rule
+Variadics --> TypeRule
+Variadics --> StripRule
+Variadics --> SuffixRule
+Variadics --> NodeRule
+Variadics --> TypeCompiler
 Lambda --> Node
 Lambda --> Definition
 Lambda --> Iterable
@@ -632,7 +647,7 @@ DefiningCompiler --> FoldedDivider
 DefiningCompiler --> DecoratedFolder
 DefiningCompiler --> DivideState
 DefiningCompiler --> DelimitedFolder
-DefiningCompiler --> SuffixComposable
+DefiningCompiler --> SuffixRule
 DefiningCompiler --> LocatingSplitter
 DefiningCompiler --> FirstLocator
 DefiningCompiler --> Splitter
@@ -683,7 +698,7 @@ FieldCompiler --> Joiner
 FieldCompiler --> Some
 FieldCompiler --> Tuple2Impl
 FieldCompiler --> PrefixComposable
-FieldCompiler --> SuffixComposable
+FieldCompiler --> SuffixRule
 FieldCompiler --> FunctionSegmentCompiler
 FieldCompiler --> Stack
 FieldCompiler --> Node
@@ -698,7 +713,7 @@ FunctionSegmentCompiler --> Strings
 FunctionSegmentCompiler --> Some
 FunctionSegmentCompiler --> Tuple2Impl
 FunctionSegmentCompiler --> None
-FunctionSegmentCompiler --> SuffixComposable
+FunctionSegmentCompiler --> SuffixRule
 FunctionSegmentCompiler --> SplitComposable
 FunctionSegmentCompiler --> LastSelector
 FunctionSegmentCompiler --> Selector
@@ -767,7 +782,7 @@ RootCompiler --> SplitComposable
 RootCompiler --> LocatingSplitter
 RootCompiler --> FirstLocator
 RootCompiler --> Composable
-RootCompiler --> SuffixComposable
+RootCompiler --> SuffixRule
 RootCompiler --> DefiningCompiler
 RootCompiler --> Some
 RootCompiler --> Tuple2Impl
@@ -807,10 +822,9 @@ TypeCompiler --> StatefulOrRule
 TypeCompiler --> Lists
 TypeCompiler --> Primitives
 TypeCompiler --> Symbols
-TypeCompiler --> Strings
-TypeCompiler --> SuffixComposable
 TypeCompiler --> Some
 TypeCompiler --> MapNode
+TypeCompiler --> SuffixRule
 TypeCompiler --> LocatingSplitter
 TypeCompiler --> FirstLocator
 TypeCompiler --> Splitter
@@ -819,6 +833,7 @@ TypeCompiler --> Composable
 TypeCompiler --> ValueCompiler
 TypeCompiler --> WhitespaceCompiler
 TypeCompiler --> List
+TypeCompiler --> Strings
 TypeCompiler --> None
 TypeCompiler --> Location
 TypeCompiler --> Import
@@ -835,7 +850,7 @@ ValueCompiler --> Tuple2
 ValueCompiler --> Placeholders
 ValueCompiler --> TypeCompiler
 ValueCompiler --> Option
-ValueCompiler --> SuffixComposable
+ValueCompiler --> SuffixRule
 ValueCompiler --> SplitComposable
 ValueCompiler --> LastSelector
 ValueCompiler --> Selector

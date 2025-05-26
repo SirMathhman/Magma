@@ -1,13 +1,13 @@
+import { Node } from "../../../../magma/app/compile/node/Node";
 import { Rule } from "../../../../magma/app/compile/rule/Rule";
 import { TypeRule } from "../../../../magma/app/compile/rule/TypeRule";
 import { HeadedIter } from "../../../../magma/api/collect/head/HeadedIter";
 import { RangeHead } from "../../../../magma/api/collect/head/RangeHead";
 import { Strings } from "../../../../magma/api/text/Strings";
 import { Characters } from "../../../../magma/api/text/Characters";
-import { Node } from "../../../../magma/app/compile/node/Node";
 import { Option } from "../../../../magma/api/option/Option";
 import { None } from "../../../../magma/api/option/None";
-export class SymbolRule implements Rule {
+export class SymbolRule implements Rule<Node> {
 	childRule: TypeRule;
 	constructor (childRule: TypeRule) {
 		this.childRule = childRule;

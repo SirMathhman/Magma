@@ -1,13 +1,12 @@
 package magma.app.compile.rule;
 
 import magma.api.option.Option;
-import magma.api.option.Some;
 import magma.app.compile.node.MapNode;
 import magma.app.compile.node.Node;
 
-public record StringRule(String key) implements Rule<Node> {
+public record NodeRule(String key, Rule<Node> rule) implements Rule<Node> {
     @Override
     public Option<Node> lex(String input) {
-        return new Some<>(new MapNode().withString(this.key, input));
+        return this.rule.lex(input).map(inner -> new MapNode().withNode(this.key, inner));
     }
 }

@@ -5,7 +5,7 @@ import { Tuple2 } from "../../magma/api/Tuple2";
 import { Placeholders } from "../../magma/app/compile/define/Placeholders";
 import { TypeCompiler } from "../../magma/app/TypeCompiler";
 import { Option } from "../../magma/api/option/Option";
-import { SuffixComposable } from "../../magma/app/compile/compose/SuffixComposable";
+import { SuffixRule } from "../../magma/app/compile/rule/SuffixRule";
 import { SplitComposable } from "../../magma/app/compile/compose/SplitComposable";
 import { LastSelector } from "../../magma/app/compile/select/LastSelector";
 import { Selector } from "../../magma/app/compile/select/Selector";
@@ -54,14 +54,14 @@ export class ValueCompiler {
 		return new Tuple2Impl<CompileState, string>(state, generated + s)/*unknown*/;
 	}
 	static parseInvokable(state: CompileState, input: string): Option<Tuple2<CompileState, Node>> {
-		return new SuffixComposable<Tuple2<CompileState, Node>>(")", (withoutEnd: string) => {
+		return new SuffixRule<Tuple2<CompileState, Node>>(")", (withoutEnd: string) => {
 			return new SplitComposable<Tuple2<CompileState, Node>>((withoutEnd0: string) => {
 				let selector: Selector = new LastSelector("")/*unknown*/;
 				return new FoldingSplitter((state1: DivideState, c: string) => {
 					return ValueCompiler.foldInvocationStarts(state1, c)/*unknown*/;
 				}, selector).apply(withoutEnd0)/*unknown*/;
 			}, Composable.toComposable((callerWithArgStart: string, args: string) => {
-				return new SuffixComposable<Tuple2<CompileState, Node>>("(", (callerString: string) => {
+				return new SuffixRule<Tuple2<CompileState, Node>>("(", (callerString: string) => {
 					return new PrefixComposable<Tuple2<CompileState, Node>>("new ", (type: string) => {
 						return TypeCompiler.compileType(state, type).flatMap((callerTuple1: Tuple2<CompileState, string>) => {
 							let callerState = callerTuple1.right()/*unknown*/;
@@ -73,17 +73,17 @@ export class ValueCompiler {
 							return ValueCompiler.assembleInvokable(callerTuple.left(), callerTuple.right(), args)/*unknown*/;
 						})/*unknown*/;
 					})/*unknown*/;
-				}).apply(callerWithArgStart)/*unknown*/;
+				}).lex(callerWithArgStart)/*unknown*/;
 			})).apply(withoutEnd)/*unknown*/;
-		}).apply(Strings.strip(input))/*unknown*/;
+		}).lex(Strings.strip(input))/*unknown*/;
 	}
 	static createTextRule(slice: string): StatefulRule<Node> {
 		return (state1: CompileState, input1: string) => {
 			let stripped = Strings.strip(input1)/*unknown*/;
 			return new PrefixComposable<Tuple2<CompileState, Node>>(slice, (s: string) => {
-				return new SuffixComposable<Tuple2<CompileState, Node>>(slice, (s1: string) => {
+				return new SuffixRule<Tuple2<CompileState, Node>>(slice, (s1: string) => {
 					return new Some<Tuple2<CompileState, Node>>(new Tuple2Impl<CompileState, Node>(state1, new StringNode(s1)))/*unknown*/;
-				}).apply(s)/*unknown*/;
+				}).lex(s)/*unknown*/;
 			}).apply(stripped)/*unknown*/;
 		}/*unknown*/;
 	}
@@ -100,20 +100,20 @@ export class ValueCompiler {
 		return new SplitComposable<Tuple2<CompileState, Node>>(splitter, Composable.toComposable((beforeArrow: string, afterArrow: string) => {
 			let strippedBeforeArrow = Strings.strip(beforeArrow)/*unknown*/;
 			return new PrefixComposable<Tuple2<CompileState, Node>>("(", (withoutStart: string) => {
-				return new SuffixComposable<Tuple2<CompileState, Node>>(")", (withoutEnd: string) => {
+				return new SuffixRule<Tuple2<CompileState, Node>>(")", (withoutEnd: string) => {
 					return ValueCompiler.values((state1: CompileState, s: string) => {
 						return DefiningCompiler.parseParameter(state1, s)/*unknown*/;
 					}).apply(state, withoutEnd).flatMap((paramNames: Tuple2<CompileState, List<Node>>) => {
 						return ValueCompiler.compileLambdaWithParameterNames(paramNames.left(), DefiningCompiler.retainDefinitionsFromParameters(paramNames.right()), afterArrow)/*unknown*/;
 					})/*unknown*/;
-				}).apply(withoutStart)/*unknown*/;
+				}).lex(withoutStart)/*unknown*/;
 			}).apply(strippedBeforeArrow)/*unknown*/;
 		})).apply(input)/*unknown*/;
 	}
 	static compileLambdaWithParameterNames(state: CompileState, paramNames: Iterable<Definition>, afterArrow: string): Option<Tuple2<CompileState, Node>> {
 		let strippedAfterArrow = Strings.strip(afterArrow)/*unknown*/;
 		return new PrefixComposable<Tuple2<CompileState, Node>>("{", (withoutContentStart: string) => {
-			return new SuffixComposable<Tuple2<CompileState, Node>>("}", (withoutContentEnd: string) => {
+			return new SuffixRule<Tuple2<CompileState, Node>>("}", (withoutContentEnd: string) => {
 				let compileState: CompileState = state.enterDepth()/*unknown*/;
 				let statementsTuple = FunctionSegmentCompiler.compileFunctionStatements(compileState.mapStack((stack1: Stack) => {
 					return stack1.defineAll(paramNames)/*unknown*/;
@@ -122,7 +122,7 @@ export class ValueCompiler {
 				let statements = statementsTuple.right()/*unknown*/;
 				let exited = statementsState.exitDepth()/*unknown*/;
 				return ValueCompiler.assembleLambda(exited, paramNames, "{" + statements + exited.createIndent() + "}")/*unknown*/;
-			}).apply(withoutContentStart)/*unknown*/;
+			}).lex(withoutContentStart)/*unknown*/;
 		}).apply(strippedAfterArrow).or(() => {
 			return ValueCompiler.compileNode(state, strippedAfterArrow).flatMap((tuple: Tuple2<CompileState, string>) => {
 				return ValueCompiler.assembleLambda(tuple.left(), paramNames, tuple.right())/*unknown*/;

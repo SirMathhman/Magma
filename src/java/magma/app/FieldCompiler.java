@@ -13,7 +13,7 @@ import magma.app.compile.Stack;
 import magma.app.compile.compose.Composable;
 import magma.app.compile.compose.PrefixComposable;
 import magma.app.compile.compose.SplitComposable;
-import magma.app.compile.compose.SuffixComposable;
+import magma.app.compile.rule.SuffixRule;
 import magma.app.compile.define.ConstructorHeader;
 import magma.app.compile.define.Definition;
 import magma.app.compile.define.MethodHeader;
@@ -78,14 +78,14 @@ final class FieldCompiler {
 
             var headerGenerated = header.generateWithAfterName("(" + joinedDefinitions + ")");
             return new PrefixComposable<Tuple2<CompileState, String>>("{", (String withoutContentStart) -> {
-                return new SuffixComposable<Tuple2<CompileState, String>>("}", (String withoutContentEnd) -> {
+                return new SuffixRule<Tuple2<CompileState, String>>("}", (String withoutContentEnd) -> {
                     CompileState compileState = parametersState.enterDepth().enterDepth();
                     var statementsTuple = FunctionSegmentCompiler.compileFunctionStatements(compileState.mapStack((Stack stack1) -> {
                         return stack1.defineAll(definitions);
                     }), withoutContentEnd);
 
                     return new Some<Tuple2<CompileState, String>>(new Tuple2Impl<CompileState, String>(statementsTuple.left().exitDepth().exitDepth(), "\n\t" + headerGenerated + " {" + statementsTuple.right() + "\n\t}"));
-                }).apply(Strings.strip(withoutContentStart));
+                }).lex(Strings.strip(withoutContentStart));
             }).apply(Strings.strip(afterParams)).or(() -> {
                 if (Strings.equalsTo(";", Strings.strip(afterParams))) {
                     return new Some<Tuple2<CompileState, String>>(new Tuple2Impl<CompileState, String>(parametersState, "\n\t" + headerGenerated + ";"));
@@ -97,11 +97,11 @@ final class FieldCompiler {
     }
 
     public static Option<Tuple2<CompileState, String>> compileFieldDefinition(CompileState state, String input) {
-        return new SuffixComposable<Tuple2<CompileState, String>>(";", (String withoutEnd) -> {
+        return new SuffixRule<Tuple2<CompileState, String>>(";", (String withoutEnd) -> {
             return FieldCompiler.getTupleOption(state, withoutEnd).or(() -> {
                 return FieldCompiler.compileEnumNodes(state, withoutEnd);
             });
-        }).apply(Strings.strip(input));
+        }).lex(Strings.strip(input));
     }
 
     private static Option<Tuple2<CompileState, String>> getTupleOption(CompileState state, String withoutEnd) {

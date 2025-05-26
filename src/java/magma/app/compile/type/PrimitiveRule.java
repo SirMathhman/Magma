@@ -7,7 +7,7 @@ import magma.api.text.Strings;
 import magma.app.compile.node.Node;
 import magma.app.compile.rule.Rule;
 
-public class PrimitiveRule implements Rule {
+public class PrimitiveRule implements Rule<Node> {
     @Override
     public Option<Node> lex(String input) {
         var stripped = Strings.strip(input);

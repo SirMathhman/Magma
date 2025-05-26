@@ -13,6 +13,14 @@ public interface Node {
         return new None<>();
     }
 
+    default Node withNode(String key, Node value) {
+        return this;
+    }
+
+    default Node withString(String key, String value) {
+        return this;
+    }
+
     default Option<List<Node>> findNodeList(String key) {
         return new None<>();
     }
@@ -20,6 +28,10 @@ public interface Node {
     boolean is(String type);
 
     default Node retype(String type) {
+        return this;
+    }
+
+    default Node withNodeList(String key, List<Node> values) {
         return this;
     }
 }

@@ -5,7 +5,7 @@ import { Strings } from "../../magma/api/text/Strings";
 import { Some } from "../../magma/api/option/Some";
 import { Tuple2Impl } from "../../magma/api/Tuple2Impl";
 import { None } from "../../magma/api/option/None";
-import { SuffixComposable } from "../../magma/app/compile/compose/SuffixComposable";
+import { SuffixRule } from "../../magma/app/compile/rule/SuffixRule";
 import { SplitComposable } from "../../magma/app/compile/compose/SplitComposable";
 import { LastSelector } from "../../magma/app/compile/select/LastSelector";
 import { Selector } from "../../magma/app/compile/select/Selector";
@@ -39,22 +39,22 @@ class FunctionSegmentCompiler {
 		}
 	}
 	static compileBlock(state: CompileState, input: string): Option<Tuple2<CompileState, string>> {
-		return new SuffixComposable<Tuple2<CompileState, string>>("}", (withoutEnd: string) => {
+		return new SuffixRule<Tuple2<CompileState, string>>("}", (withoutEnd: string) => {
 			return new SplitComposable<Tuple2<CompileState, string>>((withoutEnd0: string) => {
 				let selector: Selector = new LastSelector("")/*unknown*/;
 				return new FoldingSplitter((state1: DivideState, c: string) => {
 					return FunctionSegmentCompiler.foldBlockStarts(state1, c)/*unknown*/;
 				}, selector).apply(withoutEnd0)/*unknown*/;
 			}, Composable.toComposable((beforeContentWithEnd: string, content: string) => {
-				return new SuffixComposable<Tuple2<CompileState, string>>("{", (beforeContent: string) => {
+				return new SuffixRule<Tuple2<CompileState, string>>("{", (beforeContent: string) => {
 					return FunctionSegmentCompiler.compileBlockHeader(state, beforeContent).flatMap((headerTuple: Tuple2<CompileState, string>) => {
 						let contentTuple = FunctionSegmentCompiler.compileFunctionStatements(headerTuple.left().enterDepth(), content)/*unknown*/;
 						let indent = state.createIndent()/*unknown*/;
 						return new Some<Tuple2<CompileState, string>>(new Tuple2Impl<CompileState, string>(contentTuple.left().exitDepth(), indent + headerTuple.right() + "{" + contentTuple.right() + indent + "}"))/*unknown*/;
 					})/*unknown*/;
-				}).apply(beforeContentWithEnd)/*unknown*/;
+				}).lex(beforeContentWithEnd)/*unknown*/;
 			})).apply(withoutEnd)/*unknown*/;
-		}).apply(Strings.strip(input))/*unknown*/;
+		}).lex(Strings.strip(input))/*unknown*/;
 	}
 	static foldBlockStarts(state: DivideState, c: string): DivideState {
 		let appended = state.append(c)/*unknown*/;
@@ -80,10 +80,10 @@ class FunctionSegmentCompiler {
 			return new PrefixComposable<Tuple2<CompileState, string>>(prefix, (withoutPrefix: string) => {
 				let strippedCondition = Strings.strip(withoutPrefix)/*unknown*/;
 				return new PrefixComposable<Tuple2<CompileState, string>>("(", (withoutConditionStart: string) => {
-					return new SuffixComposable<Tuple2<CompileState, string>>(")", (withoutConditionEnd: string) => {
+					return new SuffixRule<Tuple2<CompileState, string>>(")", (withoutConditionEnd: string) => {
 						let tuple = ValueCompiler.compileNodeOrPlaceholder(state1, withoutConditionEnd)/*unknown*/;
 						return new Some<Tuple2<CompileState, string>>(new Tuple2Impl<CompileState, string>(tuple.left(), prefix + " (" + tuple.right() + ")"))/*unknown*/;
-					}).apply(withoutConditionStart)/*unknown*/;
+					}).lex(withoutConditionStart)/*unknown*/;
 				}).apply(strippedCondition)/*unknown*/;
 			}).apply(Strings.strip(input1))/*unknown*/;
 		}/*unknown*/;
@@ -97,10 +97,10 @@ class FunctionSegmentCompiler {
 		}
 	}
 	static compileFunctionStatement(state: CompileState, input: string): Option<Tuple2<CompileState, string>> {
-		return new SuffixComposable<Tuple2<CompileState, string>>(";", (withoutEnd: string) => {
+		return new SuffixRule<Tuple2<CompileState, string>>(";", (withoutEnd: string) => {
 			let valueTuple = FunctionSegmentCompiler.compileFunctionStatementNode(state, withoutEnd)/*unknown*/;
 			return new Some<Tuple2<CompileState, string>>(new Tuple2Impl<CompileState, string>(valueTuple.left(), state.createIndent() + valueTuple.right() + ";"))/*unknown*/;
-		}).apply(Strings.strip(input))/*unknown*/;
+		}).lex(Strings.strip(input))/*unknown*/;
 	}
 	static compileFunctionStatementNode(state: CompileState, withoutEnd: string): Tuple2<CompileState, string> {
 		return StatefulOrRule.compileOrPlaceholder(state, withoutEnd, Lists.of(FunctionSegmentCompiler.compileReturnWithNode, FunctionSegmentCompiler.compileAssignment, FunctionSegmentCompiler.createInvokableRule(), FunctionSegmentCompiler.createPostRule("++"), FunctionSegmentCompiler.createPostRule("--"), FunctionSegmentCompiler.compileBreak))/*unknown*/;
@@ -122,10 +122,10 @@ class FunctionSegmentCompiler {
 	}
 	static createPostRule(suffix: string): StatefulRule<string> {
 		return (state1: CompileState, input: string) => {
-			return new SuffixComposable<Tuple2<CompileState, string>>(suffix, (child: string) => {
+			return new SuffixRule<Tuple2<CompileState, string>>(suffix, (child: string) => {
 				let tuple = ValueCompiler.compileNodeOrPlaceholder(state1, child)/*unknown*/;
 				return new Some<Tuple2<CompileState, string>>(new Tuple2Impl<CompileState, string>(tuple.left(), tuple.right() + suffix))/*unknown*/;
-			}).apply(Strings.strip(input))/*unknown*/;
+			}).lex(Strings.strip(input))/*unknown*/;
 		}/*unknown*/;
 	}
 	static compileReturnWithNode(state: CompileState, input: string): Option<Tuple2<CompileState, string>> {

@@ -16,7 +16,7 @@ import magma.app.compile.CompileState;
 import magma.app.compile.DivideState;
 import magma.app.compile.compose.Composable;
 import magma.app.compile.compose.SplitComposable;
-import magma.app.compile.compose.SuffixComposable;
+import magma.app.compile.rule.SuffixRule;
 import magma.app.compile.define.Definition;
 import magma.app.compile.define.Placeholders;
 import magma.app.compile.define.Whitespace;
@@ -123,13 +123,13 @@ public final class DefiningCompiler {
             String type,
             String name
     ) {
-        return new SuffixComposable<Tuple2<CompileState, Definition>>(">", (String withoutNodeParamEnd) -> {
+        return new SuffixRule<Tuple2<CompileState, Definition>>(">", (String withoutNodeParamEnd) -> {
             Splitter splitter = new LocatingSplitter("<", new FirstLocator());
             return new SplitComposable<Tuple2<CompileState, Definition>>(splitter, Composable.toComposable((String beforeNodeParams, String typeParamsString) -> {
                 var typeParams = DefiningCompiler.divideNodes(typeParamsString);
                 return DefiningCompiler.parseDefinitionWithNodeParameters(state, annotations, typeParams, DefiningCompiler.parseModifiers(beforeNodeParams), type, name);
             })).apply(withoutNodeParamEnd);
-        }).apply(Strings.strip(beforeNode)).or(() -> {
+        }).lex(Strings.strip(beforeNode)).or(() -> {
             var divided = DefiningCompiler.parseModifiers(beforeNode);
             return DefiningCompiler.parseDefinitionWithNodeParameters(state, annotations, Lists.empty(), divided, type, name);
         });
@@ -156,7 +156,7 @@ public final class DefiningCompiler {
             String type,
             String name
     ) {
-        return TypeCompiler.lexAndParseType(state, type).flatMap((Tuple2<CompileState, Node> typeTuple) -> {
+        return TypeCompiler.lexType(type).flatMap((Node content) -> TypeCompiler.parseType(state, content)).flatMap((Tuple2<CompileState, Node> typeTuple) -> {
             var newModifiers = DefiningCompiler.modifyModifiers(oldModifiers);
             var generated = new Definition(annotations, newModifiers, typeParams, typeTuple.right(), name);
             return new Some<Tuple2<CompileState, Definition>>(new Tuple2Impl<CompileState, Definition>(typeTuple.left(), generated));

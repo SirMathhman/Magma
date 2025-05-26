@@ -8,7 +8,7 @@ import { SplitComposable } from "../../magma/app/compile/compose/SplitComposable
 import { LocatingSplitter } from "../../magma/app/compile/split/LocatingSplitter";
 import { FirstLocator } from "../../magma/app/compile/locate/FirstLocator";
 import { Composable } from "../../magma/app/compile/compose/Composable";
-import { SuffixComposable } from "../../magma/app/compile/compose/SuffixComposable";
+import { SuffixRule } from "../../magma/app/compile/rule/SuffixRule";
 import { DefiningCompiler } from "../../magma/app/DefiningCompiler";
 import { Some } from "../../magma/api/option/Some";
 import { Tuple2Impl } from "../../magma/api/Tuple2Impl";
@@ -39,7 +39,7 @@ export class RootCompiler {
 		return (state: CompileState, input1: string) => {
 			return new SplitComposable<Tuple2<CompileState, string>>(new LocatingSplitter(sourceInfix, new FirstLocator()), Composable.toComposable((beforeInfix: string, afterInfix: string) => {
 				return new SplitComposable<Tuple2<CompileState, string>>(new LocatingSplitter("{", new FirstLocator()), Composable.toComposable((beforeContent: string, withEnd: string) => {
-					return new SuffixComposable<Tuple2<CompileState, string>>("}", (inputContent: string) => {
+					return new SuffixRule<Tuple2<CompileState, string>>("}", (inputContent: string) => {
 						return SplitComposable.compileLast(beforeInfix, "\n", (s: string, s2: string) => {
 							let annotations = DefiningCompiler.parseAnnotations(s)/*unknown*/;
 							if (annotations.contains("Actual")/*unknown*/){
@@ -50,14 +50,14 @@ export class RootCompiler {
 							let modifiers = DefiningCompiler.parseModifiers(beforeContent)/*unknown*/;
 							return RootCompiler.compileStructureWithImplementing(state, Lists.empty(), modifiers, targetInfix, beforeContent, inputContent)/*unknown*/;
 						})/*unknown*/;
-					}).apply(Strings.strip(withEnd))/*unknown*/;
+					}).lex(Strings.strip(withEnd))/*unknown*/;
 				})).apply(afterInfix)/*unknown*/;
 			})).apply(input1)/*unknown*/;
 		}/*unknown*/;
 	}
 	static compileStructureWithImplementing(state: CompileState, annotations: List<string>, modifiers: List<string>, targetInfix: string, beforeContent: string, content: string): Option<Tuple2<CompileState, string>> {
 		return SplitComposable.compileLast(beforeContent, " implements ", (s: string, s2: string) => {
-			return TypeCompiler.parseType(state, s2).flatMap((implementingTuple: Tuple2<CompileState, Node>) => {
+			return TypeCompiler.lexType(s2).flatMap((content1: Node) => TypeCompiler.parseType(state, content1)/*unknown*/).flatMap((implementingTuple: Tuple2<CompileState, Node>) => {
 				return RootCompiler.compileStructureWithExtends(implementingTuple.left(), annotations, modifiers, targetInfix, s, new Some<Node>(implementingTuple.right()), content)/*unknown*/;
 			})/*unknown*/;
 		}).or(() => {
@@ -68,7 +68,7 @@ export class RootCompiler {
 		let splitter: Splitter = new LocatingSplitter(" extends ", new FirstLocator())/*unknown*/;
 		return new SplitComposable<Tuple2<CompileState, string>>(splitter, Composable.toComposable((beforeExtends: string, afterExtends: string) => {
 			return ValueCompiler.values((inner0: CompileState, inner1: string) => {
-				return TypeCompiler.parseType(inner0, inner1)/*unknown*/;
+				return TypeCompiler.lexType(inner1).flatMap((content: Node) => TypeCompiler.parseType(inner0, content)/*unknown*/)/*unknown*/;
 			}).apply(state, afterExtends).flatMap((compileStateListTuple2: Tuple2<CompileState, List<Node>>) => {
 				return RootCompiler.compileStructureWithParameters(compileStateListTuple2.left(), annotations, modifiers, targetInfix, beforeExtends, compileStateListTuple2.right(), maybeImplementing, inputContent)/*unknown*/;
 			})/*unknown*/;
@@ -91,13 +91,13 @@ export class RootCompiler {
 		})/*unknown*/;
 	}
 	static compileStructureWithNodeParams(state: CompileState, infix: string, content: string, beforeParams: string, parameters: Iterable<Definition>, maybeImplementing: Option<Node>, annotations: List<string>, modifiers: List<string>, maybeSuperNode: Iterable<Node>): Option<Tuple2<CompileState, string>> {
-		return new SuffixComposable<Tuple2<CompileState, string>>(">", (withoutNodeParamEnd: string) => {
+		return new SuffixRule<Tuple2<CompileState, string>>(">", (withoutNodeParamEnd: string) => {
 			let splitter: Splitter = new LocatingSplitter("<", new FirstLocator())/*unknown*/;
 			return new SplitComposable<Tuple2<CompileState, string>>(splitter, Composable.toComposable((name: string, typeParamsString: string) => {
 				let typeParams = DefiningCompiler.divideNodes(typeParamsString)/*unknown*/;
 				return RootCompiler.assembleStructure(state, annotations, modifiers, infix, name, typeParams, parameters, maybeImplementing, content, maybeSuperNode)/*unknown*/;
 			})).apply(withoutNodeParamEnd)/*unknown*/;
-		}).apply(Strings.strip(beforeParams)).or(() => {
+		}).lex(Strings.strip(beforeParams)).or(() => {
 			return RootCompiler.assembleStructure(state, annotations, modifiers, infix, beforeParams, Lists.empty(), parameters, maybeImplementing, content, maybeSuperNode)/*unknown*/;
 		})/*unknown*/;
 	}

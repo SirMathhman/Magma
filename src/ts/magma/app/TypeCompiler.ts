@@ -7,10 +7,9 @@ import { StatefulOrRule } from "../../magma/app/compile/rule/StatefulOrRule";
 import { Lists } from "../../jvm/api/collect/list/Lists";
 import { Primitives } from "../../magma/app/compile/type/Primitives";
 import { Symbols } from "../../magma/app/compile/text/Symbols";
-import { Strings } from "../../magma/api/text/Strings";
-import { SuffixComposable } from "../../magma/app/compile/compose/SuffixComposable";
 import { Some } from "../../magma/api/option/Some";
 import { MapNode } from "../../magma/app/compile/node/MapNode";
+import { SuffixRule } from "../../magma/app/compile/rule/SuffixRule";
 import { LocatingSplitter } from "../../magma/app/compile/split/LocatingSplitter";
 import { FirstLocator } from "../../magma/app/compile/locate/FirstLocator";
 import { Splitter } from "../../magma/app/compile/split/Splitter";
@@ -19,6 +18,7 @@ import { Composable } from "../../magma/app/compile/compose/Composable";
 import { ValueCompiler } from "../../magma/app/ValueCompiler";
 import { WhitespaceCompiler } from "../../magma/app/WhitespaceCompiler";
 import { List } from "../../magma/api/collect/list/List";
+import { Strings } from "../../magma/api/text/Strings";
 import { None } from "../../magma/api/option/None";
 import { Location } from "../../magma/app/Location";
 import { Import } from "../../magma/app/compile/Import";
@@ -30,39 +30,43 @@ import { Placeholders } from "../../magma/app/compile/define/Placeholders";
 import { Joiner } from "../../magma/api/collect/Joiner";
 export class TypeCompiler {
 	static compileType(state: CompileState, type: string): Option<Tuple2<CompileState, string>> {
-		return TypeCompiler.parseType(state, type).map((tuple: Tuple2<CompileState, Node>) => {
+		return TypeCompiler.lexType(type).flatMap((content: Node) => TypeCompiler.parseType(state, content)/*unknown*/).map((tuple: Tuple2<CompileState, Node>) => {
 			return new Tuple2Impl<CompileState, string>(tuple.left(), TypeCompiler.generateType(tuple.right()))/*unknown*/;
 		})/*unknown*/;
 	}
-	static parseType(state: CompileState, type: string): Option<Tuple2<CompileState, Node>> {
-		return new StatefulOrRule<Node>(Lists.of(TypeCompiler.parseVarArgs, TypeCompiler.parseGeneric, (state2: CompileState, input1: string) => Primitives.createPrimitivesRule(input1).flatMap((result: Node) => TypeCompiler.parsePrimitiveType(state2, result)/*unknown*/)/*unknown*/, (state1: CompileState, input: string) => Symbols.createSymbolRule().lex(input).flatMap((node: Node) => TypeCompiler.parseSymbolType(state1, node)/*unknown*/)/*unknown*/)).apply(state, type)/*unknown*/;
+	static parseType(state: CompileState, content: Node): Option<Tuple2<CompileState, Node>> {
+		let value: string = content.findString("value").orElse("")/*unknown*/;
+		return new StatefulOrRule<Node>(Lists.of(TypeCompiler.parseVarArgs, TypeCompiler.parseGeneric, (state2: CompileState, input1: string) => Primitives.createPrimitivesRule(input1).flatMap((result: Node) => TypeCompiler.parsePrimitiveType(state2, result)/*unknown*/)/*unknown*/, (state1: CompileState, input: string) => Symbols.createSymbolRule().lex(input).flatMap((node: Node) => TypeCompiler.parseSymbolType(state1, node)/*unknown*/)/*unknown*/)).apply(state, value)/*unknown*/;
+	}
+	static lexType(value: string): Option<Node> {
+		return new Some<Node>(new MapNode("content").withString("value", value))/*unknown*/;
 	}
 	static parseVarArgs(state: CompileState, input: string): Option<Tuple2<CompileState, Node>> {
-		let stripped = Strings.strip(input)/*unknown*/;
-		return new SuffixComposable<Tuple2<CompileState, Node>>("...", (s: string) => {
-			let child = TypeCompiler.parseNodeOrPlaceholder(state, s)/*unknown*/;
-			let type: Node = child.right()/*unknown*/;
-			return new Some<Tuple2<CompileState, Node>>(new Tuple2Impl<CompileState, Node>(child.left(), new MapNode("variadic").withNode("child", type)))/*unknown*/;
-		}).apply(stripped)/*unknown*/;
+		/*return Variadics.createVariadicRule().lex(input).flatMap(type -> {
+            Node child */ = /* type.findNode("child").orElse(new MapNode());
+            return TypeCompiler.parseType(state, child).map(parsed -> {
+                return new Tuple2Impl<CompileState, Node>(parsed.left(), type.withNode("child", parsed.right()));
+            });
+        })*/;
 	}
 	static parseSymbolType(state: CompileState, node: Node): Some<Tuple2<CompileState, Node>> {
 		let resolved: CompileState = TypeCompiler.addResolvedImportFromCache0(state, node.findString("value").orElse(""))/*unknown*/;
 		return new Some<Tuple2<CompileState, Node>>(new Tuple2Impl<CompileState, Node>(resolved, node))/*unknown*/;
 	}
 	static parsePrimitiveType(state: CompileState, result: Node): Option<Tuple2<CompileState, Node>> {
-		return new Some<?>(new Tuple2Impl<CompileState, Node>(state, result))/*unknown*/;
+		return new Some<Tuple2<CompileState, Node>>(new Tuple2Impl<CompileState, Node>(state, result))/*unknown*/;
 	}
 	static parseGeneric(state: CompileState, input: string): Option<Tuple2<CompileState, Node>> {
-		return new SuffixComposable<Tuple2<CompileState, Node>>(">", (withoutEnd: string) => {
+		return new SuffixRule<Tuple2<CompileState, Node>>(">", (withoutEnd: string) => {
 			let splitter: Splitter = new LocatingSplitter("<", new FirstLocator())/*unknown*/;
 			return new SplitComposable<Tuple2<CompileState, Node>>(splitter, Composable.toComposable((baseString: string, argsString: string) => {
 				let argsTuple = ValueCompiler.values((state1: CompileState, s: string) => {
 					return new StatefulOrRule<Node>(Lists.of((state2: CompileState, input1: string) => {
-						return WhitespaceCompiler.parseWhitespace(state2, input1).map(type -  > new Tuple2Impl<?>(type.left(), type.right()))/*unknown*/;
+						return WhitespaceCompiler.parseWhitespace(state2, input1).map(type -  > new Tuple2Impl<CompileState, Node>(type.left(), type.right()))/*unknown*/;
 					}, (state2: CompileState, type: string) => {
-						return TypeCompiler.parseType(state2, type)/*unknown*/;
+						return TypeCompiler.lexType(type).flatMap((content: Node) => TypeCompiler.parseType(state2, content)/*unknown*/)/*unknown*/;
 					})).apply(state1, s)/*unknown*/;
-				}).apply(state, argsString).orElse(new Tuple2Impl<?>(state, Lists.empty()))/*unknown*/;
+				}).apply(state, argsString).orElse(new Tuple2Impl<CompileState, List<Node>>(state, Lists.empty()))/*unknown*/;
 				let argsState = argsTuple.left()/*unknown*/;
 				let args = argsTuple.right()/*unknown*/;
 				let base = Strings.strip(baseString)/*unknown*/;
@@ -71,7 +75,7 @@ export class TypeCompiler {
 					return new Some<Tuple2<CompileState, Node>>(new Tuple2Impl<CompileState, Node>(compileState, new MapNode("template").withString("base", base).withNodeList("args", args)))/*unknown*/;
 				})/*unknown*/;
 			})).apply(withoutEnd)/*unknown*/;
-		}).apply(Strings.strip(input))/*unknown*/;
+		}).lex(Strings.strip(input))/*unknown*/;
 	}
 	static assembleFunctionNode(state: CompileState, base: string, args: List<Node>): Option<Tuple2<CompileState, Node>> {
 		return TypeCompiler.mapFunctionNode(base, args).map((generated: Node) => {
@@ -128,13 +132,6 @@ export class TypeCompiler {
             })*/;
 		}
 		return new None<Node>()/*unknown*/;
-	}
-	static parseNodeOrPlaceholder(state: CompileState, type: string): Tuple2<CompileState, Node> {
-		return TypeCompiler.parseType(state, type).map((tuple: Tuple2<CompileState, Node>) => {
-			return new Tuple2Impl<CompileState, Node>(tuple.left(), tuple.right())/*unknown*/;
-		}).orElseGet(() => {
-			return new Tuple2Impl<CompileState, Node>(state, new MapNode("placeholder").withString("value", type))/*unknown*/;
-		})/*unknown*/;
 	}
 	static getState(immutableCompileState: CompileState, location: Location): CompileState {
 		let requestedNamespace = location.namespace()/*unknown*/;
@@ -228,7 +225,7 @@ export class TypeCompiler {
         else if (type.is("variadic")) {
             return "...";
         }*/
-		/*throw new IllegalArgumentException()*/;
+		return "?"/*unknown*/;
 	}
 	static generateType(type: Node): string {
 		if (type.is("functional")/*unknown*/){
