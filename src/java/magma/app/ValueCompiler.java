@@ -36,7 +36,7 @@ import magma.app.compile.split.LocatingSplitter;
 import magma.app.compile.split.Splitter;
 import magma.app.compile.type.Type;
 import magma.app.compile.value.AccessValue;
-import magma.app.compile.value.Caller;
+import magma.app.compile.node.Node;
 import magma.app.compile.value.ConstructionCaller;
 import magma.app.compile.value.Invokable;
 import magma.app.compile.value.Lambda;
@@ -255,19 +255,19 @@ public final class ValueCompiler {
         });
     }
 
-    private static Caller transformCaller(CompileState state, Caller oldCaller) {
-        return ValueCompiler.getValueOption(oldCaller).flatMap((Value parent) -> {
+    private static Node transformCaller(CompileState state, Node oldNode) {
+        return ValueCompiler.getValueOption(oldNode).flatMap((Value parent) -> {
             var parentType = ValueCompiler.resolve(state, parent);
             if (parentType.isFunctional()) {
-                return new Some<Caller>(parent);
+                return new Some<Node>(parent);
             }
 
-            return new None<Caller>();
-        }).orElse(oldCaller);
+            return new None<Node>();
+        }).orElse(oldNode);
     }
 
-    private static Option<Value> getValueOption(Caller oldCaller) {
-        if (oldCaller instanceof AccessValue accessValue) {
+    private static Option<Value> getValueOption(Node oldNode) {
+        if (oldNode instanceof AccessValue accessValue) {
             return new Some<Value>(accessValue.child());
         }
         return new None<Value>();
@@ -292,14 +292,14 @@ public final class ValueCompiler {
         return appended;
     }
 
-    private static Option<Tuple2<CompileState, Value>> assembleInvokable(CompileState state, Caller oldCaller, String argsString) {
+    private static Option<Tuple2<CompileState, Value>> assembleInvokable(CompileState state, Node oldNode, String argsString) {
         return ValueCompiler.values((CompileState state1, String s) -> {
             return ValueCompiler.parseArgument(state1, s);
         }).apply(state, argsString).flatMap((Tuple2<CompileState, List<Value>> argsTuple) -> {
             var argsState = argsTuple.left();
             var args = argsTuple.right();
 
-            var newCaller = ValueCompiler.transformCaller(argsState, oldCaller);
+            var newCaller = ValueCompiler.transformCaller(argsState, oldNode);
             return new Some<Tuple2<CompileState, Value>>(new Tuple2Impl<CompileState, Value>(argsState, new Invokable(newCaller, args)));
         });
     }
@@ -339,8 +339,8 @@ public final class ValueCompiler {
         return new DivideRule<>(new ValueFolder(), mapper);
     }
 
-    public static String getString(Caller caller) {
-        return switch (caller) {
+    public static String getString(Node node) {
+        return switch (node) {
             case Value value -> value.generate();
             case ConstructionCaller constructionCaller -> constructionCaller.generate();
         };

@@ -1,6 +1,8 @@
 package magma.app.compile.value;
 
-public record ConstructionCaller(String right) implements Caller {
+import magma.app.compile.node.Node;
+
+public record ConstructionCaller(String right) implements Node {
     public String generate() {
         return "new " + this.right;
     }
