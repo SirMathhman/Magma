@@ -398,6 +398,7 @@ Definition --> Type
 Definition --> Option
 Definition --> Some
 Definition --> Joiner
+Definition --> TypeCompiler
 Definition --> RootCompiler
 Definition --> MethodHeader
 Definition --> Strings

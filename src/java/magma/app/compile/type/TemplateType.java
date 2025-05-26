@@ -18,7 +18,6 @@ public record TemplateType(String base, Iterable<String> args) implements Type {
         return false;
     }
 
-    @Override
     public String generateBeforeName() {
         return "";
     }

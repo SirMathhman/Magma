@@ -14,7 +14,6 @@ public record VariadicType(Type type) implements Type {
         return false;
     }
 
-    @Override
     public String generateBeforeName() {
         return "...";
     }

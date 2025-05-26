@@ -26,7 +26,6 @@ public record FunctionType(Iterable<String> args, String returns) implements Typ
         return false;
     }
 
-    @Override
     public String generateBeforeName() {
         return "";
     }

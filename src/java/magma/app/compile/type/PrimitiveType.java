@@ -23,7 +23,6 @@ public enum PrimitiveType implements Type {
         return PrimitiveType.Var == this;
     }
 
-    @Override
     public String generateBeforeName() {
         return "";
     }

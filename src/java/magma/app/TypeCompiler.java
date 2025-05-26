@@ -259,4 +259,15 @@ public final class TypeCompiler {
             case VariadicType variadicType -> variadicType.generateSimple();
         };
     }
+
+    public static String getString(Type type) {
+        return switch (type) {
+            case FunctionType functionType -> functionType.generateBeforeName();
+            case Placeholder placeholder -> placeholder.generateBeforeName();
+            case PrimitiveType primitiveType -> primitiveType.generateBeforeName();
+            case Symbol symbol -> symbol.generateBeforeName();
+            case TemplateType templateType -> templateType.generateBeforeName();
+            case VariadicType variadicType -> variadicType.generateBeforeName();
+        };
+    }
 }

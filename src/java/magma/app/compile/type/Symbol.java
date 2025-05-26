@@ -18,7 +18,6 @@ public record Symbol(String value) implements Type {
                 .orElse(PrimitiveType.Unknown);
     }
 
-    @Override
     public String generateBeforeName() {
         return "";
     }

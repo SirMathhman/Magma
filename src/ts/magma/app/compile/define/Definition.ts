@@ -4,6 +4,7 @@ import { Type } from "../../../../magma/app/compile/type/Type";
 import { Option } from "../../../../magma/api/option/Option";
 import { Some } from "../../../../magma/api/option/Some";
 import { Joiner } from "../../../../magma/api/collect/Joiner";
+import { TypeCompiler } from "../../../../magma/app/TypeCompiler";
 import { RootCompiler } from "../../../../magma/app/RootCompiler";
 import { MethodHeader } from "../../../../magma/app/compile/define/MethodHeader";
 import { Strings } from "../../../../magma/api/text/Strings";
@@ -37,7 +38,7 @@ export class Definition {
 		let joinedModifiers = this.modifiers.iter().map((value: string) => {
 			return value + " "/*unknown*/;
 		}).collect(new Joiner("")).orElse("")/*unknown*/;
-		return joinedModifiers + this.type.generateBeforeName() + this.name + joinedTypeParams + afterName + this.generateType()/*unknown*/;
+		return joinedModifiers + TypeCompiler.getString(this.type) + this.name + joinedTypeParams + afterName + this.generateType()/*unknown*/;
 	}
 	generateType(): string {
 		if (this.type.is("var")/*unknown*/){

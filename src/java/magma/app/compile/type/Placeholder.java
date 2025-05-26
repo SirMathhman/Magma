@@ -25,7 +25,6 @@ public record Placeholder(String input) implements Parameter, Type {
         return new None<Definition>();
     }
 
-    @Override
     public String generateBeforeName() {
         return "";
     }
