@@ -26,19 +26,9 @@ public record Placeholder(String input) implements Parameter, Value, Type {
     public boolean isFunctional() {
         return false;
     }
-
-    @Override
-    public Option<Value> findChild() {
-        return new None<Value>();
-    }
-
     @Override
     public Option<Definition> asDefinition() {
         return new None<Definition>();
-    }
-
-    public Option<Value> toValue() {
-        return new None<Value>();
     }
 
     public Type resolve(CompileState state) {

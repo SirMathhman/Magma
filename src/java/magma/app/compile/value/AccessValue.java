@@ -17,11 +17,6 @@ public record AccessValue(Value child, String property) implements Value {
         return new Some<Value>(this);
     }
 
-    @Override
-    public Option<Value> findChild() {
-        return new Some<Value>(this.child);
-    }
-
     public Type resolve(CompileState state) {
         return PrimitiveType.Unknown;
     }

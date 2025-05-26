@@ -346,13 +346,19 @@ export class ValueCompiler {
 		})/*unknown*/;
 	}
 	static transformCaller(state: CompileState, oldCaller: Caller): Caller {
-		return oldCaller.findChild().flatMap((parent: Value) => {
+		return getValueOption(oldCaller).flatMap((parent: Value) => {
 			let parentType = ValueCompiler.resolve(state, parent)/*unknown*/;
 			if (parentType.isFunctional()/*unknown*/){
 				return new Some<Caller>(parent)/*unknown*/;
 			}
 			return new None<Caller>()/*unknown*/;
 		}).orElse(oldCaller)/*unknown*/;
+	}
+	static getValueOption(oldCaller: Caller): Option<Value> {
+		if (/*oldCaller instanceof AccessValue accessValue*/){
+			return new Some<Value>(accessValue.child())/*unknown*/;
+		}
+		return new None<Value>()/*unknown*/;
 	}
 	static foldInvocationStarts(state: DivideState, c: string): DivideState {
 		let appended = state.append(c)/*unknown*/;

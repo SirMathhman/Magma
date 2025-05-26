@@ -116,10 +116,10 @@
 import { Value } from "../../../../magma/app/compile/value/Value";
 import { Option } from "../../../../magma/api/option/Option";
 import { Some } from "../../../../magma/api/option/Some";
-import { None } from "../../../../magma/api/option/None";
 import { Type } from "../../../../magma/app/compile/type/Type";
 import { CompileState } from "../../../../magma/app/compile/CompileState";
 import { PrimitiveType } from "../../../../magma/app/compile/type/PrimitiveType";
+import { None } from "../../../../magma/api/option/None";
 export class StringValue implements Value {
 	value: string;
 	constructor (value: string) {
@@ -130,9 +130,6 @@ export class StringValue implements Value {
 	}
 	toValue(): Option<Value> {
 		return new Some<Value>(this)/*unknown*/;
-	}
-	findChild(): Option<Value> {
-		return new None<Value>()/*unknown*/;
 	}
 	resolve(state: CompileState): Type {
 		return PrimitiveType.Unknown/*unknown*/;

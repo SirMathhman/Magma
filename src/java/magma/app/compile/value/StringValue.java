@@ -17,11 +17,6 @@ public record StringValue(String value) implements Value {
         return new Some<Value>(this);
     }
 
-    @Override
-    public Option<Value> findChild() {
-        return new None<Value>();
-    }
-
     public Type resolve(CompileState state) {
         return PrimitiveType.Unknown;
     }

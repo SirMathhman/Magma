@@ -256,7 +256,7 @@ public final class ValueCompiler {
     }
 
     private static Caller transformCaller(CompileState state, Caller oldCaller) {
-        return oldCaller.findChild().flatMap((Value parent) -> {
+        return getValueOption(oldCaller).flatMap((Value parent) -> {
             var parentType = ValueCompiler.resolve(state, parent);
             if (parentType.isFunctional()) {
                 return new Some<Caller>(parent);
@@ -264,6 +264,13 @@ public final class ValueCompiler {
 
             return new None<Caller>();
         }).orElse(oldCaller);
+    }
+
+    private static Option<Value> getValueOption(Caller oldCaller) {
+        if (oldCaller instanceof AccessValue accessValue) {
+            return new Some<Value>(accessValue.child());
+        }
+        return new None<Value>();
     }
 
     private static DivideState foldInvocationStarts(DivideState state, char c) {

@@ -137,9 +137,6 @@ export class Symbol {
 	toValue(): Option<Value> {
 		return new Some<Value>(this)/*unknown*/;
 	}
-	findChild(): Option<Value> {
-		return new None<Value>()/*unknown*/;
-	}
 	isFunctional(): boolean {
 		return false/*unknown*/;
 	}

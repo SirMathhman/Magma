@@ -133,9 +133,6 @@ export class AccessValue implements Value {
 	toValue(): Option<Value> {
 		return new Some<Value>(this)/*unknown*/;
 	}
-	findChild(): Option<Value> {
-		return new Some<Value>(this.child)/*unknown*/;
-	}
 	resolve(state: CompileState): Type {
 		return PrimitiveType.Unknown/*unknown*/;
 	}
