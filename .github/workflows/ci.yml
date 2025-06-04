@@ -16,9 +16,7 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
       - name: Build
-        run: |
-          mkdir -p out
-          javac -d out src/magma/GenerateDiagram.java
+        run: ./build.sh
 
   test:
     runs-on: ubuntu-latest
