@@ -8,10 +8,14 @@ import java.util.List;
 final class TestUtil {
     private TestUtil() {}
 
-    static Path writeSource(Path root, String relPath, String content) throws IOException {
+    static Path writeSource(Path root, String relPath, String content) {
         Path file = root.resolve(relPath);
-        Files.createDirectories(file.getParent());
-        Files.writeString(file, content);
+        try {
+            Files.createDirectories(file.getParent());
+            Files.writeString(file, content);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
         return file;
     }
 

@@ -13,7 +13,7 @@ public interface Option<T> {
     boolean isPresent();
 
     /**
-     * Gets the contained value or throws if absent.
+     * Gets the contained value or raises an exception if absent.
      */
     T get();
 
