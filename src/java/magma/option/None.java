@@ -4,14 +4,7 @@ package magma.option;
  * Option variant representing absence of a value.
  */
 public final class None<T> implements Option<T> {
-    private static final None<?> INSTANCE = new None<>();
-
-    private None() {}
-
-    @SuppressWarnings("unchecked")
-    static <T> None<T> instance() {
-        return (None<T>) INSTANCE;
-    }
+    None() {}
 
     @Override
     public boolean isPresent() {
