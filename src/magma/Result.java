@@ -34,6 +34,29 @@ public sealed interface Result<T, X extends Exception>
     }
 
     /**
+     * Transforms the successful value using {@code mapper}. If this result is
+     * an error, the same error is returned unchanged.
+     */
+    default <U> Result<U, X> mapValue(java.util.function.Function<? super T, ? extends U> mapper) {
+        if (this instanceof Ok<T, X> ok) {
+            return Result.ok(mapper.apply(ok.value()));
+        }
+        return Result.err(((Err<T, X>) this).error());
+    }
+
+    /**
+     * Transforms the successful value using a function that itself returns a
+     * {@code Result}. This allows for chaining operations without explicit
+     * casts.
+     */
+    default <U> Result<U, X> flatMapValue(java.util.function.Function<? super T, Result<U, X>> mapper) {
+        if (this instanceof Ok<T, X> ok) {
+            return mapper.apply(ok.value());
+        }
+        return Result.err(((Err<T, X>) this).error());
+    }
+
+    /**
      * Gets the successful value or throws the stored exception if this result
      * represents an error. Most code should avoid calling this method and
      * handle both cases explicitly.

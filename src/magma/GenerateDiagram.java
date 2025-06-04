@@ -45,6 +45,26 @@ public class GenerateDiagram {
         } catch (IOException e) {
             return err(e);
         }
+        return findClasses(Path.of("src/magma"))
+                .flatMapValue(classes -> {
+                    StringBuilder content = new StringBuilder("@startuml\n");
+                    for (String name : classes) {
+                        content.append("class ").append(name).append("\n");
+                    }
+                    try {
+                        Path src = Path.of("src/magma");
+                        List<String[]> relations = findRelations(src);
+                        for (String[] rel : relations) {
+                            content.append(rel[0]).append(" --|> ")
+                                    .append(rel[1]).append("\n");
+                        }
+                        content.append("@enduml\n");
+                        Files.writeString(output, content.toString());
+                        return ok(null);
+                    } catch (IOException e) {
+                        return err(e);
+                    }
+                });
     }
 
     private static List<String> findClasses(List<String> sources) {
@@ -116,7 +136,6 @@ public class GenerateDiagram {
         }
         return ok(sources);
     }
-
     /**
      * Reads the source code of this class.
      *
@@ -143,6 +162,8 @@ public class GenerateDiagram {
         String declaration = "class " + GenerateDiagram.class.getSimpleName();
         String src = ((Ok<String, IOException>) source).value();
         return ok(src.contains(declaration));
+        String declaration = "class " + GenerateDiagram.class.getSimpleName();
+        return readSelf().mapValue(src -> src.contains(declaration));
     }
 
     public static void main(String[] args) {

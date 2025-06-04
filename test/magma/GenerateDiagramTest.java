@@ -21,7 +21,13 @@ public class GenerateDiagramTest {
         }
         Path output = tempDir.resolve("diagram.puml");
         Result<Void, IOException> result = GenerateDiagram.writeDiagram(output);
-        String message = result.isErr() ? ((Err<Void, IOException>) result).error().getMessage() : "";
+        String message;
+        try {
+            result.unwrap();
+            message = "";
+        } catch (IOException e) {
+            message = e.getMessage();
+        }
         assertTrue(result.isOk(), "writeDiagram failed: " + message);
         boolean exists;
         String content;
