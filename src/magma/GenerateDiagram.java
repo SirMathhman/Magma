@@ -4,11 +4,19 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
+import static magma.Result.err;
+import static magma.Result.ok;
+
 public class GenerateDiagram {
-    public static void writeDiagram(Path output) throws IOException {
-        String className = GenerateDiagram.class.getSimpleName();
-        String content = "@startuml\nclass " + className + "\n@enduml\n";
-        Files.writeString(output, content);
+    public static Result<Void, IOException> writeDiagram(Path output) {
+        try {
+            String className = GenerateDiagram.class.getSimpleName();
+            String content = "@startuml\nclass " + className + "\n@enduml\n";
+            Files.writeString(output, content);
+            return ok(null);
+        } catch (IOException e) {
+            return err(e);
+        }
     }
 
     /**
@@ -16,21 +24,30 @@ public class GenerateDiagram {
      *
      * @return the contents of this class's source file
      */
-    public static String readSelf() throws IOException {
-        String fileName = GenerateDiagram.class.getSimpleName() + ".java";
-        Path self = Path.of("src/magma", fileName);
-        return Files.readString(self);
+    public static Result<String, IOException> readSelf() {
+        try {
+            String fileName = GenerateDiagram.class.getSimpleName() + ".java";
+            Path self = Path.of("src/magma", fileName);
+            return ok(Files.readString(self));
+        } catch (IOException e) {
+            return err(e);
+        }
     }
 
     /**
      * Determines if the source code contains its own class declaration.
      */
-    public static boolean hasClassDeclaration() throws IOException {
+    public static Result<Boolean, IOException> hasClassDeclaration() {
+        Result<String, IOException> source = readSelf();
+        if (source.isErr()) {
+            return err(((Result.Err<String, IOException>) source).error());
+        }
         String declaration = "class " + GenerateDiagram.class.getSimpleName();
-        return readSelf().contains(declaration);
+        String src = ((Result.Ok<String, IOException>) source).value();
+        return ok(src.contains(declaration));
     }
 
-    public static void main(String[] args) throws IOException {
-        GenerateDiagram.writeDiagram(Path.of("diagram.puml"));
+    public static void main(String[] args) {
+        writeDiagram(Path.of("diagram.puml"));
     }
 }
