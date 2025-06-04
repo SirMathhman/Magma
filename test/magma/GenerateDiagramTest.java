@@ -97,6 +97,18 @@ public class GenerateDiagramTest {
     }
 
     @Test
+    public void diagramContainsSources() {
+        String content = diagramContent();
+        assertTrue(content.contains("class Sources\n"), "Diagram missing class Sources");
+    }
+
+    @Test
+    public void diagramContainsRelation() {
+        String content = diagramContent();
+        assertTrue(content.contains("class Relation\n"), "Diagram missing class Relation");
+    }
+
+    @Test
     public void diagramContainsOkRelation() {
         String content = diagramContent();
         assertTrue(content.contains("Ok --|> Result\n"), "Diagram missing relation Ok --|> Result");
