@@ -226,4 +226,23 @@ public class GenerateDiagramStubsTest {
         String a = Files.readString(tsRoot.resolve("test/A.ts"));
         assertTrue(a.contains("id<R>(x: R): R {"));
     }
+
+    @Test
+    public void preservesExtendsAndImplements() throws IOException {
+        Path javaRoot = Files.createTempDirectory("java");
+        Path tsRoot = Files.createTempDirectory("ts");
+
+        writeSource(javaRoot, "test/I.java", "package test;\npublic interface I {}\n");
+        writeSource(javaRoot, "test/Base.java", "package test;\npublic class Base {}\n");
+        writeSource(javaRoot, "test/A.java",
+                "package test;\npublic class A extends Base implements I {}\n");
+
+        Optional<IOException> result = GenerateDiagram.writeTypeScriptStubs(javaRoot, tsRoot);
+        if (result.isPresent()) {
+            throw result.get();
+        }
+
+        String a = Files.readString(tsRoot.resolve("test/A.ts"));
+        assertTrue(a.contains("export class A extends Base implements I {}"));
+    }
 }

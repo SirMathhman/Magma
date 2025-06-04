@@ -14,6 +14,7 @@ The project is an early experiment for a future Magma compiler pipeline.
 - Includes a simple `Result` type for functional-style error handling
 - Handles generic type arguments when generating TypeScript
 - Preserves the `static` modifier on methods in the stubs
+- Preserves `extends` and `implements` on class declarations
 - Offers a `check-ts.sh` script to type-check the generated stubs
 
 

@@ -9,4 +9,5 @@
 - Handles generic type arguments when converting return values
 - Preserves method type parameters on generated methods
 - Preserves the `static` modifier on generated methods
+- Preserves `extends` and `implements` on class declarations
 - Includes a `check-ts.sh` utility to validate the TypeScript output
