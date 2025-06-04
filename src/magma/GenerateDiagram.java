@@ -6,7 +6,8 @@ import java.nio.file.Path;
 
 public class GenerateDiagram {
     public static void writeDiagram(Path output) throws IOException {
-        String content = "@startuml\nBob -> Alice : hello\n@enduml\n";
+        String className = GenerateDiagram.class.getSimpleName();
+        String content = "@startuml\nclass " + className + "\n@enduml\n";
         Files.writeString(output, content);
     }
 
