@@ -6,3 +6,6 @@
 - Creates TypeScript stubs that match the Java hierarchy
 - Provides helper scripts for building, running and testing
 - Uses a small `Result` type for explicit error handling
+- Handles generic type arguments when converting return values
+- Preserves the `static` modifier on generated methods
+- Includes a `check-ts.sh` utility to validate the TypeScript output

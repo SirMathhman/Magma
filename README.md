@@ -12,6 +12,9 @@ The project is an early experiment for a future Magma compiler pipeline.
 - Produces TypeScript stubs mirroring the Java hierarchy
 - Provides build, run and test helper scripts
 - Includes a simple `Result` type for functional-style error handling
+- Handles generic type arguments when generating TypeScript
+- Preserves the `static` modifier on methods in the stubs
+- Offers a `check-ts.sh` script to type-check the generated stubs
 
 
 ## Getting Started
