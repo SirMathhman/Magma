@@ -7,8 +7,8 @@ This repository contains a simple Java program that generates a PlantUML file.
 Compile and run the program using the Java compiler:
 
 ```bash
-javac GenerateDiagram.java
-java GenerateDiagram
+javac -d . GenerateDiagram.java
+java magma.GenerateDiagram
 ```
 
 Executing the program creates a file named `diagram.puml` in the same directory.
@@ -26,8 +26,8 @@ curl -L -o junit-platform-console-standalone.jar \
   https://repo1.maven.org/maven2/org/junit/platform/junit-platform-console-standalone/1.10.2/junit-platform-console-standalone-1.10.2.jar
 
 # compile source and test files
-javac -cp junit-platform-console-standalone.jar:. GenerateDiagram.java tests/GenerateDiagramTest.java
+javac -d . -cp junit-platform-console-standalone.jar:. GenerateDiagram.java tests/GenerateDiagramTest.java
 
 # run the tests
-java -jar junit-platform-console-standalone.jar -cp junit-platform-console-standalone.jar:. --scan-class-path
+java -jar junit-platform-console-standalone.jar --class-path junit-platform-console-standalone.jar:. --scan-class-path
 ```
