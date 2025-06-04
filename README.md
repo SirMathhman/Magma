@@ -57,8 +57,8 @@ The code also follows several structural guidelines:
 4. Production code never uses `null`; optional values are expressed with `Optional<T>`.
 5. Exceptions are represented with `Result<T, X>` instead of `throws` clauses.
 6. Methods other than `main` should not return `void`. I/O methods return
-   `Optional<IOException>` (or `Result<Unit, IOException>`), and pure functions
-   return a value useful for chaining.
+   `Optional<IOException>`, and pure functions return a value useful for
+   chaining.
 7. Avoid mutating collections passed as parameters. Compute a new collection and
    bulk-add the result to the caller's collection instead.
 8. Do not use output arguments.

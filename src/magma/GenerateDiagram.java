@@ -13,20 +13,20 @@ import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
 import magma.Relation;
-import magma.Unit;
+import java.util.Optional;
 
 public class GenerateDiagram {
     // Helper methods split to comply with SRP (Single Responsibility Principle)
     /**
      * Generates a PlantUML diagram and writes it to {@code output}. Instead of
      * throwing an exception, any I/O error is returned wrapped in an
-     * {@code Optional}.
+     * {@link Optional}.
      */
-    public static Result<Unit, IOException> writeDiagram(Path output) {
+    public static Optional<IOException> writeDiagram(Path output) {
         Path src = Path.of("src/magma");
         Result<List<String>, IOException> sources = readSources(src);
         if (sources.isErr()) {
-            return new Err<>(((Err<List<String>, IOException>) sources).error());
+            return Optional.of(((Err<List<String>, IOException>) sources).error());
         }
         List<String> allSources = ((Ok<List<String>, IOException>) sources).value();
         List<String> classes = findClasses(allSources);
@@ -38,9 +38,9 @@ public class GenerateDiagram {
         content.append("@enduml\n");
         try {
             Files.writeString(output, content.toString());
-            return new Ok<>(Unit.INSTANCE);
+            return Optional.empty();
         } catch (IOException e) {
-            return new Err<>(e);
+            return Optional.of(e);
         }
     }
 
