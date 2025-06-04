@@ -85,8 +85,19 @@ public class GenerateDiagramStubsTest {
         assertTrue(a.contains("export class A<T> {}"));
     }
 
-    private Path generateGenericStubs() {
-        return null;
+    private Path generateGenericStubs() throws IOException {
+        Path javaRoot = Files.createTempDirectory("java");
+        Path tsRoot = Files.createTempDirectory("ts");
+
+        writeSource(javaRoot, "test/A.java", "package test;\npublic class A<T> {}\n");
+        writeSource(javaRoot, "test/I.java", "package test;\npublic interface I<T> {}\n");
+        writeSource(javaRoot, "test/R.java", "package test;\npublic record R<T>(T x) {}\n");
+
+        Optional<IOException> result = GenerateDiagram.writeTypeScriptStubs(javaRoot, tsRoot);
+        if (result.isPresent()) {
+            throw result.get();
+        }
+        return tsRoot;
     }
 
     @Test
@@ -146,6 +157,6 @@ public class GenerateDiagramStubsTest {
         }
 
         String c = Files.readString(tsRoot.resolve("test/C.ts"));
-        assertTrue(c.contains("void foo() {"), "C.ts missing foo method");
+        assertTrue(c.contains("foo(): void {"), "C.ts missing foo method");
     }
 }
