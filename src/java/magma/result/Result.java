@@ -1,4 +1,4 @@
-package magma;
+package magma.result;
 
 /**
  * A simple result type representing either a successful value or an error.

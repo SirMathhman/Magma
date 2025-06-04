@@ -6,7 +6,6 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
-import magma.Err;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;

@@ -1,4 +1,4 @@
-package magma;
+package magma.result;
 
 /**
  * Result variant representing failure.
