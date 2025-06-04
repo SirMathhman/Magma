@@ -1,7 +1,5 @@
-/packages/compiler-java/out
-/out
-/commits.csv
-/node_modules
-/src/web
-/lib/*.jar
-/log.txt
+/.out
+/out/
+/diagram.puml
+/junit-platform-console-standalone.jar
+/src/node/

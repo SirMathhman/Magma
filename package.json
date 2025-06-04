@@ -1,5 +1,0 @@
-{
-  "name": "magmac-monorepo",
-  "private": true,
-  "workspaces": ["packages/*"]
-}
