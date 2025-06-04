@@ -5,6 +5,15 @@ Java source files and extracts the class hierarchy and simple dependencies. From
 that information it generates a PlantUML diagram and matching TypeScript stubs.
 The project is an early experiment for a future Magma compiler pipeline.
 
+## Features
+
+- Extracts classes and interfaces from Java source files
+- Generates PlantUML diagrams of inheritance and dependencies
+- Produces TypeScript stubs mirroring the Java hierarchy
+- Provides build, run and test helper scripts
+- Includes a simple `Result` type for functional-style error handling
+
+
 ## Getting Started
 
 The sources are located in `src/java`. A recent JDK (17 or newer) is required
