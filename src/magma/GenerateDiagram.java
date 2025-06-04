@@ -22,23 +22,24 @@ public class GenerateDiagram {
      * {@code Optional}.
      */
     public static Result<Void, IOException> writeDiagram(Path output) {
-        Result<List<String>, IOException> result = findClasses(Path.of("src/magma"));
-        if (result.isErr()) {
-            return err(((Err<List<String>, IOException>) result).error());
+        Path src = Path.of("src/magma");
+        Result<List<String>, IOException> sources = readSources(src);
+        if (sources.isErr()) {
+            return err(((Err<List<String>, IOException>) sources).error());
         }
-        List<String> classes = ((Ok<List<String>, IOException>) result).value();
+        List<String> allSources = ((Ok<List<String>, IOException>) sources).value();
+        List<String> classes = findClasses(allSources);
         StringBuilder content = new StringBuilder("@startuml\n");
         for (String name : classes) {
             content.append("class ").append(name).append("\n");
         }
+        List<String[]> relations = findRelations(allSources);
+        for (String[] rel : relations) {
+            content.append(rel[0]).append(" --|> ")
+                    .append(rel[1]).append("\n");
+        }
+        content.append("@enduml\n");
         try {
-            Path src = Path.of("src/magma");
-            List<String[]> relations = findRelations(src);
-            for (String[] rel : relations) {
-                content.append(rel[0]).append(" --|> ")
-                        .append(rel[1]).append("\n");
-            }
-            content.append("@enduml\n");
             Files.writeString(output, content.toString());
             return ok(null);
         } catch (IOException e) {
@@ -46,24 +47,10 @@ public class GenerateDiagram {
         }
     }
 
-    private static Result<List<String>, IOException> findClasses(Path directory) {
+    private static List<String> findClasses(List<String> sources) {
         Pattern pattern = Pattern.compile("^\\s*(?:public\\s+|protected\\s+|private\\s+)?(?:static\\s+)?(?:final\\s+)?(?:sealed\\s+)?(?:class|interface)\\s+(\\w+)", Pattern.MULTILINE);
-        List<Path> files;
-        try (Stream<Path> stream = Files.walk(directory)) {
-            files = stream.filter(Files::isRegularFile)
-                    .filter(p -> p.toString().endsWith(".java"))
-                    .toList();
-        } catch (IOException e) {
-            return err(e);
-        }
         Set<String> unique = new LinkedHashSet<>();
-        for (Path file : files) {
-            String src;
-            try {
-                src = Files.readString(file);
-            } catch (IOException e) {
-                return err(e);
-            }
+        for (String src : sources) {
             Matcher matcher = pattern.matcher(src);
             while (matcher.find()) {
                 unique.add(matcher.group(1));
@@ -71,23 +58,15 @@ public class GenerateDiagram {
         }
         List<String> names = new ArrayList<>(unique);
         Collections.sort(names);
-        return ok(names);
+        return names;
     }
 
-    private static List<String[]> findRelations(Path directory) throws IOException {
+    private static List<String[]> findRelations(List<String> sources) {
         Pattern extendsPattern = Pattern.compile("(?:class|interface)\\s+(\\w+)\\s+extends\\s+([\\w\\s,]+)");
         Pattern implementsPattern = Pattern.compile("class\\s+(\\w+)(?:\\s+extends\\s+\\w+)?\\s+implements\\s+([\\w\\s,]+)");
 
-        List<Path> files;
-        try (Stream<Path> stream = Files.walk(directory)) {
-            files = stream.filter(Files::isRegularFile)
-                    .filter(p -> p.toString().endsWith(".java"))
-                    .toList();
-        }
-
         List<String[]> relations = new ArrayList<>();
-        for (Path file : files) {
-            String src = Files.readString(file);
+        for (String src : sources) {
             src = src.replaceAll("<[^>]*>", "");
 
             Matcher matcher = extendsPattern.matcher(src);
@@ -115,6 +94,27 @@ public class GenerateDiagram {
             }
         }
         return relations;
+    }
+
+    private static Result<List<String>, IOException> readSources(Path directory) {
+        List<Path> files;
+        try (Stream<Path> stream = Files.walk(directory)) {
+            files = stream.filter(Files::isRegularFile)
+                    .filter(p -> p.toString().endsWith(".java"))
+                    .toList();
+        } catch (IOException e) {
+            return err(e);
+        }
+
+        List<String> sources = new ArrayList<>();
+        for (Path file : files) {
+            try {
+                sources.add(Files.readString(file));
+            } catch (IOException e) {
+                return err(e);
+            }
+        }
+        return ok(sources);
     }
 
     /**
