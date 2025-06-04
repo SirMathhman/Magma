@@ -1,5 +1,7 @@
 package magma;
 
+import magma.option.None;
+import magma.option.Some;
 import magma.result.Err;
 import magma.result.Ok;
 
@@ -21,7 +23,7 @@ public class GenerateDiagram {
         Path src = Path.of("src/java/magma");
         var sources = Sources.read(src);
         if (sources.isErr()) {
-            return Option.some(((Err<List<String>, IOException>) sources).error());
+            return new Some<>(((Err<List<String>, IOException>) sources).error());
         }
         List<String> allSources = ((Ok<List<String>, IOException>) sources).value();
         Sources analysis = new Sources(allSources);
@@ -36,9 +38,9 @@ public class GenerateDiagram {
         content.append("@enduml\n");
         try {
             Files.writeString(output, content.toString());
-            return Option.none();
+            return new None<>();
         } catch (IOException e) {
-            return Option.some(e);
+            return new Some<>(e);
         }
     }
 

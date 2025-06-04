@@ -4,8 +4,6 @@ package magma.option;
  * Option variant representing absence of a value.
  */
 public final class None<T> implements Option<T> {
-    None() {}
-
     @Override
     public boolean isPresent() {
         return false;

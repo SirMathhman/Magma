@@ -5,7 +5,11 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Map;
+
+import magma.option.None;
 import magma.option.Option;
+import magma.option.Some;
+
 import java.util.stream.Stream;
 
 /**
@@ -22,7 +26,7 @@ public final class TypeScriptStubs {
                     .filter(p -> p.toString().endsWith(".java"))
                     .toList();
         } catch (IOException e) {
-            return Option.some(e);
+            return new Some<>(e);
         }
         for (Path file : files) {
             Path relative = javaRoot.relativize(file);
@@ -36,10 +40,10 @@ public final class TypeScriptStubs {
                         imports, declarations, methods);
                 Files.writeString(tsFile, content);
             } catch (IOException e) {
-                return Option.some(e);
+                return new Some<>(e);
             }
         }
-        return Option.none();
+        return new None<>();
     }
 
     private static List<String> readImports(Path file) throws IOException {
