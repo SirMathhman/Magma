@@ -117,34 +117,6 @@ public class GenerateDiagram {
         return relations;
     }
 
-    /**
-     * Reads the source code of this class.
-     *
-     * @return the contents of this class's source file
-     */
-    public static Result<String, IOException> readSelf() {
-        try {
-            String fileName = GenerateDiagram.class.getSimpleName() + ".java";
-            Path self = Path.of("src/magma", fileName);
-            return ok(Files.readString(self));
-        } catch (IOException e) {
-            return err(e);
-        }
-    }
-
-    /**
-     * Determines if the source code contains its own class declaration.
-     */
-    public static Result<Boolean, IOException> hasClassDeclaration() {
-        Result<String, IOException> source = readSelf();
-        if (source.isErr()) {
-            return err(((Err<String, IOException>) source).error());
-        }
-        String declaration = "class " + GenerateDiagram.class.getSimpleName();
-        String src = ((Ok<String, IOException>) source).value();
-        return ok(src.contains(declaration));
-    }
-
     public static void main(String[] args) {
         writeDiagram(Path.of("diagram.puml"));
     }
