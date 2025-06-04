@@ -194,18 +194,20 @@ public record Sources(List<String> list) {
         return set;
     }
 
-    private static List<String> interfacesFor(String dependency,
-                                              Map<String, List<String>> implementations) {
-        return implementations.getOrDefault(dependency, Collections.emptyList());
+    private static Map<String, List<String>> invertImplementations(Map<String, List<String>> implementations) {
+        Map<String, List<String>> map = new java.util.LinkedHashMap<>();
+        for (var entry : implementations.entrySet()) {
+            String child = entry.getKey();
+            for (String iface : entry.getValue()) {
+                map.computeIfAbsent(iface, k -> new java.util.ArrayList<>()).add(child);
+            }
+        }
+        return map;
     }
 
-    private static boolean omitDependency(String source, List<String> interfaces) {
-        return !interfaces.isEmpty() && containsInterfaceReference(source, interfaces);
-    }
-
-    private static boolean containsInterfaceReference(String source, List<String> interfaces) {
-        for (String iface : interfaces) {
-            Pattern word = Pattern.compile("\\b" + Pattern.quote(iface) + "\\b");
+    private static boolean containsReference(String source, List<String> names) {
+        for (String name : names) {
+            Pattern word = Pattern.compile("\\b" + Pattern.quote(name) + "\\b");
             if (word.matcher(source).find()) {
                 return true;
             }
@@ -227,6 +229,7 @@ public record Sources(List<String> list) {
             return relations;
         }
         String name = matcher.group(1);
+        Map<String, List<String>> byInterface = invertImplementations(implementations);
         for (String other : classes) {
             if (other.equals(name)) {
                 continue;
@@ -238,9 +241,8 @@ public record Sources(List<String> list) {
             if (inherited.contains(name + "->" + other)) {
                 continue;
             }
-            List<String> interfaces = interfacesFor(other, implementations);
-            String selfSource = sourceMap.get(name);
-            if (selfSource != null && omitDependency(selfSource, interfaces)) {
+            List<String> impls = byInterface.get(other);
+            if (impls != null && containsReference(src, impls)) {
                 continue;
             }
             relations.add(new Relation(name, "-->", other));
