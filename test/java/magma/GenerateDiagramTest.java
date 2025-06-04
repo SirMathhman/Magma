@@ -81,7 +81,7 @@ public class GenerateDiagramTest {
     @Test
     public void diagramContainsResult() {
         String content = diagramContent();
-        assertTrue(content.contains("class Result\n"), "Diagram missing class Result");
+        assertTrue(content.contains("interface Result\n"), "Diagram missing interface Result");
     }
 
     @Test
