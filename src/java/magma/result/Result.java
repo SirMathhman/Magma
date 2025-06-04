@@ -3,8 +3,8 @@ package magma.result;
 /**
  * A simple result type representing either a successful value or an error.
  * It is meant for situations where a returned value is meaningful. If there is
- * no value to return on success, prefer using {@link java.util.Optional
- * Optional} or another type instead of {@code Result}.
+ * no value to return on success, prefer using {@link magma.option.Option
+ * Option} or another type instead of {@code Result}.
  *
  * @param <T> the successful value type
  * @param <X> the exception type, which must extend {@link Exception}

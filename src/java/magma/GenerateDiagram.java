@@ -7,7 +7,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
-import java.util.Optional;
+import magma.option.Option;
 
 public class GenerateDiagram {
     // Helper methods split to comply with SRP (Single Responsibility Principle)
@@ -15,13 +15,13 @@ public class GenerateDiagram {
     /**
      * Generates a PlantUML diagram and writes it to {@code output}. Instead of
      * throwing an exception, any I/O error is returned wrapped in an
-     * {@link Optional}.
+     * {@link magma.option.Option}.
      */
-    public static Optional<IOException> writeDiagram(Path output) {
+    public static Option<IOException> writeDiagram(Path output) {
         Path src = Path.of("src/java/magma");
         var sources = Sources.read(src);
         if (sources.isErr()) {
-            return Optional.of(((Err<List<String>, IOException>) sources).error());
+            return Option.some(((Err<List<String>, IOException>) sources).error());
         }
         List<String> allSources = ((Ok<List<String>, IOException>) sources).value();
         Sources analysis = new Sources(allSources);
@@ -36,9 +36,9 @@ public class GenerateDiagram {
         content.append("@enduml\n");
         try {
             Files.writeString(output, content.toString());
-            return Optional.empty();
+            return Option.none();
         } catch (IOException e) {
-            return Optional.of(e);
+            return Option.some(e);
         }
     }
 
@@ -72,7 +72,7 @@ public class GenerateDiagram {
      * Existing files are overwritten so that imports stay in sync with the
      * corresponding Java sources.
      */
-    public static Optional<IOException> writeTypeScriptStubs(Path javaRoot, Path tsRoot) {
+    public static Option<IOException> writeTypeScriptStubs(Path javaRoot, Path tsRoot) {
         return TypeScriptStubs.write(javaRoot, tsRoot);
     }
 }

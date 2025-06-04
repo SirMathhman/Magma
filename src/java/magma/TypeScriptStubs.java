@@ -5,7 +5,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
+import magma.option.Option;
 import java.util.stream.Stream;
 
 /**
@@ -15,14 +15,14 @@ import java.util.stream.Stream;
 public final class TypeScriptStubs {
     private TypeScriptStubs() {}
 
-    public static Optional<IOException> write(Path javaRoot, Path tsRoot) {
+    public static Option<IOException> write(Path javaRoot, Path tsRoot) {
         List<Path> files;
         try (Stream<Path> stream = Files.walk(javaRoot)) {
             files = stream.filter(Files::isRegularFile)
                     .filter(p -> p.toString().endsWith(".java"))
                     .toList();
         } catch (IOException e) {
-            return Optional.of(e);
+            return Option.some(e);
         }
         for (Path file : files) {
             Path relative = javaRoot.relativize(file);
@@ -36,10 +36,10 @@ public final class TypeScriptStubs {
                         imports, declarations, methods);
                 Files.writeString(tsFile, content);
             } catch (IOException e) {
-                return Optional.of(e);
+                return Option.some(e);
             }
         }
-        return Optional.empty();
+        return Option.none();
     }
 
     private static List<String> readImports(Path file) throws IOException {
