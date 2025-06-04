@@ -130,4 +130,16 @@ public class GenerateDiagramTest {
         String content = diagramContent();
         assertTrue(content.contains("GenerateDiagram --> Err\n"), "Diagram missing dependency GenerateDiagram --> Err");
     }
+
+    @Test
+    public void diagramDoesNotContainOkErrDependency() {
+        String content = diagramContent();
+        assertTrue(!content.contains("Ok --> Err\n"), "Comments referencing Err should not create Ok --> Err");
+    }
+
+    @Test
+    public void diagramDoesNotContainErrOkDependency() {
+        String content = diagramContent();
+        assertTrue(!content.contains("Err --> Ok\n"), "Comments referencing Ok should not create Err --> Ok");
+    }
 }
