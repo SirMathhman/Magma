@@ -5,16 +5,11 @@ import org.junit.jupiter.api.Test;
 import java.util.List;
 import java.util.Map;
 
+import static magma.TestUtil.sampleSources;
+
 import static org.junit.jupiter.api.Assertions.*;
 
 public class SourcesClassParsingTest {
-    private static Sources sampleSources() {
-        String result = "public interface Result {}";
-        String ok = "public class Ok implements Result {}";
-        String err = "public class Err implements Result {}";
-        String gen = "public class GenerateDiagram { Ok ok; Err err; }";
-        return new Sources(List.of(result, ok, err, gen));
-    }
 
     @Test
     public void findsAllClasses() {
@@ -27,7 +22,9 @@ public class SourcesClassParsingTest {
     public void findsImplementations() {
         Sources sources = sampleSources();
         Map<String, List<String>> impl = sources.findImplementations();
-        assertEquals(List.of("Result"), impl.get("Ok"));
-        assertEquals(List.of("Result"), impl.get("Err"));
+        assertEquals(Map.of(
+                "Ok", List.of("Result"),
+                "Err", List.of("Result")
+        ), impl);
     }
 }
