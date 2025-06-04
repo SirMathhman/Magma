@@ -63,6 +63,9 @@ The code also follows several structural guidelines:
    bulk-add the result to the caller's collection instead.
 8. Do not use output arguments.
 9. Do not reassign a value to a parameter.
+10. When several static methods share the same parameter type, wrap that
+    parameter in a record and convert the methods to instance methods of the
+    new record.
 
 ## Continuous Integration
 
