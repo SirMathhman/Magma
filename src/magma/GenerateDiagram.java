@@ -13,6 +13,7 @@ import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
 import magma.Relation;
+import magma.Unit;
 
 public class GenerateDiagram {
     // Helper methods split to comply with SRP (Single Responsibility Principle)
@@ -21,7 +22,7 @@ public class GenerateDiagram {
      * throwing an exception, any I/O error is returned wrapped in an
      * {@code Optional}.
      */
-    public static Result<Void, IOException> writeDiagram(Path output) {
+    public static Result<Unit, IOException> writeDiagram(Path output) {
         Path src = Path.of("src/magma");
         Result<List<String>, IOException> sources = readSources(src);
         if (sources.isErr()) {
@@ -37,7 +38,7 @@ public class GenerateDiagram {
         content.append("@enduml\n");
         try {
             Files.writeString(output, content.toString());
-            return new Ok<>(null);
+            return new Ok<>(Unit.INSTANCE);
         } catch (IOException e) {
             return new Err<>(e);
         }
@@ -178,14 +179,24 @@ public class GenerateDiagram {
         return map;
     }
 
-    private static boolean omitDependency(String source,
+    private static java.util.Set<String> toInheritedSet(List<Relation> inheritance) {
+        java.util.Set<String> set = new java.util.LinkedHashSet<>();
+        for (Relation rel : inheritance) {
+            set.add(rel.from() + "->" + rel.to());
+        }
+        return set;
+    }
+
+    private static boolean omitDependency(java.util.Optional<String> source,
                                           String dependency,
                                           java.util.Map<String, java.util.List<String>> implementations) {
-        if (source == null) {
+        if (source.isEmpty()) {
             return false;
         }
-        var interfaces = implementations.get(dependency);
-        return interfaces != null && containsInterfaceReference(source, interfaces);
+        java.util.List<String> interfaces =
+                implementations.getOrDefault(dependency, java.util.Collections.emptyList());
+        return !interfaces.isEmpty() &&
+                containsInterfaceReference(source.get(), interfaces);
     }
 
     private static boolean containsInterfaceReference(String source, java.util.List<String> interfaces) {
@@ -206,10 +217,7 @@ public class GenerateDiagram {
 
         java.util.Map<String, String> sourceMap = mapSourcesByClass(sources);
 
-        Set<String> inherited = new LinkedHashSet<>();
-        for (Relation rel : inheritance) {
-            inherited.add(rel.from() + "->" + rel.to());
-        }
+        Set<String> inherited = toInheritedSet(inheritance);
 
         List<Relation> relations = new ArrayList<>();
         for (String src : sources) {
@@ -236,12 +244,17 @@ public class GenerateDiagram {
                 continue;
             }
             Pattern word = Pattern.compile("\\b" + Pattern.quote(other) + "\\b");
-            if (word.matcher(src).find() && !inherited.contains(name + "->" + other)) {
-                if (omitDependency(sourceMap.get(name), other, implementations)) {
-                    continue;
-                }
-                relations.add(new Relation(name, "-->", other));
+            if (!word.matcher(src).find()) {
+                continue;
             }
+            if (inherited.contains(name + "->" + other)) {
+                continue;
+            }
+            if (omitDependency(java.util.Optional.ofNullable(sourceMap.get(name)),
+                              other, implementations)) {
+                continue;
+            }
+            relations.add(new Relation(name, "-->", other));
         }
     }
 

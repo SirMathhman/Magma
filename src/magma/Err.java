@@ -36,7 +36,7 @@ public final class Err<T, X extends Exception> implements Result<T, X> {
     }
 
     @Override
-    public T unwrap() throws X {
-        throw error;
+    public T unwrap() {
+        throw new RuntimeException(error);
     }
 }
