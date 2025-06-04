@@ -1,2 +1,3 @@
 /.out
-junit-platform-console-standalone.jar
+/diagram.puml
+/junit-platform-console-standalone.jar

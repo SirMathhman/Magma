@@ -8,9 +8,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="ddea09a6-33bf-4a11-8cf0-08ec72b0dd6c" name="Changes" comment="Fix packaging">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-    </list>
+    <list default="true" id="ddea09a6-33bf-4a11-8cf0-08ec72b0dd6c" name="Changes" comment="Repair" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -69,6 +67,7 @@
   </component>
   <component name="PropertiesComponent"><![CDATA[{
   "keyToString": {
+    "Application.GenerateDiagram.executor": "Run",
     "Application.Main (1).executor": "Run",
     "Application.Main.executor": "Run",
     "Application.magma.app.Main.executor": "Run",
@@ -172,7 +171,20 @@
       <recent name="magmac.app.compile.rule.split" />
     </key>
   </component>
-  <component name="RunManager" selected="JUnit.All in Magma">
+  <component name="RunManager" selected="Application.GenerateDiagram">
+    <configuration name="GenerateDiagram" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
+      <option name="MAIN_CLASS_NAME" value="magma.GenerateDiagram" />
+      <module name="Magma" />
+      <extension name="coverage">
+        <pattern>
+          <option name="PATTERN" value="magma.*" />
+          <option name="ENABLED" value="true" />
+        </pattern>
+      </extension>
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
     <configuration name="All in Magma" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
       <module name="Magma" />
       <option name="PACKAGE_NAME" value="" />
@@ -209,6 +221,7 @@
     </configuration>
     <recent_temporary>
       <list>
+        <item itemvalue="Application.GenerateDiagram" />
         <item itemvalue="JUnit.All in Magma" />
         <item itemvalue="JUnit.GenerateDiagramTest" />
       </list>
@@ -271,14 +284,6 @@
       <workItem from="1742658935413" duration="1346000" />
       <workItem from="1742679831775" duration="2068000" />
       <workItem from="1742691657873" duration="2350000" />
-    </task>
-    <task id="LOCAL-04068" summary="Add missing impls">
-      <option name="closed" value="true" />
-      <created>1748921156006</created>
-      <option name="number" value="04068" />
-      <option name="presentableId" value="LOCAL-04068" />
-      <option name="project" value="LOCAL" />
-      <updated>1748921156006</updated>
     </task>
     <task id="LOCAL-04069" summary="Rebuild">
       <option name="closed" value="true" />
@@ -664,7 +669,15 @@
       <option name="project" value="LOCAL" />
       <updated>1749042612383</updated>
     </task>
-    <option name="localTasksCounter" value="4117" />
+    <task id="LOCAL-04117" summary="Repair">
+      <option name="closed" value="true" />
+      <created>1749044224814</created>
+      <option name="number" value="04117" />
+      <option name="presentableId" value="LOCAL-04117" />
+      <option name="project" value="LOCAL" />
+      <updated>1749044224814</updated>
+    </task>
+    <option name="localTasksCounter" value="4118" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -686,7 +699,6 @@
     </option>
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="Operations" />
     <MESSAGE value="Instanceof rul" />
     <MESSAGE value="Assignments" />
     <MESSAGE value="OK" />
@@ -711,7 +723,8 @@
     <MESSAGE value="Hmmm" />
     <MESSAGE value="Hard reset!" />
     <MESSAGE value="Fix packaging" />
-    <option name="LAST_COMMIT_MESSAGE" value="Fix packaging" />
+    <MESSAGE value="Repair" />
+    <option name="LAST_COMMIT_MESSAGE" value="Repair" />
   </component>
   <component name="XDebuggerManager">
     <pin-to-top-manager>
