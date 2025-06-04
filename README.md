@@ -4,7 +4,8 @@ This repository contains a simple Java program that generates a PlantUML file.
 
 ## Building
 
-Compile the sources using the provided helper script:
+Compile the sources using the provided helper script. The script automatically
+compiles all `*.java` files under the `src` directory:
 
 ```bash
 ./build.sh

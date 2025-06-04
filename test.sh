@@ -7,5 +7,6 @@ if [ ! -f "$JUNIT_JAR" ]; then
 fi
 
 mkdir -p out
-javac -d out -cp "$JUNIT_JAR" src/magma/Result.java src/magma/GenerateDiagram.java test/magma/GenerateDiagramTest.java
+# Compile all Java files from src/ and test/ directories
+javac -d out -cp "$JUNIT_JAR" $(find src test -name '*.java')
 java -jar "$JUNIT_JAR" --class-path out:"$JUNIT_JAR" --scan-class-path
