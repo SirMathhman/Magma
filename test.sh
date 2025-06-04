@@ -13,6 +13,13 @@ if [ ! -f "$JUNIT_JAR" ]; then
   curl -L -o "$JUNIT_JAR" "https://repo1.maven.org/maven2/org/junit/platform/junit-platform-console-standalone/${JUNIT_VERSION}/junit-platform-console-standalone-${JUNIT_VERSION}.jar"
 fi
 
-javac --release 21 --enable-preview -cp "$JUNIT_JAR:$SCRIPT_DIR/out" -d "$SCRIPT_DIR/out" $(find test/java -name '*.java')
+# Use the same JDK release for compiling the tests as we do for the main
+# sources. This avoids "release version ... not supported" errors on older
+# environments.
+JAVA_VERSION=$(javac -version 2>&1 | sed -E 's/.* ([0-9]+).*/\1/')
+
+javac --release "$JAVA_VERSION" --enable-preview \
+      -cp "$JUNIT_JAR:$SCRIPT_DIR/out" -d "$SCRIPT_DIR/out" \
+      $(find test/java -name '*.java')
 java --enable-preview -jar "$JUNIT_JAR" --class-path "$SCRIPT_DIR/out" --scan-class-path
 
