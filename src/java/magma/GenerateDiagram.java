@@ -7,7 +7,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Stream;
 
-import magma.Relation;
 import magma.Sources;
 import java.util.Optional;
 
@@ -19,7 +18,7 @@ public class GenerateDiagram {
      * {@link Optional}.
      */
     public static Optional<IOException> writeDiagram(Path output) {
-        Path src = Path.of("src/magma");
+        Path src = Path.of("src/java/magma");
         Result<List<String>, IOException> sources = readSources(src);
         if (sources.isErr()) {
             return Optional.of(((Err<List<String>, IOException>) sources).error());
@@ -30,8 +29,7 @@ public class GenerateDiagram {
         var implementations = analysis.findImplementations();
         StringBuilder content = new StringBuilder("@startuml\n");
         content.append(classesSection(classes));
-        List<Relation> relations = analysis.findRelations(classes, implementations);
-        content.append(relationsSection(relations));
+        content.append(analysis.formatRelations(classes, implementations));
         content.append("@enduml\n");
         try {
             Files.writeString(output, content.toString());
@@ -44,16 +42,6 @@ public class GenerateDiagram {
         StringBuilder builder = new StringBuilder();
         for (String name : classes) {
             builder.append("class ").append(name).append("\n");
-        }
-        return builder.toString();
-    }
-
-    private static String relationsSection(List<Relation> relations) {
-        StringBuilder builder = new StringBuilder();
-        for (Relation rel : relations) {
-            builder.append(rel.from()).append(' ')
-                    .append(rel.arrow()).append(' ')
-                    .append(rel.to()).append("\n");
         }
         return builder.toString();
     }
