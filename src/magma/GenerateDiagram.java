@@ -11,6 +11,6 @@ public class GenerateDiagram {
     }
 
     public static void main(String[] args) throws IOException {
-        writeDiagram(Path.of("diagram.puml"));
+        GenerateDiagram.writeDiagram(Path.of("diagram.puml"));
     }
 }

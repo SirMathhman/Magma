@@ -1,0 +1,741 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="AnalysisUIOptions">
+    <option name="SPLITTER_PROPORTION" value="0.35719967" />
+    <option name="ANALYZE_INJECTED_CODE" value="false" />
+  </component>
+  <component name="AutoImportSettings">
+    <option name="autoReloadType" value="SELECTIVE" />
+  </component>
+  <component name="ChangeListManager">
+    <list default="true" id="ddea09a6-33bf-4a11-8cf0-08ec72b0dd6c" name="Changes" comment="Hard reset!">
+      <change beforePath="$PROJECT_DIR$/GenerateDiagram.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/magma/GenerateDiagram.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tests/GenerateDiagramTest.java" beforeDir="false" afterPath="$PROJECT_DIR$/test/magma/GenerateDiagramTest.java" afterDir="false" />
+    </list>
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="FileTemplateManagerImpl">
+    <option name="RECENT_TEMPLATES">
+      <list>
+        <option value="AnnotationType" />
+        <option value="Enum" />
+        <option value="Record" />
+        <option value="Interface" />
+        <option value="Class" />
+      </list>
+    </option>
+  </component>
+  <component name="Git.Merge.Settings">
+    <option name="BRANCH" value="upstream/master" />
+  </component>
+  <component name="Git.Settings">
+    <option name="PUSH_AUTO_UPDATE" value="true" />
+    <option name="RECENT_BRANCH_BY_REPOSITORY">
+      <map>
+        <entry key="$PROJECT_DIR$" value="master" />
+      </map>
+    </option>
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+    <option name="RESET_MODE" value="HARD" />
+  </component>
+  <component name="GitHubPullRequestSearchHistory">{
+  &quot;lastFilter&quot;: {
+    &quot;state&quot;: &quot;OPEN&quot;,
+    &quot;assignee&quot;: &quot;SirMathhman&quot;
+  }
+}</component>
+  <component name="GithubPullRequestsUISettings">{
+  &quot;selectedUrlAndAccountId&quot;: {
+    &quot;url&quot;: &quot;https://github.com/SirMathhman/Magma.git&quot;,
+    &quot;accountId&quot;: &quot;5ccce926-293e-4330-b2a7-270ea3228439&quot;
+  }
+}</component>
+  <component name="ProblemsViewState">
+    <option name="selectedTabId" value="QODANA_PROBLEMS_VIEW_TAB" />
+  </component>
+  <component name="ProjectColorInfo">{
+  &quot;customColor&quot;: &quot;&quot;,
+  &quot;associatedIndex&quot;: 7
+}</component>
+  <component name="ProjectId" id="2uaRFeYQD95wzTriAqMDzFnqy7D" />
+  <component name="ProjectLevelVcsManager">
+    <ConfirmationsSetting value="2" id="Add" />
+  </component>
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "Application.Main (1).executor": "Run",
+    "Application.Main.executor": "Run",
+    "Application.magma.app.Main.executor": "Run",
+    "Application.magma.magma.Main.executor": "Run",
+    "Application.magmac.Main.executor": "Run",
+    "Batch.build (1).executor": "Run",
+    "Batch.build.executor": "Run",
+    "Batch.run.executor": "Run",
+    "Downloaded.Files.Path.Enabled": "false",
+    "JUnit.ActualAnnotationTest.executor": "Run",
+    "JUnit.All in Magma.executor": "Run",
+    "JUnit.GenerateDiagramTest.executor": "Run",
+    "JUnit.MainTest.divideSingleQuotes.executor": "Run",
+    "JUnit.MainTest.executor": "Run",
+    "JUnit.MainTest.test.executor": "Run",
+    "Repository.Attach.Annotations": "false",
+    "Repository.Attach.JavaDocs": "true",
+    "Repository.Attach.Sources": "false",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "RunOnceActivity.git.unshallow": "true",
+    "ToolWindow.Run.ShowToolbar": "false",
+    "com.intellij.codeInspection.ui.actions.InspectionResultsExportActionProvider.location": "C:/Users/mathm/IdeaProjects/Magma/docs/inspection",
+    "deletionFromPopupRequiresConfirmation": "false",
+    "extract.method.default.visibility": "public",
+    "extractMethod.generateAnnotations": "false",
+    "git-widget-placeholder": "reset",
+    "introduce.parameter.lambda": "true",
+    "js.last.introduce.type": "CONST",
+    "kotlin-language-version-configured": "true",
+    "last_directory_selection": "C:/Users/mathm/IdeaProjects/Magma/src/java/magma/app/compile",
+    "last_opened_file_path": "C:/Users/mathm/IdeaProjects/Magma",
+    "node.js.detected.package.eslint": "true",
+    "node.js.detected.package.tslint": "true",
+    "node.js.selected.package.eslint": "(autodetect)",
+    "node.js.selected.package.tslint": "(autodetect)",
+    "nodejs_package_manager_path": "npm",
+    "project.structure.last.edited": "Project",
+    "project.structure.proportion": "0.15",
+    "project.structure.side.proportion": "0.2",
+    "run.code.analysis.last.selected.profile": "pProject Default",
+    "settings.editor.selected.configurable": "Errors",
+    "ts.external.directory.path": "C:\\Users\\mathm\\IdeaProjects\\Magma\\@magma\\app\\node_modules\\typescript\\lib",
+    "vue.rearranger.settings.migration": "true"
+  }
+}]]></component>
+  <component name="RecentsManager">
+    <key name="CreateClassDialog.RecentsKey">
+      <recent name="magmac.app.compile.rule" />
+      <recent name="magmac.app.lang.web" />
+      <recent name="magmac.app.lang.node" />
+      <recent name="magmac.app.lang" />
+      <recent name="magmac.api.collect" />
+    </key>
+    <key name="CopyFile.RECENT_KEYS">
+      <recent name="C:\Users\mathm\IdeaProjects\Magma" />
+      <recent name="C:\Users\mathm\IdeaProjects\Magma\@magma\app\src\magma" />
+    </key>
+    <key name="MoveFile.RECENT_KEYS">
+      <recent name="C:\Users\mathm\IdeaProjects\Magma\tests\magma" />
+      <recent name="C:\Users\mathm\IdeaProjects\Magma\src\magma" />
+      <recent name="C:\Users\mathm\IdeaProjects\Magma\src\java\magma\api\collect\query" />
+      <recent name="C:\Users\mathm\IdeaProjects\Magma\src\java\magma\api\text" />
+      <recent name="C:\Users\mathm\IdeaProjects\Magma\src\java\magma\jvm" />
+    </key>
+    <key name="MoveMembersDialog.RECENTS_KEY">
+      <recent name="magmac.app.lang.JavaRules" />
+      <recent name="magmac.app.lang.java.JavaDeserializers" />
+      <recent name="magmac.app.lang.node.Deserializer" />
+      <recent name="magmac.app.lang.web.TypescriptLang.FunctionSegment" />
+      <recent name="magmac.app.lang.web.TypescriptLang.FunctionSegmentValue" />
+    </key>
+    <key name="ExtractSuperBase.RECENT_KEYS">
+      <recent name="magmac.app.lang.common" />
+      <recent name="magmac.app.lang.node" />
+      <recent name="magmac.app.lang.java" />
+      <recent name="magmac.app.compile.node" />
+      <recent name="magmac.app.stage" />
+    </key>
+    <key name="MoveInnerDialog.RECENTS_KEY">
+      <recent name="" />
+      <recent name="magmac.app.lang.node" />
+      <recent name="magmac.app.lang.web.Lang" />
+      <recent name="magmac.app.lang.java" />
+      <recent name="magmac.app.compile.node" />
+    </key>
+    <key name="MoveClassesOrPackagesDialog.RECENTS_KEY">
+      <recent name="magmac.app.lang.java" />
+      <recent name="magmac.app.lang.common" />
+      <recent name="magmac.app.lang.web" />
+      <recent name="magmac.app.lang.node" />
+      <recent name="magmac.app.lang" />
+    </key>
+    <key name="IntroduceParameterObject.EXISTING_KEY">
+      <recent name="magma.compile.transform.State" />
+    </key>
+    <key name="CopyClassDialog.RECENTS_KEY">
+      <recent name="magmac.app.lang.web" />
+      <recent name="magmac.app.lang.node" />
+      <recent name="magmac.app.lang.java.block" />
+      <recent name="magmac.app.lang.java.function" />
+      <recent name="magmac.app.compile.rule.split" />
+    </key>
+  </component>
+  <component name="RunManager" selected="JUnit.All in Magma">
+    <configuration name="All in Magma" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
+      <module name="Magma" />
+      <option name="PACKAGE_NAME" value="" />
+      <option name="TEST_OBJECT" value="package" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="GenerateDiagramTest" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
+      <module name="Magma" />
+      <extension name="coverage">
+        <pattern>
+          <option name="PATTERN" value="magma.*" />
+          <option name="ENABLED" value="true" />
+        </pattern>
+      </extension>
+      <option name="PACKAGE_NAME" value="magma" />
+      <option name="MAIN_CLASS_NAME" value="magma.GenerateDiagramTest" />
+      <option name="TEST_OBJECT" value="class" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration default="true" type="JetRunConfigurationType">
+      <module name="Magma" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration default="true" type="KotlinStandaloneScriptRunConfigurationType">
+      <module name="Magma" />
+      <option name="filePath" />
+      <method v="2" />
+    </configuration>
+    <recent_temporary>
+      <list>
+        <item itemvalue="JUnit.All in Magma" />
+        <item itemvalue="JUnit.GenerateDiagramTest" />
+      </list>
+    </recent_temporary>
+  </component>
+  <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
+  <component name="StructuralSearchPlugin">
+    <replaceConfiguration name="Tuple2&lt;Location, $T$&gt;" created="1748442277227" uuid="db4b32bb-b2a1-36a8-a896-0d91c20dad28" text="Tuple2&lt;Location, $T$&gt;" recursive="false" caseInsensitive="false" type="JAVA" pattern_context="default" scope_type="PROJECT" scope_descriptor="" search_injected="false" reformatAccordingToStyle="false" shortenFQN="false" replacement="Unit&lt;$T$&gt;" history="1">
+      <constraint name="__context__" within="" contains="" />
+      <constraint name="T" within="" contains="" />
+      <variableDefinition name="T" />
+    </replaceConfiguration>
+    <replaceConfiguration name="Option&lt;Tuple2&lt;ParseState, Node&gt;&gt;" created="1748442265151" uuid="db4b32bb-b2a1-36a8-a896-0d91c20dad28" text="Option&lt;Tuple2&lt;ParseState, Node&gt;&gt;" recursive="false" caseInsensitive="false" type="JAVA" pattern_context="default" scope_type="PROJECT" scope_descriptor="" search_injected="false" reformatAccordingToStyle="false" shortenFQN="false" replacement="magmac.app.stage.PassResult" history="1">
+      <constraint name="__context__" within="" contains="" />
+    </replaceConfiguration>
+    <replaceConfiguration name="Result&lt;$T$, IOException&gt;" created="1748442265151" uuid="db4b32bb-b2a1-36a8-a896-0d91c20dad28" text="Result&lt;$T$, IOException&gt;" recursive="false" caseInsensitive="false" type="JAVA" pattern_context="default" scope_type="NAMED" scope_descriptor="Current File" search_injected="false" reformatAccordingToStyle="false" shortenFQN="false" replacement="IOResult&lt;$T$&gt;" history="1">
+      <constraint name="__context__" within="" contains="" />
+      <constraint name="T" within="" contains="" />
+    </replaceConfiguration>
+    <replaceConfiguration name="Result&lt;$T$, CompileError&gt;" created="1748442265151" uuid="db4b32bb-b2a1-36a8-a896-0d91c20dad28" text="Result&lt;$T$, CompileError&gt;" recursive="false" caseInsensitive="false" type="JAVA" pattern_context="default" scope_type="PROJECT" scope_descriptor="" search_injected="false" reformatAccordingToStyle="false" shortenFQN="false" replacement="CompileResult&lt;$T$&gt;" history="1">
+      <constraint name="__context__" within="" contains="" />
+      <constraint name="T" within="" contains="" />
+    </replaceConfiguration>
+    <replaceConfiguration name="Option&lt;Tuple2&lt;CompileState, $T$&gt;&gt;" created="1748442265151" uuid="db4b32bb-b2a1-36a8-a896-0d91c20dad28" text="Option&lt;Tuple2&lt;CompileState, $T$&gt;&gt;" recursive="false" caseInsensitive="false" type="JAVA" pattern_context="default" scope_type="PROJECT" scope_descriptor="" search_injected="false" reformatAccordingToStyle="false" shortenFQN="false" replacement="Result&lt;Tuple2&lt;CompileState, $T$&gt;, CompileError&gt;" history="1">
+      <constraint name="__context__" within="" contains="" />
+      <constraint name="T" within="" contains="" />
+    </replaceConfiguration>
+    <replaceConfiguration name="BiFunction&lt;CompileState, String, Result&lt;…" created="1748442265151" uuid="db4b32bb-b2a1-36a8-a896-0d91c20dad28" text="BiFunction&lt;CompileState, String, Result&lt;Tuple&lt;CompileState, $T$&gt;, CompileError&gt;&gt;" recursive="false" caseInsensitive="false" type="JAVA" pattern_context="default" scope_type="PROJECT" scope_descriptor="" search_injected="false" reformatAccordingToStyle="false" shortenFQN="false" replacement="Rule&lt;$T$&gt;" history="1">
+      <constraint name="__context__" within="" contains="" />
+      <constraint name="T" within="" contains="" />
+      <variableDefinition name="T" />
+    </replaceConfiguration>
+    <replaceConfiguration name="Result&lt;$T$, CompileError&gt;" created="1748442265151" uuid="db4b32bb-b2a1-36a8-a896-0d91c20dad28" text="Result&lt;$T$, CompileError&gt;" recursive="false" caseInsensitive="false" type="JAVA" pattern_context="default" scope_type="PROJECT" scope_descriptor="" search_injected="false" reformatAccordingToStyle="false" shortenFQN="false" replacement="Result&lt;Main.Tuple&lt;CompileStates.CompileState, $T$&gt;, CompileError&gt;" history="1">
+      <constraint name="__context__" within="" contains="" />
+      <constraint name="T" within="" contains="" />
+      <variableDefinition name="T" />
+    </replaceConfiguration>
+    <searchConfiguration name="Result&lt;$T$, CompileError&gt;" created="1748442265151" uuid="db4b32bb-b2a1-36a8-a896-0d91c20dad28" text="Result&lt;$T$, CompileError&gt;" recursive="true" caseInsensitive="false" type="JAVA" pattern_context="default" scope_type="PROJECT" scope_descriptor="" search_injected="false" history="1">
+      <constraint name="__context__" within="" contains="" />
+      <constraint name="T" within="" contains="" />
+    </searchConfiguration>
+  </component>
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="ddea09a6-33bf-4a11-8cf0-08ec72b0dd6c" name="Changes" comment="" />
+      <created>1742484596676</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1742484596676</updated>
+      <workItem from="1742484597893" duration="1195000" />
+      <workItem from="1742491842894" duration="4395000" />
+      <workItem from="1742496294915" duration="654000" />
+      <workItem from="1742496974413" duration="1108000" />
+      <workItem from="1742594009272" duration="1246000" />
+      <workItem from="1742595562500" duration="1986000" />
+      <workItem from="1742597584946" duration="3357000" />
+      <workItem from="1742601255929" duration="2077000" />
+      <workItem from="1742612948782" duration="1466000" />
+      <workItem from="1742614579115" duration="965000" />
+      <workItem from="1742658935413" duration="1346000" />
+      <workItem from="1742679831775" duration="2068000" />
+      <workItem from="1742691657873" duration="2350000" />
+    </task>
+    <task id="LOCAL-04067" summary="Return">
+      <option name="closed" value="true" />
+      <created>1748918959513</created>
+      <option name="number" value="04067" />
+      <option name="presentableId" value="LOCAL-04067" />
+      <option name="project" value="LOCAL" />
+      <updated>1748918959513</updated>
+    </task>
+    <task id="LOCAL-04068" summary="Add missing impls">
+      <option name="closed" value="true" />
+      <created>1748921156006</created>
+      <option name="number" value="04068" />
+      <option name="presentableId" value="LOCAL-04068" />
+      <option name="project" value="LOCAL" />
+      <updated>1748921156006</updated>
+    </task>
+    <task id="LOCAL-04069" summary="Rebuild">
+      <option name="closed" value="true" />
+      <created>1748921170473</created>
+      <option name="number" value="04069" />
+      <option name="presentableId" value="LOCAL-04069" />
+      <option name="project" value="LOCAL" />
+      <updated>1748921170473</updated>
+    </task>
+    <task id="LOCAL-04070" summary="Callers">
+      <option name="closed" value="true" />
+      <created>1748921303786</created>
+      <option name="number" value="04070" />
+      <option name="presentableId" value="LOCAL-04070" />
+      <option name="project" value="LOCAL" />
+      <updated>1748921303786</updated>
+    </task>
+    <task id="LOCAL-04071" summary="Fix post">
+      <option name="closed" value="true" />
+      <created>1748921407526</created>
+      <option name="number" value="04071" />
+      <option name="presentableId" value="LOCAL-04071" />
+      <option name="project" value="LOCAL" />
+      <updated>1748921407526</updated>
+    </task>
+    <task id="LOCAL-04072" summary="Fix">
+      <option name="closed" value="true" />
+      <created>1748921461881</created>
+      <option name="number" value="04072" />
+      <option name="presentableId" value="LOCAL-04072" />
+      <option name="project" value="LOCAL" />
+      <updated>1748921461881</updated>
+    </task>
+    <task id="LOCAL-04073" summary="Invocations">
+      <option name="closed" value="true" />
+      <created>1748921775908</created>
+      <option name="number" value="04073" />
+      <option name="presentableId" value="LOCAL-04073" />
+      <option name="project" value="LOCAL" />
+      <updated>1748921775908</updated>
+    </task>
+    <task id="LOCAL-04074" summary="Chars">
+      <option name="closed" value="true" />
+      <created>1748921868033</created>
+      <option name="number" value="04074" />
+      <option name="presentableId" value="LOCAL-04074" />
+      <option name="project" value="LOCAL" />
+      <updated>1748921868033</updated>
+    </task>
+    <task id="LOCAL-04075" summary="Parse invokables">
+      <option name="closed" value="true" />
+      <created>1748921976281</created>
+      <option name="number" value="04075" />
+      <option name="presentableId" value="LOCAL-04075" />
+      <option name="project" value="LOCAL" />
+      <updated>1748921976281</updated>
+    </task>
+    <task id="LOCAL-04076" summary="Index">
+      <option name="closed" value="true" />
+      <created>1748922059373</created>
+      <option name="number" value="04076" />
+      <option name="presentableId" value="LOCAL-04076" />
+      <option name="project" value="LOCAL" />
+      <updated>1748922059373</updated>
+    </task>
+    <task id="LOCAL-04077" summary="Numbers">
+      <option name="closed" value="true" />
+      <created>1748922615087</created>
+      <option name="number" value="04077" />
+      <option name="presentableId" value="LOCAL-04077" />
+      <option name="project" value="LOCAL" />
+      <updated>1748922615087</updated>
+    </task>
+    <task id="LOCAL-04078" summary="Strings">
+      <option name="closed" value="true" />
+      <created>1748922699276</created>
+      <option name="number" value="04078" />
+      <option name="presentableId" value="LOCAL-04078" />
+      <option name="project" value="LOCAL" />
+      <updated>1748922699276</updated>
+    </task>
+    <task id="LOCAL-04079" summary="Symbols">
+      <option name="closed" value="true" />
+      <created>1748922809506</created>
+      <option name="number" value="04079" />
+      <option name="presentableId" value="LOCAL-04079" />
+      <option name="project" value="LOCAL" />
+      <updated>1748922809506</updated>
+    </task>
+    <task id="LOCAL-04080" summary="Operations">
+      <option name="closed" value="true" />
+      <created>1748922936966</created>
+      <option name="number" value="04080" />
+      <option name="presentableId" value="LOCAL-04080" />
+      <option name="project" value="LOCAL" />
+      <updated>1748922936966</updated>
+    </task>
+    <task id="LOCAL-04081" summary="OK">
+      <option name="closed" value="true" />
+      <created>1748923295743</created>
+      <option name="number" value="04081" />
+      <option name="presentableId" value="LOCAL-04081" />
+      <option name="project" value="LOCAL" />
+      <updated>1748923295743</updated>
+    </task>
+    <task id="LOCAL-04082" summary="Cleanup">
+      <option name="closed" value="true" />
+      <created>1748923389967</created>
+      <option name="number" value="04082" />
+      <option name="presentableId" value="LOCAL-04082" />
+      <option name="project" value="LOCAL" />
+      <updated>1748923389967</updated>
+    </task>
+    <task id="LOCAL-04083" summary="OK">
+      <option name="closed" value="true" />
+      <created>1748924181019</created>
+      <option name="number" value="04083" />
+      <option name="presentableId" value="LOCAL-04083" />
+      <option name="project" value="LOCAL" />
+      <updated>1748924181019</updated>
+    </task>
+    <task id="LOCAL-04084" summary="Instanceof rul">
+      <option name="closed" value="true" />
+      <created>1748924322618</created>
+      <option name="number" value="04084" />
+      <option name="presentableId" value="LOCAL-04084" />
+      <option name="project" value="LOCAL" />
+      <updated>1748924322619</updated>
+    </task>
+    <task id="LOCAL-04085" summary="OK">
+      <option name="closed" value="true" />
+      <created>1748924687088</created>
+      <option name="number" value="04085" />
+      <option name="presentableId" value="LOCAL-04085" />
+      <option name="project" value="LOCAL" />
+      <updated>1748924687088</updated>
+    </task>
+    <task id="LOCAL-04086" summary="Assignments">
+      <option name="closed" value="true" />
+      <created>1748925521865</created>
+      <option name="number" value="04086" />
+      <option name="presentableId" value="LOCAL-04086" />
+      <option name="project" value="LOCAL" />
+      <updated>1748925521865</updated>
+    </task>
+    <task id="LOCAL-04087" summary="OK">
+      <option name="closed" value="true" />
+      <created>1748925849769</created>
+      <option name="number" value="04087" />
+      <option name="presentableId" value="LOCAL-04087" />
+      <option name="project" value="LOCAL" />
+      <updated>1748925849769</updated>
+    </task>
+    <task id="LOCAL-04088" summary="Rename">
+      <option name="closed" value="true" />
+      <created>1748957445072</created>
+      <option name="number" value="04088" />
+      <option name="presentableId" value="LOCAL-04088" />
+      <option name="project" value="LOCAL" />
+      <updated>1748957445072</updated>
+    </task>
+    <task id="LOCAL-04089" summary="Cleanup">
+      <option name="closed" value="true" />
+      <created>1748957729423</created>
+      <option name="number" value="04089" />
+      <option name="presentableId" value="LOCAL-04089" />
+      <option name="project" value="LOCAL" />
+      <updated>1748957729423</updated>
+    </task>
+    <task id="LOCAL-04090" summary="Fix ?">
+      <option name="closed" value="true" />
+      <created>1748957836958</created>
+      <option name="number" value="04090" />
+      <option name="presentableId" value="LOCAL-04090" />
+      <option name="project" value="LOCAL" />
+      <updated>1748957836958</updated>
+    </task>
+    <task id="LOCAL-04091" summary="Diagram fix">
+      <option name="closed" value="true" />
+      <created>1748958019200</created>
+      <option name="number" value="04091" />
+      <option name="presentableId" value="LOCAL-04091" />
+      <option name="project" value="LOCAL" />
+      <updated>1748958019200</updated>
+    </task>
+    <task id="LOCAL-04092" summary="Remove old code">
+      <option name="closed" value="true" />
+      <created>1748958377680</created>
+      <option name="number" value="04092" />
+      <option name="presentableId" value="LOCAL-04092" />
+      <option name="project" value="LOCAL" />
+      <updated>1748958377680</updated>
+    </task>
+    <task id="LOCAL-04093" summary="Fix instanceof">
+      <option name="closed" value="true" />
+      <created>1748962315777</created>
+      <option name="number" value="04093" />
+      <option name="presentableId" value="LOCAL-04093" />
+      <option name="project" value="LOCAL" />
+      <updated>1748962315777</updated>
+    </task>
+    <task id="LOCAL-04094" summary="Empty">
+      <option name="closed" value="true" />
+      <created>1748962493729</created>
+      <option name="number" value="04094" />
+      <option name="presentableId" value="LOCAL-04094" />
+      <option name="project" value="LOCAL" />
+      <updated>1748962493729</updated>
+    </task>
+    <task id="LOCAL-04095" summary="Hmmm">
+      <option name="closed" value="true" />
+      <created>1748962713412</created>
+      <option name="number" value="04095" />
+      <option name="presentableId" value="LOCAL-04095" />
+      <option name="project" value="LOCAL" />
+      <updated>1748962713412</updated>
+    </task>
+    <task id="LOCAL-04096" summary="Save .log">
+      <option name="closed" value="true" />
+      <created>1748965533776</created>
+      <option name="number" value="04096" />
+      <option name="presentableId" value="LOCAL-04096" />
+      <option name="project" value="LOCAL" />
+      <updated>1748965533776</updated>
+    </task>
+    <task id="LOCAL-04097" summary="More repairs">
+      <option name="closed" value="true" />
+      <created>1748966815210</created>
+      <option name="number" value="04097" />
+      <option name="presentableId" value="LOCAL-04097" />
+      <option name="project" value="LOCAL" />
+      <updated>1748966815210</updated>
+    </task>
+    <task id="LOCAL-04098" summary="Hmmm">
+      <option name="closed" value="true" />
+      <created>1748977631541</created>
+      <option name="number" value="04098" />
+      <option name="presentableId" value="LOCAL-04098" />
+      <option name="project" value="LOCAL" />
+      <updated>1748977631541</updated>
+    </task>
+    <task id="LOCAL-04099" summary="Rebuild">
+      <option name="closed" value="true" />
+      <created>1748985841164</created>
+      <option name="number" value="04099" />
+      <option name="presentableId" value="LOCAL-04099" />
+      <option name="project" value="LOCAL" />
+      <updated>1748985841164</updated>
+    </task>
+    <task id="LOCAL-04100" summary="Pass around TypeMap">
+      <option name="closed" value="true" />
+      <created>1748986051612</created>
+      <option name="number" value="04100" />
+      <option name="presentableId" value="LOCAL-04100" />
+      <option name="project" value="LOCAL" />
+      <updated>1748986051612</updated>
+    </task>
+    <task id="LOCAL-04101" summary="Ignore /web folder">
+      <option name="closed" value="true" />
+      <created>1748992794607</created>
+      <option name="number" value="04101" />
+      <option name="presentableId" value="LOCAL-04101" />
+      <option name="project" value="LOCAL" />
+      <updated>1748992794607</updated>
+    </task>
+    <task id="LOCAL-04102" summary="Add log.txt">
+      <option name="closed" value="true" />
+      <created>1748993370352</created>
+      <option name="number" value="04102" />
+      <option name="presentableId" value="LOCAL-04102" />
+      <option name="project" value="LOCAL" />
+      <updated>1748993370352</updated>
+    </task>
+    <task id="LOCAL-04103" summary="Inspection files">
+      <option name="closed" value="true" />
+      <created>1748996589779</created>
+      <option name="number" value="04103" />
+      <option name="presentableId" value="LOCAL-04103" />
+      <option name="project" value="LOCAL" />
+      <updated>1748996589779</updated>
+    </task>
+    <task id="LOCAL-04104" summary="Update">
+      <option name="closed" value="true" />
+      <created>1748998389404</created>
+      <option name="number" value="04104" />
+      <option name="presentableId" value="LOCAL-04104" />
+      <option name="project" value="LOCAL" />
+      <updated>1748998389404</updated>
+    </task>
+    <task id="LOCAL-04105" summary="Basic cleanup">
+      <option name="closed" value="true" />
+      <created>1748998463029</created>
+      <option name="number" value="04105" />
+      <option name="presentableId" value="LOCAL-04105" />
+      <option name="project" value="LOCAL" />
+      <updated>1748998463029</updated>
+    </task>
+    <task id="LOCAL-04106" summary="Remove unused code">
+      <option name="closed" value="true" />
+      <created>1749002315461</created>
+      <option name="number" value="04106" />
+      <option name="presentableId" value="LOCAL-04106" />
+      <option name="project" value="LOCAL" />
+      <updated>1749002315461</updated>
+    </task>
+    <task id="LOCAL-04107" summary="Hmmm">
+      <option name="closed" value="true" />
+      <created>1749005847313</created>
+      <option name="number" value="04107" />
+      <option name="presentableId" value="LOCAL-04107" />
+      <option name="project" value="LOCAL" />
+      <updated>1749005847313</updated>
+    </task>
+    <task id="LOCAL-04108" summary="Test passes!">
+      <option name="closed" value="true" />
+      <created>1749005886864</created>
+      <option name="number" value="04108" />
+      <option name="presentableId" value="LOCAL-04108" />
+      <option name="project" value="LOCAL" />
+      <updated>1749005886864</updated>
+    </task>
+    <task id="LOCAL-04109" summary="Hmmm">
+      <option name="closed" value="true" />
+      <created>1749006232387</created>
+      <option name="number" value="04109" />
+      <option name="presentableId" value="LOCAL-04109" />
+      <option name="project" value="LOCAL" />
+      <updated>1749006232387</updated>
+    </task>
+    <task id="LOCAL-04110" summary="Rename">
+      <option name="closed" value="true" />
+      <created>1749006253709</created>
+      <option name="number" value="04110" />
+      <option name="presentableId" value="LOCAL-04110" />
+      <option name="project" value="LOCAL" />
+      <updated>1749006253709</updated>
+    </task>
+    <task id="LOCAL-04111" summary="Hmmm">
+      <option name="closed" value="true" />
+      <created>1749006493303</created>
+      <option name="number" value="04111" />
+      <option name="presentableId" value="LOCAL-04111" />
+      <option name="project" value="LOCAL" />
+      <updated>1749006493303</updated>
+    </task>
+    <task id="LOCAL-04112" summary="Rebuild">
+      <option name="closed" value="true" />
+      <created>1749009240344</created>
+      <option name="number" value="04112" />
+      <option name="presentableId" value="LOCAL-04112" />
+      <option name="project" value="LOCAL" />
+      <updated>1749009240344</updated>
+    </task>
+    <task id="LOCAL-04113" summary="Hmmm">
+      <option name="closed" value="true" />
+      <created>1749011110689</created>
+      <option name="number" value="04113" />
+      <option name="presentableId" value="LOCAL-04113" />
+      <option name="project" value="LOCAL" />
+      <updated>1749011110689</updated>
+    </task>
+    <task id="LOCAL-04114" summary="Hard reset!">
+      <option name="closed" value="true" />
+      <created>1749041102708</created>
+      <option name="number" value="04114" />
+      <option name="presentableId" value="LOCAL-04114" />
+      <option name="project" value="LOCAL" />
+      <updated>1749041102708</updated>
+    </task>
+    <task id="LOCAL-04115" summary="Hard reset!">
+      <option name="closed" value="true" />
+      <created>1749041110199</created>
+      <option name="number" value="04115" />
+      <option name="presentableId" value="LOCAL-04115" />
+      <option name="project" value="LOCAL" />
+      <updated>1749041110199</updated>
+    </task>
+    <option name="localTasksCounter" value="4116" />
+    <servers />
+  </component>
+  <component name="TypeScriptGeneratedFilesManager">
+    <option name="version" value="3" />
+  </component>
+  <component name="UnknownFeatures">
+    <option featureType="com.intellij.fileTypeFactory" implementationName="*.ts" />
+    <option featureType="com.intellij.fileTypeFactory" implementationName="*.py" />
+  </component>
+  <component name="Vcs.Log.Tabs.Properties">
+    <option name="TAB_STATES">
+      <map>
+        <entry key="MAIN">
+          <value>
+            <State />
+          </value>
+        </entry>
+      </map>
+    </option>
+  </component>
+  <component name="VcsManagerConfiguration">
+    <MESSAGE value="Symbols" />
+    <MESSAGE value="Operations" />
+    <MESSAGE value="Instanceof rul" />
+    <MESSAGE value="Assignments" />
+    <MESSAGE value="OK" />
+    <MESSAGE value="Cleanup" />
+    <MESSAGE value="Fix ?" />
+    <MESSAGE value="Diagram fix" />
+    <MESSAGE value="Remove old code" />
+    <MESSAGE value="Fix instanceof" />
+    <MESSAGE value="Empty" />
+    <MESSAGE value="Save .log" />
+    <MESSAGE value="More repairs" />
+    <MESSAGE value="Pass around TypeMap" />
+    <MESSAGE value="Ignore /web folder" />
+    <MESSAGE value="Add log.txt" />
+    <MESSAGE value="Inspection files" />
+    <MESSAGE value="Update" />
+    <MESSAGE value="Basic cleanup" />
+    <MESSAGE value="Remove unused code" />
+    <MESSAGE value="Test passes!" />
+    <MESSAGE value="Rename" />
+    <MESSAGE value="Rebuild" />
+    <MESSAGE value="Hmmm" />
+    <MESSAGE value="Hard reset!" />
+    <option name="LAST_COMMIT_MESSAGE" value="Hard reset!" />
+  </component>
+  <component name="XDebuggerManager">
+    <pin-to-top-manager>
+      <pinned-members>
+        <PinnedItemInfo parentTag="java.util.HashMap$Node" memberName="key" />
+        <PinnedItemInfo parentTag="magma.compile.MapNode" memberName="maybeType" />
+        <PinnedItemInfo parentTag="java.util.HashMap$Node" memberName="value" />
+        <PinnedItemInfo parentTag="jvm.collect.map.JavaMap" memberName="map" />
+        <PinnedItemInfo parentTag="magma.option.Tuple" memberName="right" />
+        <PinnedItemInfo parentTag="magma.Main$Maps$JavaMap" memberName="internalMap" />
+        <PinnedItemInfo parentTag="magma.Main$StructType" memberName="properties" />
+      </pinned-members>
+    </pin-to-top-manager>
+    <watches-manager>
+      <configuration name="Application">
+        <watch expression="thisNamespace" />
+        <watch expression="expansion" />
+      </configuration>
+    </watches-manager>
+  </component>
+  <component name="com.intellij.coverage.CoverageDataManagerImpl">
+    <SUITE FILE_PATH="coverage/Magma$Main.ic" NAME="Main Coverage Results" MODIFIED="1746629102056" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="idea" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="true">
+      <FILTER>magma.*</FILTER>
+    </SUITE>
+  </component>
+</project>
