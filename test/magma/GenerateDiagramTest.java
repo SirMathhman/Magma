@@ -39,6 +39,11 @@ public class GenerateDiagramTest {
             assertTrue(content.contains("class " + cls + "\n"),
                     "Diagram missing class " + cls);
         }
+        String[] expectedRelations = {"Ok --|> Result", "Err --|> Result"};
+        for (String rel : expectedRelations) {
+            assertTrue(content.contains(rel + "\n"),
+                    "Diagram missing relation " + rel);
+        }
     }
 
 }
