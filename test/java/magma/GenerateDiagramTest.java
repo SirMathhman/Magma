@@ -120,21 +120,21 @@ public class GenerateDiagramTest {
     }
 
     @Test
-    public void diagramContainsGenerateDiagramResultDependency() {
+    public void diagramOmitsGenerateDiagramResultDependency() {
         String content = diagramContent();
-        assertTrue(content.contains("GenerateDiagram --> Result\n"), "Diagram missing dependency GenerateDiagram --> Result");
+        assertTrue(!content.contains("GenerateDiagram --> Result\n"), "Diagram should omit dependency GenerateDiagram --> Result");
     }
 
     @Test
-    public void diagramOmitsGenerateDiagramOkDependency() {
+    public void diagramContainsGenerateDiagramOkDependency() {
         String content = diagramContent();
-        assertTrue(!content.contains("GenerateDiagram --> Ok\n"), "Diagram should omit dependency GenerateDiagram --> Ok");
+        assertTrue(content.contains("GenerateDiagram --> Ok\n"), "Diagram missing dependency GenerateDiagram --> Ok");
     }
 
     @Test
-    public void diagramOmitsGenerateDiagramErrDependency() {
+    public void diagramContainsGenerateDiagramErrDependency() {
         String content = diagramContent();
-        assertTrue(!content.contains("GenerateDiagram --> Err\n"), "Diagram should omit dependency GenerateDiagram --> Err");
+        assertTrue(content.contains("GenerateDiagram --> Err\n"), "Diagram missing dependency GenerateDiagram --> Err");
     }
 
     @Test
