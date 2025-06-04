@@ -23,7 +23,8 @@ public class GenerateDiagramTest {
     @Test
     public void testReadSelfContainsClassName() throws Exception {
         String source = GenerateDiagram.readSelf();
-        assertTrue(source.contains("class GenerateDiagram"),
+        String classDecl = "class " + GenerateDiagram.class.getSimpleName();
+        assertTrue(source.contains(classDecl),
                 "Source should contain its own class declaration");
         assertTrue(GenerateDiagram.hasClassDeclaration(),
                 "hasClassDeclaration should return true");
