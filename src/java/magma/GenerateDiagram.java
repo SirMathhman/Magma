@@ -180,6 +180,31 @@ public class GenerateDiagram {
                 String prefix = staticKw == null ? "" : "static ";
                 list.add("\t" + prefix + name + "(): " + tsType(returnType) + " {");
                 list.add("\t}");
+        java.util.regex.Matcher cMatcher = classPat.matcher(source);
+        while (cMatcher.find()) {
+            String name = cMatcher.group(1);
+            int start = cMatcher.end();
+            int level = 1;
+            int i = start;
+            while (i < source.length() && level > 0) {
+                char ch = source.charAt(i);
+                if (ch == '{') level++; else if (ch == '}') level--;
+                i++;
+            }
+            String body = source.substring(start, i - 1);
+            java.util.regex.Pattern methodPat = java.util.regex.Pattern.compile(
+                    "(?:public\\s+|protected\\s+|private\\s+)?(static\\s+)?(?:final\\s+)?([\\w.]+(?:<[^>]+>)?(?:\\[\\])*)\\s+(\\w+)\\s*\\([^)]*\\)\\s*\\{");
+            java.util.regex.Matcher mMatcher = methodPat.matcher(body);
+            java.util.List<String> list = new java.util.ArrayList<>();
+            while (mMatcher.find()) {
+                String staticKw = mMatcher.group(1);
+                String returnType = mMatcher.group(2);
+                String mName = mMatcher.group(3);
+                if (!mName.equals(name)) {
+                    String prefix = staticKw == null ? "" : "static ";
+                    list.add("\t" + prefix + mName + "(): " + tsType(returnType) + " {");
+                    list.add("\t}");
+                }
             }
         }
         return list;

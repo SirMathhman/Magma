@@ -65,5 +65,5 @@ It compiles the Java sources with the JDK available on the runner
 (currently 21) and preview features enabled.
 The workflow calls `build.sh` and `test.sh` to keep the CI steps in sync with
 the local helper scripts.
-Compilation of the generated TypeScript is currently **skipped** because the
-compiler's TypeScript pipeline is still under development.
+Compilation of the generated TypeScript is not part of the pipeline. You can
+manually verify the stubs by running `./check-ts.sh` after generating them.
