@@ -8,5 +8,5 @@ if [ ! -d "$OUT_DIR" ]; then
   "$SCRIPT_DIR/build.sh"
 fi
 
-java --enable-preview -cp "$OUT_DIR" magma.GenerateDiagram "$@"
+java --enable-preview -cp "$OUT_DIR" magma.Main "$@"
 
