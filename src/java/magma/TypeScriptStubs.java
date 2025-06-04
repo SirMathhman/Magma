@@ -58,18 +58,53 @@ public final class TypeScriptStubs {
 
     private static List<String> readDeclarations(Path file) throws IOException {
         String source = Files.readString(file);
-        var pattern = java.util.regex.Pattern.compile(
-                "^(?:public\\s+|protected\\s+|private\\s+)?(?:static\\s+)?(?:final\\s+)?(?:sealed\\s+)?(class|interface|record)\\s+(\\w+(?:<[^>]+>)?)",
+        source = source.replaceAll("(?s)/\\*.*?\\*/", "");
+        source = source.replaceAll("//.*", "");
+
+        var classPat = java.util.regex.Pattern.compile(
+                "^(?:public\\s+|protected\\s+|private\\s+)?(?:static\\s+)?(?:final\\s+)?(?:sealed\\s+)?(class|interface|record)\\s+(\\w+(?:<[^>{}]+>)?)",
                 java.util.regex.Pattern.MULTILINE);
-        var matcher = pattern.matcher(source);
+
+        var matcher = classPat.matcher(source);
         List<String> declarations = new java.util.ArrayList<>();
         while (matcher.find()) {
             String kind = matcher.group(1);
             String name = matcher.group(2);
+            int start = matcher.end();
+            int brace = source.indexOf('{', start);
+            if (brace == -1) {
+                continue;
+            }
+            String rest = source.substring(start, brace);
+            rest = rest.replaceAll("\\s+", " ").trim();
+
+            String extendsPart = null;
+            String implementsPart = null;
+            int extIdx = rest.indexOf("extends ");
+            int implIdx = rest.indexOf("implements ");
+            if (extIdx != -1) {
+                if (implIdx != -1) {
+                    extendsPart = rest.substring(extIdx + 8, implIdx).trim();
+                } else {
+                    extendsPart = rest.substring(extIdx + 8).trim();
+                }
+            }
+            if (implIdx != -1) {
+                implementsPart = rest.substring(implIdx + 11).trim();
+            }
+
             if ("record".equals(kind)) {
                 kind = "class";
             }
-            declarations.add("export " + kind + " " + name + " {}");
+            StringBuilder decl = new StringBuilder("export " + kind + " " + name);
+            if (extendsPart != null && !extendsPart.isEmpty()) {
+                decl.append(" extends ").append(extendsPart);
+            }
+            if (implementsPart != null && !implementsPart.isEmpty()) {
+                decl.append(" implements ").append(implementsPart);
+            }
+            decl.append(" {}");
+            declarations.add(decl.toString());
         }
         return declarations;
     }
@@ -147,10 +182,10 @@ public final class TypeScriptStubs {
             return builder.toString();
         }
 
-        var namePattern = java.util.regex.Pattern.compile("export \\w+ (\\w+)(?:<[^>]+>)? \\{\\}");
+        var namePattern = java.util.regex.Pattern.compile("export \\w+ (\\w+)(?:<[^>]+>)?");
         for (String decl : declarations) {
             var m = namePattern.matcher(decl);
-            if (!m.matches()) {
+            if (!m.find()) {
                 builder.append(decl).append(System.lineSeparator());
                 continue;
             }
