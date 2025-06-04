@@ -44,8 +44,8 @@ public class GenerateDiagramStubsTest {
         Path javaRoot = Files.createTempDirectory("java");
         Path tsRoot = Files.createTempDirectory("ts");
 
-        createTempJavaSource(javaRoot, "test/A.java", "package test;\npublic class A {}\n");
-        createTempJavaSource(javaRoot, "test/B.java", "package test;\nimport test.A;\npublic class B {}\n");
+        writeSource(javaRoot, "test/A.java", "package test;\npublic class A {}\n");
+        writeSource(javaRoot, "test/B.java", "package test;\nimport test.A;\npublic class B {}\n");
 
         Optional<IOException> result = GenerateDiagram.writeTypeScriptStubs(javaRoot, tsRoot);
         if (result.isPresent()) {
@@ -76,7 +76,6 @@ public class GenerateDiagramStubsTest {
         if (result.isPresent()) {
             throw result.get();
         }
-        return tsRoot;
     }
 
     @Test
@@ -84,6 +83,10 @@ public class GenerateDiagramStubsTest {
         Path tsRoot = generateGenericStubs();
         String a = Files.readString(tsRoot.resolve("test/A.ts"));
         assertTrue(a.contains("export class A<T> {}"));
+    }
+
+    private Path generateGenericStubs() {
+        return null;
     }
 
     @Test
@@ -133,7 +136,7 @@ public class GenerateDiagramStubsTest {
         Path javaRoot = Files.createTempDirectory("java");
         Path tsRoot = Files.createTempDirectory("ts");
 
-        createTempJavaSource(javaRoot, "test/C.java",
+        writeSource(javaRoot, "test/C.java",
                 "package test;\npublic class C<T> { public void foo(){} }\n");
 
         Optional<IOException> result = GenerateDiagram.writeTypeScriptStubs(javaRoot, tsRoot);

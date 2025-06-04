@@ -173,7 +173,7 @@
       <recent name="magmac.app.compile.rule.split" />
     </key>
   </component>
-  <component name="RunManager" selected="Application.GenerateDiagram">
+  <component name="RunManager" selected="JUnit.All in Magma">
     <configuration name="GenerateDiagram" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
       <option name="MAIN_CLASS_NAME" value="magma.GenerateDiagram" />
       <module name="Magma" />
@@ -238,9 +238,9 @@
     </configuration>
     <recent_temporary>
       <list>
+        <item itemvalue="JUnit.All in Magma" />
         <item itemvalue="Application.GenerateDiagram" />
         <item itemvalue="JUnit.GenerateDiagramTest" />
-        <item itemvalue="JUnit.All in Magma" />
         <item itemvalue="Shell Script.run.sh" />
         <item itemvalue="JUnit.All in Magma" />
       </list>
