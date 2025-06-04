@@ -6,8 +6,8 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
-import magma.Unit;
 import magma.Err;
+import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -21,7 +21,7 @@ public class GenerateDiagramTest {
         }
     }
 
-    private Result<Unit, IOException> writeDiagram(Path output) {
+    private Optional<IOException> writeDiagram(Path output) {
         return GenerateDiagram.writeDiagram(output);
     }
 
@@ -35,9 +35,9 @@ public class GenerateDiagramTest {
 
     private Path createDiagram() {
         Path output = createOutput();
-        Result<Unit, IOException> result = writeDiagram(output);
-        if (result.isErr()) {
-            throw new RuntimeException(((Err<Unit, IOException>) result).error());
+        Optional<IOException> result = writeDiagram(output);
+        if (result.isPresent()) {
+            throw new RuntimeException(result.get());
         }
         return output;
     }
@@ -49,10 +49,9 @@ public class GenerateDiagramTest {
     @Test
     public void diagramWriteSucceeds() {
         Path output = createOutput();
-        Result<Unit, IOException> result = writeDiagram(output);
-        String message = result.isOk() ? ""
-                : ((Err<Unit, IOException>) result).error().getMessage();
-        assertTrue(result.isOk(), "writeDiagram failed: " + message);
+        Optional<IOException> result = writeDiagram(output);
+        String message = result.isEmpty() ? "" : result.get().getMessage();
+        assertTrue(result.isEmpty(), "writeDiagram failed: " + message);
     }
 
     @Test

@@ -2,9 +2,9 @@ package magma;
 
 /**
  * A simple result type representing either a successful value or an error.
- * It is meant for situations where a returned value is meaningful. If the
- * success case carries no value use {@link magma.Unit Unit} as the
- * successful type.
+ * It is meant for situations where a returned value is meaningful. If there is
+ * no value to return on success, prefer using {@link java.util.Optional
+ * Optional} or another type instead of {@code Result}.
  *
  * @param <T> the successful value type
  * @param <X> the exception type, which must extend {@link Exception}

@@ -4,266 +4,42 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Set;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import java.util.stream.Stream;
+
+import magma.Relation;
+import magma.Sources;
+import java.util.Optional;
 
 public class GenerateDiagram {
     // Helper methods split to comply with SRP (Single Responsibility Principle)
-
     /**
      * Generates a PlantUML diagram and writes it to {@code output}. Instead of
      * throwing an exception, any I/O error is returned wrapped in an
-     * {@code Optional}.
+     * {@link Optional}.
      */
-    public static Result<Unit, IOException> writeDiagram(Path output) {
+    public static Optional<IOException> writeDiagram(Path output) {
         Path src = Path.of("src/magma");
         Result<List<String>, IOException> sources = readSources(src);
         if (sources.isErr()) {
-            return new Err<>(((Err<List<String>, IOException>) sources).error());
+            return Optional.of(((Err<List<String>, IOException>) sources).error());
         }
         List<String> allSources = ((Ok<List<String>, IOException>) sources).value();
-        List<String> classes = findClasses(allSources);
-        var implementations = findImplementations(allSources);
+        Sources analysis = new Sources(allSources);
+        List<String> classes = analysis.findClasses();
+        var implementations = analysis.findImplementations();
         StringBuilder content = new StringBuilder("@startuml\n");
         content.append(classesSection(classes));
-        List<Relation> relations = findRelations(allSources, classes, implementations);
+        List<Relation> relations = analysis.findRelations(classes, implementations);
         content.append(relationsSection(relations));
         content.append("@enduml\n");
         try {
             Files.writeString(output, content.toString());
-            return new Ok<>(Unit.INSTANCE);
+            return Optional.empty();
         } catch (IOException e) {
-            return new Err<>(e);
+            return Optional.of(e);
         }
     }
-
-    private static List<String> findClasses(List<String> sources) {
-        // Matches a class or interface declaration and captures the name.
-        // It allows optional visibility, static/final/sealed modifiers and
-        // works across multiple lines.
-        Pattern pattern = Pattern.compile(
-                "^\\s*(?:public\\s+|protected\\s+|private\\s+)?" +
-                        "(?:static\\s+)?(?:final\\s+)?(?:sealed\\s+)?" +
-                        "(?:class|interface)\\s+(\\w+)",
-                Pattern.MULTILINE);
-        Set<String> unique = new LinkedHashSet<>();
-        for (String src : sources) {
-            unique.addAll(classesFromSource(src, pattern));
-        }
-        List<String> names = new ArrayList<>(unique);
-        Collections.sort(names);
-        return names;
-    }
-
-    private static Set<String> classesFromSource(String src, Pattern pattern) {
-        Set<String> result = new LinkedHashSet<>();
-        Matcher matcher = pattern.matcher(src);
-        while (matcher.find()) {
-            result.add(matcher.group(1));
-        }
-        return result;
-    }
-
-    private static List<Relation> findRelations(List<String> sources,
-                                                List<String> classes,
-                                                java.util.Map<String, java.util.List<String>> implementations) {
-        List<Relation> inheritance = findInheritanceRelations(sources);
-        List<Relation> dependencies =
-                findDependencyRelations(sources, classes, inheritance, implementations);
-        Set<Relation> all = new LinkedHashSet<>();
-        all.addAll(inheritance);
-        all.addAll(dependencies);
-        return new ArrayList<>(all);
-    }
-
-    private static List<Relation> findInheritanceRelations(List<String> sources) {
-        // Matches "class Child extends Parent" or "interface Child extends Parent".
-        // Captures the child name in group 1 and the comma separated parent list
-        // (without generics) in group 2.
-        Pattern extendsPattern = Pattern.compile(
-                "(?:class|interface)\\s+(\\w+)\\s+extends\\s+([\\w\\s,<>]+)");
-
-        // Matches class implementations such as
-        // "class Example implements InterfaceA, InterfaceB". Group 1 is the
-        // class name and group 2 contains the comma separated interfaces.
-        Pattern implementsPattern = Pattern.compile(
-                "class\\s+(\\w+)(?:\\s+extends\\s+\\w+)?\\s+implements\\s+([\\w\\s,<>]+)");
-
-        List<Relation> relations = new ArrayList<>();
-        for (String src : sources) {
-            // Strip generic type information such as "List<String>" as it
-            // complicates the inheritance regexes below.
-            src = src.replaceAll("<[^>]*>", "");
-            src = stripComments(src);
-            relations.addAll(inheritanceFromSource(src, extendsPattern));
-            relations.addAll(inheritanceFromSource(src, implementsPattern));
-        }
-        return relations;
-    }
-
-    private static String stripComments(String src) {
-        src = src.replaceAll("(?s)/\\*.*?\\*/", "");
-        src = src.replaceAll("//.*", "");
-        return src;
-    }
-
-    private static List<Relation> inheritanceFromSource(String src, Pattern pattern) {
-        List<Relation> result = new ArrayList<>();
-        Matcher matcher = pattern.matcher(src);
-        while (matcher.find()) {
-            String child = matcher.group(1);
-            String parents = matcher.group(2);
-            result.addAll(parentRelations(child, parents));
-        }
-        return result;
-    }
-
-    private static List<Relation> parentRelations(String child,
-                                                  String parents) {
-        List<Relation> relations = new ArrayList<>();
-        for (String parent : parents.split(",")) {
-            parent = parent.replaceAll("<.*?>", "").trim();
-            if (!parent.isEmpty()) {
-                relations.add(new Relation(child, "--|>", parent));
-            }
-        }
-        return relations;
-    }
-
-    private static java.util.Map<String, java.util.List<String>> findImplementations(List<String> sources) {
-        Pattern implementsPattern = Pattern.compile(
-                "class\\s+(\\w+)(?:\\s+extends\\s+\\w+)?\\s+implements\\s+([\\w\\s,<>]+)");
-        java.util.Map<String, java.util.List<String>> map = new java.util.HashMap<>();
-        for (String src : sources) {
-            map.putAll(implementationsForSource(src, implementsPattern));
-        }
-        return map;
-    }
-
-    private static java.util.Map<String, java.util.List<String>> implementationsForSource(String src,
-                                                                                          Pattern pattern) {
-        src = src.replaceAll("<[^>]*>", "");
-        src = stripComments(src);
-        Matcher matcher = pattern.matcher(src);
-        java.util.Map<String, java.util.List<String>> map = new java.util.HashMap<>();
-        while (matcher.find()) {
-            String child = matcher.group(1);
-            String parents = matcher.group(2);
-            map.put(child, parseInterfaces(parents));
-        }
-        return map;
-    }
-
-    private static java.util.List<String> parseInterfaces(String parents) {
-        java.util.List<String> interfaces = new java.util.ArrayList<>();
-        for (String parent : parents.split(",")) {
-            parent = parent.replaceAll("<.*?>", "").trim();
-            if (!parent.isEmpty()) {
-                interfaces.add(parent);
-            }
-        }
-        return interfaces;
-    }
-
-    private static java.util.Map<String, String> mapSourcesByClass(List<String> sources) {
-        java.util.Map<String, String> map = new java.util.HashMap<>();
-        Pattern classPattern = Pattern.compile("(?:class|interface)\\s+(\\w+)");
-        for (String src : sources) {
-            String stripped = stripComments(src);
-            Matcher matcher = classPattern.matcher(stripped);
-            if (matcher.find()) {
-                map.put(matcher.group(1), stripped);
-            }
-        }
-        return map;
-    }
-
-    private static java.util.Set<String> toInheritedSet(List<Relation> inheritance) {
-        java.util.Set<String> set = new java.util.LinkedHashSet<>();
-        for (Relation rel : inheritance) {
-            set.add(rel.from() + "->" + rel.to());
-        }
-        return set;
-    }
-
-    private static boolean omitDependency(java.util.Optional<String> source,
-                                          String dependency,
-                                          java.util.Map<String, java.util.List<String>> implementations) {
-        if (source.isEmpty()) {
-            return false;
-        }
-        java.util.List<String> interfaces =
-                implementations.getOrDefault(dependency, java.util.Collections.emptyList());
-        return !interfaces.isEmpty() &&
-                containsInterfaceReference(source.get(), interfaces);
-    }
-
-    private static boolean containsInterfaceReference(String source, java.util.List<String> interfaces) {
-        for (String iface : interfaces) {
-            Pattern word = Pattern.compile("\\b" + Pattern.quote(iface) + "\\b");
-            if (word.matcher(source).find()) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    private static List<Relation> findDependencyRelations(List<String> sources,
-                                                          List<String> classes,
-                                                          List<Relation> inheritance,
-                                                          java.util.Map<String, java.util.List<String>> implementations) {
-        Pattern classPattern = Pattern.compile("(?:class|interface)\\s+(\\w+)");
-
-        java.util.Map<String, String> sourceMap = mapSourcesByClass(sources);
-
-        Set<String> inherited = toInheritedSet(inheritance);
-
-        List<Relation> relations = new ArrayList<>();
-        for (String src : sources) {
-            relations.addAll(dependenciesForSource(src, classPattern, classes,
-                    inherited, sourceMap, implementations));
-        }
-        return relations;
-    }
-
-    private static List<Relation> dependenciesForSource(String src,
-                                                        Pattern classPattern,
-                                                        List<String> classes,
-                                                        Set<String> inherited,
-                                                        java.util.Map<String, String> sourceMap,
-                                                        java.util.Map<String, java.util.List<String>> implementations) {
-        List<Relation> relations = new ArrayList<>();
-        src = stripComments(src);
-        Matcher matcher = classPattern.matcher(src);
-        if (!matcher.find()) {
-            return relations;
-        }
-        String name = matcher.group(1);
-        for (String other : classes) {
-            if (other.equals(name)) {
-                continue;
-            }
-            Pattern word = Pattern.compile("\\b" + Pattern.quote(other) + "\\b");
-            if (!word.matcher(src).find()) {
-                continue;
-            }
-            if (inherited.contains(name + "->" + other)) {
-                continue;
-            }
-            if (omitDependency(java.util.Optional.ofNullable(sourceMap.get(name)),
-                    other, implementations)) {
-                continue;
-            }
-            relations.add(new Relation(name, "-->", other));
-        }
-        return relations;
-    }
-
     private static String classesSection(List<String> classes) {
         StringBuilder builder = new StringBuilder();
         for (String name : classes) {
