@@ -75,18 +75,4 @@ public class GenerateDiagram {
     public static Optional<IOException> writeTypeScriptStubs(Path javaRoot, Path tsRoot) {
         return TypeScriptStubs.write(javaRoot, tsRoot);
     }
-
-
-    public static void main(String[] args) {
-        Path javaRoot = Path.of("src/java");
-        Path tsRoot = Path.of("src/node");
-        writeTypeScriptStubs(javaRoot, tsRoot).ifPresent(e -> {
-            e.printStackTrace();
-            System.exit(1);
-        });
-        writeDiagram(Path.of("diagram.puml")).ifPresent(e -> {
-            e.printStackTrace();
-            System.exit(1);
-        });
-    }
 }

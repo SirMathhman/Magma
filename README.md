@@ -28,11 +28,11 @@ version. A simple way to compile everything into the `out` directory is:
 javac -d out $(find src/java -name '*.java')
 ```
 
-The entry point of the program is `magma.GenerateDiagram`. After compiling you
+The entry point of the program is `magma.Main`. After compiling you
 can run:
 
 ```bash
-java --enable-preview -cp out magma.GenerateDiagram
+java --enable-preview -cp out magma.Main
 ```
 
 For convenience there are helper scripts at the repository root:

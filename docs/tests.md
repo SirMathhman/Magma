@@ -9,4 +9,4 @@ executes the tests:
 ```
 
 The test script compiles the Java sources and then runs the JUnit test suite.
-`GenerateDiagram` is not executed automatically during the tests.
+`Main` is not executed automatically during the tests.

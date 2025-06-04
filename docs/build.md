@@ -8,7 +8,7 @@ compiles all `*.java` files under the `src` directory:
 ```
 
 The script simply compiles the Java sources into the `out` directory. After
-building you can manually run `GenerateDiagram` to create the TypeScript stubs
+building you can manually run `Main` to create the TypeScript stubs
 and update `diagram.puml`. If you want to check that the generated TypeScript
 files compile, execute:
 
