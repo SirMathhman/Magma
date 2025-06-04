@@ -7,16 +7,11 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import static magma.TestUtil.sampleSources;
+
 import static org.junit.jupiter.api.Assertions.*;
 
 public class SourcesRelationsTest {
-    private static Sources sampleSources() {
-        String result = "public interface Result {}";
-        String ok = "public class Ok implements Result {}";
-        String err = "public class Err implements Result {}";
-        String gen = "public class GenerateDiagram { Ok ok; Err err; }";
-        return new Sources(List.of(result, ok, err, gen));
-    }
 
     @Test
     public void findsRelations() {
