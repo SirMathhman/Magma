@@ -66,13 +66,7 @@ public class GenerateDiagram {
         return "class";
     }
 
-    /**
-     * Creates a .ts file for every .java file under {@code javaRoot}. The
-     * generated files mirror the directory structure under {@code tsRoot}.
-     * Existing files are overwritten so that imports stay in sync with the
-     * corresponding Java sources.
-     */
-    public static Option<IOException> writeTypeScriptStubs(Path javaRoot, Path tsRoot) {
-        return TypeScriptStubs.write(javaRoot, tsRoot);
-    }
+    // Previously exposed a stub generation helper here which delegated to
+    // {@link TypeScriptStubs}. The method was removed so that this class is
+    // solely responsible for PlantUML generation.
 }
