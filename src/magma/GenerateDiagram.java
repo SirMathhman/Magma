@@ -29,9 +29,10 @@ public class GenerateDiagram {
         }
         List<String> allSources = ((Ok<List<String>, IOException>) sources).value();
         List<String> classes = findClasses(allSources);
+        var implementations = findImplementations(allSources);
         StringBuilder content = new StringBuilder("@startuml\n");
         appendClasses(content, classes);
-        List<Relation> relations = findRelations(allSources, classes);
+        List<Relation> relations = findRelations(allSources, classes, implementations);
         appendRelations(content, relations);
         content.append("@enduml\n");
         try {
@@ -67,9 +68,12 @@ public class GenerateDiagram {
         }
     }
 
-    private static List<Relation> findRelations(List<String> sources, List<String> classes) {
+    private static List<Relation> findRelations(List<String> sources,
+                                               List<String> classes,
+                                               java.util.Map<String, java.util.List<String>> implementations) {
         List<Relation> inheritance = findInheritanceRelations(sources);
-        List<Relation> dependencies = findDependencyRelations(sources, classes, inheritance);
+        List<Relation> dependencies =
+                findDependencyRelations(sources, classes, inheritance, implementations);
         Set<Relation> all = new LinkedHashSet<>();
         all.addAll(inheritance);
         all.addAll(dependencies);
@@ -123,10 +127,71 @@ public class GenerateDiagram {
         }
     }
 
-    private static List<Relation> findDependencyRelations(List<String> sources, List<String> classes, List<Relation> inheritance) {
-        // Captures the name from any class or interface declaration. Used to
-        // detect dependencies between classes found in the source.
+    private static java.util.Map<String, java.util.List<String>> findImplementations(List<String> sources) {
+        Pattern implementsPattern = Pattern.compile(
+                "class\\s+(\\w+)(?:\\s+extends\\s+\\w+)?\\s+implements\\s+([\\w\\s,<>]+)");
+        java.util.Map<String, java.util.List<String>> map = new java.util.HashMap<>();
+        for (String src : sources) {
+            src = src.replaceAll("<[^>]*>", "");
+            src = stripComments(src);
+            Matcher matcher = implementsPattern.matcher(src);
+            while (matcher.find()) {
+                String child = matcher.group(1);
+                String parents = matcher.group(2);
+                java.util.List<String> interfaces = new java.util.ArrayList<>();
+                for (String parent : parents.split(",")) {
+                    parent = parent.replaceAll("<.*?>", "").trim();
+                    if (!parent.isEmpty()) {
+                        interfaces.add(parent);
+                    }
+                }
+                map.put(child, interfaces);
+            }
+        }
+        return map;
+    }
+
+    private static java.util.Map<String, String> mapSourcesByClass(List<String> sources) {
+        java.util.Map<String, String> map = new java.util.HashMap<>();
         Pattern classPattern = Pattern.compile("(?:class|interface)\\s+(\\w+)");
+        for (String src : sources) {
+            String stripped = stripComments(src);
+            Matcher matcher = classPattern.matcher(stripped);
+            if (matcher.find()) {
+                map.put(matcher.group(1), stripped);
+            }
+        }
+        return map;
+    }
+
+    private static boolean omitDependency(String source,
+                                          String dependency,
+                                          java.util.Map<String, java.util.List<String>> implementations) {
+        if (source == null) {
+            return false;
+        }
+        for (var entry : implementations.entrySet()) {
+            if (!entry.getKey().equals(dependency)) {
+                continue;
+            }
+            for (String iface : entry.getValue()) {
+                Pattern word = Pattern.compile("\\b" + Pattern.quote(iface) + "\\b");
+                if (word.matcher(source).find()) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    private static List<Relation> findDependencyRelations(List<String> sources,
+                                                         List<String> classes,
+                                                         List<Relation> inheritance,
+                                                         java.util.Map<String, java.util.List<String>> implementations) {
+        Pattern classPattern = Pattern.compile("(?:class|interface)\\s+(\\w+)");
+
+        java.util.Map<String, String> sourceMap = mapSourcesByClass(sources);
+
         Set<String> inherited = new LinkedHashSet<>();
         for (Relation rel : inheritance) {
             inherited.add(rel.from() + "->" + rel.to());
@@ -146,6 +211,9 @@ public class GenerateDiagram {
                 }
                 Pattern word = Pattern.compile("\\b" + Pattern.quote(other) + "\\b");
                 if (word.matcher(src).find() && !inherited.contains(name + "->" + other)) {
+                    if (omitDependency(sourceMap.get(name), other, implementations)) {
+                        continue;
+                    }
                     relations.add(new Relation(name, "-->", other));
                 }
             }
