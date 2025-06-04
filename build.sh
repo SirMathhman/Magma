@@ -1,10 +1,8 @@
-#!/bin/bash
-set -e
+#!/usr/bin/env bash
+set -euo pipefail
 
-# Build the project by compiling Java sources into the out/ directory
-mkdir -p out
-# Compile all Java source files under the src/ directory
-javac -d out $(find src -name '*.java')
+OUT_DIR="out"
 
-# Generate diagram and TypeScript stubs
-java -cp out magma.GenerateDiagram
+mkdir -p "$OUT_DIR"
+javac --release 21 --enable-preview -d "$OUT_DIR" $(find packages/compiler-java/src/main/java -name '*.java')
+
