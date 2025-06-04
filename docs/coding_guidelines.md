@@ -23,7 +23,8 @@ The code also follows several structural guidelines:
 2. Nesting is limited to two levels of braces.
 3. Guard clauses are preferred to reduce indentation.
 4. Production code never uses `null`; optional values are expressed with `Option<T>`.
-5. Exceptions are represented with `Result<T, X>` instead of `throws` clauses.
+5. Exceptions are represented with `Result<T, X>` instead of `throws` clauses
+   because TypeScript has no `throws` keyword.
 6. Methods other than `main` should not return `void`. I/O methods return
    `Option<IOException>`, and pure functions return a value useful for
    chaining.

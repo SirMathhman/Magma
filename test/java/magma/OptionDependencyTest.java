@@ -16,7 +16,7 @@ import static org.junit.jupiter.api.Assertions.*;
 public class OptionDependencyTest {
 
     @Test
-    public void stubsDependOnSomeAndNoneNotOption() throws IOException {
+    public void stubsDependOnSomeAndNoneNotOption() {
         Result<List<String>, IOException> res = Sources.read(Path.of("src/java"));
         assertTrue(res.isOk(), "reading sources failed");
         Sources sources = new Sources(res.unwrap());

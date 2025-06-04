@@ -34,7 +34,7 @@ public interface Result<T, X extends Exception> {
     <U> Result<U, X> flatMapValue(java.util.function.Function<? super T, Result<U, X>> mapper);
 
     /**
-     * Gets the successful value or throws a runtime exception if this result
+     * Gets the successful value or raises a runtime exception if this result
      * represents an error. Most code should avoid calling this method and
      * handle both cases explicitly.
      */

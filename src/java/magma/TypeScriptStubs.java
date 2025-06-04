@@ -33,9 +33,30 @@ public final class TypeScriptStubs {
             Path tsFile = tsRoot.resolve(relative.toString().replaceFirst("\\.java$", ".ts"));
             try {
                 Files.createDirectories(tsFile.getParent());
-                var imports = readImports(file);
-                var declarations = readDeclarations(file);
-                var methods = readMethods(file);
+            } catch (IOException e) {
+                return new Some<>(e);
+            }
+
+            var importsRes = readImports(file);
+            if (importsRes.isErr()) {
+                return new Some<>(((magma.result.Err<List<String>, IOException>) importsRes).error());
+            }
+
+            var declarationsRes = readDeclarations(file);
+            if (declarationsRes.isErr()) {
+                return new Some<>(((magma.result.Err<List<String>, IOException>) declarationsRes).error());
+            }
+
+            var methodsRes = readMethods(file);
+            if (methodsRes.isErr()) {
+                return new Some<>(((magma.result.Err<Map<String, List<String>>, IOException>) methodsRes).error());
+            }
+
+            List<String> imports = importsRes.unwrap();
+            List<String> declarations = declarationsRes.unwrap();
+            Map<String, List<String>> methods = methodsRes.unwrap();
+
+            try {
                 String content = stubContent(relative, tsFile.getParent(), tsRoot,
                         imports, declarations, methods);
                 Files.writeString(tsFile, content);
@@ -46,8 +67,13 @@ public final class TypeScriptStubs {
         return new None<>();
     }
 
-    private static List<String> readImports(Path file) throws IOException {
-        String source = Files.readString(file);
+    private static magma.result.Result<List<String>, IOException> readImports(Path file) {
+        String source;
+        try {
+            source = Files.readString(file);
+        } catch (IOException e) {
+            return new magma.result.Err<>(e);
+        }
         var pattern = java.util.regex.Pattern.compile("^import\\s+([\\w.]+);", java.util.regex.Pattern.MULTILINE);
         var matcher = pattern.matcher(source);
         List<String> imports = new java.util.ArrayList<>();
@@ -57,11 +83,16 @@ public final class TypeScriptStubs {
                 imports.add(name);
             }
         }
-        return imports;
+        return new magma.result.Ok<>(imports);
     }
 
-    private static List<String> readDeclarations(Path file) throws IOException {
-        String source = Files.readString(file);
+    private static magma.result.Result<List<String>, IOException> readDeclarations(Path file) {
+        String source;
+        try {
+            source = Files.readString(file);
+        } catch (IOException e) {
+            return new magma.result.Err<>(e);
+        }
         source = source.replaceAll("(?s)/\\*.*?\\*/", "");
         source = source.replaceAll("//.*", "");
 
@@ -110,11 +141,16 @@ public final class TypeScriptStubs {
             decl.append(" {}");
             declarations.add(decl.toString());
         }
-        return declarations;
+        return new magma.result.Ok<>(declarations);
     }
 
-    private static Map<String, List<String>> readMethods(Path file) throws IOException {
-        String source = Files.readString(file);
+    private static magma.result.Result<Map<String, List<String>>, IOException> readMethods(Path file) {
+        String source;
+        try {
+            source = Files.readString(file);
+        } catch (IOException e) {
+            return new magma.result.Err<>(e);
+        }
         source = source.replaceAll("(?s)/\\*.*?\\*/", "");
         source = source.replaceAll("//.*", "");
         Map<String, List<String>> map = new java.util.LinkedHashMap<>();
@@ -127,7 +163,7 @@ public final class TypeScriptStubs {
             List<String> list = parseMethods(body, name);
             map.put(name, list);
         }
-        return map;
+        return new magma.result.Ok<>(map);
     }
 
     private static String extractClassBody(String source, int start) {

@@ -13,50 +13,72 @@ import static org.junit.jupiter.api.Assertions.*;
 
 public class TypeScriptStubsTest {
 
-    private Path generateStubs() throws IOException {
-        Path javaRoot = Files.createTempDirectory("java");
-        Path tsRoot = Files.createTempDirectory("ts");
+    private Path generateStubs() {
+        Path javaRoot;
+        Path tsRoot;
+        try {
+            javaRoot = Files.createTempDirectory("java");
+            tsRoot = Files.createTempDirectory("ts");
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
 
         writeSource(javaRoot, "test/A.java", "package test;\npublic class A {}\n");
         writeSource(javaRoot, "test/B.java", "package test;\nimport test.A;\npublic class B {}\n");
 
         Option<IOException> result = TypeScriptStubs.write(javaRoot, tsRoot);
         if (result.isPresent()) {
-            throw result.get();
+            throw new RuntimeException(result.get());
         }
         return tsRoot;
     }
 
     @Test
-    public void createsAStub() throws IOException {
+    public void createsAStub() {
         Path tsRoot = generateStubs();
         assertTrue(Files.exists(tsRoot.resolve("test/A.ts")));
     }
 
     @Test
-    public void createsBStub() throws IOException {
+    public void createsBStub() {
         Path tsRoot = generateStubs();
         assertTrue(Files.exists(tsRoot.resolve("test/B.ts")));
     }
 
     @Test
-    public void addsImportForDependency() throws IOException {
+    public void addsImportForDependency() {
         Path tsRoot = generateStubs();
-        String content = Files.readString(tsRoot.resolve("test/B.ts"));
+        String content;
+        try {
+            content = Files.readString(tsRoot.resolve("test/B.ts"));
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
         assertTrue(content.contains("import { A } from \"./A\";"));
     }
 
     @Test
-    public void stubDeclaresBClass() throws IOException {
+    public void stubDeclaresBClass() {
         Path tsRoot = generateStubs();
-        String content = Files.readString(tsRoot.resolve("test/B.ts"));
+        String content;
+        try {
+            content = Files.readString(tsRoot.resolve("test/B.ts"));
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
         assertTrue(content.contains("export class B {}"));
     }
   
     @Test
-    public void stubCopiesClasses() throws IOException {
-        Path javaRoot = Files.createTempDirectory("java");
-        Path tsRoot = Files.createTempDirectory("ts");
+    public void stubCopiesClasses() {
+        Path javaRoot;
+        Path tsRoot;
+        try {
+            javaRoot = Files.createTempDirectory("java");
+            tsRoot = Files.createTempDirectory("ts");
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
 
         writeSource(javaRoot, "test/A.java", "package test;\npublic class A<T> {}\n");
         writeSource(javaRoot, "test/I.java", "package test;\npublic interface I<T> {}\n");
@@ -64,22 +86,38 @@ public class TypeScriptStubsTest {
 
         Option<IOException> result = TypeScriptStubs.write(javaRoot, tsRoot);
         if (result.isPresent()) {
-            throw result.get();
+            throw new RuntimeException(result.get());
         }
-        long count = Files.list(tsRoot.resolve("test")).count();
+        long count;
+        try {
+            count = Files.list(tsRoot.resolve("test")).count();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
         assertEquals(3, count);
     }
 
     @Test
-    public void copiesClassDeclaration() throws IOException {
+    public void copiesClassDeclaration() {
         Path tsRoot = generateGenericStubs();
-        String a = Files.readString(tsRoot.resolve("test/A.ts"));
+        String a;
+        try {
+            a = Files.readString(tsRoot.resolve("test/A.ts"));
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
         assertTrue(a.contains("export class A<T> {}"));
     }
 
-    private Path generateGenericStubs() throws IOException {
-        Path javaRoot = Files.createTempDirectory("java");
-        Path tsRoot = Files.createTempDirectory("ts");
+    private Path generateGenericStubs() {
+        Path javaRoot;
+        Path tsRoot;
+        try {
+            javaRoot = Files.createTempDirectory("java");
+            tsRoot = Files.createTempDirectory("ts");
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
 
         writeSource(javaRoot, "test/A.java", "package test;\npublic class A<T> {}\n");
         writeSource(javaRoot, "test/I.java", "package test;\npublic interface I<T> {}\n");
@@ -87,80 +125,128 @@ public class TypeScriptStubsTest {
 
         Option<IOException> result = TypeScriptStubs.write(javaRoot, tsRoot);
         if (result.isPresent()) {
-            throw result.get();
+            throw new RuntimeException(result.get());
         }
         return tsRoot;
     }
 
     @Test
-    public void copiesInterfaceDeclaration() throws IOException {
+    public void copiesInterfaceDeclaration() {
         Path tsRoot = generateGenericStubs();
-        String i = Files.readString(tsRoot.resolve("test/I.ts"));
+        String i;
+        try {
+            i = Files.readString(tsRoot.resolve("test/I.ts"));
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
         assertTrue(i.contains("export interface I<T> {}"));
     }
 
     @Test
-    public void copiesRecordDeclaration() throws IOException {
+    public void copiesRecordDeclaration() {
         Path tsRoot = generateGenericStubs();
-        String r = Files.readString(tsRoot.resolve("test/R.ts"));
+        String r;
+        try {
+            r = Files.readString(tsRoot.resolve("test/R.ts"));
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
         assertTrue(r.contains("export class R<T> {}"));
     }
 
-    private Path generateMethodStubs() throws IOException {
-        Path javaRoot = Files.createTempDirectory("java");
-        Path tsRoot = Files.createTempDirectory("ts");
+    private Path generateMethodStubs() {
+        Path javaRoot;
+        Path tsRoot;
+        try {
+            javaRoot = Files.createTempDirectory("java");
+            tsRoot = Files.createTempDirectory("ts");
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
         writeSource(javaRoot, "test/A.java",
                 "package test;\npublic class A { public void foo(){} public static int bar(){return 0;} public String baz(){return \"\";} }\n");
 
         Option<IOException> result = TypeScriptStubs.write(javaRoot, tsRoot);
         if (result.isPresent()) {
-            throw result.get();
+            throw new RuntimeException(result.get());
         }
         return tsRoot;
     }
 
     @Test
-    public void copiesInstanceMethod() throws IOException {
+    public void copiesInstanceMethod() {
         Path tsRoot = generateMethodStubs();
-        String a = Files.readString(tsRoot.resolve("test/A.ts"));
+        String a;
+        try {
+            a = Files.readString(tsRoot.resolve("test/A.ts"));
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
         assertTrue(a.contains("foo(): void {"));
     }
 
     @Test
-    public void copiesStaticMethod() throws IOException {
+    public void copiesStaticMethod() {
         Path tsRoot = generateMethodStubs();
-        String a = Files.readString(tsRoot.resolve("test/A.ts"));
+        String a;
+        try {
+            a = Files.readString(tsRoot.resolve("test/A.ts"));
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
         assertTrue(a.contains("static bar(): number {"), "A.ts missing static bar method");
     }
 
     @Test
-    public void copiesBazMethod() throws IOException {
+    public void copiesBazMethod() {
         Path tsRoot = generateMethodStubs();
-        String a = Files.readString(tsRoot.resolve("test/A.ts"));
+        String a;
+        try {
+            a = Files.readString(tsRoot.resolve("test/A.ts"));
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
         assertTrue(a.contains("baz(): string {"), "A.ts missing baz method");
     }
 
     @Test
-    public void stubCopiesMethodsOnGenericClass() throws IOException {
-        Path javaRoot = Files.createTempDirectory("java");
-        Path tsRoot = Files.createTempDirectory("ts");
+    public void stubCopiesMethodsOnGenericClass() {
+        Path javaRoot;
+        Path tsRoot;
+        try {
+            javaRoot = Files.createTempDirectory("java");
+            tsRoot = Files.createTempDirectory("ts");
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
 
         writeSource(javaRoot, "test/C.java",
                 "package test;\npublic class C<T> { public void foo(){} }\n");
 
         Option<IOException> result = TypeScriptStubs.write(javaRoot, tsRoot);
         if (result.isPresent()) {
-            throw result.get();
+            throw new RuntimeException(result.get());
         }
 
-        String c = Files.readString(tsRoot.resolve("test/C.ts"));
+        String c;
+        try {
+            c = Files.readString(tsRoot.resolve("test/C.ts"));
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
         assertTrue(c.contains("foo(): void {"), "C.ts missing foo method");
     }
 
     @Test
-    public void preservesGenericReturnType() throws IOException {
-        Path javaRoot = Files.createTempDirectory("java");
-        Path tsRoot = Files.createTempDirectory("ts");
+    public void preservesGenericReturnType() {
+        Path javaRoot;
+        Path tsRoot;
+        try {
+            javaRoot = Files.createTempDirectory("java");
+            tsRoot = Files.createTempDirectory("ts");
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
 
         writeSource(javaRoot, "test/Base.java", "package test;\npublic class Base<T> {}\n");
         writeSource(javaRoot, "test/Test.java", "package test;\npublic class Test {}\n");
@@ -169,68 +255,112 @@ public class TypeScriptStubsTest {
 
         Option<IOException> result = TypeScriptStubs.write(javaRoot, tsRoot);
         if (result.isPresent()) {
-            throw result.get();
+            throw new RuntimeException(result.get());
         }
 
-        String a = Files.readString(tsRoot.resolve("test/A.ts"));
+        String a;
+        try {
+            a = Files.readString(tsRoot.resolve("test/A.ts"));
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
         assertTrue(a.contains("foo(): Base<Test> {"));
     }
 
     @Test
-    public void convertsPrimitiveGenericArgument() throws IOException {
-        Path javaRoot = Files.createTempDirectory("java");
-        Path tsRoot = Files.createTempDirectory("ts");
+    public void convertsPrimitiveGenericArgument() {
+        Path javaRoot;
+        Path tsRoot;
+        try {
+            javaRoot = Files.createTempDirectory("java");
+            tsRoot = Files.createTempDirectory("ts");
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
 
         writeSource(javaRoot, "test/A.java",
                 "package test;\nimport java.util.Optional;\npublic class A { public Optional<String> foo(){return null;} }\n");
 
         Option<IOException> result = TypeScriptStubs.write(javaRoot, tsRoot);
         if (result.isPresent()) {
-            throw result.get();
+            throw new RuntimeException(result.get());
         }
 
-        String a = Files.readString(tsRoot.resolve("test/A.ts"));
+        String a;
+        try {
+            a = Files.readString(tsRoot.resolve("test/A.ts"));
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
         assertTrue(a.contains("foo(): Optional<string> {"));
     }
 
     @Test
-    public void preservesParameterTypes() throws IOException {
-        Path javaRoot = Files.createTempDirectory("java");
-        Path tsRoot = Files.createTempDirectory("ts");
+    public void preservesParameterTypes() {
+        Path javaRoot;
+        Path tsRoot;
+        try {
+            javaRoot = Files.createTempDirectory("java");
+            tsRoot = Files.createTempDirectory("ts");
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
 
         writeSource(javaRoot, "test/A.java",
                 "package test;\npublic class A { int add(int x, int y){return 0;} }\n");
 
         Option<IOException> result = TypeScriptStubs.write(javaRoot, tsRoot);
         if (result.isPresent()) {
-            throw result.get();
+            throw new RuntimeException(result.get());
         }
 
-        String a = Files.readString(tsRoot.resolve("test/A.ts"));
+        String a;
+        try {
+            a = Files.readString(tsRoot.resolve("test/A.ts"));
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
         assertTrue(a.contains("add(x: number, y: number): number {"));
     }
 
     @Test
-    public void preservesMethodTypeParameter() throws IOException {
-        Path javaRoot = Files.createTempDirectory("java");
-        Path tsRoot = Files.createTempDirectory("ts");
+    public void preservesMethodTypeParameter() {
+        Path javaRoot;
+        Path tsRoot;
+        try {
+            javaRoot = Files.createTempDirectory("java");
+            tsRoot = Files.createTempDirectory("ts");
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
 
         writeSource(javaRoot, "test/A.java",
                 "package test;\npublic class A { public <R> R id(R x){return x;} }\n");
 
         Option<IOException> result = TypeScriptStubs.write(javaRoot, tsRoot);
         if (result.isPresent()) {
-            throw result.get();
+            throw new RuntimeException(result.get());
         }
 
-        String a = Files.readString(tsRoot.resolve("test/A.ts"));
+        String a;
+        try {
+            a = Files.readString(tsRoot.resolve("test/A.ts"));
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
         assertTrue(a.contains("id<R>(x: R): R {"));
     }
 
     @Test
-    public void preservesExtendsAndImplements() throws IOException {
-        Path javaRoot = Files.createTempDirectory("java");
-        Path tsRoot = Files.createTempDirectory("ts");
+    public void preservesExtendsAndImplements() {
+        Path javaRoot;
+        Path tsRoot;
+        try {
+            javaRoot = Files.createTempDirectory("java");
+            tsRoot = Files.createTempDirectory("ts");
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
 
         writeSource(javaRoot, "test/I.java", "package test;\npublic interface I {}\n");
         writeSource(javaRoot, "test/Base.java", "package test;\npublic class Base {}\n");
@@ -239,10 +369,15 @@ public class TypeScriptStubsTest {
 
         Option<IOException> result = TypeScriptStubs.write(javaRoot, tsRoot);
         if (result.isPresent()) {
-            throw result.get();
+            throw new RuntimeException(result.get());
         }
 
-        String a = Files.readString(tsRoot.resolve("test/A.ts"));
+        String a;
+        try {
+            a = Files.readString(tsRoot.resolve("test/A.ts"));
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
         assertTrue(a.contains("export class A extends Base implements I {}"));
     }
 }
