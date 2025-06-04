@@ -46,7 +46,14 @@ public class GenerateDiagram {
     }
 
     private static List<String> findClasses(List<String> sources) {
-        Pattern pattern = Pattern.compile("^\\s*(?:public\\s+|protected\\s+|private\\s+)?(?:static\\s+)?(?:final\\s+)?(?:sealed\\s+)?(?:class|interface)\\s+(\\w+)", Pattern.MULTILINE);
+        // Matches a class or interface declaration and captures the name.
+        // It allows optional visibility, static/final/sealed modifiers and
+        // works across multiple lines.
+        Pattern pattern = Pattern.compile(
+                "^\\s*(?:public\\s+|protected\\s+|private\\s+)?" +
+                "(?:static\\s+)?(?:final\\s+)?(?:sealed\\s+)?" +
+                "(?:class|interface)\\s+(\\w+)",
+                Pattern.MULTILINE);
         Set<String> unique = new LinkedHashSet<>();
         for (String src : sources) {
             addClassesFromSource(unique, src, pattern);
@@ -73,11 +80,22 @@ public class GenerateDiagram {
     }
 
     private static List<Relation> findInheritanceRelations(List<String> sources) {
-        Pattern extendsPattern = Pattern.compile("(?:class|interface)\\s+(\\w+)\\s+extends\\s+([\\w\\s,<>]+)");
-        Pattern implementsPattern = Pattern.compile("class\\s+(\\w+)(?:\\s+extends\\s+\\w+)?\\s+implements\\s+([\\w\\s,<>]+)");
+        // Matches "class Child extends Parent" or "interface Child extends Parent".
+        // Captures the child name in group 1 and the comma separated parent list
+        // (without generics) in group 2.
+        Pattern extendsPattern = Pattern.compile(
+                "(?:class|interface)\\s+(\\w+)\\s+extends\\s+([\\w\\s,<>]+)");
+
+        // Matches class implementations such as
+        // "class Example implements InterfaceA, InterfaceB". Group 1 is the
+        // class name and group 2 contains the comma separated interfaces.
+        Pattern implementsPattern = Pattern.compile(
+                "class\\s+(\\w+)(?:\\s+extends\\s+\\w+)?\\s+implements\\s+([\\w\\s,<>]+)");
 
         List<Relation> relations = new ArrayList<>();
         for (String src : sources) {
+            // Strip generic type information such as "List<String>" as it
+            // complicates the inheritance regexes below.
             src = src.replaceAll("<[^>]*>", "");
             addInheritance(relations, src, extendsPattern);
             addInheritance(relations, src, implementsPattern);
@@ -91,6 +109,8 @@ public class GenerateDiagram {
             String child = matcher.group(1);
             String parents = matcher.group(2);
             for (String parent : parents.split(",")) {
+                // Remove any generic type parameters from the parent name
+                // before adding the relation.
                 parent = parent.replaceAll("<.*?>", "").trim();
                 if (!parent.isEmpty()) {
                     relations.add(new Relation(child, "--|>", parent));
@@ -100,6 +120,8 @@ public class GenerateDiagram {
     }
 
     private static List<Relation> findDependencyRelations(List<String> sources, List<String> classes, List<Relation> inheritance) {
+        // Captures the name from any class or interface declaration. Used to
+        // detect dependencies between classes found in the source.
         Pattern classPattern = Pattern.compile("(?:class|interface)\\s+(\\w+)");
         Set<String> inherited = new LinkedHashSet<>();
         for (Relation rel : inheritance) {
