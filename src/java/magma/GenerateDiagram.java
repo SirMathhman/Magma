@@ -7,7 +7,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Stream;
 
-import magma.Relation;
 import magma.Sources;
 import java.util.Optional;
 
@@ -30,9 +29,8 @@ public class GenerateDiagram {
         var implementations = analysis.findImplementations();
         var sourceMap = analysis.mapSourcesByClass();
         StringBuilder content = new StringBuilder("@startuml\n");
-        content.append(classesSection(classes, sourceMap));
-        List<Relation> relations = analysis.findRelations(classes, implementations);
-        content.append(relationsSection(relations));
+        content.append(classesSection(classes));
+        content.append(analysis.formatRelations(classes, implementations));
         content.append("@enduml\n");
         try {
             Files.writeString(output, content.toString());
@@ -64,17 +62,7 @@ public class GenerateDiagram {
         }
         return "class";
     }
-
-    private static String relationsSection(List<Relation> relations) {
-        StringBuilder builder = new StringBuilder();
-        for (Relation rel : relations) {
-            builder.append(rel.from()).append(' ')
-                    .append(rel.arrow()).append(' ')
-                    .append(rel.to()).append("\n");
-        }
-        return builder.toString();
-    }
-
+  
     private static Result<List<String>, IOException> readSources(Path directory) {
         List<Path> files;
         try (Stream<Path> stream = Files.walk(directory)) {

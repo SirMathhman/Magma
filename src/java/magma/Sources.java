@@ -211,4 +211,15 @@ public record Sources(List<String> list) {
         }
         return relations;
     }
+
+    public String formatRelations(List<String> classes,
+                                  Map<String, List<String>> implementations) {
+        StringBuilder builder = new StringBuilder();
+        for (Relation rel : findRelations(classes, implementations)) {
+            builder.append(rel.from()).append(' ')
+                   .append(rel.arrow()).append(' ')
+                   .append(rel.to()).append("\n");
+        }
+        return builder.toString();
+    }
 }
