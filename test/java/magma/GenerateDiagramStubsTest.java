@@ -139,8 +139,8 @@ public class GenerateDiagramStubsTest {
         Path tsRoot = generateMethodStubs();
         String a = Files.readString(tsRoot.resolve("test/A.ts"));
         assertTrue(a.contains("foo(): void {"), "A.ts missing foo method");
-        assertTrue(a.contains("static bar(): int {"), "A.ts missing static bar method");
-        assertTrue(a.contains("baz(): String {"), "A.ts missing baz method");
+        assertTrue(a.contains("static bar(): number {"), "A.ts missing static bar method");
+        assertTrue(a.contains("baz(): string {"), "A.ts missing baz method");
     }
 
     @Test
@@ -158,5 +158,24 @@ public class GenerateDiagramStubsTest {
 
         String c = Files.readString(tsRoot.resolve("test/C.ts"));
         assertTrue(c.contains("foo(): void {"), "C.ts missing foo method");
+    }
+
+    @Test
+    public void preservesGenericReturnType() throws IOException {
+        Path javaRoot = Files.createTempDirectory("java");
+        Path tsRoot = Files.createTempDirectory("ts");
+
+        writeSource(javaRoot, "test/Base.java", "package test;\npublic class Base<T> {}\n");
+        writeSource(javaRoot, "test/Test.java", "package test;\npublic class Test {}\n");
+        writeSource(javaRoot, "test/A.java",
+                "package test;\npublic class A { public Base<Test> foo(){return null;} }\n");
+
+        Optional<IOException> result = GenerateDiagram.writeTypeScriptStubs(javaRoot, tsRoot);
+        if (result.isPresent()) {
+            throw result.get();
+        }
+
+        String a = Files.readString(tsRoot.resolve("test/A.ts"));
+        assertTrue(a.contains("foo(): Base<Test> {"));
     }
 }

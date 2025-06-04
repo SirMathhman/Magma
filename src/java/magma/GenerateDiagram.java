@@ -8,7 +8,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Stream;
 
 public class GenerateDiagram {
     // Helper methods split to comply with SRP (Single Responsibility Principle)
@@ -74,154 +73,9 @@ public class GenerateDiagram {
      * corresponding Java sources.
      */
     public static Optional<IOException> writeTypeScriptStubs(Path javaRoot, Path tsRoot) {
-        List<Path> files;
-        try (Stream<Path> stream = Files.walk(javaRoot)) {
-            files = stream.filter(Files::isRegularFile)
-                    .filter(p -> p.toString().endsWith(".java"))
-                    .toList();
-        } catch (IOException e) {
-            return Optional.of(e);
-        }
-        for (Path file : files) {
-            Path relative = javaRoot.relativize(file);
-            Path tsFile = tsRoot.resolve(relative.toString().replaceFirst("\\.java$", ".ts"));
-            try {
-                Files.createDirectories(tsFile.getParent());
-                var imports = readImports(file);
-                var declarations = readDeclarations(file);
-                var methods = readMethods(file);
-                String content = stubContent(relative, tsFile.getParent(), tsRoot, imports, declarations, methods);
-                Files.writeString(tsFile, content);
-            } catch (IOException e) {
-                return Optional.of(e);
-            }
-        }
-        return Optional.empty();
+        return TypeScriptStubs.write(javaRoot, tsRoot);
     }
 
-    private static java.util.List<String> readImports(Path file) throws IOException {
-        String source = Files.readString(file);
-        java.util.regex.Pattern pattern = java.util.regex.Pattern.compile("^import\\s+([\\w.]+);", java.util.regex.Pattern.MULTILINE);
-        java.util.regex.Matcher matcher = pattern.matcher(source);
-        java.util.List<String> imports = new java.util.ArrayList<>();
-        while (matcher.find()) {
-            String name = matcher.group(1);
-            if (!name.startsWith("java.")) {
-                imports.add(name);
-            }
-        }
-        return imports;
-    }
-
-    private static java.util.List<String> readDeclarations(Path file) throws IOException {
-        String source = Files.readString(file);
-        java.util.regex.Pattern pattern = java.util.regex.Pattern.compile(
-                "^(?:public\\s+|protected\\s+|private\\s+)?(?:static\\s+)?(?:final\\s+)?(?:sealed\\s+)?(class|interface|record)\\s+(\\w+(?:<[^>]+>)?)",
-                java.util.regex.Pattern.MULTILINE);
-        java.util.regex.Matcher matcher = pattern.matcher(source);
-        java.util.List<String> declarations = new java.util.ArrayList<>();
-        while (matcher.find()) {
-            String kind = matcher.group(1);
-            String name = matcher.group(2);
-            if ("record".equals(kind)) {
-                kind = "class";
-            }
-            declarations.add("export " + kind + " " + name + " {}");
-        }
-        return declarations;
-    }
-
-    private static java.util.Map<String, java.util.List<String>> readMethods(Path file) throws IOException {
-        String source = Files.readString(file);
-        source = source.replaceAll("(?s)/\\*.*?\\*/", "");
-        source = source.replaceAll("//.*", "");
-        java.util.Map<String, java.util.List<String>> map = new java.util.LinkedHashMap<>();
-        java.util.regex.Pattern classPat = java.util.regex.Pattern.compile("(?:class|interface|record)\\s+(\\w+)[^{]*\\{");
-        java.util.regex.Matcher cMatcher = classPat.matcher(source);
-        while (cMatcher.find()) {
-            String name = cMatcher.group(1);
-            int start = cMatcher.end();
-            int level = 1;
-            int i = start;
-            while (i < source.length() && level > 0) {
-                char ch = source.charAt(i);
-                if (ch == '{') level++; else if (ch == '}') level--;
-                i++;
-            }
-            String body = source.substring(start, i - 1);
-            java.util.regex.Pattern methodPat = java.util.regex.Pattern.compile(
-                    "(?:public\\s+|protected\\s+|private\\s+)?(static\\s+)?(?:final\\s+)?([\\w<>\\[\\]]+)\\s+(\\w+)\\s*\\([^)]*\\)\\s*\\{");
-            java.util.regex.Matcher mMatcher = methodPat.matcher(body);
-            java.util.List<String> list = new java.util.ArrayList<>();
-            while (mMatcher.find()) {
-                String staticKw = mMatcher.group(1);
-                String returnType = mMatcher.group(2);
-                String mName = mMatcher.group(3);
-                if (!mName.equals(name)) {
-                    String prefix = staticKw == null ? "" : "static ";
-                    list.add("\t" + prefix + mName + "(): " + returnType + " {");
-                    list.add("\t}");
-                }
-            }
-            map.put(name, list);
-        }
-        return map;
-    }
-
-    private static String stubContent(Path relative, Path from, Path root,
-                                      java.util.List<String> imports,
-                                      java.util.List<String> declarations,
-                                      java.util.Map<String, java.util.List<String>> methods) {
-        StringBuilder builder = new StringBuilder();
-        builder.append("// Auto-generated from ").append(relative).append(System.lineSeparator());
-
-        java.util.Map<String, java.util.List<String>> byPath = new java.util.LinkedHashMap<>();
-        for (String imp : imports) {
-            String className = imp.substring(imp.lastIndexOf('.') + 1);
-            Path target = root.resolve(imp.replace('.', '/') + ".ts");
-            Path rel = from.relativize(target);
-            String path = rel.toString().replace('\\', '/');
-            path = path.replaceFirst("\\.ts$", "");
-            if (!path.startsWith(".")) {
-                path = "./" + path;
-            }
-            byPath.computeIfAbsent(path, k -> new java.util.ArrayList<>()).add(className);
-        }
-
-        for (var entry : byPath.entrySet()) {
-            builder.append("import { ");
-            builder.append(String.join(", ", entry.getValue()));
-            builder.append(" } from \"").append(entry.getKey()).append("\"");
-            builder.append(";").append(System.lineSeparator());
-        }
-
-        if (declarations.isEmpty()) {
-            builder.append("export {};").append(System.lineSeparator());
-            return builder.toString();
-        }
-
-        java.util.regex.Pattern namePattern = java.util.regex.Pattern.compile(
-                "export \\w+ (\\w+)(?:<[^>]+>)? \\{\\}");
-        for (String decl : declarations) {
-            java.util.regex.Matcher m = namePattern.matcher(decl);
-            if (!m.matches()) {
-                builder.append(decl).append(System.lineSeparator());
-                continue;
-            }
-            String name = m.group(1);
-            java.util.List<String> mList = methods.getOrDefault(name, java.util.Collections.emptyList());
-            if (mList.isEmpty()) {
-                builder.append(decl).append(System.lineSeparator());
-                continue;
-            }
-            builder.append(decl.substring(0, decl.length() - 1)).append(System.lineSeparator());
-            for (String method : mList) {
-                builder.append(method).append(System.lineSeparator());
-            }
-            builder.append("}").append(System.lineSeparator());
-        }
-        return builder.toString();
-    }
 
     public static void main(String[] args) {
         Path javaRoot = Path.of("src/java");
