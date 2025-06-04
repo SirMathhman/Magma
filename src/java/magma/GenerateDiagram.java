@@ -89,7 +89,8 @@ public class GenerateDiagram {
                 Files.createDirectories(tsFile.getParent());
                 var imports = readImports(file);
                 var declarations = readDeclarations(file);
-                String content = stubContent(relative, tsFile.getParent(), tsRoot, imports, declarations);
+                var methods = readMethods(file);
+                String content = stubContent(relative, tsFile.getParent(), tsRoot, imports, declarations, methods);
                 Files.writeString(tsFile, content);
             } catch (IOException e) {
                 return Optional.of(e);
@@ -130,9 +131,44 @@ public class GenerateDiagram {
         return declarations;
     }
 
+    private static java.util.Map<String, java.util.List<String>> readMethods(Path file) throws IOException {
+        String source = Files.readString(file);
+        source = source.replaceAll("(?s)/\\*.*?\\*/", "");
+        source = source.replaceAll("//.*", "");
+        java.util.Map<String, java.util.List<String>> map = new java.util.LinkedHashMap<>();
+        java.util.regex.Pattern classPat = java.util.regex.Pattern.compile("(?:class|interface|record)\\s+(\\w+)[^{]*\\{");
+        java.util.regex.Matcher cMatcher = classPat.matcher(source);
+        while (cMatcher.find()) {
+            String name = cMatcher.group(1);
+            int start = cMatcher.end();
+            int level = 1;
+            int i = start;
+            while (i < source.length() && level > 0) {
+                char ch = source.charAt(i);
+                if (ch == '{') level++; else if (ch == '}') level--;
+                i++;
+            }
+            String body = source.substring(start, i - 1);
+            java.util.regex.Pattern methodPat = java.util.regex.Pattern.compile(
+                    "(?:public\\s+|protected\\s+|private\\s+)?(?:static\\s+)?(?:final\\s+)?[\\w<>\\[\\]]+\\s+(\\w+)\\s*\\([^)]*\\)\\s*\\{");
+            java.util.regex.Matcher mMatcher = methodPat.matcher(body);
+            java.util.List<String> list = new java.util.ArrayList<>();
+            while (mMatcher.find()) {
+                String mName = mMatcher.group(1);
+                if (!mName.equals(name)) {
+                    list.add("\tvoid " + mName + "() {");
+                    list.add("\t}");
+                }
+            }
+            map.put(name, list);
+        }
+        return map;
+    }
+
     private static String stubContent(Path relative, Path from, Path root,
                                       java.util.List<String> imports,
-                                      java.util.List<String> declarations) {
+                                      java.util.List<String> declarations,
+                                      java.util.Map<String, java.util.List<String>> methods) {
         StringBuilder builder = new StringBuilder();
         builder.append("// Auto-generated from ").append(relative).append(System.lineSeparator());
 
@@ -161,8 +197,24 @@ public class GenerateDiagram {
             return builder.toString();
         }
 
+        java.util.regex.Pattern namePattern = java.util.regex.Pattern.compile("export \\w+ (\\w+) \\{\\}");
         for (String decl : declarations) {
-            builder.append(decl).append(System.lineSeparator());
+            java.util.regex.Matcher m = namePattern.matcher(decl);
+            if (!m.matches()) {
+                builder.append(decl).append(System.lineSeparator());
+                continue;
+            }
+            String name = m.group(1);
+            java.util.List<String> mList = methods.getOrDefault(name, java.util.Collections.emptyList());
+            if (mList.isEmpty()) {
+                builder.append(decl).append(System.lineSeparator());
+                continue;
+            }
+            builder.append(decl.substring(0, decl.length() - 1)).append(System.lineSeparator());
+            for (String method : mList) {
+                builder.append(method).append(System.lineSeparator());
+            }
+            builder.append("}").append(System.lineSeparator());
         }
         return builder.toString();
     }
