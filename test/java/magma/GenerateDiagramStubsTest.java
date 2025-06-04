@@ -7,76 +7,106 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Optional;
 
+import static magma.TestUtil.writeSource;
+
 import static org.junit.jupiter.api.Assertions.*;
 
 public class GenerateDiagramStubsTest {
-    private Path createTempJavaSource(Path root, String relPath, String content) throws IOException {
-        Path file = root.resolve(relPath);
-        Files.createDirectories(file.getParent());
-        Files.writeString(file, content);
-        return file;
-    }
 
-    @Test
-    public void stubGenerationCreatesFiles() throws IOException {
+    private Path generateStubs() throws IOException {
         Path javaRoot = Files.createTempDirectory("java");
         Path tsRoot = Files.createTempDirectory("ts");
 
-        createTempJavaSource(javaRoot, "test/A.java", "package test;\npublic class A {}\n");
-        createTempJavaSource(javaRoot, "test/B.java", "package test;\nimport test.A;\npublic class B {}\n");
+        writeSource(javaRoot, "test/A.java", "package test;\npublic class A {}\n");
+        writeSource(javaRoot, "test/B.java", "package test;\nimport test.A;\npublic class B {}\n");
 
         Optional<IOException> result = GenerateDiagram.writeTypeScriptStubs(javaRoot, tsRoot);
         if (result.isPresent()) {
             throw result.get();
         }
-
-        Path aTs = tsRoot.resolve("test/A.ts");
-        Path bTs = tsRoot.resolve("test/B.ts");
-        assertTrue(Files.exists(aTs), "A.ts not created");
-        assertTrue(Files.exists(bTs), "B.ts not created");
-
-        String bContent = Files.readString(bTs);
-        assertTrue(bContent.contains("import { A } from \"./A\";"), "B.ts missing import of A");
+        return tsRoot;
     }
 
     @Test
-    public void stubCopiesClasses() throws IOException {
+    public void createsAStub() throws IOException {
+        Path tsRoot = generateStubs();
+        assertTrue(Files.exists(tsRoot.resolve("test/A.ts")));
+    }
+
+    @Test
+    public void createsBStub() throws IOException {
+        Path tsRoot = generateStubs();
+        assertTrue(Files.exists(tsRoot.resolve("test/B.ts")));
+    }
+
+    @Test
+    public void addsImportForDependency() throws IOException {
+        Path tsRoot = generateStubs();
+        String content = Files.readString(tsRoot.resolve("test/B.ts"));
+        assertTrue(content.contains("import { A } from \"./A\";"));
+    }
+
+    private Path generateGenericStubs() throws IOException {
         Path javaRoot = Files.createTempDirectory("java");
         Path tsRoot = Files.createTempDirectory("ts");
 
-        createTempJavaSource(javaRoot, "test/A.java", "package test;\npublic class A<T> {}\n");
-        createTempJavaSource(javaRoot, "test/I.java", "package test;\npublic interface I<T> {}\n");
-        createTempJavaSource(javaRoot, "test/R.java", "package test;\npublic record R<T>(T x) {}\n");
+        writeSource(javaRoot, "test/A.java", "package test;\npublic class A<T> {}\n");
+        writeSource(javaRoot, "test/I.java", "package test;\npublic interface I<T> {}\n");
+        writeSource(javaRoot, "test/R.java", "package test;\npublic record R<T>(T x) {}\n");
 
         Optional<IOException> result = GenerateDiagram.writeTypeScriptStubs(javaRoot, tsRoot);
         if (result.isPresent()) {
             throw result.get();
         }
+        return tsRoot;
+    }
 
+    @Test
+    public void copiesClassDeclaration() throws IOException {
+        Path tsRoot = generateGenericStubs();
         String a = Files.readString(tsRoot.resolve("test/A.ts"));
-        String i = Files.readString(tsRoot.resolve("test/I.ts"));
-        String r = Files.readString(tsRoot.resolve("test/R.ts"));
-
-        assertTrue(a.contains("export class A<T> {}"), "A.ts missing class A<T>");
-        assertTrue(i.contains("export interface I<T> {}"), "I.ts missing interface I<T>");
-        assertTrue(r.contains("export class R<T> {}"), "R.ts missing record R<T>");
+        assertTrue(a.contains("export class A<T> {}"));
     }
 
     @Test
-    public void stubCopiesMethods() throws IOException {
+    public void copiesInterfaceDeclaration() throws IOException {
+        Path tsRoot = generateGenericStubs();
+        String i = Files.readString(tsRoot.resolve("test/I.ts"));
+        assertTrue(i.contains("export interface I<T> {}"));
+    }
+
+    @Test
+    public void copiesRecordDeclaration() throws IOException {
+        Path tsRoot = generateGenericStubs();
+        String r = Files.readString(tsRoot.resolve("test/R.ts"));
+        assertTrue(r.contains("export class R<T> {}"));
+    }
+
+    private Path generateMethodStubs() throws IOException {
         Path javaRoot = Files.createTempDirectory("java");
         Path tsRoot = Files.createTempDirectory("ts");
 
-        createTempJavaSource(javaRoot, "test/A.java",
+        writeSource(javaRoot, "test/A.java",
                 "package test;\npublic class A { public void foo(){} public static void bar(){} }\n");
 
         Optional<IOException> result = GenerateDiagram.writeTypeScriptStubs(javaRoot, tsRoot);
         if (result.isPresent()) {
             throw result.get();
         }
+        return tsRoot;
+    }
 
+    @Test
+    public void copiesInstanceMethod() throws IOException {
+        Path tsRoot = generateMethodStubs();
         String a = Files.readString(tsRoot.resolve("test/A.ts"));
-        assertTrue(a.contains("void foo() {"), "A.ts missing foo method");
-        assertTrue(a.contains("void bar() {"), "A.ts missing bar method");
+        assertTrue(a.contains("void foo() {"));
+    }
+
+    @Test
+    public void copiesStaticMethod() throws IOException {
+        Path tsRoot = generateMethodStubs();
+        String a = Files.readString(tsRoot.resolve("test/A.ts"));
+        assertTrue(a.contains("void bar() {"));
     }
 }
