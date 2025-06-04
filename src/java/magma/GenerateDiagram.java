@@ -150,7 +150,7 @@ public class GenerateDiagram {
             }
             String body = source.substring(start, i - 1);
             java.util.regex.Pattern methodPat = java.util.regex.Pattern.compile(
-                    "(?:public\\s+|protected\\s+|private\\s+)?(static\\s+)?(?:final\\s+)?([\\w<>\\[\\]]+)\\s+(\\w+)\\s*\\([^)]*\\)\\s*\\{");
+                    "(?:public\\s+|protected\\s+|private\\s+)?(static\\s+)?(?:final\\s+)?([\\w.]+(?:<[^>]+>)?(?:\\[\\])*)\\s+(\\w+)\\s*\\([^)]*\\)\\s*\\{");
             java.util.regex.Matcher mMatcher = methodPat.matcher(body);
             java.util.List<String> list = new java.util.ArrayList<>();
             while (mMatcher.find()) {
