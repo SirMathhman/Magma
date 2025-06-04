@@ -25,7 +25,7 @@ public record Sources(List<String> list) {
 
     public static Result<List<String>, IOException> read(PathLike directory) {
         List<java.nio.file.Path> files;
-        try (Stream<java.nio.file.Path> stream = Files.walk(directory.unwrap())) {
+        try (Stream<java.nio.file.Path> stream = directory.walk()) {
             files = stream.filter(Files::isRegularFile)
                     .filter(p -> p.toString().endsWith(".java"))
                     .toList();

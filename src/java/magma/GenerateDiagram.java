@@ -6,7 +6,6 @@ import magma.result.Err;
 import magma.result.Ok;
 
 import java.io.IOException;
-import java.nio.file.Files;
 import magma.PathLike;
 import java.util.List;
 import magma.option.Option;
@@ -36,12 +35,7 @@ public class GenerateDiagram {
         content.append(classesSection(classes, sourceMap));
         content.append(analysis.formatRelations(classes, implementations));
         content.append("@enduml\n");
-        try {
-            Files.writeString(output.unwrap(), content.toString());
-            return new None<>();
-        } catch (IOException e) {
-            return new Some<>(e);
-        }
+        return output.writeString(content.toString());
     }
 
     private static String classesSection(List<String> classes,

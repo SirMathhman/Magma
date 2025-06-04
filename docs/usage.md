@@ -18,5 +18,9 @@ their relationships.
 The Java sources use a lightweight `PathLike` interface instead of
 `java.nio.file.Path`. The wrapper (`JVMPath`) delegates to the JDK class but
 keeps it out of the public API so the generated TypeScript declarations remain
-valid. When you need a path object, call `PathLike.of(...)` rather than
-`Path.of(...)`.
+valid. `PathLike` exposes convenience methods such as `writeString`,
+`createDirectories` and `walk` so callers never interact with a raw
+`java.nio.file.Path`. When you need a path object, call `PathLike.of(...)`
+rather than `Path.of(...)`.
+`JVMPath` is intentionally small and forwards each call directly to the
+underlying JDK path.
