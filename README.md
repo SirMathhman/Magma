@@ -11,6 +11,9 @@ compiles all `*.java` files under the `src` directory:
 ./build.sh
 ```
 
+Running `build.sh` also generates matching TypeScript stubs under `src/node`
+and writes a fresh `diagram.puml` by invoking `GenerateDiagram`.
+
 ## Usage
 
 Run the program using the provided helper script:
@@ -18,6 +21,9 @@ Run the program using the provided helper script:
 ```bash
 ./run.sh
 ```
+
+This script keeps the TypeScript stubs in `src/node` up to date and rewrites
+`diagram.puml` on every run.
 
 Executing the program creates a file named `diagram.puml` in the same directory.
 The file contains a PlantUML diagram describing the `GenerateDiagram` class.
@@ -31,6 +37,9 @@ executes the tests:
 ```bash
 ./test.sh
 ```
+
+The test script compiles the Java sources and invokes `GenerateDiagram` to
+update the TypeScript stubs and diagram before running JUnit.
 
 ## Coding guidelines
 
