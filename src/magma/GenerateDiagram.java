@@ -32,9 +32,9 @@ public class GenerateDiagram {
         List<String> classes = findClasses(allSources);
         var implementations = findImplementations(allSources);
         StringBuilder content = new StringBuilder("@startuml\n");
-        appendClasses(content, classes);
+        content.append(classesSection(classes));
         List<Relation> relations = findRelations(allSources, classes, implementations);
-        appendRelations(content, relations);
+        content.append(relationsSection(relations));
         content.append("@enduml\n");
         try {
             Files.writeString(output, content.toString());
@@ -55,18 +55,20 @@ public class GenerateDiagram {
                 Pattern.MULTILINE);
         Set<String> unique = new LinkedHashSet<>();
         for (String src : sources) {
-            addClassesFromSource(unique, src, pattern);
+            unique.addAll(classesFromSource(src, pattern));
         }
         List<String> names = new ArrayList<>(unique);
         Collections.sort(names);
         return names;
     }
 
-    private static void addClassesFromSource(Set<String> unique, String src, Pattern pattern) {
+    private static Set<String> classesFromSource(String src, Pattern pattern) {
+        Set<String> result = new LinkedHashSet<>();
         Matcher matcher = pattern.matcher(src);
         while (matcher.find()) {
-            unique.add(matcher.group(1));
+            result.add(matcher.group(1));
         }
+        return result;
     }
 
     private static List<Relation> findRelations(List<String> sources,
@@ -100,8 +102,8 @@ public class GenerateDiagram {
             // complicates the inheritance regexes below.
             src = src.replaceAll("<[^>]*>", "");
             src = stripComments(src);
-            addInheritance(relations, src, extendsPattern);
-            addInheritance(relations, src, implementsPattern);
+            relations.addAll(inheritanceFromSource(src, extendsPattern));
+            relations.addAll(inheritanceFromSource(src, implementsPattern));
         }
         return relations;
     }
@@ -112,24 +114,27 @@ public class GenerateDiagram {
         return src;
     }
 
-    private static void addInheritance(List<Relation> relations, String src, Pattern pattern) {
+    private static List<Relation> inheritanceFromSource(String src, Pattern pattern) {
+        List<Relation> result = new ArrayList<>();
         Matcher matcher = pattern.matcher(src);
         while (matcher.find()) {
             String child = matcher.group(1);
             String parents = matcher.group(2);
-            addParentRelations(child, parents, relations);
+            result.addAll(parentRelations(child, parents));
         }
+        return result;
     }
 
-    private static void addParentRelations(String child,
-                                           String parents,
-                                           List<Relation> relations) {
+    private static List<Relation> parentRelations(String child,
+                                           String parents) {
+        List<Relation> relations = new ArrayList<>();
         for (String parent : parents.split(",")) {
             parent = parent.replaceAll("<.*?>", "").trim();
             if (!parent.isEmpty()) {
                 relations.add(new Relation(child, "--|>", parent));
             }
         }
+        return relations;
     }
 
     private static java.util.Map<String, java.util.List<String>> findImplementations(List<String> sources) {
@@ -137,22 +142,23 @@ public class GenerateDiagram {
                 "class\\s+(\\w+)(?:\\s+extends\\s+\\w+)?\\s+implements\\s+([\\w\\s,<>]+)");
         java.util.Map<String, java.util.List<String>> map = new java.util.HashMap<>();
         for (String src : sources) {
-            addImplementationsForSource(src, implementsPattern, map);
+            map.putAll(implementationsForSource(src, implementsPattern));
         }
         return map;
     }
 
-    private static void addImplementationsForSource(String src,
-                                                    Pattern pattern,
-                                                    java.util.Map<String, java.util.List<String>> map) {
+    private static java.util.Map<String, java.util.List<String>> implementationsForSource(String src,
+                                                    Pattern pattern) {
         src = src.replaceAll("<[^>]*>", "");
         src = stripComments(src);
         Matcher matcher = pattern.matcher(src);
+        java.util.Map<String, java.util.List<String>> map = new java.util.HashMap<>();
         while (matcher.find()) {
             String child = matcher.group(1);
             String parents = matcher.group(2);
             map.put(child, parseInterfaces(parents));
         }
+        return map;
     }
 
     private static java.util.List<String> parseInterfaces(String parents) {
@@ -221,22 +227,23 @@ public class GenerateDiagram {
 
         List<Relation> relations = new ArrayList<>();
         for (String src : sources) {
-            processDependenciesForSource(src, classPattern, classes, inherited, sourceMap, implementations, relations);
+            relations.addAll(dependenciesForSource(src, classPattern, classes,
+                    inherited, sourceMap, implementations));
         }
         return relations;
     }
 
-    private static void processDependenciesForSource(String src,
+    private static List<Relation> dependenciesForSource(String src,
                                                      Pattern classPattern,
                                                      List<String> classes,
                                                      Set<String> inherited,
                                                      java.util.Map<String, String> sourceMap,
-                                                     java.util.Map<String, java.util.List<String>> implementations,
-                                                     List<Relation> relations) {
+                                                     java.util.Map<String, java.util.List<String>> implementations) {
+        List<Relation> relations = new ArrayList<>();
         src = stripComments(src);
         Matcher matcher = classPattern.matcher(src);
         if (!matcher.find()) {
-            return;
+            return relations;
         }
         String name = matcher.group(1);
         for (String other : classes) {
@@ -256,20 +263,25 @@ public class GenerateDiagram {
             }
             relations.add(new Relation(name, "-->", other));
         }
+        return relations;
     }
 
-    private static void appendClasses(StringBuilder content, List<String> classes) {
+    private static String classesSection(List<String> classes) {
+        StringBuilder builder = new StringBuilder();
         for (String name : classes) {
-            content.append("class ").append(name).append("\n");
+            builder.append("class ").append(name).append("\n");
         }
+        return builder.toString();
     }
 
-    private static void appendRelations(StringBuilder content, List<Relation> relations) {
+    private static String relationsSection(List<Relation> relations) {
+        StringBuilder builder = new StringBuilder();
         for (Relation rel : relations) {
-            content.append(rel.from()).append(' ')
+            builder.append(rel.from()).append(' ')
                     .append(rel.arrow()).append(' ')
                     .append(rel.to()).append("\n");
         }
+        return builder.toString();
     }
 
     private static Result<List<String>, IOException> readSources(Path directory) {
