@@ -61,4 +61,22 @@ public class GenerateDiagramStubsTest {
         assertTrue(i.contains("export interface I {}"), "I.ts missing interface I");
         assertTrue(r.contains("export class R {}"), "R.ts missing record R");
     }
+
+    @Test
+    public void stubCopiesMethods() throws IOException {
+        Path javaRoot = Files.createTempDirectory("java");
+        Path tsRoot = Files.createTempDirectory("ts");
+
+        createTempJavaSource(javaRoot, "test/A.java",
+                "package test;\npublic class A { public void foo(){} public static void bar(){} }\n");
+
+        Optional<IOException> result = GenerateDiagram.writeTypeScriptStubs(javaRoot, tsRoot);
+        if (result.isPresent()) {
+            throw result.get();
+        }
+
+        String a = Files.readString(tsRoot.resolve("test/A.ts"));
+        assertTrue(a.contains("void foo() {"), "A.ts missing foo method");
+        assertTrue(a.contains("void bar() {"), "A.ts missing bar method");
+    }
 }
