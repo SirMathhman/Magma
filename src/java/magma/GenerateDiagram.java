@@ -88,7 +88,9 @@ public class GenerateDiagram {
             try {
                 Files.createDirectories(tsFile.getParent());
                 var imports = readImports(file);
-                String content = stubContent(relative, tsFile.getParent(), tsRoot, imports);
+                String source = Files.readString(file);
+                String decl = classDeclaration(source);
+                String content = stubContent(relative, tsFile.getParent(), tsRoot, imports, decl);
                 Files.writeString(tsFile, content);
             } catch (IOException e) {
                 return Optional.of(e);
@@ -111,14 +113,37 @@ public class GenerateDiagram {
         return imports;
     }
 
-    private static String stubContent(Path relative, Path from, Path root, java.util.List<String> imports) {
+    private static String stubContent(Path relative,
+                                      Path from,
+                                      Path root,
+                                      java.util.List<String> imports,
+                                      String decl) {
         StringBuilder builder = new StringBuilder();
-        builder.append("// Auto-generated from ").append(relative).append(System.lineSeparator());
+        builder.append("// Auto-generated from ").append(relative)
+                .append(System.lineSeparator());
         for (String imp : imports) {
-            builder.append(importLine(from, root, imp)).append(System.lineSeparator());
+            builder.append(importLine(from, root, imp))
+                    .append(System.lineSeparator());
         }
-        builder.append("export {};").append(System.lineSeparator());
+        builder.append(decl).append(System.lineSeparator());
         return builder.toString();
+    }
+
+    private static String classDeclaration(String source) {
+        source = source.replaceAll("(?s)/\\*.*?\\*/", "");
+        source = source.replaceAll("//.*", "");
+        java.util.regex.Pattern pattern =
+                java.util.regex.Pattern.compile("(class|interface|record)\\s+(\\w+)");
+        java.util.regex.Matcher matcher = pattern.matcher(source);
+        if (!matcher.find()) {
+            return "export {};";
+        }
+        String kind = matcher.group(1);
+        String name = matcher.group(2);
+        if ("interface".equals(kind)) {
+            return "export interface " + name + " {}";
+        }
+        return "export class " + name + " {}";
     }
 
     private static String importLine(Path from, Path root, String name) {

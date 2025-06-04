@@ -168,4 +168,40 @@ public class GenerateDiagramTest {
         String content = readTs("magma/Sources.ts");
         assertTrue(content.contains("import { Result } from \"./result/Result\";"), "Sources.ts missing import Result");
     }
+
+    @Test
+    public void tsGenerateDiagramContainsClass() {
+        String content = readTs("magma/GenerateDiagram.ts");
+        assertTrue(content.contains("export class GenerateDiagram {}"), "GenerateDiagram.ts missing class");
+    }
+
+    @Test
+    public void tsRelationIsClass() {
+        String content = readTs("magma/Relation.ts");
+        assertTrue(content.contains("export class Relation {}"), "Relation.ts missing class");
+    }
+
+    @Test
+    public void tsSourcesIsClass() {
+        String content = readTs("magma/Sources.ts");
+        assertTrue(content.contains("export class Sources {}"), "Sources.ts missing class");
+    }
+
+    @Test
+    public void tsOkIsClass() {
+        String content = readTs("magma/result/Ok.ts");
+        assertTrue(content.contains("export class Ok {}"), "Ok.ts missing class");
+    }
+
+    @Test
+    public void tsErrIsClass() {
+        String content = readTs("magma/result/Err.ts");
+        assertTrue(content.contains("export class Err {}"), "Err.ts missing class");
+    }
+
+    @Test
+    public void tsResultIsInterface() {
+        String content = readTs("magma/result/Result.ts");
+        assertTrue(content.contains("export interface Result {}"), "Result.ts missing interface");
+    }
 }
