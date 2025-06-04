@@ -75,6 +75,9 @@ The code also follows several structural guidelines:
 10. When several static methods share the same parameter type, wrap that
     parameter in a record and convert the methods to instance methods of the
     new record.
+11. Avoid boolean parameters. Split the behavior into separate methods so the
+    caller's intent is clear. For the same reason, do not accept `Optional` or
+    `Result` parameters—these types should represent return values instead.
 
 ## Continuous Integration
 
