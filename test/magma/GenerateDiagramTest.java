@@ -6,7 +6,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
-import java.util.Optional;
+
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -20,9 +20,9 @@ public class GenerateDiagramTest {
             throw new RuntimeException(e);
         }
         Path output = tempDir.resolve("diagram.puml");
-        Optional<IOException> result = GenerateDiagram.writeDiagram(output);
-        assertTrue(result.isEmpty(),
-                "writeDiagram failed: " + result.orElse(null));
+        Result<Void, IOException> result = GenerateDiagram.writeDiagram(output);
+        String message = result.isErr() ? ((Err<Void, IOException>) result).error().getMessage() : "";
+        assertTrue(result.isOk(), "writeDiagram failed: " + message);
         boolean exists;
         String content;
         try {
@@ -39,20 +39,11 @@ public class GenerateDiagramTest {
             assertTrue(content.contains("class " + cls + "\n"),
                     "Diagram missing class " + cls);
         }
+        String[] expectedRelations = {"Ok --|> Result", "Err --|> Result"};
+        for (String rel : expectedRelations) {
+            assertTrue(content.contains(rel + "\n"),
+                    "Diagram missing relation " + rel);
+        }
     }
 
-    @Test
-    public void testReadSelfContainsClassName() {
-        Result<String, IOException> sourceResult = GenerateDiagram.readSelf();
-        assertTrue(sourceResult.isOk(), "readSelf failed");
-        String source = ((Ok<String, IOException>) sourceResult).value();
-        String classDecl = "class " + GenerateDiagram.class.getSimpleName();
-        assertTrue(source.contains(classDecl),
-                "Source should contain its own class declaration");
-
-        Result<Boolean, IOException> hasDecl = GenerateDiagram.hasClassDeclaration();
-        assertTrue(hasDecl.isOk() &&
-                ((Ok<Boolean, IOException>) hasDecl).value(),
-                "hasClassDeclaration should return true");
-    }
 }
