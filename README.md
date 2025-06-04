@@ -7,8 +7,9 @@ The project is an early experiment for a future Magma compiler pipeline.
 
 ## Getting Started
 
-The sources are located in `src/java`. A modern JDK (21 or newer) is required to
-build the project. A simple way to compile everything into the `out` directory is:
+The sources are located in `src/java`. A recent JDK (17 or newer) is required
+to build the project. The helper scripts automatically match the installed JDK
+version. A simple way to compile everything into the `out` directory is:
 
 ```bash
 javac -d out $(find src/java -name '*.java')
@@ -51,7 +52,8 @@ extra lookup step when translating the compiler.
 ## Continuous Integration
 
 The repository is built on every pull request using a GitHub Actions workflow.
-It compiles the Java sources with JDK&nbsp;21 and preview features enabled.
+It compiles the Java sources with the JDK available on the runner
+(currently 21) and preview features enabled.
 The workflow calls `build.sh` and `test.sh` to keep the CI steps in sync with
 the local helper scripts.
 Compilation of the generated TypeScript is currently **skipped** because the
