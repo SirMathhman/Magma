@@ -14,9 +14,6 @@ import java.util.stream.Stream;
 
 import magma.Relation;
 
-import static magma.Result.err;
-import static magma.Result.ok;
-
 public class GenerateDiagram {
     // Helper methods split to comply with SRP (Single Responsibility Principle)
     /**
@@ -28,7 +25,7 @@ public class GenerateDiagram {
         Path src = Path.of("src/magma");
         Result<List<String>, IOException> sources = readSources(src);
         if (sources.isErr()) {
-            return err(((Err<List<String>, IOException>) sources).error());
+            return new Err<>(((Err<List<String>, IOException>) sources).error());
         }
         List<String> allSources = ((Ok<List<String>, IOException>) sources).value();
         List<String> classes = findClasses(allSources);
@@ -39,9 +36,9 @@ public class GenerateDiagram {
         content.append("@enduml\n");
         try {
             Files.writeString(output, content.toString());
-            return ok(null);
+            return new Ok<>(null);
         } catch (IOException e) {
-            return err(e);
+            return new Err<>(e);
         }
     }
 
@@ -176,7 +173,7 @@ public class GenerateDiagram {
                     .filter(p -> p.toString().endsWith(".java"))
                     .toList();
         } catch (IOException e) {
-            return err(e);
+            return new Err<>(e);
         }
 
         List<String> sources = new ArrayList<>();
@@ -184,10 +181,10 @@ public class GenerateDiagram {
             try {
                 sources.add(Files.readString(file));
             } catch (IOException e) {
-                return err(e);
+                return new Err<>(e);
             }
         }
-        return ok(sources);
+        return new Ok<>(sources);
     }
 
     public static void main(String[] args) {

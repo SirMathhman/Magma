@@ -13,59 +13,31 @@ public sealed interface Result<T, X extends Exception>
         permits Ok, Err {
 
 
-    /** Factory method for creating a successful result. */
-    static <T, X extends Exception> Result<T, X> ok(T value) {
-        return new Ok<>(value);
-    }
-
-    /** Factory method for creating an error result. */
-    static <T, X extends Exception> Result<T, X> err(X error) {
-        return new Err<>(error);
-    }
 
     /** Convenience method to check if this result is successful. */
-    default boolean isOk() {
-        return this instanceof Ok;
-    }
+    boolean isOk();
 
     /** Convenience method to check if this result is an error. */
-    default boolean isErr() {
-        return this instanceof Err;
-    }
+    boolean isErr();
 
     /**
      * Transforms the successful value using {@code mapper}. If this result is
      * an error, the same error is returned unchanged.
      */
-    default <U> Result<U, X> mapValue(java.util.function.Function<? super T, ? extends U> mapper) {
-        if (this instanceof Ok<T, X> ok) {
-            return Result.ok(mapper.apply(ok.value()));
-        }
-        return Result.err(((Err<T, X>) this).error());
-    }
+    <U> Result<U, X> mapValue(java.util.function.Function<? super T, ? extends U> mapper);
 
     /**
      * Transforms the successful value using a function that itself returns a
      * {@code Result}. This allows for chaining operations without explicit
      * casts.
      */
-    default <U> Result<U, X> flatMapValue(java.util.function.Function<? super T, Result<U, X>> mapper) {
-        if (this instanceof Ok<T, X> ok) {
-            return mapper.apply(ok.value());
-        }
-        return Result.err(((Err<T, X>) this).error());
-    }
+    <U> Result<U, X> flatMapValue(java.util.function.Function<? super T, Result<U, X>> mapper);
 
     /**
      * Gets the successful value or throws the stored exception if this result
      * represents an error. Most code should avoid calling this method and
      * handle both cases explicitly.
      */
-    default T unwrap() throws X {
-        if (this instanceof Ok<T, X> ok) {
-            return ok.value();
-        }
-        throw ((Err<T, X>) this).error();
-    }
+    T unwrap() throws X;
 }
 
