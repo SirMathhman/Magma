@@ -166,6 +166,32 @@ public final class TypeScriptStubs {
     }
 
     private static String tsType(String javaType) {
+        javaType = javaType.trim();
+        if (javaType.endsWith("[]")) {
+            String inner = javaType.substring(0, javaType.length() - 2);
+            return tsType(inner) + "[]";
+        }
+        int lt = javaType.indexOf('<');
+        if (lt != -1 && javaType.endsWith(">")) {
+            String base = javaType.substring(0, lt);
+            String args = javaType.substring(lt + 1, javaType.length() - 1);
+            java.util.List<String> parts = new java.util.ArrayList<>();
+            int depth = 0;
+            int start = 0;
+            for (int i = 0; i < args.length(); i++) {
+                char ch = args.charAt(i);
+                if (ch == '<') depth++; else if (ch == '>') depth--; else if (ch == ',' && depth == 0) {
+                    parts.add(args.substring(start, i).trim());
+                    start = i + 1;
+                }
+            }
+            parts.add(args.substring(start).trim());
+            java.util.List<String> converted = new java.util.ArrayList<>();
+            for (String part : parts) {
+                converted.add(tsType(part));
+            }
+            return base + "<" + String.join(", ", converted) + ">";
+        }
         return switch (javaType) {
             case "byte", "short", "int", "long", "float", "double" -> "number";
             case "boolean" -> "boolean";
