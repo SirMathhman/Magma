@@ -68,7 +68,7 @@ public class GenerateDiagramStubsTest {
         Path tsRoot = Files.createTempDirectory("ts");
 
         createTempJavaSource(javaRoot, "test/A.java",
-                "package test;\npublic class A { public void foo(){} public static void bar(){} }\n");
+                "package test;\npublic class A { public void foo(){} public static int bar(){return 0;} public String baz(){return \"\";} }\n");
 
         Optional<IOException> result = GenerateDiagram.writeTypeScriptStubs(javaRoot, tsRoot);
         if (result.isPresent()) {
@@ -76,7 +76,8 @@ public class GenerateDiagramStubsTest {
         }
 
         String a = Files.readString(tsRoot.resolve("test/A.ts"));
-        assertTrue(a.contains("void foo() {"), "A.ts missing foo method");
-        assertTrue(a.contains("void bar() {"), "A.ts missing bar method");
+        assertTrue(a.contains("foo(): void {"), "A.ts missing foo method");
+        assertTrue(a.contains("bar(): int {"), "A.ts missing bar method");
+        assertTrue(a.contains("baz(): String {"), "A.ts missing baz method");
     }
 }
