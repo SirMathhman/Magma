@@ -6,7 +6,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
-import magma.Result;
+import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -21,11 +21,9 @@ public class GenerateDiagramTest {
             throw new RuntimeException(e);
         }
         Path output = tempDir.resolve("diagram.puml");
-        Result<Void, IOException> result = GenerateDiagram.writeDiagram(output);
-        assertTrue(result.isOk(),
-                "writeDiagram failed: " + (result.isErr()
-                        ? ((Result.Err<Void, IOException>) result).error()
-                        : ""));
+        Optional<IOException> result = GenerateDiagram.writeDiagram(output);
+        assertTrue(result.isEmpty(),
+                "writeDiagram failed: " + result.orElse(null));
         boolean exists;
         String content;
         try {
