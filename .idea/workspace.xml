@@ -8,7 +8,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="ddea09a6-33bf-4a11-8cf0-08ec72b0dd6c" name="Changes" comment="Package &quot;result&quot;">
+    <list default="true" id="ddea09a6-33bf-4a11-8cf0-08ec72b0dd6c" name="Changes" comment="OK">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -173,7 +173,7 @@
       <recent name="magmac.app.compile.rule.split" />
     </key>
   </component>
-  <component name="RunManager" selected="Application.GenerateDiagram">
+  <component name="RunManager" selected="JUnit.All in Magma">
     <configuration name="GenerateDiagram" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
       <option name="MAIN_CLASS_NAME" value="magma.GenerateDiagram" />
       <module name="Magma" />
@@ -191,6 +191,22 @@
       <module name="Magma" />
       <option name="PACKAGE_NAME" value="" />
       <option name="TEST_OBJECT" value="package" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="GenerateDiagramStubsTest.copiesInstanceMethod" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
+      <module name="Magma" />
+      <extension name="coverage">
+        <pattern>
+          <option name="PATTERN" value="magma.*" />
+          <option name="ENABLED" value="true" />
+        </pattern>
+      </extension>
+      <option name="PACKAGE_NAME" value="magma" />
+      <option name="MAIN_CLASS_NAME" value="magma.GenerateDiagramStubsTest" />
+      <option name="METHOD_NAME" value="copiesInstanceMethod" />
+      <option name="TEST_OBJECT" value="method" />
       <method v="2">
         <option name="Make" enabled="true" />
       </method>
@@ -238,11 +254,11 @@
     </configuration>
     <recent_temporary>
       <list>
+        <item itemvalue="JUnit.All in Magma" />
+        <item itemvalue="JUnit.GenerateDiagramStubsTest.copiesInstanceMethod" />
         <item itemvalue="Application.GenerateDiagram" />
         <item itemvalue="JUnit.GenerateDiagramTest" />
-        <item itemvalue="JUnit.All in Magma" />
         <item itemvalue="Shell Script.run.sh" />
-        <item itemvalue="JUnit.All in Magma" />
       </list>
     </recent_temporary>
   </component>
@@ -303,14 +319,6 @@
       <workItem from="1742658935413" duration="1346000" />
       <workItem from="1742679831775" duration="2068000" />
       <workItem from="1742691657873" duration="2350000" />
-    </task>
-    <task id="LOCAL-04083" summary="OK">
-      <option name="closed" value="true" />
-      <created>1748924181019</created>
-      <option name="number" value="04083" />
-      <option name="presentableId" value="LOCAL-04083" />
-      <option name="project" value="LOCAL" />
-      <updated>1748924181019</updated>
     </task>
     <task id="LOCAL-04084" summary="Instanceof rul">
       <option name="closed" value="true" />
@@ -696,7 +704,15 @@
       <option name="project" value="LOCAL" />
       <updated>1749055422878</updated>
     </task>
-    <option name="localTasksCounter" value="4132" />
+    <task id="LOCAL-04132" summary="OK">
+      <option name="closed" value="true" />
+      <created>1749055952028</created>
+      <option name="number" value="04132" />
+      <option name="presentableId" value="LOCAL-04132" />
+      <option name="project" value="LOCAL" />
+      <updated>1749055952028</updated>
+    </task>
+    <option name="localTasksCounter" value="4133" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -718,7 +734,6 @@
     </option>
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="Save .log" />
     <MESSAGE value="More repairs" />
     <MESSAGE value="Pass around TypeMap" />
     <MESSAGE value="Ignore /web folder" />
@@ -743,7 +758,8 @@
     <MESSAGE value="Fix packaging" />
     <MESSAGE value="Repair abstraction issues" />
     <MESSAGE value="Package &quot;result&quot;" />
-    <option name="LAST_COMMIT_MESSAGE" value="Package &quot;result&quot;" />
+    <MESSAGE value="OK" />
+    <option name="LAST_COMMIT_MESSAGE" value="OK" />
   </component>
   <component name="XDebuggerManager">
     <pin-to-top-manager>

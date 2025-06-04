@@ -85,9 +85,8 @@ public class GenerateDiagramStubsTest {
     private Path generateMethodStubs() throws IOException {
         Path javaRoot = Files.createTempDirectory("java");
         Path tsRoot = Files.createTempDirectory("ts");
-
         writeSource(javaRoot, "test/A.java",
-                "package test;\npublic class A { public void foo(){} public static void bar(){} }\n");
+                "package test;\npublic class A { public void foo(){} public static int bar(){return 0;} public String baz(){return \"\";} }\n");
 
         Optional<IOException> result = GenerateDiagram.writeTypeScriptStubs(javaRoot, tsRoot);
         if (result.isPresent()) {
@@ -100,13 +99,15 @@ public class GenerateDiagramStubsTest {
     public void copiesInstanceMethod() throws IOException {
         Path tsRoot = generateMethodStubs();
         String a = Files.readString(tsRoot.resolve("test/A.ts"));
-        assertTrue(a.contains("void foo() {"));
+        assertTrue(a.contains("foo(): void {"));
     }
 
     @Test
     public void copiesStaticMethod() throws IOException {
         Path tsRoot = generateMethodStubs();
         String a = Files.readString(tsRoot.resolve("test/A.ts"));
-        assertTrue(a.contains("void bar() {"));
+        assertTrue(a.contains("foo(): void {"), "A.ts missing foo method");
+        assertTrue(a.contains("bar(): int {"), "A.ts missing bar method");
+        assertTrue(a.contains("baz(): String {"), "A.ts missing baz method");
     }
 }
