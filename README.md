@@ -4,7 +4,8 @@ This repository contains a simple Java program that generates a PlantUML file.
 
 ## Building
 
-Compile the sources using the provided helper script:
+Compile the sources using the provided helper script. The script automatically
+compiles all `*.java` files under the `src` directory:
 
 ```bash
 ./build.sh
@@ -43,3 +44,10 @@ change should ensure that:
 
 Following these principles helps keep the codebase easy to understand and
 maintain.
+
+## Continuous Integration
+
+The GitHub Actions workflow builds the project using `build.sh`. Earlier
+revisions compiled only `GenerateDiagram.java`, which caused errors like
+`cannot find symbol` when `Result.java` was added. Running the helper script
+ensures every source file is compiled and keeps the pipeline green.

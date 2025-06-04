@@ -3,7 +3,8 @@ set -e
 
 # Compile sources
 mkdir -p out
-javac -d out src/magma/Result.java src/magma/GenerateDiagram.java
+# Compile all source files under src/
+javac -d out $(find src -name '*.java')
 
 # Run the program
 java -cp out magma.GenerateDiagram
