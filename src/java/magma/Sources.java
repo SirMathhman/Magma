@@ -189,14 +189,13 @@ public record Sources(List<String> list) {
         return set;
     }
 
-    private static boolean omitDependency(java.util.Optional<String> source,
-                                          String dependency,
-                                          Map<String, List<String>> implementations) {
-        if (source.isEmpty()) {
-            return false;
-        }
-        List<String> interfaces = implementations.getOrDefault(dependency, Collections.emptyList());
-        return !interfaces.isEmpty() && containsInterfaceReference(source.get(), interfaces);
+    private static List<String> interfacesFor(String dependency,
+                                              Map<String, List<String>> implementations) {
+        return implementations.getOrDefault(dependency, Collections.emptyList());
+    }
+
+    private static boolean omitDependency(String source, List<String> interfaces) {
+        return !interfaces.isEmpty() && containsInterfaceReference(source, interfaces);
     }
 
     private static boolean containsInterfaceReference(String source, List<String> interfaces) {
@@ -233,7 +232,9 @@ public record Sources(List<String> list) {
             if (inherited.contains(name + "->" + other)) {
                 continue;
             }
-            if (omitDependency(java.util.Optional.ofNullable(sourceMap.get(name)), other, implementations)) {
+            List<String> interfaces = interfacesFor(other, implementations);
+            String selfSource = sourceMap.get(name);
+            if (selfSource != null && omitDependency(selfSource, interfaces)) {
                 continue;
             }
             relations.add(new Relation(name, "-->", other));
