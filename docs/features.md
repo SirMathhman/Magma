@@ -3,6 +3,9 @@
 - Parses Java sources to find classes, interfaces and records
 - Detects inheritance and dependency relationships
 - Generates a PlantUML diagram summarizing the relations
+- Omits interface dependencies when an implementing class is referenced. For
+  example `TypeScriptStubs` depends directly on `Some` and `None` instead of the
+  `Option` interface
 - Creates TypeScript stubs that match the Java hierarchy
 - Provides helper scripts for building, running and testing
 - Uses a small `Result` type for explicit error handling
