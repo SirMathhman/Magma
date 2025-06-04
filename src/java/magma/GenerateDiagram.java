@@ -70,7 +70,8 @@ public class GenerateDiagram {
     /**
      * Creates a .ts file for every .java file under {@code javaRoot}. The
      * generated files mirror the directory structure under {@code tsRoot}.
-     * Existing files are left untouched.
+     * Existing files are overwritten so that imports stay in sync with the
+     * corresponding Java sources.
      */
     public static Optional<IOException> writeTypeScriptStubs(Path javaRoot, Path tsRoot) {
         List<Path> files;
@@ -86,15 +87,50 @@ public class GenerateDiagram {
             Path tsFile = tsRoot.resolve(relative.toString().replaceFirst("\\.java$", ".ts"));
             try {
                 Files.createDirectories(tsFile.getParent());
-                if (!Files.exists(tsFile)) {
-                    String content = "// Auto-generated from " + relative + System.lineSeparator() + "export {};" + System.lineSeparator();
-                    Files.writeString(tsFile, content);
-                }
+                var imports = readImports(file);
+                String content = stubContent(relative, tsFile.getParent(), tsRoot, imports);
+                Files.writeString(tsFile, content);
             } catch (IOException e) {
                 return Optional.of(e);
             }
         }
         return Optional.empty();
+    }
+
+    private static java.util.List<String> readImports(Path file) throws IOException {
+        String source = Files.readString(file);
+        java.util.regex.Pattern pattern = java.util.regex.Pattern.compile("^import\\s+([\\w.]+);", java.util.regex.Pattern.MULTILINE);
+        java.util.regex.Matcher matcher = pattern.matcher(source);
+        java.util.List<String> imports = new java.util.ArrayList<>();
+        while (matcher.find()) {
+            String name = matcher.group(1);
+            if (!name.startsWith("java.")) {
+                imports.add(name);
+            }
+        }
+        return imports;
+    }
+
+    private static String stubContent(Path relative, Path from, Path root, java.util.List<String> imports) {
+        StringBuilder builder = new StringBuilder();
+        builder.append("// Auto-generated from ").append(relative).append(System.lineSeparator());
+        for (String imp : imports) {
+            builder.append(importLine(from, root, imp)).append(System.lineSeparator());
+        }
+        builder.append("export {};").append(System.lineSeparator());
+        return builder.toString();
+    }
+
+    private static String importLine(Path from, Path root, String name) {
+        String className = name.substring(name.lastIndexOf('.') + 1);
+        Path target = root.resolve(name.replace('.', '/') + ".ts");
+        Path rel = from.relativize(target);
+        String path = rel.toString().replace('\\', '/');
+        path = path.replaceFirst("\\.ts$", "");
+        if (!path.startsWith(".")) {
+            path = "./" + path;
+        }
+        return "import { " + className + " } from \"" + path + "\";";
     }
 
     public static void main(String[] args) {
