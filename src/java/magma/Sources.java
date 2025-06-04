@@ -6,7 +6,7 @@ import magma.result.Result;
 
 import java.io.IOException;
 import java.nio.file.Files;
-import java.nio.file.Path;
+import magma.PathLike;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedHashSet;
@@ -23,9 +23,9 @@ import java.util.stream.Stream;
  */
 public record Sources(List<String> list) {
 
-    public static Result<List<String>, IOException> read(Path directory) {
-        List<Path> files;
-        try (Stream<Path> stream = Files.walk(directory)) {
+    public static Result<List<String>, IOException> read(PathLike directory) {
+        List<java.nio.file.Path> files;
+        try (Stream<java.nio.file.Path> stream = Files.walk(directory.unwrap())) {
             files = stream.filter(Files::isRegularFile)
                     .filter(p -> p.toString().endsWith(".java"))
                     .toList();
@@ -34,7 +34,7 @@ public record Sources(List<String> list) {
         }
 
         List<String> sources = new ArrayList<>();
-        for (Path file : files) {
+        for (java.nio.file.Path file : files) {
             try {
                 sources.add(Files.readString(file));
             } catch (IOException e) {

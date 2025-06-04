@@ -7,7 +7,7 @@ import magma.result.Ok;
 
 import java.io.IOException;
 import java.nio.file.Files;
-import java.nio.file.Path;
+import magma.PathLike;
 import java.util.List;
 import magma.option.Option;
 
@@ -19,8 +19,8 @@ public class GenerateDiagram {
      * throwing an exception, any I/O error is returned wrapped in an
      * {@link magma.option.Option}.
      */
-    public static Option<IOException> writeDiagram(Path output) {
-        Path src = Path.of("src/java/magma");
+    public static Option<IOException> writeDiagram(PathLike output) {
+        PathLike src = PathLike.of("src/java/magma");
         var sources = Sources.read(src);
         if (sources.isErr()) {
             return new Some<>(((Err<List<String>, IOException>) sources).error());
@@ -37,7 +37,7 @@ public class GenerateDiagram {
         content.append(analysis.formatRelations(classes, implementations));
         content.append("@enduml\n");
         try {
-            Files.writeString(output, content.toString());
+            Files.writeString(output.unwrap(), content.toString());
             return new None<>();
         } catch (IOException e) {
             return new Some<>(e);

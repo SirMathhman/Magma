@@ -2,7 +2,11 @@ package magma;
 
 import java.io.IOException;
 import java.nio.file.Files;
-import java.nio.file.Path;
+
+// Use our own abstraction instead of java.nio.file.Path so that generated
+// TypeScript definitions do not reference a JDK type.
+import magma.PathLike;
+import magma.JVMPath;
 import java.util.List;
 import java.util.Map;
 
@@ -19,20 +23,20 @@ import java.util.stream.Stream;
 public final class TypeScriptStubs {
     private TypeScriptStubs() {}
 
-    public static Option<IOException> write(Path javaRoot, Path tsRoot) {
-        List<Path> files;
-        try (Stream<Path> stream = Files.walk(javaRoot)) {
+    public static Option<IOException> write(PathLike javaRoot, PathLike tsRoot) {
+        List<java.nio.file.Path> files;
+        try (Stream<java.nio.file.Path> stream = Files.walk(javaRoot.unwrap())) {
             files = stream.filter(Files::isRegularFile)
                     .filter(p -> p.toString().endsWith(".java"))
                     .toList();
         } catch (IOException e) {
             return new Some<>(e);
         }
-        for (Path file : files) {
-            Path relative = javaRoot.relativize(file);
-            Path tsFile = tsRoot.resolve(relative.toString().replaceFirst("\\.java$", ".ts"));
+        for (java.nio.file.Path file : files) {
+            PathLike relative = javaRoot.relativize(new JVMPath(file));
+            PathLike tsFile = tsRoot.resolve(relative.toString().replaceFirst("\\.java$", ".ts"));
             try {
-                Files.createDirectories(tsFile.getParent());
+                Files.createDirectories(tsFile.getParent().unwrap());
             } catch (IOException e) {
                 return new Some<>(e);
             }
@@ -59,7 +63,7 @@ public final class TypeScriptStubs {
             try {
                 String content = stubContent(relative, tsFile.getParent(), tsRoot,
                         imports, declarations, methods);
-                Files.writeString(tsFile, content);
+                Files.writeString(tsFile.unwrap(), content);
             } catch (IOException e) {
                 return new Some<>(e);
             }
@@ -67,7 +71,7 @@ public final class TypeScriptStubs {
         return new None<>();
     }
 
-    private static magma.result.Result<List<String>, IOException> readImports(Path file) {
+    private static magma.result.Result<List<String>, IOException> readImports(java.nio.file.Path file) {
         String source;
         try {
             source = Files.readString(file);
@@ -86,7 +90,7 @@ public final class TypeScriptStubs {
         return new magma.result.Ok<>(imports);
     }
 
-    private static magma.result.Result<List<String>, IOException> readDeclarations(Path file) {
+    private static magma.result.Result<List<String>, IOException> readDeclarations(java.nio.file.Path file) {
         String source;
         try {
             source = Files.readString(file);
@@ -144,7 +148,7 @@ public final class TypeScriptStubs {
         return new magma.result.Ok<>(declarations);
     }
 
-    private static magma.result.Result<Map<String, List<String>>, IOException> readMethods(Path file) {
+    private static magma.result.Result<Map<String, List<String>>, IOException> readMethods(java.nio.file.Path file) {
         String source;
         try {
             source = Files.readString(file);
@@ -199,7 +203,7 @@ public final class TypeScriptStubs {
         return list;
     }
 
-    private static String stubContent(Path relative, Path from, Path root,
+    private static String stubContent(PathLike relative, PathLike from, PathLike root,
                                       List<String> imports,
                                       List<String> declarations,
                                       Map<String, List<String>> methods) {
@@ -218,12 +222,12 @@ public final class TypeScriptStubs {
         return builder.toString();
     }
 
-    private static Map<String, List<String>> groupImports(List<String> imports, Path from, Path root) {
+    private static Map<String, List<String>> groupImports(List<String> imports, PathLike from, PathLike root) {
         Map<String, List<String>> byPath = new java.util.LinkedHashMap<>();
         for (String imp : imports) {
             String className = imp.substring(imp.lastIndexOf('.') + 1);
-            Path target = root.resolve(imp.replace('.', '/') + ".ts");
-            Path rel = from.relativize(target);
+            PathLike target = root.resolve(imp.replace('.', '/') + ".ts");
+            PathLike rel = from.relativize(target);
             String path = rel.toString().replace('\\', '/');
             path = path.replaceFirst("\\.ts$", "");
             if (!path.startsWith(".")) {
@@ -243,7 +247,7 @@ public final class TypeScriptStubs {
         }
     }
 
-    private static void appendDeclarations(StringBuilder builder, Path relative,
+    private static void appendDeclarations(StringBuilder builder, PathLike relative,
                                            List<String> declarations,
                                            Map<String, List<String>> methods) {
         var namePattern = java.util.regex.Pattern.compile("export \\w+ (\\w+)(?:<[^>]+>)?");

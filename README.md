@@ -18,6 +18,8 @@ The project is an early experiment for a future Magma compiler pipeline.
 - Preserves the `static` modifier on methods in the stubs
 - Preserves `extends` and `implements` on class declarations
 - Provides an `npm` command to type-check the generated stubs
+- Abstracts `java.nio.file.Path` behind a `PathLike` interface so TypeScript
+  declarations do not reference JDK classes
 
 
 ## Getting Started
