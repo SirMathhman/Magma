@@ -8,7 +8,6 @@ import java.nio.file.Path;
 
 import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class GenerateDiagramTest {
@@ -33,9 +32,13 @@ public class GenerateDiagramTest {
             throw new RuntimeException(e);
         }
         assertTrue(exists, "diagram.puml was not created");
-        String expected = "@startuml\nclass " +
-                GenerateDiagram.class.getSimpleName() + "\n@enduml\n";
-        assertEquals(expected, content);
+        assertTrue(content.startsWith("@startuml\n"), "diagram should start correctly");
+        assertTrue(content.endsWith("@enduml\n"), "diagram should end correctly");
+        String[] expectedClasses = {"GenerateDiagram", "Result", "Ok", "Err"};
+        for (String cls : expectedClasses) {
+            assertTrue(content.contains("class " + cls + "\n"),
+                    "Diagram missing class " + cls);
+        }
     }
 
     @Test
