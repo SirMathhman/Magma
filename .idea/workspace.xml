@@ -8,7 +8,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="ddea09a6-33bf-4a11-8cf0-08ec72b0dd6c" name="Changes" comment="Hmmm" />
+    <list default="true" id="ddea09a6-33bf-4a11-8cf0-08ec72b0dd6c" name="Changes" comment="Fix packaging" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -301,14 +301,6 @@
       <workItem from="1742658935413" duration="1346000" />
       <workItem from="1742679831775" duration="2068000" />
       <workItem from="1742691657873" duration="2350000" />
-    </task>
-    <task id="LOCAL-04080" summary="Operations">
-      <option name="closed" value="true" />
-      <created>1748922936966</created>
-      <option name="number" value="04080" />
-      <option name="presentableId" value="LOCAL-04080" />
-      <option name="project" value="LOCAL" />
-      <updated>1748922936966</updated>
     </task>
     <task id="LOCAL-04081" summary="OK">
       <option name="closed" value="true" />
@@ -694,7 +686,15 @@
       <option name="project" value="LOCAL" />
       <updated>1749054772940</updated>
     </task>
-    <option name="localTasksCounter" value="4129" />
+    <task id="LOCAL-04129" summary="Fix packaging">
+      <option name="closed" value="true" />
+      <created>1749054885270</created>
+      <option name="number" value="04129" />
+      <option name="presentableId" value="LOCAL-04129" />
+      <option name="project" value="LOCAL" />
+      <updated>1749054885270</updated>
+    </task>
+    <option name="localTasksCounter" value="4130" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -731,7 +731,6 @@
     <MESSAGE value="Rename" />
     <MESSAGE value="Rebuild" />
     <MESSAGE value="Hard reset!" />
-    <MESSAGE value="Fix packaging" />
     <MESSAGE value="Update .gitignore" />
     <MESSAGE value="Cleanup" />
     <MESSAGE value="Reformat" />
@@ -741,7 +740,8 @@
     <MESSAGE value="Repair" />
     <MESSAGE value="???" />
     <MESSAGE value="Hmmm" />
-    <option name="LAST_COMMIT_MESSAGE" value="Hmmm" />
+    <MESSAGE value="Fix packaging" />
+    <option name="LAST_COMMIT_MESSAGE" value="Fix packaging" />
   </component>
   <component name="XDebuggerManager">
     <pin-to-top-manager>

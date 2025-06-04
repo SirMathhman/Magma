@@ -5,13 +5,12 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Stream;
-
-import magma.Sources;
 import java.util.Optional;
+import java.util.stream.Stream;
 
 public class GenerateDiagram {
     // Helper methods split to comply with SRP (Single Responsibility Principle)
+
     /**
      * Generates a PlantUML diagram and writes it to {@code output}. Instead of
      * throwing an exception, any I/O error is returned wrapped in an
@@ -26,10 +25,12 @@ public class GenerateDiagram {
         List<String> allSources = ((Ok<List<String>, IOException>) sources).value();
         Sources analysis = new Sources(allSources);
         List<String> classes = analysis.findClasses();
+
         var implementations = analysis.findImplementations();
         var sourceMap = analysis.mapSourcesByClass();
+
         StringBuilder content = new StringBuilder("@startuml\n");
-        content.append(classesSection(classes));
+        content.append(classesSection(classes, sourceMap));
         content.append(analysis.formatRelations(classes, implementations));
         content.append("@enduml\n");
         try {
@@ -39,6 +40,7 @@ public class GenerateDiagram {
             return Optional.of(e);
         }
     }
+
     private static String classesSection(List<String> classes,
                                          java.util.Map<String, String> sourceMap) {
         StringBuilder builder = new StringBuilder();
@@ -62,7 +64,7 @@ public class GenerateDiagram {
         }
         return "class";
     }
-  
+
     private static Result<List<String>, IOException> readSources(Path directory) {
         List<Path> files;
         try (Stream<Path> stream = Files.walk(directory)) {
