@@ -45,6 +45,14 @@ public class GenerateDiagramTest {
         return readContent(createDiagram());
     }
 
+    private String readTs(String name) {
+        try {
+            return Files.readString(Path.of("src/node").resolve(name));
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     @Test
     public void diagramWriteSucceeds() {
         Path output = createOutput();
@@ -147,5 +155,17 @@ public class GenerateDiagramTest {
     public void diagramDoesNotContainErrOkDependency() {
         String content = diagramContent();
         assertTrue(!content.contains("Err --> Ok\n"), "Comments referencing Ok should not create Err --> Ok");
+    }
+
+    @Test
+    public void tsGenerateDiagramImportsOk() {
+        String content = readTs("magma/GenerateDiagram.ts");
+        assertTrue(content.contains("import { Ok } from \"./result/Ok\";"), "GenerateDiagram.ts missing import Ok");
+    }
+
+    @Test
+    public void tsSourcesImportsResult() {
+        String content = readTs("magma/Sources.ts");
+        assertTrue(content.contains("import { Result } from \"./result/Result\";"), "Sources.ts missing import Result");
     }
 }
