@@ -42,9 +42,9 @@ public interface Option<T> {
     }
 
     /**
-     * Returns the singleton {@link None} instance.
+     * Returns an empty {@link Option}.
      */
     static <T> Option<T> none() {
-        return None.instance();
+        return new None<>();
     }
 }
