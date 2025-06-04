@@ -139,7 +139,7 @@ public class GenerateDiagramStubsTest {
         Path tsRoot = generateMethodStubs();
         String a = Files.readString(tsRoot.resolve("test/A.ts"));
         assertTrue(a.contains("foo(): void {"), "A.ts missing foo method");
-        assertTrue(a.contains("bar(): int {"), "A.ts missing bar method");
+        assertTrue(a.contains("static bar(): int {"), "A.ts missing static bar method");
         assertTrue(a.contains("baz(): String {"), "A.ts missing baz method");
     }
 

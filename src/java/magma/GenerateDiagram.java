@@ -150,14 +150,16 @@ public class GenerateDiagram {
             }
             String body = source.substring(start, i - 1);
             java.util.regex.Pattern methodPat = java.util.regex.Pattern.compile(
-                    "(?:public\\s+|protected\\s+|private\\s+)?(?:static\\s+)?(?:final\\s+)?([\\w<>\\[\\]]+)\\s+(\\w+)\\s*\\([^)]*\\)\\s*\\{");
+                    "(?:public\\s+|protected\\s+|private\\s+)?(static\\s+)?(?:final\\s+)?([\\w<>\\[\\]]+)\\s+(\\w+)\\s*\\([^)]*\\)\\s*\\{");
             java.util.regex.Matcher mMatcher = methodPat.matcher(body);
             java.util.List<String> list = new java.util.ArrayList<>();
             while (mMatcher.find()) {
-                String returnType = mMatcher.group(1);
-                String mName = mMatcher.group(2);
+                String staticKw = mMatcher.group(1);
+                String returnType = mMatcher.group(2);
+                String mName = mMatcher.group(3);
                 if (!mName.equals(name)) {
-                    list.add("\t" + mName + "(): " + returnType + " {");
+                    String prefix = staticKw == null ? "" : "static ";
+                    list.add("\t" + prefix + mName + "(): " + returnType + " {");
                     list.add("\t}");
                 }
             }
