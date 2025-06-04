@@ -19,10 +19,16 @@ import static magma.Result.ok;
 public class GenerateDiagram {
     public static Optional<IOException> writeDiagram(Path output) {
         try {
-            List<String> classes = findClasses(Path.of("src/magma"));
+            Path src = Path.of("src/magma");
+            List<String> classes = findClasses(src);
+            List<String[]> relations = findRelations(src);
             StringBuilder content = new StringBuilder("@startuml\n");
             for (String name : classes) {
                 content.append("class ").append(name).append("\n");
+            }
+            for (String[] rel : relations) {
+                content.append(rel[0]).append(" --|> ")
+                        .append(rel[1]).append("\n");
             }
             content.append("@enduml\n");
             Files.writeString(output, content.toString());
@@ -51,6 +57,49 @@ public class GenerateDiagram {
         List<String> names = new ArrayList<>(unique);
         Collections.sort(names);
         return names;
+    }
+
+    private static List<String[]> findRelations(Path directory) throws IOException {
+        Pattern extendsPattern = Pattern.compile("(?:class|interface)\\s+(\\w+)\\s+extends\\s+([\\w\\s,]+)");
+        Pattern implementsPattern = Pattern.compile("class\\s+(\\w+)(?:\\s+extends\\s+\\w+)?\\s+implements\\s+([\\w\\s,]+)");
+
+        List<Path> files;
+        try (Stream<Path> stream = Files.walk(directory)) {
+            files = stream.filter(Files::isRegularFile)
+                    .filter(p -> p.toString().endsWith(".java"))
+                    .toList();
+        }
+
+        List<String[]> relations = new ArrayList<>();
+        for (Path file : files) {
+            String src = Files.readString(file);
+            src = src.replaceAll("<[^>]*>", "");
+
+            Matcher matcher = extendsPattern.matcher(src);
+            while (matcher.find()) {
+                String child = matcher.group(1);
+                String parents = matcher.group(2);
+                for (String parent : parents.split(",")) {
+                    parent = parent.replaceAll("<.*?>", "").trim();
+                    if (!parent.isEmpty()) {
+                        relations.add(new String[]{child, parent});
+                    }
+                }
+            }
+
+            matcher = implementsPattern.matcher(src);
+            while (matcher.find()) {
+                String child = matcher.group(1);
+                String parents = matcher.group(2);
+                for (String parent : parents.split(",")) {
+                    parent = parent.replaceAll("<.*?>", "").trim();
+                    if (!parent.isEmpty()) {
+                        relations.add(new String[]{child, parent});
+                    }
+                }
+            }
+        }
+        return relations;
     }
 
     /**
