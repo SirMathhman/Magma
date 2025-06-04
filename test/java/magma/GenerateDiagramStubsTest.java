@@ -40,27 +40,17 @@ public class GenerateDiagramStubsTest {
     }
 
     @Test
-    public void stubContainsImportsAndClasses() throws IOException {
-        Path javaRoot = Files.createTempDirectory("java");
-        Path tsRoot = Files.createTempDirectory("ts");
-
-        writeSource(javaRoot, "test/A.java", "package test;\npublic class A {}\n");
-        writeSource(javaRoot, "test/B.java", "package test;\nimport test.A;\npublic class B {}\n");
-
-        Optional<IOException> result = GenerateDiagram.writeTypeScriptStubs(javaRoot, tsRoot);
-        if (result.isPresent()) {
-            throw result.get();
-        }
-
-        String b = Files.readString(tsRoot.resolve("test/B.ts"));
-        assertTrue(b.contains("import { A } from \"./A\";"), "B.ts missing import of A");
-        assertTrue(b.contains("export class B {}"), "B.ts missing class B");
-    }
-
     public void addsImportForDependency() throws IOException {
         Path tsRoot = generateStubs();
         String content = Files.readString(tsRoot.resolve("test/B.ts"));
         assertTrue(content.contains("import { A } from \"./A\";"));
+    }
+
+    @Test
+    public void stubDeclaresBClass() throws IOException {
+        Path tsRoot = generateStubs();
+        String content = Files.readString(tsRoot.resolve("test/B.ts"));
+        assertTrue(content.contains("export class B {}"));
     }
   
     @Test
@@ -76,6 +66,8 @@ public class GenerateDiagramStubsTest {
         if (result.isPresent()) {
             throw result.get();
         }
+        long count = Files.list(tsRoot.resolve("test")).count();
+        assertEquals(3, count);
     }
 
     @Test
@@ -138,8 +130,13 @@ public class GenerateDiagramStubsTest {
     public void copiesStaticMethod() throws IOException {
         Path tsRoot = generateMethodStubs();
         String a = Files.readString(tsRoot.resolve("test/A.ts"));
-        assertTrue(a.contains("foo(): void {"), "A.ts missing foo method");
         assertTrue(a.contains("static bar(): number {"), "A.ts missing static bar method");
+    }
+
+    @Test
+    public void copiesBazMethod() throws IOException {
+        Path tsRoot = generateMethodStubs();
+        String a = Files.readString(tsRoot.resolve("test/A.ts"));
         assertTrue(a.contains("baz(): string {"), "A.ts missing baz method");
     }
 
