@@ -16,7 +16,8 @@ public class GenerateDiagramTest {
         GenerateDiagram.writeDiagram(output);
         assertTrue(Files.exists(output), "diagram.puml was not created");
         String content = Files.readString(output);
-        String expected = "@startuml\nBob -> Alice : hello\n@enduml\n";
+        String expected = "@startuml\nclass " +
+                GenerateDiagram.class.getSimpleName() + "\n@enduml\n";
         assertEquals(expected, content);
     }
 

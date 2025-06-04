@@ -11,7 +11,7 @@ Run the program using the provided helper script:
 ```
 
 Executing the program creates a file named `diagram.puml` in the same directory.
-The file contains a minimal example of a PlantUML diagram.
+The file contains a PlantUML diagram describing the `GenerateDiagram` class.
 
 ## Running tests
 
