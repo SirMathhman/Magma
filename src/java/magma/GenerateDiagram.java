@@ -114,9 +114,27 @@ public class GenerateDiagram {
     private static String stubContent(Path relative, Path from, Path root, java.util.List<String> imports) {
         StringBuilder builder = new StringBuilder();
         builder.append("// Auto-generated from ").append(relative).append(System.lineSeparator());
+
+        java.util.Map<String, java.util.List<String>> byPath = new java.util.LinkedHashMap<>();
         for (String imp : imports) {
-            builder.append(importLine(from, root, imp)).append(System.lineSeparator());
+            String className = imp.substring(imp.lastIndexOf('.') + 1);
+            Path target = root.resolve(imp.replace('.', '/') + ".ts");
+            Path rel = from.relativize(target);
+            String path = rel.toString().replace('\\', '/');
+            path = path.replaceFirst("\\.ts$", "");
+            if (!path.startsWith(".")) {
+                path = "./" + path;
+            }
+            byPath.computeIfAbsent(path, k -> new java.util.ArrayList<>()).add(className);
         }
+
+        for (var entry : byPath.entrySet()) {
+            builder.append("import { ");
+            builder.append(String.join(", ", entry.getValue()));
+            builder.append(" } from \"").append(entry.getKey()).append("\"");
+            builder.append(";").append(System.lineSeparator());
+        }
+
         builder.append("export {};").append(System.lineSeparator());
         return builder.toString();
     }
