@@ -15,7 +15,9 @@ import java.util.stream.Stream;
 import static magma.Result.err;
 import static magma.Result.ok;
 
-public class GenerateDiagram {
+public final class GenerateDiagram {
+    /** Utility class - prevent instantiation. */
+    private GenerateDiagram() {}
     // Helper methods split to comply with SRP (Single Responsibility Principle)
     /**
      * Generates a PlantUML diagram and writes it to {@code output}. Instead of
@@ -54,11 +56,12 @@ public class GenerateDiagram {
         return names;
     }
 
-    private static void addClassesFromSource(Set<String> unique, String src, Pattern pattern) {
+    private static Set<String> addClassesFromSource(Set<String> unique, String src, Pattern pattern) {
         Matcher matcher = pattern.matcher(src);
         while (matcher.find()) {
             unique.add(matcher.group(1));
         }
+        return unique;
     }
 
     private static List<String[]> findRelations(List<String> sources) {
@@ -74,35 +77,39 @@ public class GenerateDiagram {
         return relations;
     }
 
-    private static void addRelations(List<String[]> relations, String src, Pattern pattern) {
+    private static List<String[]> addRelations(List<String[]> relations, String src, Pattern pattern) {
         Matcher matcher = pattern.matcher(src);
         while (matcher.find()) {
             String child = matcher.group(1);
             String parents = matcher.group(2);
             addParentRelations(relations, child, parents);
         }
+        return relations;
     }
 
-    private static void addParentRelations(List<String[]> relations, String child, String parents) {
+    private static List<String[]> addParentRelations(List<String[]> relations, String child, String parents) {
         for (String parent : parents.split(",")) {
             parent = parent.replaceAll("<.*?>", "").trim();
             if (!parent.isEmpty()) {
                 relations.add(new String[]{child, parent});
             }
         }
+        return relations;
     }
 
-    private static void appendClasses(StringBuilder content, List<String> classes) {
+    private static StringBuilder appendClasses(StringBuilder content, List<String> classes) {
         for (String name : classes) {
             content.append("class ").append(name).append("\n");
         }
+        return content;
     }
 
-    private static void appendRelations(StringBuilder content, List<String[]> relations) {
+    private static StringBuilder appendRelations(StringBuilder content, List<String[]> relations) {
         for (String[] rel : relations) {
             content.append(rel[0]).append(" --|> ")
                     .append(rel[1]).append("\n");
         }
+        return content;
     }
 
     private static Result<List<String>, IOException> readSources(Path directory) {
