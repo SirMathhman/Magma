@@ -11,7 +11,6 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static magma.Result.err;
@@ -39,7 +38,7 @@ public class GenerateDiagram {
         try (Stream<Path> stream = Files.walk(directory)) {
             files = stream.filter(Files::isRegularFile)
                     .filter(p -> p.toString().endsWith(".java"))
-                    .collect(Collectors.toList());
+                    .toList();
         }
         Set<String> unique = new LinkedHashSet<>();
         for (Path file : files) {
