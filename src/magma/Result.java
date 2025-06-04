@@ -10,33 +10,8 @@ package magma;
  * @param <X> the exception type, which must extend {@link Exception}
  */
 public sealed interface Result<T, X extends Exception>
-        permits Result.Ok, Result.Err {
+        permits Ok, Err {
 
-    /** Result variant representing success. */
-    final class Ok<T, X extends Exception> implements Result<T, X> {
-        private final T value;
-
-        public Ok(T value) {
-            this.value = value;
-        }
-
-        public T value() {
-            return value;
-        }
-    }
-
-    /** Result variant representing failure. */
-    final class Err<T, X extends Exception> implements Result<T, X> {
-        private final X error;
-
-        public Err(X error) {
-            this.error = error;
-        }
-
-        public X error() {
-            return error;
-        }
-    }
 
     /** Factory method for creating a successful result. */
     static <T, X extends Exception> Result<T, X> ok(T value) {

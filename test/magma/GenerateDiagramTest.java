@@ -45,14 +45,14 @@ public class GenerateDiagramTest {
     public void testReadSelfContainsClassName() {
         Result<String, IOException> sourceResult = GenerateDiagram.readSelf();
         assertTrue(sourceResult.isOk(), "readSelf failed");
-        String source = ((Result.Ok<String, IOException>) sourceResult).value();
+        String source = ((Ok<String, IOException>) sourceResult).value();
         String classDecl = "class " + GenerateDiagram.class.getSimpleName();
         assertTrue(source.contains(classDecl),
                 "Source should contain its own class declaration");
 
         Result<Boolean, IOException> hasDecl = GenerateDiagram.hasClassDeclaration();
         assertTrue(hasDecl.isOk() &&
-                ((Result.Ok<Boolean, IOException>) hasDecl).value(),
+                ((Ok<Boolean, IOException>) hasDecl).value(),
                 "hasClassDeclaration should return true");
     }
 }

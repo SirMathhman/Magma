@@ -74,10 +74,10 @@ public class GenerateDiagram {
     public static Result<Boolean, IOException> hasClassDeclaration() {
         Result<String, IOException> source = readSelf();
         if (source.isErr()) {
-            return err(((Result.Err<String, IOException>) source).error());
+            return err(((Err<String, IOException>) source).error());
         }
         String declaration = "class " + GenerateDiagram.class.getSimpleName();
-        String src = ((Result.Ok<String, IOException>) source).value();
+        String src = ((Ok<String, IOException>) source).value();
         return ok(src.contains(declaration));
     }
 
