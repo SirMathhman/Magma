@@ -8,8 +8,8 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="ddea09a6-33bf-4a11-8cf0-08ec72b0dd6c" name="Changes" comment="Update .gitignore">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+    <list default="true" id="ddea09a6-33bf-4a11-8cf0-08ec72b0dd6c" name="Changes" comment="Ok">
+      <change beforePath="$PROJECT_DIR$/src/magma/GenerateDiagram.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/magma/GenerateDiagram.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -303,30 +303,6 @@
       <workItem from="1742658935413" duration="1346000" />
       <workItem from="1742679831775" duration="2068000" />
       <workItem from="1742691657873" duration="2350000" />
-    </task>
-    <task id="LOCAL-04070" summary="Callers">
-      <option name="closed" value="true" />
-      <created>1748921303786</created>
-      <option name="number" value="04070" />
-      <option name="presentableId" value="LOCAL-04070" />
-      <option name="project" value="LOCAL" />
-      <updated>1748921303786</updated>
-    </task>
-    <task id="LOCAL-04071" summary="Fix post">
-      <option name="closed" value="true" />
-      <created>1748921407526</created>
-      <option name="number" value="04071" />
-      <option name="presentableId" value="LOCAL-04071" />
-      <option name="project" value="LOCAL" />
-      <updated>1748921407526</updated>
-    </task>
-    <task id="LOCAL-04072" summary="Fix">
-      <option name="closed" value="true" />
-      <created>1748921461881</created>
-      <option name="number" value="04072" />
-      <option name="presentableId" value="LOCAL-04072" />
-      <option name="project" value="LOCAL" />
-      <updated>1748921461881</updated>
     </task>
     <task id="LOCAL-04073" summary="Invocations">
       <option name="closed" value="true" />
@@ -696,7 +672,31 @@
       <option name="project" value="LOCAL" />
       <updated>1749044500011</updated>
     </task>
-    <option name="localTasksCounter" value="4119" />
+    <task id="LOCAL-04119" summary="Cleanup">
+      <option name="closed" value="true" />
+      <created>1749045627422</created>
+      <option name="number" value="04119" />
+      <option name="presentableId" value="LOCAL-04119" />
+      <option name="project" value="LOCAL" />
+      <updated>1749045627422</updated>
+    </task>
+    <task id="LOCAL-04120" summary="Reformat">
+      <option name="closed" value="true" />
+      <created>1749045657396</created>
+      <option name="number" value="04120" />
+      <option name="presentableId" value="LOCAL-04120" />
+      <option name="project" value="LOCAL" />
+      <updated>1749045657396</updated>
+    </task>
+    <task id="LOCAL-04121" summary="Ok">
+      <option name="closed" value="true" />
+      <created>1749045666933</created>
+      <option name="number" value="04121" />
+      <option name="presentableId" value="LOCAL-04121" />
+      <option name="project" value="LOCAL" />
+      <updated>1749045666933</updated>
+    </task>
+    <option name="localTasksCounter" value="4122" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -718,9 +718,6 @@
     </option>
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="Assignments" />
-    <MESSAGE value="OK" />
-    <MESSAGE value="Cleanup" />
     <MESSAGE value="Fix ?" />
     <MESSAGE value="Diagram fix" />
     <MESSAGE value="Remove old code" />
@@ -743,7 +740,10 @@
     <MESSAGE value="Fix packaging" />
     <MESSAGE value="Repair" />
     <MESSAGE value="Update .gitignore" />
-    <option name="LAST_COMMIT_MESSAGE" value="Update .gitignore" />
+    <MESSAGE value="Cleanup" />
+    <MESSAGE value="Reformat" />
+    <MESSAGE value="Ok" />
+    <option name="LAST_COMMIT_MESSAGE" value="Ok" />
   </component>
   <component name="XDebuggerManager">
     <pin-to-top-manager>

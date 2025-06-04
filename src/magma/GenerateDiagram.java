@@ -26,15 +26,9 @@ public class GenerateDiagram {
         for (String name : classes) {
             content.append("class ").append(name).append("\n");
         }
-        content.append("@enduml\n");
         try {
             Path src = Path.of("src/magma");
-            List<String> classes = findClasses(src);
             List<String[]> relations = findRelations(src);
-            StringBuilder content = new StringBuilder("@startuml\n");
-            for (String name : classes) {
-                content.append("class ").append(name).append("\n");
-            }
             for (String[] rel : relations) {
                 content.append(rel[0]).append(" --|> ")
                         .append(rel[1]).append("\n");
