@@ -209,4 +209,21 @@ public class GenerateDiagramStubsTest {
         String a = Files.readString(tsRoot.resolve("test/A.ts"));
         assertTrue(a.contains("add(x: number, y: number): number {"));
     }
+
+    @Test
+    public void preservesMethodTypeParameter() throws IOException {
+        Path javaRoot = Files.createTempDirectory("java");
+        Path tsRoot = Files.createTempDirectory("ts");
+
+        writeSource(javaRoot, "test/A.java",
+                "package test;\npublic class A { public <R> R id(R x){return x;} }\n");
+
+        Optional<IOException> result = GenerateDiagram.writeTypeScriptStubs(javaRoot, tsRoot);
+        if (result.isPresent()) {
+            throw result.get();
+        }
+
+        String a = Files.readString(tsRoot.resolve("test/A.ts"));
+        assertTrue(a.contains("id<R>(x: R): R {"));
+    }
 }

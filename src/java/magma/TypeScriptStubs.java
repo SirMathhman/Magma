@@ -93,18 +93,20 @@ public final class TypeScriptStubs {
             }
             String body = source.substring(start, i - 1);
             var methodPat = java.util.regex.Pattern.compile(
-                    "(?:public\\s+|protected\\s+|private\\s+)?(static\\s+)?(?:final\\s+)?([\\w.]+(?:<[^>]+>)?(?:\\[\\])*)\\s+(\\w+)\\s*\\(([^)]*)\\)\\s*\\{");
+                    "(?:public\\s+|protected\\s+|private\\s+)?(static\\s+)?(?:final\\s+)?(<[^>]+>\\s+)?([\\w.]+(?:<[^>]+>)?(?:\\[\\])*)\\s+(\\w+)\\s*\\(([^)]*)\\)\\s*\\{");
             var mMatcher = methodPat.matcher(body);
             List<String> list = new java.util.ArrayList<>();
             while (mMatcher.find()) {
                 String staticKw = mMatcher.group(1);
-                String returnType = mMatcher.group(2);
-                String mName = mMatcher.group(3);
-                String params = mMatcher.group(4);
+                String generics = mMatcher.group(2);
+                String returnType = mMatcher.group(3);
+                String mName = mMatcher.group(4);
+                String params = mMatcher.group(5);
                 if (!mName.equals(name)) {
                     String prefix = staticKw == null ? "" : "static ";
+                    String typeParams = generics == null ? "" : generics.trim();
                     String paramList = tsParams(params);
-                    list.add("\t" + prefix + mName + "(" + paramList + "): " + tsType(returnType) + " {");
+                    list.add("\t" + prefix + mName + typeParams + "(" + paramList + "): " + tsType(returnType) + " {");
                     list.add("\t}");
                 }
             }
