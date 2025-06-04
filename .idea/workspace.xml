@@ -8,9 +8,8 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="ddea09a6-33bf-4a11-8cf0-08ec72b0dd6c" name="Changes" comment="Hard reset!">
-      <change beforePath="$PROJECT_DIR$/GenerateDiagram.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/magma/GenerateDiagram.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tests/GenerateDiagramTest.java" beforeDir="false" afterPath="$PROJECT_DIR$/test/magma/GenerateDiagramTest.java" afterDir="false" />
+    <list default="true" id="ddea09a6-33bf-4a11-8cf0-08ec72b0dd6c" name="Changes" comment="Fix packaging">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -272,14 +271,6 @@
       <workItem from="1742658935413" duration="1346000" />
       <workItem from="1742679831775" duration="2068000" />
       <workItem from="1742691657873" duration="2350000" />
-    </task>
-    <task id="LOCAL-04067" summary="Return">
-      <option name="closed" value="true" />
-      <created>1748918959513</created>
-      <option name="number" value="04067" />
-      <option name="presentableId" value="LOCAL-04067" />
-      <option name="project" value="LOCAL" />
-      <updated>1748918959513</updated>
     </task>
     <task id="LOCAL-04068" summary="Add missing impls">
       <option name="closed" value="true" />
@@ -665,7 +656,15 @@
       <option name="project" value="LOCAL" />
       <updated>1749041110199</updated>
     </task>
-    <option name="localTasksCounter" value="4116" />
+    <task id="LOCAL-04116" summary="Fix packaging">
+      <option name="closed" value="true" />
+      <created>1749042612383</created>
+      <option name="number" value="04116" />
+      <option name="presentableId" value="LOCAL-04116" />
+      <option name="project" value="LOCAL" />
+      <updated>1749042612383</updated>
+    </task>
+    <option name="localTasksCounter" value="4117" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -687,7 +686,6 @@
     </option>
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="Symbols" />
     <MESSAGE value="Operations" />
     <MESSAGE value="Instanceof rul" />
     <MESSAGE value="Assignments" />
@@ -712,7 +710,8 @@
     <MESSAGE value="Rebuild" />
     <MESSAGE value="Hmmm" />
     <MESSAGE value="Hard reset!" />
-    <option name="LAST_COMMIT_MESSAGE" value="Hard reset!" />
+    <MESSAGE value="Fix packaging" />
+    <option name="LAST_COMMIT_MESSAGE" value="Fix packaging" />
   </component>
   <component name="XDebuggerManager">
     <pin-to-top-manager>
