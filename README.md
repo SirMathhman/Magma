@@ -2,104 +2,12 @@
 
 This repository contains a simple Java program that generates a PlantUML file.
 
-## Building
+Documentation has been moved into the `docs` directory:
 
-Compile the sources using the provided helper script. The script automatically
-compiles all `*.java` files under the `src` directory:
-
-```bash
-./build.sh
-```
-
-Running `build.sh` also generates matching TypeScript stubs under `src/node`
-and writes a fresh `diagram.puml` by invoking `GenerateDiagram`.
-
-## Usage
-
-Run the program using the provided helper script:
-
-```bash
-./run.sh
-```
-
-This script keeps the TypeScript stubs in `src/node` up to date and rewrites
-`diagram.puml` on every run.
-
-Executing the program creates a file named `diagram.puml` in the same directory.
-The file contains a PlantUML diagram describing the `GenerateDiagram` class.
-
-## Running tests
-
-The project follows a test-driven development approach using JUnit 5. A
-`test.sh` script downloads the JUnit Platform console runner if necessary and
-executes the tests:
-
-```bash
-./test.sh
-```
-
-The test script compiles the Java sources and invokes `GenerateDiagram` to
-update the TypeScript stubs and diagram before running JUnit.
-
-## Coding guidelines
-
-Code in this repository follows Kent Beck's rules of simple design. Every
-change should ensure that:
-
-1. **All tests run successfully.**
-2. **There is no duplicated logic.**
-3. **The code expresses the programmer's intent as clearly as possible.**
-4. **Any code that doesn't support the above goals is removed.**
-5. **Each test should contain exactly one assertion.**
-
-Following these principles helps keep the codebase easy to understand and
-maintain. We also keep methods focused on a single task in line with the
-Single Responsibility Principle (SRP).
-
-### Additional style rules
-
-The code also follows several structural guidelines:
-
-1. Functions contain at most **one** loop.
-2. Nesting is limited to two levels of braces.
-3. Guard clauses are preferred to reduce indentation.
-4. Production code never uses `null`; optional values are expressed with `Optional<T>`.
-5. Exceptions are represented with `Result<T, X>` instead of `throws` clauses.
-6. Methods other than `main` should not return `void`. I/O methods return
-   `Optional<IOException>`, and pure functions return a value useful for
-   chaining.
-7. Avoid mutating collections passed as parameters. Compute a new collection and
-   bulk-add the result to the caller's collection instead.
-8. Do not use output arguments.
-9. Do not reassign a value to a parameter.
-10. When several static methods share the same parameter type, wrap that
-    parameter in a record and convert the methods to instance methods of the
-    new record.
-11. Avoid boolean parameters. Split the behavior into separate methods so the
-    caller's intent is clear. For the same reason, do not accept `Optional` or
-    `Result` parameters—these types should represent return values instead.
-
-## Continuous Integration
-
-The GitHub Actions workflow builds the project using `build.sh`. Earlier
-revisions compiled only `GenerateDiagram.java`, which caused errors like
-`cannot find symbol` when `Result.java` was added. Running the helper script
-ensures every source file is compiled and keeps the pipeline green.
-
-## Error handling
-
-This project avoids using checked exceptions for control flow. Instead, methods return `Optional` or the custom `Result` type to represent failures explicitly.
-This makes error cases clear in the type system and keeps method signatures easy to read.
-
-## Regex patterns
-
-`GenerateDiagram` relies on several regular expressions to extract class names and relationships. These patterns are fairly dense, so a short overview is provided here:
-
-* `^\s*(?:public\s+|protected\s+|private\s+)?(?:static\s+)?(?:final\s+)?(?:sealed\s+)?(?:class|interface)\s+(\w+)`
-  - Matches a class or interface declaration at the start of a line. Optional modifiers such as `public` or `final` are allowed. The captured group is the declared name.
-* `(?:class|interface)\s+(\w+)\s+extends\s+([\w\s,<>]+)`
-  - Captures inheritance relationships. Group 1 is the child class or interface and group 2 contains the comma-separated parents.
-* `class\s+(\w+)(?:\s+extends\s+\w+)?\s+implements\s+([\w\s,<>]+)`
-  - Captures implemented interfaces. Group 1 holds the class name and group 2 lists the interfaces.
-
-Before applying these patterns the program strips generic parameters such as `<T>` so that the regexes operate purely on class names.
+- [Building](docs/build.md)
+- [Usage](docs/usage.md)
+- [Running tests](docs/tests.md)
+- [Coding guidelines](docs/coding_guidelines.md)
+- [Continuous Integration](docs/continuous_integration.md)
+- [Error handling](docs/error_handling.md)
+- [Regex patterns](docs/regex_patterns.md)
