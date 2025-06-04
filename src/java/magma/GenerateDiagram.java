@@ -135,38 +135,57 @@ public class GenerateDiagram {
         String source = Files.readString(file);
         source = source.replaceAll("(?s)/\\*.*?\\*/", "");
         source = source.replaceAll("//.*", "");
+
         java.util.Map<String, java.util.List<String>> map = new java.util.LinkedHashMap<>();
-        java.util.regex.Pattern classPat = java.util.regex.Pattern.compile("(?:class|interface|record)\\s+(\\w+)[^{]*\\{");
-        java.util.regex.Matcher cMatcher = classPat.matcher(source);
-        while (cMatcher.find()) {
-            String name = cMatcher.group(1);
-            int start = cMatcher.end();
-            int level = 1;
-            int i = start;
-            while (i < source.length() && level > 0) {
-                char ch = source.charAt(i);
-                if (ch == '{') level++; else if (ch == '}') level--;
-                i++;
-            }
-            String body = source.substring(start, i - 1);
-            java.util.regex.Pattern methodPat = java.util.regex.Pattern.compile(
-                    "(?:public\\s+|protected\\s+|private\\s+)?(static\\s+)?(?:final\\s+)?([\\w<>\\[\\]]+)\\s+(\\w+)\\s*\\([^)]*\\)\\s*\\{");
-            java.util.regex.Matcher mMatcher = methodPat.matcher(body);
-            java.util.List<String> list = new java.util.ArrayList<>();
-            while (mMatcher.find()) {
-                String staticKw = mMatcher.group(1);
-                String returnType = mMatcher.group(2);
-                String mName = mMatcher.group(3);
-                if (!mName.equals(name)) {
-                    String prefix = staticKw == null ? "" : "static ";
-                    list.add("\t" + prefix + mName + "(): " + tsType(returnType) + " {");
-                    list.add("\t}");
-                }
-            }
-            map.put(name, list);
+        for (var info : extractClasses(source)) {
+            map.put(info.name(), methodsFromBody(info.body(), info.name()));
         }
         return map;
     }
+
+    private static java.util.List<ClassInfo> extractClasses(String source) {
+        java.util.regex.Pattern classPat = java.util.regex.Pattern.compile("(?:class|interface|record)\\s+(\\w+)[^{]*\\{");
+        java.util.regex.Matcher matcher = classPat.matcher(source);
+        java.util.List<ClassInfo> list = new java.util.ArrayList<>();
+        while (matcher.find()) {
+            String name = matcher.group(1);
+            int end = classEnd(source, matcher.end());
+            String body = source.substring(matcher.end(), end);
+            list.add(new ClassInfo(name, body));
+        }
+        return list;
+    }
+
+    private static int classEnd(String source, int start) {
+        int level = 1;
+        int i = start;
+        while (i < source.length() && level > 0) {
+            char ch = source.charAt(i);
+            if (ch == '{') level++; else if (ch == '}') level--;
+            i++;
+        }
+        return i - 1;
+    }
+
+    private static java.util.List<String> methodsFromBody(String body, String className) {
+        java.util.regex.Pattern methodPat = java.util.regex.Pattern.compile(
+                "(?:public\\s+|protected\\s+|private\\s+)?(static\\s+)?(?:final\\s+)?([\\w<>\\[\\]]+)\\s+(\\w+)\\s*\\([^)]*\\)\\s*\\{");
+        java.util.regex.Matcher matcher = methodPat.matcher(body);
+        java.util.List<String> list = new java.util.ArrayList<>();
+        while (matcher.find()) {
+            String staticKw = matcher.group(1);
+            String returnType = matcher.group(2);
+            String name = matcher.group(3);
+            if (!name.equals(className)) {
+                String prefix = staticKw == null ? "" : "static ";
+                list.add("\t" + prefix + name + "(): " + tsType(returnType) + " {");
+                list.add("\t}");
+            }
+        }
+        return list;
+    }
+
+    private record ClassInfo(String name, String body) {}
 
     private static String stubContent(Path relative, Path from, Path root,
                                       java.util.List<String> imports,
@@ -175,7 +194,22 @@ public class GenerateDiagram {
         StringBuilder builder = new StringBuilder();
         builder.append("// Auto-generated from ").append(relative).append(System.lineSeparator());
 
-        java.util.Map<String, java.util.List<String>> byPath = new java.util.LinkedHashMap<>();
+        java.util.Map<String, java.util.List<String>> byPath = importsByPath(from, root, imports);
+        builder.append(formatImports(byPath));
+
+        if (declarations.isEmpty()) {
+            builder.append("export {};").append(System.lineSeparator());
+            return builder.toString();
+        }
+
+        builder.append(formatDeclarations(declarations, methods));
+        return builder.toString();
+    }
+
+    private static java.util.Map<String, java.util.List<String>> importsByPath(Path from,
+                                                                               Path root,
+                                                                               java.util.List<String> imports) {
+        java.util.Map<String, java.util.List<String>> map = new java.util.LinkedHashMap<>();
         for (String imp : imports) {
             String className = imp.substring(imp.lastIndexOf('.') + 1);
             Path target = root.resolve(imp.replace('.', '/') + ".ts");
@@ -185,21 +219,27 @@ public class GenerateDiagram {
             if (!path.startsWith(".")) {
                 path = "./" + path;
             }
-            byPath.computeIfAbsent(path, k -> new java.util.ArrayList<>()).add(className);
+            map.computeIfAbsent(path, k -> new java.util.ArrayList<>()).add(className);
         }
+        return map;
+    }
 
+    private static String formatImports(java.util.Map<String, java.util.List<String>> byPath) {
+        StringBuilder builder = new StringBuilder();
         for (var entry : byPath.entrySet()) {
-            builder.append("import { ");
-            builder.append(String.join(", ", entry.getValue()));
-            builder.append(" } from \"").append(entry.getKey()).append("\"");
-            builder.append(";").append(System.lineSeparator());
+            builder.append("import { ")
+                   .append(String.join(", ", entry.getValue()))
+                   .append(" } from \"")
+                   .append(entry.getKey())
+                   .append("\";")
+                   .append(System.lineSeparator());
         }
+        return builder.toString();
+    }
 
-        if (declarations.isEmpty()) {
-            builder.append("export {};").append(System.lineSeparator());
-            return builder.toString();
-        }
-
+    private static String formatDeclarations(java.util.List<String> declarations,
+                                             java.util.Map<String, java.util.List<String>> methods) {
+        StringBuilder builder = new StringBuilder();
         java.util.regex.Pattern namePattern = java.util.regex.Pattern.compile(
                 "export \\w+ (\\w+)(?:<[^>]+>)? \\{\\}");
         for (String decl : declarations) {
@@ -215,10 +255,16 @@ public class GenerateDiagram {
                 continue;
             }
             builder.append(decl.substring(0, decl.length() - 1)).append(System.lineSeparator());
-            for (String method : mList) {
-                builder.append(method).append(System.lineSeparator());
-            }
+            builder.append(methodLines(mList));
             builder.append("}").append(System.lineSeparator());
+        }
+        return builder.toString();
+    }
+
+    private static String methodLines(java.util.List<String> mList) {
+        StringBuilder builder = new StringBuilder();
+        for (String method : mList) {
+            builder.append(method).append(System.lineSeparator());
         }
         return builder.toString();
     }
@@ -230,17 +276,6 @@ public class GenerateDiagram {
         };
     }
 
-    private static String importLine(Path from, Path root, String name) {
-        String className = name.substring(name.lastIndexOf('.') + 1);
-        Path target = root.resolve(name.replace('.', '/') + ".ts");
-        Path rel = from.relativize(target);
-        String path = rel.toString().replace('\\', '/');
-        path = path.replaceFirst("\\.ts$", "");
-        if (!path.startsWith(".")) {
-            path = "./" + path;
-        }
-        return "import { " + className + " } from \"" + path + "\";";
-    }
 
     public static void main(String[] args) {
         Path javaRoot = Path.of("src/java");
