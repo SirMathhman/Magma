@@ -22,28 +22,26 @@ public class GenerateDiagram {
      * {@code Optional}.
      */
     public static Result<Void, IOException> writeDiagram(Path output) {
-        Result<List<String>, IOException> result = findClasses(Path.of("src/magma"));
-        if (result.isErr()) {
-            return err(((Err<List<String>, IOException>) result).error());
-        }
-        List<String> classes = ((Ok<List<String>, IOException>) result).value();
-        StringBuilder content = new StringBuilder("@startuml\n");
-        for (String name : classes) {
-            content.append("class ").append(name).append("\n");
-        }
-        try {
-            Path src = Path.of("src/magma");
-            List<String[]> relations = findRelations(src);
-            for (String[] rel : relations) {
-                content.append(rel[0]).append(" --|> ")
-                        .append(rel[1]).append("\n");
-            }
-            content.append("@enduml\n");
-            Files.writeString(output, content.toString());
-            return ok(null);
-        } catch (IOException e) {
-            return err(e);
-        }
+        return findClasses(Path.of("src/magma"))
+                .flatMapValue(classes -> {
+                    StringBuilder content = new StringBuilder("@startuml\n");
+                    for (String name : classes) {
+                        content.append("class ").append(name).append("\n");
+                    }
+                    try {
+                        Path src = Path.of("src/magma");
+                        List<String[]> relations = findRelations(src);
+                        for (String[] rel : relations) {
+                            content.append(rel[0]).append(" --|> ")
+                                    .append(rel[1]).append("\n");
+                        }
+                        content.append("@enduml\n");
+                        Files.writeString(output, content.toString());
+                        return ok(null);
+                    } catch (IOException e) {
+                        return err(e);
+                    }
+                });
     }
 
     private static Result<List<String>, IOException> findClasses(Path directory) {
@@ -136,13 +134,8 @@ public class GenerateDiagram {
      * Determines if the source code contains its own class declaration.
      */
     public static Result<Boolean, IOException> hasClassDeclaration() {
-        Result<String, IOException> source = readSelf();
-        if (source.isErr()) {
-            return err(((Err<String, IOException>) source).error());
-        }
         String declaration = "class " + GenerateDiagram.class.getSimpleName();
-        String src = ((Ok<String, IOException>) source).value();
-        return ok(src.contains(declaration));
+        return readSelf().mapValue(src -> src.contains(declaration));
     }
 
     public static void main(String[] args) {
