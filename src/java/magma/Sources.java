@@ -154,6 +154,7 @@ public record Sources(List<String> list) {
     private static Map<String, List<String>> implementationsForSource(String src, Pattern pattern) {
         src = src.replaceAll("<[^>]*>", "");
         src = stripComments(src);
+        src = stripStrings(src);
         Matcher matcher = pattern.matcher(src);
         Map<String, List<String>> map = new java.util.HashMap<>();
         while (matcher.find()) {
@@ -179,6 +180,10 @@ public record Sources(List<String> list) {
         src = src.replaceAll("(?s)/\\*.*?\\*/", "");
         src = src.replaceAll("//.*", "");
         return src;
+    }
+
+    private static String stripStrings(String src) {
+        return src.replaceAll("\"(?:\\\\.|[^\"\\\\])*\"", "");
     }
 
     private static Set<String> toInheritedSet(List<Relation> inheritance) {
@@ -216,6 +221,7 @@ public record Sources(List<String> list) {
                                                          Map<String, List<String>> implementations) {
         List<Relation> relations = new ArrayList<>();
         src = stripComments(src);
+        src = stripStrings(src);
         Matcher matcher = classPattern.matcher(src);
         if (!matcher.find()) {
             return relations;
