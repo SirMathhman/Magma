@@ -16,6 +16,7 @@ import static magma.Result.err;
 import static magma.Result.ok;
 
 public class GenerateDiagram {
+    // Helper methods split to comply with SRP (Single Responsibility Principle)
     /**
      * Generates a PlantUML diagram and writes it to {@code output}. Instead of
      * throwing an exception, any I/O error is returned wrapped in an
@@ -30,14 +31,9 @@ public class GenerateDiagram {
         List<String> allSources = ((Ok<List<String>, IOException>) sources).value();
         List<String> classes = findClasses(allSources);
         StringBuilder content = new StringBuilder("@startuml\n");
-        for (String name : classes) {
-            content.append("class ").append(name).append("\n");
-        }
+        appendClasses(content, classes);
         List<String[]> relations = findRelations(allSources);
-        for (String[] rel : relations) {
-            content.append(rel[0]).append(" --|> ")
-                    .append(rel[1]).append("\n");
-        }
+        appendRelations(content, relations);
         content.append("@enduml\n");
         try {
             Files.writeString(output, content.toString());
@@ -51,14 +47,18 @@ public class GenerateDiagram {
         Pattern pattern = Pattern.compile("^\\s*(?:public\\s+|protected\\s+|private\\s+)?(?:static\\s+)?(?:final\\s+)?(?:sealed\\s+)?(?:class|interface)\\s+(\\w+)", Pattern.MULTILINE);
         Set<String> unique = new LinkedHashSet<>();
         for (String src : sources) {
-            Matcher matcher = pattern.matcher(src);
-            while (matcher.find()) {
-                unique.add(matcher.group(1));
-            }
+            addClassesFromSource(unique, src, pattern);
         }
         List<String> names = new ArrayList<>(unique);
         Collections.sort(names);
         return names;
+    }
+
+    private static void addClassesFromSource(Set<String> unique, String src, Pattern pattern) {
+        Matcher matcher = pattern.matcher(src);
+        while (matcher.find()) {
+            unique.add(matcher.group(1));
+        }
     }
 
     private static List<String[]> findRelations(List<String> sources) {
@@ -68,32 +68,41 @@ public class GenerateDiagram {
         List<String[]> relations = new ArrayList<>();
         for (String src : sources) {
             src = src.replaceAll("<[^>]*>", "");
-
-            Matcher matcher = extendsPattern.matcher(src);
-            while (matcher.find()) {
-                String child = matcher.group(1);
-                String parents = matcher.group(2);
-                for (String parent : parents.split(",")) {
-                    parent = parent.replaceAll("<.*?>", "").trim();
-                    if (!parent.isEmpty()) {
-                        relations.add(new String[]{child, parent});
-                    }
-                }
-            }
-
-            matcher = implementsPattern.matcher(src);
-            while (matcher.find()) {
-                String child = matcher.group(1);
-                String parents = matcher.group(2);
-                for (String parent : parents.split(",")) {
-                    parent = parent.replaceAll("<.*?>", "").trim();
-                    if (!parent.isEmpty()) {
-                        relations.add(new String[]{child, parent});
-                    }
-                }
-            }
+            addRelations(relations, src, extendsPattern);
+            addRelations(relations, src, implementsPattern);
         }
         return relations;
+    }
+
+    private static void addRelations(List<String[]> relations, String src, Pattern pattern) {
+        Matcher matcher = pattern.matcher(src);
+        while (matcher.find()) {
+            String child = matcher.group(1);
+            String parents = matcher.group(2);
+            addParentRelations(relations, child, parents);
+        }
+    }
+
+    private static void addParentRelations(List<String[]> relations, String child, String parents) {
+        for (String parent : parents.split(",")) {
+            parent = parent.replaceAll("<.*?>", "").trim();
+            if (!parent.isEmpty()) {
+                relations.add(new String[]{child, parent});
+            }
+        }
+    }
+
+    private static void appendClasses(StringBuilder content, List<String> classes) {
+        for (String name : classes) {
+            content.append("class ").append(name).append("\n");
+        }
+    }
+
+    private static void appendRelations(StringBuilder content, List<String[]> relations) {
+        for (String[] rel : relations) {
+            content.append(rel[0]).append(" --|> ")
+                    .append(rel[1]).append("\n");
+        }
     }
 
     private static Result<List<String>, IOException> readSources(Path directory) {

@@ -43,7 +43,8 @@ change should ensure that:
 4. **Any code that doesn't support the above goals is removed.**
 
 Following these principles helps keep the codebase easy to understand and
-maintain.
+maintain. We also keep methods focused on a single task in line with the
+Single Responsibility Principle (SRP).
 
 ## Continuous Integration
 
