@@ -159,7 +159,7 @@ public class GenerateDiagram {
                 String mName = mMatcher.group(3);
                 if (!mName.equals(name)) {
                     String prefix = staticKw == null ? "" : "static ";
-                    list.add("\t" + prefix + mName + "(): " + returnType + " {");
+                    list.add("\t" + prefix + mName + "(): " + tsType(returnType) + " {");
                     list.add("\t}");
                 }
             }
@@ -221,6 +221,13 @@ public class GenerateDiagram {
             builder.append("}").append(System.lineSeparator());
         }
         return builder.toString();
+    }
+
+    private static String tsType(String javaType) {
+        return switch (javaType) {
+            case "char", "String" -> "string";
+            default -> javaType;
+        };
     }
 
     private static String importLine(Path from, Path root, String name) {
