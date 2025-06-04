@@ -183,6 +183,7 @@ public final class TypeScriptStubs {
         }
 
         var namePattern = java.util.regex.Pattern.compile("export \\w+ (\\w+)(?:<[^>]+>)?");
+        boolean isMain = relative.toString().replace('\\', '/').equals("magma/Main.java");
         for (String decl : declarations) {
             var m = namePattern.matcher(decl);
             if (!m.find()) {
@@ -200,6 +201,9 @@ public final class TypeScriptStubs {
                 builder.append(method).append(System.lineSeparator());
             }
             builder.append("}").append(System.lineSeparator());
+        }
+        if (isMain) {
+            builder.append("Main.main([]);").append(System.lineSeparator());
         }
         return builder.toString();
     }
