@@ -88,7 +88,8 @@ public class GenerateDiagram {
             try {
                 Files.createDirectories(tsFile.getParent());
                 var imports = readImports(file);
-                String content = stubContent(relative, tsFile.getParent(), tsRoot, imports);
+                var declarations = readDeclarations(file);
+                String content = stubContent(relative, tsFile.getParent(), tsRoot, imports, declarations);
                 Files.writeString(tsFile, content);
             } catch (IOException e) {
                 return Optional.of(e);
@@ -111,7 +112,27 @@ public class GenerateDiagram {
         return imports;
     }
 
-    private static String stubContent(Path relative, Path from, Path root, java.util.List<String> imports) {
+    private static java.util.List<String> readDeclarations(Path file) throws IOException {
+        String source = Files.readString(file);
+        java.util.regex.Pattern pattern = java.util.regex.Pattern.compile(
+                "^(?:public\\s+|protected\\s+|private\\s+)?(?:static\\s+)?(?:final\\s+)?(?:sealed\\s+)?(class|interface|record)\\s+(\\w+)",
+                java.util.regex.Pattern.MULTILINE);
+        java.util.regex.Matcher matcher = pattern.matcher(source);
+        java.util.List<String> declarations = new java.util.ArrayList<>();
+        while (matcher.find()) {
+            String kind = matcher.group(1);
+            String name = matcher.group(2);
+            if ("record".equals(kind)) {
+                kind = "class";
+            }
+            declarations.add("export " + kind + " " + name + " {}");
+        }
+        return declarations;
+    }
+
+    private static String stubContent(Path relative, Path from, Path root,
+                                      java.util.List<String> imports,
+                                      java.util.List<String> declarations) {
         StringBuilder builder = new StringBuilder();
         builder.append("// Auto-generated from ").append(relative).append(System.lineSeparator());
 
@@ -135,7 +156,14 @@ public class GenerateDiagram {
             builder.append(";").append(System.lineSeparator());
         }
 
-        builder.append("export {};").append(System.lineSeparator());
+        if (declarations.isEmpty()) {
+            builder.append("export {};").append(System.lineSeparator());
+            return builder.toString();
+        }
+
+        for (String decl : declarations) {
+            builder.append(decl).append(System.lineSeparator());
+        }
         return builder.toString();
     }
 
