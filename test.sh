@@ -9,4 +9,8 @@ fi
 mkdir -p out
 # Compile all Java files from src/ and test/ directories
 javac -d out -cp "$JUNIT_JAR" $(find src test -name '*.java')
+
+# Generate diagram and TypeScript stubs before running tests
+java -cp out magma.GenerateDiagram
+
 java -jar "$JUNIT_JAR" --class-path out:"$JUNIT_JAR" --scan-class-path

@@ -8,6 +8,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Stream;
 
 public class GenerateDiagram {
     // Helper methods split to comply with SRP (Single Responsibility Principle)
@@ -66,7 +67,46 @@ public class GenerateDiagram {
         return "class";
     }
 
+    /**
+     * Creates a .ts file for every .java file under {@code javaRoot}. The
+     * generated files mirror the directory structure under {@code tsRoot}.
+     * Existing files are left untouched.
+     */
+    public static Optional<IOException> writeTypeScriptStubs(Path javaRoot, Path tsRoot) {
+        List<Path> files;
+        try (Stream<Path> stream = Files.walk(javaRoot)) {
+            files = stream.filter(Files::isRegularFile)
+                    .filter(p -> p.toString().endsWith(".java"))
+                    .toList();
+        } catch (IOException e) {
+            return Optional.of(e);
+        }
+        for (Path file : files) {
+            Path relative = javaRoot.relativize(file);
+            Path tsFile = tsRoot.resolve(relative.toString().replaceFirst("\\.java$", ".ts"));
+            try {
+                Files.createDirectories(tsFile.getParent());
+                if (!Files.exists(tsFile)) {
+                    String content = "// Auto-generated from " + relative + System.lineSeparator() + "export {};" + System.lineSeparator();
+                    Files.writeString(tsFile, content);
+                }
+            } catch (IOException e) {
+                return Optional.of(e);
+            }
+        }
+        return Optional.empty();
+    }
+
     public static void main(String[] args) {
-        writeDiagram(Path.of("diagram.puml"));
+        Path javaRoot = Path.of("src/java");
+        Path tsRoot = Path.of("src/node");
+        writeTypeScriptStubs(javaRoot, tsRoot).ifPresent(e -> {
+            e.printStackTrace();
+            System.exit(1);
+        });
+        writeDiagram(Path.of("diagram.puml")).ifPresent(e -> {
+            e.printStackTrace();
+            System.exit(1);
+        });
     }
 }
