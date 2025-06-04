@@ -178,4 +178,21 @@ public class GenerateDiagramStubsTest {
         String a = Files.readString(tsRoot.resolve("test/A.ts"));
         assertTrue(a.contains("foo(): Base<Test> {"));
     }
+
+    @Test
+    public void convertsPrimitiveGenericArgument() throws IOException {
+        Path javaRoot = Files.createTempDirectory("java");
+        Path tsRoot = Files.createTempDirectory("ts");
+
+        writeSource(javaRoot, "test/A.java",
+                "package test;\nimport java.util.Optional;\npublic class A { public Optional<String> foo(){return null;} }\n");
+
+        Optional<IOException> result = GenerateDiagram.writeTypeScriptStubs(javaRoot, tsRoot);
+        if (result.isPresent()) {
+            throw result.get();
+        }
+
+        String a = Files.readString(tsRoot.resolve("test/A.ts"));
+        assertTrue(a.contains("foo(): Optional<string> {"));
+    }
 }
