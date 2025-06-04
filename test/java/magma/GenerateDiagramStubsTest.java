@@ -44,9 +44,9 @@ public class GenerateDiagramStubsTest {
         Path javaRoot = Files.createTempDirectory("java");
         Path tsRoot = Files.createTempDirectory("ts");
 
-        createTempJavaSource(javaRoot, "test/A.java", "package test;\npublic class A {}\n");
-        createTempJavaSource(javaRoot, "test/I.java", "package test;\npublic interface I {}\n");
-        createTempJavaSource(javaRoot, "test/R.java", "package test;\npublic record R(int x) {}\n");
+        createTempJavaSource(javaRoot, "test/A.java", "package test;\npublic class A<T> {}\n");
+        createTempJavaSource(javaRoot, "test/I.java", "package test;\npublic interface I<T> {}\n");
+        createTempJavaSource(javaRoot, "test/R.java", "package test;\npublic record R<T>(T x) {}\n");
 
         Optional<IOException> result = GenerateDiagram.writeTypeScriptStubs(javaRoot, tsRoot);
         if (result.isPresent()) {
@@ -57,8 +57,8 @@ public class GenerateDiagramStubsTest {
         String i = Files.readString(tsRoot.resolve("test/I.ts"));
         String r = Files.readString(tsRoot.resolve("test/R.ts"));
 
-        assertTrue(a.contains("export class A {}"), "A.ts missing class A");
-        assertTrue(i.contains("export interface I {}"), "I.ts missing interface I");
-        assertTrue(r.contains("export class R {}"), "R.ts missing record R");
+        assertTrue(a.contains("export class A<T> {}"), "A.ts missing class A<T>");
+        assertTrue(i.contains("export interface I<T> {}"), "I.ts missing interface I<T>");
+        assertTrue(r.contains("export class R<T> {}"), "R.ts missing record R<T>");
     }
 }

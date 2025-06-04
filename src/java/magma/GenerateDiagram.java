@@ -115,7 +115,7 @@ public class GenerateDiagram {
     private static java.util.List<String> readDeclarations(Path file) throws IOException {
         String source = Files.readString(file);
         java.util.regex.Pattern pattern = java.util.regex.Pattern.compile(
-                "^(?:public\\s+|protected\\s+|private\\s+)?(?:static\\s+)?(?:final\\s+)?(?:sealed\\s+)?(class|interface|record)\\s+(\\w+)",
+                "^(?:public\\s+|protected\\s+|private\\s+)?(?:static\\s+)?(?:final\\s+)?(?:sealed\\s+)?(class|interface|record)\\s+(\\w+(?:<[^>]+>)?)",
                 java.util.regex.Pattern.MULTILINE);
         java.util.regex.Matcher matcher = pattern.matcher(source);
         java.util.List<String> declarations = new java.util.ArrayList<>();
