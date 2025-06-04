@@ -93,16 +93,18 @@ public final class TypeScriptStubs {
             }
             String body = source.substring(start, i - 1);
             var methodPat = java.util.regex.Pattern.compile(
-                    "(?:public\\s+|protected\\s+|private\\s+)?(static\\s+)?(?:final\\s+)?([\\w.]+(?:<[^>]+>)?(?:\\[\\])*)\\s+(\\w+)\\s*\\([^)]*\\)\\s*\\{");
+                    "(?:public\\s+|protected\\s+|private\\s+)?(static\\s+)?(?:final\\s+)?([\\w.]+(?:<[^>]+>)?(?:\\[\\])*)\\s+(\\w+)\\s*\\(([^)]*)\\)\\s*\\{");
             var mMatcher = methodPat.matcher(body);
             List<String> list = new java.util.ArrayList<>();
             while (mMatcher.find()) {
                 String staticKw = mMatcher.group(1);
                 String returnType = mMatcher.group(2);
                 String mName = mMatcher.group(3);
+                String params = mMatcher.group(4);
                 if (!mName.equals(name)) {
                     String prefix = staticKw == null ? "" : "static ";
-                    list.add("\t" + prefix + mName + "(): " + tsType(returnType) + " {");
+                    String paramList = tsParams(params);
+                    list.add("\t" + prefix + mName + "(" + paramList + "): " + tsType(returnType) + " {");
                     list.add("\t}");
                 }
             }
@@ -163,6 +165,37 @@ public final class TypeScriptStubs {
             builder.append("}").append(System.lineSeparator());
         }
         return builder.toString();
+    }
+
+    private static String tsParams(String javaParams) {
+        javaParams = javaParams.trim();
+        StringBuilder out = new StringBuilder();
+        int depth = 0;
+        int start = 0;
+        boolean first = true;
+        for (int i = 0; i <= javaParams.length(); i++) {
+            if (i == javaParams.length() || (javaParams.charAt(i) == ',' && depth == 0)) {
+                String part = javaParams.substring(start, i).trim();
+                if (!part.isEmpty()) {
+                    int last = part.lastIndexOf(' ');
+                    if (last != -1) {
+                        String type = part.substring(0, last).trim();
+                        String name = part.substring(last + 1).trim();
+                        if (!first) {
+                            out.append(", ");
+                        }
+                        out.append(name).append(": ").append(tsType(type));
+                        first = false;
+                    }
+                }
+                start = i + 1;
+            } else if (javaParams.charAt(i) == '<') {
+                depth++;
+            } else if (javaParams.charAt(i) == '>') {
+                depth--;
+            }
+        }
+        return out.toString();
     }
 
     private static String tsType(String javaType) {
