@@ -18,7 +18,7 @@ public record Sources(List<String> list) {
         Pattern pattern = Pattern.compile(
                 "^\\s*(?:public\\s+|protected\\s+|private\\s+)?" +
                 "(?:static\\s+)?(?:final\\s+)?(?:sealed\\s+)?" +
-                "(?:class|interface)\\s+(\\w+)",
+                "(?:class|interface|record)\\s+(\\w+)",
                 Pattern.MULTILINE);
         Set<String> unique = new LinkedHashSet<>();
         for (String src : list) {
@@ -31,7 +31,7 @@ public record Sources(List<String> list) {
 
     public Map<String, List<String>> findImplementations() {
         Pattern implementsPattern = Pattern.compile(
-                "class\\s+(\\w+)(?:\\s+extends\\s+\\w+)?\\s+implements\\s+([\\w\\s,<>]+)");
+                "(?:class|record)\\s+(\\w+)(?:\\s+extends\\s+\\w+)?\\s+implements\\s+([\\w\\s,<>]+)");
         Map<String, List<String>> map = new java.util.HashMap<>();
         for (String src : list) {
             map.putAll(implementationsForSource(src, implementsPattern));
@@ -41,9 +41,9 @@ public record Sources(List<String> list) {
 
     public List<Relation> findInheritanceRelations() {
         Pattern extendsPattern = Pattern.compile(
-                "(?:class|interface)\\s+(\\w+)\\s+extends\\s+([\\w\\s,<>]+)");
+                "(?:class|interface|record)\\s+(\\w+)\\s+extends\\s+([\\w\\s,<>]+)");
         Pattern implementsPattern = Pattern.compile(
-                "class\\s+(\\w+)(?:\\s+extends\\s+\\w+)?\\s+implements\\s+([\\w\\s,<>]+)");
+                "(?:class|record)\\s+(\\w+)(?:\\s+extends\\s+\\w+)?\\s+implements\\s+([\\w\\s,<>]+)");
         List<Relation> relations = new ArrayList<>();
         for (String src : list) {
             src = src.replaceAll("<[^>]*>", "");
@@ -56,7 +56,7 @@ public record Sources(List<String> list) {
 
     public Map<String, String> mapSourcesByClass() {
         Map<String, String> map = new java.util.HashMap<>();
-        Pattern classPattern = Pattern.compile("(?:class|interface)\\s+(\\w+)");
+        Pattern classPattern = Pattern.compile("(?:class|interface|record)\\s+(\\w+)");
         for (String src : list) {
             String stripped = stripComments(src);
             Matcher matcher = classPattern.matcher(stripped);
@@ -70,7 +70,7 @@ public record Sources(List<String> list) {
     public List<Relation> findDependencyRelations(List<String> classes,
                                                   List<Relation> inheritance,
                                                   Map<String, List<String>> implementations) {
-        Pattern classPattern = Pattern.compile("(?:class|interface)\\s+(\\w+)");
+        Pattern classPattern = Pattern.compile("(?:class|interface|record)\\s+(\\w+)");
         Map<String, String> sourceMap = mapSourcesByClass();
         Set<String> inherited = toInheritedSet(inheritance);
         List<Relation> relations = new ArrayList<>();
