@@ -22,6 +22,14 @@ The entry point of the compiler is `magmac.Main`. After compiling you can run:
 java -cp packages/compiler-java/out magmac.Main
 ```
 
+For convenience there are helper scripts at the repository root:
+
+```bash
+./build.sh   # compile the Java sources
+./run.sh     # run magmac.Main (builds automatically if needed)
+./test.sh    # execute the JUnit test suite
+```
+
 This will scan the sources, run the compiler pipeline and write the generated outputs to the directories configured by each `TargetPlatform` (for example `diagrams` for PlantUML files and `src/web` for TypeScript files).
 
 Primitive Java types are translated to their TypeScript equivalents. Numeric primitives
@@ -50,5 +58,7 @@ extra lookup step when translating the compiler.
 
 The repository is built on every pull request using a GitHub Actions workflow.
 It compiles the Java sources with JDK&nbsp;21 and preview features enabled.
+The workflow calls `build.sh` and `test.sh` to keep the CI steps in sync with
+the local helper scripts.
 Compilation of the generated TypeScript is currently **skipped** because the
 compiler's TypeScript pipeline is still under development.
