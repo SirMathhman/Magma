@@ -40,13 +40,31 @@ public class GenerateDiagramStubsTest {
     }
 
     @Test
+    public void stubContainsImportsAndClasses() throws IOException {
+        Path javaRoot = Files.createTempDirectory("java");
+        Path tsRoot = Files.createTempDirectory("ts");
+
+        writeSource(javaRoot, "test/A.java", "package test;\npublic class A {}\n");
+        writeSource(javaRoot, "test/B.java", "package test;\nimport test.A;\npublic class B {}\n");
+
+        Optional<IOException> result = GenerateDiagram.writeTypeScriptStubs(javaRoot, tsRoot);
+        if (result.isPresent()) {
+            throw result.get();
+        }
+
+        String b = Files.readString(tsRoot.resolve("test/B.ts"));
+        assertTrue(b.contains("import { A } from \"./A\";"), "B.ts missing import of A");
+        assertTrue(b.contains("export class B {}"), "B.ts missing class B");
+    }
+
     public void addsImportForDependency() throws IOException {
         Path tsRoot = generateStubs();
         String content = Files.readString(tsRoot.resolve("test/B.ts"));
         assertTrue(content.contains("import { A } from \"./A\";"));
     }
-
-    private Path generateGenericStubs() throws IOException {
+  
+    @Test
+    public void stubCopiesClasses() throws IOException {
         Path javaRoot = Files.createTempDirectory("java");
         Path tsRoot = Files.createTempDirectory("ts");
 
@@ -58,7 +76,6 @@ public class GenerateDiagramStubsTest {
         if (result.isPresent()) {
             throw result.get();
         }
-        return tsRoot;
     }
 
     @Test
@@ -66,6 +83,10 @@ public class GenerateDiagramStubsTest {
         Path tsRoot = generateGenericStubs();
         String a = Files.readString(tsRoot.resolve("test/A.ts"));
         assertTrue(a.contains("export class A<T> {}"));
+    }
+
+    private Path generateGenericStubs() {
+        return null;
     }
 
     @Test
@@ -109,5 +130,22 @@ public class GenerateDiagramStubsTest {
         assertTrue(a.contains("foo(): void {"), "A.ts missing foo method");
         assertTrue(a.contains("bar(): int {"), "A.ts missing bar method");
         assertTrue(a.contains("baz(): String {"), "A.ts missing baz method");
+    }
+
+    @Test
+    public void stubCopiesMethodsOnGenericClass() throws IOException {
+        Path javaRoot = Files.createTempDirectory("java");
+        Path tsRoot = Files.createTempDirectory("ts");
+
+        writeSource(javaRoot, "test/C.java",
+                "package test;\npublic class C<T> { public void foo(){} }\n");
+
+        Optional<IOException> result = GenerateDiagram.writeTypeScriptStubs(javaRoot, tsRoot);
+        if (result.isPresent()) {
+            throw result.get();
+        }
+
+        String c = Files.readString(tsRoot.resolve("test/C.ts"));
+        assertTrue(c.contains("void foo() {"), "C.ts missing foo method");
     }
 }

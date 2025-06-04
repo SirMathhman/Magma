@@ -1,10 +1,12 @@
-#!/bin/bash
-set -e
+#!/usr/bin/env bash
+set -euo pipefail
 
-# Compile sources
-mkdir -p out
-# Compile all source files under src/
-javac -d out $(find src -name '*.java')
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+OUT_DIR="$SCRIPT_DIR/out"
 
-# Run the program to produce the diagram and TypeScript stubs
-java -cp out magma.GenerateDiagram
+if [ ! -d "$OUT_DIR" ]; then
+  "$SCRIPT_DIR/build.sh"
+fi
+
+java --enable-preview -cp "$OUT_DIR" magmac.Main "$@"
+

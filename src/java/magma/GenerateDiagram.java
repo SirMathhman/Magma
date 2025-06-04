@@ -198,7 +198,8 @@ public class GenerateDiagram {
             return builder.toString();
         }
 
-        java.util.regex.Pattern namePattern = java.util.regex.Pattern.compile("export \\w+ (\\w+) \\{\\}");
+        java.util.regex.Pattern namePattern = java.util.regex.Pattern.compile(
+                "export \\w+ (\\w+)(?:<[^>]+>)? \\{\\}");
         for (String decl : declarations) {
             java.util.regex.Matcher m = namePattern.matcher(decl);
             if (!m.matches()) {
