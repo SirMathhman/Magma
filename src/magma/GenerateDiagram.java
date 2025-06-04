@@ -97,10 +97,17 @@ public class GenerateDiagram {
             // Strip generic type information such as "List<String>" as it
             // complicates the inheritance regexes below.
             src = src.replaceAll("<[^>]*>", "");
+            src = stripComments(src);
             addInheritance(relations, src, extendsPattern);
             addInheritance(relations, src, implementsPattern);
         }
         return relations;
+    }
+
+    private static String stripComments(String src) {
+        src = src.replaceAll("(?s)/\\*.*?\\*/", "");
+        src = src.replaceAll("//.*", "");
+        return src;
     }
 
     private static void addInheritance(List<Relation> relations, String src, Pattern pattern) {
@@ -130,6 +137,7 @@ public class GenerateDiagram {
 
         List<Relation> relations = new ArrayList<>();
         for (String src : sources) {
+            src = stripComments(src);
             Matcher matcher = classPattern.matcher(src);
             if (!matcher.find()) {
                 continue;
