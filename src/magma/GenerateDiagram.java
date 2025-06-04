@@ -12,6 +12,8 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
+import magma.Relation;
+
 import static magma.Result.err;
 import static magma.Result.ok;
 
@@ -32,7 +34,7 @@ public class GenerateDiagram {
         List<String> classes = findClasses(allSources);
         StringBuilder content = new StringBuilder("@startuml\n");
         appendClasses(content, classes);
-        List<String[]> relations = findRelations(allSources);
+        List<Relation> relations = findRelations(allSources, classes);
         appendRelations(content, relations);
         content.append("@enduml\n");
         try {
@@ -61,35 +63,66 @@ public class GenerateDiagram {
         }
     }
 
-    private static List<String[]> findRelations(List<String> sources) {
-        Pattern extendsPattern = Pattern.compile("(?:class|interface)\\s+(\\w+)\\s+extends\\s+([\\w\\s,]+)");
-        Pattern implementsPattern = Pattern.compile("class\\s+(\\w+)(?:\\s+extends\\s+\\w+)?\\s+implements\\s+([\\w\\s,]+)");
+    private static List<Relation> findRelations(List<String> sources, List<String> classes) {
+        List<Relation> inheritance = findInheritanceRelations(sources);
+        List<Relation> dependencies = findDependencyRelations(sources, classes, inheritance);
+        Set<Relation> all = new LinkedHashSet<>();
+        all.addAll(inheritance);
+        all.addAll(dependencies);
+        return new ArrayList<>(all);
+    }
 
-        List<String[]> relations = new ArrayList<>();
+    private static List<Relation> findInheritanceRelations(List<String> sources) {
+        Pattern extendsPattern = Pattern.compile("(?:class|interface)\\s+(\\w+)\\s+extends\\s+([\\w\\s,<>]+)");
+        Pattern implementsPattern = Pattern.compile("class\\s+(\\w+)(?:\\s+extends\\s+\\w+)?\\s+implements\\s+([\\w\\s,<>]+)");
+
+        List<Relation> relations = new ArrayList<>();
         for (String src : sources) {
             src = src.replaceAll("<[^>]*>", "");
-            addRelations(relations, src, extendsPattern);
-            addRelations(relations, src, implementsPattern);
+            addInheritance(relations, src, extendsPattern);
+            addInheritance(relations, src, implementsPattern);
         }
         return relations;
     }
 
-    private static void addRelations(List<String[]> relations, String src, Pattern pattern) {
+    private static void addInheritance(List<Relation> relations, String src, Pattern pattern) {
         Matcher matcher = pattern.matcher(src);
         while (matcher.find()) {
             String child = matcher.group(1);
             String parents = matcher.group(2);
-            addParentRelations(relations, child, parents);
+            for (String parent : parents.split(",")) {
+                parent = parent.replaceAll("<.*?>", "").trim();
+                if (!parent.isEmpty()) {
+                    relations.add(new Relation(child, "--|>", parent));
+                }
+            }
         }
     }
 
-    private static void addParentRelations(List<String[]> relations, String child, String parents) {
-        for (String parent : parents.split(",")) {
-            parent = parent.replaceAll("<.*?>", "").trim();
-            if (!parent.isEmpty()) {
-                relations.add(new String[]{child, parent});
+    private static List<Relation> findDependencyRelations(List<String> sources, List<String> classes, List<Relation> inheritance) {
+        Pattern classPattern = Pattern.compile("(?:class|interface)\\s+(\\w+)");
+        Set<String> inherited = new LinkedHashSet<>();
+        for (Relation rel : inheritance) {
+            inherited.add(rel.from() + "->" + rel.to());
+        }
+
+        List<Relation> relations = new ArrayList<>();
+        for (String src : sources) {
+            Matcher matcher = classPattern.matcher(src);
+            if (!matcher.find()) {
+                continue;
+            }
+            String name = matcher.group(1);
+            for (String other : classes) {
+                if (other.equals(name)) {
+                    continue;
+                }
+                if (src.contains(other) && !inherited.contains(name + "->" + other)) {
+                    relations.add(new Relation(name, "-->", other));
+                }
             }
         }
+        return relations;
     }
 
     private static void appendClasses(StringBuilder content, List<String> classes) {
@@ -98,10 +131,11 @@ public class GenerateDiagram {
         }
     }
 
-    private static void appendRelations(StringBuilder content, List<String[]> relations) {
-        for (String[] rel : relations) {
-            content.append(rel[0]).append(" --|> ")
-                    .append(rel[1]).append("\n");
+    private static void appendRelations(StringBuilder content, List<Relation> relations) {
+        for (Relation rel : relations) {
+            content.append(rel.from()).append(' ')
+                    .append(rel.arrow()).append(' ')
+                    .append(rel.to()).append("\n");
         }
     }
 

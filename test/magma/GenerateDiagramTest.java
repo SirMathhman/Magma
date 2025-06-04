@@ -112,4 +112,22 @@ public class GenerateDiagramTest {
         String content = diagramContent();
         assertTrue(content.contains("Err --|> Result\n"), "Diagram missing relation Err --|> Result");
     }
+
+    @Test
+    public void diagramContainsGenerateDiagramResultDependency() {
+        String content = diagramContent();
+        assertTrue(content.contains("GenerateDiagram --> Result\n"), "Diagram missing dependency GenerateDiagram --> Result");
+    }
+
+    @Test
+    public void diagramContainsGenerateDiagramOkDependency() {
+        String content = diagramContent();
+        assertTrue(content.contains("GenerateDiagram --> Ok\n"), "Diagram missing dependency GenerateDiagram --> Ok");
+    }
+
+    @Test
+    public void diagramContainsGenerateDiagramErrDependency() {
+        String content = diagramContent();
+        assertTrue(content.contains("GenerateDiagram --> Err\n"), "Diagram missing dependency GenerateDiagram --> Err");
+    }
 }
