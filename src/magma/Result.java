@@ -35,7 +35,8 @@ public sealed interface Result<T, X extends Exception>
 
     /**
      * Gets the successful value or throws the stored exception if this result
-     * represents an error.
+     * represents an error. Most code should avoid calling this method and
+     * handle both cases explicitly.
      */
     default T unwrap() throws X {
         if (this instanceof Ok<T, X> ok) {

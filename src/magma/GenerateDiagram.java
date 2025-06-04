@@ -16,6 +16,11 @@ import static magma.Result.err;
 import static magma.Result.ok;
 
 public class GenerateDiagram {
+    /**
+     * Generates a PlantUML diagram and writes it to {@code output}. Instead of
+     * throwing an exception, any I/O error is returned wrapped in an
+     * {@code Optional}.
+     */
     public static Result<Void, IOException> writeDiagram(Path output) {
         Result<List<String>, IOException> result = findClasses(Path.of("src/magma"));
         if (result.isErr()) {
