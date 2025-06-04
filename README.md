@@ -11,3 +11,11 @@ python generate_diagram.py
 ```
 
 Executing the script creates a file named `diagram.puml` in the same directory. The file contains a minimal example of a PlantUML diagram.
+
+## Running tests
+
+Run the unit tests with Python's built-in unittest framework:
+
+```bash
+python -m unittest discover -s tests
+```
