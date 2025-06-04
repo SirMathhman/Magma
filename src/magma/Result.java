@@ -9,15 +9,15 @@ package magma;
  * @param <T> the successful value type
  * @param <X> the exception type, which must extend {@link Exception}
  */
-public sealed interface Result<T, X extends Exception>
-        permits Ok, Err {
-
-
-
-    /** Convenience method to check if this result is successful. */
+public interface Result<T, X extends Exception> {
+    /**
+     * Convenience method to check if this result is successful.
+     */
     boolean isOk();
 
-    /** Convenience method to check if this result is an error. */
+    /**
+     * Convenience method to check if this result is an error.
+     */
     boolean isErr();
 
     /**
