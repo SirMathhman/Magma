@@ -319,6 +319,30 @@ public final class TypeScriptStubs {
             String base = javaType.substring(0, lt);
             String args = javaType.substring(lt + 1, javaType.length() - 1);
             java.util.List<String> converted = convertTypes(splitGenericArgs(args));
+            for (int i = 0; i < converted.size(); i++) {
+                converted.set(i, sanitizeWildcard(converted.get(i)));
+            }
+            String simple = base.replace("java.util.function.", "");
+            if ("Function".equals(simple) && converted.size() >= 2) {
+                return "(arg0: " + converted.get(0) + ") => " + converted.get(1);
+            }
+            if ("BiFunction".equals(simple) && converted.size() >= 3) {
+                return "(arg0: " + converted.get(0) + ", arg1: " + converted.get(1)
+                        + ") => " + converted.get(2);
+            }
+            if ("Supplier".equals(simple) && converted.size() >= 1) {
+                return "() => " + converted.get(0);
+            }
+            if ("Consumer".equals(simple) && converted.size() >= 1) {
+                return "(arg0: " + converted.get(0) + ") => void";
+            }
+            if ("BiConsumer".equals(simple) && converted.size() >= 2) {
+                return "(arg0: " + converted.get(0) + ", arg1: " + converted.get(1)
+                        + ") => void";
+            }
+            if ("Predicate".equals(simple) && converted.size() >= 1) {
+                return "(arg0: " + converted.get(0) + ") => boolean";
+            }
             return base + "<" + String.join(", ", converted) + ">";
         }
         return switch (javaType) {
@@ -350,5 +374,19 @@ public final class TypeScriptStubs {
             converted.add(tsType(part));
         }
         return converted;
+    }
+
+    private static String sanitizeWildcard(String type) {
+        type = type.trim();
+        if (type.startsWith("? extends ")) {
+            return type.substring(10).trim();
+        }
+        if (type.startsWith("? super ")) {
+            return type.substring(8).trim();
+        }
+        if ("?".equals(type)) {
+            return "any";
+        }
+        return type;
     }
 }
