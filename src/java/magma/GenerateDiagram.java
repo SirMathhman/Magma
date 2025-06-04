@@ -19,7 +19,7 @@ public class GenerateDiagram {
      * {@link Optional}.
      */
     public static Optional<IOException> writeDiagram(Path output) {
-        Path src = Path.of("src/magma");
+        Path src = Path.of("src/java/magma");
         Result<List<String>, IOException> sources = readSources(src);
         if (sources.isErr()) {
             return Optional.of(((Err<List<String>, IOException>) sources).error());
@@ -28,8 +28,9 @@ public class GenerateDiagram {
         Sources analysis = new Sources(allSources);
         List<String> classes = analysis.findClasses();
         var implementations = analysis.findImplementations();
+        var sourceMap = analysis.mapSourcesByClass();
         StringBuilder content = new StringBuilder("@startuml\n");
-        content.append(classesSection(classes));
+        content.append(classesSection(classes, sourceMap));
         List<Relation> relations = analysis.findRelations(classes, implementations);
         content.append(relationsSection(relations));
         content.append("@enduml\n");
@@ -40,12 +41,28 @@ public class GenerateDiagram {
             return Optional.of(e);
         }
     }
-    private static String classesSection(List<String> classes) {
+    private static String classesSection(List<String> classes,
+                                         java.util.Map<String, String> sourceMap) {
         StringBuilder builder = new StringBuilder();
         for (String name : classes) {
-            builder.append("class ").append(name).append("\n");
+            String source = sourceMap.getOrDefault(name, "");
+            String type = classType(name, source);
+            builder.append(type).append(' ').append(name).append("\n");
         }
         return builder.toString();
+    }
+
+    private static String classType(String name, String source) {
+        java.util.regex.Pattern pattern = java.util.regex.Pattern.compile(
+                "(class|interface|record)\\s+" + java.util.regex.Pattern.quote(name) + "\\b");
+        java.util.regex.Matcher matcher = pattern.matcher(source);
+        if (matcher.find()) {
+            String kind = matcher.group(1);
+            if ("interface".equals(kind)) {
+                return "interface";
+            }
+        }
+        return "class";
     }
 
     private static String relationsSection(List<Relation> relations) {
