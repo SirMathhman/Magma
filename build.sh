@@ -5,3 +5,6 @@ set -e
 mkdir -p out
 # Compile all Java source files under the src/ directory
 javac -d out $(find src -name '*.java')
+
+# Generate diagram and TypeScript stubs
+java -cp out magma.GenerateDiagram
