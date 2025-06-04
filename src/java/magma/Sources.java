@@ -1,5 +1,12 @@
 package magma;
 
+import magma.result.Err;
+import magma.result.Ok;
+import magma.result.Result;
+
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedHashSet;
@@ -8,12 +15,34 @@ import java.util.Map;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Stream;
 
 /**
  * Utility record wrapping a list of source files. Methods operate on the
  * provided sources instead of requiring them as parameters.
  */
 public record Sources(List<String> list) {
+
+    public static Result<List<String>, IOException> read(Path directory) {
+        List<Path> files;
+        try (Stream<Path> stream = Files.walk(directory)) {
+            files = stream.filter(Files::isRegularFile)
+                    .filter(p -> p.toString().endsWith(".java"))
+                    .toList();
+        } catch (IOException e) {
+            return new Err<>(e);
+        }
+
+        List<String> sources = new ArrayList<>();
+        for (Path file : files) {
+            try {
+                sources.add(Files.readString(file));
+            } catch (IOException e) {
+                return new Err<>(e);
+            }
+        }
+        return new Ok<>(sources);
+    }
     public List<String> findClasses() {
         Pattern pattern = Pattern.compile(
                 "^\\s*(?:public\\s+|protected\\s+|private\\s+)?" +
