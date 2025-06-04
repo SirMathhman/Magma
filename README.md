@@ -41,6 +41,7 @@ change should ensure that:
 2. **There is no duplicated logic.**
 3. **The code expresses the programmer's intent as clearly as possible.**
 4. **Any code that doesn't support the above goals is removed.**
+5. **Each test should contain exactly one assertion.**
 
 Following these principles helps keep the codebase easy to understand and
 maintain. We also keep methods focused on a single task in line with the
