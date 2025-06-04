@@ -4,12 +4,8 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="9d43d540-84b8-4aaa-b5e9-24a4fcf4ebdf" name="Changes" comment="Remove">
-      <change beforePath="$PROJECT_DIR$/src/java/magma/GenerateDiagram.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/java/magma/GenerateDiagram.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/java/magma/TypeScriptStubs.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/java/magma/TypeScriptStubs.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/java/magma/option/None.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/java/magma/option/None.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/java/magma/option/Option.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/java/magma/option/Option.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/java/magma/option/Some.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/java/magma/option/Some.java" afterDir="false" />
+    <list default="true" id="9d43d540-84b8-4aaa-b5e9-24a4fcf4ebdf" name="Changes" comment="Cleanup Option">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -22,10 +18,12 @@
   <component name="PropertiesComponent"><![CDATA[{
   "keyToString": {
     "Application.GenerateDiagram.executor": "Run",
+    "Application.Main.executor": "Run",
+    "JUnit.All in Magma.executor": "Run",
     "git-widget-placeholder": "master"
   }
 }]]></component>
-  <component name="RunManager">
+  <component name="RunManager" selected="Application.Main">
     <configuration name="Main" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
       <option name="MAIN_CLASS_NAME" value="magma.Main" />
       <module name="Magma" />
@@ -35,6 +33,14 @@
           <option name="ENABLED" value="true" />
         </pattern>
       </extension>
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="All in Magma" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
+      <module name="Magma" />
+      <option name="PACKAGE_NAME" value="" />
+      <option name="TEST_OBJECT" value="package" />
       <method v="2">
         <option name="Make" enabled="true" />
       </method>
@@ -50,9 +56,26 @@
       <option name="filePath" />
       <method v="2" />
     </configuration>
+    <configuration name="check-ts.sh" type="ShConfigurationType" temporary="true">
+      <option name="SCRIPT_TEXT" value="" />
+      <option name="INDEPENDENT_SCRIPT_PATH" value="true" />
+      <option name="SCRIPT_PATH" value="$PROJECT_DIR$/check-ts.sh" />
+      <option name="SCRIPT_OPTIONS" value="" />
+      <option name="INDEPENDENT_SCRIPT_WORKING_DIRECTORY" value="true" />
+      <option name="SCRIPT_WORKING_DIRECTORY" value="$PROJECT_DIR$" />
+      <option name="INDEPENDENT_INTERPRETER_PATH" value="true" />
+      <option name="INTERPRETER_PATH" value="/usr/bin/env" />
+      <option name="INTERPRETER_OPTIONS" value="bash" />
+      <option name="EXECUTE_IN_TERMINAL" value="true" />
+      <option name="EXECUTE_SCRIPT_FILE" value="true" />
+      <envs />
+      <method v="2" />
+    </configuration>
     <recent_temporary>
       <list>
         <item itemvalue="Application.Main" />
+        <item itemvalue="Shell Script.check-ts.sh" />
+        <item itemvalue="JUnit.All in Magma" />
       </list>
     </recent_temporary>
   </component>
@@ -65,13 +88,22 @@
       <option name="project" value="LOCAL" />
       <updated>1749063900248</updated>
     </task>
-    <option name="localTasksCounter" value="2" />
+    <task id="LOCAL-00002" summary="Cleanup Option">
+      <option name="closed" value="true" />
+      <created>1749072145588</created>
+      <option name="number" value="00002" />
+      <option name="presentableId" value="LOCAL-00002" />
+      <option name="project" value="LOCAL" />
+      <updated>1749072145588</updated>
+    </task>
+    <option name="localTasksCounter" value="3" />
     <servers />
   </component>
   <component name="VcsManagerConfiguration">
     <MESSAGE value="Remove unused code" />
     <MESSAGE value="Remove" />
-    <option name="LAST_COMMIT_MESSAGE" value="Remove" />
+    <MESSAGE value="Cleanup Option" />
+    <option name="LAST_COMMIT_MESSAGE" value="Cleanup Option" />
   </component>
   <component name="XDebuggerManager">
     <pin-to-top-manager>
