@@ -4,18 +4,20 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
+import java.util.Optional;
+
 import static magma.Result.err;
 import static magma.Result.ok;
 
 public class GenerateDiagram {
-    public static Result<Void, IOException> writeDiagram(Path output) {
+    public static Optional<IOException> writeDiagram(Path output) {
         try {
             String className = GenerateDiagram.class.getSimpleName();
             String content = "@startuml\nclass " + className + "\n@enduml\n";
             Files.writeString(output, content);
-            return ok(null);
+            return Optional.empty();
         } catch (IOException e) {
-            return err(e);
+            return Optional.of(e);
         }
     }
 

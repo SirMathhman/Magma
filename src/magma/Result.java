@@ -2,6 +2,9 @@ package magma;
 
 /**
  * A simple result type representing either a successful value or an error.
+ * It is meant for situations where a returned value is meaningful. If the
+ * success case carries no value (for example {@code Result<Void, X>}), prefer
+ * using {@link java.util.Optional Optional}&lt;X&gt; instead.
  *
  * @param <T> the successful value type
  * @param <X> the exception type, which must extend {@link Exception}
