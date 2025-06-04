@@ -8,7 +8,9 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="ddea09a6-33bf-4a11-8cf0-08ec72b0dd6c" name="Changes" comment="Remove unused" />
+    <list default="true" id="ddea09a6-33bf-4a11-8cf0-08ec72b0dd6c" name="Changes" comment="Repair">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -65,54 +67,54 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    "Application.GenerateDiagram.executor": "Run",
-    "Application.Main (1).executor": "Run",
-    "Application.Main.executor": "Run",
-    "Application.magma.app.Main.executor": "Run",
-    "Application.magma.magma.Main.executor": "Run",
-    "Application.magmac.Main.executor": "Run",
-    "Batch.build (1).executor": "Run",
-    "Batch.build.executor": "Run",
-    "Batch.run.executor": "Run",
-    "Downloaded.Files.Path.Enabled": "false",
-    "JUnit.ActualAnnotationTest.executor": "Run",
-    "JUnit.All in Magma.executor": "Run",
-    "JUnit.GenerateDiagramTest.executor": "Run",
-    "JUnit.MainTest.divideSingleQuotes.executor": "Run",
-    "JUnit.MainTest.executor": "Run",
-    "JUnit.MainTest.test.executor": "Run",
-    "Repository.Attach.Annotations": "false",
-    "Repository.Attach.JavaDocs": "true",
-    "Repository.Attach.Sources": "false",
-    "RunOnceActivity.ShowReadmeOnStart": "true",
-    "RunOnceActivity.git.unshallow": "true",
-    "ToolWindow.Run.ShowToolbar": "false",
-    "com.intellij.codeInspection.ui.actions.InspectionResultsExportActionProvider.location": "C:/Users/mathm/IdeaProjects/Magma/docs/inspection",
-    "deletionFromPopupRequiresConfirmation": "false",
-    "extract.method.default.visibility": "public",
-    "extractMethod.generateAnnotations": "false",
-    "git-widget-placeholder": "reset",
-    "introduce.parameter.lambda": "true",
-    "js.last.introduce.type": "CONST",
-    "kotlin-language-version-configured": "true",
-    "last_directory_selection": "C:/Users/mathm/IdeaProjects/Magma/src/java/magma/app/compile",
-    "last_opened_file_path": "C:/Users/mathm/IdeaProjects/Magma",
-    "node.js.detected.package.eslint": "true",
-    "node.js.detected.package.tslint": "true",
-    "node.js.selected.package.eslint": "(autodetect)",
-    "node.js.selected.package.tslint": "(autodetect)",
-    "nodejs_package_manager_path": "npm",
-    "project.structure.last.edited": "Project",
-    "project.structure.proportion": "0.15",
-    "project.structure.side.proportion": "0.2",
-    "run.code.analysis.last.selected.profile": "pProject Default",
-    "settings.editor.selected.configurable": "Errors",
-    "ts.external.directory.path": "C:\\Users\\mathm\\IdeaProjects\\Magma\\@magma\\app\\node_modules\\typescript\\lib",
-    "vue.rearranger.settings.migration": "true"
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;Application.GenerateDiagram.executor&quot;: &quot;Run&quot;,
+    &quot;Application.Main (1).executor&quot;: &quot;Run&quot;,
+    &quot;Application.Main.executor&quot;: &quot;Run&quot;,
+    &quot;Application.magma.app.Main.executor&quot;: &quot;Run&quot;,
+    &quot;Application.magma.magma.Main.executor&quot;: &quot;Run&quot;,
+    &quot;Application.magmac.Main.executor&quot;: &quot;Run&quot;,
+    &quot;Batch.build (1).executor&quot;: &quot;Run&quot;,
+    &quot;Batch.build.executor&quot;: &quot;Run&quot;,
+    &quot;Batch.run.executor&quot;: &quot;Run&quot;,
+    &quot;Downloaded.Files.Path.Enabled&quot;: &quot;false&quot;,
+    &quot;JUnit.ActualAnnotationTest.executor&quot;: &quot;Run&quot;,
+    &quot;JUnit.All in Magma.executor&quot;: &quot;Run&quot;,
+    &quot;JUnit.GenerateDiagramTest.executor&quot;: &quot;Run&quot;,
+    &quot;JUnit.MainTest.divideSingleQuotes.executor&quot;: &quot;Run&quot;,
+    &quot;JUnit.MainTest.executor&quot;: &quot;Run&quot;,
+    &quot;JUnit.MainTest.test.executor&quot;: &quot;Run&quot;,
+    &quot;Repository.Attach.Annotations&quot;: &quot;false&quot;,
+    &quot;Repository.Attach.JavaDocs&quot;: &quot;true&quot;,
+    &quot;Repository.Attach.Sources&quot;: &quot;false&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
+    &quot;ToolWindow.Run.ShowToolbar&quot;: &quot;false&quot;,
+    &quot;com.intellij.codeInspection.ui.actions.InspectionResultsExportActionProvider.location&quot;: &quot;C:/Users/mathm/IdeaProjects/Magma/docs/inspection&quot;,
+    &quot;deletionFromPopupRequiresConfirmation&quot;: &quot;false&quot;,
+    &quot;extract.method.default.visibility&quot;: &quot;public&quot;,
+    &quot;extractMethod.generateAnnotations&quot;: &quot;false&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;reset&quot;,
+    &quot;introduce.parameter.lambda&quot;: &quot;true&quot;,
+    &quot;js.last.introduce.type&quot;: &quot;CONST&quot;,
+    &quot;kotlin-language-version-configured&quot;: &quot;true&quot;,
+    &quot;last_directory_selection&quot;: &quot;C:/Users/mathm/IdeaProjects/Magma/src/java/magma/app/compile&quot;,
+    &quot;last_opened_file_path&quot;: &quot;C:/Users/mathm/IdeaProjects/Magma&quot;,
+    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
+    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
+    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
+    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
+    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
+    &quot;project.structure.last.edited&quot;: &quot;Project&quot;,
+    &quot;project.structure.proportion&quot;: &quot;0.15&quot;,
+    &quot;project.structure.side.proportion&quot;: &quot;0.2&quot;,
+    &quot;run.code.analysis.last.selected.profile&quot;: &quot;pProject Default&quot;,
+    &quot;settings.editor.selected.configurable&quot;: &quot;Errors&quot;,
+    &quot;ts.external.directory.path&quot;: &quot;C:\\Users\\mathm\\IdeaProjects\\Magma\\@magma\\app\\node_modules\\typescript\\lib&quot;,
+    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
   }
-}]]></component>
+}</component>
   <component name="RecentsManager">
     <key name="CreateClassDialog.RecentsKey">
       <recent name="magmac.app.compile.rule" />
@@ -171,7 +173,7 @@
       <recent name="magmac.app.compile.rule.split" />
     </key>
   </component>
-  <component name="RunManager" selected="Application.GenerateDiagram">
+  <component name="RunManager" selected="JUnit.GenerateDiagramTest">
     <configuration name="GenerateDiagram" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
       <option name="MAIN_CLASS_NAME" value="magma.GenerateDiagram" />
       <module name="Magma" />
@@ -236,8 +238,8 @@
     </configuration>
     <recent_temporary>
       <list>
-        <item itemvalue="Application.GenerateDiagram" />
         <item itemvalue="JUnit.GenerateDiagramTest" />
+        <item itemvalue="Application.GenerateDiagram" />
         <item itemvalue="JUnit.All in Magma" />
         <item itemvalue="Shell Script.run.sh" />
         <item itemvalue="JUnit.All in Magma" />
@@ -301,14 +303,6 @@
       <workItem from="1742658935413" duration="1346000" />
       <workItem from="1742679831775" duration="2068000" />
       <workItem from="1742691657873" duration="2350000" />
-    </task>
-    <task id="LOCAL-04075" summary="Parse invokables">
-      <option name="closed" value="true" />
-      <created>1748921976281</created>
-      <option name="number" value="04075" />
-      <option name="presentableId" value="LOCAL-04075" />
-      <option name="project" value="LOCAL" />
-      <updated>1748921976281</updated>
     </task>
     <task id="LOCAL-04076" summary="Index">
       <option name="closed" value="true" />
@@ -694,7 +688,15 @@
       <option name="project" value="LOCAL" />
       <updated>1749046503889</updated>
     </task>
-    <option name="localTasksCounter" value="4124" />
+    <task id="LOCAL-04124" summary="Repair">
+      <option name="closed" value="true" />
+      <created>1749046954418</created>
+      <option name="number" value="04124" />
+      <option name="presentableId" value="LOCAL-04124" />
+      <option name="project" value="LOCAL" />
+      <updated>1749046954418</updated>
+    </task>
+    <option name="localTasksCounter" value="4125" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -734,14 +736,14 @@
     <MESSAGE value="Hmmm" />
     <MESSAGE value="Hard reset!" />
     <MESSAGE value="Fix packaging" />
-    <MESSAGE value="Repair" />
     <MESSAGE value="Update .gitignore" />
     <MESSAGE value="Cleanup" />
     <MESSAGE value="Reformat" />
     <MESSAGE value="Ok" />
     <MESSAGE value="Inheritance OK" />
     <MESSAGE value="Remove unused" />
-    <option name="LAST_COMMIT_MESSAGE" value="Remove unused" />
+    <MESSAGE value="Repair" />
+    <option name="LAST_COMMIT_MESSAGE" value="Repair" />
   </component>
   <component name="XDebuggerManager">
     <pin-to-top-manager>
