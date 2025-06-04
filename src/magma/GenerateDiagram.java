@@ -116,13 +116,17 @@ public class GenerateDiagram {
         while (matcher.find()) {
             String child = matcher.group(1);
             String parents = matcher.group(2);
-            for (String parent : parents.split(",")) {
-                // Remove any generic type parameters from the parent name
-                // before adding the relation.
-                parent = parent.replaceAll("<.*?>", "").trim();
-                if (!parent.isEmpty()) {
-                    relations.add(new Relation(child, "--|>", parent));
-                }
+            addParentRelations(child, parents, relations);
+        }
+    }
+
+    private static void addParentRelations(String child,
+                                           String parents,
+                                           List<Relation> relations) {
+        for (String parent : parents.split(",")) {
+            parent = parent.replaceAll("<.*?>", "").trim();
+            if (!parent.isEmpty()) {
+                relations.add(new Relation(child, "--|>", parent));
             }
         }
     }
@@ -132,23 +136,33 @@ public class GenerateDiagram {
                 "class\\s+(\\w+)(?:\\s+extends\\s+\\w+)?\\s+implements\\s+([\\w\\s,<>]+)");
         java.util.Map<String, java.util.List<String>> map = new java.util.HashMap<>();
         for (String src : sources) {
-            src = src.replaceAll("<[^>]*>", "");
-            src = stripComments(src);
-            Matcher matcher = implementsPattern.matcher(src);
-            while (matcher.find()) {
-                String child = matcher.group(1);
-                String parents = matcher.group(2);
-                java.util.List<String> interfaces = new java.util.ArrayList<>();
-                for (String parent : parents.split(",")) {
-                    parent = parent.replaceAll("<.*?>", "").trim();
-                    if (!parent.isEmpty()) {
-                        interfaces.add(parent);
-                    }
-                }
-                map.put(child, interfaces);
-            }
+            addImplementationsForSource(src, implementsPattern, map);
         }
         return map;
+    }
+
+    private static void addImplementationsForSource(String src,
+                                                    Pattern pattern,
+                                                    java.util.Map<String, java.util.List<String>> map) {
+        src = src.replaceAll("<[^>]*>", "");
+        src = stripComments(src);
+        Matcher matcher = pattern.matcher(src);
+        while (matcher.find()) {
+            String child = matcher.group(1);
+            String parents = matcher.group(2);
+            map.put(child, parseInterfaces(parents));
+        }
+    }
+
+    private static java.util.List<String> parseInterfaces(String parents) {
+        java.util.List<String> interfaces = new java.util.ArrayList<>();
+        for (String parent : parents.split(",")) {
+            parent = parent.replaceAll("<.*?>", "").trim();
+            if (!parent.isEmpty()) {
+                interfaces.add(parent);
+            }
+        }
+        return interfaces;
     }
 
     private static java.util.Map<String, String> mapSourcesByClass(List<String> sources) {
@@ -170,15 +184,15 @@ public class GenerateDiagram {
         if (source == null) {
             return false;
         }
-        for (var entry : implementations.entrySet()) {
-            if (!entry.getKey().equals(dependency)) {
-                continue;
-            }
-            for (String iface : entry.getValue()) {
-                Pattern word = Pattern.compile("\\b" + Pattern.quote(iface) + "\\b");
-                if (word.matcher(source).find()) {
-                    return true;
-                }
+        var interfaces = implementations.get(dependency);
+        return interfaces != null && containsInterfaceReference(source, interfaces);
+    }
+
+    private static boolean containsInterfaceReference(String source, java.util.List<String> interfaces) {
+        for (String iface : interfaces) {
+            Pattern word = Pattern.compile("\\b" + Pattern.quote(iface) + "\\b");
+            if (word.matcher(source).find()) {
+                return true;
             }
         }
         return false;
@@ -199,26 +213,36 @@ public class GenerateDiagram {
 
         List<Relation> relations = new ArrayList<>();
         for (String src : sources) {
-            src = stripComments(src);
-            Matcher matcher = classPattern.matcher(src);
-            if (!matcher.find()) {
-                continue;
-            }
-            String name = matcher.group(1);
-            for (String other : classes) {
-                if (other.equals(name)) {
-                    continue;
-                }
-                Pattern word = Pattern.compile("\\b" + Pattern.quote(other) + "\\b");
-                if (word.matcher(src).find() && !inherited.contains(name + "->" + other)) {
-                    if (omitDependency(sourceMap.get(name), other, implementations)) {
-                        continue;
-                    }
-                    relations.add(new Relation(name, "-->", other));
-                }
-            }
+            processDependenciesForSource(src, classPattern, classes, inherited, sourceMap, implementations, relations);
         }
         return relations;
+    }
+
+    private static void processDependenciesForSource(String src,
+                                                     Pattern classPattern,
+                                                     List<String> classes,
+                                                     Set<String> inherited,
+                                                     java.util.Map<String, String> sourceMap,
+                                                     java.util.Map<String, java.util.List<String>> implementations,
+                                                     List<Relation> relations) {
+        src = stripComments(src);
+        Matcher matcher = classPattern.matcher(src);
+        if (!matcher.find()) {
+            return;
+        }
+        String name = matcher.group(1);
+        for (String other : classes) {
+            if (other.equals(name)) {
+                continue;
+            }
+            Pattern word = Pattern.compile("\\b" + Pattern.quote(other) + "\\b");
+            if (word.matcher(src).find() && !inherited.contains(name + "->" + other)) {
+                if (omitDependency(sourceMap.get(name), other, implementations)) {
+                    continue;
+                }
+                relations.add(new Relation(name, "-->", other));
+            }
+        }
     }
 
     private static void appendClasses(StringBuilder content, List<String> classes) {
