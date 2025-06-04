@@ -42,6 +42,8 @@ change should ensure that:
 3. **The code expresses the programmer's intent as clearly as possible.**
 4. **Any code that doesn't support the above goals is removed.**
 5. **Each test should contain exactly one assertion.**
+6. **Avoid returning `void`** unless absolutely necessary. Methods should
+   return meaningful values to aid chaining and clarity.
 
 Following these principles helps keep the codebase easy to understand and
 maintain. We also keep methods focused on a single task in line with the
