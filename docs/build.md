@@ -13,7 +13,7 @@ and update `diagram.puml`. If you want to check that the generated TypeScript
 files compile, execute:
 
 ```bash
-./check-ts.sh
+npm run check-ts
 ```
 
 This utility is optional and not part of the automated CI pipeline.

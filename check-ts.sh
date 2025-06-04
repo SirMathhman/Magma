@@ -9,4 +9,4 @@ if [ ! -d "$SCRIPT_DIR/src/node" ]; then
 fi
 
 # Type check the generated TypeScript
-exec tsc --noEmit -p "$SCRIPT_DIR/tsconfig.json"
+exec npx tsc --noEmit -p "$SCRIPT_DIR/tsconfig.json"

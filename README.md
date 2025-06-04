@@ -17,7 +17,7 @@ The project is an early experiment for a future Magma compiler pipeline.
 - Handles generic type arguments when generating TypeScript
 - Preserves the `static` modifier on methods in the stubs
 - Preserves `extends` and `implements` on class declarations
-- Offers a `check-ts.sh` script to type-check the generated stubs
+- Provides an `npm` command to type-check the generated stubs
 
 
 ## Getting Started
@@ -72,4 +72,4 @@ It compiles the Java sources with the JDK available on the runner
 The workflow calls `build.sh` and `test.sh` to keep the CI steps in sync with
 the local helper scripts.
 Compilation of the generated TypeScript is not part of the pipeline. You can
-manually verify the stubs by running `./check-ts.sh` after generating them.
+manually verify the stubs by running `npm run check-ts` after generating them.
