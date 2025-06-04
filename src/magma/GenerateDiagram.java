@@ -3,13 +3,12 @@ package magma;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Set;
 import java.util.Optional;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -21,7 +20,7 @@ import static magma.Result.ok;
 public class GenerateDiagram {
     public static Optional<IOException> writeDiagram(Path output) {
         try {
-        List<String> classes = findClasses(Path.of("src/magma"));
+            List<String> classes = findClasses(Path.of("src/magma"));
             StringBuilder content = new StringBuilder("@startuml\n");
             for (String name : classes) {
                 content.append("class ").append(name).append("\n");
