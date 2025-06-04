@@ -123,35 +123,44 @@ public final class TypeScriptStubs {
         while (cMatcher.find()) {
             String name = cMatcher.group(1);
             int start = cMatcher.end();
-            int level = 1;
-            int i = start;
-            while (i < source.length() && level > 0) {
-                char ch = source.charAt(i);
-                if (ch == '{') level++; else if (ch == '}') level--;
-                i++;
-            }
-            String body = source.substring(start, i - 1);
-            var methodPat = java.util.regex.Pattern.compile(
-                    "(?:public\\s+|protected\\s+|private\\s+)?(static\\s+)?(?:final\\s+)?(<[^>]+>\\s+)?([\\w.]+(?:<[^>]+>)?(?:\\[\\])*)\\s+(\\w+)\\s*\\(([^)]*)\\)\\s*\\{");
-            var mMatcher = methodPat.matcher(body);
-            List<String> list = new java.util.ArrayList<>();
-            while (mMatcher.find()) {
-                String staticKw = mMatcher.group(1);
-                String generics = mMatcher.group(2);
-                String returnType = mMatcher.group(3);
-                String mName = mMatcher.group(4);
-                String params = mMatcher.group(5);
-                if (!mName.equals(name)) {
-                    String prefix = staticKw == null ? "" : "static ";
-                    String typeParams = generics == null ? "" : generics.trim();
-                    String paramList = tsParams(params);
-                    list.add("\t" + prefix + mName + typeParams + "(" + paramList + "): " + tsType(returnType) + " {");
-                    list.add("\t}");
-                }
-            }
+            String body = extractClassBody(source, start);
+            List<String> list = parseMethods(body, name);
             map.put(name, list);
         }
         return map;
+    }
+
+    private static String extractClassBody(String source, int start) {
+        int level = 1;
+        int i = start;
+        while (i < source.length() && level > 0) {
+            char ch = source.charAt(i);
+            if (ch == '{') level++; else if (ch == '}') level--;
+            i++;
+        }
+        return source.substring(start, i - 1);
+    }
+
+    private static List<String> parseMethods(String body, String className) {
+        var methodPat = java.util.regex.Pattern.compile(
+                "(?:public\\s+|protected\\s+|private\\s+)?(static\\s+)?(?:final\\s+)?(<[^>]+>\\s+)?([\\w.]+(?:<[^>]+>)?(?:\\[\\])*)\\s+(\\w+)\\s*\\(([^)]*)\\)\\s*\\{");
+        var mMatcher = methodPat.matcher(body);
+        List<String> list = new java.util.ArrayList<>();
+        while (mMatcher.find()) {
+            String staticKw = mMatcher.group(1);
+            String generics = mMatcher.group(2);
+            String returnType = mMatcher.group(3);
+            String mName = mMatcher.group(4);
+            String params = mMatcher.group(5);
+            if (!mName.equals(className)) {
+                String prefix = staticKw == null ? "" : "static ";
+                String typeParams = generics == null ? "" : generics.trim();
+                String paramList = tsParams(params);
+                list.add("\t" + prefix + mName + typeParams + "(" + paramList + "): " + tsType(returnType) + " {");
+                list.add("\t}");
+            }
+        }
+        return list;
     }
 
     private static String stubContent(Path relative, Path from, Path root,
@@ -161,6 +170,19 @@ public final class TypeScriptStubs {
         StringBuilder builder = new StringBuilder();
         builder.append("// Auto-generated from ").append(relative).append(System.lineSeparator());
 
+        Map<String, List<String>> byPath = groupImports(imports, from, root);
+        appendImportLines(builder, byPath);
+
+        if (declarations.isEmpty()) {
+            builder.append("export {};").append(System.lineSeparator());
+            return builder.toString();
+        }
+
+        appendDeclarations(builder, relative, declarations, methods);
+        return builder.toString();
+    }
+
+    private static Map<String, List<String>> groupImports(List<String> imports, Path from, Path root) {
         Map<String, List<String>> byPath = new java.util.LinkedHashMap<>();
         for (String imp : imports) {
             String className = imp.substring(imp.lastIndexOf('.') + 1);
@@ -173,43 +195,50 @@ public final class TypeScriptStubs {
             }
             byPath.computeIfAbsent(path, k -> new java.util.ArrayList<>()).add(className);
         }
+        return byPath;
+    }
 
+    private static void appendImportLines(StringBuilder builder, Map<String, List<String>> byPath) {
         for (var entry : byPath.entrySet()) {
             builder.append("import { ");
             builder.append(String.join(", ", entry.getValue()));
             builder.append(" } from \"").append(entry.getKey()).append("\"");
             builder.append(";").append(System.lineSeparator());
         }
+    }
 
-        if (declarations.isEmpty()) {
-            builder.append("export {};").append(System.lineSeparator());
-            return builder.toString();
-        }
-
+    private static void appendDeclarations(StringBuilder builder, Path relative,
+                                           List<String> declarations,
+                                           Map<String, List<String>> methods) {
         var namePattern = java.util.regex.Pattern.compile("export \\w+ (\\w+)(?:<[^>]+>)?");
         boolean isMain = relative.toString().replace('\\', '/').equals("magma/Main.java");
         for (String decl : declarations) {
-            var m = namePattern.matcher(decl);
-            if (!m.find()) {
-                builder.append(decl).append(System.lineSeparator());
-                continue;
-            }
-            String name = m.group(1);
-            List<String> mList = methods.getOrDefault(name, java.util.Collections.emptyList());
-            if (mList.isEmpty()) {
-                builder.append(decl).append(System.lineSeparator());
-                continue;
-            }
-            builder.append(decl.substring(0, decl.length() - 1)).append(System.lineSeparator());
-            for (String method : mList) {
-                builder.append(method).append(System.lineSeparator());
-            }
-            builder.append("}").append(System.lineSeparator());
+            appendDeclaration(builder, decl, namePattern, methods);
         }
         if (isMain) {
             builder.append("Main.main([]);").append(System.lineSeparator());
         }
-        return builder.toString();
+    }
+
+    private static void appendDeclaration(StringBuilder builder, String decl,
+                                          java.util.regex.Pattern namePattern,
+                                          Map<String, List<String>> methods) {
+        var m = namePattern.matcher(decl);
+        if (!m.find()) {
+            builder.append(decl).append(System.lineSeparator());
+            return;
+        }
+        String name = m.group(1);
+        List<String> mList = methods.getOrDefault(name, java.util.Collections.emptyList());
+        if (mList.isEmpty()) {
+            builder.append(decl).append(System.lineSeparator());
+            return;
+        }
+        builder.append(decl.substring(0, decl.length() - 1)).append(System.lineSeparator());
+        for (String method : mList) {
+            builder.append(method).append(System.lineSeparator());
+        }
+        builder.append("}").append(System.lineSeparator());
     }
 
     private static String tsParams(String javaParams) {
@@ -253,21 +282,7 @@ public final class TypeScriptStubs {
         if (lt != -1 && javaType.endsWith(">")) {
             String base = javaType.substring(0, lt);
             String args = javaType.substring(lt + 1, javaType.length() - 1);
-            java.util.List<String> parts = new java.util.ArrayList<>();
-            int depth = 0;
-            int start = 0;
-            for (int i = 0; i < args.length(); i++) {
-                char ch = args.charAt(i);
-                if (ch == '<') depth++; else if (ch == '>') depth--; else if (ch == ',' && depth == 0) {
-                    parts.add(args.substring(start, i).trim());
-                    start = i + 1;
-                }
-            }
-            parts.add(args.substring(start).trim());
-            java.util.List<String> converted = new java.util.ArrayList<>();
-            for (String part : parts) {
-                converted.add(tsType(part));
-            }
+            java.util.List<String> converted = convertTypes(splitGenericArgs(args));
             return base + "<" + String.join(", ", converted) + ">";
         }
         return switch (javaType) {
@@ -276,5 +291,28 @@ public final class TypeScriptStubs {
             case "char", "String" -> "string";
             default -> javaType;
         };
+    }
+
+    private static java.util.List<String> splitGenericArgs(String args) {
+        java.util.List<String> parts = new java.util.ArrayList<>();
+        int depth = 0;
+        int start = 0;
+        for (int i = 0; i < args.length(); i++) {
+            char ch = args.charAt(i);
+            if (ch == '<') depth++; else if (ch == '>') depth--; else if (ch == ',' && depth == 0) {
+                parts.add(args.substring(start, i).trim());
+                start = i + 1;
+            }
+        }
+        parts.add(args.substring(start).trim());
+        return parts;
+    }
+
+    private static java.util.List<String> convertTypes(java.util.List<String> parts) {
+        java.util.List<String> converted = new java.util.ArrayList<>();
+        for (String part : parts) {
+            converted.add(tsType(part));
+        }
+        return converted;
     }
 }
