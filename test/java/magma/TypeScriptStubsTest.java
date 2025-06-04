@@ -11,7 +11,7 @@ import static magma.TestUtil.writeSource;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-public class GenerateDiagramStubsTest {
+public class TypeScriptStubsTest {
 
     private Path generateStubs() throws IOException {
         Path javaRoot = Files.createTempDirectory("java");
@@ -20,7 +20,7 @@ public class GenerateDiagramStubsTest {
         writeSource(javaRoot, "test/A.java", "package test;\npublic class A {}\n");
         writeSource(javaRoot, "test/B.java", "package test;\nimport test.A;\npublic class B {}\n");
 
-        Option<IOException> result = GenerateDiagram.writeTypeScriptStubs(javaRoot, tsRoot);
+        Option<IOException> result = TypeScriptStubs.write(javaRoot, tsRoot);
         if (result.isPresent()) {
             throw result.get();
         }
@@ -62,7 +62,7 @@ public class GenerateDiagramStubsTest {
         writeSource(javaRoot, "test/I.java", "package test;\npublic interface I<T> {}\n");
         writeSource(javaRoot, "test/R.java", "package test;\npublic record R<T>(T x) {}\n");
 
-        Option<IOException> result = GenerateDiagram.writeTypeScriptStubs(javaRoot, tsRoot);
+        Option<IOException> result = TypeScriptStubs.write(javaRoot, tsRoot);
         if (result.isPresent()) {
             throw result.get();
         }
@@ -85,7 +85,7 @@ public class GenerateDiagramStubsTest {
         writeSource(javaRoot, "test/I.java", "package test;\npublic interface I<T> {}\n");
         writeSource(javaRoot, "test/R.java", "package test;\npublic record R<T>(T x) {}\n");
 
-        Option<IOException> result = GenerateDiagram.writeTypeScriptStubs(javaRoot, tsRoot);
+        Option<IOException> result = TypeScriptStubs.write(javaRoot, tsRoot);
         if (result.isPresent()) {
             throw result.get();
         }
@@ -112,7 +112,7 @@ public class GenerateDiagramStubsTest {
         writeSource(javaRoot, "test/A.java",
                 "package test;\npublic class A { public void foo(){} public static int bar(){return 0;} public String baz(){return \"\";} }\n");
 
-        Option<IOException> result = GenerateDiagram.writeTypeScriptStubs(javaRoot, tsRoot);
+        Option<IOException> result = TypeScriptStubs.write(javaRoot, tsRoot);
         if (result.isPresent()) {
             throw result.get();
         }
@@ -148,7 +148,7 @@ public class GenerateDiagramStubsTest {
         writeSource(javaRoot, "test/C.java",
                 "package test;\npublic class C<T> { public void foo(){} }\n");
 
-        Option<IOException> result = GenerateDiagram.writeTypeScriptStubs(javaRoot, tsRoot);
+        Option<IOException> result = TypeScriptStubs.write(javaRoot, tsRoot);
         if (result.isPresent()) {
             throw result.get();
         }
@@ -167,7 +167,7 @@ public class GenerateDiagramStubsTest {
         writeSource(javaRoot, "test/A.java",
                 "package test;\npublic class A { public Base<Test> foo(){return null;} }\n");
 
-        Option<IOException> result = GenerateDiagram.writeTypeScriptStubs(javaRoot, tsRoot);
+        Option<IOException> result = TypeScriptStubs.write(javaRoot, tsRoot);
         if (result.isPresent()) {
             throw result.get();
         }
@@ -184,7 +184,7 @@ public class GenerateDiagramStubsTest {
         writeSource(javaRoot, "test/A.java",
                 "package test;\nimport java.util.Optional;\npublic class A { public Optional<String> foo(){return null;} }\n");
 
-        Option<IOException> result = GenerateDiagram.writeTypeScriptStubs(javaRoot, tsRoot);
+        Option<IOException> result = TypeScriptStubs.write(javaRoot, tsRoot);
         if (result.isPresent()) {
             throw result.get();
         }
@@ -201,7 +201,7 @@ public class GenerateDiagramStubsTest {
         writeSource(javaRoot, "test/A.java",
                 "package test;\npublic class A { int add(int x, int y){return 0;} }\n");
 
-        Option<IOException> result = GenerateDiagram.writeTypeScriptStubs(javaRoot, tsRoot);
+        Option<IOException> result = TypeScriptStubs.write(javaRoot, tsRoot);
         if (result.isPresent()) {
             throw result.get();
         }
@@ -218,7 +218,7 @@ public class GenerateDiagramStubsTest {
         writeSource(javaRoot, "test/A.java",
                 "package test;\npublic class A { public <R> R id(R x){return x;} }\n");
 
-        Option<IOException> result = GenerateDiagram.writeTypeScriptStubs(javaRoot, tsRoot);
+        Option<IOException> result = TypeScriptStubs.write(javaRoot, tsRoot);
         if (result.isPresent()) {
             throw result.get();
         }
@@ -237,7 +237,7 @@ public class GenerateDiagramStubsTest {
         writeSource(javaRoot, "test/A.java",
                 "package test;\npublic class A extends Base implements I {}\n");
 
-        Option<IOException> result = GenerateDiagram.writeTypeScriptStubs(javaRoot, tsRoot);
+        Option<IOException> result = TypeScriptStubs.write(javaRoot, tsRoot);
         if (result.isPresent()) {
             throw result.get();
         }

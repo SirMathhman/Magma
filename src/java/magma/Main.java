@@ -6,7 +6,7 @@ public class Main {
     public static void main(String[] args) {
         Path javaRoot = Path.of("src/java");
         Path tsRoot = Path.of("src/node");
-        GenerateDiagram.writeTypeScriptStubs(javaRoot, tsRoot).ifPresent(e -> {
+        TypeScriptStubs.write(javaRoot, tsRoot).ifPresent(e -> {
             e.printStackTrace();
             System.exit(1);
         });
