@@ -8,9 +8,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="ddea09a6-33bf-4a11-8cf0-08ec72b0dd6c" name="Changes" comment="Ok">
-      <change beforePath="$PROJECT_DIR$/src/magma/GenerateDiagram.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/magma/GenerateDiagram.java" afterDir="false" />
-    </list>
+    <list default="true" id="ddea09a6-33bf-4a11-8cf0-08ec72b0dd6c" name="Changes" comment="Remove unused" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -303,22 +301,6 @@
       <workItem from="1742658935413" duration="1346000" />
       <workItem from="1742679831775" duration="2068000" />
       <workItem from="1742691657873" duration="2350000" />
-    </task>
-    <task id="LOCAL-04073" summary="Invocations">
-      <option name="closed" value="true" />
-      <created>1748921775908</created>
-      <option name="number" value="04073" />
-      <option name="presentableId" value="LOCAL-04073" />
-      <option name="project" value="LOCAL" />
-      <updated>1748921775908</updated>
-    </task>
-    <task id="LOCAL-04074" summary="Chars">
-      <option name="closed" value="true" />
-      <created>1748921868033</created>
-      <option name="number" value="04074" />
-      <option name="presentableId" value="LOCAL-04074" />
-      <option name="project" value="LOCAL" />
-      <updated>1748921868033</updated>
     </task>
     <task id="LOCAL-04075" summary="Parse invokables">
       <option name="closed" value="true" />
@@ -696,7 +678,23 @@
       <option name="project" value="LOCAL" />
       <updated>1749045666933</updated>
     </task>
-    <option name="localTasksCounter" value="4122" />
+    <task id="LOCAL-04122" summary="Inheritance OK">
+      <option name="closed" value="true" />
+      <created>1749046357677</created>
+      <option name="number" value="04122" />
+      <option name="presentableId" value="LOCAL-04122" />
+      <option name="project" value="LOCAL" />
+      <updated>1749046357677</updated>
+    </task>
+    <task id="LOCAL-04123" summary="Remove unused">
+      <option name="closed" value="true" />
+      <created>1749046503889</created>
+      <option name="number" value="04123" />
+      <option name="presentableId" value="LOCAL-04123" />
+      <option name="project" value="LOCAL" />
+      <updated>1749046503889</updated>
+    </task>
+    <option name="localTasksCounter" value="4124" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -718,8 +716,6 @@
     </option>
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="Fix ?" />
-    <MESSAGE value="Diagram fix" />
     <MESSAGE value="Remove old code" />
     <MESSAGE value="Fix instanceof" />
     <MESSAGE value="Empty" />
@@ -743,7 +739,9 @@
     <MESSAGE value="Cleanup" />
     <MESSAGE value="Reformat" />
     <MESSAGE value="Ok" />
-    <option name="LAST_COMMIT_MESSAGE" value="Ok" />
+    <MESSAGE value="Inheritance OK" />
+    <MESSAGE value="Remove unused" />
+    <option name="LAST_COMMIT_MESSAGE" value="Remove unused" />
   </component>
   <component name="XDebuggerManager">
     <pin-to-top-manager>
