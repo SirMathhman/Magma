@@ -144,7 +144,8 @@ public class GenerateDiagram {
                 if (other.equals(name)) {
                     continue;
                 }
-                if (src.contains(other) && !inherited.contains(name + "->" + other)) {
+                Pattern word = Pattern.compile("\\b" + Pattern.quote(other) + "\\b");
+                if (word.matcher(src).find() && !inherited.contains(name + "->" + other)) {
                     relations.add(new Relation(name, "-->", other));
                 }
             }
