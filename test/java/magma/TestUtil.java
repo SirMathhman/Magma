@@ -2,17 +2,17 @@ package magma;
 
 import java.io.IOException;
 import java.nio.file.Files;
-import java.nio.file.Path;
+import magma.PathLike;
 import java.util.List;
 
 final class TestUtil {
     private TestUtil() {}
 
-    static Path writeSource(Path root, String relPath, String content) {
-        Path file = root.resolve(relPath);
+    static PathLike writeSource(PathLike root, String relPath, String content) {
+        PathLike file = root.resolve(relPath);
         try {
-            Files.createDirectories(file.getParent());
-            Files.writeString(file, content);
+            Files.createDirectories(file.getParent().unwrap());
+            Files.writeString(file.unwrap(), content);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }

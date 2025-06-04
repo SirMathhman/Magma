@@ -14,3 +14,5 @@
 - Preserves the `static` modifier on generated methods
 - Preserves `extends` and `implements` on class declarations
 - Includes an `npm` command to validate the TypeScript output
+- Wraps file paths with `PathLike`/`JVMPath` so generated TypeScript does not
+  reference `java.nio.file.Path`

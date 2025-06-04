@@ -4,7 +4,8 @@ import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
 import java.nio.file.Files;
-import java.nio.file.Path;
+import magma.PathLike;
+import magma.JVMPath;
 import magma.option.Option;
 
 import static magma.TestUtil.writeSource;
@@ -13,12 +14,12 @@ import static org.junit.jupiter.api.Assertions.*;
 
 public class TypeScriptStubsTest {
 
-    private Path generateStubs() {
-        Path javaRoot;
-        Path tsRoot;
+    private PathLike generateStubs() {
+        PathLike javaRoot;
+        PathLike tsRoot;
         try {
-            javaRoot = Files.createTempDirectory("java");
-            tsRoot = Files.createTempDirectory("ts");
+            javaRoot = new JVMPath(Files.createTempDirectory("java"));
+            tsRoot = new JVMPath(Files.createTempDirectory("ts"));
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -35,22 +36,22 @@ public class TypeScriptStubsTest {
 
     @Test
     public void createsAStub() {
-        Path tsRoot = generateStubs();
-        assertTrue(Files.exists(tsRoot.resolve("test/A.ts")));
+        PathLike tsRoot = generateStubs();
+        assertTrue(Files.exists(tsRoot.resolve("test/A.ts").unwrap()));
     }
 
     @Test
     public void createsBStub() {
-        Path tsRoot = generateStubs();
-        assertTrue(Files.exists(tsRoot.resolve("test/B.ts")));
+        PathLike tsRoot = generateStubs();
+        assertTrue(Files.exists(tsRoot.resolve("test/B.ts").unwrap()));
     }
 
     @Test
     public void addsImportForDependency() {
-        Path tsRoot = generateStubs();
+        PathLike tsRoot = generateStubs();
         String content;
         try {
-            content = Files.readString(tsRoot.resolve("test/B.ts"));
+            content = Files.readString(tsRoot.resolve("test/B.ts").unwrap());
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -59,10 +60,10 @@ public class TypeScriptStubsTest {
 
     @Test
     public void stubDeclaresBClass() {
-        Path tsRoot = generateStubs();
+        PathLike tsRoot = generateStubs();
         String content;
         try {
-            content = Files.readString(tsRoot.resolve("test/B.ts"));
+            content = Files.readString(tsRoot.resolve("test/B.ts").unwrap());
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -71,11 +72,11 @@ public class TypeScriptStubsTest {
   
     @Test
     public void stubCopiesClasses() {
-        Path javaRoot;
-        Path tsRoot;
+        PathLike javaRoot;
+        PathLike tsRoot;
         try {
-            javaRoot = Files.createTempDirectory("java");
-            tsRoot = Files.createTempDirectory("ts");
+            javaRoot = new JVMPath(Files.createTempDirectory("java"));
+            tsRoot = new JVMPath(Files.createTempDirectory("ts"));
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -90,7 +91,7 @@ public class TypeScriptStubsTest {
         }
         long count;
         try {
-            count = Files.list(tsRoot.resolve("test")).count();
+            count = Files.list(tsRoot.resolve("test").unwrap()).count();
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -99,22 +100,22 @@ public class TypeScriptStubsTest {
 
     @Test
     public void copiesClassDeclaration() {
-        Path tsRoot = generateGenericStubs();
+        PathLike tsRoot = generateGenericStubs();
         String a;
         try {
-            a = Files.readString(tsRoot.resolve("test/A.ts"));
+            a = Files.readString(tsRoot.resolve("test/A.ts").unwrap());
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
         assertTrue(a.contains("export class A<T> {}"));
     }
 
-    private Path generateGenericStubs() {
-        Path javaRoot;
-        Path tsRoot;
+    private PathLike generateGenericStubs() {
+        PathLike javaRoot;
+        PathLike tsRoot;
         try {
-            javaRoot = Files.createTempDirectory("java");
-            tsRoot = Files.createTempDirectory("ts");
+            javaRoot = new JVMPath(Files.createTempDirectory("java"));
+            tsRoot = new JVMPath(Files.createTempDirectory("ts"));
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -132,10 +133,10 @@ public class TypeScriptStubsTest {
 
     @Test
     public void copiesInterfaceDeclaration() {
-        Path tsRoot = generateGenericStubs();
+        PathLike tsRoot = generateGenericStubs();
         String i;
         try {
-            i = Files.readString(tsRoot.resolve("test/I.ts"));
+            i = Files.readString(tsRoot.resolve("test/I.ts").unwrap());
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -144,22 +145,22 @@ public class TypeScriptStubsTest {
 
     @Test
     public void copiesRecordDeclaration() {
-        Path tsRoot = generateGenericStubs();
+        PathLike tsRoot = generateGenericStubs();
         String r;
         try {
-            r = Files.readString(tsRoot.resolve("test/R.ts"));
+            r = Files.readString(tsRoot.resolve("test/R.ts").unwrap());
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
         assertTrue(r.contains("export class R<T> {}"));
     }
 
-    private Path generateMethodStubs() {
-        Path javaRoot;
-        Path tsRoot;
+    private PathLike generateMethodStubs() {
+        PathLike javaRoot;
+        PathLike tsRoot;
         try {
-            javaRoot = Files.createTempDirectory("java");
-            tsRoot = Files.createTempDirectory("ts");
+            javaRoot = new JVMPath(Files.createTempDirectory("java"));
+            tsRoot = new JVMPath(Files.createTempDirectory("ts"));
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -175,10 +176,10 @@ public class TypeScriptStubsTest {
 
     @Test
     public void copiesInstanceMethod() {
-        Path tsRoot = generateMethodStubs();
+        PathLike tsRoot = generateMethodStubs();
         String a;
         try {
-            a = Files.readString(tsRoot.resolve("test/A.ts"));
+            a = Files.readString(tsRoot.resolve("test/A.ts").unwrap());
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -187,10 +188,10 @@ public class TypeScriptStubsTest {
 
     @Test
     public void copiesStaticMethod() {
-        Path tsRoot = generateMethodStubs();
+        PathLike tsRoot = generateMethodStubs();
         String a;
         try {
-            a = Files.readString(tsRoot.resolve("test/A.ts"));
+            a = Files.readString(tsRoot.resolve("test/A.ts").unwrap());
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -199,10 +200,10 @@ public class TypeScriptStubsTest {
 
     @Test
     public void copiesBazMethod() {
-        Path tsRoot = generateMethodStubs();
+        PathLike tsRoot = generateMethodStubs();
         String a;
         try {
-            a = Files.readString(tsRoot.resolve("test/A.ts"));
+            a = Files.readString(tsRoot.resolve("test/A.ts").unwrap());
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -211,11 +212,11 @@ public class TypeScriptStubsTest {
 
     @Test
     public void stubCopiesMethodsOnGenericClass() {
-        Path javaRoot;
-        Path tsRoot;
+        PathLike javaRoot;
+        PathLike tsRoot;
         try {
-            javaRoot = Files.createTempDirectory("java");
-            tsRoot = Files.createTempDirectory("ts");
+            javaRoot = new JVMPath(Files.createTempDirectory("java"));
+            tsRoot = new JVMPath(Files.createTempDirectory("ts"));
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -230,7 +231,7 @@ public class TypeScriptStubsTest {
 
         String c;
         try {
-            c = Files.readString(tsRoot.resolve("test/C.ts"));
+            c = Files.readString(tsRoot.resolve("test/C.ts").unwrap());
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -239,11 +240,11 @@ public class TypeScriptStubsTest {
 
     @Test
     public void preservesGenericReturnType() {
-        Path javaRoot;
-        Path tsRoot;
+        PathLike javaRoot;
+        PathLike tsRoot;
         try {
-            javaRoot = Files.createTempDirectory("java");
-            tsRoot = Files.createTempDirectory("ts");
+            javaRoot = new JVMPath(Files.createTempDirectory("java"));
+            tsRoot = new JVMPath(Files.createTempDirectory("ts"));
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -260,7 +261,7 @@ public class TypeScriptStubsTest {
 
         String a;
         try {
-            a = Files.readString(tsRoot.resolve("test/A.ts"));
+            a = Files.readString(tsRoot.resolve("test/A.ts").unwrap());
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -269,11 +270,11 @@ public class TypeScriptStubsTest {
 
     @Test
     public void convertsPrimitiveGenericArgument() {
-        Path javaRoot;
-        Path tsRoot;
+        PathLike javaRoot;
+        PathLike tsRoot;
         try {
-            javaRoot = Files.createTempDirectory("java");
-            tsRoot = Files.createTempDirectory("ts");
+            javaRoot = new JVMPath(Files.createTempDirectory("java"));
+            tsRoot = new JVMPath(Files.createTempDirectory("ts"));
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -288,7 +289,7 @@ public class TypeScriptStubsTest {
 
         String a;
         try {
-            a = Files.readString(tsRoot.resolve("test/A.ts"));
+            a = Files.readString(tsRoot.resolve("test/A.ts").unwrap());
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -297,11 +298,11 @@ public class TypeScriptStubsTest {
 
     @Test
     public void preservesParameterTypes() {
-        Path javaRoot;
-        Path tsRoot;
+        PathLike javaRoot;
+        PathLike tsRoot;
         try {
-            javaRoot = Files.createTempDirectory("java");
-            tsRoot = Files.createTempDirectory("ts");
+            javaRoot = new JVMPath(Files.createTempDirectory("java"));
+            tsRoot = new JVMPath(Files.createTempDirectory("ts"));
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -316,7 +317,7 @@ public class TypeScriptStubsTest {
 
         String a;
         try {
-            a = Files.readString(tsRoot.resolve("test/A.ts"));
+            a = Files.readString(tsRoot.resolve("test/A.ts").unwrap());
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -325,11 +326,11 @@ public class TypeScriptStubsTest {
 
     @Test
     public void preservesMethodTypeParameter() {
-        Path javaRoot;
-        Path tsRoot;
+        PathLike javaRoot;
+        PathLike tsRoot;
         try {
-            javaRoot = Files.createTempDirectory("java");
-            tsRoot = Files.createTempDirectory("ts");
+            javaRoot = new JVMPath(Files.createTempDirectory("java"));
+            tsRoot = new JVMPath(Files.createTempDirectory("ts"));
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -344,7 +345,7 @@ public class TypeScriptStubsTest {
 
         String a;
         try {
-            a = Files.readString(tsRoot.resolve("test/A.ts"));
+            a = Files.readString(tsRoot.resolve("test/A.ts").unwrap());
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -353,11 +354,11 @@ public class TypeScriptStubsTest {
 
     @Test
     public void preservesExtendsAndImplements() {
-        Path javaRoot;
-        Path tsRoot;
+        PathLike javaRoot;
+        PathLike tsRoot;
         try {
-            javaRoot = Files.createTempDirectory("java");
-            tsRoot = Files.createTempDirectory("ts");
+            javaRoot = new JVMPath(Files.createTempDirectory("java"));
+            tsRoot = new JVMPath(Files.createTempDirectory("ts"));
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -374,7 +375,7 @@ public class TypeScriptStubsTest {
 
         String a;
         try {
-            a = Files.readString(tsRoot.resolve("test/A.ts"));
+            a = Files.readString(tsRoot.resolve("test/A.ts").unwrap());
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
