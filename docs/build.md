@@ -7,5 +7,6 @@ compiles all `*.java` files under the `src` directory:
 ./build.sh
 ```
 
-Running `build.sh` also generates matching TypeScript stubs under `src/node`
-and writes a fresh `diagram.puml` by invoking `GenerateDiagram`.
+The script simply compiles the Java sources into the `out` directory. After
+building you can manually run `GenerateDiagram` to create the TypeScript stubs
+and update `diagram.puml`.
