@@ -4,10 +4,11 @@ This repository contains a simple Java program that generates a PlantUML file.
 
 ## Usage
 
-Compile and run the program using the Java compiler:
+Compile and run the program using the Java compiler. The source file resides
+under `src/magma`, so include that path when compiling:
 
 ```bash
-javac -d . GenerateDiagram.java
+javac -d . src/magma/GenerateDiagram.java
 java magma.GenerateDiagram
 ```
 
@@ -26,7 +27,8 @@ curl -L -o junit-platform-console-standalone.jar \
   https://repo1.maven.org/maven2/org/junit/platform/junit-platform-console-standalone/1.10.2/junit-platform-console-standalone-1.10.2.jar
 
 # compile source and test files
-javac -d . -cp junit-platform-console-standalone.jar:. GenerateDiagram.java tests/GenerateDiagramTest.java
+javac -d . -cp junit-platform-console-standalone.jar:. \
+  src/magma/GenerateDiagram.java test/magma/GenerateDiagramTest.java
 
 # run the tests
 java -jar junit-platform-console-standalone.jar --class-path junit-platform-console-standalone.jar:. --scan-class-path
