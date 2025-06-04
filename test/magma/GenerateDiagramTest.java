@@ -6,21 +6,49 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
-
-
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class GenerateDiagramTest {
-    @Test
-    public void testDiagramCreatedWithExpectedContent() {
-        Path tempDir;
+    private Path createOutput() {
         try {
-            tempDir = Files.createTempDirectory("diagram_test");
+            Path dir = Files.createTempDirectory("diagram_test");
+            return dir.resolve("diagram.puml");
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
-        Path output = tempDir.resolve("diagram.puml");
-        Result<Void, IOException> result = GenerateDiagram.writeDiagram(output);
+    }
+
+    private Result<Void, IOException> writeDiagram(Path output) {
+        return GenerateDiagram.writeDiagram(output);
+    }
+
+    private String readContent(Path output) {
+        try {
+            return Files.readString(output);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private Path createDiagram() {
+        Path output = createOutput();
+        Result<Void, IOException> result = writeDiagram(output);
+        try {
+            result.unwrap();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+        return output;
+    }
+
+    private String diagramContent() {
+        return readContent(createDiagram());
+    }
+
+    @Test
+    public void diagramWriteSucceeds() {
+        Path output = createOutput();
+        Result<Void, IOException> result = writeDiagram(output);
         String message;
         try {
             result.unwrap();
@@ -29,27 +57,59 @@ public class GenerateDiagramTest {
             message = e.getMessage();
         }
         assertTrue(result.isOk(), "writeDiagram failed: " + message);
-        boolean exists;
-        String content;
-        try {
-            exists = Files.exists(output);
-            content = Files.readString(output);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-        assertTrue(exists, "diagram.puml was not created");
-        assertTrue(content.startsWith("@startuml\n"), "diagram should start correctly");
-        assertTrue(content.endsWith("@enduml\n"), "diagram should end correctly");
-        String[] expectedClasses = {"GenerateDiagram", "Result", "Ok", "Err"};
-        for (String cls : expectedClasses) {
-            assertTrue(content.contains("class " + cls + "\n"),
-                    "Diagram missing class " + cls);
-        }
-        String[] expectedRelations = {"Ok --|> Result", "Err --|> Result"};
-        for (String rel : expectedRelations) {
-            assertTrue(content.contains(rel + "\n"),
-                    "Diagram missing relation " + rel);
-        }
     }
 
+    @Test
+    public void diagramFileCreated() {
+        Path output = createDiagram();
+        assertTrue(Files.exists(output), "diagram.puml was not created");
+    }
+
+    @Test
+    public void diagramStartsCorrectly() {
+        String content = diagramContent();
+        assertTrue(content.startsWith("@startuml\n"), "diagram should start correctly");
+    }
+
+    @Test
+    public void diagramEndsCorrectly() {
+        String content = diagramContent();
+        assertTrue(content.endsWith("@enduml\n"), "diagram should end correctly");
+    }
+
+    @Test
+    public void diagramContainsGenerateDiagram() {
+        String content = diagramContent();
+        assertTrue(content.contains("class GenerateDiagram\n"), "Diagram missing class GenerateDiagram");
+    }
+
+    @Test
+    public void diagramContainsResult() {
+        String content = diagramContent();
+        assertTrue(content.contains("class Result\n"), "Diagram missing class Result");
+    }
+
+    @Test
+    public void diagramContainsOk() {
+        String content = diagramContent();
+        assertTrue(content.contains("class Ok\n"), "Diagram missing class Ok");
+    }
+
+    @Test
+    public void diagramContainsErr() {
+        String content = diagramContent();
+        assertTrue(content.contains("class Err\n"), "Diagram missing class Err");
+    }
+
+    @Test
+    public void diagramContainsOkRelation() {
+        String content = diagramContent();
+        assertTrue(content.contains("Ok --|> Result\n"), "Diagram missing relation Ok --|> Result");
+    }
+
+    @Test
+    public void diagramContainsErrRelation() {
+        String content = diagramContent();
+        assertTrue(content.contains("Err --|> Result\n"), "Diagram missing relation Err --|> Result");
+    }
 }
