@@ -47,6 +47,16 @@ Following these principles helps keep the codebase easy to understand and
 maintain. We also keep methods focused on a single task in line with the
 Single Responsibility Principle (SRP).
 
+### Additional style rules
+
+The code also follows several structural guidelines:
+
+1. Functions contain at most **one** loop.
+2. Nesting is limited to two levels of braces.
+3. Guard clauses are preferred to reduce indentation.
+4. Production code never uses `null`; optional values are expressed with `Optional<T>`.
+5. Exceptions are represented with `Result<T, X>` instead of `throws` clauses.
+
 ## Continuous Integration
 
 The GitHub Actions workflow builds the project using `build.sh`. Earlier

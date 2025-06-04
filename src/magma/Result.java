@@ -3,8 +3,8 @@ package magma;
 /**
  * A simple result type representing either a successful value or an error.
  * It is meant for situations where a returned value is meaningful. If the
- * success case carries no value (for example {@code Result<Void, X>}), prefer
- * using {@link java.util.Optional Optional}&lt;X&gt; instead.
+ * success case carries no value use {@link magma.Unit Unit} as the
+ * successful type.
  *
  * @param <T> the successful value type
  * @param <X> the exception type, which must extend {@link Exception}
@@ -34,10 +34,10 @@ public interface Result<T, X extends Exception> {
     <U> Result<U, X> flatMapValue(java.util.function.Function<? super T, Result<U, X>> mapper);
 
     /**
-     * Gets the successful value or throws the stored exception if this result
+     * Gets the successful value or throws a runtime exception if this result
      * represents an error. Most code should avoid calling this method and
      * handle both cases explicitly.
      */
-    T unwrap() throws X;
+    T unwrap();
 }
 
