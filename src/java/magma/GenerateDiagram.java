@@ -223,18 +223,6 @@ public class GenerateDiagram {
         return builder.toString();
     }
 
-    private static String importLine(Path from, Path root, String name) {
-        String className = name.substring(name.lastIndexOf('.') + 1);
-        Path target = root.resolve(name.replace('.', '/') + ".ts");
-        Path rel = from.relativize(target);
-        String path = rel.toString().replace('\\', '/');
-        path = path.replaceFirst("\\.ts$", "");
-        if (!path.startsWith(".")) {
-            path = "./" + path;
-        }
-        return "import { " + className + " } from \"" + path + "\";";
-    }
-
     public static void main(String[] args) {
         Path javaRoot = Path.of("src/java");
         Path tsRoot = Path.of("src/node");
