@@ -61,6 +61,8 @@ The code also follows several structural guidelines:
    return a value useful for chaining.
 7. Avoid mutating collections passed as parameters. Compute a new collection and
    bulk-add the result to the caller's collection instead.
+8. Do not use output arguments.
+9. Do not reassign a value to a parameter.
 
 ## Continuous Integration
 
