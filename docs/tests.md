@@ -8,5 +8,5 @@ executes the tests:
 ./test.sh
 ```
 
-The test script compiles the Java sources and invokes `GenerateDiagram` to
-update the TypeScript stubs and diagram before running JUnit.
+The test script compiles the Java sources and then runs the JUnit test suite.
+`GenerateDiagram` is not executed automatically during the tests.

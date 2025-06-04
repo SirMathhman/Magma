@@ -85,8 +85,19 @@ public class GenerateDiagramStubsTest {
         assertTrue(a.contains("export class A<T> {}"));
     }
 
-    private Path generateGenericStubs() {
-        return null;
+    private Path generateGenericStubs() throws IOException {
+        Path javaRoot = Files.createTempDirectory("java");
+        Path tsRoot = Files.createTempDirectory("ts");
+
+        writeSource(javaRoot, "test/A.java", "package test;\npublic class A<T> {}\n");
+        writeSource(javaRoot, "test/I.java", "package test;\npublic interface I<T> {}\n");
+        writeSource(javaRoot, "test/R.java", "package test;\npublic record R<T>(T x) {}\n");
+
+        Optional<IOException> result = GenerateDiagram.writeTypeScriptStubs(javaRoot, tsRoot);
+        if (result.isPresent()) {
+            throw result.get();
+        }
+        return tsRoot;
     }
 
     @Test
@@ -106,9 +117,8 @@ public class GenerateDiagramStubsTest {
     private Path generateMethodStubs() throws IOException {
         Path javaRoot = Files.createTempDirectory("java");
         Path tsRoot = Files.createTempDirectory("ts");
-
         writeSource(javaRoot, "test/A.java",
-                "package test;\npublic class A { public void foo(){} public static void bar(){} }\n");
+                "package test;\npublic class A { public void foo(){} public static int bar(){return 0;} public String baz(){return \"\";} }\n");
 
         Optional<IOException> result = GenerateDiagram.writeTypeScriptStubs(javaRoot, tsRoot);
         if (result.isPresent()) {
@@ -121,14 +131,16 @@ public class GenerateDiagramStubsTest {
     public void copiesInstanceMethod() throws IOException {
         Path tsRoot = generateMethodStubs();
         String a = Files.readString(tsRoot.resolve("test/A.ts"));
-        assertTrue(a.contains("void foo() {"));
+        assertTrue(a.contains("foo(): void {"));
     }
 
     @Test
     public void copiesStaticMethod() throws IOException {
         Path tsRoot = generateMethodStubs();
         String a = Files.readString(tsRoot.resolve("test/A.ts"));
-        assertTrue(a.contains("void bar() {"));
+        assertTrue(a.contains("foo(): void {"), "A.ts missing foo method");
+        assertTrue(a.contains("bar(): int {"), "A.ts missing bar method");
+        assertTrue(a.contains("baz(): String {"), "A.ts missing baz method");
     }
 
     @Test
@@ -145,6 +157,6 @@ public class GenerateDiagramStubsTest {
         }
 
         String c = Files.readString(tsRoot.resolve("test/C.ts"));
-        assertTrue(c.contains("void foo() {"), "C.ts missing foo method");
+        assertTrue(c.contains("foo(): void {"), "C.ts missing foo method");
     }
 }
