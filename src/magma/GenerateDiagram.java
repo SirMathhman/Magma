@@ -12,11 +12,9 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
-import magma.Relation;
-import magma.Unit;
-
 public class GenerateDiagram {
     // Helper methods split to comply with SRP (Single Responsibility Principle)
+
     /**
      * Generates a PlantUML diagram and writes it to {@code output}. Instead of
      * throwing an exception, any I/O error is returned wrapped in an
@@ -50,8 +48,8 @@ public class GenerateDiagram {
         // works across multiple lines.
         Pattern pattern = Pattern.compile(
                 "^\\s*(?:public\\s+|protected\\s+|private\\s+)?" +
-                "(?:static\\s+)?(?:final\\s+)?(?:sealed\\s+)?" +
-                "(?:class|interface)\\s+(\\w+)",
+                        "(?:static\\s+)?(?:final\\s+)?(?:sealed\\s+)?" +
+                        "(?:class|interface)\\s+(\\w+)",
                 Pattern.MULTILINE);
         Set<String> unique = new LinkedHashSet<>();
         for (String src : sources) {
@@ -72,8 +70,8 @@ public class GenerateDiagram {
     }
 
     private static List<Relation> findRelations(List<String> sources,
-                                               List<String> classes,
-                                               java.util.Map<String, java.util.List<String>> implementations) {
+                                                List<String> classes,
+                                                java.util.Map<String, java.util.List<String>> implementations) {
         List<Relation> inheritance = findInheritanceRelations(sources);
         List<Relation> dependencies =
                 findDependencyRelations(sources, classes, inheritance, implementations);
@@ -126,7 +124,7 @@ public class GenerateDiagram {
     }
 
     private static List<Relation> parentRelations(String child,
-                                           String parents) {
+                                                  String parents) {
         List<Relation> relations = new ArrayList<>();
         for (String parent : parents.split(",")) {
             parent = parent.replaceAll("<.*?>", "").trim();
@@ -148,7 +146,7 @@ public class GenerateDiagram {
     }
 
     private static java.util.Map<String, java.util.List<String>> implementationsForSource(String src,
-                                                    Pattern pattern) {
+                                                                                          Pattern pattern) {
         src = src.replaceAll("<[^>]*>", "");
         src = stripComments(src);
         Matcher matcher = pattern.matcher(src);
@@ -216,9 +214,9 @@ public class GenerateDiagram {
     }
 
     private static List<Relation> findDependencyRelations(List<String> sources,
-                                                         List<String> classes,
-                                                         List<Relation> inheritance,
-                                                         java.util.Map<String, java.util.List<String>> implementations) {
+                                                          List<String> classes,
+                                                          List<Relation> inheritance,
+                                                          java.util.Map<String, java.util.List<String>> implementations) {
         Pattern classPattern = Pattern.compile("(?:class|interface)\\s+(\\w+)");
 
         java.util.Map<String, String> sourceMap = mapSourcesByClass(sources);
@@ -234,11 +232,11 @@ public class GenerateDiagram {
     }
 
     private static List<Relation> dependenciesForSource(String src,
-                                                     Pattern classPattern,
-                                                     List<String> classes,
-                                                     Set<String> inherited,
-                                                     java.util.Map<String, String> sourceMap,
-                                                     java.util.Map<String, java.util.List<String>> implementations) {
+                                                        Pattern classPattern,
+                                                        List<String> classes,
+                                                        Set<String> inherited,
+                                                        java.util.Map<String, String> sourceMap,
+                                                        java.util.Map<String, java.util.List<String>> implementations) {
         List<Relation> relations = new ArrayList<>();
         src = stripComments(src);
         Matcher matcher = classPattern.matcher(src);
@@ -258,7 +256,7 @@ public class GenerateDiagram {
                 continue;
             }
             if (omitDependency(java.util.Optional.ofNullable(sourceMap.get(name)),
-                              other, implementations)) {
+                    other, implementations)) {
                 continue;
             }
             relations.add(new Relation(name, "-->", other));
