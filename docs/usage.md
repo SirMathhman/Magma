@@ -7,7 +7,8 @@ Run the program using the provided helper script:
 ```
 
 `./run.sh` compiles the project if necessary and then executes
-`magma.Main`.
+`magma.Main`. After execution it converts `diagram.puml` to `diagram.png`
+using PlantUML.
 
 Executing the program creates a file named `diagram.puml` in the repository
 root. The file contains a PlantUML diagram describing the discovered classes and
