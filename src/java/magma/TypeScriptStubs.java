@@ -192,7 +192,7 @@ public final class TypeScriptStubs {
 
     private static List<String> parseMethods(String body, String className) {
         var methodPat = Pattern.compile(
-                "(?:public\\s+|protected\\s+|private\\s+)?(static\\s+)?(?:final\\s+)?(<[^>]+>\\s+)?([\\w.]+(?:<[^>]+>)?(?:\\[\\])*)\\s+(\\w+)\\s*\\(([^)]*)\\)\\s*\\{");
+                "(?:public\\s+|protected\\s+|private\\s+)?(static\\s+)?(?:final\\s+)?(<[^>]+>\\s+)?([\\w.]+(?:<[^>]+>)?(?:\\[])*)\\s+(\\w+)\\s*\\(([^)]*)\\)\\s*\\{");
         var mMatcher = methodPat.matcher(body);
         List<String> list = new ArrayList<>();
         while (mMatcher.find()) {
@@ -242,7 +242,7 @@ public final class TypeScriptStubs {
             if (!path.startsWith(".")) {
                 path = "./" + path;
             }
-            byPath.computeIfAbsent(path, k -> new ArrayList<>()).add(className);
+            byPath.computeIfAbsent(path, _ -> new ArrayList<>()).add(className);
         }
         return byPath;
     }
@@ -334,9 +334,7 @@ public final class TypeScriptStubs {
             String base = javaType.substring(0, lt);
             String args = javaType.substring(lt + 1, javaType.length() - 1);
             List<String> converted = convertTypes(splitGenericArgs(args));
-            for (int i = 0; i < converted.size(); i++) {
-                converted.set(i, sanitizeWildcard(converted.get(i)));
-            }
+            converted.replaceAll(TypeScriptStubs::sanitizeWildcard);
             String simple = base.replace("java.util.function.", "");
             if ("Function".equals(simple) && converted.size() >= 2) {
                 return "(arg0: " + converted.get(0) + ") => " + converted.get(1);
@@ -345,18 +343,18 @@ public final class TypeScriptStubs {
                 return "(arg0: " + converted.get(0) + ", arg1: " + converted.get(1)
                         + ") => " + converted.get(2);
             }
-            if ("Supplier".equals(simple) && converted.size() >= 1) {
-                return "() => " + converted.get(0);
+            if ("Supplier".equals(simple) && !converted.isEmpty()) {
+                return "() => " + converted.getFirst();
             }
-            if ("Consumer".equals(simple) && converted.size() >= 1) {
-                return "(arg0: " + converted.get(0) + ") => void";
+            if ("Consumer".equals(simple) && !converted.isEmpty()) {
+                return "(arg0: " + converted.getFirst() + ") => void";
             }
             if ("BiConsumer".equals(simple) && converted.size() >= 2) {
                 return "(arg0: " + converted.get(0) + ", arg1: " + converted.get(1)
                         + ") => void";
             }
-            if ("Predicate".equals(simple) && converted.size() >= 1) {
-                return "(arg0: " + converted.get(0) + ") => boolean";
+            if ("Predicate".equals(simple) && !converted.isEmpty()) {
+                return "(arg0: " + converted.getFirst() + ") => boolean";
             }
             return base + "<" + String.join(", ", converted) + ">";
         }
