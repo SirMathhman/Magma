@@ -27,9 +27,7 @@ public class TypeScriptStubsTest {
         writeSource(javaRoot, "test/B.java", "package test;\nimport test.A;\npublic class B {}\n");
 
         Option<IOException> result = TypeScriptStubs.write(javaRoot, tsRoot);
-        if (result.isPresent()) {
-            throw new RuntimeException(result.get());
-        }
+        result.ifPresent(e -> { throw new RuntimeException(e); });
         return tsRoot;
     }
 
@@ -67,9 +65,7 @@ public class TypeScriptStubsTest {
         writeSource(javaRoot, "test/Err.java", "package test;\npublic class Err implements Result {}\n");
 
         Option<IOException> result = TypeScriptStubs.write(javaRoot, tsRoot);
-        if (result.isPresent()) {
-            throw new RuntimeException(result.get());
-        }
+        result.ifPresent(e -> { throw new RuntimeException(e); });
 
         String err = Results.unwrap(tsRoot.resolve("test/Err.ts").readString());
         assertTrue(err.contains("import { Result } from \"./Result\";"));
@@ -98,9 +94,7 @@ public class TypeScriptStubsTest {
         writeSource(javaRoot, "test/R.java", "package test;\npublic record R<T>(T x) {}\n");
 
         Option<IOException> result = TypeScriptStubs.write(javaRoot, tsRoot);
-        if (result.isPresent()) {
-            throw new RuntimeException(result.get());
-        }
+        result.ifPresent(e -> { throw new RuntimeException(e); });
         long count = Results.unwrap(tsRoot.resolve("test").list()).count();
         assertEquals(3, count);
     }
@@ -127,9 +121,7 @@ public class TypeScriptStubsTest {
         writeSource(javaRoot, "test/R.java", "package test;\npublic record R<T>(T x) {}\n");
 
         Option<IOException> result = TypeScriptStubs.write(javaRoot, tsRoot);
-        if (result.isPresent()) {
-            throw new RuntimeException(result.get());
-        }
+        result.ifPresent(e -> { throw new RuntimeException(e); });
         return tsRoot;
     }
 
@@ -160,9 +152,7 @@ public class TypeScriptStubsTest {
                 "package test;\npublic class A { public void foo(){} public static int bar(){return 0;} public String baz(){return \"\";} }\n");
 
         Option<IOException> result = TypeScriptStubs.write(javaRoot, tsRoot);
-        if (result.isPresent()) {
-            throw new RuntimeException(result.get());
-        }
+        result.ifPresent(e -> { throw new RuntimeException(e); });
         return tsRoot;
     }
 
@@ -209,9 +199,7 @@ public class TypeScriptStubsTest {
                 "package test;\npublic class C<T> { public void foo(){} }\n");
 
         Option<IOException> result = TypeScriptStubs.write(javaRoot, tsRoot);
-        if (result.isPresent()) {
-            throw new RuntimeException(result.get());
-        }
+        result.ifPresent(e -> { throw new RuntimeException(e); });
 
         String c = Results.unwrap(tsRoot.resolve("test/C.ts").readString());
         assertTrue(c.contains("foo(): void {"), "C.ts missing foo method");
@@ -234,9 +222,7 @@ public class TypeScriptStubsTest {
                 "package test;\npublic class A { public Base<Test> foo(){return null;} }\n");
 
         Option<IOException> result = TypeScriptStubs.write(javaRoot, tsRoot);
-        if (result.isPresent()) {
-            throw new RuntimeException(result.get());
-        }
+        result.ifPresent(e -> { throw new RuntimeException(e); });
 
         String a = Results.unwrap(tsRoot.resolve("test/A.ts").readString());
         assertTrue(a.contains("foo(): Base<Test> {"));
@@ -257,9 +243,7 @@ public class TypeScriptStubsTest {
                 "package test;\nimport java.util.Optional;\npublic class A { public Optional<String> foo(){return null;} }\n");
 
         Option<IOException> result = TypeScriptStubs.write(javaRoot, tsRoot);
-        if (result.isPresent()) {
-            throw new RuntimeException(result.get());
-        }
+        result.ifPresent(e -> { throw new RuntimeException(e); });
 
         String a = Results.unwrap(tsRoot.resolve("test/A.ts").readString());
         assertTrue(a.contains("foo(): Optional<string> {"));
@@ -280,9 +264,7 @@ public class TypeScriptStubsTest {
                 "package test;\npublic class A { int add(int x, int y){return 0;} }\n");
 
         Option<IOException> result = TypeScriptStubs.write(javaRoot, tsRoot);
-        if (result.isPresent()) {
-            throw new RuntimeException(result.get());
-        }
+        result.ifPresent(e -> { throw new RuntimeException(e); });
 
         String a = Results.unwrap(tsRoot.resolve("test/A.ts").readString());
         assertTrue(a.contains("add(x: number, y: number): number {"));
@@ -303,9 +285,7 @@ public class TypeScriptStubsTest {
                 "package test;\npublic class A { public <R> R id(R x){return x;} }\n");
 
         Option<IOException> result = TypeScriptStubs.write(javaRoot, tsRoot);
-        if (result.isPresent()) {
-            throw new RuntimeException(result.get());
-        }
+        result.ifPresent(e -> { throw new RuntimeException(e); });
 
         String a = Results.unwrap(tsRoot.resolve("test/A.ts").readString());
         assertTrue(a.contains("id<R>(x: R): R {"));
@@ -328,9 +308,7 @@ public class TypeScriptStubsTest {
                 "package test;\npublic class A extends Base implements I {}\n");
 
         Option<IOException> result = TypeScriptStubs.write(javaRoot, tsRoot);
-        if (result.isPresent()) {
-            throw new RuntimeException(result.get());
-        }
+        result.ifPresent(e -> { throw new RuntimeException(e); });
 
         String a = Results.unwrap(tsRoot.resolve("test/A.ts").readString());
         assertTrue(a.contains("export class A extends Base implements I {}"));
@@ -350,9 +328,7 @@ public class TypeScriptStubsTest {
                 "package test;\npublic class A { int foo(){ int x=1; bar(); return x; } void bar(){} }\n");
 
         Option<IOException> result = TypeScriptStubs.write(javaRoot, tsRoot);
-        if (result.isPresent()) {
-            throw new RuntimeException(result.get());
-        }
+        result.ifPresent(e -> { throw new RuntimeException(e); });
         return tsRoot;
     }
 
