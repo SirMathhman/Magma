@@ -181,9 +181,17 @@ public record JavaFile(PathLike file) {
             String kind = cMatcher.group(1);
             String name = cMatcher.group(2);
             int start = cMatcher.end();
-            String body = extractClassBody(source, start);
+            var bodyRes = extractClassBody(source, start);
+            if (bodyRes.isErr()) {
+                return new Err<>(((Err<String, IOException>) bodyRes).error());
+            }
+            String body = ((Ok<String, IOException>) bodyRes).value();
             boolean isInterface = "interface".equals(kind);
-            List<String> list = parseMethods(body, name, isInterface);
+            var methodsRes = parseMethods(body, name, isInterface);
+            if (methodsRes.isErr()) {
+                return new Err<>(((Err<List<String>, IOException>) methodsRes).error());
+            }
+            List<String> list = ((Ok<List<String>, IOException>) methodsRes).value();
 
             if ("record".equals(kind)) {
                 String header = source.substring(cMatcher.start(), start - 1);
@@ -213,7 +221,7 @@ public record JavaFile(PathLike file) {
         return new Ok<>(map);
     }
 
-    private static String extractClassBody(String source, int start) {
+    private static Result<String, IOException> extractClassBody(String source, int start) {
         int level = 1;
         int i = start;
         while (i < source.length() && level > 0) {
@@ -226,10 +234,13 @@ public record JavaFile(PathLike file) {
             }
             i++;
         }
-        return source.substring(start, i - 1);
+        if (level != 0) {
+            return new Err<>(new ParseException("missing '}'"));
+        }
+        return new Ok<>(source.substring(start, i - 1));
     }
 
-    private static List<String> parseMethods(String body, String className, boolean isInterface) {
+    private static Result<List<String>, IOException> parseMethods(String body, String className, boolean isInterface) {
         var methodPat = Pattern.compile(
                 "(?:public\\s+|protected\\s+|private\\s+)?(static\\s+)?(?:final\\s+)?(<[^>]+>\\s+)?([\\w.]+(?:<[^>]+>)?(?:\\[\\])*)\\s+(\\w+)\\s*\\(([^)]*)\\)\\s*(\\{|;)");
         var mMatcher = methodPat.matcher(body);
@@ -243,7 +254,11 @@ public record JavaFile(PathLike file) {
             String methodBody = "";
             if ("{".equals(delim)) {
                 int start = mMatcher.end();
-                methodBody = extractBlock(body, start);
+                var blockRes = extractBlock(body, start);
+                if (blockRes.isErr()) {
+                    return new Err<>(((Err<String, IOException>) blockRes).error());
+                }
+                methodBody = ((Ok<String, IOException>) blockRes).value();
             }
             addMethod(list,
                     mMatcher.group(1),
@@ -255,7 +270,7 @@ public record JavaFile(PathLike file) {
                     isInterface,
                     methodBody);
         }
-        return list;
+        return new Ok<>(list);
     }
 
     private static void addMethod(List<String> list, String staticKw, String generics,
@@ -430,7 +445,7 @@ public record JavaFile(PathLike file) {
     }
 
 
-    private static String extractBlock(String source, int start) {
+    private static Result<String, IOException> extractBlock(String source, int start) {
         int level = 1;
         int i = start;
         while (i < source.length() && level > 0) {
@@ -443,7 +458,10 @@ public record JavaFile(PathLike file) {
             }
             i++;
         }
-        return source.substring(start, i - 1);
+        if (level != 0) {
+            return new Err<>(new ParseException("missing '}'"));
+        }
+        return new Ok<>(source.substring(start, i - 1));
     }
 
     private static String sanitizeWildcard(String type) {
