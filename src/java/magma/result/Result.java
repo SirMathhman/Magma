@@ -1,5 +1,7 @@
 package magma.result;
 
+import java.util.function.Function;
+
 /**
  * A simple result type representing either a successful value or an error.
  * It is meant for situations where a returned value is meaningful. If there is
@@ -24,14 +26,15 @@ public interface Result<T, X> {
      * Transforms the successful value using {@code mapper}. If this result is
      * an error, the same error is returned unchanged.
      */
-    <U> Result<U, X> mapValue(java.util.function.Function<? super T, ? extends U> mapper);
+    <U> Result<U, X> mapValue(Function<? super T, ? extends U> mapper);
 
     /**
      * Transforms the successful value using a function that itself returns a
      * {@code Result}. This allows for chaining operations without explicit
      * casts.
      */
-    <U> Result<U, X> flatMapValue(java.util.function.Function<? super T, Result<U, X>> mapper);
+    <U> Result<U, X> flatMapValue(Function<? super T, Result<U, X>> mapper);
 
+    <R> R match(Function<T, R> whenOk, Function<X, R> whenErr);
 }
 

@@ -15,7 +15,6 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.regex.Pattern;
-import java.util.stream.Stream;
 
 /**
  * Utility for generating TypeScript stub files mirroring the Java sources.
@@ -26,71 +25,66 @@ public final class TypeScriptStubs {
     }
 
     public static Option<IOException> write(PathLike javaRoot, PathLike tsRoot) {
-        List<PathLike> files;
-        var walkRes = javaRoot.walk();
-        if (walkRes.isErr()) {
-            return new Some<>(((Err<Stream<PathLike>, IOException>) walkRes).error());
-        }
-        try (Stream<PathLike> stream = ((Ok<Stream<PathLike>, IOException>) walkRes).value()) {
-            files = stream.filter(PathLike::isRegularFile)
+        return javaRoot.walk().match(stream -> {
+            List<PathLike> files = stream.filter(PathLike::isRegularFile)
                     .filter(p -> p.toString().endsWith(".java"))
                     .toList();
-        }
 
-        for (PathLike file : files) {
-            PathLike relative = javaRoot.relativize(file);
-            PathLike tsFile = tsRoot.resolve(relative.toString().replaceFirst("\\.java$", ".ts"));
-            var dirResult = tsFile.getParent().createDirectories();
-            if (dirResult.isPresent()) {
-                return dirResult;
-            }
+            for (PathLike file : files) {
+                PathLike relative = javaRoot.relativize(file);
+                PathLike tsFile = tsRoot.resolve(relative.toString().replaceFirst("\\.java$", ".ts"));
+                var dirResult = tsFile.getParent().createDirectories();
+                if (dirResult.isPresent()) {
+                    return dirResult;
+                }
 
-            var importsRes = readImports(file);
-            if (importsRes.isErr()) {
-                return new Some<>(((Err<List<String>, IOException>) importsRes).error());
-            }
+                var importsRes = readImports(file);
+                if (importsRes.isErr()) {
+                    return new Some<>(((Err<List<String>, IOException>) importsRes).error());
+                }
 
-            var pkgRes = readPackage(file);
-            if (pkgRes.isErr()) {
-                return new Some<>(((Err<String, IOException>) pkgRes).error());
-            }
+                var pkgRes = readPackage(file);
+                if (pkgRes.isErr()) {
+                    return new Some<>(((Err<String, IOException>) pkgRes).error());
+                }
 
-            var localRes = readLocalDependencies(file);
-            if (localRes.isErr()) {
-                return new Some<>(((Err<List<String>, IOException>) localRes).error());
-            }
+                var localRes = readLocalDependencies(file);
+                if (localRes.isErr()) {
+                    return new Some<>(((Err<List<String>, IOException>) localRes).error());
+                }
 
-            var declarationsRes = readDeclarations(file);
-            if (declarationsRes.isErr()) {
-                return new Some<>(((Err<List<String>, IOException>) declarationsRes).error());
-            }
+                var declarationsRes = readDeclarations(file);
+                if (declarationsRes.isErr()) {
+                    return new Some<>(((Err<List<String>, IOException>) declarationsRes).error());
+                }
 
-            var methodsRes = readMethods(file);
-            if (methodsRes.isErr()) {
-                return new Some<>(((Err<Map<String, List<String>>, IOException>) methodsRes).error());
-            }
+                var methodsRes = readMethods(file);
+                if (methodsRes.isErr()) {
+                    return new Some<>(((Err<Map<String, List<String>>, IOException>) methodsRes).error());
+                }
 
-            List<String> imports = Results.unwrap(importsRes);
-            String pkgName = Results.unwrap(pkgRes);
-            List<String> locals = Results.unwrap(localRes);
-            for (String dep : locals) {
-                String fqn = pkgName.isEmpty() ? dep : pkgName + "." + dep;
-                if (!imports.contains(fqn)) {
-                    imports.add(fqn);
+                List<String> imports = Results.unwrap(importsRes);
+                String pkgName = Results.unwrap(pkgRes);
+                List<String> locals = Results.unwrap(localRes);
+                for (String dep : locals) {
+                    String fqn = pkgName.isEmpty() ? dep : pkgName + "." + dep;
+                    if (!imports.contains(fqn)) {
+                        imports.add(fqn);
+                    }
+                }
+
+                List<String> declarations = Results.unwrap(declarationsRes);
+                Map<String, List<String>> methods = Results.unwrap(methodsRes);
+
+                String content = stubContent(relative, tsFile.getParent(), tsRoot,
+                        imports, declarations, methods);
+                var writeRes = tsFile.writeString(content);
+                if (writeRes.isPresent()) {
+                    return writeRes;
                 }
             }
-
-            List<String> declarations = Results.unwrap(declarationsRes);
-            Map<String, List<String>> methods = Results.unwrap(methodsRes);
-
-            String content = stubContent(relative, tsFile.getParent(), tsRoot,
-                    imports, declarations, methods);
-            var writeRes = tsFile.writeString(content);
-            if (writeRes.isPresent()) {
-                return writeRes;
-            }
-        }
-        return new None<>();
+            return new None<>();
+        }, Some::new);
     }
 
     private static Result<List<String>, IOException> readImports(PathLike file) {
