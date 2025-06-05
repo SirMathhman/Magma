@@ -80,12 +80,9 @@ public record JVMPath(Path path) implements PathLike {
             Files.createDirectories(path);
             return new None<>();
         } catch (IOException e) {
-        Stream<String> rootStream = path.getRoot() == null
-                ? Stream.of()
-                : Stream.of(path.getRoot().toString());
-        Stream<String> names = IntStream.range(0, path.getNameCount())
-                .mapToObj(i -> path.getName(i).toString());
-        return Stream.concat(rootStream, names);
+            return new Some<>(e);
+        }
+    }
 
     @Override
     public Result<Stream<PathLike>, IOException> walk() {
