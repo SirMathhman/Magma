@@ -113,85 +113,76 @@ public final class TypeScriptStubs {
     }
 
     private static Result<String, IOException> readPackage(PathLike file) {
-        String source;
-        try {
-            source = file.readString();
-        } catch (IOException e) {
-            return new Err<>(e);
-        }
-
-        var pattern = Pattern.compile("^package\\s+([\\w.]+);", Pattern.MULTILINE);
-        var matcher = pattern.matcher(source);
-        if (matcher.find()) {
-            return new Ok<>(matcher.group(1));
-        }
-        return new Ok<>("");
+        return file.readString().mapValue(source -> {
+            var pattern = Pattern.compile("^package\\s+([\\w.]+);", Pattern.MULTILINE);
+            var matcher = pattern.matcher(source);
+            if (matcher.find()) {
+                return matcher.group(1);
+            }
+            return "";
+        });
     }
 
     private static Result<List<String>, IOException> readLocalDependencies(PathLike file) {
-        String source;
-        try {
-            source = file.readString();
-        } catch (IOException e) {
-            return new Err<>(e);
-        }
+        return file.readString().flatMapValue(source -> {
+            source = source.replaceAll("(?s)/\\*.*?\\*/", "");
+            source = source.replaceAll("//.*", "");
 
-        source = source.replaceAll("(?s)/\\*.*?\\*/", "");
-        source = source.replaceAll("//.*", "");
+            var classPat = Pattern.compile(
+                    "^(?:public\\s+|protected\\s+|private\\s+)?(?:static\\s+)?(?:final\\s+)?(?:sealed\\s+)?(class|interface|record)\\s+(\\w+)",
+                    Pattern.MULTILINE);
 
-        var classPat = Pattern.compile(
-                "^(?:public\\s+|protected\\s+|private\\s+)?(?:static\\s+)?(?:final\\s+)?(?:sealed\\s+)?(class|interface|record)\\s+(\\w+)",
-                Pattern.MULTILINE);
+            var matcher = classPat.matcher(source);
+            List<String> deps = new ArrayList<>();
+            List<String> defined = new ArrayList<>();
+            while (matcher.find()) {
+                String name = matcher.group(2);
+                defined.add(name);
+                int start = matcher.end();
+                int brace = source.indexOf('{', start);
+                if (brace == -1) {
+                    continue;
+                }
+                String rest = source.substring(start, brace);
+                rest = rest.replaceAll("\\s+", " ").trim();
 
-        var matcher = classPat.matcher(source);
-        List<String> deps = new ArrayList<>();
-        List<String> defined = new ArrayList<>();
-        while (matcher.find()) {
-            String name = matcher.group(2);
-            defined.add(name);
-            int start = matcher.end();
-            int brace = source.indexOf('{', start);
-            if (brace == -1) {
-                continue;
-            }
-            String rest = source.substring(start, brace);
-            rest = rest.replaceAll("\\s+", " ").trim();
-
-            String extendsPart = null;
-            String implementsPart = null;
-            int extIdx = rest.indexOf("extends ");
-            int implIdx = rest.indexOf("implements ");
-            if (extIdx != -1) {
+                String extendsPart = null;
+                String implementsPart = null;
+                int extIdx = rest.indexOf("extends ");
+                int implIdx = rest.indexOf("implements ");
+                if (extIdx != -1) {
+                    if (implIdx != -1) {
+                        extendsPart = rest.substring(extIdx + 8, implIdx).trim();
+                    }
+                    else {
+                        extendsPart = rest.substring(extIdx + 8).trim();
+                    }
+                }
                 if (implIdx != -1) {
-                    extendsPart = rest.substring(extIdx + 8, implIdx).trim();
-                } else {
-                    extendsPart = rest.substring(extIdx + 8).trim();
+                    implementsPart = rest.substring(implIdx + 11).trim();
                 }
-            }
-            if (implIdx != -1) {
-                implementsPart = rest.substring(implIdx + 11).trim();
-            }
 
-            if (extendsPart != null && !extendsPart.isEmpty()) {
-                extendsPart = extendsPart.replaceAll("<.*?>", "");
-                for (String part : extendsPart.split(",")) {
-                    String base = part.trim();
-                    if (!base.isEmpty() && !defined.contains(base)) {
-                        deps.add(base);
+                if (extendsPart != null && !extendsPart.isEmpty()) {
+                    extendsPart = extendsPart.replaceAll("<.*?>", "");
+                    for (String part : extendsPart.split(",")) {
+                        String base = part.trim();
+                        if (!base.isEmpty() && !defined.contains(base)) {
+                            deps.add(base);
+                        }
+                    }
+                }
+                if (implementsPart != null && !implementsPart.isEmpty()) {
+                    implementsPart = implementsPart.replaceAll("<.*?>", "");
+                    for (String part : implementsPart.split(",")) {
+                        String base = part.trim();
+                        if (!base.isEmpty() && !defined.contains(base)) {
+                            deps.add(base);
+                        }
                     }
                 }
             }
-            if (implementsPart != null && !implementsPart.isEmpty()) {
-                implementsPart = implementsPart.replaceAll("<.*?>", "");
-                for (String part : implementsPart.split(",")) {
-                    String base = part.trim();
-                    if (!base.isEmpty() && !defined.contains(base)) {
-                        deps.add(base);
-                    }
-                }
-            }
-        }
-        return new Ok<>(deps);
+            return new Ok<>(deps);
+        });
     }
 
     private static Result<List<String>, IOException> readDeclarations(PathLike file) {
@@ -311,7 +302,8 @@ public final class TypeScriptStubs {
                 String paramList = tsParams(params);
                 if (isInterface || ";".equals(delim)) {
                     list.add("\t" + prefix + mName + typeParams + "(" + paramList + "): " + tsType(returnType) + ";");
-                } else {
+                }
+                else {
                     list.add("\t" + prefix + mName + typeParams + "(" + paramList + "): " + tsType(returnType) + " {");
                     list.add("\t}");
                 }

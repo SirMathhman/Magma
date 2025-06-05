@@ -1,16 +1,15 @@
 package magma;
 
+import magma.option.Option;
+import magma.result.Results;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
 import java.nio.file.Files;
 
-import magma.option.Option;
-import magma.result.Results;
-
 import static magma.TestUtil.writeSource;
-
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class TypeScriptStubsTest {
 
@@ -72,12 +71,7 @@ public class TypeScriptStubsTest {
             throw new RuntimeException(result.get());
         }
 
-        String err;
-        try {
-            err = tsRoot.resolve("test/Err.ts").readString();
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
+        String err = Results.unwrap(tsRoot.resolve("test/Err.ts").readString());
         assertTrue(err.contains("import { Result } from \"./Result\";"));
     }
 
@@ -87,7 +81,7 @@ public class TypeScriptStubsTest {
         String content = Results.unwrap(tsRoot.resolve("test/B.ts").readString());
         assertTrue(content.contains("export class B {}"));
     }
-  
+
     @Test
     public void stubCopiesClasses() {
         PathLike javaRoot;
