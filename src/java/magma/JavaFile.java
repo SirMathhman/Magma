@@ -415,14 +415,25 @@ public record JavaFile(PathLike file) {
         if (ASSIGNMENT_PATTERN.matcher(segment).find()) {
             int eq = segment.indexOf('=');
             if (eq != -1) {
-                String before = segment.substring(0, eq + 1);
+                String before = segment.substring(0, eq).trim();
                 String after = segment.substring(eq + 1).trim();
                 boolean semi = after.endsWith(";");
                 if (semi) {
                     after = after.substring(0, after.length() - 1).trim();
                 }
                 String value = parseValue(after);
-                return before + value + (semi ? ";" : "");
+
+                var declPat = Pattern.compile("^(?:final\\s+)?([\\w.<>\\[\\]]+)\\s+(\\w+)$");
+                var declMatch = declPat.matcher(before);
+                if (declMatch.find()) {
+                    String type = tsType(declMatch.group(1));
+                    String name = declMatch.group(2);
+                    boolean isConst = before.startsWith("final ");
+                    String kw = isConst ? "const" : "let";
+                    return kw + " " + name + ": " + type + " = " + value + (semi ? ";" : "");
+                }
+
+                return before + " = " + value + (semi ? ";" : "");
             }
         }
         if (RETURN_PATTERN.matcher(segment).find()) {
