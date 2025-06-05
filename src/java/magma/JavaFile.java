@@ -387,72 +387,17 @@ public record JavaFile(PathLike file) {
             }
 
             if (ch == '"' || ch == '\'') {
-                int end = i + 1;
-                boolean esc = false;
-                char quote = ch;
-                while (end < value.length()) {
-                    char c = value.charAt(end);
-                    if (esc) {
-                        esc = false;
-                    } else if (c == '\\') {
-                        esc = true;
-                    } else if (c == quote) {
-                        end++;
-                        break;
-                    }
-                    end++;
-                }
-                out.append(value, i, end);
-                i = end;
+                i = scanStringLiteral(value, i, out);
                 continue;
             }
 
             if (Character.isDigit(ch)) {
-                int start = i;
-                boolean exp = false;
-                while (i < value.length()) {
-                    char c = value.charAt(i);
-                    if (c == '_' || Character.isDigit(c)) {
-                        i++;
-                        continue;
-                    }
-                    if (c == '.' || c == 'x' || c == 'X' || c == 'b' || c == 'B') {
-                        i++;
-                        continue;
-                    }
-                    if ((c == 'e' || c == 'E') && !exp) {
-                        exp = true;
-                        i++;
-                        continue;
-                    }
-                    if ((c == '+' || c == '-') && exp
-                            && (value.charAt(i - 1) == 'e' || value.charAt(i - 1) == 'E')) {
-                        i++;
-                        continue;
-                    }
-                    break;
-                }
-                int endDigits = i;
-                while (i < value.length() && "lLfFdD".indexOf(value.charAt(i)) != -1) {
-                    i++;
-                }
-                String num = value.substring(start, endDigits).replace("_", "");
-                out.append(num);
+                i = scanNumberLiteral(value, i, out);
                 continue;
             }
 
             if (Character.isJavaIdentifierStart(ch)) {
-                int start = i;
-                i++;
-                while (i < value.length() && Character.isJavaIdentifierPart(value.charAt(i))) {
-                    i++;
-                }
-                String id = value.substring(start, i);
-                if ("instanceof".equals(id)) {
-                    out.append("/* FIXME: instanceof */ instanceof");
-                } else {
-                    out.append(id);
-                }
+                i = scanIdentifier(value, i, out);
                 continue;
             }
 
@@ -460,6 +405,75 @@ public record JavaFile(PathLike file) {
             i++;
         }
         return out.toString().trim();
+    }
+
+    private static int scanStringLiteral(String value, int start, StringBuilder out) {
+        char quote = value.charAt(start);
+        int i = start + 1;
+        boolean esc = false;
+        while (i < value.length()) {
+            char c = value.charAt(i);
+            if (esc) {
+                esc = false;
+            } else if (c == '\\') {
+                esc = true;
+            } else if (c == quote) {
+                i++;
+                break;
+            }
+            i++;
+        }
+        out.append(value, start, i);
+        return i;
+    }
+
+    private static int scanNumberLiteral(String value, int start, StringBuilder out) {
+        int i = start;
+        boolean exp = false;
+        int endDigits = start;
+        while (i < value.length()) {
+            char c = value.charAt(i);
+            if (c == '_' || Character.isDigit(c) || c == '.' || c == 'x' || c == 'X'
+                    || c == 'b' || c == 'B') {
+                i++;
+                endDigits = i;
+                continue;
+            }
+            if ((c == 'e' || c == 'E') && !exp) {
+                exp = true;
+                i++;
+                endDigits = i;
+                continue;
+            }
+            if ((c == '+' || c == '-') && exp
+                    && (value.charAt(i - 1) == 'e' || value.charAt(i - 1) == 'E')) {
+                i++;
+                endDigits = i;
+                continue;
+            }
+            if ("lLfFdD".indexOf(c) != -1) {
+                i++;
+                continue;
+            }
+            break;
+        }
+        String num = value.substring(start, endDigits).replace("_", "");
+        out.append(num);
+        return i;
+    }
+
+    private static int scanIdentifier(String value, int start, StringBuilder out) {
+        int i = start + 1;
+        while (i < value.length() && Character.isJavaIdentifierPart(value.charAt(i))) {
+            i++;
+        }
+        String id = value.substring(start, i);
+        if ("instanceof".equals(id)) {
+            out.append("/* FIXME: instanceof */ instanceof");
+        } else {
+            out.append(id);
+        }
+        return i;
     }
 
     private static final Pattern[] SEGMENT_PATTERNS = new Pattern[]{
@@ -486,14 +500,21 @@ public record JavaFile(PathLike file) {
             if (stripped.isEmpty()) {
                 continue;
             }
-            for (Pattern pat : SEGMENT_PATTERNS) {
-                if (pat.matcher(stripped).find()) {
-                    segments.add(processSegment(stripped));
-                    break;
-                }
+            String seg = matchSegment(stripped);
+            if (seg != null) {
+                segments.add(seg);
             }
         }
         return segments;
+    }
+
+    private static String matchSegment(String stripped) {
+        for (Pattern pat : SEGMENT_PATTERNS) {
+            if (pat.matcher(stripped).find()) {
+                return processSegment(stripped);
+            }
+        }
+        return null;
     }
 
     private static String processSegment(String segment) {
