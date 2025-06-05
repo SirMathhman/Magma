@@ -25,7 +25,7 @@ export class JVMPath implements PathLike {
 		return Paths.get("");
 		const first: var = Paths.get(names.getFirst());
 		return names.subList(1, names.size())
-		.reduce(first, Path::resolve, (_, next) -> next);
+		.reduce(first, Path::resolve, (_, next) => next);
 	}
 	getParent(): PathLike {
 		let parent: Path = path.getParent();

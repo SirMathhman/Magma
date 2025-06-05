@@ -7,7 +7,7 @@ import { JavaFile } from "./JavaFile";
 import { Results } from "./result/Results";
 export class TypeScriptStubs {
 	static write(javaRoot: PathLike, tsRoot: PathLike): Option<IOException> {
-		return javaRoot.walk().match(stream -> {
+		return javaRoot.walk().match(stream => {
 		let files: List<PathLike> = stream.filter(PathLike::isRegularFile)
 		.toList();
 		for (PathLike file : files) {
