@@ -25,7 +25,7 @@ public final class TypeScriptStubs {
 
     public static Option<IOException> write(PathLike javaRoot, PathLike tsRoot) {
         List<java.nio.file.Path> files;
-        try (Stream<java.nio.file.Path> stream = Files.walk(javaRoot.unwrap())) {
+        try (Stream<java.nio.file.Path> stream = javaRoot.walk()) {
             files = stream.filter(Files::isRegularFile)
                     .filter(p -> p.toString().endsWith(".java"))
                     .toList();
@@ -35,10 +35,9 @@ public final class TypeScriptStubs {
         for (java.nio.file.Path file : files) {
             PathLike relative = javaRoot.relativize(new JVMPath(file));
             PathLike tsFile = tsRoot.resolve(relative.toString().replaceFirst("\\.java$", ".ts"));
-            try {
-                Files.createDirectories(tsFile.getParent().unwrap());
-            } catch (IOException e) {
-                return new Some<>(e);
+            var dirResult = tsFile.getParent().createDirectories();
+            if (dirResult.isPresent()) {
+                return dirResult;
             }
 
             var importsRes = readImports(file);
@@ -60,12 +59,11 @@ public final class TypeScriptStubs {
             List<String> declarations = declarationsRes.unwrap();
             Map<String, List<String>> methods = methodsRes.unwrap();
 
-            try {
-                String content = stubContent(relative, tsFile.getParent(), tsRoot,
-                        imports, declarations, methods);
-                Files.writeString(tsFile.unwrap(), content);
-            } catch (IOException e) {
-                return new Some<>(e);
+            String content = stubContent(relative, tsFile.getParent(), tsRoot,
+                    imports, declarations, methods);
+            var writeRes = tsFile.writeString(content);
+            if (writeRes.isPresent()) {
+                return writeRes;
             }
         }
         return new None<>();
