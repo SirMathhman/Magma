@@ -17,7 +17,7 @@ export class Some<T> implements Option<T> {
 	orElse(other: Option<T>): Option<T> {
 		return this;
 	}
-	toTuple(defaultValue: T): Tuple<Boolean, T> {
+	toTuple(defaultValue: T): Tuple<boolean, T> {
 		return new Tuple<>(true, value);
 	}
 }

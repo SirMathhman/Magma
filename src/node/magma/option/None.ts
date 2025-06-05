@@ -17,7 +17,7 @@ export class None<T> implements Option<T> {
 	orElse(other: Option<T>): Option<T> {
 		return other;
 	}
-	toTuple(defaultValue: T): Tuple<Boolean, T> {
+	toTuple(defaultValue: T): Tuple<boolean, T> {
 		return new Tuple<>(false, defaultValue);
 	}
 }

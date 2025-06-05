@@ -6,6 +6,6 @@ export interface Option<T> {
 	map<U>(mapper: (arg0: T) => U): Option<U>;
 	flatMap<U>(mapper: (arg0: T) => Option<U>): Option<U>;
 	orElse(other: Option<T>): Option<T>;
-	toTuple(defaultValue: T): Tuple<Boolean, T>;
+	toTuple(defaultValue: T): Tuple<boolean, T>;
 	ifPresent(action: (arg0: T) => void): void;
 }
