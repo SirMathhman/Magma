@@ -3,6 +3,8 @@ package magma;
 import magma.option.Option;
 import magma.result.Results;
 import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.fail;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -14,20 +16,14 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 public class TypeScriptStubsTest {
 
     private PathLike generateStubs() {
-        PathLike javaRoot;
-        PathLike tsRoot;
-        try {
-            javaRoot = new JVMPath(Files.createTempDirectory("java"));
-            tsRoot = new JVMPath(Files.createTempDirectory("ts"));
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
+        PathLike javaRoot = new JVMPath(assertDoesNotThrow(() -> Files.createTempDirectory("java")));
+        PathLike tsRoot = new JVMPath(assertDoesNotThrow(() -> Files.createTempDirectory("ts")));
 
         writeSource(javaRoot, "test/A.java", "package test;\npublic class A {}\n");
         writeSource(javaRoot, "test/B.java", "package test;\nimport test.A;\npublic class B {}\n");
 
         Option<IOException> result = TypeScriptStubs.write(javaRoot, tsRoot);
-        result.ifPresent(e -> { throw new RuntimeException(e); });
+        result.ifPresent(e -> fail(e));
         return tsRoot;
     }
 
@@ -52,20 +48,14 @@ public class TypeScriptStubsTest {
 
     @Test
     public void addsImportForLocalDependency() {
-        PathLike javaRoot;
-        PathLike tsRoot;
-        try {
-            javaRoot = new JVMPath(Files.createTempDirectory("java"));
-            tsRoot = new JVMPath(Files.createTempDirectory("ts"));
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
+        PathLike javaRoot = new JVMPath(assertDoesNotThrow(() -> Files.createTempDirectory("java")));
+        PathLike tsRoot = new JVMPath(assertDoesNotThrow(() -> Files.createTempDirectory("ts")));
 
         writeSource(javaRoot, "test/Result.java", "package test;\npublic interface Result {}\n");
         writeSource(javaRoot, "test/Err.java", "package test;\npublic class Err implements Result {}\n");
 
         Option<IOException> result = TypeScriptStubs.write(javaRoot, tsRoot);
-        result.ifPresent(e -> { throw new RuntimeException(e); });
+        result.ifPresent(e -> fail(e));
 
         String err = Results.unwrap(tsRoot.resolve("test/Err.ts").readString());
         assertTrue(err.contains("import { Result } from \"./Result\";"));
@@ -80,21 +70,15 @@ public class TypeScriptStubsTest {
 
     @Test
     public void stubCopiesClasses() {
-        PathLike javaRoot;
-        PathLike tsRoot;
-        try {
-            javaRoot = new JVMPath(Files.createTempDirectory("java"));
-            tsRoot = new JVMPath(Files.createTempDirectory("ts"));
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
+        PathLike javaRoot = new JVMPath(assertDoesNotThrow(() -> Files.createTempDirectory("java")));
+        PathLike tsRoot = new JVMPath(assertDoesNotThrow(() -> Files.createTempDirectory("ts")));
 
         writeSource(javaRoot, "test/A.java", "package test;\npublic class A<T> {}\n");
         writeSource(javaRoot, "test/I.java", "package test;\npublic interface I<T> {}\n");
         writeSource(javaRoot, "test/R.java", "package test;\npublic record R<T>(T x) {}\n");
 
         Option<IOException> result = TypeScriptStubs.write(javaRoot, tsRoot);
-        result.ifPresent(e -> { throw new RuntimeException(e); });
+        result.ifPresent(e -> fail(e));
         long count = Results.unwrap(tsRoot.resolve("test").list()).count();
         assertEquals(3, count);
     }
@@ -107,21 +91,15 @@ public class TypeScriptStubsTest {
     }
 
     private PathLike generateGenericStubs() {
-        PathLike javaRoot;
-        PathLike tsRoot;
-        try {
-            javaRoot = new JVMPath(Files.createTempDirectory("java"));
-            tsRoot = new JVMPath(Files.createTempDirectory("ts"));
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
+        PathLike javaRoot = new JVMPath(assertDoesNotThrow(() -> Files.createTempDirectory("java")));
+        PathLike tsRoot = new JVMPath(assertDoesNotThrow(() -> Files.createTempDirectory("ts")));
 
         writeSource(javaRoot, "test/A.java", "package test;\npublic class A<T> {}\n");
         writeSource(javaRoot, "test/I.java", "package test;\npublic interface I<T> {}\n");
         writeSource(javaRoot, "test/R.java", "package test;\npublic record R<T>(T x) {}\n");
 
         Option<IOException> result = TypeScriptStubs.write(javaRoot, tsRoot);
-        result.ifPresent(e -> { throw new RuntimeException(e); });
+        result.ifPresent(e -> fail(e));
         return tsRoot;
     }
 
@@ -140,19 +118,13 @@ public class TypeScriptStubsTest {
     }
 
     private PathLike generateMethodStubs() {
-        PathLike javaRoot;
-        PathLike tsRoot;
-        try {
-            javaRoot = new JVMPath(Files.createTempDirectory("java"));
-            tsRoot = new JVMPath(Files.createTempDirectory("ts"));
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
+        PathLike javaRoot = new JVMPath(assertDoesNotThrow(() -> Files.createTempDirectory("java")));
+        PathLike tsRoot = new JVMPath(assertDoesNotThrow(() -> Files.createTempDirectory("ts")));
         writeSource(javaRoot, "test/A.java",
                 "package test;\npublic class A { public void foo(){} public static int bar(){return 0;} public String baz(){return \"\";} }\n");
 
         Option<IOException> result = TypeScriptStubs.write(javaRoot, tsRoot);
-        result.ifPresent(e -> { throw new RuntimeException(e); });
+        result.ifPresent(e -> fail(e));
         return tsRoot;
     }
 
@@ -186,20 +158,14 @@ public class TypeScriptStubsTest {
 
     @Test
     public void stubCopiesMethodsOnGenericClass() {
-        PathLike javaRoot;
-        PathLike tsRoot;
-        try {
-            javaRoot = new JVMPath(Files.createTempDirectory("java"));
-            tsRoot = new JVMPath(Files.createTempDirectory("ts"));
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
+        PathLike javaRoot = new JVMPath(assertDoesNotThrow(() -> Files.createTempDirectory("java")));
+        PathLike tsRoot = new JVMPath(assertDoesNotThrow(() -> Files.createTempDirectory("ts")));
 
         writeSource(javaRoot, "test/C.java",
                 "package test;\npublic class C<T> { public void foo(){} }\n");
 
         Option<IOException> result = TypeScriptStubs.write(javaRoot, tsRoot);
-        result.ifPresent(e -> { throw new RuntimeException(e); });
+        result.ifPresent(e -> fail(e));
 
         String c = Results.unwrap(tsRoot.resolve("test/C.ts").readString());
         assertTrue(c.contains("foo(): void {"), "C.ts missing foo method");
@@ -207,14 +173,8 @@ public class TypeScriptStubsTest {
 
     @Test
     public void preservesGenericReturnType() {
-        PathLike javaRoot;
-        PathLike tsRoot;
-        try {
-            javaRoot = new JVMPath(Files.createTempDirectory("java"));
-            tsRoot = new JVMPath(Files.createTempDirectory("ts"));
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
+        PathLike javaRoot = new JVMPath(assertDoesNotThrow(() -> Files.createTempDirectory("java")));
+        PathLike tsRoot = new JVMPath(assertDoesNotThrow(() -> Files.createTempDirectory("ts")));
 
         writeSource(javaRoot, "test/Base.java", "package test;\npublic class Base<T> {}\n");
         writeSource(javaRoot, "test/Test.java", "package test;\npublic class Test {}\n");
@@ -222,7 +182,7 @@ public class TypeScriptStubsTest {
                 "package test;\npublic class A { public Base<Test> foo(){return null;} }\n");
 
         Option<IOException> result = TypeScriptStubs.write(javaRoot, tsRoot);
-        result.ifPresent(e -> { throw new RuntimeException(e); });
+        result.ifPresent(e -> fail(e));
 
         String a = Results.unwrap(tsRoot.resolve("test/A.ts").readString());
         assertTrue(a.contains("foo(): Base<Test> {"));
@@ -230,20 +190,14 @@ public class TypeScriptStubsTest {
 
     @Test
     public void convertsPrimitiveGenericArgument() {
-        PathLike javaRoot;
-        PathLike tsRoot;
-        try {
-            javaRoot = new JVMPath(Files.createTempDirectory("java"));
-            tsRoot = new JVMPath(Files.createTempDirectory("ts"));
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
+        PathLike javaRoot = new JVMPath(assertDoesNotThrow(() -> Files.createTempDirectory("java")));
+        PathLike tsRoot = new JVMPath(assertDoesNotThrow(() -> Files.createTempDirectory("ts")));
 
         writeSource(javaRoot, "test/A.java",
                 "package test;\nimport java.util.Optional;\npublic class A { public Optional<String> foo(){return null;} }\n");
 
         Option<IOException> result = TypeScriptStubs.write(javaRoot, tsRoot);
-        result.ifPresent(e -> { throw new RuntimeException(e); });
+        result.ifPresent(e -> fail(e));
 
         String a = Results.unwrap(tsRoot.resolve("test/A.ts").readString());
         assertTrue(a.contains("foo(): Optional<string> {"));
@@ -251,20 +205,14 @@ public class TypeScriptStubsTest {
 
     @Test
     public void preservesParameterTypes() {
-        PathLike javaRoot;
-        PathLike tsRoot;
-        try {
-            javaRoot = new JVMPath(Files.createTempDirectory("java"));
-            tsRoot = new JVMPath(Files.createTempDirectory("ts"));
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
+        PathLike javaRoot = new JVMPath(assertDoesNotThrow(() -> Files.createTempDirectory("java")));
+        PathLike tsRoot = new JVMPath(assertDoesNotThrow(() -> Files.createTempDirectory("ts")));
 
         writeSource(javaRoot, "test/A.java",
                 "package test;\npublic class A { int add(int x, int y){return 0;} }\n");
 
         Option<IOException> result = TypeScriptStubs.write(javaRoot, tsRoot);
-        result.ifPresent(e -> { throw new RuntimeException(e); });
+        result.ifPresent(e -> fail(e));
 
         String a = Results.unwrap(tsRoot.resolve("test/A.ts").readString());
         assertTrue(a.contains("add(x: number, y: number): number {"));
@@ -272,20 +220,14 @@ public class TypeScriptStubsTest {
 
     @Test
     public void preservesMethodTypeParameter() {
-        PathLike javaRoot;
-        PathLike tsRoot;
-        try {
-            javaRoot = new JVMPath(Files.createTempDirectory("java"));
-            tsRoot = new JVMPath(Files.createTempDirectory("ts"));
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
+        PathLike javaRoot = new JVMPath(assertDoesNotThrow(() -> Files.createTempDirectory("java")));
+        PathLike tsRoot = new JVMPath(assertDoesNotThrow(() -> Files.createTempDirectory("ts")));
 
         writeSource(javaRoot, "test/A.java",
                 "package test;\npublic class A { public <R> R id(R x){return x;} }\n");
 
         Option<IOException> result = TypeScriptStubs.write(javaRoot, tsRoot);
-        result.ifPresent(e -> { throw new RuntimeException(e); });
+        result.ifPresent(e -> fail(e));
 
         String a = Results.unwrap(tsRoot.resolve("test/A.ts").readString());
         assertTrue(a.contains("id<R>(x: R): R {"));
@@ -293,14 +235,8 @@ public class TypeScriptStubsTest {
 
     @Test
     public void preservesExtendsAndImplements() {
-        PathLike javaRoot;
-        PathLike tsRoot;
-        try {
-            javaRoot = new JVMPath(Files.createTempDirectory("java"));
-            tsRoot = new JVMPath(Files.createTempDirectory("ts"));
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
+        PathLike javaRoot = new JVMPath(assertDoesNotThrow(() -> Files.createTempDirectory("java")));
+        PathLike tsRoot = new JVMPath(assertDoesNotThrow(() -> Files.createTempDirectory("ts")));
 
         writeSource(javaRoot, "test/I.java", "package test;\npublic interface I {}\n");
         writeSource(javaRoot, "test/Base.java", "package test;\npublic class Base {}\n");
@@ -308,27 +244,21 @@ public class TypeScriptStubsTest {
                 "package test;\npublic class A extends Base implements I {}\n");
 
         Option<IOException> result = TypeScriptStubs.write(javaRoot, tsRoot);
-        result.ifPresent(e -> { throw new RuntimeException(e); });
+        result.ifPresent(e -> fail(e));
 
         String a = Results.unwrap(tsRoot.resolve("test/A.ts").readString());
         assertTrue(a.contains("export class A extends Base implements I {}"));
     }
 
     private PathLike generateSegmentStubs() {
-        PathLike javaRoot;
-        PathLike tsRoot;
-        try {
-            javaRoot = new JVMPath(Files.createTempDirectory("java"));
-            tsRoot = new JVMPath(Files.createTempDirectory("ts"));
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
+        PathLike javaRoot = new JVMPath(assertDoesNotThrow(() -> Files.createTempDirectory("java")));
+        PathLike tsRoot = new JVMPath(assertDoesNotThrow(() -> Files.createTempDirectory("ts")));
 
         writeSource(javaRoot, "test/A.java",
                 "package test;\npublic class A { int foo(){ int x=1; bar(); return x; } void bar(){} }\n");
 
         Option<IOException> result = TypeScriptStubs.write(javaRoot, tsRoot);
-        result.ifPresent(e -> { throw new RuntimeException(e); });
+        result.ifPresent(e -> fail(e));
         return tsRoot;
     }
 

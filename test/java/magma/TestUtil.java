@@ -1,28 +1,16 @@
 package magma;
 
-import java.io.IOException;
 import magma.PathLike;
 import java.util.List;
+import org.junit.jupiter.api.Assertions;
 
 final class TestUtil {
     private TestUtil() {}
 
     static PathLike writeSource(PathLike root, String relPath, String content) {
         PathLike file = root.resolve(relPath);
-        try {
-            var dirResult = file.getParent().createDirectories();
-            var dirTuple = dirResult.toTuple(null);
-            if (dirTuple.left()) {
-                throw dirTuple.right();
-            }
-            var writeResult = file.writeString(content);
-            var writeTuple = writeResult.toTuple(null);
-            if (writeTuple.left()) {
-                throw writeTuple.right();
-            }
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
+        file.getParent().createDirectories().ifPresent(Assertions::fail);
+        file.writeString(content).ifPresent(Assertions::fail);
         return file;
     }
 
