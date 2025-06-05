@@ -335,4 +335,31 @@ public class TypeScriptStubsTest {
         String a = Results.unwrap(tsRoot.resolve("test/A.ts").readString());
         assertTrue(a.contains("export class A extends Base implements I {}"));
     }
+
+    private PathLike generateSegmentStubs() {
+        PathLike javaRoot;
+        PathLike tsRoot;
+        try {
+            javaRoot = new JVMPath(Files.createTempDirectory("java"));
+            tsRoot = new JVMPath(Files.createTempDirectory("ts"));
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+
+        writeSource(javaRoot, "test/A.java",
+                "package test;\npublic class A { int foo(){ int x=1; bar(); return x; } void bar(){} }\n");
+
+        Option<IOException> result = TypeScriptStubs.write(javaRoot, tsRoot);
+        if (result.isPresent()) {
+            throw new RuntimeException(result.get());
+        }
+        return tsRoot;
+    }
+
+    @Test
+    public void copiesAssignmentSegment() {
+        PathLike tsRoot = generateSegmentStubs();
+        String a = Results.unwrap(tsRoot.resolve("test/A.ts").readString());
+        assertTrue(a.contains("int x=1;"));
+    }
 }

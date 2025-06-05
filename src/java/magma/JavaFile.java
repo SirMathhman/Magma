@@ -212,21 +212,29 @@ public record JavaFile(PathLike file) {
             if (mName.equals(className)) {
                 continue;
             }
+            String delim = mMatcher.group(6);
+            String methodBody = "";
+            if ("{".equals(delim)) {
+                int start = mMatcher.end();
+                methodBody = extractBlock(body, start);
+            }
             addMethod(list,
                     mMatcher.group(1),
                     mMatcher.group(2),
                     mMatcher.group(3),
                     mName,
                     mMatcher.group(5),
-                    mMatcher.group(6),
-                    isInterface);
+                    delim,
+                    isInterface,
+                    methodBody);
         }
         return list;
     }
 
     private static void addMethod(List<String> list, String staticKw, String generics,
                                   String returnType, String name, String params,
-                                  String delim, boolean isInterface) {
+                                  String delim, boolean isInterface,
+                                  String body) {
         String prefix = staticKw == null ? "" : "static ";
         String typeParams = generics == null ? "" : generics.trim();
         String paramList = tsParams(params);
@@ -235,7 +243,14 @@ public record JavaFile(PathLike file) {
             return;
         }
         list.add("\t" + prefix + name + typeParams + "(" + paramList + "): " + tsType(returnType) + " {");
-        list.add("\t\treturn 0;");
+        List<String> segs = parseSegments(body);
+        if (segs.isEmpty()) {
+            list.add("\t\treturn 0;");
+        } else {
+            for (String seg : segs) {
+                list.add("\t\t" + seg);
+            }
+        }
         list.add("\t}");
     }
 
@@ -351,6 +366,50 @@ public record JavaFile(PathLike file) {
             converted.add(tsType(part));
         }
         return converted;
+    }
+
+    private static final Pattern[] SEGMENT_PATTERNS = new Pattern[]{
+            Pattern.compile("\\b(class|interface|record)\\b"),
+            Pattern.compile("\\b(?:public|protected|private)?\\s*(?:static\\s+)?(?:final\\s+)?(?:<[^>]+>\\s+)?[\\w.<>]+\\s+\\w+\\s*\\([^)]*\\)\\s*\\{"),
+            Pattern.compile("[^=!<>]=[^=]"),
+            Pattern.compile("\\b\\w+\\s*\\([^;]*\\);"),
+            Pattern.compile("\\breturn\\b"),
+            Pattern.compile("\\bif\\s*\\("),
+            Pattern.compile("\\bwhile\\s*\\("),
+            Pattern.compile("\\bfor\\s*\\(")
+    };
+
+    private static List<String> parseSegments(String body) {
+        List<String> segments = new ArrayList<>();
+        for (String line : body.split("\\R")) {
+            String stripped = line.trim();
+            if (stripped.isEmpty()) {
+                continue;
+            }
+            for (Pattern pat : SEGMENT_PATTERNS) {
+                if (pat.matcher(stripped).find()) {
+                    segments.add(stripped);
+                    break;
+                }
+            }
+        }
+        return segments;
+    }
+
+    private static String extractBlock(String source, int start) {
+        int level = 1;
+        int i = start;
+        while (i < source.length() && level > 0) {
+            char ch = source.charAt(i);
+            if (ch == '{') {
+                level++;
+            }
+            else if (ch == '}') {
+                level--;
+            }
+            i++;
+        }
+        return source.substring(start, i - 1);
     }
 
     private static String sanitizeWildcard(String type) {
