@@ -4,7 +4,7 @@ import { Some } from "./option/Some";
 export class GenerateDiagram {
 	static writeDiagram(output: PathLike): Option<IOException> {
 		let src: PathLike = JVMPath.of("src/java/magma");
-		return Sources.read(src).match(allSources -> {
+                return Sources.read(src).match(allSources => {
 		let analysis: Sources = new Sources(allSources);
 		let classes: List<string> = analysis.findClasses();
 		let implementations: var = analysis.findImplementations();

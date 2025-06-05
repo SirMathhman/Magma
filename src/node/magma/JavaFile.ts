@@ -4,7 +4,7 @@ import { Ok } from "./result/Ok";
 import { Result } from "./result/Result";
 export class JavaFile {
 	packageName(): Result<string, IOException> {
-		return file.readString().mapValue(source -> {
+                return file.readString().mapValue(source => {
 		let pattern: var = Pattern.compile("^package\\s+([\\w.]+);", Pattern.MULTILINE);
 		let matcher: var = pattern.matcher(source);
 		if (matcher.find()) {
