@@ -140,43 +140,35 @@ public final class TypeScriptStubs {
                 String rest = source.substring(start, brace);
                 rest = rest.replaceAll("\\s+", " ").trim();
 
-                String extendsPart = null;
-                String implementsPart = null;
                 int extIdx = rest.indexOf("extends ");
                 int implIdx = rest.indexOf("implements ");
-                if (extIdx != -1) {
-                    if (implIdx != -1) {
-                        extendsPart = rest.substring(extIdx + 8, implIdx).trim();
-                    }
-                    else {
-                        extendsPart = rest.substring(extIdx + 8).trim();
-                    }
+                String extendsPart = null;
+                if (extIdx != -1 && implIdx != -1) {
+                    extendsPart = rest.substring(extIdx + 8, implIdx).trim();
                 }
-                if (implIdx != -1) {
-                    implementsPart = rest.substring(implIdx + 11).trim();
+                else if (extIdx != -1) {
+                    extendsPart = rest.substring(extIdx + 8).trim();
                 }
+                String implementsPart = implIdx != -1 ? rest.substring(implIdx + 11).trim() : null;
 
-                if (extendsPart != null && !extendsPart.isEmpty()) {
-                    extendsPart = extendsPart.replaceAll("<.*?>", "");
-                    for (String part : extendsPart.split(",")) {
-                        String base = part.trim();
-                        if (!base.isEmpty() && !defined.contains(base)) {
-                            deps.add(base);
-                        }
-                    }
-                }
-                if (implementsPart != null && !implementsPart.isEmpty()) {
-                    implementsPart = implementsPart.replaceAll("<.*?>", "");
-                    for (String part : implementsPart.split(",")) {
-                        String base = part.trim();
-                        if (!base.isEmpty() && !defined.contains(base)) {
-                            deps.add(base);
-                        }
-                    }
-                }
+                addParts(extendsPart, deps, defined);
+                addParts(implementsPart, deps, defined);
             }
             return new Ok<>(deps);
         });
+    }
+
+    private static void addParts(String clause, List<String> deps, List<String> defined) {
+        if (clause == null || clause.isEmpty()) {
+            return;
+        }
+        clause = clause.replaceAll("<.*?>", "");
+        for (String part : clause.split(",")) {
+            String base = part.trim();
+            if (!base.isEmpty() && !defined.contains(base)) {
+                deps.add(base);
+            }
+        }
     }
 
     private static Result<List<String>, IOException> readDeclarations(PathLike file) {
@@ -284,26 +276,34 @@ public final class TypeScriptStubs {
         var mMatcher = methodPat.matcher(body);
         List<String> list = new ArrayList<>();
         while (mMatcher.find()) {
-            String staticKw = mMatcher.group(1);
-            String generics = mMatcher.group(2);
-            String returnType = mMatcher.group(3);
             String mName = mMatcher.group(4);
-            String params = mMatcher.group(5);
-            String delim = mMatcher.group(6);
-            if (!mName.equals(className)) {
-                String prefix = staticKw == null ? "" : "static ";
-                String typeParams = generics == null ? "" : generics.trim();
-                String paramList = tsParams(params);
-                if (isInterface || ";".equals(delim)) {
-                    list.add("\t" + prefix + mName + typeParams + "(" + paramList + "): " + tsType(returnType) + ";");
-                }
-                else {
-                    list.add("\t" + prefix + mName + typeParams + "(" + paramList + "): " + tsType(returnType) + " {");
-                    list.add("\t}");
-                }
+            if (mName.equals(className)) {
+                continue;
             }
+            addMethod(list,
+                    mMatcher.group(1),
+                    mMatcher.group(2),
+                    mMatcher.group(3),
+                    mName,
+                    mMatcher.group(5),
+                    mMatcher.group(6),
+                    isInterface);
         }
         return list;
+    }
+
+    private static void addMethod(List<String> list, String staticKw, String generics,
+                                  String returnType, String name, String params,
+                                  String delim, boolean isInterface) {
+        String prefix = staticKw == null ? "" : "static ";
+        String typeParams = generics == null ? "" : generics.trim();
+        String paramList = tsParams(params);
+        if (isInterface || ";".equals(delim)) {
+            list.add("\t" + prefix + name + typeParams + "(" + paramList + "): " + tsType(returnType) + ";");
+            return;
+        }
+        list.add("\t" + prefix + name + typeParams + "(" + paramList + "): " + tsType(returnType) + " {");
+        list.add("\t}");
     }
 
     private static String stubContent(PathLike relative, PathLike from, PathLike root,
@@ -391,23 +391,15 @@ public final class TypeScriptStubs {
         int start = 0;
         boolean first = true;
         for (int i = 0; i <= javaParams.length(); i++) {
-            if (i == javaParams.length() || (javaParams.charAt(i) == ',' && depth == 0)) {
+            boolean atEnd = i == javaParams.length();
+            boolean atComma = !atEnd && javaParams.charAt(i) == ',' && depth == 0;
+            if (atEnd || atComma) {
                 String part = javaParams.substring(start, i).trim();
-                if (!part.isEmpty()) {
-                    int last = part.lastIndexOf(' ');
-                    if (last != -1) {
-                        String type = part.substring(0, last).trim();
-                        String name = part.substring(last + 1).trim();
-                        if (!first) {
-                            out.append(", ");
-                        }
-                        out.append(name).append(": ").append(tsType(type));
-                        first = false;
-                    }
-                }
+                first = appendParam(part, out, first);
                 start = i + 1;
+                continue;
             }
-            else if (javaParams.charAt(i) == '<') {
+            if (javaParams.charAt(i) == '<') {
                 depth++;
             }
             else if (javaParams.charAt(i) == '>') {
@@ -415,6 +407,23 @@ public final class TypeScriptStubs {
             }
         }
         return out.toString();
+    }
+
+    private static boolean appendParam(String part, StringBuilder out, boolean first) {
+        if (part.isEmpty()) {
+            return first;
+        }
+        int last = part.lastIndexOf(' ');
+        if (last == -1) {
+            return first;
+        }
+        String type = part.substring(0, last).trim();
+        String name = part.substring(last + 1).trim();
+        if (!first) {
+            out.append(", ");
+        }
+        out.append(name).append(": ").append(tsType(type));
+        return false;
     }
 
     private static String tsType(String javaType) {
