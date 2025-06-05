@@ -2,13 +2,15 @@ package magma;
 
 import org.junit.jupiter.api.Test;
 
-import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import magma.result.Result;
+import magma.result.Results;
+import magma.JVMPath;
+import magma.Relation;
+import magma.Sources;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -16,9 +18,13 @@ public class OptionDependencyTest {
 
     @Test
     public void stubsDependOnSomeAndNoneNotOption() {
-        Result<List<String>, IOException> res = Sources.read(JVMPath.of("src/java"));
-        assertTrue(res.isOk(), "reading sources failed");
-        Sources sources = new Sources(magma.result.Results.unwrap(res));
+        List<String> files = List.of(
+                Results.unwrap(JVMPath.of("src/java/magma/TypeScriptStubs.java").readString()),
+                Results.unwrap(JVMPath.of("src/java/magma/option/Some.java").readString()),
+                Results.unwrap(JVMPath.of("src/java/magma/option/None.java").readString()),
+                Results.unwrap(JVMPath.of("src/java/magma/option/Option.java").readString())
+        );
+        Sources sources = new Sources(files);
         List<String> classes = sources.findClasses();
         Map<String, List<String>> impl = sources.findImplementations();
         List<Relation> all = sources.findRelations(classes, impl);
