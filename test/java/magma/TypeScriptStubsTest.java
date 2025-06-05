@@ -360,6 +360,6 @@ public class TypeScriptStubsTest {
     public void copiesAssignmentSegment() {
         PathLike tsRoot = generateSegmentStubs();
         String a = Results.unwrap(tsRoot.resolve("test/A.ts").readString());
-        assertTrue(a.contains("int x=1;"));
+        assertTrue(a.contains("let x: number = 1;"));
     }
 }
