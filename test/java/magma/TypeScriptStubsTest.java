@@ -58,6 +58,34 @@ public class TypeScriptStubsTest {
     }
 
     @Test
+    public void addsImportForLocalDependency() {
+        PathLike javaRoot;
+        PathLike tsRoot;
+        try {
+            javaRoot = new JVMPath(Files.createTempDirectory("java"));
+            tsRoot = new JVMPath(Files.createTempDirectory("ts"));
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+
+        writeSource(javaRoot, "test/Result.java", "package test;\npublic interface Result {}\n");
+        writeSource(javaRoot, "test/Err.java", "package test;\npublic class Err implements Result {}\n");
+
+        Option<IOException> result = TypeScriptStubs.write(javaRoot, tsRoot);
+        if (result.isPresent()) {
+            throw new RuntimeException(result.get());
+        }
+
+        String err;
+        try {
+            err = tsRoot.resolve("test/Err.ts").readString();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+        assertTrue(err.contains("import { Result } from \"./Result\";"));
+    }
+
+    @Test
     public void stubDeclaresBClass() {
         PathLike tsRoot = generateStubs();
         String content;

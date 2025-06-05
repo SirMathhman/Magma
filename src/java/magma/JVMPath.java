@@ -39,7 +39,13 @@ public record JVMPath(Path path) implements PathLike {
 
 
     private Path toPath(PathLike other) {
+        if (other instanceof JVMPath jvm) {
+            return jvm.path;
+        }
         final var names = other.streamNames().toList();
+        if (names.isEmpty()) {
+            return Path.of("");
+        }
         final var first = Paths.get(names.getFirst());
         return names.subList(1, names.size())
                 .stream()
