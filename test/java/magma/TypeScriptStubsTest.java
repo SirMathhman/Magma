@@ -188,6 +188,13 @@ public class TypeScriptStubsTest {
     }
 
     @Test
+    public void stubsMethodBody() {
+        PathLike tsRoot = generateMethodStubs();
+        String a = Results.unwrap(tsRoot.resolve("test/A.ts").readString());
+        assertTrue(a.contains("return 0;"));
+    }
+
+    @Test
     public void stubCopiesMethodsOnGenericClass() {
         PathLike javaRoot;
         PathLike tsRoot;

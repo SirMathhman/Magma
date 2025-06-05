@@ -235,6 +235,7 @@ public record JavaFile(PathLike file) {
             return;
         }
         list.add("\t" + prefix + name + typeParams + "(" + paramList + "): " + tsType(returnType) + " {");
+        list.add("\t\treturn 0;");
         list.add("\t}");
     }
 
