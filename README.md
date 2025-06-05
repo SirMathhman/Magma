@@ -50,6 +50,7 @@ For convenience there are helper scripts at the repository root:
 ./build.sh   # compile the Java sources
 ./run.sh     # run the program (builds automatically if needed)
 ./test.sh    # execute the JUnit test suite
+./render-diagram.sh  # regenerate diagram.png from diagram.puml
 ```
 
 Running the program creates a `diagram.puml` file in the repository root and

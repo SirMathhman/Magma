@@ -10,6 +10,13 @@ Run the program using the provided helper script:
 `magma.Main`. After execution it converts `diagram.puml` to `diagram.png`
 using PlantUML.
 
+To re-render `diagram.png` without running the whole program again,
+use the helper script:
+
+```bash
+./render-diagram.sh
+```
+
 Executing the program creates a file named `diagram.puml` in the repository
 root. The file contains a PlantUML diagram describing the discovered classes and
 their relationships. The diagram uses `skinparam linetype ortho` for clearer
