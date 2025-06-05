@@ -4,6 +4,6 @@
 /diagram.png
 /plantuml.jar
 /junit-platform-console-standalone.jar
-/src/node/
+# /src/node/ intentionally tracked for generated stubs
 /node_modules/
 /.idea
