@@ -1,20 +1,5 @@
 package magma;
 
-import java.io.IOException;
-import java.nio.file.Files;
-
-// Use our own abstraction instead of java.nio.file.Path so that generated
-// TypeScript definitions do not reference a JDK type.
-import magma.PathLike;
-import magma.JVMPath;
-
-import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-
 import magma.option.None;
 import magma.option.Option;
 import magma.option.Some;
@@ -23,6 +8,14 @@ import magma.result.Ok;
 import magma.result.Result;
 import magma.result.Results;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
@@ -31,7 +24,8 @@ import java.util.stream.Stream;
  * Instances contain no state and all methods are static.
  */
 public final class TypeScriptStubs {
-    private TypeScriptStubs() {}
+    private TypeScriptStubs() {
+    }
 
     public static Option<IOException> write(PathLike javaRoot, PathLike tsRoot) {
         List<Path> files;
@@ -133,7 +127,8 @@ public final class TypeScriptStubs {
             if (extIdx != -1) {
                 if (implIdx != -1) {
                     extendsPart = rest.substring(extIdx + 8, implIdx).trim();
-                } else {
+                }
+                else {
                     extendsPart = rest.substring(extIdx + 8).trim();
                 }
             }
@@ -184,7 +179,12 @@ public final class TypeScriptStubs {
         int i = start;
         while (i < source.length() && level > 0) {
             char ch = source.charAt(i);
-            if (ch == '{') level++; else if (ch == '}') level--;
+            if (ch == '{') {
+                level++;
+            }
+            else if (ch == '}') {
+                level--;
+            }
             i++;
         }
         return source.substring(start, i - 1);
@@ -283,7 +283,7 @@ public final class TypeScriptStubs {
             builder.append(decl).append(System.lineSeparator());
             return;
         }
-        builder.append(decl.substring(0, decl.length() - 1)).append(System.lineSeparator());
+        builder.append(decl, 0, decl.length() - 1).append(System.lineSeparator());
         for (String method : mList) {
             builder.append(method).append(System.lineSeparator());
         }
@@ -312,9 +312,11 @@ public final class TypeScriptStubs {
                     }
                 }
                 start = i + 1;
-            } else if (javaParams.charAt(i) == '<') {
+            }
+            else if (javaParams.charAt(i) == '<') {
                 depth++;
-            } else if (javaParams.charAt(i) == '>') {
+            }
+            else if (javaParams.charAt(i) == '>') {
                 depth--;
             }
         }
@@ -372,7 +374,13 @@ public final class TypeScriptStubs {
         int start = 0;
         for (int i = 0; i < args.length(); i++) {
             char ch = args.charAt(i);
-            if (ch == '<') depth++; else if (ch == '>') depth--; else if (ch == ',' && depth == 0) {
+            if (ch == '<') {
+                depth++;
+            }
+            else if (ch == '>') {
+                depth--;
+            }
+            else if (ch == ',' && depth == 0) {
                 parts.add(args.substring(start, i).trim());
                 start = i + 1;
             }
