@@ -332,9 +332,13 @@ public record JavaFile(PathLike file) {
             return base + "<" + String.join(", ", converted) + ">";
         }
         return switch (javaType) {
-            case "byte", "short", "int", "long", "float", "double" -> "number";
-            case "boolean" -> "boolean";
-            case "char", "String" -> "string";
+            case "byte", "short", "int", "long", "float", "double",
+                    "Byte", "Short", "Integer", "Long", "Float", "Double",
+                    "java.lang.Byte", "java.lang.Short", "java.lang.Integer",
+                    "java.lang.Long", "java.lang.Float", "java.lang.Double" -> "number";
+            case "boolean", "Boolean", "java.lang.Boolean" -> "boolean";
+            case "char", "Character", "java.lang.Character",
+                    "String", "java.lang.String" -> "string";
             default -> javaType;
         };
     }
