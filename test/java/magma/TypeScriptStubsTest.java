@@ -204,6 +204,22 @@ public class TypeScriptStubsTest {
     }
 
     @Test
+    public void convertsBoxedPrimitives() {
+        PathLike javaRoot = new JVMPath(assertDoesNotThrow(() -> Files.createTempDirectory("java")));
+        PathLike tsRoot = new JVMPath(assertDoesNotThrow(() -> Files.createTempDirectory("ts")));
+
+        writeSource(javaRoot, "test/A.java",
+                "package test;\n" +
+                "public class A { Integer add(Integer x, Boolean flag){return 0;} }\n");
+
+        Option<IOException> result = TypeScriptStubs.write(javaRoot, tsRoot);
+        result.ifPresent(e -> fail(e));
+
+        String a = Results.unwrap(tsRoot.resolve("test/A.ts").readString());
+        assertTrue(a.contains("add(x: number, flag: boolean): number {"));
+    }
+
+    @Test
     public void preservesParameterTypes() {
         PathLike javaRoot = new JVMPath(assertDoesNotThrow(() -> Files.createTempDirectory("java")));
         PathLike tsRoot = new JVMPath(assertDoesNotThrow(() -> Files.createTempDirectory("ts")));
