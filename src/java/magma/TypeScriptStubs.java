@@ -7,13 +7,20 @@ import java.nio.file.Files;
 // TypeScript definitions do not reference a JDK type.
 import magma.PathLike;
 import magma.JVMPath;
+
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
 import magma.option.None;
 import magma.option.Option;
 import magma.option.Some;
+import magma.result.Err;
+import magma.result.Ok;
+import magma.result.Result;
 
+import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
 /**
@@ -32,6 +39,7 @@ public final class TypeScriptStubs {
         } catch (IOException e) {
             return new Some<>(e);
         }
+
         for (java.nio.file.Path file : files) {
             PathLike relative = javaRoot.relativize(new JVMPath(file));
             PathLike tsFile = tsRoot.resolve(relative.toString().replaceFirst("\\.java$", ".ts"));
@@ -42,12 +50,12 @@ public final class TypeScriptStubs {
 
             var importsRes = readImports(file);
             if (importsRes.isErr()) {
-                return new Some<>(((magma.result.Err<List<String>, IOException>) importsRes).error());
+                return new Some<>(((Err<List<String>, IOException>) importsRes).error());
             }
 
             var declarationsRes = readDeclarations(file);
             if (declarationsRes.isErr()) {
-                return new Some<>(((magma.result.Err<List<String>, IOException>) declarationsRes).error());
+                return new Some<>(((Err<List<String>, IOException>) declarationsRes).error());
             }
 
             var methodsRes = readMethods(file);
@@ -69,26 +77,26 @@ public final class TypeScriptStubs {
         return new None<>();
     }
 
-    private static magma.result.Result<List<String>, IOException> readImports(java.nio.file.Path file) {
+    private static Result<List<String>, IOException> readImports(java.nio.file.Path file) {
         String source;
         try {
             source = Files.readString(file);
         } catch (IOException e) {
             return new magma.result.Err<>(e);
         }
-        var pattern = java.util.regex.Pattern.compile("^import\\s+([\\w.]+);", java.util.regex.Pattern.MULTILINE);
+        var pattern = Pattern.compile("^import\\s+([\\w.]+);", Pattern.MULTILINE);
         var matcher = pattern.matcher(source);
-        List<String> imports = new java.util.ArrayList<>();
+        List<String> imports = new ArrayList<>();
         while (matcher.find()) {
             String name = matcher.group(1);
             if (!name.startsWith("java.")) {
                 imports.add(name);
             }
         }
-        return new magma.result.Ok<>(imports);
+        return new Ok<>(imports);
     }
 
-    private static magma.result.Result<List<String>, IOException> readDeclarations(java.nio.file.Path file) {
+    private static Result<List<String>, IOException> readDeclarations(java.nio.file.Path file) {
         String source;
         try {
             source = Files.readString(file);
@@ -98,12 +106,12 @@ public final class TypeScriptStubs {
         source = source.replaceAll("(?s)/\\*.*?\\*/", "");
         source = source.replaceAll("//.*", "");
 
-        var classPat = java.util.regex.Pattern.compile(
+        var classPat = Pattern.compile(
                 "^(?:public\\s+|protected\\s+|private\\s+)?(?:static\\s+)?(?:final\\s+)?(?:sealed\\s+)?(class|interface|record)\\s+(\\w+(?:<[^>{}]+>)?)",
-                java.util.regex.Pattern.MULTILINE);
+                Pattern.MULTILINE);
 
         var matcher = classPat.matcher(source);
-        List<String> declarations = new java.util.ArrayList<>();
+        List<String> declarations = new ArrayList<>();
         while (matcher.find()) {
             String kind = matcher.group(1);
             String name = matcher.group(2);
@@ -143,10 +151,10 @@ public final class TypeScriptStubs {
             decl.append(" {}");
             declarations.add(decl.toString());
         }
-        return new magma.result.Ok<>(declarations);
+        return new Ok<>(declarations);
     }
 
-    private static magma.result.Result<Map<String, List<String>>, IOException> readMethods(java.nio.file.Path file) {
+    private static Result<Map<String, List<String>>, IOException> readMethods(java.nio.file.Path file) {
         String source;
         try {
             source = Files.readString(file);
@@ -155,8 +163,8 @@ public final class TypeScriptStubs {
         }
         source = source.replaceAll("(?s)/\\*.*?\\*/", "");
         source = source.replaceAll("//.*", "");
-        Map<String, List<String>> map = new java.util.LinkedHashMap<>();
-        var classPat = java.util.regex.Pattern.compile("(?:class|interface|record)\\s+(\\w+)[^{]*\\{");
+        Map<String, List<String>> map = new LinkedHashMap<>();
+        var classPat = Pattern.compile("(?:class|interface|record)\\s+(\\w+)[^{]*\\{");
         var cMatcher = classPat.matcher(source);
         while (cMatcher.find()) {
             String name = cMatcher.group(1);
@@ -165,7 +173,7 @@ public final class TypeScriptStubs {
             List<String> list = parseMethods(body, name);
             map.put(name, list);
         }
-        return new magma.result.Ok<>(map);
+        return new Ok<>(map);
     }
 
     private static String extractClassBody(String source, int start) {
@@ -180,10 +188,10 @@ public final class TypeScriptStubs {
     }
 
     private static List<String> parseMethods(String body, String className) {
-        var methodPat = java.util.regex.Pattern.compile(
+        var methodPat = Pattern.compile(
                 "(?:public\\s+|protected\\s+|private\\s+)?(static\\s+)?(?:final\\s+)?(<[^>]+>\\s+)?([\\w.]+(?:<[^>]+>)?(?:\\[\\])*)\\s+(\\w+)\\s*\\(([^)]*)\\)\\s*\\{");
         var mMatcher = methodPat.matcher(body);
-        List<String> list = new java.util.ArrayList<>();
+        List<String> list = new ArrayList<>();
         while (mMatcher.find()) {
             String staticKw = mMatcher.group(1);
             String generics = mMatcher.group(2);
@@ -221,7 +229,7 @@ public final class TypeScriptStubs {
     }
 
     private static Map<String, List<String>> groupImports(List<String> imports, PathLike from, PathLike root) {
-        Map<String, List<String>> byPath = new java.util.LinkedHashMap<>();
+        Map<String, List<String>> byPath = new LinkedHashMap<>();
         for (String imp : imports) {
             String className = imp.substring(imp.lastIndexOf('.') + 1);
             PathLike target = root.resolve(imp.replace('.', '/') + ".ts");
@@ -231,7 +239,7 @@ public final class TypeScriptStubs {
             if (!path.startsWith(".")) {
                 path = "./" + path;
             }
-            byPath.computeIfAbsent(path, k -> new java.util.ArrayList<>()).add(className);
+            byPath.computeIfAbsent(path, k -> new ArrayList<>()).add(className);
         }
         return byPath;
     }
@@ -248,7 +256,7 @@ public final class TypeScriptStubs {
     private static void appendDeclarations(StringBuilder builder, PathLike relative,
                                            List<String> declarations,
                                            Map<String, List<String>> methods) {
-        var namePattern = java.util.regex.Pattern.compile("export \\w+ (\\w+)(?:<[^>]+>)?");
+        var namePattern = Pattern.compile("export \\w+ (\\w+)(?:<[^>]+>)?");
         boolean isMain = relative.toString().replace('\\', '/').equals("magma/Main.java");
         for (String decl : declarations) {
             appendDeclaration(builder, decl, namePattern, methods);
@@ -259,7 +267,7 @@ public final class TypeScriptStubs {
     }
 
     private static void appendDeclaration(StringBuilder builder, String decl,
-                                          java.util.regex.Pattern namePattern,
+                                          Pattern namePattern,
                                           Map<String, List<String>> methods) {
         var m = namePattern.matcher(decl);
         if (!m.find()) {
@@ -356,7 +364,7 @@ public final class TypeScriptStubs {
     }
 
     private static java.util.List<String> splitGenericArgs(String args) {
-        java.util.List<String> parts = new java.util.ArrayList<>();
+        java.util.List<String> parts = new ArrayList<>();
         int depth = 0;
         int start = 0;
         for (int i = 0; i < args.length(); i++) {
@@ -371,7 +379,7 @@ public final class TypeScriptStubs {
     }
 
     private static java.util.List<String> convertTypes(java.util.List<String> parts) {
-        java.util.List<String> converted = new java.util.ArrayList<>();
+        java.util.List<String> converted = new ArrayList<>();
         for (String part : parts) {
             converted.add(tsType(part));
         }
