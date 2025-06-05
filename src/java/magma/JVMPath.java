@@ -3,6 +3,9 @@ package magma;
 import magma.option.None;
 import magma.option.Option;
 import magma.option.Some;
+import magma.result.Err;
+import magma.result.Ok;
+import magma.result.Result;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -39,9 +42,6 @@ public record JVMPath(Path path) implements PathLike {
 
 
     private Path toPath(PathLike other) {
-        if (other instanceof JVMPath jvm) {
-            return jvm.path;
-        }
         final var names = other.streamNames().toList();
         if (names.isEmpty()) {
             return Path.of("");
@@ -84,8 +84,12 @@ public record JVMPath(Path path) implements PathLike {
     }
 
     @Override
-    public Stream<PathLike> walk() throws IOException {
-        return Files.walk(path).map(JVMPath::new);
+    public Result<Stream<PathLike>, IOException> walk() {
+        try {
+            return new Ok<>(Files.walk(path).map(JVMPath::new));
+        } catch (IOException e) {
+            return new Err<>(e);
+        }
     }
 
     @Override
@@ -94,13 +98,21 @@ public record JVMPath(Path path) implements PathLike {
     }
 
     @Override
-    public Stream<PathLike> list() throws IOException {
-        return Files.list(path).map(JVMPath::new);
+    public Result<Stream<PathLike>, IOException> list() {
+        try {
+            return new Ok<>(Files.list(path).map(JVMPath::new));
+        } catch (IOException e) {
+            return new Err<>(e);
+        }
     }
 
     @Override
-    public String readString() throws IOException {
-        return Files.readString(path);
+    public Result<String, IOException> readString() {
+        try {
+            return new Ok<>(Files.readString(path));
+        } catch (IOException e) {
+            return new Err<>(e);
+        }
     }
 
     @Override

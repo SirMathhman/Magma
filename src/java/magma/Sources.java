@@ -5,7 +5,6 @@ import magma.result.Ok;
 import magma.result.Result;
 
 import java.io.IOException;
-import java.nio.file.Files;
 import magma.PathLike;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -25,21 +24,23 @@ public record Sources(List<String> list) {
 
     public static Result<List<String>, IOException> read(PathLike directory) {
         List<PathLike> files;
-        try (Stream<PathLike> stream = directory.walk()) {
+        var walkRes = directory.walk();
+        if (walkRes.isErr()) {
+            return new Err<>(((Err<Stream<PathLike>, IOException>) walkRes).error());
+        }
+        try (Stream<PathLike> stream = ((Ok<Stream<PathLike>, IOException>) walkRes).value()) {
             files = stream.filter(PathLike::isRegularFile)
                     .filter(p -> p.toString().endsWith(".java"))
                     .toList();
-        } catch (IOException e) {
-            return new Err<>(e);
         }
 
         List<String> sources = new ArrayList<>();
         for (PathLike file : files) {
-            try {
-                sources.add(file.readString());
-            } catch (IOException e) {
-                return new Err<>(e);
+            var res = file.readString();
+            if (res.isErr()) {
+                return new Err<>(((Err<String, IOException>) res).error());
             }
+            sources.add(((Ok<String, IOException>) res).value());
         }
         return new Ok<>(sources);
     }

@@ -27,12 +27,14 @@ public final class TypeScriptStubs {
 
     public static Option<IOException> write(PathLike javaRoot, PathLike tsRoot) {
         List<PathLike> files;
-        try (Stream<PathLike> stream = javaRoot.walk()) {
+        var walkRes = javaRoot.walk();
+        if (walkRes.isErr()) {
+            return new Some<>(((Err<Stream<PathLike>, IOException>) walkRes).error());
+        }
+        try (Stream<PathLike> stream = ((Ok<Stream<PathLike>, IOException>) walkRes).value()) {
             files = stream.filter(PathLike::isRegularFile)
                     .filter(p -> p.toString().endsWith(".java"))
                     .toList();
-        } catch (IOException e) {
-            return new Some<>(e);
         }
 
         for (PathLike file : files) {
@@ -92,12 +94,11 @@ public final class TypeScriptStubs {
     }
 
     private static Result<List<String>, IOException> readImports(PathLike file) {
-        String source;
-        try {
-            source = file.readString();
-        } catch (IOException e) {
-            return new Err<>(e);
+        var sourceRes = file.readString();
+        if (sourceRes.isErr()) {
+            return new Err<>(((Err<String, IOException>) sourceRes).error());
         }
+        String source = ((Ok<String, IOException>) sourceRes).value();
 
         var pattern = Pattern.compile("^import\\s+([\\w.]+);", Pattern.MULTILINE);
         var matcher = pattern.matcher(source);
@@ -194,12 +195,11 @@ public final class TypeScriptStubs {
     }
 
     private static Result<List<String>, IOException> readDeclarations(PathLike file) {
-        String source;
-        try {
-            source = file.readString();
-        } catch (IOException e) {
-            return new Err<>(e);
+        var sourceRes = file.readString();
+        if (sourceRes.isErr()) {
+            return new Err<>(((Err<String, IOException>) sourceRes).error());
         }
+        String source = ((Ok<String, IOException>) sourceRes).value();
 
         source = source.replaceAll("(?s)/\\*.*?\\*/", "");
         source = source.replaceAll("//.*", "");
@@ -254,12 +254,11 @@ public final class TypeScriptStubs {
     }
 
     private static Result<Map<String, List<String>>, IOException> readMethods(PathLike file) {
-        String source;
-        try {
-            source = file.readString();
-        } catch (IOException e) {
-            return new Err<>(e);
+        var sourceRes = file.readString();
+        if (sourceRes.isErr()) {
+            return new Err<>(((Err<String, IOException>) sourceRes).error());
         }
+        String source = ((Ok<String, IOException>) sourceRes).value();
 
         source = source.replaceAll("(?s)/\\*.*?\\*/", "");
         source = source.replaceAll("//.*", "");
@@ -351,7 +350,7 @@ public final class TypeScriptStubs {
             if (!path.startsWith(".")) {
                 path = "./" + path;
             }
-            byPath.computeIfAbsent(path, k -> new ArrayList<>()).add(className);
+            byPath.computeIfAbsent(path, _ -> new ArrayList<>()).add(className);
         }
         return byPath;
     }
@@ -443,9 +442,7 @@ public final class TypeScriptStubs {
             String base = javaType.substring(0, lt);
             String args = javaType.substring(lt + 1, javaType.length() - 1);
             List<String> converted = convertTypes(splitGenericArgs(args));
-            for (int i = 0; i < converted.size(); i++) {
-                converted.set(i, sanitizeWildcard(converted.get(i)));
-            }
+            converted.replaceAll(TypeScriptStubs::sanitizeWildcard);
             String simple = base.replace("java.util.function.", "");
             if ("Function".equals(simple) && converted.size() >= 2) {
                 return "(arg0: " + converted.get(0) + ") => " + converted.get(1);
@@ -454,18 +451,18 @@ public final class TypeScriptStubs {
                 return "(arg0: " + converted.get(0) + ", arg1: " + converted.get(1)
                         + ") => " + converted.get(2);
             }
-            if ("Supplier".equals(simple) && converted.size() >= 1) {
-                return "() => " + converted.get(0);
+            if ("Supplier".equals(simple) && !converted.isEmpty()) {
+                return "() => " + converted.getFirst();
             }
-            if ("Consumer".equals(simple) && converted.size() >= 1) {
-                return "(arg0: " + converted.get(0) + ") => void";
+            if ("Consumer".equals(simple) && !converted.isEmpty()) {
+                return "(arg0: " + converted.getFirst() + ") => void";
             }
             if ("BiConsumer".equals(simple) && converted.size() >= 2) {
                 return "(arg0: " + converted.get(0) + ", arg1: " + converted.get(1)
                         + ") => void";
             }
-            if ("Predicate".equals(simple) && converted.size() >= 1) {
-                return "(arg0: " + converted.get(0) + ") => boolean";
+            if ("Predicate".equals(simple) && !converted.isEmpty()) {
+                return "(arg0: " + converted.getFirst() + ") => boolean";
             }
             return base + "<" + String.join(", ", converted) + ">";
         }
