@@ -7,9 +7,9 @@ package magma.result;
  * Option} or another type instead of {@code Result}.
  *
  * @param <T> the successful value type
- * @param <X> the exception type, which must extend {@link Exception}
+ * @param <X> the error type
  */
-public interface Result<T, X extends Exception> {
+public interface Result<T, X> {
     /**
      * Convenience method to check if this result is successful.
      */
@@ -33,11 +33,5 @@ public interface Result<T, X extends Exception> {
      */
     <U> Result<U, X> flatMapValue(java.util.function.Function<? super T, Result<U, X>> mapper);
 
-    /**
-     * Gets the successful value or raises a runtime exception if this result
-     * represents an error. Most code should avoid calling this method and
-     * handle both cases explicitly.
-     */
-    T unwrap();
 }
 

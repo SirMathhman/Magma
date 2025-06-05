@@ -4,7 +4,7 @@ package magma.result;
  * Result variant representing success.
  * See {@code Err} for the failure case.
  */
-public final class Ok<T, X extends Exception> implements Result<T, X> {
+public final class Ok<T, X> implements Result<T, X> {
     private final T value;
 
     public Ok(T value) {
@@ -35,8 +35,4 @@ public final class Ok<T, X extends Exception> implements Result<T, X> {
         return mapper.apply(value);
     }
 
-    @Override
-    public T unwrap() {
-        return value;
-    }
 }

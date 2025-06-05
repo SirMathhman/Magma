@@ -19,7 +19,7 @@ public class OptionDependencyTest {
     public void stubsDependOnSomeAndNoneNotOption() {
         Result<List<String>, IOException> res = Sources.read(PathLike.of("src/java"));
         assertTrue(res.isOk(), "reading sources failed");
-        Sources sources = new Sources(res.unwrap());
+        Sources sources = new Sources(magma.result.Results.unwrap(res));
         List<String> classes = sources.findClasses();
         Map<String, List<String>> impl = sources.findImplementations();
         List<Relation> all = sources.findRelations(classes, impl);
