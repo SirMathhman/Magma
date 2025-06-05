@@ -369,12 +369,97 @@ public record JavaFile(PathLike file) {
     }
 
     /**
-     * Temporary stub for parsing Java expressions. The method simply returns
-     * the provided value unchanged. Future revisions will replace this with a
-     * real parser that produces an AST representation.
+     * Performs a light-weight lexical conversion of a Java expression to
+     * TypeScript. The method does not understand operator precedence or
+     * complex constructs. It merely tokenizes the input and converts obvious
+     * literals. Unsupported tokens such as {@code instanceof} are copied with
+     * a FIXME comment so future revisions can handle them properly.
      */
     private static String parseValue(String value) {
-        return value.trim();
+        StringBuilder out = new StringBuilder();
+        int i = 0;
+        while (i < value.length()) {
+            char ch = value.charAt(i);
+            if (Character.isWhitespace(ch)) {
+                out.append(ch);
+                i++;
+                continue;
+            }
+
+            if (ch == '"' || ch == '\'') {
+                int end = i + 1;
+                boolean esc = false;
+                char quote = ch;
+                while (end < value.length()) {
+                    char c = value.charAt(end);
+                    if (esc) {
+                        esc = false;
+                    } else if (c == '\\') {
+                        esc = true;
+                    } else if (c == quote) {
+                        end++;
+                        break;
+                    }
+                    end++;
+                }
+                out.append(value, i, end);
+                i = end;
+                continue;
+            }
+
+            if (Character.isDigit(ch)) {
+                int start = i;
+                boolean exp = false;
+                while (i < value.length()) {
+                    char c = value.charAt(i);
+                    if (c == '_' || Character.isDigit(c)) {
+                        i++;
+                        continue;
+                    }
+                    if (c == '.' || c == 'x' || c == 'X' || c == 'b' || c == 'B') {
+                        i++;
+                        continue;
+                    }
+                    if ((c == 'e' || c == 'E') && !exp) {
+                        exp = true;
+                        i++;
+                        continue;
+                    }
+                    if ((c == '+' || c == '-') && exp
+                            && (value.charAt(i - 1) == 'e' || value.charAt(i - 1) == 'E')) {
+                        i++;
+                        continue;
+                    }
+                    break;
+                }
+                int endDigits = i;
+                while (i < value.length() && "lLfFdD".indexOf(value.charAt(i)) != -1) {
+                    i++;
+                }
+                String num = value.substring(start, endDigits).replace("_", "");
+                out.append(num);
+                continue;
+            }
+
+            if (Character.isJavaIdentifierStart(ch)) {
+                int start = i;
+                i++;
+                while (i < value.length() && Character.isJavaIdentifierPart(value.charAt(i))) {
+                    i++;
+                }
+                String id = value.substring(start, i);
+                if ("instanceof".equals(id)) {
+                    out.append("/* FIXME: instanceof */ instanceof");
+                } else {
+                    out.append(id);
+                }
+                continue;
+            }
+
+            out.append(ch);
+            i++;
+        }
+        return out.toString().trim();
     }
 
     private static final Pattern[] SEGMENT_PATTERNS = new Pattern[]{
