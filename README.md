@@ -8,7 +8,8 @@ The project is an early experiment for a future Magma compiler pipeline.
 ## Features
 
 - Extracts classes and interfaces from Java source files
-- Generates PlantUML diagrams of inheritance and dependencies
+- Generates PlantUML diagrams of inheritance and dependencies with
+  orthogonal line routing
 - Produces TypeScript stubs mirroring the Java hierarchy
 - Provides build, run and test helper scripts
 - Includes a simple `Result` type for functional-style error handling

@@ -32,6 +32,7 @@ public class GenerateDiagram {
         var sourceMap = analysis.mapSourcesByClass();
 
         StringBuilder content = new StringBuilder("@startuml\n");
+        content.append("skinparam linetype ortho\n");
         content.append(classesSection(classes, sourceMap));
         content.append(analysis.formatRelations(classes, implementations));
         content.append("@enduml\n");

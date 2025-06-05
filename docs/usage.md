@@ -11,7 +11,8 @@ Run the program using the provided helper script:
 
 Executing the program creates a file named `diagram.puml` in the repository
 root. The file contains a PlantUML diagram describing the discovered classes and
-their relationships.
+their relationships. The diagram uses `skinparam linetype ortho` for clearer
+routing.
 
 ### Path abstraction
 
