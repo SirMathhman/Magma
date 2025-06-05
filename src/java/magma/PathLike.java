@@ -18,11 +18,6 @@ public interface PathLike {
     }
 
     /**
-     * Returns the wrapped {@link Path}.
-     */
-    Path unwrap();
-
-    /**
      * Resolves {@code other} against this path.
      */
     PathLike resolve(String other);
@@ -57,4 +52,12 @@ public interface PathLike {
      * Returns a lazily populated stream of the files under this path.
      */
     Stream<Path> walk() throws IOException;
+
+    boolean exists();
+
+    Stream<Path> list() throws IOException;
+
+    String readString() throws IOException;
+
+    Stream<String> streamNames();
 }
