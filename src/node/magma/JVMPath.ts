@@ -22,7 +22,8 @@ export class JVMPath implements PathLike {
 	toPath(other: PathLike): Path {
 		const names: var = other.streamNames().toList();
 		if (names.isEmpty()) {
-		return Paths.get("");
+			return Paths.get("");
+		}
 		const first: var = Paths.get(names.getFirst());
 		return names.subList(1, names.size())
 		.reduce(first, Path::resolve, (_, next) => next);
@@ -35,21 +36,27 @@ export class JVMPath implements PathLike {
 		return new JVMPath(path.relativize(toPath(other)));
 	}
 	writeString(content: string): Option<IOException> {
-		Files.writeString(path, content);
-		return new None<>();
-		return new Some<>(e);
+			Files.writeString(path, content);
+			return new None<>();
+		}
+			return new Some<>(e);
+		}
 	}
 	createDirectories(): Option<IOException> {
-		Files.createDirectories(path);
-		return new None<>();
-		return new Some<>(e);
+			Files.createDirectories(path);
+			return new None<>();
+		}
+			return new Some<>(e);
+		}
 	}
 	exists(): boolean {
 		return Files.exists(path);
 	}
 	readString(): Result<string, IOException> {
-		return new Ok<>(Files.readString(path));
-		return new Err<>(e);
+			return new Ok<>(Files.readString(path));
+		}
+			return new Err<>(e);
+		}
 	}
 	streamNames(): Stream<string> {
 		const root: var = path.getRoot();

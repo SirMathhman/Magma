@@ -491,7 +491,8 @@ public record JavaFile(PathLike file) {
             Pattern.compile("\\breturn\\b"),
             Pattern.compile("\\bif\\s*\\("),
             Pattern.compile("\\bwhile\\s*\\("),
-            Pattern.compile("\\bfor\\s*\\(")
+            Pattern.compile("\\bfor\\s*\\("),
+            Pattern.compile("\\belse\\b")
     };
 
     private static final Pattern ASSIGNMENT_PATTERN = Pattern.compile("[^=!<>]=[^=]");
@@ -502,14 +503,31 @@ public record JavaFile(PathLike file) {
 
     private static List<String> parseSegments(String body) {
         List<String> segments = new ArrayList<>();
+        int indent = 0;
         for (String line : body.split("\\R")) {
-            String stripped = line.trim();
-            if (stripped.isEmpty()) {
-                continue;
-            }
-            String seg = matchSegment(stripped);
-            if (seg != null) {
-                segments.add(seg);
+            for (String token : line.split("(?<=[;{}])")) {
+                String stripped = token.trim();
+                if (stripped.isEmpty()) {
+                    continue;
+                }
+
+                if (stripped.startsWith("}")) {
+                    indent = Math.max(0, indent - 1);
+                    segments.add("\t".repeat(indent) + "}");
+                    stripped = stripped.substring(1).trim();
+                    if (stripped.isEmpty()) {
+                        continue;
+                    }
+                }
+
+                String seg = matchSegment(stripped);
+                if (seg != null) {
+                    segments.add("\t".repeat(indent) + seg);
+                }
+
+                if (stripped.endsWith("{")) {
+                    indent++;
+                }
             }
         }
         return segments;
