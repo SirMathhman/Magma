@@ -368,6 +368,15 @@ public record JavaFile(PathLike file) {
         return converted;
     }
 
+    /**
+     * Temporary stub for parsing Java expressions. The method simply returns
+     * the provided value unchanged. Future revisions will replace this with a
+     * real parser that produces an AST representation.
+     */
+    private static String parseValue(String value) {
+        return value.trim();
+    }
+
     private static final Pattern[] SEGMENT_PATTERNS = new Pattern[]{
             Pattern.compile("\\b(class|interface|record)\\b"),
             Pattern.compile("\\b(?:public|protected|private)?\\s*(?:static\\s+)?(?:final\\s+)?(?:<[^>]+>\\s+)?[\\w.<>]+\\s+\\w+\\s*\\([^)]*\\)\\s*\\{"),
@@ -379,6 +388,12 @@ public record JavaFile(PathLike file) {
             Pattern.compile("\\bfor\\s*\\(")
     };
 
+    private static final Pattern ASSIGNMENT_PATTERN = Pattern.compile("[^=!<>]=[^=]");
+    private static final Pattern RETURN_PATTERN = Pattern.compile("\\breturn\\b");
+    private static final Pattern IF_PATTERN = Pattern.compile("\\bif\\s*\\(");
+    private static final Pattern WHILE_PATTERN = Pattern.compile("\\bwhile\\s*\\(");
+    private static final Pattern FOR_PATTERN = Pattern.compile("\\bfor\\s*\\(");
+
     private static List<String> parseSegments(String body) {
         List<String> segments = new ArrayList<>();
         for (String line : body.split("\\R")) {
@@ -388,12 +403,52 @@ public record JavaFile(PathLike file) {
             }
             for (Pattern pat : SEGMENT_PATTERNS) {
                 if (pat.matcher(stripped).find()) {
-                    segments.add(stripped);
+                    segments.add(processSegment(stripped));
                     break;
                 }
             }
         }
         return segments;
+    }
+
+    private static String processSegment(String segment) {
+        if (ASSIGNMENT_PATTERN.matcher(segment).find()) {
+            int eq = segment.indexOf('=');
+            if (eq != -1) {
+                String before = segment.substring(0, eq + 1);
+                String after = segment.substring(eq + 1).trim();
+                boolean semi = after.endsWith(";");
+                if (semi) {
+                    after = after.substring(0, after.length() - 1).trim();
+                }
+                String value = parseValue(after);
+                return before + value + (semi ? ";" : "");
+            }
+        }
+        if (RETURN_PATTERN.matcher(segment).find()) {
+            String rest = segment.substring(segment.indexOf("return") + 6).trim();
+            boolean semi = rest.endsWith(";");
+            if (semi) {
+                rest = rest.substring(0, rest.length() - 1).trim();
+            }
+            if (rest.isEmpty()) {
+                return segment;
+            }
+            String value = parseValue(rest);
+            return "return " + value + (semi ? ";" : "");
+        }
+        if (IF_PATTERN.matcher(segment).find() || WHILE_PATTERN.matcher(segment).find() || FOR_PATTERN.matcher(segment).find()) {
+            int open = segment.indexOf('(');
+            int close = segment.lastIndexOf(')');
+            if (open != -1 && close != -1 && close > open) {
+                String prefix = segment.substring(0, open + 1);
+                String inner = segment.substring(open + 1, close);
+                String suffix = segment.substring(close);
+                String value = parseValue(inner);
+                return prefix + value + suffix;
+            }
+        }
+        return segment;
     }
 
     private static String extractBlock(String source, int start) {
