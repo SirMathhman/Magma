@@ -1,14 +1,12 @@
 package magma;
 
-import magma.option.None;
+import magma.option.Option;
 import magma.option.Some;
 import magma.result.Err;
 import magma.result.Ok;
 
 import java.io.IOException;
-import magma.PathLike;
 import java.util.List;
-import magma.option.Option;
 
 public class GenerateDiagram {
     // Helper methods split to comply with SRP (Single Responsibility Principle)
@@ -31,11 +29,10 @@ public class GenerateDiagram {
         var implementations = analysis.findImplementations();
         var sourceMap = analysis.mapSourcesByClass();
 
-        StringBuilder content = new StringBuilder("@startuml\n");
-        content.append(classesSection(classes, sourceMap));
-        content.append(analysis.formatRelations(classes, implementations));
-        content.append("@enduml\n");
-        return output.writeString(content.toString());
+        String content = "@startuml\n" + classesSection(classes, sourceMap) +
+                analysis.formatRelations(classes, implementations) +
+                "@enduml\n";
+        return output.writeString(content);
     }
 
     private static String classesSection(List<String> classes,
