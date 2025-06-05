@@ -2,7 +2,8 @@
 
 - Parses Java sources to find classes, interfaces and records
 - Detects inheritance and dependency relationships
-- Generates a PlantUML diagram summarizing the relations
+- Generates a PlantUML diagram summarizing the relations with
+  orthogonal line routing
 - Omits interface dependencies when an implementing class is referenced. For
   example `TypeScriptStubs` depends directly on `Some` and `None` instead of the
   `Option` interface

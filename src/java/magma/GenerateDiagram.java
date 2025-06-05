@@ -29,10 +29,12 @@ public class GenerateDiagram {
         var implementations = analysis.findImplementations();
         var sourceMap = analysis.mapSourcesByClass();
 
-        String content = "@startuml\n" + classesSection(classes, sourceMap) +
-                analysis.formatRelations(classes, implementations) +
-                "@enduml\n";
-        return output.writeString(content);
+        StringBuilder content = new StringBuilder("@startuml\n");
+        content.append("skinparam linetype ortho\n");
+        content.append(classesSection(classes, sourceMap));
+        content.append(analysis.formatRelations(classes, implementations));
+        content.append("@enduml\n");
+        return output.writeString(content.toString());
     }
 
     private static String classesSection(List<String> classes,
