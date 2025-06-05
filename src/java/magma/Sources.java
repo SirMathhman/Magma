@@ -60,7 +60,10 @@ public record Sources(List<String> list) {
 
     public Map<String, List<String>> findImplementations() {
         Pattern implementsPattern = Pattern.compile(
-                "(?:class|record)\\s+(\\w+)(?:\\s+extends\\s+\\w+)?\\s+implements\\s+([\\w\\s,<>]+)");
+                "(?:public\\s+|protected\\s+|private\\s+)?"
+                        + "(?:static\\s+)?(?:final\\s+)?(?:sealed\\s+)?"
+                        + "(?:class|record)\\s+(\\w+)(?:\\([^)]*\\))?"
+                        + "(?:\\s+extends\\s+\\w+)?\\s+implements\\s+([\\w\\s,<>]+)");
         Map<String, List<String>> map = new java.util.HashMap<>();
         for (String src : list) {
             map.putAll(implementationsForSource(src, implementsPattern));
@@ -70,9 +73,15 @@ public record Sources(List<String> list) {
 
     public List<Relation> findInheritanceRelations() {
         Pattern extendsPattern = Pattern.compile(
-                "(?:class|interface|record)\\s+(\\w+)\\s+extends\\s+([\\w\\s,<>]+)");
+                "(?:public\\s+|protected\\s+|private\\s+)?"
+                        + "(?:static\\s+)?(?:final\\s+)?(?:sealed\\s+)?"
+                        + "(?:class|interface|record)\\s+(\\w+)(?:\\([^)]*\\))?"
+                        + "\\s+extends\\s+([\\w\\s,<>]+)");
         Pattern implementsPattern = Pattern.compile(
-                "(?:class|record)\\s+(\\w+)(?:\\s+extends\\s+\\w+)?\\s+implements\\s+([\\w\\s,<>]+)");
+                "(?:public\\s+|protected\\s+|private\\s+)?"
+                        + "(?:static\\s+)?(?:final\\s+)?(?:sealed\\s+)?"
+                        + "(?:class|record)\\s+(\\w+)(?:\\([^)]*\\))?"
+                        + "(?:\\s+extends\\s+\\w+)?\\s+implements\\s+([\\w\\s,<>]+)");
         List<Relation> relations = new ArrayList<>();
         for (String src : list) {
             src = src.replaceAll("<[^>]*>", "");
@@ -239,6 +248,10 @@ public record Sources(List<String> list) {
                 continue;
             }
             if (inherited.contains(name + "->" + other)) {
+                continue;
+            }
+            List<String> otherIfaces = implementations.get(other);
+            if (otherIfaces != null && otherIfaces.contains(name)) {
                 continue;
             }
             List<String> impls = byInterface.get(other);
