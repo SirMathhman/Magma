@@ -325,7 +325,8 @@ public class TypeScriptStubsTest {
         }
 
         writeSource(javaRoot, "test/A.java",
-                "package test;\npublic class A { int foo(){ int x=1; bar(); return x; } void bar(){} }\n");
+                "package test;\n" +
+                "public class A { int foo(){ int x=1; if(x>0){ bar(); } else { baz(); } return x; } void bar(){} void baz(){} }\n");
 
         Option<IOException> result = TypeScriptStubs.write(javaRoot, tsRoot);
         result.ifPresent(e -> { throw new RuntimeException(e); });
@@ -337,5 +338,20 @@ public class TypeScriptStubsTest {
         PathLike tsRoot = generateSegmentStubs();
         String a = Results.unwrap(tsRoot.resolve("test/A.ts").readString());
         assertTrue(a.contains("let x: number = 1;"));
+    }
+
+    @Test
+    public void splitsStatementsAcrossLines() {
+        PathLike tsRoot = generateSegmentStubs();
+        String a = Results.unwrap(tsRoot.resolve("test/A.ts").readString());
+        String expected = "let x: number = 1;" + System.lineSeparator()
+                + "\t\tif(x>0){" + System.lineSeparator()
+                + "\t\t\tbar();" + System.lineSeparator()
+                + "\t\t}" + System.lineSeparator()
+                + "\t\telse {" + System.lineSeparator()
+                + "\t\t\tbaz();" + System.lineSeparator()
+                + "\t\t}" + System.lineSeparator()
+                + "\t\treturn x;";
+        assertTrue(a.contains(expected));
     }
 }
