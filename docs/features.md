@@ -4,6 +4,7 @@
 - Detects inheritance and dependency relationships
 - Generates a PlantUML diagram summarizing the relations with
   orthogonal line routing
+- Converts the PlantUML file to an image for convenience
 - Omits interface dependencies when an implementing class is referenced. For
   example `TypeScriptStubs` depends directly on `Some` and `None` instead of the
   `Option` interface

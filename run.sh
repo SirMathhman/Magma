@@ -10,3 +10,5 @@ fi
 
 java --enable-preview -cp "$OUT_DIR" magma.Main "$@"
 
+"$SCRIPT_DIR/render-diagram.sh"
+

@@ -10,6 +10,7 @@ The project is an early experiment for a future Magma compiler pipeline.
 - Extracts classes and interfaces from Java source files
 - Generates PlantUML diagrams of inheritance and dependencies with
   orthogonal line routing
+- Renders `diagram.puml` to `diagram.png` using PlantUML
 - Produces TypeScript stubs mirroring the Java hierarchy
 - Provides build, run and test helper scripts
 - Includes a simple `Result` type for functional-style error handling
@@ -52,7 +53,8 @@ For convenience there are helper scripts at the repository root:
 ```
 
 Running the program creates a `diagram.puml` file in the repository root and
-generates `.ts` stubs under `src/node`. Primitive Java types are translated to
+automatically renders `diagram.png`. It also generates `.ts` stubs under
+`src/node`. Primitive Java types are translated to
 their TypeScript equivalents. Numeric primitives (`byte`, `short`, `int`, `long`,
 `float`, `double`) become `number`, `boolean` stays `boolean` and `char` or
 `String` are emitted as `string`.
