@@ -42,10 +42,11 @@ public record JVMPath(Path path) implements PathLike {
 
 
     private Path toPath(PathLike other) {
-        if (other instanceof JVMPath jp) {
-            return jp.path;
-        }
         final var names = other.streamNames().toList();
+        if (names.isEmpty()) {
+            return Paths.get("");
+        }
+
         final var first = Paths.get(names.getFirst());
         return names.subList(1, names.size())
                 .stream()
@@ -117,9 +118,13 @@ public record JVMPath(Path path) implements PathLike {
 
     @Override
     public Stream<String> streamNames() {
-        return IntStream.range(0, path.getNameCount())
+        final var root = path.getRoot();
+        final Stream<String> rootStream = root == null ? Stream.empty() : Stream.of(root.toString());
+        final var namesStream = IntStream.range(0, path.getNameCount())
                 .mapToObj(path::getName)
                 .map(Path::toString);
+
+        return Stream.concat(rootStream, namesStream);
     }
 
     @Override

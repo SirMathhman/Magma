@@ -1,5 +1,7 @@
 package magma.result;
 
+import java.util.function.Function;
+
 /**
  * Result variant representing failure.
  * See {@code Ok} for the success case.
@@ -26,13 +28,18 @@ public final class Err<T, X> implements Result<T, X> {
     }
 
     @Override
-    public <U> Result<U, X> mapValue(java.util.function.Function<? super T, ? extends U> mapper) {
+    public <U> Result<U, X> mapValue(Function<? super T, ? extends U> mapper) {
         return new Err<>(error);
     }
 
     @Override
-    public <U> Result<U, X> flatMapValue(java.util.function.Function<? super T, Result<U, X>> mapper) {
+    public <U> Result<U, X> flatMapValue(Function<? super T, Result<U, X>> mapper) {
         return new Err<>(error);
+    }
+
+    @Override
+    public <R> R match(Function<T, R> whenOk, Function<X, R> whenErr) {
+        return whenErr.apply(error);
     }
 
 }

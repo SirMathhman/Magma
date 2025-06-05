@@ -15,7 +15,6 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.regex.Pattern;
-import java.util.stream.Stream;
 
 /**
  * Utility for generating TypeScript stub files mirroring the Java sources.
@@ -26,52 +25,66 @@ public final class TypeScriptStubs {
     }
 
     public static Option<IOException> write(PathLike javaRoot, PathLike tsRoot) {
-        List<PathLike> files;
-        var walkRes = javaRoot.walk();
-        if (walkRes.isErr()) {
-            return new Some<>(((Err<Stream<PathLike>, IOException>) walkRes).error());
-        }
-        try (Stream<PathLike> stream = ((Ok<Stream<PathLike>, IOException>) walkRes).value()) {
-            files = stream.filter(PathLike::isRegularFile)
+        return javaRoot.walk().match(stream -> {
+            List<PathLike> files = stream.filter(PathLike::isRegularFile)
                     .filter(p -> p.toString().endsWith(".java"))
                     .toList();
-        }
 
-        for (PathLike file : files) {
-            PathLike relative = javaRoot.relativize(file);
-            PathLike tsFile = tsRoot.resolve(relative.toString().replaceFirst("\\.java$", ".ts"));
-            var dirResult = tsFile.getParent().createDirectories();
-            if (dirResult.isPresent()) {
-                return dirResult;
+            for (PathLike file : files) {
+                PathLike relative = javaRoot.relativize(file);
+                PathLike tsFile = tsRoot.resolve(relative.toString().replaceFirst("\\.java$", ".ts"));
+                var dirResult = tsFile.getParent().createDirectories();
+                if (dirResult.isPresent()) {
+                    return dirResult;
+                }
+
+                var importsRes = readImports(file);
+                if (importsRes.isErr()) {
+                    return new Some<>(((Err<List<String>, IOException>) importsRes).error());
+                }
+
+                var pkgRes = readPackage(file);
+                if (pkgRes.isErr()) {
+                    return new Some<>(((Err<String, IOException>) pkgRes).error());
+                }
+
+                var localRes = readLocalDependencies(file);
+                if (localRes.isErr()) {
+                    return new Some<>(((Err<List<String>, IOException>) localRes).error());
+                }
+
+                var declarationsRes = readDeclarations(file);
+                if (declarationsRes.isErr()) {
+                    return new Some<>(((Err<List<String>, IOException>) declarationsRes).error());
+                }
+
+                var methodsRes = readMethods(file);
+                if (methodsRes.isErr()) {
+                    return new Some<>(((Err<Map<String, List<String>>, IOException>) methodsRes).error());
+                }
+
+                List<String> imports = Results.unwrap(importsRes);
+                String pkgName = Results.unwrap(pkgRes);
+                List<String> locals = Results.unwrap(localRes);
+                for (String dep : locals) {
+                    String fqn = pkgName.isEmpty() ? dep : pkgName + "." + dep;
+                    if (!imports.contains(fqn)) {
+                        imports.add(fqn);
+                    }
+                }
+
+                List<String> declarations = Results.unwrap(declarationsRes);
+                Map<String, List<String>> methods = Results.unwrap(methodsRes);
+
+                String content = stubContent(relative, tsFile.getParent(), tsRoot,
+                        imports, declarations, methods);
+                var writeRes = tsFile.writeString(content);
+                if (writeRes.isPresent()) {
+                    return writeRes;
+                }
             }
-
-            var importsRes = readImports(file);
-            if (importsRes.isErr()) {
-                return new Some<>(((Err<List<String>, IOException>) importsRes).error());
-            }
-
-            var declarationsRes = readDeclarations(file);
-            if (declarationsRes.isErr()) {
-                return new Some<>(((Err<List<String>, IOException>) declarationsRes).error());
-            }
-
-            var methodsRes = readMethods(file);
-            if (methodsRes.isErr()) {
-                return new Some<>(((Err<Map<String, List<String>>, IOException>) methodsRes).error());
-            }
-
-            List<String> imports = Results.unwrap(importsRes);
-            List<String> declarations = Results.unwrap(declarationsRes);
-            Map<String, List<String>> methods = Results.unwrap(methodsRes);
-
-            String content = stubContent(relative, tsFile.getParent(), tsRoot,
-                    imports, declarations, methods);
-            var writeRes = tsFile.writeString(content);
-            if (writeRes.isPresent()) {
-                return writeRes;
-            }
-        }
-        return new None<>();
+            return new None<>();
+        }, Some::new);
     }
 
     private static Result<List<String>, IOException> readImports(PathLike file) {
@@ -91,6 +104,79 @@ public final class TypeScriptStubs {
             }
         }
         return new Ok<>(imports);
+    }
+
+    private static Result<String, IOException> readPackage(PathLike file) {
+        return file.readString().mapValue(source -> {
+            var pattern = Pattern.compile("^package\\s+([\\w.]+);", Pattern.MULTILINE);
+            var matcher = pattern.matcher(source);
+            if (matcher.find()) {
+                return matcher.group(1);
+            }
+            return "";
+        });
+    }
+
+    private static Result<List<String>, IOException> readLocalDependencies(PathLike file) {
+        return file.readString().flatMapValue(source -> {
+            source = source.replaceAll("(?s)/\\*.*?\\*/", "");
+            source = source.replaceAll("//.*", "");
+
+            var classPat = Pattern.compile(
+                    "^(?:public\\s+|protected\\s+|private\\s+)?(?:static\\s+)?(?:final\\s+)?(?:sealed\\s+)?(class|interface|record)\\s+(\\w+)",
+                    Pattern.MULTILINE);
+
+            var matcher = classPat.matcher(source);
+            List<String> deps = new ArrayList<>();
+            List<String> defined = new ArrayList<>();
+            while (matcher.find()) {
+                String name = matcher.group(2);
+                defined.add(name);
+                int start = matcher.end();
+                int brace = source.indexOf('{', start);
+                if (brace == -1) {
+                    continue;
+                }
+                String rest = source.substring(start, brace);
+                rest = rest.replaceAll("\\s+", " ").trim();
+
+                String extendsPart = null;
+                String implementsPart = null;
+                int extIdx = rest.indexOf("extends ");
+                int implIdx = rest.indexOf("implements ");
+                if (extIdx != -1) {
+                    if (implIdx != -1) {
+                        extendsPart = rest.substring(extIdx + 8, implIdx).trim();
+                    }
+                    else {
+                        extendsPart = rest.substring(extIdx + 8).trim();
+                    }
+                }
+                if (implIdx != -1) {
+                    implementsPart = rest.substring(implIdx + 11).trim();
+                }
+
+                if (extendsPart != null && !extendsPart.isEmpty()) {
+                    extendsPart = extendsPart.replaceAll("<.*?>", "");
+                    for (String part : extendsPart.split(",")) {
+                        String base = part.trim();
+                        if (!base.isEmpty() && !defined.contains(base)) {
+                            deps.add(base);
+                        }
+                    }
+                }
+                if (implementsPart != null && !implementsPart.isEmpty()) {
+                    implementsPart = implementsPart.replaceAll("<.*?>", "");
+                    for (String part : implementsPart.split(",")) {
+                        String base = part.trim();
+                        if (!base.isEmpty() && !defined.contains(base)) {
+                            deps.add(base);
+                        }
+                    }
+                }
+            }
+            return new Ok<>(deps);
+        });
     }
 
     private static Result<List<String>, IOException> readDeclarations(PathLike file) {
@@ -162,13 +248,15 @@ public final class TypeScriptStubs {
         source = source.replaceAll("(?s)/\\*.*?\\*/", "");
         source = source.replaceAll("//.*", "");
         Map<String, List<String>> map = new LinkedHashMap<>();
-        var classPat = Pattern.compile("(?:class|interface|record)\\s+(\\w+)[^{]*\\{");
+        var classPat = Pattern.compile("(class|interface|record)\\s+(\\w+)[^{]*\\{");
         var cMatcher = classPat.matcher(source);
         while (cMatcher.find()) {
-            String name = cMatcher.group(1);
+            String kind = cMatcher.group(1);
+            String name = cMatcher.group(2);
             int start = cMatcher.end();
             String body = extractClassBody(source, start);
-            List<String> list = parseMethods(body, name);
+            boolean isInterface = "interface".equals(kind);
+            List<String> list = parseMethods(body, name, isInterface);
             map.put(name, list);
         }
         return new Ok<>(map);
@@ -190,9 +278,9 @@ public final class TypeScriptStubs {
         return source.substring(start, i - 1);
     }
 
-    private static List<String> parseMethods(String body, String className) {
+    private static List<String> parseMethods(String body, String className, boolean isInterface) {
         var methodPat = Pattern.compile(
-                "(?:public\\s+|protected\\s+|private\\s+)?(static\\s+)?(?:final\\s+)?(<[^>]+>\\s+)?([\\w.]+(?:<[^>]+>)?(?:\\[])*)\\s+(\\w+)\\s*\\(([^)]*)\\)\\s*\\{");
+                "(?:public\\s+|protected\\s+|private\\s+)?(static\\s+)?(?:final\\s+)?(<[^>]+>\\s+)?([\\w.]+(?:<[^>]+>)?(?:\\[\\])*)\\s+(\\w+)\\s*\\(([^)]*)\\)\\s*(\\{|;)");
         var mMatcher = methodPat.matcher(body);
         List<String> list = new ArrayList<>();
         while (mMatcher.find()) {
@@ -201,12 +289,18 @@ public final class TypeScriptStubs {
             String returnType = mMatcher.group(3);
             String mName = mMatcher.group(4);
             String params = mMatcher.group(5);
+            String delim = mMatcher.group(6);
             if (!mName.equals(className)) {
                 String prefix = staticKw == null ? "" : "static ";
                 String typeParams = generics == null ? "" : generics.trim();
                 String paramList = tsParams(params);
-                list.add("\t" + prefix + mName + typeParams + "(" + paramList + "): " + tsType(returnType) + " {");
-                list.add("\t}");
+                if (isInterface || ";".equals(delim)) {
+                    list.add("\t" + prefix + mName + typeParams + "(" + paramList + "): " + tsType(returnType) + ";");
+                }
+                else {
+                    list.add("\t" + prefix + mName + typeParams + "(" + paramList + "): " + tsType(returnType) + " {");
+                    list.add("\t}");
+                }
             }
         }
         return list;
