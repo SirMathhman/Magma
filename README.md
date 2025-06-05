@@ -21,7 +21,8 @@ The project is an early experiment for a future Magma compiler pipeline.
 - Provides an `npm` command to type-check the generated stubs
 - Abstracts `java.nio.file.Path` behind a `PathLike` interface so TypeScript
   declarations do not reference JDK classes. `PathLike` includes helpers such as
-  `writeString`, `createDirectories` and `walk` and `JVMPath` simply forwards to
+  `writeString`, `createDirectories` and `walk`. Errors are captured in
+  `Option` or `Result` values rather than thrown. `JVMPath` simply forwards to
   the standard library implementation.
 
 

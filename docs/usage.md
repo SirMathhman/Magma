@@ -21,7 +21,8 @@ The Java sources use a lightweight `PathLike` interface instead of
 keeps it out of the public API so the generated TypeScript declarations remain
 valid. `PathLike` exposes convenience methods such as `writeString`,
 `createDirectories` and `walk` so callers never interact with a raw
-`java.nio.file.Path`. When you need a path object, call `PathLike.of(...)`
+`java.nio.file.Path`. Errors are returned via `Option` or `Result` objects
+instead of being thrown. When you need a path object, call `PathLike.of(...)`
 rather than `Path.of(...)`.
 `JVMPath` is intentionally small and forwards each call directly to the
 underlying JDK path.
