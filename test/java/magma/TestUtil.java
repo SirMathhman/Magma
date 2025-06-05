@@ -1,7 +1,6 @@
 package magma;
 
 import java.io.IOException;
-import java.nio.file.Files;
 import magma.PathLike;
 import java.util.List;
 
@@ -11,8 +10,14 @@ final class TestUtil {
     static PathLike writeSource(PathLike root, String relPath, String content) {
         PathLike file = root.resolve(relPath);
         try {
-            Files.createDirectories(file.getParent().unwrap());
-            Files.writeString(file.unwrap(), content);
+            var dirResult = file.getParent().createDirectories();
+            if (dirResult.isPresent()) {
+                throw dirResult.get();
+            }
+            var writeResult = file.writeString(content);
+            if (writeResult.isPresent()) {
+                throw writeResult.get();
+            }
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
