@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 
 import magma.option.Option;
+import magma.result.Results;
 
 import static magma.TestUtil.writeSource;
 
@@ -48,24 +49,14 @@ public class TypeScriptStubsTest {
     @Test
     public void addsImportForDependency() {
         PathLike tsRoot = generateStubs();
-        String content;
-        try {
-            content = tsRoot.resolve("test/B.ts").readString();
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
+        String content = Results.unwrap(tsRoot.resolve("test/B.ts").readString());
         assertTrue(content.contains("import { A } from \"./A\";"));
     }
 
     @Test
     public void stubDeclaresBClass() {
         PathLike tsRoot = generateStubs();
-        String content;
-        try {
-            content = tsRoot.resolve("test/B.ts").readString();
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
+        String content = Results.unwrap(tsRoot.resolve("test/B.ts").readString());
         assertTrue(content.contains("export class B {}"));
     }
   
@@ -88,24 +79,14 @@ public class TypeScriptStubsTest {
         if (result.isPresent()) {
             throw new RuntimeException(result.get());
         }
-        long count;
-        try {
-            count = tsRoot.resolve("test").list().count();
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
+        long count = Results.unwrap(tsRoot.resolve("test").list()).count();
         assertEquals(3, count);
     }
 
     @Test
     public void copiesClassDeclaration() {
         PathLike tsRoot = generateGenericStubs();
-        String a;
-        try {
-            a = tsRoot.resolve("test/A.ts").readString();
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
+        String a = Results.unwrap(tsRoot.resolve("test/A.ts").readString());
         assertTrue(a.contains("export class A<T> {}"));
     }
 
@@ -133,24 +114,14 @@ public class TypeScriptStubsTest {
     @Test
     public void copiesInterfaceDeclaration() {
         PathLike tsRoot = generateGenericStubs();
-        String i;
-        try {
-            i = tsRoot.resolve("test/I.ts").readString();
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
+        String i = Results.unwrap(tsRoot.resolve("test/I.ts").readString());
         assertTrue(i.contains("export interface I<T> {}"));
     }
 
     @Test
     public void copiesRecordDeclaration() {
         PathLike tsRoot = generateGenericStubs();
-        String r;
-        try {
-            r = tsRoot.resolve("test/R.ts").readString();
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
+        String r = Results.unwrap(tsRoot.resolve("test/R.ts").readString());
         assertTrue(r.contains("export class R<T> {}"));
     }
 
@@ -176,36 +147,21 @@ public class TypeScriptStubsTest {
     @Test
     public void copiesInstanceMethod() {
         PathLike tsRoot = generateMethodStubs();
-        String a;
-        try {
-            a = tsRoot.resolve("test/A.ts").readString();
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
+        String a = Results.unwrap(tsRoot.resolve("test/A.ts").readString());
         assertTrue(a.contains("foo(): void {"));
     }
 
     @Test
     public void copiesStaticMethod() {
         PathLike tsRoot = generateMethodStubs();
-        String a;
-        try {
-            a = tsRoot.resolve("test/A.ts").readString();
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
+        String a = Results.unwrap(tsRoot.resolve("test/A.ts").readString());
         assertTrue(a.contains("static bar(): number {"), "A.ts missing static bar method");
     }
 
     @Test
     public void copiesBazMethod() {
         PathLike tsRoot = generateMethodStubs();
-        String a;
-        try {
-            a = tsRoot.resolve("test/A.ts").readString();
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
+        String a = Results.unwrap(tsRoot.resolve("test/A.ts").readString());
         assertTrue(a.contains("baz(): string {"), "A.ts missing baz method");
     }
 
@@ -228,12 +184,7 @@ public class TypeScriptStubsTest {
             throw new RuntimeException(result.get());
         }
 
-        String c;
-        try {
-            c = tsRoot.resolve("test/C.ts").readString();
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
+        String c = Results.unwrap(tsRoot.resolve("test/C.ts").readString());
         assertTrue(c.contains("foo(): void {"), "C.ts missing foo method");
     }
 
@@ -258,12 +209,7 @@ public class TypeScriptStubsTest {
             throw new RuntimeException(result.get());
         }
 
-        String a;
-        try {
-            a = tsRoot.resolve("test/A.ts").readString();
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
+        String a = Results.unwrap(tsRoot.resolve("test/A.ts").readString());
         assertTrue(a.contains("foo(): Base<Test> {"));
     }
 
@@ -286,12 +232,7 @@ public class TypeScriptStubsTest {
             throw new RuntimeException(result.get());
         }
 
-        String a;
-        try {
-            a = tsRoot.resolve("test/A.ts").readString();
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
+        String a = Results.unwrap(tsRoot.resolve("test/A.ts").readString());
         assertTrue(a.contains("foo(): Optional<string> {"));
     }
 
@@ -314,12 +255,7 @@ public class TypeScriptStubsTest {
             throw new RuntimeException(result.get());
         }
 
-        String a;
-        try {
-            a = tsRoot.resolve("test/A.ts").readString();
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
+        String a = Results.unwrap(tsRoot.resolve("test/A.ts").readString());
         assertTrue(a.contains("add(x: number, y: number): number {"));
     }
 
@@ -342,12 +278,7 @@ public class TypeScriptStubsTest {
             throw new RuntimeException(result.get());
         }
 
-        String a;
-        try {
-            a = tsRoot.resolve("test/A.ts").readString();
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
+        String a = Results.unwrap(tsRoot.resolve("test/A.ts").readString());
         assertTrue(a.contains("id<R>(x: R): R {"));
     }
 
@@ -372,12 +303,7 @@ public class TypeScriptStubsTest {
             throw new RuntimeException(result.get());
         }
 
-        String a;
-        try {
-            a = tsRoot.resolve("test/A.ts").readString();
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
+        String a = Results.unwrap(tsRoot.resolve("test/A.ts").readString());
         assertTrue(a.contains("export class A extends Base implements I {}"));
     }
 }
