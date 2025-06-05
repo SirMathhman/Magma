@@ -1,6 +1,8 @@
 ## Features
 
 - Parses Java sources to find classes, interfaces and records
+- Treats records as classes and converts record components into fields with a
+  generated constructor
 - Detects inheritance and dependency relationships
 - Generates a PlantUML diagram summarizing the relations with
   orthogonal line routing

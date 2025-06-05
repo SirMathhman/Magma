@@ -12,6 +12,7 @@ The project is an early experiment for a future Magma compiler pipeline.
   orthogonal line routing
 - Renders `diagram.puml` to `diagram.png` using PlantUML
 - Produces TypeScript stubs mirroring the Java hierarchy
+- Record components become fields in the generated class constructor
 - Provides build, run and test helper scripts
 - Includes a simple `Result` type for functional-style error handling
 - Provides a minimal `Option` type (`Some`/`None`) instead of relying on

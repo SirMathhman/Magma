@@ -7,6 +7,10 @@ import { Ok } from "./result/Ok";
 import { Result } from "./result/Result";
 import { PathLike } from "./PathLike";
 export class JVMPath implements PathLike {
+	path: Path;
+	constructor(path: Path) {
+		this.path = path;
+	}
 	static of(first: string, more: String...): PathLike {
 		return new JVMPath(Path.of(first, more));
 	}

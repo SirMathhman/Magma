@@ -114,7 +114,27 @@ public class TypeScriptStubsTest {
     public void copiesRecordDeclaration() {
         PathLike tsRoot = generateGenericStubs();
         String r = Results.unwrap(tsRoot.resolve("test/R.ts").readString());
-        assertTrue(r.contains("export class R<T> {}"));
+        assertTrue(r.contains("export class R<T> {"));
+        assertTrue(r.contains("x: T;"));
+        assertTrue(r.contains("constructor(x: T)"));
+    }
+
+    @Test
+    public void processesRecordParameters() {
+        PathLike javaRoot = new JVMPath(assertDoesNotThrow(() -> Files.createTempDirectory("java")));
+        PathLike tsRoot = new JVMPath(assertDoesNotThrow(() -> Files.createTempDirectory("ts")));
+
+        writeSource(javaRoot, "test/R.java",
+                "package test;\npublic record R(int id, String name) {}\n");
+
+        Option<IOException> result = TypeScriptStubs.write(javaRoot, tsRoot);
+        result.ifPresent(e -> fail(e));
+
+        String r = Results.unwrap(tsRoot.resolve("test/R.ts").readString());
+        assertTrue(r.contains("id: number;"), "R.ts missing id field");
+        assertTrue(r.contains("name: string;"), "R.ts missing name field");
+        assertTrue(r.contains("constructor(id: number, name: string)"), "R.ts missing constructor");
+        assertTrue(r.contains("this.id = id"), "R.ts missing id assignment");
     }
 
     private PathLike generateMethodStubs() {

@@ -19,6 +19,9 @@ import java.util.regex.Pattern;
  */
 public record JavaFile(PathLike file) {
 
+    /** Simple container for a record component. */
+    private static record Param(String name, String tsType) {}
+
     public Result<List<String>, IOException> imports() {
         var sourceRes = file.readString();
         if (sourceRes.isErr()) {
@@ -181,6 +184,30 @@ public record JavaFile(PathLike file) {
             String body = extractClassBody(source, start);
             boolean isInterface = "interface".equals(kind);
             List<String> list = parseMethods(body, name, isInterface);
+
+            if ("record".equals(kind)) {
+                String header = source.substring(cMatcher.start(), start - 1);
+                int lp = header.indexOf('(');
+                int rp = header.indexOf(')', lp);
+                if (lp != -1 && rp != -1 && rp > lp + 1) {
+                    String params = header.substring(lp + 1, rp).trim();
+                    if (!params.isEmpty()) {
+                        List<Param> fields = parseRecordParams(params);
+                        List<String> all = new ArrayList<>();
+                        for (Param p : fields) {
+                            all.add("\t" + p.name + ": " + p.tsType + ";");
+                        }
+                        all.add("\tconstructor(" + tsParams(params) + ") {");
+                        for (Param p : fields) {
+                            all.add("\t\tthis." + p.name + " = " + p.name + ";");
+                        }
+                        all.add("\t}");
+                        all.addAll(list);
+                        list = all;
+                    }
+                }
+            }
+
             map.put(name, list);
         }
         return new Ok<>(map);
@@ -294,6 +321,36 @@ public record JavaFile(PathLike file) {
         }
         out.append(name).append(": ").append(tsType(type));
         return false;
+    }
+
+    private static List<Param> parseRecordParams(String javaParams) {
+        javaParams = javaParams.trim();
+        List<Param> list = new ArrayList<>();
+        int depth = 0;
+        int start = 0;
+        for (int i = 0; i <= javaParams.length(); i++) {
+            boolean atEnd = i == javaParams.length();
+            boolean atComma = !atEnd && javaParams.charAt(i) == ',' && depth == 0;
+            if (atEnd || atComma) {
+                String part = javaParams.substring(start, i).trim();
+                if (!part.isEmpty()) {
+                    int last = part.lastIndexOf(' ');
+                    if (last != -1) {
+                        String type = part.substring(0, last).trim();
+                        String name = part.substring(last + 1).trim();
+                        list.add(new Param(name, tsType(type)));
+                    }
+                }
+                start = i + 1;
+                continue;
+            }
+            if (javaParams.charAt(i) == '<') {
+                depth++;
+            } else if (javaParams.charAt(i) == '>') {
+                depth--;
+            }
+        }
+        return list;
     }
 
     static String tsType(String javaType) {
