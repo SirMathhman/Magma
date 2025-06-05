@@ -3,12 +3,19 @@ package magma;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Pattern;
+import java.io.IOException;
+
+import magma.result.Err;
+import magma.result.Ok;
+import magma.result.Result;
+
+import java.util.Set;
 
 final class MethodBodyParser {
     private MethodBodyParser() {
     }
 
-    static List<String> parseSegments(String body) {
+    static Result<List<String>, IOException> parseSegments(String body, Set<String> defined) {
         List<String> segments = new ArrayList<>();
         int indent = 0;
         for (String token : tokens(body)) {
@@ -24,7 +31,11 @@ final class MethodBodyParser {
                     continue;
                 }
             }
-            String seg = matchSegment(stripped);
+            var segRes = matchSegment(stripped, defined);
+            if (segRes.isErr()) {
+                return new Err<>(((Err<String, IOException>) segRes).error());
+            }
+            String seg = ((Ok<String, IOException>) segRes).value();
             if (seg != null) {
                 segments.add("\t".repeat(indent) + seg);
             }
@@ -32,7 +43,7 @@ final class MethodBodyParser {
                 indent++;
             }
         }
-        return segments;
+        return new Ok<>(segments);
     }
 
     private static List<String> tokens(String body) {
@@ -51,16 +62,16 @@ final class MethodBodyParser {
         return parts;
     }
 
-    private static String matchSegment(String stripped) {
+    private static Result<String, IOException> matchSegment(String stripped, Set<String> defined) {
         for (Pattern pat : SEGMENT_PATTERNS) {
             if (pat.matcher(stripped).find()) {
-                return processSegment(stripped);
+                return processSegment(stripped, defined);
             }
         }
-        return null;
+        return new Ok<>(null);
     }
 
-    private static String processSegment(String segment) {
+    private static Result<String, IOException> processSegment(String segment, Set<String> defined) {
         String result = segment;
         if (ASSIGNMENT_PATTERN.matcher(segment).find()) {
             int eq = segment.indexOf('=');
@@ -71,8 +82,6 @@ final class MethodBodyParser {
                 if (semi) {
                     after = after.substring(0, after.length() - 1).trim();
                 }
-                String value = parseValue(after);
-
                 var declPat = Pattern.compile("^(?:final\\s+)?([\\w.<>\\[\\]]+)\\s+(\\w+)$");
                 var declMatch = declPat.matcher(before);
                 if (declMatch.find()) {
@@ -80,11 +89,22 @@ final class MethodBodyParser {
                     String name = declMatch.group(2);
                     boolean isConst = before.startsWith("final ");
                     String kw = isConst ? "const" : "let";
+                    defined.add(name);
+                    var valRes = parseValue(after, defined);
+                    if (valRes.isErr()) {
+                        return new Err<>(((Err<String, IOException>) valRes).error());
+                    }
+                    String value = ((Ok<String, IOException>) valRes).value();
                     result = kw + " " + name + ": " + type + " = " + value + (semi ? ";" : "");
                 } else {
+                    var valRes = parseValue(after, defined);
+                    if (valRes.isErr()) {
+                        return new Err<>(((Err<String, IOException>) valRes).error());
+                    }
+                    String value = ((Ok<String, IOException>) valRes).value();
                     result = before + " = " + value + (semi ? ";" : "");
                 }
-                return result.replace("->", "=>");
+                return new Ok<>(result.replace("->", "=>"));
             }
         }
         if (RETURN_PATTERN.matcher(segment).find()) {
@@ -94,11 +114,15 @@ final class MethodBodyParser {
                 rest = rest.substring(0, rest.length() - 1).trim();
             }
             if (rest.isEmpty()) {
-                return segment.replace("->", "=>");
+                return new Ok<>(segment.replace("->", "=>"));
             }
-            String value = parseValue(rest);
+            var valRes = parseValue(rest, defined);
+            if (valRes.isErr()) {
+                return new Err<>(((Err<String, IOException>) valRes).error());
+            }
+            String value = ((Ok<String, IOException>) valRes).value();
             result = "return " + value + (semi ? ";" : "");
-            return result.replace("->", "=>");
+            return new Ok<>(result.replace("->", "=>"));
         }
         if (IF_PATTERN.matcher(segment).find() || WHILE_PATTERN.matcher(segment).find() || FOR_PATTERN.matcher(segment).find()) {
             int open = segment.indexOf('(');
@@ -107,15 +131,19 @@ final class MethodBodyParser {
                 String prefix = segment.substring(0, open + 1);
                 String inner = segment.substring(open + 1, close);
                 String suffix = segment.substring(close);
-                String value = parseValue(inner);
+                var valRes = parseValue(inner, defined);
+                if (valRes.isErr()) {
+                    return new Err<>(((Err<String, IOException>) valRes).error());
+                }
+                String value = ((Ok<String, IOException>) valRes).value();
                 result = prefix + value + suffix;
-                return result.replace("->", "=>");
+                return new Ok<>(result.replace("->", "=>"));
             }
         }
-        return result.replace("->", "=>");
+        return new Ok<>(result.replace("->", "=>"));
     }
 
-    private static String parseValue(String value) {
+    private static Result<String, IOException> parseValue(String value, Set<String> defined) {
         value = value.replace("->", "=>");
         StringBuilder out = new StringBuilder();
         int i = 0;
@@ -140,13 +168,17 @@ final class MethodBodyParser {
                 continue;
             }
             if (Character.isJavaIdentifierStart(ch)) {
-                i = scanIdentifier(value, i, out);
+                var idxRes = scanIdentifier(value, i, out, defined);
+                if (idxRes.isErr()) {
+                    return new Err<>(((Err<Integer, IOException>) idxRes).error());
+                }
+                i = ((Ok<Integer, IOException>) idxRes).value();
                 continue;
             }
             out.append(ch);
             i++;
         }
-        return out.toString().trim();
+        return new Ok<>(out.toString().trim());
     }
 
     private static int scanStringLiteral(String value, int start, StringBuilder out) {
@@ -204,7 +236,7 @@ final class MethodBodyParser {
         return i;
     }
 
-    private static int scanIdentifier(String value, int start, StringBuilder out) {
+    private static Result<Integer, IOException> scanIdentifier(String value, int start, StringBuilder out, Set<String> defined) {
         int i = start + 1;
         while (i < value.length() && Character.isJavaIdentifierPart(value.charAt(i))) {
             i++;
@@ -212,11 +244,27 @@ final class MethodBodyParser {
         String id = value.substring(start, i);
         if ("instanceof".equals(id)) {
             out.append("/* FIXME: instanceof */ instanceof");
-        } else {
-            out.append(id);
+            return new Ok<>(i);
         }
-        return i;
+        out.append(id);
+        if (!KEYWORDS.contains(id) && !defined.contains(id)) {
+            int prev = start - 1;
+            while (prev >= 0 && Character.isWhitespace(value.charAt(prev))) {
+                prev--;
+            }
+            char prevCh = prev >= 0 ? value.charAt(prev) : '\0';
+            char nextCh = i < value.length() ? value.charAt(i) : '\0';
+            if (prevCh != '.' && nextCh != '(') {
+                return new Err<>(new ParseException("undefined symbol: " + id));
+            }
+        }
+        return new Ok<>(i);
     }
+
+    private static final Set<String> KEYWORDS = Set.of(
+            "return", "if", "else", "for", "while", "do", "switch", "case",
+            "break", "continue", "new", "null", "true", "false", "this", "super"
+    );
 
     private static final Pattern[] SEGMENT_PATTERNS = new Pattern[]{
         Pattern.compile("\\b(class|interface|record)\\b"),
