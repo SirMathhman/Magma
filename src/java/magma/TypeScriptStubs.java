@@ -30,62 +30,76 @@ public final class TypeScriptStubs {
                     .toList();
 
             for (PathLike file : files) {
-                PathLike relative = javaRoot.relativize(file);
-                PathLike tsFile = tsRoot.resolve(relative.toString().replaceFirst("\\.java$", ".ts"));
-                var dirResult = tsFile.getParent().createDirectories();
-                if (dirResult.isPresent()) {
-                    return dirResult;
-                }
-
-                JavaFile jf = new JavaFile(file);
-
-                var importsRes = jf.imports();
-                if (importsRes.isErr()) {
-                    return new Some<>(((Err<List<String>, IOException>) importsRes).error());
-                }
-
-                var pkgRes = jf.packageName();
-                if (pkgRes.isErr()) {
-                    return new Some<>(((Err<String, IOException>) pkgRes).error());
-                }
-
-                var localRes = jf.localDependencies();
-                if (localRes.isErr()) {
-                    return new Some<>(((Err<List<String>, IOException>) localRes).error());
-                }
-
-                var declarationsRes = jf.declarations();
-                if (declarationsRes.isErr()) {
-                    return new Some<>(((Err<List<String>, IOException>) declarationsRes).error());
-                }
-
-                var methodsRes = jf.methods();
-                if (methodsRes.isErr()) {
-                    return new Some<>(((Err<Map<String, List<String>>, IOException>) methodsRes).error());
-                }
-
-                List<String> imports = Results.unwrap(importsRes);
-                String pkgName = Results.unwrap(pkgRes);
-                List<String> locals = Results.unwrap(localRes);
-                for (String dep : locals) {
-                    String fqn = pkgName.isEmpty() ? dep : pkgName + "." + dep;
-                    if (!imports.contains(fqn)) {
-                        imports.add(fqn);
-                    }
-                }
-
-                List<String> declarations = Results.unwrap(declarationsRes);
-                Map<String, List<String>> methods = Results.unwrap(methodsRes);
-
-                String content = stubContent(relative, tsFile.getParent(), tsRoot,
-                        imports, declarations, methods);
-                var writeRes = tsFile.writeString(content);
-                if (writeRes.isPresent()) {
-                    return writeRes;
+                Option<IOException> res = processFile(javaRoot, tsRoot, file);
+                if (res.isPresent()) {
+                    return res;
                 }
             }
             return new None<>();
         }, Some::new);
+    }
+
+    private static Option<IOException> processFile(PathLike javaRoot, PathLike tsRoot,
+                                                   PathLike file) {
+        PathLike relative = javaRoot.relativize(file);
+        PathLike tsFile = tsRoot.resolve(relative.toString().replaceFirst("\\.java$", ".ts"));
+        var dirResult = tsFile.getParent().createDirectories();
+        if (dirResult.isPresent()) {
+            return dirResult;
+        }
+
+        JavaFile jf = new JavaFile(file);
+
+        var importsRes = jf.imports();
+        if (importsRes.isErr()) {
+            return new Some<>(((Err<List<String>, IOException>) importsRes).error());
+        }
+
+        var pkgRes = jf.packageName();
+        if (pkgRes.isErr()) {
+            return new Some<>(((Err<String, IOException>) pkgRes).error());
+        }
+
+        var localRes = jf.localDependencies();
+        if (localRes.isErr()) {
+            return new Some<>(((Err<List<String>, IOException>) localRes).error());
+        }
+
+        var declarationsRes = jf.declarations();
+        if (declarationsRes.isErr()) {
+            return new Some<>(((Err<List<String>, IOException>) declarationsRes).error());
+        }
+
+        var methodsRes = jf.methods();
+        if (methodsRes.isErr()) {
+            return new Some<>(((Err<Map<String, List<String>>, IOException>) methodsRes).error());
+        }
+
+        List<String> imports = Results.unwrap(importsRes);
+        String pkgName = Results.unwrap(pkgRes);
+        List<String> locals = Results.unwrap(localRes);
+        mergeLocalImports(imports, locals, pkgName);
+
+        List<String> declarations = Results.unwrap(declarationsRes);
+        Map<String, List<String>> methods = Results.unwrap(methodsRes);
+
+        String content = stubContent(relative, tsFile.getParent(), tsRoot,
+                imports, declarations, methods);
+        var writeRes = tsFile.writeString(content);
+        if (writeRes.isPresent()) {
+            return writeRes;
+        }
+        return new None<>();
+    }
+
+    private static void mergeLocalImports(List<String> imports, List<String> locals,
+                                          String pkgName) {
+        for (String dep : locals) {
+            String fqn = pkgName.isEmpty() ? dep : pkgName + "." + dep;
+            if (!imports.contains(fqn)) {
+                imports.add(fqn);
+            }
+        }
     }
 
     private static String stubContent(PathLike relative, PathLike from, PathLike root,
