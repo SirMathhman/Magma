@@ -376,6 +376,7 @@ public record JavaFile(PathLike file) {
      * a FIXME comment so future revisions can handle them properly.
      */
     private static String parseValue(String value) {
+        value = value.replace("->", "=>");
         StringBuilder out = new StringBuilder();
         int i = 0;
         while (i < value.length()) {
@@ -383,6 +384,12 @@ public record JavaFile(PathLike file) {
             if (Character.isWhitespace(ch)) {
                 out.append(ch);
                 i++;
+                continue;
+            }
+
+            if (ch == '-' && i + 1 < value.length() && value.charAt(i + 1) == '>') {
+                out.append("=>");
+                i += 2;
                 continue;
             }
 
@@ -518,6 +525,7 @@ public record JavaFile(PathLike file) {
     }
 
     private static String processSegment(String segment) {
+        String result = segment;
         if (ASSIGNMENT_PATTERN.matcher(segment).find()) {
             int eq = segment.indexOf('=');
             if (eq != -1) {
@@ -536,10 +544,11 @@ public record JavaFile(PathLike file) {
                     String name = declMatch.group(2);
                     boolean isConst = before.startsWith("final ");
                     String kw = isConst ? "const" : "let";
-                    return kw + " " + name + ": " + type + " = " + value + (semi ? ";" : "");
+                    result = kw + " " + name + ": " + type + " = " + value + (semi ? ";" : "");
+                } else {
+                    result = before + " = " + value + (semi ? ";" : "");
                 }
-
-                return before + " = " + value + (semi ? ";" : "");
+                return result.replace("->", "=>");
             }
         }
         if (RETURN_PATTERN.matcher(segment).find()) {
@@ -549,10 +558,11 @@ public record JavaFile(PathLike file) {
                 rest = rest.substring(0, rest.length() - 1).trim();
             }
             if (rest.isEmpty()) {
-                return segment;
+                return segment.replace("->", "=>");
             }
             String value = parseValue(rest);
-            return "return " + value + (semi ? ";" : "");
+            result = "return " + value + (semi ? ";" : "");
+            return result.replace("->", "=>");
         }
         if (IF_PATTERN.matcher(segment).find() || WHILE_PATTERN.matcher(segment).find() || FOR_PATTERN.matcher(segment).find()) {
             int open = segment.indexOf('(');
@@ -562,10 +572,11 @@ public record JavaFile(PathLike file) {
                 String inner = segment.substring(open + 1, close);
                 String suffix = segment.substring(close);
                 String value = parseValue(inner);
-                return prefix + value + suffix;
+                result = prefix + value + suffix;
+                return result.replace("->", "=>");
             }
         }
-        return segment;
+        return result.replace("->", "=>");
     }
 
     private static String extractBlock(String source, int start) {

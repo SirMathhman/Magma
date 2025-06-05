@@ -4,7 +4,7 @@ import { Ok } from "./result/Ok";
 import { Result } from "./result/Result";
 export class JavaFile {
 	packageName(): Result<string, IOException> {
-		return file.readString().mapValue(source -> {
+		return file.readString().mapValue(source => {
 		let pattern: var = Pattern.compile("^package\\s+([\\w.]+);", Pattern.MULTILINE);
 		let matcher: var = pattern.matcher(source);
 		if (matcher.find()) {
@@ -135,12 +135,16 @@ export class JavaFile {
 		converted.add(tsType(part));
 		return converted;
 		private static String parseValue(String value) {
+		value = value.replace("=>", "=>");
 		let out: StringBuilder = new StringBuilder();
 		let i: number = 0;
 		while (i < value.length()) {
 		let ch: string = value.charAt(i);
 		if (Character.isWhitespace(ch)) {
 		out.append(ch);
+		if (ch == '-' && i + 1 < value.length() && value.charAt(i + 1) == '>') {
+		out.append(" = >");
+		i + = 2;
 		if (ch == '"' || ch == '\'') {
 		i = scanStringLiteral(value, i, out);
 		if (Character.isDigit(ch)) {
@@ -210,6 +214,7 @@ export class JavaFile {
 		return processSegment(stripped);
 		return null;
 		private static String processSegment(String segment) {
+		let result: string = segment;
 		if (ASSIGNMENT_PATTERN.matcher(segment).find()) {
 		let eq: number = segment.indexOf('=');
 		if (eq != -1) {
@@ -226,17 +231,19 @@ export class JavaFile {
 		let name: string = declMatch.group(2);
 		let isConst: boolean = before.startsWith("final ");
 		let kw: string = isConst ? "const" : "let";
-		return kw + " " + name + ": " + type + " = " + value + (semi ? ";" : "");
-		return before + " = " + value + (semi ? ";" : "");
+		result = kw + " " + name + ": " + type + " = " + value + (semi ? ";" : "");
+		result = before + " = " + value + (semi ? ";" : "");
+		return result.replace("=>", " = >");
 		if (RETURN_PATTERN.matcher(segment).find()) {
 		let rest: string = segment.substring(segment.indexOf("return") + 6).trim();
 		let semi: boolean = rest.endsWith(";");
 		if (semi) {
 		rest = rest.substring(0, rest.length() - 1).trim();
 		if (rest.isEmpty()) {
-		return segment;
+		return segment.replace("=>", " = >");
 		let value: string = parseValue(rest);
-		return "return " + value + (semi ? ";" : "");
+		result = "return " + value + (semi ? ";" : "");
+		return result.replace("=>", " = >");
 		if (IF_PATTERN.matcher(segment).find() || WHILE_PATTERN.matcher(segment).find() || FOR_PATTERN.matcher(segment).find()) {
 		let open: number = segment.indexOf('(');
 		let close: number = segment.lastIndexOf(')');
@@ -245,8 +252,9 @@ export class JavaFile {
 		let inner: string = segment.substring(open + 1, close);
 		let suffix: string = segment.substring(close);
 		let value: string = parseValue(inner);
-		return prefix + value + suffix;
-		return segment;
+		result = prefix + value + suffix;
+		return result.replace("=>", " = >");
+		return result.replace("=>", " = >");
 		private static String extractBlock(String source, int start) {
 		let level: number = 1;
 		let i: number = start;
@@ -369,12 +377,16 @@ export class JavaFile {
 		return converted;
 	}
 	static parseValue(value: string): string {
+		value = value.replace("=>", "=>");
 		let out: StringBuilder = new StringBuilder();
 		let i: number = 0;
 		while (i < value.length()) {
 		let ch: string = value.charAt(i);
 		if (Character.isWhitespace(ch)) {
 		out.append(ch);
+		if (ch == '-' && i + 1 < value.length() && value.charAt(i + 1) == '>') {
+		out.append(" = >");
+		i + = 2;
 		if (ch == '"' || ch == '\'') {
 		i = scanStringLiteral(value, i, out);
 		if (Character.isDigit(ch)) {
@@ -450,6 +462,7 @@ export class JavaFile {
 	}
 	processSegment(): return;
 	static processSegment(segment: string): string {
+		let result: string = segment;
 		if (ASSIGNMENT_PATTERN.matcher(segment).find()) {
 		let eq: number = segment.indexOf('=');
 		if (eq != -1) {
@@ -466,17 +479,19 @@ export class JavaFile {
 		let name: string = declMatch.group(2);
 		let isConst: boolean = before.startsWith("final ");
 		let kw: string = isConst ? "const" : "let";
-		return kw + " " + name + ": " + type + " = " + value + (semi ? ";" : "");
-		return before + " = " + value + (semi ? ";" : "");
+		result = kw + " " + name + ": " + type + " = " + value + (semi ? ";" : "");
+		result = before + " = " + value + (semi ? ";" : "");
+		return result.replace("=>", " = >");
 		if (RETURN_PATTERN.matcher(segment).find()) {
 		let rest: string = segment.substring(segment.indexOf("return") + 6).trim();
 		let semi: boolean = rest.endsWith(";");
 		if (semi) {
 		rest = rest.substring(0, rest.length() - 1).trim();
 		if (rest.isEmpty()) {
-		return segment;
+		return segment.replace("=>", " = >");
 		let value: string = parseValue(rest);
-		return "return " + value + (semi ? ";" : "");
+		result = "return " + value + (semi ? ";" : "");
+		return result.replace("=>", " = >");
 		if (IF_PATTERN.matcher(segment).find() || WHILE_PATTERN.matcher(segment).find() || FOR_PATTERN.matcher(segment).find()) {
 		let open: number = segment.indexOf('(');
 		let close: number = segment.lastIndexOf(')');
@@ -485,8 +500,9 @@ export class JavaFile {
 		let inner: string = segment.substring(open + 1, close);
 		let suffix: string = segment.substring(close);
 		let value: string = parseValue(inner);
-		return prefix + value + suffix;
-		return segment;
+		result = prefix + value + suffix;
+		return result.replace("=>", " = >");
+		return result.replace("=>", " = >");
 	}
 	static extractBlock(source: string, start: number): string {
 		let level: number = 1;
