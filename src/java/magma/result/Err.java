@@ -4,7 +4,7 @@ package magma.result;
  * Result variant representing failure.
  * See {@code Ok} for the success case.
  */
-public final class Err<T, X extends Exception> implements Result<T, X> {
+public final class Err<T, X> implements Result<T, X> {
     private final X error;
 
     public Err(X error) {
@@ -35,8 +35,4 @@ public final class Err<T, X extends Exception> implements Result<T, X> {
         return new Err<>(error);
     }
 
-    @Override
-    public T unwrap() {
-        throw new RuntimeException(error);
-    }
 }

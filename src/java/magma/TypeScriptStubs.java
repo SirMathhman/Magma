@@ -55,9 +55,9 @@ public final class TypeScriptStubs {
                 return new Some<>(((magma.result.Err<Map<String, List<String>>, IOException>) methodsRes).error());
             }
 
-            List<String> imports = importsRes.unwrap();
-            List<String> declarations = declarationsRes.unwrap();
-            Map<String, List<String>> methods = methodsRes.unwrap();
+            List<String> imports = magma.result.Results.unwrap(importsRes);
+            List<String> declarations = magma.result.Results.unwrap(declarationsRes);
+            Map<String, List<String>> methods = magma.result.Results.unwrap(methodsRes);
 
             String content = stubContent(relative, tsFile.getParent(), tsRoot,
                     imports, declarations, methods);
