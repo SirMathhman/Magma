@@ -7,25 +7,31 @@ The project is an early experiment for a future Magma compiler pipeline.
 
 ## Features
 
-- Extracts classes and interfaces from Java source files
-- Generates PlantUML diagrams of inheritance and dependencies with
+- [x] Extracts classes and interfaces from Java source files
+- [x] Generates PlantUML diagrams of inheritance and dependencies with
   orthogonal line routing
-- Renders `diagram.puml` to `diagram.png` using PlantUML
-- Produces TypeScript stubs mirroring the Java hierarchy
-- Record components become fields in the generated class constructor
-- Provides build, run and test helper scripts
-- Includes a simple `Result` type for functional-style error handling
-- Provides a minimal `Option` type (`Some`/`None`) instead of relying on
+- [x] Renders `diagram.puml` to `diagram.png` using PlantUML
+- [x] Produces TypeScript stubs mirroring the Java hierarchy
+- [x] Record components become fields in the generated class constructor
+- [x] Provides build, run and test helper scripts
+- [x] Includes a simple `Result` type for functional-style error handling
+- [x] Provides a minimal `Option` type (`Some`/`None`) instead of relying on
   `java.util.Optional` to keep the code platform agnostic
-- Handles generic type arguments when generating TypeScript
-- Preserves the `static` modifier on methods in the stubs
-- Preserves `extends` and `implements` on class declarations
-- Provides an `npm` command to type-check the generated stubs
-- Abstracts `java.nio.file.Path` behind a `PathLike` interface so TypeScript
+- [x] Handles generic type arguments when generating TypeScript
+- [x] Preserves the `static` modifier on methods in the stubs
+- [x] Preserves `extends` and `implements` on class declarations
+- [x] Provides an `npm` command to type-check the generated stubs
+- [x] Abstracts `java.nio.file.Path` behind a `PathLike` interface so TypeScript
   declarations do not reference JDK classes. `PathLike` includes helpers such as
   `writeString`, `createDirectories` and `walk`. Errors are captured in
   `Option` or `Result` values rather than thrown. `JVMPath` simply forwards to
   the standard library implementation.
+
+## Missing
+
+- [ ] Full support for `instanceof` expressions in method bodies
+- [ ] CI pipeline does not compile the generated TypeScript stubs
+- [ ] Method body parser lacks constructs such as `switch` or `try/catch` blocks
 
 
 ## Getting Started
