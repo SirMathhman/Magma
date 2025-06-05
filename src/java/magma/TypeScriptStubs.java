@@ -27,9 +27,6 @@ public final class TypeScriptStubs {
 
     public static Option<IOException> write(PathLike javaRoot, PathLike tsRoot) {
         List<PathLike> files;
-            if (relative.toString().replace('\\', '/').equals("magma/TypeScriptStubs.java")) {
-                continue;
-            }
         var walkRes = javaRoot.walk();
         if (walkRes.isErr()) {
             return new Some<>(((Err<Stream<PathLike>, IOException>) walkRes).error());
@@ -296,16 +293,6 @@ public final class TypeScriptStubs {
             String staticKw = mMatcher.group(1);
             String generics = mMatcher.group(2);
             String returnType = mMatcher.group(3);
-            if ("new".equals(returnType)) {
-                continue;
-            }
-            int startIdx = mMatcher.start();
-            if (startIdx > 0) {
-                char prev = body.charAt(startIdx - 1);
-                if (Character.isJavaIdentifierPart(prev) || prev == '.') {
-                    continue;
-                }
-            }
             String mName = mMatcher.group(4);
             String params = mMatcher.group(5);
             String delim = mMatcher.group(6);
@@ -417,18 +404,10 @@ public final class TypeScriptStubs {
                     if (last != -1) {
                         String type = part.substring(0, last).trim();
                         String name = part.substring(last + 1).trim();
-                        boolean varArgs = type.endsWith("...");
-                        if (varArgs) {
-                            type = type.substring(0, type.length() - 3);
-                        }
                         if (!first) {
                             out.append(", ");
                         }
-                        out.append(varArgs ? "..." : "");
                         out.append(name).append(": ").append(tsType(type));
-                        if (varArgs) {
-                            out.append("[]");
-                        }
                         first = false;
                     }
                 }

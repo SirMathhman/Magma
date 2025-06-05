@@ -14,6 +14,9 @@ import java.nio.file.Paths;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
+/**
+ * Wrapper implementation backed by {@code java.nio.file.Path}.
+ */
 public record JVMPath(Path path) implements PathLike {
     /**
      * Creates a new wrapper from a string path.
