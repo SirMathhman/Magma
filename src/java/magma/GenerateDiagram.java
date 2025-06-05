@@ -1,14 +1,12 @@
 package magma;
 
-import magma.option.None;
+import magma.option.Option;
 import magma.option.Some;
 import magma.result.Err;
 import magma.result.Ok;
 
 import java.io.IOException;
-import magma.PathLike;
 import java.util.List;
-import magma.option.Option;
 
 public class GenerateDiagram {
     // Helper methods split to comply with SRP (Single Responsibility Principle)

@@ -4,8 +4,7 @@ import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
 import java.nio.file.Files;
-import magma.PathLike;
-import magma.JVMPath;
+
 import magma.option.Option;
 
 import static magma.TestUtil.writeSource;
@@ -37,13 +36,13 @@ public class TypeScriptStubsTest {
     @Test
     public void createsAStub() {
         PathLike tsRoot = generateStubs();
-        assertTrue(Files.exists(tsRoot.resolve("test/A.ts").unwrap()));
+        assertTrue(tsRoot.resolve("test/A.ts").exists());
     }
 
     @Test
     public void createsBStub() {
         PathLike tsRoot = generateStubs();
-        assertTrue(Files.exists(tsRoot.resolve("test/B.ts").unwrap()));
+        assertTrue(tsRoot.resolve("test/B.ts").exists());
     }
 
     @Test
@@ -51,7 +50,7 @@ public class TypeScriptStubsTest {
         PathLike tsRoot = generateStubs();
         String content;
         try {
-            content = Files.readString(tsRoot.resolve("test/B.ts").unwrap());
+            content = tsRoot.resolve("test/B.ts").readString();
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -63,7 +62,7 @@ public class TypeScriptStubsTest {
         PathLike tsRoot = generateStubs();
         String content;
         try {
-            content = Files.readString(tsRoot.resolve("test/B.ts").unwrap());
+            content = tsRoot.resolve("test/B.ts").readString();
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -91,7 +90,7 @@ public class TypeScriptStubsTest {
         }
         long count;
         try {
-            count = Files.list(tsRoot.resolve("test").unwrap()).count();
+            count = tsRoot.resolve("test").list().count();
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -103,7 +102,7 @@ public class TypeScriptStubsTest {
         PathLike tsRoot = generateGenericStubs();
         String a;
         try {
-            a = Files.readString(tsRoot.resolve("test/A.ts").unwrap());
+            a = tsRoot.resolve("test/A.ts").readString();
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -136,7 +135,7 @@ public class TypeScriptStubsTest {
         PathLike tsRoot = generateGenericStubs();
         String i;
         try {
-            i = Files.readString(tsRoot.resolve("test/I.ts").unwrap());
+            i = tsRoot.resolve("test/I.ts").readString();
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -148,7 +147,7 @@ public class TypeScriptStubsTest {
         PathLike tsRoot = generateGenericStubs();
         String r;
         try {
-            r = Files.readString(tsRoot.resolve("test/R.ts").unwrap());
+            r = tsRoot.resolve("test/R.ts").readString();
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -179,7 +178,7 @@ public class TypeScriptStubsTest {
         PathLike tsRoot = generateMethodStubs();
         String a;
         try {
-            a = Files.readString(tsRoot.resolve("test/A.ts").unwrap());
+            a = tsRoot.resolve("test/A.ts").readString();
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -191,7 +190,7 @@ public class TypeScriptStubsTest {
         PathLike tsRoot = generateMethodStubs();
         String a;
         try {
-            a = Files.readString(tsRoot.resolve("test/A.ts").unwrap());
+            a = tsRoot.resolve("test/A.ts").readString();
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -203,7 +202,7 @@ public class TypeScriptStubsTest {
         PathLike tsRoot = generateMethodStubs();
         String a;
         try {
-            a = Files.readString(tsRoot.resolve("test/A.ts").unwrap());
+            a = tsRoot.resolve("test/A.ts").readString();
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -231,7 +230,7 @@ public class TypeScriptStubsTest {
 
         String c;
         try {
-            c = Files.readString(tsRoot.resolve("test/C.ts").unwrap());
+            c = tsRoot.resolve("test/C.ts").readString();
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -261,7 +260,7 @@ public class TypeScriptStubsTest {
 
         String a;
         try {
-            a = Files.readString(tsRoot.resolve("test/A.ts").unwrap());
+            a = tsRoot.resolve("test/A.ts").readString();
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -289,7 +288,7 @@ public class TypeScriptStubsTest {
 
         String a;
         try {
-            a = Files.readString(tsRoot.resolve("test/A.ts").unwrap());
+            a = tsRoot.resolve("test/A.ts").readString();
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -317,7 +316,7 @@ public class TypeScriptStubsTest {
 
         String a;
         try {
-            a = Files.readString(tsRoot.resolve("test/A.ts").unwrap());
+            a = tsRoot.resolve("test/A.ts").readString();
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -345,7 +344,7 @@ public class TypeScriptStubsTest {
 
         String a;
         try {
-            a = Files.readString(tsRoot.resolve("test/A.ts").unwrap());
+            a = tsRoot.resolve("test/A.ts").readString();
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -375,7 +374,7 @@ public class TypeScriptStubsTest {
 
         String a;
         try {
-            a = Files.readString(tsRoot.resolve("test/A.ts").unwrap());
+            a = tsRoot.resolve("test/A.ts").readString();
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
