@@ -11,12 +11,14 @@ final class TestUtil {
         PathLike file = root.resolve(relPath);
         try {
             var dirResult = file.getParent().createDirectories();
-            if (dirResult.isPresent()) {
-                throw dirResult.get();
+            var dirTuple = dirResult.toTuple(null);
+            if (dirTuple.left()) {
+                throw dirTuple.right();
             }
             var writeResult = file.writeString(content);
-            if (writeResult.isPresent()) {
-                throw writeResult.get();
+            var writeTuple = writeResult.toTuple(null);
+            if (writeTuple.left()) {
+                throw writeTuple.right();
             }
         } catch (IOException e) {
             throw new RuntimeException(e);
