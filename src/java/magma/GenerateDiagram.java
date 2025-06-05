@@ -2,11 +2,12 @@ package magma;
 
 import magma.option.Option;
 import magma.option.Some;
-import magma.result.Err;
-import magma.result.Ok;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class GenerateDiagram {
     // Helper methods split to comply with SRP (Single Responsibility Principle)
@@ -14,31 +15,27 @@ public class GenerateDiagram {
     /**
      * Generates a PlantUML diagram and writes it to {@code output}. Instead of
      * throwing an exception, any I/O error is returned wrapped in an
-     * {@link magma.option.Option}.
+     * {@link Option}.
      */
     public static Option<IOException> writeDiagram(PathLike output) {
         PathLike src = JVMPath.of("src/java/magma");
-        var sources = Sources.read(src);
-        if (sources.isErr()) {
-            return new Some<>(((Err<List<String>, IOException>) sources).error());
-        }
-        List<String> allSources = ((Ok<List<String>, IOException>) sources).value();
-        Sources analysis = new Sources(allSources);
-        List<String> classes = analysis.findClasses();
+        return Sources.read(src).match(allSources -> {
+            Sources analysis = new Sources(allSources);
+            List<String> classes = analysis.findClasses();
 
-        var implementations = analysis.findImplementations();
-        var sourceMap = analysis.mapSourcesByClass();
+            var implementations = analysis.findImplementations();
+            var sourceMap = analysis.mapSourcesByClass();
 
-        StringBuilder content = new StringBuilder("@startuml\n");
-        content.append("skinparam linetype ortho\n");
-        content.append(classesSection(classes, sourceMap));
-        content.append(analysis.formatRelations(classes, implementations));
-        content.append("@enduml\n");
-        return output.writeString(content.toString());
+            String content = "@startuml\n" + "skinparam linetype ortho\n" +
+                    classesSection(classes, sourceMap) +
+                    analysis.formatRelations(classes, implementations) +
+                    "@enduml\n";
+            return output.writeString(content);
+        }, Some::new);
     }
 
     private static String classesSection(List<String> classes,
-                                         java.util.Map<String, String> sourceMap) {
+                                         Map<String, String> sourceMap) {
         StringBuilder builder = new StringBuilder();
         for (String name : classes) {
             String source = sourceMap.getOrDefault(name, "");
@@ -49,9 +46,9 @@ public class GenerateDiagram {
     }
 
     private static String classType(String name, String source) {
-        java.util.regex.Pattern pattern = java.util.regex.Pattern.compile(
-                "(class|interface|record)\\s+" + java.util.regex.Pattern.quote(name) + "\\b");
-        java.util.regex.Matcher matcher = pattern.matcher(source);
+        Pattern pattern = Pattern.compile(
+                "(class|interface|record)\\s+" + Pattern.quote(name) + "\\b");
+        Matcher matcher = pattern.matcher(source);
         if (matcher.find()) {
             String kind = matcher.group(1);
             if ("interface".equals(kind)) {
