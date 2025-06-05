@@ -15,6 +15,13 @@ import java.util.stream.Stream;
  * Wrapper implementation backed by {@code java.nio.file.Path}.
  */
 public record JVMPath(Path path) implements PathLike {
+    /**
+     * Creates a new wrapper from a string path.
+     */
+    public static PathLike of(String first, String... more) {
+        return new JVMPath(Path.of(first, more));
+    }
+
     @Override
     public String toString() {
         return path.toString();
@@ -71,8 +78,8 @@ public record JVMPath(Path path) implements PathLike {
     }
 
     @Override
-    public Stream<Path> walk() throws IOException {
-        return Files.walk(path);
+    public Stream<PathLike> walk() throws IOException {
+        return Files.walk(path).map(JVMPath::new);
     }
 
     @Override
@@ -81,8 +88,8 @@ public record JVMPath(Path path) implements PathLike {
     }
 
     @Override
-    public Stream<Path> list() throws IOException {
-        return Files.list(path);
+    public Stream<PathLike> list() throws IOException {
+        return Files.list(path).map(JVMPath::new);
     }
 
     @Override
@@ -95,5 +102,10 @@ public record JVMPath(Path path) implements PathLike {
         return IntStream.range(0, path.getNameCount())
                 .mapToObj(path::getName)
                 .map(Path::toString);
+    }
+
+    @Override
+    public boolean isRegularFile() {
+        return Files.isRegularFile(path);
     }
 }

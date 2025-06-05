@@ -24,9 +24,9 @@ import java.util.stream.Stream;
 public record Sources(List<String> list) {
 
     public static Result<List<String>, IOException> read(PathLike directory) {
-        List<java.nio.file.Path> files;
-        try (Stream<java.nio.file.Path> stream = directory.walk()) {
-            files = stream.filter(Files::isRegularFile)
+        List<PathLike> files;
+        try (Stream<PathLike> stream = directory.walk()) {
+            files = stream.filter(PathLike::isRegularFile)
                     .filter(p -> p.toString().endsWith(".java"))
                     .toList();
         } catch (IOException e) {
@@ -34,9 +34,9 @@ public record Sources(List<String> list) {
         }
 
         List<String> sources = new ArrayList<>();
-        for (java.nio.file.Path file : files) {
+        for (PathLike file : files) {
             try {
-                sources.add(Files.readString(file));
+                sources.add(file.readString());
             } catch (IOException e) {
                 return new Err<>(e);
             }

@@ -3,7 +3,6 @@ package magma;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
-import magma.PathLike;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -17,7 +16,7 @@ public class OptionDependencyTest {
 
     @Test
     public void stubsDependOnSomeAndNoneNotOption() {
-        Result<List<String>, IOException> res = Sources.read(PathLike.of("src/java"));
+        Result<List<String>, IOException> res = Sources.read(JVMPath.of("src/java"));
         assertTrue(res.isOk(), "reading sources failed");
         Sources sources = new Sources(magma.result.Results.unwrap(res));
         List<String> classes = sources.findClasses();

@@ -17,7 +17,7 @@ public class GenerateDiagram {
      * {@link magma.option.Option}.
      */
     public static Option<IOException> writeDiagram(PathLike output) {
-        PathLike src = PathLike.of("src/java/magma");
+        PathLike src = JVMPath.of("src/java/magma");
         var sources = Sources.read(src);
         if (sources.isErr()) {
             return new Some<>(((Err<List<String>, IOException>) sources).error());

@@ -9,8 +9,6 @@ import magma.result.Result;
 import magma.result.Results;
 
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedHashMap;
@@ -28,17 +26,17 @@ public final class TypeScriptStubs {
     }
 
     public static Option<IOException> write(PathLike javaRoot, PathLike tsRoot) {
-        List<Path> files;
-        try (Stream<Path> stream = javaRoot.walk()) {
-            files = stream.filter(Files::isRegularFile)
+        List<PathLike> files;
+        try (Stream<PathLike> stream = javaRoot.walk()) {
+            files = stream.filter(PathLike::isRegularFile)
                     .filter(p -> p.toString().endsWith(".java"))
                     .toList();
         } catch (IOException e) {
             return new Some<>(e);
         }
 
-        for (Path file : files) {
-            PathLike relative = javaRoot.relativize(new JVMPath(file));
+        for (PathLike file : files) {
+            PathLike relative = javaRoot.relativize(file);
             PathLike tsFile = tsRoot.resolve(relative.toString().replaceFirst("\\.java$", ".ts"));
             var dirResult = tsFile.getParent().createDirectories();
             if (dirResult.isPresent()) {
@@ -74,13 +72,14 @@ public final class TypeScriptStubs {
         return new None<>();
     }
 
-    private static Result<List<String>, IOException> readImports(Path file) {
+    private static Result<List<String>, IOException> readImports(PathLike file) {
         String source;
         try {
-            source = Files.readString(file);
+            source = file.readString();
         } catch (IOException e) {
             return new Err<>(e);
         }
+
         var pattern = Pattern.compile("^import\\s+([\\w.]+);", Pattern.MULTILINE);
         var matcher = pattern.matcher(source);
         List<String> imports = new ArrayList<>();
@@ -93,13 +92,14 @@ public final class TypeScriptStubs {
         return new Ok<>(imports);
     }
 
-    private static Result<List<String>, IOException> readDeclarations(Path file) {
+    private static Result<List<String>, IOException> readDeclarations(PathLike file) {
         String source;
         try {
-            source = Files.readString(file);
+            source = file.readString();
         } catch (IOException e) {
             return new Err<>(e);
         }
+
         source = source.replaceAll("(?s)/\\*.*?\\*/", "");
         source = source.replaceAll("//.*", "");
 
@@ -152,13 +152,14 @@ public final class TypeScriptStubs {
         return new Ok<>(declarations);
     }
 
-    private static Result<Map<String, List<String>>, IOException> readMethods(Path file) {
+    private static Result<Map<String, List<String>>, IOException> readMethods(PathLike file) {
         String source;
         try {
-            source = Files.readString(file);
+            source = file.readString();
         } catch (IOException e) {
             return new Err<>(e);
         }
+
         source = source.replaceAll("(?s)/\\*.*?\\*/", "");
         source = source.replaceAll("//.*", "");
         Map<String, List<String>> map = new LinkedHashMap<>();

@@ -3,20 +3,12 @@ package magma;
 import magma.option.Option;
 
 import java.io.IOException;
-import java.nio.file.Path;
 import java.util.stream.Stream;
 
 /**
  * Lightweight wrapper interface around {@code java.nio.file.Path}.
  */
 public interface PathLike {
-    /**
-     * Creates a new wrapper from a string path.
-     */
-    static PathLike of(String first, String... more) {
-        return new JVMPath(Path.of(first, more));
-    }
-
     /**
      * Resolves {@code other} against this path.
      */
@@ -51,13 +43,15 @@ public interface PathLike {
     /**
      * Returns a lazily populated stream of the files under this path.
      */
-    Stream<Path> walk() throws IOException;
+    Stream<PathLike> walk() throws IOException;
 
     boolean exists();
 
-    Stream<Path> list() throws IOException;
+    Stream<PathLike> list() throws IOException;
 
     String readString() throws IOException;
 
     Stream<String> streamNames();
+
+    boolean isRegularFile();
 }
