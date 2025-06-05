@@ -9,6 +9,8 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.HashSet;
 import java.util.regex.Pattern;
 
 /**
@@ -181,9 +183,17 @@ public record JavaFile(PathLike file) {
             String kind = cMatcher.group(1);
             String name = cMatcher.group(2);
             int start = cMatcher.end();
-            String body = extractClassBody(source, start);
+            var bodyRes = extractClassBody(source, start);
+            if (bodyRes.isErr()) {
+                return new Err<>(((Err<String, IOException>) bodyRes).error());
+            }
+            String body = ((Ok<String, IOException>) bodyRes).value();
             boolean isInterface = "interface".equals(kind);
-            List<String> list = parseMethods(body, name, isInterface);
+            var methodsRes = parseMethods(body, name, isInterface);
+            if (methodsRes.isErr()) {
+                return new Err<>(((Err<List<String>, IOException>) methodsRes).error());
+            }
+            List<String> list = ((Ok<List<String>, IOException>) methodsRes).value();
 
             if ("record".equals(kind)) {
                 String header = source.substring(cMatcher.start(), start - 1);
@@ -213,7 +223,7 @@ public record JavaFile(PathLike file) {
         return new Ok<>(map);
     }
 
-    private static String extractClassBody(String source, int start) {
+    private static Result<String, IOException> extractClassBody(String source, int start) {
         int level = 1;
         int i = start;
         while (i < source.length() && level > 0) {
@@ -226,10 +236,13 @@ public record JavaFile(PathLike file) {
             }
             i++;
         }
-        return source.substring(start, i - 1);
+        if (level != 0) {
+            return new Err<>(new ParseException("missing '}'"));
+        }
+        return new Ok<>(source.substring(start, i - 1));
     }
 
-    private static List<String> parseMethods(String body, String className, boolean isInterface) {
+    private static Result<List<String>, IOException> parseMethods(String body, String className, boolean isInterface) {
         var methodPat = Pattern.compile(
                 "(?:public\\s+|protected\\s+|private\\s+)?(static\\s+)?(?:final\\s+)?(<[^>]+>\\s+)?([\\w.]+(?:<[^>]+>)?(?:\\[\\])*)\\s+(\\w+)\\s*\\(([^)]*)\\)\\s*(\\{|;)");
         var mMatcher = methodPat.matcher(body);
@@ -243,9 +256,13 @@ public record JavaFile(PathLike file) {
             String methodBody = "";
             if ("{".equals(delim)) {
                 int start = mMatcher.end();
-                methodBody = extractBlock(body, start);
+                var blockRes = extractBlock(body, start);
+                if (blockRes.isErr()) {
+                    return new Err<>(((Err<String, IOException>) blockRes).error());
+                }
+                methodBody = ((Ok<String, IOException>) blockRes).value();
             }
-            addMethod(list,
+            var addRes = addMethod(list,
                     mMatcher.group(1),
                     mMatcher.group(2),
                     mMatcher.group(3),
@@ -254,11 +271,14 @@ public record JavaFile(PathLike file) {
                     delim,
                     isInterface,
                     methodBody);
+            if (addRes.isErr()) {
+                return new Err<>(((Err<Void, IOException>) addRes).error());
+            }
         }
-        return list;
+        return new Ok<>(list);
     }
 
-    private static void addMethod(List<String> list, String staticKw, String generics,
+    private static Result<Void, IOException> addMethod(List<String> list, String staticKw, String generics,
                                   String returnType, String name, String params,
                                   String delim, boolean isInterface,
                                   String body) {
@@ -267,10 +287,16 @@ public record JavaFile(PathLike file) {
         String paramList = tsParams(params);
         if (isInterface || ";".equals(delim)) {
             list.add("\t" + prefix + name + typeParams + "(" + paramList + "): " + tsType(returnType) + ";");
-            return;
+            return new Ok<>(null);
         }
         list.add("\t" + prefix + name + typeParams + "(" + paramList + "): " + tsType(returnType) + " {");
-        List<String> segs = MethodBodyParser.parseSegments(body);
+        Set<String> defined = new HashSet<>(paramNames(params));
+        defined.add("this");
+        var segRes = MethodBodyParser.parseSegments(body, defined);
+        if (segRes.isErr()) {
+            return new Err<>(((Err<List<String>, IOException>) segRes).error());
+        }
+        List<String> segs = ((Ok<List<String>, IOException>) segRes).value();
         if (segs.isEmpty()) {
             list.add("\t\treturn 0;");
         } else {
@@ -279,6 +305,7 @@ public record JavaFile(PathLike file) {
             }
         }
         list.add("\t}");
+        return new Ok<>(null);
     }
 
     private static String tsParams(String javaParams) {
@@ -321,6 +348,36 @@ public record JavaFile(PathLike file) {
         }
         out.append(name).append(": ").append(tsType(type));
         return false;
+    }
+
+    private static List<String> paramNames(String javaParams) {
+        javaParams = javaParams.trim();
+        List<String> names = new ArrayList<>();
+        int depth = 0;
+        int start = 0;
+        for (int i = 0; i <= javaParams.length(); i++) {
+            boolean atEnd = i == javaParams.length();
+            boolean atComma = !atEnd && javaParams.charAt(i) == ',' && depth == 0;
+            if (atEnd || atComma) {
+                String part = javaParams.substring(start, i).trim();
+                if (!part.isEmpty()) {
+                    int last = part.lastIndexOf(' ');
+                    if (last != -1) {
+                        String name = part.substring(last + 1).trim();
+                        names.add(name);
+                    }
+                }
+                start = i + 1;
+                continue;
+            }
+            if (javaParams.charAt(i) == '<') {
+                depth++;
+            }
+            else if (javaParams.charAt(i) == '>') {
+                depth--;
+            }
+        }
+        return names;
     }
 
     private static List<Param> parseRecordParams(String javaParams) {
@@ -430,7 +487,7 @@ public record JavaFile(PathLike file) {
     }
 
 
-    private static String extractBlock(String source, int start) {
+    private static Result<String, IOException> extractBlock(String source, int start) {
         int level = 1;
         int i = start;
         while (i < source.length() && level > 0) {
@@ -443,7 +500,10 @@ public record JavaFile(PathLike file) {
             }
             i++;
         }
-        return source.substring(start, i - 1);
+        if (level != 0) {
+            return new Err<>(new ParseException("missing '}'"));
+        }
+        return new Ok<>(source.substring(start, i - 1));
     }
 
     private static String sanitizeWildcard(String type) {
