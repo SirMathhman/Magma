@@ -4,6 +4,10 @@ import { Ok } from "./result/Ok";
 import { Result } from "./result/Result";
 import { PathLike } from "./PathLike";
 export class Sources {
+	list: List<string>;
+	constructor(list: List<string>) {
+		this.list = list;
+	}
 	findClasses(): List<string> {
 		let pattern: Pattern = Pattern.compile(
 		"(?:class|interface|record)\\s+(\\w+)",

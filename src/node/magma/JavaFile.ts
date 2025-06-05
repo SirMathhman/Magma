@@ -3,6 +3,13 @@ import { Err } from "./result/Err";
 import { Ok } from "./result/Ok";
 import { Result } from "./result/Result";
 export class JavaFile {
+	file: PathLike;
+	constructor(file: PathLike) {
+		this.file = file;
+	}
+	static Param(name: string, tsType: string): record {
+		return 0;
+	}
 	packageName(): Result<string, IOException> {
 		return file.readString().mapValue(source => {
 			let pattern: var = Pattern.compile("^package\\s+([\\w.]+);
@@ -113,6 +120,34 @@ export class JavaFile {
 					}
 					out.append(name).append(": ").append(tsType(type));
 					return false;
+				}
+				private static List<Param> parseRecordParams(String javaParams) {
+					javaParams = javaParams.trim();
+					let list: List<Param> = new ArrayList<>();
+					let depth: number = 0;
+					let start: number = 0;
+					for (int i = 0;
+					i <= javaParams.length();
+						let atEnd: boolean = i == javaParams.length();
+						let atComma: boolean = !atEnd && javaParams.charAt(i) == ',' && depth == 0;
+						if (atEnd || atComma) {
+							let part: string = javaParams.substring(start, i).trim();
+							if (!part.isEmpty()) {
+								let last: number = part.lastIndexOf(' ');
+								if (last != -1) {
+									let type: string = part.substring(0, last).trim();
+									let name: string = part.substring(last + 1).trim();
+									list.add(new Param(name, tsType(type)));
+								}
+							}
+							start = i + 1;
+						}
+						if (javaParams.charAt(i) == '<') {
+						}
+						else if (javaParams.charAt(i) == '>') {
+						}
+					}
+					return list;
 				}
 				static String tsType(String javaType) {
 					javaType = javaType.trim();
@@ -258,6 +293,34 @@ export class JavaFile {
 		}
 		out.append(name).append(": ").append(tsType(type));
 		return false;
+	}
+	static parseRecordParams(javaParams: string): List<Param> {
+		javaParams = javaParams.trim();
+		let list: List<Param> = new ArrayList<>();
+		let depth: number = 0;
+		let start: number = 0;
+		for (int i = 0;
+		i <= javaParams.length();
+			let atEnd: boolean = i == javaParams.length();
+			let atComma: boolean = !atEnd && javaParams.charAt(i) == ',' && depth == 0;
+			if (atEnd || atComma) {
+				let part: string = javaParams.substring(start, i).trim();
+				if (!part.isEmpty()) {
+					let last: number = part.lastIndexOf(' ');
+					if (last != -1) {
+						let type: string = part.substring(0, last).trim();
+						let name: string = part.substring(last + 1).trim();
+						list.add(new Param(name, tsType(type)));
+					}
+				}
+				start = i + 1;
+			}
+			if (javaParams.charAt(i) == '<') {
+			}
+			else if (javaParams.charAt(i) == '>') {
+			}
+		}
+		return list;
 	}
 	static tsType(javaType: string): string {
 		javaType = javaType.trim();
