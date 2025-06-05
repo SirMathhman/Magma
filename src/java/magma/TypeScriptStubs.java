@@ -8,7 +8,9 @@ import java.nio.file.Files;
 import magma.PathLike;
 import magma.JVMPath;
 
+import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -19,6 +21,7 @@ import magma.option.Some;
 import magma.result.Err;
 import magma.result.Ok;
 import magma.result.Result;
+import magma.result.Results;
 
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
@@ -31,8 +34,8 @@ public final class TypeScriptStubs {
     private TypeScriptStubs() {}
 
     public static Option<IOException> write(PathLike javaRoot, PathLike tsRoot) {
-        List<java.nio.file.Path> files;
-        try (Stream<java.nio.file.Path> stream = javaRoot.walk()) {
+        List<Path> files;
+        try (Stream<Path> stream = javaRoot.walk()) {
             files = stream.filter(Files::isRegularFile)
                     .filter(p -> p.toString().endsWith(".java"))
                     .toList();
@@ -40,7 +43,7 @@ public final class TypeScriptStubs {
             return new Some<>(e);
         }
 
-        for (java.nio.file.Path file : files) {
+        for (Path file : files) {
             PathLike relative = javaRoot.relativize(new JVMPath(file));
             PathLike tsFile = tsRoot.resolve(relative.toString().replaceFirst("\\.java$", ".ts"));
             var dirResult = tsFile.getParent().createDirectories();
@@ -60,12 +63,12 @@ public final class TypeScriptStubs {
 
             var methodsRes = readMethods(file);
             if (methodsRes.isErr()) {
-                return new Some<>(((magma.result.Err<Map<String, List<String>>, IOException>) methodsRes).error());
+                return new Some<>(((Err<Map<String, List<String>>, IOException>) methodsRes).error());
             }
 
-            List<String> imports = magma.result.Results.unwrap(importsRes);
-            List<String> declarations = magma.result.Results.unwrap(declarationsRes);
-            Map<String, List<String>> methods = magma.result.Results.unwrap(methodsRes);
+            List<String> imports = Results.unwrap(importsRes);
+            List<String> declarations = Results.unwrap(declarationsRes);
+            Map<String, List<String>> methods = Results.unwrap(methodsRes);
 
             String content = stubContent(relative, tsFile.getParent(), tsRoot,
                     imports, declarations, methods);
@@ -77,12 +80,12 @@ public final class TypeScriptStubs {
         return new None<>();
     }
 
-    private static Result<List<String>, IOException> readImports(java.nio.file.Path file) {
+    private static Result<List<String>, IOException> readImports(Path file) {
         String source;
         try {
             source = Files.readString(file);
         } catch (IOException e) {
-            return new magma.result.Err<>(e);
+            return new Err<>(e);
         }
         var pattern = Pattern.compile("^import\\s+([\\w.]+);", Pattern.MULTILINE);
         var matcher = pattern.matcher(source);
@@ -96,12 +99,12 @@ public final class TypeScriptStubs {
         return new Ok<>(imports);
     }
 
-    private static Result<List<String>, IOException> readDeclarations(java.nio.file.Path file) {
+    private static Result<List<String>, IOException> readDeclarations(Path file) {
         String source;
         try {
             source = Files.readString(file);
         } catch (IOException e) {
-            return new magma.result.Err<>(e);
+            return new Err<>(e);
         }
         source = source.replaceAll("(?s)/\\*.*?\\*/", "");
         source = source.replaceAll("//.*", "");
@@ -154,12 +157,12 @@ public final class TypeScriptStubs {
         return new Ok<>(declarations);
     }
 
-    private static Result<Map<String, List<String>>, IOException> readMethods(java.nio.file.Path file) {
+    private static Result<Map<String, List<String>>, IOException> readMethods(Path file) {
         String source;
         try {
             source = Files.readString(file);
         } catch (IOException e) {
-            return new magma.result.Err<>(e);
+            return new Err<>(e);
         }
         source = source.replaceAll("(?s)/\\*.*?\\*/", "");
         source = source.replaceAll("//.*", "");
@@ -275,7 +278,7 @@ public final class TypeScriptStubs {
             return;
         }
         String name = m.group(1);
-        List<String> mList = methods.getOrDefault(name, java.util.Collections.emptyList());
+        List<String> mList = methods.getOrDefault(name, Collections.emptyList());
         if (mList.isEmpty()) {
             builder.append(decl).append(System.lineSeparator());
             return;
@@ -328,7 +331,7 @@ public final class TypeScriptStubs {
         if (lt != -1 && javaType.endsWith(">")) {
             String base = javaType.substring(0, lt);
             String args = javaType.substring(lt + 1, javaType.length() - 1);
-            java.util.List<String> converted = convertTypes(splitGenericArgs(args));
+            List<String> converted = convertTypes(splitGenericArgs(args));
             for (int i = 0; i < converted.size(); i++) {
                 converted.set(i, sanitizeWildcard(converted.get(i)));
             }
@@ -363,8 +366,8 @@ public final class TypeScriptStubs {
         };
     }
 
-    private static java.util.List<String> splitGenericArgs(String args) {
-        java.util.List<String> parts = new ArrayList<>();
+    private static List<String> splitGenericArgs(String args) {
+        List<String> parts = new ArrayList<>();
         int depth = 0;
         int start = 0;
         for (int i = 0; i < args.length(); i++) {
@@ -378,8 +381,8 @@ public final class TypeScriptStubs {
         return parts;
     }
 
-    private static java.util.List<String> convertTypes(java.util.List<String> parts) {
-        java.util.List<String> converted = new ArrayList<>();
+    private static List<String> convertTypes(List<String> parts) {
+        List<String> converted = new ArrayList<>();
         for (String part : parts) {
             converted.add(tsType(part));
         }
