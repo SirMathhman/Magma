@@ -1,5 +1,3 @@
-package magma;
-
 import Files from java.nio.file.Files.
 import Path from java.nio.file.Path.
 import Paths from java.nio.file.Paths.
