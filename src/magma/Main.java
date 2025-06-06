@@ -22,6 +22,9 @@ public class Main {
         }
         matcher.appendTail(sb);
 
-        Files.writeString(target, sb.toString());
+        String replaced = sb.toString()
+                .replaceFirst("public\\s+class\\s+(\\w+)\\s*\\{", "class def $1() => {");
+
+        Files.writeString(target, replaced);
     }
 }
