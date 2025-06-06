@@ -4,19 +4,15 @@ class State {
 	/*private final*/ segments: List<String>;
 	/*private*/ buffer: StringBuilder;
 	/*private*/ depth: int;
-	/*
-
-        public State*/(/*List<String> segments*//* StringBuilder buffer*//* int depth*/): /**//* {
+	State(segments: List<String>, buffer: StringBuilder, depth: int): public/* {
             this.segments = segments;
             this.buffer = buffer;
             this.depth = depth;
         }*/
-	/*
-
-        public State*/(/**/): /**//* {
+	State(/**/): public/* {
             this(new ArrayList<>(), new StringBuilder(), 0);
         }*/
-	/*private*/ append(/*char c*/): State/* {
+	/*private*/ append(c: char): State/* {
             getBuffer().append(c);
             return this;
         }*/
@@ -42,13 +38,13 @@ class State {
 	/*public*/ getBuffer(/**/): StringBuilder/* {
             return buffer;
         }*/
-	/*public*/ setBuffer(/*StringBuilder buffer*/): void/* {
+	/*public*/ setBuffer(buffer: StringBuilder): void/* {
             this.buffer = buffer;
         }*/
 	/*public*/ getDepth(/**/): int/* {
             return depth;
         }*/
-	/*public*/ setDepth(/*int depth*/): void/* {
+	/*public*/ setDepth(depth: int): void/* {
             this.depth = depth;
         }*/
 	/*public*/ segments(/**/): List<String>/* {
@@ -56,7 +52,7 @@ class State {
         }*/
 }
 export class Main {
-	/*public static*/ main(/*String[] args*/): void/* {
+	/*public static*/ main(args: String[]): void/* {
         try {
             final var source = Paths.get(".", "src", "magma", "Main.java");
             final var target = source.resolveSibling("Main.ts");
@@ -69,22 +65,26 @@ export class Main {
             e.printStackTrace();
         }
     }*/
-	/*private static*/ compile(/*String input*/): String/* {
+	/*private static*/ compile(input: String): String/* {
         return compileStatements(input, Main::compileRootSegment);
     }*/
-	/*private static*/ compileStatements(/*String input*//* Function<String*//* String> mapper*/): String/* {
-        return compileAll(input, mapper, Main::foldStatements);
+	/*private static*/ compileStatements(input: String, /* Function<String*/, mapper: String>): String/* {
+        return compileAll(input, mapper, Main::foldStatements, Main::mergeStatements);
     }*/
-	/*private static*/ compileAll(/*String input*//* Function<String*//* String> mapper*//* BiFunction<State*//* Character*//* State> folder*/): String/* {
+	/*private static*/ compileAll(input: String, /* Function<String*/, mapper: String>, /* BiFunction<State*/, /* Character*/, folder: State>, /* BiFunction<StringBuilder*/, /* String*/, merger: StringBuilder>): String/* {
         final var segments = divide(input, folder);
-        final var output = new StringBuilder();
+        var output = new StringBuilder();
         for (var segment : segments) {
-            output.append(mapper.apply(segment));
+            final var compiled = mapper.apply(segment);
+            output = merger.apply(output, compiled);
         }
 
         return output.toString();
     }*/
-	/*private static*/ divide(/*String input*//* BiFunction<State*//* Character*//* State> folder*/): List<String>/* {
+	/*private static*/ mergeStatements(output: StringBuilder, compiled: String): StringBuilder/* {
+        return output.append(compiled);
+    }*/
+	/*private static*/ divide(input: String, /* BiFunction<State*/, /* Character*/, folder: State>): List<String>/* {
         State state = new State();
         final var length = input.length();
         var current = state;
@@ -95,7 +95,7 @@ export class Main {
 
         return current.advance().segments;
     }*/
-	/*private static*/ foldStatements(/*State current*//* char c*/): State/* {
+	/*private static*/ foldStatements(current: State, c: char): State/* {
         final var appended = current.append(c);
         if (c == ';' && appended.isLevel()) {
             return appended.advance();
@@ -111,8 +111,8 @@ export class Main {
         if (c == '}*/
 	/*') {
            */ appended.exit(/**/): return/*;
-        }*//*
-        return appended;*/
+        }*/
+	appended: return;
 }
 /*
 
@@ -232,7 +232,7 @@ export class Main {
                 final var inputParams = withParams.substring(0, paramEnd);
                 final var withBraces = withParams.substring(paramEnd + ")".length());
                 final var outputDefinition = compileDefinitionOrPlaceholder(inputDefinition);
-                final var outputParams = compileAll(inputParams, Main::compileSimpleDefinitionOrPlaceholder, Main::foldValues);
+                final var outputParams = compileAll(inputParams, Main::compileSimpleDefinitionOrPlaceholder, Main::foldValues, Main::mergeValues);
 
                 final var generated = "\n\t" + outputDefinition.left + "(" + outputParams + "): " + outputDefinition.right + generatePlaceholder(withBraces);
                 return Optional.of(new Tuple<>(generated, Collections.emptyList()));
@@ -242,6 +242,13 @@ export class Main {
         return Optional.empty();
     }*//*
 
+    private static StringBuilder mergeValues(StringBuilder cache, String element) {
+        if (!cache.isEmpty()) {
+            cache.append(", ");
+        }
+        return cache.append(element);
+    }*//*
+
     private static State foldValues(State state, char c) {
         if (c == ',') {
             return state.advance();
@@ -249,8 +256,8 @@ export class Main {
         return state.append(c);
     }*//*
 
-    private static String compileSimpleDefinitionOrPlaceholder(String s) {
-        return compileSimpleDefinition(s).orElseGet(() -> generatePlaceholder(s));
+    private static String compileSimpleDefinitionOrPlaceholder(String input) {
+        return compileSimpleDefinition(input).orElseGet(() -> generatePlaceholder(input));
     }*//*
 
     private static Tuple<String, String> compileDefinitionOrPlaceholder(String input) {
@@ -264,11 +271,13 @@ export class Main {
             final var beforeName = stripped.substring(0, nameSeparator).strip();
             final var name = stripped.substring(nameSeparator + " ".length());
             final var typeSeparator = beforeName.lastIndexOf(" ");
-            if (typeSeparator >= 0) {
-                final var beforeType = beforeName.substring(0, typeSeparator);
-                final var type = beforeName.substring(typeSeparator + " ".length());
-                return Optional.of(new Tuple<>(generatePlaceholder(beforeType) + " " + name, type));
+            if (typeSeparator < 0) {
+                return Optional.of(new Tuple<>(name, beforeName));
             }
+
+            final var beforeType = beforeName.substring(0, typeSeparator);
+            final var type = beforeName.substring(typeSeparator + " ".length());
+            return Optional.of(new Tuple<>(generatePlaceholder(beforeType) + " " + name, type));
         }
         return Optional.empty();
     }*//*

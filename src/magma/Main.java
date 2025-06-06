@@ -98,17 +98,22 @@ public class Main {
     }
 
     private static String compileStatements(String input, Function<String, String> mapper) {
-        return compileAll(input, mapper, Main::foldStatements);
+        return compileAll(input, mapper, Main::foldStatements, Main::mergeStatements);
     }
 
-    private static String compileAll(String input, Function<String, String> mapper, BiFunction<State, Character, State> folder) {
+    private static String compileAll(String input, Function<String, String> mapper, BiFunction<State, Character, State> folder, BiFunction<StringBuilder, String, StringBuilder> merger) {
         final var segments = divide(input, folder);
-        final var output = new StringBuilder();
+        var output = new StringBuilder();
         for (var segment : segments) {
-            output.append(mapper.apply(segment));
+            final var compiled = mapper.apply(segment);
+            output = merger.apply(output, compiled);
         }
 
         return output.toString();
+    }
+
+    private static StringBuilder mergeStatements(StringBuilder output, String compiled) {
+        return output.append(compiled);
     }
 
     private static List<String> divide(String input, BiFunction<State, Character, State> folder) {
@@ -258,7 +263,7 @@ public class Main {
                 final var inputParams = withParams.substring(0, paramEnd);
                 final var withBraces = withParams.substring(paramEnd + ")".length());
                 final var outputDefinition = compileDefinitionOrPlaceholder(inputDefinition);
-                final var outputParams = compileAll(inputParams, Main::compileSimpleDefinitionOrPlaceholder, Main::foldValues);
+                final var outputParams = compileAll(inputParams, Main::compileSimpleDefinitionOrPlaceholder, Main::foldValues, Main::mergeValues);
 
                 final var generated = "\n\t" + outputDefinition.left + "(" + outputParams + "): " + outputDefinition.right + generatePlaceholder(withBraces);
                 return Optional.of(new Tuple<>(generated, Collections.emptyList()));
@@ -268,6 +273,13 @@ public class Main {
         return Optional.empty();
     }
 
+    private static StringBuilder mergeValues(StringBuilder cache, String element) {
+        if (!cache.isEmpty()) {
+            cache.append(", ");
+        }
+        return cache.append(element);
+    }
+
     private static State foldValues(State state, char c) {
         if (c == ',') {
             return state.advance();
@@ -275,8 +287,8 @@ public class Main {
         return state.append(c);
     }
 
-    private static String compileSimpleDefinitionOrPlaceholder(String s) {
-        return compileSimpleDefinition(s).orElseGet(() -> generatePlaceholder(s));
+    private static String compileSimpleDefinitionOrPlaceholder(String input) {
+        return compileSimpleDefinition(input).orElseGet(() -> generatePlaceholder(input));
     }
 
     private static Tuple<String, String> compileDefinitionOrPlaceholder(String input) {
@@ -290,11 +302,13 @@ public class Main {
             final var beforeName = stripped.substring(0, nameSeparator).strip();
             final var name = stripped.substring(nameSeparator + " ".length());
             final var typeSeparator = beforeName.lastIndexOf(" ");
-            if (typeSeparator >= 0) {
-                final var beforeType = beforeName.substring(0, typeSeparator);
-                final var type = beforeName.substring(typeSeparator + " ".length());
-                return Optional.of(new Tuple<>(generatePlaceholder(beforeType) + " " + name, type));
+            if (typeSeparator < 0) {
+                return Optional.of(new Tuple<>(name, beforeName));
             }
+
+            final var beforeType = beforeName.substring(0, typeSeparator);
+            final var type = beforeName.substring(typeSeparator + " ".length());
+            return Optional.of(new Tuple<>(generatePlaceholder(beforeType) + " " + name, type));
         }
         return Optional.empty();
     }
