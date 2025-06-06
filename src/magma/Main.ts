@@ -33,7 +33,11 @@ interface List<T> {
 	get(index: int): T;
 	iterWithIndex(): Iterator<Tuple<Integer, T>>;
 }
-class Some<T>(T value) implements Option<T> {
+class Some<T> implements Option<T> {
+	value: T;
+	constructor (value: T) {
+		this.value = value;
+	}
 	/*@Override
         public */ map<R>(mapper: (param0 : T) => R): Option<R>/*{
             return new Some<>(mapper.apply(value));
@@ -126,7 +130,11 @@ class RangeHead implements Head<Integer> {
             return new Some<>(value);
         }*/
 }
-class JavaList<T>(java.util.List<T> elements) implements List<T> {
+class JavaList<T> implements List<T> {
+	elements: java.util.List<T>;
+	constructor (elements: java.util.List<T>) {
+		this.elements = elements;
+	}
 	JavaList(): public/*{
             this(new ArrayList<>());
         }*/
@@ -217,7 +225,11 @@ class FlatMapHead<T, R> implements Head<R> {
             }
         }*/
 }
-class HeadedIterator<T>(Head<T> head) implements Iterator<T> {
+class HeadedIterator<T> implements Iterator<T> {
+	head: Head<T>;
+	constructor (head: Head<T>) {
+		this.head = head;
+	}
 	/*@Override
         public */ map<R>(mapper: (param0 : T) => R): Iterator<R>/*{
             return new HeadedIterator<>(() -> head.next().map(mapper));
@@ -298,12 +310,17 @@ class State {
             return depth == 0;
         }*/
 }
-class Definition(
-            Option<String> beforeType,
-            List<String> typeParams,
-            String type,
-            String name
-    ) implements Parameter {
+class Definition implements Parameter {
+	beforeType: Option<string>;
+	typeParams: List<string>;
+	type: string;
+	name: string;
+	constructor (beforeType: Option<string>, typeParams: List<string>, type: string, name: string) {
+		this.beforeType = beforeType;
+		this.typeParams = typeParams;
+		this.type = type;
+		this.name = name;
+	}
 	/*@Override
         public*/ generate(): string/*{
             return generateWithAfterName("");
@@ -318,7 +335,11 @@ class Definition(
             return beforeType + name + joinedTypeParams + afterName + ": " + type;
         }*/
 }
-class Placeholder(String input) implements Parameter {
+class Placeholder implements Parameter {
+	input: string;
+	constructor (input: string) {
+		this.input = input;
+	}
 	/*@Override
         public*/ generate(): string/*{
             return generatePlaceholder(input);
@@ -330,7 +351,7 @@ class Whitespace implements Parameter {
             return "";
         }*/
 }
-class Joiner implements Collector<String, Option<String>> {
+class Joiner implements Collector<string, Option<string>> {
 	/*private final*/ delimiter: string;
 	Joiner(): public/*{
             this("");
@@ -475,11 +496,24 @@ export class Main {
 
         final var modifiers = modifiersString.contains("public") ? "export " : "";
 
-        final var generated = assembleStructure(beforeContent, modifiers, output, targetInfix);
+        final var generated = assembleStructureWithImplements(targetInfix, beforeContent, modifiers, output);
         return new Some<>(new Tuple<>("", structures.add(generated)));
     }*//*
 
-    private static String assembleStructure(String beforeContent, String modifiers, String outputContent, String targetInfix) {
+    private static String assembleStructureWithImplements(String targetInfix, String beforeContent, String modifiers, String output) {
+        final var implementsIndex = beforeContent.lastIndexOf(" implements ");
+        if(implementsIndex >= 0) {
+            final var beforeImplements = beforeContent.substring(0, implementsIndex);
+            final var implementsString = beforeContent.substring(implementsIndex + " implements ".length());
+            final var implementsTypes = parseAll(implementsString, Main::foldValues, Main::compileType);
+
+            return assembleStructureWithParameters(beforeImplements, modifiers, output, targetInfix, implementsTypes);
+        }
+
+        return assembleStructureWithParameters(beforeContent, modifiers, output, targetInfix, Lists.empty());
+    }*//*
+
+    private static String assembleStructureWithParameters(String beforeContent, String modifiers, String outputContent, String targetInfix, List<String> implementsTypes) {
         if (beforeContent.endsWith(")")) {
             final var withoutParamEnd = beforeContent.substring(0, beforeContent.length() - ")".length());
             final var paramStart = withoutParamEnd.indexOf("(");
@@ -515,11 +549,11 @@ export class Main {
 
                 return generateClass(modifiers, name, generatedFields + "\n\tconstructor (" + outputParams + ") {" +
                         assignments +
-                        "\n\t}" + outputContent, targetInfix);
+                        "\n\t}" + outputContent, targetInfix, implementsTypes);
             }
         }
 
-        return generateClass(modifiers, beforeContent, outputContent, targetInfix);
+        return generateClass(modifiers, beforeContent, outputContent, targetInfix, implementsTypes);
     }*//*
 
     private static Option<Definition> retainDefinition(Parameter parameter) {
@@ -535,8 +569,13 @@ export class Main {
         return "\n" + "\t".repeat(2) + content + ";";
     }*//*
 
-    private static String generateClass(String modifiers, String beforeContent, String outputContent, String targetInfix) {
-        return modifiers + targetInfix + " " + beforeContent + " {" + outputContent + "\n}\n";
+    private static String generateClass(String modifiers, String beforeContent, String outputContent, String targetInfix, List<String> implementsTypes) {
+        final var joinedImplements = implementsTypes.isEmpty() ? "" : " implements " + joinWithDelimiter(implementsTypes, ", ");
+        return modifiers + targetInfix + " " + beforeContent + joinedImplements + " {" + outputContent + "\n}\n";
+    }*//*
+
+    private static String joinWithDelimiter(List<String> list, String delimiter) {
+        return list.iter().collect(new Joiner(delimiter)).orElse("");
     }*//*
 
     private static Tuple<String, List<String>> compileClassSegment(String input) {
@@ -676,7 +715,7 @@ export class Main {
             return new Some<>(new Definition(new None<>(), Lists.empty(), compileType(type), name));
         }
 
-        final var beforeType = beforeTypeDivisions.iter().collect(new Joiner(" ")).orElse("");
+        final var beforeType = joinWithDelimiter(beforeTypeDivisions, " ");
         return new Some<>(assembleDefinition(beforeType, compiledType, name));
     }*//*
 

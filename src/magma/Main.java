@@ -575,11 +575,24 @@ public class Main {
 
         final var modifiers = modifiersString.contains("public") ? "export " : "";
 
-        final var generated = assembleStructure(beforeContent, modifiers, output, targetInfix);
+        final var generated = assembleStructureWithImplements(targetInfix, beforeContent, modifiers, output);
         return new Some<>(new Tuple<>("", structures.add(generated)));
     }
 
-    private static String assembleStructure(String beforeContent, String modifiers, String outputContent, String targetInfix) {
+    private static String assembleStructureWithImplements(String targetInfix, String beforeContent, String modifiers, String output) {
+        final var implementsIndex = beforeContent.lastIndexOf(" implements ");
+        if(implementsIndex >= 0) {
+            final var beforeImplements = beforeContent.substring(0, implementsIndex);
+            final var implementsString = beforeContent.substring(implementsIndex + " implements ".length());
+            final var implementsTypes = parseAll(implementsString, Main::foldValues, Main::compileType);
+
+            return assembleStructureWithParameters(beforeImplements, modifiers, output, targetInfix, implementsTypes);
+        }
+
+        return assembleStructureWithParameters(beforeContent, modifiers, output, targetInfix, Lists.empty());
+    }
+
+    private static String assembleStructureWithParameters(String beforeContent, String modifiers, String outputContent, String targetInfix, List<String> implementsTypes) {
         if (beforeContent.endsWith(")")) {
             final var withoutParamEnd = beforeContent.substring(0, beforeContent.length() - ")".length());
             final var paramStart = withoutParamEnd.indexOf("(");
@@ -615,11 +628,11 @@ public class Main {
 
                 return generateClass(modifiers, name, generatedFields + "\n\tconstructor (" + outputParams + ") {" +
                         assignments +
-                        "\n\t}" + outputContent, targetInfix);
+                        "\n\t}" + outputContent, targetInfix, implementsTypes);
             }
         }
 
-        return generateClass(modifiers, beforeContent, outputContent, targetInfix);
+        return generateClass(modifiers, beforeContent, outputContent, targetInfix, implementsTypes);
     }
 
     private static Option<Definition> retainDefinition(Parameter parameter) {
@@ -635,8 +648,13 @@ public class Main {
         return "\n" + "\t".repeat(2) + content + ";";
     }
 
-    private static String generateClass(String modifiers, String beforeContent, String outputContent, String targetInfix) {
-        return modifiers + targetInfix + " " + beforeContent + " {" + outputContent + "\n}\n";
+    private static String generateClass(String modifiers, String beforeContent, String outputContent, String targetInfix, List<String> implementsTypes) {
+        final var joinedImplements = implementsTypes.isEmpty() ? "" : " implements " + joinWithDelimiter(implementsTypes, ", ");
+        return modifiers + targetInfix + " " + beforeContent + joinedImplements + " {" + outputContent + "\n}\n";
+    }
+
+    private static String joinWithDelimiter(List<String> list, String delimiter) {
+        return list.iter().collect(new Joiner(delimiter)).orElse("");
     }
 
     private static Tuple<String, List<String>> compileClassSegment(String input) {
@@ -776,7 +794,7 @@ public class Main {
             return new Some<>(new Definition(new None<>(), Lists.empty(), compileType(type), name));
         }
 
-        final var beforeType = beforeTypeDivisions.iter().collect(new Joiner(" ")).orElse("");
+        final var beforeType = joinWithDelimiter(beforeTypeDivisions, " ");
         return new Some<>(assembleDefinition(beforeType, compiledType, name));
     }
 
