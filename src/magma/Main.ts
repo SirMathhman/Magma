@@ -2,6 +2,8 @@ class Tuple<L, R> {
 	left: /*L*/;
 	right: /*R*/;
 	constructor (left: /*L*/, right: /*R*/) {
+		this.left = left;
+		this.right = right;
 	}
 }
 class State {
@@ -13,55 +15,51 @@ class State {
             this.buffer = buffer;
             this.depth = depth;
         }*/
-	State(/**/): /*public*//* {
+	State(): /*public*//* {
             this(new ArrayList<>(), new StringBuilder(), 0);
         }*/
 	/*private*/ append(c: /*char*/): /*State*//* {
             getBuffer().append(c);
             return this;
         }*/
-	/*private*/ enter(/**/): /*State*//* {
+	/*private*/ enter(): /*State*//* {
             setDepth(getDepth() + 1);
             return this;
         }*/
-	/*private*/ exit(/**/): /*State*//* {
+	/*private*/ exit(): /*State*//* {
             setDepth(getDepth() - 1);
             return this;
         }*/
-	/*private*/ isShallow(/**/): /*boolean*//* {
+	/*private*/ isShallow(): /*boolean*//* {
             return getDepth() == 1;
         }*/
-	/*private*/ advance(/**/): /*State*//* {
+	/*private*/ advance(): /*State*//* {
             segments().add(getBuffer().toString());
             setBuffer(new StringBuilder());
             return this;
         }*/
-	/*private*/ isLevel(/**/): /*boolean*//* {
+	/*private*/ isLevel(): /*boolean*//* {
             return getDepth() == 0;
         }*/
-	/*public*/ getBuffer(/**/): /*StringBuilder*//* {
+	/*public*/ getBuffer(): /*StringBuilder*//* {
             return buffer;
         }*/
 	/*public*/ setBuffer(buffer: /*StringBuilder*/): /*void*//* {
             this.buffer = buffer;
         }*/
-	/*public*/ getDepth(/**/): /*int*//* {
+	/*public*/ getDepth(): /*int*//* {
             return depth;
         }*/
 	/*public*/ setDepth(depth: /*int*/): /*void*//* {
             this.depth = depth;
         }*/
-	/*public*/ segments(/**/): /*List<String>*//* {
+	/*public*/ segments(): /*List<String>*//* {
             return segments;
         }*/
 }
-class Definition {
-	beforeType: /*Optional<String>*/;
-	type: /*String*/;
-	name: /*String*/;
-	constructor (beforeType: /*Optional<String>*/, type: /*String*/, name: /*String*/) {
-	}
-	/*private*/ generate(/**/): /*String*//* {
+class Definition(Optional<String> beforeType, String type, String name) implements Parameter {
+	/*@Override
+        public*/ generate(): /*String*//* {
             return generateWithAfterName("");
         }*/
 	/*public*/ generateWithAfterName(afterName: /*String*/): /*String*//* {
@@ -69,7 +67,22 @@ class Definition {
             return beforeType + name + afterName + ": " + type;
         }*/
 }
+class Placeholder(String input) implements Parameter {
+	/*@Override
+        public*/ generate(): /*String*//* {
+            return generatePlaceholder(input);
+        }*/
+}
+class Whitespace implements Parameter {
+	/*@Override
+        public*/ generate(): /*String*//* {
+            return "";
+        }*/
+}
 export class Main {
+	/*private interface Parameter {
+       */ generate(): /*String*//*;
+    }*/
 	/*public static*/ main(args: /*String[]*/): /*void*//* {
         try {
             final var source = Paths.get(".", "src", "magma", "Main.java");
@@ -119,7 +132,7 @@ export class Main {
             return appended.advance();
         }
         if (c == '}*/
-	/*'*/ appended.isShallow(/**/): /*&&*//*) {
+	/*'*/ appended.isShallow(): /*&&*//*) {
             return appended.advance().exit();
         }*//*
         if (c == '{') {
@@ -127,7 +140,7 @@ export class Main {
         }
         if (c == '}*/
 	/*') {
-           */ appended.exit(/**/): /*return*//*;
+           */ appended.exit(): /*return*//*;
         }*/
 	appended: /*return*/;
 }
@@ -196,27 +209,44 @@ export class Main {
                 final var inputParams = withoutParamEnd.substring(paramStart + "(".length());
                 final var segments = divide(inputParams, Main::foldValues);
 
-                final var compiled = new ArrayList<String>();
+                final var fields = new ArrayList<Definition>();
                 for (var segment : segments) {
-                    compiled.add(compileSimpleDefinitionOrPlaceholder(segment));
+                    final var parameter = parseParameter(segment);
+                    if (parameter instanceof Definition definition) {
+                        fields.add(definition);
+                    }
                 }
 
                 var output = new StringBuilder();
-                for (var element : compiled) {
-                    output = mergeValues(output, element);
+                for (var definition : fields) {
+                    output = mergeValues(output, definition.generate());
                 }
 
                 final var outputParams = output.toString();
-
-                final var fields = compiled.stream()
+                final var generatedFields = fields.stream()
+                        .map(Definition::generate)
                         .map(element -> "\n\t" + element + ";")
                         .collect(Collectors.joining());
 
-                return generateClass(modifiers, name, fields + "\n\tconstructor (" + outputParams + ") {\n\t}" + outputContent);
+                final var assignments = fields.stream()
+                        .map(field -> {
+                            final var fieldName = field.name;
+                            final var content = "this." + fieldName + " = " + fieldName;
+                            return generateStatement(content, 2);
+                        })
+                        .collect(Collectors.joining());
+
+                return generateClass(modifiers, name, generatedFields + "\n\tconstructor (" + outputParams + ") {" +
+                        assignments +
+                        "\n\t}" + outputContent);
             }
         }
 
         return generateClass(modifiers, beforeContent, outputContent);
+    }*//*
+
+    private static String generateStatement(String content, int depth) {
+        return "\n" + "\t".repeat(depth) + content + ";";
     }*/class " + beforeContent + " {
 	/*" + outputContent*/ "\n}\n": /*+*/;
 }
@@ -250,8 +280,12 @@ export class Main {
     }*//*
 
     private static Optional<Tuple<String, List<String>>> compileWhitespace(String input) {
+        return parseWhitespace(input).map(node -> new Tuple<>(node.generate(), Collections.emptyList()));
+    }*//*
+
+    private static Optional<Whitespace> parseWhitespace(String input) {
         if (input.isBlank()) {
-            return Optional.of(new Tuple<>("", Collections.emptyList()));
+            return Optional.of(new Whitespace());
         }
         else {
             return Optional.empty();
@@ -283,7 +317,11 @@ export class Main {
     }*//*
 
     private static String compileParameters(String input) {
-        return compileAll(input, Main::compileSimpleDefinitionOrPlaceholder, Main::foldValues, Main::mergeValues);
+        return compileAll(input, Main::compileParameter, Main::foldValues, Main::mergeValues);
+    }*//*
+
+    private static String compileParameter(String input) {
+        return parseParameter(input).generate();
     }*//*
 
     private static StringBuilder mergeValues(StringBuilder cache, String element) {
@@ -300,8 +338,10 @@ export class Main {
         return state.append(c);
     }*//*
 
-    private static String compileSimpleDefinitionOrPlaceholder(String input) {
-        return compileSimpleDefinition(input).orElseGet(() -> generatePlaceholder(input));
+    private static Parameter parseParameter(String input) {
+        return parseWhitespace(input).<Parameter>map(parameter -> parameter)
+                .or(() -> compileDefinition(input))
+                .orElseGet(() -> new Placeholder(input));
     }*//*
 
     private static Optional<Definition> compileDefinition(String input) {

@@ -12,6 +12,10 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 public class Main {
+    private interface Parameter {
+        String generate();
+    }
+
     private record Tuple<L, R>(L left, R right) {
     }
 
@@ -80,14 +84,29 @@ public class Main {
         }
     }
 
-    private record Definition(Optional<String> beforeType, String type, String name) {
-        private String generate() {
+    private record Definition(Optional<String> beforeType, String type, String name) implements Parameter {
+        @Override
+        public String generate() {
             return generateWithAfterName("");
         }
 
         public String generateWithAfterName(String afterName) {
             final var beforeType = this.beforeType.map(inner -> inner + " ").orElse("");
             return beforeType + name + afterName + ": " + type;
+        }
+    }
+
+    private record Placeholder(String input) implements Parameter {
+        @Override
+        public String generate() {
+            return generatePlaceholder(input);
+        }
+    }
+
+    private static class Whitespace implements Parameter {
+        @Override
+        public String generate() {
+            return "";
         }
     }
 
@@ -221,27 +240,44 @@ public class Main {
                 final var inputParams = withoutParamEnd.substring(paramStart + "(".length());
                 final var segments = divide(inputParams, Main::foldValues);
 
-                final var compiled = new ArrayList<String>();
+                final var fields = new ArrayList<Definition>();
                 for (var segment : segments) {
-                    compiled.add(compileSimpleDefinitionOrPlaceholder(segment));
+                    final var parameter = parseParameter(segment);
+                    if (parameter instanceof Definition definition) {
+                        fields.add(definition);
+                    }
                 }
 
                 var output = new StringBuilder();
-                for (var element : compiled) {
-                    output = mergeValues(output, element);
+                for (var definition : fields) {
+                    output = mergeValues(output, definition.generate());
                 }
 
                 final var outputParams = output.toString();
-
-                final var fields = compiled.stream()
+                final var generatedFields = fields.stream()
+                        .map(Definition::generate)
                         .map(element -> "\n\t" + element + ";")
                         .collect(Collectors.joining());
 
-                return generateClass(modifiers, name, fields + "\n\tconstructor (" + outputParams + ") {\n\t}" + outputContent);
+                final var assignments = fields.stream()
+                        .map(field -> {
+                            final var fieldName = field.name;
+                            final var content = "this." + fieldName + " = " + fieldName;
+                            return generateStatement(content, 2);
+                        })
+                        .collect(Collectors.joining());
+
+                return generateClass(modifiers, name, generatedFields + "\n\tconstructor (" + outputParams + ") {" +
+                        assignments +
+                        "\n\t}" + outputContent);
             }
         }
 
         return generateClass(modifiers, beforeContent, outputContent);
+    }
+
+    private static String generateStatement(String content, int depth) {
+        return "\n" + "\t".repeat(depth) + content + ";";
     }
 
     private static String generateClass(String modifiers, String beforeContent, String outputContent) {
@@ -276,8 +312,12 @@ public class Main {
     }
 
     private static Optional<Tuple<String, List<String>>> compileWhitespace(String input) {
+        return parseWhitespace(input).map(node -> new Tuple<>(node.generate(), Collections.emptyList()));
+    }
+
+    private static Optional<Whitespace> parseWhitespace(String input) {
         if (input.isBlank()) {
-            return Optional.of(new Tuple<>("", Collections.emptyList()));
+            return Optional.of(new Whitespace());
         }
         else {
             return Optional.empty();
@@ -309,7 +349,11 @@ public class Main {
     }
 
     private static String compileParameters(String input) {
-        return compileAll(input, Main::compileSimpleDefinitionOrPlaceholder, Main::foldValues, Main::mergeValues);
+        return compileAll(input, Main::compileParameter, Main::foldValues, Main::mergeValues);
+    }
+
+    private static String compileParameter(String input) {
+        return parseParameter(input).generate();
     }
 
     private static StringBuilder mergeValues(StringBuilder cache, String element) {
@@ -326,8 +370,10 @@ public class Main {
         return state.append(c);
     }
 
-    private static String compileSimpleDefinitionOrPlaceholder(String input) {
-        return compileSimpleDefinition(input).orElseGet(() -> generatePlaceholder(input));
+    private static Parameter parseParameter(String input) {
+        return parseWhitespace(input).<Parameter>map(parameter -> parameter)
+                .or(() -> compileDefinition(input))
+                .orElseGet(() -> new Placeholder(input));
     }
 
     private static Optional<Definition> compileDefinition(String input) {
