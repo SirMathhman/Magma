@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.function.Supplier;
@@ -63,6 +64,8 @@ public class Main {
         boolean isEmpty();
 
         T get(int index);
+
+        Iterator<Tuple<Integer, T>> iterWithIndex();
     }
 
     private record Some<T>(T value) implements Option<T> {
@@ -143,6 +146,11 @@ public class Main {
         public static <T> List<T> empty() {
             return new JavaList<>();
         }
+
+        @SafeVarargs
+        public static <T> List<T> of(T... elements) {
+            return new JavaList<>(new ArrayList<>(Arrays.asList(elements)));
+        }
     }
 
     private static class Iterators {
@@ -151,6 +159,7 @@ public class Main {
                     .<Head<T>>map(SingleHead::new)
                     .orElseGet(EmptyHead::new));
         }
+
     }
 
     private static class RangeHead implements Head<Integer> {
@@ -186,7 +195,11 @@ public class Main {
 
         @Override
         public Iterator<T> iter() {
-            return new HeadedIterator<>(new RangeHead(elements.size())).map(elements::get);
+            return createIteratorFromSize().map(elements::get);
+        }
+
+        private Iterator<Integer> createIteratorFromSize() {
+            return new HeadedIterator<>(new RangeHead(elements.size()));
         }
 
         @Override
@@ -212,6 +225,11 @@ public class Main {
         @Override
         public T get(int index) {
             return elements.get(index);
+        }
+
+        @Override
+        public Iterator<Tuple<Integer, T>> iterWithIndex() {
+            return createIteratorFromSize().map(index -> new Tuple<>(index, elements.get(index)));
         }
     }
 
@@ -811,10 +829,10 @@ public class Main {
                 final var elements = parseValues(inputArguments);
 
                 if (base.equals("Function")) {
-                    return "(arg0 : " + elements.get(0) + ") => " + elements.get(1);
+                    return generateFunctionalType(elements.get(1), Lists.of(elements.get(0)));
                 }
                 if (base.equals("Supplier")) {
-                    return "() => " + elements.get(0);
+                    return generateFunctionalType(elements.get(0), Lists.empty());
                 }
 
                 final var outputArguments = generateValues(elements);
@@ -827,6 +845,15 @@ public class Main {
         }
 
         return generatePlaceholder(input);
+    }
+
+    private static String generateFunctionalType(String returnType, List<String> parameterTypes) {
+        final var parameters = parameterTypes.iterWithIndex()
+                .map(entry -> "param" + entry.left + " : " + entry.right)
+                .collect(new Joiner(", "))
+                .orElse("");
+
+        return "(" + parameters + ") => " + returnType;
     }
 
     private static String generateValues(List<String> elements) {

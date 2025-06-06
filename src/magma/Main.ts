@@ -1,5 +1,5 @@
 interface Option<T> {
-	map<R>(mapper: (arg0 : T) => R): Option<R>;
+	map<R>(mapper: (param0 : T) => R): Option<R>;
 	orElseGet(other: () => T): T;
 	isPresent(): boolean;
 	get(): T;
@@ -18,10 +18,10 @@ interface Head<T> {
 	next(): Option<T>;
 }
 interface Iterator<T> {
-	map<R>(mapper: (arg0 : T) => R): Iterator<R>;
+	map<R>(mapper: (param0 : T) => R): Iterator<R>;
 	fold<R>(initial: R, folder: BiFunction<R, T, R>): R;
 	collect<C>(collector: Collector<T, C>): C;
-	flatMap<R>(mapper: (arg0 : T) => Iterator<R>): Iterator<R>;
+	flatMap<R>(mapper: (param0 : T) => Iterator<R>): Iterator<R>;
 	next(): Option<T>;
 }
 interface List<T> {
@@ -31,10 +31,11 @@ interface List<T> {
 	popLast(): Option<Tuple<List<T>, T>>;
 	isEmpty(): boolean;
 	get(index: int): T;
+	iterWithIndex(): Iterator<Tuple<Integer, T>>;
 }
 class Some<T>(T value) implements Option<T> {
 	/*@Override
-        public */ map<R>(mapper: (arg0 : T) => R): Option<R>/*{
+        public */ map<R>(mapper: (param0 : T) => R): Option<R>/*{
             return new Some<>(mapper.apply(value));
         }*/
 	/*@Override
@@ -64,7 +65,7 @@ class Some<T>(T value) implements Option<T> {
 }
 class None<T> implements Option<T> {
 	/*@Override
-        public */ map<R>(mapper: (arg0 : T) => R): Option<R>/*{
+        public */ map<R>(mapper: (param0 : T) => R): Option<R>/*{
             return new None<>();
         }*/
 	/*@Override
@@ -95,6 +96,10 @@ class None<T> implements Option<T> {
 class Lists {
 	/*public static */ empty<T>(): List<T>/*{
             return new JavaList<>();
+        }*/
+	/*@SafeVarargs
+        public static */ of<T>(elements: /*T...*/): List<T>/*{
+            return new JavaList<>(new ArrayList<>(Arrays.asList(elements)));
         }*/
 }
 class Iterators {
@@ -132,7 +137,10 @@ class JavaList<T>(java.util.List<T> elements) implements List<T> {
         }*/
 	/*@Override
         public*/ iter(): Iterator<T>/*{
-            return new HeadedIterator<>(new RangeHead(elements.size())).map(elements::get);
+            return createIteratorFromSize().map(elements::get);
+        }*/
+	/*private*/ createIteratorFromSize(): Iterator<Integer>/*{
+            return new HeadedIterator<>(new RangeHead(elements.size()));
         }*/
 	/*@Override
         public*/ addAll(elements: List<T>): List<T>/*{
@@ -154,6 +162,10 @@ class JavaList<T>(java.util.List<T> elements) implements List<T> {
 	/*@Override
         public*/ get(index: int): T/*{
             return elements.get(index);
+        }*/
+	/*@Override
+        public*/ iterWithIndex(): Iterator<Tuple<Integer, T>>/*{
+            return createIteratorFromSize().map(index -> new Tuple<>(index, elements.get(index)));
         }*/
 }
 class EmptyHead<T> implements Head<T> {
@@ -180,9 +192,9 @@ class SingleHead<T> implements Head<T> {
 }
 class FlatMapHead<T, R> implements Head<R> {
 	/*private final*/ head: Head<T>;
-	/*private final*/ mapper: (arg0 : T) => Iterator<R>;
+	/*private final*/ mapper: (param0 : T) => Iterator<R>;
 	/*private*/ current: Iterator<R>;
-	FlatMapHead(initial: Iterator<R>, head: Head<T>, mapper: (arg0 : T) => Iterator<R>): public/*{
+	FlatMapHead(initial: Iterator<R>, head: Head<T>, mapper: (param0 : T) => Iterator<R>): public/*{
             this.current = initial;
             this.head = head;
             this.mapper = mapper;
@@ -207,7 +219,7 @@ class FlatMapHead<T, R> implements Head<R> {
 }
 class HeadedIterator<T>(Head<T> head) implements Iterator<T> {
 	/*@Override
-        public */ map<R>(mapper: (arg0 : T) => R): Iterator<R>/*{
+        public */ map<R>(mapper: (param0 : T) => R): Iterator<R>/*{
             return new HeadedIterator<>(() -> head.next().map(mapper));
         }*/
 	/*@Override
@@ -229,7 +241,7 @@ class HeadedIterator<T>(Head<T> head) implements Iterator<T> {
             return fold(collector.createInitial(), collector::fold);
         }*/
 	/*@Override
-        public */ flatMap<R>(mapper: (arg0 : T) => Iterator<R>): Iterator<R>/*{
+        public */ flatMap<R>(mapper: (param0 : T) => Iterator<R>): Iterator<R>/*{
             final var head = this.head.next()
                     .map(mapper)
                     .<Head<R>>map(initial -> new FlatMapHead<>(initial, this.head, mapper))
@@ -362,10 +374,10 @@ export class Main {
 	/*private static*/ compile(input: string): string/*{
         return compileStatements(input, Main::compileRootSegment);
     }*/
-	/*private static*/ compileStatements(input: string, mapper: (arg0 : string) => string): string/*{
+	/*private static*/ compileStatements(input: string, mapper: (param0 : string) => string): string/*{
         return compileAll(input, mapper, Main::foldStatements, Main::mergeStatements);
     }*/
-	/*private static*/ compileAll(input: string, mapper: (arg0 : string) => string, folder: BiFunction<State, Character, State>, merger: BiFunction<StringBuilder, string, StringBuilder>): string/*{
+	/*private static*/ compileAll(input: string, mapper: (param0 : string) => string, folder: BiFunction<State, Character, State>, merger: BiFunction<StringBuilder, string, StringBuilder>): string/*{
         return generateAll(parseAll(input, folder, mapper), merger);
     }*/
 	/*private static*/ generateAll(elements: List<string>, merger: BiFunction<StringBuilder, string, StringBuilder>): string/*{
@@ -373,7 +385,7 @@ export class Main {
                 .fold(new StringBuilder(), merger)
                 .toString();
     }*/
-	/*private static*/ parseAll(input: string, folder: BiFunction<State, Character, State>, mapper: (arg0 : string) => string): List<string>/*{
+	/*private static*/ parseAll(input: string, folder: BiFunction<State, Character, State>, mapper: (param0 : string) => string): List<string>/*{
         return divide(input, folder)
                 .iter()
                 .map(mapper)
@@ -717,10 +729,10 @@ export class Main {
                 final var elements = parseValues(inputArguments);
 
                 if (base.equals("Function")) {
-                    return "(arg0 : " + elements.get(0) + ") => " + elements.get(1);
+                    return generateFunctionalType(elements.get(1), Lists.of(elements.get(0)));
                 }
                 if (base.equals("Supplier")) {
-                    return "() => " + elements.get(0);
+                    return generateFunctionalType(elements.get(0), Lists.empty());
                 }
 
                 final var outputArguments = generateValues(elements);
@@ -733,6 +745,15 @@ export class Main {
         }
 
         return generatePlaceholder(input);
+    }*//*
+
+    private static String generateFunctionalType(String returnType, List<String> parameterTypes) {
+        final var parameters = parameterTypes.iterWithIndex()
+                .map(entry -> "param" + entry.left + " : " + entry.right)
+                .collect(new Joiner(", "))
+                .orElse("");
+
+        return "(" + parameters + ") => " + returnType;
     }*//*
 
     private static String generateValues(List<String> elements) {
