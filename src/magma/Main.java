@@ -22,13 +22,23 @@ public class Main {
 
     private static String compile(String input) {
         final var segments = new ArrayList<String>();
+        final var length = input.length();
         var buffer = new StringBuilder();
-        for (var i = 0; i < input.length(); i++) {
+        var depth = 0;
+        for (var i = 0; i < length; i++) {
             final var c = input.charAt(i);
             buffer.append(c);
-            if (c == ';') {
+            if (c == ';' && depth == 0) {
                 segments.add(buffer.toString());
                 buffer = new StringBuilder();
+            }
+            else {
+                if (c == '{') {
+                    depth++;
+                }
+                if (c == '}') {
+                    depth--;
+                }
             }
         }
         segments.add(buffer.toString());

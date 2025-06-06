@@ -1,63 +1,74 @@
 export class Main {/*
     public static void main(String[] args) {
         try {
-            final var source = Paths.get(".", "src", "magma", "Main.java");*//*
-            final var target = source.resolveSibling("Main.ts");*//*
+            final var source = Paths.get(".", "src", "magma", "Main.java");
+            final var target = source.resolveSibling("Main.ts");
 
-            final var input = Files.readString(source);*//*
-            final var output = compile(input);*//*
-            Files.writeString(target, output);*//*
+            final var input = Files.readString(source);
+            final var output = compile(input);
+            Files.writeString(target, output);
         } catch (IOException e) {
             //noinspection CallToPrintStackTrace
-            e.printStackTrace();*//*
+            e.printStackTrace();
         }
     }
 
     private static String compile(String input) {
-        final var segments = new ArrayList<String>();*//*
-        var buffer = new StringBuilder();*//*
-        for (var i = 0;*//* i < input.length();*//* i++) {
-            final var c = input.charAt(i);*//*
-            buffer.append(c);*//*
-            if (c == ';*//*') {
-                segments.add(buffer.toString());*//*
-                buffer = new StringBuilder();*//*
+        final var segments = new ArrayList<String>();
+        final var length = input.length();
+        var buffer = new StringBuilder();
+        var depth = 0;
+        for (var i = 0; i < length; i++) {
+            final var c = input.charAt(i);
+            buffer.append(c);
+            if (c == ';' && depth == 0) {
+                segments.add(buffer.toString());
+                buffer = new StringBuilder();
+            }
+            else {
+                if (c == '{') {
+                    depth++;
+                }
+                if (c == '}') {
+                    depth--;
+                }
             }
         }
-        segments.add(buffer.toString());*//*
+        segments.add(buffer.toString());
 
-        final var output = new StringBuilder();*//*
+        final var output = new StringBuilder();
         for (var segment : segments) {
-            output.append(compileRootSegment(segment));*//*
+            output.append(compileRootSegment(segment));
         }
 
-        return output.toString();*//*
+        return output.toString();
     }
 
     private static String compileRootSegment(String input) {
-        final var stripped = input.strip();*//*
+        final var stripped = input.strip();
         if (stripped.startsWith("package ") || stripped.startsWith("import ")) {
-            return "";*//*
+            return "";
         }
 
-        final var classIndex = stripped.indexOf("class ");*//*
+        final var classIndex = stripped.indexOf("class ");
         if (classIndex >= 0) {
-            final var afterClass = stripped.substring(classIndex + "class ".length());*//*
-            final var contentStart = afterClass.indexOf("{");*//*
+            final var afterClass = stripped.substring(classIndex + "class ".length());
+            final var contentStart = afterClass.indexOf("{");
             if (contentStart >= 0) {
-                final var name = afterClass.substring(0, contentStart).strip();*//*
-                final var right = afterClass.substring(contentStart + "{".length());*/export class " + name + " {/*" + generatePlaceholder(right);*//*
+                final var name = afterClass.substring(0, contentStart).strip();
+                final var right = afterClass.substring(contentStart + "{".length());
+                return "export class " + name + " {" + generatePlaceholder(right);
             }
         }
 
-        return generatePlaceholder(input);*//*
+        return generatePlaceholder(input);
     }
 
     private static String generatePlaceholder(String input) {
         final var replaced = input
                 .replace("start", "start")
-                .replace("end", "end");*//*
+                .replace("end", "end");
 
-        return "start" + replaced + "end";*//*
+        return "start" + replaced + "end";
     }
 }*/
