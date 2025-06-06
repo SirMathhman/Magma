@@ -304,6 +304,7 @@ public class Main {
             elements.set(elements.size() - 1, mapped);
             return this;
         }
+
     }
 
     private static class EmptyHead<T> implements Head<T> {
@@ -486,6 +487,10 @@ public class Main {
             final var beforeType = this.beforeType.map(inner -> inner + " ").orElse("");
             return beforeType + name + joinedTypeParams + afterName + ": " + type.generate();
         }
+
+        public Definition mapType(Function<Type, Type> mapper) {
+            return new Definition(beforeType, typeParams, mapper.apply(type), name);
+        }
     }
 
     private record Placeholder(String input) implements Parameter, Value, Type {
@@ -591,7 +596,7 @@ public class Main {
                     .next();
         }
 
-        public Frame defineAll(List<Definition> definitions) {
+        public Frame defineAllValues(List<Definition> definitions) {
             return new Frame(this.definitions.addAll(definitions), structureTypes);
         }
 
@@ -603,6 +608,10 @@ public class Main {
 
         public Frame defineStructureType(StructureType structureType) {
             return new Frame(definitions, structureTypes.add(structureType));
+        }
+
+        public Frame defineValue(Definition definition) {
+            return new Frame(definitions.add(definition), structureTypes);
         }
     }
 
@@ -620,7 +629,7 @@ public class Main {
         }
 
         public CompileState defineAll(List<Definition> definitions) {
-            return mapLast(frame -> frame.defineAll(definitions));
+            return mapLast(frame -> frame.defineAllValues(definitions));
         }
 
         public CompileState defineStructureType(StructureType structureType) {
@@ -633,6 +642,20 @@ public class Main {
 
         public CompileState addStructure(String structure) {
             return new CompileState(stack, structures.add(structure));
+        }
+
+        public CompileState defineValue(Definition definition) {
+            return new CompileState(stack.define(definition), structures);
+        }
+
+        public CompileState enter() {
+            return new CompileState(stack.enter(), structures);
+        }
+
+        public Option<Tuple<CompileState, List<Definition>>> exit() {
+            return stack.exit().map(stack -> {
+                return new Tuple<>(new CompileState(stack.left, structures), stack.right);
+            });
         }
     }
 
@@ -715,6 +738,32 @@ public class Main {
                     .flatMap(Iterators::fromOptional)
                     .next()
                     .map(definition -> definition.type);
+        }
+
+        public Stack define(Definition definition) {
+            return new Stack(frames.mapLast(last -> last.defineValue(definition)));
+        }
+
+        public Stack enter() {
+            return new Stack(frames.add(new Frame()));
+        }
+
+        public Option<Tuple<Stack, List<Definition>>> exit() {
+            return frames.popLast().map(tuple -> {
+                return new Tuple<>(new Stack(tuple.left), tuple.right.definitions);
+            });
+        }
+    }
+
+    private static class MapCollector<K, V> implements Collector<Tuple<K, V>, Map<K, V>> {
+        @Override
+        public Map<K, V> createInitial() {
+            return Maps.empty();
+        }
+
+        @Override
+        public Map<K, V> fold(Map<K, V> current, Tuple<K, V> element) {
+            return current.putTuple(element);
         }
     }
 
@@ -914,17 +963,28 @@ public class Main {
             return new None<>();
         }
 
-        final var defined = state.defineStructureType(new StructureType(strippedName, Maps.empty()));
-        final var folded = joinClassSegments(inputContent, defined);
+        final var classSegmentsTuple = joinClassSegments(inputContent, state.enter());
+        final var classSegmentsOutput = classSegmentsTuple.left.toString();
+        final var classSegmentsState = classSegmentsTuple.right;
 
-        final var output = folded.left.toString();
-        final var structures = folded.right;
+        final var maybeExited = classSegmentsState.exit();
+        if (maybeExited.isPresent()) {
+            final var exited = maybeExited.get();
+            final var right = exited.right
+                    .iter()
+                    .map(definition -> new Tuple<>(definition.name, definition))
+                    .collect(new MapCollector<>());
 
-        final var outputContent = beforeBody + output;
-        final var joinedImplements = implementsTypes.isEmpty() ? "" : " implements " + generateNodes(implementsTypes);
-        var generated = modifiers + targetInfix + " " + strippedName + joinedImplements + " {" + outputContent + "\n}\n";
+            final var defined = exited.left.defineStructureType(new StructureType(strippedName, right));
 
-        return new Some<>(new Tuple<>("", structures.addStructure(generated)));
+            final var outputContent = beforeBody + classSegmentsOutput;
+            final var joinedImplements = implementsTypes.isEmpty() ? "" : " implements " + generateNodes(implementsTypes);
+            var generated = modifiers + targetInfix + " " + strippedName + joinedImplements + " {" + outputContent + "\n}\n";
+
+            return new Some<>(new Tuple<>("", defined.addStructure(generated)));
+        } else {
+            return new None<>();
+        }
     }
 
     private static String joinConstructorAssignments(List<Definition> fields) {
@@ -1034,10 +1094,13 @@ public class Main {
                 .flatMap(Iterators::fromOptional)
                 .collect(new ListCollector<>());
 
-        final var outputParams = generateNodes(parameters);
+        final var paramTypes = parameters.iter()
+                .map(Definition::type)
+                .collect(new ListCollector<>());
 
+        final var outputParams = generateNodes(parameters);
         if (inputAfterParams.equals(";")) {
-            return assembleMethod(outputDefinition, outputParams, ";", state);
+            return assembleMethod(outputDefinition, outputParams, ";", state, paramTypes);
         }
 
         if (!inputAfterParams.startsWith("{") || !inputAfterParams.endsWith("}")) {
@@ -1047,13 +1110,15 @@ public class Main {
         final var content = inputAfterParams.substring(1, inputAfterParams.length() - 1);
         final CompileState defined = state.defineAll(parameters);
         final String outputAfterParams = compileStatements(content, input1 -> compileFunctionSegments(input1, defined));
-        return assembleMethod(outputDefinition, outputParams, " {" + outputAfterParams + "\n\t}", state);
+        return assembleMethod(outputDefinition, outputParams, " {" + outputAfterParams + "\n\t}", state, paramTypes);
     }
 
-    private static Some<Tuple<String, CompileState>> assembleMethod(Definition outputDefinition, String outputParams, String outputAfterParams, CompileState state) {
+    private static Some<Tuple<String, CompileState>> assembleMethod(Definition outputDefinition, String outputParams, String outputAfterParams, CompileState state, List<Type> paramTypes) {
         final var header = outputDefinition.generateWithAfterName("(" + outputParams + ")");
         final var generated = "\n\t" + header + outputAfterParams;
-        return new Some<>(new Tuple<>(generated, state));
+        return new Some<>(new Tuple<>(generated, state.defineValue(outputDefinition.mapType(type -> {
+            return new FunctionType(paramTypes, type);
+        }))));
     }
 
     private static String compileFunctionSegments(String input, CompileState state) {

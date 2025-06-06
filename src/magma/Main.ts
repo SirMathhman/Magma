@@ -383,6 +383,9 @@ class Definition implements Parameter, Generating {
             final var beforeType = this.beforeType.map(inner -> inner + " ").orElse("");*/
 		return /*beforeType + name + joinedTypeParams + afterName + ": " + type*/.generate();
 	}
+	/*public*/ mapType(mapper: (param0 : Type) => Type): Definition {
+		return new Definition(beforeType, typeParams, mapper(type), name);
+	}
 }
 class Placeholder implements Parameter, Value, Type {
 	input: string;
@@ -503,7 +506,7 @@ class Frame {
 		return definitions.iter(/*)
                     */.filter(/*definition -> definition*/.name.equals(name)).next();
 	}
-	/*public*/ defineAll(definitions: List<Definition>): Frame {
+	/*public*/ defineAllValues(definitions: List<Definition>): Frame {
 		return new Frame(this.definitions.addAll(definitions), structureTypes);
 	}
 	/*public*/ resolveType(name: string): Option<StructureType> {
@@ -512,6 +515,9 @@ class Frame {
 	}
 	/*public*/ defineStructureType(structureType: StructureType): Frame {
 		return new Frame(definitions, structureTypes.add(structureType));
+	}
+	/*public*/ defineValue(definition: Definition): Frame {
+		return new Frame(definitions.add(definition), structureTypes);
 	}
 }
 class CompileState {
@@ -525,7 +531,7 @@ class CompileState {
             this(new Stack(Lists.of(new Frame())), Lists.empty());*/
 	}
 	/*public*/ defineAll(definitions: List<Definition>): CompileState {
-		return mapLast(/*frame -> frame*/.defineAll(definitions));
+		return mapLast(/*frame -> frame*/.defineAllValues(definitions));
 	}
 	/*public*/ defineStructureType(structureType: StructureType): CompileState {
 		return mapLast(/*last -> last*/.defineStructureType(structureType));
@@ -535,6 +541,17 @@ class CompileState {
 	}
 	/*public*/ addStructure(structure: string): CompileState {
 		return new CompileState(stack, structures.add(structure));
+	}
+	/*public*/ defineValue(definition: Definition): CompileState {
+		return new CompileState(stack.define(definition), structures);
+	}
+	/*public*/ enter(): CompileState {
+		return new CompileState(stack.enter(), structures);
+	}
+	/*public*/ exit(): Option<Tuple<CompileState, List<Definition>>> {/*
+            return stack.exit().map(stack -> {
+                return new Tuple<>(new CompileState(stack.left, structures), stack.right);
+            }*//*);*/
 	}
 }
 class StringType implements Type {
@@ -582,7 +599,7 @@ class JavaMap implements Map<K, V> {
 	}
 	/*@Override
         public*/ putAll(other: Map<K, V>): Map<K, V> {
-		return other(/*)*/.<Map<K, V>>fold(this, /* Map::putTuple*/);
+		return other.iter(/*)*/.<Map<K, V>>fold(this, /* Map::putTuple*/);
 	}
 	/*@Override
         public*/ iter(): Iterator<Tuple<K, V>> {
@@ -612,6 +629,27 @@ class Stack {
 	/*public*/ resolveValue(name: string): Option<Type> {
 		return frames(/*)*/.iterReversed(/*)
                     */.map(/*frame -> frame*/.resolveValue(/*name)*/).flatMap(Iterators::fromOptional).next().map(definition -> definition.type);
+	}
+	/*public*/ define(definition: Definition): Stack {
+		return new Stack(frames.mapLast(/*last -> last*/.defineValue(definition)));
+	}
+	/*public*/ enter(): Stack {
+		return new Stack(frames.add(new Frame()));
+	}
+	/*public*/ exit(): Option<Tuple<Stack, List<Definition>>> {/*
+            return frames.popLast().map(tuple -> {
+                return new Tuple<>(new Stack(tuple.left), tuple.right.definitions);
+            }*//*);*/
+	}
+}
+class MapCollector implements Collector<Tuple<K, V>, Map<K, V>> {
+	/*@Override
+        public*/ createInitial(): Map<K, V> {
+		return Maps.empty();
+	}
+	/*@Override
+        public*/ fold(current: Map<K, V>, element: Tuple<K, V>): Map<K, V> {
+		return current.putTuple(element);
 	}
 }
 export class Main {/*
@@ -819,17 +857,28 @@ export class Main {/*
             return new None<>();
         }
 
-        final var defined = state.defineStructureType(new StructureType(strippedName, Maps.empty()));
-        final var folded = joinClassSegments(inputContent, defined);
+        final var classSegmentsTuple = joinClassSegments(inputContent, state.enter());
+        final var classSegmentsOutput = classSegmentsTuple.left.toString();
+        final var classSegmentsState = classSegmentsTuple.right;
 
-        final var output = folded.left.toString();
-        final var structures = folded.right;
+        final var maybeExited = classSegmentsState.exit();
+        if (maybeExited.isPresent()) {
+            final var exited = maybeExited.get();
+            final var right = exited.right
+                    .iter()
+                    .map(definition -> new Tuple<>(definition.name, definition))
+                    .collect(new MapCollector<>());
 
-        final var outputContent = beforeBody + output;
-        final var joinedImplements = implementsTypes.isEmpty() ? "" : " implements " + generateNodes(implementsTypes);
-        var generated = modifiers + targetInfix + " " + strippedName + joinedImplements + " {" + outputContent + "\n}\n";
+            final var defined = exited.left.defineStructureType(new StructureType(strippedName, right));
 
-        return new Some<>(new Tuple<>("", structures.addStructure(generated)));
+            final var outputContent = beforeBody + classSegmentsOutput;
+            final var joinedImplements = implementsTypes.isEmpty() ? "" : " implements " + generateNodes(implementsTypes);
+            var generated = modifiers + targetInfix + " " + strippedName + joinedImplements + " {" + outputContent + "\n}\n";
+
+            return new Some<>(new Tuple<>("", defined.addStructure(generated)));
+        } else {
+            return new None<>();
+        }
     }*//*
 
     private static String joinConstructorAssignments(List<Definition> fields) {
@@ -939,10 +988,13 @@ export class Main {/*
                 .flatMap(Iterators::fromOptional)
                 .collect(new ListCollector<>());
 
-        final var outputParams = generateNodes(parameters);
+        final var paramTypes = parameters.iter()
+                .map(Definition::type)
+                .collect(new ListCollector<>());
 
+        final var outputParams = generateNodes(parameters);
         if (inputAfterParams.equals(";")) {
-            return assembleMethod(outputDefinition, outputParams, ";", state);
+            return assembleMethod(outputDefinition, outputParams, ";", state, paramTypes);
         }
 
         if (!inputAfterParams.startsWith("{") || !inputAfterParams.endsWith("}")) {
@@ -952,13 +1004,15 @@ export class Main {/*
         final var content = inputAfterParams.substring(1, inputAfterParams.length() - 1);
         final CompileState defined = state.defineAll(parameters);
         final String outputAfterParams = compileStatements(content, input1 -> compileFunctionSegments(input1, defined));
-        return assembleMethod(outputDefinition, outputParams, " {" + outputAfterParams + "\n\t}", state);
+        return assembleMethod(outputDefinition, outputParams, " {" + outputAfterParams + "\n\t}", state, paramTypes);
     }*//*
 
-    private static Some<Tuple<String, CompileState>> assembleMethod(Definition outputDefinition, String outputParams, String outputAfterParams, CompileState state) {
+    private static Some<Tuple<String, CompileState>> assembleMethod(Definition outputDefinition, String outputParams, String outputAfterParams, CompileState state, List<Type> paramTypes) {
         final var header = outputDefinition.generateWithAfterName("(" + outputParams + ")");
         final var generated = "\n\t" + header + outputAfterParams;
-        return new Some<>(new Tuple<>(generated, state));
+        return new Some<>(new Tuple<>(generated, state.defineValue(outputDefinition.mapType(type -> {
+            return new FunctionType(paramTypes, type);
+        }))));
     }*//*
 
     private static String compileFunctionSegments(String input, CompileState state) {
