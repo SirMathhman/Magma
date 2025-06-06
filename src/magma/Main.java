@@ -42,6 +42,15 @@ public class Main {
     }
 
     private static String compileRootSegment(String input) {
+        final var stripped = input.strip();
+        if (stripped.startsWith("package ") || stripped.startsWith("import ")) {
+            return "";
+        }
+
+        return generatePlaceholder(input);
+    }
+
+    private static String generatePlaceholder(String input) {
         final var replaced = input
                 .replace("/*", "start")
                 .replace("*/", "end");
