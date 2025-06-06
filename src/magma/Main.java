@@ -228,7 +228,15 @@ public class Main {
         }
 
         final var content = stripped.substring(0, stripped.length() - ";".length());
-        return compileDefinition(content).map(definition -> new Tuple<>("\n\t" + definition.left + ": " + definition.right + ";", Collections.emptyList()));
+        return getStringListTuple(content);
+    }
+
+    private static Optional<Tuple<String, List<String>>> getStringListTuple(String content) {
+        return compileSimpleDefinition(content).map(definition -> new Tuple<>("\n\t" + definition + ";", Collections.emptyList()));
+    }
+
+    private static Optional<String> compileSimpleDefinition(String content) {
+        return compileDefinition(content).map(definition -> definition.left + ": " + definition.right);
     }
 
     private static Optional<Tuple<String, List<String>>> compileWhitespace(String input) {
@@ -247,15 +255,28 @@ public class Main {
             final var withParams = input.substring(paramStart + "(".length());
             final var paramEnd = withParams.indexOf(")");
             if (paramEnd >= 0) {
-                final var params = withParams.substring(0, paramEnd);
+                final var inputParams = withParams.substring(0, paramEnd);
                 final var withBraces = withParams.substring(paramEnd + ")".length());
                 final var outputDefinition = compileDefinitionOrPlaceholder(inputDefinition);
-                final var generated = "\n\t" + outputDefinition.left + "(" + generatePlaceholder(params) + "): " + outputDefinition.right + generatePlaceholder(withBraces);
+                final var outputParams = compileAll(inputParams, Main::compileSimpleDefinitionOrPlaceholder, Main::foldValues);
+
+                final var generated = "\n\t" + outputDefinition.left + "(" + outputParams + "): " + outputDefinition.right + generatePlaceholder(withBraces);
                 return Optional.of(new Tuple<>(generated, Collections.emptyList()));
             }
         }
 
         return Optional.empty();
+    }
+
+    private static State foldValues(State state, char c) {
+        if (c == ',') {
+            return state.advance();
+        }
+        return state.append(c);
+    }
+
+    private static String compileSimpleDefinitionOrPlaceholder(String s) {
+        return compileSimpleDefinition(s).orElseGet(() -> generatePlaceholder(s));
     }
 
     private static Tuple<String, String> compileDefinitionOrPlaceholder(String input) {

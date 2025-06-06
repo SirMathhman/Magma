@@ -6,7 +6,7 @@ class State {
 	/*private*/ depth: int;
 	/*
 
-        public State*/(/*List<String> segments, StringBuilder buffer, int depth*/): /**//* {
+        public State*/(/*List<String> segments*//* StringBuilder buffer*//* int depth*/): /**//* {
             this.segments = segments;
             this.buffer = buffer;
             this.depth = depth;
@@ -72,10 +72,10 @@ export class Main {
 	/*private static*/ compile(/*String input*/): String/* {
         return compileStatements(input, Main::compileRootSegment);
     }*/
-	/*private static*/ compileStatements(/*String input, Function<String, String> mapper*/): String/* {
+	/*private static*/ compileStatements(/*String input*//* Function<String*//* String> mapper*/): String/* {
         return compileAll(input, mapper, Main::foldStatements);
     }*/
-	/*private static*/ compileAll(/*String input, Function<String, String> mapper, BiFunction<State, Character, State> folder*/): String/* {
+	/*private static*/ compileAll(/*String input*//* Function<String*//* String> mapper*//* BiFunction<State*//* Character*//* State> folder*/): String/* {
         final var segments = divide(input, folder);
         final var output = new StringBuilder();
         for (var segment : segments) {
@@ -84,7 +84,7 @@ export class Main {
 
         return output.toString();
     }*/
-	/*private static*/ divide(/*String input, BiFunction<State, Character, State> folder*/): List<String>/* {
+	/*private static*/ divide(/*String input*//* BiFunction<State*//* Character*//* State> folder*/): List<String>/* {
         State state = new State();
         final var length = input.length();
         var current = state;
@@ -95,7 +95,7 @@ export class Main {
 
         return current.advance().segments;
     }*/
-	/*private static*/ foldStatements(/*State current, char c*/): State/* {
+	/*private static*/ foldStatements(/*State current*//* char c*/): State/* {
         final var appended = current.append(c);
         if (c == ';' && appended.isLevel()) {
             return appended.advance();
@@ -105,7 +105,7 @@ export class Main {
             return appended.advance().exit();
         }*/
 	/*
-        if */(/*c == '{'*/): /**//* {
+        if */(/*c*/ '{': ==): /**//* {
             return appended.enter();
         }
         if (c == '}*/
@@ -202,7 +202,15 @@ export class Main {
         }
 
         final var content = stripped.substring(0, stripped.length() - ";".length());
-        return compileDefinition(content).map(definition -> new Tuple<>("\n\t" + definition.left + ": " + definition.right + ";", Collections.emptyList()));
+        return getStringListTuple(content);
+    }*//*
+
+    private static Optional<Tuple<String, List<String>>> getStringListTuple(String content) {
+        return compileSimpleDefinition(content).map(definition -> new Tuple<>("\n\t" + definition + ";", Collections.emptyList()));
+    }*//*
+
+    private static Optional<String> compileSimpleDefinition(String content) {
+        return compileDefinition(content).map(definition -> definition.left + ": " + definition.right);
     }*//*
 
     private static Optional<Tuple<String, List<String>>> compileWhitespace(String input) {
@@ -221,15 +229,28 @@ export class Main {
             final var withParams = input.substring(paramStart + "(".length());
             final var paramEnd = withParams.indexOf(")");
             if (paramEnd >= 0) {
-                final var params = withParams.substring(0, paramEnd);
+                final var inputParams = withParams.substring(0, paramEnd);
                 final var withBraces = withParams.substring(paramEnd + ")".length());
                 final var outputDefinition = compileDefinitionOrPlaceholder(inputDefinition);
-                final var generated = "\n\t" + outputDefinition.left + "(" + generatePlaceholder(params) + "): " + outputDefinition.right + generatePlaceholder(withBraces);
+                final var outputParams = compileAll(inputParams, Main::compileSimpleDefinitionOrPlaceholder, Main::foldValues);
+
+                final var generated = "\n\t" + outputDefinition.left + "(" + outputParams + "): " + outputDefinition.right + generatePlaceholder(withBraces);
                 return Optional.of(new Tuple<>(generated, Collections.emptyList()));
             }
         }
 
         return Optional.empty();
+    }*//*
+
+    private static State foldValues(State state, char c) {
+        if (c == ',') {
+            return state.advance();
+        }
+        return state.append(c);
+    }*//*
+
+    private static String compileSimpleDefinitionOrPlaceholder(String s) {
+        return compileSimpleDefinition(s).orElseGet(() -> generatePlaceholder(s));
     }*//*
 
     private static Tuple<String, String> compileDefinitionOrPlaceholder(String input) {
