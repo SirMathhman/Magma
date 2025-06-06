@@ -83,7 +83,7 @@ public class Main {
         String generate();
     }
 
-    private interface Value extends Caller, Argument {
+    private interface Value extends Caller, ValueArgument {
     }
 
     private interface Caller extends Generating {
@@ -97,7 +97,7 @@ public class Main {
         Map<K, V> putTuple(Tuple<K, V> kvTuple);
     }
 
-    private interface Type extends Generating {
+    private interface Type extends Generating, TypeArgument {
         default Map<String, Type> extract(Type actual) {
             return Maps.empty();
         }
@@ -107,7 +107,10 @@ public class Main {
         }
     }
 
-    private interface Argument {
+    private interface ValueArgument {
+    }
+
+    private interface TypeArgument {
     }
 
     private record Some<T>(T value) implements Option<T> {
@@ -492,7 +495,7 @@ public class Main {
         }
     }
 
-    private static class Whitespace implements Parameter, Generating, Argument {
+    private static class Whitespace implements Parameter, Generating, ValueArgument, TypeArgument {
         @Override
         public String generate() {
             return "";
@@ -1060,7 +1063,7 @@ public class Main {
         return new None<>();
     }
 
-    private static Option<Value> retainValue(Argument argument) {
+    private static Option<Value> retainValue(ValueArgument argument) {
         if (argument instanceof Value value) {
             return new Some<>(value);
         }
@@ -1069,8 +1072,8 @@ public class Main {
         }
     }
 
-    private static Argument parseArgument(String input, Stack stack) {
-        return parseWhitespace(input).<Argument>map(value -> value)
+    private static ValueArgument parseArgument(String input, Stack stack) {
+        return parseWhitespace(input).<ValueArgument>map(value -> value)
                 .orElseGet(() -> parseValue(input, stack));
     }
 
@@ -1256,7 +1259,11 @@ public class Main {
             if (argumentsStart >= 0) {
                 final var base = withoutEnd.substring(0, argumentsStart).strip();
                 final var inputArguments = withoutEnd.substring(argumentsStart + 1);
-                final var elements = parseValuesString(inputArguments, Main::parseType);
+                final var elements = parseValuesString(inputArguments, Main::parseTypeArgument)
+                        .iter()
+                        .map(Main::retainType)
+                        .flatMap(Iterators::fromOptional)
+                        .collect(new ListCollector<>());
 
                 if (base.equals("Supplier")) {
                     List<Type> parameterTypes = Lists.empty();
@@ -1279,6 +1286,21 @@ public class Main {
 
         return parseSymbol(stripped).<Type>map(value -> value)
                 .orElseGet(() -> new Placeholder(input));
+    }
+
+    private static Option<Type> retainType(TypeArgument argument) {
+        if (argument instanceof Type type) {
+            return new Some<>(type);
+        }
+        else {
+            return new None<>();
+        }
+    }
+
+    private static TypeArgument parseTypeArgument(String input) {
+        return parseWhitespace(input)
+                .<TypeArgument>map(whitespace -> whitespace)
+                .orElseGet(() -> parseType(input));
     }
 
     private static <T> List<T> parseValuesString(String input, Function<String, T> mapper) {

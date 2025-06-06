@@ -40,7 +40,7 @@ interface List<T> {
 interface Generating {
 	generate(): string;
 }
-interface Value extends Caller, Argument {
+interface Value extends Caller, ValueArgument {
 }
 interface Caller extends Generating {
 }
@@ -49,7 +49,7 @@ interface Map<K, V> {
 	iter(): Iterator<Tuple<K, V>>;
 	putTuple(kvTuple: Tuple<K, V>): Map<K, V>;
 }
-interface Type extends Generating {
+interface Type extends Generating, TypeArgument {
 	/*default*/ extract(actual: Type): Map<string, Type> {
 		return Maps.empty();
 	}
@@ -57,7 +57,9 @@ interface Type extends Generating {
 		return this;
 	}
 }
-interface Argument {
+interface ValueArgument {
+}
+interface TypeArgument {
 }
 class Some<T> implements Option<T> {
 	value: T;
@@ -66,7 +68,7 @@ class Some<T> implements Option<T> {
 	}
 	/*@Override
         public */ map<R>(mapper: (param0 : T) => R): Option<R> {
-		return new Some</**/>(mapper(value));
+		return new Some<>(mapper(value));
 	}
 	/*@Override
         public*/ orElseGet(other: () => T): T {
@@ -100,7 +102,7 @@ class Some<T> implements Option<T> {
 class None<T> implements Option<T> {
 	/*@Override
         public */ map<R>(mapper: (param0 : T) => R): Option<R> {
-		return new None</**/>();
+		return new None<>();
 	}
 	/*@Override
         public*/ orElseGet(other: () => T): T {
@@ -128,21 +130,21 @@ class None<T> implements Option<T> {
 	}
 	/*@Override
         public */ and<R>(other: () => Option<R>): Option<Tuple<T, R>> {
-		return new None</**/>();
+		return new None<>();
 	}
 }
 class Lists {
 	/*public static */ empty<T>(): List<T> {
-		return new JavaList</**/>();
+		return new JavaList<>();
 	}
 	/*@SafeVarargs
         public static */ of<T>(elements: /*T...*/): List<T> {
-		return new JavaList</**/>(new ArrayList</**/>(Arrays.asList(elements)));
+		return new JavaList<>(new ArrayList<>(Arrays.asList(elements)));
 	}
 }
 class Iterators {
 	/*public static */ fromOptional<T>(option: Option<T>): Iterator<T> {
-		return new HeadedIterator</**/>(option.<Head<T>>map(/*SingleHead::new)
+		return new HeadedIterator<>(option.<Head<T>>map(/*SingleHead::new)
                     */.orElseGet(EmptyHead::new));
 	}
 }
@@ -160,7 +162,7 @@ class RangeHead implements Head<Integer> {
 
             final var value = counter;*//*
             counter++;*/
-		return new Some</**/>(value);
+		return new Some<>(value);
 	}
 }
 class JavaList<T> implements List<T> {
@@ -181,7 +183,7 @@ class JavaList<T> implements List<T> {
 		return createIteratorFromSize(/*)*/.map(elements::get);
 	}
 	/*private*/ createIteratorFromSize(): Iterator<Integer> {
-		return new HeadedIterator</**/>(new RangeHead(elements.size()));
+		return new HeadedIterator<>(new RangeHead(elements.size()));
 	}
 	/*@Override
         public*/ addAll(elements: List<T>): List<T> {
@@ -194,7 +196,7 @@ class JavaList<T> implements List<T> {
             }*//*
 
             final var last = elements.removeLast();*/
-		return new Some</**/>(/*new Tuple<>(this*/, /* last)*/);
+		return new Some<>(/*new Tuple<>(this*/, /* last)*/);
 	}
 	/*@Override
         public*/ isEmpty(): boolean {
@@ -227,7 +229,7 @@ class JavaList<T> implements List<T> {
 class EmptyHead<T> implements Head<T> {
 	/*@Override
         public*/ next(): Option<T> {
-		return new None</**/>();
+		return new None<>();
 	}
 }
 class SingleHead<T> implements Head<T> {
@@ -243,7 +245,7 @@ class SingleHead<T> implements Head<T> {
             }*//*
 
             retrieved = true;*/
-		return new Some</**/>(element);
+		return new Some<>(element);
 	}
 }
 class FlatMapHead<T, R> implements Head<R> {
@@ -280,7 +282,7 @@ class HeadedIterator<T> implements Iterator<T> {
 	}
 	/*@Override
         public */ map<R>(mapper: (param0 : T) => R): Iterator<R> {
-		return new HeadedIterator</**/>(/**/(/*) -> head*/.next().map(mapper));
+		return new HeadedIterator<>(/**/(/*) -> head*/.next().map(mapper));
 	}
 	/*@Override
         public */ fold<R>(initial: R, folder: (param0 : R, param1 : T) => R): R {/*
@@ -306,7 +308,7 @@ class HeadedIterator<T> implements Iterator<T> {
                     .map(mapper)
                     .<Head<R>>map(initial -> new FlatMapHead<>(initial, this.head, mapper))
                     .orElseGet(EmptyHead::new);*/
-		return new HeadedIterator</**/>(head);
+		return new HeadedIterator<>(head);
 	}
 	/*@Override
         public*/ next(): Option<T> {
@@ -322,7 +324,7 @@ class HeadedIterator<T> implements Iterator<T> {
 	}
 	/*@Override
         public */ zip<R>(other: Iterator<R>): Iterator<Tuple<T, R>> {
-		return new HeadedIterator</**/>(/**/(/*) -> head*/.next(/*)*/.and(() -> other.next()));
+		return new HeadedIterator<>(/**/(/*) -> head*/.next(/*)*/.and(() -> other.next()));
 	}
 }
 class Tuple<L, R> {
@@ -404,7 +406,7 @@ class Placeholder implements Parameter, Value, Type {
 		return generatePlaceholder(input);
 	}
 }
-class Whitespace implements Parameter, Generating, Argument {
+class Whitespace implements Parameter, Generating, ValueArgument, TypeArgument {
 	/*@Override
         public*/ generate(): string {
 		return /*""*/;
@@ -420,11 +422,11 @@ class Joiner implements Collector<string, Option<string>> {
 	}
 	/*@Override
         public*/ createInitial(): Option<string> {
-		return new None</**/>();
+		return new None<>();
 	}
 	/*@Override
         public*/ fold(current: Option<string>, element: string): Option<string> {
-		return new Some</**/>(current.map(/*inner -> inner + delimiter + element)*/.orElse(element));
+		return new Some<>(current.map(/*inner -> inner + delimiter + element)*/.orElse(element));
 	}
 }
 class ListCollector<T> implements Collector<T, List<T>> {
@@ -492,7 +494,7 @@ class StructureType implements Type {
 		return false;
 	}
 	/*public*/ findField(name: string): Option<Definition> {
-		return new None</**/>();
+		return new None<>();
 	}
 }
 class Frame {
@@ -587,7 +589,7 @@ class JavaMap<K, V> implements Map<K, V> {
 	}
 	/*@Override
         public*/ iter(): Iterator<Tuple<K, V>> {
-		return new JavaList</**/>(new ArrayList</**/>(map.entrySet(/*)))
+		return new JavaList<>(new ArrayList<>(map.entrySet(/*)))
                     */.iter().map(entry -> new Tuple<>(entry.getKey(), entry.getValue()));
 	}
 	/*@Override
@@ -598,7 +600,7 @@ class JavaMap<K, V> implements Map<K, V> {
 }
 class Maps {
 	/*public static */ empty<K, V>(): Map<K, V> {
-		return new JavaMap</**/>();
+		return new JavaMap<>();
 	}
 }
 export class Main {
@@ -964,7 +966,7 @@ export class Main {
         return new None<>();
     }*//*
 
-    private static Option<Value> retainValue(Argument argument) {
+    private static Option<Value> retainValue(ValueArgument argument) {
         if (argument instanceof Value value) {
             return new Some<>(value);
         }
@@ -973,8 +975,8 @@ export class Main {
         }
     }*//*
 
-    private static Argument parseArgument(String input, Stack stack) {
-        return parseWhitespace(input).<Argument>map(value -> value)
+    private static ValueArgument parseArgument(String input, Stack stack) {
+        return parseWhitespace(input).<ValueArgument>map(value -> value)
                 .orElseGet(() -> parseValue(input, stack));
     }*//*
 
@@ -1160,7 +1162,11 @@ export class Main {
             if (argumentsStart >= 0) {
                 final var base = withoutEnd.substring(0, argumentsStart).strip();
                 final var inputArguments = withoutEnd.substring(argumentsStart + 1);
-                final var elements = parseValuesString(inputArguments, Main::parseType);
+                final var elements = parseValuesString(inputArguments, Main::parseTypeArgument)
+                        .iter()
+                        .map(Main::retainType)
+                        .flatMap(Iterators::fromOptional)
+                        .collect(new ListCollector<>());
 
                 if (base.equals("Supplier")) {
                     List<Type> parameterTypes = Lists.empty();
@@ -1183,6 +1189,21 @@ export class Main {
 
         return parseSymbol(stripped).<Type>map(value -> value)
                 .orElseGet(() -> new Placeholder(input));
+    }*//*
+
+    private static Option<Type> retainType(TypeArgument argument) {
+        if (argument instanceof Type type) {
+            return new Some<>(type);
+        }
+        else {
+            return new None<>();
+        }
+    }*//*
+
+    private static TypeArgument parseTypeArgument(String input) {
+        return parseWhitespace(input)
+                .<TypeArgument>map(whitespace -> whitespace)
+                .orElseGet(() -> parseType(input));
     }*//*
 
     private static <T> List<T> parseValuesString(String input, Function<String, T> mapper) {
