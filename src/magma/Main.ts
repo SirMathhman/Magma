@@ -1,3 +1,136 @@
+class Lists {
+	/*public static <T>*/ empty(): List<T>/* {
+            return new JavaList<>();
+        }*/
+}
+class Iterators {
+	/*public static <T>*/ fromOptional(optional: Optional<T>): Iterator<T>/* {
+            return new HeadedIterator<>(optional
+                    .<Head<T>>map(SingleHead::new)
+                    .orElseGet(EmptyHead::new));
+        }*/
+}
+class RangeHead implements Head<Integer> {
+	/*private final*/ length: int;
+	/*private int counter*/ 0: /*=*/;
+	RangeHead(length: int): public/* {
+            this.length = length;
+        }*/
+	/*@Override
+        public*/ next(): Optional<Integer>/* {
+            if (counter >= length) {
+                return Optional.empty();
+            }
+
+            final var value = counter;
+            counter++;
+            return Optional.of(value);
+        }*/
+}
+class JavaList<T>(java.util.List<T> elements) implements List<T> {
+	JavaList(): public/* {
+            this(new ArrayList<>());
+        }*/
+	/*@Override
+        public*/ add(element: T): List<T>/* {
+            elements.add(element);
+            return this;
+        }*/
+	/*@Override
+        public*/ iter(): Iterator<T>/* {
+            return new HeadedIterator<>(new RangeHead(elements.size())).map(elements::get);
+        }*/
+	/*@Override
+        public*/ addAll(elements: List<T>): List<T>/* {
+            return elements.iter().<List<T>>fold(this, List::add);
+        }*/
+}
+class EmptyHead<T> implements Head<T> {
+	/*@Override
+        public*/ next(): Optional<T>/* {
+            return Optional.empty();
+        }*/
+}
+class SingleHead<T> implements Head<T> {
+	/*private final*/ element: T;
+	/*private boolean retrieved*/ false: /*=*/;
+	SingleHead(element: T): public/* {
+            this.element = element;
+        }*/
+	/*@Override
+        public*/ next(): Optional<T>/* {
+            if (retrieved) {
+                return Optional.empty();
+            }
+
+            retrieved = true;
+            return Optional.of(element);
+        }*/
+}
+class FlatMapHead<T, R> implements Head<R> {
+	/*private final*/ head: Head<T>;
+	/*private final Function<T,*/ mapper: Iterator</*R>*/>;
+	/*private*/ current: Iterator<R>;
+	FlatMapHead(initial: Iterator<R>, head: Head<T>, /* Function<T*/, mapper: Iterator</*R>*/>): public/* {
+            this.current = initial;
+            this.head = head;
+            this.mapper = mapper;
+        }*/
+	/*@Override
+        public*/ next(): Optional<R>/* {
+            while (true) {
+                final var maybeNext = current.next();
+                if (maybeNext.isPresent()) {
+                    return maybeNext;
+                }
+
+                final var maybeNextIter = head.next().map(mapper);
+                if (maybeNextIter.isPresent()) {
+                    current = maybeNextIter.get();
+                }
+                else {
+                    return Optional.empty();
+                }
+            }
+        }*/
+}
+class HeadedIterator<T>(Head<T> head) implements Iterator<T> {
+	/*@Override
+        public <R>*/ map(/*Function<T*/, mapper: /*R>*/): Iterator<R>/* {
+            return new HeadedIterator<>(() -> head.next().map(mapper));
+        }*/
+	/*@Override
+        public <R>*/ fold(initial: R, /* BiFunction<R*/, /* T*/, folder: /*R>*/): R/* {
+            var current = initial;
+            while (true) {
+                R finalCurrent = current;
+                final var maybeNext = head.next().map(next -> folder.apply(finalCurrent, next));
+                if (maybeNext.isPresent()) {
+                    current = maybeNext.get();
+                }
+                else {
+                    return current;
+                }
+            }
+        }*/
+	/*@Override
+        public <C>*/ collect(/*Collector<T*/, collector: /*C>*/): C/* {
+            return fold(collector.createInitial(), collector::fold);
+        }*/
+	/*@Override
+        public <R>*/ flatMap(/*Function<T*/, mapper: Iterator</*R>*/>): Iterator<R>/* {
+            final var head = this.head.next()
+                    .map(mapper)
+                    .<Head<R>>map(initial -> new FlatMapHead<>(initial, this.head, mapper))
+                    .orElseGet(EmptyHead::new);
+
+            return new HeadedIterator<>(head);
+        }*/
+	/*@Override
+        public*/ next(): Optional<T>/* {
+            return head.next();
+        }*/
+}
 class Tuple<L, R> {
 	left: L;
 	right: R;
@@ -7,7 +140,7 @@ class Tuple<L, R> {
 	}
 }
 class State {
-	/*private final*/ segments: List<string>;
+	/*private*/ segments: List<string>;
 	/*private*/ buffer: StringBuilder;
 	/*private*/ depth: int;
 	State(segments: List<string>, buffer: StringBuilder, depth: int): public/* {
@@ -16,45 +149,30 @@ class State {
             this.depth = depth;
         }*/
 	State(): public/* {
-            this(new ArrayList<>(), new StringBuilder(), 0);
+            this(Lists.empty(), new StringBuilder(), 0);
         }*/
 	/*private*/ append(c: char): State/* {
-            getBuffer().append(c);
+            buffer.append(c);
             return this;
         }*/
 	/*private*/ enter(): State/* {
-            setDepth(getDepth() + 1);
+            this.depth = depth + 1;
             return this;
         }*/
 	/*private*/ exit(): State/* {
-            setDepth(getDepth() - 1);
+            this.depth = depth - 1;
             return this;
         }*/
 	/*private*/ isShallow(): boolean/* {
-            return getDepth() == 1;
+            return depth == 1;
         }*/
 	/*private*/ advance(): State/* {
-            segments().add(getBuffer().toString());
-            setBuffer(new StringBuilder());
+            segments = segments.add(buffer.toString());
+            this.buffer = new StringBuilder();
             return this;
         }*/
 	/*private*/ isLevel(): boolean/* {
-            return getDepth() == 0;
-        }*/
-	/*public*/ getBuffer(): StringBuilder/* {
-            return buffer;
-        }*/
-	/*public*/ setBuffer(buffer: StringBuilder): void/* {
-            this.buffer = buffer;
-        }*/
-	/*public*/ getDepth(): int/* {
-            return depth;
-        }*/
-	/*public*/ setDepth(depth: int): void/* {
-            this.depth = depth;
-        }*/
-	/*public*/ segments(): List<string>/* {
-            return segments;
+            return depth == 0;
         }*/
 }
 class Definition(Optional<String> beforeType, String type, String name) implements Parameter {
@@ -79,9 +197,55 @@ class Whitespace implements Parameter {
             return "";
         }*/
 }
+class Joiner implements Collector<String, Optional<String>> {
+	/*@Override
+        public*/ createInitial(): Optional<string>/* {
+            return Optional.empty();
+        }*/
+	/*@Override
+        public*/ fold(current: Optional<string>, element: string): Optional<string>/* {
+            return Optional.of(current.map(inner -> inner + element).orElse(element));
+        }*/
+}
+class ListCollector<T> implements Collector<T, List<T>> {
+	/*@Override
+        public*/ createInitial(): List<T>/* {
+            return Lists.empty();
+        }*/
+	/*@Override
+        public*/ fold(current: List<T>, element: T): List<T>/* {
+            return current.add(element);
+        }*/
+}
 export class Main {
 	/*private interface Parameter {
        */ generate(): string/*;
+    }*/
+	/*private interface Collector<T, C> {
+       */ createInitial(): C/*;
+
+        C fold(C current, T element);
+    }*/
+	/*private interface Head<T> {
+       */ next(): Optional<T>/*;
+    }*/
+	/*private interface Iterator<T> {
+        <R>*/ map(/*Function<T*/, mapper: /*R>*/): Iterator<R>/*;
+
+        <R> R fold(R initial, BiFunction<R, T, R> folder);
+
+        <C> C collect(Collector<T, C> collector);
+
+        <R> Iterator<R> flatMap(Function<T, Iterator<R>> mapper);
+
+        Optional<T> next();
+    }*/
+	/*private interface List<T> {
+       */ add(element: T): List<T>/*;
+
+        Iterator<T> iter();
+
+        List<T> addAll(List<T> elements);
     }*/
 	/*public static*/ main(args: /*String[]*/): void/* {
         try {
@@ -103,14 +267,11 @@ export class Main {
         return compileAll(input, mapper, Main::foldStatements, Main::mergeStatements);
     }*/
 	/*private static*/ compileAll(input: string, /* Function<String*/, mapper: /*String>*/, /* BiFunction<State*/, /* Character*/, folder: /*State>*/, /* BiFunction<StringBuilder*/, /* String*/, merger: /*StringBuilder>*/): string/* {
-        final var segments = divide(input, folder);
-        var output = new StringBuilder();
-        for (var segment : segments) {
-            final var compiled = mapper.apply(segment);
-            output = merger.apply(output, compiled);
-        }
-
-        return output.toString();
+        return divide(input, folder)
+                .iter()
+                .map(mapper)
+                .fold(new StringBuilder(), merger)
+                .toString();
     }*/
 	/*private static*/ mergeStatements(output: StringBuilder, compiled: string): StringBuilder/* {
         return output.append(compiled);
@@ -155,12 +316,18 @@ export class Main {
         return compileRootStructure(input)
                 .orElseGet(() -> generatePlaceholder(input));
     }*/class ").map(tuple -> {
-	/*final var joined =*/ tuple.right): /*String.join("",*/;
+	/*final var joined*/ join(tuple.right): /*=*/;
 	/*return tuple.left*/ joined: /*+*/;/*
         });
     */
 }
 /*
+
+    private static String join(List<String> list) {
+        return list.iter()
+                .collect(new Joiner())
+                .orElse("");
+    }*//*
 
     private static Optional<Tuple<String, List<String>>> compileStructure(String input, String keyword) {
         final var classIndex = input.indexOf(keyword);
@@ -182,22 +349,18 @@ export class Main {
         }
 
         final var inputContent = withEnd.substring(0, withEnd.length() - "}".length());
+        final var folded = divide(inputContent, Main::foldStatements)
+                .iter()
+                .map(Main::compileClassSegment)
+                .fold(new Tuple<>(new StringBuilder(), Lists.<String>empty()), (tuple, element) -> new Tuple<>(tuple.left.append(element.left), tuple.right.addAll(element.right)));
 
-        final var structures = new ArrayList<String>();
-        final var segments = divide(inputContent, Main::foldStatements);
-        final var output = new StringBuilder();
-        for (var segment : segments) {
-            final var tuple = compileClassSegment(segment);
-            output.append(tuple.left);
-            structures.addAll(tuple.right);
-        }
+        final var output = folded.left.toString();
+        final var structures = folded.right;
 
-        final var outputContent = output.toString();
         final var modifiers = modifiersString.contains("public") ? "export " : "";
 
-        final var generated = assembleStructure(beforeContent, modifiers, outputContent);
-        structures.add(generated);
-        return Optional.of(new Tuple<>("", structures));
+        final var generated = assembleStructure(beforeContent, modifiers, output);
+        return Optional.of(new Tuple<>("", structures.add(generated)));
     }*//*
 
     private static String assembleStructure(String beforeContent, String modifiers, String outputContent) {
@@ -207,34 +370,32 @@ export class Main {
             if (paramStart >= 0) {
                 final var name = withoutParamEnd.substring(0, paramStart).strip();
                 final var inputParams = withoutParamEnd.substring(paramStart + "(".length());
-                final var segments = divide(inputParams, Main::foldValues);
+                final var fields = divide(inputParams, Main::foldValues)
+                        .iter()
+                        .map(Main::parseParameter)
+                        .map(Main::retainDefinition)
+                        .flatMap(Iterators::fromOptional)
+                        .collect(new ListCollector<>());
 
-                final var fields = new ArrayList<Definition>();
-                for (var segment : segments) {
-                    final var parameter = parseParameter(segment);
-                    if (parameter instanceof Definition definition) {
-                        fields.add(definition);
-                    }
-                }
-
-                var output = new StringBuilder();
-                for (var definition : fields) {
-                    output = mergeValues(output, definition.generate());
-                }
+                final var output = fields.iter()
+                        .map(Definition::generate)
+                        .fold(new StringBuilder(), Main::mergeValues);
 
                 final var outputParams = output.toString();
-                final var generatedFields = fields.stream()
+                final var generatedFields = fields.iter()
                         .map(Definition::generate)
                         .map(element -> "\n\t" + element + ";")
-                        .collect(Collectors.joining());
+                        .collect(new Joiner())
+                        .orElse("");
 
-                final var assignments = fields.stream()
+                final var assignments = fields.iter()
                         .map(field -> {
                             final var fieldName = field.name;
                             final var content = "this." + fieldName + " = " + fieldName;
                             return generateStatement(content, 2);
                         })
-                        .collect(Collectors.joining());
+                        .collect(new Joiner())
+                        .orElse("");
 
                 return generateClass(modifiers, name, generatedFields + "\n\tconstructor (" + outputParams + ") {" +
                         assignments +
@@ -243,6 +404,15 @@ export class Main {
         }
 
         return generateClass(modifiers, beforeContent, outputContent);
+    }*//*
+
+    private static Optional<Definition> retainDefinition(Parameter parameter) {
+        if (parameter instanceof Definition definition) {
+            return Optional.of(definition);
+        }
+        else {
+            return Optional.empty();
+        }
     }*//*
 
     private static String generateStatement(String content, int depth) {
@@ -258,7 +428,7 @@ export class Main {
                 .or(() -> compileStructure(input, "class "))
                 .or(() -> compileField(input))
                 .or(() -> compileMethod(input))
-                .orElseGet(() -> new Tuple<>(generatePlaceholder(input), Collections.emptyList()));
+                .orElseGet(() -> new Tuple<>(generatePlaceholder(input), Lists.empty()));
     }*//*
 
     private static Optional<Tuple<String, List<String>>> compileField(String input) {
@@ -272,7 +442,7 @@ export class Main {
     }*//*
 
     private static Optional<Tuple<String, List<String>>> getStringListTuple(String content) {
-        return compileSimpleDefinition(content).map(definition -> new Tuple<>("\n\t" + definition + ";", Collections.emptyList()));
+        return compileSimpleDefinition(content).map(definition -> new Tuple<>("\n\t" + definition + ";", Lists.empty()));
     }*//*
 
     private static Optional<String> compileSimpleDefinition(String content) {
@@ -280,7 +450,7 @@ export class Main {
     }*//*
 
     private static Optional<Tuple<String, List<String>>> compileWhitespace(String input) {
-        return parseWhitespace(input).map(node -> new Tuple<>(node.generate(), Collections.emptyList()));
+        return parseWhitespace(input).map(node -> new Tuple<>(node.generate(), Lists.empty()));
     }*//*
 
     private static Optional<Whitespace> parseWhitespace(String input) {
@@ -308,7 +478,7 @@ export class Main {
                     final var outputParams = compileParameters(inputParams);
 
                     final var generated = "\n\t" + outputDefinition.generateWithAfterName("(" + outputParams + ")") + generatePlaceholder(withBraces);
-                    return Optional.of(new Tuple<>(generated, Collections.emptyList()));
+                    return Optional.of(new Tuple<>(generated, Lists.empty()));
                 }
             }
         }
