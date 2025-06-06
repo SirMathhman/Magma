@@ -259,7 +259,7 @@ public class Main {
     }
 
     private static Tuple<String, String> compileDefinitionOrPlaceholder(String input) {
-        return compileDefinition(input).orElseGet(() -> new Tuple<>(generatePlaceholder(input), ""));
+        return compileDefinition(input).orElseGet(() -> new Tuple<>(generatePlaceholder(input), generatePlaceholder("")));
     }
 
     private static Optional<Tuple<String, String>> compileDefinition(String input) {

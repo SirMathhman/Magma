@@ -6,14 +6,14 @@ class State {
 	/*private*/ depth: int;
 	/*
 
-        public State*/(/*List<String> segments, StringBuilder buffer, int depth*/): /* {
+        public State*/(/*List<String> segments, StringBuilder buffer, int depth*/): /**//* {
             this.segments = segments;
             this.buffer = buffer;
             this.depth = depth;
         }*/
 	/*
 
-        public State*/(/**/): /* {
+        public State*/(/**/): /**//* {
             this(new ArrayList<>(), new StringBuilder(), 0);
         }*/
 	/*private*/ append(/*char c*/): State/* {
@@ -105,7 +105,7 @@ export class Main {
             return appended.advance().exit();
         }*/
 	/*
-        if */(/*c == '{'*/): /* {
+        if */(/*c == '{'*/): /**//* {
             return appended.enter();
         }
         if (c == '}*/
@@ -184,24 +184,26 @@ export class Main {
     }*/class " + beforeContent + " {
 	/*" + outputContent*/ "\n}\n": +;
 }
-class "))
-                .or(() -> {
-	/*final var stripped*/ input.strip(): =;/*
-                    if (stripped.endsWith(";*/
-	/*")) {
-                        final var content*/ stripped.substring(/*0, stripped.length(*/): =/* - ";".length());
-                        return compileDefinition(content).map(definition -> {
-                            return new Tuple<>("\n\t" + definition.left + ": " + definition.right + ";", Collections.emptyList());
-                        });
-                    }*/
-	/*else {
-                       */ Optional.empty(/**/): return/*;
-                    }*/
-	/*})
-                .or(() -> compileMethod(input))
-                .orElseGet(() -> new*/ Collections.emptyList())): Tuple<>(generatePlaceholder(input),;
-}
 /*
+
+    private static Tuple<String, List<String>> compileClassSegment(String input) {
+        return compileWhitespace(input)
+                .or(() -> compileStructure(input, "record "))
+                .or(() -> compileStructure(input, "class "))
+                .or(() -> compileField(input))
+                .or(() -> compileMethod(input))
+                .orElseGet(() -> new Tuple<>(generatePlaceholder(input), Collections.emptyList()));
+    }*//*
+
+    private static Optional<Tuple<String, List<String>>> compileField(String input) {
+        final var stripped = input.strip();
+        if (!stripped.endsWith(";")) {
+            return Optional.empty();
+        }
+
+        final var content = stripped.substring(0, stripped.length() - ";".length());
+        return compileDefinition(content).map(definition -> new Tuple<>("\n\t" + definition.left + ": " + definition.right + ";", Collections.emptyList()));
+    }*//*
 
     private static Optional<Tuple<String, List<String>>> compileWhitespace(String input) {
         if (input.isBlank()) {
@@ -231,7 +233,7 @@ class "))
     }*//*
 
     private static Tuple<String, String> compileDefinitionOrPlaceholder(String input) {
-        return compileDefinition(input).orElseGet(() -> new Tuple<>(generatePlaceholder(input), ""));
+        return compileDefinition(input).orElseGet(() -> new Tuple<>(generatePlaceholder(input), generatePlaceholder("")));
     }*//*
 
     private static Optional<Tuple<String, String>> compileDefinition(String input) {
