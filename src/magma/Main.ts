@@ -8,7 +8,6 @@ interface Option<T> {
 	isEmpty(): boolean;
 }
 interface Parameter {
-	generate(): string;
 }
 interface Collector<T, C> {
 	createInitial(): C;
@@ -23,6 +22,7 @@ interface Iterator<T> {
 	collect<C>(collector: Collector<T, C>): C;
 	flatMap<R>(mapper: (param0 : T) => Iterator<R>): Iterator<R>;
 	next(): Option<T>;
+	filter(predicate: Predicate<T>): Iterator<T>;
 }
 interface List<T> {
 	add(element: T): List<T>;
@@ -32,6 +32,8 @@ interface List<T> {
 	isEmpty(): boolean;
 	get(index: int): T;
 	iterWithIndex(): Iterator<Tuple<Integer, T>>;
+	iterReversed(): Iterator<T>;
+	mapLast(mapper: (param0 : T) => T): List<T>;
 }
 interface Generating {
 	generate(): string;
@@ -40,6 +42,8 @@ interface Value extends Caller {
 }
 interface Caller extends Generating {
 }
+interface Type extends Generating {
+}
 class Some<T> implements Option<T> {
 	value: T;
 	constructor (value: T) {
@@ -47,7 +51,7 @@ class Some<T> implements Option<T> {
 	}
 	/*@Override
         public */ map<R>(mapper: (param0 : T) => R): Option<R> {
-		return new Some<>(mapper.apply(value));
+		return new Some<>(mapper(value));
 	}
 	/*@Override
         public*/ orElseGet(other: () => T): T {
@@ -81,7 +85,7 @@ class None<T> implements Option<T> {
 	}
 	/*@Override
         public*/ orElseGet(other: () => T): T {
-		return other.get();
+		return other();
 	}
 	/*@Override
         public*/ isPresent(): boolean {
@@ -97,7 +101,7 @@ class None<T> implements Option<T> {
 	}
 	/*@Override
         public*/ or(other: () => Option<T>): Option<T> {
-		return other.get();
+		return other();
 	}
 	/*@Override
         public*/ isEmpty(): boolean {
@@ -180,6 +184,21 @@ class JavaList<T> implements List<T> {
 	/*@Override
         public*/ iterWithIndex(): Iterator<Tuple<Integer, T>> {
 		return createIteratorFromSize(/*)*/.map(/*index -> new Tuple<>*/(index, elements.get(index)));
+	}
+	/*@Override
+        public*/ iterReversed(): Iterator<T> {
+		return createIteratorFromSize(/*)
+                    */.map(/*index -> elements*/.size() - index - 1).map(elements::get);
+	}
+	/*@Override
+        public*/ mapLast(mapper: (param0 : T) => T): List<T> {/*
+            if (elements.isEmpty()) {
+                return this;
+            }*//*
+
+            final var mapped = mapper.apply(elements.getLast());*//*
+            elements.set(elements.size() - 1, mapped);*/
+		return this;
 	}
 }
 class EmptyHead<T> implements Head<T> {
@@ -270,6 +289,14 @@ class HeadedIterator<T> implements Iterator<T> {
         public*/ next(): Option<T> {
 		return head.next();
 	}
+	/*@Override
+        public*/ filter(predicate: Predicate<T>): Iterator<T> {/*
+            return flatMap(element -> {
+                final var isValid = predicate.test(element);
+                final var head = isValid ? new SingleHead<>(element) : new EmptyHead<T>();
+                return new HeadedIterator<>(head);
+            }*//*);*/
+	}
 }
 class Tuple<L, R> {
 	left: L;
@@ -315,12 +342,12 @@ class State {
 		return /*depth == 0*/;
 	}
 }
-class Definition implements Parameter {
+class Definition implements Parameter, Generating {
 	beforeType: Option<string>;
 	typeParams: List<string>;
-	type: string;
+	type: Type;
 	name: string;
-	constructor (beforeType: Option<string>, typeParams: List<string>, type: string, name: string) {
+	constructor (beforeType: Option<string>, typeParams: List<string>, type: Type, name: string) {
 		this.beforeType = beforeType;
 		this.typeParams = typeParams;
 		this.type = type;
@@ -337,10 +364,10 @@ class Definition implements Parameter {
                     .orElse("");*//*
 
             final var beforeType = this.beforeType.map(inner -> inner + " ").orElse("");*/
-		return /*beforeType + name + joinedTypeParams + afterName + ": " + type*/;
+		return /*beforeType + name + joinedTypeParams + afterName + ": " + type*/.generate();
 	}
 }
-class Placeholder implements Parameter, Value {
+class Placeholder implements Parameter, Value, Type {
 	input: string;
 	constructor (input: string) {
 		this.input = input;
@@ -350,7 +377,7 @@ class Placeholder implements Parameter, Value {
 		return generatePlaceholder(input);
 	}
 }
-class Whitespace implements Parameter {
+class Whitespace implements Parameter, Generating {
 	/*@Override
         public*/ generate(): string {
 		return /*""*/;
@@ -384,50 +411,106 @@ class ListCollector<T> implements Collector<T, List<T>> {
 	}
 }
 class Construction implements Caller {
-	/*private final*/ type: string;
-	Construction(type: string): public {/*
-            this.type = type;*/
+	type: Type;
+	constructor (type: Type) {
+		this.type = type;
 	}
 	/*@Override
         public*/ generate(): string {
-		return /*"new " + type*/;
+		return /*"new " + type*/.generate();
 	}
 }
 class Invocation implements Value {
-	/*private final*/ caller: Caller;
-	/*private final*/ arguments: List<Value>;
-	Invocation(caller: Caller, arguments: List<Value>): public {/*
-            this.caller = caller;*//*
-            this.arguments = arguments;*/
+	caller: Caller;
+	arguments: List<Value>;
+	constructor (caller: Caller, arguments: List<Value>) {
+		this.caller = caller;
+		this.arguments = arguments;
 	}
 	/*@Override
         public*/ generate(): string {
-		return caller.generate() + "(" + generateAll(arguments) + ")";
+		return caller.generate() + "(" + generateNodes(arguments) + ")";
 	}
 }
 class FieldAccess implements Value {
-	/*private final*/ parent: Value;
-	/*private final*/ property: string;
-	FieldAccess(parent: Value, property: string): public {/*
-            this.parent = parent;*//*
-            this.property = property;*/
+	parent: Value;
+	property: string;
+	constructor (parent: Value, property: string) {
+		this.parent = parent;
+		this.property = property;
 	}
 	/*@Override
         public*/ generate(): string {
 		return parent.generate() + "." + property;
 	}
 }
-class Symbol implements Value {
-	/*private final*/ stripped: string;
-	Symbol(stripped: string): public {/*
-            this.stripped = stripped;*/
+class Symbol implements Value, Type {
+	input: string;
+	constructor (input: string) {
+		this.input = input;
 	}
 	/*@Override
         public*/ generate(): string {
-		return stripped;
+		return input;
+	}
+}
+class Stack {
+	frames: List<List<Definition>>;
+	constructor (frames: List<List<Definition>>) {
+		this.frames = frames;
+	}
+	Stack(): private {/*
+            this(Lists.of(Lists.empty()));*/
+	}
+	/*public*/ resolveValue(name: string): Option<Type> {
+		return frames.iterReversed(/*)
+                    */.map(/*frame -> resolveValueWithinFrame*/(name, /*frame))
+                    */.flatMap(Iterators::fromOptional).next().map(definition -> definition.type);
+	}
+	/*public*/ defineAll(definitions: List<Definition>): Stack {
+		return new Stack(frames.mapLast(/*frame -> frame*/.addAll(definitions)));
+	}
+}
+class StringType implements Type {
+	/*@Override
+        public*/ generate(): string {
+		return /*"string"*/;
+	}
+}
+class FunctionType implements Type {
+	/*private final*/ parameterTypes: List<Type>;
+	/*private final*/ returnType: Type;
+	FunctionType(parameterTypes: List<Type>, returnType: Type): public {/*
+            this.parameterTypes = parameterTypes;*//*
+            this.returnType = returnType;*/
+	}
+	/*@Override
+        public*/ generate(): string {/*
+            final var parameters = parameterTypes.iterWithIndex()
+                    .map(entry -> "param" + entry.left + " : " + entry.right.generate())
+                    .collect(new Joiner(", "))
+                    .orElse("");*/
+		return /*"*/(/*" + parameters + ") => " + returnType*/.generate();
+	}
+}
+class TemplateType implements Type {
+	/*private final*/ base: string;
+	/*private final*/ elements: List<Type>;
+	TemplateType(base: string, elements: List<Type>): public {/*
+            this.base = base;*//*
+            this.elements = elements;*/
+	}
+	/*@Override
+        public*/ generate(): string {/*
+            final var outputArguments = generateNodes(elements);*/
+		return /*base + "<" + outputArguments + ">"*/;
 	}
 }
 export class Main {
+	/*private static*/ resolveValueWithinFrame(name: string, frame: List<Definition>): Option<Definition> {
+		return frame.iter(/*)
+                */.filter(/*definition -> definition*/.name.equals(name)).next();
+	}
 	/*public static*/ main(args: /*String[]*/): void {/*
         try {
             final var source = Paths.get(".", "src", "magma", "Main.java");
@@ -501,7 +584,7 @@ export class Main {
         return compileRootStructure(input)
                 .orElseGet(() -> generatePlaceholder(input));
     }*/class ", "class").map(tuple -> {
-	/*final var joined*/ join(/*tuple.right*/): /*=*/;
+	/*final var joined*/ join(): /*=*/;
 	/*return tuple.left*/ joined: /*+*/;/*
         });
     */
@@ -553,7 +636,7 @@ export class Main {
         if (implementsIndex >= 0) {
             final var beforeImplements = beforeContent.substring(0, implementsIndex);
             final var implementsString = beforeContent.substring(implementsIndex + " implements ".length());
-            final var implementsTypes = parseValuesString(implementsString, Main::compileType);
+            final var implementsTypes = parseValuesString(implementsString, Main::parseType);
 
             return assembleStructureWithParameters(beforeImplements, modifiers, output, targetInfix, implementsTypes);
         }
@@ -561,7 +644,7 @@ export class Main {
         return assembleStructureWithParameters(beforeContent, modifiers, output, targetInfix, Lists.empty());
     }*//*
 
-    private static String assembleStructureWithParameters(String beforeContent, String modifiers, String outputContent, String targetInfix, List<String> implementsTypes) {
+    private static String assembleStructureWithParameters(String beforeContent, String modifiers, String outputContent, String targetInfix, List<Type> implementsTypes) {
         if (beforeContent.endsWith(")")) {
             final var withoutParamEnd = beforeContent.substring(0, beforeContent.length() - ")".length());
             final var paramStart = withoutParamEnd.indexOf("(");
@@ -617,8 +700,8 @@ export class Main {
         return "\n" + "\t".repeat(2) + content + ";";
     }*//*
 
-    private static String generateClass(String modifiers, String beforeContent, String outputContent, String targetInfix, List<String> implementsTypes) {
-        final var joinedImplements = implementsTypes.isEmpty() ? "" : " implements " + joinWithDelimiter(implementsTypes, ", ");
+    private static String generateClass(String modifiers, String beforeContent, String outputContent, String targetInfix, List<Type> implementsTypes) {
+        final var joinedImplements = implementsTypes.isEmpty() ? "" : " implements " + generateNodes(implementsTypes);
         return modifiers + targetInfix + " " + beforeContent + joinedImplements + " {" + outputContent + "\n}\n";
     }*//*
 
@@ -693,7 +776,13 @@ export class Main {
         }
 
         final var outputDefinition = maybeOutputDefinition.get();
-        final var outputParams = compileParameters(inputParams);
+        final var parameters = parseAll(inputParams, Main::foldValues, Main::parseParameter)
+                .iter()
+                .map(Main::retainDefinition)
+                .flatMap(Iterators::fromOptional)
+                .collect(new ListCollector<>());
+
+        final var outputParams = generateNodes(parameters);
 
         if (inputAfterParams.equals(";")) {
             return assembleMethod(outputDefinition, outputParams, ";");
@@ -704,7 +793,8 @@ export class Main {
         }
 
         final var content = inputAfterParams.substring(1, inputAfterParams.length() - 1);
-        final String outputAfterParams = compileStatements(content, Main::compileFunctionSegments);
+        final Stack stack = new Stack().defineAll(parameters);
+        final String outputAfterParams = compileStatements(content, input1 -> compileFunctionSegments(input1, stack));
         return assembleMethod(outputDefinition, outputParams, " {" + outputAfterParams + "\n\t}");
     }*//*
 
@@ -714,26 +804,26 @@ export class Main {
         return new Some<>(new Tuple<>(generated, Lists.empty()));
     }*//*
 
-    private static String compileFunctionSegments(String input) {
+    private static String compileFunctionSegments(String input, Stack stack) {
         return compileWhitespace(input)
-                .or(() -> compileFunctionStatement(input))
+                .or(() -> compileFunctionStatement(input, stack))
                 .orElseGet(() -> generatePlaceholder(input));
     }*//*
 
-    private static Option<String> compileFunctionStatement(String input) {
+    private static Option<String> compileFunctionStatement(String input, Stack stack) {
         final var stripped = input.strip();
         if (!stripped.endsWith(";")) {
             return new None<>();
         }
 
         final var withoutEnd = stripped.substring(0, stripped.length() - ";".length());
-        return compileFunctionStatementValue(withoutEnd).map(value -> "\n\t\t" + value + ";");
+        return compileFunctionStatementValue(withoutEnd, stack).map(value -> "\n\t\t" + value + ";");
     }*//*
 
-    private static Option<String> compileFunctionStatementValue(String withoutEnd) {
+    private static Option<String> compileFunctionStatementValue(String withoutEnd, Stack stack) {
         if (withoutEnd.startsWith("return ")) {
             final var value = withoutEnd.substring("return ".length());
-            final var generated = parseValue(value);
+            final var generated = parseValue(value, stack);
             return new Some<>("return " + generated.generate());
         }
         else {
@@ -741,16 +831,16 @@ export class Main {
         }
     }*//*
 
-    private static Value parseValue(String value) {
-        final var stripped = value.strip();
+    private static Value parseValue(String input, Stack stack) {
+        final var stripped = input.strip();
         if (stripped.endsWith(")")) {
             final var withoutEnd = stripped.substring(0, stripped.length() - ")".length());
             final var argumentsStart = withoutEnd.indexOf("(");
             if (argumentsStart >= 0) {
                 final var callerString = withoutEnd.substring(0, argumentsStart).strip();
                 final var argumentsString = withoutEnd.substring(argumentsStart + "(".length());
-                final var arguments = parseValuesString(argumentsString, Main::parseValue);
-                final var caller = parseCaller(callerString);
+                final var arguments = parseValuesString(argumentsString, input1 -> parseValue(input1, stack));
+                final var caller = mapCaller(stack, callerString);
                 return new Invocation(caller, arguments);
             }
         }
@@ -759,7 +849,7 @@ export class Main {
         if (separator >= 0) {
             final var parentString = stripped.substring(0, separator);
             final var property = stripped.substring(separator + ".".length());
-            final var parent = parseValue(parentString);
+            final var parent = parseValue(parentString, stack);
             return new FieldAccess(parent, property);
         }
 
@@ -767,10 +857,28 @@ export class Main {
             return new Symbol(stripped);
         }
 
-        return new Placeholder(value);
+        return new Placeholder(input);
     }*//*
 
-    private static String generateAll(List<Value> arguments) {
+    private static Caller mapCaller(Stack stack, String callerString) {
+        final var caller = parseCaller(callerString, stack);
+
+        if (caller instanceof FieldAccess access) {
+            final var parent = access.parent;
+            if (parent instanceof Symbol(String value)) {
+                final var maybeType = stack.resolveValue(value);
+                if (maybeType.isPresent()) {
+                    final var type = maybeType.get();
+                    if (type instanceof FunctionType functionType) {
+                        return parent;
+                    }
+                }
+            }
+        }
+        return caller;
+    }*//*
+
+    private static <T extends Generating> String generateNodes(List<T> arguments) {
         final var generated = arguments.iter()
                 .map(Generating::generate)
                 .collect(new ListCollector<>());
@@ -778,27 +886,15 @@ export class Main {
         return mergeAll(generated, Main::mergeValues);
     }*//*
 
-    private static Caller parseCaller(String input) {
+    private static Caller parseCaller(String input, Stack stack) {
         final var stripped = input.strip();
         if (stripped.startsWith("new ")) {
             final var afterNew = stripped.substring("new ".length());
-            final var type = compileType(afterNew);
+            final var type = parseType(afterNew);
             return new Construction(type);
         }
 
-        return parseValue(stripped);
-    }*//*
-
-    private static String compileParameters(String input) {
-        return compileValues(input, Main::compileParameter);
-    }*//*
-
-    private static String compileValues(String input, Function<String, String> mapper) {
-        return compileAll(input, mapper, Main::foldValues, Main::mergeValues);
-    }*//*
-
-    private static String compileParameter(String input) {
-        return parseParameter(input).generate();
+        return parseValue(stripped, stack);
     }*//*
 
     private static StringBuilder mergeValues(StringBuilder cache, String element) {
@@ -845,16 +941,16 @@ export class Main {
         final var divisions = divide(beforeName, Main::foldTypeSeparator);
         final var maybePopped = divisions.popLast();
         if (maybePopped.isEmpty()) {
-            return new Some<>(new Definition(new None<>(), Lists.empty(), compileType(beforeName), name));
+            return new Some<>(new Definition(new None<>(), Lists.empty(), parseType(beforeName), name));
         }
 
         final var popped = maybePopped.get();
         final var beforeTypeDivisions = popped.left;
         final var type = popped.right;
-        final var compiledType = compileType(type);
+        final var compiledType = parseType(type);
 
         if (beforeTypeDivisions.isEmpty()) {
-            return new Some<>(new Definition(new None<>(), Lists.empty(), compileType(type), name));
+            return new Some<>(new Definition(new None<>(), Lists.empty(), parseType(type), name));
         }
 
         final var beforeType = joinWithDelimiter(beforeTypeDivisions, " ");
@@ -876,7 +972,7 @@ export class Main {
         return appended;
     }*//*
 
-    private static Definition assembleDefinition(String beforeType, String compiledType, String name) {
+    private static Definition assembleDefinition(String beforeType, Type compiledType, String name) {
         if (beforeType.endsWith(">")) {
             final var withoutEnd = beforeType.substring(0, beforeType.length() - ">".length());
             final var typeParamStart = withoutEnd.indexOf("<");
@@ -895,10 +991,10 @@ export class Main {
         return new Definition(new Some<>(generatePlaceholder(beforeType)), Lists.empty(), compiledType, name);
     }*//*
 
-    private static String compileType(String input) {
+    private static Type parseType(String input) {
         final var stripped = input.strip();
         if (stripped.equals("String")) {
-            return "string";
+            return new StringType();
         }
 
         if (stripped.endsWith(">")) {
@@ -907,43 +1003,32 @@ export class Main {
             if (argumentsStart >= 0) {
                 final var base = withoutEnd.substring(0, argumentsStart).strip();
                 final var inputArguments = withoutEnd.substring(argumentsStart + 1);
-                final var elements = parseValuesString(inputArguments, Main::compileType);
+                final var elements = parseValuesString(inputArguments, Main::parseType);
 
                 if (base.equals("Supplier")) {
-                    return generateFunctionalType(Lists.empty(), elements.get(0));
+                    List<Type> parameterTypes = Lists.empty();
+                    return new FunctionType(parameterTypes, elements.get(0));
                 }
 
                 if (base.equals("Function")) {
-                    return generateFunctionalType(Lists.of(elements.get(0)), elements.get(1));
+                    List<Type> parameterTypes = Lists.of(elements.get(0));
+                    return new FunctionType(parameterTypes, elements.get(1));
                 }
 
                 if (base.equals("BiFunction")) {
-                    return generateFunctionalType(Lists.of(elements.get(0), elements.get(1)), elements.get(2));
+                    List<Type> parameterTypes = Lists.of(elements.get(0), elements.get(1));
+                    return new FunctionType(parameterTypes, elements.get(2));
                 }
 
-                final var outputArguments = generateValues(elements);
-                return base + "<" + outputArguments + ">";
+                return new TemplateType(base, elements);
             }
         }
 
         if (isSymbol(stripped)) {
-            return stripped;
+            return new Symbol(stripped);
         }
 
-        return generatePlaceholder(input);
-    }*//*
-
-    private static String generateFunctionalType(List<String> parameterTypes, String returnType) {
-        final var parameters = parameterTypes.iterWithIndex()
-                .map(entry -> "param" + entry.left + " : " + entry.right)
-                .collect(new Joiner(", "))
-                .orElse("");
-
-        return "(" + parameters + ") => " + returnType;
-    }*//*
-
-    private static String generateValues(List<String> elements) {
-        return mergeAll(elements, Main::mergeValues);
+        return new Placeholder(input);
     }*//*
 
     private static <T> List<T> parseValuesString(String input, Function<String, T> mapper) {
