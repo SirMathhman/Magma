@@ -370,7 +370,7 @@ public class Main {
     }
 
     private static Optional<String> compileRootStructure(String input) {
-        return compileStructure(input, "class ").map(tuple -> {
+        return compileStructure(input, "class ", "class").map(tuple -> {
             final var joined = join(tuple.right);
             return tuple.left + joined;
         });
@@ -382,7 +382,7 @@ public class Main {
                 .orElse("");
     }
 
-    private static Optional<Tuple<String, List<String>>> compileStructure(String input, String keyword) {
+    private static Optional<Tuple<String, List<String>>> compileStructure(String input, String keyword, String targetInfix) {
         final var classIndex = input.indexOf(keyword);
         if (classIndex < 0) {
             return Optional.empty();
@@ -412,11 +412,11 @@ public class Main {
 
         final var modifiers = modifiersString.contains("public") ? "export " : "";
 
-        final var generated = assembleStructure(beforeContent, modifiers, output);
+        final var generated = assembleStructure(beforeContent, modifiers, output, targetInfix);
         return Optional.of(new Tuple<>("", structures.add(generated)));
     }
 
-    private static String assembleStructure(String beforeContent, String modifiers, String outputContent) {
+    private static String assembleStructure(String beforeContent, String modifiers, String outputContent, String targetInfix) {
         if (beforeContent.endsWith(")")) {
             final var withoutParamEnd = beforeContent.substring(0, beforeContent.length() - ")".length());
             final var paramStart = withoutParamEnd.indexOf("(");
@@ -452,11 +452,11 @@ public class Main {
 
                 return generateClass(modifiers, name, generatedFields + "\n\tconstructor (" + outputParams + ") {" +
                         assignments +
-                        "\n\t}" + outputContent);
+                        "\n\t}" + outputContent, targetInfix);
             }
         }
 
-        return generateClass(modifiers, beforeContent, outputContent);
+        return generateClass(modifiers, beforeContent, outputContent, targetInfix);
     }
 
     private static Optional<Definition> retainDefinition(Parameter parameter) {
@@ -472,14 +472,15 @@ public class Main {
         return "\n" + "\t".repeat(depth) + content + ";";
     }
 
-    private static String generateClass(String modifiers, String beforeContent, String outputContent) {
-        return modifiers + "class " + beforeContent + " {" + outputContent + "\n}\n";
+    private static String generateClass(String modifiers, String beforeContent, String outputContent, String targetInfix) {
+        return modifiers + targetInfix + " " + beforeContent + " {" + outputContent + "\n}\n";
     }
 
     private static Tuple<String, List<String>> compileClassSegment(String input) {
         return compileWhitespace(input)
-                .or(() -> compileStructure(input, "record "))
-                .or(() -> compileStructure(input, "class "))
+                .or(() -> compileStructure(input, "record ", "class"))
+                .or(() -> compileStructure(input, "class ", "class"))
+                .or(() -> compileStructure(input, "interface ", "interface"))
                 .or(() -> compileField(input))
                 .or(() -> compileMethod(input))
                 .orElseGet(() -> new Tuple<>(generatePlaceholder(input), Lists.empty()));

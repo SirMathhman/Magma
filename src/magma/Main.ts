@@ -1,3 +1,25 @@
+interface Parameter {
+	generate(): string;
+}
+interface Collector<T, C> {
+	createInitial(): C;
+	/*C fold(C current,*/ element): T;
+}
+interface Head<T> {
+	next(): Optional<T>;
+}
+interface Iterator<T> {
+	/*<R> Iterator<R> map(Function<T,*/ mapper): /*R>*/;
+	/*<R> R fold(R initial, BiFunction<R, T,*/ folder): /*R>*/;
+	/*<C> C collect(Collector<T,*/ collector): /*C>*/;
+	/*<R> Iterator<R> flatMap(Function<T,*/ mapper): Iterator</*R>*/>;
+	next(): Optional<T>;
+}
+interface List<T> {
+	/*List<T>*/ element): /*add(T*/;
+	iter(): Iterator<T>;
+	/*List<T>*/ elements): addAll(List<T>;
+}
 class Lists {
 	/*public static <T>*/ empty(): List<T>/* {
             return new JavaList<>();
@@ -218,35 +240,6 @@ class ListCollector<T> implements Collector<T, List<T>> {
         }*/
 }
 export class Main {
-	/*private interface Parameter {
-       */ generate(): string/*;
-    }*/
-	/*private interface Collector<T, C> {
-       */ createInitial(): C/*;
-
-        C fold(C current, T element);
-    }*/
-	/*private interface Head<T> {
-       */ next(): Optional<T>/*;
-    }*/
-	/*private interface Iterator<T> {
-        <R>*/ map(/*Function<T*/, mapper: /*R>*/): Iterator<R>/*;
-
-        <R> R fold(R initial, BiFunction<R, T, R> folder);
-
-        <C> C collect(Collector<T, C> collector);
-
-        <R> Iterator<R> flatMap(Function<T, Iterator<R>> mapper);
-
-        Optional<T> next();
-    }*/
-	/*private interface List<T> {
-       */ add(element: T): List<T>/*;
-
-        Iterator<T> iter();
-
-        List<T> addAll(List<T> elements);
-    }*/
 	/*public static*/ main(args: /*String[]*/): void/* {
         try {
             final var source = Paths.get(".", "src", "magma", "Main.java");
@@ -315,7 +308,7 @@ export class Main {
 
         return compileRootStructure(input)
                 .orElseGet(() -> generatePlaceholder(input));
-    }*/class ").map(tuple -> {
+    }*/class ", "class").map(tuple -> {
 	/*final var joined*/ join(tuple.right): /*=*/;
 	/*return tuple.left*/ joined: /*+*/;/*
         });
@@ -329,7 +322,7 @@ export class Main {
                 .orElse("");
     }*//*
 
-    private static Optional<Tuple<String, List<String>>> compileStructure(String input, String keyword) {
+    private static Optional<Tuple<String, List<String>>> compileStructure(String input, String keyword, String targetInfix) {
         final var classIndex = input.indexOf(keyword);
         if (classIndex < 0) {
             return Optional.empty();
@@ -359,11 +352,11 @@ export class Main {
 
         final var modifiers = modifiersString.contains("public") ? "export " : "";
 
-        final var generated = assembleStructure(beforeContent, modifiers, output);
+        final var generated = assembleStructure(beforeContent, modifiers, output, targetInfix);
         return Optional.of(new Tuple<>("", structures.add(generated)));
     }*//*
 
-    private static String assembleStructure(String beforeContent, String modifiers, String outputContent) {
+    private static String assembleStructure(String beforeContent, String modifiers, String outputContent, String targetInfix) {
         if (beforeContent.endsWith(")")) {
             final var withoutParamEnd = beforeContent.substring(0, beforeContent.length() - ")".length());
             final var paramStart = withoutParamEnd.indexOf("(");
@@ -399,11 +392,11 @@ export class Main {
 
                 return generateClass(modifiers, name, generatedFields + "\n\tconstructor (" + outputParams + ") {" +
                         assignments +
-                        "\n\t}" + outputContent);
+                        "\n\t}" + outputContent, targetInfix);
             }
         }
 
-        return generateClass(modifiers, beforeContent, outputContent);
+        return generateClass(modifiers, beforeContent, outputContent, targetInfix);
     }*//*
 
     private static Optional<Definition> retainDefinition(Parameter parameter) {
@@ -417,15 +410,17 @@ export class Main {
 
     private static String generateStatement(String content, int depth) {
         return "\n" + "\t".repeat(depth) + content + ";";
-    }*/class " + beforeContent + " {
-	/*" + outputContent*/ "\n}\n": /*+*/;
-}
-/*
+    }*//*
+
+    private static String generateClass(String modifiers, String beforeContent, String outputContent, String targetInfix) {
+        return modifiers + targetInfix + " " + beforeContent + " {" + outputContent + "\n}\n";
+    }*//*
 
     private static Tuple<String, List<String>> compileClassSegment(String input) {
         return compileWhitespace(input)
-                .or(() -> compileStructure(input, "record "))
-                .or(() -> compileStructure(input, "class "))
+                .or(() -> compileStructure(input, "record ", "class"))
+                .or(() -> compileStructure(input, "class ", "class"))
+                .or(() -> compileStructure(input, "interface ", "interface"))
                 .or(() -> compileField(input))
                 .or(() -> compileMethod(input))
                 .orElseGet(() -> new Tuple<>(generatePlaceholder(input), Lists.empty()));
