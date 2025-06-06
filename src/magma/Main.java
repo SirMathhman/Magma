@@ -51,7 +51,7 @@ public class Main {
         if (classIndex >= 0) {
             final var left = stripped.substring(0, classIndex);
             final var right = stripped.substring(classIndex + "class ".length());
-            return generatePlaceholder(left) + "class " + generatePlaceholder(right);
+            return "export class " + generatePlaceholder(right);
         }
 
         return generatePlaceholder(input);
