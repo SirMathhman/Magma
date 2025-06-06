@@ -525,14 +525,18 @@ public class Main {
             final var paramEnd = withParams.indexOf(")");
             if (paramEnd >= 0) {
                 final var inputParams = withParams.substring(0, paramEnd);
-                final var withBraces = withParams.substring(paramEnd + ")".length());
+                final var inputAfterParams = withParams.substring(paramEnd + ")".length()).strip();
 
                 final var maybeOutputDefinition = parseDefinition(inputDefinition);
                 if (maybeOutputDefinition.isPresent()) {
                     final var outputDefinition = maybeOutputDefinition.get();
                     final var outputParams = compileParameters(inputParams);
 
-                    final var generated = "\n\t" + outputDefinition.generateWithAfterName("(" + outputParams + ")") + generatePlaceholder(withBraces);
+                    final var outputAfterParams = inputAfterParams.equals(";")
+                            ? ";"
+                            : generatePlaceholder(inputAfterParams);
+
+                    final var generated = "\n\t" + outputDefinition.generateWithAfterName("(" + outputParams + ")") + outputAfterParams;
                     return Optional.of(new Tuple<>(generated, Lists.empty()));
                 }
             }
