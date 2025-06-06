@@ -1,5 +1,5 @@
 interface Option<T> {
-	map<R>(mapper: Function<T, R>): Option<R>;
+	map<R>(mapper: (arg0 : T) => R): Option<R>;
 	orElseGet(other: Supplier<T>): T;
 	isPresent(): boolean;
 	get(): T;
@@ -18,10 +18,10 @@ interface Head<T> {
 	next(): Option<T>;
 }
 interface Iterator<T> {
-	map<R>(mapper: Function<T, R>): Iterator<R>;
+	map<R>(mapper: (arg0 : T) => R): Iterator<R>;
 	fold<R>(initial: R, folder: BiFunction<R, T, R>): R;
 	collect<C>(collector: Collector<T, C>): C;
-	flatMap<R>(mapper: Function<T, Iterator<R>>): Iterator<R>;
+	flatMap<R>(mapper: (arg0 : T) => Iterator<R>): Iterator<R>;
 	next(): Option<T>;
 }
 interface List<T> {
@@ -30,10 +30,11 @@ interface List<T> {
 	addAll(elements: List<T>): List<T>;
 	popLast(): Option<Tuple<List<T>, T>>;
 	isEmpty(): boolean;
+	get(index: int): T;
 }
 class Some<T>(T value) implements Option<T> {
 	/*@Override
-        public */ map<R>(mapper: Function<T, R>): Option<R>/*{
+        public */ map<R>(mapper: (arg0 : T) => R): Option<R>/*{
             return new Some<>(mapper.apply(value));
         }*/
 	/*@Override
@@ -63,7 +64,7 @@ class Some<T>(T value) implements Option<T> {
 }
 class None<T> implements Option<T> {
 	/*@Override
-        public */ map<R>(mapper: Function<T, R>): Option<R>/*{
+        public */ map<R>(mapper: (arg0 : T) => R): Option<R>/*{
             return new None<>();
         }*/
 	/*@Override
@@ -144,11 +145,15 @@ class JavaList<T>(java.util.List<T> elements) implements List<T> {
             }
 
             final var last = elements.removeLast();
-            return new Some<>(new Tuple<List<T>, T>(this, last));
+            return new Some<>(new Tuple<>(this, last));
         }*/
 	/*@Override
         public*/ isEmpty(): boolean/*{
             return elements.isEmpty();
+        }*/
+	/*@Override
+        public*/ get(index: int): T/*{
+            return elements.get(index);
         }*/
 }
 class EmptyHead<T> implements Head<T> {
@@ -175,9 +180,9 @@ class SingleHead<T> implements Head<T> {
 }
 class FlatMapHead<T, R> implements Head<R> {
 	/*private final*/ head: Head<T>;
-	/*private final*/ mapper: Function<T, Iterator<R>>;
+	/*private final*/ mapper: (arg0 : T) => Iterator<R>;
 	/*private*/ current: Iterator<R>;
-	FlatMapHead(initial: Iterator<R>, head: Head<T>, mapper: Function<T, Iterator<R>>): public/*{
+	FlatMapHead(initial: Iterator<R>, head: Head<T>, mapper: (arg0 : T) => Iterator<R>): public/*{
             this.current = initial;
             this.head = head;
             this.mapper = mapper;
@@ -202,7 +207,7 @@ class FlatMapHead<T, R> implements Head<R> {
 }
 class HeadedIterator<T>(Head<T> head) implements Iterator<T> {
 	/*@Override
-        public */ map<R>(mapper: Function<T, R>): Iterator<R>/*{
+        public */ map<R>(mapper: (arg0 : T) => R): Iterator<R>/*{
             return new HeadedIterator<>(() -> head.next().map(mapper));
         }*/
 	/*@Override
@@ -224,7 +229,7 @@ class HeadedIterator<T>(Head<T> head) implements Iterator<T> {
             return fold(collector.createInitial(), collector::fold);
         }*/
 	/*@Override
-        public */ flatMap<R>(mapper: Function<T, Iterator<R>>): Iterator<R>/*{
+        public */ flatMap<R>(mapper: (arg0 : T) => Iterator<R>): Iterator<R>/*{
             final var head = this.head.next()
                     .map(mapper)
                     .<Head<R>>map(initial -> new FlatMapHead<>(initial, this.head, mapper))
@@ -357,15 +362,22 @@ export class Main {
 	/*private static*/ compile(input: string): string/*{
         return compileStatements(input, Main::compileRootSegment);
     }*/
-	/*private static*/ compileStatements(input: string, mapper: Function<string, string>): string/*{
+	/*private static*/ compileStatements(input: string, mapper: (arg0 : string) => string): string/*{
         return compileAll(input, mapper, Main::foldStatements, Main::mergeStatements);
     }*/
-	/*private static*/ compileAll(input: string, mapper: Function<string, string>, folder: BiFunction<State, Character, State>, merger: BiFunction<StringBuilder, string, StringBuilder>): string/*{
+	/*private static*/ compileAll(input: string, mapper: (arg0 : string) => string, folder: BiFunction<State, Character, State>, merger: BiFunction<StringBuilder, string, StringBuilder>): string/*{
+        return generateAll(parseAll(input, folder, mapper), merger);
+    }*/
+	/*private static*/ generateAll(elements: List<string>, merger: BiFunction<StringBuilder, string, StringBuilder>): string/*{
+        return elements.iter()
+                .fold(new StringBuilder(), merger)
+                .toString();
+    }*/
+	/*private static*/ parseAll(input: string, folder: BiFunction<State, Character, State>, mapper: (arg0 : string) => string): List<string>/*{
         return divide(input, folder)
                 .iter()
                 .map(mapper)
-                .fold(new StringBuilder(), merger)
-                .toString();
+                .collect(new ListCollector<>());
     }*/
 	/*private static*/ mergeStatements(output: StringBuilder, compiled: string): StringBuilder/*{
         return output.append(compiled);
@@ -452,7 +464,7 @@ export class Main {
         final var modifiers = modifiersString.contains("public") ? "export " : "";
 
         final var generated = assembleStructure(beforeContent, modifiers, output, targetInfix);
-        return new Some<>(new Tuple<String, List<String>>("", structures.add(generated)));
+        return new Some<>(new Tuple<>("", structures.add(generated)));
     }*//*
 
     private static String assembleStructure(String beforeContent, String modifiers, String outputContent, String targetInfix) {
@@ -576,7 +588,7 @@ export class Main {
                             : generatePlaceholder(inputAfterParams);
 
                     final var generated = "\n\t" + outputDefinition.generateWithAfterName("(" + outputParams + ")") + outputAfterParams;
-                    return new Some<>(new Tuple<String, List<String>>(generated, Lists.empty()));
+                    return new Some<>(new Tuple<>(generated, Lists.empty()));
                 }
             }
         }
@@ -640,7 +652,7 @@ export class Main {
         final var divisions = divide(beforeName, Main::foldTypeSeparator);
         final var maybePopped = divisions.popLast();
         if (maybePopped.isEmpty()) {
-            return new Some<>(new Definition(new None<String>(), Lists.empty(), compileType(beforeName), name));
+            return new Some<>(new Definition(new None<>(), Lists.empty(), compileType(beforeName), name));
         }
 
         final var popped = maybePopped.get();
@@ -649,7 +661,7 @@ export class Main {
         final var compiledType = compileType(type);
 
         if (beforeTypeDivisions.isEmpty()) {
-            return new Some<>(new Definition(new None<String>(), Lists.empty(), compileType(type), name));
+            return new Some<>(new Definition(new None<>(), Lists.empty(), compileType(type), name));
         }
 
         final var beforeType = beforeTypeDivisions.iter().collect(new Joiner(" ")).orElse("");
@@ -678,19 +690,16 @@ export class Main {
             if (typeParamStart >= 0) {
                 final var beforeTypeParams = withoutEnd.substring(0, typeParamStart);
                 final var typeParamsString = withoutEnd.substring(typeParamStart + "<".length());
-                final var typeParams = divide(typeParamsString, Main::foldValues)
-                        .iter()
-                        .map(String::strip)
-                        .collect(new ListCollector<>());
+                final var typeParams = parseAll(typeParamsString, Main::foldValues, String::strip);
 
                 final Option<String> beforeTypeOptional;
-                beforeTypeOptional = beforeTypeParams.isEmpty() ? new None<String>() : new Some<>(generatePlaceholder(beforeTypeParams));
+                beforeTypeOptional = beforeTypeParams.isEmpty() ? new None<>() : new Some<>(generatePlaceholder(beforeTypeParams));
 
                 return new Definition(beforeTypeOptional, typeParams, compiledType, name);
             }
         }
 
-        return new Definition(new Some<String>(generatePlaceholder(beforeType)), Lists.empty(), compiledType, name);
+        return new Definition(new Some<>(generatePlaceholder(beforeType)), Lists.empty(), compiledType, name);
     }*//*
 
     private static String compileType(String input) {
@@ -705,7 +714,12 @@ export class Main {
             if (argumentsStart >= 0) {
                 final var base = withoutEnd.substring(0, argumentsStart).strip();
                 final var inputArguments = withoutEnd.substring(argumentsStart + 1);
-                final var outputArguments = compileValues(inputArguments, Main::compileType);
+                final var elements = parseValues(inputArguments);
+                if (base.equals("Function")) {
+                    return "(arg0 : " + elements.get(0) + ") => " + elements.get(1);
+                }
+
+                final var outputArguments = generateValues(elements);
                 return base + "<" + outputArguments + ">";
             }
         }
@@ -715,6 +729,14 @@ export class Main {
         }
 
         return generatePlaceholder(input);
+    }*//*
+
+    private static String generateValues(List<String> elements) {
+        return generateAll(elements, Main::mergeValues);
+    }*//*
+
+    private static List<String> parseValues(String inputArguments) {
+        return parseAll(inputArguments, Main::foldValues, Main::compileType);
     }*//*
 
     private static boolean isSymbol(String input) {

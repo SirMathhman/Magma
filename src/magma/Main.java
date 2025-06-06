@@ -61,6 +61,8 @@ public class Main {
         Option<Tuple<List<T>, T>> popLast();
 
         boolean isEmpty();
+
+        T get(int index);
     }
 
     private record Some<T>(T value) implements Option<T> {
@@ -199,12 +201,17 @@ public class Main {
             }
 
             final var last = elements.removeLast();
-            return new Some<>(new Tuple<List<T>, T>(this, last));
+            return new Some<>(new Tuple<>(this, last));
         }
 
         @Override
         public boolean isEmpty() {
             return elements.isEmpty();
+        }
+
+        @Override
+        public T get(int index) {
+            return elements.get(index);
         }
     }
 
@@ -448,11 +455,20 @@ public class Main {
     }
 
     private static String compileAll(String input, Function<String, String> mapper, BiFunction<State, Character, State> folder, BiFunction<StringBuilder, String, StringBuilder> merger) {
+        return generateAll(parseAll(input, folder, mapper), merger);
+    }
+
+    private static String generateAll(List<String> elements, BiFunction<StringBuilder, String, StringBuilder> merger) {
+        return elements.iter()
+                .fold(new StringBuilder(), merger)
+                .toString();
+    }
+
+    private static List<String> parseAll(String input, BiFunction<State, Character, State> folder, Function<String, String> mapper) {
         return divide(input, folder)
                 .iter()
                 .map(mapper)
-                .fold(new StringBuilder(), merger)
-                .toString();
+                .collect(new ListCollector<>());
     }
 
     private static StringBuilder mergeStatements(StringBuilder output, String compiled) {
@@ -542,7 +558,7 @@ public class Main {
         final var modifiers = modifiersString.contains("public") ? "export " : "";
 
         final var generated = assembleStructure(beforeContent, modifiers, output, targetInfix);
-        return new Some<>(new Tuple<String, List<String>>("", structures.add(generated)));
+        return new Some<>(new Tuple<>("", structures.add(generated)));
     }
 
     private static String assembleStructure(String beforeContent, String modifiers, String outputContent, String targetInfix) {
@@ -666,7 +682,7 @@ public class Main {
                             : generatePlaceholder(inputAfterParams);
 
                     final var generated = "\n\t" + outputDefinition.generateWithAfterName("(" + outputParams + ")") + outputAfterParams;
-                    return new Some<>(new Tuple<String, List<String>>(generated, Lists.empty()));
+                    return new Some<>(new Tuple<>(generated, Lists.empty()));
                 }
             }
         }
@@ -730,7 +746,7 @@ public class Main {
         final var divisions = divide(beforeName, Main::foldTypeSeparator);
         final var maybePopped = divisions.popLast();
         if (maybePopped.isEmpty()) {
-            return new Some<>(new Definition(new None<String>(), Lists.empty(), compileType(beforeName), name));
+            return new Some<>(new Definition(new None<>(), Lists.empty(), compileType(beforeName), name));
         }
 
         final var popped = maybePopped.get();
@@ -739,7 +755,7 @@ public class Main {
         final var compiledType = compileType(type);
 
         if (beforeTypeDivisions.isEmpty()) {
-            return new Some<>(new Definition(new None<String>(), Lists.empty(), compileType(type), name));
+            return new Some<>(new Definition(new None<>(), Lists.empty(), compileType(type), name));
         }
 
         final var beforeType = beforeTypeDivisions.iter().collect(new Joiner(" ")).orElse("");
@@ -768,19 +784,16 @@ public class Main {
             if (typeParamStart >= 0) {
                 final var beforeTypeParams = withoutEnd.substring(0, typeParamStart);
                 final var typeParamsString = withoutEnd.substring(typeParamStart + "<".length());
-                final var typeParams = divide(typeParamsString, Main::foldValues)
-                        .iter()
-                        .map(String::strip)
-                        .collect(new ListCollector<>());
+                final var typeParams = parseAll(typeParamsString, Main::foldValues, String::strip);
 
                 final Option<String> beforeTypeOptional;
-                beforeTypeOptional = beforeTypeParams.isEmpty() ? new None<String>() : new Some<>(generatePlaceholder(beforeTypeParams));
+                beforeTypeOptional = beforeTypeParams.isEmpty() ? new None<>() : new Some<>(generatePlaceholder(beforeTypeParams));
 
                 return new Definition(beforeTypeOptional, typeParams, compiledType, name);
             }
         }
 
-        return new Definition(new Some<String>(generatePlaceholder(beforeType)), Lists.empty(), compiledType, name);
+        return new Definition(new Some<>(generatePlaceholder(beforeType)), Lists.empty(), compiledType, name);
     }
 
     private static String compileType(String input) {
@@ -795,7 +808,12 @@ public class Main {
             if (argumentsStart >= 0) {
                 final var base = withoutEnd.substring(0, argumentsStart).strip();
                 final var inputArguments = withoutEnd.substring(argumentsStart + 1);
-                final var outputArguments = compileValues(inputArguments, Main::compileType);
+                final var elements = parseValues(inputArguments);
+                if (base.equals("Function")) {
+                    return "(arg0 : " + elements.get(0) + ") => " + elements.get(1);
+                }
+
+                final var outputArguments = generateValues(elements);
                 return base + "<" + outputArguments + ">";
             }
         }
@@ -805,6 +823,14 @@ public class Main {
         }
 
         return generatePlaceholder(input);
+    }
+
+    private static String generateValues(List<String> elements) {
+        return generateAll(elements, Main::mergeValues);
+    }
+
+    private static List<String> parseValues(String inputArguments) {
+        return parseAll(inputArguments, Main::foldValues, Main::compileType);
     }
 
     private static boolean isSymbol(String input) {
