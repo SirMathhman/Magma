@@ -41,6 +41,10 @@ public class Main {
         Iterator<T> iter();
 
         List<T> addAll(List<T> elements);
+
+        Optional<Tuple<List<T>, T>> popLast();
+
+        boolean isEmpty();
     }
 
     private static final class Lists {
@@ -96,6 +100,21 @@ public class Main {
         @Override
         public List<T> addAll(List<T> elements) {
             return elements.iter().<List<T>>fold(this, List::add);
+        }
+
+        @Override
+        public Optional<Tuple<List<T>, T>> popLast() {
+            if (elements.isEmpty()) {
+                return Optional.empty();
+            }
+
+            final var last = elements.removeLast();
+            return Optional.of(new Tuple<>(this, last));
+        }
+
+        @Override
+        public boolean isEmpty() {
+            return elements.isEmpty();
         }
     }
 
@@ -585,10 +604,18 @@ public class Main {
     }
 
     private static State foldValues(State state, char c) {
-        if (c == ',') {
+        if (c == ',' && state.isLevel()) {
             return state.advance();
         }
-        return state.append(c);
+
+        final var appended = state.append(c);
+        if (c == '<') {
+            return appended.enter();
+        }
+        if (c == '>') {
+            return appended.exit();
+        }
+        return appended;
     }
 
     private static Parameter parseParameter(String input) {
@@ -610,16 +637,38 @@ public class Main {
             return Optional.empty();
         }
 
-        final var typeSeparator = beforeName.lastIndexOf(" ");
-        if (typeSeparator < 0) {
+        final var divisions = divide(beforeName, Main::foldTypeSeparator);
+        final var maybePopped = divisions.popLast();
+        if (maybePopped.isEmpty()) {
             return Optional.of(new Definition(Optional.empty(), Lists.empty(), compileType(beforeName), name));
         }
 
-        final var beforeType = beforeName.substring(0, typeSeparator).strip();
-        final var type = beforeName.substring(typeSeparator + " ".length());
+        final var popped = maybePopped.get();
+        final var beforeTypeDivisions = popped.left;
+        final var type = popped.right;
         final var compiledType = compileType(type);
 
+        if (beforeTypeDivisions.isEmpty()) {
+            return Optional.of(new Definition(Optional.empty(), Lists.empty(), compileType(type), name));
+        }
+
+        final var beforeType = beforeTypeDivisions.iter().collect(new Joiner(" ")).orElse("");
         return Optional.of(assembleDefinition(beforeType, compiledType, name));
+    }
+
+    private static State foldTypeSeparator(State state, char c) {
+        if (c == ' ' && state.isLevel()) {
+            return state.advance();
+        }
+
+        final var appended = state.append(c);
+        if (c == '<') {
+            return appended.enter();
+        }
+        if (c == '>') {
+            return appended.exit();
+        }
+        return appended;
     }
 
     private static Definition assembleDefinition(String beforeType, String compiledType, String name) {
@@ -634,7 +683,11 @@ public class Main {
                         .map(String::strip)
                         .collect(new ListCollector<>());
 
-                return new Definition(Optional.of(generatePlaceholder(beforeTypeParams)), typeParams, compiledType, name);
+                final var beforeTypeOptional = beforeTypeParams.isEmpty()
+                        ? Optional.<String>empty()
+                        : Optional.of(generatePlaceholder(beforeTypeParams));
+
+                return new Definition(beforeTypeOptional, typeParams, compiledType, name);
             }
         }
 
