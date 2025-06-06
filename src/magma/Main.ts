@@ -502,7 +502,7 @@ export class Main {
 
     private static String assembleStructureWithImplements(String targetInfix, String beforeContent, String modifiers, String output) {
         final var implementsIndex = beforeContent.lastIndexOf(" implements ");
-        if(implementsIndex >= 0) {
+        if (implementsIndex >= 0) {
             final var beforeImplements = beforeContent.substring(0, implementsIndex);
             final var implementsString = beforeContent.substring(implementsIndex + " implements ".length());
             final var implementsTypes = parseAll(implementsString, Main::foldValues, Main::compileType);
@@ -579,7 +579,7 @@ export class Main {
     }*//*
 
     private static Tuple<String, List<String>> compileClassSegment(String input) {
-        return compileWhitespace(input)
+        return compileWhitespaceWithStructures(input)
                 .or(() -> compileStructure(input, "record ", "class"))
                 .or(() -> compileStructure(input, "class ", "class"))
                 .or(() -> compileStructure(input, "interface ", "interface"))
@@ -606,8 +606,12 @@ export class Main {
         return parseDefinition(content).map(Definition::generate);
     }*//*
 
-    private static Option<Tuple<String, List<String>>> compileWhitespace(String input) {
-        return parseWhitespace(input).map(node -> new Tuple<>(node.generate(), Lists.empty()));
+    private static Option<Tuple<String, List<String>>> compileWhitespaceWithStructures(String input) {
+        return compileWhitespace(input).map(node -> new Tuple<>(node, Lists.empty()));
+    }*//*
+
+    private static Option<String> compileWhitespace(String input) {
+        return parseWhitespace(input).map(Whitespace::generate);
     }*//*
 
     private static Option<Whitespace> parseWhitespace(String input) {
@@ -636,7 +640,7 @@ export class Main {
 
                     final var outputAfterParams = inputAfterParams.equals(";")
                             ? ";"
-                            : generatePlaceholder(inputAfterParams);
+                            : compileStatements(inputAfterParams, Main::compileFunctionSegments);
 
                     final var generated = "\n\t" + outputDefinition.generateWithAfterName("(" + outputParams + ")") + outputAfterParams;
                     return new Some<>(new Tuple<>(generated, Lists.empty()));
@@ -645,6 +649,11 @@ export class Main {
         }
 
         return new None<>();
+    }*//*
+
+    private static String compileFunctionSegments(String input) {
+        return compileWhitespace(input)
+                .orElseGet(() -> generatePlaceholder(input));
     }*//*
 
     private static String compileParameters(String input) {
