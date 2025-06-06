@@ -401,6 +401,10 @@ public class Main {
 
     private static String compileType(String input) {
         final var stripped = input.strip();
+        if (stripped.equals("String")) {
+            return "string";
+        }
+
         if (stripped.endsWith(">")) {
             final var withoutEnd = stripped.substring(0, stripped.length() - ">".length());
             final var argumentsStart = withoutEnd.indexOf("<");

@@ -7,10 +7,10 @@ class Tuple<L, R> {
 	}
 }
 class State {
-	/*private final*/ segments: List<String>;
+	/*private final*/ segments: List<string>;
 	/*private*/ buffer: StringBuilder;
 	/*private*/ depth: int;
-	State(segments: List<String>, buffer: StringBuilder, depth: int): public/* {
+	State(segments: List<string>, buffer: StringBuilder, depth: int): public/* {
             this.segments = segments;
             this.buffer = buffer;
             this.depth = depth;
@@ -53,35 +53,35 @@ class State {
 	/*public*/ setDepth(depth: int): void/* {
             this.depth = depth;
         }*/
-	/*public*/ segments(): List<String>/* {
+	/*public*/ segments(): List<string>/* {
             return segments;
         }*/
 }
 class Definition(Optional<String> beforeType, String type, String name) implements Parameter {
 	/*@Override
-        public*/ generate(): String/* {
+        public*/ generate(): string/* {
             return generateWithAfterName("");
         }*/
-	/*public*/ generateWithAfterName(afterName: String): String/* {
+	/*public*/ generateWithAfterName(afterName: string): string/* {
             final var beforeType = this.beforeType.map(inner -> inner + " ").orElse("");
             return beforeType + name + afterName + ": " + type;
         }*/
 }
 class Placeholder(String input) implements Parameter {
 	/*@Override
-        public*/ generate(): String/* {
+        public*/ generate(): string/* {
             return generatePlaceholder(input);
         }*/
 }
 class Whitespace implements Parameter {
 	/*@Override
-        public*/ generate(): String/* {
+        public*/ generate(): string/* {
             return "";
         }*/
 }
 export class Main {
 	/*private interface Parameter {
-       */ generate(): String/*;
+       */ generate(): string/*;
     }*/
 	/*public static*/ main(args: /*String[]*/): void/* {
         try {
@@ -96,13 +96,13 @@ export class Main {
             e.printStackTrace();
         }
     }*/
-	/*private static*/ compile(input: String): String/* {
+	/*private static*/ compile(input: string): string/* {
         return compileStatements(input, Main::compileRootSegment);
     }*/
-	/*private static*/ compileStatements(input: String, /* Function<String*/, mapper: /*String>*/): String/* {
+	/*private static*/ compileStatements(input: string, /* Function<String*/, mapper: /*String>*/): string/* {
         return compileAll(input, mapper, Main::foldStatements, Main::mergeStatements);
     }*/
-	/*private static*/ compileAll(input: String, /* Function<String*/, mapper: /*String>*/, /* BiFunction<State*/, /* Character*/, folder: /*State>*/, /* BiFunction<StringBuilder*/, /* String*/, merger: /*StringBuilder>*/): String/* {
+	/*private static*/ compileAll(input: string, /* Function<String*/, mapper: /*String>*/, /* BiFunction<State*/, /* Character*/, folder: /*State>*/, /* BiFunction<StringBuilder*/, /* String*/, merger: /*StringBuilder>*/): string/* {
         final var segments = divide(input, folder);
         var output = new StringBuilder();
         for (var segment : segments) {
@@ -112,10 +112,10 @@ export class Main {
 
         return output.toString();
     }*/
-	/*private static*/ mergeStatements(output: StringBuilder, compiled: String): StringBuilder/* {
+	/*private static*/ mergeStatements(output: StringBuilder, compiled: string): StringBuilder/* {
         return output.append(compiled);
     }*/
-	/*private static*/ divide(input: String, /* BiFunction<State*/, /* Character*/, folder: /*State>*/): List<String>/* {
+	/*private static*/ divide(input: string, /* BiFunction<State*/, /* Character*/, folder: /*State>*/): List<string>/* {
         State state = new State();
         final var length = input.length();
         var current = state;
@@ -369,6 +369,10 @@ export class Main {
 
     private static String compileType(String input) {
         final var stripped = input.strip();
+        if (stripped.equals("String")) {
+            return "string";
+        }
+
         if (stripped.endsWith(">")) {
             final var withoutEnd = stripped.substring(0, stripped.length() - ">".length());
             final var argumentsStart = withoutEnd.indexOf("<");
