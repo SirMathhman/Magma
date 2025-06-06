@@ -704,35 +704,72 @@ public class Main {
 
     private static Option<Tuple<String, List<String>>> compileMethod(String input) {
         final var paramStart = input.indexOf("(");
-        if (paramStart >= 0) {
-            final var inputDefinition = input.substring(0, paramStart);
-            final var withParams = input.substring(paramStart + "(".length());
-            final var paramEnd = withParams.indexOf(")");
-            if (paramEnd >= 0) {
-                final var inputParams = withParams.substring(0, paramEnd);
-                final var inputAfterParams = withParams.substring(paramEnd + ")".length()).strip();
-
-                final var maybeOutputDefinition = parseDefinition(inputDefinition);
-                if (maybeOutputDefinition.isPresent()) {
-                    final var outputDefinition = maybeOutputDefinition.get();
-                    final var outputParams = compileParameters(inputParams);
-
-                    final var outputAfterParams = inputAfterParams.equals(";")
-                            ? ";"
-                            : compileStatements(inputAfterParams, Main::compileFunctionSegments);
-
-                    final var generated = "\n\t" + outputDefinition.generateWithAfterName("(" + outputParams + ")") + outputAfterParams;
-                    return new Some<>(new Tuple<>(generated, Lists.empty()));
-                }
-            }
+        if (paramStart < 0) {
+            return new None<>();
         }
 
-        return new None<>();
+        final var inputDefinition = input.substring(0, paramStart);
+        final var withParams = input.substring(paramStart + "(".length());
+        final var paramEnd = withParams.indexOf(")");
+        if (paramEnd < 0) {
+            return new None<>();
+        }
+
+        final var inputParams = withParams.substring(0, paramEnd);
+        final var inputAfterParams = withParams.substring(paramEnd + ")".length()).strip();
+
+        final var maybeOutputDefinition = parseDefinition(inputDefinition);
+        if (!maybeOutputDefinition.isPresent()) {
+            return new None<>();
+        }
+
+        final var outputDefinition = maybeOutputDefinition.get();
+        final var outputParams = compileParameters(inputParams);
+
+        if (inputAfterParams.equals(";")) {
+            return assembleMethod(outputDefinition, outputParams, ";");
+        }
+
+        if (!inputAfterParams.startsWith("{") || !inputAfterParams.endsWith("}")) {
+            return new None<>();
+        }
+
+        final var content = inputAfterParams.substring(1, inputAfterParams.length() - 1);
+        final String outputAfterParams = compileStatements(content, Main::compileFunctionSegments);
+        return assembleMethod(outputDefinition, outputParams, " {" + outputAfterParams + "\n\t}");
+    }
+
+    private static Some<Tuple<String, List<String>>> assembleMethod(Definition outputDefinition, String outputParams, String outputAfterParams) {
+        final var header = outputDefinition.generateWithAfterName("(" + outputParams + ")");
+        final var generated = "\n\t" + header + outputAfterParams;
+        return new Some<>(new Tuple<>(generated, Lists.empty()));
     }
 
     private static String compileFunctionSegments(String input) {
         return compileWhitespace(input)
+                .or(() -> compileFunctionStatement(input))
                 .orElseGet(() -> generatePlaceholder(input));
+    }
+
+    private static Option<String> compileFunctionStatement(String input) {
+        final var stripped = input.strip();
+        if (!stripped.endsWith(";")) {
+            return new None<>();
+        }
+
+        final var withoutEnd = stripped.substring(0, stripped.length() - ";".length());
+        return compileFunctionStatementValue(withoutEnd).map(value -> "\n\t\t" + value + ";");
+    }
+
+    private static Option<String> compileFunctionStatementValue(String withoutEnd) {
+        if (withoutEnd.startsWith("return ")) {
+            final var value = withoutEnd.substring("return ".length());
+            final var generated = generatePlaceholder(value);
+            return new Some<>("return " + generated);
+        }
+        else {
+            return new None<>();
+        }
     }
 
     private static String compileParameters(String input) {
