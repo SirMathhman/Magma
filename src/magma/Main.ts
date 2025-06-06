@@ -1,5 +1,7 @@
 export class Main {
-	/*public static void main*/(/*String[] args*/)/* {
+	/*private*/ Tuple(/*String left, String right*/): record/* {
+    }*/
+	/*public static*/ main(/*String[] args*/): void/* {
         try {
             final var source = Paths.get(".", "src", "magma", "Main.java");
             final var target = source.resolveSibling("Main.ts");
@@ -12,10 +14,10 @@ export class Main {
             e.printStackTrace();
         }
     }*/
-	/*private static String compile*/(/*String input*/)/* {
+	/*private static*/ compile(/*String input*/): String/* {
         return compileStatements(input, Main::compileRootSegment);
     }*/
-	/*private static String compileStatements*/(/*String input, Function<String, String> mapper*/)/* {
+	/*private static*/ compileStatements(/*String input, Function<String, String> mapper*/): String/* {
         final var segments = new ArrayList<String>();
         final var length = input.length();
         var buffer = new StringBuilder();
@@ -41,16 +43,16 @@ export class Main {
                 }
             }
         }*/
-	/*segments.add*/(/*buffer.toString(*/)/*);*/
-	/*final var output = new StringBuilder*/(/**/)/*;*/
-	/*for*/(/*var segment : segments*/)/* {
+	/*segments.add*/(/*buffer.toString(*/): /*);*/
+	/*final var output =*/ StringBuilder(/**/): new/*;*/
+	/*for*/(/*var segment : segments*/): /* {
             output.append(mapper.apply(segment));
         }*/
-	/*return output.toString*/(/**/)/*;*//*
+	/*return output.toString*/(/**/): /*;*//*
     */}export class ");
         if (classIndex >= 0) {
-	/*final var afterClass = stripped.substring*/(/*classIndex + "class ".length(*/)/*);*/
-	/*final var contentStart = afterClass.indexOf*/(/*"{"*/)/*;
+	/*final var afterClass*/ stripped.substring(/*classIndex + "class ".length(*/): =/*);*/
+	/*final var contentStart*/ afterClass.indexOf(/*"{"*/): =/*;
             if (contentStart >= 0) {
                 final var name = afterClass.substring(0, contentStart).strip();
                 final var withEnd = afterClass.substring(contentStart + "{".length()).strip();
@@ -62,23 +64,41 @@ export class Main {
             }*/
 	/*}
 
-        return generatePlaceholder*/(/*input*/)/*;
+       */ generatePlaceholder(/*input*/): return/*;
     */}/*
 
     private static String compileClassSegment(String input) {
         final var paramStart = input.indexOf("(");
         if (paramStart >= 0) {
-            final var beforeParams = input.substring(0, paramStart).strip();
+            final var inputDefinition = input.substring(0, paramStart);
             final var withParams = input.substring(paramStart + "(".length());
             final var paramEnd = withParams.indexOf(")");
             if (paramEnd >= 0) {
                 final var params = withParams.substring(0, paramEnd);
                 final var withBraces = withParams.substring(paramEnd + ")".length());
-                return "\n\t" + generatePlaceholder(beforeParams) + "(" + generatePlaceholder(params) + ")" + generatePlaceholder(withBraces);
+                final var outputDefinition = compileDefinition(inputDefinition);
+                return "\n\t" + outputDefinition.left + "(" + generatePlaceholder(params) + "): " + outputDefinition.right + generatePlaceholder(withBraces);
             }
         }
 
         return generatePlaceholder(input);
+    }*//*
+
+    private static Tuple compileDefinition(String input) {
+        final var stripped = input.strip();
+        final var nameSeparator = stripped.lastIndexOf(" ");
+        if (nameSeparator >= 0) {
+            final var beforeName = stripped.substring(0, nameSeparator).strip();
+            final var name = stripped.substring(nameSeparator + " ".length());
+            final var typeSeparator = beforeName.lastIndexOf(" ");
+            if (typeSeparator >= 0) {
+                final var beforeType = beforeName.substring(0, typeSeparator);
+                final var type = beforeName.substring(typeSeparator + " ".length());
+                return new Tuple(generatePlaceholder(beforeType) + " " + name, type);
+            }
+        }
+
+        return new Tuple(generatePlaceholder(stripped), "");
     }*//*
 
     private static String generatePlaceholder(String input) {

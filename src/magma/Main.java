@@ -7,6 +7,9 @@ import java.util.ArrayList;
 import java.util.function.Function;
 
 public class Main {
+    private record Tuple(String left, String right) {
+    }
+
     public static void main(String[] args) {
         try {
             final var source = Paths.get(".", "src", "magma", "Main.java");
@@ -88,17 +91,35 @@ public class Main {
     private static String compileClassSegment(String input) {
         final var paramStart = input.indexOf("(");
         if (paramStart >= 0) {
-            final var beforeParams = input.substring(0, paramStart).strip();
+            final var inputDefinition = input.substring(0, paramStart);
             final var withParams = input.substring(paramStart + "(".length());
             final var paramEnd = withParams.indexOf(")");
             if (paramEnd >= 0) {
                 final var params = withParams.substring(0, paramEnd);
                 final var withBraces = withParams.substring(paramEnd + ")".length());
-                return "\n\t" + generatePlaceholder(beforeParams) + "(" + generatePlaceholder(params) + ")" + generatePlaceholder(withBraces);
+                final var outputDefinition = compileDefinition(inputDefinition);
+                return "\n\t" + outputDefinition.left + "(" + generatePlaceholder(params) + "): " + outputDefinition.right + generatePlaceholder(withBraces);
             }
         }
 
         return generatePlaceholder(input);
+    }
+
+    private static Tuple compileDefinition(String input) {
+        final var stripped = input.strip();
+        final var nameSeparator = stripped.lastIndexOf(" ");
+        if (nameSeparator >= 0) {
+            final var beforeName = stripped.substring(0, nameSeparator).strip();
+            final var name = stripped.substring(nameSeparator + " ".length());
+            final var typeSeparator = beforeName.lastIndexOf(" ");
+            if (typeSeparator >= 0) {
+                final var beforeType = beforeName.substring(0, typeSeparator);
+                final var type = beforeName.substring(typeSeparator + " ".length());
+                return new Tuple(generatePlaceholder(beforeType) + " " + name, type);
+            }
+        }
+
+        return new Tuple(generatePlaceholder(stripped), "");
     }
 
     private static String generatePlaceholder(String input) {
