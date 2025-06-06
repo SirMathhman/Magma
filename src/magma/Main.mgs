@@ -1,10 +1,8 @@
-package magma;
-
-import Files from java.nio.file.Files;
-import Path from java.nio.file.Path;
-import Paths from java.nio.file.Paths;
-import Matcher from java.util.regex.Matcher;
-import Pattern from java.util.regex.Pattern;
+import Files from java.nio.file.Files.
+import Path from java.nio.file.Path.
+import Paths from java.nio.file.Paths.
+import Matcher from java.util.regex.Matcher.
+import Pattern from java.util.regex.Pattern.
 
 public class Main {
     public static void main() throws Exception {
