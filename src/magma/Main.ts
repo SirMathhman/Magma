@@ -51,6 +51,14 @@ interface ValueArgument {
 }
 interface TypeArgument {
 }
+interface Frame {
+	resolveValue(name: string): Option<Definition>;
+	defineAllValues(definitions: List<Definition>): Frame;
+	resolveType(name: string): Option<StructureType>;
+	defineStructureType(structureType: StructureType): Frame;
+	defineValue(definition: Definition): Frame;
+	iterDefinitions(): Iterator<Definition>;
+}
 class Some implements Option<T> {
 	value: T;
 	constructor (value: T) {
@@ -498,32 +506,41 @@ class StructureType implements Type {
 		return definitions.get(name);
 	}
 }
-class Frame {
+class InlineFrame implements Frame {
 	definitions: List<Definition>;
 	structureTypes: List<StructureType>;
 	constructor (definitions: List<Definition>, structureTypes: List<StructureType>) {
 		this.definitions = definitions;
 		this.structureTypes = structureTypes;
 	}
-	Frame(): public {/*
+	InlineFrame(): public {/*
             this(Lists.empty(), Lists.empty());*/
 	}
-	/*private*/ resolveValue(name: string): Option<Definition> {
+	/*@Override
+        public*/ resolveValue(name: string): Option<Definition> {
 		return definitions.iter(/*)
                     */.filter(/*definition -> definition*/.name.equals(name)).next();
 	}
-	/*public*/ defineAllValues(definitions: List<Definition>): Frame {
-		return new Frame(this.definitions.addAll(definitions), structureTypes);
+	/*@Override
+        public*/ defineAllValues(definitions: List<Definition>): Frame {
+		return new InlineFrame(this.definitions.addAll(definitions), structureTypes);
 	}
-	/*public*/ resolveType(name: string): Option<StructureType> {
+	/*@Override
+        public*/ resolveType(name: string): Option<StructureType> {
 		return structureTypes.iter(/*)
                     */.filter(/*type -> type*/.isNamed(name)).next();
 	}
-	/*public*/ defineStructureType(structureType: StructureType): Frame {
-		return new Frame(definitions, structureTypes.add(structureType));
+	/*@Override
+        public*/ defineStructureType(structureType: StructureType): Frame {
+		return new InlineFrame(definitions, structureTypes.add(structureType));
 	}
-	/*public*/ defineValue(definition: Definition): Frame {
-		return new Frame(definitions.add(definition), structureTypes);
+	/*@Override
+        public*/ defineValue(definition: Definition): Frame {
+		return new InlineFrame(definitions.add(definition), structureTypes);
+	}
+	/*@Override
+        public*/ iterDefinitions(): Iterator<Definition> {
+		return definitions.iter();
 	}
 }
 class CompileState {
@@ -534,7 +551,7 @@ class CompileState {
             this.structures = structures;*/
 	}
 	CompileState(): private {/*
-            this(new Stack(Lists.of(new Frame())), Lists.empty());*/
+            this(new Stack(Lists.of(new InlineFrame())), Lists.empty());*/
 	}
 	/*public*/ defineAll(definitions: List<Definition>): CompileState {
 		return mapLast(/*frame -> frame*/.defineAllValues(definitions));
@@ -554,7 +571,7 @@ class CompileState {
 	/*public*/ enter(): CompileState {
 		return new CompileState(stack.enter(), structures);
 	}
-	/*public*/ exit(): Option<Tuple<CompileState, List<Definition>>> {/*
+	/*public*/ exit(): Option<Tuple<CompileState, Frame>> {/*
             return stack.exit().map(stack -> {
                 return new Tuple<>(new CompileState(stack.left, structures), stack.right);
             }*//*);*/
@@ -652,11 +669,11 @@ class Stack {
 		return new Stack(frames.mapLast(/*last -> last*/.defineValue(definition)));
 	}
 	/*public*/ enter(): Stack {
-		return new Stack(frames.add(new Frame()));
+		return new Stack(frames.add(new InlineFrame()));
 	}
-	/*public*/ exit(): Option<Tuple<Stack, List<Definition>>> {/*
+	/*public*/ exit(): Option<Tuple<Stack, Frame>> {/*
             return frames.popLast().map(tuple -> {
-                return new Tuple<>(new Stack(tuple.left), tuple.right.definitions);
+                return new Tuple<>(new Stack(tuple.left), tuple.right);
             }*//*);*/
 	}
 }
@@ -902,7 +919,7 @@ export class Main {/*
         if (maybeExited.isPresent()) {
             final var exited = maybeExited.get();
             final var right = exited.right
-                    .iter()
+                    .iterDefinitions()
                     .map(definition -> new Tuple<>(definition.name, definition))
                     .collect(new MapCollector<>());
 

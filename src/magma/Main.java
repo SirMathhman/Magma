@@ -117,6 +117,20 @@ public class Main {
     private interface TypeArgument {
     }
 
+    private interface Frame {
+        Option<Definition> resolveValue(String name);
+
+        Frame defineAllValues(List<Definition> definitions);
+
+        Option<StructureType> resolveType(String name);
+
+        Frame defineStructureType(StructureType structureType);
+
+        Frame defineValue(Definition definition);
+
+        Iterator<Definition> iterDefinitions();
+    }
+
     private record Some<T>(T value) implements Option<T> {
         @Override
         public <R> Option<R> map(Function<T, R> mapper) {
@@ -594,33 +608,43 @@ public class Main {
         }
     }
 
-    private record Frame(List<Definition> definitions, List<StructureType> structureTypes) {
-        public Frame() {
+    private record InlineFrame(List<Definition> definitions, List<StructureType> structureTypes) implements Frame {
+        public InlineFrame() {
             this(Lists.empty(), Lists.empty());
         }
 
-        private Option<Definition> resolveValue(String name) {
+        @Override
+        public Option<Definition> resolveValue(String name) {
             return definitions.iter()
                     .filter(definition -> definition.name.equals(name))
                     .next();
         }
 
+        @Override
         public Frame defineAllValues(List<Definition> definitions) {
-            return new Frame(this.definitions.addAll(definitions), structureTypes);
+            return new InlineFrame(this.definitions.addAll(definitions), structureTypes);
         }
 
+        @Override
         public Option<StructureType> resolveType(String name) {
             return structureTypes.iter()
                     .filter(type -> type.isNamed(name))
                     .next();
         }
 
+        @Override
         public Frame defineStructureType(StructureType structureType) {
-            return new Frame(definitions, structureTypes.add(structureType));
+            return new InlineFrame(definitions, structureTypes.add(structureType));
         }
 
+        @Override
         public Frame defineValue(Definition definition) {
-            return new Frame(definitions.add(definition), structureTypes);
+            return new InlineFrame(definitions.add(definition), structureTypes);
+        }
+
+        @Override
+        public Iterator<Definition> iterDefinitions() {
+            return definitions.iter();
         }
     }
 
@@ -634,7 +658,7 @@ public class Main {
         }
 
         private CompileState() {
-            this(new Stack(Lists.of(new Frame())), Lists.empty());
+            this(new Stack(Lists.of(new InlineFrame())), Lists.empty());
         }
 
         public CompileState defineAll(List<Definition> definitions) {
@@ -661,7 +685,7 @@ public class Main {
             return new CompileState(stack.enter(), structures);
         }
 
-        public Option<Tuple<CompileState, List<Definition>>> exit() {
+        public Option<Tuple<CompileState, Frame>> exit() {
             return stack.exit().map(stack -> {
                 return new Tuple<>(new CompileState(stack.left, structures), stack.right);
             });
@@ -768,12 +792,12 @@ public class Main {
         }
 
         public Stack enter() {
-            return new Stack(frames.add(new Frame()));
+            return new Stack(frames.add(new InlineFrame()));
         }
 
-        public Option<Tuple<Stack, List<Definition>>> exit() {
+        public Option<Tuple<Stack, Frame>> exit() {
             return frames.popLast().map(tuple -> {
-                return new Tuple<>(new Stack(tuple.left), tuple.right.definitions);
+                return new Tuple<>(new Stack(tuple.left), tuple.right);
             });
         }
     }
@@ -1010,7 +1034,7 @@ public class Main {
         if (maybeExited.isPresent()) {
             final var exited = maybeExited.get();
             final var right = exited.right
-                    .iter()
+                    .iterDefinitions()
                     .map(definition -> new Tuple<>(definition.name, definition))
                     .collect(new MapCollector<>());
 
