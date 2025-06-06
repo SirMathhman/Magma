@@ -764,12 +764,27 @@ public class Main {
     private static Option<String> compileFunctionStatementValue(String withoutEnd) {
         if (withoutEnd.startsWith("return ")) {
             final var value = withoutEnd.substring("return ".length());
-            final var generated = generatePlaceholder(value);
+            final var generated = compileValue(value);
             return new Some<>("return " + generated);
         }
         else {
             return new None<>();
         }
+    }
+
+    private static String compileValue(String value) {
+        final var stripped = value.strip();
+        if (stripped.endsWith(")")) {
+            final var withoutEnd = stripped.substring(0, stripped.length() - ")".length());
+            final var argumentsStart = withoutEnd.indexOf("(");
+            if (argumentsStart >= 0) {
+                final var caller = withoutEnd.substring(0, argumentsStart);
+                final var arguments = withoutEnd.substring(argumentsStart + "(".length());
+                return generatePlaceholder(caller) + "(" + generatePlaceholder(arguments) + ")";
+            }
+        }
+
+        return generatePlaceholder(value);
     }
 
     private static String compileParameters(String input) {
