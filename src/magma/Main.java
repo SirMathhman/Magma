@@ -49,9 +49,13 @@ public class Main {
 
         final var classIndex = stripped.indexOf("class ");
         if (classIndex >= 0) {
-            final var left = stripped.substring(0, classIndex);
-            final var right = stripped.substring(classIndex + "class ".length());
-            return "export class " + generatePlaceholder(right);
+            final var afterClass = stripped.substring(classIndex + "class ".length());
+            final var contentStart = afterClass.indexOf("{");
+            if (contentStart >= 0) {
+                final var name = afterClass.substring(0, contentStart).strip();
+                final var right = afterClass.substring(contentStart + "{".length());
+                return "export class " + name + " {" + generatePlaceholder(right);
+            }
         }
 
         return generatePlaceholder(input);

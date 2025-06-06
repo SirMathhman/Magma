@@ -1,4 +1,4 @@
-export class /*Main {
+export class Main {/*
     public static void main(String[] args) {
         try {
             final var source = Paths.get(".", "src", "magma", "Main.java");*//*
@@ -37,9 +37,17 @@ export class /*Main {
     private static String compileRootSegment(String input) {
         final var stripped = input.strip();*//*
         if (stripped.startsWith("package ") || stripped.startsWith("import ")) {
-            return "";*/export class /*");*//*
+            return "";*//*
+        }
+
+        final var classIndex = stripped.indexOf("class ");*//*
         if (classIndex >= 0) {
-            final var left = stripped.substring(0, classIndex);*/export class /*".length());*/export class /*" + generatePlaceholder(right);*//*
+            final var afterClass = stripped.substring(classIndex + "class ".length());*//*
+            final var contentStart = afterClass.indexOf("{");*//*
+            if (contentStart >= 0) {
+                final var name = afterClass.substring(0, contentStart).strip();*//*
+                final var right = afterClass.substring(contentStart + "{".length());*/export class " + name + " {/*" + generatePlaceholder(right);*//*
+            }
         }
 
         return generatePlaceholder(input);*//*
