@@ -149,11 +149,13 @@ This breakdown expands each major feature area into smaller dependent parts for 
     * Private symbol can only be accessed in same file/module; test visibility errors
 * Imports/exports:
 
-  * import syntax:
+* import syntax:
 
+    * Uses `import Child from parent.Child.` format for default imports
     * Can import single symbol
     * Can import multiple/group symbols
     * Can import with parameterization (`require`)
+    * Example compiler in `src/magma/Main.java` rewrites Java imports into this format
   * export syntax:
 
     * Can export symbol for use elsewhere
