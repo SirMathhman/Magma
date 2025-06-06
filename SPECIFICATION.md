@@ -151,7 +151,7 @@ This breakdown expands each major feature area into smaller dependent parts for 
 
 * import syntax:
 
-    * Uses `import Child from parent.Child.` format for default imports
+    * Uses `import Child from parent.Child;` format for default imports
     * Can import single symbol
     * Can import multiple/group symbols
     * Can import with parameterization (`require`)
