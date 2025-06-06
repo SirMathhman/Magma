@@ -565,14 +565,14 @@ public class Main {
 
     }
 
-    private record StructureType() implements Type {
+    private record StructureType(String name, Map<String, Definition> definitions) implements Type {
         @Override
         public String generate() {
             return "?";
         }
 
         public boolean isNamed(String name) {
-            return false;
+            return this.name.equals(name);
         }
 
         public Option<Definition> findField(String name) {
@@ -591,7 +591,7 @@ public class Main {
                     .next();
         }
 
-        public Frame addAll(List<Definition> definitions) {
+        public Frame defineAll(List<Definition> definitions) {
             return new Frame(this.definitions.addAll(definitions), structureTypes);
         }
 
@@ -599,6 +599,10 @@ public class Main {
             return structureTypes.iter()
                     .filter(type -> type.isNamed(name))
                     .next();
+        }
+
+        public Frame defineStructureType(StructureType structureType) {
+            return new Frame(definitions, structureTypes.add(structureType));
         }
     }
 
@@ -616,7 +620,7 @@ public class Main {
         }
 
         public Stack defineAll(List<Definition> definitions) {
-            return new Stack(frames.mapLast(frame -> frame.addAll(definitions)));
+            return mapLast(frame -> frame.defineAll(definitions));
         }
 
         public Option<StructureType> resolveType(String name) {
@@ -624,6 +628,14 @@ public class Main {
                     .map(frame -> frame.resolveType(name))
                     .flatMap(Iterators::fromOptional)
                     .next();
+        }
+
+        public Stack defineStructureType(StructureType structureType) {
+            return mapLast(last -> last.defineStructureType(structureType));
+        }
+
+        private Stack mapLast(Function<Frame, Frame> mapper) {
+            return new Stack(frames.mapLast(mapper));
         }
     }
 
@@ -707,7 +719,7 @@ public class Main {
     }
 
     private static String compile(String input) {
-        return compileStatements(input, Main::compileRootSegment);
+        return compileStatements(input, input1 -> compileRootSegment(input1, new Stack()));
     }
 
     private static String compileStatements(String input, Function<String, String> mapper) {
@@ -764,18 +776,18 @@ public class Main {
         return appended;
     }
 
-    private static String compileRootSegment(String input) {
+    private static String compileRootSegment(String input, Stack stack) {
         final var stripped = input.strip();
         if (stripped.startsWith("package ") || stripped.startsWith("import ")) {
             return "";
         }
 
-        return compileRootStructure(input)
+        return compileRootStructure(input, stack)
                 .orElseGet(() -> generatePlaceholder(input));
     }
 
-    private static Option<String> compileRootStructure(String input) {
-        return compileStructure(input, "class ", "class").map(tuple -> {
+    private static Option<String> compileRootStructure(String input, Stack stack) {
+        return compileStructure(input, "class ", "class", stack).map(tuple -> {
             final var joined = join(tuple.right);
             return tuple.left + joined;
         });
@@ -787,7 +799,7 @@ public class Main {
                 .orElse("");
     }
 
-    private static Option<Tuple<String, List<String>>> compileStructure(String input, String keyword, String targetInfix) {
+    private static Option<Tuple<String, List<String>>> compileStructure(String input, String keyword, String targetInfix, Stack stack) {
         final var classIndex = input.indexOf(keyword);
         if (classIndex < 0) {
             return new None<>();
@@ -807,34 +819,26 @@ public class Main {
         }
 
         final var inputContent = withEnd.substring(0, withEnd.length() - "}".length());
-        final var folded = divide(inputContent, Main::foldStatements)
-                .iter()
-                .map(Main::compileClassSegment)
-                .fold(new Tuple<>(new StringBuilder(), Lists.<String>empty()), (tuple, element) -> new Tuple<>(tuple.left.append(element.left), tuple.right.addAll(element.right)));
-
-        final var output = folded.left.toString();
-        final var structures = folded.right;
-
         final var modifiers = modifiersString.contains("public") ? "export " : "";
 
-        final var generated = assembleStructureWithImplements(targetInfix, beforeContent, modifiers, output);
-        return new Some<>(new Tuple<>("", structures.add(generated)));
+        return assembleStructureWithImplements(targetInfix, stack, inputContent, beforeContent, modifiers);
     }
 
-    private static String assembleStructureWithImplements(String targetInfix, String beforeContent, String modifiers, String output) {
+    private static Some<Tuple<String, List<String>>> assembleStructureWithImplements(String targetInfix, Stack stack, String inputContent, String beforeContent, String modifiers) {
         final var implementsIndex = beforeContent.lastIndexOf(" implements ");
         if (implementsIndex >= 0) {
             final var beforeImplements = beforeContent.substring(0, implementsIndex);
             final var implementsString = beforeContent.substring(implementsIndex + " implements ".length());
             final var implementsTypes = parseValuesString(implementsString, Main::parseType);
 
-            return assembleStructureWithParameters(beforeImplements, modifiers, output, targetInfix, implementsTypes);
+            return assembleStructureWithParameters(targetInfix, stack, inputContent, modifiers, beforeImplements, implementsTypes);
         }
-
-        return assembleStructureWithParameters(beforeContent, modifiers, output, targetInfix, Lists.empty());
+        else {
+            return assembleStructureWithParameters(targetInfix, stack, inputContent, modifiers, beforeContent, Lists.empty());
+        }
     }
 
-    private static String assembleStructureWithParameters(String beforeContent, String modifiers, String outputContent, String targetInfix, List<Type> implementsTypes) {
+    private static Some<Tuple<String, List<String>>> assembleStructureWithParameters(String targetInfix, Stack stack, String inputContent, String modifiers, String beforeContent, List<Type> implementsTypes) {
         if (beforeContent.endsWith(")")) {
             final var withoutParamEnd = beforeContent.substring(0, beforeContent.length() - ")".length());
             final var paramStart = withoutParamEnd.indexOf("(");
@@ -848,33 +852,65 @@ public class Main {
                         .flatMap(Iterators::fromOptional)
                         .collect(new ListCollector<>());
 
-                final var output = fields.iter()
+                final var output1 = fields.iter()
                         .map(Definition::generate)
                         .fold(new StringBuilder(), Main::mergeValues);
 
-                final var outputParams = output.toString();
+                final var outputParams = output1.toString();
                 final var generatedFields = fields.iter()
                         .map(Definition::generate)
                         .map(element -> "\n\t" + element + ";")
                         .collect(new Joiner())
                         .orElse("");
 
-                final var assignments = fields.iter()
-                        .map(field -> {
-                            final var fieldName = field.name;
-                            final var content = "this." + fieldName + " = " + fieldName;
-                            return generateStatement(content);
-                        })
-                        .collect(new Joiner())
-                        .orElse("");
+                final var assignments = joinConstructorAssignments(fields);
 
-                return generateClass(modifiers, name, generatedFields + "\n\tconstructor (" + outputParams + ") {" +
-                        assignments +
-                        "\n\t}" + outputContent, targetInfix, implementsTypes);
+                final var beforeBody = generatedFields + "\n\tconstructor (" + outputParams + ") {" + assignments + "\n\t}";
+                return assembleStructure(targetInfix, stack, inputContent, modifiers, implementsTypes, name, beforeBody);
             }
         }
 
-        return generateClass(modifiers, beforeContent, outputContent, targetInfix, implementsTypes);
+        return assembleStructure(targetInfix, stack, inputContent, modifiers, implementsTypes, beforeContent, "");
+    }
+
+    private static Some<Tuple<String, List<String>>> assembleStructure(
+            String targetInfix,
+            Stack stack,
+            String inputContent,
+            String modifiers,
+            List<Type> implementsTypes,
+            String name,
+            String beforeBody
+    ) {
+        final var defined = stack.defineStructureType(new StructureType(name, Maps.empty()));
+        final var folded = joinClassSegments(inputContent, defined);
+
+        final var output = folded.left.toString();
+        final var structures = folded.right;
+
+        final var outputContent = beforeBody + output;
+        final var joinedImplements = implementsTypes.isEmpty() ? "" : " implements " + generateNodes(implementsTypes);
+        var generated = modifiers + targetInfix + " " + name + joinedImplements + " {" + outputContent + "\n}\n";
+
+        return new Some<>(new Tuple<>("", structures.add(generated)));
+    }
+
+    private static String joinConstructorAssignments(List<Definition> fields) {
+        return fields.iter()
+                .map(field -> {
+                    final var fieldName = field.name;
+                    final var content = "this." + fieldName + " = " + fieldName;
+                    return generateStatement(content);
+                })
+                .collect(new Joiner())
+                .orElse("");
+    }
+
+    private static Tuple<StringBuilder, List<String>> joinClassSegments(String inputContent, Stack defined) {
+        return divide(inputContent, Main::foldStatements)
+                .iter()
+                .map(segment -> compileClassSegment(segment, defined))
+                .fold(new Tuple<>(new StringBuilder(), Lists.empty()), (tuple, element1) -> new Tuple<>(tuple.left.append(element1.left), tuple.right.addAll(element1.right)));
     }
 
     private static Option<Definition> retainDefinition(Parameter parameter) {
@@ -890,22 +926,17 @@ public class Main {
         return "\n" + "\t".repeat(2) + content + ";";
     }
 
-    private static String generateClass(String modifiers, String beforeContent, String outputContent, String targetInfix, List<Type> implementsTypes) {
-        final var joinedImplements = implementsTypes.isEmpty() ? "" : " implements " + generateNodes(implementsTypes);
-        return modifiers + targetInfix + " " + beforeContent + joinedImplements + " {" + outputContent + "\n}\n";
-    }
-
     private static String joinWithDelimiter(List<String> list, String delimiter) {
         return list.iter().collect(new Joiner(delimiter)).orElse("");
     }
 
-    private static Tuple<String, List<String>> compileClassSegment(String input) {
+    private static Tuple<String, List<String>> compileClassSegment(String input, Stack stack) {
         return compileWhitespaceWithStructures(input)
-                .or(() -> compileStructure(input, "record ", "class"))
-                .or(() -> compileStructure(input, "class ", "class"))
-                .or(() -> compileStructure(input, "interface ", "interface"))
+                .or(() -> compileStructure(input, "record ", "class", stack))
+                .or(() -> compileStructure(input, "class ", "class", stack))
+                .or(() -> compileStructure(input, "interface ", "interface", stack))
                 .or(() -> compileField(input))
-                .or(() -> compileMethod(input))
+                .or(() -> compileMethod(input, stack))
                 .orElseGet(() -> new Tuple<>(generatePlaceholder(input), Lists.empty()));
     }
 
@@ -944,7 +975,7 @@ public class Main {
         }
     }
 
-    private static Option<Tuple<String, List<String>>> compileMethod(String input) {
+    private static Option<Tuple<String, List<String>>> compileMethod(String input, Stack stack) {
         final var paramStart = input.indexOf("(");
         if (paramStart < 0) {
             return new None<>();
@@ -983,8 +1014,8 @@ public class Main {
         }
 
         final var content = inputAfterParams.substring(1, inputAfterParams.length() - 1);
-        final Stack stack = new Stack().defineAll(parameters);
-        final String outputAfterParams = compileStatements(content, input1 -> compileFunctionSegments(input1, stack));
+        final Stack defined = stack.defineAll(parameters);
+        final String outputAfterParams = compileStatements(content, input1 -> compileFunctionSegments(input1, defined));
         return assembleMethod(outputDefinition, outputParams, " {" + outputAfterParams + "\n\t}");
     }
 

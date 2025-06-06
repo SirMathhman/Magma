@@ -511,12 +511,15 @@ class Frame {
 		return definitions.iter(/*)
                     */.filter(/*definition -> definition*/.name.equals(name)).next();
 	}
-	/*public*/ addAll(definitions: List<Definition>): Frame {
+	/*public*/ defineAll(definitions: List<Definition>): Frame {
 		return new Frame(this.definitions.addAll(definitions), structureTypes);
 	}
 	/*public*/ resolveType(name: string): Option<StructureType> {
 		return structureTypes.iter(/*)
                     */.filter(/*type -> type*/.isNamed(name)).next();
+	}
+	/*public*/ defineStructureType(structureType: StructureType): Frame {
+		return new Frame(definitions, structureTypes.add(structureType));
 	}
 }
 class Stack {
@@ -533,11 +536,17 @@ class Stack {
                     */.flatMap(Iterators::fromOptional).next().map(definition -> definition.type);
 	}
 	/*public*/ defineAll(definitions: List<Definition>): Stack {
-		return new Stack(frames.mapLast(/*frame -> frame*/.addAll(definitions)));
+		return mapLast(/*frame -> frame*/.defineAll(definitions));
 	}
 	/*public*/ resolveType(name: string): Option<StructureType> {
 		return frames.iterReversed(/*)
                     */.map(/*frame -> frame*/.resolveType(/*name)*/).flatMap(Iterators::fromOptional).next();
+	}
+	/*public*/ defineStructureType(structureType: StructureType): Stack {
+		return mapLast(/*last -> last*/.defineStructureType(structureType));
+	}
+	/*private*/ mapLast(mapper: (param0 : Frame) => Frame): Stack {
+		return new Stack(frames.mapLast(mapper));
 	}
 }
 class StringType implements Type {
@@ -585,7 +594,7 @@ class JavaMap<K, V> implements Map<K, V> {
 	}
 	/*@Override
         public*/ putAll(other: Map<K, V>): Map<K, V> {
-		return other.iter(/*)*/.<Map<K, V>>fold(this, /* Map::putTuple*/);
+		return other(/*)*/.<Map<K, V>>fold(this, /* Map::putTuple*/);
 	}
 	/*@Override
         public*/ iter(): Iterator<Tuple<K, V>> {
@@ -618,7 +627,7 @@ export class Main {
         }*/
 	}
 	/*private static*/ compile(input: string): string {
-		return compileStatements(input, /* Main::compileRootSegment*/);
+		return compileStatements(input, /*input1 -> compileRootSegment*/(/*input1*/, new Stack()));
 	}
 	/*private static*/ compileStatements(input: string, mapper: (param0 : string) => string): string {
 		return compileAll(input, mapper, /* Main::foldStatements*/, /* Main::mergeStatements*/);
@@ -668,15 +677,15 @@ export class Main {
 }
 /*
 
-    private static String compileRootSegment(String input) {
+    private static String compileRootSegment(String input, Stack stack) {
         final var stripped = input.strip();
         if (stripped.startsWith("package ") || stripped.startsWith("import ")) {
             return "";
         }
 
-        return compileRootStructure(input)
+        return compileRootStructure(input, stack)
                 .orElseGet(() -> generatePlaceholder(input));
-    }*/class ", "class").map(tuple -> {
+    }*/class ", "class", stack).map(tuple -> {
 	/*final var joined*/ join(): /*=*/;
 	/*return tuple.left*/ joined: /*+*/;/*
         });
@@ -690,7 +699,7 @@ export class Main {
                 .orElse("");
     }*//*
 
-    private static Option<Tuple<String, List<String>>> compileStructure(String input, String keyword, String targetInfix) {
+    private static Option<Tuple<String, List<String>>> compileStructure(String input, String keyword, String targetInfix, Stack stack) {
         final var classIndex = input.indexOf(keyword);
         if (classIndex < 0) {
             return new None<>();
@@ -710,9 +719,10 @@ export class Main {
         }
 
         final var inputContent = withEnd.substring(0, withEnd.length() - "}".length());
+        final var defined = stack.defineStructureType(new StructureType());
         final var folded = divide(inputContent, Main::foldStatements)
                 .iter()
-                .map(Main::compileClassSegment)
+                .map(segment -> compileClassSegment(segment, defined))
                 .fold(new Tuple<>(new StringBuilder(), Lists.<String>empty()), (tuple, element) -> new Tuple<>(tuple.left.append(element.left), tuple.right.addAll(element.right)));
 
         final var output = folded.left.toString();
@@ -802,13 +812,13 @@ export class Main {
         return list.iter().collect(new Joiner(delimiter)).orElse("");
     }*//*
 
-    private static Tuple<String, List<String>> compileClassSegment(String input) {
+    private static Tuple<String, List<String>> compileClassSegment(String input, Stack stack) {
         return compileWhitespaceWithStructures(input)
-                .or(() -> compileStructure(input, "record ", "class"))
-                .or(() -> compileStructure(input, "class ", "class"))
-                .or(() -> compileStructure(input, "interface ", "interface"))
+                .or(() -> compileStructure(input, "record ", "class", stack))
+                .or(() -> compileStructure(input, "class ", "class", stack))
+                .or(() -> compileStructure(input, "interface ", "interface", stack))
                 .or(() -> compileField(input))
-                .or(() -> compileMethod(input))
+                .or(() -> compileMethod(input, stack))
                 .orElseGet(() -> new Tuple<>(generatePlaceholder(input), Lists.empty()));
     }*//*
 
@@ -847,7 +857,7 @@ export class Main {
         }
     }*//*
 
-    private static Option<Tuple<String, List<String>>> compileMethod(String input) {
+    private static Option<Tuple<String, List<String>>> compileMethod(String input, Stack stack) {
         final var paramStart = input.indexOf("(");
         if (paramStart < 0) {
             return new None<>();
@@ -886,8 +896,8 @@ export class Main {
         }
 
         final var content = inputAfterParams.substring(1, inputAfterParams.length() - 1);
-        final Stack stack = new Stack().defineAll(parameters);
-        final String outputAfterParams = compileStatements(content, input1 -> compileFunctionSegments(input1, stack));
+        final Stack defined = stack.defineAll(parameters);
+        final String outputAfterParams = compileStatements(content, input1 -> compileFunctionSegments(input1, defined));
         return assembleMethod(outputDefinition, outputParams, " {" + outputAfterParams + "\n\t}");
     }*//*
 
