@@ -216,8 +216,19 @@ public class Main {
         return compileWhitespace(input)
                 .or(() -> compileStructure(input, "record "))
                 .or(() -> compileStructure(input, "class "))
+                .or(() -> compileField(input))
                 .or(() -> compileMethod(input))
                 .orElseGet(() -> new Tuple<>(generatePlaceholder(input), Collections.emptyList()));
+    }
+
+    private static Optional<Tuple<String, List<String>>> compileField(String input) {
+        final var stripped = input.strip();
+        if (!stripped.endsWith(";")) {
+            return Optional.empty();
+        }
+
+        final var content = stripped.substring(0, stripped.length() - ";".length());
+        return compileDefinition(content).map(definition -> new Tuple<>("\n\t" + definition.left + ": " + definition.right + ";", Collections.emptyList()));
     }
 
     private static Optional<Tuple<String, List<String>>> compileWhitespace(String input) {
@@ -238,7 +249,7 @@ public class Main {
             if (paramEnd >= 0) {
                 final var params = withParams.substring(0, paramEnd);
                 final var withBraces = withParams.substring(paramEnd + ")".length());
-                final var outputDefinition = compileDefinition(inputDefinition);
+                final var outputDefinition = compileDefinitionOrPlaceholder(inputDefinition);
                 final var generated = "\n\t" + outputDefinition.left + "(" + generatePlaceholder(params) + "): " + outputDefinition.right + generatePlaceholder(withBraces);
                 return Optional.of(new Tuple<>(generated, Collections.emptyList()));
             }
@@ -247,7 +258,11 @@ public class Main {
         return Optional.empty();
     }
 
-    private static Tuple compileDefinition(String input) {
+    private static Tuple<String, String> compileDefinitionOrPlaceholder(String input) {
+        return compileDefinition(input).orElseGet(() -> new Tuple<>(generatePlaceholder(input), ""));
+    }
+
+    private static Optional<Tuple<String, String>> compileDefinition(String input) {
         final var stripped = input.strip();
         final var nameSeparator = stripped.lastIndexOf(" ");
         if (nameSeparator >= 0) {
@@ -257,11 +272,10 @@ public class Main {
             if (typeSeparator >= 0) {
                 final var beforeType = beforeName.substring(0, typeSeparator);
                 final var type = beforeName.substring(typeSeparator + " ".length());
-                return new Tuple(generatePlaceholder(beforeType) + " " + name, type);
+                return Optional.of(new Tuple<>(generatePlaceholder(beforeType) + " " + name, type));
             }
         }
-
-        return new Tuple(generatePlaceholder(stripped), "");
+        return Optional.empty();
     }
 
     private static String generatePlaceholder(String input) {

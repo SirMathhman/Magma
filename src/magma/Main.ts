@@ -1,14 +1,19 @@
 class Tuple<L, R> {
 }
-class State {/*private final List<String> segments;*//*
-        private StringBuilder buffer;*//*
-        private int depth;*/
-	/*public State*/(/*List<String> segments, StringBuilder buffer, int depth*/): /* {
+class State {
+	/*private final*/ segments: List<String>;
+	/*private*/ buffer: StringBuilder;
+	/*private*/ depth: int;
+	/*
+
+        public State*/(/*List<String> segments, StringBuilder buffer, int depth*/): /* {
             this.segments = segments;
             this.buffer = buffer;
             this.depth = depth;
         }*/
-	/*public State*/(/**/): /* {
+	/*
+
+        public State*/(/**/): /* {
             this(new ArrayList<>(), new StringBuilder(), 0);
         }*/
 	/*private*/ append(/*char c*/): State/* {
@@ -99,7 +104,8 @@ export class Main {
 	/*'*/ appended.isShallow(/**/): &&/*) {
             return appended.advance().exit();
         }*/
-	/*if*/(/*c == '{'*/): /* {
+	/*
+        if */(/*c == '{'*/): /* {
             return appended.enter();
         }
         if (c == '}*/
@@ -119,8 +125,8 @@ export class Main {
         return compileRootStructure(input)
                 .orElseGet(() -> generatePlaceholder(input));
     }*/class ").map(tuple -> {
-	/*final var joined*/ String.join(/*"", tuple.right*/): =/*;*//*
-            return tuple.left + joined;*//*
+	/*final var joined =*/ tuple.right): String.join("",;
+	/*return tuple.left*/ joined: +;/*
         });
     */
 }
@@ -175,18 +181,27 @@ export class Main {
         }
 
         return generateClass(modifiers, beforeContent, outputContent);
-    }*/class " + beforeContent + " {/*" + outputContent + "\n}\n";
-    */
+    }*/class " + beforeContent + " {
+	/*" + outputContent*/ "\n}\n": +;
+}
+class "))
+                .or(() -> {
+	/*final var stripped*/ input.strip(): =;/*
+                    if (stripped.endsWith(";*/
+	/*")) {
+                        final var content*/ stripped.substring(/*0, stripped.length(*/): =/* - ";".length());
+                        return compileDefinition(content).map(definition -> {
+                            return new Tuple<>("\n\t" + definition.left + ": " + definition.right + ";", Collections.emptyList());
+                        });
+                    }*/
+	/*else {
+                       */ Optional.empty(/**/): return/*;
+                    }*/
+	/*})
+                .or(() -> compileMethod(input))
+                .orElseGet(() -> new*/ Collections.emptyList())): Tuple<>(generatePlaceholder(input),;
 }
 /*
-
-    private static Tuple<String, List<String>> compileClassSegment(String input) {
-        return compileWhitespace(input)
-                .or(() -> compileStructure(input, "record "))
-                .or(() -> compileStructure(input, "class "))
-                .or(() -> compileMethod(input))
-                .orElseGet(() -> new Tuple<>(generatePlaceholder(input), Collections.emptyList()));
-    }*//*
 
     private static Optional<Tuple<String, List<String>>> compileWhitespace(String input) {
         if (input.isBlank()) {
@@ -206,7 +221,7 @@ export class Main {
             if (paramEnd >= 0) {
                 final var params = withParams.substring(0, paramEnd);
                 final var withBraces = withParams.substring(paramEnd + ")".length());
-                final var outputDefinition = compileDefinition(inputDefinition);
+                final var outputDefinition = compileDefinitionOrPlaceholder(inputDefinition);
                 final var generated = "\n\t" + outputDefinition.left + "(" + generatePlaceholder(params) + "): " + outputDefinition.right + generatePlaceholder(withBraces);
                 return Optional.of(new Tuple<>(generated, Collections.emptyList()));
             }
@@ -215,7 +230,11 @@ export class Main {
         return Optional.empty();
     }*//*
 
-    private static Tuple compileDefinition(String input) {
+    private static Tuple<String, String> compileDefinitionOrPlaceholder(String input) {
+        return compileDefinition(input).orElseGet(() -> new Tuple<>(generatePlaceholder(input), ""));
+    }*//*
+
+    private static Optional<Tuple<String, String>> compileDefinition(String input) {
         final var stripped = input.strip();
         final var nameSeparator = stripped.lastIndexOf(" ");
         if (nameSeparator >= 0) {
@@ -225,11 +244,10 @@ export class Main {
             if (typeSeparator >= 0) {
                 final var beforeType = beforeName.substring(0, typeSeparator);
                 final var type = beforeName.substring(typeSeparator + " ".length());
-                return new Tuple(generatePlaceholder(beforeType) + " " + name, type);
+                return Optional.of(new Tuple<>(generatePlaceholder(beforeType) + " " + name, type));
             }
         }
-
-        return new Tuple(generatePlaceholder(stripped), "");
+        return Optional.empty();
     }*//*
 
     private static String generatePlaceholder(String input) {
