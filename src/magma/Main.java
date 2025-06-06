@@ -866,22 +866,35 @@ public class Main {
                 final var assignments = joinConstructorAssignments(fields);
 
                 final var beforeBody = generatedFields + "\n\tconstructor (" + outputParams + ") {" + assignments + "\n\t}";
-                return assembleStructure(targetInfix, stack, inputContent, modifiers, implementsTypes, name, beforeBody);
+                return assembleStructureWithTypeParams(targetInfix, stack, inputContent, modifiers, implementsTypes, name, beforeBody);
             }
         }
 
-        return assembleStructure(targetInfix, stack, inputContent, modifiers, implementsTypes, beforeContent, "");
+        return assembleStructureWithTypeParams(targetInfix, stack, inputContent, modifiers, implementsTypes, beforeContent, "");
     }
 
-    private static Option<Tuple<String, List<String>>> assembleStructure(
+    private static Option<Tuple<String, List<String>>> assembleStructureWithTypeParams(
             String targetInfix,
             Stack stack,
             String inputContent,
             String modifiers,
             List<Type> implementsTypes,
-            String name,
+            String beforeParameters,
             String beforeBody
     ) {
+        final var stripped = beforeParameters.strip();
+        if(stripped.endsWith(">")) {
+            final var typeParamsStart = stripped.indexOf("<");
+            if(typeParamsStart >= 0) {
+                final var name = stripped.substring(0, typeParamsStart);
+                return assembleStructure(targetInfix, stack, inputContent, modifiers, implementsTypes, name, beforeBody);
+            }
+        }
+
+        return assembleStructure(targetInfix, stack, inputContent, modifiers, implementsTypes, beforeParameters, beforeBody);
+    }
+
+    private static Option<Tuple<String, List<String>>> assembleStructure(String targetInfix, Stack stack, String inputContent, String modifiers, List<Type> implementsTypes, String name, String beforeBody) {
         final var strippedName = name.strip();
         if (!isSymbol(strippedName)) {
             return new None<>();

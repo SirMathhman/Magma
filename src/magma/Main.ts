@@ -1,11 +1,125 @@
+interface Option {
+	map<R>(mapper: (param0 : T) => R): Option<R>;
+	orElseGet(other: () => T): T;
+	isPresent(): boolean;
+	get(): T;
+	orElse(other: T): T;
+	or(other: () => Option<T>): Option<T>;
+	isEmpty(): boolean;
+	and<R>(other: () => Option<R>): Option<Tuple<T, R>>;
+}
 interface Parameter {
+}
+interface Collector {
+	createInitial(): C;
+	fold(current: C, element: T): C;
+}
+interface Head {
+	next(): Option<T>;
+}
+interface Iterator {
+	map<R>(mapper: (param0 : T) => R): Iterator<R>;
+	fold<R>(initial: R, folder: (param0 : R, param1 : T) => R): R;
+	collect<C>(collector: Collector<T, C>): C;
+	flatMap<R>(mapper: (param0 : T) => Iterator<R>): Iterator<R>;
+	next(): Option<T>;
+	filter(predicate: Predicate<T>): Iterator<T>;
+	zip<R>(other: Iterator<R>): Iterator<Tuple<T, R>>;
+}
+interface List {
+	add(element: T): List<T>;
+	iter(): Iterator<T>;
+	addAll(elements: List<T>): List<T>;
+	popLast(): Option<Tuple<List<T>, T>>;
+	isEmpty(): boolean;
+	get(index: int): T;
+	iterWithIndex(): Iterator<Tuple<Integer, T>>;
+	iterReversed(): Iterator<T>;
+	mapLast(mapper: (param0 : T) => T): List<T>;
 }
 interface Generating {
 	generate(): string;
 }
+interface Map {
+	putAll(other: Map<K, V>): Map<K, V>;
+	iter(): Iterator<Tuple<K, V>>;
+	putTuple(kvTuple: Tuple<K, V>): Map<K, V>;
+}
 interface ValueArgument {
 }
 interface TypeArgument {
+}
+class Some implements Option<T> {
+	value: T;
+	constructor (value: T) {
+		this.value = value;
+	}
+	/*@Override
+        public */ map<R>(mapper: (param0 : T) => R): Option<R> {
+		return new Some<>(mapper(value));
+	}
+	/*@Override
+        public*/ orElseGet(other: () => T): T {
+		return value;
+	}
+	/*@Override
+        public*/ isPresent(): boolean {
+		return true;
+	}
+	/*@Override
+        public*/ get(): T {
+		return value;
+	}
+	/*@Override
+        public*/ orElse(other: T): T {
+		return value;
+	}
+	/*@Override
+        public*/ or(other: () => Option<T>): Option<T> {
+		return this;
+	}
+	/*@Override
+        public*/ isEmpty(): boolean {
+		return false;
+	}
+	/*@Override
+        public */ and<R>(other: () => Option<R>): Option<Tuple<T, R>> {
+		return other(/*)*/.map(/*otherValue -> new Tuple<>(value, otherValue*/));
+	}
+}
+class None implements Option<T> {
+	/*@Override
+        public */ map<R>(mapper: (param0 : T) => R): Option<R> {
+		return new None<>();
+	}
+	/*@Override
+        public*/ orElseGet(other: () => T): T {
+		return other();
+	}
+	/*@Override
+        public*/ isPresent(): boolean {
+		return false;
+	}
+	/*@Override
+        public*/ get(): T {
+		return null;
+	}
+	/*@Override
+        public*/ orElse(other: T): T {
+		return other;
+	}
+	/*@Override
+        public*/ or(other: () => Option<T>): Option<T> {
+		return other();
+	}
+	/*@Override
+        public*/ isEmpty(): boolean {
+		return true;
+	}
+	/*@Override
+        public */ and<R>(other: () => Option<R>): Option<Tuple<T, R>> {
+		return new None<>();
+	}
 }
 class Lists {
 	/*public static */ empty<T>(): List<T> {
@@ -37,6 +151,176 @@ class RangeHead implements Head<Integer> {
             final var value = counter;*//*
             counter++;*/
 		return new Some<>(value);
+	}
+}
+class JavaList implements List<T> {
+	elements: java.util.List<T>;
+	constructor (elements: java.util.List<T>) {
+		this.elements = elements;
+	}
+	JavaList(): public {/*
+            this(new ArrayList<>());*/
+	}
+	/*@Override
+        public*/ add(element: T): List<T> {/*
+            elements.add(element);*/
+		return this;
+	}
+	/*@Override
+        public*/ iter(): Iterator<T> {
+		return createIteratorFromSize(/*)*/.map(elements::get);
+	}
+	/*private*/ createIteratorFromSize(): Iterator<Integer> {
+		return new HeadedIterator<>(new RangeHead(elements.size()));
+	}
+	/*@Override
+        public*/ addAll(elements: List<T>): List<T> {
+		return elements.iter(/*)*/.<List<T>>fold(this, /* List::add*/);
+	}
+	/*@Override
+        public*/ popLast(): Option<Tuple<List<T>, T>> {/*
+            if (elements.isEmpty()) {
+                return new None<>();
+            }*//*
+
+            final var last = elements.removeLast();*/
+		return new Some<>(/*new Tuple<>(this*/, /* last)*/);
+	}
+	/*@Override
+        public*/ isEmpty(): boolean {
+		return elements.isEmpty();
+	}
+	/*@Override
+        public*/ get(index: int): T {
+		return elements.get(index);
+	}
+	/*@Override
+        public*/ iterWithIndex(): Iterator<Tuple<Integer, T>> {
+		return createIteratorFromSize(/*)*/.map(/*index -> new Tuple<>*/(index, elements.get(index)));
+	}
+	/*@Override
+        public*/ iterReversed(): Iterator<T> {
+		return createIteratorFromSize(/*)
+                    */.map(/*index -> elements*/.size() - index - 1).map(elements::get);
+	}
+	/*@Override
+        public*/ mapLast(mapper: (param0 : T) => T): List<T> {/*
+            if (elements.isEmpty()) {
+                return this;
+            }*//*
+
+            final var mapped = mapper.apply(elements.getLast());*//*
+            elements.set(elements.size() - 1, mapped);*/
+		return this;
+	}
+}
+class EmptyHead implements Head<T> {
+	/*@Override
+        public*/ next(): Option<T> {
+		return new None<>();
+	}
+}
+class SingleHead implements Head<T> {
+	/*private final*/ element: T;
+	/*private boolean retrieved*/ false: /*=*/;
+	SingleHead(element: T): public {/*
+            this.element = element;*/
+	}
+	/*@Override
+        public*/ next(): Option<T> {/*
+            if (retrieved) {
+                return new None<>();
+            }*//*
+
+            retrieved = true;*/
+		return new Some<>(element);
+	}
+}
+class FlatMapHead implements Head<R> {
+	/*private final*/ head: Head<T>;
+	/*private final*/ mapper: (param0 : T) => Iterator<R>;
+	/*private*/ current: Iterator<R>;
+	FlatMapHead(initial: Iterator<R>, head: Head<T>, mapper: (param0 : T) => Iterator<R>): public {/*
+            this.current = initial;*//*
+            this.head = head;*//*
+            this.mapper = mapper;*/
+	}
+	/*@Override
+        public*/ next(): Option<R> {/*
+            while (true) {
+                final var maybeNext = current.next();
+                if (maybeNext.isPresent()) {
+                    return maybeNext;
+                }
+
+                final var maybeNextIter = head.next().map(mapper);
+                if (maybeNextIter.isPresent()) {
+                    current = maybeNextIter.get();
+                }
+                else {
+                    return new None<>();
+                }
+            }*/
+	}
+}
+class HeadedIterator implements Iterator<T> {
+	head: Head<T>;
+	constructor (head: Head<T>) {
+		this.head = head;
+	}
+	/*@Override
+        public */ map<R>(mapper: (param0 : T) => R): Iterator<R> {
+		return new HeadedIterator<>(/**/(/*) -> head*/.next().map(mapper));
+	}
+	/*@Override
+        public */ fold<R>(initial: R, folder: (param0 : R, param1 : T) => R): R {/*
+            var current = initial;*//*
+            while (true) {
+                R finalCurrent = current;
+                final var maybeNext = head.next().map(next -> folder.apply(finalCurrent, next));
+                if (maybeNext.isPresent()) {
+                    current = maybeNext.get();
+                }
+                else {
+                    return current;
+                }
+            }*/
+	}
+	/*@Override
+        public */ collect<C>(collector: Collector<T, C>): C {
+		return fold(collector.createInitial(), /* collector::fold*/);
+	}
+	/*@Override
+        public */ flatMap<R>(mapper: (param0 : T) => Iterator<R>): Iterator<R> {/*
+            final var head = this.head.next()
+                    .map(mapper)
+                    .<Head<R>>map(initial -> new FlatMapHead<>(initial, this.head, mapper))
+                    .orElseGet(EmptyHead::new);*/
+		return new HeadedIterator<>(head);
+	}
+	/*@Override
+        public*/ next(): Option<T> {
+		return head.next();
+	}
+	/*@Override
+        public*/ filter(predicate: Predicate<T>): Iterator<T> {/*
+            return flatMap(element -> {
+                final var isValid = predicate.test(element);
+                final var head = isValid ? new SingleHead<>(element) : new EmptyHead<T>();
+                return new HeadedIterator<>(head);
+            }*//*);*/
+	}
+	/*@Override
+        public */ zip<R>(other: Iterator<R>): Iterator<Tuple<T, R>> {
+		return new HeadedIterator<>(/**/(/*) -> head*/.next(/*)*/.and(() -> other.next()));
+	}
+}
+class Tuple {
+	left: L;
+	right: R;
+	constructor (left: L, right: R) {
+		this.left = left;
+		this.right = right;
 	}
 }
 class State {
@@ -131,6 +415,16 @@ class Joiner implements Collector<string, Option<string>> {
 	/*@Override
         public*/ fold(current: Option<string>, element: string): Option<string> {
 		return new Some<>(current.map(/*inner -> inner + delimiter + element)*/.orElse(element));
+	}
+}
+class ListCollector implements Collector<T, List<T>> {
+	/*@Override
+        public*/ createInitial(): List<T> {
+		return Lists.empty();
+	}
+	/*@Override
+        public*/ fold(current: List<T>, element: T): List<T> {
+		return current.add(element);
 	}
 }
 class Construction implements Caller {
@@ -282,87 +576,40 @@ class TemplateType implements Type {
 		return /*base + "<" + outputArguments + ">"*/;
 	}
 }
+class JavaMap implements Map<K, V> {
+	map: java.util.Map<K, V>;
+	constructor (map: java.util.Map<K, V>) {
+		this.map = map;
+	}
+	JavaMap(): public {/*
+            this(new HashMap<>());*/
+	}
+	/*@Override
+        public*/ putAll(other: Map<K, V>): Map<K, V> {
+		return other(/*)*/.<Map<K, V>>fold(this, /* Map::putTuple*/);
+	}
+	/*@Override
+        public*/ iter(): Iterator<Tuple<K, V>> {
+		return new JavaList<>(new ArrayList<>(map.entrySet(/*)))
+                    */.iter().map(entry -> new Tuple<>(entry.getKey(), entry.getValue()));
+	}
+	/*@Override
+        public*/ putTuple(tuple: Tuple<K, V>): Map<K, V> {/*
+            map.put(tuple.left, tuple.right);*/
+		return this;
+	}
+}
 class Maps {
 	/*public static */ empty<K, V>(): Map<K, V> {
 		return new JavaMap<>();
 	}
 }
-export class Main {/*private interface Option<T> {
-        <R> Option<R> map(Function<T, R> mapper);
-
-        T orElseGet(Supplier<T> other);
-
-        boolean isPresent();
-
-        T get();
-
-        T orElse(T other);
-
-        Option<T> or(Supplier<Option<T>> other);
-
-        boolean isEmpty();
-
-        <R> Option<Tuple<T, R>> and(Supplier<Option<R>> other);
-    }*//*
-
-    private interface Collector<T, C> {
-        C createInitial();
-
-        C fold(C current, T element);
-    }*//*
-
-    private interface Head<T> {
-        Option<T> next();
-    }*//*
-
-    private interface Iterator<T> {
-        <R> Iterator<R> map(Function<T, R> mapper);
-
-        <R> R fold(R initial, BiFunction<R, T, R> folder);
-
-        <C> C collect(Collector<T, C> collector);
-
-        <R> Iterator<R> flatMap(Function<T, Iterator<R>> mapper);
-
-        Option<T> next();
-
-        Iterator<T> filter(Predicate<T> predicate);
-
-        <R> Iterator<Tuple<T, R>> zip(Iterator<R> other);
-    }*//*
-
-    private interface List<T> {
-        List<T> add(T element);
-
-        Iterator<T> iter();
-
-        List<T> addAll(List<T> elements);
-
-        Option<Tuple<List<T>, T>> popLast();
-
-        boolean isEmpty();
-
-        T get(int index);
-
-        Iterator<Tuple<Integer, T>> iterWithIndex();
-
-        Iterator<T> iterReversed();
-
-        List<T> mapLast(Function<T, T> mapper);
-    }*//*
+export class Main {/*
 
     private interface Value extends Caller, ValueArgument {
     }*//*
 
     private interface Caller extends Generating {
-    }*//*
-
-    private interface Map<K, V> {
-        Map<K, V> putAll(Map<K, V> other);
-
-        Iterator<Tuple<K, V>> iter();
-
-        Map<K, V> putTuple(Tuple<K, V> kvTuple);
     }*/
 	/*private interface Type extends Generating, TypeArgument {
         default*/ extract(actual: Type): Map<string, Type> {
@@ -373,311 +620,7 @@ export class Main {/*private interface Option<T> {
             return this;*//*
         }
     */
-	}/*
-
-    private record Some<T>(T value) implements Option<T> {
-        @Override
-        public <R> Option<R> map(Function<T, R> mapper) {
-            return new Some<>(mapper.apply(value));
-        }
-
-        @Override
-        public T orElseGet(Supplier<T> other) {
-            return value;
-        }
-
-        @Override
-        public boolean isPresent() {
-            return true;
-        }
-
-        @Override
-        public T get() {
-            return value;
-        }
-
-        @Override
-        public T orElse(T other) {
-            return value;
-        }
-
-        @Override
-        public Option<T> or(Supplier<Option<T>> other) {
-            return this;
-        }
-
-        @Override
-        public boolean isEmpty() {
-            return false;
-        }
-
-        @Override
-        public <R> Option<Tuple<T, R>> and(Supplier<Option<R>> other) {
-            return other.get().map(otherValue -> new Tuple<>(value, otherValue));
-        }
-    }*/
-	/*private static final class None*/ map<T> implements Option<T> {
-        @Override
-        public <R>(mapper: (param0 : T) => R): Option<R> {
-		return new None<>();/*
-        }
-
-        @Override
-        public T orElseGet(Supplier<T> other) {
-            return other.get();*//*
-        }
-
-        @Override
-        public boolean isPresent() {
-            return false;*//*
-        }
-
-        @Override
-        public T get() {
-            return null;*//*
-        }
-
-        @Override
-        public T orElse(T other) {
-            return other;*//*
-        }
-
-        @Override
-        public Option<T> or(Supplier<Option<T>> other) {
-            return other.get();*//*
-        }
-
-        @Override
-        public boolean isEmpty() {
-            return true;*//*
-        }
-
-        @Override
-        public <R> Option<Tuple<T, R>> and(Supplier<Option<R>> other) {
-            return new None<>();*//*
-        }
-    */
-	}/*
-
-    private record JavaList<T>(java.util.List<T> elements) implements List<T> {
-        public JavaList() {
-            this(new ArrayList<>());
-        }
-
-        @Override
-        public List<T> add(T element) {
-            elements.add(element);
-            return this;
-        }
-
-        @Override
-        public Iterator<T> iter() {
-            return createIteratorFromSize().map(elements::get);
-        }
-
-        private Iterator<Integer> createIteratorFromSize() {
-            return new HeadedIterator<>(new RangeHead(elements.size()));
-        }
-
-        @Override
-        public List<T> addAll(List<T> elements) {
-            return elements.iter().<List<T>>fold(this, List::add);
-        }
-
-        @Override
-        public Option<Tuple<List<T>, T>> popLast() {
-            if (elements.isEmpty()) {
-                return new None<>();
-            }
-
-            final var last = elements.removeLast();
-            return new Some<>(new Tuple<>(this, last));
-        }
-
-        @Override
-        public boolean isEmpty() {
-            return elements.isEmpty();
-        }
-
-        @Override
-        public T get(int index) {
-            return elements.get(index);
-        }
-
-        @Override
-        public Iterator<Tuple<Integer, T>> iterWithIndex() {
-            return createIteratorFromSize().map(index -> new Tuple<>(index, elements.get(index)));
-        }
-
-        @Override
-        public Iterator<T> iterReversed() {
-            return createIteratorFromSize()
-                    .map(index -> elements.size() - index - 1)
-                    .map(elements::get);
-        }
-
-        @Override
-        public List<T> mapLast(Function<T, T> mapper) {
-            if (elements.isEmpty()) {
-                return this;
-            }
-
-            final var mapped = mapper.apply(elements.getLast());
-            elements.set(elements.size() - 1, mapped);
-            return this;
-        }
-    }*/
-	/*private static class EmptyHead<T> implements Head<T> {
-        @Override
-        public*/ next(): Option<T> {
-		return new None<>();/*
-        }
-    */
 	}
-	/*private static class SingleHead<T> implements Head<T> {
-        private final T element;
-        private boolean retrieved = false;
-
-       */ SingleHead(element: T): public {/*
-            this.element = element;*//*
-        }
-
-        @Override
-        public Option<T> next() {
-            if (retrieved) {
-                return new None<>();
-            }*//*
-
-            retrieved = true;*/
-		return new Some<>(element);/*
-        }
-    */
-	}
-	/*private static class FlatMapHead<T, R> implements Head<R> {
-        private final Head<T> head;
-        private final Function<T, Iterator<R>> mapper;
-        private Iterator<R> current;
-
-       */ FlatMapHead(initial: Iterator<R>, head: Head<T>, mapper: (param0 : T) => Iterator<R>): public {/*
-            this.current = initial;*//*
-            this.head = head;*//*
-            this.mapper = mapper;*//*
-        }
-
-        @Override
-        public Option<R> next() {
-            while (true) {
-                final var maybeNext = current.next();
-                if (maybeNext.isPresent()) {
-                    return maybeNext;
-                }
-
-                final var maybeNextIter = head.next().map(mapper);
-                if (maybeNextIter.isPresent()) {
-                    current = maybeNextIter.get();
-                }
-                else {
-                    return new None<>();
-                }
-            }*//*
-        }
-    */
-	}/*
-
-    private record HeadedIterator<T>(Head<T> head) implements Iterator<T> {
-        @Override
-        public <R> Iterator<R> map(Function<T, R> mapper) {
-            return new HeadedIterator<>(() -> head.next().map(mapper));
-        }
-
-        @Override
-        public <R> R fold(R initial, BiFunction<R, T, R> folder) {
-            var current = initial;
-            while (true) {
-                R finalCurrent = current;
-                final var maybeNext = head.next().map(next -> folder.apply(finalCurrent, next));
-                if (maybeNext.isPresent()) {
-                    current = maybeNext.get();
-                }
-                else {
-                    return current;
-                }
-            }
-        }
-
-        @Override
-        public <C> C collect(Collector<T, C> collector) {
-            return fold(collector.createInitial(), collector::fold);
-        }
-
-        @Override
-        public <R> Iterator<R> flatMap(Function<T, Iterator<R>> mapper) {
-            final var head = this.head.next()
-                    .map(mapper)
-                    .<Head<R>>map(initial -> new FlatMapHead<>(initial, this.head, mapper))
-                    .orElseGet(EmptyHead::new);
-
-            return new HeadedIterator<>(head);
-        }
-
-        @Override
-        public Option<T> next() {
-            return head.next();
-        }
-
-        @Override
-        public Iterator<T> filter(Predicate<T> predicate) {
-            return flatMap(element -> {
-                final var isValid = predicate.test(element);
-                final var head = isValid ? new SingleHead<>(element) : new EmptyHead<T>();
-                return new HeadedIterator<>(head);
-            });
-        }
-
-        @Override
-        public <R> Iterator<Tuple<T, R>> zip(Iterator<R> other) {
-            return new HeadedIterator<>(() -> head.next().and(() -> other.next()));
-        }
-    }*//*
-
-    private record Tuple<L, R>(L left, R right) {
-    }*/
-	/*private static class ListCollector<T> implements Collector<T, List<T>> {
-        @Override
-        public*/ createInitial(): List<T> {
-		return Lists.empty();/*
-        }
-
-        @Override
-        public List<T> fold(List<T> current, T element) {
-            return current.add(element);*//*
-        }
-    */
-	}/*
-
-    private record JavaMap<K, V>(java.util.Map<K, V> map) implements Map<K, V> {
-        public JavaMap() {
-            this(new HashMap<>());
-        }
-
-        @Override
-        public Map<K, V> putAll(Map<K, V> other) {
-            return other.iter().<Map<K, V>>fold(this, Map::putTuple);
-        }
-
-        @Override
-        public Iterator<Tuple<K, V>> iter() {
-            return new JavaList<>(new ArrayList<>(map.entrySet()))
-                    .iter()
-                    .map(entry -> new Tuple<>(entry.getKey(), entry.getValue()));
-        }
-
-        @Override
-        public Map<K, V> putTuple(Tuple<K, V> tuple) {
-            map.put(tuple.left, tuple.right);
-            return this;
-        }
-    }*/
 	/*public static*/ main(args: /*String[]*/): void {/*
         try {
             final var source = Paths.get(".", "src", "magma", "Main.java");
@@ -832,22 +775,35 @@ export class Main {/*private interface Option<T> {
                 final var assignments = joinConstructorAssignments(fields);
 
                 final var beforeBody = generatedFields + "\n\tconstructor (" + outputParams + ") {" + assignments + "\n\t}";
-                return assembleStructure(targetInfix, stack, inputContent, modifiers, implementsTypes, name, beforeBody);
+                return assembleStructureWithTypeParams(targetInfix, stack, inputContent, modifiers, implementsTypes, name, beforeBody);
             }
         }
 
-        return assembleStructure(targetInfix, stack, inputContent, modifiers, implementsTypes, beforeContent, "");
+        return assembleStructureWithTypeParams(targetInfix, stack, inputContent, modifiers, implementsTypes, beforeContent, "");
     }*//*
 
-    private static Option<Tuple<String, List<String>>> assembleStructure(
+    private static Option<Tuple<String, List<String>>> assembleStructureWithTypeParams(
             String targetInfix,
             Stack stack,
             String inputContent,
             String modifiers,
             List<Type> implementsTypes,
-            String name,
+            String beforeParameters,
             String beforeBody
     ) {
+        final var stripped = beforeParameters.strip();
+        if(stripped.endsWith(">")) {
+            final var typeParamsStart = stripped.indexOf("<");
+            if(typeParamsStart >= 0) {
+                final var name = stripped.substring(0, typeParamsStart);
+                return assembleStructure(targetInfix, stack, inputContent, modifiers, implementsTypes, name, beforeBody);
+            }
+        }
+
+        return assembleStructure(targetInfix, stack, inputContent, modifiers, implementsTypes, beforeParameters, beforeBody);
+    }*//*
+
+    private static Option<Tuple<String, List<String>>> assembleStructure(String targetInfix, Stack stack, String inputContent, String modifiers, List<Type> implementsTypes, String name, String beforeBody) {
         final var strippedName = name.strip();
         if (!isSymbol(strippedName)) {
             return new None<>();
