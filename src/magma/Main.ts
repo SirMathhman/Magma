@@ -1,3 +1,12 @@
+interface Option<T> {
+	map<R>(mapper: Function<T, R>): Option<R>;
+	orElseGet(other: Supplier<T>): T;
+	isPresent(): boolean;
+	get(): T;
+	orElse(other: T): T;
+	or(other: Supplier<Option<T>>): Option<T>;
+	isEmpty(): boolean;
+}
 interface Parameter {
 	generate(): string;
 }
@@ -6,21 +15,81 @@ interface Collector<T, C> {
 	fold(current: C, element: T): C;
 }
 interface Head<T> {
-	next(): Optional<T>;
+	next(): Option<T>;
 }
 interface Iterator<T> {
 	map<R>(mapper: Function<T, R>): Iterator<R>;
 	fold<R>(initial: R, folder: BiFunction<R, T, R>): R;
 	collect<C>(collector: Collector<T, C>): C;
 	flatMap<R>(mapper: Function<T, Iterator<R>>): Iterator<R>;
-	next(): Optional<T>;
+	next(): Option<T>;
 }
 interface List<T> {
 	add(element: T): List<T>;
 	iter(): Iterator<T>;
 	addAll(elements: List<T>): List<T>;
-	popLast(): Optional<Tuple<List<T>, T>>;
+	popLast(): Option<Tuple<List<T>, T>>;
 	isEmpty(): boolean;
+}
+class Some<T>(T value) implements Option<T> {
+	/*@Override
+        public */ map<R>(mapper: Function<T, R>): Option<R>/*{
+            return new Some<>(mapper.apply(value));
+        }*/
+	/*@Override
+        public*/ orElseGet(other: Supplier<T>): T/*{
+            return value;
+        }*/
+	/*@Override
+        public*/ isPresent(): boolean/*{
+            return true;
+        }*/
+	/*@Override
+        public*/ get(): T/*{
+            return value;
+        }*/
+	/*@Override
+        public*/ orElse(other: T): T/*{
+            return value;
+        }*/
+	/*@Override
+        public*/ or(other: Supplier<Option<T>>): Option<T>/*{
+            return this;
+        }*/
+	/*@Override
+        public*/ isEmpty(): boolean/*{
+            return false;
+        }*/
+}
+class None<T> implements Option<T> {
+	/*@Override
+        public */ map<R>(mapper: Function<T, R>): Option<R>/*{
+            return new None<>();
+        }*/
+	/*@Override
+        public*/ orElseGet(other: Supplier<T>): T/*{
+            return other.get();
+        }*/
+	/*@Override
+        public*/ isPresent(): boolean/*{
+            return false;
+        }*/
+	/*@Override
+        public*/ get(): T/*{
+            return null;
+        }*/
+	/*@Override
+        public*/ orElse(other: T): T/*{
+            return other;
+        }*/
+	/*@Override
+        public*/ or(other: Supplier<Option<T>>): Option<T>/*{
+            return other.get();
+        }*/
+	/*@Override
+        public*/ isEmpty(): boolean/*{
+            return true;
+        }*/
 }
 class Lists {
 	/*public static */ empty<T>(): List<T>/*{
@@ -28,8 +97,8 @@ class Lists {
         }*/
 }
 class Iterators {
-	/*public static */ fromOptional<T>(optional: Optional<T>): Iterator<T>/*{
-            return new HeadedIterator<>(optional
+	/*public static */ fromOptional<T>(option: Option<T>): Iterator<T>/*{
+            return new HeadedIterator<>(option
                     .<Head<T>>map(SingleHead::new)
                     .orElseGet(EmptyHead::new));
         }*/
@@ -41,14 +110,14 @@ class RangeHead implements Head<Integer> {
             this.length = length;
         }*/
 	/*@Override
-        public*/ next(): Optional<Integer>/*{
+        public*/ next(): Option<Integer>/*{
             if (counter >= length) {
-                return Optional.empty();
+                return new None<>();
             }
 
             final var value = counter;
             counter++;
-            return Optional.of(value);
+            return new Some<>(value);
         }*/
 }
 class JavaList<T>(java.util.List<T> elements) implements List<T> {
@@ -69,13 +138,13 @@ class JavaList<T>(java.util.List<T> elements) implements List<T> {
             return elements.iter().<List<T>>fold(this, List::add);
         }*/
 	/*@Override
-        public*/ popLast(): Optional<Tuple<List<T>, T>>/*{
+        public*/ popLast(): Option<Tuple<List<T>, T>>/*{
             if (elements.isEmpty()) {
-                return Optional.empty();
+                return new None<>();
             }
 
             final var last = elements.removeLast();
-            return Optional.of(new Tuple<>(this, last));
+            return new Some<>(new Tuple<List<T>, T>(this, last));
         }*/
 	/*@Override
         public*/ isEmpty(): boolean/*{
@@ -84,8 +153,8 @@ class JavaList<T>(java.util.List<T> elements) implements List<T> {
 }
 class EmptyHead<T> implements Head<T> {
 	/*@Override
-        public*/ next(): Optional<T>/*{
-            return Optional.empty();
+        public*/ next(): Option<T>/*{
+            return new None<>();
         }*/
 }
 class SingleHead<T> implements Head<T> {
@@ -95,13 +164,13 @@ class SingleHead<T> implements Head<T> {
             this.element = element;
         }*/
 	/*@Override
-        public*/ next(): Optional<T>/*{
+        public*/ next(): Option<T>/*{
             if (retrieved) {
-                return Optional.empty();
+                return new None<>();
             }
 
             retrieved = true;
-            return Optional.of(element);
+            return new Some<>(element);
         }*/
 }
 class FlatMapHead<T, R> implements Head<R> {
@@ -114,7 +183,7 @@ class FlatMapHead<T, R> implements Head<R> {
             this.mapper = mapper;
         }*/
 	/*@Override
-        public*/ next(): Optional<R>/*{
+        public*/ next(): Option<R>/*{
             while (true) {
                 final var maybeNext = current.next();
                 if (maybeNext.isPresent()) {
@@ -126,7 +195,7 @@ class FlatMapHead<T, R> implements Head<R> {
                     current = maybeNextIter.get();
                 }
                 else {
-                    return Optional.empty();
+                    return new None<>();
                 }
             }
         }*/
@@ -164,7 +233,7 @@ class HeadedIterator<T>(Head<T> head) implements Iterator<T> {
             return new HeadedIterator<>(head);
         }*/
 	/*@Override
-        public*/ next(): Optional<T>/*{
+        public*/ next(): Option<T>/*{
             return head.next();
         }*/
 }
@@ -213,7 +282,7 @@ class State {
         }*/
 }
 class Definition(
-            Optional<String> beforeType,
+            Option<String> beforeType,
             List<String> typeParams,
             String type,
             String name
@@ -244,7 +313,7 @@ class Whitespace implements Parameter {
             return "";
         }*/
 }
-class Joiner implements Collector<String, Optional<String>> {
+class Joiner implements Collector<String, Option<String>> {
 	/*private final*/ delimiter: string;
 	Joiner(): public/*{
             this("");
@@ -253,12 +322,12 @@ class Joiner implements Collector<String, Optional<String>> {
             this.delimiter = delimiter;
         }*/
 	/*@Override
-        public*/ createInitial(): Optional<string>/*{
-            return Optional.empty();
+        public*/ createInitial(): Option<string>/*{
+            return new None<>();
         }*/
 	/*@Override
-        public*/ fold(current: Optional<string>, element: string): Optional<string>/*{
-            return Optional.of(current.map(inner -> inner + delimiter + element).orElse(element));
+        public*/ fold(current: Option<string>, element: string): Option<string>/*{
+            return new Some<>(current.map(inner -> inner + delimiter + element).orElse(element));
         }*/
 }
 class ListCollector<T> implements Collector<T, List<T>> {
@@ -352,23 +421,23 @@ export class Main {
                 .orElse("");
     }*//*
 
-    private static Optional<Tuple<String, List<String>>> compileStructure(String input, String keyword, String targetInfix) {
+    private static Option<Tuple<String, List<String>>> compileStructure(String input, String keyword, String targetInfix) {
         final var classIndex = input.indexOf(keyword);
         if (classIndex < 0) {
-            return Optional.empty();
+            return new None<>();
         }
 
         final var modifiersString = input.substring(0, classIndex);
         final var afterClass = input.substring(classIndex + keyword.length());
         final var contentStart = afterClass.indexOf("{");
         if (contentStart < 0) {
-            return Optional.empty();
+            return new None<>();
         }
 
         final var beforeContent = afterClass.substring(0, contentStart).strip();
         final var withEnd = afterClass.substring(contentStart + "{".length()).strip();
         if (!withEnd.endsWith("}")) {
-            return Optional.empty();
+            return new None<>();
         }
 
         final var inputContent = withEnd.substring(0, withEnd.length() - "}".length());
@@ -383,7 +452,7 @@ export class Main {
         final var modifiers = modifiersString.contains("public") ? "export " : "";
 
         final var generated = assembleStructure(beforeContent, modifiers, output, targetInfix);
-        return Optional.of(new Tuple<>("", structures.add(generated)));
+        return new Some<>(new Tuple<String, List<String>>("", structures.add(generated)));
     }*//*
 
     private static String assembleStructure(String beforeContent, String modifiers, String outputContent, String targetInfix) {
@@ -415,7 +484,7 @@ export class Main {
                         .map(field -> {
                             final var fieldName = field.name;
                             final var content = "this." + fieldName + " = " + fieldName;
-                            return generateStatement(content, 2);
+                            return generateStatement(content);
                         })
                         .collect(new Joiner())
                         .orElse("");
@@ -429,17 +498,17 @@ export class Main {
         return generateClass(modifiers, beforeContent, outputContent, targetInfix);
     }*//*
 
-    private static Optional<Definition> retainDefinition(Parameter parameter) {
+    private static Option<Definition> retainDefinition(Parameter parameter) {
         if (parameter instanceof Definition definition) {
-            return Optional.of(definition);
+            return new Some<>(definition);
         }
         else {
-            return Optional.empty();
+            return new None<>();
         }
     }*//*
 
-    private static String generateStatement(String content, int depth) {
-        return "\n" + "\t".repeat(depth) + content + ";";
+    private static String generateStatement(String content) {
+        return "\n" + "\t".repeat(2) + content + ";";
     }*//*
 
     private static String generateClass(String modifiers, String beforeContent, String outputContent, String targetInfix) {
@@ -456,38 +525,38 @@ export class Main {
                 .orElseGet(() -> new Tuple<>(generatePlaceholder(input), Lists.empty()));
     }*//*
 
-    private static Optional<Tuple<String, List<String>>> compileField(String input) {
+    private static Option<Tuple<String, List<String>>> compileField(String input) {
         final var stripped = input.strip();
         if (!stripped.endsWith(";")) {
-            return Optional.empty();
+            return new None<>();
         }
 
         final var content = stripped.substring(0, stripped.length() - ";".length());
         return getStringListTuple(content);
     }*//*
 
-    private static Optional<Tuple<String, List<String>>> getStringListTuple(String content) {
+    private static Option<Tuple<String, List<String>>> getStringListTuple(String content) {
         return compileSimpleDefinition(content).map(definition -> new Tuple<>("\n\t" + definition + ";", Lists.empty()));
     }*//*
 
-    private static Optional<String> compileSimpleDefinition(String content) {
+    private static Option<String> compileSimpleDefinition(String content) {
         return parseDefinition(content).map(Definition::generate);
     }*//*
 
-    private static Optional<Tuple<String, List<String>>> compileWhitespace(String input) {
+    private static Option<Tuple<String, List<String>>> compileWhitespace(String input) {
         return parseWhitespace(input).map(node -> new Tuple<>(node.generate(), Lists.empty()));
     }*//*
 
-    private static Optional<Whitespace> parseWhitespace(String input) {
+    private static Option<Whitespace> parseWhitespace(String input) {
         if (input.isBlank()) {
-            return Optional.of(new Whitespace());
+            return new Some<>(new Whitespace());
         }
         else {
-            return Optional.empty();
+            return new None<>();
         }
     }*//*
 
-    private static Optional<Tuple<String, List<String>>> compileMethod(String input) {
+    private static Option<Tuple<String, List<String>>> compileMethod(String input) {
         final var paramStart = input.indexOf("(");
         if (paramStart >= 0) {
             final var inputDefinition = input.substring(0, paramStart);
@@ -507,12 +576,12 @@ export class Main {
                             : generatePlaceholder(inputAfterParams);
 
                     final var generated = "\n\t" + outputDefinition.generateWithAfterName("(" + outputParams + ")") + outputAfterParams;
-                    return Optional.of(new Tuple<>(generated, Lists.empty()));
+                    return new Some<>(new Tuple<String, List<String>>(generated, Lists.empty()));
                 }
             }
         }
 
-        return Optional.empty();
+        return new None<>();
     }*//*
 
     private static String compileParameters(String input) {
@@ -551,27 +620,27 @@ export class Main {
 
     private static Parameter parseParameter(String input) {
         return parseWhitespace(input).<Parameter>map(parameter -> parameter)
-                .or(() -> parseDefinition(input))
+                .or(() -> parseDefinition(input).map(parameter -> parameter))
                 .orElseGet(() -> new Placeholder(input));
     }*//*
 
-    private static Optional<Definition> parseDefinition(String input) {
+    private static Option<Definition> parseDefinition(String input) {
         final var stripped = input.strip();
         final var nameSeparator = stripped.lastIndexOf(" ");
         if (nameSeparator < 0) {
-            return Optional.empty();
+            return new None<>();
         }
 
         final var beforeName = stripped.substring(0, nameSeparator).strip();
         final var name = stripped.substring(nameSeparator + " ".length()).strip();
         if (!isSymbol(name)) {
-            return Optional.empty();
+            return new None<>();
         }
 
         final var divisions = divide(beforeName, Main::foldTypeSeparator);
         final var maybePopped = divisions.popLast();
         if (maybePopped.isEmpty()) {
-            return Optional.of(new Definition(Optional.empty(), Lists.empty(), compileType(beforeName), name));
+            return new Some<>(new Definition(new None<String>(), Lists.empty(), compileType(beforeName), name));
         }
 
         final var popped = maybePopped.get();
@@ -580,11 +649,11 @@ export class Main {
         final var compiledType = compileType(type);
 
         if (beforeTypeDivisions.isEmpty()) {
-            return Optional.of(new Definition(Optional.empty(), Lists.empty(), compileType(type), name));
+            return new Some<>(new Definition(new None<String>(), Lists.empty(), compileType(type), name));
         }
 
         final var beforeType = beforeTypeDivisions.iter().collect(new Joiner(" ")).orElse("");
-        return Optional.of(assembleDefinition(beforeType, compiledType, name));
+        return new Some<>(assembleDefinition(beforeType, compiledType, name));
     }*//*
 
     private static State foldTypeSeparator(State state, char c) {
@@ -614,15 +683,14 @@ export class Main {
                         .map(String::strip)
                         .collect(new ListCollector<>());
 
-                final var beforeTypeOptional = beforeTypeParams.isEmpty()
-                        ? Optional.<String>empty()
-                        : Optional.of(generatePlaceholder(beforeTypeParams));
+                final Option<String> beforeTypeOptional;
+                beforeTypeOptional = beforeTypeParams.isEmpty() ? new None<String>() : new Some<>(generatePlaceholder(beforeTypeParams));
 
                 return new Definition(beforeTypeOptional, typeParams, compiledType, name);
             }
         }
 
-        return new Definition(Optional.of(generatePlaceholder(beforeType)), Lists.empty(), compiledType, name);
+        return new Definition(new Some<String>(generatePlaceholder(beforeType)), Lists.empty(), compiledType, name);
     }*//*
 
     private static String compileType(String input) {
