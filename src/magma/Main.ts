@@ -323,34 +323,34 @@ class Tuple {
 		this.right = right;
 	}
 }
-class State {
+class DivideState {
 	/*private*/ segments: List<string>;
 	/*private*/ buffer: StringBuilder;
 	/*private*/ depth: int;
-	State(segments: List<string>, buffer: StringBuilder, depth: int): public {/*
+	DivideState(segments: List<string>, buffer: StringBuilder, depth: int): public {/*
             this.segments = segments;*//*
             this.buffer = buffer;*//*
             this.depth = depth;*/
 	}
-	State(): public {/*
+	DivideState(): public {/*
             this(Lists.empty(), new StringBuilder(), 0);*/
 	}
-	/*private*/ append(c: char): State {/*
+	/*private*/ append(c: char): DivideState {/*
             buffer.append(c);*/
 		return this;
 	}
-	/*private*/ enter(): State {/*
+	/*private*/ enter(): DivideState {/*
             this.depth = depth + 1;*/
 		return this;
 	}
-	/*private*/ exit(): State {/*
+	/*private*/ exit(): DivideState {/*
             this.depth = depth - 1;*/
 		return this;
 	}
 	/*private*/ isShallow(): boolean {
 		return /*depth == 1*/;
 	}
-	/*private*/ advance(): State {/*
+	/*private*/ advance(): DivideState {/*
             segments = segments.add(buffer.toString());*//*
             this.buffer = new StringBuilder();*/
 		return this;
@@ -514,31 +514,22 @@ class Frame {
 		return new Frame(definitions, structureTypes.add(structureType));
 	}
 }
-class Stack {
-	frames: List<Frame>;
-	constructor (frames: List<Frame>) {
-		this.frames = frames;
+class CompileState {
+	/*private final*/ stack: Stack;
+	CompileState(stack: Stack): private {/*
+            this.stack = stack;*/
 	}
-	Stack(): private {/*
-            this(Lists.of(new Frame()));*/
+	CompileState(): private {/*
+            this(new Stack(Lists.of(new Frame())));*/
 	}
-	/*public*/ resolveValue(name: string): Option<Type> {
-		return frames.iterReversed(/*)
-                    */.map(/*frame -> frame*/.resolveValue(/*name))
-                    */.flatMap(Iterators::fromOptional).next().map(definition -> definition.type);
-	}
-	/*public*/ defineAll(definitions: List<Definition>): Stack {
+	/*public*/ defineAll(definitions: List<Definition>): CompileState {
 		return mapLast(/*frame -> frame*/.defineAll(definitions));
 	}
-	/*public*/ resolveType(name: string): Option<StructureType> {
-		return frames.iterReversed(/*)
-                    */.map(/*frame -> frame*/.resolveType(/*name)*/).flatMap(Iterators::fromOptional).next();
-	}
-	/*public*/ defineStructureType(structureType: StructureType): Stack {
+	/*public*/ defineStructureType(structureType: StructureType): CompileState {
 		return mapLast(/*last -> last*/.defineStructureType(structureType));
 	}
-	/*private*/ mapLast(mapper: (param0 : Frame) => Frame): Stack {
-		return new Stack(frames.mapLast(mapper));
+	/*private*/ mapLast(mapper: (param0 : Frame) => Frame): CompileState {
+		return new CompileState(new Stack(stack.frames(/*)*/.mapLast(mapper)));
 	}
 }
 class StringType implements Type {
@@ -604,6 +595,20 @@ class Maps {
 		return new JavaMap<>();
 	}
 }
+class Stack {
+	frames: List<Frame>;
+	constructor (frames: List<Frame>) {
+		this.frames = frames;
+	}
+	/*public*/ resolveType(name: string): Option<StructureType> {
+		return frames(/*)*/.iterReversed(/*)
+                    */.map(/*frame -> frame*/.resolveType(name)).flatMap(Iterators::fromOptional).next();
+	}
+	/*public*/ resolveValue(name: string): Option<Type> {
+		return frames(/*)*/.iterReversed(/*)
+                    */.map(/*frame -> frame*/.resolveValue(/*name)*/).flatMap(Iterators::fromOptional).next().map(definition -> definition.type);
+	}
+}
 export class Main {/*
 
     private interface Value extends Caller, ValueArgument {
@@ -635,12 +640,12 @@ export class Main {/*
         }*/
 	}
 	/*private static*/ compile(input: string): string {
-		return compileStatements(input, /*input1 -> compileRootSegment*/(/*input1*/, new Stack()));
+		return compileStatements(input, /*input1 -> compileRootSegment*/(/*input1*/, new CompileState()));
 	}
 	/*private static*/ compileStatements(input: string, mapper: (param0 : string) => string): string {
 		return compileAll(input, mapper, /* Main::foldStatements*/, /* Main::mergeStatements*/);
 	}
-	/*private static*/ compileAll(input: string, mapper: (param0 : string) => string, folder: (param0 : State, param1 : Character) => State, merger: (param0 : StringBuilder, param1 : string) => StringBuilder): string {
+	/*private static*/ compileAll(input: string, mapper: (param0 : string) => string, folder: (param0 : DivideState, param1 : Character) => DivideState, merger: (param0 : StringBuilder, param1 : string) => StringBuilder): string {
 		return mergeAll(/*parseAll(input*/, folder, /* mapper)*/, merger);
 	}
 	/*private static*/ mergeAll(elements: List<string>, merger: (param0 : StringBuilder, param1 : string) => StringBuilder): string {
@@ -648,7 +653,7 @@ export class Main {/*
                 */.fold(/*new StringBuilder(*/), /*merger)
                 */.toString();
 	}
-	/*private static */ parseAll<T>(input: string, folder: (param0 : State, param1 : Character) => State, mapper: (param0 : string) => T): List<T> {
+	/*private static */ parseAll<T>(input: string, folder: (param0 : DivideState, param1 : Character) => DivideState, mapper: (param0 : string) => T): List<T> {
 		return divide(input, /*folder)
                 */.iter(/*)
                 */.map(mapper).collect(new ListCollector<>());
@@ -656,8 +661,8 @@ export class Main {/*
 	/*private static*/ mergeStatements(output: StringBuilder, compiled: string): StringBuilder {
 		return output.append(compiled);
 	}
-	/*private static*/ divide(input: string, folder: (param0 : State, param1 : Character) => State): List<string> {/*
-        State state = new State();*//*
+	/*private static*/ divide(input: string, folder: (param0 : DivideState, param1 : Character) => DivideState): List<string> {/*
+        DivideState state = new DivideState();*//*
         final var length = input.length();*//*
         var current = state;*//*
         for (var i = 0;*//* i < length;*//* i++) {
@@ -666,7 +671,7 @@ export class Main {/*
         }*/
 		return current.advance().segments;
 	}
-	/*private static*/ foldStatements(current: State, c: char): State {/*
+	/*private static*/ foldStatements(current: DivideState, c: char): DivideState {/*
         final var appended = current.append(c);*//*
         if (c == ';*//*' && appended.isLevel()) {
             return appended.advance();
@@ -685,18 +690,18 @@ export class Main {/*
 }
 /*
 
-    private static String compileRootSegment(String input, Stack stack) {
+    private static String compileRootSegment(String input, CompileState state) {
         final var stripped = input.strip();
         if (stripped.startsWith("package ") || stripped.startsWith("import ")) {
             return "";
         }
 
-        return compileRootStructure(input, stack)
+        return compileRootStructure(input, state)
                 .orElseGet(() -> generatePlaceholder(input));
     }*//*
 
-    private static Option<String> compileRootStructure(String input, Stack stack) {
-        return compileStructure(input, "class ", "class", stack).map(tuple -> {
+    private static Option<String> compileRootStructure(String input, CompileState state) {
+        return compileStructure(input, "class ", "class", state).map(tuple -> {
             final var joined = join(tuple.right);
             return tuple.left + joined;
         });
@@ -708,7 +713,7 @@ export class Main {/*
                 .orElse("");
     }*//*
 
-    private static Option<Tuple<String, List<String>>> compileStructure(String input, String keyword, String targetInfix, Stack stack) {
+    private static Option<Tuple<String, List<String>>> compileStructure(String input, String keyword, String targetInfix, CompileState state) {
         final var classIndex = input.indexOf(keyword);
         if (classIndex < 0) {
             return new None<>();
@@ -730,24 +735,24 @@ export class Main {/*
         final var inputContent = withEnd.substring(0, withEnd.length() - "}".length());
         final var modifiers = modifiersString.contains("public") ? "export " : "";
 
-        return assembleStructureWithImplements(targetInfix, stack, inputContent, beforeContent, modifiers);
+        return assembleStructureWithImplements(targetInfix, state, inputContent, beforeContent, modifiers);
     }*//*
 
-    private static Option<Tuple<String, List<String>>> assembleStructureWithImplements(String targetInfix, Stack stack, String inputContent, String beforeContent, String modifiers) {
+    private static Option<Tuple<String, List<String>>> assembleStructureWithImplements(String targetInfix, CompileState state, String inputContent, String beforeContent, String modifiers) {
         final var implementsIndex = beforeContent.lastIndexOf(" implements ");
         if (implementsIndex >= 0) {
             final var beforeImplements = beforeContent.substring(0, implementsIndex);
             final var implementsString = beforeContent.substring(implementsIndex + " implements ".length());
             final var implementsTypes = parseValuesString(implementsString, Main::parseType);
 
-            return assembleStructureWithParameters(targetInfix, stack, inputContent, modifiers, beforeImplements, implementsTypes);
+            return assembleStructureWithParameters(targetInfix, state, inputContent, modifiers, beforeImplements, implementsTypes);
         }
         else {
-            return assembleStructureWithParameters(targetInfix, stack, inputContent, modifiers, beforeContent, Lists.empty());
+            return assembleStructureWithParameters(targetInfix, state, inputContent, modifiers, beforeContent, Lists.empty());
         }
     }*//*
 
-    private static Option<Tuple<String, List<String>>> assembleStructureWithParameters(String targetInfix, Stack stack, String inputContent, String modifiers, String beforeContent, List<Type> implementsTypes) {
+    private static Option<Tuple<String, List<String>>> assembleStructureWithParameters(String targetInfix, CompileState state, String inputContent, String modifiers, String beforeContent, List<Type> implementsTypes) {
         if (beforeContent.endsWith(")")) {
             final var withoutParamEnd = beforeContent.substring(0, beforeContent.length() - ")".length());
             final var paramStart = withoutParamEnd.indexOf("(");
@@ -775,16 +780,16 @@ export class Main {/*
                 final var assignments = joinConstructorAssignments(fields);
 
                 final var beforeBody = generatedFields + "\n\tconstructor (" + outputParams + ") {" + assignments + "\n\t}";
-                return assembleStructureWithTypeParams(targetInfix, stack, inputContent, modifiers, implementsTypes, name, beforeBody);
+                return assembleStructureWithTypeParams(targetInfix, state, inputContent, modifiers, implementsTypes, name, beforeBody);
             }
         }
 
-        return assembleStructureWithTypeParams(targetInfix, stack, inputContent, modifiers, implementsTypes, beforeContent, "");
+        return assembleStructureWithTypeParams(targetInfix, state, inputContent, modifiers, implementsTypes, beforeContent, "");
     }*//*
 
     private static Option<Tuple<String, List<String>>> assembleStructureWithTypeParams(
             String targetInfix,
-            Stack stack,
+            CompileState state,
             String inputContent,
             String modifiers,
             List<Type> implementsTypes,
@@ -792,24 +797,24 @@ export class Main {/*
             String beforeBody
     ) {
         final var stripped = beforeParameters.strip();
-        if(stripped.endsWith(">")) {
+        if (stripped.endsWith(">")) {
             final var typeParamsStart = stripped.indexOf("<");
-            if(typeParamsStart >= 0) {
+            if (typeParamsStart >= 0) {
                 final var name = stripped.substring(0, typeParamsStart);
-                return assembleStructure(targetInfix, stack, inputContent, modifiers, implementsTypes, name, beforeBody);
+                return assembleStructure(targetInfix, state, inputContent, modifiers, implementsTypes, name, beforeBody);
             }
         }
 
-        return assembleStructure(targetInfix, stack, inputContent, modifiers, implementsTypes, beforeParameters, beforeBody);
+        return assembleStructure(targetInfix, state, inputContent, modifiers, implementsTypes, beforeParameters, beforeBody);
     }*//*
 
-    private static Option<Tuple<String, List<String>>> assembleStructure(String targetInfix, Stack stack, String inputContent, String modifiers, List<Type> implementsTypes, String name, String beforeBody) {
+    private static Option<Tuple<String, List<String>>> assembleStructure(String targetInfix, CompileState state, String inputContent, String modifiers, List<Type> implementsTypes, String name, String beforeBody) {
         final var strippedName = name.strip();
         if (!isSymbol(strippedName)) {
             return new None<>();
         }
 
-        final var defined = stack.defineStructureType(new StructureType(strippedName, Maps.empty()));
+        final var defined = state.defineStructureType(new StructureType(strippedName, Maps.empty()));
         final var folded = joinClassSegments(inputContent, defined);
 
         final var output = folded.left.toString();
@@ -833,7 +838,7 @@ export class Main {/*
                 .orElse("");
     }*//*
 
-    private static Tuple<StringBuilder, List<String>> joinClassSegments(String inputContent, Stack defined) {
+    private static Tuple<StringBuilder, List<String>> joinClassSegments(String inputContent, CompileState defined) {
         return divide(inputContent, Main::foldStatements)
                 .iter()
                 .map(segment -> compileClassSegment(segment, defined))
@@ -857,13 +862,13 @@ export class Main {/*
         return list.iter().collect(new Joiner(delimiter)).orElse("");
     }*//*
 
-    private static Tuple<String, List<String>> compileClassSegment(String input, Stack stack) {
+    private static Tuple<String, List<String>> compileClassSegment(String input, CompileState state) {
         return compileWhitespaceWithStructures(input)
-                .or(() -> compileStructure(input, "record ", "class", stack))
-                .or(() -> compileStructure(input, "class ", "class", stack))
-                .or(() -> compileStructure(input, "interface ", "interface", stack))
+                .or(() -> compileStructure(input, "record ", "class", state))
+                .or(() -> compileStructure(input, "class ", "class", state))
+                .or(() -> compileStructure(input, "interface ", "interface", state))
                 .or(() -> compileField(input))
-                .or(() -> compileMethod(input, stack))
+                .or(() -> compileMethod(input, state))
                 .orElseGet(() -> new Tuple<>(generatePlaceholder(input), Lists.empty()));
     }*//*
 
@@ -902,7 +907,7 @@ export class Main {/*
         }
     }*//*
 
-    private static Option<Tuple<String, List<String>>> compileMethod(String input, Stack stack) {
+    private static Option<Tuple<String, List<String>>> compileMethod(String input, CompileState state) {
         final var paramStart = input.indexOf("(");
         if (paramStart < 0) {
             return new None<>();
@@ -941,7 +946,7 @@ export class Main {/*
         }
 
         final var content = inputAfterParams.substring(1, inputAfterParams.length() - 1);
-        final Stack defined = stack.defineAll(parameters);
+        final CompileState defined = state.defineAll(parameters);
         final String outputAfterParams = compileStatements(content, input1 -> compileFunctionSegments(input1, defined));
         return assembleMethod(outputDefinition, outputParams, " {" + outputAfterParams + "\n\t}");
     }*//*
@@ -952,26 +957,26 @@ export class Main {/*
         return new Some<>(new Tuple<>(generated, Lists.empty()));
     }*//*
 
-    private static String compileFunctionSegments(String input, Stack stack) {
+    private static String compileFunctionSegments(String input, CompileState state) {
         return compileWhitespace(input)
-                .or(() -> compileFunctionStatement(input, stack))
+                .or(() -> compileFunctionStatement(input, state))
                 .orElseGet(() -> generatePlaceholder(input));
     }*//*
 
-    private static Option<String> compileFunctionStatement(String input, Stack stack) {
+    private static Option<String> compileFunctionStatement(String input, CompileState state) {
         final var stripped = input.strip();
         if (!stripped.endsWith(";")) {
             return new None<>();
         }
 
         final var withoutEnd = stripped.substring(0, stripped.length() - ";".length());
-        return compileFunctionStatementValue(withoutEnd, stack).map(value -> "\n\t\t" + value + ";");
+        return compileFunctionStatementValue(withoutEnd, state).map(value -> "\n\t\t" + value + ";");
     }*//*
 
-    private static Option<String> compileFunctionStatementValue(String withoutEnd, Stack stack) {
+    private static Option<String> compileFunctionStatementValue(String withoutEnd, CompileState state) {
         if (withoutEnd.startsWith("return ")) {
             final var value = withoutEnd.substring("return ".length());
-            final var generated = parseValue(value, stack);
+            final var generated = parseValue(value, state);
             return new Some<>("return " + generated.generate());
         }
         else {
@@ -979,27 +984,27 @@ export class Main {/*
         }
     }*//*
 
-    private static Value parseValue(String input, Stack stack) {
-        return parseInvocation(input, stack).<Value>map(value -> value)
-                .or(() -> parseAccess(input, stack).map(value -> value))
+    private static Value parseValue(String input, CompileState state) {
+        return parseInvocation(input, state).<Value>map(value -> value)
+                .or(() -> parseAccess(input, state).map(value -> value))
                 .or(() -> parseSymbol(input).map(value -> value))
                 .orElseGet(() -> new Placeholder(input));
     }*//*
 
-    private static Option<FieldAccess> parseAccess(String input, Stack stack) {
+    private static Option<FieldAccess> parseAccess(String input, CompileState state) {
         var stripped = input.strip();
         final var separator = stripped.lastIndexOf(".");
         if (separator >= 0) {
             final var parentString = stripped.substring(0, separator);
             final var property = stripped.substring(separator + ".".length());
-            final var parent = parseValue(parentString, stack);
+            final var parent = parseValue(parentString, state);
             return new Some<>(new FieldAccess(parent, property));
         }
 
         return new None<>();
     }*//*
 
-    private static Option<Invocation> parseInvocation(String input, Stack stack) {
+    private static Option<Invocation> parseInvocation(String input, CompileState state) {
         var stripped = input.strip();
         if (stripped.endsWith(")")) {
             final var withoutEnd = stripped.substring(0, stripped.length() - ")".length());
@@ -1007,13 +1012,13 @@ export class Main {/*
             if (argumentsStart >= 0) {
                 final var callerString = withoutEnd.substring(0, argumentsStart).strip();
                 final var argumentsString = withoutEnd.substring(argumentsStart + "(".length());
-                final var arguments = parseValuesString(argumentsString, input1 -> parseArgument(input1, stack))
+                final var arguments = parseValuesString(argumentsString, input1 -> parseArgument(input1, state))
                         .iter()
                         .map(Main::retainValue)
                         .flatMap(Iterators::fromOptional)
                         .collect(new ListCollector<>());
 
-                final var caller = mapCaller(stack, callerString);
+                final var caller = mapCaller(state, callerString);
                 return new Some<>(new Invocation(caller, arguments));
             }
         }
@@ -1030,9 +1035,9 @@ export class Main {/*
         }
     }*//*
 
-    private static ValueArgument parseArgument(String input, Stack stack) {
+    private static ValueArgument parseArgument(String input, CompileState state) {
         return parseWhitespace(input).<ValueArgument>map(value -> value)
-                .orElseGet(() -> parseValue(input, stack));
+                .orElseGet(() -> parseValue(input, state));
     }*//*
 
     private static Option<Symbol> parseSymbol(String input) {
@@ -1043,13 +1048,13 @@ export class Main {/*
         return new None<>();
     }*//*
 
-    private static Caller mapCaller(Stack stack, String callerString) {
-        final var caller = parseCaller(callerString, stack);
+    private static Caller mapCaller(CompileState state, String callerString) {
+        final var caller = parseCaller(callerString, state);
 
         if (caller instanceof FieldAccess access) {
             final var parent = access.parent;
             if (parent instanceof Symbol(String value)) {
-                final var maybeType = stack.resolveValue(value);
+                final var maybeType = state.stack.resolveValue(value);
                 if (maybeType.isPresent()) {
                     final var type = maybeType.get();
                     if (type instanceof FunctionType) {
@@ -1062,7 +1067,7 @@ export class Main {/*
         if (caller instanceof Construction(var type)) {
             if (type instanceof TemplateType(String base, List<Type> arguments)) {
                 if (arguments.isEmpty()) {
-                    final var maybeStructureType = stack.resolveType(base);
+                    final var maybeStructureType = state.stack.resolveType(base);
                     if (maybeStructureType.isPresent()) {
                         final var structureType = maybeStructureType.get();
                         final var maybeConstructorDefinition = structureType.findField("new");
@@ -1100,7 +1105,7 @@ export class Main {/*
         return mergeAll(generated, Main::mergeValues);
     }*//*
 
-    private static Caller parseCaller(String input, Stack stack) {
+    private static Caller parseCaller(String input, CompileState state) {
         final var stripped = input.strip();
         if (stripped.startsWith("new ")) {
             final var afterNew = stripped.substring("new ".length());
@@ -1108,7 +1113,7 @@ export class Main {/*
             return new Construction(type);
         }
 
-        return parseValue(stripped, stack);
+        return parseValue(stripped, state);
     }*//*
 
     private static StringBuilder mergeValues(StringBuilder cache, String element) {
@@ -1118,7 +1123,7 @@ export class Main {/*
         return cache.append(element);
     }*//*
 
-    private static State foldValues(State state, char c) {
+    private static DivideState foldValues(DivideState state, char c) {
         if (c == ',' && state.isLevel()) {
             return state.advance();
         }
@@ -1171,7 +1176,7 @@ export class Main {/*
         return new Some<>(assembleDefinition(beforeType, compiledType, name));
     }*//*
 
-    private static State foldTypeSeparator(State state, char c) {
+    private static DivideState foldTypeSeparator(DivideState state, char c) {
         if (c == ' ' && state.isLevel()) {
             return state.advance();
         }
