@@ -68,6 +68,16 @@ public class Main {
         Iterator<Tuple<Integer, T>> iterWithIndex();
     }
 
+    private interface Generating {
+        String generate();
+    }
+
+    private interface Value extends Caller {
+    }
+
+    private interface Caller extends Generating {
+    }
+
     private record Some<T>(T value) implements Option<T> {
         @Override
         public <R> Option<R> map(Function<T, R> mapper) {
@@ -289,7 +299,6 @@ public class Main {
         }
     }
 
-
     private record HeadedIterator<T>(Head<T> head) implements Iterator<T> {
         @Override
         public <R> Iterator<R> map(Function<T, R> mapper) {
@@ -402,7 +411,7 @@ public class Main {
         }
     }
 
-    private record Placeholder(String input) implements Parameter {
+    private record Placeholder(String input) implements Parameter, Value {
         @Override
         public String generate() {
             return generatePlaceholder(input);
@@ -450,6 +459,62 @@ public class Main {
         }
     }
 
+    private static class Construction implements Caller {
+        private final String type;
+
+        public Construction(String type) {
+            this.type = type;
+        }
+
+        @Override
+        public String generate() {
+            return "new " + type;
+        }
+    }
+
+    private static class Invocation implements Value {
+        private final Caller caller;
+        private final List<Value> arguments;
+
+        public Invocation(Caller caller, List<Value> arguments) {
+            this.caller = caller;
+            this.arguments = arguments;
+        }
+
+        @Override
+        public String generate() {
+            return caller.generate() + "(" + generateAll(arguments) + ")";
+        }
+    }
+
+    private static class FieldAccess implements Value {
+        private final Value parent;
+        private final String property;
+
+        public FieldAccess(Value parent, String property) {
+            this.parent = parent;
+            this.property = property;
+        }
+
+        @Override
+        public String generate() {
+            return parent.generate() + "." + property;
+        }
+    }
+
+    private static class Symbol implements Value {
+        private final String stripped;
+
+        public Symbol(String stripped) {
+            this.stripped = stripped;
+        }
+
+        @Override
+        public String generate() {
+            return stripped;
+        }
+    }
+
     public static void main(String[] args) {
         try {
             final var source = Paths.get(".", "src", "magma", "Main.java");
@@ -473,16 +538,16 @@ public class Main {
     }
 
     private static String compileAll(String input, Function<String, String> mapper, BiFunction<State, Character, State> folder, BiFunction<StringBuilder, String, StringBuilder> merger) {
-        return generateAll(parseAll(input, folder, mapper), merger);
+        return mergeAll(parseAll(input, folder, mapper), merger);
     }
 
-    private static String generateAll(List<String> elements, BiFunction<StringBuilder, String, StringBuilder> merger) {
+    private static String mergeAll(List<String> elements, BiFunction<StringBuilder, String, StringBuilder> merger) {
         return elements.iter()
                 .fold(new StringBuilder(), merger)
                 .toString();
     }
 
-    private static List<String> parseAll(String input, BiFunction<State, Character, State> folder, Function<String, String> mapper) {
+    private static <T> List<T> parseAll(String input, BiFunction<State, Character, State> folder, Function<String, T> mapper) {
         return divide(input, folder)
                 .iter()
                 .map(mapper)
@@ -764,7 +829,7 @@ public class Main {
     private static Option<String> compileFunctionStatementValue(String withoutEnd) {
         if (withoutEnd.startsWith("return ")) {
             final var value = withoutEnd.substring("return ".length());
-            final var generated = compileValue(value);
+            final var generated = parseValue(value);
             return new Some<>("return " + generated);
         }
         else {
@@ -772,40 +837,53 @@ public class Main {
         }
     }
 
-    private static String compileValue(String value) {
+    private static Value parseValue(String value) {
         final var stripped = value.strip();
         if (stripped.endsWith(")")) {
             final var withoutEnd = stripped.substring(0, stripped.length() - ")".length());
             final var argumentsStart = withoutEnd.indexOf("(");
             if (argumentsStart >= 0) {
-                final var caller = withoutEnd.substring(0, argumentsStart).strip();
-                final var arguments = withoutEnd.substring(argumentsStart + "(".length());
-                return compileCaller(caller) + "(" + compileValues(arguments, Main::compileValue) + ")";
+                final var callerString = withoutEnd.substring(0, argumentsStart).strip();
+                final var argumentsString = withoutEnd.substring(argumentsStart + "(".length());
+                final var arguments = parseAll(argumentsString, Main::foldValues, Main::parseValue);
+
+                final var caller = parseCaller(callerString);
+                return new Invocation(caller, arguments);
             }
         }
 
         final var separator = stripped.lastIndexOf(".");
         if (separator >= 0) {
-            final var parent = stripped.substring(0, separator);
+            final var parentString = stripped.substring(0, separator);
             final var property = stripped.substring(separator + ".".length());
-            return compileValue(parent) + "." + property;
+            final var parent = parseValue(parentString);
+            return new FieldAccess(parent, property);
         }
 
         if (isSymbol(stripped)) {
-            return stripped;
+            return new Symbol(stripped);
         }
 
-        return generatePlaceholder(value);
+        return new Placeholder(value);
     }
 
-    private static String compileCaller(String input) {
+    private static String generateAll(List<Value> arguments) {
+        final var generated = arguments.iter()
+                .map(Generating::generate)
+                .collect(new ListCollector<>());
+
+        return mergeAll(generated, Main::mergeValues);
+    }
+
+    private static Caller parseCaller(String input) {
         final var stripped = input.strip();
         if (stripped.startsWith("new ")) {
             final var afterNew = stripped.substring("new ".length());
-            return "new " + compileType(afterNew);
+            final var type = compileType(afterNew);
+            return new Construction(type);
         }
 
-        return compileValue(stripped);
+        return parseValue(stripped);
     }
 
     private static String compileParameters(String input) {
@@ -962,7 +1040,7 @@ public class Main {
     }
 
     private static String generateValues(List<String> elements) {
-        return generateAll(elements, Main::mergeValues);
+        return mergeAll(elements, Main::mergeValues);
     }
 
     private static List<String> parseValues(String inputArguments) {
