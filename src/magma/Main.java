@@ -195,18 +195,20 @@ public class Main {
         final var outputContent = output.toString();
         final var modifiers = modifiersString.contains("public") ? "export " : "";
 
-        final var generated = assembleClass(beforeContent, modifiers, outputContent);
+        final var generated = assembleStructure(beforeContent, modifiers, outputContent);
         structures.add(generated);
         return Optional.of(new Tuple<>("", structures));
     }
 
-    private static String assembleClass(String beforeContent, String modifiers, String outputContent) {
+    private static String assembleStructure(String beforeContent, String modifiers, String outputContent) {
         if (beforeContent.endsWith(")")) {
             final var withoutParamEnd = beforeContent.substring(0, beforeContent.length() - ")".length());
             final var paramStart = withoutParamEnd.indexOf("(");
             if (paramStart >= 0) {
                 final var name = withoutParamEnd.substring(0, paramStart).strip();
-                return generateClass(modifiers, name, outputContent);
+                final var inputParams = withoutParamEnd.substring(paramStart + "(".length());
+                final var outputParams = compileParameters(inputParams);
+                return generateClass(modifiers, name, "\n\tconstructor (" + outputParams + ") {\n\t}" + outputContent);
             }
         }
 
@@ -263,7 +265,7 @@ public class Main {
                 final var inputParams = withParams.substring(0, paramEnd);
                 final var withBraces = withParams.substring(paramEnd + ")".length());
                 final var outputDefinition = compileDefinitionOrPlaceholder(inputDefinition);
-                final var outputParams = compileAll(inputParams, Main::compileSimpleDefinitionOrPlaceholder, Main::foldValues, Main::mergeValues);
+                final var outputParams = compileParameters(inputParams);
 
                 final var generated = "\n\t" + outputDefinition.left + "(" + outputParams + "): " + outputDefinition.right + generatePlaceholder(withBraces);
                 return Optional.of(new Tuple<>(generated, Collections.emptyList()));
@@ -271,6 +273,10 @@ public class Main {
         }
 
         return Optional.empty();
+    }
+
+    private static String compileParameters(String input) {
+        return compileAll(input, Main::compileSimpleDefinitionOrPlaceholder, Main::foldValues, Main::mergeValues);
     }
 
     private static StringBuilder mergeValues(StringBuilder cache, String element) {
