@@ -1,69 +1,55 @@
 export class Main {
 	class Tuple {/**/}
-	/*public static class State {
-        private final List<String> segments;
-        private StringBuilder buffer;
-        private int depth;
-
-       */ State(/*List<String> segments, StringBuilder buffer, int depth*/): public/* {
+	class State {/*private final List<String> segments;*//*
+        private StringBuilder buffer;*//*
+        private int depth;*/
+	/*public State*/(/*List<String> segments, StringBuilder buffer, int depth*/): /* {
             this.segments = segments;
             this.buffer = buffer;
             this.depth = depth;
-        }
-
-        public State() {
+        }*/
+	/*public State*/(/**/): /* {
             this(new ArrayList<>(), new StringBuilder(), 0);
-        }
-
-        private State append(char c) {
+        }*/
+	/*private*/ append(/*char c*/): State/* {
             getBuffer().append(c);
             return this;
-        }
-
-        private State enter() {
+        }*/
+	/*private*/ enter(/**/): State/* {
             setDepth(getDepth() + 1);
             return this;
-        }
-
-        private State exit() {
+        }*/
+	/*private*/ exit(/**/): State/* {
             setDepth(getDepth() - 1);
             return this;
-        }
-
-        private boolean isShallow() {
+        }*/
+	/*private*/ isShallow(/**/): boolean/* {
             return getDepth() == 1;
-        }
-
-        private State advance() {
+        }*/
+	/*private*/ advance(/**/): State/* {
             segments().add(getBuffer().toString());
             setBuffer(new StringBuilder());
             return this;
-        }
-
-        private boolean isLevel() {
+        }*/
+	/*private*/ isLevel(/**/): boolean/* {
             return getDepth() == 0;
-        }
-
-        public StringBuilder getBuffer() {
+        }*/
+	/*public*/ getBuffer(/**/): StringBuilder/* {
             return buffer;
-        }
-
-        public void setBuffer(StringBuilder buffer) {
+        }*/
+	/*public*/ setBuffer(/*StringBuilder buffer*/): void/* {
             this.buffer = buffer;
-        }
-
-        public int getDepth() {
+        }*/
+	/*public*/ getDepth(/**/): int/* {
             return depth;
-        }
-
-        public void setDepth(int depth) {
+        }*/
+	/*public*/ setDepth(/*int depth*/): void/* {
             this.depth = depth;
-        }
-
-        public List<String> segments() {
+        }*/
+	/*public*/ segments(/**/): List<String>/* {
             return segments;
-        }
-    }*/
+        }*//*
+    */}
 	/*public static*/ main(/*String[] args*/): void/* {
         try {
             final var source = Paths.get(".", "src", "magma", "Main.java");
@@ -81,7 +67,10 @@ export class Main {
         return compileStatements(input, Main::compileRootSegment);
     }*/
 	/*private static*/ compileStatements(/*String input, Function<String, String> mapper*/): String/* {
-        final var segments = divide(input);
+        return compileAll(input, mapper, Main::foldStatements);
+    }*/
+	/*private static*/ compileAll(/*String input, Function<String, String> mapper, BiFunction<State, Character, State> folder*/): String/* {
+        final var segments = divide(input, folder);
         final var output = new StringBuilder();
         for (var segment : segments) {
             output.append(mapper.apply(segment));
@@ -89,18 +78,18 @@ export class Main {
 
         return output.toString();
     }*/
-	/*private static*/ divide(/*String input*/): List<String>/* {
+	/*private static*/ divide(/*String input, BiFunction<State, Character, State> folder*/): List<String>/* {
         State state = new State();
         final var length = input.length();
         var current = state;
         for (var i = 0; i < length; i++) {
             final var c = input.charAt(i);
-            current = fold(current, c);
+            current = folder.apply(current, c);
         }
 
         return current.advance().segments;
     }*/
-	/*private static*/ fold(/*State current, char c*/): State/* {
+	/*private static*/ foldStatements(/*State current, char c*/): State/* {
         final var appended = current.append(c);
         if (c == ';' && appended.isLevel()) {
             return appended.advance();
@@ -160,11 +149,13 @@ export class Main {
     */}/*
 
     private static String compileClassSegment(String input) {
-        final var maybeRecord = compileStructure(input, "record ", 1);
-        if (maybeRecord.isPresent()) {
-            return maybeRecord.get();
-        }
+        return compileStructure(input, "record ", 1)
+                .or(() -> compileStructure(input, "class ", 1))
+                .or(() -> compileMethod(input))
+                .orElseGet(() -> generatePlaceholder(input));
+    }*//*
 
+    private static Optional<String> compileMethod(String input) {
         final var paramStart = input.indexOf("(");
         if (paramStart >= 0) {
             final var inputDefinition = input.substring(0, paramStart);
@@ -174,11 +165,11 @@ export class Main {
                 final var params = withParams.substring(0, paramEnd);
                 final var withBraces = withParams.substring(paramEnd + ")".length());
                 final var outputDefinition = compileDefinition(inputDefinition);
-                return "\n\t" + outputDefinition.left + "(" + generatePlaceholder(params) + "): " + outputDefinition.right + generatePlaceholder(withBraces);
+                return Optional.of("\n\t" + outputDefinition.left + "(" + generatePlaceholder(params) + "): " + outputDefinition.right + generatePlaceholder(withBraces));
             }
         }
 
-        return generatePlaceholder(input);
+        return Optional.empty();
     }*//*
 
     private static Tuple compileDefinition(String input) {

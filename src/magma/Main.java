@@ -13,7 +13,7 @@ public class Main {
     private record Tuple(String left, String right) {
     }
 
-    public static class State {
+    private static class State {
         private final List<String> segments;
         private StringBuilder buffer;
         private int depth;
@@ -184,11 +184,13 @@ public class Main {
     }
 
     private static String compileClassSegment(String input) {
-        final var maybeRecord = compileStructure(input, "record ", 1);
-        if (maybeRecord.isPresent()) {
-            return maybeRecord.get();
-        }
+        return compileStructure(input, "record ", 1)
+                .or(() -> compileStructure(input, "class ", 1))
+                .or(() -> compileMethod(input))
+                .orElseGet(() -> generatePlaceholder(input));
+    }
 
+    private static Optional<String> compileMethod(String input) {
         final var paramStart = input.indexOf("(");
         if (paramStart >= 0) {
             final var inputDefinition = input.substring(0, paramStart);
@@ -198,11 +200,11 @@ public class Main {
                 final var params = withParams.substring(0, paramEnd);
                 final var withBraces = withParams.substring(paramEnd + ")".length());
                 final var outputDefinition = compileDefinition(inputDefinition);
-                return "\n\t" + outputDefinition.left + "(" + generatePlaceholder(params) + "): " + outputDefinition.right + generatePlaceholder(withBraces);
+                return Optional.of("\n\t" + outputDefinition.left + "(" + generatePlaceholder(params) + "): " + outputDefinition.right + generatePlaceholder(withBraces));
             }
         }
 
-        return generatePlaceholder(input);
+        return Optional.empty();
     }
 
     private static Tuple compileDefinition(String input) {
