@@ -86,6 +86,18 @@ public class Main {
     }
 
     private static String compileClassSegment(String input) {
+        final var paramStart = input.indexOf("(");
+        if (paramStart >= 0) {
+            final var beforeParams = input.substring(0, paramStart).strip();
+            final var withParams = input.substring(paramStart + "(".length());
+            final var paramEnd = withParams.indexOf(")");
+            if (paramEnd >= 0) {
+                final var params = withParams.substring(0, paramEnd);
+                final var withBraces = withParams.substring(paramEnd + ")".length());
+                return "\n\t" + generatePlaceholder(beforeParams) + "(" + generatePlaceholder(params) + ")" + generatePlaceholder(withBraces);
+            }
+        }
+
         return generatePlaceholder(input);
     }
 
