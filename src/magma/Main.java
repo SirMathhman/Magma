@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Optional;
 import java.util.function.Function;
 
 public class Main {
@@ -70,9 +71,13 @@ public class Main {
             return "";
         }
 
-        final var classIndex = stripped.indexOf("class ");
+        return compileStructure(input, "class ", 0).orElseGet(() -> generatePlaceholder(input));
+    }
+
+    private static Optional<String> compileStructure(String input, String keyword, int depth) {
+        final var classIndex = input.indexOf(keyword);
         if (classIndex >= 0) {
-            final var afterClass = stripped.substring(classIndex + "class ".length());
+            final var afterClass = input.substring(classIndex + keyword.length());
             final var contentStart = afterClass.indexOf("{");
             if (contentStart >= 0) {
                 final var name = afterClass.substring(0, contentStart).strip();
@@ -80,15 +85,20 @@ public class Main {
                 if (withEnd.endsWith("}")) {
                     final var inputContent = withEnd.substring(0, withEnd.length() - "}".length());
                     final var outputContent = compileStatements(inputContent, Main::compileClassSegment);
-                    return "export class " + name + " {" + outputContent + "}";
+                    final var indent = 0 == depth ? "" : "\n\t";
+                    return Optional.of(indent + "export class " + name + " {" + outputContent + "}");
                 }
             }
         }
-
-        return generatePlaceholder(input);
+        return Optional.empty();
     }
 
     private static String compileClassSegment(String input) {
+        final var maybeRecord = compileStructure(input, "record ", 1);
+        if (maybeRecord.isPresent()) {
+            return maybeRecord.get();
+        }
+
         final var paramStart = input.indexOf("(");
         if (paramStart >= 0) {
             final var inputDefinition = input.substring(0, paramStart);

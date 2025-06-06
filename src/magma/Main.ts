@@ -1,6 +1,5 @@
 export class Main {
-	/*private*/ Tuple(/*String left, String right*/): record/* {
-    }*/
+	export class Tuple(String left, String right) {/**/}
 	/*public static*/ main(/*String[] args*/): void/* {
         try {
             final var source = Paths.get(".", "src", "magma", "Main.java");
@@ -49,25 +48,29 @@ export class Main {
             output.append(mapper.apply(segment));
         }*/
 	/*return output.toString*/(/**/): /*;*//*
-    */}export class ");
-        if (classIndex >= 0) {
-	/*final var afterClass*/ stripped.substring(/*classIndex + "class ".length(*/): =/*);*/
-	/*final var contentStart*/ afterClass.indexOf(/*"{"*/): =/*;
-            if (contentStart >= 0) {
-                final var name = afterClass.substring(0, contentStart).strip();
-                final var withEnd = afterClass.substring(contentStart + "{".length()).strip();
-                if (withEnd.endsWith("}")) {
-                    final var inputContent = withEnd.substring(0, withEnd.length() - "}".length());
-                    final var outputContent = compileStatements(inputContent, Main::compileClassSegment);
-                    return "export class " + name + " {" + outputContent + "}";
-                }
-            }*/
-	/*}
+    */}/*
 
-       */ generatePlaceholder(/*input*/): return/*;
+    private static String compileRootSegment(String input) {
+        final var stripped = input.strip();
+        if (stripped.startsWith("package ") || stripped.startsWith("import ")) {
+            return "";
+        }
+
+        return compileStructure(input, "class ", 0).orElseGet(() -> generatePlaceholder(input));
+    }*/export class " + name + " {
+	/*" + outputContent + "}");
+                }
+            }
+        }
+       */ Optional.empty(/**/): return/*;
     */}/*
 
     private static String compileClassSegment(String input) {
+        final var maybeRecord = compileStructure(input, "record ", 1);
+        if (maybeRecord.isPresent()) {
+            return maybeRecord.get();
+        }
+
         final var paramStart = input.indexOf("(");
         if (paramStart >= 0) {
             final var inputDefinition = input.substring(0, paramStart);
