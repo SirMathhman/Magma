@@ -809,8 +809,12 @@ public class Main {
                 final var base = withoutEnd.substring(0, argumentsStart).strip();
                 final var inputArguments = withoutEnd.substring(argumentsStart + 1);
                 final var elements = parseValues(inputArguments);
+
                 if (base.equals("Function")) {
                     return "(arg0 : " + elements.get(0) + ") => " + elements.get(1);
+                }
+                if (base.equals("Supplier")) {
+                    return "() => " + elements.get(0);
                 }
 
                 final var outputArguments = generateValues(elements);

@@ -1,10 +1,10 @@
 interface Option<T> {
 	map<R>(mapper: (arg0 : T) => R): Option<R>;
-	orElseGet(other: Supplier<T>): T;
+	orElseGet(other: () => T): T;
 	isPresent(): boolean;
 	get(): T;
 	orElse(other: T): T;
-	or(other: Supplier<Option<T>>): Option<T>;
+	or(other: () => Option<T>): Option<T>;
 	isEmpty(): boolean;
 }
 interface Parameter {
@@ -38,7 +38,7 @@ class Some<T>(T value) implements Option<T> {
             return new Some<>(mapper.apply(value));
         }*/
 	/*@Override
-        public*/ orElseGet(other: Supplier<T>): T/*{
+        public*/ orElseGet(other: () => T): T/*{
             return value;
         }*/
 	/*@Override
@@ -54,7 +54,7 @@ class Some<T>(T value) implements Option<T> {
             return value;
         }*/
 	/*@Override
-        public*/ or(other: Supplier<Option<T>>): Option<T>/*{
+        public*/ or(other: () => Option<T>): Option<T>/*{
             return this;
         }*/
 	/*@Override
@@ -68,7 +68,7 @@ class None<T> implements Option<T> {
             return new None<>();
         }*/
 	/*@Override
-        public*/ orElseGet(other: Supplier<T>): T/*{
+        public*/ orElseGet(other: () => T): T/*{
             return other.get();
         }*/
 	/*@Override
@@ -84,7 +84,7 @@ class None<T> implements Option<T> {
             return other;
         }*/
 	/*@Override
-        public*/ or(other: Supplier<Option<T>>): Option<T>/*{
+        public*/ or(other: () => Option<T>): Option<T>/*{
             return other.get();
         }*/
 	/*@Override
@@ -715,8 +715,12 @@ export class Main {
                 final var base = withoutEnd.substring(0, argumentsStart).strip();
                 final var inputArguments = withoutEnd.substring(argumentsStart + 1);
                 final var elements = parseValues(inputArguments);
+
                 if (base.equals("Function")) {
                     return "(arg0 : " + elements.get(0) + ") => " + elements.get(1);
+                }
+                if (base.equals("Supplier")) {
+                    return "() => " + elements.get(0);
                 }
 
                 final var outputArguments = generateValues(elements);
