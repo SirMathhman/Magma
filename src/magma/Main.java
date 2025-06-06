@@ -778,13 +778,23 @@ public class Main {
             final var withoutEnd = stripped.substring(0, stripped.length() - ")".length());
             final var argumentsStart = withoutEnd.indexOf("(");
             if (argumentsStart >= 0) {
-                final var caller = withoutEnd.substring(0, argumentsStart);
+                final var caller = withoutEnd.substring(0, argumentsStart).strip();
                 final var arguments = withoutEnd.substring(argumentsStart + "(".length());
-                return generatePlaceholder(caller) + "(" + generatePlaceholder(arguments) + ")";
+                return compileCaller(caller) + "(" + compileValues(arguments, Main::compileValue) + ")";
             }
         }
 
         return generatePlaceholder(value);
+    }
+
+    private static String compileCaller(String input) {
+        final var stripped = input.strip();
+        if (stripped.startsWith("new ")) {
+            final var afterNew = stripped.substring("new ".length());
+            return "new " + compileType(afterNew);
+        }
+
+        return compileValue(stripped);
     }
 
     private static String compileParameters(String input) {

@@ -40,7 +40,7 @@ class Some<T> implements Option<T> {
 	}
 	/*@Override
         public */ map<R>(mapper: (param0 : T) => R): Option<R> {
-		return /*new Some<>*/(/*mapper.apply(value)*/);
+		return new Some<>(/*mapper.apply*/(/*value*/));
 	}
 	/*@Override
         public*/ orElseGet(other: () => T): T {
@@ -70,7 +70,7 @@ class Some<T> implements Option<T> {
 class None<T> implements Option<T> {
 	/*@Override
         public */ map<R>(mapper: (param0 : T) => R): Option<R> {
-		return /*new None<>*/(/**/);
+		return new None<>(/**/);
 	}
 	/*@Override
         public*/ orElseGet(other: () => T): T {
@@ -99,18 +99,18 @@ class None<T> implements Option<T> {
 }
 class Lists {
 	/*public static */ empty<T>(): List<T> {
-		return /*new JavaList<>*/(/**/);
+		return new JavaList<>(/**/);
 	}
 	/*@SafeVarargs
         public static */ of<T>(elements: /*T...*/): List<T> {
-		return /*new JavaList<>*/(/*new ArrayList<>(Arrays.asList(elements))*/);
+		return new JavaList<>(new ArrayList<>(/*Arrays.asList*/(/*elements*/)));
 	}
 }
 class Iterators {
 	/*public static */ fromOptional<T>(option: Option<T>): Iterator<T> {
-		return /*new HeadedIterator<>*/(/*option
-                    .<Head<T>>map(SingleHead::new)
-                    .orElseGet(EmptyHead::new)*/);
+		return new HeadedIterator<>(/*option
+                    .<Head<T>>map*/(/*SingleHead::new)
+                    .orElseGet(EmptyHead::new*/));
 	}
 }
 class RangeHead implements Head<Integer> {
@@ -127,7 +127,7 @@ class RangeHead implements Head<Integer> {
 
             final var value = counter;*//*
             counter++;*/
-		return /*new Some<>*/(/*value*/);
+		return new Some<>(/*value*/);
 	}
 }
 class JavaList<T> implements List<T> {
@@ -148,11 +148,11 @@ class JavaList<T> implements List<T> {
 		return /*createIteratorFromSize*/(/*).map(elements::get*/);
 	}
 	/*private*/ createIteratorFromSize(): Iterator<Integer> {
-		return /*new HeadedIterator<>*/(/*new RangeHead(elements.size())*/);
+		return new HeadedIterator<>(new RangeHead(/*elements.size*/(/**/)));
 	}
 	/*@Override
         public*/ addAll(elements: List<T>): List<T> {
-		return /*elements.iter*/(/*).<List<T>>fold(this, List::add*/);
+		return /*elements.iter*/(/*).<List<T>>fold(this*/, /* List::add*/);
 	}
 	/*@Override
         public*/ popLast(): Option<Tuple<List<T>, T>> {/*
@@ -161,7 +161,7 @@ class JavaList<T> implements List<T> {
             }*//*
 
             final var last = elements.removeLast();*/
-		return /*new Some<>*/(/*new Tuple<>(this, last)*/);
+		return new Some<>(/*new Tuple<>(this*/, /* last)*/);
 	}
 	/*@Override
         public*/ isEmpty(): boolean {
@@ -173,13 +173,13 @@ class JavaList<T> implements List<T> {
 	}
 	/*@Override
         public*/ iterWithIndex(): Iterator<Tuple<Integer, T>> {
-		return /*createIteratorFromSize*/(/*).map(index -> new Tuple<>(index, elements.get(index))*/);
+		return /*createIteratorFromSize*/(/*).map*/(/*index -> new Tuple<>*/(/*index*/, /* elements.get(index*/)));
 	}
 }
 class EmptyHead<T> implements Head<T> {
 	/*@Override
         public*/ next(): Option<T> {
-		return /*new None<>*/(/**/);
+		return new None<>(/**/);
 	}
 }
 class SingleHead<T> implements Head<T> {
@@ -195,7 +195,7 @@ class SingleHead<T> implements Head<T> {
             }*//*
 
             retrieved = true;*/
-		return /*new Some<>*/(/*element*/);
+		return new Some<>(/*element*/);
 	}
 }
 class FlatMapHead<T, R> implements Head<R> {
@@ -232,7 +232,7 @@ class HeadedIterator<T> implements Iterator<T> {
 	}
 	/*@Override
         public */ map<R>(mapper: (param0 : T) => R): Iterator<R> {
-		return /*new HeadedIterator<>*/(/*() -> head.next().map(mapper)*/);
+		return new HeadedIterator<>(/**/(/*) -> head.next().map(mapper*/));
 	}
 	/*@Override
         public */ fold<R>(initial: R, folder: (param0 : R, param1 : T) => R): R {/*
@@ -250,7 +250,7 @@ class HeadedIterator<T> implements Iterator<T> {
 	}
 	/*@Override
         public */ collect<C>(collector: Collector<T, C>): C {
-		return /*fold*/(/*collector.createInitial(), collector::fold*/);
+		return /*fold*/(/*collector.createInitial*/(/**/), /* collector::fold*/);
 	}
 	/*@Override
         public */ flatMap<R>(mapper: (param0 : T) => Iterator<R>): Iterator<R> {/*
@@ -258,7 +258,7 @@ class HeadedIterator<T> implements Iterator<T> {
                     .map(mapper)
                     .<Head<R>>map(initial -> new FlatMapHead<>(initial, this.head, mapper))
                     .orElseGet(EmptyHead::new);*/
-		return /*new HeadedIterator<>*/(/*head*/);
+		return new HeadedIterator<>(/*head*/);
 	}
 	/*@Override
         public*/ next(): Option<T> {
@@ -360,11 +360,11 @@ class Joiner implements Collector<string, Option<string>> {
 	}
 	/*@Override
         public*/ createInitial(): Option<string> {
-		return /*new None<>*/(/**/);
+		return new None<>(/**/);
 	}
 	/*@Override
         public*/ fold(current: Option<string>, element: string): Option<string> {
-		return /*new Some<>*/(/*current.map(inner -> inner + delimiter + element).orElse(element)*/);
+		return new Some<>(/*current.map*/(/*inner -> inner + delimiter + element).orElse(element*/));
 	}
 }
 class ListCollector<T> implements Collector<T, List<T>> {
@@ -392,24 +392,24 @@ export class Main {
         }*/
 	}
 	/*private static*/ compile(input: string): string {
-		return /*compileStatements*/(/*input, Main::compileRootSegment*/);
+		return /*compileStatements*/(/*input*/, /* Main::compileRootSegment*/);
 	}
 	/*private static*/ compileStatements(input: string, mapper: (param0 : string) => string): string {
-		return /*compileAll*/(/*input, mapper, Main::foldStatements, Main::mergeStatements*/);
+		return /*compileAll*/(/*input*/, /* mapper*/, /* Main::foldStatements*/, /* Main::mergeStatements*/);
 	}
 	/*private static*/ compileAll(input: string, mapper: (param0 : string) => string, folder: (param0 : State, param1 : Character) => State, merger: (param0 : StringBuilder, param1 : string) => StringBuilder): string {
-		return /*generateAll*/(/*parseAll(input, folder, mapper), merger*/);
+		return /*generateAll*/(/*parseAll(input*/, /* folder*/, /* mapper)*/, /* merger*/);
 	}
 	/*private static*/ generateAll(elements: List<string>, merger: (param0 : StringBuilder, param1 : string) => StringBuilder): string {
 		return /*elements.iter*/(/*)
-                .fold(new StringBuilder(), merger)
+                .fold*/(/*new StringBuilder(*/), /* merger)
                 .toString(*/);
 	}
 	/*private static*/ parseAll(input: string, folder: (param0 : State, param1 : Character) => State, mapper: (param0 : string) => string): List<string> {
-		return /*divide*/(/*input, folder)
-                .iter()
+		return /*divide*/(/*input*/, /*folder)
+                .iter*/(/*)
                 .map(mapper)
-                .collect(new ListCollector<>()*/);
+                .collect(new ListCollector<>(*/));
 	}
 	/*private static*/ mergeStatements(output: StringBuilder, compiled: string): StringBuilder {
 		return /*output.append*/(/*compiled*/);
@@ -698,13 +698,23 @@ export class Main {
             final var withoutEnd = stripped.substring(0, stripped.length() - ")".length());
             final var argumentsStart = withoutEnd.indexOf("(");
             if (argumentsStart >= 0) {
-                final var caller = withoutEnd.substring(0, argumentsStart);
+                final var caller = withoutEnd.substring(0, argumentsStart).strip();
                 final var arguments = withoutEnd.substring(argumentsStart + "(".length());
-                return generatePlaceholder(caller) + "(" + generatePlaceholder(arguments) + ")";
+                return compileCaller(caller) + "(" + compileValues(arguments, Main::compileValue) + ")";
             }
         }
 
         return generatePlaceholder(value);
+    }*//*
+
+    private static String compileCaller(String input) {
+        final var stripped = input.strip();
+        if (stripped.startsWith("new ")) {
+            final var afterNew = stripped.substring("new ".length());
+            return "new " + compileType(afterNew);
+        }
+
+        return compileValue(stripped);
     }*//*
 
     private static String compileParameters(String input) {
