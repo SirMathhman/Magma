@@ -95,6 +95,10 @@ public class Main {
         Iterator<Tuple<K, V>> iter();
 
         Map<K, V> putTuple(Tuple<K, V> kvTuple);
+
+        Map<K, V> put(K key, V value);
+
+        Option<V> get(K key);
     }
 
     private interface Type extends Generating, TypeArgument {
@@ -244,8 +248,9 @@ public class Main {
 
         @Override
         public List<T> add(T element) {
-            elements.add(element);
-            return this;
+            final var copy = new ArrayList<T>(elements);
+            copy.add(element);
+            return new JavaList<>(copy);
         }
 
         @Override
@@ -473,6 +478,10 @@ public class Main {
             Type type,
             String name
     ) implements Parameter, Generating {
+        public Definition(Type type, String name) {
+            this(new None<>(), Lists.empty(), type, name);
+        }
+
         @Override
         public String generate() {
             return generateWithAfterName("");
@@ -581,7 +590,7 @@ public class Main {
         }
 
         public Option<Definition> findField(String name) {
-            return new None<>();
+            return definitions.get(name);
         }
     }
 
@@ -716,6 +725,20 @@ public class Main {
             map.put(tuple.left, tuple.right);
             return this;
         }
+
+        @Override
+        public Map<K, V> put(K key, V value) {
+            map.put(key, value);
+            return this;
+        }
+
+        @Override
+        public Option<V> get(K key) {
+            if (map.containsKey(key)) {
+                return new Some<>(map.get(key));
+            }
+            return new None<>();
+        }
     }
 
     private static class Maps {
@@ -764,6 +787,13 @@ public class Main {
         @Override
         public Map<K, V> fold(Map<K, V> current, Tuple<K, V> element) {
             return current.putTuple(element);
+        }
+    }
+
+    private record StructureRefType(String name) implements Type {
+        @Override
+        public String generate() {
+            return name;
         }
     }
 
@@ -915,49 +945,58 @@ public class Main {
                         .flatMap(Iterators::fromOptional)
                         .collect(new ListCollector<>());
 
-                final var output1 = fields.iter()
-                        .map(Definition::generate)
-                        .fold(new StringBuilder(), Main::mergeValues);
-
-                final var outputParams = output1.toString();
-                final var generatedFields = fields.iter()
-                        .map(Definition::generate)
-                        .map(element -> "\n\t" + element + ";")
-                        .collect(new Joiner())
-                        .orElse("");
-
-                final var assignments = joinConstructorAssignments(fields);
-
-                final var beforeBody = generatedFields + "\n\tconstructor (" + outputParams + ") {" + assignments + "\n\t}";
-                return assembleStructureWithTypeParams(targetInfix, state, inputContent, modifiers, implementsTypes, name, beforeBody);
+                if (!fields.isEmpty()) {
+                    return getTupleOption(targetInfix, state, inputContent, modifiers, implementsTypes, new Some<>(fields), name);
+                }
             }
         }
 
-        return assembleStructureWithTypeParams(targetInfix, state, inputContent, modifiers, implementsTypes, beforeContent, "");
+        return getTupleOption(targetInfix, state, inputContent, modifiers, implementsTypes, new None<>(), beforeContent);
     }
 
-    private static Option<Tuple<String, CompileState>> assembleStructureWithTypeParams(
+    private static Option<Tuple<String, CompileState>> getTupleOption(
             String targetInfix,
             CompileState state,
             String inputContent,
             String modifiers,
             List<Type> implementsTypes,
-            String beforeParameters,
-            String beforeBody
-    ) {
-        final var stripped = beforeParameters.strip();
+            Option<List<Definition>> maybeFields,
+            String name) {
+        final String beforeBody;
+        if (maybeFields.isPresent()) {
+            final var fields = maybeFields.get();
+            final var output1 = fields.iter()
+                    .map(Definition::generate)
+                    .fold(new StringBuilder(), Main::mergeValues);
+
+            final var outputParams = output1.toString();
+            final var generatedFields = fields.iter()
+                    .map(Definition::generate)
+                    .map(element -> "\n\t" + element + ";")
+                    .collect(new Joiner())
+                    .orElse("");
+
+            final var assignments = joinConstructorAssignments(fields);
+
+            beforeBody = generatedFields + "\n\tconstructor (" + outputParams + ") {" + assignments + "\n\t}";
+        }
+        else {
+            beforeBody = "";
+        }
+
+        final var stripped = name.strip();
         if (stripped.endsWith(">")) {
             final var typeParamsStart = stripped.indexOf("<");
             if (typeParamsStart >= 0) {
-                final var name = stripped.substring(0, typeParamsStart);
-                return assembleStructure(targetInfix, state, inputContent, modifiers, implementsTypes, name, beforeBody);
+                final var name1 = stripped.substring(0, typeParamsStart);
+                return assembleStructure(targetInfix, state, inputContent, modifiers, implementsTypes, name1, beforeBody, maybeFields);
             }
         }
 
-        return assembleStructure(targetInfix, state, inputContent, modifiers, implementsTypes, beforeParameters, beforeBody);
+        return assembleStructure(targetInfix, state, inputContent, modifiers, implementsTypes, name, beforeBody, maybeFields);
     }
 
-    private static Option<Tuple<String, CompileState>> assembleStructure(String targetInfix, CompileState state, String inputContent, String modifiers, List<Type> implementsTypes, String name, String beforeBody) {
+    private static Option<Tuple<String, CompileState>> assembleStructure(String targetInfix, CompileState state, String inputContent, String modifiers, List<Type> implementsTypes, String name, String beforeBody, Option<List<Definition>> maybeFields) {
         final var strippedName = name.strip();
         if (!isSymbol(strippedName)) {
             return new None<>();
@@ -975,14 +1014,23 @@ public class Main {
                     .map(definition -> new Tuple<>(definition.name, definition))
                     .collect(new MapCollector<>());
 
-            final var defined = exited.left.defineStructureType(new StructureType(strippedName, right));
+            final var maybeWithConstructorType = maybeFields.map(fields -> {
+                final var constructorTypes = fields.iter()
+                        .map(Definition::type)
+                        .collect(new ListCollector<>());
 
+                return right.put("new", new Definition(new FunctionType(constructorTypes, new StructureRefType(name)), "new"));
+            }).orElse(right);
+
+            final var structureType = new StructureType(strippedName, maybeWithConstructorType);
+            final var defined = exited.left.defineStructureType(structureType);
             final var outputContent = beforeBody + classSegmentsOutput;
             final var joinedImplements = implementsTypes.isEmpty() ? "" : " implements " + generateNodes(implementsTypes);
             var generated = modifiers + targetInfix + " " + strippedName + joinedImplements + " {" + outputContent + "\n}\n";
 
             return new Some<>(new Tuple<>("", defined.addStructure(generated)));
-        } else {
+        }
+        else {
             return new None<>();
         }
     }
@@ -1002,7 +1050,7 @@ public class Main {
         return divide(inputContent, Main::foldStatements)
                 .iter()
                 .fold(new Tuple<>(new StringBuilder(), state), (tuple, element) -> {
-                    final var compiled = compileClassSegment(element, state);
+                    final var compiled = compileClassSegment(element, tuple.right);
                     final var append = tuple.left.append(compiled.left);
                     return new Tuple<>(append, compiled.right);
                 });
@@ -1183,10 +1231,53 @@ public class Main {
                         .collect(new ListCollector<>());
 
                 final var caller = mapCaller(state, callerString);
-                return new Some<>(new Invocation(caller, arguments));
+                return new Some<>(parseAfterInvocation(state, caller, arguments));
             }
         }
 
+        return new None<>();
+    }
+
+    private static Invocation parseAfterInvocation(CompileState state, Caller caller, List<Value> arguments) {
+        if (caller instanceof Construction(var type)) {
+            if (type instanceof TemplateType(String base, List<Type> templateArgumentTypes)) {
+                if (templateArgumentTypes.isEmpty()) {
+                    final var maybeStructureType = state.stack.resolveType(base);
+                    if (maybeStructureType.isPresent()) {
+                        final var structureType = maybeStructureType.get();
+                        final var maybeConstructorDefinition = structureType.findField("new");
+                        if (maybeConstructorDefinition.isPresent()) {
+                            final var constructorDefinition = maybeConstructorDefinition.get();
+                            final var constructorDefinitionType = constructorDefinition.type;
+                            if (constructorDefinitionType instanceof FunctionType functionalConstructorDefinition) {
+                                final var constructorArgumentTypes = functionalConstructorDefinition.parameterTypes;
+
+                                final var argumentTypes = arguments.iter()
+                                        .map(argument -> resolveValue(argument, state))
+                                        .flatMap(Iterators::fromOptional)
+                                        .collect(new ListCollector<>());
+
+                                final var resolved = constructorArgumentTypes.iter()
+                                        .zip(argumentTypes.iter())
+                                        .map(pair -> pair.left.extract(pair.right))
+                                        .fold(Maps.<String, Type>empty(), Map::putAll);
+
+                                final var actualArgumentTypes = argumentTypes.iter()
+                                        .map(argument -> argument.resolve(resolved))
+                                        .collect(new ListCollector<>());
+
+                                final var actualTemplateType = new TemplateType(base, actualArgumentTypes);
+                                return new Invocation(new Construction(actualTemplateType), arguments);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        return new Invocation(caller, arguments);
+    }
+
+    private static Option<Type> resolveValue(Value argument, CompileState state) {
         return new None<>();
     }
 
@@ -1223,36 +1314,6 @@ public class Main {
                     final var type = maybeType.get();
                     if (type instanceof FunctionType) {
                         return parent;
-                    }
-                }
-            }
-        }
-
-        if (caller instanceof Construction(var type)) {
-            if (type instanceof TemplateType(String base, List<Type> arguments)) {
-                if (arguments.isEmpty()) {
-                    final var maybeStructureType = state.stack.resolveType(base);
-                    if (maybeStructureType.isPresent()) {
-                        final var structureType = maybeStructureType.get();
-                        final var maybeConstructorDefinition = structureType.findField("new");
-                        if (maybeConstructorDefinition.isPresent()) {
-                            final var constructorDefinition = maybeConstructorDefinition.get();
-                            final var constructorDefinitionType = constructorDefinition.type;
-                            if (constructorDefinitionType instanceof FunctionType functionalConstructorDefinition) {
-                                final var constructorArgumentTypes = functionalConstructorDefinition.parameterTypes;
-                                final var resolved = constructorArgumentTypes.iter()
-                                        .zip(arguments.iter())
-                                        .map(pair -> pair.left.extract(pair.right))
-                                        .fold(Maps.<String, Type>empty(), Map::putAll);
-
-                                final var actualArgumentTypes = arguments.iter()
-                                        .map(argument -> argument.resolve(resolved))
-                                        .collect(new ListCollector<>());
-
-                                final var actualTemplateType = new TemplateType(base, actualArgumentTypes);
-                                return new Construction(actualTemplateType);
-                            }
-                        }
                     }
                 }
             }
