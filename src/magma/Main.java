@@ -83,7 +83,7 @@ public class Main {
         String generate();
     }
 
-    private interface Value extends Caller {
+    private interface Value extends Caller, Argument {
     }
 
     private interface Caller extends Generating {
@@ -105,6 +105,9 @@ public class Main {
         default Type resolve(Map<String, Type> resolved) {
             return this;
         }
+    }
+
+    private interface Argument {
     }
 
     private record Some<T>(T value) implements Option<T> {
@@ -489,7 +492,7 @@ public class Main {
         }
     }
 
-    private static class Whitespace implements Parameter, Generating {
+    private static class Whitespace implements Parameter, Generating, Argument {
         @Override
         public String generate() {
             return "";
@@ -1043,13 +1046,32 @@ public class Main {
             if (argumentsStart >= 0) {
                 final var callerString = withoutEnd.substring(0, argumentsStart).strip();
                 final var argumentsString = withoutEnd.substring(argumentsStart + "(".length());
-                final var arguments = parseValuesString(argumentsString, input1 -> parseValue(input1, stack));
+                final var arguments = parseValuesString(argumentsString, input1 -> parseArgument(input1, stack))
+                        .iter()
+                        .map(Main::retainValue)
+                        .flatMap(Iterators::fromOptional)
+                        .collect(new ListCollector<>());
+
                 final var caller = mapCaller(stack, callerString);
                 return new Some<>(new Invocation(caller, arguments));
             }
         }
 
         return new None<>();
+    }
+
+    private static Option<Value> retainValue(Argument argument) {
+        if (argument instanceof Value value) {
+            return new Some<>(value);
+        }
+        else {
+            return new None<>();
+        }
+    }
+
+    private static Argument parseArgument(String input, Stack stack) {
+        return parseWhitespace(input).<Argument>map(value -> value)
+                .orElseGet(() -> parseValue(input, stack));
     }
 
     private static Option<Symbol> parseSymbol(String input) {
