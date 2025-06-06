@@ -7,10 +7,10 @@ class Tuple<L, R> {
 	}
 }
 class State {
-	/*private final*/ segments: /*List<String>*/;
+	/*private final*/ segments: List<String>;
 	/*private*/ buffer: StringBuilder;
 	/*private*/ depth: int;
-	State(segments: /*List<String>*/, buffer: StringBuilder, depth: int): public/* {
+	State(segments: List<String>, buffer: StringBuilder, depth: int): public/* {
             this.segments = segments;
             this.buffer = buffer;
             this.depth = depth;
@@ -53,7 +53,7 @@ class State {
 	/*public*/ setDepth(depth: int): void/* {
             this.depth = depth;
         }*/
-	/*public*/ segments(): /*List<String>*//* {
+	/*public*/ segments(): List<String>/* {
             return segments;
         }*/
 }
@@ -115,7 +115,7 @@ export class Main {
 	/*private static*/ mergeStatements(output: StringBuilder, compiled: String): StringBuilder/* {
         return output.append(compiled);
     }*/
-	/*private static*/ divide(input: String, /* BiFunction<State*/, /* Character*/, folder: /*State>*/): /*List<String>*//* {
+	/*private static*/ divide(input: String, /* BiFunction<State*/, /* Character*/, folder: /*State>*/): List<String>/* {
         State state = new State();
         final var length = input.length();
         var current = state;
@@ -317,7 +317,11 @@ export class Main {
     }*//*
 
     private static String compileParameters(String input) {
-        return compileAll(input, Main::compileParameter, Main::foldValues, Main::mergeValues);
+        return compileValues(input, Main::compileParameter);
+    }*//*
+
+    private static String compileValues(String input, Function<String, String> mapper) {
+        return compileAll(input, mapper, Main::foldValues, Main::mergeValues);
     }*//*
 
     private static String compileParameter(String input) {
@@ -365,6 +369,17 @@ export class Main {
 
     private static String compileType(String input) {
         final var stripped = input.strip();
+        if (stripped.endsWith(">")) {
+            final var withoutEnd = stripped.substring(0, stripped.length() - ">".length());
+            final var argumentsStart = withoutEnd.indexOf("<");
+            if (argumentsStart >= 0) {
+                final var base = withoutEnd.substring(0, argumentsStart).strip();
+                final var inputArguments = withoutEnd.substring(argumentsStart + 1);
+                final var outputArguments = compileValues(inputArguments, Main::compileType);
+                return base + "<" + outputArguments + ">";
+            }
+        }
+
         if (isSymbol(stripped)) {
             return stripped;
         }

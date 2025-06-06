@@ -349,7 +349,11 @@ public class Main {
     }
 
     private static String compileParameters(String input) {
-        return compileAll(input, Main::compileParameter, Main::foldValues, Main::mergeValues);
+        return compileValues(input, Main::compileParameter);
+    }
+
+    private static String compileValues(String input, Function<String, String> mapper) {
+        return compileAll(input, mapper, Main::foldValues, Main::mergeValues);
     }
 
     private static String compileParameter(String input) {
@@ -397,6 +401,17 @@ public class Main {
 
     private static String compileType(String input) {
         final var stripped = input.strip();
+        if (stripped.endsWith(">")) {
+            final var withoutEnd = stripped.substring(0, stripped.length() - ">".length());
+            final var argumentsStart = withoutEnd.indexOf("<");
+            if (argumentsStart >= 0) {
+                final var base = withoutEnd.substring(0, argumentsStart).strip();
+                final var inputArguments = withoutEnd.substring(argumentsStart + 1);
+                final var outputArguments = compileValues(inputArguments, Main::compileType);
+                return base + "<" + outputArguments + ">";
+            }
+        }
+
         if (isSymbol(stripped)) {
             return stripped;
         }
