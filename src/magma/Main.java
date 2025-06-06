@@ -387,12 +387,32 @@ public class Main {
         final var name = stripped.substring(nameSeparator + " ".length());
         final var typeSeparator = beforeName.lastIndexOf(" ");
         if (typeSeparator < 0) {
-            return Optional.of(new Definition(Optional.empty(), generatePlaceholder(beforeName), name));
+            return Optional.of(new Definition(Optional.empty(), compileType(beforeName), name));
         }
 
         final var beforeType = beforeName.substring(0, typeSeparator);
         final var type = beforeName.substring(typeSeparator + " ".length());
-        return Optional.of(new Definition(Optional.of(generatePlaceholder(beforeType)), generatePlaceholder(type), name));
+        return Optional.of(new Definition(Optional.of(generatePlaceholder(beforeType)), compileType(type), name));
+    }
+
+    private static String compileType(String input) {
+        final var stripped = input.strip();
+        if (isSymbol(stripped)) {
+            return stripped;
+        }
+
+        return generatePlaceholder(input);
+    }
+
+    private static boolean isSymbol(String input) {
+        final var length = input.length();
+        for (var i = 0; i < length; i++) {
+            final var c = input.charAt(i);
+            if (!Character.isLetter(c)) {
+                return false;
+            }
+        }
+        return true;
     }
 
     private static String generatePlaceholder(String input) {

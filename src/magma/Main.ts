@@ -1,56 +1,56 @@
 class Tuple<L, R> {
-	left: /*L*/;
-	right: /*R*/;
-	constructor (left: /*L*/, right: /*R*/) {
+	left: L;
+	right: R;
+	constructor (left: L, right: R) {
 		this.left = left;
 		this.right = right;
 	}
 }
 class State {
 	/*private final*/ segments: /*List<String>*/;
-	/*private*/ buffer: /*StringBuilder*/;
-	/*private*/ depth: /*int*/;
-	State(segments: /*List<String>*/, buffer: /*StringBuilder*/, depth: /*int*/): /*public*//* {
+	/*private*/ buffer: StringBuilder;
+	/*private*/ depth: int;
+	State(segments: /*List<String>*/, buffer: StringBuilder, depth: int): public/* {
             this.segments = segments;
             this.buffer = buffer;
             this.depth = depth;
         }*/
-	State(): /*public*//* {
+	State(): public/* {
             this(new ArrayList<>(), new StringBuilder(), 0);
         }*/
-	/*private*/ append(c: /*char*/): /*State*//* {
+	/*private*/ append(c: char): State/* {
             getBuffer().append(c);
             return this;
         }*/
-	/*private*/ enter(): /*State*//* {
+	/*private*/ enter(): State/* {
             setDepth(getDepth() + 1);
             return this;
         }*/
-	/*private*/ exit(): /*State*//* {
+	/*private*/ exit(): State/* {
             setDepth(getDepth() - 1);
             return this;
         }*/
-	/*private*/ isShallow(): /*boolean*//* {
+	/*private*/ isShallow(): boolean/* {
             return getDepth() == 1;
         }*/
-	/*private*/ advance(): /*State*//* {
+	/*private*/ advance(): State/* {
             segments().add(getBuffer().toString());
             setBuffer(new StringBuilder());
             return this;
         }*/
-	/*private*/ isLevel(): /*boolean*//* {
+	/*private*/ isLevel(): boolean/* {
             return getDepth() == 0;
         }*/
-	/*public*/ getBuffer(): /*StringBuilder*//* {
+	/*public*/ getBuffer(): StringBuilder/* {
             return buffer;
         }*/
-	/*public*/ setBuffer(buffer: /*StringBuilder*/): /*void*//* {
+	/*public*/ setBuffer(buffer: StringBuilder): void/* {
             this.buffer = buffer;
         }*/
-	/*public*/ getDepth(): /*int*//* {
+	/*public*/ getDepth(): int/* {
             return depth;
         }*/
-	/*public*/ setDepth(depth: /*int*/): /*void*//* {
+	/*public*/ setDepth(depth: int): void/* {
             this.depth = depth;
         }*/
 	/*public*/ segments(): /*List<String>*//* {
@@ -59,31 +59,31 @@ class State {
 }
 class Definition(Optional<String> beforeType, String type, String name) implements Parameter {
 	/*@Override
-        public*/ generate(): /*String*//* {
+        public*/ generate(): String/* {
             return generateWithAfterName("");
         }*/
-	/*public*/ generateWithAfterName(afterName: /*String*/): /*String*//* {
+	/*public*/ generateWithAfterName(afterName: String): String/* {
             final var beforeType = this.beforeType.map(inner -> inner + " ").orElse("");
             return beforeType + name + afterName + ": " + type;
         }*/
 }
 class Placeholder(String input) implements Parameter {
 	/*@Override
-        public*/ generate(): /*String*//* {
+        public*/ generate(): String/* {
             return generatePlaceholder(input);
         }*/
 }
 class Whitespace implements Parameter {
 	/*@Override
-        public*/ generate(): /*String*//* {
+        public*/ generate(): String/* {
             return "";
         }*/
 }
 export class Main {
 	/*private interface Parameter {
-       */ generate(): /*String*//*;
+       */ generate(): String/*;
     }*/
-	/*public static*/ main(args: /*String[]*/): /*void*//* {
+	/*public static*/ main(args: /*String[]*/): void/* {
         try {
             final var source = Paths.get(".", "src", "magma", "Main.java");
             final var target = source.resolveSibling("Main.ts");
@@ -96,13 +96,13 @@ export class Main {
             e.printStackTrace();
         }
     }*/
-	/*private static*/ compile(input: /*String*/): /*String*//* {
+	/*private static*/ compile(input: String): String/* {
         return compileStatements(input, Main::compileRootSegment);
     }*/
-	/*private static*/ compileStatements(input: /*String*/, /* Function<String*/, mapper: /*String>*/): /*String*//* {
+	/*private static*/ compileStatements(input: String, /* Function<String*/, mapper: /*String>*/): String/* {
         return compileAll(input, mapper, Main::foldStatements, Main::mergeStatements);
     }*/
-	/*private static*/ compileAll(input: /*String*/, /* Function<String*/, mapper: /*String>*/, /* BiFunction<State*/, /* Character*/, folder: /*State>*/, /* BiFunction<StringBuilder*/, /* String*/, merger: /*StringBuilder>*/): /*String*//* {
+	/*private static*/ compileAll(input: String, /* Function<String*/, mapper: /*String>*/, /* BiFunction<State*/, /* Character*/, folder: /*State>*/, /* BiFunction<StringBuilder*/, /* String*/, merger: /*StringBuilder>*/): String/* {
         final var segments = divide(input, folder);
         var output = new StringBuilder();
         for (var segment : segments) {
@@ -112,10 +112,10 @@ export class Main {
 
         return output.toString();
     }*/
-	/*private static*/ mergeStatements(output: /*StringBuilder*/, compiled: /*String*/): /*StringBuilder*//* {
+	/*private static*/ mergeStatements(output: StringBuilder, compiled: String): StringBuilder/* {
         return output.append(compiled);
     }*/
-	/*private static*/ divide(input: /*String*/, /* BiFunction<State*/, /* Character*/, folder: /*State>*/): /*List<String>*//* {
+	/*private static*/ divide(input: String, /* BiFunction<State*/, /* Character*/, folder: /*State>*/): /*List<String>*//* {
         State state = new State();
         final var length = input.length();
         var current = state;
@@ -126,7 +126,7 @@ export class Main {
 
         return current.advance().segments;
     }*/
-	/*private static*/ foldStatements(current: /*State*/, c: /*char*/): /*State*//* {
+	/*private static*/ foldStatements(current: State, c: char): State/* {
         final var appended = current.append(c);
         if (c == ';' && appended.isLevel()) {
             return appended.advance();
@@ -140,9 +140,9 @@ export class Main {
         }
         if (c == '}*/
 	/*') {
-           */ appended.exit(): /*return*//*;
+           */ appended.exit(): return/*;
         }*/
-	appended: /*return*/;
+	appended: return;
 }
 /*
 
@@ -355,12 +355,32 @@ export class Main {
         final var name = stripped.substring(nameSeparator + " ".length());
         final var typeSeparator = beforeName.lastIndexOf(" ");
         if (typeSeparator < 0) {
-            return Optional.of(new Definition(Optional.empty(), generatePlaceholder(beforeName), name));
+            return Optional.of(new Definition(Optional.empty(), compileType(beforeName), name));
         }
 
         final var beforeType = beforeName.substring(0, typeSeparator);
         final var type = beforeName.substring(typeSeparator + " ".length());
-        return Optional.of(new Definition(Optional.of(generatePlaceholder(beforeType)), generatePlaceholder(type), name));
+        return Optional.of(new Definition(Optional.of(generatePlaceholder(beforeType)), compileType(type), name));
+    }*//*
+
+    private static String compileType(String input) {
+        final var stripped = input.strip();
+        if (isSymbol(stripped)) {
+            return stripped;
+        }
+
+        return generatePlaceholder(input);
+    }*//*
+
+    private static boolean isSymbol(String input) {
+        final var length = input.length();
+        for (var i = 0; i < length; i++) {
+            final var c = input.charAt(i);
+            if (!Character.isLetter(c)) {
+                return false;
+            }
+        }
+        return true;
     }*//*
 
     private static String generatePlaceholder(String input) {
