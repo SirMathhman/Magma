@@ -649,7 +649,7 @@ public class Main {
         if (implementsIndex >= 0) {
             final var beforeImplements = beforeContent.substring(0, implementsIndex);
             final var implementsString = beforeContent.substring(implementsIndex + " implements ".length());
-            final var implementsTypes = parseAll(implementsString, Main::foldValues, Main::compileType);
+            final var implementsTypes = parseValuesString(implementsString, Main::compileType);
 
             return assembleStructureWithParameters(beforeImplements, modifiers, output, targetInfix, implementsTypes);
         }
@@ -845,8 +845,7 @@ public class Main {
             if (argumentsStart >= 0) {
                 final var callerString = withoutEnd.substring(0, argumentsStart).strip();
                 final var argumentsString = withoutEnd.substring(argumentsStart + "(".length());
-                final var arguments = parseAll(argumentsString, Main::foldValues, Main::parseValue);
-
+                final var arguments = parseValuesString(argumentsString,  Main::parseValue);
                 final var caller = parseCaller(callerString);
                 return new Invocation(caller, arguments);
             }
@@ -980,7 +979,7 @@ public class Main {
             if (typeParamStart >= 0) {
                 final var beforeTypeParams = withoutEnd.substring(0, typeParamStart);
                 final var typeParamsString = withoutEnd.substring(typeParamStart + "<".length());
-                final var typeParams = parseAll(typeParamsString, Main::foldValues, String::strip);
+                final var typeParams = parseValuesString(typeParamsString, String::strip);
 
                 final Option<String> beforeTypeOptional;
                 beforeTypeOptional = beforeTypeParams.isEmpty() ? new None<>() : new Some<>(generatePlaceholder(beforeTypeParams));
@@ -1004,7 +1003,7 @@ public class Main {
             if (argumentsStart >= 0) {
                 final var base = withoutEnd.substring(0, argumentsStart).strip();
                 final var inputArguments = withoutEnd.substring(argumentsStart + 1);
-                final var elements = parseValues(inputArguments);
+                final var elements = parseValuesString(inputArguments, Main::compileType);
 
                 if (base.equals("Supplier")) {
                     return generateFunctionalType(Lists.empty(), elements.get(0));
@@ -1043,8 +1042,8 @@ public class Main {
         return mergeAll(elements, Main::mergeValues);
     }
 
-    private static List<String> parseValues(String inputArguments) {
-        return parseAll(inputArguments, Main::foldValues, Main::compileType);
+    private static <T> List<T> parseValuesString(String input, Function<String, T> mapper) {
+        return parseAll(input, Main::foldValues, mapper);
     }
 
     private static boolean isSymbol(String input) {
