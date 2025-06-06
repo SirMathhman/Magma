@@ -1,5 +1,4 @@
-export class Main {/*
-    public static void main(String[] args) {
+export class Main {/*public static void main(String[] args) {
         try {
             final var source = Paths.get(".", "src", "magma", "Main.java");
             final var target = source.resolveSibling("Main.ts");
@@ -56,8 +55,11 @@ export class Main {/*
             final var contentStart = afterClass.indexOf("{");
             if (contentStart >= 0) {
                 final var name = afterClass.substring(0, contentStart).strip();
-                final var right = afterClass.substring(contentStart + "{".length());
-                return "export class " + name + " {" + generatePlaceholder(right);
+                final var withEnd = afterClass.substring(contentStart + "{".length()).strip();
+                if (withEnd.endsWith("}")) {
+                    final var content = withEnd.substring(0, withEnd.length() - "}".length());
+                    return "export class " + name + " {" + generatePlaceholder(content) + "}";
+                }
             }
         }
 
@@ -71,4 +73,4 @@ export class Main {/*
 
         return "start" + replaced + "end";
     }
-}*/
+*/}
