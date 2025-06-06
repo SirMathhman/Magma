@@ -1,5 +1,5 @@
 export class Main {
-	class Tuple(String left, String right) {/**/}
+	class Tuple {/**/}
 	/*public static*/ main(/*String[] args*/): void/* {
         try {
             final var source = Paths.get(".", "src", "magma", "Main.java");
@@ -57,12 +57,37 @@ export class Main {
         }
 
         return compileStructure(input, "class ", 0).orElseGet(() -> generatePlaceholder(input));
-    }*/export class " + name + " {
-	/*" + outputContent + "}");
+    }*//*
+
+    private static Optional<String> compileStructure(String input, String keyword, int depth) {
+        final var classIndex = input.indexOf(keyword);
+        if (classIndex >= 0) {
+            final var modifiersString = input.substring(0, classIndex);
+            final var afterClass = input.substring(classIndex + keyword.length());
+            final var contentStart = afterClass.indexOf("{");
+            if (contentStart >= 0) {
+                final var beforeContent = afterClass.substring(0, contentStart).strip();
+                final var withEnd = afterClass.substring(contentStart + "{".length()).strip();
+                if (withEnd.endsWith("}")) {
+                    final var inputContent = withEnd.substring(0, withEnd.length() - "}".length());
+                    final var outputContent = compileStatements(inputContent, Main::compileClassSegment);
+                    final var modifiers = modifiersString.contains("public") ? "export " : "";
+
+                    if (beforeContent.endsWith(")")) {
+                        final var withoutParamEnd = beforeContent.substring(0, beforeContent.length() - ")".length());
+                        final var paramStart = withoutParamEnd.indexOf("(");
+                        if (paramStart >= 0) {
+                            final var name = withoutParamEnd.substring(0, paramStart).strip();
+                            return generateClass(depth, modifiers, name, outputContent);
+                        }
+                    }
+
+                    return generateClass(depth, modifiers, beforeContent, outputContent);
                 }
             }
         }
-       */ Optional.empty(/**/): return/*;
+        return Optional.empty();
+    }*/class " + beforeContent + " {/*" + outputContent + "}");
     */}/*
 
     private static String compileClassSegment(String input) {

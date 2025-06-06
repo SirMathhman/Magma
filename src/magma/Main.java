@@ -81,18 +81,32 @@ public class Main {
             final var afterClass = input.substring(classIndex + keyword.length());
             final var contentStart = afterClass.indexOf("{");
             if (contentStart >= 0) {
-                final var name = afterClass.substring(0, contentStart).strip();
+                final var beforeContent = afterClass.substring(0, contentStart).strip();
                 final var withEnd = afterClass.substring(contentStart + "{".length()).strip();
                 if (withEnd.endsWith("}")) {
                     final var inputContent = withEnd.substring(0, withEnd.length() - "}".length());
                     final var outputContent = compileStatements(inputContent, Main::compileClassSegment);
-                    final var indent = 0 == depth ? "" : "\n\t";
                     final var modifiers = modifiersString.contains("public") ? "export " : "";
-                    return Optional.of(indent + modifiers + "class " + name + " {" + outputContent + "}");
+
+                    if (beforeContent.endsWith(")")) {
+                        final var withoutParamEnd = beforeContent.substring(0, beforeContent.length() - ")".length());
+                        final var paramStart = withoutParamEnd.indexOf("(");
+                        if (paramStart >= 0) {
+                            final var name = withoutParamEnd.substring(0, paramStart).strip();
+                            return generateClass(depth, modifiers, name, outputContent);
+                        }
+                    }
+
+                    return generateClass(depth, modifiers, beforeContent, outputContent);
                 }
             }
         }
         return Optional.empty();
+    }
+
+    private static Optional<String> generateClass(int depth, String modifiers, String beforeContent, String outputContent) {
+        final var indent = 0 == depth ? "" : "\n\t";
+        return Optional.of(indent + modifiers + "class " + beforeContent + " {" + outputContent + "}");
     }
 
     private static String compileClassSegment(String input) {
