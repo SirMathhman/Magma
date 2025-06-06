@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="AutoImportSettings">
+    <option name="autoReloadType" value="SELECTIVE" />
+  </component>
+  <component name="ChangeListManager">
+    <list default="true" id="ab6beb1c-4bd8-4cd3-928a-31e7d4a240aa" name="Changes" comment="Ordering.">
+      <change beforePath="$PROJECT_DIR$/SPECIFICATION.md" beforeDir="false" afterPath="$PROJECT_DIR$/SPECIFICATION.md" afterDir="false" />
+    </list>
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+  </component>
+  <component name="ProjectLevelVcsManager">
+    <ConfirmationsSetting value="2" id="Add" />
+  </component>
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "git-widget-placeholder": "spec"
+  }
+}]]></component>
+  <component name="RunManager">
+    <configuration default="true" type="JetRunConfigurationType">
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration default="true" type="KotlinStandaloneScriptRunConfigurationType">
+      <option name="filePath" />
+      <method v="2" />
+    </configuration>
+  </component>
+  <component name="TaskManager">
+    <task id="LOCAL-00001" summary="Ordering.">
+      <option name="closed" value="true" />
+      <created>1749177296924</created>
+      <option name="number" value="00001" />
+      <option name="presentableId" value="LOCAL-00001" />
+      <option name="project" value="LOCAL" />
+      <updated>1749177296924</updated>
+    </task>
+    <option name="localTasksCounter" value="2" />
+    <servers />
+  </component>
+  <component name="VcsManagerConfiguration">
+    <MESSAGE value="Nuke everything" />
+    <MESSAGE value="Ordering." />
+    <option name="LAST_COMMIT_MESSAGE" value="Ordering." />
+  </component>
+  <component name="XDebuggerManager">
+    <pin-to-top-manager>
+      <pinned-members>
+        <PinnedItemInfo parentTag="java.util.HashMap$Node" memberName="key" />
+        <PinnedItemInfo parentTag="magma.compile.MapNode" memberName="maybeType" />
+        <PinnedItemInfo parentTag="java.util.HashMap$Node" memberName="value" />
+        <PinnedItemInfo parentTag="jvm.collect.map.JavaMap" memberName="map" />
+        <PinnedItemInfo parentTag="magma.option.Tuple" memberName="right" />
+        <PinnedItemInfo parentTag="magma.Main$Maps$JavaMap" memberName="internalMap" />
+        <PinnedItemInfo parentTag="magma.Main$StructType" memberName="properties" />
+      </pinned-members>
+    </pin-to-top-manager>
+  </component>
+</project>
