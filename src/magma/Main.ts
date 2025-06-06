@@ -1,5 +1,69 @@
 export class Main {
 	class Tuple {/**/}
+	/*public static class State {
+        private final List<String> segments;
+        private StringBuilder buffer;
+        private int depth;
+
+       */ State(/*List<String> segments, StringBuilder buffer, int depth*/): public/* {
+            this.segments = segments;
+            this.buffer = buffer;
+            this.depth = depth;
+        }
+
+        public State() {
+            this(new ArrayList<>(), new StringBuilder(), 0);
+        }
+
+        private State append(char c) {
+            getBuffer().append(c);
+            return this;
+        }
+
+        private State enter() {
+            setDepth(getDepth() + 1);
+            return this;
+        }
+
+        private State exit() {
+            setDepth(getDepth() - 1);
+            return this;
+        }
+
+        private boolean isShallow() {
+            return getDepth() == 1;
+        }
+
+        private State advance() {
+            segments().add(getBuffer().toString());
+            setBuffer(new StringBuilder());
+            return this;
+        }
+
+        private boolean isLevel() {
+            return getDepth() == 0;
+        }
+
+        public StringBuilder getBuffer() {
+            return buffer;
+        }
+
+        public void setBuffer(StringBuilder buffer) {
+            this.buffer = buffer;
+        }
+
+        public int getDepth() {
+            return depth;
+        }
+
+        public void setDepth(int depth) {
+            this.depth = depth;
+        }
+
+        public List<String> segments() {
+            return segments;
+        }
+    }*/
 	/*public static*/ main(/*String[] args*/): void/* {
         try {
             final var source = Paths.get(".", "src", "magma", "Main.java");
@@ -17,37 +81,42 @@ export class Main {
         return compileStatements(input, Main::compileRootSegment);
     }*/
 	/*private static*/ compileStatements(/*String input, Function<String, String> mapper*/): String/* {
-        final var segments = new ArrayList<String>();
+        final var segments = divide(input);
+        final var output = new StringBuilder();
+        for (var segment : segments) {
+            output.append(mapper.apply(segment));
+        }
+
+        return output.toString();
+    }*/
+	/*private static*/ divide(/*String input*/): List<String>/* {
+        State state = new State();
         final var length = input.length();
-        var buffer = new StringBuilder();
-        var depth = 0;
+        var current = state;
         for (var i = 0; i < length; i++) {
             final var c = input.charAt(i);
-            buffer.append(c);
-            if (c == ';' && depth == 0) {
-                segments.add(buffer.toString());
-                buffer = new StringBuilder();
-            }
-            else if (c == '}' && depth == 1) {
-                segments.add(buffer.toString());
-                buffer = new StringBuilder();
-                depth--;
-            }
-            else {
-                if (c == '{') {
-                    depth++;
-                }
-                if (c == '}') {
-                    depth--;
-                }
-            }
+            current = fold(current, c);
+        }
+
+        return current.advance().segments;
+    }*/
+	/*private static*/ fold(/*State current, char c*/): State/* {
+        final var appended = current.append(c);
+        if (c == ';' && appended.isLevel()) {
+            return appended.advance();
+        }
+        if (c == '}*/
+	/*'*/ appended.isShallow(/**/): &&/*) {
+            return appended.advance().exit();
         }*/
-	/*segments.add*/(/*buffer.toString(*/): /*);*/
-	/*final var output =*/ StringBuilder(/**/): new/*;*/
-	/*for*/(/*var segment : segments*/): /* {
-            output.append(mapper.apply(segment));
-        }*/
-	/*return output.toString*/(/**/): /*;*//*
+	/*if*/(/*c == '{'*/): /* {
+            return appended.enter();
+        }
+        if (c == '}*/
+	/*') {
+           */ appended.exit(/**/): return/*;
+        }*//*
+        return appended;*//*
     */}/*
 
     private static String compileRootSegment(String input) {

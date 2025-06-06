@@ -4,11 +4,77 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 import java.util.function.Function;
 
 public class Main {
     private record Tuple(String left, String right) {
+    }
+
+    public static class State {
+        private final List<String> segments;
+        private StringBuilder buffer;
+        private int depth;
+
+        public State(List<String> segments, StringBuilder buffer, int depth) {
+            this.segments = segments;
+            this.buffer = buffer;
+            this.depth = depth;
+        }
+
+        public State() {
+            this(new ArrayList<>(), new StringBuilder(), 0);
+        }
+
+        private State append(char c) {
+            getBuffer().append(c);
+            return this;
+        }
+
+        private State enter() {
+            setDepth(getDepth() + 1);
+            return this;
+        }
+
+        private State exit() {
+            setDepth(getDepth() - 1);
+            return this;
+        }
+
+        private boolean isShallow() {
+            return getDepth() == 1;
+        }
+
+        private State advance() {
+            segments().add(getBuffer().toString());
+            setBuffer(new StringBuilder());
+            return this;
+        }
+
+        private boolean isLevel() {
+            return getDepth() == 0;
+        }
+
+        public StringBuilder getBuffer() {
+            return buffer;
+        }
+
+        public void setBuffer(StringBuilder buffer) {
+            this.buffer = buffer;
+        }
+
+        public int getDepth() {
+            return depth;
+        }
+
+        public void setDepth(int depth) {
+            this.depth = depth;
+        }
+
+        public List<String> segments() {
+            return segments;
+        }
     }
 
     public static void main(String[] args) {
@@ -30,39 +96,42 @@ public class Main {
     }
 
     private static String compileStatements(String input, Function<String, String> mapper) {
-        final var segments = new ArrayList<String>();
-        final var length = input.length();
-        var buffer = new StringBuilder();
-        var depth = 0;
-        for (var i = 0; i < length; i++) {
-            final var c = input.charAt(i);
-            buffer.append(c);
-            if (c == ';' && depth == 0) {
-                segments.add(buffer.toString());
-                buffer = new StringBuilder();
-            }
-            else if (c == '}' && depth == 1) {
-                segments.add(buffer.toString());
-                buffer = new StringBuilder();
-                depth--;
-            }
-            else {
-                if (c == '{') {
-                    depth++;
-                }
-                if (c == '}') {
-                    depth--;
-                }
-            }
-        }
-        segments.add(buffer.toString());
-
+        final var segments = divide(input);
         final var output = new StringBuilder();
         for (var segment : segments) {
             output.append(mapper.apply(segment));
         }
 
         return output.toString();
+    }
+
+    private static List<String> divide(String input) {
+        State state = new State();
+        final var length = input.length();
+        var current = state;
+        for (var i = 0; i < length; i++) {
+            final var c = input.charAt(i);
+            current = fold(current, c);
+        }
+
+        return current.advance().segments;
+    }
+
+    private static State fold(State current, char c) {
+        final var appended = current.append(c);
+        if (c == ';' && appended.isLevel()) {
+            return appended.advance();
+        }
+        if (c == '}' && appended.isShallow()) {
+            return appended.advance().exit();
+        }
+        if (c == '{') {
+            return appended.enter();
+        }
+        if (c == '}') {
+            return appended.exit();
+        }
+        return appended;
     }
 
     private static String compileRootSegment(String input) {
