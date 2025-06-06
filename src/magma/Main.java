@@ -6,6 +6,7 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.BiFunction;
 import java.util.function.Function;
 
 public class Main {
@@ -96,7 +97,11 @@ public class Main {
     }
 
     private static String compileStatements(String input, Function<String, String> mapper) {
-        final var segments = divide(input);
+        return compileAll(input, mapper, Main::foldStatements);
+    }
+
+    private static String compileAll(String input, Function<String, String> mapper, BiFunction<State, Character, State> folder) {
+        final var segments = divide(input, folder);
         final var output = new StringBuilder();
         for (var segment : segments) {
             output.append(mapper.apply(segment));
@@ -105,19 +110,19 @@ public class Main {
         return output.toString();
     }
 
-    private static List<String> divide(String input) {
+    private static List<String> divide(String input, BiFunction<State, Character, State> folder) {
         State state = new State();
         final var length = input.length();
         var current = state;
         for (var i = 0; i < length; i++) {
             final var c = input.charAt(i);
-            current = fold(current, c);
+            current = folder.apply(current, c);
         }
 
         return current.advance().segments;
     }
 
-    private static State fold(State current, char c) {
+    private static State foldStatements(State current, char c) {
         final var appended = current.append(c);
         if (c == ';' && appended.isLevel()) {
             return appended.advance();
