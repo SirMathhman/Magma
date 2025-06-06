@@ -832,7 +832,27 @@ export class Main {
     }*//*
 
     private static Value parseValue(String input, Stack stack) {
-        final var stripped = input.strip();
+        return parseInvocation(input, stack).<Value>map(value -> value)
+                .or(() -> parseAccess(input, stack).map(value -> value))
+                .or(() -> parseSymbol(input).map(value -> value))
+                .orElseGet(() -> new Placeholder(input));
+    }*//*
+
+    private static Option<FieldAccess> parseAccess(String input, Stack stack) {
+        var stripped = input.strip();
+        final var separator = stripped.lastIndexOf(".");
+        if (separator >= 0) {
+            final var parentString = stripped.substring(0, separator);
+            final var property = stripped.substring(separator + ".".length());
+            final var parent = parseValue(parentString, stack);
+            return new Some<>(new FieldAccess(parent, property));
+        }
+
+        return new None<>();
+    }*//*
+
+    private static Option<Invocation> parseInvocation(String input, Stack stack) {
+        var stripped = input.strip();
         if (stripped.endsWith(")")) {
             final var withoutEnd = stripped.substring(0, stripped.length() - ")".length());
             final var argumentsStart = withoutEnd.indexOf("(");
@@ -841,23 +861,19 @@ export class Main {
                 final var argumentsString = withoutEnd.substring(argumentsStart + "(".length());
                 final var arguments = parseValuesString(argumentsString, input1 -> parseValue(input1, stack));
                 final var caller = mapCaller(stack, callerString);
-                return new Invocation(caller, arguments);
+                return new Some<>(new Invocation(caller, arguments));
             }
         }
 
-        final var separator = stripped.lastIndexOf(".");
-        if (separator >= 0) {
-            final var parentString = stripped.substring(0, separator);
-            final var property = stripped.substring(separator + ".".length());
-            final var parent = parseValue(parentString, stack);
-            return new FieldAccess(parent, property);
-        }
+        return new None<>();
+    }*//*
 
+    private static Option<Symbol> parseSymbol(String input) {
+        final var stripped = input.strip();
         if (isSymbol(stripped)) {
-            return new Symbol(stripped);
+            return new Some<>(new Symbol(stripped));
         }
-
-        return new Placeholder(input);
+        return new None<>();
     }*//*
 
     private static Caller mapCaller(Stack stack, String callerString) {
@@ -1024,11 +1040,8 @@ export class Main {
             }
         }
 
-        if (isSymbol(stripped)) {
-            return new Symbol(stripped);
-        }
-
-        return new Placeholder(input);
+        return parseSymbol(stripped).<Type>map(value -> value)
+                .orElseGet(() -> new Placeholder(input));
     }*//*
 
     private static <T> List<T> parseValuesString(String input, Function<String, T> mapper) {

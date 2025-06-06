@@ -568,18 +568,10 @@ public class Main {
         }
     }
 
-    private static class TemplateType implements Type {
-        private final String base;
-        private final List<Type> elements;
-
-        public TemplateType(String base, List<Type> elements) {
-            this.base = base;
-            this.elements = elements;
-        }
-
+    private record TemplateType(String base, List<Type> arguments) implements Type {
         @Override
         public String generate() {
-            final var outputArguments = generateNodes(elements);
+            final var outputArguments = generateNodes(arguments);
             return base + "<" + outputArguments + ">";
         }
     }
@@ -973,12 +965,22 @@ public class Main {
                 final var maybeType = stack.resolveValue(value);
                 if (maybeType.isPresent()) {
                     final var type = maybeType.get();
-                    if (type instanceof FunctionType functionType) {
+                    if (type instanceof FunctionType) {
                         return parent;
                     }
                 }
             }
         }
+
+        if (caller instanceof Construction(var type)) {
+            if (type instanceof TemplateType templateType) {
+                final var arguments = templateType.arguments;
+                if(arguments.isEmpty()) {
+
+                }
+            }
+        }
+
         return caller;
     }
 
