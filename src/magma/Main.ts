@@ -10,9 +10,13 @@ export class Main {/*public static void main(String[] args) {
             //noinspection CallToPrintStackTrace
             e.printStackTrace();
         }
-    }
+    }*//*
 
     private static String compile(String input) {
+        return compileStatements(input, Main::compileRootSegment);
+    }*//*
+
+    private static String compileStatements(String input, Function<String, String> mapper) {
         final var segments = new ArrayList<String>();
         final var length = input.length();
         var buffer = new StringBuilder();
@@ -24,6 +28,11 @@ export class Main {/*public static void main(String[] args) {
                 segments.add(buffer.toString());
                 buffer = new StringBuilder();
             }
+            else if (c == '}' && depth == 1) {
+                segments.add(buffer.toString());
+                buffer = new StringBuilder();
+                depth--;
+            }
             else {
                 if (c == '{') {
                     depth++;
@@ -32,39 +41,35 @@ export class Main {/*public static void main(String[] args) {
                     depth--;
                 }
             }
-        }
-        segments.add(buffer.toString());
+        }*//*
+        segments.add(buffer.toString());*//*
 
-        final var output = new StringBuilder();
+        final var output = new StringBuilder();*//*
         for (var segment : segments) {
-            output.append(compileRootSegment(segment));
-        }
+            output.append(mapper.apply(segment));
+        }*//*
 
-        return output.toString();
-    }
-
-    private static String compileRootSegment(String input) {
-        final var stripped = input.strip();
-        if (stripped.startsWith("package ") || stripped.startsWith("import ")) {
-            return "";
-        }
-
-        final var classIndex = stripped.indexOf("class ");
-        if (classIndex >= 0) {
-            final var afterClass = stripped.substring(classIndex + "class ".length());
+        return output.toString();*//*
+    */}export class ");
+        if (classIndex >= 0) {/*final var afterClass = stripped.substring(classIndex + "class ".length());*//*
             final var contentStart = afterClass.indexOf("{");
             if (contentStart >= 0) {
                 final var name = afterClass.substring(0, contentStart).strip();
                 final var withEnd = afterClass.substring(contentStart + "{".length()).strip();
                 if (withEnd.endsWith("}")) {
-                    final var content = withEnd.substring(0, withEnd.length() - "}".length());
-                    return "export class " + name + " {" + generatePlaceholder(content) + "}";
+                    final var inputContent = withEnd.substring(0, withEnd.length() - "}".length());
+                    final var outputContent = compileStatements(inputContent, Main::compileClassSegment);
+                    return "export class " + name + " {" + outputContent + "}";
                 }
-            }
+            }*//*
         }
 
         return generatePlaceholder(input);
-    }
+    */}/*
+
+    private static String compileClassSegment(String input) {
+        return generatePlaceholder(input);
+    }*//*
 
     private static String generatePlaceholder(String input) {
         final var replaced = input
@@ -72,5 +77,5 @@ export class Main {/*public static void main(String[] args) {
                 .replace("end", "end");
 
         return "start" + replaced + "end";
-    }
-*/}
+    }*//*
+}*/

@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.function.Function;
 
 public class Main {
     public static void main(String[] args) {
@@ -21,6 +22,10 @@ public class Main {
     }
 
     private static String compile(String input) {
+        return compileStatements(input, Main::compileRootSegment);
+    }
+
+    private static String compileStatements(String input, Function<String, String> mapper) {
         final var segments = new ArrayList<String>();
         final var length = input.length();
         var buffer = new StringBuilder();
@@ -31,6 +36,11 @@ public class Main {
             if (c == ';' && depth == 0) {
                 segments.add(buffer.toString());
                 buffer = new StringBuilder();
+            }
+            else if (c == '}' && depth == 1) {
+                segments.add(buffer.toString());
+                buffer = new StringBuilder();
+                depth--;
             }
             else {
                 if (c == '{') {
@@ -45,7 +55,7 @@ public class Main {
 
         final var output = new StringBuilder();
         for (var segment : segments) {
-            output.append(compileRootSegment(segment));
+            output.append(mapper.apply(segment));
         }
 
         return output.toString();
@@ -65,12 +75,17 @@ public class Main {
                 final var name = afterClass.substring(0, contentStart).strip();
                 final var withEnd = afterClass.substring(contentStart + "{".length()).strip();
                 if (withEnd.endsWith("}")) {
-                    final var content = withEnd.substring(0, withEnd.length() - "}".length());
-                    return "export class " + name + " {" + generatePlaceholder(content) + "}";
+                    final var inputContent = withEnd.substring(0, withEnd.length() - "}".length());
+                    final var outputContent = compileStatements(inputContent, Main::compileClassSegment);
+                    return "export class " + name + " {" + outputContent + "}";
                 }
             }
         }
 
+        return generatePlaceholder(input);
+    }
+
+    private static String compileClassSegment(String input) {
         return generatePlaceholder(input);
     }
 
