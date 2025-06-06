@@ -213,10 +213,20 @@ public class Main {
     }
 
     private static Tuple<String, List<String>> compileClassSegment(String input) {
-        return compileStructure(input, "record ")
+        return compileWhitespace(input)
+                .or(() -> compileStructure(input, "record "))
                 .or(() -> compileStructure(input, "class "))
                 .or(() -> compileMethod(input))
                 .orElseGet(() -> new Tuple<>(generatePlaceholder(input), Collections.emptyList()));
+    }
+
+    private static Optional<Tuple<String, List<String>>> compileWhitespace(String input) {
+        if (input.isBlank()) {
+            return Optional.of(new Tuple<>("", Collections.emptyList()));
+        }
+        else {
+            return Optional.empty();
+        }
     }
 
     private static Optional<Tuple<String, List<String>>> compileMethod(String input) {
