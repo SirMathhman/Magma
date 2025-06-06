@@ -241,9 +241,9 @@ This breakdown expands each major feature area into smaller dependent parts for 
   * Positional access:
 
     * Can access elements by .0, .1, etc.
-* class keyword:
+* `class def` syntax:
 
-  * Syntactic sugar for struct + constructor: test class desugaring
+  * `class def <Name>() => {}` sugar for struct + constructor: test class desugaring
 
 ## 6. Algebraic Data Types (ADTs)
 
@@ -519,7 +519,7 @@ This breakdown expands each major feature area into smaller dependent parts for 
   * Verify all fields and methods appear in reflection data for each type
 * Desugaring verification:
 
-  * Class sugar:
+  * `class def` sugar:
 
     * Test that class definitions desugar to struct + constructor correctly
   * Decorator sugar:
