@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.function.BiFunction;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 public class Main {
     private record Tuple<L, R>(L left, R right) {
@@ -207,8 +208,25 @@ public class Main {
             if (paramStart >= 0) {
                 final var name = withoutParamEnd.substring(0, paramStart).strip();
                 final var inputParams = withoutParamEnd.substring(paramStart + "(".length());
-                final var outputParams = compileParameters(inputParams);
-                return generateClass(modifiers, name, "\n\tconstructor (" + outputParams + ") {\n\t}" + outputContent);
+                final var segments = divide(inputParams, Main::foldValues);
+
+                final var compiled = new ArrayList<String>();
+                for (var segment : segments) {
+                    compiled.add(compileSimpleDefinitionOrPlaceholder(segment));
+                }
+
+                var output = new StringBuilder();
+                for (var element : compiled) {
+                    output = mergeValues(output, element);
+                }
+
+                final var outputParams = output.toString();
+
+                final var fields = compiled.stream()
+                        .map(element -> "\n\t" + element + ";")
+                        .collect(Collectors.joining());
+
+                return generateClass(modifiers, name, fields + "\n\tconstructor (" + outputParams + ") {\n\t}" + outputContent);
             }
         }
 
