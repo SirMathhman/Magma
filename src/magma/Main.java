@@ -824,7 +824,7 @@ public class Main {
         return assembleStructureWithImplements(targetInfix, stack, inputContent, beforeContent, modifiers);
     }
 
-    private static Some<Tuple<String, List<String>>> assembleStructureWithImplements(String targetInfix, Stack stack, String inputContent, String beforeContent, String modifiers) {
+    private static Option<Tuple<String, List<String>>> assembleStructureWithImplements(String targetInfix, Stack stack, String inputContent, String beforeContent, String modifiers) {
         final var implementsIndex = beforeContent.lastIndexOf(" implements ");
         if (implementsIndex >= 0) {
             final var beforeImplements = beforeContent.substring(0, implementsIndex);
@@ -838,7 +838,7 @@ public class Main {
         }
     }
 
-    private static Some<Tuple<String, List<String>>> assembleStructureWithParameters(String targetInfix, Stack stack, String inputContent, String modifiers, String beforeContent, List<Type> implementsTypes) {
+    private static Option<Tuple<String, List<String>>> assembleStructureWithParameters(String targetInfix, Stack stack, String inputContent, String modifiers, String beforeContent, List<Type> implementsTypes) {
         if (beforeContent.endsWith(")")) {
             final var withoutParamEnd = beforeContent.substring(0, beforeContent.length() - ")".length());
             final var paramStart = withoutParamEnd.indexOf("(");
@@ -873,7 +873,7 @@ public class Main {
         return assembleStructure(targetInfix, stack, inputContent, modifiers, implementsTypes, beforeContent, "");
     }
 
-    private static Some<Tuple<String, List<String>>> assembleStructure(
+    private static Option<Tuple<String, List<String>>> assembleStructure(
             String targetInfix,
             Stack stack,
             String inputContent,
@@ -882,7 +882,12 @@ public class Main {
             String name,
             String beforeBody
     ) {
-        final var defined = stack.defineStructureType(new StructureType(name, Maps.empty()));
+        final var strippedName = name.strip();
+        if (!isSymbol(strippedName)) {
+            return new None<>();
+        }
+
+        final var defined = stack.defineStructureType(new StructureType(strippedName, Maps.empty()));
         final var folded = joinClassSegments(inputContent, defined);
 
         final var output = folded.left.toString();
@@ -890,7 +895,7 @@ public class Main {
 
         final var outputContent = beforeBody + output;
         final var joinedImplements = implementsTypes.isEmpty() ? "" : " implements " + generateNodes(implementsTypes);
-        var generated = modifiers + targetInfix + " " + name + joinedImplements + " {" + outputContent + "\n}\n";
+        var generated = modifiers + targetInfix + " " + strippedName + joinedImplements + " {" + outputContent + "\n}\n";
 
         return new Some<>(new Tuple<>("", structures.add(generated)));
     }
