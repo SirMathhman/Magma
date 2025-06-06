@@ -9,10 +9,10 @@ interface Head<T> {
 	next(): Optional<T>;
 }
 interface Iterator<T> {
-	/*<R>*/ map(/*Function<T*/, mapper: /*R>*/): Iterator<R>;
-	/*<R>*/ fold(initial: R, /* BiFunction<R*/, /* T*/, folder: /*R>*/): R;
-	/*<C>*/ collect(/*Collector<T*/, collector: /*C>*/): C;
-	/*<R>*/ flatMap(/*Function<T*/, mapper: Iterator</*R>*/>): Iterator<R>;
+	/**/ map<R>(/*Function<T*/, mapper: /*R>*/): Iterator<R>;
+	/**/ fold<R>(initial: R, /* BiFunction<R*/, /* T*/, folder: /*R>*/): R;
+	/**/ collect<C>(/*Collector<T*/, collector: /*C>*/): C;
+	/**/ flatMap<R>(/*Function<T*/, mapper: Iterator</*R>*/>): Iterator<R>;
 	next(): Optional<T>;
 }
 interface List<T> {
@@ -21,12 +21,12 @@ interface List<T> {
 	addAll(elements: List<T>): List<T>;
 }
 class Lists {
-	/*public static <T>*/ empty(): List<T>/*{
+	/*public static */ empty<T>(): List<T>/*{
             return new JavaList<>();
         }*/
 }
 class Iterators {
-	/*public static <T>*/ fromOptional(optional: Optional<T>): Iterator<T>/*{
+	/*public static */ fromOptional<T>(optional: Optional<T>): Iterator<T>/*{
             return new HeadedIterator<>(optional
                     .<Head<T>>map(SingleHead::new)
                     .orElseGet(EmptyHead::new));
@@ -118,11 +118,11 @@ class FlatMapHead<T, R> implements Head<R> {
 }
 class HeadedIterator<T>(Head<T> head) implements Iterator<T> {
 	/*@Override
-        public <R>*/ map(/*Function<T*/, mapper: /*R>*/): Iterator<R>/*{
+        public */ map<R>(/*Function<T*/, mapper: /*R>*/): Iterator<R>/*{
             return new HeadedIterator<>(() -> head.next().map(mapper));
         }*/
 	/*@Override
-        public <R>*/ fold(initial: R, /* BiFunction<R*/, /* T*/, folder: /*R>*/): R/*{
+        public */ fold<R>(initial: R, /* BiFunction<R*/, /* T*/, folder: /*R>*/): R/*{
             var current = initial;
             while (true) {
                 R finalCurrent = current;
@@ -136,11 +136,11 @@ class HeadedIterator<T>(Head<T> head) implements Iterator<T> {
             }
         }*/
 	/*@Override
-        public <C>*/ collect(/*Collector<T*/, collector: /*C>*/): C/*{
+        public */ collect<C>(/*Collector<T*/, collector: /*C>*/): C/*{
             return fold(collector.createInitial(), collector::fold);
         }*/
 	/*@Override
-        public <R>*/ flatMap(/*Function<T*/, mapper: Iterator</*R>*/>): Iterator<R>/*{
+        public */ flatMap<R>(/*Function<T*/, mapper: Iterator</*R>*/>): Iterator<R>/*{
             final var head = this.head.next()
                     .map(mapper)
                     .<Head<R>>map(initial -> new FlatMapHead<>(initial, this.head, mapper))
@@ -197,14 +197,24 @@ class State {
             return depth == 0;
         }*/
 }
-class Definition(Optional<String> beforeType, String type, String name) implements Parameter {
+class Definition(
+            Optional<String> beforeType,
+            List<String> typeParams,
+            String type,
+            String name
+    ) implements Parameter {
 	/*@Override
         public*/ generate(): string/*{
             return generateWithAfterName("");
         }*/
 	/*public*/ generateWithAfterName(afterName: string): string/*{
+            final var joinedTypeParams = typeParams.iter()
+                    .collect(new Joiner(", "))
+                    .map(value -> "<" + value + ">")
+                    .orElse("");
+
             final var beforeType = this.beforeType.map(inner -> inner + " ").orElse("");
-            return beforeType + name + afterName + ": " + type;
+            return beforeType + name + joinedTypeParams + afterName + ": " + type;
         }*/
 }
 class Placeholder(String input) implements Parameter {
@@ -220,13 +230,20 @@ class Whitespace implements Parameter {
         }*/
 }
 class Joiner implements Collector<String, Optional<String>> {
+	/*private final*/ delimiter: string;
+	Joiner(): public/*{
+            this("");
+        }*/
+	Joiner(delimiter: string): public/*{
+            this.delimiter = delimiter;
+        }*/
 	/*@Override
         public*/ createInitial(): Optional<string>/*{
             return Optional.empty();
         }*/
 	/*@Override
         public*/ fold(current: Optional<string>, element: string): Optional<string>/*{
-            return Optional.of(current.map(inner -> inner + element).orElse(element));
+            return Optional.of(current.map(inner -> inner + delimiter + element).orElse(element));
         }*/
 }
 class ListCollector<T> implements Collector<T, List<T>> {
@@ -530,12 +547,33 @@ export class Main {
 
         final var typeSeparator = beforeName.lastIndexOf(" ");
         if (typeSeparator < 0) {
-            return Optional.of(new Definition(Optional.empty(), compileType(beforeName), name));
+            return Optional.of(new Definition(Optional.empty(), Lists.empty(), compileType(beforeName), name));
         }
 
-        final var beforeType = beforeName.substring(0, typeSeparator);
+        final var beforeType = beforeName.substring(0, typeSeparator).strip();
         final var type = beforeName.substring(typeSeparator + " ".length());
-        return Optional.of(new Definition(Optional.of(generatePlaceholder(beforeType)), compileType(type), name));
+        final var compiledType = compileType(type);
+
+        return Optional.of(assembleDefinition(beforeType, compiledType, name));
+    }*//*
+
+    private static Definition assembleDefinition(String beforeType, String compiledType, String name) {
+        if (beforeType.endsWith(">")) {
+            final var withoutEnd = beforeType.substring(0, beforeType.length() - ">".length());
+            final var typeParamStart = withoutEnd.indexOf("<");
+            if (typeParamStart >= 0) {
+                final var beforeTypeParams = withoutEnd.substring(0, typeParamStart);
+                final var typeParamsString = withoutEnd.substring(typeParamStart + "<".length());
+                final var typeParams = divide(typeParamsString, Main::foldValues)
+                        .iter()
+                        .map(String::strip)
+                        .collect(new ListCollector<>());
+
+                return new Definition(Optional.of(generatePlaceholder(beforeTypeParams)), typeParams, compiledType, name);
+            }
+        }
+
+        return new Definition(Optional.of(generatePlaceholder(beforeType)), Lists.empty(), compiledType, name);
     }*//*
 
     private static String compileType(String input) {

@@ -246,15 +246,25 @@ public class Main {
         }
     }
 
-    private record Definition(Optional<String> beforeType, String type, String name) implements Parameter {
+    private record Definition(
+            Optional<String> beforeType,
+            List<String> typeParams,
+            String type,
+            String name
+    ) implements Parameter {
         @Override
         public String generate() {
             return generateWithAfterName("");
         }
 
         public String generateWithAfterName(String afterName) {
+            final var joinedTypeParams = typeParams.iter()
+                    .collect(new Joiner(", "))
+                    .map(value -> "<" + value + ">")
+                    .orElse("");
+
             final var beforeType = this.beforeType.map(inner -> inner + " ").orElse("");
-            return beforeType + name + afterName + ": " + type;
+            return beforeType + name + joinedTypeParams + afterName + ": " + type;
         }
     }
 
@@ -273,6 +283,16 @@ public class Main {
     }
 
     private static class Joiner implements Collector<String, Optional<String>> {
+        private final String delimiter;
+
+        public Joiner() {
+            this("");
+        }
+
+        public Joiner(String delimiter) {
+            this.delimiter = delimiter;
+        }
+
         @Override
         public Optional<String> createInitial() {
             return Optional.empty();
@@ -280,7 +300,7 @@ public class Main {
 
         @Override
         public Optional<String> fold(Optional<String> current, String element) {
-            return Optional.of(current.map(inner -> inner + element).orElse(element));
+            return Optional.of(current.map(inner -> inner + delimiter + element).orElse(element));
         }
     }
 
@@ -592,12 +612,33 @@ public class Main {
 
         final var typeSeparator = beforeName.lastIndexOf(" ");
         if (typeSeparator < 0) {
-            return Optional.of(new Definition(Optional.empty(), compileType(beforeName), name));
+            return Optional.of(new Definition(Optional.empty(), Lists.empty(), compileType(beforeName), name));
         }
 
-        final var beforeType = beforeName.substring(0, typeSeparator);
+        final var beforeType = beforeName.substring(0, typeSeparator).strip();
         final var type = beforeName.substring(typeSeparator + " ".length());
-        return Optional.of(new Definition(Optional.of(generatePlaceholder(beforeType)), compileType(type), name));
+        final var compiledType = compileType(type);
+
+        return Optional.of(assembleDefinition(beforeType, compiledType, name));
+    }
+
+    private static Definition assembleDefinition(String beforeType, String compiledType, String name) {
+        if (beforeType.endsWith(">")) {
+            final var withoutEnd = beforeType.substring(0, beforeType.length() - ">".length());
+            final var typeParamStart = withoutEnd.indexOf("<");
+            if (typeParamStart >= 0) {
+                final var beforeTypeParams = withoutEnd.substring(0, typeParamStart);
+                final var typeParamsString = withoutEnd.substring(typeParamStart + "<".length());
+                final var typeParams = divide(typeParamsString, Main::foldValues)
+                        .iter()
+                        .map(String::strip)
+                        .collect(new ListCollector<>());
+
+                return new Definition(Optional.of(generatePlaceholder(beforeTypeParams)), typeParams, compiledType, name);
+            }
+        }
+
+        return new Definition(Optional.of(generatePlaceholder(beforeType)), Lists.empty(), compiledType, name);
     }
 
     private static String compileType(String input) {
