@@ -13,6 +13,8 @@ Unlike Java, Magma does not use package declarations. Consequently the example
 `Main.java` and the generated `Main.mgs` start directly with their import
 statements.
 
+The example's `main` method no longer declares `throws Exception`.
+
 Magma classes are defined using the `class def` syntax. For example
 `class def MyType() => {}` defines a class named `MyType` with an empty body.
 
