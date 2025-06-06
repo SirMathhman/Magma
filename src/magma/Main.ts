@@ -47,75 +47,76 @@ class Some<T> implements Option<T> {
 	}
 	/*@Override
         public */ map<R>(mapper: (param0 : T) => R): Option<R> {
-		return magma.Main$Invocation@5fa7e7ff;
+		return new Some<>(mapper.apply(value));
 	}
 	/*@Override
         public*/ orElseGet(other: () => T): T {
-		return magma.Main$Symbol@2d8e6db6;
+		return value;
 	}
 	/*@Override
         public*/ isPresent(): boolean {
-		return magma.Main$Symbol@23ab930d;
+		return true;
 	}
 	/*@Override
         public*/ get(): T {
-		return magma.Main$Symbol@4534b60d;
+		return value;
 	}
 	/*@Override
         public*/ orElse(other: T): T {
-		return magma.Main$Symbol@3fa77460;
+		return value;
 	}
 	/*@Override
         public*/ or(other: () => Option<T>): Option<T> {
-		return magma.Main$Symbol@619a5dff;
+		return this;
 	}
 	/*@Override
         public*/ isEmpty(): boolean {
-		return magma.Main$Symbol@1ed6993a;
+		return false;
 	}
 }
 class None<T> implements Option<T> {
 	/*@Override
         public */ map<R>(mapper: (param0 : T) => R): Option<R> {
-		return magma.Main$Invocation@5e8c92f4;
+		return new None<>();
 	}
 	/*@Override
         public*/ orElseGet(other: () => T): T {
-		return magma.Main$Invocation@61e4705b;
+		return other.get();
 	}
 	/*@Override
         public*/ isPresent(): boolean {
-		return magma.Main$Symbol@50134894;
+		return false;
 	}
 	/*@Override
         public*/ get(): T {
-		return magma.Main$Symbol@2957fcb0;
+		return null;
 	}
 	/*@Override
         public*/ orElse(other: T): T {
-		return magma.Main$Symbol@1376c05c;
+		return other;
 	}
 	/*@Override
         public*/ or(other: () => Option<T>): Option<T> {
-		return magma.Main$Invocation@51521cc1;
+		return other.get();
 	}
 	/*@Override
         public*/ isEmpty(): boolean {
-		return magma.Main$Symbol@1b4fb997;
+		return true;
 	}
 }
 class Lists {
 	/*public static */ empty<T>(): List<T> {
-		return magma.Main$Invocation@deb6432;
+		return new JavaList<>();
 	}
 	/*@SafeVarargs
         public static */ of<T>(elements: /*T...*/): List<T> {
-		return magma.Main$Invocation@28ba21f3;
+		return new JavaList<>(new ArrayList<>(Arrays.asList(elements)));
 	}
 }
 class Iterators {
 	/*public static */ fromOptional<T>(option: Option<T>): Iterator<T> {
-		return magma.Main$Invocation@f2a0b8e;
+		return new HeadedIterator<>(option.<Head<T>>map(/*SingleHead::new)
+                    */.orElseGet(EmptyHead::new));
 	}
 }
 class RangeHead implements Head<Integer> {
@@ -132,7 +133,7 @@ class RangeHead implements Head<Integer> {
 
             final var value = counter;*//*
             counter++;*/
-		return magma.Main$Invocation@593634ad;
+		return new Some<>(value);
 	}
 }
 class JavaList<T> implements List<T> {
@@ -146,18 +147,18 @@ class JavaList<T> implements List<T> {
 	/*@Override
         public*/ add(element: T): List<T> {/*
             elements.add(element);*/
-		return magma.Main$Symbol@20fa23c1;
+		return this;
 	}
 	/*@Override
         public*/ iter(): Iterator<T> {
-		return magma.Main$Invocation@3581c5f3;
+		return createIteratorFromSize(/*)*/.map(elements::get);
 	}
 	/*private*/ createIteratorFromSize(): Iterator<Integer> {
-		return magma.Main$Invocation@6aa8ceb6;
+		return new HeadedIterator<>(new RangeHead(elements.size()));
 	}
 	/*@Override
         public*/ addAll(elements: List<T>): List<T> {
-		return magma.Main$Invocation@2530c12;
+		return elements.iter(/*)*/.<List<T>>fold(this, /* List::add*/);
 	}
 	/*@Override
         public*/ popLast(): Option<Tuple<List<T>, T>> {/*
@@ -166,25 +167,25 @@ class JavaList<T> implements List<T> {
             }*//*
 
             final var last = elements.removeLast();*/
-		return magma.Main$Invocation@73c6c3b2;
+		return new Some<>(/*new Tuple<>(this*/, /* last)*/);
 	}
 	/*@Override
         public*/ isEmpty(): boolean {
-		return magma.Main$Invocation@48533e64;
+		return elements.isEmpty();
 	}
 	/*@Override
         public*/ get(index: int): T {
-		return magma.Main$Invocation@64a294a6;
+		return elements.get(index);
 	}
 	/*@Override
         public*/ iterWithIndex(): Iterator<Tuple<Integer, T>> {
-		return magma.Main$Invocation@7e0b37bc;
+		return createIteratorFromSize(/*)*/.map(/*index -> new Tuple<>*/(index, elements.get(index)));
 	}
 }
 class EmptyHead<T> implements Head<T> {
 	/*@Override
         public*/ next(): Option<T> {
-		return magma.Main$Invocation@3b95a09c;
+		return new None<>();
 	}
 }
 class SingleHead<T> implements Head<T> {
@@ -200,7 +201,7 @@ class SingleHead<T> implements Head<T> {
             }*//*
 
             retrieved = true;*/
-		return magma.Main$Invocation@6ae40994;
+		return new Some<>(element);
 	}
 }
 class FlatMapHead<T, R> implements Head<R> {
@@ -237,7 +238,7 @@ class HeadedIterator<T> implements Iterator<T> {
 	}
 	/*@Override
         public */ map<R>(mapper: (param0 : T) => R): Iterator<R> {
-		return magma.Main$Invocation@1a93a7ca;
+		return new HeadedIterator<>((/*) -> head*/.next().map(mapper));
 	}
 	/*@Override
         public */ fold<R>(initial: R, folder: (param0 : R, param1 : T) => R): R {/*
@@ -255,7 +256,7 @@ class HeadedIterator<T> implements Iterator<T> {
 	}
 	/*@Override
         public */ collect<C>(collector: Collector<T, C>): C {
-		return magma.Main$Invocation@3d82c5f3;
+		return fold(collector.createInitial(), /* collector::fold*/);
 	}
 	/*@Override
         public */ flatMap<R>(mapper: (param0 : T) => Iterator<R>): Iterator<R> {/*
@@ -263,11 +264,11 @@ class HeadedIterator<T> implements Iterator<T> {
                     .map(mapper)
                     .<Head<R>>map(initial -> new FlatMapHead<>(initial, this.head, mapper))
                     .orElseGet(EmptyHead::new);*/
-		return magma.Main$Invocation@2b05039f;
+		return new HeadedIterator<>(head);
 	}
 	/*@Override
         public*/ next(): Option<T> {
-		return magma.Main$Invocation@61e717c2;
+		return head.next();
 	}
 }
 class Tuple<L, R> {
@@ -292,26 +293,26 @@ class State {
 	}
 	/*private*/ append(c: char): State {/*
             buffer.append(c);*/
-		return magma.Main$Symbol@66cd51c3;
+		return this;
 	}
 	/*private*/ enter(): State {/*
             this.depth = depth + 1;*/
-		return magma.Main$Symbol@4dcbadb4;
+		return this;
 	}
 	/*private*/ exit(): State {/*
             this.depth = depth - 1;*/
-		return magma.Main$Symbol@4e515669;
+		return this;
 	}
 	/*private*/ isShallow(): boolean {
-		return Placeholder[input=depth == 1];
+		return /*depth == 1*/;
 	}
 	/*private*/ advance(): State {/*
             segments = segments.add(buffer.toString());*//*
             this.buffer = new StringBuilder();*/
-		return magma.Main$Symbol@15615099;
+		return this;
 	}
 	/*private*/ isLevel(): boolean {
-		return Placeholder[input=depth == 0];
+		return /*depth == 0*/;
 	}
 }
 class Definition implements Parameter {
@@ -327,7 +328,7 @@ class Definition implements Parameter {
 	}
 	/*@Override
         public*/ generate(): string {
-		return magma.Main$Invocation@1edf1c96;
+		return generateWithAfterName(/*""*/);
 	}
 	/*public*/ generateWithAfterName(afterName: string): string {/*
             final var joinedTypeParams = typeParams.iter()
@@ -336,7 +337,7 @@ class Definition implements Parameter {
                     .orElse("");*//*
 
             final var beforeType = this.beforeType.map(inner -> inner + " ").orElse("");*/
-		return Placeholder[input=beforeType + name + joinedTypeParams + afterName + ": " + type];
+		return /*beforeType + name + joinedTypeParams + afterName + ": " + type*/;
 	}
 }
 class Placeholder implements Parameter, Value {
@@ -346,13 +347,13 @@ class Placeholder implements Parameter, Value {
 	}
 	/*@Override
         public*/ generate(): string {
-		return magma.Main$Invocation@368102c8;
+		return generatePlaceholder(input);
 	}
 }
 class Whitespace implements Parameter {
 	/*@Override
         public*/ generate(): string {
-		return Placeholder[input=""];
+		return /*""*/;
 	}
 }
 class Joiner implements Collector<string, Option<string>> {
@@ -365,21 +366,21 @@ class Joiner implements Collector<string, Option<string>> {
 	}
 	/*@Override
         public*/ createInitial(): Option<string> {
-		return magma.Main$Invocation@6996db8;
+		return new None<>();
 	}
 	/*@Override
         public*/ fold(current: Option<string>, element: string): Option<string> {
-		return magma.Main$Invocation@1963006a;
+		return new Some<>(current.map(/*inner -> inner + delimiter + element)*/.orElse(element));
 	}
 }
 class ListCollector<T> implements Collector<T, List<T>> {
 	/*@Override
         public*/ createInitial(): List<T> {
-		return magma.Main$Invocation@7fbe847c;
+		return Lists.empty();
 	}
 	/*@Override
         public*/ fold(current: List<T>, element: T): List<T> {
-		return magma.Main$Invocation@41975e01;
+		return current.add(element);
 	}
 }
 class Construction implements Caller {
@@ -389,7 +390,7 @@ class Construction implements Caller {
 	}
 	/*@Override
         public*/ generate(): string {
-		return Placeholder[input="new " + type];
+		return /*"new " + type*/;
 	}
 }
 class Invocation implements Value {
@@ -401,7 +402,7 @@ class Invocation implements Value {
 	}
 	/*@Override
         public*/ generate(): string {
-		return magma.Main$FieldAccess@c2e1f26;
+		return caller.generate() + "(" + generateAll(arguments) + ")";
 	}
 }
 class FieldAccess implements Value {
@@ -413,7 +414,7 @@ class FieldAccess implements Value {
 	}
 	/*@Override
         public*/ generate(): string {
-		return magma.Main$FieldAccess@dcf3e99;
+		return parent.generate() + "." + property;
 	}
 }
 class Symbol implements Value {
@@ -423,7 +424,7 @@ class Symbol implements Value {
 	}
 	/*@Override
         public*/ generate(): string {
-		return magma.Main$Symbol@6d9c638;
+		return stripped;
 	}
 }
 export class Main {
@@ -441,22 +442,26 @@ export class Main {
         }*/
 	}
 	/*private static*/ compile(input: string): string {
-		return magma.Main$Invocation@7dc5e7b4;
+		return compileStatements(input, /* Main::compileRootSegment*/);
 	}
 	/*private static*/ compileStatements(input: string, mapper: (param0 : string) => string): string {
-		return magma.Main$Invocation@1ee0005;
+		return compileAll(input, mapper, /* Main::foldStatements*/, /* Main::mergeStatements*/);
 	}
 	/*private static*/ compileAll(input: string, mapper: (param0 : string) => string, folder: (param0 : State, param1 : Character) => State, merger: (param0 : StringBuilder, param1 : string) => StringBuilder): string {
-		return magma.Main$Invocation@75a1cd57;
+		return mergeAll(/*parseAll(input*/, folder, /* mapper)*/, merger);
 	}
 	/*private static*/ mergeAll(elements: List<string>, merger: (param0 : StringBuilder, param1 : string) => StringBuilder): string {
-		return magma.Main$Invocation@3d012ddd;
+		return elements.iter(/*)
+                */.fold(/*new StringBuilder(*/), /*merger)
+                */.toString();
 	}
 	/*private static */ parseAll<T>(input: string, folder: (param0 : State, param1 : Character) => State, mapper: (param0 : string) => T): List<T> {
-		return magma.Main$Invocation@6f2b958e;
+		return divide(input, /*folder)
+                */.iter(/*)
+                */.map(mapper).collect(new ListCollector<>());
 	}
 	/*private static*/ mergeStatements(output: StringBuilder, compiled: string): StringBuilder {
-		return magma.Main$Invocation@1eb44e46;
+		return output.append(compiled);
 	}
 	/*private static*/ divide(input: string, folder: (param0 : State, param1 : Character) => State): List<string> {/*
         State state = new State();*//*
@@ -466,7 +471,7 @@ export class Main {
             final var c = input.charAt(i);
             current = folder.apply(current, c);
         }*/
-		return magma.Main$FieldAccess@6504e3b2;
+		return current.advance().segments;
 	}
 	/*private static*/ foldStatements(current: State, c: char): State {/*
         final var appended = current.append(c);*//*
@@ -729,7 +734,7 @@ export class Main {
         if (withoutEnd.startsWith("return ")) {
             final var value = withoutEnd.substring("return ".length());
             final var generated = parseValue(value);
-            return new Some<>("return " + generated);
+            return new Some<>("return " + generated.generate());
         }
         else {
             return new None<>();
@@ -744,7 +749,7 @@ export class Main {
             if (argumentsStart >= 0) {
                 final var callerString = withoutEnd.substring(0, argumentsStart).strip();
                 final var argumentsString = withoutEnd.substring(argumentsStart + "(".length());
-                final var arguments = parseValuesString(argumentsString,  Main::parseValue);
+                final var arguments = parseValuesString(argumentsString, Main::parseValue);
                 final var caller = parseCaller(callerString);
                 return new Invocation(caller, arguments);
             }

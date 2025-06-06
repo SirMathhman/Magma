@@ -830,7 +830,7 @@ public class Main {
         if (withoutEnd.startsWith("return ")) {
             final var value = withoutEnd.substring("return ".length());
             final var generated = parseValue(value);
-            return new Some<>("return " + generated);
+            return new Some<>("return " + generated.generate());
         }
         else {
             return new None<>();
@@ -845,7 +845,7 @@ public class Main {
             if (argumentsStart >= 0) {
                 final var callerString = withoutEnd.substring(0, argumentsStart).strip();
                 final var argumentsString = withoutEnd.substring(argumentsStart + "(".length());
-                final var arguments = parseValuesString(argumentsString,  Main::parseValue);
+                final var arguments = parseValuesString(argumentsString, Main::parseValue);
                 final var caller = parseCaller(callerString);
                 return new Invocation(caller, arguments);
             }
