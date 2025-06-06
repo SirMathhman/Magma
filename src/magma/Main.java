@@ -17,7 +17,7 @@ public class Main {
             String full = matcher.group(1);
             int last = full.lastIndexOf('.');
             String cls = full.substring(last + 1);
-            String replacement = "import " + cls + " from " + full + ".";
+            String replacement = "import " + cls + " from " + full + ";";
             matcher.appendReplacement(sb, Matcher.quoteReplacement(replacement));
         }
         matcher.appendTail(sb);
