@@ -47,6 +47,13 @@ public class Main {
             return "";
         }
 
+        final var classIndex = stripped.indexOf("class ");
+        if (classIndex >= 0) {
+            final var left = stripped.substring(0, classIndex);
+            final var right = stripped.substring(classIndex + "class ".length());
+            return generatePlaceholder(left) + "class " + generatePlaceholder(right);
+        }
+
         return generatePlaceholder(input);
     }
 
