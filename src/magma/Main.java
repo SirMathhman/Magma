@@ -828,11 +828,16 @@ public class Main {
                 final var inputArguments = withoutEnd.substring(argumentsStart + 1);
                 final var elements = parseValues(inputArguments);
 
-                if (base.equals("Function")) {
-                    return generateFunctionalType(elements.get(1), Lists.of(elements.get(0)));
-                }
                 if (base.equals("Supplier")) {
-                    return generateFunctionalType(elements.get(0), Lists.empty());
+                    return generateFunctionalType(Lists.empty(), elements.get(0));
+                }
+
+                if (base.equals("Function")) {
+                    return generateFunctionalType(Lists.of(elements.get(0)), elements.get(1));
+                }
+
+                if (base.equals("BiFunction")) {
+                    return generateFunctionalType(Lists.of(elements.get(0), elements.get(1)), elements.get(2));
                 }
 
                 final var outputArguments = generateValues(elements);
@@ -847,7 +852,7 @@ public class Main {
         return generatePlaceholder(input);
     }
 
-    private static String generateFunctionalType(String returnType, List<String> parameterTypes) {
+    private static String generateFunctionalType(List<String> parameterTypes, String returnType) {
         final var parameters = parameterTypes.iterWithIndex()
                 .map(entry -> "param" + entry.left + " : " + entry.right)
                 .collect(new Joiner(", "))

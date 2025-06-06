@@ -19,7 +19,7 @@ interface Head<T> {
 }
 interface Iterator<T> {
 	map<R>(mapper: (param0 : T) => R): Iterator<R>;
-	fold<R>(initial: R, folder: BiFunction<R, T, R>): R;
+	fold<R>(initial: R, folder: (param0 : R, param1 : T) => R): R;
 	collect<C>(collector: Collector<T, C>): C;
 	flatMap<R>(mapper: (param0 : T) => Iterator<R>): Iterator<R>;
 	next(): Option<T>;
@@ -223,7 +223,7 @@ class HeadedIterator<T>(Head<T> head) implements Iterator<T> {
             return new HeadedIterator<>(() -> head.next().map(mapper));
         }*/
 	/*@Override
-        public */ fold<R>(initial: R, folder: BiFunction<R, T, R>): R/*{
+        public */ fold<R>(initial: R, folder: (param0 : R, param1 : T) => R): R/*{
             var current = initial;
             while (true) {
                 R finalCurrent = current;
@@ -377,15 +377,15 @@ export class Main {
 	/*private static*/ compileStatements(input: string, mapper: (param0 : string) => string): string/*{
         return compileAll(input, mapper, Main::foldStatements, Main::mergeStatements);
     }*/
-	/*private static*/ compileAll(input: string, mapper: (param0 : string) => string, folder: BiFunction<State, Character, State>, merger: BiFunction<StringBuilder, string, StringBuilder>): string/*{
+	/*private static*/ compileAll(input: string, mapper: (param0 : string) => string, folder: (param0 : State, param1 : Character) => State, merger: (param0 : StringBuilder, param1 : string) => StringBuilder): string/*{
         return generateAll(parseAll(input, folder, mapper), merger);
     }*/
-	/*private static*/ generateAll(elements: List<string>, merger: BiFunction<StringBuilder, string, StringBuilder>): string/*{
+	/*private static*/ generateAll(elements: List<string>, merger: (param0 : StringBuilder, param1 : string) => StringBuilder): string/*{
         return elements.iter()
                 .fold(new StringBuilder(), merger)
                 .toString();
     }*/
-	/*private static*/ parseAll(input: string, folder: BiFunction<State, Character, State>, mapper: (param0 : string) => string): List<string>/*{
+	/*private static*/ parseAll(input: string, folder: (param0 : State, param1 : Character) => State, mapper: (param0 : string) => string): List<string>/*{
         return divide(input, folder)
                 .iter()
                 .map(mapper)
@@ -394,7 +394,7 @@ export class Main {
 	/*private static*/ mergeStatements(output: StringBuilder, compiled: string): StringBuilder/*{
         return output.append(compiled);
     }*/
-	/*private static*/ divide(input: string, folder: BiFunction<State, Character, State>): List<string>/*{
+	/*private static*/ divide(input: string, folder: (param0 : State, param1 : Character) => State): List<string>/*{
         State state = new State();
         final var length = input.length();
         var current = state;
@@ -728,11 +728,16 @@ export class Main {
                 final var inputArguments = withoutEnd.substring(argumentsStart + 1);
                 final var elements = parseValues(inputArguments);
 
-                if (base.equals("Function")) {
-                    return generateFunctionalType(elements.get(1), Lists.of(elements.get(0)));
-                }
                 if (base.equals("Supplier")) {
-                    return generateFunctionalType(elements.get(0), Lists.empty());
+                    return generateFunctionalType(Lists.empty(), elements.get(0));
+                }
+
+                if (base.equals("Function")) {
+                    return generateFunctionalType(Lists.of(elements.get(0)), elements.get(1));
+                }
+
+                if (base.equals("BiFunction")) {
+                    return generateFunctionalType(Lists.of(elements.get(0), elements.get(1)), elements.get(2));
                 }
 
                 final var outputArguments = generateValues(elements);
@@ -747,7 +752,7 @@ export class Main {
         return generatePlaceholder(input);
     }*//*
 
-    private static String generateFunctionalType(String returnType, List<String> parameterTypes) {
+    private static String generateFunctionalType(List<String> parameterTypes, String returnType) {
         final var parameters = parameterTypes.iterWithIndex()
                 .map(entry -> "param" + entry.left + " : " + entry.right)
                 .collect(new Joiner(", "))
