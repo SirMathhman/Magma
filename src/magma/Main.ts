@@ -1,5 +1,5 @@
 export class Main {
-	export class Tuple(String left, String right) {/**/}
+	class Tuple(String left, String right) {/**/}
 	/*public static*/ main(/*String[] args*/): void/* {
         try {
             final var source = Paths.get(".", "src", "magma", "Main.java");

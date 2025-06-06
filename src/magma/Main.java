@@ -77,6 +77,7 @@ public class Main {
     private static Optional<String> compileStructure(String input, String keyword, int depth) {
         final var classIndex = input.indexOf(keyword);
         if (classIndex >= 0) {
+            final var modifiersString = input.substring(0, classIndex);
             final var afterClass = input.substring(classIndex + keyword.length());
             final var contentStart = afterClass.indexOf("{");
             if (contentStart >= 0) {
@@ -86,7 +87,8 @@ public class Main {
                     final var inputContent = withEnd.substring(0, withEnd.length() - "}".length());
                     final var outputContent = compileStatements(inputContent, Main::compileClassSegment);
                     final var indent = 0 == depth ? "" : "\n\t";
-                    return Optional.of(indent + "export class " + name + " {" + outputContent + "}");
+                    final var modifiers = modifiersString.contains("public") ? "export " : "";
+                    return Optional.of(indent + modifiers + "class " + name + " {" + outputContent + "}");
                 }
             }
         }
