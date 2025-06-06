@@ -516,11 +516,13 @@ class Frame {
 }
 class CompileState {
 	/*private final*/ stack: Stack;
-	CompileState(stack: Stack): private {/*
-            this.stack = stack;*/
+	/*public*/ structures: List<string>;
+	CompileState(stack: Stack, structures: List<string>): private {/*
+            this.stack = stack;*//*
+            this.structures = structures;*/
 	}
 	CompileState(): private {/*
-            this(new Stack(Lists.of(new Frame())));*/
+            this(new Stack(Lists.of(new Frame())), Lists.empty());*/
 	}
 	/*public*/ defineAll(definitions: List<Definition>): CompileState {
 		return mapLast(/*frame -> frame*/.defineAll(definitions));
@@ -529,7 +531,10 @@ class CompileState {
 		return mapLast(/*last -> last*/.defineStructureType(structureType));
 	}
 	/*private*/ mapLast(mapper: (param0 : Frame) => Frame): CompileState {
-		return new CompileState(new Stack(stack.frames(/*)*/.mapLast(mapper)));
+		return new CompileState(new Stack(stack.frames(/*)*/.mapLast(mapper)), structures);
+	}
+	/*public*/ addStructure(structure: string): CompileState {
+		return new CompileState(stack, structures.add(structure));
 	}
 }
 class StringType implements Type {
@@ -702,7 +707,7 @@ export class Main {/*
 
     private static Option<String> compileRootStructure(String input, CompileState state) {
         return compileStructure(input, "class ", "class", state).map(tuple -> {
-            final var joined = join(tuple.right);
+            final var joined = join(tuple.right.structures);
             return tuple.left + joined;
         });
     }*//*
@@ -713,7 +718,7 @@ export class Main {/*
                 .orElse("");
     }*//*
 
-    private static Option<Tuple<String, List<String>>> compileStructure(String input, String keyword, String targetInfix, CompileState state) {
+    private static Option<Tuple<String, CompileState>> compileStructure(String input, String keyword, String targetInfix, CompileState state) {
         final var classIndex = input.indexOf(keyword);
         if (classIndex < 0) {
             return new None<>();
@@ -738,7 +743,7 @@ export class Main {/*
         return assembleStructureWithImplements(targetInfix, state, inputContent, beforeContent, modifiers);
     }*//*
 
-    private static Option<Tuple<String, List<String>>> assembleStructureWithImplements(String targetInfix, CompileState state, String inputContent, String beforeContent, String modifiers) {
+    private static Option<Tuple<String, CompileState>> assembleStructureWithImplements(String targetInfix, CompileState state, String inputContent, String beforeContent, String modifiers) {
         final var implementsIndex = beforeContent.lastIndexOf(" implements ");
         if (implementsIndex >= 0) {
             final var beforeImplements = beforeContent.substring(0, implementsIndex);
@@ -752,7 +757,7 @@ export class Main {/*
         }
     }*//*
 
-    private static Option<Tuple<String, List<String>>> assembleStructureWithParameters(String targetInfix, CompileState state, String inputContent, String modifiers, String beforeContent, List<Type> implementsTypes) {
+    private static Option<Tuple<String, CompileState>> assembleStructureWithParameters(String targetInfix, CompileState state, String inputContent, String modifiers, String beforeContent, List<Type> implementsTypes) {
         if (beforeContent.endsWith(")")) {
             final var withoutParamEnd = beforeContent.substring(0, beforeContent.length() - ")".length());
             final var paramStart = withoutParamEnd.indexOf("(");
@@ -787,7 +792,7 @@ export class Main {/*
         return assembleStructureWithTypeParams(targetInfix, state, inputContent, modifiers, implementsTypes, beforeContent, "");
     }*//*
 
-    private static Option<Tuple<String, List<String>>> assembleStructureWithTypeParams(
+    private static Option<Tuple<String, CompileState>> assembleStructureWithTypeParams(
             String targetInfix,
             CompileState state,
             String inputContent,
@@ -808,7 +813,7 @@ export class Main {/*
         return assembleStructure(targetInfix, state, inputContent, modifiers, implementsTypes, beforeParameters, beforeBody);
     }*//*
 
-    private static Option<Tuple<String, List<String>>> assembleStructure(String targetInfix, CompileState state, String inputContent, String modifiers, List<Type> implementsTypes, String name, String beforeBody) {
+    private static Option<Tuple<String, CompileState>> assembleStructure(String targetInfix, CompileState state, String inputContent, String modifiers, List<Type> implementsTypes, String name, String beforeBody) {
         final var strippedName = name.strip();
         if (!isSymbol(strippedName)) {
             return new None<>();
@@ -824,7 +829,7 @@ export class Main {/*
         final var joinedImplements = implementsTypes.isEmpty() ? "" : " implements " + generateNodes(implementsTypes);
         var generated = modifiers + targetInfix + " " + strippedName + joinedImplements + " {" + outputContent + "\n}\n";
 
-        return new Some<>(new Tuple<>("", structures.add(generated)));
+        return new Some<>(new Tuple<>("", structures.addStructure(generated)));
     }*//*
 
     private static String joinConstructorAssignments(List<Definition> fields) {
@@ -838,11 +843,14 @@ export class Main {/*
                 .orElse("");
     }*//*
 
-    private static Tuple<StringBuilder, List<String>> joinClassSegments(String inputContent, CompileState defined) {
+    private static Tuple<StringBuilder, CompileState> joinClassSegments(String inputContent, CompileState state) {
         return divide(inputContent, Main::foldStatements)
                 .iter()
-                .map(segment -> compileClassSegment(segment, defined))
-                .fold(new Tuple<>(new StringBuilder(), Lists.empty()), (tuple, element1) -> new Tuple<>(tuple.left.append(element1.left), tuple.right.addAll(element1.right)));
+                .fold(new Tuple<>(new StringBuilder(), state), (tuple, element) -> {
+                    final var compiled = compileClassSegment(element, state);
+                    final var append = tuple.left.append(compiled.left);
+                    return new Tuple<>(append, compiled.right);
+                });
     }*//*
 
     private static Option<Definition> retainDefinition(Parameter parameter) {
@@ -862,36 +870,32 @@ export class Main {/*
         return list.iter().collect(new Joiner(delimiter)).orElse("");
     }*//*
 
-    private static Tuple<String, List<String>> compileClassSegment(String input, CompileState state) {
-        return compileWhitespaceWithStructures(input)
+    private static Tuple<String, CompileState> compileClassSegment(String input, CompileState state) {
+        return compileWhitespaceWithState(input, state)
                 .or(() -> compileStructure(input, "record ", "class", state))
                 .or(() -> compileStructure(input, "class ", "class", state))
                 .or(() -> compileStructure(input, "interface ", "interface", state))
-                .or(() -> compileField(input))
+                .or(() -> compileField(input, state))
                 .or(() -> compileMethod(input, state))
-                .orElseGet(() -> new Tuple<>(generatePlaceholder(input), Lists.empty()));
+                .orElseGet(() -> new Tuple<>(generatePlaceholder(input), state));
     }*//*
 
-    private static Option<Tuple<String, List<String>>> compileField(String input) {
+    private static Option<Tuple<String, CompileState>> compileField(String input, CompileState state) {
         final var stripped = input.strip();
         if (!stripped.endsWith(";")) {
             return new None<>();
         }
 
         final var content = stripped.substring(0, stripped.length() - ";".length());
-        return getStringListTuple(content);
-    }*//*
-
-    private static Option<Tuple<String, List<String>>> getStringListTuple(String content) {
-        return compileSimpleDefinition(content).map(definition -> new Tuple<>("\n\t" + definition + ";", Lists.empty()));
+        return compileSimpleDefinition(content).map(definition -> new Tuple<String, CompileState>("\n\t" + definition + ";", state));
     }*//*
 
     private static Option<String> compileSimpleDefinition(String content) {
         return parseDefinition(content).map(Definition::generate);
     }*//*
 
-    private static Option<Tuple<String, List<String>>> compileWhitespaceWithStructures(String input) {
-        return compileWhitespace(input).map(node -> new Tuple<>(node, Lists.empty()));
+    private static Option<Tuple<String, CompileState>> compileWhitespaceWithState(String input, CompileState state) {
+        return compileWhitespace(input).map(node -> new Tuple<>(node, state));
     }*//*
 
     private static Option<String> compileWhitespace(String input) {
@@ -907,7 +911,7 @@ export class Main {/*
         }
     }*//*
 
-    private static Option<Tuple<String, List<String>>> compileMethod(String input, CompileState state) {
+    private static Option<Tuple<String, CompileState>> compileMethod(String input, CompileState state) {
         final var paramStart = input.indexOf("(");
         if (paramStart < 0) {
             return new None<>();
@@ -938,7 +942,7 @@ export class Main {/*
         final var outputParams = generateNodes(parameters);
 
         if (inputAfterParams.equals(";")) {
-            return assembleMethod(outputDefinition, outputParams, ";");
+            return assembleMethod(outputDefinition, outputParams, ";", state);
         }
 
         if (!inputAfterParams.startsWith("{") || !inputAfterParams.endsWith("}")) {
@@ -948,13 +952,13 @@ export class Main {/*
         final var content = inputAfterParams.substring(1, inputAfterParams.length() - 1);
         final CompileState defined = state.defineAll(parameters);
         final String outputAfterParams = compileStatements(content, input1 -> compileFunctionSegments(input1, defined));
-        return assembleMethod(outputDefinition, outputParams, " {" + outputAfterParams + "\n\t}");
+        return assembleMethod(outputDefinition, outputParams, " {" + outputAfterParams + "\n\t}", state);
     }*//*
 
-    private static Some<Tuple<String, List<String>>> assembleMethod(Definition outputDefinition, String outputParams, String outputAfterParams) {
+    private static Some<Tuple<String, CompileState>> assembleMethod(Definition outputDefinition, String outputParams, String outputAfterParams, CompileState state) {
         final var header = outputDefinition.generateWithAfterName("(" + outputParams + ")");
         final var generated = "\n\t" + header + outputAfterParams;
-        return new Some<>(new Tuple<>(generated, Lists.empty()));
+        return new Some<>(new Tuple<>(generated, state));
     }*//*
 
     private static String compileFunctionSegments(String input, CompileState state) {
