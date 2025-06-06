@@ -6,6 +6,7 @@ interface Option<T> {
 	orElse(other: T): T;
 	or(other: () => Option<T>): Option<T>;
 	isEmpty(): boolean;
+	and<R>(other: () => Option<R>): Option<Tuple<T, R>>;
 }
 interface Parameter {
 }
@@ -23,6 +24,7 @@ interface Iterator<T> {
 	flatMap<R>(mapper: (param0 : T) => Iterator<R>): Iterator<R>;
 	next(): Option<T>;
 	filter(predicate: Predicate<T>): Iterator<T>;
+	zip<R>(other: Iterator<R>): Iterator<Tuple<T, R>>;
 }
 interface List<T> {
 	add(element: T): List<T>;
@@ -42,7 +44,18 @@ interface Value extends Caller {
 }
 interface Caller extends Generating {
 }
+interface Map<K, V> {
+	putAll(other: Map<K, V>): Map<K, V>;
+	iter(): Iterator<Tuple<K, V>>;
+	putTuple(kvTuple: Tuple<K, V>): Map<K, V>;
+}
 interface Type extends Generating {
+	/*default*/ extract(actual: Type): Map<string, Type> {
+		return Maps.empty(/**/);
+	}
+	/*default*/ resolve(resolved: Map<string, Type>): Type {
+		return this;
+	}
 }
 class Some<T> implements Option<T> {
 	value: T;
@@ -51,7 +64,7 @@ class Some<T> implements Option<T> {
 	}
 	/*@Override
         public */ map<R>(mapper: (param0 : T) => R): Option<R> {
-		return new Some<>(mapper(value));
+		return new Some</**/>(mapper(value));
 	}
 	/*@Override
         public*/ orElseGet(other: () => T): T {
@@ -77,15 +90,19 @@ class Some<T> implements Option<T> {
         public*/ isEmpty(): boolean {
 		return false;
 	}
+	/*@Override
+        public */ and<R>(other: () => Option<R>): Option<Tuple<T, R>> {
+		return other(/*)*/.map(/*otherValue -> new Tuple<>(value, otherValue*/));
+	}
 }
 class None<T> implements Option<T> {
 	/*@Override
         public */ map<R>(mapper: (param0 : T) => R): Option<R> {
-		return new None<>();
+		return new None</**/>(/**/);
 	}
 	/*@Override
         public*/ orElseGet(other: () => T): T {
-		return other();
+		return other(/**/);
 	}
 	/*@Override
         public*/ isPresent(): boolean {
@@ -101,25 +118,29 @@ class None<T> implements Option<T> {
 	}
 	/*@Override
         public*/ or(other: () => Option<T>): Option<T> {
-		return other();
+		return other(/**/);
 	}
 	/*@Override
         public*/ isEmpty(): boolean {
 		return true;
 	}
+	/*@Override
+        public */ and<R>(other: () => Option<R>): Option<Tuple<T, R>> {
+		return new None</**/>(/**/);
+	}
 }
 class Lists {
 	/*public static */ empty<T>(): List<T> {
-		return new JavaList<>();
+		return new JavaList</**/>(/**/);
 	}
 	/*@SafeVarargs
         public static */ of<T>(elements: /*T...*/): List<T> {
-		return new JavaList<>(new ArrayList<>(Arrays.asList(elements)));
+		return new JavaList</**/>(new ArrayList</**/>(Arrays.asList(elements)));
 	}
 }
 class Iterators {
 	/*public static */ fromOptional<T>(option: Option<T>): Iterator<T> {
-		return new HeadedIterator<>(option.<Head<T>>map(/*SingleHead::new)
+		return new HeadedIterator</**/>(option.<Head<T>>map(/*SingleHead::new)
                     */.orElseGet(EmptyHead::new));
 	}
 }
@@ -137,7 +158,7 @@ class RangeHead implements Head<Integer> {
 
             final var value = counter;*//*
             counter++;*/
-		return new Some<>(value);
+		return new Some</**/>(value);
 	}
 }
 class JavaList<T> implements List<T> {
@@ -158,7 +179,7 @@ class JavaList<T> implements List<T> {
 		return createIteratorFromSize(/*)*/.map(elements::get);
 	}
 	/*private*/ createIteratorFromSize(): Iterator<Integer> {
-		return new HeadedIterator<>(new RangeHead(elements.size()));
+		return new HeadedIterator</**/>(new RangeHead(elements.size(/**/)));
 	}
 	/*@Override
         public*/ addAll(elements: List<T>): List<T> {
@@ -171,11 +192,11 @@ class JavaList<T> implements List<T> {
             }*//*
 
             final var last = elements.removeLast();*/
-		return new Some<>(/*new Tuple<>(this*/, /* last)*/);
+		return new Some</**/>(/*new Tuple<>(this*/, /* last)*/);
 	}
 	/*@Override
         public*/ isEmpty(): boolean {
-		return elements.isEmpty();
+		return elements.isEmpty(/**/);
 	}
 	/*@Override
         public*/ get(index: int): T {
@@ -204,7 +225,7 @@ class JavaList<T> implements List<T> {
 class EmptyHead<T> implements Head<T> {
 	/*@Override
         public*/ next(): Option<T> {
-		return new None<>();
+		return new None</**/>(/**/);
 	}
 }
 class SingleHead<T> implements Head<T> {
@@ -220,7 +241,7 @@ class SingleHead<T> implements Head<T> {
             }*//*
 
             retrieved = true;*/
-		return new Some<>(element);
+		return new Some</**/>(element);
 	}
 }
 class FlatMapHead<T, R> implements Head<R> {
@@ -257,7 +278,7 @@ class HeadedIterator<T> implements Iterator<T> {
 	}
 	/*@Override
         public */ map<R>(mapper: (param0 : T) => R): Iterator<R> {
-		return new HeadedIterator<>((/*) -> head*/.next().map(mapper));
+		return new HeadedIterator</**/>(/**/(/*) -> head*/.next(/**/).map(mapper));
 	}
 	/*@Override
         public */ fold<R>(initial: R, folder: (param0 : R, param1 : T) => R): R {/*
@@ -275,7 +296,7 @@ class HeadedIterator<T> implements Iterator<T> {
 	}
 	/*@Override
         public */ collect<C>(collector: Collector<T, C>): C {
-		return fold(collector.createInitial(), /* collector::fold*/);
+		return fold(collector.createInitial(/**/), /* collector::fold*/);
 	}
 	/*@Override
         public */ flatMap<R>(mapper: (param0 : T) => Iterator<R>): Iterator<R> {/*
@@ -283,11 +304,11 @@ class HeadedIterator<T> implements Iterator<T> {
                     .map(mapper)
                     .<Head<R>>map(initial -> new FlatMapHead<>(initial, this.head, mapper))
                     .orElseGet(EmptyHead::new);*/
-		return new HeadedIterator<>(head);
+		return new HeadedIterator</**/>(head);
 	}
 	/*@Override
         public*/ next(): Option<T> {
-		return head.next();
+		return head.next(/**/);
 	}
 	/*@Override
         public*/ filter(predicate: Predicate<T>): Iterator<T> {/*
@@ -296,6 +317,10 @@ class HeadedIterator<T> implements Iterator<T> {
                 final var head = isValid ? new SingleHead<>(element) : new EmptyHead<T>();
                 return new HeadedIterator<>(head);
             }*//*);*/
+	}
+	/*@Override
+        public */ zip<R>(other: Iterator<R>): Iterator<Tuple<T, R>> {
+		return new HeadedIterator</**/>(/**/(/*) -> head*/.next(/*)*/.and(() -> other.next()));
 	}
 }
 class Tuple<L, R> {
@@ -364,7 +389,7 @@ class Definition implements Parameter, Generating {
                     .orElse("");*//*
 
             final var beforeType = this.beforeType.map(inner -> inner + " ").orElse("");*/
-		return /*beforeType + name + joinedTypeParams + afterName + ": " + type*/.generate();
+		return /*beforeType + name + joinedTypeParams + afterName + ": " + type*/.generate(/**/);
 	}
 }
 class Placeholder implements Parameter, Value, Type {
@@ -393,17 +418,17 @@ class Joiner implements Collector<string, Option<string>> {
 	}
 	/*@Override
         public*/ createInitial(): Option<string> {
-		return new None<>();
+		return new None</**/>(/**/);
 	}
 	/*@Override
         public*/ fold(current: Option<string>, element: string): Option<string> {
-		return new Some<>(current.map(/*inner -> inner + delimiter + element)*/.orElse(element));
+		return new Some</**/>(current.map(/*inner -> inner + delimiter + element)*/.orElse(element));
 	}
 }
 class ListCollector<T> implements Collector<T, List<T>> {
 	/*@Override
         public*/ createInitial(): List<T> {
-		return Lists.empty();
+		return Lists.empty(/**/);
 	}
 	/*@Override
         public*/ fold(current: List<T>, element: T): List<T> {
@@ -417,7 +442,7 @@ class Construction implements Caller {
 	}
 	/*@Override
         public*/ generate(): string {
-		return /*"new " + type*/.generate();
+		return /*"new " + type*/.generate(/**/);
 	}
 }
 class Invocation implements Value {
@@ -454,21 +479,61 @@ class Symbol implements Value, Type {
 		return input;
 	}
 }
+class StructureType implements Type {
+	constructor () {
+	}
+	/*@Override
+        public*/ generate(): string {
+		return /*"?"*/;
+	}
+	/*public*/ isNamed(name: string): boolean {
+		return false;
+	}
+	/*public*/ findField(name: string): Option<Definition> {
+		return new None</**/>(/**/);
+	}
+}
+class Frame {
+	definitions: List<Definition>;
+	structureTypes: List<StructureType>;
+	constructor (definitions: List<Definition>, structureTypes: List<StructureType>) {
+		this.definitions = definitions;
+		this.structureTypes = structureTypes;
+	}
+	Frame(): public {/*
+            this(Lists.empty(), Lists.empty());*/
+	}
+	/*private*/ resolveValue(name: string): Option<Definition> {
+		return definitions.iter(/*)
+                    */.filter(/*definition -> definition*/.name.equals(name)).next();
+	}
+	/*public*/ addAll(definitions: List<Definition>): Frame {
+		return new Frame(this.definitions.addAll(definitions), structureTypes);
+	}
+	/*public*/ resolveType(name: string): Option<StructureType> {
+		return structureTypes.iter(/*)
+                    */.filter(/*type -> type*/.isNamed(name)).next();
+	}
+}
 class Stack {
-	frames: List<List<Definition>>;
-	constructor (frames: List<List<Definition>>) {
+	frames: List<Frame>;
+	constructor (frames: List<Frame>) {
 		this.frames = frames;
 	}
 	Stack(): private {/*
-            this(Lists.of(Lists.empty()));*/
+            this(Lists.of(new Frame()));*/
 	}
 	/*public*/ resolveValue(name: string): Option<Type> {
 		return frames.iterReversed(/*)
-                    */.map(/*frame -> resolveValueWithinFrame*/(name, /*frame))
+                    */.map(/*frame -> frame*/.resolveValue(/*name))
                     */.flatMap(Iterators::fromOptional).next().map(definition -> definition.type);
 	}
 	/*public*/ defineAll(definitions: List<Definition>): Stack {
 		return new Stack(frames.mapLast(/*frame -> frame*/.addAll(definitions)));
+	}
+	/*public*/ resolveType(name: string): Option<StructureType> {
+		return frames.iterReversed(/*)
+                    */.map(/*frame -> frame*/.resolveType(/*name)*/).flatMap(Iterators::fromOptional).next();
 	}
 }
 class StringType implements Type {
@@ -494,23 +559,47 @@ class FunctionType implements Type {
 	}
 }
 class TemplateType implements Type {
-	/*private final*/ base: string;
-	/*private final*/ elements: List<Type>;
-	TemplateType(base: string, elements: List<Type>): public {/*
-            this.base = base;*//*
-            this.elements = elements;*/
+	base: string;
+	arguments: List<Type>;
+	constructor (base: string, arguments: List<Type>) {
+		this.base = base;
+		this.arguments = arguments;
 	}
 	/*@Override
         public*/ generate(): string {/*
-            final var outputArguments = generateNodes(elements);*/
+            final var outputArguments = generateNodes(arguments);*/
 		return /*base + "<" + outputArguments + ">"*/;
 	}
 }
-export class Main {
-	/*private static*/ resolveValueWithinFrame(name: string, frame: List<Definition>): Option<Definition> {
-		return frame.iter(/*)
-                */.filter(/*definition -> definition*/.name.equals(name)).next();
+class JavaMap<K, V> implements Map<K, V> {
+	map: java.util.Map<K, V>;
+	constructor (map: java.util.Map<K, V>) {
+		this.map = map;
 	}
+	JavaMap(): public {/*
+            this(new HashMap<>());*/
+	}
+	/*@Override
+        public*/ putAll(other: Map<K, V>): Map<K, V> {
+		return other.iter(/*)*/.<Map<K, V>>fold(this, /* Map::putTuple*/);
+	}
+	/*@Override
+        public*/ iter(): Iterator<Tuple<K, V>> {
+		return new JavaList</**/>(new ArrayList</**/>(map.entrySet(/*)))
+                    */.iter(/**/).map(entry -> new Tuple<>(entry.getKey(), entry.getValue()));
+	}
+	/*@Override
+        public*/ putTuple(tuple: Tuple<K, V>): Map<K, V> {/*
+            map.put(tuple.left, tuple.right);*/
+		return this;
+	}
+}
+class Maps {
+	/*public static */ empty<K, V>(): Map<K, V> {
+		return new JavaMap</**/>(/**/);
+	}
+}
+export class Main {
 	/*public static*/ main(args: /*String[]*/): void {/*
         try {
             final var source = Paths.get(".", "src", "magma", "Main.java");
@@ -554,7 +643,7 @@ export class Main {
             final var c = input.charAt(i);
             current = folder.apply(current, c);
         }*/
-		return current.advance().segments;
+		return current.advance(/**/).segments;
 	}
 	/*private static*/ foldStatements(current: State, c: char): State {/*
         final var appended = current.append(c);*//*
@@ -885,12 +974,43 @@ export class Main {
                 final var maybeType = stack.resolveValue(value);
                 if (maybeType.isPresent()) {
                     final var type = maybeType.get();
-                    if (type instanceof FunctionType functionType) {
+                    if (type instanceof FunctionType) {
                         return parent;
                     }
                 }
             }
         }
+
+        if (caller instanceof Construction(var type)) {
+            if (type instanceof TemplateType(String base, List<Type> arguments)) {
+                if (arguments.isEmpty()) {
+                    final var maybeStructureType = stack.resolveType(base);
+                    if (maybeStructureType.isPresent()) {
+                        final var structureType = maybeStructureType.get();
+                        final var maybeConstructorDefinition = structureType.findField("new");
+                        if (maybeConstructorDefinition.isPresent()) {
+                            final var constructorDefinition = maybeConstructorDefinition.get();
+                            final var constructorDefinitionType = constructorDefinition.type;
+                            if (constructorDefinitionType instanceof FunctionType functionalConstructorDefinition) {
+                                final var constructorArgumentTypes = functionalConstructorDefinition.parameterTypes;
+                                final var resolved = constructorArgumentTypes.iter()
+                                        .zip(arguments.iter())
+                                        .map(pair -> pair.left.extract(pair.right))
+                                        .fold(Maps.<String, Type>empty(), Map::putAll);
+
+                                final var actualArgumentTypes = arguments.iter()
+                                        .map(argument -> argument.resolve(resolved))
+                                        .collect(new ListCollector<>());
+
+                                final var actualTemplateType = new TemplateType(base, actualArgumentTypes);
+                                return new Construction(actualTemplateType);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
         return caller;
     }*//*
 
@@ -1050,6 +1170,10 @@ export class Main {
 
     private static boolean isSymbol(String input) {
         final var length = input.length();
+        if (length == 0) {
+            return false;
+        }
+
         for (var i = 0; i < length; i++) {
             final var c = input.charAt(i);
             if (!Character.isLetter(c)) {

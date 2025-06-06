@@ -5,6 +5,7 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.function.Predicate;
@@ -25,6 +26,8 @@ public class Main {
         Option<T> or(Supplier<Option<T>> other);
 
         boolean isEmpty();
+
+        <R> Option<Tuple<T, R>> and(Supplier<Option<R>> other);
     }
 
     private interface Parameter {
@@ -52,6 +55,8 @@ public class Main {
         Option<T> next();
 
         Iterator<T> filter(Predicate<T> predicate);
+
+        <R> Iterator<Tuple<T, R>> zip(Iterator<R> other);
     }
 
     private interface List<T> {
@@ -84,7 +89,22 @@ public class Main {
     private interface Caller extends Generating {
     }
 
+    private interface Map<K, V> {
+        Map<K, V> putAll(Map<K, V> other);
+
+        Iterator<Tuple<K, V>> iter();
+
+        Map<K, V> putTuple(Tuple<K, V> kvTuple);
+    }
+
     private interface Type extends Generating {
+        default Map<String, Type> extract(Type actual) {
+            return Maps.empty();
+        }
+
+        default Type resolve(Map<String, Type> resolved) {
+            return this;
+        }
     }
 
     private record Some<T>(T value) implements Option<T> {
@@ -122,6 +142,11 @@ public class Main {
         public boolean isEmpty() {
             return false;
         }
+
+        @Override
+        public <R> Option<Tuple<T, R>> and(Supplier<Option<R>> other) {
+            return other.get().map(otherValue -> new Tuple<>(value, otherValue));
+        }
     }
 
     private static final class None<T> implements Option<T> {
@@ -158,6 +183,11 @@ public class Main {
         @Override
         public boolean isEmpty() {
             return true;
+        }
+
+        @Override
+        public <R> Option<Tuple<T, R>> and(Supplier<Option<R>> other) {
+            return new None<>();
         }
     }
 
@@ -375,6 +405,11 @@ public class Main {
                 return new HeadedIterator<>(head);
             });
         }
+
+        @Override
+        public <R> Iterator<Tuple<T, R>> zip(Iterator<R> other) {
+            return new HeadedIterator<>(() -> head.next().and(() -> other.next()));
+        }
     }
 
     private record Tuple<L, R>(L left, R right) {
@@ -521,16 +556,54 @@ public class Main {
         public String generate() {
             return input;
         }
+
     }
 
-    private record Stack(List<List<Definition>> frames) {
+    private record StructureType() implements Type {
+        @Override
+        public String generate() {
+            return "?";
+        }
+
+        public boolean isNamed(String name) {
+            return false;
+        }
+
+        public Option<Definition> findField(String name) {
+            return new None<>();
+        }
+    }
+
+    private record Frame(List<Definition> definitions, List<StructureType> structureTypes) {
+        public Frame() {
+            this(Lists.empty(), Lists.empty());
+        }
+
+        private Option<Definition> resolveValue(String name) {
+            return definitions.iter()
+                    .filter(definition -> definition.name.equals(name))
+                    .next();
+        }
+
+        public Frame addAll(List<Definition> definitions) {
+            return new Frame(this.definitions.addAll(definitions), structureTypes);
+        }
+
+        public Option<StructureType> resolveType(String name) {
+            return structureTypes.iter()
+                    .filter(type -> type.isNamed(name))
+                    .next();
+        }
+    }
+
+    private record Stack(List<Frame> frames) {
         private Stack() {
-            this(Lists.of(Lists.empty()));
+            this(Lists.of(new Frame()));
         }
 
         public Option<Type> resolveValue(String name) {
             return frames.iterReversed()
-                    .map(frame -> resolveValueWithinFrame(name, frame))
+                    .map(frame -> frame.resolveValue(name))
                     .flatMap(Iterators::fromOptional)
                     .next()
                     .map(definition -> definition.type);
@@ -538,6 +611,13 @@ public class Main {
 
         public Stack defineAll(List<Definition> definitions) {
             return new Stack(frames.mapLast(frame -> frame.addAll(definitions)));
+        }
+
+        public Option<StructureType> resolveType(String name) {
+            return frames.iterReversed()
+                    .map(frame -> frame.resolveType(name))
+                    .flatMap(Iterators::fromOptional)
+                    .next();
         }
     }
 
@@ -576,10 +656,34 @@ public class Main {
         }
     }
 
-    private static Option<Definition> resolveValueWithinFrame(String name, List<Definition> frame) {
-        return frame.iter()
-                .filter(definition -> definition.name.equals(name))
-                .next();
+    private record JavaMap<K, V>(java.util.Map<K, V> map) implements Map<K, V> {
+        public JavaMap() {
+            this(new HashMap<>());
+        }
+
+        @Override
+        public Map<K, V> putAll(Map<K, V> other) {
+            return other.iter().<Map<K, V>>fold(this, Map::putTuple);
+        }
+
+        @Override
+        public Iterator<Tuple<K, V>> iter() {
+            return new JavaList<>(new ArrayList<>(map.entrySet()))
+                    .iter()
+                    .map(entry -> new Tuple<>(entry.getKey(), entry.getValue()));
+        }
+
+        @Override
+        public Map<K, V> putTuple(Tuple<K, V> tuple) {
+            map.put(tuple.left, tuple.right);
+            return this;
+        }
+    }
+
+    private static class Maps {
+        public static <K, V> Map<K, V> empty() {
+            return new JavaMap<>();
+        }
     }
 
     public static void main(String[] args) {
@@ -973,10 +1077,31 @@ public class Main {
         }
 
         if (caller instanceof Construction(var type)) {
-            if (type instanceof TemplateType templateType) {
-                final var arguments = templateType.arguments;
-                if(arguments.isEmpty()) {
+            if (type instanceof TemplateType(String base, List<Type> arguments)) {
+                if (arguments.isEmpty()) {
+                    final var maybeStructureType = stack.resolveType(base);
+                    if (maybeStructureType.isPresent()) {
+                        final var structureType = maybeStructureType.get();
+                        final var maybeConstructorDefinition = structureType.findField("new");
+                        if (maybeConstructorDefinition.isPresent()) {
+                            final var constructorDefinition = maybeConstructorDefinition.get();
+                            final var constructorDefinitionType = constructorDefinition.type;
+                            if (constructorDefinitionType instanceof FunctionType functionalConstructorDefinition) {
+                                final var constructorArgumentTypes = functionalConstructorDefinition.parameterTypes;
+                                final var resolved = constructorArgumentTypes.iter()
+                                        .zip(arguments.iter())
+                                        .map(pair -> pair.left.extract(pair.right))
+                                        .fold(Maps.<String, Type>empty(), Map::putAll);
 
+                                final var actualArgumentTypes = arguments.iter()
+                                        .map(argument -> argument.resolve(resolved))
+                                        .collect(new ListCollector<>());
+
+                                final var actualTemplateType = new TemplateType(base, actualArgumentTypes);
+                                return new Construction(actualTemplateType);
+                            }
+                        }
+                    }
                 }
             }
         }
@@ -1140,6 +1265,10 @@ public class Main {
 
     private static boolean isSymbol(String input) {
         final var length = input.length();
+        if (length == 0) {
+            return false;
+        }
+
         for (var i = 0; i < length; i++) {
             final var c = input.charAt(i);
             if (!Character.isLetter(c)) {
