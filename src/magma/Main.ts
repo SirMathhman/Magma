@@ -1,24 +1,24 @@
 interface Parameter {
-	generate(): string;
+	generate(): string/*;*/
 }
 interface Collector<T, C> {
-	createInitial(): C;
-	/*C fold(C current,*/ element): T;
+	createInitial(): C/*;*/
+	fold(current: C, element: T): C/*;*/
 }
 interface Head<T> {
-	next(): Optional<T>;
+	next(): Optional<T>/*;*/
 }
 interface Iterator<T> {
-	/*<R> Iterator<R> map(Function<T,*/ mapper): /*R>*/;
-	/*<R> R fold(R initial, BiFunction<R, T,*/ folder): /*R>*/;
-	/*<C> C collect(Collector<T,*/ collector): /*C>*/;
-	/*<R> Iterator<R> flatMap(Function<T,*/ mapper): Iterator</*R>*/>;
-	next(): Optional<T>;
+	/*<R>*/ map(/*Function<T*/, mapper: /*R>*/): Iterator<R>/*;*/
+	/*<R>*/ fold(initial: R, /* BiFunction<R*/, /* T*/, folder: /*R>*/): R/*;*/
+	/*<C>*/ collect(/*Collector<T*/, collector: /*C>*/): C/*;*/
+	/*<R>*/ flatMap(/*Function<T*/, mapper: Iterator</*R>*/>): Iterator<R>/*;*/
+	next(): Optional<T>/*;*/
 }
 interface List<T> {
-	/*List<T>*/ element): /*add(T*/;
-	iter(): Iterator<T>;
-	/*List<T>*/ elements): addAll(List<T>;
+	add(element: T): List<T>/*;*/
+	iter(): Iterator<T>/*;*/
+	addAll(elements: List<T>): List<T>/*;*/
 }
 class Lists {
 	/*public static <T>*/ empty(): List<T>/* {
@@ -33,8 +33,8 @@ class Iterators {
         }*/
 }
 class RangeHead implements Head<Integer> {
-	/*private final*/ length: int;
-	/*private int counter*/ 0: /*=*/;
+	/*private final*/ length: int;/*
+        private int counter = 0;*/
 	RangeHead(length: int): public/* {
             this.length = length;
         }*/
@@ -285,16 +285,14 @@ export class Main {
         if (c == ';' && appended.isLevel()) {
             return appended.advance();
         }
-        if (c == '}*/
-	/*'*/ appended.isShallow(): /*&&*//*) {
+        if (c == '}*//*' && appended.isShallow()) {
             return appended.advance().exit();
         }*//*
         if (c == '{') {
             return appended.enter();
         }
-        if (c == '}*/
-	/*') {
-           */ appended.exit(): return/*;
+        if (c == '}*//*') {
+            return appended.exit();
         }*/
 	appended: return;
 }
@@ -309,7 +307,7 @@ export class Main {
         return compileRootStructure(input)
                 .orElseGet(() -> generatePlaceholder(input));
     }*/class ", "class").map(tuple -> {
-	/*final var joined*/ join(tuple.right): /*=*/;
+	/*final var joined*/ join(/*tuple.right*/): /*=*//*;*/
 	/*return tuple.left*/ joined: /*+*/;/*
         });
     */
@@ -441,7 +439,7 @@ export class Main {
     }*//*
 
     private static Optional<String> compileSimpleDefinition(String content) {
-        return compileDefinition(content).map(Definition::generate);
+        return parseDefinition(content).map(Definition::generate);
     }*//*
 
     private static Optional<Tuple<String, List<String>>> compileWhitespace(String input) {
@@ -467,7 +465,7 @@ export class Main {
                 final var inputParams = withParams.substring(0, paramEnd);
                 final var withBraces = withParams.substring(paramEnd + ")".length());
 
-                final var maybeOutputDefinition = compileDefinition(inputDefinition);
+                final var maybeOutputDefinition = parseDefinition(inputDefinition);
                 if (maybeOutputDefinition.isPresent()) {
                     final var outputDefinition = maybeOutputDefinition.get();
                     final var outputParams = compileParameters(inputParams);
@@ -509,11 +507,11 @@ export class Main {
 
     private static Parameter parseParameter(String input) {
         return parseWhitespace(input).<Parameter>map(parameter -> parameter)
-                .or(() -> compileDefinition(input))
+                .or(() -> parseDefinition(input))
                 .orElseGet(() -> new Placeholder(input));
     }*//*
 
-    private static Optional<Definition> compileDefinition(String input) {
+    private static Optional<Definition> parseDefinition(String input) {
         final var stripped = input.strip();
         final var nameSeparator = stripped.lastIndexOf(" ");
         if (nameSeparator < 0) {
@@ -521,7 +519,11 @@ export class Main {
         }
 
         final var beforeName = stripped.substring(0, nameSeparator).strip();
-        final var name = stripped.substring(nameSeparator + " ".length());
+        final var name = stripped.substring(nameSeparator + " ".length()).strip();
+        if (!isSymbol(name)) {
+            return Optional.empty();
+        }
+
         final var typeSeparator = beforeName.lastIndexOf(" ");
         if (typeSeparator < 0) {
             return Optional.of(new Definition(Optional.empty(), compileType(beforeName), name));

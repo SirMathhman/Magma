@@ -501,7 +501,7 @@ public class Main {
     }
 
     private static Optional<String> compileSimpleDefinition(String content) {
-        return compileDefinition(content).map(Definition::generate);
+        return parseDefinition(content).map(Definition::generate);
     }
 
     private static Optional<Tuple<String, List<String>>> compileWhitespace(String input) {
@@ -527,7 +527,7 @@ public class Main {
                 final var inputParams = withParams.substring(0, paramEnd);
                 final var withBraces = withParams.substring(paramEnd + ")".length());
 
-                final var maybeOutputDefinition = compileDefinition(inputDefinition);
+                final var maybeOutputDefinition = parseDefinition(inputDefinition);
                 if (maybeOutputDefinition.isPresent()) {
                     final var outputDefinition = maybeOutputDefinition.get();
                     final var outputParams = compileParameters(inputParams);
@@ -569,11 +569,11 @@ public class Main {
 
     private static Parameter parseParameter(String input) {
         return parseWhitespace(input).<Parameter>map(parameter -> parameter)
-                .or(() -> compileDefinition(input))
+                .or(() -> parseDefinition(input))
                 .orElseGet(() -> new Placeholder(input));
     }
 
-    private static Optional<Definition> compileDefinition(String input) {
+    private static Optional<Definition> parseDefinition(String input) {
         final var stripped = input.strip();
         final var nameSeparator = stripped.lastIndexOf(" ");
         if (nameSeparator < 0) {
@@ -581,7 +581,11 @@ public class Main {
         }
 
         final var beforeName = stripped.substring(0, nameSeparator).strip();
-        final var name = stripped.substring(nameSeparator + " ".length());
+        final var name = stripped.substring(nameSeparator + " ".length()).strip();
+        if (!isSymbol(name)) {
+            return Optional.empty();
+        }
+
         final var typeSeparator = beforeName.lastIndexOf(" ");
         if (typeSeparator < 0) {
             return Optional.of(new Definition(Optional.empty(), compileType(beforeName), name));
