@@ -1,6 +1,6 @@
-export class Main {
-	class Tuple {/**/}
-	class State {/*private final List<String> segments;*//*
+class Tuple<L, R> {/**/
+}
+class State {/*private final List<String> segments;*//*
         private StringBuilder buffer;*//*
         private int depth;*/
 	/*public State*/(/*List<String> segments, StringBuilder buffer, int depth*/): /* {
@@ -49,7 +49,9 @@ export class Main {
 	/*public*/ segments(/**/): List<String>/* {
             return segments;
         }*//*
-    */}
+    */
+}
+export class Main {
 	/*public static*/ main(/*String[] args*/): void/* {
         try {
             final var source = Paths.get(".", "src", "magma", "Main.java");
@@ -106,7 +108,9 @@ export class Main {
            */ appended.exit(/**/): return/*;
         }*//*
         return appended;*//*
-    */}/*
+    */
+}
+/*
 
     private static String compileRootSegment(String input) {
         final var stripped = input.strip();
@@ -114,48 +118,78 @@ export class Main {
             return "";
         }
 
-        return compileStructure(input, "class ", 0).orElseGet(() -> generatePlaceholder(input));
+        return compileRootStructure(input)
+                .orElseGet(() -> generatePlaceholder(input));
+    }*/class ").map(tuple -> {
+	/*final var joined*/ String.join(/*"", tuple.right*/): =/*;*//*
+            return tuple.left + joined;*//*
+        });
+    */
+}
+/*
+
+    private static Optional<Tuple<String, List<String>>> compileStructure(String input, String keyword) {
+        final var classIndex = input.indexOf(keyword);
+        if (classIndex < 0) {
+            return Optional.empty();
+        }
+
+        final var modifiersString = input.substring(0, classIndex);
+        final var afterClass = input.substring(classIndex + keyword.length());
+        final var contentStart = afterClass.indexOf("{");
+        if (contentStart < 0) {
+            return Optional.empty();
+        }
+
+        final var beforeContent = afterClass.substring(0, contentStart).strip();
+        final var withEnd = afterClass.substring(contentStart + "{".length()).strip();
+        if (!withEnd.endsWith("}")) {
+            return Optional.empty();
+        }
+
+        final var inputContent = withEnd.substring(0, withEnd.length() - "}".length());
+
+        final var structures = new ArrayList<String>();
+        final var segments = divide(inputContent, Main::foldStatements);
+        final var output = new StringBuilder();
+        for (var segment : segments) {
+            final var tuple = compileClassSegment(segment);
+            output.append(tuple.left);
+            structures.addAll(tuple.right);
+        }
+
+        final var outputContent = output.toString();
+        final var modifiers = modifiersString.contains("public") ? "export " : "";
+
+        final var generated = assembleClass(beforeContent, modifiers, outputContent);
+        structures.add(generated);
+        return Optional.of(new Tuple<>("", structures));
     }*//*
 
-    private static Optional<String> compileStructure(String input, String keyword, int depth) {
-        final var classIndex = input.indexOf(keyword);
-        if (classIndex >= 0) {
-            final var modifiersString = input.substring(0, classIndex);
-            final var afterClass = input.substring(classIndex + keyword.length());
-            final var contentStart = afterClass.indexOf("{");
-            if (contentStart >= 0) {
-                final var beforeContent = afterClass.substring(0, contentStart).strip();
-                final var withEnd = afterClass.substring(contentStart + "{".length()).strip();
-                if (withEnd.endsWith("}")) {
-                    final var inputContent = withEnd.substring(0, withEnd.length() - "}".length());
-                    final var outputContent = compileStatements(inputContent, Main::compileClassSegment);
-                    final var modifiers = modifiersString.contains("public") ? "export " : "";
-
-                    if (beforeContent.endsWith(")")) {
-                        final var withoutParamEnd = beforeContent.substring(0, beforeContent.length() - ")".length());
-                        final var paramStart = withoutParamEnd.indexOf("(");
-                        if (paramStart >= 0) {
-                            final var name = withoutParamEnd.substring(0, paramStart).strip();
-                            return generateClass(depth, modifiers, name, outputContent);
-                        }
-                    }
-
-                    return generateClass(depth, modifiers, beforeContent, outputContent);
-                }
+    private static String assembleClass(String beforeContent, String modifiers, String outputContent) {
+        if (beforeContent.endsWith(")")) {
+            final var withoutParamEnd = beforeContent.substring(0, beforeContent.length() - ")".length());
+            final var paramStart = withoutParamEnd.indexOf("(");
+            if (paramStart >= 0) {
+                final var name = withoutParamEnd.substring(0, paramStart).strip();
+                return generateClass(modifiers, name, outputContent);
             }
         }
-        return Optional.empty();
-    }*/class " + beforeContent + " {/*" + outputContent + "}");
-    */}/*
 
-    private static String compileClassSegment(String input) {
-        return compileStructure(input, "record ", 1)
-                .or(() -> compileStructure(input, "class ", 1))
+        return generateClass(modifiers, beforeContent, outputContent);
+    }*/class " + beforeContent + " {/*" + outputContent + "\n}\n";
+    */
+}
+/*
+
+    private static Tuple<String, List<String>> compileClassSegment(String input) {
+        return compileStructure(input, "record ")
+                .or(() -> compileStructure(input, "class "))
                 .or(() -> compileMethod(input))
-                .orElseGet(() -> generatePlaceholder(input));
+                .orElseGet(() -> new Tuple<>(generatePlaceholder(input), Collections.emptyList()));
     }*//*
 
-    private static Optional<String> compileMethod(String input) {
+    private static Optional<Tuple<String, List<String>>> compileMethod(String input) {
         final var paramStart = input.indexOf("(");
         if (paramStart >= 0) {
             final var inputDefinition = input.substring(0, paramStart);
@@ -165,7 +199,8 @@ export class Main {
                 final var params = withParams.substring(0, paramEnd);
                 final var withBraces = withParams.substring(paramEnd + ")".length());
                 final var outputDefinition = compileDefinition(inputDefinition);
-                return Optional.of("\n\t" + outputDefinition.left + "(" + generatePlaceholder(params) + "): " + outputDefinition.right + generatePlaceholder(withBraces));
+                final var generated = "\n\t" + outputDefinition.left + "(" + generatePlaceholder(params) + "): " + outputDefinition.right + generatePlaceholder(withBraces);
+                return Optional.of(new Tuple<>(generated, Collections.emptyList()));
             }
         }
 
