@@ -784,6 +784,13 @@ public class Main {
             }
         }
 
+        final var separator = stripped.lastIndexOf(".");
+        if (separator >= 0) {
+            final var parent = stripped.substring(0, separator);
+            final var property = stripped.substring(separator + ".".length());
+            return compileValue(parent) + "." + property;
+        }
+
         if (isSymbol(stripped)) {
             return stripped;
         }

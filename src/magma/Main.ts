@@ -40,7 +40,7 @@ class Some<T> implements Option<T> {
 	}
 	/*@Override
         public */ map<R>(mapper: (param0 : T) => R): Option<R> {
-		return new Some<>(/*mapper.apply*/(value));
+		return new Some<>(mapper.apply(value));
 	}
 	/*@Override
         public*/ orElseGet(other: () => T): T {
@@ -74,7 +74,7 @@ class None<T> implements Option<T> {
 	}
 	/*@Override
         public*/ orElseGet(other: () => T): T {
-		return /*other.get*/();
+		return other.get();
 	}
 	/*@Override
         public*/ isPresent(): boolean {
@@ -90,7 +90,7 @@ class None<T> implements Option<T> {
 	}
 	/*@Override
         public*/ or(other: () => Option<T>): Option<T> {
-		return /*other.get*/();
+		return other.get();
 	}
 	/*@Override
         public*/ isEmpty(): boolean {
@@ -103,14 +103,13 @@ class Lists {
 	}
 	/*@SafeVarargs
         public static */ of<T>(elements: /*T...*/): List<T> {
-		return new JavaList<>(new ArrayList<>(/*Arrays.asList*/(elements)));
+		return new JavaList<>(new ArrayList<>(Arrays.asList(elements)));
 	}
 }
 class Iterators {
 	/*public static */ fromOptional<T>(option: Option<T>): Iterator<T> {
-		return new HeadedIterator<>(/*option
-                    .<Head<T>>map*/(/*SingleHead::new)
-                    .orElseGet(EmptyHead::new*/));
+		return new HeadedIterator<>(option.<Head<T>>map(/*SingleHead::new)
+                    */.orElseGet(EmptyHead::new));
 	}
 }
 class RangeHead implements Head<Integer> {
@@ -145,14 +144,14 @@ class JavaList<T> implements List<T> {
 	}
 	/*@Override
         public*/ iter(): Iterator<T> {
-		return createIteratorFromSize(/*).map(elements::get*/);
+		return createIteratorFromSize(/*)*/.map(elements::get);
 	}
 	/*private*/ createIteratorFromSize(): Iterator<Integer> {
-		return new HeadedIterator<>(new RangeHead(/*elements.size*/()));
+		return new HeadedIterator<>(new RangeHead(elements.size()));
 	}
 	/*@Override
         public*/ addAll(elements: List<T>): List<T> {
-		return /*elements.iter*/(/*).<List<T>>fold(this*/, /* List::add*/);
+		return elements.iter(/*)*/.<List<T>>fold(this, /* List::add*/);
 	}
 	/*@Override
         public*/ popLast(): Option<Tuple<List<T>, T>> {/*
@@ -165,15 +164,15 @@ class JavaList<T> implements List<T> {
 	}
 	/*@Override
         public*/ isEmpty(): boolean {
-		return /*elements.isEmpty*/();
+		return elements.isEmpty();
 	}
 	/*@Override
         public*/ get(index: int): T {
-		return /*elements.get*/(index);
+		return elements.get(index);
 	}
 	/*@Override
         public*/ iterWithIndex(): Iterator<Tuple<Integer, T>> {
-		return createIteratorFromSize(/*).map*/(/*index -> new Tuple<>*/(index, /* elements.get(index*/)));
+		return createIteratorFromSize(/*)*/.map(/*index -> new Tuple<>*/(index, elements.get(index)));
 	}
 }
 class EmptyHead<T> implements Head<T> {
@@ -232,7 +231,7 @@ class HeadedIterator<T> implements Iterator<T> {
 	}
 	/*@Override
         public */ map<R>(mapper: (param0 : T) => R): Iterator<R> {
-		return new HeadedIterator<>((/*) -> head.next().map(mapper*/));
+		return new HeadedIterator<>((/*) -> head*/.next().map(mapper));
 	}
 	/*@Override
         public */ fold<R>(initial: R, folder: (param0 : R, param1 : T) => R): R {/*
@@ -250,7 +249,7 @@ class HeadedIterator<T> implements Iterator<T> {
 	}
 	/*@Override
         public */ collect<C>(collector: Collector<T, C>): C {
-		return fold(/*collector.createInitial*/(), /* collector::fold*/);
+		return fold(collector.createInitial(), /* collector::fold*/);
 	}
 	/*@Override
         public */ flatMap<R>(mapper: (param0 : T) => Iterator<R>): Iterator<R> {/*
@@ -262,7 +261,7 @@ class HeadedIterator<T> implements Iterator<T> {
 	}
 	/*@Override
         public*/ next(): Option<T> {
-		return /*head.next*/();
+		return head.next();
 	}
 }
 class Tuple<L, R> {
@@ -364,17 +363,17 @@ class Joiner implements Collector<string, Option<string>> {
 	}
 	/*@Override
         public*/ fold(current: Option<string>, element: string): Option<string> {
-		return new Some<>(/*current.map*/(/*inner -> inner + delimiter + element).orElse(element*/));
+		return new Some<>(current.map(/*inner -> inner + delimiter + element)*/.orElse(element));
 	}
 }
 class ListCollector<T> implements Collector<T, List<T>> {
 	/*@Override
         public*/ createInitial(): List<T> {
-		return /*Lists.empty*/();
+		return Lists.empty();
 	}
 	/*@Override
         public*/ fold(current: List<T>, element: T): List<T> {
-		return /*current.add*/(element);
+		return current.add(element);
 	}
 }
 export class Main {
@@ -401,18 +400,17 @@ export class Main {
 		return generateAll(/*parseAll(input*/, folder, /* mapper)*/, merger);
 	}
 	/*private static*/ generateAll(elements: List<string>, merger: (param0 : StringBuilder, param1 : string) => StringBuilder): string {
-		return /*elements.iter*/(/*)
-                .fold*/(/*new StringBuilder(*/), /* merger)
-                .toString(*/);
+		return elements.iter(/*)
+                */.fold(/*new StringBuilder(*/), /*merger)
+                */.toString();
 	}
 	/*private static*/ parseAll(input: string, folder: (param0 : State, param1 : Character) => State, mapper: (param0 : string) => string): List<string> {
 		return divide(input, /*folder)
-                .iter*/(/*)
-                .map(mapper)
-                .collect(new ListCollector<>(*/));
+                */.iter(/*)
+                */.map(mapper).collect(new ListCollector<>());
 	}
 	/*private static*/ mergeStatements(output: StringBuilder, compiled: string): StringBuilder {
-		return /*output.append*/(compiled);
+		return output.append(compiled);
 	}
 	/*private static*/ divide(input: string, folder: (param0 : State, param1 : Character) => State): List<string> {/*
         State state = new State();*//*
@@ -422,7 +420,7 @@ export class Main {
             final var c = input.charAt(i);
             current = folder.apply(current, c);
         }*/
-		return /*current.advance().segments*/;
+		return current.advance().segments;
 	}
 	/*private static*/ foldStatements(current: State, c: char): State {/*
         final var appended = current.append(c);*//*
@@ -702,6 +700,13 @@ export class Main {
                 final var arguments = withoutEnd.substring(argumentsStart + "(".length());
                 return compileCaller(caller) + "(" + compileValues(arguments, Main::compileValue) + ")";
             }
+        }
+
+        final var separator = stripped.lastIndexOf(".");
+        if (separator >= 0) {
+            final var parent = stripped.substring(0, separator);
+            final var property = stripped.substring(separator + ".".length());
+            return compileValue(parent) + "." + property;
         }
 
         if (isSymbol(stripped)) {
