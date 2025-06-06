@@ -80,6 +80,17 @@ public class Main {
         }
     }
 
+    private record Definition(Optional<String> beforeType, String type, String name) {
+        private String generate() {
+            return generateWithAfterName("");
+        }
+
+        public String generateWithAfterName(String afterName) {
+            final var beforeType = this.beforeType.map(inner -> inner + " ").orElse("");
+            return beforeType + name + afterName + ": " + type;
+        }
+    }
+
     public static void main(String[] args) {
         try {
             final var source = Paths.get(".", "src", "magma", "Main.java");
@@ -261,7 +272,7 @@ public class Main {
     }
 
     private static Optional<String> compileSimpleDefinition(String content) {
-        return compileDefinition(content).map(definition -> definition.left + ": " + definition.right);
+        return compileDefinition(content).map(Definition::generate);
     }
 
     private static Optional<Tuple<String, List<String>>> compileWhitespace(String input) {
@@ -282,11 +293,15 @@ public class Main {
             if (paramEnd >= 0) {
                 final var inputParams = withParams.substring(0, paramEnd);
                 final var withBraces = withParams.substring(paramEnd + ")".length());
-                final var outputDefinition = compileDefinitionOrPlaceholder(inputDefinition);
-                final var outputParams = compileParameters(inputParams);
 
-                final var generated = "\n\t" + outputDefinition.left + "(" + outputParams + "): " + outputDefinition.right + generatePlaceholder(withBraces);
-                return Optional.of(new Tuple<>(generated, Collections.emptyList()));
+                final var maybeOutputDefinition = compileDefinition(inputDefinition);
+                if (maybeOutputDefinition.isPresent()) {
+                    final var outputDefinition = maybeOutputDefinition.get();
+                    final var outputParams = compileParameters(inputParams);
+
+                    final var generated = "\n\t" + outputDefinition.generateWithAfterName("(" + outputParams + ")") + generatePlaceholder(withBraces);
+                    return Optional.of(new Tuple<>(generated, Collections.emptyList()));
+                }
             }
         }
 
@@ -315,26 +330,23 @@ public class Main {
         return compileSimpleDefinition(input).orElseGet(() -> generatePlaceholder(input));
     }
 
-    private static Tuple<String, String> compileDefinitionOrPlaceholder(String input) {
-        return compileDefinition(input).orElseGet(() -> new Tuple<>(generatePlaceholder(input), generatePlaceholder("")));
-    }
-
-    private static Optional<Tuple<String, String>> compileDefinition(String input) {
+    private static Optional<Definition> compileDefinition(String input) {
         final var stripped = input.strip();
         final var nameSeparator = stripped.lastIndexOf(" ");
-        if (nameSeparator >= 0) {
-            final var beforeName = stripped.substring(0, nameSeparator).strip();
-            final var name = stripped.substring(nameSeparator + " ".length());
-            final var typeSeparator = beforeName.lastIndexOf(" ");
-            if (typeSeparator < 0) {
-                return Optional.of(new Tuple<>(name, beforeName));
-            }
-
-            final var beforeType = beforeName.substring(0, typeSeparator);
-            final var type = beforeName.substring(typeSeparator + " ".length());
-            return Optional.of(new Tuple<>(generatePlaceholder(beforeType) + " " + name, type));
+        if (nameSeparator < 0) {
+            return Optional.empty();
         }
-        return Optional.empty();
+
+        final var beforeName = stripped.substring(0, nameSeparator).strip();
+        final var name = stripped.substring(nameSeparator + " ".length());
+        final var typeSeparator = beforeName.lastIndexOf(" ");
+        if (typeSeparator < 0) {
+            return Optional.of(new Definition(Optional.empty(), generatePlaceholder(beforeName), name));
+        }
+
+        final var beforeType = beforeName.substring(0, typeSeparator);
+        final var type = beforeName.substring(typeSeparator + " ".length());
+        return Optional.of(new Definition(Optional.of(generatePlaceholder(beforeType)), generatePlaceholder(type), name));
     }
 
     private static String generatePlaceholder(String input) {
