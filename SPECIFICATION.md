@@ -1,48 +1,101 @@
-# Project Specification
+# Implementation Roadmap (Dependency Order)
 
-This document defines the high-level specification for the Magma project. Additional details may be added as development progresses.
+This roadmap lists language features in an order where each builds on the prerequisites below it. Start from the top to reduce dependency complexity and implementation churn.
 
-## Modern C Language Features
+---
 
-The following list summarizes features found in the modern C programming language. These cover capabilities introduced over several versions of the ISO/IEC C standard (C89/C90, C99, C11, C17 and later revisions).
+## 1. Primitive Types and Basic Expressions
 
-- **Basic Syntax and Types**
-  - Fundamental data types: `char`, `int`, `float`, `double`, and related signed/unsigned variants.
-  - Derived types including pointers, arrays, structures, unions and enumerations.
-  - Storage class specifiers: `auto`, `register`, `static`, `extern`.
-  - Type qualifiers: `const`, `volatile`, `restrict` and `_Atomic`.
-  - Function prototypes with support for variable argument lists using `<stdarg.h>`.
+* Integer, floating-point, boolean, char, \&Str (string) types
+* Numeric, char, string, and boolean literals
+* Basic arithmetic, logical, and comparison operators
+* Variable and constant declarations (`let`, `mut`, initialization)
+* Expression evaluation and statement sequencing
 
-- **Control Flow**
-  - Selection statements: `if`, `else`, `switch`.
-  - Iteration statements: `for`, `while`, `do`-`while`.
-  - Jump statements: `goto`, `break`, `continue`, `return`.
+## 2. Control Flow
 
-- **Preprocessor Facilities**
-  - File inclusion with `#include` and macro definition with `#define`.
-  - Conditional compilation via `#if`, `#ifdef`, `#ifndef`, `#elif`, and `#endif`.
-  - Macro stringizing and token pasting operations (`#` and `##`).
+* if/else
+* while, for, for...else loops
+* break, continue, return statements
+* Expression statements
 
-- **Memory Management**
-  - Static storage duration objects via global or `static` declarations.
-  - Automatic storage duration objects on the stack.
-  - Dynamic memory management with `malloc`, `calloc`, `realloc`, and `free` from `<stdlib.h>`.
+## 3. Modules and Imports
 
-- **Language Enhancements from C99**
-  - Inline functions (`inline` keyword).
-  - Mixed declarations and code within a block.
-  - Boolean type in `<stdbool.h>`.
-  - `long long` integer type.
-  - Variable-length arrays and designated initializers.
-  - Single-line comments using `//` syntax.
-  - Complex number types in `<complex.h>`.
+* Module system and file structure
+* Visibility modifiers (`public`, `local`, `private`)
+* Import/export syntax
+* Syntax fallback to C
 
-- **Language Enhancements from C11 and Beyond**
-  - `_Static_assert` for compile-time assertions.
-  - `_Noreturn` function specifier.
-  - `_Thread_local` storage specifier and minimal thread library `<threads.h>`.
-  - Generic selections with `_Generic`.
-  - Alignment control using `_Alignas` and `_Alignof`.
-  - Atomic operations via `<stdatomic.h>`.
+## 4. Functions and Lambdas
 
-These features provide the foundation for writing portable and efficient C programs. Later revisions, such as C17 and ongoing C23 work, largely refine existing behavior and add optional library enhancements.
+* Named functions (`def`, arrow syntax)
+* Lambdas and higher-order functions (including capture lists)
+* Parameter passing and positional typing
+* Global and inline constants
+
+## 5. Structs and Tuples
+
+* Struct definition and initialization
+* Tuple definition, initialization, and field access
+* class keyword as syntactic sugar for struct + constructor
+
+## 6. Algebraic Data Types (ADTs)
+
+* Enum/tagged union definitions with {} syntax for variants
+* Pattern matching (`match` statement, exhaustiveness checking)
+* Option, Result types
+
+## 7. Arrays
+
+* Fixed-size array types and literals
+* Indexing and iteration
+* Template/parameterized arrays
+
+## 8. Ownership, Borrowing, and Lifetimes
+
+* Unique ownership semantics
+* Immutable and mutable borrows (references)
+* Lifetime analysis (with elision)
+* Compiler checks for borrowing/ownership rules
+
+## 9. Type System Enhancements
+
+* Nominal typing, type inference, and explicit casts
+* Numeric literal suffixes and coercion rules
+* Type aliases
+* Template/generic types with monomorphization
+
+## 10. Error Handling
+
+* Result\<T, E> and error propagation
+* `?` operator for concise error handling
+
+## 11. Classes and Traits
+
+* Trait syntax and dynamic dispatch (with Box/allocator)
+* Inline/static trait dispatch for zero-cost abstraction
+* Attribute/decorator syntax as higher-order functions
+* Reflection (read-only metadata)
+
+## 12. Async and Concurrency Model
+
+* Promise type and callback-based async functions
+* Interrupt-driven promise queue
+* Async/await syntax desugaring
+
+## 13. Program Startup, Entry, and Misc
+
+* Entry file/module conventions
+* Prohibition of recursion (enforcement)
+* Inline keyword for constants
+* Parameterized imports (`require`)
+* Cyclic dependency detection and enforcement
+
+## 14. Standard Library and I/O
+
+* Importing and using standard libraries (e.g., Console)
+* Concurrency and I/O primitives as APIs
+
+---
+
+**Note:** Many features can be prototyped in parallel, but ownership/borrowing, lifetime checks, and module/import logic are especially foundational for correctness and safe code reuse.
