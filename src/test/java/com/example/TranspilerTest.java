@@ -321,4 +321,28 @@ class TranspilerTest {
         String result = new Transpiler().toTypeScript(javaSrc);
         assertEquals(expected, result);
     }
+
+    @Test
+    void stubsWhileStatements() {
+        String javaSrc = String.join("\n",
+            "public class Foo {",
+            "    void loop() {",
+            "        while (true) {",
+            "            System.out.println(1);",
+            "        }",
+            "    }",
+            "}");
+
+        String expected = String.join("\n",
+            "export default class Foo {",
+            "    loop(): void {",
+            "        while (/* TODO */) {",
+            "            // TODO",
+            "        }",
+            "    }",
+            "}");
+
+        String result = new Transpiler().toTypeScript(javaSrc);
+        assertEquals(expected, result);
+    }
 }
