@@ -107,7 +107,8 @@ Only the features listed below are supported. Anything not mentioned here is con
     `ImportHelper` now rewrites import lines so they use relative module paths.
 11. ~~Preserve member access expressions like `obj.field` and allow chaining after
     method calls such as `doStuff().value`.~~
-    Tests cover both `obj.field` assignments and `doStuff().value` chains.
+    Tests cover `obj.field` assignments, returns, chained accesses, and now
+    verify conditions including `if (p.child)` and `if (!p.child)`.
 12. Parse constructor types so stubs emit `new Type(/* TODO */)`.
 13. ~~Preserve method calls on newly created instances.~~
    Calls like `new Main().run()` now remain unchanged in the output.

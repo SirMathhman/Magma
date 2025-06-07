@@ -62,3 +62,9 @@ never be edited directly.
 - `magma.app.MethodStubber` – replaces method bodies with `// TODO` stubs.
   Helpers now use a single scan so functions never contain more than one loop,
   and indentation levels stay at two or fewer.
+- `magma.app.FieldTranspiler` – converts Java fields into TypeScript
+  properties while ignoring initializations
+- `magma.app.ImportHelper` – rewrites package declarations and import lines
+- `magma.app.ArrowHelper` – turns lambda expressions into arrow functions
+- `magma.app.TypeMapper` – maps primitive and generic types and preserves
+  unknown identifiers
