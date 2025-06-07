@@ -382,4 +382,52 @@ class TranspilerStatementTest {
         String result = new Transpiler().toTypeScript(javaSrc);
         assertEquals(expected, result);
     }
+
+    @Test
+    void parsesInvokableInIfCondition() {
+        String javaSrc = String.join("\n",
+            "public class Foo {",
+            "    void check() {",
+            "        if (isValid(run())) {",
+            "            System.out.println(1);",
+            "        }",
+            "    }",
+            "}");
+
+        String expected = String.join("\n",
+            "export default class Foo {",
+            "    check(): void {",
+            "        if (/* TODO */(/* TODO */)) {",
+            "            // TODO",
+            "        }",
+            "    }",
+            "}");
+
+        String result = new Transpiler().toTypeScript(javaSrc);
+        assertEquals(expected, result);
+    }
+
+    @Test
+    void parsesMemberAccessInWhileCondition() {
+        String javaSrc = String.join("\n",
+            "public class Foo {",
+            "    void loop(Iter it) {",
+            "        while (it.hasNext()) {",
+            "            System.out.println(1);",
+            "        }",
+            "    }",
+            "}");
+
+        String expected = String.join("\n",
+            "export default class Foo {",
+            "    loop(it: any): void {",
+            "        while (it./* TODO */()) {",
+            "            // TODO",
+            "        }",
+            "    }",
+            "}");
+
+        String result = new Transpiler().toTypeScript(javaSrc);
+        assertEquals(expected, result);
+    }
 }
