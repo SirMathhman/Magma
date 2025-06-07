@@ -46,21 +46,9 @@ export default class Transpiler {
         // TODO
         // TODO
         // TODO
-        // TODO
-        // TODO
-        // TODO
-        // TODO
-        // TODO
-        // TODO
-        // TODO
-        // TODO
-        // TODO
-        // TODO
-        // TODO
-        // TODO
-        // TODO
-        // TODO
-        // TODO
+        if (/* TODO */) {
+            // TODO
+        }
         // TODO
         // TODO
         // TODO
@@ -71,54 +59,47 @@ export default class Transpiler {
         // TODO
         // TODO
         // TODO
-        // TODO
-        return /* TODO */;
-        // TODO
-        // TODO
-        // TODO
-        // TODO
-        // TODO
-        return /* TODO */;
+        if (/* TODO */) {
+            // TODO
+        }
         // TODO
         // TODO
         // TODO
+        if (/* TODO */) {
+            // TODO
+        }
         // TODO
         // TODO
         // TODO
         // TODO
         // TODO
         // TODO
+        if (/* TODO */) {
+            // TODO
+        }
         // TODO
         // TODO
         // TODO
         // TODO
         // TODO
         // TODO
+        if (/* TODO */) {
+            // TODO
+        }
         // TODO
+        if (/* TODO */) {
+            // TODO
+        }
+        if (/* TODO */) {
+            // TODO
+        }
+        if (/* TODO */) {
+            // TODO
+        }
         // TODO
-        // TODO
-        // TODO
-        // TODO
-        // TODO
-        // TODO
-        // TODO
-        // TODO
-        // TODO
-        // TODO
-        // TODO
-        // TODO
-        // TODO
-        // TODO
-        // TODO
-        // TODO
-        // TODO
-        // TODO
-        // TODO
-        // TODO
-        // TODO
-        // TODO
-        // TODO
-        // TODO
+        if (/* TODO */) {
+            // TODO
+        }
         // TODO
         return /* TODO */;
         // TODO
@@ -138,41 +119,28 @@ export default class Transpiler {
         // TODO
         // TODO
         // TODO
+        if (/* TODO */) {
+            // TODO
+        }
+        // TODO
+        // TODO
+        // TODO
+        if (/* TODO */) {
+            // TODO
+        }
+        // TODO
+        if (/* TODO */) {
+            // TODO
+        }
         // TODO
         // TODO
         // TODO
         // TODO
         // TODO
         // TODO
-        // TODO
-        // TODO
-        // TODO
-        // TODO
-        // TODO
-        // TODO
-        // TODO
-        // TODO
-        // TODO
-        // TODO
-        // TODO
-        // TODO
-        // TODO
-        // TODO
-        // TODO
-        // TODO
-        // TODO
-        // TODO
-        // TODO
-        // TODO
-        // TODO
-        // TODO
-        return /* TODO */;
-        // TODO
-        // TODO
-        // TODO
-        // TODO
-        // TODO
-        // TODO
+        if (/* TODO */) {
+            // TODO
+        }
         // TODO
         // TODO
         // TODO
@@ -182,8 +150,45 @@ export default class Transpiler {
         // TODO
         // TODO
         // TODO
+        if (/* TODO */) {
+            // TODO
+        }
+        // TODO
+        return /* TODO */;
         // TODO
         // TODO
+        // TODO
+        // TODO
+        // TODO
+        if (/* TODO */) {
+            // TODO
+        }
+        // TODO
+        return /* TODO */;
+        // TODO
+        // TODO
+        // TODO
+        // TODO
+        // TODO
+        // TODO
+        if (/* TODO */) {
+            // TODO
+        }
+        // TODO
+        // TODO
+        // TODO
+        return /* TODO */;
+        // TODO
+        // TODO
+        if (/* TODO */) {
+            // TODO
+        }
+        // TODO
+        // TODO
+        // TODO
+        if (/* TODO */) {
+            // TODO
+        }
         // TODO
         // TODO
         // TODO
@@ -193,57 +198,12 @@ export default class Transpiler {
         // TODO
         // TODO
         // TODO
-        // TODO
-        // TODO
-        // TODO
-        // TODO
-        // TODO
-        // TODO
-        // TODO
-        // TODO
-        // TODO
-        // TODO
-        // TODO
-        // TODO
-        // TODO
-        // TODO
-        // TODO
-        // TODO
-        // TODO
-        // TODO
-        // TODO
-        // TODO
-        // TODO
-        // TODO
-        // TODO
-        return /* TODO */;
-        // TODO
-        // TODO
-        // TODO
-        return /* TODO */;
-        // TODO
-        // TODO
-        // TODO
-        // TODO
-        // TODO
-        // TODO
-        // TODO
-        // TODO
-        // TODO
-        // TODO
-        // TODO
-        return /* TODO */;
-        // TODO
-        // TODO
-        // TODO
-        // TODO
-        // TODO
-        return /* TODO */;
-        // TODO
-        // TODO
-        // TODO
-        return /* TODO */;
-        // TODO
+        if (/* TODO */) {
+            // TODO
+        }
+        if (/* TODO */) {
+            // TODO
+        }
         return /* TODO */;
         // TODO
         // TODO
@@ -263,14 +223,14 @@ export default class Transpiler {
         // TODO
         // TODO
         // TODO
+        if (/* TODO */) {
+            // TODO
+        }
         // TODO
-        return /* TODO */;
         // TODO
-        // TODO
-        // TODO
-        // TODO
-        return /* TODO */;
-        // TODO
+        if (/* TODO */) {
+            // TODO
+        }
         return /* TODO */;
         // TODO
     }
