@@ -59,7 +59,7 @@ export default class MethodStubber {
             // TODO
         }
         // TODO
-        if (/* TODO */) {
+        if (!/* TODO */) {
             // TODO
         }
         /* TODO */(/* TODO */);
@@ -133,6 +133,9 @@ export default class MethodStubber {
         // TODO
         /* TODO */(/* TODO */);
         let trimmed: string = value./* TODO */();
+        if (trimmed./* TODO */("!")) {
+            // TODO
+        }
         if (trimmed./* TODO */("new ")./* TODO */(/* TODO */)) {
             // TODO
         }
@@ -155,6 +158,9 @@ export default class MethodStubber {
         // TODO
         /* TODO */(/* TODO */);
         let trimmed: string = value./* TODO */();
+        if (trimmed./* TODO */("!")) {
+            // TODO
+        }
         if (/* TODO */(/* TODO */)) {
             // TODO
         }
@@ -244,7 +250,7 @@ export default class MethodStubber {
         /* TODO */(/* TODO */, /* TODO */);
         // TODO
         let joined: string = String./* TODO */(/* TODO */, /* TODO */, /* TODO */);
-        if (/* TODO */) {
+        if (!/* TODO */) {
             // TODO
         }
         return /* TODO */(" + joined + ");
