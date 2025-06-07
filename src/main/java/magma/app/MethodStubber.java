@@ -211,6 +211,9 @@ class MethodStubber {
         if (isMemberAccess(trimmed)) {
             return trimmed;
         }
+        if (isNumeric(trimmed)) {
+            return trimmed;
+        }
         return "/* TODO */";
     }
 
