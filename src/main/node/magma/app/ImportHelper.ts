@@ -1,6 +1,6 @@
 export default class ImportHelper {
     extractPackage(source: string): string {
-        let lines: string[] = /* TODO */(/* TODO */);
+        let lines: string[] = /* TODO */("\\R");
         // TODO
         let trimmed: string = /* TODO */();
         if (/* TODO */) {
@@ -24,7 +24,7 @@ export default class ImportHelper {
     }
 
     translateImports(source: string, currentPkg: string): string {
-        let lines: string[] = /* TODO */(/* TODO */);
+        let lines: string[] = /* TODO */("\\R");
         let out: any = new StringBuilder();
         let i: any = /* TODO */;
         i lines.length: any;
@@ -33,9 +33,9 @@ export default class ImportHelper {
         let trimmed: string = /* TODO */();
         // TODO
         // TODO
+        /* */: any;
+        let imp: string = /* TODO */();
         /* TODO */(/* TODO */);
-        let imp: string = /* TODO */(/* TODO */, /* TODO */);
-        /* TODO */(/* TODO */, /* TODO */);
         // TODO
         /* TODO */(/* TODO */);
         // TODO
@@ -55,11 +55,11 @@ export default class ImportHelper {
     }
 
     buildImport(imp: string, currentPkg: string): string {
-        let parts: string[] = /* TODO */(/* TODO */);
+        let parts: string[] = /* TODO */("\\.");
         let (parts.length: any = /* TODO */;
         let className: string = parts[parts.length - 1];
-        let importPkgParts: string[] = /* TODO */(/* TODO */, /* TODO */);
-        let currentParts: string[] = /* TODO */(/* TODO */);
+        let importPkgParts: string[] = /* TODO */(/* TODO */, parts.length - 1);
+        let currentParts: string[] = /* TODO */("\\.");
         let shared: number = /* TODO */(/* TODO */, /* TODO */);
         let path: string = /* TODO */(/* TODO */, /* TODO */, /* TODO */);
         if (/* TODO */) {
@@ -79,7 +79,7 @@ export default class ImportHelper {
     relativePath(impParts: string[], currentParts: string[], shared: number): string {
         let path: any = new StringBuilder();
         /* TODO */(/* TODO */);
-        /* TODO */(/* TODO */, /* TODO */);
+        /* TODO */(/* TODO */);
         return /* TODO */;
     }
 
@@ -88,7 +88,7 @@ export default class ImportHelper {
         let i: any = /* TODO */;
         // TODO
         // TODO
-        /* TODO */(/* TODO */);
+        /* TODO */("../");
         // TODO
         return /* TODO */;
     }
