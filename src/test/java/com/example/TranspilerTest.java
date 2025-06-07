@@ -190,6 +190,22 @@ class TranspilerTest {
     }
 
     @Test
+    void stubsFieldAssignments() {
+        String javaSrc = String.join("\n",
+            "public class Foo {",
+            "    private int count = 1;",
+            "}");
+
+        String expected = String.join("\n",
+            "export default class Foo {",
+            "    private count: number;",
+            "}");
+
+        String result = new Transpiler().toTypeScript(javaSrc);
+        assertEquals(expected, result);
+    }
+
+    @Test
     void preservesExtendsClause() {
         String javaSrc = String.join("\n",
             "public class Child extends Parent {",
@@ -230,6 +246,20 @@ class TranspilerTest {
     void convertsLambdasToArrowFunctions() {
         String javaSrc = "Runnable r = () -> {};";
         String expected = "Runnable r = () => {};";
+
+        String result = new Transpiler().toTypeScript(javaSrc);
+        assertEquals(expected, result);
+    }
+
+    @Test
+    void stubsAssignmentsInArrowFunctions() {
+        String javaSrc = "Runnable r = () -> { int x = 0; x++; };";
+
+        String expected = String.join("\n",
+            "Runnable r = () => {",
+            "    // TODO",
+            "    // TODO",
+            "};");
 
         String result = new Transpiler().toTypeScript(javaSrc);
         assertEquals(expected, result);
