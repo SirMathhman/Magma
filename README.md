@@ -5,11 +5,13 @@ This repository begins a self‑hosted transpiler from Java to TypeScript. It ke
 ## Main Classes
 
 - `com.example.Transpiler` – prototype Java → TypeScript converter
-- `com.example.Main` – command line entry that runs the transpiler
+- `com.example.Main` – CLI that converts all sources under `src/main/java`
+  to TypeScript files under `src/main/node`
 - Tests mirror the transpiler (`TranspilerTest`) and CLI (`MainTest`).
 
 Abstract classes are intentionally avoided. The project prefers composition of
-small classes over inheritance hierarchies.
+small classes over inheritance hierarchies. Functions are kept small: each
+method contains at most one loop and braces never nest more than two levels.
 
 The transpiler removes the `package` declaration since TypeScript does
 not use Java-style packages. It also rewrites simple class definitions
@@ -31,8 +33,14 @@ Generic type parameters are preserved, so `List<String>` becomes
 Inheritance via the `extends` keyword and interface implementation with
 `implements` are copied directly to the TypeScript output.
 
+Enum declarations are also converted so that `public enum Foo` becomes
+`export enum Foo` in the resulting TypeScript.
+
 The primitive `boolean` and its wrapper `Boolean` both become TypeScript
 `boolean`, as verified by `TranspilerTest.mapsBooleanTypes`.
+
+Lambda expressions use TypeScript arrow function syntax, so `() -> {}`
+becomes `() => {}`.
 
 Error handling avoids Java exceptions. Do not use `throw`, `try`, or `catch`.
 Instead, functions should return a `Result` or `Option` object.
@@ -60,9 +68,10 @@ launcher if needed and places compiled classes in a `bin` directory.
 ./test.sh   # execute all tests
 ```
 
-After compiling, you can invoke the transpiler via the CLI:
+After compiling, you can invoke the transpiler via the CLI. It scans
+`src/main/java` and writes TypeScript files under `src/main/node`:
 
 ```bash
-java -cp bin com.example.Main path/to/Source.java
+java -cp bin com.example.Main
 ```
 

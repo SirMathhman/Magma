@@ -4,7 +4,7 @@ This page outlines how Java language features map to their TypeScript counterpar
 
 | Java Feature | TypeScript Equivalent | Notes | Tests |
 | ------------ | -------------------- | ----- | ----- |
-| `package` declarations | `module` or ES module system | Use directory structure to mirror packages. | `TranspilerTest.removesPackageDeclaration`, `MainTest.printsTranspiledSource` |
+| `package` declarations | `module` or ES module system | Use directory structure to mirror packages. | `TranspilerTest.removesPackageDeclaration`, `MainTest.buildsFilesUnderSourceDirectory` |
 | Primitive types (`int`, `float`, `double`, `long`) | `number` | TypeScript uses a single `number` type. | `TranspilerTest.stubsMethodBodiesPreservingNames` |
 | `boolean` / `Boolean` | `boolean` | Direct mapping. | `TranspilerTest.mapsBooleanTypes` |
 | `char` | `string` | Primitive character becomes a string. | `TranspilerTest.mapsCharCharacterAndStringToString` |
@@ -14,7 +14,7 @@ This page outlines how Java language features map to their TypeScript counterpar
 | Classes | Classes | Use `class` syntax. | `TranspilerTest.transpilesClassDefinitionWithModifier` |
 | Interfaces | Interfaces | Direct mapping. | |
 | Abstract classes | Abstract classes | Use the `abstract` keyword. The project itself avoids abstract base classes in favor of composition. | |
-| Enums | `enum` | TypeScript `enum` provides similar semantics. | |
+| Enums | `enum` | TypeScript `enum` provides similar semantics. | `TranspilerTest.transpilesEnumDefinition` |
 | Generics | Generics | Direct mapping of type parameters, e.g. `List<T>` → `List<T>`. | `TranspilerTest.mapsGenericTypes` |
 | Methods | Methods | Instance and static methods translate directly. Basic return types such as `int` or `void` become `number` or `void`. | `TranspilerTest.stubsMethodBodiesPreservingNames`, `TranspilerTest.stubsVoidReturnTypes` |
 | Fields | Properties | Public/private modifiers apply. | `TranspilerTest.transpilesFieldDeclarations` |
@@ -23,7 +23,7 @@ This page outlines how Java language features map to their TypeScript counterpar
 | Implementing interfaces (`implements`) | `implements` | Direct mapping. | `TranspilerTest.preservesImplementsClause` |
 | Exceptions (`throw`, `try`/`catch`) | `Result`/`Option` types | Prefer returning a `Result` or `Option` object instead of using exceptions. | |
 | Annotations | *(not supported)* | Decorators are not used in this project. | |
-| Lambda expressions | Arrow functions | `() -> {}` → `() => {}`. | |
+| Lambda expressions | Arrow functions | `() -> {}` → `() => {}`. | `TranspilerTest.convertsLambdasToArrowFunctions` |
 | Streams | Array methods / custom helpers | Use `map`, `filter`, `reduce`. | |
 | Standard library (`java.util`, etc.) | TypeScript/JS standard APIs or polyfills | Replace with equivalent utilities. | |
 | Reflection | Limited or custom metadata | TypeScript has limited runtime type information. | |

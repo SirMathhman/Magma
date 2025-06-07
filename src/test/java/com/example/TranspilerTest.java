@@ -198,4 +198,22 @@ class TranspilerTest {
         String result = new Transpiler().toTypeScript(javaSrc);
         assertEquals(expected, result);
     }
+
+    @Test
+    void transpilesEnumDefinition() {
+        String javaSrc = "public enum Color { RED, GREEN, BLUE }";
+        String expected = "export enum Color { RED, GREEN, BLUE }";
+
+        String result = new Transpiler().toTypeScript(javaSrc);
+        assertEquals(expected, result);
+    }
+
+    @Test
+    void convertsLambdasToArrowFunctions() {
+        String javaSrc = "Runnable r = () -> {};";
+        String expected = "Runnable r = () => {};";
+
+        String result = new Transpiler().toTypeScript(javaSrc);
+        assertEquals(expected, result);
+    }
 }
