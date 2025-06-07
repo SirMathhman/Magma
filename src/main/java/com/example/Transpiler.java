@@ -35,15 +35,27 @@ public class Transpiler {
 
     private String stubMethods(String source) {
         String pattern = "(?ms)^([ \t]*)(?:public|private|protected|static|final|abstract|synchronized|native|strictfp\\s+)*" +
-                "([a-zA-Z_][a-zA-Z0-9_<>\\[\\]]*)\\s+([a-zA-Z_][a-zA-Z0-9_]*)\\s*\\(([^)]*)\\)\\s*\\{[^}]*\\}";
+                "([a-zA-Z_][a-zA-Z0-9_<>\\[\\]]*)\\s+([a-zA-Z_][a-zA-Z0-9_]*)\\s*\\(([^)]*)\\)\\s*\\{([^}]*)\\}";
         java.util.regex.Matcher m = java.util.regex.Pattern.compile(pattern).matcher(source);
         StringBuffer out = new StringBuffer();
         while (m.find()) {
             String indent = m.group(1);
             String name = m.group(3);
             String params = m.group(4).trim();
+            String body = m.group(5);
             String tsParams = toTsParams(params);
-            String replacement = indent + name + "(" + tsParams + ") {}";
+
+            StringBuilder stubbedBody = new StringBuilder();
+            for (String line : body.split("\\R")) {
+                if (line.strip().isEmpty()) {
+                    continue;
+                }
+                stubbedBody.append(indent).append("    // TODO").append(System.lineSeparator());
+            }
+
+            String replacement = indent + name + "(" + tsParams + ") {" +
+                    (stubbedBody.length() > 0 ? System.lineSeparator() + stubbedBody.toString() + indent : "") +
+                    "}";
             m.appendReplacement(out, java.util.regex.Matcher.quoteReplacement(replacement));
         }
         m.appendTail(out);
