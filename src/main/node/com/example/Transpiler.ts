@@ -23,15 +23,15 @@ export default class Transpiler {
         let brace: number = /* TODO */;
         let !: any = /* TODO */;
         let afterClass: string = /* TODO */;
-        // TODO
+        /* TODO */(/* TODO */);
         let !: any = /* TODO */;
         let afterIface: string = /* TODO */;
-        // TODO
+        /* TODO */(/* TODO */);
         let !: any = /* TODO */;
         let afterEnum: string = /* TODO */;
+        /* TODO */(/* TODO */);
         // TODO
-        // TODO
-        // TODO
+        /* TODO */(/* TODO */);
         // TODO
         // TODO
         let withMethods: string = /* TODO */;
@@ -39,14 +39,14 @@ export default class Transpiler {
         let withArrows: string = /* TODO */;
         return /* TODO */;
         // TODO
-        // TODO
+        /* TODO */(/* TODO */);
         let lines: string[] = /* TODO */;
         let out: any = /* TODO */;
         let i: number = /* TODO */;
         while (/* TODO */) {
             // TODO
         }
-        // TODO
+        /* TODO */(/* TODO */, /* TODO */, /* TODO */, /* TODO */, /* TODO */);
         let indent: string = /* TODO */;
         let beforeBrace: string = /* TODO */;
         let parenStart: number = /* TODO */;
@@ -65,11 +65,11 @@ export default class Transpiler {
         let tsParams: string = /* TODO */;
         let tsReturn: string = /* TODO */;
         let stub: any = /* TODO */;
-        // TODO
+        /* TODO */(/* TODO */);
         if (/* TODO */) {
             // TODO
         }
-        // TODO
+        /* TODO */(/* TODO */);
         let wrote: boolean = /* TODO */;
         let i: any = /* TODO */;
         // TODO
@@ -95,10 +95,10 @@ export default class Transpiler {
         if (/* TODO */) {
             // TODO
         }
-        // TODO
+        /* TODO */(/* TODO */);
         return /* TODO */;
         // TODO
-        // TODO
+        /* TODO */(/* TODO */, /* TODO */);
         let depth: number = /* TODO */;
         let i: number = /* TODO */;
         while (/* TODO */) {
@@ -106,16 +106,16 @@ export default class Transpiler {
         }
         return /* TODO */;
         // TODO
-        // TODO
-        // TODO
+        /* TODO */(/* TODO */, /* TODO */, /* TODO */, /* TODO */);
+        /* TODO */(/* TODO */);
         if (/* TODO */) {
             // TODO
         }
+        /* TODO */(/* TODO */);
+        /* TODO */(/* TODO */);
+        /* TODO */(/* TODO */);
         // TODO
-        // TODO
-        // TODO
-        // TODO
-        // TODO
+        /* TODO */(/* TODO */);
         let lines: string[] = /* TODO */;
         let out: any = /* TODO */;
         // TODO
@@ -138,16 +138,16 @@ export default class Transpiler {
         let modArray: string[] = /* TODO */;
         let modifiers: string = /* TODO */;
         let tsType: string = /* TODO */;
-        // TODO
+        /* TODO */(/* TODO */);
         if (/* TODO */) {
             // TODO
         }
-        // TODO
-        // TODO
+        /* TODO */(/* TODO */);
+        /* TODO */(/* TODO */);
         // TODO
         return /* TODO */;
         // TODO
-        // TODO
+        /* TODO */(/* TODO */);
         let i: any = /* TODO */;
         // TODO
         // TODO
@@ -157,7 +157,7 @@ export default class Transpiler {
         // TODO
         return /* TODO */;
         // TODO
-        // TODO
+        /* TODO */(/* TODO */);
         let lines: string[] = /* TODO */;
         let out: any = /* TODO */;
         // TODO
@@ -167,7 +167,7 @@ export default class Transpiler {
         // TODO
         return /* TODO */;
         // TODO
-        // TODO
+        /* TODO */(/* TODO */);
         let lines: string[] = /* TODO */;
         let out: any = /* TODO */;
         // TODO
@@ -176,11 +176,11 @@ export default class Transpiler {
             // TODO
         }
         // TODO
-        // TODO
+        /* TODO */(/* TODO */);
         // TODO
         return /* TODO */;
         // TODO
-        // TODO
+        /* TODO */(/* TODO */, /* TODO */);
         let eq: number = /* TODO */;
         if (/* TODO */) {
             // TODO
@@ -192,7 +192,33 @@ export default class Transpiler {
         }
         return /* TODO */;
         // TODO
+        /* TODO */(/* TODO */);
+        let open: number = /* TODO */;
+        let close: number = /* TODO */;
+        if (/* TODO */) {
+            // TODO
+        }
+        let head: string = /* TODO */;
+        return /* TODO */;
         // TODO
+        /* TODO */(/* TODO */, /* TODO */);
+        let open: number = /* TODO */;
+        let close: number = /* TODO */;
+        if (/* TODO */) {
+            // TODO
+        }
+        let args: string = /* TODO */;
+        let count: number = /* TODO */;
+        let parts: java.util.List<string> = /* TODO */;
+        let i: any = /* TODO */;
+        // TODO
+        // TODO
+        /* TODO */(/* TODO */);
+        // TODO
+        let joined: string = /* TODO */;
+        return /* TODO */;
+        // TODO
+        /* TODO */(/* TODO */);
         if (/* TODO */) {
             // TODO
         }
@@ -204,11 +230,11 @@ export default class Transpiler {
         }
         let name: string = /* TODO */;
         let type: string = /* TODO */;
-        // TODO
+        /* TODO */(/* TODO */);
         // TODO
         return /* TODO */;
         // TODO
-        // TODO
+        /* TODO */(/* TODO */);
         let genericStart: number = /* TODO */;
         let genericEnd: number = /* TODO */;
         if (/* TODO */) {
@@ -225,16 +251,16 @@ export default class Transpiler {
         // TODO
         // TODO
         // TODO
-        // TODO
+        /* TODO */(/* TODO */, /* TODO */, /* TODO */);
         let base: string = /* TODO */;
         let params: string = /* TODO */;
         let mapped: java.util.List<string> = /* TODO */;
         // TODO
-        // TODO
+        /* TODO */(/* TODO */);
         // TODO
         return /* TODO */;
         // TODO
-        // TODO
+        /* TODO */(/* TODO */);
         let trimmed: string = /* TODO */;
         if (/* TODO */) {
             // TODO

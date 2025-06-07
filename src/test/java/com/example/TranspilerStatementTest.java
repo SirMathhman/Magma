@@ -5,6 +5,27 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import org.junit.jupiter.api.Test;
 
 class TranspilerStatementTest {
+
+    @Test
+    void stubsInvokables() {
+        String javaSrc = String.join("\n",
+                "public class Foo {",
+                "    void run() {",
+                "        doThing(a, new Some<>(1));",
+                "    }",
+                "}");
+
+        String expected = String.join("\n",
+                "export default class Foo {",
+                "    run(): void {",
+                "        /* TODO */(/* TODO */, /* TODO */);",
+                "    }",
+                "}");
+
+        String result = new Transpiler().toTypeScript(javaSrc);
+        assertEquals(expected, result);
+    }
+
     @Test
     void leavesValueAssignmentsAsTodo() {
         String javaSrc = String.join("\n",

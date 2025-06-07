@@ -40,7 +40,7 @@ export default class Main {
         }
         // TODO
         return /* TODO */;
-        // TODO
+        /* TODO */(/* TODO */);
         return /* TODO */;
         // TODO
     }
@@ -53,10 +53,10 @@ export default class Main {
         let name: string = /* TODO */;
         let withoutExt: string = /* TODO */;
         let outFile: any = /* TODO */;
-        // TODO
-        // TODO
+        /* TODO */(/* TODO */);
+        /* TODO */(/* TODO */, /* TODO */);
         return /* TODO */;
-        // TODO
+        /* TODO */(/* TODO */);
         return /* TODO */;
         // TODO
     }
