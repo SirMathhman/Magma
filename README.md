@@ -7,6 +7,7 @@ Magma is an experimental compiler that reads a subset of Java and emits TypeScri
 
 ## Building
 
+The build requires Java 21 because the compiler uses preview language features.
 The repository provides a convenience script `build.sh` that compiles the Java
 sources and regenerates the TypeScript output. Simply run:
 
@@ -24,7 +25,7 @@ Basic JUnit tests can be executed with `test.sh`:
 ./test.sh
 ```
 
-In the GitHub Actions workflow, building and testing run as two
+The GitHub Actions workflow also uses Java 21. Building and testing run as two
 independent jobs so failures in either stage are reported clearly.
 
 ## Status
