@@ -9,6 +9,7 @@ import java.util.function.Function;
 
 import magma.ast.*;
 import magma.util.*;
+import magma.util.result.*;
 import magma.compile.*;
 
 // New utility classes providing parsing and generation helpers
@@ -38,7 +39,10 @@ public class Main {
             Files.createDirectories(target.getParent());
 
             final var input = Files.readString(source);
-            final var output = compile(input);
+            final var outputResult = compile(input);
+            final var output = outputResult.isOk()
+                    ? outputResult.unwrap()
+                    : Generator.generatePlaceholder(input);
             Files.writeString(target, output);
         } catch (IOException e) {
             //noinspection CallToPrintStackTrace
@@ -46,20 +50,47 @@ public class Main {
         }
     }
 
-    private static String compile(String input) {
+    private static Result<String, String> compile(String input) {
         return compileStatements(input, input1 -> compileRootSegment(input1, new CompileState()));
     }
 
-    private static String compileStatements(String input, Function<String, String> mapper) {
+    private static Result<String, String> compileStatements(String input, Function<String, Result<String, String>> mapper) {
         return compileAll(input, mapper, Main::foldStatements, Main::mergeStatements);
     }
 
-    private static String compileAll(String input, Function<String, String> mapper, BiFunction<DivideState, Character, DivideState> folder, BiFunction<StringBuilder, String, StringBuilder> merger) {
-        return Parser.divide(input, folder)
-                .iter()
-                .map(mapper)
-                .fold(new StringBuilder(), merger)
-                .toString();
+    private static Result<String, String> compileAll(
+            String input,
+            Function<String, Result<String, String>> mapper,
+            BiFunction<DivideState, Character, DivideState> folder,
+            BiFunction<StringBuilder, String, StringBuilder> merger) {
+        Result<StringBuilder, String> result = new Ok<>(new StringBuilder());
+
+        var iterator = Parser.divide(input, folder).iter();
+        while (true) {
+            var maybeElement = iterator.next();
+            if (maybeElement.isEmpty()) {
+                break;
+            }
+            String element = maybeElement.get();
+            if (result.isErr()) {
+                break;
+            }
+
+            var compiled = mapper.apply(element);
+            if (compiled.isErr()) {
+                result = new Err<StringBuilder, String>(compiled.unwrapErr());
+            } else {
+                StringBuilder current = result.unwrap();
+                String value = compiled.unwrap();
+                result = new Ok<>(merger.apply(current, value));
+            }
+        }
+
+        if (result.isOk()) {
+            return new Ok<>(result.unwrap().toString());
+        }
+
+        return new Err<String, String>(result.unwrapErr());
     }
 
     private static StringBuilder mergeStatements(StringBuilder output, String compiled) {
@@ -84,14 +115,17 @@ public class Main {
         return appended;
     }
 
-    private static String compileRootSegment(String input, CompileState state) {
+    private static Result<String, String> compileRootSegment(String input, CompileState state) {
         final var stripped = input.strip();
         if (stripped.startsWith("package ") || stripped.startsWith("import ")) {
-            return "";
+            return new Ok<>("");
         }
 
-        return compileRootStructure(input, state)
-                .orElseGet(() -> Generator.generatePlaceholder(input));
+        var maybe = compileRootStructure(input, state);
+        if (maybe.isPresent()) {
+            return new Ok<>(maybe.get());
+        }
+        return new Err<String, String>(input);
     }
 
     private static Option<String> compileRootStructure(String input, CompileState state) {
@@ -417,7 +451,11 @@ public class Main {
 
         final var content = inputAfterParams.substring(1, inputAfterParams.length() - 1);
         final CompileState defined = state.enter(new MethodFrame(new DefinitionSet(parameters)));
-        final String outputAfterParams = compileStatements(content, input1 -> compileFunctionSegments(input1, defined));
+        final var outputAfterParamsResult = compileStatements(content, input1 -> compileFunctionSegments(input1, defined));
+        if (outputAfterParamsResult.isErr()) {
+            return new None<>();
+        }
+        final String outputAfterParams = outputAfterParamsResult.unwrap();
         return assembleMethod(outputDefinition, outputParams, " {" + outputAfterParams + "\n\t}", state, paramTypes);
     }
 
@@ -438,10 +476,18 @@ public class Main {
         return new Some<>(new Tuple<>(generated, withLast));
     }
 
-    private static String compileFunctionSegments(String input, CompileState state) {
-        return compileWhitespace(input)
-                .or(() -> compileFunctionStatement(input, state))
-                .orElseGet(() -> Generator.generatePlaceholder(input));
+    private static Result<String, String> compileFunctionSegments(String input, CompileState state) {
+        var maybeWhitespace = compileWhitespace(input);
+        if (maybeWhitespace.isPresent()) {
+            return new Ok<>(maybeWhitespace.get());
+        }
+
+        var maybeStatement = compileFunctionStatement(input, state);
+        if (maybeStatement.isPresent()) {
+            return new Ok<>(maybeStatement.get());
+        }
+
+        return new Err<String, String>(input);
     }
 
     private static Option<String> compileFunctionStatement(String input, CompileState state) {
