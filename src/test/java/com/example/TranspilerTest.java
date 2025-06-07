@@ -15,6 +15,26 @@ class TranspilerTest {
     }
 
     @Test
+    void leavesValueAssignmentsAsTodo() {
+        String javaSrc = String.join("\n",
+            "public class Foo {",
+            "    void set() {",
+            "        x = 1;",
+            "    }",
+            "}");
+
+        String expected = String.join("\n",
+            "export default class Foo {",
+            "    set(): void {",
+            "        // TODO",
+            "    }",
+            "}");
+
+        String result = new Transpiler().toTypeScript(javaSrc);
+        assertEquals(expected, result);
+    }
+
+    @Test
     void transpilesClassDefinitionWithModifier() {
         String javaSrc = "public final class Bar {}";
         String expected = "export default class Bar {}";
@@ -266,7 +286,7 @@ class TranspilerTest {
 
         String expected = String.join("\n",
             "Runnable r = () => {",
-            "    // TODO",
+            "    let x: number = /* TODO */;",
             "    // TODO",
             "};");
 
@@ -288,7 +308,7 @@ class TranspilerTest {
         String expected = String.join("\n",
             "export default class Foo {",
             "    multi(): number {",
-            "        // TODO",
+            "        let y: number = /* TODO */;",
             "        // TODO",
             "        return /* TODO */;",
             "    }",

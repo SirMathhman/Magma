@@ -33,6 +33,8 @@ syntax with the appropriate type mappings.
 `final` fields become `readonly` properties in the generated TypeScript.
 Field assignments are removed so initial values are not emitted.
 Assignments inside arrow function bodies are replaced with `// TODO` comments.
+Assignments that define new variables inside methods become `let` declarations
+with `/* TODO */` as the initializer.
 
 Generic type parameters are preserved, so `List<String>` becomes
 `List<string>` in the transpiled output.
