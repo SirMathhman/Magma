@@ -209,7 +209,7 @@ class TranspilerStatementTest {
             "export default class Foo {",
             "    check(x: number): void {",
             "        if (/* TODO */) {",
-            "            // TODO",
+            "            System.out.println(x);",
             "        }",
             "    }",
             "}");
@@ -233,7 +233,7 @@ class TranspilerStatementTest {
             "export default class Foo {",
             "    loop(): void {",
             "        while (/* TODO */) {",
-            "            // TODO",
+            "            System.out.println(1);",
             "        }",
             "    }",
             "}");
@@ -418,7 +418,7 @@ class TranspilerStatementTest {
             "export default class Foo {",
             "    check(): void {",
             "        if (isValid(run())) {",
-            "            // TODO",
+            "            System.out.println(1);",
             "        }",
             "    }",
             "}");
@@ -442,7 +442,7 @@ class TranspilerStatementTest {
             "export default class Foo {",
             "    loop(it: any): void {",
             "        while (it.hasNext()) {",
-            "            // TODO",
+            "            System.out.println(1);",
             "        }",
             "    }",
             "}");
@@ -466,7 +466,7 @@ class TranspilerStatementTest {
             "export default class Foo {",
             "    check(): void {",
             "        if (!isValid(1)) {",
-            "            // TODO",
+            "            System.out.println(1);",
             "        }",
             "    }",
             "}");
