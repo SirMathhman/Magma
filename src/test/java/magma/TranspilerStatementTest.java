@@ -522,4 +522,64 @@ class TranspilerStatementTest {
         var result = new Transpiler().toTypeScript(javaSrc);
         assertEquals(expected, result);
     }
+
+    @Test
+    void parsesChainedInvocations() {
+        var javaSrc = String.join(System.lineSeparator(),
+            "public class Foo {",
+            "    void run() {",
+            "        int x = first().second().third();",
+            "    }",
+            "}");
+
+        var expected = String.join(System.lineSeparator(),
+            "export default class Foo {",
+            "    run(): void {",
+            "        let x: number = first().second().third();",
+            "    }",
+            "}");
+
+        var result = new Transpiler().toTypeScript(javaSrc);
+        assertEquals(expected, result);
+    }
+
+    @Test
+    void parsesNestedAndChainedInvocations() {
+        var javaSrc = String.join(System.lineSeparator(),
+            "public class Foo {",
+            "    void run() {",
+            "        int x = outer(inner(foo.bar()), other()).value;",
+            "    }",
+            "}");
+
+        var expected = String.join(System.lineSeparator(),
+            "export default class Foo {",
+            "    run(): void {",
+            "        let x: number = outer(inner(foo.bar()), other()).value;",
+            "    }",
+            "}");
+
+        var result = new Transpiler().toTypeScript(javaSrc);
+        assertEquals(expected, result);
+    }
+
+    @Test
+    void parsesChainedCallsAfterNewInstance() {
+        var javaSrc = String.join(System.lineSeparator(),
+            "public class Foo {",
+            "    void run() {",
+            "        int x = new Main().run().value;",
+            "    }",
+            "}");
+
+        var expected = String.join(System.lineSeparator(),
+            "export default class Foo {",
+            "    run(): void {",
+            "        let x: number = new Main().run().value;",
+            "    }",
+            "}");
+
+        var result = new Transpiler().toTypeScript(javaSrc);
+        assertEquals(expected, result);
+    }
 }

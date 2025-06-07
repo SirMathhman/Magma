@@ -49,6 +49,11 @@ Arguments inside method calls default to `/* TODO */` unless they are
 simple literals or identifiers. Negated method calls keep their callee
 name so boolean checks remain readable.
 
+Recent tests stress nested and chained invocations to ensure this simple
+scanner handles complex expressions without adding another parsing
+framework. Member access after calls now composes with nested argument
+lists so the design stays minimal while covering common Java idioms.
+
 ## Generated Output
 
 The transpiler writes TypeScript files under `src/main/node`. These files are
