@@ -139,7 +139,14 @@ class MethodStubber {
         if (tokens.length >= 2) {
             String name = tokens[tokens.length - 1];
             String type = tokens[tokens.length - 2];
-            String value = isInvokable(rhs) ? stubInvokableExpr(rhs) : "/* TODO */";
+            String value;
+            if (isInvokable(rhs)) {
+                value = stubInvokableExpr(rhs);
+            } else if (rhs.length() >= 2 && rhs.startsWith("\"") && rhs.endsWith("\"")) {
+                value = rhs;
+            } else {
+                value = "/* TODO */";
+            }
             return indent + "    let " + name + ": " + TypeMapper.toTsType(type) + " = " + value + ";";
         }
         return indent + "    // TODO";

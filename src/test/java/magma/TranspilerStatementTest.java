@@ -161,4 +161,24 @@ class TranspilerStatementTest {
         String result = new Transpiler().toTypeScript(javaSrc);
         assertEquals(expected, result);
     }
+
+    @Test
+    void keepsStringValues() {
+        String javaSrc = String.join("\n",
+            "public class Foo {",
+            "    void show() {",
+            "        String msg = \"hi\";",
+            "    }",
+            "}");
+
+        String expected = String.join("\n",
+            "export default class Foo {",
+            "    show(): void {",
+            "        let msg: string = \"hi\";",
+            "    }",
+            "}");
+
+        String result = new Transpiler().toTypeScript(javaSrc);
+        assertEquals(expected, result);
+    }
 }
