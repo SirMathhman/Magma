@@ -16,11 +16,11 @@ export default class Ok<T> implements Result<T> {
 
     @Override
     value(): Option<any> {
-        return /* TODO */;
+        return new Some<>(/* TODO */);
     }
 
     @Override
     error(): Option<string> {
-        return /* TODO */;
+        return new None<>();
     }
 }

@@ -16,11 +16,11 @@ export default class Err<T> implements Result<T> {
 
     @Override
     value(): Option<any> {
-        return /* TODO */;
+        return new None<>();
     }
 
     @Override
     error(): Option<string> {
-        return /* TODO */;
+        return new Some<>(/* TODO */);
     }
 }

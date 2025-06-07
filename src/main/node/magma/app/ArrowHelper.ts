@@ -3,11 +3,11 @@ export default class ArrowHelper {
         let lines: string[] = source./* TODO */("\\R");
         let out: any = new StringBuilder();
         // TODO
-        if (/* TODO */) {
+        if (line./* TODO */("=>")) {
             // TODO
         }
         // TODO
-        return /* TODO */;
+        return out./* TODO */()./* TODO */();
     }
 
     stubArrowAssignments(source: string): string {
@@ -15,12 +15,12 @@ export default class ArrowHelper {
         let out: any = new StringBuilder();
         // TODO
         let trimmed: string = line./* TODO */();
-        if (/* TODO */) {
+        if (/* TODO */("}")) {
             // TODO
         }
         /* TODO */(/* TODO */);
         // TODO
-        return /* TODO */;
+        return out./* TODO */()./* TODO */();
     }
 
     expandArrowBody(line: string, trimmed: string): string {
@@ -35,7 +35,7 @@ export default class ArrowHelper {
         // TODO
         let trimmedPart: string = part./* TODO */();
         // TODO
-        if (/* TODO */) {
+        if (/* TODO */("=")) {
             // TODO
         }
         // TODO

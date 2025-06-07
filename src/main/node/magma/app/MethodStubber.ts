@@ -2,8 +2,8 @@ export default class MethodStubber {
     stubMethods(source: string): string {
         let lines: string[] = source./* TODO */("\\R");
         let out: any = new StringBuilder();
-        let i: number = /* TODO */;
-        while (/* TODO */) {
+        let i: number = 0;
+        while (i < lines.length) {
             // TODO
         }
         /* TODO */(/* TODO */, /* TODO */, /* TODO */, /* TODO */);
@@ -33,7 +33,7 @@ export default class MethodStubber {
         let tsReturn: string = TypeMapper./* TODO */(/* TODO */);
         let stub: any = new StringBuilder();
         /* TODO */(/* TODO */);
-        if (/* TODO */) {
+        if (!tsReturn./* TODO */()) {
             // TODO
         }
         /* TODO */(/* TODO */);
@@ -42,20 +42,20 @@ export default class MethodStubber {
         // TODO
         // TODO
         let body: string = lines[i]./* TODO */();
-        if (/* TODO */) {
+        if (body./* TODO */()) {
             // TODO
         }
         // TODO
-        if (/* TODO */) {
+        if (/* TODO */(/* TODO */)./* TODO */("{")) {
             // TODO
         }
-        if (/* TODO */) {
+        if (body./* TODO */("else")./* TODO */("{")) {
             // TODO
         }
-        if (/* TODO */) {
+        if (body./* TODO */("while")./* TODO */("{")) {
             // TODO
         }
-        if (/* TODO */) {
+        if (body./* TODO */("return")) {
             // TODO
         }
         // TODO
@@ -63,21 +63,21 @@ export default class MethodStubber {
             // TODO
         }
         /* TODO */(/* TODO */);
-        return /* TODO */;
+        return stub./* TODO */();
         // TODO
         /* TODO */(/* TODO */, /* TODO */, /* TODO */);
         // TODO
         let trimmedPart: string = part./* TODO */();
         // TODO
-        if (/* TODO */) {
+        if (trimmedPart./* TODO */("return")) {
             // TODO
         }
         // TODO
         // TODO
         /* TODO */(/* TODO */, /* TODO */);
-        let depth: number = /* TODO */;
+        let depth: number = 1;
         let i: number = /* TODO */;
-        while (/* TODO */) {
+        while (i < lines.length && depth > 0) {
             // TODO
         }
         return /* TODO */;
@@ -90,6 +90,15 @@ export default class MethodStubber {
         /* TODO */(/* TODO */);
         /* TODO */(/* TODO */);
         /* TODO */(/* TODO */);
+        // TODO
+        /* TODO */(/* TODO */);
+        let open: number = stmt./* TODO */(/* TODO */);
+        let close: number = stmt./* TODO */;
+        if (/* TODO */) {
+            // TODO
+        }
+        let inside: string = stmt./* TODO */(/* TODO */, /* TODO */)./* TODO */();
+        return /* TODO */(/* TODO */);
         // TODO
         /* TODO */(/* TODO */, /* TODO */);
         let eq: number = /* TODO */(/* TODO */);
@@ -105,7 +114,7 @@ export default class MethodStubber {
         return /* TODO */;
         // TODO
         /* TODO */(/* TODO */);
-        return /* TODO */;
+        return /* TODO */("=");
         // TODO
         /* TODO */(/* TODO */, /* TODO */);
         return /* TODO */;
@@ -117,45 +126,45 @@ export default class MethodStubber {
             // TODO
         }
         let head: string = stmt./* TODO */(0, /* TODO */)./* TODO */();
-        return /* TODO */;
+        return !head./* TODO */("if")./* TODO */("while")./* TODO */("for");
         // TODO
         /* TODO */(/* TODO */, /* TODO */);
-        return /* TODO */;
+        return /* TODO */(/* TODO */);
         // TODO
         /* TODO */(/* TODO */);
         let trimmed: string = value./* TODO */();
-        if (/* TODO */) {
+        if (trimmed./* TODO */("new ")./* TODO */(/* TODO */)) {
             // TODO
         }
-        if (/* TODO */) {
+        if (/* TODO */("=")) {
             // TODO
         }
-        if (/* TODO */) {
+        if (/* TODO */(/* TODO */)) {
             // TODO
         }
-        if (/* TODO */) {
+        if (/* TODO */("\"")) {
             // TODO
         }
-        if (/* TODO */) {
+        if (/* TODO */(/* TODO */)) {
             // TODO
         }
-        return /* TODO */;
+        if (/* TODO */(/* TODO */)) {
+            // TODO
+        }
+        return "/* TODO */";
         // TODO
         /* TODO */(/* TODO */);
         let trimmed: string = value./* TODO */();
-        if (/* TODO */) {
+        if (/* TODO */(/* TODO */)) {
             // TODO
         }
-        if (/* TODO */) {
-            // TODO
-        }
-        return /* TODO */;
+        return /* TODO */(/* TODO */);
         // TODO
         /* TODO */(/* TODO */);
         let parts: java.util.List<string> = new java.util.ArrayList<>();
-        let depth: number = /* TODO */;
+        let depth: number = 0;
         let part: any = new StringBuilder();
-        let i: any = /* TODO */;
+        let i: any = 0;
         /* TODO */();
         // TODO
         let c: string = expr./* TODO */(/* TODO */);
@@ -168,24 +177,24 @@ export default class MethodStubber {
         // TODO
         /* TODO */(/* TODO */);
         let out: any = new StringBuilder();
-        let i: any = /* TODO */;
+        let i: any = 0;
         /* TODO */();
         // TODO
         // TODO
         /* TODO */(/* TODO */);
         // TODO
-        return /* TODO */;
+        return out./* TODO */();
         // TODO
         /* TODO */(/* TODO */);
-        if (/* TODO */) {
+        if (/* TODO */(/* TODO */)) {
             // TODO
         }
         return /* TODO */;
         // TODO
         /* TODO */(/* TODO */);
         // TODO
-        let i: number = /* TODO */;
-        if (/* TODO */) {
+        let i: number = 0;
+        if (/* TODO */(0)) {
             // TODO
         }
         let dot: boolean = /* TODO */;
@@ -205,10 +214,10 @@ export default class MethodStubber {
         if (/* TODO */) {
             // TODO
         }
-        let open: number = /* TODO */;
-        let depth: number = /* TODO */;
+        let open: number = -1;
+        let depth: number = 0;
         let i: any = /* TODO */;
-        let >: any = /* TODO */;
+        let >: any = 0;
         // TODO
         let c: string = stmt./* TODO */(/* TODO */);
         if (/* TODO */) {
@@ -219,7 +228,7 @@ export default class MethodStubber {
             // TODO
         }
         let head: string = stmt./* TODO */(0, /* TODO */)./* TODO */();
-        if (/* TODO */) {
+        if (head./* TODO */("new ")./* TODO */(".")) {
             // TODO
         }
         let isNew: boolean = head./* TODO */("new ")./* TODO */(".");
@@ -229,7 +238,7 @@ export default class MethodStubber {
         }
         let args: string = stmt./* TODO */(/* TODO */, /* TODO */)./* TODO */();
         let parts: java.util.List<string> = /* TODO */(/* TODO */);
-        let i: any = /* TODO */;
+        let i: any = 0;
         /* TODO */();
         // TODO
         /* TODO */(/* TODO */, /* TODO */);
@@ -238,14 +247,14 @@ export default class MethodStubber {
         if (/* TODO */) {
             // TODO
         }
-        return /* TODO */;
+        return /* TODO */(" + joined + ");
         // TODO
         /* TODO */(/* TODO */);
         let out: java.util.List<string> = new java.util.ArrayList<>();
         // TODO
-        let depth: number = /* TODO */;
+        let depth: number = 0;
         let part: any = new StringBuilder();
-        let i: any = /* TODO */;
+        let i: any = 0;
         /* TODO */();
         // TODO
         let c: string = args./* TODO */(/* TODO */);

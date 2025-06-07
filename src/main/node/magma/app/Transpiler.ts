@@ -39,6 +39,6 @@ export default class Transpiler {
         let withMethods: string = MethodStubber./* TODO */(/* TODO */);
         let withFields: string = FieldTranspiler./* TODO */(/* TODO */);
         let withArrows: string = ArrowHelper./* TODO */(/* TODO */);
-        return /* TODO */;
+        return ArrowHelper./* TODO */(/* TODO */);
         // TODO
     }

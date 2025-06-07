@@ -17,7 +17,7 @@ export default class FieldTranspiler {
             // TODO
         }
         let tokens: string[] = withoutSemi./* TODO */("\\s+");
-        if (/* TODO */) {
+        if (tokens.length < 2) {
             // TODO
         }
         let name: string = tokens[tokens.length - 1];
@@ -26,24 +26,24 @@ export default class FieldTranspiler {
         let modifiers: string = /* TODO */(/* TODO */);
         let tsType: string = TypeMapper./* TODO */(/* TODO */);
         /* TODO */(/* TODO */);
-        if (/* TODO */) {
+        if (!modifiers./* TODO */()) {
             // TODO
         }
         /* TODO */(/* TODO */);
         // TODO
         /* TODO */(/* TODO */);
         // TODO
-        return /* TODO */;
+        return out./* TODO */()./* TODO */();
     }
 
     replaceFinalWithReadonly(mods: string[]): string {
-        let i: any = /* TODO */;
+        let i: any = 0;
         i mods.length: any;
         // TODO
-        if (/* TODO */) {
+        if (mods[i]./* TODO */("final")) {
             // TODO
         }
         // TODO
-        return /* TODO */;
+        return String./* TODO */(" ", /* TODO */)./* TODO */();
     }
 }

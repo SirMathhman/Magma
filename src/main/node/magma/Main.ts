@@ -16,7 +16,7 @@ import List from "../java/util/List";
 export default class Main {
     main(args: string[]): void {
         let error: Option<string> = new Main().run();
-        if (/* TODO */) {
+        if (error./* TODO */()) {
             // TODO
         }
     }
@@ -25,29 +25,29 @@ export default class Main {
         let srcRoot: any = Path./* TODO */("src/main/java");
         let outRoot: any = Path./* TODO */("src/main/node");
         let files: Result<List<any>> = /* TODO */(/* TODO */);
-        if (/* TODO */) {
+        if (!files./* TODO */()) {
             // TODO
         }
         // TODO
         let err: Option<string> = /* TODO */(/* TODO */, /* TODO */, /* TODO */);
-        if (/* TODO */) {
+        if (err./* TODO */()) {
             // TODO
         }
         // TODO
-        return /* TODO */;
+        return new None<>();
     }
 
     listJavaFiles(srcRoot: any): Result<List<any>> {
         let javaFiles: List<any> = new ArrayList<>();
         let stream: any = Files./* TODO */;
         // TODO
-        if (/* TODO */) {
+        if (p./* TODO */()./* TODO */(".java")) {
             // TODO
         }
         // TODO
-        return /* TODO */;
+        return new Ok<>(/* TODO */);
         /* TODO */(/* TODO */);
-        return /* TODO */;
+        return new Err<>(e.getMessage());
         // TODO
     }
 
@@ -61,9 +61,9 @@ export default class Main {
         let outFile: any = outRoot./* TODO */(withoutExt + ".ts");
         /* TODO */(/* TODO */);
         /* TODO */(/* TODO */, /* TODO */);
-        return /* TODO */;
+        return new None<>();
         /* TODO */(/* TODO */);
-        return /* TODO */;
+        return new Some<>(e.getMessage());
         // TODO
     }
 }

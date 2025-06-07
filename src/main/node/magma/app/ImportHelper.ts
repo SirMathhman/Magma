@@ -3,16 +3,16 @@ export default class ImportHelper {
         let lines: string[] = source./* TODO */("\\R");
         // TODO
         let trimmed: string = line./* TODO */();
-        if (/* TODO */) {
+        if (trimmed./* TODO */("package ")./* TODO */(";")) {
             // TODO
         }
         // TODO
-        return /* TODO */;
+        return "";
     }
 
     removePackage(source: string): string {
         let trimmed: string = source./* TODO */();
-        if (/* TODO */) {
+        if (!trimmed./* TODO */("package")) {
             // TODO
         }
         let semicolon: number = source.indexOf(';
@@ -20,13 +20,13 @@ export default class ImportHelper {
         if (/* TODO */) {
             // TODO
         }
-        return /* TODO */;
+        return source./* TODO */(/* TODO */)./* TODO */();
     }
 
     translateImports(source: string, currentPkg: string): string {
         let lines: string[] = source./* TODO */("\\R");
         let out: any = new StringBuilder();
-        let i: any = /* TODO */;
+        let i: any = 0;
         i lines.length: any;
         // TODO
         let line: string = /* TODO */;
@@ -43,12 +43,12 @@ export default class ImportHelper {
         // TODO
         /* TODO */(/* TODO */);
         // TODO
-        return /* TODO */;
+        return out./* TODO */()./* TODO */();
     }
 
     skipEmptyLines(lines: string[], start: number): number {
         let i: number = /* TODO */;
-        while (/* TODO */) {
+        while (i < lines.length && lines[i]./* TODO */()./* TODO */()) {
             // TODO
         }
         return /* TODO */;
@@ -62,15 +62,15 @@ export default class ImportHelper {
         let currentParts: string[] = currentPkg./* TODO */()./* TODO */("\\.");
         let shared: number = /* TODO */(/* TODO */, /* TODO */);
         let path: string = /* TODO */(/* TODO */, /* TODO */, /* TODO */);
-        if (/* TODO */) {
+        if (!path./* TODO */("../")) {
             // TODO
         }
         return /* TODO */;
     }
 
     sharedPrefix(a: string[], b: string[]): number {
-        let i: number = /* TODO */;
-        while (/* TODO */) {
+        let i: number = 0;
+        while (i < a.length && i < b.length && a[i]./* TODO */(/* TODO */)) {
             // TODO
         }
         return /* TODO */;
@@ -80,17 +80,17 @@ export default class ImportHelper {
         let path: any = new StringBuilder();
         /* TODO */(/* TODO */);
         /* TODO */(/* TODO */);
-        return /* TODO */;
+        return path./* TODO */();
     }
 
     upPath(count: number): string {
         let out: any = new StringBuilder();
-        let i: any = /* TODO */;
+        let i: any = 0;
         // TODO
         // TODO
         /* TODO */("../");
         // TODO
-        return /* TODO */;
+        return out./* TODO */();
     }
 
     joinParts(parts: string[], start: number): string {
@@ -100,6 +100,6 @@ export default class ImportHelper {
         // TODO
         /* TODO */(/* TODO */);
         // TODO
-        return /* TODO */;
+        return out./* TODO */();
     }
 }

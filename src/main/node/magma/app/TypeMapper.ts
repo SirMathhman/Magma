@@ -1,6 +1,6 @@
 export default class TypeMapper {
     toTsParams(params: string): string {
-        if (/* TODO */) {
+        if (params./* TODO */()) {
             // TODO
         }
         let out: java.util.List<string> = new java.util.ArrayList<>();
@@ -11,7 +11,7 @@ export default class TypeMapper {
         let type: string = parts.length > 1 ? parts[parts.length - 2] : "any";
         /* TODO */(/* TODO */);
         // TODO
-        return /* TODO */;
+        return String./* TODO */(/* TODO */, /* TODO */, /* TODO */);
     }
 
     toTsType(javaType: string): string {
@@ -20,10 +20,10 @@ export default class TypeMapper {
         if (/* TODO */) {
             // TODO
         }
-        if (/* TODO */) {
+        if (javaType./* TODO */("[]")) {
             // TODO
         }
-        return /* TODO */;
+        return /* TODO */(/* TODO */);
         // TODO
         // TODO
         // TODO
@@ -39,6 +39,6 @@ export default class TypeMapper {
         // TODO
         /* TODO */(/* TODO */);
         // TODO
-        return /* TODO */;
+        return base + "<" + String./* TODO */(/* TODO */, /* TODO */, /* TODO */);
     }
 }
