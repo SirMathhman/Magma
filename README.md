@@ -28,6 +28,12 @@ Basic JUnit tests can be executed with `test.sh`:
 The GitHub Actions workflow also uses Java 21. Building and testing run as two
 independent jobs so failures in either stage are reported clearly.
 
+We encourage contributors to practice **test-driven development**. New features
+or bug fixes should begin with a failing unit test under the `test/` directory
+that demonstrates the expected behaviour. Run the tests with `./test.sh`
+before and after implementing your change and ensure they pass prior to
+committing.
+
 ## Status
 
 This project is still in a very early stage and the generated TypeScript is primarily for demonstration purposes.
@@ -35,3 +41,4 @@ This project is still in a very early stage and the generated TypeScript is prim
 ## Development Notes
 
 Development generally follows a test-driven workflow. When adding new features or fixing bugs, a failing unit test is written first. The implementation is then updated until the test passes. For example, resolving type parameters within record fields was implemented by first adding `RecordTypeParamTest` and `TypeParamResolutionTest` to demonstrate the issue.
+All contributions should include appropriate tests and must pass `./test.sh` before submission.
