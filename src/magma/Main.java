@@ -151,7 +151,12 @@ public class Main {
             if (paramStart >= 0) {
                 final var name = withoutParamEnd.substring(0, paramStart).strip();
                 final var inputParams = withoutParamEnd.substring(paramStart + "(".length());
-                final var fields = getCollect(state, inputParams);
+
+                // Parse type parameters before parsing record parameters so that
+                // parseType can resolve them when used in parameter types.
+                final var typeParams = parseTypeParamsFromName(name);
+                final var withFrame = state.enter(new StructureFrame(typeParams));
+                final var fields = getCollect(withFrame, inputParams);
                 if (!fields.isEmpty()) {
                     return getTupleOption(targetInfix, state, inputContent, modifiers, implementsTypes, new Some<>(fields), name);
                 }
@@ -209,6 +214,20 @@ public class Main {
                 .filter(value -> !value.isEmpty())
                 .map(TypeParam::new)
                 .collect(new ListCollector<>());
+    }
+
+    private static TypeParamSet parseTypeParamsFromName(String name) {
+        if (name.endsWith(">")) {
+            final var withoutEnd = name.substring(0, name.length() - ">".length());
+            final var typeParamsStart = withoutEnd.indexOf("<");
+            if (typeParamsStart >= 0) {
+                final var substring = withoutEnd.substring(typeParamsStart + "<".length());
+                final var typeParams = parseTypeParameters(substring);
+                return new TypeParamSet(typeParams);
+            }
+        }
+
+        return new TypeParamSet();
     }
 
     private static String convertParametersToBeforeBody(List<Definition> parameters) {
@@ -651,7 +670,7 @@ public class Main {
         return appended;
     }
 
-    private static Parameter parseParameter(String input, CompileState state) {
+    static Parameter parseParameter(String input, CompileState state) {
         return parseWhitespace(input).<Parameter>map(parameter -> parameter)
                 .or(() -> parseDefinition(input, state).map(parameter -> parameter))
                 .orElseGet(() -> new Placeholder(input));
@@ -723,9 +742,12 @@ public class Main {
         return new Definition(new Some<>(generatePlaceholder(beforeType)), Lists.empty(), compiledType, name);
     }
 
-    private static Type parseType(String input, CompileState state) {
+    static Type parseType(String input, CompileState state) {
         final var stripped = input.strip();
-        state.stack.resolveTypeParam(stripped);
+        final var maybeTypeParam = state.stack.resolveTypeParam(stripped);
+        if (maybeTypeParam.isPresent()) {
+            return maybeTypeParam.get();
+        }
 
         if (stripped.equals("String")) {
             return new StringType();
