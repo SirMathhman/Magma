@@ -1,4 +1,4 @@
-package com.example.option;
+package magma.option;
 
 /** Holds a present value. */
 public final class Some<T> implements Option<T> {

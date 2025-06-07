@@ -1,8 +1,8 @@
-package com.example.result;
+package magma.result;
 
-import com.example.option.None;
-import com.example.option.Option;
-import com.example.option.Some;
+import magma.option.None;
+import magma.option.Option;
+import magma.option.Some;
 
 /** Successful result value. */
 public final class Ok<T> implements Result<T> {

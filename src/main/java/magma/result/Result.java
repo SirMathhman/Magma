@@ -1,6 +1,6 @@
-package com.example.result;
+package magma.result;
 
-import com.example.option.Option;
+import magma.option.Option;
 
 /**
  * Simple result type for success or error with distinct variants.

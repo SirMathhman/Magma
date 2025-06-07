@@ -1,4 +1,4 @@
-package com.example.app;
+package magma.app;
 
 class FieldTranspiler {
     static String transpileFields(String source) {

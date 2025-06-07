@@ -1,4 +1,4 @@
-package com.example.app;
+package magma.app;
 
 class ArrowHelper {
     static String convertArrowFunctions(String source) {

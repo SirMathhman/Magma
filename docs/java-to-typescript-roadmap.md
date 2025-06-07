@@ -56,13 +56,13 @@ Only the features listed below are supported. Anything not mentioned here is con
 - **Standard library** utilities are replaced with small TypeScript helpers.
 
 ## Key Modules
-- `com.example.app.Transpiler` – orchestrates the conversion to TypeScript
+- `magma.app.Transpiler` – orchestrates the conversion to TypeScript
 - `ImportHelper` – handles packages and import statements
 - `MethodStubber` – stubs out method bodies
 - `FieldTranspiler` – converts field declarations
 - `ArrowHelper` – rewrites lambda expressions
 - `TypeMapper` – maps Java types to their TypeScript equivalents
-- `com.example.Main` – command line driver that runs the transpiler
+- `magma.Main` – command line driver that runs the transpiler
 
 ## Further tasks
 1. ~~Implement translation of basic class structure and type mappings.~~  

@@ -1,4 +1,4 @@
-package com.example.option;
+package magma.option;
 
 /**
  * Minimal optional value container with distinct variants.

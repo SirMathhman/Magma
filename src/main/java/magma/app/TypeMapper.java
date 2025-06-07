@@ -1,4 +1,4 @@
-package com.example.app;
+package magma.app;
 
 class TypeMapper {
     static String toTsParams(String params) {

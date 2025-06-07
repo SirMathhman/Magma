@@ -1,4 +1,4 @@
-package com.example.app;
+package magma.app;
 
 class ImportHelper {
     static String extractPackage(String source) {

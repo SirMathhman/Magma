@@ -4,8 +4,8 @@ This repository begins a self‑hosted transpiler from Java to TypeScript. It ke
 
 ## Main Classes
 
-- `com.example.app.Transpiler` – prototype Java → TypeScript converter
-- `com.example.Main` – CLI that converts all sources under `src/main/java`
+- `magma.app.Transpiler` – prototype Java → TypeScript converter
+- `magma.Main` – CLI that converts all sources under `src/main/java`
   to TypeScript files under `src/main/node`
 - Helper classes split the converter into smaller pieces:
   - `ImportHelper` handles packages and imports
@@ -13,8 +13,8 @@ This repository begins a self‑hosted transpiler from Java to TypeScript. It ke
   - `FieldTranspiler` rewrites field declarations
   - `ArrowHelper` processes lambda expressions
   - `TypeMapper` maps Java types to TypeScript
-- `com.example.result.Result` – base interface with `Ok` and `Err` implementations
-- `com.example.option.Option` – base interface with `Some` and `None` variants
+- `magma.result.Result` – base interface with `Ok` and `Err` implementations
+- `magma.option.Option` – base interface with `Some` and `None` variants
 - `Main.run` now returns an `Option<String>` with an error message on failure
 - Tests mirror the transpiler (`TranspilerClassTest`, `TranspilerMethodTest`,
   `TranspilerFieldTest`, `TranspilerStatementTest`) and CLI (`MainTest`).
@@ -100,6 +100,6 @@ After compiling, you can invoke the transpiler via the CLI. It scans
 `src/main/java` and writes TypeScript files under `src/main/node`:
 
 ```bash
-java -cp bin com.example.Main
+java -cp bin magma.Main
 ```
 

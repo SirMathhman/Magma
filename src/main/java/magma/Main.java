@@ -1,12 +1,12 @@
-package com.example;
+package magma;
 
-import com.example.app.Transpiler;
-import com.example.option.None;
-import com.example.option.Option;
-import com.example.option.Some;
-import com.example.result.Err;
-import com.example.result.Ok;
-import com.example.result.Result;
+import magma.app.Transpiler;
+import magma.option.None;
+import magma.option.Option;
+import magma.option.Some;
+import magma.result.Err;
+import magma.result.Ok;
+import magma.result.Result;
 
 import java.io.IOException;
 import java.nio.file.Files;

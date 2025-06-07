@@ -5,11 +5,11 @@ import Some from "./option/Some";
 import Err from "./result/Err";
 import Ok from "./result/Ok";
 import Result from "./result/Result";
-import IOException from "../../java/io/IOException";
-import Files from "../../java/nio/file/Files";
-import Path from "../../java/nio/file/Path";
-import ArrayList from "../../java/util/ArrayList";
-import List from "../../java/util/List";
+import IOException from "../java/io/IOException";
+import Files from "../java/nio/file/Files";
+import Path from "../java/nio/file/Path";
+import ArrayList from "../java/util/ArrayList";
+import List from "../java/util/List";
 /**
  * Simple command line interface for the Transpiler.
  */

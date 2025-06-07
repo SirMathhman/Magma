@@ -1,8 +1,8 @@
-package com.example.result;
+package magma.result;
 
-import com.example.option.None;
-import com.example.option.Option;
-import com.example.option.Some;
+import magma.option.None;
+import magma.option.Option;
+import magma.option.Some;
 
 /** Error result with a message. */
 public final class Err<T> implements Result<T> {

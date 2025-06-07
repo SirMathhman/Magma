@@ -1,4 +1,4 @@
-package com.example.app;
+package magma.app;
 
 /**
  * Very small prototype that converts a fragment of Java to TypeScript.
