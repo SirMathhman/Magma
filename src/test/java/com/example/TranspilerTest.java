@@ -172,6 +172,24 @@ class TranspilerTest {
     }
 
     @Test
+    void finalFieldsBecomeReadonly() {
+        String javaSrc = String.join("\n",
+            "public class Foo {",
+            "    public final int count;",
+            "    private final String name;",
+            "}");
+
+        String expected = String.join("\n",
+            "export default class Foo {",
+            "    public readonly count: number;",
+            "    private readonly name: string;",
+            "}");
+
+        String result = new Transpiler().toTypeScript(javaSrc);
+        assertEquals(expected, result);
+    }
+
+    @Test
     void preservesExtendsClause() {
         String javaSrc = String.join("\n",
             "public class Child extends Parent {",

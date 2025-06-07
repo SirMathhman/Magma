@@ -28,6 +28,7 @@ tests will drive the full implementation.
 
 Field declarations inside classes are converted to TypeScript property
 syntax with the appropriate type mappings.
+`final` fields become `readonly` properties in the generated TypeScript.
 
 Generic type parameters are preserved, so `List<String>` becomes
 `List<string>` in the transpiled output.
