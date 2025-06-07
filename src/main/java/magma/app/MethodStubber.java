@@ -222,6 +222,9 @@ class MethodStubber {
             return "/* TODO */";
         }
         String head = stmt.substring(0, open).trim();
+        if (head.startsWith("new ") && head.contains(".")) {
+            return stmt;
+        }
         boolean isNew = head.startsWith("new ") && !head.contains(".");
         String callee = "/* TODO */";
         if (isNew) {

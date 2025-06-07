@@ -47,15 +47,17 @@ Only the features listed below are supported. Anything not mentioned here is con
     with `/* TODO */` for the assigned value.
   - Tests: `TranspilerStatementTest.stubsOneTodoPerStatement`,
     `TranspilerStatementTest.leavesValueAssignmentsAsTodo`.
-- **Invokable expressions** like method or constructor calls are stubbed with
-  `/* TODO */` placeholders for the callee and each argument. This includes
-  assignments such as `int x = run();` which become `let x: number = /* TODO */();`.
-  Constructor calls retain the `new` keyword and type name as `new Bar(/* TODO */)`.
+  - **Invokable expressions** like method or constructor calls are stubbed with
+    `/* TODO */` placeholders for the callee and each argument. This includes
+    assignments such as `int x = run();` which become `let x: number = /* TODO */();`.
+    Constructor calls retain the `new` keyword and type name as `new Bar(/* TODO */)`.
+    Calls on freshly created objects such as `new Main().run()` are preserved intact.
   - Tests: `TranspilerStatementTest.stubsInvokables`,
     `TranspilerStatementTest.stubsInvokablesInLetStatements`,
     `TranspilerStatementTest.stubsConstructorCalls`,
     `TranspilerStatementTest.stubsConstructorCallsInLetStatements`,
-    `TranspilerStatementTest.stubsCallsOnNewInstances`.
+    `TranspilerStatementTest.preservesCallsOnNewInstances`,
+    `TranspilerStatementTest.preservesCallsOnNewInstancesInLetStatements`.
 - **Member access** expressions like `parent.child` are kept intact.
   - Tests: `TranspilerStatementTest.preservesMemberAccessInAssignments`,
     `TranspilerStatementTest.preservesMemberAccessInReturns`.
@@ -97,5 +99,7 @@ Only the features listed below are supported. Anything not mentioned here is con
 10. Translate `import` statements to relative paths reflecting the package hierarchy.
 11. Preserve member access expressions like `obj.field`.
 12. Parse constructor types so stubs emit `new Type(/* TODO */)`.
+13. ~~Preserve method calls on newly created instances.~~
+   Calls like `new Main().run()` now remain unchanged in the output.
 
 Each feature should begin with a failing test that describes the expected TypeScript output for a Java example.
