@@ -1,4 +1,6 @@
-package com.example;
+package com.example.result;
+
+import com.example.option.Option;
 
 /**
  * Simple result type for success or error with distinct variants.

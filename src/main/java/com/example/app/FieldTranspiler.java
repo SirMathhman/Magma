@@ -1,4 +1,4 @@
-package com.example;
+package com.example.app;
 
 class FieldTranspiler {
     static String transpileFields(String source) {

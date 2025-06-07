@@ -1,4 +1,4 @@
-package com.example;
+package com.example.option;
 
 /**
  * Minimal optional value container with distinct variants.

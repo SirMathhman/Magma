@@ -1,4 +1,4 @@
-package com.example;
+package com.example.option;
 
 /** Holds a present value. */
 public final class Some<T> implements Option<T> {

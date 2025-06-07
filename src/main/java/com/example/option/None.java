@@ -1,4 +1,4 @@
-package com.example;
+package com.example.option;
 
 /** Represents the absence of a value. */
 public final class None<T> implements Option<T> {

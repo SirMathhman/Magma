@@ -1,4 +1,4 @@
-package com.example;
+package com.example.app;
 
 class TypeMapper {
     static String toTsParams(String params) {

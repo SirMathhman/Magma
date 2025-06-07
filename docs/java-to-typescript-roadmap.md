@@ -56,7 +56,7 @@ Only the features listed below are supported. Anything not mentioned here is con
 - **Standard library** utilities are replaced with small TypeScript helpers.
 
 ## Key Modules
-- `com.example.Transpiler` – orchestrates the conversion to TypeScript
+- `com.example.app.Transpiler` – orchestrates the conversion to TypeScript
 - `ImportHelper` – handles packages and import statements
 - `MethodStubber` – stubs out method bodies
 - `FieldTranspiler` – converts field declarations

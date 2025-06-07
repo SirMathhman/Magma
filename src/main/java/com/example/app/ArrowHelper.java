@@ -1,4 +1,4 @@
-package com.example;
+package com.example.app;
 
 class ArrowHelper {
     static String convertArrowFunctions(String source) {

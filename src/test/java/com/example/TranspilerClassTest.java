@@ -2,6 +2,7 @@ package com.example;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import com.example.app.Transpiler;
 import org.junit.jupiter.api.Test;
 
 class TranspilerClassTest {

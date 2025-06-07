@@ -1,4 +1,8 @@
-package com.example;
+package com.example.result;
+
+import com.example.option.None;
+import com.example.option.Option;
+import com.example.option.Some;
 
 /** Successful result value. */
 public final class Ok<T> implements Result<T> {

@@ -1,4 +1,8 @@
-package com.example;
+package com.example.result;
+
+import com.example.option.None;
+import com.example.option.Option;
+import com.example.option.Some;
 
 /** Error result with a message. */
 public final class Err<T> implements Result<T> {

@@ -1,4 +1,4 @@
-package com.example;
+package com.example.app;
 
 class MethodStubber {
     static String stubMethods(String source) {

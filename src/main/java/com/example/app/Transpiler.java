@@ -1,4 +1,4 @@
-package com.example;
+package com.example.app;
 
 /**
  * Very small prototype that converts a fragment of Java to TypeScript.

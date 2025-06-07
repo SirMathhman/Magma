@@ -2,6 +2,12 @@ package com.example;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import com.example.option.None;
+import com.example.option.Option;
+import com.example.option.Some;
+import com.example.result.Err;
+import com.example.result.Ok;
+import com.example.result.Result;
 import org.junit.jupiter.api.Test;
 
 class OptionResultTest {
