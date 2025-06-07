@@ -58,51 +58,7 @@ class MethodStubber {
             stub.append(": ").append(tsReturn);
         }
         stub.append(" {").append(System.lineSeparator());
-        var wrote = false;
-        for (var i = start; i < end; i++) {
-            var body = lines[i].trim();
-            if (body.isEmpty()) {
-                continue;
-            }
-            wrote = true;
-            if ((body.startsWith("if") || body.startsWith("else if")) && body.endsWith("{")) {
-                var keyword = body.startsWith("else if") ? "else if" : "if";
-                var cond = parseCondition(body);
-                appendBlockStub(stub, indent, keyword, cond);
-                i = skipBody(lines, i) - 1;
-                continue;
-            }
-            if (body.startsWith("else") && body.endsWith("{")) {
-                appendBlockStub(stub, indent, "else", null);
-                i = skipBody(lines, i) - 1;
-                continue;
-            }
-            if (body.startsWith("while") && body.endsWith("{")) {
-                var cond = parseCondition(body);
-                appendBlockStub(stub, indent, "while", cond);
-                i = skipBody(lines, i) - 1;
-                continue;
-            }
-            if (body.startsWith("return")) {
-                var expr = body.substring(6).trim();
-                if (expr.endsWith(";")) {
-                    expr = expr.substring(0, expr.length() - 1).trim();
-                }
-                if (expr.isBlank()) {
-                    stub.append(indent).append("    return;").append(System.lineSeparator());
-                } else {
-                    stub.append(indent).append("    return ")
-                        .append(parseValue(expr))
-                        .append(";")
-                        .append(System.lineSeparator());
-                }
-            } else {
-                appendParts(body.split(";"), indent, stub);
-            }
-        }
-        if (!wrote) {
-            stub.append(indent).append("    // TODO").append(System.lineSeparator());
-        }
+        parseStatements(lines, start, end, indent, stub);
         stub.append(indent).append("}").append(System.lineSeparator());
         return stub.toString();
     }
@@ -136,6 +92,55 @@ class MethodStubber {
         }
     }
 
+    private static void parseStatements(String[] lines, int start, int end, String indent, StringBuilder stub) {
+        var wrote = false;
+        for (var i = start; i < end; i++) {
+            var body = lines[i].trim();
+            if (body.isEmpty()) continue;
+            wrote = true;
+            if ((body.startsWith("if") || body.startsWith("else if")) && body.endsWith("{")) {
+                var keyword = body.startsWith("else if") ? "else if" : "if";
+                var cond = parseCondition(body);
+                var blockEnd = skipBody(lines, i);
+                appendParsedBlock(stub, indent, keyword, cond, lines, i + 1, blockEnd - 1);
+                i = blockEnd - 1;
+                continue;
+            }
+            if (body.startsWith("else") && body.endsWith("{")) {
+                var blockEnd = skipBody(lines, i);
+                appendParsedBlock(stub, indent, "else", null, lines, i + 1, blockEnd - 1);
+                i = blockEnd - 1;
+                continue;
+            }
+            if (body.startsWith("while") && body.endsWith("{")) {
+                var cond = parseCondition(body);
+                var blockEnd = skipBody(lines, i);
+                appendParsedBlock(stub, indent, "while", cond, lines, i + 1, blockEnd - 1);
+                i = blockEnd - 1;
+                continue;
+            }
+            if (body.startsWith("return")) {
+                var expr = body.substring(6).trim();
+                if (expr.endsWith(";")) {
+                    expr = expr.substring(0, expr.length() - 1).trim();
+                }
+                if (expr.isBlank()) {
+                    stub.append(indent).append("    return;").append(System.lineSeparator());
+                } else {
+                    stub.append(indent).append("    return ")
+                        .append(parseValue(expr))
+                        .append(";")
+                        .append(System.lineSeparator());
+                }
+            } else {
+                appendParts(body.split(";"), indent, stub);
+            }
+        }
+        if (!wrote) {
+            stub.append(indent).append("    // TODO").append(System.lineSeparator());
+        }
+    }
+
     static int skipBody(String[] lines, int index) {
         var depth = 1;
         var i = index + 1;
@@ -148,13 +153,14 @@ class MethodStubber {
         return i;
     }
 
-    static void appendBlockStub(StringBuilder stub, String indent, String keyword, String condition) {
+    static void appendParsedBlock(StringBuilder stub, String indent, String keyword,
+                                  String condition, String[] lines, int start, int end) {
         stub.append(indent).append("    ").append(keyword);
         if (condition != null) {
             stub.append(" (").append(condition).append(")");
         }
         stub.append(" {").append(System.lineSeparator());
-        stub.append(indent).append("        // TODO").append(System.lineSeparator());
+        parseStatements(lines, start, end, indent + "    ", stub);
         stub.append(indent).append("    }").append(System.lineSeparator());
     }
 
