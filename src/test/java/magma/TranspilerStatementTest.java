@@ -48,6 +48,46 @@ class TranspilerStatementTest {
     }
 
     @Test
+    void stubsConstructorCalls() {
+        String javaSrc = String.join("\n",
+                "public class Foo {",
+                "    void build() {",
+                "        new Bar(1, 2);",
+                "    }",
+                "}");
+
+        String expected = String.join("\n",
+                "export default class Foo {",
+                "    build(): void {",
+                "        new /* TODO */(/* TODO */, /* TODO */);",
+                "    }",
+                "}");
+
+        String result = new Transpiler().toTypeScript(javaSrc);
+        assertEquals(expected, result);
+    }
+
+    @Test
+    void stubsConstructorCallsInLetStatements() {
+        String javaSrc = String.join("\n",
+                "public class Foo {",
+                "    void make() {",
+                "        Bar b = new Bar(1);",
+                "    }",
+                "}");
+
+        String expected = String.join("\n",
+                "export default class Foo {",
+                "    make(): void {",
+                "        let b: any = new /* TODO */(/* TODO */);",
+                "    }",
+                "}");
+
+        String result = new Transpiler().toTypeScript(javaSrc);
+        assertEquals(expected, result);
+    }
+
+    @Test
     void leavesValueAssignmentsAsTodo() {
         String javaSrc = String.join("\n",
             "public class Foo {",
@@ -168,6 +208,11 @@ class TranspilerStatementTest {
             "public class Foo {",
             "    void show() {",
             "        String msg = \"hi\";",
+    void preservesMemberAccessInAssignments() {
+        String javaSrc = String.join("\n",
+            "public class Foo {",
+            "    void run(Parent p) {",
+            "        int x = p.count;",
             "    }",
             "}");
 
@@ -175,6 +220,28 @@ class TranspilerStatementTest {
             "export default class Foo {",
             "    show(): void {",
             "        let msg: string = \"hi\";",
+            "    run(p: any): void {",
+            "        let x: number = p.count;",
+            "    }",
+            "}");
+
+        String result = new Transpiler().toTypeScript(javaSrc);
+        assertEquals(expected, result);
+    }
+
+    @Test
+    void preservesMemberAccessInReturns() {
+        String javaSrc = String.join("\n",
+            "public class Foo {",
+            "    int get(Parent p) {",
+            "        return p.count;",
+            "    }",
+            "}");
+
+        String expected = String.join("\n",
+            "export default class Foo {",
+            "    get(p: any): number {",
+            "        return p.count;",
             "    }",
             "}");
 

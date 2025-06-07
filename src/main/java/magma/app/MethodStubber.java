@@ -78,7 +78,19 @@ class MethodStubber {
                 continue;
             }
             if (body.startsWith("return")) {
-                stub.append(indent).append("    return /* TODO */;").append(System.lineSeparator());
+                String expr = body.substring(6).trim();
+                if (expr.endsWith(";")) {
+                    expr = expr.substring(0, expr.length() - 1).trim();
+                }
+                if (expr.isBlank()) {
+                    stub.append(indent).append("    return;").append(System.lineSeparator());
+                } else if (isMemberAccess(expr)) {
+                    stub.append(indent).append("    return ").append(expr).append(";")
+                       .append(System.lineSeparator());
+                } else {
+                    stub.append(indent).append("    return /* TODO */;")
+                       .append(System.lineSeparator());
+                }
             } else {
                 appendParts(body.split(";"), indent, stub);
             }
@@ -95,11 +107,24 @@ class MethodStubber {
             String trimmedPart = part.trim();
             if (trimmedPart.isEmpty()) continue;
             if (trimmedPart.startsWith("return")) {
-                stub.append(indent).append("    return /* TODO */;").append(System.lineSeparator());
+                String expr = trimmedPart.substring(6).trim();
+                if (expr.endsWith(";")) {
+                    expr = expr.substring(0, expr.length() - 1).trim();
+                }
+                if (expr.isBlank()) {
+                    stub.append(indent).append("    return;").append(System.lineSeparator());
+                } else if (isMemberAccess(expr)) {
+                    stub.append(indent).append("    return ").append(expr).append(";")
+                        .append(System.lineSeparator());
+                } else {
+                    stub.append(indent).append("    return /* TODO */;").append(System.lineSeparator());
+                }
             } else if (trimmedPart.contains("=")) {
                 stub.append(parseAssignment(trimmedPart, indent)).append(System.lineSeparator());
             } else if (isInvokable(trimmedPart)) {
                 stub.append(parseInvokable(trimmedPart, indent)).append(System.lineSeparator());
+            } else if (isMemberAccess(trimmedPart)) {
+                stub.append(parseMemberAccess(trimmedPart, indent)).append(System.lineSeparator());
             } else {
                 stub.append(indent).append("    // TODO").append(System.lineSeparator());
             }
@@ -142,7 +167,7 @@ class MethodStubber {
             String value;
             if (isInvokable(rhs)) {
                 value = stubInvokableExpr(rhs);
-            } else if (rhs.length() >= 2 && rhs.startsWith("\"") && rhs.endsWith("\"")) {
+            } else if ((rhs.length() >= 2 && rhs.startsWith("\"") && rhs.endsWith("\"")) || isMemberAccess(rhs)) {
                 value = rhs;
             } else {
                 value = "/* TODO */";
@@ -150,6 +175,14 @@ class MethodStubber {
             return indent + "    let " + name + ": " + TypeMapper.toTsType(type) + " = " + value + ";";
         }
         return indent + "    // TODO";
+    }
+
+    static boolean isMemberAccess(String stmt) {
+        return stmt.contains(".") && !stmt.contains("(") && !stmt.contains("=");
+    }
+
+    static String parseMemberAccess(String stmt, String indent) {
+        return indent + "    " + stmt + ";";
     }
 
     static boolean isInvokable(String stmt) {
@@ -172,6 +205,8 @@ class MethodStubber {
         if (open == -1 || close == -1 || close <= open) {
             return "/* TODO */";
         }
+        String head = stmt.substring(0, open).trim();
+        boolean isNew = head.startsWith("new ");
         String args = stmt.substring(open + 1, close).trim();
         int count = args.isBlank() ? 0 : args.split(",").length;
         java.util.List<String> parts = new java.util.ArrayList<>();
@@ -179,6 +214,7 @@ class MethodStubber {
             parts.add("/* TODO */");
         }
         String joined = String.join(", ", parts);
-        return "/* TODO */(" + joined + ")";
+        String prefix = isNew ? "new " : "";
+        return prefix + "/* TODO */(" + joined + ")";
     }
 }
