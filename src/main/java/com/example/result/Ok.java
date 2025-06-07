@@ -8,7 +8,7 @@ import com.example.option.Some;
 public final class Ok<T> implements Result<T> {
     private final T value;
 
-    Ok(T value) {
+    public Ok(T value) {
         this.value = value;
     }
 

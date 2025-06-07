@@ -8,7 +8,7 @@ import com.example.option.Some;
 public final class Err<T> implements Result<T> {
     private final String message;
 
-    Err(String message) {
+    public Err(String message) {
         this.message = message;
     }
 

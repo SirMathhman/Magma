@@ -4,7 +4,7 @@ package com.example.option;
 public final class Some<T> implements Option<T> {
     private final T value;
 
-    Some(T value) {
+    public Some(T value) {
         this.value = value;
     }
 

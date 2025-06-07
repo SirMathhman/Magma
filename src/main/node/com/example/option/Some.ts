@@ -1,6 +1,8 @@
-/** Represents the absence of a value. */
-export default class None<T> implements Option<T> {
-    None(): void {
+/** Holds a present value. */
+export default class Some<T> implements Option<T> {
+    private readonly value: any;
+
+    Some(value: any): any {
         // TODO
     }
 

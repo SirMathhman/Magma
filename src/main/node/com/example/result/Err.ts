@@ -1,8 +1,11 @@
+import None from "../option/None";
+import Option from "../option/Option";
+import Some from "../option/Some";
 /** Error result with a message. */
 export default class Err<T> implements Result<T> {
     private readonly message: string;
 
-    Err(message: string): void {
+    Err(message: string): any {
         // TODO
     }
 
