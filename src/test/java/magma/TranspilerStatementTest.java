@@ -79,7 +79,7 @@ class TranspilerStatementTest {
         var expected = String.join(System.lineSeparator(),
                 "export default class Foo {",
                 "    make(): void {",
-                "        let b: any = new Bar(1);",
+                "        let b: Bar = new Bar(1);",
                 "    }",
                 "}");
 
@@ -294,7 +294,7 @@ class TranspilerStatementTest {
 
         var expected = String.join(System.lineSeparator(),
             "export default class Foo {",
-            "    run(p: any): void {",
+            "    run(p: Parent): void {",
             "        let x: number = p.count;",
             "    }",
             "}");
@@ -314,7 +314,7 @@ class TranspilerStatementTest {
 
         var expected = String.join(System.lineSeparator(),
             "export default class Foo {",
-            "    get(p: any): number {",
+            "    get(p: Parent): number {",
             "        return p.count;",
             "    }",
             "}");
@@ -440,7 +440,7 @@ class TranspilerStatementTest {
 
         var expected = String.join(System.lineSeparator(),
             "export default class Foo {",
-            "    loop(it: any): void {",
+            "    loop(it: Iter): void {",
             "        while (it.hasNext()) {",
             "            // TODO",
             "        }",

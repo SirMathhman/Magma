@@ -3,7 +3,9 @@
 This project explores a minimal approach to translating small Java
 programs into TypeScript.  The code is test driven and keeps the design
 as simple as possible so it can eventually self host without relying on
-the full Java standard library.
+the full Java standard library. Unknown type identifiers are emitted
+unchanged so the generated TypeScript stays close to the original
+sources.
 
 Full module descriptions live in
 [`docs/architecture-overview.md`](docs/architecture-overview.md).  A

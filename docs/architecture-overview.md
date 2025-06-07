@@ -18,7 +18,8 @@ platforms.
   walks expressions using `parseValue`
 - `FieldTranspiler` – converts Java field definitions
 - `ArrowHelper` – rewrites lambda expressions to arrow functions
-- `TypeMapper` – maps primitive and generic types
+- `TypeMapper` – maps primitive and generic types and leaves unknown
+  identifiers unchanged so the output stays close to the source
 - `magma.Main` – CLI entry point
 - `magma.result.Result` and `magma.option.Option` – lightweight
   replacements for exceptions
