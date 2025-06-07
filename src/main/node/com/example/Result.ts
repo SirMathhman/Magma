@@ -1,7 +1,7 @@
 /**
  * Simple result type for success or error with distinct variants.
  */
-public interface Result<T> {
+export interface Result<T> {
     boolean isOk();
 
     Option<T> value();
