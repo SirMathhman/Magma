@@ -4,7 +4,7 @@ This page outlines how Java language features map to their TypeScript counterpar
 
 | Java Feature | TypeScript Equivalent | Notes | Tests |
 | ------------ | -------------------- | ----- | ----- |
-| `package` declarations | `module` or ES module system | Use directory structure to mirror packages. | `TranspilerTest.removesPackageDeclaration`, `MainTest.printsTranspiledSource` |
+| `package` declarations | `module` or ES module system | Use directory structure to mirror packages. | `TranspilerTest.removesPackageDeclaration`, `MainTest.buildsFilesUnderSourceDirectory` |
 | Primitive types (`int`, `float`, `double`, `long`) | `number` | TypeScript uses a single `number` type. | `TranspilerTest.stubsMethodBodiesPreservingNames` |
 | `boolean` / `Boolean` | `boolean` | Direct mapping. | `TranspilerTest.mapsBooleanTypes` |
 | `char` | `string` | Primitive character becomes a string. | `TranspilerTest.mapsCharCharacterAndStringToString` |
