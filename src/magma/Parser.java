@@ -356,7 +356,7 @@ public final class Parser {
                 .collect(new ListCollector<>());
     }
 
-    private static List<String> divide(String input, BiFunction<DivideState, Character, DivideState> folder) {
+    public static List<String> divide(String input, BiFunction<DivideState, Character, DivideState> folder) {
         DivideState state = new DivideState();
         final var length = input.length();
         var current = state;

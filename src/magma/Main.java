@@ -36,37 +36,17 @@ public class Main {
     }
 
     private static String compileAll(String input, Function<String, String> mapper, BiFunction<DivideState, Character, DivideState> folder, BiFunction<StringBuilder, String, StringBuilder> merger) {
-        return mergeAll(parseAll(input, folder, mapper), merger);
-    }
-
-    private static String mergeAll(List<String> elements, BiFunction<StringBuilder, String, StringBuilder> merger) {
-        return elements.iter()
-                .fold(new StringBuilder(), merger)
-                .toString();
-    }
-
-    private static <T> List<T> parseAll(String input, BiFunction<DivideState, Character, DivideState> folder, Function<String, T> mapper) {
-        return divide(input, folder)
+        return Parser.divide(input, folder)
                 .iter()
                 .map(mapper)
-                .collect(new ListCollector<>());
+                .fold(new StringBuilder(), merger)
+                .toString();
     }
 
     private static StringBuilder mergeStatements(StringBuilder output, String compiled) {
         return output.append(compiled);
     }
 
-    private static List<String> divide(String input, BiFunction<DivideState, Character, DivideState> folder) {
-        DivideState state = new DivideState();
-        final var length = input.length();
-        var current = state;
-        for (var i = 0; i < length; i++) {
-            final var c = input.charAt(i);
-            current = folder.apply(current, c);
-        }
-
-        return current.advance().segments;
-    }
 
     private static DivideState foldStatements(DivideState current, char c) {
         final var appended = current.append(c);
@@ -170,7 +150,7 @@ public class Main {
     }
 
     private static List<Definition> getCollect(CompileState state, String inputParams) {
-        return divide(inputParams, Parser::foldValues)
+        return Parser.divide(inputParams, Parser::foldValues)
                 .iter()
                 .map(input -> Parser.parseParameter(input, state))
                 .map(Main::retainDefinition)
@@ -211,7 +191,7 @@ public class Main {
     }
 
     private static List<TypeParam> parseTypeParameters(String substring) {
-        return divide(substring, Parser::foldValues)
+        return Parser.divide(substring, Parser::foldValues)
                 .iter()
                 .map(String::strip)
                 .filter(value -> !value.isEmpty())
@@ -321,7 +301,7 @@ public class Main {
     }
 
     private static Tuple<StringBuilder, CompileState> joinClassSegments(String inputContent, CompileState state) {
-        return divide(inputContent, Main::foldStatements)
+        return Parser.divide(inputContent, Main::foldStatements)
                 .iter()
                 .fold(new Tuple<>(new StringBuilder(), state), (tuple, element) -> {
                     final var compiled = compileClassSegment(element, tuple.right());
@@ -341,10 +321,6 @@ public class Main {
 
     private static String generateStatement(String content) {
         return "\n" + "\t".repeat(2) + content + ";";
-    }
-
-    private static String joinWithDelimiter(List<String> list) {
-        return list.iter().collect(new Joiner(" ")).orElse("");
     }
 
     private static Tuple<String, CompileState> compileClassSegment(String input, CompileState state) {
@@ -401,7 +377,7 @@ public class Main {
         }
 
         final var outputDefinition = maybeOutputDefinition.get();
-        final var parameters = parseAll(inputParams, Parser::foldValues, input2 -> Parser.parseParameter(input2, state))
+        final var parameters = Parser.parseValuesString(inputParams, input2 -> Parser.parseParameter(input2, state))
                 .iter()
                 .map(Main::retainDefinition)
                 .flatMap(Iterators::fromOptional)
@@ -470,70 +446,5 @@ public class Main {
         }
     }
 
-    private static Option<Definition> parseDefinition(String input, CompileState state) {
-        final var stripped = input.strip();
-        final var nameSeparator = stripped.lastIndexOf(" ");
-        if (nameSeparator < 0) {
-            return new None<>();
-        }
-
-        final var beforeName = stripped.substring(0, nameSeparator).strip();
-        final var name = stripped.substring(nameSeparator + " ".length()).strip();
-        if (!Parser.isSymbol(name)) {
-            return new None<>();
-        }
-
-        final var divisions = divide(beforeName, Main::foldTypeSeparator);
-        final var maybePopped = divisions.popLast();
-        if (maybePopped.isEmpty()) {
-            return new Some<>(new Definition(new None<>(), Lists.empty(), Parser.parseType(beforeName, state), name));
-        }
-
-        final var popped = maybePopped.get();
-        final var beforeTypeDivisions = popped.left();
-        final var type = popped.right();
-        final var compiledType = Parser.parseType(type, state);
-
-        if (beforeTypeDivisions.isEmpty()) {
-            return new Some<>(new Definition(new None<>(), Lists.empty(), Parser.parseType(type, state), name));
-        }
-
-        final var beforeType = joinWithDelimiter(beforeTypeDivisions);
-        return new Some<>(assembleDefinition(beforeType, compiledType, name));
-    }
-
-    private static DivideState foldTypeSeparator(DivideState state, char c) {
-        if (c == ' ' && state.isLevel()) {
-            return state.advance();
-        }
-
-        final var appended = state.append(c);
-        if (c == '<') {
-            return appended.enter();
-        }
-        if (c == '>') {
-            return appended.exit();
-        }
-        return appended;
-    }
-
-    private static Definition assembleDefinition(String beforeType, Type compiledType, String name) {
-        if (beforeType.endsWith(">")) {
-            final var withoutEnd = beforeType.substring(0, beforeType.length() - ">".length());
-            final var typeParamStart = withoutEnd.indexOf("<");
-            if (typeParamStart >= 0) {
-                final var beforeTypeParams = withoutEnd.substring(0, typeParamStart);
-                final var typeParamsString = withoutEnd.substring(typeParamStart + "<".length());
-                final var typeParams = Parser.parseValuesString(typeParamsString, String::strip);
-
-                final Option<String> beforeTypeOptional;
-                beforeTypeOptional = beforeTypeParams.isEmpty() ? new None<>() : new Some<>(Generator.generatePlaceholder(beforeTypeParams));
-
-                return new Definition(beforeTypeOptional, typeParams, compiledType, name);
-            }
-        }
-
-        return new Definition(new Some<>(Generator.generatePlaceholder(beforeType)), Lists.empty(), compiledType, name);
-    }
 
 }
