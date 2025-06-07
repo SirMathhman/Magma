@@ -21,6 +21,6 @@ public class FunctionalInterfaceTypeTest {
     @Test
     void parsesBiFunction() {
         var type = Parser.parseType("BiFunction<int, int, String>", new CompileState());
-        assertEquals("(param0 : int, param1 : int) => string", type.generate());
+        assertEquals("(param0 : number, param1 : number) => string", type.generate());
     }
 }

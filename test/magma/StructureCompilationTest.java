@@ -27,8 +27,8 @@ public class StructureCompilationTest {
     void compilesRecord() throws Exception {
         String output = compileStructure("public record R(int x) {}", "record ", "class");
         assertTrue(output.startsWith("export class R {"));
-        assertTrue(output.contains("x: int;"));
-        assertTrue(output.contains("constructor (x: int)"));
+        assertTrue(output.contains("x: number;"));
+        assertTrue(output.contains("constructor (x: number)"));
     }
 
     @Test
@@ -41,6 +41,6 @@ public class StructureCompilationTest {
     void implementsRelationshipPreserved() throws Exception {
         String output = compileStructure("public class A implements I { int x; }", "class ", "class");
         assertTrue(output.startsWith("export class A implements I {"));
-        assertTrue(output.contains("x: int;"));
+        assertTrue(output.contains("x: number;"));
     }
 }

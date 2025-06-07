@@ -9,7 +9,7 @@ This document summarises which Java language features are currently handled by t
 - Converts fields and methods with their parameter and return types.
 - Supports generic type parameters on classes and methods.
 - Preserves the `static` modifier on methods.
-- Maps primitive types (`byte`, `short`, `int`, `long`, `float`, `double`) to `number`, `boolean` to `boolean` and `char`/`String` to `string`.
+- Maps primitive types (`byte`, `short`, `int`, `long`, `float`, `double`) to `number`, `boolean` to `boolean` and `char`/`String` to `string` via the `NumberType`, `BooleanType` and `StringType` nodes.
 - Converts Java functional interfaces (`Function`, `BiFunction`, `Supplier`) to arrow function types.
 - Resolves type parameters within record constructors and fields.
 - Compiles all Java files under `src/` to matching paths under `src-web/`.

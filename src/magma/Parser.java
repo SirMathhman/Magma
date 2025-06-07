@@ -276,8 +276,17 @@ public final class Parser {
             return maybeTypeParam.get();
         }
 
-        if (stripped.equals("String")) {
+        if (stripped.equals("String") || stripped.equals("char")) {
             return new StringType();
+        }
+
+        switch (stripped) {
+            case "byte", "short", "int", "long", "float", "double" -> {
+                return new NumberType();
+            }
+            case "boolean" -> {
+                return new BooleanType();
+            }
         }
 
         if (stripped.endsWith(">")) {

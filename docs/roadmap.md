@@ -10,7 +10,7 @@ This roadmap compares major Java features with their TypeScript counterparts as 
 | Fields and Methods | Fields and function members with parameter and return types | Implemented |
 | Generic Type Parameters | Generic parameters on classes and methods | Implemented |
 | `static` Methods | `static` methods in TypeScript | Implemented |
-| Primitive Types (`byte`, `short`, `int`, `long`, `float`, `double`) | `number` | Implemented |
+| Primitive Types (`byte`, `short`, `int`, `long`, `float`, `double`) | `number` | Complete |
 | `boolean` | `boolean` | Implemented |
 | `char`, `String` | `string` | Implemented |
 | Functional Interfaces (`Function`, `BiFunction`, `Supplier`) | Arrow function types | Implemented |
