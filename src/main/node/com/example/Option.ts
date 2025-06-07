@@ -1,30 +1,8 @@
 /**
- * Minimal optional value container.
+ * Minimal optional value container with distinct variants.
  */
-export default class Option<T> {
-    private readonly value: any;
+public interface Option<T> {
+    boolean isSome();
 
-    Option(value: any): any {
-        // TODO
-    }
-
-    some(value: any): Option<any> {
-        return /* TODO */;
-    }
-
-    none(): Option<any> {
-        return /* TODO */;
-    }
-
-    isSome(): boolean {
-        return /* TODO */;
-    }
-
-    isNone(): boolean {
-        return /* TODO */;
-    }
-
-    get(): any {
-        return /* TODO */;
-    }
+    T get();
 }

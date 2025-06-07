@@ -15,11 +15,11 @@ public final class Err<T> implements Result<T> {
 
     @Override
     public Option<T> value() {
-        return Option.none();
+        return new None<>();
     }
 
     @Override
     public Option<String> error() {
-        return Option.some(message);
+        return new Some<>(message);
     }
 }

@@ -15,11 +15,11 @@ public final class Ok<T> implements Result<T> {
 
     @Override
     public Option<T> value() {
-        return Option.some(value);
+        return new Some<>(value);
     }
 
     @Override
     public Option<String> error() {
-        return Option.none();
+        return new None<>();
     }
 }

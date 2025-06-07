@@ -14,11 +14,6 @@ public final class Some<T> implements Option<T> {
     }
 
     @Override
-    public boolean isNone() {
-        return false;
-    }
-
-    @Override
     public T get() {
         return value;
     }

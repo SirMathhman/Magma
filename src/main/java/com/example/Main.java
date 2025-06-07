@@ -23,7 +23,7 @@ public class Main {
 
         Result<List<Path>> files = listJavaFiles(srcRoot);
         if (!files.isOk()) {
-            return Option.some(files.error().get());
+            return new Some<>(files.error().get());
         }
 
         for (Path file : files.value().get()) {
@@ -32,7 +32,7 @@ public class Main {
                 return err;
             }
         }
-        return Option.none();
+        return new None<>();
     }
 
     private Result<List<Path>> listJavaFiles(Path srcRoot) {
@@ -43,9 +43,9 @@ public class Main {
                     javaFiles.add(p);
                 }
             });
-            return Result.ok(javaFiles);
+            return new Ok<>(javaFiles);
         } catch (IOException e) {
-            return Result.error(e.getMessage());
+            return new Err<>(e.getMessage());
         }
     }
 
@@ -59,9 +59,9 @@ public class Main {
             Path outFile = outRoot.resolve(withoutExt + ".ts");
             Files.createDirectories(outFile.getParent());
             Files.writeString(outFile, ts + System.lineSeparator());
-            return Option.none();
+            return new None<>();
         } catch (IOException e) {
-            return Option.some(e.getMessage());
+            return new Some<>(e.getMessage());
         }
     }
 }

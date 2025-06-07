@@ -9,12 +9,4 @@ public interface Result<T> {
     Option<T> value();
 
     Option<String> error();
-
-    static <T> Result<T> ok(T value) {
-        return new Ok<>(value);
-    }
-
-    static <T> Result<T> error(String message) {
-        return new Err<>(message);
-    }
 }

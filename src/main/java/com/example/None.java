@@ -11,11 +11,6 @@ public final class None<T> implements Option<T> {
     }
 
     @Override
-    public boolean isNone() {
-        return true;
-    }
-
-    @Override
     public T get() {
         return null;
     }
