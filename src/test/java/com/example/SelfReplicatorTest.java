@@ -23,7 +23,7 @@ class SelfReplicatorTest {
 
     @Test
     void copiesItselfToDestination() throws IOException {
-        Path tempFile = Files.createTempFile("replica", ".class");
+        Path tempFile = Files.createTempFile("replica", ".ts");
         SelfReplicator.copySelf(tempFile);
         byte[] original = readResource();
         byte[] copy = Files.readAllBytes(tempFile);

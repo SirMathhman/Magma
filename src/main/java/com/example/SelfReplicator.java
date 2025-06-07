@@ -28,7 +28,7 @@ public class SelfReplicator {
 
     public static void main(String[] args) throws IOException {
         if (args.length != 1) {
-            System.out.println("Usage: java SelfReplicator <destination file>");
+            System.out.println("Usage: java SelfReplicator <destination.ts>");
             return;
         }
         copySelf(Path.of(args[0]));
