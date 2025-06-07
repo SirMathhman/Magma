@@ -142,7 +142,8 @@ public class Transpiler {
 
             String name = tokens[tokens.length - 1];
             String type = tokens[tokens.length - 2];
-            String modifiers = String.join(" ", java.util.Arrays.copyOf(tokens, tokens.length - 2));
+            String[] modArray = java.util.Arrays.copyOf(tokens, tokens.length - 2);
+            String modifiers = replaceFinalWithReadonly(modArray);
             String tsType = toTsType(type);
             out.append(indent);
             if (!modifiers.isBlank()) {
@@ -151,6 +152,15 @@ public class Transpiler {
             out.append(name).append(": ").append(tsType).append(";").append(System.lineSeparator());
         }
         return out.toString().trim();
+    }
+
+    private String replaceFinalWithReadonly(String[] mods) {
+        for (int i = 0; i < mods.length; i++) {
+            if (mods[i].equals("final")) {
+                mods[i] = "readonly";
+            }
+        }
+        return String.join(" ", mods).trim();
     }
 
     private String convertArrowFunctions(String source) {
