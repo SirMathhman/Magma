@@ -15,7 +15,7 @@ import List from "../java/util/List";
  */
 export default class Main {
     main(args: string[]): void {
-        let error: Option<string> = new Main().run();
+        let error: any = new Main().run();
         if (error.isSome()) {
             // TODO
         }
@@ -24,12 +24,12 @@ export default class Main {
     run(): Option<string> {
         let srcRoot: any = Path.of("src/main/java");
         let outRoot: any = Path.of("src/main/node");
-        let files: Result<List<any>> = listJavaFiles(srcRoot);
+        let files: any = listJavaFiles(srcRoot);
         if (!files.isOk()) {
             // TODO
         }
         // TODO
-        let err: Option<string> = transpileFile(srcRoot, outRoot, file);
+        let err: any = transpileFile(srcRoot, outRoot, file);
         if (err.isSome()) {
             // TODO
         }
@@ -53,11 +53,11 @@ export default class Main {
 
     transpileFile(srcRoot: any, outRoot: any, javaFile: any): Option<string> {
         // TODO
-        let javaSrc: string = Files.readString(javaFile);
-        let ts: string = new Transpiler().toTypeScript(javaSrc);
+        let javaSrc: any = Files.readString(javaFile);
+        let ts: any = new Transpiler().toTypeScript(javaSrc);
         let rel: any = srcRoot.relativize(javaFile);
-        let name: string = rel.toString();
-        let withoutExt: string = name.substring(0, name.length());
+        let name: any = rel.toString();
+        let withoutExt: any = name.substring(0, name.length());
         let outFile: any = outRoot.resolve(withoutExt + ".ts");
         Files.createDirectories(outFile.getParent());
         Files.writeString(outFile, ts + System.lineSeparator());

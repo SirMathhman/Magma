@@ -13,32 +13,32 @@ export default class Transpiler {
      * @return transpiled TypeScript
      */
     toTypeScript(javaSource: string): string {
-        let pkg: string = ImportHelper.extractPackage(javaSource);
-        let withoutPackage: string = ImportHelper.removePackage(javaSource);
-        let withImports: string = ImportHelper.translateImports(withoutPackage, pkg);
-        let lines: string[] = withImports.split("\\R");
+        let pkg: any = ImportHelper.extractPackage(javaSource);
+        let withoutPackage: any = ImportHelper.removePackage(javaSource);
+        let withImports: any = ImportHelper.translateImports(withoutPackage, pkg);
+        let lines: any = withImports.split("\\R");
         let ts: any = new StringBuilder();
         // TODO
-        let classIdx: number = line.indexOf("class");
-        let enumIdx: number = line.indexOf("enum");
-        let ifaceIdx: number = line.indexOf("interface");
-        let brace: number = line.indexOf(/* TODO */);
+        let classIdx: any = line.indexOf("class");
+        let enumIdx: any = line.indexOf("enum");
+        let ifaceIdx: any = line.indexOf("interface");
+        let brace: any = line.indexOf(/* TODO */);
         let !: any = /* TODO */;
-        let afterClass: string = line.substring(classIdx);
+        let afterClass: any = line.substring(classIdx);
         ts.append("export default ").append(afterClass).append(System.lineSeparator());
         let !: any = /* TODO */;
-        let afterIface: string = line.substring(ifaceIdx);
+        let afterIface: any = line.substring(ifaceIdx);
         ts.append("export ").append(afterIface).append(System.lineSeparator());
         let !: any = /* TODO */;
-        let afterEnum: string = line.substring(enumIdx);
+        let afterEnum: any = line.substring(enumIdx);
         ts.append("export ").append(afterEnum).append(System.lineSeparator());
         // TODO
         ts.append(line).append(System.lineSeparator());
         // TODO
         // TODO
-        let withMethods: string = MethodStubber.stubMethods(ts.toString().trim());
-        let withFields: string = FieldTranspiler.transpileFields(withMethods);
-        let withArrows: string = ArrowHelper.convertArrowFunctions(withFields);
+        let withMethods: any = MethodStubber.stubMethods(ts.toString().trim());
+        let withFields: any = FieldTranspiler.transpileFields(withMethods);
+        let withArrows: any = ArrowHelper.convertArrowFunctions(withFields);
         return ArrowHelper.stubArrowAssignments(withArrows);
         // TODO
     }

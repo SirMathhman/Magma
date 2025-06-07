@@ -1,8 +1,10 @@
+import ArrayList from "../../java/util/ArrayList";
+import List from "../../java/util/List";
 export default class MethodStubber {
     stubMethods(source: string): string {
-        let lines: string[] = source.split("\\R");
+        let lines: any = source.split("\\R");
         let out: any = new StringBuilder();
-        let i: number = 0;
+        let i: any = 0;
         while (i < lines.length) {
             // TODO
         }
@@ -14,34 +16,34 @@ export default class MethodStubber {
         // TODO
         // TODO
         static String buildMethodStub(/* TODO */, /* TODO */, /* TODO */, /* TODO */, /* TODO */);
-        let indent: string = line.substring(0, line.indexOf(trimmed));
-        let beforeBrace: string = trimmed.substring(0, trimmed.length()).trim();
-        let parenStart: number = beforeBrace.indexOf('(/* TODO */);
-        let parenEnd: number = beforeBrace./* TODO */;
+        let indent: any = line.substring(0, line.indexOf(trimmed));
+        let beforeBrace: any = trimmed.substring(0, trimmed.length()).trim();
+        let parenStart: any = beforeBrace.indexOf('(/* TODO */);
+        let parenEnd: any = beforeBrace./* TODO */;
         if (/* TODO */) {
             // TODO
         }
-        let signatureStart: string = beforeBrace.substring(0, parenStart).trim();
-        let params: string = beforeBrace.substring(/* TODO */, parenEnd).trim();
-        let sigTokens: string[] = signatureStart.split("\\s+");
+        let signatureStart: any = beforeBrace.substring(0, parenStart).trim();
+        let params: any = beforeBrace.substring(/* TODO */, parenEnd).trim();
+        let sigTokens: any = signatureStart.split("\\s+");
         if (/* TODO */) {
             // TODO
         }
-        let name: string = sigTokens[sigTokens.length - 1];
-        let returnType: string = sigTokens.length > 1 ? sigTokens[sigTokens.length - 2] : "void";
-        let tsParams: string = TypeMapper.toTsParams(params);
-        let tsReturn: string = TypeMapper.toTsType(returnType);
+        let name: any = sigTokens[sigTokens.length - 1];
+        let returnType: any = sigTokens.length > 1 ? sigTokens[sigTokens.length - 2] : "void";
+        let tsParams: any = TypeMapper.toTsParams(params);
+        let tsReturn: any = TypeMapper.toTsType(returnType);
         let stub: any = new StringBuilder();
         stub.append(indent).append(name).append("(/* TODO */).append(tsParams).append(/* TODO */));
         if (!tsReturn.isBlank()) {
             // TODO
         }
         stub.append(" {").append(System.lineSeparator());
-        let wrote: boolean = /* TODO */;
+        let wrote: any = /* TODO */;
         let i: any = start;
         // TODO
         // TODO
-        let body: string = lines[i].trim();
+        let body: any = lines[i].trim();
         if (body.isEmpty()) {
             // TODO
         }
@@ -67,7 +69,7 @@ export default class MethodStubber {
         // TODO
         private static void appendParts(/* TODO */, /* TODO */, /* TODO */);
         // TODO
-        let trimmedPart: string = part.trim();
+        let trimmedPart: any = part.trim();
         // TODO
         if (trimmedPart.startsWith("return")) {
             // TODO
@@ -75,8 +77,8 @@ export default class MethodStubber {
         // TODO
         // TODO
         static int skipBody(/* TODO */, /* TODO */);
-        let depth: number = 1;
-        let i: number = /* TODO */;
+        let depth: any = 1;
+        let i: any = /* TODO */;
         while (i < lines.length && depth > 0) {
             // TODO
         }
@@ -92,22 +94,22 @@ export default class MethodStubber {
         stub.append(indent).append("    }").append(System.lineSeparator());
         // TODO
         private static String parseCondition(/* TODO */);
-        let open: number = stmt.indexOf('(/* TODO */);
-        let close: number = stmt./* TODO */;
+        let open: any = stmt.indexOf('(/* TODO */);
+        let close: any = stmt./* TODO */;
         if (/* TODO */) {
             // TODO
         }
-        let inside: string = stmt.substring(/* TODO */, close).trim();
+        let inside: any = stmt.substring(/* TODO */, close).trim();
         return parseValue(inside);
         // TODO
         static String parseAssignment(/* TODO */, /* TODO */);
-        let eq: number = stmt.indexOf(/* TODO */);
+        let eq: any = stmt.indexOf(/* TODO */);
         if (/* TODO */) {
             // TODO
         }
-        let dest: string = stmt.substring(0, eq).trim();
-        let rhs: string = stmt.substring(/* TODO */).trim();
-        let tokens: string[] = dest.split("\\s+");
+        let dest: any = stmt.substring(0, eq).trim();
+        let rhs: any = stmt.substring(/* TODO */).trim();
+        let tokens: any = dest.split("\\s+");
         if (/* TODO */) {
             // TODO
         }
@@ -120,19 +122,19 @@ export default class MethodStubber {
         return /* TODO */;
         // TODO
         static boolean isInvokable(/* TODO */);
-        let open: number = stmt.indexOf('(/* TODO */);
-        let close: number = stmt./* TODO */;
+        let open: any = stmt.indexOf('(/* TODO */);
+        let close: any = stmt./* TODO */;
         if (/* TODO */) {
             // TODO
         }
-        let head: string = stmt.substring(0, open).trim();
+        let head: any = stmt.substring(0, open).trim();
         return !head.startsWith("if") && !head.startsWith("while") && !head.startsWith("for");
         // TODO
         static String parseInvokable(/* TODO */, /* TODO */);
         return indent + "    " + stubInvokableExpr(stmt);
         // TODO
         static String parseValue(/* TODO */);
-        let trimmed: string = value.trim();
+        let trimmed: any = value.trim();
         if (trimmed.startsWith("!")) {
             // TODO
         }
@@ -160,17 +162,17 @@ export default class MethodStubber {
         return "/* TODO */";
         // TODO
         private static String parseValueArg(/* TODO */);
-        let trimmed: string = value.trim();
+        let trimmed: any = value.trim();
         return parseValue(trimmed);
         // TODO
         private static String parseMemberChain(/* TODO */);
-        let parts: java.util.List<string> = new java.util.ArrayList<>();
-        let depth: number = 0;
+        let parts: List<string> = new ArrayList<>();
+        let depth: any = 0;
         let part: any = new StringBuilder();
         let i: any = 0;
         i < expr.length();
         // TODO
-        let c: string = expr.charAt(i);
+        let c: any = expr.charAt(i);
         if (/* TODO */) {
             // TODO
         }
@@ -196,15 +198,15 @@ export default class MethodStubber {
         // TODO
         private static boolean isNumeric(/* TODO */);
         // TODO
-        let i: number = 0;
+        let i: any = 0;
         if (s.charAt(0)) {
             // TODO
         }
-        let dot: boolean = /* TODO */;
+        let dot: any = /* TODO */;
         // TODO
         i < s.length();
         // TODO
-        let c: string = s.charAt(i);
+        let c: any = s.charAt(i);
         if (/* TODO */) {
             // TODO
         }
@@ -215,16 +217,16 @@ export default class MethodStubber {
         private static boolean isIdentifier(/* TODO */);
         // TODO
         // TODO
-        let first: string = s.charAt(0);
+        let first: any = s.charAt(0);
         if (!((first >= 'a' && first <= 'z') ||(/* TODO */))) {
             // TODO
         }
         let i: any = 1;
         i < s.length();
         // TODO
-        let c: string = s.charAt(i);
-        let letter: boolean = (c >= 'a' && c <= 'z') ||(/* TODO */);
-        let digit: boolean = /* TODO */;
+        let c: any = s.charAt(i);
+        let letter: any = (c >= 'a' && c <= 'z') ||(/* TODO */);
+        let digit: any = /* TODO */;
         if (!(/* TODO */)) {
             // TODO
         }
@@ -232,16 +234,16 @@ export default class MethodStubber {
         return /* TODO */;
         // TODO
         static String stubInvokableExpr(/* TODO */);
-        let close: number = stmt./* TODO */;
+        let close: any = stmt./* TODO */;
         if (/* TODO */) {
             // TODO
         }
-        let open: number = -1;
-        let depth: number = 0;
+        let open: any = -1;
+        let depth: any = 0;
         let i: any = close;
         let >: any = 0;
         // TODO
-        let c: string = stmt.charAt(i);
+        let c: any = stmt.charAt(i);
         if (/* TODO */) {
             // TODO
         }
@@ -249,22 +251,22 @@ export default class MethodStubber {
         if (/* TODO */) {
             // TODO
         }
-        let callee: string = stmt.substring(0, open).trim();
-        let args: string = stmt.substring(/* TODO */, close).trim();
-        let parts: java.util.List<string> = splitArgs(args);
+        let callee: any = stmt.substring(0, open).trim();
+        let args: any = stmt.substring(/* TODO */, close).trim();
+        let parts: any = splitArgs(args);
         parts.replaceAll(/* TODO */);
-        let joined: string = String.join(/* TODO */, /* TODO */, parts);
+        let joined: any = String.join(/* TODO */, /* TODO */, parts);
         return callee + "(" + joined + ");
         // TODO
-        private static java.util.List<String> splitArgs(/* TODO */);
-        let out: java.util.List<string> = new java.util.ArrayList<>();
+        private static List<String> splitArgs(/* TODO */);
+        let out: List<string> = new ArrayList<>();
         // TODO
-        let depth: number = 0;
+        let depth: any = 0;
         let part: any = new StringBuilder();
         let i: any = 0;
         i < args.length();
         // TODO
-        let c: string = args.charAt(i);
+        let c: any = args.charAt(i);
         if (/* TODO */) {
             // TODO
         }

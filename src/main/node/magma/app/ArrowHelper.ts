@@ -1,6 +1,6 @@
 export default class ArrowHelper {
     convertArrowFunctions(source: string): string {
-        let lines: string[] = source.split("\\R");
+        let lines: any = source.split("\\R");
         let out: any = new StringBuilder();
         // TODO
         if (line.contains("=>")) {
@@ -11,10 +11,10 @@ export default class ArrowHelper {
     }
 
     stubArrowAssignments(source: string): string {
-        let lines: string[] = source.split("\\R");
+        let lines: any = source.split("\\R");
         let out: any = new StringBuilder();
         // TODO
-        let trimmed: string = line.trim();
+        let trimmed: any = line.trim();
         if (trimmed.contains("=>") && trimmed.contains("{") && trimmed.contains("}")) {
             // TODO
         }
@@ -24,16 +24,16 @@ export default class ArrowHelper {
     }
 
     expandArrowBody(line: string, trimmed: string): string {
-        let open: number = line.indexOf(/* TODO */);
-        let close: number = line.lastIndexOf(/* TODO */);
-        let indent: string = line.substring(0, line.indexOf(trimmed));
-        let header: string = line.substring(0, /* TODO */);
-        let body: string = line.substring(/* TODO */, close).trim();
+        let open: any = line.indexOf(/* TODO */);
+        let close: any = line.lastIndexOf(/* TODO */);
+        let indent: any = line.substring(0, line.indexOf(trimmed));
+        let header: any = line.substring(0, /* TODO */);
+        let body: any = line.substring(/* TODO */, close).trim();
         let out: any = new StringBuilder();
         out.append(header).append(System.lineSeparator());
         // TODO
         // TODO
-        let trimmedPart: string = part.trim();
+        let trimmedPart: any = part.trim();
         // TODO
         if (trimmedPart.contains("=")) {
             // TODO
