@@ -9,6 +9,9 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 
+import magma.path.NioPath;
+import magma.path.PathLike;
+
 import magma.Main;
 import org.junit.jupiter.api.Test;
 
@@ -33,15 +36,12 @@ class MainTest {
     }
 
     private static void deleteTree(Path root) throws IOException {
-        if (!Files.exists(root)) {
-            return;
-        }
-        List<Path> paths = new ArrayList<>();
-        try (var stream = Files.walk(root)) {
-            stream.forEach(paths::add);
-        }
+        var start = NioPath.wrap(root);
+        var result = start.walk();
+        if (!result.isOk()) return;
+        List<PathLike> paths = new ArrayList<>(result.value().get());
         for (var i = paths.size() - 1; i >= 0; i--) {
-            Files.deleteIfExists(paths.get(i));
+            Files.deleteIfExists(((NioPath) paths.get(i)).toNio());
         }
     }
 }

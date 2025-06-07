@@ -38,3 +38,9 @@ After building you can run the transpiler.  It reads Java sources under
 ```bash
 java -cp bin magma.Main
 ```
+
+## Key Classes
+
+- `magma.Main` – simple CLI for the transpiler
+- `magma.app.Transpiler` – converts Java code to TypeScript
+- `magma.path.PathLike` – abstracts file system operations such as `walk`

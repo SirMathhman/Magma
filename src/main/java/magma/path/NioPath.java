@@ -1,6 +1,14 @@
 package magma.path;
 
+import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.LinkedHashSet;
+import java.util.Set;
+
+import magma.result.Err;
+import magma.result.Ok;
+import magma.result.Result;
 
 /**
  * Implementation of {@link PathLike} that delegates to a
@@ -41,6 +49,17 @@ public class NioPath implements PathLike {
     public PathLike getParent() {
         var parent = path.getParent();
         return parent == null ? null : new NioPath(parent);
+    }
+
+    @Override
+    public Result<Set<PathLike>> walk() {
+        Set<PathLike> out = new LinkedHashSet<>();
+        try (var stream = Files.walk(path)) {
+            stream.forEach(p -> out.add(new NioPath(p)));
+            return new Ok<>(out);
+        } catch (IOException e) {
+            return new Err<>(e.getMessage());
+        }
     }
 
     @Override
