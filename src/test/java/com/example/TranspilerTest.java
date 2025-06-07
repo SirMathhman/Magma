@@ -207,4 +207,13 @@ class TranspilerTest {
         String result = new Transpiler().toTypeScript(javaSrc);
         assertEquals(expected, result);
     }
+
+    @Test
+    void convertsLambdasToArrowFunctions() {
+        String javaSrc = "Runnable r = () -> {};";
+        String expected = "Runnable r = () => {};";
+
+        String result = new Transpiler().toTypeScript(javaSrc);
+        assertEquals(expected, result);
+    }
 }
