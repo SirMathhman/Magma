@@ -63,13 +63,13 @@ class TranspilerMethodTest {
         String expected = String.join("\n",
             "export default class Foo {",
             "    fromChar(c: string): string {",
-            "        return /* TODO */;",
+            "        return c;",
             "    }",
             "    fromWrapper(c: string): string {",
-            "        return /* TODO */;",
+            "        return c;",
             "    }",
             "    fromString(s: string): string {",
-            "        return /* TODO */;",
+            "        return s;",
             "    }",
             "}");
 
@@ -109,7 +109,7 @@ class TranspilerMethodTest {
         String expected = String.join("\n",
             "export default class Foo {",
             "    flag(a: boolean, b: boolean): boolean {",
-            "        return /* TODO */;",
+            "        return a;",
             "    }",
             "}");
 
@@ -129,7 +129,7 @@ class TranspilerMethodTest {
         String expected = String.join("\n",
             "export default class Foo {",
             "    names(in: List<string>): List<string> {",
-            "        return /* TODO */;",
+            "        return in;",
             "    }",
             "}");
 
