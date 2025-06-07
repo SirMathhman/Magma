@@ -19,6 +19,7 @@ Only the features listed below are supported. Anything not mentioned here is con
 - **Classes** use standard `class` syntax.
   - Tests: `TranspilerTest.transpilesClassDefinitionWithModifier`.
 - **Interfaces** map directly to TypeScript interfaces.
+  - Tests: `TranspilerTest.transpilesInterfaceDefinition`.
 - **Abstract classes** are supported via the `abstract` keyword, though the project avoids them in its own code.
 - **Enums** become `enum`.
   - Tests: `TranspilerTest.transpilesEnumDefinition`.
@@ -52,9 +53,9 @@ Only the features listed below are supported. Anything not mentioned here is con
 1. ~~Implement translation of basic class structure and type mappings.~~  
    Basic class definitions now output `export default class`.
 2. ~~Add support for generics and inheritance.~~
-3. Add interface translation with verifying tests.
-   - Update the transpiler to emit TypeScript `interface` definitions.
-   - Write failing tests that cover interface translation.
+3. ~~Add interface translation with verifying tests.~~
+   Interface definitions now emit `export interface` lines.
+   Tests cover the translation in `TranspilerTest.transpilesInterfaceDefinition`.
 4. Replace exceptions with `Result`/`Option` constructs.
  - ~~Provide minimal `Result` and `Option` utilities.~~
  - ~~Refactor `Main` to return these types instead of using `throws`.~~

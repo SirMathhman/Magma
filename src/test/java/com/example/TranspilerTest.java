@@ -234,6 +234,15 @@ class TranspilerTest {
     }
 
     @Test
+    void transpilesInterfaceDefinition() {
+        String javaSrc = "public interface Service {}";
+        String expected = "export interface Service {}";
+
+        String result = new Transpiler().toTypeScript(javaSrc);
+        assertEquals(expected, result);
+    }
+
+    @Test
     void transpilesEnumDefinition() {
         String javaSrc = "public enum Color { RED, GREEN, BLUE }";
         String expected = "export enum Color { RED, GREEN, BLUE }";
