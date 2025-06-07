@@ -1,9 +1,7 @@
 import BiFunction from "../../java/util/function/BiFunction";
 import Function from "../../java/util/function/Function";
-import JdkList from "./JdkList";
-/** Minimal iterator abstraction independent of java.util.Iterator. */
-
-export interface ListIterator<T> {
+/** Generic iterator independent of collection type. */
+export interface Iter<T> {
     boolean hasNext();
     T next();
 
@@ -13,6 +11,16 @@ export interface ListIterator<T> {
             result.add(fn.apply(next()));
         }
         return result;
+    }
+
+    flatMap(Function<T: any, fn: Iter<R>>): ListLike<R> {
+        return fold(JdkList.create(),(acc, value);
+        fn.apply(value).fold(acc,(a, r);
+        a.add(r);
+        return a;
+        // TODO
+        return acc;
+        // TODO
     }
 
     fold(init: R, BiFunction<R: any, T: any, fn: R>): R {

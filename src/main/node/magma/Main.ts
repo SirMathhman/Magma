@@ -5,7 +5,6 @@ import Some from "./option/Some";
 import Err from "./result/Err";
 import Ok from "./result/Ok";
 import Result from "./result/Result";
-import IOException from "../java/io/IOException";
 import NioPath from "./path/NioPath";
 import PathLike from "./path/PathLike";
 import JdkList from "./list/JdkList";
@@ -56,18 +55,21 @@ export default class Main {
     }
 
     transpileFile(srcRoot: PathLike, outRoot: PathLike, javaFile: PathLike): Option<string> {
-        // TODO
-        let javaSrc: var = ((NioPath)).readString();
+        let javaSrcResult: var = javaFile.readString();
+        if (!javaSrcResult.isOk()) {
+            return new Some<>(javaSrcResult.error().get());
+        }
+        let javaSrc: var = javaSrcResult.value().get();
         let ts: var = new Transpiler().toTypeScript(javaSrc);
         let rel: var = srcRoot.relativize(javaFile);
         let name: var = rel.toString();
         let withoutExt: var = name.substring(0, name.length());
         let outFile: var = outRoot.resolve(withoutExt + ".ts");
-        ((NioPath) outFile.getParent()).createDirectories();
-        ((NioPath) outFile).writeString(ts + System.lineSeparator());
-        return new None<>();
-        } catch(/* TODO */);
-        return new Some<>(e.getMessage());
+        let err: var = outFile.getParent().createDirectories();
+        if (err.isSome()) {
+            return err;
+        }
         // TODO
+        return err;
     }
 }
