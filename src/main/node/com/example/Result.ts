@@ -11,22 +11,22 @@ export default class Result<T> {
     }
 
     ok(value: any): Result<any> {
-        // TODO
+        return /* TODO */;
     }
 
     error(message: string): Result<any> {
-        // TODO
+        return /* TODO */;
     }
 
     isOk(): boolean {
-        // TODO
+        return /* TODO */;
     }
 
     value(): Option<any> {
-        // TODO
+        return /* TODO */;
     }
 
     error(): Option<string> {
-        // TODO
+        return /* TODO */;
     }
 }

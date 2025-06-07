@@ -33,6 +33,7 @@ export default class Transpiler {
         // TODO
         // TODO
         // TODO
+        return /* TODO */;
         // TODO
         // TODO
         // TODO
@@ -59,6 +60,7 @@ export default class Transpiler {
         // TODO
         // TODO
         // TODO
+        return /* TODO */;
         // TODO
         // TODO
         // TODO
@@ -66,11 +68,13 @@ export default class Transpiler {
         // TODO
         // TODO
         // TODO
+        return /* TODO */;
         // TODO
         // TODO
         // TODO
         // TODO
         // TODO
+        return /* TODO */;
         // TODO
         // TODO
         // TODO
@@ -112,6 +116,7 @@ export default class Transpiler {
         // TODO
         // TODO
         // TODO
+        return /* TODO */;
         // TODO
         // TODO
         // TODO
@@ -122,6 +127,7 @@ export default class Transpiler {
         // TODO
         // TODO
         // TODO
+        return /* TODO */;
         // TODO
         // TODO
         // TODO
@@ -141,5 +147,126 @@ export default class Transpiler {
         // TODO
         // TODO
         // TODO
+        // TODO
+        // TODO
+        // TODO
+        // TODO
+        // TODO
+        // TODO
+        // TODO
+        // TODO
+        // TODO
+        // TODO
+        // TODO
+        // TODO
+        // TODO
+        // TODO
+        // TODO
+        return /* TODO */;
+        // TODO
+        // TODO
+        // TODO
+        // TODO
+        // TODO
+        // TODO
+        // TODO
+        // TODO
+        // TODO
+        return /* TODO */;
+        // TODO
+        // TODO
+        // TODO
+        // TODO
+        // TODO
+        // TODO
+        // TODO
+        // TODO
+        // TODO
+        // TODO
+        // TODO
+        return /* TODO */;
+        // TODO
+        // TODO
+        // TODO
+        // TODO
+        // TODO
+        // TODO
+        // TODO
+        // TODO
+        // TODO
+        // TODO
+        // TODO
+        // TODO
+        // TODO
+        // TODO
+        // TODO
+        // TODO
+        // TODO
+        // TODO
+        // TODO
+        // TODO
+        // TODO
+        // TODO
+        // TODO
+        // TODO
+        // TODO
+        // TODO
+        // TODO
+        return /* TODO */;
+        // TODO
+        // TODO
+        // TODO
+        return /* TODO */;
+        // TODO
+        // TODO
+        // TODO
+        // TODO
+        // TODO
+        // TODO
+        // TODO
+        // TODO
+        // TODO
+        // TODO
+        // TODO
+        return /* TODO */;
+        // TODO
+        // TODO
+        // TODO
+        // TODO
+        // TODO
+        return /* TODO */;
+        // TODO
+        // TODO
+        // TODO
+        return /* TODO */;
+        // TODO
+        return /* TODO */;
+        // TODO
+        // TODO
+        // TODO
+        // TODO
+        // TODO
+        // TODO
+        // TODO
+        // TODO
+        // TODO
+        // TODO
+        // TODO
+        // TODO
+        // TODO
+        // TODO
+        return /* TODO */;
+        // TODO
+        // TODO
+        // TODO
+        // TODO
+        return /* TODO */;
+        // TODO
+        // TODO
+        // TODO
+        // TODO
+        return /* TODO */;
+        // TODO
+        return /* TODO */;
         // TODO
     }

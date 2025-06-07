@@ -9,22 +9,22 @@ export default class Option<T> {
     }
 
     some(value: any): Option<any> {
-        // TODO
+        return /* TODO */;
     }
 
     none(): Option<any> {
-        // TODO
+        return /* TODO */;
     }
 
     isSome(): boolean {
-        // TODO
+        return /* TODO */;
     }
 
     isNone(): boolean {
-        // TODO
+        return /* TODO */;
     }
 
     get(): any {
-        // TODO
+        return /* TODO */;
     }
 }

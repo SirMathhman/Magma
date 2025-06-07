@@ -11,6 +11,8 @@ export default class Main {
     main(args: string[]): void {
         // TODO
         // TODO
+        // TODO
+        // TODO
     }
 
     run(): Option<string> {
@@ -18,9 +20,15 @@ export default class Main {
         // TODO
         // TODO
         // TODO
+        return /* TODO */;
         // TODO
         // TODO
         // TODO
+        // TODO
+        return /* TODO */;
+        // TODO
+        // TODO
+        return /* TODO */;
     }
 
     listJavaFiles(srcRoot: any): Result<List<any>> {
@@ -28,6 +36,12 @@ export default class Main {
         // TODO
         // TODO
         // TODO
+        // TODO
+        // TODO
+        // TODO
+        return /* TODO */;
+        // TODO
+        return /* TODO */;
         // TODO
     }
 
@@ -41,6 +55,9 @@ export default class Main {
         // TODO
         // TODO
         // TODO
+        return /* TODO */;
+        // TODO
+        return /* TODO */;
         // TODO
     }
 }
