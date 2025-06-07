@@ -73,6 +73,11 @@ class TranspilerTest {
             "    }",
             "    String fromString(String s) {",
             "        return s;",
+    void mapsArrayTypes() {
+        String javaSrc = String.join("\n",
+            "public class Foo {",
+            "    int[] bar(String[] words) {",
+            "        return null;",
     void mapsBooleanTypes() {
         String javaSrc = String.join("\n",
             "public class Foo {",
@@ -90,6 +95,7 @@ class TranspilerTest {
             "        // TODO",
             "    }",
             "    fromString(s: string): string {",
+            "    bar(words: string[]): number[] {",
             "    flag(a: boolean, b: boolean): boolean {",
             "        // TODO",
             "    }",
