@@ -7,46 +7,46 @@ Only the features listed below are supported. Anything not mentioned here is con
 
 - **Package declarations** become module paths.
   - Use directory structure to mirror packages.
-  - Tests: `TranspilerTest.removesPackageDeclaration`, `MainTest.printsTranspiledSource`.
+  - Tests: `TranspilerClassTest.removesPackageDeclaration`, `MainTest.printsTranspiledSource`.
 - **Primitive types** (`int`, `float`, `double`, `long`) map to TypeScript's `number`.
-  - Tests: `TranspilerTest.stubsMethodBodiesPreservingNames`.
+  - Tests: `TranspilerMethodTest.stubsMethodBodiesPreservingNames`.
 - **boolean** / **Boolean** becomes `boolean`.
-  - Tests: `TranspilerTest.mapsBooleanTypes`.
+  - Tests: `TranspilerMethodTest.mapsBooleanTypes`.
 - **char**, **Character**, and **String** all become `string`.
-  - Tests: `TranspilerTest.mapsCharCharacterAndStringToString`.
+  - Tests: `TranspilerMethodTest.mapsCharCharacterAndStringToString`.
 - **Arrays** translate directly (`int[]` → `number[]`, etc.).
-  - Tests: `TranspilerTest.mapsArrayTypes`.
+  - Tests: `TranspilerMethodTest.mapsArrayTypes`.
 - **Classes** use standard `class` syntax.
-  - Tests: `TranspilerTest.transpilesClassDefinitionWithModifier`.
+  - Tests: `TranspilerClassTest.transpilesClassDefinitionWithModifier`.
 - **Interfaces** map directly to TypeScript interfaces.
-  - Tests: `TranspilerTest.transpilesInterfaceDefinition`.
+  - Tests: `TranspilerClassTest.transpilesInterfaceDefinition`.
 - **Abstract classes** are supported via the `abstract` keyword, though the project avoids them in its own code.
 - **Enums** become `enum`.
-  - Tests: `TranspilerTest.transpilesEnumDefinition`.
+  - Tests: `TranspilerClassTest.transpilesEnumDefinition`.
 - **Generics** preserve type parameters, e.g. `List<T>` → `List<T>`.
-  - Tests: `TranspilerTest.mapsGenericTypes`.
+  - Tests: `TranspilerMethodTest.mapsGenericTypes`.
 - **Methods** keep their names and basic return types such as `int` or `void` translate to `number` or `void`.
   - Return statements are emitted as `return /* TODO */;` while other statements become `// TODO` comments.
     - `if` and `while` statements output `<keyword> (/* TODO */) {` with a single `// TODO` in the body.
-    - Tests: `TranspilerTest.stubsMethodBodiesPreservingNames`, `TranspilerTest.stubsVoidReturnTypes`, `TranspilerTest.stubsOneTodoPerStatement`, `TranspilerTest.stubsIfStatements`, `TranspilerTest.stubsWhileStatements`.
+      - Tests: `TranspilerMethodTest.stubsMethodBodiesPreservingNames`, `TranspilerMethodTest.stubsVoidReturnTypes`, `TranspilerStatementTest.stubsOneTodoPerStatement`, `TranspilerStatementTest.stubsIfStatements`, `TranspilerStatementTest.stubsWhileStatements`.
   - **Fields** become class properties.
     - `final` fields are emitted with the `readonly` modifier.
     - Field initializations are ignored so assignments are dropped.
-    - Tests: `TranspilerTest.transpilesFieldDeclarations`, `TranspilerTest.finalFieldsBecomeReadonly`, `TranspilerTest.stubsFieldAssignments`.
+    - Tests: `TranspilerFieldTest.transpilesFieldDeclarations`, `TranspilerFieldTest.finalFieldsBecomeReadonly`, `TranspilerFieldTest.stubsFieldAssignments`.
 - **Access modifiers** (`public`, `private`, `protected`) map directly. `package‑private` is emitted as a public or internal export.
-  - Tests: `TranspilerTest.transpilesClassDefinitionWithModifier`.
+  - Tests: `TranspilerClassTest.transpilesClassDefinitionWithModifier`.
 - **Inheritance** via `extends` is preserved.
-  - Tests: `TranspilerTest.preservesExtendsClause`.
+  - Tests: `TranspilerClassTest.preservesExtendsClause`.
 - **Implementing interfaces** uses `implements`.
-  - Tests: `TranspilerTest.preservesImplementsClause`.
+  - Tests: `TranspilerClassTest.preservesImplementsClause`.
 - **Exceptions** (`throw`, `try`/`catch`) are replaced with `Result` or `Option` objects.
 - **Lambda expressions** become arrow functions.
   - Assignment statements inside arrow function bodies are replaced with `// TODO`.
-  - Tests: `TranspilerTest.stubsAssignmentsInArrowFunctions`.
+  - Tests: `TranspilerStatementTest.stubsAssignmentsInArrowFunctions`.
   - Variable definitions within method bodies are emitted as `let` declarations
     with `/* TODO */` for the assigned value.
-  - Tests: `TranspilerTest.stubsOneTodoPerStatement`,
-    `TranspilerTest.leavesValueAssignmentsAsTodo`.
+  - Tests: `TranspilerStatementTest.stubsOneTodoPerStatement`,
+    `TranspilerStatementTest.leavesValueAssignmentsAsTodo`.
 - **Streams** rely on array helpers such as `map`, `filter`, and `reduce`.
 - **Standard library** utilities are replaced with small TypeScript helpers.
 
@@ -60,7 +60,7 @@ Only the features listed below are supported. Anything not mentioned here is con
 2. ~~Add support for generics and inheritance.~~
 3. ~~Add interface translation with verifying tests.~~
    Interface definitions now emit `export interface` lines.
-   Tests cover the translation in `TranspilerTest.transpilesInterfaceDefinition`.
+   Tests cover the translation in `TranspilerClassTest.transpilesInterfaceDefinition`.
 4. Replace exceptions with `Result`/`Option` constructs.
  - ~~Provide minimal `Result` and `Option` utilities.~~
  - ~~Refactor `Main` to return these types instead of using `throws`.~~

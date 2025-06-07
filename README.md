@@ -10,7 +10,8 @@ This repository begins a self‑hosted transpiler from Java to TypeScript. It ke
 - `com.example.Result` – base interface with `Ok` and `Err` implementations
 - `com.example.Option` – base interface with `Some` and `None` variants
 - `Main.run` now returns an `Option<String>` with an error message on failure
-- Tests mirror the transpiler (`TranspilerTest`) and CLI (`MainTest`).
+- Tests mirror the transpiler (`TranspilerClassTest`, `TranspilerMethodTest`,
+  `TranspilerFieldTest`, `TranspilerStatementTest`) and CLI (`MainTest`).
 
 Abstract classes are intentionally avoided. The project prefers composition of
 small classes over inheritance hierarchies. Functions are kept small: each
@@ -49,7 +50,7 @@ Enum declarations are also converted so that `public enum Foo` becomes
 `export enum Foo` in the resulting TypeScript.
 
 The primitive `boolean` and its wrapper `Boolean` both become TypeScript
-`boolean`, as verified by `TranspilerTest.mapsBooleanTypes`.
+`boolean`, as verified by `TranspilerMethodTest.mapsBooleanTypes`.
 
 Lambda expressions use TypeScript arrow function syntax, so `() -> {}`
 becomes `() => {}`.
