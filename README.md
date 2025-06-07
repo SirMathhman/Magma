@@ -5,7 +5,8 @@ This repository begins a self‑hosted transpiler from Java to TypeScript. It ke
 ## Main Classes
 
 - `com.example.Transpiler` – prototype Java → TypeScript converter
-- `com.example.Main` – command line entry that runs the transpiler
+- `com.example.Main` – CLI that converts all sources under `src/main/java`
+  to TypeScript files under `src/main/node`
 - Tests mirror the transpiler (`TranspilerTest`) and CLI (`MainTest`).
 
 Abstract classes are intentionally avoided. The project prefers composition of
@@ -64,9 +65,10 @@ launcher if needed and places compiled classes in a `bin` directory.
 ./test.sh   # execute all tests
 ```
 
-After compiling, you can invoke the transpiler via the CLI:
+After compiling, you can invoke the transpiler via the CLI. It scans
+`src/main/java` and writes TypeScript files under `src/main/node`:
 
 ```bash
-java -cp bin com.example.Main path/to/Source.java
+java -cp bin com.example.Main
 ```
 

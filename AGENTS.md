@@ -15,4 +15,4 @@ Run the build and unit tests with:
 
 ## Quick Project Structure
 - `src/main/java/com/example/Transpiler.java` – core transpiler logic
-- `src/main/java/com/example/Main.java` – command line entry point
+- `src/main/java/com/example/Main.java` – CLI that writes TypeScript to `src/main/node`

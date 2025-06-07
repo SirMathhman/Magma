@@ -2,40 +2,42 @@ package com.example;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.PrintStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 class MainTest {
-    private PrintStream originalOut;
-    private ByteArrayOutputStream out;
-
-    @BeforeEach
-    void setup() {
-        originalOut = System.out;
-        out = new ByteArrayOutputStream();
-        System.setOut(new PrintStream(out));
-    }
-
-    @AfterEach
-    void teardown() {
-        System.setOut(originalOut);
-    }
 
     @Test
-    void printsTranspiledSource() throws IOException {
-        Path temp = Files.createTempFile("Example", ".java");
-        Files.writeString(temp, "package a;\npublic class A {}");
+    void buildsFilesUnderSourceDirectory() throws IOException {
+        Path javaDir = Paths.get("src/main/java/temp");
+        Files.createDirectories(javaDir);
+        Path javaFile = javaDir.resolve("A.java");
+        Files.writeString(javaFile, "package temp; public class A {}");
 
-        Main.main(new String[] { temp.toString() });
+        Main.main(new String[0]);
 
-        String expected = "export default class A {}" + System.lineSeparator();
-        assertEquals(expected, out.toString());
+        Path tsFile = Paths.get("src/main/node/temp/A.ts");
+        String ts = Files.readString(tsFile);
+        assertEquals("export default class A {}" + System.lineSeparator(), ts);
+
+        deleteTree(Paths.get("src/main/node"));
+        deleteTree(Paths.get("src/main/java/temp"));
+    }
+
+    private static void deleteTree(Path root) throws IOException {
+        if (!Files.exists(root)) {
+            return;
+        }
+        java.util.List<Path> paths = new java.util.ArrayList<>();
+        try (var stream = Files.walk(root)) {
+            stream.forEach(paths::add);
+        }
+        for (int i = paths.size() - 1; i >= 0; i--) {
+            Files.deleteIfExists(paths.get(i));
+        }
     }
 }
