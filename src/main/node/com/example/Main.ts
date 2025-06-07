@@ -13,7 +13,7 @@ export default class Main {
         // TODO
     }
 
-    run(): Result<any> {
+    run(): Option<string> {
         // TODO
         // TODO
         // TODO
@@ -31,7 +31,7 @@ export default class Main {
         // TODO
     }
 
-    transpileFile(srcRoot: any, outRoot: any, javaFile: any): Result<any> {
+    transpileFile(srcRoot: any, outRoot: any, javaFile: any): Option<string> {
         // TODO
         // TODO
         // TODO

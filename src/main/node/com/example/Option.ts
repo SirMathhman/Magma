@@ -2,7 +2,7 @@
  * Minimal optional value container.
  */
 export default class Option<T> {
-    private final value: any;
+    private readonly value: any;
 
     Option(value: any): any {
         // TODO

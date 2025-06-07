@@ -2,8 +2,8 @@
  * Simple result type for success or error.
  */
 export default class Result<T> {
-    private final ok: any;
-    private final err: string;
+    private readonly ok: any;
+    private readonly err: string;
 
     Result(ok: any, err: string): any {
         // TODO
