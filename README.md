@@ -8,6 +8,9 @@ This repository begins a self‑hosted transpiler from Java to TypeScript. It ke
 - `com.example.Main` – command line entry that runs the transpiler
 - Tests mirror the transpiler (`TranspilerTest`) and CLI (`MainTest`).
 
+Abstract classes are intentionally avoided. The project prefers composition of
+small classes over inheritance hierarchies.
+
 The transpiler removes the `package` declaration since TypeScript does
 not use Java-style packages. It also rewrites simple class definitions
 so that Java modifiers like `public` become `export default`. Method
