@@ -88,6 +88,26 @@ class TranspilerStatementTest {
     }
 
     @Test
+    void stubsCallsOnNewInstances() {
+        String javaSrc = String.join("\n",
+                "public class Foo {",
+                "    void run() {",
+                "        new Main().run();",
+                "    }",
+                "}");
+
+        String expected = String.join("\n",
+                "export default class Foo {",
+                "    run(): void {",
+                "        /* TODO */();",
+                "    }",
+                "}");
+
+        String result = new Transpiler().toTypeScript(javaSrc);
+        assertEquals(expected, result);
+    }
+
+    @Test
     void leavesValueAssignmentsAsTodo() {
         String javaSrc = String.join("\n",
             "public class Foo {",
