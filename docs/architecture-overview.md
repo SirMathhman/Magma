@@ -39,3 +39,9 @@ member access, method calls, literals and the logical not operator.
 Arguments inside method calls default to `/* TODO */` unless they are
 simple literals or identifiers. Negated method calls keep their callee
 name so boolean checks remain readable.
+
+## Generated Output
+
+The transpiler writes TypeScript files under `src/main/node`. These files are
+checked into version control so we can observe how the generated code evolves.
+They should never be edited directly.
