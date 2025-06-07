@@ -19,6 +19,9 @@ map directly as well, so `int[]` becomes `number[]` and `String[]`
 becomes `string[]`. Future
 tests will drive the full implementation.
 
+The primitive `boolean` and its wrapper `Boolean` both become TypeScript
+`boolean`, as verified by `TranspilerTest.mapsBooleanTypes`.
+
 ## Documentation
 
 Additional notes and a feature mapping between Java and TypeScript live in
