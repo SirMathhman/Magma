@@ -28,7 +28,7 @@ Only the features listed below are supported. Anything not mentioned here is con
 - **Methods** keep their names and basic return types such as `int` or `void` translate to `number` or `void`.
   - Numeric literals are preserved in both assignments and return statements. Other statements become `// TODO` comments.
   - The logical not operator `!` is preserved so conditions like `!flag` remain unchanged.
-  - `if` and `while` statements parse their conditions using `parseValue`. Method calls are stubbed as in assignments and unknown expressions become `/* TODO */`.
+    - `if` and `while` statements parse their conditions using `parseValue`. Method calls now keep their names while unknown values become `/* TODO */`.
   - Tests: `TranspilerMethodTest.stubsMethodBodiesPreservingNames`, `TranspilerMethodTest.stubsVoidReturnTypes`, `TranspilerStatementTest.stubsOneTodoPerStatement`, `TranspilerStatementTest.stubsIfStatements`, `TranspilerStatementTest.stubsWhileStatements`, `TranspilerStatementTest.keepsNumericValues`.
   - **Fields** become class properties.
     - `final` fields are emitted with the `readonly` modifier.
@@ -48,11 +48,11 @@ Only the features listed below are supported. Anything not mentioned here is con
     with `/* TODO */` for the assigned value.
   - Tests: `TranspilerStatementTest.stubsOneTodoPerStatement`,
     `TranspilerStatementTest.leavesValueAssignmentsAsTodo`.
-  - **Invokable expressions** like method or constructor calls are stubbed with
-    `/* TODO */` placeholders for the callee and each argument. This includes
-    assignments such as `int x = run();` which become `let x: number = /* TODO */();`.
-    Constructor calls retain the `new` keyword and type name as `new Bar(/* TODO */)`.
-    Calls on freshly created objects such as `new Main().run()` are preserved intact.
+  - **Invokable expressions** like method or constructor calls keep the method
+    name. Arguments are parsed recursively so unknown values emit `/* TODO */`.
+    Assignments such as `int x = run();` become `let x: number = run();`.
+    Constructor calls retain the `new` keyword and type name. Calls on freshly
+    created objects such as `new Main().run()` are preserved intact.
   - Tests: `TranspilerStatementTest.stubsInvokables`,
     `TranspilerStatementTest.stubsInvokablesInLetStatements`,
     `TranspilerStatementTest.stubsConstructorCalls`,
@@ -62,6 +62,12 @@ Only the features listed below are supported. Anything not mentioned here is con
 - **Member access** expressions like `parent.child` are kept intact.
   - Tests: `TranspilerStatementTest.preservesMemberAccessInAssignments`,
     `TranspilerStatementTest.preservesMemberAccessInReturns`.
+- **Identifier values** remain unchanged in assignments and returns.
+  - Tests: `TranspilerStatementTest.keepsIdentifierValues`,
+    `TranspilerMethodTest.mapsBooleanTypes`,
+    `TranspilerMethodTest.mapsGenericTypes`,
+    `TranspilerMethodTest.mapsCharCharacterAndStringToString`,
+    `TranspilerStatementTest.stubsOneTodoPerStatement`.
 - **Streams** rely on array helpers such as `map`, `filter`, and `reduce`.
 - **Standard library** utilities are replaced with small TypeScript helpers.
 
@@ -95,8 +101,8 @@ Only the features listed below are supported. Anything not mentioned here is con
    - Investigate Web Workers or async/await translation strategies.
 8. Keep the list of tests up to date as new features are covered.
 9. ~~Parse invokable expressions and stub out the caller and arguments.~~
-   Tests ensure calls are stubbed in both standalone statements and in `let`
-   declarations.
+   Tests now verify that method names are preserved while arguments fall back to
+   `/* TODO */` when unknown.
 10. Translate `import` statements to relative paths reflecting the package hierarchy.
 11. Preserve member access expressions like `obj.field` and allow chaining after
     method calls such as `doStuff().value`.

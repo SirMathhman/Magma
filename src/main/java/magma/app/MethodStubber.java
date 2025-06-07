@@ -225,6 +225,9 @@ class MethodStubber {
         if (isMemberAccess(trimmed) || isNumeric(trimmed)) {
             return trimmed;
         }
+        if (isIdentifier(trimmed)) {
+            return trimmed;
+        }
         if (isNumeric(trimmed)) {
             return trimmed;
         }
@@ -233,13 +236,6 @@ class MethodStubber {
 
     private static String parseValueArg(String value) {
         String trimmed = value.trim();
-        if (trimmed.startsWith("!")) {
-            String rest = trimmed.substring(1).trim();
-            return "!" + parseValue(rest);
-        }
-        if (isInvokable(trimmed)) {
-            return "/* TODO */";
-        }
         return parseValue(trimmed);
     }
 
@@ -294,6 +290,24 @@ class MethodStubber {
         return true;
     }
 
+    private static boolean isIdentifier(String s) {
+        if (s.isEmpty()) return false;
+        if (s.equals("true") || s.equals("false") || s.equals("null")) return false;
+        char first = s.charAt(0);
+        if (!((first >= 'a' && first <= 'z') || (first >= 'A' && first <= 'Z') || first == '_')) {
+            return false;
+        }
+        for (int i = 1; i < s.length(); i++) {
+            char c = s.charAt(i);
+            boolean letter = (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z');
+            boolean digit = c >= '0' && c <= '9';
+            if (!(letter || digit || c == '_')) {
+                return false;
+            }
+        }
+        return true;
+    }
+
     static String stubInvokableExpr(String stmt) {
         int close = stmt.lastIndexOf(')');
         if (close == -1) {
@@ -316,29 +330,13 @@ class MethodStubber {
         if (open == -1) {
             return "/* TODO */";
         }
-        String head = stmt.substring(0, open).trim();
-        if (head.startsWith("new ") && head.contains(".")) {
-            return stmt;
-        }
-        boolean isNew = head.startsWith("new ") && !head.contains(".");
-        String callee = "/* TODO */";
-        if (isNew) {
-            String afterNew = head.substring(4).trim();
-            if (!afterNew.isBlank()) {
-                callee = "new " + afterNew;
-            } else {
-                callee = "new /* TODO */";
-            }
-        }
+        String callee = stmt.substring(0, open).trim();
         String args = stmt.substring(open + 1, close).trim();
         java.util.List<String> parts = splitArgs(args);
         for (int i = 0; i < parts.size(); i++) {
             parts.set(i, parseValueArg(parts.get(i)));
         }
         String joined = String.join(", ", parts);
-        if (!isNew) {
-            callee = "/* TODO */";
-        }
         return callee + "(" + joined + ")";
     }
 

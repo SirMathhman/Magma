@@ -19,7 +19,7 @@ class TranspilerStatementTest {
         String expected = String.join("\n",
                 "export default class Foo {",
                 "    run(): void {",
-                "        /* TODO */(/* TODO */, /* TODO */);",
+                "        doThing(/* TODO */, new Some<>(1));",
                 "    }",
                 "}");
 
@@ -39,7 +39,7 @@ class TranspilerStatementTest {
         String expected = String.join("\n",
                 "export default class Foo {",
                 "    run(): void {",
-                "        let x: number = /* TODO */(/* TODO */, /* TODO */);",
+                "        let x: number = doThing(/* TODO */, new Some<>(1));",
                 "    }",
                 "}");
 
@@ -186,7 +186,7 @@ class TranspilerStatementTest {
             "    multi(): number {",
             "        let y: number = 0;",
             "        // TODO",
-            "        return /* TODO */;",
+            "        return y;",
             "    }",
             "}");
 
@@ -335,7 +335,7 @@ class TranspilerStatementTest {
         String expected = String.join("\n",
             "export default class Foo {",
             "    run(): void {",
-            "        let x: number = /* TODO */(/* TODO */, /* TODO */);",
+            "        let x: number = doThing(/* TODO */, new Some<>(make(1, 2)));",
             "    }",
             "}");
 
@@ -355,7 +355,27 @@ class TranspilerStatementTest {
         String expected = String.join("\n",
             "export default class Foo {",
             "    run(): void {",
-            "        let x: number = /* TODO */().myField;",
+            "        let x: number = doStuff().myField;",
+            "    }",
+            "}");
+
+        String result = new Transpiler().toTypeScript(javaSrc);
+        assertEquals(expected, result);
+    }
+
+    @Test
+    void keepsIdentifierValues() {
+        String javaSrc = String.join("\n",
+            "public class Foo {",
+            "    void copy(int src) {",
+            "        int x = src;",
+            "    }",
+            "}");
+
+        String expected = String.join("\n",
+            "export default class Foo {",
+            "    copy(src: number): void {",
+            "        let x: number = src;",
             "    }",
             "}");
 
@@ -375,7 +395,7 @@ class TranspilerStatementTest {
         String expected = String.join("\n",
             "export default class Foo {",
             "    run(): void {",
-            "        let x: number = first./* TODO */().third.fourth;",
+            "        let x: number = first.second().third.fourth;",
             "    }",
             "}");
 
@@ -397,7 +417,7 @@ class TranspilerStatementTest {
         String expected = String.join("\n",
             "export default class Foo {",
             "    check(): void {",
-            "        if (/* TODO */(/* TODO */)) {",
+            "        if (isValid(run())) {",
             "            // TODO",
             "        }",
             "    }",
@@ -421,7 +441,7 @@ class TranspilerStatementTest {
         String expected = String.join("\n",
             "export default class Foo {",
             "    loop(it: any): void {",
-            "        while (it./* TODO */()) {",
+            "        while (it.hasNext()) {",
             "            // TODO",
             "        }",
             "    }",
