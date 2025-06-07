@@ -13,10 +13,11 @@ import magma.Main;
 import org.junit.jupiter.api.Test;
 
 class MainTest {
+    public static final Path ROOT = Paths.get("src/main/java/temp");
 
     @Test
     void buildsFilesUnderSourceDirectory() throws IOException {
-        var javaDir = Paths.get("src/main/java/temp");
+        var javaDir = ROOT;
         Files.createDirectories(javaDir);
         var javaFile = javaDir.resolve("A.java");
         Files.writeString(javaFile, "package temp; public class A {}");
@@ -28,7 +29,7 @@ class MainTest {
         assertEquals("export default class A {}" + System.lineSeparator(), ts);
 
         deleteTree(Paths.get("src/main/node"));
-        deleteTree(Paths.get("src/main/java/temp"));
+        deleteTree(ROOT);
     }
 
     private static void deleteTree(Path root) throws IOException {

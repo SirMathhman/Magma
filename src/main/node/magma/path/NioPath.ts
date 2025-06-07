@@ -1,50 +1,47 @@
-package magma.path;
-
-import java.nio.file.Path;
-
+import Path from "../../java/nio/file/Path";
 /**
  * Implementation of {@link PathLike} that delegates to a
- * {@link Path} instance.
+ * {@link java.nio.file.Path} instance.
  */
-public class NioPath implements PathLike {
-    private final Path path;
+export default class NioPath implements PathLike {
+    private readonly path: Path;
 
-    private NioPath(Path path) {
-        this.path = path;
+    NioPath(path: Path): private {
+        // TODO
     }
 
     /** Create a wrapper from path segments. */
-    public static NioPath of(String first) {
+    of(first: string): NioPath {
         return new NioPath(Path.of(first));
     }
 
     /** Wrap an existing NIO path. */
-    public static NioPath wrap(Path path) {
+    wrap(path: Path): NioPath {
         return new NioPath(path);
     }
 
-    public Path toNio() {
+    toNio(): Path {
         return path;
     }
 
     @Override
-    public PathLike resolve(String other) {
+    resolve(other: string): PathLike {
         return new NioPath(path.resolve(other));
     }
 
     @Override
-    public PathLike relativize(PathLike other) {
+    relativize(other: PathLike): PathLike {
         return new NioPath(path.relativize(((NioPath) other).path));
     }
 
     @Override
-    public PathLike getParent() {
-        var parent = path.getParent();
+    getParent(): PathLike {
+        let parent: Path = path.getParent();
         return parent == null ? null : new NioPath(parent);
     }
 
     @Override
-    public String toString() {
+    toString(): string {
         return path.toString();
     }
 }

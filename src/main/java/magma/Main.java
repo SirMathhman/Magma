@@ -10,7 +10,7 @@ import magma.result.Result;
 
 import java.io.IOException;
 import java.nio.file.Files;
-import java.nio.file.Path;
+
 import magma.path.NioPath;
 import magma.path.PathLike;
 import java.util.ArrayList;
