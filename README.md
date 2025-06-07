@@ -41,6 +41,10 @@ After building you can run the transpiler.  It reads Java sources under
 java -cp bin magma.Main
 ```
 
+The files under `src/main/node` are generated output. They are tracked in
+version control so we can review the transpiler's progress, but they should
+never be edited directly.
+
 ## Key Classes
 
 - `magma.Main` – simple CLI for the transpiler
