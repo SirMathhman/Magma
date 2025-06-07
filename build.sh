@@ -7,3 +7,5 @@ if [ ! -f "$JUNIT_JAR" ]; then
 fi
 mkdir -p bin
 find src/main/java src/test/java -name "*.java" | xargs javac -cp "$JUNIT_JAR" -d bin
+count=$(find src/main/java src/test/java -name "*.java" | wc -l)
+echo "Build completed successfully. Compiled $count source files."
