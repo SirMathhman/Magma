@@ -31,6 +31,9 @@ Generic type parameters are preserved, so `List<String>` becomes
 The primitive `boolean` and its wrapper `Boolean` both become TypeScript
 `boolean`, as verified by `TranspilerTest.mapsBooleanTypes`.
 
+Error handling avoids Java exceptions. Do not use `throw`, `try`, or `catch`.
+Instead, functions should return a `Result` or `Option` object.
+
 Annotations are currently skipped entirely, so no TypeScript decorators are
 generated.
 

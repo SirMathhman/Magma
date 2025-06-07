@@ -22,7 +22,7 @@ This page outlines how Java language features map to their TypeScript counterpar
 | Access modifiers (`public`, `private`, `protected`) | `public`, `private`, `protected` | `package‑private` becomes `public` or internal module export. | `TranspilerTest.transpilesClassDefinitionWithModifier` |
 | Inheritance (`extends`) | `extends` | Works with classes and interfaces. | |
 | Implementing interfaces (`implements`) | `implements` | Direct mapping. | |
-| Exceptions (`throw`, `try`/`catch`) | `throw`, `try`/`catch` | No checked exceptions in TypeScript. | |
+| Exceptions (`throw`, `try`/`catch`) | `Result`/`Option` types | Prefer returning a `Result` or `Option` object instead of using exceptions. | |
 | Annotations | *(not supported)* | Decorators are not used in this project. | |
 | Lambda expressions | Arrow functions | `() -> {}` → `() => {}`. | |
 | Streams | Array methods / custom helpers | Use `map`, `filter`, `reduce`. | |
@@ -35,7 +35,7 @@ Further tasks:
 1. ~~Implement translation of basic class structure and type mappings.~~
    Basic class definitions now output `export default class`.
 2. ~~Add support for generics~~ and inheritance.
-3. Handle exceptions and control flow constructs.
+3. Replace exceptions with `Result`/`Option` constructs and update control flow accordingly.
 4. ~~Map annotations to decorators.~~ Decorators will not be used.
 5. Gradually cover advanced features like reflection or concurrency.
 
