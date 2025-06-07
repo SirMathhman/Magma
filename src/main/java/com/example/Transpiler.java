@@ -101,6 +101,23 @@ public class Transpiler {
                 continue;
             }
             wrote = true;
+
+            if ((body.startsWith("if") || body.startsWith("else if")) && body.endsWith("{")) {
+                stub.append(indent).append("    if (/* TODO */) {").append(System.lineSeparator());
+                stub.append(indent).append("        // TODO").append(System.lineSeparator());
+                stub.append(indent).append("    }").append(System.lineSeparator());
+                i = skipBody(lines, i) - 1;
+                continue;
+            }
+
+            if (body.startsWith("else") && body.endsWith("{")) {
+                stub.append(indent).append("    else {").append(System.lineSeparator());
+                stub.append(indent).append("        // TODO").append(System.lineSeparator());
+                stub.append(indent).append("    }").append(System.lineSeparator());
+                i = skipBody(lines, i) - 1;
+                continue;
+            }
+
             if (body.startsWith("return")) {
                 stub.append(indent).append("    return /* TODO */;").append(System.lineSeparator());
             } else {
