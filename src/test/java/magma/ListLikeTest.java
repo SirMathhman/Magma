@@ -14,11 +14,11 @@ class ListLikeTest {
         list.add(2);
         assertEquals(2, list.size());
         assertEquals(1, list.get(0));
-        int sum = 0;
-        var it = list.iterator();
-        while (it.hasNext()) {
-            sum += it.next();
-        }
+        int sum = list.iterator().fold(0, (acc, v) -> acc + v);
         assertEquals(3, sum);
+
+        var mapped = list.iterator().map(Object::toString);
+        assertEquals("1", mapped.get(0));
+        assertEquals("2", mapped.get(1));
     }
 }

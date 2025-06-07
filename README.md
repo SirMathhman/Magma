@@ -41,6 +41,10 @@ After building you can run the transpiler.  It reads Java sources under
 java -cp bin magma.Main
 ```
 
+The files under `src/main/node` are generated output. They are tracked in
+version control so we can review the transpiler's progress, but they should
+never be edited directly.
+
 ## Key Classes
 
 - `magma.Main` – simple CLI for the transpiler
@@ -48,4 +52,5 @@ java -cp bin magma.Main
 - `magma.path.PathLike` – abstracts file system operations such as `walk`
 - `magma.path.NioPath` – wraps `java.nio.file.Path` and handles basic I/O
 - `magma.list.ListLike` – minimal list abstraction using a custom `ListIterator`
+  that now supports `map` and `fold` operations
 - `magma.list.JdkList` – default implementation backed by `ArrayList`

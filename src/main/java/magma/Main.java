@@ -35,15 +35,15 @@ public class Main {
             return new Some<>(files.error().get());
         }
 
-        var fileIt = files.value().get().iterator();
-        while (fileIt.hasNext()) {
-            var file = fileIt.next();
-            var err = transpileFile(srcRoot, outRoot, file);
-            if (err.isSome()) {
-                return err;
-            }
-        }
-        return new None<>();
+        return files.value().get().iterator().fold(
+            new None<String>(),
+            (Option<String> acc, PathLike file) -> {
+                if (acc.isSome()) {
+                    return acc;
+                }
+                var err = transpileFile(srcRoot, outRoot, file);
+                return err.isSome() ? err : acc;
+            });
     }
 
     private Result<ListLike<PathLike>> listJavaFiles(PathLike srcRoot) {
