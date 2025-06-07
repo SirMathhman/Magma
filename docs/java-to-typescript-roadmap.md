@@ -28,6 +28,7 @@ Only the features listed below are supported. Anything not mentioned here is con
 - **Methods** keep their names and basic return types such as `int` or `void` translate to `number` or `void`.
   - Numeric literals are preserved in both assignments and return statements. Other statements become `// TODO` comments.
   - The logical not operator `!` is preserved so conditions like `!flag` remain unchanged.
+    - When a negated value is a method call, the callee name becomes `/* TODO */` while its arguments are still parsed recursively.
     - `if` and `while` statements parse their conditions using `parseValue`. Method calls now keep their names while unknown values become `/* TODO */`.
   - Tests: `TranspilerMethodTest.stubsMethodBodiesPreservingNames`, `TranspilerMethodTest.stubsVoidReturnTypes`, `TranspilerStatementTest.stubsOneTodoPerStatement`, `TranspilerStatementTest.stubsIfStatements`, `TranspilerStatementTest.stubsWhileStatements`, `TranspilerStatementTest.keepsNumericValues`.
   - **Fields** become class properties.
@@ -70,15 +71,6 @@ Only the features listed below are supported. Anything not mentioned here is con
     `TranspilerStatementTest.stubsOneTodoPerStatement`.
 - **Streams** rely on array helpers such as `map`, `filter`, and `reduce`.
 - **Standard library** utilities are replaced with small TypeScript helpers.
-
-## Key Modules
-- `magma.app.Transpiler` – orchestrates the conversion to TypeScript
-- `ImportHelper` – handles packages and import statements
-- `MethodStubber` – stubs out method bodies
-- `FieldTranspiler` – converts field declarations
-- `ArrowHelper` – rewrites lambda expressions
-- `TypeMapper` – maps Java types to their TypeScript equivalents
-- `magma.Main` – command line driver that runs the transpiler
 
 ## Further tasks
 1. ~~Implement translation of basic class structure and type mappings.~~  
