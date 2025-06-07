@@ -56,7 +56,12 @@ Only the features listed below are supported. Anything not mentioned here is con
 - **Standard library** utilities are replaced with small TypeScript helpers.
 
 ## Key Modules
-- `com.example.Transpiler` – converts Java source into TypeScript
+- `com.example.Transpiler` – orchestrates the conversion to TypeScript
+- `ImportHelper` – handles packages and import statements
+- `MethodStubber` – stubs out method bodies
+- `FieldTranspiler` – converts field declarations
+- `ArrowHelper` – rewrites lambda expressions
+- `TypeMapper` – maps Java types to their TypeScript equivalents
 - `com.example.Main` – command line driver that runs the transpiler
 
 ## Further tasks
