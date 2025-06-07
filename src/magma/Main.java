@@ -1058,13 +1058,7 @@ public class Main {
             if (paramStart >= 0) {
                 final var name = withoutParamEnd.substring(0, paramStart).strip();
                 final var inputParams = withoutParamEnd.substring(paramStart + "(".length());
-                final var fields = divide(inputParams, Main::foldValues)
-                        .iter()
-                        .map(input -> parseParameter(input, state))
-                        .map(Main::retainDefinition)
-                        .flatMap(Iterators::fromOptional)
-                        .collect(new ListCollector<>());
-
+                final var fields = getCollect(state, inputParams);
                 if (!fields.isEmpty()) {
                     return getTupleOption(targetInfix, state, inputContent, modifiers, implementsTypes, new Some<>(fields), name);
                 }
@@ -1072,6 +1066,15 @@ public class Main {
         }
 
         return getTupleOption(targetInfix, state, inputContent, modifiers, implementsTypes, new None<>(), beforeContent);
+    }
+
+    private static List<Definition> getCollect(CompileState state, String inputParams) {
+        return divide(inputParams, Main::foldValues)
+                .iter()
+                .map(input -> parseParameter(input, state))
+                .map(Main::retainDefinition)
+                .flatMap(Iterators::fromOptional)
+                .collect(new ListCollector<>());
     }
 
     private static Option<Tuple<String, CompileState>> getTupleOption(
