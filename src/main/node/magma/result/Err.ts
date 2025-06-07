@@ -21,6 +21,6 @@ export default class Err<T> implements Result<T> {
 
     @Override
     error(): Option<string> {
-        return new Some<>(/* TODO */);
+        return new Some<>(message);
     }
 }

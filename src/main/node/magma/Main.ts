@@ -16,21 +16,21 @@ import List from "../java/util/List";
 export default class Main {
     main(args: string[]): void {
         let error: Option<string> = new Main().run();
-        if (error./* TODO */()) {
+        if (error.isSome()) {
             // TODO
         }
     }
 
     run(): Option<string> {
-        let srcRoot: any = Path./* TODO */("src/main/java");
-        let outRoot: any = Path./* TODO */("src/main/node");
-        let files: Result<List<any>> = /* TODO */(/* TODO */);
-        if (!files./* TODO */()) {
+        let srcRoot: any = Path.of("src/main/java");
+        let outRoot: any = Path.of("src/main/node");
+        let files: Result<List<any>> = listJavaFiles(srcRoot);
+        if (!files.isOk()) {
             // TODO
         }
         // TODO
-        let err: Option<string> = /* TODO */(/* TODO */, /* TODO */, /* TODO */);
-        if (err./* TODO */()) {
+        let err: Option<string> = transpileFile(srcRoot, outRoot, file);
+        if (err.isSome()) {
             // TODO
         }
         // TODO
@@ -41,28 +41,28 @@ export default class Main {
         let javaFiles: List<any> = new ArrayList<>();
         let stream: any = Files./* TODO */;
         // TODO
-        if (p./* TODO */()./* TODO */(".java")) {
+        if (p.toString().endsWith(".java")) {
             // TODO
         }
         // TODO
-        return new Ok<>(/* TODO */);
-        /* TODO */(/* TODO */);
+        return new Ok<>(javaFiles);
+        } catch(/* TODO */);
         return new Err<>(e.getMessage());
         // TODO
     }
 
     transpileFile(srcRoot: any, outRoot: any, javaFile: any): Option<string> {
         // TODO
-        let javaSrc: string = Files./* TODO */(/* TODO */);
+        let javaSrc: string = Files.readString(javaFile);
         let ts: string = new Transpiler().toTypeScript(javaSrc);
-        let rel: any = srcRoot./* TODO */(/* TODO */);
-        let name: string = rel./* TODO */();
-        let withoutExt: string = name./* TODO */(0, /* TODO */);
-        let outFile: any = outRoot./* TODO */(withoutExt + ".ts");
-        /* TODO */(/* TODO */);
-        /* TODO */(/* TODO */, /* TODO */);
+        let rel: any = srcRoot.relativize(javaFile);
+        let name: string = rel.toString();
+        let withoutExt: string = name.substring(0, name.length());
+        let outFile: any = outRoot.resolve(withoutExt + ".ts");
+        Files.createDirectories(outFile.getParent());
+        Files.writeString(outFile, ts + System.lineSeparator());
         return new None<>();
-        /* TODO */(/* TODO */);
+        } catch(/* TODO */);
         return new Some<>(e.getMessage());
         // TODO
     }

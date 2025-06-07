@@ -1,9 +1,9 @@
 export default class ImportHelper {
     extractPackage(source: string): string {
-        let lines: string[] = source./* TODO */("\\R");
+        let lines: string[] = source.split("\\R");
         // TODO
-        let trimmed: string = line./* TODO */();
-        if (trimmed./* TODO */("package ")./* TODO */(";")) {
+        let trimmed: string = line.trim();
+        if (trimmed.startsWith("package ").endsWith(";")) {
             // TODO
         }
         // TODO
@@ -11,8 +11,8 @@ export default class ImportHelper {
     }
 
     removePackage(source: string): string {
-        let trimmed: string = source./* TODO */();
-        if (!trimmed./* TODO */("package")) {
+        let trimmed: string = source.trim();
+        if (!trimmed.startsWith("package")) {
             // TODO
         }
         let semicolon: number = source.indexOf(';
@@ -20,49 +20,49 @@ export default class ImportHelper {
         if (/* TODO */) {
             // TODO
         }
-        return source./* TODO */(/* TODO */)./* TODO */();
+        return source.substring(/* TODO */).trim();
     }
 
     translateImports(source: string, currentPkg: string): string {
-        let lines: string[] = source./* TODO */("\\R");
+        let lines: string[] = source.split("\\R");
         let out: any = new StringBuilder();
         let i: any = 0;
         i lines.length: any;
         // TODO
         let line: string = /* TODO */;
-        let trimmed: string = line./* TODO */();
+        let trimmed: string = line.trim();
         // TODO
         // TODO
         /* */: any;
-        let imp: string = trimmed./* TODO */(7, /* TODO */)./* TODO */();
-        /* TODO */(/* TODO */);
+        let imp: string = trimmed.substring(7, trimmed.length()).trim();
+        out.append("import ").append(buildImport(imp, currentPkg));
         // TODO
-        /* TODO */(/* TODO */);
+        .append(System.lineSeparator());
         // TODO
         // TODO
         // TODO
-        /* TODO */(/* TODO */);
+        out.append(line).append(System.lineSeparator());
         // TODO
-        return out./* TODO */()./* TODO */();
+        return out.toString().trim();
     }
 
     skipEmptyLines(lines: string[], start: number): number {
-        let i: number = /* TODO */;
-        while (i < lines.length && lines[i]./* TODO */()./* TODO */()) {
+        let i: number = start;
+        while (i < lines.length && lines[i].trim().isEmpty()) {
             // TODO
         }
         return /* TODO */;
     }
 
     buildImport(imp: string, currentPkg: string): string {
-        let parts: string[] = imp./* TODO */("\\.");
+        let parts: string[] = imp.split("\\.");
         let (parts.length: any = /* TODO */;
         let className: string = parts[parts.length - 1];
-        let importPkgParts: string[] = java.util.Arrays./* TODO */(/* TODO */, parts.length - 1);
-        let currentParts: string[] = currentPkg./* TODO */()./* TODO */("\\.");
-        let shared: number = /* TODO */(/* TODO */, /* TODO */);
-        let path: string = /* TODO */(/* TODO */, /* TODO */, /* TODO */);
-        if (!path./* TODO */("../")) {
+        let importPkgParts: string[] = java.util.Arrays.copyOf(parts, parts.length - 1);
+        let currentParts: string[] = currentPkg.isBlank().split("\\.");
+        let shared: number = sharedPrefix(importPkgParts, currentParts);
+        let path: string = relativePath(importPkgParts, currentParts, shared);
+        if (!path.startsWith("../")) {
             // TODO
         }
         return /* TODO */;
@@ -70,17 +70,17 @@ export default class ImportHelper {
 
     sharedPrefix(a: string[], b: string[]): number {
         let i: number = 0;
-        while (i < a.length && i < b.length && a[i]./* TODO */(/* TODO */)) {
+        while (i < a.length && i < b.length && a[i].equals(/* TODO */)) {
             // TODO
         }
-        return /* TODO */;
+        return i;
     }
 
     relativePath(impParts: string[], currentParts: string[], shared: number): string {
         let path: any = new StringBuilder();
-        /* TODO */(/* TODO */);
-        /* TODO */(/* TODO */);
-        return path./* TODO */();
+        path.append(upPath(currentParts.length - shared));
+        path.append(joinParts(impParts, shared));
+        return path.toString();
     }
 
     upPath(count: number): string {
@@ -88,18 +88,18 @@ export default class ImportHelper {
         let i: any = 0;
         // TODO
         // TODO
-        /* TODO */("../");
+        out.append("../");
         // TODO
-        return out./* TODO */();
+        return out.toString();
     }
 
     joinParts(parts: string[], start: number): string {
         let out: any = new StringBuilder();
-        let i: any = /* TODO */;
+        let i: any = start;
         i parts.length: any;
         // TODO
-        /* TODO */(/* TODO */);
+        out.append(parts[i]).append(/* TODO */);
         // TODO
-        return out./* TODO */();
+        return out.toString();
     }
 }

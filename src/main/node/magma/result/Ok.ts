@@ -16,7 +16,7 @@ export default class Ok<T> implements Result<T> {
 
     @Override
     value(): Option<any> {
-        return new Some<>(/* TODO */);
+        return new Some<>(value);
     }
 
     @Override

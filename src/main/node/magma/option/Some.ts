@@ -13,6 +13,6 @@ export default class Some<T> implements Option<T> {
 
     @Override
     get(): any {
-        return /* TODO */;
+        return value;
     }
 }
