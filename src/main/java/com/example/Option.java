@@ -1,32 +1,20 @@
 package com.example;
 
 /**
- * Minimal optional value container.
+ * Minimal optional value container with distinct variants.
  */
-public final class Option<T> {
-    private final T value;
+public interface Option<T> {
+    boolean isSome();
 
-    private Option(T value) {
-        this.value = value;
+    boolean isNone();
+
+    T get();
+
+    static <T> Option<T> some(T value) {
+        return new Some<>(value);
     }
 
-    public static <T> Option<T> some(T value) {
-        return new Option<>(value);
-    }
-
-    public static <T> Option<T> none() {
-        return new Option<>(null);
-    }
-
-    public boolean isSome() {
-        return value != null;
-    }
-
-    public boolean isNone() {
-        return value == null;
-    }
-
-    public T get() {
-        return value;
+    static <T> Option<T> none() {
+        return new None<>();
     }
 }
