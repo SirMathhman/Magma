@@ -2,7 +2,7 @@
 set -euo pipefail
 
 # Compile Java sources
-javac $(find src -name "*.java")
+javac --release 21 --enable-preview $(find src -name "*.java")
 
 # Generate TypeScript output
-java -cp src magma.Main
+java --enable-preview -cp src magma.Main

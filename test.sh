@@ -13,11 +13,11 @@ fi
 
 # Compile main sources
 find src -name "*.java" > sources.txt
-javac -d build @sources.txt
+javac --release 21 --enable-preview -d build @sources.txt
 
 # Compile test sources
 find test -name "*.java" > test-sources.txt
-javac -cp "$JUNIT_JAR:build" -d test-classes @test-sources.txt
+javac --release 21 --enable-preview -cp "$JUNIT_JAR:build" -d test-classes @test-sources.txt
 
 # Run tests
-java -jar "$JUNIT_JAR" -cp build:test-classes --scan-class-path
+java --enable-preview -jar "$JUNIT_JAR" -cp build:test-classes --scan-class-path
