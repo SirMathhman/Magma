@@ -33,7 +33,24 @@ class TranspilerTest {
 
         String expected = String.join("\n",
             "export default class Foo {",
-            "    bar(x: number) {}",
+            "    bar(x: number): number {}",
+            "}");
+
+        String result = new Transpiler().toTypeScript(javaSrc);
+        assertEquals(expected, result);
+    }
+
+    @Test
+    void stubsVoidReturnTypes() {
+        String javaSrc = String.join("\n",
+            "public class Foo {",
+            "    void baz() {",
+            "    }",
+            "}");
+
+        String expected = String.join("\n",
+            "export default class Foo {",
+            "    baz(): void {}",
             "}");
 
         String result = new Transpiler().toTypeScript(javaSrc);

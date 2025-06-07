@@ -40,10 +40,12 @@ public class Transpiler {
         StringBuffer out = new StringBuffer();
         while (m.find()) {
             String indent = m.group(1);
+            String returnType = m.group(2);
             String name = m.group(3);
             String params = m.group(4).trim();
             String tsParams = toTsParams(params);
-            String replacement = indent + name + "(" + tsParams + ") {}";
+            String tsReturn = toTsType(returnType);
+            String replacement = indent + name + "(" + tsParams + ")" + (tsReturn.isBlank() ? "" : ": " + tsReturn) + " {}";
             m.appendReplacement(out, java.util.regex.Matcher.quoteReplacement(replacement));
         }
         m.appendTail(out);
@@ -72,6 +74,7 @@ public class Transpiler {
             case "int", "long", "float", "double" -> "number";
             case "boolean" -> "boolean";
             case "char", "String" -> "string";
+            case "void" -> "void";
             default -> "any";
         };
     }
