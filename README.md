@@ -14,8 +14,18 @@ sources and regenerates the TypeScript output. Simply run:
 ./build.sh
 ```
 
-The script performs the same steps that were previously described manually using
-`javac` and `java -cp src magma.Main`.
+The script performs the same steps that were previously described manually using `javac` and `java -cp src magma.Main`.
+
+## Testing
+
+Basic JUnit tests can be executed with `test.sh`:
+
+```bash
+./test.sh
+```
+
+In the GitHub Actions workflow, building and testing run as two
+independent jobs so failures in either stage are reported clearly.
 
 ## Status
 
