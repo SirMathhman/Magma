@@ -7,6 +7,8 @@ This repository begins a self‑hosted transpiler from Java to TypeScript. It ke
 - `com.example.Transpiler` – prototype Java → TypeScript converter
 - `com.example.Main` – CLI that converts all sources under `src/main/java`
   to TypeScript files under `src/main/node`
+- `com.example.Result` – container for a successful value or an error
+- `com.example.Option` – optional value helper
 - Tests mirror the transpiler (`TranspilerTest`) and CLI (`MainTest`).
 
 Abstract classes are intentionally avoided. The project prefers composition of
@@ -44,6 +46,8 @@ becomes `() => {}`.
 
 Error handling avoids Java exceptions. Do not use `throw`, `try`, or `catch`.
 Instead, functions should return a `Result` or `Option` object.
+`Main` now exposes a `run` method that returns a `Result` so callers can inspect
+errors without relying on exceptions.
 
 Annotations are currently skipped entirely, so no TypeScript decorators are
 generated.

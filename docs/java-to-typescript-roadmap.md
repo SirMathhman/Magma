@@ -51,7 +51,8 @@ Only the features listed below are supported. Anything not mentioned here is con
    - Update the transpiler to emit TypeScript `interface` definitions.
    - Write failing tests that cover interface translation.
 4. Replace exceptions with `Result`/`Option` constructs.
-   - Provide minimal `Result` and `Option` utilities.
+   - ~~Provide minimal `Result` and `Option` utilities.~~
+   - ~~Refactor `Main` to return these types instead of using `throws`.~~
    - Refactor generated code to return these types.
 5. Implement lambda expressions and stream translations.
    - Convert lambda expressions to arrow functions.
