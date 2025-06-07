@@ -26,7 +26,9 @@ platforms.
 - `magma.result.Result` and `magma.option.Option` – lightweight
   replacements for exceptions
 - `magma.path.PathLike` and `magma.path.NioPath` – small wrapper around
-  `java.nio.file.Path` so other classes don't depend on NIO directly
+  `java.nio.file.Path` so other classes don't depend on NIO directly.
+  `NioPath` also provides helpers for reading and writing files so
+  callers never touch `java.nio.file.Files`.
 - `PathLike.walk` – lists files without exposing `Files.walk` or throwing
   `IOException`
 

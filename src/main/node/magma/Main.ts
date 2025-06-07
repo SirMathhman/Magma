@@ -55,14 +55,14 @@ export default class Main {
 
     transpileFile(srcRoot: PathLike, outRoot: PathLike, javaFile: PathLike): Option<string> {
         // TODO
-        let javaSrc: var = Files.readString(((NioPath)).toNio());
+        let javaSrc: var = ((NioPath)).readString();
         let ts: var = new Transpiler().toTypeScript(javaSrc);
         let rel: var = srcRoot.relativize(javaFile);
         let name: var = rel.toString();
         let withoutExt: var = name.substring(0, name.length());
         let outFile: var = outRoot.resolve(withoutExt + ".ts");
-        Files.createDirectories(((NioPath).getParent()).toNio());
-        Files.writeString(((NioPath)).toNio(), ts + System.lineSeparator());
+        ((NioPath).getParent()).createDirectories();
+        ((NioPath)).writeString(ts + System.lineSeparator());
         return new None<>();
         } catch(/* TODO */);
         return new Some<>(e.getMessage());

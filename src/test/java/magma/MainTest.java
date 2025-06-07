@@ -41,7 +41,7 @@ class MainTest {
         if (!result.isOk()) return;
         List<PathLike> paths = new ArrayList<>(result.value().get());
         for (var i = paths.size() - 1; i >= 0; i--) {
-            Files.deleteIfExists(((NioPath) paths.get(i)).toNio());
+            ((NioPath) paths.get(i)).deleteIfExists();
         }
     }
 }
