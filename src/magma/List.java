@@ -2,6 +2,9 @@ package magma;
 
 import java.util.function.Function;
 
+/**
+ * Immutable list abstraction used by the AST and utilities.
+ */
 interface List<T> {
     List<T> add(T element);
 

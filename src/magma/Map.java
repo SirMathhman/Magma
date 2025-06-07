@@ -1,5 +1,8 @@
 package magma;
 
+/**
+ * Basic associative map interface used throughout the compiler.
+ */
 interface Map<K, V> {
     Map<K, V> putAll(Map<K, V> other);
 

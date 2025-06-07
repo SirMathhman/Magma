@@ -4,6 +4,9 @@ import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.function.Predicate;
 
+/**
+ * Lightweight iterator interface used instead of {@link java.util.Iterator}.
+ */
 interface Iterator<T> {
     <R> Iterator<R> map(Function<T, R> mapper);
 
