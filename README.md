@@ -28,6 +28,9 @@ syntax with the appropriate type mappings.
 Generic type parameters are preserved, so `List<String>` becomes
 `List<string>` in the transpiled output.
 
+Inheritance via the `extends` keyword and interface implementation with
+`implements` are copied directly to the TypeScript output.
+
 The primitive `boolean` and its wrapper `Boolean` both become TypeScript
 `boolean`, as verified by `TranspilerTest.mapsBooleanTypes`.
 

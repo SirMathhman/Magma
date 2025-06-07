@@ -170,4 +170,32 @@ class TranspilerTest {
         String result = new Transpiler().toTypeScript(javaSrc);
         assertEquals(expected, result);
     }
+
+    @Test
+    void preservesExtendsClause() {
+        String javaSrc = String.join("\n",
+            "public class Child extends Parent {",
+            "}");
+
+        String expected = String.join("\n",
+            "export default class Child extends Parent {",
+            "}");
+
+        String result = new Transpiler().toTypeScript(javaSrc);
+        assertEquals(expected, result);
+    }
+
+    @Test
+    void preservesImplementsClause() {
+        String javaSrc = String.join("\n",
+            "public class Service implements Runnable {",
+            "}");
+
+        String expected = String.join("\n",
+            "export default class Service implements Runnable {",
+            "}");
+
+        String result = new Transpiler().toTypeScript(javaSrc);
+        assertEquals(expected, result);
+    }
 }
