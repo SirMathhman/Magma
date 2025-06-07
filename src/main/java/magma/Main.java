@@ -46,17 +46,17 @@ public class Main {
     }
 
     private Result<List<PathLike>> listJavaFiles(PathLike srcRoot) {
-        List<PathLike> javaFiles = new ArrayList<>();
-        try (var stream = Files.walk(((NioPath) srcRoot).toNio())) {
-            stream.forEach(p -> {
-                if (p.toString().endsWith(".java")) {
-                    javaFiles.add(NioPath.wrap(p));
-                }
-            });
-            return new Ok<>(javaFiles);
-        } catch (IOException e) {
-            return new Err<>(e.getMessage());
+        var paths = srcRoot.walk();
+        if (!paths.isOk()) {
+            return new Err<>(paths.error().get());
         }
+        List<PathLike> javaFiles = new ArrayList<>();
+        for (var p : paths.value().get()) {
+            if (p.toString().endsWith(".java")) {
+                javaFiles.add(p);
+            }
+        }
+        return new Ok<>(javaFiles);
     }
 
     private Option<String> transpileFile(PathLike srcRoot, PathLike outRoot, PathLike javaFile) {

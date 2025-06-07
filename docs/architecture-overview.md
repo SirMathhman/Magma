@@ -27,6 +27,8 @@ platforms.
   replacements for exceptions
 - `magma.path.PathLike` and `magma.path.NioPath` – small wrapper around
   `java.nio.file.Path` so other classes don't depend on NIO directly
+- `PathLike.walk` – lists files without exposing `Files.walk` or throwing
+  `IOException`
 
 The `parseValue` routine incrementally scans characters.  It recognizes
 member access, method calls, literals and the logical not operator.
