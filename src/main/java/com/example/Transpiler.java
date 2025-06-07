@@ -103,17 +103,19 @@ public class Transpiler {
             wrote = true;
 
             if ((body.startsWith("if") || body.startsWith("else if")) && body.endsWith("{")) {
-                stub.append(indent).append("    if (/* TODO */) {").append(System.lineSeparator());
-                stub.append(indent).append("        // TODO").append(System.lineSeparator());
-                stub.append(indent).append("    }").append(System.lineSeparator());
+                appendBlockStub(stub, indent, "if", true);
                 i = skipBody(lines, i) - 1;
                 continue;
             }
 
             if (body.startsWith("else") && body.endsWith("{")) {
-                stub.append(indent).append("    else {").append(System.lineSeparator());
-                stub.append(indent).append("        // TODO").append(System.lineSeparator());
-                stub.append(indent).append("    }").append(System.lineSeparator());
+                appendBlockStub(stub, indent, "else", false);
+                i = skipBody(lines, i) - 1;
+                continue;
+            }
+
+            if (body.startsWith("while") && body.endsWith("{")) {
+                appendBlockStub(stub, indent, "while", true);
                 i = skipBody(lines, i) - 1;
                 continue;
             }
@@ -123,9 +125,12 @@ public class Transpiler {
             } else {
                 String[] parts = body.split(";");
                 for (String part : parts) {
-                    if (part.trim().isEmpty()) continue;
-                    if (part.trim().startsWith("return")) {
+                    String trimmedPart = part.trim();
+                    if (trimmedPart.isEmpty()) continue;
+                    if (trimmedPart.startsWith("return")) {
                         stub.append(indent).append("    return /* TODO */;").append(System.lineSeparator());
+                    } else if (trimmedPart.contains("=")) {
+                        stub.append(parseAssignment(trimmedPart, indent)).append(System.lineSeparator());
                     } else {
                         stub.append(indent).append("    // TODO").append(System.lineSeparator());
                     }
@@ -151,12 +156,22 @@ public class Transpiler {
         return i;
     }
 
+    private void appendBlockStub(StringBuilder stub, String indent, String keyword, boolean withCondition) {
+        stub.append(indent).append("    ").append(keyword);
+        if (withCondition) {
+            stub.append(" (/* TODO */)");
+        }
+        stub.append(" {").append(System.lineSeparator());
+        stub.append(indent).append("        // TODO").append(System.lineSeparator());
+        stub.append(indent).append("    }").append(System.lineSeparator());
+    }
+
     private String transpileFields(String source) {
         String[] lines = source.split("\\R");
         StringBuilder out = new StringBuilder();
         for (String line : lines) {
             String trimmed = line.trim();
-            if (!trimmed.endsWith(";") || trimmed.contains("(") || trimmed.startsWith("import") || trimmed.startsWith("return")) {
+            if (!trimmed.endsWith(";") || trimmed.contains("(") || trimmed.startsWith("import") || trimmed.startsWith("return") || trimmed.startsWith("let ")) {
                 out.append(line).append(System.lineSeparator());
                 continue;
             }
@@ -223,8 +238,13 @@ public class Transpiler {
                 if (body.contains("=") && body.contains(";")) {
                     out.append(header).append(System.lineSeparator());
                     for (String part : body.split(";")) {
-                        if (part.trim().isEmpty()) continue;
-                        out.append(indent).append("    // TODO").append(System.lineSeparator());
+                        String trimmedPart = part.trim();
+                        if (trimmedPart.isEmpty()) continue;
+                        if (trimmedPart.contains("=")) {
+                            out.append(parseAssignment(trimmedPart, indent)).append(System.lineSeparator());
+                        } else {
+                            out.append(indent).append("    // TODO").append(System.lineSeparator());
+                        }
                     }
                     out.append(indent).append("};").append(System.lineSeparator());
                     continue;
@@ -233,6 +253,21 @@ public class Transpiler {
             out.append(line).append(System.lineSeparator());
         }
         return out.toString().trim();
+    }
+
+    private String parseAssignment(String stmt, String indent) {
+        int eq = stmt.indexOf('=');
+        if (eq == -1) {
+            return indent + "    // TODO";
+        }
+        String dest = stmt.substring(0, eq).trim();
+        String[] tokens = dest.split("\\s+");
+        if (tokens.length >= 2) {
+            String name = tokens[tokens.length - 1];
+            String type = tokens[tokens.length - 2];
+            return indent + "    let " + name + ": " + toTsType(type) + " = /* TODO */;";
+        }
+        return indent + "    // TODO";
     }
 
     private String toTsParams(String params) {

@@ -22,7 +22,7 @@ so that Java modifiers like `public` become `export default`. Method
 body text is replaced with stubs in the generated TypeScript while
 preserving each method's name and indentation. Stubs insert one
 `// TODO` comment for every statement in the original method. Return statements
-retain the `return` keyword with `/* TODO */` as a placeholder value. Conditional blocks are rewritten as skeletons where the condition becomes `/* TODO */` and the body contains a single `// TODO` comment. Basic parameter and
+retain the `return` keyword with `/* TODO */` as a placeholder value. Conditional blocks and `while` loops are rewritten as skeletons where the condition becomes `/* TODO */` and the body contains a single `// TODO` comment. Basic parameter and
 return types are converted to their TypeScript equivalents. Array types
 map directly as well, so `int[]` becomes `number[]` and `String[]`
 becomes `string[]`. Future
@@ -33,6 +33,8 @@ syntax with the appropriate type mappings.
 `final` fields become `readonly` properties in the generated TypeScript.
 Field assignments are removed so initial values are not emitted.
 Assignments inside arrow function bodies are replaced with `// TODO` comments.
+Assignments that define new variables inside methods become `let` declarations
+with `/* TODO */` as the initializer.
 
 Generic type parameters are preserved, so `List<String>` becomes
 `List<string>` in the transpiled output.
