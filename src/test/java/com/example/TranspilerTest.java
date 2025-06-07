@@ -34,7 +34,7 @@ class TranspilerTest {
         String expected = String.join("\n",
             "export default class Foo {",
             "    bar(x: number): number {",
-            "        // TODO",
+            "        return /* TODO */;",
             "    }",
             "}");
 
@@ -79,13 +79,13 @@ class TranspilerTest {
         String expected = String.join("\n",
             "export default class Foo {",
             "    fromChar(c: string): string {",
-            "        // TODO",
+            "        return /* TODO */;",
             "    }",
             "    fromWrapper(c: string): string {",
-            "        // TODO",
+            "        return /* TODO */;",
             "    }",
             "    fromString(s: string): string {",
-            "        // TODO",
+            "        return /* TODO */;",
             "    }",
             "}");
 
@@ -105,7 +105,7 @@ class TranspilerTest {
         String expected = String.join("\n",
             "export default class Foo {",
             "    bar(words: string[]): number[] {",
-            "        // TODO",
+            "        return /* TODO */;",
             "    }",
             "}");
 
@@ -125,7 +125,7 @@ class TranspilerTest {
         String expected = String.join("\n",
             "export default class Foo {",
             "    flag(a: boolean, b: boolean): boolean {",
-            "        // TODO",
+            "        return /* TODO */;",
             "    }",
             "}");
 
@@ -145,7 +145,7 @@ class TranspilerTest {
         String expected = String.join("\n",
             "export default class Foo {",
             "    names(in: List<string>): List<string> {",
-            "        // TODO",
+            "        return /* TODO */;",
             "    }",
             "}");
 
@@ -281,7 +281,7 @@ class TranspilerTest {
             "    multi(): number {",
             "        // TODO",
             "        // TODO",
-            "        // TODO",
+            "        return /* TODO */;",
             "    }",
             "}");
 
