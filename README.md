@@ -21,6 +21,8 @@ tests will drive the full implementation.
 
 Additional notes and a feature mapping between Java and TypeScript live in
 [`docs/java-to-typescript-roadmap.md`](docs/java-to-typescript-roadmap.md).
+Developer guidelines are summarized in
+[`docs/coding-standards.md`](docs/coding-standards.md).
 
 ### Building and Testing
 
