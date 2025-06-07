@@ -292,7 +292,7 @@ public class Main {
             String targetInfix,
             CompileState state, StructurePrototype structurePrototype) {
         final var strippedName = structurePrototype.name().strip();
-        if (!Parser.isSymbol(strippedName)) {
+        if (!Parser.isIdentifier(strippedName)) {
             return new None<>();
         }
 
