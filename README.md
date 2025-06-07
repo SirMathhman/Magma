@@ -38,6 +38,9 @@ Enum declarations are also converted so that `public enum Foo` becomes
 The primitive `boolean` and its wrapper `Boolean` both become TypeScript
 `boolean`, as verified by `TranspilerTest.mapsBooleanTypes`.
 
+Lambda expressions use TypeScript arrow function syntax, so `() -> {}`
+becomes `() => {}`.
+
 Error handling avoids Java exceptions. Do not use `throw`, `try`, or `catch`.
 Instead, functions should return a `Result` or `Option` object.
 

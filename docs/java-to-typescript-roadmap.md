@@ -23,7 +23,7 @@ This page outlines how Java language features map to their TypeScript counterpar
 | Implementing interfaces (`implements`) | `implements` | Direct mapping. | `TranspilerTest.preservesImplementsClause` |
 | Exceptions (`throw`, `try`/`catch`) | `Result`/`Option` types | Prefer returning a `Result` or `Option` object instead of using exceptions. | |
 | Annotations | *(not supported)* | Decorators are not used in this project. | |
-| Lambda expressions | Arrow functions | `() -> {}` → `() => {}`. | |
+| Lambda expressions | Arrow functions | `() -> {}` → `() => {}`. | `TranspilerTest.convertsLambdasToArrowFunctions` |
 | Streams | Array methods / custom helpers | Use `map`, `filter`, `reduce`. | |
 | Standard library (`java.util`, etc.) | TypeScript/JS standard APIs or polyfills | Replace with equivalent utilities. | |
 | Reflection | Limited or custom metadata | TypeScript has limited runtime type information. | |
