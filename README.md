@@ -11,6 +11,11 @@ This repository begins a self‑hosted transpiler from Java to TypeScript. It ke
 The transpiler currently removes the `package` declaration since
 TypeScript does not use Java-style packages.
 
+## Documentation
+
+Additional notes and a feature mapping between Java and TypeScript live in
+[`docs/java-to-typescript-roadmap.md`](docs/java-to-typescript-roadmap.md).
+
 To run the tests:
 
 ```bash
