@@ -34,7 +34,9 @@ platforms.
 - `magma.list.ListLike` and `magma.list.JdkList` – simple list wrapper so
     code avoids a hard dependency on `java.util.List`. Iteration uses a
     lightweight `ListIterator` interface instead of `java.lang.Iterable`.
-    The iterator now exposes `map` and `fold` to keep loops out of callers.
+    The iterator now exposes `map`, `fold`, and `flatMap` to keep loops out of callers.
+    `flatMap` takes a function returning another iterator so nested lists can
+    be flattened without revealing the underlying list implementation.
 
 The `parseValue` routine incrementally scans characters.  It recognizes
 member access, method calls, literals and the logical not operator.
