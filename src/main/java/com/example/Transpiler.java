@@ -22,10 +22,14 @@ public class Transpiler {
         for (String line : lines) {
             int classIdx = line.indexOf("class");
             int enumIdx = line.indexOf("enum");
+            int ifaceIdx = line.indexOf("interface");
             int brace = line.indexOf('{');
             if (classIdx != -1 && brace != -1 && classIdx < brace) {
                 String afterClass = line.substring(classIdx);
                 ts.append("export default ").append(afterClass).append(System.lineSeparator());
+            } else if (ifaceIdx != -1 && brace != -1 && ifaceIdx < brace) {
+                String afterIface = line.substring(ifaceIdx);
+                ts.append("export ").append(afterIface).append(System.lineSeparator());
             } else if (enumIdx != -1 && brace != -1 && enumIdx < brace) {
                 String afterEnum = line.substring(enumIdx);
                 ts.append("export ").append(afterEnum).append(System.lineSeparator());

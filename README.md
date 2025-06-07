@@ -37,6 +37,9 @@ Assignments inside arrow function bodies are replaced with `// TODO` comments.
 Generic type parameters are preserved, so `List<String>` becomes
 `List<string>` in the transpiled output.
 
+Interface definitions are translated directly, so `public interface Foo`
+becomes `export interface Foo`.
+
 Inheritance via the `extends` keyword and interface implementation with
 `implements` are copied directly to the TypeScript output.
 
