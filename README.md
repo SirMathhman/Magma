@@ -73,6 +73,8 @@ their TypeScript equivalents. Numeric primitives (`byte`, `short`, `int`, `long`
 - `test/java` – JUnit tests
 - `docs/` – Documentation
 
+See `docs/overview.md` for a short list of the main modules.
+
 Additional notes on regex usage, coding style and CI can be found in the `docs/`
 directory.
 

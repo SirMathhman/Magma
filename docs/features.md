@@ -16,6 +16,7 @@
 - [x] Handles generic type arguments when converting return values
 - [x] Preserves method type parameters on generated methods
 - [x] Preserves the `static` modifier on generated methods
+- [x] Parses method bodies but only emits stubs in the generated TypeScript
 - [x] Preserves `extends` and `implements` on class declarations
 - [x] Includes an `npm` command to validate the TypeScript output
 - [x] Wraps file paths with `PathLike`/`JVMPath` so generated TypeScript does not

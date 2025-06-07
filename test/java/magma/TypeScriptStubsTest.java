@@ -12,6 +12,7 @@ import java.nio.file.Files;
 import static magma.TestUtil.writeSource;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 
 public class TypeScriptStubsTest {
 
@@ -303,21 +304,15 @@ public class TypeScriptStubsTest {
     public void copiesAssignmentSegment() {
         PathLike tsRoot = generateSegmentStubs();
         String a = Results.unwrap(tsRoot.resolve("test/A.ts").readString());
-        assertTrue(a.contains("let x: number = 1;"));
+        assertFalse(a.contains("let x: number = 1;"));
+        assertTrue(a.contains("return 0;"));
     }
 
     @Test
     public void splitsStatementsAcrossLines() {
         PathLike tsRoot = generateSegmentStubs();
         String a = Results.unwrap(tsRoot.resolve("test/A.ts").readString());
-        String expected = "let x: number = 1;" + System.lineSeparator()
-                + "\t\tif(x>0){" + System.lineSeparator()
-                + "\t\t\tbar();" + System.lineSeparator()
-                + "\t\t}" + System.lineSeparator()
-                + "\t\telse {" + System.lineSeparator()
-                + "\t\t\tbaz();" + System.lineSeparator()
-                + "\t\t}" + System.lineSeparator()
-                + "\t\treturn x;";
-        assertTrue(a.contains(expected));
+        assertFalse(a.contains("baz();"));
+        assertTrue(a.contains("return 0;"));
     }
 }

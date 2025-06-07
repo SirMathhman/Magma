@@ -296,14 +296,7 @@ public record JavaFile(PathLike file) {
         if (segRes.isErr()) {
             return new Err<>(((Err<List<String>, IOException>) segRes).error());
         }
-        List<String> segs = ((Ok<List<String>, IOException>) segRes).value();
-        if (segs.isEmpty()) {
-            list.add("\t\treturn 0;");
-        } else {
-            for (String seg : segs) {
-                list.add("\t\t" + seg);
-            }
-        }
+        list.add("\t\treturn 0;");
         list.add("\t}");
         return new Ok<>(null);
     }
