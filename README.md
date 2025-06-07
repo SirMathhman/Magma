@@ -30,6 +30,8 @@ tests will drive the full implementation.
 Field declarations inside classes are converted to TypeScript property
 syntax with the appropriate type mappings.
 `final` fields become `readonly` properties in the generated TypeScript.
+Field assignments are removed so initial values are not emitted.
+Assignments inside arrow function bodies are replaced with `// TODO` comments.
 
 Generic type parameters are preserved, so `List<String>` becomes
 `List<string>` in the transpiled output.
