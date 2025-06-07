@@ -16,10 +16,15 @@ Coding conventions are summarized in
 
 Use the provided scripts to compile and run the tests.  The build script
 downloads JUnit if necessary and places compiled classes in `bin`.
+On Windows, invoke the scripts through `bash` so the same commands work
+across operating systems.
 
 ```bash
-./build.sh  # compile sources
-./test.sh   # execute all tests
+./build.sh          # compile sources
+./test.sh           # execute all tests
+# Windows users
+bash build.sh       # compile sources
+bash test.sh        # execute all tests
 ```
 
 After building you can run the transpiler.  It reads Java sources under

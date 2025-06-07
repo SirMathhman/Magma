@@ -6,6 +6,10 @@ full Java standard library.  Each helper focuses on one task and
 contains at most a single loop.  Complex regular expressions are avoided
 in favor of simple scans so the logic stays maintainable.
 
+The build and test scripts are kept as short shell wrappers. They can be
+invoked through `bash` on Windows so the same commands work on both
+platforms.
+
 ## Main Modules
 
 - `magma.app.Transpiler` – orchestrates the conversion to TypeScript

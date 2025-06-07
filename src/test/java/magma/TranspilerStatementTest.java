@@ -19,7 +19,7 @@ class TranspilerStatementTest {
         var expected = String.join("\n",
                 "export default class Foo {",
                 "    run(): void {",
-                "        doThing(/* TODO */, new Some<>(1));",
+                "        doThing(a, new Some<>(1));",
                 "    }",
                 "}");
 
@@ -39,7 +39,7 @@ class TranspilerStatementTest {
         var expected = String.join("\n",
                 "export default class Foo {",
                 "    run(): void {",
-                "        let x: number = doThing(/* TODO */, new Some<>(1));",
+                "        let x: number = doThing(a, new Some<>(1));",
                 "    }",
                 "}");
 
@@ -335,7 +335,7 @@ class TranspilerStatementTest {
         var expected = String.join("\n",
             "export default class Foo {",
             "    run(): void {",
-            "        let x: number = doThing(/* TODO */, new Some<>(make(1, 2)));",
+            "        let x: number = doThing(a, new Some<>(make(1, 2)));",
             "    }",
             "}");
 
@@ -465,7 +465,7 @@ class TranspilerStatementTest {
         var expected = String.join("\n",
             "export default class Foo {",
             "    check(): void {",
-            "        if (!/* TODO */(1)) {",
+            "        if (!isValid(1)) {",
             "            // TODO",
             "        }",
             "    }",
