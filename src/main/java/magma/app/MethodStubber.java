@@ -229,9 +229,6 @@ class MethodStubber {
 
     private static String parseValueArg(String value) {
         String trimmed = value.trim();
-        if (isInvokable(trimmed)) {
-            return "/* TODO */";
-        }
         return parseValue(trimmed);
     }
 
@@ -308,29 +305,13 @@ class MethodStubber {
         if (open == -1) {
             return "/* TODO */";
         }
-        String head = stmt.substring(0, open).trim();
-        if (head.startsWith("new ") && head.contains(".")) {
-            return stmt;
-        }
-        boolean isNew = head.startsWith("new ") && !head.contains(".");
-        String callee = "/* TODO */";
-        if (isNew) {
-            String afterNew = head.substring(4).trim();
-            if (!afterNew.isBlank()) {
-                callee = "new " + afterNew;
-            } else {
-                callee = "new /* TODO */";
-            }
-        }
+        String callee = stmt.substring(0, open).trim();
         String args = stmt.substring(open + 1, close).trim();
         java.util.List<String> parts = splitArgs(args);
         for (int i = 0; i < parts.size(); i++) {
             parts.set(i, parseValueArg(parts.get(i)));
         }
         String joined = String.join(", ", parts);
-        if (!isNew) {
-            callee = "/* TODO */";
-        }
         return callee + "(" + joined + ")";
     }
 

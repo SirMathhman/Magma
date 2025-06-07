@@ -19,7 +19,7 @@ class TranspilerStatementTest {
         String expected = String.join("\n",
                 "export default class Foo {",
                 "    run(): void {",
-                "        /* TODO */(/* TODO */, /* TODO */);",
+                "        doThing(/* TODO */, new Some<>(1));",
                 "    }",
                 "}");
 
@@ -39,7 +39,7 @@ class TranspilerStatementTest {
         String expected = String.join("\n",
                 "export default class Foo {",
                 "    run(): void {",
-                "        let x: number = /* TODO */(/* TODO */, /* TODO */);",
+                "        let x: number = doThing(/* TODO */, new Some<>(1));",
                 "    }",
                 "}");
 
@@ -335,7 +335,7 @@ class TranspilerStatementTest {
         String expected = String.join("\n",
             "export default class Foo {",
             "    run(): void {",
-            "        let x: number = /* TODO */(/* TODO */, /* TODO */);",
+            "        let x: number = doThing(/* TODO */, new Some<>(make(1, 2)));",
             "    }",
             "}");
 
@@ -355,7 +355,7 @@ class TranspilerStatementTest {
         String expected = String.join("\n",
             "export default class Foo {",
             "    run(): void {",
-            "        let x: number = /* TODO */().myField;",
+            "        let x: number = doStuff().myField;",
             "    }",
             "}");
 
@@ -375,7 +375,7 @@ class TranspilerStatementTest {
         String expected = String.join("\n",
             "export default class Foo {",
             "    run(): void {",
-            "        let x: number = first./* TODO */().third.fourth;",
+            "        let x: number = first.second().third.fourth;",
             "    }",
             "}");
 
@@ -397,7 +397,7 @@ class TranspilerStatementTest {
         String expected = String.join("\n",
             "export default class Foo {",
             "    check(): void {",
-            "        if (/* TODO */(/* TODO */)) {",
+            "        if (isValid(run())) {",
             "            // TODO",
             "        }",
             "    }",
@@ -421,7 +421,7 @@ class TranspilerStatementTest {
         String expected = String.join("\n",
             "export default class Foo {",
             "    loop(it: any): void {",
-            "        while (it./* TODO */()) {",
+            "        while (it.hasNext()) {",
             "            // TODO",
             "        }",
             "    }",

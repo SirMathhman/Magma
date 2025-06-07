@@ -54,14 +54,14 @@ with `/* TODO */` as the initializer.
 String literals remain intact if they begin and end with double quotes.
 Numeric literals are now preserved as well, so `int n = 7;` becomes
 `let n: number = 7;` and `return 42;` is emitted unchanged.
-Invokable expressions such as `doThing()` or `new Some<>()` are parsed so that
-the caller and arguments are emitted as `/* TODO */` placeholders. Constructor
-calls keep the `new` keyword and the type name, producing `new Bar(/* TODO */)` when stubbed. This also
-applies to variable definitions like `int x = run();`, which become
-`let x: number = /* TODO */();`.
+Invokable expressions such as `doThing()` or `new Some<>()` now keep the method
+name intact. Arguments are parsed recursively so unknown values still emit
+`/* TODO */`. Constructor calls keep the `new` keyword and the type name, so
+`new Bar(1)` remains unchanged. Variable assignments like `int x = run();`
+become `let x: number = run();` with the call preserved.
 Calls on freshly constructed objects such as `new Main().run()` are now preserved intact, so the expression stays `new Main().run()`. This keeps initialization chains visible in the generated code.
 Member access expressions like `parent.field` are preserved so assignments such as
-`int x = parent.field;` become `let x: number = parent.field;`. Chains that mix method calls and fields, for example `doStuff().value.next`, keep the property access while each call is stubbed.
+`int x = parent.field;` become `let x: number = parent.field;`. Chains that mix method calls and fields, for example `doStuff().value.next`, keep both the property access and the method names intact.
 Import statements are rewritten to relative paths that mirror the Java package
 structure.
 
