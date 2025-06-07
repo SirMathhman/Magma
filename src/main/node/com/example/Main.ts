@@ -11,13 +11,29 @@ export default class Main {
     main(args: string[]): void {
         // TODO
         // TODO
+    }
+
+    run(): Result<any> {
+        // TODO
+        // TODO
+        // TODO
         // TODO
         // TODO
         // TODO
         // TODO
     }
 
-    transpileFile(srcRoot: any, outRoot: any, javaFile: any): void {
+    listJavaFiles(srcRoot: any): Result<List<any>> {
+        // TODO
+        // TODO
+        // TODO
+        // TODO
+        // TODO
+    }
+
+    transpileFile(srcRoot: any, outRoot: any, javaFile: any): Result<any> {
+        // TODO
+        // TODO
         // TODO
         // TODO
         // TODO
