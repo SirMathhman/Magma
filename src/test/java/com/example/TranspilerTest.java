@@ -16,9 +16,9 @@ class TranspilerTest {
 
     @Test
     void transpilesClassDefinitionWithModifier() {
-        String javaSrc = "public final class Bar {}"; 
-        String expected = "export default class Bar {}"; 
-        String result = new Transpiler().toTypeScript(javaSrc); 
+        String javaSrc = "public final class Bar {}";
+        String expected = "export default class Bar {}";
+        String result = new Transpiler().toTypeScript(javaSrc);
         assertEquals(expected, result);
     }
 
@@ -73,16 +73,6 @@ class TranspilerTest {
             "    }",
             "    String fromString(String s) {",
             "        return s;",
-    void mapsArrayTypes() {
-        String javaSrc = String.join("\n",
-            "public class Foo {",
-            "    int[] bar(String[] words) {",
-            "        return null;",
-    void mapsBooleanTypes() {
-        String javaSrc = String.join("\n",
-            "public class Foo {",
-            "    Boolean flag(Boolean a, boolean b) {",
-            "        return a;",
             "    }",
             "}");
 
@@ -95,7 +85,45 @@ class TranspilerTest {
             "        // TODO",
             "    }",
             "    fromString(s: string): string {",
+            "        // TODO",
+            "    }",
+            "}");
+
+        String result = new Transpiler().toTypeScript(javaSrc);
+        assertEquals(expected, result);
+    }
+
+    @Test
+    void mapsArrayTypes() {
+        String javaSrc = String.join("\n",
+            "public class Foo {",
+            "    int[] bar(String[] words) {",
+            "        return null;",
+            "    }",
+            "}");
+
+        String expected = String.join("\n",
+            "export default class Foo {",
             "    bar(words: string[]): number[] {",
+            "        // TODO",
+            "    }",
+            "}");
+
+        String result = new Transpiler().toTypeScript(javaSrc);
+        assertEquals(expected, result);
+    }
+
+    @Test
+    void mapsBooleanTypes() {
+        String javaSrc = String.join("\n",
+            "public class Foo {",
+            "    Boolean flag(Boolean a, boolean b) {",
+            "        return a;",
+            "    }",
+            "}");
+
+        String expected = String.join("\n",
+            "export default class Foo {",
             "    flag(a: boolean, b: boolean): boolean {",
             "        // TODO",
             "    }",

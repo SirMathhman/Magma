@@ -109,9 +109,8 @@ public class Transpiler {
 
         return switch (javaType) {
             case "int", "long", "float", "double" -> "number";
-            case "boolean" -> "boolean";
-            case "char", "Character", "String" -> "string";
             case "boolean", "Boolean" -> "boolean";
+            case "char", "Character", "String" -> "string";
             case "void" -> "void";
             default -> "any";
         };
