@@ -12,7 +12,12 @@ import org.junit.jupiter.api.Test;
 class BuildScriptTest {
     @Test
     void printsSuccessMessage() throws Exception {
-        var process = new ProcessBuilder("./build.sh")
+        String os = System.getProperty("os.name").toLowerCase();
+        String[] cmd = os.contains("windows")
+                ? new String[]{"bash", "build.sh"}
+                : new String[]{"./build.sh"};
+
+        var process = new ProcessBuilder(cmd)
                 .directory(new File("."))
                 .redirectErrorStream(true)
                 .start();
