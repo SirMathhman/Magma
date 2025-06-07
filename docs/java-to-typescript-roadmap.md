@@ -43,6 +43,10 @@ Only the features listed below are supported. Anything not mentioned here is con
 - **Lambda expressions** become arrow functions.
   - Assignment statements inside arrow function bodies are replaced with `// TODO`.
   - Tests: `TranspilerTest.stubsAssignmentsInArrowFunctions`.
+  - Variable definitions within method bodies are emitted as `let` declarations
+    with `/* TODO */` for the assigned value.
+  - Tests: `TranspilerTest.stubsOneTodoPerStatement`,
+    `TranspilerTest.leavesValueAssignmentsAsTodo`.
 - **Streams** rely on array helpers such as `map`, `filter`, and `reduce`.
 - **Standard library** utilities are replaced with small TypeScript helpers.
 
