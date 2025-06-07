@@ -164,14 +164,7 @@ class MethodStubber {
         if (tokens.length >= 2) {
             String name = tokens[tokens.length - 1];
             String type = tokens[tokens.length - 2];
-            String value;
-            if (isInvokable(rhs)) {
-                value = stubInvokableExpr(rhs);
-            } else if ((rhs.length() >= 2 && rhs.startsWith("\"") && rhs.endsWith("\"")) || isMemberAccess(rhs)) {
-                value = rhs;
-            } else {
-                value = "/* TODO */";
-            }
+            String value = parseValue(rhs);
             return indent + "    let " + name + ": " + TypeMapper.toTsType(type) + " = " + value + ";";
         }
         return indent + "    // TODO";
@@ -197,6 +190,28 @@ class MethodStubber {
 
     static String parseInvokable(String stmt, String indent) {
         return indent + "    " + stubInvokableExpr(stmt) + ";";
+    }
+
+    static String parseValue(String value) {
+        String trimmed = value.trim();
+        if (isInvokable(trimmed)) {
+            return stubInvokableExpr(trimmed);
+        }
+        if ((trimmed.length() >= 2 && trimmed.startsWith("\"") && trimmed.endsWith("\"")) || isMemberAccess(trimmed)) {
+            return trimmed;
+        }
+        return "/* TODO */";
+    }
+
+    private static String parseValueArg(String value) {
+        String trimmed = value.trim();
+        if (isInvokable(trimmed)) {
+            return "/* TODO */";
+        }
+        if ((trimmed.length() >= 2 && trimmed.startsWith("\"") && trimmed.endsWith("\"")) || isMemberAccess(trimmed)) {
+            return trimmed;
+        }
+        return "/* TODO */";
     }
 
     static String stubInvokableExpr(String stmt) {
@@ -236,15 +251,34 @@ class MethodStubber {
             }
         }
         String args = stmt.substring(open + 1, close).trim();
-        int count = args.isBlank() ? 0 : args.split(",").length;
-        java.util.List<String> parts = new java.util.ArrayList<>();
-        for (int i = 0; i < count; i++) {
-            parts.add("/* TODO */");
+        java.util.List<String> parts = splitArgs(args);
+        for (int i = 0; i < parts.size(); i++) {
+            parts.set(i, parseValueArg(parts.get(i)));
         }
         String joined = String.join(", ", parts);
         if (!isNew) {
             callee = "/* TODO */";
         }
         return callee + "(" + joined + ")";
+    }
+
+    private static java.util.List<String> splitArgs(String args) {
+        java.util.List<String> out = new java.util.ArrayList<>();
+        if (args.isBlank()) return out;
+        int depth = 0;
+        StringBuilder part = new StringBuilder();
+        for (int i = 0; i < args.length(); i++) {
+            char c = args.charAt(i);
+            if (c == ',' && depth == 0) {
+                out.add(part.toString().trim());
+                part.setLength(0);
+                continue;
+            }
+            if (c == '(') depth++;
+            if (c == ')') depth--;
+            part.append(c);
+        }
+        out.add(part.toString().trim());
+        return out;
     }
 }
