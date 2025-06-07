@@ -60,4 +60,24 @@ class TranspilerTest {
         String result = new Transpiler().toTypeScript(javaSrc);
         assertEquals(expected, result);
     }
+
+    @Test
+    void mapsBooleanTypes() {
+        String javaSrc = String.join("\n",
+            "public class Foo {",
+            "    Boolean flag(Boolean a, boolean b) {",
+            "        return a;",
+            "    }",
+            "}");
+
+        String expected = String.join("\n",
+            "export default class Foo {",
+            "    flag(a: boolean, b: boolean): boolean {",
+            "        // TODO",
+            "    }",
+            "}");
+
+        String result = new Transpiler().toTypeScript(javaSrc);
+        assertEquals(expected, result);
+    }
 }
