@@ -917,6 +917,11 @@ public class Main {
         }
     }
 
+    private static record StructurePrototype(String modifiers, String name, TypeParamSet typeParams,
+                                             List<Type> implementsTypes, Option<List<Definition>> maybeFields,
+                                             String beforeBody, String inputBody) {
+    }
+
     public static void main(String[] args) {
         try {
             final var source = Paths.get(".", "src", "magma", "Main.java");
@@ -1102,11 +1107,11 @@ public class Main {
                 final var name1 = stripped1.substring(0, typeParamsStart);
                 final var substring = stripped1.substring(typeParamsStart + "<".length());
                 final var typeParams = parseTypeParameters(substring);
-                return assembleStructure(targetInfix, state, inputContent, modifiers, implementsTypes, name1, beforeBody, maybeFields, new TypeParamSet(typeParams));
+                return assembleStructure(targetInfix, state, new StructurePrototype(modifiers, name1, new TypeParamSet(typeParams), implementsTypes, maybeFields, beforeBody, inputContent));
             }
         }
 
-        return assembleStructure(targetInfix, state, inputContent, modifiers, implementsTypes, name, beforeBody, maybeFields, new TypeParamSet());
+        return assembleStructure(targetInfix, state, new StructurePrototype(modifiers, name, new TypeParamSet(), implementsTypes, maybeFields, beforeBody, inputContent));
     }
 
     private static List<TypeParam> parseTypeParameters(String substring) {
@@ -1143,22 +1148,15 @@ public class Main {
 
     private static Option<Tuple<String, CompileState>> assembleStructure(
             String targetInfix,
-            CompileState state,
-            String inputContent,
-            String modifiers,
-            List<Type> implementsTypes,
-            String name,
-            String beforeBody,
-            Option<List<Definition>> maybeFields,
-            TypeParamSet typeParams) {
-        final var strippedName = name.strip();
+            CompileState state, StructurePrototype structurePrototype) {
+        final var strippedName = structurePrototype.name().strip();
         if (!isSymbol(strippedName)) {
             return new None<>();
         }
 
-        final var maybeWithConstructorType1 = getMaybeWithConstructorType(name, maybeFields, Maps.empty());
-        final var frame = new StructureFrame(typeParams).defineStructureType(new StructureType(strippedName, maybeWithConstructorType1));
-        final var classSegmentsTuple = joinClassSegments(inputContent, state.enter(frame));
+        final var maybeWithConstructorType1 = getMaybeWithConstructorType(structurePrototype.name(), structurePrototype.maybeFields(), Maps.empty());
+        final var frame = new StructureFrame(structurePrototype.typeParams()).defineStructureType(new StructureType(strippedName, maybeWithConstructorType1));
+        final var classSegmentsTuple = joinClassSegments(structurePrototype.inputBody(), state.enter(frame));
         final var classSegmentsOutput = classSegmentsTuple.left.toString();
         final var classSegmentsState = classSegmentsTuple.right;
 
@@ -1170,7 +1168,7 @@ public class Main {
                     .map(definition -> new Tuple<>(definition.name, definition))
                     .collect(new MapCollector<>());
 
-            final var maybeWithConstructorType = getMaybeWithConstructorType(name, maybeFields, right);
+            final var maybeWithConstructorType = getMaybeWithConstructorType(structurePrototype.name(), structurePrototype.maybeFields(), right);
             final var structureType = new StructureType(strippedName, maybeWithConstructorType);
             final var defined = exited.left.mapLast(last -> {
                 if (last instanceof StructureContainerFrame structureContainerFrame) {
@@ -1181,9 +1179,9 @@ public class Main {
                 }
             });
 
-            final var outputContent = beforeBody + classSegmentsOutput;
-            final var joinedImplements = implementsTypes.isEmpty() ? "" : " implements " + generateNodes(implementsTypes);
-            var generated = modifiers + targetInfix + " " + strippedName + joinedImplements + " {" + outputContent + "\n}\n";
+            final var outputContent = structurePrototype.beforeBody() + classSegmentsOutput;
+            final var joinedImplements = structurePrototype.implementsTypes().isEmpty() ? "" : " implements " + generateNodes(structurePrototype.implementsTypes());
+            var generated = structurePrototype.modifiers() + targetInfix + " " + strippedName + joinedImplements + " {" + outputContent + "\n}\n";
 
             return new Some<>(new Tuple<>("", defined.addStructure(generated)));
         }
