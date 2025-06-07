@@ -106,6 +106,7 @@ public class Transpiler {
             case "int", "long", "float", "double" -> "number";
             case "boolean" -> "boolean";
             case "char", "Character", "String" -> "string";
+            case "boolean", "Boolean" -> "boolean";
             case "void" -> "void";
             default -> "any";
         };

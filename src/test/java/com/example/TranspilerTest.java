@@ -73,6 +73,11 @@ class TranspilerTest {
             "    }",
             "    String fromString(String s) {",
             "        return s;",
+    void mapsBooleanTypes() {
+        String javaSrc = String.join("\n",
+            "public class Foo {",
+            "    Boolean flag(Boolean a, boolean b) {",
+            "        return a;",
             "    }",
             "}");
 
@@ -85,6 +90,7 @@ class TranspilerTest {
             "        // TODO",
             "    }",
             "    fromString(s: string): string {",
+            "    flag(a: boolean, b: boolean): boolean {",
             "        // TODO",
             "    }",
             "}");
