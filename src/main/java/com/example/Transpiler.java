@@ -35,7 +35,8 @@ public class Transpiler {
         }
 
         String withMethods = stubMethods(ts.toString().trim());
-        return transpileFields(withMethods);
+        String withFields = transpileFields(withMethods);
+        return convertArrowFunctions(withFields);
     }
 
     private String stubMethods(String source) {
@@ -130,6 +131,19 @@ public class Transpiler {
                 out.append(modifiers).append(" ");
             }
             out.append(name).append(": ").append(tsType).append(";").append(System.lineSeparator());
+        }
+        return out.toString().trim();
+    }
+
+    private String convertArrowFunctions(String source) {
+        String[] lines = source.split("\\R");
+        StringBuilder out = new StringBuilder();
+        for (String line : lines) {
+            if (line.contains("->")) {
+                out.append(line.replace("->", "=>")).append(System.lineSeparator());
+            } else {
+                out.append(line).append(System.lineSeparator());
+            }
         }
         return out.toString().trim();
     }

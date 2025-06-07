@@ -3,7 +3,6 @@
 This page outlines how Java language features map to their TypeScript counterparts. Development is test-driven and favors a simple design. The current prototype stubs out Java method bodies with a `// TODO` comment while preserving method signatures and basic type mappings.
 
 Only the features listed below are supported. Anything not mentioned here is considered unsupported.
-
 ## Supported Features
 
 - **Package declarations** become module paths.
