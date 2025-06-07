@@ -68,3 +68,5 @@ never be edited directly.
 - `magma.app.ArrowHelper` – turns lambda expressions into arrow functions
 - `magma.app.TypeMapper` – maps primitive and generic types and preserves
   unknown identifiers
+- `src/test/java` – growing suite of tests that now covers nested and chained
+  invocations so the parsing logic remains small yet reliable
