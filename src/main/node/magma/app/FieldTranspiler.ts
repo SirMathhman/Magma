@@ -1,7 +1,7 @@
 export default class FieldTranspiler {
     transpileFields(source: string): string {
         let lines: string[] = /* TODO */(/* TODO */);
-        let out: any = /* TODO */();
+        let out: any = new /* TODO */();
         // TODO
         let trimmed: string = /* TODO */();
         // TODO

@@ -25,7 +25,7 @@ export default class ImportHelper {
 
     translateImports(source: string, currentPkg: string): string {
         let lines: string[] = /* TODO */(/* TODO */);
-        let out: any = /* TODO */();
+        let out: any = new /* TODO */();
         let i: any = /* TODO */;
         // TODO
         // TODO
@@ -77,14 +77,14 @@ export default class ImportHelper {
     }
 
     relativePath(impParts: string[], currentParts: string[], shared: number): string {
-        let path: any = /* TODO */();
+        let path: any = new /* TODO */();
         /* TODO */(/* TODO */);
         /* TODO */(/* TODO */, /* TODO */);
         return /* TODO */;
     }
 
     upPath(count: number): string {
-        let out: any = /* TODO */();
+        let out: any = new /* TODO */();
         let i: any = /* TODO */;
         // TODO
         // TODO
@@ -94,7 +94,7 @@ export default class ImportHelper {
     }
 
     joinParts(parts: string[], start: number): string {
-        let out: any = /* TODO */();
+        let out: any = new /* TODO */();
         let i: any = /* TODO */;
         // TODO
         // TODO

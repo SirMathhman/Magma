@@ -3,7 +3,7 @@ export default class TypeMapper {
         if (/* TODO */) {
             // TODO
         }
-        let out: java.util.List<string> = /* TODO */();
+        let out: java.util.List<string> = new /* TODO */();
         // TODO
         let parts: string[] = /* TODO */(/* TODO */);
         let (parts.length: any = /* TODO */;
@@ -35,7 +35,7 @@ export default class TypeMapper {
     mapGeneric(javaType: string, start: number, end: number): string {
         let base: string = /* TODO */(/* TODO */, /* TODO */);
         let params: string = /* TODO */(/* TODO */, /* TODO */);
-        let mapped: java.util.List<string> = /* TODO */();
+        let mapped: java.util.List<string> = new /* TODO */();
         // TODO
         /* TODO */(/* TODO */);
         // TODO

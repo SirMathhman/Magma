@@ -1,7 +1,7 @@
 export default class MethodStubber {
     stubMethods(source: string): string {
         let lines: string[] = /* TODO */(/* TODO */);
-        let out: any = /* TODO */();
+        let out: any = new /* TODO */();
         let i: number = /* TODO */;
         while (/* TODO */) {
             // TODO
@@ -31,7 +31,7 @@ export default class MethodStubber {
         let returnType: string = /* TODO */;
         let tsParams: string = /* TODO */(/* TODO */);
         let tsReturn: string = /* TODO */(/* TODO */);
-        let stub: any = /* TODO */();
+        let stub: any = new /* TODO */();
         /* TODO */(/* TODO */);
         if (/* TODO */) {
             // TODO
@@ -122,15 +122,18 @@ export default class MethodStubber {
         if (/* TODO */) {
             // TODO
         }
+        let head: string = /* TODO */(/* TODO */, /* TODO */);
+        let isNew: boolean = /* TODO */(/* TODO */);
         let args: string = /* TODO */(/* TODO */, /* TODO */);
         let count: number = /* TODO */(/* TODO */, /* TODO */);
-        let parts: java.util.List<string> = /* TODO */();
+        let parts: java.util.List<string> = new /* TODO */();
         let i: any = /* TODO */;
         // TODO
         // TODO
         /* TODO */(/* TODO */);
         // TODO
         let joined: string = /* TODO */(/* TODO */, /* TODO */, /* TODO */);
+        let prefix: string = /* TODO */;
         return /* TODO */;
         // TODO
     }

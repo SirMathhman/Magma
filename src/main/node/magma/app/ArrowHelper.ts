@@ -1,7 +1,7 @@
 export default class ArrowHelper {
     convertArrowFunctions(source: string): string {
         let lines: string[] = /* TODO */(/* TODO */);
-        let out: any = /* TODO */();
+        let out: any = new /* TODO */();
         // TODO
         if (/* TODO */) {
             // TODO
@@ -12,7 +12,7 @@ export default class ArrowHelper {
 
     stubArrowAssignments(source: string): string {
         let lines: string[] = /* TODO */(/* TODO */);
-        let out: any = /* TODO */();
+        let out: any = new /* TODO */();
         // TODO
         let trimmed: string = /* TODO */();
         if (/* TODO */) {
@@ -29,7 +29,7 @@ export default class ArrowHelper {
         let indent: string = /* TODO */(/* TODO */, /* TODO */);
         let header: string = /* TODO */(/* TODO */, /* TODO */);
         let body: string = /* TODO */(/* TODO */, /* TODO */);
-        let out: any = /* TODO */();
+        let out: any = new /* TODO */();
         /* TODO */(/* TODO */);
         // TODO
         // TODO
