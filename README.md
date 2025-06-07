@@ -7,17 +7,15 @@ Magma is an experimental compiler that reads a subset of Java and emits TypeScri
 
 ## Building
 
-Compile the Java sources with `javac`:
+The repository provides a convenience script `build.sh` that compiles the Java
+sources and regenerates the TypeScript output. Simply run:
 
 ```bash
-javac $(find src -name "*.java")
+./build.sh
 ```
 
-Run the compiler to regenerate the TypeScript output:
-
-```bash
-java -cp src magma.Main
-```
+The script performs the same steps that were previously described manually using
+`javac` and `java -cp src magma.Main`.
 
 ## Status
 
