@@ -22,6 +22,9 @@ map directly as well, so `int[]` becomes `number[]` and `String[]`
 becomes `string[]`. Future
 tests will drive the full implementation.
 
+Field declarations inside classes are converted to TypeScript property
+syntax with the appropriate type mappings.
+
 Generic type parameters are preserved, so `List<String>` becomes
 `List<string>` in the transpiled output.
 

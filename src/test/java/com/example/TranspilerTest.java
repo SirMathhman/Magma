@@ -152,4 +152,22 @@ class TranspilerTest {
         String result = new Transpiler().toTypeScript(javaSrc);
         assertEquals(expected, result);
     }
+
+    @Test
+    void transpilesFieldDeclarations() {
+        String javaSrc = String.join("\n",
+            "public class Foo {",
+            "    public int count;",
+            "    private String name;",
+            "}");
+
+        String expected = String.join("\n",
+            "export default class Foo {",
+            "    public count: number;",
+            "    private name: string;",
+            "}");
+
+        String result = new Transpiler().toTypeScript(javaSrc);
+        assertEquals(expected, result);
+    }
 }
