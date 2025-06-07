@@ -75,5 +75,6 @@ Only the features listed below are supported. Anything not mentioned here is con
    - Investigate Web Workers or async/await translation strategies.
 8. Keep the list of tests up to date as new features are covered.
 9. Parse invokable expressions and stub out the caller and arguments.
+10. Translate `import` statements to relative paths reflecting the package hierarchy.
 
 Each feature should begin with a failing test that describes the expected TypeScript output for a Java example.
