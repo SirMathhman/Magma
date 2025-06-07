@@ -8,6 +8,9 @@ This repository begins a self‑hosted transpiler from Java to TypeScript. It ke
 - `com.example.Main` – command line entry that runs the transpiler
 - Tests mirror the transpiler (`TranspilerTest`) and CLI (`MainTest`).
 
+Abstract classes are intentionally avoided. The project prefers composition of
+small classes over inheritance hierarchies.
+
 The transpiler removes the `package` declaration since TypeScript does
 not use Java-style packages. It also rewrites simple class definitions
 so that Java modifiers like `public` become `export default`. Method
@@ -19,6 +22,9 @@ map directly as well, so `int[]` becomes `number[]` and `String[]`
 becomes `string[]`. Future
 tests will drive the full implementation.
 
+Field declarations inside classes are converted to TypeScript property
+syntax with the appropriate type mappings.
+
 Generic type parameters are preserved, so `List<String>` becomes
 `List<string>` in the transpiled output.
 
@@ -27,6 +33,9 @@ The primitive `boolean` and its wrapper `Boolean` both become TypeScript
 
 Error handling avoids Java exceptions. Do not use `throw`, `try`, or `catch`.
 Instead, functions should return a `Result` or `Option` object.
+
+Annotations are currently skipped entirely, so no TypeScript decorators are
+generated.
 
 ## Documentation
 

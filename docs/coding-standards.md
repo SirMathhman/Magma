@@ -6,3 +6,7 @@ Long or intricate regex patterns can be hard to maintain and are discouraged.
 
 Avoid Java-style exception handling. Do not use `throw`, `try`, or `catch`.
 Instead, represent failure or missing values with a `Result` or `Option` object.
+
+Abstract classes tend to complicate the design and are avoided in this codebase.
+Favor composition of small collaborating objects over inheritance whenever
+possible.
