@@ -7,7 +7,6 @@ import Ok from "./result/Ok";
 import Result from "./result/Result";
 import IOException from "../java/io/IOException";
 import Files from "../java/nio/file/Files";
-import Path from "../java/nio/file/Path";
 import NioPath from "./path/NioPath";
 import PathLike from "./path/PathLike";
 import ArrayList from "../java/util/ArrayList";
@@ -40,17 +39,17 @@ export default class Main {
     }
 
     listJavaFiles(srcRoot: PathLike): Result<List<PathLike>> {
+        let paths: var = srcRoot.walk();
+        if (!paths.isOk()) {
+            return new Err<>(paths.error().get());
+        }
         let javaFiles: List<PathLike> = new ArrayList<>();
-        let stream: (var = Files./* TODO */;
         // TODO
         if (p.toString().endsWith(".java")) {
-            javaFiles.add(NioPath.wrap(p));
+            javaFiles.add(p);
         }
         // TODO
         return new Ok<>(javaFiles);
-        } catch(/* TODO */);
-        return new Err<>(e.getMessage());
-        // TODO
     }
 
     transpileFile(srcRoot: PathLike, outRoot: PathLike, javaFile: PathLike): Option<string> {

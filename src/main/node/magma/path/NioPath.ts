@@ -1,7 +1,14 @@
+import IOException from "../../java/io/IOException";
+import Files from "../../java/nio/file/Files";
 import Path from "../../java/nio/file/Path";
+import LinkedHashSet from "../../java/util/LinkedHashSet";
+import Set from "../../java/util/Set";
+import Err from "../result/Err";
+import Ok from "../result/Ok";
+import Result from "../result/Result";
 /**
  * Implementation of {@link PathLike} that delegates to a
- * {@link java.nio.file.Path} instance.
+ * {@link Path} instance.
  */
 export default class NioPath implements PathLike {
     private readonly path: Path;
@@ -36,8 +43,19 @@ export default class NioPath implements PathLike {
 
     @Override
     getParent(): PathLike {
-        let parent: Path = path.getParent();
+        let parent: var = path.getParent();
         return parent == null ? null : new NioPath(parent);
+    }
+
+    @Override
+    walk(): Result<Set<PathLike>> {
+        let out: Set<PathLike> = new LinkedHashSet<>();
+        let stream: (var = Files./* TODO */;
+        stream.forEach(p => out.add(new NioPath(p)));
+        return new Ok<>(out);
+        } catch(/* TODO */);
+        return new Err<>(e.getMessage());
+        // TODO
     }
 
     @Override
