@@ -10,9 +10,6 @@ This page outlines how Java language features map to their TypeScript counterpar
 | `char` | `string` | Primitive character becomes a string. | `TranspilerTest.mapsCharCharacterAndStringToString` |
 | `Character` | `string` | Wrapper character type. | `TranspilerTest.mapsCharCharacterAndStringToString` |
 | `String` | `string` | Direct mapping. | `TranspilerTest.mapsCharCharacterAndStringToString` |
-| Arrays | Arrays | `int[]` → `number[]`, etc. | |
-| `char` | `string` (1‑character) or `number` | Depends on intended representation. | |
-| `String` | `string` | Direct mapping. | |
 | Arrays | Arrays | `int[]` → `number[]`, etc. | `TranspilerTest.mapsArrayTypes` |
 | Classes | Classes | Use `class` syntax. | `TranspilerTest.transpilesClassDefinitionWithModifier` |
 | Interfaces | Interfaces | Direct mapping. | |
