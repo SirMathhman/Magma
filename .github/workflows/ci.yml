@@ -17,8 +17,5 @@ jobs:
           distribution: 'temurin'
           java-version: '21'
 
-      - name: Compile sources
-        run: javac $(find src -name '*.java')
-
-      - name: Generate TypeScript
-        run: java -cp src magma.Main
+      - name: Build project
+        run: ./build.sh
