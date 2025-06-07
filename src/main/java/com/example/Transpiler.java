@@ -131,6 +131,8 @@ public class Transpiler {
                         stub.append(indent).append("    return /* TODO */;").append(System.lineSeparator());
                     } else if (trimmedPart.contains("=")) {
                         stub.append(parseAssignment(trimmedPart, indent)).append(System.lineSeparator());
+                    } else if (isInvokable(trimmedPart)) {
+                        stub.append(parseInvokable(trimmedPart, indent)).append(System.lineSeparator());
                     } else {
                         stub.append(indent).append("    // TODO").append(System.lineSeparator());
                     }
@@ -268,6 +270,32 @@ public class Transpiler {
             return indent + "    let " + name + ": " + toTsType(type) + " = /* TODO */;";
         }
         return indent + "    // TODO";
+    }
+
+    private boolean isInvokable(String stmt) {
+        int open = stmt.indexOf('(');
+        int close = stmt.lastIndexOf(')');
+        if (open == -1 || close == -1 || close <= open) {
+            return false;
+        }
+        String head = stmt.substring(0, open).trim();
+        return !head.startsWith("if") && !head.startsWith("while") && !head.startsWith("for");
+    }
+
+    private String parseInvokable(String stmt, String indent) {
+        int open = stmt.indexOf('(');
+        int close = stmt.lastIndexOf(')');
+        if (open == -1 || close == -1 || close <= open) {
+            return indent + "    // TODO";
+        }
+        String args = stmt.substring(open + 1, close).trim();
+        int count = args.isBlank() ? 0 : args.split(",").length;
+        java.util.List<String> parts = new java.util.ArrayList<>();
+        for (int i = 0; i < count; i++) {
+            parts.add("/* TODO */");
+        }
+        String joined = String.join(", ", parts);
+        return indent + "    /* TODO */(" + joined + ");";
     }
 
     private String toTsParams(String params) {
