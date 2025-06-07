@@ -30,3 +30,7 @@ independent jobs so failures in either stage are reported clearly.
 ## Status
 
 This project is still in a very early stage and the generated TypeScript is primarily for demonstration purposes.
+
+## Development Notes
+
+Development generally follows a test-driven workflow. When adding new features or fixing bugs, a failing unit test is written first. The implementation is then updated until the test passes. For example, resolving type parameters within record fields was implemented by first adding `RecordTypeParamTest` and `TypeParamResolutionTest` to demonstrate the issue.
