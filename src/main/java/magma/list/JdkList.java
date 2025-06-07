@@ -1,7 +1,6 @@
 package magma.list;
 
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 
 /** Default ListLike backed by java.util.ArrayList. */
@@ -43,7 +42,18 @@ public class JdkList<T> implements ListLike<T> {
     }
 
     @Override
-    public Iterator<T> iterator() {
-        return list.iterator();
+    public ListIterator<T> iterator() {
+        java.util.Iterator<T> it = list.iterator();
+        return new ListIterator<T>() {
+            @Override
+            public boolean hasNext() {
+                return it.hasNext();
+            }
+
+            @Override
+            public T next() {
+                return it.next();
+            }
+        };
     }
 }

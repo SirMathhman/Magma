@@ -35,7 +35,9 @@ public class Main {
             return new Some<>(files.error().get());
         }
 
-        for (var file : files.value().get()) {
+        var fileIt = files.value().get().iterator();
+        while (fileIt.hasNext()) {
+            var file = fileIt.next();
             var err = transpileFile(srcRoot, outRoot, file);
             if (err.isSome()) {
                 return err;
@@ -50,7 +52,9 @@ public class Main {
             return new Err<>(paths.error().get());
         }
         ListLike<PathLike> javaFiles = JdkList.create();
-        for (var p : paths.value().get()) {
+        var pathIt = paths.value().get().iterator();
+        while (pathIt.hasNext()) {
+            var p = pathIt.next();
             if (p.toString().endsWith(".java")) {
                 javaFiles.add(p);
             }
