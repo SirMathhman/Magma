@@ -6,6 +6,9 @@ import java.nio.file.Paths;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 
+import magma.ast.*;
+import magma.util.*;
+import magma.compile.*;
 public class Main {
     public static void main(String[] args) {
         try {
