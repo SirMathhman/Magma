@@ -1,5 +1,5 @@
-import ArrayList from "../../java/util/ArrayList";
-import List from "../../java/util/List";
+import JdkList from "../list/JdkList";
+import ListLike from "../list/ListLike";
 export default class MethodStubber {
     stubMethods(source: string): string {
         let lines: var = source.split("\\R");
@@ -240,7 +240,7 @@ export default class MethodStubber {
         return parseValue(trimmed);
         // TODO
         private static String parseMemberChain(/* TODO */);
-        let parts: List<string> = new ArrayList<>();
+        let parts: ListLike<string> = JdkList.create();
         let depth: var = 0;
         let part: var = new StringBuilder();
         let i: (var = 0;
@@ -339,12 +339,22 @@ export default class MethodStubber {
         let callee: var = stmt.substring(0, open).trim();
         let args: var = stmt.substring(/* TODO */, close).trim();
         let parts: var = splitArgs(args);
-        parts.replaceAll(/* TODO */);
-        let joined: var = String.join(/* TODO */, /* TODO */, parts);
+        let i: (var = 0;
+        i < parts.size();
+        // TODO
+        parts.set(i, parseValueArg(parts.get(i)));
+        // TODO
+        let joined: var = new StringBuilder();
+        let i: (var = 0;
+        i < parts.size();
+        // TODO
+        // TODO
+        joined.append(parts.get(i));
+        // TODO
         return callee + "(" + joined + ");
         // TODO
-        private static List<String> splitArgs(/* TODO */);
-        let out: List<string> = new ArrayList<>();
+        private static ListLike<String> splitArgs(/* TODO */);
+        let out: ListLike<string> = JdkList.create();
         // TODO
         let depth: var = 0;
         let part: var = new StringBuilder();

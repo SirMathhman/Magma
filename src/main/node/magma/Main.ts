@@ -8,8 +8,8 @@ import Result from "./result/Result";
 import IOException from "../java/io/IOException";
 import NioPath from "./path/NioPath";
 import PathLike from "./path/PathLike";
-import ArrayList from "../java/util/ArrayList";
-import List from "../java/util/List";
+import JdkList from "./list/JdkList";
+import ListLike from "./list/ListLike";
 /**
  * Simple command line interface for the Transpiler.
  */
@@ -28,26 +28,30 @@ export default class Main {
         if (!files.isOk()) {
             return new Some<>(files.error().get());
         }
-        // TODO
-        let err: var = transpileFile(srcRoot, outRoot, file);
-        if (err.isSome()) {
-            return err;
+        return files.value().get().iterator().fold(;
+        new None<String>();
+        (/* TODO */, /* TODO */);
+        if (acc.isSome()) {
+            return acc;
         }
+        let err: var = transpileFile(srcRoot, outRoot, file);
+        return err.isSome();
         // TODO
-        return new None<>();
     }
 
-    listJavaFiles(srcRoot: PathLike): Result<List<PathLike>> {
+    listJavaFiles(srcRoot: PathLike): Result<ListLike<PathLike>> {
         let paths: var = srcRoot.walk();
         if (!paths.isOk()) {
             return new Err<>(paths.error().get());
         }
-        let javaFiles: List<PathLike> = new ArrayList<>();
-        // TODO
-        if (p.toString().endsWith(".java")) {
-            javaFiles.add(p);
+        let javaFiles: ListLike<PathLike> = JdkList.create();
+        let pathIt: var = paths.value().get().iterator();
+        while (pathIt.hasNext()) {
+            let p: var = pathIt.next();
+            if (p.toString().endsWith(".java")) {
+                javaFiles.add(p);
+            }
         }
-        // TODO
         return new Ok<>(javaFiles);
     }
 
