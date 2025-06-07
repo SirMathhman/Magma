@@ -31,6 +31,9 @@ Generic type parameters are preserved, so `List<String>` becomes
 The primitive `boolean` and its wrapper `Boolean` both become TypeScript
 `boolean`, as verified by `TranspilerTest.mapsBooleanTypes`.
 
+Annotations are currently skipped entirely, so no TypeScript decorators are
+generated.
+
 ## Documentation
 
 Additional notes and a feature mapping between Java and TypeScript live in
