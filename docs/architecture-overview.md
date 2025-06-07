@@ -16,6 +16,8 @@ platforms.
 - `ImportHelper` – rewrites package declarations and import lines
 - `MethodStubber` – replaces method bodies with `// TODO` stubs and
   walks expressions using `parseValue`
+- Nested `if` and `while` blocks are parsed recursively so statements
+  inside them are handled just like top-level code.
 - `FieldTranspiler` – converts Java field definitions
 - `ArrowHelper` – rewrites lambda expressions to arrow functions
 - `TypeMapper` – maps primitive and generic types
