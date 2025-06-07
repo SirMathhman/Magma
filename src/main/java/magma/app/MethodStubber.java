@@ -1,7 +1,7 @@
 package magma.app;
 
-import java.util.ArrayList;
-import java.util.List;
+import magma.list.JdkList;
+import magma.list.ListLike;
 
 class MethodStubber {
     static String stubMethods(String source) {
@@ -249,7 +249,7 @@ class MethodStubber {
     }
 
     private static String parseMemberChain(String expr) {
-        List<String> parts = new ArrayList<>();
+        ListLike<String> parts = JdkList.create();
         var depth = 0;
         var part = new StringBuilder();
         for (var i = 0; i < expr.length(); i++) {
@@ -342,13 +342,19 @@ class MethodStubber {
         var callee = stmt.substring(0, open).trim();
         var args = stmt.substring(open + 1, close).trim();
         var parts = splitArgs(args);
-        parts.replaceAll(MethodStubber::parseValueArg);
-        var joined = String.join(", ", parts);
+        for (var i = 0; i < parts.size(); i++) {
+            parts.set(i, parseValueArg(parts.get(i)));
+        }
+        var joined = new StringBuilder();
+        for (var i = 0; i < parts.size(); i++) {
+            if (i > 0) joined.append(", ");
+            joined.append(parts.get(i));
+        }
         return callee + "(" + joined + ")";
     }
 
-    private static List<String> splitArgs(String args) {
-        List<String> out = new ArrayList<>();
+    private static ListLike<String> splitArgs(String args) {
+        ListLike<String> out = JdkList.create();
         if (args.isBlank()) return out;
         var depth = 0;
         var part = new StringBuilder();
