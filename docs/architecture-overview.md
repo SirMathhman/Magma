@@ -32,7 +32,8 @@ platforms.
 - `PathLike.walk` – lists files without exposing `Files.walk` or throwing
   `IOException`
 - `magma.list.ListLike` and `magma.list.JdkList` – simple list wrapper so
-  code avoids a hard dependency on `java.util.List`
+    code avoids a hard dependency on `java.util.List`. Iteration uses a
+    lightweight `ListIterator` interface instead of `java.lang.Iterable`.
 
 The `parseValue` routine incrementally scans characters.  It recognizes
 member access, method calls, literals and the logical not operator.

@@ -15,8 +15,9 @@ class ListLikeTest {
         assertEquals(2, list.size());
         assertEquals(1, list.get(0));
         int sum = 0;
-        for (var n : list) {
-            sum += n;
+        var it = list.iterator();
+        while (it.hasNext()) {
+            sum += it.next();
         }
         assertEquals(3, sum);
     }
