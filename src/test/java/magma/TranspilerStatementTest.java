@@ -161,4 +161,44 @@ class TranspilerStatementTest {
         String result = new Transpiler().toTypeScript(javaSrc);
         assertEquals(expected, result);
     }
+
+    @Test
+    void preservesMemberAccessInAssignments() {
+        String javaSrc = String.join("\n",
+            "public class Foo {",
+            "    void run(Parent p) {",
+            "        int x = p.count;",
+            "    }",
+            "}");
+
+        String expected = String.join("\n",
+            "export default class Foo {",
+            "    run(p: any): void {",
+            "        let x: number = p.count;",
+            "    }",
+            "}");
+
+        String result = new Transpiler().toTypeScript(javaSrc);
+        assertEquals(expected, result);
+    }
+
+    @Test
+    void preservesMemberAccessInReturns() {
+        String javaSrc = String.join("\n",
+            "public class Foo {",
+            "    int get(Parent p) {",
+            "        return p.count;",
+            "    }",
+            "}");
+
+        String expected = String.join("\n",
+            "export default class Foo {",
+            "    get(p: any): number {",
+            "        return p.count;",
+            "    }",
+            "}");
+
+        String result = new Transpiler().toTypeScript(javaSrc);
+        assertEquals(expected, result);
+    }
 }

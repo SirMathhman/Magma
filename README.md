@@ -47,6 +47,8 @@ Invokable expressions such as `doThing()` or `new Some<>()` are parsed so that
 the caller and arguments are emitted as `/* TODO */` placeholders. This also
 applies to variable definitions like `int x = run();`, which become
 `let x: number = /* TODO */();`.
+Member access expressions like `parent.field` are preserved so assignments such as
+`int x = parent.field;` become `let x: number = parent.field;`.
 Import statements are rewritten to relative paths that mirror the Java package
 structure.
 
