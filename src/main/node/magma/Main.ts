@@ -15,34 +15,34 @@ import List from "../java/util/List";
  */
 export default class Main {
     main(args: string[]): void {
-        let error: any = new Main().run();
+        let error: var = new Main().run();
         if (error.isSome()) {
-            // TODO
+            System.err.println(error.get());
         }
     }
 
     run(): Option<string> {
-        let srcRoot: any = Path.of("src/main/java");
-        let outRoot: any = Path.of("src/main/node");
-        let files: any = listJavaFiles(srcRoot);
+        let srcRoot: var = Path.of("src/main/java");
+        let outRoot: var = Path.of("src/main/node");
+        let files: var = listJavaFiles(srcRoot);
         if (!files.isOk()) {
-            // TODO
+            return new Some<>(files.error().get());
         }
         // TODO
-        let err: any = transpileFile(srcRoot, outRoot, file);
+        let err: var = transpileFile(srcRoot, outRoot, file);
         if (err.isSome()) {
-            // TODO
+            return err;
         }
         // TODO
         return new None<>();
     }
 
-    listJavaFiles(srcRoot: any): Result<List<any>> {
-        let javaFiles: List<any> = new ArrayList<>();
-        let stream: any = Files./* TODO */;
+    listJavaFiles(srcRoot: Path): Result<List<Path>> {
+        let javaFiles: List<Path> = new ArrayList<>();
+        let stream: (var = Files./* TODO */;
         // TODO
         if (p.toString().endsWith(".java")) {
-            // TODO
+            javaFiles.add(p);
         }
         // TODO
         return new Ok<>(javaFiles);
@@ -51,14 +51,14 @@ export default class Main {
         // TODO
     }
 
-    transpileFile(srcRoot: any, outRoot: any, javaFile: any): Option<string> {
+    transpileFile(srcRoot: Path, outRoot: Path, javaFile: Path): Option<string> {
         // TODO
-        let javaSrc: any = Files.readString(javaFile);
-        let ts: any = new Transpiler().toTypeScript(javaSrc);
-        let rel: any = srcRoot.relativize(javaFile);
-        let name: any = rel.toString();
-        let withoutExt: any = name.substring(0, name.length());
-        let outFile: any = outRoot.resolve(withoutExt + ".ts");
+        let javaSrc: var = Files.readString(javaFile);
+        let ts: var = new Transpiler().toTypeScript(javaSrc);
+        let rel: var = srcRoot.relativize(javaFile);
+        let name: var = rel.toString();
+        let withoutExt: var = name.substring(0, name.length());
+        let outFile: var = outRoot.resolve(withoutExt + ".ts");
         Files.createDirectories(outFile.getParent());
         Files.writeString(outFile, ts + System.lineSeparator());
         return new None<>();

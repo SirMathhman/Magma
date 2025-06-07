@@ -1,8 +1,8 @@
 /** Holds a present value. */
 export default class Some<T> implements Option<T> {
-    private readonly value: any;
+    private readonly value: T;
 
-    Some(value: any): any {
+    Some(value: T): public {
         // TODO
     }
 
@@ -12,7 +12,7 @@ export default class Some<T> implements Option<T> {
     }
 
     @Override
-    get(): any {
+    get(): T {
         return value;
     }
 }

@@ -2,116 +2,189 @@ import ArrayList from "../../java/util/ArrayList";
 import List from "../../java/util/List";
 export default class MethodStubber {
     stubMethods(source: string): string {
-        let lines: any = source.split("\\R");
-        let out: any = new StringBuilder();
-        let i: any = 0;
+        let lines: var = source.split("\\R");
+        let out: var = new StringBuilder();
+        let i: var = 0;
         while (i < lines.length) {
+            let line: var = /* TODO */;
+            let trimmed: var = line.trim();
+            if (trimmed.endsWith("{").contains("(") && !trimmed.startsWith("export")) {
+                let end: var = skipBody(lines, i);
+                let stub: var = buildMethodStub(line, trimmed, lines, /* TODO */, /* TODO */);
+                if (/* TODO */) {
+                    copyRange(lines, i, end, out);
+                    // TODO
+                    out.append(stub);
+                }
+                // TODO
+                // TODO
+            }
+            out.append(line).append(System.lineSeparator());
             // TODO
+            // TODO
+            return out.toString().trim();
         }
         private static void copyRange(/* TODO */, /* TODO */, /* TODO */, /* TODO */);
-        let j: any = start;
+        let j: (var = start;
         // TODO
         // TODO
         out.append(lines[j]).append(System.lineSeparator());
         // TODO
         // TODO
         static String buildMethodStub(/* TODO */, /* TODO */, /* TODO */, /* TODO */, /* TODO */);
-        let indent: any = line.substring(0, line.indexOf(trimmed));
-        let beforeBrace: any = trimmed.substring(0, trimmed.length()).trim();
-        let parenStart: any = beforeBrace.indexOf('(/* TODO */);
-        let parenEnd: any = beforeBrace./* TODO */;
+        let indent: var = line.substring(0, line.indexOf(trimmed));
+        let beforeBrace: var = trimmed.substring(0, trimmed.length()).trim();
+        let parenStart: var = beforeBrace.indexOf('(/* TODO */);
+        let parenEnd: var = beforeBrace./* TODO */;
         if (/* TODO */) {
-            // TODO
+            return /* TODO */;
         }
-        let signatureStart: any = beforeBrace.substring(0, parenStart).trim();
-        let params: any = beforeBrace.substring(/* TODO */, parenEnd).trim();
-        let sigTokens: any = signatureStart.split("\\s+");
+        let signatureStart: var = beforeBrace.substring(0, parenStart).trim();
+        let params: var = beforeBrace.substring(/* TODO */, parenEnd).trim();
+        let sigTokens: var = signatureStart.split("\\s+");
         if (/* TODO */) {
-            // TODO
+            return /* TODO */;
         }
-        let name: any = sigTokens[sigTokens.length - 1];
-        let returnType: any = sigTokens.length > 1 ? sigTokens[sigTokens.length - 2] : "void";
-        let tsParams: any = TypeMapper.toTsParams(params);
-        let tsReturn: any = TypeMapper.toTsType(returnType);
-        let stub: any = new StringBuilder();
+        let name: var = sigTokens[sigTokens.length - 1];
+        let returnType: var = sigTokens.length > 1 ? sigTokens[sigTokens.length - 2] : "void";
+        let tsParams: var = TypeMapper.toTsParams(params);
+        let tsReturn: var = TypeMapper.toTsType(returnType);
+        let stub: var = new StringBuilder();
         stub.append(indent).append(name).append("(/* TODO */).append(tsParams).append(/* TODO */));
         if (!tsReturn.isBlank()) {
-            // TODO
+            stub.append(": ").append(tsReturn);
         }
         stub.append(" {").append(System.lineSeparator());
-        let wrote: any = /* TODO */;
-        let i: any = start;
-        // TODO
-        // TODO
-        let body: any = lines[i].trim();
-        if (body.isEmpty()) {
-            // TODO
-        }
-        // TODO
-        if ((body.startsWith("if").startsWith("else if")).endsWith("{")) {
-            // TODO
-        }
-        if (body.startsWith("else").endsWith("{")) {
-            // TODO
-        }
-        if (body.startsWith("while").endsWith("{")) {
-            // TODO
-        }
-        if (body.startsWith("return")) {
-            // TODO
-        }
-        // TODO
-        if (!wrote) {
-            // TODO
-        }
+        parseStatements(lines, start, end, indent, stub);
         stub.append(indent).append("}").append(System.lineSeparator());
         return stub.toString();
         // TODO
         private static void appendParts(/* TODO */, /* TODO */, /* TODO */);
         // TODO
-        let trimmedPart: any = part.trim();
+        let trimmedPart: var = part.trim();
         // TODO
         if (trimmedPart.startsWith("return")) {
+            let expr: var = trimmedPart.substring(6).trim();
+            if (expr.endsWith(";")) {
+                // TODO
+            }
+            if (expr.isBlank()) {
+                stub.append(indent);
+                ").append(System.lineSeparator());
+                // TODO
+                stub.append(indent).append("    return ");
+                .append(parseValue(expr));
+                // TODO
+                // TODO
+                .append(System.lineSeparator());
+            }
+            let (trimmedPart.contains(": if = /* TODO */;
+            stub.append(parseAssignment(trimmedPart, indent)).append(System.lineSeparator());
+            } else if(isInvokable(trimmedPart));
+            stub.append(parseInvokable(trimmedPart, indent)).append(System.lineSeparator());
+            } else if(isMemberAccess(trimmedPart));
+            stub.append(parseMemberAccess(trimmedPart, indent)).append(System.lineSeparator());
             // TODO
+            stub.append(indent).append("    // TODO").append(System.lineSeparator());
         }
         // TODO
         // TODO
+        private static void parseStatements(/* TODO */, /* TODO */, /* TODO */, /* TODO */, /* TODO */);
+        let wrote: var = /* TODO */;
+        let i: (var = start;
+        // TODO
+        // TODO
+        let body: var = lines[i].trim();
+        // TODO
+        // TODO
+        if ((body.startsWith("if").startsWith("else if")).endsWith("{")) {
+            let keyword: var = body.startsWith("else if");
+            let cond: var = parseCondition(body);
+            let blockEnd: var = skipBody(lines, i);
+            appendParsedBlock(stub, indent, keyword, cond, lines, /* TODO */, /* TODO */);
+            // TODO
+            // TODO
+        }
+        if (body.startsWith("else").endsWith("{")) {
+            let blockEnd: var = skipBody(lines, i);
+            appendParsedBlock(stub, indent, "else", /* TODO */, lines, /* TODO */, /* TODO */);
+            // TODO
+            // TODO
+        }
+        if (body.startsWith("while").endsWith("{")) {
+            let cond: var = parseCondition(body);
+            let blockEnd: var = skipBody(lines, i);
+            appendParsedBlock(stub, indent, "while", cond, lines, /* TODO */, /* TODO */);
+            // TODO
+            // TODO
+        }
+        if (body.startsWith("return")) {
+            let expr: var = body.substring(6).trim();
+            if (expr.endsWith(";")) {
+                // TODO
+            }
+            if (expr.isBlank()) {
+                stub.append(indent);
+                ").append(System.lineSeparator());
+                // TODO
+                stub.append(indent).append("    return ");
+                .append(parseValue(expr));
+                // TODO
+                // TODO
+                .append(System.lineSeparator());
+            }
+            // TODO
+            // TODO
+            // TODO
+        }
+        // TODO
+        if (!wrote) {
+            stub.append(indent).append("    // TODO").append(System.lineSeparator());
+        }
+        // TODO
         static int skipBody(/* TODO */, /* TODO */);
-        let depth: any = 1;
-        let i: any = /* TODO */;
+        let depth: var = 1;
+        let i: var = /* TODO */;
         while (i < lines.length && depth > 0) {
+            let body: var = /* TODO */;
+            let +: depth = body.length().replace("{", "").length();
+            let -: depth = body.length().replace("}", "").length();
             // TODO
         }
         return i;
         // TODO
-        static void appendBlockStub(/* TODO */, /* TODO */, /* TODO */, /* TODO */);
+        // TODO
+        // TODO
         stub.append(indent).append("    ").append(keyword);
         if (/* TODO */) {
-            // TODO
+            stub.append("(/* TODO */).append(condition).append(/* TODO */));
         }
         stub.append(" {").append(System.lineSeparator());
-        stub.append(indent).append("        // TODO").append(System.lineSeparator());
+        parseStatements(lines, start, end, /* TODO */, stub);
         stub.append(indent).append("    }").append(System.lineSeparator());
         // TODO
         private static String parseCondition(/* TODO */);
-        let open: any = stmt.indexOf('(/* TODO */);
-        let close: any = stmt./* TODO */;
+        let open: var = stmt.indexOf('(/* TODO */);
+        let close: var = stmt./* TODO */;
         if (/* TODO */) {
-            // TODO
+            return "/* TODO */";
         }
-        let inside: any = stmt.substring(/* TODO */, close).trim();
+        let inside: var = stmt.substring(/* TODO */, close).trim();
         return parseValue(inside);
         // TODO
         static String parseAssignment(/* TODO */, /* TODO */);
-        let eq: any = stmt.indexOf(/* TODO */);
+        let eq: var = stmt.indexOf(/* TODO */);
         if (/* TODO */) {
-            // TODO
+            return /* TODO */;
         }
-        let dest: any = stmt.substring(0, eq).trim();
-        let rhs: any = stmt.substring(/* TODO */).trim();
-        let tokens: any = dest.split("\\s+");
+        let dest: var = stmt.substring(0, eq).trim();
+        let rhs: var = stmt.substring(/* TODO */).trim();
+        let tokens: var = dest.split("\\s+");
         if (/* TODO */) {
-            // TODO
+            let name: var = tokens[tokens.length - 1];
+            let type: var = tokens[tokens.length - 2];
+            let value: var = parseValue(rhs);
+            return indent + "    let " + name + ": " + TypeMapper.toTsType(type);
         }
         return /* TODO */;
         // TODO
@@ -122,67 +195,70 @@ export default class MethodStubber {
         return /* TODO */;
         // TODO
         static boolean isInvokable(/* TODO */);
-        let open: any = stmt.indexOf('(/* TODO */);
-        let close: any = stmt./* TODO */;
+        let open: var = stmt.indexOf('(/* TODO */);
+        let close: var = stmt./* TODO */;
         if (/* TODO */) {
-            // TODO
+            return /* TODO */;
         }
-        let head: any = stmt.substring(0, open).trim();
+        let head: var = stmt.substring(0, open).trim();
         return !head.startsWith("if").startsWith("while").startsWith("for");
         // TODO
         static String parseInvokable(/* TODO */, /* TODO */);
         return indent + "    " + stubInvokableExpr(stmt);
         // TODO
         static String parseValue(/* TODO */);
-        let trimmed: any = value.trim();
+        let trimmed: var = value.trim();
         if (trimmed.startsWith("!")) {
-            // TODO
+            let rest: var = trimmed.substring(1).trim();
+            return "!" + parseValue(rest);
         }
         if (trimmed.startsWith("new ").contains(".") && isInvokable(trimmed)) {
-            // TODO
+            return trimmed;
         }
         if (trimmed.contains(".") && !trimmed.contains("=")) {
-            // TODO
+            return parseMemberChain(trimmed);
         }
         if (isInvokable(trimmed)) {
-            // TODO
+            return stubInvokableExpr(trimmed);
         }
         if (trimmed.length() >= 2 && trimmed.startsWith("\"") && trimmed.endsWith("\"")) {
-            // TODO
+            return trimmed;
         }
         if (isMemberAccess(trimmed) || isNumeric(trimmed)) {
-            // TODO
+            return trimmed;
         }
         if (isIdentifier(trimmed)) {
-            // TODO
+            return trimmed;
         }
         if (isNumeric(trimmed)) {
-            // TODO
+            return trimmed;
         }
         return "/* TODO */";
         // TODO
         private static String parseValueArg(/* TODO */);
-        let trimmed: any = value.trim();
+        let trimmed: var = value.trim();
         return parseValue(trimmed);
         // TODO
         private static String parseMemberChain(/* TODO */);
         let parts: List<string> = new ArrayList<>();
-        let depth: any = 0;
-        let part: any = new StringBuilder();
-        let i: any = 0;
+        let depth: var = 0;
+        let part: var = new StringBuilder();
+        let i: (var = 0;
         i < expr.length();
         // TODO
-        let c: any = expr.charAt(i);
+        let c: var = expr.charAt(i);
         if (/* TODO */) {
+            parts.add(part.toString());
+            part.setLength(0);
             // TODO
         }
-        let (c: any = = '(/* TODO */);
-        let (c: any = /* TODO */;
+        let (c: if = = '(/* TODO */);
+        let (c: if = /* TODO */;
         part.append(c);
         // TODO
         parts.add(part.toString());
-        let out: any = new StringBuilder();
-        let i: any = 0;
+        let out: var = new StringBuilder();
+        let i: (var = 0;
         i < parts.size();
         // TODO
         // TODO
@@ -192,22 +268,25 @@ export default class MethodStubber {
         // TODO
         private static String parseChainSegment(/* TODO */);
         if (isInvokable(seg)) {
-            // TODO
+            return stubInvokableExpr(seg);
         }
         return seg;
         // TODO
         private static boolean isNumeric(/* TODO */);
         // TODO
-        let i: any = 0;
+        let i: var = 0;
         if (s.charAt(0)) {
+            let (s.length(): if = /* TODO */;
             // TODO
         }
-        let dot: any = /* TODO */;
+        let dot: var = /* TODO */;
         // TODO
         i < s.length();
         // TODO
-        let c: any = s.charAt(i);
+        let c: var = s.charAt(i);
         if (/* TODO */) {
+            // TODO
+            // TODO
             // TODO
         }
         // TODO
@@ -217,61 +296,69 @@ export default class MethodStubber {
         private static boolean isIdentifier(/* TODO */);
         // TODO
         // TODO
-        let first: any = s.charAt(0);
+        let first: var = s.charAt(0);
         if (!((first >= 'a' && first <= 'z') ||(/* TODO */))) {
-            // TODO
+            return /* TODO */;
         }
-        let i: any = 1;
+        let i: (var = 1;
         i < s.length();
         // TODO
-        let c: any = s.charAt(i);
-        let letter: any = (c >= 'a' && c <= 'z') ||(/* TODO */);
-        let digit: any = /* TODO */;
+        let c: var = s.charAt(i);
+        let letter: var = (c >= 'a' && c <= 'z') ||(/* TODO */);
+        let digit: var = /* TODO */;
         if (!(/* TODO */)) {
-            // TODO
+            return /* TODO */;
         }
         // TODO
         return /* TODO */;
         // TODO
         static String stubInvokableExpr(/* TODO */);
-        let close: any = stmt./* TODO */;
+        let close: var = stmt./* TODO */;
         if (/* TODO */) {
-            // TODO
+            return "/* TODO */";
         }
-        let open: any = -1;
-        let depth: any = 0;
-        let i: any = close;
-        let >: any = 0;
+        let open: var = -1;
+        let depth: var = 0;
+        let i: (var = close;
+        let >: i = 0;
         // TODO
-        let c: any = stmt.charAt(i);
+        let c: var = stmt.charAt(i);
         if (/* TODO */) {
             // TODO
+            let (c: if = = '(/* TODO */);
+            // TODO
+            if (/* TODO */) {
+                // TODO
+                // TODO
+            }
         }
         // TODO
         if (/* TODO */) {
-            // TODO
+            return "/* TODO */";
         }
-        let callee: any = stmt.substring(0, open).trim();
-        let args: any = stmt.substring(/* TODO */, close).trim();
-        let parts: any = splitArgs(args);
+        let callee: var = stmt.substring(0, open).trim();
+        let args: var = stmt.substring(/* TODO */, close).trim();
+        let parts: var = splitArgs(args);
         parts.replaceAll(/* TODO */);
-        let joined: any = String.join(/* TODO */, /* TODO */, parts);
+        let joined: var = String.join(/* TODO */, /* TODO */, parts);
         return callee + "(" + joined + ");
         // TODO
         private static List<String> splitArgs(/* TODO */);
         let out: List<string> = new ArrayList<>();
         // TODO
-        let depth: any = 0;
-        let part: any = new StringBuilder();
-        let i: any = 0;
+        let depth: var = 0;
+        let part: var = new StringBuilder();
+        let i: (var = 0;
         i < args.length();
         // TODO
-        let c: any = args.charAt(i);
+        let c: var = args.charAt(i);
         if (/* TODO */) {
+            out.add(part.toString().trim());
+            part.setLength(0);
             // TODO
         }
-        let (c: any = = '(/* TODO */);
-        let (c: any = /* TODO */;
+        let (c: if = = '(/* TODO */);
+        let (c: if = /* TODO */;
         part.append(c);
         // TODO
         out.add(part.toString().trim());

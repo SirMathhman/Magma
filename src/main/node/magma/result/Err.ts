@@ -5,7 +5,7 @@ import Some from "../option/Some";
 export default class Err<T> implements Result<T> {
     private readonly message: string;
 
-    Err(message: string): any {
+    Err(message: string): public {
         // TODO
     }
 
@@ -15,7 +15,7 @@ export default class Err<T> implements Result<T> {
     }
 
     @Override
-    value(): Option<any> {
+    value(): Option<T> {
         return new None<>();
     }
 

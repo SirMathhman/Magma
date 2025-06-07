@@ -1,6 +1,6 @@
 /** Represents the absence of a value. */
 export default class None<T> implements Option<T> {
-    None(): any {
+    None(): public {
         // TODO
     }
 
@@ -10,7 +10,7 @@ export default class None<T> implements Option<T> {
     }
 
     @Override
-    get(): any {
+    get(): T {
         return /* TODO */;
     }
 }

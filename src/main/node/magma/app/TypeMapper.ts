@@ -3,27 +3,28 @@ import List from "../../java/util/List";
 export default class TypeMapper {
     toTsParams(params: string): string {
         if (params.isBlank()) {
-            // TODO
+            return "";
         }
         let out: List<string> = new ArrayList<>();
         // TODO
-        let parts: any = p.trim().split("\\s+");
-        let (parts.length: any = /* TODO */;
-        let name: any = parts[parts.length - 1];
-        let type: any = parts.length > 1 ? parts[parts.length - 2] : "any";
+        let parts: var = p.trim().split("\\s+");
+        let (parts.length: if = /* TODO */;
+        let name: var = parts[parts.length - 1];
+        let type: var = parts.length > 1 ? parts[parts.length - 2] : "any";
         out.add(name + ": " + toTsType(type));
         // TODO
         return String.join(/* TODO */, /* TODO */, out);
     }
 
     toTsType(javaType: string): string {
-        let genericStart: any = javaType.indexOf(/* TODO */);
-        let genericEnd: any = javaType.lastIndexOf(/* TODO */);
+        let genericStart: var = javaType.indexOf(/* TODO */);
+        let genericEnd: var = javaType.lastIndexOf(/* TODO */);
         if (/* TODO */) {
-            // TODO
+            return mapGeneric(javaType, genericStart, genericEnd);
         }
         if (javaType.endsWith("[]")) {
-            // TODO
+            let element: var = javaType.substring(0, javaType.length());
+            return toTsType(element);
         }
         return switch(javaType);
         // TODO
@@ -35,8 +36,8 @@ export default class TypeMapper {
     }
 
     mapGeneric(javaType: string, start: number, end: number): string {
-        let base: any = javaType.substring(0, start).trim();
-        let params: any = javaType.substring(/* TODO */, end);
+        let base: var = javaType.substring(0, start).trim();
+        let params: var = javaType.substring(/* TODO */, end);
         let mapped: List<string> = new ArrayList<>();
         // TODO
         mapped.add(toTsType(p.trim()));

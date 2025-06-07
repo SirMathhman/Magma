@@ -3,9 +3,9 @@ import Option from "../option/Option";
 import Some from "../option/Some";
 /** Successful result value. */
 export default class Ok<T> implements Result<T> {
-    private readonly value: any;
+    private readonly value: T;
 
-    Ok(value: any): any {
+    Ok(value: T): public {
         // TODO
     }
 
@@ -15,7 +15,7 @@ export default class Ok<T> implements Result<T> {
     }
 
     @Override
-    value(): Option<any> {
+    value(): Option<T> {
         return new Some<>(value);
     }
 
