@@ -9,7 +9,8 @@ This repository begins a self‑hosted transpiler from Java to TypeScript. It ke
   to TypeScript files under `src/main/node`
 - Helper classes split the converter into smaller pieces:
   - `ImportHelper` handles packages and imports
-  - `MethodStubber` replaces method bodies with stubs
+  - `MethodStubber` replaces method bodies with stubs and now includes a
+    `parseValue` helper for recursively processing expression values
   - `FieldTranspiler` rewrites field declarations
   - `ArrowHelper` processes lambda expressions
   - `TypeMapper` maps Java types to TypeScript
@@ -18,6 +19,10 @@ This repository begins a self‑hosted transpiler from Java to TypeScript. It ke
 - `Main.run` now returns an `Option<String>` with an error message on failure
 - Tests mirror the transpiler (`TranspilerClassTest`, `TranspilerMethodTest`,
   `TranspilerFieldTest`, `TranspilerStatementTest`) and CLI (`MainTest`).
+
+The new `parseValue` routine walks characters one at a time to split
+function arguments. This avoids brittle regular expressions while still
+handling nested parentheses.
 
 Abstract classes are intentionally avoided. The project prefers composition of
 small classes over inheritance hierarchies. Functions are kept small: each
