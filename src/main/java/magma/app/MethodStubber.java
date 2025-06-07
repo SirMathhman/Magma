@@ -167,7 +167,7 @@ class MethodStubber {
             String value;
             if (isInvokable(rhs)) {
                 value = stubInvokableExpr(rhs);
-            } else if (isMemberAccess(rhs)) {
+            } else if ((rhs.length() >= 2 && rhs.startsWith("\"") && rhs.endsWith("\"")) || isMemberAccess(rhs)) {
                 value = rhs;
             } else {
                 value = "/* TODO */";

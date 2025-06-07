@@ -42,6 +42,7 @@ Field assignments are removed so initial values are not emitted.
 Assignments inside arrow function bodies are replaced with `// TODO` comments.
 Assignments that define new variables inside methods become `let` declarations
 with `/* TODO */` as the initializer.
+String literals remain intact if they begin and end with double quotes.
 Invokable expressions such as `doThing()` or `new Some<>()` are parsed so that
 the caller and arguments are emitted as `/* TODO */` placeholders. Constructor
 calls keep the `new` keyword, producing `new /* TODO */()` when stubbed. This also

@@ -203,6 +203,11 @@ class TranspilerStatementTest {
     }
 
     @Test
+    void keepsStringValues() {
+        String javaSrc = String.join("\n",
+            "public class Foo {",
+            "    void show() {",
+            "        String msg = \"hi\";",
     void preservesMemberAccessInAssignments() {
         String javaSrc = String.join("\n",
             "public class Foo {",
@@ -213,6 +218,8 @@ class TranspilerStatementTest {
 
         String expected = String.join("\n",
             "export default class Foo {",
+            "    show(): void {",
+            "        let msg: string = \"hi\";",
             "    run(p: any): void {",
             "        let x: number = p.count;",
             "    }",
