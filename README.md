@@ -7,8 +7,8 @@ This repository begins a self‑hosted transpiler from Java to TypeScript. It ke
 - `com.example.Transpiler` – prototype Java → TypeScript converter
 - `com.example.Main` – CLI that converts all sources under `src/main/java`
   to TypeScript files under `src/main/node`
-- `com.example.Result` – container for a successful value or an error
-- `com.example.Option` – optional value helper
+- `com.example.Result` – base interface with `Ok` and `Err` implementations
+- `com.example.Option` – base interface with `Some` and `None` variants
 - `Main.run` now returns an `Option<String>` with an error message on failure
 - Tests mirror the transpiler (`TranspilerTest`) and CLI (`MainTest`).
 

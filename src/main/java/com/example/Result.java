@@ -1,34 +1,20 @@
 package com.example;
 
 /**
- * Simple result type for success or error.
+ * Simple result type for success or error with distinct variants.
  */
-public final class Result<T> {
-    private final T ok;
-    private final String err;
+public interface Result<T> {
+    boolean isOk();
 
-    private Result(T ok, String err) {
-        this.ok = ok;
-        this.err = err;
+    Option<T> value();
+
+    Option<String> error();
+
+    static <T> Result<T> ok(T value) {
+        return new Ok<>(value);
     }
 
-    public static <T> Result<T> ok(T value) {
-        return new Result<>(value, null);
-    }
-
-    public static <T> Result<T> error(String message) {
-        return new Result<>(null, message);
-    }
-
-    public boolean isOk() {
-        return err == null;
-    }
-
-    public Option<T> value() {
-        return isOk() ? Option.some(ok) : Option.none();
-    }
-
-    public Option<String> error() {
-        return isOk() ? Option.none() : Option.some(err);
+    static <T> Result<T> error(String message) {
+        return new Err<>(message);
     }
 }
