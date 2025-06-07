@@ -28,7 +28,7 @@ Only the features listed below are supported. Anything not mentioned here is con
 - **Methods** keep their names and basic return types such as `int` or `void` translate to `number` or `void`.
   - Numeric literals are preserved in both assignments and return statements. Other statements become `// TODO` comments.
   - The logical not operator `!` is preserved so conditions like `!flag` remain unchanged.
-    - When a negated value is a method call, the callee name becomes `/* TODO */` while its arguments are still parsed recursively.
+    - When a negated value is a method call, the callee name is preserved and arguments are parsed recursively.
     - `if` and `while` statements parse their conditions using `parseValue`. Method calls now keep their names while unknown values become `/* TODO */`.
   - Tests: `TranspilerMethodTest.stubsMethodBodiesPreservingNames`, `TranspilerMethodTest.stubsVoidReturnTypes`, `TranspilerStatementTest.stubsOneTodoPerStatement`, `TranspilerStatementTest.stubsIfStatements`, `TranspilerStatementTest.stubsWhileStatements`, `TranspilerStatementTest.keepsNumericValues`.
   - **Fields** become class properties.
@@ -50,7 +50,8 @@ Only the features listed below are supported. Anything not mentioned here is con
   - Tests: `TranspilerStatementTest.stubsOneTodoPerStatement`,
     `TranspilerStatementTest.leavesValueAssignmentsAsTodo`.
   - **Invokable expressions** like method or constructor calls keep the method
-    name. Arguments are parsed recursively so unknown values emit `/* TODO */`.
+    name. Arguments are parsed recursively so identifiers and literals are kept
+    while unknown expressions emit `/* TODO */`.
     Assignments such as `int x = run();` become `let x: number = run();`.
     Constructor calls retain the `new` keyword and type name. Calls on freshly
     created objects such as `new Main().run()` are preserved intact.

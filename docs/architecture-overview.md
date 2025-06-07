@@ -16,8 +16,6 @@ platforms.
 - `ImportHelper` – rewrites package declarations and import lines
 - `MethodStubber` – replaces method bodies with `// TODO` stubs and
   walks expressions using `parseValue`
-- `MethodStubber.stubInvokableCallee` – drops the method name when a
-  negated call appears in an `if` or `while` condition
 - `FieldTranspiler` – converts Java field definitions
 - `ArrowHelper` – rewrites lambda expressions to arrow functions
 - `TypeMapper` – maps primitive and generic types
@@ -28,6 +26,5 @@ platforms.
 The `parseValue` routine incrementally scans characters.  It recognizes
 member access, method calls, literals and the logical not operator.
 Arguments inside method calls default to `/* TODO */` unless they are
-simple literals.  When a negated expression contains a method call, the
-callee name is replaced with `/* TODO */` so that boolean checks are
-clearly unfinished.
+simple literals or identifiers. Negated method calls keep their callee
+name so boolean checks remain readable.
