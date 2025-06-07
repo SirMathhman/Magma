@@ -110,5 +110,8 @@ Only the features listed below are supported. Anything not mentioned here is con
    mapping exists.
 15. Parse statements inside `if` and `while` blocks so nested code is
     handled the same as top-level statements.
+16. Introduce a `PathLike` interface to wrap `java.nio.file.Path`.
+    Refactor `Main` to use this abstraction so future code can swap out
+    the NIO implementation.
 
 Each feature should begin with a failing test that describes the expected TypeScript output for a Java example.

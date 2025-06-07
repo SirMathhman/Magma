@@ -11,6 +11,8 @@ import magma.result.Result;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import magma.path.NioPath;
+import magma.path.PathLike;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -26,8 +28,8 @@ public class Main {
     }
 
     private Option<String> run() {
-        var srcRoot = Path.of("src/main/java");
-        var outRoot = Path.of("src/main/node");
+        PathLike srcRoot = NioPath.of("src/main/java");
+        PathLike outRoot = NioPath.of("src/main/node");
 
         var files = listJavaFiles(srcRoot);
         if (!files.isOk()) {
@@ -43,12 +45,12 @@ public class Main {
         return new None<>();
     }
 
-    private Result<List<Path>> listJavaFiles(Path srcRoot) {
-        List<Path> javaFiles = new ArrayList<>();
-        try (var stream = Files.walk(srcRoot)) {
+    private Result<List<PathLike>> listJavaFiles(PathLike srcRoot) {
+        List<PathLike> javaFiles = new ArrayList<>();
+        try (var stream = Files.walk(((NioPath) srcRoot).toNio())) {
             stream.forEach(p -> {
                 if (p.toString().endsWith(".java")) {
-                    javaFiles.add(p);
+                    javaFiles.add(NioPath.wrap(p));
                 }
             });
             return new Ok<>(javaFiles);
@@ -57,16 +59,16 @@ public class Main {
         }
     }
 
-    private Option<String> transpileFile(Path srcRoot, Path outRoot, Path javaFile) {
+    private Option<String> transpileFile(PathLike srcRoot, PathLike outRoot, PathLike javaFile) {
         try {
-            var javaSrc = Files.readString(javaFile);
+            var javaSrc = Files.readString(((NioPath) javaFile).toNio());
             var ts = new Transpiler().toTypeScript(javaSrc);
             var rel = srcRoot.relativize(javaFile);
             var name = rel.toString();
             var withoutExt = name.substring(0, name.length() - 5);
             var outFile = outRoot.resolve(withoutExt + ".ts");
-            Files.createDirectories(outFile.getParent());
-            Files.writeString(outFile, ts + System.lineSeparator());
+            Files.createDirectories(((NioPath) outFile.getParent()).toNio());
+            Files.writeString(((NioPath) outFile).toNio(), ts + System.lineSeparator());
             return new None<>();
         } catch (IOException e) {
             return new Some<>(e.getMessage());
