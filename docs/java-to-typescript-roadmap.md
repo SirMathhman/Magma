@@ -30,7 +30,8 @@ This page outlines how Java language features map to their TypeScript counterpar
 | Threads | Web Workers or async/await | Depends on target platform. |
 
 Further tasks:
-1. Implement translation of basic class structure and type mappings.
+1. ~~Implement translation of basic class structure and type mappings.~~
+   Basic class definitions now output `export default class`.
 2. Add support for generics and inheritance.
 3. Handle exceptions and control flow constructs.
 4. Map annotations to decorators.

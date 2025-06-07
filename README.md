@@ -9,7 +9,9 @@ This repository begins a self‑hosted transpiler from Java to TypeScript. It ke
 - Tests mirror each class (`SelfReplicatorTest`, `TranspilerTest`).
 
 The transpiler currently removes the `package` declaration since
-TypeScript does not use Java-style packages.
+TypeScript does not use Java-style packages. It also rewrites simple
+class definitions so that Java modifiers like `public` are replaced with
+`export default`.
 
 ## Documentation
 
