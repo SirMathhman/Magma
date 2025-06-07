@@ -8,7 +8,9 @@ unchanged so the generated TypeScript stays close to the original
 sources.
 
 File paths no longer rely directly on `java.nio.file.Path`. A simple
-`PathLike` wrapper keeps the rest of the code independent of NIO.
+`PathLike` wrapper keeps the rest of the code independent of NIO. The
+`NioPath` implementation now provides small helpers for reading and
+writing files so other classes never touch `java.nio.file.Files`.
 
 Full module descriptions live in
 [`docs/architecture-overview.md`](docs/architecture-overview.md).  A
@@ -44,3 +46,4 @@ java -cp bin magma.Main
 - `magma.Main` – simple CLI for the transpiler
 - `magma.app.Transpiler` – converts Java code to TypeScript
 - `magma.path.PathLike` – abstracts file system operations such as `walk`
+- `magma.path.NioPath` – wraps `java.nio.file.Path` and handles basic I/O

@@ -31,8 +31,25 @@ public class NioPath implements PathLike {
         return new NioPath(path);
     }
 
-    public Path toNio() {
-        return path;
+
+    /** Read the file contents as a string. */
+    public String readString() throws IOException {
+        return Files.readString(path);
+    }
+
+    /** Create this directory and any missing parents. */
+    public void createDirectories() throws IOException {
+        Files.createDirectories(path);
+    }
+
+    /** Write text to this file. */
+    public void writeString(String text) throws IOException {
+        Files.writeString(path, text);
+    }
+
+    /** Delete the file if it exists. */
+    public void deleteIfExists() throws IOException {
+        Files.deleteIfExists(path);
     }
 
     @Override

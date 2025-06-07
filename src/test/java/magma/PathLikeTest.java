@@ -38,7 +38,7 @@ class PathLikeTest {
         assertTrue(paths.stream().anyMatch(p -> p.toString().endsWith("A.java")));
 
         for (var i = paths.size() - 1; i >= 0; i--) {
-            Files.deleteIfExists(((NioPath) paths.get(i)).toNio());
+            ((NioPath) paths.get(i)).deleteIfExists();
         }
     }
 }
