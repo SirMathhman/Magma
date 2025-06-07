@@ -212,7 +212,7 @@ class MethodStubber {
         if (trimmed.startsWith("!")) {
             var rest = trimmed.substring(1).trim();
             if (isInvokable(rest)) {
-                return "!" + stubInvokableExpr(rest);
+                return "!" + stubInvokableCallee(rest);
             }
             return "!" + parseValue(rest);
         }
@@ -242,6 +242,9 @@ class MethodStubber {
 
     private static String parseValueArg(String value) {
         var trimmed = value.trim();
+        if (isIdentifier(trimmed)) {
+            return "/* TODO */";
+        }
         return parseValue(trimmed);
     }
 
@@ -342,6 +345,35 @@ class MethodStubber {
         parts.replaceAll(MethodStubber::parseValueArg);
         var joined = String.join(", ", parts);
         return callee + "(" + joined + ")";
+    }
+
+    static String stubInvokableCallee(String stmt) {
+        var close = stmt.lastIndexOf(')');
+        if (close == -1) {
+            return "/* TODO */";
+        }
+        var open = -1;
+        var depth = 0;
+        for (var i = close; i >= 0; i--) {
+            var c = stmt.charAt(i);
+            if (c == ')') {
+                depth++;
+            } else if (c == '(') {
+                depth--;
+                if (depth == 0) {
+                    open = i;
+                    break;
+                }
+            }
+        }
+        if (open == -1) {
+            return "/* TODO */";
+        }
+        var args = stmt.substring(open + 1, close).trim();
+        var parts = splitArgs(args);
+        parts.replaceAll(MethodStubber::parseValueArg);
+        var joined = String.join(", ", parts);
+        return "/* TODO */(" + joined + ")";
     }
 
     private static List<String> splitArgs(String args) {

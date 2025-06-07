@@ -12,6 +12,8 @@ in favor of simple scans so the logic stays maintainable.
 - `ImportHelper` – rewrites package declarations and import lines
 - `MethodStubber` – replaces method bodies with `// TODO` stubs and
   walks expressions using `parseValue`
+- `MethodStubber.stubInvokableCallee` – drops the method name when a
+  negated call appears in an `if` or `while` condition
 - `FieldTranspiler` – converts Java field definitions
 - `ArrowHelper` – rewrites lambda expressions to arrow functions
 - `TypeMapper` – maps primitive and generic types
