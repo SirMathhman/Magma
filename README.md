@@ -26,19 +26,13 @@ Developer guidelines are summarized in
 
 ### Building and Testing
 
-The project intentionally avoids Maven for now. To compile the code and run the
-JUnit tests you can use the JUnit Console launcher. The following commands place
-compiled classes in a `bin` directory:
+The project intentionally avoids Maven. Use the provided helper scripts to
+compile and run the JUnit tests. The build script downloads the JUnit Console
+launcher if needed and places compiled classes in a `bin` directory.
 
 ```bash
-curl -L -o junit-platform-console-standalone.jar \
-  https://repo1.maven.org/maven2/org/junit/platform/junit-platform-console-standalone/1.10.1/junit-platform-console-standalone-1.10.1.jar
-
-mkdir -p bin
-find src/main/java src/test/java -name "*.java" \
-  | xargs javac -cp junit-platform-console-standalone.jar -d bin
-
-java -jar junit-platform-console-standalone.jar -cp bin --scan-classpath
+./build.sh  # compile sources
+./test.sh   # execute all tests
 ```
 
 After compiling, you can invoke the transpiler via the CLI:
