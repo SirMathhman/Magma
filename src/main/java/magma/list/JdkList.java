@@ -42,9 +42,9 @@ public class JdkList<T> implements ListLike<T> {
     }
 
     @Override
-    public ListIterator<T> iterator() {
+    public ListIter<T> iterator() {
         java.util.Iterator<T> it = list.iterator();
-        return new ListIterator<T>() {
+        return new ListIter<T>() {
             @Override
             public boolean hasNext() {
                 return it.hasNext();

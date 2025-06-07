@@ -6,5 +6,5 @@ public interface ListLike<T> {
     T get(int index);
     void set(int index, T value);
     int size();
-    ListIterator<T> iterator();
+    ListIter<T> iterator();
 }

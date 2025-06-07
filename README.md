@@ -49,8 +49,22 @@ never be edited directly.
 
 - `magma.Main` – simple CLI for the transpiler
 - `magma.app.Transpiler` – converts Java code to TypeScript
-- `magma.path.PathLike` – abstracts file system operations such as `walk`
-- `magma.path.NioPath` – wraps `java.nio.file.Path` and handles basic I/O
-- `magma.list.ListLike` – minimal list abstraction using a custom `ListIterator`
-  that now supports `map` and `fold` operations
+- `magma.path.PathLike` – abstracts file system operations such as `walk`,
+  `readString`, `writeString`, and directory helpers without exposing
+  `IOException`
+- `magma.path.NioPath` – wraps `java.nio.file.Path` and implements these I/O
+  helpers using the JDK
+ - `magma.list.ListLike` – minimal list abstraction using a custom `ListIter`
+  that now supports `map`, `fold`, and `flatMap` operations. The `flatMap`
+  helper accepts an iterator-returning function so callers stay independent of
+  concrete list types.
 - `magma.list.JdkList` – default implementation backed by `ArrayList`
+- `magma.app.MethodStubber` – replaces method bodies with `// TODO` stubs.
+  Helpers now use a single scan so functions never contain more than one loop,
+  and indentation levels stay at two or fewer.
+- `magma.app.FieldTranspiler` – converts Java fields into TypeScript
+  properties while ignoring initializations
+- `magma.app.ImportHelper` – rewrites package declarations and import lines
+- `magma.app.ArrowHelper` – turns lambda expressions into arrow functions
+- `magma.app.TypeMapper` – maps primitive and generic types and preserves
+  unknown identifiers

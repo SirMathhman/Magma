@@ -14,8 +14,10 @@ platforms.
 
 - `magma.app.Transpiler` – orchestrates the conversion to TypeScript
 - `ImportHelper` – rewrites package declarations and import lines
-- `MethodStubber` – replaces method bodies with `// TODO` stubs and
-  walks expressions using `parseValue`
+- `MethodStubber` – replaces method bodies with `// TODO` stubs.
+  Each helper scans once so every function contains at most a single loop
+  and indentation never exceeds two levels. Expressions are walked using
+  `parseValue`.
 - Nested `if` and `while` blocks are parsed recursively so statements
   inside them are handled just like top-level code.
 - `FieldTranspiler` – converts Java field definitions
@@ -23,18 +25,23 @@ platforms.
 - `TypeMapper` – maps primitive and generic types and leaves unknown
   identifiers unchanged so the output stays close to the source
 - `magma.Main` – CLI entry point
-- `magma.result.Result` and `magma.option.Option` – lightweight
-  replacements for exceptions
+ - `magma.result.Result` and `magma.option.Option` – lightweight
+   replacements for exceptions. `Option` values can convert to a generic
+   `Iter` so optional results compose with iterator helpers
 - `magma.path.PathLike` and `magma.path.NioPath` – small wrapper around
   `java.nio.file.Path` so other classes don't depend on NIO directly.
   `NioPath` also provides helpers for reading and writing files so
   callers never touch `java.nio.file.Files`.
+  These helpers now return `Result` or `Option` values rather than
+  throwing `IOException` and are defined on `PathLike`.
 - `PathLike.walk` – lists files without exposing `Files.walk` or throwing
   `IOException`
 - `magma.list.ListLike` and `magma.list.JdkList` – simple list wrapper so
     code avoids a hard dependency on `java.util.List`. Iteration uses a
-    lightweight `ListIterator` interface instead of `java.lang.Iterable`.
-    The iterator now exposes `map` and `fold` to keep loops out of callers.
+    lightweight `Iter` interface and a `ListIter` specialization instead of `java.lang.Iterable`.
+    The iterator now exposes `map`, `fold`, and `flatMap` to keep loops out of callers.
+    `flatMap` takes a function returning another iterator so nested lists can
+    be flattened without revealing the underlying list implementation.
 
 The `parseValue` routine incrementally scans characters.  It recognizes
 member access, method calls, literals and the logical not operator.

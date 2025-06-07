@@ -474,4 +474,52 @@ class TranspilerStatementTest {
         var result = new Transpiler().toTypeScript(javaSrc);
         assertEquals(expected, result);
     }
+
+    @Test
+    void parsesMemberAccessInIfCondition() {
+        var javaSrc = String.join(System.lineSeparator(),
+            "public class Foo {",
+            "    void check(Parent p) {",
+            "        if (p.child) {",
+            "            System.out.println(1);",
+            "        }",
+            "    }",
+            "}");
+
+        var expected = String.join(System.lineSeparator(),
+            "export default class Foo {",
+            "    check(p: Parent): void {",
+            "        if (p.child) {",
+            "            System.out.println(1);",
+            "        }",
+            "    }",
+            "}");
+
+        var result = new Transpiler().toTypeScript(javaSrc);
+        assertEquals(expected, result);
+    }
+
+    @Test
+    void parsesNotOperatorWithMemberAccess() {
+        var javaSrc = String.join(System.lineSeparator(),
+            "public class Foo {",
+            "    void check(Parent p) {",
+            "        if (!p.child) {",
+            "            System.out.println(1);",
+            "        }",
+            "    }",
+            "}");
+
+        var expected = String.join(System.lineSeparator(),
+            "export default class Foo {",
+            "    check(p: Parent): void {",
+            "        if (!p.child) {",
+            "            System.out.println(1);",
+            "        }",
+            "    }",
+            "}");
+
+        var result = new Transpiler().toTypeScript(javaSrc);
+        assertEquals(expected, result);
+    }
 }

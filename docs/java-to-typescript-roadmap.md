@@ -93,17 +93,22 @@ Only the features listed below are supported. Anything not mentioned here is con
    - Map basic stream operations to array helpers.
 6. Provide minimal replacements for common standard library utilities.
    - Introduce small helpers for `List` and `Map` behavior.
-     `ListLike` now wraps `java.util.List` and exposes a custom `ListIterator`.
-     A `Map` wrapper is still pending.
+   `ListLike` now wraps `java.util.List` and exposes a custom `ListIter` backed by the generic `Iter` interface with `map`, `fold`, and `flatMap` methods. `flatMap` accepts a function returning
+   another iterator so callers can compose nested lists without direct references to concrete collection types.
+    A `Map` wrapper is still pending.
+   - `Option` values can now convert to an `Iter` so optional results integrate with iterator helpers.
 7. Explore concurrency patterns for future features.
    - Investigate Web Workers or async/await translation strategies.
 8. Keep the list of tests up to date as new features are covered.
 9. ~~Parse invokable expressions and stub out the caller and arguments.~~
    Tests now verify that method names are preserved while arguments fall back to
    `/* TODO */` when unknown.
-10. Translate `import` statements to relative paths reflecting the package hierarchy.
-11. Preserve member access expressions like `obj.field` and allow chaining after
-    method calls such as `doStuff().value`.
+10. ~~Translate `import` statements to relative paths reflecting the package hierarchy.~~
+    `ImportHelper` now rewrites import lines so they use relative module paths.
+11. ~~Preserve member access expressions like `obj.field` and allow chaining after
+    method calls such as `doStuff().value`.~~
+    Tests cover `obj.field` assignments, returns, chained accesses, and now
+    verify conditions including `if (p.child)` and `if (!p.child)`.
 12. Parse constructor types so stubs emit `new Type(/* TODO */)`.
 13. ~~Preserve method calls on newly created instances.~~
    Calls like `new Main().run()` now remain unchanged in the output.
@@ -115,5 +120,7 @@ Only the features listed below are supported. Anything not mentioned here is con
 16. Introduce a `PathLike` interface to wrap `java.nio.file.Path`.
     Refactor `Main` to use this abstraction so future code can swap out
     the NIO implementation.
+17. Move file I/O helpers onto `PathLike` so `Main` no longer deals with
+    `IOException`. Methods now return `Result` or `Option` objects.
 
 Each feature should begin with a failing test that describes the expected TypeScript output for a Java example.
