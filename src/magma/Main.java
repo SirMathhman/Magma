@@ -12,6 +12,10 @@ import java.util.function.Predicate;
 import java.util.function.Supplier;
 
 public class Main {
+    /**
+     * Represents an optional value which may or may not be present.
+     * @param <T> contained value type
+     */
     private interface Option<T> {
         <R> Option<R> map(Function<T, R> mapper);
 
@@ -30,19 +34,47 @@ public class Main {
         <R> Option<Tuple<T, R>> and(Supplier<Option<R>> other);
     }
 
+    /**
+     * Marker for parse tree elements that participate in compilation.
+     */
     private interface Parameter {
     }
 
+    /**
+     * Collects elements from an {@link Iterator} into a cumulative result.
+     *
+     * @param <T> element type
+     * @param <C> collection type
+     */
     private interface Collector<T, C> {
+        /**
+         * @return an empty initial collection
+         */
         C createInitial();
 
+        /**
+         * Adds {@code element} to {@code current} and returns the new collection.
+         */
         C fold(C current, T element);
     }
 
+    /**
+     * Provides a stream-like source of elements.
+     *
+     * @param <T> element type
+     */
     private interface Head<T> {
+        /**
+         * @return the next element if available
+         */
         Option<T> next();
     }
 
+    /**
+     * Lazy sequence of elements.
+     *
+     * @param <T> element type
+     */
     private interface Iterator<T> {
         <R> Iterator<R> map(Function<T, R> mapper);
 
@@ -59,6 +91,11 @@ public class Main {
         <R> Iterator<Tuple<T, R>> zip(Iterator<R> other);
     }
 
+    /**
+     * Immutable list abstraction used by the compiler.
+     *
+     * @param <T> element type
+     */
     private interface List<T> {
         List<T> add(T element);
 
@@ -79,16 +116,31 @@ public class Main {
         List<T> mapLast(Function<T, T> mapper);
     }
 
+    /**
+     * Anything that can be converted back into source code.
+     */
     private interface Generating {
+        /**
+         * @return the textual representation of this element
+         */
         String generate();
     }
 
+    /**
+     * Node that evaluates to a value within generated code.
+     */
     private sealed interface Value extends Caller, ValueArgument {
     }
 
+    /**
+     * Something that can appear at the call site of a function.
+     */
     private sealed interface Caller extends Generating {
     }
 
+    /**
+     * Simple immutable map abstraction.
+     */
     private interface Map<K, V> {
         Map<K, V> putAll(Map<K, V> other);
 
@@ -101,6 +153,9 @@ public class Main {
         Option<V> get(K key);
     }
 
+    /**
+     * Represents a type in the source language.
+     */
     private interface Type extends Generating, TypeArgument {
         default Map<String, Type> extract(Type actual) {
             return Maps.empty();
@@ -111,12 +166,21 @@ public class Main {
         }
     }
 
+    /**
+     * Marker interface for nodes usable as value arguments.
+     */
     private interface ValueArgument {
     }
 
+    /**
+     * Marker interface for nodes usable as type arguments.
+     */
     private interface TypeArgument {
     }
 
+    /**
+     * Scope of available types and values during compilation.
+     */
     private interface Frame {
         Option<StructureType> resolveType(String name);
 
@@ -127,6 +191,9 @@ public class Main {
         Option<TypeParam> resolveTypeParam(String name);
     }
 
+    /**
+     * Frame that can hold structure type declarations.
+     */
     private interface StructureContainerFrame extends Frame {
         StructureContainerFrame defineStructureType(StructureType structureType);
     }
