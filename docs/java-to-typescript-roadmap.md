@@ -82,5 +82,6 @@ Only the features listed below are supported. Anything not mentioned here is con
 9. ~~Parse invokable expressions and stub out the caller and arguments.~~
    Tests ensure calls are stubbed in both standalone statements and in `let`
    declarations.
+10. Translate `import` statements to relative paths reflecting the package hierarchy.
 
 Each feature should begin with a failing test that describes the expected TypeScript output for a Java example.

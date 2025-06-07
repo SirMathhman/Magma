@@ -15,9 +15,11 @@ public class Transpiler {
      * @return transpiled TypeScript
      */
     public String toTypeScript(String javaSource) {
+        String pkg = extractPackage(javaSource);
         String withoutPackage = removePackage(javaSource);
+        String withImports = translateImports(withoutPackage, pkg);
 
-        String[] lines = withoutPackage.split("\\R");
+        String[] lines = withImports.split("\\R");
         StringBuilder ts = new StringBuilder();
         for (String line : lines) {
             int classIdx = line.indexOf("class");
@@ -350,6 +352,65 @@ public class Transpiler {
             mapped.add(toTsType(p.trim()));
         }
         return base + "<" + String.join(", ", mapped) + ">";
+    }
+
+    private String extractPackage(String source) {
+        for (String line : source.split("\\R")) {
+            String trimmed = line.trim();
+            if (trimmed.startsWith("package ") && trimmed.endsWith(";")) {
+                String pkg = trimmed.substring(8, trimmed.length() - 1).trim();
+                return pkg;
+            }
+        }
+        return "";
+    }
+
+    private String translateImports(String source, String currentPkg) {
+        String[] lines = source.split("\\R");
+        StringBuilder out = new StringBuilder();
+        for (int i = 0; i < lines.length; i++) {
+            String line = lines[i];
+            String trimmed = line.trim();
+            if (trimmed.startsWith("import ") && trimmed.endsWith(";") &&
+                    !trimmed.contains("*") && !trimmed.startsWith("import static")) {
+                String imp = trimmed.substring(7, trimmed.length() - 1).trim();
+                String replacement = buildImport(imp, currentPkg);
+                out.append("import ").append(replacement).append(";").append(System.lineSeparator());
+                // skip blank lines following the import
+                int j = i + 1;
+                while (j < lines.length && lines[j].trim().isEmpty()) {
+                    i = j;
+                    j++;
+                }
+                continue;
+            }
+            out.append(line).append(System.lineSeparator());
+        }
+        return out.toString().trim();
+    }
+
+    private String buildImport(String imp, String currentPkg) {
+        String[] parts = imp.split("\\.");
+        if (parts.length == 0) return imp;
+        String className = parts[parts.length - 1];
+        String[] importPkgParts = java.util.Arrays.copyOf(parts, parts.length - 1);
+        String[] currentParts = currentPkg.isBlank() ? new String[0] : currentPkg.split("\\.");
+        int i = 0;
+        while (i < currentParts.length && i < importPkgParts.length && currentParts[i].equals(importPkgParts[i])) {
+            i++;
+        }
+        StringBuilder path = new StringBuilder();
+        for (int j = i; j < currentParts.length; j++) {
+            path.append("../");
+        }
+        for (int j = i; j < importPkgParts.length; j++) {
+            path.append(importPkgParts[j]).append('/');
+        }
+        path.append(className);
+        if (!path.toString().startsWith("../")) {
+            path.insert(0, "./");
+        }
+        return className + " from \"" + path.toString() + "\"";
     }
 
     private String removePackage(String source) {

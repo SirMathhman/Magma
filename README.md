@@ -37,9 +37,12 @@ Assignments inside arrow function bodies are replaced with `// TODO` comments.
 Assignments that define new variables inside methods become `let` declarations
 with `/* TODO */` as the initializer.
 Invokable expressions such as `doThing()` or `new Some<>()` are parsed so that
+
 the caller and arguments are emitted as `/* TODO */` placeholders. This also
 applies to variable definitions like `int x = run();`, which become
 `let x: number = /* TODO */();`.
+Import statements are rewritten to relative paths that mirror the Java package
+structure.
 
 Generic type parameters are preserved, so `List<String>` becomes
 `List<string>` in the transpiled output.
