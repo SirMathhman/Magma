@@ -1,5 +1,8 @@
 package magma;
 
+/**
+ * A scope of definitions and type parameters used during compilation.
+ */
 interface Frame {
     Option<StructureType> resolveType(String name);
 

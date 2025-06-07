@@ -3,6 +3,9 @@ package magma;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
+/**
+ * Optional value container with combinator style helpers.
+ */
 interface Option<T> {
     <R> Option<R> map(Function<T, R> mapper);
 
