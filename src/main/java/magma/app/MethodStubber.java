@@ -78,7 +78,19 @@ class MethodStubber {
                 continue;
             }
             if (body.startsWith("return")) {
-                stub.append(indent).append("    return /* TODO */;").append(System.lineSeparator());
+                String expr = body.substring(6).trim();
+                if (expr.endsWith(";")) {
+                    expr = expr.substring(0, expr.length() - 1).trim();
+                }
+                if (expr.isBlank()) {
+                    stub.append(indent).append("    return;").append(System.lineSeparator());
+                } else if (isMemberAccess(expr)) {
+                    stub.append(indent).append("    return ").append(expr).append(";")
+                       .append(System.lineSeparator());
+                } else {
+                    stub.append(indent).append("    return /* TODO */;")
+                       .append(System.lineSeparator());
+                }
             } else {
                 appendParts(body.split(";"), indent, stub);
             }
@@ -95,11 +107,24 @@ class MethodStubber {
             String trimmedPart = part.trim();
             if (trimmedPart.isEmpty()) continue;
             if (trimmedPart.startsWith("return")) {
-                stub.append(indent).append("    return /* TODO */;").append(System.lineSeparator());
+                String expr = trimmedPart.substring(6).trim();
+                if (expr.endsWith(";")) {
+                    expr = expr.substring(0, expr.length() - 1).trim();
+                }
+                if (expr.isBlank()) {
+                    stub.append(indent).append("    return;").append(System.lineSeparator());
+                } else if (isMemberAccess(expr)) {
+                    stub.append(indent).append("    return ").append(expr).append(";")
+                        .append(System.lineSeparator());
+                } else {
+                    stub.append(indent).append("    return /* TODO */;").append(System.lineSeparator());
+                }
             } else if (trimmedPart.contains("=")) {
                 stub.append(parseAssignment(trimmedPart, indent)).append(System.lineSeparator());
             } else if (isInvokable(trimmedPart)) {
                 stub.append(parseInvokable(trimmedPart, indent)).append(System.lineSeparator());
+            } else if (isMemberAccess(trimmedPart)) {
+                stub.append(parseMemberAccess(trimmedPart, indent)).append(System.lineSeparator());
             } else {
                 stub.append(indent).append("    // TODO").append(System.lineSeparator());
             }
@@ -139,10 +164,25 @@ class MethodStubber {
         if (tokens.length >= 2) {
             String name = tokens[tokens.length - 1];
             String type = tokens[tokens.length - 2];
-            String value = isInvokable(rhs) ? stubInvokableExpr(rhs) : "/* TODO */";
+            String value;
+            if (isInvokable(rhs)) {
+                value = stubInvokableExpr(rhs);
+            } else if ((rhs.length() >= 2 && rhs.startsWith("\"") && rhs.endsWith("\"")) || isMemberAccess(rhs)) {
+                value = rhs;
+            } else {
+                value = "/* TODO */";
+            }
             return indent + "    let " + name + ": " + TypeMapper.toTsType(type) + " = " + value + ";";
         }
         return indent + "    // TODO";
+    }
+
+    static boolean isMemberAccess(String stmt) {
+        return stmt.contains(".") && !stmt.contains("(") && !stmt.contains("=");
+    }
+
+    static String parseMemberAccess(String stmt, String indent) {
+        return indent + "    " + stmt + ";";
     }
 
     static boolean isInvokable(String stmt) {

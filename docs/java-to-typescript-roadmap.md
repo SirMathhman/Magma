@@ -55,6 +55,9 @@ Only the features listed below are supported. Anything not mentioned here is con
     `TranspilerStatementTest.stubsInvokablesInLetStatements`,
     `TranspilerStatementTest.stubsConstructorCalls`,
     `TranspilerStatementTest.stubsConstructorCallsInLetStatements`.
+- **Member access** expressions like `parent.child` are kept intact.
+  - Tests: `TranspilerStatementTest.preservesMemberAccessInAssignments`,
+    `TranspilerStatementTest.preservesMemberAccessInReturns`.
 - **Streams** rely on array helpers such as `map`, `filter`, and `reduce`.
 - **Standard library** utilities are replaced with small TypeScript helpers.
 
@@ -91,5 +94,6 @@ Only the features listed below are supported. Anything not mentioned here is con
    Tests ensure calls are stubbed in both standalone statements and in `let`
    declarations.
 10. Translate `import` statements to relative paths reflecting the package hierarchy.
+11. Preserve member access expressions like `obj.field`.
 
 Each feature should begin with a failing test that describes the expected TypeScript output for a Java example.
