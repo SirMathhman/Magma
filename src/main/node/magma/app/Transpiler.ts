@@ -16,12 +16,12 @@ export default class Transpiler {
         let pkg: string = /* TODO */(/* TODO */);
         let withoutPackage: string = /* TODO */(/* TODO */);
         let withImports: string = /* TODO */(/* TODO */, /* TODO */);
-        let lines: string[] = /* TODO */(/* TODO */);
+        let lines: string[] = /* TODO */("\\R");
         let ts: any = new StringBuilder();
         // TODO
-        let classIdx: number = /* TODO */(/* TODO */);
-        let enumIdx: number = /* TODO */(/* TODO */);
-        let ifaceIdx: number = /* TODO */(/* TODO */);
+        let classIdx: number = /* TODO */("class");
+        let enumIdx: number = /* TODO */("enum");
+        let ifaceIdx: number = /* TODO */("interface");
         let brace: number = /* TODO */(/* TODO */);
         let !: any = /* TODO */;
         let afterClass: string = /* TODO */(/* TODO */);

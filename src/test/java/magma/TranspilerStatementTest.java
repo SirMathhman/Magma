@@ -59,7 +59,7 @@ class TranspilerStatementTest {
         String expected = String.join("\n",
                 "export default class Foo {",
                 "    build(): void {",
-                "        new Bar(/* TODO */, /* TODO */);",
+                "        new Bar(1, 2);",
                 "    }",
                 "}");
 
@@ -79,7 +79,7 @@ class TranspilerStatementTest {
         String expected = String.join("\n",
                 "export default class Foo {",
                 "    make(): void {",
-                "        let b: any = new Bar(/* TODO */);",
+                "        let b: any = new Bar(1);",
                 "    }",
                 "}");
 
@@ -162,7 +162,7 @@ class TranspilerStatementTest {
 
         String expected = String.join("\n",
             "Runnable r = () => {",
-            "    let x: number = /* TODO */;",
+            "    let x: number = 0;",
             "    // TODO",
             "};");
 
@@ -184,7 +184,7 @@ class TranspilerStatementTest {
         String expected = String.join("\n",
             "export default class Foo {",
             "    multi(): number {",
-            "        let y: number = /* TODO */;",
+            "        let y: number = 0;",
             "        // TODO",
             "        return /* TODO */;",
             "    }",
@@ -256,6 +256,26 @@ class TranspilerStatementTest {
             "export default class Foo {",
             "    show(): void {",
             "        let msg: string = \"hi\";",
+            "    }",
+            "}");
+
+        String result = new Transpiler().toTypeScript(javaSrc);
+        assertEquals(expected, result);
+    }
+
+    @Test
+    void keepsNumericValues() {
+        String javaSrc = String.join("\n",
+            "public class Foo {",
+            "    void show() {",
+            "        int num = 7;",
+            "    }",
+            "}");
+
+        String expected = String.join("\n",
+            "export default class Foo {",
+            "    show(): void {",
+            "        let num: number = 7;",
             "    }",
             "}");
 

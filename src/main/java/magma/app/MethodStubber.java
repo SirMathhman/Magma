@@ -87,6 +87,9 @@ class MethodStubber {
                 } else if (isMemberAccess(expr)) {
                     stub.append(indent).append("    return ").append(expr).append(";")
                        .append(System.lineSeparator());
+                } else if (isNumeric(expr)) {
+                    stub.append(indent).append("    return ").append(expr).append(";")
+                        .append(System.lineSeparator());
                 } else {
                     stub.append(indent).append("    return /* TODO */;")
                        .append(System.lineSeparator());
@@ -217,7 +220,7 @@ class MethodStubber {
         if (isInvokable(trimmed)) {
             return "/* TODO */";
         }
-        if ((trimmed.length() >= 2 && trimmed.startsWith("\"") && trimmed.endsWith("\"")) || isMemberAccess(trimmed)) {
+        if ((trimmed.length() >= 2 && trimmed.startsWith("\"") && trimmed.endsWith("\"")) || isMemberAccess(trimmed) || isNumeric(trimmed)) {
             return trimmed;
         }
         return "/* TODO */";
@@ -252,6 +255,26 @@ class MethodStubber {
             return stubInvokableExpr(seg);
         }
         return seg;
+    }
+  
+    private static boolean isNumeric(String s) {
+        if (s.isEmpty()) return false;
+        int i = 0;
+        if (s.charAt(0) == '-') {
+            if (s.length() == 1) return false;
+            i = 1;
+        }
+        boolean dot = false;
+        for (; i < s.length(); i++) {
+            char c = s.charAt(i);
+            if (c == '.') {
+                if (dot) return false;
+                dot = true;
+                continue;
+            }
+            if (c < '0' || c > '9') return false;
+        }
+        return true;
     }
 
     static String stubInvokableExpr(String stmt) {

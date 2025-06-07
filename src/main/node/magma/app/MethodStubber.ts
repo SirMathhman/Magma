@@ -1,6 +1,6 @@
 export default class MethodStubber {
     stubMethods(source: string): string {
-        let lines: string[] = /* TODO */(/* TODO */);
+        let lines: string[] = /* TODO */("\\R");
         let out: any = new StringBuilder();
         let i: number = /* TODO */;
         while (/* TODO */) {
@@ -15,15 +15,15 @@ export default class MethodStubber {
         // TODO
         /* TODO */(/* TODO */, /* TODO */, /* TODO */, /* TODO */, /* TODO */);
         let indent: string = /* TODO */(/* TODO */, /* TODO */);
-        let beforeBrace: string = /* TODO */(/* TODO */, /* TODO */);
+        let beforeBrace: string = /* TODO */();
         let parenStart: number = /* TODO */(/* TODO */);
-        let parenEnd: number = /* TODO */(/* TODO */);
+        let parenEnd: number = /* TODO */;
         if (/* TODO */) {
             // TODO
         }
-        let signatureStart: string = /* TODO */(/* TODO */, /* TODO */);
-        let params: string = /* TODO */(/* TODO */, /* TODO */);
-        let sigTokens: string[] = /* TODO */(/* TODO */);
+        let signatureStart: string = /* TODO */();
+        let params: string = /* TODO */();
+        let sigTokens: string[] = /* TODO */("\\s+");
         if (/* TODO */) {
             // TODO
         }
@@ -96,9 +96,9 @@ export default class MethodStubber {
         if (/* TODO */) {
             // TODO
         }
-        let dest: string = /* TODO */(/* TODO */, /* TODO */);
-        let rhs: string = /* TODO */(/* TODO */);
-        let tokens: string[] = /* TODO */(/* TODO */);
+        let dest: string = /* TODO */();
+        let rhs: string = /* TODO */();
+        let tokens: string[] = /* TODO */("\\s+");
         if (/* TODO */) {
             // TODO
         }
@@ -112,40 +112,93 @@ export default class MethodStubber {
         // TODO
         /* TODO */(/* TODO */);
         let open: number = /* TODO */(/* TODO */);
-        let close: number = /* TODO */(/* TODO */);
+        let close: number = /* TODO */;
         if (/* TODO */) {
             // TODO
         }
-        let head: string = /* TODO */(/* TODO */, /* TODO */);
+        let head: string = /* TODO */();
         return /* TODO */;
         // TODO
         /* TODO */(/* TODO */, /* TODO */);
         return /* TODO */;
         // TODO
         /* TODO */(/* TODO */);
-        let open: number = /* TODO */(/* TODO */);
-        let close: number = /* TODO */(/* TODO */);
+        let trimmed: string = /* TODO */();
         if (/* TODO */) {
             // TODO
         }
-        let head: string = /* TODO */(/* TODO */, /* TODO */);
-        let isNew: boolean = /* TODO */(/* TODO */);
+        if (/* TODO */) {
+            // TODO
+        }
+        return /* TODO */;
+        // TODO
+        /* TODO */(/* TODO */);
+        let trimmed: string = /* TODO */();
+        if (/* TODO */) {
+            // TODO
+        }
+        if (/* TODO */) {
+            // TODO
+        }
+        return /* TODO */;
+        // TODO
+        /* TODO */(/* TODO */);
+        let close: number = /* TODO */;
+        if (/* TODO */) {
+            // TODO
+        }
+        let open: number = /* TODO */;
+        let depth: number = /* TODO */;
+        let i: any = /* TODO */;
+        let >: any = /* TODO */;
+        // TODO
+        let c: string = /* TODO */(/* TODO */);
+        if (/* TODO */) {
+            // TODO
+        }
+        // TODO
+        if (/* TODO */) {
+            // TODO
+        }
+        let head: string = /* TODO */();
+        if (/* TODO */) {
+            // TODO
+        }
+        let isNew: boolean = /* TODO */(".");
         let callee: string = "/* TODO */";
         if (/* TODO */) {
             // TODO
         }
-        let args: string = /* TODO */(/* TODO */, /* TODO */);
-        let count: number = /* TODO */(/* TODO */, /* TODO */);
-        let parts: java.util.List<string> = new java.util.ArrayList<>();
+        let args: string = /* TODO */();
+        let parts: java.util.List<string> = /* TODO */(/* TODO */);
         let i: any = /* TODO */;
+        /* TODO */();
         // TODO
-        // TODO
-        /* TODO */(/* TODO */);
+        /* TODO */(/* TODO */, /* TODO */);
         // TODO
         let joined: string = /* TODO */(/* TODO */, /* TODO */, /* TODO */);
         if (/* TODO */) {
             // TODO
         }
+        return /* TODO */;
+        // TODO
+        /* TODO */(/* TODO */);
+        let out: java.util.List<string> = new java.util.ArrayList<>();
+        // TODO
+        let depth: number = /* TODO */;
+        let part: any = new StringBuilder();
+        let i: any = /* TODO */;
+        /* TODO */();
+        // TODO
+        let c: string = /* TODO */(/* TODO */);
+        if (/* TODO */) {
+            // TODO
+        }
+        let (c: any = /* TODO */(/* TODO */);
+        let (c: any = /* TODO */;
+        /* TODO */(/* TODO */);
+        // TODO
+        /* TODO */(/* TODO */);
         return /* TODO */;
         // TODO
     }
