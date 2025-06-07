@@ -197,10 +197,19 @@ class MethodStubber {
 
     static String parseValue(String value) {
         String trimmed = value.trim();
+        if (trimmed.startsWith("new ") && trimmed.contains(".") && isInvokable(trimmed)) {
+            return trimmed;
+        }
+        if (trimmed.contains(".") && !trimmed.contains("=")) {
+            return parseMemberChain(trimmed);
+        }
         if (isInvokable(trimmed)) {
             return stubInvokableExpr(trimmed);
         }
-        if ((trimmed.length() >= 2 && trimmed.startsWith("\"") && trimmed.endsWith("\"")) || isMemberAccess(trimmed) || isNumeric(trimmed)) {
+        if (trimmed.length() >= 2 && trimmed.startsWith("\"") && trimmed.endsWith("\"")) {
+            return trimmed;
+        }
+        if (isMemberAccess(trimmed)) {
             return trimmed;
         }
         return "/* TODO */";
@@ -217,6 +226,37 @@ class MethodStubber {
         return "/* TODO */";
     }
 
+    private static String parseMemberChain(String expr) {
+        java.util.List<String> parts = new java.util.ArrayList<>();
+        int depth = 0;
+        StringBuilder part = new StringBuilder();
+        for (int i = 0; i < expr.length(); i++) {
+            char c = expr.charAt(i);
+            if (c == '.' && depth == 0) {
+                parts.add(part.toString());
+                part.setLength(0);
+                continue;
+            }
+            if (c == '(') depth++;
+            if (c == ')') depth--;
+            part.append(c);
+        }
+        parts.add(part.toString());
+        StringBuilder out = new StringBuilder();
+        for (int i = 0; i < parts.size(); i++) {
+            if (i > 0) out.append('.');
+            out.append(parseChainSegment(parts.get(i).trim()));
+        }
+        return out.toString();
+    }
+
+    private static String parseChainSegment(String seg) {
+        if (isInvokable(seg)) {
+            return stubInvokableExpr(seg);
+        }
+        return seg;
+    }
+  
     private static boolean isNumeric(String s) {
         if (s.isEmpty()) return false;
         int i = 0;

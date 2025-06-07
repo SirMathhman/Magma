@@ -97,7 +97,8 @@ Only the features listed below are supported. Anything not mentioned here is con
    Tests ensure calls are stubbed in both standalone statements and in `let`
    declarations.
 10. Translate `import` statements to relative paths reflecting the package hierarchy.
-11. Preserve member access expressions like `obj.field`.
+11. Preserve member access expressions like `obj.field` and allow chaining after
+    method calls such as `doStuff().value`.
 12. Parse constructor types so stubs emit `new Type(/* TODO */)`.
 13. ~~Preserve method calls on newly created instances.~~
    Calls like `new Main().run()` now remain unchanged in the output.

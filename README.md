@@ -10,7 +10,8 @@ This repository begins a self‑hosted transpiler from Java to TypeScript. It ke
 - Helper classes split the converter into smaller pieces:
   - `ImportHelper` handles packages and imports
   - `MethodStubber` replaces method bodies with stubs and now includes a
-    `parseValue` helper for recursively processing expression values
+    `parseValue` helper for recursively processing expression values,
+    including chains of method calls and fields
   - `FieldTranspiler` rewrites field declarations
   - `ArrowHelper` processes lambda expressions
   - `TypeMapper` maps Java types to TypeScript
@@ -57,7 +58,7 @@ applies to variable definitions like `int x = run();`, which become
 `let x: number = /* TODO */();`.
 Calls on freshly constructed objects such as `new Main().run()` are now preserved intact, so the expression stays `new Main().run()`. This keeps initialization chains visible in the generated code.
 Member access expressions like `parent.field` are preserved so assignments such as
-`int x = parent.field;` become `let x: number = parent.field;`.
+`int x = parent.field;` become `let x: number = parent.field;`. Chains that mix method calls and fields, for example `doStuff().value.next`, keep the property access while each call is stubbed.
 Import statements are rewritten to relative paths that mirror the Java package
 structure.
 

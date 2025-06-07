@@ -342,4 +342,44 @@ class TranspilerStatementTest {
         String result = new Transpiler().toTypeScript(javaSrc);
         assertEquals(expected, result);
     }
+
+    @Test
+    void preservesMemberAccessAfterInvokable() {
+        String javaSrc = String.join("\n",
+            "public class Foo {",
+            "    void run() {",
+            "        int x = doStuff().myField;",
+            "    }",
+            "}");
+
+        String expected = String.join("\n",
+            "export default class Foo {",
+            "    run(): void {",
+            "        let x: number = /* TODO */().myField;",
+            "    }",
+            "}");
+
+        String result = new Transpiler().toTypeScript(javaSrc);
+        assertEquals(expected, result);
+    }
+
+    @Test
+    void parsesDeepChainedAccess() {
+        String javaSrc = String.join("\n",
+            "public class Foo {",
+            "    void run() {",
+            "        int x = first.second().third.fourth;",
+            "    }",
+            "}");
+
+        String expected = String.join("\n",
+            "export default class Foo {",
+            "    run(): void {",
+            "        let x: number = first./* TODO */().third.fourth;",
+            "    }",
+            "}");
+
+        String result = new Transpiler().toTypeScript(javaSrc);
+        assertEquals(expected, result);
+    }
 }
