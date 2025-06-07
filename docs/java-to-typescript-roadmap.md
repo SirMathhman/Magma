@@ -93,7 +93,7 @@ Only the features listed below are supported. Anything not mentioned here is con
    - Map basic stream operations to array helpers.
 6. Provide minimal replacements for common standard library utilities.
    - Introduce small helpers for `List` and `Map` behavior.
-     `ListLike` now wraps `java.util.List` and exposes a custom `ListIterator`.
+     `ListLike` now wraps `java.util.List` and exposes a custom `ListIterator` with `map`, `fold`, and `flatMap` methods.
      A `Map` wrapper is still pending.
 7. Explore concurrency patterns for future features.
    - Investigate Web Workers or async/await translation strategies.

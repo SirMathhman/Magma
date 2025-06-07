@@ -21,4 +21,24 @@ class ListLikeTest {
         assertEquals("1", mapped.get(0));
         assertEquals("2", mapped.get(1));
     }
+
+    @Test
+    void flatMapsNestedLists() {
+        ListLike<Integer> list = JdkList.create();
+        list.add(1);
+        list.add(2);
+
+        var result = list.iterator().flatMap(v -> {
+            ListLike<String> inner = JdkList.create();
+            inner.add(v + "a");
+            inner.add(v + "b");
+            return inner;
+        });
+
+        assertEquals(4, result.size());
+        assertEquals("1a", result.get(0));
+        assertEquals("1b", result.get(1));
+        assertEquals("2a", result.get(2));
+        assertEquals("2b", result.get(3));
+    }
 }

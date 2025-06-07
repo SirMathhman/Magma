@@ -52,5 +52,5 @@ never be edited directly.
 - `magma.path.PathLike` – abstracts file system operations such as `walk`
 - `magma.path.NioPath` – wraps `java.nio.file.Path` and handles basic I/O
 - `magma.list.ListLike` – minimal list abstraction using a custom `ListIterator`
-  that now supports `map` and `fold` operations
+  that now supports `map`, `fold`, and `flatMap` operations
 - `magma.list.JdkList` – default implementation backed by `ArrayList`
