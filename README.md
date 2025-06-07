@@ -29,6 +29,7 @@ Additional notes and a feature mapping between Java and TypeScript live in
 The roadmap now lists the tests that verify each implemented feature.
 Developer guidelines are summarized in
 [`docs/coding-standards.md`](docs/coding-standards.md).
+Additional guidelines for contributors can be found in [AGENTS.md](AGENTS.md).
 
 ### Building and Testing
 
