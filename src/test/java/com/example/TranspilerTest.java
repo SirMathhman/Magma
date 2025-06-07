@@ -132,4 +132,24 @@ class TranspilerTest {
         String result = new Transpiler().toTypeScript(javaSrc);
         assertEquals(expected, result);
     }
+
+    @Test
+    void mapsGenericTypes() {
+        String javaSrc = String.join("\n",
+            "public class Foo {",
+            "    List<String> names(List<String> in) {",
+            "        return in;",
+            "    }",
+            "}");
+
+        String expected = String.join("\n",
+            "export default class Foo {",
+            "    names(in: List<string>): List<string> {",
+            "        // TODO",
+            "    }",
+            "}");
+
+        String result = new Transpiler().toTypeScript(javaSrc);
+        assertEquals(expected, result);
+    }
 }

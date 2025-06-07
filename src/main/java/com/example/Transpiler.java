@@ -102,6 +102,18 @@ public class Transpiler {
     }
 
     private String toTsType(String javaType) {
+        int genericStart = javaType.indexOf('<');
+        int genericEnd = javaType.lastIndexOf('>');
+        if (genericStart != -1 && genericEnd != -1 && genericEnd > genericStart) {
+            String base = javaType.substring(0, genericStart).trim();
+            String params = javaType.substring(genericStart + 1, genericEnd);
+            java.util.List<String> mapped = new java.util.ArrayList<>();
+            for (String p : params.split(",")) {
+                mapped.add(toTsType(p.trim()));
+            }
+            return base + "<" + String.join(", ", mapped) + ">";
+        }
+
         if (javaType.endsWith("[]")) {
             String element = javaType.substring(0, javaType.length() - 2);
             return toTsType(element) + "[]";

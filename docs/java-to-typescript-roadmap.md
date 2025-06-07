@@ -15,7 +15,7 @@ This page outlines how Java language features map to their TypeScript counterpar
 | Interfaces | Interfaces | Direct mapping. | |
 | Abstract classes | Abstract classes | Use the `abstract` keyword. | |
 | Enums | `enum` | TypeScript `enum` provides similar semantics. | |
-| Generics | Generics | `List<T>` → `Array<T>` or custom generic types. | |
+| Generics | Generics | Direct mapping of type parameters, e.g. `List<T>` → `List<T>`. | `TranspilerTest.mapsGenericTypes` |
 | Methods | Methods | Instance and static methods translate directly. Basic return types such as `int` or `void` become `number` or `void`. | `TranspilerTest.stubsMethodBodiesPreservingNames`, `TranspilerTest.stubsVoidReturnTypes` |
 | Fields | Properties | Public/private modifiers apply. | |
 | Access modifiers (`public`, `private`, `protected`) | `public`, `private`, `protected` | `package‑private` becomes `public` or internal module export. | `TranspilerTest.transpilesClassDefinitionWithModifier` |
@@ -33,7 +33,7 @@ This page outlines how Java language features map to their TypeScript counterpar
 Further tasks:
 1. ~~Implement translation of basic class structure and type mappings.~~
    Basic class definitions now output `export default class`.
-2. Add support for generics and inheritance.
+2. ~~Add support for generics~~ and inheritance.
 3. Handle exceptions and control flow constructs.
 4. Map annotations to decorators.
 5. Gradually cover advanced features like reflection or concurrency.
