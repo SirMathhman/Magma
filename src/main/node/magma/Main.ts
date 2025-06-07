@@ -15,7 +15,7 @@ import List from "../java/util/List";
  */
 export default class Main {
     main(args: string[]): void {
-        let error: Option<string> = new /* TODO */(/* TODO */);
+        let error: Option<string> = new Main(/* TODO */);
         if (/* TODO */) {
             // TODO
         }
@@ -38,7 +38,7 @@ export default class Main {
     }
 
     listJavaFiles(srcRoot: any): Result<List<any>> {
-        let javaFiles: List<any> = new /* TODO */();
+        let javaFiles: List<any> = new ArrayList<>();
         let stream: any = /* TODO */(/* TODO */);
         // TODO
         if (/* TODO */) {
@@ -54,7 +54,7 @@ export default class Main {
     transpileFile(srcRoot: any, outRoot: any, javaFile: any): Option<string> {
         // TODO
         let javaSrc: string = /* TODO */(/* TODO */);
-        let ts: string = new /* TODO */(/* TODO */);
+        let ts: string = new Transpiler(/* TODO */);
         let rel: any = /* TODO */(/* TODO */);
         let name: string = /* TODO */();
         let withoutExt: string = /* TODO */(/* TODO */, /* TODO */);

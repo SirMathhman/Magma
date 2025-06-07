@@ -25,9 +25,9 @@ export default class ImportHelper {
 
     translateImports(source: string, currentPkg: string): string {
         let lines: string[] = /* TODO */(/* TODO */);
-        let out: any = new /* TODO */();
+        let out: any = new StringBuilder();
         let i: any = /* TODO */;
-        // TODO
+        i lines.length: any;
         // TODO
         let line: string = /* TODO */;
         let trimmed: string = /* TODO */();
@@ -57,7 +57,7 @@ export default class ImportHelper {
     buildImport(imp: string, currentPkg: string): string {
         let parts: string[] = /* TODO */(/* TODO */);
         let (parts.length: any = /* TODO */;
-        let className: string = /* TODO */;
+        let className: string = parts[parts.length - 1];
         let importPkgParts: string[] = /* TODO */(/* TODO */, /* TODO */);
         let currentParts: string[] = /* TODO */(/* TODO */);
         let shared: number = /* TODO */(/* TODO */, /* TODO */);
@@ -77,14 +77,14 @@ export default class ImportHelper {
     }
 
     relativePath(impParts: string[], currentParts: string[], shared: number): string {
-        let path: any = new /* TODO */();
+        let path: any = new StringBuilder();
         /* TODO */(/* TODO */);
         /* TODO */(/* TODO */, /* TODO */);
         return /* TODO */;
     }
 
     upPath(count: number): string {
-        let out: any = new /* TODO */();
+        let out: any = new StringBuilder();
         let i: any = /* TODO */;
         // TODO
         // TODO
@@ -94,9 +94,9 @@ export default class ImportHelper {
     }
 
     joinParts(parts: string[], start: number): string {
-        let out: any = new /* TODO */();
+        let out: any = new StringBuilder();
         let i: any = /* TODO */;
-        // TODO
+        i parts.length: any;
         // TODO
         /* TODO */(/* TODO */);
         // TODO

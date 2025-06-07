@@ -17,7 +17,7 @@ export default class Transpiler {
         let withoutPackage: string = /* TODO */(/* TODO */);
         let withImports: string = /* TODO */(/* TODO */, /* TODO */);
         let lines: string[] = /* TODO */(/* TODO */);
-        let ts: any = new /* TODO */();
+        let ts: any = new StringBuilder();
         // TODO
         let classIdx: number = /* TODO */(/* TODO */);
         let enumIdx: number = /* TODO */(/* TODO */);

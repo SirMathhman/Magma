@@ -1,7 +1,7 @@
 export default class FieldTranspiler {
     transpileFields(source: string): string {
         let lines: string[] = /* TODO */(/* TODO */);
-        let out: any = new /* TODO */();
+        let out: any = new StringBuilder();
         // TODO
         let trimmed: string = /* TODO */();
         // TODO
@@ -20,8 +20,8 @@ export default class FieldTranspiler {
         if (/* TODO */) {
             // TODO
         }
-        let name: string = /* TODO */;
-        let type: string = /* TODO */;
+        let name: string = tokens[tokens.length - 1];
+        let type: string = tokens[tokens.length - 2];
         let modArray: string[] = /* TODO */(/* TODO */, /* TODO */);
         let modifiers: string = /* TODO */(/* TODO */);
         let tsType: string = /* TODO */(/* TODO */);
@@ -38,7 +38,7 @@ export default class FieldTranspiler {
 
     replaceFinalWithReadonly(mods: string[]): string {
         let i: any = /* TODO */;
-        // TODO
+        i mods.length: any;
         // TODO
         if (/* TODO */) {
             // TODO

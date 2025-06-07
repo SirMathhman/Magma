@@ -1,7 +1,7 @@
 export default class MethodStubber {
     stubMethods(source: string): string {
         let lines: string[] = /* TODO */(/* TODO */);
-        let out: any = new /* TODO */();
+        let out: any = new StringBuilder();
         let i: number = /* TODO */;
         while (/* TODO */) {
             // TODO
@@ -27,11 +27,11 @@ export default class MethodStubber {
         if (/* TODO */) {
             // TODO
         }
-        let name: string = /* TODO */;
-        let returnType: string = /* TODO */;
+        let name: string = sigTokens[sigTokens.length - 1];
+        let returnType: string = sigTokens.length > 1 ? sigTokens[sigTokens.length - 2] : "void";
         let tsParams: string = /* TODO */(/* TODO */);
         let tsReturn: string = /* TODO */(/* TODO */);
-        let stub: any = new /* TODO */();
+        let stub: any = new StringBuilder();
         /* TODO */(/* TODO */);
         if (/* TODO */) {
             // TODO
@@ -105,6 +105,12 @@ export default class MethodStubber {
         return /* TODO */;
         // TODO
         /* TODO */(/* TODO */);
+        return /* TODO */;
+        // TODO
+        /* TODO */(/* TODO */, /* TODO */);
+        return /* TODO */;
+        // TODO
+        /* TODO */(/* TODO */);
         let open: number = /* TODO */(/* TODO */);
         let close: number = /* TODO */(/* TODO */);
         if (/* TODO */) {
@@ -124,16 +130,22 @@ export default class MethodStubber {
         }
         let head: string = /* TODO */(/* TODO */, /* TODO */);
         let isNew: boolean = /* TODO */(/* TODO */);
+        let callee: string = "/* TODO */";
+        if (/* TODO */) {
+            // TODO
+        }
         let args: string = /* TODO */(/* TODO */, /* TODO */);
         let count: number = /* TODO */(/* TODO */, /* TODO */);
-        let parts: java.util.List<string> = new /* TODO */();
+        let parts: java.util.List<string> = new java.util.ArrayList<>();
         let i: any = /* TODO */;
         // TODO
         // TODO
         /* TODO */(/* TODO */);
         // TODO
         let joined: string = /* TODO */(/* TODO */, /* TODO */, /* TODO */);
-        let prefix: string = /* TODO */;
+        if (/* TODO */) {
+            // TODO
+        }
         return /* TODO */;
         // TODO
     }
