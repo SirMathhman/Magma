@@ -103,9 +103,11 @@ Only the features listed below are supported. Anything not mentioned here is con
 9. ~~Parse invokable expressions and stub out the caller and arguments.~~
    Tests now verify that method names are preserved while arguments fall back to
    `/* TODO */` when unknown.
-10. Translate `import` statements to relative paths reflecting the package hierarchy.
-11. Preserve member access expressions like `obj.field` and allow chaining after
-    method calls such as `doStuff().value`.
+10. ~~Translate `import` statements to relative paths reflecting the package hierarchy.~~
+    `ImportHelper` now rewrites import lines so they use relative module paths.
+11. ~~Preserve member access expressions like `obj.field` and allow chaining after
+    method calls such as `doStuff().value`.~~
+    Tests cover both `obj.field` assignments and `doStuff().value` chains.
 12. Parse constructor types so stubs emit `new Type(/* TODO */)`.
 13. ~~Preserve method calls on newly created instances.~~
    Calls like `new Main().run()` now remain unchanged in the output.
