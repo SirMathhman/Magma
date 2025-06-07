@@ -42,3 +42,10 @@ This project is still in a very early stage and the generated TypeScript is prim
 
 Development generally follows a test-driven workflow. When adding new features or fixing bugs, a failing unit test is written first. The implementation is then updated until the test passes. For example, resolving type parameters within record fields was implemented by first adding `RecordTypeParamTest` and `TypeParamResolutionTest` to demonstrate the issue.
 All contributions should include appropriate tests and must pass `./test.sh` before submission.
+
+Contributors should also strive for simple design. Kent Beck summarizes this approach with four rules:
+
+- Pass all the tests.
+- Remove duplication.
+- Express the programmer's intent clearly.
+- Keep the number of classes and methods small.
