@@ -1,6 +1,6 @@
 # Java to TypeScript Feature Roadmap
 
-This page outlines how Java language features map to their TypeScript counterparts. The project follows a test‑driven approach and Kent Beck's rules for simple design. Each feature should be supported by failing tests before implementation and refactored to remove duplication.
+This page outlines how Java language features map to their TypeScript counterparts. The project follows a test‑driven approach and Kent Beck's rules for simple design. Each feature should be supported by failing tests before implementation and refactored to remove duplication. The current prototype stubs out Java method bodies in the generated TypeScript while method signatures are preserved.
 
 | Java Feature | TypeScript Equivalent | Notes |
 | ------------ | -------------------- | ----- |

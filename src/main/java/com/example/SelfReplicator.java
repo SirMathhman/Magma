@@ -18,19 +18,10 @@ public class SelfReplicator {
      * @throws IOException if the copy fails
      */
     public static void copySelf(Path destination) throws IOException {
-        try (InputStream in = SelfReplicator.class.getResourceAsStream("SelfReplicator.class")) {
-            if (in == null) {
-                throw new IOException("Could not locate class file");
-            }
-            Files.copy(in, destination, StandardCopyOption.REPLACE_EXISTING);
-        }
+        // TODO: implement
     }
 
     public static void main(String[] args) throws IOException {
-        if (args.length != 1) {
-            System.out.println("Usage: java SelfReplicator <destination.ts>");
-            return;
-        }
-        copySelf(Path.of(args[0]));
+        // TODO: implement
     }
 }

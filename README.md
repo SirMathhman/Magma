@@ -8,25 +8,37 @@ This repository begins a self‑hosted transpiler from Java to TypeScript. It ke
 - `com.example.Transpiler` – prototype Java → TypeScript converter.
 - Tests mirror each class (`SelfReplicatorTest`, `TranspilerTest`).
 
-The transpiler currently removes the `package` declaration since
-TypeScript does not use Java-style packages. It also rewrites simple
-class definitions so that Java modifiers like `public` are replaced with
-`export default`.
+The transpiler removes the `package` declaration since TypeScript does
+not use Java-style packages. It also rewrites simple class definitions
+so that Java modifiers like `public` become `export default`. Method
+bodies are replaced with stubs in the generated TypeScript while
+preserving each method's name and indentation. Future tests will drive
+the full implementation.
 
 ## Documentation
 
 Additional notes and a feature mapping between Java and TypeScript live in
 [`docs/java-to-typescript-roadmap.md`](docs/java-to-typescript-roadmap.md).
 
-To run the tests:
+### Building and Testing
+
+The project intentionally avoids Maven for now. To compile the code and run the
+JUnit tests you can use the JUnit Console launcher. The following commands place
+compiled classes in a `bin` directory:
 
 ```bash
-mvn test
+curl -L -o junit-platform-console-standalone.jar \
+  https://repo1.maven.org/maven2/org/junit/platform/junit-platform-console-standalone/1.10.1/junit-platform-console-standalone-1.10.1.jar
+
+mkdir -p bin
+find src/main/java src/test/java -name "*.java" \
+  | xargs javac -cp junit-platform-console-standalone.jar -d bin
+
+java -jar junit-platform-console-standalone.jar -cp bin --scan-classpath
 ```
 
-To execute the program and copy the class file (the copy uses a `.ts` extension):
+To copy the running class file using `SelfReplicator`:
 
 ```bash
-mvn package
-java -cp target/self-replicator-1.0-SNAPSHOT.jar com.example.SelfReplicator <destination.ts>
+java -cp bin com.example.SelfReplicator <destination.ts>
 ```
