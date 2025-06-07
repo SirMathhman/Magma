@@ -23,8 +23,9 @@ platforms.
 - `TypeMapper` – maps primitive and generic types and leaves unknown
   identifiers unchanged so the output stays close to the source
 - `magma.Main` – CLI entry point
-- `magma.result.Result` and `magma.option.Option` – lightweight
-  replacements for exceptions
+ - `magma.result.Result` and `magma.option.Option` – lightweight
+   replacements for exceptions. `Option` values can convert to a generic
+   `Iter` so optional results compose with iterator helpers
 - `magma.path.PathLike` and `magma.path.NioPath` – small wrapper around
   `java.nio.file.Path` so other classes don't depend on NIO directly.
   `NioPath` also provides helpers for reading and writing files so
@@ -33,7 +34,7 @@ platforms.
   `IOException`
 - `magma.list.ListLike` and `magma.list.JdkList` – simple list wrapper so
     code avoids a hard dependency on `java.util.List`. Iteration uses a
-    lightweight `ListIterator` interface instead of `java.lang.Iterable`.
+    lightweight `Iter` interface and a `ListIter` specialization instead of `java.lang.Iterable`.
     The iterator now exposes `map`, `fold`, and `flatMap` to keep loops out of callers.
     `flatMap` takes a function returning another iterator so nested lists can
     be flattened without revealing the underlying list implementation.

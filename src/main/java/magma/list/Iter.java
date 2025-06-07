@@ -2,11 +2,9 @@ package magma.list;
 
 import java.util.function.BiFunction;
 import java.util.function.Function;
-import magma.list.JdkList;
 
-/** Minimal iterator abstraction independent of java.util.Iterator. */
-
-public interface ListIterator<T> {
+/** Generic iterator independent of collection type. */
+public interface Iter<T> {
     boolean hasNext();
     T next();
 
@@ -18,7 +16,7 @@ public interface ListIterator<T> {
         return result;
     }
 
-    default <R> ListLike<R> flatMap(Function<T, ListIterator<R>> fn) {
+    default <R> ListLike<R> flatMap(Function<T, Iter<R>> fn) {
         return fold(JdkList.create(), (acc, value) -> {
             fn.apply(value).fold(acc, (a, r) -> {
                 a.add(r);

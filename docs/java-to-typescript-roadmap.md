@@ -93,9 +93,10 @@ Only the features listed below are supported. Anything not mentioned here is con
    - Map basic stream operations to array helpers.
 6. Provide minimal replacements for common standard library utilities.
    - Introduce small helpers for `List` and `Map` behavior.
-    `ListLike` now wraps `java.util.List` and exposes a custom `ListIterator` with `map`, `fold`, and `flatMap` methods. `flatMap` accepts a function returning
-    another iterator so callers can compose nested lists without direct references to concrete collection types.
-     A `Map` wrapper is still pending.
+   `ListLike` now wraps `java.util.List` and exposes a custom `ListIter` backed by the generic `Iter` interface with `map`, `fold`, and `flatMap` methods. `flatMap` accepts a function returning
+   another iterator so callers can compose nested lists without direct references to concrete collection types.
+    A `Map` wrapper is still pending.
+   - `Option` values can now convert to an `Iter` so optional results integrate with iterator helpers.
 7. Explore concurrency patterns for future features.
    - Investigate Web Workers or async/await translation strategies.
 8. Keep the list of tests up to date as new features are covered.
