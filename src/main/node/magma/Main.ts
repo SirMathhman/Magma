@@ -6,7 +6,6 @@ import Err from "./result/Err";
 import Ok from "./result/Ok";
 import Result from "./result/Result";
 import IOException from "../java/io/IOException";
-import Files from "../java/nio/file/Files";
 import NioPath from "./path/NioPath";
 import PathLike from "./path/PathLike";
 import ArrayList from "../java/util/ArrayList";
@@ -60,8 +59,8 @@ export default class Main {
         let name: var = rel.toString();
         let withoutExt: var = name.substring(0, name.length());
         let outFile: var = outRoot.resolve(withoutExt + ".ts");
-        ((NioPath).getParent()).createDirectories();
-        ((NioPath)).writeString(ts + System.lineSeparator());
+        ((NioPath) outFile.getParent()).createDirectories();
+        ((NioPath) outFile).writeString(ts + System.lineSeparator());
         return new None<>();
         } catch(/* TODO */);
         return new Some<>(e.getMessage());

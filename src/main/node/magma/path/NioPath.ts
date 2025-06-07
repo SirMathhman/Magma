@@ -30,23 +30,22 @@ export default class NioPath implements PathLike {
 
     /** Read the file contents as a string. */
     readString(): string {
-        // TODO
-        throw new Error("NotImplemented");
+        return Files.readString(path);
     }
 
     /** Create this directory and any missing parents. */
     createDirectories(): void {
-        // TODO
+        Files.createDirectories(path);
     }
 
     /** Write text to this file. */
     writeString(text: string): void {
-        // TODO
+        Files.writeString(path, text);
     }
 
     /** Delete the file if it exists. */
     deleteIfExists(): void {
-        // TODO
+        Files.deleteIfExists(path);
     }
 
     @Override
