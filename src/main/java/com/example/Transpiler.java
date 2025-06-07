@@ -45,7 +45,11 @@ public class Transpiler {
             String params = m.group(4).trim();
             String tsParams = toTsParams(params);
             String tsReturn = toTsType(returnType);
-            String replacement = indent + name + "(" + tsParams + ")" + (tsReturn.isBlank() ? "" : ": " + tsReturn) + " {}";
+            String replacement = indent + name + "(" + tsParams + ")" +
+                    (tsReturn.isBlank() ? "" : ": " + tsReturn) + " {" +
+                    System.lineSeparator() +
+                    indent + "    // TODO" + System.lineSeparator() +
+                    indent + "}";
             m.appendReplacement(out, java.util.regex.Matcher.quoteReplacement(replacement));
         }
         m.appendTail(out);

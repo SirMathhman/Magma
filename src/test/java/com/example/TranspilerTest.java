@@ -33,7 +33,9 @@ class TranspilerTest {
 
         String expected = String.join("\n",
             "export default class Foo {",
-            "    bar(x: number): number {}",
+            "    bar(x: number): number {",
+            "        // TODO",
+            "    }",
             "}");
 
         String result = new Transpiler().toTypeScript(javaSrc);
@@ -50,7 +52,9 @@ class TranspilerTest {
 
         String expected = String.join("\n",
             "export default class Foo {",
-            "    baz(): void {}",
+            "    baz(): void {",
+            "        // TODO",
+            "    }",
             "}");
 
         String result = new Transpiler().toTypeScript(javaSrc);
