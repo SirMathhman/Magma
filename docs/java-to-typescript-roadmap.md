@@ -47,6 +47,11 @@ Only the features listed below are supported. Anything not mentioned here is con
     with `/* TODO */` for the assigned value.
   - Tests: `TranspilerStatementTest.stubsOneTodoPerStatement`,
     `TranspilerStatementTest.leavesValueAssignmentsAsTodo`.
+- **Invokable expressions** like method or constructor calls are stubbed with
+  `/* TODO */` placeholders for the callee and each argument. This includes
+  assignments such as `int x = run();` which become `let x: number = /* TODO */();`.
+  - Tests: `TranspilerStatementTest.stubsInvokables`,
+    `TranspilerStatementTest.stubsInvokablesInLetStatements`.
 - **Streams** rely on array helpers such as `map`, `filter`, and `reduce`.
 - **Standard library** utilities are replaced with small TypeScript helpers.
 
@@ -74,7 +79,9 @@ Only the features listed below are supported. Anything not mentioned here is con
 7. Explore concurrency patterns for future features.
    - Investigate Web Workers or async/await translation strategies.
 8. Keep the list of tests up to date as new features are covered.
-9. Parse invokable expressions and stub out the caller and arguments.
+9. ~~Parse invokable expressions and stub out the caller and arguments.~~
+   Tests ensure calls are stubbed in both standalone statements and in `let`
+   declarations.
 10. Translate `import` statements to relative paths reflecting the package hierarchy.
 
 Each feature should begin with a failing test that describes the expected TypeScript output for a Java example.
