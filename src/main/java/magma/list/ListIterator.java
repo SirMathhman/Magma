@@ -18,6 +18,16 @@ public interface ListIterator<T> {
         return result;
     }
 
+    default <R> ListLike<R> flatMap(Function<T, ListIterator<R>> fn) {
+        return fold(JdkList.create(), (acc, value) -> {
+            fn.apply(value).fold(acc, (a, r) -> {
+                a.add(r);
+                return a;
+            });
+            return acc;
+        });
+    }
+
     default <R> R fold(R init, BiFunction<R, T, R> fn) {
         var acc = init;
         while (hasNext()) {
