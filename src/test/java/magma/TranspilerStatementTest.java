@@ -9,14 +9,14 @@ class TranspilerStatementTest {
 
     @Test
     void stubsInvokables() {
-        var javaSrc = String.join("\n",
+        var javaSrc = String.join(System.lineSeparator(),
                 "public class Foo {",
                 "    void run() {",
                 "        doThing(a, new Some<>(1));",
                 "    }",
                 "}");
 
-        var expected = String.join("\n",
+        var expected = String.join(System.lineSeparator(),
                 "export default class Foo {",
                 "    run(): void {",
                 "        doThing(a, new Some<>(1));",
@@ -29,14 +29,14 @@ class TranspilerStatementTest {
 
     @Test
     void stubsInvokablesInLetStatements() {
-        var javaSrc = String.join("\n",
+        var javaSrc = String.join(System.lineSeparator(),
                 "public class Foo {",
                 "    void run() {",
                 "        int x = doThing(a, new Some<>(1));",
                 "    }",
                 "}");
 
-        var expected = String.join("\n",
+        var expected = String.join(System.lineSeparator(),
                 "export default class Foo {",
                 "    run(): void {",
                 "        let x: number = doThing(a, new Some<>(1));",
@@ -49,14 +49,14 @@ class TranspilerStatementTest {
 
     @Test
     void stubsConstructorCalls() {
-        var javaSrc = String.join("\n",
+        var javaSrc = String.join(System.lineSeparator(),
                 "public class Foo {",
                 "    void build() {",
                 "        new Bar(1, 2);",
                 "    }",
                 "}");
 
-        var expected = String.join("\n",
+        var expected = String.join(System.lineSeparator(),
                 "export default class Foo {",
                 "    build(): void {",
                 "        new Bar(1, 2);",
@@ -69,14 +69,14 @@ class TranspilerStatementTest {
 
     @Test
     void stubsConstructorCallsInLetStatements() {
-        var javaSrc = String.join("\n",
+        var javaSrc = String.join(System.lineSeparator(),
                 "public class Foo {",
                 "    void make() {",
                 "        Bar b = new Bar(1);",
                 "    }",
                 "}");
 
-        var expected = String.join("\n",
+        var expected = String.join(System.lineSeparator(),
                 "export default class Foo {",
                 "    make(): void {",
                 "        let b: any = new Bar(1);",
@@ -89,14 +89,14 @@ class TranspilerStatementTest {
 
     @Test
     void preservesCallsOnNewInstances() {
-        var javaSrc = String.join("\n",
+        var javaSrc = String.join(System.lineSeparator(),
                 "public class Foo {",
                 "    void run() {",
                 "        new Main().run();",
                 "    }",
                 "}");
 
-        var expected = String.join("\n",
+        var expected = String.join(System.lineSeparator(),
                 "export default class Foo {",
                 "    run(): void {",
                 "        new Main().run();",
@@ -109,14 +109,14 @@ class TranspilerStatementTest {
 
     @Test
     void preservesCallsOnNewInstancesInLetStatements() {
-        var javaSrc = String.join("\n",
+        var javaSrc = String.join(System.lineSeparator(),
                 "public class Foo {",
                 "    void run() {",
                 "        Option<String> error = new Main().run();",
                 "    }",
                 "}");
 
-        var expected = String.join("\n",
+        var expected = String.join(System.lineSeparator(),
                 "export default class Foo {",
                 "    run(): void {",
                 "        let error: Option<string> = new Main().run();",
@@ -129,14 +129,14 @@ class TranspilerStatementTest {
 
     @Test
     void leavesValueAssignmentsAsTodo() {
-        var javaSrc = String.join("\n",
+        var javaSrc = String.join(System.lineSeparator(),
             "public class Foo {",
             "    void set() {",
             "        x = 1;",
             "    }",
             "}");
 
-        var expected = String.join("\n",
+        var expected = String.join(System.lineSeparator(),
             "export default class Foo {",
             "    set(): void {",
             "        // TODO",
@@ -160,7 +160,7 @@ class TranspilerStatementTest {
     void stubsAssignmentsInArrowFunctions() {
         var javaSrc = "Runnable r = () -> { int x = 0; x++; };";
 
-        var expected = String.join("\n",
+        var expected = String.join(System.lineSeparator(),
             "Runnable r = () => {",
             "    let x: number = 0;",
             "    // TODO",
@@ -172,7 +172,7 @@ class TranspilerStatementTest {
 
     @Test
     void stubsOneTodoPerStatement() {
-        var javaSrc = String.join("\n",
+        var javaSrc = String.join(System.lineSeparator(),
             "public class Foo {",
             "    int multi() {",
             "        int y = 0;",
@@ -181,7 +181,7 @@ class TranspilerStatementTest {
             "    }",
             "}");
 
-        var expected = String.join("\n",
+        var expected = String.join(System.lineSeparator(),
             "export default class Foo {",
             "    multi(): number {",
             "        let y: number = 0;",
@@ -196,7 +196,7 @@ class TranspilerStatementTest {
 
     @Test
     void stubsIfStatements() {
-        var javaSrc = String.join("\n",
+        var javaSrc = String.join(System.lineSeparator(),
             "public class Foo {",
             "    void check(int x) {",
             "        if (x > 0) {",
@@ -205,7 +205,7 @@ class TranspilerStatementTest {
             "    }",
             "}");
 
-        var expected = String.join("\n",
+        var expected = String.join(System.lineSeparator(),
             "export default class Foo {",
             "    check(x: number): void {",
             "        if (/* TODO */) {",
@@ -220,7 +220,7 @@ class TranspilerStatementTest {
 
     @Test
     void stubsWhileStatements() {
-        var javaSrc = String.join("\n",
+        var javaSrc = String.join(System.lineSeparator(),
             "public class Foo {",
             "    void loop() {",
             "        while (true) {",
@@ -229,7 +229,7 @@ class TranspilerStatementTest {
             "    }",
             "}");
 
-        var expected = String.join("\n",
+        var expected = String.join(System.lineSeparator(),
             "export default class Foo {",
             "    loop(): void {",
             "        while (/* TODO */) {",
@@ -245,14 +245,14 @@ class TranspilerStatementTest {
 
     @Test
     void keepsStringValues() {
-        var javaSrc = String.join("\n",
+        var javaSrc = String.join(System.lineSeparator(),
             "public class Foo {",
             "    void show() {",
             "        String msg = \"hi\";",
             "    }",
             "}");
 
-        var expected = String.join("\n",
+        var expected = String.join(System.lineSeparator(),
             "export default class Foo {",
             "    show(): void {",
             "        let msg: string = \"hi\";",
@@ -265,14 +265,14 @@ class TranspilerStatementTest {
 
     @Test
     void keepsNumericValues() {
-        var javaSrc = String.join("\n",
+        var javaSrc = String.join(System.lineSeparator(),
             "public class Foo {",
             "    void show() {",
             "        int num = 7;",
             "    }",
             "}");
 
-        var expected = String.join("\n",
+        var expected = String.join(System.lineSeparator(),
             "export default class Foo {",
             "    show(): void {",
             "        let num: number = 7;",
@@ -285,14 +285,14 @@ class TranspilerStatementTest {
 
     @Test
     void preservesMemberAccessInAssignments() {
-        var javaSrc = String.join("\n",
+        var javaSrc = String.join(System.lineSeparator(),
             "public class Foo {",
             "    void run(Parent p) {",
             "        int x = p.count;",
             "    }",
             "}");
 
-        var expected = String.join("\n",
+        var expected = String.join(System.lineSeparator(),
             "export default class Foo {",
             "    run(p: any): void {",
             "        let x: number = p.count;",
@@ -305,14 +305,14 @@ class TranspilerStatementTest {
 
     @Test
     void preservesMemberAccessInReturns() {
-        var javaSrc = String.join("\n",
+        var javaSrc = String.join(System.lineSeparator(),
             "public class Foo {",
             "    int get(Parent p) {",
             "        return p.count;",
             "    }",
             "}");
 
-        var expected = String.join("\n",
+        var expected = String.join(System.lineSeparator(),
             "export default class Foo {",
             "    get(p: any): number {",
             "        return p.count;",
@@ -325,14 +325,14 @@ class TranspilerStatementTest {
 
     @Test
     void parsesNestedValuesRecursively() {
-        var javaSrc = String.join("\n",
+        var javaSrc = String.join(System.lineSeparator(),
             "public class Foo {",
             "    void run() {",
             "        int x = doThing(a, new Some<>(make(1, 2)));",
             "    }",
             "}");
 
-        var expected = String.join("\n",
+        var expected = String.join(System.lineSeparator(),
             "export default class Foo {",
             "    run(): void {",
             "        let x: number = doThing(a, new Some<>(make(1, 2)));",
@@ -345,14 +345,14 @@ class TranspilerStatementTest {
 
     @Test
     void preservesMemberAccessAfterInvokable() {
-        var javaSrc = String.join("\n",
+        var javaSrc = String.join(System.lineSeparator(),
             "public class Foo {",
             "    void run() {",
             "        int x = doStuff().myField;",
             "    }",
             "}");
 
-        var expected = String.join("\n",
+        var expected = String.join(System.lineSeparator(),
             "export default class Foo {",
             "    run(): void {",
             "        let x: number = doStuff().myField;",
@@ -365,14 +365,14 @@ class TranspilerStatementTest {
 
     @Test
     void keepsIdentifierValues() {
-        var javaSrc = String.join("\n",
+        var javaSrc = String.join(System.lineSeparator(),
             "public class Foo {",
             "    void copy(int src) {",
             "        int x = src;",
             "    }",
             "}");
 
-        var expected = String.join("\n",
+        var expected = String.join(System.lineSeparator(),
             "export default class Foo {",
             "    copy(src: number): void {",
             "        let x: number = src;",
@@ -385,14 +385,14 @@ class TranspilerStatementTest {
 
     @Test
     void parsesDeepChainedAccess() {
-        var javaSrc = String.join("\n",
+        var javaSrc = String.join(System.lineSeparator(),
             "public class Foo {",
             "    void run() {",
             "        int x = first.second().third.fourth;",
             "    }",
             "}");
 
-        var expected = String.join("\n",
+        var expected = String.join(System.lineSeparator(),
             "export default class Foo {",
             "    run(): void {",
             "        let x: number = first.second().third.fourth;",
@@ -405,7 +405,7 @@ class TranspilerStatementTest {
 
     @Test
     void parsesInvokableInIfCondition() {
-        var javaSrc = String.join("\n",
+        var javaSrc = String.join(System.lineSeparator(),
             "public class Foo {",
             "    void check() {",
             "        if (isValid(run())) {",
@@ -414,7 +414,7 @@ class TranspilerStatementTest {
             "    }",
             "}");
 
-        var expected = String.join("\n",
+        var expected = String.join(System.lineSeparator(),
             "export default class Foo {",
             "    check(): void {",
             "        if (isValid(run())) {",
@@ -429,7 +429,7 @@ class TranspilerStatementTest {
 
     @Test
     void parsesMemberAccessInWhileCondition() {
-        var javaSrc = String.join("\n",
+        var javaSrc = String.join(System.lineSeparator(),
             "public class Foo {",
             "    void loop(Iter it) {",
             "        while (it.hasNext()) {",
@@ -438,7 +438,7 @@ class TranspilerStatementTest {
             "    }",
             "}");
 
-        var expected = String.join("\n",
+        var expected = String.join(System.lineSeparator(),
             "export default class Foo {",
             "    loop(it: any): void {",
             "        while (it.hasNext()) {",
@@ -453,7 +453,7 @@ class TranspilerStatementTest {
 
     @Test
     void parsesNotOperatorInIfCondition() {
-        var javaSrc = String.join("\n",
+        var javaSrc = String.join(System.lineSeparator(),
             "public class Foo {",
             "    void check() {",
             "        if (!isValid(1)) {",
@@ -462,7 +462,7 @@ class TranspilerStatementTest {
             "    }",
             "}");
 
-        var expected = String.join("\n",
+        var expected = String.join(System.lineSeparator(),
             "export default class Foo {",
             "    check(): void {",
             "        if (!isValid(1)) {",

@@ -9,7 +9,7 @@ class TranspilerImportTest {
 
     @Test
     void translatesImportsRelativeToPackage() {
-        var javaSrc = String.join("\n",
+        var javaSrc = String.join(System.lineSeparator(),
             "package com.example.util;",
             "",
             "import com.example.data.Model;",
@@ -17,7 +17,7 @@ class TranspilerImportTest {
             "public class Util {}"
         );
 
-        var expected = String.join("\n",
+        var expected = String.join(System.lineSeparator(),
             "import Model from \"../data/Model\";",
             "export default class Util {}"
         );
@@ -28,7 +28,7 @@ class TranspilerImportTest {
 
     @Test
     void importsFromSamePackageUseDotSlash() {
-        var javaSrc = String.join("\n",
+        var javaSrc = String.join(System.lineSeparator(),
             "package com.example;",
             "",
             "import com.example.Helper;",
@@ -36,7 +36,7 @@ class TranspilerImportTest {
             "public class Foo {}"
         );
 
-        var expected = String.join("\n",
+        var expected = String.join(System.lineSeparator(),
             "import Helper from \"./Helper\";",
             "export default class Foo {}"
         );

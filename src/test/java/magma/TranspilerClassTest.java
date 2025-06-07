@@ -24,11 +24,11 @@ class TranspilerClassTest {
 
     @Test
     void preservesExtendsClause() {
-        var javaSrc = String.join("\n",
+        var javaSrc = String.join(System.lineSeparator(),
             "public class Child extends Parent {",
             "}");
 
-        var expected = String.join("\n",
+        var expected = String.join(System.lineSeparator(),
             "export default class Child extends Parent {",
             "}");
 
@@ -38,11 +38,11 @@ class TranspilerClassTest {
 
     @Test
     void preservesImplementsClause() {
-        var javaSrc = String.join("\n",
+        var javaSrc = String.join(System.lineSeparator(),
             "public class Service implements Runnable {",
             "}");
 
-        var expected = String.join("\n",
+        var expected = String.join(System.lineSeparator(),
             "export default class Service implements Runnable {",
             "}");
 

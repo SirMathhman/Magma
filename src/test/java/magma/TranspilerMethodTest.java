@@ -8,14 +8,14 @@ import org.junit.jupiter.api.Test;
 class TranspilerMethodTest {
     @Test
     void stubsMethodBodiesPreservingNames() {
-        var javaSrc = String.join("\n",
+        var javaSrc = String.join(System.lineSeparator(),
             "public class Foo {",
             "    int bar(long x) {",
             "        return 42;",
             "    }",
             "}");
 
-        var expected = String.join("\n",
+        var expected = String.join(System.lineSeparator(),
             "export default class Foo {",
             "    bar(x: number): number {",
             "        return 42;",
@@ -28,13 +28,13 @@ class TranspilerMethodTest {
 
     @Test
     void stubsVoidReturnTypes() {
-        var javaSrc = String.join("\n",
+        var javaSrc = String.join(System.lineSeparator(),
             "public class Foo {",
             "    void baz() {",
             "    }",
             "}");
 
-        var expected = String.join("\n",
+        var expected = String.join(System.lineSeparator(),
             "export default class Foo {",
             "    baz(): void {",
             "        // TODO",
@@ -47,7 +47,7 @@ class TranspilerMethodTest {
 
     @Test
     void mapsCharCharacterAndStringToString() {
-        var javaSrc = String.join("\n",
+        var javaSrc = String.join(System.lineSeparator(),
             "public class Foo {",
             "    char fromChar(char c) {",
             "        return c;",
@@ -60,7 +60,7 @@ class TranspilerMethodTest {
             "    }",
             "}");
 
-        var expected = String.join("\n",
+        var expected = String.join(System.lineSeparator(),
             "export default class Foo {",
             "    fromChar(c: string): string {",
             "        return c;",
@@ -79,14 +79,14 @@ class TranspilerMethodTest {
 
     @Test
     void mapsArrayTypes() {
-        var javaSrc = String.join("\n",
+        var javaSrc = String.join(System.lineSeparator(),
             "public class Foo {",
             "    int[] bar(String[] words) {",
             "        return null;",
             "    }",
             "}");
 
-        var expected = String.join("\n",
+        var expected = String.join(System.lineSeparator(),
             "export default class Foo {",
             "    bar(words: string[]): number[] {",
             "        return /* TODO */;",
@@ -99,14 +99,14 @@ class TranspilerMethodTest {
 
     @Test
     void mapsBooleanTypes() {
-        var javaSrc = String.join("\n",
+        var javaSrc = String.join(System.lineSeparator(),
             "public class Foo {",
             "    Boolean flag(Boolean a, boolean b) {",
             "        return a;",
             "    }",
             "}");
 
-        var expected = String.join("\n",
+        var expected = String.join(System.lineSeparator(),
             "export default class Foo {",
             "    flag(a: boolean, b: boolean): boolean {",
             "        return a;",
@@ -119,14 +119,14 @@ class TranspilerMethodTest {
 
     @Test
     void mapsGenericTypes() {
-        var javaSrc = String.join("\n",
+        var javaSrc = String.join(System.lineSeparator(),
             "public class Foo {",
             "    List<String> names(List<String> in) {",
             "        return in;",
             "    }",
             "}");
 
-        var expected = String.join("\n",
+        var expected = String.join(System.lineSeparator(),
             "export default class Foo {",
             "    names(in: List<string>): List<string> {",
             "        return in;",
