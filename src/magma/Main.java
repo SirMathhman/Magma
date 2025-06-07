@@ -1084,21 +1084,8 @@ public class Main {
             String name) {
         final String beforeBody;
         if (maybeFields.isPresent()) {
-            final var fields = maybeFields.get();
-            final var output1 = fields.iter()
-                    .map(Definition::generate)
-                    .fold(new StringBuilder(), Main::mergeValues);
-
-            final var outputParams = output1.toString();
-            final var generatedFields = fields.iter()
-                    .map(Definition::generate)
-                    .map(element -> "\n\t" + element + ";")
-                    .collect(new Joiner())
-                    .orElse("");
-
-            final var assignments = joinConstructorAssignments(fields);
-
-            beforeBody = generatedFields + "\n\tconstructor (" + outputParams + ") {" + assignments + "\n\t}";
+            final var parameters = maybeFields.get();
+            beforeBody = convertParametersToBeforeBody(parameters);
         }
         else {
             beforeBody = "";
@@ -1111,18 +1098,44 @@ public class Main {
             if (typeParamsStart >= 0) {
                 final var name1 = stripped1.substring(0, typeParamsStart);
                 final var substring = stripped1.substring(typeParamsStart + "<".length());
-                final var typeParams = divide(substring, Main::foldValues)
-                        .iter()
-                        .map(String::strip)
-                        .filter(value -> !value.isEmpty())
-                        .map(TypeParam::new)
-                        .collect(new ListCollector<>());
-
+                final var typeParams = parseTypeParameters(substring);
                 return assembleStructure(targetInfix, state, inputContent, modifiers, implementsTypes, name1, beforeBody, maybeFields, new TypeParamSet(typeParams));
             }
         }
 
         return assembleStructure(targetInfix, state, inputContent, modifiers, implementsTypes, name, beforeBody, maybeFields, new TypeParamSet());
+    }
+
+    private static List<TypeParam> parseTypeParameters(String substring) {
+        return divide(substring, Main::foldValues)
+                .iter()
+                .map(String::strip)
+                .filter(value -> !value.isEmpty())
+                .map(TypeParam::new)
+                .collect(new ListCollector<>());
+    }
+
+    private static String convertParametersToBeforeBody(List<Definition> parameters) {
+        final var outputParams = joinParameters(parameters);
+        final var generatedFields = convertParametersToFields(parameters);
+        final var assignments = joinConstructorAssignments(parameters);
+        final var beforeBody1 = generatedFields + "\n\tconstructor (" + outputParams + ") {" + assignments + "\n\t}";
+        return beforeBody1;
+    }
+
+    private static String joinParameters(List<Definition> fields) {
+        return fields.iter()
+                .map(Definition::generate)
+                .fold(new StringBuilder(), Main::mergeValues)
+                .toString();
+    }
+
+    private static String convertParametersToFields(List<Definition> fields) {
+        return fields.iter()
+                .map(Definition::generate)
+                .map(element -> "\n\t" + element + ";")
+                .collect(new Joiner())
+                .orElse("");
     }
 
     private static Option<Tuple<String, CompileState>> assembleStructure(
