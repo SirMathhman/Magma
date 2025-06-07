@@ -4,8 +4,12 @@ This repository begins a self‑hosted transpiler from Java to TypeScript. It ke
 
 ## Main Classes
 
-- `com.example.SelfReplicator` – logic to copy the running class file and a small `main` method.
-- `com.example.SelfReplicatorTest` – JUnit test verifying the copy operation.
+- `com.example.SelfReplicator` – copies the running class file.
+- `com.example.Transpiler` – prototype Java → TypeScript converter.
+- Tests mirror each class (`SelfReplicatorTest`, `TranspilerTest`).
+
+The transpiler currently removes the `package` declaration since
+TypeScript does not use Java-style packages.
 
 To run the tests:
 
