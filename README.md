@@ -51,7 +51,7 @@ never be edited directly.
 - `magma.app.Transpiler` – converts Java code to TypeScript
 - `magma.path.PathLike` – abstracts file system operations such as `walk`
 - `magma.path.NioPath` – wraps `java.nio.file.Path` and handles basic I/O
-- `magma.list.ListLike` – minimal list abstraction using a custom `ListIterator`
+ - `magma.list.ListLike` – minimal list abstraction using a custom `ListIter`
   that now supports `map`, `fold`, and `flatMap` operations. The `flatMap`
   helper accepts an iterator-returning function so callers stay independent of
   concrete list types.
