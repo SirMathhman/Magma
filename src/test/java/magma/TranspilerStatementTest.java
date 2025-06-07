@@ -186,7 +186,7 @@ class TranspilerStatementTest {
             "    multi(): number {",
             "        let y: number = 0;",
             "        // TODO",
-            "        return /* TODO */;",
+            "        return y;",
             "    }",
             "}");
 
@@ -356,6 +356,26 @@ class TranspilerStatementTest {
             "export default class Foo {",
             "    run(): void {",
             "        let x: number = doStuff().myField;",
+            "    }",
+            "}");
+
+        String result = new Transpiler().toTypeScript(javaSrc);
+        assertEquals(expected, result);
+    }
+
+    @Test
+    void keepsIdentifierValues() {
+        String javaSrc = String.join("\n",
+            "public class Foo {",
+            "    void copy(int src) {",
+            "        int x = src;",
+            "    }",
+            "}");
+
+        String expected = String.join("\n",
+            "export default class Foo {",
+            "    copy(src: number): void {",
+            "        let x: number = src;",
             "    }",
             "}");
 

@@ -54,6 +54,8 @@ with `/* TODO */` as the initializer.
 String literals remain intact if they begin and end with double quotes.
 Numeric literals are now preserved as well, so `int n = 7;` becomes
 `let n: number = 7;` and `return 42;` is emitted unchanged.
+Variable references also stay intact. Expressions like `return value;`
+or `int x = other;` keep the identifier rather than `/* TODO */`.
 The `parseValue` helper also understands the logical not operator, so
 `if (!flag)` is emitted exactly the same in TypeScript.
 Invokable expressions such as `doThing()` or `new Some<>()` now keep the method

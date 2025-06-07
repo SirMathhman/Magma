@@ -62,6 +62,12 @@ Only the features listed below are supported. Anything not mentioned here is con
 - **Member access** expressions like `parent.child` are kept intact.
   - Tests: `TranspilerStatementTest.preservesMemberAccessInAssignments`,
     `TranspilerStatementTest.preservesMemberAccessInReturns`.
+- **Identifier values** remain unchanged in assignments and returns.
+  - Tests: `TranspilerStatementTest.keepsIdentifierValues`,
+    `TranspilerMethodTest.mapsBooleanTypes`,
+    `TranspilerMethodTest.mapsGenericTypes`,
+    `TranspilerMethodTest.mapsCharCharacterAndStringToString`,
+    `TranspilerStatementTest.stubsOneTodoPerStatement`.
 - **Streams** rely on array helpers such as `map`, `filter`, and `reduce`.
 - **Standard library** utilities are replaced with small TypeScript helpers.
 
