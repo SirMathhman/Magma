@@ -207,6 +207,15 @@ class MethodStubber {
         }
         String head = stmt.substring(0, open).trim();
         boolean isNew = head.startsWith("new ");
+        String callee = "/* TODO */";
+        if (isNew) {
+            String afterNew = head.substring(4).trim();
+            if (!afterNew.isBlank()) {
+                callee = "new " + afterNew;
+            } else {
+                callee = "new /* TODO */";
+            }
+        }
         String args = stmt.substring(open + 1, close).trim();
         int count = args.isBlank() ? 0 : args.split(",").length;
         java.util.List<String> parts = new java.util.ArrayList<>();
@@ -214,7 +223,9 @@ class MethodStubber {
             parts.add("/* TODO */");
         }
         String joined = String.join(", ", parts);
-        String prefix = isNew ? "new " : "";
-        return prefix + "/* TODO */(" + joined + ")";
+        if (!isNew) {
+            callee = "/* TODO */";
+        }
+        return callee + "(" + joined + ")";
     }
 }
