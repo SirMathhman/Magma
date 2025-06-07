@@ -74,17 +74,14 @@ class ImportHelper {
     }
 
     private static String relativePath(String[] impParts, String[] currentParts, int shared) {
-        StringBuilder path = new StringBuilder();
-        path.append(upPath(currentParts.length - shared));
-        path.append(joinParts(impParts, shared));
-        return path.toString();
+        String path = upPath(currentParts.length - shared) +
+                joinParts(impParts, shared);
+        return path;
     }
 
     private static String upPath(int count) {
         StringBuilder out = new StringBuilder();
-        for (int i = 0; i < count; i++) {
-            out.append("../");
-        }
+        out.append("../".repeat(Math.max(0, count)));
         return out.toString();
     }
 

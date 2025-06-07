@@ -1,5 +1,6 @@
 package magma;
 
+import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import magma.option.None;
@@ -15,15 +16,15 @@ class OptionResultTest {
     void someAndNoneAreDistinctClasses() {
         Option<Integer> some = new Some<>(1);
         Option<Integer> none = new None<>();
-        assertTrue(some instanceof Some);
-        assertTrue(none instanceof None);
+        assertInstanceOf(Some.class, some);
+        assertInstanceOf(None.class, none);
     }
 
     @Test
     void okAndErrAreDistinctClasses() {
         Result<Integer> ok = new Ok<>(1);
         Result<Integer> err = new Err<>("bad");
-        assertTrue(ok instanceof Ok);
-        assertTrue(err instanceof Err);
+        assertInstanceOf(Ok.class, ok);
+        assertInstanceOf(Err.class, err);
     }
 }

@@ -1,5 +1,6 @@
 package magma;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.BufferedReader;
@@ -23,7 +24,7 @@ class BuildScriptTest {
             }
         }
         int exit = process.waitFor();
-        assertTrue(exit == 0);
+        assertEquals(0, exit);
         assertTrue(output.toString().contains("Build completed successfully"));
     }
 }

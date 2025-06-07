@@ -77,19 +77,14 @@ export default class ImportHelper {
     }
 
     relativePath(impParts: string[], currentParts: string[], shared: number): string {
-        let path: any = new StringBuilder();
-        path.append(upPath(currentParts.length - shared));
-        path.append(joinParts(impParts, shared));
-        return path.toString();
+        let path: string = upPath(currentParts.length - shared);
+        joinParts(impParts, shared);
+        return path;
     }
 
     upPath(count: number): string {
         let out: any = new StringBuilder();
-        let i: any = 0;
-        // TODO
-        // TODO
-        out.append("../");
-        // TODO
+        out.append("../".repeat(Math.max(0, count)));
         return out.toString();
     }
 

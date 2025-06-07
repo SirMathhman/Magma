@@ -252,11 +252,7 @@ export default class MethodStubber {
         let callee: string = stmt.substring(0, open).trim();
         let args: string = stmt.substring(/* TODO */, close).trim();
         let parts: java.util.List<string> = splitArgs(args);
-        let i: any = 0;
-        i < parts.size();
-        // TODO
-        parts.set(i, parseValueArg(parts.get(i)));
-        // TODO
+        parts.replaceAll(/* TODO */);
         let joined: string = String.join(/* TODO */, /* TODO */, parts);
         return callee + "(" + joined + ");
         // TODO

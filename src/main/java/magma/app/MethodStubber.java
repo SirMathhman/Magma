@@ -336,9 +336,7 @@ class MethodStubber {
         String callee = stmt.substring(0, open).trim();
         String args = stmt.substring(open + 1, close).trim();
         java.util.List<String> parts = splitArgs(args);
-        for (int i = 0; i < parts.size(); i++) {
-            parts.set(i, parseValueArg(parts.get(i)));
-        }
+        parts.replaceAll(MethodStubber::parseValueArg);
         String joined = String.join(", ", parts);
         return callee + "(" + joined + ")";
     }
