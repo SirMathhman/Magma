@@ -1,7 +1,7 @@
 package magma.ast;
 
 import magma.util.*;
-import magma.compile.*;
+
 public record TypeParamSet(List<TypeParam> typeParams) {
     public TypeParamSet() {
         this(Lists.empty());

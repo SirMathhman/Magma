@@ -11,8 +11,7 @@ import magma.util.*;
 import magma.compile.*;
 
 // New utility classes providing parsing and generation helpers
-import magma.Parser;
-import magma.Generator;
+
 public class Main {
     public static void main(String[] args) {
         try {
@@ -98,8 +97,8 @@ public class Main {
 
     private static Option<String> compileRootStructure(String input, CompileState state) {
         return compileStructure(input, "class ", "class", state).map(tuple -> {
-            final var joined = join(tuple.right.structures);
-            return tuple.left + joined;
+            final var joined = join(tuple.right().structures);
+            return tuple.left() + joined;
         });
     }
 
@@ -238,8 +237,7 @@ public class Main {
         final var outputParams = joinParameters(parameters);
         final var generatedFields = convertParametersToFields(parameters);
         final var assignments = joinConstructorAssignments(parameters);
-        final var beforeBody1 = generatedFields + "\n\tconstructor (" + outputParams + ") {" + assignments + "\n\t}";
-        return beforeBody1;
+        return generatedFields + "\n\tconstructor (" + outputParams + ") {" + assignments + "\n\t}";
     }
 
     private static String joinParameters(List<Definition> fields) {
@@ -268,20 +266,20 @@ public class Main {
         final var maybeWithConstructorType1 = getMaybeWithConstructorType(structurePrototype.name(), structurePrototype.maybeFields(), Maps.empty());
         final var frame = new StructureFrame(structurePrototype.typeParams()).defineStructureType(new StructureType(strippedName, maybeWithConstructorType1));
         final var classSegmentsTuple = joinClassSegments(structurePrototype.inputBody(), state.enter(frame));
-        final var classSegmentsOutput = classSegmentsTuple.left.toString();
-        final var classSegmentsState = classSegmentsTuple.right;
+        final var classSegmentsOutput = classSegmentsTuple.left().toString();
+        final var classSegmentsState = classSegmentsTuple.right();
 
         final var maybeExited = classSegmentsState.exit();
         if (maybeExited.isPresent()) {
             final var exited = maybeExited.get();
-            final var right = exited.right
+            final var right = exited.right()
                     .iterDefinitions()
                     .map(definition -> new Tuple<>(definition.name, definition))
                     .collect(new MapCollector<>());
 
             final var maybeWithConstructorType = getMaybeWithConstructorType(structurePrototype.name(), structurePrototype.maybeFields(), right);
             final var structureType = new StructureType(strippedName, maybeWithConstructorType);
-            final var defined = exited.left.mapLast(last -> {
+            final var defined = exited.left().mapLast(last -> {
                 if (last instanceof StructureContainerFrame structureContainerFrame) {
                     return structureContainerFrame.defineStructureType(structureType);
                 }
@@ -326,9 +324,9 @@ public class Main {
         return divide(inputContent, Main::foldStatements)
                 .iter()
                 .fold(new Tuple<>(new StringBuilder(), state), (tuple, element) -> {
-                    final var compiled = compileClassSegment(element, tuple.right);
-                    final var append = tuple.left.append(compiled.left);
-                    return new Tuple<>(append, compiled.right);
+                    final var compiled = compileClassSegment(element, tuple.right());
+                    final var append = tuple.left().append(compiled.left());
+                    return new Tuple<>(append, compiled.right());
                 });
     }
 
@@ -345,8 +343,8 @@ public class Main {
         return "\n" + "\t".repeat(2) + content + ";";
     }
 
-    private static String joinWithDelimiter(List<String> list, String delimiter) {
-        return list.iter().collect(new Joiner(delimiter)).orElse("");
+    private static String joinWithDelimiter(List<String> list) {
+        return list.iter().collect(new Joiner(" ")).orElse("");
     }
 
     private static Tuple<String, CompileState> compileClassSegment(String input, CompileState state) {
@@ -366,7 +364,7 @@ public class Main {
         }
 
         final var content = stripped.substring(0, stripped.length() - ";".length());
-        return compileSimpleDefinition(content, state).map(definition -> new Tuple<String, CompileState>("\n\t" + definition + ";", state));
+        return compileSimpleDefinition(content, state).map(definition -> new Tuple<>("\n\t" + definition + ";", state));
     }
 
     private static Option<String> compileSimpleDefinition(String content, CompileState state) {
@@ -431,9 +429,7 @@ public class Main {
     private static Option<Tuple<String, CompileState>> assembleMethod(Definition outputDefinition, String outputParams, String outputAfterParams, CompileState state, List<Type> paramTypes) {
         final var header = outputDefinition.generateWithAfterName("(" + outputParams + ")");
         final var generated = "\n\t" + header + outputAfterParams;
-        final var definition = outputDefinition.mapType(type -> {
-            return new FunctionType(paramTypes, type);
-        });
+        final var definition = outputDefinition.mapType(type -> new FunctionType(paramTypes, type));
 
         final var withLast = state.mapLast(last -> {
             if (last instanceof StructureFrame structureFrame) {
@@ -494,15 +490,15 @@ public class Main {
         }
 
         final var popped = maybePopped.get();
-        final var beforeTypeDivisions = popped.left;
-        final var type = popped.right;
+        final var beforeTypeDivisions = popped.left();
+        final var type = popped.right();
         final var compiledType = Parser.parseType(type, state);
 
         if (beforeTypeDivisions.isEmpty()) {
             return new Some<>(new Definition(new None<>(), Lists.empty(), Parser.parseType(type, state), name));
         }
 
-        final var beforeType = joinWithDelimiter(beforeTypeDivisions, " ");
+        final var beforeType = joinWithDelimiter(beforeTypeDivisions);
         return new Some<>(assembleDefinition(beforeType, compiledType, name));
     }
 

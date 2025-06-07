@@ -1,7 +1,5 @@
 package magma.ast;
 
-import magma.util.*;
-import magma.compile.*;
 /**
  * Represents a named symbol within generated code.
  */

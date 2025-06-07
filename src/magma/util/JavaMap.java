@@ -22,7 +22,7 @@ public record JavaMap<K, V>(java.util.Map<K, V> map) implements Map<K, V> {
 
     @Override
     public Map<K, V> putTuple(Tuple<K, V> tuple) {
-        map.put(tuple.left, tuple.right);
+        map.put(tuple.left(), tuple.right());
         return this;
     }
 

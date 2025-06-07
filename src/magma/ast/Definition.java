@@ -1,7 +1,7 @@
 package magma.ast;
 
 import magma.util.*;
-import magma.compile.*;
+
 import java.util.Objects;
 import java.util.function.Function;
 

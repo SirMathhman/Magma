@@ -1,7 +1,5 @@
 package magma.ast;
 
-import magma.util.*;
-import magma.compile.*;
 /**
  * Invocation that creates a new instance of a {@link Type}.
  */

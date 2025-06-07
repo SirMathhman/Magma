@@ -1,7 +1,7 @@
 package magma.ast;
 
 import magma.util.*;
-import magma.compile.*;
+
 /**
  * Represents a type that can generate code and be used as a type argument.
  */

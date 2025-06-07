@@ -1,7 +1,7 @@
 package magma.ast;
 
 import magma.util.*;
-import magma.compile.*;
+
 public record StructureType(String name, Map<String, Definition> definitions) implements Type {
     @Override
     public String generate() {

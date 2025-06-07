@@ -10,7 +10,7 @@ public record JavaList<T>(java.util.List<T> elements) implements List<T> {
 
     @Override
     public List<T> add(T element) {
-        final var copy = new ArrayList<T>(elements);
+        final var copy = new ArrayList<>(elements);
         copy.add(element);
         return new JavaList<>(copy);
     }

@@ -75,7 +75,7 @@ public final class Parser {
                             final var constructorDefinition = maybeConstructorDefinition.get();
                             final var constructorDefinitionType = constructorDefinition.type;
                             if (constructorDefinitionType instanceof FunctionType functionalConstructorDefinition) {
-                                final var constructorArgumentTypes = functionalConstructorDefinition.parameterTypes;
+                                final var constructorArgumentTypes = functionalConstructorDefinition.parameterTypes();
 
                                 final var argumentTypes = arguments.iter()
                                         .map(argument -> resolveValue(argument, state))
@@ -84,7 +84,7 @@ public final class Parser {
 
                                 final var resolved = constructorArgumentTypes.iter()
                                         .zip(argumentTypes.iter())
-                                        .map(pair -> pair.left.extract(pair.right))
+                                        .map(pair -> pair.left().extract(pair.right()))
                                         .fold(Maps.<String, Type>empty(), Map::putAll);
 
                                 final var actualArgumentTypes = argumentTypes.iter()
@@ -116,7 +116,7 @@ public final class Parser {
         if (maybeCallerType.isPresent()) {
             final var callerType = maybeCallerType.get();
             if (callerType instanceof FunctionType type) {
-                return new Some<>(type.returnType);
+                return new Some<>(type.returnType());
             }
         }
 
@@ -223,15 +223,15 @@ public final class Parser {
         }
 
         final var popped = maybePopped.get();
-        final var beforeTypeDivisions = popped.left;
-        final var type = popped.right;
+        final var beforeTypeDivisions = popped.left();
+        final var type = popped.right();
         final var compiledType = parseType(type, state);
 
         if (beforeTypeDivisions.isEmpty()) {
             return new Some<>(new Definition(new None<>(), Lists.empty(), parseType(type, state), name));
         }
 
-        final var beforeType = joinWithDelimiter(beforeTypeDivisions, " ");
+        final var beforeType = joinWithDelimiter(beforeTypeDivisions);
         return new Some<>(assembleDefinition(beforeType, compiledType, name));
     }
 
@@ -292,19 +292,19 @@ public final class Parser {
                         .flatMap(Iterators::fromOptional)
                         .collect(new ListCollector<>());
 
-                if (base.equals("Supplier")) {
-                    List<Type> parameterTypes = Lists.empty();
-                    return new FunctionType(parameterTypes, elements.get(0));
-                }
-
-                if (base.equals("Function")) {
-                    List<Type> parameterTypes = Lists.of(elements.get(0));
-                    return new FunctionType(parameterTypes, elements.get(1));
-                }
-
-                if (base.equals("BiFunction")) {
-                    List<Type> parameterTypes = Lists.of(elements.get(0), elements.get(1));
-                    return new FunctionType(parameterTypes, elements.get(2));
+                switch (base) {
+                    case "Supplier" -> {
+                        List<Type> parameterTypes = Lists.empty();
+                        return new FunctionType(parameterTypes, elements.get(0));
+                    }
+                    case "Function" -> {
+                        List<Type> parameterTypes = Lists.of(elements.get(0));
+                        return new FunctionType(parameterTypes, elements.get(1));
+                    }
+                    case "BiFunction" -> {
+                        List<Type> parameterTypes = Lists.of(elements.get(0), elements.get(1));
+                        return new FunctionType(parameterTypes, elements.get(2));
+                    }
                 }
 
                 return new TemplateType(base, elements);
@@ -368,7 +368,7 @@ public final class Parser {
         return current.advance().segments;
     }
 
-    private static String joinWithDelimiter(List<String> list, String delimiter) {
-        return list.iter().collect(new Joiner(delimiter)).orElse("");
+    private static String joinWithDelimiter(List<String> list) {
+        return list.iter().collect(new Joiner(" ")).orElse("");
     }
 }

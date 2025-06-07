@@ -23,9 +23,7 @@ public record Stack(List<Frame> frames) {
     }
 
     public Option<Tuple<Stack, Frame>> exit() {
-        return frames.popLast().map(tuple -> {
-            return new Tuple<>(new Stack(tuple.left), tuple.right);
-        });
+        return frames.popLast().map(tuple -> new Tuple<>(new Stack(tuple.left()), tuple.right()));
     }
 
     public Option<TypeParam> resolveTypeParam(String value) {

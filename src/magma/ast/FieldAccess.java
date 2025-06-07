@@ -1,7 +1,5 @@
 package magma.ast;
 
-import magma.util.*;
-import magma.compile.*;
 /**
  * Accesses a field on a parent {@link Value}.
  */

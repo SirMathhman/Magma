@@ -56,6 +56,6 @@ public record HeadedIterator<T>(Head<T> head) implements Iterator<T> {
 
     @Override
     public <R> Iterator<Tuple<T, R>> zip(Iterator<R> other) {
-        return new HeadedIterator<>(() -> head.next().and(() -> other.next()));
+        return new HeadedIterator<>(() -> head.next().and(other::next));
     }
 }

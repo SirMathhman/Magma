@@ -1,7 +1,7 @@
 package magma.ast;
 
 import magma.util.*;
-import magma.compile.*;
+
 public record DefinitionSet(List<Definition> definitions) {
     public DefinitionSet() {
         this(Lists.empty());

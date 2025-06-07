@@ -5,7 +5,7 @@ import magma.util.*;
 
 public final class CompileState {
     public final Stack stack;
-    public List<String> structures;
+    public final List<String> structures;
 
     private CompileState(Stack stack, List<String> structures) {
         this.stack = stack;
@@ -29,8 +29,6 @@ public final class CompileState {
     }
 
     public Option<Tuple<CompileState, Frame>> exit() {
-        return stack.exit().map(stack -> {
-            return new Tuple<>(new CompileState(stack.left, structures), stack.right);
-        });
+        return stack.exit().map(stack -> new Tuple<>(new CompileState(stack.left(), structures), stack.right()));
     }
 }

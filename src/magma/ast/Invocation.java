@@ -2,7 +2,7 @@ package magma.ast;
 
 import magma.util.*;
 import magma.Generator;
-import magma.compile.*;
+
 /**
  * Invocation of a {@link Caller} with a list of argument values.
  */
