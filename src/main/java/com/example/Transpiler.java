@@ -30,7 +30,8 @@ public class Transpiler {
             }
         }
 
-        return stubMethods(ts.toString().trim());
+        String withMethods = stubMethods(ts.toString().trim());
+        return transpileFields(withMethods);
     }
 
     private String stubMethods(String source) {
@@ -80,6 +81,33 @@ public class Transpiler {
             } else {
                 out.append(line).append(System.lineSeparator());
             }
+        }
+        return out.toString().trim();
+    }
+
+    private String transpileFields(String source) {
+        String[] lines = source.split("\\R");
+        StringBuilder out = new StringBuilder();
+        for (String line : lines) {
+            String trimmed = line.trim();
+            if (trimmed.endsWith(";") && !trimmed.contains("(") && !trimmed.startsWith("import")) {
+                String indent = line.substring(0, line.indexOf(trimmed));
+                String withoutSemi = trimmed.substring(0, trimmed.length() - 1).trim();
+                String[] tokens = withoutSemi.split("\\s+");
+                if (tokens.length >= 2) {
+                    String name = tokens[tokens.length - 1];
+                    String type = tokens[tokens.length - 2];
+                    String modifiers = String.join(" ", java.util.Arrays.copyOf(tokens, tokens.length - 2));
+                    String tsType = toTsType(type);
+                    out.append(indent);
+                    if (!modifiers.isBlank()) {
+                        out.append(modifiers).append(" ");
+                    }
+                    out.append(name).append(": ").append(tsType).append(";").append(System.lineSeparator());
+                    continue;
+                }
+            }
+            out.append(line).append(System.lineSeparator());
         }
         return out.toString().trim();
     }

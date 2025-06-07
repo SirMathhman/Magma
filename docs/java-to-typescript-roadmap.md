@@ -17,7 +17,7 @@ This page outlines how Java language features map to their TypeScript counterpar
 | Enums | `enum` | TypeScript `enum` provides similar semantics. | |
 | Generics | Generics | Direct mapping of type parameters, e.g. `List<T>` → `List<T>`. | `TranspilerTest.mapsGenericTypes` |
 | Methods | Methods | Instance and static methods translate directly. Basic return types such as `int` or `void` become `number` or `void`. | `TranspilerTest.stubsMethodBodiesPreservingNames`, `TranspilerTest.stubsVoidReturnTypes` |
-| Fields | Properties | Public/private modifiers apply. | |
+| Fields | Properties | Public/private modifiers apply. | `TranspilerTest.transpilesFieldDeclarations` |
 | Access modifiers (`public`, `private`, `protected`) | `public`, `private`, `protected` | `package‑private` becomes `public` or internal module export. | `TranspilerTest.transpilesClassDefinitionWithModifier` |
 | Inheritance (`extends`) | `extends` | Works with classes and interfaces. | |
 | Implementing interfaces (`implements`) | `implements` | Direct mapping. | |
