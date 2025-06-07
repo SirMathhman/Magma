@@ -12,7 +12,7 @@ public class TypeParamResolutionTest {
         TypeParam typeParam = new TypeParam("T");
         TypeParamSet typeParams = new TypeParamSet(Lists.of(typeParam));
         CompileState state = new CompileState().enter(new StructureFrame(typeParams));
-        Type type = Main.parseType("T", state);
+        Type type = Parser.parseType("T", state);
         assertTrue(type instanceof TypeParam, "expected type param to be resolved");
     }
 }

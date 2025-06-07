@@ -1,7 +1,7 @@
 package magma.ast;
 
 import magma.util.*;
-import magma.Main;
+import magma.Generator;
 import magma.compile.*;
 /**
  * Value that will be substituted at generation time.
@@ -9,6 +9,6 @@ import magma.compile.*;
 public record Placeholder(String input) implements Parameter, Value, Type {
     @Override
     public String generate() {
-        return Main.generatePlaceholder(input);
+        return Generator.generatePlaceholder(input);
     }
 }
