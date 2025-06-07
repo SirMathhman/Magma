@@ -20,8 +20,26 @@ export default class NioPath implements PathLike {
         return new NioPath(path);
     }
 
-    toNio(): Path {
-        return path;
+
+    /** Read the file contents as a string. */
+    readString(): string {
+        // TODO
+        throw new Error("NotImplemented");
+    }
+
+    /** Create this directory and any missing parents. */
+    createDirectories(): void {
+        // TODO
+    }
+
+    /** Write text to this file. */
+    writeString(text: string): void {
+        // TODO
+    }
+
+    /** Delete the file if it exists. */
+    deleteIfExists(): void {
+        // TODO
     }
 
     @Override
