@@ -7,8 +7,9 @@ This page outlines how Java language features map to their TypeScript counterpar
 | `package` declarations | `module` or ES module system | Use directory structure to mirror packages. | `TranspilerTest.removesPackageDeclaration`, `MainTest.printsTranspiledSource` |
 | Primitive types (`int`, `float`, `double`, `long`) | `number` | TypeScript uses a single `number` type. | `TranspilerTest.stubsMethodBodiesPreservingNames` |
 | `boolean` | `boolean` | Direct mapping. | |
-| `char` | `string` (1‑character) or `number` | Depends on intended representation. | |
-| `String` | `string` | Direct mapping. | |
+| `char` | `string` | Primitive character becomes a string. | `TranspilerTest.mapsCharCharacterAndStringToString` |
+| `Character` | `string` | Wrapper character type. | `TranspilerTest.mapsCharCharacterAndStringToString` |
+| `String` | `string` | Direct mapping. | `TranspilerTest.mapsCharCharacterAndStringToString` |
 | Arrays | Arrays | `int[]` → `number[]`, etc. | |
 | Classes | Classes | Use `class` syntax. | `TranspilerTest.transpilesClassDefinitionWithModifier` |
 | Interfaces | Interfaces | Direct mapping. | |

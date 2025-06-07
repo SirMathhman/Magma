@@ -60,4 +60,36 @@ class TranspilerTest {
         String result = new Transpiler().toTypeScript(javaSrc);
         assertEquals(expected, result);
     }
+
+    @Test
+    void mapsCharCharacterAndStringToString() {
+        String javaSrc = String.join("\n",
+            "public class Foo {",
+            "    char fromChar(char c) {",
+            "        return c;",
+            "    }",
+            "    char fromWrapper(Character c) {",
+            "        return c;",
+            "    }",
+            "    String fromString(String s) {",
+            "        return s;",
+            "    }",
+            "}");
+
+        String expected = String.join("\n",
+            "export default class Foo {",
+            "    fromChar(c: string): string {",
+            "        // TODO",
+            "    }",
+            "    fromWrapper(c: string): string {",
+            "        // TODO",
+            "    }",
+            "    fromString(s: string): string {",
+            "        // TODO",
+            "    }",
+            "}");
+
+        String result = new Transpiler().toTypeScript(javaSrc);
+        assertEquals(expected, result);
+    }
 }
