@@ -3,7 +3,7 @@
 Magma is an experimental programming language with an implementation in Java.
 
 Further documentation about building or testing the project will be added in the future.
-Magma is an experimental compiler that reads a subset of Java and emits TypeScript code. The current proof of concept focuses on translating `src/magma/Main.java` into `src/magma/Main.ts`.
+Magma is an experimental compiler that reads Java sources under the `src/` directory and emits TypeScript under `src-web/` while preserving the package directory structure.
 
 ## Building
 

@@ -2,6 +2,7 @@ package magma;
 
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.function.BiFunction;
 import java.util.function.Function;
@@ -15,8 +16,26 @@ import magma.compile.*;
 public class Main {
     public static void main(String[] args) {
         try {
-            final var source = Paths.get(".", "src", "magma", "Main.java");
-            final var target = source.resolveSibling("Main.ts");
+            final var root = Paths.get(".", "src");
+            final var targetRoot = Paths.get(".", "src-web");
+
+            Files.walk(root)
+                    .filter(path -> path.toString().endsWith(".java"))
+                    .forEach(source -> compileFile(root, targetRoot, source));
+        } catch (IOException e) {
+            //noinspection CallToPrintStackTrace
+            e.printStackTrace();
+        }
+    }
+
+    private static void compileFile(Path root, Path targetRoot, Path source) {
+        try {
+            final var relative = root.relativize(source);
+            Path target = targetRoot.resolve(relative);
+            target = target.resolveSibling(
+                    target.getFileName().toString().replaceFirst("\\.java$", ".ts"));
+
+            Files.createDirectories(target.getParent());
 
             final var input = Files.readString(source);
             final var output = compile(input);
