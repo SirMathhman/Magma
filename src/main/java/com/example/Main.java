@@ -11,28 +11,28 @@ import java.util.List;
  */
 public class Main {
     public static void main(String[] args) {
-        Result<Void> result = new Main().run();
-        if (result.error().isSome()) {
-            System.err.println(result.error().get());
+        Option<String> error = new Main().run();
+        if (error.isSome()) {
+            System.err.println(error.get());
         }
     }
 
-    private Result<Void> run() {
+    private Option<String> run() {
         Path srcRoot = Path.of("src/main/java");
         Path outRoot = Path.of("src/main/node");
 
         Result<List<Path>> files = listJavaFiles(srcRoot);
         if (!files.isOk()) {
-            return Result.error(files.error().get());
+            return Option.some(files.error().get());
         }
 
         for (Path file : files.value().get()) {
-            Result<Void> r = transpileFile(srcRoot, outRoot, file);
-            if (!r.isOk()) {
-                return r;
+            Option<String> err = transpileFile(srcRoot, outRoot, file);
+            if (err.isSome()) {
+                return err;
             }
         }
-        return Result.ok(null);
+        return Option.none();
     }
 
     private Result<List<Path>> listJavaFiles(Path srcRoot) {
@@ -49,7 +49,7 @@ public class Main {
         }
     }
 
-    private Result<Void> transpileFile(Path srcRoot, Path outRoot, Path javaFile) {
+    private Option<String> transpileFile(Path srcRoot, Path outRoot, Path javaFile) {
         try {
             String javaSrc = Files.readString(javaFile);
             String ts = new Transpiler().toTypeScript(javaSrc);
@@ -59,9 +59,9 @@ public class Main {
             Path outFile = outRoot.resolve(withoutExt + ".ts");
             Files.createDirectories(outFile.getParent());
             Files.writeString(outFile, ts + System.lineSeparator());
-            return Result.ok(null);
+            return Option.none();
         } catch (IOException e) {
-            return Result.error(e.getMessage());
+            return Option.some(e.getMessage());
         }
     }
 }
