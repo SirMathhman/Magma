@@ -237,7 +237,7 @@ export class Main {
             String targetInfix,
             CompileState state, StructurePrototype structurePrototype) {
         final var strippedName = structurePrototype.name().strip();
-        if (!Parser.isSymbol(strippedName)) {
+        if (!Parser.isIdentifier(strippedName)) {
             return new None<>();
         }
 
@@ -457,7 +457,7 @@ export class Main {
 
         final var beforeName = stripped.substring(0, nameSeparator).strip();
         final var name = stripped.substring(nameSeparator + " ".length()).strip();
-        if (!Parser.isSymbol(name)) {
+        if (!Parser.isIdentifier(name)) {
             return new None<>();
         }
 

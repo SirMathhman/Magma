@@ -24,7 +24,7 @@ public final class Parser {
     public static Value parseValue(String input, CompileState state) {
         return parseInvocation(input, state).<Value>map(value -> value)
                 .or(() -> parseAccess(input, state).map(value -> value))
-                .or(() -> parseSymbol(input).map(value -> value))
+                .or(() -> parseIdentifier(input).map(value -> value))
                 .orElseGet(() -> new Placeholder(input));
     }
 
@@ -107,7 +107,7 @@ public final class Parser {
             case FieldAccess fieldAccess -> new None<>();
             case Invocation invocation -> resolveInvocation(invocation, state);
             case Placeholder placeholder -> new None<>();
-            case Symbol symbol -> state.stack.resolveValue(symbol.value());
+            case Identifier symbol -> state.stack.resolveValue(symbol.value());
         };
     }
 
@@ -144,10 +144,10 @@ public final class Parser {
                 .orElseGet(() -> parseValue(input, state));
     }
 
-    private static Option<Symbol> parseSymbol(String input) {
+    private static Option<Identifier> parseIdentifier(String input) {
         final var stripped = input.strip();
-        if (isSymbol(stripped)) {
-            return new Some<>(new Symbol(stripped));
+        if (isIdentifier(stripped)) {
+            return new Some<>(new Identifier(stripped));
         }
         return new None<>();
     }
@@ -157,7 +157,7 @@ public final class Parser {
 
         if (caller instanceof FieldAccess access) {
             final var parent = access.parent();
-            if (parent instanceof Symbol(String value)) {
+            if (parent instanceof Identifier(String value)) {
                 final var maybeType = state.stack.resolveValue(value);
                 if (maybeType.isPresent()) {
                     final var type = maybeType.get();
@@ -212,7 +212,7 @@ public final class Parser {
 
         final var beforeName = stripped.substring(0, nameSeparator).strip();
         final var name = stripped.substring(nameSeparator + " ".length()).strip();
-        if (!isSymbol(name)) {
+        if (!isIdentifier(name)) {
             return new None<>();
         }
 
@@ -311,7 +311,7 @@ public final class Parser {
             }
         }
 
-        return parseSymbol(stripped).<Type>map(value -> value)
+        return parseIdentifier(stripped).<Type>map(value -> value)
                 .orElseGet(() -> new Placeholder(input));
     }
 
@@ -334,7 +334,7 @@ public final class Parser {
         return parseAll(input, Parser::foldValues, mapper);
     }
 
-    public static boolean isSymbol(String input) {
+    public static boolean isIdentifier(String input) {
         final var length = input.length();
         if (length == 0) {
             return false;
