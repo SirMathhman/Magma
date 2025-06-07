@@ -55,6 +55,7 @@ interface Frame {
 	resolveType(name: string): Option<StructureType>;
 	resolveValue(name: string): Option<Definition>;
 	iterDefinitions(): Iterator<Definition>;
+	resolveTypeParam(name: string): Option<TypeParam>;
 }
 class Some implements Option<T> {
 	value: T;
@@ -546,6 +547,10 @@ class RootFrame implements StructureContainerFrame {
         public*/ iterDefinitions(): Iterator<Definition> {
 		return Iterators.empty();
 	}
+	/*@Override
+        public*/ resolveTypeParam(name: string): Option<TypeParam> {
+		return new None<>();
+	}
 }
 class MethodFrame implements Frame {
 	parameters: DefinitionSet;
@@ -562,6 +567,10 @@ class MethodFrame implements Frame {
 	}
 	/*public*/ iterDefinitions(): Iterator<Definition> {
 		return parameters.iter();
+	}
+	/*@Override
+        public*/ resolveTypeParam(name: string): Option<TypeParam> {
+		return new None<>();
 	}
 }
 class CompileState {
@@ -685,6 +694,16 @@ class Stack {
                 return new Tuple<>(new Stack(tuple.left), tuple.right);
             }*//*);*/
 	}
+	/*public*/ resolveTypeParam(value: string): Option<TypeParam> {
+		return frames.iter(/*)
+                    */.map(/*frame -> frame*/.resolveTypeParam(/*value)*/).flatMap(Iterators::fromOptional).next();
+	}
+}
+class TypeParam {
+	name: string;
+	constructor (name: string) {
+		this.name = name;
+	}
 }
 class MapCollector implements Collector<Tuple<K, V>, Map<K, V>> {
 	/*@Override
@@ -725,15 +744,30 @@ class DefinitionSet {
 		return new DefinitionSet(definitions.add(definition));
 	}
 }
+class TypeParamSet {
+	typeParams: List<TypeParam>;
+	constructor (typeParams: List<TypeParam>) {
+		this.typeParams = typeParams;
+	}
+	TypeParamSet(): public {/*
+            this(Lists.empty());*/
+	}
+	/*public*/ resolve(name: string): Option<TypeParam> {
+		return typeParams.iter(/*)
+                    */.filter(/*typeParam -> typeParam*/.name.equals(name)).next();
+	}
+}
 class StructureFrame implements StructureContainerFrame {
 	members: DefinitionSet;
 	structureTypes: StructureTypeSet;
-	constructor (members: DefinitionSet, structureTypes: StructureTypeSet) {
+	typeParams: TypeParamSet;
+	constructor (members: DefinitionSet, structureTypes: StructureTypeSet, typeParams: TypeParamSet) {
 		this.members = members;
 		this.structureTypes = structureTypes;
+		this.typeParams = typeParams;
 	}
-	StructureFrame(): public {/*
-            this(new DefinitionSet(), new StructureTypeSet());*/
+	StructureFrame(typeParams: TypeParamSet): public {/*
+            this(new DefinitionSet(), new StructureTypeSet(), typeParams);*/
 	}
 	/*@Override
         public*/ resolveValue(name: string): Option<Definition> {
@@ -744,7 +778,7 @@ class StructureFrame implements StructureContainerFrame {
 		return members.iter();
 	}
 	/*public*/ define(definition: Definition): StructureFrame {
-		return new StructureFrame(members.add(definition), structureTypes);
+		return new StructureFrame(members.add(definition), structureTypes, typeParams);
 	}
 	/*@Override
         public*/ resolveType(name: string): Option<StructureType> {
@@ -752,7 +786,11 @@ class StructureFrame implements StructureContainerFrame {
 	}
 	/*@Override
         public*/ defineStructureType(structureType: StructureType): StructureContainerFrame {
-		return new StructureFrame(members, structureTypes.define(structureType));
+		return new StructureFrame(members, structureTypes.define(structureType), typeParams);
+	}
+	/*@Override
+        public*/ resolveTypeParam(name: string): Option<TypeParam> {
+		return typeParams.resolve(name);
 	}
 }
 export class Main {/*
@@ -893,7 +931,7 @@ export class Main {/*
         if (implementsIndex >= 0) {
             final var beforeImplements = beforeContent.substring(0, implementsIndex);
             final var implementsString = beforeContent.substring(implementsIndex + " implements ".length());
-            final var implementsTypes = parseValuesString(implementsString, Main::parseType);
+            final var implementsTypes = parseValuesString(implementsString, input -> parseType(input, state));
 
             return assembleStructureWithParameters(targetInfix, state, inputContent, modifiers, beforeImplements, implementsTypes);
         }
@@ -911,7 +949,7 @@ export class Main {/*
                 final var inputParams = withoutParamEnd.substring(paramStart + "(".length());
                 final var fields = divide(inputParams, Main::foldValues)
                         .iter()
-                        .map(Main::parseParameter)
+                        .map(input -> parseParameter(input, state))
                         .map(Main::retainDefinition)
                         .flatMap(Iterators::fromOptional)
                         .collect(new ListCollector<>());
@@ -957,24 +995,42 @@ export class Main {/*
 
         final var stripped = name.strip();
         if (stripped.endsWith(">")) {
-            final var typeParamsStart = stripped.indexOf("<");
+            final var stripped1 = stripped.substring(0, stripped.length() - ">".length());
+            final var typeParamsStart = stripped1.indexOf("<");
             if (typeParamsStart >= 0) {
-                final var name1 = stripped.substring(0, typeParamsStart);
-                return assembleStructure(targetInfix, state, inputContent, modifiers, implementsTypes, name1, beforeBody, maybeFields);
+                final var name1 = stripped1.substring(0, typeParamsStart);
+                final var substring = stripped1.substring(typeParamsStart + "<".length());
+                final var typeParams = divide(substring, Main::foldValues)
+                        .iter()
+                        .map(String::strip)
+                        .filter(value -> !value.isEmpty())
+                        .map(TypeParam::new)
+                        .collect(new ListCollector<>());
+
+                return assembleStructure(targetInfix, state, inputContent, modifiers, implementsTypes, name1, beforeBody, maybeFields, new TypeParamSet(typeParams));
             }
         }
 
-        return assembleStructure(targetInfix, state, inputContent, modifiers, implementsTypes, name, beforeBody, maybeFields);
+        return assembleStructure(targetInfix, state, inputContent, modifiers, implementsTypes, name, beforeBody, maybeFields, new TypeParamSet());
     }*//*
 
-    private static Option<Tuple<String, CompileState>> assembleStructure(String targetInfix, CompileState state, String inputContent, String modifiers, List<Type> implementsTypes, String name, String beforeBody, Option<List<Definition>> maybeFields) {
+    private static Option<Tuple<String, CompileState>> assembleStructure(
+            String targetInfix,
+            CompileState state,
+            String inputContent,
+            String modifiers,
+            List<Type> implementsTypes,
+            String name,
+            String beforeBody,
+            Option<List<Definition>> maybeFields,
+            TypeParamSet typeParams) {
         final var strippedName = name.strip();
         if (!isSymbol(strippedName)) {
             return new None<>();
         }
 
         final var maybeWithConstructorType1 = getMaybeWithConstructorType(name, maybeFields, Maps.empty());
-        final var frame = new StructureFrame().defineStructureType(new StructureType(strippedName, maybeWithConstructorType1));
+        final var frame = new StructureFrame(typeParams).defineStructureType(new StructureType(strippedName, maybeWithConstructorType1));
         final var classSegmentsTuple = joinClassSegments(inputContent, state.enter(frame));
         final var classSegmentsOutput = classSegmentsTuple.left.toString();
         final var classSegmentsState = classSegmentsTuple.right;
@@ -1074,11 +1130,11 @@ export class Main {/*
         }
 
         final var content = stripped.substring(0, stripped.length() - ";".length());
-        return compileSimpleDefinition(content).map(definition -> new Tuple<String, CompileState>("\n\t" + definition + ";", state));
+        return compileSimpleDefinition(content, state).map(definition -> new Tuple<String, CompileState>("\n\t" + definition + ";", state));
     }*//*
 
-    private static Option<String> compileSimpleDefinition(String content) {
-        return parseDefinition(content).map(Definition::generate);
+    private static Option<String> compileSimpleDefinition(String content, CompileState state) {
+        return parseDefinition(content, state).map(Definition::generate);
     }*//*
 
     private static Option<Tuple<String, CompileState>> compileWhitespaceWithState(String input, CompileState state) {
@@ -1114,13 +1170,13 @@ export class Main {/*
         final var inputParams = withParams.substring(0, paramEnd);
         final var inputAfterParams = withParams.substring(paramEnd + ")".length()).strip();
 
-        final var maybeOutputDefinition = parseDefinition(inputDefinition);
+        final var maybeOutputDefinition = parseDefinition(inputDefinition, state);
         if (!maybeOutputDefinition.isPresent()) {
             return new None<>();
         }
 
         final var outputDefinition = maybeOutputDefinition.get();
-        final var parameters = parseAll(inputParams, Main::foldValues, Main::parseParameter)
+        final var parameters = parseAll(inputParams, Main::foldValues, input2 -> parseParameter(input2, state))
                 .iter()
                 .map(Main::retainDefinition)
                 .flatMap(Iterators::fromOptional)
@@ -1353,7 +1409,7 @@ export class Main {/*
         final var stripped = input.strip();
         if (stripped.startsWith("new ")) {
             final var afterNew = stripped.substring("new ".length());
-            final var type = parseType(afterNew);
+            final var type = parseType(afterNew, state);
             return new Construction(type);
         }
 
@@ -1382,13 +1438,13 @@ export class Main {/*
         return appended;
     }*//*
 
-    private static Parameter parseParameter(String input) {
+    private static Parameter parseParameter(String input, CompileState state) {
         return parseWhitespace(input).<Parameter>map(parameter -> parameter)
-                .or(() -> parseDefinition(input).map(parameter -> parameter))
+                .or(() -> parseDefinition(input, state).map(parameter -> parameter))
                 .orElseGet(() -> new Placeholder(input));
     }*//*
 
-    private static Option<Definition> parseDefinition(String input) {
+    private static Option<Definition> parseDefinition(String input, CompileState state) {
         final var stripped = input.strip();
         final var nameSeparator = stripped.lastIndexOf(" ");
         if (nameSeparator < 0) {
@@ -1404,16 +1460,16 @@ export class Main {/*
         final var divisions = divide(beforeName, Main::foldTypeSeparator);
         final var maybePopped = divisions.popLast();
         if (maybePopped.isEmpty()) {
-            return new Some<>(new Definition(new None<>(), Lists.empty(), parseType(beforeName), name));
+            return new Some<>(new Definition(new None<>(), Lists.empty(), parseType(beforeName, state), name));
         }
 
         final var popped = maybePopped.get();
         final var beforeTypeDivisions = popped.left;
         final var type = popped.right;
-        final var compiledType = parseType(type);
+        final var compiledType = parseType(type, state);
 
         if (beforeTypeDivisions.isEmpty()) {
-            return new Some<>(new Definition(new None<>(), Lists.empty(), parseType(type), name));
+            return new Some<>(new Definition(new None<>(), Lists.empty(), parseType(type, state), name));
         }
 
         final var beforeType = joinWithDelimiter(beforeTypeDivisions, " ");
@@ -1454,8 +1510,10 @@ export class Main {/*
         return new Definition(new Some<>(generatePlaceholder(beforeType)), Lists.empty(), compiledType, name);
     }*//*
 
-    private static Type parseType(String input) {
+    private static Type parseType(String input, CompileState state) {
         final var stripped = input.strip();
+        state.stack.resolveTypeParam(stripped);
+
         if (stripped.equals("String")) {
             return new StringType();
         }
@@ -1466,7 +1524,7 @@ export class Main {/*
             if (argumentsStart >= 0) {
                 final var base = withoutEnd.substring(0, argumentsStart).strip();
                 final var inputArguments = withoutEnd.substring(argumentsStart + 1);
-                final var elements = parseValuesString(inputArguments, Main::parseTypeArgument)
+                final var elements = parseValuesString(inputArguments, input1 -> parseTypeArgument(input1, state))
                         .iter()
                         .map(Main::retainType)
                         .flatMap(Iterators::fromOptional)
@@ -1504,10 +1562,10 @@ export class Main {/*
         }
     }*//*
 
-    private static TypeArgument parseTypeArgument(String input) {
+    private static TypeArgument parseTypeArgument(String input, CompileState state) {
         return parseWhitespace(input)
                 .<TypeArgument>map(whitespace -> whitespace)
-                .orElseGet(() -> parseType(input));
+                .orElseGet(() -> parseType(input, state));
     }*//*
 
     private static <T> List<T> parseValuesString(String input, Function<String, T> mapper) {
