@@ -1,4 +1,4 @@
-package com.example;
+package magma;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
