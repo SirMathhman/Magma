@@ -83,10 +83,10 @@ public class Main {
         String generate();
     }
 
-    private interface Value extends Caller, ValueArgument {
+    private sealed interface Value extends Caller, ValueArgument {
     }
 
-    private interface Caller extends Generating {
+    private sealed interface Caller extends Generating {
     }
 
     private interface Map<K, V> {
@@ -586,10 +586,10 @@ public class Main {
         }
     }
 
-    private record Symbol(String input) implements Value, Type {
+    private record Symbol(String value) implements Value, Type {
         @Override
         public String generate() {
-            return input;
+            return value;
         }
 
     }
@@ -604,7 +604,7 @@ public class Main {
             return this.name.equals(name);
         }
 
-        public Option<Definition> findField(String name) {
+        public Option<Definition> find(String name) {
             return definitions.get(name);
         }
     }
@@ -1080,7 +1080,9 @@ public class Main {
             return new None<>();
         }
 
-        final var classSegmentsTuple = joinClassSegments(inputContent, state.enter(new StructureFrame()));
+        final var maybeWithConstructorType1 = getMaybeWithConstructorType(name, maybeFields, Maps.empty());
+        final var frame = new StructureFrame().defineStructureType(new StructureType(strippedName, maybeWithConstructorType1));
+        final var classSegmentsTuple = joinClassSegments(inputContent, state.enter(frame));
         final var classSegmentsOutput = classSegmentsTuple.left.toString();
         final var classSegmentsState = classSegmentsTuple.right;
 
@@ -1092,14 +1094,7 @@ public class Main {
                     .map(definition -> new Tuple<>(definition.name, definition))
                     .collect(new MapCollector<>());
 
-            final var maybeWithConstructorType = maybeFields.map(fields -> {
-                final var constructorTypes = fields.iter()
-                        .map(Definition::type)
-                        .collect(new ListCollector<>());
-
-                return right.put("new", new Definition(new FunctionType(constructorTypes, new StructureRefType(name)), "new"));
-            }).orElse(right);
-
+            final var maybeWithConstructorType = getMaybeWithConstructorType(name, maybeFields, right);
             final var structureType = new StructureType(strippedName, maybeWithConstructorType);
             final var defined = exited.left.mapLast(last -> {
                 if (last instanceof StructureContainerFrame structureContainerFrame) {
@@ -1119,6 +1114,16 @@ public class Main {
         else {
             return new None<>();
         }
+    }
+
+    private static Map<String, Definition> getMaybeWithConstructorType(String name, Option<List<Definition>> maybeFields, Map<String, Definition> right) {
+        return maybeFields.map(fields -> {
+            final var constructorTypes = fields.iter()
+                    .map(Definition::type)
+                    .collect(new ListCollector<>());
+
+            return right.put("new", new Definition(new FunctionType(constructorTypes, new StructureRefType(name)), "new"));
+        }).orElse(right);
     }
 
     private static String joinConstructorAssignments(List<Definition> fields) {
@@ -1342,7 +1347,7 @@ public class Main {
                     final var maybeStructureType = state.stack.resolveType(base);
                     if (maybeStructureType.isPresent()) {
                         final var structureType = maybeStructureType.get();
-                        final var maybeConstructorDefinition = structureType.findField("new");
+                        final var maybeConstructorDefinition = structureType.find("new");
                         if (maybeConstructorDefinition.isPresent()) {
                             final var constructorDefinition = maybeConstructorDefinition.get();
                             final var constructorDefinitionType = constructorDefinition.type;
@@ -1375,7 +1380,31 @@ public class Main {
     }
 
     private static Option<Type> resolveValue(Value argument, CompileState state) {
+        return switch (argument) {
+            case FieldAccess fieldAccess -> new None<>();
+            case Invocation invocation -> resolveInvocation(invocation, state);
+            case Placeholder placeholder -> new None<>();
+            case Symbol symbol -> state.stack.resolveValue(symbol.value);
+        };
+    }
+
+    private static Option<Type> resolveInvocation(Invocation invocation, CompileState state) {
+        final var maybeCallerType = resolveCaller(invocation.caller, state);
+        if (maybeCallerType.isPresent()) {
+            final var callerType = maybeCallerType.get();
+            if (callerType instanceof FunctionType type) {
+                return new Some<>(type.returnType);
+            }
+        }
+
         return new None<>();
+    }
+
+    private static Option<Type> resolveCaller(Caller caller, CompileState state) {
+        return switch (caller) {
+            case Construction construction -> new None<>();
+            case Value value -> resolveValue(value, state);
+        };
     }
 
     private static Option<Value> retainValue(ValueArgument argument) {
