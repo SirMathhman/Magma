@@ -216,4 +216,28 @@ class TranspilerTest {
         String result = new Transpiler().toTypeScript(javaSrc);
         assertEquals(expected, result);
     }
+
+    @Test
+    void stubsOneTodoPerStatement() {
+        String javaSrc = String.join("\n",
+            "public class Foo {",
+            "    int multi() {",
+            "        int y = 0;",
+            "        y++;",
+            "        return y;",
+            "    }",
+            "}");
+
+        String expected = String.join("\n",
+            "export default class Foo {",
+            "    multi(): number {",
+            "        // TODO",
+            "        // TODO",
+            "        // TODO",
+            "    }",
+            "}");
+
+        String result = new Transpiler().toTypeScript(javaSrc);
+        assertEquals(expected, result);
+    }
 }

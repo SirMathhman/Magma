@@ -47,14 +47,17 @@ public class Transpiler {
             String line = lines[i];
             String trimmed = line.trim();
             if (trimmed.endsWith("{") && trimmed.contains("(") && !trimmed.startsWith("export")) {
-                String stub = buildMethodStub(line, trimmed);
+                int end = skipBody(lines, i);
+                int count = countStatements(lines, i + 1, end - 1);
+                String stub = buildMethodStub(line, trimmed, Math.max(1, count));
                 if (stub == null) {
-                    out.append(line).append(System.lineSeparator());
-                    i++;
-                    continue;
+                    for (int j = i; j < end; j++) {
+                        out.append(lines[j]).append(System.lineSeparator());
+                    }
+                } else {
+                    out.append(stub);
                 }
-                out.append(stub);
-                i = skipBody(lines, i);
+                i = end;
                 continue;
             }
             out.append(line).append(System.lineSeparator());
@@ -63,7 +66,7 @@ public class Transpiler {
         return out.toString().trim();
     }
 
-    private String buildMethodStub(String line, String trimmed) {
+    private String buildMethodStub(String line, String trimmed, int todoCount) {
         String indent = line.substring(0, line.indexOf(trimmed));
         String beforeBrace = trimmed.substring(0, trimmed.length() - 1).trim();
         int parenStart = beforeBrace.indexOf('(');
@@ -87,7 +90,9 @@ public class Transpiler {
             stub.append(": ").append(tsReturn);
         }
         stub.append(" {").append(System.lineSeparator());
-        stub.append(indent).append("    // TODO").append(System.lineSeparator());
+        for (int i = 0; i < todoCount; i++) {
+            stub.append(indent).append("    // TODO").append(System.lineSeparator());
+        }
         stub.append(indent).append("}").append(System.lineSeparator());
         return stub.toString();
     }
@@ -102,6 +107,19 @@ public class Transpiler {
             i++;
         }
         return i;
+    }
+
+    private int countStatements(String[] lines, int start, int end) {
+        int count = 0;
+        for (int i = start; i <= end && i < lines.length; i++) {
+            String body = lines[i];
+            for (int j = 0; j < body.length(); j++) {
+                if (body.charAt(j) == ';') {
+                    count++;
+                }
+            }
+        }
+        return count;
     }
 
     private String transpileFields(String source) {
