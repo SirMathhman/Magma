@@ -52,11 +52,8 @@ interface ValueArgument {
 interface TypeArgument {
 }
 interface Frame {
-	resolveValue(name: string): Option<Definition>;
-	defineAllValues(definitions: List<Definition>): Frame;
 	resolveType(name: string): Option<StructureType>;
-	defineStructureType(structureType: StructureType): Frame;
-	defineValue(definition: Definition): Frame;
+	resolveValue(name: string): Option<Definition>;
 	iterDefinitions(): Iterator<Definition>;
 }
 class Some implements Option<T> {
@@ -144,6 +141,9 @@ class Iterators {
 	/*public static */ fromOptional<T>(option: Option<T>): Iterator<T> {
 		return new HeadedIterator<>(option.<Head<T>>map(/*SingleHead::new)
                     */.orElseGet(EmptyHead::new));
+	}
+	/*public static */ empty<T>(): Iterator<T> {
+		return new HeadedIterator<>(new EmptyHead<>());
 	}
 }
 class RangeHead implements Head<Integer> {
@@ -506,41 +506,62 @@ class StructureType implements Type {
 		return definitions.get(name);
 	}
 }
-class InlineFrame implements Frame {
-	definitions: List<Definition>;
+class StructureTypeSet {
 	structureTypes: List<StructureType>;
-	constructor (definitions: List<Definition>, structureTypes: List<StructureType>) {
-		this.definitions = definitions;
+	constructor (structureTypes: List<StructureType>) {
 		this.structureTypes = structureTypes;
 	}
-	InlineFrame(): public {/*
-            this(Lists.empty(), Lists.empty());*/
+	StructureTypeSet(): public {/*
+            this(Lists.empty());*/
+	}
+	/*public*/ define(structureType: StructureType): StructureTypeSet {
+		return new StructureTypeSet(structureTypes.add(structureType));
+	}
+	/*private*/ resolveType(name: string): Option<StructureType> {
+		return this.structureTypes.iter(/*)
+                    */.filter(/*type -> type*/.isNamed(name)).next();
+	}
+}
+class RootFrame implements StructureContainerFrame {
+	structureTypes: StructureTypeSet;
+	constructor (structureTypes: StructureTypeSet) {
+		this.structureTypes = structureTypes;
+	}
+	RootFrame(): public {/*
+            this(new StructureTypeSet());*/
 	}
 	/*@Override
-        public*/ resolveValue(name: string): Option<Definition> {
-		return definitions.iter(/*)
-                    */.filter(/*definition -> definition*/.name.equals(name)).next();
-	}
-	/*@Override
-        public*/ defineAllValues(definitions: List<Definition>): Frame {
-		return new InlineFrame(this.definitions.addAll(definitions), structureTypes);
+        public*/ defineStructureType(structureType: StructureType): StructureContainerFrame {
+		return new RootFrame(structureTypes.define(structureType));
 	}
 	/*@Override
         public*/ resolveType(name: string): Option<StructureType> {
-		return structureTypes.iter(/*)
-                    */.filter(/*type -> type*/.isNamed(name)).next();
+		return structureTypes.resolveType(name);
 	}
 	/*@Override
-        public*/ defineStructureType(structureType: StructureType): Frame {
-		return new InlineFrame(definitions, structureTypes.add(structureType));
-	}
-	/*@Override
-        public*/ defineValue(definition: Definition): Frame {
-		return new InlineFrame(definitions.add(definition), structureTypes);
+        public*/ resolveValue(name: string): Option<Definition> {
+		return new None<>();
 	}
 	/*@Override
         public*/ iterDefinitions(): Iterator<Definition> {
-		return definitions.iter();
+		return Iterators.empty();
+	}
+}
+class MethodFrame implements Frame {
+	parameters: DefinitionSet;
+	constructor (parameters: DefinitionSet) {
+		this.parameters = parameters;
+	}
+	/*@Override
+        public*/ resolveType(name: string): Option<StructureType> {
+		return new None<>();
+	}
+	/*@Override
+        public*/ resolveValue(name: string): Option<Definition> {
+		return parameters.resolveValue(name);
+	}
+	/*public*/ iterDefinitions(): Iterator<Definition> {
+		return parameters.iter();
 	}
 }
 class CompileState {
@@ -551,13 +572,7 @@ class CompileState {
             this.structures = structures;*/
 	}
 	CompileState(): private {/*
-            this(new Stack(Lists.of(new InlineFrame())), Lists.empty());*/
-	}
-	/*public*/ defineAll(definitions: List<Definition>): CompileState {
-		return mapLast(/*frame -> frame*/.defineAllValues(definitions));
-	}
-	/*public*/ defineStructureType(structureType: StructureType): CompileState {
-		return mapLast(/*last -> last*/.defineStructureType(structureType));
+            this(new Stack(Lists.of(new RootFrame())), Lists.empty());*/
 	}
 	/*private*/ mapLast(mapper: (param0 : Frame) => Frame): CompileState {
 		return new CompileState(new Stack(stack.frames(/*)*/.mapLast(mapper)), structures);
@@ -565,11 +580,8 @@ class CompileState {
 	/*public*/ addStructure(structure: string): CompileState {
 		return new CompileState(stack, structures.add(structure));
 	}
-	/*public*/ defineValue(definition: Definition): CompileState {
-		return new CompileState(stack.define(definition), structures);
-	}
-	/*public*/ enter(): CompileState {
-		return new CompileState(stack.enter(), structures);
+	/*public*/ enter(frame: Frame): CompileState {
+		return new CompileState(stack.enter(frame), structures);
 	}
 	/*public*/ exit(): Option<Tuple<CompileState, Frame>> {/*
             return stack.exit().map(stack -> {
@@ -658,18 +670,15 @@ class Stack {
 		this.frames = frames;
 	}
 	/*public*/ resolveType(name: string): Option<StructureType> {
-		return frames(/*)*/.iterReversed(/*)
-                    */.map(/*frame -> frame*/.resolveType(name)).flatMap(Iterators::fromOptional).next();
+		return frames.iterReversed(/*)
+                    */.map(/*frame -> frame*/.resolveType(/*name)*/).flatMap(Iterators::fromOptional).next();
 	}
 	/*public*/ resolveValue(name: string): Option<Type> {
 		return frames(/*)*/.iterReversed(/*)
                     */.map(/*frame -> frame*/.resolveValue(/*name)*/).flatMap(Iterators::fromOptional).next().map(definition -> definition.type);
 	}
-	/*public*/ define(definition: Definition): Stack {
-		return new Stack(frames.mapLast(/*last -> last*/.defineValue(definition)));
-	}
-	/*public*/ enter(): Stack {
-		return new Stack(frames.add(new InlineFrame()));
+	/*public*/ enter(frame: Frame): Stack {
+		return new Stack(frames.add(frame));
 	}
 	/*public*/ exit(): Option<Tuple<Stack, Frame>> {/*
             return frames.popLast().map(tuple -> {
@@ -697,6 +706,55 @@ class StructureRefType implements Type {
 		return name;
 	}
 }
+class DefinitionSet {
+	definitions: List<Definition>;
+	constructor (definitions: List<Definition>) {
+		this.definitions = definitions;
+	}
+	DefinitionSet(): public {/*
+            this(Lists.empty());*/
+	}
+	/*private*/ resolveValue(name: string): Option<Definition> {
+		return definitions.iter(/*)
+                    */.filter(/*definition -> definition*/.name.equals(name)).next();
+	}
+	/*public*/ iter(): Iterator<Definition> {
+		return definitions.iter();
+	}
+	/*public*/ add(definition: Definition): DefinitionSet {
+		return new DefinitionSet(definitions.add(definition));
+	}
+}
+class StructureFrame implements StructureContainerFrame {
+	members: DefinitionSet;
+	structureTypes: StructureTypeSet;
+	constructor (members: DefinitionSet, structureTypes: StructureTypeSet) {
+		this.members = members;
+		this.structureTypes = structureTypes;
+	}
+	StructureFrame(): public {/*
+            this(new DefinitionSet(), new StructureTypeSet());*/
+	}
+	/*@Override
+        public*/ resolveValue(name: string): Option<Definition> {
+		return members.resolveValue(name);
+	}
+	/*@Override
+        public*/ iterDefinitions(): Iterator<Definition> {
+		return members.iter();
+	}
+	/*public*/ define(definition: Definition): StructureFrame {
+		return new StructureFrame(members.add(definition), structureTypes);
+	}
+	/*@Override
+        public*/ resolveType(name: string): Option<StructureType> {
+		return structureTypes.resolveType(name);
+	}
+	/*@Override
+        public*/ defineStructureType(structureType: StructureType): StructureContainerFrame {
+		return new StructureFrame(members, structureTypes.define(structureType));
+	}
+}
 export class Main {/*
 
     private interface Value extends Caller, ValueArgument {
@@ -713,7 +771,11 @@ export class Main {/*
             return this;*//*
         }
     */
-	}
+	}/*
+
+    private interface StructureContainerFrame extends Frame {
+        StructureContainerFrame defineStructureType(StructureType structureType);
+    }*/
 	/*public static*/ main(args: /*String[]*/): void {/*
         try {
             final var source = Paths.get(".", "src", "magma", "Main.java");
@@ -911,7 +973,7 @@ export class Main {/*
             return new None<>();
         }
 
-        final var classSegmentsTuple = joinClassSegments(inputContent, state.enter());
+        final var classSegmentsTuple = joinClassSegments(inputContent, state.enter(new StructureFrame()));
         final var classSegmentsOutput = classSegmentsTuple.left.toString();
         final var classSegmentsState = classSegmentsTuple.right;
 
@@ -932,7 +994,15 @@ export class Main {/*
             }).orElse(right);
 
             final var structureType = new StructureType(strippedName, maybeWithConstructorType);
-            final var defined = exited.left.defineStructureType(structureType);
+            final var defined = exited.left.mapLast(last -> {
+                if (last instanceof StructureContainerFrame structureContainerFrame) {
+                    return structureContainerFrame.defineStructureType(structureType);
+                }
+                else {
+                    return last;
+                }
+            });
+
             final var outputContent = beforeBody + classSegmentsOutput;
             final var joinedImplements = implementsTypes.isEmpty() ? "" : " implements " + generateNodes(implementsTypes);
             var generated = modifiers + targetInfix + " " + strippedName + joinedImplements + " {" + outputContent + "\n}\n";
@@ -1065,17 +1135,28 @@ export class Main {/*
         }
 
         final var content = inputAfterParams.substring(1, inputAfterParams.length() - 1);
-        final CompileState defined = state.defineAll(parameters);
+        final CompileState defined = state.enter(new MethodFrame(new DefinitionSet(parameters)));
         final String outputAfterParams = compileStatements(content, input1 -> compileFunctionSegments(input1, defined));
         return assembleMethod(outputDefinition, outputParams, " {" + outputAfterParams + "\n\t}", state, paramTypes);
     }*//*
 
-    private static Some<Tuple<String, CompileState>> assembleMethod(Definition outputDefinition, String outputParams, String outputAfterParams, CompileState state, List<Type> paramTypes) {
+    private static Option<Tuple<String, CompileState>> assembleMethod(Definition outputDefinition, String outputParams, String outputAfterParams, CompileState state, List<Type> paramTypes) {
         final var header = outputDefinition.generateWithAfterName("(" + outputParams + ")");
         final var generated = "\n\t" + header + outputAfterParams;
-        return new Some<>(new Tuple<>(generated, state.defineValue(outputDefinition.mapType(type -> {
+        final var definition = outputDefinition.mapType(type -> {
             return new FunctionType(paramTypes, type);
-        }))));
+        });
+
+        final var withLast = state.mapLast(last -> {
+            if (last instanceof StructureFrame structureFrame) {
+                return structureFrame.define(definition);
+            }
+            else {
+                return last;
+            }
+        });
+
+        return new Some<>(new Tuple<>(generated, withLast));
     }*//*
 
     private static String compileFunctionSegments(String input, CompileState state) {
