@@ -2,6 +2,7 @@ package magma.path;
 
 import java.util.Set;
 import magma.result.Result;
+import magma.option.Option;
 
 /**
  * Minimal abstraction over file system paths. This wrapper lets the
@@ -12,5 +13,9 @@ public interface PathLike {
     PathLike relativize(PathLike other);
     PathLike getParent();
     Result<Set<PathLike>> walk();
+    Result<String> readString();
+    Option<String> createDirectories();
+    Option<String> writeString(String text);
+    Option<String> deleteIfExists();
     @Override String toString();
 }

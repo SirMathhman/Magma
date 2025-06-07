@@ -1,6 +1,6 @@
 package magma;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.*;
 
 import magma.path.NioPath;
 import magma.path.PathLike;
@@ -10,7 +10,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class PathLikeTest {
     @Test
@@ -38,7 +37,27 @@ class PathLikeTest {
         assertTrue(paths.stream().anyMatch(p -> p.toString().endsWith("A.java")));
 
         for (var i = paths.size() - 1; i >= 0; i--) {
-            ((NioPath) paths.get(i)).deleteIfExists();
+            paths.get(i).deleteIfExists();
         }
+    }
+
+    @Test
+    void readsAndWritesFilesWithoutExceptions() throws IOException {
+        Path root = Files.createTempDirectory("rw");
+        Path file = root.resolve("test.txt");
+        PathLike path = NioPath.wrap(file);
+
+        var err = path.getParent().createDirectories();
+        assertFalse(err.isSome());
+
+        err = path.writeString("hi");
+        assertFalse(err.isSome());
+
+        var text = path.readString();
+        assertTrue(text.isOk());
+        assertEquals("hi", text.value().get());
+
+        path.deleteIfExists();
+        NioPath.wrap(root).deleteIfExists();
     }
 }

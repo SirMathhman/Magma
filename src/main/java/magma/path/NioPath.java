@@ -1,6 +1,5 @@
 package magma.path;
 
-import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.LinkedHashSet;
@@ -9,6 +8,9 @@ import java.util.Set;
 import magma.result.Err;
 import magma.result.Ok;
 import magma.result.Result;
+import magma.option.Option;
+import magma.option.Some;
+import magma.option.None;
 
 /**
  * Implementation of {@link PathLike} that delegates to a
@@ -33,23 +35,46 @@ public class NioPath implements PathLike {
 
 
     /** Read the file contents as a string. */
-    public String readString() throws IOException {
-        return Files.readString(path);
+    @Override
+    public Result<String> readString() {
+        try {
+            return new Ok<>(Files.readString(path));
+        } catch (java.io.IOException e) {
+            return new Err<>(e.getMessage());
+        }
     }
 
     /** Create this directory and any missing parents. */
-    public void createDirectories() throws IOException {
-        Files.createDirectories(path);
+    @Override
+    public Option<String> createDirectories() {
+        try {
+            Files.createDirectories(path);
+            return new None<>();
+        } catch (java.io.IOException e) {
+            return new Some<>(e.getMessage());
+        }
     }
 
     /** Write text to this file. */
-    public void writeString(String text) throws IOException {
-        Files.writeString(path, text);
+    @Override
+    public Option<String> writeString(String text) {
+        try {
+            Files.writeString(path, text);
+            return new None<>();
+        } catch (java.io.IOException e) {
+            return new Some<>(e.getMessage());
+        }
     }
 
     /** Delete the file if it exists. */
-    public void deleteIfExists() throws IOException {
-        Files.deleteIfExists(path);
+    @Override
+    public Option<String> deleteIfExists() {
+        try {
+            Files.deleteIfExists(path);
+            return new None<>();
+        } catch (java.io.IOException e) {
+            return new Some<>(e.getMessage());
+        }
     }
 
     @Override
@@ -74,7 +99,7 @@ public class NioPath implements PathLike {
         try (var stream = Files.walk(path)) {
             stream.forEach(p -> out.add(new NioPath(p)));
             return new Ok<>(out);
-        } catch (IOException e) {
+        } catch (java.io.IOException e) {
             return new Err<>(e.getMessage());
         }
     }

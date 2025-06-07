@@ -117,5 +117,7 @@ Only the features listed below are supported. Anything not mentioned here is con
 16. Introduce a `PathLike` interface to wrap `java.nio.file.Path`.
     Refactor `Main` to use this abstraction so future code can swap out
     the NIO implementation.
+17. Move file I/O helpers onto `PathLike` so `Main` no longer deals with
+    `IOException`. Methods now return `Result` or `Option` objects.
 
 Each feature should begin with a failing test that describes the expected TypeScript output for a Java example.
