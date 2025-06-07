@@ -288,4 +288,28 @@ class TranspilerTest {
         String result = new Transpiler().toTypeScript(javaSrc);
         assertEquals(expected, result);
     }
+
+    @Test
+    void stubsIfStatements() {
+        String javaSrc = String.join("\n",
+            "public class Foo {",
+            "    void check(int x) {",
+            "        if (x > 0) {",
+            "            System.out.println(x);",
+            "        }",
+            "    }",
+            "}");
+
+        String expected = String.join("\n",
+            "export default class Foo {",
+            "    check(x: number): void {",
+            "        if (/* TODO */) {",
+            "            // TODO",
+            "        }",
+            "    }",
+            "}");
+
+        String result = new Transpiler().toTypeScript(javaSrc);
+        assertEquals(expected, result);
+    }
 }

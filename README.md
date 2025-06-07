@@ -19,10 +19,10 @@ method contains at most one loop and braces never nest more than two levels.
 The transpiler removes the `package` declaration since TypeScript does
 not use Java-style packages. It also rewrites simple class definitions
 so that Java modifiers like `public` become `export default`. Method
-bodies are replaced with stubs in the generated TypeScript while
+body text is replaced with stubs in the generated TypeScript while
 preserving each method's name and indentation. Stubs insert one
 `// TODO` comment for every statement in the original method. Return statements
-retain the `return` keyword with `/* TODO */` as a placeholder value. Basic parameter and
+retain the `return` keyword with `/* TODO */` as a placeholder value. Conditional blocks are rewritten as skeletons where the condition becomes `/* TODO */` and the body contains a single `// TODO` comment. Basic parameter and
 return types are converted to their TypeScript equivalents. Array types
 map directly as well, so `int[]` becomes `number[]` and `String[]`
 becomes `string[]`. Future
