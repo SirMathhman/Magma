@@ -430,4 +430,28 @@ class TranspilerStatementTest {
         String result = new Transpiler().toTypeScript(javaSrc);
         assertEquals(expected, result);
     }
+
+    @Test
+    void parsesNotOperatorInIfCondition() {
+        String javaSrc = String.join("\n",
+            "public class Foo {",
+            "    void check() {",
+            "        if (!isValid(1)) {",
+            "            System.out.println(1);",
+            "        }",
+            "    }",
+            "}");
+
+        String expected = String.join("\n",
+            "export default class Foo {",
+            "    check(): void {",
+            "        if (!/* TODO */(1)) {",
+            "            // TODO",
+            "        }",
+            "    }",
+            "}");
+
+        String result = new Transpiler().toTypeScript(javaSrc);
+        assertEquals(expected, result);
+    }
 }

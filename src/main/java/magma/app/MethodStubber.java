@@ -206,6 +206,10 @@ class MethodStubber {
 
     static String parseValue(String value) {
         String trimmed = value.trim();
+        if (trimmed.startsWith("!")) {
+            String rest = trimmed.substring(1).trim();
+            return "!" + parseValue(rest);
+        }
         if (trimmed.startsWith("new ") && trimmed.contains(".") && isInvokable(trimmed)) {
             return trimmed;
         }
