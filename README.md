@@ -19,6 +19,9 @@ map directly as well, so `int[]` becomes `number[]` and `String[]`
 becomes `string[]`. Future
 tests will drive the full implementation.
 
+Generic type parameters are preserved, so `List<String>` becomes
+`List<string>` in the transpiled output.
+
 The primitive `boolean` and its wrapper `Boolean` both become TypeScript
 `boolean`, as verified by `TranspilerTest.mapsBooleanTypes`.
 
