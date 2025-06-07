@@ -28,7 +28,8 @@ Only the features listed below are supported. Anything not mentioned here is con
   - Tests: `TranspilerTest.stubsMethodBodiesPreservingNames`, `TranspilerTest.stubsVoidReturnTypes`.
   - **Fields** become class properties.
     - `final` fields are emitted with the `readonly` modifier.
-    - Tests: `TranspilerTest.transpilesFieldDeclarations`, `TranspilerTest.finalFieldsBecomeReadonly`.
+    - Field initializations are ignored so assignments are dropped.
+    - Tests: `TranspilerTest.transpilesFieldDeclarations`, `TranspilerTest.finalFieldsBecomeReadonly`, `TranspilerTest.stubsFieldAssignments`.
 - **Access modifiers** (`public`, `private`, `protected`) map directly. `package‑private` is emitted as a public or internal export.
   - Tests: `TranspilerTest.transpilesClassDefinitionWithModifier`.
 - **Inheritance** via `extends` is preserved.
@@ -37,6 +38,8 @@ Only the features listed below are supported. Anything not mentioned here is con
   - Tests: `TranspilerTest.preservesImplementsClause`.
 - **Exceptions** (`throw`, `try`/`catch`) are replaced with `Result` or `Option` objects.
 - **Lambda expressions** become arrow functions.
+  - Assignment statements inside arrow function bodies are replaced with `// TODO`.
+  - Tests: `TranspilerTest.stubsAssignmentsInArrowFunctions`.
 - **Streams** rely on array helpers such as `map`, `filter`, and `reduce`.
 - **Standard library** utilities are replaced with small TypeScript helpers.
 
