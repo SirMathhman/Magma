@@ -30,6 +30,8 @@ platforms.
   `java.nio.file.Path` so other classes don't depend on NIO directly.
   `NioPath` also provides helpers for reading and writing files so
   callers never touch `java.nio.file.Files`.
+  These helpers now return `Result` or `Option` values rather than
+  throwing `IOException` and are defined on `PathLike`.
 - `PathLike.walk` – lists files without exposing `Files.walk` or throwing
   `IOException`
 - `magma.list.ListLike` and `magma.list.JdkList` – simple list wrapper so

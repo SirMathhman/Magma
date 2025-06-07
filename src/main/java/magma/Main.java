@@ -8,8 +8,6 @@ import magma.result.Err;
 import magma.result.Ok;
 import magma.result.Result;
 
-import java.io.IOException;
-
 import magma.path.NioPath;
 import magma.path.PathLike;
 import magma.list.JdkList;
@@ -63,18 +61,21 @@ public class Main {
     }
 
     private Option<String> transpileFile(PathLike srcRoot, PathLike outRoot, PathLike javaFile) {
-        try {
-            var javaSrc = ((NioPath) javaFile).readString();
-            var ts = new Transpiler().toTypeScript(javaSrc);
-            var rel = srcRoot.relativize(javaFile);
-            var name = rel.toString();
-            var withoutExt = name.substring(0, name.length() - 5);
-            var outFile = outRoot.resolve(withoutExt + ".ts");
-            ((NioPath) outFile.getParent()).createDirectories();
-            ((NioPath) outFile).writeString(ts + System.lineSeparator());
-            return new None<>();
-        } catch (IOException e) {
-            return new Some<>(e.getMessage());
+        var javaSrcResult = javaFile.readString();
+        if (!javaSrcResult.isOk()) {
+            return new Some<>(javaSrcResult.error().get());
         }
+        var javaSrc = javaSrcResult.value().get();
+        var ts = new Transpiler().toTypeScript(javaSrc);
+        var rel = srcRoot.relativize(javaFile);
+        var name = rel.toString();
+        var withoutExt = name.substring(0, name.length() - 5);
+        var outFile = outRoot.resolve(withoutExt + ".ts");
+        var err = outFile.getParent().createDirectories();
+        if (err.isSome()) {
+            return err;
+        }
+        err = outFile.writeString(ts + System.lineSeparator());
+        return err;
     }
 }
