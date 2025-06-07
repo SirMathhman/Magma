@@ -50,7 +50,7 @@ Only the features listed below are supported. Anything not mentioned here is con
 - **Invokable expressions** like method or constructor calls are stubbed with
   `/* TODO */` placeholders for the callee and each argument. This includes
   assignments such as `int x = run();` which become `let x: number = /* TODO */();`.
-  Constructor calls retain the `new` keyword as `new /* TODO */()`.
+  Constructor calls retain the `new` keyword and type name as `new Bar(/* TODO */)`.
   - Tests: `TranspilerStatementTest.stubsInvokables`,
     `TranspilerStatementTest.stubsInvokablesInLetStatements`,
     `TranspilerStatementTest.stubsConstructorCalls`,
@@ -95,5 +95,6 @@ Only the features listed below are supported. Anything not mentioned here is con
    declarations.
 10. Translate `import` statements to relative paths reflecting the package hierarchy.
 11. Preserve member access expressions like `obj.field`.
+12. Parse constructor types so stubs emit `new Type(/* TODO */)`.
 
 Each feature should begin with a failing test that describes the expected TypeScript output for a Java example.

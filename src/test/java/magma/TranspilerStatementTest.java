@@ -59,7 +59,7 @@ class TranspilerStatementTest {
         String expected = String.join("\n",
                 "export default class Foo {",
                 "    build(): void {",
-                "        new /* TODO */(/* TODO */, /* TODO */);",
+                "        new Bar(/* TODO */, /* TODO */);",
                 "    }",
                 "}");
 
@@ -79,7 +79,7 @@ class TranspilerStatementTest {
         String expected = String.join("\n",
                 "export default class Foo {",
                 "    make(): void {",
-                "        let b: any = new /* TODO */(/* TODO */);",
+                "        let b: any = new Bar(/* TODO */);",
                 "    }",
                 "}");
 
@@ -202,12 +202,28 @@ class TranspilerStatementTest {
         assertEquals(expected, result);
     }
 
+
     @Test
     void keepsStringValues() {
         String javaSrc = String.join("\n",
             "public class Foo {",
             "    void show() {",
             "        String msg = \"hi\";",
+            "    }",
+            "}");
+
+        String expected = String.join("\n",
+            "export default class Foo {",
+            "    show(): void {",
+            "        let msg: string = \"hi\";",
+            "    }",
+            "}");
+
+        String result = new Transpiler().toTypeScript(javaSrc);
+        assertEquals(expected, result);
+    }
+
+    @Test
     void preservesMemberAccessInAssignments() {
         String javaSrc = String.join("\n",
             "public class Foo {",
@@ -218,8 +234,6 @@ class TranspilerStatementTest {
 
         String expected = String.join("\n",
             "export default class Foo {",
-            "    show(): void {",
-            "        let msg: string = \"hi\";",
             "    run(p: any): void {",
             "        let x: number = p.count;",
             "    }",

@@ -45,7 +45,7 @@ with `/* TODO */` as the initializer.
 String literals remain intact if they begin and end with double quotes.
 Invokable expressions such as `doThing()` or `new Some<>()` are parsed so that
 the caller and arguments are emitted as `/* TODO */` placeholders. Constructor
-calls keep the `new` keyword, producing `new /* TODO */()` when stubbed. This also
+calls keep the `new` keyword and the type name, producing `new Bar(/* TODO */)` when stubbed. This also
 applies to variable definitions like `int x = run();`, which become
 `let x: number = /* TODO */();`.
 Member access expressions like `parent.field` are preserved so assignments such as
