@@ -70,6 +70,9 @@ Only the features listed below are supported. Anything not mentioned here is con
     `TranspilerMethodTest.mapsGenericTypes`,
     `TranspilerMethodTest.mapsCharCharacterAndStringToString`,
     `TranspilerStatementTest.stubsOneTodoPerStatement`.
+- **Unknown type names** are kept as-is instead of defaulting to `any`.
+  - Tests: `TranspilerStatementTest.preservesMemberAccessInAssignments`,
+    `TranspilerStatementTest.parsesMemberAccessInWhileCondition`.
 - **Streams** rely on array helpers such as `map`, `filter`, and `reduce`.
 - **Standard library** utilities are replaced with small TypeScript helpers.
 
@@ -102,5 +105,10 @@ Only the features listed below are supported. Anything not mentioned here is con
 12. Parse constructor types so stubs emit `new Type(/* TODO */)`.
 13. ~~Preserve method calls on newly created instances.~~
    Calls like `new Main().run()` now remain unchanged in the output.
+14. ~~Preserve unknown type identifiers rather than using `any`.~~
+   Parameters and fields now keep their original type names when no
+   mapping exists.
+15. Parse statements inside `if` and `while` blocks so nested code is
+    handled the same as top-level statements.
 
 Each feature should begin with a failing test that describes the expected TypeScript output for a Java example.

@@ -34,7 +34,7 @@ class TypeMapper {
             case "boolean", "Boolean" -> "boolean";
             case "char", "Character", "String" -> "string";
             case "void" -> "void";
-            default -> "any";
+            default -> javaType;
         };
     }
 

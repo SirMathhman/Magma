@@ -16,9 +16,12 @@ platforms.
 - `ImportHelper` – rewrites package declarations and import lines
 - `MethodStubber` – replaces method bodies with `// TODO` stubs and
   walks expressions using `parseValue`
+- Nested `if` and `while` blocks are parsed recursively so statements
+  inside them are handled just like top-level code.
 - `FieldTranspiler` – converts Java field definitions
 - `ArrowHelper` – rewrites lambda expressions to arrow functions
-- `TypeMapper` – maps primitive and generic types
+- `TypeMapper` – maps primitive and generic types and leaves unknown
+  identifiers unchanged so the output stays close to the source
 - `magma.Main` – CLI entry point
 - `magma.result.Result` and `magma.option.Option` – lightweight
   replacements for exceptions
