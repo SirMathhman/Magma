@@ -1,16 +1,19 @@
 package magma.app;
 
+import java.util.ArrayList;
+import java.util.List;
+
 class MethodStubber {
     static String stubMethods(String source) {
-        String[] lines = source.split("\\R");
-        StringBuilder out = new StringBuilder();
-        int i = 0;
+        var lines = source.split("\\R");
+        var out = new StringBuilder();
+        var i = 0;
         while (i < lines.length) {
-            String line = lines[i];
-            String trimmed = line.trim();
+            var line = lines[i];
+            var trimmed = line.trim();
             if (trimmed.endsWith("{") && trimmed.contains("(") && !trimmed.startsWith("export")) {
-                int end = skipBody(lines, i);
-                String stub = buildMethodStub(line, trimmed, lines, i + 1, end - 1);
+                var end = skipBody(lines, i);
+                var stub = buildMethodStub(line, trimmed, lines, i + 1, end - 1);
                 if (stub == null) {
                     copyRange(lines, i, end, out);
                 } else {
@@ -26,45 +29,45 @@ class MethodStubber {
     }
 
     private static void copyRange(String[] lines, int start, int end, StringBuilder out) {
-        for (int j = start; j < end; j++) {
+        for (var j = start; j < end; j++) {
             out.append(lines[j]).append(System.lineSeparator());
         }
     }
 
     static String buildMethodStub(String line, String trimmed, String[] lines, int start, int end) {
-        String indent = line.substring(0, line.indexOf(trimmed));
-        String beforeBrace = trimmed.substring(0, trimmed.length() - 1).trim();
-        int parenStart = beforeBrace.indexOf('(');
-        int parenEnd = beforeBrace.lastIndexOf(')');
+        var indent = line.substring(0, line.indexOf(trimmed));
+        var beforeBrace = trimmed.substring(0, trimmed.length() - 1).trim();
+        var parenStart = beforeBrace.indexOf('(');
+        var parenEnd = beforeBrace.lastIndexOf(')');
         if (parenStart == -1 || parenEnd == -1) {
             return null;
         }
-        String signatureStart = beforeBrace.substring(0, parenStart).trim();
-        String params = beforeBrace.substring(parenStart + 1, parenEnd).trim();
-        String[] sigTokens = signatureStart.split("\\s+");
+        var signatureStart = beforeBrace.substring(0, parenStart).trim();
+        var params = beforeBrace.substring(parenStart + 1, parenEnd).trim();
+        var sigTokens = signatureStart.split("\\s+");
         if (sigTokens.length == 0) {
             return null;
         }
-        String name = sigTokens[sigTokens.length - 1];
-        String returnType = sigTokens.length > 1 ? sigTokens[sigTokens.length - 2] : "void";
-        String tsParams = TypeMapper.toTsParams(params);
-        String tsReturn = TypeMapper.toTsType(returnType);
-        StringBuilder stub = new StringBuilder();
+        var name = sigTokens[sigTokens.length - 1];
+        var returnType = sigTokens.length > 1 ? sigTokens[sigTokens.length - 2] : "void";
+        var tsParams = TypeMapper.toTsParams(params);
+        var tsReturn = TypeMapper.toTsType(returnType);
+        var stub = new StringBuilder();
         stub.append(indent).append(name).append("(").append(tsParams).append(")");
         if (!tsReturn.isBlank()) {
             stub.append(": ").append(tsReturn);
         }
         stub.append(" {").append(System.lineSeparator());
-        boolean wrote = false;
-        for (int i = start; i < end; i++) {
-            String body = lines[i].trim();
+        var wrote = false;
+        for (var i = start; i < end; i++) {
+            var body = lines[i].trim();
             if (body.isEmpty()) {
                 continue;
             }
             wrote = true;
             if ((body.startsWith("if") || body.startsWith("else if")) && body.endsWith("{")) {
-                String keyword = body.startsWith("else if") ? "else if" : "if";
-                String cond = parseCondition(body);
+                var keyword = body.startsWith("else if") ? "else if" : "if";
+                var cond = parseCondition(body);
                 appendBlockStub(stub, indent, keyword, cond);
                 i = skipBody(lines, i) - 1;
                 continue;
@@ -75,13 +78,13 @@ class MethodStubber {
                 continue;
             }
             if (body.startsWith("while") && body.endsWith("{")) {
-                String cond = parseCondition(body);
+                var cond = parseCondition(body);
                 appendBlockStub(stub, indent, "while", cond);
                 i = skipBody(lines, i) - 1;
                 continue;
             }
             if (body.startsWith("return")) {
-                String expr = body.substring(6).trim();
+                var expr = body.substring(6).trim();
                 if (expr.endsWith(";")) {
                     expr = expr.substring(0, expr.length() - 1).trim();
                 }
@@ -105,11 +108,11 @@ class MethodStubber {
     }
 
     private static void appendParts(String[] parts, String indent, StringBuilder stub) {
-        for (String part : parts) {
-            String trimmedPart = part.trim();
+        for (var part : parts) {
+            var trimmedPart = part.trim();
             if (trimmedPart.isEmpty()) continue;
             if (trimmedPart.startsWith("return")) {
-                String expr = trimmedPart.substring(6).trim();
+                var expr = trimmedPart.substring(6).trim();
                 if (expr.endsWith(";")) {
                     expr = expr.substring(0, expr.length() - 1).trim();
                 }
@@ -134,10 +137,10 @@ class MethodStubber {
     }
 
     static int skipBody(String[] lines, int index) {
-        int depth = 1;
-        int i = index + 1;
+        var depth = 1;
+        var i = index + 1;
         while (i < lines.length && depth > 0) {
-            String body = lines[i];
+            var body = lines[i];
             depth += body.length() - body.replace("{", "").length();
             depth -= body.length() - body.replace("}", "").length();
             i++;
@@ -156,27 +159,27 @@ class MethodStubber {
     }
 
     private static String parseCondition(String stmt) {
-        int open = stmt.indexOf('(');
-        int close = stmt.lastIndexOf(')');
+        var open = stmt.indexOf('(');
+        var close = stmt.lastIndexOf(')');
         if (open == -1 || close == -1 || close <= open) {
             return "/* TODO */";
         }
-        String inside = stmt.substring(open + 1, close).trim();
+        var inside = stmt.substring(open + 1, close).trim();
         return parseValue(inside);
     }
 
     static String parseAssignment(String stmt, String indent) {
-        int eq = stmt.indexOf('=');
+        var eq = stmt.indexOf('=');
         if (eq == -1) {
             return indent + "    // TODO";
         }
-        String dest = stmt.substring(0, eq).trim();
-        String rhs = stmt.substring(eq + 1).trim();
-        String[] tokens = dest.split("\\s+");
+        var dest = stmt.substring(0, eq).trim();
+        var rhs = stmt.substring(eq + 1).trim();
+        var tokens = dest.split("\\s+");
         if (tokens.length >= 2) {
-            String name = tokens[tokens.length - 1];
-            String type = tokens[tokens.length - 2];
-            String value = parseValue(rhs);
+            var name = tokens[tokens.length - 1];
+            var type = tokens[tokens.length - 2];
+            var value = parseValue(rhs);
             return indent + "    let " + name + ": " + TypeMapper.toTsType(type) + " = " + value + ";";
         }
         return indent + "    // TODO";
@@ -191,12 +194,12 @@ class MethodStubber {
     }
 
     static boolean isInvokable(String stmt) {
-        int open = stmt.indexOf('(');
-        int close = stmt.lastIndexOf(')');
+        var open = stmt.indexOf('(');
+        var close = stmt.lastIndexOf(')');
         if (open == -1 || close == -1 || close <= open) {
             return false;
         }
-        String head = stmt.substring(0, open).trim();
+        var head = stmt.substring(0, open).trim();
         return !head.startsWith("if") && !head.startsWith("while") && !head.startsWith("for");
     }
 
@@ -205,9 +208,9 @@ class MethodStubber {
     }
 
     static String parseValue(String value) {
-        String trimmed = value.trim();
+        var trimmed = value.trim();
         if (trimmed.startsWith("!")) {
-            String rest = trimmed.substring(1).trim();
+            var rest = trimmed.substring(1).trim();
             if (isInvokable(rest)) {
                 return "!" + stubInvokableExpr(rest);
             }
@@ -238,16 +241,16 @@ class MethodStubber {
     }
 
     private static String parseValueArg(String value) {
-        String trimmed = value.trim();
+        var trimmed = value.trim();
         return parseValue(trimmed);
     }
 
     private static String parseMemberChain(String expr) {
-        java.util.List<String> parts = new java.util.ArrayList<>();
-        int depth = 0;
-        StringBuilder part = new StringBuilder();
-        for (int i = 0; i < expr.length(); i++) {
-            char c = expr.charAt(i);
+        List<String> parts = new ArrayList<>();
+        var depth = 0;
+        var part = new StringBuilder();
+        for (var i = 0; i < expr.length(); i++) {
+            var c = expr.charAt(i);
             if (c == '.' && depth == 0) {
                 parts.add(part.toString());
                 part.setLength(0);
@@ -258,8 +261,8 @@ class MethodStubber {
             part.append(c);
         }
         parts.add(part.toString());
-        StringBuilder out = new StringBuilder();
-        for (int i = 0; i < parts.size(); i++) {
+        var out = new StringBuilder();
+        for (var i = 0; i < parts.size(); i++) {
             if (i > 0) out.append('.');
             out.append(parseChainSegment(parts.get(i).trim()));
         }
@@ -275,14 +278,14 @@ class MethodStubber {
   
     private static boolean isNumeric(String s) {
         if (s.isEmpty()) return false;
-        int i = 0;
+        var i = 0;
         if (s.charAt(0) == '-') {
             if (s.length() == 1) return false;
             i = 1;
         }
-        boolean dot = false;
+        var dot = false;
         for (; i < s.length(); i++) {
-            char c = s.charAt(i);
+            var c = s.charAt(i);
             if (c == '.') {
                 if (dot) return false;
                 dot = true;
@@ -296,14 +299,14 @@ class MethodStubber {
     private static boolean isIdentifier(String s) {
         if (s.isEmpty()) return false;
         if (s.equals("true") || s.equals("false") || s.equals("null")) return false;
-        char first = s.charAt(0);
+        var first = s.charAt(0);
         if (!((first >= 'a' && first <= 'z') || (first >= 'A' && first <= 'Z') || first == '_')) {
             return false;
         }
-        for (int i = 1; i < s.length(); i++) {
-            char c = s.charAt(i);
-            boolean letter = (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z');
-            boolean digit = c >= '0' && c <= '9';
+        for (var i = 1; i < s.length(); i++) {
+            var c = s.charAt(i);
+            var letter = (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z');
+            var digit = c >= '0' && c <= '9';
             if (!(letter || digit || c == '_')) {
                 return false;
             }
@@ -312,14 +315,14 @@ class MethodStubber {
     }
 
     static String stubInvokableExpr(String stmt) {
-        int close = stmt.lastIndexOf(')');
+        var close = stmt.lastIndexOf(')');
         if (close == -1) {
             return "/* TODO */";
         }
-        int open = -1;
-        int depth = 0;
-        for (int i = close; i >= 0; i--) {
-            char c = stmt.charAt(i);
+        var open = -1;
+        var depth = 0;
+        for (var i = close; i >= 0; i--) {
+            var c = stmt.charAt(i);
             if (c == ')') {
                 depth++;
             } else if (c == '(') {
@@ -333,21 +336,21 @@ class MethodStubber {
         if (open == -1) {
             return "/* TODO */";
         }
-        String callee = stmt.substring(0, open).trim();
-        String args = stmt.substring(open + 1, close).trim();
-        java.util.List<String> parts = splitArgs(args);
+        var callee = stmt.substring(0, open).trim();
+        var args = stmt.substring(open + 1, close).trim();
+        var parts = splitArgs(args);
         parts.replaceAll(MethodStubber::parseValueArg);
-        String joined = String.join(", ", parts);
+        var joined = String.join(", ", parts);
         return callee + "(" + joined + ")";
     }
 
-    private static java.util.List<String> splitArgs(String args) {
-        java.util.List<String> out = new java.util.ArrayList<>();
+    private static List<String> splitArgs(String args) {
+        List<String> out = new ArrayList<>();
         if (args.isBlank()) return out;
-        int depth = 0;
-        StringBuilder part = new StringBuilder();
-        for (int i = 0; i < args.length(); i++) {
-            char c = args.charAt(i);
+        var depth = 0;
+        var part = new StringBuilder();
+        for (var i = 0; i < args.length(); i++) {
+            var c = args.charAt(i);
             if (c == ',' && depth == 0) {
                 out.add(part.toString().trim());
                 part.setLength(0);

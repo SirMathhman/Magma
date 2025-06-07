@@ -19,23 +19,23 @@ import java.util.List;
  */
 public class Main {
     public static void main(String[] args) {
-        Option<String> error = new Main().run();
+        var error = new Main().run();
         if (error.isSome()) {
             System.err.println(error.get());
         }
     }
 
     private Option<String> run() {
-        Path srcRoot = Path.of("src/main/java");
-        Path outRoot = Path.of("src/main/node");
+        var srcRoot = Path.of("src/main/java");
+        var outRoot = Path.of("src/main/node");
 
-        Result<List<Path>> files = listJavaFiles(srcRoot);
+        var files = listJavaFiles(srcRoot);
         if (!files.isOk()) {
             return new Some<>(files.error().get());
         }
 
-        for (Path file : files.value().get()) {
-            Option<String> err = transpileFile(srcRoot, outRoot, file);
+        for (var file : files.value().get()) {
+            var err = transpileFile(srcRoot, outRoot, file);
             if (err.isSome()) {
                 return err;
             }
@@ -59,12 +59,12 @@ public class Main {
 
     private Option<String> transpileFile(Path srcRoot, Path outRoot, Path javaFile) {
         try {
-            String javaSrc = Files.readString(javaFile);
-            String ts = new Transpiler().toTypeScript(javaSrc);
-            Path rel = srcRoot.relativize(javaFile);
-            String name = rel.toString();
-            String withoutExt = name.substring(0, name.length() - 5);
-            Path outFile = outRoot.resolve(withoutExt + ".ts");
+            var javaSrc = Files.readString(javaFile);
+            var ts = new Transpiler().toTypeScript(javaSrc);
+            var rel = srcRoot.relativize(javaFile);
+            var name = rel.toString();
+            var withoutExt = name.substring(0, name.length() - 5);
+            var outFile = outRoot.resolve(withoutExt + ".ts");
             Files.createDirectories(outFile.getParent());
             Files.writeString(outFile, ts + System.lineSeparator());
             return new None<>();

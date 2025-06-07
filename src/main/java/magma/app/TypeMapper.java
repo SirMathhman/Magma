@@ -1,29 +1,32 @@
 package magma.app;
 
+import java.util.ArrayList;
+import java.util.List;
+
 class TypeMapper {
     static String toTsParams(String params) {
         if (params.isBlank()) {
             return "";
         }
-        java.util.List<String> out = new java.util.ArrayList<>();
-        for (String p : params.split(",")) {
-            String[] parts = p.trim().split("\\s+");
+        List<String> out = new ArrayList<>();
+        for (var p : params.split(",")) {
+            var parts = p.trim().split("\\s+");
             if (parts.length == 0) continue;
-            String name = parts[parts.length - 1];
-            String type = parts.length > 1 ? parts[parts.length - 2] : "any";
+            var name = parts[parts.length - 1];
+            var type = parts.length > 1 ? parts[parts.length - 2] : "any";
             out.add(name + ": " + toTsType(type));
         }
         return String.join(", ", out);
     }
 
     static String toTsType(String javaType) {
-        int genericStart = javaType.indexOf('<');
-        int genericEnd = javaType.lastIndexOf('>');
+        var genericStart = javaType.indexOf('<');
+        var genericEnd = javaType.lastIndexOf('>');
         if (genericStart != -1 && genericEnd != -1 && genericEnd > genericStart) {
             return mapGeneric(javaType, genericStart, genericEnd);
         }
         if (javaType.endsWith("[]")) {
-            String element = javaType.substring(0, javaType.length() - 2);
+            var element = javaType.substring(0, javaType.length() - 2);
             return toTsType(element) + "[]";
         }
         return switch (javaType) {
@@ -36,10 +39,10 @@ class TypeMapper {
     }
 
     private static String mapGeneric(String javaType, int start, int end) {
-        String base = javaType.substring(0, start).trim();
-        String params = javaType.substring(start + 1, end);
-        java.util.List<String> mapped = new java.util.ArrayList<>();
-        for (String p : params.split(",")) {
+        var base = javaType.substring(0, start).trim();
+        var params = javaType.substring(start + 1, end);
+        List<String> mapped = new ArrayList<>();
+        for (var p : params.split(",")) {
             mapped.add(toTsType(p.trim()));
         }
         return base + "<" + String.join(", ", mapped) + ">";

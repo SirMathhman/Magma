@@ -1,10 +1,12 @@
 package magma.app;
 
+import java.util.Arrays;
+
 class ImportHelper {
     static String extractPackage(String source) {
-        String[] lines = source.split("\\R");
-        for (String line : lines) {
-            String trimmed = line.trim();
+        var lines = source.split("\\R");
+        for (var line : lines) {
+            var trimmed = line.trim();
             if (trimmed.startsWith("package ") && trimmed.endsWith(";")) {
                 return trimmed.substring(8, trimmed.length() - 1).trim();
             }
@@ -13,11 +15,11 @@ class ImportHelper {
     }
 
     static String removePackage(String source) {
-        String trimmed = source.trim();
+        var trimmed = source.trim();
         if (!trimmed.startsWith("package")) {
             return source;
         }
-        int semicolon = source.indexOf(';');
+        var semicolon = source.indexOf(';');
         if (semicolon == -1) {
             return source;
         }
@@ -25,14 +27,14 @@ class ImportHelper {
     }
 
     static String translateImports(String source, String currentPkg) {
-        String[] lines = source.split("\\R");
-        StringBuilder out = new StringBuilder();
-        for (int i = 0; i < lines.length; i++) {
-            String line = lines[i];
-            String trimmed = line.trim();
+        var lines = source.split("\\R");
+        var out = new StringBuilder();
+        for (var i = 0; i < lines.length; i++) {
+            var line = lines[i];
+            var trimmed = line.trim();
             if (trimmed.startsWith("import ") && trimmed.endsWith(";") &&
                     !trimmed.contains("*") && !trimmed.startsWith("import static")) {
-                String imp = trimmed.substring(7, trimmed.length() - 1).trim();
+                var imp = trimmed.substring(7, trimmed.length() - 1).trim();
                 out.append("import ").append(buildImport(imp, currentPkg)).append(";")
                    .append(System.lineSeparator());
                 i = skipEmptyLines(lines, i + 1);
@@ -44,7 +46,7 @@ class ImportHelper {
     }
 
     private static int skipEmptyLines(String[] lines, int start) {
-        int i = start;
+        var i = start;
         while (i < lines.length && lines[i].trim().isEmpty()) {
             i++;
         }
@@ -52,13 +54,13 @@ class ImportHelper {
     }
 
     static String buildImport(String imp, String currentPkg) {
-        String[] parts = imp.split("\\.");
+        var parts = imp.split("\\.");
         if (parts.length == 0) return imp;
-        String className = parts[parts.length - 1];
-        String[] importPkgParts = java.util.Arrays.copyOf(parts, parts.length - 1);
-        String[] currentParts = currentPkg.isBlank() ? new String[0] : currentPkg.split("\\.");
-        int shared = sharedPrefix(importPkgParts, currentParts);
-        String path = relativePath(importPkgParts, currentParts, shared) + className;
+        var className = parts[parts.length - 1];
+        var importPkgParts = Arrays.copyOf(parts, parts.length - 1);
+        var currentParts = currentPkg.isBlank() ? new String[0] : currentPkg.split("\\.");
+        var shared = sharedPrefix(importPkgParts, currentParts);
+        var path = relativePath(importPkgParts, currentParts, shared) + className;
         if (!path.startsWith("../")) {
             path = "./" + path;
         }
@@ -66,7 +68,7 @@ class ImportHelper {
     }
 
     private static int sharedPrefix(String[] a, String[] b) {
-        int i = 0;
+        var i = 0;
         while (i < a.length && i < b.length && a[i].equals(b[i])) {
             i++;
         }
@@ -74,20 +76,17 @@ class ImportHelper {
     }
 
     private static String relativePath(String[] impParts, String[] currentParts, int shared) {
-        String path = upPath(currentParts.length - shared) +
+        return upPath(currentParts.length - shared) +
                 joinParts(impParts, shared);
-        return path;
     }
 
     private static String upPath(int count) {
-        StringBuilder out = new StringBuilder();
-        out.append("../".repeat(Math.max(0, count)));
-        return out.toString();
+        return "../".repeat(Math.max(0, count));
     }
 
     private static String joinParts(String[] parts, int start) {
-        StringBuilder out = new StringBuilder();
-        for (int i = start; i < parts.length; i++) {
+        var out = new StringBuilder();
+        for (var i = start; i < parts.length; i++) {
             out.append(parts[i]).append('/');
         }
         return out.toString();

@@ -1,7 +1,6 @@
 package magma;
 
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import magma.option.None;
 import magma.option.Option;

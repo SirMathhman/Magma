@@ -12,18 +12,18 @@ import org.junit.jupiter.api.Test;
 class BuildScriptTest {
     @Test
     void printsSuccessMessage() throws Exception {
-        Process process = new ProcessBuilder("./build.sh")
+        var process = new ProcessBuilder("./build.sh")
                 .directory(new File("."))
                 .redirectErrorStream(true)
                 .start();
-        StringBuilder output = new StringBuilder();
+        var output = new StringBuilder();
         try (var reader = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
             String line;
             while ((line = reader.readLine()) != null) {
                 output.append(line).append('\n');
             }
         }
-        int exit = process.waitFor();
+        var exit = process.waitFor();
         assertEquals(0, exit);
         assertTrue(output.toString().contains("Build completed successfully"));
     }
