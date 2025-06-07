@@ -18,7 +18,7 @@ class TranspilerMethodTest {
         String expected = String.join("\n",
             "export default class Foo {",
             "    bar(x: number): number {",
-            "        return /* TODO */;",
+            "        return 42;",
             "    }",
             "}");
 

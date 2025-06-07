@@ -26,9 +26,9 @@ Only the features listed below are supported. Anything not mentioned here is con
 - **Generics** preserve type parameters, e.g. `List<T>` → `List<T>`.
   - Tests: `TranspilerMethodTest.mapsGenericTypes`.
 - **Methods** keep their names and basic return types such as `int` or `void` translate to `number` or `void`.
-  - Return statements are emitted as `return /* TODO */;` while other statements become `// TODO` comments.
+  - Return statements with numeric literals are preserved as-is. Other statements become `// TODO` comments.
     - `if` and `while` statements output `<keyword> (/* TODO */) {` with a single `// TODO` in the body.
-      - Tests: `TranspilerMethodTest.stubsMethodBodiesPreservingNames`, `TranspilerMethodTest.stubsVoidReturnTypes`, `TranspilerStatementTest.stubsOneTodoPerStatement`, `TranspilerStatementTest.stubsIfStatements`, `TranspilerStatementTest.stubsWhileStatements`.
+    - Tests: `TranspilerMethodTest.stubsMethodBodiesPreservingNames`, `TranspilerMethodTest.stubsVoidReturnTypes`, `TranspilerStatementTest.stubsOneTodoPerStatement`, `TranspilerStatementTest.stubsIfStatements`, `TranspilerStatementTest.stubsWhileStatements`, `TranspilerStatementTest.keepsNumericValues`.
   - **Fields** become class properties.
     - `final` fields are emitted with the `readonly` modifier.
     - Field initializations are ignored so assignments are dropped.
