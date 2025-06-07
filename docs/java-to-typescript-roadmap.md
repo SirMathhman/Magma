@@ -50,8 +50,11 @@ Only the features listed below are supported. Anything not mentioned here is con
 - **Invokable expressions** like method or constructor calls are stubbed with
   `/* TODO */` placeholders for the callee and each argument. This includes
   assignments such as `int x = run();` which become `let x: number = /* TODO */();`.
+  Constructor calls retain the `new` keyword as `new /* TODO */()`.
   - Tests: `TranspilerStatementTest.stubsInvokables`,
-    `TranspilerStatementTest.stubsInvokablesInLetStatements`.
+    `TranspilerStatementTest.stubsInvokablesInLetStatements`,
+    `TranspilerStatementTest.stubsConstructorCalls`,
+    `TranspilerStatementTest.stubsConstructorCallsInLetStatements`.
 - **Member access** expressions like `parent.child` are kept intact.
   - Tests: `TranspilerStatementTest.preservesMemberAccessInAssignments`,
     `TranspilerStatementTest.preservesMemberAccessInReturns`.
