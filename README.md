@@ -12,8 +12,9 @@ The transpiler removes the `package` declaration since TypeScript does
 not use Java-style packages. It also rewrites simple class definitions
 so that Java modifiers like `public` become `export default`. Method
 bodies are replaced with stubs in the generated TypeScript while
-preserving each method's name and indentation. Future tests will drive
-the full implementation.
+preserving each method's name and indentation. Basic parameter and
+return types are converted to their TypeScript equivalents. Future
+tests will drive the full implementation.
 
 ## Documentation
 

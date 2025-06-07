@@ -1,6 +1,6 @@
 # Java to TypeScript Feature Roadmap
 
-This page outlines how Java language features map to their TypeScript counterparts. The project follows a test‑driven approach and Kent Beck's rules for simple design. Each feature should be supported by failing tests before implementation and refactored to remove duplication. The current prototype stubs out Java method bodies in the generated TypeScript while method signatures are preserved.
+This page outlines how Java language features map to their TypeScript counterparts. The project follows a test‑driven approach and Kent Beck's rules for simple design. Each feature should be supported by failing tests before implementation and refactored to remove duplication. The current prototype stubs out Java method bodies in the generated TypeScript while method signatures are preserved, including basic return type mappings.
 
 | Java Feature | TypeScript Equivalent | Notes |
 | ------------ | -------------------- | ----- |
@@ -15,7 +15,7 @@ This page outlines how Java language features map to their TypeScript counterpar
 | Abstract classes | Abstract classes | Use the `abstract` keyword. |
 | Enums | `enum` | TypeScript `enum` provides similar semantics. |
 | Generics | Generics | `List<T>` → `Array<T>` or custom generic types. |
-| Methods | Methods | Instance and static methods translate directly. |
+| Methods | Methods | Instance and static methods translate directly. Basic return types such as `int` or `void` become `number` or `void`. |
 | Fields | Properties | Public/private modifiers apply. |
 | Access modifiers (`public`, `private`, `protected`) | `public`, `private`, `protected` | `package‑private` becomes `public` or internal module export. |
 | Inheritance (`extends`) | `extends` | Works with classes and interfaces. |
