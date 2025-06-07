@@ -103,17 +103,19 @@ public class Transpiler {
             wrote = true;
 
             if ((body.startsWith("if") || body.startsWith("else if")) && body.endsWith("{")) {
-                stub.append(indent).append("    if (/* TODO */) {").append(System.lineSeparator());
-                stub.append(indent).append("        // TODO").append(System.lineSeparator());
-                stub.append(indent).append("    }").append(System.lineSeparator());
+                appendBlockStub(stub, indent, "if", true);
                 i = skipBody(lines, i) - 1;
                 continue;
             }
 
             if (body.startsWith("else") && body.endsWith("{")) {
-                stub.append(indent).append("    else {").append(System.lineSeparator());
-                stub.append(indent).append("        // TODO").append(System.lineSeparator());
-                stub.append(indent).append("    }").append(System.lineSeparator());
+                appendBlockStub(stub, indent, "else", false);
+                i = skipBody(lines, i) - 1;
+                continue;
+            }
+
+            if (body.startsWith("while") && body.endsWith("{")) {
+                appendBlockStub(stub, indent, "while", true);
                 i = skipBody(lines, i) - 1;
                 continue;
             }
@@ -149,6 +151,16 @@ public class Transpiler {
             i++;
         }
         return i;
+    }
+
+    private void appendBlockStub(StringBuilder stub, String indent, String keyword, boolean withCondition) {
+        stub.append(indent).append("    ").append(keyword);
+        if (withCondition) {
+            stub.append(" (/* TODO */)");
+        }
+        stub.append(" {").append(System.lineSeparator());
+        stub.append(indent).append("        // TODO").append(System.lineSeparator());
+        stub.append(indent).append("    }").append(System.lineSeparator());
     }
 
     private String transpileFields(String source) {

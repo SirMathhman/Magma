@@ -27,8 +27,8 @@ Only the features listed below are supported. Anything not mentioned here is con
   - Tests: `TranspilerTest.mapsGenericTypes`.
 - **Methods** keep their names and basic return types such as `int` or `void` translate to `number` or `void`.
   - Return statements are emitted as `return /* TODO */;` while other statements become `// TODO` comments.
-  - `if` statements output `if (/* TODO */) {` with a single `// TODO` in the body.
-  - Tests: `TranspilerTest.stubsMethodBodiesPreservingNames`, `TranspilerTest.stubsVoidReturnTypes`, `TranspilerTest.stubsOneTodoPerStatement`, `TranspilerTest.stubsIfStatements`.
+    - `if` and `while` statements output `<keyword> (/* TODO */) {` with a single `// TODO` in the body.
+    - Tests: `TranspilerTest.stubsMethodBodiesPreservingNames`, `TranspilerTest.stubsVoidReturnTypes`, `TranspilerTest.stubsOneTodoPerStatement`, `TranspilerTest.stubsIfStatements`, `TranspilerTest.stubsWhileStatements`.
   - **Fields** become class properties.
     - `final` fields are emitted with the `readonly` modifier.
     - Field initializations are ignored so assignments are dropped.
