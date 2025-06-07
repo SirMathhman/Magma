@@ -27,6 +27,26 @@ class TranspilerStatementTest {
     }
 
     @Test
+    void stubsInvokablesInLetStatements() {
+        String javaSrc = String.join("\n",
+                "public class Foo {",
+                "    void run() {",
+                "        int x = doThing(a, new Some<>(1));",
+                "    }",
+                "}");
+
+        String expected = String.join("\n",
+                "export default class Foo {",
+                "    run(): void {",
+                "        let x: number = /* TODO */(/* TODO */, /* TODO */);",
+                "    }",
+                "}");
+
+        String result = new Transpiler().toTypeScript(javaSrc);
+        assertEquals(expected, result);
+    }
+
+    @Test
     void leavesValueAssignmentsAsTodo() {
         String javaSrc = String.join("\n",
             "public class Foo {",

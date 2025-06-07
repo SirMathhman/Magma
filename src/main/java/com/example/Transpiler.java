@@ -263,11 +263,13 @@ public class Transpiler {
             return indent + "    // TODO";
         }
         String dest = stmt.substring(0, eq).trim();
+        String rhs = stmt.substring(eq + 1).trim();
         String[] tokens = dest.split("\\s+");
         if (tokens.length >= 2) {
             String name = tokens[tokens.length - 1];
             String type = tokens[tokens.length - 2];
-            return indent + "    let " + name + ": " + toTsType(type) + " = /* TODO */;";
+            String value = isInvokable(rhs) ? stubInvokableExpr(rhs) : "/* TODO */";
+            return indent + "    let " + name + ": " + toTsType(type) + " = " + value + ";";
         }
         return indent + "    // TODO";
     }
@@ -283,10 +285,14 @@ public class Transpiler {
     }
 
     private String parseInvokable(String stmt, String indent) {
+        return indent + "    " + stubInvokableExpr(stmt) + ";";
+    }
+
+    private String stubInvokableExpr(String stmt) {
         int open = stmt.indexOf('(');
         int close = stmt.lastIndexOf(')');
         if (open == -1 || close == -1 || close <= open) {
-            return indent + "    // TODO";
+            return "/* TODO */";
         }
         String args = stmt.substring(open + 1, close).trim();
         int count = args.isBlank() ? 0 : args.split(",").length;
@@ -295,7 +301,7 @@ public class Transpiler {
             parts.add("/* TODO */");
         }
         String joined = String.join(", ", parts);
-        return indent + "    /* TODO */(" + joined + ");";
+        return "/* TODO */(" + joined + ")";
     }
 
     private String toTsParams(String params) {
