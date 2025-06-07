@@ -15,7 +15,7 @@ public class Transpiler {
      * @return transpiled TypeScript
      */
     public String toTypeScript(String javaSource) {
-        String withoutPackage = javaSource.replaceFirst("(?s)^\\s*package\\s+.*?;\\s*", "");
+        String withoutPackage = removePackage(javaSource);
 
         String[] lines = withoutPackage.split("\\R");
         StringBuilder ts = new StringBuilder();
@@ -34,25 +34,53 @@ public class Transpiler {
     }
 
     private String stubMethods(String source) {
-        String pattern = "(?ms)^([ \t]*)(?:public|private|protected|static|final|abstract|synchronized|native|strictfp\\s+)*" +
-                "([a-zA-Z_][a-zA-Z0-9_<>\\[\\]]*)\\s+([a-zA-Z_][a-zA-Z0-9_]*)\\s*\\(([^)]*)\\)\\s*\\{[^}]*\\}";
-        java.util.regex.Matcher m = java.util.regex.Pattern.compile(pattern).matcher(source);
-        StringBuffer out = new StringBuffer();
-        while (m.find()) {
-            String indent = m.group(1);
-            String returnType = m.group(2);
-            String name = m.group(3);
-            String params = m.group(4).trim();
-            String tsParams = toTsParams(params);
-            String tsReturn = toTsType(returnType);
-            String replacement = indent + name + "(" + tsParams + ")" +
-                    (tsReturn.isBlank() ? "" : ": " + tsReturn) + " {" +
-                    System.lineSeparator() +
-                    indent + "    // TODO" + System.lineSeparator() +
-                    indent + "}";
-            m.appendReplacement(out, java.util.regex.Matcher.quoteReplacement(replacement));
+        String[] lines = source.split("\\R");
+        StringBuilder out = new StringBuilder();
+        for (int i = 0; i < lines.length; i++) {
+            String line = lines[i];
+            String trimmed = line.trim();
+            if (trimmed.endsWith("{") && trimmed.contains("(") && !trimmed.startsWith("export")) {
+                String indent = line.substring(0, line.indexOf(trimmed));
+                String beforeBrace = trimmed.substring(0, trimmed.length() - 1).trim();
+                int parenStart = beforeBrace.indexOf('(');
+                int parenEnd = beforeBrace.lastIndexOf(')');
+                if (parenStart == -1 || parenEnd == -1) {
+                    out.append(line).append(System.lineSeparator());
+                    continue;
+                }
+                String signatureStart = beforeBrace.substring(0, parenStart).trim();
+                String params = beforeBrace.substring(parenStart + 1, parenEnd).trim();
+                String[] sigTokens = signatureStart.split("\\s+");
+                if (sigTokens.length == 0) {
+                    out.append(line).append(System.lineSeparator());
+                    continue;
+                }
+                String name = sigTokens[sigTokens.length - 1];
+                String returnType = sigTokens.length > 1 ? sigTokens[sigTokens.length - 2] : "void";
+
+                String tsParams = toTsParams(params);
+                String tsReturn = toTsType(returnType);
+                out.append(indent).append(name).append("(").append(tsParams).append(")");
+                if (!tsReturn.isBlank()) {
+                    out.append(": ").append(tsReturn);
+                }
+                out.append(" {").append(System.lineSeparator());
+                out.append(indent).append("    // TODO").append(System.lineSeparator());
+                out.append(indent).append("}").append(System.lineSeparator());
+
+                int braceDepth = 1;
+                while (i + 1 < lines.length && braceDepth > 0) {
+                    i++;
+                    String bodyLine = lines[i];
+                    for (char c : bodyLine.toCharArray()) {
+                        if (c == '{') braceDepth++;
+                        else if (c == '}') braceDepth--;
+                    }
+                }
+            } else {
+                out.append(line).append(System.lineSeparator());
+            }
         }
-        m.appendTail(out);
         return out.toString().trim();
     }
 
@@ -81,5 +109,17 @@ public class Transpiler {
             case "void" -> "void";
             default -> "any";
         };
+    }
+
+    private String removePackage(String source) {
+        String trimmed = source.trim();
+        if (!trimmed.startsWith("package")) {
+            return source;
+        }
+        int semicolon = source.indexOf(';');
+        if (semicolon == -1) {
+            return source;
+        }
+        return source.substring(semicolon + 1).trim();
     }
 }
