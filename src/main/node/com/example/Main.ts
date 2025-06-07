@@ -9,21 +9,21 @@ import java.util.List;
  */
 export default class Main {
     main(args: string[]): void {
-        // TODO
+        let error: Option<string> = /* TODO */;
         if (/* TODO */) {
             // TODO
         }
     }
 
     run(): Option<string> {
-        // TODO
-        // TODO
-        // TODO
+        let srcRoot: any = /* TODO */;
+        let outRoot: any = /* TODO */;
+        let files: Result<List<any>> = /* TODO */;
         if (/* TODO */) {
             // TODO
         }
         // TODO
-        // TODO
+        let err: Option<string> = /* TODO */;
         if (/* TODO */) {
             // TODO
         }
@@ -32,8 +32,8 @@ export default class Main {
     }
 
     listJavaFiles(srcRoot: any): Result<List<any>> {
-        // TODO
-        // TODO
+        let javaFiles: List<any> = /* TODO */;
+        let stream: any = /* TODO */;
         // TODO
         if (/* TODO */) {
             // TODO
@@ -47,12 +47,12 @@ export default class Main {
 
     transpileFile(srcRoot: any, outRoot: any, javaFile: any): Option<string> {
         // TODO
-        // TODO
-        // TODO
-        // TODO
-        // TODO
-        // TODO
-        // TODO
+        let javaSrc: string = /* TODO */;
+        let ts: string = /* TODO */;
+        let rel: any = /* TODO */;
+        let name: string = /* TODO */;
+        let withoutExt: string = /* TODO */;
+        let outFile: any = /* TODO */;
         // TODO
         // TODO
         return /* TODO */;
