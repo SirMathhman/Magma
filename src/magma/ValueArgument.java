@@ -1,0 +1,4 @@
+package magma;
+
+interface ValueArgument {
+}

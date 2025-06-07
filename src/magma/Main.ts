@@ -1,451 +1,4 @@
-interface Option {
-	map<R>(mapper: (param0 : T) => R): Option<R>;
-	orElseGet(other: () => T): T;
-	isPresent(): boolean;
-	get(): T;
-	orElse(other: T): T;
-	or(other: () => Option<T>): Option<T>;
-	isEmpty(): boolean;
-	and<R>(other: () => Option<R>): Option<Tuple<T, R>>;
-}
-interface Parameter {
-}
-interface Collector {
-	createInitial(): C;
-	fold(current: C, element: T): C;
-}
-interface Head {
-	next(): Option<T>;
-}
-interface Iterator {
-	map<R>(mapper: (param0 : T) => R): Iterator<R>;
-	fold<R>(initial: R, folder: (param0 : R, param1 : T) => R): R;
-	collect<C>(collector: Collector<T, C>): C;
-	flatMap<R>(mapper: (param0 : T) => Iterator<R>): Iterator<R>;
-	next(): Option<T>;
-	filter(predicate: Predicate<T>): Iterator<T>;
-	zip<R>(other: Iterator<R>): Iterator<Tuple<T, R>>;
-}
-interface List {
-	add(element: T): List<T>;
-	iter(): Iterator<T>;
-	addAll(elements: List<T>): List<T>;
-	popLast(): Option<Tuple<List<T>, T>>;
-	isEmpty(): boolean;
-	get(index: int): T;
-	iterWithIndex(): Iterator<Tuple<Integer, T>>;
-	iterReversed(): Iterator<T>;
-	mapLast(mapper: (param0 : T) => T): List<T>;
-}
-interface Generating {
-	generate(): string;
-}
-interface Map {
-	putAll(other: Map<K, V>): Map<K, V>;
-	iter(): Iterator<Tuple<K, V>>;
-	putTuple(kvTuple: Tuple<K, V>): Map<K, V>;
-	put(key: K, value: V): Map<K, V>;
-	get(key: K): Option<V>;
-}
-interface ValueArgument {
-}
-interface TypeArgument {
-}
-interface Frame {
-	resolveType(name: string): Option<StructureType>;
-	resolveValue(name: string): Option<Definition>;
-	iterDefinitions(): Iterator<Definition>;
-	resolveTypeParam(name: string): Option<TypeParam>;
-}
-class Some implements Option<T> {
-	value: T;
-	constructor (value: T) {
-		this.value = value;
-	}
-	/*@Override
-        public */ map<R>(mapper: (param0 : T) => R): Option<R> {
-		return new Some<R>(mapper(value));
-	}
-	/*@Override
-        public*/ orElseGet(other: () => T): T {
-		return value;
-	}
-	/*@Override
-        public*/ isPresent(): boolean {
-		return true;
-	}
-	/*@Override
-        public*/ get(): T {
-		return value;
-	}
-	/*@Override
-        public*/ orElse(other: T): T {
-		return value;
-	}
-	/*@Override
-        public*/ or(other: () => Option<T>): Option<T> {
-		return this;
-	}
-	/*@Override
-        public*/ isEmpty(): boolean {
-		return false;
-	}
-	/*@Override
-        public */ and<R>(other: () => Option<R>): Option<Tuple<T, R>> {
-		return other(/*)*/.map(/*otherValue -> new Tuple<>(value, otherValue*/));
-	}
-}
-class None implements Option<T> {
-	/*@Override
-        public */ map<R>(mapper: (param0 : T) => R): Option<R> {
-		return new None<>();
-	}
-	/*@Override
-        public*/ orElseGet(other: () => T): T {
-		return other();
-	}
-	/*@Override
-        public*/ isPresent(): boolean {
-		return false;
-	}
-	/*@Override
-        public*/ get(): T {
-		return null;
-	}
-	/*@Override
-        public*/ orElse(other: T): T {
-		return other;
-	}
-	/*@Override
-        public*/ or(other: () => Option<T>): Option<T> {
-		return other();
-	}
-	/*@Override
-        public*/ isEmpty(): boolean {
-		return true;
-	}
-	/*@Override
-        public */ and<R>(other: () => Option<R>): Option<Tuple<T, R>> {
-		return new None<>();
-	}
-}
-class Lists {
-	/*public static */ empty<T>(): List<T> {
-		return new JavaList<>();
-	}
-	/*@SafeVarargs
-        public static */ of<T>(elements: /*T...*/): List<T> {
-		return new JavaList<>(new ArrayList<>(Arrays.asList(elements)));
-	}
-}
-class Iterators {
-	/*public static */ fromOptional<T>(option: Option<T>): Iterator<T> {
-		return new HeadedIterator<>(option.<Head<T>>map(/*SingleHead::new)
-                    */.orElseGet(EmptyHead::new));
-	}
-	/*public static */ empty<T>(): Iterator<T> {
-		return new HeadedIterator<>(new EmptyHead<>());
-	}
-}
-class RangeHead implements Head<Integer> {
-	/*private final*/ length: int;/*
-        private int counter = 0;*/
-	RangeHead(length: int): public {/*
-            this.length = length;*/
-	}
-	/*@Override
-        public*/ next(): Option<Integer> {/*
-            if (counter >= length) {
-                return new None<>();
-            }*//*
-
-            final var value = counter;*//*
-            counter++;*/
-		return new Some<>(value);
-	}
-}
-class JavaList implements List<T> {
-	elements: java.util.List<T>;
-	constructor (elements: java.util.List<T>) {
-		this.elements = elements;
-	}
-	JavaList(): public {/*
-            this(new ArrayList<>());*/
-	}
-	/*@Override
-        public*/ add(element: T): List<T> {/*
-            final var copy = new ArrayList<T>(elements);*//*
-            copy.add(element);*/
-		return new JavaList<>(copy);
-	}
-	/*@Override
-        public*/ iter(): Iterator<T> {
-		return createIteratorFromSize(/*)*/.map(elements::get);
-	}
-	/*private*/ createIteratorFromSize(): Iterator<Integer> {
-		return new HeadedIterator<>(new RangeHead(elements.size()));
-	}
-	/*@Override
-        public*/ addAll(elements: List<T>): List<T> {
-		return elements.iter(/*)*/.<List<T>>fold(this, /* List::add*/);
-	}
-	/*@Override
-        public*/ popLast(): Option<Tuple<List<T>, T>> {/*
-            if (elements.isEmpty()) {
-                return new None<>();
-            }*//*
-
-            final var last = elements.removeLast();*/
-		return new Some<>(/*new Tuple<>(this*/, /* last)*/);
-	}
-	/*@Override
-        public*/ isEmpty(): boolean {
-		return elements.isEmpty();
-	}
-	/*@Override
-        public*/ get(index: int): T {
-		return elements.get(index);
-	}
-	/*@Override
-        public*/ iterWithIndex(): Iterator<Tuple<Integer, T>> {
-		return createIteratorFromSize(/*)*/.map(/*index -> new Tuple<>*/(index, elements.get(index)));
-	}
-	/*@Override
-        public*/ iterReversed(): Iterator<T> {
-		return createIteratorFromSize(/*)
-                    */.map(/*index -> elements*/.size() - index - 1).map(elements::get);
-	}
-	/*@Override
-        public*/ mapLast(mapper: (param0 : T) => T): List<T> {/*
-            if (elements.isEmpty()) {
-                return this;
-            }*//*
-
-            final var mapped = mapper.apply(elements.getLast());*//*
-            elements.set(elements.size() - 1, mapped);*/
-		return this;
-	}
-}
-class EmptyHead implements Head<T> {
-	/*@Override
-        public*/ next(): Option<T> {
-		return new None<>();
-	}
-}
-class SingleHead implements Head<T> {
-	/*private final*/ element: T;
-	/*private boolean retrieved*/ false: /*=*/;
-	SingleHead(element: T): public {/*
-            this.element = element;*/
-	}
-	/*@Override
-        public*/ next(): Option<T> {/*
-            if (retrieved) {
-                return new None<>();
-            }*//*
-
-            retrieved = true;*/
-		return new Some<>(element);
-	}
-}
-class FlatMapHead implements Head<R> {
-	/*private final*/ head: Head<T>;
-	/*private final*/ mapper: (param0 : T) => Iterator<R>;
-	/*private*/ current: Iterator<R>;
-	FlatMapHead(initial: Iterator<R>, head: Head<T>, mapper: (param0 : T) => Iterator<R>): public {/*
-            this.current = initial;*//*
-            this.head = head;*//*
-            this.mapper = mapper;*/
-	}
-	/*@Override
-        public*/ next(): Option<R> {/*
-            while (true) {
-                final var maybeNext = current.next();
-                if (maybeNext.isPresent()) {
-                    return maybeNext;
-                }
-
-                final var maybeNextIter = head.next().map(mapper);
-                if (maybeNextIter.isPresent()) {
-                    current = maybeNextIter.get();
-                }
-                else {
-                    return new None<>();
-                }
-            }*/
-	}
-}
-class HeadedIterator implements Iterator<T> {
-	head: Head<T>;
-	constructor (head: Head<T>) {
-		this.head = head;
-	}
-	/*@Override
-        public */ map<R>(mapper: (param0 : T) => R): Iterator<R> {
-		return new HeadedIterator<>(/**/(/*) -> head*/.next().map(mapper));
-	}
-	/*@Override
-        public */ fold<R>(initial: R, folder: (param0 : R, param1 : T) => R): R {/*
-            var current = initial;*//*
-            while (true) {
-                R finalCurrent = current;
-                final var maybeNext = head.next().map(next -> folder.apply(finalCurrent, next));
-                if (maybeNext.isPresent()) {
-                    current = maybeNext.get();
-                }
-                else {
-                    return current;
-                }
-            }*/
-	}
-	/*@Override
-        public */ collect<C>(collector: Collector<T, C>): C {
-		return fold(collector.createInitial(), /* collector::fold*/);
-	}
-	/*@Override
-        public */ flatMap<R>(mapper: (param0 : T) => Iterator<R>): Iterator<R> {/*
-            final var head = this.head.next()
-                    .map(mapper)
-                    .<Head<R>>map(initial -> new FlatMapHead<>(initial, this.head, mapper))
-                    .orElseGet(EmptyHead::new);*/
-		return new HeadedIterator<>(head);
-	}
-	/*@Override
-        public*/ next(): Option<T> {
-		return head.next();
-	}
-	/*@Override
-        public*/ filter(predicate: Predicate<T>): Iterator<T> {/*
-            return flatMap(element -> {
-                final var isValid = predicate.test(element);
-                final var head = isValid ? new SingleHead<>(element) : new EmptyHead<T>();
-                return new HeadedIterator<>(head);
-            }*//*);*/
-	}
-	/*@Override
-        public */ zip<R>(other: Iterator<R>): Iterator<Tuple<T, R>> {
-		return new HeadedIterator<>(/**/(/*) -> head*/.next(/*)*/.and(() -> other.next()));
-	}
-}
-class Tuple {
-	left: L;
-	right: R;
-	constructor (left: L, right: R) {
-		this.left = left;
-		this.right = right;
-	}
-}
-class DivideState {
-	/*private*/ segments: List<string>;
-	/*private*/ buffer: StringBuilder;
-	/*private*/ depth: int;
-	DivideState(segments: List<string>, buffer: StringBuilder, depth: int): public {/*
-            this.segments = segments;*//*
-            this.buffer = buffer;*//*
-            this.depth = depth;*/
-	}
-	DivideState(): public {/*
-            this(Lists.empty(), new StringBuilder(), 0);*/
-	}
-	/*private*/ append(c: char): DivideState {/*
-            buffer.append(c);*/
-		return this;
-	}
-	/*private*/ enter(): DivideState {/*
-            this.depth = depth + 1;*/
-		return this;
-	}
-	/*private*/ exit(): DivideState {/*
-            this.depth = depth - 1;*/
-		return this;
-	}
-	/*private*/ isShallow(): boolean {
-		return /*depth == 1*/;
-	}
-	/*private*/ advance(): DivideState {/*
-            segments = segments.add(buffer.toString());*//*
-            this.buffer = new StringBuilder();*/
-		return this;
-	}
-	/*private*/ isLevel(): boolean {
-		return /*depth == 0*/;
-	}
-}
-class Definition implements Parameter, Generating {
-	beforeType: Option<string>;
-	typeParams: List<string>;
-	type: Type;
-	name: string;
-	constructor (beforeType: Option<string>, typeParams: List<string>, type: Type, name: string) {
-		this.beforeType = beforeType;
-		this.typeParams = typeParams;
-		this.type = type;
-		this.name = name;
-	}
-	Definition(type: Type, name: string): public {/*
-            this(new None<>(), Lists.empty(), type, name);*/
-	}
-	/*@Override
-        public*/ generate(): string {
-		return generateWithAfterName(/*""*/);
-	}
-	/*public*/ generateWithAfterName(afterName: string): string {/*
-            final var joinedTypeParams = typeParams.iter()
-                    .collect(new Joiner(", "))
-                    .map(value -> "<" + value + ">")
-                    .orElse("");*//*
-
-            final var beforeType = this.beforeType.map(inner -> inner + " ").orElse("");*/
-		return /*beforeType + name + joinedTypeParams + afterName + ": " + type*/.generate();
-	}
-	/*public*/ mapType(mapper: (param0 : Type) => Type): Definition {
-		return new Definition(beforeType, typeParams, mapper(type), name);
-	}
-}
-class Placeholder implements Parameter, Value, Type {
-	input: string;
-	constructor (input: string) {
-		this.input = input;
-	}
-	/*@Override
-        public*/ generate(): string {
-		return generatePlaceholder(input);
-	}
-}
-class Whitespace implements Parameter, Generating, ValueArgument, TypeArgument {
-	/*@Override
-        public*/ generate(): string {
-		return /*""*/;
-	}
-}
-class Joiner implements Collector<string, Option<string>> {
-	/*private final*/ delimiter: string;
-	Joiner(): public {/*
-            this("");*/
-	}
-	Joiner(delimiter: string): public {/*
-            this.delimiter = delimiter;*/
-	}
-	/*@Override
-        public*/ createInitial(): Option<string> {
-		return new None<>();
-	}
-	/*@Override
-        public*/ fold(current: Option<string>, element: string): Option<string> {
-		return new Some<>(current.map(/*inner -> inner + delimiter + element)*/.orElse(element));
-	}
-}
-class ListCollector implements Collector<T, List<T>> {
-	/*@Override
-        public*/ createInitial(): List<T> {
-		return Lists.empty();
-	}
-	/*@Override
-        public*/ fold(current: List<T>, element: T): List<T> {
-		return current.add(element);
-	}
-}
-class Construction implements Caller {
+export class Construction implements Caller {
 	type: Type;
 	constructor (type: Type) {
 		this.type = type;
@@ -455,7 +8,7 @@ class Construction implements Caller {
 		return /*"new " + type*/.generate();
 	}
 }
-class Invocation implements Value {
+export class Invocation implements Value {
 	caller: Caller;
 	arguments: List<Value>;
 	constructor (caller: Caller, arguments: List<Value>) {
@@ -479,7 +32,7 @@ class FieldAccess implements Value {
 		return parent.generate() + "." + property;
 	}
 }
-class Symbol implements Value, Type {
+export class Symbol implements Value, Type {
 	value: string;
 	constructor (value: string) {
 		this.value = value;
@@ -489,7 +42,7 @@ class Symbol implements Value, Type {
 		return value;
 	}
 }
-class StructureType implements Type {
+export class StructureType implements Type {
 	name: string;
 	definitions: Map<string, Definition>;
 	constructor (name: string, definitions: Map<string, Definition>) {
@@ -507,7 +60,7 @@ class StructureType implements Type {
 		return definitions.get(name);
 	}
 }
-class StructureTypeSet {
+export class StructureTypeSet {
 	structureTypes: List<StructureType>;
 	constructor (structureTypes: List<StructureType>) {
 		this.structureTypes = structureTypes;
@@ -518,7 +71,7 @@ class StructureTypeSet {
 	/*public*/ define(structureType: StructureType): StructureTypeSet {
 		return new StructureTypeSet(structureTypes.add(structureType));
 	}
-	/*private*/ resolveType(name: string): Option<StructureType> {
+	/*public*/ resolveType(name: string): Option<StructureType> {
 		return this.structureTypes.iter(/*)
                     */.filter(/*type -> type*/.isNamed(name)).next();
 	}
@@ -633,46 +186,6 @@ class TemplateType implements Type {
 		return /*base + "<" + outputArguments + ">"*/;
 	}
 }
-class JavaMap implements Map<K, V> {
-	map: java.util.Map<K, V>;
-	constructor (map: java.util.Map<K, V>) {
-		this.map = map;
-	}
-	JavaMap(): public {/*
-            this(new HashMap<>());*/
-	}
-	/*@Override
-        public*/ putAll(other: Map<K, V>): Map<K, V> {
-		return other.iter(/*)*/.<Map<K, V>>fold(this, /* Map::putTuple*/);
-	}
-	/*@Override
-        public*/ iter(): Iterator<Tuple<K, V>> {
-		return new JavaList<>(new ArrayList<>(map.entrySet(/*)))
-                    */.iter().map(entry -> new Tuple<>(entry.getKey(), entry.getValue()));
-	}
-	/*@Override
-        public*/ putTuple(tuple: Tuple<K, V>): Map<K, V> {/*
-            map.put(tuple.left, tuple.right);*/
-		return this;
-	}
-	/*@Override
-        public*/ put(key: K, value: V): Map<K, V> {/*
-            map.put(key, value);*/
-		return this;
-	}
-	/*@Override
-        public*/ get(key: K): Option<V> {/*
-            if (map.containsKey(key)) {
-                return new Some<>(map.get(key));
-            }*/
-		return new None<>();
-	}
-}
-class Maps {
-	/*public static */ empty<K, V>(): Map<K, V> {
-		return new JavaMap<>();
-	}
-}
 class Stack {
 	frames: List<Frame>;
 	constructor (frames: List<Frame>) {
@@ -699,7 +212,7 @@ class Stack {
                     */.map(/*frame -> frame*/.resolveTypeParam(/*value)*/).flatMap(Iterators::fromOptional).next();
 	}
 }
-class TypeParam {
+export class TypeParam {
 	name: string;
 	constructor (name: string) {
 		this.name = name;
@@ -725,7 +238,7 @@ class StructureRefType implements Type {
 		return name;
 	}
 }
-class DefinitionSet {
+export class DefinitionSet {
 	definitions: List<Definition>;
 	constructor (definitions: List<Definition>) {
 		this.definitions = definitions;
@@ -733,7 +246,7 @@ class DefinitionSet {
 	DefinitionSet(): public {/*
             this(Lists.empty());*/
 	}
-	/*private*/ resolveValue(name: string): Option<Definition> {
+	/*public*/ resolveValue(name: string): Option<Definition> {
 		return definitions.iter(/*)
                     */.filter(/*definition -> definition*/.name.equals(name)).next();
 	}
@@ -744,74 +257,7 @@ class DefinitionSet {
 		return new DefinitionSet(definitions.add(definition));
 	}
 }
-class TypeParamSet {
-	typeParams: List<TypeParam>;
-	constructor (typeParams: List<TypeParam>) {
-		this.typeParams = typeParams;
-	}
-	TypeParamSet(): public {/*
-            this(Lists.empty());*/
-	}
-	/*public*/ resolve(name: string): Option<TypeParam> {
-		return typeParams.iter(/*)
-                    */.filter(/*typeParam -> typeParam*/.name.equals(name)).next();
-	}
-}
-class StructureFrame implements StructureContainerFrame {
-	members: DefinitionSet;
-	structureTypes: StructureTypeSet;
-	typeParams: TypeParamSet;
-	constructor (members: DefinitionSet, structureTypes: StructureTypeSet, typeParams: TypeParamSet) {
-		this.members = members;
-		this.structureTypes = structureTypes;
-		this.typeParams = typeParams;
-	}
-	StructureFrame(typeParams: TypeParamSet): public {/*
-            this(new DefinitionSet(), new StructureTypeSet(), typeParams);*/
-	}
-	/*@Override
-        public*/ resolveValue(name: string): Option<Definition> {
-		return members.resolveValue(name);
-	}
-	/*@Override
-        public*/ iterDefinitions(): Iterator<Definition> {
-		return members.iter();
-	}
-	/*public*/ define(definition: Definition): StructureFrame {
-		return new StructureFrame(members.add(definition), structureTypes, typeParams);
-	}
-	/*@Override
-        public*/ resolveType(name: string): Option<StructureType> {
-		return structureTypes.resolveType(name);
-	}
-	/*@Override
-        public*/ defineStructureType(structureType: StructureType): StructureContainerFrame {
-		return new StructureFrame(members, structureTypes.define(structureType), typeParams);
-	}
-	/*@Override
-        public*/ resolveTypeParam(name: string): Option<TypeParam> {
-		return typeParams.resolve(name);
-	}
-}
-export class Main {/*
-
-    private sealed interface Value extends Caller, ValueArgument {
-    }*//*
-
-    private sealed interface Caller extends Generating {
-    }*/
-	/*private interface Type extends Generating, TypeArgument {
-        default*/ extract(actual: Type): Map<string, Type> {
-		return Maps.empty();/*
-        }
-
-        default Type resolve(Map<String, Type> resolved) {
-            return this;*//*
-        }
-    */
-	}/*
-
-    private interface StructureContainerFrame extends Frame {
+export class Main {/*public interface StructureContainerFrame extends Frame {
         StructureContainerFrame defineStructureType(StructureType structureType);
     }*/
 	/*public static*/ main(args: /*String[]*/): void {/*
@@ -947,13 +393,7 @@ export class Main {/*
             if (paramStart >= 0) {
                 final var name = withoutParamEnd.substring(0, paramStart).strip();
                 final var inputParams = withoutParamEnd.substring(paramStart + "(".length());
-                final var fields = divide(inputParams, Main::foldValues)
-                        .iter()
-                        .map(input -> parseParameter(input, state))
-                        .map(Main::retainDefinition)
-                        .flatMap(Iterators::fromOptional)
-                        .collect(new ListCollector<>());
-
+                final var fields = getCollect(state, inputParams);
                 if (!fields.isEmpty()) {
                     return getTupleOption(targetInfix, state, inputContent, modifiers, implementsTypes, new Some<>(fields), name);
                 }
@@ -961,6 +401,15 @@ export class Main {/*
         }
 
         return getTupleOption(targetInfix, state, inputContent, modifiers, implementsTypes, new None<>(), beforeContent);
+    }*//*
+
+    private static List<Definition> getCollect(CompileState state, String inputParams) {
+        return divide(inputParams, Main::foldValues)
+                .iter()
+                .map(input -> parseParameter(input, state))
+                .map(Main::retainDefinition)
+                .flatMap(Iterators::fromOptional)
+                .collect(new ListCollector<>());
     }*//*
 
     private static Option<Tuple<String, CompileState>> getTupleOption(
@@ -973,21 +422,8 @@ export class Main {/*
             String name) {
         final String beforeBody;
         if (maybeFields.isPresent()) {
-            final var fields = maybeFields.get();
-            final var output1 = fields.iter()
-                    .map(Definition::generate)
-                    .fold(new StringBuilder(), Main::mergeValues);
-
-            final var outputParams = output1.toString();
-            final var generatedFields = fields.iter()
-                    .map(Definition::generate)
-                    .map(element -> "\n\t" + element + ";")
-                    .collect(new Joiner())
-                    .orElse("");
-
-            final var assignments = joinConstructorAssignments(fields);
-
-            beforeBody = generatedFields + "\n\tconstructor (" + outputParams + ") {" + assignments + "\n\t}";
+            final var parameters = maybeFields.get();
+            beforeBody = convertParametersToBeforeBody(parameters);
         }
         else {
             beforeBody = "";
@@ -1000,38 +436,57 @@ export class Main {/*
             if (typeParamsStart >= 0) {
                 final var name1 = stripped1.substring(0, typeParamsStart);
                 final var substring = stripped1.substring(typeParamsStart + "<".length());
-                final var typeParams = divide(substring, Main::foldValues)
-                        .iter()
-                        .map(String::strip)
-                        .filter(value -> !value.isEmpty())
-                        .map(TypeParam::new)
-                        .collect(new ListCollector<>());
-
-                return assembleStructure(targetInfix, state, inputContent, modifiers, implementsTypes, name1, beforeBody, maybeFields, new TypeParamSet(typeParams));
+                final var typeParams = parseTypeParameters(substring);
+                return assembleStructure(targetInfix, state, new StructurePrototype(modifiers, name1, new TypeParamSet(typeParams), implementsTypes, maybeFields, beforeBody, inputContent));
             }
         }
 
-        return assembleStructure(targetInfix, state, inputContent, modifiers, implementsTypes, name, beforeBody, maybeFields, new TypeParamSet());
+        return assembleStructure(targetInfix, state, new StructurePrototype(modifiers, name, new TypeParamSet(), implementsTypes, maybeFields, beforeBody, inputContent));
+    }*//*
+
+    private static List<TypeParam> parseTypeParameters(String substring) {
+        return divide(substring, Main::foldValues)
+                .iter()
+                .map(String::strip)
+                .filter(value -> !value.isEmpty())
+                .map(TypeParam::new)
+                .collect(new ListCollector<>());
+    }*//*
+
+    private static String convertParametersToBeforeBody(List<Definition> parameters) {
+        final var outputParams = joinParameters(parameters);
+        final var generatedFields = convertParametersToFields(parameters);
+        final var assignments = joinConstructorAssignments(parameters);
+        final var beforeBody1 = generatedFields + "\n\tconstructor (" + outputParams + ") {" + assignments + "\n\t}";
+        return beforeBody1;
+    }*//*
+
+    private static String joinParameters(List<Definition> fields) {
+        return fields.iter()
+                .map(Definition::generate)
+                .fold(new StringBuilder(), Main::mergeValues)
+                .toString();
+    }*//*
+
+    private static String convertParametersToFields(List<Definition> fields) {
+        return fields.iter()
+                .map(Definition::generate)
+                .map(element -> "\n\t" + element + ";")
+                .collect(new Joiner())
+                .orElse("");
     }*//*
 
     private static Option<Tuple<String, CompileState>> assembleStructure(
             String targetInfix,
-            CompileState state,
-            String inputContent,
-            String modifiers,
-            List<Type> implementsTypes,
-            String name,
-            String beforeBody,
-            Option<List<Definition>> maybeFields,
-            TypeParamSet typeParams) {
-        final var strippedName = name.strip();
+            CompileState state, StructurePrototype structurePrototype) {
+        final var strippedName = structurePrototype.name().strip();
         if (!isSymbol(strippedName)) {
             return new None<>();
         }
 
-        final var maybeWithConstructorType1 = getMaybeWithConstructorType(name, maybeFields, Maps.empty());
-        final var frame = new StructureFrame(typeParams).defineStructureType(new StructureType(strippedName, maybeWithConstructorType1));
-        final var classSegmentsTuple = joinClassSegments(inputContent, state.enter(frame));
+        final var maybeWithConstructorType1 = getMaybeWithConstructorType(structurePrototype.name(), structurePrototype.maybeFields(), Maps.empty());
+        final var frame = new StructureFrame(structurePrototype.typeParams()).defineStructureType(new StructureType(strippedName, maybeWithConstructorType1));
+        final var classSegmentsTuple = joinClassSegments(structurePrototype.inputBody(), state.enter(frame));
         final var classSegmentsOutput = classSegmentsTuple.left.toString();
         final var classSegmentsState = classSegmentsTuple.right;
 
@@ -1043,7 +498,7 @@ export class Main {/*
                     .map(definition -> new Tuple<>(definition.name, definition))
                     .collect(new MapCollector<>());
 
-            final var maybeWithConstructorType = getMaybeWithConstructorType(name, maybeFields, right);
+            final var maybeWithConstructorType = getMaybeWithConstructorType(structurePrototype.name(), structurePrototype.maybeFields(), right);
             final var structureType = new StructureType(strippedName, maybeWithConstructorType);
             final var defined = exited.left.mapLast(last -> {
                 if (last instanceof StructureContainerFrame structureContainerFrame) {
@@ -1054,9 +509,9 @@ export class Main {/*
                 }
             });
 
-            final var outputContent = beforeBody + classSegmentsOutput;
-            final var joinedImplements = implementsTypes.isEmpty() ? "" : " implements " + generateNodes(implementsTypes);
-            var generated = modifiers + targetInfix + " " + strippedName + joinedImplements + " {" + outputContent + "\n}\n";
+            final var outputContent = structurePrototype.beforeBody() + classSegmentsOutput;
+            final var joinedImplements = structurePrototype.implementsTypes().isEmpty() ? "" : " implements " + generateNodes(structurePrototype.implementsTypes());
+            var generated = structurePrototype.modifiers() + targetInfix + " " + strippedName + joinedImplements + " {" + outputContent + "\n}\n";
 
             return new Some<>(new Tuple<>("", defined.addStructure(generated)));
         }
@@ -1587,7 +1042,7 @@ export class Main {/*
         return true;
     }*//*
 
-    private static String generatePlaceholder(String input) {
+    public static String generatePlaceholder(String input) {
         final var replaced = input
                 .replace("start", "start")
                 .replace("end", "end");
