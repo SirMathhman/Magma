@@ -22,7 +22,7 @@ This page outlines how Java language features map to their TypeScript counterpar
 | Inheritance (`extends`) | `extends` | Works with classes and interfaces. | |
 | Implementing interfaces (`implements`) | `implements` | Direct mapping. | |
 | Exceptions (`throw`, `try`/`catch`) | `throw`, `try`/`catch` | No checked exceptions in TypeScript. | |
-| Annotations | Decorators | Requires enabling experimental decorators. | |
+| Annotations | *(not supported)* | Decorators are not used in this project. | |
 | Lambda expressions | Arrow functions | `() -> {}` → `() => {}`. | |
 | Streams | Array methods / custom helpers | Use `map`, `filter`, `reduce`. | |
 | Standard library (`java.util`, etc.) | TypeScript/JS standard APIs or polyfills | Replace with equivalent utilities. | |
@@ -35,7 +35,7 @@ Further tasks:
    Basic class definitions now output `export default class`.
 2. ~~Add support for generics~~ and inheritance.
 3. Handle exceptions and control flow constructs.
-4. Map annotations to decorators.
+4. ~~Map annotations to decorators.~~ Decorators will not be used.
 5. Gradually cover advanced features like reflection or concurrency.
 
 6. Record the related test names in the "Tests" column whenever a feature is completed.
