@@ -35,7 +35,7 @@ so that Java modifiers like `public` become `export default`. Method
 body text is replaced with stubs in the generated TypeScript while
 preserving each method's name and indentation. Stubs insert one
 `// TODO` comment for every statement in the original method. Return statements
-retain the `return` keyword with `/* TODO */` as a placeholder value. Conditional blocks and `while` loops are rewritten as skeletons where the condition becomes `/* TODO */` and the body contains a single `// TODO` comment. Basic parameter and
+retain the `return` keyword with `/* TODO */` as a placeholder value. Conditional blocks (`if` and `while`) parse their conditions using `parseValue` so that method calls or member access are stubbed consistently. Other expressions still become `/* TODO */`. Basic parameter and
 return types are converted to their TypeScript equivalents. Array types
 map directly as well, so `int[]` becomes `number[]` and `String[]`
 becomes `string[]`. Future

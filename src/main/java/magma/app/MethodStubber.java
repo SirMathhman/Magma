@@ -63,17 +63,20 @@ class MethodStubber {
             }
             wrote = true;
             if ((body.startsWith("if") || body.startsWith("else if")) && body.endsWith("{")) {
-                appendBlockStub(stub, indent, "if", true);
+                String keyword = body.startsWith("else if") ? "else if" : "if";
+                String cond = parseCondition(body);
+                appendBlockStub(stub, indent, keyword, cond);
                 i = skipBody(lines, i) - 1;
                 continue;
             }
             if (body.startsWith("else") && body.endsWith("{")) {
-                appendBlockStub(stub, indent, "else", false);
+                appendBlockStub(stub, indent, "else", null);
                 i = skipBody(lines, i) - 1;
                 continue;
             }
             if (body.startsWith("while") && body.endsWith("{")) {
-                appendBlockStub(stub, indent, "while", true);
+                String cond = parseCondition(body);
+                appendBlockStub(stub, indent, "while", cond);
                 i = skipBody(lines, i) - 1;
                 continue;
             }
@@ -146,14 +149,24 @@ class MethodStubber {
         return i;
     }
 
-    static void appendBlockStub(StringBuilder stub, String indent, String keyword, boolean withCondition) {
+    static void appendBlockStub(StringBuilder stub, String indent, String keyword, String condition) {
         stub.append(indent).append("    ").append(keyword);
-        if (withCondition) {
-            stub.append(" (/* TODO */)");
+        if (condition != null) {
+            stub.append(" (").append(condition).append(")");
         }
         stub.append(" {").append(System.lineSeparator());
         stub.append(indent).append("        // TODO").append(System.lineSeparator());
         stub.append(indent).append("    }").append(System.lineSeparator());
+    }
+
+    private static String parseCondition(String stmt) {
+        int open = stmt.indexOf('(');
+        int close = stmt.lastIndexOf(')');
+        if (open == -1 || close == -1 || close <= open) {
+            return "/* TODO */";
+        }
+        String inside = stmt.substring(open + 1, close).trim();
+        return parseValue(inside);
     }
 
     static String parseAssignment(String stmt, String indent) {
@@ -209,7 +222,7 @@ class MethodStubber {
         if (trimmed.length() >= 2 && trimmed.startsWith("\"") && trimmed.endsWith("\"")) {
             return trimmed;
         }
-        if (isMemberAccess(trimmed)) {
+        if (isMemberAccess(trimmed) || isNumeric(trimmed)) {
             return trimmed;
         }
         return "/* TODO */";
