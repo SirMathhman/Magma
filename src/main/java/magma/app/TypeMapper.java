@@ -1,14 +1,14 @@
 package magma.app;
 
-import java.util.ArrayList;
-import java.util.List;
+import magma.list.JdkList;
+import magma.list.ListLike;
 
 class TypeMapper {
     static String toTsParams(String params) {
         if (params.isBlank()) {
             return "";
         }
-        List<String> out = new ArrayList<>();
+        ListLike<String> out = JdkList.create();
         for (var p : params.split(",")) {
             var parts = p.trim().split("\\s+");
             if (parts.length == 0) continue;
@@ -16,7 +16,12 @@ class TypeMapper {
             var type = parts.length > 1 ? parts[parts.length - 2] : "any";
             out.add(name + ": " + toTsType(type));
         }
-        return String.join(", ", out);
+        var result = new StringBuilder();
+        for (var i = 0; i < out.size(); i++) {
+            if (i > 0) result.append(", ");
+            result.append(out.get(i));
+        }
+        return result.toString();
     }
 
     static String toTsType(String javaType) {
@@ -41,10 +46,15 @@ class TypeMapper {
     private static String mapGeneric(String javaType, int start, int end) {
         var base = javaType.substring(0, start).trim();
         var params = javaType.substring(start + 1, end);
-        List<String> mapped = new ArrayList<>();
+        ListLike<String> mapped = JdkList.create();
         for (var p : params.split(",")) {
             mapped.add(toTsType(p.trim()));
         }
-        return base + "<" + String.join(", ", mapped) + ">";
+        var joined = new StringBuilder();
+        for (var i = 0; i < mapped.size(); i++) {
+            if (i > 0) joined.append(", ");
+            joined.append(mapped.get(i));
+        }
+        return base + "<" + joined + ">";
     }
 }

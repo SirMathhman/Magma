@@ -12,8 +12,8 @@ import java.io.IOException;
 
 import magma.path.NioPath;
 import magma.path.PathLike;
-import java.util.ArrayList;
-import java.util.List;
+import magma.list.JdkList;
+import magma.list.ListLike;
 
 /**
  * Simple command line interface for the Transpiler.
@@ -44,12 +44,12 @@ public class Main {
         return new None<>();
     }
 
-    private Result<List<PathLike>> listJavaFiles(PathLike srcRoot) {
+    private Result<ListLike<PathLike>> listJavaFiles(PathLike srcRoot) {
         var paths = srcRoot.walk();
         if (!paths.isOk()) {
             return new Err<>(paths.error().get());
         }
-        List<PathLike> javaFiles = new ArrayList<>();
+        ListLike<PathLike> javaFiles = JdkList.create();
         for (var p : paths.value().get()) {
             if (p.toString().endsWith(".java")) {
                 javaFiles.add(p);

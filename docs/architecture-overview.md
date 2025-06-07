@@ -31,6 +31,8 @@ platforms.
   callers never touch `java.nio.file.Files`.
 - `PathLike.walk` – lists files without exposing `Files.walk` or throwing
   `IOException`
+- `magma.list.ListLike` and `magma.list.JdkList` – simple list wrapper so
+  code avoids a hard dependency on `java.util.List`
 
 The `parseValue` routine incrementally scans characters.  It recognizes
 member access, method calls, literals and the logical not operator.
