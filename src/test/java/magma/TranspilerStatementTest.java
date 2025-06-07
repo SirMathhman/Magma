@@ -88,7 +88,7 @@ class TranspilerStatementTest {
     }
 
     @Test
-    void stubsCallsOnNewInstances() {
+    void preservesCallsOnNewInstances() {
         String javaSrc = String.join("\n",
                 "public class Foo {",
                 "    void run() {",
@@ -99,7 +99,27 @@ class TranspilerStatementTest {
         String expected = String.join("\n",
                 "export default class Foo {",
                 "    run(): void {",
-                "        /* TODO */();",
+                "        new Main().run();",
+                "    }",
+                "}");
+
+        String result = new Transpiler().toTypeScript(javaSrc);
+        assertEquals(expected, result);
+    }
+
+    @Test
+    void preservesCallsOnNewInstancesInLetStatements() {
+        String javaSrc = String.join("\n",
+                "public class Foo {",
+                "    void run() {",
+                "        Option<String> error = new Main().run();",
+                "    }",
+                "}");
+
+        String expected = String.join("\n",
+                "export default class Foo {",
+                "    run(): void {",
+                "        let error: Option<string> = new Main().run();",
                 "    }",
                 "}");
 

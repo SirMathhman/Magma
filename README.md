@@ -48,7 +48,7 @@ the caller and arguments are emitted as `/* TODO */` placeholders. Constructor
 calls keep the `new` keyword and the type name, producing `new Bar(/* TODO */)` when stubbed. This also
 applies to variable definitions like `int x = run();`, which become
 `let x: number = /* TODO */();`.
-Calls on freshly constructed objects such as `new Main().run()` are treated the same way, producing `/* TODO */()`.
+Calls on freshly constructed objects such as `new Main().run()` are now preserved intact, so the expression stays `new Main().run()`. This keeps initialization chains visible in the generated code.
 Member access expressions like `parent.field` are preserved so assignments such as
 `int x = parent.field;` become `let x: number = parent.field;`.
 Import statements are rewritten to relative paths that mirror the Java package
