@@ -59,3 +59,6 @@ never be edited directly.
   helper accepts an iterator-returning function so callers stay independent of
   concrete list types.
 - `magma.list.JdkList` – default implementation backed by `ArrayList`
+- `magma.app.MethodStubber` – replaces method bodies with `// TODO` stubs.
+  Helpers now use a single scan so functions never contain more than one loop,
+  and indentation levels stay at two or fewer.

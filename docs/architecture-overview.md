@@ -14,8 +14,10 @@ platforms.
 
 - `magma.app.Transpiler` – orchestrates the conversion to TypeScript
 - `ImportHelper` – rewrites package declarations and import lines
-- `MethodStubber` – replaces method bodies with `// TODO` stubs and
-  walks expressions using `parseValue`
+- `MethodStubber` – replaces method bodies with `// TODO` stubs.
+  Each helper scans once so every function contains at most a single loop
+  and indentation never exceeds two levels. Expressions are walked using
+  `parseValue`.
 - Nested `if` and `while` blocks are parsed recursively so statements
   inside them are handled just like top-level code.
 - `FieldTranspiler` – converts Java field definitions
