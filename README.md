@@ -89,7 +89,9 @@ Additional guidelines for contributors can be found in [AGENTS.md](AGENTS.md).
 
 The project intentionally avoids Maven. Use the provided helper scripts to
 compile and run the JUnit tests. The build script downloads the JUnit Console
-launcher if needed and places compiled classes in a `bin` directory.
+launcher if needed and places compiled classes in a `bin` directory. When the
+compilation step finishes you will see a confirmation message so it is clear the
+build succeeded.
 
 ```bash
 ./build.sh  # compile sources
