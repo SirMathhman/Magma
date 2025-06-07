@@ -7,6 +7,9 @@ the full Java standard library. Unknown type identifiers are emitted
 unchanged so the generated TypeScript stays close to the original
 sources.
 
+File paths no longer rely directly on `java.nio.file.Path`. A simple
+`PathLike` wrapper keeps the rest of the code independent of NIO.
+
 Full module descriptions live in
 [`docs/architecture-overview.md`](docs/architecture-overview.md).  A
 feature matrix and roadmap of the supported Java constructs can be found
