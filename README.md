@@ -31,6 +31,9 @@ Generic type parameters are preserved, so `List<String>` becomes
 Inheritance via the `extends` keyword and interface implementation with
 `implements` are copied directly to the TypeScript output.
 
+Enum declarations are also converted so that `public enum Foo` becomes
+`export enum Foo` in the resulting TypeScript.
+
 The primitive `boolean` and its wrapper `Boolean` both become TypeScript
 `boolean`, as verified by `TranspilerTest.mapsBooleanTypes`.
 

@@ -14,7 +14,7 @@ This page outlines how Java language features map to their TypeScript counterpar
 | Classes | Classes | Use `class` syntax. | `TranspilerTest.transpilesClassDefinitionWithModifier` |
 | Interfaces | Interfaces | Direct mapping. | |
 | Abstract classes | Abstract classes | Use the `abstract` keyword. The project itself avoids abstract base classes in favor of composition. | |
-| Enums | `enum` | TypeScript `enum` provides similar semantics. | |
+| Enums | `enum` | TypeScript `enum` provides similar semantics. | `TranspilerTest.transpilesEnumDefinition` |
 | Generics | Generics | Direct mapping of type parameters, e.g. `List<T>` → `List<T>`. | `TranspilerTest.mapsGenericTypes` |
 | Methods | Methods | Instance and static methods translate directly. Basic return types such as `int` or `void` become `number` or `void`. | `TranspilerTest.stubsMethodBodiesPreservingNames`, `TranspilerTest.stubsVoidReturnTypes` |
 | Fields | Properties | Public/private modifiers apply. | `TranspilerTest.transpilesFieldDeclarations` |
