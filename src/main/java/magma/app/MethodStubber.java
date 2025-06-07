@@ -200,13 +200,29 @@ class MethodStubber {
     }
 
     static String stubInvokableExpr(String stmt) {
-        int open = stmt.indexOf('(');
         int close = stmt.lastIndexOf(')');
-        if (open == -1 || close == -1 || close <= open) {
+        if (close == -1) {
+            return "/* TODO */";
+        }
+        int open = -1;
+        int depth = 0;
+        for (int i = close; i >= 0; i--) {
+            char c = stmt.charAt(i);
+            if (c == ')') {
+                depth++;
+            } else if (c == '(') {
+                depth--;
+                if (depth == 0) {
+                    open = i;
+                    break;
+                }
+            }
+        }
+        if (open == -1) {
             return "/* TODO */";
         }
         String head = stmt.substring(0, open).trim();
-        boolean isNew = head.startsWith("new ");
+        boolean isNew = head.startsWith("new ") && !head.contains(".");
         String callee = "/* TODO */";
         if (isNew) {
             String afterNew = head.substring(4).trim();

@@ -54,7 +54,8 @@ Only the features listed below are supported. Anything not mentioned here is con
   - Tests: `TranspilerStatementTest.stubsInvokables`,
     `TranspilerStatementTest.stubsInvokablesInLetStatements`,
     `TranspilerStatementTest.stubsConstructorCalls`,
-    `TranspilerStatementTest.stubsConstructorCallsInLetStatements`.
+    `TranspilerStatementTest.stubsConstructorCallsInLetStatements`,
+    `TranspilerStatementTest.stubsCallsOnNewInstances`.
 - **Member access** expressions like `parent.child` are kept intact.
   - Tests: `TranspilerStatementTest.preservesMemberAccessInAssignments`,
     `TranspilerStatementTest.preservesMemberAccessInReturns`.
