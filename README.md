@@ -9,7 +9,8 @@ This repository begins a self‑hosted transpiler from Java to TypeScript. It ke
 - Tests mirror the transpiler (`TranspilerTest`) and CLI (`MainTest`).
 
 Abstract classes are intentionally avoided. The project prefers composition of
-small classes over inheritance hierarchies.
+small classes over inheritance hierarchies. Functions are kept small: each
+method contains at most one loop and braces never nest more than two levels.
 
 The transpiler removes the `package` declaration since TypeScript does
 not use Java-style packages. It also rewrites simple class definitions
