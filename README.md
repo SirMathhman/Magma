@@ -17,6 +17,9 @@ preserving each method's name and indentation. Each stub contains a
 return types are converted to their TypeScript equivalents. Future
 tests will drive the full implementation.
 
+The primitive `boolean` and its wrapper `Boolean` both become TypeScript
+`boolean`, as verified by `TranspilerTest.mapsBooleanTypes`.
+
 ## Documentation
 
 Additional notes and a feature mapping between Java and TypeScript live in
