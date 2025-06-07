@@ -62,6 +62,11 @@ class TranspilerTest {
     }
 
     @Test
+    void mapsArrayTypes() {
+        String javaSrc = String.join("\n",
+            "public class Foo {",
+            "    int[] bar(String[] words) {",
+            "        return null;",
     void mapsBooleanTypes() {
         String javaSrc = String.join("\n",
             "public class Foo {",
@@ -72,6 +77,7 @@ class TranspilerTest {
 
         String expected = String.join("\n",
             "export default class Foo {",
+            "    bar(words: string[]): number[] {",
             "    flag(a: boolean, b: boolean): boolean {",
             "        // TODO",
             "    }",
