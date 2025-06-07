@@ -209,7 +209,7 @@ class MethodStubber {
         if (trimmed.startsWith("!")) {
             String rest = trimmed.substring(1).trim();
             if (isInvokable(rest)) {
-                return "!" + stubInvokableExpr(rest, true);
+                return "!" + stubInvokableExpr(rest);
             }
             return "!" + parseValue(rest);
         }
@@ -239,9 +239,6 @@ class MethodStubber {
 
     private static String parseValueArg(String value) {
         String trimmed = value.trim();
-        if (isIdentifier(trimmed)) {
-            return "/* TODO */";
-        }
         return parseValue(trimmed);
     }
 
@@ -315,10 +312,6 @@ class MethodStubber {
     }
 
     static String stubInvokableExpr(String stmt) {
-        return stubInvokableExpr(stmt, false);
-    }
-
-    static String stubInvokableExpr(String stmt, boolean stubCallee) {
         int close = stmt.lastIndexOf(')');
         if (close == -1) {
             return "/* TODO */";
@@ -347,9 +340,6 @@ class MethodStubber {
             parts.set(i, parseValueArg(parts.get(i)));
         }
         String joined = String.join(", ", parts);
-        if (stubCallee) {
-            callee = "/* TODO */";
-        }
         return callee + "(" + joined + ")";
     }
 

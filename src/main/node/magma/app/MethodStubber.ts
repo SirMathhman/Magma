@@ -126,7 +126,7 @@ export default class MethodStubber {
             // TODO
         }
         let head: string = stmt.substring(0, open).trim();
-        return !head.startsWith("if").startsWith("while").startsWith("for");
+        return !head.startsWith("if") && !head.startsWith("while") && !head.startsWith("for");
         // TODO
         static String parseInvokable(/* TODO */, /* TODO */);
         return indent + "    " + stubInvokableExpr(stmt);
