@@ -22,8 +22,8 @@ export default class Main {
     }
 
     run(): Option<string> {
-        let srcRoot: any = /* TODO */("src/main/java");
-        let outRoot: any = /* TODO */("src/main/node");
+        let srcRoot: any = Path./* TODO */("src/main/java");
+        let outRoot: any = Path./* TODO */("src/main/node");
         let files: Result<List<any>> = /* TODO */(/* TODO */);
         if (/* TODO */) {
             // TODO
@@ -39,7 +39,7 @@ export default class Main {
 
     listJavaFiles(srcRoot: any): Result<List<any>> {
         let javaFiles: List<any> = new ArrayList<>();
-        let stream: any = /* TODO */;
+        let stream: any = Files./* TODO */;
         // TODO
         if (/* TODO */) {
             // TODO
@@ -53,12 +53,12 @@ export default class Main {
 
     transpileFile(srcRoot: any, outRoot: any, javaFile: any): Option<string> {
         // TODO
-        let javaSrc: string = /* TODO */(/* TODO */);
+        let javaSrc: string = Files./* TODO */(/* TODO */);
         let ts: string = new Transpiler().toTypeScript(javaSrc);
-        let rel: any = /* TODO */(/* TODO */);
-        let name: string = /* TODO */();
-        let withoutExt: string = /* TODO */(/* TODO */, /* TODO */);
-        let outFile: any = /* TODO */(withoutExt + ".ts");
+        let rel: any = srcRoot./* TODO */(/* TODO */);
+        let name: string = rel./* TODO */();
+        let withoutExt: string = name./* TODO */(0, /* TODO */);
+        let outFile: any = outRoot./* TODO */(withoutExt + ".ts");
         /* TODO */(/* TODO */);
         /* TODO */(/* TODO */, /* TODO */);
         return /* TODO */;

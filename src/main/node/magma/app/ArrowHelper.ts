@@ -1,6 +1,6 @@
 export default class ArrowHelper {
     convertArrowFunctions(source: string): string {
-        let lines: string[] = /* TODO */("\\R");
+        let lines: string[] = source./* TODO */("\\R");
         let out: any = new StringBuilder();
         // TODO
         if (/* TODO */) {
@@ -11,10 +11,10 @@ export default class ArrowHelper {
     }
 
     stubArrowAssignments(source: string): string {
-        let lines: string[] = /* TODO */("\\R");
+        let lines: string[] = source./* TODO */("\\R");
         let out: any = new StringBuilder();
         // TODO
-        let trimmed: string = /* TODO */();
+        let trimmed: string = line./* TODO */();
         if (/* TODO */) {
             // TODO
         }
@@ -24,16 +24,16 @@ export default class ArrowHelper {
     }
 
     expandArrowBody(line: string, trimmed: string): string {
-        let open: number = /* TODO */(/* TODO */);
-        let close: number = /* TODO */(/* TODO */);
-        let indent: string = /* TODO */(/* TODO */, /* TODO */);
-        let header: string = /* TODO */(/* TODO */, /* TODO */);
-        let body: string = /* TODO */();
+        let open: number = line./* TODO */(/* TODO */);
+        let close: number = line./* TODO */(/* TODO */);
+        let indent: string = line./* TODO */(0, /* TODO */);
+        let header: string = line./* TODO */(0, /* TODO */);
+        let body: string = line./* TODO */(/* TODO */, /* TODO */)./* TODO */();
         let out: any = new StringBuilder();
         /* TODO */(/* TODO */);
         // TODO
         // TODO
-        let trimmedPart: string = /* TODO */();
+        let trimmedPart: string = part./* TODO */();
         // TODO
         if (/* TODO */) {
             // TODO

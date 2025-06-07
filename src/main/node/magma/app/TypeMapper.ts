@@ -5,7 +5,7 @@ export default class TypeMapper {
         }
         let out: java.util.List<string> = new java.util.ArrayList<>();
         // TODO
-        let parts: string[] = /* TODO */("\\s+");
+        let parts: string[] = p./* TODO */()./* TODO */("\\s+");
         let (parts.length: any = /* TODO */;
         let name: string = parts[parts.length - 1];
         let type: string = parts.length > 1 ? parts[parts.length - 2] : "any";
@@ -15,8 +15,8 @@ export default class TypeMapper {
     }
 
     toTsType(javaType: string): string {
-        let genericStart: number = /* TODO */(/* TODO */);
-        let genericEnd: number = /* TODO */(/* TODO */);
+        let genericStart: number = javaType./* TODO */(/* TODO */);
+        let genericEnd: number = javaType./* TODO */(/* TODO */);
         if (/* TODO */) {
             // TODO
         }
@@ -33,8 +33,8 @@ export default class TypeMapper {
     }
 
     mapGeneric(javaType: string, start: number, end: number): string {
-        let base: string = /* TODO */();
-        let params: string = /* TODO */(/* TODO */, /* TODO */);
+        let base: string = javaType./* TODO */(0, /* TODO */)./* TODO */();
+        let params: string = javaType./* TODO */(/* TODO */, /* TODO */);
         let mapped: java.util.List<string> = new java.util.ArrayList<>();
         // TODO
         /* TODO */(/* TODO */);

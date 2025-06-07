@@ -13,32 +13,32 @@ export default class Transpiler {
      * @return transpiled TypeScript
      */
     toTypeScript(javaSource: string): string {
-        let pkg: string = /* TODO */(/* TODO */);
-        let withoutPackage: string = /* TODO */(/* TODO */);
-        let withImports: string = /* TODO */(/* TODO */, /* TODO */);
-        let lines: string[] = /* TODO */("\\R");
+        let pkg: string = ImportHelper./* TODO */(/* TODO */);
+        let withoutPackage: string = ImportHelper./* TODO */(/* TODO */);
+        let withImports: string = ImportHelper./* TODO */(/* TODO */, /* TODO */);
+        let lines: string[] = withImports./* TODO */("\\R");
         let ts: any = new StringBuilder();
         // TODO
-        let classIdx: number = /* TODO */("class");
-        let enumIdx: number = /* TODO */("enum");
-        let ifaceIdx: number = /* TODO */("interface");
-        let brace: number = /* TODO */(/* TODO */);
+        let classIdx: number = line./* TODO */("class");
+        let enumIdx: number = line./* TODO */("enum");
+        let ifaceIdx: number = line./* TODO */("interface");
+        let brace: number = line./* TODO */(/* TODO */);
         let !: any = /* TODO */;
-        let afterClass: string = /* TODO */(/* TODO */);
+        let afterClass: string = line./* TODO */(/* TODO */);
         /* TODO */(/* TODO */);
         let !: any = /* TODO */;
-        let afterIface: string = /* TODO */(/* TODO */);
+        let afterIface: string = line./* TODO */(/* TODO */);
         /* TODO */(/* TODO */);
         let !: any = /* TODO */;
-        let afterEnum: string = /* TODO */(/* TODO */);
+        let afterEnum: string = line./* TODO */(/* TODO */);
         /* TODO */(/* TODO */);
         // TODO
         /* TODO */(/* TODO */);
         // TODO
         // TODO
-        let withMethods: string = /* TODO */(/* TODO */);
-        let withFields: string = /* TODO */(/* TODO */);
-        let withArrows: string = /* TODO */(/* TODO */);
+        let withMethods: string = MethodStubber./* TODO */(/* TODO */);
+        let withFields: string = FieldTranspiler./* TODO */(/* TODO */);
+        let withArrows: string = ArrowHelper./* TODO */(/* TODO */);
         return /* TODO */;
         // TODO
     }

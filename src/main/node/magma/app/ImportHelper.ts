@@ -1,8 +1,8 @@
 export default class ImportHelper {
     extractPackage(source: string): string {
-        let lines: string[] = /* TODO */("\\R");
+        let lines: string[] = source./* TODO */("\\R");
         // TODO
-        let trimmed: string = /* TODO */();
+        let trimmed: string = line./* TODO */();
         if (/* TODO */) {
             // TODO
         }
@@ -11,11 +11,11 @@ export default class ImportHelper {
     }
 
     removePackage(source: string): string {
-        let trimmed: string = /* TODO */();
+        let trimmed: string = source./* TODO */();
         if (/* TODO */) {
             // TODO
         }
-        let semicolon: number = /* TODO */;
+        let semicolon: number = source.indexOf(';
         // TODO
         if (/* TODO */) {
             // TODO
@@ -24,17 +24,17 @@ export default class ImportHelper {
     }
 
     translateImports(source: string, currentPkg: string): string {
-        let lines: string[] = /* TODO */("\\R");
+        let lines: string[] = source./* TODO */("\\R");
         let out: any = new StringBuilder();
         let i: any = /* TODO */;
         i lines.length: any;
         // TODO
         let line: string = /* TODO */;
-        let trimmed: string = /* TODO */();
+        let trimmed: string = line./* TODO */();
         // TODO
         // TODO
         /* */: any;
-        let imp: string = /* TODO */();
+        let imp: string = trimmed./* TODO */(7, /* TODO */)./* TODO */();
         /* TODO */(/* TODO */);
         // TODO
         /* TODO */(/* TODO */);
@@ -55,11 +55,11 @@ export default class ImportHelper {
     }
 
     buildImport(imp: string, currentPkg: string): string {
-        let parts: string[] = /* TODO */("\\.");
+        let parts: string[] = imp./* TODO */("\\.");
         let (parts.length: any = /* TODO */;
         let className: string = parts[parts.length - 1];
-        let importPkgParts: string[] = /* TODO */(/* TODO */, parts.length - 1);
-        let currentParts: string[] = /* TODO */("\\.");
+        let importPkgParts: string[] = java.util.Arrays./* TODO */(/* TODO */, parts.length - 1);
+        let currentParts: string[] = currentPkg./* TODO */()./* TODO */("\\.");
         let shared: number = /* TODO */(/* TODO */, /* TODO */);
         let path: string = /* TODO */(/* TODO */, /* TODO */, /* TODO */);
         if (/* TODO */) {
