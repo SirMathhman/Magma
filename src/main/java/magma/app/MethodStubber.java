@@ -84,15 +84,11 @@ class MethodStubber {
                 }
                 if (expr.isBlank()) {
                     stub.append(indent).append("    return;").append(System.lineSeparator());
-                } else if (isMemberAccess(expr)) {
-                    stub.append(indent).append("    return ").append(expr).append(";")
-                       .append(System.lineSeparator());
-                } else if (isNumeric(expr)) {
-                    stub.append(indent).append("    return ").append(expr).append(";")
-                        .append(System.lineSeparator());
                 } else {
-                    stub.append(indent).append("    return /* TODO */;")
-                       .append(System.lineSeparator());
+                    stub.append(indent).append("    return ")
+                        .append(parseValue(expr))
+                        .append(";")
+                        .append(System.lineSeparator());
                 }
             } else {
                 appendParts(body.split(";"), indent, stub);
@@ -116,11 +112,11 @@ class MethodStubber {
                 }
                 if (expr.isBlank()) {
                     stub.append(indent).append("    return;").append(System.lineSeparator());
-                } else if (isMemberAccess(expr)) {
-                    stub.append(indent).append("    return ").append(expr).append(";")
-                        .append(System.lineSeparator());
                 } else {
-                    stub.append(indent).append("    return /* TODO */;").append(System.lineSeparator());
+                    stub.append(indent).append("    return ")
+                        .append(parseValue(expr))
+                        .append(";")
+                        .append(System.lineSeparator());
                 }
             } else if (trimmedPart.contains("=")) {
                 stub.append(parseAssignment(trimmedPart, indent)).append(System.lineSeparator());
@@ -209,6 +205,9 @@ class MethodStubber {
         if (trimmed.length() >= 2 && trimmed.startsWith("\"") && trimmed.endsWith("\"")) {
             return trimmed;
         }
+        if (isNumeric(trimmed)) {
+            return trimmed;
+        }
         if (isMemberAccess(trimmed)) {
             return trimmed;
         }
@@ -220,10 +219,7 @@ class MethodStubber {
         if (isInvokable(trimmed)) {
             return "/* TODO */";
         }
-        if ((trimmed.length() >= 2 && trimmed.startsWith("\"") && trimmed.endsWith("\"")) || isMemberAccess(trimmed) || isNumeric(trimmed)) {
-            return trimmed;
-        }
-        return "/* TODO */";
+        return parseValue(trimmed);
     }
 
     private static String parseMemberChain(String expr) {
