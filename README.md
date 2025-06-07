@@ -14,7 +14,9 @@ so that Java modifiers like `public` become `export default`. Method
 bodies are replaced with stubs in the generated TypeScript while
 preserving each method's name and indentation. Each stub contains a
 `// TODO` comment. Basic parameter and
-return types are converted to their TypeScript equivalents. Future
+return types are converted to their TypeScript equivalents. Array types
+map directly as well, so `int[]` becomes `number[]` and `String[]`
+becomes `string[]`. Future
 tests will drive the full implementation.
 
 ## Documentation

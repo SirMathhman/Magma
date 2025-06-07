@@ -102,6 +102,11 @@ public class Transpiler {
     }
 
     private String toTsType(String javaType) {
+        if (javaType.endsWith("[]")) {
+            String element = javaType.substring(0, javaType.length() - 2);
+            return toTsType(element) + "[]";
+        }
+
         return switch (javaType) {
             case "int", "long", "float", "double" -> "number";
             case "boolean" -> "boolean";

@@ -9,7 +9,7 @@ This page outlines how Java language features map to their TypeScript counterpar
 | `boolean` | `boolean` | Direct mapping. | |
 | `char` | `string` (1‑character) or `number` | Depends on intended representation. | |
 | `String` | `string` | Direct mapping. | |
-| Arrays | Arrays | `int[]` → `number[]`, etc. | |
+| Arrays | Arrays | `int[]` → `number[]`, etc. | `TranspilerTest.mapsArrayTypes` |
 | Classes | Classes | Use `class` syntax. | `TranspilerTest.transpilesClassDefinitionWithModifier` |
 | Interfaces | Interfaces | Direct mapping. | |
 | Abstract classes | Abstract classes | Use the `abstract` keyword. | |

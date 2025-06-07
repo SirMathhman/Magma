@@ -60,4 +60,24 @@ class TranspilerTest {
         String result = new Transpiler().toTypeScript(javaSrc);
         assertEquals(expected, result);
     }
+
+    @Test
+    void mapsArrayTypes() {
+        String javaSrc = String.join("\n",
+            "public class Foo {",
+            "    int[] bar(String[] words) {",
+            "        return null;",
+            "    }",
+            "}");
+
+        String expected = String.join("\n",
+            "export default class Foo {",
+            "    bar(words: string[]): number[] {",
+            "        // TODO",
+            "    }",
+            "}");
+
+        String result = new Transpiler().toTypeScript(javaSrc);
+        assertEquals(expected, result);
+    }
 }
