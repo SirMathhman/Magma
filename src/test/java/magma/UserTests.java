@@ -6,48 +6,58 @@ import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class UserTests {
-
-    @Test
-    void test1() {
-        var javaSrc = """
-                public class Foo {
-                    void copy(int src) {
-                        return (String value) -> {
-                        };
-                    }
-                }""";
-
-        var expected = """
-                export default class Foo {
-                    copy(src: number): void {
-                        return (value : string) => {
-                        };
-                    }
-                }""";
-
+    private void assertTranspile(String javaSrc, String expected) {
         var result = new Transpiler().toTypeScript(javaSrc);
         assertEquals(expected, result);
     }
 
     @Test
     void test0() {
-        var javaSrc = """
+        assertTranspile("""
                 public class Foo {
                     void copy(int src) {
                         return fold(new None<String>(), () -> {
                         });
                     }
-                }""";
-
-        var expected = """
+                }""", """
                 export default class Foo {
                     copy(src: number): void {
                         return fold(new None<String>(), () => {
                         });
                     }
-                }""";
+                }""");
+    }
 
-        var result = new Transpiler().toTypeScript(javaSrc);
-        assertEquals(expected, result);
+    @Test
+    void test1() {
+        assertTranspile("""
+                public class Foo {
+                    void copy(int src) {
+                        return (String value) -> {
+                        };
+                    }
+                }""", """
+                export default class Foo {
+                    copy(src: number): void {
+                        return (value : string) => {
+                        };
+                    }
+                }""");
+    }
+
+
+    @Test
+    void test2() {
+        assertTranspile("""
+                public class Foo {
+                    void copy(int src) {
+                        var temp = new Foo();
+                    }
+                }""", """
+                export default class Foo {
+                    copy(src: number): void {
+                        let temp : Foo = new Foo();
+                    }
+                }""");
     }
 }
