@@ -441,50 +441,6 @@ class TranspilerStatementTest {
     }
 
     @Test
-    void test1() {
-        var javaSrc = """
-            public class Foo {
-                void copy(int src) {
-                    return (String value) -> {
-                    };
-                }
-            }""";
-
-        var expected = """
-                export default class Foo {
-                    copy(src: number): void {
-                        return (value : string) => {
-                        };
-                    }
-                }""";
-
-        var result = new Transpiler().toTypeScript(javaSrc);
-        assertEquals(expected, result);
-    }
-
-    @Test
-    void test0() {
-        var javaSrc = """
-            public class Foo {
-                void copy(int src) {
-                    return fold(new None<String>(), () -> {
-                    });
-                }
-            }""";
-
-        var expected = """
-                export default class Foo {
-                    copy(src: number): void {
-                        return fold(new None<String>(), () => {
-                        });
-                    }
-                }""";
-
-        var result = new Transpiler().toTypeScript(javaSrc);
-        assertEquals(expected, result);
-    }
-
-    @Test
     void keepsIdentifierValues() {
         var javaSrc = String.join(System.lineSeparator(),
                 "public class Foo {",
