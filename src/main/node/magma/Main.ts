@@ -42,7 +42,7 @@ export default class Main {
         if (!paths.isOk()) {
             return new Err<ListLike<PathLike>>(paths.error().get());
         }
-        let javaFiles : ListLike<PathLike> = SetIter.wrap(paths.value().get()).fold(;
+        let javaFiles : ListLike<PathLike> = SetIter.wrap(paths.value().get()).fold(
             JdkList.<PathLike>create(), (acc, p) => {
                 if (p.toString().endsWith(".java")) {
                     acc.add(p);

@@ -103,7 +103,29 @@ class StatementParser {
                 continue;
             }
             if (trimmedPart.contains("=")) {
-                stub.append(parseAssignment(trimmedPart, indent, vars, returns)).append(System.lineSeparator());
+                if (trimmedPart.endsWith("(")) {
+                    var eq = trimmedPart.indexOf('=');
+                    var dest = trimmedPart.substring(0, eq).trim();
+                    var rhs = trimmedPart.substring(eq + 1).trim();
+                    var tokens = dest.split("\\s+");
+                    if (tokens.length >= 2) {
+                        var name = tokens[tokens.length - 1];
+                        var type = tokens[tokens.length - 2];
+                        var tsType = type.equals("var") ? inferVarType(rhs, vars, returns)
+                                                       : TypeMapper.toTsType(type);
+                        vars.put(name, tsType);
+                        stub.append(indent).append("    let ")
+                            .append(name).append(" : ")
+                            .append(tsType).append(" = ")
+                            .append(rhs).append(System.lineSeparator());
+                    } else {
+                        stub.append(indent).append("    ")
+                            .append(trimmedPart).append(System.lineSeparator());
+                    }
+                } else {
+                    stub.append(parseAssignment(trimmedPart, indent, vars, returns))
+                        .append(System.lineSeparator());
+                }
                 continue;
             }
             if (ExpressionParser.isInvokable(trimmedPart)) {
