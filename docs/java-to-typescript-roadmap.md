@@ -10,6 +10,8 @@ Only the features listed below are supported. Anything not mentioned here is con
   - Tests: `TranspilerClassTest.removesPackageDeclaration`, `MainTest.printsTranspiledSource`.
 - **Primitive types** (`int`, `float`, `double`, `long`) map to TypeScript's `number`.
   - Tests: `TranspilerMethodTest.stubsMethodBodiesPreservingNames`.
+- **Boxed numeric types** (`Integer`, `Long`, `Float`, `Double`, `Short`, `Byte`) also map to `number`.
+  - Tests: `TranspilerMethodTest.mapsBoxedNumberTypes`.
 - **boolean** / **Boolean** becomes `boolean`.
   - Tests: `TranspilerMethodTest.mapsBooleanTypes`.
 - **char**, **Character**, and **String** all become `string`.
@@ -44,7 +46,10 @@ Only the features listed below are supported. Anything not mentioned here is con
 - **Exceptions** (`throw`, `try`/`catch`) are replaced with `Result` or `Option` objects.
 - **Lambda expressions** become arrow functions.
   - Assignment statements inside arrow function bodies are replaced with `// TODO`.
-  - Tests: `TranspilerStatementTest.stubsAssignmentsInArrowFunctions`.
+  - Tests: `TranspilerStatementTest.stubsAssignmentsInArrowFunctions`,
+    `TranspilerStatementTest.convertsSingleParameterLambda`,
+    `TranspilerStatementTest.convertsTypedParameterLambda`,
+    `TranspilerStatementTest.expandsMultipleAssignmentsInArrowFunction`.
   - Variable definitions within method bodies are emitted as `let` declarations
     with `/* TODO */` for the assigned value.
   - Tests: `TranspilerStatementTest.stubsOneTodoPerStatement`,
@@ -74,6 +79,7 @@ Only the features listed below are supported. Anything not mentioned here is con
   - Tests: `TranspilerStatementTest.preservesMemberAccessInAssignments`,
     `TranspilerStatementTest.parsesMemberAccessInWhileCondition`.
 - **Streams** rely on array helpers such as `map`, `filter`, and `reduce`.
+- **java.util.function** interfaces become arrow function types.
 - **Standard library** utilities are replaced with small TypeScript helpers.
 
 ## Further tasks

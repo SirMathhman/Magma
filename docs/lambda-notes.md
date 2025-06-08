@@ -1,0 +1,12 @@
+# Lambda Notes
+
+`ArrowHelper` rewrites Java lambdas using a straight text scan. Each line is
+checked for the `->` token and it becomes `=>` in the output. This keeps the
+conversion in a single pass without another parser.
+
+When an arrow body sits on one line `ArrowHelper` expands assignments using the
+existing stubbing helpers. Multi-line bodies are left untouched so the overall
+logic stays simple.
+
+Recent tests exercise lambdas with parameters and multi-line blocks so that
+future refactoring preserves this behaviour.

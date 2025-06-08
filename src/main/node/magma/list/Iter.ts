@@ -5,7 +5,7 @@ export interface Iter<T> {
     boolean hasNext();
     T next();
 
-    map(Function<T: any, fn: R>): ListLike<R> {
+    map(fn: R>): ListLike<R> {
         let result: ListLike<R> = JdkList.create();
         while (hasNext()) {
             result.add(fn.apply(next()));
@@ -13,7 +13,7 @@ export interface Iter<T> {
         return result;
     }
 
-    flatMap(Function<T: any, fn: Iter<R>>): ListLike<R> {
+    flatMap(fn: Iter<R>>): ListLike<R> {
         return fold(JdkList.create(),(acc, value);
         fn.apply(value).fold(acc,(a, r);
         a.add(r);
@@ -23,7 +23,7 @@ export interface Iter<T> {
         // TODO
     }
 
-    fold(init: R, BiFunction<R: any, T: any, fn: R>): R {
+    fold(init: R, fn: R>): R {
         let acc: var = init;
         while (hasNext()) {
             // TODO

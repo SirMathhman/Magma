@@ -61,12 +61,13 @@ never be edited directly.
 - `magma.list.JdkList` – default implementation backed by `ArrayList`
 - `magma.app.MethodStubber` – replaces method bodies with `// TODO` stubs.
   Helpers now use a single scan so functions never contain more than one loop,
-  and indentation levels stay at two or fewer.
+  and indentation levels stay at two or fewer. `var` declarations infer a
+  TypeScript type from simple values and default to `unknown` otherwise.
 - `magma.app.FieldTranspiler` – converts Java fields into TypeScript
   properties while ignoring initializations
 - `magma.app.ImportHelper` – rewrites package declarations and import lines
 - `magma.app.ArrowHelper` – turns lambda expressions into arrow functions
-- `magma.app.TypeMapper` – maps primitive and generic types and preserves
-  unknown identifiers
+  - `magma.app.TypeMapper` – maps primitive, boxed, and generic types and preserves
+    unknown identifiers
 - `src/test/java` – growing suite of tests that now covers nested and chained
   invocations so the parsing logic remains small yet reliable

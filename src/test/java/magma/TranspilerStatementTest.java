@@ -171,6 +171,39 @@ class TranspilerStatementTest {
     }
 
     @Test
+    void convertsSingleParameterLambda() {
+        var javaSrc = "Consumer<Integer> c = (x) -> x;";
+        var expected = "Consumer<Integer> c = (x) => x;";
+
+        var result = new Transpiler().toTypeScript(javaSrc);
+        assertEquals(expected, result);
+    }
+
+    @Test
+    void convertsTypedParameterLambda() {
+        var javaSrc = "Runnable r = (int x) -> {};";
+        var expected = "Runnable r = (int x) => {};";
+
+        var result = new Transpiler().toTypeScript(javaSrc);
+        assertEquals(expected, result);
+    }
+
+    @Test
+    void expandsMultipleAssignmentsInArrowFunction() {
+        var javaSrc = "Runnable r = () -> { int x = 1; int y = 2; };";
+
+        var expected = String.join(System.lineSeparator(),
+            "Runnable r = () => {",
+            "    let x: number = 1;",
+            "    let y: number = 2;",
+            "};");
+
+        var result = new Transpiler().toTypeScript(javaSrc);
+        assertEquals(expected, result);
+    }
+
+
+    @Test
     void stubsOneTodoPerStatement() {
         var javaSrc = String.join(System.lineSeparator(),
             "public class Foo {",
@@ -276,6 +309,30 @@ class TranspilerStatementTest {
             "export default class Foo {",
             "    show(): void {",
             "        let num: number = 7;",
+            "    }",
+            "}");
+
+        var result = new Transpiler().toTypeScript(javaSrc);
+        assertEquals(expected, result);
+    }
+
+    @Test
+    void resolvesVarTypes() {
+        var javaSrc = String.join(System.lineSeparator(),
+            "public class Foo {",
+            "    void run() {",
+            "        var x = 100;",
+            "        var y = \"hi\";",
+            "        var z = unknown();",
+            "    }",
+            "}");
+
+        var expected = String.join(System.lineSeparator(),
+            "export default class Foo {",
+            "    run(): void {",
+            "        let x: number = 100;",
+            "        let y: string = \"hi\";",
+            "        let z: unknown = unknown();",
             "    }",
             "}");
 
