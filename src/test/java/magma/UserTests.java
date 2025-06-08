@@ -60,4 +60,21 @@ public class UserTests {
                     }
                 }""");
     }
+
+    @Test
+    void test3() {
+        assertTranspile("""
+                public class Temp {
+                    void temp() {
+                        var x = 100;
+                        var y = x;
+                    }
+                }""", """
+                export default class Temp {
+                    temp(): void {
+                        let x : number = 100;
+                        let y : number = x;
+                    }
+                }""");
+    }
 }

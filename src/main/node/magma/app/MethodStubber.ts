@@ -3,7 +3,7 @@ import ListLike from "../list/ListLike";
 export default class MethodStubber {
     stubMethods(source: string): string {
         let lines: unknown = source.split("\\R");
-        let out: unknown = new StringBuilder();
+        let out : StringBuilder = new StringBuilder();
         let i: (var = 0;
         i lines.length: <;
         // TODO
@@ -57,7 +57,7 @@ export default class MethodStubber {
         let returnType: unknown = sigTokens.length > 1 ? sigTokens[sigTokens.length - 2] : "void";
         let tsParams: unknown = TypeMapper.toTsParams(params);
         let tsReturn: unknown = TypeMapper.toTsType(returnType);
-        let stub: unknown = new StringBuilder();
+        let stub : StringBuilder = new StringBuilder();
         stub.append(indent).append(name).append("(/* TODO */).append(tsParams).append(/* TODO */));
         if (!tsReturn.isBlank()) {
             stub.append(": ").append(tsReturn);
@@ -212,13 +212,30 @@ export default class MethodStubber {
             type: var;
             var value = parseValue(rhs);
             var tsType = type.equals("var") ? inferVarType(rhs) : TypeMapper.toTsType(type);
-            return indent + "    let " + name + ": " + tsType + " = " + value + ";";
+            var spacing = type.equals("var") && needsSpace(tsType) ? " " : "";
+            return indent + "    let " + name + spacing + ": " + tsType + " = " + value + ";";
         }
         return indent + "    // TODO";
     }
 
+    private static boolean needsSpace(String tsType) {
+        return !(tsType.equals("number") || tsType.equals("string") || tsType.equals("boolean") || tsType.equals("unknown"));
+    }
+
     private static String inferVarType(String value) {
         var trimmed = value.trim();
+        if (trimmed.startsWith("new ")) {
+            var rest = trimmed.substring(4).trim();
+            var open = rest.indexOf('(');
+            if (open != -1) {
+                rest = rest.substring(0, open).trim();
+            }
+            var generic = rest.indexOf('<');
+            if (generic != -1) {
+                rest = rest.substring(0, generic).trim();
+            }
+            return rest.isEmpty() ? "unknown" : rest;
+        }
         if (isNumeric(trimmed)) return "number";
         if (trimmed.equals("true") || trimmed.equals("false")) return "boolean";
         if (trimmed.length() >= 2 && trimmed.startsWith("\"") && trimmed.endsWith("\"")) {

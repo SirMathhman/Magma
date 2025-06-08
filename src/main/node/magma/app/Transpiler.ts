@@ -17,7 +17,7 @@ export default class Transpiler {
         let withoutPackage: unknown = ImportHelper.removePackage(javaSource);
         let withImports: unknown = ImportHelper.translateImports(withoutPackage, pkg);
         let lines: unknown = withImports.split("\\R");
-        let ts: unknown = new StringBuilder();
+        let ts : StringBuilder = new StringBuilder();
         // TODO
         let classIdx: unknown = line.indexOf("class");
         let enumIdx: unknown = line.indexOf("enum");

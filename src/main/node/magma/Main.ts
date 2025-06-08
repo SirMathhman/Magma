@@ -14,7 +14,7 @@ import Result from "./result/Result";
  */
 export default class Main {
     main(args: string[]): void {
-        let error: unknown = new Main().run();
+        let error : Main = new Main().run();
         if (error.isSome()) {
             System.err.println(error.get());
         }
@@ -58,7 +58,7 @@ export default class Main {
             return new Some<>(javaSrcResult.error().get());
         }
         let javaSrc: unknown = javaSrcResult.value().get();
-        let ts: unknown = new Transpiler().toTypeScript(javaSrc);
+        let ts : Transpiler = new Transpiler().toTypeScript(javaSrc);
         let rel: unknown = srcRoot.relativize(javaFile);
         let name: unknown = rel.toString();
         let withoutExt: unknown = name.substring(0, name.length());

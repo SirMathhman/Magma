@@ -1,7 +1,7 @@
 export default class ArrowHelper {
     convertArrowFunctions(source: string): string {
         let lines: unknown = source.split("\\R");
-        let out: unknown = new StringBuilder();
+        let out : StringBuilder = new StringBuilder();
         // TODO
             if (line.contains("=>")) {
                 var replaced = line.replace("=>", "=>");
@@ -91,7 +91,7 @@ export default class ArrowHelper {
         let inside: unknown = line.substring(/* TODO */, close).trim();
         // TODO
         let parts: unknown = inside.split(/* TODO */, /* TODO */);
-        let mapped: unknown = new StringBuilder();
+        let mapped : StringBuilder = new StringBuilder();
         let i: (var = 0;
         i parts.length: <;
         // TODO
@@ -113,7 +113,7 @@ export default class ArrowHelper {
 
     stubArrowAssignments(source: string): string {
         let lines: unknown = source.split("\\R");
-        let out: unknown = new StringBuilder();
+        let out : StringBuilder = new StringBuilder();
         // TODO
         let trimmed: unknown = line.trim();
         if (trimmed.contains("=>") && trimmed.contains("{") && trimmed.contains("}")) {
@@ -136,7 +136,7 @@ export default class ArrowHelper {
         let indent: unknown = line.substring(0, line.indexOf(trimmed));
         let header: unknown = line.substring(0, /* TODO */);
         let body: unknown = line.substring(/* TODO */, close).trim();
-        let out: unknown = new StringBuilder();
+        let out : StringBuilder = new StringBuilder();
         out.append(header).append(System.lineSeparator());
         // TODO
         // TODO

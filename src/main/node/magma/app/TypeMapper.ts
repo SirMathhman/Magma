@@ -17,7 +17,7 @@ export default class TypeMapper {
         let type: unknown = parts.length > 1 ? parts[parts.length - 2] : "any";
         out.add(name + ": " + toTsType(type));
         // TODO
-        let result: unknown = new StringBuilder();
+        let result : StringBuilder = new StringBuilder();
         let i: (var = 0;
         i < out.size();
         // TODO
@@ -109,7 +109,7 @@ export default class TypeMapper {
         // TODO
         mapped.add(toTsType(pieces.get(i).trim()));
         // TODO
-        let joined: unknown = new StringBuilder();
+        let joined : StringBuilder = new StringBuilder();
         let i: (var = 0;
         i < mapped.size();
         // TODO
@@ -122,7 +122,7 @@ export default class TypeMapper {
     split(text: string): ListLike<string> {
         let out: ListLike<string> = JdkList.create();
         let depth: number = 0;
-        let part: unknown = new StringBuilder();
+        let part : StringBuilder = new StringBuilder();
         let i: (var = 0;
         i < text.length();
         // TODO
@@ -151,7 +151,7 @@ export default class TypeMapper {
         out.add("arg" + i + ": " + toTsType(parts.get(i).trim()));
         // TODO
         let ret: unknown = parts.size() > paramCount ? toTsType(parts.get(parts.size()).trim());
-        let joined: unknown = new StringBuilder();
+        let joined : StringBuilder = new StringBuilder();
         let i: (var = 0;
         i < out.size();
         // TODO

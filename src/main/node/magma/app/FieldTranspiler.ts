@@ -2,7 +2,7 @@ import Arrays from "../../java/util/Arrays";
 export default class FieldTranspiler {
     transpileFields(source: string): string {
         let lines: unknown = source.split("\\R");
-        let out: unknown = new StringBuilder();
+        let out : StringBuilder = new StringBuilder();
         // TODO
         let trimmed: unknown = line.trim();
         // TODO

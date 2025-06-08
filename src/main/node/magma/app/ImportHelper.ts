@@ -26,7 +26,7 @@ export default class ImportHelper {
 
     translateImports(source: string, currentPkg: string): string {
         let lines: unknown = source.split("\\R");
-        let out: unknown = new StringBuilder();
+        let out : StringBuilder = new StringBuilder();
         let i: (var = 0;
         i lines.length: <;
         // TODO
@@ -87,7 +87,7 @@ export default class ImportHelper {
     }
 
     joinParts(parts: string[], start: number): string {
-        let out: unknown = new StringBuilder();
+        let out : StringBuilder = new StringBuilder();
         let i: (var = start;
         i parts.length: <;
         // TODO
