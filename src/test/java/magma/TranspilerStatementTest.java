@@ -222,6 +222,32 @@ class TranspilerStatementTest {
         assertEquals(expected, result);
     }
 
+    @Test
+    void parsesLambdaBlocks() {
+        var javaSrc = String.join(System.lineSeparator(),
+                "public class Foo {",
+                "    void run() {",
+                "        doThing(() -> {",
+                "            int x = 0;",
+                "            x++;",
+                "        });",
+                "    }",
+                "}");
+
+        var expected = String.join(System.lineSeparator(),
+                "export default class Foo {",
+                "    run(): void {",
+                "        doThing(() => {",
+                "            let x : number = 0;",
+                "            // TODO",
+                "        });",
+                "    }",
+                "}");
+
+        var result = new Transpiler().toTypeScript(javaSrc);
+        assertEquals(expected, result);
+    }
+
 
     @Test
     void stubsOneTodoPerStatement() {
