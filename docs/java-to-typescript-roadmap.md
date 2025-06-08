@@ -130,5 +130,8 @@ Only the features listed below are supported. Anything not mentioned here is con
     the NIO implementation.
 17. Move file I/O helpers onto `PathLike` so `Main` no longer deals with
     `IOException`. Methods now return `Result` or `Option` objects.
+18. ~~Infer `var` types from local method calls.~~
+    Assignments like `var n = getValue();` now reuse the return type of
+    `getValue` so the stub reads `let n : number = getValue();`.
 
 Each feature should begin with a failing test that describes the expected TypeScript output for a Java example.

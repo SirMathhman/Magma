@@ -74,7 +74,8 @@ class ArrowHelper {
             var trimmedPart = part.trim();
             if (trimmedPart.isEmpty()) continue;
             if (trimmedPart.contains("=")) {
-                out.append(MethodStubber.parseAssignment(trimmedPart, indent, vars)).append(System.lineSeparator());
+                out.append(MethodStubber.parseAssignment(trimmedPart, indent, vars, java.util.Collections.emptyMap()))
+                    .append(System.lineSeparator());
             } else {
                 out.append(indent).append("    // TODO").append(System.lineSeparator());
             }
