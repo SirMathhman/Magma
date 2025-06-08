@@ -27,7 +27,7 @@ export default class Main {
         if (!files.isOk()) {
             return new Some<>(files.error().get());
         }
-        return files.value().get().iterator().fold(new None<String>(), (Option<String> acc, PathLike file) => {
+        return files.value().get().iterator().fold(new None<String>(), (acc : Option<string>, file : PathLike) => {
             if (acc.isSome()) {
                 return acc;
             }
