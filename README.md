@@ -61,7 +61,8 @@ never be edited directly.
 - `magma.list.JdkList` – default implementation backed by `ArrayList`
 - `magma.app.MethodStubber` – replaces method bodies with `// TODO` stubs.
   Helpers now use a single scan so functions never contain more than one loop,
-  and indentation levels stay at two or fewer.
+  and indentation levels stay at two or fewer. `var` declarations infer a
+  TypeScript type from simple values and default to `unknown` otherwise.
 - `magma.app.FieldTranspiler` – converts Java fields into TypeScript
   properties while ignoring initializations
 - `magma.app.ImportHelper` – rewrites package declarations and import lines
