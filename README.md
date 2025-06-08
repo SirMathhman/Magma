@@ -36,6 +36,14 @@ bash build.sh       # compile sources
 bash test.sh        # execute all tests
 ```
 
+To check that the generated TypeScript at `src/main/node` still parses,
+run the `validate-ts.sh` helper. It invokes `tsc` with `noEmit` so the
+compiler only verifies the syntax without writing any output files.
+
+```bash
+./validate-ts.sh    # run TypeScript compiler in check mode
+```
+
 After building you can run the transpiler.  It reads Java sources under
 `src/main/java` and writes TypeScript files to `src/main/node`:
 
@@ -56,11 +64,12 @@ never be edited directly.
   `IOException`
 - `magma.path.NioPath` – wraps `java.nio.file.Path` and implements these I/O
   helpers using the JDK
- - `magma.list.ListLike` – minimal list abstraction using a custom `ListIter`
+- `magma.list.ListLike` – minimal list abstraction using a custom `ListIter`
   that now supports `map`, `fold`, and `flatMap` operations. The `flatMap`
   helper accepts an iterator-returning function so callers stay independent of
   concrete list types.
 - `magma.list.JdkList` – default implementation backed by `ArrayList`
+- `magma.list.SetIter` – wraps a `java.util.Set` so callers can reuse iterator helpers
 - `magma.app.MethodStubber` – replaces method bodies with `// TODO` stubs.
   Helpers now use a single scan so functions never contain more than one loop,
   and indentation levels stay at two or fewer. `var` declarations infer a

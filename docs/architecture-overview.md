@@ -69,6 +69,8 @@ platforms.
     The iterator now exposes `map`, `fold`, and `flatMap` to keep loops out of callers.
     `flatMap` takes a function returning another iterator so nested lists can
     be flattened without revealing the underlying list implementation.
+- `magma.list.SetIter` – converts a `java.util.Set` into an `Iter` so callers can
+  fold or map over sets without manual loops.
 
 The `parseValue` routine incrementally scans characters.  It recognizes
 member access, method calls, literals and the logical not operator.
@@ -86,3 +88,7 @@ lists so the design stays minimal while covering common Java idioms.
 The transpiler writes TypeScript files under `src/main/node`. These files are
 checked into version control so we can observe how the generated code evolves.
 They should never be edited directly.
+
+The `validate-ts.sh` script runs `tsc` in check mode against these files so the
+team can confirm the output is at least syntactically valid even as stubs are
+expanded.
