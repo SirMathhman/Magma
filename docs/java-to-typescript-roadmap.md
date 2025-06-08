@@ -10,6 +10,8 @@ Only the features listed below are supported. Anything not mentioned here is con
   - Tests: `TranspilerClassTest.removesPackageDeclaration`, `MainTest.printsTranspiledSource`.
 - **Primitive types** (`int`, `float`, `double`, `long`) map to TypeScript's `number`.
   - Tests: `TranspilerMethodTest.stubsMethodBodiesPreservingNames`.
+- **Boxed numeric types** (`Integer`, `Long`, `Float`, `Double`, `Short`, `Byte`) also map to `number`.
+  - Tests: `TranspilerMethodTest.mapsBoxedNumberTypes`.
 - **boolean** / **Boolean** becomes `boolean`.
   - Tests: `TranspilerMethodTest.mapsBooleanTypes`.
 - **char**, **Character**, and **String** all become `string`.

@@ -22,8 +22,8 @@ platforms.
   inside them are handled just like top-level code.
 - `FieldTranspiler` – converts Java field definitions
 - `ArrowHelper` – rewrites lambda expressions to arrow functions
-- `TypeMapper` – maps primitive and generic types and leaves unknown
-  identifiers unchanged so the output stays close to the source
+  - `TypeMapper` – maps primitive, boxed, and generic types and leaves unknown
+    identifiers unchanged so the output stays close to the source
   - `java.util.function` interfaces map to arrow function types
 - `magma.Main` – CLI entry point
  - `magma.result.Result` and `magma.option.Option` – lightweight

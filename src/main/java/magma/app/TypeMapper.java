@@ -74,7 +74,9 @@ class TypeMapper {
             return toTsType(element) + "[]";
         }
         return switch (javaType) {
-            case "int", "long", "float", "double" -> "number";
+            case "int", "long", "float", "double",
+                 "Integer", "Long", "Float", "Double",
+                 "Short", "Byte" -> "number";
             case "boolean", "Boolean" -> "boolean";
             case "char", "Character", "String" -> "string";
             case "void" -> "void";
