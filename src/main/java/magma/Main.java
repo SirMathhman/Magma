@@ -3,6 +3,7 @@ package magma;
 import magma.app.Transpiler;
 import magma.list.JdkList;
 import magma.list.ListLike;
+import magma.list.SetIter;
 import magma.option.None;
 import magma.option.Option;
 import magma.option.Some;
@@ -46,14 +47,13 @@ public class Main {
         if (!paths.isOk()) {
             return new Err<>(paths.error().get());
         }
-        ListLike<PathLike> javaFiles = JdkList.create();
-        var pathIt = paths.value().get().iterator();
-        while (pathIt.hasNext()) {
-            var p = pathIt.next();
-            if (p.toString().endsWith(".java")) {
-                javaFiles.add(p);
-            }
-        }
+        ListLike<PathLike> javaFiles = SetIter.wrap(paths.value().get()).fold(
+            JdkList.<PathLike>create(), (acc, p) -> {
+                if (p.toString().endsWith(".java")) {
+                    acc.add(p);
+                }
+                return acc;
+            });
         return new Ok<>(javaFiles);
     }
 
