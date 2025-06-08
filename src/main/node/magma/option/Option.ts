@@ -7,9 +7,9 @@ export interface Option<T> {
     T get();
 
     toIter(): magma.list.Iter<T> {
-        let self: Option<T> = this;
+        let self : Option<T> = this;
         return new magma.list.Iter<T>() {;
-        let done: boolean = !self.isSome();
+        let done : boolean = !self.isSome();
         // TODO
         public boolean hasNext();
         return !done;

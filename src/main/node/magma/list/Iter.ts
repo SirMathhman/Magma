@@ -6,7 +6,7 @@ export interface Iter<T> {
     T next();
 
     map(fn: R>): ListLike<R> {
-        let result: ListLike<R> = JdkList.create();
+        let result : ListLike<R> = JdkList.create();
         while (hasNext()) {
             result.add(fn.apply(next()));
         }
@@ -24,7 +24,7 @@ export interface Iter<T> {
     }
 
     fold(init: R, fn: R>): R {
-        let acc: unknown = init;
+        let acc : unknown = init;
         while (hasNext()) {
             // TODO
         }

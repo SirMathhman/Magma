@@ -85,14 +85,14 @@ export default class NioPath implements PathLike {
 
     @Override
     getParent(): PathLike {
-        let parent: unknown = path.getParent();
+        let parent : unknown = path.getParent();
         return parent == null ? null : new NioPath(parent);
     }
 
     @Override
     walk(): Result<Set<PathLike>> {
-        let out: Set<PathLike> = new LinkedHashSet<>();
-        let stream: (var = Files./* TODO */;
+        let out : Set<PathLike> = new LinkedHashSet<>();
+        let stream : (var = Files./* TODO */;
         stream.forEach(p => out.add(new NioPath(p)));
         return new Ok<>(out);
         } catch(java.io.IOException e);

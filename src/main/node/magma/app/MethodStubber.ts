@@ -2,13 +2,13 @@ import JdkList from "../list/JdkList";
 import ListLike from "../list/ListLike";
 export default class MethodStubber {
     stubMethods(source: string): string {
-        let lines: unknown = source.split("\\R");
+        let lines : unknown = source.split("\\R");
         let out : StringBuilder = new StringBuilder();
-        let i: (var = 0;
+        let i : (var = 0;
         i lines.length: <;
         // TODO
-        let line: unknown = /* TODO */;
-        let trimmed: unknown = line.trim();
+        let line : unknown = /* TODO */;
+        let trimmed : unknown = line.trim();
         if (shouldCopyLine(trimmed)) {
             out.append(line).append(System.lineSeparator());
             // TODO
@@ -23,8 +23,8 @@ export default class MethodStubber {
         return !trimmed.endsWith("{").contains("(") || trimmed.startsWith("export");
         // TODO
         private static int appendStub(/* TODO */, /* TODO */, /* TODO */, /* TODO */, /* TODO */);
-        let end: unknown = skipBody(lines, index);
-        let stub: unknown = buildMethodStub(line, trimmed, lines, /* TODO */, /* TODO */);
+        let end : unknown = skipBody(lines, index);
+        let stub : unknown = buildMethodStub(line, trimmed, lines, /* TODO */, /* TODO */);
         if (/* TODO */) {
             copyRange(lines, index, end, out);
             // TODO
@@ -33,30 +33,30 @@ export default class MethodStubber {
         return end;
         // TODO
         private static void copyRange(/* TODO */, /* TODO */, /* TODO */, /* TODO */);
-        let j: (var = start;
+        let j : (var = start;
         // TODO
         // TODO
         out.append(lines[j]).append(System.lineSeparator());
         // TODO
         // TODO
         static String buildMethodStub(/* TODO */, /* TODO */, /* TODO */, /* TODO */, /* TODO */);
-        let indent: unknown = line.substring(0, line.indexOf(trimmed));
-        let beforeBrace: unknown = trimmed.substring(0, trimmed.length()).trim();
-        let parenStart: unknown = beforeBrace.indexOf('(/* TODO */);
-        let parenEnd: unknown = beforeBrace./* TODO */;
+        let indent : unknown = line.substring(0, line.indexOf(trimmed));
+        let beforeBrace : unknown = trimmed.substring(0, trimmed.length()).trim();
+        let parenStart : unknown = beforeBrace.indexOf('(/* TODO */);
+        let parenEnd : unknown = beforeBrace./* TODO */;
         if (/* TODO */) {
             return /* TODO */;
         }
-        let signatureStart: unknown = beforeBrace.substring(0, parenStart).trim();
-        let params: unknown = beforeBrace.substring(/* TODO */, parenEnd).trim();
-        let sigTokens: unknown = signatureStart.split("\\s+");
+        let signatureStart : unknown = beforeBrace.substring(0, parenStart).trim();
+        let params : unknown = beforeBrace.substring(/* TODO */, parenEnd).trim();
+        let sigTokens : unknown = signatureStart.split("\\s+");
         if (/* TODO */) {
             return /* TODO */;
         }
-        let name: unknown = sigTokens[sigTokens.length - 1];
-        let returnType: unknown = sigTokens.length > 1 ? sigTokens[sigTokens.length - 2] : "void";
-        let tsParams: unknown = TypeMapper.toTsParams(params);
-        let tsReturn: unknown = TypeMapper.toTsType(returnType);
+        let name : unknown = sigTokens[sigTokens.length - 1];
+        let returnType : unknown = sigTokens.length > 1 ? sigTokens[sigTokens.length - 2] : "void";
+        let tsParams : unknown = TypeMapper.toTsParams(params);
+        let tsReturn : unknown = TypeMapper.toTsType(returnType);
         let stub : StringBuilder = new StringBuilder();
         stub.append(indent).append(name).append("(/* TODO */).append(tsParams).append(/* TODO */));
         if (!tsReturn.isBlank()) {
@@ -67,16 +67,16 @@ export default class MethodStubber {
         stub.append(indent).append("}").append(System.lineSeparator());
         return stub.toString();
         // TODO
-        private static void appendParts(/* TODO */, /* TODO */, /* TODO */);
+        private static void appendParts(/* TODO */, /* TODO */, /* TODO */, java.util.Map<String, /* TODO */);
         // TODO
-        let trimmedPart: unknown = part.trim();
+        let trimmedPart : unknown = part.trim();
         // TODO
         if (trimmedPart.startsWith("return")) {
             appendReturn(trimmedPart, indent, stub);
             // TODO
         }
         if (trimmedPart.contains("=")) {
-            stub.append(parseAssignment(trimmedPart, indent)).append(System.lineSeparator());
+            stub.append(parseAssignment(trimmedPart, indent, vars)).append(System.lineSeparator());
             // TODO
         }
         if (isInvokable(trimmedPart)) {
@@ -91,10 +91,10 @@ export default class MethodStubber {
         // TODO
         // TODO
         private static void appendReturn(/* TODO */, /* TODO */, /* TODO */);
-        let expr: unknown = stmt.substring(6).trim();
+        let expr : unknown = stmt.substring(6).trim();
         // TODO
-        let expr: ")) = expr.substring(0, expr.length()).trim();
-        let value: unknown = expr.isBlank() ? "" : " " + parseValue(expr);
+        let expr : ")) = expr.substring(0, expr.length()).trim();
+        let value : unknown = expr.isBlank() ? "" : " " + parseValue(expr);
         stub.append(indent);
         .append("    return");
         .append(value);
@@ -103,11 +103,12 @@ export default class MethodStubber {
         .append(System.lineSeparator());
         // TODO
         private static void parseStatements(/* TODO */, /* TODO */, /* TODO */, /* TODO */, /* TODO */);
-        let wrote: boolean = /* TODO */;
-        let i: (var = start;
+        let wrote : boolean = /* TODO */;
+        let vars : String> = new java.util.HashMap<>();
+        let i : (var = start;
         // TODO
         // TODO
-        let body: unknown = lines[i].trim();
+        let body : unknown = lines[i].trim();
         // TODO
         // TODO
             if (body.contains("=>") && body.endsWith("{")) {
@@ -126,7 +127,7 @@ export default class MethodStubber {
                 continue;
             }
 
-            appendParts(body.split(";"), indent, stub);
+            appendParts(body.split(";"), indent, stub, vars);
         }
         if (!wrote) stub.append(indent).append("    // TODO").append(System.lineSeparator());
     }
@@ -199,7 +200,7 @@ export default class MethodStubber {
         return parseValue(inside);
     }
 
-    static String parseAssignment(String stmt, String indent) {
+    static String parseAssignment(String stmt, String indent, java.util.Map<String, String> vars) {
         var eq = stmt.indexOf('=');
         if (eq == -1) {
             return indent + "    // TODO";
@@ -211,19 +212,16 @@ export default class MethodStubber {
             name: var;
             type: var;
             var value = parseValue(rhs);
-            var tsType = type.equals("var") ? inferVarType(rhs) : TypeMapper.toTsType(type);
-            var spacing = type.equals("var") && needsSpace(tsType) ? " " : "";
-            return indent + "    let " + name + spacing + ": " + tsType + " = " + value + ";";
+            var tsType = type.equals("var") ? inferVarType(rhs, vars) : TypeMapper.toTsType(type);
+            vars.put(name, tsType);
+            return indent + "    let " + name + " : " + tsType + " = " + value + ";";
         }
         return indent + "    // TODO";
     }
 
-    private static boolean needsSpace(String tsType) {
-        return !(tsType.equals("number") || tsType.equals("string") || tsType.equals("boolean") || tsType.equals("unknown"));
-    }
-
-    private static String inferVarType(String value) {
+    private static String inferVarType(String value, java.util.Map<String, String> vars) {
         var trimmed = value.trim();
+        if (vars.containsKey(trimmed)) return vars.get(trimmed);
         if (trimmed.startsWith("new ")) {
             var rest = trimmed.substring(4).trim();
             var open = rest.indexOf('(');

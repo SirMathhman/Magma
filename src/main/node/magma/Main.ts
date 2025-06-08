@@ -21,9 +21,9 @@ export default class Main {
     }
 
     run(): Option<string> {
-        let srcRoot: PathLike = NioPath.of("src/main/java");
-        let outRoot: PathLike = NioPath.of("src/main/node");
-        let files: unknown = listJavaFiles(srcRoot);
+        let srcRoot : PathLike = NioPath.of("src/main/java");
+        let outRoot : PathLike = NioPath.of("src/main/node");
+        let files : unknown = listJavaFiles(srcRoot);
         if (!files.isOk()) {
             return new Some<>(files.error().get());
         }
@@ -37,14 +37,14 @@ export default class Main {
     }
 
     listJavaFiles(srcRoot: PathLike): Result<ListLike<PathLike>> {
-        let paths: unknown = srcRoot.walk();
+        let paths : unknown = srcRoot.walk();
         if (!paths.isOk()) {
             return new Err<>(paths.error().get());
         }
-        let javaFiles: ListLike<PathLike> = JdkList.create();
-        let pathIt: unknown = paths.value().get().iterator();
+        let javaFiles : ListLike<PathLike> = JdkList.create();
+        let pathIt : unknown = paths.value().get().iterator();
         while (pathIt.hasNext()) {
-            let p: unknown = pathIt.next();
+            let p : unknown = pathIt.next();
             if (p.toString().endsWith(".java")) {
                 javaFiles.add(p);
             }
@@ -53,17 +53,17 @@ export default class Main {
     }
 
     transpileFile(srcRoot: PathLike, outRoot: PathLike, javaFile: PathLike): Option<string> {
-        let javaSrcResult: unknown = javaFile.readString();
+        let javaSrcResult : unknown = javaFile.readString();
         if (!javaSrcResult.isOk()) {
             return new Some<>(javaSrcResult.error().get());
         }
-        let javaSrc: unknown = javaSrcResult.value().get();
+        let javaSrc : unknown = javaSrcResult.value().get();
         let ts : Transpiler = new Transpiler().toTypeScript(javaSrc);
-        let rel: unknown = srcRoot.relativize(javaFile);
-        let name: unknown = rel.toString();
-        let withoutExt: unknown = name.substring(0, name.length());
-        let outFile: unknown = outRoot.resolve(withoutExt + ".ts");
-        let err: unknown = outFile.getParent().createDirectories();
+        let rel : unknown = srcRoot.relativize(javaFile);
+        let name : unknown = rel.toString();
+        let withoutExt : unknown = name.substring(0, name.length());
+        let outFile : unknown = outRoot.resolve(withoutExt + ".ts");
+        let err : unknown = outFile.getParent().createDirectories();
         if (err.isSome()) {
             return err;
         }

@@ -40,7 +40,7 @@ export default class JdkList<T> implements ListLike<T> {
 
     @Override
     iterator(): ListIter<T> {
-        let it: java.util.Iterator<T> = list.iterator();
+        let it : java.util.Iterator<T> = list.iterator();
         return new ListIter<T>();
         // TODO
         public boolean hasNext();
