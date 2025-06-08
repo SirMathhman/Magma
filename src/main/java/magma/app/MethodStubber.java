@@ -11,6 +11,11 @@ class MethodStubber {
         for (var i = 0; i < lines.length; ) {
             var line = lines[i];
             var trimmed = line.trim();
+            if (isInterfaceMethod(trimmed)) {
+                out.append(convertInterfaceMethod(line)).append(System.lineSeparator());
+                i++;
+                continue;
+            }
             if (shouldCopyLine(trimmed)) {
                 out.append(line).append(System.lineSeparator());
                 i++;
@@ -441,6 +446,37 @@ class MethodStubber {
         mapArgs(parts);
         var joined = joinArgs(parts);
         return callee + "(" + joined + ")";
+    }
+
+    private static boolean isInterfaceMethod(String trimmed) {
+        return trimmed.endsWith(";") &&
+                trimmed.contains("(") &&
+                trimmed.contains(")") &&
+                !trimmed.startsWith("import") &&
+                !trimmed.contains("=") &&
+                !trimmed.contains("->");
+    }
+
+    private static String convertInterfaceMethod(String line) {
+        var trimmed = line.trim();
+        var indent = line.substring(0, line.indexOf(trimmed));
+        var withoutSemi = trimmed.substring(0, trimmed.length() - 1).trim();
+        var open = withoutSemi.indexOf('(');
+        var close = withoutSemi.lastIndexOf(')');
+        if (open == -1 || close == -1 || close <= open) return line;
+        var before = withoutSemi.substring(0, open).trim();
+        var params = withoutSemi.substring(open + 1, close).trim();
+        var sigTokens = before.split("\\s+");
+        if (sigTokens.length < 2) return line;
+        var name = sigTokens[sigTokens.length - 1];
+        var returnType = sigTokens[sigTokens.length - 2];
+        var tsParams = TypeMapper.toTsParams(params).replace(":", " :");
+        var tsReturn = TypeMapper.toTsType(returnType);
+        var sb = new StringBuilder();
+        sb.append(indent).append(name).append("(").append(tsParams).append(")");
+        if (!tsReturn.isBlank()) sb.append(": ").append(tsReturn);
+        sb.append(";");
+        return sb.toString();
     }
 
     private static int findOpenParen(String stmt, int close) {

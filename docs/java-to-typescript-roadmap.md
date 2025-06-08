@@ -22,6 +22,8 @@ Only the features listed below are supported. Anything not mentioned here is con
   - Tests: `TranspilerClassTest.transpilesClassDefinitionWithModifier`.
 - **Interfaces** map directly to TypeScript interfaces.
   - Tests: `TranspilerClassTest.transpilesInterfaceDefinition`.
+  - Interface method signatures now map parameter and return types, using
+    spaces around the colon for parameters. Tested via `UserTests.test6`.
 - **Abstract classes** are supported via the `abstract` keyword, though the project avoids them in its own code.
 - **Enums** become `enum`.
   - Tests: `TranspilerClassTest.transpilesEnumDefinition`.
