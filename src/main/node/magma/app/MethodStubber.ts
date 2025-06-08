@@ -1,5 +1,6 @@
 import JdkList from "../list/JdkList";
 import ListLike from "../list/ListLike";
+import TypeMapper from "./TypeMapper";
 export default class MethodStubber {
     stubMethods(source: string): string {
         let lines : unknown = source.split("\\R");

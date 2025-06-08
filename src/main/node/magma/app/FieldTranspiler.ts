@@ -1,4 +1,5 @@
 import Arrays from "../../java/util/Arrays";
+import TypeMapper from "./TypeMapper";
 export default class FieldTranspiler {
     transpileFields(source: string): string {
         let lines : unknown = source.split("\\R");

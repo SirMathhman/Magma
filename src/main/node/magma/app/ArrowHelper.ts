@@ -1,3 +1,6 @@
+import TypeMapper from "./TypeMapper";
+import Collections from "./Collections";
+import MethodStubber from "./MethodStubber";
 export default class ArrowHelper {
     convertArrowFunctions(source: string): string {
         let lines : unknown = source.split("\\R");

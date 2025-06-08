@@ -26,7 +26,9 @@ export default class ImportHelper {
 
     translateImports(source: string, currentPkg: string): string {
         let lines : unknown = source.split("\\R");
-        let out : StringBuilder = new StringBuilder();
+        let imports : StringBuilder = new StringBuilder();
+        let names : java.util.Set<string> = new java.util.HashSet<>();
+        let body : StringBuilder = new StringBuilder();
         let i : (var = 0;
         i lines.length: <;
         // TODO
@@ -36,15 +38,27 @@ export default class ImportHelper {
         // TODO
         /* */: TODO;
         let imp : unknown = trimmed.substring(7, trimmed.length()).trim();
-        out.append("import ").append(buildImport(imp, currentPkg));
+        let cls : unknown = imp.substring(imp.lastIndexOf('.'));
+        names.add(cls);
+        imports.append("import ").append(buildImport(imp, currentPkg));
         // TODO
         .append(System.lineSeparator());
         // TODO
         // TODO
         // TODO
-        out.append(line).append(System.lineSeparator());
+        body.append(line).append(System.lineSeparator());
         // TODO
-        return out.toString().trim();
+        let bodyText : unknown = body.toString().trim();
+        let self : string = extractClassName(bodyText);
+        let refs : unknown = inferReferences(bodyText, names, self);
+        let refIt : unknown = refs.iterator();
+        while (refIt.hasNext()) {
+            let r : unknown = refIt.next();
+            imports.append("import ").append(r).append(" from \"./").append(r);
+            // TODO
+            ").append(System.lineSeparator());
+        }
+        return imports.toString();
     }
 
     skipEmptyLines(lines: string[], start: number): number {
@@ -95,4 +109,68 @@ export default class ImportHelper {
         // TODO
         return out.toString();
     }
-}
+
+    extractClassName(source: string): string {
+        let lines : unknown = source.split("\\R");
+        // TODO
+        let trimmed : unknown = line.trim();
+        let cls : string = pickName(trimmed, "class ");
+        // TODO
+        // TODO
+        // TODO
+        // TODO
+        // TODO
+        // TODO
+        return "";
+    }
+
+    pickName(line: string, keyword: string): string {
+        let idx : unknown = line.indexOf(keyword);
+        let (idx : if = /* TODO */;
+        let after : unknown = line.substring(idx + keyword.length()).trim();
+        let space : unknown = after.indexOf(/* TODO */);
+        let brace : unknown = after.indexOf(/* TODO */);
+        let end : unknown = after.length();
+        let ! : (space = /* TODO */;
+        let ! : (brace = /* TODO */;
+        return after.substring(0, end).trim();
+        // TODO
+        // TODO
+        // TODO
+        let refs : java.util.Set<string> = new java.util.HashSet<>();
+        let word : StringBuilder = new StringBuilder();
+        let capture : boolean = /* TODO */;
+        let i : (var = 0;
+        i < source.length();
+        // TODO
+        let c : unknown = source.charAt(i);
+        if (!capture) {
+            let (i : && = = 0 || !Character.isLetterOrDigit(source.charAt(/* TODO */));
+            let ! : 1) = /* TODO */;
+            word.setLength(0);
+            word.append(c);
+            // TODO
+            // TODO
+            // TODO
+        }
+        if (Character.isLetterOrDigit(c)) {
+            word.append(c);
+            // TODO
+        }
+        if (/* TODO */) {
+            let name : unknown = word.toString();
+            if (!name.equals(self).contains(name) && !isBuiltIn(name)) {
+                refs.add(name);
+            }
+        }
+        // TODO
+        // TODO
+        return refs;
+        // TODO
+        private static boolean isBuiltIn(/* TODO */);
+        return name.equals("System").equals("String").equals("Integer");
+        name.equals("Long") || name.equals("Float") || name.equals("Double");
+        name.equals("Short") || name.equals("Byte") || name.equals("Character");
+        name.equals("Boolean") || name.equals("Object") || name.equals("Math");
+        // TODO
+    }

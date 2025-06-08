@@ -1,5 +1,6 @@
 import BiFunction from "../../java/util/function/BiFunction";
 import Function from "../../java/util/function/Function";
+import JdkList from "./JdkList";
 /** Generic iterator independent of collection type. */
 export interface Iter<T> {
     hasNext(): boolean;

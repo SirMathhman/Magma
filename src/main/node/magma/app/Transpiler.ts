@@ -1,3 +1,8 @@
+import TypeScript from "./TypeScript";
+import ArrowHelper from "./ArrowHelper";
+import FieldTranspiler from "./FieldTranspiler";
+import MethodStubber from "./MethodStubber";
+import ImportHelper from "./ImportHelper";
 /**
  * Very small prototype that converts a fragment of Java to TypeScript.
  */
