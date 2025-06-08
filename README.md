@@ -87,6 +87,8 @@ never be edited directly.
   `Result<Set<PathLike>>` rather than `unknown`.
 Arrow blocks passed as arguments are detected and their statements are parsed
 so assignments inside the block become stubs before the closing `});`.
+Calls like `fold(` that continue on the next line now keep that opening line
+intact so the arrow block receives the correct arguments.
 - `magma.app.FieldTranspiler` – converts Java fields into TypeScript
   properties while ignoring initializations
 - `magma.app.ImportHelper` – rewrites package declarations and import lines

@@ -45,6 +45,9 @@ platforms.
   - `StatementParser` detects arrow blocks that span multiple lines and now
       parses the enclosed statements so assignments become TODO stubs before the
       closing `});`.
+  - When an arrow block follows a call on the next line, the parser now keeps
+    the opening line intact so chained helpers like `fold(` retain their
+    arguments without inserting an extra semicolon.
   - Constructor calls that use Java's diamond operator now fill in the
     generic parameter using the surrounding variable or return type so
     `new Some<>(v)` becomes `new Some<T>(v)` in TypeScript.

@@ -106,7 +106,29 @@ export default class StatementParser {
                 // TODO
             }
             if (trimmedPart.contains("=")) {
-                stub.append(parseAssignment(trimmedPart, indent, vars, returns)).append(System.lineSeparator());
+                if (trimmedPart.endsWith("(/* TODO */)) {
+                    let eq : unknown = trimmedPart.indexOf(/* TODO */);
+                    let dest : unknown = trimmedPart.substring(0, eq).trim();
+                    let rhs : unknown = trimmedPart.substring(/* TODO */).trim();
+                    let tokens : unknown = dest.split("\\s+");
+                    if (/* TODO */) {
+                        let name : unknown = tokens[tokens.length - 1];
+                        let type : unknown = tokens[tokens.length - 2];
+                        let tsType : unknown = type.equals("var") ? inferVarType(rhs, vars, returns);
+                        : TypeMapper.toTsType(type);
+                        vars.put(name, tsType);
+                        stub.append(indent).append("    let ");
+                        .append(name).append(" : ");
+                        // TODO
+                        .append(rhs).append(System.lineSeparator());
+                        // TODO
+                        stub.append(indent).append("    ");
+                        .append(trimmedPart).append(System.lineSeparator());
+                    }
+                    // TODO
+                    stub.append(parseAssignment(trimmedPart, indent, vars, returns));
+                    .append(System.lineSeparator());
+                }
                 // TODO
             }
             if (ExpressionParser.isInvokable(trimmedPart)) {
