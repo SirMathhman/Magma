@@ -98,4 +98,25 @@ public class UserTests {
                     }
                 }""");
     }
+
+    @Test
+    void test5() {
+        assertTranspile("""
+                public class Temp {
+                    void empty() {
+                        var value = new Temp().getValue();
+                    }
+                    int getValue() {
+                        return 100;
+                    }
+                }""", """
+                export default class Temp {
+                    empty(): void {
+                        let value : number = new Temp().getValue();
+                    }
+                    getValue(): number {
+                        return 100;
+                    }
+                }""");
+    }
 }
