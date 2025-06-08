@@ -214,13 +214,30 @@ class MethodStubber {
             var type = tokens[tokens.length - 2];
             var value = parseValue(rhs);
             var tsType = type.equals("var") ? inferVarType(rhs) : TypeMapper.toTsType(type);
-            return indent + "    let " + name + ": " + tsType + " = " + value + ";";
+            var spacing = type.equals("var") && needsSpace(tsType) ? " " : "";
+            return indent + "    let " + name + spacing + ": " + tsType + " = " + value + ";";
         }
         return indent + "    // TODO";
     }
 
+    private static boolean needsSpace(String tsType) {
+        return !(tsType.equals("number") || tsType.equals("string") || tsType.equals("boolean") || tsType.equals("unknown"));
+    }
+
     private static String inferVarType(String value) {
         var trimmed = value.trim();
+        if (trimmed.startsWith("new ")) {
+            var rest = trimmed.substring(4).trim();
+            var open = rest.indexOf('(');
+            if (open != -1) {
+                rest = rest.substring(0, open).trim();
+            }
+            var generic = rest.indexOf('<');
+            if (generic != -1) {
+                rest = rest.substring(0, generic).trim();
+            }
+            return rest.isEmpty() ? "unknown" : rest;
+        }
         if (isNumeric(trimmed)) return "number";
         if (trimmed.equals("true") || trimmed.equals("false")) return "boolean";
         if (trimmed.length() >= 2 && trimmed.startsWith("\"") && trimmed.endsWith("\"")) {
