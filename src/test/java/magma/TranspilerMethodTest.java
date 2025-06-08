@@ -136,4 +136,24 @@ class TranspilerMethodTest {
         var result = new Transpiler().toTypeScript(javaSrc);
         assertEquals(expected, result);
     }
+
+    @Test
+    void mapsFunctionInterfaceTypes() {
+        var javaSrc = String.join(System.lineSeparator(),
+            "public class Foo {",
+            "    java.util.function.Function<Integer,String> map(java.util.function.Function<Integer,String> fn) {",
+            "        return fn;",
+            "    }",
+            "}");
+
+        var expected = String.join(System.lineSeparator(),
+            "export default class Foo {",
+            "    map(fn: (arg0: Integer) => string): (arg0: Integer) => string {",
+            "        return fn;",
+            "    }",
+            "}");
+
+        var result = new Transpiler().toTypeScript(javaSrc);
+        assertEquals(expected, result);
+    }
 }
