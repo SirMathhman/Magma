@@ -18,6 +18,8 @@ feature matrix and roadmap of the supported Java constructs can be found
 in [`docs/java-to-typescript-roadmap.md`](docs/java-to-typescript-roadmap.md).
 Coding conventions are summarized in
 [`docs/coding-standards.md`](docs/coding-standards.md).
+Variable declarations in the generated TypeScript include spaces around the
+colon so assignments read `let x : number`.
 
 ## Building and Testing
 

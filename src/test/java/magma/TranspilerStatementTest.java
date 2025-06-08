@@ -39,7 +39,7 @@ class TranspilerStatementTest {
         var expected = String.join(System.lineSeparator(),
                 "export default class Foo {",
                 "    run(): void {",
-                "        let x: number = doThing(a, new Some<>(1));",
+                "        let x : number = doThing(a, new Some<>(1));",
                 "    }",
                 "}");
 
@@ -79,7 +79,7 @@ class TranspilerStatementTest {
         var expected = String.join(System.lineSeparator(),
                 "export default class Foo {",
                 "    make(): void {",
-                "        let b: Bar = new Bar(1);",
+                "        let b : Bar = new Bar(1);",
                 "    }",
                 "}");
 
@@ -119,7 +119,7 @@ class TranspilerStatementTest {
         var expected = String.join(System.lineSeparator(),
                 "export default class Foo {",
                 "    run(): void {",
-                "        let error: Option<string> = new Main().run();",
+                "        let error : Option<string> = new Main().run();",
                 "    }",
                 "}");
 
@@ -162,7 +162,7 @@ class TranspilerStatementTest {
 
         var expected = String.join(System.lineSeparator(),
                 "Runnable r = () => {",
-                "    let x: number = 0;",
+                "    let x : number = 0;",
                 "    // TODO",
                 "};");
 
@@ -194,8 +194,8 @@ class TranspilerStatementTest {
 
         var expected = String.join(System.lineSeparator(),
                 "Runnable r = () => {",
-                "    let x: number = 1;",
-                "    let y: number = 2;",
+                "    let x : number = 1;",
+                "    let y : number = 2;",
                 "};");
 
         var result = new Transpiler().toTypeScript(javaSrc);
@@ -237,7 +237,7 @@ class TranspilerStatementTest {
         var expected = String.join(System.lineSeparator(),
                 "export default class Foo {",
                 "    multi(): number {",
-                "        let y: number = 0;",
+                "        let y : number = 0;",
                 "        // TODO",
                 "        return y;",
                 "    }",
@@ -308,7 +308,7 @@ class TranspilerStatementTest {
         var expected = String.join(System.lineSeparator(),
                 "export default class Foo {",
                 "    show(): void {",
-                "        let msg: string = \"hi\";",
+                "        let msg : string = \"hi\";",
                 "    }",
                 "}");
 
@@ -328,7 +328,7 @@ class TranspilerStatementTest {
         var expected = String.join(System.lineSeparator(),
                 "export default class Foo {",
                 "    show(): void {",
-                "        let num: number = 7;",
+                "        let num : number = 7;",
                 "    }",
                 "}");
 
@@ -350,9 +350,9 @@ class TranspilerStatementTest {
         var expected = String.join(System.lineSeparator(),
                 "export default class Foo {",
                 "    run(): void {",
-                "        let x: number = 100;",
-                "        let y: string = \"hi\";",
-                "        let z: unknown = unknown();",
+                "        let x : number = 100;",
+                "        let y : string = \"hi\";",
+                "        let z : unknown = unknown();",
                 "    }",
                 "}");
 
@@ -372,7 +372,7 @@ class TranspilerStatementTest {
         var expected = String.join(System.lineSeparator(),
                 "export default class Foo {",
                 "    run(p: Parent): void {",
-                "        let x: number = p.count;",
+                "        let x : number = p.count;",
                 "    }",
                 "}");
 
@@ -412,7 +412,7 @@ class TranspilerStatementTest {
         var expected = String.join(System.lineSeparator(),
                 "export default class Foo {",
                 "    run(): void {",
-                "        let x: number = doThing(a, new Some<>(make(1, 2)));",
+                "        let x : number = doThing(a, new Some<>(make(1, 2)));",
                 "    }",
                 "}");
 
@@ -432,7 +432,7 @@ class TranspilerStatementTest {
         var expected = String.join(System.lineSeparator(),
                 "export default class Foo {",
                 "    run(): void {",
-                "        let x: number = doStuff().myField;",
+                "        let x : number = doStuff().myField;",
                 "    }",
                 "}");
 
@@ -452,7 +452,7 @@ class TranspilerStatementTest {
         var expected = String.join(System.lineSeparator(),
                 "export default class Foo {",
                 "    copy(src: number): void {",
-                "        let x: number = src;",
+                "        let x : number = src;",
                 "    }",
                 "}");
 
@@ -472,7 +472,7 @@ class TranspilerStatementTest {
         var expected = String.join(System.lineSeparator(),
                 "export default class Foo {",
                 "    run(): void {",
-                "        let x: number = first.second().third.fourth;",
+                "        let x : number = first.second().third.fourth;",
                 "    }",
                 "}");
 
@@ -612,7 +612,7 @@ class TranspilerStatementTest {
         var expected = String.join(System.lineSeparator(),
                 "export default class Foo {",
                 "    run(): void {",
-                "        let x: number = first().second().third();",
+                "        let x : number = first().second().third();",
                 "    }",
                 "}");
 
@@ -632,7 +632,7 @@ class TranspilerStatementTest {
         var expected = String.join(System.lineSeparator(),
                 "export default class Foo {",
                 "    run(): void {",
-                "        let x: number = outer(inner(foo.bar()), other()).value;",
+                "        let x : number = outer(inner(foo.bar()), other()).value;",
                 "    }",
                 "}");
 
@@ -652,7 +652,7 @@ class TranspilerStatementTest {
         var expected = String.join(System.lineSeparator(),
                 "export default class Foo {",
                 "    run(): void {",
-                "        let x: number = new Main().run().value;",
+                "        let x : number = new Main().run().value;",
                 "    }",
                 "}");
 
