@@ -24,6 +24,8 @@ platforms.
   inside them are handled just like top-level code.
 - `FieldTranspiler` – converts Java field definitions
 - `ArrowHelper` – rewrites lambda expressions to arrow functions
+  - Lambda arguments inside method calls are preserved so `doThing(() -> 1)`
+    becomes `doThing(() => 1)`.
   - `TypeMapper` – maps primitive, boxed, and generic types and leaves unknown
     identifiers unchanged so the output stays close to the source
   - `java.util.function` interfaces map to arrow function types

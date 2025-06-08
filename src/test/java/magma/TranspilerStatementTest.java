@@ -202,6 +202,26 @@ class TranspilerStatementTest {
         assertEquals(expected, result);
     }
 
+    @Test
+    void keepsLambdaArgumentsInInvokables() {
+        var javaSrc = String.join(System.lineSeparator(),
+            "public class Foo {",
+            "    void run() {",
+            "        doThing(() -> 1);",
+            "    }",
+            "}");
+
+        var expected = String.join(System.lineSeparator(),
+            "export default class Foo {",
+            "    run(): void {",
+            "        doThing(() => 1);",
+            "    }",
+            "}");
+
+        var result = new Transpiler().toTypeScript(javaSrc);
+        assertEquals(expected, result);
+    }
+
 
     @Test
     void stubsOneTodoPerStatement() {

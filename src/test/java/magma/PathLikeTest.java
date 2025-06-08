@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 import magma.path.NioPath;
 import magma.path.PathLike;
+import java.io.File;
 import org.junit.jupiter.api.Test;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -16,7 +17,7 @@ class PathLikeTest {
     void resolvesAndRelativizesPaths() {
         PathLike base = NioPath.of("a");
         var child = base.resolve("b");
-        assertEquals("a\\b", child.toString());
+        assertEquals("a" + File.separator + "b", child.toString());
         var rel = base.relativize(child);
         assertEquals("b", rel.toString());
         assertEquals("a", child.getParent().toString());
