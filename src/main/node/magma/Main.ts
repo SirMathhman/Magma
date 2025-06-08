@@ -27,13 +27,13 @@ export default class Main {
         if (!files.isOk()) {
             return new Some<>(files.error().get());
         }
-        return files.value().get().iterator().fold(new None<String>(), (Option<String> acc, PathLike file) => {;
-        if (acc.isSome()) {
-            return acc;
-        }
-        let err: unknown = transpileFile(srcRoot, outRoot, file);
-        return err.isSome();
-        // TODO
+        return files.value().get().iterator().fold(new None<String>(), (Option<String> acc, PathLike file) => {
+            if (acc.isSome()) {
+                return acc;
+            }
+            var err = transpileFile(srcRoot, outRoot, file);
+            return err.isSome() ? err : acc;
+        });
     }
 
     listJavaFiles(srcRoot: PathLike): Result<ListLike<PathLike>> {

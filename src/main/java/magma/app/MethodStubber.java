@@ -112,6 +112,11 @@ class MethodStubber {
             if (body.isEmpty()) continue;
             wrote = true;
 
+            if (body.contains("->") && body.endsWith("{")) {
+                i = copyArrowBlock(lines, i, stub) - 1;
+                continue;
+            }
+
             var next = handleControlBlock(body, lines, i, indent, stub);
             if (next != i) {
                 i = next - 1;
@@ -157,6 +162,18 @@ class MethodStubber {
             var body = lines[i];
             depth += body.length() - body.replace("{", "").length();
             depth -= body.length() - body.replace("}", "").length();
+            i++;
+        }
+        return i;
+    }
+
+    private static int copyArrowBlock(String[] lines, int start, StringBuilder stub) {
+        var i = start;
+        while (i < lines.length) {
+            stub.append(lines[i]).append(System.lineSeparator());
+            if (lines[i].trim().equals("});")) {
+                return i + 1;
+            }
             i++;
         }
         return i;

@@ -26,6 +26,9 @@ platforms.
 - `ArrowHelper` – rewrites lambda expressions to arrow functions
   - Lambda arguments inside method calls are preserved so `doThing(() -> 1)`
     becomes `doThing(() => 1)`.
+  - `MethodStubber` now detects arrow blocks that span multiple lines and copies
+    them verbatim until the closing `});` so calls like `fold(x, () -> { });`
+    remain intact.
   - `TypeMapper` – maps primitive, boxed, and generic types and leaves unknown
     identifiers unchanged so the output stays close to the source
   - `java.util.function` interfaces map to arrow function types
