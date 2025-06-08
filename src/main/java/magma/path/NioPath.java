@@ -5,6 +5,7 @@ import java.nio.file.Path;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
+import magma.Actual;
 import magma.result.Err;
 import magma.result.Ok;
 import magma.result.Result;
@@ -16,6 +17,7 @@ import magma.option.None;
  * Implementation of {@link PathLike} that delegates to a
  * {@link Path} instance.
  */
+@Actual
 public class NioPath implements PathLike {
     private final Path path;
 

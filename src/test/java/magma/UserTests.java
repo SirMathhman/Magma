@@ -130,4 +130,12 @@ public class UserTests {
                 resolve(other : string): PathLike;
             }""");
     }
+
+    @Test
+    void actualAnnotationShouldProduceNoContent() {
+        assertTranspile("""
+            @Actual
+            public class PathLike {
+            }""", "");
+    }
 }
