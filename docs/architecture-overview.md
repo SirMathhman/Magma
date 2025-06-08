@@ -13,6 +13,8 @@ platforms.
 ## Main Modules
 
 - `magma.app.Transpiler` – orchestrates the conversion to TypeScript
+  and skips any class annotated with `@Actual` so placeholder
+  implementations disappear from the output
 - `ImportHelper` – rewrites package declarations and import lines, and now
   adds missing imports when classes from the same package are referenced
   without an explicit `import` statement

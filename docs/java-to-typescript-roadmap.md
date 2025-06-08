@@ -147,5 +147,8 @@ Only the features listed below are supported. Anything not mentioned here is con
 22. Validate the generated TypeScript using `tsc`.
     A new `validate-ts.sh` helper runs the TypeScript compiler in check mode so
     contributors can ensure the output parses without emitting JavaScript.
+23. ~~Ignore classes annotated with `@Actual`.~~
+    The transpiler now returns an empty string when such classes are encountered,
+    tested via `UserTests.actualAnnotationShouldProduceNoContent`.
 
 Each feature should begin with a failing test that describes the expected TypeScript output for a Java example.

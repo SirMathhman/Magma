@@ -92,6 +92,8 @@ so assignments inside the block become stubs before the closing `});`.
   and now inserts missing imports when classes are referenced without an
   explicit `import` statement
 - `magma.app.ArrowHelper` – turns lambda expressions into arrow functions
+- `magma.Actual` – marker annotation recognized by the transpiler to
+  omit placeholder classes from the generated code
 - Interface method signatures now keep parameter and return types so
   `PathLike resolve(String other);` becomes `resolve(other : string): PathLike`.
   - `magma.app.TypeMapper` – maps primitive, boxed, and generic types and preserves
