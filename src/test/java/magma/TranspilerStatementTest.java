@@ -317,6 +317,30 @@ class TranspilerStatementTest {
     }
 
     @Test
+    void resolvesVarTypes() {
+        var javaSrc = String.join(System.lineSeparator(),
+            "public class Foo {",
+            "    void run() {",
+            "        var x = 100;",
+            "        var y = \"hi\";",
+            "        var z = unknown();",
+            "    }",
+            "}");
+
+        var expected = String.join(System.lineSeparator(),
+            "export default class Foo {",
+            "    run(): void {",
+            "        let x: number = 100;",
+            "        let y: string = \"hi\";",
+            "        let z: unknown = unknown();",
+            "    }",
+            "}");
+
+        var result = new Transpiler().toTypeScript(javaSrc);
+        assertEquals(expected, result);
+    }
+
+    @Test
     void preservesMemberAccessInAssignments() {
         var javaSrc = String.join(System.lineSeparator(),
             "public class Foo {",

@@ -195,9 +195,20 @@ class MethodStubber {
             var name = tokens[tokens.length - 1];
             var type = tokens[tokens.length - 2];
             var value = parseValue(rhs);
-            return indent + "    let " + name + ": " + TypeMapper.toTsType(type) + " = " + value + ";";
+            var tsType = type.equals("var") ? inferVarType(rhs) : TypeMapper.toTsType(type);
+            return indent + "    let " + name + ": " + tsType + " = " + value + ";";
         }
         return indent + "    // TODO";
+    }
+
+    private static String inferVarType(String value) {
+        var trimmed = value.trim();
+        if (isNumeric(trimmed)) return "number";
+        if (trimmed.equals("true") || trimmed.equals("false")) return "boolean";
+        if (trimmed.length() >= 2 && trimmed.startsWith("\"") && trimmed.endsWith("\"")) {
+            return "string";
+        }
+        return "unknown";
     }
 
     static boolean isMemberAccess(String stmt) {
