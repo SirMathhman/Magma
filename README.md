@@ -65,8 +65,9 @@ never be edited directly.
   Helpers now use a single scan so functions never contain more than one loop,
   and indentation levels stay at two or fewer. `var` declarations infer a
   TypeScript type from simple values, including constructor calls which return
-  the constructed class name. More complex expressions still default to
-  `unknown`.
+  the constructed class name. When assigned to another method in the same class,
+  the stub uses that method's return type. More complex expressions still
+  default to `unknown`.
   Arrow blocks passed as arguments are detected and copied line for line until
   the closing `});` so multi-line lambdas survive unchanged.
 - `magma.app.FieldTranspiler` – converts Java fields into TypeScript

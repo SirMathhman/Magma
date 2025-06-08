@@ -21,7 +21,9 @@ platforms.
   Local variables declared with `var` now infer a TypeScript type from the
   assigned value. Numeric, boolean and string literals map to the primitive
   types. Constructor calls such as `new Foo()` return `Foo` while more complex
-  expressions still fall back to `unknown`.
+  expressions still fall back to `unknown`. Calls to other methods defined in
+  the same class reuse those methods' return types so `var x = getValue();`
+  becomes `let x : number = getValue();` when `getValue` returns `int`.
 - Nested `if` and `while` blocks are parsed recursively so statements
   inside them are handled just like top-level code.
 - `FieldTranspiler` – converts Java field definitions
