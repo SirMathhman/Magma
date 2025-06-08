@@ -31,8 +31,8 @@ export default class Main {
             if (acc.isSome()) {
                 return acc;
             }
-            var err = transpileFile(srcRoot, outRoot, file);
-            return err.isSome() ? err : acc;
+            let err : Option<string> = transpileFile(srcRoot, outRoot, file);
+            return err.isSome();
         });
     }
 

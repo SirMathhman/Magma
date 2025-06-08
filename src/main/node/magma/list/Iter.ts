@@ -20,8 +20,8 @@ export interface Iter<T> {
                 a.add(r);
                 return a;
             });
-        return acc;
-        // TODO
+            return acc;
+        });
     }
 
     fold(init: R, fn: R>): R {

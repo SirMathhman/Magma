@@ -144,189 +144,170 @@ export default class MethodStubber {
         // TODO
         // TODO
             if (body.contains("=>") && body.endsWith("{")) {
-                i = copyArrowBlock(lines, i, stub) - 1;
-                continue;
+                // TODO
+                // TODO
             }
-
-            var next = handleControlBlock(body, lines, i, indent, stub, returns);
-            if (next != i) {
-                i = next - 1;
-                continue;
-            }
-
-            if (body.startsWith("return")) {
-                appendReturn(body, indent, stub);
-                continue;
-            }
-
-            appendParts(body.split(";"), indent, stub, vars, returns);
+        let next : unknown = handleControlBlock(body, lines, i, indent, stub, returns);
+        if (/* TODO */) {
+            // TODO
+            // TODO
         }
-        if (!wrote) stub.append(indent).append("    // TODO").append(System.lineSeparator());
-    }
-
-    private static int handleControlBlock(String body, String[] lines, int index, String indent,
-                                          StringBuilder stub, java.util.Map<String, String> returns) {
+        if (body.startsWith("return")) {
+            appendReturn(body, indent, stub);
+            // TODO
+        }
+        // TODO
+        // TODO
+        // TODO
+        // TODO
+        // TODO
+        // TODO
+        StringBuilder stub, java.util.Map<String, String> {: returns);
         if ((body.startsWith("if") || body.startsWith("else if")) && body.endsWith("{")) {
-            var keyword = body.startsWith("else if") ? "else if" : "if";
-            var cond = parseCondition(body);
-            var blockEnd = skipBody(lines, index);
-            appendParsedBlock(stub, indent, keyword, cond, lines, index + 1, blockEnd - 1, returns);
+            let keyword : unknown = body.startsWith("else if");
+            let cond : string = parseCondition(body);
+            let blockEnd : number = skipBody(lines, index);
+            appendParsedBlock(stub, indent, keyword, cond, lines, /* TODO */, /* TODO */, returns);
             return blockEnd;
         }
-        if (body.startsWith("else") && body.endsWith("{")) {
-            var blockEnd = skipBody(lines, index);
-            appendParsedBlock(stub, indent, "else", null, lines, index + 1, blockEnd - 1, returns);
+        if (body.startsWith("else").endsWith("{")) {
+            let blockEnd : number = skipBody(lines, index);
+            appendParsedBlock(stub, indent, "else", /* TODO */, lines, /* TODO */, /* TODO */, returns);
             return blockEnd;
         }
-        if (body.startsWith("while") && body.endsWith("{")) {
-            var cond = parseCondition(body);
-            var blockEnd = skipBody(lines, index);
-            appendParsedBlock(stub, indent, "while", cond, lines, index + 1, blockEnd - 1, returns);
+        if (body.startsWith("while").endsWith("{")) {
+            let cond : string = parseCondition(body);
+            let blockEnd : number = skipBody(lines, index);
+            appendParsedBlock(stub, indent, "while", cond, lines, /* TODO */, /* TODO */, returns);
             return blockEnd;
         }
         return index;
-    }
-
-    static int skipBody(String[] lines, int index) {
-        depth: var;
-        i: var;
+        // TODO
+        static int skipBody(/* TODO */, /* TODO */);
+        let depth : number = 1;
+        let i : unknown = /* TODO */;
         while (i < lines.length && depth > 0) {
-            body: var;
-            depth += body.length() - body.replace("{", "").length();
-            depth -= body.length() - body.replace("}", "").length();
-            i++;
+            let body : unknown = /* TODO */;
+            let + : depth = body.length().replace("{", "").length();
+            let - : depth = body.length().replace("}", "").length();
+            // TODO
         }
         return i;
-    }
-
-    private static int copyArrowBlock(String[] lines, int start, StringBuilder stub) {
-        i: var;
-        while (i < lines.length) {
-            stub.append(lines[i]).append(System.lineSeparator());
-            var trimmed = lines[i].trim();
-            if (trimmed.equals("});") || trimmed.equals("};")) {
-                return i + 1;
-            }
-            i++;
+        // TODO
+        // TODO
+        java.util.Map<String, String> {: returns);
+        let indent : unknown = lines[start].substring(0, lines[start].indexOf(lines[start].trim()));
+        stub.append(lines[start]).append(System.lineSeparator());
+        let end : number = skipBody(lines, start);
+        if (/* TODO */) {
+            parseStatements(lines, /* TODO */, /* TODO */, indent, stub, returns);
         }
-        return i;
-    }
-
-    static void appendParsedBlock(StringBuilder stub, String indent, String keyword,
-                                  String condition, String[] lines, int start, int end,
-                                  java.util.Map<String, String> returns) {
+        stub.append(lines[end - 1]).append(System.lineSeparator());
+        return end;
+        // TODO
+        // TODO
+        // TODO
+        java.util.Map<String, String> {: returns);
         stub.append(indent).append("    ").append(keyword);
-        if (condition != null) {
-            stub.append(" (").append(condition).append(")");
+        if (/* TODO */) {
+            stub.append("(/* TODO */).append(condition).append(/* TODO */));
         }
         stub.append(" {").append(System.lineSeparator());
-        parseStatements(lines, start, end, indent + "    ", stub, returns);
+        parseStatements(lines, start, end, /* TODO */, stub, returns);
         stub.append(indent).append("    }").append(System.lineSeparator());
-    }
-
-    private static String parseCondition(String stmt) {
-        var open = stmt.indexOf('(');
-        var close = stmt.lastIndexOf(')');
-        if (open == -1 || close == -1 || close <= open) {
+        // TODO
+        private static String parseCondition(/* TODO */);
+        let open : unknown = stmt.indexOf('(/* TODO */);
+        let close : unknown = stmt./* TODO */;
+        if (/* TODO */) {
             return "/* TODO */";
         }
-        var inside = stmt.substring(open + 1, close).trim();
+        let inside : unknown = stmt.substring(/* TODO */, close).trim();
         return parseValue(inside);
-    }
-
-    static String parseAssignment(String stmt, String indent,
-                                  java.util.Map<String, String> vars,
-                                  java.util.Map<String, String> returns) {
-        var eq = stmt.indexOf('=');
-        if (eq == -1) {
-            return indent + "    // TODO";
+        // TODO
+        // TODO
+        java.util.Map<String, vars,: String>;
+        java.util.Map<String, String> {: returns);
+        let eq : unknown = stmt.indexOf(/* TODO */);
+        if (/* TODO */) {
+            return /* TODO */;
         }
-        var dest = stmt.substring(0, eq).trim();
-        var rhs = stmt.substring(eq + 1).trim();
-        var tokens = dest.split("\\s+");
-        if (tokens.length >= 2) {
-            name: var;
-            type: var;
-            var value = parseValue(rhs);
-            var tsType = type.equals("var") ? inferVarType(rhs, vars, returns) : TypeMapper.toTsType(type);
+        let dest : unknown = stmt.substring(0, eq).trim();
+        let rhs : unknown = stmt.substring(/* TODO */).trim();
+        let tokens : unknown = dest.split("\\s+");
+        if (/* TODO */) {
+            let name : unknown = tokens[tokens.length - 1];
+            let type : unknown = tokens[tokens.length - 2];
+            let value : string = parseValue(rhs);
+            let tsType : unknown = type.equals("var") ? inferVarType(rhs, vars, returns).toTsType(type);
             vars.put(name, tsType);
-            return indent + "    let " + name + " : " + tsType + " = " + value + ";";
+            return /* TODO */;
         }
-        return indent + "    // TODO";
-    }
-
-    private static String inferVarType(String value, java.util.Map<String, String> vars,
-                                       java.util.Map<String, String> returns) {
-        var trimmed = value.trim();
-        if (vars.containsKey(trimmed)) return vars.get(trimmed);
-
+        return /* TODO */;
+        // TODO
+        // TODO
+        java.util.Map<String, String> {: returns);
+        let trimmed : unknown = value.trim();
+        // TODO
         if (isInvokable(trimmed)) {
-            var open = trimmed.lastIndexOf('(');
-            var callee = trimmed.substring(0, open).trim();
-            var dot = callee.lastIndexOf('.');
-            if (dot != -1) callee = callee.substring(dot + 1).trim();
-            if (returns.containsKey(callee)) return returns.get(callee);
+            let open : unknown = trimmed.lastIndexOf('(/* TODO */);
+            let callee : unknown = trimmed.substring(0, open).trim();
+            let dot : unknown = callee.lastIndexOf('.');
+            let ! : (dot = -1) callee = callee.substring(dot + 1).trim();
+            // TODO
         }
-
         if (trimmed.startsWith("new ")) {
-            var rest = trimmed.substring(4).trim();
-            var dot = rest.indexOf('.');
-            if (dot != -1) rest = rest.substring(0, dot).trim();
-            var open = rest.indexOf('(');
-            if (open != -1) {
-                rest = rest.substring(0, open).trim();
+            let rest : unknown = trimmed.substring(4).trim();
+            let dot : unknown = rest.indexOf('.');
+            let ! : (dot = -1) rest = rest.substring(0, dot).trim();
+            let open : unknown = rest.indexOf('(/* TODO */);
+            if (/* TODO */) {
+                // TODO
             }
-            var generic = rest.indexOf('<');
-            if (generic != -1) {
-                rest = rest.substring(0, generic).trim();
+            let generic : unknown = rest.indexOf(/* TODO */);
+            if (/* TODO */) {
+                // TODO
             }
-            return rest.isEmpty() ? "unknown" : rest;
+            return rest.isEmpty();
         }
-
-        if (isNumeric(trimmed)) return "number";
-        if (trimmed.equals("true") || trimmed.equals("false")) return "boolean";
+        // TODO
+        // TODO
         if (trimmed.length() >= 2 && trimmed.startsWith("\"") && trimmed.endsWith("\"")) {
             return "string";
         }
-
         return "unknown";
-    }
-
-    static boolean isMemberAccess(String stmt) {
+        // TODO
+        static boolean isMemberAccess(/* TODO */);
         return stmt.contains(".") && !stmt.contains("(") && !stmt.contains("=");
-    }
-
-    static String parseMemberAccess(String stmt, String indent) {
-        return indent + "    " + stmt + ";";
-    }
-
-    static boolean isInvokable(String stmt) {
-        var open = stmt.indexOf('(');
-        var close = stmt.lastIndexOf(')');
-        if (open == -1 || close == -1 || close <= open) {
-            return false;
+        // TODO
+        static String parseMemberAccess(/* TODO */, /* TODO */);
+        return /* TODO */;
+        // TODO
+        static boolean isInvokable(/* TODO */);
+        let open : unknown = stmt.indexOf('(/* TODO */);
+        let close : unknown = stmt./* TODO */;
+        if (/* TODO */) {
+            return /* TODO */;
         }
-        var arrow = stmt.indexOf("=>");
-        if (arrow != -1 && arrow > close) {
-            return false;
+        let arrow : unknown = stmt.indexOf("=>");
+        if (/* TODO */) {
+            return /* TODO */;
         }
-        var head = stmt.substring(0, open).trim();
-        if (head.isEmpty()) return false;
-        return !head.startsWith("if") && !head.startsWith("while") && !head.startsWith("for");
-    }
-
-    static String parseInvokable(String stmt, String indent) {
-        return indent + "    " + stubInvokableExpr(stmt) + ";";
-    }
-
-    static String parseValue(String value) {
-        var trimmed = value.trim();
-        if (trimmed.contains("=>")) return trimmed;
+        let head : unknown = stmt.substring(0, open).trim();
+        // TODO
+        return !head.startsWith("if").startsWith("while").startsWith("for");
+        // TODO
+        static String parseInvokable(/* TODO */, /* TODO */);
+        return indent + "    " + stubInvokableExpr(stmt);
+        // TODO
+        static String parseValue(/* TODO */);
+        let trimmed : unknown = value.trim();
+        // TODO
         if (trimmed.startsWith("!")) {
-            var rest = trimmed.substring(1).trim();
+            let rest : unknown = trimmed.substring(1).trim();
             return "!" + parseValue(rest);
         }
-        if (trimmed.startsWith("new ") && trimmed.contains(".") && isInvokable(trimmed)) {
+        if (trimmed.startsWith("new ").contains(".") && isInvokable(trimmed)) {
             return trimmed;
         }
         if (trimmed.contains(".") && !trimmed.contains("=")) {
@@ -348,180 +329,182 @@ export default class MethodStubber {
             return trimmed;
         }
         return "/* TODO */";
-    }
-
-    private static String parseValueArg(String value) {
-        var trimmed = value.trim();
+        // TODO
+        private static String parseValueArg(/* TODO */);
+        let trimmed : unknown = value.trim();
         return parseValue(trimmed);
-    }
-
-    private static String parseMemberChain(String expr) {
-        var parts = splitMemberParts(expr);
+        // TODO
+        private static String parseMemberChain(/* TODO */);
+        let parts : ListLike<string> = splitMemberParts(expr);
         return joinMemberParts(parts);
-    }
-
-    private static ListLike<String> splitMemberParts(String expr) {
-        ListLike<String> parts = JdkList.create();
-        depth: var;
-        var part = new StringBuilder();
-        for (var i = 0; i < expr.length(); i++) {
-            var c = expr.charAt(i);
-            if (c == '.' && depth == 0) {
-                parts.add(part.toString());
-                part.setLength(0);
-                continue;
-            }
-            if (c == '(') depth++;
-            if (c == ')') depth--;
-            part.append(c);
+        // TODO
+        private static ListLike<String> splitMemberParts(/* TODO */);
+        let parts : ListLike<string> = JdkList.create();
+        let depth : number = 0;
+        let part : StringBuilder = new StringBuilder();
+        let i : (var = 0;
+        i < expr.length();
+        // TODO
+        let c : unknown = expr.charAt(i);
+        if (/* TODO */) {
+            parts.add(part.toString());
+            part.setLength(0);
+            // TODO
         }
+        let (c : if = = '(/* TODO */);
+        let (c : if = /* TODO */;
+        part.append(c);
+        // TODO
         parts.add(part.toString());
         return parts;
-    }
-
-    private static String joinMemberParts(ListLike<String> parts) {
-        var out = new StringBuilder();
-        for (var i = 0; i < parts.size(); i++) {
-            if (i > 0) out.append('.');
-            out.append(parseChainSegment(parts.get(i).trim()));
-        }
+        // TODO
+        private static String joinMemberParts(/* TODO */);
+        let out : StringBuilder = new StringBuilder();
+        let i : (var = 0;
+        i < parts.size();
+        // TODO
+        // TODO
+        out.append(parseChainSegment(parts.get(i).trim()));
+        // TODO
         return out.toString();
-    }
-
-    private static String parseChainSegment(String seg) {
+        // TODO
+        private static String parseChainSegment(/* TODO */);
         if (isInvokable(seg)) {
             return stubInvokableExpr(seg);
         }
         return seg;
-    }
-  
-    private static boolean isNumeric(String s) {
-        if (s.isEmpty()) return false;
-        i: var;
-        if (s.charAt(0) == '-') {
-            if (s.length() == 1) return false;
-            i = 1;
+        // TODO
+        private static boolean isNumeric(/* TODO */);
+        // TODO
+        let i : number = 0;
+        if (s.charAt(0)) {
+            let (s.length() : if = /* TODO */;
+            // TODO
         }
-        dot: var;
-        for (; i < s.length(); i++) {
-            var c = s.charAt(i);
-            if (c == '.') {
-                if (dot) return false;
-                dot = true;
-                continue;
-            }
-            if (c < '0' || c > '9') return false;
+        let dot : boolean = /* TODO */;
+        // TODO
+        i < s.length();
+        // TODO
+        let c : unknown = s.charAt(i);
+        if (/* TODO */) {
+            // TODO
+            // TODO
+            // TODO
         }
-        return true;
-    }
-
-    private static boolean isIdentifier(String s) {
-        if (s.isEmpty()) return false;
-        if (s.equals("true") || s.equals("false") || s.equals("null")) return false;
-        var first = s.charAt(0);
-        if (!((first >= 'a' && first <= 'z') || (first >= 'A' && first <= 'Z') || first == '_')) {
-            return false;
+        // TODO
+        // TODO
+        return /* TODO */;
+        // TODO
+        private static boolean isIdentifier(/* TODO */);
+        // TODO
+        // TODO
+        let first : unknown = s.charAt(0);
+        if (!/* TODO */) {
+            return /* TODO */;
         }
-        for (var i = 1; i < s.length(); i++) {
-            var c = s.charAt(i);
-            var letter = (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z');
-            digit: var;
-            if (!(letter || digit || c == '_')) {
-                return false;
-            }
+        let i : (var = 1;
+        i < s.length();
+        // TODO
+        let c : unknown = s.charAt(i);
+        let letter : unknown = /* TODO */;
+        let digit : unknown = /* TODO */;
+        if (!/* TODO */) {
+            return /* TODO */;
         }
-        return true;
-    }
-
-    static String stubInvokableExpr(String stmt) {
-        var close = stmt.lastIndexOf(')');
-        if (close == -1) return "/* TODO */";
-        var open = findOpenParen(stmt, close);
-        if (open == -1) return "/* TODO */";
-        var callee = stmt.substring(0, open).trim();
-        var args = stmt.substring(open + 1, close).trim();
-        var parts = splitArgs(args);
+        // TODO
+        return /* TODO */;
+        // TODO
+        static String stubInvokableExpr(/* TODO */);
+        let close : unknown = stmt./* TODO */;
+        let (close : if = /* TODO */;
+        let open : number = findOpenParen(stmt, close);
+        let (open : if = /* TODO */;
+        let callee : unknown = stmt.substring(0, open).trim();
+        let args : unknown = stmt.substring(/* TODO */, close).trim();
+        let parts : ListLike<string> = splitArgs(args);
         mapArgs(parts);
-        var joined = joinArgs(parts);
-        return callee + "(" + joined + ")";
-    }
-
-    private static boolean isInterfaceMethod(String trimmed) {
-        return trimmed.endsWith(";") &&
-                trimmed.contains("(") &&
-                trimmed.contains(")") &&
-                !trimmed.startsWith("import") &&
-                !trimmed.contains("=") &&
-                !trimmed.contains("=>");
-    }
-
-    private static String convertInterfaceMethod(String line) {
-        var trimmed = line.trim();
-        var indent = line.substring(0, line.indexOf(trimmed));
-        var withoutSemi = trimmed.substring(0, trimmed.length() - 1).trim();
-        var open = withoutSemi.indexOf('(');
-        var close = withoutSemi.lastIndexOf(')');
-        if (open == -1 || close == -1 || close <= open) return line;
-        var before = withoutSemi.substring(0, open).trim();
-        var params = withoutSemi.substring(open + 1, close).trim();
-        var sigTokens = before.split("\\s+");
-        if (sigTokens.length < 2) return line;
-        name: var;
-        returnType: var;
-        var tsParams = TypeMapper.toTsParams(params).replace(":", " :");
-        var tsReturn = TypeMapper.toTsType(returnType);
-        var sb = new StringBuilder();
-        sb.append(indent).append(name).append("(").append(tsParams).append(")");
-        if (!tsReturn.isBlank()) sb.append(": ").append(tsReturn);
-        sb.append(";");
+        let joined : string = joinArgs(parts);
+        return callee + "(" + joined + ");
+        // TODO
+        private static boolean isInterfaceMethod(/* TODO */);
+        return trimmed.endsWith(";");
+        trimmed.contains("(/* TODO */);
+        /* */: TODO;
+        !trimmed.startsWith("import");
+        // TODO
+        !trimmed.contains("=>");
+        // TODO
+        private static String convertInterfaceMethod(/* TODO */);
+        let trimmed : unknown = line.trim();
+        let indent : unknown = line.substring(0, line.indexOf(trimmed));
+        let withoutSemi : unknown = trimmed.substring(0, trimmed.length()).trim();
+        let open : unknown = withoutSemi.indexOf('(/* TODO */);
+        let close : unknown = withoutSemi./* TODO */;
+        let (open : if = /* TODO */;
+        let before : unknown = withoutSemi.substring(0, open).trim();
+        let params : unknown = withoutSemi.substring(/* TODO */, close).trim();
+        let sigTokens : unknown = before.split("\\s+");
+        // TODO
+        let name : unknown = sigTokens[sigTokens.length - 1];
+        let returnType : unknown = sigTokens[sigTokens.length - 2];
+        let tsParams : unknown = TypeMapper.toTsParams(params).replace(":", " :");
+        let tsReturn : unknown = TypeMapper.toTsType(returnType);
+        let sb : StringBuilder = new StringBuilder();
+        sb.append(indent).append(name).append("(/* TODO */).append(tsParams).append(/* TODO */));
+        // TODO
+        // TODO
+        // TODO
         return sb.toString();
-    }
-
-    private static int findOpenParen(String stmt, int close) {
-        depth: var;
-        for (var i = close; i >= 0; i--) {
-            var c = stmt.charAt(i);
-            if (c == ')') depth++; else if (c == '(') {
-                depth--;
-                if (depth == 0) return i;
-            }
+        // TODO
+        private static int findOpenParen(/* TODO */, /* TODO */);
+        let depth : number = 0;
+        let i : (var = close;
+        let > : i = 0;
+        // TODO
+        let c : unknown = stmt.charAt(i);
+        if (/* TODO */) {
+            // TODO
+            let (depth : if = /* TODO */;
         }
+        // TODO
         return -1;
-    }
-
-    private static void mapArgs(ListLike<String> parts) {
-        for (var i = 0; i < parts.size(); i++) {
-            parts.set(i, parseValueArg(parts.get(i)));
-        }
-    }
-
-    private static String joinArgs(ListLike<String> parts) {
-        var out = new StringBuilder();
-        for (var i = 0; i < parts.size(); i++) {
-            if (i > 0) out.append(", ");
-            out.append(parts.get(i));
-        }
+        // TODO
+        private static void mapArgs(/* TODO */);
+        let i : (var = 0;
+        i < parts.size();
+        // TODO
+        parts.set(i, parseValueArg(parts.get(i)));
+        // TODO
+        // TODO
+        private static String joinArgs(/* TODO */);
+        let out : StringBuilder = new StringBuilder();
+        let i : (var = 0;
+        i < parts.size();
+        // TODO
+        // TODO
+        out.append(parts.get(i));
+        // TODO
         return out.toString();
-    }
-
-    private static ListLike<String> splitArgs(String args) {
-        ListLike<String> out = JdkList.create();
-        if (args.isBlank()) return out;
-        depth: var;
-        var part = new StringBuilder();
-        for (var i = 0; i < args.length(); i++) {
-            var c = args.charAt(i);
-            if (c == ',' && depth == 0) {
-                out.add(part.toString().trim());
-                part.setLength(0);
-                continue;
-            }
-            if (c == '(') depth++;
-            if (c == ')') depth--;
-            part.append(c);
+        // TODO
+        private static ListLike<String> splitArgs(/* TODO */);
+        let out : ListLike<string> = JdkList.create();
+        // TODO
+        let depth : number = 0;
+        let part : StringBuilder = new StringBuilder();
+        let i : (var = 0;
+        i < args.length();
+        // TODO
+        let c : unknown = args.charAt(i);
+        if (/* TODO */) {
+            out.add(part.toString().trim());
+            part.setLength(0);
+            // TODO
         }
+        let (c : if = = '(/* TODO */);
+        let (c : if = /* TODO */;
+        part.append(c);
+        // TODO
         out.add(part.toString().trim());
         return out;
-    }
-}
+        // TODO
     }

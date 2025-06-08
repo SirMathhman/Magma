@@ -42,47 +42,33 @@ export default class TypeMapper {
                     return mapBiFunction(params);
                 }
                 case "Supplier" => {
-                    var ts = mapParams(params, 0);
-                    return "() => " + ts.returnType;
+                    let ts : Params = mapParams(params, 0);
+                    return "();
                 }
                 case "Consumer" => {
-                    var ts = mapParams(params, 1);
-                    return "(" + ts.params + ") => void";
+                    let ts : Params = mapParams(params, 1);
+                    return "(" + ts.params + ");
                 }
                 case "BiConsumer" => {
-                    var ts = mapParams(params, 2);
-                    return "(" + ts.params + ") => void";
+                    let ts : Params = mapParams(params, 2);
+                    return "(" + ts.params + ");
                 }
                 case "Predicate" => {
-                    var ts = mapParams(params, 1);
-                    return "(" + ts.params + ") => boolean";
+                    let ts : Params = mapParams(params, 1);
+                    return "(" + ts.params + ");
                 }
                 case "UnaryOperator" => {
-                    var ts = mapParams(params, 1);
-                    return "(" + ts.params + ") => " + ts.returnType;
+                    let ts : Params = mapParams(params, 1);
+                    return "(" + ts.params + ");
                 }
                 case "BinaryOperator" => {
-                    var ts = mapParams(params, 2);
-                    return "(" + ts.params + ") => " + ts.returnType;
+                    let ts : Params = mapParams(params, 2);
+                    return "(" + ts.params + ");
                 }
                 default => {
                     return mapGeneric(javaType, genericStart, genericEnd);
                 }
-            }
-        }
-        if (javaType.endsWith("[]")) {
-            var element = javaType.substring(0, javaType.length() - 2);
-            return toTsType(element) + "[]";
-        }
-        return switch (javaType) {
-            case "int", "long", "float", "double",
-                 "Integer", "Long", "Float", "Double",
-                 "Short", "Byte" "number": =>;
-            case "boolean", "Boolean" "boolean": =>;
-            case "char", "Character", "String" "string": =>;
-            case "void" "void": =>;
-            default javaType: =>;
-        };
+            // TODO
         }
         if (javaType.endsWith("[]")) {
             let element : unknown = javaType.substring(0, javaType.length());
