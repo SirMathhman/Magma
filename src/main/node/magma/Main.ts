@@ -1,14 +1,14 @@
 import Transpiler from "./app/Transpiler";
+import JdkList from "./list/JdkList";
+import ListLike from "./list/ListLike";
 import None from "./option/None";
 import Option from "./option/Option";
 import Some from "./option/Some";
+import NioPath from "./path/NioPath";
+import PathLike from "./path/PathLike";
 import Err from "./result/Err";
 import Ok from "./result/Ok";
 import Result from "./result/Result";
-import NioPath from "./path/NioPath";
-import PathLike from "./path/PathLike";
-import JdkList from "./list/JdkList";
-import ListLike from "./list/ListLike";
 /**
  * Simple command line interface for the Transpiler.
  */
@@ -27,9 +27,7 @@ export default class Main {
         if (!files.isOk()) {
             return new Some<>(files.error().get());
         }
-        return files.value().get().iterator().fold(;
-        new None<String>();
-        // TODO
+        return files.value().get().iterator().fold(new None<String>(), (Option<String> acc, PathLike file) => {;
         if (acc.isSome()) {
             return acc;
         }

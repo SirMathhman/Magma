@@ -1,17 +1,16 @@
 package magma;
 
 import magma.app.Transpiler;
+import magma.list.JdkList;
+import magma.list.ListLike;
 import magma.option.None;
 import magma.option.Option;
 import magma.option.Some;
+import magma.path.NioPath;
+import magma.path.PathLike;
 import magma.result.Err;
 import magma.result.Ok;
 import magma.result.Result;
-
-import magma.path.NioPath;
-import magma.path.PathLike;
-import magma.list.JdkList;
-import magma.list.ListLike;
 
 /**
  * Simple command line interface for the Transpiler.
@@ -33,15 +32,13 @@ public class Main {
             return new Some<>(files.error().get());
         }
 
-        return files.value().get().iterator().fold(
-            new None<String>(),
-            (Option<String> acc, PathLike file) -> {
-                if (acc.isSome()) {
-                    return acc;
-                }
-                var err = transpileFile(srcRoot, outRoot, file);
-                return err.isSome() ? err : acc;
-            });
+        return files.value().get().iterator().fold(new None<String>(), (Option<String> acc, PathLike file) -> {
+            if (acc.isSome()) {
+                return acc;
+            }
+            var err = transpileFile(srcRoot, outRoot, file);
+            return err.isSome() ? err : acc;
+        });
     }
 
     private Result<ListLike<PathLike>> listJavaFiles(PathLike srcRoot) {

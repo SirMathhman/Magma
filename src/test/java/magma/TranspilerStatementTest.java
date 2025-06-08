@@ -1,9 +1,9 @@
 package magma;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-
 import magma.app.Transpiler;
 import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 class TranspilerStatementTest {
 
@@ -130,18 +130,18 @@ class TranspilerStatementTest {
     @Test
     void leavesValueAssignmentsAsTodo() {
         var javaSrc = String.join(System.lineSeparator(),
-            "public class Foo {",
-            "    void set() {",
-            "        x = 1;",
-            "    }",
-            "}");
+                "public class Foo {",
+                "    void set() {",
+                "        x = 1;",
+                "    }",
+                "}");
 
         var expected = String.join(System.lineSeparator(),
-            "export default class Foo {",
-            "    set(): void {",
-            "        // TODO",
-            "    }",
-            "}");
+                "export default class Foo {",
+                "    set(): void {",
+                "        // TODO",
+                "    }",
+                "}");
 
         var result = new Transpiler().toTypeScript(javaSrc);
         assertEquals(expected, result);
@@ -161,10 +161,10 @@ class TranspilerStatementTest {
         var javaSrc = "Runnable r = () -> { int x = 0; x++; };";
 
         var expected = String.join(System.lineSeparator(),
-            "Runnable r = () => {",
-            "    let x: number = 0;",
-            "    // TODO",
-            "};");
+                "Runnable r = () => {",
+                "    let x: number = 0;",
+                "    // TODO",
+                "};");
 
         var result = new Transpiler().toTypeScript(javaSrc);
         assertEquals(expected, result);
@@ -193,10 +193,10 @@ class TranspilerStatementTest {
         var javaSrc = "Runnable r = () -> { int x = 1; int y = 2; };";
 
         var expected = String.join(System.lineSeparator(),
-            "Runnable r = () => {",
-            "    let x: number = 1;",
-            "    let y: number = 2;",
-            "};");
+                "Runnable r = () => {",
+                "    let x: number = 1;",
+                "    let y: number = 2;",
+                "};");
 
         var result = new Transpiler().toTypeScript(javaSrc);
         assertEquals(expected, result);
@@ -205,18 +205,18 @@ class TranspilerStatementTest {
     @Test
     void keepsLambdaArgumentsInInvokables() {
         var javaSrc = String.join(System.lineSeparator(),
-            "public class Foo {",
-            "    void run() {",
-            "        doThing(() -> 1);",
-            "    }",
-            "}");
+                "public class Foo {",
+                "    void run() {",
+                "        doThing(() -> 1);",
+                "    }",
+                "}");
 
         var expected = String.join(System.lineSeparator(),
-            "export default class Foo {",
-            "    run(): void {",
-            "        doThing(() => 1);",
-            "    }",
-            "}");
+                "export default class Foo {",
+                "    run(): void {",
+                "        doThing(() => 1);",
+                "    }",
+                "}");
 
         var result = new Transpiler().toTypeScript(javaSrc);
         assertEquals(expected, result);
@@ -226,22 +226,22 @@ class TranspilerStatementTest {
     @Test
     void stubsOneTodoPerStatement() {
         var javaSrc = String.join(System.lineSeparator(),
-            "public class Foo {",
-            "    int multi() {",
-            "        int y = 0;",
-            "        y++;",
-            "        return y;",
-            "    }",
-            "}");
+                "public class Foo {",
+                "    int multi() {",
+                "        int y = 0;",
+                "        y++;",
+                "        return y;",
+                "    }",
+                "}");
 
         var expected = String.join(System.lineSeparator(),
-            "export default class Foo {",
-            "    multi(): number {",
-            "        let y: number = 0;",
-            "        // TODO",
-            "        return y;",
-            "    }",
-            "}");
+                "export default class Foo {",
+                "    multi(): number {",
+                "        let y: number = 0;",
+                "        // TODO",
+                "        return y;",
+                "    }",
+                "}");
 
         var result = new Transpiler().toTypeScript(javaSrc);
         assertEquals(expected, result);
@@ -250,22 +250,22 @@ class TranspilerStatementTest {
     @Test
     void stubsIfStatements() {
         var javaSrc = String.join(System.lineSeparator(),
-            "public class Foo {",
-            "    void check(int x) {",
-            "        if (x > 0) {",
-            "            System.out.println(x);",
-            "        }",
-            "    }",
-            "}");
+                "public class Foo {",
+                "    void check(int x) {",
+                "        if (x > 0) {",
+                "            System.out.println(x);",
+                "        }",
+                "    }",
+                "}");
 
         var expected = String.join(System.lineSeparator(),
-            "export default class Foo {",
-            "    check(x: number): void {",
-            "        if (/* TODO */) {",
-            "            System.out.println(x);",
-            "        }",
-            "    }",
-            "}");
+                "export default class Foo {",
+                "    check(x: number): void {",
+                "        if (/* TODO */) {",
+                "            System.out.println(x);",
+                "        }",
+                "    }",
+                "}");
 
         var result = new Transpiler().toTypeScript(javaSrc);
         assertEquals(expected, result);
@@ -274,22 +274,22 @@ class TranspilerStatementTest {
     @Test
     void stubsWhileStatements() {
         var javaSrc = String.join(System.lineSeparator(),
-            "public class Foo {",
-            "    void loop() {",
-            "        while (true) {",
-            "            System.out.println(1);",
-            "        }",
-            "    }",
-            "}");
+                "public class Foo {",
+                "    void loop() {",
+                "        while (true) {",
+                "            System.out.println(1);",
+                "        }",
+                "    }",
+                "}");
 
         var expected = String.join(System.lineSeparator(),
-            "export default class Foo {",
-            "    loop(): void {",
-            "        while (/* TODO */) {",
-            "            System.out.println(1);",
-            "        }",
-            "    }",
-            "}");
+                "export default class Foo {",
+                "    loop(): void {",
+                "        while (/* TODO */) {",
+                "            System.out.println(1);",
+                "        }",
+                "    }",
+                "}");
 
         var result = new Transpiler().toTypeScript(javaSrc);
         assertEquals(expected, result);
@@ -299,18 +299,18 @@ class TranspilerStatementTest {
     @Test
     void keepsStringValues() {
         var javaSrc = String.join(System.lineSeparator(),
-            "public class Foo {",
-            "    void show() {",
-            "        String msg = \"hi\";",
-            "    }",
-            "}");
+                "public class Foo {",
+                "    void show() {",
+                "        String msg = \"hi\";",
+                "    }",
+                "}");
 
         var expected = String.join(System.lineSeparator(),
-            "export default class Foo {",
-            "    show(): void {",
-            "        let msg: string = \"hi\";",
-            "    }",
-            "}");
+                "export default class Foo {",
+                "    show(): void {",
+                "        let msg: string = \"hi\";",
+                "    }",
+                "}");
 
         var result = new Transpiler().toTypeScript(javaSrc);
         assertEquals(expected, result);
@@ -319,18 +319,18 @@ class TranspilerStatementTest {
     @Test
     void keepsNumericValues() {
         var javaSrc = String.join(System.lineSeparator(),
-            "public class Foo {",
-            "    void show() {",
-            "        int num = 7;",
-            "    }",
-            "}");
+                "public class Foo {",
+                "    void show() {",
+                "        int num = 7;",
+                "    }",
+                "}");
 
         var expected = String.join(System.lineSeparator(),
-            "export default class Foo {",
-            "    show(): void {",
-            "        let num: number = 7;",
-            "    }",
-            "}");
+                "export default class Foo {",
+                "    show(): void {",
+                "        let num: number = 7;",
+                "    }",
+                "}");
 
         var result = new Transpiler().toTypeScript(javaSrc);
         assertEquals(expected, result);
@@ -339,22 +339,22 @@ class TranspilerStatementTest {
     @Test
     void resolvesVarTypes() {
         var javaSrc = String.join(System.lineSeparator(),
-            "public class Foo {",
-            "    void run() {",
-            "        var x = 100;",
-            "        var y = \"hi\";",
-            "        var z = unknown();",
-            "    }",
-            "}");
+                "public class Foo {",
+                "    void run() {",
+                "        var x = 100;",
+                "        var y = \"hi\";",
+                "        var z = unknown();",
+                "    }",
+                "}");
 
         var expected = String.join(System.lineSeparator(),
-            "export default class Foo {",
-            "    run(): void {",
-            "        let x: number = 100;",
-            "        let y: string = \"hi\";",
-            "        let z: unknown = unknown();",
-            "    }",
-            "}");
+                "export default class Foo {",
+                "    run(): void {",
+                "        let x: number = 100;",
+                "        let y: string = \"hi\";",
+                "        let z: unknown = unknown();",
+                "    }",
+                "}");
 
         var result = new Transpiler().toTypeScript(javaSrc);
         assertEquals(expected, result);
@@ -363,18 +363,18 @@ class TranspilerStatementTest {
     @Test
     void preservesMemberAccessInAssignments() {
         var javaSrc = String.join(System.lineSeparator(),
-            "public class Foo {",
-            "    void run(Parent p) {",
-            "        int x = p.count;",
-            "    }",
-            "}");
+                "public class Foo {",
+                "    void run(Parent p) {",
+                "        int x = p.count;",
+                "    }",
+                "}");
 
         var expected = String.join(System.lineSeparator(),
-            "export default class Foo {",
-            "    run(p: Parent): void {",
-            "        let x: number = p.count;",
-            "    }",
-            "}");
+                "export default class Foo {",
+                "    run(p: Parent): void {",
+                "        let x: number = p.count;",
+                "    }",
+                "}");
 
         var result = new Transpiler().toTypeScript(javaSrc);
         assertEquals(expected, result);
@@ -383,18 +383,18 @@ class TranspilerStatementTest {
     @Test
     void preservesMemberAccessInReturns() {
         var javaSrc = String.join(System.lineSeparator(),
-            "public class Foo {",
-            "    int get(Parent p) {",
-            "        return p.count;",
-            "    }",
-            "}");
+                "public class Foo {",
+                "    int get(Parent p) {",
+                "        return p.count;",
+                "    }",
+                "}");
 
         var expected = String.join(System.lineSeparator(),
-            "export default class Foo {",
-            "    get(p: Parent): number {",
-            "        return p.count;",
-            "    }",
-            "}");
+                "export default class Foo {",
+                "    get(p: Parent): number {",
+                "        return p.count;",
+                "    }",
+                "}");
 
         var result = new Transpiler().toTypeScript(javaSrc);
         assertEquals(expected, result);
@@ -403,18 +403,18 @@ class TranspilerStatementTest {
     @Test
     void parsesNestedValuesRecursively() {
         var javaSrc = String.join(System.lineSeparator(),
-            "public class Foo {",
-            "    void run() {",
-            "        int x = doThing(a, new Some<>(make(1, 2)));",
-            "    }",
-            "}");
+                "public class Foo {",
+                "    void run() {",
+                "        int x = doThing(a, new Some<>(make(1, 2)));",
+                "    }",
+                "}");
 
         var expected = String.join(System.lineSeparator(),
-            "export default class Foo {",
-            "    run(): void {",
-            "        let x: number = doThing(a, new Some<>(make(1, 2)));",
-            "    }",
-            "}");
+                "export default class Foo {",
+                "    run(): void {",
+                "        let x: number = doThing(a, new Some<>(make(1, 2)));",
+                "    }",
+                "}");
 
         var result = new Transpiler().toTypeScript(javaSrc);
         assertEquals(expected, result);
@@ -423,18 +423,40 @@ class TranspilerStatementTest {
     @Test
     void preservesMemberAccessAfterInvokable() {
         var javaSrc = String.join(System.lineSeparator(),
-            "public class Foo {",
-            "    void run() {",
-            "        int x = doStuff().myField;",
-            "    }",
-            "}");
+                "public class Foo {",
+                "    void run() {",
+                "        int x = doStuff().myField;",
+                "    }",
+                "}");
 
         var expected = String.join(System.lineSeparator(),
-            "export default class Foo {",
-            "    run(): void {",
-            "        let x: number = doStuff().myField;",
-            "    }",
-            "}");
+                "export default class Foo {",
+                "    run(): void {",
+                "        let x: number = doStuff().myField;",
+                "    }",
+                "}");
+
+        var result = new Transpiler().toTypeScript(javaSrc);
+        assertEquals(expected, result);
+    }
+
+    @Test
+    void test0() {
+        var javaSrc = """
+            public class Foo {
+                void copy(int src) {
+                    return fold(new None<String>(), () -> {
+                    });
+                }
+            }""";
+
+        var expected = """
+                export default class Foo {
+                    copy(src: number): void {
+                        return fold(new None<String>(), () => {
+                        });
+                    }
+                }""";
 
         var result = new Transpiler().toTypeScript(javaSrc);
         assertEquals(expected, result);
@@ -443,18 +465,18 @@ class TranspilerStatementTest {
     @Test
     void keepsIdentifierValues() {
         var javaSrc = String.join(System.lineSeparator(),
-            "public class Foo {",
-            "    void copy(int src) {",
-            "        int x = src;",
-            "    }",
-            "}");
+                "public class Foo {",
+                "    void copy(int src) {",
+                "        int x = src;",
+                "    }",
+                "}");
 
         var expected = String.join(System.lineSeparator(),
-            "export default class Foo {",
-            "    copy(src: number): void {",
-            "        let x: number = src;",
-            "    }",
-            "}");
+                "export default class Foo {",
+                "    copy(src: number): void {",
+                "        let x: number = src;",
+                "    }",
+                "}");
 
         var result = new Transpiler().toTypeScript(javaSrc);
         assertEquals(expected, result);
@@ -463,18 +485,18 @@ class TranspilerStatementTest {
     @Test
     void parsesDeepChainedAccess() {
         var javaSrc = String.join(System.lineSeparator(),
-            "public class Foo {",
-            "    void run() {",
-            "        int x = first.second().third.fourth;",
-            "    }",
-            "}");
+                "public class Foo {",
+                "    void run() {",
+                "        int x = first.second().third.fourth;",
+                "    }",
+                "}");
 
         var expected = String.join(System.lineSeparator(),
-            "export default class Foo {",
-            "    run(): void {",
-            "        let x: number = first.second().third.fourth;",
-            "    }",
-            "}");
+                "export default class Foo {",
+                "    run(): void {",
+                "        let x: number = first.second().third.fourth;",
+                "    }",
+                "}");
 
         var result = new Transpiler().toTypeScript(javaSrc);
         assertEquals(expected, result);
@@ -483,22 +505,22 @@ class TranspilerStatementTest {
     @Test
     void parsesInvokableInIfCondition() {
         var javaSrc = String.join(System.lineSeparator(),
-            "public class Foo {",
-            "    void check() {",
-            "        if (isValid(run())) {",
-            "            System.out.println(1);",
-            "        }",
-            "    }",
-            "}");
+                "public class Foo {",
+                "    void check() {",
+                "        if (isValid(run())) {",
+                "            System.out.println(1);",
+                "        }",
+                "    }",
+                "}");
 
         var expected = String.join(System.lineSeparator(),
-            "export default class Foo {",
-            "    check(): void {",
-            "        if (isValid(run())) {",
-            "            System.out.println(1);",
-            "        }",
-            "    }",
-            "}");
+                "export default class Foo {",
+                "    check(): void {",
+                "        if (isValid(run())) {",
+                "            System.out.println(1);",
+                "        }",
+                "    }",
+                "}");
 
         var result = new Transpiler().toTypeScript(javaSrc);
         assertEquals(expected, result);
@@ -507,22 +529,22 @@ class TranspilerStatementTest {
     @Test
     void parsesMemberAccessInWhileCondition() {
         var javaSrc = String.join(System.lineSeparator(),
-            "public class Foo {",
-            "    void loop(Iter it) {",
-            "        while (it.hasNext()) {",
-            "            System.out.println(1);",
-            "        }",
-            "    }",
-            "}");
+                "public class Foo {",
+                "    void loop(Iter it) {",
+                "        while (it.hasNext()) {",
+                "            System.out.println(1);",
+                "        }",
+                "    }",
+                "}");
 
         var expected = String.join(System.lineSeparator(),
-            "export default class Foo {",
-            "    loop(it: Iter): void {",
-            "        while (it.hasNext()) {",
-            "            System.out.println(1);",
-            "        }",
-            "    }",
-            "}");
+                "export default class Foo {",
+                "    loop(it: Iter): void {",
+                "        while (it.hasNext()) {",
+                "            System.out.println(1);",
+                "        }",
+                "    }",
+                "}");
 
         var result = new Transpiler().toTypeScript(javaSrc);
         assertEquals(expected, result);
@@ -531,22 +553,22 @@ class TranspilerStatementTest {
     @Test
     void parsesNotOperatorInIfCondition() {
         var javaSrc = String.join(System.lineSeparator(),
-            "public class Foo {",
-            "    void check() {",
-            "        if (!isValid(1)) {",
-            "            System.out.println(1);",
-            "        }",
-            "    }",
-            "}");
+                "public class Foo {",
+                "    void check() {",
+                "        if (!isValid(1)) {",
+                "            System.out.println(1);",
+                "        }",
+                "    }",
+                "}");
 
         var expected = String.join(System.lineSeparator(),
-            "export default class Foo {",
-            "    check(): void {",
-            "        if (!isValid(1)) {",
-            "            System.out.println(1);",
-            "        }",
-            "    }",
-            "}");
+                "export default class Foo {",
+                "    check(): void {",
+                "        if (!isValid(1)) {",
+                "            System.out.println(1);",
+                "        }",
+                "    }",
+                "}");
 
         var result = new Transpiler().toTypeScript(javaSrc);
         assertEquals(expected, result);
@@ -555,22 +577,22 @@ class TranspilerStatementTest {
     @Test
     void parsesMemberAccessInIfCondition() {
         var javaSrc = String.join(System.lineSeparator(),
-            "public class Foo {",
-            "    void check(Parent p) {",
-            "        if (p.child) {",
-            "            System.out.println(1);",
-            "        }",
-            "    }",
-            "}");
+                "public class Foo {",
+                "    void check(Parent p) {",
+                "        if (p.child) {",
+                "            System.out.println(1);",
+                "        }",
+                "    }",
+                "}");
 
         var expected = String.join(System.lineSeparator(),
-            "export default class Foo {",
-            "    check(p: Parent): void {",
-            "        if (p.child) {",
-            "            System.out.println(1);",
-            "        }",
-            "    }",
-            "}");
+                "export default class Foo {",
+                "    check(p: Parent): void {",
+                "        if (p.child) {",
+                "            System.out.println(1);",
+                "        }",
+                "    }",
+                "}");
 
         var result = new Transpiler().toTypeScript(javaSrc);
         assertEquals(expected, result);
@@ -579,22 +601,22 @@ class TranspilerStatementTest {
     @Test
     void parsesNotOperatorWithMemberAccess() {
         var javaSrc = String.join(System.lineSeparator(),
-            "public class Foo {",
-            "    void check(Parent p) {",
-            "        if (!p.child) {",
-            "            System.out.println(1);",
-            "        }",
-            "    }",
-            "}");
+                "public class Foo {",
+                "    void check(Parent p) {",
+                "        if (!p.child) {",
+                "            System.out.println(1);",
+                "        }",
+                "    }",
+                "}");
 
         var expected = String.join(System.lineSeparator(),
-            "export default class Foo {",
-            "    check(p: Parent): void {",
-            "        if (!p.child) {",
-            "            System.out.println(1);",
-            "        }",
-            "    }",
-            "}");
+                "export default class Foo {",
+                "    check(p: Parent): void {",
+                "        if (!p.child) {",
+                "            System.out.println(1);",
+                "        }",
+                "    }",
+                "}");
 
         var result = new Transpiler().toTypeScript(javaSrc);
         assertEquals(expected, result);
@@ -603,18 +625,18 @@ class TranspilerStatementTest {
     @Test
     void parsesChainedInvocations() {
         var javaSrc = String.join(System.lineSeparator(),
-            "public class Foo {",
-            "    void run() {",
-            "        int x = first().second().third();",
-            "    }",
-            "}");
+                "public class Foo {",
+                "    void run() {",
+                "        int x = first().second().third();",
+                "    }",
+                "}");
 
         var expected = String.join(System.lineSeparator(),
-            "export default class Foo {",
-            "    run(): void {",
-            "        let x: number = first().second().third();",
-            "    }",
-            "}");
+                "export default class Foo {",
+                "    run(): void {",
+                "        let x: number = first().second().third();",
+                "    }",
+                "}");
 
         var result = new Transpiler().toTypeScript(javaSrc);
         assertEquals(expected, result);
@@ -623,18 +645,18 @@ class TranspilerStatementTest {
     @Test
     void parsesNestedAndChainedInvocations() {
         var javaSrc = String.join(System.lineSeparator(),
-            "public class Foo {",
-            "    void run() {",
-            "        int x = outer(inner(foo.bar()), other()).value;",
-            "    }",
-            "}");
+                "public class Foo {",
+                "    void run() {",
+                "        int x = outer(inner(foo.bar()), other()).value;",
+                "    }",
+                "}");
 
         var expected = String.join(System.lineSeparator(),
-            "export default class Foo {",
-            "    run(): void {",
-            "        let x: number = outer(inner(foo.bar()), other()).value;",
-            "    }",
-            "}");
+                "export default class Foo {",
+                "    run(): void {",
+                "        let x: number = outer(inner(foo.bar()), other()).value;",
+                "    }",
+                "}");
 
         var result = new Transpiler().toTypeScript(javaSrc);
         assertEquals(expected, result);
@@ -643,18 +665,18 @@ class TranspilerStatementTest {
     @Test
     void parsesChainedCallsAfterNewInstance() {
         var javaSrc = String.join(System.lineSeparator(),
-            "public class Foo {",
-            "    void run() {",
-            "        int x = new Main().run().value;",
-            "    }",
-            "}");
+                "public class Foo {",
+                "    void run() {",
+                "        int x = new Main().run().value;",
+                "    }",
+                "}");
 
         var expected = String.join(System.lineSeparator(),
-            "export default class Foo {",
-            "    run(): void {",
-            "        let x: number = new Main().run().value;",
-            "    }",
-            "}");
+                "export default class Foo {",
+                "    run(): void {",
+                "        let x: number = new Main().run().value;",
+                "    }",
+                "}");
 
         var result = new Transpiler().toTypeScript(javaSrc);
         assertEquals(expected, result);
