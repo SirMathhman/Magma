@@ -100,6 +100,7 @@ Only the features listed below are supported. Anything not mentioned here is con
    - Convert lambda expressions to arrow functions.
    - Lambda expressions used as method arguments are preserved rather than being
      mistaken for invokable calls.
+   - Parse statements inside lambda blocks so assignments become TODO stubs.
    - Map basic stream operations to array helpers.
 6. Provide minimal replacements for common standard library utilities.
    - Introduce small helpers for `List` and `Map` behavior.
