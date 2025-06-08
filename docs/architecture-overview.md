@@ -13,7 +13,9 @@ platforms.
 ## Main Modules
 
 - `magma.app.Transpiler` – orchestrates the conversion to TypeScript
-- `ImportHelper` – rewrites package declarations and import lines
+- `ImportHelper` – rewrites package declarations and import lines, and now
+  adds missing imports when classes from the same package are referenced
+  without an explicit `import` statement
 - `MethodStubber` – replaces method bodies with `// TODO` stubs.
   Each helper scans once so every function contains at most a single loop
   and indentation never exceeds two levels. Expressions are walked using
