@@ -6,12 +6,40 @@ class ArrowHelper {
         var out = new StringBuilder();
         for (var line : lines) {
             if (line.contains("->")) {
-                out.append(line.replace("->", "=>")).append(System.lineSeparator());
+                var replaced = line.replace("->", "=>");
+                out.append(mapTypedParams(replaced)).append(System.lineSeparator());
             } else {
                 out.append(line).append(System.lineSeparator());
             }
         }
         return out.toString().trim();
+    }
+
+    private static String mapTypedParams(String line) {
+        var arrow = line.indexOf("=>");
+        if (arrow == -1) return line;
+        var close = line.lastIndexOf(')', arrow);
+        var open = line.lastIndexOf('(', close);
+        if (open == -1 || close == -1 || close <= open) return line;
+        var inside = line.substring(open + 1, close).trim();
+        if (!inside.contains(" ")) return line;
+        var parts = inside.split(",");
+        var mapped = new StringBuilder();
+        for (var i = 0; i < parts.length; i++) {
+            var p = parts[i].trim();
+            var tokens = p.split("\\s+");
+            if (tokens.length >= 2) {
+                var name = tokens[tokens.length - 1];
+                var type = tokens[tokens.length - 2];
+                mapped.append(name)
+                    .append(" : ")
+                    .append(TypeMapper.toTsType(type));
+            } else {
+                mapped.append(p);
+            }
+            if (i < parts.length - 1) mapped.append(", ");
+        }
+        return line.substring(0, open + 1) + mapped + line.substring(close);
     }
 
     static String stubArrowAssignments(String source) {
