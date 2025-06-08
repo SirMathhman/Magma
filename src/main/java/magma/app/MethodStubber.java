@@ -146,7 +146,7 @@ class MethodStubber {
             wrote = true;
 
             if (body.contains("->") && body.endsWith("{")) {
-                i = copyArrowBlock(lines, i, stub) - 1;
+                i = parseArrowBlock(lines, i, stub, returns) - 1;
                 continue;
             }
 
@@ -201,17 +201,16 @@ class MethodStubber {
         return i;
     }
 
-    private static int copyArrowBlock(String[] lines, int start, StringBuilder stub) {
-        var i = start;
-        while (i < lines.length) {
-            stub.append(lines[i]).append(System.lineSeparator());
-            var trimmed = lines[i].trim();
-            if (trimmed.equals("});") || trimmed.equals("};")) {
-                return i + 1;
-            }
-            i++;
+    private static int parseArrowBlock(String[] lines, int start, StringBuilder stub,
+                                       java.util.Map<String, String> returns) {
+        var indent = lines[start].substring(0, lines[start].indexOf(lines[start].trim()));
+        stub.append(lines[start]).append(System.lineSeparator());
+        var end = skipBody(lines, start);
+        if (end - start > 2) {
+            parseStatements(lines, start + 1, end - 1, indent, stub, returns);
         }
-        return i;
+        stub.append(lines[end - 1]).append(System.lineSeparator());
+        return end;
     }
 
     static void appendParsedBlock(StringBuilder stub, String indent, String keyword,

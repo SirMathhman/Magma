@@ -36,9 +36,9 @@ platforms.
     becomes `doThing(() => 1)`.
   - Typed lambda parameters are converted to `name : type` form so `(String v)`
     becomes `(v : string)`.
-  - `MethodStubber` now detects arrow blocks that span multiple lines and copies
-    them verbatim until the closing `});` so calls like `fold(x, () -> { });`
-    remain intact.
+    - `MethodStubber` detects arrow blocks that span multiple lines and now
+      parses the enclosed statements so assignments become TODO stubs before the
+      closing `});`.
   - Interface methods are translated so parameter and return types carry over,
     using spaces around the colon for parameters.
   - `TypeMapper` – maps primitive, boxed, and generic types and leaves unknown

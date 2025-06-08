@@ -70,8 +70,8 @@ never be edited directly.
   objects also reuse the target method's return type so `var x = new Foo().getValue();`
   becomes `let x : number = new Foo().getValue();`. More complex expressions still
   default to `unknown`.
-  Arrow blocks passed as arguments are detected and copied line for line until
-  the closing `});` so multi-line lambdas survive unchanged.
+Arrow blocks passed as arguments are detected and their statements are parsed
+so assignments inside the block become stubs before the closing `});`.
 - `magma.app.FieldTranspiler` – converts Java fields into TypeScript
   properties while ignoring initializations
 - `magma.app.ImportHelper` – rewrites package declarations and import lines
