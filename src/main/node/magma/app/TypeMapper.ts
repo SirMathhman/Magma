@@ -103,7 +103,7 @@ export default class TypeMapper {
         let base : unknown = javaType.substring(0, start).trim();
         let params : unknown = javaType.substring(/* TODO */, end);
         let mapped : ListLike<string> = JdkList.create();
-        let pieces : unknown = split(params);
+        let pieces : ListLike<string> = split(params);
         let i : (var = 0;
         i < pieces.size();
         // TODO
@@ -144,7 +144,7 @@ export default class TypeMapper {
 
     mapParams(params: string, paramCount: number): Params {
         let out : ListLike<string> = JdkList.create();
-        let parts : unknown = split(params);
+        let parts : ListLike<string> = split(params);
         let i : (var = 0;
         i < Math.min(paramCount, parts.size());
         // TODO
@@ -162,12 +162,12 @@ export default class TypeMapper {
     }
 
     mapFunction(params: string): string {
-        let ts : unknown = mapParams(params, 1);
+        let ts : Params = mapParams(params, 1);
         return "(" + ts.params + ");
     }
 
     mapBiFunction(params: string): string {
-        let ts : unknown = mapParams(params, 2);
+        let ts : Params = mapParams(params, 2);
         return "(" + ts.params + ");
     }
 }

@@ -25,7 +25,7 @@ export default class FieldTranspiler {
         let name : unknown = tokens[tokens.length - 1];
         let type : unknown = tokens[tokens.length - 2];
         let modArray : unknown = Arrays.copyOf(tokens, tokens.length - 2);
-        let modifiers : unknown = replaceFinalWithReadonly(modArray);
+        let modifiers : string = replaceFinalWithReadonly(modArray);
         let tsType : unknown = TypeMapper.toTsType(type);
         out.append(indent);
         if (!modifiers.isBlank()) {

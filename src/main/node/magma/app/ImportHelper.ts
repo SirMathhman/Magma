@@ -61,8 +61,8 @@ export default class ImportHelper {
         let className : unknown = parts[parts.length - 1];
         let importPkgParts : unknown = Arrays.copyOf(parts, parts.length - 1);
         let currentParts : unknown = currentPkg.isBlank().split("\\.");
-        let shared : unknown = sharedPrefix(importPkgParts, currentParts);
-        let path : unknown = relativePath(importPkgParts, currentParts, shared);
+        let shared : number = sharedPrefix(importPkgParts, currentParts);
+        let path : string = relativePath(importPkgParts, currentParts, shared);
         if (!path.startsWith("../")) {
             // TODO
         }

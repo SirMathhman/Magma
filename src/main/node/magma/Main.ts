@@ -23,7 +23,7 @@ export default class Main {
     run(): Option<string> {
         let srcRoot : PathLike = NioPath.of("src/main/java");
         let outRoot : PathLike = NioPath.of("src/main/node");
-        let files : unknown = listJavaFiles(srcRoot);
+        let files : Result<ListLike<PathLike>> = listJavaFiles(srcRoot);
         if (!files.isOk()) {
             return new Some<>(files.error().get());
         }
