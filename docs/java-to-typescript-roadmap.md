@@ -44,7 +44,10 @@ Only the features listed below are supported. Anything not mentioned here is con
 - **Exceptions** (`throw`, `try`/`catch`) are replaced with `Result` or `Option` objects.
 - **Lambda expressions** become arrow functions.
   - Assignment statements inside arrow function bodies are replaced with `// TODO`.
-  - Tests: `TranspilerStatementTest.stubsAssignmentsInArrowFunctions`.
+  - Tests: `TranspilerStatementTest.stubsAssignmentsInArrowFunctions`,
+    `TranspilerStatementTest.convertsSingleParameterLambda`,
+    `TranspilerStatementTest.convertsTypedParameterLambda`,
+    `TranspilerStatementTest.expandsMultipleAssignmentsInArrowFunction`.
   - Variable definitions within method bodies are emitted as `let` declarations
     with `/* TODO */` for the assigned value.
   - Tests: `TranspilerStatementTest.stubsOneTodoPerStatement`,
