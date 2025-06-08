@@ -18,10 +18,10 @@ platforms.
 - `ImportHelper` – rewrites package declarations and import lines, and now
   adds missing imports when classes from the same package are referenced
   without an explicit `import` statement
-- `MethodStubber` – replaces method bodies with `// TODO` stubs.
-  Each helper scans once so every function contains at most a single loop
-  and indentation never exceeds two levels. Expressions are walked using
-  `parseValue`.
+- `StatementParser` – replaces method bodies with `// TODO` stubs while
+  delegating expression details to `ExpressionParser`. Each helper scans once so
+  every function contains at most a single loop and indentation never exceeds two
+  levels.
   Local variables declared with `var` now infer a TypeScript type from the
   assigned value. Numeric, boolean and string literals map to the primitive
   types. Constructor calls such as `new Foo()` return `Foo` while more complex
@@ -42,7 +42,7 @@ platforms.
     becomes `doThing(() => 1)`.
   - Typed lambda parameters are converted to `name : type` form so `(String v)`
     becomes `(v : string)`.
-  - `MethodStubber` detects arrow blocks that span multiple lines and now
+  - `StatementParser` detects arrow blocks that span multiple lines and now
       parses the enclosed statements so assignments become TODO stubs before the
       closing `});`.
   - Constructor calls that use Java's diamond operator now fill in the
