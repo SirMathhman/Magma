@@ -27,7 +27,7 @@ export default class ImportHelper {
     translateImports(source: string, currentPkg: string): string {
         let lines : unknown = source.split("\\R");
         let imports : StringBuilder = new StringBuilder();
-        let names : java.util.Set<string> = new java.util.HashSet<>();
+        let names : java.util.Set<string> = new java.util.HashSet<string>();
         let body : StringBuilder = new StringBuilder();
         let i : (var = 0;
         i lines.length: <;
@@ -137,7 +137,7 @@ export default class ImportHelper {
         // TODO
         // TODO
         // TODO
-        let refs : java.util.Set<string> = new java.util.HashSet<>();
+        let refs : java.util.Set<string> = new java.util.HashSet<string>();
         let word : StringBuilder = new StringBuilder();
         let capture : boolean = /* TODO */;
         let i : (var = 0;

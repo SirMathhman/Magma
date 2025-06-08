@@ -34,9 +34,9 @@ export default class NioPath implements PathLike {
     @Override
     readString(): Result<string> {
         // TODO
-        return new Ok<>(Files.readString(path));
+        return new Ok<string>(Files.readString(path));
         } catch(java.io.IOException e);
-        return new Err<>(e.getMessage());
+        return new Err<string>(e.getMessage());
         // TODO
     }
 
@@ -45,9 +45,9 @@ export default class NioPath implements PathLike {
     createDirectories(): Option<string> {
         // TODO
         Files.createDirectories(path);
-        return new None<>();
+        return new None<string>();
         } catch(java.io.IOException e);
-        return new Some<>(e.getMessage());
+        return new Some<string>(e.getMessage());
         // TODO
     }
 
@@ -56,9 +56,9 @@ export default class NioPath implements PathLike {
     writeString(text: string): Option<string> {
         // TODO
         Files.writeString(path, text);
-        return new None<>();
+        return new None<string>();
         } catch(java.io.IOException e);
-        return new Some<>(e.getMessage());
+        return new Some<string>(e.getMessage());
         // TODO
     }
 
@@ -67,9 +67,9 @@ export default class NioPath implements PathLike {
     deleteIfExists(): Option<string> {
         // TODO
         Files.deleteIfExists(path);
-        return new None<>();
+        return new None<string>();
         } catch(java.io.IOException e);
-        return new Some<>(e.getMessage());
+        return new Some<string>(e.getMessage());
         // TODO
     }
 
@@ -91,12 +91,12 @@ export default class NioPath implements PathLike {
 
     @Override
     walk(): Result<Set<PathLike>> {
-        let out : Set<PathLike> = new LinkedHashSet<>();
+        let out : Set<PathLike> = new LinkedHashSet<PathLike>();
         let stream : (var = Files./* TODO */;
         stream.forEach(p => out.add(new NioPath(p)));
-        return new Ok<>(out);
+        return new Ok<Set<PathLike>>(out);
         } catch(java.io.IOException e);
-        return new Err<>(e.getMessage());
+        return new Err<Set<PathLike>>(e.getMessage());
         // TODO
     }
 

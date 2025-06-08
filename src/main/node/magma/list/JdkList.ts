@@ -10,12 +10,12 @@ export default class JdkList<T> implements ListLike<T> {
 
     /** Create an empty list. */
     create(): JdkList<T> {
-        return new JdkList<>(new ArrayList<>());
+        return new JdkList<T>(new ArrayList<T>());
     }
 
     /** Wrap an existing java.util.List. */
     wrap(list: List<T>): JdkList<T> {
-        return new JdkList<>(list);
+        return new JdkList<T>(list);
     }
 
     @Override

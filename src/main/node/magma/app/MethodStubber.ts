@@ -91,18 +91,19 @@ export default class MethodStubber {
             stub.append(": ").append(tsReturn);
         }
         stub.append(" {").append(System.lineSeparator());
-        parseStatements(lines, start, end, indent, stub, returns);
+        parseStatements(lines, start, end, indent, stub, tsReturn, returns);
         stub.append(indent).append("}").append(System.lineSeparator());
         return stub.toString();
         // TODO
         // TODO
         java.util.Map<String, vars,: String>;
-        java.util.Map<String, String> {: returns);
+        java.util.Map<String, returns,: String>;
+        // TODO
         // TODO
         let trimmedPart : unknown = part.trim();
         // TODO
         if (trimmedPart.startsWith("return")) {
-            appendReturn(trimmedPart, indent, stub);
+            appendReturn(trimmedPart, indent, stub, returnType);
             // TODO
         }
         if (trimmedPart.contains("=")) {
@@ -120,11 +121,11 @@ export default class MethodStubber {
         stub.append(indent).append("    // TODO").append(System.lineSeparator());
         // TODO
         // TODO
-        private static void appendReturn(/* TODO */, /* TODO */, /* TODO */);
+        private static void appendReturn(/* TODO */, /* TODO */, /* TODO */, /* TODO */);
         let expr : unknown = stmt.substring(6).trim();
         // TODO
         let expr : ")) = expr.substring(0, expr.length()).trim();
-        let value : unknown = expr.isBlank() ? "" : " " + parseValue(expr);
+        let value : unknown = expr.isBlank() ? "" : " " + parseValue(expr, returnType);
         stub.append(indent);
         .append("    return");
         .append(value);
@@ -147,13 +148,13 @@ export default class MethodStubber {
                 // TODO
                 // TODO
             }
-        let next : unknown = handleControlBlock(body, lines, i, indent, stub, returns);
+        let next : unknown = handleControlBlock(body, lines, i, indent, stub, returns, returnType);
         if (/* TODO */) {
             // TODO
             // TODO
         }
         if (body.startsWith("return")) {
-            appendReturn(body, indent, stub);
+            appendReturn(body, indent, stub, returnType);
             // TODO
         }
         // TODO
@@ -162,23 +163,24 @@ export default class MethodStubber {
         // TODO
         // TODO
         // TODO
-        StringBuilder stub, java.util.Map<String, String> {: returns);
+        StringBuilder stub, java.util.Map<String, returns,: String>;
+        // TODO
         if ((body.startsWith("if") || body.startsWith("else if")) && body.endsWith("{")) {
             let keyword : unknown = body.startsWith("else if");
             let cond : string = parseCondition(body);
             let blockEnd : number = skipBody(lines, index);
-            appendParsedBlock(stub, indent, keyword, cond, lines, /* TODO */, /* TODO */, returns);
+            appendParsedBlock(stub, indent, keyword, cond, lines, /* TODO */, /* TODO */, returns, returnType);
             return blockEnd;
         }
         if (body.startsWith("else").endsWith("{")) {
             let blockEnd : number = skipBody(lines, index);
-            appendParsedBlock(stub, indent, "else", /* TODO */, lines, /* TODO */, /* TODO */, returns);
+            appendParsedBlock(stub, indent, "else", /* TODO */, lines, /* TODO */, /* TODO */, returns, returnType);
             return blockEnd;
         }
         if (body.startsWith("while").endsWith("{")) {
             let cond : string = parseCondition(body);
             let blockEnd : number = skipBody(lines, index);
-            appendParsedBlock(stub, indent, "while", cond, lines, /* TODO */, /* TODO */, returns);
+            appendParsedBlock(stub, indent, "while", cond, lines, /* TODO */, /* TODO */, returns, returnType);
             return blockEnd;
         }
         return index;
@@ -200,20 +202,20 @@ export default class MethodStubber {
         stub.append(lines[start]).append(System.lineSeparator());
         let end : number = skipBody(lines, start);
         if (/* TODO */) {
-            parseStatements(lines, /* TODO */, /* TODO */, indent, stub, returns);
+            parseStatements(lines, /* TODO */, /* TODO */, indent, stub, /* TODO */, returns);
         }
         stub.append(lines[end - 1]).append(System.lineSeparator());
         return end;
         // TODO
         // TODO
         // TODO
-        java.util.Map<String, String> {: returns);
+        java.util.Map<String, String> returns, String {: returnType);
         stub.append(indent).append("    ").append(keyword);
         if (/* TODO */) {
             stub.append("(/* TODO */).append(condition).append(/* TODO */));
         }
         stub.append(" {").append(System.lineSeparator());
-        parseStatements(lines, start, end, /* TODO */, stub, returns);
+        parseStatements(lines, start, end, /* TODO */, stub, returnType, returns);
         stub.append(indent).append("    }").append(System.lineSeparator());
         // TODO
         private static String parseCondition(/* TODO */);
@@ -238,8 +240,8 @@ export default class MethodStubber {
         if (/* TODO */) {
             let name : unknown = tokens[tokens.length - 1];
             let type : unknown = tokens[tokens.length - 2];
-            let value : string = parseValue(rhs);
             let tsType : unknown = type.equals("var") ? inferVarType(rhs, vars, returns).toTsType(type);
+            let value : string = parseValue(rhs, tsType);
             vars.put(name, tsType);
             return /* TODO */;
         }
@@ -300,12 +302,15 @@ export default class MethodStubber {
         static String parseInvokable(/* TODO */, /* TODO */);
         return indent + "    " + stubInvokableExpr(stmt);
         // TODO
-        static String parseValue(/* TODO */);
+        static String parseValue(/* TODO */, /* TODO */);
         let trimmed : unknown = value.trim();
+        if (trimmed.startsWith("new ").contains("<>")) {
+            // TODO
+        }
         // TODO
         if (trimmed.startsWith("!")) {
             let rest : unknown = trimmed.substring(1).trim();
-            return "!" + parseValue(rest);
+            return "!" + parseValue(rest, expected);
         }
         if (trimmed.startsWith("new ").contains(".") && isInvokable(trimmed)) {
             return trimmed;
@@ -330,9 +335,20 @@ export default class MethodStubber {
         }
         return "/* TODO */";
         // TODO
+        static String parseValue(/* TODO */);
+        return parseValue(value, /* TODO */);
+        // TODO
         private static String parseValueArg(/* TODO */);
         let trimmed : unknown = value.trim();
-        return parseValue(trimmed);
+        return parseValue(trimmed, /* TODO */);
+        // TODO
+        private static String fillDiamond(/* TODO */, /* TODO */);
+        let (expected : if = /* TODO */;
+        let start : unknown = expected.indexOf(/* TODO */);
+        let end : unknown = expected.lastIndexOf(/* TODO */);
+        let (start : if = /* TODO */;
+        let generic : unknown = expected.substring(/* TODO */, end);
+        return expr.replace("<>", "<" + generic + ">");
         // TODO
         private static String parseMemberChain(/* TODO */);
         let parts : ListLike<string> = splitMemberParts(expr);

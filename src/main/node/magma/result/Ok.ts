@@ -16,11 +16,11 @@ export default class Ok<T> implements Result<T> {
 
     @Override
     value(): Option<T> {
-        return new Some<>(value);
+        return new Some<T>(value);
     }
 
     @Override
     error(): Option<string> {
-        return new None<>();
+        return new None<string>();
     }
 }

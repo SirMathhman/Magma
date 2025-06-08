@@ -25,7 +25,7 @@ export default class Main {
         let outRoot : PathLike = NioPath.of("src/main/node");
         let files : Result<ListLike<PathLike>> = listJavaFiles(srcRoot);
         if (!files.isOk()) {
-            return new Some<>(files.error().get());
+            return new Some<string>(files.error().get());
         }
         return files.value().get().iterator().fold(new None<String>(), (acc : Option<string>, file : PathLike) => {
             if (acc.isSome()) {
@@ -39,7 +39,7 @@ export default class Main {
     listJavaFiles(srcRoot: PathLike): Result<ListLike<PathLike>> {
         let paths : unknown = srcRoot.walk();
         if (!paths.isOk()) {
-            return new Err<>(paths.error().get());
+            return new Err<ListLike<PathLike>>(paths.error().get());
         }
         let javaFiles : ListLike<PathLike> = JdkList.create();
         let pathIt : unknown = paths.value().get().iterator();
@@ -49,13 +49,13 @@ export default class Main {
                 javaFiles.add(p);
             }
         }
-        return new Ok<>(javaFiles);
+        return new Ok<ListLike<PathLike>>(javaFiles);
     }
 
     transpileFile(srcRoot: PathLike, outRoot: PathLike, javaFile: PathLike): Option<string> {
         let javaSrcResult : unknown = javaFile.readString();
         if (!javaSrcResult.isOk()) {
-            return new Some<>(javaSrcResult.error().get());
+            return new Some<string>(javaSrcResult.error().get());
         }
         let javaSrc : unknown = javaSrcResult.value().get();
         let ts : Transpiler = new Transpiler().toTypeScript(javaSrc);
