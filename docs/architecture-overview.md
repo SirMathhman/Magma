@@ -27,9 +27,13 @@ platforms.
   the same class reuse those methods' return types so `var x = getValue();`
   becomes `let x : number = getValue();` when `getValue` returns `int`.
   Method calls on freshly created objects follow the same rule, allowing
-  `var x = new Foo().getValue();` to infer `number`.
-- Nested `if` and `while` blocks are parsed recursively so statements
-  inside them are handled just like top-level code.
+  `var x = new Foo().getValue();` to infer `number`. Calls on variables
+  typed with known interfaces such as `PathLike` also use the interface
+  signature so `var paths = root.walk();` infers `Result<Set<PathLike>>`.
+  The generated `Main.ts` shows this inference in practice, typing
+  `srcRoot.walk()` with the same return type.
+  - Nested `if` and `while` blocks are parsed recursively so statements
+    inside them are handled just like top-level code.
 - `FieldTranspiler` – converts Java field definitions
 - `ArrowHelper` – rewrites lambda expressions to arrow functions
   - Lambda arguments inside method calls are preserved so `doThing(() -> 1)`

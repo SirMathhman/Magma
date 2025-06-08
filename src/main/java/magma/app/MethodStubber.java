@@ -4,6 +4,20 @@ import magma.list.JdkList;
 import magma.list.ListLike;
 
 class MethodStubber {
+    private static final java.util.Map<String, String> KNOWN_RETURNS = buildKnownReturns();
+
+    private static java.util.Map<String, String> buildKnownReturns() {
+        java.util.Map<String, String> map = new java.util.HashMap<>();
+        map.put("PathLike.walk", "Result<Set<PathLike>>");
+        map.put("PathLike.readString", "Result<string>");
+        map.put("PathLike.createDirectories", "Option<string>");
+        map.put("PathLike.writeString", "Option<string>");
+        map.put("PathLike.resolve", "PathLike");
+        map.put("PathLike.relativize", "PathLike");
+        map.put("PathLike.getParent", "PathLike");
+        map.put("PathLike.deleteIfExists", "Option<string>");
+        return map;
+    }
     static String stubMethods(String source) {
         var lines = source.split("\\R");
         var returns = collectReturnTypes(lines);
@@ -93,7 +107,8 @@ class MethodStubber {
             stub.append(": ").append(tsReturn);
         }
         stub.append(" {").append(System.lineSeparator());
-        parseStatements(lines, start, end, indent, stub, tsReturn, returns);
+        var paramVars = paramVars(tsParams);
+        parseStatements(lines, start, end, indent, stub, tsReturn, returns, paramVars);
         stub.append(indent).append("}").append(System.lineSeparator());
         return stub.toString();
     }
@@ -138,20 +153,21 @@ class MethodStubber {
 
     private static void parseStatements(String[] lines, int start, int end, String indent,
                                         StringBuilder stub, String returnType,
-                                        java.util.Map<String, String> returns) {
+                                        java.util.Map<String, String> returns,
+                                        java.util.Map<String, String> vars) {
         var wrote = false;
-        java.util.Map<String, String> vars = new java.util.HashMap<>();
+        if (vars == null) vars = new java.util.HashMap<>();
         for (var i = start; i < end; i++) {
             var body = lines[i].trim();
             if (body.isEmpty()) continue;
             wrote = true;
 
             if (body.contains("->") && body.endsWith("{")) {
-                i = parseArrowBlock(lines, i, stub, returns) - 1;
+                i = parseArrowBlock(lines, i, stub, returns, vars) - 1;
                 continue;
             }
 
-            var next = handleControlBlock(body, lines, i, indent, stub, returns, returnType);
+            var next = handleControlBlock(body, lines, i, indent, stub, returns, returnType, vars);
             if (next != i) {
                 i = next - 1;
                 continue;
@@ -169,23 +185,23 @@ class MethodStubber {
 
     private static int handleControlBlock(String body, String[] lines, int index, String indent,
                                           StringBuilder stub, java.util.Map<String, String> returns,
-                                          String returnType) {
+                                          String returnType, java.util.Map<String, String> vars) {
         if ((body.startsWith("if") || body.startsWith("else if")) && body.endsWith("{")) {
             var keyword = body.startsWith("else if") ? "else if" : "if";
             var cond = parseCondition(body);
             var blockEnd = skipBody(lines, index);
-            appendParsedBlock(stub, indent, keyword, cond, lines, index + 1, blockEnd - 1, returns, returnType);
+            appendParsedBlock(stub, indent, keyword, cond, lines, index + 1, blockEnd - 1, returns, returnType, vars);
             return blockEnd;
         }
         if (body.startsWith("else") && body.endsWith("{")) {
             var blockEnd = skipBody(lines, index);
-            appendParsedBlock(stub, indent, "else", null, lines, index + 1, blockEnd - 1, returns, returnType);
+            appendParsedBlock(stub, indent, "else", null, lines, index + 1, blockEnd - 1, returns, returnType, vars);
             return blockEnd;
         }
         if (body.startsWith("while") && body.endsWith("{")) {
             var cond = parseCondition(body);
             var blockEnd = skipBody(lines, index);
-            appendParsedBlock(stub, indent, "while", cond, lines, index + 1, blockEnd - 1, returns, returnType);
+            appendParsedBlock(stub, indent, "while", cond, lines, index + 1, blockEnd - 1, returns, returnType, vars);
             return blockEnd;
         }
         return index;
@@ -204,12 +220,13 @@ class MethodStubber {
     }
 
     private static int parseArrowBlock(String[] lines, int start, StringBuilder stub,
-                                       java.util.Map<String, String> returns) {
+                                       java.util.Map<String, String> returns,
+                                       java.util.Map<String, String> vars) {
         var indent = lines[start].substring(0, lines[start].indexOf(lines[start].trim()));
         stub.append(lines[start]).append(System.lineSeparator());
         var end = skipBody(lines, start);
         if (end - start > 2) {
-            parseStatements(lines, start + 1, end - 1, indent, stub, null, returns);
+            parseStatements(lines, start + 1, end - 1, indent, stub, null, returns, vars);
         }
         stub.append(lines[end - 1]).append(System.lineSeparator());
         return end;
@@ -217,13 +234,14 @@ class MethodStubber {
 
     static void appendParsedBlock(StringBuilder stub, String indent, String keyword,
                                   String condition, String[] lines, int start, int end,
-                                  java.util.Map<String, String> returns, String returnType) {
+                                  java.util.Map<String, String> returns, String returnType,
+                                  java.util.Map<String, String> vars) {
         stub.append(indent).append("    ").append(keyword);
         if (condition != null) {
             stub.append(" (").append(condition).append(")");
         }
         stub.append(" {").append(System.lineSeparator());
-        parseStatements(lines, start, end, indent + "    ", stub, returnType, returns);
+        parseStatements(lines, start, end, indent + "    ", stub, returnType, returns, vars);
         stub.append(indent).append("    }").append(System.lineSeparator());
     }
 
@@ -267,7 +285,18 @@ class MethodStubber {
             var open = trimmed.lastIndexOf('(');
             var callee = trimmed.substring(0, open).trim();
             var dot = callee.lastIndexOf('.');
-            if (dot != -1) callee = callee.substring(dot + 1).trim();
+            if (dot != -1) {
+                var receiver = callee.substring(0, dot).trim();
+                var name = callee.substring(dot + 1).trim();
+                var type = vars.get(receiver);
+                if (type != null) {
+                    var key = type + "." + name;
+                    if (KNOWN_RETURNS.containsKey(key)) {
+                        return KNOWN_RETURNS.get(key);
+                    }
+                }
+                callee = name;
+            }
             if (returns.containsKey(callee)) return returns.get(callee);
         }
 
@@ -521,6 +550,21 @@ class MethodStubber {
             out.append(parts.get(i));
         }
         return out.toString();
+    }
+
+    private static java.util.Map<String, String> paramVars(String tsParams) {
+        java.util.Map<String, String> map = new java.util.HashMap<>();
+        if (tsParams.isBlank()) return map;
+        var parts = tsParams.split(",");
+        for (var i = 0; i < parts.length; i++) {
+            var p = parts[i].trim();
+            var colon = p.indexOf(':');
+            if (colon == -1) continue;
+            var name = p.substring(0, colon).trim();
+            var type = p.substring(colon + 1).trim();
+            map.put(name, type);
+        }
+        return map;
     }
 
     private static ListLike<String> splitArgs(String args) {

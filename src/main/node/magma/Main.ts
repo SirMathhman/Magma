@@ -37,7 +37,7 @@ export default class Main {
     }
 
     listJavaFiles(srcRoot: PathLike): Result<ListLike<PathLike>> {
-        let paths : unknown = srcRoot.walk();
+        let paths : Result<Set<PathLike>> = srcRoot.walk();
         if (!paths.isOk()) {
             return new Err<ListLike<PathLike>>(paths.error().get());
         }
@@ -53,16 +53,16 @@ export default class Main {
     }
 
     transpileFile(srcRoot: PathLike, outRoot: PathLike, javaFile: PathLike): Option<string> {
-        let javaSrcResult : unknown = javaFile.readString();
+        let javaSrcResult : Result<string> = javaFile.readString();
         if (!javaSrcResult.isOk()) {
             return new Some<string>(javaSrcResult.error().get());
         }
         let javaSrc : unknown = javaSrcResult.value().get();
         let ts : Transpiler = new Transpiler().toTypeScript(javaSrc);
-        let rel : unknown = srcRoot.relativize(javaFile);
+        let rel : PathLike = srcRoot.relativize(javaFile);
         let name : unknown = rel.toString();
         let withoutExt : unknown = name.substring(0, name.length());
-        let outFile : unknown = outRoot.resolve(withoutExt + ".ts");
+        let outFile : PathLike = outRoot.resolve(withoutExt + ".ts");
         let err : unknown = outFile.getParent().createDirectories();
         if (err.isSome()) {
             return err;

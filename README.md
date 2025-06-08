@@ -68,8 +68,13 @@ never be edited directly.
   the constructed class name. When assigned to another method in the same class,
   the stub uses that method's return type. Method calls on newly created
   objects also reuse the target method's return type so `var x = new Foo().getValue();`
-  becomes `let x : number = new Foo().getValue();`. More complex expressions still
+  becomes `let x : number = new Foo().getValue();`. Calls on variables typed
+  with known interfaces such as `PathLike` infer their interface return types,
+  so `var files = root.walk();` becomes `let files : Result<Set<PathLike>> = root.walk();`.
+  More complex expressions still
   default to `unknown`.
+  The generated `Main.ts` now demonstrates this, typing `srcRoot.walk()` as
+  `Result<Set<PathLike>>` rather than `unknown`.
 Arrow blocks passed as arguments are detected and their statements are parsed
 so assignments inside the block become stubs before the closing `});`.
 - `magma.app.FieldTranspiler` – converts Java fields into TypeScript
