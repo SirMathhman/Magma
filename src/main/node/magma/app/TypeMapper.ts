@@ -10,14 +10,14 @@ export default class TypeMapper {
         let i: (var = 0;
         i < pieces.size();
         // TODO
-        let p: var = pieces.get(i);
-        let parts: var = p.trim().split("\\s+");
+        let p: unknown = pieces.get(i);
+        let parts: unknown = p.trim().split("\\s+");
         let (parts.length: if = /* TODO */;
-        let name: var = parts[parts.length - 1];
-        let type: var = parts.length > 1 ? parts[parts.length - 2] : "any";
+        let name: unknown = parts[parts.length - 1];
+        let type: unknown = parts.length > 1 ? parts[parts.length - 2] : "any";
         out.add(name + ": " + toTsType(type));
         // TODO
-        let result: var = new StringBuilder();
+        let result: unknown = new StringBuilder();
         let i: (var = 0;
         i < out.size();
         // TODO
@@ -28,12 +28,12 @@ export default class TypeMapper {
     }
 
     toTsType(javaType: string): string {
-        let genericStart: var = javaType.indexOf(/* TODO */);
-        let genericEnd: var = javaType.lastIndexOf(/* TODO */);
+        let genericStart: unknown = javaType.indexOf(/* TODO */);
+        let genericEnd: unknown = javaType.lastIndexOf(/* TODO */);
         if (/* TODO */) {
-            let base: var = javaType.substring(0, genericStart).trim();
-            let name: var = base.substring(base.lastIndexOf('.'));
-            let params: var = javaType.substring(/* TODO */, genericEnd);
+            let base: unknown = javaType.substring(0, genericStart).trim();
+            let name: unknown = base.substring(base.lastIndexOf('.'));
+            let params: unknown = javaType.substring(/* TODO */, genericEnd);
             switch(name);
             // TODO
             return mapFunction(params);
@@ -42,27 +42,27 @@ export default class TypeMapper {
             return mapBiFunction(params);
             // TODO
             // TODO
-            let ts: var = mapParams(params, 0);
+            let ts: unknown = mapParams(params, 0);
             return "();
             // TODO
             // TODO
-            let ts: var = mapParams(params, 1);
+            let ts: unknown = mapParams(params, 1);
             return "(" + ts.params + ");
             // TODO
             // TODO
-            let ts: var = mapParams(params, 2);
+            let ts: unknown = mapParams(params, 2);
             return "(" + ts.params + ");
             // TODO
             // TODO
-            let ts: var = mapParams(params, 1);
+            let ts: unknown = mapParams(params, 1);
             return "(" + ts.params + ");
             // TODO
             // TODO
-            let ts: var = mapParams(params, 1);
+            let ts: unknown = mapParams(params, 1);
             return "(" + ts.params + ");
             // TODO
             // TODO
-            let ts: var = mapParams(params, 2);
+            let ts: unknown = mapParams(params, 2);
             return "(" + ts.params + ");
             // TODO
             // TODO
@@ -71,7 +71,7 @@ export default class TypeMapper {
             // TODO
         }
         if (javaType.endsWith("[]")) {
-            let element: var = javaType.substring(0, javaType.length());
+            let element: unknown = javaType.substring(0, javaType.length());
             return toTsType(element);
         }
         return switch(javaType);
@@ -86,16 +86,16 @@ export default class TypeMapper {
     }
 
     mapGeneric(javaType: string, start: number, end: number): string {
-        let base: var = javaType.substring(0, start).trim();
-        let params: var = javaType.substring(/* TODO */, end);
+        let base: unknown = javaType.substring(0, start).trim();
+        let params: unknown = javaType.substring(/* TODO */, end);
         let mapped: ListLike<string> = JdkList.create();
-        let pieces: var = split(params);
+        let pieces: unknown = split(params);
         let i: (var = 0;
         i < pieces.size();
         // TODO
         mapped.add(toTsType(pieces.get(i).trim()));
         // TODO
-        let joined: var = new StringBuilder();
+        let joined: unknown = new StringBuilder();
         let i: (var = 0;
         i < mapped.size();
         // TODO
@@ -107,12 +107,12 @@ export default class TypeMapper {
 
     split(text: string): ListLike<string> {
         let out: ListLike<string> = JdkList.create();
-        let depth: var = 0;
-        let part: var = new StringBuilder();
+        let depth: number = 0;
+        let part: unknown = new StringBuilder();
         let i: (var = 0;
         i < text.length();
         // TODO
-        let c: var = text.charAt(i);
+        let c: unknown = text.charAt(i);
         let (c: if = /* TODO */;
         let (c: if = /* TODO */;
         if (/* TODO */) {
@@ -130,14 +130,14 @@ export default class TypeMapper {
 
     mapParams(params: string, paramCount: number): Params {
         let out: ListLike<string> = JdkList.create();
-        let parts: var = split(params);
+        let parts: unknown = split(params);
         let i: (var = 0;
         i < Math.min(paramCount, parts.size());
         // TODO
         out.add("arg" + i + ": " + toTsType(parts.get(i).trim()));
         // TODO
-        let ret: var = parts.size() > paramCount ? toTsType(parts.get(parts.size()).trim());
-        let joined: var = new StringBuilder();
+        let ret: unknown = parts.size() > paramCount ? toTsType(parts.get(parts.size()).trim());
+        let joined: unknown = new StringBuilder();
         let i: (var = 0;
         i < out.size();
         // TODO
@@ -148,12 +148,12 @@ export default class TypeMapper {
     }
 
     mapFunction(params: string): string {
-        let ts: var = mapParams(params, 1);
+        let ts: unknown = mapParams(params, 1);
         return "(" + ts.params + ");
     }
 
     mapBiFunction(params: string): string {
-        let ts: var = mapParams(params, 2);
+        let ts: unknown = mapParams(params, 2);
         return "(" + ts.params + ");
     }
 }

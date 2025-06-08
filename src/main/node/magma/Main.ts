@@ -14,7 +14,7 @@ import ListLike from "./list/ListLike";
  */
 export default class Main {
     main(args: string[]): void {
-        let error: var = new Main().run();
+        let error: unknown = new Main().run();
         if (error.isSome()) {
             System.err.println(error.get());
         }
@@ -23,7 +23,7 @@ export default class Main {
     run(): Option<string> {
         let srcRoot: PathLike = NioPath.of("src/main/java");
         let outRoot: PathLike = NioPath.of("src/main/node");
-        let files: var = listJavaFiles(srcRoot);
+        let files: unknown = listJavaFiles(srcRoot);
         if (!files.isOk()) {
             return new Some<>(files.error().get());
         }
@@ -33,20 +33,20 @@ export default class Main {
         if (acc.isSome()) {
             return acc;
         }
-        let err: var = transpileFile(srcRoot, outRoot, file);
+        let err: unknown = transpileFile(srcRoot, outRoot, file);
         return err.isSome();
         // TODO
     }
 
     listJavaFiles(srcRoot: PathLike): Result<ListLike<PathLike>> {
-        let paths: var = srcRoot.walk();
+        let paths: unknown = srcRoot.walk();
         if (!paths.isOk()) {
             return new Err<>(paths.error().get());
         }
         let javaFiles: ListLike<PathLike> = JdkList.create();
-        let pathIt: var = paths.value().get().iterator();
+        let pathIt: unknown = paths.value().get().iterator();
         while (pathIt.hasNext()) {
-            let p: var = pathIt.next();
+            let p: unknown = pathIt.next();
             if (p.toString().endsWith(".java")) {
                 javaFiles.add(p);
             }
@@ -55,17 +55,17 @@ export default class Main {
     }
 
     transpileFile(srcRoot: PathLike, outRoot: PathLike, javaFile: PathLike): Option<string> {
-        let javaSrcResult: var = javaFile.readString();
+        let javaSrcResult: unknown = javaFile.readString();
         if (!javaSrcResult.isOk()) {
             return new Some<>(javaSrcResult.error().get());
         }
-        let javaSrc: var = javaSrcResult.value().get();
-        let ts: var = new Transpiler().toTypeScript(javaSrc);
-        let rel: var = srcRoot.relativize(javaFile);
-        let name: var = rel.toString();
-        let withoutExt: var = name.substring(0, name.length());
-        let outFile: var = outRoot.resolve(withoutExt + ".ts");
-        let err: var = outFile.getParent().createDirectories();
+        let javaSrc: unknown = javaSrcResult.value().get();
+        let ts: unknown = new Transpiler().toTypeScript(javaSrc);
+        let rel: unknown = srcRoot.relativize(javaFile);
+        let name: unknown = rel.toString();
+        let withoutExt: unknown = name.substring(0, name.length());
+        let outFile: unknown = outRoot.resolve(withoutExt + ".ts");
+        let err: unknown = outFile.getParent().createDirectories();
         if (err.isSome()) {
             return err;
         }

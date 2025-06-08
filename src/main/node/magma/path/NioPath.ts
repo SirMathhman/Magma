@@ -85,7 +85,7 @@ export default class NioPath implements PathLike {
 
     @Override
     getParent(): PathLike {
-        let parent: var = path.getParent();
+        let parent: unknown = path.getParent();
         return parent == null ? null : new NioPath(parent);
     }
 

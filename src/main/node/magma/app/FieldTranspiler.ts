@@ -1,32 +1,32 @@
 import Arrays from "../../java/util/Arrays";
 export default class FieldTranspiler {
     transpileFields(source: string): string {
-        let lines: var = source.split("\\R");
-        let out: var = new StringBuilder();
+        let lines: unknown = source.split("\\R");
+        let out: unknown = new StringBuilder();
         // TODO
-        let trimmed: var = line.trim();
+        let trimmed: unknown = line.trim();
         // TODO
         ") || trimmed.contains("(") || trimmed.startsWith("import");
         /* */: TODO;
         out.append(line).append(System.lineSeparator());
         // TODO
         // TODO
-        let indent: var = line.substring(0, line.indexOf(trimmed));
-        let withoutSemi: var = trimmed.substring(0, trimmed.length()).trim();
-        let eq: var = withoutSemi.indexOf(/* TODO */);
+        let indent: unknown = line.substring(0, line.indexOf(trimmed));
+        let withoutSemi: unknown = trimmed.substring(0, trimmed.length()).trim();
+        let eq: unknown = withoutSemi.indexOf(/* TODO */);
         if (/* TODO */) {
             // TODO
         }
-        let tokens: var = withoutSemi.split("\\s+");
+        let tokens: unknown = withoutSemi.split("\\s+");
         if (tokens.length < 2) {
             out.append(line).append(System.lineSeparator());
             // TODO
         }
-        let name: var = tokens[tokens.length - 1];
-        let type: var = tokens[tokens.length - 2];
-        let modArray: var = Arrays.copyOf(tokens, tokens.length - 2);
-        let modifiers: var = replaceFinalWithReadonly(modArray);
-        let tsType: var = TypeMapper.toTsType(type);
+        let name: unknown = tokens[tokens.length - 1];
+        let type: unknown = tokens[tokens.length - 2];
+        let modArray: unknown = Arrays.copyOf(tokens, tokens.length - 2);
+        let modifiers: unknown = replaceFinalWithReadonly(modArray);
+        let tsType: unknown = TypeMapper.toTsType(type);
         out.append(indent);
         if (!modifiers.isBlank()) {
             out.append(modifiers).append(" ");

@@ -1,7 +1,7 @@
 export default class ArrowHelper {
     convertArrowFunctions(source: string): string {
-        let lines: var = source.split("\\R");
-        let out: var = new StringBuilder();
+        let lines: unknown = source.split("\\R");
+        let out: unknown = new StringBuilder();
         // TODO
         if (line.contains("=>")) {
             let ": out.append(line.replace("=>", = >")).append(System.lineSeparator());
@@ -13,14 +13,14 @@ export default class ArrowHelper {
     }
 
     stubArrowAssignments(source: string): string {
-        let lines: var = source.split("\\R");
-        let out: var = new StringBuilder();
+        let lines: unknown = source.split("\\R");
+        let out: unknown = new StringBuilder();
         // TODO
-        let trimmed: var = line.trim();
+        let trimmed: unknown = line.trim();
         if (trimmed.contains("=>") && trimmed.contains("{") && trimmed.contains("}")) {
-            let open: var = line.indexOf(/* TODO */);
-            let close: var = line.lastIndexOf(/* TODO */);
-            let body: var = line.substring(/* TODO */, close).trim();
+            let open: unknown = line.indexOf(/* TODO */);
+            let close: unknown = line.lastIndexOf(/* TODO */);
+            let body: unknown = line.substring(/* TODO */, close).trim();
             if (body.contains("=") && body.contains(";")) {
                 out.append(expandArrowBody(line, trimmed)).append(System.lineSeparator());
                 // TODO
@@ -32,16 +32,16 @@ export default class ArrowHelper {
     }
 
     expandArrowBody(line: string, trimmed: string): string {
-        let open: var = line.indexOf(/* TODO */);
-        let close: var = line.lastIndexOf(/* TODO */);
-        let indent: var = line.substring(0, line.indexOf(trimmed));
-        let header: var = line.substring(0, /* TODO */);
-        let body: var = line.substring(/* TODO */, close).trim();
-        let out: var = new StringBuilder();
+        let open: unknown = line.indexOf(/* TODO */);
+        let close: unknown = line.lastIndexOf(/* TODO */);
+        let indent: unknown = line.substring(0, line.indexOf(trimmed));
+        let header: unknown = line.substring(0, /* TODO */);
+        let body: unknown = line.substring(/* TODO */, close).trim();
+        let out: unknown = new StringBuilder();
         out.append(header).append(System.lineSeparator());
         // TODO
         // TODO
-        let trimmedPart: var = part.trim();
+        let trimmedPart: unknown = part.trim();
         // TODO
         if (trimmedPart.contains("=")) {
             out.append(MethodStubber.parseAssignment(trimmedPart, indent)).append(System.lineSeparator());
