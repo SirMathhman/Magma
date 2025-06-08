@@ -12,3 +12,7 @@ Instead, represent failure or missing values with a `Result` or `Option` object.
 Abstract classes tend to complicate the design and are avoided in this codebase.
 Favor composition of small collaborating objects over inheritance whenever
 possible.
+
+TypeScript output follows a minimal style. Variable declarations keep spaces
+around the colon so `let` statements read `let x : number` rather than
+`let x: number`.

@@ -68,12 +68,13 @@ class ArrowHelper {
         var header = line.substring(0, open + 1);
         var body = line.substring(open + 1, close).trim();
         var out = new StringBuilder();
+        java.util.Map<String, String> vars = new java.util.HashMap<>();
         out.append(header).append(System.lineSeparator());
         for (var part : body.split(";")) {
             var trimmedPart = part.trim();
             if (trimmedPart.isEmpty()) continue;
             if (trimmedPart.contains("=")) {
-                out.append(MethodStubber.parseAssignment(trimmedPart, indent)).append(System.lineSeparator());
+                out.append(MethodStubber.parseAssignment(trimmedPart, indent, vars)).append(System.lineSeparator());
             } else {
                 out.append(indent).append("    // TODO").append(System.lineSeparator());
             }

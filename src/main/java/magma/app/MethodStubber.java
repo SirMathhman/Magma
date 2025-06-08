@@ -70,7 +70,7 @@ class MethodStubber {
         return stub.toString();
     }
 
-    private static void appendParts(String[] parts, String indent, StringBuilder stub) {
+    private static void appendParts(String[] parts, String indent, StringBuilder stub, java.util.Map<String, String> vars) {
         for (var part : parts) {
             var trimmedPart = part.trim();
             if (trimmedPart.isEmpty()) continue;
@@ -79,7 +79,7 @@ class MethodStubber {
                 continue;
             }
             if (trimmedPart.contains("=")) {
-                stub.append(parseAssignment(trimmedPart, indent)).append(System.lineSeparator());
+                stub.append(parseAssignment(trimmedPart, indent, vars)).append(System.lineSeparator());
                 continue;
             }
             if (isInvokable(trimmedPart)) {
@@ -107,6 +107,7 @@ class MethodStubber {
 
     private static void parseStatements(String[] lines, int start, int end, String indent, StringBuilder stub) {
         var wrote = false;
+        java.util.Map<String, String> vars = new java.util.HashMap<>();
         for (var i = start; i < end; i++) {
             var body = lines[i].trim();
             if (body.isEmpty()) continue;
@@ -128,7 +129,7 @@ class MethodStubber {
                 continue;
             }
 
-            appendParts(body.split(";"), indent, stub);
+            appendParts(body.split(";"), indent, stub, vars);
         }
         if (!wrote) stub.append(indent).append("    // TODO").append(System.lineSeparator());
     }
@@ -201,7 +202,7 @@ class MethodStubber {
         return parseValue(inside);
     }
 
-    static String parseAssignment(String stmt, String indent) {
+    static String parseAssignment(String stmt, String indent, java.util.Map<String, String> vars) {
         var eq = stmt.indexOf('=');
         if (eq == -1) {
             return indent + "    // TODO";
@@ -213,19 +214,16 @@ class MethodStubber {
             var name = tokens[tokens.length - 1];
             var type = tokens[tokens.length - 2];
             var value = parseValue(rhs);
-            var tsType = type.equals("var") ? inferVarType(rhs) : TypeMapper.toTsType(type);
-            var spacing = type.equals("var") && needsSpace(tsType) ? " " : "";
-            return indent + "    let " + name + spacing + ": " + tsType + " = " + value + ";";
+            var tsType = type.equals("var") ? inferVarType(rhs, vars) : TypeMapper.toTsType(type);
+            vars.put(name, tsType);
+            return indent + "    let " + name + " : " + tsType + " = " + value + ";";
         }
         return indent + "    // TODO";
     }
 
-    private static boolean needsSpace(String tsType) {
-        return !(tsType.equals("number") || tsType.equals("string") || tsType.equals("boolean") || tsType.equals("unknown"));
-    }
-
-    private static String inferVarType(String value) {
+    private static String inferVarType(String value, java.util.Map<String, String> vars) {
         var trimmed = value.trim();
+        if (vars.containsKey(trimmed)) return vars.get(trimmed);
         if (trimmed.startsWith("new ")) {
             var rest = trimmed.substring(4).trim();
             var open = rest.indexOf('(');
