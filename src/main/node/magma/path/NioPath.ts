@@ -1,4 +1,3 @@
-import IOException from "../../java/io/IOException";
 import Files from "../../java/nio/file/Files";
 import Path from "../../java/nio/file/Path";
 import LinkedHashSet from "../../java/util/LinkedHashSet";
@@ -6,6 +5,9 @@ import Set from "../../java/util/Set";
 import Err from "../result/Err";
 import Ok from "../result/Ok";
 import Result from "../result/Result";
+import Option from "../option/Option";
+import Some from "../option/Some";
+import None from "../option/None";
 /**
  * Implementation of {@link PathLike} that delegates to a
  * {@link Path} instance.
@@ -29,23 +31,46 @@ export default class NioPath implements PathLike {
 
 
     /** Read the file contents as a string. */
-    readString(): string {
-        return Files.readString(path);
+    @Override
+    readString(): Result<string> {
+        // TODO
+        return new Ok<>(Files.readString(path));
+        } catch(java.io.IOException e);
+        return new Err<>(e.getMessage());
+        // TODO
     }
 
     /** Create this directory and any missing parents. */
-    createDirectories(): void {
+    @Override
+    createDirectories(): Option<string> {
+        // TODO
         Files.createDirectories(path);
+        return new None<>();
+        } catch(java.io.IOException e);
+        return new Some<>(e.getMessage());
+        // TODO
     }
 
     /** Write text to this file. */
-    writeString(text: string): void {
+    @Override
+    writeString(text: string): Option<string> {
+        // TODO
         Files.writeString(path, text);
+        return new None<>();
+        } catch(java.io.IOException e);
+        return new Some<>(e.getMessage());
+        // TODO
     }
 
     /** Delete the file if it exists. */
-    deleteIfExists(): void {
+    @Override
+    deleteIfExists(): Option<string> {
+        // TODO
         Files.deleteIfExists(path);
+        return new None<>();
+        } catch(java.io.IOException e);
+        return new Some<>(e.getMessage());
+        // TODO
     }
 
     @Override
@@ -70,7 +95,7 @@ export default class NioPath implements PathLike {
         let stream: (var = Files./* TODO */;
         stream.forEach(p => out.add(new NioPath(p)));
         return new Ok<>(out);
-        } catch(/* TODO */);
+        } catch(java.io.IOException e);
         return new Err<>(e.getMessage());
         // TODO
     }

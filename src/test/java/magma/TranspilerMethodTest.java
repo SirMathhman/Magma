@@ -118,6 +118,26 @@ class TranspilerMethodTest {
     }
 
     @Test
+    void mapsBoxedNumberTypes() {
+        var javaSrc = String.join(System.lineSeparator(),
+            "public class Foo {",
+            "    Double sum(Integer a, Long b, Float c, Short d) {",
+            "        return 1.0;",
+            "    }",
+            "}");
+
+        var expected = String.join(System.lineSeparator(),
+            "export default class Foo {",
+            "    sum(a: number, b: number, c: number, d: number): number {",
+            "        return 1.0;",
+            "    }",
+            "}");
+
+        var result = new Transpiler().toTypeScript(javaSrc);
+        assertEquals(expected, result);
+    }
+
+    @Test
     void mapsGenericTypes() {
         var javaSrc = String.join(System.lineSeparator(),
             "public class Foo {",
@@ -148,7 +168,7 @@ class TranspilerMethodTest {
 
         var expected = String.join(System.lineSeparator(),
             "export default class Foo {",
-            "    map(fn: (arg0: Integer) => string): (arg0: Integer) => string {",
+            "    map(fn: (arg0: number) => string): (arg0: number) => string {",
             "        return fn;",
             "    }",
             "}");
