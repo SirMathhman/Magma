@@ -25,7 +25,7 @@ export interface Iter<T> {
     }
 
     fold(init: R, fn: R>): R {
-        let acc : unknown = init;
+        let acc : R = init;
         while (hasNext()) {
             // TODO
         }

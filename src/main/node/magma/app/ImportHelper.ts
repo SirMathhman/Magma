@@ -62,7 +62,7 @@ export default class ImportHelper {
     }
 
     skipEmptyLines(lines: string[], start: number): number {
-        let i : unknown = start;
+        let i : number = start;
         while (i < lines.length && lines[i].trim().isEmpty()) {
             // TODO
         }

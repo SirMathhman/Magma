@@ -1,7 +1,23 @@
 import JdkList from "../list/JdkList";
 import ListLike from "../list/ListLike";
 import TypeMapper from "./TypeMapper";
+import PathLike from "./PathLike";
+import KNOWN_RETURNS from "./KNOWN_RETURNS";
 export default class MethodStubber {
+    private static final java.util.Map<String, String> KNOWN_RETURNS = buildKnownReturns();
+
+    buildKnownReturns(): String> {
+        let map : String> = new java.util.HashMap<>();
+        map.put("PathLike.walk", "Result<Set<PathLike>>");
+        map.put("PathLike.readString", "Result<string>");
+        map.put("PathLike.createDirectories", "Option<string>");
+        map.put("PathLike.writeString", "Option<string>");
+        map.put("PathLike.resolve", "PathLike");
+        map.put("PathLike.relativize", "PathLike");
+        map.put("PathLike.getParent", "PathLike");
+        map.put("PathLike.deleteIfExists", "Option<string>");
+        return map;
+    }
     stubMethods(source: string): string {
         let lines : unknown = source.split("\\R");
         let returns : String> = collectReturnTypes(lines);
@@ -91,7 +107,8 @@ export default class MethodStubber {
             stub.append(": ").append(tsReturn);
         }
         stub.append(" {").append(System.lineSeparator());
-        parseStatements(lines, start, end, indent, stub, tsReturn, returns);
+        let paramVars : String> = paramVars(tsParams);
+        parseStatements(lines, start, end, indent, stub, tsReturn, returns, paramVars);
         stub.append(indent).append("}").append(System.lineSeparator());
         return stub.toString();
         // TODO
@@ -135,9 +152,10 @@ export default class MethodStubber {
         // TODO
         // TODO
         // TODO
-        java.util.Map<String, String> {: returns);
+        java.util.Map<String, returns,: String>;
+        java.util.Map<String, String> {: vars);
         let wrote : boolean = /* TODO */;
-        let vars : String> = new java.util.HashMap<>();
+        let (vars : if = = null) vars = new java.util.HashMap<>();
         let i : (var = start;
         // TODO
         // TODO
@@ -148,7 +166,7 @@ export default class MethodStubber {
                 // TODO
                 // TODO
             }
-        let next : unknown = handleControlBlock(body, lines, i, indent, stub, returns, returnType);
+        let next : unknown = handleControlBlock(body, lines, i, indent, stub, returns, returnType, vars);
         if (/* TODO */) {
             // TODO
             // TODO
@@ -164,23 +182,23 @@ export default class MethodStubber {
         // TODO
         // TODO
         StringBuilder stub, java.util.Map<String, returns,: String>;
-        // TODO
+        String returnType, java.util.Map<String, String> {: vars);
         if ((body.startsWith("if") || body.startsWith("else if")) && body.endsWith("{")) {
             let keyword : unknown = body.startsWith("else if");
             let cond : string = parseCondition(body);
             let blockEnd : number = skipBody(lines, index);
-            appendParsedBlock(stub, indent, keyword, cond, lines, /* TODO */, /* TODO */, returns, returnType);
+            appendParsedBlock(stub, indent, keyword, cond, lines, /* TODO */, /* TODO */, returns, returnType, vars);
             return blockEnd;
         }
         if (body.startsWith("else").endsWith("{")) {
             let blockEnd : number = skipBody(lines, index);
-            appendParsedBlock(stub, indent, "else", /* TODO */, lines, /* TODO */, /* TODO */, returns, returnType);
+            appendParsedBlock(stub, indent, "else", /* TODO */, lines, /* TODO */, /* TODO */, returns, returnType, vars);
             return blockEnd;
         }
         if (body.startsWith("while").endsWith("{")) {
             let cond : string = parseCondition(body);
             let blockEnd : number = skipBody(lines, index);
-            appendParsedBlock(stub, indent, "while", cond, lines, /* TODO */, /* TODO */, returns, returnType);
+            appendParsedBlock(stub, indent, "while", cond, lines, /* TODO */, /* TODO */, returns, returnType, vars);
             return blockEnd;
         }
         return index;
@@ -197,25 +215,27 @@ export default class MethodStubber {
         return i;
         // TODO
         // TODO
-        java.util.Map<String, String> {: returns);
+        java.util.Map<String, returns,: String>;
+        java.util.Map<String, String> {: vars);
         let indent : unknown = lines[start].substring(0, lines[start].indexOf(lines[start].trim()));
         stub.append(lines[start]).append(System.lineSeparator());
         let end : number = skipBody(lines, start);
         if (/* TODO */) {
-            parseStatements(lines, /* TODO */, /* TODO */, indent, stub, /* TODO */, returns);
+            parseStatements(lines, /* TODO */, /* TODO */, indent, stub, /* TODO */, returns, vars);
         }
         stub.append(lines[end - 1]).append(System.lineSeparator());
         return end;
         // TODO
         // TODO
         // TODO
-        java.util.Map<String, String> returns, String {: returnType);
+        java.util.Map<String, String> returns, returnType,: string;
+        java.util.Map<String, String> {: vars);
         stub.append(indent).append("    ").append(keyword);
         if (/* TODO */) {
             stub.append("(/* TODO */).append(condition).append(/* TODO */));
         }
         stub.append(" {").append(System.lineSeparator());
-        parseStatements(lines, start, end, /* TODO */, stub, returnType, returns);
+        parseStatements(lines, start, end, /* TODO */, stub, returnType, returns, vars);
         stub.append(indent).append("    }").append(System.lineSeparator());
         // TODO
         private static String parseCondition(/* TODO */);
@@ -255,7 +275,18 @@ export default class MethodStubber {
             let open : unknown = trimmed.lastIndexOf('(/* TODO */);
             let callee : unknown = trimmed.substring(0, open).trim();
             let dot : unknown = callee.lastIndexOf('.');
-            let ! : (dot = -1) callee = callee.substring(dot + 1).trim();
+            if (/* TODO */) {
+                let receiver : unknown = callee.substring(0, dot).trim();
+                let name : unknown = callee.substring(/* TODO */).trim();
+                let type : unknown = vars.get(receiver);
+                if (/* TODO */) {
+                    let key : unknown = type + "." + name;
+                    if (KNOWN_RETURNS.containsKey(key)) {
+                        return KNOWN_RETURNS.get(key);
+                    }
+                }
+                // TODO
+            }
             // TODO
         }
         if (trimmed.startsWith("new ")) {
@@ -501,6 +532,22 @@ export default class MethodStubber {
         out.append(parts.get(i));
         // TODO
         return out.toString();
+        // TODO
+        private static java.util.Map<String, String> paramVars(/* TODO */);
+        let map : String> = new java.util.HashMap<>();
+        // TODO
+        let parts : unknown = tsParams.split(/* TODO */, /* TODO */);
+        let i : (var = 0;
+        i parts.length: <;
+        // TODO
+        let p : unknown = parts[i].trim();
+        let colon : unknown = p.indexOf(/* TODO */);
+        let (colon : if = /* TODO */;
+        let name : unknown = p.substring(0, colon).trim();
+        let type : unknown = p.substring(/* TODO */).trim();
+        map.put(name, type);
+        // TODO
+        return map;
         // TODO
         private static ListLike<String> splitArgs(/* TODO */);
         let out : ListLike<string> = JdkList.create();
