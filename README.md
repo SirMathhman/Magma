@@ -70,9 +70,10 @@ never be edited directly.
   concrete list types.
 - `magma.list.JdkList` – default implementation backed by `ArrayList`
 - `magma.list.SetIter` – wraps a `java.util.Set` so callers can reuse iterator helpers
-- `magma.app.MethodStubber` – replaces method bodies with `// TODO` stubs.
-  Helpers now use a single scan so functions never contain more than one loop,
-  and indentation levels stay at two or fewer. `var` declarations infer a
+- `magma.app.StatementParser` – walks method bodies and delegates to
+  `ExpressionParser` for individual values. Helpers now use a single scan so
+  functions never contain more than one loop, and indentation levels stay at two
+  or fewer. `var` declarations infer a
   TypeScript type from simple values, including constructor calls which return
   the constructed class name. When assigned to another method in the same class,
   the stub uses that method's return type. Method calls on newly created
