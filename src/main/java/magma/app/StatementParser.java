@@ -169,6 +169,11 @@ class StatementParser {
             vars.put(name, tsType);
             return indent + "    let " + name + " : " + tsType + " = " + value + ";";
         }
+        var value = ExpressionParser.parseValue(rhs, vars.get(dest));
+        var complex = rhs.contains("(") || rhs.contains(".") || rhs.startsWith("new ") || rhs.contains("+");
+        if (complex) {
+            return indent + "    " + dest + " = " + value + ";";
+        }
         return indent + "    // TODO";
     }
 

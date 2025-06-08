@@ -150,5 +150,9 @@ Only the features listed below are supported. Anything not mentioned here is con
 23. ~~Ignore classes annotated with `@Actual`.~~
     The transpiler now returns an empty string when such classes are encountered,
     tested via `UserTests.actualAnnotationShouldProduceNoContent`.
+24. Preserve reassignments when the right-hand side invokes a method or
+    member access, allowing statements like
+    `err = outFile.writeString(ts + System.lineSeparator());` to remain
+    unchanged.
 
 Each feature should begin with a failing test that describes the expected TypeScript output for a Java example.

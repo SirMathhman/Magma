@@ -36,6 +36,10 @@ platforms.
   `srcRoot.walk()` with the same return type.
   - Nested `if` and `while` blocks are parsed recursively so statements
     inside them are handled just like top-level code.
+  - Reassignments preserve method call results when the right-hand side
+    contains an invocation, so statements like
+    `err = out.write(ts + System.lineSeparator());` remain intact while
+    simple value assignments still emit `// TODO`.
 - `FieldTranspiler` – converts Java field definitions
 - `ArrowHelper` – rewrites lambda expressions to arrow functions
   - Lambda arguments inside method calls are preserved so `doThing(() -> 1)`
