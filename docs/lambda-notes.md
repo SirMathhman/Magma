@@ -15,3 +15,5 @@ Lambda expressions can also appear inside method calls. The parser now keeps
 these arguments intact by detecting the `->` token after the closing
 parenthesis and skipping invocation stubbing in that case. This allows
 `doThing(() -> 1)` to remain unchanged aside from the arrow replacement.
+When the lambda spans multiple lines the stubber copies each line until the
+closing `});` so calls like `fold(x, () -> {\n});` are preserved verbatim.

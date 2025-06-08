@@ -63,6 +63,8 @@ never be edited directly.
   Helpers now use a single scan so functions never contain more than one loop,
   and indentation levels stay at two or fewer. `var` declarations infer a
   TypeScript type from simple values and default to `unknown` otherwise.
+  Arrow blocks passed as arguments are detected and copied line for line until
+  the closing `});` so multi-line lambdas survive unchanged.
 - `magma.app.FieldTranspiler` – converts Java fields into TypeScript
   properties while ignoring initializations
 - `magma.app.ImportHelper` – rewrites package declarations and import lines
