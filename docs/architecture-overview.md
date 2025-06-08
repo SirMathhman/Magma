@@ -42,6 +42,8 @@ platforms.
     simple value assignments still emit `// TODO`.
 - `FieldTranspiler` – converts Java field definitions
 - `ArrowHelper` – rewrites lambda expressions to arrow functions
+- `ParseHelper` – small shared helpers like numeric detection so other
+  classes avoid duplicating these checks
   - Lambda arguments inside method calls are preserved so `doThing(() -> 1)`
     becomes `doThing(() => 1)`.
   - Typed lambda parameters are converted to `name : type` form so `(String v)`

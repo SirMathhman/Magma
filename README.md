@@ -98,6 +98,8 @@ intact so the arrow block receives the correct arguments.
   and now inserts missing imports when classes are referenced without an
   explicit `import` statement
 - `magma.app.ArrowHelper` – turns lambda expressions into arrow functions
+- `magma.app.ParseHelper` – shared utilities such as numeric checks to
+  keep parsing helpers small
 - `magma.Actual` – marker annotation recognized by the transpiler to
   omit placeholder classes from the generated code
 - Interface method signatures now keep parameter and return types so

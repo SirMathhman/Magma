@@ -53,13 +53,13 @@ class ExpressionParser {
         if (trimmed.length() >= 2 && trimmed.startsWith("\"") && trimmed.endsWith("\"")) {
             return trimmed;
         }
-        if (isMemberAccess(trimmed) || isNumeric(trimmed)) {
+        if (isMemberAccess(trimmed) || ParseHelper.isNumeric(trimmed)) {
             return trimmed;
         }
         if (isIdentifier(trimmed)) {
             return trimmed;
         }
-        if (isNumeric(trimmed)) {
+        if (ParseHelper.isNumeric(trimmed)) {
             return trimmed;
         }
         return "/* TODO */";
@@ -133,26 +133,6 @@ class ExpressionParser {
             return stubInvokableExpr(seg);
         }
         return seg;
-    }
-
-    private static boolean isNumeric(String s) {
-        if (s.isEmpty()) return false;
-        var i = 0;
-        if (s.charAt(0) == '-') {
-            if (s.length() == 1) return false;
-            i = 1;
-        }
-        var dot = false;
-        for (; i < s.length(); i++) {
-            var c = s.charAt(i);
-            if (c == '.') {
-                if (dot) return false;
-                dot = true;
-                continue;
-            }
-            if (c < '0' || c > '9') return false;
-        }
-        return true;
     }
 
     private static boolean isIdentifier(String s) {
