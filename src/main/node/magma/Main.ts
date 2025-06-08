@@ -23,19 +23,22 @@ export default class Main {
     run(): Option<string> {
         let srcRoot: PathLike = NioPath.of("src/main/java");
         let outRoot: PathLike = NioPath.of("src/main/node");
-        let files: unknown = listJavaFiles(srcRoot);
+
+        let files = this.listJavaFiles(srcRoot);
         if (!files.isOk()) {
-            return new Some<>(files.error().get());
+            return new Some<string>(files.error().get());
         }
-        return files.value().get().iterator().fold(;
-        new None<String>();
-        (/* TODO */, /* TODO */);
-        if (acc.isSome()) {
-            return acc;
-        }
-        let err: unknown = transpileFile(srcRoot, outRoot, file);
-        return err.isSome();
-        // TODO
+
+        return files.value().get().iterator().fold(
+            new None<string>(),
+            (acc: Option<string>, file: PathLike) => {
+                if (acc.isSome()) {
+                    return acc;
+                }
+                let err = this.transpileFile(srcRoot, outRoot, file);
+                return err.isSome() ? err : acc;
+            }
+        );
     }
 
     listJavaFiles(srcRoot: PathLike): Result<ListLike<PathLike>> {

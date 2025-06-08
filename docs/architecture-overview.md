@@ -30,6 +30,7 @@ platforms.
     identifiers unchanged so the output stays close to the source
   - `java.util.function` interfaces map to arrow function types
 - `magma.Main` – CLI entry point
+- `src/main/node/magma/Main.ts` – generated TypeScript version of the CLI
  - `magma.result.Result` and `magma.option.Option` – lightweight
    replacements for exceptions. `Option` values can convert to a generic
    `Iter` so optional results compose with iterator helpers

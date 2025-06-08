@@ -48,6 +48,7 @@ never be edited directly.
 ## Key Classes
 
 - `magma.Main` – simple CLI for the transpiler
+- `src/main/node/magma/Main.ts` – generated TypeScript CLI mirroring `magma.Main`
 - `magma.app.Transpiler` – converts Java code to TypeScript
 - `magma.path.PathLike` – abstracts file system operations such as `walk`,
   `readString`, `writeString`, and directory helpers without exposing
