@@ -19,7 +19,9 @@ platforms.
   and indentation never exceeds two levels. Expressions are walked using
   `parseValue`.
   Local variables declared with `var` now infer a TypeScript type from the
-  assigned value and fall back to `unknown` when the value is complex.
+  assigned value. Numeric, boolean and string literals map to the primitive
+  types. Constructor calls such as `new Foo()` return `Foo` while more complex
+  expressions still fall back to `unknown`.
 - Nested `if` and `while` blocks are parsed recursively so statements
   inside them are handled just like top-level code.
 - `FieldTranspiler` – converts Java field definitions
