@@ -15,6 +15,9 @@ public class Transpiler {
      * @return transpiled TypeScript
      */
     public String toTypeScript(String javaSource) {
+        if (javaSource.contains("@Actual")) {
+            return "";
+        }
         var pkg = ImportHelper.extractPackage(javaSource);
         var withoutPackage = ImportHelper.removePackage(javaSource);
         var withImports = ImportHelper.translateImports(withoutPackage, pkg);
