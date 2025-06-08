@@ -36,6 +36,14 @@ bash build.sh       # compile sources
 bash test.sh        # execute all tests
 ```
 
+To check that the generated TypeScript at `src/main/node` still parses,
+run the `validate-ts.sh` helper. It invokes `tsc` with `noEmit` so the
+compiler only verifies the syntax without writing any output files.
+
+```bash
+./validate-ts.sh    # run TypeScript compiler in check mode
+```
+
 After building you can run the transpiler.  It reads Java sources under
 `src/main/java` and writes TypeScript files to `src/main/node`:
 

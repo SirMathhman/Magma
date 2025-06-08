@@ -144,5 +144,8 @@ Only the features listed below are supported. Anything not mentioned here is con
     type.
 21. Provide a `SetIter` helper so `java.util.Set` values integrate with the
     existing `Iter` operations. `Main` now folds over sets without manual loops.
+22. Validate the generated TypeScript using `tsc`.
+    A new `validate-ts.sh` helper runs the TypeScript compiler in check mode so
+    contributors can ensure the output parses without emitting JavaScript.
 
 Each feature should begin with a failing test that describes the expected TypeScript output for a Java example.

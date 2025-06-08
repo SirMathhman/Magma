@@ -88,3 +88,7 @@ lists so the design stays minimal while covering common Java idioms.
 The transpiler writes TypeScript files under `src/main/node`. These files are
 checked into version control so we can observe how the generated code evolves.
 They should never be edited directly.
+
+The `validate-ts.sh` script runs `tsc` in check mode against these files so the
+team can confirm the output is at least syntactically valid even as stubs are
+expanded.
