@@ -685,4 +685,24 @@ class TranspilerStatementTest {
         var result = new Transpiler().toTypeScript(javaSrc);
         assertEquals(expected, result);
     }
+
+    @Test
+    void expandsDiamondOperator() {
+        var javaSrc = String.join(System.lineSeparator(),
+                "public class Foo {",
+                "    Option<String> get() {",
+                "        return new Some<>(\"ok\");",
+                "    }",
+                "}");
+
+        var expected = String.join(System.lineSeparator(),
+                "export default class Foo {",
+                "    get(): Option<string> {",
+                "        return new Some<string>(\"ok\");",
+                "    }",
+                "}");
+
+        var result = new Transpiler().toTypeScript(javaSrc);
+        assertEquals(expected, result);
+    }
 }

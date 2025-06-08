@@ -139,5 +139,8 @@ Only the features listed below are supported. Anything not mentioned here is con
 19. Automatically import classes referenced without explicit `import` lines so
     files in the same package resolve each other's types.
     Tested via `TranspilerImportTest.addsImportsForReferencedClasses`.
+20. Fill in generic parameters when constructors use the diamond operator so
+    `new Some<>(value)` becomes `new Some<T>(value)` based on the surrounding
+    type.
 
 Each feature should begin with a failing test that describes the expected TypeScript output for a Java example.
