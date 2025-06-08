@@ -29,7 +29,7 @@ export default class Main {
         }
         return files.value().get().iterator().fold(;
         new None<String>();
-        (/* TODO */, /* TODO */);
+        // TODO
         if (acc.isSome()) {
             return acc;
         }

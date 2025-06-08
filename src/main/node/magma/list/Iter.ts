@@ -14,8 +14,8 @@ export interface Iter<T> {
     }
 
     flatMap(fn: Iter<R>>): ListLike<R> {
-        return fold(JdkList.create(),(acc, value);
-        fn.apply(value).fold(acc,(a, r);
+        return fold(JdkList.create(), (acc, value) => {;
+        // TODO
         a.add(r);
         return a;
         // TODO

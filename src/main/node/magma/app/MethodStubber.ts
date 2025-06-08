@@ -125,7 +125,7 @@ export default class MethodStubber {
         // TODO
         // TODO
         private static int handleControlBlock(/* TODO */, /* TODO */, /* TODO */, /* TODO */, /* TODO */);
-        if ((body.startsWith("if").startsWith("else if")).endsWith("{")) {
+        if ((body.startsWith("if") || body.startsWith("else if")) && body.endsWith("{")) {
             let keyword: unknown = body.startsWith("else if");
             let cond: unknown = parseCondition(body);
             let blockEnd: unknown = skipBody(lines, index);
@@ -213,7 +213,12 @@ export default class MethodStubber {
         if (/* TODO */) {
             return /* TODO */;
         }
+        let arrow: unknown = stmt.indexOf("=>");
+        if (/* TODO */) {
+            return /* TODO */;
+        }
         let head: unknown = stmt.substring(0, open).trim();
+        // TODO
         return !head.startsWith("if").startsWith("while").startsWith("for");
         // TODO
         static String parseInvokable(/* TODO */, /* TODO */);
@@ -221,6 +226,7 @@ export default class MethodStubber {
         // TODO
         static String parseValue(/* TODO */);
         let trimmed: unknown = value.trim();
+        // TODO
         if (trimmed.startsWith("!")) {
             let rest: unknown = trimmed.substring(1).trim();
             return "!" + parseValue(rest);
@@ -317,16 +323,16 @@ export default class MethodStubber {
         // TODO
         // TODO
         let first: unknown = s.charAt(0);
-        if (!((first >= 'a' && first <= 'z') ||(/* TODO */))) {
+        if (!/* TODO */) {
             return /* TODO */;
         }
         let i: (var = 1;
         i < s.length();
         // TODO
         let c: unknown = s.charAt(i);
-        let letter: unknown = (c >= 'a' && c <= 'z') ||(/* TODO */);
+        let letter: unknown = /* TODO */;
         let digit: unknown = /* TODO */;
-        if (!(/* TODO */)) {
+        if (!/* TODO */) {
             return /* TODO */;
         }
         // TODO
