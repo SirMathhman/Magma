@@ -142,5 +142,7 @@ Only the features listed below are supported. Anything not mentioned here is con
 20. Fill in generic parameters when constructors use the diamond operator so
     `new Some<>(value)` becomes `new Some<T>(value)` based on the surrounding
     type.
+21. Provide a `SetIter` helper so `java.util.Set` values integrate with the
+    existing `Iter` operations. `Main` now folds over sets without manual loops.
 
 Each feature should begin with a failing test that describes the expected TypeScript output for a Java example.

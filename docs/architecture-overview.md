@@ -69,6 +69,8 @@ platforms.
     The iterator now exposes `map`, `fold`, and `flatMap` to keep loops out of callers.
     `flatMap` takes a function returning another iterator so nested lists can
     be flattened without revealing the underlying list implementation.
+- `magma.list.SetIter` – converts a `java.util.Set` into an `Iter` so callers can
+  fold or map over sets without manual loops.
 
 The `parseValue` routine incrementally scans characters.  It recognizes
 member access, method calls, literals and the logical not operator.

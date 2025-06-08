@@ -1,6 +1,7 @@
 import Transpiler from "./app/Transpiler";
 import JdkList from "./list/JdkList";
 import ListLike from "./list/ListLike";
+import SetIter from "./list/SetIter";
 import None from "./option/None";
 import Option from "./option/Option";
 import Some from "./option/Some";
@@ -41,14 +42,13 @@ export default class Main {
         if (!paths.isOk()) {
             return new Err<ListLike<PathLike>>(paths.error().get());
         }
-        let javaFiles : ListLike<PathLike> = JdkList.create();
-        let pathIt : unknown = paths.value().get().iterator();
-        while (pathIt.hasNext()) {
-            let p : unknown = pathIt.next();
-            if (p.toString().endsWith(".java")) {
-                javaFiles.add(p);
-            }
-        }
+        let javaFiles : ListLike<PathLike> = SetIter.wrap(paths.value().get()).fold(;
+            JdkList.<PathLike>create(), (acc, p) => {
+                if (p.toString().endsWith(".java")) {
+                    acc.add(p);
+                }
+                return acc;
+            });
         return new Ok<ListLike<PathLike>>(javaFiles);
     }
 

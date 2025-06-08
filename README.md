@@ -56,11 +56,12 @@ never be edited directly.
   `IOException`
 - `magma.path.NioPath` – wraps `java.nio.file.Path` and implements these I/O
   helpers using the JDK
- - `magma.list.ListLike` – minimal list abstraction using a custom `ListIter`
+- `magma.list.ListLike` – minimal list abstraction using a custom `ListIter`
   that now supports `map`, `fold`, and `flatMap` operations. The `flatMap`
   helper accepts an iterator-returning function so callers stay independent of
   concrete list types.
 - `magma.list.JdkList` – default implementation backed by `ArrayList`
+- `magma.list.SetIter` – wraps a `java.util.Set` so callers can reuse iterator helpers
 - `magma.app.MethodStubber` – replaces method bodies with `// TODO` stubs.
   Helpers now use a single scan so functions never contain more than one loop,
   and indentation levels stay at two or fewer. `var` declarations infer a
