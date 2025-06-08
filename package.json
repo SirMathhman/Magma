@@ -1,0 +1,26 @@
+{
+  "name": "magma",
+  "version": "1.0.0",
+  "description": "This project explores a minimal approach to translating small Java\r programs into TypeScript.  The code is test driven and keeps the design\r as simple as possible so it can eventually self host without relying on\r the full Java standard library. Unknown type identifiers are emitted\r unchanged so the generated TypeScript stays close to the original\r sources.",
+  "homepage": "https://github.com/SirMathhman/Magma#readme",
+  "bugs": {
+    "url": "https://github.com/SirMathhman/Magma/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/SirMathhman/Magma.git"
+  },
+  "license": "ISC",
+  "author": "",
+  "type": "commonjs",
+  "main": "index.js",
+  "directories": {
+    "doc": "docs"
+  },
+  "scripts": {
+    "check": "npx tsc"
+  },
+  "devDependencies": {
+    "typescript": "^5.8.3"
+  }
+}

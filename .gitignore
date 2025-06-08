@@ -1,4 +1,5 @@
 bin/
 junit-platform-console-standalone.jar
 /.idea/
-/out/
+/out
+/node_modules/
