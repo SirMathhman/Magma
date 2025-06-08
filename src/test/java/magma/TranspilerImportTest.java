@@ -44,4 +44,27 @@ class TranspilerImportTest {
         var result = new Transpiler().toTypeScript(javaSrc);
         assertEquals(expected, result);
     }
+
+    @Test
+    void addsImportsForReferencedClasses() {
+        var javaSrc = String.join(System.lineSeparator(),
+            "package com.example;",
+            "",
+            "public class B {",
+            "    void empty() {",
+            "        var v = A.value;",
+            "    }",
+            "}");
+
+        var expected = String.join(System.lineSeparator(),
+            "import A from \"./A\";",
+            "export default class B {",
+            "    empty(): void {",
+            "        let v : unknown = A.value;",
+            "    }",
+            "}");
+
+        var result = new Transpiler().toTypeScript(javaSrc);
+        assertEquals(expected, result);
+    }
 }

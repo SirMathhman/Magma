@@ -135,5 +135,8 @@ Only the features listed below are supported. Anything not mentioned here is con
 18. ~~Infer `var` types from local method calls.~~
     Assignments like `var n = getValue();` now reuse the return type of
     `getValue` so the stub reads `let n : number = getValue();`.
+19. Automatically import classes referenced without explicit `import` lines so
+    files in the same package resolve each other's types.
+    Tested via `TranspilerImportTest.addsImportsForReferencedClasses`.
 
 Each feature should begin with a failing test that describes the expected TypeScript output for a Java example.

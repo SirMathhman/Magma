@@ -75,6 +75,8 @@ never be edited directly.
 - `magma.app.FieldTranspiler` – converts Java fields into TypeScript
   properties while ignoring initializations
 - `magma.app.ImportHelper` – rewrites package declarations and import lines
+  and now inserts missing imports when classes are referenced without an
+  explicit `import` statement
 - `magma.app.ArrowHelper` – turns lambda expressions into arrow functions
 - Interface method signatures now keep parameter and return types so
   `PathLike resolve(String other);` becomes `resolve(other : string): PathLike`.
