@@ -705,4 +705,24 @@ class TranspilerStatementTest {
         var result = new Transpiler().toTypeScript(javaSrc);
         assertEquals(expected, result);
     }
+
+    @Test
+    void infersTypesFromInterfaceMethod() {
+        var javaSrc = String.join(System.lineSeparator(),
+                "public class Foo {",
+                "    void run(PathLike root) {",
+                "        var paths = root.walk();",
+                "    }",
+                "}");
+
+        var expected = String.join(System.lineSeparator(),
+                "export default class Foo {",
+                "    run(root: PathLike): void {",
+                "        let paths : Result<Set<PathLike>> = root.walk();",
+                "    }",
+                "}");
+
+        var result = new Transpiler().toTypeScript(javaSrc);
+        assertEquals(expected, result);
+    }
 }
