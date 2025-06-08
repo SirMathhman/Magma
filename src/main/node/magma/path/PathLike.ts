@@ -6,13 +6,13 @@ import Option from "../option/Option";
  * rest of the code avoid a hard dependency on {@code java.nio.file.Path}.
  */
 export interface PathLike {
-    PathLike resolve(String other);
-    PathLike relativize(PathLike other);
-    PathLike getParent();
-    Result<Set<PathLike>> walk();
-    Result<String> readString();
-    Option<String> createDirectories();
-    Option<String> writeString(String text);
-    Option<String> deleteIfExists();
-    @Override String toString();
+    resolve(other : string): PathLike;
+    relativize(other : PathLike): PathLike;
+    getParent(): PathLike;
+    walk(): Result<Set<PathLike>>;
+    readString(): Result<string>;
+    createDirectories(): Option<string>;
+    writeString(text : string): Option<string>;
+    deleteIfExists(): Option<string>;
+    toString(): string;
 }

@@ -2,8 +2,8 @@ import BiFunction from "../../java/util/function/BiFunction";
 import Function from "../../java/util/function/Function";
 /** Generic iterator independent of collection type. */
 export interface Iter<T> {
-    boolean hasNext();
-    T next();
+    hasNext(): boolean;
+    next(): T;
 
     map(fn: R>): ListLike<R> {
         let result : ListLike<R> = JdkList.create();

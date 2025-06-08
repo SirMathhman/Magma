@@ -2,9 +2,9 @@
  * Minimal optional value container with distinct variants.
  */
 export interface Option<T> {
-    boolean isSome();
+    isSome(): boolean;
 
-    T get();
+    get(): T;
 
     toIter(): magma.list.Iter<T> {
         let self : Option<T> = this;

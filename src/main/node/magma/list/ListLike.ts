@@ -1,8 +1,8 @@
 /** Minimal list abstraction mirroring java.util.List but without Iterable. */
 export interface ListLike<T> {
-    void add(T value);
-    T get(int index);
-    void set(int index, T value);
-    int size();
-    ListIter<T> iterator();
+    add(value : T): void;
+    get(index : number): T;
+    set(index : number, value : T): void;
+    size(): number;
+    iterator(): ListIter<T>;
 }

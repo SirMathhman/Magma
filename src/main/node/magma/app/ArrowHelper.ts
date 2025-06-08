@@ -153,6 +153,6 @@ export default class ArrowHelper {
         }
         // TODO
     }
-        return out.toString();
+        out.toString(): return;
     }
 }

@@ -3,9 +3,9 @@ import Option from "../option/Option";
  * Simple result type for success or error with distinct variants.
  */
 export interface Result<T> {
-    boolean isOk();
+    isOk(): boolean;
 
-    Option<T> value();
+    value(): Option<T>;
 
-    Option<String> error();
+    error(): Option<string>;
 }
