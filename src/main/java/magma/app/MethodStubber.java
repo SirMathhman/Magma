@@ -256,8 +256,19 @@ class MethodStubber {
                                        java.util.Map<String, String> returns) {
         var trimmed = value.trim();
         if (vars.containsKey(trimmed)) return vars.get(trimmed);
+
+        if (isInvokable(trimmed)) {
+            var open = trimmed.lastIndexOf('(');
+            var callee = trimmed.substring(0, open).trim();
+            var dot = callee.lastIndexOf('.');
+            if (dot != -1) callee = callee.substring(dot + 1).trim();
+            if (returns.containsKey(callee)) return returns.get(callee);
+        }
+
         if (trimmed.startsWith("new ")) {
             var rest = trimmed.substring(4).trim();
+            var dot = rest.indexOf('.');
+            if (dot != -1) rest = rest.substring(0, dot).trim();
             var open = rest.indexOf('(');
             if (open != -1) {
                 rest = rest.substring(0, open).trim();
@@ -268,16 +279,13 @@ class MethodStubber {
             }
             return rest.isEmpty() ? "unknown" : rest;
         }
+
         if (isNumeric(trimmed)) return "number";
         if (trimmed.equals("true") || trimmed.equals("false")) return "boolean";
         if (trimmed.length() >= 2 && trimmed.startsWith("\"") && trimmed.endsWith("\"")) {
             return "string";
         }
-        if (isInvokable(trimmed)) {
-            var open = trimmed.indexOf('(');
-            var callee = trimmed.substring(0, open).trim();
-            if (returns.containsKey(callee)) return returns.get(callee);
-        }
+
         return "unknown";
     }
 

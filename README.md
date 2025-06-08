@@ -66,7 +66,9 @@ never be edited directly.
   and indentation levels stay at two or fewer. `var` declarations infer a
   TypeScript type from simple values, including constructor calls which return
   the constructed class name. When assigned to another method in the same class,
-  the stub uses that method's return type. More complex expressions still
+  the stub uses that method's return type. Method calls on newly created
+  objects also reuse the target method's return type so `var x = new Foo().getValue();`
+  becomes `let x : number = new Foo().getValue();`. More complex expressions still
   default to `unknown`.
   Arrow blocks passed as arguments are detected and copied line for line until
   the closing `});` so multi-line lambdas survive unchanged.
