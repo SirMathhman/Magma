@@ -119,4 +119,15 @@ public class UserTests {
                     }
                 }""");
     }
+
+    @Test
+    void test6() {
+        assertTranspile("""
+            public interface PathLike {
+                PathLike resolve(String other);
+            }""", """
+            export interface PathLike {
+                resolve(other : string): PathLike;
+            }""");
+    }
 }
