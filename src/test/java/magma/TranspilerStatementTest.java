@@ -182,7 +182,7 @@ class TranspilerStatementTest {
     @Test
     void convertsTypedParameterLambda() {
         var javaSrc = "Runnable r = (int x) -> {};";
-        var expected = "Runnable r = (int x) => {};";
+        var expected = "Runnable r = (x : number) => {};";
 
         var result = new Transpiler().toTypeScript(javaSrc);
         assertEquals(expected, result);

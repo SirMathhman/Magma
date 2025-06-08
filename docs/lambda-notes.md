@@ -2,7 +2,9 @@
 
 `ArrowHelper` rewrites Java lambdas using a straight text scan. Each line is
 checked for the `->` token and it becomes `=>` in the output. This keeps the
-conversion in a single pass without another parser.
+conversion in a single pass without another parser. Typed parameters are
+detected inside the parentheses and mapped to `name : type` using the
+`TypeMapper` helper.
 
 When an arrow body sits on one line `ArrowHelper` expands assignments using the
 existing stubbing helpers. Multi-line bodies are left untouched so the overall

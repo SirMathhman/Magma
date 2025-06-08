@@ -171,7 +171,8 @@ class MethodStubber {
         var i = start;
         while (i < lines.length) {
             stub.append(lines[i]).append(System.lineSeparator());
-            if (lines[i].trim().equals("});")) {
+            var trimmed = lines[i].trim();
+            if (trimmed.equals("});") || trimmed.equals("};")) {
                 return i + 1;
             }
             i++;

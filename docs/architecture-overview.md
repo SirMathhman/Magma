@@ -26,6 +26,8 @@ platforms.
 - `ArrowHelper` – rewrites lambda expressions to arrow functions
   - Lambda arguments inside method calls are preserved so `doThing(() -> 1)`
     becomes `doThing(() => 1)`.
+  - Typed lambda parameters are converted to `name : type` form so `(String v)`
+    becomes `(v : string)`.
   - `MethodStubber` now detects arrow blocks that span multiple lines and copies
     them verbatim until the closing `});` so calls like `fold(x, () -> { });`
     remain intact.
