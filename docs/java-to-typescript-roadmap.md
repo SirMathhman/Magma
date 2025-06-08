@@ -77,6 +77,7 @@ Only the features listed below are supported. Anything not mentioned here is con
   - Tests: `TranspilerStatementTest.preservesMemberAccessInAssignments`,
     `TranspilerStatementTest.parsesMemberAccessInWhileCondition`.
 - **Streams** rely on array helpers such as `map`, `filter`, and `reduce`.
+- **java.util.function** interfaces become arrow function types.
 - **Standard library** utilities are replaced with small TypeScript helpers.
 
 ## Further tasks
