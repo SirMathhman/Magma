@@ -36,9 +36,12 @@ platforms.
     becomes `doThing(() => 1)`.
   - Typed lambda parameters are converted to `name : type` form so `(String v)`
     becomes `(v : string)`.
-    - `MethodStubber` detects arrow blocks that span multiple lines and now
+  - `MethodStubber` detects arrow blocks that span multiple lines and now
       parses the enclosed statements so assignments become TODO stubs before the
       closing `});`.
+  - Constructor calls that use Java's diamond operator now fill in the
+    generic parameter using the surrounding variable or return type so
+    `new Some<>(v)` becomes `new Some<T>(v)` in TypeScript.
   - Interface methods are translated so parameter and return types carry over,
     using spaces around the colon for parameters.
   - `TypeMapper` – maps primitive, boxed, and generic types and leaves unknown
