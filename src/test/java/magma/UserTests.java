@@ -77,4 +77,25 @@ public class UserTests {
                     }
                 }""");
     }
+
+    @Test
+    void test4() {
+        assertTranspile("""
+                public class Temp {
+                    void empty() {
+                        var value = getValue();
+                    }
+                    int getValue() {
+                        return 100;
+                    }
+                }""", """
+                export default class Temp {
+                    empty(): void {
+                        let value : number = getValue();
+                    }
+                    getValue(): number {
+                        return 100;
+                    }
+                }""");
+    }
 }
