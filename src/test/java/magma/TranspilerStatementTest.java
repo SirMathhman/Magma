@@ -725,4 +725,26 @@ class TranspilerStatementTest {
         var result = new Transpiler().toTypeScript(javaSrc);
         assertEquals(expected, result);
     }
+
+    @Test
+    void parsesAssignmentsWithMethodCalls() {
+        var javaSrc = String.join(System.lineSeparator(),
+                "public class Foo {",
+                "    void run(PathLike out) {",
+                "        Option<String> err = out.write(\"hi\");",
+                "        err = out.write(\"hi\" + System.lineSeparator());",
+                "    }",
+                "}");
+
+        var expected = String.join(System.lineSeparator(),
+                "export default class Foo {",
+                "    run(out: PathLike): void {",
+                "        let err : Option<string> = out.write(\"hi\");",
+                "        err = out.write(\"hi\" + System.lineSeparator());",
+                "    }",
+                "}");
+
+        var result = new Transpiler().toTypeScript(javaSrc);
+        assertEquals(expected, result);
+    }
 }

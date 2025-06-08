@@ -85,6 +85,9 @@ never be edited directly.
   default to `unknown`.
   The generated `Main.ts` now demonstrates this, typing `srcRoot.walk()` as
   `Result<Set<PathLike>>` rather than `unknown`.
+  Reassignments keep method call results when the value includes an invocation,
+  so `err = out.write(ts + System.lineSeparator());` stays intact while simple
+  value assignments remain TODOs.
 Arrow blocks passed as arguments are detected and their statements are parsed
 so assignments inside the block become stubs before the closing `});`.
 Calls like `fold(` that continue on the next line now keep that opening line
