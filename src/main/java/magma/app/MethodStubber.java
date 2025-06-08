@@ -225,7 +225,12 @@ class MethodStubber {
         if (open == -1 || close == -1 || close <= open) {
             return false;
         }
+        var arrow = stmt.indexOf("->");
+        if (arrow != -1 && arrow > close) {
+            return false;
+        }
         var head = stmt.substring(0, open).trim();
+        if (head.isEmpty()) return false;
         return !head.startsWith("if") && !head.startsWith("while") && !head.startsWith("for");
     }
 
@@ -235,6 +240,7 @@ class MethodStubber {
 
     static String parseValue(String value) {
         var trimmed = value.trim();
+        if (trimmed.contains("->")) return trimmed;
         if (trimmed.startsWith("!")) {
             var rest = trimmed.substring(1).trim();
             return "!" + parseValue(rest);

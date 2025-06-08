@@ -96,6 +96,8 @@ Only the features listed below are supported. Anything not mentioned here is con
    - Refactor generated code to return these types.
 5. Implement lambda expressions and stream translations.
    - Convert lambda expressions to arrow functions.
+   - Lambda expressions used as method arguments are preserved rather than being
+     mistaken for invokable calls.
    - Map basic stream operations to array helpers.
 6. Provide minimal replacements for common standard library utilities.
    - Introduce small helpers for `List` and `Map` behavior.

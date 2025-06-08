@@ -10,3 +10,8 @@ logic stays simple.
 
 Recent tests exercise lambdas with parameters and multi-line blocks so that
 future refactoring preserves this behaviour.
+
+Lambda expressions can also appear inside method calls. The parser now keeps
+these arguments intact by detecting the `->` token after the closing
+parenthesis and skipping invocation stubbing in that case. This allows
+`doThing(() -> 1)` to remain unchanged aside from the arrow replacement.
