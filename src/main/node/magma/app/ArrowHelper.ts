@@ -1,6 +1,6 @@
 import TypeMapper from "./TypeMapper";
+import StatementParser from "./StatementParser";
 import Collections from "./Collections";
-import MethodStubber from "./MethodStubber";
 export default class ArrowHelper {
     convertArrowFunctions(source: string): string {
         let lines : unknown = source.split("\\R");
@@ -78,7 +78,7 @@ export default class ArrowHelper {
         let trimmedPart : unknown = part.trim();
         // TODO
         if (trimmedPart.contains("=")) {
-            out.append(MethodStubber.parseAssignment(trimmedPart, indent, vars, java.util.Collections.emptyMap()));
+            out.append(StatementParser.parseAssignment(trimmedPart, indent, vars, java.util.Collections.emptyMap()));
             .append(System.lineSeparator());
             // TODO
             out.append(indent).append("    // TODO").append(System.lineSeparator());
