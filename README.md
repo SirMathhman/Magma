@@ -76,6 +76,8 @@ never be edited directly.
   properties while ignoring initializations
 - `magma.app.ImportHelper` – rewrites package declarations and import lines
 - `magma.app.ArrowHelper` – turns lambda expressions into arrow functions
+- Interface method signatures now keep parameter and return types so
+  `PathLike resolve(String other);` becomes `resolve(other : string): PathLike`.
   - `magma.app.TypeMapper` – maps primitive, boxed, and generic types and preserves
     unknown identifiers
 - `src/test/java` – growing suite of tests that now covers nested and chained

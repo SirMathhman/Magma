@@ -37,6 +37,8 @@ platforms.
   - `MethodStubber` now detects arrow blocks that span multiple lines and copies
     them verbatim until the closing `});` so calls like `fold(x, () -> { });`
     remain intact.
+  - Interface methods are translated so parameter and return types carry over,
+    using spaces around the colon for parameters.
   - `TypeMapper` – maps primitive, boxed, and generic types and leaves unknown
     identifiers unchanged so the output stays close to the source
   - `java.util.function` interfaces map to arrow function types
