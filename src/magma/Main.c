@@ -1,6 +1,6 @@
 /*private static*/struct Lists {
 };
-State new(/*List<String>*/ segments, /*Slice<char>*/ buffer, int depth) {
+State new(/*List<String>*/ segments, Array<char> buffer, int depth) {
 	this.segments = segments;
 	this.buffer = buffer;
 	this.depth = depth;
@@ -33,7 +33,7 @@ State new() {
 }
 /*private static*/struct State {
 	/*private*/ /*List<String>*/ segments;
-	/*private*/ /*Slice<char>*/ buffer;
+	/*private*/ Array<char> buffer;
 	/*private*/ int depth;
 	/*private*/ int isLevel();
 	/*private*/ struct State append(char c);
@@ -42,20 +42,20 @@ State new() {
 	/*private*/ struct State exit();
 	/*public*/ int isShallow();
 };
-/*private*/ /*Slice<char>*/ generate() {
+/*private*/ Array<char> generate() {
 	return generatePlaceholder(this.beforeKeyword) + "struct " + this.name;
 }
 /*private*/struct ClassDefinition {
-	/*private*/ /*Slice<char>*/ generate();
+	/*private*/ Array<char> generate();
 };
-/*private*/ /*Slice<char>*/ generate() {
+/*private*/ Array<char> generate() {
 	/*final*/ auto beforeType = this.maybeBefore.map(/*Main::generatePlaceholder*/).map(inner - /*> inner */ + " ").orElse("");
 	return beforeType + this.type + " " + this.name;
 }
 /*private*/struct JavaDefinition {
-	/*private*/ /*Slice<char>*/ generate();
+	/*private*/ Array<char> generate();
 };
-/*public static*/ struct void main(/*String[]*/ args) {/*try {
+/*public static*/ struct void main(Array<Array<char>> args) {/*try {
             final var source = Paths.get(".", "src", "magma", "Main.java");
             final var input = Files.readString(source);
             final var target = source.resolveSibling("Main.c");
@@ -66,22 +66,22 @@ State new() {
             e.printStackTrace();
         }*/
 }
-/*private static*/ /*Slice<char>*/ compile(/*Slice<char>*/ input) {
+/*private static*/ Array<char> compile(Array<char> input) {
 	return compileStatements(input, /* Main::compileRootSegment*/);
 }
-/*private static*/ /*Slice<char>*/ compileStatements(/*Slice<char>*/ input, /* Function<String*/, /*String>*/ mapper) {
+/*private static*/ Array<char> compileStatements(Array<char> input, /* Function<String*/, /*String>*/ mapper) {
 	return compileAll(input, /* Main::foldStatements*/, mapper, /* Main::mergeStatements*/);
 }
-/*private static*/ /*Slice<char>*/ compileAll(/*Slice<char>*/ input, /* BiFunction<State*/, /* Character*/, /*State>*/ folder, /* Function<String*/, /*String>*/ mapper, /* BiFunction<String*/, /* String*/, /*String>*/ merger) {
+/*private static*/ Array<char> compileAll(Array<char> input, /* BiFunction<State*/, /* Character*/, /*State>*/ folder, /* Function<String*/, /*String>*/ mapper, /* BiFunction<String*/, /* String*/, /*String>*/ merger) {
 	return divide(input, folder).iter().map(mapper).fold("", merger);
 }
-/*private static*/ /*Slice<char>*/ mergeStatements(/*Slice<char>*/ buffer, /*Slice<char>*/ element) {
+/*private static*/ Array<char> mergeStatements(Array<char> buffer, Array<char> element) {
 	return buffer + element;
 }
-/*private static*/ /*List<String>*/ divideStatements(/*Slice<char>*/ input) {
+/*private static*/ /*List<String>*/ divideStatements(Array<char> input) {
 	return divide(input, /* Main::foldStatements*/);
 }
-/*private static*/ /*List<String>*/ divide(/*Slice<char>*/ input, /* BiFunction<State*/, /* Character*/, /*State>*/ folder) {
+/*private static*/ /*List<String>*/ divide(Array<char> input, /* BiFunction<State*/, /* Character*/, /*State>*/ folder) {
 	auto current = struct State();
 	/*for*/ /*(var*/ i = 0;
 	/*i < input*/.length();/* i++) {
@@ -493,7 +493,7 @@ State new() {
         }
 
         if (stripped.equals("String")) {
-            return Optional.of(generatePlaceholder("Slice<char>"));
+            return Optional.of("Array<char>");
         }
 
         if (stripped.equals("var")) {
@@ -502,6 +502,13 @@ State new() {
 
         if (isSymbol(stripped)) {
             return Optional.of("struct " + stripped);
+        }
+
+        if (stripped.endsWith("[]")) {
+            final var slice = stripped.substring(0, stripped.length() - "[]".length());
+            return compileType(slice).map(compiled -> {
+                return "Array<" + compiled + ">";
+            });
         }
 
         return Optional.of(generatePlaceholder(input));

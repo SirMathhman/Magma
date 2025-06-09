@@ -696,7 +696,7 @@ public class Main {
         }
 
         if (stripped.equals("String")) {
-            return Optional.of(generatePlaceholder("Slice<char>"));
+            return Optional.of("Array<char>");
         }
 
         if (stripped.equals("var")) {
@@ -705,6 +705,13 @@ public class Main {
 
         if (isSymbol(stripped)) {
             return Optional.of("struct " + stripped);
+        }
+
+        if (stripped.endsWith("[]")) {
+            final var slice = stripped.substring(0, stripped.length() - "[]".length());
+            return compileType(slice).map(compiled -> {
+                return "Array<" + compiled + ">";
+            });
         }
 
         return Optional.of(generatePlaceholder(input));
