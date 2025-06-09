@@ -367,7 +367,7 @@ public class Main {
             final var paramEnd = withParams.indexOf(")");
             if (paramEnd >= 0) {
                 final var params = withParams.substring(0, paramEnd);
-                final var content = withParams.substring(paramEnd + ")".length()).strip();
+                final var withBraces = withParams.substring(paramEnd + ")".length()).strip();
                 final var maybeDefinition = parseDefinition(beforeParams);
                 if (maybeDefinition.isPresent()) {
                     final var definition = maybeDefinition.get();
@@ -376,12 +376,19 @@ public class Main {
                     }
 
                     final var header = definition.generate() + "(" + generatePlaceholder(params) + ")";
-                    if (content.equals(";")) {
+                    if (withBraces.equals(";")) {
                         final var generated = header + ";";
                         return Optional.of(new Tuple<>(Lists.of(generated + "\n"), "\n\t" + generated));
                     }
 
-                    return Optional.of(new Tuple<>(Lists.of(header + " {\n}" + "\n"), "\n\t" + header + ";"));
+                    if (withBraces.startsWith("{") && withBraces.endsWith("}")) {
+                        final var content = withBraces.substring(1, withBraces.length() - 1).strip();
+                        return Optional.of(new Tuple<>(Lists.of(header + " {" +
+                                generatePlaceholder(content) +
+                                "}" + "\n"), "\n\t" + header + ";"));
+                    }
+
+                    return Optional.empty();
                 }
             }
         }

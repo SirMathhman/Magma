@@ -1,17 +1,16 @@
 /*private static*/struct Lists {
 };
-/*private*/ /*boolean*/ isLevel(/**/) {
-}
-/*private*/ /*State*/ append(/*char c*/) {
-}
-/*private*/ /*State*/ advance(/**/) {
-}
-/*private*/ /*State*/ enter(/**/) {
-}
-/*private*/ /*State*/ exit(/**/) {
-}
-/*public*/ /*boolean*/ isShallow(/**/) {
-}
+/*private*/ /*boolean*/ isLevel(/**/) {/*return this.depth == 0;*/}
+/*private*/ /*State*/ append(/*char c*/) {/*this.buffer.append(c);
+            return this;*/}
+/*private*/ /*State*/ advance(/**/) {/*this.segments = this.segments.addLast(this.buffer.toString());
+            this.buffer = new StringBuilder();
+            return this;*/}
+/*private*/ /*State*/ enter(/**/) {/*this.depth = this.depth + 1;
+            return this;*/}
+/*private*/ /*State*/ exit(/**/) {/*this.depth = this.depth - 1;
+            return this;*/}
+/*public*/ /*boolean*/ isShallow(/**/) {/*return this.depth == 1;*/}
 /*private static*/struct State {
 	/*private*/ /*List<String>*/ segments;
 	/*private*/ /*StringBuilder*/ buffer;
@@ -33,30 +32,50 @@
 	/*private*/ /*State*/ exit(/**/);
 	/*public*/ /*boolean*/ isShallow(/**/);
 };
-/*private*/ /*String*/ generate(/**/) {
-}
+/*private*/ /*String*/ generate(/**/) {/*return generatePlaceholder(this.beforeKeyword) + "struct " + this.name;*/}
 /*private*/struct ClassDefinition {
 	/*private*/ /*String*/ generate(/**/);
 };
-/*private*/ /*String*/ generate(/**/) {
-}
+/*private*/ /*String*/ generate(/**/) {/*final var beforeType = this.maybeBefore.map(Main::generatePlaceholder)
+                    .map(inner -> inner + " ")
+                    .orElse("");
+
+            return beforeType + this.type + " " + this.name;*/}
 /*private*/struct JavaDefinition {
 	/*private*/ /*String*/ generate(/**/);
 };
-/*public static*/ /*void*/ main(/*String[] args*/) {
-}
-/*private static*/ /*String*/ compile(/*String input*/) {
-}
-/*private static*/ /*String*/ compileStatements(/*String input, Function<String, String> mapper*/) {
-}
-/*private static*/ /*List<String>*/ divideStatements(/*String input*/) {
-}
-/*private static*/ /*List<String>*/ divide(/*String input, BiFunction<State, Character, State> folder*/) {
-}
-/*private static*/ /*State*/ foldStatements(/*State state, char c*/) {
-}
-/*if*/ (/*c == '{'*/) {
-}
+/*public static*/ /*void*/ main(/*String[] args*/) {/*try {
+            final var source = Paths.get(".", "src", "magma", "Main.java");
+            final var input = Files.readString(source);
+            final var target = source.resolveSibling("Main.c");
+            final var string = compile(input);
+            Files.writeString(target, string);
+        } catch (IOException e) {
+            //noinspection CallToPrintStackTrace
+            e.printStackTrace();
+        }*/}
+/*private static*/ /*String*/ compile(/*String input*/) {/*return compileStatements(input, Main::compileRootSegment);*/}
+/*private static*/ /*String*/ compileStatements(/*String input, Function<String, String> mapper*/) {/*return divideStatements(input)
+                .iter()
+                .map(mapper)
+                .collect(new Joiner())
+                .orElse("");*/}
+/*private static*/ /*List<String>*/ divideStatements(/*String input*/) {/*return divide(input, Main::foldStatements);*/}
+/*private static*/ /*List<String>*/ divide(/*String input, BiFunction<State, Character, State> folder*/) {/*var current = new State();
+        for (var i = 0; i < input.length(); i++) {
+            final var c = input.charAt(i);
+            current = folder.apply(current, c);
+        }
+
+        return current.advance().segments;*/}
+/*private static*/ /*State*/ foldStatements(/*State state, char c*/) {/*final var appended = state.append(c);
+        if (c == ';' && appended.isLevel()) {
+            return appended.advance();
+        }
+        if (c == '*/}
+/*if*/ (/*c == '{'*/) {/*return appended.enter();
+        }
+        if (c == '*/}
 /*public*/struct Main {
 	/*public static*/ /*void*/ main(/*String[] args*/);
 	/*private static*/ /*String*/ compile(/*String input*/);
@@ -147,7 +166,7 @@
             final var paramEnd = withParams.indexOf(")");
             if (paramEnd >= 0) {
                 final var params = withParams.substring(0, paramEnd);
-                final var content = withParams.substring(paramEnd + ")".length()).strip();
+                final var withBraces = withParams.substring(paramEnd + ")".length()).strip();
                 final var maybeDefinition = parseDefinition(beforeParams);
                 if (maybeDefinition.isPresent()) {
                     final var definition = maybeDefinition.get();
@@ -156,12 +175,19 @@
                     }
 
                     final var header = definition.generate() + "(" + generatePlaceholder(params) + ")";
-                    if (content.equals(";")) {
+                    if (withBraces.equals(";")) {
                         final var generated = header + ";";
                         return Optional.of(new Tuple<>(Lists.of(generated + "\n"), "\n\t" + generated));
                     }
 
-                    return Optional.of(new Tuple<>(Lists.of(header + " {\n}" + "\n"), "\n\t" + header + ";"));
+                    if (withBraces.startsWith("{") && withBraces.endsWith("}")) {
+                        final var content = withBraces.substring(1, withBraces.length() - 1).strip();
+                        return Optional.of(new Tuple<>(Lists.of(header + " {" +
+                                generatePlaceholder(content) +
+                                "}" + "\n"), "\n\t" + header + ";"));
+                    }
+
+                    return Optional.empty();
                 }
             }
         }
