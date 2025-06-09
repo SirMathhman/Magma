@@ -467,12 +467,17 @@ public class Main {
         });
     }
 
-    private static Optional<String> compileType(String type) {
-        if (type.equals("private") || type.equals("public")) {
+    private static Optional<String> compileType(String input) {
+        final var stripped = input.strip();
+        if (stripped.equals("private") || stripped.equals("public")) {
             return Optional.empty();
         }
 
-        return Optional.of(generatePlaceholder(type));
+        if (stripped.equals("boolean")) {
+            return Optional.of("int");
+        }
+
+        return Optional.of(generatePlaceholder(input));
     }
 
     private static Optional<ClassDefinition> compileClassDefinition(String input) {

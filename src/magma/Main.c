@@ -1,6 +1,6 @@
 /*private static*/struct Lists {
 };
-/*private*/ /*boolean*/ isLevel(/**/) {/*return this.depth == 0;*/}
+/*private*/ int isLevel(/**/) {/*return this.depth == 0;*/}
 /*private*/ /*State*/ append(/*char c*/) {/*this.buffer.append(c);
             return this;*/}
 /*private*/ /*State*/ advance(/**/) {/*this.segments = this.segments.addLast(this.buffer.toString());
@@ -10,7 +10,7 @@
             return this;*/}
 /*private*/ /*State*/ exit(/**/) {/*this.depth = this.depth - 1;
             return this;*/}
-/*public*/ /*boolean*/ isShallow(/**/) {/*return this.depth == 1;*/}
+/*public*/ int isShallow(/**/) {/*return this.depth == 1;*/}
 /*private static*/struct State {
 	/*private*/ /*List<String>*/ segments;
 	/*private*/ /*StringBuilder*/ buffer;
@@ -25,12 +25,12 @@
         public State() {
             this(Lists.empty(), new StringBuilder(), 0);
         }*/
-	/*private*/ /*boolean*/ isLevel(/**/);
+	/*private*/ int isLevel(/**/);
 	/*private*/ /*State*/ append(/*char c*/);
 	/*private*/ /*State*/ advance(/**/);
 	/*private*/ /*State*/ enter(/**/);
 	/*private*/ /*State*/ exit(/**/);
-	/*public*/ /*boolean*/ isShallow(/**/);
+	/*public*/ int isShallow(/**/);
 };
 /*private*/ /*String*/ generate(/**/) {/*return generatePlaceholder(this.beforeKeyword) + "struct " + this.name;*/}
 /*private*/struct ClassDefinition {
@@ -266,12 +266,17 @@
         });
     }*//*
 
-    private static Optional<String> compileType(String type) {
-        if (type.equals("private") || type.equals("public")) {
+    private static Optional<String> compileType(String input) {
+        final var stripped = input.strip();
+        if (stripped.equals("private") || stripped.equals("public")) {
             return Optional.empty();
         }
 
-        return Optional.of(generatePlaceholder(type));
+        if (stripped.equals("boolean")) {
+            return Optional.of("int");
+        }
+
+        return Optional.of(generatePlaceholder(input));
     }*//*
 
     private static Optional<ClassDefinition> compileClassDefinition(String input) {
