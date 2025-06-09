@@ -77,9 +77,7 @@ void main(Array<Array<char>> args) {
 	auto source = Paths.get(".", "src", "magma", "Main.java");
 	readString(source).match(input - /*> compileAndWrite(input*/, /* source)*/, /* Some::new*/).ifPresent(error - /*> printErroneousLine*/(error.display()));
 }
-void printErroneousLine(Array<char> content) {
-	System.err.println(content);
-}
+void printErroneousLine(Array<char> content);
 Option<struct IOError> compileAndWrite(Array<char> input, struct Path source) {
 	auto target = source.resolveSibling("Main.c");
 	auto string = compile(input);
@@ -234,13 +232,7 @@ struct State foldStatements(struct State state, char c) {
                     }
 
                     if (withBraces.startsWith("{") && withBraces.endsWith("}")) {
-                        final var inputContent = withBraces.substring(1, withBraces.length() - 1).strip();
-                        final var outputContent = compileStatements(inputContent, Main::compileFunctionSegment);
-                        final var withinStructure = definition.modifiers.contains("static") ? "" : "\n\t" + header + ";";
-
-                        return new Some<>(new Tuple<>(Lists.of(header + " {" +
-                                outputContent +
-                                "\n}" + "\n"), withinStructure));
+                        return new Some<>(compileMethodWithBody(definition, header, withBraces));
                     }
 
                     return new None<>();
@@ -249,6 +241,18 @@ struct State foldStatements(struct State state, char c) {
         }
 
         return new None<>();
+    }*//*
+
+    private static Tuple<List<String>, String> compileMethodWithBody(JavaDefinition definition, String header, String withBraces) {
+        if (definition.annotations.contains("Actual")) {
+            return new Tuple<>(Lists.of(header + ";\n"), "");
+        }
+        
+        final var inputContent = withBraces.substring(1, withBraces.length() - 1).strip();
+        final var outputContent = compileStatements(inputContent, Main::compileFunctionSegment);
+        final var withinStructure = definition.modifiers.contains("static") ? "" : "\n\t" + header + ";";
+
+        return new Tuple<>(Lists.of(header + " {" + outputContent + "\n}" + "\n"), withinStructure);
     }*//*
 
     private static Option<JavaDefinition> parseMethodDefinition(String input) {

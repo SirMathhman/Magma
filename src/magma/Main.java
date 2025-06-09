@@ -575,13 +575,7 @@ public class Main {
                     }
 
                     if (withBraces.startsWith("{") && withBraces.endsWith("}")) {
-                        final var inputContent = withBraces.substring(1, withBraces.length() - 1).strip();
-                        final var outputContent = compileStatements(inputContent, Main::compileFunctionSegment);
-                        final var withinStructure = definition.modifiers.contains("static") ? "" : "\n\t" + header + ";";
-
-                        return new Some<>(new Tuple<>(Lists.of(header + " {" +
-                                outputContent +
-                                "\n}" + "\n"), withinStructure));
+                        return new Some<>(compileMethodWithBody(definition, header, withBraces));
                     }
 
                     return new None<>();
@@ -590,6 +584,18 @@ public class Main {
         }
 
         return new None<>();
+    }
+
+    private static Tuple<List<String>, String> compileMethodWithBody(JavaDefinition definition, String header, String withBraces) {
+        if (definition.annotations.contains("Actual")) {
+            return new Tuple<>(Lists.of(header + ";\n"), "");
+        }
+
+        final var inputContent = withBraces.substring(1, withBraces.length() - 1).strip();
+        final var outputContent = compileStatements(inputContent, Main::compileFunctionSegment);
+        final var withinStructure = definition.modifiers.contains("static") ? "" : "\n\t" + header + ";";
+
+        return new Tuple<>(Lists.of(header + " {" + outputContent + "\n}" + "\n"), withinStructure);
     }
 
     private static Option<JavaDefinition> parseMethodDefinition(String input) {
