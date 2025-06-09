@@ -30,6 +30,8 @@ public class Main {
         Iterator<T> iter();
 
         List<T> addAllLast(List<T> others);
+
+        boolean isEmpty();
     }
 
     private interface Head<T> {
@@ -104,6 +106,11 @@ public class Main {
         @Override
         public List<T> addAllLast(List<T> others) {
             return others.iter().<List<T>>fold(this, List::addLast);
+        }
+
+        @Override
+        public boolean isEmpty() {
+            return this.elements.isEmpty();
         }
     }
 
@@ -202,6 +209,12 @@ public class Main {
         }
     }
 
+    private record ClassDefinition(String beforeKeyword, String name, List<String> typeParameters) {
+        private String generate() {
+            return generatePlaceholder(this.beforeKeyword) + "struct " + this.name;
+        }
+    }
+
     public static void main(String[] args) {
         try {
             final var source = Paths.get(".", "src", "magma", "Main.java");
@@ -279,20 +292,26 @@ public class Main {
             final var beforeContent = input.substring(0, contentStart);
             final var withEnd = input.substring(contentStart + "{".length()).strip();
             if (withEnd.endsWith("}")) {
-                final var header = compileClassDefinition(beforeContent);
-                final var inputContent = withEnd.substring(0, withEnd.length() - "}".length());
+                final var maybeHeader = compileClassDefinition(beforeContent);
+                if (maybeHeader.isPresent()) {
+                    final var header = maybeHeader.get();
+                    if (header.typeParameters.isEmpty()) {
+                        final var inputContent = withEnd.substring(0, withEnd.length() - "}".length());
 
-                final var segments = divide(inputContent);
+                        final var segments = divide(inputContent);
 
-                final var tuple = segments.iter()
-                        .map(Main::compileClassSegment)
-                        .collect(new TupleCollector<>(new ListBulkCollector<>(), new Joiner()));
+                        final var tuple = segments.iter()
+                                .map(Main::compileClassSegment)
+                                .collect(new TupleCollector<>(new ListBulkCollector<>(), new Joiner()));
 
-                final var others = tuple.left;
-                final var output = tuple.right.orElse("");
+                        final var others = tuple.left;
+                        final var output = tuple.right.orElse("");
 
-                final var generated = header + "{" + output + "\n};\n";
-                return Optional.of(new Tuple<>(others.addLast(generated), ""));
+                        final var generatedHeader = header.generate();
+                        final var generated = generatedHeader + " {" + output + "\n};\n";
+                        return Optional.of(new Tuple<>(others.addLast(generated), ""));
+                    }
+                }
             }
         }
 
@@ -402,13 +421,12 @@ public class Main {
         return generatePlaceholder(type);
     }
 
-    private static String compileClassDefinition(String input) {
+    private static Optional<ClassDefinition> compileClassDefinition(String input) {
         return compileClassDefinitionWithKeyword(input, "class ")
-                .or(() -> compileClassDefinitionWithKeyword(input, "interface "))
-                .orElseGet(() -> generatePlaceholder(input));
+                .or(() -> compileClassDefinitionWithKeyword(input, "interface "));
     }
 
-    private static Optional<String> compileClassDefinitionWithKeyword(String input, String keyword) {
+    private static Optional<ClassDefinition> compileClassDefinitionWithKeyword(String input, String keyword) {
         final var classIndex = input.indexOf(keyword);
         if (classIndex < 0) {
             return Optional.empty();
@@ -416,7 +434,21 @@ public class Main {
 
         final var beforeKeyword = input.substring(0, classIndex).strip();
         final var afterKeyword = input.substring(classIndex + keyword.length());
-        return Optional.of(generatePlaceholder(beforeKeyword) + "struct " + afterKeyword);
+        return Optional.of(compileClassDefinitionWithTypeParameters(beforeKeyword, afterKeyword));
+    }
+
+    private static ClassDefinition compileClassDefinitionWithTypeParameters(String beforeKeyword, String input) {
+        final var stripped = input.strip();
+        if (stripped.endsWith(">")) {
+            final var withoutEnd = stripped.substring(0, stripped.length() - ">".length());
+            final var typeParamsStart = withoutEnd.indexOf("<");
+            if (typeParamsStart >= 0) {
+                final var base = withoutEnd.substring(0, typeParamsStart);
+                final var typeParameters = withoutEnd.substring(typeParamsStart + "<".length());
+                return new ClassDefinition(beforeKeyword, base, divide(typeParameters));
+            }
+        }
+        return new ClassDefinition(beforeKeyword, stripped, Lists.empty());
     }
 
     private static String generatePlaceholder(String input) {
