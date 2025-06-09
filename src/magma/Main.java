@@ -417,6 +417,7 @@ public class Main {
         return writeString(target, string);
     }
 
+    @Actual
     private static Option<IOError> writeString(Path target, String string) {
         try {
             Files.writeString(target, string);
@@ -426,6 +427,7 @@ public class Main {
         }
     }
 
+    @Actual
     private static Result readString(Path source) {
         try {
             return new Ok(Files.readString(source));

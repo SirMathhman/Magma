@@ -83,19 +83,8 @@ Option<struct IOError> compileAndWrite(Array<char> input, struct Path source) {
 	auto string = compile(input);
 	return writeString(target, string);
 }
-Option<struct IOError> writeString(struct Path target, Array<char> string) {/*try {
-            Files.writeString(target, string);
-            return new None<>();
-        }*//* catch (IOException e) {
-            return new Some<>(new JavaIOError(e));
-        }*/
-}
-struct Result readString(struct Path source) {/*try {
-            return new Ok(Files.readString(source));
-        }*//* catch (IOException e) {
-            return new Err(new JavaIOError(e));
-        }*/
-}
+Option<struct IOError> writeString(struct Path target, Array<char> string);
+struct Result readString(struct Path source);
 Array<char> compile(Array<char> input) {
 	return compileStatements(input, /* Main::compileRootSegment*/);
 }
@@ -247,7 +236,7 @@ struct State foldStatements(struct State state, char c) {
         if (definition.annotations.contains("Actual")) {
             return new Tuple<>(Lists.of(header + ";\n"), "");
         }
-        
+
         final var inputContent = withBraces.substring(1, withBraces.length() - 1).strip();
         final var outputContent = compileStatements(inputContent, Main::compileFunctionSegment);
         final var withinStructure = definition.modifiers.contains("static") ? "" : "\n\t" + header + ";";
