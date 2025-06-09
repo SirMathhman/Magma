@@ -481,7 +481,7 @@ public class Main {
 
     private static String compileParameter(String input) {
         return compileWhitespace(input)
-                .or(() -> compileClassDefinition(input).map(ClassDefinition::generate))
+                .or(() -> parseDefinition(input).map(JavaDefinition::generate))
                 .orElseGet(() -> generatePlaceholder(input));
     }
 
@@ -560,6 +560,10 @@ public class Main {
         final var stripped = input.strip();
         if (stripped.equals("private") || stripped.equals("public")) {
             return Optional.empty();
+        }
+
+        if (stripped.equals("char")) {
+            return Optional.of("char");
         }
 
         if (stripped.equals("boolean")) {

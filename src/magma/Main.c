@@ -3,7 +3,7 @@
 /*private*/ int isLevel() {
 	return this.depth == 0;
 }
-/*private*/ struct State append(/*char c*/) {
+/*private*/ struct State append(char c) {
 	/*this.buffer.append(c)*/;
 	return this;
 }
@@ -38,7 +38,7 @@
             this(Lists.empty(), new StringBuilder(), 0);
         }*/
 	/*private*/ int isLevel();
-	/*private*/ struct State append(/*char c*/);
+	/*private*/ struct State append(char c);
 	/*private*/ struct State advance();
 	/*private*/ struct State enter();
 	/*private*/ struct State exit();
@@ -59,7 +59,7 @@
 /*private*/struct JavaDefinition {
 	/*private*/ struct String generate();
 };
-/*public static*/ struct void main(/*String[] args*/) {/*try {
+/*public static*/ struct void main(/*String[]*/ args) {/*try {
             final var source = Paths.get(".", "src", "magma", "Main.java");
             final var input = Files.readString(source);
             final var target = source.resolveSibling("Main.c");
@@ -70,23 +70,23 @@
             e.printStackTrace();
         }*/
 }
-/*private static*/ struct String compile(/*String input*/) {
+/*private static*/ struct String compile(struct String input) {
 	return /*compileStatements(input, Main::compileRootSegment)*/;
 }
-/*private static*/ struct String compileStatements(/*String input*/, /* Function<String*/, /* String> mapper*/) {
+/*private static*/ struct String compileStatements(struct String input, /* Function<String*/, /*String>*/ mapper) {
 	return /*compileAll(input, Main::foldStatements, mapper, Main::mergeStatements)*/;
 }
-/*private static*/ struct String compileAll(/*String input*/, /* BiFunction<State*/, /* Character*/, /* State> folder*/, /* Function<String*/, /* String> mapper*/, /* BiFunction<StringBuilder*/, /* String*/, /* StringBuilder> merger*/) {
+/*private static*/ struct String compileAll(struct String input, /* BiFunction<State*/, struct  Character, /*State>*/ folder, /* Function<String*/, /*String>*/ mapper, /* BiFunction<StringBuilder*/, struct  String, /*StringBuilder>*/ merger) {
 	return /*divide(input, folder)
                 */.iter().map(mapper).fold(new StringBuilder(), merger).toString();
 }
-/*private static*/ struct StringBuilder mergeStatements(/*StringBuilder stringBuilder*/, /* String s*/) {
+/*private static*/ struct StringBuilder mergeStatements(struct StringBuilder stringBuilder, struct String s) {
 	return stringBuilder.append(s);
 }
-/*private static*/ /*List<String>*/ divideStatements(/*String input*/) {
+/*private static*/ /*List<String>*/ divideStatements(struct String input) {
 	return /*divide(input, Main::foldStatements)*/;
 }
-/*private static*/ /*List<String>*/ divide(/*String input*/, /* BiFunction<State*/, /* Character*/, /* State> folder*/) {
+/*private static*/ /*List<String>*/ divide(struct String input, /* BiFunction<State*/, struct  Character, /*State>*/ folder) {
 	/*var current = new State()*/;
 	/*for (var i = 0*/;
 	/*i < input.length()*/;/* i++) {
@@ -95,7 +95,7 @@
         }*/
 	return current.advance().segments;
 }
-/*private static*/ struct State foldStatements(/*State state*/, /* char c*/) {
+/*private static*/ struct State foldStatements(struct State state, char c) {
 	/*final var appended = state.append(c)*/;
 	/*if (c == '*/;/*' && appended.isLevel()) {
             return appended.advance();
@@ -108,14 +108,14 @@ struct if (/*c == '{'*/) {
         if (c == '*/
 }
 /*public*/struct Main {
-	/*public static*/ struct void main(/*String[] args*/);
-	/*private static*/ struct String compile(/*String input*/);
-	/*private static*/ struct String compileStatements(/*String input*/, /* Function<String*/, /* String> mapper*/);
-	/*private static*/ struct String compileAll(/*String input*/, /* BiFunction<State*/, /* Character*/, /* State> folder*/, /* Function<String*/, /* String> mapper*/, /* BiFunction<StringBuilder*/, /* String*/, /* StringBuilder> merger*/);
-	/*private static*/ struct StringBuilder mergeStatements(/*StringBuilder stringBuilder*/, /* String s*/);
-	/*private static*/ /*List<String>*/ divideStatements(/*String input*/);
-	/*private static*/ /*List<String>*/ divide(/*String input*/, /* BiFunction<State*/, /* Character*/, /* State> folder*/);
-	/*private static*/ struct State foldStatements(/*State state*/, /* char c*/);/*' && appended.isShallow()) {
+	/*public static*/ struct void main(/*String[]*/ args);
+	/*private static*/ struct String compile(struct String input);
+	/*private static*/ struct String compileStatements(struct String input, /* Function<String*/, /*String>*/ mapper);
+	/*private static*/ struct String compileAll(struct String input, /* BiFunction<State*/, struct  Character, /*State>*/ folder, /* Function<String*/, /*String>*/ mapper, /* BiFunction<StringBuilder*/, struct  String, /*StringBuilder>*/ merger);
+	/*private static*/ struct StringBuilder mergeStatements(struct StringBuilder stringBuilder, struct String s);
+	/*private static*/ /*List<String>*/ divideStatements(struct String input);
+	/*private static*/ /*List<String>*/ divide(struct String input, /* BiFunction<State*/, struct  Character, /*State>*/ folder);
+	/*private static*/ struct State foldStatements(struct State state, char c);/*' && appended.isShallow()) {
             return appended.advance().exit();
         }*/
 	struct if (/*c == '{'*/);/*') {
@@ -305,7 +305,7 @@ struct if (/*c == '{'*/) {
 
     private static String compileParameter(String input) {
         return compileWhitespace(input)
-                .or(() -> compileClassDefinition(input).map(ClassDefinition::generate))
+                .or(() -> parseDefinition(input).map(JavaDefinition::generate))
                 .orElseGet(() -> generatePlaceholder(input));
     }*//*
 
@@ -384,6 +384,10 @@ struct if (/*c == '{'*/) {
         final var stripped = input.strip();
         if (stripped.equals("private") || stripped.equals("public")) {
             return Optional.empty();
+        }
+
+        if (stripped.equals("char")) {
+            return Optional.of("char");
         }
 
         if (stripped.equals("boolean")) {
