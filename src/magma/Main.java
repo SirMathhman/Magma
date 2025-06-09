@@ -566,6 +566,10 @@ public class Main {
             return Optional.of("int");
         }
 
+        if (isSymbol(stripped)) {
+            return Optional.of("struct " + stripped);
+        }
+
         return Optional.of(generatePlaceholder(input));
     }
 
