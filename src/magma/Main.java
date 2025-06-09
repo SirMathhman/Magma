@@ -215,6 +215,28 @@ public class Main {
         }
     }
 
+    private record JavaDefinition(Optional<String> maybeBefore, List<String> typeParameters, String type, String name) {
+        private String generate() {
+            final var beforeType = this.maybeBefore.map(Main::generatePlaceholder)
+                    .map(inner -> inner + " ")
+                    .orElse("");
+
+            return beforeType + this.type + " " + this.name;
+        }
+    }
+
+    private static class ListCollector<T> implements Collector<T, List<T>> {
+        @Override
+        public List<T> createInitial() {
+            return Lists.empty();
+        }
+
+        @Override
+        public List<T> fold(List<T> current, T element) {
+            return current.addLast(element);
+        }
+    }
+
     public static void main(String[] args) {
         try {
             final var source = Paths.get(".", "src", "magma", "Main.java");
@@ -233,24 +255,28 @@ public class Main {
     }
 
     private static String compileStatements(String input, Function<String, String> mapper) {
-        return divide(input)
+        return divideStatements(input)
                 .iter()
                 .map(mapper)
                 .collect(new Joiner())
                 .orElse("");
     }
 
-    private static List<String> divide(String input) {
+    private static List<String> divideStatements(String input) {
+        return divide(input, Main::foldStatements);
+    }
+
+    private static List<String> divide(String input, BiFunction<State, Character, State> folder) {
         var current = new State();
         for (var i = 0; i < input.length(); i++) {
             final var c = input.charAt(i);
-            current = fold(current, c);
+            current = folder.apply(current, c);
         }
 
         return current.advance().segments;
     }
 
-    private static State fold(State state, char c) {
+    private static State foldStatements(State state, char c) {
         final var appended = state.append(c);
         if (c == ';' && appended.isLevel()) {
             return appended.advance();
@@ -308,7 +334,7 @@ public class Main {
         if (definition.typeParameters.isEmpty()) {
             final var inputContent = withEnd.substring(0, withEnd.length() - "}".length());
 
-            final var segments = divide(inputContent);
+            final var segments = divideStatements(inputContent);
 
             final var tuple = segments.iter()
                     .map(Main::compileClassSegment)
@@ -344,13 +370,18 @@ public class Main {
                 final var content = withParams.substring(paramEnd + ")".length()).strip();
                 final var maybeDefinition = compileDefinition(beforeParams);
                 if (maybeDefinition.isPresent()) {
-                    final var header = maybeDefinition.get() + "(" + generatePlaceholder(params) + ")";
+                    final var definition = maybeDefinition.get();
+                    if (!definition.typeParameters.isEmpty()) {
+                        return Optional.of(new Tuple<>(Lists.empty(), ""));
+                    }
+
+                    final var header = definition.generate() + "(" + generatePlaceholder(params) + ")";
                     if (content.equals(";")) {
                         final var generated = header + ";";
                         return Optional.of(new Tuple<>(Lists.of(generated + "\n"), "\n\t" + generated));
-                    } else {
-                        return Optional.of(new Tuple<>(Lists.of(header + " {\n}" + "\n"), "\n\t" + header + ";"));
                     }
+
+                    return Optional.of(new Tuple<>(Lists.of(header + " {\n}" + "\n"), "\n\t" + header + ";"));
                 }
             }
         }
@@ -371,7 +402,7 @@ public class Main {
         final var stripped = input.strip();
         if (stripped.endsWith(";")) {
             final var withoutEnd = stripped.substring(0, stripped.length() - ";".length());
-            return compileDefinition(withoutEnd).map(generated -> {
+            return compileDefinition(withoutEnd).map(JavaDefinition::generate).map(generated -> {
                 return new Tuple<>(Lists.empty(), "\n\t" + generated + ";");
             });
         }
@@ -379,14 +410,14 @@ public class Main {
         return Optional.empty();
     }
 
-    private static Optional<String> compileDefinition(String withoutEnd) {
-        final var nameSeparator = withoutEnd.lastIndexOf(" ");
+    private static Optional<JavaDefinition> compileDefinition(String input) {
+        final var nameSeparator = input.lastIndexOf(" ");
         if (nameSeparator >= 0) {
-            final var beforeName = withoutEnd.substring(0, nameSeparator).strip();
-            final var name = withoutEnd.substring(nameSeparator + " ".length()).strip();
+            final var beforeName = input.substring(0, nameSeparator).strip();
+            final var name = input.substring(nameSeparator + " ".length()).strip();
 
             if (isSymbol(name)) {
-                final var generated = compileDefinitionWithType(beforeName, name);
+                final var generated = parseDefinitionWithBeforeType(beforeName, name);
                 return Optional.of(generated);
             }
         }
@@ -404,27 +435,29 @@ public class Main {
         return true;
     }
 
-    private static String compileDefinitionWithType(String beforeName, String name) {
+    private static JavaDefinition parseDefinitionWithBeforeType(String beforeName, String name) {
         final var typeSeparator = beforeName.lastIndexOf(" ");
-        if (typeSeparator >= 0) {
-            final var beforeType = beforeName.substring(0, typeSeparator);
-            final var type = beforeName.substring(typeSeparator + " ".length());
-            String type1 = compileType(type);
-            return generateDefinition(Optional.of(beforeType), type1, name);
+        if (typeSeparator < 0) {
+            var type = compileType(beforeName);
+            return new JavaDefinition(Optional.empty(), Lists.empty(), type, name);
         }
-        else {
-            String type = compileType(beforeName);
-            return generateDefinition(Optional.empty(), type, name);
+
+        final var type = beforeName.substring(typeSeparator + " ".length());
+        final var compiledType = compileType(type);
+
+        final var beforeType = beforeName.substring(0, typeSeparator).strip();
+        if (beforeType.endsWith(">")) {
+            final var withoutEnd = beforeType.substring(0, beforeType.length() - ">".length());
+            final var typeParametersStart = withoutEnd.indexOf("<");
+            if (typeParametersStart >= 0) {
+                final var beforeTypeParameters = withoutEnd.substring(0, typeParametersStart);
+                final var typeParametersString = withoutEnd.substring(typeParametersStart + "<".length());
+                final var typeParameters = parseTypeParameters(typeParametersString);
+                return new JavaDefinition(Optional.of(beforeTypeParameters), typeParameters, compiledType, name);
+            }
         }
-    }
 
-    private static String generateDefinition(Optional<String> maybeBeforeType, String type, String name) {
-        final var beforeType = maybeBeforeType
-                .map(Main::generatePlaceholder)
-                .map(inner -> inner + " ")
-                .orElse("");
-
-        return beforeType + type + " " + name;
+        return new JavaDefinition(Optional.of(beforeType), Lists.empty(), compiledType, name);
     }
 
     private static String compileType(String type) {
@@ -455,10 +488,28 @@ public class Main {
             if (typeParamsStart >= 0) {
                 final var base = withoutEnd.substring(0, typeParamsStart);
                 final var typeParameters = withoutEnd.substring(typeParamsStart + "<".length());
-                return new ClassDefinition(beforeKeyword, base, divide(typeParameters));
+                return new ClassDefinition(beforeKeyword, base, parseTypeParameters(typeParameters));
             }
         }
         return new ClassDefinition(beforeKeyword, stripped, Lists.empty());
+    }
+
+    private static List<String> parseTypeParameters(String typeParameters) {
+        return divideValues(typeParameters)
+                .iter()
+                .map(String::strip)
+                .collect(new ListCollector<>());
+    }
+
+    private static List<String> divideValues(String input) {
+        return divide(input, Main::foldValues);
+    }
+
+    private static State foldValues(State state, char c) {
+        if (c == ',') {
+            return state.advance();
+        }
+        return state.append(c);
     }
 
     private static String generatePlaceholder(String input) {
