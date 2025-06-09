@@ -689,7 +689,7 @@ public class Main {
 
     private static String compileConstruction(String caller) {
         final var type = caller.substring("new ".length());
-        return compileType(type).orElseGet(() -> generatePlaceholder(type));
+        return compileTypeOrPlaceholder(type);
     }
 
     private static String compileValue(String input) {
@@ -869,6 +869,16 @@ public class Main {
 
     private static Option<String> compileType(String input) {
         final var stripped = input.strip();
+        if (stripped.endsWith(">")) {
+            final var withoutEnd = stripped.substring(0, stripped.length() - ">".length());
+            final var typeArgumentsStart = withoutEnd.indexOf("<");
+            if (typeArgumentsStart >= 0) {
+                final var base = withoutEnd.substring(0, typeArgumentsStart);
+                final var arguments = withoutEnd.substring(typeArgumentsStart + "<".length());
+                return new Some<>(base + "<" + compileValues(arguments, Main::compileTypeOrPlaceholder) + ">");
+            }
+        }
+
         switch (stripped) {
             case "private", "public" -> {
                 return new None<>();
@@ -900,6 +910,10 @@ public class Main {
         }
 
         return new Some<>(generatePlaceholder(input));
+    }
+
+    private static String compileTypeOrPlaceholder(String input) {
+        return compileType(input).orElseGet(() -> generatePlaceholder(input));
     }
 
     private static Option<ClassDefinition> compileClassDefinition(String input) {

@@ -5,7 +5,7 @@
 };
 /*private static*/struct Lists {
 };
-State new(/*List<String>*/ segments, Array<char> buffer, int depth) {
+State new(List<Array<char>> segments, Array<char> buffer, int depth) {
 	this.segments = segments;
 	this.buffer = buffer;
 	this.depth = depth;
@@ -37,7 +37,7 @@ State new() {
 	return this.depth == 1;
 }
 /*private static*/struct State {
-	/*private*/ /*List<String>*/ segments;
+	/*private*/ List<Array<char>> segments;
 	/*private*/ Array<char> buffer;
 	/*private*/ int depth;
 	/*private*/ int isLevel();
@@ -78,12 +78,12 @@ State new() {
 	/*final*/ auto source = Paths.get(".", "src", "magma", "Main.java");
 	readString(source).match(input - /*> compileAndWrite(input*/, /* source)*/, /* Some::new*/).ifPresent(error - /*> System*/.err.println(error.display()));
 }
-/*private static*/ /*Option<IOError>*/ compileAndWrite(Array<char> input, struct Path source) {
+/*private static*/ Option<struct IOError> compileAndWrite(Array<char> input, struct Path source) {
 	/*final*/ auto target = source.resolveSibling("Main.c");
 	/*final*/ auto string = compile(input);
 	return writeString(target, string);
 }
-/*private static*/ /*Option<IOError>*/ writeString(struct Path target, Array<char> string) {/*try {
+/*private static*/ Option<struct IOError> writeString(struct Path target, Array<char> string) {/*try {
             Files.writeString(target, string);
             return new None<>();
         }*//* catch (IOException e) {
@@ -108,10 +108,10 @@ State new() {
 /*private static*/ Array<char> mergeStatements(Array<char> buffer, Array<char> element) {
 	return buffer + element;
 }
-/*private static*/ /*List<String>*/ divideStatements(Array<char> input) {
+/*private static*/ List<Array<char>> divideStatements(Array<char> input) {
 	return divide(input, /* Main::foldStatements*/);
 }
-/*private static*/ /*List<String>*/ divide(Array<char> input, /* BiFunction<State*/, /* Character*/, /*State>*/ folder) {
+/*private static*/ List<Array<char>> divide(Array<char> input, /* BiFunction<State*/, /* Character*/, /*State>*/ folder) {
 	auto current = struct State();
 	/*for*/ /*(var*/ i = 0;
 	/*i < input*/.length();/* i++) {
@@ -350,7 +350,7 @@ State new() {
 
     private static String compileConstruction(String caller) {
         final var type = caller.substring("new ".length());
-        return compileType(type).orElseGet(() -> generatePlaceholder(type));
+        return compileTypeOrPlaceholder(type);
     }*//*
 
     private static String compileValue(String input) {
@@ -530,6 +530,16 @@ State new() {
 
     private static Option<String> compileType(String input) {
         final var stripped = input.strip();
+        if (stripped.endsWith(">")) {
+            final var withoutEnd = stripped.substring(0, stripped.length() - ">".length());
+            final var typeArgumentsStart = withoutEnd.indexOf("<");
+            if (typeArgumentsStart >= 0) {
+                final var base = withoutEnd.substring(0, typeArgumentsStart);
+                final var arguments = withoutEnd.substring(typeArgumentsStart + "<".length());
+                return new Some<>(base + "<" + compileValues(arguments, Main::compileTypeOrPlaceholder) + ">");
+            }
+        }
+
         switch (stripped) {
             case "private", "public" -> {
                 return new None<>();
@@ -561,6 +571,10 @@ State new() {
         }
 
         return new Some<>(generatePlaceholder(input));
+    }*//*
+
+    private static String compileTypeOrPlaceholder(String input) {
+        return compileType(input).orElseGet(() -> generatePlaceholder(input));
     }*//*
 
     private static Option<ClassDefinition> compileClassDefinition(String input) {
