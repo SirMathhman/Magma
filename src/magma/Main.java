@@ -255,11 +255,19 @@ public class Main {
     }
 
     private static String compileStatements(String input, Function<String, String> mapper) {
-        return divideStatements(input)
+        return compileAll(input, Main::foldStatements, mapper, Main::mergeStatements);
+    }
+
+    private static String compileAll(String input, BiFunction<State, Character, State> folder, Function<String, String> mapper, BiFunction<StringBuilder, String, StringBuilder> merger) {
+        return divide(input, folder)
                 .iter()
                 .map(mapper)
-                .collect(new Joiner())
-                .orElse("");
+                .fold(new StringBuilder(), merger)
+                .toString();
+    }
+
+    private static StringBuilder mergeStatements(StringBuilder stringBuilder, String s) {
+        return stringBuilder.append(s);
     }
 
     private static List<String> divideStatements(String input) {
@@ -352,7 +360,7 @@ public class Main {
     }
 
     private static Tuple<List<String>, String> compileClassSegment(String input) {
-        return compileWhitespace(input)
+        return compileWhitespace(input).<Tuple<List<String>, String>>map(result -> new Tuple<>(Lists.empty(), result))
                 .or(() -> compileField(input))
                 .or(() -> compileClass(input))
                 .or(() -> compileMethod(input))
@@ -375,7 +383,9 @@ public class Main {
                         return Optional.of(new Tuple<>(Lists.empty(), ""));
                     }
 
-                    final var header = definition.generate() + "(" + generatePlaceholder(params) + ")";
+                    final var compiledParameters = compileAll(params, Main::foldValues, Main::compileParameter, Main::mergeValues);
+                    final var header = definition.generate() + "(" + compiledParameters + ")";
+
                     if (withBraces.equals(";")) {
                         final var generated = header + ";";
                         return Optional.of(new Tuple<>(Lists.of(generated + "\n"), "\n\t" + generated));
@@ -396,9 +406,22 @@ public class Main {
         return Optional.empty();
     }
 
-    private static Optional<Tuple<List<String>, String>> compileWhitespace(String input) {
+    private static StringBuilder mergeValues(StringBuilder buffer, String element) {
+        if (buffer.isEmpty()) {
+            return buffer.append(element);
+        }
+        return buffer.append(", ").append(element);
+    }
+
+    private static String compileParameter(String input) {
+        return compileWhitespace(input)
+                .or(() -> compileClassDefinition(input).map(ClassDefinition::generate))
+                .orElseGet(() -> generatePlaceholder(input));
+    }
+
+    private static Optional<String> compileWhitespace(String input) {
         if (input.isBlank()) {
-            return Optional.of(new Tuple<>(Lists.empty(), ""));
+            return Optional.of("");
         }
         else {
             return Optional.empty();
