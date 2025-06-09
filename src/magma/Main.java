@@ -703,6 +703,10 @@ public class Main {
             return Optional.of("auto");
         }
 
+        if (stripped.equals("void")) {
+            return Optional.of("void");
+        }
+
         if (isSymbol(stripped)) {
             return Optional.of("struct " + stripped);
         }

@@ -55,7 +55,7 @@ State new() {
 /*private*/struct JavaDefinition {
 	/*private*/ Array<char> generate();
 };
-/*public static*/ struct void main(Array<Array<char>> args) {/*try {
+/*public static*/ void main(Array<Array<char>> args) {/*try {
             final var source = Paths.get(".", "src", "magma", "Main.java");
             final var input = Files.readString(source);
             final var target = source.resolveSibling("Main.c");
@@ -500,6 +500,10 @@ State new() {
             return Optional.of("auto");
         }
 
+        if (stripped.equals("void")) {
+            return Optional.of("void");
+        }
+
         if (isSymbol(stripped)) {
             return Optional.of("struct " + stripped);
         }
@@ -510,7 +514,7 @@ State new() {
                 return "Array<" + compiled + ">";
             });
         }
-
+        
         return Optional.of(generatePlaceholder(input));
     }*//*
 
