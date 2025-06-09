@@ -6,7 +6,7 @@ State new(/*List<String>*/ segments, /*Slice<char>*/ buffer, int depth) {
 	this.depth = depth;
 }
 State new() {
-	this(Lists.empty(), "", 0);
+	/*this(Lists*/.empty(/*)*/, "", 0);
 }
 /*private*/ int isLevel() {
 	return this.depth == 0;
@@ -49,9 +49,7 @@ State new() {
 	/*private*/ /*Slice<char>*/ generate();
 };
 /*private*/ /*Slice<char>*/ generate() {
-	/*final*/ auto beforeType = this.maybeBefore.map(/*Main::generatePlaceholder)
-                    .map(inner */ - /*> inner */ + " ")
-                    .orElse("");
+	/*final*/ auto beforeType = this.maybeBefore.map(/*Main::generatePlaceholder*/).map(inner - /*> inner */ + " ").orElse("");
 	return beforeType + this.type + " " + this.name;
 }
 /*private*/struct JavaDefinition {
@@ -75,10 +73,7 @@ State new() {
 	return compileAll(input, /* Main::foldStatements*/, mapper, /* Main::mergeStatements*/);
 }
 /*private static*/ /*Slice<char>*/ compileAll(/*Slice<char>*/ input, /* BiFunction<State*/, /* Character*/, /*State>*/ folder, /* Function<String*/, /*String>*/ mapper, /* BiFunction<String*/, /* String*/, /*String>*/ merger) {
-	return divide(input, /* folder)
-                .iter()
-                .map(mapper)
-                .fold(""*/, merger);
+	return divide(input, folder).iter().map(mapper).fold("", merger);
 }
 /*private static*/ /*Slice<char>*/ mergeStatements(/*Slice<char>*/ buffer, /*Slice<char>*/ element) {
 	return buffer + element;
@@ -283,7 +278,7 @@ State new() {
         final var stripped = input.strip();
         if (stripped.endsWith(")")) {
             final var withoutEnd = stripped.substring(0, stripped.length() - ")".length());
-            final var argumentsStart = withoutEnd.indexOf("(");
+            final var argumentsStart = withoutEnd.lastIndexOf("(");
             if (argumentsStart >= 0) {
                 final var arguments = withoutEnd.substring(argumentsStart + "(".length());
 
@@ -306,10 +301,10 @@ State new() {
 
     private static String compileValue(String input) {
         return compileInvokable(input)
+                .or(() -> compileAccess(input))
                 .or(() -> compileOperator(input, "=="))
                 .or(() -> compileOperator(input, "+"))
                 .or(() -> compileOperator(input, "-"))
-                .or(() -> compileAccess(input))
                 .or(() -> compileSymbol(input))
                 .or(() -> compileNumber(input))
                 .or(() -> compileString(input))

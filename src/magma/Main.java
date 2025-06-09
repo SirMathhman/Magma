@@ -481,7 +481,7 @@ public class Main {
         final var stripped = input.strip();
         if (stripped.endsWith(")")) {
             final var withoutEnd = stripped.substring(0, stripped.length() - ")".length());
-            final var argumentsStart = withoutEnd.indexOf("(");
+            final var argumentsStart = withoutEnd.lastIndexOf("(");
             if (argumentsStart >= 0) {
                 final var arguments = withoutEnd.substring(argumentsStart + "(".length());
 
@@ -504,10 +504,10 @@ public class Main {
 
     private static String compileValue(String input) {
         return compileInvokable(input)
+                .or(() -> compileAccess(input))
                 .or(() -> compileOperator(input, "=="))
                 .or(() -> compileOperator(input, "+"))
                 .or(() -> compileOperator(input, "-"))
-                .or(() -> compileAccess(input))
                 .or(() -> compileSymbol(input))
                 .or(() -> compileNumber(input))
                 .or(() -> compileString(input))
