@@ -131,7 +131,7 @@ struct CFunctionDefinition implements CDefinition {
 };
 void main(Array<Array<char>> args) {
 	auto source = Paths.get(".", "src", "magma", "Main.java");
-	source.readString().match(input - /*> compileAndWrite(input, source), Some::new*/).ifPresent(error - /*> printErroneousLine*/(error.display()));
+	source.readString().match(input - /*> compileAndWrite(input*/, /* source), Some::new*/).ifPresent(error - /*> printErroneousLine*/(error.display()));
 }
 void printErroneousLine(Array<char> content);
 Option<struct IOError> compileAndWrite(Array<char> input, struct Path source) {
@@ -146,7 +146,7 @@ Array<char> compileStatements(Array<char> input, Array<char> (*mapper)(Array<cha
 	return compileAll(input, /* Main::foldStatements*/, mapper, /* Main::mergeStatements*/);
 }
 Array<char> compileAll(Array<char> input, struct State (*folder)(struct State, char), Array<char> (*mapper)(Array<char>), Array<char> (*merger)(Array<char>, Array<char>)) {
-	return generateAll(merger, /* parseAll(input*/, folder, /* mapper)*/);
+	return generateAll(merger, parseAll(input, folder, mapper));
 }
 Array<char> generateAll(Array<char> (*merger)(Array<char>, Array<char>), List<Array<char>> stringList) {
 	return stringList.iter().fold("", merger);
@@ -801,10 +801,10 @@ struct Main {/*' && appended.isShallow()) {
         }
 
         final var appended = state.append(c);
-        if (c == '<') {
+        if (c == '<' || c == '(') {
             return appended.enter();
         }
-        if (c == '>') {
+        if (c == '>' || c == ')') {
             return appended.exit();
         }
         return appended;
