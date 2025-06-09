@@ -1207,7 +1207,7 @@ public class Main {
     private static <T extends Node> String generateValueNodes(List<T> nodes) {
         return nodes.iter()
                 .map(Node::generate)
-                .collect(new Joiner())
+                .collect(new Joiner(", "))
                 .orElse("");
     }
 

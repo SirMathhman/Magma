@@ -122,10 +122,10 @@ Array<char> compile(Array<char> input) {
 Array<char> compileStatements(Array<char> input, Array<char> (*)(Array<char>) mapper) {
 	return compileAll(input, /* Main::foldStatements*/, mapper, /* Main::mergeStatements*/);
 }
-Array<char> compileAll(Array<char> input, BiFunction<struct Statestruct Characterstruct State> folder, Array<char> (*)(Array<char>) mapper, BiFunction<Array<char>Array<char>Array<char>> merger) {
+Array<char> compileAll(Array<char> input, BiFunction<struct State, struct Character, struct State> folder, Array<char> (*)(Array<char>) mapper, BiFunction<Array<char>, Array<char>, Array<char>> merger) {
 	return generateAll(merger, /* parseAll(input*/, folder, /* mapper)*/);
 }
-Array<char> generateAll(BiFunction<Array<char>Array<char>Array<char>> merger, List<Array<char>> stringList) {
+Array<char> generateAll(BiFunction<Array<char>, Array<char>, Array<char>> merger, List<Array<char>> stringList) {
 	return stringList.iter().fold("", merger);
 }
 Array<char> mergeStatements(Array<char> buffer, Array<char> element) {
@@ -134,7 +134,7 @@ Array<char> mergeStatements(Array<char> buffer, Array<char> element) {
 List<Array<char>> divideStatements(Array<char> input) {
 	return divide(input, /* Main::foldStatements*/);
 }
-List<Array<char>> divide(Array<char> input, BiFunction<struct Statestruct Characterstruct State> folder) {
+List<Array<char>> divide(Array<char> input, BiFunction<struct State, struct Character, struct State> folder) {
 	auto current = struct State();
 	/*start(varend*/ i = 0;
 	/*i < input*/.length();/* i++) {
@@ -782,7 +782,7 @@ struct Main {/*' && appended.isShallow()) {
     private static <T extends Node> String generateValueNodes(List<T> nodes) {
         return nodes.iter()
                 .map(Node::generate)
-                .collect(new Joiner())
+                .collect(new Joiner(", "))
                 .orElse("");
     }*//*
 
