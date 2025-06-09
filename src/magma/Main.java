@@ -5,6 +5,8 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
+import java.util.function.Function;
 
 public class Main {
     private static class State {
@@ -23,48 +25,28 @@ public class Main {
         }
 
         private boolean isLevel() {
-            return getDepth() == 0;
+            return depth == 0;
         }
 
         private State append(char c) {
-            getBuffer().append(c);
+            buffer.append(c);
             return this;
         }
 
         private State advance() {
-            segments().add(getBuffer().toString());
-            setBuffer(new StringBuilder());
+            segments.add(buffer.toString());
+            this.buffer = new StringBuilder();
             return this;
         }
 
         private State enter() {
-            setDepth(getDepth() + 1);
+            this.depth = depth + 1;
             return this;
         }
 
         private State exit() {
-            setDepth(getDepth() - 1);
+            this.depth = depth - 1;
             return this;
-        }
-
-        public StringBuilder getBuffer() {
-            return buffer;
-        }
-
-        public void setBuffer(StringBuilder buffer) {
-            this.buffer = buffer;
-        }
-
-        public int getDepth() {
-            return depth;
-        }
-
-        public void setDepth(int depth) {
-            this.depth = depth;
-        }
-
-        public List<String> segments() {
-            return segments;
         }
     }
 
@@ -73,17 +55,26 @@ public class Main {
             final var source = Paths.get(".", "src", "magma", "Main.java");
             final var input = Files.readString(source);
             final var target = source.resolveSibling("Main.c");
-            final var segments = divide(input);
-            final var output = new StringBuilder();
-            for (var segment : segments) {
-                output.append(compileRootSegment(segment));
-            }
-
-            Files.writeString(target, output.toString());
+            final var string = compile(input);
+            Files.writeString(target, string);
         } catch (IOException e) {
             //noinspection CallToPrintStackTrace
             e.printStackTrace();
         }
+    }
+
+    private static String compile(String input) {
+        return compileStatements(input, Main::compileRootSegment);
+    }
+
+    private static String compileStatements(String input, Function<String, String> mapper) {
+        final var segments = divide(input);
+        final var output = new StringBuilder();
+        for (var segment : segments) {
+            output.append(mapper.apply(segment));
+        }
+
+        return output.toString();
     }
 
     private static List<String> divide(String input) {
@@ -116,18 +107,26 @@ public class Main {
             return "";
         }
 
-        final var contentStart = stripped.indexOf('{');
+        return compileClass(input).orElseGet(() -> generatePlaceholder(input));
+    }
+
+    private static Optional<String> compileClass(String input) {
+        final var contentStart = input.indexOf('{');
         if (contentStart >= 0) {
-            final var beforeContent = stripped.substring(0, contentStart);
-            final var withEnd = stripped.substring(contentStart + "{".length()).strip();
+            final var beforeContent = input.substring(0, contentStart);
+            final var withEnd = input.substring(contentStart + "{".length()).strip();
             if (withEnd.endsWith("}")) {
                 final var content = withEnd.substring(0, withEnd.length() - "}".length());
                 final var header = compileClassDefinition(beforeContent);
-                return header + "{\n};\n" + generatePlaceholder(content);
+                return Optional.of(header + "{\n};\n" + compileStatements(content, Main::compileClassSegment));
             }
         }
 
-        return generatePlaceholder(input);
+        return Optional.empty();
+    }
+
+    private static String compileClassSegment(String input) {
+        return compileClass(input).orElseGet(() -> generatePlaceholder(input));
     }
 
     private static String compileClassDefinition(String input) {
