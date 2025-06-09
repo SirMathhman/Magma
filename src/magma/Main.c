@@ -1,6 +1,67 @@
 /*public */struct Main {
 };
-/*public static void main(String[] args) {
+/*private static class State {
+        private final List<String> segments;
+        private StringBuilder buffer;
+        private int depth;
+
+        private State(List<String> segments, StringBuilder buffer, int depth) {
+            this.segments = segments;
+            this.buffer = buffer;
+            this.depth = depth;
+        }
+
+        public State() {
+            this(new ArrayList<>(), new StringBuilder(), 0);
+        }
+
+        private boolean isLevel() {
+            return getDepth() == 0;
+        }
+
+        private State append(char c) {
+            getBuffer().append(c);
+            return this;
+        }
+
+        private State advance() {
+            segments().add(getBuffer().toString());
+            setBuffer(new StringBuilder());
+            return this;
+        }
+
+        private State enter() {
+            setDepth(getDepth() + 1);
+            return this;
+        }
+
+        private State exit() {
+            setDepth(getDepth() - 1);
+            return this;
+        }
+
+        public StringBuilder getBuffer() {
+            return buffer;
+        }
+
+        public void setBuffer(StringBuilder buffer) {
+            this.buffer = buffer;
+        }
+
+        public int getDepth() {
+            return depth;
+        }
+
+        public void setDepth(int depth) {
+            this.depth = depth;
+        }
+
+        public List<String> segments() {
+            return segments;
+        }
+    }
+
+    public static void main(String[] args) {
         try {
             final var source = Paths.get(".", "src", "magma", "Main.java");
             final var input = Files.readString(source);
@@ -19,27 +80,27 @@
     }
 
     private static List<String> divide(String input) {
-        final var segments = new ArrayList<String>();
-        var buffer = new StringBuilder();
-        var depth = 0;
+        var current = new State();
         for (var i = 0; i < input.length(); i++) {
             final var c = input.charAt(i);
-            buffer.append(c);
-            if (c == ';' && depth == 0) {
-                segments.add(buffer.toString());
-                buffer = new StringBuilder();
-            }
-            else {
-                if (c == '{') {
-                    depth++;
-                }
-                if (c == '}') {
-                    depth--;
-                }
-            }
+            current = fold(current, c);
         }
-        segments.add(buffer.toString());
-        return segments;
+
+        return current.advance().segments;
+    }
+
+    private static State fold(State state, char c) {
+        final var appended = state.append(c);
+        if (c == ';' && appended.isLevel()) {
+            return appended.advance();
+        }
+        if (c == '{') {
+            return appended.enter();
+        }
+        if (c == '}') {
+            return appended.exit();
+        }
+        return appended;
     }
 
     private static String compileRootSegment(String input) {
@@ -64,7 +125,7 @@
 
     private static String compileClassDefinition(String input) {
         final var classIndex = input.indexOf("class ");
-        if(classIndex >= 0) {
+        if (classIndex >= 0) {
             final var beforeKeyword = input.substring(0, classIndex);
             final var afterKeyword = input.substring(classIndex + "class ".length());
             return generatePlaceholder(beforeKeyword) + "struct " + afterKeyword;
