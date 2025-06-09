@@ -315,14 +315,14 @@ public class Main {
         }
     }
 
-    private static class State {
+    private static class DivideState {
         private final String input;
         private final int index;
         private List<String> segments;
         private String buffer;
         private int depth;
 
-        private State(String input, List<String> segments, String buffer, int depth, int index) {
+        private DivideState(String input, List<String> segments, String buffer, int depth, int index) {
             this.input = input;
             this.index = index;
             this.segments = segments;
@@ -330,7 +330,7 @@ public class Main {
             this.depth = depth;
         }
 
-        public State(String input) {
+        public DivideState(String input) {
             this(input, Lists.empty(), "", 0, 0);
         }
 
@@ -338,23 +338,23 @@ public class Main {
             return this.depth == 0;
         }
 
-        private State append(char c) {
+        private DivideState append(char c) {
             this.buffer = this.buffer + c;
             return this;
         }
 
-        private State advance() {
+        private DivideState advance() {
             this.segments = this.segments.addLast(this.buffer);
             this.buffer = "";
             return this;
         }
 
-        private State enter() {
+        private DivideState enter() {
             this.depth = this.depth + 1;
             return this;
         }
 
-        private State exit() {
+        private DivideState exit() {
             this.depth = this.depth - 1;
             return this;
         }
@@ -363,10 +363,10 @@ public class Main {
             return this.depth == 1;
         }
 
-        public Option<Tuple<State, Character>> pop() {
+        public Option<Tuple<DivideState, Character>> pop() {
             if (this.index < this.input.length()) {
                 final var c = this.input.charAt(this.index);
-                final var next = new State(this.input, this.segments, this.buffer, this.depth, this.index + 1);
+                final var next = new DivideState(this.input, this.segments, this.buffer, this.depth, this.index + 1);
                 return new Some<>(new Tuple<>(next, c));
             }
             else {
@@ -382,8 +382,16 @@ public class Main {
             return new None<>();
         }
 
-        private Option<State> append() {
+        private Option<DivideState> append() {
             return this.pop().map(tuple -> tuple.left.append(tuple.right));
+        }
+
+        public Option<Tuple<DivideState, Character>> popAndAppendToTuple() {
+            return this.pop().map(tuple -> new Tuple<>(tuple.left.append(tuple.right), tuple.right));
+        }
+
+        public Option<DivideState> popAndAppendToOption() {
+            return this.popAndAppendToTuple().map(Tuple::left);
         }
     }
 
@@ -600,7 +608,7 @@ public class Main {
         return compileAll(input, Main::foldStatements, mapper, Main::mergeStatements);
     }
 
-    private static String compileAll(String input, BiFunction<State, Character, State> folder, Function<String, String> mapper, BiFunction<String, String, String> merger) {
+    private static String compileAll(String input, BiFunction<DivideState, Character, DivideState> folder, Function<String, String> mapper, BiFunction<String, String, String> merger) {
         return generateAll(merger, parseAll(input, folder, mapper));
     }
 
@@ -608,7 +616,7 @@ public class Main {
         return stringList.iter().fold("", merger);
     }
 
-    private static <T> List<T> parseAll(String input, BiFunction<State, Character, State> folder, Function<String, T> mapper) {
+    private static <T> List<T> parseAll(String input, BiFunction<DivideState, Character, DivideState> folder, Function<String, T> mapper) {
         return mapAll(divide(input, folder), mapper);
     }
 
@@ -624,11 +632,11 @@ public class Main {
         return divide(input, Main::foldStatements);
     }
 
-    private static List<String> divide(String input, BiFunction<State, Character, State> folder) {
-        var current = new State(input);
+    private static List<String> divide(String input, BiFunction<DivideState, Character, DivideState> folder) {
+        var current = new DivideState(input);
 
         while (true) {
-            final var maybeNext = current.pop().map(tuple -> folder.apply(tuple.left, tuple.right));
+            final var maybeNext = current.pop().map(tuple -> getObject(folder, tuple));
             if (maybeNext.isPresent()) {
                 current = maybeNext.get();
             }
@@ -640,7 +648,25 @@ public class Main {
         return current.advance().segments;
     }
 
-    private static State foldStatements(State state, char c) {
+    private static DivideState getObject(BiFunction<DivideState, Character, DivideState> folder, Tuple<DivideState, Character> tuple) {
+        final var currentState = tuple.left;
+        final var c = tuple.right;
+
+        return foldSingleQuotes(currentState, c).orElseGet(() -> folder.apply(currentState, c));
+    }
+
+    private static Option<DivideState> foldSingleQuotes(DivideState currentState, char c) {
+        if (c != '\'') {
+            return new None<>();
+        }
+
+        final var appended = currentState.append(c);
+        return appended.popAndAppendToTuple()
+                .flatMap(tuple -> tuple.right == '\\' ? tuple.left.popAndAppendToOption() : new Some<>(tuple.left))
+                .flatMap(DivideState::popAndAppendToOption);
+    }
+
+    private static DivideState foldStatements(DivideState state, char c) {
         final var appended = state.append(c);
         if (c == ';' && appended.isLevel()) {
             return appended.advance();
@@ -919,7 +945,7 @@ public class Main {
         return new None<>();
     }
 
-    private static State foldInvocationStart(State state, char c) {
+    private static DivideState foldInvocationStart(DivideState state, char c) {
         final var appended = state.append(c);
         if (c == '(') {
             final var entered = appended.enter();
@@ -1110,7 +1136,7 @@ public class Main {
         });
     }
 
-    private static State foldTypeSeparator(State state, char c) {
+    private static DivideState foldTypeSeparator(DivideState state, char c) {
         if (c == ' ' && state.isLevel()) {
             return state.advance();
         }
@@ -1175,7 +1201,7 @@ public class Main {
         return parseAll(beforeTypeParameters, foldByDelimiter(' '), String::strip);
     }
 
-    private static BiFunction<State, Character, State> foldByDelimiter(char delimiter) {
+    private static BiFunction<DivideState, Character, DivideState> foldByDelimiter(char delimiter) {
         return (state, c) -> {
             if (c == delimiter) {
                 return state.advance();
@@ -1331,7 +1357,7 @@ public class Main {
         return divide(input, Main::foldValues);
     }
 
-    private static State foldValues(State state, char c) {
+    private static DivideState foldValues(DivideState state, char c) {
         if (c == ',' && state.isLevel()) {
             return state.advance();
         }

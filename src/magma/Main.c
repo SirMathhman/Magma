@@ -21,43 +21,43 @@ struct CDefinition {
 };
 struct Lists {
 };
-struct private State(Array<char> input, List<Array<char>> segments, Array<char> buffer, int depth, int index) {
+struct private DivideState(Array<char> input, List<Array<char>> segments, Array<char> buffer, int depth, int index) {
 	this.input = input;
 	this.index = index;
 	this.segments = segments;
 	this.buffer = buffer;
 	this.depth = depth;
 }
-struct public State(Array<char> input) {
+struct public DivideState(Array<char> input) {
 	this(input, Lists.empty(), "", 0, 0);
 }
 int isLevel() {
 	return this.depth == 0;
 }
-struct State append(char c) {
+struct DivideState append(char c) {
 	this.buffer = this.buffer + c;
 	return this;
 }
-struct State advance() {
+struct DivideState advance() {
 	this.segments = this.segments.addLast(this.buffer);
 	this.buffer = "";
 	return this;
 }
-struct State enter() {
+struct DivideState enter() {
 	this.depth = this.depth + 1;
 	return this;
 }
-struct State exit() {
+struct DivideState exit() {
 	this.depth = this.depth - 1;
 	return this;
 }
 int isShallow() {
 	return this.depth == 1;
 }
-Option<Tuple<struct State, char>> pop() {
+Option<Tuple<struct DivideState, char>> pop() {
 	if (/*this.index < this*/.input.length()) {
 		auto c = this.input.charAt(this.index);
-		auto next = struct State(this.input, this.segments, this.buffer, this.depth, this.index + 1);
+		auto next = struct DivideState(this.input, this.segments, this.buffer, this.depth, this.index + 1);
 		return Some<struct >(Tuple<struct >(next, c));
 	}
 	else {
@@ -70,26 +70,34 @@ Option<char> peek() {
 	}
 	return None<struct >();
 }
-Option<struct State> append() {
+Option<struct DivideState> append() {
 	return this.pop().map(/*tuple -> tuple.left.append(tuple.right)*/);
 }
-struct State {
+Option<Tuple<struct DivideState, char>> popAndAppendToTuple() {
+	return this.pop().map(/*tuple -> new Tuple<>(tuple.left.append(tuple.right), tuple.right)*/);
+}
+Option<struct DivideState> popAndAppendToOption() {
+	return this.popAndAppendToTuple().map(/*Tuple::left*/);
+}
+struct DivideState {
 	Array<char> input;
 	int index;
 	List<Array<char>> segments;
 	Array<char> buffer;
 	int depth;
-	struct private State(Array<char> input, List<Array<char>> segments, Array<char> buffer, int depth, int index);
-	struct public State(Array<char> input);
+	struct private DivideState(Array<char> input, List<Array<char>> segments, Array<char> buffer, int depth, int index);
+	struct public DivideState(Array<char> input);
 	int isLevel();
-	struct State append(char c);
-	struct State advance();
-	struct State enter();
-	struct State exit();
+	struct DivideState append(char c);
+	struct DivideState advance();
+	struct DivideState enter();
+	struct DivideState exit();
 	int isShallow();
-	Option<Tuple<struct State, char>> pop();
+	Option<Tuple<struct DivideState, char>> pop();
 	Option<char> peek();
-	Option<struct State> append();
+	Option<struct DivideState> append();
+	Option<Tuple<struct DivideState, char>> popAndAppendToTuple();
+	Option<struct DivideState> popAndAppendToOption();
 };
 Array<char> generate() {
 	return "struct " + this.name;
@@ -171,7 +179,7 @@ Array<char> compile(Array<char> input) {
 Array<char> compileStatements(Array<char> input, Array<char> (*mapper)(Array<char>)) {
 	return compileAll(input, /* Main::foldStatements*/, mapper, /* Main::mergeStatements*/);
 }
-Array<char> compileAll(Array<char> input, struct State (*folder)(struct State, char), Array<char> (*mapper)(Array<char>), Array<char> (*merger)(Array<char>, Array<char>)) {
+Array<char> compileAll(Array<char> input, struct DivideState (*folder)(struct DivideState, char), Array<char> (*mapper)(Array<char>), Array<char> (*merger)(Array<char>, Array<char>)) {
 	return generateAll(merger, parseAll(input, folder, mapper));
 }
 Array<char> generateAll(Array<char> (*merger)(Array<char>, Array<char>), List<Array<char>> stringList) {
@@ -183,10 +191,10 @@ Array<char> mergeStatements(Array<char> buffer, Array<char> element) {
 List<Array<char>> divideStatements(Array<char> input) {
 	return divide(input, /* Main::foldStatements*/);
 }
-List<Array<char>> divide(Array<char> input, struct State (*folder)(struct State, char)) {
-	auto current = struct State(input);
+List<Array<char>> divide(Array<char> input, struct DivideState (*folder)(struct DivideState, char)) {
+	auto current = struct DivideState(input);
 	while (true) {
-		auto maybeNext = current.pop().map(/*tuple -> folder.apply(tuple.left, tuple.right)*/);
+		auto maybeNext = current.pop().map(/*tuple -> getObject(folder, tuple)*/);
 		if (maybeNext.isPresent()) {
 			current = maybeNext.get();
 		}
@@ -196,84 +204,88 @@ List<Array<char>> divide(Array<char> input, struct State (*folder)(struct State,
 	}
 	return current.advance().segments;
 }
-struct State foldStatements(struct State state, char c) {
+struct DivideState getObject(struct DivideState (*folder)(struct DivideState, char), Tuple<struct DivideState, char> tuple) {
+	auto currentState = tuple.left;
+	auto c = tuple.right;
+	return foldSingleQuotes(currentState, c).orElseGet(() - /*> folder*/.apply(currentState, c));
+}
+Option<struct DivideState> foldSingleQuotes(struct DivideState currentState, char c) {
+	if (/*c != '\''*/) {
+		return None<struct >();
+	}
+	auto appended = currentState.append(c);
+	return appended.popAndAppendToTuple().flatMap(/*tuple -> tuple.right == '\\' ? tuple.left.popAndAppendToOption() : new Some<>(tuple.left)*/).flatMap(/*DivideState::popAndAppendToOption*/);
+}
+struct DivideState foldStatements(struct DivideState state, char c) {
 	auto appended = state.append(c);
-	/*if (c */ = /*= '*/;
-	/*' && appended.isLevel*/ (/*)*/) {
+	if (c == /* ';' && appended*/.isLevel()) {
 		return appended.advance();
+	}
+	if (c == /* '}' && appended*/.isShallow()) {
+		return appended.advance().exit();
+	}
+	/*if (c == '*/ {
+		/*') {
+            return appended*/.enter();
+	}
+	if (c == /* '}'*/) {
+		return appended.exit();
+	}
+	return appended;
+}
+Array<char> compileRootSegment(Array<char> input) {
+	auto stripped = input.strip();
+	if (/*stripped.startsWith("package ") || stripped*/.startsWith("import ")) {
+		return "";
+	}
+	/*return compileClass(input)
+                .map(tuple ->*/ {
+		auto joined = tuple.left.iter().collect(struct Joiner()).orElse("");
+		return joined + tuple.right;
+	}
+	/*)
+                .orElseGet(*/() - /*> generatePlaceholder*/(/*input)*/);
+}
+Option<Tuple<List<Array<char>>, Array<char>>> compileClass(Array<char> input) {
+	auto contentStart = input.indexOf(/*'{'*/);
+	if (/*contentStart >= 0*/) {
+		auto beforeContent = input.substring(0, contentStart);
+		/*final var withEnd = input.substring(contentStart + "*/ {
+			".length(/*)).strip(*/);/*
+            if (withEnd.endsWith("*/
+		}
+		/*"))*/ {
+			auto maybeHeader = compileClassDefinition(beforeContent);
+			if (maybeHeader.isPresent()) {
+				auto definition = maybeHeader.get();
+				auto others = compileClassWithDefinition(definition, withEnd);
+				return Some<struct >(Tuple<struct >(others, ""));
+			}
+		}
+	}
+	return None<struct >();
+}
+List<Array<char>> compileClassWithDefinition(struct ClassDefinition definition, Array<char> withEnd) {
+	if (/*definition.typeParameters.containsElements() || definition*/.annotations.contains("Actual")) {
+		return Lists.empty();
 	}/*
-        if (c == '*/
+
+        final var inputContent = withEnd.substring(0, withEnd.length() - "*/
 }
-struct  new(/*c == '{'*/) {
-	return appended.enter();/*
-        }
-        if (c == '*/
-}
-struct Main {/*' && appended.isShallow()) {
-            return appended.advance().exit();
-        }*//*') {
-            return appended.exit();
-        }*/
-	struct return appended;
-};
-/*
-
-    private static String compileRootSegment(String input) {
-        final var stripped = input.strip();
-        if (stripped.startsWith("package ") || stripped.startsWith("import ")) {
-            return "";
-        }
-
-        return compileClass(input)
-                .map(tuple -> {
-                    final var joined = tuple.left
-                            .iter()
-                            .collect(new Joiner())
-                            .orElse("");
-
-                    return joined + tuple.right;
-                })
-                .orElseGet(() -> generatePlaceholder(input));
-    }*//*
-
-    private static Option<Tuple<List<String>, String>> compileClass(String input) {
-        final var contentStart = input.indexOf('{');
-        if (contentStart >= 0) {
-            final var beforeContent = input.substring(0, contentStart);
-            final var withEnd = input.substring(contentStart + "{".length()).strip();
-            if (withEnd.endsWith("}")) {
-                final var maybeHeader = compileClassDefinition(beforeContent);
-                if (maybeHeader.isPresent()) {
-                    final var definition = maybeHeader.get();
-                    final var others = compileClassWithDefinition(definition, withEnd);
-                    return new Some<>(new Tuple<>(others, ""));
-                }
-            }
-        }
-
-        return new None<>();
-    }
-
-    private static List<String> compileClassWithDefinition(ClassDefinition definition, String withEnd) {
-        if (definition.typeParameters.containsElements() || definition.annotations.contains("Actual")) {
-            return Lists.empty();
-        }
-
-        final var inputContent = withEnd.substring(0, withEnd.length() - "}".length());
-
-        final var segments = divideStatements(inputContent);
+struct Main {/*".length());*/
+	struct divideStatements new(/*inputContent*/);/*
 
         final var tuple = segments.iter()
                 .map(Main::compileClassSegment)
-                .collect(new TupleCollector<>(new ListBulkCollector<>(), new Joiner()));
+                .collect(new TupleCollector<>(new ListBulkCollector<>(), new Joiner()));*//*
 
-        final var others = tuple.left;
-        final var output = tuple.right.orElse("");
-
-        final var generatedHeader = definition.generate();
-        final var generated = generatedHeader + " {" + output + "\n};\n";
-        return others.addLast(generated);
-    }*//*
+        final var others = tuple.left;*/
+	struct tuple.right.orElse new(/*""*/);
+	struct definition.generate new();/*
+        final var generated = generatedHeader + " {" + output + "\n}*//*;*//*\n";*/
+	struct others.addLast new(/*generated*/);
+};
+/*
 
     private static Tuple<List<String>, String> compileClassSegment(String input) {
         return compileWhitespace(input).<Tuple<List<String>, String>>map(result -> new Tuple<>(Lists.empty(), result))
@@ -480,7 +492,7 @@ struct Main {/*' && appended.isShallow()) {
         return new None<>();
     }*//*
 
-    private static State foldInvocationStart(State state, char c) {
+    private static DivideState foldInvocationStart(DivideState state, char c) {
         final var appended = state.append(c);
         if (c == '(') {
             final var entered = appended.enter();
@@ -671,7 +683,7 @@ struct Main {/*' && appended.isShallow()) {
         });
     }*//*
 
-    private static State foldTypeSeparator(State state, char c) {
+    private static DivideState foldTypeSeparator(DivideState state, char c) {
         if (c == ' ' && state.isLevel()) {
             return state.advance();
         }
@@ -736,7 +748,7 @@ struct Main {/*' && appended.isShallow()) {
         return parseAll(beforeTypeParameters, foldByDelimiter(' '), String::strip);
     }*//*
 
-    private static BiFunction<State, Character, State> foldByDelimiter(char delimiter) {
+    private static BiFunction<DivideState, Character, DivideState> foldByDelimiter(char delimiter) {
         return (state, c) -> {
             if (c == delimiter) {
                 return state.advance();
@@ -892,7 +904,7 @@ struct Main {/*' && appended.isShallow()) {
         return divide(input, Main::foldValues);
     }*//*
 
-    private static State foldValues(State state, char c) {
+    private static DivideState foldValues(DivideState state, char c) {
         if (c == ',' && state.isLevel()) {
             return state.advance();
         }
