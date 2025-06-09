@@ -87,6 +87,14 @@ public class Main {
     private @interface Actual {
     }
 
+    private interface Type extends Node {
+        String generate();
+    }
+
+    private interface Node {
+        String generate();
+    }
+
     private static class None<T> implements Option<T> {
         @Override
         public <R> Option<R> map(Function<T, R> mapper) {
@@ -396,11 +404,11 @@ public class Main {
             List<String> annotations,
             List<String> modifiers,
             List<String> typeParameters,
-            String type,
+            Type type,
             String name
     ) {
         private String generate() {
-            return this.type + " " + this.name;
+            return this.type.generate() + " " + this.name;
         }
     }
 
@@ -474,6 +482,36 @@ public class Main {
         }
     }
 
+    private record FunctionType(Type argumentTypes, Type returnType) implements Type {
+        @Override
+        public String generate() {
+            return this.returnType.generate() + " (*)(" + this.argumentTypes.generate() + ")";
+        }
+    }
+
+    private record TemplateType(String base, List<Type> elements) implements Type {
+        @Override
+        public String generate() {
+            final var outputArguments = generateValueNodes(this.elements);
+            return this.base + "<" + outputArguments + ">";
+        }
+    }
+
+    private record Placeholder(String input) implements Type {
+
+        @Override
+        public String generate() {
+            return generatePlaceholder(this.input);
+        }
+    }
+
+    private record StructType(String name) implements Type {
+        @Override
+        public String generate() {
+            return "struct " + this.name;
+        }
+    }
+
     public static void main(String[] args) {
         final var source = Paths.get(".", "src", "magma", "Main.java");
         source.readString()
@@ -508,12 +546,12 @@ public class Main {
         return stringList.iter().fold("", merger);
     }
 
-    private static List<String> parseAll(String input, BiFunction<State, Character, State> folder, Function<String, String> mapper) {
-        return generateAll(mapper, divide(input, folder));
+    private static <T> List<T> parseAll(String input, BiFunction<State, Character, State> folder, Function<String, T> mapper) {
+        return mapAll(divide(input, folder), mapper);
     }
 
-    private static List<String> generateAll(Function<String, String> mapper, List<String> divisions) {
-        return divisions.iter().map(mapper).collect(new ListCollector<>());
+    private static <T> List<T> mapAll(List<String> elements, Function<String, T> mapper) {
+        return elements.iter().map(mapper).collect(new ListCollector<>());
     }
 
     private static String mergeStatements(String buffer, String element) {
@@ -568,7 +606,6 @@ public class Main {
                 })
                 .orElseGet(() -> generatePlaceholder(input));
     }
-
 
     private static Option<Tuple<List<String>, String>> compileClass(String input) {
         final var contentStart = input.indexOf('{');
@@ -673,7 +710,7 @@ public class Main {
         final var separator = input.lastIndexOf(" ");
         if (separator >= 0) {
             final var name = input.substring(separator + " ".length());
-            return new Some<>(new JavaDefinition(Lists.empty(), Lists.of("static"), Lists.empty(), name, "new"));
+            return new Some<>(new JavaDefinition(Lists.empty(), Lists.of("static"), Lists.empty(), new StructType(name), "new"));
         }
         else {
             return new None<>();
@@ -688,7 +725,7 @@ public class Main {
         return generateAll(Main::mergeValues, elements);
     }
 
-    private static List<String> parseValues(String input, Function<String, String> mapper) {
+    private static <T> List<T> parseValues(String input, Function<String, T> mapper) {
         return parseAll(input, Main::foldValues, mapper);
     }
 
@@ -915,7 +952,7 @@ public class Main {
     private static Option<JavaDefinition> parseDefinitionWithType(String beforeName, String name) {
         final var maybeTuple = divide(beforeName, Main::foldTypeSeparator).popLast();
         if (maybeTuple.isEmpty()) {
-            return compileType(beforeName).map(type -> new JavaDefinition(Lists.empty(), Lists.empty(), Lists.empty(), type, name));
+            return parseType(beforeName).map(type -> new JavaDefinition(Lists.empty(), Lists.empty(), Lists.empty(), type, name));
         }
 
         final var tuple = maybeTuple.get();
@@ -926,7 +963,7 @@ public class Main {
 
         final var type = tuple.right;
 
-        return compileType(type).map(compiledType -> {
+        return parseType(type).map(compiledType -> {
             return parseDefinitionWithTypeParameters(name, compiledType, beforeType);
         });
     }
@@ -946,7 +983,7 @@ public class Main {
         return appended;
     }
 
-    private static JavaDefinition parseDefinitionWithTypeParameters(String name, String compiledType, String input) {
+    private static JavaDefinition parseDefinitionWithTypeParameters(String name, Type compiledType, String input) {
         final var beforeType = input.strip();
         if (beforeType.endsWith(">")) {
             final var withoutEnd = beforeType.substring(0, beforeType.length() - ">".length());
@@ -962,7 +999,12 @@ public class Main {
         return parseDefinitionWithModifiers(beforeType, Lists.empty(), compiledType, name);
     }
 
-    private static JavaDefinition parseDefinitionWithModifiers(String beforeTypeParameters, List<String> typeParameters, String type, String name) {
+    private static JavaDefinition parseDefinitionWithModifiers(
+            String beforeTypeParameters,
+            List<String> typeParameters,
+            Type type,
+            String name
+    ) {
         final var separator = beforeTypeParameters.lastIndexOf("\n");
         if (separator >= 0) {
             final var annotationsString = beforeTypeParameters.substring(0, separator);
@@ -1000,46 +1042,42 @@ public class Main {
         };
     }
 
-    private static Option<String> compileType(String input) {
-        final var maybeTemplateType = compileTemplateType(input);
-        if (maybeTemplateType.isPresent()) {
-            return maybeTemplateType;
-        }
-
-        switch (input.strip()) {
-            case "private", "public" -> {
-                return new None<>();
-            }
-            case "char" -> {
-                return new Some<>("char");
-            }
-            case "boolean", "int" -> {
-                return new Some<>("int");
-            }
-            case "String" -> {
-                return new Some<>("Array<char>");
-            }
-            case "var" -> {
-                return new Some<>("auto");
-            }
-            case "void" -> {
-                return new Some<>("void");
-            }
-        }
-
-        if (isSymbol(input.strip())) {
-            return new Some<>("struct " + input.strip());
-        }
-
-        if (input.strip().endsWith("[]")) {
-            final var slice = input.strip().substring(0, input.strip().length() - "[]".length());
-            return compileType(slice).map(compiled -> "Array<" + compiled + ">");
-        }
-
-        return new Some<>(generatePlaceholder(input));
+    private static Option<Type> parseType(String input) {
+        return compileTemplateType(input)
+                .or(() -> compilePrimitiveType(input))
+                .or(() -> compileSymbolType(input))
+                .or(() -> compileArrayType(input).map(type -> type))
+                .or(() -> new Some<>(new Placeholder(generatePlaceholder(input))));
     }
 
-    private static Option<String> compileTemplateType(String input) {
+    private static Option<TemplateType> compileArrayType(String input) {
+        final var stripped = input.strip();
+        if (stripped.endsWith("[]")) {
+            final var slice = stripped.substring(0, stripped.length() - "[]".length());
+            return parseType(slice).map(compiled -> new TemplateType("Array", Lists.of(compiled)));
+        }
+        return new None<>();
+    }
+
+    private static Option<Type> compileSymbolType(String input) {
+        if (isSymbol(input.strip())) {
+            return new Some<>(new StructType(input.strip()));
+        }
+        return new None<>();
+    }
+
+    private static Option<Type> compilePrimitiveType(String input) {
+        return switch (input.strip()) {
+            case "char" -> new Some<>(Primitive.Char);
+            case "boolean", "int" -> new Some<>(Primitive.Int);
+            case "var" -> new Some<>(Primitive.Auto);
+            case "void" -> new Some<>(Primitive.Void);
+            case "String" -> new Some<>(new TemplateType("Array", Lists.of(Primitive.Char)));
+            default -> new None<>();
+        };
+    }
+
+    private static Option<Type> compileTemplateType(String input) {
         if (!input.strip().endsWith(">")) {
             return new None<>();
         }
@@ -1055,20 +1093,23 @@ public class Main {
         return new Some<>(assembleTemplateType(base, arguments));
     }
 
-    private static String assembleTemplateType(String base, String inputArguments) {
-        final var elements = parseValues(inputArguments, Main::compileTypeOrPlaceholder);
+    private static Type assembleTemplateType(String base, String inputArguments) {
+        final var elements = parseValues(inputArguments, Main::parseTypeOrPlaceholder);
         if (base.equals("Function")) {
             final var first = elements.getFirst();
             final var last = elements.getLast();
-            return last + " (*)(" + first + ")";
+            return new FunctionType(first, last);
         }
 
-        final var outputArguments = generateValues(elements);
-        return base + "<" + outputArguments + ">";
+        return new TemplateType(base, elements);
     }
 
     private static String compileTypeOrPlaceholder(String input) {
-        return compileType(input).orElseGet(() -> generatePlaceholder(input));
+        return parseTypeOrPlaceholder(input).generate();
+    }
+
+    private static Type parseTypeOrPlaceholder(String input) {
+        return parseType(input).orElseGet(() -> new Placeholder(input));
     }
 
     private static Option<ClassDefinition> compileClassDefinition(String input) {
@@ -1135,7 +1176,7 @@ public class Main {
     }
 
     private static List<String> parseTypeParameters(String typeParameters) {
-        return generateAll(String::strip, divideValues(typeParameters));
+        return mapAll(divideValues(typeParameters), String::strip);
     }
 
     private static List<String> divideValues(String input) {
@@ -1161,5 +1202,30 @@ public class Main {
         return "/*" + input
                 .replace("/*", "start")
                 .replace("*/", "end") + "*/";
+    }
+
+    private static <T extends Node> String generateValueNodes(List<T> nodes) {
+        return nodes.iter()
+                .map(Node::generate)
+                .collect(new Joiner())
+                .orElse("");
+    }
+
+    private enum Primitive implements Type {
+        Char("char"),
+        Int("int"),
+        Auto("auto"),
+        Void("void");
+
+        private final String value;
+
+        Primitive(String value) {
+            this.value = value;
+        }
+
+        @Override
+        public String generate() {
+            return this.value;
+        }
     }
 }
