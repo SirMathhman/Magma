@@ -8,7 +8,7 @@ State new(/*List<String>*/ segments, Array<char> buffer, int depth) {
 	this.depth = depth;
 }
 State new() {
-	/*this(Lists*/.empty(/*)*/, "", 0);
+	this(Lists.empty(), "", 0);
 }
 /*private*/ int isLevel() {
 	return this.depth == 0;
@@ -63,8 +63,7 @@ State new() {
 };
 /*public static*/ void main(Array<Array<char>> args) {
 	/*final*/ auto source = Paths.get(".", "src", "magma", "Main.java");
-	/*readString(source)
-                .match(input */ - /*> compileAndWrite*/(input, /* source)*/, /* Optional::of*/).ifPresent(/*Throwable::printStackTrace*/);
+	readString(source).match(input - /*> compileAndWrite(input*/, /* source)*/, /* Optional::of*/).ifPresent(/*Throwable::printStackTrace*/);
 }
 /*private static*/ /*Optional<IOException>*/ compileAndWrite(Array<char> input, struct Path source) {
 	/*final*/ auto target = source.resolveSibling("Main.c");
@@ -296,20 +295,44 @@ State new() {
         final var stripped = input.strip();
         if (stripped.endsWith(")")) {
             final var withoutEnd = stripped.substring(0, stripped.length() - ")".length());
-            final var argumentsStart = withoutEnd.lastIndexOf("(");
-            if (argumentsStart >= 0) {
-                final var arguments = withoutEnd.substring(argumentsStart + "(".length());
 
-                final var oldCaller = withoutEnd.substring(0, argumentsStart);
-                final var newCaller = oldCaller.startsWith("new ")
-                        ? compileConstruction(oldCaller)
-                        : compileValue(oldCaller);
+            final var divisions = divide(withoutEnd, Main::foldInvocationStart);
+            return divisions.popLast().flatMap(tuple -> {
+                final var joined = tuple.left.iter().collect(new Joiner()).orElse("");
+                final var arguments = tuple.right;
 
-                return Optional.of(newCaller + "(" + compileValues(arguments, Main::compileValue) + ")");
-            }
+                if (joined.endsWith("(")) {
+                    final var oldCaller = joined.substring(0, joined.length() - 1);
+                    final var newCaller = oldCaller.startsWith("new ")
+                            ? compileConstruction(oldCaller)
+                            : compileValue(oldCaller);
+
+                    return Optional.of(newCaller + "(" + compileValues(arguments, Main::compileValue) + ")");
+                }
+                else {
+                    return Optional.empty();
+                }
+            });
         }
 
         return Optional.empty();
+    }*//*
+
+    private static State foldInvocationStart(State state, char c) {
+        final var appended = state.append(c);
+        if (c == '(') {
+            final var entered = appended.enter();
+            if (entered.isShallow()) {
+                return entered.advance();
+            }
+            else {
+                return entered;
+            }
+        }
+        if (c == ')') {
+            return appended.exit();
+        }
+        return appended;
     }*//*
 
     private static String compileConstruction(String caller) {
