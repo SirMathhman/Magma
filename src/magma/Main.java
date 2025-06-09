@@ -32,6 +32,8 @@ public class Main {
         List<T> addAllLast(List<T> others);
 
         boolean isEmpty();
+
+        boolean contains(T element);
     }
 
     private interface Head<T> {
@@ -112,13 +114,19 @@ public class Main {
         public boolean isEmpty() {
             return this.elements.isEmpty();
         }
+
+        @Override
+        public boolean contains(T element) {
+            return this.elements.contains(element);
+        }
     }
 
     private static class Lists {
         public static <T> List<T> empty() {
-            return new JavaList<T>();
+            return new JavaList<>();
         }
 
+        @SafeVarargs
         public static <T> List<T> of(T... elements) {
             return new JavaList<>(new ArrayList<>(Arrays.asList(elements)));
         }
@@ -215,7 +223,13 @@ public class Main {
         }
     }
 
-    private record JavaDefinition(Optional<String> maybeBefore, List<String> typeParameters, String type, String name) {
+    private record JavaDefinition(
+            Optional<String> maybeBefore,
+            List<String> modifiers,
+            List<String> typeParameters,
+            String type,
+            String name
+    ) {
         private String generate() {
             final var beforeType = this.maybeBefore.map(Main::generatePlaceholder)
                     .map(inner -> inner + " ")
@@ -393,9 +407,11 @@ public class Main {
                     if (withBraces.startsWith("{") && withBraces.endsWith("}")) {
                         final var inputContent = withBraces.substring(1, withBraces.length() - 1).strip();
                         final var outputContent = compileStatements(inputContent, Main::compileFunctionSegment);
+                        final var withinStructure = definition.modifiers.contains("static") ? "" : "\n\t" + header + ";";
+
                         return Optional.of(new Tuple<>(Lists.of(header + " {" +
                                 outputContent +
-                                "\n}" + "\n"), "\n\t" + header + ";"));
+                                "\n}" + "\n"), withinStructure));
                     }
 
                     return Optional.empty();
@@ -411,10 +427,10 @@ public class Main {
     }
 
     private static Optional<JavaDefinition> parseConstructor(String input) {
-        final var i = input.lastIndexOf(" ");
-        if (i >= 0) {
-            final var name = input.substring(i + " ".length());
-            return Optional.of(new JavaDefinition(Optional.empty(), Lists.empty(), name, "new"));
+        final var separator = input.lastIndexOf(" ");
+        if (separator >= 0) {
+            final var name = input.substring(separator + " ".length());
+            return Optional.of(new JavaDefinition(Optional.empty(), Lists.of("static"), Lists.empty(), name, "new"));
         }
         else {
             return Optional.empty();
@@ -612,7 +628,7 @@ public class Main {
         final var typeSeparator = beforeName.lastIndexOf(" ");
         if (typeSeparator < 0) {
             return compileType(beforeName).map(type -> {
-                return new JavaDefinition(Optional.empty(), Lists.empty(), type, name);
+                return new JavaDefinition(Optional.empty(), Lists.empty(), Lists.empty(), type, name);
             });
         }
 
@@ -626,12 +642,28 @@ public class Main {
                     final var beforeTypeParameters = withoutEnd.substring(0, typeParametersStart);
                     final var typeParametersString = withoutEnd.substring(typeParametersStart + "<".length());
                     final var typeParameters = parseTypeParameters(typeParametersString);
-                    return new JavaDefinition(Optional.of(beforeTypeParameters), typeParameters, compiledType, name);
+                    return getJavaDefinition(beforeTypeParameters, typeParameters, compiledType, name);
                 }
             }
 
-            return new JavaDefinition(Optional.of(beforeType), Lists.empty(), compiledType, name);
+            return getJavaDefinition(beforeType, Lists.empty(), compiledType, name);
         });
+    }
+
+    private static JavaDefinition getJavaDefinition(String beforeTypeParameters, List<String> typeParameters, String type, String name) {
+        final var modifiers = divide(beforeTypeParameters, Main::foldModifiers)
+                .iter()
+                .map(String::strip)
+                .collect(new ListCollector<>());
+
+        return new JavaDefinition(Optional.of(beforeTypeParameters), modifiers, typeParameters, type, name);
+    }
+
+    private static State foldModifiers(State state, Character c) {
+        if (c == ' ') {
+            return state.advance();
+        }
+        return state.append(c);
     }
 
     private static Optional<String> compileType(String input) {

@@ -35,8 +35,6 @@ State new() {
 	/*private*/ /*List<String>*/ segments;
 	/*private*/ /*Slice<char>*/ buffer;
 	/*private*/ int depth;
-	State new(/*List<String>*/ segments, /*Slice<char>*/ buffer, int depth);
-	State new();
 	/*private*/ int isLevel();
 	/*private*/ struct State append(char c);
 	/*private*/ struct State advance();
@@ -109,15 +107,7 @@ struct if (/*c == '{'*/) {
         }
         if (c == '*/
 }
-/*public*/struct Main {
-	/*public static*/ struct void main(/*String[]*/ args);
-	/*private static*/ /*Slice<char>*/ compile(/*Slice<char>*/ input);
-	/*private static*/ /*Slice<char>*/ compileStatements(/*Slice<char>*/ input, /* Function<String*/, /*String>*/ mapper);
-	/*private static*/ /*Slice<char>*/ compileAll(/*Slice<char>*/ input, /* BiFunction<State*/, struct  Character, /*State>*/ folder, /* Function<String*/, /*String>*/ mapper, /* BiFunction<String*/, struct  String, /*String>*/ merger);
-	/*private static*/ /*Slice<char>*/ mergeStatements(/*Slice<char>*/ buffer, /*Slice<char>*/ element);
-	/*private static*/ /*List<String>*/ divideStatements(/*Slice<char>*/ input);
-	/*private static*/ /*List<String>*/ divide(/*Slice<char>*/ input, /* BiFunction<State*/, struct  Character, /*State>*/ folder);
-	/*private static*/ struct State foldStatements(struct State state, char c);/*' && appended.isShallow()) {
+/*public*/struct Main {/*' && appended.isShallow()) {
             return appended.advance().exit();
         }*/
 	struct if (/*c == '{'*/);/*') {
@@ -220,9 +210,11 @@ struct if (/*c == '{'*/) {
                     if (withBraces.startsWith("{") && withBraces.endsWith("}")) {
                         final var inputContent = withBraces.substring(1, withBraces.length() - 1).strip();
                         final var outputContent = compileStatements(inputContent, Main::compileFunctionSegment);
+                        final var withinStructure = definition.modifiers.contains("static") ? "" : "\n\t" + header + ";";
+
                         return Optional.of(new Tuple<>(Lists.of(header + " {" +
                                 outputContent +
-                                "\n}" + "\n"), "\n\t" + header + ";"));
+                                "\n}" + "\n"), withinStructure));
                     }
 
                     return Optional.empty();
@@ -234,15 +226,14 @@ struct if (/*c == '{'*/) {
     }*//*
 
     private static Optional<JavaDefinition> parseMethodDefinition(String input) {
-        return parseDefinition(input)
-                .or(() -> parseConstructors(input));
+        return parseDefinition(input).or(() -> parseConstructor(input));
     }*//*
 
-    private static Optional<JavaDefinition> parseConstructors(String input) {
-        final var i = input.lastIndexOf(" ");
-        if (i >= 0) {
-            final var name = input.substring(i + " ".length());
-            return Optional.of(new JavaDefinition(Optional.empty(), Lists.empty(), name, "new"));
+    private static Optional<JavaDefinition> parseConstructor(String input) {
+        final var separator = input.lastIndexOf(" ");
+        if (separator >= 0) {
+            final var name = input.substring(separator + " ".length());
+            return Optional.of(new JavaDefinition(Optional.empty(), Lists.of("static"), Lists.empty(), name, "new"));
         }
         else {
             return Optional.empty();
@@ -440,7 +431,7 @@ struct if (/*c == '{'*/) {
         final var typeSeparator = beforeName.lastIndexOf(" ");
         if (typeSeparator < 0) {
             return compileType(beforeName).map(type -> {
-                return new JavaDefinition(Optional.empty(), Lists.empty(), type, name);
+                return new JavaDefinition(Optional.empty(), Lists.empty(), Lists.empty(), type, name);
             });
         }
 
@@ -454,12 +445,28 @@ struct if (/*c == '{'*/) {
                     final var beforeTypeParameters = withoutEnd.substring(0, typeParametersStart);
                     final var typeParametersString = withoutEnd.substring(typeParametersStart + "<".length());
                     final var typeParameters = parseTypeParameters(typeParametersString);
-                    return new JavaDefinition(Optional.of(beforeTypeParameters), typeParameters, compiledType, name);
+                    return getJavaDefinition(beforeTypeParameters, typeParameters, compiledType, name);
                 }
             }
 
-            return new JavaDefinition(Optional.of(beforeType), Lists.empty(), compiledType, name);
+            return getJavaDefinition(beforeType, Lists.empty(), compiledType, name);
         });
+    }*//*
+
+    private static JavaDefinition getJavaDefinition(String beforeTypeParameters, List<String> typeParameters, String type, String name) {
+        final var modifiers = divide(beforeTypeParameters, Main::foldModifiers)
+                .iter()
+                .map(String::strip)
+                .collect(new ListCollector<>());
+
+        return new JavaDefinition(Optional.of(beforeTypeParameters), modifiers, typeParameters, type, name);
+    }*//*
+
+    private static State foldModifiers(State state, Character c) {
+        if (c == ' ') {
+            return state.advance();
+        }
+        return state.append(c);
     }*//*
 
     private static Optional<String> compileType(String input) {
