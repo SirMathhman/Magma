@@ -1,20 +1,10 @@
-/*private*/struct Collector<T, C> {/*C createInitial();*//*
-
-        C fold(C current, T element);*/
+/*C*/ createInitial(/**/)/*;*//*C*/ fold(/*C current, T element*/)/*;*//*private*/struct Collector<T, C> {/*C*/ createInitial(/**/)/*;*//*C*/ fold(/*C current, T element*/)/*;*/
 };
-/*private*/struct Iterator<T> {/*<R> Iterator<R> map(Function<T, R> mapper);*//*
-
-        <C> C collect(Collector<T, C> collector);*//*
-
-        <R> R fold(R initial, BiFunction<R, T, R> folder);*/
+/*<R>*/ /*Iterator<R>*/ map(/*Function<T, R> mapper*/)/*;*//*<C>*/ /*C*/ collect(/*Collector<T, C> collector*/)/*;*//*<R>*/ /*R*/ fold(/*R initial, BiFunction<R, T, R> folder*/)/*;*//*private*/struct Iterator<T> {/*<R>*/ /*Iterator<R>*/ map(/*Function<T, R> mapper*/)/*;*//*<C>*/ /*C*/ collect(/*Collector<T, C> collector*/)/*;*//*<R>*/ /*R*/ fold(/*R initial, BiFunction<R, T, R> folder*/)/*;*/
 };
-/*private*/struct List<T> {/*List<T> addLast(T element);*//*
-
-        Iterator<T> iter();*//*
-
-        List<T> addAllLast(List<T> others);*/
+/*List<T>*/ addLast(/*T element*/)/*;*//*Iterator<T>*/ iter(/**/)/*;*//*List<T>*/ addAllLast(/*List<T> others*/)/*;*//*private*/struct List<T> {/*List<T>*/ addLast(/*T element*/)/*;*//*Iterator<T>*/ iter(/**/)/*;*//*List<T>*/ addAllLast(/*List<T> others*/)/*;*/
 };
-/*private*/struct Head<T> {/*Optional<T> next();*/
+/*Optional<T>*/ next(/**/)/*;*//*private*/struct Head<T> {/*Optional<T>*/ next(/**/)/*;*/
 };
 /*
 
@@ -92,6 +82,10 @@
 };
 /*public static <T> List<T> empty() */{/*return new JavaList<T>();*/
 };
+/*
+
+        public static <T> List<T> of(T... elements) */{/*return new JavaList<>(new ArrayList<>(Arrays.asList(elements)));*/
+};
 /*private static*/struct Lists {
 };
 /*
@@ -114,10 +108,9 @@
         private State append(char c) */{/*this.buffer.append(c);*/
 	/*return*/ this;
 };
-/*
+/*this.buffer =*/ /*new*/ StringBuilder(/**/)/*;*//*
 
-        private State advance() */{/*this.segments = this.segments.addLast(this.buffer.toString());*//*
-            this.buffer = new StringBuilder();*/
+        private State advance() */{/*this.segments = this.segments.addLast(this.buffer.toString());*//*this.buffer =*/ /*new*/ StringBuilder(/**/)/*;*/
 	/*return*/ this;
 };
 /*
@@ -176,10 +169,9 @@
 };
 /*private static*/struct ListBulkCollector<T> implements Collector<List<T>, List<T>> {
 };
-/*try */{/*final var source = Paths.get(".", "src", "magma", "Main.java");*//*
+/*final var string*/ /*=*/ compile(/*input*/)/*;*//*try */{/*final var source = Paths.get(".", "src", "magma", "Main.java");*//*
             final var input = Files.readString(source);*//*
-            final var target = source.resolveSibling("Main.c");*//*
-            final var string = compile(input);*//*
+            final var target = source.resolveSibling("Main.c");*//*final var string*/ /*=*/ compile(/*input*/)/*;*//*
             Files.writeString(target, string);*/
 };
 /* catch (IOException e) */{/*//noinspection CallToPrintStackTrace
@@ -189,24 +181,27 @@
 
     public static void main(String[] args) */{
 };
-/*
+/*return*/ compileStatements(/*input, Main::compileRootSegment*/)/*;*//*
 
-    private static String compile(String input) */{/*return compileStatements(input, Main::compileRootSegment);*/
+    private static String compile(String input) */{/*return*/ compileStatements(/*input, Main::compileRootSegment*/)/*;*/
 };
-/*
+/*return*/ divide(/*input*/)/*
+                .iter()
+                .map(mapper)
+                .collect(new Joiner())
+                .orElse("");*//*
 
-    private static String compileStatements(String input, Function<String, String> mapper) */{/*return divide(input)
+    private static String compileStatements(String input, Function<String, String> mapper) */{/*return*/ divide(/*input*/)/*
                 .iter()
                 .map(mapper)
                 .collect(new Joiner())
                 .orElse("");*/
 };
-/* i++) */{/*final var c = input.charAt(i);*//*
-            current = fold(current, c);*/
+/*var current =*/ /*new*/ State(/**/)/*;*//*current*/ /*=*/ fold(/*current, c*/)/*;*//* i++) */{/*final var c = input.charAt(i);*//*current*/ /*=*/ fold(/*current, c*/)/*;*/
 };
 /*
 
-    private static List<String> divide(String input) */{/*var current = new State();*//*
+    private static List<String> divide(String input) */{/*var current =*/ /*new*/ State(/**/)/*;*//*
         for (var i = 0;*//* i < input.length();*//*
 
         return current.advance().segments;*/
@@ -254,17 +249,15 @@
             final var withEnd = input.substring(contentStart + "*/{/*".length()).strip();*//*
             if (withEnd.endsWith("*/
 };
-/*")) */{/*final var header = compileClassDefinition(beforeContent);*//*
+/*final var header*/ /*=*/ compileClassDefinition(/*beforeContent*/)/*;*//*")) */{/*final var header*/ /*=*/ compileClassDefinition(/*beforeContent*/)/*;*//*
                 final var inputContent = withEnd.substring(0, withEnd.length() - "*/
 };
-/*
+/*final var segments*/ /*=*/ divide(/*inputContent*/)/*;*//*
 
                 final var generated = header + "*/{/*" + output + "\n*/
 };
 /*
-        if (contentStart >= 0) */{/*final var beforeContent = input.substring(0, contentStart);*//*".length());*//*
-
-                final var segments = divide(inputContent);*//*
+        if (contentStart >= 0) */{/*final var beforeContent = input.substring(0, contentStart);*//*".length());*//*final var segments*/ /*=*/ divide(/*inputContent*/)/*;*//*
 
                 final var tuple = segments.iter()
                         .map(Main::compileClassSegment)
@@ -283,12 +276,36 @@
 
         return Optional.empty();*/
 };
-/*
-
-    private static Tuple<List<String>, String> compileClassSegment(String input) */{/*return compileWhitespace(input)
+/*return*/ compileWhitespace(/*input*/)/*
                 .or(() -> compileField(input))
                 .or(() -> compileClass(input))
+                .or(() -> compileMethod(input))
+                .orElseGet(() -> new Tuple<>(Lists.empty(), generatePlaceholder(input)));*//*
+
+    private static Tuple<List<String>, String> compileClassSegment(String input) */{/*return*/ compileWhitespace(/*input*/)/*
+                .or(() -> compileField(input))
+                .or(() -> compileClass(input))
+                .or(() -> compileMethod(input))
                 .orElseGet(() -> new Tuple<>(Lists.empty(), generatePlaceholder(input)));*/
+};
+/*final var maybeDefinition*/ /*=*/ compileDefinition(/*beforeParams*/)/*;*//*
+                if (maybeDefinition.isPresent()) */{/*final var generated = maybeDefinition.get() + "(" + generatePlaceholder(params) + ")" + generatePlaceholder(content);*//*
+                    return Optional.of(new Tuple<>(Lists.of(generated), generated));*/
+};
+/*
+            if (paramEnd >= 0) */{/*final var params = withParams.substring(0, paramEnd);*//*
+                final var content = withParams.substring(paramEnd + ")".length());*//*final var maybeDefinition*/ /*=*/ compileDefinition(/*beforeParams*/)/*;*/
+};
+/*
+        if (paramStart >= 0) */{/*final var beforeParams = input.substring(0, paramStart);*//*
+            final var withParams = input.substring(paramStart + "(".length());*//*
+            final var paramEnd = withParams.indexOf(")");*/
+};
+/*
+
+    private static Optional<Tuple<List<String>, String>> compileMethod(String input) */{/*final var paramStart = input.indexOf("(");*//*
+
+        return Optional.empty();*/
 };
 /*if (input.isBlank()) */{/*return Optional.of(new Tuple<>(Lists.empty(), ""));*/
 };
@@ -300,22 +317,29 @@
     private static Optional<Tuple<List<String>, String>> compileWhitespace(String input) */{
 };
 /*
-
-                if (isSymbol(name)) */{/*final var generated = compileFieldWithType(beforeName, name);*//*
-                    return Optional.of(new Tuple<>(Lists.empty(), generated));*/
+            return compileDefinition(withoutEnd).map(generated -> */{/*return new Tuple<>(Lists.empty(), "\n\t" + generated + ";*//*");*/
 };
-/*
-            if (nameSeparator >= 0) */{/*final var beforeName = withoutEnd.substring(0, nameSeparator).strip();*//*
-                final var name = withoutEnd.substring(nameSeparator + " ".length()).strip();*/
-};
-/*")) */{/*final var withoutEnd = stripped.substring(0, stripped.length() - ";*//*".length());*//*
-            final var nameSeparator = withoutEnd.lastIndexOf(" ");*/
+/*")) */{/*final var withoutEnd = stripped.substring(0, stripped.length() - ";*//*".length());*//*);*/
 };
 /*
 
     private static Optional<Tuple<List<String>, String>> compileField(String input) */{/*final var stripped = input.strip();*//*
         if (stripped.endsWith(";*//*
 
+        return Optional.empty();*/
+};
+/*final var generated*/ /*=*/ compileDefinitionWithType(/*beforeName, name*/)/*;*//*
+
+            if (isSymbol(name)) */{/*final var generated*/ /*=*/ compileDefinitionWithType(/*beforeName, name*/)/*;*//*
+                return Optional.of(generated);*/
+};
+/*
+        if (nameSeparator >= 0) */{/*final var beforeName = withoutEnd.substring(0, nameSeparator).strip();*//*
+            final var name = withoutEnd.substring(nameSeparator + " ".length()).strip();*/
+};
+/*
+
+    private static Optional<String> compileDefinition(String withoutEnd) */{/*final var nameSeparator = withoutEnd.lastIndexOf(" ");*//*
         return Optional.empty();*/
 };
 /*
@@ -329,34 +353,34 @@
     private static boolean isSymbol(String input) */{/*for (var i = 0;*//* i < input.length();*/
 	/*return*/ true;
 };
-/*
+/*String type1*/ /*=*/ compileType(/*type*/)/*;*//*return*/ generateDefinition(/*Optional.of(beforeType*/)/*, type1, name);*//*
         if (typeSeparator >= 0) */{/*final var beforeType = beforeName.substring(0, typeSeparator);*//*
-            final var type = beforeName.substring(typeSeparator + " ".length());*//*
-            return generateField(Optional.of(beforeType), compileType(type), name);*/
+            final var type = beforeName.substring(typeSeparator + " ".length());*//*String type1*/ /*=*/ compileType(/*type*/)/*;*//*return*/ generateDefinition(/*Optional.of(beforeType*/)/*, type1, name);*/
 };
-/*
-        else */{/*return generateField(Optional.empty(), compileType(beforeName), name);*/
-};
-/*
-
-    private static String compileFieldWithType(String beforeName, String name) */{/*final var typeSeparator = beforeName.lastIndexOf(" ");*/
+/*String type*/ /*=*/ compileType(/*beforeName*/)/*;*//*return*/ generateDefinition(/*Optional.empty(*/)/*, type, name);*//*
+        else */{/*String type*/ /*=*/ compileType(/*beforeName*/)/*;*//*return*/ generateDefinition(/*Optional.empty(*/)/*, type, name);*/
 };
 /*
 
-    private static String generateField(Optional<String> maybeBeforeType, String type, String name) */{/*final var beforeType = maybeBeforeType
+    private static String compileDefinitionWithType(String beforeName, String name) */{/*final var typeSeparator = beforeName.lastIndexOf(" ");*/
+};
+/*
+
+    private static String generateDefinition(Optional<String> maybeBeforeType, String type, String name) */{/*final var beforeType = maybeBeforeType
                 .map(Main::generatePlaceholder)
                 .map(inner -> inner + " ")
-                .orElse("");*//*
-
-        return "\n\t" + beforeType + type + " " + name + ";*//*";*/
+                .orElse("");*/
+	/*return beforeType + type + " "*/ /*+*/ name;
 };
-/*
+/*return*/ generatePlaceholder(/*type*/)/*;*//*
 
-    private static String compileType(String type) */{/*return generatePlaceholder(type);*/
+    private static String compileType(String type) */{/*return*/ generatePlaceholder(/*type*/)/*;*/
 };
-/*
+/*return*/ compileClassDefinitionWithKeyword(/*input, "class "*/)/*
+                .or(() -> compileClassDefinitionWithKeyword(input, "interface "))
+                .orElseGet(() -> generatePlaceholder(input));*//*
 
-    private static String compileClassDefinition(String input) */{/*return compileClassDefinitionWithKeyword(input, "class ")
+    private static String compileClassDefinition(String input) */{/*return*/ compileClassDefinitionWithKeyword(/*input, "class "*/)/*
                 .or(() -> compileClassDefinitionWithKeyword(input, "interface "))
                 .orElseGet(() -> generatePlaceholder(input));*/
 };

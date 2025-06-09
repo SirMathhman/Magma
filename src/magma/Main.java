@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Optional;
 import java.util.function.BiFunction;
 import java.util.function.Function;
@@ -109,6 +110,10 @@ public class Main {
     private static class Lists {
         public static <T> List<T> empty() {
             return new JavaList<T>();
+        }
+
+        public static <T> List<T> of(T... elements) {
+            return new JavaList<>(new ArrayList<>(Arrays.asList(elements)));
         }
     }
 
@@ -298,7 +303,28 @@ public class Main {
         return compileWhitespace(input)
                 .or(() -> compileField(input))
                 .or(() -> compileClass(input))
+                .or(() -> compileMethod(input))
                 .orElseGet(() -> new Tuple<>(Lists.empty(), generatePlaceholder(input)));
+    }
+
+    private static Optional<Tuple<List<String>, String>> compileMethod(String input) {
+        final var paramStart = input.indexOf("(");
+        if (paramStart >= 0) {
+            final var beforeParams = input.substring(0, paramStart);
+            final var withParams = input.substring(paramStart + "(".length());
+            final var paramEnd = withParams.indexOf(")");
+            if (paramEnd >= 0) {
+                final var params = withParams.substring(0, paramEnd);
+                final var content = withParams.substring(paramEnd + ")".length());
+                final var maybeDefinition = compileDefinition(beforeParams);
+                if (maybeDefinition.isPresent()) {
+                    final var generated = maybeDefinition.get() + "(" + generatePlaceholder(params) + ")" + generatePlaceholder(content);
+                    return Optional.of(new Tuple<>(Lists.of(generated), generated));
+                }
+            }
+        }
+
+        return Optional.empty();
     }
 
     private static Optional<Tuple<List<String>, String>> compileWhitespace(String input) {
@@ -314,18 +340,25 @@ public class Main {
         final var stripped = input.strip();
         if (stripped.endsWith(";")) {
             final var withoutEnd = stripped.substring(0, stripped.length() - ";".length());
-            final var nameSeparator = withoutEnd.lastIndexOf(" ");
-            if (nameSeparator >= 0) {
-                final var beforeName = withoutEnd.substring(0, nameSeparator).strip();
-                final var name = withoutEnd.substring(nameSeparator + " ".length()).strip();
-
-                if (isSymbol(name)) {
-                    final var generated = compileFieldWithType(beforeName, name);
-                    return Optional.of(new Tuple<>(Lists.empty(), generated));
-                }
-            }
+            return compileDefinition(withoutEnd).map(generated -> {
+                return new Tuple<>(Lists.empty(), "\n\t" + generated + ";");
+            });
         }
 
+        return Optional.empty();
+    }
+
+    private static Optional<String> compileDefinition(String withoutEnd) {
+        final var nameSeparator = withoutEnd.lastIndexOf(" ");
+        if (nameSeparator >= 0) {
+            final var beforeName = withoutEnd.substring(0, nameSeparator).strip();
+            final var name = withoutEnd.substring(nameSeparator + " ".length()).strip();
+
+            if (isSymbol(name)) {
+                final var generated = compileDefinitionWithType(beforeName, name);
+                return Optional.of(generated);
+            }
+        }
         return Optional.empty();
     }
 
@@ -340,25 +373,27 @@ public class Main {
         return true;
     }
 
-    private static String compileFieldWithType(String beforeName, String name) {
+    private static String compileDefinitionWithType(String beforeName, String name) {
         final var typeSeparator = beforeName.lastIndexOf(" ");
         if (typeSeparator >= 0) {
             final var beforeType = beforeName.substring(0, typeSeparator);
             final var type = beforeName.substring(typeSeparator + " ".length());
-            return generateField(Optional.of(beforeType), compileType(type), name);
+            String type1 = compileType(type);
+            return generateDefinition(Optional.of(beforeType), type1, name);
         }
         else {
-            return generateField(Optional.empty(), compileType(beforeName), name);
+            String type = compileType(beforeName);
+            return generateDefinition(Optional.empty(), type, name);
         }
     }
 
-    private static String generateField(Optional<String> maybeBeforeType, String type, String name) {
+    private static String generateDefinition(Optional<String> maybeBeforeType, String type, String name) {
         final var beforeType = maybeBeforeType
                 .map(Main::generatePlaceholder)
                 .map(inner -> inner + " ")
                 .orElse("");
 
-        return "\n\t" + beforeType + type + " " + name + ";";
+        return beforeType + type + " " + name;
     }
 
     private static String compileType(String type) {
