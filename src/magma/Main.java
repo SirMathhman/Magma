@@ -633,6 +633,10 @@ public class Main {
             return Optional.of("int");
         }
 
+        if (stripped.equals("String")) {
+            return Optional.of("char*");
+        }
+
         if (isSymbol(stripped)) {
             return Optional.of("struct " + stripped);
         }
