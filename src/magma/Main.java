@@ -1,6 +1,8 @@
 package magma;
 
 import java.io.IOException;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -12,6 +14,10 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 
 public class Main {
+    private interface IOError {
+        String display();
+    }
+
     private interface Option<T> {
         <R> Option<R> map(Function<T, R> mapper);
 
@@ -63,7 +69,7 @@ public class Main {
     }
 
     private interface Result {
-        <R> R match(Function<String, R> whenOk, Function<IOException, R> whenErr);
+        <R> R match(Function<String, R> whenOk, Function<IOError, R> whenErr);
     }
 
     private static class None<T> implements Option<T> {
@@ -107,13 +113,7 @@ public class Main {
         }
     }
 
-    static class Some<T> implements Option<T> {
-        private final T value;
-
-        public Some(T value) {
-            this.value = value;
-        }
-
+    private record Some<T>(T value) implements Option<T> {
         @Override
         public <R> Option<R> map(Function<T, R> mapper) {
             return new Some<>(mapper.apply(this.value));
@@ -169,10 +169,10 @@ public class Main {
             if (this.count < this.length) {
                 final var value = this.count;
                 this.count++;
-                return new Some<Integer>(value);
+                return new Some<>(value);
             }
             else {
-                return new None<Integer>();
+                return new None<>();
             }
         }
     }
@@ -238,11 +238,11 @@ public class Main {
         @Override
         public Option<Tuple<List<T>, T>> popLast() {
             if (this.elements.isEmpty()) {
-                return new None<Tuple<List<T>, T>>();
+                return new None<>();
             }
             else {
                 final var last = this.elements.removeLast();
-                return new Some<Tuple<List<T>, T>>(new Tuple<List<T>, T>(this, last));
+                return new Some<>(new Tuple<>(this, last));
             }
         }
     }
@@ -309,12 +309,12 @@ public class Main {
     private static class Joiner implements Collector<String, Option<String>> {
         @Override
         public Option<String> createInitial() {
-            return new None<String>();
+            return new None<>();
         }
 
         @Override
         public Option<String> fold(Option<String> current, String element) {
-            return new Some<String>(current.map(inner -> inner + element).orElse(element));
+            return new Some<>(current.map(inner -> inner + element).orElse(element));
         }
     }
 
@@ -379,37 +379,46 @@ public class Main {
 
     private record Ok(String value) implements Result {
         @Override
-        public <R> R match(Function<String, R> whenOk, Function<IOException, R> whenErr) {
+        public <R> R match(Function<String, R> whenOk, Function<IOError, R> whenErr) {
             return whenOk.apply(this.value);
         }
     }
 
-    private record Err(IOException error) implements Result {
+    private record Err(IOError error) implements Result {
         @Override
-        public <R> R match(Function<String, R> whenOk, Function<IOException, R> whenErr) {
+        public <R> R match(Function<String, R> whenOk, Function<IOError, R> whenErr) {
             return whenErr.apply(this.error);
+        }
+    }
+
+    private record JavaIOError(IOException exception) implements IOError {
+        @Override
+        public String display() {
+            final var writer = new StringWriter();
+            this.exception.printStackTrace(new PrintWriter(writer));
+            return writer.toString();
         }
     }
 
     public static void main(String[] args) {
         final var source = Paths.get(".", "src", "magma", "Main.java");
         readString(source)
-                .match(input -> compileAndWrite(input, source), value -> new Some<IOException>(value))
-                .ifPresent(Throwable::printStackTrace);
+                .match(input -> compileAndWrite(input, source), Some::new)
+                .ifPresent(error -> System.err.println(error.display()));
     }
 
-    private static Option<IOException> compileAndWrite(String input, Path source) {
+    private static Option<IOError> compileAndWrite(String input, Path source) {
         final var target = source.resolveSibling("Main.c");
         final var string = compile(input);
         return writeString(target, string);
     }
 
-    private static Option<IOException> writeString(Path target, String string) {
+    private static Option<IOError> writeString(Path target, String string) {
         try {
             Files.writeString(target, string);
-            return new None<IOException>();
+            return new None<>();
         } catch (IOException e) {
-            return new Some<IOException>(e);
+            return new Some<>(new JavaIOError(e));
         }
     }
 
@@ -417,7 +426,7 @@ public class Main {
         try {
             return new Ok(Files.readString(source));
         } catch (IOException e) {
-            return new Err(e);
+            return new Err(new JavaIOError(e));
         }
     }
 
@@ -500,12 +509,12 @@ public class Main {
                 if (maybeHeader.isPresent()) {
                     final var definition = maybeHeader.get();
                     final var others = compileClassWithDefinition(definition, withEnd);
-                    return new Some<Tuple<List<String>, String>>(new Tuple<List<String>, String>(others, ""));
+                    return new Some<>(new Tuple<>(others, ""));
                 }
             }
         }
 
-        return new None<Tuple<List<String>, String>>();
+        return new None<>();
     }
 
     private static List<String> compileClassWithDefinition(ClassDefinition definition, String withEnd) {
@@ -550,7 +559,7 @@ public class Main {
                 if (maybeDefinition.isPresent()) {
                     final var definition = maybeDefinition.get();
                     if (!definition.typeParameters.isEmpty()) {
-                        return new Some<Tuple<List<String>, String>>(new Tuple<List<String>, String>(Lists.empty(), ""));
+                        return new Some<>(new Tuple<>(Lists.empty(), ""));
                     }
 
                     final var compiledParameters = compileValues(params, Main::compileParameter);
@@ -558,7 +567,7 @@ public class Main {
 
                     if (withBraces.equals(";")) {
                         final var generated = header + ";";
-                        return new Some<Tuple<List<String>, String>>(new Tuple<List<String>, String>(Lists.of(generated + "\n"), "\n\t" + generated));
+                        return new Some<>(new Tuple<>(Lists.empty(), "\n\t" + generated));
                     }
 
                     if (withBraces.startsWith("{") && withBraces.endsWith("}")) {
@@ -566,17 +575,17 @@ public class Main {
                         final var outputContent = compileStatements(inputContent, Main::compileFunctionSegment);
                         final var withinStructure = definition.modifiers.contains("static") ? "" : "\n\t" + header + ";";
 
-                        return new Some<Tuple<List<String>, String>>(new Tuple<List<String>, String>(Lists.of(header + " {" +
+                        return new Some<>(new Tuple<>(Lists.of(header + " {" +
                                 outputContent +
                                 "\n}" + "\n"), withinStructure));
                     }
 
-                    return new None<Tuple<List<String>, String>>();
+                    return new None<>();
                 }
             }
         }
 
-        return new None<Tuple<List<String>, String>>();
+        return new None<>();
     }
 
     private static Option<JavaDefinition> parseMethodDefinition(String input) {
@@ -587,10 +596,10 @@ public class Main {
         final var separator = input.lastIndexOf(" ");
         if (separator >= 0) {
             final var name = input.substring(separator + " ".length());
-            return new Some<JavaDefinition>(new JavaDefinition(new None<String>(), Lists.of("static"), Lists.empty(), name, "new"));
+            return new Some<>(new JavaDefinition(new None<>(), Lists.of("static"), Lists.empty(), name, "new"));
         }
         else {
-            return new None<JavaDefinition>();
+            return new None<>();
         }
     }
 
@@ -608,10 +617,10 @@ public class Main {
         final var stripped = input.strip();
         if (stripped.endsWith(";")) {
             final var withoutEnd = stripped.substring(0, stripped.length() - ";".length());
-            return new Some<String>("\n\t" + compileFunctionStatementValue(withoutEnd) + ";");
+            return new Some<>("\n\t" + compileFunctionStatementValue(withoutEnd) + ";");
         }
 
-        return new None<String>();
+        return new None<>();
     }
 
     private static String compileFunctionStatementValue(String input) {
@@ -650,15 +659,15 @@ public class Main {
                             ? compileConstruction(oldCaller)
                             : compileValue(oldCaller);
 
-                    return new Some<String>(newCaller + "(" + compileValues(arguments, Main::compileValue) + ")");
+                    return new Some<>(newCaller + "(" + compileValues(arguments, Main::compileValue) + ")");
                 }
                 else {
-                    return new None<String>();
+                    return new None<>();
                 }
             });
         }
 
-        return new None<String>();
+        return new None<>();
     }
 
     private static State foldInvocationStart(State state, char c) {
@@ -698,30 +707,30 @@ public class Main {
     private static Option<String> compileString(String input) {
         final var stripped = input.strip();
         if (stripped.startsWith("\"") && stripped.endsWith("\"")) {
-            return new Some<String>(stripped);
+            return new Some<>(stripped);
         }
         else {
-            return new None<String>();
+            return new None<>();
         }
     }
 
     private static Option<String> compileNumber(String input) {
         final var stripped = input.strip();
         if (isNumber(stripped)) {
-            return new Some<String>(stripped);
+            return new Some<>(stripped);
         }
         else {
-            return new None<String>();
+            return new None<>();
         }
     }
 
     private static Option<String> compileSymbol(String input) {
         final var stripped = input.strip();
         if (isSymbol(stripped)) {
-            return new Some<String>(stripped);
+            return new Some<>(stripped);
         }
         else {
-            return new None<String>();
+            return new None<>();
         }
     }
 
@@ -731,11 +740,11 @@ public class Main {
             final var substring = input.substring(0, separator);
             final var property = input.substring(separator + ".".length()).strip();
             if (isSymbol(property)) {
-                return new Some<String>(compileValue(substring) + "." + property);
+                return new Some<>(compileValue(substring) + "." + property);
             }
         }
 
-        return new None<String>();
+        return new None<>();
     }
 
     private static Option<String> compileOperator(String input, String infix) {
@@ -743,10 +752,10 @@ public class Main {
         if (index >= 0) {
             final var leftString = input.substring(0, index);
             final var rightString = input.substring(index + infix.length());
-            return new Some<String>(compileValue(leftString) + " " + infix + " " + compileValue(rightString));
+            return new Some<>(compileValue(leftString) + " " + infix + " " + compileValue(rightString));
         }
 
-        return new None<String>();
+        return new None<>();
     }
 
     private static boolean isNumber(String input) {
@@ -776,10 +785,10 @@ public class Main {
 
     private static Option<String> compileWhitespace(String input) {
         if (input.isBlank()) {
-            return new Some<String>("");
+            return new Some<>("");
         }
         else {
-            return new None<String>();
+            return new None<>();
         }
     }
 
@@ -787,12 +796,10 @@ public class Main {
         final var stripped = input.strip();
         if (stripped.endsWith(";")) {
             final var withoutEnd = stripped.substring(0, stripped.length() - ";".length());
-            return parseDefinition(withoutEnd).map(JavaDefinition::generate).map(generated -> {
-                return new Tuple<>(Lists.empty(), "\n\t" + generated + ";");
-            });
+            return parseDefinition(withoutEnd).map(JavaDefinition::generate).map(generated -> new Tuple<>(Lists.empty(), "\n\t" + generated + ";"));
         }
 
-        return new None<Tuple<List<String>, String>>();
+        return new None<>();
     }
 
     private static Option<JavaDefinition> parseDefinition(String input) {
@@ -806,7 +813,7 @@ public class Main {
                 return parseDefinitionWithBeforeType(beforeName, name);
             }
         }
-        return new None<JavaDefinition>();
+        return new None<>();
     }
 
     private static boolean isSymbol(String input) {
@@ -823,9 +830,7 @@ public class Main {
     private static Option<JavaDefinition> parseDefinitionWithBeforeType(String beforeName, String name) {
         final var typeSeparator = beforeName.lastIndexOf(" ");
         if (typeSeparator < 0) {
-            return compileType(beforeName).map(type -> {
-                return new JavaDefinition(new None<String>(), Lists.empty(), Lists.empty(), type, name);
-            });
+            return compileType(beforeName).map(type -> new JavaDefinition(new None<>(), Lists.empty(), Lists.empty(), type, name));
         }
 
         final var type = beforeName.substring(typeSeparator + " ".length());
@@ -852,7 +857,7 @@ public class Main {
                 .map(String::strip)
                 .collect(new ListCollector<>());
 
-        return new JavaDefinition(new Some<String>(beforeTypeParameters), modifiers, typeParameters, type, name);
+        return new JavaDefinition(new Some<>(beforeTypeParameters), modifiers, typeParameters, type, name);
     }
 
     private static State foldModifiers(State state, Character c) {
@@ -864,42 +869,37 @@ public class Main {
 
     private static Option<String> compileType(String input) {
         final var stripped = input.strip();
-        if (stripped.equals("private") || stripped.equals("public")) {
-            return new None<String>();
-        }
-
-        if (stripped.equals("char")) {
-            return new Some<String>("char");
-        }
-
-        if (stripped.equals("boolean") || stripped.equals("int")) {
-            return new Some<String>("int");
-        }
-
-        if (stripped.equals("String")) {
-            return new Some<String>("Array<char>");
-        }
-
-        if (stripped.equals("var")) {
-            return new Some<String>("auto");
-        }
-
-        if (stripped.equals("void")) {
-            return new Some<String>("void");
+        switch (stripped) {
+            case "private", "public" -> {
+                return new None<>();
+            }
+            case "char" -> {
+                return new Some<>("char");
+            }
+            case "boolean", "int" -> {
+                return new Some<>("int");
+            }
+            case "String" -> {
+                return new Some<>("Array<char>");
+            }
+            case "var" -> {
+                return new Some<>("auto");
+            }
+            case "void" -> {
+                return new Some<>("void");
+            }
         }
 
         if (isSymbol(stripped)) {
-            return new Some<String>("struct " + stripped);
+            return new Some<>("struct " + stripped);
         }
 
         if (stripped.endsWith("[]")) {
             final var slice = stripped.substring(0, stripped.length() - "[]".length());
-            return compileType(slice).map(compiled -> {
-                return "Array<" + compiled + ">";
-            });
+            return compileType(slice).map(compiled -> "Array<" + compiled + ">");
         }
 
-        return new Some<String>(generatePlaceholder(input));
+        return new Some<>(generatePlaceholder(input));
     }
 
     private static Option<ClassDefinition> compileClassDefinition(String input) {
@@ -911,12 +911,12 @@ public class Main {
     private static Option<ClassDefinition> compileClassDefinitionWithKeyword(String input, String keyword) {
         final var classIndex = input.indexOf(keyword);
         if (classIndex < 0) {
-            return new None<ClassDefinition>();
+            return new None<>();
         }
 
         final var beforeKeyword = input.substring(0, classIndex).strip();
         final var afterKeyword = input.substring(classIndex + keyword.length()).strip();
-        return new Some<ClassDefinition>(parseClassDefinitionWithParameters(beforeKeyword, afterKeyword));
+        return new Some<>(parseClassDefinitionWithParameters(beforeKeyword, afterKeyword));
     }
 
     private static ClassDefinition parseClassDefinitionWithParameters(String beforeKeyword, String afterKeyword) {
