@@ -61,8 +61,20 @@ public class Main {
             final var withEnd = stripped.substring(contentStart + "{".length()).strip();
             if (withEnd.endsWith("}")) {
                 final var content = withEnd.substring(0, withEnd.length() - "}".length());
-                return generatePlaceholder(beforeContent) + "{}\n" + generatePlaceholder(content);
+                final var header = compileClassDefinition(beforeContent);
+                return header + "{\n};\n" + generatePlaceholder(content);
             }
+        }
+
+        return generatePlaceholder(input);
+    }
+
+    private static String compileClassDefinition(String input) {
+        final var classIndex = input.indexOf("class ");
+        if(classIndex >= 0) {
+            final var beforeKeyword = input.substring(0, classIndex);
+            final var afterKeyword = input.substring(classIndex + "class ".length());
+            return generatePlaceholder(beforeKeyword) + "struct " + afterKeyword;
         }
 
         return generatePlaceholder(input);
