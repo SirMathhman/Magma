@@ -1,27 +1,27 @@
 /*private static*/struct Lists {
 };
 /*private*/ int isLevel() {
-	/*return this.depth == 0*/;
+	return /*this.depth == 0*/;
 }
 /*private*/ /*State*/ append(/*char c*/) {
 	/*this.buffer.append(c)*/;
-	/*return this*/;
+	return /*this*/;
 }
 /*private*/ /*State*/ advance() {
 	/*this.segments = this.segments.addLast(this.buffer.toString())*/;
 	/*this.buffer = new StringBuilder()*/;
-	/*return this*/;
+	return /*this*/;
 }
 /*private*/ /*State*/ enter() {
 	/*this.depth = this.depth + 1*/;
-	/*return this*/;
+	return /*this*/;
 }
 /*private*/ /*State*/ exit() {
 	/*this.depth = this.depth - 1*/;
-	/*return this*/;
+	return /*this*/;
 }
 /*public*/ int isShallow() {
-	/*return this.depth == 1*/;
+	return /*this.depth == 1*/;
 }
 /*private static*/struct State {
 	/*private*/ /*List<String>*/ segments;
@@ -45,7 +45,7 @@
 	/*public*/ int isShallow();
 };
 /*private*/ /*String*/ generate() {
-	/*return generatePlaceholder(this.beforeKeyword) + "struct " + this.name*/;
+	return /*generatePlaceholder(this.beforeKeyword) + "struct " + this.name*/;
 }
 /*private*/struct ClassDefinition {
 	/*private*/ /*String*/ generate();
@@ -54,7 +54,7 @@
 	/*final var beforeType = this.maybeBefore.map(Main::generatePlaceholder)
                     .map(inner -> inner + " ")
                     .orElse("")*/;
-	/*return beforeType + this.type + " " + this.name*/;
+	return /*beforeType + this.type + " " + this.name*/;
 }
 /*private*/struct JavaDefinition {
 	/*private*/ /*String*/ generate();
@@ -71,23 +71,23 @@
         }*/
 }
 /*private static*/ /*String*/ compile(/*String input*/) {
-	/*return compileStatements(input, Main::compileRootSegment)*/;
+	return /*compileStatements(input, Main::compileRootSegment)*/;
 }
 /*private static*/ /*String*/ compileStatements(/*String input*/, /* Function<String*/, /* String> mapper*/) {
-	/*return compileAll(input, Main::foldStatements, mapper, Main::mergeStatements)*/;
+	return /*compileAll(input, Main::foldStatements, mapper, Main::mergeStatements)*/;
 }
 /*private static*/ /*String*/ compileAll(/*String input*/, /* BiFunction<State*/, /* Character*/, /* State> folder*/, /* Function<String*/, /* String> mapper*/, /* BiFunction<StringBuilder*/, /* String*/, /* StringBuilder> merger*/) {
-	/*return divide(input, folder)
+	return /*divide(input, folder)
                 .iter()
                 .map(mapper)
                 .fold(new StringBuilder(), merger)
                 .toString()*/;
 }
 /*private static*/ /*StringBuilder*/ mergeStatements(/*StringBuilder stringBuilder*/, /* String s*/) {
-	/*return stringBuilder.append(s)*/;
+	return /*stringBuilder.append(s)*/;
 }
 /*private static*/ /*List<String>*/ divideStatements(/*String input*/) {
-	/*return divide(input, Main::foldStatements)*/;
+	return /*divide(input, Main::foldStatements)*/;
 }
 /*private static*/ /*List<String>*/ divide(/*String input*/, /* BiFunction<State*/, /* Character*/, /* State> folder*/) {
 	/*var current = new State()*/;
@@ -96,7 +96,7 @@
             final var c = input.charAt(i);
             current = folder.apply(current, c);
         }*/
-	/*return current.advance().segments*/;
+	return /*current.advance().segments*/;
 }
 /*private static*/ /*State*/ foldStatements(/*State state*/, /* char c*/) {
 	/*final var appended = state.append(c)*/;
@@ -106,7 +106,7 @@
         if (c == '*/
 }
 /*if*/ (/*c == '{'*/) {
-	/*return appended.enter()*/;/*
+	return /*appended.enter()*/;/*
         }
         if (c == '*/
 }
@@ -244,10 +244,20 @@
         final var stripped = input.strip();
         if (stripped.endsWith(";")) {
             final var withoutEnd = stripped.substring(0, stripped.length() - ";".length());
-            return Optional.of("\n\t" + generatePlaceholder(withoutEnd) + ";");
+            return Optional.of("\n\t" + compileFunctionStatementValue(withoutEnd) + ";");
         }
 
         return Optional.empty();
+    }*//*
+
+    private static String compileFunctionStatementValue(String input) {
+        final var stripped = input.strip();
+        if (stripped.startsWith("return ")) {
+            final var value = stripped.substring("return ".length());
+            return "return " + generatePlaceholder(value);
+        }
+
+        return generatePlaceholder(input);
     }*//*
 
     private static StringBuilder mergeValues(StringBuilder buffer, String element) {

@@ -417,10 +417,20 @@ public class Main {
         final var stripped = input.strip();
         if (stripped.endsWith(";")) {
             final var withoutEnd = stripped.substring(0, stripped.length() - ";".length());
-            return Optional.of("\n\t" + generatePlaceholder(withoutEnd) + ";");
+            return Optional.of("\n\t" + compileFunctionStatementValue(withoutEnd) + ";");
         }
 
         return Optional.empty();
+    }
+
+    private static String compileFunctionStatementValue(String input) {
+        final var stripped = input.strip();
+        if (stripped.startsWith("return ")) {
+            final var value = stripped.substring("return ".length());
+            return "return " + generatePlaceholder(value);
+        }
+
+        return generatePlaceholder(input);
     }
 
     private static StringBuilder mergeValues(StringBuilder buffer, String element) {
