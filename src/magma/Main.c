@@ -1,3 +1,8 @@
+/*private*/struct Path {
+	struct Result readString();
+	Option<struct IOError> write(Array<char> content);
+	struct Path resolveSibling(Array<char> name);
+};
 /*private*/struct IOError {
 	Array<char> display();
 };
@@ -73,18 +78,42 @@ Array<char> display() {
 /*private*/struct JavaIOError(IOException exception) implements IOError {
 	Array<char> display();
 };
+struct Path resolveSibling(Array<char> name) {
+	return struct JavaPath(this.path.resolveSibling(name));
+}
+Option<struct IOError> write(Array<char> content) {/*try {
+                Files.writeString(this.path, content);
+                return new None<>();
+            }*//* catch (IOException e) {
+                return new Some<>(new JavaIOError(e));
+            }*/
+}
+struct Result readString() {/*try {
+                return new Ok(Files.readString(this.path));
+            }*//* catch (IOException e) {
+                return new Err(new JavaIOError(e));
+            }*/
+}
+/*private*/struct JavaPath(java.nio.file.Path path) implements Path {
+	struct Path resolveSibling(Array<char> name);
+	Option<struct IOError> write(Array<char> content);
+	struct Result readString();
+};
+struct JavaPath get(Array<char> first, /*String...*/ more) {
+	return struct JavaPath(/*java.nio.file.Paths.get(first*/, /* more)*/);
+}
+/*private static*/struct Paths {
+};
 void main(Array<Array<char>> args) {
 	auto source = Paths.get(".", "src", "magma", "Main.java");
-	readString(source).match(input - /*> compileAndWrite(input*/, /* source)*/, /* Some::new*/).ifPresent(error - /*> printErroneousLine*/(error.display()));
+	source.readString().match(input - /*> compileAndWrite(input*/, /* source)*/, /* Some::new*/).ifPresent(error - /*> printErroneousLine*/(error.display()));
 }
 void printErroneousLine(Array<char> content);
 Option<struct IOError> compileAndWrite(Array<char> input, struct Path source) {
 	auto target = source.resolveSibling("Main.c");
 	auto string = compile(input);
-	return writeString(target, string);
+	return target.write(string);
 }
-Option<struct IOError> writeString(struct Path target, Array<char> string);
-struct Result readString(struct Path source);
 Array<char> compile(Array<char> input) {
 	return compileStatements(input, /* Main::compileRootSegment*/);
 }

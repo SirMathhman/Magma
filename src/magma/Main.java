@@ -4,8 +4,6 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.function.BiFunction;
@@ -14,6 +12,14 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 
 public class Main {
+    private interface Path {
+        Result readString();
+
+        Option<IOError> write(String content);
+
+        Path resolveSibling(String name);
+    }
+
     private interface IOError {
         String display();
     }
@@ -399,9 +405,41 @@ public class Main {
         }
     }
 
+    private record JavaPath(java.nio.file.Path path) implements Path {
+        @Override
+        public Path resolveSibling(String name) {
+            return new JavaPath(this.path.resolveSibling(name));
+        }
+
+        @Override
+        public Option<IOError> write(String content) {
+            try {
+                Files.writeString(this.path, content);
+                return new None<>();
+            } catch (IOException e) {
+                return new Some<>(new JavaIOError(e));
+            }
+        }
+
+        @Override
+        public Result readString() {
+            try {
+                return new Ok(Files.readString(this.path));
+            } catch (IOException e) {
+                return new Err(new JavaIOError(e));
+            }
+        }
+    }
+
+    private static class Paths {
+        public static JavaPath get(String first, String... more) {
+            return new JavaPath(java.nio.file.Paths.get(first, more));
+        }
+    }
+
     public static void main(String[] args) {
         final var source = Paths.get(".", "src", "magma", "Main.java");
-        readString(source)
+        source.readString()
                 .match(input -> compileAndWrite(input, source), Some::new)
                 .ifPresent(error -> printErroneousLine(error.display()));
     }
@@ -414,26 +452,7 @@ public class Main {
     private static Option<IOError> compileAndWrite(String input, Path source) {
         final var target = source.resolveSibling("Main.c");
         final var string = compile(input);
-        return writeString(target, string);
-    }
-
-    @Actual
-    private static Option<IOError> writeString(Path target, String string) {
-        try {
-            Files.writeString(target, string);
-            return new None<>();
-        } catch (IOException e) {
-            return new Some<>(new JavaIOError(e));
-        }
-    }
-
-    @Actual
-    private static Result readString(Path source) {
-        try {
-            return new Ok(Files.readString(source));
-        } catch (IOException e) {
-            return new Err(new JavaIOError(e));
-        }
+        return target.write(string);
     }
 
     private static String compile(String input) {
