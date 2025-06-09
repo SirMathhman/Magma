@@ -1,9 +1,5 @@
 /*private static*/struct Lists {
 };
-/*private*/ State(/*List<String> segments, StringBuilder buffer, int depth*/) {
-}
-/*public*/ State(/**/) {
-}
 /*private*/ /*boolean*/ isLevel(/**/) {
 }
 /*private*/ /*State*/ append(/*char c*/) {
@@ -19,9 +15,17 @@
 /*private static*/struct State {
 	/*private*/ /*List<String>*/ segments;
 	/*private*/ /*StringBuilder*/ buffer;
-	/*private*/ /*int*/ depth;
-	/*private*/ State(/*List<String> segments, StringBuilder buffer, int depth*/);
-	/*public*/ State(/**/);
+	/*private*/ /*int*/ depth;/*
+
+        private State(List<String> segments, StringBuilder buffer, int depth) {
+            this.segments = segments;
+            this.buffer = buffer;
+            this.depth = depth;
+        }*//*
+
+        public State() {
+            this(Lists.empty(), new StringBuilder(), 0);
+        }*/
 	/*private*/ /*boolean*/ isLevel(/**/);
 	/*private*/ /*State*/ append(/*char c*/);
 	/*private*/ /*State*/ advance(/**/);
@@ -144,7 +148,7 @@
             if (paramEnd >= 0) {
                 final var params = withParams.substring(0, paramEnd);
                 final var content = withParams.substring(paramEnd + ")".length()).strip();
-                final var maybeDefinition = compileDefinition(beforeParams);
+                final var maybeDefinition = parseDefinition(beforeParams);
                 if (maybeDefinition.isPresent()) {
                     final var definition = maybeDefinition.get();
                     if (!definition.typeParameters.isEmpty()) {
@@ -178,7 +182,7 @@
         final var stripped = input.strip();
         if (stripped.endsWith(";")) {
             final var withoutEnd = stripped.substring(0, stripped.length() - ";".length());
-            return compileDefinition(withoutEnd).map(JavaDefinition::generate).map(generated -> {
+            return parseDefinition(withoutEnd).map(JavaDefinition::generate).map(generated -> {
                 return new Tuple<>(Lists.empty(), "\n\t" + generated + ";");
             });
         }
@@ -186,15 +190,14 @@
         return Optional.empty();
     }*//*
 
-    private static Optional<JavaDefinition> compileDefinition(String input) {
+    private static Optional<JavaDefinition> parseDefinition(String input) {
         final var nameSeparator = input.lastIndexOf(" ");
         if (nameSeparator >= 0) {
             final var beforeName = input.substring(0, nameSeparator).strip();
             final var name = input.substring(nameSeparator + " ".length()).strip();
 
             if (isSymbol(name)) {
-                final var generated = parseDefinitionWithBeforeType(beforeName, name);
-                return Optional.of(generated);
+                return parseDefinitionWithBeforeType(beforeName, name);
             }
         }
         return Optional.empty();
@@ -211,33 +214,38 @@
         return true;
     }*//*
 
-    private static JavaDefinition parseDefinitionWithBeforeType(String beforeName, String name) {
+    private static Optional<JavaDefinition> parseDefinitionWithBeforeType(String beforeName, String name) {
         final var typeSeparator = beforeName.lastIndexOf(" ");
         if (typeSeparator < 0) {
-            var type = compileType(beforeName);
-            return new JavaDefinition(Optional.empty(), Lists.empty(), type, name);
+            return compileType(beforeName).map(type -> {
+                return new JavaDefinition(Optional.empty(), Lists.empty(), type, name);
+            });
         }
 
         final var type = beforeName.substring(typeSeparator + " ".length());
-        final var compiledType = compileType(type);
-
-        final var beforeType = beforeName.substring(0, typeSeparator).strip();
-        if (beforeType.endsWith(">")) {
-            final var withoutEnd = beforeType.substring(0, beforeType.length() - ">".length());
-            final var typeParametersStart = withoutEnd.indexOf("<");
-            if (typeParametersStart >= 0) {
-                final var beforeTypeParameters = withoutEnd.substring(0, typeParametersStart);
-                final var typeParametersString = withoutEnd.substring(typeParametersStart + "<".length());
-                final var typeParameters = parseTypeParameters(typeParametersString);
-                return new JavaDefinition(Optional.of(beforeTypeParameters), typeParameters, compiledType, name);
+        return compileType(type).map(compiledType -> {
+            final var beforeType = beforeName.substring(0, typeSeparator).strip();
+            if (beforeType.endsWith(">")) {
+                final var withoutEnd = beforeType.substring(0, beforeType.length() - ">".length());
+                final var typeParametersStart = withoutEnd.indexOf("<");
+                if (typeParametersStart >= 0) {
+                    final var beforeTypeParameters = withoutEnd.substring(0, typeParametersStart);
+                    final var typeParametersString = withoutEnd.substring(typeParametersStart + "<".length());
+                    final var typeParameters = parseTypeParameters(typeParametersString);
+                    return new JavaDefinition(Optional.of(beforeTypeParameters), typeParameters, compiledType, name);
+                }
             }
-        }
 
-        return new JavaDefinition(Optional.of(beforeType), Lists.empty(), compiledType, name);
+            return new JavaDefinition(Optional.of(beforeType), Lists.empty(), compiledType, name);
+        });
     }*//*
 
-    private static String compileType(String type) {
-        return generatePlaceholder(type);
+    private static Optional<String> compileType(String type) {
+        if (type.equals("private") || type.equals("public")) {
+            return Optional.empty();
+        }
+
+        return Optional.of(generatePlaceholder(type));
     }*//*
 
     private static Optional<ClassDefinition> compileClassDefinition(String input) {
