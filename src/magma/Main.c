@@ -191,7 +191,7 @@ List<Array<char>> divide(Array<char> input, struct State (*folder)(struct State,
 			current = maybeNext.get();
 		}
 		else {
-			/*break*/;
+			break;
 		}
 	}
 	return current.advance().segments;
@@ -431,6 +431,10 @@ struct Main {/*' && appended.isShallow()) {
 
     private static String compileFunctionStatementValue(String input) {
         final var stripped = input.strip();
+        if (stripped.equals("break")) {
+            return "break";
+        }
+
         if (stripped.startsWith("return ")) {
             final var value = stripped.substring("return ".length());
             return "return " + compileValue(value);

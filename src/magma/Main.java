@@ -870,6 +870,10 @@ public class Main {
 
     private static String compileFunctionStatementValue(String input) {
         final var stripped = input.strip();
+        if (stripped.equals("break")) {
+            return "break";
+        }
+
         if (stripped.startsWith("return ")) {
             final var value = stripped.substring("return ".length());
             return "return " + compileValue(value);
