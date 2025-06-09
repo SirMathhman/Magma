@@ -835,6 +835,10 @@ public class Main {
 
     private static String compileBlockHeader(String input) {
         final var stripped = input.strip();
+        if (stripped.equals("else")) {
+            return "else";
+        }
+
         if (stripped.endsWith(")")) {
             final var withoutEnd = stripped.substring(0, stripped.length() - ")".length());
             final var conditionStart = withoutEnd.indexOf("(");

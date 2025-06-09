@@ -60,7 +60,7 @@ Option<Tuple<struct State, char>> pop() {
 		auto next = struct State(this.input, this.segments, this.buffer, this.depth, this.index + 1);
 		return Some<struct >(Tuple<struct >(next, c));
 	}
-	/*else*/ {
+	else {
 		return None<struct >();
 	}
 }
@@ -190,7 +190,7 @@ List<Array<char>> divide(Array<char> input, struct State (*folder)(struct State,
 		if (maybeNext.isPresent()) {
 			current = maybeNext.get();
 		}
-		/*else*/ {
+		else {
 			/*break*/;
 		}
 	}
@@ -396,6 +396,10 @@ struct Main {/*' && appended.isShallow()) {
 
     private static String compileBlockHeader(String input) {
         final var stripped = input.strip();
+        if (stripped.equals("else")) {
+            return "else";
+        }
+
         if (stripped.endsWith(")")) {
             final var withoutEnd = stripped.substring(0, stripped.length() - ")".length());
             final var conditionStart = withoutEnd.indexOf("(");
