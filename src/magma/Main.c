@@ -1,16 +1,16 @@
-/*private*/struct Path {
+struct Path {
 	struct Result readString();
 	Option<struct IOError> write(Array<char> content);
 	struct Path resolveSibling(Array<char> name);
 };
-/*private*/struct IOError {
+struct IOError {
 	Array<char> display();
 };
-/*private*/struct Result {
+struct Result {
 };
-/*private @*/struct Actual {
+struct Actual {
 };
-/*private static*/struct Lists {
+struct Lists {
 };
 State new(List<Array<char>> segments, Array<char> buffer, int depth) {
 	this.segments = segments;
@@ -43,7 +43,7 @@ struct State exit() {
 int isShallow() {
 	return this.depth == 1;
 }
-/*private static*/struct State {
+struct State {
 	List<Array<char>> segments;
 	Array<char> buffer;
 	int depth;
@@ -55,54 +55,33 @@ int isShallow() {
 	int isShallow();
 };
 Array<char> generate() {
-	return generatePlaceholder(this.beforeKeyword) + "struct " + this.name;
+	return "struct " + this.name;
 }
-/*private*/struct ClassDefinition {
+struct ClassDefinition {
 	Array<char> generate();
 };
 Array<char> generate() {
 	return this.type + " " + this.name;
 }
-/*private*/struct JavaDefinition {
+struct JavaDefinition {
 	Array<char> generate();
 };
-/*private*/struct Ok(String value) implements Result {
+struct Ok(String value) implements Result {
 };
-/*private*/struct Err(IOError error) implements Result {
+struct Err(IOError error) implements Result {
 };
 Array<char> display() {
 	auto writer = struct StringWriter();
 	this.exception.printStackTrace(struct PrintWriter(writer));
 	return writer.toString();
 }
-/*private*/struct JavaIOError(IOException exception) implements IOError {
+struct JavaIOError(IOException exception) implements IOError {
 	Array<char> display();
-};
-struct Path resolveSibling(Array<char> name) {
-	return struct JavaPath(this.path.resolveSibling(name));
-}
-Option<struct IOError> write(Array<char> content) {/*try {
-                Files.writeString(this.path, content);
-                return new None<>();
-            }*//* catch (IOException e) {
-                return new Some<>(new JavaIOError(e));
-            }*/
-}
-struct Result readString() {/*try {
-                return new Ok(Files.readString(this.path));
-            }*//* catch (IOException e) {
-                return new Err(new JavaIOError(e));
-            }*/
-}
-/*private*/struct JavaPath(java.nio.file.Path path) implements Path {
-	struct Path resolveSibling(Array<char> name);
-	Option<struct IOError> write(Array<char> content);
-	struct Result readString();
 };
 struct Path get(Array<char> first, /*String...*/ more) {
 	return struct JavaPath(/*java.nio.file.Paths.get(first*/, /* more)*/);
 }
-/*private static*/struct Paths {
+struct Paths {
 };
 void main(Array<Array<char>> args) {
 	auto source = Paths.get(".", "src", "magma", "Main.java");
@@ -150,7 +129,7 @@ struct State foldStatements(struct State state, char c) {
         }
         if (c == '*/
 }
-/*public*/struct Main {/*' && appended.isShallow()) {
+struct Main {/*' && appended.isShallow()) {
             return appended.advance().exit();
         }*//*') {
             return appended.exit();
@@ -197,24 +176,24 @@ struct State foldStatements(struct State state, char c) {
     }
 
     private static List<String> compileClassWithDefinition(ClassDefinition definition, String withEnd) {
-        if (definition.typeParameters.isEmpty()) {
-            final var inputContent = withEnd.substring(0, withEnd.length() - "}".length());
-
-            final var segments = divideStatements(inputContent);
-
-            final var tuple = segments.iter()
-                    .map(Main::compileClassSegment)
-                    .collect(new TupleCollector<>(new ListBulkCollector<>(), new Joiner()));
-
-            final var others = tuple.left;
-            final var output = tuple.right.orElse("");
-
-            final var generatedHeader = definition.generate();
-            final var generated = generatedHeader + " {" + output + "\n};\n";
-            return others.addLast(generated);
+        if (!definition.typeParameters.isEmpty() || definition.annotations.contains("Actual")) {
+            return Lists.empty();
         }
 
-        return Lists.empty();
+        final var inputContent = withEnd.substring(0, withEnd.length() - "}".length());
+
+        final var segments = divideStatements(inputContent);
+
+        final var tuple = segments.iter()
+                .map(Main::compileClassSegment)
+                .collect(new TupleCollector<>(new ListBulkCollector<>(), new Joiner()));
+
+        final var others = tuple.left;
+        final var output = tuple.right.orElse("");
+
+        final var generatedHeader = definition.generate();
+        final var generated = generatedHeader + " {" + output + "\n};\n";
+        return others.addLast(generated);
     }*//*
 
     private static Tuple<List<String>, String> compileClassSegment(String input) {
@@ -540,11 +519,7 @@ struct State foldStatements(struct State state, char c) {
         final var separator = beforeTypeParameters.lastIndexOf("\n");
         if (separator >= 0) {
             final var annotationsString = beforeTypeParameters.substring(0, separator);
-            final var annotations = divide(annotationsString, foldByDelimiter('\n'))
-                    .iter()
-                    .map(String::strip)
-                    .map(value -> value.substring(1))
-                    .collect(new ListCollector<>());
+            final var annotations = parseAnnotations(annotationsString);
 
             final var substring = beforeTypeParameters.substring(separator + "\n".length());
 
@@ -555,6 +530,14 @@ struct State foldStatements(struct State state, char c) {
             final var modifiers = parseModifiers(beforeTypeParameters);
             return new JavaDefinition(Lists.empty(), modifiers, typeParameters, type, name);
         }
+    }*//*
+
+    private static List<String> parseAnnotations(String annotationsString) {
+        return divide(annotationsString, foldByDelimiter('\n'))
+                .iter()
+                .map(String::strip)
+                .map(value -> value.substring(1))
+                .collect(new ListCollector<>());
     }*//*
 
     private static List<String> parseModifiers(String beforeTypeParameters) {
@@ -660,12 +643,29 @@ struct State foldStatements(struct State state, char c) {
             final var typeParamsStart = withoutEnd.indexOf("<");
             if (typeParamsStart >= 0) {
                 final var base = withoutEnd.substring(0, typeParamsStart);
-                final var typeParameters = withoutEnd.substring(typeParamsStart + "<".length());
-                return new ClassDefinition(beforeKeyword, base, parseTypeParameters(typeParameters));
+                final var typeParametersString = withoutEnd.substring(typeParamsStart + "<".length());
+                final var typeParameters = parseTypeParameters(typeParametersString);
+                return parseClassDefinitionWithModifiers(beforeKeyword, base, typeParameters);
             }
         }
 
-        return new ClassDefinition(beforeKeyword, stripped, Lists.empty());
+        return parseClassDefinitionWithModifiers(beforeKeyword, stripped, Lists.empty());
+    }*//*
+
+    private static ClassDefinition parseClassDefinitionWithModifiers(String beforeKeyword, String base, List<String> typeParameters) {
+        final var i = beforeKeyword.lastIndexOf("\n");
+        if (i >= 0) {
+            final var annotationsString = beforeKeyword.substring(0, i);
+            final var modifiersString = beforeKeyword.substring(i + "\n".length());
+
+            final var annotations = parseAnnotations(annotationsString);
+            final var modifiers = parseModifiers(modifiersString);
+
+            return new ClassDefinition(annotations, modifiers, base, typeParameters);
+        }
+
+        final var modifiers = parseModifiers(beforeKeyword);
+        return new ClassDefinition(Lists.empty(), modifiers, base, typeParameters);
     }*//*
 
     private static List<String> parseTypeParameters(String typeParameters) {

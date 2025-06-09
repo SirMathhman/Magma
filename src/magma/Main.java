@@ -352,9 +352,10 @@ public class Main {
         }
     }
 
-    private record ClassDefinition(String beforeKeyword, String name, List<String> typeParameters) {
+    private record ClassDefinition(List<String> annotations, List<String> modifiers, String name,
+                                   List<String> typeParameters) {
         private String generate() {
-            return generatePlaceholder(this.beforeKeyword) + "struct " + this.name;
+            return "struct " + this.name;
         }
     }
 
@@ -405,6 +406,7 @@ public class Main {
         }
     }
 
+    @Actual
     private record JavaPath(java.nio.file.Path path) implements Path {
         @Override
         public Path resolveSibling(String name) {
@@ -543,24 +545,24 @@ public class Main {
     }
 
     private static List<String> compileClassWithDefinition(ClassDefinition definition, String withEnd) {
-        if (definition.typeParameters.isEmpty()) {
-            final var inputContent = withEnd.substring(0, withEnd.length() - "}".length());
-
-            final var segments = divideStatements(inputContent);
-
-            final var tuple = segments.iter()
-                    .map(Main::compileClassSegment)
-                    .collect(new TupleCollector<>(new ListBulkCollector<>(), new Joiner()));
-
-            final var others = tuple.left;
-            final var output = tuple.right.orElse("");
-
-            final var generatedHeader = definition.generate();
-            final var generated = generatedHeader + " {" + output + "\n};\n";
-            return others.addLast(generated);
+        if (!definition.typeParameters.isEmpty() || definition.annotations.contains("Actual")) {
+            return Lists.empty();
         }
 
-        return Lists.empty();
+        final var inputContent = withEnd.substring(0, withEnd.length() - "}".length());
+
+        final var segments = divideStatements(inputContent);
+
+        final var tuple = segments.iter()
+                .map(Main::compileClassSegment)
+                .collect(new TupleCollector<>(new ListBulkCollector<>(), new Joiner()));
+
+        final var others = tuple.left;
+        final var output = tuple.right.orElse("");
+
+        final var generatedHeader = definition.generate();
+        final var generated = generatedHeader + " {" + output + "\n};\n";
+        return others.addLast(generated);
     }
 
     private static Tuple<List<String>, String> compileClassSegment(String input) {
@@ -886,11 +888,7 @@ public class Main {
         final var separator = beforeTypeParameters.lastIndexOf("\n");
         if (separator >= 0) {
             final var annotationsString = beforeTypeParameters.substring(0, separator);
-            final var annotations = divide(annotationsString, foldByDelimiter('\n'))
-                    .iter()
-                    .map(String::strip)
-                    .map(value -> value.substring(1))
-                    .collect(new ListCollector<>());
+            final var annotations = parseAnnotations(annotationsString);
 
             final var substring = beforeTypeParameters.substring(separator + "\n".length());
 
@@ -901,6 +899,14 @@ public class Main {
             final var modifiers = parseModifiers(beforeTypeParameters);
             return new JavaDefinition(Lists.empty(), modifiers, typeParameters, type, name);
         }
+    }
+
+    private static List<String> parseAnnotations(String annotationsString) {
+        return divide(annotationsString, foldByDelimiter('\n'))
+                .iter()
+                .map(String::strip)
+                .map(value -> value.substring(1))
+                .collect(new ListCollector<>());
     }
 
     private static List<String> parseModifiers(String beforeTypeParameters) {
@@ -1006,12 +1012,29 @@ public class Main {
             final var typeParamsStart = withoutEnd.indexOf("<");
             if (typeParamsStart >= 0) {
                 final var base = withoutEnd.substring(0, typeParamsStart);
-                final var typeParameters = withoutEnd.substring(typeParamsStart + "<".length());
-                return new ClassDefinition(beforeKeyword, base, parseTypeParameters(typeParameters));
+                final var typeParametersString = withoutEnd.substring(typeParamsStart + "<".length());
+                final var typeParameters = parseTypeParameters(typeParametersString);
+                return parseClassDefinitionWithModifiers(beforeKeyword, base, typeParameters);
             }
         }
 
-        return new ClassDefinition(beforeKeyword, stripped, Lists.empty());
+        return parseClassDefinitionWithModifiers(beforeKeyword, stripped, Lists.empty());
+    }
+
+    private static ClassDefinition parseClassDefinitionWithModifiers(String beforeKeyword, String base, List<String> typeParameters) {
+        final var i = beforeKeyword.lastIndexOf("\n");
+        if (i >= 0) {
+            final var annotationsString = beforeKeyword.substring(0, i);
+            final var modifiersString = beforeKeyword.substring(i + "\n".length());
+
+            final var annotations = parseAnnotations(annotationsString);
+            final var modifiers = parseModifiers(modifiersString);
+
+            return new ClassDefinition(annotations, modifiers, base, typeParameters);
+        }
+
+        final var modifiers = parseModifiers(beforeKeyword);
+        return new ClassDefinition(Lists.empty(), modifiers, base, typeParameters);
     }
 
     private static List<String> parseTypeParameters(String typeParameters) {
