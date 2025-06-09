@@ -450,13 +450,23 @@ public class Main {
             final var withoutEnd = stripped.substring(0, stripped.length() - ")".length());
             final var argumentsStart = withoutEnd.indexOf("(");
             if (argumentsStart >= 0) {
-                final var caller = withoutEnd.substring(0, argumentsStart);
                 final var arguments = withoutEnd.substring(argumentsStart + "(".length());
-                return Optional.of(compileValue(caller) + "(" + compileValues(arguments, Main::compileValue) + ")");
+
+                final var oldCaller = withoutEnd.substring(0, argumentsStart);
+                final var newCaller = oldCaller.startsWith("new ")
+                        ? compileConstruction(oldCaller)
+                        : compileValue(oldCaller);
+
+                return Optional.of(newCaller + "(" + compileValues(arguments, Main::compileValue) + ")");
             }
         }
 
         return Optional.empty();
+    }
+
+    private static String compileConstruction(String caller) {
+        final var type = caller.substring("new ".length());
+        return compileType(type).orElseGet(() -> generatePlaceholder(type));
     }
 
     private static String compileValue(String input) {

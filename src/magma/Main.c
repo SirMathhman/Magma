@@ -9,7 +9,7 @@
 }
 /*private*/ struct State advance() {
 	this.segments = this.segments.addLast(this.buffer.toString());
-	this.buffer = /*new StringBuilder*/();
+	this.buffer = struct StringBuilder();
 	return this;
 }
 /*private*/ struct State enter() {
@@ -90,7 +90,7 @@
 	return divide(input, /* Main::foldStatements*/);
 }
 /*private static*/ /*List<String>*/ divide(struct String input, /* BiFunction<State*/, struct  Character, /*State>*/ folder) {
-	/*var current */ = /*new State*/();
+	/*var current */ = struct State();
 	/*for (var i */ = 0;
 	/*i < input*/.length();/* i++) {
             final var c = input.charAt(i);
@@ -277,13 +277,23 @@ struct if (/*c == '{'*/) {
             final var withoutEnd = stripped.substring(0, stripped.length() - ")".length());
             final var argumentsStart = withoutEnd.indexOf("(");
             if (argumentsStart >= 0) {
-                final var caller = withoutEnd.substring(0, argumentsStart);
                 final var arguments = withoutEnd.substring(argumentsStart + "(".length());
-                return Optional.of(compileValue(caller) + "(" + compileValues(arguments, Main::compileValue) + ")");
+
+                final var oldCaller = withoutEnd.substring(0, argumentsStart);
+                final var newCaller = oldCaller.startsWith("new ")
+                        ? compileConstruction(oldCaller)
+                        : compileValue(oldCaller);
+
+                return Optional.of(newCaller + "(" + compileValues(arguments, Main::compileValue) + ")");
             }
         }
 
         return Optional.empty();
+    }*//*
+
+    private static String compileConstruction(String caller) {
+        final var type = caller.substring("new ".length());
+        return compileType(type).orElseGet(() -> generatePlaceholder(type));
     }*//*
 
     private static String compileValue(String input) {
