@@ -434,6 +434,13 @@ public class Main {
             return "return " + compileValue(value);
         }
 
+        final var i = stripped.indexOf("=");
+        if (i >= 0) {
+            final var substring = stripped.substring(0, i);
+            final var substring1 = stripped.substring(i + "=".length());
+            return compileValue(substring) + " = " + compileValue(substring1);
+        }
+
         if (stripped.endsWith(")")) {
             final var withoutEnd = stripped.substring(0, stripped.length() - ")".length());
             final var argumentsStart = withoutEnd.indexOf("(");
@@ -442,13 +449,6 @@ public class Main {
                 final var arguments = withoutEnd.substring(argumentsStart + "(".length());
                 return compileValue(caller) + "(" + compileValues(arguments, Main::compileValue) + ")";
             }
-        }
-
-        final var i = stripped.indexOf("=");
-        if (i >= 0) {
-            final var substring = stripped.substring(0, i);
-            final var substring1 = stripped.substring(i + "=".length());
-            return compileValue(substring) + " = " + compileValue(substring1);
         }
 
         return generatePlaceholder(input);

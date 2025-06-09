@@ -8,8 +8,8 @@
 	return this;
 }
 /*private*/ struct State advance() {
-	/*this.segments = this*/.segments.addLast(/*this.buffer.toString()*/);
-	/*this.buffer = new StringBuilder*/();
+	this.segments = /* this.segments.addLast(this.buffer.toString())*/;
+	this.buffer = /* new StringBuilder()*/;
 	return this;
 }
 /*private*/ struct State enter() {
@@ -51,9 +51,9 @@
 	/*private*/ struct String generate();
 };
 /*private*/ struct String generate() {
-	/*final var beforeType = this*/.maybeBefore.map(/*Main::generatePlaceholder)
+	/*final var beforeType */ = /* this.maybeBefore.map(Main::generatePlaceholder)
                     .map(inner -> inner */ + /* " ")
-                    .orElse(""*/);
+                    .orElse("")*/;
 	return beforeType + this.type + /* " " */ + this.name;
 }
 /*private*/struct JavaDefinition {
@@ -90,7 +90,7 @@
 	return /*divide(input, Main::foldStatements)*/;
 }
 /*private static*/ /*List<String>*/ divide(struct String input, /* BiFunction<State*/, struct  Character, /*State>*/ folder) {
-	/*var current = new State*/();
+	/*var current */ = /* new State()*/;
 	/*for (var i */ = 0;
 	/*i < input*/.length();/* i++) {
             final var c = input.charAt(i);
@@ -99,7 +99,7 @@
 	return /*current.advance()*/.segments;
 }
 /*private static*/ struct State foldStatements(struct State state, char c) {
-	/*final var appended = state*/.append(c);
+	/*final var appended */ = /* state.append(c)*/;
 	/*if (c */ = /*= '*/;/*' && appended.isLevel()) {
             return appended.advance();
         }*//*
@@ -261,6 +261,13 @@ struct if (/*c == '{'*/) {
             return "return " + compileValue(value);
         }
 
+        final var i = stripped.indexOf("=");
+        if (i >= 0) {
+            final var substring = stripped.substring(0, i);
+            final var substring1 = stripped.substring(i + "=".length());
+            return compileValue(substring) + " = " + compileValue(substring1);
+        }
+
         if (stripped.endsWith(")")) {
             final var withoutEnd = stripped.substring(0, stripped.length() - ")".length());
             final var argumentsStart = withoutEnd.indexOf("(");
@@ -269,13 +276,6 @@ struct if (/*c == '{'*/) {
                 final var arguments = withoutEnd.substring(argumentsStart + "(".length());
                 return compileValue(caller) + "(" + compileValues(arguments, Main::compileValue) + ")";
             }
-        }
-
-        final var i = stripped.indexOf("=");
-        if (i >= 0) {
-            final var substring = stripped.substring(0, i);
-            final var substring1 = stripped.substring(i + "=".length());
-            return compileValue(substring) + " = " + compileValue(substring1);
         }
 
         return generatePlaceholder(input);
