@@ -309,12 +309,25 @@ public class Main {
                 final var beforeName = withoutEnd.substring(0, nameSeparator).strip();
                 final var name = withoutEnd.substring(nameSeparator + " ".length()).strip();
 
-                final var generated = compileFieldWithType(beforeName, name);
-                return Optional.of(new Tuple<>(Lists.empty(), generated));
+                if (isSymbol(name)) {
+                    final var generated = compileFieldWithType(beforeName, name);
+                    return Optional.of(new Tuple<>(Lists.empty(), generated));
+                }
             }
         }
 
         return Optional.empty();
+    }
+
+    private static boolean isSymbol(String input) {
+        for (var i = 0; i < input.length(); i++) {
+            final var c = input.charAt(i);
+            if (Character.isLetter(c)) {
+                continue;
+            }
+            return false;
+        }
+        return true;
     }
 
     private static String compileFieldWithType(String beforeName, String name) {
