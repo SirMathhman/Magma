@@ -75,7 +75,7 @@ struct Paths {
 };
 void main(Array<Array<char>> args) {
 	auto source = Paths.get(".", "src", "magma", "Main.java");
-	source.readString().match(input - /*> compileAndWrite(input*/, /* source)*/, /* Some::new*/).ifPresent(error - /*> printErroneousLine*/(error.display()));
+	source.readString().match(input - /*> compileAndWrite(input, source), Some::new*/).ifPresent(error - /*> printErroneousLine*/(error.display()));
 }
 void printErroneousLine(Array<char> content);
 Option<struct IOError> compileAndWrite(Array<char> input, struct Path source) {
@@ -86,10 +86,10 @@ Option<struct IOError> compileAndWrite(Array<char> input, struct Path source) {
 Array<char> compile(Array<char> input) {
 	return compileStatements(input, /* Main::compileRootSegment*/);
 }
-Array<char> compileStatements(Array<char> input, /* Function<String*/, /*String>*/ mapper) {
+Array<char> compileStatements(Array<char> input, Function<Array<char>, Array<char>> mapper) {
 	return compileAll(input, /* Main::foldStatements*/, mapper, /* Main::mergeStatements*/);
 }
-Array<char> compileAll(Array<char> input, /* BiFunction<State*/, /* Character*/, /*State>*/ folder, /* Function<String*/, /*String>*/ mapper, /* BiFunction<String*/, /* String*/, /*String>*/ merger) {
+Array<char> compileAll(Array<char> input, BiFunction<struct State, struct Character, struct State> folder, Function<Array<char>, Array<char>> mapper, BiFunction<Array<char>, Array<char>, Array<char>> merger) {
 	return divide(input, folder).iter().map(mapper).fold("", merger);
 }
 Array<char> mergeStatements(Array<char> buffer, Array<char> element) {
@@ -98,7 +98,7 @@ Array<char> mergeStatements(Array<char> buffer, Array<char> element) {
 List<Array<char>> divideStatements(Array<char> input) {
 	return divide(input, /* Main::foldStatements*/);
 }
-List<Array<char>> divide(Array<char> input, /* BiFunction<State*/, /* Character*/, /*State>*/ folder) {
+List<Array<char>> divide(Array<char> input, BiFunction<struct State, struct Character, struct State> folder) {
 	auto current = struct State();
 	/*(var*/ i = 0;
 	/*i < input*/.length();/* i++) {
@@ -482,27 +482,53 @@ struct Main {/*' && appended.isShallow()) {
     }*//*
 
     private static Option<JavaDefinition> parseDefinitionWithType(String beforeName, String name) {
-        final var typeSeparator = beforeName.lastIndexOf(" ");
-        if (typeSeparator < 0) {
+        final var maybeTuple = divide(beforeName, Main::foldTypeSeparator).popLast();
+        if (maybeTuple.isEmpty()) {
             return compileType(beforeName).map(type -> new JavaDefinition(Lists.empty(), Lists.empty(), Lists.empty(), type, name));
         }
 
-        final var type = beforeName.substring(typeSeparator + " ".length());
-        return compileType(type).map(compiledType -> {
-            final var beforeType = beforeName.substring(0, typeSeparator).strip();
-            if (beforeType.endsWith(">")) {
-                final var withoutEnd = beforeType.substring(0, beforeType.length() - ">".length());
-                final var typeParametersStart = withoutEnd.indexOf("<");
-                if (typeParametersStart >= 0) {
-                    final var beforeTypeParameters = withoutEnd.substring(0, typeParametersStart);
-                    final var typeParametersString = withoutEnd.substring(typeParametersStart + "<".length());
-                    final var typeParameters = parseTypeParameters(typeParametersString);
-                    return parseDefinitionWithModifiers(beforeTypeParameters, typeParameters, compiledType, name);
-                }
-            }
+        final var tuple = maybeTuple.get();
+        final var beforeType = tuple.left
+                .iter()
+                .collect(new Joiner(" "))
+                .orElse("");
 
-            return parseDefinitionWithModifiers(beforeType, Lists.empty(), compiledType, name);
+        final var type = tuple.right;
+
+        return compileType(type).map(compiledType -> {
+            return parseDefinitionWithTypeParameters(name, compiledType, beforeType);
         });
+    }*//*
+
+    private static State foldTypeSeparator(State state, char c) {
+        if (c == ' ' && state.isLevel()) {
+            return state.advance();
+        }
+
+        final var appended = state.append(c);
+        if (c == '<') {
+            return appended.enter();
+        }
+        if (c == '>') {
+            return appended.exit();
+        }
+        return appended;
+    }*//*
+
+    private static JavaDefinition parseDefinitionWithTypeParameters(String name, String compiledType, String input) {
+        final var beforeType = input.strip();
+        if (beforeType.endsWith(">")) {
+            final var withoutEnd = beforeType.substring(0, beforeType.length() - ">".length());
+            final var typeParametersStart = withoutEnd.indexOf("<");
+            if (typeParametersStart >= 0) {
+                final var beforeTypeParameters = withoutEnd.substring(0, typeParametersStart);
+                final var typeParametersString = withoutEnd.substring(typeParametersStart + "<".length());
+                final var typeParameters = parseTypeParameters(typeParametersString);
+                return parseDefinitionWithModifiers(beforeTypeParameters, typeParameters, compiledType, name);
+            }
+        }
+
+        return parseDefinitionWithModifiers(beforeType, Lists.empty(), compiledType, name);
     }*//*
 
     private static JavaDefinition parseDefinitionWithModifiers(String beforeTypeParameters, List<String> typeParameters, String type, String name) {
@@ -670,10 +696,18 @@ struct Main {/*' && appended.isShallow()) {
     }*//*
 
     private static State foldValues(State state, char c) {
-        if (c == ',') {
+        if (c == ',' && state.isLevel()) {
             return state.advance();
         }
-        return state.append(c);
+
+        final var appended = state.append(c);
+        if (c == '<') {
+            return appended.enter();
+        }
+        if (c == '>') {
+            return appended.exit();
+        }
+        return appended;
     }*//*
 
     private static String generatePlaceholder(String input) {

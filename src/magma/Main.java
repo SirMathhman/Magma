@@ -40,6 +40,8 @@ public class Main {
         Option<T> or(Supplier<Option<T>> other);
 
         <R> Option<R> flatMap(Function<T, Option<R>> mapper);
+
+        boolean isEmpty();
     }
 
     private interface Collector<T, C> {
@@ -120,6 +122,11 @@ public class Main {
         public <R> Option<R> flatMap(Function<T, Option<R>> mapper) {
             return new None<>();
         }
+
+        @Override
+        public boolean isEmpty() {
+            return true;
+        }
     }
 
     private record Some<T>(T value) implements Option<T> {
@@ -161,6 +168,11 @@ public class Main {
         @Override
         public <R> Option<R> flatMap(Function<T, Option<R>> mapper) {
             return mapper.apply(this.value);
+        }
+
+        @Override
+        public boolean isEmpty() {
+            return false;
         }
     }
 
@@ -318,7 +330,11 @@ public class Main {
     private record Tuple<A, B>(A left, B right) {
     }
 
-    private static class Joiner implements Collector<String, Option<String>> {
+    private record Joiner(String delimiter) implements Collector<String, Option<String>> {
+        public Joiner() {
+            this("");
+        }
+
         @Override
         public Option<String> createInitial() {
             return new None<>();
@@ -326,7 +342,7 @@ public class Main {
 
         @Override
         public Option<String> fold(Option<String> current, String element) {
-            return new Some<>(current.map(inner -> inner + element).orElse(element));
+            return new Some<>(current.map(inner -> inner + this.delimiter + element).orElse(element));
         }
     }
 
@@ -866,17 +882,41 @@ public class Main {
     }
 
     private static Option<JavaDefinition> parseDefinitionWithType(String beforeName, String name) {
-        final var typeSeparator = beforeName.lastIndexOf(" ");
-        if (typeSeparator < 0) {
+        final var maybeTuple = divide(beforeName, Main::foldTypeSeparator).popLast();
+        if (maybeTuple.isEmpty()) {
             return compileType(beforeName).map(type -> new JavaDefinition(Lists.empty(), Lists.empty(), Lists.empty(), type, name));
         }
 
-        final var type = beforeName.substring(typeSeparator + " ".length());
-        return compileType(type).map(compiledType -> parseDefinitionWithTypeParameters(beforeName, name, compiledType, typeSeparator));
+        final var tuple = maybeTuple.get();
+        final var beforeType = tuple.left
+                .iter()
+                .collect(new Joiner(" "))
+                .orElse("");
+
+        final var type = tuple.right;
+
+        return compileType(type).map(compiledType -> {
+            return parseDefinitionWithTypeParameters(name, compiledType, beforeType);
+        });
     }
 
-    private static JavaDefinition parseDefinitionWithTypeParameters(String beforeName, String name, String compiledType, int typeSeparator) {
-        final var beforeType = beforeName.substring(0, typeSeparator).strip();
+    private static State foldTypeSeparator(State state, char c) {
+        if (c == ' ' && state.isLevel()) {
+            return state.advance();
+        }
+
+        final var appended = state.append(c);
+        if (c == '<') {
+            return appended.enter();
+        }
+        if (c == '>') {
+            return appended.exit();
+        }
+        return appended;
+    }
+
+    private static JavaDefinition parseDefinitionWithTypeParameters(String name, String compiledType, String input) {
+        final var beforeType = input.strip();
         if (beforeType.endsWith(">")) {
             final var withoutEnd = beforeType.substring(0, beforeType.length() - ">".length());
             final var typeParametersStart = withoutEnd.indexOf("<");
@@ -1056,10 +1096,18 @@ public class Main {
     }
 
     private static State foldValues(State state, char c) {
-        if (c == ',') {
+        if (c == ',' && state.isLevel()) {
             return state.advance();
         }
-        return state.append(c);
+
+        final var appended = state.append(c);
+        if (c == '<') {
+            return appended.enter();
+        }
+        if (c == '>') {
+            return appended.exit();
+        }
+        return appended;
     }
 
     private static String generatePlaceholder(String input) {
