@@ -4,12 +4,12 @@
 	return this.depth == 0;
 }
 /*private*/ struct State append(char c) {
-	/*this.buffer.append(c)*/;
+	this.buffer.append(c);
 	return this;
 }
 /*private*/ struct State advance() {
-	/*this.segments = this.segments.addLast(this.buffer.toString())*/;
-	/*this.buffer = new StringBuilder()*/;
+	this.segments = this.segments.addLast(this.buffer.toString());
+	this.buffer = new StringBuilder();
 	return this;
 }
 /*private*/ struct State enter() {
@@ -51,9 +51,8 @@
 	/*private*/ struct String generate();
 };
 /*private*/ struct String generate() {
-	/*final var beforeType = this.maybeBefore.map(Main::generatePlaceholder)
-                    .map(inner -> inner + " ")
-                    .orElse("")*/;
+	/*final var beforeType = this*/.maybeBefore.map(/*Main::generatePlaceholder)
+                    */.map(inner -> inner + " ").orElse("");
 	return /*beforeType + this*/.type + " " + this.name;
 }
 /*private*/struct JavaDefinition {
@@ -87,16 +86,16 @@
 	return /*divide(input, Main::foldStatements)*/;
 }
 /*private static*/ /*List<String>*/ divide(struct String input, /* BiFunction<State*/, struct  Character, /*State>*/ folder) {
-	/*var current = new State()*/;
+	/*var current = new State*/();
 	/*for (var i = 0*/;
-	/*i < input.length()*/;/* i++) {
+	/*i < input*/.length();/* i++) {
             final var c = input.charAt(i);
             current = folder.apply(current, c);
         }*/
 	return current.advance().segments;
 }
 /*private static*/ struct State foldStatements(struct State state, char c) {
-	/*final var appended = state.append(c)*/;
+	/*final var appended = state*/.append(c);
 	/*if (c == '*/;/*' && appended.isLevel()) {
             return appended.advance();
         }*//*
@@ -207,7 +206,7 @@ struct if (/*c == '{'*/) {
                         return Optional.of(new Tuple<>(Lists.empty(), ""));
                     }
 
-                    final var compiledParameters = compileAll(params, Main::foldValues, Main::compileParameter, Main::mergeValues);
+                    final var compiledParameters = compileValues(params, Main::compileParameter);
                     final var header = definition.generate() + "(" + compiledParameters + ")";
 
                     if (withBraces.equals(";")) {
@@ -229,6 +228,10 @@ struct if (/*c == '{'*/) {
         }
 
         return Optional.empty();
+    }*//*
+
+    private static String compileValues(String input, Function<String, String> mapper) {
+        return compileAll(input, Main::foldValues, mapper, Main::mergeValues);
     }*//*
 
     private static String compileFunctionSegment(String input) {
@@ -253,6 +256,17 @@ struct if (/*c == '{'*/) {
             final var value = stripped.substring("return ".length());
             return "return " + compileValue(value);
         }
+
+        if (stripped.endsWith(")")) {
+            final var withoutEnd = stripped.substring(0, stripped.length() - ")".length());
+            final var argumentsStart = withoutEnd.indexOf("(");
+            if (argumentsStart >= 0) {
+                final var caller = withoutEnd.substring(0, argumentsStart);
+                final var arguments = withoutEnd.substring(argumentsStart + "(".length());
+                return compileValue(caller) + "(" + compileValues(arguments, Main::compileValue) + ")";
+            }
+        }
+
 
         return generatePlaceholder(input);
     }*//*

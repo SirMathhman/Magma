@@ -383,7 +383,7 @@ public class Main {
                         return Optional.of(new Tuple<>(Lists.empty(), ""));
                     }
 
-                    final var compiledParameters = compileAll(params, Main::foldValues, Main::compileParameter, Main::mergeValues);
+                    final var compiledParameters = compileValues(params, Main::compileParameter);
                     final var header = definition.generate() + "(" + compiledParameters + ")";
 
                     if (withBraces.equals(";")) {
@@ -407,6 +407,10 @@ public class Main {
         return Optional.empty();
     }
 
+    private static String compileValues(String input, Function<String, String> mapper) {
+        return compileAll(input, Main::foldValues, mapper, Main::mergeValues);
+    }
+
     private static String compileFunctionSegment(String input) {
         return compileWhitespace(input)
                 .or(() -> compileFunctionStatement(input))
@@ -428,6 +432,16 @@ public class Main {
         if (stripped.startsWith("return ")) {
             final var value = stripped.substring("return ".length());
             return "return " + compileValue(value);
+        }
+
+        if (stripped.endsWith(")")) {
+            final var withoutEnd = stripped.substring(0, stripped.length() - ")".length());
+            final var argumentsStart = withoutEnd.indexOf("(");
+            if (argumentsStart >= 0) {
+                final var caller = withoutEnd.substring(0, argumentsStart);
+                final var arguments = withoutEnd.substring(argumentsStart + "(".length());
+                return compileValue(caller) + "(" + compileValues(arguments, Main::compileValue) + ")";
+            }
         }
 
         return generatePlaceholder(input);
