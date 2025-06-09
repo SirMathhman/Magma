@@ -116,9 +116,10 @@ public class Main {
             final var beforeContent = input.substring(0, contentStart);
             final var withEnd = input.substring(contentStart + "{".length()).strip();
             if (withEnd.endsWith("}")) {
-                final var content = withEnd.substring(0, withEnd.length() - "}".length());
                 final var header = compileClassDefinition(beforeContent);
-                return Optional.of(header + "{\n};\n" + compileStatements(content, Main::compileClassSegment));
+                final var inputContent = withEnd.substring(0, withEnd.length() - "}".length());
+                final var outputContent = compileStatements(inputContent, Main::compileClassSegment);
+                return Optional.of(header + "{" + outputContent + "\n};\n");
             }
         }
 
@@ -132,7 +133,7 @@ public class Main {
     private static String compileClassDefinition(String input) {
         final var classIndex = input.indexOf("class ");
         if (classIndex >= 0) {
-            final var beforeKeyword = input.substring(0, classIndex);
+            final var beforeKeyword = input.substring(0, classIndex).strip();
             final var afterKeyword = input.substring(classIndex + "class ".length());
             return generatePlaceholder(beforeKeyword) + "struct " + afterKeyword;
         }
