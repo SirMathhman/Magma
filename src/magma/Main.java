@@ -772,14 +772,14 @@ public class Main {
         }
 
         final var inputContent = withBraces.substring(1, withBraces.length() - 1).strip();
-        final var outputContent = compileFunctionSegments(inputContent);
+        final var outputContent = compileFunctionSegments(inputContent, 1);
         final var withinStructure = definition.modifiers.contains("static") ? "" : "\n\t" + header + ";";
 
         return new Tuple<>(Lists.of(header + " {" + outputContent + "\n}" + "\n"), withinStructure);
     }
 
-    private static String compileFunctionSegments(String input) {
-        return compileStatements(input, Main::compileFunctionSegment);
+    private static String compileFunctionSegments(String input, int depth) {
+        return compileStatements(input, input1 -> compileFunctionSegment(input1, depth));
     }
 
     private static Option<JavaDefinition> parseMethodDefinition(String input) {
@@ -809,33 +809,35 @@ public class Main {
         return parseAll(input, Main::foldValues, mapper);
     }
 
-    private static String compileFunctionSegment(String input) {
+    private static String compileFunctionSegment(String input, int depth) {
         return compileWhitespace(input)
-                .or(() -> compileFunctionStatement(input))
-                .or(() -> compileBlock(input))
+                .or(() -> compileFunctionStatement(input, depth))
+                .or(() -> compileBlock(input, depth))
                 .orElseGet(() -> generatePlaceholder(input));
     }
 
-    private static Option<String> compileBlock(String input) {
+    private static Option<String> compileBlock(String input, int depth) {
         final var stripped = input.strip();
         if (stripped.endsWith("}")) {
             final var withoutEnd = stripped.substring(0, stripped.length() - "}".length());
             final var contentStart = withoutEnd.indexOf("{");
             if (contentStart >= 0) {
                 final var header = withoutEnd.substring(0, contentStart);
-                final var content = withoutEnd.substring(contentStart + "{".length());
-                return new Some<>("\n\t" + generatePlaceholder(header) + "{" + compileFunctionSegments(content) + "}");
+                final var inputContent = withoutEnd.substring(contentStart + "{".length());
+                final var outputContent = compileFunctionSegments(inputContent, depth + 1);
+                final var indent = "\n" + "\t".repeat(depth);
+                return new Some<>(indent + generatePlaceholder(header) + "{" + outputContent + indent + "}");
             }
         }
 
         return new None<>();
     }
 
-    private static Option<String> compileFunctionStatement(String input) {
+    private static Option<String> compileFunctionStatement(String input, int depth) {
         final var stripped = input.strip();
         if (stripped.endsWith(";")) {
             final var withoutEnd = stripped.substring(0, stripped.length() - ";".length());
-            return new Some<>("\n\t" + compileFunctionStatementValue(withoutEnd) + ";");
+            return new Some<>("\n" + "\t".repeat(depth) + compileFunctionStatementValue(withoutEnd) + ";");
         }
 
         return new None<>();
