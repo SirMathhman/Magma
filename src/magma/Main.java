@@ -375,7 +375,7 @@ public class Main {
             if (paramEnd >= 0) {
                 final var params = withParams.substring(0, paramEnd);
                 final var withBraces = withParams.substring(paramEnd + ")".length()).strip();
-                final var maybeDefinition = parseDefinition(beforeParams);
+                final var maybeDefinition = parseMethodDefinition(beforeParams);
                 if (maybeDefinition.isPresent()) {
                     final var definition = maybeDefinition.get();
                     if (!definition.typeParameters.isEmpty()) {
@@ -404,6 +404,21 @@ public class Main {
         }
 
         return Optional.empty();
+    }
+
+    private static Optional<JavaDefinition> parseMethodDefinition(String input) {
+        return parseDefinition(input).or(() -> parseConstructor(input));
+    }
+
+    private static Optional<JavaDefinition> parseConstructor(String input) {
+        final var i = input.lastIndexOf(" ");
+        if (i >= 0) {
+            final var name = input.substring(i + " ".length());
+            return Optional.of(new JavaDefinition(Optional.empty(), Lists.empty(), name, "new"));
+        }
+        else {
+            return Optional.empty();
+        }
     }
 
     private static String compileValues(String input, Function<String, String> mapper) {

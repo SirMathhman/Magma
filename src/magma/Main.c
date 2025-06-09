@@ -1,5 +1,13 @@
 /*private static*/struct Lists {
 };
+State new(/*List<String>*/ segments, /*Slice<char>*/ buffer, int depth) {
+	this.segments = segments;
+	this.buffer = buffer;
+	this.depth = depth;
+}
+State new() {
+	this(Lists.empty(), /* ""*/, 0);
+}
 /*private*/ int isLevel() {
 	return this.depth == 0;
 }
@@ -26,17 +34,9 @@
 /*private static*/struct State {
 	/*private*/ /*List<String>*/ segments;
 	/*private*/ /*Slice<char>*/ buffer;
-	/*private*/ int depth;/*
-
-        private State(List<String> segments, String buffer, int depth) {
-            this.segments = segments;
-            this.buffer = buffer;
-            this.depth = depth;
-        }*//*
-
-        public State() {
-            this(Lists.empty(), "", 0);
-        }*/
+	/*private*/ int depth;
+	State new(/*List<String>*/ segments, /*Slice<char>*/ buffer, int depth);
+	State new();
 	/*private*/ int isLevel();
 	/*private*/ struct State append(char c);
 	/*private*/ struct State advance();
@@ -202,7 +202,7 @@ struct if (/*c == '{'*/) {
             if (paramEnd >= 0) {
                 final var params = withParams.substring(0, paramEnd);
                 final var withBraces = withParams.substring(paramEnd + ")".length()).strip();
-                final var maybeDefinition = parseDefinition(beforeParams);
+                final var maybeDefinition = parseMethodDefinition(beforeParams);
                 if (maybeDefinition.isPresent()) {
                     final var definition = maybeDefinition.get();
                     if (!definition.typeParameters.isEmpty()) {
@@ -231,6 +231,22 @@ struct if (/*c == '{'*/) {
         }
 
         return Optional.empty();
+    }*//*
+
+    private static Optional<JavaDefinition> parseMethodDefinition(String input) {
+        return parseDefinition(input)
+                .or(() -> parseConstructors(input));
+    }*//*
+
+    private static Optional<JavaDefinition> parseConstructors(String input) {
+        final var i = input.lastIndexOf(" ");
+        if (i >= 0) {
+            final var name = input.substring(i + " ".length());
+            return Optional.of(new JavaDefinition(Optional.empty(), Lists.empty(), name, "new"));
+        }
+        else {
+            return Optional.empty();
+        }
     }*//*
 
     private static String compileValues(String input, Function<String, String> mapper) {
