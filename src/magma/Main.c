@@ -1,4 +1,5 @@
-/*private*/struct Collector<T, C> {/*C createInitial();*/
+/*private*/struct Collector<T, C> {
+	/*C*/ createInitial();
 	/*C fold(C current,*/ /*T*/ element);
 	/*}
 
@@ -9,9 +10,8 @@
 	/*}
 
     private interface List<T> {
-        List<T>*/ /*addLast(T*/ element);/*
-
-        Iterator<T> iter();*/
+        List<T>*/ /*addLast(T*/ element);
+	/*Iterator<T>*/ iter();
 	/*List<T>*/ /*addAllLast(List<T>*/ others);
 	/*}
 
@@ -278,8 +278,8 @@
 	/*}
 
     private static Optional<Tuple<List<String>, String>> compileField(String input) {
-        final var stripped*/ /*=*/ input.strip();/*
-        if (stripped.endsWith(";*/
+        final var stripped*/ /*=*/ input.strip();
+	/*if*/ (stripped.endsWith(";
 	/*")) {
             final var withoutEnd = stripped.substring(0, stripped.length() - ";".length());
             final var nameSeparator = withoutEnd.lastIndexOf(" ");
@@ -287,20 +287,31 @@
                 final var beforeName = withoutEnd.substring(0, nameSeparator).strip();
                 final var name = withoutEnd.substring(nameSeparator + " ".length()).strip();
 
-                final var typeSeparator = beforeName.lastIndexOf(" ");
-                if (typeSeparator >= 0) {
-                    final var beforeType = beforeName.substring(0, typeSeparator);
-                    final var type = beforeName.substring(typeSeparator + " ".length());
-                    final var generated = "\n\t" + generatePlaceholder(beforeType) + " " +
-                            compileType(type) + " " +
-                            name + ";";
-
-                    return Optional.of(new Tuple<>(Lists.empty(), generated));
-                }
+                final var generated = compileFieldWithType(beforeName, name);
+                return Optional.of(new Tuple<>(Lists.empty(), generated));
             }
         }
 
        */ /*return*/ Optional.empty();
+	/*}
+
+    private static String compileFieldWithType(String beforeName, String name) {
+        final var typeSeparator =*/ /*beforeName.lastIndexOf("*/ ");
+	/*if (typeSeparator >= 0) {
+            final var beforeType = beforeName.substring(0, typeSeparator);
+            final var type = beforeName.substring(typeSeparator + " ".length());
+            return generateField(Optional.of(beforeType), compileType(type), name);
+        }
+        else {
+            return generateField(Optional.empty(), compileType(beforeName), name);
+        }
+    }
+
+    private static String generateField(Optional<String> maybeBeforeType, String type, String name) {
+        final var beforeType = maybeBeforeType
+                .map(Main::generatePlaceholder)
+                .map(inner -> inner + "*/ /*")*/ .orElse("");
+	/*return "\n\t" + beforeType + type + " " + name*/ /*+*/ ";/*";*/
 	/*}
 
     private static String compileType(String type) {
@@ -308,12 +319,12 @@
 	/*}
 
     private static String compileClassDefinition(String input) {
-        return compilClassDefinitionWithKeyword(input, "class ")
-                .or(() -> compilClassDefinitionWithKeyword(input, "interface "))
+        return compileClassDefinitionWithKeyword(input, "class ")
+                .or(() -> compileClassDefinitionWithKeyword(input, "interface "))
                 .orElseGet(()*/ /*->*/ generatePlaceholder(input));
 	/*}
 
-    private static Optional<String> compilClassDefinitionWithKeyword(String input, String keyword) {
+    private static Optional<String> compileClassDefinitionWithKeyword(String input, String keyword) {
         final var classIndex*/ /*=*/ input.indexOf(keyword);
 	/*if (classIndex < 0) {
             return Optional.empty();
