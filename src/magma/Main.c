@@ -99,7 +99,7 @@ struct Result readString() {/*try {
 	Option<struct IOError> write(Array<char> content);
 	struct Result readString();
 };
-struct JavaPath get(Array<char> first, /*String...*/ more) {
+struct Path get(Array<char> first, /*String...*/ more) {
 	return struct JavaPath(/*java.nio.file.Paths.get(first*/, /* more)*/);
 }
 /*private static*/struct Paths {
