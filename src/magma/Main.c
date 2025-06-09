@@ -29,10 +29,16 @@
 	/*private*/ /*State*/ exit(/**/);
 	/*public*/ /*boolean*/ isShallow(/**/);
 };
-/*private*/ /*record*/ ClassDefinition(/*String beforeKeyword, String name, List<String> typeParameters*/) {
+/*private*/ /*String*/ generate(/**/) {
 }
-/*private*/ /*record*/ JavaDefinition(/*Optional<String> maybeBefore, List<String> typeParameters, String type, String name*/) {
+/*private*/struct ClassDefinition {
+	/*private*/ /*String*/ generate(/**/);
+};
+/*private*/ /*String*/ generate(/**/) {
 }
+/*private*/struct JavaDefinition {
+	/*private*/ /*String*/ generate(/**/);
+};
 /*public static*/ /*void*/ main(/*String[] args*/) {
 }
 /*private static*/ /*String*/ compile(/*String input*/) {
@@ -47,79 +53,7 @@
 }
 /*if*/ (/*c == '{'*/) {
 }
-/*public*/struct Main {/*
-
-    private record HeadedIterator<T>(Head<T> head) implements Iterator<T> {
-        @Override
-        public <R> Iterator<R> map(Function<T, R> mapper) {
-            return new HeadedIterator<>(() -> this.head.next().map(mapper));
-        }
-
-        @Override
-        public <C> C collect(Collector<T, C> collector) {
-            return this.fold(collector.createInitial(), collector::fold);
-        }
-
-        @Override
-        public <R> R fold(R initial, BiFunction<R, T, R> folder) {
-            var current = initial;
-            while (true) {
-                R finalCurrent = current;
-                final var folded = this.head.next().map(next -> folder.apply(finalCurrent, next));
-                if (folded.isPresent()) {
-                    current = folded.get();
-                }
-                else {
-                    return current;
-                }
-            }
-        }
-    }*//*
-
-    private record JavaList<T>(java.util.List<T> elements) implements List<T> {
-        public JavaList() {
-            this(new ArrayList<>());
-        }
-
-        @Override
-        public List<T> addLast(T element) {
-            this.elements.add(element);
-            return this;
-        }
-
-        @Override
-        public Iterator<T> iter() {
-            return new HeadedIterator<>(new RangeHead(this.elements.size())).map(this.elements::get);
-        }
-
-        @Override
-        public List<T> addAllLast(List<T> others) {
-            return others.iter().<List<T>>fold(this, List::addLast);
-        }
-
-        @Override
-        public boolean isEmpty() {
-            return this.elements.isEmpty();
-        }
-    }*//*
-
-    private record Tuple<A, B>(A left, B right) {
-    }*//*
-
-    private record TupleCollector<A, AC, B, BC>(Collector<A, AC> leftCollector, Collector<B, BC> rightCollector)
-            implements Collector<Tuple<A, B>, Tuple<AC, BC>> {
-        @Override
-        public Tuple<AC, BC> createInitial() {
-            return new Tuple<>(this.leftCollector.createInitial(), this.rightCollector.createInitial());
-        }
-
-        @Override
-        public Tuple<AC, BC> fold(Tuple<AC, BC> current, Tuple<A, B> element) {
-            return new Tuple<>(this.leftCollector.fold(current.left, element.left), this.rightCollector.fold(current.right, element.right));
-        }
-    }*/
-	/*private*/ /*record*/ ClassDefinition(/*String beforeKeyword, String name, List<String> typeParameters*/);
-	/*private*/ /*record*/ JavaDefinition(/*Optional<String> maybeBefore, List<String> typeParameters, String type, String name*/);
+/*public*/struct Main {
 	/*public static*/ /*void*/ main(/*String[] args*/);
 	/*private static*/ /*String*/ compile(/*String input*/);
 	/*private static*/ /*String*/ compileStatements(/*String input, Function<String, String> mapper*/);
@@ -308,7 +242,8 @@
 
     private static Optional<ClassDefinition> compileClassDefinition(String input) {
         return compileClassDefinitionWithKeyword(input, "class ")
-                .or(() -> compileClassDefinitionWithKeyword(input, "interface "));
+                .or(() -> compileClassDefinitionWithKeyword(input, "interface "))
+                .or(() -> compileClassDefinitionWithKeyword(input, "record "));
     }*//*
 
     private static Optional<ClassDefinition> compileClassDefinitionWithKeyword(String input, String keyword) {
@@ -318,11 +253,25 @@
         }
 
         final var beforeKeyword = input.substring(0, classIndex).strip();
-        final var afterKeyword = input.substring(classIndex + keyword.length());
-        return Optional.of(compileClassDefinitionWithTypeParameters(beforeKeyword, afterKeyword));
+        final var afterKeyword = input.substring(classIndex + keyword.length()).strip();
+        return Optional.of(parseClassDefinitionWithParameters(beforeKeyword, afterKeyword));
     }*//*
 
-    private static ClassDefinition compileClassDefinitionWithTypeParameters(String beforeKeyword, String input) {
+    private static ClassDefinition parseClassDefinitionWithParameters(String beforeKeyword, String afterKeyword) {
+        if (afterKeyword.endsWith(")")) {
+            final var withoutEnd = afterKeyword.substring(0, afterKeyword.length() - ")".length());
+            final var paramStart = withoutEnd.indexOf("(");
+            if (paramStart >= 0) {
+                final var beforeParameters = withoutEnd.substring(0, paramStart);
+                final var parameters = withoutEnd.substring(paramStart + "(".length());
+                return parseClassDefinitionWithTypeParameters(beforeKeyword, beforeParameters);
+            }
+        }
+
+        return parseClassDefinitionWithTypeParameters(beforeKeyword, afterKeyword);
+    }*//*
+
+    private static ClassDefinition parseClassDefinitionWithTypeParameters(String beforeKeyword, String input) {
         final var stripped = input.strip();
         if (stripped.endsWith(">")) {
             final var withoutEnd = stripped.substring(0, stripped.length() - ">".length());
@@ -333,6 +282,7 @@
                 return new ClassDefinition(beforeKeyword, base, parseTypeParameters(typeParameters));
             }
         }
+
         return new ClassDefinition(beforeKeyword, stripped, Lists.empty());
     }*//*
 

@@ -466,7 +466,8 @@ public class Main {
 
     private static Optional<ClassDefinition> compileClassDefinition(String input) {
         return compileClassDefinitionWithKeyword(input, "class ")
-                .or(() -> compileClassDefinitionWithKeyword(input, "interface "));
+                .or(() -> compileClassDefinitionWithKeyword(input, "interface "))
+                .or(() -> compileClassDefinitionWithKeyword(input, "record "));
     }
 
     private static Optional<ClassDefinition> compileClassDefinitionWithKeyword(String input, String keyword) {
@@ -476,11 +477,25 @@ public class Main {
         }
 
         final var beforeKeyword = input.substring(0, classIndex).strip();
-        final var afterKeyword = input.substring(classIndex + keyword.length());
-        return Optional.of(compileClassDefinitionWithTypeParameters(beforeKeyword, afterKeyword));
+        final var afterKeyword = input.substring(classIndex + keyword.length()).strip();
+        return Optional.of(parseClassDefinitionWithParameters(beforeKeyword, afterKeyword));
     }
 
-    private static ClassDefinition compileClassDefinitionWithTypeParameters(String beforeKeyword, String input) {
+    private static ClassDefinition parseClassDefinitionWithParameters(String beforeKeyword, String afterKeyword) {
+        if (afterKeyword.endsWith(")")) {
+            final var withoutEnd = afterKeyword.substring(0, afterKeyword.length() - ")".length());
+            final var paramStart = withoutEnd.indexOf("(");
+            if (paramStart >= 0) {
+                final var beforeParameters = withoutEnd.substring(0, paramStart);
+                final var parameters = withoutEnd.substring(paramStart + "(".length());
+                return parseClassDefinitionWithTypeParameters(beforeKeyword, beforeParameters);
+            }
+        }
+
+        return parseClassDefinitionWithTypeParameters(beforeKeyword, afterKeyword);
+    }
+
+    private static ClassDefinition parseClassDefinitionWithTypeParameters(String beforeKeyword, String input) {
         final var stripped = input.strip();
         if (stripped.endsWith(">")) {
             final var withoutEnd = stripped.substring(0, stripped.length() - ">".length());
@@ -491,6 +506,7 @@ public class Main {
                 return new ClassDefinition(beforeKeyword, base, parseTypeParameters(typeParameters));
             }
         }
+
         return new ClassDefinition(beforeKeyword, stripped, Lists.empty());
     }
 
