@@ -65,7 +65,7 @@ public class Main {
 
         List<T> addAllLast(List<T> others);
 
-        boolean isEmpty();
+        boolean containsElements();
 
         boolean contains(T element);
 
@@ -248,8 +248,8 @@ public class Main {
         }
 
         @Override
-        public boolean isEmpty() {
-            return this.elements.isEmpty();
+        public boolean containsElements() {
+            return !this.elements.isEmpty();
         }
 
         @Override
@@ -566,7 +566,7 @@ public class Main {
     }
 
     private static List<String> compileClassWithDefinition(ClassDefinition definition, String withEnd) {
-        if (!definition.typeParameters.isEmpty() || definition.annotations.contains("Actual")) {
+        if (definition.typeParameters.containsElements() || definition.annotations.contains("Actual")) {
             return Lists.empty();
         }
 
@@ -606,7 +606,7 @@ public class Main {
                 final var maybeDefinition = parseMethodDefinition(beforeParams);
                 if (maybeDefinition.isPresent()) {
                     final var definition = maybeDefinition.get();
-                    if (!definition.typeParameters.isEmpty()) {
+                    if (definition.typeParameters.containsElements()) {
                         return new Some<>(new Tuple<>(Lists.empty(), ""));
                     }
 

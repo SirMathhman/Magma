@@ -166,7 +166,7 @@ struct Main {/*' && appended.isShallow()) {
     }
 
     private static List<String> compileClassWithDefinition(ClassDefinition definition, String withEnd) {
-        if (!definition.typeParameters.isEmpty() || definition.annotations.contains("Actual")) {
+        if (definition.typeParameters.containsElements() || definition.annotations.contains("Actual")) {
             return Lists.empty();
         }
 
@@ -206,7 +206,7 @@ struct Main {/*' && appended.isShallow()) {
                 final var maybeDefinition = parseMethodDefinition(beforeParams);
                 if (maybeDefinition.isPresent()) {
                     final var definition = maybeDefinition.get();
-                    if (!definition.typeParameters.isEmpty()) {
+                    if (definition.typeParameters.containsElements()) {
                         return new Some<>(new Tuple<>(Lists.empty(), ""));
                     }
 
