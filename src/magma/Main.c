@@ -63,18 +63,18 @@ State new() {
 };
 /*public static*/ void main(Array<Array<char>> args) {
 	/*final*/ auto source = Paths.get(".", "src", "magma", "Main.java");
-	readString(source).match(input - /*> compileAndWrite(input*/, /* source)*/, /* Optional::of*/).ifPresent(/*Throwable::printStackTrace*/);
+	readString(source).match(input - /*> compileAndWrite(input*/, /* source)*/, value - /*> new Some<IOException>*/(value)).ifPresent(/*Throwable::printStackTrace*/);
 }
-/*private static*/ /*Optional<IOException>*/ compileAndWrite(Array<char> input, struct Path source) {
+/*private static*/ /*Option<IOException>*/ compileAndWrite(Array<char> input, struct Path source) {
 	/*final*/ auto target = source.resolveSibling("Main.c");
 	/*final*/ auto string = compile(input);
 	return writeString(target, string);
 }
-/*private static*/ /*Optional<IOException>*/ writeString(struct Path target, Array<char> string) {/*try {
+/*private static*/ /*Option<IOException>*/ writeString(struct Path target, Array<char> string) {/*try {
             Files.writeString(target, string);
-            return Optional.empty();
+            return new None<IOException>();
         }*//* catch (IOException e) {
-            return Optional.of(e);
+            return new Some<IOException>(e);
         }*/
 }
 /*private static*/ struct Result readString(struct Path source) {/*try {
@@ -147,7 +147,7 @@ State new() {
     }*//*
 
 
-    private static Optional<Tuple<List<String>, String>> compileClass(String input) {
+    private static Option<Tuple<List<String>, String>> compileClass(String input) {
         final var contentStart = input.indexOf('{');
         if (contentStart >= 0) {
             final var beforeContent = input.substring(0, contentStart);
@@ -157,12 +157,12 @@ State new() {
                 if (maybeHeader.isPresent()) {
                     final var definition = maybeHeader.get();
                     final var others = compileClassWithDefinition(definition, withEnd);
-                    return Optional.of(new Tuple<>(others, ""));
+                    return new Some<Tuple<List<String>, String>>(new Tuple<List<String>, String>(others, ""));
                 }
             }
         }
 
-        return Optional.empty();
+        return new None<Tuple<List<String>, String>>();
     }
 
     private static List<String> compileClassWithDefinition(ClassDefinition definition, String withEnd) {
@@ -194,7 +194,7 @@ State new() {
                 .orElseGet(() -> new Tuple<>(Lists.empty(), generatePlaceholder(input)));
     }*//*
 
-    private static Optional<Tuple<List<String>, String>> compileMethod(String input) {
+    private static Option<Tuple<List<String>, String>> compileMethod(String input) {
         final var paramStart = input.indexOf("(");
         if (paramStart >= 0) {
             final var beforeParams = input.substring(0, paramStart);
@@ -207,7 +207,7 @@ State new() {
                 if (maybeDefinition.isPresent()) {
                     final var definition = maybeDefinition.get();
                     if (!definition.typeParameters.isEmpty()) {
-                        return Optional.of(new Tuple<>(Lists.empty(), ""));
+                        return new Some<Tuple<List<String>, String>>(new Tuple<List<String>, String>(Lists.empty(), ""));
                     }
 
                     final var compiledParameters = compileValues(params, Main::compileParameter);
@@ -215,7 +215,7 @@ State new() {
 
                     if (withBraces.equals(";")) {
                         final var generated = header + ";";
-                        return Optional.of(new Tuple<>(Lists.of(generated + "\n"), "\n\t" + generated));
+                        return new Some<Tuple<List<String>, String>>(new Tuple<List<String>, String>(Lists.of(generated + "\n"), "\n\t" + generated));
                     }
 
                     if (withBraces.startsWith("{") && withBraces.endsWith("}")) {
@@ -223,31 +223,31 @@ State new() {
                         final var outputContent = compileStatements(inputContent, Main::compileFunctionSegment);
                         final var withinStructure = definition.modifiers.contains("static") ? "" : "\n\t" + header + ";";
 
-                        return Optional.of(new Tuple<>(Lists.of(header + " {" +
+                        return new Some<Tuple<List<String>, String>>(new Tuple<List<String>, String>(Lists.of(header + " {" +
                                 outputContent +
                                 "\n}" + "\n"), withinStructure));
                     }
 
-                    return Optional.empty();
+                    return new None<Tuple<List<String>, String>>();
                 }
             }
         }
 
-        return Optional.empty();
+        return new None<Tuple<List<String>, String>>();
     }*//*
 
-    private static Optional<JavaDefinition> parseMethodDefinition(String input) {
+    private static Option<JavaDefinition> parseMethodDefinition(String input) {
         return parseDefinition(input).or(() -> parseConstructor(input));
     }*//*
 
-    private static Optional<JavaDefinition> parseConstructor(String input) {
+    private static Option<JavaDefinition> parseConstructor(String input) {
         final var separator = input.lastIndexOf(" ");
         if (separator >= 0) {
             final var name = input.substring(separator + " ".length());
-            return Optional.of(new JavaDefinition(Optional.empty(), Lists.of("static"), Lists.empty(), name, "new"));
+            return new Some<JavaDefinition>(new JavaDefinition(new None<String>(), Lists.of("static"), Lists.empty(), name, "new"));
         }
         else {
-            return Optional.empty();
+            return new None<JavaDefinition>();
         }
     }*//*
 
@@ -261,14 +261,14 @@ State new() {
                 .orElseGet(() -> generatePlaceholder(input));
     }*//*
 
-    private static Optional<String> compileFunctionStatement(String input) {
+    private static Option<String> compileFunctionStatement(String input) {
         final var stripped = input.strip();
         if (stripped.endsWith(";")) {
             final var withoutEnd = stripped.substring(0, stripped.length() - ";".length());
-            return Optional.of("\n\t" + compileFunctionStatementValue(withoutEnd) + ";");
+            return new Some<String>("\n\t" + compileFunctionStatementValue(withoutEnd) + ";");
         }
 
-        return Optional.empty();
+        return new None<String>();
     }*//*
 
     private static String compileFunctionStatementValue(String input) {
@@ -291,7 +291,7 @@ State new() {
         return compileInvokable(stripped).orElseGet(() -> generatePlaceholder(input));
     }*//*
 
-    private static Optional<String> compileInvokable(String input) {
+    private static Option<String> compileInvokable(String input) {
         final var stripped = input.strip();
         if (stripped.endsWith(")")) {
             final var withoutEnd = stripped.substring(0, stripped.length() - ")".length());
@@ -307,15 +307,15 @@ State new() {
                             ? compileConstruction(oldCaller)
                             : compileValue(oldCaller);
 
-                    return Optional.of(newCaller + "(" + compileValues(arguments, Main::compileValue) + ")");
+                    return new Some<String>(newCaller + "(" + compileValues(arguments, Main::compileValue) + ")");
                 }
                 else {
-                    return Optional.empty();
+                    return new None<String>();
                 }
             });
         }
 
-        return Optional.empty();
+        return new None<String>();
     }*//*
 
     private static State foldInvocationStart(State state, char c) {
@@ -352,58 +352,58 @@ State new() {
                 .orElseGet(() -> generatePlaceholder(input));
     }*//*
 
-    private static Optional<String> compileString(String input) {
+    private static Option<String> compileString(String input) {
         final var stripped = input.strip();
         if (stripped.startsWith("\"") && stripped.endsWith("\"")) {
-            return Optional.of(stripped);
+            return new Some<String>(stripped);
         }
         else {
-            return Optional.empty();
+            return new None<String>();
         }
     }*//*
 
-    private static Optional<String> compileNumber(String input) {
+    private static Option<String> compileNumber(String input) {
         final var stripped = input.strip();
         if (isNumber(stripped)) {
-            return Optional.of(stripped);
+            return new Some<String>(stripped);
         }
         else {
-            return Optional.empty();
+            return new None<String>();
         }
     }*//*
 
-    private static Optional<String> compileSymbol(String input) {
+    private static Option<String> compileSymbol(String input) {
         final var stripped = input.strip();
         if (isSymbol(stripped)) {
-            return Optional.of(stripped);
+            return new Some<String>(stripped);
         }
         else {
-            return Optional.empty();
+            return new None<String>();
         }
     }*//*
 
-    private static Optional<String> compileAccess(String input) {
+    private static Option<String> compileAccess(String input) {
         final var separator = input.lastIndexOf(".");
         if (separator >= 0) {
             final var substring = input.substring(0, separator);
             final var property = input.substring(separator + ".".length()).strip();
             if (isSymbol(property)) {
-                return Optional.of(compileValue(substring) + "." + property);
+                return new Some<String>(compileValue(substring) + "." + property);
             }
         }
 
-        return Optional.empty();
+        return new None<String>();
     }*//*
 
-    private static Optional<String> compileOperator(String input, String infix) {
+    private static Option<String> compileOperator(String input, String infix) {
         final var index = input.indexOf(infix);
         if (index >= 0) {
             final var leftString = input.substring(0, index);
             final var rightString = input.substring(index + infix.length());
-            return Optional.of(compileValue(leftString) + " " + infix + " " + compileValue(rightString));
+            return new Some<String>(compileValue(leftString) + " " + infix + " " + compileValue(rightString));
         }
 
-        return Optional.empty();
+        return new None<String>();
     }*//*
 
     private static boolean isNumber(String input) {
@@ -431,16 +431,16 @@ State new() {
                 .orElseGet(() -> generatePlaceholder(input));
     }*//*
 
-    private static Optional<String> compileWhitespace(String input) {
+    private static Option<String> compileWhitespace(String input) {
         if (input.isBlank()) {
-            return Optional.of("");
+            return new Some<String>("");
         }
         else {
-            return Optional.empty();
+            return new None<String>();
         }
     }*//*
 
-    private static Optional<Tuple<List<String>, String>> compileField(String input) {
+    private static Option<Tuple<List<String>, String>> compileField(String input) {
         final var stripped = input.strip();
         if (stripped.endsWith(";")) {
             final var withoutEnd = stripped.substring(0, stripped.length() - ";".length());
@@ -449,10 +449,10 @@ State new() {
             });
         }
 
-        return Optional.empty();
+        return new None<Tuple<List<String>, String>>();
     }*//*
 
-    private static Optional<JavaDefinition> parseDefinition(String input) {
+    private static Option<JavaDefinition> parseDefinition(String input) {
         final var stripped = input.strip();
         final var nameSeparator = stripped.lastIndexOf(" ");
         if (nameSeparator >= 0) {
@@ -463,7 +463,7 @@ State new() {
                 return parseDefinitionWithBeforeType(beforeName, name);
             }
         }
-        return Optional.empty();
+        return new None<JavaDefinition>();
     }*//*
 
     private static boolean isSymbol(String input) {
@@ -477,11 +477,11 @@ State new() {
         return true;
     }*//*
 
-    private static Optional<JavaDefinition> parseDefinitionWithBeforeType(String beforeName, String name) {
+    private static Option<JavaDefinition> parseDefinitionWithBeforeType(String beforeName, String name) {
         final var typeSeparator = beforeName.lastIndexOf(" ");
         if (typeSeparator < 0) {
             return compileType(beforeName).map(type -> {
-                return new JavaDefinition(Optional.empty(), Lists.empty(), Lists.empty(), type, name);
+                return new JavaDefinition(new None<String>(), Lists.empty(), Lists.empty(), type, name);
             });
         }
 
@@ -509,7 +509,7 @@ State new() {
                 .map(String::strip)
                 .collect(new ListCollector<>());
 
-        return new JavaDefinition(Optional.of(beforeTypeParameters), modifiers, typeParameters, type, name);
+        return new JavaDefinition(new Some<String>(beforeTypeParameters), modifiers, typeParameters, type, name);
     }*//*
 
     private static State foldModifiers(State state, Character c) {
@@ -519,34 +519,34 @@ State new() {
         return state.append(c);
     }*//*
 
-    private static Optional<String> compileType(String input) {
+    private static Option<String> compileType(String input) {
         final var stripped = input.strip();
         if (stripped.equals("private") || stripped.equals("public")) {
-            return Optional.empty();
+            return new None<String>();
         }
 
         if (stripped.equals("char")) {
-            return Optional.of("char");
+            return new Some<String>("char");
         }
 
         if (stripped.equals("boolean") || stripped.equals("int")) {
-            return Optional.of("int");
+            return new Some<String>("int");
         }
 
         if (stripped.equals("String")) {
-            return Optional.of("Array<char>");
+            return new Some<String>("Array<char>");
         }
 
         if (stripped.equals("var")) {
-            return Optional.of("auto");
+            return new Some<String>("auto");
         }
 
         if (stripped.equals("void")) {
-            return Optional.of("void");
+            return new Some<String>("void");
         }
 
         if (isSymbol(stripped)) {
-            return Optional.of("struct " + stripped);
+            return new Some<String>("struct " + stripped);
         }
 
         if (stripped.endsWith("[]")) {
@@ -556,24 +556,24 @@ State new() {
             });
         }
 
-        return Optional.of(generatePlaceholder(input));
+        return new Some<String>(generatePlaceholder(input));
     }*//*
 
-    private static Optional<ClassDefinition> compileClassDefinition(String input) {
+    private static Option<ClassDefinition> compileClassDefinition(String input) {
         return compileClassDefinitionWithKeyword(input, "class ")
                 .or(() -> compileClassDefinitionWithKeyword(input, "interface "))
                 .or(() -> compileClassDefinitionWithKeyword(input, "record "));
     }*//*
 
-    private static Optional<ClassDefinition> compileClassDefinitionWithKeyword(String input, String keyword) {
+    private static Option<ClassDefinition> compileClassDefinitionWithKeyword(String input, String keyword) {
         final var classIndex = input.indexOf(keyword);
         if (classIndex < 0) {
-            return Optional.empty();
+            return new None<ClassDefinition>();
         }
 
         final var beforeKeyword = input.substring(0, classIndex).strip();
         final var afterKeyword = input.substring(classIndex + keyword.length()).strip();
-        return Optional.of(parseClassDefinitionWithParameters(beforeKeyword, afterKeyword));
+        return new Some<ClassDefinition>(parseClassDefinitionWithParameters(beforeKeyword, afterKeyword));
     }*//*
 
     private static ClassDefinition parseClassDefinitionWithParameters(String beforeKeyword, String afterKeyword) {
