@@ -1076,8 +1076,8 @@ public class Main {
 
     private static Option<Type> compilePrimitiveType(String input) {
         return switch (input.strip()) {
-            case "char" -> new Some<>(Primitive.Char);
-            case "boolean", "int" -> new Some<>(Primitive.Int);
+            case "char", "Character" -> new Some<>(Primitive.Char);
+            case "boolean", "Boolean", "int", "Integer" -> new Some<>(Primitive.Int);
             case "var" -> new Some<>(Primitive.Auto);
             case "void" -> new Some<>(Primitive.Void);
             case "String" -> new Some<>(new TemplateType("Array", Lists.of(Primitive.Char)));

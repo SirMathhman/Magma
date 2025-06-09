@@ -123,7 +123,7 @@ Array<char> compile(Array<char> input) {
 Array<char> compileStatements(Array<char> input, Array<char> (*)(Array<char>) mapper) {
 	return compileAll(input, /* Main::foldStatements*/, mapper, /* Main::mergeStatements*/);
 }
-Array<char> compileAll(Array<char> input, struct State (*)(struct State, struct Character) folder, Array<char> (*)(Array<char>) mapper, Array<char> (*)(Array<char>, Array<char>) merger) {
+Array<char> compileAll(Array<char> input, struct State (*)(struct State, char) folder, Array<char> (*)(Array<char>) mapper, Array<char> (*)(Array<char>, Array<char>) merger) {
 	return generateAll(merger, /* parseAll(input*/, folder, /* mapper)*/);
 }
 Array<char> generateAll(Array<char> (*)(Array<char>, Array<char>) merger, List<Array<char>> stringList) {
@@ -135,7 +135,7 @@ Array<char> mergeStatements(Array<char> buffer, Array<char> element) {
 List<Array<char>> divideStatements(Array<char> input) {
 	return divide(input, /* Main::foldStatements*/);
 }
-List<Array<char>> divide(Array<char> input, struct State (*)(struct State, struct Character) folder) {
+List<Array<char>> divide(Array<char> input, struct State (*)(struct State, char) folder) {
 	auto current = struct State();
 	/*start(varend*/ i = 0;
 	/*i < input*/.length();/* i++) {
@@ -644,8 +644,8 @@ struct Main {/*' && appended.isShallow()) {
 
     private static Option<Type> compilePrimitiveType(String input) {
         return switch (input.strip()) {
-            case "char" -> new Some<>(Primitive.Char);
-            case "boolean", "int" -> new Some<>(Primitive.Int);
+            case "char", "Character" -> new Some<>(Primitive.Char);
+            case "boolean", "Boolean", "int", "Integer" -> new Some<>(Primitive.Int);
             case "var" -> new Some<>(Primitive.Auto);
             case "void" -> new Some<>(Primitive.Void);
             case "String" -> new Some<>(new TemplateType("Array", Lists.of(Primitive.Char)));
