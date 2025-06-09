@@ -872,21 +872,23 @@ public class Main {
         }
 
         final var type = beforeName.substring(typeSeparator + " ".length());
-        return compileType(type).map(compiledType -> {
-            final var beforeType = beforeName.substring(0, typeSeparator).strip();
-            if (beforeType.endsWith(">")) {
-                final var withoutEnd = beforeType.substring(0, beforeType.length() - ">".length());
-                final var typeParametersStart = withoutEnd.indexOf("<");
-                if (typeParametersStart >= 0) {
-                    final var beforeTypeParameters = withoutEnd.substring(0, typeParametersStart);
-                    final var typeParametersString = withoutEnd.substring(typeParametersStart + "<".length());
-                    final var typeParameters = parseTypeParameters(typeParametersString);
-                    return parseDefinitionWithModifiers(beforeTypeParameters, typeParameters, compiledType, name);
-                }
-            }
+        return compileType(type).map(compiledType -> parseDefinitionWithTypeParameters(beforeName, name, compiledType, typeSeparator));
+    }
 
-            return parseDefinitionWithModifiers(beforeType, Lists.empty(), compiledType, name);
-        });
+    private static JavaDefinition parseDefinitionWithTypeParameters(String beforeName, String name, String compiledType, int typeSeparator) {
+        final var beforeType = beforeName.substring(0, typeSeparator).strip();
+        if (beforeType.endsWith(">")) {
+            final var withoutEnd = beforeType.substring(0, beforeType.length() - ">".length());
+            final var typeParametersStart = withoutEnd.indexOf("<");
+            if (typeParametersStart >= 0) {
+                final var beforeTypeParameters = withoutEnd.substring(0, typeParametersStart);
+                final var typeParametersString = withoutEnd.substring(typeParametersStart + "<".length());
+                final var typeParameters = parseTypeParameters(typeParametersString);
+                return parseDefinitionWithModifiers(beforeTypeParameters, typeParameters, compiledType, name);
+            }
+        }
+
+        return parseDefinitionWithModifiers(beforeType, Lists.empty(), compiledType, name);
     }
 
     private static JavaDefinition parseDefinitionWithModifiers(String beforeTypeParameters, List<String> typeParameters, String type, String name) {
