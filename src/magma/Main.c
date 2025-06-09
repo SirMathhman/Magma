@@ -1,16 +1,28 @@
 /*private static*/struct Lists {
 };
-/*private*/ int isLevel() {/*return this.depth == 0;*/}
-/*private*/ /*State*/ append(/*char c*/) {/*this.buffer.append(c);*//*
-            return this;*/}
-/*private*/ /*State*/ advance() {/*this.segments = this.segments.addLast(this.buffer.toString());*//*
-            this.buffer = new StringBuilder();*//*
-            return this;*/}
-/*private*/ /*State*/ enter() {/*this.depth = this.depth + 1;*//*
-            return this;*/}
-/*private*/ /*State*/ exit() {/*this.depth = this.depth - 1;*//*
-            return this;*/}
-/*public*/ int isShallow() {/*return this.depth == 1;*/}
+/*private*/ int isLevel() {
+	/*return this.depth == 0*/;
+}
+/*private*/ /*State*/ append(/*char c*/) {
+	/*this.buffer.append(c)*/;
+	/*return this*/;
+}
+/*private*/ /*State*/ advance() {
+	/*this.segments = this.segments.addLast(this.buffer.toString())*/;
+	/*this.buffer = new StringBuilder()*/;
+	/*return this*/;
+}
+/*private*/ /*State*/ enter() {
+	/*this.depth = this.depth + 1*/;
+	/*return this*/;
+}
+/*private*/ /*State*/ exit() {
+	/*this.depth = this.depth - 1*/;
+	/*return this*/;
+}
+/*public*/ int isShallow() {
+	/*return this.depth == 1*/;
+}
 /*private static*/struct State {
 	/*private*/ /*List<String>*/ segments;
 	/*private*/ /*StringBuilder*/ buffer;
@@ -32,15 +44,18 @@
 	/*private*/ /*State*/ exit();
 	/*public*/ int isShallow();
 };
-/*private*/ /*String*/ generate() {/*return generatePlaceholder(this.beforeKeyword) + "struct " + this.name;*/}
+/*private*/ /*String*/ generate() {
+	/*return generatePlaceholder(this.beforeKeyword) + "struct " + this.name*/;
+}
 /*private*/struct ClassDefinition {
 	/*private*/ /*String*/ generate();
 };
-/*private*/ /*String*/ generate() {/*final var beforeType = this.maybeBefore.map(Main::generatePlaceholder)
+/*private*/ /*String*/ generate() {
+	/*final var beforeType = this.maybeBefore.map(Main::generatePlaceholder)
                     .map(inner -> inner + " ")
-                    .orElse("");*//*
-
-            return beforeType + this.type + " " + this.name;*/}
+                    .orElse("")*/;
+	/*return beforeType + this.type + " " + this.name*/;
+}
 /*private*/struct JavaDefinition {
 	/*private*/ /*String*/ generate();
 };
@@ -53,31 +68,48 @@
         }*//* catch (IOException e) {
             //noinspection CallToPrintStackTrace
             e.printStackTrace();
-        }*/}
-/*private static*/ /*String*/ compile(/*String input*/) {/*return compileStatements(input, Main::compileRootSegment);*/}
-/*private static*/ /*String*/ compileStatements(/*String input*/, /* Function<String*/, /* String> mapper*/) {/*return compileAll(input, Main::foldStatements, mapper, Main::mergeStatements);*/}
-/*private static*/ /*String*/ compileAll(/*String input*/, /* BiFunction<State*/, /* Character*/, /* State> folder*/, /* Function<String*/, /* String> mapper*/, /* BiFunction<StringBuilder*/, /* String*/, /* StringBuilder> merger*/) {/*return divide(input, folder)
+        }*/
+}
+/*private static*/ /*String*/ compile(/*String input*/) {
+	/*return compileStatements(input, Main::compileRootSegment)*/;
+}
+/*private static*/ /*String*/ compileStatements(/*String input*/, /* Function<String*/, /* String> mapper*/) {
+	/*return compileAll(input, Main::foldStatements, mapper, Main::mergeStatements)*/;
+}
+/*private static*/ /*String*/ compileAll(/*String input*/, /* BiFunction<State*/, /* Character*/, /* State> folder*/, /* Function<String*/, /* String> mapper*/, /* BiFunction<StringBuilder*/, /* String*/, /* StringBuilder> merger*/) {
+	/*return divide(input, folder)
                 .iter()
                 .map(mapper)
                 .fold(new StringBuilder(), merger)
-                .toString();*/}
-/*private static*/ /*StringBuilder*/ mergeStatements(/*StringBuilder stringBuilder*/, /* String s*/) {/*return stringBuilder.append(s);*/}
-/*private static*/ /*List<String>*/ divideStatements(/*String input*/) {/*return divide(input, Main::foldStatements);*/}
-/*private static*/ /*List<String>*/ divide(/*String input*/, /* BiFunction<State*/, /* Character*/, /* State> folder*/) {/*var current = new State();*//*
-        for (var i = 0;*//* i < input.length();*//* i++) {
+                .toString()*/;
+}
+/*private static*/ /*StringBuilder*/ mergeStatements(/*StringBuilder stringBuilder*/, /* String s*/) {
+	/*return stringBuilder.append(s)*/;
+}
+/*private static*/ /*List<String>*/ divideStatements(/*String input*/) {
+	/*return divide(input, Main::foldStatements)*/;
+}
+/*private static*/ /*List<String>*/ divide(/*String input*/, /* BiFunction<State*/, /* Character*/, /* State> folder*/) {
+	/*var current = new State()*/;
+	/*for (var i = 0*/;
+	/*i < input.length()*/;/* i++) {
             final var c = input.charAt(i);
             current = folder.apply(current, c);
-        }*//*
-
-        return current.advance().segments;*/}
-/*private static*/ /*State*/ foldStatements(/*State state*/, /* char c*/) {/*final var appended = state.append(c);*//*
-        if (c == ';*//*' && appended.isLevel()) {
+        }*/
+	/*return current.advance().segments*/;
+}
+/*private static*/ /*State*/ foldStatements(/*State state*/, /* char c*/) {
+	/*final var appended = state.append(c)*/;
+	/*if (c == '*/;/*' && appended.isLevel()) {
             return appended.advance();
         }*//*
-        if (c == '*/}
-/*if*/ (/*c == '{'*/) {/*return appended.enter();*//*
+        if (c == '*/
+}
+/*if*/ (/*c == '{'*/) {
+	/*return appended.enter()*/;/*
         }
-        if (c == '*/}
+        if (c == '*/
+}
 /*public*/struct Main {
 	/*public static*/ /*void*/ main(/*String[] args*/);
 	/*private static*/ /*String*/ compile(/*String input*/);
@@ -191,7 +223,7 @@
                         final var outputContent = compileStatements(inputContent, Main::compileFunctionSegment);
                         return Optional.of(new Tuple<>(Lists.of(header + " {" +
                                 outputContent +
-                                "}" + "\n"), "\n\t" + header + ";"));
+                                "\n}" + "\n"), "\n\t" + header + ";"));
                     }
 
                     return Optional.empty();
@@ -204,7 +236,18 @@
 
     private static String compileFunctionSegment(String input) {
         return compileWhitespace(input)
+                .or(() -> compileFunctionStatement(input))
                 .orElseGet(() -> generatePlaceholder(input));
+    }*//*
+
+    private static Optional<String> compileFunctionStatement(String input) {
+        final var stripped = input.strip();
+        if (stripped.endsWith(";")) {
+            final var withoutEnd = stripped.substring(0, stripped.length() - ";".length());
+            return Optional.of("\n\t" + generatePlaceholder(withoutEnd) + ";");
+        }
+
+        return Optional.empty();
     }*//*
 
     private static StringBuilder mergeValues(StringBuilder buffer, String element) {

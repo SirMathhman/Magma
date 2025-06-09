@@ -396,7 +396,7 @@ public class Main {
                         final var outputContent = compileStatements(inputContent, Main::compileFunctionSegment);
                         return Optional.of(new Tuple<>(Lists.of(header + " {" +
                                 outputContent +
-                                "}" + "\n"), "\n\t" + header + ";"));
+                                "\n}" + "\n"), "\n\t" + header + ";"));
                     }
 
                     return Optional.empty();
@@ -409,7 +409,18 @@ public class Main {
 
     private static String compileFunctionSegment(String input) {
         return compileWhitespace(input)
+                .or(() -> compileFunctionStatement(input))
                 .orElseGet(() -> generatePlaceholder(input));
+    }
+
+    private static Optional<String> compileFunctionStatement(String input) {
+        final var stripped = input.strip();
+        if (stripped.endsWith(";")) {
+            final var withoutEnd = stripped.substring(0, stripped.length() - ";".length());
+            return Optional.of("\n\t" + generatePlaceholder(withoutEnd) + ";");
+        }
+
+        return Optional.empty();
     }
 
     private static StringBuilder mergeValues(StringBuilder buffer, String element) {
