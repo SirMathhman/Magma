@@ -1089,8 +1089,7 @@ public class Main {
         return compileTemplateType(input)
                 .or(() -> compilePrimitiveType(input))
                 .or(() -> compileSymbolType(input))
-                .or(() -> compileArrayType(input).map(type -> type))
-                .or(() -> new Some<>(new Placeholder(generatePlaceholder(input))));
+                .or(() -> compileArrayType(input).map(type -> type));
     }
 
     private static Option<TemplateType> compileArrayType(String input) {

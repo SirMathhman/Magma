@@ -77,7 +77,7 @@ struct Ok(String value) implements Result {
 };
 struct Err(IOError error) implements Result {
 };
-struct Path get(Array<char> first, /*startString...end*/ more);
+struct Path get(Array<char> first, /* String... more*/);
 struct Paths {
 };
 Array<char> generate() {
@@ -159,7 +159,7 @@ List<Array<char>> divideStatements(Array<char> input) {
 }
 List<Array<char>> divide(Array<char> input, struct State (*folder)(struct State, char)) {
 	auto current = struct State();
-	/*start(varend*/ i = 0;
+	/*for (var i */ = 0;
 	/*i < input*/.length();/* i++) {
             final var c = input.charAt(i);
             current = folder.apply(current, c);
@@ -652,8 +652,7 @@ struct Main {/*' && appended.isShallow()) {
         return compileTemplateType(input)
                 .or(() -> compilePrimitiveType(input))
                 .or(() -> compileSymbolType(input))
-                .or(() -> compileArrayType(input).map(type -> type))
-                .or(() -> new Some<>(new Placeholder(generatePlaceholder(input))));
+                .or(() -> compileArrayType(input).map(type -> type));
     }*//*
 
     private static Option<TemplateType> compileArrayType(String input) {
