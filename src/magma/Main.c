@@ -63,6 +63,14 @@ Option<Tuple<struct State, char>> pop() {/*if (this.index < this.input.length())
                 return new None<>();
             }*/
 }
+Option<char> peek() {/*if (this.index < this.input.length()) {
+                return new Some<>(this.input.charAt(this.index));
+            }*/
+	return None<struct >();
+}
+Option<struct State> append() {
+	return this.pop().map(/*tuple -> tuple*/.left.append(tuple.right));
+}
 struct State {
 	Array<char> input;
 	int index;
@@ -78,6 +86,8 @@ struct State {
 	struct State exit();
 	int isShallow();
 	Option<Tuple<struct State, char>> pop();
+	Option<char> peek();
+	Option<struct State> append();
 };
 Array<char> generate() {
 	return "struct " + this.name;
@@ -145,7 +155,7 @@ struct CFunctionDefinition implements CDefinition {
 };
 void main(Array<Array<char>> args) {
 	auto source = Paths.get(".", "src", "magma", "Main.java");
-	source.readString().match(input - /*> compileAndWrite(input*/, /* source), Some::new*/).ifPresent(error - /*> printErroneousLine*/(error.display()));
+	source.readString().match(/*input -> compileAndWrite*/(input, source), /* Some::new*/).ifPresent(/*error -> printErroneousLine*/(error.display()));
 }
 void printErroneousLine(Array<char> content);
 Option<struct IOError> compileAndWrite(Array<char> input, struct Path source) {
@@ -442,6 +452,7 @@ struct Main {/*' && appended.isShallow()) {
     private static String compileValue(String input) {
         return compileInvokable(input)
                 .or(() -> compileAccess(input))
+                .or(() -> compileLambda(input))
                 .or(() -> compileOperator(input, "=="))
                 .or(() -> compileOperator(input, "+"))
                 .or(() -> compileOperator(input, "-"))
@@ -449,6 +460,15 @@ struct Main {/*' && appended.isShallow()) {
                 .or(() -> compileNumber(input))
                 .or(() -> compileString(input))
                 .orElseGet(() -> generatePlaceholder(input));
+    }*//*
+
+    private static Option<String> compileLambda(String input) {
+        if (input.contains("->")) {
+            return new Some<>(generatePlaceholder(input));
+        }
+        else {
+            return new None<>();
+        }
     }*//*
 
     private static Option<String> compileString(String input) {
@@ -820,6 +840,13 @@ struct Main {/*' && appended.isShallow()) {
         }
 
         final var appended = state.append(c);
+        if (c == '-') {
+            final var maybe = appended.peek();
+            if (maybe instanceof Some(var peek) && peek == '>') {
+                return appended.append().orElse(appended);
+            }
+        }
+
         if (c == '<' || c == '(') {
             return appended.enter();
         }

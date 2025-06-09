@@ -373,6 +373,18 @@ public class Main {
                 return new None<>();
             }
         }
+
+        public Option<Character> peek() {
+            if (this.index < this.input.length()) {
+                return new Some<>(this.input.charAt(this.index));
+            }
+
+            return new None<>();
+        }
+
+        private Option<State> append() {
+            return this.pop().map(tuple -> tuple.left.append(tuple.right));
+        }
     }
 
     private record Tuple<A, B>(A left, B right) {
@@ -881,6 +893,7 @@ public class Main {
     private static String compileValue(String input) {
         return compileInvokable(input)
                 .or(() -> compileAccess(input))
+                .or(() -> compileLambda(input))
                 .or(() -> compileOperator(input, "=="))
                 .or(() -> compileOperator(input, "+"))
                 .or(() -> compileOperator(input, "-"))
@@ -888,6 +901,15 @@ public class Main {
                 .or(() -> compileNumber(input))
                 .or(() -> compileString(input))
                 .orElseGet(() -> generatePlaceholder(input));
+    }
+
+    private static Option<String> compileLambda(String input) {
+        if (input.contains("->")) {
+            return new Some<>(generatePlaceholder(input));
+        }
+        else {
+            return new None<>();
+        }
     }
 
     private static Option<String> compileString(String input) {
@@ -1259,6 +1281,13 @@ public class Main {
         }
 
         final var appended = state.append(c);
+        if (c == '-') {
+            final var maybe = appended.peek();
+            if (maybe instanceof Some(var peek) && peek == '>') {
+                return appended.append().orElse(appended);
+            }
+        }
+
         if (c == '<' || c == '(') {
             return appended.enter();
         }
