@@ -49,7 +49,7 @@ State new() {
 	/*private*/ /*Slice<char>*/ generate();
 };
 /*private*/ /*Slice<char>*/ generate() {
-	/*final var beforeType */ = this.maybeBefore.map(/*Main::generatePlaceholder)
+	/*final*/ auto beforeType = this.maybeBefore.map(/*Main::generatePlaceholder)
                     .map(inner */ - /*> inner */ + " ")
                     .orElse("");
 	return beforeType + this.type + " " + this.name;
@@ -74,7 +74,7 @@ State new() {
 /*private static*/ /*Slice<char>*/ compileStatements(/*Slice<char>*/ input, /* Function<String*/, /*String>*/ mapper) {
 	return compileAll(input, /* Main::foldStatements*/, mapper, /* Main::mergeStatements*/);
 }
-/*private static*/ /*Slice<char>*/ compileAll(/*Slice<char>*/ input, /* BiFunction<State*/, struct  Character, /*State>*/ folder, /* Function<String*/, /*String>*/ mapper, /* BiFunction<String*/, struct  String, /*String>*/ merger) {
+/*private static*/ /*Slice<char>*/ compileAll(/*Slice<char>*/ input, /* BiFunction<State*/, /* Character*/, /*State>*/ folder, /* Function<String*/, /*String>*/ mapper, /* BiFunction<String*/, /* String*/, /*String>*/ merger) {
 	return divide(input, /* folder)
                 .iter()
                 .map(mapper)
@@ -86,9 +86,9 @@ State new() {
 /*private static*/ /*List<String>*/ divideStatements(/*Slice<char>*/ input) {
 	return divide(input, /* Main::foldStatements*/);
 }
-/*private static*/ /*List<String>*/ divide(/*Slice<char>*/ input, /* BiFunction<State*/, struct  Character, /*State>*/ folder) {
-	/*var current */ = struct State();
-	/*for (var i */ = 0;
+/*private static*/ /*List<String>*/ divide(/*Slice<char>*/ input, /* BiFunction<State*/, /* Character*/, /*State>*/ folder) {
+	auto current = struct State();
+	/*for*/ /*(var*/ i = 0;
 	/*i < input*/.length();/* i++) {
             final var c = input.charAt(i);
             current = folder.apply(current, c);
@@ -96,21 +96,20 @@ State new() {
 	return current.advance().segments;
 }
 /*private static*/ struct State foldStatements(struct State state, char c) {
-	/*final var appended */ = state.append(c);
+	/*final*/ auto appended = state.append(c);
 	/*if (c */ = /*= '*/;/*' && appended.isLevel()) {
             return appended.advance();
         }*//*
         if (c == '*/
 }
-struct if (/*c == '{'*/) {
+ new(/*c == '{'*/) {
 	return appended.enter();/*
         }
         if (c == '*/
 }
 /*public*/struct Main {/*' && appended.isShallow()) {
             return appended.advance().exit();
-        }*/
-	struct if (/*c == '{'*/);/*') {
+        }*//*') {
             return appended.exit();
         }*/
 	struct return appended;
@@ -269,9 +268,12 @@ struct if (/*c == '{'*/) {
 
         final var i = stripped.indexOf("=");
         if (i >= 0) {
-            final var substring = stripped.substring(0, i);
+            final var destinationString = stripped.substring(0, i);
             final var substring1 = stripped.substring(i + "=".length());
-            return compileValue(substring) + " = " + compileValue(substring1);
+            final var destination = parseDefinition(destinationString).map(JavaDefinition::generate)
+                    .orElseGet(() -> compileValue(destinationString));
+
+            return destination + " = " + compileValue(substring1);
         }
 
         return compileInvokable(stripped).orElseGet(() -> generatePlaceholder(input));
@@ -316,9 +318,10 @@ struct if (/*c == '{'*/) {
 
     private static Optional<String> compileString(String input) {
         final var stripped = input.strip();
-        if(stripped.startsWith("\"") && stripped.endsWith("\"")) {
+        if (stripped.startsWith("\"") && stripped.endsWith("\"")) {
             return Optional.of(stripped);
-        } else {
+        }
+        else {
             return Optional.empty();
         }
     }*//*
@@ -414,10 +417,11 @@ struct if (/*c == '{'*/) {
     }*//*
 
     private static Optional<JavaDefinition> parseDefinition(String input) {
-        final var nameSeparator = input.lastIndexOf(" ");
+        final var stripped = input.strip();
+        final var nameSeparator = stripped.lastIndexOf(" ");
         if (nameSeparator >= 0) {
-            final var beforeName = input.substring(0, nameSeparator).strip();
-            final var name = input.substring(nameSeparator + " ".length()).strip();
+            final var beforeName = stripped.substring(0, nameSeparator).strip();
+            final var name = stripped.substring(nameSeparator + " ".length()).strip();
 
             if (isSymbol(name)) {
                 return parseDefinitionWithBeforeType(beforeName, name);
@@ -495,6 +499,10 @@ struct if (/*c == '{'*/) {
 
         if (stripped.equals("String")) {
             return Optional.of(generatePlaceholder("Slice<char>"));
+        }
+
+        if (stripped.equals("var")) {
+            return Optional.of("auto");
         }
 
         if (isSymbol(stripped)) {

@@ -466,9 +466,12 @@ public class Main {
 
         final var i = stripped.indexOf("=");
         if (i >= 0) {
-            final var substring = stripped.substring(0, i);
+            final var destinationString = stripped.substring(0, i);
             final var substring1 = stripped.substring(i + "=".length());
-            return compileValue(substring) + " = " + compileValue(substring1);
+            final var destination = parseDefinition(destinationString).map(JavaDefinition::generate)
+                    .orElseGet(() -> compileValue(destinationString));
+
+            return destination + " = " + compileValue(substring1);
         }
 
         return compileInvokable(stripped).orElseGet(() -> generatePlaceholder(input));
@@ -513,9 +516,10 @@ public class Main {
 
     private static Optional<String> compileString(String input) {
         final var stripped = input.strip();
-        if(stripped.startsWith("\"") && stripped.endsWith("\"")) {
+        if (stripped.startsWith("\"") && stripped.endsWith("\"")) {
             return Optional.of(stripped);
-        } else {
+        }
+        else {
             return Optional.empty();
         }
     }
@@ -611,10 +615,11 @@ public class Main {
     }
 
     private static Optional<JavaDefinition> parseDefinition(String input) {
-        final var nameSeparator = input.lastIndexOf(" ");
+        final var stripped = input.strip();
+        final var nameSeparator = stripped.lastIndexOf(" ");
         if (nameSeparator >= 0) {
-            final var beforeName = input.substring(0, nameSeparator).strip();
-            final var name = input.substring(nameSeparator + " ".length()).strip();
+            final var beforeName = stripped.substring(0, nameSeparator).strip();
+            final var name = stripped.substring(nameSeparator + " ".length()).strip();
 
             if (isSymbol(name)) {
                 return parseDefinitionWithBeforeType(beforeName, name);
@@ -692,6 +697,10 @@ public class Main {
 
         if (stripped.equals("String")) {
             return Optional.of(generatePlaceholder("Slice<char>"));
+        }
+
+        if (stripped.equals("var")) {
+            return Optional.of("auto");
         }
 
         if (isSymbol(stripped)) {
