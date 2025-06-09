@@ -427,10 +427,49 @@ public class Main {
         final var stripped = input.strip();
         if (stripped.startsWith("return ")) {
             final var value = stripped.substring("return ".length());
-            return "return " + generatePlaceholder(value);
+            return "return " + compileValue(value);
         }
 
         return generatePlaceholder(input);
+    }
+
+    private static String compileValue(String input) {
+        final var i = input.indexOf("==");
+        if (i >= 0) {
+            final var substring = input.substring(0, i);
+            final var substring1 = input.substring(i + "==".length());
+            return compileValue(substring) + " == " + compileValue(substring1);
+        }
+
+        final var separator = input.lastIndexOf(".");
+        if (separator >= 0) {
+            final var substring = input.substring(0, separator);
+            final var property = input.substring(separator + ".".length()).strip();
+            return compileValue(substring) + "." + property;
+        }
+
+        final var stripped = input.strip();
+        if (isSymbol(stripped)) {
+            return stripped;
+        }
+
+        if (isNumber(stripped)) {
+            return stripped;
+        }
+
+        return generatePlaceholder(input);
+    }
+
+    private static boolean isNumber(String input) {
+        for (int i = 0; i < input.length(); i++) {
+            final var c = input.charAt(i);
+            if (Character.isDigit(c)) {
+                continue;
+            }
+            return false;
+        }
+
+        return true;
     }
 
     private static StringBuilder mergeValues(StringBuilder buffer, String element) {
