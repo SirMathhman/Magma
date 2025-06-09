@@ -162,13 +162,25 @@ public class Main {
             final var withoutEnd = stripped.substring(0, stripped.length() - ";".length());
             final var nameSeparator = withoutEnd.lastIndexOf(" ");
             if (nameSeparator >= 0) {
-                final var beforeName = withoutEnd.substring(0, nameSeparator);
+                final var beforeName = withoutEnd.substring(0, nameSeparator).strip();
                 final var name = withoutEnd.substring(nameSeparator + " ".length()).strip();
-                return Optional.of(new Tuple<>(Collections.emptyList(), "\n\t" + generatePlaceholder(beforeName) + " " + name + ";"));
+
+                final var typeSeparator = beforeName.lastIndexOf(" ");
+                if (typeSeparator >= 0) {
+                    final var beforeType = beforeName.substring(0, typeSeparator);
+                    final var type = beforeName.substring(typeSeparator + " ".length());
+                    return Optional.of(new Tuple<>(Collections.emptyList(), "\n\t" + generatePlaceholder(beforeType) + " " +
+                            compileType(type) + " " +
+                            name + ";"));
+                }
             }
         }
 
         return Optional.empty();
+    }
+
+    private static String compileType(String type) {
+        return generatePlaceholder(type);
     }
 
     private static String compileClassDefinition(String input) {
