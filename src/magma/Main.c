@@ -214,7 +214,13 @@ Option<struct DivideState> foldSingleQuotes(struct DivideState currentState, cha
 		return None<struct >();
 	}
 	auto appended = currentState.append(c);
-	return appended.popAndAppendToTuple().flatMap(/*tuple -> tuple.right == '\\' ? tuple.left.popAndAppendToOption() : new Some<>(tuple.left)*/).flatMap(/*DivideState::popAndAppendToOption*/);
+	return appended.popAndAppendToTuple().flatMap(/*Main::foldEscaped*/).flatMap(/*DivideState::popAndAppendToOption*/);
+}
+Option<struct DivideState> foldEscaped(Tuple<struct DivideState, char> tuple) {
+	if (tuple.right == /* '\\'*/) {
+		return tuple.left.popAndAppendToOption();
+	}
+	return Some<struct >(tuple.left);
 }
 struct DivideState foldStatements(struct DivideState state, char c) {
 	auto appended = state.append(c);

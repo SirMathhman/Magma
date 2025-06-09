@@ -662,8 +662,15 @@ public class Main {
 
         final var appended = currentState.append(c);
         return appended.popAndAppendToTuple()
-                .flatMap(tuple -> tuple.right == '\\' ? tuple.left.popAndAppendToOption() : new Some<>(tuple.left))
+                .flatMap(Main::foldEscaped)
                 .flatMap(DivideState::popAndAppendToOption);
+    }
+
+    private static Option<DivideState> foldEscaped(Tuple<DivideState, Character> tuple) {
+        if (tuple.right == '\\') {
+            return tuple.left.popAndAppendToOption();
+        }
+        return new Some<>(tuple.left);
     }
 
     private static DivideState foldStatements(DivideState state, char c) {
