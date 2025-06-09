@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Function;
@@ -48,6 +49,9 @@ public class Main {
             this.depth = depth - 1;
             return this;
         }
+    }
+
+    private record Tuple<A, B>(A left, B right) {
     }
 
     public static void main(String[] args) {
@@ -107,10 +111,16 @@ public class Main {
             return "";
         }
 
-        return compileClass(input).orElseGet(() -> generatePlaceholder(input));
+        return compileClass(input)
+                .map(tuple -> {
+                    final var joined = String.join("", tuple.left);
+                    return joined + tuple.right;
+                })
+                .orElseGet(() -> generatePlaceholder(input));
     }
 
-    private static Optional<String> compileClass(String input) {
+
+    private static Optional<Tuple<List<String>, String>> compileClass(String input) {
         final var contentStart = input.indexOf('{');
         if (contentStart >= 0) {
             final var beforeContent = input.substring(0, contentStart);
@@ -118,16 +128,30 @@ public class Main {
             if (withEnd.endsWith("}")) {
                 final var header = compileClassDefinition(beforeContent);
                 final var inputContent = withEnd.substring(0, withEnd.length() - "}".length());
-                final var outputContent = compileStatements(inputContent, Main::compileClassSegment);
-                return Optional.of(header + "{" + outputContent + "\n};\n");
+
+                final var segments = divide(inputContent);
+
+                final var others = new ArrayList<String>();
+                final var output = new StringBuilder();
+                for (var segment : segments) {
+                    final var tuple = compileClassSegment(segment);
+                    others.addAll(tuple.left);
+                    output.append(tuple.right);
+                }
+
+                final var outputContent = output.toString();
+                final var generated = header + "{" + outputContent + "\n};\n";
+                others.add(generated);
+
+                return Optional.of(new Tuple<>(others, ""));
             }
         }
 
         return Optional.empty();
     }
 
-    private static String compileClassSegment(String input) {
-        return compileClass(input).orElseGet(() -> generatePlaceholder(input));
+    private static Tuple<List<String>, String> compileClassSegment(String input) {
+        return compileClass(input).orElseGet(() -> new Tuple<>(Collections.emptyList(), generatePlaceholder(input)));
     }
 
     private static String compileClassDefinition(String input) {
