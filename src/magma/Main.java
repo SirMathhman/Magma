@@ -126,17 +126,17 @@ public class Main {
 
     private static class State {
         private List<String> segments;
-        private StringBuilder buffer;
+        private String buffer;
         private int depth;
 
-        private State(List<String> segments, StringBuilder buffer, int depth) {
+        private State(List<String> segments, String buffer, int depth) {
             this.segments = segments;
             this.buffer = buffer;
             this.depth = depth;
         }
 
         public State() {
-            this(Lists.empty(), new StringBuilder(), 0);
+            this(Lists.empty(), "", 0);
         }
 
         private boolean isLevel() {
@@ -144,13 +144,13 @@ public class Main {
         }
 
         private State append(char c) {
-            this.buffer.append(c);
+            this.buffer = this.buffer + c;
             return this;
         }
 
         private State advance() {
-            this.segments = this.segments.addLast(this.buffer.toString());
-            this.buffer = new StringBuilder();
+            this.segments = this.segments.addLast(this.buffer);
+            this.buffer = "";
             return this;
         }
 
@@ -258,16 +258,15 @@ public class Main {
         return compileAll(input, Main::foldStatements, mapper, Main::mergeStatements);
     }
 
-    private static String compileAll(String input, BiFunction<State, Character, State> folder, Function<String, String> mapper, BiFunction<StringBuilder, String, StringBuilder> merger) {
+    private static String compileAll(String input, BiFunction<State, Character, State> folder, Function<String, String> mapper, BiFunction<String, String, String> merger) {
         return divide(input, folder)
                 .iter()
                 .map(mapper)
-                .fold(new StringBuilder(), merger)
-                .toString();
+                .fold("", merger);
     }
 
-    private static StringBuilder mergeStatements(StringBuilder stringBuilder, String s) {
-        return stringBuilder.append(s);
+    private static String mergeStatements(String buffer, String element) {
+        return buffer + element;
     }
 
     private static List<String> divideStatements(String input) {
@@ -536,11 +535,11 @@ public class Main {
         return true;
     }
 
-    private static StringBuilder mergeValues(StringBuilder buffer, String element) {
+    private static String mergeValues(String buffer, String element) {
         if (buffer.isEmpty()) {
-            return buffer.append(element);
+            return element;
         }
-        return buffer.append(", ").append(element);
+        return buffer + ", " + element;
     }
 
     private static String compileParameter(String input) {

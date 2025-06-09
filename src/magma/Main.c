@@ -4,12 +4,12 @@
 	return this.depth == 0;
 }
 /*private*/ struct State append(char c) {
-	this.buffer.append(c);
+	this.buffer = this.buffer + c;
 	return this;
 }
 /*private*/ struct State advance() {
-	this.segments = this.segments.addLast(this.buffer.toString());
-	this.buffer = struct StringBuilder();
+	this.segments = this.segments.addLast(this.buffer);
+	this.buffer = /* ""*/;
 	return this;
 }
 /*private*/ struct State enter() {
@@ -25,17 +25,17 @@
 }
 /*private static*/struct State {
 	/*private*/ /*List<String>*/ segments;
-	/*private*/ struct StringBuilder buffer;
+	/*private*/ struct String buffer;
 	/*private*/ struct int depth;/*
 
-        private State(List<String> segments, StringBuilder buffer, int depth) {
+        private State(List<String> segments, String buffer, int depth) {
             this.segments = segments;
             this.buffer = buffer;
             this.depth = depth;
         }*//*
 
         public State() {
-            this(Lists.empty(), new StringBuilder(), 0);
+            this(Lists.empty(), "", 0);
         }*/
 	/*private*/ int isLevel();
 	/*private*/ struct State append(char c);
@@ -76,15 +76,14 @@
 /*private static*/ struct String compileStatements(struct String input, /* Function<String*/, /*String>*/ mapper) {
 	return compileAll(input, /* Main::foldStatements*/, mapper, /* Main::mergeStatements*/);
 }
-/*private static*/ struct String compileAll(struct String input, /* BiFunction<State*/, struct  Character, /*State>*/ folder, /* Function<String*/, /*String>*/ mapper, /* BiFunction<StringBuilder*/, struct  String, /*StringBuilder>*/ merger) {
-	return divide(input, /*folder)
-                */.iter(/*)
+/*private static*/ struct String compileAll(struct String input, /* BiFunction<State*/, struct  Character, /*State>*/ folder, /* Function<String*/, /*String>*/ mapper, /* BiFunction<String*/, struct  String, /*String>*/ merger) {
+	return divide(input, /* folder)
+                .iter()
                 .map(mapper)
-                .fold(new StringBuilder(*/), /* merger)
-                .toString(*/);
+                .fold(""*/, merger);
 }
-/*private static*/ struct StringBuilder mergeStatements(struct StringBuilder stringBuilder, struct String s) {
-	return stringBuilder.append(s);
+/*private static*/ struct String mergeStatements(struct String buffer, struct String element) {
+	return buffer + element;
 }
 /*private static*/ /*List<String>*/ divideStatements(struct String input) {
 	return divide(input, /* Main::foldStatements*/);
@@ -114,8 +113,8 @@ struct if (/*c == '{'*/) {
 	/*public static*/ struct void main(/*String[]*/ args);
 	/*private static*/ struct String compile(struct String input);
 	/*private static*/ struct String compileStatements(struct String input, /* Function<String*/, /*String>*/ mapper);
-	/*private static*/ struct String compileAll(struct String input, /* BiFunction<State*/, struct  Character, /*State>*/ folder, /* Function<String*/, /*String>*/ mapper, /* BiFunction<StringBuilder*/, struct  String, /*StringBuilder>*/ merger);
-	/*private static*/ struct StringBuilder mergeStatements(struct StringBuilder stringBuilder, struct String s);
+	/*private static*/ struct String compileAll(struct String input, /* BiFunction<State*/, struct  Character, /*State>*/ folder, /* Function<String*/, /*String>*/ mapper, /* BiFunction<String*/, struct  String, /*String>*/ merger);
+	/*private static*/ struct String mergeStatements(struct String buffer, struct String element);
 	/*private static*/ /*List<String>*/ divideStatements(struct String input);
 	/*private static*/ /*List<String>*/ divide(struct String input, /* BiFunction<State*/, struct  Character, /*State>*/ folder);
 	/*private static*/ struct State foldStatements(struct State state, char c);/*' && appended.isShallow()) {
@@ -363,11 +362,11 @@ struct if (/*c == '{'*/) {
         return true;
     }*//*
 
-    private static StringBuilder mergeValues(StringBuilder buffer, String element) {
+    private static String mergeValues(String buffer, String element) {
         if (buffer.isEmpty()) {
-            return buffer.append(element);
+            return element;
         }
-        return buffer.append(", ").append(element);
+        return buffer + ", " + element;
     }*//*
 
     private static String compileParameter(String input) {
