@@ -72,6 +72,9 @@ public class Main {
         <R> R match(Function<String, R> whenOk, Function<IOError, R> whenErr);
     }
 
+    private @interface Actual {
+    }
+
     private static class None<T> implements Option<T> {
         @Override
         public <R> Option<R> map(Function<T, R> mapper) {
@@ -404,7 +407,12 @@ public class Main {
         final var source = Paths.get(".", "src", "magma", "Main.java");
         readString(source)
                 .match(input -> compileAndWrite(input, source), Some::new)
-                .ifPresent(error -> System.err.println(error.display()));
+                .ifPresent(error -> printErroneousLine(error.display()));
+    }
+
+    @Actual
+    private static void printErroneousLine(String content) {
+        System.err.println(content);
     }
 
     private static Option<IOError> compileAndWrite(String input, Path source) {

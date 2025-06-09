@@ -3,6 +3,8 @@
 };
 /*private*/struct Result {
 };
+/*private @*/struct Actual {
+};
 /*private static*/struct Lists {
 };
 State new(List<Array<char>> segments, Array<char> buffer, int depth) {
@@ -76,7 +78,11 @@ State new() {
 };
 /*public static*/ void main(Array<Array<char>> args) {
 	/*final*/ auto source = Paths.get(".", "src", "magma", "Main.java");
-	readString(source).match(input - /*> compileAndWrite(input*/, /* source)*/, /* Some::new*/).ifPresent(error - /*> System*/.err.println(error.display()));
+	readString(source).match(input - /*> compileAndWrite(input*/, /* source)*/, /* Some::new*/).ifPresent(error - /*> printErroneousLine*/(error.display()));
+}
+/*@Actual
+    private static*/ void printErroneousLine(Array<char> content) {
+	System.err.println(content);
 }
 /*private static*/ Option<struct IOError> compileAndWrite(Array<char> input, struct Path source) {
 	/*final*/ auto target = source.resolveSibling("Main.c");
