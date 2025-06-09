@@ -294,28 +294,35 @@ public class Main {
             if (withEnd.endsWith("}")) {
                 final var maybeHeader = compileClassDefinition(beforeContent);
                 if (maybeHeader.isPresent()) {
-                    final var header = maybeHeader.get();
-                    if (header.typeParameters.isEmpty()) {
-                        final var inputContent = withEnd.substring(0, withEnd.length() - "}".length());
-
-                        final var segments = divide(inputContent);
-
-                        final var tuple = segments.iter()
-                                .map(Main::compileClassSegment)
-                                .collect(new TupleCollector<>(new ListBulkCollector<>(), new Joiner()));
-
-                        final var others = tuple.left;
-                        final var output = tuple.right.orElse("");
-
-                        final var generatedHeader = header.generate();
-                        final var generated = generatedHeader + " {" + output + "\n};\n";
-                        return Optional.of(new Tuple<>(others.addLast(generated), ""));
-                    }
+                    final var definition = maybeHeader.get();
+                    final var others = compileClassWithDefinition(definition, withEnd);
+                    return Optional.of(new Tuple<>(others, ""));
                 }
             }
         }
 
         return Optional.empty();
+    }
+
+    private static List<String> compileClassWithDefinition(ClassDefinition definition, String withEnd) {
+        if (definition.typeParameters.isEmpty()) {
+            final var inputContent = withEnd.substring(0, withEnd.length() - "}".length());
+
+            final var segments = divide(inputContent);
+
+            final var tuple = segments.iter()
+                    .map(Main::compileClassSegment)
+                    .collect(new TupleCollector<>(new ListBulkCollector<>(), new Joiner()));
+
+            final var others = tuple.left;
+            final var output = tuple.right.orElse("");
+
+            final var generatedHeader = definition.generate();
+            final var generated = generatedHeader + " {" + output + "\n};\n";
+            return others.addLast(generated);
+        }
+
+        return Lists.empty();
     }
 
     private static Tuple<List<String>, String> compileClassSegment(String input) {
@@ -337,9 +344,12 @@ public class Main {
                 final var content = withParams.substring(paramEnd + ")".length()).strip();
                 final var maybeDefinition = compileDefinition(beforeParams);
                 if (maybeDefinition.isPresent()) {
+                    final var header = maybeDefinition.get() + "(" + generatePlaceholder(params) + ")";
                     if (content.equals(";")) {
-                        final var generated = maybeDefinition.get() + "(" + generatePlaceholder(params) + ");";
+                        final var generated = header + ";";
                         return Optional.of(new Tuple<>(Lists.of(generated + "\n"), "\n\t" + generated));
+                    } else {
+                        return Optional.of(new Tuple<>(Lists.of(header + " {\n}" + "\n"), "\n\t" + header + ";"));
                     }
                 }
             }
