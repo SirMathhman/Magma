@@ -25,8 +25,8 @@
 }
 /*private static*/struct State {
 	/*private*/ /*List<String>*/ segments;
-	/*private*/ char* buffer;
-	/*private*/ struct int depth;/*
+	/*private*/ /*Slice<char>*/ buffer;
+	/*private*/ int depth;/*
 
         private State(List<String> segments, String buffer, int depth) {
             this.segments = segments;
@@ -44,20 +44,20 @@
 	/*private*/ struct State exit();
 	/*public*/ int isShallow();
 };
-/*private*/ char* generate() {
+/*private*/ /*Slice<char>*/ generate() {
 	return generatePlaceholder(this.beforeKeyword) + /* "struct " */ + this.name;
 }
 /*private*/struct ClassDefinition {
-	/*private*/ char* generate();
+	/*private*/ /*Slice<char>*/ generate();
 };
-/*private*/ char* generate() {
+/*private*/ /*Slice<char>*/ generate() {
 	/*final var beforeType */ = this.maybeBefore.map(/*Main::generatePlaceholder)
                     .map(inner */ - /*> inner */ + /* " ")
                     .orElse(""*/);
 	return beforeType + this.type + /* " " */ + this.name;
 }
 /*private*/struct JavaDefinition {
-	/*private*/ char* generate();
+	/*private*/ /*Slice<char>*/ generate();
 };
 /*public static*/ struct void main(/*String[]*/ args) {/*try {
             final var source = Paths.get(".", "src", "magma", "Main.java");
@@ -70,25 +70,25 @@
             e.printStackTrace();
         }*/
 }
-/*private static*/ char* compile(char* input) {
+/*private static*/ /*Slice<char>*/ compile(/*Slice<char>*/ input) {
 	return compileStatements(input, /* Main::compileRootSegment*/);
 }
-/*private static*/ char* compileStatements(char* input, /* Function<String*/, /*String>*/ mapper) {
+/*private static*/ /*Slice<char>*/ compileStatements(/*Slice<char>*/ input, /* Function<String*/, /*String>*/ mapper) {
 	return compileAll(input, /* Main::foldStatements*/, mapper, /* Main::mergeStatements*/);
 }
-/*private static*/ char* compileAll(char* input, /* BiFunction<State*/, struct  Character, /*State>*/ folder, /* Function<String*/, /*String>*/ mapper, /* BiFunction<String*/, struct  String, /*String>*/ merger) {
+/*private static*/ /*Slice<char>*/ compileAll(/*Slice<char>*/ input, /* BiFunction<State*/, struct  Character, /*State>*/ folder, /* Function<String*/, /*String>*/ mapper, /* BiFunction<String*/, struct  String, /*String>*/ merger) {
 	return divide(input, /* folder)
                 .iter()
                 .map(mapper)
                 .fold(""*/, merger);
 }
-/*private static*/ char* mergeStatements(char* buffer, char* element) {
+/*private static*/ /*Slice<char>*/ mergeStatements(/*Slice<char>*/ buffer, /*Slice<char>*/ element) {
 	return buffer + element;
 }
-/*private static*/ /*List<String>*/ divideStatements(char* input) {
+/*private static*/ /*List<String>*/ divideStatements(/*Slice<char>*/ input) {
 	return divide(input, /* Main::foldStatements*/);
 }
-/*private static*/ /*List<String>*/ divide(char* input, /* BiFunction<State*/, struct  Character, /*State>*/ folder) {
+/*private static*/ /*List<String>*/ divide(/*Slice<char>*/ input, /* BiFunction<State*/, struct  Character, /*State>*/ folder) {
 	/*var current */ = struct State();
 	/*for (var i */ = 0;
 	/*i < input*/.length();/* i++) {
@@ -111,12 +111,12 @@ struct if (/*c == '{'*/) {
 }
 /*public*/struct Main {
 	/*public static*/ struct void main(/*String[]*/ args);
-	/*private static*/ char* compile(char* input);
-	/*private static*/ char* compileStatements(char* input, /* Function<String*/, /*String>*/ mapper);
-	/*private static*/ char* compileAll(char* input, /* BiFunction<State*/, struct  Character, /*State>*/ folder, /* Function<String*/, /*String>*/ mapper, /* BiFunction<String*/, struct  String, /*String>*/ merger);
-	/*private static*/ char* mergeStatements(char* buffer, char* element);
-	/*private static*/ /*List<String>*/ divideStatements(char* input);
-	/*private static*/ /*List<String>*/ divide(char* input, /* BiFunction<State*/, struct  Character, /*State>*/ folder);
+	/*private static*/ /*Slice<char>*/ compile(/*Slice<char>*/ input);
+	/*private static*/ /*Slice<char>*/ compileStatements(/*Slice<char>*/ input, /* Function<String*/, /*String>*/ mapper);
+	/*private static*/ /*Slice<char>*/ compileAll(/*Slice<char>*/ input, /* BiFunction<State*/, struct  Character, /*State>*/ folder, /* Function<String*/, /*String>*/ mapper, /* BiFunction<String*/, struct  String, /*String>*/ merger);
+	/*private static*/ /*Slice<char>*/ mergeStatements(/*Slice<char>*/ buffer, /*Slice<char>*/ element);
+	/*private static*/ /*List<String>*/ divideStatements(/*Slice<char>*/ input);
+	/*private static*/ /*List<String>*/ divide(/*Slice<char>*/ input, /* BiFunction<State*/, struct  Character, /*State>*/ folder);
 	/*private static*/ struct State foldStatements(struct State state, char c);/*' && appended.isShallow()) {
             return appended.advance().exit();
         }*/
@@ -456,12 +456,12 @@ struct if (/*c == '{'*/) {
             return Optional.of("char");
         }
 
-        if (stripped.equals("boolean")) {
+        if (stripped.equals("boolean") || stripped.equals("int")) {
             return Optional.of("int");
         }
 
         if (stripped.equals("String")) {
-            return Optional.of("char*");
+            return Optional.of(generatePlaceholder("Slice<char>"));
         }
 
         if (isSymbol(stripped)) {

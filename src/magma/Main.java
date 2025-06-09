@@ -629,12 +629,12 @@ public class Main {
             return Optional.of("char");
         }
 
-        if (stripped.equals("boolean")) {
+        if (stripped.equals("boolean") || stripped.equals("int")) {
             return Optional.of("int");
         }
 
         if (stripped.equals("String")) {
-            return Optional.of("char*");
+            return Optional.of(generatePlaceholder("Slice<char>"));
         }
 
         if (isSymbol(stripped)) {
