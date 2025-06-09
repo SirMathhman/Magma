@@ -315,11 +315,13 @@ public class Main {
             final var paramEnd = withParams.indexOf(")");
             if (paramEnd >= 0) {
                 final var params = withParams.substring(0, paramEnd);
-                final var content = withParams.substring(paramEnd + ")".length());
+                final var content = withParams.substring(paramEnd + ")".length()).strip();
                 final var maybeDefinition = compileDefinition(beforeParams);
                 if (maybeDefinition.isPresent()) {
-                    final var generated = maybeDefinition.get() + "(" + generatePlaceholder(params) + ")" + generatePlaceholder(content);
-                    return Optional.of(new Tuple<>(Lists.of(generated), generated));
+                    if (content.equals(";")) {
+                        final var generated = maybeDefinition.get() + "(" + generatePlaceholder(params) + ");";
+                        return Optional.of(new Tuple<>(Lists.of(generated + "\n"), "\n\t" + generated));
+                    }
                 }
             }
         }
