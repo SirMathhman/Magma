@@ -1,4 +1,4 @@
-/*private interface Collector<T, C> */{/*C createInitial();*/
+/*private*/struct Collector<T, C> {/*C createInitial();*/
 	/*C fold(C current,*/ /*T*/ element);
 	/*}
 
@@ -308,14 +308,20 @@
 	/*}
 
     private static String compileClassDefinition(String input) {
-        final var classIndex =*/ /*input.indexOf("class*/ ");
-	/*if (classIndex >= 0) {
-            final var beforeKeyword = input.substring(0, classIndex).strip();
-            final var afterKeyword = input.substring(classIndex + "class ".length());
-            return generatePlaceholder(beforeKeyword) + "struct " + afterKeyword;
+        return compilClassDefinitionWithKeyword(input, "class ")
+                .or(() -> compilClassDefinitionWithKeyword(input, "interface "))
+                .orElseGet(()*/ /*->*/ generatePlaceholder(input));
+	/*}
+
+    private static Optional<String> compilClassDefinitionWithKeyword(String input, String keyword) {
+        final var classIndex*/ /*=*/ input.indexOf(keyword);
+	/*if (classIndex < 0) {
+            return Optional.empty();
         }
 
-       */ /*return*/ generatePlaceholder(input);
+        final var beforeKeyword =*/ /*input.substring(0,*/ classIndex).strip();
+	/*final var afterKeyword = input.substring(classIndex*/ /*+*/ keyword.length());
+	/*return Optional.of(generatePlaceholder(beforeKeyword) + "struct "*/ /*+*/ afterKeyword);
 	/*}
 
     private static String generatePlaceholder(String input) {
