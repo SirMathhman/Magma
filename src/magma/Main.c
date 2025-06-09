@@ -224,10 +224,10 @@ Option<struct DivideState> foldEscaped(Tuple<struct DivideState, char> tuple) {
 }
 struct DivideState foldStatements(struct DivideState state, char c) {
 	auto appended = state.append(c);
-	if (c == /* ';' && appended*/.isLevel()) {
+	if (c == ';' && appended.isLevel()) {
 		return appended.advance();
 	}
-	if (c == /* '}' && appended*/.isShallow()) {
+	if (c == '}' && appended.isShallow()) {
 		return appended.advance().exit();
 	}
 	/*if (c == '*/ {
@@ -528,6 +528,7 @@ struct Main {/*".length());*/
                 .or(() -> compileOperator(input, "=="))
                 .or(() -> compileOperator(input, "+"))
                 .or(() -> compileOperator(input, "-"))
+                .or(() -> compileOperator(input, "&&"))
                 .or(() -> compileSymbol(input))
                 .or(() -> compileNumber(input))
                 .or(() -> compileChar(input))
