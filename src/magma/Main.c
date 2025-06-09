@@ -70,17 +70,7 @@ struct Ok(String value) implements Result {
 };
 struct Err(IOError error) implements Result {
 };
-Array<char> display() {
-	auto writer = struct StringWriter();
-	this.exception.printStackTrace(struct PrintWriter(writer));
-	return writer.toString();
-}
-struct JavaIOError(IOException exception) implements IOError {
-	Array<char> display();
-};
-struct Path get(Array<char> first, /*String...*/ more) {
-	return struct JavaPath(/*java.nio.file.Paths.get(first*/, /* more)*/);
-}
+struct Path get(Array<char> first, /*String...*/ more);
 struct Paths {
 };
 void main(Array<Array<char>> args) {

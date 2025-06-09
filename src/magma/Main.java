@@ -213,6 +213,7 @@ public class Main {
         }
     }
 
+    @Actual
     private record JavaList<T>(java.util.List<T> elements) implements List<T> {
         public JavaList() {
             this(new ArrayList<>());
@@ -257,10 +258,12 @@ public class Main {
     }
 
     private static class Lists {
+        @Actual
         public static <T> List<T> empty() {
             return new JavaList<>();
         }
 
+        @Actual
         @SafeVarargs
         public static <T> List<T> of(T... elements) {
             return new JavaList<>(new ArrayList<>(Arrays.asList(elements)));
@@ -397,6 +400,7 @@ public class Main {
         }
     }
 
+    @Actual
     private record JavaIOError(IOException exception) implements IOError {
         @Override
         public String display() {
@@ -434,6 +438,7 @@ public class Main {
     }
 
     private static class Paths {
+        @Actual
         public static Path get(String first, String... more) {
             return new JavaPath(java.nio.file.Paths.get(first, more));
         }
