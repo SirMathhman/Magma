@@ -16,6 +16,9 @@ struct Type extends Node {
 struct Node {
 	Array<char> generate();
 };
+struct CDefinition {
+	Array<char> generate();
+};
 struct Lists {
 };
 struct private State(List<Array<char>> segments, Array<char> buffer, int depth) {
@@ -68,11 +71,7 @@ Array<char> generate() {
 struct ClassDefinition {
 	Array<char> generate();
 };
-Array<char> generate() {
-	return this.type.generate() + " " + this.name;
-}
 struct JavaDefinition {
-	Array<char> generate();
 };
 struct Ok(String value) implements Result {
 };
@@ -82,11 +81,15 @@ struct Path get(Array<char> first, /*startString...end*/ more);
 struct Paths {
 };
 Array<char> generate() {
+	return this.generateWithName("");
+}
+Array<char> generateWithName(Array<char> name) {
 	auto joined = generateValueNodes(this.argumentTypes);
-	return this.returnType.generate() + " (*)(" + joined + ")";
+	return this.returnType.generate() + " (*" + name + ")(" + joined + ")";
 }
 struct FunctionType(List<Type> argumentTypes, Type returnType) implements Type {
 	Array<char> generate();
+	Array<char> generateWithName(Array<char> name);
 };
 Array<char> generate() {
 	auto outputArguments = generateValueNodes(this.elements);
@@ -107,6 +110,25 @@ Array<char> generate() {
 struct StructType(String name) implements Type {
 	Array<char> generate();
 };
+Array<char> generate() {
+	return this.type().generate() + " " + this.name();
+}
+struct SimpleCDefinition(Type type, String name) implements CDefinition {
+	Array<char> generate();
+};
+struct public CFunctionDefinition(struct FunctionType type, struct JavaDefinition definition) {
+	this.type = type;
+	this.definition = definition;
+}
+Array<char> generate() {
+	return this.type.generateWithName(this.definition.name);
+}
+struct CFunctionDefinition implements CDefinition {
+	struct FunctionType type;
+	struct JavaDefinition definition;
+	struct public CFunctionDefinition(struct FunctionType type, struct JavaDefinition definition);
+	Array<char> generate();
+};
 void main(Array<Array<char>> args) {
 	auto source = Paths.get(".", "src", "magma", "Main.java");
 	source.readString().match(input - /*> compileAndWrite(input, source), Some::new*/).ifPresent(error - /*> printErroneousLine*/(error.display()));
@@ -120,13 +142,13 @@ Option<struct IOError> compileAndWrite(Array<char> input, struct Path source) {
 Array<char> compile(Array<char> input) {
 	return compileStatements(input, /* Main::compileRootSegment*/);
 }
-Array<char> compileStatements(Array<char> input, Array<char> (*)(Array<char>) mapper) {
+Array<char> compileStatements(Array<char> input, Array<char> (*mapper)(Array<char>)) {
 	return compileAll(input, /* Main::foldStatements*/, mapper, /* Main::mergeStatements*/);
 }
-Array<char> compileAll(Array<char> input, struct State (*)(struct State, char) folder, Array<char> (*)(Array<char>) mapper, Array<char> (*)(Array<char>, Array<char>) merger) {
+Array<char> compileAll(Array<char> input, struct State (*folder)(struct State, char), Array<char> (*mapper)(Array<char>), Array<char> (*merger)(Array<char>, Array<char>)) {
 	return generateAll(merger, /* parseAll(input*/, folder, /* mapper)*/);
 }
-Array<char> generateAll(Array<char> (*)(Array<char>, Array<char>) merger, List<Array<char>> stringList) {
+Array<char> generateAll(Array<char> (*merger)(Array<char>, Array<char>), List<Array<char>> stringList) {
 	return stringList.iter().fold("", merger);
 }
 Array<char> mergeStatements(Array<char> buffer, Array<char> element) {
@@ -135,7 +157,7 @@ Array<char> mergeStatements(Array<char> buffer, Array<char> element) {
 List<Array<char>> divideStatements(Array<char> input) {
 	return divide(input, /* Main::foldStatements*/);
 }
-List<Array<char>> divide(Array<char> input, struct State (*)(struct State, char) folder) {
+List<Array<char>> divide(Array<char> input, struct State (*folder)(struct State, char)) {
 	auto current = struct State();
 	/*start(varend*/ i = 0;
 	/*i < input*/.length();/* i++) {
@@ -247,7 +269,7 @@ struct Main {/*' && appended.isShallow()) {
                     }
 
                     final var compiledParameters = compileValues(params, Main::compileParameter);
-                    final var header = definition.generate() + "(" + compiledParameters + ")";
+                    final var header = transformDefinition(definition).generate() + "(" + compiledParameters + ")";
 
                     if (withBraces.equals(";")) {
                         final var generated = header + ";";
@@ -264,6 +286,14 @@ struct Main {/*' && appended.isShallow()) {
         }
 
         return new None<>();
+    }*//*
+
+    private static CDefinition transformDefinition(JavaDefinition definition) {
+        if (definition.type instanceof FunctionType type) {
+            return new CFunctionDefinition(type, definition);
+        }
+
+        return new SimpleCDefinition(definition.type, definition.name);
     }*//*
 
     private static Tuple<List<String>, String> compileMethodWithBody(JavaDefinition definition, String header, String withBraces) {
@@ -332,7 +362,7 @@ struct Main {/*' && appended.isShallow()) {
         if (i >= 0) {
             final var destinationString = stripped.substring(0, i);
             final var substring1 = stripped.substring(i + "=".length());
-            final var destination = parseDefinition(destinationString).map(JavaDefinition::generate)
+            final var destination = parseDefinition(destinationString).map(javaDefinition -> transformDefinition(javaDefinition).generate())
                     .orElseGet(() -> compileValue(destinationString));
 
             return destination + " = " + compileValue(substring1);
@@ -477,7 +507,7 @@ struct Main {/*' && appended.isShallow()) {
 
     private static String compileParameter(String input) {
         return compileWhitespace(input)
-                .or(() -> parseDefinition(input).map(JavaDefinition::generate))
+                .or(() -> parseDefinition(input).map(javaDefinition -> transformDefinition(javaDefinition).generate()))
                 .orElseGet(() -> generatePlaceholder(input));
     }*//*
 
@@ -494,7 +524,7 @@ struct Main {/*' && appended.isShallow()) {
         final var stripped = input.strip();
         if (stripped.endsWith(";")) {
             final var withoutEnd = stripped.substring(0, stripped.length() - ";".length());
-            return parseDefinition(withoutEnd).map(JavaDefinition::generate).map(generated -> new Tuple<>(Lists.empty(), "\n\t" + generated + ";"));
+            return parseDefinition(withoutEnd).map(javaDefinition -> transformDefinition(javaDefinition).generate()).map(generated -> new Tuple<>(Lists.empty(), "\n\t" + generated + ";"));
         }
 
         return new None<>();
