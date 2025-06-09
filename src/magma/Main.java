@@ -392,9 +392,10 @@ public class Main {
                     }
 
                     if (withBraces.startsWith("{") && withBraces.endsWith("}")) {
-                        final var content = withBraces.substring(1, withBraces.length() - 1).strip();
+                        final var inputContent = withBraces.substring(1, withBraces.length() - 1).strip();
+                        final var outputContent = compileStatements(inputContent, Main::compileFunctionSegment);
                         return Optional.of(new Tuple<>(Lists.of(header + " {" +
-                                generatePlaceholder(content) +
+                                outputContent +
                                 "}" + "\n"), "\n\t" + header + ";"));
                     }
 
@@ -404,6 +405,11 @@ public class Main {
         }
 
         return Optional.empty();
+    }
+
+    private static String compileFunctionSegment(String input) {
+        return compileWhitespace(input)
+                .orElseGet(() -> generatePlaceholder(input));
     }
 
     private static StringBuilder mergeValues(StringBuilder buffer, String element) {
