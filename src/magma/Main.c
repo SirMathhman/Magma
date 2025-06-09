@@ -1,4 +1,4 @@
-package magma;
+/*package magma;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -18,8 +18,9 @@ public class Main {
     }
 
     private static String generatePlaceholder(String input) {
-        return "/*" + input
-                .replace("/*", "start")
-                .replace("*/", "end") + "*/";
+        return "start" + input
+                .replace("start", "start")
+                .replace("end", "end") + "end";
     }
 }
+*/
