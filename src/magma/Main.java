@@ -978,13 +978,25 @@ public class Main {
         return compileLambda(input)
                 .or(() -> compileInvokable(input))
                 .or(() -> compileAccess(input))
+                .or(() -> compileOperator(input, "!="))
                 .or(() -> compileOperator(input, "=="))
                 .or(() -> compileOperator(input, "+"))
                 .or(() -> compileOperator(input, "-"))
                 .or(() -> compileSymbol(input))
                 .or(() -> compileNumber(input))
+                .or(() -> compileChar(input))
                 .or(() -> compileString(input))
                 .orElseGet(() -> generatePlaceholder(input));
+    }
+
+    private static Option<String> compileChar(String input) {
+        final var stripped = input.strip();
+        if (stripped.startsWith("'") && stripped.endsWith("'")) {
+            return new Some<>(stripped);
+        }
+        else {
+            return new None<>();
+        }
     }
 
     private static Option<String> compileLambda(String input) {

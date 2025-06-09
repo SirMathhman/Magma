@@ -210,14 +210,14 @@ struct DivideState getObject(struct DivideState (*folder)(struct DivideState, ch
 	return foldSingleQuotes(currentState, c).orElseGet(() - /*> folder*/.apply(currentState, c));
 }
 Option<struct DivideState> foldSingleQuotes(struct DivideState currentState, char c) {
-	if (/*c != '\''*/) {
+	if (c != '\'') {
 		return None<struct >();
 	}
 	auto appended = currentState.append(c);
 	return appended.popAndAppendToTuple().flatMap(/*Main::foldEscaped*/).flatMap(/*DivideState::popAndAppendToOption*/);
 }
 Option<struct DivideState> foldEscaped(Tuple<struct DivideState, char> tuple) {
-	if (tuple.right == /* '\\'*/) {
+	if (tuple.right == '\\') {
 		return tuple.left.popAndAppendToOption();
 	}
 	return Some<struct >(tuple.left);
@@ -234,7 +234,7 @@ struct DivideState foldStatements(struct DivideState state, char c) {
 		/*') {
             return appended*/.enter();
 	}
-	if (c == /* '}'*/) {
+	if (c == '}') {
 		return appended.exit();
 	}
 	return appended;
@@ -253,7 +253,7 @@ Array<char> compileRootSegment(Array<char> input) {
                 .orElseGet(*/() - /*> generatePlaceholder*/(/*input)*/);
 }
 Option<Tuple<List<Array<char>>, Array<char>>> compileClass(Array<char> input) {
-	auto contentStart = input.indexOf(/*'{'*/);
+	auto contentStart = input.indexOf('{');
 	if (/*contentStart >= 0*/) {
 		auto beforeContent = input.substring(0, contentStart);
 		/*final var withEnd = input.substring(contentStart + "*/ {
@@ -524,13 +524,25 @@ struct Main {/*".length());*/
         return compileLambda(input)
                 .or(() -> compileInvokable(input))
                 .or(() -> compileAccess(input))
+                .or(() -> compileOperator(input, "!="))
                 .or(() -> compileOperator(input, "=="))
                 .or(() -> compileOperator(input, "+"))
                 .or(() -> compileOperator(input, "-"))
                 .or(() -> compileSymbol(input))
                 .or(() -> compileNumber(input))
+                .or(() -> compileChar(input))
                 .or(() -> compileString(input))
                 .orElseGet(() -> generatePlaceholder(input));
+    }*//*
+
+    private static Option<String> compileChar(String input) {
+        final var stripped = input.strip();
+        if (stripped.startsWith("'") && stripped.endsWith("'")) {
+            return new Some<>(stripped);
+        }
+        else {
+            return new None<>();
+        }
     }*//*
 
     private static Option<String> compileLambda(String input) {
