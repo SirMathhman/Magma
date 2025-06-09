@@ -55,17 +55,17 @@ int isShallow() {
 	return this.depth == 1;
 }
 Option<Tuple<struct State, char>> pop() {
-	/*if (this.index < this.input.length()) */{
+	if (/*this.index < this*/.input.length()) {
 		auto c = this.input.charAt(this.index);
 		auto next = struct State(this.input, this.segments, this.buffer, this.depth, this.index + 1);
 		return Some<struct >(Tuple<struct >(next, c));
 	}
-	/*else */{
+	/*else*/ {
 		return None<struct >();
 	}
 }
 Option<char> peek() {
-	/*if (this.index < this.input.length()) */{
+	if (/*this.index < this*/.input.length()) {
 		return Some<struct >(this.input.charAt(this.index));
 	}
 	return None<struct >();
@@ -185,12 +185,12 @@ List<Array<char>> divideStatements(Array<char> input) {
 }
 List<Array<char>> divide(Array<char> input, struct State (*folder)(struct State, char)) {
 	auto current = struct State(input);
-	/*while (true) */{
+	while (true) {
 		auto maybeNext = current.pop().map(/*tuple -> folder.apply(tuple.left, tuple.right)*/);
-		/*if (maybeNext.isPresent()) */{
+		if (maybeNext.isPresent()) {
 			current = maybeNext.get();
 		}
-		/*else */{
+		/*else*/ {
 			/*break*/;
 		}
 	}
@@ -199,7 +199,7 @@ List<Array<char>> divide(Array<char> input, struct State (*folder)(struct State,
 struct State foldStatements(struct State state, char c) {
 	auto appended = state.append(c);
 	/*if (c */ = /*= '*/;
-	/*' && appended.isLevel()) */{
+	/*' && appended.isLevel*/ (/*)*/) {
 		return appended.advance();
 	}/*
         if (c == '*/
@@ -387,11 +387,32 @@ struct Main {/*' && appended.isShallow()) {
                 final var inputContent = withoutEnd.substring(contentStart + "{".length());
                 final var outputContent = compileFunctionSegments(inputContent, depth + 1);
                 final var indent = "\n" + "\t".repeat(depth);
-                return new Some<>(indent + generatePlaceholder(header) + "{" + outputContent + indent + "}");
+                return new Some<>(indent + compileBlockHeader(header) + " {" + outputContent + indent + "}");
             }
         }
 
         return new None<>();
+    }*//*
+
+    private static String compileBlockHeader(String input) {
+        final var stripped = input.strip();
+        if (stripped.endsWith(")")) {
+            final var withoutEnd = stripped.substring(0, stripped.length() - ")".length());
+            final var conditionStart = withoutEnd.indexOf("(");
+            if (conditionStart >= 0) {
+                final var beforeCondition = withoutEnd.substring(0, conditionStart);
+                final var conditionString = withoutEnd.substring(conditionStart + "(".length());
+                final var compiled = compileValue(conditionString);
+                final var strippedCompiled = beforeCondition.strip();
+                final var beforeContent = switch (strippedCompiled) {
+                    case "if", "while" -> strippedCompiled;
+                    default -> generatePlaceholder(strippedCompiled);
+                };
+                return beforeContent + " (" + compiled + ")";
+            }
+        }
+
+        return generatePlaceholder(stripped);
     }*//*
 
     private static Option<String> compileFunctionStatement(String input, int depth) {

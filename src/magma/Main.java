@@ -826,11 +826,32 @@ public class Main {
                 final var inputContent = withoutEnd.substring(contentStart + "{".length());
                 final var outputContent = compileFunctionSegments(inputContent, depth + 1);
                 final var indent = "\n" + "\t".repeat(depth);
-                return new Some<>(indent + generatePlaceholder(header) + "{" + outputContent + indent + "}");
+                return new Some<>(indent + compileBlockHeader(header) + " {" + outputContent + indent + "}");
             }
         }
 
         return new None<>();
+    }
+
+    private static String compileBlockHeader(String input) {
+        final var stripped = input.strip();
+        if (stripped.endsWith(")")) {
+            final var withoutEnd = stripped.substring(0, stripped.length() - ")".length());
+            final var conditionStart = withoutEnd.indexOf("(");
+            if (conditionStart >= 0) {
+                final var beforeCondition = withoutEnd.substring(0, conditionStart);
+                final var conditionString = withoutEnd.substring(conditionStart + "(".length());
+                final var compiled = compileValue(conditionString);
+                final var strippedCompiled = beforeCondition.strip();
+                final var beforeContent = switch (strippedCompiled) {
+                    case "if", "while" -> strippedCompiled;
+                    default -> generatePlaceholder(strippedCompiled);
+                };
+                return beforeContent + " (" + compiled + ")";
+            }
+        }
+
+        return generatePlaceholder(stripped);
     }
 
     private static Option<String> compileFunctionStatement(String input, int depth) {
