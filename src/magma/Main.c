@@ -15,119 +15,115 @@ State new(List<Array<char>> segments, Array<char> buffer, int depth) {
 State new() {
 	this(Lists.empty(), "", 0);
 }
-/*private*/ int isLevel() {
+int isLevel() {
 	return this.depth == 0;
 }
-/*private*/ struct State append(char c) {
+struct State append(char c) {
 	this.buffer = this.buffer + c;
 	return this;
 }
-/*private*/ struct State advance() {
+struct State advance() {
 	this.segments = this.segments.addLast(this.buffer);
 	this.buffer = "";
 	return this;
 }
-/*private*/ struct State enter() {
+struct State enter() {
 	this.depth = this.depth + 1;
 	return this;
 }
-/*private*/ struct State exit() {
+struct State exit() {
 	this.depth = this.depth - 1;
 	return this;
 }
-/*public*/ int isShallow() {
+int isShallow() {
 	return this.depth == 1;
 }
 /*private static*/struct State {
-	/*private*/ List<Array<char>> segments;
-	/*private*/ Array<char> buffer;
-	/*private*/ int depth;
-	/*private*/ int isLevel();
-	/*private*/ struct State append(char c);
-	/*private*/ struct State advance();
-	/*private*/ struct State enter();
-	/*private*/ struct State exit();
-	/*public*/ int isShallow();
+	List<Array<char>> segments;
+	Array<char> buffer;
+	int depth;
+	int isLevel();
+	struct State append(char c);
+	struct State advance();
+	struct State enter();
+	struct State exit();
+	int isShallow();
 };
-/*private*/ Array<char> generate() {
+Array<char> generate() {
 	return generatePlaceholder(this.beforeKeyword) + "struct " + this.name;
 }
 /*private*/struct ClassDefinition {
-	/*private*/ Array<char> generate();
+	Array<char> generate();
 };
-/*private*/ Array<char> generate() {
-	/*final*/ auto beforeType = this.maybeBefore.map(/*Main::generatePlaceholder*/).map(inner - /*> inner */ + " ").orElse("");
-	return beforeType + this.type + " " + this.name;
+Array<char> generate() {
+	return this.type + " " + this.name;
 }
 /*private*/struct JavaDefinition {
-	/*private*/ Array<char> generate();
+	Array<char> generate();
 };
 /*private*/struct Ok(String value) implements Result {
 };
 /*private*/struct Err(IOError error) implements Result {
 };
-/*@Override
-        public*/ Array<char> display() {
-	/*final*/ auto writer = struct StringWriter();
+Array<char> display() {
+	auto writer = struct StringWriter();
 	this.exception.printStackTrace(struct PrintWriter(writer));
 	return writer.toString();
 }
 /*private*/struct JavaIOError(IOException exception) implements IOError {
-	/*@Override
-        public*/ Array<char> display();
+	Array<char> display();
 };
-/*public static*/ void main(Array<Array<char>> args) {
-	/*final*/ auto source = Paths.get(".", "src", "magma", "Main.java");
+void main(Array<Array<char>> args) {
+	auto source = Paths.get(".", "src", "magma", "Main.java");
 	readString(source).match(input - /*> compileAndWrite(input*/, /* source)*/, /* Some::new*/).ifPresent(error - /*> printErroneousLine*/(error.display()));
 }
-/*@Actual
-    private static*/ void printErroneousLine(Array<char> content) {
+void printErroneousLine(Array<char> content) {
 	System.err.println(content);
 }
-/*private static*/ Option<struct IOError> compileAndWrite(Array<char> input, struct Path source) {
-	/*final*/ auto target = source.resolveSibling("Main.c");
-	/*final*/ auto string = compile(input);
+Option<struct IOError> compileAndWrite(Array<char> input, struct Path source) {
+	auto target = source.resolveSibling("Main.c");
+	auto string = compile(input);
 	return writeString(target, string);
 }
-/*private static*/ Option<struct IOError> writeString(struct Path target, Array<char> string) {/*try {
+Option<struct IOError> writeString(struct Path target, Array<char> string) {/*try {
             Files.writeString(target, string);
             return new None<>();
         }*//* catch (IOException e) {
             return new Some<>(new JavaIOError(e));
         }*/
 }
-/*private static*/ struct Result readString(struct Path source) {/*try {
+struct Result readString(struct Path source) {/*try {
             return new Ok(Files.readString(source));
         }*//* catch (IOException e) {
             return new Err(new JavaIOError(e));
         }*/
 }
-/*private static*/ Array<char> compile(Array<char> input) {
+Array<char> compile(Array<char> input) {
 	return compileStatements(input, /* Main::compileRootSegment*/);
 }
-/*private static*/ Array<char> compileStatements(Array<char> input, /* Function<String*/, /*String>*/ mapper) {
+Array<char> compileStatements(Array<char> input, /* Function<String*/, /*String>*/ mapper) {
 	return compileAll(input, /* Main::foldStatements*/, mapper, /* Main::mergeStatements*/);
 }
-/*private static*/ Array<char> compileAll(Array<char> input, /* BiFunction<State*/, /* Character*/, /*State>*/ folder, /* Function<String*/, /*String>*/ mapper, /* BiFunction<String*/, /* String*/, /*String>*/ merger) {
+Array<char> compileAll(Array<char> input, /* BiFunction<State*/, /* Character*/, /*State>*/ folder, /* Function<String*/, /*String>*/ mapper, /* BiFunction<String*/, /* String*/, /*String>*/ merger) {
 	return divide(input, folder).iter().map(mapper).fold("", merger);
 }
-/*private static*/ Array<char> mergeStatements(Array<char> buffer, Array<char> element) {
+Array<char> mergeStatements(Array<char> buffer, Array<char> element) {
 	return buffer + element;
 }
-/*private static*/ List<Array<char>> divideStatements(Array<char> input) {
+List<Array<char>> divideStatements(Array<char> input) {
 	return divide(input, /* Main::foldStatements*/);
 }
-/*private static*/ List<Array<char>> divide(Array<char> input, /* BiFunction<State*/, /* Character*/, /*State>*/ folder) {
+List<Array<char>> divide(Array<char> input, /* BiFunction<State*/, /* Character*/, /*State>*/ folder) {
 	auto current = struct State();
-	/*for*/ /*(var*/ i = 0;
+	/*(var*/ i = 0;
 	/*i < input*/.length();/* i++) {
             final var c = input.charAt(i);
             current = folder.apply(current, c);
         }*/
 	return current.advance().segments;
 }
-/*private static*/ struct State foldStatements(struct State state, char c) {
-	/*final*/ auto appended = state.append(c);
+struct State foldStatements(struct State state, char c) {
+	auto appended = state.append(c);
 	/*if (c */ = /*= '*/;/*' && appended.isLevel()) {
             return appended.advance();
         }*//*
@@ -263,7 +259,7 @@ State new() {
         final var separator = input.lastIndexOf(" ");
         if (separator >= 0) {
             final var name = input.substring(separator + " ".length());
-            return new Some<>(new JavaDefinition(new None<>(), Lists.of("static"), Lists.empty(), name, "new"));
+            return new Some<>(new JavaDefinition(Lists.empty(), Lists.of("static"), Lists.empty(), name, "new"));
         }
         else {
             return new None<>();
@@ -477,7 +473,7 @@ State new() {
             final var name = stripped.substring(nameSeparator + " ".length()).strip();
 
             if (isSymbol(name)) {
-                return parseDefinitionWithBeforeType(beforeName, name);
+                return parseDefinitionWithType(beforeName, name);
             }
         }
         return new None<>();
@@ -494,10 +490,10 @@ State new() {
         return true;
     }*//*
 
-    private static Option<JavaDefinition> parseDefinitionWithBeforeType(String beforeName, String name) {
+    private static Option<JavaDefinition> parseDefinitionWithType(String beforeName, String name) {
         final var typeSeparator = beforeName.lastIndexOf(" ");
         if (typeSeparator < 0) {
-            return compileType(beforeName).map(type -> new JavaDefinition(new None<>(), Lists.empty(), Lists.empty(), type, name));
+            return compileType(beforeName).map(type -> new JavaDefinition(Lists.empty(), Lists.empty(), Lists.empty(), type, name));
         }
 
         final var type = beforeName.substring(typeSeparator + " ".length());
@@ -510,28 +506,49 @@ State new() {
                     final var beforeTypeParameters = withoutEnd.substring(0, typeParametersStart);
                     final var typeParametersString = withoutEnd.substring(typeParametersStart + "<".length());
                     final var typeParameters = parseTypeParameters(typeParametersString);
-                    return getJavaDefinition(beforeTypeParameters, typeParameters, compiledType, name);
+                    return parseDefinitionWithModifiers(beforeTypeParameters, typeParameters, compiledType, name);
                 }
             }
 
-            return getJavaDefinition(beforeType, Lists.empty(), compiledType, name);
+            return parseDefinitionWithModifiers(beforeType, Lists.empty(), compiledType, name);
         });
     }*//*
 
-    private static JavaDefinition getJavaDefinition(String beforeTypeParameters, List<String> typeParameters, String type, String name) {
-        final var modifiers = divide(beforeTypeParameters, Main::foldModifiers)
+    private static JavaDefinition parseDefinitionWithModifiers(String beforeTypeParameters, List<String> typeParameters, String type, String name) {
+        final var separator = beforeTypeParameters.lastIndexOf("\n");
+        if (separator >= 0) {
+            final var annotationsString = beforeTypeParameters.substring(0, separator);
+            final var annotations = divide(annotationsString, foldByDelimiter('\n'))
+                    .iter()
+                    .map(String::strip)
+                    .map(value -> value.substring(1))
+                    .collect(new ListCollector<>());
+
+            final var substring = beforeTypeParameters.substring(separator + "\n".length());
+
+            final var modifiers = parseModifiers(substring);
+            return new JavaDefinition(annotations, modifiers, typeParameters, type, name);
+        }
+        else {
+            final var modifiers = parseModifiers(beforeTypeParameters);
+            return new JavaDefinition(Lists.empty(), modifiers, typeParameters, type, name);
+        }
+    }*//*
+
+    private static List<String> parseModifiers(String beforeTypeParameters) {
+        return divide(beforeTypeParameters, foldByDelimiter(' '))
                 .iter()
                 .map(String::strip)
                 .collect(new ListCollector<>());
-
-        return new JavaDefinition(new Some<>(beforeTypeParameters), modifiers, typeParameters, type, name);
     }*//*
 
-    private static State foldModifiers(State state, Character c) {
-        if (c == ' ') {
-            return state.advance();
-        }
-        return state.append(c);
+    private static BiFunction<State, Character, State> foldByDelimiter(char delimiter) {
+        return (state, c) -> {
+            if (c == delimiter) {
+                return state.advance();
+            }
+            return state.append(c);
+        };
     }*//*
 
     private static Option<String> compileType(String input) {

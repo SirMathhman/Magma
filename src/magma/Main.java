@@ -353,18 +353,14 @@ public class Main {
     }
 
     private record JavaDefinition(
-            Option<String> maybeBefore,
+            List<String> annotations,
             List<String> modifiers,
             List<String> typeParameters,
             String type,
             String name
     ) {
         private String generate() {
-            final var beforeType = this.maybeBefore.map(Main::generatePlaceholder)
-                    .map(inner -> inner + " ")
-                    .orElse("");
-
-            return beforeType + this.type + " " + this.name;
+            return this.type + " " + this.name;
         }
     }
 
@@ -604,7 +600,7 @@ public class Main {
         final var separator = input.lastIndexOf(" ");
         if (separator >= 0) {
             final var name = input.substring(separator + " ".length());
-            return new Some<>(new JavaDefinition(new None<>(), Lists.of("static"), Lists.empty(), name, "new"));
+            return new Some<>(new JavaDefinition(Lists.empty(), Lists.of("static"), Lists.empty(), name, "new"));
         }
         else {
             return new None<>();
@@ -818,7 +814,7 @@ public class Main {
             final var name = stripped.substring(nameSeparator + " ".length()).strip();
 
             if (isSymbol(name)) {
-                return parseDefinitionWithBeforeType(beforeName, name);
+                return parseDefinitionWithType(beforeName, name);
             }
         }
         return new None<>();
@@ -835,10 +831,10 @@ public class Main {
         return true;
     }
 
-    private static Option<JavaDefinition> parseDefinitionWithBeforeType(String beforeName, String name) {
+    private static Option<JavaDefinition> parseDefinitionWithType(String beforeName, String name) {
         final var typeSeparator = beforeName.lastIndexOf(" ");
         if (typeSeparator < 0) {
-            return compileType(beforeName).map(type -> new JavaDefinition(new None<>(), Lists.empty(), Lists.empty(), type, name));
+            return compileType(beforeName).map(type -> new JavaDefinition(Lists.empty(), Lists.empty(), Lists.empty(), type, name));
         }
 
         final var type = beforeName.substring(typeSeparator + " ".length());
@@ -851,28 +847,49 @@ public class Main {
                     final var beforeTypeParameters = withoutEnd.substring(0, typeParametersStart);
                     final var typeParametersString = withoutEnd.substring(typeParametersStart + "<".length());
                     final var typeParameters = parseTypeParameters(typeParametersString);
-                    return getJavaDefinition(beforeTypeParameters, typeParameters, compiledType, name);
+                    return parseDefinitionWithModifiers(beforeTypeParameters, typeParameters, compiledType, name);
                 }
             }
 
-            return getJavaDefinition(beforeType, Lists.empty(), compiledType, name);
+            return parseDefinitionWithModifiers(beforeType, Lists.empty(), compiledType, name);
         });
     }
 
-    private static JavaDefinition getJavaDefinition(String beforeTypeParameters, List<String> typeParameters, String type, String name) {
-        final var modifiers = divide(beforeTypeParameters, Main::foldModifiers)
+    private static JavaDefinition parseDefinitionWithModifiers(String beforeTypeParameters, List<String> typeParameters, String type, String name) {
+        final var separator = beforeTypeParameters.lastIndexOf("\n");
+        if (separator >= 0) {
+            final var annotationsString = beforeTypeParameters.substring(0, separator);
+            final var annotations = divide(annotationsString, foldByDelimiter('\n'))
+                    .iter()
+                    .map(String::strip)
+                    .map(value -> value.substring(1))
+                    .collect(new ListCollector<>());
+
+            final var substring = beforeTypeParameters.substring(separator + "\n".length());
+
+            final var modifiers = parseModifiers(substring);
+            return new JavaDefinition(annotations, modifiers, typeParameters, type, name);
+        }
+        else {
+            final var modifiers = parseModifiers(beforeTypeParameters);
+            return new JavaDefinition(Lists.empty(), modifiers, typeParameters, type, name);
+        }
+    }
+
+    private static List<String> parseModifiers(String beforeTypeParameters) {
+        return divide(beforeTypeParameters, foldByDelimiter(' '))
                 .iter()
                 .map(String::strip)
                 .collect(new ListCollector<>());
-
-        return new JavaDefinition(new Some<>(beforeTypeParameters), modifiers, typeParameters, type, name);
     }
 
-    private static State foldModifiers(State state, Character c) {
-        if (c == ' ') {
-            return state.advance();
-        }
-        return state.append(c);
+    private static BiFunction<State, Character, State> foldByDelimiter(char delimiter) {
+        return (state, c) -> {
+            if (c == delimiter) {
+                return state.advance();
+            }
+            return state.append(c);
+        };
     }
 
     private static Option<String> compileType(String input) {
