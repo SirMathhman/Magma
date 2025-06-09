@@ -70,6 +70,10 @@ public class Main {
         boolean contains(T element);
 
         Option<Tuple<List<T>, T>> popLast();
+
+        T getLast();
+
+        T getFirst();
     }
 
     private interface Head<T> {
@@ -266,6 +270,16 @@ public class Main {
                 final var last = this.elements.removeLast();
                 return new Some<>(new Tuple<>(this, last));
             }
+        }
+
+        @Override
+        public T getLast() {
+            return this.elements.getLast();
+        }
+
+        @Override
+        public T getFirst() {
+            return this.elements.getFirst();
         }
     }
 
@@ -487,10 +501,19 @@ public class Main {
     }
 
     private static String compileAll(String input, BiFunction<State, Character, State> folder, Function<String, String> mapper, BiFunction<String, String, String> merger) {
-        return divide(input, folder)
-                .iter()
-                .map(mapper)
-                .fold("", merger);
+        return generateAll(merger, parseAll(input, folder, mapper));
+    }
+
+    private static String generateAll(BiFunction<String, String, String> merger, List<String> stringList) {
+        return stringList.iter().fold("", merger);
+    }
+
+    private static List<String> parseAll(String input, BiFunction<State, Character, State> folder, Function<String, String> mapper) {
+        return generateAll(mapper, divide(input, folder));
+    }
+
+    private static List<String> generateAll(Function<String, String> mapper, List<String> divisions) {
+        return divisions.iter().map(mapper).collect(new ListCollector<>());
     }
 
     private static String mergeStatements(String buffer, String element) {
@@ -658,7 +681,15 @@ public class Main {
     }
 
     private static String compileValues(String input, Function<String, String> mapper) {
-        return compileAll(input, Main::foldValues, mapper, Main::mergeValues);
+        return generateValues(parseValues(input, mapper));
+    }
+
+    private static String generateValues(List<String> elements) {
+        return generateAll(Main::mergeValues, elements);
+    }
+
+    private static List<String> parseValues(String input, Function<String, String> mapper) {
+        return parseAll(input, Main::foldValues, mapper);
     }
 
     private static String compileFunctionSegment(String input) {
@@ -957,10 +988,7 @@ public class Main {
     }
 
     private static List<String> parseModifiers(String beforeTypeParameters) {
-        return divide(beforeTypeParameters, foldByDelimiter(' '))
-                .iter()
-                .map(String::strip)
-                .collect(new ListCollector<>());
+        return parseAll(beforeTypeParameters, foldByDelimiter(' '), String::strip);
     }
 
     private static BiFunction<State, Character, State> foldByDelimiter(char delimiter) {
@@ -973,18 +1001,12 @@ public class Main {
     }
 
     private static Option<String> compileType(String input) {
-        final var stripped = input.strip();
-        if (stripped.endsWith(">")) {
-            final var withoutEnd = stripped.substring(0, stripped.length() - ">".length());
-            final var typeArgumentsStart = withoutEnd.indexOf("<");
-            if (typeArgumentsStart >= 0) {
-                final var base = withoutEnd.substring(0, typeArgumentsStart);
-                final var arguments = withoutEnd.substring(typeArgumentsStart + "<".length());
-                return new Some<>(base + "<" + compileValues(arguments, Main::compileTypeOrPlaceholder) + ">");
-            }
+        final var maybeTemplateType = compileTemplateType(input);
+        if (maybeTemplateType.isPresent()) {
+            return maybeTemplateType;
         }
 
-        switch (stripped) {
+        switch (input.strip()) {
             case "private", "public" -> {
                 return new None<>();
             }
@@ -1005,16 +1027,44 @@ public class Main {
             }
         }
 
-        if (isSymbol(stripped)) {
-            return new Some<>("struct " + stripped);
+        if (isSymbol(input.strip())) {
+            return new Some<>("struct " + input.strip());
         }
 
-        if (stripped.endsWith("[]")) {
-            final var slice = stripped.substring(0, stripped.length() - "[]".length());
+        if (input.strip().endsWith("[]")) {
+            final var slice = input.strip().substring(0, input.strip().length() - "[]".length());
             return compileType(slice).map(compiled -> "Array<" + compiled + ">");
         }
 
         return new Some<>(generatePlaceholder(input));
+    }
+
+    private static Option<String> compileTemplateType(String input) {
+        if (!input.strip().endsWith(">")) {
+            return new None<>();
+        }
+
+        final var withoutEnd = input.strip().substring(0, input.strip().length() - ">".length());
+        final var typeArgumentsStart = withoutEnd.indexOf("<");
+        if (typeArgumentsStart < 0) {
+            return new None<>();
+        }
+
+        final var base = withoutEnd.substring(0, typeArgumentsStart);
+        final var arguments = withoutEnd.substring(typeArgumentsStart + "<".length());
+        return new Some<>(assembleTemplateType(base, arguments));
+    }
+
+    private static String assembleTemplateType(String base, String inputArguments) {
+        final var elements = parseValues(inputArguments, Main::compileTypeOrPlaceholder);
+        if (base.equals("Function")) {
+            final var first = elements.getFirst();
+            final var last = elements.getLast();
+            return last + " (*)(" + first + ")";
+        }
+
+        final var outputArguments = generateValues(elements);
+        return base + "<" + outputArguments + ">";
     }
 
     private static String compileTypeOrPlaceholder(String input) {
@@ -1085,10 +1135,7 @@ public class Main {
     }
 
     private static List<String> parseTypeParameters(String typeParameters) {
-        return divideValues(typeParameters)
-                .iter()
-                .map(String::strip)
-                .collect(new ListCollector<>());
+        return generateAll(String::strip, divideValues(typeParameters));
     }
 
     private static List<String> divideValues(String input) {

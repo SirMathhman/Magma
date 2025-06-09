@@ -86,11 +86,20 @@ Option<struct IOError> compileAndWrite(Array<char> input, struct Path source) {
 Array<char> compile(Array<char> input) {
 	return compileStatements(input, /* Main::compileRootSegment*/);
 }
-Array<char> compileStatements(Array<char> input, Function<Array<char>, Array<char>> mapper) {
+Array<char> compileStatements(Array<char> input, Array<char> (*)(Array<char>) mapper) {
 	return compileAll(input, /* Main::foldStatements*/, mapper, /* Main::mergeStatements*/);
 }
-Array<char> compileAll(Array<char> input, BiFunction<struct State, struct Character, struct State> folder, Function<Array<char>, Array<char>> mapper, BiFunction<Array<char>, Array<char>, Array<char>> merger) {
-	return divide(input, folder).iter().map(mapper).fold("", merger);
+Array<char> compileAll(Array<char> input, BiFunction<struct State, struct Character, struct State> folder, Array<char> (*)(Array<char>) mapper, BiFunction<Array<char>, Array<char>, Array<char>> merger) {
+	return generateAll(merger, /* parseAll(input*/, folder, /* mapper)*/);
+}
+Array<char> generateAll(BiFunction<Array<char>, Array<char>, Array<char>> merger, List<Array<char>> stringList) {
+	return stringList.iter().fold("", merger);
+}
+List<Array<char>> parseAll(Array<char> input, BiFunction<struct State, struct Character, struct State> folder, Array<char> (*)(Array<char>) mapper) {
+	return generateAll(mapper, /* divide(input*/, /* folder)*/);
+}
+List<Array<char>> generateAll(Array<char> (*)(Array<char>) mapper, List<Array<char>> divisions) {
+	return divisions.iter().map(mapper).collect(ListCollector<struct >());
 }
 Array<char> mergeStatements(Array<char> buffer, Array<char> element) {
 	return buffer + element;
@@ -258,7 +267,15 @@ struct Main {/*' && appended.isShallow()) {
     }*//*
 
     private static String compileValues(String input, Function<String, String> mapper) {
-        return compileAll(input, Main::foldValues, mapper, Main::mergeValues);
+        return generateValues(parseValues(input, mapper));
+    }*//*
+
+    private static String generateValues(List<String> elements) {
+        return generateAll(Main::mergeValues, elements);
+    }*//*
+
+    private static List<String> parseValues(String input, Function<String, String> mapper) {
+        return parseAll(input, Main::foldValues, mapper);
     }*//*
 
     private static String compileFunctionSegment(String input) {
@@ -557,10 +574,7 @@ struct Main {/*' && appended.isShallow()) {
     }*//*
 
     private static List<String> parseModifiers(String beforeTypeParameters) {
-        return divide(beforeTypeParameters, foldByDelimiter(' '))
-                .iter()
-                .map(String::strip)
-                .collect(new ListCollector<>());
+        return parseAll(beforeTypeParameters, foldByDelimiter(' '), String::strip);
     }*//*
 
     private static BiFunction<State, Character, State> foldByDelimiter(char delimiter) {
@@ -573,18 +587,12 @@ struct Main {/*' && appended.isShallow()) {
     }*//*
 
     private static Option<String> compileType(String input) {
-        final var stripped = input.strip();
-        if (stripped.endsWith(">")) {
-            final var withoutEnd = stripped.substring(0, stripped.length() - ">".length());
-            final var typeArgumentsStart = withoutEnd.indexOf("<");
-            if (typeArgumentsStart >= 0) {
-                final var base = withoutEnd.substring(0, typeArgumentsStart);
-                final var arguments = withoutEnd.substring(typeArgumentsStart + "<".length());
-                return new Some<>(base + "<" + compileValues(arguments, Main::compileTypeOrPlaceholder) + ">");
-            }
+        final var maybeTemplateType = compileTemplateType(input);
+        if (maybeTemplateType.isPresent()) {
+            return maybeTemplateType;
         }
 
-        switch (stripped) {
+        switch (input.strip()) {
             case "private", "public" -> {
                 return new None<>();
             }
@@ -605,16 +613,44 @@ struct Main {/*' && appended.isShallow()) {
             }
         }
 
-        if (isSymbol(stripped)) {
-            return new Some<>("struct " + stripped);
+        if (isSymbol(input.strip())) {
+            return new Some<>("struct " + input.strip());
         }
 
-        if (stripped.endsWith("[]")) {
-            final var slice = stripped.substring(0, stripped.length() - "[]".length());
+        if (input.strip().endsWith("[]")) {
+            final var slice = input.strip().substring(0, input.strip().length() - "[]".length());
             return compileType(slice).map(compiled -> "Array<" + compiled + ">");
         }
 
         return new Some<>(generatePlaceholder(input));
+    }*//*
+
+    private static Option<String> compileTemplateType(String input) {
+        if (!input.strip().endsWith(">")) {
+            return new None<>();
+        }
+
+        final var withoutEnd = input.strip().substring(0, input.strip().length() - ">".length());
+        final var typeArgumentsStart = withoutEnd.indexOf("<");
+        if (typeArgumentsStart < 0) {
+            return new None<>();
+        }
+
+        final var base = withoutEnd.substring(0, typeArgumentsStart);
+        final var arguments = withoutEnd.substring(typeArgumentsStart + "<".length());
+        return new Some<>(assembleTemplateType(base, arguments));
+    }*//*
+
+    private static String assembleTemplateType(String base, String inputArguments) {
+        final var elements = parseValues(inputArguments, Main::compileTypeOrPlaceholder);
+        if (base.equals("Function")) {
+            final var first = elements.getFirst();
+            final var last = elements.getLast();
+            return last + " (*)(" + first + ")";
+        }
+
+        final var outputArguments = generateValues(elements);
+        return base + "<" + outputArguments + ">";
     }*//*
 
     private static String compileTypeOrPlaceholder(String input) {
@@ -685,10 +721,7 @@ struct Main {/*' && appended.isShallow()) {
     }*//*
 
     private static List<String> parseTypeParameters(String typeParameters) {
-        return divideValues(typeParameters)
-                .iter()
-                .map(String::strip)
-                .collect(new ListCollector<>());
+        return generateAll(String::strip, divideValues(typeParameters));
     }*//*
 
     private static List<String> divideValues(String input) {
