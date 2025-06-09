@@ -1,8 +1,8 @@
-/*private static*/struct State {/*private final List<String> segments;*//*
-        private StringBuilder buffer;*//*
-        private int depth;*//*
-
-        private State(List<String> segments, StringBuilder buffer, int depth) {
+/*private static*/struct State {
+	/*private final List<String>*/ segments;
+	/*private StringBuilder*/ buffer;
+	/*private int*/ depth;
+	/*private State(List<String> segments, StringBuilder buffer, int depth) {
             this.segments = segments;
             this.buffer = buffer;
             this.depth = depth;
@@ -55,32 +55,35 @@
     }
 
     private static String compile(String input) {
-        return compileStatements(input, Main::compileRootSegment);*//*
-    }
+        return compileStatements(input,*/ Main::compileRootSegment);
+	/*}
 
     private static String compileStatements(String input, Function<String, String> mapper) {
-        final var segments = divide(input);*//*
-        final var output = new StringBuilder();*//*
-        for (var segment : segments) {
+        final var segments =*/ divide(input);
+	/*final var output = new*/ StringBuilder();
+	/*for (var segment : segments) {
             output.append(mapper.apply(segment));
         }
 
-        return output.toString();*//*
-    }
+        return*/ output.toString();
+	/*}
 
     private static List<String> divide(String input) {
-        var current = new State();*//*
-        for (var i = 0;*//* i < input.length();*//* i++) {
+        var current = new*/ State();
+	/*for (var i =*/ 0;
+	/*i <*/ input.length();
+	/*i++) {
             final var c = input.charAt(i);
             current = fold(current, c);
         }
 
-        return current.advance().segments;*//*
-    }
+        return*/ current.advance().segments;
+	/*}
 
     private static State fold(State state, char c) {
-        final var appended = state.append(c);*//*
-        if (c == ';*//*' && appended.isLevel()) {
+        final var appended =*/ state.append(c);
+	/*if (c ==*/ ';
+	/*' && appended.isLevel()) {
             return appended.advance();
         }
         if (c == '{') {
@@ -89,12 +92,12 @@
         if (c == '}') {
             return appended.exit();
         }
-        return appended;*//*
-    }
+        return*/ appended;
+	/*}
 
     private static String compileRootSegment(String input) {
-        final var stripped = input.strip();*//*
-        if (stripped.startsWith("package ") || stripped.startsWith("import ")) {
+        final var stripped =*/ input.strip();
+	/*if (stripped.startsWith("package ") || stripped.startsWith("import ")) {
             return "";
         }
 
@@ -103,8 +106,8 @@
                     final var joined = String.join("", tuple.left);
                     return joined + tuple.right;
                 })
-                .orElseGet(() -> generatePlaceholder(input));*//*
-    }
+                .orElseGet(() ->*/ generatePlaceholder(input));
+	/*}
 
 
     private static Optional<Tuple<List<String>, String>> compileClass(String input) {
@@ -134,28 +137,46 @@
             }
         }
 
-        return Optional.empty();*//*
-    }
+        return*/ Optional.empty();
+	/*}
 
     private static Tuple<List<String>, String> compileClassSegment(String input) {
-        return compileClass(input).orElseGet(() -> new Tuple<>(Collections.emptyList(), generatePlaceholder(input)));*//*
-    }
+        return compileField(input)
+                .or(() -> compileClass(input))
+                .orElseGet(() -> new Tuple<>(Collections.emptyList(),*/ generatePlaceholder(input)));
+	/*}
+
+    private static Optional<Tuple<List<String>, String>> compileField(String input) {
+        final var stripped =*/ input.strip();
+	/*if*/ (stripped.endsWith(";
+	/*")) {
+            final var withoutEnd = stripped.substring(0, stripped.length() - ";".length());
+            final var nameSeparator = withoutEnd.lastIndexOf(" ");
+            if (nameSeparator >= 0) {
+                final var beforeName = withoutEnd.substring(0, nameSeparator);
+                final var name = withoutEnd.substring(nameSeparator + " ".length()).strip();
+                return Optional.of(new Tuple<>(Collections.emptyList(), "\n\t" + generatePlaceholder(beforeName) + " " + name + ";"));
+            }
+        }
+
+        return*/ Optional.empty();
+	/*}
 
     private static String compileClassDefinition(String input) {
-        final var classIndex = input.indexOf("class ");*//*
-        if (classIndex >= 0) {
+        final var classIndex = input.indexOf("class*/ ");
+	/*if (classIndex >= 0) {
             final var beforeKeyword = input.substring(0, classIndex).strip();
             final var afterKeyword = input.substring(classIndex + "class ".length());
             return generatePlaceholder(beforeKeyword) + "struct " + afterKeyword;
         }
 
-        return generatePlaceholder(input);*//*
-    }
+        return*/ generatePlaceholder(input);
+	/*}
 
     private static String generatePlaceholder(String input) {
         return "start" + input
                 .replace("start", "start")
-                .replace("end", "end") + "end";*//*
+                .replace("end", "end") +*/ "*/";/*
     */
 };
 /*public*/struct Main {

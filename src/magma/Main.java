@@ -151,7 +151,24 @@ public class Main {
     }
 
     private static Tuple<List<String>, String> compileClassSegment(String input) {
-        return compileClass(input).orElseGet(() -> new Tuple<>(Collections.emptyList(), generatePlaceholder(input)));
+        return compileField(input)
+                .or(() -> compileClass(input))
+                .orElseGet(() -> new Tuple<>(Collections.emptyList(), generatePlaceholder(input)));
+    }
+
+    private static Optional<Tuple<List<String>, String>> compileField(String input) {
+        final var stripped = input.strip();
+        if (stripped.endsWith(";")) {
+            final var withoutEnd = stripped.substring(0, stripped.length() - ";".length());
+            final var nameSeparator = withoutEnd.lastIndexOf(" ");
+            if (nameSeparator >= 0) {
+                final var beforeName = withoutEnd.substring(0, nameSeparator);
+                final var name = withoutEnd.substring(nameSeparator + " ".length()).strip();
+                return Optional.of(new Tuple<>(Collections.emptyList(), "\n\t" + generatePlaceholder(beforeName) + " " + name + ";"));
+            }
+        }
+
+        return Optional.empty();
     }
 
     private static String compileClassDefinition(String input) {
