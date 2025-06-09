@@ -21,13 +21,15 @@ struct CDefinition {
 };
 struct Lists {
 };
-struct private State(List<Array<char>> segments, Array<char> buffer, int depth) {
+struct private State(Array<char> input, List<Array<char>> segments, Array<char> buffer, int depth, int index) {
+	this.input = input;
+	this.index = index;
 	this.segments = segments;
 	this.buffer = buffer;
 	this.depth = depth;
 }
-struct public State() {
-	this(Lists.empty(), "", 0);
+struct public State(Array<char> input) {
+	this(input, Lists.empty(), "", 0, 0);
 }
 int isLevel() {
 	return this.depth == 0;
@@ -52,18 +54,30 @@ struct State exit() {
 int isShallow() {
 	return this.depth == 1;
 }
+Option<Tuple<struct State, char>> pop() {/*if (this.index < this.input.length()) {
+                final var c = this.input.charAt(this.index);
+                final var next = new State(this.input, this.segments, this.buffer, this.depth, this.index + 1);
+                return new Some<>(new Tuple<>(next, c));
+            }*//*
+            else {
+                return new None<>();
+            }*/
+}
 struct State {
+	Array<char> input;
+	int index;
 	List<Array<char>> segments;
 	Array<char> buffer;
 	int depth;
-	struct private State(List<Array<char>> segments, Array<char> buffer, int depth);
-	struct public State();
+	struct private State(Array<char> input, List<Array<char>> segments, Array<char> buffer, int depth, int index);
+	struct public State(Array<char> input);
 	int isLevel();
 	struct State append(char c);
 	struct State advance();
 	struct State enter();
 	struct State exit();
 	int isShallow();
+	Option<Tuple<struct State, char>> pop();
 };
 Array<char> generate() {
 	return "struct " + this.name;
@@ -158,11 +172,16 @@ List<Array<char>> divideStatements(Array<char> input) {
 	return divide(input, /* Main::foldStatements*/);
 }
 List<Array<char>> divide(Array<char> input, struct State (*folder)(struct State, char)) {
-	auto current = struct State();
-	/*for (var i */ = 0;
-	/*i < input*/.length();/* i++) {
-            final var c = input.charAt(i);
-            current = folder.apply(current, c);
+	auto current = struct State(input);/*
+
+        while (true) {
+            final var maybeNext = current.pop().map(tuple -> folder.apply(tuple.left, tuple.right));
+            if (maybeNext.isPresent()) {
+                current = maybeNext.get();
+            }
+            else {
+                break;
+            }
         }*/
 	return current.advance().segments;
 }

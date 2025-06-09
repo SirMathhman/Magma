@@ -316,18 +316,22 @@ public class Main {
     }
 
     private static class State {
+        private final String input;
+        private final int index;
         private List<String> segments;
         private String buffer;
         private int depth;
 
-        private State(List<String> segments, String buffer, int depth) {
+        private State(String input, List<String> segments, String buffer, int depth, int index) {
+            this.input = input;
+            this.index = index;
             this.segments = segments;
             this.buffer = buffer;
             this.depth = depth;
         }
 
-        public State() {
-            this(Lists.empty(), "", 0);
+        public State(String input) {
+            this(input, Lists.empty(), "", 0, 0);
         }
 
         private boolean isLevel() {
@@ -357,6 +361,17 @@ public class Main {
 
         public boolean isShallow() {
             return this.depth == 1;
+        }
+
+        public Option<Tuple<State, Character>> pop() {
+            if (this.index < this.input.length()) {
+                final var c = this.input.charAt(this.index);
+                final var next = new State(this.input, this.segments, this.buffer, this.depth, this.index + 1);
+                return new Some<>(new Tuple<>(next, c));
+            }
+            else {
+                return new None<>();
+            }
         }
     }
 
@@ -598,10 +613,16 @@ public class Main {
     }
 
     private static List<String> divide(String input, BiFunction<State, Character, State> folder) {
-        var current = new State();
-        for (var i = 0; i < input.length(); i++) {
-            final var c = input.charAt(i);
-            current = folder.apply(current, c);
+        var current = new State(input);
+
+        while (true) {
+            final var maybeNext = current.pop().map(tuple -> folder.apply(tuple.left, tuple.right));
+            if (maybeNext.isPresent()) {
+                current = maybeNext.get();
+            }
+            else {
+                break;
+            }
         }
 
         return current.advance().segments;
