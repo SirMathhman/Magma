@@ -8,8 +8,8 @@
 	return this;
 }
 /*private*/ struct State advance() {
-	this.segments = /* this.segments.addLast(this.buffer.toString())*/;
-	this.buffer = /* new StringBuilder()*/;
+	this.segments = this.segments.addLast(this.buffer.toString());
+	this.buffer = /*new StringBuilder*/();
 	return this;
 }
 /*private*/ struct State enter() {
@@ -45,15 +45,15 @@
 	/*public*/ int isShallow();
 };
 /*private*/ struct String generate() {
-	return /*generatePlaceholder(this.beforeKeyword) */ + /* "struct " */ + this.name;
+	return generatePlaceholder(this.beforeKeyword) + /* "struct " */ + this.name;
 }
 /*private*/struct ClassDefinition {
 	/*private*/ struct String generate();
 };
 /*private*/ struct String generate() {
-	/*final var beforeType */ = /* this.maybeBefore.map(Main::generatePlaceholder)
+	/*final var beforeType */ = this.maybeBefore.map(/*Main::generatePlaceholder)
                     .map(inner -> inner */ + /* " ")
-                    .orElse("")*/;
+                    .orElse(""*/);
 	return beforeType + this.type + /* " " */ + this.name;
 }
 /*private*/struct JavaDefinition {
@@ -71,42 +71,42 @@
         }*/
 }
 /*private static*/ struct String compile(struct String input) {
-	return /*compileStatements(input, Main::compileRootSegment)*/;
+	return compileStatements(input, /* Main::compileRootSegment*/);
 }
 /*private static*/ struct String compileStatements(struct String input, /* Function<String*/, /*String>*/ mapper) {
-	return /*compileAll(input, Main::foldStatements, mapper, Main::mergeStatements)*/;
+	return compileAll(input, /* Main::foldStatements*/, mapper, /* Main::mergeStatements*/);
 }
 /*private static*/ struct String compileAll(struct String input, /* BiFunction<State*/, struct  Character, /*State>*/ folder, /* Function<String*/, /*String>*/ mapper, /* BiFunction<StringBuilder*/, struct  String, /*StringBuilder>*/ merger) {
-	return /*divide(input, folder)
-                .iter()
+	return divide(input, /*folder)
+                */.iter(/*)
                 .map(mapper)
-                .fold(new StringBuilder(), merger)
-                .toString()*/;
+                .fold(new StringBuilder(*/), /* merger)
+                .toString(*/);
 }
 /*private static*/ struct StringBuilder mergeStatements(struct StringBuilder stringBuilder, struct String s) {
-	return /*stringBuilder.append(s)*/;
+	return stringBuilder.append(s);
 }
 /*private static*/ /*List<String>*/ divideStatements(struct String input) {
-	return /*divide(input, Main::foldStatements)*/;
+	return divide(input, /* Main::foldStatements*/);
 }
 /*private static*/ /*List<String>*/ divide(struct String input, /* BiFunction<State*/, struct  Character, /*State>*/ folder) {
-	/*var current */ = /* new State()*/;
+	/*var current */ = /*new State*/();
 	/*for (var i */ = 0;
 	/*i < input*/.length();/* i++) {
             final var c = input.charAt(i);
             current = folder.apply(current, c);
         }*/
-	return /*current.advance()*/.segments;
+	return current.advance().segments;
 }
 /*private static*/ struct State foldStatements(struct State state, char c) {
-	/*final var appended */ = /* state.append(c)*/;
+	/*final var appended */ = state.append(c);
 	/*if (c */ = /*= '*/;/*' && appended.isLevel()) {
             return appended.advance();
         }*//*
         if (c == '*/
 }
 struct if (/*c == '{'*/) {
-	return /*appended.enter()*/;/*
+	return appended.enter();/*
         }
         if (c == '*/
 }
@@ -268,21 +268,27 @@ struct if (/*c == '{'*/) {
             return compileValue(substring) + " = " + compileValue(substring1);
         }
 
+        return compileInvokable(stripped).orElseGet(() -> generatePlaceholder(input));
+    }*//*
+
+    private static Optional<String> compileInvokable(String input) {
+        final var stripped = input.strip();
         if (stripped.endsWith(")")) {
             final var withoutEnd = stripped.substring(0, stripped.length() - ")".length());
             final var argumentsStart = withoutEnd.indexOf("(");
             if (argumentsStart >= 0) {
                 final var caller = withoutEnd.substring(0, argumentsStart);
                 final var arguments = withoutEnd.substring(argumentsStart + "(".length());
-                return compileValue(caller) + "(" + compileValues(arguments, Main::compileValue) + ")";
+                return Optional.of(compileValue(caller) + "(" + compileValues(arguments, Main::compileValue) + ")");
             }
         }
 
-        return generatePlaceholder(input);
+        return Optional.empty();
     }*//*
 
     private static String compileValue(String input) {
-        return compileOperator(input, "==")
+        return compileInvokable(input)
+                .or(() -> compileOperator(input, "=="))
                 .or(() -> compileOperator(input, "+"))
                 .or(() -> compileAccess(input))
                 .or(() -> compileSymbol(input))

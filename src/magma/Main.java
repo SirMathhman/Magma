@@ -441,21 +441,27 @@ public class Main {
             return compileValue(substring) + " = " + compileValue(substring1);
         }
 
+        return compileInvokable(stripped).orElseGet(() -> generatePlaceholder(input));
+    }
+
+    private static Optional<String> compileInvokable(String input) {
+        final var stripped = input.strip();
         if (stripped.endsWith(")")) {
             final var withoutEnd = stripped.substring(0, stripped.length() - ")".length());
             final var argumentsStart = withoutEnd.indexOf("(");
             if (argumentsStart >= 0) {
                 final var caller = withoutEnd.substring(0, argumentsStart);
                 final var arguments = withoutEnd.substring(argumentsStart + "(".length());
-                return compileValue(caller) + "(" + compileValues(arguments, Main::compileValue) + ")";
+                return Optional.of(compileValue(caller) + "(" + compileValues(arguments, Main::compileValue) + ")");
             }
         }
 
-        return generatePlaceholder(input);
+        return Optional.empty();
     }
 
     private static String compileValue(String input) {
-        return compileOperator(input, "==")
+        return compileInvokable(input)
+                .or(() -> compileOperator(input, "=="))
                 .or(() -> compileOperator(input, "+"))
                 .or(() -> compileAccess(input))
                 .or(() -> compileSymbol(input))
