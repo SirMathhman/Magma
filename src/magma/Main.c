@@ -6,7 +6,7 @@ State new(/*List<String>*/ segments, /*Slice<char>*/ buffer, int depth) {
 	this.depth = depth;
 }
 State new() {
-	this(Lists.empty(), /* ""*/, 0);
+	this(Lists.empty(), "", 0);
 }
 /*private*/ int isLevel() {
 	return this.depth == 0;
@@ -17,7 +17,7 @@ State new() {
 }
 /*private*/ struct State advance() {
 	this.segments = this.segments.addLast(this.buffer);
-	this.buffer = /* ""*/;
+	this.buffer = "";
 	return this;
 }
 /*private*/ struct State enter() {
@@ -43,16 +43,16 @@ State new() {
 	/*public*/ int isShallow();
 };
 /*private*/ /*Slice<char>*/ generate() {
-	return generatePlaceholder(this.beforeKeyword) + /* "struct " */ + this.name;
+	return generatePlaceholder(this.beforeKeyword) + "struct " + this.name;
 }
 /*private*/struct ClassDefinition {
 	/*private*/ /*Slice<char>*/ generate();
 };
 /*private*/ /*Slice<char>*/ generate() {
 	/*final var beforeType */ = this.maybeBefore.map(/*Main::generatePlaceholder)
-                    .map(inner */ - /*> inner */ + /* " ")
-                    .orElse(""*/);
-	return beforeType + this.type + /* " " */ + this.name;
+                    .map(inner */ - /*> inner */ + " ")
+                    .orElse("");
+	return beforeType + this.type + " " + this.name;
 }
 /*private*/struct JavaDefinition {
 	/*private*/ /*Slice<char>*/ generate();
@@ -310,7 +310,17 @@ struct if (/*c == '{'*/) {
                 .or(() -> compileAccess(input))
                 .or(() -> compileSymbol(input))
                 .or(() -> compileNumber(input))
+                .or(() -> compileString(input))
                 .orElseGet(() -> generatePlaceholder(input));
+    }*//*
+
+    private static Optional<String> compileString(String input) {
+        final var stripped = input.strip();
+        if(stripped.startsWith("\"") && stripped.endsWith("\"")) {
+            return Optional.of(stripped);
+        } else {
+            return Optional.empty();
+        }
     }*//*
 
     private static Optional<String> compileNumber(String input) {

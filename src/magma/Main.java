@@ -507,7 +507,17 @@ public class Main {
                 .or(() -> compileAccess(input))
                 .or(() -> compileSymbol(input))
                 .or(() -> compileNumber(input))
+                .or(() -> compileString(input))
                 .orElseGet(() -> generatePlaceholder(input));
+    }
+
+    private static Optional<String> compileString(String input) {
+        final var stripped = input.strip();
+        if(stripped.startsWith("\"") && stripped.endsWith("\"")) {
+            return Optional.of(stripped);
+        } else {
+            return Optional.empty();
+        }
     }
 
     private static Optional<String> compileNumber(String input) {
