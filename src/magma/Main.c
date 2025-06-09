@@ -8,16 +8,16 @@
 	return this;
 }
 /*private*/ struct State advance() {
-	this.segments = this.segments.addLast(this.buffer.toString());
-	this.buffer = new StringBuilder();
+	/*this.segments = this*/.segments.addLast(/*this.buffer.toString()*/);
+	/*this.buffer = new StringBuilder*/();
 	return this;
 }
 /*private*/ struct State enter() {
-	/*this.depth = this.depth + 1*/;
+	this.depth = this.depth + 1;
 	return this;
 }
 /*private*/ struct State exit() {
-	/*this.depth = this.depth - 1*/;
+	this.depth = /* this.depth - 1*/;
 	return this;
 }
 /*public*/ int isShallow() {
@@ -45,15 +45,16 @@
 	/*public*/ int isShallow();
 };
 /*private*/ struct String generate() {
-	return /*generatePlaceholder(this*/.beforeKeyword) + "struct " + this.name;
+	return /*generatePlaceholder(this.beforeKeyword) */ + /* "struct " */ + this.name;
 }
 /*private*/struct ClassDefinition {
 	/*private*/ struct String generate();
 };
 /*private*/ struct String generate() {
 	/*final var beforeType = this*/.maybeBefore.map(/*Main::generatePlaceholder)
-                    */.map(inner -> inner + " ").orElse("");
-	return /*beforeType + this*/.type + " " + this.name;
+                    .map(inner -> inner */ + /* " ")
+                    .orElse(""*/);
+	return beforeType + this.type + /* " " */ + this.name;
 }
 /*private*/struct JavaDefinition {
 	/*private*/ struct String generate();
@@ -77,32 +78,35 @@
 }
 /*private static*/ struct String compileAll(struct String input, /* BiFunction<State*/, struct  Character, /*State>*/ folder, /* Function<String*/, /*String>*/ mapper, /* BiFunction<StringBuilder*/, struct  String, /*StringBuilder>*/ merger) {
 	return /*divide(input, folder)
-                */.iter().map(mapper).fold(new StringBuilder(), merger).toString();
+                .iter()
+                .map(mapper)
+                .fold(new StringBuilder(), merger)
+                .toString()*/;
 }
 /*private static*/ struct StringBuilder mergeStatements(struct StringBuilder stringBuilder, struct String s) {
-	return stringBuilder.append(s);
+	return /*stringBuilder.append(s)*/;
 }
 /*private static*/ /*List<String>*/ divideStatements(struct String input) {
 	return /*divide(input, Main::foldStatements)*/;
 }
 /*private static*/ /*List<String>*/ divide(struct String input, /* BiFunction<State*/, struct  Character, /*State>*/ folder) {
 	/*var current = new State*/();
-	/*for (var i = 0*/;
+	/*for (var i */ = 0;
 	/*i < input*/.length();/* i++) {
             final var c = input.charAt(i);
             current = folder.apply(current, c);
         }*/
-	return current.advance().segments;
+	return /*current.advance()*/.segments;
 }
 /*private static*/ struct State foldStatements(struct State state, char c) {
 	/*final var appended = state*/.append(c);
-	/*if (c == '*/;/*' && appended.isLevel()) {
+	/*if (c */ = /*= '*/;/*' && appended.isLevel()) {
             return appended.advance();
         }*//*
         if (c == '*/
 }
 struct if (/*c == '{'*/) {
-	return appended.enter();/*
+	return /*appended.enter()*/;/*
         }
         if (c == '*/
 }
@@ -267,35 +271,67 @@ struct if (/*c == '{'*/) {
             }
         }
 
+        final var i = stripped.indexOf("=");
+        if (i >= 0) {
+            final var substring = stripped.substring(0, i);
+            final var substring1 = stripped.substring(i + "=".length());
+            return compileValue(substring) + " = " + compileValue(substring1);
+        }
 
         return generatePlaceholder(input);
     }*//*
 
     private static String compileValue(String input) {
-        final var i = input.indexOf("==");
-        if (i >= 0) {
-            final var substring = input.substring(0, i);
-            final var substring1 = input.substring(i + "==".length());
-            return compileValue(substring) + " == " + compileValue(substring1);
-        }
+        return compileOperator(input, "==")
+                .or(() -> compileOperator(input, "+"))
+                .or(() -> compileAccess(input))
+                .or(() -> compileSymbol(input))
+                .or(() -> compileNumber(input))
+                .orElseGet(() -> generatePlaceholder(input));
+    }*//*
 
+    private static Optional<String> compileNumber(String input) {
+        final var stripped = input.strip();
+        if (isNumber(stripped)) {
+            return Optional.of(stripped);
+        }
+        else {
+            return Optional.empty();
+        }
+    }*//*
+
+    private static Optional<String> compileSymbol(String input) {
+        final var stripped = input.strip();
+        if (isSymbol(stripped)) {
+            return Optional.of(stripped);
+        }
+        else {
+            return Optional.empty();
+        }
+    }*//*
+
+    private static Optional<String> compileAccess(String input) {
         final var separator = input.lastIndexOf(".");
         if (separator >= 0) {
             final var substring = input.substring(0, separator);
             final var property = input.substring(separator + ".".length()).strip();
-            return compileValue(substring) + "." + property;
+            if (isSymbol(property)) {
+                return Optional.of(compileValue(substring) + "." + property);
+            }
         }
 
-        final var stripped = input.strip();
-        if (isSymbol(stripped)) {
-            return stripped;
+        return Optional.empty();
+    }*//*
+
+    private static Optional<String> compileOperator(String input, String infix) {
+        final var index = input.indexOf(infix);
+        if (index >= 0) {
+            final var leftString = input.substring(0, index);
+            final var rightString = input.substring(index + infix.length());
+            return Optional.of(compileValue(leftString) + " " + infix + " " + compileValue(rightString));
         }
 
-        if (isNumber(stripped)) {
-            return stripped;
-        }
-
-        return generatePlaceholder(input);
+        return Optional.empty();
     }*//*
 
     private static boolean isNumber(String input) {

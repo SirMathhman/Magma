@@ -444,34 +444,67 @@ public class Main {
             }
         }
 
+        final var i = stripped.indexOf("=");
+        if (i >= 0) {
+            final var substring = stripped.substring(0, i);
+            final var substring1 = stripped.substring(i + "=".length());
+            return compileValue(substring) + " = " + compileValue(substring1);
+        }
+
         return generatePlaceholder(input);
     }
 
     private static String compileValue(String input) {
-        final var i = input.indexOf("==");
-        if (i >= 0) {
-            final var substring = input.substring(0, i);
-            final var substring1 = input.substring(i + "==".length());
-            return compileValue(substring) + " == " + compileValue(substring1);
-        }
+        return compileOperator(input, "==")
+                .or(() -> compileOperator(input, "+"))
+                .or(() -> compileAccess(input))
+                .or(() -> compileSymbol(input))
+                .or(() -> compileNumber(input))
+                .orElseGet(() -> generatePlaceholder(input));
+    }
 
+    private static Optional<String> compileNumber(String input) {
+        final var stripped = input.strip();
+        if (isNumber(stripped)) {
+            return Optional.of(stripped);
+        }
+        else {
+            return Optional.empty();
+        }
+    }
+
+    private static Optional<String> compileSymbol(String input) {
+        final var stripped = input.strip();
+        if (isSymbol(stripped)) {
+            return Optional.of(stripped);
+        }
+        else {
+            return Optional.empty();
+        }
+    }
+
+    private static Optional<String> compileAccess(String input) {
         final var separator = input.lastIndexOf(".");
         if (separator >= 0) {
             final var substring = input.substring(0, separator);
             final var property = input.substring(separator + ".".length()).strip();
-            return compileValue(substring) + "." + property;
+            if (isSymbol(property)) {
+                return Optional.of(compileValue(substring) + "." + property);
+            }
         }
 
-        final var stripped = input.strip();
-        if (isSymbol(stripped)) {
-            return stripped;
+        return Optional.empty();
+    }
+
+    private static Optional<String> compileOperator(String input, String infix) {
+        final var index = input.indexOf(infix);
+        if (index >= 0) {
+            final var leftString = input.substring(0, index);
+            final var rightString = input.substring(index + infix.length());
+            return Optional.of(compileValue(leftString) + " " + infix + " " + compileValue(rightString));
         }
 
-        if (isNumber(stripped)) {
-            return stripped;
-        }
-
-        return generatePlaceholder(input);
+        return Optional.empty();
     }
 
     private static boolean isNumber(String input) {
