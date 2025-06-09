@@ -54,18 +54,17 @@ struct State exit() {
 int isShallow() {
 	return this.depth == 1;
 }
-Option<Tuple<struct State, char>> pop() {/*if (this.index < this.input.length()) {
-                final var c = this.input.charAt(this.index);
-                final var next = new State(this.input, this.segments, this.buffer, this.depth, this.index + 1);
-                return new Some<>(new Tuple<>(next, c));
-            }*//*
-            else {
-                return new None<>();
-            }*/
+Option<Tuple<struct State, char>> pop() {
+	/*if (this.index < this.input.length()) */{
+	auto c = this.input.charAt(this.index);
+	auto next = struct State(this.input, this.segments, this.buffer, this.depth, this.index + 1);
+	return Some<struct >(Tuple<struct >(next, c));}
+	/*else */{
+	return None<struct >();}
 }
-Option<char> peek() {/*if (this.index < this.input.length()) {
-                return new Some<>(this.input.charAt(this.index));
-            }*/
+Option<char> peek() {
+	/*if (this.index < this.input.length()) */{
+	return Some<struct >(this.input.charAt(this.index));}
 	return None<struct >();
 }
 Option<struct State> append() {
@@ -182,24 +181,20 @@ List<Array<char>> divideStatements(Array<char> input) {
 	return divide(input, /* Main::foldStatements*/);
 }
 List<Array<char>> divide(Array<char> input, struct State (*folder)(struct State, char)) {
-	auto current = struct State(input);/*
-
-        while (true) {
-            final var maybeNext = current.pop().map(tuple -> folder.apply(tuple.left, tuple.right));
-            if (maybeNext.isPresent()) {
-                current = maybeNext.get();
-            }
-            else {
-                break;
-            }
-        }*/
+	auto current = struct State(input);
+	/*while (true) */{
+	auto maybeNext = current.pop().map(/*tuple -> folder.apply(tuple.left, tuple.right)*/);
+	/*if (maybeNext.isPresent()) */{
+	current = maybeNext.get();}
+	/*else */{
+	/*break*/;}}
 	return current.advance().segments;
 }
 struct State foldStatements(struct State state, char c) {
 	auto appended = state.append(c);
-	/*if (c */ = /*= '*/;/*' && appended.isLevel()) {
-            return appended.advance();
-        }*//*
+	/*if (c */ = /*= '*/;
+	/*' && appended.isLevel()) */{
+	return appended.advance();}/*
         if (c == '*/
 }
 struct  new(/*c == '{'*/) {
@@ -331,10 +326,14 @@ struct Main {/*' && appended.isShallow()) {
         }
 
         final var inputContent = withBraces.substring(1, withBraces.length() - 1).strip();
-        final var outputContent = compileStatements(inputContent, Main::compileFunctionSegment);
+        final var outputContent = compileFunctionSegments(inputContent);
         final var withinStructure = definition.modifiers.contains("static") ? "" : "\n\t" + header + ";";
 
         return new Tuple<>(Lists.of(header + " {" + outputContent + "\n}" + "\n"), withinStructure);
+    }*//*
+
+    private static String compileFunctionSegments(String input) {
+        return compileStatements(input, Main::compileFunctionSegment);
     }*//*
 
     private static Option<JavaDefinition> parseMethodDefinition(String input) {
@@ -367,7 +366,23 @@ struct Main {/*' && appended.isShallow()) {
     private static String compileFunctionSegment(String input) {
         return compileWhitespace(input)
                 .or(() -> compileFunctionStatement(input))
+                .or(() -> compileBlock(input))
                 .orElseGet(() -> generatePlaceholder(input));
+    }*//*
+
+    private static Option<String> compileBlock(String input) {
+        final var stripped = input.strip();
+        if (stripped.endsWith("}*//*")) {
+            final var withoutEnd = stripped.substring(0, stripped.length() - "}*//*".length());*//*
+            final var contentStart = withoutEnd.indexOf("{");
+            if (contentStart >= 0) {
+                final var header = withoutEnd.substring(0, contentStart);
+                final var content = withoutEnd.substring(contentStart + "{".length());
+                return new Some<>("\n\t" + generatePlaceholder(header) + "{" + compileFunctionSegments(content) + "}");
+            }
+        }
+
+        return new None<>();
     }*//*
 
     private static Option<String> compileFunctionStatement(String input) {

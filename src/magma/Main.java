@@ -772,10 +772,14 @@ public class Main {
         }
 
         final var inputContent = withBraces.substring(1, withBraces.length() - 1).strip();
-        final var outputContent = compileStatements(inputContent, Main::compileFunctionSegment);
+        final var outputContent = compileFunctionSegments(inputContent);
         final var withinStructure = definition.modifiers.contains("static") ? "" : "\n\t" + header + ";";
 
         return new Tuple<>(Lists.of(header + " {" + outputContent + "\n}" + "\n"), withinStructure);
+    }
+
+    private static String compileFunctionSegments(String input) {
+        return compileStatements(input, Main::compileFunctionSegment);
     }
 
     private static Option<JavaDefinition> parseMethodDefinition(String input) {
@@ -808,7 +812,23 @@ public class Main {
     private static String compileFunctionSegment(String input) {
         return compileWhitespace(input)
                 .or(() -> compileFunctionStatement(input))
+                .or(() -> compileBlock(input))
                 .orElseGet(() -> generatePlaceholder(input));
+    }
+
+    private static Option<String> compileBlock(String input) {
+        final var stripped = input.strip();
+        if (stripped.endsWith("}")) {
+            final var withoutEnd = stripped.substring(0, stripped.length() - "}".length());
+            final var contentStart = withoutEnd.indexOf("{");
+            if (contentStart >= 0) {
+                final var header = withoutEnd.substring(0, contentStart);
+                final var content = withoutEnd.substring(contentStart + "{".length());
+                return new Some<>("\n\t" + generatePlaceholder(header) + "{" + compileFunctionSegments(content) + "}");
+            }
+        }
+
+        return new None<>();
     }
 
     private static Option<String> compileFunctionStatement(String input) {
