@@ -891,9 +891,9 @@ public class Main {
     }
 
     private static String compileValue(String input) {
-        return compileInvokable(input)
+        return compileLambda(input)
+                .or(() -> compileInvokable(input))
                 .or(() -> compileAccess(input))
-                .or(() -> compileLambda(input))
                 .or(() -> compileOperator(input, "=="))
                 .or(() -> compileOperator(input, "+"))
                 .or(() -> compileOperator(input, "-"))
@@ -904,12 +904,17 @@ public class Main {
     }
 
     private static Option<String> compileLambda(String input) {
-        if (input.contains("->")) {
-            return new Some<>(generatePlaceholder(input));
+        final var arrowIndex = input.indexOf("->");
+        if (arrowIndex >= 0) {
+            final var left = input.substring(0, arrowIndex).strip();
+            final var right = input.substring(arrowIndex + "->".length());
+
+            if (isSymbol(left)) {
+                return new Some<>(generatePlaceholder(input));
+            }
         }
-        else {
-            return new None<>();
-        }
+
+        return new None<>();
     }
 
     private static Option<String> compileString(String input) {

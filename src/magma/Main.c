@@ -69,7 +69,7 @@ Option<char> peek() {/*if (this.index < this.input.length()) {
 	return None<struct >();
 }
 Option<struct State> append() {
-	return this.pop().map(/*tuple -> tuple*/.left.append(tuple.right));
+	return this.pop().map(/*tuple -> tuple.left.append(tuple.right)*/);
 }
 struct State {
 	Array<char> input;
@@ -155,7 +155,7 @@ struct CFunctionDefinition implements CDefinition {
 };
 void main(Array<Array<char>> args) {
 	auto source = Paths.get(".", "src", "magma", "Main.java");
-	source.readString().match(/*input -> compileAndWrite*/(input, source), /* Some::new*/).ifPresent(/*error -> printErroneousLine*/(error.display()));
+	source.readString().match(/*input -> compileAndWrite(input, source)*/, /* Some::new*/).ifPresent(/*error -> printErroneousLine(error.display())*/);
 }
 void printErroneousLine(Array<char> content);
 Option<struct IOError> compileAndWrite(Array<char> input, struct Path source) {
@@ -450,9 +450,9 @@ struct Main {/*' && appended.isShallow()) {
     }*//*
 
     private static String compileValue(String input) {
-        return compileInvokable(input)
+        return compileLambda(input)
+                .or(() -> compileInvokable(input))
                 .or(() -> compileAccess(input))
-                .or(() -> compileLambda(input))
                 .or(() -> compileOperator(input, "=="))
                 .or(() -> compileOperator(input, "+"))
                 .or(() -> compileOperator(input, "-"))
@@ -463,12 +463,17 @@ struct Main {/*' && appended.isShallow()) {
     }*//*
 
     private static Option<String> compileLambda(String input) {
-        if (input.contains("->")) {
-            return new Some<>(generatePlaceholder(input));
+        final var arrowIndex = input.indexOf("->");
+        if (arrowIndex >= 0) {
+            final var left = input.substring(0, arrowIndex).strip();
+            final var right = input.substring(arrowIndex + "->".length());
+
+            if (isSymbol(left)) {
+                return new Some<>(generatePlaceholder(input));
+            }
         }
-        else {
-            return new None<>();
-        }
+
+        return new None<>();
     }*//*
 
     private static Option<String> compileString(String input) {
