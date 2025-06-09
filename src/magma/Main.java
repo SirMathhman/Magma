@@ -74,6 +74,8 @@ public class Main {
         T getLast();
 
         T getFirst();
+
+        T get(int index);
     }
 
     private interface Head<T> {
@@ -289,6 +291,11 @@ public class Main {
         public T getFirst() {
             return this.elements.getFirst();
         }
+
+        @Override
+        public T get(int index) {
+            return this.elements.get(index);
+        }
     }
 
     private static class Lists {
@@ -482,10 +489,11 @@ public class Main {
         }
     }
 
-    private record FunctionType(Type argumentTypes, Type returnType) implements Type {
+    private record FunctionType(List<Type> argumentTypes, Type returnType) implements Type {
         @Override
         public String generate() {
-            return this.returnType.generate() + " (*)(" + this.argumentTypes.generate() + ")";
+            final var joined = generateValueNodes(this.argumentTypes);
+            return this.returnType.generate() + " (*)(" + joined + ")";
         }
     }
 
@@ -1095,13 +1103,20 @@ public class Main {
 
     private static Type assembleTemplateType(String base, String inputArguments) {
         final var elements = parseValues(inputArguments, Main::parseTypeOrPlaceholder);
-        if (base.equals("Function")) {
-            final var first = elements.getFirst();
-            final var last = elements.getLast();
-            return new FunctionType(first, last);
-        }
-
-        return new TemplateType(base, elements);
+        return switch (base) {
+            case "Function" -> {
+                final var first = elements.getFirst();
+                final var last = elements.getLast();
+                yield new FunctionType(Lists.of(first), last);
+            }
+            case "BiFunction" -> {
+                final var arg0 = elements.getFirst();
+                final var arg1 = elements.get(1);
+                final var returnType = elements.getLast();
+                yield new FunctionType(Lists.of(arg0, arg1), returnType);
+            }
+            default -> new TemplateType(base, elements);
+        };
     }
 
     private static String compileTypeOrPlaceholder(String input) {

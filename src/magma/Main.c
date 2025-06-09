@@ -82,9 +82,10 @@ struct Path get(Array<char> first, /*startString...end*/ more);
 struct Paths {
 };
 Array<char> generate() {
-	return this.returnType.generate() + " (*)(" + this.argumentTypes.generate() + ")";
+	auto joined = generateValueNodes(this.argumentTypes);
+	return this.returnType.generate() + " (*)(" + joined + ")";
 }
-struct FunctionType(Type argumentTypes, Type returnType) implements Type {
+struct FunctionType(List<Type> argumentTypes, Type returnType) implements Type {
 	Array<char> generate();
 };
 Array<char> generate() {
@@ -122,10 +123,10 @@ Array<char> compile(Array<char> input) {
 Array<char> compileStatements(Array<char> input, Array<char> (*)(Array<char>) mapper) {
 	return compileAll(input, /* Main::foldStatements*/, mapper, /* Main::mergeStatements*/);
 }
-Array<char> compileAll(Array<char> input, BiFunction<struct State, struct Character, struct State> folder, Array<char> (*)(Array<char>) mapper, BiFunction<Array<char>, Array<char>, Array<char>> merger) {
+Array<char> compileAll(Array<char> input, struct State (*)(struct State, struct Character) folder, Array<char> (*)(Array<char>) mapper, Array<char> (*)(Array<char>, Array<char>) merger) {
 	return generateAll(merger, /* parseAll(input*/, folder, /* mapper)*/);
 }
-Array<char> generateAll(BiFunction<Array<char>, Array<char>, Array<char>> merger, List<Array<char>> stringList) {
+Array<char> generateAll(Array<char> (*)(Array<char>, Array<char>) merger, List<Array<char>> stringList) {
 	return stringList.iter().fold("", merger);
 }
 Array<char> mergeStatements(Array<char> buffer, Array<char> element) {
@@ -134,7 +135,7 @@ Array<char> mergeStatements(Array<char> buffer, Array<char> element) {
 List<Array<char>> divideStatements(Array<char> input) {
 	return divide(input, /* Main::foldStatements*/);
 }
-List<Array<char>> divide(Array<char> input, BiFunction<struct State, struct Character, struct State> folder) {
+List<Array<char>> divide(Array<char> input, struct State (*)(struct State, struct Character) folder) {
 	auto current = struct State();
 	/*start(varend*/ i = 0;
 	/*i < input*/.length();/* i++) {
@@ -670,13 +671,20 @@ struct Main {/*' && appended.isShallow()) {
 
     private static Type assembleTemplateType(String base, String inputArguments) {
         final var elements = parseValues(inputArguments, Main::parseTypeOrPlaceholder);
-        if (base.equals("Function")) {
-            final var first = elements.getFirst();
-            final var last = elements.getLast();
-            return new FunctionType(first, last);
-        }
-
-        return new TemplateType(base, elements);
+        return switch (base) {
+            case "Function" -> {
+                final var first = elements.getFirst();
+                final var last = elements.getLast();
+                yield new FunctionType(Lists.of(first), last);
+            }
+            case "BiFunction" -> {
+                final var arg0 = elements.getFirst();
+                final var arg1 = elements.get(1);
+                final var returnType = elements.getLast();
+                yield new FunctionType(Lists.of(arg0, arg1), returnType);
+            }
+            default -> new TemplateType(base, elements);
+        };
     }*//*
 
     private static String compileTypeOrPlaceholder(String input) {
