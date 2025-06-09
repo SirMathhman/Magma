@@ -2,6 +2,7 @@ package magma;
 
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -38,6 +39,10 @@ public class Main {
 
     private interface Head<T> {
         Optional<T> next();
+    }
+
+    private interface Result {
+        <R> R match(Function<String, R> whenOk, Function<IOException, R> whenErr);
     }
 
     private static class RangeHead implements Head<Integer> {
@@ -251,16 +256,47 @@ public class Main {
         }
     }
 
+    private record Ok(String value) implements Result {
+        @Override
+        public <R> R match(Function<String, R> whenOk, Function<IOException, R> whenErr) {
+            return whenOk.apply(this.value);
+        }
+    }
+
+    private record Err(IOException error) implements Result {
+        @Override
+        public <R> R match(Function<String, R> whenOk, Function<IOException, R> whenErr) {
+            return whenErr.apply(this.error);
+        }
+    }
+
     public static void main(String[] args) {
+        final var source = Paths.get(".", "src", "magma", "Main.java");
+        readString(source)
+                .match(input -> compileAndWrite(input, source), Optional::of)
+                .ifPresent(Throwable::printStackTrace);
+    }
+
+    private static Optional<IOException> compileAndWrite(String input, Path source) {
+        final var target = source.resolveSibling("Main.c");
+        final var string = compile(input);
+        return writeString(target, string);
+    }
+
+    private static Optional<IOException> writeString(Path target, String string) {
         try {
-            final var source = Paths.get(".", "src", "magma", "Main.java");
-            final var input = Files.readString(source);
-            final var target = source.resolveSibling("Main.c");
-            final var string = compile(input);
             Files.writeString(target, string);
+            return Optional.empty();
         } catch (IOException e) {
-            //noinspection CallToPrintStackTrace
-            e.printStackTrace();
+            return Optional.of(e);
+        }
+    }
+
+    private static Result readString(Path source) {
+        try {
+            return new Ok(Files.readString(source));
+        } catch (IOException e) {
+            return new Err(e);
         }
     }
 

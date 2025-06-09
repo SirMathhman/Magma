@@ -1,3 +1,5 @@
+/*private*/struct Result {
+};
 /*private static*/struct Lists {
 };
 State new(/*List<String>*/ segments, Array<char> buffer, int depth) {
@@ -55,15 +57,31 @@ State new() {
 /*private*/struct JavaDefinition {
 	/*private*/ Array<char> generate();
 };
-/*public static*/ void main(Array<Array<char>> args) {/*try {
-            final var source = Paths.get(".", "src", "magma", "Main.java");
-            final var input = Files.readString(source);
-            final var target = source.resolveSibling("Main.c");
-            final var string = compile(input);
+/*private*/struct Ok(String value) implements Result {
+};
+/*private*/struct Err(IOException error) implements Result {
+};
+/*public static*/ void main(Array<Array<char>> args) {
+	/*final*/ auto source = Paths.get(".", "src", "magma", "Main.java");
+	/*readString(source)
+                .match(input */ - /*> compileAndWrite*/(input, /* source)*/, /* Optional::of*/).ifPresent(/*Throwable::printStackTrace*/);
+}
+/*private static*/ /*Optional<IOException>*/ compileAndWrite(Array<char> input, struct Path source) {
+	/*final*/ auto target = source.resolveSibling("Main.c");
+	/*final*/ auto string = compile(input);
+	return writeString(target, string);
+}
+/*private static*/ /*Optional<IOException>*/ writeString(struct Path target, Array<char> string) {/*try {
             Files.writeString(target, string);
+            return Optional.empty();
         }*//* catch (IOException e) {
-            //noinspection CallToPrintStackTrace
-            e.printStackTrace();
+            return Optional.of(e);
+        }*/
+}
+/*private static*/ struct Result readString(struct Path source) {/*try {
+            return new Ok(Files.readString(source));
+        }*//* catch (IOException e) {
+            return new Err(e);
         }*/
 }
 /*private static*/ Array<char> compile(Array<char> input) {
@@ -514,7 +532,7 @@ State new() {
                 return "Array<" + compiled + ">";
             });
         }
-        
+
         return Optional.of(generatePlaceholder(input));
     }*//*
 
