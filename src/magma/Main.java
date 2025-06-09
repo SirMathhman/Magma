@@ -295,9 +295,19 @@ public class Main {
     }
 
     private static Tuple<List<String>, String> compileClassSegment(String input) {
-        return compileField(input)
+        return compileWhitespace(input)
+                .or(() -> compileField(input))
                 .or(() -> compileClass(input))
                 .orElseGet(() -> new Tuple<>(Lists.empty(), generatePlaceholder(input)));
+    }
+
+    private static Optional<Tuple<List<String>, String>> compileWhitespace(String input) {
+        if (input.isBlank()) {
+            return Optional.of(new Tuple<>(Lists.empty(), ""));
+        }
+        else {
+            return Optional.empty();
+        }
     }
 
     private static Optional<Tuple<List<String>, String>> compileField(String input) {
