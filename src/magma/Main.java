@@ -473,6 +473,7 @@ public class Main {
         return compileInvokable(input)
                 .or(() -> compileOperator(input, "=="))
                 .or(() -> compileOperator(input, "+"))
+                .or(() -> compileOperator(input, "-"))
                 .or(() -> compileAccess(input))
                 .or(() -> compileSymbol(input))
                 .or(() -> compileNumber(input))

@@ -17,7 +17,7 @@
 	return this;
 }
 /*private*/ struct State exit() {
-	this.depth = /* this.depth - 1*/;
+	this.depth = this.depth - 1;
 	return this;
 }
 /*public*/ int isShallow() {
@@ -52,7 +52,7 @@
 };
 /*private*/ struct String generate() {
 	/*final var beforeType */ = this.maybeBefore.map(/*Main::generatePlaceholder)
-                    .map(inner -> inner */ + /* " ")
+                    .map(inner */ - /*> inner */ + /* " ")
                     .orElse(""*/);
 	return beforeType + this.type + /* " " */ + this.name;
 }
@@ -300,6 +300,7 @@ struct if (/*c == '{'*/) {
         return compileInvokable(input)
                 .or(() -> compileOperator(input, "=="))
                 .or(() -> compileOperator(input, "+"))
+                .or(() -> compileOperator(input, "-"))
                 .or(() -> compileAccess(input))
                 .or(() -> compileSymbol(input))
                 .or(() -> compileNumber(input))
