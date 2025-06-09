@@ -1,5 +1,102 @@
-/*private static*/struct State {
-	/*private final*/ /*List<String>*/ segments;
+/*private interface Collector<T, C> */{/*C createInitial();*/
+	/*C fold(C current,*/ /*T*/ element);
+	/*}
+
+    private interface Iterator<T> {
+        <R> Iterator<R> map(Function<T,*/ /*R>*/ mapper);
+	/*<C> C collect(Collector<T,*/ /*C>*/ collector);
+	/*<R> R fold(R initial, BiFunction<R, T,*/ /*R>*/ folder);
+	/*}
+
+    private interface List<T> {
+        List<T>*/ /*addLast(T*/ element);/*
+
+        Iterator<T> iter();*/
+	/*List<T>*/ /*addAllLast(List<T>*/ others);
+	/*}
+
+    private interface Head<T> {
+       */ /*Optional<T>*/ next();
+	/*}
+
+    private static class RangeHead implements Head<Integer> {
+        private final*/ /*int*/ length;
+	/*private*/ /*int*/ count;
+	/*public RangeHead(int length) {
+            this.length = length;
+            this.count = 0;
+        }
+
+        @Override
+        public Optional<Integer> next() {
+            if (this.count < this.length) {
+                final var value = this.count;
+                this.count++;
+                return Optional.of(value);
+            }
+            else {
+                return Optional.empty();
+            }
+        }
+    }
+
+    private record HeadedIterator<T>(Head<T> head) implements Iterator<T> {
+        @Override
+        public <R> Iterator<R> map(Function<T, R> mapper) {
+            return new HeadedIterator<>(() -> this.head.next().map(mapper));
+        }
+
+        @Override
+        public <C> C collect(Collector<T, C> collector) {
+            return this.fold(collector.createInitial(), collector::fold);
+        }
+
+        @Override
+        public <R> R fold(R initial, BiFunction<R, T, R> folder) {
+            var current = initial;
+            while (true) {
+                R finalCurrent = current;
+                final var folded = this.head.next().map(next -> folder.apply(finalCurrent, next));
+                if (folded.isPresent()) {
+                    current = folded.get();
+                }
+                else {
+                    return current;
+                }
+            }
+        }
+    }
+
+    private record JavaList<T>(java.util.List<T> elements) implements List<T> {
+        public JavaList() {
+            this(new ArrayList<>());
+        }
+
+        @Override
+        public List<T> addLast(T element) {
+            this.elements.add(element);
+            return this;
+        }
+
+        @Override
+        public Iterator<T> iter() {
+            return new HeadedIterator<>(new RangeHead(this.elements.size())).map(this.elements::get);
+        }
+
+        @Override
+        public List<T> addAllLast(List<T> others) {
+            return others.iter().<List<T>>fold(this, List::addLast);
+        }
+    }
+
+    private static class Lists {
+        public static <T> List<T> empty() {
+            return new JavaList<T>();
+        }
+    }
+
+    private static class State {
+        private*/ /*List<String>*/ segments;
 	/*private*/ /*StringBuilder*/ buffer;
 	/*private*/ /*int*/ depth;
 	/*private State(List<String> segments, StringBuilder buffer, int depth) {
@@ -9,36 +106,73 @@
         }
 
         public State() {
-            this(new ArrayList<>(), new StringBuilder(), 0);
+            this(Lists.empty(), new StringBuilder(), 0);
         }
 
         private boolean isLevel() {
-            return depth == 0;
+            return this.depth == 0;
         }
 
         private State append(char c) {
-            buffer.append(c);
+            this.buffer.append(c);
             return this;
         }
 
         private State advance() {
-            segments.add(buffer.toString());
+            this.segments = this.segments.addLast(this.buffer.toString());
             this.buffer = new StringBuilder();
             return this;
         }
 
         private State enter() {
-            this.depth = depth + 1;
+            this.depth = this.depth + 1;
             return this;
         }
 
         private State exit() {
-            this.depth = depth - 1;
+            this.depth = this.depth - 1;
             return this;
         }
     }
 
     private record Tuple<A, B>(A left, B right) {
+    }
+
+    private static class Joiner implements Collector<String, Optional<String>> {
+        @Override
+        public Optional<String> createInitial() {
+            return Optional.empty();
+        }
+
+        @Override
+        public Optional<String> fold(Optional<String> current, String element) {
+            return Optional.of(current.map(inner -> inner + element).orElse(element));
+        }
+    }
+
+    private record TupleCollector<A, AC, B, BC>(Collector<A, AC> leftCollector, Collector<B, BC> rightCollector)
+            implements Collector<Tuple<A, B>, Tuple<AC, BC>> {
+        @Override
+        public Tuple<AC, BC> createInitial() {
+            return new Tuple<>(this.leftCollector.createInitial(), this.rightCollector.createInitial());
+        }
+
+        @Override
+        public Tuple<AC, BC> fold(Tuple<AC, BC> current, Tuple<A, B> element) {
+            return new Tuple<>(this.leftCollector.fold(current.left, element.left), this.rightCollector.fold(current.right, element.right));
+        }
+    }
+
+    private static class ListBulkCollector<T> implements Collector<List<T>, List<T>> {
+        @Override
+        public List<T> createInitial() {
+            return Lists.empty();
+        }
+
+        @Override
+        public List<T> fold(List<T> current, List<T> element) {
+            return current.addAllLast(element);
+        }
     }
 
     public static void main(String[] args) {
@@ -59,13 +193,10 @@
 	/*}
 
     private static String compileStatements(String input, Function<String, String> mapper) {
-        final var segments*/ /*=*/ divide(input);
-	/*final var output =*/ /*new*/ StringBuilder();
-	/*for (var segment : segments) {
-            output.append(mapper.apply(segment));
-        }
-
-       */ /*return*/ output.toString();
+        return divide(input)
+                .iter()
+                .map(mapper)
+                .collect(new*/ /*Joiner())*/ .orElse("");
 	/*}
 
     private static List<String> divide(String input) {
@@ -103,7 +234,11 @@
 
         return compileClass(input)
                 .map(tuple -> {
-                    final var joined = String.join("", tuple.left);
+                    final var joined = tuple.left
+                            .iter()
+                            .collect(new Joiner())
+                            .orElse("");
+
                     return joined + tuple.right;
                 })
                 .orElseGet(()*/ /*->*/ generatePlaceholder(input));
@@ -121,19 +256,15 @@
 
                 final var segments = divide(inputContent);
 
-                final var others = new ArrayList<String>();
-                final var output = new StringBuilder();
-                for (var segment : segments) {
-                    final var tuple = compileClassSegment(segment);
-                    others.addAll(tuple.left);
-                    output.append(tuple.right);
-                }
+                final var tuple = segments.iter()
+                        .map(Main::compileClassSegment)
+                        .collect(new TupleCollector<>(new ListBulkCollector<>(), new Joiner()));
 
-                final var outputContent = output.toString();
-                final var generated = header + "{" + outputContent + "\n};\n";
-                others.add(generated);
+                final var others = tuple.left;
+                final var output = tuple.right.orElse("");
 
-                return Optional.of(new Tuple<>(others, ""));
+                final var generated = header + "{" + output + "\n};\n";
+                return Optional.of(new Tuple<>(others.addLast(generated), ""));
             }
         }
 
@@ -143,7 +274,7 @@
     private static Tuple<List<String>, String> compileClassSegment(String input) {
         return compileField(input)
                 .or(() -> compileClass(input))
-                .orElseGet(() -> new*/ /*Tuple<>(Collections.emptyList(),*/ generatePlaceholder(input)));
+                .orElseGet(() -> new*/ /*Tuple<>(Lists.empty(),*/ generatePlaceholder(input)));
 	/*}
 
     private static Optional<Tuple<List<String>, String>> compileField(String input) {
@@ -160,14 +291,20 @@
                 if (typeSeparator >= 0) {
                     final var beforeType = beforeName.substring(0, typeSeparator);
                     final var type = beforeName.substring(typeSeparator + " ".length());
-                    return Optional.of(new Tuple<>(Collections.emptyList(), "\n\t" + generatePlaceholder(beforeType) + " " +
-                            generatePlaceholder(type) + " " +
-                            name + ";"));
+                    final var generated = "\n\t" + generatePlaceholder(beforeType) + " " +
+                            compileType(type) + " " +
+                            name + ";";
+
+                    return Optional.of(new Tuple<>(Lists.empty(), generated));
                 }
             }
         }
 
        */ /*return*/ Optional.empty();
+	/*}
+
+    private static String compileType(String type) {
+       */ /*return*/ generatePlaceholder(type);
 	/*}
 
     private static String compileClassDefinition(String input) {
