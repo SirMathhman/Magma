@@ -323,12 +323,12 @@ public class Main {
     }
 
     private static String compileClassDefinition(String input) {
-        return compilClassDefinitionWithKeyword(input, "class ")
-                .or(() -> compilClassDefinitionWithKeyword(input, "interface "))
+        return compileClassDefinitionWithKeyword(input, "class ")
+                .or(() -> compileClassDefinitionWithKeyword(input, "interface "))
                 .orElseGet(() -> generatePlaceholder(input));
     }
 
-    private static Optional<String> compilClassDefinitionWithKeyword(String input, String keyword) {
+    private static Optional<String> compileClassDefinitionWithKeyword(String input, String keyword) {
         final var classIndex = input.indexOf(keyword);
         if (classIndex < 0) {
             return Optional.empty();
