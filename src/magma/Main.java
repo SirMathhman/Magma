@@ -91,7 +91,7 @@ public class Main {
     private @interface Actual {
     }
 
-    private interface Type extends Node {
+    private interface JavaType extends Node {
         String generate();
     }
 
@@ -462,7 +462,7 @@ public class Main {
             List<String> annotations,
             List<String> modifiers,
             List<String> typeParameters,
-            Type type,
+            JavaType type,
             String name
     ) {
     }
@@ -537,7 +537,7 @@ public class Main {
         }
     }
 
-    private record FunctionType(List<Type> argumentTypes, Type returnType) implements Type {
+    private record FunctionType(List<JavaType> argumentTypes, JavaType returnType) implements JavaType {
         @Override
         public String generate() {
             return this.generateWithName("");
@@ -549,7 +549,7 @@ public class Main {
         }
     }
 
-    private record TemplateType(String base, List<Type> elements) implements Type {
+    private record TemplateType(String base, List<JavaType> elements) implements JavaType {
         @Override
         public String generate() {
             final var outputArguments = generateValueNodes(this.elements);
@@ -557,7 +557,7 @@ public class Main {
         }
     }
 
-    private record Placeholder(String input) implements Type {
+    private record Placeholder(String input) implements JavaType {
 
         @Override
         public String generate() {
@@ -565,14 +565,14 @@ public class Main {
         }
     }
 
-    private record StructType(String name) implements Type {
+    private record StructType(String name) implements JavaType {
         @Override
         public String generate() {
             return "struct " + this.name;
         }
     }
 
-    public record SimpleCDefinition(Type type, String name) implements CDefinition {
+    public record SimpleCDefinition(JavaType type, String name) implements CDefinition {
         @Override
         public String generate() {
             return this.type().generate() + " " + this.name();
@@ -1277,7 +1277,7 @@ public class Main {
         return appended;
     }
 
-    private static JavaDefinition parseDefinitionWithTypeParameters(String name, Type compiledType, String input) {
+    private static JavaDefinition parseDefinitionWithTypeParameters(String name, JavaType compiledType, String input) {
         final var beforeType = input.strip();
         if (beforeType.endsWith(">")) {
             final var withoutEnd = beforeType.substring(0, beforeType.length() - ">".length());
@@ -1296,7 +1296,7 @@ public class Main {
     private static JavaDefinition parseDefinitionWithModifiers(
             String beforeTypeParameters,
             List<String> typeParameters,
-            Type type,
+            JavaType type,
             String name
     ) {
         final var separator = beforeTypeParameters.lastIndexOf("\n");
@@ -1336,7 +1336,7 @@ public class Main {
         };
     }
 
-    private static Option<Type> parseType(String input) {
+    private static Option<JavaType> parseType(String input) {
         return compileTemplateType(input)
                 .or(() -> compilePrimitiveType(input))
                 .or(() -> compileSymbolType(input))
@@ -1344,7 +1344,7 @@ public class Main {
                 .or(() -> compileVariadicType(input));
     }
 
-    private static Option<Type> compileVariadicType(String input) {
+    private static Option<JavaType> compileVariadicType(String input) {
         final var stripped = input.strip();
         if (stripped.endsWith("...")) {
             final var substring = stripped.substring(0, stripped.length() - "...".length());
@@ -1356,7 +1356,7 @@ public class Main {
         }
     }
 
-    private static TemplateType wrapInArray(Type child) {
+    private static TemplateType wrapInArray(JavaType child) {
         return new TemplateType("Array", Lists.of(child));
     }
 
@@ -1369,14 +1369,14 @@ public class Main {
         return new None<>();
     }
 
-    private static Option<Type> compileSymbolType(String input) {
+    private static Option<JavaType> compileSymbolType(String input) {
         if (isSymbol(input.strip())) {
             return new Some<>(new StructType(input.strip()));
         }
         return new None<>();
     }
 
-    private static Option<Type> compilePrimitiveType(String input) {
+    private static Option<JavaType> compilePrimitiveType(String input) {
         return switch (input.strip()) {
             case "char", "Character" -> new Some<>(Primitive.Char);
             case "boolean", "Boolean", "int", "Integer" -> new Some<>(Primitive.Int);
@@ -1387,7 +1387,7 @@ public class Main {
         };
     }
 
-    private static Option<Type> compileTemplateType(String input) {
+    private static Option<JavaType> compileTemplateType(String input) {
         if (!input.strip().endsWith(">")) {
             return new None<>();
         }
@@ -1403,7 +1403,7 @@ public class Main {
         return new Some<>(assembleTemplateType(base, arguments));
     }
 
-    private static Type assembleTemplateType(String base, String inputArguments) {
+    private static JavaType assembleTemplateType(String base, String inputArguments) {
         final var elements = parseValues(inputArguments, Main::parseTypeOrPlaceholder);
         return switch (base) {
             case "Function" -> {
@@ -1425,7 +1425,7 @@ public class Main {
         return parseTypeOrPlaceholder(input).generate();
     }
 
-    private static Type parseTypeOrPlaceholder(String input) {
+    private static JavaType parseTypeOrPlaceholder(String input) {
         return parseType(input).orElseGet(() -> new Placeholder(input));
     }
 
@@ -1536,7 +1536,7 @@ public class Main {
                 .orElse("");
     }
 
-    private enum Primitive implements Type {
+    private enum Primitive implements JavaType {
         Char("char"),
         Int("int"),
         Auto("auto"),
