@@ -1,0 +1,1 @@
+clang ./src/magma/Main.c -o main.exe
