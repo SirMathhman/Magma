@@ -1022,7 +1022,19 @@ public class Main {
                 .or(() -> compileNumber(input))
                 .or(() -> compileChar(input))
                 .or(() -> compileString(input))
+                .or(() -> compileMethodReference(input))
                 .orElseGet(() -> generatePlaceholder(input));
+    }
+
+    private static Option<String> compileMethodReference(String input) {
+        final var i = input.lastIndexOf("::");
+        if (i >= 0) {
+            final var substring = input.substring(i + "::".length());
+            return new Some<>(substring);
+        }
+        else {
+            return new None<>();
+        }
     }
 
     private static Option<String> compileChar(String input) {
@@ -1038,13 +1050,28 @@ public class Main {
     private static Option<String> compileLambda(String input) {
         final var arrowIndex = input.indexOf("->");
         if (arrowIndex >= 0) {
-            final var left = input.substring(0, arrowIndex).strip();
+            final var beforeArrow = input.substring(0, arrowIndex).strip();
             final var right = input.substring(arrowIndex + "->".length());
 
-            if (isSymbol(left)) {
-                final var value = compileValue(right);
-                return new Some<>("auto lambda(auto " + left + "){\n\treturn " + value + ";\n}\n");
+            final String parameters;
+            if (isSymbol(beforeArrow)) {
+                parameters = "auto " + beforeArrow;
             }
+            else if (beforeArrow.startsWith("(") && beforeArrow.endsWith(")")) {
+                final var content = beforeArrow.substring(1, beforeArrow.length() - 1);
+                parameters = divide(content, foldByDelimiter(','))
+                        .iter()
+                        .map(String::strip)
+                        .map(inner -> "auto " + inner)
+                        .collect(new Joiner(", "))
+                        .orElse("");
+            }
+            else {
+                return new None<>();
+            }
+
+            final var value = compileValue(right);
+            return new Some<>("auto lambda(" + parameters + "){\n\treturn " + value + ";\n}\n");
         }
 
         return new None<>();
@@ -1270,14 +1297,31 @@ public class Main {
         return compileTemplateType(input)
                 .or(() -> compilePrimitiveType(input))
                 .or(() -> compileSymbolType(input))
-                .or(() -> compileArrayType(input).map(type -> type));
+                .or(() -> compileArrayType(input).map(type -> type))
+                .or(() -> compileVariadicType(input));
+    }
+
+    private static Option<Type> compileVariadicType(String input) {
+        final var stripped = input.strip();
+        if (stripped.endsWith("...")) {
+            final var substring = stripped.substring(0, stripped.length() - "...".length());
+            final var child = parseTypeOrPlaceholder(substring);
+            return new Some<>(wrapInArray(child));
+        }
+        else {
+            return new None<>();
+        }
+    }
+
+    private static TemplateType wrapInArray(Type child) {
+        return new TemplateType("Array", Lists.of(child));
     }
 
     private static Option<TemplateType> compileArrayType(String input) {
         final var stripped = input.strip();
         if (stripped.endsWith("[]")) {
             final var slice = stripped.substring(0, stripped.length() - "[]".length());
-            return parseType(slice).map(compiled -> new TemplateType("Array", Lists.of(compiled)));
+            return parseType(slice).map(Main::wrapInArray);
         }
         return new None<>();
     }
@@ -1295,7 +1339,7 @@ public class Main {
             case "boolean", "Boolean", "int", "Integer" -> new Some<>(Primitive.Int);
             case "var" -> new Some<>(Primitive.Auto);
             case "void" -> new Some<>(Primitive.Void);
-            case "String" -> new Some<>(new TemplateType("Array", Lists.of(Primitive.Char)));
+            case "String" -> new Some<>(wrapInArray(Primitive.Char));
             default -> new None<>();
         };
     }

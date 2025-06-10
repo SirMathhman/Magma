@@ -83,7 +83,7 @@ Option<Tuple<struct DivideState, char>> popAndAppendToTuple() {
 );
 }
 Option<struct DivideState> popAndAppendToOption() {
-	return this.popAndAppendToTuple().map(/*Tuple::left*/);
+	return this.popAndAppendToTuple().map(left);
 }
 struct DivideState {
 	Array<char> input;
@@ -117,7 +117,7 @@ struct Ok(String value) implements Result {
 };
 struct Err(IOError error) implements Result {
 };
-struct Path get(Array<char> first, /* String... more*/);
+struct Path get(Array<char> first, Array<Array<char>> more);
 struct Paths {
 };
 Array<char> generate() {
@@ -174,7 +174,7 @@ void main(Array<Array<char>> args) {
 	source.readString().match(auto lambda(auto input){
 	return compileAndWrite(input, source);
 }
-, /* Some::new*/).ifPresent(auto lambda(auto error){
+, new).ifPresent(auto lambda(auto error){
 	return printErroneousLine(error.display());
 }
 );
@@ -186,10 +186,10 @@ Option<struct IOError> compileAndWrite(Array<char> input, struct Path source) {
 	return target.write(string);
 }
 Array<char> compile(Array<char> input) {
-	return compileStatements(input, /* Main::compileRootSegment*/);
+	return compileStatements(input, compileRootSegment);
 }
 Array<char> compileStatements(Array<char> input, Array<char> (*mapper)(Array<char>)) {
-	return compileAll(input, /* Main::foldStatements*/, mapper, /* Main::mergeStatements*/);
+	return compileAll(input, foldStatements, mapper, mergeStatements);
 }
 Array<char> compileAll(Array<char> input, struct DivideState (*folder)(struct DivideState, char), Array<char> (*mapper)(Array<char>), Array<char> (*merger)(Array<char>, Array<char>)) {
 	return generateAll(merger, parseAll(input, folder, mapper));
@@ -201,7 +201,7 @@ Array<char> mergeStatements(Array<char> buffer, Array<char> element) {
 	return buffer + element;
 }
 List<Array<char>> divideStatements(Array<char> input) {
-	return divide(input, /* Main::foldStatements*/);
+	return divide(input, foldStatements);
 }
 List<Array<char>> divide(Array<char> input, struct DivideState (*folder)(struct DivideState, char)) {
 	auto current = struct DivideState(input);
@@ -229,7 +229,7 @@ Option<struct DivideState> foldSingleQuotes(struct DivideState currentState, cha
 		return None<struct >();
 	}
 	auto appended = currentState.append(c);
-	return appended.popAndAppendToTuple().flatMap(/*Main::foldEscaped*/).flatMap(/*DivideState::popAndAppendToOption*/);
+	return appended.popAndAppendToTuple().flatMap(foldEscaped).flatMap(popAndAppendToOption);
 }
 Option<struct DivideState> foldEscaped(Tuple<struct DivideState, char> tuple) {
 	if (tuple.right == '\\') {
@@ -570,7 +570,19 @@ struct Main {/*".length());*/
                 .or(() -> compileNumber(input))
                 .or(() -> compileChar(input))
                 .or(() -> compileString(input))
+                .or(() -> compileMethodReference(input))
                 .orElseGet(() -> generatePlaceholder(input));*//*
+    }
+
+    private static Option<String> compileMethodReference(String input) {
+        final var i = input.lastIndexOf("::");*//*
+        if (i >= 0) {
+            final var substring = input.substring(i + "::".length());
+            return new Some<>(substring);
+        }*//*
+        else {
+            return new None<>();
+        }*//*
     }
 
     private static Option<String> compileChar(String input) {
@@ -591,7 +603,8 @@ struct Main {/*".length());*/
 
             if (isSymbol(left)) {
                 final var value = compileValue(right);
-                return new Some<>("auto lambda(auto " + left + "){\n\treturn " + value + ";\n}\n");
+                final var parameters = "auto " + left;
+                return new Some<>("auto lambda(" + parameters + "){\n\treturn " + value + ";\n}\n");
             }
         }*//*
 
@@ -818,14 +831,31 @@ struct Main {/*".length());*/
         return compileTemplateType(input)
                 .or(() -> compilePrimitiveType(input))
                 .or(() -> compileSymbolType(input))
-                .or(() -> compileArrayType(input).map(type -> type));*//*
+                .or(() -> compileArrayType(input).map(type -> type))
+                .or(() -> compileVariadicType(input));*//*
+    }
+
+    private static Option<Type> compileVariadicType(String input) {
+        final var stripped = input.strip();*//*
+        if (stripped.endsWith("...")) {
+            final var substring = stripped.substring(0, stripped.length() - "...".length());
+            final var child = parseTypeOrPlaceholder(substring);
+            return new Some<>(wrapInArray(child));
+        }*//*
+        else {
+            return new None<>();
+        }*//*
+    }
+
+    private static TemplateType wrapInArray(Type child) {
+        return new TemplateType("Array", Lists.of(child));*//*
     }
 
     private static Option<TemplateType> compileArrayType(String input) {
         final var stripped = input.strip();*//*
         if (stripped.endsWith("[]")) {
             final var slice = stripped.substring(0, stripped.length() - "[]".length());
-            return parseType(slice).map(compiled -> new TemplateType("Array", Lists.of(compiled)));
+            return parseType(slice).map(Main::wrapInArray);
         }*//*
         return new None<>();*//*
     }
@@ -843,7 +873,7 @@ struct Main {/*".length());*/
             case "boolean", "Boolean", "int", "Integer" -> new Some<>(Primitive.Int);
             case "var" -> new Some<>(Primitive.Auto);
             case "void" -> new Some<>(Primitive.Void);
-            case "String" -> new Some<>(new TemplateType("Array", Lists.of(Primitive.Char)));
+            case "String" -> new Some<>(wrapInArray(Primitive.Char));
             default -> new None<>();
         }*//*;*//*
     }
