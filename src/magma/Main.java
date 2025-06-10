@@ -693,10 +693,10 @@ public class Main {
         if (c == '}' && appended.isShallow()) {
             return appended.advance().exit();
         }
-        if (c == '{') {
+        if (c == '{' || c == '(') {
             return appended.enter();
         }
-        if (c == '}') {
+        if (c == '}' || c == ')') {
             return appended.exit();
         }
         return appended;
@@ -866,16 +866,21 @@ public class Main {
         if (stripped.endsWith("}")) {
             final var withoutEnd = stripped.substring(0, stripped.length() - "}".length());
 
-            return divide(withoutEnd, Main::foldBlockStart).popFirst().map(divisions -> {
+            return divide(withoutEnd, Main::foldBlockStart).popFirst().flatMap(divisions -> {
                 final var left = divisions.left;
-                final var header = left.substring(0, left.length() - "{".length());
-                final var inputContent = divisions.right.iter()
-                        .collect(new Joiner())
-                        .orElse("");
+                if (left.endsWith("{")) {
+                    final var header = left.substring(0, left.length() - "{".length());
+                    final var inputContent = divisions.right.iter()
+                            .collect(new Joiner())
+                            .orElse("");
 
-                final var outputContent = compileFunctionSegments(inputContent, depth + 1);
-                final var indent = "\n" + "\t".repeat(depth);
-                return indent + compileBlockHeader(header) + " {" + outputContent + indent + "}";
+                    final var outputContent = compileFunctionSegments(inputContent, depth + 1);
+                    final var indent = "\n" + "\t".repeat(depth);
+                    return new Some<>(indent + compileBlockHeader(header) + " {" + outputContent + indent + "}");
+                }
+                else {
+                    return new None<>();
+                }
             });
         }
 
