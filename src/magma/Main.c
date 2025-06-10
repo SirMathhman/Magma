@@ -262,14 +262,8 @@ Array<char> compileRootSegment(Array<char> input) {
 		return "";
 	}
 	return compileClass(input).map(auto lambda(auto tuple){
-	return /* {
-                    final var joined = tuple.left
-                            .iter()
-                            .collect(new Joiner())
-                            .orElse("");
-
-                    return joined */ + /* tuple.right;
-                }*/;
+	auto joined = tuple.left.iter().collect(struct Joiner()).orElse("");
+	return joined + tuple.right;
 }
 ).orElseGet(auto lambda(auto ){
 	return generatePlaceholder(input);
@@ -612,7 +606,7 @@ struct Main {/*
         final var arrowIndex = input.indexOf("->");
         if (arrowIndex >= 0) {
             final var beforeArrow = input.substring(0, arrowIndex).strip();
-            final var right = input.substring(arrowIndex + "->".length());
+            final var right = input.substring(arrowIndex + "->".length()).strip();
 
             final String parameters;
             if (isSymbol(beforeArrow)) {
@@ -631,8 +625,16 @@ struct Main {/*
                 return new None<>();
             }
 
-            final var value = compileValue(right);
-            return new Some<>("auto lambda(" + parameters + "){\n\treturn " + value + ";\n}\n");
+            final String s;
+            if (right.startsWith("{") && right.endsWith("}")) {
+                final var substring = right.substring(1, right.length() - 1);
+                s = compileFunctionSegments(substring, 1);
+            }
+            else {
+                final var value = compileValue(right);
+                s = "\n\treturn " + value + ";";
+            }
+            return new Some<>("auto lambda(" + parameters + "){" + s + "\n}\n");
         }
 
         return new None<>();
