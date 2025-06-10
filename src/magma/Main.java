@@ -13,7 +13,7 @@ import java.util.function.Supplier;
 
 public class Main {
     private interface Path {
-        Result readString();
+        Result<String, IOError> readString();
 
         Option<IOError> write(String content);
 
@@ -84,8 +84,8 @@ public class Main {
         Option<T> next();
     }
 
-    private interface Result {
-        <R> R match(Function<String, R> whenOk, Function<IOError, R> whenErr);
+    private interface Result<T, E> {
+        <R> R match(Function<T, R> whenOk, Function<E, R> whenErr);
     }
 
     private @interface Actual {
@@ -479,23 +479,31 @@ public class Main {
         }
     }
 
-    private record Ok(String value) implements Result {
+    private record Ok<T, E>(T value) implements Result<T, E> {
         @Override
-        public <R> R match(Function<String, R> whenOk, Function<IOError, R> whenErr) {
+        public <R> R match(Function<T, R> whenOk, Function<E, R> whenErr) {
             return whenOk.apply(this.value);
         }
     }
 
-    private record Err(IOError error) implements Result {
+    private record Err<T, E>(E error) implements Result<T, E> {
         @Override
-        public <R> R match(Function<String, R> whenOk, Function<IOError, R> whenErr) {
+        public <R> R match(Function<T, R> whenOk, Function<E, R> whenErr) {
             return whenErr.apply(this.error);
         }
     }
 
-    private static class CompilationError extends RuntimeException {
-        public CompilationError(String message) {
+    private static class CompileException extends Exception {
+        public CompileException(String message) {
             super(message);
+        }
+    }
+
+    private static class UncheckedCompileException extends RuntimeException {
+        private final CompileException exception;
+
+        public UncheckedCompileException(CompileException exception) {
+            this.exception = exception;
         }
     }
 
@@ -527,11 +535,11 @@ public class Main {
         }
 
         @Override
-        public Result readString() {
+        public Result<String, IOError> readString() {
             try {
-                return new Ok(Files.readString(this.path));
+                return new Ok<>(Files.readString(this.path));
             } catch (IOException e) {
-                return new Err(new JavaIOError(e));
+                return new Err<>(new JavaIOError(e));
             }
         }
     }
@@ -567,7 +575,11 @@ public class Main {
 
         @Override
         public String generate() {
-            return generatePlaceholder(this.input);
+            try {
+                return generatePlaceholder(this.input);
+            } catch (CompileException e) {
+                throw new UncheckedCompileException(e);
+            }
         }
     }
 
@@ -603,8 +615,23 @@ public class Main {
     public static void main(String[] args) {
         final var source = Paths.get(".", "src", "magma", "Main.java");
         source.readString()
-                .match(input -> compileAndWrite(input, source), Some::new)
-                .ifPresent(error -> printErroneousLine(error.display()));
+                .match(input -> {
+                    compileAndWrite(input, source).match(
+                            ioErrOpt -> {
+                                ioErrOpt.ifPresent(err -> printErroneousLine(err.display()));
+                                return null;
+                            },
+                            err -> {
+                                printErroneousLine(err.getMessage());
+                                return null;
+                            }
+                    );
+                    return null;
+                },
+                        ioErr -> {
+                            printErroneousLine(ioErr.display());
+                            return null;
+                        });
     }
 
     @Actual
@@ -612,14 +639,20 @@ public class Main {
         System.err.println(content);
     }
 
-    private static Option<IOError> compileAndWrite(String input, Path source) {
+    private static Result<Option<IOError>, CompileException> compileAndWrite(String input, Path source) {
         final var target = source.resolveSibling("Main.c");
-        final var string = compile(input);
-        return target.write(string);
+        return compile(input).match(
+                compiled -> new Ok<>(target.write(compiled)),
+                err -> new Err<>(err)
+        );
     }
 
-    private static String compile(String input) {
-        return compileStatements(input, Main::compileRootSegment);
+    private static Result<String, CompileException> compile(String input) {
+        try {
+            return new Ok<>(compileStatements(input, Main::compileRootSegment));
+        } catch (UncheckedCompileException e) {
+            return new Err<>(e.exception);
+        }
     }
 
     private static String compileStatements(String input, Function<String, String> mapper) {
@@ -748,7 +781,13 @@ public class Main {
 
                     return joined + tuple.right;
                 })
-                .orElseGet(() -> generatePlaceholder(input));
+                .orElseGet(() -> {
+                    try {
+                        return generatePlaceholder(input);
+                    } catch (CompileException e) {
+                        throw new UncheckedCompileException(e);
+                    }
+                });
     }
 
     private static Option<Tuple<List<String>, String>> compileClass(String input) {
@@ -795,7 +834,13 @@ public class Main {
                 .or(() -> compileField(input))
                 .or(() -> compileClass(input))
                 .or(() -> compileMethod(input))
-                .orElseGet(() -> new Tuple<>(Lists.empty(), generatePlaceholder(input)));
+                .orElseGet(() -> {
+                    try {
+                        return new Tuple<>(Lists.empty(), generatePlaceholder(input));
+                    } catch (CompileException e) {
+                        throw new UncheckedCompileException(e);
+                    }
+                });
     }
 
     private static Option<Tuple<List<String>, String>> compileMethod(String input) {
@@ -889,7 +934,13 @@ public class Main {
         return compileWhitespace(input)
                 .or(() -> compileFunctionStatement(input, depth))
                 .or(() -> compileBlock(input, depth))
-                .orElseGet(() -> generatePlaceholder(input));
+                .orElseGet(() -> {
+                    try {
+                        return generatePlaceholder(input);
+                    } catch (CompileException e) {
+                        throw new UncheckedCompileException(e);
+                    }
+                });
     }
 
     private static Option<String> compileBlock(String input, int depth) {
@@ -951,13 +1002,23 @@ public class Main {
                 final var strippedCompiled = beforeCondition.strip();
                 final var beforeContent = switch (strippedCompiled) {
                     case "if", "while" -> strippedCompiled;
-                    default -> generatePlaceholder(strippedCompiled);
+                    default -> {
+                        try {
+                            yield generatePlaceholder(strippedCompiled);
+                        } catch (CompileException e) {
+                            throw new UncheckedCompileException(e);
+                        }
+                    }
                 };
                 return beforeContent + " (" + compiled + ")";
             }
         }
 
-        return generatePlaceholder(stripped);
+        try {
+            return generatePlaceholder(stripped);
+        } catch (CompileException e) {
+            throw new UncheckedCompileException(e);
+        }
     }
 
     private static Option<String> compileFunctionStatement(String input, int depth) {
@@ -991,7 +1052,13 @@ public class Main {
             return destination + " = " + compileValue(substring1);
         }
 
-        return compileInvokable(stripped).orElseGet(() -> generatePlaceholder(input));
+        return compileInvokable(stripped).orElseGet(() -> {
+            try {
+                return generatePlaceholder(input);
+            } catch (CompileException e) {
+                throw new UncheckedCompileException(e);
+            }
+        });
     }
 
     private static Option<String> compileInvokable(String input) {
@@ -1060,7 +1127,13 @@ public class Main {
                 .or(() -> compileChar(input))
                 .or(() -> compileString(input))
                 .or(() -> compileMethodReference(input))
-                .orElseGet(() -> generatePlaceholder(input));
+                .orElseGet(() -> {
+                    try {
+                        return generatePlaceholder(input);
+                    } catch (CompileException e) {
+                        throw new UncheckedCompileException(e);
+                    }
+                });
     }
 
     private static Option<String> compileMethodReference(String input) {
@@ -1198,7 +1271,13 @@ public class Main {
     private static String compileParameter(String input) {
         return compileWhitespace(input)
                 .or(() -> parseDefinition(input).map(javaDefinition -> transformDefinition(javaDefinition).generate()))
-                .orElseGet(() -> generatePlaceholder(input));
+                .orElseGet(() -> {
+                    try {
+                        return generatePlaceholder(input);
+                    } catch (CompileException e) {
+                        throw new UncheckedCompileException(e);
+                    }
+                });
     }
 
     private static Option<String> compileWhitespace(String input) {
@@ -1529,8 +1608,8 @@ public class Main {
         return appended;
     }
 
-    private static String generatePlaceholder(String input) {
-        throw new CompilationError("Unsupported input: " + input);
+    private static String generatePlaceholder(String input) throws CompileException {
+        throw new CompileException("Unsupported input: " + input);
     }
 
     private static <T extends Node> String generateValueNodes(List<T> nodes) {
