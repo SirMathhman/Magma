@@ -1042,7 +1042,8 @@ public class Main {
             final var right = input.substring(arrowIndex + "->".length());
 
             if (isSymbol(left)) {
-                return new Some<>(generatePlaceholder(left) + " -> " + generatePlaceholder(right));
+                final var value = compileValue(right);
+                return new Some<>("auto lambda(auto " + left + "){\n\treturn " + value + ";\n}\n");
             }
         }
 

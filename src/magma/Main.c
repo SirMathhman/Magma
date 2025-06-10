@@ -71,10 +71,16 @@ Option<char> peek() {
 	return None<struct >();
 }
 Option<struct DivideState> append() {
-	return this.pop().map(/*tuple*/ -> /* tuple.left.append(tuple.right)*/);
+	return this.pop().map(auto lambda(auto tuple){
+	return tuple.left.append(tuple.right);
+}
+);
 }
 Option<Tuple<struct DivideState, char>> popAndAppendToTuple() {
-	return this.pop().map(/*tuple*/ -> /* new Tuple<>(tuple.left.append(tuple.right), tuple.right)*/);
+	return this.pop().map(auto lambda(auto tuple){
+	return Tuple<struct >(tuple.left.append(tuple.right), tuple.right);
+}
+);
 }
 Option<struct DivideState> popAndAppendToOption() {
 	return this.popAndAppendToTuple().map(/*Tuple::left*/);
@@ -165,7 +171,13 @@ struct CFunctionDefinition implements CDefinition {
 };
 void main(Array<Array<char>> args) {
 	auto source = Paths.get(".", "src", "magma", "Main.java");
-	source.readString().match(/*input*/ -> /* compileAndWrite(input, source)*/, /* Some::new*/).ifPresent(/*error*/ -> /* printErroneousLine(error.display())*/);
+	source.readString().match(auto lambda(auto input){
+	return compileAndWrite(input, source);
+}
+, /* Some::new*/).ifPresent(auto lambda(auto error){
+	return printErroneousLine(error.display());
+}
+);
 }
 void printErroneousLine(Array<char> content);
 Option<struct IOError> compileAndWrite(Array<char> input, struct Path source) {
@@ -194,7 +206,10 @@ List<Array<char>> divideStatements(Array<char> input) {
 List<Array<char>> divide(Array<char> input, struct DivideState (*folder)(struct DivideState, char)) {
 	auto current = struct DivideState(input);
 	while (true) {
-		auto maybeNext = current.pop().map(/*tuple*/ -> /* getObject(folder, tuple)*/);
+		auto maybeNext = current.pop().map(auto lambda(auto tuple){
+	return getObject(folder, tuple);
+}
+);
 		if (maybeNext.isPresent()) {
 			current = maybeNext.get();
 		}
@@ -575,7 +590,8 @@ struct Main {/*".length());*/
             final var right = input.substring(arrowIndex + "->".length());
 
             if (isSymbol(left)) {
-                return new Some<>(generatePlaceholder(left) + " -> " + generatePlaceholder(right));
+                final var value = compileValue(right);
+                return new Some<>("auto lambda(auto " + left + "){\n\treturn " + value + ";\n}\n");
             }
         }*//*
 
