@@ -1016,6 +1016,7 @@ public class Main {
                 .or(() -> compileOperator(input, "+"))
                 .or(() -> compileOperator(input, "-"))
                 .or(() -> compileOperator(input, "&&"))
+                .or(() -> compileOperator(input, "||"))
                 .or(() -> compileSymbol(input))
                 .or(() -> compileNumber(input))
                 .or(() -> compileChar(input))

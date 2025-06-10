@@ -240,7 +240,7 @@ struct DivideState foldStatements(struct DivideState state, char c) {
 }
 Array<char> compileRootSegment(Array<char> input) {
 	auto stripped = input.strip();
-	if (/*stripped.startsWith("package ") || stripped*/.startsWith("import ")) {
+	if (stripped.startsWith("package ") || stripped.startsWith("import ")) {
 		return "";
 	}
 	/*return compileClass(input)
@@ -271,7 +271,7 @@ Option<Tuple<List<Array<char>>, Array<char>>> compileClass(Array<char> input) {
 	return None<struct >();
 }
 List<Array<char>> compileClassWithDefinition(struct ClassDefinition definition, Array<char> withEnd) {
-	if (/*definition.typeParameters.containsElements() || definition*/.annotations.contains("Actual")) {
+	if (definition.typeParameters.containsElements() || definition.annotations.contains("Actual")) {
 		return Lists.empty();
 	}/*
 
@@ -549,6 +549,7 @@ struct Main {/*".length());*/
                 .or(() -> compileOperator(input, "+"))
                 .or(() -> compileOperator(input, "-"))
                 .or(() -> compileOperator(input, "&&"))
+                .or(() -> compileOperator(input, "||"))
                 .or(() -> compileSymbol(input))
                 .or(() -> compileNumber(input))
                 .or(() -> compileChar(input))
