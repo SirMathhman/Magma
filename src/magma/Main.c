@@ -965,6 +965,9 @@ Option<struct ClassDefinition> compileClassDefinition(Array<char> input) {
 ).or(auto lambda(auto ){
 	return compileClassDefinitionWithKeyword(input, "record ");
 }
+).or(auto lambda(auto ){
+	return compileClassDefinitionWithKeyword(input, "enum ");
+}
 );
 }
 Option<struct ClassDefinition> compileClassDefinitionWithKeyword(Array<char> input, Array<char> keyword) {
@@ -1042,25 +1045,20 @@ struct DivideState foldValues(struct DivideState state, char c) {
 Array<char> generatePlaceholder(Array<char> input) {
 	return "/*" + input.replace("/*", "start").replace("*/", "end") + "*/";
 }
-struct Main {/*
-
-    private enum Primitive implements Type {
-        Char("char"),
+struct Primitive new(Array<char> value) {
+	this.value = value;
+}
+Array<char> generate() {
+	return this.value;
+}
+struct Primitive implements Type {/*Char("char"),
         Int("int"),
         Auto("auto"),
-        Void("void");
-
-        private final String value;
-
-        Primitive(String value) {
-            this.value = value;
-        }
-
-        @Override
-        public String generate() {
-            return this.value;
-        }
-    }*/
+        Void("void");*/
+	Array<char> value;
+	Array<char> generate();
+};
+struct Main {
 };
 /*
 */

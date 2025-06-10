@@ -1428,7 +1428,8 @@ public class Main {
     private static Option<ClassDefinition> compileClassDefinition(String input) {
         return compileClassDefinitionWithKeyword(input, "class ")
                 .or(() -> compileClassDefinitionWithKeyword(input, "interface "))
-                .or(() -> compileClassDefinitionWithKeyword(input, "record "));
+                .or(() -> compileClassDefinitionWithKeyword(input, "record "))
+                .or(() -> compileClassDefinitionWithKeyword(input, "enum "));
     }
 
     private static Option<ClassDefinition> compileClassDefinitionWithKeyword(String input, String keyword) {
