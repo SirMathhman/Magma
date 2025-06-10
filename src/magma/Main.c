@@ -21,14 +21,14 @@ struct CDefinition {
 };
 struct Lists {
 };
-struct private DivideState(Array<char> input, List<Array<char>> segments, Array<char> buffer, int depth, int index) {
+struct DivideState new(Array<char> input, List<Array<char>> segments, Array<char> buffer, int depth, int index) {
 	this.input = input;
 	this.index = index;
 	this.segments = segments;
 	this.buffer = buffer;
 	this.depth = depth;
 }
-struct public DivideState(Array<char> input) {
+struct DivideState new(Array<char> input) {
 	this(input, Lists.empty(), "", 0, 0);
 }
 int isLevel() {
@@ -91,8 +91,6 @@ struct DivideState {
 	List<Array<char>> segments;
 	Array<char> buffer;
 	int depth;
-	struct private DivideState(Array<char> input, List<Array<char>> segments, Array<char> buffer, int depth, int index);
-	struct public DivideState(Array<char> input);
 	int isLevel();
 	struct DivideState append(char c);
 	struct DivideState advance();
@@ -156,7 +154,7 @@ Array<char> generate() {
 struct SimpleCDefinition(Type type, String name) implements CDefinition {
 	Array<char> generate();
 };
-struct public CFunctionDefinition(struct FunctionType type, struct JavaDefinition definition) {
+struct CFunctionDefinition new(struct FunctionType type, struct JavaDefinition definition) {
 	this.type = type;
 	this.definition = definition;
 }
@@ -166,7 +164,6 @@ Array<char> generate() {
 struct CFunctionDefinition implements CDefinition {
 	struct FunctionType type;
 	struct JavaDefinition definition;
-	struct public CFunctionDefinition(struct FunctionType type, struct JavaDefinition definition);
 	Array<char> generate();
 };
 void main(Array<Array<char>> args) {
@@ -771,6 +768,9 @@ Option<struct JavaDefinition> parseDefinition(Array<char> input) {
 	return None<struct >();
 }
 int isSymbol(Array<char> input) {
+	if (input.equals("private") || input.equals("public")) {
+		return false;
+	}
 	/*for*/ (/*var i = 0; i */ < /* input.length(); i*/ +  + ) {
 		auto c = input.charAt(i);
 		if (Character.isLetter(c)) {

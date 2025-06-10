@@ -1229,6 +1229,10 @@ public class Main {
     }
 
     private static boolean isSymbol(String input) {
+        if (input.equals("private") || input.equals("public")) {
+            return false;
+        }
+
         for (var i = 0; i < input.length(); i++) {
             final var c = input.charAt(i);
             if (Character.isLetter(c)) {
