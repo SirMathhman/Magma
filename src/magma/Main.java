@@ -76,6 +76,8 @@ public class Main {
         T getFirst();
 
         T get(int index);
+
+        Option<Tuple<T, List<T>>> popFirst();
     }
 
     private interface Head<T> {
@@ -299,6 +301,16 @@ public class Main {
         @Override
         public T get(int index) {
             return this.elements.get(index);
+        }
+
+        @Override
+        public Option<Tuple<T, List<T>>> popFirst() {
+            if (this.elements.isEmpty()) {
+                return new None<>();
+            }
+
+            final var first = this.elements.removeFirst();
+            return new Some<>(new Tuple<>(first, this));
         }
     }
 
@@ -853,17 +865,38 @@ public class Main {
         final var stripped = input.strip();
         if (stripped.endsWith("}")) {
             final var withoutEnd = stripped.substring(0, stripped.length() - "}".length());
-            final var contentStart = withoutEnd.indexOf("{");
-            if (contentStart >= 0) {
-                final var header = withoutEnd.substring(0, contentStart);
-                final var inputContent = withoutEnd.substring(contentStart + "{".length());
+
+            return divide(withoutEnd, Main::foldBlockStart).popFirst().map(divisions -> {
+                final var left = divisions.left;
+                final var header = left.substring(0, left.length() - "{".length());
+                final var inputContent = divisions.right.iter()
+                        .collect(new Joiner())
+                        .orElse("");
+
                 final var outputContent = compileFunctionSegments(inputContent, depth + 1);
                 final var indent = "\n" + "\t".repeat(depth);
-                return new Some<>(indent + compileBlockHeader(header) + " {" + outputContent + indent + "}");
-            }
+                return indent + compileBlockHeader(header) + " {" + outputContent + indent + "}";
+            });
         }
 
         return new None<>();
+    }
+
+    private static DivideState foldBlockStart(DivideState state, char c) {
+        final var appended = state.append(c);
+        if (c == '{') {
+            final var entered = appended.enter();
+            if (entered.isShallow()) {
+                return entered.advance();
+            }
+            return entered;
+        }
+
+        if (c == '}') {
+            return appended.exit();
+        }
+
+        return appended;
     }
 
     private static String compileBlockHeader(String input) {

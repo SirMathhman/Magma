@@ -230,9 +230,8 @@ struct DivideState foldStatements(struct DivideState state, char c) {
 	if (c == '}' && appended.isShallow()) {
 		return appended.advance().exit();
 	}
-	/*if (c == '*/ {
-		/*') {
-            return appended*/.enter();
+	if (c == '{') {
+		return appended.enter();
 	}
 	if (c == '}') {
 		return appended.exit();
@@ -399,24 +398,45 @@ struct Main {/*".length());*/
         final var stripped = input.strip();
         if (stripped.endsWith("}*//*")) {
             final var withoutEnd = stripped.substring(0, stripped.length() - "}*//*".length());*//*
-            final var contentStart = withoutEnd.indexOf("{");
-            if (contentStart >= 0) {
-                final var header = withoutEnd.substring(0, contentStart);
-                final var inputContent = withoutEnd.substring(contentStart + "{".length());
+
+            return divide(withoutEnd, Main::foldBlockStart).popFirst().map(divisions -> {
+                final var left = divisions.left;
+                final var header = left.substring(0, left.length() - "{".length());
+                final var inputContent = divisions.right.iter()
+                        .collect(new Joiner())
+                        .orElse("");
+
                 final var outputContent = compileFunctionSegments(inputContent, depth + 1);
                 final var indent = "\n" + "\t".repeat(depth);
-                return new Some<>(indent + compileBlockHeader(header) + " {" + outputContent + indent + "}");
-            }
-        }
+                return indent + compileBlockHeader(header) + " {" + outputContent + indent + "}";
+            });
+        }*//*
 
-        return new None<>();
-    }*//*
+        return new None<>();*//*
+    }
+
+    private static DivideState foldBlockStart(DivideState state, char c) {
+        final var appended = state.append(c);*//*
+        if (c == '{') {
+            final var entered = appended.enter();
+            if (entered.isShallow()) {
+                return entered.advance();
+            }
+            return entered;
+        }*//*
+
+        if (c == '}') {
+            return appended.exit();
+        }*//*
+
+        return appended;*//*
+    }
 
     private static String compileBlockHeader(String input) {
-        final var stripped = input.strip();
+        final var stripped = input.strip();*//*
         if (stripped.equals("else")) {
             return "else";
-        }
+        }*//*
 
         if (stripped.endsWith(")")) {
             final var withoutEnd = stripped.substring(0, stripped.length() - ")".length());
@@ -432,33 +452,33 @@ struct Main {/*".length());*/
                 };
                 return beforeContent + " (" + compiled + ")";
             }
-        }
+        }*//*
 
-        return generatePlaceholder(stripped);
-    }*//*
+        return generatePlaceholder(stripped);*//*
+    }
 
     private static Option<String> compileFunctionStatement(String input, int depth) {
-        final var stripped = input.strip();
-        if (stripped.endsWith(";")) {
+        final var stripped = input.strip();*//*
+        if (stripped.endsWith(";*//*")) {
             final var withoutEnd = stripped.substring(0, stripped.length() - ";".length());
             return new Some<>("\n" + "\t".repeat(depth) + compileFunctionStatementValue(withoutEnd) + ";");
-        }
+        }*//*
 
-        return new None<>();
-    }*//*
+        return new None<>();*//*
+    }
 
     private static String compileFunctionStatementValue(String input) {
-        final var stripped = input.strip();
+        final var stripped = input.strip();*//*
         if (stripped.equals("break")) {
             return "break";
-        }
+        }*//*
 
         if (stripped.startsWith("return ")) {
             final var value = stripped.substring("return ".length());
             return "return " + compileValue(value);
-        }
+        }*//*
 
-        final var i = stripped.indexOf("=");
+        final var i = stripped.indexOf("=");*//*
         if (i >= 0) {
             final var destinationString = stripped.substring(0, i);
             final var substring1 = stripped.substring(i + "=".length());
@@ -466,13 +486,13 @@ struct Main {/*".length());*/
                     .orElseGet(() -> compileValue(destinationString));
 
             return destination + " = " + compileValue(substring1);
-        }
+        }*//*
 
-        return compileInvokable(stripped).orElseGet(() -> generatePlaceholder(input));
-    }*//*
+        return compileInvokable(stripped).orElseGet(() -> generatePlaceholder(input));*//*
+    }
 
     private static Option<String> compileInvokable(String input) {
-        final var stripped = input.strip();
+        final var stripped = input.strip();*//*
         if (stripped.endsWith(")")) {
             final var withoutEnd = stripped.substring(0, stripped.length() - ")".length());
 
@@ -493,13 +513,13 @@ struct Main {/*".length());*/
                     return new None<>();
                 }
             });
-        }
+        }*//*
 
-        return new None<>();
-    }*//*
+        return new None<>();*//*
+    }
 
     private static DivideState foldInvocationStart(DivideState state, char c) {
-        final var appended = state.append(c);
+        final var appended = state.append(c);*//*
         if (c == '(') {
             final var entered = appended.enter();
             if (entered.isShallow()) {
@@ -508,17 +528,17 @@ struct Main {/*".length());*/
             else {
                 return entered;
             }
-        }
+        }*//*
         if (c == ')') {
             return appended.exit();
-        }
-        return appended;
-    }*//*
+        }*//*
+        return appended;*//*
+    }
 
     private static String compileConstruction(String caller) {
-        final var type = caller.substring("new ".length());
-        return compileTypeOrPlaceholder(type);
-    }*//*
+        final var type = caller.substring("new ".length());*//*
+        return compileTypeOrPlaceholder(type);*//*
+    }
 
     private static String compileValue(String input) {
         return compileLambda(input)
@@ -533,21 +553,21 @@ struct Main {/*".length());*/
                 .or(() -> compileNumber(input))
                 .or(() -> compileChar(input))
                 .or(() -> compileString(input))
-                .orElseGet(() -> generatePlaceholder(input));
-    }*//*
+                .orElseGet(() -> generatePlaceholder(input));*//*
+    }
 
     private static Option<String> compileChar(String input) {
-        final var stripped = input.strip();
+        final var stripped = input.strip();*//*
         if (stripped.startsWith("'") && stripped.endsWith("'")) {
             return new Some<>(stripped);
-        }
+        }*//*
         else {
             return new None<>();
-        }
-    }*//*
+        }*//*
+    }
 
     private static Option<String> compileLambda(String input) {
-        final var arrowIndex = input.indexOf("->");
+        final var arrowIndex = input.indexOf("->");*//*
         if (arrowIndex >= 0) {
             final var left = input.substring(0, arrowIndex).strip();
             final var right = input.substring(arrowIndex + "->".length());
@@ -555,112 +575,112 @@ struct Main {/*".length());*/
             if (isSymbol(left)) {
                 return new Some<>(generatePlaceholder(input));
             }
-        }
+        }*//*
 
-        return new None<>();
-    }*//*
+        return new None<>();*//*
+    }
 
     private static Option<String> compileString(String input) {
-        final var stripped = input.strip();
+        final var stripped = input.strip();*//*
         if (stripped.startsWith("\"") && stripped.endsWith("\"")) {
             return new Some<>(stripped);
-        }
+        }*//*
         else {
             return new None<>();
-        }
-    }*//*
+        }*//*
+    }
 
     private static Option<String> compileNumber(String input) {
-        final var stripped = input.strip();
+        final var stripped = input.strip();*//*
         if (isNumber(stripped)) {
             return new Some<>(stripped);
-        }
+        }*//*
         else {
             return new None<>();
-        }
-    }*//*
+        }*//*
+    }
 
     private static Option<String> compileSymbol(String input) {
-        final var stripped = input.strip();
+        final var stripped = input.strip();*//*
         if (isSymbol(stripped)) {
             return new Some<>(stripped);
-        }
+        }*//*
         else {
             return new None<>();
-        }
-    }*//*
+        }*//*
+    }
 
     private static Option<String> compileAccess(String input) {
-        final var separator = input.lastIndexOf(".");
+        final var separator = input.lastIndexOf(".");*//*
         if (separator >= 0) {
             final var substring = input.substring(0, separator);
             final var property = input.substring(separator + ".".length()).strip();
             if (isSymbol(property)) {
                 return new Some<>(compileValue(substring) + "." + property);
             }
-        }
+        }*//*
 
-        return new None<>();
-    }*//*
+        return new None<>();*//*
+    }
 
     private static Option<String> compileOperator(String input, String infix) {
-        final var index = input.indexOf(infix);
+        final var index = input.indexOf(infix);*//*
         if (index >= 0) {
             final var leftString = input.substring(0, index);
             final var rightString = input.substring(index + infix.length());
             return new Some<>(compileValue(leftString) + " " + infix + " " + compileValue(rightString));
-        }
+        }*//*
 
-        return new None<>();
-    }*//*
+        return new None<>();*//*
+    }
 
     private static boolean isNumber(String input) {
-        for (int i = 0; i < input.length(); i++) {
+        for (int i = 0;*//* i < input.length();*//* i++) {
             final var c = input.charAt(i);
             if (Character.isDigit(c)) {
                 continue;
             }
             return false;
-        }
+        }*//*
 
-        return true;
-    }*//*
+        return true;*//*
+    }
 
     private static String mergeValues(String buffer, String element) {
         if (buffer.isEmpty()) {
             return element;
-        }
-        return buffer + ", " + element;
-    }*//*
+        }*//*
+        return buffer + ", " + element;*//*
+    }
 
     private static String compileParameter(String input) {
         return compileWhitespace(input)
                 .or(() -> parseDefinition(input).map(javaDefinition -> transformDefinition(javaDefinition).generate()))
-                .orElseGet(() -> generatePlaceholder(input));
-    }*//*
+                .orElseGet(() -> generatePlaceholder(input));*//*
+    }
 
     private static Option<String> compileWhitespace(String input) {
         if (input.isBlank()) {
             return new Some<>("");
-        }
+        }*//*
         else {
             return new None<>();
-        }
-    }*//*
+        }*//*
+    }
 
     private static Option<Tuple<List<String>, String>> compileField(String input) {
-        final var stripped = input.strip();
-        if (stripped.endsWith(";")) {
+        final var stripped = input.strip();*//*
+        if (stripped.endsWith(";*//*")) {
             final var withoutEnd = stripped.substring(0, stripped.length() - ";".length());
             return parseDefinition(withoutEnd).map(javaDefinition -> transformDefinition(javaDefinition).generate()).map(generated -> new Tuple<>(Lists.empty(), "\n\t" + generated + ";"));
-        }
+        }*//*
 
-        return new None<>();
-    }*//*
+        return new None<>();*//*
+    }
 
     private static Option<JavaDefinition> parseDefinition(String input) {
-        final var stripped = input.strip();
-        final var nameSeparator = stripped.lastIndexOf(" ");
+        final var stripped = input.strip();*//*
+        final var nameSeparator = stripped.lastIndexOf(" ");*//*
         if (nameSeparator >= 0) {
             final var beforeName = stripped.substring(0, nameSeparator).strip();
             final var name = stripped.substring(nameSeparator + " ".length()).strip();
@@ -668,57 +688,57 @@ struct Main {/*".length());*/
             if (isSymbol(name)) {
                 return parseDefinitionWithType(beforeName, name);
             }
-        }
-        return new None<>();
-    }*//*
+        }*//*
+        return new None<>();*//*
+    }
 
     private static boolean isSymbol(String input) {
-        for (var i = 0; i < input.length(); i++) {
+        for (var i = 0;*//* i < input.length();*//* i++) {
             final var c = input.charAt(i);
             if (Character.isLetter(c)) {
                 continue;
             }
             return false;
-        }
-        return true;
-    }*//*
+        }*//*
+        return true;*//*
+    }
 
     private static Option<JavaDefinition> parseDefinitionWithType(String beforeName, String name) {
-        final var maybeTuple = divide(beforeName, Main::foldTypeSeparator).popLast();
+        final var maybeTuple = divide(beforeName, Main::foldTypeSeparator).popLast();*//*
         if (maybeTuple.isEmpty()) {
             return parseType(beforeName).map(type -> new JavaDefinition(Lists.empty(), Lists.empty(), Lists.empty(), type, name));
-        }
+        }*//*
 
-        final var tuple = maybeTuple.get();
+        final var tuple = maybeTuple.get();*//*
         final var beforeType = tuple.left
                 .iter()
                 .collect(new Joiner(" "))
-                .orElse("");
+                .orElse("");*//*
 
-        final var type = tuple.right;
+        final var type = tuple.right;*//*
 
         return parseType(type).map(compiledType -> {
             return parseDefinitionWithTypeParameters(name, compiledType, beforeType);
-        });
-    }*//*
+        }*//*);*//*
+    }
 
     private static DivideState foldTypeSeparator(DivideState state, char c) {
         if (c == ' ' && state.isLevel()) {
             return state.advance();
-        }
+        }*//*
 
-        final var appended = state.append(c);
+        final var appended = state.append(c);*//*
         if (c == '<') {
             return appended.enter();
-        }
+        }*//*
         if (c == '>') {
             return appended.exit();
-        }
-        return appended;
-    }*//*
+        }*//*
+        return appended;*//*
+    }
 
     private static JavaDefinition parseDefinitionWithTypeParameters(String name, Type compiledType, String input) {
-        final var beforeType = input.strip();
+        final var beforeType = input.strip();*//*
         if (beforeType.endsWith(">")) {
             final var withoutEnd = beforeType.substring(0, beforeType.length() - ">".length());
             final var typeParametersStart = withoutEnd.indexOf("<");
@@ -728,10 +748,10 @@ struct Main {/*".length());*/
                 final var typeParameters = parseTypeParameters(typeParametersString);
                 return parseDefinitionWithModifiers(beforeTypeParameters, typeParameters, compiledType, name);
             }
-        }
+        }*//*
 
-        return parseDefinitionWithModifiers(beforeType, Lists.empty(), compiledType, name);
-    }*//*
+        return parseDefinitionWithModifiers(beforeType, Lists.empty(), compiledType, name);*//*
+    }
 
     private static JavaDefinition parseDefinitionWithModifiers(
             String beforeTypeParameters,
@@ -739,7 +759,7 @@ struct Main {/*".length());*/
             Type type,
             String name
     ) {
-        final var separator = beforeTypeParameters.lastIndexOf("\n");
+        final var separator = beforeTypeParameters.lastIndexOf("\n");*//*
         if (separator >= 0) {
             final var annotationsString = beforeTypeParameters.substring(0, separator);
             final var annotations = parseAnnotations(annotationsString);
@@ -748,24 +768,24 @@ struct Main {/*".length());*/
 
             final var modifiers = parseModifiers(substring);
             return new JavaDefinition(annotations, modifiers, typeParameters, type, name);
-        }
+        }*//*
         else {
             final var modifiers = parseModifiers(beforeTypeParameters);
             return new JavaDefinition(Lists.empty(), modifiers, typeParameters, type, name);
-        }
-    }*//*
+        }*//*
+    }
 
     private static List<String> parseAnnotations(String annotationsString) {
         return divide(annotationsString, foldByDelimiter('\n'))
                 .iter()
                 .map(String::strip)
                 .map(value -> value.substring(1))
-                .collect(new ListCollector<>());
-    }*//*
+                .collect(new ListCollector<>());*//*
+    }
 
     private static List<String> parseModifiers(String beforeTypeParameters) {
-        return parseAll(beforeTypeParameters, foldByDelimiter(' '), String::strip);
-    }*//*
+        return parseAll(beforeTypeParameters, foldByDelimiter(' '), String::strip);*//*
+    }
 
     private static BiFunction<DivideState, Character, DivideState> foldByDelimiter(char delimiter) {
         return (state, c) -> {
@@ -773,31 +793,31 @@ struct Main {/*".length());*/
                 return state.advance();
             }
             return state.append(c);
-        };
-    }*//*
+        }*//*;*//*
+    }
 
     private static Option<Type> parseType(String input) {
         return compileTemplateType(input)
                 .or(() -> compilePrimitiveType(input))
                 .or(() -> compileSymbolType(input))
-                .or(() -> compileArrayType(input).map(type -> type));
-    }*//*
+                .or(() -> compileArrayType(input).map(type -> type));*//*
+    }
 
     private static Option<TemplateType> compileArrayType(String input) {
-        final var stripped = input.strip();
+        final var stripped = input.strip();*//*
         if (stripped.endsWith("[]")) {
             final var slice = stripped.substring(0, stripped.length() - "[]".length());
             return parseType(slice).map(compiled -> new TemplateType("Array", Lists.of(compiled)));
-        }
-        return new None<>();
-    }*//*
+        }*//*
+        return new None<>();*//*
+    }
 
     private static Option<Type> compileSymbolType(String input) {
         if (isSymbol(input.strip())) {
             return new Some<>(new StructType(input.strip()));
-        }
-        return new None<>();
-    }*//*
+        }*//*
+        return new None<>();*//*
+    }
 
     private static Option<Type> compilePrimitiveType(String input) {
         return switch (input.strip()) {
@@ -807,27 +827,27 @@ struct Main {/*".length());*/
             case "void" -> new Some<>(Primitive.Void);
             case "String" -> new Some<>(new TemplateType("Array", Lists.of(Primitive.Char)));
             default -> new None<>();
-        };
-    }*//*
+        }*//*;*//*
+    }
 
     private static Option<Type> compileTemplateType(String input) {
         if (!input.strip().endsWith(">")) {
             return new None<>();
-        }
+        }*//*
 
-        final var withoutEnd = input.strip().substring(0, input.strip().length() - ">".length());
-        final var typeArgumentsStart = withoutEnd.indexOf("<");
+        final var withoutEnd = input.strip().substring(0, input.strip().length() - ">".length());*//*
+        final var typeArgumentsStart = withoutEnd.indexOf("<");*//*
         if (typeArgumentsStart < 0) {
             return new None<>();
-        }
+        }*//*
 
-        final var base = withoutEnd.substring(0, typeArgumentsStart);
-        final var arguments = withoutEnd.substring(typeArgumentsStart + "<".length());
-        return new Some<>(assembleTemplateType(base, arguments));
-    }*//*
+        final var base = withoutEnd.substring(0, typeArgumentsStart);*//*
+        final var arguments = withoutEnd.substring(typeArgumentsStart + "<".length());*//*
+        return new Some<>(assembleTemplateType(base, arguments));*//*
+    }
 
     private static Type assembleTemplateType(String base, String inputArguments) {
-        final var elements = parseValues(inputArguments, Main::parseTypeOrPlaceholder);
+        final var elements = parseValues(inputArguments, Main::parseTypeOrPlaceholder);*//*
         return switch (base) {
             case "Function" -> {
                 final var first = elements.getFirst();
@@ -841,33 +861,33 @@ struct Main {/*".length());*/
                 yield new FunctionType(Lists.of(arg0, arg1), returnType);
             }
             default -> new TemplateType(base, elements);
-        };
-    }*//*
+        }*//*;*//*
+    }
 
     private static String compileTypeOrPlaceholder(String input) {
-        return parseTypeOrPlaceholder(input).generate();
-    }*//*
+        return parseTypeOrPlaceholder(input).generate();*//*
+    }
 
     private static Type parseTypeOrPlaceholder(String input) {
-        return parseType(input).orElseGet(() -> new Placeholder(input));
-    }*//*
+        return parseType(input).orElseGet(() -> new Placeholder(input));*//*
+    }
 
     private static Option<ClassDefinition> compileClassDefinition(String input) {
         return compileClassDefinitionWithKeyword(input, "class ")
                 .or(() -> compileClassDefinitionWithKeyword(input, "interface "))
-                .or(() -> compileClassDefinitionWithKeyword(input, "record "));
-    }*//*
+                .or(() -> compileClassDefinitionWithKeyword(input, "record "));*//*
+    }
 
     private static Option<ClassDefinition> compileClassDefinitionWithKeyword(String input, String keyword) {
-        final var classIndex = input.indexOf(keyword);
+        final var classIndex = input.indexOf(keyword);*//*
         if (classIndex < 0) {
             return new None<>();
-        }
+        }*//*
 
-        final var beforeKeyword = input.substring(0, classIndex).strip();
-        final var afterKeyword = input.substring(classIndex + keyword.length()).strip();
-        return new Some<>(parseClassDefinitionWithParameters(beforeKeyword, afterKeyword));
-    }*//*
+        final var beforeKeyword = input.substring(0, classIndex).strip();*//*
+        final var afterKeyword = input.substring(classIndex + keyword.length()).strip();*//*
+        return new Some<>(parseClassDefinitionWithParameters(beforeKeyword, afterKeyword));*//*
+    }
 
     private static ClassDefinition parseClassDefinitionWithParameters(String beforeKeyword, String afterKeyword) {
         if (afterKeyword.endsWith(")")) {
@@ -878,13 +898,13 @@ struct Main {/*".length());*/
                 final var parameters = withoutEnd.substring(paramStart + "(".length());
                 return parseClassDefinitionWithTypeParameters(beforeKeyword, beforeParameters);
             }
-        }
+        }*//*
 
-        return parseClassDefinitionWithTypeParameters(beforeKeyword, afterKeyword);
-    }*//*
+        return parseClassDefinitionWithTypeParameters(beforeKeyword, afterKeyword);*//*
+    }
 
     private static ClassDefinition parseClassDefinitionWithTypeParameters(String beforeKeyword, String input) {
-        final var stripped = input.strip();
+        final var stripped = input.strip();*//*
         if (stripped.endsWith(">")) {
             final var withoutEnd = stripped.substring(0, stripped.length() - ">".length());
             final var typeParamsStart = withoutEnd.indexOf("<");
@@ -894,13 +914,13 @@ struct Main {/*".length());*/
                 final var typeParameters = parseTypeParameters(typeParametersString);
                 return parseClassDefinitionWithModifiers(beforeKeyword, base, typeParameters);
             }
-        }
+        }*//*
 
-        return parseClassDefinitionWithModifiers(beforeKeyword, stripped, Lists.empty());
-    }*//*
+        return parseClassDefinitionWithModifiers(beforeKeyword, stripped, Lists.empty());*//*
+    }
 
     private static ClassDefinition parseClassDefinitionWithModifiers(String beforeKeyword, String base, List<String> typeParameters) {
-        final var i = beforeKeyword.lastIndexOf("\n");
+        final var i = beforeKeyword.lastIndexOf("\n");*//*
         if (i >= 0) {
             final var annotationsString = beforeKeyword.substring(0, i);
             final var modifiersString = beforeKeyword.substring(i + "\n".length());
@@ -909,71 +929,71 @@ struct Main {/*".length());*/
             final var modifiers = parseModifiers(modifiersString);
 
             return new ClassDefinition(annotations, modifiers, base, typeParameters);
-        }
+        }*//*
 
-        final var modifiers = parseModifiers(beforeKeyword);
-        return new ClassDefinition(Lists.empty(), modifiers, base, typeParameters);
-    }*//*
+        final var modifiers = parseModifiers(beforeKeyword);*//*
+        return new ClassDefinition(Lists.empty(), modifiers, base, typeParameters);*//*
+    }
 
     private static List<String> parseTypeParameters(String typeParameters) {
-        return mapAll(divideValues(typeParameters), String::strip);
-    }*//*
+        return mapAll(divideValues(typeParameters), String::strip);*//*
+    }
 
     private static List<String> divideValues(String input) {
-        return divide(input, Main::foldValues);
-    }*//*
+        return divide(input, Main::foldValues);*//*
+    }
 
     private static DivideState foldValues(DivideState state, char c) {
         if (c == ',' && state.isLevel()) {
             return state.advance();
-        }
+        }*//*
 
-        final var appended = state.append(c);
+        final var appended = state.append(c);*//*
         if (c == '-') {
             final var maybe = appended.peek();
             if (maybe instanceof Some(var peek) && peek == '>') {
                 return appended.append().orElse(appended);
             }
-        }
+        }*//*
 
         if (c == '<' || c == '(') {
             return appended.enter();
-        }
+        }*//*
         if (c == '>' || c == ')') {
             return appended.exit();
-        }
-        return appended;
-    }*//*
+        }*//*
+        return appended;*//*
+    }
 
     private static String generatePlaceholder(String input) {
         return "start" + input
                 .replace("start", "start")
-                .replace("end", "end") + "end";
-    }*//*
+                .replace("end", "end") + "end";*//*
+    }
 
     private static <T extends Node> String generateValueNodes(List<T> nodes) {
         return nodes.iter()
                 .map(Node::generate)
                 .collect(new Joiner(", "))
-                .orElse("");
-    }*//*
+                .orElse("");*//*
+    }
 
     private enum Primitive implements Type {
         Char("char"),
         Int("int"),
         Auto("auto"),
-        Void("void");
+        Void("void");*//*
 
-        private final String value;
+        private final String value;*//*
 
         Primitive(String value) {
             this.value = value;
-        }
+        }*//*
 
         @Override
         public String generate() {
             return this.value;
-        }
-    }*//*
+        }*//*
+    }
 }
 */
