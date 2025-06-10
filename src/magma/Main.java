@@ -493,6 +493,12 @@ public class Main {
         }
     }
 
+    private static class CompilationError extends RuntimeException {
+        public CompilationError(String message) {
+            super(message);
+        }
+    }
+
     @Actual
     private record JavaIOError(IOException exception) implements IOError {
         @Override
@@ -1524,9 +1530,7 @@ public class Main {
     }
 
     private static String generatePlaceholder(String input) {
-        return "/*" + input
-                .replace("/*", "start")
-                .replace("*/", "end") + "*/";
+        throw new CompilationError("Unsupported input: " + input);
     }
 
     private static <T extends Node> String generateValueNodes(List<T> nodes) {
