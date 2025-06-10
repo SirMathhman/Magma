@@ -664,7 +664,32 @@ public class Main {
         final var currentState = tuple.left;
         final var c = tuple.right;
 
-        return foldSingleQuotes(currentState, c).orElseGet(() -> folder.apply(currentState, c));
+        return foldSingleQuotes(currentState, c)
+                .or(() -> foldDoubleQuotes(currentState, c))
+                .orElseGet(() -> folder.apply(currentState, c));
+    }
+
+    private static Option<DivideState> foldDoubleQuotes(DivideState state, char c) {
+        if (c != '\"') {
+            return new None<>();
+        }
+
+        var current = state.append(c);
+        while (true) {
+            final var tuple = current.popAndAppendToTuple().orElse(new Tuple<>(state, '\0'));
+            current = tuple.left;
+
+            final var next = tuple.right;
+            if (next == '\\') {
+                current = current.popAndAppendToOption().orElse(current);
+            }
+            if (next == '\"') {
+                break;
+            }
+        }
+
+        return new Some<>(current);
+
     }
 
     private static Option<DivideState> foldSingleQuotes(DivideState currentState, char c) {
