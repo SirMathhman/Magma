@@ -272,7 +272,7 @@ Array<char> compileRootSegment(Array<char> input) {
 }
 Option<Tuple<List<Array<char>>, Array<char>>> compileClass(Array<char> input) {
 	auto contentStart = input.indexOf('{');
-	if (/*contentStart >= 0*/) {
+	if (contentStart >= 0) {
 		auto beforeContent = input.substring(0, contentStart);
 		/*final var withEnd = input.substring(contentStart + "*/ {/*".length()).strip();
             if (withEnd.endsWith("}*/
@@ -573,6 +573,7 @@ struct Main {/*
                 .or(() -> compileOperator(input, "&&"))
                 .or(() -> compileOperator(input, "||"))
                 .or(() -> compileOperator(input, "<"))
+                .or(() -> compileOperator(input, ">="))
                 .or(() -> compileSymbol(input))
                 .or(() -> compileNumber(input))
                 .or(() -> compileChar(input))
