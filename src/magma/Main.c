@@ -55,7 +55,7 @@ int isShallow() {
 	return this.depth == 1;
 }
 Option<Tuple<struct DivideState, char>> pop() {
-	if (/*this.index < this*/.input.length()) {
+	if (this.index < this.input.length()) {
 		auto c = this.input.charAt(this.index);
 		auto next = struct DivideState(this.input, this.segments, this.buffer, this.depth, this.index + 1);
 		return Some<struct >(Tuple<struct >(next, c));
@@ -65,16 +65,16 @@ Option<Tuple<struct DivideState, char>> pop() {
 	}
 }
 Option<char> peek() {
-	if (/*this.index < this*/.input.length()) {
+	if (this.index < this.input.length()) {
 		return Some<struct >(this.input.charAt(this.index));
 	}
 	return None<struct >();
 }
 Option<struct DivideState> append() {
-	return this.pop().map(/*tuple -> tuple.left.append(tuple.right)*/);
+	return this.pop().map(/*tuple*/ -> /* tuple.left.append(tuple.right)*/);
 }
 Option<Tuple<struct DivideState, char>> popAndAppendToTuple() {
-	return this.pop().map(/*tuple -> new Tuple<>(tuple.left.append(tuple.right), tuple.right)*/);
+	return this.pop().map(/*tuple*/ -> /* new Tuple<>(tuple.left.append(tuple.right), tuple.right)*/);
 }
 Option<struct DivideState> popAndAppendToOption() {
 	return this.popAndAppendToTuple().map(/*Tuple::left*/);
@@ -127,7 +127,7 @@ struct FunctionType(List<Type> argumentTypes, Type returnType) implements Type {
 };
 Array<char> generate() {
 	auto outputArguments = generateValueNodes(this.elements);
-	return this.base + "<" + outputArguments + ">";
+	return this.base + " < " + outputArguments + ">";
 }
 struct TemplateType(String base, List<Type> elements) implements Type {
 	Array<char> generate();
@@ -165,7 +165,7 @@ struct CFunctionDefinition implements CDefinition {
 };
 void main(Array<Array<char>> args) {
 	auto source = Paths.get(".", "src", "magma", "Main.java");
-	source.readString().match(/*input -> compileAndWrite(input, source)*/, /* Some::new*/).ifPresent(/*error -> printErroneousLine(error.display())*/);
+	source.readString().match(/*input*/ -> /* compileAndWrite(input, source)*/, /* Some::new*/).ifPresent(/*error*/ -> /* printErroneousLine(error.display())*/);
 }
 void printErroneousLine(Array<char> content);
 Option<struct IOError> compileAndWrite(Array<char> input, struct Path source) {
@@ -194,7 +194,7 @@ List<Array<char>> divideStatements(Array<char> input) {
 List<Array<char>> divide(Array<char> input, struct DivideState (*folder)(struct DivideState, char)) {
 	auto current = struct DivideState(input);
 	while (true) {
-		auto maybeNext = current.pop().map(/*tuple -> getObject(folder, tuple)*/);
+		auto maybeNext = current.pop().map(/*tuple*/ -> /* getObject(folder, tuple)*/);
 		if (maybeNext.isPresent()) {
 			current = maybeNext.get();
 		}
@@ -550,6 +550,7 @@ struct Main {/*".length());*/
                 .or(() -> compileOperator(input, "-"))
                 .or(() -> compileOperator(input, "&&"))
                 .or(() -> compileOperator(input, "||"))
+                .or(() -> compileOperator(input, "<"))
                 .or(() -> compileSymbol(input))
                 .or(() -> compileNumber(input))
                 .or(() -> compileChar(input))
@@ -574,7 +575,7 @@ struct Main {/*".length());*/
             final var right = input.substring(arrowIndex + "->".length());
 
             if (isSymbol(left)) {
-                return new Some<>(generatePlaceholder(input));
+                return new Some<>(generatePlaceholder(left) + " -> " + generatePlaceholder(right));
             }
         }*//*
 

@@ -1017,6 +1017,7 @@ public class Main {
                 .or(() -> compileOperator(input, "-"))
                 .or(() -> compileOperator(input, "&&"))
                 .or(() -> compileOperator(input, "||"))
+                .or(() -> compileOperator(input, "<"))
                 .or(() -> compileSymbol(input))
                 .or(() -> compileNumber(input))
                 .or(() -> compileChar(input))
@@ -1041,7 +1042,7 @@ public class Main {
             final var right = input.substring(arrowIndex + "->".length());
 
             if (isSymbol(left)) {
-                return new Some<>(generatePlaceholder(input));
+                return new Some<>(generatePlaceholder(left) + " -> " + generatePlaceholder(right));
             }
         }
 
