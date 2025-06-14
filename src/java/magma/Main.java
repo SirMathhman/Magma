@@ -64,16 +64,20 @@ public class Main {
 
         final var substring1 = substring.substring(0, substring.length() - ";".length());
 
-        return getString(substring1, ".").value().flatMap(node -> {
+        return getString(substring1, ".", new StringRule("destination")).maybeValue().flatMap(node -> {
             return createDependencyRule().generate(node.withString("source", source)).value();
         });
     }
 
-    private static LexResult getString(String input, String infix) {
+    private static LexResult getString(String input, String infix, StringRule childRule) {
         final var index = input.lastIndexOf(infix);
         if (index < 0) return new LexResult(Optional.empty());
 
-        return new StringRule("destination").lex(input.substring(index + infix.length()));
+        final var leftString = input.substring(0, index);
+        final var rightString = input.substring(index + infix.length());
+
+        final var leftRule = new StringRule("parent");
+        return leftRule.lex(leftString).merge(() -> childRule.lex(rightString));
     }
 
     private static Rule createDependencyRule() {

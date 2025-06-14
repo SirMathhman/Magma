@@ -4,13 +4,22 @@ import magma.app.node.Node;
 
 import java.util.Optional;
 import java.util.function.Function;
+import java.util.function.Supplier;
 
-public record LexResult(Optional<Node> value) {
+public record LexResult(Optional<Node> maybeValue) {
     public Node orElse(Node other) {
-        return this.value.orElse(other);
+        return this.maybeValue.orElse(other);
     }
 
     public LexResult flatMap(Function<Node, LexResult> mapper) {
-        return new LexResult(this.value.flatMap(mapNode -> mapper.apply(mapNode).value));
+        return new LexResult(this.maybeValue.flatMap(mapNode -> mapper.apply(mapNode).maybeValue));
+    }
+
+    public LexResult merge(Supplier<LexResult> other) {
+        return this.flatMap(value -> other.get().mapValue(value::merge));
+    }
+
+    private LexResult mapValue(Function<Node, Node> mapper) {
+        return new LexResult(this.maybeValue.map(mapper));
     }
 }

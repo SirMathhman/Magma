@@ -4,7 +4,9 @@ class SuffixRule
 SuffixRule --> Node
 SuffixRule --> GenerationResult
 class Node
+Node --> Map
 Node --> Optional
+Node --> Stream
 class GenerationResult
 GenerationResult --> Optional
 GenerationResult --> Function
@@ -15,6 +17,7 @@ class LexResult
 LexResult --> Node
 LexResult --> Optional
 LexResult --> Function
+LexResult --> Supplier
 class InfixRule
 InfixRule --> Node
 InfixRule --> GenerationResult
@@ -37,6 +40,7 @@ class MapNode
 MapNode --> HashMap
 MapNode --> Map
 MapNode --> Optional
+MapNode --> Stream
 class StringRule
 StringRule --> MapNode
 StringRule --> Node
