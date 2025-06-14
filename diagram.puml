@@ -5,6 +5,10 @@ Node --> List
 Node --> Map
 Node --> Optional
 Node --> Stream
+class OptionalGenerationResult
+OptionalGenerationResult --> GenerationResult
+OptionalGenerationResult --> Optional
+OptionalGenerationResult --> Function
 class Rule
 Rule --> Node
 Rule --> GenerationResult
@@ -30,13 +34,16 @@ class InfixRule
 InfixRule --> Node
 InfixRule --> GenerationResult
 InfixRule --> LexResult
+InfixRule --> OptionalLexResult
 class DivideRule
 DivideRule --> MapNode
 DivideRule --> Node
 DivideRule --> DivideState
 DivideRule --> MutableDivideState
 DivideRule --> GenerationResult
+DivideRule --> OptionalGenerationResult
 DivideRule --> LexResult
+DivideRule --> OptionalLexResult
 DivideRule --> ArrayList
 DivideRule --> List
 DivideRule --> Optional
@@ -45,15 +52,19 @@ class PrefixRule
 PrefixRule --> Node
 PrefixRule --> GenerationResult
 PrefixRule --> LexResult
+PrefixRule --> OptionalLexResult
 class StringRule
 StringRule --> MapNode
 StringRule --> Node
 StringRule --> GenerationResult
+StringRule --> OptionalGenerationResult
 StringRule --> LexResult
+StringRule --> OptionalLexResult
 class SuffixRule
 SuffixRule --> Node
 SuffixRule --> GenerationResult
 SuffixRule --> LexResult
+SuffixRule --> OptionalLexResult
 class GenerationResult
 GenerationResult --> Optional
 GenerationResult --> Function
@@ -62,9 +73,9 @@ StripRule --> Node
 StripRule --> GenerationResult
 StripRule --> LexResult
 class Main
+Main --> Lang
 Main --> MapNode
 Main --> Node
-Main --> Lang
 Main --> IOException
 Main --> Files
 Main --> Path
@@ -80,4 +91,10 @@ MapNode --> Optional
 MapNode --> Stream
 class DivideState
 DivideState --> Stream
+class OptionalLexResult
+OptionalLexResult --> Node
+OptionalLexResult --> LexResult
+OptionalLexResult --> Optional
+OptionalLexResult --> Function
+OptionalLexResult --> Supplier
 @enduml

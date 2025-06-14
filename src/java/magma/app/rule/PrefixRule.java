@@ -3,11 +3,12 @@ package magma.app.rule;
 import magma.app.node.Node;
 import magma.app.rule.result.GenerationResult;
 import magma.app.rule.result.LexResult;
+import magma.app.rule.result.optional.OptionalLexResult;
 
 public record PrefixRule(String prefix, Rule rule) implements Rule {
     @Override
     public LexResult lex(String input) {
-        if (!input.startsWith(this.prefix)) return LexResult.createEmpty();
+        if (!input.startsWith(this.prefix)) return OptionalLexResult.createEmpty();
         final var slice = input.substring(this.prefix.length());
         return this.rule.lex(slice);
     }

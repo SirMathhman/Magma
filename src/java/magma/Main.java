@@ -41,9 +41,9 @@ public class Main {
     }
 
     private static String compileInput(String input, String name) {
-        return Lang.createJavaRootRule().lex(input).maybeValue().flatMap(root -> {
+        return Lang.createJavaRootRule().lex(input).findValue().flatMap(root -> {
             final var parsed = transform(name, root);
-            return Lang.createPlantRootRule().generate(parsed).value();
+            return Lang.createPlantRootRule().generate(parsed).findValue();
         }).orElse("");
     }
 

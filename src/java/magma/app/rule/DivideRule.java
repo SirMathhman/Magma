@@ -5,7 +5,9 @@ import magma.app.node.Node;
 import magma.app.rule.divide.DivideState;
 import magma.app.rule.divide.MutableDivideState;
 import magma.app.rule.result.GenerationResult;
+import magma.app.rule.result.optional.OptionalGenerationResult;
 import magma.app.rule.result.LexResult;
+import magma.app.rule.result.optional.OptionalLexResult;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -32,12 +34,12 @@ public record DivideRule(String key, Rule rule) implements Rule {
 
     @Override
     public LexResult lex(String input) {
-        final var children = divide(input).stream().map(segment -> this.rule.lex(segment).maybeValue()).flatMap(Optional::stream).toList();
-        return LexResult.of(new MapNode().withNodeList(this.key, children));
+        final var children = divide(input).stream().map(segment -> this.rule.lex(segment).findValue()).flatMap(Optional::stream).toList();
+        return OptionalLexResult.of(new MapNode().withNodeList(this.key, children));
     }
 
     @Override
     public GenerationResult generate(Node node) {
-        return GenerationResult.of(node.findNodeList(this.key()).orElse(new ArrayList<>()).stream().map(source -> this.rule().generate(source).value()).flatMap(Optional::stream).collect(Collectors.joining()));
+        return OptionalGenerationResult.of(node.findNodeList(this.key()).orElse(new ArrayList<>()).stream().map(source -> this.rule().generate(source).findValue()).flatMap(Optional::stream).collect(Collectors.joining()));
     }
 }

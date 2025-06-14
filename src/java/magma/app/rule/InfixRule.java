@@ -3,12 +3,13 @@ package magma.app.rule;
 import magma.app.node.Node;
 import magma.app.rule.result.GenerationResult;
 import magma.app.rule.result.LexResult;
+import magma.app.rule.result.optional.OptionalLexResult;
 
 public record InfixRule(Rule leftRule, String infix, Rule rightRule) implements Rule {
     @Override
     public LexResult lex(String input) {
         final var index = input.lastIndexOf(this.infix);
-        if (index < 0) return LexResult.createEmpty();
+        if (index < 0) return OptionalLexResult.createEmpty();
 
         final var leftString = input.substring(0, index);
         final var rightString = input.substring(index + this.infix.length());
