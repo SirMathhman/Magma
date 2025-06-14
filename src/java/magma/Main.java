@@ -13,7 +13,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
-import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -52,15 +51,9 @@ public class Main {
     }
 
     private static String compileRootSegment(String name, String input) {
-        return compileImport(name, input).orElse("");
-    }
-
-    private static Optional<String> compileImport(String source, String input) {
-        final var stripped = input.strip();
-
-        return createImportRule().lex(stripped).maybeValue().flatMap(node -> {
-            return createDependencyRule().generate(node.withString("source", source)).value();
-        });
+        return createImportRule().lex(input).maybeValue().flatMap(node -> {
+            return createDependencyRule().generate(node.withString("source", name)).value();
+        }).orElse("");
     }
 
     private static Rule createImportRule() {
