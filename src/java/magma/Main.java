@@ -2,6 +2,7 @@ package magma;
 
 import magma.app.State;
 import magma.app.rule.InfixRule;
+import magma.app.rule.PrefixRule;
 import magma.app.rule.Rule;
 import magma.app.rule.StringRule;
 import magma.app.rule.SuffixRule;
@@ -56,15 +57,8 @@ public class Main {
 
     private static Optional<String> compileImport(String source, String input) {
         final var stripped = input.strip();
-        if (!stripped.startsWith("import ")) return Optional.empty();
 
-        final var substring = stripped.substring("import ".length());
-
-        return getString(source, substring, ";");
-    }
-
-    private static Optional<String> getString(String source, String input, String suffix) {
-        return new SuffixRule(new InfixRule(new StringRule("parent"), ".", new StringRule("destination")), suffix).lex(input).maybeValue().flatMap(node -> {
+        return new PrefixRule("import ", new SuffixRule(new InfixRule(new StringRule("parent"), ".", new StringRule("destination")), ";")).lex(stripped).maybeValue().flatMap(node -> {
             return createDependencyRule().generate(node.withString("source", source)).value();
         });
     }

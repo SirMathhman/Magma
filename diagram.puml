@@ -27,6 +27,7 @@ InfixRule --> LexResult
 class Main
 Main --> State
 Main --> InfixRule
+Main --> PrefixRule
 Main --> Rule
 Main --> StringRule
 Main --> SuffixRule
@@ -43,6 +44,10 @@ MapNode --> HashMap
 MapNode --> Map
 MapNode --> Optional
 MapNode --> Stream
+class PrefixRule
+PrefixRule --> Node
+PrefixRule --> GenerationResult
+PrefixRule --> LexResult
 class StringRule
 StringRule --> MapNode
 StringRule --> Node
