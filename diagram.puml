@@ -4,11 +4,6 @@ class Properties
 Properties --> Map
 Properties --> Optional
 Properties --> Stream
-class PropertiesCompoundNode
-PropertiesCompoundNode --> CompletingProperties
-PropertiesCompoundNode --> Properties
-PropertiesCompoundNode --> Completer
-PropertiesCompoundNode --> List
 class FoldingDivider
 FoldingDivider --> DivideState
 FoldingDivider --> MutableDivideState
@@ -17,6 +12,10 @@ class Transformer
 Transformer --> CompoundNode
 Transformer --> PropertiesCompoundNode
 Transformer --> ArrayList
+class Result
+Result --> Tuple
+Result --> Function
+Result --> Supplier
 class DivideState
 DivideState --> Stream
 class InfixRule
@@ -37,11 +36,7 @@ NodeListRule --> Collectors
 class RuleResult
 RuleResult --> Optional
 RuleResult --> Function
-class StripRule
-StripRule --> Rule
 class MergingNode
-class Completer
-Completer --> Properties
 class StringRule
 StringRule --> Rule
 StringRule --> CompoundNode
@@ -53,9 +48,10 @@ class PrefixRule
 PrefixRule --> Rule
 PrefixRule --> RuleResult
 PrefixRule --> OptionalRuleResult
-class NodeListNode
-NodeListNode --> Properties
-NodeListNode --> List
+class Err
+Err --> Tuple
+Err --> Function
+Err --> Supplier
 class CompoundNode
 CompoundNode --> MergingNode
 CompoundNode --> NodeListNode
@@ -64,10 +60,6 @@ class MutableDivideState
 MutableDivideState --> ArrayList
 MutableDivideState --> List
 MutableDivideState --> Stream
-class OptionalRuleResult
-OptionalRuleResult --> RuleResult
-OptionalRuleResult --> Optional
-OptionalRuleResult --> Function
 class Lang
 Lang --> CompoundNode
 Lang --> NodeListRule
@@ -77,27 +69,52 @@ Lang --> StringRule
 Lang --> StripRule
 Lang --> SuffixRule
 Lang --> RuleResult
-class Main
-Main --> Compiler
-Main --> IOException
-Main --> Files
-Main --> Path
-Main --> Paths
-Main --> Set
-Main --> Collectors
 class CompletingProperties
 CompletingProperties --> Completer
 CompletingProperties --> HashMap
 CompletingProperties --> Map
 CompletingProperties --> Optional
 CompletingProperties --> Stream
+class Compiler
+Compiler --> Lang
+Compiler --> Transformer
+class Tuple
+class StringNode
+StringNode --> Properties
+class PropertiesCompoundNode
+PropertiesCompoundNode --> CompletingProperties
+PropertiesCompoundNode --> Properties
+PropertiesCompoundNode --> Completer
+PropertiesCompoundNode --> List
+class StripRule
+StripRule --> Rule
+class Completer
+Completer --> Properties
+class NodeListNode
+NodeListNode --> Properties
+NodeListNode --> List
+class OptionalRuleResult
+OptionalRuleResult --> RuleResult
+OptionalRuleResult --> Optional
+OptionalRuleResult --> Function
+class Main
+Main --> Err
+Main --> Ok
+Main --> Result
+Main --> Compiler
+Main --> IOException
+Main --> Files
+Main --> Path
+Main --> Paths
+Main --> Optional
+Main --> Set
+Main --> Collectors
 class SuffixRule
 SuffixRule --> Rule
 SuffixRule --> RuleResult
 SuffixRule --> OptionalRuleResult
-class Compiler
-Compiler --> Lang
-Compiler --> Transformer
-class StringNode
-StringNode --> Properties
+class Ok
+Ok --> Tuple
+Ok --> Function
+Ok --> Supplier
 @enduml
