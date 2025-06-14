@@ -8,8 +8,7 @@ import magma.app.compile.rule.result.RuleResult;
 import magma.app.compile.rule.result.optional.OptionalLexResult;
 
 import java.util.ArrayList;
-import java.util.Optional;
-import java.util.stream.Collectors;
+import java.util.List;
 
 public final class NodeListRule implements Rule<CompoundNode, RuleResult<CompoundNode>, RuleResult<String>> {
     private final String key;
@@ -22,12 +21,19 @@ public final class NodeListRule implements Rule<CompoundNode, RuleResult<Compoun
 
     @Override
     public RuleResult<CompoundNode> lex(String input) {
-        final var children = new FoldingDivider().divide(input).stream().map(segment -> this.rule.lex(segment).findValue()).flatMap(Optional::stream).toList();
-        return OptionalLexResult.of(new PropertiesCompoundNode().nodeLists().with(this.key, children));
+        return new FoldingDivider().divide(input).stream().map(this.rule::lex).reduce(OptionalLexResult.of(new ArrayList<>()), this::fold, (_, next) -> next).map(children -> new PropertiesCompoundNode().nodeLists().with(this.key, children));
+    }
+
+    private RuleResult<List<CompoundNode>> fold(RuleResult<List<CompoundNode>> result0, RuleResult<CompoundNode> result) {
+        return result0.flatMap(inner -> result.map(inner0 -> {
+            inner.add(inner0);
+            return inner;
+        }));
     }
 
     @Override
     public RuleResult<String> generate(CompoundNode node) {
-        return OptionalLexResult.of(node.nodeLists().find(this.key).orElse(new ArrayList<>()).stream().map(source -> this.rule.generate(source).findValue()).flatMap(Optional::stream).collect(Collectors.joining()));
+        final var children = node.nodeLists().find(this.key).orElse(new ArrayList<>());
+        return children.stream().map(this.rule::generate).reduce(OptionalLexResult.of(""), (current, next) -> current.flatMap(inner -> next.map(inner0 -> inner + inner0)), (_, next) -> next);
     }
 }
