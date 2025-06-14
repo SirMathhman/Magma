@@ -1,6 +1,9 @@
 @startuml
 skinparam linetype ortho
+class InfixRule
+InfixRule --> Optional
 class Main
+Main --> InfixRule
 Main --> MapNode
 Main --> State
 Main --> StringRule

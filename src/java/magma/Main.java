@@ -1,5 +1,6 @@
 package magma;
 
+import magma.app.InfixRule;
 import magma.app.MapNode;
 import magma.app.State;
 import magma.app.StringRule;
@@ -64,11 +65,7 @@ public class Main {
         if (index < 0) return Optional.empty();
 
         final var destination = substring1.substring(index + ".".length());
-        return generate(new MapNode().withString("source", source).withString("destination", destination));
-    }
-
-    private static Optional<String> generate(MapNode mapNode) {
-        return Optional.of(new StringRule("source").generate(mapNode).orElse("") + " --> " + new StringRule("destination").generate(mapNode).orElse("") + "\n");
+        return new InfixRule(new StringRule("source"), " --> ", new StringRule("destination")).generate(new MapNode().withString("source", source).withString("destination", destination));
     }
 
     private static List<String> divide(String input) {
