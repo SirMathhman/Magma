@@ -1,10 +1,49 @@
 @startuml
 skinparam linetype ortho
-class NodeFactory
-class OptionalGenerationResult
-OptionalGenerationResult --> GenerationResult
-OptionalGenerationResult --> Optional
-OptionalGenerationResult --> Function
+class Transformer
+Transformer --> CompoundNode
+Transformer --> PropertiesCompoundNode
+Transformer --> ArrayList
+class InfixRule
+InfixRule --> MergingNode
+InfixRule --> GenerationResult
+InfixRule --> LexResult
+InfixRule --> OptionalLexResult
+class MergingNode
+class OptionalLexResult
+OptionalLexResult --> LexResult
+OptionalLexResult --> Optional
+OptionalLexResult --> Function
+class Properties
+Properties --> Map
+Properties --> Optional
+Properties --> Stream
+class StringRule
+StringRule --> StringNode
+StringRule --> NodeFactory
+StringRule --> GenerationResult
+StringRule --> LexResult
+StringRule --> OptionalGenerationResult
+StringRule --> OptionalLexResult
+class Completer
+Completer --> Properties
+class PrefixRule
+PrefixRule --> GenerationResult
+PrefixRule --> LexResult
+PrefixRule --> OptionalLexResult
+class CompoundNode
+CompoundNode --> MergingNode
+CompoundNode --> NodeListNode
+CompoundNode --> StringNode
+class CompletingProperties
+CompletingProperties --> Properties
+CompletingProperties --> HashMap
+CompletingProperties --> Map
+CompletingProperties --> Optional
+CompletingProperties --> Stream
+class LexResult
+LexResult --> Optional
+LexResult --> Function
 class Lang
 Lang --> CompoundNode
 Lang --> DivideRule
@@ -15,21 +54,31 @@ Lang --> StringRule
 Lang --> StripRule
 Lang --> SuffixRule
 Lang --> PropertiesCompoundNodeFactory
+class NodeFactory
+class Compiler
+Compiler --> Lang
+Compiler --> Transformer
+class StringNode
+StringNode --> Properties
+class PropertiesCompoundNode
+PropertiesCompoundNode --> CompletingProperties
+PropertiesCompoundNode --> List
 class MutableDivideState
 MutableDivideState --> ArrayList
 MutableDivideState --> List
 MutableDivideState --> Stream
-class InfixRule
-InfixRule --> MergingNode
-InfixRule --> GenerationResult
-InfixRule --> LexResult
-InfixRule --> OptionalLexResult
-class CompletingProperties
-CompletingProperties --> Properties
-CompletingProperties --> HashMap
-CompletingProperties --> Map
-CompletingProperties --> Optional
-CompletingProperties --> Stream
+class DivideState
+DivideState --> Stream
+class OptionalGenerationResult
+OptionalGenerationResult --> GenerationResult
+OptionalGenerationResult --> Optional
+OptionalGenerationResult --> Function
+class GenerationResult
+GenerationResult --> Optional
+GenerationResult --> Function
+class StripRule
+StripRule --> GenerationResult
+StripRule --> LexResult
 class DivideRule
 DivideRule --> NodeListNode
 DivideRule --> DivideState
@@ -43,71 +92,25 @@ DivideRule --> ArrayList
 DivideRule --> List
 DivideRule --> Optional
 DivideRule --> Collectors
-class MergingNode
-class GenerationResult
-GenerationResult --> Optional
-GenerationResult --> Function
-class DivideState
-DivideState --> Stream
-class Completer
-Completer --> Properties
-class StringNode
-StringNode --> Properties
-class Rule
-Rule --> GenerationResult
-Rule --> LexResult
-class LexResult
-LexResult --> Optional
-LexResult --> Function
 class PropertiesCompoundNodeFactory
 PropertiesCompoundNodeFactory --> CompoundNode
 PropertiesCompoundNodeFactory --> PropertiesCompoundNode
-class Properties
-Properties --> Map
-Properties --> Optional
-Properties --> Stream
-class PrefixRule
-PrefixRule --> GenerationResult
-PrefixRule --> LexResult
-PrefixRule --> OptionalLexResult
-class StringRule
-StringRule --> StringNode
-StringRule --> NodeFactory
-StringRule --> GenerationResult
-StringRule --> LexResult
-StringRule --> OptionalGenerationResult
-StringRule --> OptionalLexResult
-class SuffixRule
-SuffixRule --> GenerationResult
-SuffixRule --> LexResult
-SuffixRule --> OptionalLexResult
-class StripRule
-StripRule --> GenerationResult
-StripRule --> LexResult
-class PropertiesCompoundNode
-PropertiesCompoundNode --> CompletingProperties
-PropertiesCompoundNode --> List
+class NodeListNode
+NodeListNode --> Properties
+NodeListNode --> List
 class Main
-Main --> Lang
-Main --> PropertiesCompoundNode
-Main --> CompoundNode
+Main --> Compiler
 Main --> IOException
 Main --> Files
 Main --> Path
 Main --> Paths
-Main --> ArrayList
-Main --> List
 Main --> Set
 Main --> Collectors
-class CompoundNode
-CompoundNode --> MergingNode
-CompoundNode --> NodeListNode
-CompoundNode --> StringNode
-class NodeListNode
-NodeListNode --> Properties
-NodeListNode --> List
-class OptionalLexResult
-OptionalLexResult --> LexResult
-OptionalLexResult --> Optional
-OptionalLexResult --> Function
+class Rule
+Rule --> GenerationResult
+Rule --> LexResult
+class SuffixRule
+SuffixRule --> GenerationResult
+SuffixRule --> LexResult
+SuffixRule --> OptionalLexResult
 @enduml

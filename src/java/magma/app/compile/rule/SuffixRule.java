@@ -1,0 +1,20 @@
+package magma.app.compile.rule;
+
+import magma.app.compile.rule.result.GenerationResult;
+import magma.app.compile.rule.result.LexResult;
+import magma.app.compile.rule.result.optional.OptionalLexResult;
+
+public record SuffixRule<N>(Rule<N> rule, String suffix) implements Rule<N> {
+    @Override
+    public LexResult<N> lex(String input) {
+        if (!input.endsWith(this.suffix))
+            return OptionalLexResult.createEmpty();
+        final var slice = input.substring(0, input.length() - this.suffix.length());
+        return this.rule.lex(slice);
+    }
+
+    @Override
+    public GenerationResult generate(N node) {
+        return this.rule.generate(node).map(value -> value + this.suffix);
+    }
+}
