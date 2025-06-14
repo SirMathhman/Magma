@@ -1,11 +1,10 @@
 package magma.app.rule;
 
-import magma.app.node.CompoundNode;
 import magma.app.rule.result.GenerationResult;
 import magma.app.rule.result.LexResult;
 import magma.app.rule.result.optional.OptionalLexResult;
 
-public record SuffixRule(Rule<CompoundNode> rule, String suffix) implements Rule<CompoundNode> {
+public record SuffixRule<N>(Rule<N> rule, String suffix) implements Rule<N> {
     @Override
     public LexResult lex(String input) {
         if (!input.endsWith(this.suffix))
@@ -15,7 +14,7 @@ public record SuffixRule(Rule<CompoundNode> rule, String suffix) implements Rule
     }
 
     @Override
-    public GenerationResult generate(CompoundNode node) {
+    public GenerationResult generate(N node) {
         return this.rule.generate(node).map(value -> value + this.suffix);
     }
 }

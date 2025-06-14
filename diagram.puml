@@ -30,7 +30,6 @@ MutableDivideState --> ArrayList
 MutableDivideState --> List
 MutableDivideState --> Stream
 class InfixRule
-InfixRule --> CompoundNode
 InfixRule --> GenerationResult
 InfixRule --> LexResult
 InfixRule --> OptionalLexResult
@@ -48,7 +47,6 @@ DivideRule --> List
 DivideRule --> Optional
 DivideRule --> Collectors
 class PrefixRule
-PrefixRule --> CompoundNode
 PrefixRule --> GenerationResult
 PrefixRule --> LexResult
 PrefixRule --> OptionalLexResult
@@ -60,7 +58,6 @@ StringRule --> LexResult
 StringRule --> OptionalGenerationResult
 StringRule --> OptionalLexResult
 class SuffixRule
-SuffixRule --> CompoundNode
 SuffixRule --> GenerationResult
 SuffixRule --> LexResult
 SuffixRule --> OptionalLexResult
@@ -72,7 +69,6 @@ class PropertiesCompoundNode
 PropertiesCompoundNode --> CompoundNode
 PropertiesCompoundNode --> List
 class StripRule
-StripRule --> CompoundNode
 StripRule --> GenerationResult
 StripRule --> LexResult
 class Main

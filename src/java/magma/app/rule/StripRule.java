@@ -1,17 +1,16 @@
 package magma.app.rule;
 
-import magma.app.node.CompoundNode;
 import magma.app.rule.result.GenerationResult;
 import magma.app.rule.result.LexResult;
 
-public record StripRule(Rule<CompoundNode> rule) implements Rule<CompoundNode> {
+public record StripRule<N>(Rule<N> rule) implements Rule<N> {
     @Override
     public LexResult lex(String input) {
         return this.rule.lex(input.strip());
     }
 
     @Override
-    public GenerationResult generate(CompoundNode node) {
+    public GenerationResult generate(N node) {
         return this.rule.generate(node);
     }
 }
