@@ -5,7 +5,6 @@ import magma.app.rule.result.LexResult;
 
 import java.util.Optional;
 import java.util.function.Function;
-import java.util.function.Supplier;
 
 public record OptionalLexResult<N extends MergingNode<N>>(Optional<N> maybeValue) implements LexResult<N> {
     public static <N extends MergingNode<N>> LexResult<N> createEmpty() {
@@ -19,11 +18,6 @@ public record OptionalLexResult<N extends MergingNode<N>>(Optional<N> maybeValue
     @Override
     public LexResult<N> flatMap(Function<N, LexResult<N>> mapper) {
         return new OptionalLexResult<N>(this.maybeValue.flatMap(mapNode -> mapper.apply(mapNode).findValue()));
-    }
-
-    @Override
-    public LexResult<N> merge(Supplier<LexResult<N>> other) {
-        return this.flatMap(value -> other.get().mapValue(value::merge));
     }
 
     @Override

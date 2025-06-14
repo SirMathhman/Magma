@@ -16,7 +16,7 @@ public record InfixRule<N extends MergingNode<N>>(Rule<N> leftRule, String infix
         final var leftString = input.substring(0, index);
         final var rightString = input.substring(index + this.infix.length());
 
-        return this.leftRule.lex(leftString).merge(() -> this.rightRule.lex(rightString));
+        return this.leftRule.lex(leftString).flatMap(value -> this.rightRule.lex(rightString).mapValue(value::merge));
     }
 
     @Override
