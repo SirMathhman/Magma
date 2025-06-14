@@ -50,11 +50,7 @@ class DisplayableNode
 class OrState
 OrState --> CompileError
 OrState --> Context
-OrState --> ResultRuleResults
 OrState --> RuleResult
-OrState --> ArrayList
-OrState --> List
-OrState --> Optional
 class MergingNode
 class StringRule
 StringRule --> Rule
@@ -94,6 +90,7 @@ OrRule --> NodeContext
 OrRule --> StringContext
 OrRule --> DisplayableNode
 OrRule --> OrState
+OrRule --> SimpleOrState
 OrRule --> RuleResult
 OrRule --> List
 OrRule --> Function
@@ -168,6 +165,14 @@ ResultRuleResult --> CompileError
 ResultRuleResult --> RuleResult
 ResultRuleResult --> Optional
 ResultRuleResult --> Function
+class SimpleOrState
+SimpleOrState --> CompileError
+SimpleOrState --> Context
+SimpleOrState --> ResultRuleResults
+SimpleOrState --> RuleResult
+SimpleOrState --> ArrayList
+SimpleOrState --> List
+SimpleOrState --> Optional
 class Main
 Main --> Application
 class Lang
