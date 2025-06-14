@@ -5,6 +5,7 @@ import magma.app.rule.InfixRule;
 import magma.app.rule.PrefixRule;
 import magma.app.rule.Rule;
 import magma.app.rule.StringRule;
+import magma.app.rule.StripRule;
 import magma.app.rule.SuffixRule;
 
 import java.io.IOException;
@@ -18,7 +19,6 @@ import java.util.stream.Collectors;
 
 public class Main {
     public static void main(String[] args) {
-
         try (var stream = Files.walk(Paths.get(".", "src", "java"))) {
             final var sources = stream.filter(Files::isRegularFile).filter(path -> path.toString().endsWith(".java")).collect(Collectors.toSet());
 
@@ -58,9 +58,16 @@ public class Main {
     private static Optional<String> compileImport(String source, String input) {
         final var stripped = input.strip();
 
-        return new PrefixRule("import ", new SuffixRule(new InfixRule(new StringRule("parent"), ".", new StringRule("destination")), ";")).lex(stripped).maybeValue().flatMap(node -> {
+        return createImportRule().lex(stripped).maybeValue().flatMap(node -> {
             return createDependencyRule().generate(node.withString("source", source)).value();
         });
+    }
+
+    private static Rule createImportRule() {
+        final var parent = new StringRule("parent");
+        final var destination = new StringRule("destination");
+        final var rule = new PrefixRule("import ", new SuffixRule(new InfixRule(parent, ".", destination), ";"));
+        return new StripRule(rule);
     }
 
     private static Rule createDependencyRule() {

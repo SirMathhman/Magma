@@ -15,6 +15,10 @@ class Rule
 Rule --> Node
 Rule --> GenerationResult
 Rule --> LexResult
+class StripRule
+StripRule --> Node
+StripRule --> GenerationResult
+StripRule --> LexResult
 class LexResult
 LexResult --> Node
 LexResult --> Optional
@@ -30,6 +34,7 @@ Main --> InfixRule
 Main --> PrefixRule
 Main --> Rule
 Main --> StringRule
+Main --> StripRule
 Main --> SuffixRule
 Main --> IOException
 Main --> Files
