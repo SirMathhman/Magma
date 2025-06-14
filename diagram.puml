@@ -1,27 +1,38 @@
 @startuml
 skinparam linetype ortho
+class PropertiesCompoundNode
+PropertiesCompoundNode --> CompletingProperties
+PropertiesCompoundNode --> List
 class Transformer
 Transformer --> CompoundNode
 Transformer --> PropertiesCompoundNode
 Transformer --> ArrayList
+class MutableDivideState
+MutableDivideState --> ArrayList
+MutableDivideState --> List
+MutableDivideState --> Stream
 class InfixRule
+InfixRule --> Rule
 InfixRule --> MergingNode
-InfixRule --> GenerationResult
 InfixRule --> LexResult
 InfixRule --> OptionalLexResult
 class NodeListRule
+NodeListRule --> Rule
 NodeListRule --> CompoundNode
 NodeListRule --> PropertiesCompoundNode
 NodeListRule --> DivideState
 NodeListRule --> MutableDivideState
-NodeListRule --> GenerationResult
 NodeListRule --> LexResult
-NodeListRule --> OptionalGenerationResult
 NodeListRule --> OptionalLexResult
 NodeListRule --> ArrayList
 NodeListRule --> List
 NodeListRule --> Optional
 NodeListRule --> Collectors
+class DivideState
+DivideState --> Stream
+class StripRule
+StripRule --> Rule
+StripRule --> LexResult
 class MergingNode
 class OptionalLexResult
 OptionalLexResult --> LexResult
@@ -32,18 +43,22 @@ Properties --> Map
 Properties --> Optional
 Properties --> Stream
 class StringRule
+StringRule --> Rule
 StringRule --> CompoundNode
 StringRule --> PropertiesCompoundNode
-StringRule --> GenerationResult
 StringRule --> LexResult
-StringRule --> OptionalGenerationResult
 StringRule --> OptionalLexResult
+class Rule
+Rule --> LexResult
 class Completer
 Completer --> Properties
 class PrefixRule
-PrefixRule --> GenerationResult
+PrefixRule --> Rule
 PrefixRule --> LexResult
 PrefixRule --> OptionalLexResult
+class NodeListNode
+NodeListNode --> Properties
+NodeListNode --> List
 class CompoundNode
 CompoundNode --> MergingNode
 CompoundNode --> NodeListNode
@@ -62,37 +77,9 @@ Lang --> CompoundNode
 Lang --> NodeListRule
 Lang --> InfixRule
 Lang --> PrefixRule
-Lang --> Rule
 Lang --> StringRule
 Lang --> StripRule
 Lang --> SuffixRule
-class Compiler
-Compiler --> Lang
-Compiler --> Transformer
-class StringNode
-StringNode --> Properties
-class PropertiesCompoundNode
-PropertiesCompoundNode --> CompletingProperties
-PropertiesCompoundNode --> List
-class MutableDivideState
-MutableDivideState --> ArrayList
-MutableDivideState --> List
-MutableDivideState --> Stream
-class DivideState
-DivideState --> Stream
-class OptionalGenerationResult
-OptionalGenerationResult --> GenerationResult
-OptionalGenerationResult --> Optional
-OptionalGenerationResult --> Function
-class GenerationResult
-GenerationResult --> Optional
-GenerationResult --> Function
-class StripRule
-StripRule --> GenerationResult
-StripRule --> LexResult
-class NodeListNode
-NodeListNode --> Properties
-NodeListNode --> List
 class Main
 Main --> Compiler
 Main --> IOException
@@ -101,11 +88,13 @@ Main --> Path
 Main --> Paths
 Main --> Set
 Main --> Collectors
-class Rule
-Rule --> GenerationResult
-Rule --> LexResult
 class SuffixRule
-SuffixRule --> GenerationResult
+SuffixRule --> Rule
 SuffixRule --> LexResult
 SuffixRule --> OptionalLexResult
+class Compiler
+Compiler --> Lang
+Compiler --> Transformer
+class StringNode
+StringNode --> Properties
 @enduml

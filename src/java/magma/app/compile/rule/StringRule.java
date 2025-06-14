@@ -1,10 +1,9 @@
 package magma.app.compile.rule;
 
+import magma.app.compile.Rule;
 import magma.app.compile.node.CompoundNode;
 import magma.app.compile.node.PropertiesCompoundNode;
-import magma.app.compile.rule.result.GenerationResult;
 import magma.app.compile.rule.result.LexResult;
-import magma.app.compile.rule.result.optional.OptionalGenerationResult;
 import magma.app.compile.rule.result.optional.OptionalLexResult;
 
 public final class StringRule implements Rule<CompoundNode> {
@@ -20,7 +19,7 @@ public final class StringRule implements Rule<CompoundNode> {
     }
 
     @Override
-    public GenerationResult generate(CompoundNode node) {
-        return new OptionalGenerationResult(node.strings().find(this.key));
+    public LexResult<String> generate(CompoundNode node) {
+        return new OptionalLexResult<>(node.strings().find(this.key));
     }
 }

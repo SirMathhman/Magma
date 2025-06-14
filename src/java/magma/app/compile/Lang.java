@@ -4,7 +4,6 @@ import magma.app.compile.node.CompoundNode;
 import magma.app.compile.rule.NodeListRule;
 import magma.app.compile.rule.InfixRule;
 import magma.app.compile.rule.PrefixRule;
-import magma.app.compile.rule.Rule;
 import magma.app.compile.rule.StringRule;
 import magma.app.compile.rule.StripRule;
 import magma.app.compile.rule.SuffixRule;

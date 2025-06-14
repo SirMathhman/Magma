@@ -1,6 +1,6 @@
 package magma.app.compile.rule;
 
-import magma.app.compile.rule.result.GenerationResult;
+import magma.app.compile.Rule;
 import magma.app.compile.rule.result.LexResult;
 
 public record StripRule<N>(Rule<N> rule) implements Rule<N> {
@@ -10,7 +10,7 @@ public record StripRule<N>(Rule<N> rule) implements Rule<N> {
     }
 
     @Override
-    public GenerationResult generate(N node) {
+    public LexResult<String> generate(N node) {
         return this.rule.generate(node);
     }
 }

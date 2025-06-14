@@ -6,7 +6,7 @@ import java.util.function.Function;
 public interface LexResult<N> {
     LexResult<N> flatMap(Function<N, LexResult<N>> mapper);
 
-    LexResult<N> mapValue(Function<N, N> mapper);
+    LexResult<N> map(Function<N, N> mapper);
 
     Optional<N> findValue();
 }

@@ -1,6 +1,6 @@
 package magma.app.compile.rule;
 
-import magma.app.compile.rule.result.GenerationResult;
+import magma.app.compile.Rule;
 import magma.app.compile.rule.result.LexResult;
 import magma.app.compile.rule.result.optional.OptionalLexResult;
 
@@ -14,7 +14,7 @@ public record SuffixRule<N>(Rule<N> rule, String suffix) implements Rule<N> {
     }
 
     @Override
-    public GenerationResult generate(N node) {
+    public LexResult<String> generate(N node) {
         return this.rule.generate(node).map(value -> value + this.suffix);
     }
 }

@@ -20,7 +20,7 @@ public record OptionalLexResult<N>(Optional<N> maybeValue) implements LexResult<
     }
 
     @Override
-    public LexResult<N> mapValue(Function<N, N> mapper) {
+    public LexResult<N> map(Function<N, N> mapper) {
         return new OptionalLexResult<N>(this.maybeValue.map(mapper));
     }
 
