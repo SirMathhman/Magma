@@ -1,7 +1,6 @@
 package magma.app.node.properties;
 
 import magma.app.node.Node;
-import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 
@@ -23,7 +22,6 @@ public final class PropertiesNode implements Node {
         return new PropertiesNode(this.strings, nodeLists);
     }
 
-    @NotNull
     private PropertiesNode withStrings(Properties<Node, String> properties) {
         return new PropertiesNode(properties, this.nodeLists);
     }

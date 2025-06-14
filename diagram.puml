@@ -67,7 +67,6 @@ SuffixRule --> LexResult
 SuffixRule --> OptionalLexResult
 class PropertiesNode
 PropertiesNode --> Node
-PropertiesNode --> NotNull
 PropertiesNode --> List
 class GenerationResult
 GenerationResult --> Optional
