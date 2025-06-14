@@ -9,8 +9,6 @@ import magma.app.compile.rule.result.RuleResult;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
-import java.util.stream.Collectors;
 
 public final class NodeListRule implements Rule<CompoundNode, RuleResult<CompoundNode>, RuleResult<String>> {
     private final String key;
@@ -37,6 +35,7 @@ public final class NodeListRule implements Rule<CompoundNode, RuleResult<Compoun
 
     @Override
     public RuleResult<String> generate(CompoundNode node) {
-        return ResultRuleResults.createFromValue(node.nodeLists().find(this.key).orElse(new ArrayList<>()).stream().map(source -> this.rule.generate(source).findAsOption()).flatMap(Optional::stream).collect(Collectors.joining()));
+        final var compoundNodes = node.nodeLists().find(this.key).orElse(new ArrayList<>());
+        return compoundNodes.stream().map(this.rule::generate).reduce(ResultRuleResults.createFromValue(""), (result, result1) -> result.flatMap(result0 -> result1.mapValue(result2 -> result0 + result2)), (_, next) -> next);
     }
 }
