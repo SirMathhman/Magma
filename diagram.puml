@@ -9,6 +9,19 @@ InfixRule --> MergingNode
 InfixRule --> GenerationResult
 InfixRule --> LexResult
 InfixRule --> OptionalLexResult
+class NodeListRule
+NodeListRule --> NodeListNode
+NodeListRule --> DivideState
+NodeListRule --> MutableDivideState
+NodeListRule --> NodeFactory
+NodeListRule --> GenerationResult
+NodeListRule --> LexResult
+NodeListRule --> OptionalGenerationResult
+NodeListRule --> OptionalLexResult
+NodeListRule --> ArrayList
+NodeListRule --> List
+NodeListRule --> Optional
+NodeListRule --> Collectors
 class MergingNode
 class OptionalLexResult
 OptionalLexResult --> LexResult
@@ -19,8 +32,8 @@ Properties --> Map
 Properties --> Optional
 Properties --> Stream
 class StringRule
-StringRule --> StringNode
-StringRule --> NodeFactory
+StringRule --> CompoundNode
+StringRule --> PropertiesCompoundNode
 StringRule --> GenerationResult
 StringRule --> LexResult
 StringRule --> OptionalGenerationResult
@@ -46,7 +59,7 @@ LexResult --> Optional
 LexResult --> Function
 class Lang
 Lang --> CompoundNode
-Lang --> DivideRule
+Lang --> NodeListRule
 Lang --> InfixRule
 Lang --> PrefixRule
 Lang --> Rule
@@ -79,19 +92,6 @@ GenerationResult --> Function
 class StripRule
 StripRule --> GenerationResult
 StripRule --> LexResult
-class DivideRule
-DivideRule --> NodeListNode
-DivideRule --> DivideState
-DivideRule --> MutableDivideState
-DivideRule --> NodeFactory
-DivideRule --> GenerationResult
-DivideRule --> LexResult
-DivideRule --> OptionalGenerationResult
-DivideRule --> OptionalLexResult
-DivideRule --> ArrayList
-DivideRule --> List
-DivideRule --> Optional
-DivideRule --> Collectors
 class PropertiesCompoundNodeFactory
 PropertiesCompoundNodeFactory --> CompoundNode
 PropertiesCompoundNodeFactory --> PropertiesCompoundNode

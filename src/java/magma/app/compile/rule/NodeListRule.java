@@ -14,12 +14,12 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-public final class DivideRule<N extends NodeListNode<N>> implements Rule<N> {
+public final class NodeListRule<N extends NodeListNode<N>> implements Rule<N> {
     private final String key;
     private final Rule<N> rule;
     private final NodeFactory<N> factory;
 
-    public DivideRule(String key, Rule<N> rule, NodeFactory<N> factory) {
+    public NodeListRule(String key, Rule<N> rule, NodeFactory<N> factory) {
         this.key = key;
         this.rule = rule;
         this.factory = factory;
