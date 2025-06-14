@@ -2,6 +2,7 @@ package magma;
 
 import magma.app.MapNode;
 import magma.app.State;
+import magma.app.StringRule;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -67,7 +68,7 @@ public class Main {
     }
 
     private static Optional<String> generate(MapNode mapNode) {
-        return Optional.of(mapNode.findString("source").orElse("") + " --> " + mapNode.findString("destination").orElse("") + "\n");
+        return Optional.of(new StringRule("source").generate(mapNode).orElse("") + " --> " + new StringRule("destination").generate(mapNode).orElse("") + "\n");
     }
 
     private static List<String> divide(String input) {

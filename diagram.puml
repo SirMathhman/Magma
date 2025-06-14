@@ -3,6 +3,7 @@ skinparam linetype ortho
 class Main
 Main --> MapNode
 Main --> State
+Main --> StringRule
 Main --> IOException
 Main --> Files
 Main --> Path
@@ -11,6 +12,8 @@ Main --> List
 Main --> Optional
 Main --> Set
 Main --> Collectors
+class StringRule
+StringRule --> Optional
 class MapNode
 MapNode --> HashMap
 MapNode --> Map
