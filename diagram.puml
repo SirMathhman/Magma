@@ -38,7 +38,6 @@ InfixRule --> ResultRuleResults
 class RuleResult
 RuleResult --> Result
 RuleResult --> CompileError
-RuleResult --> Optional
 RuleResult --> Function
 class Compiler
 Compiler --> Lang
@@ -176,7 +175,6 @@ class ResultRuleResult
 ResultRuleResult --> Result
 ResultRuleResult --> CompileError
 ResultRuleResult --> RuleResult
-ResultRuleResult --> Optional
 ResultRuleResult --> Function
 class SimpleOrState
 SimpleOrState --> CompileError

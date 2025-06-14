@@ -4,7 +4,6 @@ import magma.api.result.Result;
 import magma.app.compile.CompileError;
 import magma.app.compile.rule.result.RuleResult;
 
-import java.util.Optional;
 import java.util.function.Function;
 
 public record ResultRuleResult<Value>(Result<Value, CompileError> inner) implements RuleResult<Value> {
@@ -16,11 +15,6 @@ public record ResultRuleResult<Value>(Result<Value, CompileError> inner) impleme
     @Override
     public <Return> RuleResult<Return> mapValue(Function<Value, Return> mapper) {
         return new ResultRuleResult<>(this.inner.mapValue(mapper));
-    }
-
-    @Override
-    public Optional<Value> findAsOption() {
-        return this.inner.findValue();
     }
 
     @Override
