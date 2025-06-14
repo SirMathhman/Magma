@@ -1,7 +1,7 @@
 package magma;
 
 import magma.app.Lang;
-import magma.app.node.MapNode;
+import magma.app.node.properties.PropertiesNode;
 import magma.app.node.Node;
 
 import java.io.IOException;
@@ -9,6 +9,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -48,7 +49,9 @@ public class Main {
     }
 
     private static Node transform(String name, Node root) {
-        final var children = root.findNodeList("children").orElse(new ArrayList<>());
-        return new MapNode().withNodeList("children", children.stream().map(child -> child.withString("source", name)).toList());
+        final var children = root.nodeLists().find("children").orElse(new ArrayList<>());
+        Node node = new PropertiesNode();
+        List<Node> values = children.stream().map(child -> child.strings().with("source", name)).toList();
+        return node.nodeLists().with("children", values);
     }
 }

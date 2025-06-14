@@ -1,20 +1,13 @@
 package magma.app.node;
 
+import magma.app.node.properties.Properties;
+
 import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.stream.Stream;
 
 public interface Node {
-    Node withString(String key, String value);
+    Properties<Node, String> strings();
 
-    Optional<String> findString(String key);
-
-    Stream<Map.Entry<String, String>> streamStrings();
+    Properties<Node, List<Node>> nodeLists();
 
     Node merge(Node other);
-
-    Node withNodeList(String key, List<Node> values);
-
-    Optional<List<Node>> findNodeList(String key);
 }

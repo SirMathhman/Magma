@@ -1,10 +1,8 @@
 @startuml
 skinparam linetype ortho
 class Node
+Node --> Properties
 Node --> List
-Node --> Map
-Node --> Optional
-Node --> Stream
 class OptionalGenerationResult
 OptionalGenerationResult --> GenerationResult
 OptionalGenerationResult --> Optional
@@ -13,6 +11,8 @@ class Rule
 Rule --> Node
 Rule --> GenerationResult
 Rule --> LexResult
+class Completer
+Completer --> Node
 class Lang
 Lang --> DivideRule
 Lang --> InfixRule
@@ -36,7 +36,7 @@ InfixRule --> GenerationResult
 InfixRule --> LexResult
 InfixRule --> OptionalLexResult
 class DivideRule
-DivideRule --> MapNode
+DivideRule --> PropertiesNode
 DivideRule --> Node
 DivideRule --> DivideState
 DivideRule --> MutableDivideState
@@ -54,7 +54,7 @@ PrefixRule --> GenerationResult
 PrefixRule --> LexResult
 PrefixRule --> OptionalLexResult
 class StringRule
-StringRule --> MapNode
+StringRule --> PropertiesNode
 StringRule --> Node
 StringRule --> GenerationResult
 StringRule --> OptionalGenerationResult
@@ -65,6 +65,10 @@ SuffixRule --> Node
 SuffixRule --> GenerationResult
 SuffixRule --> LexResult
 SuffixRule --> OptionalLexResult
+class PropertiesNode
+PropertiesNode --> Node
+PropertiesNode --> NotNull
+PropertiesNode --> List
 class GenerationResult
 GenerationResult --> Optional
 GenerationResult --> Function
@@ -74,23 +78,28 @@ StripRule --> GenerationResult
 StripRule --> LexResult
 class Main
 Main --> Lang
-Main --> MapNode
+Main --> PropertiesNode
 Main --> Node
 Main --> IOException
 Main --> Files
 Main --> Path
 Main --> Paths
 Main --> ArrayList
+Main --> List
 Main --> Set
 Main --> Collectors
-class MapNode
-MapNode --> HashMap
-MapNode --> List
-MapNode --> Map
-MapNode --> Optional
-MapNode --> Stream
+class CompletingProperties
+CompletingProperties --> Node
+CompletingProperties --> HashMap
+CompletingProperties --> Map
+CompletingProperties --> Optional
+CompletingProperties --> Stream
 class DivideState
 DivideState --> Stream
+class Properties
+Properties --> Map
+Properties --> Optional
+Properties --> Stream
 class OptionalLexResult
 OptionalLexResult --> Node
 OptionalLexResult --> LexResult
