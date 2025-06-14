@@ -1,7 +1,13 @@
 @startuml
 skinparam linetype ortho
+class Properties
+Properties --> Map
+Properties --> Optional
+Properties --> Stream
 class PropertiesCompoundNode
 PropertiesCompoundNode --> CompletingProperties
+PropertiesCompoundNode --> Properties
+PropertiesCompoundNode --> Completer
 PropertiesCompoundNode --> List
 class Transformer
 Transformer --> CompoundNode
@@ -36,14 +42,12 @@ RuleResult --> Function
 class StripRule
 StripRule --> Rule
 class MergingNode
+class Completer
+Completer --> Properties
 class OptionalLexResult
 OptionalLexResult --> RuleResult
 OptionalLexResult --> Optional
 OptionalLexResult --> Function
-class Properties
-Properties --> Map
-Properties --> Optional
-Properties --> Stream
 class StringRule
 StringRule --> Rule
 StringRule --> CompoundNode
@@ -51,8 +55,6 @@ StringRule --> PropertiesCompoundNode
 StringRule --> RuleResult
 StringRule --> OptionalLexResult
 class Rule
-class Completer
-Completer --> Properties
 class PrefixRule
 PrefixRule --> Rule
 PrefixRule --> RuleResult
@@ -64,12 +66,6 @@ class CompoundNode
 CompoundNode --> MergingNode
 CompoundNode --> NodeListNode
 CompoundNode --> StringNode
-class CompletingProperties
-CompletingProperties --> Properties
-CompletingProperties --> HashMap
-CompletingProperties --> Map
-CompletingProperties --> Optional
-CompletingProperties --> Stream
 class Lang
 Lang --> CompoundNode
 Lang --> NodeListRule
@@ -87,6 +83,12 @@ Main --> Path
 Main --> Paths
 Main --> Set
 Main --> Collectors
+class CompletingProperties
+CompletingProperties --> Completer
+CompletingProperties --> HashMap
+CompletingProperties --> Map
+CompletingProperties --> Optional
+CompletingProperties --> Stream
 class SuffixRule
 SuffixRule --> Rule
 SuffixRule --> RuleResult

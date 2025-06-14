@@ -1,6 +1,6 @@
-package magma.app.compile.node.complete;
+package magma.app.compile.node.properties;
 
-import magma.app.compile.node.Properties;
+import magma.app.compile.node.properties.complete.Completer;
 
 import java.util.HashMap;
 import java.util.Map;
