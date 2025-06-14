@@ -1,6 +1,7 @@
 package magma;
 
 import magma.app.State;
+import magma.app.node.Node;
 import magma.app.rule.InfixRule;
 import magma.app.rule.PrefixRule;
 import magma.app.rule.Rule;
@@ -13,6 +14,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -45,13 +47,15 @@ public class Main {
     }
 
     private static String compileInput(String input, String name) {
-        return divide(input).stream().map(segment -> compileRootSegment(name, segment)).collect(Collectors.joining());
+        return getSource(name, getList(input));
     }
 
-    private static String compileRootSegment(String name, String input) {
-        return createImportRule().lex(input).maybeValue().flatMap(node -> {
-            return createDependencyRule().generate(node.withString("source", name)).value();
-        }).orElse("");
+    private static String getSource(String name, List<Node> divisions) {
+        return divisions.stream().map(node -> createDependencyRule().generate(node.withString("source", name)).value()).flatMap(Optional::stream).collect(Collectors.joining());
+    }
+
+    private static List<Node> getList(String input) {
+        return divide(input).stream().map(segment -> createImportRule().lex(segment).maybeValue()).flatMap(Optional::stream).toList();
     }
 
     private static Rule createImportRule() {

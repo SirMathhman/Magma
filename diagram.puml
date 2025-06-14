@@ -30,6 +30,7 @@ InfixRule --> GenerationResult
 InfixRule --> LexResult
 class Main
 Main --> State
+Main --> Node
 Main --> InfixRule
 Main --> PrefixRule
 Main --> Rule
@@ -41,6 +42,7 @@ Main --> Files
 Main --> Path
 Main --> Paths
 Main --> List
+Main --> Optional
 Main --> Set
 Main --> Collectors
 class MapNode
