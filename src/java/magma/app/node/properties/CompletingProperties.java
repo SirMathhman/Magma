@@ -9,13 +9,13 @@ import java.util.stream.Stream;
 
 class CompletingProperties<T> implements Properties<CompoundNode, T> {
     private final Map<String, T> map;
-    private final Completer<T> completer;
+    private final Completer<T, CompoundNode> completer;
 
-    CompletingProperties(Completer<T> completer) {
+    CompletingProperties(Completer<T, CompoundNode> completer) {
         this(new HashMap<>(), completer);
     }
 
-    private CompletingProperties(Map<String, T> map, Completer<T> completer) {
+    private CompletingProperties(Map<String, T> map, Completer<T, CompoundNode> completer) {
         this.map = map;
         this.completer = completer;
     }

@@ -10,7 +10,6 @@ class Rule
 Rule --> GenerationResult
 Rule --> LexResult
 class Completer
-Completer --> CompoundNode
 class Lang
 Lang --> CompoundNode
 Lang --> DivideRule

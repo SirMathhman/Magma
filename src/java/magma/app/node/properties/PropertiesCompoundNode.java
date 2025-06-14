@@ -9,8 +9,8 @@ public final class PropertiesCompoundNode implements CompoundNode {
     private final Properties<CompoundNode, List<CompoundNode>> nodeLists;
 
     public PropertiesCompoundNode() {
-        this.strings = new CompletingProperties<>(this::withStrings);
-        this.nodeLists = new CompletingProperties<>(this::withNodeLists);
+        this.strings = new CompletingProperties<>(properties -> withStrings(properties));
+        this.nodeLists = new CompletingProperties<>(nodeLists1 -> withNodeLists(nodeLists1));
     }
 
     public PropertiesCompoundNode(Properties<CompoundNode, String> strings, Properties<CompoundNode, List<CompoundNode>> nodeLists) {
