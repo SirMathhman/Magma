@@ -32,7 +32,8 @@ public class Main {
 
     private static String compileSources(Set<Path> sources) throws IOException {
         final var output1 = new StringBuilder();
-        for (var source : sources) output1.append(compileSource(source));
+        for (var source : sources)
+            output1.append(compileSource(source));
         return "@startuml\nskinparam linetype ortho\n" + output1 + "@enduml";
     }
 
@@ -44,10 +45,7 @@ public class Main {
     }
 
     private static String compileInput(String input, String name) {
-        final var segments = divide(input);
-        final var output = new StringBuilder();
-        for (var segment : segments) output.append(compileRootSegment(name, segment));
-        return output.toString();
+        return divide(input).stream().map(segment -> compileRootSegment(name, segment)).collect(Collectors.joining());
     }
 
     private static String compileRootSegment(String name, String input) {
@@ -79,7 +77,8 @@ public class Main {
 
     private static State fold(State state, char c) {
         final var appended = state.append(c);
-        if (c == ';') return appended.advance();
+        if (c == ';')
+            return appended.advance();
         return appended;
     }
 }
