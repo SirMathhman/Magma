@@ -23,11 +23,11 @@ public final class NodeListRule implements Rule<CompoundNode, RuleResult<Compoun
     @Override
     public RuleResult<CompoundNode> lex(String input) {
         final var children = new FoldingDivider().divide(input).stream().map(segment -> this.rule.lex(segment).findAsOption()).flatMap(Optional::stream).toList();
-        return OptionalRuleResult.createFrom(new PropertiesCompoundNode().nodeLists().with(this.key, children));
+        return OptionalRuleResult.createFromValue(new PropertiesCompoundNode().nodeLists().with(this.key, children));
     }
 
     @Override
     public RuleResult<String> generate(CompoundNode node) {
-        return OptionalRuleResult.createFrom(node.nodeLists().find(this.key).orElse(new ArrayList<>()).stream().map(source -> this.rule.generate(source).findAsOption()).flatMap(Optional::stream).collect(Collectors.joining()));
+        return OptionalRuleResult.createFromValue(node.nodeLists().find(this.key).orElse(new ArrayList<>()).stream().map(source -> this.rule.generate(source).findAsOption()).flatMap(Optional::stream).collect(Collectors.joining()));
     }
 }

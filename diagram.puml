@@ -106,6 +106,7 @@ OptionalRuleResult --> Err
 OptionalRuleResult --> Ok
 OptionalRuleResult --> Result
 OptionalRuleResult --> CompileError
+OptionalRuleResult --> Context
 OptionalRuleResult --> StringContext
 OptionalRuleResult --> RuleResult
 OptionalRuleResult --> Optional

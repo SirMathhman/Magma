@@ -11,7 +11,7 @@ public record InfixRule<N extends MergingNode<N>>(Rule<N, RuleResult<N>, RuleRes
     public RuleResult<N> lex(String input) {
         final var index = input.lastIndexOf(this.infix);
         if (index < 0)
-            return OptionalRuleResult.createEmpty();
+            return OptionalRuleResult.createFromString("Infix '" + this.infix + "' not present", input);
 
         final var leftString = input.substring(0, index);
         final var rightString = input.substring(index + this.infix.length());

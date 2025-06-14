@@ -9,7 +9,7 @@ public record SuffixRule<N>(Rule<N, RuleResult<N>, RuleResult<String>> rule,
     @Override
     public RuleResult<N> lex(String input) {
         if (!input.endsWith(this.suffix))
-            return OptionalRuleResult.createEmpty();
+            return OptionalRuleResult.createFromString("", "");
 
         final var slice = input.substring(0, input.length() - this.suffix.length());
         return this.rule.lex(slice);
