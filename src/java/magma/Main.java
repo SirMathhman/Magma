@@ -1,14 +1,8 @@
 package magma;
 
+import magma.app.Lang;
 import magma.app.node.MapNode;
 import magma.app.node.Node;
-import magma.app.rule.DivideRule;
-import magma.app.rule.InfixRule;
-import magma.app.rule.PrefixRule;
-import magma.app.rule.Rule;
-import magma.app.rule.StringRule;
-import magma.app.rule.StripRule;
-import magma.app.rule.SuffixRule;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -47,26 +41,14 @@ public class Main {
     }
 
     private static String compileInput(String input, String name) {
-        return new DivideRule("children", createImportRule()).lex(input).maybeValue().flatMap(root -> {
-            final var dependencyRule = createDependencyRule();
+        return Lang.createJavaRootRule().lex(input).maybeValue().flatMap(root -> {
             final var parsed = transform(name, root);
-            return new DivideRule("children", dependencyRule).generate(parsed).value();
+            return Lang.createPlantRootRule().generate(parsed).value();
         }).orElse("");
     }
 
     private static Node transform(String name, Node root) {
         final var children = root.findNodeList("children").orElse(new ArrayList<>());
         return new MapNode().withNodeList("children", children.stream().map(child -> child.withString("source", name)).toList());
-    }
-
-    private static Rule createImportRule() {
-        final var parent = new StringRule("parent");
-        final var destination = new StringRule("destination");
-        final var rule = new PrefixRule("import ", new SuffixRule(new InfixRule(parent, ".", destination), ";"));
-        return new StripRule(rule);
-    }
-
-    private static Rule createDependencyRule() {
-        return new SuffixRule(new InfixRule(new StringRule("source"), " --> ", new StringRule("destination")), "\n");
     }
 }

@@ -9,6 +9,14 @@ class Rule
 Rule --> Node
 Rule --> GenerationResult
 Rule --> LexResult
+class Lang
+Lang --> DivideRule
+Lang --> InfixRule
+Lang --> PrefixRule
+Lang --> Rule
+Lang --> StringRule
+Lang --> StripRule
+Lang --> SuffixRule
 class LexResult
 LexResult --> Node
 LexResult --> Optional
@@ -56,13 +64,7 @@ StripRule --> LexResult
 class Main
 Main --> MapNode
 Main --> Node
-Main --> DivideRule
-Main --> InfixRule
-Main --> PrefixRule
-Main --> Rule
-Main --> StringRule
-Main --> StripRule
-Main --> SuffixRule
+Main --> Lang
 Main --> IOException
 Main --> Files
 Main --> Path
