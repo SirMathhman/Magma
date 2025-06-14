@@ -5,6 +5,10 @@ Main --> State
 Main --> IOException
 Main --> Files
 Main --> Paths
-Main --> ArrayList
 Main --> List
+Main --> Optional
+Main --> Collectors
+class State
+State --> ArrayList
+State --> List
 @enduml

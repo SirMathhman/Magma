@@ -1,5 +1,6 @@
 package magma.app;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class State {
@@ -9,6 +10,10 @@ public class State {
     public State(List<String> segments, StringBuilder buffer) {
         this.segments = segments;
         this.buffer = buffer;
+    }
+
+    public State() {
+        this(new ArrayList<>(), new StringBuilder());
     }
 
     public State advance() {
