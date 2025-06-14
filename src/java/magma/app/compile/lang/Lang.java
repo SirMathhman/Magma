@@ -16,24 +16,18 @@ import java.util.List;
 
 public class Lang {
     public static Rule<CompoundNode, RuleResult<CompoundNode>, RuleResult<String>> createJavaRootRule() {
-        return new NodeListRule("children", new OrRule(List.of(
-                createImportRule(),
-                new StringRule("value")
-        )));
+        return new NodeListRule("children", new OrRule<>(List.of(createImportRule(), new StringRule("value"))));
     }
 
     public static Rule<CompoundNode, RuleResult<CompoundNode>, RuleResult<String>> createPlantRootRule() {
-        return new NodeListRule("children", new OrRule<>(List.of(
-                createDependencyRule(),
-                new EmptyRule()
-        )));
+        return new NodeListRule("children", new OrRule<>(List.of(createDependencyRule(), new EmptyRule())));
     }
 
     static Rule<CompoundNode, RuleResult<CompoundNode>, RuleResult<String>> createImportRule() {
         final var parent = new StringRule("parent");
         final var destination = new StringRule("destination");
         final var rule = ModifyingRule.Prefix("import ", ModifyingRule.createSuffixRule(new InfixRule<>(parent, ".", destination), ";"));
-        return new TypeRule("import", new StripRule<>(rule));
+        return new TypeRule<>("import", new StripRule<>(rule));
     }
 
     static Rule<CompoundNode, RuleResult<CompoundNode>, RuleResult<String>> createDependencyRule() {

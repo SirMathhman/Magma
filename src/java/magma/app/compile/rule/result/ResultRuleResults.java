@@ -7,6 +7,7 @@ import magma.app.compile.error.Context;
 import magma.app.compile.error.context.NodeContext;
 import magma.app.compile.error.context.StringContext;
 import magma.app.compile.node.CompoundNode;
+import magma.app.compile.node.DisplayableNode;
 import magma.app.compile.rule.result.optional.ResultRuleResult;
 
 public class ResultRuleResults {
@@ -22,7 +23,7 @@ public class ResultRuleResults {
         return new ResultRuleResult<>(new Ok<>(value));
     }
 
-    public static <Value> RuleResult<Value> createFromNode(String message, CompoundNode node) {
+    public static <Value> RuleResult<Value> createFromNode(String message, DisplayableNode node) {
         return new ResultRuleResult<>(new Err<>(new CompileError(message, new NodeContext(node))));
     }
 }

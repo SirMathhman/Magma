@@ -4,8 +4,5 @@ import magma.app.compile.node.core.MergingNode;
 import magma.app.compile.node.core.NodeListNode;
 import magma.app.compile.node.core.StringNode;
 
-public interface CompoundNode extends StringNode<CompoundNode>, NodeListNode<CompoundNode>, MergingNode<CompoundNode>, DisplayableNode {
-    boolean is(String type);
-
-    CompoundNode retype(String type);
+public interface CompoundNode extends StringNode<CompoundNode>, NodeListNode<CompoundNode>, MergingNode<CompoundNode>, DisplayableNode, TypedNode<CompoundNode> {
 }

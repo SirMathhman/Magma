@@ -19,6 +19,7 @@ Result --> Tuple
 Result --> Optional
 Result --> Function
 Result --> Supplier
+class TypedNode
 class DivideState
 DivideState --> Stream
 class NodeListRule
@@ -81,7 +82,8 @@ Err --> Function
 Err --> Supplier
 class TypeRule
 TypeRule --> Rule
-TypeRule --> CompoundNode
+TypeRule --> DisplayableNode
+TypeRule --> TypedNode
 TypeRule --> ResultRuleResults
 TypeRule --> RuleResult
 class MutableDivideState
@@ -122,6 +124,7 @@ ResultRuleResults --> Context
 ResultRuleResults --> NodeContext
 ResultRuleResults --> StringContext
 ResultRuleResults --> CompoundNode
+ResultRuleResults --> DisplayableNode
 ResultRuleResults --> ResultRuleResult
 class Tuple
 class StringNode
