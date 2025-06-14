@@ -6,6 +6,7 @@ import magma.app.compile.node.properties.complete.Completer;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -24,25 +25,28 @@ public final class PropertiesCompoundNode implements CompoundNode {
         }
     }
 
+    private final Optional<String> type;
     private final Properties<CompoundNode, String> strings;
     private final Properties<CompoundNode, List<CompoundNode>> nodeLists;
 
     public PropertiesCompoundNode() {
+        this.type = Optional.empty();
         this.strings = new CompletingProperties<>(new StringCompleter());
         this.nodeLists = new CompletingProperties<>(new NodeListCompleter());
     }
 
-    public PropertiesCompoundNode(Properties<CompoundNode, String> strings, Properties<CompoundNode, List<CompoundNode>> nodeLists) {
+    public PropertiesCompoundNode(Optional<String> type, Properties<CompoundNode, String> strings, Properties<CompoundNode, List<CompoundNode>> nodeLists) {
+        this.type = type;
         this.nodeLists = nodeLists;
         this.strings = strings;
     }
 
     private CompoundNode withNodeLists(Properties<CompoundNode, List<CompoundNode>> nodeLists) {
-        return new PropertiesCompoundNode(this.strings, nodeLists);
+        return new PropertiesCompoundNode(this.type, this.strings, nodeLists);
     }
 
     private PropertiesCompoundNode withStrings(Properties<CompoundNode, String> properties) {
-        return new PropertiesCompoundNode(properties, this.nodeLists);
+        return new PropertiesCompoundNode(this.type, properties, this.nodeLists);
     }
 
     @Override
@@ -52,7 +56,7 @@ public final class PropertiesCompoundNode implements CompoundNode {
 
     @Override
     public CompoundNode merge(CompoundNode other) {
-        return new PropertiesCompoundNode(this.strings.merge(other.strings()), this.nodeLists.merge(other.nodeLists()));
+        return new PropertiesCompoundNode(this.type, this.strings.merge(other.strings()), this.nodeLists.merge(other.nodeLists()));
     }
 
     @Override
@@ -70,5 +74,10 @@ public final class PropertiesCompoundNode implements CompoundNode {
 
     private String formatEntry(Map.Entry<String, String> entry) {
         return "\n\t" + entry.getKey() + ": \"" + entry.getValue() + "\"";
+    }
+
+    @Override
+    public boolean is(String type) {
+        return this.type.isPresent() && this.type.get().equals(type);
     }
 }

@@ -2,6 +2,7 @@ package magma.app.compile.lang;
 
 import magma.app.compile.Rule;
 import magma.app.compile.node.CompoundNode;
+import magma.app.compile.rule.EmptyRule;
 import magma.app.compile.rule.InfixRule;
 import magma.app.compile.rule.ModifyingRule;
 import magma.app.compile.rule.NodeListRule;
@@ -21,7 +22,10 @@ public class Lang {
     }
 
     public static Rule<CompoundNode, RuleResult<CompoundNode>, RuleResult<String>> createPlantRootRule() {
-        return new NodeListRule("children", createDependencyRule());
+        return new NodeListRule("children", new OrRule<>(List.of(
+                createDependencyRule(),
+                new EmptyRule()
+        )));
     }
 
     static Rule<CompoundNode, RuleResult<CompoundNode>, RuleResult<String>> createImportRule() {
