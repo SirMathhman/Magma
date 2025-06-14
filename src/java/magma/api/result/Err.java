@@ -31,4 +31,9 @@ public record Err<Value, Error>(Error error) implements Result<Value, Error> {
     public Optional<Value> findValue() {
         return Optional.empty();
     }
+
+    @Override
+    public <Return> Result<Value, Return> mapErr(Function<Error, Return> mapper) {
+        return new Err<>(mapper.apply(this.error));
+    }
 }

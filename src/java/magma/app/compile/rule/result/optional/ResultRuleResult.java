@@ -14,7 +14,7 @@ import java.util.Optional;
 import java.util.function.Function;
 
 public record ResultRuleResult<Value>(Result<Value, CompileError> maybeValue) implements RuleResult<Value> {
-    public static <N> RuleResult<N> createFromString(String message, String context) {
+    public static <Value> RuleResult<Value> createFromString(String message, String context) {
         return createFromErrorWithContext(message, new StringContext(context));
     }
 
@@ -31,12 +31,12 @@ public record ResultRuleResult<Value>(Result<Value, CompileError> maybeValue) im
     }
 
     @Override
-    public RuleResult<Value> flatMap(Function<Value, RuleResult<Value>> mapper) {
-        return new ResultRuleResult<>(this.maybeValue.flatMapValue(value -> mapper.apply(value).findAsResult()));
+    public <Return> RuleResult<Return> flatMap(Function<Value, RuleResult<Return>> mapper) {
+        return new ResultRuleResult<>(this.maybeValue.flatMapValue(value -> mapper.apply(value).unwrap()));
     }
 
     @Override
-    public RuleResult<Value> map(Function<Value, Value> mapper) {
+    public RuleResult<Value> mapValue(Function<Value, Value> mapper) {
         return new ResultRuleResult<>(this.maybeValue.mapValue(mapper));
     }
 
@@ -46,7 +46,7 @@ public record ResultRuleResult<Value>(Result<Value, CompileError> maybeValue) im
     }
 
     @Override
-    public Result<Value, CompileError> findAsResult() {
+    public Result<Value, CompileError> unwrap() {
         return this.maybeValue;
     }
 }

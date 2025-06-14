@@ -17,6 +17,6 @@ public record SuffixRule<N>(Rule<N, RuleResult<N>, RuleResult<String>> rule,
 
     @Override
     public RuleResult<String> generate(N node) {
-        return this.rule.generate(node).map(value -> value + this.suffix);
+        return this.rule.generate(node).mapValue(value -> value + this.suffix);
     }
 }

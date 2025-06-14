@@ -16,4 +16,6 @@ public interface Result<Value, Error> {
     <Return> Return match(Function<Value, Return> whenOk, Function<Error, Return> whenErr);
 
     Optional<Value> findValue();
+
+    <Return> Result<Value, Return> mapErr(Function<Error, Return> mapper);
 }

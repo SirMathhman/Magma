@@ -8,11 +8,13 @@ class FoldingDivider
 FoldingDivider --> DivideState
 FoldingDivider --> MutableDivideState
 FoldingDivider --> List
+class Error
 class Transformer
 Transformer --> CompoundNode
 Transformer --> PropertiesCompoundNode
 Transformer --> ArrayList
 class CompileError
+CompileError --> Error
 CompileError --> Context
 class StringContext
 StringContext --> Context
@@ -89,9 +91,12 @@ CompletingProperties --> Stream
 class Compiler
 Compiler --> Lang
 Compiler --> Transformer
+Compiler --> RuleResult
 class Tuple
 class StringNode
 StringNode --> Properties
+class ApplicationError
+ApplicationError --> Error
 class PropertiesCompoundNode
 PropertiesCompoundNode --> CompletingProperties
 PropertiesCompoundNode --> Properties
@@ -99,6 +104,10 @@ PropertiesCompoundNode --> Completer
 PropertiesCompoundNode --> List
 class StripRule
 StripRule --> Rule
+class ThrowableError
+ThrowableError --> Error
+ThrowableError --> PrintWriter
+ThrowableError --> StringWriter
 class Completer
 Completer --> Properties
 class NodeListNode
@@ -120,7 +129,9 @@ class Main
 Main --> Err
 Main --> Ok
 Main --> Result
+Main --> ApplicationError
 Main --> Compiler
+Main --> ThrowableError
 Main --> IOException
 Main --> Files
 Main --> Path

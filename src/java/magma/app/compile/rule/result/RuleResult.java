@@ -7,11 +7,11 @@ import java.util.Optional;
 import java.util.function.Function;
 
 public interface RuleResult<Node> {
-    RuleResult<Node> flatMap(Function<Node, RuleResult<Node>> mapper);
+    <Return> RuleResult<Return> flatMap(Function<Node, RuleResult<Return>> mapper);
 
-    RuleResult<Node> map(Function<Node, Node> mapper);
+    RuleResult<Node> mapValue(Function<Node, Node> mapper);
 
     Optional<Node> findAsOption();
 
-    Result<Node, CompileError> findAsResult();
+    Result<Node, CompileError> unwrap();
 }

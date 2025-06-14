@@ -31,4 +31,9 @@ public record Ok<Value, Error>(Value value) implements Result<Value, Error> {
     public Optional<Value> findValue() {
         return Optional.of(this.value);
     }
+
+    @Override
+    public <Return> Result<Value, Return> mapErr(Function<Error, Return> mapper) {
+        return new Ok<>(this.value);
+    }
 }

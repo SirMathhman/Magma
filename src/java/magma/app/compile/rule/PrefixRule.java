@@ -17,6 +17,6 @@ public record PrefixRule<N>(String prefix,
 
     @Override
     public RuleResult<String> generate(N node) {
-        return this.rule.generate(node).map(value -> this.prefix + value);
+        return this.rule.generate(node).mapValue(value -> this.prefix + value);
     }
 }
