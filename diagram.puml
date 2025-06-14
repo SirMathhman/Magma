@@ -18,7 +18,6 @@ Lang --> StringRule
 Lang --> StripRule
 Lang --> SuffixRule
 Lang --> PropertiesCompoundNodeFactory
-Lang --> MergingLexResult
 class MutableDivideState
 MutableDivideState --> ArrayList
 MutableDivideState --> List
@@ -26,7 +25,6 @@ MutableDivideState --> Stream
 class InfixRule
 InfixRule --> MergingNode
 InfixRule --> GenerationResult
-InfixRule --> LexResult
 InfixRule --> MergingLexResult
 InfixRule --> OptionalLexResult
 class DivideRule
@@ -53,7 +51,7 @@ class StringNode
 StringNode --> Properties
 class Rule
 Rule --> GenerationResult
-Rule --> LexResult
+Rule --> MergingLexResult
 class LexResult
 LexResult --> Optional
 LexResult --> Function
@@ -63,7 +61,6 @@ PropertiesCompoundNodeFactory --> PropertiesCompoundNode
 class PrefixRule
 PrefixRule --> MergingNode
 PrefixRule --> GenerationResult
-PrefixRule --> LexResult
 PrefixRule --> MergingLexResult
 PrefixRule --> OptionalLexResult
 class StringRule
@@ -81,7 +78,7 @@ SuffixRule --> MergingLexResult
 SuffixRule --> OptionalLexResult
 class StripRule
 StripRule --> GenerationResult
-StripRule --> LexResult
+StripRule --> MergingLexResult
 class PropertiesCompoundNode
 PropertiesCompoundNode --> CompletingProperties
 PropertiesCompoundNode --> Properties

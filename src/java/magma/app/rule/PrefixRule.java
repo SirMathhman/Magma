@@ -2,11 +2,10 @@ package magma.app.rule;
 
 import magma.app.node.core.MergingNode;
 import magma.app.rule.result.GenerationResult;
-import magma.app.rule.result.LexResult;
 import magma.app.rule.result.MergingLexResult;
 import magma.app.rule.result.optional.OptionalLexResult;
 
-public record PrefixRule<N extends MergingNode<N>>(String prefix, Rule<N, MergingLexResult<N>> rule) implements Rule<N, MergingLexResult<N>> {
+public record PrefixRule<N extends MergingNode<N>>(String prefix, Rule<N> rule) implements Rule<N> {
     @Override
     public MergingLexResult<N> lex(String input) {
         if (!input.startsWith(this.prefix))

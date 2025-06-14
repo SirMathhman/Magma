@@ -1,11 +1,11 @@
 package magma.app.rule;
 
 import magma.app.rule.result.GenerationResult;
-import magma.app.rule.result.LexResult;
+import magma.app.rule.result.MergingLexResult;
 
-public record StripRule<N, S extends LexResult<N, S>>(Rule<N, S> rule) implements Rule<N, S> {
+public record StripRule<N>(Rule<N> rule) implements Rule<N> {
     @Override
-    public S lex(String input) {
+    public MergingLexResult<N> lex(String input) {
         return this.rule.lex(input.strip());
     }
 
