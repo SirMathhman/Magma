@@ -14,7 +14,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-public record DivideRule(String key, Rule rule) implements Rule {
+public record DivideRule(String key, Rule<CompoundNode> rule) implements Rule<CompoundNode> {
     public static List<String> divide(String input) {
         DivideState current = new MutableDivideState();
         for (var i = 0; i < input.length(); i++) {

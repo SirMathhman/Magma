@@ -7,12 +7,12 @@ OptionalGenerationResult --> Function
 class StringNode
 StringNode --> Properties
 class Rule
-Rule --> CompoundNode
 Rule --> GenerationResult
 Rule --> LexResult
 class Completer
 Completer --> CompoundNode
 class Lang
+Lang --> CompoundNode
 Lang --> DivideRule
 Lang --> InfixRule
 Lang --> PrefixRule
@@ -53,11 +53,11 @@ PrefixRule --> GenerationResult
 PrefixRule --> LexResult
 PrefixRule --> OptionalLexResult
 class StringRule
-StringRule --> PropertiesCompoundNode
 StringRule --> CompoundNode
+StringRule --> PropertiesCompoundNode
 StringRule --> GenerationResult
-StringRule --> OptionalGenerationResult
 StringRule --> LexResult
+StringRule --> OptionalGenerationResult
 StringRule --> OptionalLexResult
 class SuffixRule
 SuffixRule --> CompoundNode

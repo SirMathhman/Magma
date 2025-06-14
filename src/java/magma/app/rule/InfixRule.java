@@ -5,7 +5,7 @@ import magma.app.rule.result.GenerationResult;
 import magma.app.rule.result.LexResult;
 import magma.app.rule.result.optional.OptionalLexResult;
 
-public record InfixRule(Rule leftRule, String infix, Rule rightRule) implements Rule {
+public record InfixRule(Rule<CompoundNode> leftRule, String infix, Rule<CompoundNode> rightRule) implements Rule<CompoundNode> {
     @Override
     public LexResult lex(String input) {
         final var index = input.lastIndexOf(this.infix);

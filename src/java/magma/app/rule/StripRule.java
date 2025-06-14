@@ -4,7 +4,7 @@ import magma.app.node.CompoundNode;
 import magma.app.rule.result.GenerationResult;
 import magma.app.rule.result.LexResult;
 
-public record StripRule(Rule rule) implements Rule {
+public record StripRule(Rule<CompoundNode> rule) implements Rule<CompoundNode> {
     @Override
     public LexResult lex(String input) {
         return this.rule.lex(input.strip());
