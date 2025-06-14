@@ -13,9 +13,7 @@ public class Main {
     public static void main(String[] args) {
 
         try (var stream = Files.walk(Paths.get(".", "src", "java"))) {
-            final var sources = stream.filter(Files::isRegularFile)
-                    .filter(path -> path.toString().endsWith(".java"))
-                    .collect(Collectors.toSet());
+            final var sources = stream.filter(Files::isRegularFile).filter(path -> path.toString().endsWith(".java")).collect(Collectors.toSet());
 
             final var output1 = new StringBuilder();
             for (var source : sources) {
@@ -25,9 +23,7 @@ public class Main {
                 output1.append("class " + name + "\n" + compile(input, name));
             }
 
-            final var output = "@startuml\nskinparam linetype ortho\n" +
-                    output1 +
-                    "@enduml";
+            final var output = "@startuml\nskinparam linetype ortho\n" + output1 + "@enduml";
 
             final var target = Paths.get(".", "diagram.puml");
             Files.writeString(target, output);
@@ -41,27 +37,24 @@ public class Main {
         final var segments = divide(input);
 
         final var output = new StringBuilder();
-        for (var segment : segments) {
-            output.append(compileImport(name, segment).orElse(""));
-        }
+        for (var segment : segments) output.append(compileImport(name, segment).orElse(""));
 
         return output.toString();
     }
 
     private static Optional<String> compileImport(String name, String input) {
         final var stripped = input.strip();
-        if (stripped.startsWith("import ")) {
-            final var substring = stripped.substring("import ".length());
-            if (substring.endsWith(";")) {
-                final var substring1 = substring.substring(0, substring.length() - ";".length());
-                final var index = substring1.lastIndexOf(".");
-                if (index >= 0) {
-                    final var substring2 = substring1.substring(index + 1);
-                    return Optional.of(name + " --> " + substring2 + "\n");
-                }
-            }
-        }
-        return Optional.empty();
+        if (!stripped.startsWith("import ")) return Optional.empty();
+
+        final var substring = stripped.substring("import ".length());
+        if (!substring.endsWith(";")) return Optional.empty();
+
+        final var substring1 = substring.substring(0, substring.length() - ";".length());
+        final var index = substring1.lastIndexOf(".");
+        if (index < 0) return Optional.empty();
+
+        final var substring2 = substring1.substring(index + 1);
+        return Optional.of(name + " --> " + substring2 + "\n");
     }
 
     private static List<String> divide(String input) {
@@ -76,9 +69,7 @@ public class Main {
 
     private static State fold(State state, char c) {
         final var appended = state.append(c);
-        if (c == ';') {
-            return appended.advance();
-        }
+        if (c == ';') return appended.advance();
 
         return appended;
     }
