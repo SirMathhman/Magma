@@ -1,24 +1,14 @@
 @startuml
 skinparam linetype ortho
-class SuffixRule
-SuffixRule --> Node
-SuffixRule --> GenerationResult
-SuffixRule --> LexResult
 class Node
+Node --> List
 Node --> Map
 Node --> Optional
 Node --> Stream
-class GenerationResult
-GenerationResult --> Optional
-GenerationResult --> Function
 class Rule
 Rule --> Node
 Rule --> GenerationResult
 Rule --> LexResult
-class StripRule
-StripRule --> Node
-StripRule --> GenerationResult
-StripRule --> LexResult
 class LexResult
 LexResult --> Node
 LexResult --> Optional
@@ -28,9 +18,40 @@ class InfixRule
 InfixRule --> Node
 InfixRule --> GenerationResult
 InfixRule --> LexResult
+class DivideRule
+DivideRule --> State
+DivideRule --> MapNode
+DivideRule --> Node
+DivideRule --> GenerationResult
+DivideRule --> LexResult
+DivideRule --> ArrayList
+DivideRule --> List
+DivideRule --> Optional
+DivideRule --> Collectors
+class PrefixRule
+PrefixRule --> Node
+PrefixRule --> GenerationResult
+PrefixRule --> LexResult
+class StringRule
+StringRule --> MapNode
+StringRule --> Node
+StringRule --> GenerationResult
+StringRule --> LexResult
+class SuffixRule
+SuffixRule --> Node
+SuffixRule --> GenerationResult
+SuffixRule --> LexResult
+class GenerationResult
+GenerationResult --> Optional
+GenerationResult --> Function
+class StripRule
+StripRule --> Node
+StripRule --> GenerationResult
+StripRule --> LexResult
 class Main
-Main --> State
+Main --> MapNode
 Main --> Node
+Main --> DivideRule
 Main --> InfixRule
 Main --> PrefixRule
 Main --> Rule
@@ -41,24 +62,15 @@ Main --> IOException
 Main --> Files
 Main --> Path
 Main --> Paths
-Main --> List
-Main --> Optional
+Main --> ArrayList
 Main --> Set
 Main --> Collectors
 class MapNode
 MapNode --> HashMap
+MapNode --> List
 MapNode --> Map
 MapNode --> Optional
 MapNode --> Stream
-class PrefixRule
-PrefixRule --> Node
-PrefixRule --> GenerationResult
-PrefixRule --> LexResult
-class StringRule
-StringRule --> MapNode
-StringRule --> Node
-StringRule --> GenerationResult
-StringRule --> LexResult
 class State
 State --> ArrayList
 State --> List

@@ -1,7 +1,8 @@
 package magma;
 
-import magma.app.State;
+import magma.app.node.MapNode;
 import magma.app.node.Node;
+import magma.app.rule.DivideRule;
 import magma.app.rule.InfixRule;
 import magma.app.rule.PrefixRule;
 import magma.app.rule.Rule;
@@ -13,8 +14,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.List;
-import java.util.Optional;
+import java.util.ArrayList;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -47,15 +47,16 @@ public class Main {
     }
 
     private static String compileInput(String input, String name) {
-        return getSource(name, getList(input));
+        return new DivideRule("children", createImportRule()).lex(input).maybeValue().flatMap(root -> {
+            final var dependencyRule = createDependencyRule();
+            final var parsed = transform(name, root);
+            return new DivideRule("children", dependencyRule).generate(parsed).value();
+        }).orElse("");
     }
 
-    private static String getSource(String name, List<Node> divisions) {
-        return divisions.stream().map(node -> createDependencyRule().generate(node.withString("source", name)).value()).flatMap(Optional::stream).collect(Collectors.joining());
-    }
-
-    private static List<Node> getList(String input) {
-        return divide(input).stream().map(segment -> createImportRule().lex(segment).maybeValue()).flatMap(Optional::stream).toList();
+    private static Node transform(String name, Node root) {
+        final var children = root.findNodeList("children").orElse(new ArrayList<>());
+        return new MapNode().withNodeList("children", children.stream().map(child -> child.withString("source", name)).toList());
     }
 
     private static Rule createImportRule() {
@@ -67,22 +68,5 @@ public class Main {
 
     private static Rule createDependencyRule() {
         return new SuffixRule(new InfixRule(new StringRule("source"), " --> ", new StringRule("destination")), "\n");
-    }
-
-    private static List<String> divide(String input) {
-        var current = new State();
-        for (var i = 0; i < input.length(); i++) {
-            final var c = input.charAt(i);
-            current = fold(current, c);
-        }
-
-        return current.advance().segments();
-    }
-
-    private static State fold(State state, char c) {
-        final var appended = state.append(c);
-        if (c == ';')
-            return appended.advance();
-        return appended;
     }
 }

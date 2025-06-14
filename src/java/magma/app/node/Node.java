@@ -1,5 +1,6 @@
 package magma.app.node;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Stream;
@@ -12,4 +13,8 @@ public interface Node {
     Stream<Map.Entry<String, String>> streamStrings();
 
     Node merge(Node other);
+
+    Node withNodeList(String key, List<Node> values);
+
+    Optional<List<Node>> findNodeList(String key);
 }
