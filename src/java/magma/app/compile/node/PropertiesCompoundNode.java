@@ -80,4 +80,9 @@ public final class PropertiesCompoundNode implements CompoundNode {
     public boolean is(String type) {
         return this.type.isPresent() && this.type.get().equals(type);
     }
+
+    @Override
+    public CompoundNode retype(String type) {
+        return new PropertiesCompoundNode(Optional.of(type), this.strings, this.nodeLists);
+    }
 }

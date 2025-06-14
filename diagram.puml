@@ -1,47 +1,210 @@
 @startuml
 skinparam linetype ortho
 class Properties
+Properties --> Map
+Properties --> Optional
+Properties --> Stream
 class FoldingDivider
+FoldingDivider --> DivideState
+FoldingDivider --> MutableDivideState
+FoldingDivider --> List
 class Error
 class CompileError
+CompileError --> Error
+CompileError --> Context
 class StringContext
+StringContext --> Context
 class Result
+Result --> Tuple
+Result --> Optional
+Result --> Function
+Result --> Supplier
 class DivideState
+DivideState --> Stream
 class NodeListRule
+NodeListRule --> Rule
+NodeListRule --> CompoundNode
+NodeListRule --> PropertiesCompoundNode
+NodeListRule --> FoldingDivider
+NodeListRule --> ResultRuleResults
+NodeListRule --> RuleResult
+NodeListRule --> ArrayList
+NodeListRule --> List
 class InfixRule
+InfixRule --> Rule
+InfixRule --> MergingNode
+InfixRule --> RuleResult
+InfixRule --> ResultRuleResults
 class RuleResult
+RuleResult --> Result
+RuleResult --> CompileError
+RuleResult --> Optional
+RuleResult --> Function
 class Compiler
+Compiler --> Lang
+Compiler --> RuleResult
+Compiler --> Transformer
 class EmptyRule
+EmptyRule --> Rule
+EmptyRule --> CompoundNode
+EmptyRule --> PropertiesCompoundNode
+EmptyRule --> ResultRuleResults
+EmptyRule --> RuleResult
 class DisplayableNode
 class OrState
+OrState --> CompileError
+OrState --> Context
+OrState --> RuleResult
 class MergingNode
 class StringRule
+StringRule --> Rule
+StringRule --> CompoundNode
+StringRule --> PropertiesCompoundNode
+StringRule --> RuleResult
+StringRule --> ResultRuleResults
 class Rule
 class ModifyingRule
+ModifyingRule --> Err
+ModifyingRule --> Rule
+ModifyingRule --> Modifier
+ModifyingRule --> PrefixModifier
+ModifyingRule --> SuffixModifier
+ModifyingRule --> RuleResult
+ModifyingRule --> ResultRuleResult
 class CompoundNode
+CompoundNode --> MergingNode
+CompoundNode --> NodeListNode
+CompoundNode --> StringNode
 class Err
+Err --> Tuple
+Err --> Optional
+Err --> Function
+Err --> Supplier
+class TypeRule
+TypeRule --> Rule
+TypeRule --> CompoundNode
+TypeRule --> ResultRuleResults
+TypeRule --> RuleResult
 class MutableDivideState
+MutableDivideState --> ArrayList
+MutableDivideState --> List
+MutableDivideState --> Stream
 class NodeContext
+NodeContext --> Context
+NodeContext --> DisplayableNode
 class OrRule
+OrRule --> Rule
+OrRule --> Context
+OrRule --> NodeContext
+OrRule --> StringContext
+OrRule --> DisplayableNode
+OrRule --> OrState
+OrRule --> SimpleOrState
+OrRule --> RuleResult
+OrRule --> List
+OrRule --> Function
 class ThrowableError
+ThrowableError --> Error
+ThrowableError --> PrintWriter
+ThrowableError --> StringWriter
 class ApplicationError
+ApplicationError --> Error
 class CompletingProperties
+CompletingProperties --> Completer
+CompletingProperties --> HashMap
+CompletingProperties --> Map
+CompletingProperties --> Optional
+CompletingProperties --> Stream
 class ResultRuleResults
+ResultRuleResults --> Err
+ResultRuleResults --> Ok
+ResultRuleResults --> CompileError
+ResultRuleResults --> Context
+ResultRuleResults --> NodeContext
+ResultRuleResults --> StringContext
+ResultRuleResults --> CompoundNode
+ResultRuleResults --> ResultRuleResult
 class Tuple
 class StringNode
+StringNode --> Properties
 class PropertiesCompoundNode
+PropertiesCompoundNode --> CompletingProperties
+PropertiesCompoundNode --> Properties
+PropertiesCompoundNode --> Completer
+PropertiesCompoundNode --> List
+PropertiesCompoundNode --> Map
+PropertiesCompoundNode --> Optional
+PropertiesCompoundNode --> Collectors
+PropertiesCompoundNode --> Stream
 class Application
+Application --> Err
+Application --> Ok
+Application --> Result
+Application --> Compiler
+Application --> ApplicationError
+Application --> ThrowableError
+Application --> IOException
+Application --> Files
+Application --> Path
+Application --> Paths
+Application --> Optional
+Application --> Set
+Application --> Collectors
 class SuffixModifier
+SuffixModifier --> CompileError
+SuffixModifier --> StringContext
+SuffixModifier --> Optional
 class PrefixModifier
+PrefixModifier --> CompileError
+PrefixModifier --> StringContext
+PrefixModifier --> Optional
 class StripRule
+StripRule --> Rule
 class Completer
+Completer --> Properties
 class NodeListNode
+NodeListNode --> Properties
+NodeListNode --> List
 class Transformer
+Transformer --> CompoundNode
+Transformer --> PropertiesCompoundNode
+Transformer --> ArrayList
 class Modifier
+Modifier --> CompileError
+Modifier --> Optional
 class ResultRuleResult
+ResultRuleResult --> Result
+ResultRuleResult --> CompileError
+ResultRuleResult --> RuleResult
+ResultRuleResult --> Optional
+ResultRuleResult --> Function
 class SimpleOrState
+SimpleOrState --> CompileError
+SimpleOrState --> Context
+SimpleOrState --> ResultRuleResults
+SimpleOrState --> RuleResult
+SimpleOrState --> ArrayList
+SimpleOrState --> List
+SimpleOrState --> Optional
 class Main
+Main --> Application
 class Lang
+Lang --> Rule
+Lang --> CompoundNode
+Lang --> EmptyRule
+Lang --> InfixRule
+Lang --> ModifyingRule
+Lang --> NodeListRule
+Lang --> OrRule
+Lang --> StringRule
+Lang --> StripRule
+Lang --> TypeRule
+Lang --> RuleResult
+Lang --> List
 class Context
 class Ok
+Ok --> Tuple
+Ok --> Optional
+Ok --> Function
+Ok --> Supplier
 @enduml

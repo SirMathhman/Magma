@@ -9,6 +9,7 @@ import magma.app.compile.rule.NodeListRule;
 import magma.app.compile.rule.OrRule;
 import magma.app.compile.rule.StringRule;
 import magma.app.compile.rule.StripRule;
+import magma.app.compile.rule.TypeRule;
 import magma.app.compile.rule.result.RuleResult;
 
 import java.util.List;
@@ -32,7 +33,7 @@ public class Lang {
         final var parent = new StringRule("parent");
         final var destination = new StringRule("destination");
         final var rule = ModifyingRule.Prefix("import ", ModifyingRule.createSuffixRule(new InfixRule<>(parent, ".", destination), ";"));
-        return new StripRule<>(rule);
+        return new TypeRule("import", new StripRule<>(rule));
     }
 
     static Rule<CompoundNode, RuleResult<CompoundNode>, RuleResult<String>> createDependencyRule() {
