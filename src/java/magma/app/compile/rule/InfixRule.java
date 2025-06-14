@@ -2,13 +2,13 @@ package magma.app.compile.rule;
 
 import magma.app.compile.Rule;
 import magma.app.compile.node.core.MergingNode;
-import magma.app.compile.rule.result.LexResult;
+import magma.app.compile.rule.result.RuleResult;
 import magma.app.compile.rule.result.optional.OptionalLexResult;
 
 public record InfixRule<N extends MergingNode<N>>(Rule<N> leftRule, String infix,
                                                   Rule<N> rightRule) implements Rule<N> {
     @Override
-    public LexResult<N> lex(String input) {
+    public RuleResult<N> lex(String input) {
         final var index = input.lastIndexOf(this.infix);
         if (index < 0)
             return OptionalLexResult.createEmpty();
@@ -20,7 +20,7 @@ public record InfixRule<N extends MergingNode<N>>(Rule<N> leftRule, String infix
     }
 
     @Override
-    public LexResult<String> generate(N node) {
+    public RuleResult<String> generate(N node) {
         final var leftResult = this.leftRule.generate(node);
         final var rightResult = this.rightRule.generate(node);
 

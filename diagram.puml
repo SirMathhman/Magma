@@ -14,7 +14,7 @@ MutableDivideState --> Stream
 class InfixRule
 InfixRule --> Rule
 InfixRule --> MergingNode
-InfixRule --> LexResult
+InfixRule --> RuleResult
 InfixRule --> OptionalLexResult
 class NodeListRule
 NodeListRule --> Rule
@@ -22,7 +22,7 @@ NodeListRule --> CompoundNode
 NodeListRule --> PropertiesCompoundNode
 NodeListRule --> DivideState
 NodeListRule --> MutableDivideState
-NodeListRule --> LexResult
+NodeListRule --> RuleResult
 NodeListRule --> OptionalLexResult
 NodeListRule --> ArrayList
 NodeListRule --> List
@@ -30,12 +30,15 @@ NodeListRule --> Optional
 NodeListRule --> Collectors
 class DivideState
 DivideState --> Stream
+class RuleResult
+RuleResult --> Optional
+RuleResult --> Function
 class StripRule
 StripRule --> Rule
-StripRule --> LexResult
+StripRule --> RuleResult
 class MergingNode
 class OptionalLexResult
-OptionalLexResult --> LexResult
+OptionalLexResult --> RuleResult
 OptionalLexResult --> Optional
 OptionalLexResult --> Function
 class Properties
@@ -46,15 +49,15 @@ class StringRule
 StringRule --> Rule
 StringRule --> CompoundNode
 StringRule --> PropertiesCompoundNode
-StringRule --> LexResult
+StringRule --> RuleResult
 StringRule --> OptionalLexResult
 class Rule
-Rule --> LexResult
+Rule --> RuleResult
 class Completer
 Completer --> Properties
 class PrefixRule
 PrefixRule --> Rule
-PrefixRule --> LexResult
+PrefixRule --> RuleResult
 PrefixRule --> OptionalLexResult
 class NodeListNode
 NodeListNode --> Properties
@@ -69,9 +72,6 @@ CompletingProperties --> HashMap
 CompletingProperties --> Map
 CompletingProperties --> Optional
 CompletingProperties --> Stream
-class LexResult
-LexResult --> Optional
-LexResult --> Function
 class Lang
 Lang --> CompoundNode
 Lang --> NodeListRule
@@ -90,7 +90,7 @@ Main --> Set
 Main --> Collectors
 class SuffixRule
 SuffixRule --> Rule
-SuffixRule --> LexResult
+SuffixRule --> RuleResult
 SuffixRule --> OptionalLexResult
 class Compiler
 Compiler --> Lang

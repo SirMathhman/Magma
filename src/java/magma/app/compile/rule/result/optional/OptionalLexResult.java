@@ -1,26 +1,26 @@
 package magma.app.compile.rule.result.optional;
 
-import magma.app.compile.rule.result.LexResult;
+import magma.app.compile.rule.result.RuleResult;
 
 import java.util.Optional;
 import java.util.function.Function;
 
-public record OptionalLexResult<N>(Optional<N> maybeValue) implements LexResult<N> {
-    public static <N> LexResult<N> createEmpty() {
+public record OptionalLexResult<N>(Optional<N> maybeValue) implements RuleResult<N> {
+    public static <N> RuleResult<N> createEmpty() {
         return new OptionalLexResult<>(Optional.empty());
     }
 
-    public static <N> LexResult<N> of(N value) {
+    public static <N> RuleResult<N> of(N value) {
         return new OptionalLexResult<>(Optional.of(value));
     }
 
     @Override
-    public LexResult<N> flatMap(Function<N, LexResult<N>> mapper) {
+    public RuleResult<N> flatMap(Function<N, RuleResult<N>> mapper) {
         return new OptionalLexResult<N>(this.maybeValue.flatMap(mapNode -> mapper.apply(mapNode).findValue()));
     }
 
     @Override
-    public LexResult<N> map(Function<N, N> mapper) {
+    public RuleResult<N> map(Function<N, N> mapper) {
         return new OptionalLexResult<N>(this.maybeValue.map(mapper));
     }
 

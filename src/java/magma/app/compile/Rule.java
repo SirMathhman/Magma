@@ -1,9 +1,9 @@
 package magma.app.compile;
 
-import magma.app.compile.rule.result.LexResult;
+import magma.app.compile.rule.result.RuleResult;
 
 public interface Rule<N> {
-    LexResult<N> lex(String input);
+    RuleResult<N> lex(String input);
 
-    LexResult<String> generate(N node);
+    RuleResult<String> generate(N node);
 }

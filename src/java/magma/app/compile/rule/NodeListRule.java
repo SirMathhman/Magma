@@ -5,7 +5,7 @@ import magma.app.compile.node.CompoundNode;
 import magma.app.compile.node.PropertiesCompoundNode;
 import magma.app.compile.rule.divide.DivideState;
 import magma.app.compile.rule.divide.MutableDivideState;
-import magma.app.compile.rule.result.LexResult;
+import magma.app.compile.rule.result.RuleResult;
 import magma.app.compile.rule.result.optional.OptionalLexResult;
 
 import java.util.ArrayList;
@@ -40,13 +40,13 @@ public final class NodeListRule implements Rule<CompoundNode> {
     }
 
     @Override
-    public LexResult<CompoundNode> lex(String input) {
+    public RuleResult<CompoundNode> lex(String input) {
         final var children = divide(input).stream().map(segment -> this.rule.lex(segment).findValue()).flatMap(Optional::stream).toList();
         return OptionalLexResult.of(new PropertiesCompoundNode().nodeLists().with(this.key, children));
     }
 
     @Override
-    public LexResult<String> generate(CompoundNode node) {
+    public RuleResult<String> generate(CompoundNode node) {
         return OptionalLexResult.of(node.nodeLists().find(this.key).orElse(new ArrayList<>()).stream().map(source -> this.rule.generate(source).findValue()).flatMap(Optional::stream).collect(Collectors.joining()));
     }
 }
