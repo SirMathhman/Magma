@@ -35,7 +35,7 @@ InfixRule --> GenerationResult
 InfixRule --> LexResult
 InfixRule --> OptionalLexResult
 class DivideRule
-DivideRule --> CompoundNode
+DivideRule --> NodeListNode
 DivideRule --> PropertiesCompoundNode
 DivideRule --> DivideState
 DivideRule --> MutableDivideState

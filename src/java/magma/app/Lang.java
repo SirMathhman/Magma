@@ -11,11 +11,11 @@ import magma.app.rule.SuffixRule;
 
 public class Lang {
     public static Rule<CompoundNode> createJavaRootRule() {
-        return new DivideRule("children", createImportRule());
+        return new DivideRule<CompoundNode>("children", createImportRule());
     }
 
     public static Rule<CompoundNode> createPlantRootRule() {
-        return new DivideRule("children", createDependencyRule());
+        return new DivideRule<CompoundNode>("children", createDependencyRule());
     }
 
     static Rule<CompoundNode> createImportRule() {

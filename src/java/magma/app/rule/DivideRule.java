@@ -1,6 +1,6 @@
 package magma.app.rule;
 
-import magma.app.node.CompoundNode;
+import magma.app.node.core.NodeListNode;
 import magma.app.node.properties.PropertiesCompoundNode;
 import magma.app.rule.divide.DivideState;
 import magma.app.rule.divide.MutableDivideState;
@@ -14,7 +14,15 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-public record DivideRule(String key, Rule<CompoundNode> rule) implements Rule<CompoundNode> {
+public final class DivideRule<N extends NodeListNode<N>> implements Rule<N> {
+    private final String key;
+    private final Rule<N> rule;
+
+    public DivideRule(String key, Rule<N> rule) {
+        this.key = key;
+        this.rule = rule;
+    }
+
     public static List<String> divide(String input) {
         DivideState current = new MutableDivideState();
         for (var i = 0; i < input.length(); i++) {
@@ -35,12 +43,11 @@ public record DivideRule(String key, Rule<CompoundNode> rule) implements Rule<Co
     @Override
     public LexResult lex(String input) {
         final var children = divide(input).stream().map(segment -> this.rule.lex(segment).findValue()).flatMap(Optional::stream).toList();
-        CompoundNode node = new PropertiesCompoundNode();
-        return OptionalLexResult.of(node.nodeLists().with(this.key, children));
+        return OptionalLexResult.of((new PropertiesCompoundNode()).nodeLists().with(this.key, children));
     }
 
     @Override
-    public GenerationResult generate(CompoundNode node) {
-        return OptionalGenerationResult.of(node.nodeLists().find(this.key()).orElse(new ArrayList<>()).stream().map(source -> this.rule().generate(source).findValue()).flatMap(Optional::stream).collect(Collectors.joining()));
+    public GenerationResult generate(N node) {
+        return OptionalGenerationResult.of(node.nodeLists().find(this.key).orElse(new ArrayList<>()).stream().map(source -> this.rule.generate(source).findValue()).flatMap(Optional::stream).collect(Collectors.joining()));
     }
 }
