@@ -9,14 +9,16 @@ PropertiesCompoundNode --> CompletingProperties
 PropertiesCompoundNode --> Properties
 PropertiesCompoundNode --> Completer
 PropertiesCompoundNode --> List
+class FoldingDivider
+FoldingDivider --> DivideState
+FoldingDivider --> MutableDivideState
+FoldingDivider --> List
 class Transformer
 Transformer --> CompoundNode
 Transformer --> PropertiesCompoundNode
 Transformer --> ArrayList
-class MutableDivideState
-MutableDivideState --> ArrayList
-MutableDivideState --> List
-MutableDivideState --> Stream
+class DivideState
+DivideState --> Stream
 class InfixRule
 InfixRule --> Rule
 InfixRule --> MergingNode
@@ -26,16 +28,12 @@ class NodeListRule
 NodeListRule --> Rule
 NodeListRule --> CompoundNode
 NodeListRule --> PropertiesCompoundNode
-NodeListRule --> DivideState
-NodeListRule --> MutableDivideState
+NodeListRule --> FoldingDivider
 NodeListRule --> RuleResult
 NodeListRule --> OptionalLexResult
 NodeListRule --> ArrayList
-NodeListRule --> List
 NodeListRule --> Optional
 NodeListRule --> Collectors
-class DivideState
-DivideState --> Stream
 class RuleResult
 RuleResult --> Optional
 RuleResult --> Function
@@ -66,6 +64,10 @@ class CompoundNode
 CompoundNode --> MergingNode
 CompoundNode --> NodeListNode
 CompoundNode --> StringNode
+class MutableDivideState
+MutableDivideState --> ArrayList
+MutableDivideState --> List
+MutableDivideState --> Stream
 class Lang
 Lang --> CompoundNode
 Lang --> NodeListRule
