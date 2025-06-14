@@ -3,10 +3,10 @@ package magma.app.compile.rule.result;
 import java.util.Optional;
 import java.util.function.Function;
 
-public interface RuleResult<T> {
-    RuleResult<T> flatMap(Function<T, RuleResult<T>> mapper);
+public interface RuleResult<N> {
+    RuleResult<N> flatMap(Function<N, RuleResult<N>> mapper);
 
-    <R> RuleResult<R> map(Function<T, R> mapper);
+    RuleResult<N> map(Function<N, N> mapper);
 
-    Optional<T> findValue();
+    Optional<N> findValue();
 }
