@@ -1,6 +1,6 @@
 package magma.app.node.core;
 
-import magma.app.node.properties.Properties;
+import magma.app.node.Properties;
 
 import java.util.List;
 

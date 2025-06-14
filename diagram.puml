@@ -5,7 +5,6 @@ class OptionalGenerationResult
 OptionalGenerationResult --> GenerationResult
 OptionalGenerationResult --> Optional
 OptionalGenerationResult --> Function
-class Completer
 class Lang
 Lang --> CompoundNode
 Lang --> DivideRule
@@ -25,6 +24,12 @@ InfixRule --> MergingNode
 InfixRule --> GenerationResult
 InfixRule --> LexResult
 InfixRule --> OptionalLexResult
+class CompletingProperties
+CompletingProperties --> Properties
+CompletingProperties --> HashMap
+CompletingProperties --> Map
+CompletingProperties --> Optional
+CompletingProperties --> Stream
 class DivideRule
 DivideRule --> NodeListNode
 DivideRule --> DivideState
@@ -44,6 +49,8 @@ GenerationResult --> Optional
 GenerationResult --> Function
 class DivideState
 DivideState --> Stream
+class Completer
+Completer --> Properties
 class StringNode
 StringNode --> Properties
 class Rule
@@ -55,6 +62,10 @@ LexResult --> Function
 class PropertiesCompoundNodeFactory
 PropertiesCompoundNodeFactory --> CompoundNode
 PropertiesCompoundNodeFactory --> PropertiesCompoundNode
+class Properties
+Properties --> Map
+Properties --> Optional
+Properties --> Stream
 class PrefixRule
 PrefixRule --> GenerationResult
 PrefixRule --> LexResult
@@ -75,7 +86,6 @@ StripRule --> GenerationResult
 StripRule --> LexResult
 class PropertiesCompoundNode
 PropertiesCompoundNode --> CompletingProperties
-PropertiesCompoundNode --> Properties
 PropertiesCompoundNode --> List
 class Main
 Main --> Lang
@@ -93,18 +103,9 @@ class CompoundNode
 CompoundNode --> MergingNode
 CompoundNode --> NodeListNode
 CompoundNode --> StringNode
-class CompletingProperties
-CompletingProperties --> HashMap
-CompletingProperties --> Map
-CompletingProperties --> Optional
-CompletingProperties --> Stream
 class NodeListNode
 NodeListNode --> Properties
 NodeListNode --> List
-class Properties
-Properties --> Map
-Properties --> Optional
-Properties --> Stream
 class OptionalLexResult
 OptionalLexResult --> LexResult
 OptionalLexResult --> Optional

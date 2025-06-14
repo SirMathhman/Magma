@@ -1,7 +1,6 @@
 package magma.app.node;
 
-import magma.app.node.properties.CompletingProperties;
-import magma.app.node.properties.Properties;
+import magma.app.node.complete.CompletingProperties;
 
 import java.util.List;
 

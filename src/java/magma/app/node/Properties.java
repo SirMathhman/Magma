@@ -1,4 +1,4 @@
-package magma.app.node.properties;
+package magma.app.node;
 
 import java.util.Map;
 import java.util.Optional;
