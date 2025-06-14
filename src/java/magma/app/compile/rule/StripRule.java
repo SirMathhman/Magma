@@ -1,16 +1,15 @@
 package magma.app.compile.rule;
 
 import magma.app.compile.Rule;
-import magma.app.compile.rule.result.RuleResult;
 
-public record StripRule<N>(Rule<N> rule) implements Rule<N> {
+public record StripRule<N, L, G>(Rule<N, L, G> rule) implements Rule<N, L, G> {
     @Override
-    public RuleResult<N> lex(String input) {
+    public L lex(String input) {
         return this.rule.lex(input.strip());
     }
 
     @Override
-    public RuleResult<String> generate(N node) {
+    public G generate(N node) {
         return this.rule.generate(node);
     }
 }

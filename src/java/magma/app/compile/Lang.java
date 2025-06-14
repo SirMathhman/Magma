@@ -7,24 +7,25 @@ import magma.app.compile.rule.PrefixRule;
 import magma.app.compile.rule.StringRule;
 import magma.app.compile.rule.StripRule;
 import magma.app.compile.rule.SuffixRule;
+import magma.app.compile.rule.result.RuleResult;
 
 public class Lang {
-    public static Rule<CompoundNode> createJavaRootRule() {
+    public static Rule<CompoundNode, RuleResult<CompoundNode>, RuleResult<String>> createJavaRootRule() {
         return new NodeListRule("children", createImportRule());
     }
 
-    public static Rule<CompoundNode> createPlantRootRule() {
+    public static Rule<CompoundNode, RuleResult<CompoundNode>, RuleResult<String>> createPlantRootRule() {
         return new NodeListRule("children", createDependencyRule());
     }
 
-    static Rule<CompoundNode> createImportRule() {
+    static Rule<CompoundNode, RuleResult<CompoundNode>, RuleResult<String>> createImportRule() {
         final var parent = new StringRule("parent");
         final var destination = new StringRule("destination");
         final var rule = new PrefixRule<>("import ", new SuffixRule<>(new InfixRule<>(parent, ".", destination), ";"));
         return new StripRule<>(rule);
     }
 
-    static Rule<CompoundNode> createDependencyRule() {
+    static Rule<CompoundNode, RuleResult<CompoundNode>, RuleResult<String>> createDependencyRule() {
         return new SuffixRule<>(new InfixRule<>(new StringRule("source"), " --> ", new StringRule("destination")), "\n");
     }
 }

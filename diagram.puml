@@ -35,7 +35,6 @@ RuleResult --> Optional
 RuleResult --> Function
 class StripRule
 StripRule --> Rule
-StripRule --> RuleResult
 class MergingNode
 class OptionalLexResult
 OptionalLexResult --> RuleResult
@@ -52,7 +51,6 @@ StringRule --> PropertiesCompoundNode
 StringRule --> RuleResult
 StringRule --> OptionalLexResult
 class Rule
-Rule --> RuleResult
 class Completer
 Completer --> Properties
 class PrefixRule
@@ -80,6 +78,7 @@ Lang --> PrefixRule
 Lang --> StringRule
 Lang --> StripRule
 Lang --> SuffixRule
+Lang --> RuleResult
 class Main
 Main --> Compiler
 Main --> IOException

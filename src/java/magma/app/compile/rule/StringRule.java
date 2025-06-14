@@ -6,7 +6,7 @@ import magma.app.compile.node.PropertiesCompoundNode;
 import magma.app.compile.rule.result.RuleResult;
 import magma.app.compile.rule.result.optional.OptionalLexResult;
 
-public final class StringRule implements Rule<CompoundNode> {
+public final class StringRule implements Rule<CompoundNode, RuleResult<CompoundNode>, RuleResult<String>> {
     private final String key;
 
     public StringRule(String key) {

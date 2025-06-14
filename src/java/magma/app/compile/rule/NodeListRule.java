@@ -13,11 +13,11 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-public final class NodeListRule implements Rule<CompoundNode> {
+public final class NodeListRule implements Rule<CompoundNode, RuleResult<CompoundNode>, RuleResult<String>> {
     private final String key;
-    private final Rule<CompoundNode> rule;
+    private final Rule<CompoundNode, RuleResult<CompoundNode>, RuleResult<String>> rule;
 
-    public NodeListRule(String key, Rule<CompoundNode> rule) {
+    public NodeListRule(String key, Rule<CompoundNode, RuleResult<CompoundNode>, RuleResult<String>> rule) {
         this.key = key;
         this.rule = rule;
     }
