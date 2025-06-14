@@ -6,7 +6,6 @@ import magma.app.compile.CompileError;
 import magma.app.compile.error.Context;
 import magma.app.compile.error.context.NodeContext;
 import magma.app.compile.error.context.StringContext;
-import magma.app.compile.node.CompoundNode;
 import magma.app.compile.node.DisplayableNode;
 import magma.app.compile.rule.result.optional.ResultRuleResult;
 

@@ -1,9 +1,10 @@
 package magma.app.compile.rule.or;
 
+import magma.api.result.Err;
+import magma.api.result.Ok;
+import magma.api.result.Result;
 import magma.app.compile.CompileError;
 import magma.app.compile.error.Context;
-import magma.app.compile.rule.result.ResultRuleResults;
-import magma.app.compile.rule.result.RuleResult;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -29,7 +30,7 @@ public record SimpleOrState<Value>(Optional<Value> maybeValue, List<CompileError
     }
 
     @Override
-    public RuleResult<Value> toResult(Context context) {
-        return this.maybeValue.map(ResultRuleResults::createFromValue).orElseGet(() -> ResultRuleResults.createFromErrorWithContext("No valid combination present", context));
+    public Result<Value, CompileError> toResult(Context context) {
+        return this.maybeValue.<Result<Value, CompileError>>map(Ok::new).orElseGet(() -> new Err<>(new CompileError("No valid combination present", context)));
     }
 }

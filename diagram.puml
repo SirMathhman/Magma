@@ -52,9 +52,9 @@ EmptyRule --> ResultRuleResults
 EmptyRule --> RuleResult
 class DisplayableNode
 class OrState
+OrState --> Result
 OrState --> CompileError
 OrState --> Context
-OrState --> RuleResult
 class MergingNode
 class StringRule
 StringRule --> Rule
@@ -102,6 +102,7 @@ OrRule --> DisplayableNode
 OrRule --> OrState
 OrRule --> SimpleOrState
 OrRule --> RuleResult
+OrRule --> ResultRuleResult
 OrRule --> List
 OrRule --> Function
 class ThrowableError
@@ -123,7 +124,6 @@ ResultRuleResults --> CompileError
 ResultRuleResults --> Context
 ResultRuleResults --> NodeContext
 ResultRuleResults --> StringContext
-ResultRuleResults --> CompoundNode
 ResultRuleResults --> DisplayableNode
 ResultRuleResults --> ResultRuleResult
 class Tuple
@@ -180,10 +180,11 @@ ResultRuleResult --> CompileError
 ResultRuleResult --> RuleResult
 ResultRuleResult --> Function
 class SimpleOrState
+SimpleOrState --> Err
+SimpleOrState --> Ok
+SimpleOrState --> Result
 SimpleOrState --> CompileError
 SimpleOrState --> Context
-SimpleOrState --> ResultRuleResults
-SimpleOrState --> RuleResult
 SimpleOrState --> ArrayList
 SimpleOrState --> List
 SimpleOrState --> Optional
