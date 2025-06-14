@@ -1,17 +1,15 @@
 package magma.app.rule.result;
 
-import magma.app.node.CompoundNode;
-
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
-public interface LexResult {
-    LexResult flatMap(Function<CompoundNode, LexResult> mapper);
+public interface LexResult<N> {
+    LexResult<N> flatMap(Function<N, LexResult<N>> mapper);
 
-    LexResult merge(Supplier<LexResult> other);
+    LexResult<N> merge(Supplier<LexResult<N>> other);
 
-    LexResult mapValue(Function<CompoundNode, CompoundNode> mapper);
+    LexResult<N> mapValue(Function<N, N> mapper);
 
-    Optional<CompoundNode> findValue();
+    Optional<N> findValue();
 }

@@ -5,7 +5,7 @@ import magma.app.rule.result.LexResult;
 
 public record StripRule<N>(Rule<N> rule) implements Rule<N> {
     @Override
-    public LexResult lex(String input) {
+    public LexResult<N> lex(String input) {
         return this.rule.lex(input.strip());
     }
 

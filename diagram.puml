@@ -1,42 +1,36 @@
 @startuml
 skinparam linetype ortho
+class NodeFactory
 class OptionalGenerationResult
 OptionalGenerationResult --> GenerationResult
 OptionalGenerationResult --> Optional
 OptionalGenerationResult --> Function
-class StringNode
-StringNode --> Properties
-class Rule
-Rule --> GenerationResult
-Rule --> LexResult
 class Completer
 class Lang
 Lang --> CompoundNode
 Lang --> DivideRule
 Lang --> InfixRule
 Lang --> PrefixRule
+Lang --> PropertiesCompoundNodeFactory
 Lang --> Rule
 Lang --> StringRule
 Lang --> StripRule
 Lang --> SuffixRule
-class LexResult
-LexResult --> CompoundNode
-LexResult --> Optional
-LexResult --> Function
-LexResult --> Supplier
 class MutableDivideState
 MutableDivideState --> ArrayList
 MutableDivideState --> List
 MutableDivideState --> Stream
 class InfixRule
+InfixRule --> MergingNode
 InfixRule --> GenerationResult
 InfixRule --> LexResult
 InfixRule --> OptionalLexResult
 class DivideRule
+DivideRule --> MergingNode
 DivideRule --> NodeListNode
-DivideRule --> PropertiesCompoundNode
 DivideRule --> DivideState
 DivideRule --> MutableDivideState
+DivideRule --> NodeFactory
 DivideRule --> GenerationResult
 DivideRule --> LexResult
 DivideRule --> OptionalGenerationResult
@@ -45,25 +39,42 @@ DivideRule --> ArrayList
 DivideRule --> List
 DivideRule --> Optional
 DivideRule --> Collectors
+class MergingNode
+class GenerationResult
+GenerationResult --> Optional
+GenerationResult --> Function
+class DivideState
+DivideState --> Stream
+class StringNode
+StringNode --> Properties
+class Rule
+Rule --> GenerationResult
+Rule --> LexResult
+class LexResult
+LexResult --> Optional
+LexResult --> Function
+LexResult --> Supplier
+class PropertiesCompoundNodeFactory
+PropertiesCompoundNodeFactory --> CompoundNode
+PropertiesCompoundNodeFactory --> PropertiesCompoundNode
 class PrefixRule
+PrefixRule --> MergingNode
 PrefixRule --> GenerationResult
 PrefixRule --> LexResult
 PrefixRule --> OptionalLexResult
 class StringRule
+StringRule --> MergingNode
 StringRule --> StringNode
-StringRule --> PropertiesCompoundNode
+StringRule --> NodeFactory
 StringRule --> GenerationResult
 StringRule --> LexResult
 StringRule --> OptionalGenerationResult
 StringRule --> OptionalLexResult
 class SuffixRule
+SuffixRule --> MergingNode
 SuffixRule --> GenerationResult
 SuffixRule --> LexResult
 SuffixRule --> OptionalLexResult
-class MergingNode
-class GenerationResult
-GenerationResult --> Optional
-GenerationResult --> Function
 class StripRule
 StripRule --> GenerationResult
 StripRule --> LexResult
@@ -92,8 +103,6 @@ CompletingProperties --> HashMap
 CompletingProperties --> Map
 CompletingProperties --> Optional
 CompletingProperties --> Stream
-class DivideState
-DivideState --> Stream
 class NodeListNode
 NodeListNode --> Properties
 NodeListNode --> List
@@ -102,7 +111,7 @@ Properties --> Map
 Properties --> Optional
 Properties --> Stream
 class OptionalLexResult
-OptionalLexResult --> CompoundNode
+OptionalLexResult --> MergingNode
 OptionalLexResult --> LexResult
 OptionalLexResult --> Optional
 OptionalLexResult --> Function

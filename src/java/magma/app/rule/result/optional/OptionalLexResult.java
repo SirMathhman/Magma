@@ -1,38 +1,38 @@
 package magma.app.rule.result.optional;
 
-import magma.app.node.CompoundNode;
+import magma.app.node.core.MergingNode;
 import magma.app.rule.result.LexResult;
 
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
-public record OptionalLexResult(Optional<CompoundNode> maybeValue) implements LexResult {
-    public static LexResult createEmpty() {
-        return new OptionalLexResult(Optional.empty());
+public record OptionalLexResult<N extends MergingNode<N>>(Optional<N> maybeValue) implements LexResult<N> {
+    public static <N extends MergingNode<N>> LexResult<N> createEmpty() {
+        return new OptionalLexResult<>(Optional.<N>empty());
     }
 
-    public static LexResult of(CompoundNode value) {
-        return new OptionalLexResult(Optional.of(value));
-    }
-
-    @Override
-    public LexResult flatMap(Function<CompoundNode, LexResult> mapper) {
-        return new OptionalLexResult(this.maybeValue.flatMap(mapNode -> mapper.apply(mapNode).findValue()));
+    public static <N extends MergingNode<N>> LexResult<N> of(N value) {
+        return new OptionalLexResult<>(Optional.of(value));
     }
 
     @Override
-    public LexResult merge(Supplier<LexResult> other) {
+    public LexResult<N> flatMap(Function<N, LexResult<N>> mapper) {
+        return new OptionalLexResult<N>(this.maybeValue.flatMap(mapNode -> mapper.apply(mapNode).findValue()));
+    }
+
+    @Override
+    public LexResult<N> merge(Supplier<LexResult<N>> other) {
         return this.flatMap(value -> other.get().mapValue(value::merge));
     }
 
     @Override
-    public LexResult mapValue(Function<CompoundNode, CompoundNode> mapper) {
-        return new OptionalLexResult(this.maybeValue.map(mapper));
+    public LexResult<N> mapValue(Function<N, N> mapper) {
+        return new OptionalLexResult<N>(this.maybeValue.map(mapper));
     }
 
     @Override
-    public Optional<CompoundNode> findValue() {
+    public Optional<N> findValue() {
         return this.maybeValue;
     }
 }
