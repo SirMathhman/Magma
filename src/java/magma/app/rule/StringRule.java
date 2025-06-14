@@ -8,7 +8,7 @@ import magma.app.rule.result.MergingLexResult;
 import magma.app.rule.result.optional.OptionalGenerationResult;
 import magma.app.rule.result.optional.OptionalLexResult;
 
-public final class StringRule<N extends MergingNode<N> & StringNode<N>> implements Rule<N> {
+public final class StringRule<N extends MergingNode<N> & StringNode<N>> implements Rule<N, MergingLexResult<N>> {
     private final String key;
     private final NodeFactory<N> factory;
 
