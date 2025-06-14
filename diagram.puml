@@ -2,14 +2,24 @@
 skinparam linetype ortho
 class SuffixRule
 SuffixRule --> MapNode
+SuffixRule --> GenerationResult
+class GenerationResult
+GenerationResult --> Optional
+GenerationResult --> Function
 class Rule
 Rule --> MapNode
+Rule --> GenerationResult
+class LexResult
+LexResult --> MapNode
+LexResult --> Optional
+LexResult --> Function
 class InfixRule
 InfixRule --> MapNode
+InfixRule --> GenerationResult
 class Main
-Main --> MapNode
 Main --> State
 Main --> InfixRule
+Main --> LexResult
 Main --> Rule
 Main --> StringRule
 Main --> SuffixRule
@@ -21,15 +31,15 @@ Main --> List
 Main --> Optional
 Main --> Set
 Main --> Collectors
-class RuleResult
-RuleResult --> Optional
-RuleResult --> Function
 class MapNode
 MapNode --> HashMap
 MapNode --> Map
 MapNode --> Optional
 class StringRule
 StringRule --> MapNode
+StringRule --> GenerationResult
+StringRule --> LexResult
+StringRule --> Optional
 class State
 State --> ArrayList
 State --> List

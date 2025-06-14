@@ -1,8 +1,8 @@
 package magma;
 
-import magma.app.MapNode;
 import magma.app.State;
 import magma.app.rule.InfixRule;
+import magma.app.rule.result.LexResult;
 import magma.app.rule.Rule;
 import magma.app.rule.StringRule;
 import magma.app.rule.SuffixRule;
@@ -63,12 +63,17 @@ public class Main {
         if (!substring.endsWith(";")) return Optional.empty();
 
         final var substring1 = substring.substring(0, substring.length() - ";".length());
-        final var index = substring1.lastIndexOf(".");
-        if (index < 0) return Optional.empty();
 
-        final var destination = substring1.substring(index + ".".length());
-        final var node = new MapNode().withString("source", source).withString("destination", destination);
-        return createDependencyRule().generate(node).value();
+        return getString(substring1, ".").value().flatMap(node -> {
+            return createDependencyRule().generate(node.withString("source", source)).value();
+        });
+    }
+
+    private static LexResult getString(String input, String infix) {
+        final var index = input.lastIndexOf(infix);
+        if (index < 0) return new LexResult(Optional.empty());
+
+        return new StringRule("destination").lex(input.substring(index + infix.length()));
     }
 
     private static Rule createDependencyRule() {
