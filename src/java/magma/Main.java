@@ -1,8 +1,8 @@
 package magma;
 
 import magma.app.Lang;
-import magma.app.node.properties.PropertiesNode;
-import magma.app.node.Node;
+import magma.app.node.properties.PropertiesCompoundNode;
+import magma.app.node.CompoundNode;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -48,10 +48,10 @@ public class Main {
         }).orElse("");
     }
 
-    private static Node transform(String name, Node root) {
+    private static CompoundNode transform(String name, CompoundNode root) {
         final var children = root.nodeLists().find("children").orElse(new ArrayList<>());
-        Node node = new PropertiesNode();
-        List<Node> values = children.stream().map(child -> child.strings().with("source", name)).toList();
+        CompoundNode node = new PropertiesCompoundNode();
+        List<CompoundNode> values = children.stream().map(child -> child.strings().with("source", name)).toList();
         return node.nodeLists().with("children", values);
     }
 }

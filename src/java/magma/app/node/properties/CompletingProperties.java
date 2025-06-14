@@ -1,13 +1,13 @@
 package magma.app.node.properties;
 
-import magma.app.node.Node;
+import magma.app.node.CompoundNode;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Stream;
 
-class CompletingProperties<T> implements Properties<Node, T> {
+class CompletingProperties<T> implements Properties<CompoundNode, T> {
     private final Map<String, T> map;
     private final Completer<T> completer;
 
@@ -21,7 +21,7 @@ class CompletingProperties<T> implements Properties<Node, T> {
     }
 
     @Override
-    public Node with(String key, T value) {
+    public CompoundNode with(String key, T value) {
         this.map.put(key, value);
         return this.completer.complete(this);
     }
@@ -40,12 +40,12 @@ class CompletingProperties<T> implements Properties<Node, T> {
     }
 
     @Override
-    public Properties<Node, T> merge(Properties<Node, T> other) {
-        return other.stream().<Properties<Node, T>>reduce(this, (current, entry) -> current.add(entry.getKey(), entry.getValue()), (_, next) -> next);
+    public Properties<CompoundNode, T> merge(Properties<CompoundNode, T> other) {
+        return other.stream().<Properties<CompoundNode, T>>reduce(this, (current, entry) -> current.add(entry.getKey(), entry.getValue()), (_, next) -> next);
     }
 
     @Override
-    public Properties<Node, T> add(String key, T value) {
+    public Properties<CompoundNode, T> add(String key, T value) {
         this.map.put(key, value);
         return this;
     }

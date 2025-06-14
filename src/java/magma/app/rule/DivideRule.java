@@ -1,7 +1,7 @@
 package magma.app.rule;
 
-import magma.app.node.properties.PropertiesNode;
-import magma.app.node.Node;
+import magma.app.node.properties.PropertiesCompoundNode;
+import magma.app.node.CompoundNode;
 import magma.app.rule.divide.DivideState;
 import magma.app.rule.divide.MutableDivideState;
 import magma.app.rule.result.GenerationResult;
@@ -35,12 +35,12 @@ public record DivideRule(String key, Rule rule) implements Rule {
     @Override
     public LexResult lex(String input) {
         final var children = divide(input).stream().map(segment -> this.rule.lex(segment).findValue()).flatMap(Optional::stream).toList();
-        Node node = new PropertiesNode();
+        CompoundNode node = new PropertiesCompoundNode();
         return OptionalLexResult.of(node.nodeLists().with(this.key, children));
     }
 
     @Override
-    public GenerationResult generate(Node node) {
+    public GenerationResult generate(CompoundNode node) {
         return OptionalGenerationResult.of(node.nodeLists().find(this.key()).orElse(new ArrayList<>()).stream().map(source -> this.rule().generate(source).findValue()).flatMap(Optional::stream).collect(Collectors.joining()));
     }
 }

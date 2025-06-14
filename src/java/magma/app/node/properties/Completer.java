@@ -1,7 +1,7 @@
 package magma.app.node.properties;
 
-import magma.app.node.Node;
+import magma.app.node.CompoundNode;
 
 public interface Completer<T> {
-    Node complete(Properties<Node, T> properties);
+    CompoundNode complete(Properties<CompoundNode, T> properties);
 }

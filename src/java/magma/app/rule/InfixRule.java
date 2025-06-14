@@ -1,6 +1,6 @@
 package magma.app.rule;
 
-import magma.app.node.Node;
+import magma.app.node.CompoundNode;
 import magma.app.rule.result.GenerationResult;
 import magma.app.rule.result.LexResult;
 import magma.app.rule.result.optional.OptionalLexResult;
@@ -18,7 +18,7 @@ public record InfixRule(Rule leftRule, String infix, Rule rightRule) implements 
     }
 
     @Override
-    public GenerationResult generate(Node node) {
+    public GenerationResult generate(CompoundNode node) {
         final var leftResult = this.leftRule.generate(node);
         final var rightResult = this.rightRule.generate(node);
 
