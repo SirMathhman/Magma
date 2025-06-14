@@ -5,6 +5,9 @@ import magma.app.compile.node.properties.Properties;
 import magma.app.compile.node.properties.complete.Completer;
 
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public final class PropertiesCompoundNode implements CompoundNode {
     private class StringCompleter implements Completer<String, CompoundNode> {
@@ -59,6 +62,13 @@ public final class PropertiesCompoundNode implements CompoundNode {
 
     @Override
     public String display() {
-        return this.toString();
+        final var joinedStrings = this.strings.stream().map(this::formatEntry);
+        final var joinedNodeLists = this.nodeLists.stream().map(entry -> "\n\t" + entry.getKey() + ": " + entry.getValue());
+        final var joined = Stream.concat(joinedStrings, joinedNodeLists).collect(Collectors.joining(", "));
+        return "{" + joined + "\n}";
+    }
+
+    private String formatEntry(Map.Entry<String, String> entry) {
+        return "\n\t" + entry.getKey() + ": \"" + entry.getValue() + "\"";
     }
 }
