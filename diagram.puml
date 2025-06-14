@@ -4,7 +4,6 @@ class SuffixRule
 SuffixRule --> Node
 SuffixRule --> GenerationResult
 SuffixRule --> LexResult
-SuffixRule --> Optional
 class Node
 Node --> Map
 Node --> Optional

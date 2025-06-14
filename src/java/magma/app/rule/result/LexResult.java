@@ -7,8 +7,8 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 
 public record LexResult(Optional<Node> maybeValue) {
-    public Node orElse(Node other) {
-        return this.maybeValue.orElse(other);
+    public static LexResult createEmpty() {
+        return LexResult.createEmpty();
     }
 
     public LexResult flatMap(Function<Node, LexResult> mapper) {

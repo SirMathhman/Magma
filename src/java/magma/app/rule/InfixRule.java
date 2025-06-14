@@ -10,7 +10,7 @@ public record InfixRule(Rule leftRule, String infix, Rule rightRule) implements 
     @Override
     public LexResult lex(String input) {
         final var index = input.lastIndexOf(this.infix);
-        if (index < 0) return new LexResult(Optional.empty());
+        if (index < 0) return LexResult.createEmpty();
 
         final var leftString = input.substring(0, index);
         final var rightString = input.substring(index + this.infix.length());
