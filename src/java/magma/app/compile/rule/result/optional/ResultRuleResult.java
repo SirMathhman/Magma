@@ -14,7 +14,7 @@ public record ResultRuleResult<Value>(Result<Value, CompileError> maybeValue) im
     }
 
     @Override
-    public RuleResult<Value> mapValue(Function<Value, Value> mapper) {
+    public <Return> RuleResult<Return> mapValue(Function<Value, Return> mapper) {
         return new ResultRuleResult<>(this.maybeValue.mapValue(mapper));
     }
 

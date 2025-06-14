@@ -9,7 +9,7 @@ import java.util.function.Function;
 public interface RuleResult<Node> {
     <Return> RuleResult<Return> flatMap(Function<Node, RuleResult<Return>> mapper);
 
-    RuleResult<Node> mapValue(Function<Node, Node> mapper);
+    <Return> RuleResult<Return> mapValue(Function<Node, Return> mapper);
 
     Optional<Node> findAsOption();
 
