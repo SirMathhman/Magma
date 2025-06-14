@@ -1,6 +1,7 @@
 @startuml
 skinparam linetype ortho
 class Main
+Main --> MapNode
 Main --> State
 Main --> IOException
 Main --> Files
@@ -10,6 +11,10 @@ Main --> List
 Main --> Optional
 Main --> Set
 Main --> Collectors
+class MapNode
+MapNode --> HashMap
+MapNode --> Map
+MapNode --> Optional
 class State
 State --> ArrayList
 State --> List

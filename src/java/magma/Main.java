@@ -1,5 +1,6 @@
 package magma;
 
+import magma.app.MapNode;
 import magma.app.State;
 
 import java.io.IOException;
@@ -41,14 +42,16 @@ public class Main {
 
     private static String compileInput(String input, String name) {
         final var segments = divide(input);
-
         final var output = new StringBuilder();
-        for (var segment : segments) output.append(compileImport(name, segment).orElse(""));
-
+        for (var segment : segments) output.append(compileRootSegment(name, segment));
         return output.toString();
     }
 
-    private static Optional<String> compileImport(String name, String input) {
+    private static String compileRootSegment(String name, String input) {
+        return compileImport(name, input).orElse("");
+    }
+
+    private static Optional<String> compileImport(String source, String input) {
         final var stripped = input.strip();
         if (!stripped.startsWith("import ")) return Optional.empty();
 
@@ -59,8 +62,12 @@ public class Main {
         final var index = substring1.lastIndexOf(".");
         if (index < 0) return Optional.empty();
 
-        final var substring2 = substring1.substring(index + 1);
-        return Optional.of(name + " --> " + substring2 + "\n");
+        final var destination = substring1.substring(index + ".".length());
+        return generate(new MapNode().withString("source", source).withString("destination", destination));
+    }
+
+    private static Optional<String> generate(MapNode mapNode) {
+        return Optional.of(mapNode.findString("source").orElse("") + " --> " + mapNode.findString("destination").orElse("") + "\n");
     }
 
     private static List<String> divide(String input) {
