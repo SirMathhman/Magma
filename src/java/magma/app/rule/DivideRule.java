@@ -1,8 +1,9 @@
 package magma.app.rule;
 
-import magma.app.State;
 import magma.app.node.MapNode;
 import magma.app.node.Node;
+import magma.app.rule.divide.DivideState;
+import magma.app.rule.divide.MutableDivideState;
 import magma.app.rule.result.GenerationResult;
 import magma.app.rule.result.LexResult;
 
@@ -13,16 +14,16 @@ import java.util.stream.Collectors;
 
 public record DivideRule(String key, Rule rule) implements Rule {
     public static List<String> divide(String input) {
-        var current = new State();
+        DivideState current = new MutableDivideState();
         for (var i = 0; i < input.length(); i++) {
             final var c = input.charAt(i);
             current = fold(current, c);
         }
 
-        return current.advance().segments();
+        return current.advance().segments().toList();
     }
 
-    private static State fold(State state, char c) {
+    private static DivideState fold(DivideState state, char c) {
         final var appended = state.append(c);
         if (c == ';')
             return appended.advance();

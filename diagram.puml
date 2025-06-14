@@ -14,14 +14,19 @@ LexResult --> Node
 LexResult --> Optional
 LexResult --> Function
 LexResult --> Supplier
+class MutableDivideState
+MutableDivideState --> ArrayList
+MutableDivideState --> List
+MutableDivideState --> Stream
 class InfixRule
 InfixRule --> Node
 InfixRule --> GenerationResult
 InfixRule --> LexResult
 class DivideRule
-DivideRule --> State
 DivideRule --> MapNode
 DivideRule --> Node
+DivideRule --> DivideState
+DivideRule --> MutableDivideState
 DivideRule --> GenerationResult
 DivideRule --> LexResult
 DivideRule --> ArrayList
@@ -71,7 +76,6 @@ MapNode --> List
 MapNode --> Map
 MapNode --> Optional
 MapNode --> Stream
-class State
-State --> ArrayList
-State --> List
+class DivideState
+DivideState --> Stream
 @enduml
