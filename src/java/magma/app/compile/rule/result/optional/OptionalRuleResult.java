@@ -4,6 +4,7 @@ import magma.api.result.Err;
 import magma.api.result.Ok;
 import magma.api.result.Result;
 import magma.app.compile.CompileError;
+import magma.app.compile.error.context.StringContext;
 import magma.app.compile.rule.result.RuleResult;
 
 import java.util.Optional;
@@ -11,7 +12,7 @@ import java.util.function.Function;
 
 public record OptionalRuleResult<Node>(Result<Node, CompileError> maybeValue) implements RuleResult<Node> {
     public static <N> RuleResult<N> createEmpty() {
-        return new OptionalRuleResult<>(new Err<>(new CompileError()));
+        return new OptionalRuleResult<>(new Err<>(new CompileError("", new StringContext(""))));
     }
 
     public static <N> RuleResult<N> createFrom(N value) {

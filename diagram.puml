@@ -8,11 +8,14 @@ class FoldingDivider
 FoldingDivider --> DivideState
 FoldingDivider --> MutableDivideState
 FoldingDivider --> List
-class CompileError
 class Transformer
 Transformer --> CompoundNode
 Transformer --> PropertiesCompoundNode
 Transformer --> ArrayList
+class CompileError
+CompileError --> Context
+class StringContext
+StringContext --> Context
 class Result
 Result --> Tuple
 Result --> Optional
@@ -20,11 +23,6 @@ Result --> Function
 Result --> Supplier
 class DivideState
 DivideState --> Stream
-class InfixRule
-InfixRule --> Rule
-InfixRule --> MergingNode
-InfixRule --> RuleResult
-InfixRule --> OptionalRuleResult
 class NodeListRule
 NodeListRule --> Rule
 NodeListRule --> CompoundNode
@@ -35,6 +33,11 @@ NodeListRule --> OptionalRuleResult
 NodeListRule --> ArrayList
 NodeListRule --> Optional
 NodeListRule --> Collectors
+class InfixRule
+InfixRule --> Rule
+InfixRule --> MergingNode
+InfixRule --> RuleResult
+InfixRule --> OptionalRuleResult
 class RuleResult
 RuleResult --> Result
 RuleResult --> CompileError
@@ -52,15 +55,15 @@ class PrefixRule
 PrefixRule --> Rule
 PrefixRule --> RuleResult
 PrefixRule --> OptionalRuleResult
+class CompoundNode
+CompoundNode --> MergingNode
+CompoundNode --> NodeListNode
+CompoundNode --> StringNode
 class Err
 Err --> Tuple
 Err --> Optional
 Err --> Function
 Err --> Supplier
-class CompoundNode
-CompoundNode --> MergingNode
-CompoundNode --> NodeListNode
-CompoundNode --> StringNode
 class MutableDivideState
 MutableDivideState --> ArrayList
 MutableDivideState --> List
@@ -103,6 +106,7 @@ OptionalRuleResult --> Err
 OptionalRuleResult --> Ok
 OptionalRuleResult --> Result
 OptionalRuleResult --> CompileError
+OptionalRuleResult --> StringContext
 OptionalRuleResult --> RuleResult
 OptionalRuleResult --> Optional
 OptionalRuleResult --> Function
@@ -118,6 +122,7 @@ Main --> Paths
 Main --> Optional
 Main --> Set
 Main --> Collectors
+class Context
 class SuffixRule
 SuffixRule --> Rule
 SuffixRule --> RuleResult
