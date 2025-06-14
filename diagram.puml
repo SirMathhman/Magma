@@ -63,7 +63,6 @@ PropertiesCompoundNodeFactory --> PropertiesCompoundNode
 class PrefixRule
 PrefixRule --> MergingNode
 PrefixRule --> GenerationResult
-PrefixRule --> LexResult
 PrefixRule --> MergingLexResult
 PrefixRule --> OptionalLexResult
 class StringRule
