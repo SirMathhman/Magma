@@ -1,6 +1,5 @@
 package magma.app.rule;
 
-import magma.app.node.core.MergingNode;
 import magma.app.node.core.NodeListNode;
 import magma.app.rule.divide.DivideState;
 import magma.app.rule.divide.MutableDivideState;
@@ -15,7 +14,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-public final class DivideRule<N extends MergingNode<N> & NodeListNode<N>> implements Rule<N> {
+public final class DivideRule<N extends NodeListNode<N>> implements Rule<N> {
     private final String key;
     private final Rule<N> rule;
     private final NodeFactory<N> factory;

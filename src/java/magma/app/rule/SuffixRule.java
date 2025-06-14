@@ -1,11 +1,10 @@
 package magma.app.rule;
 
-import magma.app.node.core.MergingNode;
 import magma.app.rule.result.GenerationResult;
 import magma.app.rule.result.LexResult;
 import magma.app.rule.result.optional.OptionalLexResult;
 
-public record SuffixRule<N extends MergingNode<N>>(Rule<N> rule, String suffix) implements Rule<N> {
+public record SuffixRule<N>(Rule<N> rule, String suffix) implements Rule<N> {
     @Override
     public LexResult<N> lex(String input) {
         if (!input.endsWith(this.suffix))

@@ -11,11 +11,11 @@ Lang --> CompoundNode
 Lang --> DivideRule
 Lang --> InfixRule
 Lang --> PrefixRule
-Lang --> PropertiesCompoundNodeFactory
 Lang --> Rule
 Lang --> StringRule
 Lang --> StripRule
 Lang --> SuffixRule
+Lang --> PropertiesCompoundNodeFactory
 class MutableDivideState
 MutableDivideState --> ArrayList
 MutableDivideState --> List
@@ -26,7 +26,6 @@ InfixRule --> GenerationResult
 InfixRule --> LexResult
 InfixRule --> OptionalLexResult
 class DivideRule
-DivideRule --> MergingNode
 DivideRule --> NodeListNode
 DivideRule --> DivideState
 DivideRule --> MutableDivideState
@@ -53,17 +52,14 @@ Rule --> LexResult
 class LexResult
 LexResult --> Optional
 LexResult --> Function
-LexResult --> Supplier
 class PropertiesCompoundNodeFactory
 PropertiesCompoundNodeFactory --> CompoundNode
 PropertiesCompoundNodeFactory --> PropertiesCompoundNode
 class PrefixRule
-PrefixRule --> MergingNode
 PrefixRule --> GenerationResult
 PrefixRule --> LexResult
 PrefixRule --> OptionalLexResult
 class StringRule
-StringRule --> MergingNode
 StringRule --> StringNode
 StringRule --> NodeFactory
 StringRule --> GenerationResult
@@ -71,7 +67,6 @@ StringRule --> LexResult
 StringRule --> OptionalGenerationResult
 StringRule --> OptionalLexResult
 class SuffixRule
-SuffixRule --> MergingNode
 SuffixRule --> GenerationResult
 SuffixRule --> LexResult
 SuffixRule --> OptionalLexResult
@@ -111,9 +106,7 @@ Properties --> Map
 Properties --> Optional
 Properties --> Stream
 class OptionalLexResult
-OptionalLexResult --> MergingNode
 OptionalLexResult --> LexResult
 OptionalLexResult --> Optional
 OptionalLexResult --> Function
-OptionalLexResult --> Supplier
 @enduml
