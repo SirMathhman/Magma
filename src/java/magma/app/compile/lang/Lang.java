@@ -2,10 +2,9 @@ package magma.app.compile.lang;
 
 import magma.app.compile.Rule;
 import magma.app.compile.node.CompoundNode;
-import magma.app.compile.rule.NodeListRule;
 import magma.app.compile.rule.InfixRule;
 import magma.app.compile.rule.ModifyingRule;
-import magma.app.compile.rule.modify.PrefixModifier;
+import magma.app.compile.rule.NodeListRule;
 import magma.app.compile.rule.StringRule;
 import magma.app.compile.rule.StripRule;
 import magma.app.compile.rule.SuffixRule;
@@ -23,7 +22,7 @@ public class Lang {
     static Rule<CompoundNode, RuleResult<CompoundNode>, RuleResult<String>> createImportRule() {
         final var parent = new StringRule("parent");
         final var destination = new StringRule("destination");
-        final var rule = new ModifyingRule<>(new PrefixModifier("import "), new SuffixRule<>(new InfixRule<>(parent, ".", destination), ";"));
+        final var rule = ModifyingRule.Prefix("import ", new SuffixRule<>(new InfixRule<>(parent, ".", destination), ";"));
         return new StripRule<>(rule);
     }
 

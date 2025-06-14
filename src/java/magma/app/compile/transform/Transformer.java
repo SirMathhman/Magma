@@ -1,4 +1,4 @@
-package magma.app.compile;
+package magma.app.compile.transform;
 
 import magma.app.compile.node.CompoundNode;
 import magma.app.compile.node.PropertiesCompoundNode;

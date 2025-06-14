@@ -9,10 +9,6 @@ FoldingDivider --> DivideState
 FoldingDivider --> MutableDivideState
 FoldingDivider --> List
 class Error
-class Transformer
-Transformer --> CompoundNode
-Transformer --> PropertiesCompoundNode
-Transformer --> ArrayList
 class CompileError
 CompileError --> Error
 CompileError --> Context
@@ -48,6 +44,7 @@ RuleResult --> Function
 class Compiler
 Compiler --> Lang
 Compiler --> RuleResult
+Compiler --> Transformer
 class MergingNode
 class StringRule
 StringRule --> Rule
@@ -59,7 +56,9 @@ class Rule
 class ModifyingRule
 ModifyingRule --> Err
 ModifyingRule --> Rule
+ModifyingRule --> CompoundNode
 ModifyingRule --> Modifier
+ModifyingRule --> PrefixModifier
 ModifyingRule --> RuleResult
 ModifyingRule --> ResultRuleResult
 class CompoundNode
@@ -78,6 +77,12 @@ MutableDivideState --> Stream
 class NodeContext
 NodeContext --> Context
 NodeContext --> CompoundNode
+class ThrowableError
+ThrowableError --> Error
+ThrowableError --> PrintWriter
+ThrowableError --> StringWriter
+class ApplicationError
+ApplicationError --> Error
 class CompletingProperties
 CompletingProperties --> Completer
 CompletingProperties --> HashMap
@@ -96,8 +101,6 @@ ResultRuleResults --> ResultRuleResult
 class Tuple
 class StringNode
 StringNode --> Properties
-class ApplicationError
-ApplicationError --> Error
 class PropertiesCompoundNode
 PropertiesCompoundNode --> CompletingProperties
 PropertiesCompoundNode --> Properties
@@ -108,6 +111,8 @@ Application --> Err
 Application --> Ok
 Application --> Result
 Application --> Compiler
+Application --> ApplicationError
+Application --> ThrowableError
 Application --> IOException
 Application --> Files
 Application --> Path
@@ -121,15 +126,15 @@ PrefixModifier --> StringContext
 PrefixModifier --> Optional
 class StripRule
 StripRule --> Rule
-class ThrowableError
-ThrowableError --> Error
-ThrowableError --> PrintWriter
-ThrowableError --> StringWriter
 class Completer
 Completer --> Properties
 class NodeListNode
 NodeListNode --> Properties
 NodeListNode --> List
+class Transformer
+Transformer --> CompoundNode
+Transformer --> PropertiesCompoundNode
+Transformer --> ArrayList
 class Modifier
 Modifier --> CompileError
 Modifier --> Optional
@@ -144,10 +149,9 @@ Main --> Application
 class Lang
 Lang --> Rule
 Lang --> CompoundNode
-Lang --> NodeListRule
 Lang --> InfixRule
 Lang --> ModifyingRule
-Lang --> PrefixModifier
+Lang --> NodeListRule
 Lang --> StringRule
 Lang --> StripRule
 Lang --> SuffixRule

@@ -4,6 +4,8 @@ import magma.api.result.Err;
 import magma.api.result.Ok;
 import magma.api.result.Result;
 import magma.app.compile.Compiler;
+import magma.app.error.ApplicationError;
+import magma.app.error.ThrowableError;
 
 import java.io.IOException;
 import java.nio.file.Files;

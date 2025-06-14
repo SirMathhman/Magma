@@ -2,6 +2,7 @@ package magma.app.compile;
 
 import magma.app.compile.lang.Lang;
 import magma.app.compile.rule.result.RuleResult;
+import magma.app.compile.transform.Transformer;
 
 public class Compiler {
     public static RuleResult<String> compile(String input, String name) {
