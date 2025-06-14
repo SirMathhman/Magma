@@ -10,6 +10,7 @@ class Main
 Main --> MapNode
 Main --> State
 Main --> InfixRule
+Main --> Rule
 Main --> StringRule
 Main --> SuffixRule
 Main --> IOException

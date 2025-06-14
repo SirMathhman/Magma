@@ -3,6 +3,7 @@ package magma;
 import magma.app.MapNode;
 import magma.app.State;
 import magma.app.rule.InfixRule;
+import magma.app.rule.Rule;
 import magma.app.rule.StringRule;
 import magma.app.rule.SuffixRule;
 
@@ -67,7 +68,11 @@ public class Main {
 
         final var destination = substring1.substring(index + ".".length());
         final var node = new MapNode().withString("source", source).withString("destination", destination);
-        return new SuffixRule(new InfixRule(new StringRule("source"), " --> ", new StringRule("destination")), "\n").generate(node).value();
+        return createDependencyRule().generate(node).value();
+    }
+
+    private static Rule createDependencyRule() {
+        return new SuffixRule(new InfixRule(new StringRule("source"), " --> ", new StringRule("destination")), "\n");
     }
 
     private static List<String> divide(String input) {
