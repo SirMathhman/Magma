@@ -29,7 +29,7 @@ NodeListRule --> CompoundNode
 NodeListRule --> PropertiesCompoundNode
 NodeListRule --> FoldingDivider
 NodeListRule --> RuleResult
-NodeListRule --> OptionalRuleResult
+NodeListRule --> ResultRuleResult
 NodeListRule --> ArrayList
 NodeListRule --> Optional
 NodeListRule --> Collectors
@@ -37,7 +37,7 @@ class InfixRule
 InfixRule --> Rule
 InfixRule --> MergingNode
 InfixRule --> RuleResult
-InfixRule --> OptionalRuleResult
+InfixRule --> ResultRuleResult
 class RuleResult
 RuleResult --> Result
 RuleResult --> CompileError
@@ -49,12 +49,12 @@ StringRule --> Rule
 StringRule --> CompoundNode
 StringRule --> PropertiesCompoundNode
 StringRule --> RuleResult
-StringRule --> OptionalRuleResult
+StringRule --> ResultRuleResult
 class Rule
 class PrefixRule
 PrefixRule --> Rule
 PrefixRule --> RuleResult
-PrefixRule --> OptionalRuleResult
+PrefixRule --> ResultRuleResult
 class CompoundNode
 CompoundNode --> MergingNode
 CompoundNode --> NodeListNode
@@ -68,6 +68,9 @@ class MutableDivideState
 MutableDivideState --> ArrayList
 MutableDivideState --> List
 MutableDivideState --> Stream
+class NodeContext
+NodeContext --> Context
+NodeContext --> CompoundNode
 class Lang
 Lang --> CompoundNode
 Lang --> NodeListRule
@@ -101,16 +104,18 @@ Completer --> Properties
 class NodeListNode
 NodeListNode --> Properties
 NodeListNode --> List
-class OptionalRuleResult
-OptionalRuleResult --> Err
-OptionalRuleResult --> Ok
-OptionalRuleResult --> Result
-OptionalRuleResult --> CompileError
-OptionalRuleResult --> Context
-OptionalRuleResult --> StringContext
-OptionalRuleResult --> RuleResult
-OptionalRuleResult --> Optional
-OptionalRuleResult --> Function
+class ResultRuleResult
+ResultRuleResult --> Err
+ResultRuleResult --> Ok
+ResultRuleResult --> Result
+ResultRuleResult --> CompileError
+ResultRuleResult --> Context
+ResultRuleResult --> NodeContext
+ResultRuleResult --> StringContext
+ResultRuleResult --> CompoundNode
+ResultRuleResult --> RuleResult
+ResultRuleResult --> Optional
+ResultRuleResult --> Function
 class Main
 Main --> Err
 Main --> Ok
@@ -127,7 +132,7 @@ class Context
 class SuffixRule
 SuffixRule --> Rule
 SuffixRule --> RuleResult
-SuffixRule --> OptionalRuleResult
+SuffixRule --> ResultRuleResult
 class Ok
 Ok --> Tuple
 Ok --> Optional

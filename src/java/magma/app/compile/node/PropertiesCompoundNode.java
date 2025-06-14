@@ -56,4 +56,9 @@ public final class PropertiesCompoundNode implements CompoundNode {
     public Properties<CompoundNode, List<CompoundNode>> nodeLists() {
         return this.nodeLists;
     }
+
+    @Override
+    public String display() {
+        return this.toString();
+    }
 }
