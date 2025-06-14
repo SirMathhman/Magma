@@ -10,10 +10,10 @@ InfixRule --> GenerationResult
 InfixRule --> LexResult
 InfixRule --> OptionalLexResult
 class NodeListRule
-NodeListRule --> NodeListNode
+NodeListRule --> CompoundNode
+NodeListRule --> PropertiesCompoundNode
 NodeListRule --> DivideState
 NodeListRule --> MutableDivideState
-NodeListRule --> NodeFactory
 NodeListRule --> GenerationResult
 NodeListRule --> LexResult
 NodeListRule --> OptionalGenerationResult
@@ -66,8 +66,6 @@ Lang --> Rule
 Lang --> StringRule
 Lang --> StripRule
 Lang --> SuffixRule
-Lang --> PropertiesCompoundNodeFactory
-class NodeFactory
 class Compiler
 Compiler --> Lang
 Compiler --> Transformer
@@ -92,9 +90,6 @@ GenerationResult --> Function
 class StripRule
 StripRule --> GenerationResult
 StripRule --> LexResult
-class PropertiesCompoundNodeFactory
-PropertiesCompoundNodeFactory --> CompoundNode
-PropertiesCompoundNodeFactory --> PropertiesCompoundNode
 class NodeListNode
 NodeListNode --> Properties
 NodeListNode --> List

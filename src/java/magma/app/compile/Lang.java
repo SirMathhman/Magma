@@ -8,15 +8,14 @@ import magma.app.compile.rule.Rule;
 import magma.app.compile.rule.StringRule;
 import magma.app.compile.rule.StripRule;
 import magma.app.compile.rule.SuffixRule;
-import magma.app.compile.rule.factory.PropertiesCompoundNodeFactory;
 
 public class Lang {
     public static Rule<CompoundNode> createJavaRootRule() {
-        return new NodeListRule<>("children", createImportRule(), new PropertiesCompoundNodeFactory());
+        return new NodeListRule("children", createImportRule());
     }
 
     public static Rule<CompoundNode> createPlantRootRule() {
-        return new NodeListRule<>("children", createDependencyRule(), new PropertiesCompoundNodeFactory());
+        return new NodeListRule("children", createDependencyRule());
     }
 
     static Rule<CompoundNode> createImportRule() {
