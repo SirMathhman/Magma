@@ -28,10 +28,7 @@ public class Main {
 
     private static String compileSources(Set<Path> sources) throws IOException {
         final var output1 = new StringBuilder();
-        for (var source : sources) {
-            output1.append(compileSource(source));
-        }
-
+        for (var source : sources) output1.append(compileSource(source));
         return "@startuml\nskinparam linetype ortho\n" + output1 + "@enduml";
     }
 
