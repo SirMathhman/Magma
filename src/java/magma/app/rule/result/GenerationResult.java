@@ -12,11 +12,7 @@ public record GenerationResult(Optional<String> value) {
         return new GenerationResult(this.value.flatMap(inner -> mapper.apply(inner).value));
     }
 
-    public String orElse(String other) {
-        return this.value.orElse(other);
-    }
-
-    public GenerationResult map(Function<? super String, String> mapper) {
+    public GenerationResult map(Function<String, String> mapper) {
         return new GenerationResult(this.value.map(mapper));
     }
 }
