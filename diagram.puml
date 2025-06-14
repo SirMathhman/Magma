@@ -8,12 +8,14 @@ class FoldingDivider
 FoldingDivider --> DivideState
 FoldingDivider --> MutableDivideState
 FoldingDivider --> List
+class CompileError
 class Transformer
 Transformer --> CompoundNode
 Transformer --> PropertiesCompoundNode
 Transformer --> ArrayList
 class Result
 Result --> Tuple
+Result --> Optional
 Result --> Function
 Result --> Supplier
 class DivideState
@@ -34,6 +36,8 @@ NodeListRule --> ArrayList
 NodeListRule --> Optional
 NodeListRule --> Collectors
 class RuleResult
+RuleResult --> Result
+RuleResult --> CompileError
 RuleResult --> Optional
 RuleResult --> Function
 class MergingNode
@@ -50,6 +54,7 @@ PrefixRule --> RuleResult
 PrefixRule --> OptionalRuleResult
 class Err
 Err --> Tuple
+Err --> Optional
 Err --> Function
 Err --> Supplier
 class CompoundNode
@@ -94,6 +99,10 @@ class NodeListNode
 NodeListNode --> Properties
 NodeListNode --> List
 class OptionalRuleResult
+OptionalRuleResult --> Err
+OptionalRuleResult --> Ok
+OptionalRuleResult --> Result
+OptionalRuleResult --> CompileError
 OptionalRuleResult --> RuleResult
 OptionalRuleResult --> Optional
 OptionalRuleResult --> Function
@@ -115,6 +124,7 @@ SuffixRule --> RuleResult
 SuffixRule --> OptionalRuleResult
 class Ok
 Ok --> Tuple
+Ok --> Optional
 Ok --> Function
 Ok --> Supplier
 @enduml

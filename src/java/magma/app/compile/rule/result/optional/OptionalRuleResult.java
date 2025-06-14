@@ -1,31 +1,40 @@
 package magma.app.compile.rule.result.optional;
 
+import magma.api.result.Err;
+import magma.api.result.Ok;
+import magma.api.result.Result;
+import magma.app.compile.CompileError;
 import magma.app.compile.rule.result.RuleResult;
 
 import java.util.Optional;
 import java.util.function.Function;
 
-public record OptionalRuleResult<N>(Optional<N> maybeValue) implements RuleResult<N> {
+public record OptionalRuleResult<Node>(Result<Node, CompileError> maybeValue) implements RuleResult<Node> {
     public static <N> RuleResult<N> createEmpty() {
-        return new OptionalRuleResult<>(Optional.empty());
+        return new OptionalRuleResult<>(new Err<>(new CompileError()));
     }
 
-    public static <N> RuleResult<N> of(N value) {
-        return new OptionalRuleResult<>(Optional.of(value));
-    }
-
-    @Override
-    public RuleResult<N> flatMap(Function<N, RuleResult<N>> mapper) {
-        return new OptionalRuleResult<>(this.maybeValue.flatMap(mapNode -> mapper.apply(mapNode).findValue()));
+    public static <N> RuleResult<N> createFrom(N value) {
+        return new OptionalRuleResult<>(new Ok<>(value));
     }
 
     @Override
-    public RuleResult<N> map(Function<N, N> mapper) {
-        return new OptionalRuleResult<>(this.maybeValue.map(mapper));
+    public RuleResult<Node> flatMap(Function<Node, RuleResult<Node>> mapper) {
+        return new OptionalRuleResult<>(this.maybeValue.flatMapValue(mapNode -> mapper.apply(mapNode).findAsResult()));
     }
 
     @Override
-    public Optional<N> findValue() {
+    public RuleResult<Node> map(Function<Node, Node> mapper) {
+        return new OptionalRuleResult<>(this.maybeValue.mapValue(mapper));
+    }
+
+    @Override
+    public Optional<Node> findAsOption() {
+        return this.maybeValue.findValue();
+    }
+
+    @Override
+    public Result<Node, CompileError> findAsResult() {
         return this.maybeValue;
     }
 }

@@ -15,11 +15,11 @@ public final class StringRule implements Rule<CompoundNode, RuleResult<CompoundN
 
     @Override
     public RuleResult<CompoundNode> lex(String input) {
-        return OptionalRuleResult.of(new PropertiesCompoundNode().strings().with(this.key, input));
+        return OptionalRuleResult.createFrom(new PropertiesCompoundNode().strings().with(this.key, input));
     }
 
     @Override
     public RuleResult<String> generate(CompoundNode node) {
-        return new OptionalRuleResult<>(node.strings().find(this.key));
+        return node.strings().find(this.key).map(OptionalRuleResult::createFrom).orElseGet(OptionalRuleResult::createEmpty);
     }
 }
