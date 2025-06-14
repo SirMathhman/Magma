@@ -1,15 +1,17 @@
 @startuml
 skinparam linetype ortho
-class InfixRule
+class SuffixRule
+SuffixRule --> MapNode
 class Rule
-class RuleResult
-RuleResult --> Optional
-RuleResult --> Function
+Rule --> MapNode
+class InfixRule
+InfixRule --> MapNode
 class Main
-Main --> InfixRule
 Main --> MapNode
 Main --> State
+Main --> InfixRule
 Main --> StringRule
+Main --> SuffixRule
 Main --> IOException
 Main --> Files
 Main --> Path
@@ -18,11 +20,15 @@ Main --> List
 Main --> Optional
 Main --> Set
 Main --> Collectors
-class StringRule
+class RuleResult
+RuleResult --> Optional
+RuleResult --> Function
 class MapNode
 MapNode --> HashMap
 MapNode --> Map
 MapNode --> Optional
+class StringRule
+StringRule --> MapNode
 class State
 State --> ArrayList
 State --> List
