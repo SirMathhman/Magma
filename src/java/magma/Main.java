@@ -8,7 +8,7 @@ public class Main {
     public static void main(String[] args) {
         try {
             final var target = Paths.get(".", "diagram.puml");
-            Files.createFile(target);
+            Files.writeString(target, "@startuml\n@enduml");
         } catch (IOException e) {
             //noinspection CallToPrintStackTrace
             e.printStackTrace();
