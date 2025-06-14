@@ -56,9 +56,9 @@ class Rule
 class ModifyingRule
 ModifyingRule --> Err
 ModifyingRule --> Rule
-ModifyingRule --> CompoundNode
 ModifyingRule --> Modifier
 ModifyingRule --> PrefixModifier
+ModifyingRule --> SuffixModifier
 ModifyingRule --> RuleResult
 ModifyingRule --> ResultRuleResult
 class CompoundNode
@@ -120,6 +120,10 @@ Application --> Paths
 Application --> Optional
 Application --> Set
 Application --> Collectors
+class SuffixModifier
+SuffixModifier --> CompileError
+SuffixModifier --> StringContext
+SuffixModifier --> Optional
 class PrefixModifier
 PrefixModifier --> CompileError
 PrefixModifier --> StringContext
@@ -154,13 +158,8 @@ Lang --> ModifyingRule
 Lang --> NodeListRule
 Lang --> StringRule
 Lang --> StripRule
-Lang --> SuffixRule
 Lang --> RuleResult
 class Context
-class SuffixRule
-SuffixRule --> Rule
-SuffixRule --> RuleResult
-SuffixRule --> ResultRuleResults
 class Ok
 Ok --> Tuple
 Ok --> Optional

@@ -7,7 +7,6 @@ import magma.app.compile.rule.ModifyingRule;
 import magma.app.compile.rule.NodeListRule;
 import magma.app.compile.rule.StringRule;
 import magma.app.compile.rule.StripRule;
-import magma.app.compile.rule.SuffixRule;
 import magma.app.compile.rule.result.RuleResult;
 
 public class Lang {
@@ -22,11 +21,11 @@ public class Lang {
     static Rule<CompoundNode, RuleResult<CompoundNode>, RuleResult<String>> createImportRule() {
         final var parent = new StringRule("parent");
         final var destination = new StringRule("destination");
-        final var rule = ModifyingRule.Prefix("import ", new SuffixRule<>(new InfixRule<>(parent, ".", destination), ";"));
+        final var rule = ModifyingRule.Prefix("import ", ModifyingRule.createSuffixRule(new InfixRule<>(parent, ".", destination), ";"));
         return new StripRule<>(rule);
     }
 
     static Rule<CompoundNode, RuleResult<CompoundNode>, RuleResult<String>> createDependencyRule() {
-        return new SuffixRule<>(new InfixRule<>(new StringRule("source"), " --> ", new StringRule("destination")), "\n");
+        return ModifyingRule.createSuffixRule(new InfixRule<>(new StringRule("source"), " --> ", new StringRule("destination")), "\n");
     }
 }

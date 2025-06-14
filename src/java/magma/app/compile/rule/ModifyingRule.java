@@ -2,9 +2,9 @@ package magma.app.compile.rule;
 
 import magma.api.result.Err;
 import magma.app.compile.Rule;
-import magma.app.compile.node.CompoundNode;
 import magma.app.compile.rule.modify.Modifier;
 import magma.app.compile.rule.modify.PrefixModifier;
+import magma.app.compile.rule.modify.SuffixModifier;
 import magma.app.compile.rule.result.RuleResult;
 import magma.app.compile.rule.result.optional.ResultRuleResult;
 
@@ -17,8 +17,12 @@ public final class ModifyingRule<N> implements Rule<N, RuleResult<N>, RuleResult
         this.rule = rule;
     }
 
-    public static ModifyingRule<CompoundNode> Prefix(String anImport, SuffixRule<CompoundNode> rule) {
+    public static <Node> ModifyingRule<Node> Prefix(String anImport, Rule<Node, RuleResult<Node>, RuleResult<String>> rule) {
         return new ModifyingRule<>(new PrefixModifier(anImport), rule);
+    }
+
+    public static <Node> Rule<Node, RuleResult<Node>, RuleResult<String>> createSuffixRule(Rule<Node, RuleResult<Node>, RuleResult<String>> rule, String suffix) {
+        return new ModifyingRule<Node>(new SuffixModifier(suffix), rule);
     }
 
     @Override
