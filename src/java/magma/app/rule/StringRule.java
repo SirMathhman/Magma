@@ -1,6 +1,7 @@
 package magma.app.rule;
 
-import magma.app.MapNode;
+import magma.app.node.MapNode;
+import magma.app.node.Node;
 import magma.app.rule.result.GenerationResult;
 import magma.app.rule.result.LexResult;
 
@@ -12,7 +13,7 @@ public record StringRule(String key) implements Rule {
     }
 
     @Override
-    public GenerationResult generate(MapNode mapNode) {
-        return new GenerationResult(mapNode.findString(this.key));
+    public GenerationResult generate(Node node) {
+        return new GenerationResult(node.findString(this.key));
     }
 }

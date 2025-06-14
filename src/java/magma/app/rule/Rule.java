@@ -1,8 +1,8 @@
 package magma.app.rule;
 
-import magma.app.MapNode;
+import magma.app.node.Node;
 import magma.app.rule.result.GenerationResult;
 
 public interface Rule {
-    GenerationResult generate(MapNode mapNode);
+    GenerationResult generate(Node node);
 }

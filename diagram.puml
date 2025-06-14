@@ -1,20 +1,22 @@
 @startuml
 skinparam linetype ortho
 class SuffixRule
-SuffixRule --> MapNode
+SuffixRule --> Node
 SuffixRule --> GenerationResult
+class Node
+Node --> Optional
 class GenerationResult
 GenerationResult --> Optional
 GenerationResult --> Function
 class Rule
-Rule --> MapNode
+Rule --> Node
 Rule --> GenerationResult
 class LexResult
-LexResult --> MapNode
+LexResult --> Node
 LexResult --> Optional
 LexResult --> Function
 class InfixRule
-InfixRule --> MapNode
+InfixRule --> Node
 InfixRule --> GenerationResult
 class Main
 Main --> State
@@ -37,6 +39,7 @@ MapNode --> Map
 MapNode --> Optional
 class StringRule
 StringRule --> MapNode
+StringRule --> Node
 StringRule --> GenerationResult
 StringRule --> LexResult
 StringRule --> Optional
