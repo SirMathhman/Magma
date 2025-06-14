@@ -4,6 +4,9 @@ class OptionalGenerationResult
 OptionalGenerationResult --> GenerationResult
 OptionalGenerationResult --> Optional
 OptionalGenerationResult --> Function
+class StringNode
+StringNode --> CompoundNode
+StringNode --> Properties
 class Rule
 Rule --> CompoundNode
 Rule --> GenerationResult
@@ -32,8 +35,6 @@ InfixRule --> CompoundNode
 InfixRule --> GenerationResult
 InfixRule --> LexResult
 InfixRule --> OptionalLexResult
-class StringNode
-StringNode --> Properties
 class DivideRule
 DivideRule --> PropertiesCompoundNode
 DivideRule --> CompoundNode
@@ -59,21 +60,19 @@ StringRule --> GenerationResult
 StringRule --> OptionalGenerationResult
 StringRule --> LexResult
 StringRule --> OptionalLexResult
-class NodeListNode
-NodeListNode --> Properties
-NodeListNode --> List
 class SuffixRule
 SuffixRule --> CompoundNode
 SuffixRule --> GenerationResult
 SuffixRule --> LexResult
 SuffixRule --> OptionalLexResult
+class MergingNode
+MergingNode --> CompoundNode
 class GenerationResult
 GenerationResult --> Optional
 GenerationResult --> Function
 class PropertiesCompoundNode
 PropertiesCompoundNode --> CompoundNode
 PropertiesCompoundNode --> List
-class MergingNode
 class StripRule
 StripRule --> CompoundNode
 StripRule --> GenerationResult
@@ -91,6 +90,9 @@ Main --> List
 Main --> Set
 Main --> Collectors
 class CompoundNode
+CompoundNode --> MergingNode
+CompoundNode --> NodeListNode
+CompoundNode --> StringNode
 class CompletingProperties
 CompletingProperties --> CompoundNode
 CompletingProperties --> HashMap
@@ -99,6 +101,10 @@ CompletingProperties --> Optional
 CompletingProperties --> Stream
 class DivideState
 DivideState --> Stream
+class NodeListNode
+NodeListNode --> CompoundNode
+NodeListNode --> Properties
+NodeListNode --> List
 class Properties
 Properties --> Map
 Properties --> Optional

@@ -1,5 +1,6 @@
-package magma.app.node;
+package magma.app.node.core;
 
+import magma.app.node.CompoundNode;
 import magma.app.node.properties.Properties;
 
 public interface StringNode {
