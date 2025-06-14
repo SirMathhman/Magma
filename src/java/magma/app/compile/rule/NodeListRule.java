@@ -5,7 +5,7 @@ import magma.app.compile.node.CompoundNode;
 import magma.app.compile.node.PropertiesCompoundNode;
 import magma.app.compile.rule.divide.FoldingDivider;
 import magma.app.compile.rule.result.RuleResult;
-import magma.app.compile.rule.result.optional.OptionalRuleResult;
+import magma.app.compile.rule.result.optional.OptionalLexResult;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -21,7 +21,7 @@ public final class NodeListRule implements Rule<CompoundNode, RuleResult<Compoun
 
     @Override
     public RuleResult<CompoundNode> lex(String input) {
-        return new FoldingDivider().divide(input).stream().map(this.rule::lex).reduce(OptionalRuleResult.of(new ArrayList<>()), this::fold, (_, next) -> next).map(children -> new PropertiesCompoundNode().nodeLists().with(this.key, children));
+        return new FoldingDivider().divide(input).stream().map(this.rule::lex).reduce(OptionalLexResult.of(new ArrayList<>()), this::fold, (_, next) -> next).map(children -> new PropertiesCompoundNode().nodeLists().with(this.key, children));
     }
 
     private RuleResult<List<CompoundNode>> fold(RuleResult<List<CompoundNode>> result0, RuleResult<CompoundNode> result) {
@@ -34,6 +34,6 @@ public final class NodeListRule implements Rule<CompoundNode, RuleResult<Compoun
     @Override
     public RuleResult<String> generate(CompoundNode node) {
         final var children = node.nodeLists().find(this.key).orElse(new ArrayList<>());
-        return children.stream().map(this.rule::generate).reduce(OptionalRuleResult.of(""), (current, next) -> current.flatMap(inner -> next.map(inner0 -> inner + inner0)), (_, next) -> next);
+        return children.stream().map(this.rule::generate).reduce(OptionalLexResult.of(""), (current, next) -> current.flatMap(inner -> next.map(inner0 -> inner + inner0)), (_, next) -> next);
     }
 }
