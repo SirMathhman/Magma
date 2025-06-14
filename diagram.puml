@@ -31,7 +31,7 @@ NodeListRule --> CompoundNode
 NodeListRule --> PropertiesCompoundNode
 NodeListRule --> FoldingDivider
 NodeListRule --> RuleResult
-NodeListRule --> ResultRuleResult
+NodeListRule --> ResultRuleResults
 NodeListRule --> ArrayList
 NodeListRule --> Optional
 NodeListRule --> Collectors
@@ -39,7 +39,7 @@ class InfixRule
 InfixRule --> Rule
 InfixRule --> MergingNode
 InfixRule --> RuleResult
-InfixRule --> ResultRuleResult
+InfixRule --> ResultRuleResults
 class RuleResult
 RuleResult --> Result
 RuleResult --> CompileError
@@ -54,12 +54,12 @@ StringRule --> Rule
 StringRule --> CompoundNode
 StringRule --> PropertiesCompoundNode
 StringRule --> RuleResult
-StringRule --> ResultRuleResult
+StringRule --> ResultRuleResults
 class Rule
 class PrefixRule
 PrefixRule --> Rule
 PrefixRule --> RuleResult
-PrefixRule --> ResultRuleResult
+PrefixRule --> ResultRuleResults
 class CompoundNode
 CompoundNode --> MergingNode
 CompoundNode --> NodeListNode
@@ -82,6 +82,15 @@ CompletingProperties --> HashMap
 CompletingProperties --> Map
 CompletingProperties --> Optional
 CompletingProperties --> Stream
+class ResultRuleResults
+ResultRuleResults --> Err
+ResultRuleResults --> Ok
+ResultRuleResults --> CompileError
+ResultRuleResults --> Context
+ResultRuleResults --> NodeContext
+ResultRuleResults --> StringContext
+ResultRuleResults --> CompoundNode
+ResultRuleResults --> ResultRuleResult
 class Tuple
 class StringNode
 StringNode --> Properties
@@ -116,14 +125,8 @@ class NodeListNode
 NodeListNode --> Properties
 NodeListNode --> List
 class ResultRuleResult
-ResultRuleResult --> Err
-ResultRuleResult --> Ok
 ResultRuleResult --> Result
 ResultRuleResult --> CompileError
-ResultRuleResult --> Context
-ResultRuleResult --> NodeContext
-ResultRuleResult --> StringContext
-ResultRuleResult --> CompoundNode
 ResultRuleResult --> RuleResult
 ResultRuleResult --> Optional
 ResultRuleResult --> Function
@@ -143,7 +146,7 @@ class Context
 class SuffixRule
 SuffixRule --> Rule
 SuffixRule --> RuleResult
-SuffixRule --> ResultRuleResult
+SuffixRule --> ResultRuleResults
 class Ok
 Ok --> Tuple
 Ok --> Optional
