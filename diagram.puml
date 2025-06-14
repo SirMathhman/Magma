@@ -26,9 +26,10 @@ NodeListRule --> Rule
 NodeListRule --> CompoundNode
 NodeListRule --> PropertiesCompoundNode
 NodeListRule --> FoldingDivider
-NodeListRule --> RuleResult
 NodeListRule --> ResultRuleResults
+NodeListRule --> RuleResult
 NodeListRule --> ArrayList
+NodeListRule --> List
 NodeListRule --> Optional
 NodeListRule --> Collectors
 class InfixRule
@@ -45,6 +46,15 @@ class Compiler
 Compiler --> Lang
 Compiler --> RuleResult
 Compiler --> Transformer
+class DisplayableNode
+class OrState
+OrState --> CompileError
+OrState --> Context
+OrState --> ResultRuleResults
+OrState --> RuleResult
+OrState --> ArrayList
+OrState --> List
+OrState --> Optional
 class MergingNode
 class StringRule
 StringRule --> Rule
@@ -76,7 +86,17 @@ MutableDivideState --> List
 MutableDivideState --> Stream
 class NodeContext
 NodeContext --> Context
-NodeContext --> CompoundNode
+NodeContext --> DisplayableNode
+class OrRule
+OrRule --> Rule
+OrRule --> Context
+OrRule --> NodeContext
+OrRule --> StringContext
+OrRule --> DisplayableNode
+OrRule --> OrState
+OrRule --> RuleResult
+OrRule --> List
+OrRule --> Function
 class ThrowableError
 ThrowableError --> Error
 ThrowableError --> PrintWriter
@@ -156,9 +176,11 @@ Lang --> CompoundNode
 Lang --> InfixRule
 Lang --> ModifyingRule
 Lang --> NodeListRule
+Lang --> OrRule
 Lang --> StringRule
 Lang --> StripRule
 Lang --> RuleResult
+Lang --> List
 class Context
 class Ok
 Ok --> Tuple
