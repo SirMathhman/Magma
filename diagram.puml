@@ -45,6 +45,9 @@ RuleResult --> Result
 RuleResult --> CompileError
 RuleResult --> Optional
 RuleResult --> Function
+class Compiler
+Compiler --> Lang
+Compiler --> RuleResult
 class MergingNode
 class StringRule
 StringRule --> Rule
@@ -73,25 +76,12 @@ MutableDivideState --> Stream
 class NodeContext
 NodeContext --> Context
 NodeContext --> CompoundNode
-class Lang
-Lang --> CompoundNode
-Lang --> NodeListRule
-Lang --> InfixRule
-Lang --> PrefixRule
-Lang --> StringRule
-Lang --> StripRule
-Lang --> SuffixRule
-Lang --> RuleResult
 class CompletingProperties
 CompletingProperties --> Completer
 CompletingProperties --> HashMap
 CompletingProperties --> Map
 CompletingProperties --> Optional
 CompletingProperties --> Stream
-class Compiler
-Compiler --> Lang
-Compiler --> Transformer
-Compiler --> RuleResult
 class Tuple
 class StringNode
 StringNode --> Properties
@@ -102,6 +92,18 @@ PropertiesCompoundNode --> CompletingProperties
 PropertiesCompoundNode --> Properties
 PropertiesCompoundNode --> Completer
 PropertiesCompoundNode --> List
+class Application
+Application --> Err
+Application --> Ok
+Application --> Result
+Application --> Compiler
+Application --> IOException
+Application --> Files
+Application --> Path
+Application --> Paths
+Application --> Optional
+Application --> Set
+Application --> Collectors
 class StripRule
 StripRule --> Rule
 class ThrowableError
@@ -126,19 +128,17 @@ ResultRuleResult --> RuleResult
 ResultRuleResult --> Optional
 ResultRuleResult --> Function
 class Main
-Main --> Err
-Main --> Ok
-Main --> Result
-Main --> ApplicationError
-Main --> Compiler
-Main --> ThrowableError
-Main --> IOException
-Main --> Files
-Main --> Path
-Main --> Paths
-Main --> Optional
-Main --> Set
-Main --> Collectors
+Main --> Application
+class Lang
+Lang --> Rule
+Lang --> CompoundNode
+Lang --> NodeListRule
+Lang --> InfixRule
+Lang --> PrefixRule
+Lang --> StringRule
+Lang --> StripRule
+Lang --> SuffixRule
+Lang --> RuleResult
 class Context
 class SuffixRule
 SuffixRule --> Rule

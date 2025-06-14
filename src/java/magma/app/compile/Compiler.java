@@ -1,7 +1,6 @@
-package magma.app;
+package magma.app.compile;
 
-import magma.app.compile.Lang;
-import magma.app.compile.Transformer;
+import magma.app.compile.lang.Lang;
 import magma.app.compile.rule.result.RuleResult;
 
 public class Compiler {

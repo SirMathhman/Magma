@@ -1,5 +1,6 @@
-package magma.app.compile;
+package magma.app.compile.lang;
 
+import magma.app.compile.Rule;
 import magma.app.compile.node.CompoundNode;
 import magma.app.compile.rule.NodeListRule;
 import magma.app.compile.rule.InfixRule;
