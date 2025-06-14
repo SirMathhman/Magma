@@ -6,7 +6,7 @@ import magma.app.rule.divide.DivideState;
 import magma.app.rule.divide.MutableDivideState;
 import magma.app.rule.factory.NodeFactory;
 import magma.app.rule.result.GenerationResult;
-import magma.app.rule.result.LexResult;
+import magma.app.rule.result.MergingLexResult;
 import magma.app.rule.result.optional.OptionalGenerationResult;
 import magma.app.rule.result.optional.OptionalLexResult;
 
@@ -44,7 +44,7 @@ public final class DivideRule<N extends MergingNode<N> & NodeListNode<N>> implem
     }
 
     @Override
-    public LexResult<N> lex(String input) {
+    public MergingLexResult<N> lex(String input) {
         final var children = divide(input).stream().map(segment -> this.rule.lex(segment).findValue()).flatMap(Optional::stream).toList();
         return OptionalLexResult.of(this.factory.create().nodeLists().with(this.key, children));
     }

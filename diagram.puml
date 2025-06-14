@@ -1,6 +1,8 @@
 @startuml
 skinparam linetype ortho
 class NodeFactory
+class MergingLexResult
+MergingLexResult --> Supplier
 class OptionalGenerationResult
 OptionalGenerationResult --> GenerationResult
 OptionalGenerationResult --> Optional
@@ -11,11 +13,11 @@ Lang --> CompoundNode
 Lang --> DivideRule
 Lang --> InfixRule
 Lang --> PrefixRule
-Lang --> PropertiesCompoundNodeFactory
 Lang --> Rule
 Lang --> StringRule
 Lang --> StripRule
 Lang --> SuffixRule
+Lang --> PropertiesCompoundNodeFactory
 class MutableDivideState
 MutableDivideState --> ArrayList
 MutableDivideState --> List
@@ -23,7 +25,7 @@ MutableDivideState --> Stream
 class InfixRule
 InfixRule --> MergingNode
 InfixRule --> GenerationResult
-InfixRule --> LexResult
+InfixRule --> MergingLexResult
 InfixRule --> OptionalLexResult
 class DivideRule
 DivideRule --> MergingNode
@@ -32,7 +34,7 @@ DivideRule --> DivideState
 DivideRule --> MutableDivideState
 DivideRule --> NodeFactory
 DivideRule --> GenerationResult
-DivideRule --> LexResult
+DivideRule --> MergingLexResult
 DivideRule --> OptionalGenerationResult
 DivideRule --> OptionalLexResult
 DivideRule --> ArrayList
@@ -49,35 +51,34 @@ class StringNode
 StringNode --> Properties
 class Rule
 Rule --> GenerationResult
-Rule --> LexResult
+Rule --> MergingLexResult
 class LexResult
 LexResult --> Optional
 LexResult --> Function
-LexResult --> Supplier
 class PropertiesCompoundNodeFactory
 PropertiesCompoundNodeFactory --> CompoundNode
 PropertiesCompoundNodeFactory --> PropertiesCompoundNode
 class PrefixRule
 PrefixRule --> MergingNode
 PrefixRule --> GenerationResult
-PrefixRule --> LexResult
+PrefixRule --> MergingLexResult
 PrefixRule --> OptionalLexResult
 class StringRule
 StringRule --> MergingNode
 StringRule --> StringNode
 StringRule --> NodeFactory
 StringRule --> GenerationResult
-StringRule --> LexResult
+StringRule --> MergingLexResult
 StringRule --> OptionalGenerationResult
 StringRule --> OptionalLexResult
 class SuffixRule
 SuffixRule --> MergingNode
 SuffixRule --> GenerationResult
-SuffixRule --> LexResult
+SuffixRule --> MergingLexResult
 SuffixRule --> OptionalLexResult
 class StripRule
 StripRule --> GenerationResult
-StripRule --> LexResult
+StripRule --> MergingLexResult
 class PropertiesCompoundNode
 PropertiesCompoundNode --> CompletingProperties
 PropertiesCompoundNode --> Properties
@@ -113,6 +114,7 @@ Properties --> Stream
 class OptionalLexResult
 OptionalLexResult --> MergingNode
 OptionalLexResult --> LexResult
+OptionalLexResult --> MergingLexResult
 OptionalLexResult --> Optional
 OptionalLexResult --> Function
 OptionalLexResult --> Supplier
