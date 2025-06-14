@@ -5,7 +5,6 @@ OptionalGenerationResult --> GenerationResult
 OptionalGenerationResult --> Optional
 OptionalGenerationResult --> Function
 class StringNode
-StringNode --> CompoundNode
 StringNode --> Properties
 class Rule
 Rule --> CompoundNode
@@ -36,13 +35,13 @@ InfixRule --> GenerationResult
 InfixRule --> LexResult
 InfixRule --> OptionalLexResult
 class DivideRule
-DivideRule --> PropertiesCompoundNode
 DivideRule --> CompoundNode
+DivideRule --> PropertiesCompoundNode
 DivideRule --> DivideState
 DivideRule --> MutableDivideState
 DivideRule --> GenerationResult
-DivideRule --> OptionalGenerationResult
 DivideRule --> LexResult
+DivideRule --> OptionalGenerationResult
 DivideRule --> OptionalLexResult
 DivideRule --> ArrayList
 DivideRule --> List
@@ -66,7 +65,6 @@ SuffixRule --> GenerationResult
 SuffixRule --> LexResult
 SuffixRule --> OptionalLexResult
 class MergingNode
-MergingNode --> CompoundNode
 class GenerationResult
 GenerationResult --> Optional
 GenerationResult --> Function
@@ -102,7 +100,6 @@ CompletingProperties --> Stream
 class DivideState
 DivideState --> Stream
 class NodeListNode
-NodeListNode --> CompoundNode
 NodeListNode --> Properties
 NodeListNode --> List
 class Properties
