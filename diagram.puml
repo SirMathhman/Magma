@@ -24,7 +24,6 @@ class InfixRule
 InfixRule --> Node
 InfixRule --> GenerationResult
 InfixRule --> LexResult
-InfixRule --> Optional
 class Main
 Main --> State
 Main --> InfixRule
@@ -49,7 +48,6 @@ StringRule --> MapNode
 StringRule --> Node
 StringRule --> GenerationResult
 StringRule --> LexResult
-StringRule --> Optional
 class State
 State --> ArrayList
 State --> List

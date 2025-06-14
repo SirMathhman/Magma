@@ -8,7 +8,11 @@ import java.util.function.Supplier;
 
 public record LexResult(Optional<Node> maybeValue) {
     public static LexResult createEmpty() {
-        return LexResult.createEmpty();
+        return new LexResult(Optional.empty());
+    }
+
+    public static LexResult of(Node value) {
+        return new LexResult(Optional.of(value));
     }
 
     public LexResult flatMap(Function<Node, LexResult> mapper) {

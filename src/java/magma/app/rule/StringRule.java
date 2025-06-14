@@ -5,12 +5,10 @@ import magma.app.node.Node;
 import magma.app.rule.result.GenerationResult;
 import magma.app.rule.result.LexResult;
 
-import java.util.Optional;
-
 public record StringRule(String key) implements Rule {
     @Override
     public LexResult lex(String input) {
-        return new LexResult(Optional.of(new MapNode().withString(this.key, input)));
+        return LexResult.of(new MapNode().withString(this.key, input));
     }
 
     @Override

@@ -4,8 +4,6 @@ import magma.app.node.Node;
 import magma.app.rule.result.GenerationResult;
 import magma.app.rule.result.LexResult;
 
-import java.util.Optional;
-
 public record InfixRule(Rule leftRule, String infix, Rule rightRule) implements Rule {
     @Override
     public LexResult lex(String input) {
@@ -25,5 +23,4 @@ public record InfixRule(Rule leftRule, String infix, Rule rightRule) implements 
 
         return leftResult.flatMap(leftValue -> rightResult.map(rightValue -> leftValue + this.infix + rightValue));
     }
-
 }
