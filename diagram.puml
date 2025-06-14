@@ -56,10 +56,12 @@ StringRule --> PropertiesCompoundNode
 StringRule --> RuleResult
 StringRule --> ResultRuleResults
 class Rule
-class PrefixRule
-PrefixRule --> Rule
-PrefixRule --> RuleResult
-PrefixRule --> ResultRuleResults
+class ModifyingRule
+ModifyingRule --> Err
+ModifyingRule --> Rule
+ModifyingRule --> Modifier
+ModifyingRule --> RuleResult
+ModifyingRule --> ResultRuleResult
 class CompoundNode
 CompoundNode --> MergingNode
 CompoundNode --> NodeListNode
@@ -113,6 +115,10 @@ Application --> Paths
 Application --> Optional
 Application --> Set
 Application --> Collectors
+class PrefixModifier
+PrefixModifier --> CompileError
+PrefixModifier --> StringContext
+PrefixModifier --> Optional
 class StripRule
 StripRule --> Rule
 class ThrowableError
@@ -124,6 +130,9 @@ Completer --> Properties
 class NodeListNode
 NodeListNode --> Properties
 NodeListNode --> List
+class Modifier
+Modifier --> CompileError
+Modifier --> Optional
 class ResultRuleResult
 ResultRuleResult --> Result
 ResultRuleResult --> CompileError
@@ -137,7 +146,8 @@ Lang --> Rule
 Lang --> CompoundNode
 Lang --> NodeListRule
 Lang --> InfixRule
-Lang --> PrefixRule
+Lang --> ModifyingRule
+Lang --> PrefixModifier
 Lang --> StringRule
 Lang --> StripRule
 Lang --> SuffixRule

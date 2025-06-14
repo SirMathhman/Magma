@@ -14,7 +14,7 @@ public class ResultRuleResults {
         return createFromErrorWithContext(message, new StringContext(context));
     }
 
-    private static <Value> RuleResult<Value> createFromErrorWithContext(String message, Context context) {
+    public static <Value> RuleResult<Value> createFromErrorWithContext(String message, Context context) {
         return new ResultRuleResult<>(new Err<>(new CompileError(message, context)));
     }
 
