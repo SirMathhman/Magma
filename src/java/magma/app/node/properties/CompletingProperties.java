@@ -1,27 +1,25 @@
 package magma.app.node.properties;
 
-import magma.app.node.CompoundNode;
-
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Stream;
 
-class CompletingProperties<T> implements Properties<CompoundNode, T> {
+public class CompletingProperties<T, N> implements Properties<N, T> {
     private final Map<String, T> map;
-    private final Completer<T, CompoundNode> completer;
+    private final Completer<T, N> completer;
 
-    CompletingProperties(Completer<T, CompoundNode> completer) {
+    public CompletingProperties(Completer<T, N> completer) {
         this(new HashMap<>(), completer);
     }
 
-    private CompletingProperties(Map<String, T> map, Completer<T, CompoundNode> completer) {
+    private CompletingProperties(Map<String, T> map, Completer<T, N> completer) {
         this.map = map;
         this.completer = completer;
     }
 
     @Override
-    public CompoundNode with(String key, T value) {
+    public N with(String key, T value) {
         this.map.put(key, value);
         return this.completer.complete(this);
     }
@@ -40,12 +38,12 @@ class CompletingProperties<T> implements Properties<CompoundNode, T> {
     }
 
     @Override
-    public Properties<CompoundNode, T> merge(Properties<CompoundNode, T> other) {
-        return other.stream().<Properties<CompoundNode, T>>reduce(this, (current, entry) -> current.add(entry.getKey(), entry.getValue()), (_, next) -> next);
+    public Properties<N, T> merge(Properties<N, T> other) {
+        return other.stream().<Properties<N, T>>reduce(this, (current, entry) -> current.add(entry.getKey(), entry.getValue()), (_, next) -> next);
     }
 
     @Override
-    public Properties<CompoundNode, T> add(String key, T value) {
+    public Properties<N, T> add(String key, T value) {
         this.map.put(key, value);
         return this;
     }

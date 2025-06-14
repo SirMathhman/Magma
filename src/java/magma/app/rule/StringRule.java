@@ -1,7 +1,7 @@
 package magma.app.rule;
 
 import magma.app.node.core.StringNode;
-import magma.app.node.properties.PropertiesCompoundNode;
+import magma.app.node.PropertiesCompoundNode;
 import magma.app.rule.result.GenerationResult;
 import magma.app.rule.result.LexResult;
 import magma.app.rule.result.optional.OptionalGenerationResult;

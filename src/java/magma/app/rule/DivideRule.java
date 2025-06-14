@@ -1,7 +1,7 @@
 package magma.app.rule;
 
 import magma.app.node.core.NodeListNode;
-import magma.app.node.properties.PropertiesCompoundNode;
+import magma.app.node.PropertiesCompoundNode;
 import magma.app.rule.divide.DivideState;
 import magma.app.rule.divide.MutableDivideState;
 import magma.app.rule.result.GenerationResult;

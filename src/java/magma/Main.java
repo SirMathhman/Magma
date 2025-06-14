@@ -1,7 +1,7 @@
 package magma;
 
 import magma.app.Lang;
-import magma.app.node.properties.PropertiesCompoundNode;
+import magma.app.node.PropertiesCompoundNode;
 import magma.app.node.CompoundNode;
 
 import java.io.IOException;

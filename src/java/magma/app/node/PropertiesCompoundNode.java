@@ -1,6 +1,7 @@
-package magma.app.node.properties;
+package magma.app.node;
 
-import magma.app.node.CompoundNode;
+import magma.app.node.properties.CompletingProperties;
+import magma.app.node.properties.Properties;
 
 import java.util.List;
 
@@ -9,8 +10,8 @@ public final class PropertiesCompoundNode implements CompoundNode {
     private final Properties<CompoundNode, List<CompoundNode>> nodeLists;
 
     public PropertiesCompoundNode() {
-        this.strings = new CompletingProperties<>(properties -> withStrings(properties));
-        this.nodeLists = new CompletingProperties<>(nodeLists1 -> withNodeLists(nodeLists1));
+        this.strings = new CompletingProperties<>(this::withStrings);
+        this.nodeLists = new CompletingProperties<>(this::withNodeLists);
     }
 
     public PropertiesCompoundNode(Properties<CompoundNode, String> strings, Properties<CompoundNode, List<CompoundNode>> nodeLists) {

@@ -64,12 +64,13 @@ class MergingNode
 class GenerationResult
 GenerationResult --> Optional
 GenerationResult --> Function
-class PropertiesCompoundNode
-PropertiesCompoundNode --> CompoundNode
-PropertiesCompoundNode --> List
 class StripRule
 StripRule --> GenerationResult
 StripRule --> LexResult
+class PropertiesCompoundNode
+PropertiesCompoundNode --> CompletingProperties
+PropertiesCompoundNode --> Properties
+PropertiesCompoundNode --> List
 class Main
 Main --> Lang
 Main --> PropertiesCompoundNode
@@ -87,7 +88,6 @@ CompoundNode --> MergingNode
 CompoundNode --> NodeListNode
 CompoundNode --> StringNode
 class CompletingProperties
-CompletingProperties --> CompoundNode
 CompletingProperties --> HashMap
 CompletingProperties --> Map
 CompletingProperties --> Optional
