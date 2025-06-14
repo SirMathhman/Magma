@@ -1,7 +1,10 @@
 @startuml
 skinparam linetype ortho
 class InfixRule
-InfixRule --> Optional
+class Rule
+class RuleResult
+RuleResult --> Optional
+RuleResult --> Function
 class Main
 Main --> InfixRule
 Main --> MapNode
@@ -16,7 +19,6 @@ Main --> Optional
 Main --> Set
 Main --> Collectors
 class StringRule
-StringRule --> Optional
 class MapNode
 MapNode --> HashMap
 MapNode --> Map

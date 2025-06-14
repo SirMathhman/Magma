@@ -1,9 +1,9 @@
 package magma;
 
-import magma.app.InfixRule;
+import magma.app.rule.InfixRule;
 import magma.app.MapNode;
 import magma.app.State;
-import magma.app.StringRule;
+import magma.app.rule.StringRule;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -65,7 +65,11 @@ public class Main {
         if (index < 0) return Optional.empty();
 
         final var destination = substring1.substring(index + ".".length());
-        return new InfixRule(new StringRule("source"), " --> ", new StringRule("destination")).generate(new MapNode().withString("source", source).withString("destination", destination));
+        return getInfixRule().generate(new MapNode().withString("source", source).withString("destination", destination)).value().map(value -> value + "\n");
+    }
+
+    private static InfixRule getInfixRule() {
+        return new InfixRule(new StringRule("source"), " --> ", new StringRule("destination"));
     }
 
     private static List<String> divide(String input) {
