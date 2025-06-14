@@ -19,13 +19,13 @@ public class Lang {
     }
 
     static Rule<CompoundNode> createImportRule() {
-        final var parent = new StringRule("parent");
-        final var destination = new StringRule("destination");
+        final var parent = new StringRule<CompoundNode>("parent");
+        final var destination = new StringRule<CompoundNode>("destination");
         final var rule = new PrefixRule("import ", new SuffixRule(new InfixRule(parent, ".", destination), ";"));
         return new StripRule(rule);
     }
 
     static Rule<CompoundNode> createDependencyRule() {
-        return new SuffixRule(new InfixRule(new StringRule("source"), " --> ", new StringRule("destination")), "\n");
+        return new SuffixRule(new InfixRule(new StringRule<CompoundNode>("source"), " --> ", new StringRule<CompoundNode>("destination")), "\n");
     }
 }

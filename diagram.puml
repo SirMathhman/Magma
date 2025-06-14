@@ -53,7 +53,7 @@ PrefixRule --> GenerationResult
 PrefixRule --> LexResult
 PrefixRule --> OptionalLexResult
 class StringRule
-StringRule --> CompoundNode
+StringRule --> StringNode
 StringRule --> PropertiesCompoundNode
 StringRule --> GenerationResult
 StringRule --> LexResult
