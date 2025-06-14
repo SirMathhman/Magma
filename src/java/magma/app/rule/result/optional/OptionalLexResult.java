@@ -1,17 +1,16 @@
 package magma.app.rule.result.optional;
 
-import magma.app.node.core.MergingNode;
 import magma.app.rule.result.LexResult;
 
 import java.util.Optional;
 import java.util.function.Function;
 
-public record OptionalLexResult<N extends MergingNode<N>>(Optional<N> maybeValue) implements LexResult<N> {
-    public static <N extends MergingNode<N>> LexResult<N> createEmpty() {
-        return new OptionalLexResult<>(Optional.<N>empty());
+public record OptionalLexResult<N>(Optional<N> maybeValue) implements LexResult<N> {
+    public static <N> LexResult<N> createEmpty() {
+        return new OptionalLexResult<>(Optional.empty());
     }
 
-    public static <N extends MergingNode<N>> LexResult<N> of(N value) {
+    public static <N> LexResult<N> of(N value) {
         return new OptionalLexResult<>(Optional.of(value));
     }
 
