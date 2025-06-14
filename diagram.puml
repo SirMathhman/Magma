@@ -23,14 +23,14 @@ class InfixRule
 InfixRule --> Rule
 InfixRule --> MergingNode
 InfixRule --> RuleResult
-InfixRule --> OptionalLexResult
+InfixRule --> OptionalRuleResult
 class NodeListRule
 NodeListRule --> Rule
 NodeListRule --> CompoundNode
 NodeListRule --> PropertiesCompoundNode
 NodeListRule --> FoldingDivider
 NodeListRule --> RuleResult
-NodeListRule --> OptionalLexResult
+NodeListRule --> OptionalRuleResult
 NodeListRule --> ArrayList
 NodeListRule --> Optional
 NodeListRule --> Collectors
@@ -42,21 +42,17 @@ StripRule --> Rule
 class MergingNode
 class Completer
 Completer --> Properties
-class OptionalLexResult
-OptionalLexResult --> RuleResult
-OptionalLexResult --> Optional
-OptionalLexResult --> Function
 class StringRule
 StringRule --> Rule
 StringRule --> CompoundNode
 StringRule --> PropertiesCompoundNode
 StringRule --> RuleResult
-StringRule --> OptionalLexResult
+StringRule --> OptionalRuleResult
 class Rule
 class PrefixRule
 PrefixRule --> Rule
 PrefixRule --> RuleResult
-PrefixRule --> OptionalLexResult
+PrefixRule --> OptionalRuleResult
 class NodeListNode
 NodeListNode --> Properties
 NodeListNode --> List
@@ -68,6 +64,10 @@ class MutableDivideState
 MutableDivideState --> ArrayList
 MutableDivideState --> List
 MutableDivideState --> Stream
+class OptionalRuleResult
+OptionalRuleResult --> RuleResult
+OptionalRuleResult --> Optional
+OptionalRuleResult --> Function
 class Lang
 Lang --> CompoundNode
 Lang --> NodeListRule
@@ -94,7 +94,7 @@ CompletingProperties --> Stream
 class SuffixRule
 SuffixRule --> Rule
 SuffixRule --> RuleResult
-SuffixRule --> OptionalLexResult
+SuffixRule --> OptionalRuleResult
 class Compiler
 Compiler --> Lang
 Compiler --> Transformer

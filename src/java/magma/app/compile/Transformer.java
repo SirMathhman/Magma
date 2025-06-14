@@ -7,7 +7,7 @@ import java.util.ArrayList;
 
 public class Transformer {
     public static CompoundNode transform(String name, CompoundNode root) {
-        final var children = root.nodeLists().find("children").orElse(new ArrayList<CompoundNode>());
+        final var children = root.nodeLists().find("children").orElse(new ArrayList<>());
         var node = new PropertiesCompoundNode();
         var values = children.stream().map(child -> child.strings().with("source", name)).toList();
         return node.nodeLists().with("children", values);

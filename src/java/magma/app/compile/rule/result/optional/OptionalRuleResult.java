@@ -16,12 +16,12 @@ public record OptionalRuleResult<N>(Optional<N> maybeValue) implements RuleResul
 
     @Override
     public RuleResult<N> flatMap(Function<N, RuleResult<N>> mapper) {
-        return new OptionalRuleResult<N>(this.maybeValue.flatMap(mapNode -> mapper.apply(mapNode).findValue()));
+        return new OptionalRuleResult<>(this.maybeValue.flatMap(mapNode -> mapper.apply(mapNode).findValue()));
     }
 
     @Override
     public RuleResult<N> map(Function<N, N> mapper) {
-        return new OptionalRuleResult<N>(this.maybeValue.map(mapper));
+        return new OptionalRuleResult<>(this.maybeValue.map(mapper));
     }
 
     @Override
