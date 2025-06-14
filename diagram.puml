@@ -3,6 +3,8 @@ skinparam linetype ortho
 class SuffixRule
 SuffixRule --> Node
 SuffixRule --> GenerationResult
+SuffixRule --> LexResult
+SuffixRule --> Optional
 class Node
 Node --> Map
 Node --> Optional
@@ -13,6 +15,7 @@ GenerationResult --> Function
 class Rule
 Rule --> Node
 Rule --> GenerationResult
+Rule --> LexResult
 class LexResult
 LexResult --> Node
 LexResult --> Optional
@@ -21,10 +24,11 @@ LexResult --> Supplier
 class InfixRule
 InfixRule --> Node
 InfixRule --> GenerationResult
+InfixRule --> LexResult
+InfixRule --> Optional
 class Main
 Main --> State
 Main --> InfixRule
-Main --> LexResult
 Main --> Rule
 Main --> StringRule
 Main --> SuffixRule

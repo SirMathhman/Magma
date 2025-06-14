@@ -2,7 +2,6 @@ package magma;
 
 import magma.app.State;
 import magma.app.rule.InfixRule;
-import magma.app.rule.result.LexResult;
 import magma.app.rule.Rule;
 import magma.app.rule.StringRule;
 import magma.app.rule.SuffixRule;
@@ -60,24 +59,14 @@ public class Main {
         if (!stripped.startsWith("import ")) return Optional.empty();
 
         final var substring = stripped.substring("import ".length());
-        if (!substring.endsWith(";")) return Optional.empty();
 
-        final var substring1 = substring.substring(0, substring.length() - ";".length());
-
-        return getString(substring1, ".", new StringRule("destination")).maybeValue().flatMap(node -> {
-            return createDependencyRule().generate(node.withString("source", source)).value();
-        });
+        return getString(source, substring, ";");
     }
 
-    private static LexResult getString(String input, String infix, StringRule childRule) {
-        final var index = input.lastIndexOf(infix);
-        if (index < 0) return new LexResult(Optional.empty());
-
-        final var leftString = input.substring(0, index);
-        final var rightString = input.substring(index + infix.length());
-
-        final var leftRule = new StringRule("parent");
-        return leftRule.lex(leftString).merge(() -> childRule.lex(rightString));
+    private static Optional<String> getString(String source, String input, String suffix) {
+        return new SuffixRule(new InfixRule(new StringRule("parent"), ".", new StringRule("destination")), suffix).lex(input).maybeValue().flatMap(node -> {
+            return createDependencyRule().generate(node.withString("source", source)).value();
+        });
     }
 
     private static Rule createDependencyRule() {
