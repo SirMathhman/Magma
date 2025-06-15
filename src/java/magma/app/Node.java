@@ -1,4 +1,4 @@
-package magma.app.node;
+package magma.app;
 
 import magma.app.node.properties.NodeProperties;
 

@@ -1,7 +1,7 @@
 package magma;
 
 import magma.app.node.MapNode;
-import magma.app.node.Node;
+import magma.app.Node;
 import magma.app.rule.DivideRule;
 import magma.app.rule.LastRule;
 import magma.app.rule.PrefixRule;

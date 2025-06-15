@@ -10,7 +10,6 @@ Node --> List
 class NodeProperties
 NodeProperties --> Optional
 class Rule
-Rule --> Node
 Rule --> Optional
 class Completer
 class LastRule
@@ -60,6 +59,7 @@ Main --> ArrayList
 Main --> Optional
 Main --> Collectors
 class MapNode
+MapNode --> Node
 MapNode --> MapNodeProperties
 MapNode --> NodeProperties
 MapNode --> List
