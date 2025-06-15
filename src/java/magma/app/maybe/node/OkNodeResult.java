@@ -3,7 +3,7 @@ package magma.app.maybe.node;
 import magma.app.Node;
 import magma.app.maybe.NodeResult;
 import magma.app.maybe.NodeListResult;
-import magma.app.rule.OrState;
+import magma.app.rule.or.OrState;
 
 import java.util.List;
 

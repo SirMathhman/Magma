@@ -2,7 +2,7 @@ package magma.app.maybe.string;
 
 import magma.app.CompileError;
 import magma.app.maybe.StringResult;
-import magma.app.rule.OrState;
+import magma.app.rule.or.OrState;
 
 public class ErrStringResult implements StringResult {
     private final CompileError error;

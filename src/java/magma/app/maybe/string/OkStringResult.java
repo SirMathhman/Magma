@@ -1,7 +1,7 @@
 package magma.app.maybe.string;
 
 import magma.app.maybe.StringResult;
-import magma.app.rule.OrState;
+import magma.app.rule.or.OrState;
 
 public record OkStringResult(String value) implements StringResult {
     @Override
