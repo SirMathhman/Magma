@@ -1,42 +1,23 @@
 @startuml
 skinparam linetype ortho
-class SuffixRule
-SuffixRule --> Node
-SuffixRule --> Rule
-SuffixRule --> Optional
+class MapNodeProperties
+MapNodeProperties --> HashMap
+MapNodeProperties --> Map
+MapNodeProperties --> Optional
 class Node
+Node --> MapNodeProperties
+Node --> NodeProperties
 Node --> List
 class NodeProperties
-NodeProperties --> HashMap
-NodeProperties --> Map
 NodeProperties --> Optional
 class Rule
 Rule --> Node
 Rule --> Optional
-class StripRule
-StripRule --> Node
-StripRule --> Rule
-StripRule --> Optional
 class Completer
 class LastRule
 LastRule --> Node
 LastRule --> Rule
 LastRule --> Optional
-class Main
-Main --> Node
-Main --> DivideRule
-Main --> LastRule
-Main --> PrefixRule
-Main --> StringRule
-Main --> StripRule
-Main --> SuffixRule
-Main --> IOException
-Main --> Files
-Main --> Path
-Main --> Paths
-Main --> ArrayList
-Main --> Optional
-Main --> Collectors
 class DivideRule
 DivideRule --> Node
 DivideRule --> Rule
@@ -53,6 +34,29 @@ class StringRule
 StringRule --> Node
 StringRule --> Rule
 StringRule --> Optional
+class SuffixRule
+SuffixRule --> Node
+SuffixRule --> Rule
+SuffixRule --> Optional
+class StripRule
+StripRule --> Node
+StripRule --> Rule
+StripRule --> Optional
+class Main
+Main --> Node
+Main --> DivideRule
+Main --> LastRule
+Main --> PrefixRule
+Main --> StringRule
+Main --> StripRule
+Main --> SuffixRule
+Main --> IOException
+Main --> Files
+Main --> Path
+Main --> Paths
+Main --> ArrayList
+Main --> Optional
+Main --> Collectors
 class State
 State --> ArrayList
 State --> List
