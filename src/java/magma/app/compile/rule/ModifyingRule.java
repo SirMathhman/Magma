@@ -6,6 +6,8 @@ import magma.app.compile.rule.modify.PrefixModifier;
 import magma.app.compile.rule.modify.SuffixModifier;
 import magma.app.compile.rule.result.RuleResult;
 
+import java.util.function.Function;
+
 public final class ModifyingRule<N> implements Rule<N, RuleResult<N>, RuleResult<String>> {
     private final Modifier modifier;
     private final Rule<N, RuleResult<N>, RuleResult<String>> rule;
@@ -20,22 +22,19 @@ public final class ModifyingRule<N> implements Rule<N, RuleResult<N>, RuleResult
     }
 
     public static <Node> Rule<Node, RuleResult<Node>, RuleResult<String>> createSuffixRule(Rule<Node, RuleResult<Node>, RuleResult<String>> rule, String suffix) {
-        return new ModifyingRule<>(new SuffixModifier(suffix), rule);
+        return new ModifyingRule<Node>(new SuffixModifier(suffix), rule);
     }
 
     @Override
     public RuleResult<N> lex(String input) {
-        return this.modifier.modify(input).map(this.rule::lex).orElseGet(() -> new RuleResult.RuleResultErr<>(this.modifier.createError(input)));
+        return this.modifier.modify(input).map(this.rule::lex).orElseGet(() -> {
+            return new RuleResult.Err<>(this.modifier.createError(input));
+        });
     }
 
     @Override
     public RuleResult<String> generate(N node) {
         RuleResult<String> stringRuleResult = this.rule.generate(node);
-        return switch (stringRuleResult) {
-            case RuleResult.RuleResultErr<String>(var error) -> new RuleResult.RuleResultErr<>(error);
-            case RuleResult.RuleResultOk<String>(
-                    String value1
-            ) -> new RuleResult.RuleResultOk<>(this.modifier.generate(value1));
-        };
+        return stringRuleResult.<RuleResult<String>>match(value -> new RuleResult.Ok<>(((Function<String, String>) this.modifier::generate).apply(value)), RuleResult.Err::new);
     }
 }

@@ -13,10 +13,12 @@ public record SuffixModifier(String suffix) implements Modifier {
 
     @Override
     public Optional<String> modify(String input) {
-        if (input.endsWith(this.suffix))
+        if (input.endsWith(this.suffix)) {
             return Optional.of(input.substring(0, input.length() - this.suffix.length()));
-        else
+        }
+        else {
             return Optional.empty();
+        }
     }
 
     @Override
