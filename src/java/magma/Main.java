@@ -1,5 +1,8 @@
 package magma;
 
+import magma.app.result.EmptyResult;
+import magma.app.result.PresentResult;
+import magma.app.Result;
 import magma.app.State;
 
 import java.io.IOException;
@@ -19,23 +22,8 @@ public class Main {
                 final var name = fileName.substring(0, separator);
                 output.append("class " + name + "\n");
 
-                final var segments = divide(Files.readString(source));
-
-                final var result = new StringBuilder();
-                for (var segment : segments) {
-                    final var stripped = segment.strip();
-                    if (stripped.startsWith("import ")) {
-                        final var substring = stripped.substring("import ".length());
-                        if (substring.endsWith(";")) {
-                            final var substring1 = substring.substring(0, substring.length() - ";".length());
-                            final var index = substring1.lastIndexOf(".");
-                            if (index >= 0) {
-                                final var destination = substring1.substring(index + ".".length());
-                                result.append(name + " --> " + destination + "\n");
-                            }
-                        }
-                    }
-                }
+                final var input = Files.readString(source);
+                final var result = compile(input, name);
 
                 output.append(result);
             }
@@ -48,7 +36,32 @@ public class Main {
         }
     }
 
-    private static List<String> divide(String input) throws IOException {
+    private static String compile(String input, String name) throws IOException {
+        final var segments = divide(input);
+        var output = new StringBuilder();
+        for (var segment : segments)
+            output = compileRootSegment(name, segment).appendTo(output);
+
+        return output.toString();
+    }
+
+    private static Result compileRootSegment(String name, String input) {
+        final var strip = input.strip();
+        if (strip.startsWith("import ")) {
+            final var substring = strip.substring("import ".length());
+            if (substring.endsWith(";")) {
+                final var substring1 = substring.substring(0, substring.length() - ";".length());
+                final var index = substring1.lastIndexOf(".");
+                if (index >= 0) {
+                    final var destination = substring1.substring(index + ".".length());
+                    return new PresentResult(name + " --> " + destination + "\n");
+                }
+            }
+        }
+        return new EmptyResult();
+    }
+
+    private static List<String> divide(String input) {
         var current = new State();
         for (var i = 0; i < input.length(); i++) {
             final var c = input.charAt(i);
