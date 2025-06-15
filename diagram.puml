@@ -1,28 +1,153 @@
 @startuml
 skinparam linetype ortho
+class CompileError
+CompileError --> ArrayList
+CompileError --> List
+class Context
 class Attachable
-class MaybeNode
-class MaybeNodeList
-class MaybeString
-class EmptyNode
-class EmptyNodeList
-class PresentNode
-class PresentNodeList
+Attachable --> OrState
+class ErrNodeListResult
+ErrNodeListResult --> CompileError
+ErrNodeListResult --> Node
+ErrNodeListResult --> NodeListResult
+ErrNodeListResult --> NodeResult
+ErrNodeListResult --> StringResult
+ErrNodeListResult --> ErrStringResult
+ErrNodeListResult --> List
+ErrNodeListResult --> Function
+class ErrNodeResult
+ErrNodeResult --> CompileError
+ErrNodeResult --> Node
+ErrNodeResult --> NodeListResult
+ErrNodeResult --> NodeResult
+ErrNodeResult --> OrState
+ErrNodeResult --> List
+class OkNodeResult
+OkNodeResult --> Node
+OkNodeResult --> NodeResult
+OkNodeResult --> NodeListResult
+OkNodeResult --> OrState
+OkNodeResult --> List
+class PresentNodeListResult
+PresentNodeListResult --> Node
+PresentNodeListResult --> NodeResult
+PresentNodeListResult --> NodeListResult
+PresentNodeListResult --> StringResult
+PresentNodeListResult --> ArrayList
+PresentNodeListResult --> List
+PresentNodeListResult --> Function
+class NodeListResult
+NodeListResult --> Node
+NodeListResult --> List
+NodeListResult --> Function
+class NodeResult
+NodeResult --> Node
+NodeResult --> List
 class Appendable
-class EmptyString
+class ErrStringResult
+ErrStringResult --> CompileError
+ErrStringResult --> StringResult
+ErrStringResult --> OrState
+class OkStringResult
+OkStringResult --> StringResult
+OkStringResult --> OrState
 class Prependable
-class PresentString
+class StringResult
+StringResult --> Appendable
+StringResult --> Prependable
 class MapNode
+MapNode --> CompileError
+MapNode --> Node
+MapNode --> StringResult
+MapNode --> ErrStringResult
+MapNode --> OkStringResult
+MapNode --> NodeContext
+MapNode --> HashMap
+MapNode --> Map
 class Node
+Node --> StringResult
 class InfixRule
+InfixRule --> CompileError
+InfixRule --> Rule
+InfixRule --> NodeResult
+InfixRule --> ErrNodeResult
+InfixRule --> Appendable
+class NodeContext
+NodeContext --> Context
+NodeContext --> Node
 class OrRule
+OrRule --> CompileError
+OrRule --> Context
+OrRule --> Node
+OrRule --> Rule
+OrRule --> Attachable
+OrRule --> NodeResult
+OrRule --> StringResult
+OrRule --> ErrNodeResult
+OrRule --> OkNodeResult
+OrRule --> ErrStringResult
+OrRule --> OkStringResult
+OrRule --> List
+OrRule --> Function
 class OrState
+OrState --> CompileError
+OrState --> ArrayList
+OrState --> List
+OrState --> Optional
+OrState --> Function
 class PrefixRule
+PrefixRule --> CompileError
+PrefixRule --> Rule
+PrefixRule --> NodeResult
+PrefixRule --> ErrNodeResult
+PrefixRule --> Prependable
+class StringContext
+StringContext --> Context
 class StringRule
+StringRule --> Node
+StringRule --> Rule
+StringRule --> NodeResult
+StringRule --> StringResult
+StringRule --> OkNodeResult
+StringRule --> MapNode
 class StripRule
+StripRule --> Rule
 class SuffixRule
+SuffixRule --> CompileError
+SuffixRule --> Rule
+SuffixRule --> NodeResult
+SuffixRule --> ErrNodeResult
+SuffixRule --> Appendable
 class Rule
 class State
+State --> ArrayList
+State --> List
 class EmptyRule
+EmptyRule --> Node
+EmptyRule --> Rule
+EmptyRule --> NodeResult
+EmptyRule --> StringResult
+EmptyRule --> OkNodeResult
+EmptyRule --> OkStringResult
+EmptyRule --> MapNode
 class Main
+Main --> Node
+Main --> Rule
+Main --> State
+Main --> NodeResult
+Main --> NodeListResult
+Main --> StringResult
+Main --> PresentNodeListResult
+Main --> OkStringResult
+Main --> InfixRule
+Main --> OrRule
+Main --> PrefixRule
+Main --> StringRule
+Main --> StripRule
+Main --> SuffixRule
+Main --> IOException
+Main --> Files
+Main --> Path
+Main --> Paths
+Main --> List
 @enduml

@@ -1,9 +1,9 @@
 package magma.app;
 
-import magma.app.maybe.MaybeString;
+import magma.app.maybe.StringResult;
 
 public interface Node {
     Node withString(String key, String value);
 
-    MaybeString findString(String key);
+    StringResult findString(String key);
 }

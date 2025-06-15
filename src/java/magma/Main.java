@@ -3,11 +3,11 @@ package magma;
 import magma.app.Node;
 import magma.app.Rule;
 import magma.app.State;
-import magma.app.maybe.MaybeNode;
-import magma.app.maybe.MaybeNodeList;
-import magma.app.maybe.MaybeString;
-import magma.app.maybe.string.PresentString;
-import magma.app.maybe.node.PresentNodeList;
+import magma.app.maybe.NodeResult;
+import magma.app.maybe.NodeListResult;
+import magma.app.maybe.StringResult;
+import magma.app.maybe.node.PresentNodeListResult;
+import magma.app.maybe.string.OkStringResult;
 import magma.app.rule.InfixRule;
 import magma.app.rule.OrRule;
 import magma.app.rule.PrefixRule;
@@ -59,26 +59,26 @@ public class Main {
         ))).transform(children -> transform(name, children)).generate(Main::generate).orElse("");
     }
 
-    private static MaybeString generate(List<Node> children) {
+    private static StringResult generate(List<Node> children) {
         return children.stream().map(node -> new OrRule(List.of(
                 createDependencyRule(),
                 new EmptyRule()
-        )).generate(node)).reduce(new PresentString(""), MaybeString::appendMaybe, (_, next) -> next);
+        )).generate(node)).reduce(new OkStringResult(""), StringResult::appendMaybe, (_, next) -> next);
     }
 
     private static List<Node> transform(String name, List<Node> list) {
         return list.stream().map(node -> node.withString("source", name)).toList();
     }
 
-    private static MaybeNodeList lex(String input, Rule<Node, MaybeNode, MaybeString> rule) {
-        return divide(input).stream().map(rule::lex).reduce(new PresentNodeList(), MaybeNodeList::add, (_, next) -> next);
+    private static NodeListResult lex(String input, Rule<Node, NodeResult, StringResult> rule) {
+        return divide(input).stream().map(rule::lex).reduce(new PresentNodeListResult(), NodeListResult::add, (_, next) -> next);
     }
 
-    private static Rule<Node, MaybeNode, MaybeString> createDependencyRule() {
+    private static Rule<Node, NodeResult, StringResult> createDependencyRule() {
         return new SuffixRule<>(new InfixRule<>(new StringRule("source"), " --> ", new StringRule("destination")), "\n");
     }
 
-    private static Rule<Node, MaybeNode, MaybeString> createImportRule() {
+    private static Rule<Node, NodeResult, StringResult> createImportRule() {
         return new StripRule<>(new PrefixRule<>("import ", new SuffixRule<>(new InfixRule<>(new StringRule("parent"), ".", new StringRule("destination")), ";")));
     }
 

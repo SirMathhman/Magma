@@ -1,31 +1,43 @@
 package magma.app.rule;
 
+import magma.app.CompileError;
+import magma.app.Context;
 import magma.app.Node;
 import magma.app.Rule;
 import magma.app.maybe.Attachable;
-import magma.app.maybe.MaybeNode;
-import magma.app.maybe.MaybeString;
-import magma.app.maybe.node.EmptyNode;
-import magma.app.maybe.node.PresentNode;
-import magma.app.maybe.string.EmptyString;
-import magma.app.maybe.string.PresentString;
+import magma.app.maybe.NodeResult;
+import magma.app.maybe.StringResult;
+import magma.app.maybe.node.ErrNodeResult;
+import magma.app.maybe.node.OkNodeResult;
+import magma.app.maybe.string.ErrStringResult;
+import magma.app.maybe.string.OkStringResult;
 
 import java.util.List;
 import java.util.function.Function;
-import java.util.function.Supplier;
 
-public record OrRule(List<Rule<Node, MaybeNode, MaybeString>> rules) implements Rule<Node, MaybeNode, MaybeString> {
+public record OrRule(List<Rule<Node, NodeResult, StringResult>> rules) implements Rule<Node, NodeResult, StringResult> {
     @Override
-    public MaybeString generate(Node node) {
-        return this.or(rule1 -> rule1.generate(node), PresentString::new, EmptyString::new);
+    public StringResult generate(Node node) {
+        return this.<Attachable<String>, String, StringResult>or(rule1 -> rule1.generate(node), OkStringResult::new, errors -> new ErrStringResult(this.createError(new NodeContext(node), errors)));
     }
 
-    private <MaybeValue extends Attachable<Value>, Value, Return> Return or(Function<Rule<Node, MaybeNode, MaybeString>, MaybeValue> mapper, Function<Value, Return> whenPresent, Supplier<Return> whenMissing) {
-        return this.rules.stream().map(mapper).reduce(new OrState<Value>(), (orState, maybeString) -> maybeString.attachTo(orState), (_, next) -> next).unwrap().map(whenPresent).orElseGet(whenMissing);
+    private CompileError createError(Context context, List<CompileError> errors) {
+        return new CompileError("No valid combination", context, errors);
+    }
+
+    private <MaybeValue extends Attachable<Value>, Value, Return> Return or(Function<Rule<Node, NodeResult, StringResult>, MaybeValue> mapper, Function<Value, Return> whenPresent, Function<List<CompileError>, Return> whenMissing) {
+        final var reduce = this.rules.stream().map(mapper).reduce(new OrState<Value>(), (orState, maybeString) -> {
+            if (orState.hasValue())
+                return orState;
+            return maybeString.attachTo(orState);
+        }, (_, next) -> next);
+        return reduce.match(whenPresent, whenMissing);
     }
 
     @Override
-    public MaybeNode lex(String input) {
-        return this.<Attachable<Node>, Node, MaybeNode>or(rule1 -> rule1.lex(input), PresentNode::new, EmptyNode::new);
+    public NodeResult lex(String input) {
+        return this.<Attachable<Node>, Node, NodeResult>or(rule1 -> rule1.lex(input), OkNodeResult::new, errors -> {
+            return new ErrNodeResult(this.createError(new StringContext(input), errors));
+        });
     }
 }

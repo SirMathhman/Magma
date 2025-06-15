@@ -1,9 +1,11 @@
 package magma.app.node;
 
-import magma.app.maybe.MaybeString;
+import magma.app.CompileError;
 import magma.app.Node;
-import magma.app.maybe.string.EmptyString;
-import magma.app.maybe.string.PresentString;
+import magma.app.maybe.StringResult;
+import magma.app.maybe.string.ErrStringResult;
+import magma.app.maybe.string.OkStringResult;
+import magma.app.rule.NodeContext;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -26,9 +28,10 @@ public final class MapNode implements Node {
     }
 
     @Override
-    public MaybeString findString(String key) {
+    public StringResult findString(String key) {
         if (this.strings.containsKey(key))
-            return new PresentString(this.strings.get(key));
-        return new EmptyString();
+            return new OkStringResult(this.strings.get(key));
+
+        return new ErrStringResult(new CompileError("String '" + key + "' not present", new NodeContext(this)));
     }
 }

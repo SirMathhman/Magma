@@ -1,9 +1,9 @@
 package magma.app.maybe.string;
 
-import magma.app.maybe.MaybeString;
+import magma.app.maybe.StringResult;
 import magma.app.rule.OrState;
 
-public record PresentString(String value) implements MaybeString {
+public record OkStringResult(String value) implements StringResult {
     @Override
     public String orElse(String other) {
         return this.value;
@@ -15,17 +15,17 @@ public record PresentString(String value) implements MaybeString {
     }
 
     @Override
-    public MaybeString appendString(String other) {
-        return new PresentString(this.value + other);
+    public StringResult appendString(String other) {
+        return new OkStringResult(this.value + other);
     }
 
     @Override
-    public MaybeString appendMaybe(MaybeString other) {
+    public StringResult appendMaybe(StringResult other) {
         return other.prependString(this.value);
     }
 
     @Override
-    public MaybeString prependString(String other) {
-        return new PresentString(other + this.value);
+    public StringResult prependString(String other) {
+        return new OkStringResult(other + this.value);
     }
 }

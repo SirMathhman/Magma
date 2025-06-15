@@ -1,17 +1,17 @@
 package magma.app.maybe.node;
 
 import magma.app.Node;
-import magma.app.maybe.MaybeNode;
-import magma.app.maybe.MaybeNodeList;
+import magma.app.maybe.NodeResult;
+import magma.app.maybe.NodeListResult;
 import magma.app.rule.OrState;
 
 import java.util.List;
 
-public record PresentNode(Node node) implements MaybeNode {
+public record OkNodeResult(Node node) implements NodeResult {
     @Override
-    public MaybeNodeList addTo(List<Node> list) {
+    public NodeListResult addTo(List<Node> list) {
         list.add(this.node);
-        return new PresentNodeList(list);
+        return new PresentNodeListResult(list);
     }
 
     @Override

@@ -2,20 +2,20 @@ package magma;
 
 import magma.app.Node;
 import magma.app.Rule;
-import magma.app.maybe.MaybeNode;
-import magma.app.maybe.MaybeString;
-import magma.app.maybe.node.PresentNode;
-import magma.app.maybe.string.PresentString;
+import magma.app.maybe.NodeResult;
+import magma.app.maybe.StringResult;
+import magma.app.maybe.node.OkNodeResult;
+import magma.app.maybe.string.OkStringResult;
 import magma.app.node.MapNode;
 
-public class EmptyRule implements Rule<Node, MaybeNode, MaybeString> {
+public class EmptyRule implements Rule<Node, NodeResult, StringResult> {
     @Override
-    public MaybeString generate(Node node) {
-        return new PresentString("");
+    public StringResult generate(Node node) {
+        return new OkStringResult("");
     }
 
     @Override
-    public MaybeNode lex(String input) {
-        return new PresentNode(new MapNode());
+    public NodeResult lex(String input) {
+        return new OkNodeResult(new MapNode());
     }
 }
