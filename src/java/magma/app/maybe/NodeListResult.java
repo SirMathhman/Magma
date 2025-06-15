@@ -3,10 +3,10 @@ package magma.app.maybe;
 import java.util.List;
 import java.util.function.Function;
 
-public interface NodeListResult<Node> {
-    NodeListResult<Node> add(NodeResult<Node> node);
+public interface NodeListResult<Node, Error> {
+    NodeListResult<Node, Error> add(NodeResult<Node, Error> node);
 
-    NodeListResult<Node> transform(Function<List<Node>, List<Node>> mapper);
+    NodeListResult<Node, Error> transform(Function<List<Node>, List<Node>> mapper);
 
-    StringResult generate(Function<List<Node>, StringResult> generator);
+    StringResult<Error> generate(Function<List<Node>, StringResult<Error>> generator);
 }

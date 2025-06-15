@@ -6,15 +6,15 @@ import magma.app.rule.or.OrState;
 
 import java.util.List;
 
-public record OkNodeResult<Node>(Node node) implements NodeResult<Node> {
+public record OkNodeResult<Node, Error>(Node node) implements NodeResult<Node, Error> {
     @Override
-    public NodeListResult<Node> addTo(List<Node> list) {
+    public NodeListResult<Node, Error> addTo(List<Node> list) {
         list.add(this.node);
         return new PresentNodeListResult<>(list);
     }
 
     @Override
-    public OrState<Node> attachTo(OrState<Node> state) {
+    public OrState<Node, Error> attachTo(OrState<Node, Error> state) {
         return state.withValue(this.node);
     }
 }

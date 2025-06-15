@@ -1,5 +1,6 @@
 package magma.app.lang;
 
+import magma.app.CompileError;
 import magma.app.Node;
 import magma.app.Rule;
 import magma.app.maybe.NodeResult;
@@ -11,11 +12,11 @@ import magma.app.rule.StripRule;
 import magma.app.rule.SuffixRule;
 
 public class Lang {
-    public static Rule<Node, NodeResult<Node>, StringResult> createDependencyRule() {
+    public static Rule<Node, NodeResult<Node, CompileError>, StringResult<CompileError>> createDependencyRule() {
         return new SuffixRule<>(new InfixRule<>(new StringRule("source"), " --> ", new StringRule("destination")), "\n");
     }
 
-    public static Rule<Node, NodeResult<Node>, StringResult> createImportRule() {
+    public static Rule<Node, NodeResult<Node, CompileError>, StringResult<CompileError>> createImportRule() {
         return new StripRule<>(new PrefixRule<>("import ", new SuffixRule<>(new InfixRule<>(new StringRule("parent"), ".", new StringRule("destination")), ";")));
     }
 }

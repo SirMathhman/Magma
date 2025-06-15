@@ -1,13 +1,12 @@
 package magma.app.maybe.string;
 
-import magma.app.CompileError;
 import magma.app.maybe.StringResult;
 import magma.app.rule.or.OrState;
 
-public class ErrStringResult implements StringResult {
-    private final CompileError error;
+public class ErrStringResult<Error> implements StringResult<Error> {
+    private final Error error;
 
-    public ErrStringResult(CompileError error) {
+    public ErrStringResult(Error error) {
         this.error = error;
     }
 
@@ -17,22 +16,22 @@ public class ErrStringResult implements StringResult {
     }
 
     @Override
-    public OrState<String> attachTo(OrState<String> state) {
+    public OrState<String, Error> attachTo(OrState<String, Error> state) {
         return state.withError(this.error);
     }
 
     @Override
-    public StringResult appendString(String other) {
+    public StringResult<Error> appendString(String other) {
         return this;
     }
 
     @Override
-    public StringResult appendMaybe(StringResult other) {
+    public StringResult<Error> appendMaybe(StringResult<Error> other) {
         return this;
     }
 
     @Override
-    public StringResult prependString(String other) {
+    public StringResult<Error> prependString(String other) {
         return this;
     }
 }

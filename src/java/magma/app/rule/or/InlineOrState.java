@@ -7,7 +7,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.function.Function;
 
-public record InlineOrState<Value>(Optional<Value> maybeValue, List<CompileError> errors) implements OrState<Value> {
+public record InlineOrState<Value>(Optional<Value> maybeValue, List<CompileError> errors) implements OrState<Value, CompileError> {
     public InlineOrState() {
         this(Optional.empty(), new ArrayList<>());
     }
@@ -18,12 +18,12 @@ public record InlineOrState<Value>(Optional<Value> maybeValue, List<CompileError
     }
 
     @Override
-    public OrState<Value> withValue(Value value) {
+    public OrState<Value, CompileError> withValue(Value value) {
         return new InlineOrState<>(Optional.of(value), this.errors);
     }
 
     @Override
-    public OrState<Value> withError(CompileError error) {
+    public OrState<Value, CompileError> withError(CompileError error) {
         this.errors.add(error);
         return this;
     }

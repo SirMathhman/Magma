@@ -3,29 +3,29 @@ package magma.app.maybe.string;
 import magma.app.maybe.StringResult;
 import magma.app.rule.or.OrState;
 
-public record OkStringResult(String value) implements StringResult {
+public record OkStringResult<Error>(String value) implements StringResult<Error> {
     @Override
     public String orElse(String other) {
         return this.value;
     }
 
     @Override
-    public OrState<String> attachTo(OrState<String> state) {
+    public OrState<String, Error> attachTo(OrState<String, Error> state) {
         return state.withValue(this.value);
     }
 
     @Override
-    public StringResult appendString(String other) {
-        return new OkStringResult(this.value + other);
+    public StringResult<Error> appendString(String other) {
+        return new OkStringResult<Error>(this.value + other);
     }
 
     @Override
-    public StringResult appendMaybe(StringResult other) {
+    public StringResult<Error> appendMaybe(StringResult<Error> other) {
         return other.prependString(this.value);
     }
 
     @Override
-    public StringResult prependString(String other) {
-        return new OkStringResult(other + this.value);
+    public StringResult<Error> prependString(String other) {
+        return new OkStringResult<Error>(other + this.value);
     }
 }

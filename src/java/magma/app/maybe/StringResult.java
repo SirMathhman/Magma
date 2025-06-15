@@ -3,6 +3,6 @@ package magma.app.maybe;
 import magma.app.maybe.string.Appendable;
 import magma.app.maybe.string.Prependable;
 
-public interface StringResult extends Appendable<StringResult>, Prependable<StringResult>, Attachable<String> {
+public interface StringResult<Error> extends Appendable<StringResult<Error>>, Prependable<StringResult<Error>>, Attachable<String, Error> {
     String orElse(String other);
 }

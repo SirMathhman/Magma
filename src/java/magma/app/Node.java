@@ -5,5 +5,5 @@ import magma.app.maybe.StringResult;
 public interface Node {
     Node withString(String key, String value);
 
-    StringResult findString(String key);
+    StringResult<CompileError> findString(String key);
 }

@@ -28,10 +28,10 @@ public final class MapNode implements Node {
     }
 
     @Override
-    public StringResult findString(String key) {
+    public StringResult<CompileError> findString(String key) {
         if (this.strings.containsKey(key))
-            return new OkStringResult(this.strings.get(key));
+            return new OkStringResult<CompileError>(this.strings.get(key));
 
-        return new ErrStringResult(new CompileError("String '" + key + "' not present", new NodeContext(this)));
+        return new ErrStringResult<CompileError>(new CompileError("String '" + key + "' not present", new NodeContext(this)));
     }
 }
