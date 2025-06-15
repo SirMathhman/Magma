@@ -5,6 +5,7 @@ import magma.app.maybe.NodeResult;
 import magma.app.maybe.StringResult;
 import magma.app.maybe.node.PresentNodeListResult;
 import magma.app.maybe.string.OkStringResult;
+import magma.app.rule.DivideState;
 import magma.app.rule.EmptyRule;
 import magma.app.rule.InfixRule;
 import magma.app.rule.OrRule;
@@ -21,15 +22,15 @@ public class Compiler {
     }
 
     static Rule<Node, NodeResult, StringResult> createDependencyRule() {
-        return new SuffixRule<Node, StringResult>(new InfixRule<Node, StringResult>(new StringRule("source"), " --> ", new StringRule("destination")), "\n");
+        return new SuffixRule<>(new InfixRule<>(new StringRule("source"), " --> ", new StringRule("destination")), "\n");
     }
 
     static Rule<Node, NodeResult, StringResult> createImportRule() {
-        return new StripRule<Node, NodeResult, StringResult>(new PrefixRule<Node, StringResult>("import ", new SuffixRule<Node, StringResult>(new InfixRule<Node, StringResult>(new StringRule("parent"), ".", new StringRule("destination")), ";")));
+        return new StripRule<>(new PrefixRule<>("import ", new SuffixRule<>(new InfixRule<>(new StringRule("parent"), ".", new StringRule("destination")), ";")));
     }
 
     static List<String> divide(String input) {
-        var current = new State();
+        var current = new DivideState();
         for (var i = 0; i < input.length(); i++) {
             final var c = input.charAt(i);
             current = fold(current, c);
@@ -38,18 +39,15 @@ public class Compiler {
         return current.advance().segments();
     }
 
-    static State fold(State state, char c) {
+    static DivideState fold(DivideState state, char c) {
         final var appended = state.append(c);
-        if (c == ';') {
+        if (c == ';')
             return appended.advance();
-        }
         return appended;
     }
 
     public static StringResult generate(List<Node> children) {
-        return children.stream().map(node -> new OrRule(List.of(createDependencyRule(),
-                new EmptyRule()
-        )).generate(node)).reduce(new OkStringResult(""), StringResult::appendMaybe, (_, next) -> next);
+        return children.stream().map(node -> new OrRule(List.of(createDependencyRule(), new EmptyRule())).generate(node)).reduce(new OkStringResult(""), StringResult::appendMaybe, (_, next) -> next);
     }
 
     public static List<Node> transform(String name, List<Node> list) {

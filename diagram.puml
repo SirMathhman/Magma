@@ -9,6 +9,7 @@ Compiler --> NodeResult
 Compiler --> StringResult
 Compiler --> PresentNodeListResult
 Compiler --> OkStringResult
+Compiler --> DivideState
 Compiler --> EmptyRule
 Compiler --> InfixRule
 Compiler --> OrRule
@@ -80,6 +81,9 @@ MapNode --> HashMap
 MapNode --> Map
 class Node
 Node --> StringResult
+class DivideState
+DivideState --> ArrayList
+DivideState --> List
 class EmptyRule
 EmptyRule --> Node
 EmptyRule --> Rule
@@ -141,9 +145,6 @@ SuffixRule --> NodeResult
 SuffixRule --> ErrNodeResult
 SuffixRule --> Appendable
 class Rule
-class State
-State --> ArrayList
-State --> List
 class Main
 Main --> Compiler
 Main --> IOException

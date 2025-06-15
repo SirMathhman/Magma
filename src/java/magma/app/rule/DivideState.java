@@ -1,28 +1,28 @@
-package magma.app;
+package magma.app.rule;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class State {
+public class DivideState {
     private final List<String> segments;
     private StringBuilder buffer;
 
-    public State(List<String> segments, StringBuilder buffer) {
+    public DivideState(List<String> segments, StringBuilder buffer) {
         this.segments = segments;
         this.buffer = buffer;
     }
 
-    public State() {
+    public DivideState() {
         this(new ArrayList<>(), new StringBuilder());
     }
 
-    public State advance() {
+    public DivideState advance() {
         this.segments.add(this.buffer.toString());
         this.buffer = new StringBuilder();
         return this;
     }
 
-    public State append(char c) {
+    public DivideState append(char c) {
         this.buffer.append(c);
         return this;
     }
