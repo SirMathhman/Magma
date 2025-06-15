@@ -25,26 +25,39 @@ CompileError --> ArrayList
 CompileError --> List
 CompileError --> Collectors
 class Compiler
-Compiler --> Lang
+Compiler --> JavaLang
+Compiler --> PlantUMLLang
 Compiler --> MapNode
 Compiler --> Collection
 Compiler --> List
 class Context
-class Lang
-Lang --> CompileError
-Lang --> Node
-Lang --> Rule
-Lang --> NodeResult
-Lang --> StringResult
-Lang --> DivideRule
-Lang --> EmptyRule
-Lang --> InfixRule
-Lang --> OrRule
-Lang --> PrefixRule
-Lang --> StringRule
-Lang --> StripRule
-Lang --> SuffixRule
-Lang --> List
+class JavaLang
+JavaLang --> CompileError
+JavaLang --> Node
+JavaLang --> NodeResult
+JavaLang --> Rule
+JavaLang --> StringResult
+JavaLang --> DivideRule
+JavaLang --> InfixRule
+JavaLang --> OrRule
+JavaLang --> PrefixRule
+JavaLang --> StringRule
+JavaLang --> StripRule
+JavaLang --> SuffixRule
+JavaLang --> List
+class PlantUMLLang
+PlantUMLLang --> CompileError
+PlantUMLLang --> Node
+PlantUMLLang --> NodeResult
+PlantUMLLang --> Rule
+PlantUMLLang --> StringResult
+PlantUMLLang --> DivideRule
+PlantUMLLang --> EmptyRule
+PlantUMLLang --> InfixRule
+PlantUMLLang --> OrRule
+PlantUMLLang --> StringRule
+PlantUMLLang --> SuffixRule
+PlantUMLLang --> List
 class DisplayableNode
 class MapNode
 MapNode --> CompileError
