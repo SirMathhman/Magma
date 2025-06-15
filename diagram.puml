@@ -31,19 +31,27 @@ Compiler --> MapNode
 Compiler --> Collection
 Compiler --> List
 class Context
+class JavaImports
+JavaImports --> CompileError
+JavaImports --> Node
+JavaImports --> NodeResult
+JavaImports --> Rule
+JavaImports --> StringResult
+JavaImports --> InfixRule
+JavaImports --> PrefixRule
+JavaImports --> StringRule
+JavaImports --> StripRule
+JavaImports --> SuffixRule
 class JavaLang
 JavaLang --> CompileError
 JavaLang --> Node
 JavaLang --> NodeResult
 JavaLang --> Rule
 JavaLang --> StringResult
+JavaLang --> JavaImports
 JavaLang --> DivideRule
-JavaLang --> InfixRule
 JavaLang --> OrRule
-JavaLang --> PrefixRule
 JavaLang --> StringRule
-JavaLang --> StripRule
-JavaLang --> SuffixRule
 JavaLang --> List
 class PlantUMLLang
 PlantUMLLang --> CompileError
@@ -163,7 +171,7 @@ PrefixRule --> CompileError
 PrefixRule --> Rule
 PrefixRule --> NodeResult
 PrefixRule --> NodeResults
-PrefixRule --> Prependable
+PrefixRule --> Prepend
 class StringContext
 StringContext --> Context
 class StringRule
@@ -184,7 +192,7 @@ SuffixRule --> NodeResults
 SuffixRule --> Appending
 class Rule
 class Appending
-class Prependable
+class Prepend
 class StringResults
 StringResults --> ApplicationError
 StringResults --> ApplicationResult
@@ -199,7 +207,7 @@ StringResults --> List
 class StringResult
 StringResult --> ApplicationResult
 StringResult --> Appending
-StringResult --> Prependable
+StringResult --> Prepend
 class TreeError
 TreeError --> Error
 class Main

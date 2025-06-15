@@ -1,6 +1,6 @@
 package magma.app.compile;
 
-import magma.app.compile.lang.JavaLang;
+import magma.app.compile.lang.java.JavaLang;
 import magma.app.compile.lang.PlantUMLLang;
 import magma.app.compile.node.MapNode;
 

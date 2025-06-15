@@ -4,10 +4,10 @@ import magma.app.compile.CompileError;
 import magma.app.compile.Rule;
 import magma.app.compile.NodeResult;
 import magma.app.compile.node.NodeResults;
-import magma.app.compile.string.Prependable;
+import magma.app.compile.string.Prepend;
 
-public record PrefixRule<Node, Generate extends Prependable<Generate>>(String prefix,
-                                                                       Rule<Node, NodeResult<Node, CompileError>, Generate> rule) implements Rule<Node, NodeResult<Node, CompileError>, Generate> {
+public record PrefixRule<Node, Generate extends Prepend<Generate>>(String prefix,
+                                                                   Rule<Node, NodeResult<Node, CompileError>, Generate> rule) implements Rule<Node, NodeResult<Node, CompileError>, Generate> {
     @Override
     public Generate generate(Node node) {
         return this.rule.generate(node).prependString(this.prefix);
