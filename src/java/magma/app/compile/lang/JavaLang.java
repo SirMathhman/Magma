@@ -13,10 +13,10 @@ import java.util.List;
 
 public class JavaLang {
     public static Rule<NodeWithEverything> createJavaRootRule() {
-        return CommonLang.Divide(List.of(createImportRule(), new StringRule<NodeWithEverything>("value", new MapNodeFactory())));
+        return CommonLang.Divide(List.of(createImportRule(), new StringRule<>("value", new MapNodeFactory())));
     }
 
     private static Rule<NodeWithEverything> createImportRule() {
-        return new StripRule<NodeWithEverything>(new PrefixRule<NodeWithEverything>("import ", new SuffixRule<NodeWithEverything>(new LastRule<NodeWithEverything>(new StringRule<NodeWithEverything>("parent", new MapNodeFactory()), ".", new StringRule<NodeWithEverything>("child", new MapNodeFactory())), ";")));
+        return new StripRule<>(new PrefixRule<>("import ", new SuffixRule<>(new LastRule<>(new StringRule<>("parent", new MapNodeFactory()), ".", new StringRule<>("child", new MapNodeFactory())), ";")));
     }
 }

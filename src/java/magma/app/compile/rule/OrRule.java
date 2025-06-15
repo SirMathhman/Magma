@@ -1,7 +1,6 @@
 package magma.app.compile.rule;
 
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
 
 public record OrRule<Node>(List<Rule<Node>> rules) implements Rule<Node> {
