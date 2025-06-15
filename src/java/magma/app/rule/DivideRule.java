@@ -1,6 +1,6 @@
 package magma.app.rule;
 
-import magma.app.Node;
+import magma.app.node.Node;
 import magma.app.Rule;
 import magma.app.State;
 
@@ -35,12 +35,15 @@ public record DivideRule(String key, Rule rule) implements Rule {
                 .flatMap(Optional::stream)
                 .toList();
 
-        return Optional.of(new Node().withNodeList(this.key(), children));
+        Node node = new Node();
+        return Optional.of(node.nodeLists()
+                .with(this.key(), children));
     }
 
     @Override
     public Optional<String> generate(Node node) {
-        final var children = node.findNodeList(this.key)
+        final var children = node.nodeLists()
+                .find(this.key)
                 .orElse(new ArrayList<>());
 
         return Optional.of(children.stream()

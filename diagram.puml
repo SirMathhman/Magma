@@ -1,24 +1,23 @@
 @startuml
 skinparam linetype ortho
-class Node
-Node --> HashMap
-Node --> List
-Node --> Map
-Node --> Optional
-class Properties
-Properties --> HashMap
-Properties --> Map
-Properties --> Optional
 class SuffixRule
 SuffixRule --> Node
 SuffixRule --> Rule
 SuffixRule --> Optional
+class Node
+Node --> List
+class NodeProperties
+NodeProperties --> HashMap
+NodeProperties --> Map
+NodeProperties --> Optional
 class Rule
+Rule --> Node
 Rule --> Optional
 class StripRule
 StripRule --> Node
 StripRule --> Rule
 StripRule --> Optional
+class Completer
 class LastRule
 LastRule --> Node
 LastRule --> Rule
@@ -38,7 +37,6 @@ Main --> Paths
 Main --> ArrayList
 Main --> Optional
 Main --> Collectors
-class Completer
 class DivideRule
 DivideRule --> Node
 DivideRule --> Rule

@@ -1,6 +1,6 @@
 package magma;
 
-import magma.app.Node;
+import magma.app.node.Node;
 import magma.app.rule.DivideRule;
 import magma.app.rule.LastRule;
 import magma.app.rule.PrefixRule;
@@ -59,14 +59,16 @@ public class Main {
     }
 
     private static Node transform(Node tree, String name) {
-        final var list = tree.findNodeList("children")
+        final var list = tree.nodeLists()
+                .find("children")
                 .orElse(new ArrayList<>())
                 .stream()
                 .map(segment -> segment.strings()
-                        .withString("parent", name))
+                        .with("parent", name))
                 .toList();
 
-        return new Node().withNodeList("children", list);
+        Node node = new Node();
+        return node.nodeLists().with("children", list);
     }
 
     private static SuffixRule createDependencyRule() {
