@@ -6,6 +6,7 @@ import magma.app.State;
 import magma.app.rule.InfixRule;
 import magma.app.rule.PrefixRule;
 import magma.app.rule.StringRule;
+import magma.app.rule.StripRule;
 import magma.app.rule.SuffixRule;
 
 import java.io.IOException;
@@ -55,9 +56,7 @@ public class Main {
     }
 
     private static Generated compileRootSegment(String name, String input) {
-        final var strip = input.strip();
-        final InfixRule destination = new InfixRule(".", new StringRule("destination"));
-        final var generated = new PrefixRule("import ", new SuffixRule(destination, ";")).lex(strip);
+        final var generated = new StripRule(new PrefixRule("import ", new SuffixRule(new InfixRule(".", new StringRule("destination")), ";"))).lex(input);
         final var source = generated.withString("source", name);
         return source.generate(Main::generateDependency);
     }

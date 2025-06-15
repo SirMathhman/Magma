@@ -47,6 +47,9 @@ StringRule --> MaybeNode
 StringRule --> Rule
 StringRule --> MapNode
 StringRule --> PresentNode
+class StripRule
+StripRule --> Rule
+StripRule --> MaybeNode
 class SuffixRule
 SuffixRule --> Rule
 SuffixRule --> MaybeNode
@@ -63,6 +66,7 @@ Main --> State
 Main --> InfixRule
 Main --> PrefixRule
 Main --> StringRule
+Main --> StripRule
 Main --> SuffixRule
 Main --> IOException
 Main --> Files
