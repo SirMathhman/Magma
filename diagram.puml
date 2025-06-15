@@ -5,7 +5,6 @@ Main --> State
 Main --> IOException
 Main --> Files
 Main --> Paths
-Main --> ArrayList
 Main --> List
 Main --> Collectors
 class State

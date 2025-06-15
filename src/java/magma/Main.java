@@ -5,7 +5,6 @@ import magma.app.State;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -49,11 +48,7 @@ public class Main {
     }
 
     private static List<String> divide(String input) {
-        return getStrings(input, new State());
-    }
-
-    private static List<String> getStrings(String input, State state) {
-        var current = state;
+        var current = new State();
         for (var i = 0; i < input.length(); i++) {
             final var c = input.charAt(i);
             current = fold(current, c);
