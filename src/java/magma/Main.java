@@ -1,5 +1,6 @@
 package magma;
 
+import magma.app.Node;
 import magma.app.State;
 
 import java.io.IOException;
@@ -51,20 +52,39 @@ public class Main {
 
     private static Optional<String> compileImport(String input, String name) {
         final var stripped = input.strip();
+        return getStringOptional(name, stripped);
+    }
+
+    private static Optional<String> getStringOptional(String name, String stripped) {
         if (!stripped.startsWith("import "))
             return Optional.empty();
 
         final var withoutPrefix = stripped.substring("import ".length());
+        return getOptionalString(name, withoutPrefix);
+    }
+
+    private static Optional<String> getOptionalString(String name, String withoutPrefix) {
         if (!withoutPrefix.endsWith(";"))
             return Optional.empty();
 
         final var withoutSuffix = withoutPrefix.substring(0, withoutPrefix.length() - ";".length());
+        return getString(name, withoutSuffix);
+    }
+
+    private static Optional<String> getString(String name, String withoutSuffix) {
         final var separator = withoutSuffix.lastIndexOf(".");
         if (separator < 0)
             return Optional.empty();
 
         final var child = withoutSuffix.substring(separator + ".".length());
-        return Optional.of(name + " --> " + child + "\n");
+        return Optional.of(generate(new Node().withString("parent", name)
+                .withString("child", child)));
+    }
+
+    private static String generate(Node node) {
+        return node.findString("parent")
+                .orElse("") + " --> " + node.findString("child")
+                .orElse("") + "\n";
     }
 
     private static List<String> divide(CharSequence input) {

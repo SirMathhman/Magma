@@ -1,5 +1,10 @@
 @startuml
 skinparam linetype ortho
+Node --> HashMap
+Node --> Map
+Node --> Optional
+class Node
+Main --> Node
 Main --> State
 Main --> IOException
 Main --> Files
