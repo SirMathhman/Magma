@@ -6,6 +6,8 @@ import magma.app.Node;
 import magma.app.maybe.MaybeNode;
 import magma.app.result.PresentGenerated;
 
+import java.util.stream.Stream;
+
 public record PresentNode(Node node) implements MaybeNode {
     @Override
     public MaybeNode withString(String key, String value) {
@@ -15,5 +17,10 @@ public record PresentNode(Node node) implements MaybeNode {
     @Override
     public Generated generate(Generator generator) {
         return new PresentGenerated(generator.generate(this.node));
+    }
+
+    @Override
+    public Stream<Node> stream() {
+        return Stream.of(this.node);
     }
 }
