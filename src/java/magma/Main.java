@@ -1,9 +1,9 @@
 package magma;
 
+import magma.app.MaybeNodeList;
 import magma.app.Node;
 import magma.app.Rule;
 import magma.app.State;
-import magma.app.maybe.MaybeNode;
 import magma.app.maybe.MaybeString;
 import magma.app.maybe.string.PresentString;
 import magma.app.rule.InfixRule;
@@ -50,21 +50,19 @@ public class Main {
     }
 
     private static String compileRoot(String input, String name) {
-        final var list = lex(input);
-        final var source = getSource(name, list);
-        return generate(source).orElse("");
+        return lex(input, createImportRule()).transform(children -> transform(name, children)).generate(Main::generate).orElse("");
     }
 
     private static MaybeString generate(List<Node> children) {
         return children.stream().map(node -> createDependencyRule().generate(node)).reduce(new PresentString(""), MaybeString::appendMaybe, (_, next) -> next);
     }
 
-    private static List<Node> getSource(String name, List<Node> list) {
+    private static List<Node> transform(String name, List<Node> list) {
         return list.stream().map(node -> node.withString("source", name)).toList();
     }
 
-    private static List<Node> lex(String input) {
-        return divide(input).stream().map(segment -> createImportRule().lex(segment)).flatMap(MaybeNode::stream).toList();
+    private static MaybeNodeList lex(String input, Rule rule) {
+        return divide(input).stream().map(rule::lex).reduce(new PresentNodeList(), MaybeNodeList::add, (_, next) -> next);
     }
 
     private static Rule createDependencyRule() {

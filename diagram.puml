@@ -6,6 +6,7 @@ class MaybeNode
 MaybeNode --> Generated
 MaybeNode --> Generator
 MaybeNode --> Node
+MaybeNode --> List
 MaybeNode --> Stream
 class MaybeString
 class EmptyNode
@@ -14,6 +15,7 @@ EmptyNode --> Generator
 EmptyNode --> Node
 EmptyNode --> MaybeNode
 EmptyNode --> EmptyGenerated
+EmptyNode --> List
 EmptyNode --> Stream
 class PresentNode
 PresentNode --> Generated
@@ -21,11 +23,18 @@ PresentNode --> Generator
 PresentNode --> Node
 PresentNode --> MaybeNode
 PresentNode --> PresentGenerated
+PresentNode --> List
 PresentNode --> Stream
 class EmptyString
 EmptyString --> MaybeString
 class PresentString
 PresentString --> MaybeString
+class MaybeNodeList
+MaybeNodeList --> Main
+MaybeNodeList --> MaybeNode
+MaybeNodeList --> MaybeString
+MaybeNodeList --> List
+MaybeNodeList --> Function
 class MapNode
 MapNode --> MaybeString
 MapNode --> Node
@@ -77,10 +86,10 @@ State --> MaybeString
 State --> ArrayList
 State --> List
 class Main
+Main --> MaybeNodeList
 Main --> Node
 Main --> Rule
 Main --> State
-Main --> MaybeNode
 Main --> MaybeString
 Main --> PresentString
 Main --> InfixRule
@@ -93,4 +102,12 @@ Main --> Files
 Main --> Path
 Main --> Paths
 Main --> List
+class PresentNodeList
+PresentNodeList --> MaybeNodeList
+PresentNodeList --> Node
+PresentNodeList --> MaybeNode
+PresentNodeList --> MaybeString
+PresentNodeList --> ArrayList
+PresentNodeList --> List
+PresentNodeList --> Function
 @enduml

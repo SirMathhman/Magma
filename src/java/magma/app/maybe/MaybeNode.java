@@ -4,6 +4,7 @@ import magma.app.Generated;
 import magma.app.Generator;
 import magma.app.Node;
 
+import java.util.List;
 import java.util.stream.Stream;
 
 public interface MaybeNode {
@@ -12,4 +13,6 @@ public interface MaybeNode {
     Generated generate(Generator generator);
 
     Stream<Node> stream();
+
+    List<Node> addTo(List<Node> list);
 }
