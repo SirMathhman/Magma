@@ -15,6 +15,7 @@ Main --> EmptyResult
 Main --> PresentResult
 Main --> IOException
 Main --> Files
+Main --> Path
 Main --> Paths
 Main --> List
 @enduml

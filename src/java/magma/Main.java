@@ -7,6 +7,7 @@ import magma.app.result.PresentResult;
 
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
 
@@ -14,20 +15,7 @@ public class Main {
     public static void main(String[] args) {
         try (final var stream = Files.walk(Paths.get(".", "src", "java"))) {
             final var sources = stream.filter(Files::isRegularFile).filter(path -> path.toString().endsWith(".java")).toList();
-
-            final var output = new StringBuilder();
-            for (var source : sources) {
-                final var fileName = source.getFileName().toString();
-                final var separator = fileName.lastIndexOf(".");
-                final var name = fileName.substring(0, separator);
-                output.append("class " + name + "\n");
-
-                final var input = Files.readString(source);
-                final var result = compile(input, name);
-
-                output.append(result);
-            }
-
+            final var output = compileAll(sources);
             final var target = Paths.get(".", "diagram.puml");
             Files.writeString(target, "@startuml\nskinparam linetype ortho\n" + output + "@enduml");
         } catch (IOException e) {
@@ -36,7 +24,23 @@ public class Main {
         }
     }
 
-    private static String compile(String input, String name) throws IOException {
+    private static String compileAll(List<Path> sources) throws IOException {
+        final var output = new StringBuilder();
+        for (var source : sources) {
+            final var fileName = source.getFileName().toString();
+            final var separator = fileName.lastIndexOf(".");
+            final var name = fileName.substring(0, separator);
+            output.append("class " + name + "\n");
+
+            final var input = Files.readString(source);
+            final var result = compile(input, name);
+
+            output.append(result);
+        }
+        return output.toString();
+    }
+
+    private static String compile(String input, String name) {
         final var segments = divide(input);
         var output = new StringBuilder();
         for (var segment : segments)
