@@ -1,0 +1,33 @@
+package magma.app.compile.node;
+
+import magma.api.Error;
+import magma.app.compile.AttachableToNodeListResult;
+import magma.app.compile.NodeListResult;
+import magma.app.compile.StringResult;
+import magma.app.compile.string.StringResults;
+
+import java.util.List;
+import java.util.function.Function;
+
+public class ErrNodeListResult<Node, E extends Error> implements NodeListResult<Node, E> {
+    private final E error;
+
+    public ErrNodeListResult(E error) {
+        this.error = error;
+    }
+
+    @Override
+    public NodeListResult<Node, E> add(AttachableToNodeListResult<Node, E> node) {
+        return this;
+    }
+
+    @Override
+    public NodeListResult<Node, E> transform(Function<List<Node>, List<Node>> mapper) {
+        return this;
+    }
+
+    @Override
+    public StringResult<E> generate(Function<List<Node>, StringResult<E>> generator) {
+        return StringResults.createFromError(this.error);
+    }
+}

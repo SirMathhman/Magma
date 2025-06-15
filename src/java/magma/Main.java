@@ -4,7 +4,7 @@ import magma.api.JavaFiles;
 import magma.api.ThrowableError;
 import magma.app.ApplicationError;
 import magma.app.ApplicationResult;
-import magma.app.Compiler;
+import magma.app.compile.Compiler;
 
 import java.io.IOException;
 import java.nio.file.Files;

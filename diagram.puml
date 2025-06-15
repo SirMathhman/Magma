@@ -35,7 +35,6 @@ Compiler --> OrRule
 Compiler --> StringRule
 Compiler --> List
 class Context
-class DisplayableNode
 class Lang
 Lang --> CompileError
 Lang --> Node
@@ -47,6 +46,7 @@ Lang --> PrefixRule
 Lang --> StringRule
 Lang --> StripRule
 Lang --> SuffixRule
+class DisplayableNode
 class ErrNodeListResult
 ErrNodeListResult --> Error
 ErrNodeListResult --> AttachableToNodeListResult
@@ -78,6 +78,7 @@ PresentNodeListResult --> ArrayList
 PresentNodeListResult --> List
 PresentNodeListResult --> Function
 class Node
+Node --> DisplayableNode
 class NodeListResult
 NodeListResult --> List
 NodeListResult --> Function
@@ -163,6 +164,7 @@ StringResults --> NodeContext
 StringResults --> OrState
 StringResults --> List
 class StringResult
+StringResult --> ApplicationResult
 StringResult --> Appendable
 StringResult --> Prependable
 class Main
