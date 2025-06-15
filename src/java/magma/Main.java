@@ -43,7 +43,9 @@ public class Main {
             extracted.ifPresent(output::append);
         }
 
-        return output.append("class " + name + "\n")
+        return output.append("class ")
+                .append(name)
+                .append("\n")
                 .toString();
     }
 
@@ -65,7 +67,7 @@ public class Main {
         return Optional.of(name + " --> " + child + "\n");
     }
 
-    private static List<String> divide(String input) {
+    private static List<String> divide(CharSequence input) {
         var current = new State();
         for (var i = 0; i < input.length(); i++) {
             final var c = input.charAt(i);
