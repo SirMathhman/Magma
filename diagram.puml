@@ -33,7 +33,7 @@ class ErrNodeListResult
 ErrNodeListResult --> NodeListResult
 ErrNodeListResult --> NodeResult
 ErrNodeListResult --> StringResult
-ErrNodeListResult --> ErrStringResult
+ErrNodeListResult --> StringResults
 ErrNodeListResult --> List
 ErrNodeListResult --> Function
 class PresentNodeListResult
@@ -56,31 +56,22 @@ NodeResults --> StringContext
 NodeResults --> OrState
 NodeResults --> List
 class Appendable
-class ErrStringResult
-ErrStringResult --> StringResult
-ErrStringResult --> OrState
-class OkStringResult
-OkStringResult --> StringResult
-OkStringResult --> StringResults
-OkStringResult --> OrState
-OkStringResult --> Objects
 class Prependable
 class StringResult
 StringResult --> Appendable
 StringResult --> Prependable
 class StringResults
 StringResults --> CompileError
-StringResults --> ErrStringResult
-StringResults --> OkStringResult
+StringResults --> Node
 StringResults --> NodeContext
+StringResults --> OrState
 StringResults --> List
+StringResults --> Objects
 class MapNode
 MapNode --> CompileError
 MapNode --> Node
 MapNode --> StringResult
 MapNode --> StringResults
-MapNode --> ErrStringResult
-MapNode --> NodeContext
 MapNode --> HashMap
 MapNode --> Map
 class Node

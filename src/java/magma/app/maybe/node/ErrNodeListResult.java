@@ -3,7 +3,7 @@ package magma.app.maybe.node;
 import magma.app.maybe.NodeListResult;
 import magma.app.maybe.NodeResult;
 import magma.app.maybe.StringResult;
-import magma.app.maybe.string.ErrStringResult;
+import magma.app.maybe.StringResults;
 
 import java.util.List;
 import java.util.function.Function;
@@ -27,6 +27,6 @@ public class ErrNodeListResult<Node, Error> implements NodeListResult<Node, Erro
 
     @Override
     public StringResult<Error> generate(Function<List<Node>, StringResult<Error>> generator) {
-        return new ErrStringResult<>(this.error);
+        return StringResults.createFromError(this.error);
     }
 }
