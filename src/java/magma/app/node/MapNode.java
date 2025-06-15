@@ -32,6 +32,6 @@ public final class MapNode implements Node {
         if (this.strings.containsKey(key))
             return new OkStringResult<CompileError>(this.strings.get(key));
 
-        return new ErrStringResult<CompileError>(new CompileError("String '" + key + "' not present", new NodeContext(this)));
+        return new ErrStringResult<CompileError>(new CompileError("String '" + key + "' not present", new NodeContext<Node>(this)));
     }
 }

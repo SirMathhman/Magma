@@ -15,7 +15,7 @@ import java.util.List;
 
 public class Compiler {
     public static String compileRoot(String input, String name) {
-        return lex(input, new OrRule(List.of(Lang.createImportRule(), new StringRule("value")))).transform(children -> transform(name, children)).generate(Compiler::generate).orElse("");
+        return lex(input, new OrRule<Node>(List.of(Lang.createImportRule(), new StringRule("value")))).transform(children -> transform(name, children)).generate(Compiler::generate).orElse("");
     }
 
     static List<String> divide(String input) {
@@ -36,7 +36,7 @@ public class Compiler {
     }
 
     public static StringResult<CompileError> generate(List<Node> children) {
-        return children.stream().map(node -> new OrRule(List.of(Lang.createDependencyRule(), new EmptyRule())).generate(node)).<StringResult<CompileError>>reduce(new OkStringResult<>(""), (compileErrorOkStringResult, other) -> compileErrorOkStringResult.appendMaybe(other), (_, next) -> next);
+        return children.stream().map(node -> new OrRule<Node>(List.of(Lang.createDependencyRule(), new EmptyRule())).generate(node)).<StringResult<CompileError>>reduce(new OkStringResult<>(""), (compileErrorOkStringResult, other) -> compileErrorOkStringResult.appendMaybe(other), (_, next) -> next);
     }
 
     public static List<Node> transform(String name, List<Node> list) {

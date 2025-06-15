@@ -100,7 +100,7 @@ InfixRule --> ErrNodeResult
 InfixRule --> Appendable
 class NodeContext
 NodeContext --> Context
-NodeContext --> Node
+NodeContext --> Objects
 class InlineOrState
 InlineOrState --> CompileError
 InlineOrState --> ArrayList
@@ -113,7 +113,6 @@ OrState --> Function
 class OrRule
 OrRule --> CompileError
 OrRule --> Context
-OrRule --> Node
 OrRule --> Rule
 OrRule --> Attachable
 OrRule --> NodeResult

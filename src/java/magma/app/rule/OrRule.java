@@ -2,7 +2,6 @@ package magma.app.rule;
 
 import magma.app.CompileError;
 import magma.app.Context;
-import magma.app.Node;
 import magma.app.Rule;
 import magma.app.maybe.Attachable;
 import magma.app.maybe.NodeResult;
@@ -17,11 +16,11 @@ import magma.app.rule.or.OrState;
 import java.util.List;
 import java.util.function.Function;
 
-public record OrRule(
+public record OrRule<Node>(
         List<Rule<Node, NodeResult<Node, CompileError>, StringResult<CompileError>>> rules) implements Rule<Node, NodeResult<Node, CompileError>, StringResult<CompileError>> {
     @Override
     public StringResult<CompileError> generate(Node node) {
-        return this.<Attachable<String, CompileError>, String, StringResult<CompileError>>or(rule1 -> rule1.generate(node), OkStringResult::new, errors -> new ErrStringResult<>(this.createError(new NodeContext(node), errors)));
+        return this.<Attachable<String, CompileError>, String, StringResult<CompileError>>or(rule1 -> rule1.generate(node), OkStringResult::new, errors -> new ErrStringResult<>(this.createError(new NodeContext<>(node), errors)));
     }
 
     private CompileError createError(Context context, List<CompileError> errors) {
