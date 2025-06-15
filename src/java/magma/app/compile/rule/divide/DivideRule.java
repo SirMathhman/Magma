@@ -9,7 +9,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-public record DivideRule(String key, Rule rule) implements Rule {
+public record DivideRule(String key, Rule<NodeWithEverything> rule) implements Rule<NodeWithEverything> {
     private static List<String> divide(CharSequence input) {
         DivideState current = new MutableDivideState();
         for (var i = 0; i < input.length(); i++) {

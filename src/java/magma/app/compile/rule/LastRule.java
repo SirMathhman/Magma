@@ -4,7 +4,7 @@ import magma.app.compile.node.NodeWithEverything;
 
 import java.util.Optional;
 
-public record LastRule(Rule leftRule, String infix, Rule rightRule) implements Rule {
+public record LastRule(Rule<NodeWithEverything> leftRule, String infix, Rule<NodeWithEverything> rightRule) implements Rule<NodeWithEverything> {
     @Override
     public Optional<NodeWithEverything> lex(String input) {
         final var separator = input.lastIndexOf(this.infix);

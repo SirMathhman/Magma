@@ -5,7 +5,7 @@ import magma.app.compile.node.NodeWithEverything;
 
 import java.util.Optional;
 
-public class EmptyRule implements Rule {
+public class EmptyRule implements Rule<NodeWithEverything> {
     @Override
     public Optional<NodeWithEverything> lex(String input) {
         return Optional.of(new MapNode());

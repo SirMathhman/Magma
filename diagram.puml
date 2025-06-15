@@ -26,6 +26,7 @@ class StripRule
 StripRule --> NodeWithEverything
 StripRule --> Optional
 class Lang
+Lang --> NodeWithEverything
 Lang --> EmptyRule
 Lang --> OrRule
 Lang --> Rule
@@ -70,7 +71,6 @@ class NodeWithEverything
 class NodeWithStrings
 NodeWithStrings --> NodeProperties
 class Rule
-Rule --> NodeWithEverything
 Rule --> Optional
 class NodeWithNodeLists
 NodeWithNodeLists --> NodeProperties

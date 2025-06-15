@@ -5,7 +5,7 @@ import magma.app.compile.node.NodeWithEverything;
 import java.util.List;
 import java.util.Optional;
 
-public record OrRule(List<Rule> rules) implements Rule {
+public record OrRule(List<Rule<NodeWithEverything>> rules) implements Rule<NodeWithEverything> {
     @Override
     public Optional<NodeWithEverything> lex(String input) {
         return this.rules.stream()

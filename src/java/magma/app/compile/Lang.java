@@ -1,5 +1,6 @@
 package magma.app.compile;
 
+import magma.app.compile.node.NodeWithEverything;
 import magma.app.compile.rule.EmptyRule;
 import magma.app.compile.rule.OrRule;
 import magma.app.compile.rule.Rule;
@@ -13,27 +14,27 @@ import magma.app.compile.rule.SuffixRule;
 import java.util.List;
 
 public class Lang {
-    public static Rule createJavaRootRule() {
+    public static Rule<NodeWithEverything> createJavaRootRule() {
         return new DivideRule("children", new OrRule(List.of(
                 createImportRule(),
                 new StringRule("value")
         )));
     }
 
-    public static Rule createPlantUMLRootRule() {
+    public static Rule<NodeWithEverything> createPlantUMLRootRule() {
         return new DivideRule("children", new OrRule(List.of(
                 createDependencyRule(),
                 new EmptyRule()
         )));
     }
 
-    private static Rule createDependencyRule() {
+    private static Rule<NodeWithEverything> createDependencyRule() {
         final var parent = new StringRule("parent");
         final var child = new StringRule("child");
         return new SuffixRule(new LastRule(parent, " --> ", child), "\n");
     }
 
-    private static Rule createImportRule() {
+    private static Rule<NodeWithEverything> createImportRule() {
         return new StripRule(new PrefixRule("import ", new SuffixRule(new LastRule(new StringRule("parent"), ".", new StringRule("child")), ";")));
     }
 }
