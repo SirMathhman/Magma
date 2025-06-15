@@ -1,4 +1,8 @@
 @startuml
 skinparam linetype ortho
 class Main
+Main --> IOException
+Main --> Files
+Main --> Paths
+Main --> ArrayList
 @enduml
