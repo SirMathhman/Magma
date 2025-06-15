@@ -6,7 +6,7 @@ import magma.app.maybe.MaybeNode;
 import magma.app.maybe.MaybeString;
 import magma.app.maybe.node.EmptyNode;
 
-public record PrefixRule(String prefix, Rule<Node, MaybeString> rule) implements Rule<Node, MaybeString> {
+public record PrefixRule(String prefix, Rule<Node, MaybeNode, MaybeString> rule) implements Rule<Node, MaybeNode, MaybeString> {
     @Override
     public MaybeString generate(Node node) {
         return this.rule.generate(node).prependString(this.prefix);

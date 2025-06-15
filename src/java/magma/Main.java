@@ -4,6 +4,7 @@ import magma.app.MaybeNodeList;
 import magma.app.Node;
 import magma.app.Rule;
 import magma.app.State;
+import magma.app.maybe.MaybeNode;
 import magma.app.maybe.MaybeString;
 import magma.app.maybe.string.PresentString;
 import magma.app.rule.InfixRule;
@@ -61,15 +62,15 @@ public class Main {
         return list.stream().map(node -> node.withString("source", name)).toList();
     }
 
-    private static MaybeNodeList lex(String input, Rule<Node, MaybeString> rule) {
+    private static MaybeNodeList lex(String input, Rule<Node, MaybeNode, MaybeString> rule) {
         return divide(input).stream().map(rule::lex).reduce(new PresentNodeList(), MaybeNodeList::add, (_, next) -> next);
     }
 
-    private static Rule<Node, MaybeString> createDependencyRule() {
+    private static Rule<Node, MaybeNode, MaybeString> createDependencyRule() {
         return new SuffixRule<>(new InfixRule(new StringRule("source"), " --> ", new StringRule("destination")), "\n");
     }
 
-    private static Rule<Node, MaybeString> createImportRule() {
+    private static Rule<Node, MaybeNode, MaybeString> createImportRule() {
         return new StripRule(new PrefixRule("import ", new SuffixRule<>(new InfixRule(new StringRule("parent"), ".", new StringRule("destination")), ";")));
     }
 

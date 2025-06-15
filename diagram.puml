@@ -8,7 +8,6 @@ MaybeNode --> Generated
 MaybeNode --> Generator
 MaybeNode --> Node
 MaybeNode --> List
-MaybeNode --> Stream
 class MaybeString
 class EmptyNode
 EmptyNode --> Generated
@@ -17,7 +16,6 @@ EmptyNode --> Node
 EmptyNode --> MaybeNode
 EmptyNode --> EmptyGenerated
 EmptyNode --> List
-EmptyNode --> Stream
 class PresentNode
 PresentNode --> Generated
 PresentNode --> Generator
@@ -25,7 +23,6 @@ PresentNode --> Node
 PresentNode --> MaybeNode
 PresentNode --> PresentGenerated
 PresentNode --> List
-PresentNode --> Stream
 class EmptyString
 EmptyString --> MaybeString
 class PresentString
@@ -79,7 +76,6 @@ SuffixRule --> Appendable
 SuffixRule --> MaybeNode
 SuffixRule --> EmptyNode
 class Rule
-Rule --> MaybeNode
 class State
 State --> MaybeString
 State --> ArrayList
@@ -89,6 +85,7 @@ Main --> MaybeNodeList
 Main --> Node
 Main --> Rule
 Main --> State
+Main --> MaybeNode
 Main --> MaybeString
 Main --> PresentString
 Main --> InfixRule

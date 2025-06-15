@@ -7,7 +7,7 @@ import magma.app.maybe.MaybeString;
 import magma.app.maybe.node.PresentNode;
 import magma.app.node.MapNode;
 
-public record StringRule(String key) implements Rule<Node, MaybeString> {
+public record StringRule(String key) implements Rule<Node, MaybeNode, MaybeString> {
     @Override
     public MaybeString generate(Node node) {
         return node.findString(this.key);

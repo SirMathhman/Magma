@@ -6,7 +6,7 @@ import magma.app.maybe.MaybeNode;
 import magma.app.maybe.MaybeString;
 import magma.app.maybe.node.EmptyNode;
 
-public record InfixRule(Rule<Node, MaybeString> leftRule, String infix, Rule<Node, MaybeString> rightRule) implements Rule<Node, MaybeString> {
+public record InfixRule(Rule<Node, MaybeNode, MaybeString> leftRule, String infix, Rule<Node, MaybeNode, MaybeString> rightRule) implements Rule<Node, MaybeNode, MaybeString> {
     @Override
     public MaybeString generate(Node node) {
         return this.leftRule.generate(node).appendString(this.infix).appendMaybe(this.rightRule.generate(node));
