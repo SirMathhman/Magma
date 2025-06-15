@@ -2,17 +2,25 @@
 skinparam linetype ortho
 class Generated
 class Generator
-class EmptyString
-EmptyString --> MaybeString
-class PresentString
-PresentString --> MaybeString
 class MaybeNode
+MaybeNode --> Generated
+MaybeNode --> Generator
 class MaybeString
 class EmptyNode
 EmptyNode --> Generated
 EmptyNode --> Generator
 EmptyNode --> MaybeNode
 EmptyNode --> EmptyGenerated
+class PresentNode
+PresentNode --> Generated
+PresentNode --> Generator
+PresentNode --> Node
+PresentNode --> MaybeNode
+PresentNode --> PresentGenerated
+class EmptyString
+EmptyString --> MaybeString
+class PresentString
+PresentString --> MaybeString
 class MapNode
 MapNode --> MaybeString
 MapNode --> Node
@@ -20,13 +28,8 @@ MapNode --> EmptyString
 MapNode --> PresentString
 MapNode --> HashMap
 MapNode --> Map
-class PresentNode
-PresentNode --> Generated
-PresentNode --> Generator
-PresentNode --> MaybeNode
-PresentNode --> Node
-PresentNode --> PresentGenerated
 class Node
+Node --> MaybeString
 class EmptyGenerated
 EmptyGenerated --> Generated
 class PresentGenerated
@@ -41,6 +44,7 @@ StringRule --> Rule
 StringRule --> MapNode
 StringRule --> PresentNode
 class Rule
+Rule --> MaybeNode
 class State
 State --> ArrayList
 State --> List

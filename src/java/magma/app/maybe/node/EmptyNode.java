@@ -1,8 +1,8 @@
-package magma.app.node;
+package magma.app.maybe.node;
 
 import magma.app.Generated;
 import magma.app.Generator;
-import magma.app.MaybeNode;
+import magma.app.maybe.MaybeNode;
 import magma.app.result.EmptyGenerated;
 
 public class EmptyNode implements MaybeNode {

@@ -1,6 +1,6 @@
-package magma.app.maybe;
+package magma.app.maybe.string;
 
-import magma.app.MaybeString;
+import magma.app.maybe.MaybeString;
 
 public class EmptyString implements MaybeString {
     @Override

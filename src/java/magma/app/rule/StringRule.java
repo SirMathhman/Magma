@@ -1,9 +1,9 @@
 package magma.app.rule;
 
-import magma.app.MaybeNode;
+import magma.app.maybe.MaybeNode;
 import magma.app.Rule;
 import magma.app.node.MapNode;
-import magma.app.node.PresentNode;
+import magma.app.maybe.node.PresentNode;
 
 public record StringRule(String key) implements Rule {
     @Override

@@ -1,9 +1,9 @@
 package magma.app.node;
 
-import magma.app.MaybeString;
+import magma.app.maybe.MaybeString;
 import magma.app.Node;
-import magma.app.maybe.EmptyString;
-import magma.app.maybe.PresentString;
+import magma.app.maybe.string.EmptyString;
+import magma.app.maybe.string.PresentString;
 
 import java.util.HashMap;
 import java.util.Map;

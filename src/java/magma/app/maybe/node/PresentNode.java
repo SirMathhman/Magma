@@ -1,9 +1,9 @@
-package magma.app.node;
+package magma.app.maybe.node;
 
 import magma.app.Generated;
 import magma.app.Generator;
-import magma.app.MaybeNode;
 import magma.app.Node;
+import magma.app.maybe.MaybeNode;
 import magma.app.result.PresentGenerated;
 
 public record PresentNode(Node node) implements MaybeNode {

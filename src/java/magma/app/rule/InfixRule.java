@@ -1,8 +1,8 @@
 package magma.app.rule;
 
-import magma.app.MaybeNode;
+import magma.app.maybe.MaybeNode;
 import magma.app.Rule;
-import magma.app.node.EmptyNode;
+import magma.app.maybe.node.EmptyNode;
 
 public record InfixRule(String infix, Rule rule) implements Rule {
     @Override
