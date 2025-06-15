@@ -10,10 +10,10 @@ import magma.app.compile.string.StringResults;
 import java.util.List;
 import java.util.function.Function;
 
-public class ErrNodeListResult<Node, E extends Error> implements NodeListResult<Node, E, NodeResult<Node, E>> {
+public class NodeListErr<Node, E extends Error> implements NodeListResult<Node, E, NodeResult<Node, E>> {
     private final E error;
 
-    public ErrNodeListResult(E error) {
+    public NodeListErr(E error) {
         this.error = error;
     }
 
@@ -30,5 +30,10 @@ public class ErrNodeListResult<Node, E extends Error> implements NodeListResult<
     @Override
     public StringResult<E> generate(Function<List<Node>, StringResult<E>> generator) {
         return StringResults.createFromError(this.error);
+    }
+
+    @Override
+    public NodeResult<Node, E> toNode(String key) {
+        return NodeResults.createFromError(error);
     }
 }

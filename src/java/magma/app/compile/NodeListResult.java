@@ -10,5 +10,5 @@ public interface NodeListResult<Node, Error, Result> {
 
     StringResult<Error> generate(Function<List<Node>, StringResult<Error>> generator);
 
-    Result toNode();
+    Result toNode(String key);
 }

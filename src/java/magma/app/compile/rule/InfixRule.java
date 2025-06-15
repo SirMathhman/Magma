@@ -4,9 +4,9 @@ import magma.app.compile.CompileError;
 import magma.app.compile.Rule;
 import magma.app.compile.NodeResult;
 import magma.app.compile.node.NodeResults;
-import magma.app.compile.string.Appendable;
+import magma.app.compile.string.Appending;
 
-public record InfixRule<Node, Generate extends Appendable<Generate>>(
+public record InfixRule<Node, Generate extends Appending<Generate>>(
         Rule<Node, NodeResult<Node, CompileError>, Generate> leftRule, String infix,
         Rule<Node, NodeResult<Node, CompileError>, Generate> rightRule) implements Rule<Node, NodeResult<Node, CompileError>, Generate> {
 

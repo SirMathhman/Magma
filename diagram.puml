@@ -27,12 +27,11 @@ CompileError --> List
 CompileError --> Collectors
 class Compiler
 Compiler --> Lang
-Compiler --> PresentNodeListResult
-Compiler --> DivideState
+Compiler --> MapNode
+Compiler --> DivideRule
 Compiler --> EmptyRule
 Compiler --> OrRule
 Compiler --> StringRule
-Compiler --> StringResults
 Compiler --> List
 class Context
 class Lang
@@ -47,42 +46,63 @@ Lang --> StringRule
 Lang --> StripRule
 Lang --> SuffixRule
 class DisplayableNode
-class ErrNodeListResult
-ErrNodeListResult --> Error
-ErrNodeListResult --> AttachableToNodeListResult
-ErrNodeListResult --> NodeListResult
-ErrNodeListResult --> StringResult
-ErrNodeListResult --> StringResults
-ErrNodeListResult --> List
-ErrNodeListResult --> Function
 class MapNode
 MapNode --> CompileError
 MapNode --> Node
+MapNode --> NodeListResult
+MapNode --> NodeResult
 MapNode --> StringResult
+MapNode --> NodeContext
 MapNode --> StringResults
 MapNode --> HashMap
+MapNode --> List
 MapNode --> Map
+class NodeListErr
+NodeListErr --> Error
+NodeListErr --> AttachableToNodeListResult
+NodeListErr --> NodeListResult
+NodeListErr --> NodeResult
+NodeListErr --> StringResult
+NodeListErr --> StringResults
+NodeListErr --> List
+NodeListErr --> Function
+class NodeListOk
+NodeListOk --> AttachableToNodeListResult
+NodeListOk --> CompileError
+NodeListOk --> Node
+NodeListOk --> NodeListResult
+NodeListOk --> NodeResult
+NodeListOk --> StringResult
+NodeListOk --> ArrayList
+NodeListOk --> List
+NodeListOk --> Function
 class NodeResults
-NodeResults --> CompileError
 NodeResults --> Error
+NodeResults --> CompileError
+NodeResults --> Node
 NodeResults --> NodeListResult
 NodeResults --> NodeResult
 NodeResults --> StringContext
 NodeResults --> OrState
 NodeResults --> List
-class PresentNodeListResult
-PresentNodeListResult --> AttachableToNodeListResult
-PresentNodeListResult --> NodeListResult
-PresentNodeListResult --> StringResult
-PresentNodeListResult --> ArrayList
-PresentNodeListResult --> List
-PresentNodeListResult --> Function
 class Node
 Node --> DisplayableNode
+Node --> List
 class NodeListResult
 NodeListResult --> List
 NodeListResult --> Function
 class NodeResult
+class DivideRule
+DivideRule --> CompileError
+DivideRule --> Node
+DivideRule --> NodeListResult
+DivideRule --> NodeResult
+DivideRule --> Rule
+DivideRule --> StringResult
+DivideRule --> NodeListOk
+DivideRule --> Appending
+DivideRule --> StringResults
+DivideRule --> List
 class DivideState
 DivideState --> ArrayList
 DivideState --> List
@@ -100,7 +120,7 @@ InfixRule --> CompileError
 InfixRule --> Rule
 InfixRule --> NodeResult
 InfixRule --> NodeResults
-InfixRule --> Appendable
+InfixRule --> Appending
 class NodeContext
 NodeContext --> Context
 NodeContext --> DisplayableNode
@@ -113,16 +133,16 @@ class OrState
 OrState --> List
 OrState --> Function
 class OrRule
-OrRule --> CompileError
-OrRule --> DisplayableNode
-OrRule --> Rule
 OrRule --> AttachableToOrState
+OrRule --> CompileError
+OrRule --> Node
 OrRule --> NodeResult
-OrRule --> NodeResults
+OrRule --> Rule
 OrRule --> StringResult
-OrRule --> StringResults
+OrRule --> NodeResults
 OrRule --> InlineOrState
 OrRule --> OrState
+OrRule --> StringResults
 OrRule --> List
 OrRule --> Function
 class PrefixRule
@@ -148,9 +168,9 @@ SuffixRule --> CompileError
 SuffixRule --> Rule
 SuffixRule --> NodeResult
 SuffixRule --> NodeResults
-SuffixRule --> Appendable
+SuffixRule --> Appending
 class Rule
-class Appendable
+class Appending
 class Prependable
 class StringResults
 StringResults --> ApplicationError
@@ -165,7 +185,7 @@ StringResults --> OrState
 StringResults --> List
 class StringResult
 StringResult --> ApplicationResult
-StringResult --> Appendable
+StringResult --> Appending
 StringResult --> Prependable
 class Main
 Main --> JavaFiles
