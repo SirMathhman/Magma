@@ -1,9 +1,5 @@
 package magma.app.compile.rule;
 
-import magma.api.result.Err;
-import magma.api.result.Ok;
-import magma.api.result.Result;
-import magma.app.compile.CompileError;
 import magma.app.compile.Rule;
 import magma.app.compile.error.Context;
 import magma.app.compile.error.context.NodeContext;
@@ -26,14 +22,6 @@ public record OrRule<Node extends DisplayableNode>(
     }
 
     private <Value> RuleResult<Value> or(Function<Rule<Node, RuleResult<Node>, RuleResult<String>>, RuleResult<Value>> mapper, Context context) {
-        final var result = this.getResult(mapper, context);
-        return switch (result) {
-            case Err<Value, CompileError> v -> new RuleResultErr<>(v.error());
-            case Ok<Value, CompileError> v -> new RuleResultOk<>(v.value());
-        };
-    }
-
-    private <Value> Result<Value, CompileError> getResult(Function<Rule<Node, RuleResult<Node>, RuleResult<String>>, RuleResult<Value>> mapper, Context context) {
         return this.rules.stream().map(mapper).<OrState<Value>>reduce(new SimpleOrState<>(), (state, result) -> switch (result) {
             case RuleResultErr<Value>(var error) -> state.withError(error);
             case RuleResultOk<Value>(Value value) -> state.withValue(value);

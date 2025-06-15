@@ -16,7 +16,6 @@ class StringContext
 StringContext --> Context
 class Result
 Result --> Tuple
-Result --> Optional
 Result --> Function
 Result --> Supplier
 class TypedNode
@@ -28,24 +27,27 @@ NodeListRule --> CompoundNode
 NodeListRule --> PropertiesCompoundNode
 NodeListRule --> FoldingDivider
 NodeListRule --> RuleResult
+NodeListRule --> RuleResultErr
+NodeListRule --> RuleResultOk
 NodeListRule --> ArrayList
 NodeListRule --> List
-NodeListRule --> Function
 class InfixRule
 InfixRule --> Rule
 InfixRule --> MergingNode
 InfixRule --> RuleResult
-InfixRule --> Function
+InfixRule --> RuleResultErr
+InfixRule --> RuleResultOk
 class RuleResult
 RuleResult --> CompileError
 RuleResult --> NodeContext
 RuleResult --> StringContext
 RuleResult --> DisplayableNode
-RuleResult --> Function
 class Compiler
 Compiler --> Lang
 Compiler --> CompoundNode
 Compiler --> RuleResult
+Compiler --> RuleResultErr
+Compiler --> RuleResultOk
 Compiler --> Transformer
 class EmptyRule
 EmptyRule --> Rule
@@ -54,9 +56,9 @@ EmptyRule --> PropertiesCompoundNode
 EmptyRule --> RuleResult
 class DisplayableNode
 class OrState
-OrState --> Result
 OrState --> CompileError
 OrState --> Context
+OrState --> RuleResult
 class MergingNode
 class StringRule
 StringRule --> Rule
@@ -70,14 +72,12 @@ ModifyingRule --> Modifier
 ModifyingRule --> PrefixModifier
 ModifyingRule --> SuffixModifier
 ModifyingRule --> RuleResult
-ModifyingRule --> Function
 class CompoundNode
 CompoundNode --> MergingNode
 CompoundNode --> NodeListNode
 CompoundNode --> StringNode
 class Err
 Err --> Tuple
-Err --> Optional
 Err --> Function
 Err --> Supplier
 class TypeRule
@@ -85,7 +85,8 @@ TypeRule --> Rule
 TypeRule --> DisplayableNode
 TypeRule --> TypedNode
 TypeRule --> RuleResult
-TypeRule --> Function
+TypeRule --> RuleResultErr
+TypeRule --> RuleResultOk
 class MutableDivideState
 MutableDivideState --> ArrayList
 MutableDivideState --> List
@@ -94,10 +95,6 @@ class NodeContext
 NodeContext --> Context
 NodeContext --> DisplayableNode
 class OrRule
-OrRule --> Err
-OrRule --> Ok
-OrRule --> Result
-OrRule --> CompileError
 OrRule --> Rule
 OrRule --> Context
 OrRule --> NodeContext
@@ -106,6 +103,8 @@ OrRule --> DisplayableNode
 OrRule --> OrState
 OrRule --> SimpleOrState
 OrRule --> RuleResult
+OrRule --> RuleResultErr
+OrRule --> RuleResultOk
 OrRule --> List
 OrRule --> Function
 class ThrowableError
@@ -147,7 +146,6 @@ Application --> Path
 Application --> Paths
 Application --> Optional
 Application --> Set
-Application --> Function
 Application --> Collectors
 class SuffixModifier
 SuffixModifier --> CompileError
@@ -172,11 +170,9 @@ class Modifier
 Modifier --> CompileError
 Modifier --> Optional
 class SimpleOrState
-SimpleOrState --> Err
-SimpleOrState --> Ok
-SimpleOrState --> Result
 SimpleOrState --> CompileError
 SimpleOrState --> Context
+SimpleOrState --> RuleResult
 SimpleOrState --> ArrayList
 SimpleOrState --> List
 SimpleOrState --> Optional
@@ -198,7 +194,6 @@ Lang --> List
 class Context
 class Ok
 Ok --> Tuple
-Ok --> Optional
 Ok --> Function
 Ok --> Supplier
 @enduml

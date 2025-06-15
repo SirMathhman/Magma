@@ -8,11 +8,11 @@ import magma.app.compile.rule.result.RuleResult;
 public class EmptyRule implements Rule<CompoundNode, RuleResult<CompoundNode>, RuleResult<String>> {
     @Override
     public RuleResult<CompoundNode> lex(String input) {
-        return RuleResult.createFromValue(new PropertiesCompoundNode());
+        return new RuleResult.RuleResultOk<>(new PropertiesCompoundNode());
     }
 
     @Override
     public RuleResult<String> generate(CompoundNode node) {
-        return RuleResult.createFromValue("");
+        return new RuleResult.RuleResultOk<>("");
     }
 }
