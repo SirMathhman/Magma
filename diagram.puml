@@ -2,6 +2,7 @@
 skinparam linetype ortho
 class Generated
 class Generator
+class Appendable
 class MaybeNode
 MaybeNode --> Generated
 MaybeNode --> Generator
@@ -74,12 +75,11 @@ StripRule --> MaybeNode
 StripRule --> MaybeString
 class SuffixRule
 SuffixRule --> Rule
+SuffixRule --> Appendable
 SuffixRule --> MaybeNode
-SuffixRule --> MaybeString
 SuffixRule --> EmptyNode
 class Rule
 Rule --> MaybeNode
-Rule --> MaybeString
 class State
 State --> MaybeString
 State --> ArrayList

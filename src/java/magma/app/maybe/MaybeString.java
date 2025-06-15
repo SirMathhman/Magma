@@ -1,11 +1,7 @@
 package magma.app.maybe;
 
-public interface MaybeString {
+public interface MaybeString extends Appendable<MaybeString> {
     String orElse(String other);
-
-    MaybeString appendString(String other);
-
-    MaybeString appendMaybe(MaybeString other);
 
     MaybeString prependString(String other);
 }
