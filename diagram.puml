@@ -1,7 +1,6 @@
 @startuml
 skinparam linetype ortho
 class MapNodeProperties
-MapNodeProperties --> Completer
 MapNodeProperties --> HashMap
 MapNodeProperties --> Map
 MapNodeProperties --> Optional
@@ -13,7 +12,13 @@ NodeProperties --> Optional
 class Rule
 Rule --> Optional
 class Completer
-Completer --> NodeProperties
+class Lang
+Lang --> DivideRule
+Lang --> LastRule
+Lang --> PrefixRule
+Lang --> StringRule
+Lang --> StripRule
+Lang --> SuffixRule
 class LastRule
 LastRule --> Node
 LastRule --> Rule
@@ -45,14 +50,9 @@ StripRule --> Node
 StripRule --> Rule
 StripRule --> Optional
 class Main
-Main --> MapNode
+Main --> Lang
 Main --> Node
-Main --> DivideRule
-Main --> LastRule
-Main --> PrefixRule
-Main --> StringRule
-Main --> StripRule
-Main --> SuffixRule
+Main --> MapNode
 Main --> IOException
 Main --> Files
 Main --> Path
