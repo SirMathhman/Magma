@@ -10,8 +10,8 @@ public final class MapNode implements Node {
     private final NodeProperties<String, Node> strings;
 
     public MapNode() {
-        this.strings = new MapNodeProperties<>(this::withStrings);
-        this.nodeLists = new MapNodeProperties<>(this::withNodeLists);
+        this.strings = new MapNodeProperties<>(strings1 -> withStrings(this, strings1));
+        this.nodeLists = new MapNodeProperties<>(nodeLists1 -> withNodeLists(this, nodeLists1));
     }
 
     public MapNode(NodeProperties<String, Node> strings, NodeProperties<List<Node>, Node> nodeLists) {
@@ -19,12 +19,12 @@ public final class MapNode implements Node {
         this.strings = strings;
     }
 
-    private Node withNodeLists(NodeProperties<List<Node>, Node> nodeLists) {
-        return new MapNode(this.strings, nodeLists);
+    private static Node withNodeLists(MapNode mapNode, NodeProperties<List<Node>, Node> nodeLists) {
+        return new MapNode(mapNode.strings, nodeLists);
     }
 
-    private Node withStrings(NodeProperties<String, Node> strings) {
-        return new MapNode(strings, this.nodeLists);
+    private static Node withStrings(MapNode mapNode, NodeProperties<String, Node> strings) {
+        return new MapNode(strings, mapNode.nodeLists);
     }
 
     @Override
