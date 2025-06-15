@@ -1,21 +1,20 @@
 package magma.app.compile;
 
-import magma.api.Error;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
-public record CompileError(String message, Context context, List<CompileError> errors) implements Error {
+public record CompileError(String message, Context context, List<CompileError> errors) implements TreeError {
     public CompileError(String message, Context context) {
         this(message, context, new ArrayList<>());
     }
 
     @Override
-    public String display() {
+    public String format(int depth) {
         final var joined = this.errors.stream()
-                .map(CompileError::display)
+                .map(compileError -> compileError.format(depth + 1))
                 .collect(Collectors.joining());
-        return this.message + ": " + this.context.display() + joined;
+
+        return "\t".repeat(depth) + this.message + ": " + this.context.display() + joined;
     }
 }

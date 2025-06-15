@@ -21,7 +21,6 @@ AttachableToNodeListResult --> List
 class AttachableToOrState
 AttachableToOrState --> OrState
 class CompileError
-CompileError --> Error
 CompileError --> ArrayList
 CompileError --> List
 CompileError --> Collectors
@@ -188,6 +187,8 @@ class StringResult
 StringResult --> ApplicationResult
 StringResult --> Appending
 StringResult --> Prependable
+class TreeError
+TreeError --> Error
 class Main
 Main --> JavaFiles
 Main --> ThrowableError
@@ -198,6 +199,5 @@ Main --> IOException
 Main --> Files
 Main --> Path
 Main --> Paths
-Main --> List
 Main --> Optional
 @enduml
