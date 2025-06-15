@@ -3,9 +3,9 @@ package magma.app.rule;
 import magma.app.CompileError;
 import magma.app.Node;
 import magma.app.Rule;
-import magma.app.maybe.NodeResult;
-import magma.app.maybe.NodeResults;
-import magma.app.maybe.StringResult;
+import magma.app.NodeResult;
+import magma.app.node.NodeResults;
+import magma.app.StringResult;
 import magma.app.node.MapNode;
 
 public record StringRule(String key) implements Rule<Node, NodeResult<Node, CompileError>, StringResult<CompileError>> {

@@ -1,11 +1,8 @@
 package magma.app;
 
 import magma.app.lang.Lang;
-import magma.app.maybe.NodeListResult;
-import magma.app.maybe.NodeResult;
-import magma.app.maybe.StringResult;
-import magma.app.maybe.StringResults;
-import magma.app.maybe.node.PresentNodeListResult;
+import magma.app.string.StringResults;
+import magma.app.node.PresentNodeListResult;
 import magma.app.rule.DivideState;
 import magma.app.rule.EmptyRule;
 import magma.app.rule.OrRule;

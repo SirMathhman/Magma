@@ -1,8 +1,8 @@
-package magma.app.maybe.node;
+package magma.app.node;
 
-import magma.app.maybe.AttachableToNodeListResult;
-import magma.app.maybe.NodeListResult;
-import magma.app.maybe.StringResult;
+import magma.app.AttachableToNodeListResult;
+import magma.app.NodeListResult;
+import magma.app.StringResult;
 
 import java.util.ArrayList;
 import java.util.List;

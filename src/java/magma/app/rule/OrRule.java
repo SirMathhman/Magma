@@ -3,11 +3,11 @@ package magma.app.rule;
 import magma.app.CompileError;
 import magma.app.DisplayableNode;
 import magma.app.Rule;
-import magma.app.maybe.AttachableToOrState;
-import magma.app.maybe.NodeResult;
-import magma.app.maybe.NodeResults;
-import magma.app.maybe.StringResult;
-import magma.app.maybe.StringResults;
+import magma.app.AttachableToOrState;
+import magma.app.NodeResult;
+import magma.app.node.NodeResults;
+import magma.app.StringResult;
+import magma.app.string.StringResults;
 import magma.app.rule.or.InlineOrState;
 import magma.app.rule.or.OrState;
 

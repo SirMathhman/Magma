@@ -1,4 +1,4 @@
-package magma.app.maybe;
+package magma.app;
 
 import magma.app.rule.or.OrState;
 

@@ -1,10 +1,10 @@
-package magma.app.maybe.node;
+package magma.app.node;
 
 import magma.app.Error;
-import magma.app.maybe.AttachableToNodeListResult;
-import magma.app.maybe.NodeListResult;
-import magma.app.maybe.StringResult;
-import magma.app.maybe.StringResults;
+import magma.app.AttachableToNodeListResult;
+import magma.app.NodeListResult;
+import magma.app.StringResult;
+import magma.app.string.StringResults;
 
 import java.util.List;
 import java.util.function.Function;

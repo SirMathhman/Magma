@@ -2,8 +2,8 @@ package magma.app.node;
 
 import magma.app.CompileError;
 import magma.app.Node;
-import magma.app.maybe.StringResult;
-import magma.app.maybe.StringResults;
+import magma.app.StringResult;
+import magma.app.string.StringResults;
 
 import java.util.HashMap;
 import java.util.Map;

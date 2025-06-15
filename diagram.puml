@@ -1,13 +1,20 @@
 @startuml
 skinparam linetype ortho
+class ApplicationResult
+ApplicationResult --> ApplicationError
+ApplicationResult --> Optional
+ApplicationResult --> Function
+ApplicationResult --> Supplier
+class AttachableToNodeListResult
+AttachableToNodeListResult --> List
+class AttachableToOrState
+AttachableToOrState --> OrState
 class CompileError
 CompileError --> ArrayList
 CompileError --> List
+CompileError --> Collectors
 class Compiler
 Compiler --> Lang
-Compiler --> NodeListResult
-Compiler --> NodeResult
-Compiler --> StringResult
 Compiler --> StringResults
 Compiler --> PresentNodeListResult
 Compiler --> DivideState
@@ -16,6 +23,8 @@ Compiler --> OrRule
 Compiler --> StringRule
 Compiler --> List
 class Context
+class DisplayableNode
+class Error
 class Lang
 Lang --> CompileError
 Lang --> Node
@@ -27,46 +36,14 @@ Lang --> PrefixRule
 Lang --> StringRule
 Lang --> StripRule
 Lang --> SuffixRule
-class AttachableToNodeListResult
-AttachableToNodeListResult --> List
-class AttachableToOrState
-AttachableToOrState --> OrState
 class ErrNodeListResult
+ErrNodeListResult --> Error
 ErrNodeListResult --> AttachableToNodeListResult
 ErrNodeListResult --> NodeListResult
 ErrNodeListResult --> StringResult
 ErrNodeListResult --> StringResults
 ErrNodeListResult --> List
 ErrNodeListResult --> Function
-class PresentNodeListResult
-PresentNodeListResult --> AttachableToNodeListResult
-PresentNodeListResult --> NodeListResult
-PresentNodeListResult --> StringResult
-PresentNodeListResult --> ArrayList
-PresentNodeListResult --> List
-PresentNodeListResult --> Function
-class NodeListResult
-NodeListResult --> List
-NodeListResult --> Function
-class NodeResult
-class NodeResults
-NodeResults --> CompileError
-NodeResults --> ErrNodeListResult
-NodeResults --> PresentNodeListResult
-NodeResults --> StringContext
-NodeResults --> OrState
-NodeResults --> List
-class Appendable
-class Prependable
-class StringResult
-StringResult --> Appendable
-StringResult --> Prependable
-class StringResults
-StringResults --> CompileError
-StringResults --> Node
-StringResults --> NodeContext
-StringResults --> OrState
-StringResults --> List
 class MapNode
 MapNode --> CompileError
 MapNode --> Node
@@ -74,8 +51,26 @@ MapNode --> StringResult
 MapNode --> StringResults
 MapNode --> HashMap
 MapNode --> Map
+class NodeResults
+NodeResults --> CompileError
+NodeResults --> Error
+NodeResults --> NodeListResult
+NodeResults --> NodeResult
+NodeResults --> StringContext
+NodeResults --> OrState
+NodeResults --> List
+class PresentNodeListResult
+PresentNodeListResult --> AttachableToNodeListResult
+PresentNodeListResult --> NodeListResult
+PresentNodeListResult --> StringResult
+PresentNodeListResult --> ArrayList
+PresentNodeListResult --> List
+PresentNodeListResult --> Function
 class Node
-Node --> StringResult
+class NodeListResult
+NodeListResult --> List
+NodeListResult --> Function
+class NodeResult
 class DivideState
 DivideState --> ArrayList
 DivideState --> List
@@ -96,7 +91,7 @@ InfixRule --> NodeResults
 InfixRule --> Appendable
 class NodeContext
 NodeContext --> Context
-NodeContext --> Objects
+NodeContext --> DisplayableNode
 class InlineOrState
 InlineOrState --> ArrayList
 InlineOrState --> List
@@ -107,6 +102,7 @@ OrState --> List
 OrState --> Function
 class OrRule
 OrRule --> CompileError
+OrRule --> DisplayableNode
 OrRule --> Rule
 OrRule --> AttachableToOrState
 OrRule --> NodeResult
@@ -142,11 +138,35 @@ SuffixRule --> NodeResult
 SuffixRule --> NodeResults
 SuffixRule --> Appendable
 class Rule
+class Appendable
+class Prependable
+class StringResults
+StringResults --> ApplicationError
+StringResults --> ApplicationResult
+StringResults --> CompileError
+StringResults --> DisplayableNode
+StringResults --> Error
+StringResults --> Node
+StringResults --> StringResult
+StringResults --> NodeContext
+StringResults --> OrState
+StringResults --> List
+class StringResult
+StringResult --> Appendable
+StringResult --> Prependable
+class ApplicationError
+ApplicationError --> Error
 class Main
+Main --> ApplicationResult
 Main --> Compiler
 Main --> IOException
 Main --> Files
 Main --> Path
 Main --> Paths
 Main --> List
+Main --> Optional
+class ThrowableError
+ThrowableError --> Error
+ThrowableError --> PrintWriter
+ThrowableError --> StringWriter
 @enduml

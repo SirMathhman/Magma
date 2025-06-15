@@ -2,9 +2,9 @@ package magma.app.rule;
 
 import magma.app.CompileError;
 import magma.app.Rule;
-import magma.app.maybe.NodeResult;
-import magma.app.maybe.NodeResults;
-import magma.app.maybe.string.Appendable;
+import magma.app.NodeResult;
+import magma.app.node.NodeResults;
+import magma.app.string.Appendable;
 
 public record SuffixRule<Node, Generate extends Appendable<Generate>>(
         Rule<Node, NodeResult<Node, CompileError>, Generate> rule,

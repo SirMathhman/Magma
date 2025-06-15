@@ -2,9 +2,9 @@ package magma.app.rule;
 
 import magma.app.CompileError;
 import magma.app.Rule;
-import magma.app.maybe.NodeResult;
-import magma.app.maybe.NodeResults;
-import magma.app.maybe.string.Prependable;
+import magma.app.NodeResult;
+import magma.app.node.NodeResults;
+import magma.app.string.Prependable;
 
 public record PrefixRule<Node, Generate extends Prependable<Generate>>(String prefix,
                                                                        Rule<Node, NodeResult<Node, CompileError>, Generate> rule) implements Rule<Node, NodeResult<Node, CompileError>, Generate> {

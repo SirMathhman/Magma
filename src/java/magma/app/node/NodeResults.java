@@ -1,9 +1,9 @@
-package magma.app.maybe;
+package magma.app.node;
 
 import magma.app.CompileError;
 import magma.app.Error;
-import magma.app.maybe.node.ErrNodeListResult;
-import magma.app.maybe.node.PresentNodeListResult;
+import magma.app.NodeListResult;
+import magma.app.NodeResult;
 import magma.app.rule.StringContext;
 import magma.app.rule.or.OrState;
 

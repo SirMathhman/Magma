@@ -1,4 +1,4 @@
-package magma.app.maybe.string;
+package magma.app.string;
 
 public interface Prependable<Self> {
     Self prependString(String other);

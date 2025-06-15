@@ -35,25 +35,25 @@ public interface ApplicationResult {
         }
     }
 
-    record Ok(String input) implements ApplicationResult {
+    record Ok(String value) implements ApplicationResult {
         @Override
         public ApplicationResult append(Supplier<ApplicationResult> other) {
-            return other.get().prepend(this.input);
+            return other.get().prepend(this.value);
         }
 
         @Override
         public ApplicationResult compile(Function<String, ApplicationResult> mapper) {
-            return mapper.apply(this.input);
+            return mapper.apply(this.value);
         }
 
         @Override
         public Optional<ApplicationError> extract(Function<String, Optional<ApplicationError>> replacer) {
-            return Optional.empty();
+            return replacer.apply(this.value);
         }
 
         @Override
         public ApplicationResult prepend(String other) {
-            return new Ok(other + this.input);
+            return new Ok(other + this.value);
         }
     }
 

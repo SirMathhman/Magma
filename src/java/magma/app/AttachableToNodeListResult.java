@@ -1,4 +1,4 @@
-package magma.app.maybe;
+package magma.app;
 
 import java.util.List;
 

@@ -1,4 +1,4 @@
-package magma.app.maybe.string;
+package magma.app.string;
 
 public interface Appendable<Self> {
     Self appendString(String other);
