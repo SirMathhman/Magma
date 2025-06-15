@@ -19,11 +19,7 @@ public record LastRule(Rule leftRule, String infix, Rule rightRule) implements R
     @Override
     public Optional<String> generate(Node node) {
         return this.leftRule.generate(node)
-                .flatMap(leftResult -> {
-                    return this.rightRule.generate(node)
-                            .map(rightResult -> {
-                                return leftResult + this.infix + rightResult;
-                            });
-                });
+                .flatMap(leftResult -> this.rightRule.generate(node)
+                        .map(rightResult -> leftResult + this.infix + rightResult));
     }
 }
