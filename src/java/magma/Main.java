@@ -1,7 +1,7 @@
 package magma;
 
 import magma.app.Node;
-import magma.app.State;
+import magma.app.rule.DivideRule;
 import magma.app.rule.LastRule;
 import magma.app.rule.PrefixRule;
 import magma.app.rule.StringRule;
@@ -12,8 +12,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Collection;
-import java.util.List;
+import java.util.ArrayList;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -43,33 +42,30 @@ public class Main {
         final var extensionSeparator = fileName.lastIndexOf(".");
         final var name = fileName.substring(0, extensionSeparator);
 
-        final var output = new StringBuilder();
         final var input = Files.readString(source);
-        final var list = lex(input).stream()
+        return new DivideRule("children", createImportRule()).lex(input)
+                .flatMap(tree -> getString(tree, name))
+                .orElse("");
+    }
+
+    private static Optional<String> getString(Node tree, String name) {
+        final var children1 = transform(tree, name);
+        return new DivideRule("children", createDependencyRule()).generate(children1)
+                .map(joined -> generate(name, joined));
+    }
+
+    private static String generate(String name, String joined) {
+        return "class " + name + "\n" + joined;
+    }
+
+    private static Node transform(Node tree, String name) {
+        final var list = tree.findNodeList("children")
+                .orElse(new ArrayList<>())
+                .stream()
                 .map(segment -> segment.withString("parent", name))
                 .toList();
 
-        final var joined = generate(list);
-
-        return output.append("class ")
-                .append(name)
-                .append("\n")
-                .append(joined)
-                .toString();
-    }
-
-    private static String generate(Collection<Node> list) {
-        return list.stream()
-                .map(node -> createDependencyRule().generate(node))
-                .flatMap(Optional::stream)
-                .collect(Collectors.joining());
-    }
-
-    private static List<Node> lex(CharSequence input) {
-        return divide(input).stream()
-                .map(segment -> createImportRule().lex(segment))
-                .flatMap(Optional::stream)
-                .toList();
+        return new Node().withNodeList("children", list);
     }
 
     private static SuffixRule createDependencyRule() {
@@ -82,21 +78,4 @@ public class Main {
         return new StripRule(new PrefixRule("import ", new SuffixRule(new LastRule(new StringRule("parent"), ".", new StringRule("child")), ";")));
     }
 
-    private static List<String> divide(CharSequence input) {
-        var current = new State();
-        for (var i = 0; i < input.length(); i++) {
-            final var c = input.charAt(i);
-            current = fold(current, c);
-        }
-
-        return current.advance()
-                .segments();
-    }
-
-    private static State fold(State state, char c) {
-        final var appended = state.append(c);
-        if (c == ';')
-            return appended.advance();
-        return appended;
-    }
 }

@@ -2,6 +2,7 @@
 skinparam linetype ortho
 class Node
 Node --> HashMap
+Node --> List
 Node --> Map
 Node --> Optional
 class SuffixRule
@@ -19,7 +20,8 @@ LastRule --> Node
 LastRule --> Rule
 LastRule --> Optional
 class Main
-Main --> State
+Main --> Node
+Main --> DivideRule
 Main --> LastRule
 Main --> PrefixRule
 Main --> StringRule
@@ -29,9 +31,17 @@ Main --> IOException
 Main --> Files
 Main --> Path
 Main --> Paths
-Main --> List
+Main --> ArrayList
 Main --> Optional
 Main --> Collectors
+class DivideRule
+DivideRule --> Node
+DivideRule --> Rule
+DivideRule --> State
+DivideRule --> ArrayList
+DivideRule --> List
+DivideRule --> Optional
+DivideRule --> Collectors
 class PrefixRule
 PrefixRule --> Node
 PrefixRule --> Rule
