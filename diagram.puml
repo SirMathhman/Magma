@@ -4,8 +4,20 @@ Node --> HashMap
 Node --> Map
 Node --> Optional
 class Node
+SuffixRule --> Node
+SuffixRule --> Rule
+SuffixRule --> Optional
+class SuffixRule
+Rule --> Optional
+class Rule
+StripRule --> Node
+StripRule --> Rule
 StripRule --> Optional
 class StripRule
+LastRule --> Node
+LastRule --> Rule
+LastRule --> Optional
+class LastRule
 Main --> LastRule
 Main --> Node
 Main --> PrefixRule
@@ -20,14 +32,14 @@ Main --> Paths
 Main --> List
 Main --> Collectors
 class Main
-StringRule --> Optional
-class StringRule
-LastRule --> Optional
-class LastRule
+PrefixRule --> Node
+PrefixRule --> Rule
 PrefixRule --> Optional
 class PrefixRule
-SuffixRule --> Optional
-class SuffixRule
+StringRule --> Node
+StringRule --> Rule
+StringRule --> Optional
+class StringRule
 State --> ArrayList
 State --> List
 class State

@@ -1,12 +1,12 @@
 package magma;
 
-import magma.app.LastRule;
+import magma.app.rule.LastRule;
 import magma.app.Node;
-import magma.app.PrefixRule;
+import magma.app.rule.PrefixRule;
 import magma.app.State;
-import magma.app.StringRule;
-import magma.app.StripRule;
-import magma.app.SuffixRule;
+import magma.app.rule.StringRule;
+import magma.app.rule.StripRule;
+import magma.app.rule.SuffixRule;
 
 import java.io.IOException;
 import java.nio.file.Files;
