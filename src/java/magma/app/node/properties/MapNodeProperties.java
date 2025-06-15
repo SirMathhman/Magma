@@ -20,7 +20,7 @@ public class MapNodeProperties<Value, Node> implements NodeProperties<Value, Nod
     @Override
     public Node with(String key, Value value) {
         this.map.put(key, value);
-        return this.completer.complete(this);
+        return this.completer.complete(new MapNodeProperties<>(this.map, this.completer));
     }
 
     @Override

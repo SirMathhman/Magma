@@ -23,8 +23,8 @@ public final class Node {
         return new Node(this.strings, nodeLists);
     }
 
-    private Node withStrings(NodeProperties<String, Node> properties) {
-        return new Node(this.strings, this.nodeLists);
+    private Node withStrings(NodeProperties<String, Node> strings) {
+        return new Node(strings, this.nodeLists);
     }
 
     public NodeProperties<List<Node>, Node> nodeLists() {
