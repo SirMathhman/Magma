@@ -3,8 +3,8 @@ package magma.app.node;
 import magma.app.CompileError;
 import magma.app.Node;
 import magma.app.maybe.StringResult;
+import magma.app.maybe.StringResults;
 import magma.app.maybe.string.ErrStringResult;
-import magma.app.maybe.string.OkStringResult;
 import magma.app.rule.NodeContext;
 
 import java.util.HashMap;
@@ -30,7 +30,7 @@ public final class MapNode implements Node {
     @Override
     public StringResult<CompileError> findString(String key) {
         if (this.strings.containsKey(key))
-            return new OkStringResult<CompileError>(this.strings.get(key));
+            return StringResults.createFromValue(this.strings.get(key));
 
         return new ErrStringResult<CompileError>(new CompileError("String '" + key + "' not present", new NodeContext<Node>(this)));
     }

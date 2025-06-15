@@ -4,19 +4,19 @@ import magma.app.CompileError;
 import magma.app.Node;
 import magma.app.Rule;
 import magma.app.maybe.NodeResult;
+import magma.app.maybe.NodeResults;
 import magma.app.maybe.StringResult;
-import magma.app.maybe.node.OkNodeResult;
-import magma.app.maybe.string.OkStringResult;
+import magma.app.maybe.StringResults;
 import magma.app.node.MapNode;
 
 public class EmptyRule implements Rule<Node, NodeResult<Node, CompileError>, StringResult<CompileError>> {
     @Override
     public StringResult<CompileError> generate(Node node) {
-        return new OkStringResult<CompileError>("");
+        return StringResults.createFromValue("");
     }
 
     @Override
     public NodeResult<Node, CompileError> lex(String input) {
-        return new OkNodeResult<>(new MapNode());
+        return NodeResults.createFromValue(new MapNode());
     }
 }

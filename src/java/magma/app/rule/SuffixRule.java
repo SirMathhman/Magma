@@ -3,7 +3,7 @@ package magma.app.rule;
 import magma.app.CompileError;
 import magma.app.Rule;
 import magma.app.maybe.NodeResult;
-import magma.app.maybe.node.ErrNodeResult;
+import magma.app.maybe.NodeResults;
 import magma.app.maybe.string.Appendable;
 
 public record SuffixRule<Node, Generate extends Appendable<Generate>>(
@@ -17,7 +17,7 @@ public record SuffixRule<Node, Generate extends Appendable<Generate>>(
     @Override
     public NodeResult<Node, CompileError> lex(String input) {
         if (!input.endsWith(this.suffix))
-            return new ErrNodeResult<Node, CompileError>(new CompileError("Suffix '" + this.suffix + "' not present", new StringContext(input)));
+            return NodeResults.createFromString("Suffix '" + this.suffix + "' not present", input);
 
         return this.rule.lex(input.substring(0, input.length() - this.suffix.length()));
     }

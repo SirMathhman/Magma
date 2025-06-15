@@ -1,7 +1,10 @@
 package magma.app.maybe.string;
 
 import magma.app.maybe.StringResult;
+import magma.app.maybe.StringResults;
 import magma.app.rule.or.OrState;
+
+import java.util.Objects;
 
 public record OkStringResult<Error>(String value) implements StringResult<Error> {
     @Override
@@ -16,7 +19,7 @@ public record OkStringResult<Error>(String value) implements StringResult<Error>
 
     @Override
     public StringResult<Error> appendString(String other) {
-        return new OkStringResult<Error>(this.value + other);
+        return StringResults.createFromValue(this.value + other);
     }
 
     @Override
@@ -26,6 +29,22 @@ public record OkStringResult<Error>(String value) implements StringResult<Error>
 
     @Override
     public StringResult<Error> prependString(String other) {
-        return new OkStringResult<Error>(other + this.value);
+        return StringResults.createFromValue(other + this.value);
     }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj == this)
+            return true;
+        if (obj == null || obj.getClass() != this.getClass())
+            return false;
+        var that = (OkStringResult) obj;
+        return Objects.equals(this.value, that.value);
+    }
+
+    @Override
+    public String toString() {
+        return "OkStringResult[" + "value=" + this.value + ']';
+    }
+
 }

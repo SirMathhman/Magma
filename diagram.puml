@@ -8,8 +8,8 @@ Compiler --> Lang
 Compiler --> NodeListResult
 Compiler --> NodeResult
 Compiler --> StringResult
+Compiler --> StringResults
 Compiler --> PresentNodeListResult
-Compiler --> OkStringResult
 Compiler --> DivideState
 Compiler --> EmptyRule
 Compiler --> OrRule
@@ -36,16 +36,6 @@ ErrNodeListResult --> StringResult
 ErrNodeListResult --> ErrStringResult
 ErrNodeListResult --> List
 ErrNodeListResult --> Function
-class ErrNodeResult
-ErrNodeResult --> NodeListResult
-ErrNodeResult --> NodeResult
-ErrNodeResult --> OrState
-ErrNodeResult --> List
-class OkNodeResult
-OkNodeResult --> NodeListResult
-OkNodeResult --> NodeResult
-OkNodeResult --> OrState
-OkNodeResult --> List
 class PresentNodeListResult
 PresentNodeListResult --> NodeListResult
 PresentNodeListResult --> NodeResult
@@ -58,23 +48,38 @@ NodeListResult --> List
 NodeListResult --> Function
 class NodeResult
 NodeResult --> List
+class NodeResults
+NodeResults --> CompileError
+NodeResults --> ErrNodeListResult
+NodeResults --> PresentNodeListResult
+NodeResults --> StringContext
+NodeResults --> OrState
+NodeResults --> List
 class Appendable
 class ErrStringResult
 ErrStringResult --> StringResult
 ErrStringResult --> OrState
 class OkStringResult
 OkStringResult --> StringResult
+OkStringResult --> StringResults
 OkStringResult --> OrState
+OkStringResult --> Objects
 class Prependable
 class StringResult
 StringResult --> Appendable
 StringResult --> Prependable
+class StringResults
+StringResults --> CompileError
+StringResults --> ErrStringResult
+StringResults --> OkStringResult
+StringResults --> NodeContext
+StringResults --> List
 class MapNode
 MapNode --> CompileError
 MapNode --> Node
 MapNode --> StringResult
+MapNode --> StringResults
 MapNode --> ErrStringResult
-MapNode --> OkStringResult
 MapNode --> NodeContext
 MapNode --> HashMap
 MapNode --> Map
@@ -88,15 +93,15 @@ EmptyRule --> CompileError
 EmptyRule --> Node
 EmptyRule --> Rule
 EmptyRule --> NodeResult
+EmptyRule --> NodeResults
 EmptyRule --> StringResult
-EmptyRule --> OkNodeResult
-EmptyRule --> OkStringResult
+EmptyRule --> StringResults
 EmptyRule --> MapNode
 class InfixRule
 InfixRule --> CompileError
 InfixRule --> Rule
 InfixRule --> NodeResult
-InfixRule --> ErrNodeResult
+InfixRule --> NodeResults
 InfixRule --> Appendable
 class NodeContext
 NodeContext --> Context
@@ -112,15 +117,12 @@ OrState --> List
 OrState --> Function
 class OrRule
 OrRule --> CompileError
-OrRule --> Context
 OrRule --> Rule
 OrRule --> Attachable
 OrRule --> NodeResult
+OrRule --> NodeResults
 OrRule --> StringResult
-OrRule --> ErrNodeResult
-OrRule --> OkNodeResult
-OrRule --> ErrStringResult
-OrRule --> OkStringResult
+OrRule --> StringResults
 OrRule --> InlineOrState
 OrRule --> OrState
 OrRule --> List
@@ -129,7 +131,7 @@ class PrefixRule
 PrefixRule --> CompileError
 PrefixRule --> Rule
 PrefixRule --> NodeResult
-PrefixRule --> ErrNodeResult
+PrefixRule --> NodeResults
 PrefixRule --> Prependable
 class StringContext
 StringContext --> Context
@@ -138,8 +140,8 @@ StringRule --> CompileError
 StringRule --> Node
 StringRule --> Rule
 StringRule --> NodeResult
+StringRule --> NodeResults
 StringRule --> StringResult
-StringRule --> OkNodeResult
 StringRule --> MapNode
 class StripRule
 StripRule --> Rule
@@ -147,7 +149,7 @@ class SuffixRule
 SuffixRule --> CompileError
 SuffixRule --> Rule
 SuffixRule --> NodeResult
-SuffixRule --> ErrNodeResult
+SuffixRule --> NodeResults
 SuffixRule --> Appendable
 class Rule
 class Main

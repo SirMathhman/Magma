@@ -4,8 +4,8 @@ import magma.app.lang.Lang;
 import magma.app.maybe.NodeListResult;
 import magma.app.maybe.NodeResult;
 import magma.app.maybe.StringResult;
+import magma.app.maybe.StringResults;
 import magma.app.maybe.node.PresentNodeListResult;
-import magma.app.maybe.string.OkStringResult;
 import magma.app.rule.DivideState;
 import magma.app.rule.EmptyRule;
 import magma.app.rule.OrRule;
@@ -36,7 +36,7 @@ public class Compiler {
     }
 
     public static StringResult<CompileError> generate(List<Node> children) {
-        return children.stream().map(node -> new OrRule<Node>(List.of(Lang.createDependencyRule(), new EmptyRule())).generate(node)).<StringResult<CompileError>>reduce(new OkStringResult<>(""), (compileErrorOkStringResult, other) -> compileErrorOkStringResult.appendMaybe(other), (_, next) -> next);
+        return children.stream().map(node -> new OrRule<Node>(List.of(Lang.createDependencyRule(), new EmptyRule())).generate(node)).<StringResult<CompileError>>reduce(StringResults.createFromValue(""), (compileErrorOkStringResult, other) -> compileErrorOkStringResult.appendMaybe(other), (_, next) -> next);
     }
 
     public static List<Node> transform(String name, List<Node> list) {

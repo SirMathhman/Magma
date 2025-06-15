@@ -3,7 +3,7 @@ package magma.app.rule;
 import magma.app.CompileError;
 import magma.app.Rule;
 import magma.app.maybe.NodeResult;
-import magma.app.maybe.node.ErrNodeResult;
+import magma.app.maybe.NodeResults;
 import magma.app.maybe.string.Prependable;
 
 public record PrefixRule<Node, Generate extends Prependable<Generate>>(String prefix,
@@ -16,7 +16,7 @@ public record PrefixRule<Node, Generate extends Prependable<Generate>>(String pr
     @Override
     public NodeResult<Node, CompileError> lex(String input) {
         if (!input.startsWith(this.prefix))
-            return new ErrNodeResult<>(new CompileError("Prefix '" + this.prefix + "' not present", new StringContext(input)));
+            return NodeResults.createFromString("Prefix '" + this.prefix + "' not present", input);
 
         final var substring = input.substring(this.prefix.length());
         return this.rule.lex(substring);
