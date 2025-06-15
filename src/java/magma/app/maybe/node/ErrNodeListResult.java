@@ -1,7 +1,7 @@
 package magma.app.maybe.node;
 
+import magma.app.maybe.AttachableToNodeListResult;
 import magma.app.maybe.NodeListResult;
-import magma.app.maybe.NodeResult;
 import magma.app.maybe.StringResult;
 import magma.app.maybe.StringResults;
 
@@ -16,7 +16,7 @@ public class ErrNodeListResult<Node, Error> implements NodeListResult<Node, Erro
     }
 
     @Override
-    public NodeListResult<Node, Error> add(NodeResult<Node, Error> node) {
+    public NodeListResult<Node, Error> add(AttachableToNodeListResult<Node, Error> node) {
         return this;
     }
 

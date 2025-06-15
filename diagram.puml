@@ -27,18 +27,20 @@ Lang --> PrefixRule
 Lang --> StringRule
 Lang --> StripRule
 Lang --> SuffixRule
-class Attachable
-Attachable --> OrState
+class AttachableToNodeListResult
+AttachableToNodeListResult --> List
+class AttachableToOrState
+AttachableToOrState --> OrState
 class ErrNodeListResult
+ErrNodeListResult --> AttachableToNodeListResult
 ErrNodeListResult --> NodeListResult
-ErrNodeListResult --> NodeResult
 ErrNodeListResult --> StringResult
 ErrNodeListResult --> StringResults
 ErrNodeListResult --> List
 ErrNodeListResult --> Function
 class PresentNodeListResult
+PresentNodeListResult --> AttachableToNodeListResult
 PresentNodeListResult --> NodeListResult
-PresentNodeListResult --> NodeResult
 PresentNodeListResult --> StringResult
 PresentNodeListResult --> ArrayList
 PresentNodeListResult --> List
@@ -47,7 +49,6 @@ class NodeListResult
 NodeListResult --> List
 NodeListResult --> Function
 class NodeResult
-NodeResult --> List
 class NodeResults
 NodeResults --> CompileError
 NodeResults --> ErrNodeListResult
@@ -108,7 +109,7 @@ OrState --> Function
 class OrRule
 OrRule --> CompileError
 OrRule --> Rule
-OrRule --> Attachable
+OrRule --> AttachableToOrState
 OrRule --> NodeResult
 OrRule --> NodeResults
 OrRule --> StringResult

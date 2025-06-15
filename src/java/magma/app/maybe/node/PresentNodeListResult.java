@@ -1,7 +1,7 @@
 package magma.app.maybe.node;
 
+import magma.app.maybe.AttachableToNodeListResult;
 import magma.app.maybe.NodeListResult;
-import magma.app.maybe.NodeResult;
 import magma.app.maybe.StringResult;
 
 import java.util.ArrayList;
@@ -20,8 +20,8 @@ public class PresentNodeListResult<Node, Error> implements NodeListResult<Node, 
     }
 
     @Override
-    public NodeListResult<Node, Error> add(NodeResult<Node, Error> node) {
-        return node.addTo(this.nodes);
+    public NodeListResult<Node, Error> add(AttachableToNodeListResult<Node, Error> node) {
+        return node.attachTo(this.nodes);
     }
 
     @Override

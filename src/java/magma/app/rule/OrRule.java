@@ -2,7 +2,7 @@ package magma.app.rule;
 
 import magma.app.CompileError;
 import magma.app.Rule;
-import magma.app.maybe.Attachable;
+import magma.app.maybe.AttachableToOrState;
 import magma.app.maybe.NodeResult;
 import magma.app.maybe.NodeResults;
 import magma.app.maybe.StringResult;
@@ -17,12 +17,12 @@ public record OrRule<Node>(
         List<Rule<Node, NodeResult<Node, CompileError>, StringResult<CompileError>>> rules) implements Rule<Node, NodeResult<Node, CompileError>, StringResult<CompileError>> {
     @Override
     public StringResult<CompileError> generate(Node node) {
-        return this.<Attachable<String, CompileError>, String, StringResult<CompileError>>or(rule1 -> rule1.generate(node), StringResults::createFromValue, errors -> {
+        return this.<AttachableToOrState<String, CompileError>, String, StringResult<CompileError>>or(rule1 -> rule1.generate(node), StringResults::createFromValue, errors -> {
             return StringResults.createFromNodeAndErrors("No valid combination", node, errors);
         });
     }
 
-    private <MaybeValue extends Attachable<Value, CompileError>, Value, Return> Return or(Function<Rule<Node, NodeResult<Node, CompileError>, StringResult<CompileError>>, MaybeValue> mapper, Function<Value, Return> whenPresent, Function<List<CompileError>, Return> whenMissing) {
+    private <MaybeValue extends AttachableToOrState<Value, CompileError>, Value, Return> Return or(Function<Rule<Node, NodeResult<Node, CompileError>, StringResult<CompileError>>, MaybeValue> mapper, Function<Value, Return> whenPresent, Function<List<CompileError>, Return> whenMissing) {
         final var reduce = this.rules.stream().map(mapper).<OrState<Value, CompileError>>reduce(new InlineOrState<>(), (orState, maybeString) -> {
             if (orState.hasValue())
                 return orState;
@@ -33,7 +33,7 @@ public record OrRule<Node>(
 
     @Override
     public NodeResult<Node, CompileError> lex(String input) {
-        return this.<Attachable<Node, CompileError>, Node, NodeResult<Node, CompileError>>or(rule1 -> rule1.lex(input), NodeResults::createFromValue, errors -> {
+        return this.<AttachableToOrState<Node, CompileError>, Node, NodeResult<Node, CompileError>>or(rule1 -> rule1.lex(input), NodeResults::createFromValue, errors -> {
             return NodeResults.createFromStringAndErrors("No valid combination", input, errors);
         });
     }
