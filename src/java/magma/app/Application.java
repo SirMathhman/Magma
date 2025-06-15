@@ -3,9 +3,7 @@ package magma.app;
 import magma.api.result.Err;
 import magma.api.result.Ok;
 import magma.api.result.Result;
-import magma.app.compile.CompileError;
 import magma.app.compile.Compiler;
-import magma.app.compile.rule.result.RuleResult;
 import magma.app.error.ApplicationError;
 import magma.app.error.ThrowableError;
 
@@ -15,7 +13,6 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Optional;
 import java.util.Set;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 public class Application {
@@ -64,10 +61,9 @@ public class Application {
         return readString(source).mapErr(ThrowableError::new).mapErr(ApplicationError::new).flatMapValue(input -> {
             final var fileName = source.getFileName().toString();
             final var name = fileName.substring(0, fileName.lastIndexOf("."));
-            RuleResult<String> stringRuleResult = Compiler.compile(input, name);
-            return stringRuleResult.<RuleResult<String>>match(value -> new RuleResult.Ok<>(((Function<String, String>) compiled -> {
+            return Compiler.compile(input, name).mapValue(compiled -> {
                 return "class " + name + "\n" + compiled;
-            }).apply(value)), RuleResult.Err::new).<Result<String, CompileError>>match(Ok::new, Err::new).mapErr(ApplicationError::new);
+            }).unwrap().mapErr(ApplicationError::new);
         });
     }
 

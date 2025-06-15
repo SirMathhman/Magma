@@ -6,7 +6,7 @@ import java.util.Optional;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
-public sealed interface Result<Value, Error> permits Ok, Err {
+public interface Result<Value, Error> {
     <Return> Result<Return, Error> mapValue(Function<Value, Return> mapper);
 
     <Other> Result<Tuple<Value, Other>, Error> and(Supplier<Result<Other, Error>> other);

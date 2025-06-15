@@ -1,12 +1,12 @@
 package magma.app.compile.rule;
 
+import magma.api.result.Err;
 import magma.app.compile.Rule;
 import magma.app.compile.rule.modify.Modifier;
 import magma.app.compile.rule.modify.PrefixModifier;
 import magma.app.compile.rule.modify.SuffixModifier;
 import magma.app.compile.rule.result.RuleResult;
-
-import java.util.function.Function;
+import magma.app.compile.rule.result.optional.ResultRuleResult;
 
 public final class ModifyingRule<N> implements Rule<N, RuleResult<N>, RuleResult<String>> {
     private final Modifier modifier;
@@ -28,13 +28,12 @@ public final class ModifyingRule<N> implements Rule<N, RuleResult<N>, RuleResult
     @Override
     public RuleResult<N> lex(String input) {
         return this.modifier.modify(input).map(this.rule::lex).orElseGet(() -> {
-            return new RuleResult.Err<>(this.modifier.createError(input));
+            return new ResultRuleResult<>(new Err<>(this.modifier.createError(input)));
         });
     }
 
     @Override
     public RuleResult<String> generate(N node) {
-        RuleResult<String> stringRuleResult = this.rule.generate(node);
-        return stringRuleResult.<RuleResult<String>>match(value -> new RuleResult.Ok<>(((Function<String, String>) this.modifier::generate).apply(value)), RuleResult.Err::new);
+        return this.rule.generate(node).mapValue(this.modifier::generate);
     }
 }

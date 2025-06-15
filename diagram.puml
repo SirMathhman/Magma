@@ -27,30 +27,28 @@ NodeListRule --> Rule
 NodeListRule --> CompoundNode
 NodeListRule --> PropertiesCompoundNode
 NodeListRule --> FoldingDivider
+NodeListRule --> ResultRuleResults
 NodeListRule --> RuleResult
 NodeListRule --> ArrayList
 NodeListRule --> List
-NodeListRule --> Function
 class InfixRule
 InfixRule --> Rule
 InfixRule --> MergingNode
 InfixRule --> RuleResult
-InfixRule --> Function
+InfixRule --> ResultRuleResults
 class RuleResult
+RuleResult --> Result
 RuleResult --> CompileError
-RuleResult --> NodeContext
-RuleResult --> StringContext
-RuleResult --> DisplayableNode
 RuleResult --> Function
 class Compiler
 Compiler --> Lang
-Compiler --> CompoundNode
 Compiler --> RuleResult
 Compiler --> Transformer
 class EmptyRule
 EmptyRule --> Rule
 EmptyRule --> CompoundNode
 EmptyRule --> PropertiesCompoundNode
+EmptyRule --> ResultRuleResults
 EmptyRule --> RuleResult
 class DisplayableNode
 class OrState
@@ -63,14 +61,16 @@ StringRule --> Rule
 StringRule --> CompoundNode
 StringRule --> PropertiesCompoundNode
 StringRule --> RuleResult
+StringRule --> ResultRuleResults
 class Rule
 class ModifyingRule
+ModifyingRule --> Err
 ModifyingRule --> Rule
 ModifyingRule --> Modifier
 ModifyingRule --> PrefixModifier
 ModifyingRule --> SuffixModifier
 ModifyingRule --> RuleResult
-ModifyingRule --> Function
+ModifyingRule --> ResultRuleResult
 class CompoundNode
 CompoundNode --> MergingNode
 CompoundNode --> NodeListNode
@@ -84,8 +84,8 @@ class TypeRule
 TypeRule --> Rule
 TypeRule --> DisplayableNode
 TypeRule --> TypedNode
+TypeRule --> ResultRuleResults
 TypeRule --> RuleResult
-TypeRule --> Function
 class MutableDivideState
 MutableDivideState --> ArrayList
 MutableDivideState --> List
@@ -94,10 +94,6 @@ class NodeContext
 NodeContext --> Context
 NodeContext --> DisplayableNode
 class OrRule
-OrRule --> Err
-OrRule --> Ok
-OrRule --> Result
-OrRule --> CompileError
 OrRule --> Rule
 OrRule --> Context
 OrRule --> NodeContext
@@ -106,6 +102,7 @@ OrRule --> DisplayableNode
 OrRule --> OrState
 OrRule --> SimpleOrState
 OrRule --> RuleResult
+OrRule --> ResultRuleResult
 OrRule --> List
 OrRule --> Function
 class ThrowableError
@@ -120,6 +117,15 @@ CompletingProperties --> HashMap
 CompletingProperties --> Map
 CompletingProperties --> Optional
 CompletingProperties --> Stream
+class ResultRuleResults
+ResultRuleResults --> Err
+ResultRuleResults --> Ok
+ResultRuleResults --> CompileError
+ResultRuleResults --> Context
+ResultRuleResults --> NodeContext
+ResultRuleResults --> StringContext
+ResultRuleResults --> DisplayableNode
+ResultRuleResults --> ResultRuleResult
 class Tuple
 class StringNode
 StringNode --> Properties
@@ -136,9 +142,7 @@ class Application
 Application --> Err
 Application --> Ok
 Application --> Result
-Application --> CompileError
 Application --> Compiler
-Application --> RuleResult
 Application --> ApplicationError
 Application --> ThrowableError
 Application --> IOException
@@ -147,7 +151,6 @@ Application --> Path
 Application --> Paths
 Application --> Optional
 Application --> Set
-Application --> Function
 Application --> Collectors
 class SuffixModifier
 SuffixModifier --> CompileError
@@ -171,6 +174,11 @@ Transformer --> ArrayList
 class Modifier
 Modifier --> CompileError
 Modifier --> Optional
+class ResultRuleResult
+ResultRuleResult --> Result
+ResultRuleResult --> CompileError
+ResultRuleResult --> RuleResult
+ResultRuleResult --> Function
 class SimpleOrState
 SimpleOrState --> Err
 SimpleOrState --> Ok

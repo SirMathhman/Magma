@@ -5,8 +5,6 @@ import magma.app.compile.node.DisplayableNode;
 import magma.app.compile.node.TypedNode;
 import magma.app.compile.rule.result.RuleResult;
 
-import java.util.function.Function;
-
 public final class TypeRule<Node extends TypedNode<Node> & DisplayableNode> implements Rule<Node, RuleResult<Node>, RuleResult<String>> {
     private final String type;
     private final Rule<Node, RuleResult<Node>, RuleResult<String>> rule;
@@ -18,8 +16,7 @@ public final class TypeRule<Node extends TypedNode<Node> & DisplayableNode> impl
 
     @Override
     public RuleResult<Node> lex(String input) {
-        RuleResult<Node> nodeRuleResult = this.rule.lex(input);
-        return nodeRuleResult.<RuleResult<Node>>match(value -> new RuleResult.Ok<>(((Function<Node, Node>) node -> node.retype(this.type)).apply(value)), RuleResult.Err::new);
+        return this.rule.lex(input).mapValue(node -> node.retype(this.type));
     }
 
     @Override
