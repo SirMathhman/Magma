@@ -21,7 +21,7 @@ public class PresentNodeList implements MaybeNodeList {
     }
 
     @Override
-    public MaybeNodeList add(MaybeNode<MaybeNodeList> node) {
+    public MaybeNodeList add(MaybeNode node) {
         return node.addTo(this.nodes);
     }
 

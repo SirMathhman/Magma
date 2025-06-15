@@ -11,7 +11,7 @@ import java.util.function.Function;
 
 public class EmptyNodeList implements MaybeNodeList {
     @Override
-    public MaybeNodeList add(MaybeNode<MaybeNodeList> node) {
+    public MaybeNodeList add(MaybeNode node) {
         return this;
     }
 

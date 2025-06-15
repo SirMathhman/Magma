@@ -4,6 +4,6 @@ import magma.app.Node;
 
 import java.util.List;
 
-public interface MaybeNode<MaybeNodeList> {
+public interface MaybeNode extends Attachable<Node> {
     MaybeNodeList addTo(List<Node> list);
 }

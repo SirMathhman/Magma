@@ -1,5 +1,6 @@
 @startuml
 skinparam linetype ortho
+class Attachable
 class MaybeNode
 class MaybeNodeList
 class MaybeString
@@ -14,11 +15,14 @@ class PresentString
 class MapNode
 class Node
 class InfixRule
+class OrRule
+class OrState
 class PrefixRule
 class StringRule
 class StripRule
 class SuffixRule
 class Rule
 class State
+class EmptyRule
 class Main
 @enduml

@@ -1,11 +1,17 @@
 package magma.app.maybe.string;
 
 import magma.app.maybe.MaybeString;
+import magma.app.rule.OrState;
 
 public record PresentString(String value) implements MaybeString {
     @Override
     public String orElse(String other) {
         return this.value;
+    }
+
+    @Override
+    public OrState<String> attachTo(OrState<String> state) {
+        return state.withValue(this.value);
     }
 
     @Override

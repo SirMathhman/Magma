@@ -1,14 +1,13 @@
 package magma.app.rule;
 
 import magma.app.Rule;
-import magma.app.maybe.MaybeNodeList;
 import magma.app.maybe.string.Appendable;
 import magma.app.maybe.MaybeNode;
 import magma.app.maybe.node.EmptyNode;
 
-public record InfixRule<Node, Generate extends Appendable<Generate>>(Rule<Node, MaybeNode<MaybeNodeList>, Generate> leftRule,
+public record InfixRule<Node, Generate extends Appendable<Generate>>(Rule<Node, MaybeNode, Generate> leftRule,
                                                                      String infix,
-                                                                     Rule<Node, MaybeNode<MaybeNodeList>, Generate> rightRule) implements Rule<Node, MaybeNode<MaybeNodeList>, Generate> {
+                                                                     Rule<Node, MaybeNode, Generate> rightRule) implements Rule<Node, MaybeNode, Generate> {
 
     @Override
     public Generate generate(Node node) {
@@ -16,7 +15,7 @@ public record InfixRule<Node, Generate extends Appendable<Generate>>(Rule<Node, 
     }
 
     @Override
-    public MaybeNode<MaybeNodeList> lex(String input) {
+    public MaybeNode lex(String input) {
         final var index = input.lastIndexOf(this.infix);
         if (index < 0)
             return new EmptyNode();
