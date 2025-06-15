@@ -1,7 +1,7 @@
 package magma.app.compile;
 
-public interface Rule<Node, Lex, Generate> {
-    Generate generate(Node node);
+public interface Rule {
+    StringResult<CompileError> generate(Node node);
 
-    Lex lex(String input);
+    NodeResult<Node, CompileError> lex(String input);
 }

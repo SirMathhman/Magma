@@ -5,6 +5,7 @@ class JavaFiles
 JavaFiles --> ApplicationError
 JavaFiles --> ApplicationResult
 JavaFiles --> IOException
+JavaFiles --> Files
 JavaFiles --> Path
 JavaFiles --> Optional
 class ThrowableError
@@ -32,21 +33,21 @@ Compiler --> Collection
 Compiler --> List
 class Context
 class JavaImports
-JavaImports --> SimpleRule
+JavaImports --> Rule
 JavaImports --> InfixRule
 JavaImports --> PrefixRule
 JavaImports --> StringRule
 JavaImports --> StripRule
 JavaImports --> SuffixRule
 class JavaLang
-JavaLang --> SimpleRule
+JavaLang --> Rule
 JavaLang --> JavaImports
 JavaLang --> DivideRule
 JavaLang --> OrRule
 JavaLang --> StringRule
 JavaLang --> List
 class PlantUMLLang
-PlantUMLLang --> SimpleRule
+PlantUMLLang --> Rule
 PlantUMLLang --> DivideRule
 PlantUMLLang --> EmptyRule
 PlantUMLLang --> InfixRule
@@ -105,7 +106,7 @@ DivideRule --> CompileError
 DivideRule --> Node
 DivideRule --> NodeListResult
 DivideRule --> NodeResult
-DivideRule --> SimpleRule
+DivideRule --> Rule
 DivideRule --> StringResult
 DivideRule --> NodeListOk
 DivideRule --> Appending
@@ -119,7 +120,7 @@ class EmptyRule
 EmptyRule --> CompileError
 EmptyRule --> Node
 EmptyRule --> NodeResult
-EmptyRule --> SimpleRule
+EmptyRule --> Rule
 EmptyRule --> StringResult
 EmptyRule --> MapNode
 EmptyRule --> NodeResults
@@ -128,7 +129,7 @@ class InfixRule
 InfixRule --> CompileError
 InfixRule --> Node
 InfixRule --> NodeResult
-InfixRule --> SimpleRule
+InfixRule --> Rule
 InfixRule --> StringResult
 InfixRule --> NodeResults
 class NodeContext
@@ -147,7 +148,7 @@ OrRule --> AttachableToOrState
 OrRule --> CompileError
 OrRule --> Node
 OrRule --> NodeResult
-OrRule --> SimpleRule
+OrRule --> Rule
 OrRule --> StringResult
 OrRule --> NodeResults
 OrRule --> InlineOrState
@@ -159,7 +160,7 @@ class PrefixRule
 PrefixRule --> CompileError
 PrefixRule --> Node
 PrefixRule --> NodeResult
-PrefixRule --> SimpleRule
+PrefixRule --> Rule
 PrefixRule --> StringResult
 PrefixRule --> NodeResults
 class StringContext
@@ -168,7 +169,7 @@ class StringRule
 StringRule --> CompileError
 StringRule --> Node
 StringRule --> NodeResult
-StringRule --> SimpleRule
+StringRule --> Rule
 StringRule --> StringResult
 StringRule --> MapNode
 StringRule --> NodeResults
@@ -176,17 +177,16 @@ class StripRule
 StripRule --> CompileError
 StripRule --> Node
 StripRule --> NodeResult
-StripRule --> SimpleRule
+StripRule --> Rule
 StripRule --> StringResult
 class SuffixRule
 SuffixRule --> CompileError
 SuffixRule --> Node
 SuffixRule --> NodeResult
-SuffixRule --> SimpleRule
+SuffixRule --> Rule
 SuffixRule --> StringResult
 SuffixRule --> NodeResults
 class Rule
-class SimpleRule
 class Appending
 class Prepend
 class StringResults

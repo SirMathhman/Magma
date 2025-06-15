@@ -3,11 +3,11 @@ package magma.app.compile.rule;
 import magma.app.compile.CompileError;
 import magma.app.compile.Node;
 import magma.app.compile.NodeResult;
-import magma.app.compile.SimpleRule;
+import magma.app.compile.Rule;
 import magma.app.compile.StringResult;
 import magma.app.compile.node.NodeResults;
 
-public record PrefixRule(String prefix, SimpleRule rule) implements SimpleRule {
+public record PrefixRule(String prefix, Rule rule) implements Rule {
     @Override
     public StringResult<CompileError> generate(Node node) {
         return this.rule.generate(node)

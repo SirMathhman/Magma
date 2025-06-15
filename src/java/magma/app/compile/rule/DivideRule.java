@@ -4,7 +4,7 @@ import magma.app.compile.CompileError;
 import magma.app.compile.Node;
 import magma.app.compile.NodeListResult;
 import magma.app.compile.NodeResult;
-import magma.app.compile.SimpleRule;
+import magma.app.compile.Rule;
 import magma.app.compile.StringResult;
 import magma.app.compile.node.NodeListOk;
 import magma.app.compile.string.Appending;
@@ -13,8 +13,8 @@ import magma.app.compile.string.StringResults;
 import java.util.Collection;
 import java.util.List;
 
-public record DivideRule(String key, SimpleRule rule) implements SimpleRule {
-    private static StringResult<CompileError> getReduce(Collection<Node> children, SimpleRule rule) {
+public record DivideRule(String key, Rule rule) implements Rule {
+    private static StringResult<CompileError> getReduce(Collection<Node> children, Rule rule) {
         return children.stream()
                 .map(rule::generate)
                 .reduce(StringResults.createFromValue(""), Appending::appendMaybe, (_, next) -> next);
