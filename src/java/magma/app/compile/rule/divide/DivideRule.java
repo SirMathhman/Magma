@@ -30,14 +30,18 @@ public record DivideRule(String key, Rule rule) implements Rule {
 
     @Override
     public Optional<Node> lex(String input) {
-        final var children = divide(input).stream()
+        return divide(input).stream()
                 .map(this.rule::lex)
-                .flatMap(Optional::stream)
-                .toList();
+                .reduce(Optional.<List<Node>>of(new ArrayList<>()), this::fold, (_, next) -> next)
+                .map(children -> new MapNode().nodeLists()
+                        .with(this.key, children));
+    }
 
-        Node node = new MapNode();
-        return Optional.of(node.nodeLists()
-                .with(this.key(), children));
+    private Optional<List<Node>> fold(Optional<List<Node>> maybeCurrent, Optional<Node> maybeElement) {
+        return maybeCurrent.flatMap(current -> maybeElement.map(element -> {
+            current.add(element);
+            return current;
+        }));
     }
 
     @Override

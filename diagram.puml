@@ -14,6 +14,14 @@ Compiler --> MapNode
 Compiler --> ArrayList
 Compiler --> Map
 Compiler --> Optional
+class OrRule
+OrRule --> Node
+OrRule --> List
+OrRule --> Optional
+class EmptyRule
+EmptyRule --> MapNode
+EmptyRule --> Node
+EmptyRule --> Optional
 class Node
 Node --> NodeProperties
 Node --> List
@@ -21,6 +29,8 @@ class StripRule
 StripRule --> Node
 StripRule --> Optional
 class Lang
+Lang --> EmptyRule
+Lang --> OrRule
 Lang --> Rule
 Lang --> DivideRule
 Lang --> LastRule
@@ -28,6 +38,7 @@ Lang --> PrefixRule
 Lang --> StringRule
 Lang --> StripRule
 Lang --> SuffixRule
+Lang --> List
 class Completer
 class MutableDivideState
 MutableDivideState --> ArrayList
