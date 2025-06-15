@@ -1,10 +1,17 @@
 package magma.app.rule;
 
+import magma.app.Node;
 import magma.app.Rule;
 import magma.app.maybe.MaybeNode;
+import magma.app.maybe.MaybeString;
 import magma.app.maybe.node.EmptyNode;
 
 public record PrefixRule(String prefix, Rule rule) implements Rule {
+    @Override
+    public MaybeString generate(Node node) {
+        return this.rule.generate(node).prependString(this.prefix);
+    }
+
     @Override
     public MaybeNode lex(String input) {
         if (!input.startsWith(this.prefix))

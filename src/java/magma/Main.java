@@ -1,7 +1,6 @@
 package magma;
 
-import magma.app.Generated;
-import magma.app.Node;
+import magma.app.Rule;
 import magma.app.State;
 import magma.app.rule.InfixRule;
 import magma.app.rule.PrefixRule;
@@ -49,20 +48,21 @@ public class Main {
     private static String compileRoot(String input, String name) {
         final var segments = divide(input);
         var output = new StringBuilder();
-        for (var segment : segments)
-            output = compileRootSegment(name, segment).appendTo(output);
+        for (var segment : segments) {
+            final var generated = createImportRule().lex(segment);
+            final var source = generated.withString("source", name);
+            output = source.generate(node -> createDependencyRule().generate(node).orElse("")).appendTo(output);
+        }
 
         return output.toString();
     }
 
-    private static Generated compileRootSegment(String name, String input) {
-        final var generated = new StripRule(new PrefixRule("import ", new SuffixRule(new InfixRule(".", new StringRule("destination")), ";"))).lex(input);
-        final var source = generated.withString("source", name);
-        return source.generate(Main::generateDependency);
+    private static Rule createDependencyRule() {
+        return new SuffixRule(new InfixRule(new StringRule("source"), " --> ", new StringRule("destination")), "\n");
     }
 
-    private static String generateDependency(Node node) {
-        return node.findString("source").orElse("") + " --> " + node.findString("destination").orElse("") + "\n";
+    private static Rule createImportRule() {
+        return new StripRule(new PrefixRule("import ", new SuffixRule(new InfixRule(new StringRule("parent"), ".", new StringRule("destination")), ";")));
     }
 
     private static List<String> divide(String input) {

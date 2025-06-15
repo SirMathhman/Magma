@@ -1,5 +1,7 @@
 package magma.app;
 
+import magma.app.maybe.MaybeString;
+
 import java.util.ArrayList;
 import java.util.List;
 

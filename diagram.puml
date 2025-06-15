@@ -35,33 +35,44 @@ EmptyGenerated --> Generated
 class PresentGenerated
 PresentGenerated --> Generated
 class InfixRule
-InfixRule --> MaybeNode
+InfixRule --> Node
 InfixRule --> Rule
+InfixRule --> MaybeNode
+InfixRule --> MaybeString
 InfixRule --> EmptyNode
 class PrefixRule
+PrefixRule --> Node
 PrefixRule --> Rule
 PrefixRule --> MaybeNode
+PrefixRule --> MaybeString
 PrefixRule --> EmptyNode
 class StringRule
-StringRule --> MaybeNode
+StringRule --> Node
 StringRule --> Rule
-StringRule --> MapNode
+StringRule --> MaybeNode
+StringRule --> MaybeString
 StringRule --> PresentNode
+StringRule --> MapNode
 class StripRule
+StripRule --> Node
 StripRule --> Rule
 StripRule --> MaybeNode
+StripRule --> MaybeString
 class SuffixRule
+SuffixRule --> Node
 SuffixRule --> Rule
 SuffixRule --> MaybeNode
+SuffixRule --> MaybeString
 SuffixRule --> EmptyNode
 class Rule
 Rule --> MaybeNode
+Rule --> MaybeString
 class State
+State --> MaybeString
 State --> ArrayList
 State --> List
 class Main
-Main --> Generated
-Main --> Node
+Main --> Rule
 Main --> State
 Main --> InfixRule
 Main --> PrefixRule
