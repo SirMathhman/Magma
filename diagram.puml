@@ -4,6 +4,7 @@ class CompileError
 CompileError --> ArrayList
 CompileError --> List
 class Compiler
+Compiler --> Lang
 Compiler --> NodeListResult
 Compiler --> NodeResult
 Compiler --> StringResult
@@ -11,14 +12,20 @@ Compiler --> PresentNodeListResult
 Compiler --> OkStringResult
 Compiler --> DivideState
 Compiler --> EmptyRule
-Compiler --> InfixRule
 Compiler --> OrRule
-Compiler --> PrefixRule
 Compiler --> StringRule
-Compiler --> StripRule
-Compiler --> SuffixRule
 Compiler --> List
 class Context
+class Lang
+Lang --> Node
+Lang --> Rule
+Lang --> NodeResult
+Lang --> StringResult
+Lang --> InfixRule
+Lang --> PrefixRule
+Lang --> StringRule
+Lang --> StripRule
+Lang --> SuffixRule
 class Attachable
 Attachable --> OrState
 class ErrNodeListResult

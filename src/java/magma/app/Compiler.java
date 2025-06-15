@@ -1,5 +1,6 @@
 package magma.app;
 
+import magma.app.lang.Lang;
 import magma.app.maybe.NodeListResult;
 import magma.app.maybe.NodeResult;
 import magma.app.maybe.StringResult;
@@ -7,26 +8,14 @@ import magma.app.maybe.node.PresentNodeListResult;
 import magma.app.maybe.string.OkStringResult;
 import magma.app.rule.DivideState;
 import magma.app.rule.EmptyRule;
-import magma.app.rule.InfixRule;
 import magma.app.rule.OrRule;
-import magma.app.rule.PrefixRule;
 import magma.app.rule.StringRule;
-import magma.app.rule.StripRule;
-import magma.app.rule.SuffixRule;
 
 import java.util.List;
 
 public class Compiler {
     public static String compileRoot(String input, String name) {
-        return lex(input, new OrRule(List.of(createImportRule(), new StringRule("value")))).transform(children -> transform(name, children)).generate(Compiler::generate).orElse("");
-    }
-
-    static Rule<Node, NodeResult, StringResult> createDependencyRule() {
-        return new SuffixRule<>(new InfixRule<>(new StringRule("source"), " --> ", new StringRule("destination")), "\n");
-    }
-
-    static Rule<Node, NodeResult, StringResult> createImportRule() {
-        return new StripRule<>(new PrefixRule<>("import ", new SuffixRule<>(new InfixRule<>(new StringRule("parent"), ".", new StringRule("destination")), ";")));
+        return lex(input, new OrRule(List.of(Lang.createImportRule(), new StringRule("value")))).transform(children -> transform(name, children)).generate(Compiler::generate).orElse("");
     }
 
     static List<String> divide(String input) {
@@ -47,7 +36,7 @@ public class Compiler {
     }
 
     public static StringResult generate(List<Node> children) {
-        return children.stream().map(node -> new OrRule(List.of(createDependencyRule(), new EmptyRule())).generate(node)).reduce(new OkStringResult(""), StringResult::appendMaybe, (_, next) -> next);
+        return children.stream().map(node -> new OrRule(List.of(Lang.createDependencyRule(), new EmptyRule())).generate(node)).reduce(new OkStringResult(""), StringResult::appendMaybe, (_, next) -> next);
     }
 
     public static List<Node> transform(String name, List<Node> list) {
