@@ -1,7 +1,7 @@
 package magma.app;
 
 import magma.app.compile.Lang;
-import magma.app.compile.Node;
+import magma.app.compile.node.Node;
 import magma.app.compile.node.MapNode;
 
 import java.util.ArrayList;

@@ -1,6 +1,5 @@
 package magma.app.compile.node;
 
-import magma.app.compile.Node;
 import magma.app.compile.node.properties.MapNodeProperties;
 import magma.app.compile.node.properties.NodeProperties;
 

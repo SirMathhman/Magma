@@ -3,11 +3,9 @@ skinparam linetype ortho
 class StringRule
 StringRule --> MapNode
 StringRule --> Node
-StringRule --> Rule
 StringRule --> Optional
 class PrefixRule
 PrefixRule --> Node
-PrefixRule --> Rule
 PrefixRule --> Optional
 class Compiler
 Compiler --> Lang
@@ -21,7 +19,6 @@ Node --> NodeProperties
 Node --> List
 class StripRule
 StripRule --> Node
-StripRule --> Rule
 StripRule --> Optional
 class Lang
 Lang --> DivideRule
@@ -31,8 +28,10 @@ Lang --> StringRule
 Lang --> StripRule
 Lang --> SuffixRule
 class Completer
+class MutableDivideState
+MutableDivideState --> ArrayList
+MutableDivideState --> List
 class MapNode
-MapNode --> Node
 MapNode --> MapNodeProperties
 MapNode --> NodeProperties
 MapNode --> List
@@ -40,15 +39,15 @@ class MapNodeProperties
 MapNodeProperties --> HashMap
 MapNodeProperties --> Map
 MapNodeProperties --> Optional
+class DivideState
+DivideState --> List
 class LastRule
 LastRule --> Node
-LastRule --> Rule
 LastRule --> Optional
 class DivideRule
 DivideRule --> MapNode
 DivideRule --> Node
 DivideRule --> Rule
-DivideRule --> State
 DivideRule --> ArrayList
 DivideRule --> List
 DivideRule --> Optional
@@ -57,12 +56,9 @@ class NodeProperties
 NodeProperties --> Optional
 class SuffixRule
 SuffixRule --> Node
-SuffixRule --> Rule
 SuffixRule --> Optional
-class State
-State --> ArrayList
-State --> List
 class Rule
+Rule --> Node
 Rule --> Optional
 class Main
 Main --> Compiler

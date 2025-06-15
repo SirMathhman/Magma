@@ -1,6 +1,6 @@
 package magma.app.compile;
 
-import magma.app.compile.rule.DivideRule;
+import magma.app.compile.rule.divide.DivideRule;
 import magma.app.compile.rule.LastRule;
 import magma.app.compile.rule.PrefixRule;
 import magma.app.compile.rule.StringRule;

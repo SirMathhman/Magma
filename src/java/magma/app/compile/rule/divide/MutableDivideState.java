@@ -1,32 +1,35 @@
-package magma.app.compile;
+package magma.app.compile.rule.divide;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class State {
+public class MutableDivideState implements DivideState {
     private final List<String> segments;
     private StringBuilder buffer;
 
-    public State(List<String> segments, StringBuilder buffer) {
+    public MutableDivideState(List<String> segments, StringBuilder buffer) {
         this.segments = segments;
         this.buffer = buffer;
     }
 
-    public State() {
+    public MutableDivideState() {
         this(new ArrayList<>(), new StringBuilder());
     }
 
-    public State advance() {
+    @Override
+    public DivideState advance() {
         this.segments.add(this.buffer.toString());
         this.buffer = new StringBuilder();
         return this;
     }
 
-    public State append(char c) {
+    @Override
+    public DivideState append(char c) {
         this.buffer.append(c);
         return this;
     }
 
+    @Override
     public List<String> segments() {
         return this.segments;
     }
