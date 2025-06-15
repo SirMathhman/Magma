@@ -2,6 +2,7 @@ package magma;
 
 import magma.app.Node;
 import magma.app.State;
+import magma.app.StringRule;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -68,17 +69,16 @@ public class Main {
             return Optional.empty();
 
         final var withoutSuffix = withoutPrefix.substring(0, withoutPrefix.length() - ";".length());
-        return getString(name, withoutSuffix);
+        return getString(withoutSuffix, ".").map(node -> generate(node.withString("parent", name)));
     }
 
-    private static Optional<String> getString(String name, String withoutSuffix) {
-        final var separator = withoutSuffix.lastIndexOf(".");
+    private static Optional<Node> getString(String input, String infix) {
+        final var separator = input.lastIndexOf(infix);
         if (separator < 0)
             return Optional.empty();
 
-        final var child = withoutSuffix.substring(separator + ".".length());
-        return Optional.of(generate(new Node().withString("parent", name)
-                .withString("child", child)));
+        final var child = input.substring(separator + infix.length());
+        return new StringRule("child").lex(child);
     }
 
     private static String generate(Node node) {

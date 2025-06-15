@@ -6,6 +6,7 @@ Node --> Optional
 class Node
 Main --> Node
 Main --> State
+Main --> StringRule
 Main --> IOException
 Main --> Files
 Main --> Path
@@ -14,6 +15,8 @@ Main --> List
 Main --> Optional
 Main --> Collectors
 class Main
+StringRule --> Optional
+class StringRule
 State --> ArrayList
 State --> List
 class State
