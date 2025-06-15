@@ -2,13 +2,14 @@
 skinparam linetype ortho
 class Generated
 class Generator
-class Appendable
 class MaybeNode
 MaybeNode --> Generated
 MaybeNode --> Generator
 MaybeNode --> Node
 MaybeNode --> List
 class MaybeString
+MaybeString --> Appendable
+MaybeString --> Prependable
 class EmptyNode
 EmptyNode --> Generated
 EmptyNode --> Generator
@@ -23,9 +24,10 @@ PresentNode --> Node
 PresentNode --> MaybeNode
 PresentNode --> PresentGenerated
 PresentNode --> List
-class Prependable
+class Appendable
 class EmptyString
 EmptyString --> MaybeString
+class Prependable
 class PresentString
 PresentString --> MaybeString
 class MaybeNodeList

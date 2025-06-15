@@ -2,7 +2,7 @@ package magma.app.rule;
 
 import magma.app.Rule;
 import magma.app.maybe.MaybeNode;
-import magma.app.maybe.Prependable;
+import magma.app.maybe.string.Prependable;
 import magma.app.maybe.node.EmptyNode;
 
 public record PrefixRule<Node, Generate extends Prependable<Generate>>(String prefix,

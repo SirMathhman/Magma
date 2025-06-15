@@ -1,7 +1,7 @@
 package magma.app.rule;
 
 import magma.app.Rule;
-import magma.app.maybe.Appendable;
+import magma.app.maybe.string.Appendable;
 import magma.app.maybe.MaybeNode;
 import magma.app.maybe.node.EmptyNode;
 
