@@ -1,12 +1,11 @@
 package magma.app.rule;
 
-import magma.app.Node;
 import magma.app.Rule;
 import magma.app.maybe.MaybeNode;
 import magma.app.maybe.MaybeString;
 import magma.app.maybe.node.EmptyNode;
 
-public record SuffixRule(Rule rule, String suffix) implements Rule {
+public record SuffixRule<Node>(Rule<Node> rule, String suffix) implements Rule<Node> {
     @Override
     public MaybeString generate(Node node) {
         return this.rule.generate(node).appendString(this.suffix);

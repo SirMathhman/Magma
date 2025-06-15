@@ -5,7 +5,7 @@ import magma.app.Rule;
 import magma.app.maybe.MaybeNode;
 import magma.app.maybe.MaybeString;
 
-public record StripRule(Rule rule) implements Rule {
+public record StripRule(Rule<Node> rule) implements Rule<Node> {
     @Override
     public MaybeString generate(Node node) {
         return this.rule.generate(node);

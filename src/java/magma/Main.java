@@ -61,16 +61,16 @@ public class Main {
         return list.stream().map(node -> node.withString("source", name)).toList();
     }
 
-    private static MaybeNodeList lex(String input, Rule rule) {
+    private static MaybeNodeList lex(String input, Rule<Node> rule) {
         return divide(input).stream().map(rule::lex).reduce(new PresentNodeList(), MaybeNodeList::add, (_, next) -> next);
     }
 
-    private static Rule createDependencyRule() {
-        return new SuffixRule(new InfixRule(new StringRule("source"), " --> ", new StringRule("destination")), "\n");
+    private static Rule<Node> createDependencyRule() {
+        return new SuffixRule<Node>(new InfixRule(new StringRule("source"), " --> ", new StringRule("destination")), "\n");
     }
 
-    private static Rule createImportRule() {
-        return new StripRule(new PrefixRule("import ", new SuffixRule(new InfixRule(new StringRule("parent"), ".", new StringRule("destination")), ";")));
+    private static Rule<Node> createImportRule() {
+        return new StripRule(new PrefixRule("import ", new SuffixRule<Node>(new InfixRule(new StringRule("parent"), ".", new StringRule("destination")), ";")));
     }
 
     private static List<String> divide(String input) {

@@ -73,7 +73,6 @@ StripRule --> Rule
 StripRule --> MaybeNode
 StripRule --> MaybeString
 class SuffixRule
-SuffixRule --> Node
 SuffixRule --> Rule
 SuffixRule --> MaybeNode
 SuffixRule --> MaybeString
