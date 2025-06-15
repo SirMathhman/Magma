@@ -34,6 +34,6 @@ public class NodeListErr<Node, E extends Error> implements NodeListResult<Node, 
 
     @Override
     public NodeResult<Node, E> toNode(String key) {
-        return NodeResults.createFromError(error);
+        return NodeResults.createFromError(this.error);
     }
 }

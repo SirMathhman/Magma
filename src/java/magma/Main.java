@@ -15,9 +15,7 @@ import java.util.Optional;
 
 public class Main {
     public static void main(String[] args) {
-        run().ifPresent(error -> {
-            System.err.println(error.display());
-        });
+        run().ifPresent(error -> System.err.println(error.display()));
     }
 
     private static Optional<ApplicationError> run() {
@@ -35,7 +33,7 @@ public class Main {
         return JavaFiles.writeString(target, content);
     }
 
-    private static ApplicationResult compileSources(List<Path> sources) throws IOException {
+    private static ApplicationResult compileSources(List<Path> sources) {
         ApplicationResult output = new ApplicationResult.Ok("");
         for (var source : sources)
             output = output.append(() -> compileSource(source));

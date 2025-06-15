@@ -87,7 +87,6 @@ NodeResults --> OrState
 NodeResults --> List
 class Node
 Node --> DisplayableNode
-Node --> List
 class NodeListResult
 NodeListResult --> List
 NodeListResult --> Function

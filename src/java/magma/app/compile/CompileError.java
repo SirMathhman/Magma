@@ -13,7 +13,9 @@ public record CompileError(String message, Context context, List<CompileError> e
 
     @Override
     public String display() {
-        final var joined = this.errors.stream().map(CompileError::display).collect(Collectors.joining());
-        return this.message + ": " + this.context + joined;
+        final var joined = this.errors.stream()
+                .map(CompileError::display)
+                .collect(Collectors.joining());
+        return this.message + ": " + this.context.display() + joined;
     }
 }

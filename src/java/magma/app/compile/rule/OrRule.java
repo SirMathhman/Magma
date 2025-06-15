@@ -18,9 +18,7 @@ public record OrRule(
         List<Rule<Node, NodeResult<Node, CompileError>, StringResult<CompileError>>> rules) implements Rule<Node, NodeResult<Node, CompileError>, StringResult<CompileError>> {
     @Override
     public StringResult<CompileError> generate(Node node) {
-        return this.<AttachableToOrState<String, CompileError>, String, StringResult<CompileError>>or(rule1 -> rule1.generate(node), StringResults::createFromValue, errors -> {
-            return StringResults.createFromNodeAndErrors("No valid combination", node, errors);
-        });
+        return this.<AttachableToOrState<String, CompileError>, String, StringResult<CompileError>>or(rule1 -> rule1.generate(node), StringResults::createFromValue, errors -> StringResults.createFromNodeAndErrors("No valid combination", node, errors));
     }
 
     private <MaybeValue extends AttachableToOrState<Value, CompileError>, Value, Return> Return or(Function<Rule<Node, NodeResult<Node, CompileError>, StringResult<CompileError>>, MaybeValue> mapper, Function<Value, Return> whenPresent, Function<List<CompileError>, Return> whenMissing) {
@@ -36,8 +34,6 @@ public record OrRule(
 
     @Override
     public NodeResult<Node, CompileError> lex(String input) {
-        return this.<AttachableToOrState<Node, CompileError>, Node, NodeResult<Node, CompileError>>or(rule1 -> rule1.lex(input), NodeResults::createFromValue, errors -> {
-            return NodeResults.createFromStringAndErrors("No valid combination", input, errors);
-        });
+        return this.<AttachableToOrState<Node, CompileError>, Node, NodeResult<Node, CompileError>>or(rule1 -> rule1.lex(input), NodeResults::createFromValue, errors -> NodeResults.createFromStringAndErrors("No valid combination", input, errors));
     }
 }
