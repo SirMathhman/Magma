@@ -8,7 +8,7 @@ import java.nio.file.Path;
 import java.util.Optional;
 
 public class JavaFiles {
-    public static Optional<ApplicationError> writeString(Path path, String content) {
+    public static Optional<ApplicationError> writeString(Path path, CharSequence content) {
         try {
             java.nio.file.Files.writeString(path, content);
             return Optional.empty();

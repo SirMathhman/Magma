@@ -28,10 +28,7 @@ CompileError --> Collectors
 class Compiler
 Compiler --> Lang
 Compiler --> MapNode
-Compiler --> DivideRule
-Compiler --> EmptyRule
-Compiler --> OrRule
-Compiler --> StringRule
+Compiler --> Collection
 Compiler --> List
 class Context
 class Lang
@@ -40,11 +37,15 @@ Lang --> Node
 Lang --> Rule
 Lang --> NodeResult
 Lang --> StringResult
+Lang --> DivideRule
+Lang --> EmptyRule
 Lang --> InfixRule
+Lang --> OrRule
 Lang --> PrefixRule
 Lang --> StringRule
 Lang --> StripRule
 Lang --> SuffixRule
+Lang --> List
 class DisplayableNode
 class MapNode
 MapNode --> CompileError
@@ -101,6 +102,7 @@ DivideRule --> StringResult
 DivideRule --> NodeListOk
 DivideRule --> Appending
 DivideRule --> StringResults
+DivideRule --> Collection
 DivideRule --> List
 class DivideState
 DivideState --> ArrayList

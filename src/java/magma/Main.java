@@ -10,7 +10,6 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.List;
 import java.util.Optional;
 
 public class Main {
@@ -33,7 +32,7 @@ public class Main {
         return JavaFiles.writeString(target, content);
     }
 
-    private static ApplicationResult compileSources(List<Path> sources) {
+    private static ApplicationResult compileSources(Iterable<Path> sources) {
         ApplicationResult output = new ApplicationResult.Ok("");
         for (var source : sources)
             output = output.append(() -> compileSource(source));

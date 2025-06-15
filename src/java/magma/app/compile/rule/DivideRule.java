@@ -10,17 +10,18 @@ import magma.app.compile.node.NodeListOk;
 import magma.app.compile.string.Appending;
 import magma.app.compile.string.StringResults;
 
+import java.util.Collection;
 import java.util.List;
 
 public record DivideRule(String key,
                          Rule<Node, NodeResult<Node, CompileError>, StringResult<CompileError>> rule) implements Rule<Node, NodeResult<Node, CompileError>, StringResult<CompileError>> {
-    private static StringResult<CompileError> getReduce(List<Node> children, Rule<Node, NodeResult<Node, CompileError>, StringResult<CompileError>> rule) {
+    private static StringResult<CompileError> getReduce(Collection<Node> children, Rule<Node, NodeResult<Node, CompileError>, StringResult<CompileError>> rule) {
         return children.stream()
                 .map(rule::generate)
                 .reduce(StringResults.createFromValue(""), Appending::appendMaybe, (_, next) -> next);
     }
 
-    public static List<String> divide(String input) {
+    public static List<String> divide(CharSequence input) {
         var current = new DivideState();
         for (var i = 0; i < input.length(); i++) {
             final var c = input.charAt(i);
