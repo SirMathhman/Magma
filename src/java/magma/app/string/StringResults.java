@@ -1,10 +1,10 @@
 package magma.app.string;
 
-import magma.ApplicationError;
+import magma.app.ApplicationError;
 import magma.app.ApplicationResult;
 import magma.app.CompileError;
 import magma.app.DisplayableNode;
-import magma.app.Error;
+import magma.api.Error;
 import magma.app.Node;
 import magma.app.StringResult;
 import magma.app.rule.NodeContext;

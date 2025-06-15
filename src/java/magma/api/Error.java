@@ -1,4 +1,4 @@
-package magma.app;
+package magma.api;
 
 public interface Error {
     String display();

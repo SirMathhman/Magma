@@ -1,7 +1,7 @@
 package magma.app.node;
 
 import magma.app.CompileError;
-import magma.app.Error;
+import magma.api.Error;
 import magma.app.NodeListResult;
 import magma.app.NodeResult;
 import magma.app.rule.StringContext;

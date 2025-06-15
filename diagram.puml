@@ -1,7 +1,12 @@
 @startuml
 skinparam linetype ortho
+class Error
+class ThrowableError
+ThrowableError --> PrintWriter
+ThrowableError --> StringWriter
+class ApplicationError
+ApplicationError --> Error
 class ApplicationResult
-ApplicationResult --> ApplicationError
 ApplicationResult --> Optional
 ApplicationResult --> Function
 ApplicationResult --> Supplier
@@ -10,6 +15,7 @@ AttachableToNodeListResult --> List
 class AttachableToOrState
 AttachableToOrState --> OrState
 class CompileError
+CompileError --> Error
 CompileError --> ArrayList
 CompileError --> List
 CompileError --> Collectors
@@ -24,7 +30,6 @@ Compiler --> StringRule
 Compiler --> List
 class Context
 class DisplayableNode
-class Error
 class Lang
 Lang --> CompileError
 Lang --> Node
@@ -154,9 +159,9 @@ StringResults --> List
 class StringResult
 StringResult --> Appendable
 StringResult --> Prependable
-class ApplicationError
-ApplicationError --> Error
 class Main
+Main --> ApplicationError
+Main --> ThrowableError
 Main --> ApplicationResult
 Main --> Compiler
 Main --> IOException
@@ -165,8 +170,4 @@ Main --> Path
 Main --> Paths
 Main --> List
 Main --> Optional
-class ThrowableError
-ThrowableError --> Error
-ThrowableError --> PrintWriter
-ThrowableError --> StringWriter
 @enduml

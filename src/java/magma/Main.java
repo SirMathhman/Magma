@@ -1,5 +1,7 @@
 package magma;
 
+import magma.app.ApplicationError;
+import magma.api.ThrowableError;
 import magma.app.ApplicationResult;
 import magma.app.Compiler;
 

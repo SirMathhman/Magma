@@ -1,5 +1,7 @@
 package magma.app;
 
+import magma.api.Error;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
