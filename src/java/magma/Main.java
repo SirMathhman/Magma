@@ -1,10 +1,12 @@
 package magma;
 
 import magma.app.Generated;
+import magma.app.Node;
 import magma.app.State;
+import magma.app.result.EmptyGenerated;
 import magma.app.rule.InfixRule;
 import magma.app.rule.StringRule;
-import magma.app.result.EmptyGenerated;
+import magma.app.rule.SuffixRule;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -58,12 +60,15 @@ public class Main {
             return new EmptyGenerated();
 
         final var substring = strip.substring("import ".length());
-        if (!substring.endsWith(";"))
-            return new EmptyGenerated();
+        final var infixRule = new InfixRule(".", new StringRule("destination"));
 
-        final var substring1 = substring.substring(0, substring.length() - ";".length());
-        final var source = new InfixRule(".", new StringRule("destination")).lex(substring1).withString("source", name);
-        return source.generate(node -> node.findString("source").orElse("") + " --> " + node.findString("destination").orElse("") + "\n");
+        final var generated = new SuffixRule(infixRule, ";").lex(substring);
+        final var source = generated.withString("source", name);
+        return source.generate(Main::generateDependency);
+    }
+
+    private static String generateDependency(Node node) {
+        return node.findString("source").orElse("") + " --> " + node.findString("destination").orElse("") + "\n";
     }
 
     private static List<String> divide(String input) {

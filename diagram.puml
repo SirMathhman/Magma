@@ -43,6 +43,10 @@ StringRule --> MaybeNode
 StringRule --> Rule
 StringRule --> MapNode
 StringRule --> PresentNode
+class SuffixRule
+SuffixRule --> Rule
+SuffixRule --> MaybeNode
+SuffixRule --> EmptyNode
 class Rule
 Rule --> MaybeNode
 class State
@@ -50,10 +54,12 @@ State --> ArrayList
 State --> List
 class Main
 Main --> Generated
+Main --> Node
 Main --> State
+Main --> EmptyGenerated
 Main --> InfixRule
 Main --> StringRule
-Main --> EmptyGenerated
+Main --> SuffixRule
 Main --> IOException
 Main --> Files
 Main --> Path
