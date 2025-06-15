@@ -31,4 +31,9 @@ public final class MapNode implements Node {
             return StringResults.createFromValue(this.strings.get(key));
         return StringResults.createFromNode("String '" + key + "' not present", this);
     }
+
+    @Override
+    public String display() {
+        return this.toString();
+    }
 }

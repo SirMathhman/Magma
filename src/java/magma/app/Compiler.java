@@ -14,8 +14,8 @@ import magma.app.rule.StringRule;
 import java.util.List;
 
 public class Compiler {
-    public static String compileRoot(String input, String name) {
-        return lex(input, new OrRule<Node>(List.of(Lang.createImportRule(), new StringRule("value")))).transform(children -> transform(name, children)).generate(Compiler::generate).orElse("");
+    public static StringResult<CompileError> compileRoot(String input, String name) {
+        return lex(input, new OrRule<Node>(List.of(Lang.createImportRule(), new StringRule("value")))).transform(children -> transform(name, children)).generate(Compiler::generate);
     }
 
     static List<String> divide(String input) {

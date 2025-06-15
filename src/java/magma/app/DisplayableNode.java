@@ -1,5 +1,5 @@
 package magma.app;
 
-public interface Context {
+public interface DisplayableNode {
     String display();
 }

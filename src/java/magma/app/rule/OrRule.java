@@ -1,6 +1,7 @@
 package magma.app.rule;
 
 import magma.app.CompileError;
+import magma.app.DisplayableNode;
 import magma.app.Rule;
 import magma.app.maybe.AttachableToOrState;
 import magma.app.maybe.NodeResult;
@@ -13,7 +14,7 @@ import magma.app.rule.or.OrState;
 import java.util.List;
 import java.util.function.Function;
 
-public record OrRule<Node>(
+public record OrRule<Node extends DisplayableNode>(
         List<Rule<Node, NodeResult<Node, CompileError>, StringResult<CompileError>>> rules) implements Rule<Node, NodeResult<Node, CompileError>, StringResult<CompileError>> {
     @Override
     public StringResult<CompileError> generate(Node node) {

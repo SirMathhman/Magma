@@ -1,6 +1,7 @@
 package magma.app.maybe;
 
 import magma.app.CompileError;
+import magma.app.Error;
 import magma.app.maybe.node.ErrNodeListResult;
 import magma.app.maybe.node.PresentNodeListResult;
 import magma.app.rule.StringContext;
@@ -22,14 +23,14 @@ public class NodeResults {
         }
     }
 
-    private record ErrNodeResult<Node, Error>(Error error) implements NodeResult<Node, Error> {
+    private record ErrNodeResult<Node, E extends Error>(E error) implements NodeResult<Node, E> {
         @Override
-        public NodeListResult<Node, Error> attachTo(List<Node> list) {
+        public NodeListResult<Node, E> attachTo(List<Node> list) {
             return new ErrNodeListResult<>(this.error);
         }
 
         @Override
-        public OrState<Node, Error> attachTo(OrState<Node, Error> state) {
+        public OrState<Node, E> attachTo(OrState<Node, E> state) {
             return state.withError(this.error);
         }
     }
