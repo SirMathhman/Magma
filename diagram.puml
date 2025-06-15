@@ -67,7 +67,6 @@ StringResults --> Node
 StringResults --> NodeContext
 StringResults --> OrState
 StringResults --> List
-StringResults --> Objects
 class MapNode
 MapNode --> CompileError
 MapNode --> Node

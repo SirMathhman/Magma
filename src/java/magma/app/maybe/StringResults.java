@@ -6,7 +6,6 @@ import magma.app.rule.NodeContext;
 import magma.app.rule.or.OrState;
 
 import java.util.List;
-import java.util.Objects;
 
 public class StringResults {
     private record ErrStringResult<Error>(Error error) implements StringResult<Error> {
