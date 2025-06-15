@@ -2,13 +2,14 @@ package magma.app.compile.node;
 
 import magma.app.compile.AttachableToNodeListResult;
 import magma.app.compile.NodeListResult;
+import magma.app.compile.NodeResult;
 import magma.app.compile.StringResult;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Function;
 
-public class PresentNodeListResult<Node, Error> implements NodeListResult<Node, Error> {
+public class PresentNodeListResult<Node, Error> implements NodeListResult<Node, Error, NodeResult<Node, Error>> {
     private final List<Node> nodes;
 
     public PresentNodeListResult() {
@@ -20,12 +21,12 @@ public class PresentNodeListResult<Node, Error> implements NodeListResult<Node, 
     }
 
     @Override
-    public NodeListResult<Node, Error> add(AttachableToNodeListResult<Node, Error> node) {
+    public NodeListResult<Node, Error, NodeResult<Node, Error>> add(AttachableToNodeListResult<Node, Error> node) {
         return node.attachTo(this.nodes);
     }
 
     @Override
-    public NodeListResult<Node, Error> transform(Function<List<Node>, List<Node>> mapper) {
+    public NodeListResult<Node, Error, NodeResult<Node, Error>> transform(Function<List<Node>, List<Node>> mapper) {
         return new PresentNodeListResult<>(mapper.apply(this.nodes));
     }
 

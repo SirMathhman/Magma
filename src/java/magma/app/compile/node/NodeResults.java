@@ -12,7 +12,7 @@ import java.util.List;
 public class NodeResults {
     private record OkNodeResult<Node, Error>(Node node) implements NodeResult<Node, Error> {
         @Override
-        public NodeListResult<Node, Error> attachTo(List<Node> list) {
+        public NodeListResult<Node, Error, NodeResult<Node, Error>> attachTo(List<Node> list) {
             list.add(this.node);
             return new PresentNodeListResult<>(list);
         }
@@ -25,7 +25,7 @@ public class NodeResults {
 
     private record ErrNodeResult<Node, E extends Error>(E error) implements NodeResult<Node, E> {
         @Override
-        public NodeListResult<Node, E> attachTo(List<Node> list) {
+        public NodeListResult<Node, E, NodeResult<Node, E>> attachTo(List<Node> list) {
             return new ErrNodeListResult<>(this.error);
         }
 
