@@ -11,7 +11,7 @@ import java.util.Map;
 import java.util.Optional;
 
 public class Compiler {
-    private static Optional<String> parseAndGenerate(NodeWithEverything tree, String name) {
+    private static Optional<String> parseAndGenerate(NodeWithNodeLists<NodeWithEverything> tree, String name) {
         final var children1 = transform(tree, name);
         return PlantUMLLang.createPlantUMLRootRule()
                 .generate(children1)

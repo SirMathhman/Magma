@@ -1,8 +1,7 @@
 @startuml
 skinparam linetype ortho
 class StringRule
-StringRule --> MapNode
-StringRule --> NodeWithEverything
+StringRule --> NodeFactory
 StringRule --> NodeWithStrings
 StringRule --> Optional
 class MapNodeFactory
@@ -71,6 +70,7 @@ class NodeWithEverything
 class NodeWithStrings
 NodeWithStrings --> NodeProperties
 class JavaLang
+JavaLang --> MapNodeFactory
 JavaLang --> NodeWithEverything
 JavaLang --> LastRule
 JavaLang --> PrefixRule
@@ -80,6 +80,7 @@ JavaLang --> StripRule
 JavaLang --> SuffixRule
 JavaLang --> List
 class PlantUMLLang
+PlantUMLLang --> MapNodeFactory
 PlantUMLLang --> NodeWithEverything
 PlantUMLLang --> EmptyRule
 PlantUMLLang --> LastRule
