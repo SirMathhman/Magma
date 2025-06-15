@@ -71,7 +71,7 @@ public class Main {
     }
 
     private static Rule<Node, MaybeNode, MaybeString> createImportRule() {
-        return new StripRule<>(new PrefixRule("import ", new SuffixRule<>(new InfixRule<>(new StringRule("parent"), ".", new StringRule("destination")), ";")));
+        return new StripRule<>(new PrefixRule<MaybeString>("import ", new SuffixRule<>(new InfixRule<>(new StringRule("parent"), ".", new StringRule("destination")), ";")));
     }
 
     private static List<String> divide(String input) {
