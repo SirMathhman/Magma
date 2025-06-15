@@ -1,6 +1,12 @@
 @startuml
 skinparam linetype ortho
 class Error
+class JavaFiles
+JavaFiles --> ApplicationError
+JavaFiles --> ApplicationResult
+JavaFiles --> IOException
+JavaFiles --> Path
+JavaFiles --> Optional
 class ThrowableError
 ThrowableError --> PrintWriter
 ThrowableError --> StringWriter
@@ -160,8 +166,9 @@ class StringResult
 StringResult --> Appendable
 StringResult --> Prependable
 class Main
-Main --> ApplicationError
+Main --> JavaFiles
 Main --> ThrowableError
+Main --> ApplicationError
 Main --> ApplicationResult
 Main --> Compiler
 Main --> IOException

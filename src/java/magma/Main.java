@@ -1,7 +1,8 @@
 package magma;
 
-import magma.app.ApplicationError;
+import magma.api.JavaFiles;
 import magma.api.ThrowableError;
+import magma.app.ApplicationError;
 import magma.app.ApplicationResult;
 import magma.app.Compiler;
 
@@ -29,13 +30,9 @@ public class Main {
     }
 
     private static Optional<ApplicationError> writeOutput(String output) {
-        try {
-            final var target = Paths.get(".", "diagram.puml");
-            Files.writeString(target, "@startuml\nskinparam linetype ortho\n" + output + "@enduml");
-            return Optional.empty();
-        } catch (IOException e) {
-            return Optional.of(new ApplicationError(new ThrowableError(e)));
-        }
+        final var target = Paths.get(".", "diagram.puml");
+        final var content = "@startuml\nskinparam linetype ortho\n" + output + "@enduml";
+        return JavaFiles.writeString(target, content);
     }
 
     private static ApplicationResult compileSources(List<Path> sources) throws IOException {
@@ -49,19 +46,10 @@ public class Main {
         final var fileName = source.getFileName().toString();
         final var separator = fileName.lastIndexOf(".");
         final var name = fileName.substring(0, separator);
-        return readString(source).compile(input1 -> complete(input1, name));
+        return JavaFiles.readString(source).compile(input1 -> complete(input1, name));
     }
 
     private static ApplicationResult complete(String input1, String name) {
         return Compiler.compileRoot(input1, name).prependString("class " + name + "\n").toApplicationResult();
-    }
-
-    private static ApplicationResult readString(Path source) {
-        try {
-            final var input = Files.readString(source);
-            return new ApplicationResult.Ok(input);
-        } catch (IOException e) {
-            return new ApplicationResult.Err(new ApplicationError(new ThrowableError(e)));
-        }
     }
 }
