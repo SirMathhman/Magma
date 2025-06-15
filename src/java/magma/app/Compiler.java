@@ -1,7 +1,7 @@
 package magma.app;
 
 import magma.app.compile.Lang;
-import magma.app.compile.node.Node;
+import magma.app.compile.node.NodeWithEverything;
 import magma.app.compile.node.MapNode;
 
 import java.util.ArrayList;
@@ -9,7 +9,7 @@ import java.util.Map;
 import java.util.Optional;
 
 public class Compiler {
-    private static Optional<String> parseAndGenerate(Node tree, String name) {
+    private static Optional<String> parseAndGenerate(NodeWithEverything tree, String name) {
         final var children1 = transform(tree, name);
         return Lang.createPlantUMLRootRule()
                 .generate(children1)
@@ -20,7 +20,7 @@ public class Compiler {
         return "class " + name + "\n" + joined;
     }
 
-    private static Node transform(Node tree, String name) {
+    private static NodeWithEverything transform(NodeWithEverything tree, String name) {
         final var list = tree.nodeLists()
                 .find("children")
                 .orElse(new ArrayList<>())

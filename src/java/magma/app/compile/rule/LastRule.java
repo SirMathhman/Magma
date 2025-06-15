@@ -1,12 +1,12 @@
 package magma.app.compile.rule;
 
-import magma.app.compile.node.Node;
+import magma.app.compile.node.NodeWithEverything;
 
 import java.util.Optional;
 
 public record LastRule(Rule leftRule, String infix, Rule rightRule) implements Rule {
     @Override
-    public Optional<Node> lex(String input) {
+    public Optional<NodeWithEverything> lex(String input) {
         final var separator = input.lastIndexOf(this.infix);
         if (separator < 0)
             return Optional.empty();
@@ -16,7 +16,7 @@ public record LastRule(Rule leftRule, String infix, Rule rightRule) implements R
     }
 
     @Override
-    public Optional<String> generate(Node node) {
+    public Optional<String> generate(NodeWithEverything node) {
         return this.leftRule.generate(node)
                 .flatMap(leftResult -> this.rightRule.generate(node)
                         .map(rightResult -> leftResult + this.infix + rightResult));

@@ -1,7 +1,7 @@
 package magma.app.compile.rule.divide;
 
 import magma.app.compile.node.MapNode;
-import magma.app.compile.node.Node;
+import magma.app.compile.node.NodeWithEverything;
 import magma.app.compile.rule.Rule;
 
 import java.util.ArrayList;
@@ -29,15 +29,15 @@ public record DivideRule(String key, Rule rule) implements Rule {
     }
 
     @Override
-    public Optional<Node> lex(String input) {
+    public Optional<NodeWithEverything> lex(String input) {
         return divide(input).stream()
                 .map(this.rule::lex)
-                .reduce(Optional.<List<Node>>of(new ArrayList<>()), this::fold, (_, next) -> next)
+                .reduce(Optional.<List<NodeWithEverything>>of(new ArrayList<>()), this::fold, (_, next) -> next)
                 .map(children -> new MapNode().nodeLists()
                         .with(this.key, children));
     }
 
-    private Optional<List<Node>> fold(Optional<List<Node>> maybeCurrent, Optional<Node> maybeElement) {
+    private Optional<List<NodeWithEverything>> fold(Optional<List<NodeWithEverything>> maybeCurrent, Optional<NodeWithEverything> maybeElement) {
         return maybeCurrent.flatMap(current -> maybeElement.map(element -> {
             current.add(element);
             return current;
@@ -45,7 +45,7 @@ public record DivideRule(String key, Rule rule) implements Rule {
     }
 
     @Override
-    public Optional<String> generate(Node node) {
+    public Optional<String> generate(NodeWithEverything node) {
         final var children = node.nodeLists()
                 .find(this.key)
                 .orElse(new ArrayList<>());

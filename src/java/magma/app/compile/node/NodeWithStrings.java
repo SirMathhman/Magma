@@ -2,10 +2,6 @@ package magma.app.compile.node;
 
 import magma.app.compile.node.properties.NodeProperties;
 
-import java.util.List;
-
-public interface Node {
-    NodeProperties<List<Node>, Node> nodeLists();
-
+public interface NodeWithStrings<Node> {
     NodeProperties<String, Node> strings();
 }

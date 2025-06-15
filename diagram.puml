@@ -2,31 +2,28 @@
 skinparam linetype ortho
 class StringRule
 StringRule --> MapNode
-StringRule --> Node
+StringRule --> NodeWithEverything
 StringRule --> Optional
 class PrefixRule
-PrefixRule --> Node
+PrefixRule --> NodeWithEverything
 PrefixRule --> Optional
 class Compiler
 Compiler --> Lang
-Compiler --> Node
+Compiler --> NodeWithEverything
 Compiler --> MapNode
 Compiler --> ArrayList
 Compiler --> Map
 Compiler --> Optional
 class OrRule
-OrRule --> Node
+OrRule --> NodeWithEverything
 OrRule --> List
 OrRule --> Optional
 class EmptyRule
 EmptyRule --> MapNode
-EmptyRule --> Node
+EmptyRule --> NodeWithEverything
 EmptyRule --> Optional
-class Node
-Node --> NodeProperties
-Node --> List
 class StripRule
-StripRule --> Node
+StripRule --> NodeWithEverything
 StripRule --> Optional
 class Lang
 Lang --> EmptyRule
@@ -54,11 +51,11 @@ MapNodeProperties --> Optional
 class DivideState
 DivideState --> List
 class LastRule
-LastRule --> Node
+LastRule --> NodeWithEverything
 LastRule --> Optional
 class DivideRule
 DivideRule --> MapNode
-DivideRule --> Node
+DivideRule --> NodeWithEverything
 DivideRule --> Rule
 DivideRule --> ArrayList
 DivideRule --> List
@@ -67,11 +64,17 @@ DivideRule --> Collectors
 class NodeProperties
 NodeProperties --> Optional
 class SuffixRule
-SuffixRule --> Node
+SuffixRule --> NodeWithEverything
 SuffixRule --> Optional
+class NodeWithEverything
+class NodeWithStrings
+NodeWithStrings --> NodeProperties
 class Rule
-Rule --> Node
+Rule --> NodeWithEverything
 Rule --> Optional
+class NodeWithNodeLists
+NodeWithNodeLists --> NodeProperties
+NodeWithNodeLists --> List
 class Main
 Main --> Compiler
 Main --> IOException
