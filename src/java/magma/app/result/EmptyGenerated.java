@@ -1,8 +1,8 @@
 package magma.app.result;
 
-import magma.app.Result;
+import magma.app.Generated;
 
-public class EmptyResult implements Result {
+public class EmptyGenerated implements Generated {
     @Override
     public StringBuilder appendTo(StringBuilder cache) {
         return cache;

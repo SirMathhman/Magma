@@ -1,11 +1,10 @@
 package magma;
 
-import magma.app.node.MapNode;
-import magma.app.Node;
-import magma.app.Result;
+import magma.app.Generated;
 import magma.app.State;
-import magma.app.result.EmptyResult;
-import magma.app.result.PresentResult;
+import magma.app.rule.InfixRule;
+import magma.app.rule.StringRule;
+import magma.app.result.EmptyGenerated;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -53,26 +52,18 @@ public class Main {
         return output.toString();
     }
 
-    private static Result compileRootSegment(String name, String input) {
+    private static Generated compileRootSegment(String name, String input) {
         final var strip = input.strip();
         if (!strip.startsWith("import "))
-            return new EmptyResult();
+            return new EmptyGenerated();
 
         final var substring = strip.substring("import ".length());
         if (!substring.endsWith(";"))
-            return new EmptyResult();
+            return new EmptyGenerated();
 
         final var substring1 = substring.substring(0, substring.length() - ";".length());
-        final var index = substring1.lastIndexOf(".");
-        if (index < 0)
-            return new EmptyResult();
-
-        final var destination = substring1.substring(index + ".".length());
-        return new PresentResult(getOutput(new MapNode().withString("source", name).withString("destination", destination)));
-    }
-
-    private static String getOutput(Node node) {
-        return node.findString("source").orElse("") + " --> " + node.findString("destination").orElse("") + "\n";
+        final var source = new InfixRule(".", new StringRule("destination")).lex(substring1).withString("source", name);
+        return source.generate(node -> node.findString("source").orElse("") + " --> " + node.findString("destination").orElse("") + "\n");
     }
 
     private static List<String> divide(String input) {

@@ -1,10 +1,18 @@
 @startuml
 skinparam linetype ortho
+class Generated
+class Generator
 class EmptyString
 EmptyString --> MaybeString
 class PresentString
 PresentString --> MaybeString
+class MaybeNode
 class MaybeString
+class EmptyNode
+EmptyNode --> Generated
+EmptyNode --> Generator
+EmptyNode --> MaybeNode
+EmptyNode --> EmptyGenerated
 class MapNode
 MapNode --> MaybeString
 MapNode --> Node
@@ -12,22 +20,36 @@ MapNode --> EmptyString
 MapNode --> PresentString
 MapNode --> HashMap
 MapNode --> Map
+class PresentNode
+PresentNode --> Generated
+PresentNode --> Generator
+PresentNode --> MaybeNode
+PresentNode --> Node
+PresentNode --> PresentGenerated
 class Node
-class EmptyResult
-EmptyResult --> Result
-class PresentResult
-PresentResult --> Result
-class Result
+class EmptyGenerated
+EmptyGenerated --> Generated
+class PresentGenerated
+PresentGenerated --> Generated
+class InfixRule
+InfixRule --> MaybeNode
+InfixRule --> Rule
+InfixRule --> EmptyNode
+class StringRule
+StringRule --> MaybeNode
+StringRule --> Rule
+StringRule --> MapNode
+StringRule --> PresentNode
+class Rule
 class State
 State --> ArrayList
 State --> List
 class Main
-Main --> MapNode
-Main --> Node
-Main --> Result
+Main --> Generated
 Main --> State
-Main --> EmptyResult
-Main --> PresentResult
+Main --> InfixRule
+Main --> StringRule
+Main --> EmptyGenerated
 Main --> IOException
 Main --> Files
 Main --> Path

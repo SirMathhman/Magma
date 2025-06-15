@@ -1,5 +1,5 @@
 package magma.app;
 
-public interface Result {
+public interface Generated {
     StringBuilder appendTo(StringBuilder cache);
 }
