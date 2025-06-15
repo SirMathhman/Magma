@@ -17,6 +17,6 @@ public class JavaLang {
     }
 
     private static Rule<NodeWithEverything> createImportRule() {
-        return new StripRule(new PrefixRule("import ", new SuffixRule(new LastRule(new StringRule<NodeWithEverything>("parent", new MapNodeFactory()), ".", new StringRule<NodeWithEverything>("child", new MapNodeFactory())), ";")));
+        return new StripRule<NodeWithEverything>(new PrefixRule<NodeWithEverything>("import ", new SuffixRule<NodeWithEverything>(new LastRule<NodeWithEverything>(new StringRule<NodeWithEverything>("parent", new MapNodeFactory()), ".", new StringRule<NodeWithEverything>("child", new MapNodeFactory())), ";")));
     }
 }

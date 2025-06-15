@@ -10,6 +10,6 @@ import java.util.List;
 
 public class CommonLang {
     static Rule<NodeWithEverything> Divide(List<Rule<NodeWithEverything>> rules) {
-        return new DivideRule<>("children", new OrRule(rules), new MapNodeFactory());
+        return new DivideRule<>("children", new OrRule<NodeWithEverything>(rules), new MapNodeFactory());
     }
 }

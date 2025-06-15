@@ -1,18 +1,15 @@
 package magma.app.compile.rule;
 
-import magma.app.compile.node.NodeWithEverything;
-
 import java.util.Optional;
 
-public record StripRule(Rule<NodeWithEverything> rule) implements Rule<NodeWithEverything> {
+public record StripRule<Node>(Rule<Node> rule) implements Rule<Node> {
     @Override
-    public Optional<NodeWithEverything> lex(String input) {
-        final var stripped = input.strip();
-        return this.rule.lex(stripped);
+    public Optional<Node> lex(String input) {
+        return this.rule.lex(input.strip());
     }
 
     @Override
-    public Optional<String> generate(NodeWithEverything node) {
+    public Optional<String> generate(Node node) {
         return this.rule.generate(node);
     }
 }

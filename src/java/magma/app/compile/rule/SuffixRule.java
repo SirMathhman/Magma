@@ -1,12 +1,10 @@
 package magma.app.compile.rule;
 
-import magma.app.compile.node.NodeWithEverything;
-
 import java.util.Optional;
 
-public record SuffixRule(Rule<NodeWithEverything> rule, String suffix) implements Rule<NodeWithEverything> {
+public record SuffixRule<Node>(Rule<Node> rule, String suffix) implements Rule<Node> {
     @Override
-    public Optional<NodeWithEverything> lex(String input) {
+    public Optional<Node> lex(String input) {
         if (!input.endsWith(this.suffix))
             return Optional.empty();
 
@@ -15,7 +13,7 @@ public record SuffixRule(Rule<NodeWithEverything> rule, String suffix) implement
     }
 
     @Override
-    public Optional<String> generate(NodeWithEverything node) {
+    public Optional<String> generate(Node node) {
         return this.rule.generate(node)
                 .map(result -> result + this.suffix);
     }

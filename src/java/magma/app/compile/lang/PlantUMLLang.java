@@ -12,12 +12,12 @@ import java.util.List;
 
 public class PlantUMLLang {
     public static Rule<NodeWithEverything> createPlantUMLRootRule() {
-        return CommonLang.Divide(List.of(createDependencyRule(), new EmptyRule()));
+        return CommonLang.Divide(List.of(createDependencyRule(), new EmptyRule<NodeWithEverything>(new MapNodeFactory())));
     }
 
     private static Rule<NodeWithEverything> createDependencyRule() {
         final var parent = new StringRule<NodeWithEverything>("parent", new MapNodeFactory());
         final var child = new StringRule<NodeWithEverything>("child", new MapNodeFactory());
-        return new SuffixRule(new LastRule(parent, " --> ", child), "\n");
+        return new SuffixRule<NodeWithEverything>(new LastRule<NodeWithEverything>(parent, " --> ", child), "\n");
     }
 }

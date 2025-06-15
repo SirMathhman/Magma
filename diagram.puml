@@ -6,8 +6,7 @@ StringRule --> NodeWithStrings
 StringRule --> Optional
 class MapNodeFactory
 class EmptyRule
-EmptyRule --> MapNode
-EmptyRule --> NodeWithEverything
+EmptyRule --> NodeFactory
 EmptyRule --> Optional
 class MapNode
 MapNode --> MapNodeProperties
@@ -18,7 +17,6 @@ MapNodeProperties --> HashMap
 MapNodeProperties --> Map
 MapNodeProperties --> Optional
 class LastRule
-LastRule --> NodeWithEverything
 LastRule --> Optional
 class DivideRule
 DivideRule --> NodeFactory
@@ -31,7 +29,6 @@ DivideRule --> Collectors
 class NodeProperties
 NodeProperties --> Optional
 class PrefixRule
-PrefixRule --> NodeWithEverything
 PrefixRule --> Optional
 class Compiler
 Compiler --> JavaLang
@@ -43,11 +40,10 @@ Compiler --> ArrayList
 Compiler --> Map
 Compiler --> Optional
 class OrRule
-OrRule --> NodeWithEverything
 OrRule --> List
+OrRule --> Objects
 OrRule --> Optional
 class StripRule
-StripRule --> NodeWithEverything
 StripRule --> Optional
 class Completer
 class MutableDivideState
@@ -64,7 +60,6 @@ CommonLang --> DivideRule
 CommonLang --> List
 class NodeFactory
 class SuffixRule
-SuffixRule --> NodeWithEverything
 SuffixRule --> Optional
 class NodeWithEverything
 class NodeWithStrings
