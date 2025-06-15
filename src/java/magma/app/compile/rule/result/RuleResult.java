@@ -28,8 +28,8 @@ public sealed interface RuleResult<Value> permits RuleResult.Err, RuleResult.Ok 
 
     default <Return> Return match(Function<Value, Return> whenOk, Function<CompileError, Return> whenErr) {
         return switch (this) {
-            case RuleResult.Err<Value>(var error) -> whenErr.apply(error);
-            case RuleResult.Ok<Value>(var value) -> whenOk.apply(value);
+            case RuleResult.Err<Value> v -> whenErr.apply(v.error);
+            case RuleResult.Ok<Value> v -> whenOk.apply(v.value);
         };
     }
 }
