@@ -4,13 +4,14 @@ import magma.app.ApplicationError;
 import magma.app.ApplicationResult;
 
 import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Optional;
 
 public class JavaFiles {
     public static Optional<ApplicationError> writeString(Path path, CharSequence content) {
         try {
-            java.nio.file.Files.writeString(path, content);
+            Files.writeString(path, content);
             return Optional.empty();
         } catch (IOException e) {
             return Optional.of(new ApplicationError(new ThrowableError(e)));
@@ -19,7 +20,7 @@ public class JavaFiles {
 
     public static ApplicationResult readString(Path source) {
         try {
-            final var input = java.nio.file.Files.readString(source);
+            final var input = Files.readString(source);
             return new ApplicationResult.Ok(input);
         } catch (IOException e) {
             return new ApplicationResult.Err(new ApplicationError(new ThrowableError(e)));

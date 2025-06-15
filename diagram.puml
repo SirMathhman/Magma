@@ -32,33 +32,21 @@ Compiler --> Collection
 Compiler --> List
 class Context
 class JavaImports
-JavaImports --> CompileError
-JavaImports --> Node
-JavaImports --> NodeResult
-JavaImports --> Rule
-JavaImports --> StringResult
+JavaImports --> SimpleRule
 JavaImports --> InfixRule
 JavaImports --> PrefixRule
 JavaImports --> StringRule
 JavaImports --> StripRule
 JavaImports --> SuffixRule
 class JavaLang
-JavaLang --> CompileError
-JavaLang --> Node
-JavaLang --> NodeResult
-JavaLang --> Rule
-JavaLang --> StringResult
+JavaLang --> SimpleRule
 JavaLang --> JavaImports
 JavaLang --> DivideRule
 JavaLang --> OrRule
 JavaLang --> StringRule
 JavaLang --> List
 class PlantUMLLang
-PlantUMLLang --> CompileError
-PlantUMLLang --> Node
-PlantUMLLang --> NodeResult
-PlantUMLLang --> Rule
-PlantUMLLang --> StringResult
+PlantUMLLang --> SimpleRule
 PlantUMLLang --> DivideRule
 PlantUMLLang --> EmptyRule
 PlantUMLLang --> InfixRule
@@ -117,7 +105,7 @@ DivideRule --> CompileError
 DivideRule --> Node
 DivideRule --> NodeListResult
 DivideRule --> NodeResult
-DivideRule --> Rule
+DivideRule --> SimpleRule
 DivideRule --> StringResult
 DivideRule --> NodeListOk
 DivideRule --> Appending
@@ -130,18 +118,19 @@ DivideState --> List
 class EmptyRule
 EmptyRule --> CompileError
 EmptyRule --> Node
-EmptyRule --> Rule
 EmptyRule --> NodeResult
-EmptyRule --> NodeResults
+EmptyRule --> SimpleRule
 EmptyRule --> StringResult
-EmptyRule --> StringResults
 EmptyRule --> MapNode
+EmptyRule --> NodeResults
+EmptyRule --> StringResults
 class InfixRule
 InfixRule --> CompileError
-InfixRule --> Rule
+InfixRule --> Node
 InfixRule --> NodeResult
+InfixRule --> SimpleRule
+InfixRule --> StringResult
 InfixRule --> NodeResults
-InfixRule --> Appending
 class NodeContext
 NodeContext --> Context
 NodeContext --> DisplayableNode
@@ -158,7 +147,7 @@ OrRule --> AttachableToOrState
 OrRule --> CompileError
 OrRule --> Node
 OrRule --> NodeResult
-OrRule --> Rule
+OrRule --> SimpleRule
 OrRule --> StringResult
 OrRule --> NodeResults
 OrRule --> InlineOrState
@@ -168,29 +157,36 @@ OrRule --> List
 OrRule --> Function
 class PrefixRule
 PrefixRule --> CompileError
-PrefixRule --> Rule
+PrefixRule --> Node
 PrefixRule --> NodeResult
+PrefixRule --> SimpleRule
+PrefixRule --> StringResult
 PrefixRule --> NodeResults
-PrefixRule --> Prepend
 class StringContext
 StringContext --> Context
 class StringRule
 StringRule --> CompileError
 StringRule --> Node
-StringRule --> Rule
 StringRule --> NodeResult
-StringRule --> NodeResults
+StringRule --> SimpleRule
 StringRule --> StringResult
 StringRule --> MapNode
+StringRule --> NodeResults
 class StripRule
-StripRule --> Rule
+StripRule --> CompileError
+StripRule --> Node
+StripRule --> NodeResult
+StripRule --> SimpleRule
+StripRule --> StringResult
 class SuffixRule
 SuffixRule --> CompileError
-SuffixRule --> Rule
+SuffixRule --> Node
 SuffixRule --> NodeResult
+SuffixRule --> SimpleRule
+SuffixRule --> StringResult
 SuffixRule --> NodeResults
-SuffixRule --> Appending
 class Rule
+class SimpleRule
 class Appending
 class Prepend
 class StringResults

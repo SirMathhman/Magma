@@ -1,18 +1,18 @@
 package magma.app.compile.rule;
 
 import magma.app.compile.CompileError;
-import magma.app.compile.Rule;
+import magma.app.compile.Node;
 import magma.app.compile.NodeResult;
+import magma.app.compile.SimpleRule;
+import magma.app.compile.StringResult;
 import magma.app.compile.node.NodeResults;
-import magma.app.compile.string.Appending;
 
-public record InfixRule<Node, Generate extends Appending<Generate>>(
-        Rule<Node, NodeResult<Node, CompileError>, Generate> leftRule, String infix,
-        Rule<Node, NodeResult<Node, CompileError>, Generate> rightRule) implements Rule<Node, NodeResult<Node, CompileError>, Generate> {
-
+public record InfixRule(SimpleRule leftRule, String infix, SimpleRule rightRule) implements SimpleRule {
     @Override
-    public Generate generate(Node node) {
-        return this.leftRule.generate(node).appendString(this.infix).appendMaybe(this.rightRule.generate(node));
+    public StringResult<CompileError> generate(Node node) {
+        return this.leftRule.generate(node)
+                .appendString(this.infix)
+                .appendMaybe(this.rightRule.generate(node));
     }
 
     @Override

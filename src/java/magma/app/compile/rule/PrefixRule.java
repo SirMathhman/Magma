@@ -1,16 +1,17 @@
 package magma.app.compile.rule;
 
 import magma.app.compile.CompileError;
-import magma.app.compile.Rule;
+import magma.app.compile.Node;
 import magma.app.compile.NodeResult;
+import magma.app.compile.SimpleRule;
+import magma.app.compile.StringResult;
 import magma.app.compile.node.NodeResults;
-import magma.app.compile.string.Prepend;
 
-public record PrefixRule<Node, Generate extends Prepend<Generate>>(String prefix,
-                                                                   Rule<Node, NodeResult<Node, CompileError>, Generate> rule) implements Rule<Node, NodeResult<Node, CompileError>, Generate> {
+public record PrefixRule(String prefix, SimpleRule rule) implements SimpleRule {
     @Override
-    public Generate generate(Node node) {
-        return this.rule.generate(node).prependString(this.prefix);
+    public StringResult<CompileError> generate(Node node) {
+        return this.rule.generate(node)
+                .prependString(this.prefix);
     }
 
     @Override

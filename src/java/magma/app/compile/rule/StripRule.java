@@ -1,15 +1,19 @@
 package magma.app.compile.rule;
 
-import magma.app.compile.Rule;
+import magma.app.compile.CompileError;
+import magma.app.compile.Node;
+import magma.app.compile.NodeResult;
+import magma.app.compile.SimpleRule;
+import magma.app.compile.StringResult;
 
-public record StripRule<Node, Lex, Generate>(Rule<Node, Lex, Generate> rule) implements Rule<Node, Lex, Generate> {
+public record StripRule(SimpleRule rule) implements SimpleRule {
     @Override
-    public Generate generate(Node node) {
+    public StringResult<CompileError> generate(Node node) {
         return this.rule.generate(node);
     }
 
     @Override
-    public Lex lex(String input) {
+    public NodeResult<Node, CompileError> lex(String input) {
         return this.rule.lex(input.strip());
     }
 }

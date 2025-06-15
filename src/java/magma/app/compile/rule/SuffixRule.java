@@ -1,17 +1,17 @@
 package magma.app.compile.rule;
 
 import magma.app.compile.CompileError;
-import magma.app.compile.Rule;
+import magma.app.compile.Node;
 import magma.app.compile.NodeResult;
+import magma.app.compile.SimpleRule;
+import magma.app.compile.StringResult;
 import magma.app.compile.node.NodeResults;
-import magma.app.compile.string.Appending;
 
-public record SuffixRule<Node, Generate extends Appending<Generate>>(
-        Rule<Node, NodeResult<Node, CompileError>, Generate> rule,
-        String suffix) implements Rule<Node, NodeResult<Node, CompileError>, Generate> {
+public record SuffixRule(SimpleRule rule, String suffix) implements SimpleRule {
     @Override
-    public Generate generate(Node node) {
-        return this.rule.generate(node).appendString(this.suffix);
+    public StringResult<CompileError> generate(Node node) {
+        return this.rule.generate(node)
+                .appendString(this.suffix);
     }
 
     @Override
