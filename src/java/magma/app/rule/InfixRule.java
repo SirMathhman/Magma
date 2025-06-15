@@ -6,9 +6,9 @@ import magma.app.maybe.NodeResult;
 import magma.app.maybe.node.ErrNodeResult;
 import magma.app.maybe.string.Appendable;
 
-public record InfixRule<Node, Generate extends Appendable<Generate>>(Rule<Node, NodeResult, Generate> leftRule,
+public record InfixRule<Node, Generate extends Appendable<Generate>>(Rule<Node, NodeResult<magma.app.Node>, Generate> leftRule,
                                                                      String infix,
-                                                                     Rule<Node, NodeResult, Generate> rightRule) implements Rule<Node, NodeResult, Generate> {
+                                                                     Rule<Node, NodeResult<magma.app.Node>, Generate> rightRule) implements Rule<Node, NodeResult<magma.app.Node>, Generate> {
 
     @Override
     public Generate generate(Node node) {
@@ -16,10 +16,10 @@ public record InfixRule<Node, Generate extends Appendable<Generate>>(Rule<Node, 
     }
 
     @Override
-    public NodeResult lex(String input) {
+    public NodeResult<magma.app.Node> lex(String input) {
         final var index = input.lastIndexOf(this.infix);
         if (index < 0)
-            return new ErrNodeResult(new CompileError("Infix '" + this.infix + "' not present", new StringContext(input)));
+            return new ErrNodeResult<magma.app.Node>(new CompileError("Infix '" + this.infix + "' not present", new StringContext(input)));
 
         final var destination = input.substring(index + this.infix.length());
         return this.rightRule.lex(destination);

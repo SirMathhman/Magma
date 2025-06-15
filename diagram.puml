@@ -30,7 +30,6 @@ class Attachable
 Attachable --> OrState
 class ErrNodeListResult
 ErrNodeListResult --> CompileError
-ErrNodeListResult --> Node
 ErrNodeListResult --> NodeListResult
 ErrNodeListResult --> NodeResult
 ErrNodeListResult --> StringResult
@@ -39,19 +38,16 @@ ErrNodeListResult --> List
 ErrNodeListResult --> Function
 class ErrNodeResult
 ErrNodeResult --> CompileError
-ErrNodeResult --> Node
 ErrNodeResult --> NodeListResult
 ErrNodeResult --> NodeResult
 ErrNodeResult --> OrState
 ErrNodeResult --> List
 class OkNodeResult
-OkNodeResult --> Node
-OkNodeResult --> NodeResult
 OkNodeResult --> NodeListResult
+OkNodeResult --> NodeResult
 OkNodeResult --> OrState
 OkNodeResult --> List
 class PresentNodeListResult
-PresentNodeListResult --> Node
 PresentNodeListResult --> NodeResult
 PresentNodeListResult --> NodeListResult
 PresentNodeListResult --> StringResult
@@ -59,11 +55,9 @@ PresentNodeListResult --> ArrayList
 PresentNodeListResult --> List
 PresentNodeListResult --> Function
 class NodeListResult
-NodeListResult --> Node
 NodeListResult --> List
 NodeListResult --> Function
 class NodeResult
-NodeResult --> Node
 NodeResult --> List
 class Appendable
 class ErrStringResult

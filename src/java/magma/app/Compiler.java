@@ -43,7 +43,7 @@ public class Compiler {
         return list.stream().map(node -> node.withString("source", name)).toList();
     }
 
-    public static NodeListResult lex(String input, Rule<Node, NodeResult, StringResult> rule) {
-        return divide(input).stream().map(rule::lex).reduce(new PresentNodeListResult(), NodeListResult::add, (_, next) -> next);
+    public static NodeListResult<Node> lex(String input, Rule<Node, NodeResult<Node>, StringResult> rule) {
+        return divide(input).stream().map(rule::lex).< NodeListResult<Node>>reduce(new PresentNodeListResult<Node>(), NodeListResult::add, (_, next) -> next);
     }
 }

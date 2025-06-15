@@ -17,7 +17,7 @@ import magma.app.rule.or.OrState;
 import java.util.List;
 import java.util.function.Function;
 
-public record OrRule(List<Rule<Node, NodeResult, StringResult>> rules) implements Rule<Node, NodeResult, StringResult> {
+public record OrRule(List<Rule<Node, NodeResult<Node>, StringResult>> rules) implements Rule<Node, NodeResult<Node>, StringResult> {
     @Override
     public StringResult generate(Node node) {
         return this.<Attachable<String>, String, StringResult>or(rule1 -> rule1.generate(node), OkStringResult::new, errors -> new ErrStringResult(this.createError(new NodeContext(node), errors)));
@@ -27,7 +27,7 @@ public record OrRule(List<Rule<Node, NodeResult, StringResult>> rules) implement
         return new CompileError("No valid combination", context, errors);
     }
 
-    private <MaybeValue extends Attachable<Value>, Value, Return> Return or(Function<Rule<Node, NodeResult, StringResult>, MaybeValue> mapper, Function<Value, Return> whenPresent, Function<List<CompileError>, Return> whenMissing) {
+    private <MaybeValue extends Attachable<Value>, Value, Return> Return or(Function<Rule<Node, NodeResult<Node>, StringResult>, MaybeValue> mapper, Function<Value, Return> whenPresent, Function<List<CompileError>, Return> whenMissing) {
         final var reduce = this.rules.stream().map(mapper).<OrState<Value>>reduce(new InlineOrState<Value>(), (orState, maybeString) -> {
             if (orState.hasValue())
                 return orState;
@@ -37,9 +37,9 @@ public record OrRule(List<Rule<Node, NodeResult, StringResult>> rules) implement
     }
 
     @Override
-    public NodeResult lex(String input) {
-        return this.<Attachable<Node>, Node, NodeResult>or(rule1 -> rule1.lex(input), OkNodeResult::new, errors -> {
-            return new ErrNodeResult(this.createError(new StringContext(input), errors));
+    public NodeResult<Node> lex(String input) {
+        return this.<Attachable<Node>, Node, NodeResult<Node>>or(rule1 -> rule1.lex(input), OkNodeResult::new, errors -> {
+            return new ErrNodeResult<Node>(this.createError(new StringContext(input), errors));
         });
     }
 }

@@ -11,11 +11,11 @@ import magma.app.rule.StripRule;
 import magma.app.rule.SuffixRule;
 
 public class Lang {
-    public static Rule<Node, NodeResult, StringResult> createDependencyRule() {
+    public static Rule<Node, NodeResult<Node>, StringResult> createDependencyRule() {
         return new SuffixRule<>(new InfixRule<>(new StringRule("source"), " --> ", new StringRule("destination")), "\n");
     }
 
-    public static Rule<Node, NodeResult, StringResult> createImportRule() {
+    public static Rule<Node, NodeResult<Node>, StringResult> createImportRule() {
         return new StripRule<>(new PrefixRule<>("import ", new SuffixRule<>(new InfixRule<>(new StringRule("parent"), ".", new StringRule("destination")), ";")));
     }
 }

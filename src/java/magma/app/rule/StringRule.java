@@ -7,14 +7,14 @@ import magma.app.maybe.StringResult;
 import magma.app.maybe.node.OkNodeResult;
 import magma.app.node.MapNode;
 
-public record StringRule(String key) implements Rule<Node, NodeResult, StringResult> {
+public record StringRule(String key) implements Rule<Node, NodeResult<Node>, StringResult> {
     @Override
     public StringResult generate(Node node) {
         return node.findString(this.key);
     }
 
     @Override
-    public NodeResult lex(String input) {
-        return new OkNodeResult(new MapNode().withString(this.key(), input));
+    public NodeResult<Node> lex(String input) {
+        return new OkNodeResult<Node>(new MapNode().withString(this.key, input));
     }
 }

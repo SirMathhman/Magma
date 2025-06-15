@@ -8,14 +8,14 @@ import magma.app.maybe.node.OkNodeResult;
 import magma.app.maybe.string.OkStringResult;
 import magma.app.node.MapNode;
 
-public class EmptyRule implements Rule<Node, NodeResult, StringResult> {
+public class EmptyRule implements Rule<Node, NodeResult<Node>, StringResult> {
     @Override
     public StringResult generate(Node node) {
         return new OkStringResult("");
     }
 
     @Override
-    public NodeResult lex(String input) {
-        return new OkNodeResult(new MapNode());
+    public NodeResult<Node> lex(String input) {
+        return new OkNodeResult<>(new MapNode());
     }
 }
