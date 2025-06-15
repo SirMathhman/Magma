@@ -1,5 +1,6 @@
 package magma;
 
+import magma.app.Node;
 import magma.app.State;
 import magma.app.rule.LastRule;
 import magma.app.rule.PrefixRule;
@@ -42,23 +43,32 @@ public class Main {
         final var name = fileName.substring(0, extensionSeparator);
 
         final var output = new StringBuilder();
-        final var joined = divide(Files.readString(source)).stream()
-                .map(segment -> createImportRule().lex(segment))
-                .flatMap(Optional::stream)
-                .toList()
-                .stream()
+        final var input = Files.readString(source);
+        final var list = lex(input).stream()
                 .map(segment -> segment.withString("parent", name))
-                .toList()
-                .stream()
-                .map(node -> createDependencyRule().generate(node))
-                .flatMap(Optional::stream)
-                .collect(Collectors.joining());
+                .toList();
+
+        final var joined = generate(list);
 
         return output.append("class ")
                 .append(name)
                 .append("\n")
                 .append(joined)
                 .toString();
+    }
+
+    private static String generate(List<Node> list) {
+        return list.stream()
+                .map(node -> createDependencyRule().generate(node))
+                .flatMap(Optional::stream)
+                .collect(Collectors.joining());
+    }
+
+    private static List<Node> lex(String input) {
+        return divide(input).stream()
+                .map(segment -> createImportRule().lex(segment))
+                .flatMap(Optional::stream)
+                .toList();
     }
 
     private static SuffixRule createDependencyRule() {
