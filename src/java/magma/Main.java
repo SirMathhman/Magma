@@ -3,8 +3,8 @@ package magma;
 import magma.app.Generated;
 import magma.app.Node;
 import magma.app.State;
-import magma.app.result.EmptyGenerated;
 import magma.app.rule.InfixRule;
+import magma.app.rule.PrefixRule;
 import magma.app.rule.StringRule;
 import magma.app.rule.SuffixRule;
 
@@ -56,13 +56,8 @@ public class Main {
 
     private static Generated compileRootSegment(String name, String input) {
         final var strip = input.strip();
-        if (!strip.startsWith("import "))
-            return new EmptyGenerated();
-
-        final var substring = strip.substring("import ".length());
-        final var infixRule = new InfixRule(".", new StringRule("destination"));
-
-        final var generated = new SuffixRule(infixRule, ";").lex(substring);
+        final InfixRule destination = new InfixRule(".", new StringRule("destination"));
+        final var generated = new PrefixRule("import ", new SuffixRule(destination, ";")).lex(strip);
         final var source = generated.withString("source", name);
         return source.generate(Main::generateDependency);
     }

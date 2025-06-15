@@ -38,6 +38,10 @@ class InfixRule
 InfixRule --> MaybeNode
 InfixRule --> Rule
 InfixRule --> EmptyNode
+class PrefixRule
+PrefixRule --> Rule
+PrefixRule --> MaybeNode
+PrefixRule --> EmptyNode
 class StringRule
 StringRule --> MaybeNode
 StringRule --> Rule
@@ -56,8 +60,8 @@ class Main
 Main --> Generated
 Main --> Node
 Main --> State
-Main --> EmptyGenerated
 Main --> InfixRule
+Main --> PrefixRule
 Main --> StringRule
 Main --> SuffixRule
 Main --> IOException
