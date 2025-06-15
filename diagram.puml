@@ -1,5 +1,18 @@
 @startuml
 skinparam linetype ortho
+class EmptyString
+EmptyString --> MaybeString
+class PresentString
+PresentString --> MaybeString
+class MaybeString
+class MapNode
+MapNode --> MaybeString
+MapNode --> Node
+MapNode --> EmptyString
+MapNode --> PresentString
+MapNode --> HashMap
+MapNode --> Map
+class Node
 class EmptyResult
 EmptyResult --> Result
 class PresentResult
@@ -9,6 +22,8 @@ class State
 State --> ArrayList
 State --> List
 class Main
+Main --> MapNode
+Main --> Node
 Main --> Result
 Main --> State
 Main --> EmptyResult

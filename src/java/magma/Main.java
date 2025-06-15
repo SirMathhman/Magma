@@ -1,5 +1,7 @@
 package magma;
 
+import magma.app.node.MapNode;
+import magma.app.Node;
 import magma.app.Result;
 import magma.app.State;
 import magma.app.result.EmptyResult;
@@ -66,7 +68,11 @@ public class Main {
             return new EmptyResult();
 
         final var destination = substring1.substring(index + ".".length());
-        return new PresentResult(name + " --> " + destination + "\n");
+        return new PresentResult(getOutput(new MapNode().withString("source", name).withString("destination", destination)));
+    }
+
+    private static String getOutput(Node node) {
+        return node.findString("source").orElse("") + " --> " + node.findString("destination").orElse("") + "\n";
     }
 
     private static List<String> divide(String input) {
