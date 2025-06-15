@@ -1,13 +1,15 @@
 @startuml
 skinparam linetype ortho
-class Main
 Main --> State
 Main --> IOException
 Main --> Files
+Main --> Path
 Main --> Paths
 Main --> List
+Main --> Optional
 Main --> Collectors
-class State
+class Main
 State --> ArrayList
 State --> List
+class State
 @enduml

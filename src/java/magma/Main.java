@@ -4,8 +4,10 @@ import magma.app.State;
 
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 public class Main {
@@ -17,34 +19,50 @@ public class Main {
                     .collect(Collectors.toSet());
 
             final var output = new StringBuilder();
-            for (var source : sources) {
-                final var fileName = source.getFileName()
-                        .toString();
-                final var extensionSeparator = fileName.lastIndexOf(".");
-                final var name = fileName.substring(0, extensionSeparator);
-                output.append("class " + name + "\n");
-                final var segments = divide(Files.readString(source));
-                for (var segment : segments) {
-                    final var stripped = segment.strip();
-                    if (stripped.startsWith("import ")) {
-                        final var withoutPrefix = stripped.substring("import ".length());
-                        if (withoutPrefix.endsWith(";")) {
-                            final var withoutSuffix = withoutPrefix.substring(0, withoutPrefix.length() - ";".length());
-                            final var separator = withoutSuffix.lastIndexOf(".");
-                            if (separator >= 0) {
-                                final var child = withoutSuffix.substring(separator + ".".length());
-                                output.append(name + " --> " + child + "\n");
-                            }
-                        }
-                    }
-                }
-            }
+            for (var source : sources)
+                output.append(compileSource(source));
 
             Files.writeString(Paths.get(".", "diagram.puml"), "@startuml\nskinparam linetype ortho\n" + output + "@enduml");
         } catch (IOException e) {
             //noinspection CallToPrintStackTrace
             e.printStackTrace();
         }
+    }
+
+    private static String compileSource(Path source) throws IOException {
+        final var fileName = source.getFileName()
+                .toString();
+
+        final var extensionSeparator = fileName.lastIndexOf(".");
+        final var name = fileName.substring(0, extensionSeparator);
+
+        final var output = new StringBuilder();
+        final var segments = divide(Files.readString(source));
+        for (var segment : segments) {
+            final var extracted = compileImport(segment, name);
+            extracted.ifPresent(output::append);
+        }
+
+        return output.append("class " + name + "\n")
+                .toString();
+    }
+
+    private static Optional<String> compileImport(String input, String name) {
+        final var stripped = input.strip();
+        if (!stripped.startsWith("import "))
+            return Optional.empty();
+
+        final var withoutPrefix = stripped.substring("import ".length());
+        if (!withoutPrefix.endsWith(";"))
+            return Optional.empty();
+
+        final var withoutSuffix = withoutPrefix.substring(0, withoutPrefix.length() - ";".length());
+        final var separator = withoutSuffix.lastIndexOf(".");
+        if (separator < 0)
+            return Optional.empty();
+
+        final var child = withoutSuffix.substring(separator + ".".length());
+        return Optional.of(name + " --> " + child + "\n");
     }
 
     private static List<String> divide(String input) {
