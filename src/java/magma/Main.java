@@ -12,6 +12,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -57,14 +58,14 @@ public class Main {
                 .toString();
     }
 
-    private static String generate(List<Node> list) {
+    private static String generate(Collection<Node> list) {
         return list.stream()
                 .map(node -> createDependencyRule().generate(node))
                 .flatMap(Optional::stream)
                 .collect(Collectors.joining());
     }
 
-    private static List<Node> lex(String input) {
+    private static List<Node> lex(CharSequence input) {
         return divide(input).stream()
                 .map(segment -> createImportRule().lex(segment))
                 .flatMap(Optional::stream)
