@@ -14,11 +14,11 @@ public final class StringRule implements Rule<CompoundNode, RuleResult<CompoundN
 
     @Override
     public RuleResult<CompoundNode> lex(String input) {
-        return new RuleResult.RuleResultOk<>(new PropertiesCompoundNode().strings().with(this.key, input));
+        return RuleResult.createFromValue(new PropertiesCompoundNode().strings().with(this.key, input));
     }
 
     @Override
     public RuleResult<String> generate(CompoundNode node) {
-        return node.strings().find(this.key).<RuleResult<String>>map(RuleResult.RuleResultOk::new).orElseGet(() -> RuleResult.createFromNode("String '" + this.key + "' not present", node));
+        return node.strings().find(this.key).map(RuleResult::createFromValue).orElseGet(() -> RuleResult.createFromNode("String '" + this.key + "' not present", node));
     }
 }

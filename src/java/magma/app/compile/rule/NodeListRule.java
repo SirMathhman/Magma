@@ -10,6 +10,7 @@ import magma.app.compile.rule.result.RuleResult.RuleResultOk;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Function;
 
 public final class NodeListRule implements Rule<CompoundNode, RuleResult<CompoundNode>, RuleResult<String>> {
     private final String key;
@@ -22,7 +23,7 @@ public final class NodeListRule implements Rule<CompoundNode, RuleResult<Compoun
 
     @Override
     public RuleResult<CompoundNode> lex(String input) {
-        RuleResult<List<CompoundNode>> listRuleResult = new FoldingDivider().divide(input).stream().reduce(new RuleResultOk<List<CompoundNode>>(new ArrayList<CompoundNode>()), NodeListRule.this::fold, (_, next) -> next);
+        RuleResult<List<CompoundNode>> listRuleResult = new FoldingDivider().divide(input).stream().reduce(RuleResult.createFromValue(new ArrayList<>()), NodeListRule.this::fold, (_, next) -> next);
         return switch (listRuleResult) {
             case RuleResultErr<List<CompoundNode>>(var error) -> new RuleResultErr<>(error);
             case RuleResultOk<List<CompoundNode>>(
@@ -47,7 +48,7 @@ public final class NodeListRule implements Rule<CompoundNode, RuleResult<Compoun
     @Override
     public RuleResult<String> generate(CompoundNode node) {
         final var compoundNodes = node.nodeLists().find(this.key).orElse(new ArrayList<>());
-        return compoundNodes.stream().map(this.rule::generate).<RuleResult<String>>reduce(new RuleResultOk<>(""), (result, result1) -> switch (result) {
+        return compoundNodes.stream().map(this.rule::generate).reduce(RuleResult.createFromValue(""), (result, result1) -> switch (result) {
             case RuleResultErr<String>(var error1) -> new RuleResultErr<>(error1);
             case RuleResultOk<String>(String value2) -> switch (result1) {
                 case RuleResultErr<String>(var error) -> new RuleResultErr<>(error);

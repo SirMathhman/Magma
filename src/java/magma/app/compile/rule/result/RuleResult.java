@@ -16,6 +16,10 @@ public sealed interface RuleResult<Value> permits RuleResult.RuleResultErr, Rule
         return new RuleResultErr<>(new CompileError(message, new StringContext(context)));
     }
 
+    static <Value> RuleResult<Value> createFromValue(Value value) {
+        return new RuleResultOk<>(value);
+    }
+
     static <Value> RuleResult<Value> createFromNode(String message, DisplayableNode node) {
         return new RuleResultErr<>(new CompileError(message, new NodeContext(node)));
     }
