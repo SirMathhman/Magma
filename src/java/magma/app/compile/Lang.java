@@ -1,11 +1,11 @@
-package magma.app;
+package magma.app.compile;
 
-import magma.app.rule.DivideRule;
-import magma.app.rule.LastRule;
-import magma.app.rule.PrefixRule;
-import magma.app.rule.StringRule;
-import magma.app.rule.StripRule;
-import magma.app.rule.SuffixRule;
+import magma.app.compile.rule.DivideRule;
+import magma.app.compile.rule.LastRule;
+import magma.app.compile.rule.PrefixRule;
+import magma.app.compile.rule.StringRule;
+import magma.app.compile.rule.StripRule;
+import magma.app.compile.rule.SuffixRule;
 
 public class Lang {
     public static DivideRule createJavaRootRule() {

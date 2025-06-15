@@ -1,17 +1,28 @@
 @startuml
 skinparam linetype ortho
-class MapNodeProperties
-MapNodeProperties --> HashMap
-MapNodeProperties --> Map
-MapNodeProperties --> Optional
+class StringRule
+StringRule --> MapNode
+StringRule --> Node
+StringRule --> Rule
+StringRule --> Optional
+class PrefixRule
+PrefixRule --> Node
+PrefixRule --> Rule
+PrefixRule --> Optional
+class Compiler
+Compiler --> Lang
+Compiler --> Node
+Compiler --> MapNode
+Compiler --> ArrayList
+Compiler --> Map
+Compiler --> Optional
 class Node
 Node --> NodeProperties
 Node --> List
-class NodeProperties
-NodeProperties --> Optional
-class Rule
-Rule --> Optional
-class Completer
+class StripRule
+StripRule --> Node
+StripRule --> Rule
+StripRule --> Optional
 class Lang
 Lang --> DivideRule
 Lang --> LastRule
@@ -19,6 +30,16 @@ Lang --> PrefixRule
 Lang --> StringRule
 Lang --> StripRule
 Lang --> SuffixRule
+class Completer
+class MapNode
+MapNode --> Node
+MapNode --> MapNodeProperties
+MapNode --> NodeProperties
+MapNode --> List
+class MapNodeProperties
+MapNodeProperties --> HashMap
+MapNodeProperties --> Map
+MapNodeProperties --> Optional
 class LastRule
 LastRule --> Node
 LastRule --> Rule
@@ -32,40 +53,24 @@ DivideRule --> ArrayList
 DivideRule --> List
 DivideRule --> Optional
 DivideRule --> Collectors
-class PrefixRule
-PrefixRule --> Node
-PrefixRule --> Rule
-PrefixRule --> Optional
-class StringRule
-StringRule --> MapNode
-StringRule --> Node
-StringRule --> Rule
-StringRule --> Optional
+class NodeProperties
+NodeProperties --> Optional
 class SuffixRule
 SuffixRule --> Node
 SuffixRule --> Rule
 SuffixRule --> Optional
-class StripRule
-StripRule --> Node
-StripRule --> Rule
-StripRule --> Optional
+class State
+State --> ArrayList
+State --> List
+class Rule
+Rule --> Optional
 class Main
-Main --> Lang
-Main --> Node
-Main --> MapNode
+Main --> Compiler
 Main --> IOException
 Main --> Files
 Main --> Path
 Main --> Paths
-Main --> ArrayList
-Main --> Optional
+Main --> HashMap
+Main --> Map
 Main --> Collectors
-class MapNode
-MapNode --> Node
-MapNode --> MapNodeProperties
-MapNode --> NodeProperties
-MapNode --> List
-class State
-State --> ArrayList
-State --> List
 @enduml

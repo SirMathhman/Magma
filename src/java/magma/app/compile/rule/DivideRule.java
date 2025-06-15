@@ -1,9 +1,9 @@
-package magma.app.rule;
+package magma.app.compile.rule;
 
-import magma.app.node.MapNode;
-import magma.app.Node;
-import magma.app.Rule;
-import magma.app.State;
+import magma.app.compile.node.MapNode;
+import magma.app.compile.Node;
+import magma.app.compile.Rule;
+import magma.app.compile.State;
 
 import java.util.ArrayList;
 import java.util.List;
