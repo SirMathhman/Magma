@@ -98,7 +98,6 @@ class NodeContext
 NodeContext --> Context
 NodeContext --> Objects
 class InlineOrState
-InlineOrState --> CompileError
 InlineOrState --> ArrayList
 InlineOrState --> List
 InlineOrState --> Optional
