@@ -3,46 +3,13 @@ skinparam linetype ortho
 class StringRule
 StringRule --> MapNode
 StringRule --> NodeWithEverything
+StringRule --> NodeWithStrings
 StringRule --> Optional
-class PrefixRule
-PrefixRule --> NodeWithEverything
-PrefixRule --> Optional
-class Compiler
-Compiler --> Lang
-Compiler --> NodeWithEverything
-Compiler --> MapNode
-Compiler --> ArrayList
-Compiler --> Map
-Compiler --> Optional
 class MapNodeFactory
-class OrRule
-OrRule --> NodeWithEverything
-OrRule --> List
-OrRule --> Optional
 class EmptyRule
 EmptyRule --> MapNode
 EmptyRule --> NodeWithEverything
 EmptyRule --> Optional
-class StripRule
-StripRule --> NodeWithEverything
-StripRule --> Optional
-class Lang
-Lang --> MapNodeFactory
-Lang --> NodeWithEverything
-Lang --> EmptyRule
-Lang --> LastRule
-Lang --> OrRule
-Lang --> PrefixRule
-Lang --> Rule
-Lang --> StringRule
-Lang --> StripRule
-Lang --> SuffixRule
-Lang --> DivideRule
-Lang --> List
-class Completer
-class MutableDivideState
-MutableDivideState --> ArrayList
-MutableDivideState --> List
 class MapNode
 MapNode --> MapNodeProperties
 MapNode --> NodeProperties
@@ -51,8 +18,6 @@ class MapNodeProperties
 MapNodeProperties --> HashMap
 MapNodeProperties --> Map
 MapNodeProperties --> Optional
-class DivideState
-DivideState --> List
 class LastRule
 LastRule --> NodeWithEverything
 LastRule --> Optional
@@ -66,6 +31,38 @@ DivideRule --> Optional
 DivideRule --> Collectors
 class NodeProperties
 NodeProperties --> Optional
+class PrefixRule
+PrefixRule --> NodeWithEverything
+PrefixRule --> Optional
+class Compiler
+Compiler --> JavaLang
+Compiler --> PlantUMLLang
+Compiler --> NodeWithEverything
+Compiler --> MapNode
+Compiler --> NodeWithNodeLists
+Compiler --> ArrayList
+Compiler --> Map
+Compiler --> Optional
+class OrRule
+OrRule --> NodeWithEverything
+OrRule --> List
+OrRule --> Optional
+class StripRule
+StripRule --> NodeWithEverything
+StripRule --> Optional
+class Completer
+class MutableDivideState
+MutableDivideState --> ArrayList
+MutableDivideState --> List
+class DivideState
+DivideState --> List
+class CommonLang
+CommonLang --> MapNodeFactory
+CommonLang --> NodeWithEverything
+CommonLang --> OrRule
+CommonLang --> Rule
+CommonLang --> DivideRule
+CommonLang --> List
 class NodeFactory
 class SuffixRule
 SuffixRule --> NodeWithEverything
@@ -73,6 +70,23 @@ SuffixRule --> Optional
 class NodeWithEverything
 class NodeWithStrings
 NodeWithStrings --> NodeProperties
+class JavaLang
+JavaLang --> NodeWithEverything
+JavaLang --> LastRule
+JavaLang --> PrefixRule
+JavaLang --> Rule
+JavaLang --> StringRule
+JavaLang --> StripRule
+JavaLang --> SuffixRule
+JavaLang --> List
+class PlantUMLLang
+PlantUMLLang --> NodeWithEverything
+PlantUMLLang --> EmptyRule
+PlantUMLLang --> LastRule
+PlantUMLLang --> Rule
+PlantUMLLang --> StringRule
+PlantUMLLang --> SuffixRule
+PlantUMLLang --> List
 class Rule
 Rule --> Optional
 class NodeWithNodeLists

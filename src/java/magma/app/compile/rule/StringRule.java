@@ -2,13 +2,14 @@ package magma.app.compile.rule;
 
 import magma.app.compile.node.MapNode;
 import magma.app.compile.node.NodeWithEverything;
+import magma.app.compile.node.NodeWithStrings;
 
 import java.util.Optional;
 
 public record StringRule(String key) implements Rule<NodeWithEverything> {
     @Override
     public Optional<NodeWithEverything> lex(String input) {
-        NodeWithEverything node = new MapNode();
+        NodeWithStrings<NodeWithEverything> node = new MapNode();
         return Optional.of(node.strings()
                 .with(this.key, input));
     }
