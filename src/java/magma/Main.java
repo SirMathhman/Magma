@@ -1,12 +1,13 @@
 package magma;
 
-import magma.app.MaybeNodeList;
 import magma.app.Node;
 import magma.app.Rule;
 import magma.app.State;
 import magma.app.maybe.MaybeNode;
+import magma.app.maybe.MaybeNodeList;
 import magma.app.maybe.MaybeString;
 import magma.app.maybe.string.PresentString;
+import magma.app.maybe.node.PresentNodeList;
 import magma.app.rule.InfixRule;
 import magma.app.rule.PrefixRule;
 import magma.app.rule.StringRule;
@@ -62,15 +63,15 @@ public class Main {
         return list.stream().map(node -> node.withString("source", name)).toList();
     }
 
-    private static MaybeNodeList lex(String input, Rule<Node, MaybeNode, MaybeString> rule) {
+    private static MaybeNodeList lex(String input, Rule<Node, MaybeNode<MaybeNodeList>, MaybeString> rule) {
         return divide(input).stream().map(rule::lex).reduce(new PresentNodeList(), MaybeNodeList::add, (_, next) -> next);
     }
 
-    private static Rule<Node, MaybeNode, MaybeString> createDependencyRule() {
+    private static Rule<Node, MaybeNode<MaybeNodeList>, MaybeString> createDependencyRule() {
         return new SuffixRule<>(new InfixRule<>(new StringRule("source"), " --> ", new StringRule("destination")), "\n");
     }
 
-    private static Rule<Node, MaybeNode, MaybeString> createImportRule() {
+    private static Rule<Node, MaybeNode<MaybeNodeList>, MaybeString> createImportRule() {
         return new StripRule<>(new PrefixRule<>("import ", new SuffixRule<>(new InfixRule<>(new StringRule("parent"), ".", new StringRule("destination")), ";")));
     }
 

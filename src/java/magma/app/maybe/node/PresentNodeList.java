@@ -1,8 +1,9 @@
-package magma;
+package magma.app.maybe.node;
 
-import magma.app.MaybeNodeList;
 import magma.app.Node;
 import magma.app.maybe.MaybeNode;
+import magma.app.maybe.MaybeNodeList;
+import magma.app.maybe.MaybeString;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -20,8 +21,8 @@ public class PresentNodeList implements MaybeNodeList {
     }
 
     @Override
-    public MaybeNodeList add(MaybeNode node) {
-        return new PresentNodeList(node.addTo(this.nodes));
+    public MaybeNodeList add(MaybeNode<MaybeNodeList> node) {
+        return node.addTo(this.nodes);
     }
 
     @Override
@@ -30,7 +31,7 @@ public class PresentNodeList implements MaybeNodeList {
     }
 
     @Override
-    public <Return> Return generate(Function<List<Node>, Return> generator) {
+    public MaybeString generate(Function<List<Node>, MaybeString> generator) {
         return generator.apply(this.nodes);
     }
 }

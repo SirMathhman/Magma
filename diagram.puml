@@ -1,104 +1,24 @@
 @startuml
 skinparam linetype ortho
-class Generated
-class Generator
 class MaybeNode
-MaybeNode --> Generated
-MaybeNode --> Generator
-MaybeNode --> Node
-MaybeNode --> List
+class MaybeNodeList
 class MaybeString
-MaybeString --> Appendable
-MaybeString --> Prependable
 class EmptyNode
-EmptyNode --> Generated
-EmptyNode --> Generator
-EmptyNode --> Node
-EmptyNode --> MaybeNode
-EmptyNode --> EmptyGenerated
-EmptyNode --> List
+class EmptyNodeList
 class PresentNode
-PresentNode --> Generated
-PresentNode --> Generator
-PresentNode --> Node
-PresentNode --> MaybeNode
-PresentNode --> PresentGenerated
-PresentNode --> List
+class PresentNodeList
 class Appendable
 class EmptyString
-EmptyString --> MaybeString
 class Prependable
 class PresentString
-PresentString --> MaybeString
-class MaybeNodeList
-MaybeNodeList --> MaybeNode
-MaybeNodeList --> List
-MaybeNodeList --> Function
 class MapNode
-MapNode --> MaybeString
-MapNode --> Node
-MapNode --> EmptyString
-MapNode --> PresentString
-MapNode --> HashMap
-MapNode --> Map
 class Node
-Node --> MaybeString
-class EmptyGenerated
-EmptyGenerated --> Generated
-class PresentGenerated
-PresentGenerated --> Generated
 class InfixRule
-InfixRule --> Rule
-InfixRule --> Appendable
-InfixRule --> MaybeNode
-InfixRule --> EmptyNode
 class PrefixRule
-PrefixRule --> Rule
-PrefixRule --> MaybeNode
-PrefixRule --> Prependable
-PrefixRule --> EmptyNode
 class StringRule
-StringRule --> Node
-StringRule --> Rule
-StringRule --> MaybeNode
-StringRule --> MaybeString
-StringRule --> PresentNode
-StringRule --> MapNode
 class StripRule
-StripRule --> Rule
 class SuffixRule
-SuffixRule --> Rule
-SuffixRule --> Appendable
-SuffixRule --> MaybeNode
-SuffixRule --> EmptyNode
 class Rule
 class State
-State --> MaybeString
-State --> ArrayList
-State --> List
 class Main
-Main --> MaybeNodeList
-Main --> Node
-Main --> Rule
-Main --> State
-Main --> MaybeNode
-Main --> MaybeString
-Main --> PresentString
-Main --> InfixRule
-Main --> PrefixRule
-Main --> StringRule
-Main --> StripRule
-Main --> SuffixRule
-Main --> IOException
-Main --> Files
-Main --> Path
-Main --> Paths
-Main --> List
-class PresentNodeList
-PresentNodeList --> MaybeNodeList
-PresentNodeList --> Node
-PresentNodeList --> MaybeNode
-PresentNodeList --> ArrayList
-PresentNodeList --> List
-PresentNodeList --> Function
 @enduml
