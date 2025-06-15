@@ -3,7 +3,6 @@ package magma.app.compile.rule;
 import magma.app.compile.Rule;
 import magma.app.compile.node.core.MergingNode;
 import magma.app.compile.rule.result.RuleResult;
-import magma.app.compile.rule.result.ResultRuleResults;
 
 public record InfixRule<N extends MergingNode<N>>(Rule<N, RuleResult<N>, RuleResult<String>> leftRule, String infix,
                                                   Rule<N, RuleResult<N>, RuleResult<String>> rightRule) implements Rule<N, RuleResult<N>, RuleResult<String>> {
@@ -11,7 +10,7 @@ public record InfixRule<N extends MergingNode<N>>(Rule<N, RuleResult<N>, RuleRes
     public RuleResult<N> lex(String input) {
         final var index = input.lastIndexOf(this.infix);
         if (index < 0)
-            return ResultRuleResults.createFromString("Infix '" + this.infix + "' not present", input);
+            return RuleResult.createFromString("Infix '" + this.infix + "' not present", input);
 
         final var leftString = input.substring(0, index);
         final var rightString = input.substring(index + this.infix.length());

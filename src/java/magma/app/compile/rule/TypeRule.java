@@ -3,7 +3,6 @@ package magma.app.compile.rule;
 import magma.app.compile.Rule;
 import magma.app.compile.node.DisplayableNode;
 import magma.app.compile.node.TypedNode;
-import magma.app.compile.rule.result.ResultRuleResults;
 import magma.app.compile.rule.result.RuleResult;
 
 public final class TypeRule<Node extends TypedNode<Node> & DisplayableNode> implements Rule<Node, RuleResult<Node>, RuleResult<String>> {
@@ -25,6 +24,6 @@ public final class TypeRule<Node extends TypedNode<Node> & DisplayableNode> impl
         if (node.is(this.type))
             return this.rule.generate(node);
         else
-            return ResultRuleResults.createFromNode("Type '" + this.type + "' not present", node);
+            return RuleResult.createFromNode("Type '" + this.type + "' not present", node);
     }
 }
