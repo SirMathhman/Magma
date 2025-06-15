@@ -1,6 +1,5 @@
 package magma;
 
-import magma.app.Node;
 import magma.app.State;
 import magma.app.rule.LastRule;
 import magma.app.rule.PrefixRule;
@@ -13,6 +12,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 public class Main {
@@ -42,27 +42,33 @@ public class Main {
         final var name = fileName.substring(0, extensionSeparator);
 
         final var output = new StringBuilder();
-        final var segments = divide(Files.readString(source));
-        for (var segment : segments) {
-            final var extracted = createImportRule().lex(segment)
-                    .map(node -> generate(node.withString("parent", name)));
-
-            extracted.ifPresent(output::append);
-        }
+        final var joined = divide(Files.readString(source)).stream()
+                .map(segment -> createImportRule().lex(segment))
+                .flatMap(Optional::stream)
+                .toList()
+                .stream()
+                .map(segment -> segment.withString("parent", name))
+                .toList()
+                .stream()
+                .map(node -> createDependencyRule().generate(node))
+                .flatMap(Optional::stream)
+                .collect(Collectors.joining());
 
         return output.append("class ")
                 .append(name)
                 .append("\n")
+                .append(joined)
                 .toString();
+    }
+
+    private static SuffixRule createDependencyRule() {
+        final var parent = new StringRule("parent");
+        final var child = new StringRule("child");
+        return new SuffixRule(new LastRule(parent, " --> ", child), "\n");
     }
 
     private static StripRule createImportRule() {
         return new StripRule(new PrefixRule("import ", new SuffixRule(new LastRule(new StringRule("parent"), ".", new StringRule("child")), ";")));
-    }
-
-    private static String generate(Node node) {
-        return new SuffixRule(new LastRule(new StringRule("parent"), " --> ", new StringRule("child")), "\n").generate(node)
-                .orElse("");
     }
 
     private static List<String> divide(CharSequence input) {

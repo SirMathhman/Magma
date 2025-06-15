@@ -1,24 +1,24 @@
 @startuml
 skinparam linetype ortho
+class Node
 Node --> HashMap
 Node --> Map
 Node --> Optional
-class Node
+class SuffixRule
 SuffixRule --> Node
 SuffixRule --> Rule
 SuffixRule --> Optional
-class SuffixRule
-Rule --> Optional
 class Rule
+Rule --> Optional
+class StripRule
 StripRule --> Node
 StripRule --> Rule
 StripRule --> Optional
-class StripRule
+class LastRule
 LastRule --> Node
 LastRule --> Rule
 LastRule --> Optional
-class LastRule
-Main --> Node
+class Main
 Main --> State
 Main --> LastRule
 Main --> PrefixRule
@@ -30,17 +30,17 @@ Main --> Files
 Main --> Path
 Main --> Paths
 Main --> List
+Main --> Optional
 Main --> Collectors
-class Main
+class PrefixRule
 PrefixRule --> Node
 PrefixRule --> Rule
 PrefixRule --> Optional
-class PrefixRule
+class StringRule
 StringRule --> Node
 StringRule --> Rule
 StringRule --> Optional
-class StringRule
+class State
 State --> ArrayList
 State --> List
-class State
 @enduml
