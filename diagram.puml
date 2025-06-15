@@ -5,7 +5,6 @@ MapNodeProperties --> HashMap
 MapNodeProperties --> Map
 MapNodeProperties --> Optional
 class Node
-Node --> MapNodeProperties
 Node --> NodeProperties
 Node --> List
 class NodeProperties
@@ -19,6 +18,7 @@ LastRule --> Node
 LastRule --> Rule
 LastRule --> Optional
 class DivideRule
+DivideRule --> MapNode
 DivideRule --> Node
 DivideRule --> Rule
 DivideRule --> State
@@ -31,6 +31,7 @@ PrefixRule --> Node
 PrefixRule --> Rule
 PrefixRule --> Optional
 class StringRule
+StringRule --> MapNode
 StringRule --> Node
 StringRule --> Rule
 StringRule --> Optional
@@ -43,6 +44,7 @@ StripRule --> Node
 StripRule --> Rule
 StripRule --> Optional
 class Main
+Main --> MapNode
 Main --> Node
 Main --> DivideRule
 Main --> LastRule
@@ -57,6 +59,10 @@ Main --> Paths
 Main --> ArrayList
 Main --> Optional
 Main --> Collectors
+class MapNode
+MapNode --> MapNodeProperties
+MapNode --> NodeProperties
+MapNode --> List
 class State
 State --> ArrayList
 State --> List

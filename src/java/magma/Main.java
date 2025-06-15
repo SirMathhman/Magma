@@ -1,5 +1,6 @@
 package magma;
 
+import magma.app.node.MapNode;
 import magma.app.node.Node;
 import magma.app.rule.DivideRule;
 import magma.app.rule.LastRule;
@@ -67,7 +68,7 @@ public class Main {
                         .with("parent", name))
                 .toList();
 
-        Node node = new Node();
+        Node node = new MapNode();
         return node.nodeLists().with("children", list);
     }
 
