@@ -49,8 +49,8 @@ PresentGenerated --> Generated
 class InfixRule
 InfixRule --> Node
 InfixRule --> Rule
+InfixRule --> Appendable
 InfixRule --> MaybeNode
-InfixRule --> MaybeString
 InfixRule --> EmptyNode
 class PrefixRule
 PrefixRule --> Node
@@ -66,10 +66,7 @@ StringRule --> MaybeString
 StringRule --> PresentNode
 StringRule --> MapNode
 class StripRule
-StripRule --> Node
 StripRule --> Rule
-StripRule --> MaybeNode
-StripRule --> MaybeString
 class SuffixRule
 SuffixRule --> Rule
 SuffixRule --> Appendable

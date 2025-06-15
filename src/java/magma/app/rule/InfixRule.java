@@ -2,13 +2,15 @@ package magma.app.rule;
 
 import magma.app.Node;
 import magma.app.Rule;
+import magma.app.maybe.Appendable;
 import magma.app.maybe.MaybeNode;
-import magma.app.maybe.MaybeString;
 import magma.app.maybe.node.EmptyNode;
 
-public record InfixRule(Rule<Node, MaybeNode, MaybeString> leftRule, String infix, Rule<Node, MaybeNode, MaybeString> rightRule) implements Rule<Node, MaybeNode, MaybeString> {
+public record InfixRule<Generate extends Appendable<Generate>>(Rule<Node, MaybeNode, Generate> leftRule, String infix,
+                                                               Rule<Node, MaybeNode, Generate> rightRule) implements Rule<Node, MaybeNode, Generate> {
+
     @Override
-    public MaybeString generate(Node node) {
+    public Generate generate(Node node) {
         return this.leftRule.generate(node).appendString(this.infix).appendMaybe(this.rightRule.generate(node));
     }
 
@@ -21,4 +23,10 @@ public record InfixRule(Rule<Node, MaybeNode, MaybeString> leftRule, String infi
         final var destination = input.substring(index + this.infix.length());
         return this.rightRule.lex(destination);
     }
+
+    @Override
+    public String toString() {
+        return "InfixRule[" + "leftRule=" + this.leftRule + ", " + "infix=" + this.infix + ", " + "rightRule=" + this.rightRule + ']';
+    }
+
 }

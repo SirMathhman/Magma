@@ -67,11 +67,11 @@ public class Main {
     }
 
     private static Rule<Node, MaybeNode, MaybeString> createDependencyRule() {
-        return new SuffixRule<>(new InfixRule(new StringRule("source"), " --> ", new StringRule("destination")), "\n");
+        return new SuffixRule<>(new InfixRule<>(new StringRule("source"), " --> ", new StringRule("destination")), "\n");
     }
 
     private static Rule<Node, MaybeNode, MaybeString> createImportRule() {
-        return new StripRule(new PrefixRule("import ", new SuffixRule<>(new InfixRule(new StringRule("parent"), ".", new StringRule("destination")), ";")));
+        return new StripRule<>(new PrefixRule("import ", new SuffixRule<>(new InfixRule<>(new StringRule("parent"), ".", new StringRule("destination")), ";")));
     }
 
     private static List<String> divide(String input) {

@@ -1,19 +1,15 @@
 package magma.app.rule;
 
-import magma.app.Node;
 import magma.app.Rule;
-import magma.app.maybe.MaybeNode;
-import magma.app.maybe.MaybeString;
 
-public record StripRule(Rule<Node, MaybeNode, MaybeString> rule) implements Rule<Node, MaybeNode, MaybeString> {
+public record StripRule<Node, Lex, Generate>(Rule<Node, Lex, Generate> rule) implements Rule<Node, Lex, Generate> {
     @Override
-    public MaybeString generate(Node node) {
+    public Generate generate(Node node) {
         return this.rule.generate(node);
     }
 
     @Override
-    public MaybeNode lex(String input) {
-        final var strip = input.strip();
-        return this.rule().lex(strip);
+    public Lex lex(String input) {
+        return this.rule.lex(input.strip());
     }
 }
