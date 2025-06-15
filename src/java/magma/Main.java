@@ -1,9 +1,9 @@
 package magma;
 
-import magma.app.result.EmptyResult;
-import magma.app.result.PresentResult;
 import magma.app.Result;
 import magma.app.State;
+import magma.app.result.EmptyResult;
+import magma.app.result.PresentResult;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -47,18 +47,20 @@ public class Main {
 
     private static Result compileRootSegment(String name, String input) {
         final var strip = input.strip();
-        if (strip.startsWith("import ")) {
-            final var substring = strip.substring("import ".length());
-            if (substring.endsWith(";")) {
-                final var substring1 = substring.substring(0, substring.length() - ";".length());
-                final var index = substring1.lastIndexOf(".");
-                if (index >= 0) {
-                    final var destination = substring1.substring(index + ".".length());
-                    return new PresentResult(name + " --> " + destination + "\n");
-                }
-            }
-        }
-        return new EmptyResult();
+        if (!strip.startsWith("import "))
+            return new EmptyResult();
+
+        final var substring = strip.substring("import ".length());
+        if (!substring.endsWith(";"))
+            return new EmptyResult();
+
+        final var substring1 = substring.substring(0, substring.length() - ";".length());
+        final var index = substring1.lastIndexOf(".");
+        if (index < 0)
+            return new EmptyResult();
+
+        final var destination = substring1.substring(index + ".".length());
+        return new PresentResult(name + " --> " + destination + "\n");
     }
 
     private static List<String> divide(String input) {

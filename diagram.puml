@@ -9,10 +9,10 @@ class State
 State --> ArrayList
 State --> List
 class Main
-Main --> EmptyResult
-Main --> PresentResult
 Main --> Result
 Main --> State
+Main --> EmptyResult
+Main --> PresentResult
 Main --> IOException
 Main --> Files
 Main --> Paths
