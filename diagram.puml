@@ -27,12 +27,12 @@ CompileError --> List
 CompileError --> Collectors
 class Compiler
 Compiler --> Lang
-Compiler --> StringResults
 Compiler --> PresentNodeListResult
 Compiler --> DivideState
 Compiler --> EmptyRule
 Compiler --> OrRule
 Compiler --> StringRule
+Compiler --> StringResults
 Compiler --> List
 class Context
 class Lang
