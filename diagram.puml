@@ -46,13 +46,11 @@ EmptyGenerated --> Generated
 class PresentGenerated
 PresentGenerated --> Generated
 class InfixRule
-InfixRule --> Node
 InfixRule --> Rule
 InfixRule --> Appendable
 InfixRule --> MaybeNode
 InfixRule --> EmptyNode
 class PrefixRule
-PrefixRule --> Node
 PrefixRule --> Rule
 PrefixRule --> MaybeNode
 PrefixRule --> Prependable
