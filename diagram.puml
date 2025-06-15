@@ -14,6 +14,7 @@ Compiler --> MapNode
 Compiler --> ArrayList
 Compiler --> Map
 Compiler --> Optional
+class MapNodeFactory
 class OrRule
 OrRule --> NodeWithEverything
 OrRule --> List
@@ -26,16 +27,17 @@ class StripRule
 StripRule --> NodeWithEverything
 StripRule --> Optional
 class Lang
+Lang --> MapNodeFactory
 Lang --> NodeWithEverything
 Lang --> EmptyRule
-Lang --> OrRule
-Lang --> Rule
-Lang --> DivideRule
 Lang --> LastRule
+Lang --> OrRule
 Lang --> PrefixRule
+Lang --> Rule
 Lang --> StringRule
 Lang --> StripRule
 Lang --> SuffixRule
+Lang --> DivideRule
 Lang --> List
 class Completer
 class MutableDivideState
@@ -55,8 +57,8 @@ class LastRule
 LastRule --> NodeWithEverything
 LastRule --> Optional
 class DivideRule
-DivideRule --> MapNode
-DivideRule --> NodeWithEverything
+DivideRule --> NodeFactory
+DivideRule --> NodeWithNodeLists
 DivideRule --> Rule
 DivideRule --> ArrayList
 DivideRule --> List
@@ -64,6 +66,7 @@ DivideRule --> Optional
 DivideRule --> Collectors
 class NodeProperties
 NodeProperties --> Optional
+class NodeFactory
 class SuffixRule
 SuffixRule --> NodeWithEverything
 SuffixRule --> Optional
