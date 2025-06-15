@@ -21,6 +21,7 @@ class StripRule
 StripRule --> Node
 StripRule --> Optional
 class Lang
+Lang --> Rule
 Lang --> DivideRule
 Lang --> LastRule
 Lang --> PrefixRule
