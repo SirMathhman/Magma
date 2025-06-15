@@ -3,6 +3,20 @@ skinparam linetype ortho
 class CompileError
 CompileError --> ArrayList
 CompileError --> List
+class Compiler
+Compiler --> NodeListResult
+Compiler --> NodeResult
+Compiler --> StringResult
+Compiler --> PresentNodeListResult
+Compiler --> OkStringResult
+Compiler --> EmptyRule
+Compiler --> InfixRule
+Compiler --> OrRule
+Compiler --> PrefixRule
+Compiler --> StringRule
+Compiler --> StripRule
+Compiler --> SuffixRule
+Compiler --> List
 class Context
 class Attachable
 Attachable --> OrState
@@ -66,6 +80,14 @@ MapNode --> HashMap
 MapNode --> Map
 class Node
 Node --> StringResult
+class EmptyRule
+EmptyRule --> Node
+EmptyRule --> Rule
+EmptyRule --> NodeResult
+EmptyRule --> StringResult
+EmptyRule --> OkNodeResult
+EmptyRule --> OkStringResult
+EmptyRule --> MapNode
 class InfixRule
 InfixRule --> CompileError
 InfixRule --> Rule
@@ -122,29 +144,8 @@ class Rule
 class State
 State --> ArrayList
 State --> List
-class EmptyRule
-EmptyRule --> Node
-EmptyRule --> Rule
-EmptyRule --> NodeResult
-EmptyRule --> StringResult
-EmptyRule --> OkNodeResult
-EmptyRule --> OkStringResult
-EmptyRule --> MapNode
 class Main
-Main --> Node
-Main --> Rule
-Main --> State
-Main --> NodeResult
-Main --> NodeListResult
-Main --> StringResult
-Main --> PresentNodeListResult
-Main --> OkStringResult
-Main --> InfixRule
-Main --> OrRule
-Main --> PrefixRule
-Main --> StringRule
-Main --> StripRule
-Main --> SuffixRule
+Main --> Compiler
 Main --> IOException
 Main --> Files
 Main --> Path
