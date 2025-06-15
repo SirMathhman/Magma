@@ -18,10 +18,10 @@ LastRule --> Node
 LastRule --> Rule
 LastRule --> Optional
 class LastRule
-Main --> LastRule
 Main --> Node
-Main --> PrefixRule
 Main --> State
+Main --> LastRule
+Main --> PrefixRule
 Main --> StringRule
 Main --> StripRule
 Main --> SuffixRule

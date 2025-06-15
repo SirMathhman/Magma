@@ -14,4 +14,10 @@ public record SuffixRule(Rule rule, String suffix) implements Rule {
         final var withoutSuffix = input.substring(0, input.length() - this.suffix.length());
         return this.rule.lex(withoutSuffix);
     }
+
+    @Override
+    public Optional<String> generate(Node node) {
+        return this.rule.generate(node)
+                .map(result -> result + this.suffix);
+    }
 }

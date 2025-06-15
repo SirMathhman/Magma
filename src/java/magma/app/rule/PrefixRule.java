@@ -14,4 +14,10 @@ public record PrefixRule(String prefix, Rule rule) implements Rule {
         final var withoutPrefix = input.substring(this.prefix.length());
         return this.rule.lex(withoutPrefix);
     }
+
+    @Override
+    public Optional<String> generate(Node node) {
+        return this.rule.generate(node)
+                .map(result -> this.prefix + result);
+    }
 }

@@ -1,9 +1,9 @@
 package magma;
 
-import magma.app.rule.LastRule;
 import magma.app.Node;
-import magma.app.rule.PrefixRule;
 import magma.app.State;
+import magma.app.rule.LastRule;
+import magma.app.rule.PrefixRule;
 import magma.app.rule.StringRule;
 import magma.app.rule.StripRule;
 import magma.app.rule.SuffixRule;
@@ -57,13 +57,12 @@ public class Main {
     }
 
     private static StripRule createImportRule() {
-        return new StripRule(new PrefixRule("import ", new SuffixRule(new LastRule(".", new StringRule("child")), ";")));
+        return new StripRule(new PrefixRule("import ", new SuffixRule(new LastRule(new StringRule("parent"), ".", new StringRule("child")), ";")));
     }
 
     private static String generate(Node node) {
-        return node.findString("parent")
-                .orElse("") + " --> " + node.findString("child")
-                .orElse("") + "\n";
+        return new SuffixRule(new LastRule(new StringRule("parent"), " --> ", new StringRule("child")), "\n").generate(node)
+                .orElse("");
     }
 
     private static List<String> divide(CharSequence input) {
