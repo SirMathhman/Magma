@@ -2,7 +2,6 @@ package magma.api.result;
 
 import magma.api.Tuple;
 
-import java.util.Optional;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
@@ -25,11 +24,6 @@ public record Ok<Value, Error>(Value value) implements Result<Value, Error> {
     @Override
     public <Return> Return match(Function<Value, Return> whenOk, Function<Error, Return> whenErr) {
         return whenOk.apply(this.value);
-    }
-
-    @Override
-    public Optional<Value> findValue() {
-        return Optional.of(this.value);
     }
 
     @Override

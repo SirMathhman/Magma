@@ -5,6 +5,8 @@ import magma.app.compile.node.CompoundNode;
 import magma.app.compile.node.PropertiesCompoundNode;
 import magma.app.compile.rule.divide.FoldingDivider;
 import magma.app.compile.rule.result.RuleResult;
+import magma.app.compile.rule.result.RuleResult.RuleResultErr;
+import magma.app.compile.rule.result.RuleResult.RuleResultOk;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -22,22 +24,36 @@ public final class NodeListRule implements Rule<CompoundNode, RuleResult<Compoun
     @Override
     public RuleResult<CompoundNode> lex(String input) {
         RuleResult<List<CompoundNode>> listRuleResult = new FoldingDivider().divide(input).stream().reduce(RuleResult.createFromValue(new ArrayList<>()), NodeListRule.this::fold, (_, next) -> next);
-        return listRuleResult.<RuleResult<CompoundNode>>match(value -> new RuleResult.Ok<>(((Function<List<CompoundNode>, CompoundNode>) children -> new PropertiesCompoundNode().nodeLists().with(this.key, children)).apply(value)), RuleResult.Err::new);
+        return switch (listRuleResult) {
+            case RuleResultErr<List<CompoundNode>>(var error) -> new RuleResultErr<>(error);
+            case RuleResultOk<List<CompoundNode>>(
+                    List<CompoundNode> value1
+            ) -> new RuleResultOk<>(new PropertiesCompoundNode().nodeLists().with(this.key, value1));
+        };
     }
 
     private RuleResult<List<CompoundNode>> fold(RuleResult<List<CompoundNode>> result, String s) {
-        return result.match(inner -> {
-            RuleResult<CompoundNode> compoundNodeRuleResult = this.rule.lex(s);
-            return compoundNodeRuleResult.<RuleResult<List<CompoundNode>>>match(value -> new RuleResult.Ok<>(((Function<CompoundNode, List<CompoundNode>>) inner0 -> {
-                inner.add(inner0);
-                return inner;
-            }).apply(value)), RuleResult.Err::new);
-        }, RuleResult.Err::new);
+        return switch (result) {
+            case RuleResultErr<List<CompoundNode>>(var error1) -> new RuleResultErr<>(error1);
+            case RuleResultOk<List<CompoundNode>>(var value2) -> switch (this.rule.lex(s)) {
+                case RuleResultErr<CompoundNode>(var error) -> new RuleResultErr<>(error);
+                case RuleResultOk<CompoundNode>(CompoundNode value1) -> {
+                    value2.add(value1);
+                    yield new RuleResultOk<>(value2);
+                }
+            };
+        };
     }
 
     @Override
     public RuleResult<String> generate(CompoundNode node) {
         final var compoundNodes = node.nodeLists().find(this.key).orElse(new ArrayList<>());
-        return compoundNodes.stream().map(this.rule::generate).reduce(RuleResult.createFromValue(""), (result, result1) -> result.match(result0 -> result1.<RuleResult<String>>match(value -> new RuleResult.Ok<>(((Function<String, String>) result2 -> result0 + result2).apply(value)), RuleResult.Err::new), RuleResult.Err::new), (_, next) -> next);
+        return compoundNodes.stream().map(this.rule::generate).reduce(RuleResult.createFromValue(""), (result, result1) -> switch (result) {
+            case RuleResultErr<String>(var error1) -> new RuleResultErr<>(error1);
+            case RuleResultOk<String>(String value2) -> switch (result1) {
+                case RuleResultErr<String>(var error) -> new RuleResultErr<>(error);
+                case RuleResultOk<String>(String value1) -> new RuleResultOk<>(value2 + value1);
+            };
+        }, (_, next) -> next);
     }
 }

@@ -15,7 +15,6 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Optional;
 import java.util.Set;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 public class Application {
@@ -55,9 +54,7 @@ public class Application {
         for (var source : sources)
             maybeOutput = maybeOutput.and(() -> compileSource(source)).mapValue(tuple -> tuple.left().append(tuple.right()));
 
-        return maybeOutput.mapValue(output -> {
-            return "@startuml\nskinparam linetype ortho\n" + output + "@enduml";
-        });
+        return maybeOutput.mapValue(output -> "@startuml\nskinparam linetype ortho\n" + output + "@enduml");
     }
 
     public static Result<String, ApplicationError> compileSource(Path source) {
@@ -65,9 +62,14 @@ public class Application {
             final var fileName = source.getFileName().toString();
             final var name = fileName.substring(0, fileName.lastIndexOf("."));
             RuleResult<String> stringRuleResult = Compiler.compile(input, name);
-            return stringRuleResult.<RuleResult<String>>match(value -> new RuleResult.Ok<>(((Function<String, String>) compiled -> {
-                return "class " + name + "\n" + compiled;
-            }).apply(value)), RuleResult.Err::new).<Result<String, CompileError>>match(Ok::new, Err::new).mapErr(ApplicationError::new);
+            RuleResult<String> stringRuleResult1 = (switch (stringRuleResult) {
+                case RuleResult.RuleResultErr<String>(var error) -> new RuleResult.RuleResultErr<>(error);
+                case RuleResult.RuleResultOk<String>(String value1) -> new RuleResult.RuleResultOk<>("class " + name + "\n" + value1);
+            });
+            return (switch (stringRuleResult1) {
+                case RuleResult.RuleResultErr<String>(var error1) -> new Err<String, CompileError>(error1);
+                case RuleResult.RuleResultOk<String>(String value2) -> new Ok<String, CompileError>(value2);
+            }).mapErr(ApplicationError::new);
         });
     }
 
