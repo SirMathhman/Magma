@@ -5,6 +5,10 @@ Node --> HashMap
 Node --> List
 Node --> Map
 Node --> Optional
+class Properties
+Properties --> HashMap
+Properties --> Map
+Properties --> Optional
 class SuffixRule
 SuffixRule --> Node
 SuffixRule --> Rule
@@ -34,6 +38,7 @@ Main --> Paths
 Main --> ArrayList
 Main --> Optional
 Main --> Collectors
+class Completer
 class DivideRule
 DivideRule --> Node
 DivideRule --> Rule

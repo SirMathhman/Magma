@@ -6,28 +6,21 @@ import java.util.Map;
 import java.util.Optional;
 
 public final class Node {
-    private final Map<String, String> strings;
     private final Map<String, List<Node>> nodeLists;
+    private final Properties strings;
 
     public Node() {
-        this(new HashMap<>(), new HashMap<>());
+        this.strings = new Properties(this::withStrings);
+        this.nodeLists = new HashMap<>();
     }
 
-    public Node(Map<String, String> strings, Map<String, List<Node>> nodeLists) {
-        this.strings = strings;
+    public Node(Properties strings, Map<String, List<Node>> nodeLists) {
         this.nodeLists = nodeLists;
+        this.strings = strings;
     }
 
-    public Node withString(String key, String value) {
-        this.strings.put(key, value);
-        return this;
-    }
-
-    public Optional<String> findString(String key) {
-        if (this.strings.containsKey(key))
-            return Optional.of(this.strings.get(key));
-
-        return Optional.empty();
+    private Node withStrings(Properties properties) {
+        return new Node(this.strings, this.nodeLists);
     }
 
     public Node withNodeList(String key, List<Node> values) {
@@ -39,5 +32,9 @@ public final class Node {
         if (this.nodeLists.containsKey(key))
             return Optional.of(this.nodeLists.get(key));
         return Optional.empty();
+    }
+
+    public Properties strings() {
+        return this.strings;
     }
 }

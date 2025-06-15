@@ -8,11 +8,14 @@ import java.util.Optional;
 public record StringRule(String key) implements Rule {
     @Override
     public Optional<Node> lex(String input) {
-        return Optional.of(new Node().withString(this.key, input));
+        Node node = new Node();
+        return Optional.of(node.strings()
+                .withString(this.key, input));
     }
 
     @Override
     public Optional<String> generate(Node node) {
-        return node.findString(this.key);
+        return node.strings()
+                .findString(this.key);
     }
 }

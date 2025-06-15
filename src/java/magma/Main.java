@@ -62,7 +62,8 @@ public class Main {
         final var list = tree.findNodeList("children")
                 .orElse(new ArrayList<>())
                 .stream()
-                .map(segment -> segment.withString("parent", name))
+                .map(segment -> segment.strings()
+                        .withString("parent", name))
                 .toList();
 
         return new Node().withNodeList("children", list);
