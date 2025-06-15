@@ -4,19 +4,30 @@ Node --> HashMap
 Node --> Map
 Node --> Optional
 class Node
+StripRule --> Optional
+class StripRule
+Main --> LastRule
 Main --> Node
+Main --> PrefixRule
 Main --> State
 Main --> StringRule
+Main --> StripRule
+Main --> SuffixRule
 Main --> IOException
 Main --> Files
 Main --> Path
 Main --> Paths
 Main --> List
-Main --> Optional
 Main --> Collectors
 class Main
 StringRule --> Optional
 class StringRule
+LastRule --> Optional
+class LastRule
+PrefixRule --> Optional
+class PrefixRule
+SuffixRule --> Optional
+class SuffixRule
 State --> ArrayList
 State --> List
 class State

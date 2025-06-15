@@ -1,15 +1,18 @@
 package magma;
 
+import magma.app.LastRule;
 import magma.app.Node;
+import magma.app.PrefixRule;
 import magma.app.State;
 import magma.app.StringRule;
+import magma.app.StripRule;
+import magma.app.SuffixRule;
 
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 public class Main {
@@ -41,7 +44,9 @@ public class Main {
         final var output = new StringBuilder();
         final var segments = divide(Files.readString(source));
         for (var segment : segments) {
-            final var extracted = compileImport(segment, name);
+            final var extracted = createImportRule().lex(segment)
+                    .map(node -> generate(node.withString("parent", name)));
+
             extracted.ifPresent(output::append);
         }
 
@@ -51,34 +56,8 @@ public class Main {
                 .toString();
     }
 
-    private static Optional<String> compileImport(String input, String name) {
-        final var stripped = input.strip();
-        return getStringOptional(name, stripped);
-    }
-
-    private static Optional<String> getStringOptional(String name, String stripped) {
-        if (!stripped.startsWith("import "))
-            return Optional.empty();
-
-        final var withoutPrefix = stripped.substring("import ".length());
-        return getOptionalString(name, withoutPrefix);
-    }
-
-    private static Optional<String> getOptionalString(String name, String withoutPrefix) {
-        if (!withoutPrefix.endsWith(";"))
-            return Optional.empty();
-
-        final var withoutSuffix = withoutPrefix.substring(0, withoutPrefix.length() - ";".length());
-        return getString(withoutSuffix, ".").map(node -> generate(node.withString("parent", name)));
-    }
-
-    private static Optional<Node> getString(String input, String infix) {
-        final var separator = input.lastIndexOf(infix);
-        if (separator < 0)
-            return Optional.empty();
-
-        final var child = input.substring(separator + infix.length());
-        return new StringRule("child").lex(child);
+    private static StripRule createImportRule() {
+        return new StripRule(new PrefixRule("import ", new SuffixRule(new LastRule(".", new StringRule("child")), ";")));
     }
 
     private static String generate(Node node) {
