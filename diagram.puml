@@ -1,0 +1,4 @@
+@startuml
+skinparam linetype ortho
+class Main
+@enduml
