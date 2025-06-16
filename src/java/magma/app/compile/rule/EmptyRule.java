@@ -1,6 +1,6 @@
 package magma.app.compile.rule;
 
-import magma.app.compile.CompileResult;
+import magma.app.compile.error.CompileResult;
 import magma.app.compile.node.NodeFactory;
 
 public class EmptyRule<Node> implements Rule<Node> {

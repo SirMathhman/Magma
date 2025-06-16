@@ -1,6 +1,6 @@
 package magma.app.compile.rule;
 
-import magma.app.compile.CompileResult;
+import magma.app.compile.error.CompileResult;
 
 public interface Rule<Node> {
     CompileResult<Node> lex(String input);

@@ -1,9 +1,9 @@
 package magma.app.compile.rule;
 
 import magma.api.Err;
-import magma.app.compile.CompileError;
-import magma.app.compile.CompileResult;
 import magma.app.compile.context.StringContext;
+import magma.app.compile.error.CompileError;
+import magma.app.compile.error.CompileResult;
 
 import java.util.List;
 import java.util.Optional;

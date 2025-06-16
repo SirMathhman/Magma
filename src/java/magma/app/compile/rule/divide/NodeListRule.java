@@ -1,6 +1,6 @@
 package magma.app.compile.rule.divide;
 
-import magma.app.compile.CompileResult;
+import magma.app.compile.error.CompileResult;
 import magma.app.compile.node.DisplayableNode;
 import magma.app.compile.node.NodeFactory;
 import magma.app.compile.node.NodeWithNodeLists;

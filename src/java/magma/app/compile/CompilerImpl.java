@@ -1,5 +1,6 @@
 package magma.app.compile;
 
+import magma.app.compile.error.CompileResult;
 import magma.app.compile.lang.CommonLang;
 import magma.app.compile.node.MapNode;
 import magma.app.compile.node.NodeWithEverything;

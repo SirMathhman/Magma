@@ -1,9 +1,9 @@
 package magma.app.compile.rule;
 
 import magma.api.Err;
-import magma.app.compile.CompileError;
-import magma.app.compile.CompileResult;
 import magma.app.compile.context.StringContext;
+import magma.app.compile.error.CompileError;
+import magma.app.compile.error.CompileResult;
 
 public record LastRule<Node>(Rule<Node> leftRule, String infix, Rule<Node> rightRule) implements Rule<Node> {
     @Override

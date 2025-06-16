@@ -1,9 +1,9 @@
 package magma.app.compile.rule.truncate;
 
 import magma.api.Err;
-import magma.app.compile.CompileError;
-import magma.app.compile.CompileResult;
 import magma.app.compile.context.StringContext;
+import magma.app.compile.error.CompileError;
+import magma.app.compile.error.CompileResult;
 import magma.app.compile.rule.Rule;
 
 public final class TruncateRule<Node> implements Rule<Node> {
