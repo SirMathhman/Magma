@@ -83,8 +83,10 @@ OrRule --> Optional
 class NodeContext
 NodeContext --> DisplayableNode
 class ResultCompileResult
+ResultCompileResult --> Err
 ResultCompileResult --> Ok
 ResultCompileResult --> Result
+ResultCompileResult --> StringContext
 ResultCompileResult --> Function
 class Error
 class Completer
@@ -103,9 +105,6 @@ CommonLang --> NodeWithEverything
 CommonLang --> Rule
 CommonLang --> List
 class TruncateRule
-TruncateRule --> Err
-TruncateRule --> StringContext
-TruncateRule --> CompileError
 TruncateRule --> CompileResult
 TruncateRule --> ResultCompileResult
 TruncateRule --> PrefixTruncator

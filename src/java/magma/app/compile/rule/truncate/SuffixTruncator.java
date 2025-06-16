@@ -14,4 +14,9 @@ public record SuffixTruncator(String suffix) implements Truncator {
     public String generate(String result) {
         return result + this.suffix;
     }
+
+    @Override
+    public String createErrorMessage() {
+        return "Suffix '" + this.suffix + "' not present";
+    }
 }

@@ -12,4 +12,9 @@ public class StripTruncator implements Truncator {
     public String generate(String result) {
         return result;
     }
+
+    @Override
+    public String createErrorMessage() {
+        return "Failed to strip";
+    }
 }

@@ -1,13 +1,19 @@
 package magma.app.compile.error;
 
+import magma.api.Err;
 import magma.api.Ok;
 import magma.api.Result;
+import magma.app.compile.context.StringContext;
 
 import java.util.function.Function;
 
 public record ResultCompileResult<Value>(Result<Value, CompileError> result) implements CompileResult<Value> {
-    public static <Value> CompileResult<Value> from(Value input) {
+    public static <Value> CompileResult<Value> fromValue(Value input) {
         return new ResultCompileResult<>(new Ok<>(input));
+    }
+
+    public static CompileResult<String> fromStringError(String message, String input) {
+        return new ResultCompileResult<>(new Err<>(new CompileError(message, new StringContext(input))));
     }
 
     @Override

@@ -26,7 +26,7 @@ public final class NodeListRule<Node extends NodeWithNodeLists<Node> & Displayab
         return Divider.divide(input)
                 .stream()
                 .map(this.rule::lex)
-                .reduce(ResultCompileResult.from(new ArrayList<>()), this::foldList, (_, next) -> next)
+                .reduce(ResultCompileResult.fromValue(new ArrayList<>()), this::foldList, (_, next) -> next)
                 .mapValue(children -> this.factory.create()
                         .nodeLists()
                         .with(this.key, children));
@@ -47,7 +47,7 @@ public final class NodeListRule<Node extends NodeWithNodeLists<Node> & Displayab
 
         return children.stream()
                 .map(this.rule::generate)
-                .reduce(ResultCompileResult.from(new StringBuilder()), this::foldString, (_, next) -> next)
+                .reduce(ResultCompileResult.fromValue(new StringBuilder()), this::foldString, (_, next) -> next)
                 .mapValue(StringBuilder::toString);
     }
 

@@ -13,11 +13,11 @@ public class EmptyRule<Node> implements Rule<Node> {
 
     @Override
     public CompileResult<Node> lex(String input) {
-        return ResultCompileResult.from(this.factory.create());
+        return ResultCompileResult.fromValue(this.factory.create());
     }
 
     @Override
     public CompileResult<String> generate(Node node) {
-        return ResultCompileResult.from("");
+        return ResultCompileResult.fromValue("");
     }
 }

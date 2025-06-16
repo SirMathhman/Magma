@@ -44,7 +44,7 @@ public class RuleCompiler implements Compiler {
 
     @Override
     public CompileResult<String> compile(Map<String, String> inputs) {
-        CompileResult<StringBuilder> buffer = ResultCompileResult.from(new StringBuilder());
+        CompileResult<StringBuilder> buffer = ResultCompileResult.fromValue(new StringBuilder());
         for (var input : inputs.entrySet())
             buffer = buffer.flatMap(inner -> {
                 final var result = this.sourceRule.lex(input.getValue())

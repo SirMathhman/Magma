@@ -20,7 +20,7 @@ public final class StringRule<Node extends NodeWithStrings<Node> & DisplayableNo
 
     @Override
     public CompileResult<Node> lex(String input) {
-        return ResultCompileResult.from(this.factory.create()
+        return ResultCompileResult.fromValue(this.factory.create()
                 .strings()
                 .with(this.key, input));
     }
@@ -29,7 +29,7 @@ public final class StringRule<Node extends NodeWithStrings<Node> & DisplayableNo
     public CompileResult<String> generate(Node node) {
         return node.strings()
                 .find(this.key)
-                .map(ResultCompileResult::from)
+                .map(ResultCompileResult::fromValue)
                 .orElseGet(() -> new ResultCompileResult<>(new Err<>(new CompileError("Invalid rule", new NodeContext(node)))));
     }
 }

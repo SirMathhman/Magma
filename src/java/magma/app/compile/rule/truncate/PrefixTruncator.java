@@ -15,4 +15,9 @@ public record PrefixTruncator(String prefix) implements Truncator {
     public String generate(String result) {
         return this.prefix + result;
     }
+
+    @Override
+    public String createErrorMessage() {
+        return "Prefix '" + this.prefix + "' not present";
+    }
 }

@@ -18,7 +18,7 @@ public record OrRule<Node, R extends Rule<Node>>(List<R> rules) implements Rule<
                         .findValue())
                 .flatMap(Optional::stream)
                 .findFirst()
-                .map(ResultCompileResult::from)
+                .map(ResultCompileResult::fromValue)
                 .orElseGet(() -> new ResultCompileResult<>(new Err<>(new CompileError("Invalid rule", new StringContext("")))));
     }
 
@@ -30,7 +30,7 @@ public record OrRule<Node, R extends Rule<Node>>(List<R> rules) implements Rule<
                         .findValue())
                 .flatMap(Optional::stream)
                 .findFirst()
-                .map(ResultCompileResult::from)
+                .map(ResultCompileResult::fromValue)
                 .orElseGet(() -> new ResultCompileResult<>(new Err<>(new CompileError("Invalid rule", new StringContext("")))));
     }
 }
