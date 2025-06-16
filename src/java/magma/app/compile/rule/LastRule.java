@@ -20,6 +20,6 @@ public record LastRule<Node>(Rule<Node> leftRule, String infix, Rule<Node> right
     public Result<String, CompileError> generate(Node node) {
         return this.leftRule.generate(node)
                 .flatMap(leftResult -> this.rightRule.generate(node)
-                        .map(rightResult -> leftResult + this.infix + rightResult));
+                        .mapValue(rightResult -> leftResult + this.infix + rightResult));
     }
 }

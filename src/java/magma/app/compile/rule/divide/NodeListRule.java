@@ -28,13 +28,13 @@ public final class NodeListRule<Node extends NodeWithNodeLists<Node> & Displayab
                 .stream()
                 .map(this.rule::lex)
                 .reduce(new Ok<>(new ArrayList<>()), this::foldList, (_, next) -> next)
-                .map(children -> this.factory.create()
+                .mapValue(children -> this.factory.create()
                         .nodeLists()
                         .with(this.key, children));
     }
 
     private Result<List<Node>, CompileError> foldList(Result<List<Node>, CompileError> maybeCurrent, Result<Node, CompileError> maybeElement) {
-        return maybeCurrent.flatMap(current -> maybeElement.map(element -> {
+        return maybeCurrent.flatMap(current -> maybeElement.mapValue(element -> {
             current.add(element);
             return current;
         }));
@@ -49,10 +49,10 @@ public final class NodeListRule<Node extends NodeWithNodeLists<Node> & Displayab
         return children.stream()
                 .map(this.rule::generate)
                 .reduce(new Ok<>(new StringBuilder()), this::foldString, (_, next) -> next)
-                .map(StringBuilder::toString);
+                .mapValue(StringBuilder::toString);
     }
 
     private Result<StringBuilder, CompileError> foldString(Result<StringBuilder, CompileError> maybeCurrent, Result<String, CompileError> maybeElement) {
-        return maybeCurrent.flatMap(current -> maybeElement.map(current::append));
+        return maybeCurrent.flatMap(current -> maybeElement.mapValue(current::append));
     }
 }

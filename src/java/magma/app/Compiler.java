@@ -16,7 +16,7 @@ public class Compiler {
         final var children1 = transform(tree, name);
         return CommonLang.createPlantUMLRootRule()
                 .generate(children1)
-                .map(joined -> generate(name, joined));
+                .mapValue(joined -> generate(name, joined));
     }
 
     private static String generate(String name, String joined) {
@@ -44,9 +44,9 @@ public class Compiler {
                         .lex(input.getValue())
                         .flatMap(tree -> parseAndGenerate(tree, input.getKey()));
 
-                return result.map(inner::append);
+                return result.mapValue(inner::append);
             });
 
-        return buffer.map(inner -> "@startuml\nskinparam linetype ortho\n" + inner + "@enduml");
+        return buffer.mapValue(inner -> "@startuml\nskinparam linetype ortho\n" + inner + "@enduml");
     }
 }

@@ -39,6 +39,6 @@ public final class TruncateRule<Node> implements Rule<Node> {
     @Override
     public Result<String, CompileError> generate(Node node) {
         return this.rule.generate(node)
-                .map(this.truncator::generate);
+                .mapValue(this.truncator::generate);
     }
 }

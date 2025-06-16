@@ -15,7 +15,6 @@ StringRule --> NodeWithStrings
 class MapNodeFactory
 class Err
 Err --> Optional
-Err --> Consumer
 Err --> Function
 class EmptyRule
 EmptyRule --> Ok
@@ -35,9 +34,12 @@ LastRule --> Err
 LastRule --> Result
 LastRule --> CompileError
 LastRule --> StringContext
+class ThrowableError
+ThrowableError --> IOException
+ThrowableError --> PrintWriter
+ThrowableError --> StringWriter
 class Result
 Result --> Optional
-Result --> Consumer
 Result --> Function
 class SuffixTruncator
 SuffixTruncator --> Optional
@@ -123,9 +125,13 @@ NodeWithNodeLists --> NodeProperties
 NodeWithNodeLists --> List
 class Ok
 Ok --> Optional
-Ok --> Consumer
 Ok --> Function
 class Main
+Main --> Err
+Main --> Error
+Main --> Ok
+Main --> Result
+Main --> ThrowableError
 Main --> Compiler
 Main --> IOException
 Main --> Files
@@ -133,6 +139,8 @@ Main --> Path
 Main --> Paths
 Main --> HashMap
 Main --> Map
+Main --> Optional
+Main --> Set
 Main --> Collectors
 class Divider
 Divider --> List

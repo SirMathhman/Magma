@@ -1,7 +1,6 @@
 package magma.api;
 
 import java.util.Optional;
-import java.util.function.Consumer;
 import java.util.function.Function;
 
 public record Ok<Value, Error>(Value value) implements Result<Value, Error> {
@@ -11,7 +10,7 @@ public record Ok<Value, Error>(Value value) implements Result<Value, Error> {
     }
 
     @Override
-    public <Return> Result<Return, Error> map(Function<Value, Return> mapper) {
+    public <Return> Result<Return, Error> mapValue(Function<Value, Return> mapper) {
         return new Ok<>(mapper.apply(this.value));
     }
 
@@ -21,7 +20,8 @@ public record Ok<Value, Error>(Value value) implements Result<Value, Error> {
     }
 
     @Override
-    public void consume(Consumer<Value> whenOk, Consumer<Error> whenErr) {
-        whenOk.accept(this.value);
+    public <Return> Return match(Function<Value, Return> whenOk, Function<Error, Return> whenErr) {
+        return whenOk.apply(this.value);
     }
+
 }
