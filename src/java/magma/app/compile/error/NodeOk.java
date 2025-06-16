@@ -7,14 +7,14 @@ import magma.app.compile.rule.OrState;
 import java.util.List;
 import java.util.function.Function;
 
-public record NodeOk<Node, Error>(Node node) implements NodeResult<Node, Error, StringResult<Error>> {
+public record NodeOk<Node, Error, StringResult>(Node node) implements NodeResult<Node, Error, StringResult> {
     @Override
-    public NodeResult<Node, Error, StringResult<Error>> transform(Function<Node, NodeResult<Node, Error, StringResult<Error>>> mapper) {
+    public NodeResult<Node, Error, StringResult> transform(Function<Node, NodeResult<Node, Error, StringResult>> mapper) {
         return mapper.apply(this.node);
     }
 
     @Override
-    public StringResult<Error> generate(Function<Node, StringResult<Error>> generator) {
+    public StringResult generate(Function<Node, StringResult> generator) {
         return generator.apply(this.node);
     }
 
