@@ -8,7 +8,8 @@ StringRule --> Err
 StringRule --> Ok
 StringRule --> Result
 StringRule --> CompileError
-StringRule --> StringContext
+StringRule --> NodeContext
+StringRule --> DisplayableNode
 StringRule --> NodeFactory
 StringRule --> NodeWithStrings
 class MapNodeFactory

@@ -4,11 +4,12 @@ import magma.api.Err;
 import magma.api.Ok;
 import magma.api.Result;
 import magma.app.compile.CompileError;
-import magma.app.compile.context.StringContext;
+import magma.app.compile.context.NodeContext;
+import magma.app.compile.node.DisplayableNode;
 import magma.app.compile.node.NodeFactory;
 import magma.app.compile.node.NodeWithStrings;
 
-public final class StringRule<Node extends NodeWithStrings<Node>> implements Rule<Node> {
+public final class StringRule<Node extends NodeWithStrings<Node> & DisplayableNode> implements Rule<Node> {
     private final String key;
     private final NodeFactory<Node> factory;
 
@@ -29,6 +30,6 @@ public final class StringRule<Node extends NodeWithStrings<Node>> implements Rul
         return node.strings()
                 .find(this.key)
                 .<Result<String, CompileError>>map(Ok::new)
-                .orElseGet(() -> new Err<>(new CompileError("Invalid rule", new StringContext(""))));
+                .orElseGet(() -> new Err<>(new CompileError("Invalid rule", new NodeContext(node))));
     }
 }
