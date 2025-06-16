@@ -5,7 +5,7 @@ import magma.api.Error;
 import magma.api.Ok;
 import magma.api.Result;
 import magma.api.ThrowableError;
-import magma.app.compile.CompilerImpl;
+import magma.app.compile.Compiler;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -18,6 +18,12 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 public class Application {
+    private final Compiler compiler;
+
+    public Application(Compiler compiler) {
+        this.compiler = compiler;
+    }
+
     Result<Set<Path>, Error> collect() {
         try (final var stream = Files.walk(Paths.get(".", "src", "java"))) {
             final var sources = stream.filter(Files::isRegularFile)
@@ -72,7 +78,7 @@ public class Application {
     }
 
     Optional<? extends Error> compileAndWrite(Map<String, String> inputs) {
-        return new CompilerImpl().compile(inputs)
+        return this.compiler.compile(inputs)
                 .match(output -> this.writeString(Paths.get(".", "diagram.puml"), output), Optional::of);
     }
 }

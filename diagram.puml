@@ -127,7 +127,7 @@ Application --> Error
 Application --> Ok
 Application --> Result
 Application --> ThrowableError
-Application --> CompilerImpl
+Application --> Compiler
 Application --> IOException
 Application --> Files
 Application --> Path
@@ -139,6 +139,7 @@ Application --> Set
 Application --> Collectors
 class Main
 Main --> Application
+Main --> CompilerImpl
 class Divider
 Divider --> List
 @enduml
