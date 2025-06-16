@@ -41,6 +41,24 @@ OrState --> Result
 OrState --> List
 class NodeListResult
 NodeListResult --> Supplier
+class FactoryRuleBuilder
+FactoryRuleBuilder --> CompileResultFactory
+FactoryRuleBuilder --> NodeListResult
+FactoryRuleBuilder --> NodeResult
+FactoryRuleBuilder --> StringResult
+FactoryRuleBuilder --> MapNodeFactory
+FactoryRuleBuilder --> NodeWithEverything
+FactoryRuleBuilder --> EmptyRule
+FactoryRuleBuilder --> LastRule
+FactoryRuleBuilder --> OrRule
+FactoryRuleBuilder --> Rule
+FactoryRuleBuilder --> StringRule
+FactoryRuleBuilder --> TruncateRule
+FactoryRuleBuilder --> NodeListRule
+FactoryRuleBuilder --> PrefixTruncator
+FactoryRuleBuilder --> StripTruncator
+FactoryRuleBuilder --> SuffixTruncator
+FactoryRuleBuilder --> List
 class Compiler
 Compiler --> StringResult
 Compiler --> Map
@@ -140,8 +158,8 @@ MapNode --> List
 class NodeListErr
 NodeListErr --> Error
 NodeListErr --> NodeListResult
-NodeListErr --> NodeResults
 NodeListErr --> NodeResult
+NodeListErr --> NodeResults
 NodeListErr --> NodeWithEverything
 NodeListErr --> Supplier
 class MapNodeProperties
@@ -162,32 +180,21 @@ NodeResult --> List
 NodeResult --> Function
 class NodeListOk
 NodeListOk --> NodeListResult
-NodeListOk --> NodeResults
 NodeListOk --> NodeResult
+NodeListOk --> NodeResults
 NodeListOk --> MapNode
 NodeListOk --> NodeWithEverything
 NodeListOk --> ArrayList
 NodeListOk --> List
 NodeListOk --> Supplier
 class RuleBuilder
-RuleBuilder --> DefaultCompileResultFactory
-RuleBuilder --> MapNodeFactory
 RuleBuilder --> NodeWithEverything
-RuleBuilder --> EmptyRule
-RuleBuilder --> LastRule
-RuleBuilder --> OrRule
 RuleBuilder --> Rule
-RuleBuilder --> StringRule
-RuleBuilder --> TruncateRule
-RuleBuilder --> NodeListRule
-RuleBuilder --> PrefixTruncator
-RuleBuilder --> StripTruncator
-RuleBuilder --> SuffixTruncator
 RuleBuilder --> List
 class RuleCompiler
 RuleCompiler --> DefaultCompileResultFactory
-RuleCompiler --> NodeResults
 RuleCompiler --> NodeResult
+RuleCompiler --> NodeResults
 RuleCompiler --> StringResult
 RuleCompiler --> MapNode
 RuleCompiler --> NodeWithEverything
@@ -220,7 +227,9 @@ MutableDivideState --> ArrayList
 MutableDivideState --> List
 class DisplayableNode
 class CommonLang
+CommonLang --> DefaultCompileResultFactory
 CommonLang --> RuleBuilder
+CommonLang --> FactoryRuleBuilder
 CommonLang --> NodeWithEverything
 CommonLang --> Rule
 CommonLang --> List

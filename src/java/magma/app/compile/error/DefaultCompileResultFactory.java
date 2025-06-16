@@ -10,7 +10,7 @@ public class DefaultCompileResultFactory implements CompileResultFactory<NodeWit
     private DefaultCompileResultFactory() {
     }
 
-    public static CompileResultFactory<NodeWithEverything, StringResult, NodeResult<NodeWithEverything>, NodeListResult<NodeWithEverything>> createResultCompileResultFactory() {
+    public static CompileResultFactory<NodeWithEverything, StringResult, NodeResult<NodeWithEverything>, NodeListResult<NodeWithEverything>> create() {
         return new DefaultCompileResultFactory();
     }
 

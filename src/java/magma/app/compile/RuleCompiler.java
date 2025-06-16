@@ -36,7 +36,7 @@ public class RuleCompiler implements Compiler {
 
     @Override
     public StringResult compile(Map<String, String> inputs) {
-        StringResult currentResult = DefaultCompileResultFactory.createResultCompileResultFactory()
+        StringResult currentResult = DefaultCompileResultFactory.create()
                 .fromEmptyString();
 
         for (var input : inputs.entrySet())
