@@ -4,6 +4,14 @@ class CompileError
 CompileError --> Context
 CompileError --> ArrayList
 CompileError --> List
+class CompilerFactory
+CompilerFactory --> DefaultCompileResultFactory
+CompilerFactory --> FormattedError
+CompilerFactory --> StringResult
+CompilerFactory --> JavaRootRuleFactory
+CompilerFactory --> PlantUMLRootRuleFactory
+CompilerFactory --> FactoryRuleBuilder
+CompilerFactory --> MapNodeFactory
 class Completable
 Completable --> Function
 class MapNodeFactory
@@ -213,12 +221,7 @@ class Ok
 Ok --> Function
 class Main
 Main --> Application
-Main --> RuleCompiler
-Main --> DefaultCompileResultFactory
-Main --> JavaRootRuleFactory
-Main --> PlantUMLRootRuleFactory
-Main --> FactoryRuleBuilder
-Main --> MapNodeFactory
+Main --> CompilerFactory
 class Divider
 Divider --> List
 @enduml
