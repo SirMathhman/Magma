@@ -28,6 +28,10 @@ DivideRule --> Optional
 DivideRule --> Collectors
 class NodeProperties
 NodeProperties --> Optional
+class EverythingRuleImpl
+EverythingRuleImpl --> NodeWithEverything
+EverythingRuleImpl --> Rule
+EverythingRuleImpl --> Optional
 class PrefixRule
 PrefixRule --> Optional
 class Compiler
@@ -41,7 +45,6 @@ Compiler --> Map
 Compiler --> Optional
 class OrRule
 OrRule --> List
-OrRule --> Objects
 OrRule --> Optional
 class StripRule
 StripRule --> Optional
@@ -49,9 +52,14 @@ class Completer
 class MutableDivideState
 MutableDivideState --> ArrayList
 MutableDivideState --> List
+class EverythingRule
+EverythingRule --> NodeWithEverything
+EverythingRule --> Rule
 class DivideState
 DivideState --> List
 class CommonLang
+CommonLang --> EverythingRule
+CommonLang --> EverythingRuleImpl
 CommonLang --> MapNodeFactory
 CommonLang --> NodeWithEverything
 CommonLang --> OrRule
@@ -65,21 +73,21 @@ class NodeWithEverything
 class NodeWithStrings
 NodeWithStrings --> NodeProperties
 class JavaLang
+JavaLang --> EverythingRule
+JavaLang --> EverythingRuleImpl
 JavaLang --> MapNodeFactory
-JavaLang --> NodeWithEverything
 JavaLang --> LastRule
 JavaLang --> PrefixRule
-JavaLang --> Rule
 JavaLang --> StringRule
 JavaLang --> StripRule
 JavaLang --> SuffixRule
 JavaLang --> List
 class PlantUMLLang
+PlantUMLLang --> EverythingRule
+PlantUMLLang --> EverythingRuleImpl
 PlantUMLLang --> MapNodeFactory
-PlantUMLLang --> NodeWithEverything
 PlantUMLLang --> EmptyRule
 PlantUMLLang --> LastRule
-PlantUMLLang --> Rule
 PlantUMLLang --> StringRule
 PlantUMLLang --> SuffixRule
 PlantUMLLang --> List
