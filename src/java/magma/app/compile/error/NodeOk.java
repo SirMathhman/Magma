@@ -8,24 +8,24 @@ import magma.app.compile.rule.OrState;
 import java.util.List;
 import java.util.function.Function;
 
-public record NodeOk(NodeWithEverything node) implements NodeResult<NodeWithEverything> {
+public record NodeOk<Error>(NodeWithEverything node) implements NodeResult<NodeWithEverything, Error> {
     @Override
-    public NodeResult<NodeWithEverything> transform(Function<NodeWithEverything, NodeResult<NodeWithEverything>> mapper) {
+    public NodeResult<NodeWithEverything, Error> transform(Function<NodeWithEverything, NodeResult<NodeWithEverything, Error>> mapper) {
         return mapper.apply(this.node);
     }
 
     @Override
-    public StringResult generate(Function<NodeWithEverything, StringResult> generator) {
+    public StringResult<Error> generate(Function<NodeWithEverything, StringResult<Error>> generator) {
         return generator.apply(this.node);
     }
 
     @Override
-    public OrState<NodeWithEverything, FormattedError> attachToState(OrState<NodeWithEverything, FormattedError> state) {
+    public OrState<NodeWithEverything, Error> attachToState(OrState<NodeWithEverything, Error> state) {
         return state.withValue(this.node);
     }
 
     @Override
-    public Result<List<NodeWithEverything>, FormattedError> attachToList(List<NodeWithEverything> list) {
+    public Result<List<NodeWithEverything>, Error> attachToList(List<NodeWithEverything> list) {
         list.add(this.node);
         return new Ok<>(list);
     }

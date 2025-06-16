@@ -7,34 +7,34 @@ import magma.app.compile.rule.OrState;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
-public record StringErr(FormattedError error) implements StringResult {
+public record StringErr<Error>(Error error) implements StringResult<Error> {
     @Override
-    public StringResult appendResult(Supplier<StringResult> other) {
+    public StringResult<Error> appendResult(Supplier<StringResult<Error>> other) {
         return this;
     }
 
     @Override
-    public StringResult complete(Function<String, String> mapper) {
+    public StringResult<Error> complete(Function<String, String> mapper) {
         return this;
     }
 
     @Override
-    public StringResult prependSlice(String slice) {
+    public StringResult<Error> prependSlice(String slice) {
         return this;
     }
 
     @Override
-    public StringResult appendSlice(String slice) {
+    public StringResult<Error> appendSlice(String slice) {
         return this;
     }
 
     @Override
-    public Result<String, FormattedError> toResult() {
+    public Result<String, Error> toResult() {
         return new Err<>(this.error);
     }
 
     @Override
-    public OrState<String, FormattedError> attachToState(OrState<String, FormattedError> state) {
+    public OrState<String, Error> attachToState(OrState<String, Error> state) {
         return state.withError(this.error);
     }
 }

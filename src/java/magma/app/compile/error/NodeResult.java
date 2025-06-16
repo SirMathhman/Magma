@@ -6,12 +6,12 @@ import magma.app.compile.rule.OrState;
 import java.util.List;
 import java.util.function.Function;
 
-public interface NodeResult<Node> {
-    NodeResult<Node> transform(Function<Node, NodeResult<Node>> mapper);
+public interface NodeResult<Node, Error> {
+    NodeResult<Node, Error> transform(Function<Node, NodeResult<Node, Error>> mapper);
 
-    StringResult generate(Function<Node, StringResult> generator);
+    StringResult<Error> generate(Function<Node, StringResult<Error>> generator);
 
-    OrState<Node, FormattedError> attachToState(OrState<Node, FormattedError> nodeState);
+    OrState<Node, Error> attachToState(OrState<Node, Error> nodeState);
 
-    Result<List<Node>, FormattedError> attachToList(List<Node> nodes);
+    Result<List<Node>, Error> attachToList(List<Node> nodes);
 }

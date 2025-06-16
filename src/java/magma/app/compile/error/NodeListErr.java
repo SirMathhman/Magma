@@ -4,14 +4,14 @@ import magma.app.compile.node.NodeWithEverything;
 
 import java.util.function.Supplier;
 
-public record NodeListErr(FormattedError error) implements NodeListResult<NodeWithEverything> {
+public record NodeListErr<Error>(Error error) implements NodeListResult<NodeWithEverything, Error> {
     @Override
-    public NodeResult<NodeWithEverything> toNode(String key) {
-        return NodeResults.Err(this.error);
+    public NodeResult<NodeWithEverything, Error> toNode(String key) {
+        return new NodeErr<>(this.error);
     }
 
     @Override
-    public NodeListResult<NodeWithEverything> add(Supplier<NodeResult<NodeWithEverything>> other) {
+    public NodeListResult<NodeWithEverything, Error> add(Supplier<NodeResult<NodeWithEverything, Error>> other) {
         return this;
     }
 }

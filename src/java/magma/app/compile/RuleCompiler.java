@@ -1,6 +1,7 @@
 package magma.app.compile;
 
 import magma.app.compile.error.DefaultCompileResultFactory;
+import magma.app.compile.error.FormattedError;
 import magma.app.compile.error.NodeResult;
 import magma.app.compile.error.NodeResults;
 import magma.app.compile.error.StringResult;
@@ -13,15 +14,15 @@ import java.util.ArrayList;
 import java.util.Map;
 
 public class RuleCompiler implements Compiler {
-    private final Rule<NodeWithEverything> targetRule;
-    private final Rule<NodeWithEverything> sourceRule;
+    private final Rule<NodeWithEverything, FormattedError> targetRule;
+    private final Rule<NodeWithEverything, FormattedError> sourceRule;
 
-    public RuleCompiler(Rule<NodeWithEverything> sourceRule, Rule<NodeWithEverything> targetRule) {
+    public RuleCompiler(Rule<NodeWithEverything, FormattedError> sourceRule, Rule<NodeWithEverything, FormattedError> targetRule) {
         this.sourceRule = sourceRule;
         this.targetRule = targetRule;
     }
 
-    private NodeResult<NodeWithEverything> transform(NodeWithNodeLists<NodeWithEverything> tree, String name) {
+    private NodeResult<NodeWithEverything, FormattedError> transform(NodeWithNodeLists<NodeWithEverything> tree, String name) {
         final var list = tree.nodeLists()
                 .find("children")
                 .orElse(new ArrayList<>())
@@ -35,8 +36,8 @@ public class RuleCompiler implements Compiler {
     }
 
     @Override
-    public StringResult compile(Map<String, String> inputs) {
-        StringResult currentResult = DefaultCompileResultFactory.create()
+    public StringResult<FormattedError> compile(Map<String, String> inputs) {
+        StringResult<FormattedError> currentResult = DefaultCompileResultFactory.create()
                 .fromEmptyString();
 
         for (var input : inputs.entrySet())

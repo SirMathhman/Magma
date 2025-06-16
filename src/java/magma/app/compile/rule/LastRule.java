@@ -5,13 +5,13 @@ import magma.app.compile.error.NodeListResult;
 import magma.app.compile.error.NodeResult;
 import magma.app.compile.error.StringResult;
 
-public final class LastRule<Node> implements Rule<Node> {
-    private final Rule<Node> leftRule;
+public final class LastRule<Node, Error> implements Rule<Node, Error> {
+    private final Rule<Node, Error> leftRule;
     private final String infix;
-    private final Rule<Node> rightRule;
-    private final CompileResultFactory<Node, StringResult, NodeResult<Node>, NodeListResult<Node>> resultFactory;
+    private final Rule<Node, Error> rightRule;
+    private final CompileResultFactory<Node, Error, StringResult<Error>, NodeResult<Node, Error>, NodeListResult<Node, Error>> resultFactory;
 
-    public LastRule(Rule<Node> leftRule, String infix, Rule<Node> rightRule, CompileResultFactory<Node, StringResult, NodeResult<Node>, NodeListResult<Node>> resultFactory) {
+    public LastRule(Rule<Node, Error> leftRule, String infix, Rule<Node, Error> rightRule, CompileResultFactory<Node, Error, StringResult<Error>, NodeResult<Node, Error>, NodeListResult<Node, Error>> resultFactory) {
         this.leftRule = leftRule;
         this.infix = infix;
         this.rightRule = rightRule;
@@ -19,7 +19,7 @@ public final class LastRule<Node> implements Rule<Node> {
     }
 
     @Override
-    public NodeResult<Node> lex(String input) {
+    public NodeResult<Node, Error> lex(String input) {
         final var separator = input.lastIndexOf(this.infix);
         if (separator < 0)
             return this.resultFactory.fromStringError("Infix '" + this.infix + "' not present", input);
@@ -29,7 +29,7 @@ public final class LastRule<Node> implements Rule<Node> {
     }
 
     @Override
-    public StringResult generate(Node node) {
+    public StringResult<Error> generate(Node node) {
         return this.leftRule.generate(node)
                 .appendSlice(this.infix)
                 .appendResult(() -> this.rightRule.generate(node));

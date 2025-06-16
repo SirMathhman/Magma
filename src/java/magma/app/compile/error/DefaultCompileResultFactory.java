@@ -4,51 +4,51 @@ import magma.app.compile.node.NodeWithEverything;
 
 import java.util.List;
 
-public class DefaultCompileResultFactory implements CompileResultFactory<NodeWithEverything, StringResult, NodeResult<NodeWithEverything>, NodeListResult<NodeWithEverything>> {
+public class DefaultCompileResultFactory implements CompileResultFactory<NodeWithEverything, FormattedError, StringResult<FormattedError>, NodeResult<NodeWithEverything, FormattedError>, NodeListResult<NodeWithEverything, FormattedError>> {
     private DefaultCompileResultFactory() {
     }
 
-    public static CompileResultFactory<NodeWithEverything, StringResult, NodeResult<NodeWithEverything>, NodeListResult<NodeWithEverything>> create() {
+    public static CompileResultFactory<NodeWithEverything, FormattedError, StringResult<FormattedError>, NodeResult<NodeWithEverything, FormattedError>, NodeListResult<NodeWithEverything, FormattedError>> create() {
         return new DefaultCompileResultFactory();
     }
 
     @Override
-    public NodeResult<NodeWithEverything> fromNode(NodeWithEverything node) {
+    public NodeResult<NodeWithEverything, FormattedError> fromNode(NodeWithEverything node) {
         return NodeResults.Ok(node);
     }
 
     @Override
-    public StringResult fromString(String value) {
+    public StringResult<FormattedError> fromString(String value) {
         return StringResults.Ok(value);
     }
 
     @Override
-    public StringResult fromNodeError(String message, NodeWithEverything context) {
+    public StringResult<FormattedError> fromNodeError(String message, NodeWithEverything context) {
         return StringResults.ErrWithNodes(message, context);
     }
 
     @Override
-    public NodeResult<NodeWithEverything> fromStringError(String message, String context) {
+    public NodeResult<NodeWithEverything, FormattedError> fromStringError(String message, String context) {
         return NodeResults.ErrWithString(message, context);
     }
 
     @Override
-    public NodeListResult<NodeWithEverything> fromEmptyNodeList() {
-        return new NodeListOk();
+    public NodeListResult<NodeWithEverything, FormattedError> fromEmptyNodeList() {
+        return new NodeListOk<>();
     }
 
     @Override
-    public StringResult fromEmptyString() {
+    public StringResult<FormattedError> fromEmptyString() {
         return this.fromString("");
     }
 
     @Override
-    public NodeResult<NodeWithEverything> fromStringErrorWithChildren(String message, String context, List<FormattedError> errors) {
+    public NodeResult<NodeWithEverything, FormattedError> fromStringErrorWithChildren(String message, String context, List<FormattedError> errors) {
         return NodeResults.ErrWithChildren(message, context, errors);
     }
 
     @Override
-    public StringResult fromNodeErrorWithChildren(String message, NodeWithEverything node, List<FormattedError> errors) {
+    public StringResult<FormattedError> fromNodeErrorWithChildren(String message, NodeWithEverything node, List<FormattedError> errors) {
         return StringResults.ErrWithChildren(message, node, errors);
     }
 }

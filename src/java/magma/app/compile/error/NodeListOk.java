@@ -7,19 +7,25 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Supplier;
 
-public record NodeListOk(List<NodeWithEverything> nodes) implements NodeListResult<NodeWithEverything> {
+public final class NodeListOk<Error> implements NodeListResult<NodeWithEverything, Error> {
+    public final List<NodeWithEverything> nodes;
+
+    public NodeListOk(List<NodeWithEverything> nodes) {
+        this.nodes = nodes;
+    }
+
     public NodeListOk() {
         this(new ArrayList<>());
     }
 
     @Override
-    public NodeResult<NodeWithEverything> toNode(String key) {
-        return NodeResults.Ok(new MapNode().nodeLists()
+    public NodeResult<NodeWithEverything, Error> toNode(String key) {
+        return new NodeOk<>(new MapNode().nodeLists()
                 .with(key, this.nodes));
     }
 
     @Override
-    public NodeListResult<NodeWithEverything> add(Supplier<NodeResult<NodeWithEverything>> other) {
+    public NodeListResult<NodeWithEverything, Error> add(Supplier<NodeResult<NodeWithEverything, Error>> other) {
         return other.get()
                 .attachToList(this.nodes)
                 .match(NodeListOk::new, NodeListErr::new);

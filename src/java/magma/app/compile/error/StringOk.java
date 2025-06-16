@@ -7,35 +7,35 @@ import magma.app.compile.rule.OrState;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
-public record StringOk(String value) implements StringResult {
+public record StringOk<Error>(String value) implements StringResult<Error> {
     @Override
-    public StringResult appendResult(Supplier<StringResult> other) {
+    public StringResult<Error> appendResult(Supplier<StringResult<Error>> other) {
         return other.get()
                 .prependSlice(this.value);
     }
 
     @Override
-    public StringResult complete(Function<String, String> mapper) {
-        return new StringOk(mapper.apply(this.value));
+    public StringResult<Error> complete(Function<String, String> mapper) {
+        return new StringOk<>(mapper.apply(this.value));
     }
 
     @Override
-    public StringResult prependSlice(String slice) {
-        return new StringOk(slice + this.value);
+    public StringResult<Error> prependSlice(String slice) {
+        return new StringOk<>(slice + this.value);
     }
 
     @Override
-    public StringResult appendSlice(String slice) {
-        return new StringOk(this.value + slice);
+    public StringResult<Error> appendSlice(String slice) {
+        return new StringOk<>(this.value + slice);
     }
 
     @Override
-    public Result<String, FormattedError> toResult() {
+    public Result<String, Error> toResult() {
         return new Ok<>(this.value);
     }
 
     @Override
-    public OrState<String, FormattedError> attachToState(OrState<String, FormattedError> state) {
+    public OrState<String, Error> attachToState(OrState<String, Error> state) {
         return state.withValue(this.value);
     }
 }

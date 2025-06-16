@@ -19,45 +19,45 @@ import magma.app.compile.rule.truncate.SuffixTruncator;
 
 import java.util.List;
 
-public class FactoryRuleBuilder implements RuleBuilder {
-    private final CompileResultFactory<NodeWithEverything, StringResult, NodeResult<NodeWithEverything>, NodeListResult<NodeWithEverything>> factory;
+public class FactoryRuleBuilder<Error> implements RuleBuilder<Error> {
+    private final CompileResultFactory<NodeWithEverything, Error, StringResult<Error>, NodeResult<NodeWithEverything, Error>, NodeListResult<NodeWithEverything, Error>> factory;
 
-    public FactoryRuleBuilder(CompileResultFactory<NodeWithEverything, StringResult, NodeResult<NodeWithEverything>, NodeListResult<NodeWithEverything>> factory) {
+    public FactoryRuleBuilder(CompileResultFactory<NodeWithEverything, Error, StringResult<Error>, NodeResult<NodeWithEverything, Error>, NodeListResult<NodeWithEverything, Error>> factory) {
         this.factory = factory;
     }
 
     @Override
-    public Rule<NodeWithEverything> String(String value) {
+    public Rule<NodeWithEverything, Error> String(String value) {
         return new StringRule<>(value, new MapNodeFactory(), this.factory);
     }
 
     @Override
-    public Rule<NodeWithEverything> Strip(Rule<NodeWithEverything> rule) {
+    public Rule<NodeWithEverything, Error> Strip(Rule<NodeWithEverything, Error> rule) {
         return new TruncateRule<>(rule, new StripTruncator(), this.factory);
     }
 
     @Override
-    public Rule<NodeWithEverything> Last(Rule<NodeWithEverything> parent, String infix, Rule<NodeWithEverything> child) {
+    public Rule<NodeWithEverything, Error> Last(Rule<NodeWithEverything, Error> parent, String infix, Rule<NodeWithEverything, Error> child) {
         return new LastRule<>(parent, infix, child, this.factory);
     }
 
     @Override
-    public Rule<NodeWithEverything> Suffix(Rule<NodeWithEverything> last, String suffix) {
+    public Rule<NodeWithEverything, Error> Suffix(Rule<NodeWithEverything, Error> last, String suffix) {
         return new TruncateRule<>(last, new SuffixTruncator(suffix), this.factory);
     }
 
     @Override
-    public Rule<NodeWithEverything> Prefix(Rule<NodeWithEverything> suffix) {
+    public Rule<NodeWithEverything, Error> Prefix(Rule<NodeWithEverything, Error> suffix) {
         return new TruncateRule<>(suffix, new PrefixTruncator("import "), this.factory);
     }
 
     @Override
-    public Rule<NodeWithEverything> NodeList(List<Rule<NodeWithEverything>> children) {
+    public Rule<NodeWithEverything, Error> NodeList(List<Rule<NodeWithEverything, Error>> children) {
         return new NodeListRule<>("children", new OrRule<>(children, this.factory), this.factory);
     }
 
     @Override
-    public Rule<NodeWithEverything> Empty() {
+    public Rule<NodeWithEverything, Error> Empty() {
         return new EmptyRule<>(new MapNodeFactory(), this.factory);
     }
 }

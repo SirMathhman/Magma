@@ -1,9 +1,10 @@
 package magma.app.compile;
 
+import magma.app.compile.error.FormattedError;
 import magma.app.compile.error.StringResult;
 
 import java.util.Map;
 
 public interface Compiler {
-    StringResult compile(Map<String, String> inputs);
+    StringResult<FormattedError> compile(Map<String, String> inputs);
 }

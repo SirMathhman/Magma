@@ -53,6 +53,7 @@ FactoryRuleBuilder --> StripTruncator
 FactoryRuleBuilder --> SuffixTruncator
 FactoryRuleBuilder --> List
 class Compiler
+Compiler --> FormattedError
 Compiler --> StringResult
 Compiler --> Map
 class PrefixTruncator
@@ -66,7 +67,6 @@ NodeErr --> List
 NodeErr --> Function
 class OrRule
 OrRule --> CompileResultFactory
-OrRule --> FormattedError
 OrRule --> NodeListResult
 OrRule --> NodeResult
 OrRule --> StringResult
@@ -168,6 +168,7 @@ RuleBuilder --> Rule
 RuleBuilder --> List
 class RuleCompiler
 RuleCompiler --> DefaultCompileResultFactory
+RuleCompiler --> FormattedError
 RuleCompiler --> NodeResult
 RuleCompiler --> NodeResults
 RuleCompiler --> StringResult
@@ -200,6 +201,7 @@ MutableDivideState --> List
 class DisplayableNode
 class CommonLang
 CommonLang --> DefaultCompileResultFactory
+CommonLang --> FormattedError
 CommonLang --> FactoryRuleBuilder
 CommonLang --> RuleBuilder
 CommonLang --> NodeWithEverything

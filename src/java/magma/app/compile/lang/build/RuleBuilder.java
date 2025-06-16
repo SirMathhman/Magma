@@ -5,18 +5,18 @@ import magma.app.compile.rule.Rule;
 
 import java.util.List;
 
-public interface RuleBuilder {
-    Rule<NodeWithEverything> String(String value);
+public interface RuleBuilder<Error> {
+    Rule<NodeWithEverything, Error> String(String value);
 
-    Rule<NodeWithEverything> Strip(Rule<NodeWithEverything> rule);
+    Rule<NodeWithEverything, Error> Strip(Rule<NodeWithEverything, Error> rule);
 
-    Rule<NodeWithEverything> Last(Rule<NodeWithEverything> parent, String infix, Rule<NodeWithEverything> child);
+    Rule<NodeWithEverything, Error> Last(Rule<NodeWithEverything, Error> parent, String infix, Rule<NodeWithEverything, Error> child);
 
-    Rule<NodeWithEverything> Suffix(Rule<NodeWithEverything> last, String suffix);
+    Rule<NodeWithEverything, Error> Suffix(Rule<NodeWithEverything, Error> last, String suffix);
 
-    Rule<NodeWithEverything> Prefix(Rule<NodeWithEverything> suffix);
+    Rule<NodeWithEverything, Error> Prefix(Rule<NodeWithEverything, Error> suffix);
 
-    Rule<NodeWithEverything> NodeList(List<Rule<NodeWithEverything>> children);
+    Rule<NodeWithEverything, Error> NodeList(List<Rule<NodeWithEverything, Error>> children);
 
-    Rule<NodeWithEverything> Empty();
+    Rule<NodeWithEverything, Error> Empty();
 }

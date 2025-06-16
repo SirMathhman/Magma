@@ -6,16 +6,16 @@ import magma.app.compile.rule.OrState;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
-public interface StringResult {
-    StringResult appendResult(Supplier<StringResult> other);
+public interface StringResult<Error> {
+    StringResult<Error> appendResult(Supplier<StringResult<Error>> other);
 
-    StringResult complete(Function<String, String> mapper);
+    StringResult<Error> complete(Function<String, String> mapper);
 
-    StringResult prependSlice(String slice);
+    StringResult<Error> prependSlice(String slice);
 
-    StringResult appendSlice(String slice);
+    StringResult<Error> appendSlice(String slice);
 
-    Result<String, FormattedError> toResult();
+    Result<String, Error> toResult();
 
-    OrState<String, FormattedError> attachToState(OrState<String, FormattedError> state);
+    OrState<String, Error> attachToState(OrState<String, Error> state);
 }

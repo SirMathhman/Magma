@@ -8,26 +8,26 @@ import magma.app.compile.node.DisplayableNode;
 import magma.app.compile.node.NodeFactory;
 import magma.app.compile.node.NodeWithStrings;
 
-public final class StringRule<Node extends NodeWithStrings<Node> & DisplayableNode> implements Rule<Node> {
+public final class StringRule<Node extends NodeWithStrings<Node> & DisplayableNode, Error> implements Rule<Node, Error> {
     private final String key;
     private final NodeFactory<Node> nodeFactory;
-    private final CompileResultFactory<Node, StringResult, NodeResult<Node>, NodeListResult<Node>> resultFactory;
+    private final CompileResultFactory<Node, Error, StringResult<Error>, NodeResult<Node, Error>, NodeListResult<Node, Error>> resultFactory;
 
-    public StringRule(String key, NodeFactory<Node> nodeFactory, CompileResultFactory<Node, StringResult, NodeResult<Node>, NodeListResult<Node>> resultFactory) {
+    public StringRule(String key, NodeFactory<Node> nodeFactory, CompileResultFactory<Node, Error, StringResult<Error>, NodeResult<Node, Error>, NodeListResult<Node, Error>> resultFactory) {
         this.key = key;
         this.nodeFactory = nodeFactory;
         this.resultFactory = resultFactory;
     }
 
     @Override
-    public NodeResult<Node> lex(String input) {
+    public NodeResult<Node, Error> lex(String input) {
         return this.resultFactory.fromNode(this.nodeFactory.create()
                 .strings()
                 .with(this.key, input));
     }
 
     @Override
-    public StringResult generate(Node node) {
+    public StringResult<Error> generate(Node node) {
         return node.strings()
                 .find(this.key)
                 .map(this.resultFactory::fromString)
