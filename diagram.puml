@@ -152,7 +152,6 @@ NodeListOk --> ArrayList
 NodeListOk --> List
 NodeListOk --> Supplier
 class RuleBuilder
-RuleBuilder --> Rule
 RuleBuilder --> List
 class RuleCompiler
 RuleCompiler --> DefaultCompileResultFactory
