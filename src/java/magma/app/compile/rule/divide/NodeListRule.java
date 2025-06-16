@@ -1,11 +1,8 @@
 package magma.app.compile.rule.divide;
 
-import magma.api.Err;
 import magma.api.Ok;
 import magma.api.Result;
 import magma.app.compile.CompileError;
-import magma.app.compile.context.NodeContext;
-import magma.app.compile.context.StringContext;
 import magma.app.compile.node.DisplayableNode;
 import magma.app.compile.node.NodeFactory;
 import magma.app.compile.node.NodeWithNodeLists;
@@ -13,8 +10,6 @@ import magma.app.compile.rule.Rule;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
-import java.util.stream.Collectors;
 
 public final class NodeListRule<Node extends NodeWithNodeLists<Node> & DisplayableNode> implements Rule<Node> {
     private final String key;
@@ -31,17 +26,14 @@ public final class NodeListRule<Node extends NodeWithNodeLists<Node> & Displayab
     public Result<Node, CompileError> lex(String input) {
         return Divider.divide(input)
                 .stream()
-                .map(input1 -> this.rule.lex(input1)
-                        .findValue())
-                .reduce(Optional.of(new ArrayList<>()), this::fold, (_, next) -> next)
+                .map(this.rule::lex)
+                .reduce(new Ok<>(new ArrayList<>()), this::foldList, (_, next) -> next)
                 .map(children -> this.factory.create()
                         .nodeLists()
-                        .with(this.key, children))
-                .<Result<Node, CompileError>>map(Ok::new)
-                .orElseGet(() -> new Err<>(new CompileError("Invalid rule", new StringContext(""))));
+                        .with(this.key, children));
     }
 
-    private Optional<List<Node>> fold(Optional<List<Node>> maybeCurrent, Optional<Node> maybeElement) {
+    private Result<List<Node>, CompileError> foldList(Result<List<Node>, CompileError> maybeCurrent, Result<Node, CompileError> maybeElement) {
         return maybeCurrent.flatMap(current -> maybeElement.map(element -> {
             current.add(element);
             return current;
@@ -54,12 +46,13 @@ public final class NodeListRule<Node extends NodeWithNodeLists<Node> & Displayab
                 .find(this.key)
                 .orElse(new ArrayList<>());
 
-        return Optional.of(children.stream()
-                        .map(node1 -> this.rule.generate(node1)
-                                .findValue())
-                        .flatMap(Optional::stream)
-                        .collect(Collectors.joining()))
-                .<Result<String, CompileError>>map(Ok::new)
-                .orElseGet(() -> new Err<>(new CompileError("Invalid rule", new NodeContext(node))));
+        return children.stream()
+                .map(this.rule::generate)
+                .reduce(new Ok<>(new StringBuilder()), this::foldString, (_, next) -> next)
+                .map(StringBuilder::toString);
+    }
+
+    private Result<StringBuilder, CompileError> foldString(Result<StringBuilder, CompileError> maybeCurrent, Result<String, CompileError> maybeElement) {
+        return maybeCurrent.flatMap(current -> maybeElement.map(current::append));
     }
 }

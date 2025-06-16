@@ -101,20 +101,15 @@ TruncateRule --> CompileError
 TruncateRule --> StringContext
 TruncateRule --> Rule
 class NodeListRule
-NodeListRule --> Err
 NodeListRule --> Ok
 NodeListRule --> Result
 NodeListRule --> CompileError
-NodeListRule --> NodeContext
-NodeListRule --> StringContext
 NodeListRule --> DisplayableNode
 NodeListRule --> NodeFactory
 NodeListRule --> NodeWithNodeLists
 NodeListRule --> Rule
 NodeListRule --> ArrayList
 NodeListRule --> List
-NodeListRule --> Optional
-NodeListRule --> Collectors
 class NodeFactory
 class NodeWithEverything
 class NodeWithStrings
