@@ -20,14 +20,6 @@ class LastRule
 LastRule --> Optional
 class SuffixTruncator
 SuffixTruncator --> Optional
-class DivideRule
-DivideRule --> NodeFactory
-DivideRule --> NodeWithNodeLists
-DivideRule --> Rule
-DivideRule --> ArrayList
-DivideRule --> List
-DivideRule --> Optional
-DivideRule --> Collectors
 class NodeProperties
 NodeProperties --> Optional
 class EverythingRuleImpl
@@ -66,11 +58,19 @@ CommonLang --> EverythingRule
 CommonLang --> EverythingRuleImpl
 CommonLang --> MapNodeFactory
 CommonLang --> OrRule
-CommonLang --> DivideRule
+CommonLang --> NodeListRule
 CommonLang --> List
 class TruncateRule
 TruncateRule --> Rule
 TruncateRule --> Optional
+class NodeListRule
+NodeListRule --> NodeFactory
+NodeListRule --> NodeWithNodeLists
+NodeListRule --> Rule
+NodeListRule --> ArrayList
+NodeListRule --> List
+NodeListRule --> Optional
+NodeListRule --> Collectors
 class NodeFactory
 class NodeWithEverything
 class NodeWithStrings

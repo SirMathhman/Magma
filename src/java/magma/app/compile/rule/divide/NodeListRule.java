@@ -9,12 +9,12 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-public final class DivideRule<Node extends NodeWithNodeLists<Node>> implements Rule<Node> {
+public final class NodeListRule<Node extends NodeWithNodeLists<Node>> implements Rule<Node> {
     private final String key;
     private final Rule<Node> rule;
     private final NodeFactory<Node> factory;
 
-    public DivideRule(String key, Rule<Node> rule, NodeFactory<Node> factory) {
+    public NodeListRule(String key, Rule<Node> rule, NodeFactory<Node> factory) {
         this.key = key;
         this.rule = rule;
         this.factory = factory;
