@@ -44,16 +44,17 @@ public class RuleCompiler implements Compiler {
 
     @Override
     public CompileResult<String> compile(Map<String, String> inputs) {
-        CompileResult<StringBuilder> buffer = ResultCompileResultFactory.createResultCompileResultFactory()
-                .fromValue(new StringBuilder());
+        CompileResult<String> currentResult = ResultCompileResultFactory.createResultCompileResultFactory()
+                .fromEmptyString();
+
         for (var input : inputs.entrySet())
-            buffer = buffer.flatMap(inner -> {
-                final var result = this.sourceRule.lex(input.getValue())
+            currentResult = currentResult.flatMap(current -> {
+                final var compiledResult = this.sourceRule.lex(input.getValue())
                         .flatMap(tree -> this.parseAndGenerate(tree, input.getKey()));
 
-                return result.mapValue(inner::append);
+                return compiledResult.mapValue(compiled -> current + compiled);
             });
 
-        return buffer.mapValue(inner -> "@startuml\nskinparam linetype ortho\n" + inner + "@enduml");
+        return currentResult.mapValue(inner -> "@startuml\nskinparam linetype ortho\n" + inner + "@enduml");
     }
 }

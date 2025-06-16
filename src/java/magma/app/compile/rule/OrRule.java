@@ -1,12 +1,20 @@
 package magma.app.compile.rule;
 
 import magma.app.compile.error.CompileResult;
-import magma.app.compile.error.ResultCompileResultFactory;
+import magma.app.compile.error.CompileResultFactory;
 
 import java.util.List;
 import java.util.Optional;
 
-public record OrRule<Node, R extends Rule<Node>>(List<R> rules) implements Rule<Node> {
+public final class OrRule<Node, R extends Rule<Node>> implements Rule<Node> {
+    private final List<R> rules;
+    private final CompileResultFactory<Node> resultFactory;
+
+    public OrRule(List<R> rules, CompileResultFactory<Node> resultFactory) {
+        this.rules = rules;
+        this.resultFactory = resultFactory;
+    }
+
     @Override
     public CompileResult<Node> lex(String input) {
         return this.rules.stream()
@@ -15,9 +23,8 @@ public record OrRule<Node, R extends Rule<Node>>(List<R> rules) implements Rule<
                         .findValue())
                 .flatMap(Optional::stream)
                 .findFirst()
-                .map(ResultCompileResultFactory.createResultCompileResultFactory()::fromValue)
-                .orElseGet(() -> ResultCompileResultFactory.createResultCompileResultFactory()
-                        .fromStringError("Invalid combination", ""));
+                .map(this.resultFactory::fromNode)
+                .orElseGet(() -> this.resultFactory.fromStringError("Invalid combination", ""));
     }
 
     @Override
@@ -28,8 +35,7 @@ public record OrRule<Node, R extends Rule<Node>>(List<R> rules) implements Rule<
                         .findValue())
                 .flatMap(Optional::stream)
                 .findFirst()
-                .map(ResultCompileResultFactory.createResultCompileResultFactory()::fromValue)
-                .orElseGet(() -> ResultCompileResultFactory.createResultCompileResultFactory()
-                        .fromStringError("Invalid combination", ""));
+                .map(this.resultFactory::fromString)
+                .orElseGet(() -> this.resultFactory.fromNodeError("Invalid combination", node));
     }
 }
