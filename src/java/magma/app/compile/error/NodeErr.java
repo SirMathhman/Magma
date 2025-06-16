@@ -7,9 +7,9 @@ import magma.app.compile.rule.OrState;
 import java.util.List;
 import java.util.function.Function;
 
-public record NodeErr<Node, Error>(Error error) implements NodeResult<Node, Error> {
+public record NodeErr<Node, Error>(Error error) implements NodeResult<Node, Error, StringResult<Error>> {
     @Override
-    public NodeResult<Node, Error> transform(Function<Node, NodeResult<Node, Error>> mapper) {
+    public NodeResult<Node, Error, StringResult<Error>> transform(Function<Node, NodeResult<Node, Error, StringResult<Error>>> mapper) {
         return this;
     }
 

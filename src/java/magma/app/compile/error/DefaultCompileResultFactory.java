@@ -4,16 +4,16 @@ import magma.app.compile.node.NodeWithEverything;
 
 import java.util.List;
 
-public class DefaultCompileResultFactory implements CompileResultFactory<NodeWithEverything, FormattedError, StringResult<FormattedError>, NodeResult<NodeWithEverything, FormattedError>, NodeListResult<NodeWithEverything, FormattedError, NodeResult<NodeWithEverything, FormattedError>>> {
+public class DefaultCompileResultFactory implements CompileResultFactory<NodeWithEverything, FormattedError, StringResult<FormattedError>, NodeResult<NodeWithEverything, FormattedError, StringResult<FormattedError>>, NodeListResult<NodeWithEverything, FormattedError, NodeResult<NodeWithEverything, FormattedError, StringResult<FormattedError>>>> {
     private DefaultCompileResultFactory() {
     }
 
-    public static CompileResultFactory<NodeWithEverything, FormattedError, StringResult<FormattedError>, NodeResult<NodeWithEverything, FormattedError>, NodeListResult<NodeWithEverything, FormattedError, NodeResult<NodeWithEverything, FormattedError>>> create() {
+    public static CompileResultFactory<NodeWithEverything, FormattedError, StringResult<FormattedError>, NodeResult<NodeWithEverything, FormattedError, StringResult<FormattedError>>, NodeListResult<NodeWithEverything, FormattedError, NodeResult<NodeWithEverything, FormattedError, StringResult<FormattedError>>>> create() {
         return new DefaultCompileResultFactory();
     }
 
     @Override
-    public NodeResult<NodeWithEverything, FormattedError> fromNode(NodeWithEverything node) {
+    public NodeResult<NodeWithEverything, FormattedError, StringResult<FormattedError>> fromNode(NodeWithEverything node) {
         return NodeResults.Ok(node);
     }
 
@@ -28,12 +28,12 @@ public class DefaultCompileResultFactory implements CompileResultFactory<NodeWit
     }
 
     @Override
-    public NodeResult<NodeWithEverything, FormattedError> fromStringError(String message, String context) {
+    public NodeResult<NodeWithEverything, FormattedError, StringResult<FormattedError>> fromStringError(String message, String context) {
         return NodeResults.ErrWithString(message, context);
     }
 
     @Override
-    public NodeListResult<NodeWithEverything, FormattedError, NodeResult<NodeWithEverything, FormattedError>> fromEmptyNodeList() {
+    public NodeListResult<NodeWithEverything, FormattedError, NodeResult<NodeWithEverything, FormattedError, StringResult<FormattedError>>> fromEmptyNodeList() {
         return new NodeListOk<>();
     }
 
@@ -43,7 +43,7 @@ public class DefaultCompileResultFactory implements CompileResultFactory<NodeWit
     }
 
     @Override
-    public NodeResult<NodeWithEverything, FormattedError> fromStringErrorWithChildren(String message, String context, List<FormattedError> errors) {
+    public NodeResult<NodeWithEverything, FormattedError, StringResult<FormattedError>> fromStringErrorWithChildren(String message, String context, List<FormattedError> errors) {
         return NodeResults.ErrWithChildren(message, context, errors);
     }
 
