@@ -152,7 +152,6 @@ NodeListOk --> ArrayList
 NodeListOk --> List
 NodeListOk --> Supplier
 class RuleBuilder
-RuleBuilder --> StringResult
 RuleBuilder --> Rule
 RuleBuilder --> List
 class RuleCompiler
@@ -200,10 +199,10 @@ CommonLang --> List
 class StripTruncator
 StripTruncator --> Optional
 class NodeListRule
+NodeListRule --> Appendable
 NodeListRule --> CompileResultFactory
 NodeListRule --> NodeListResult
 NodeListRule --> NodeResult
-NodeListRule --> StringResult
 NodeListRule --> DisplayableNode
 NodeListRule --> NodeWithNodeLists
 NodeListRule --> Rule

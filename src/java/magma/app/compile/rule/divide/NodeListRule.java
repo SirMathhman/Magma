@@ -1,21 +1,21 @@
 package magma.app.compile.rule.divide;
 
+import magma.app.compile.error.Appendable;
 import magma.app.compile.error.CompileResultFactory;
 import magma.app.compile.error.NodeListResult;
 import magma.app.compile.error.NodeResult;
-import magma.app.compile.error.StringResult;
 import magma.app.compile.node.DisplayableNode;
 import magma.app.compile.node.NodeWithNodeLists;
 import magma.app.compile.rule.Rule;
 
 import java.util.ArrayList;
 
-public final class NodeListRule<Node extends NodeWithNodeLists<Node> & DisplayableNode, Error> implements Rule<Node, NodeResult<Node, Error>, StringResult<Error>> {
+public final class NodeListRule<Node extends NodeWithNodeLists<Node> & DisplayableNode, Error, StringResult extends Appendable<StringResult>> implements Rule<Node, NodeResult<Node, Error>, StringResult> {
     private final String key;
-    private final Rule<Node, NodeResult<Node, Error>, StringResult<Error>> rule;
-    private final CompileResultFactory<Node, Error, StringResult<Error>, NodeResult<Node, Error>, NodeListResult<Node, Error, NodeResult<Node, Error>>> resultFactory;
+    private final Rule<Node, NodeResult<Node, Error>, StringResult> rule;
+    private final CompileResultFactory<Node, Error, StringResult, NodeResult<Node, Error>, NodeListResult<Node, Error, NodeResult<Node, Error>>> resultFactory;
 
-    public NodeListRule(String key, Rule<Node, NodeResult<Node, Error>, StringResult<Error>> rule, CompileResultFactory<Node, Error, StringResult<Error>, NodeResult<Node, Error>, NodeListResult<Node, Error, NodeResult<Node, Error>>> resultFactory) {
+    public NodeListRule(String key, Rule<Node, NodeResult<Node, Error>, StringResult> rule, CompileResultFactory<Node, Error, StringResult, NodeResult<Node, Error>, NodeListResult<Node, Error, NodeResult<Node, Error>>> resultFactory) {
         this.key = key;
         this.rule = rule;
         this.resultFactory = resultFactory;
@@ -30,7 +30,7 @@ public final class NodeListRule<Node extends NodeWithNodeLists<Node> & Displayab
     }
 
     @Override
-    public StringResult<Error> generate(Node node) {
+    public StringResult generate(Node node) {
         final var children = node.nodeLists()
                 .find(this.key)
                 .orElse(new ArrayList<>());
