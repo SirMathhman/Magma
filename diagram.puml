@@ -7,6 +7,9 @@ CompileError --> List
 class Completable
 Completable --> Function
 class MapNodeFactory
+class PlantUMLRootRuleFactory
+PlantUMLRootRuleFactory --> RuleBuilder
+PlantUMLRootRuleFactory --> List
 class FormattedError
 FormattedError --> Error
 class EmptyRule
@@ -20,6 +23,9 @@ class LastRule
 LastRule --> Appendable
 LastRule --> CompileResultFactory
 LastRule --> NodeListResult
+class JavaRootRuleFactory
+JavaRootRuleFactory --> RuleBuilder
+JavaRootRuleFactory --> List
 class Result
 Result --> Function
 class StringResults
@@ -184,17 +190,6 @@ class MutableDivideState
 MutableDivideState --> ArrayList
 MutableDivideState --> List
 class DisplayableNode
-class CommonLang
-CommonLang --> DefaultCompileResultFactory
-CommonLang --> FormattedError
-CommonLang --> NodeResult
-CommonLang --> StringResult
-CommonLang --> FactoryRuleBuilder
-CommonLang --> RuleBuilder
-CommonLang --> MapNodeFactory
-CommonLang --> NodeWithEverything
-CommonLang --> Rule
-CommonLang --> List
 class StripTruncator
 StripTruncator --> Optional
 class NodeListRule
@@ -219,7 +214,16 @@ Ok --> Function
 class Main
 Main --> Application
 Main --> RuleCompiler
-Main --> CommonLang
+Main --> DefaultCompileResultFactory
+Main --> FormattedError
+Main --> NodeResult
+Main --> StringResult
+Main --> JavaRootRuleFactory
+Main --> PlantUMLRootRuleFactory
+Main --> FactoryRuleBuilder
+Main --> MapNodeFactory
+Main --> NodeWithEverything
+Main --> Rule
 class Divider
 Divider --> List
 @enduml

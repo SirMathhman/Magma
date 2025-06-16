@@ -23,7 +23,7 @@ public class FactoryRuleBuilder<Error> implements RuleBuilder<Rule<NodeWithEvery
     private final CompileResultFactory<NodeWithEverything, Error, StringResult<Error>, NodeResult<NodeWithEverything, Error, StringResult<Error>>, NodeListResult<NodeWithEverything, NodeResult<NodeWithEverything, Error, StringResult<Error>>>> resultFactory;
     private final NodeFactory<NodeWithEverything> nodeFactory;
 
-    public FactoryRuleBuilder(CompileResultFactory<NodeWithEverything, Error, StringResult<Error>, NodeResult<NodeWithEverything, Error, StringResult<Error>>, NodeListResult<NodeWithEverything, NodeResult<NodeWithEverything, Error, StringResult<Error>>>> resultFactory, NodeFactory<NodeWithEverything> nodeFactory) {
+    public FactoryRuleBuilder(NodeFactory<NodeWithEverything> nodeFactory, CompileResultFactory<NodeWithEverything, Error, StringResult<Error>, NodeResult<NodeWithEverything, Error, StringResult<Error>>, NodeListResult<NodeWithEverything, NodeResult<NodeWithEverything, Error, StringResult<Error>>>> resultFactory) {
         this.resultFactory = resultFactory;
         this.nodeFactory = nodeFactory;
     }
