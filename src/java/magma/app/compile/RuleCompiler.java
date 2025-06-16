@@ -1,6 +1,7 @@
 package magma.app.compile;
 
 import magma.app.compile.error.CompileResult;
+import magma.app.compile.error.ResultCompileResult;
 import magma.app.compile.node.MapNode;
 import magma.app.compile.node.NodeWithEverything;
 import magma.app.compile.node.NodeWithNodeLists;
@@ -43,7 +44,7 @@ public class RuleCompiler implements Compiler {
 
     @Override
     public CompileResult<String> compile(Map<String, String> inputs) {
-        CompileResult<StringBuilder> buffer = CompileResult.from(new StringBuilder());
+        CompileResult<StringBuilder> buffer = ResultCompileResult.from(new StringBuilder());
         for (var input : inputs.entrySet())
             buffer = buffer.flatMap(inner -> {
                 final var result = this.sourceRule.lex(input.getValue())

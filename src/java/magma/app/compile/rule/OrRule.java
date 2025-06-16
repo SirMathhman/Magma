@@ -4,6 +4,7 @@ import magma.api.Err;
 import magma.app.compile.context.StringContext;
 import magma.app.compile.error.CompileError;
 import magma.app.compile.error.CompileResult;
+import magma.app.compile.error.ResultCompileResult;
 
 import java.util.List;
 import java.util.Optional;
@@ -17,8 +18,8 @@ public record OrRule<Node, R extends Rule<Node>>(List<R> rules) implements Rule<
                         .findValue())
                 .flatMap(Optional::stream)
                 .findFirst()
-                .map(CompileResult::from)
-                .orElseGet(() -> new CompileResult<>(new Err<>(new CompileError("Invalid rule", new StringContext("")))));
+                .map(ResultCompileResult::from)
+                .orElseGet(() -> new ResultCompileResult<>(new Err<>(new CompileError("Invalid rule", new StringContext("")))));
     }
 
     @Override
@@ -29,7 +30,7 @@ public record OrRule<Node, R extends Rule<Node>>(List<R> rules) implements Rule<
                         .findValue())
                 .flatMap(Optional::stream)
                 .findFirst()
-                .map(CompileResult::from)
-                .orElseGet(() -> new CompileResult<>(new Err<>(new CompileError("Invalid rule", new StringContext("")))));
+                .map(ResultCompileResult::from)
+                .orElseGet(() -> new ResultCompileResult<>(new Err<>(new CompileError("Invalid rule", new StringContext("")))));
     }
 }

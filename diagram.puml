@@ -8,6 +8,7 @@ StringRule --> Err
 StringRule --> NodeContext
 StringRule --> CompileError
 StringRule --> CompileResult
+StringRule --> ResultCompileResult
 StringRule --> DisplayableNode
 StringRule --> NodeFactory
 StringRule --> NodeWithStrings
@@ -17,6 +18,7 @@ Err --> Optional
 Err --> Function
 class EmptyRule
 EmptyRule --> CompileResult
+EmptyRule --> ResultCompileResult
 EmptyRule --> NodeFactory
 class MapNode
 MapNode --> MapNodeProperties
@@ -31,6 +33,7 @@ LastRule --> Err
 LastRule --> StringContext
 LastRule --> CompileError
 LastRule --> CompileResult
+LastRule --> ResultCompileResult
 class ThrowableError
 ThrowableError --> IOException
 ThrowableError --> PrintWriter
@@ -55,6 +58,7 @@ RuleBuilder --> NodeListRule
 RuleBuilder --> List
 class RuleCompiler
 RuleCompiler --> CompileResult
+RuleCompiler --> ResultCompileResult
 RuleCompiler --> MapNode
 RuleCompiler --> NodeWithEverything
 RuleCompiler --> NodeWithNodeLists
@@ -73,10 +77,15 @@ OrRule --> Err
 OrRule --> StringContext
 OrRule --> CompileError
 OrRule --> CompileResult
+OrRule --> ResultCompileResult
 OrRule --> List
 OrRule --> Optional
 class NodeContext
 NodeContext --> DisplayableNode
+class ResultCompileResult
+ResultCompileResult --> Ok
+ResultCompileResult --> Result
+ResultCompileResult --> Function
 class Error
 class Completer
 class MutableDivideState
@@ -98,12 +107,14 @@ TruncateRule --> Err
 TruncateRule --> StringContext
 TruncateRule --> CompileError
 TruncateRule --> CompileResult
+TruncateRule --> ResultCompileResult
 TruncateRule --> PrefixTruncator
 TruncateRule --> StripTruncator
 TruncateRule --> SuffixTruncator
 TruncateRule --> Truncator
 class NodeListRule
 NodeListRule --> CompileResult
+NodeListRule --> ResultCompileResult
 NodeListRule --> DisplayableNode
 NodeListRule --> NodeFactory
 NodeListRule --> NodeWithNodeLists
@@ -115,7 +126,6 @@ class NodeWithEverything
 class NodeWithStrings
 NodeWithStrings --> NodeProperties
 class CompileResult
-CompileResult --> Ok
 CompileResult --> Result
 CompileResult --> Function
 class Rule
