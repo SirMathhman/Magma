@@ -1,9 +1,10 @@
 package magma.app.compile.rule;
 
-import java.util.Optional;
+import magma.api.Result;
+import magma.app.compile.CompileError;
 
 public interface Rule<Node> {
-    Optional<Node> lex(String input);
+    Result<Node, CompileError> lex(String input);
 
-    Optional<String> generate(Node node);
+    Result<String, CompileError> generate(Node node);
 }

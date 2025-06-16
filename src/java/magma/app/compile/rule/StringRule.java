@@ -1,9 +1,11 @@
 package magma.app.compile.rule;
 
+import magma.api.Err;
+import magma.api.Ok;
+import magma.api.Result;
+import magma.app.compile.CompileError;
 import magma.app.compile.node.NodeFactory;
 import magma.app.compile.node.NodeWithStrings;
-
-import java.util.Optional;
 
 public final class StringRule<Node extends NodeWithStrings<Node>> implements Rule<Node> {
     private final String key;
@@ -15,15 +17,17 @@ public final class StringRule<Node extends NodeWithStrings<Node>> implements Rul
     }
 
     @Override
-    public Optional<Node> lex(String input) {
-        return Optional.of(this.factory.create()
+    public Result<Node, CompileError> lex(String input) {
+        return new Ok<>(this.factory.create()
                 .strings()
                 .with(this.key, input));
     }
 
     @Override
-    public Optional<String> generate(Node node) {
+    public Result<String, CompileError> generate(Node node) {
         return node.strings()
-                .find(this.key);
+                .find(this.key)
+                .<Result<String, CompileError>>map(Ok::new)
+                .orElseGet(() -> new Err<>(new CompileError()));
     }
 }

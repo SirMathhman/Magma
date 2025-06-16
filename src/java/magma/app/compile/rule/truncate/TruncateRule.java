@@ -1,8 +1,10 @@
 package magma.app.compile.rule.truncate;
 
+import magma.api.Err;
+import magma.api.Ok;
+import magma.api.Result;
+import magma.app.compile.CompileError;
 import magma.app.compile.rule.Rule;
-
-import java.util.Optional;
 
 public final class TruncateRule<Node> implements Rule<Node> {
     private final Rule<Node> rule;
@@ -26,13 +28,15 @@ public final class TruncateRule<Node> implements Rule<Node> {
     }
 
     @Override
-    public Optional<Node> lex(String input) {
+    public Result<Node, CompileError> lex(String input) {
         return this.truncator.truncate(input)
+                .<Result<String, CompileError>>map(Ok::new)
+                .orElseGet(() -> new Err<>(new CompileError()))
                 .flatMap(this.rule::lex);
     }
 
     @Override
-    public Optional<String> generate(Node node) {
+    public Result<String, CompileError> generate(Node node) {
         return this.rule.generate(node)
                 .map(this.truncator::generate);
     }

@@ -1,5 +1,9 @@
 package magma.app.compile.rule.divide;
 
+import magma.api.Err;
+import magma.api.Ok;
+import magma.api.Result;
+import magma.app.compile.CompileError;
 import magma.app.compile.node.NodeFactory;
 import magma.app.compile.node.NodeWithNodeLists;
 import magma.app.compile.rule.Rule;
@@ -39,13 +43,16 @@ public final class NodeListRule<Node extends NodeWithNodeLists<Node>> implements
     }
 
     @Override
-    public Optional<Node> lex(String input) {
+    public Result<Node, CompileError> lex(String input) {
         return divide(input).stream()
-                .map(this.rule::lex)
+                .map(input1 -> this.rule.lex(input1)
+                        .findValue())
                 .reduce(Optional.<List<Node>>of(new ArrayList<>()), this::fold, (_, next) -> next)
                 .map(children -> this.factory.create()
                         .nodeLists()
-                        .with(this.key, children));
+                        .with(this.key, children))
+                .<Result<Node, CompileError>>map(Ok::new)
+                .orElseGet(() -> new Err<>(new CompileError()));
     }
 
     private Optional<List<Node>> fold(Optional<List<Node>> maybeCurrent, Optional<Node> maybeElement) {
@@ -56,14 +63,17 @@ public final class NodeListRule<Node extends NodeWithNodeLists<Node>> implements
     }
 
     @Override
-    public Optional<String> generate(Node node) {
+    public Result<String, CompileError> generate(Node node) {
         final var children = node.nodeLists()
                 .find(this.key)
                 .orElse(new ArrayList<>());
 
         return Optional.of(children.stream()
-                .map(this.rule::generate)
+                        .map(node1 -> this.rule.generate(node1)
+                                .findValue())
                 .flatMap(Optional::stream)
-                .collect(Collectors.joining()));
+                        .collect(Collectors.joining()))
+                .<Result<String, CompileError>>map(Ok::new)
+                .orElseGet(() -> new Err<>(new CompileError()));
     }
 }

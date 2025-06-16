@@ -1,8 +1,9 @@
 package magma.app.compile.rule;
 
+import magma.api.Ok;
+import magma.api.Result;
+import magma.app.compile.CompileError;
 import magma.app.compile.node.NodeFactory;
-
-import java.util.Optional;
 
 public class EmptyRule<Node> implements Rule<Node> {
     private final NodeFactory<Node> factory;
@@ -12,12 +13,12 @@ public class EmptyRule<Node> implements Rule<Node> {
     }
 
     @Override
-    public Optional<Node> lex(String input) {
-        return Optional.of(this.factory.create());
+    public Result<Node, CompileError> lex(String input) {
+        return new Ok<>(this.factory.create());
     }
 
     @Override
-    public Optional<String> generate(Node node) {
-        return Optional.of("");
+    public Result<String, CompileError> generate(Node node) {
+        return new Ok<>("");
     }
 }

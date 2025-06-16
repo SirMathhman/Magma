@@ -1,13 +1,22 @@
 @startuml
 skinparam linetype ortho
+class CompileError
 class StringRule
+StringRule --> Err
+StringRule --> Ok
+StringRule --> Result
+StringRule --> CompileError
 StringRule --> NodeFactory
 StringRule --> NodeWithStrings
-StringRule --> Optional
 class MapNodeFactory
+class Err
+Err --> Optional
+Err --> Function
 class EmptyRule
+EmptyRule --> Ok
+EmptyRule --> Result
+EmptyRule --> CompileError
 EmptyRule --> NodeFactory
-EmptyRule --> Optional
 class MapNode
 MapNode --> MapNodeProperties
 MapNode --> NodeProperties
@@ -17,7 +26,13 @@ MapNodeProperties --> HashMap
 MapNodeProperties --> Map
 MapNodeProperties --> Optional
 class LastRule
+LastRule --> Err
+LastRule --> Result
+LastRule --> CompileError
 LastRule --> Optional
+class Result
+Result --> Optional
+Result --> Function
 class SuffixTruncator
 SuffixTruncator --> Optional
 class NodeProperties
@@ -25,20 +40,30 @@ NodeProperties --> Optional
 class RuleBuilder
 RuleBuilder --> MapNodeFactory
 RuleBuilder --> NodeWithEverything
+RuleBuilder --> EmptyRule
+RuleBuilder --> LastRule
+RuleBuilder --> OrRule
+RuleBuilder --> Rule
+RuleBuilder --> StringRule
 RuleBuilder --> NodeListRule
 RuleBuilder --> TruncateRule
 RuleBuilder --> List
 class Compiler
+Compiler --> Result
+Compiler --> CompileError
 Compiler --> CommonLang
-Compiler --> NodeWithEverything
 Compiler --> MapNode
+Compiler --> NodeWithEverything
 Compiler --> NodeWithNodeLists
 Compiler --> ArrayList
 Compiler --> Map
-Compiler --> Optional
 class PrefixTruncator
 PrefixTruncator --> Optional
 class OrRule
+OrRule --> Err
+OrRule --> Ok
+OrRule --> Result
+OrRule --> CompileError
 OrRule --> List
 OrRule --> Optional
 class Completer
@@ -54,12 +79,18 @@ StripTruncator --> Optional
 class CommonLang
 CommonLang --> NodeWithEverything
 CommonLang --> Rule
-CommonLang --> RuleBuilder
 CommonLang --> List
 class TruncateRule
+TruncateRule --> Err
+TruncateRule --> Ok
+TruncateRule --> Result
+TruncateRule --> CompileError
 TruncateRule --> Rule
-TruncateRule --> Optional
 class NodeListRule
+NodeListRule --> Err
+NodeListRule --> Ok
+NodeListRule --> Result
+NodeListRule --> CompileError
 NodeListRule --> NodeFactory
 NodeListRule --> NodeWithNodeLists
 NodeListRule --> Rule
@@ -72,10 +103,14 @@ class NodeWithEverything
 class NodeWithStrings
 NodeWithStrings --> NodeProperties
 class Rule
-Rule --> Optional
+Rule --> Result
+Rule --> CompileError
 class NodeWithNodeLists
 NodeWithNodeLists --> NodeProperties
 NodeWithNodeLists --> List
+class Ok
+Ok --> Optional
+Ok --> Function
 class Main
 Main --> Compiler
 Main --> IOException
