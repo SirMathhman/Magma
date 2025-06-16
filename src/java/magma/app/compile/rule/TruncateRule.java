@@ -1,10 +1,13 @@
-package magma.app.compile.rule.truncate;
+package magma.app.compile.rule;
 
 import magma.api.Err;
 import magma.app.compile.context.StringContext;
 import magma.app.compile.error.CompileError;
 import magma.app.compile.error.CompileResult;
-import magma.app.compile.rule.Rule;
+import magma.app.compile.rule.truncate.PrefixTruncator;
+import magma.app.compile.rule.truncate.StripTruncator;
+import magma.app.compile.rule.truncate.SuffixTruncator;
+import magma.app.compile.rule.truncate.Truncator;
 
 public final class TruncateRule<Node> implements Rule<Node> {
     private final Rule<Node> rule;

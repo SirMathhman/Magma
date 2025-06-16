@@ -53,6 +53,14 @@ RuleBuilder --> StringRule
 RuleBuilder --> NodeListRule
 RuleBuilder --> TruncateRule
 RuleBuilder --> List
+class RuleCompiler
+RuleCompiler --> CompileResult
+RuleCompiler --> MapNode
+RuleCompiler --> NodeWithEverything
+RuleCompiler --> NodeWithNodeLists
+RuleCompiler --> Rule
+RuleCompiler --> ArrayList
+RuleCompiler --> Map
 class StringContext
 class Context
 class Compiler
@@ -67,14 +75,6 @@ OrRule --> CompileError
 OrRule --> CompileResult
 OrRule --> List
 OrRule --> Optional
-class CompilerImpl
-CompilerImpl --> CompileResult
-CompilerImpl --> MapNode
-CompilerImpl --> NodeWithEverything
-CompilerImpl --> NodeWithNodeLists
-CompilerImpl --> Rule
-CompilerImpl --> ArrayList
-CompilerImpl --> Map
 class NodeContext
 NodeContext --> DisplayableNode
 class Error
@@ -98,7 +98,10 @@ TruncateRule --> Err
 TruncateRule --> StringContext
 TruncateRule --> CompileError
 TruncateRule --> CompileResult
-TruncateRule --> Rule
+TruncateRule --> PrefixTruncator
+TruncateRule --> StripTruncator
+TruncateRule --> SuffixTruncator
+TruncateRule --> Truncator
 class NodeListRule
 NodeListRule --> CompileResult
 NodeListRule --> DisplayableNode
@@ -141,7 +144,7 @@ Application --> Set
 Application --> Collectors
 class Main
 Main --> Application
-Main --> CompilerImpl
+Main --> RuleCompiler
 Main --> CommonLang
 class Divider
 Divider --> List
