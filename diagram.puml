@@ -9,6 +9,7 @@ StringRule --> CompileResultFactory
 StringRule --> DisplayableNode
 StringRule --> NodeFactory
 StringRule --> NodeWithStrings
+StringRule --> List
 class MapNodeFactory
 class Err
 Err --> Optional
@@ -17,6 +18,7 @@ class EmptyRule
 EmptyRule --> CompileResult
 EmptyRule --> CompileResultFactory
 EmptyRule --> NodeFactory
+EmptyRule --> List
 class MapNode
 MapNode --> MapNodeProperties
 MapNode --> NodeProperties
@@ -28,6 +30,7 @@ MapNodeProperties --> Optional
 class LastRule
 LastRule --> CompileResult
 LastRule --> CompileResultFactory
+LastRule --> List
 class ThrowableError
 ThrowableError --> IOException
 ThrowableError --> PrintWriter
@@ -50,6 +53,9 @@ RuleBuilder --> Rule
 RuleBuilder --> StringRule
 RuleBuilder --> TruncateRule
 RuleBuilder --> NodeListRule
+RuleBuilder --> PrefixTruncator
+RuleBuilder --> StripTruncator
+RuleBuilder --> SuffixTruncator
 RuleBuilder --> List
 class RuleCompiler
 RuleCompiler --> CompileResult
@@ -97,7 +103,6 @@ ResultCompileResultFactory --> NodeWithEverything
 ResultCompileResultFactory --> ArrayList
 ResultCompileResultFactory --> List
 class CompileResultFactory
-CompileResultFactory --> List
 class StripTruncator
 StripTruncator --> Optional
 class CommonLang
@@ -108,10 +113,8 @@ CommonLang --> List
 class TruncateRule
 TruncateRule --> CompileResult
 TruncateRule --> CompileResultFactory
-TruncateRule --> PrefixTruncator
-TruncateRule --> StripTruncator
-TruncateRule --> SuffixTruncator
 TruncateRule --> Truncator
+TruncateRule --> List
 class NodeListRule
 NodeListRule --> CompileResult
 NodeListRule --> CompileResultFactory
