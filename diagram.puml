@@ -37,7 +37,7 @@ FactoryRuleBuilder --> CompileResultFactory
 FactoryRuleBuilder --> NodeListResult
 FactoryRuleBuilder --> NodeResult
 FactoryRuleBuilder --> StringResult
-FactoryRuleBuilder --> MapNodeFactory
+FactoryRuleBuilder --> NodeFactory
 FactoryRuleBuilder --> NodeWithEverything
 FactoryRuleBuilder --> EmptyRule
 FactoryRuleBuilder --> LastRule
@@ -159,7 +159,6 @@ NodeListOk --> ArrayList
 NodeListOk --> List
 NodeListOk --> Supplier
 class RuleBuilder
-RuleBuilder --> NodeWithEverything
 RuleBuilder --> Rule
 RuleBuilder --> List
 class RuleCompiler
@@ -201,6 +200,7 @@ CommonLang --> FormattedError
 CommonLang --> NodeResult
 CommonLang --> FactoryRuleBuilder
 CommonLang --> RuleBuilder
+CommonLang --> MapNodeFactory
 CommonLang --> NodeWithEverything
 CommonLang --> Rule
 CommonLang --> List
@@ -220,7 +220,6 @@ NodeWithStrings --> NodeProperties
 class NodeOk
 NodeOk --> Ok
 NodeOk --> Result
-NodeOk --> NodeWithEverything
 NodeOk --> OrState
 NodeOk --> List
 NodeOk --> Function

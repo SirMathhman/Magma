@@ -2,30 +2,29 @@ package magma.app.compile.error;
 
 import magma.api.Err;
 import magma.api.Result;
-import magma.app.compile.node.NodeWithEverything;
 import magma.app.compile.rule.OrState;
 
 import java.util.List;
 import java.util.function.Function;
 
-public record NodeErr<Error>(Error error) implements NodeResult<NodeWithEverything, Error> {
+public record NodeErr<Node, Error>(Error error) implements NodeResult<Node, Error> {
     @Override
-    public NodeResult<NodeWithEverything, Error> transform(Function<NodeWithEverything, NodeResult<NodeWithEverything, Error>> mapper) {
+    public NodeResult<Node, Error> transform(Function<Node, NodeResult<Node, Error>> mapper) {
         return this;
     }
 
     @Override
-    public StringResult<Error> generate(Function<NodeWithEverything, StringResult<Error>> generator) {
+    public StringResult<Error> generate(Function<Node, StringResult<Error>> generator) {
         return new StringErr<>(this.error);
     }
 
     @Override
-    public OrState<NodeWithEverything, Error> attachToState(OrState<NodeWithEverything, Error> state) {
+    public OrState<Node, Error> attachToState(OrState<Node, Error> state) {
         return state.withError(this.error);
     }
 
     @Override
-    public Result<List<NodeWithEverything>, Error> attachToList(List<NodeWithEverything> list) {
+    public Result<List<Node>, Error> attachToList(List<Node> list) {
         return new Err<>(this.error);
     }
 }

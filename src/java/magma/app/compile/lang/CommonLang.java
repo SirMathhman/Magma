@@ -5,13 +5,14 @@ import magma.app.compile.error.FormattedError;
 import magma.app.compile.error.NodeResult;
 import magma.app.compile.lang.build.FactoryRuleBuilder;
 import magma.app.compile.lang.build.RuleBuilder;
+import magma.app.compile.node.MapNodeFactory;
 import magma.app.compile.node.NodeWithEverything;
 import magma.app.compile.rule.Rule;
 
 import java.util.List;
 
 public class CommonLang {
-    private static final RuleBuilder<FormattedError, NodeResult<NodeWithEverything, FormattedError>> BUILDER = new FactoryRuleBuilder<>(DefaultCompileResultFactory.create());
+    private static final RuleBuilder<NodeWithEverything, FormattedError, NodeResult<NodeWithEverything, FormattedError>> BUILDER = new FactoryRuleBuilder<>(DefaultCompileResultFactory.create(), new MapNodeFactory());
 
     public static Rule<NodeWithEverything, FormattedError, NodeResult<NodeWithEverything, FormattedError>> createPlantUMLRootRule() {
         return BUILDER.NodeList(List.of(createDependencyRule(), BUILDER.Empty()));
