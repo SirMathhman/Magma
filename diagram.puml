@@ -56,12 +56,6 @@ RuleBuilder --> List
 class StringContext
 class Context
 class Compiler
-Compiler --> CompileResult
-Compiler --> CommonLang
-Compiler --> MapNode
-Compiler --> NodeWithEverything
-Compiler --> NodeWithNodeLists
-Compiler --> ArrayList
 Compiler --> Map
 class PrefixTruncator
 PrefixTruncator --> Optional
@@ -72,6 +66,13 @@ OrRule --> CompileResult
 OrRule --> StringContext
 OrRule --> List
 OrRule --> Optional
+class CompilerImpl
+CompilerImpl --> CommonLang
+CompilerImpl --> MapNode
+CompilerImpl --> NodeWithEverything
+CompilerImpl --> NodeWithNodeLists
+CompilerImpl --> ArrayList
+CompilerImpl --> Map
 class NodeContext
 NodeContext --> DisplayableNode
 class Error
@@ -111,7 +112,6 @@ NodeWithStrings --> NodeProperties
 class CompileResult
 CompileResult --> Ok
 CompileResult --> Result
-CompileResult --> Optional
 CompileResult --> Function
 class Rule
 Rule --> CompileResult
@@ -121,22 +121,24 @@ NodeWithNodeLists --> List
 class Ok
 Ok --> Optional
 Ok --> Function
+class Application
+Application --> Err
+Application --> Error
+Application --> Ok
+Application --> Result
+Application --> ThrowableError
+Application --> CompilerImpl
+Application --> IOException
+Application --> Files
+Application --> Path
+Application --> Paths
+Application --> HashMap
+Application --> Map
+Application --> Optional
+Application --> Set
+Application --> Collectors
 class Main
-Main --> Err
-Main --> Error
-Main --> Ok
-Main --> Result
-Main --> ThrowableError
-Main --> Compiler
-Main --> IOException
-Main --> Files
-Main --> Path
-Main --> Paths
-Main --> HashMap
-Main --> Map
-Main --> Optional
-Main --> Set
-Main --> Collectors
+Main --> Application
 class Divider
 Divider --> List
 @enduml
