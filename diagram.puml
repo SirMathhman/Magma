@@ -59,7 +59,6 @@ PrefixTruncator --> Optional
 class NodeErr
 NodeErr --> Err
 NodeErr --> Result
-NodeErr --> NodeWithEverything
 NodeErr --> OrState
 NodeErr --> List
 NodeErr --> Function
@@ -140,7 +139,6 @@ MapNodeProperties --> HashMap
 MapNodeProperties --> Map
 MapNodeProperties --> Optional
 class NodeListErr
-NodeListErr --> NodeWithEverything
 NodeListErr --> Supplier
 class ThrowableError
 ThrowableError --> IOException
