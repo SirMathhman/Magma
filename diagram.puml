@@ -26,9 +26,19 @@ class EverythingRuleImpl
 EverythingRuleImpl --> NodeWithEverything
 EverythingRuleImpl --> Rule
 EverythingRuleImpl --> Optional
+class RuleBuilder
+RuleBuilder --> MapNodeFactory
+RuleBuilder --> NodeWithEverything
+RuleBuilder --> EmptyRule
+RuleBuilder --> LastRule
+RuleBuilder --> OrRule
+RuleBuilder --> Rule
+RuleBuilder --> StringRule
+RuleBuilder --> NodeListRule
+RuleBuilder --> TruncateRule
+RuleBuilder --> List
 class Compiler
-Compiler --> JavaLang
-Compiler --> PlantUMLLang
+Compiler --> CommonLang
 Compiler --> NodeWithEverything
 Compiler --> MapNode
 Compiler --> NodeWithNodeLists
@@ -54,12 +64,16 @@ DivideState --> List
 class StripTruncator
 StripTruncator --> Optional
 class CommonLang
-CommonLang --> EverythingRule
-CommonLang --> EverythingRuleImpl
-CommonLang --> MapNodeFactory
-CommonLang --> OrRule
-CommonLang --> NodeListRule
+CommonLang --> NodeWithEverything
+CommonLang --> Rule
 CommonLang --> List
+CommonLang --> Empty
+CommonLang --> Last
+CommonLang --> NodeList
+CommonLang --> Prefix
+CommonLang --> String
+CommonLang --> Strip
+CommonLang --> Suffix
 class TruncateRule
 TruncateRule --> Rule
 TruncateRule --> Optional
@@ -75,23 +89,6 @@ class NodeFactory
 class NodeWithEverything
 class NodeWithStrings
 NodeWithStrings --> NodeProperties
-class JavaLang
-JavaLang --> EverythingRule
-JavaLang --> EverythingRuleImpl
-JavaLang --> MapNodeFactory
-JavaLang --> LastRule
-JavaLang --> TruncateRule
-JavaLang --> StringRule
-JavaLang --> List
-class PlantUMLLang
-PlantUMLLang --> EverythingRule
-PlantUMLLang --> EverythingRuleImpl
-PlantUMLLang --> MapNodeFactory
-PlantUMLLang --> EmptyRule
-PlantUMLLang --> LastRule
-PlantUMLLang --> StringRule
-PlantUMLLang --> TruncateRule
-PlantUMLLang --> List
 class Rule
 Rule --> Optional
 class NodeWithNodeLists
