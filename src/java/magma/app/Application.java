@@ -79,6 +79,7 @@ public class Application {
 
     Optional<? extends Error> compileAndWrite(Map<String, String> inputs) {
         return this.compiler.compile(inputs)
+                .toResult()
                 .match(output -> this.writeString(Paths.get(".", "diagram.puml"), output), Optional::of);
     }
 }

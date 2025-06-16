@@ -3,142 +3,91 @@ skinparam linetype ortho
 class CompileError
 CompileError --> Error
 CompileError --> Context
-class StringRule
-StringRule --> CompileResult
-StringRule --> CompileResultFactory
-StringRule --> DisplayableNode
-StringRule --> NodeFactory
-StringRule --> NodeWithStrings
-StringRule --> List
+CompileError --> ArrayList
+CompileError --> List
 class MapNodeFactory
-class Err
-Err --> Optional
-Err --> Function
 class EmptyRule
-EmptyRule --> CompileResult
 EmptyRule --> CompileResultFactory
+EmptyRule --> NodeListResult
+EmptyRule --> NodeResult
+EmptyRule --> StringResult
 EmptyRule --> NodeFactory
-EmptyRule --> List
-class MapNode
-MapNode --> MapNodeProperties
-MapNode --> NodeProperties
-MapNode --> List
-class MapNodeProperties
-MapNodeProperties --> HashMap
-MapNodeProperties --> Map
-MapNodeProperties --> Optional
+class DefaultCompileResultFactory
+DefaultCompileResultFactory --> NodeContext
+DefaultCompileResultFactory --> StringContext
+DefaultCompileResultFactory --> NodeWithEverything
+DefaultCompileResultFactory --> List
 class LastRule
-LastRule --> CompileResult
 LastRule --> CompileResultFactory
-LastRule --> List
-class ThrowableError
-ThrowableError --> IOException
-ThrowableError --> PrintWriter
-ThrowableError --> StringWriter
+LastRule --> NodeListResult
+LastRule --> NodeResult
+LastRule --> StringResult
 class Result
 Result --> Optional
 Result --> Function
 class SuffixTruncator
 SuffixTruncator --> Optional
-class NodeProperties
-NodeProperties --> Optional
-class RuleBuilder
-RuleBuilder --> ResultCompileResultFactory
-RuleBuilder --> MapNodeFactory
-RuleBuilder --> NodeWithEverything
-RuleBuilder --> EmptyRule
-RuleBuilder --> LastRule
-RuleBuilder --> OrRule
-RuleBuilder --> Rule
-RuleBuilder --> StringRule
-RuleBuilder --> TruncateRule
-RuleBuilder --> NodeListRule
-RuleBuilder --> PrefixTruncator
-RuleBuilder --> StripTruncator
-RuleBuilder --> SuffixTruncator
-RuleBuilder --> List
-class RuleCompiler
-RuleCompiler --> CompileResult
-RuleCompiler --> ResultCompileResultFactory
-RuleCompiler --> MapNode
-RuleCompiler --> NodeWithEverything
-RuleCompiler --> NodeWithNodeLists
-RuleCompiler --> Rule
-RuleCompiler --> ArrayList
-RuleCompiler --> Map
-class StringContext
-class Context
+class NodeListResult
+NodeListResult --> Supplier
 class Compiler
-Compiler --> CompileResult
+Compiler --> StringResult
 Compiler --> Map
 class PrefixTruncator
 PrefixTruncator --> Optional
+class NodeErr
+NodeErr --> Err
+NodeErr --> Result
+NodeErr --> NodeWithEverything
+NodeErr --> State
+NodeErr --> List
+NodeErr --> Function
 class OrRule
-OrRule --> CompileResult
 OrRule --> CompileResultFactory
+OrRule --> NodeListResult
+OrRule --> NodeResult
+OrRule --> StringResult
 OrRule --> List
-OrRule --> Optional
 class NodeContext
 NodeContext --> DisplayableNode
-class ResultCompileResult
-ResultCompileResult --> Result
-ResultCompileResult --> Function
-class Error
-class Completer
-class MutableDivideState
-MutableDivideState --> ArrayList
-MutableDivideState --> List
 class Truncator
 Truncator --> Optional
 class DivideState
 DivideState --> List
-class DisplayableNode
-class ResultCompileResultFactory
-ResultCompileResultFactory --> Err
-ResultCompileResultFactory --> Ok
-ResultCompileResultFactory --> Context
-ResultCompileResultFactory --> NodeContext
-ResultCompileResultFactory --> StringContext
-ResultCompileResultFactory --> NodeWithEverything
-ResultCompileResultFactory --> ArrayList
-ResultCompileResultFactory --> List
 class CompileResultFactory
-class StripTruncator
-StripTruncator --> Optional
-class CommonLang
-CommonLang --> RuleBuilder
-CommonLang --> NodeWithEverything
-CommonLang --> Rule
-CommonLang --> List
+CompileResultFactory --> List
 class TruncateRule
-TruncateRule --> CompileResult
 TruncateRule --> CompileResultFactory
+TruncateRule --> NodeListResult
+TruncateRule --> NodeResult
+TruncateRule --> StringResult
 TruncateRule --> Truncator
-TruncateRule --> List
-class NodeListRule
-NodeListRule --> CompileResult
-NodeListRule --> CompileResultFactory
-NodeListRule --> DisplayableNode
-NodeListRule --> NodeFactory
-NodeListRule --> NodeWithNodeLists
-NodeListRule --> Rule
-NodeListRule --> ArrayList
-NodeListRule --> List
 class NodeFactory
+class StringOk
+StringOk --> Ok
+StringOk --> Result
+StringOk --> State
+StringOk --> Function
+StringOk --> Supplier
+class State
+State --> Err
+State --> Ok
+State --> Result
+State --> CompileError
+State --> ArrayList
+State --> List
+State --> Optional
 class NodeWithEverything
-class NodeWithStrings
-NodeWithStrings --> NodeProperties
-class CompileResult
-CompileResult --> Result
-CompileResult --> Function
+class StringResult
+StringResult --> Result
+StringResult --> State
+StringResult --> Function
+StringResult --> Supplier
 class Rule
-Rule --> CompileResult
+Rule --> NodeResult
+Rule --> StringResult
 class NodeWithNodeLists
 NodeWithNodeLists --> NodeProperties
 NodeWithNodeLists --> List
-class Ok
-Ok --> Optional
-Ok --> Function
 class Application
 Application --> Err
 Application --> Error
@@ -155,6 +104,113 @@ Application --> Map
 Application --> Optional
 Application --> Set
 Application --> Collectors
+class StringRule
+StringRule --> CompileResultFactory
+StringRule --> NodeListResult
+StringRule --> NodeResult
+StringRule --> StringResult
+StringRule --> DisplayableNode
+StringRule --> NodeFactory
+StringRule --> NodeWithStrings
+class Err
+Err --> Optional
+Err --> Function
+class MapNode
+MapNode --> MapNodeProperties
+MapNode --> NodeProperties
+MapNode --> List
+class MapNodeProperties
+MapNodeProperties --> HashMap
+MapNodeProperties --> Map
+MapNodeProperties --> Optional
+class NodeListErr
+NodeListErr --> NodeWithEverything
+NodeListErr --> Supplier
+class ThrowableError
+ThrowableError --> IOException
+ThrowableError --> PrintWriter
+ThrowableError --> StringWriter
+class NodeProperties
+NodeProperties --> Optional
+class NodeResult
+NodeResult --> Result
+NodeResult --> State
+NodeResult --> List
+NodeResult --> Function
+class NodeListOk
+NodeListOk --> MapNode
+NodeListOk --> NodeWithEverything
+NodeListOk --> ArrayList
+NodeListOk --> List
+NodeListOk --> Supplier
+class RuleBuilder
+RuleBuilder --> DefaultCompileResultFactory
+RuleBuilder --> MapNodeFactory
+RuleBuilder --> NodeWithEverything
+RuleBuilder --> EmptyRule
+RuleBuilder --> LastRule
+RuleBuilder --> OrRule
+RuleBuilder --> Rule
+RuleBuilder --> StringRule
+RuleBuilder --> TruncateRule
+RuleBuilder --> NodeListRule
+RuleBuilder --> PrefixTruncator
+RuleBuilder --> StripTruncator
+RuleBuilder --> SuffixTruncator
+RuleBuilder --> List
+class RuleCompiler
+RuleCompiler --> DefaultCompileResultFactory
+RuleCompiler --> NodeOk
+RuleCompiler --> NodeResult
+RuleCompiler --> StringResult
+RuleCompiler --> MapNode
+RuleCompiler --> NodeWithEverything
+RuleCompiler --> NodeWithNodeLists
+RuleCompiler --> Rule
+RuleCompiler --> ArrayList
+RuleCompiler --> Map
+class StringErr
+StringErr --> Err
+StringErr --> Result
+StringErr --> State
+StringErr --> Function
+StringErr --> Supplier
+class StringContext
+class Context
+class Error
+class Completer
+class MutableDivideState
+MutableDivideState --> ArrayList
+MutableDivideState --> List
+class DisplayableNode
+class CommonLang
+CommonLang --> RuleBuilder
+CommonLang --> NodeWithEverything
+CommonLang --> Rule
+CommonLang --> List
+class StripTruncator
+StripTruncator --> Optional
+class NodeListRule
+NodeListRule --> CompileResultFactory
+NodeListRule --> NodeListResult
+NodeListRule --> NodeResult
+NodeListRule --> StringResult
+NodeListRule --> DisplayableNode
+NodeListRule --> NodeWithNodeLists
+NodeListRule --> Rule
+NodeListRule --> ArrayList
+class NodeWithStrings
+NodeWithStrings --> NodeProperties
+class NodeOk
+NodeOk --> Ok
+NodeOk --> Result
+NodeOk --> NodeWithEverything
+NodeOk --> State
+NodeOk --> List
+NodeOk --> Function
+class Ok
+Ok --> Optional
+Ok --> Function
 class Main
 Main --> Application
 Main --> RuleCompiler

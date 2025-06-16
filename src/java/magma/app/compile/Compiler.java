@@ -1,9 +1,9 @@
 package magma.app.compile;
 
-import magma.app.compile.error.CompileResult;
+import magma.app.compile.error.StringResult;
 
 import java.util.Map;
 
 public interface Compiler {
-    CompileResult<String> compile(Map<String, String> inputs);
+    StringResult compile(Map<String, String> inputs);
 }

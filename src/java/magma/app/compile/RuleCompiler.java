@@ -1,7 +1,9 @@
 package magma.app.compile;
 
-import magma.app.compile.error.CompileResult;
-import magma.app.compile.error.ResultCompileResultFactory;
+import magma.app.compile.error.DefaultCompileResultFactory;
+import magma.app.compile.error.NodeOk;
+import magma.app.compile.error.NodeResult;
+import magma.app.compile.error.StringResult;
 import magma.app.compile.node.MapNode;
 import magma.app.compile.node.NodeWithEverything;
 import magma.app.compile.node.NodeWithNodeLists;
@@ -19,17 +21,7 @@ public class RuleCompiler implements Compiler {
         this.targetRule = targetRule;
     }
 
-    private CompileResult<String> parseAndGenerate(NodeWithNodeLists<NodeWithEverything> tree, String name) {
-        final var children1 = this.transform(tree, name);
-        return this.targetRule.generate(children1)
-                .mapValue(joined -> this.generate(name, joined));
-    }
-
-    private String generate(String name, String joined) {
-        return "class " + name + "\n" + joined;
-    }
-
-    private NodeWithEverything transform(NodeWithNodeLists<NodeWithEverything> tree, String name) {
+    private NodeResult<NodeWithEverything> transform(NodeWithNodeLists<NodeWithEverything> tree, String name) {
         final var list = tree.nodeLists()
                 .find("children")
                 .orElse(new ArrayList<>())
@@ -38,23 +30,25 @@ public class RuleCompiler implements Compiler {
                         .with("parent", name))
                 .toList();
 
-        return new MapNode().nodeLists()
-                .with("children", list);
+        return new NodeOk(new MapNode().nodeLists()
+                .with("children", list));
     }
 
     @Override
-    public CompileResult<String> compile(Map<String, String> inputs) {
-        CompileResult<String> currentResult = ResultCompileResultFactory.createResultCompileResultFactory()
+    public StringResult compile(Map<String, String> inputs) {
+        StringResult currentResult = DefaultCompileResultFactory.createResultCompileResultFactory()
                 .fromEmptyString();
 
         for (var input : inputs.entrySet())
-            currentResult = currentResult.flatMap(current -> {
-                final var compiledResult = this.sourceRule.lex(input.getValue())
-                        .flatMap(tree -> this.parseAndGenerate(tree, input.getKey()));
-
-                return compiledResult.mapValue(compiled -> current + compiled);
+            currentResult = currentResult.appendResult(() -> {
+                final var name = input.getKey();
+                return this.sourceRule.lex(input.getValue())
+                        .transform(tree -> this.transform(tree, name))
+                        .generate(tree -> this.targetRule.generate(tree)
+                                .prependSlice("class " + name + "\n"));
             });
 
-        return currentResult.mapValue(inner -> "@startuml\nskinparam linetype ortho\n" + inner + "@enduml");
+        return currentResult.prependSlice("@startuml\nskinparam linetype ortho\n")
+                .appendSlice("@enduml");
     }
 }

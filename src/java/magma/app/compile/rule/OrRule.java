@@ -1,41 +1,36 @@
 package magma.app.compile.rule;
 
-import magma.app.compile.error.CompileResult;
 import magma.app.compile.error.CompileResultFactory;
+import magma.app.compile.error.NodeListResult;
+import magma.app.compile.error.NodeResult;
+import magma.app.compile.error.StringResult;
 
 import java.util.List;
-import java.util.Optional;
 
 public final class OrRule<Node, R extends Rule<Node>> implements Rule<Node> {
     private final List<R> rules;
-    private final CompileResultFactory<Node, CompileResult<String>, CompileResult<Node>, CompileResult<List<Node>>> resultFactory;
+    private final CompileResultFactory<Node, StringResult, NodeResult<Node>, NodeListResult<Node>> factory;
 
-    public OrRule(List<R> rules, CompileResultFactory<Node, CompileResult<String>, CompileResult<Node>, CompileResult<List<Node>>> resultFactory) {
+    public OrRule(List<R> rules, CompileResultFactory<Node, StringResult, NodeResult<Node>, NodeListResult<Node>> factory) {
         this.rules = rules;
-        this.resultFactory = resultFactory;
+        this.factory = factory;
     }
 
     @Override
-    public CompileResult<Node> lex(String input) {
+    public NodeResult<Node> lex(String input) {
         return this.rules.stream()
-                .map(rule -> rule.lex(input)
-                        .result()
-                        .findValue())
-                .flatMap(Optional::stream)
-                .findFirst()
-                .map(this.resultFactory::fromNode)
-                .orElseGet(() -> this.resultFactory.fromStringError("Invalid combination", ""));
+                .reduce(new State<Node>(), (nodeState, rule) -> rule.lex(input)
+                        .attachToState(nodeState), (_, next) -> next)
+                .toResult()
+                .match(this.factory::fromNode, errors -> this.factory.fromStringErrorWithChildren("Invalid combination", input, errors));
     }
 
     @Override
-    public CompileResult<String> generate(Node node) {
+    public StringResult generate(Node node) {
         return this.rules.stream()
-                .map(rule -> rule.generate(node)
-                        .result()
-                        .findValue())
-                .flatMap(Optional::stream)
-                .findFirst()
-                .map(this.resultFactory::fromString)
-                .orElseGet(() -> this.resultFactory.fromNodeError("Invalid combination", node));
+                .reduce(new State<String>(), (nodeState, rule) -> rule.generate(node)
+                        .attachToState(nodeState), (_, next) -> next)
+                .toResult()
+                .match(this.factory::fromString, errors -> this.factory.fromNodeErrorWithChildren("Invalid combination", node, errors));
     }
 }
