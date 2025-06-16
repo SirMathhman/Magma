@@ -13,7 +13,7 @@ import magma.app.compile.rule.Rule;
 import java.util.ArrayList;
 import java.util.Map;
 
-public class RuleCompiler implements Compiler {
+public class RuleCompiler implements Compiler<StringResult<FormattedError>> {
     private final Rule<NodeWithEverything, NodeResult<NodeWithEverything, FormattedError, StringResult<FormattedError>>, StringResult<FormattedError>> targetRule;
     private final Rule<NodeWithEverything, NodeResult<NodeWithEverything, FormattedError, StringResult<FormattedError>>, StringResult<FormattedError>> sourceRule;
 

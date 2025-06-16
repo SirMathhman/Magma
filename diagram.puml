@@ -52,8 +52,6 @@ FactoryRuleBuilder --> StripTruncator
 FactoryRuleBuilder --> SuffixTruncator
 FactoryRuleBuilder --> List
 class Compiler
-Compiler --> FormattedError
-Compiler --> StringResult
 Compiler --> Map
 class PrefixTruncator
 PrefixTruncator --> Optional
@@ -102,6 +100,8 @@ Application --> Ok
 Application --> Result
 Application --> ThrowableError
 Application --> Compiler
+Application --> FormattedError
+Application --> StringResult
 Application --> IOException
 Application --> Files
 Application --> Path

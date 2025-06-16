@@ -6,6 +6,8 @@ import magma.api.Ok;
 import magma.api.Result;
 import magma.api.ThrowableError;
 import magma.app.compile.Compiler;
+import magma.app.compile.error.FormattedError;
+import magma.app.compile.error.StringResult;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -18,9 +20,9 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 public class Application {
-    private final Compiler compiler;
+    private final Compiler<StringResult<FormattedError>> compiler;
 
-    public Application(Compiler compiler) {
+    public Application(Compiler<StringResult<FormattedError>> compiler) {
         this.compiler = compiler;
     }
 
