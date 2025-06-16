@@ -4,6 +4,7 @@ import magma.app.Application;
 import magma.app.compile.CompilerImpl;
 import magma.app.compile.lang.CommonLang;
 
+@SuppressWarnings("ClassWithTooManyTransitiveDependencies")
 public class Main {
     public static void main(String[] args) {
         new Application(new CompilerImpl(CommonLang.createJavaRootRule(), CommonLang.createPlantUMLRootRule())).run()
