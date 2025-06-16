@@ -1,8 +1,8 @@
 package magma.app.compile.error.string;
 
+import magma.api.Error;
 import magma.api.Ok;
 import magma.api.Result;
-import magma.app.compile.error.CompileError;
 import magma.app.compile.rule.OrState;
 
 import java.util.function.Function;
@@ -31,7 +31,7 @@ public record StringOk(String value) implements StringResult {
     }
 
     @Override
-    public Result<String, CompileError> toResult() {
+    public Result<String, Error> toResult() {
         return new Ok<>(this.value);
     }
 

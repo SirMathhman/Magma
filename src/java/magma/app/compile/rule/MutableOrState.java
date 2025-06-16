@@ -1,22 +1,22 @@
 package magma.app.compile.rule;
 
 import magma.api.Err;
+import magma.api.Error;
 import magma.api.Ok;
 import magma.api.Result;
-import magma.app.compile.error.CompileError;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-public record MutableOrState<Value>(Optional<Value> maybeValue, List<CompileError> errors) implements OrState<Value> {
+public record MutableOrState<Value>(Optional<Value> maybeValue, List<Error> errors) implements OrState<Value> {
     public MutableOrState() {
         this(Optional.empty(), new ArrayList<>());
     }
 
     @Override
-    public Result<Value, List<CompileError>> toResult() {
-        return this.maybeValue.<Result<Value, List<CompileError>>>map(Ok::new)
+    public Result<Value, List<Error>> toResult() {
+        return this.maybeValue.<Result<Value, List<Error>>>map(Ok::new)
                 .orElseGet(() -> new Err<>(this.errors));
     }
 
@@ -28,7 +28,7 @@ public record MutableOrState<Value>(Optional<Value> maybeValue, List<CompileErro
     }
 
     @Override
-    public OrState<Value> withError(CompileError error) {
+    public OrState<Value> withError(Error error) {
         this.errors.add(error);
         return this;
     }

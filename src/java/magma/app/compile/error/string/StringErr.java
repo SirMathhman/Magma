@@ -1,14 +1,14 @@
 package magma.app.compile.error.string;
 
 import magma.api.Err;
+import magma.api.Error;
 import magma.api.Result;
-import magma.app.compile.error.CompileError;
 import magma.app.compile.rule.OrState;
 
 import java.util.function.Function;
 import java.util.function.Supplier;
 
-public record StringErr(CompileError error) implements StringResult {
+public record StringErr(Error error) implements StringResult {
     @Override
     public StringResult appendResult(Supplier<StringResult> other) {
         return this;
@@ -30,7 +30,7 @@ public record StringErr(CompileError error) implements StringResult {
     }
 
     @Override
-    public Result<String, CompileError> toResult() {
+    public Result<String, Error> toResult() {
         return new Err<>(this.error);
     }
 

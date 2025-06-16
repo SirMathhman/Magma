@@ -6,13 +6,13 @@ import magma.app.compile.context.Context;
 import java.util.ArrayList;
 import java.util.List;
 
-public record CompileError(String message, Context context, List<CompileError> errors) implements Error {
+public record CompileError(String message, Context context, List<Error> errors) implements FormattedError {
     public CompileError(String message, Context context) {
         this(message, context, new ArrayList<>());
     }
 
     @Override
-    public String display() {
-        return this.message + ": " + this.context.display();
+    public String format(int depth) {
+        return "\t".repeat(depth) + this.message + ": " + this.context.display();
     }
 }

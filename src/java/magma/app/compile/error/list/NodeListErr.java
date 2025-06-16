@@ -1,13 +1,13 @@
 package magma.app.compile.error.list;
 
-import magma.app.compile.error.CompileError;
+import magma.api.Error;
 import magma.app.compile.error.node.NodeErr;
 import magma.app.compile.error.node.NodeResult;
 import magma.app.compile.node.NodeWithEverything;
 
 import java.util.function.Supplier;
 
-public record NodeListErr(CompileError error) implements NodeListResult<NodeWithEverything> {
+public record NodeListErr(Error error) implements NodeListResult<NodeWithEverything> {
     @Override
     public NodeResult<NodeWithEverything> toNode(String key) {
         return new NodeErr(this.error);

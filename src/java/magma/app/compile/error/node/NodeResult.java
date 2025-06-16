@@ -1,7 +1,7 @@
 package magma.app.compile.error.node;
 
+import magma.api.Error;
 import magma.api.Result;
-import magma.app.compile.error.CompileError;
 import magma.app.compile.error.string.StringResult;
 import magma.app.compile.rule.OrState;
 
@@ -15,5 +15,5 @@ public interface NodeResult<Node> {
 
     OrState<Node> attachToState(OrState<Node> nodeState);
 
-    Result<List<Node>, CompileError> attachToList(List<Node> nodes);
+    Result<List<Node>, Error> attachToList(List<Node> nodes);
 }

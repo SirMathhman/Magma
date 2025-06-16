@@ -1,7 +1,7 @@
 package magma.app.compile.error.string;
 
+import magma.api.Error;
 import magma.api.Result;
-import magma.app.compile.error.CompileError;
 import magma.app.compile.rule.OrState;
 
 import java.util.function.Function;
@@ -16,7 +16,7 @@ public interface StringResult {
 
     StringResult appendSlice(String slice);
 
-    Result<String, CompileError> toResult();
+    Result<String, Error> toResult();
 
     OrState<String> attachToState(OrState<String> state);
 }

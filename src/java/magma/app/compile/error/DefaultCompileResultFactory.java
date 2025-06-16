@@ -1,5 +1,6 @@
 package magma.app.compile.error;
 
+import magma.api.Error;
 import magma.app.compile.context.NodeContext;
 import magma.app.compile.context.StringContext;
 import magma.app.compile.error.list.NodeListOk;
@@ -53,12 +54,12 @@ public class DefaultCompileResultFactory implements CompileResultFactory<NodeWit
     }
 
     @Override
-    public NodeResult<NodeWithEverything> fromStringErrorWithChildren(String message, String context, List<CompileError> errors) {
+    public NodeResult<NodeWithEverything> fromStringErrorWithChildren(String message, String context, List<Error> errors) {
         return new NodeErr(new CompileError(message, new StringContext(context), errors));
     }
 
     @Override
-    public StringResult fromNodeErrorWithChildren(String message, NodeWithEverything node, List<CompileError> errors) {
+    public StringResult fromNodeErrorWithChildren(String message, NodeWithEverything node, List<Error> errors) {
         return new StringErr(new CompileError(message, new NodeContext(node), errors));
     }
 }

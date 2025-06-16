@@ -1,8 +1,8 @@
 package magma.app.compile.error.node;
 
 import magma.api.Err;
+import magma.api.Error;
 import magma.api.Result;
-import magma.app.compile.error.CompileError;
 import magma.app.compile.error.string.StringErr;
 import magma.app.compile.error.string.StringResult;
 import magma.app.compile.node.NodeWithEverything;
@@ -11,7 +11,7 @@ import magma.app.compile.rule.OrState;
 import java.util.List;
 import java.util.function.Function;
 
-public record NodeErr(CompileError error) implements NodeResult<NodeWithEverything> {
+public record NodeErr(Error error) implements NodeResult<NodeWithEverything> {
     @Override
     public NodeResult<NodeWithEverything> transform(Function<NodeWithEverything, NodeResult<NodeWithEverything>> mapper) {
         return this;
@@ -28,7 +28,7 @@ public record NodeErr(CompileError error) implements NodeResult<NodeWithEverythi
     }
 
     @Override
-    public Result<List<NodeWithEverything>, CompileError> attachToList(List<NodeWithEverything> list) {
+    public Result<List<NodeWithEverything>, Error> attachToList(List<NodeWithEverything> list) {
         return new Err<>(this.error);
     }
 }
