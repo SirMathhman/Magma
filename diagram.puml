@@ -1,11 +1,13 @@
 @startuml
 skinparam linetype ortho
 class CompileError
+CompileError --> Context
 class StringRule
 StringRule --> Err
 StringRule --> Ok
 StringRule --> Result
 StringRule --> CompileError
+StringRule --> StringContext
 StringRule --> NodeFactory
 StringRule --> NodeWithStrings
 class MapNodeFactory
@@ -29,7 +31,7 @@ class LastRule
 LastRule --> Err
 LastRule --> Result
 LastRule --> CompileError
-LastRule --> Optional
+LastRule --> StringContext
 class Result
 Result --> Optional
 Result --> Function
@@ -48,6 +50,8 @@ RuleBuilder --> StringRule
 RuleBuilder --> NodeListRule
 RuleBuilder --> TruncateRule
 RuleBuilder --> List
+class StringContext
+class Context
 class Compiler
 Compiler --> Result
 Compiler --> CompileError
@@ -64,6 +68,7 @@ OrRule --> Err
 OrRule --> Ok
 OrRule --> Result
 OrRule --> CompileError
+OrRule --> StringContext
 OrRule --> List
 OrRule --> Optional
 class Completer
@@ -85,12 +90,14 @@ TruncateRule --> Err
 TruncateRule --> Ok
 TruncateRule --> Result
 TruncateRule --> CompileError
+TruncateRule --> StringContext
 TruncateRule --> Rule
 class NodeListRule
 NodeListRule --> Err
 NodeListRule --> Ok
 NodeListRule --> Result
 NodeListRule --> CompileError
+NodeListRule --> StringContext
 NodeListRule --> NodeFactory
 NodeListRule --> NodeWithNodeLists
 NodeListRule --> Rule
@@ -120,4 +127,6 @@ Main --> Paths
 Main --> HashMap
 Main --> Map
 Main --> Collectors
+class Divider
+Divider --> List
 @enduml

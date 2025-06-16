@@ -4,6 +4,7 @@ import magma.api.Err;
 import magma.api.Ok;
 import magma.api.Result;
 import magma.app.compile.CompileError;
+import magma.app.compile.context.StringContext;
 import magma.app.compile.rule.Rule;
 
 public final class TruncateRule<Node> implements Rule<Node> {
@@ -31,7 +32,7 @@ public final class TruncateRule<Node> implements Rule<Node> {
     public Result<Node, CompileError> lex(String input) {
         return this.truncator.truncate(input)
                 .<Result<String, CompileError>>map(Ok::new)
-                .orElseGet(() -> new Err<>(new CompileError()))
+                .orElseGet(() -> new Err<>(new CompileError("Invalid rule", new StringContext(""))))
                 .flatMap(this.rule::lex);
     }
 

@@ -4,6 +4,7 @@ import magma.api.Err;
 import magma.api.Ok;
 import magma.api.Result;
 import magma.app.compile.CompileError;
+import magma.app.compile.context.StringContext;
 import magma.app.compile.node.NodeFactory;
 import magma.app.compile.node.NodeWithNodeLists;
 import magma.app.compile.rule.Rule;
@@ -24,35 +25,18 @@ public final class NodeListRule<Node extends NodeWithNodeLists<Node>> implements
         this.factory = factory;
     }
 
-    private static List<String> divide(CharSequence input) {
-        DivideState current = new MutableDivideState();
-        for (var i = 0; i < input.length(); i++) {
-            final var c = input.charAt(i);
-            current = fold(current, c);
-        }
-
-        return current.advance()
-                .segments();
-    }
-
-    private static DivideState fold(DivideState state, char c) {
-        final var appended = state.append(c);
-        if (c == ';')
-            return appended.advance();
-        return appended;
-    }
-
     @Override
     public Result<Node, CompileError> lex(String input) {
-        return divide(input).stream()
+        return Divider.divide(input)
+                .stream()
                 .map(input1 -> this.rule.lex(input1)
                         .findValue())
-                .reduce(Optional.<List<Node>>of(new ArrayList<>()), this::fold, (_, next) -> next)
+                .reduce(Optional.of(new ArrayList<>()), this::fold, (_, next) -> next)
                 .map(children -> this.factory.create()
                         .nodeLists()
                         .with(this.key, children))
                 .<Result<Node, CompileError>>map(Ok::new)
-                .orElseGet(() -> new Err<>(new CompileError()));
+                .orElseGet(() -> new Err<>(new CompileError("Invalid rule", new StringContext(""))));
     }
 
     private Optional<List<Node>> fold(Optional<List<Node>> maybeCurrent, Optional<Node> maybeElement) {
@@ -74,6 +58,6 @@ public final class NodeListRule<Node extends NodeWithNodeLists<Node>> implements
                 .flatMap(Optional::stream)
                         .collect(Collectors.joining()))
                 .<Result<String, CompileError>>map(Ok::new)
-                .orElseGet(() -> new Err<>(new CompileError()));
+                .orElseGet(() -> new Err<>(new CompileError("Invalid rule", new StringContext(""))));
     }
 }
