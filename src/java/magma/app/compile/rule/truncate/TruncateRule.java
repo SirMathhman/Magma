@@ -21,6 +21,10 @@ public final class TruncateRule<Node> implements Rule<Node> {
         return new TruncateRule<>(rule, new SuffixTruncator(suffix));
     }
 
+    public static <Node> Rule<Node> createStripRule(Rule<Node> rule) {
+        return new TruncateRule<>(rule, new StripTruncator());
+    }
+
     @Override
     public Optional<Node> lex(String input) {
         return this.truncator.truncate(input)

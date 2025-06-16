@@ -48,8 +48,6 @@ PrefixTruncator --> Optional
 class OrRule
 OrRule --> List
 OrRule --> Optional
-class StripRule
-StripRule --> Optional
 class Completer
 class MutableDivideState
 MutableDivideState --> ArrayList
@@ -61,6 +59,8 @@ EverythingRule --> NodeWithEverything
 EverythingRule --> Rule
 class DivideState
 DivideState --> List
+class StripTruncator
+StripTruncator --> Optional
 class CommonLang
 CommonLang --> EverythingRule
 CommonLang --> EverythingRuleImpl
@@ -82,7 +82,6 @@ JavaLang --> MapNodeFactory
 JavaLang --> LastRule
 JavaLang --> TruncateRule
 JavaLang --> StringRule
-JavaLang --> StripRule
 JavaLang --> List
 class PlantUMLLang
 PlantUMLLang --> EverythingRule

@@ -6,7 +6,6 @@ import magma.app.compile.node.MapNodeFactory;
 import magma.app.compile.rule.LastRule;
 import magma.app.compile.rule.truncate.TruncateRule;
 import magma.app.compile.rule.StringRule;
-import magma.app.compile.rule.StripRule;
 
 import java.util.List;
 
@@ -22,6 +21,6 @@ public class JavaLang {
     private static EverythingRule createImportRule() {
         final var parent = new StringRule<>("parent", new MapNodeFactory());
         final var child = new StringRule<>("child", new MapNodeFactory());
-        return new EverythingRuleImpl(new StripRule<>(TruncateRule.Prefix("import ", TruncateRule.Suffix(new LastRule<>(parent, ".", child), ";"))));
+        return new EverythingRuleImpl(TruncateRule.createStripRule(TruncateRule.Prefix("import ", TruncateRule.Suffix(new LastRule<>(parent, ".", child), ";"))));
     }
 }
