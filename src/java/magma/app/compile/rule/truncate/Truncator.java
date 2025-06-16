@@ -5,7 +5,7 @@ import java.util.Optional;
 public interface Truncator {
     Optional<String> truncate(String input);
 
-    String generate(String result);
+    String complete(String result);
 
     String createErrorMessage();
 }

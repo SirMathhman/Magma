@@ -11,7 +11,7 @@ public record SuffixTruncator(String suffix) implements Truncator {
     }
 
     @Override
-    public String generate(String result) {
+    public String complete(String result) {
         return result + this.suffix;
     }
 

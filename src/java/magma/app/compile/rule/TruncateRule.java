@@ -25,6 +25,6 @@ public final class TruncateRule<Node> implements Rule<Node> {
     @Override
     public CompileResult<String> generate(Node node) {
         return this.rule.generate(node)
-                .mapValue(this.truncator::generate);
+                .mapValue(this.truncator::complete);
     }
 }
