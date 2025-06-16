@@ -69,7 +69,7 @@ class PrefixTruncator
 PrefixTruncator --> Optional
 class OrRule
 OrRule --> CompileResult
-OrRule --> ResultCompileResultFactory
+OrRule --> CompileResultFactory
 OrRule --> List
 OrRule --> Optional
 class NodeContext
@@ -107,7 +107,7 @@ CommonLang --> Rule
 CommonLang --> List
 class TruncateRule
 TruncateRule --> CompileResult
-TruncateRule --> ResultCompileResultFactory
+TruncateRule --> CompileResultFactory
 TruncateRule --> PrefixTruncator
 TruncateRule --> StripTruncator
 TruncateRule --> SuffixTruncator
