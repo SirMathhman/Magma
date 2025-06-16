@@ -1,14 +1,13 @@
 package magma.app.compile.rule;
 
 import magma.api.Result;
-import magma.app.compile.error.FormattedError;
 
 import java.util.List;
 
-public interface OrState<Value> {
-    Result<Value, List<FormattedError>> toResult();
+public interface OrState<Value, Error> {
+    Result<Value, List<Error>> toResult();
 
-    OrState<Value> withValue(Value value);
+    OrState<Value, Error> withValue(Value value);
 
-    OrState<Value> withError(FormattedError error);
+    OrState<Value, Error> withError(Error error);
 }

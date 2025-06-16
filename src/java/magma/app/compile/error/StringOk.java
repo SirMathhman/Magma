@@ -35,7 +35,7 @@ public record StringOk(String value) implements StringResult {
     }
 
     @Override
-    public OrState<String> attachToState(OrState<String> state) {
+    public OrState<String, FormattedError> attachToState(OrState<String, FormattedError> state) {
         return state.withValue(this.value);
     }
 }

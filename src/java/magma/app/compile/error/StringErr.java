@@ -34,7 +34,7 @@ public record StringErr(FormattedError error) implements StringResult {
     }
 
     @Override
-    public OrState<String> attachToState(OrState<String> state) {
+    public OrState<String, FormattedError> attachToState(OrState<String, FormattedError> state) {
         return state.withError(this.error);
     }
 }

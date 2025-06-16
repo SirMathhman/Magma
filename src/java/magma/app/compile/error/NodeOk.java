@@ -20,7 +20,7 @@ public record NodeOk(NodeWithEverything node) implements NodeResult<NodeWithEver
     }
 
     @Override
-    public OrState<NodeWithEverything> attachToState(OrState<NodeWithEverything> state) {
+    public OrState<NodeWithEverything, FormattedError> attachToState(OrState<NodeWithEverything, FormattedError> state) {
         return state.withValue(this.node);
     }
 

@@ -20,7 +20,7 @@ public record NodeErr(FormattedError error) implements NodeResult<NodeWithEveryt
     }
 
     @Override
-    public OrState<NodeWithEverything> attachToState(OrState<NodeWithEverything> state) {
+    public OrState<NodeWithEverything, FormattedError> attachToState(OrState<NodeWithEverything, FormattedError> state) {
         return state.withError(this.error);
     }
 

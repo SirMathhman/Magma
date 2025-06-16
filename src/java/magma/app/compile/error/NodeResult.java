@@ -11,7 +11,7 @@ public interface NodeResult<Node> {
 
     StringResult generate(Function<Node, StringResult> generator);
 
-    OrState<Node> attachToState(OrState<Node> nodeState);
+    OrState<Node, FormattedError> attachToState(OrState<Node, FormattedError> nodeState);
 
     Result<List<Node>, FormattedError> attachToList(List<Node> nodes);
 }

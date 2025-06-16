@@ -1,7 +1,6 @@
 @startuml
 skinparam linetype ortho
 class CompileError
-CompileError --> Error
 CompileError --> Context
 CompileError --> ArrayList
 CompileError --> List
@@ -15,7 +14,6 @@ EmptyRule --> NodeResult
 EmptyRule --> StringResult
 EmptyRule --> NodeFactory
 class DefaultCompileResultFactory
-DefaultCompileResultFactory --> Error
 DefaultCompileResultFactory --> NodeWithEverything
 DefaultCompileResultFactory --> List
 class LastRule
@@ -26,14 +24,12 @@ LastRule --> StringResult
 class Result
 Result --> Function
 class StringResults
-StringResults --> Error
 StringResults --> NodeContext
 StringResults --> NodeWithEverything
 StringResults --> List
 class SuffixTruncator
 SuffixTruncator --> Optional
 class OrState
-OrState --> Error
 OrState --> Result
 OrState --> List
 class NodeListResult
@@ -70,6 +66,7 @@ NodeErr --> List
 NodeErr --> Function
 class OrRule
 OrRule --> CompileResultFactory
+OrRule --> FormattedError
 OrRule --> NodeListResult
 OrRule --> NodeResult
 OrRule --> StringResult
@@ -81,7 +78,6 @@ Truncator --> Optional
 class DivideState
 DivideState --> List
 class CompileResultFactory
-CompileResultFactory --> Error
 CompileResultFactory --> List
 class TruncateRule
 TruncateRule --> CompileResultFactory
@@ -135,7 +131,6 @@ StringRule --> NodeWithStrings
 class Err
 Err --> Function
 class NodeResults
-NodeResults --> Error
 NodeResults --> StringContext
 NodeResults --> NodeWithEverything
 NodeResults --> List
@@ -184,7 +179,6 @@ RuleCompiler --> ArrayList
 RuleCompiler --> Map
 class StringErr
 StringErr --> Err
-StringErr --> Error
 StringErr --> Result
 StringErr --> OrState
 StringErr --> Function
@@ -193,7 +187,6 @@ class StringContext
 class Context
 class MutableOrState
 MutableOrState --> Err
-MutableOrState --> Error
 MutableOrState --> Ok
 MutableOrState --> Result
 MutableOrState --> ArrayList

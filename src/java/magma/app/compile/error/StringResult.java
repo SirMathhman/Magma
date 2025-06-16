@@ -17,5 +17,5 @@ public interface StringResult {
 
     Result<String, FormattedError> toResult();
 
-    OrState<String> attachToState(OrState<String> state);
+    OrState<String, FormattedError> attachToState(OrState<String, FormattedError> state);
 }
