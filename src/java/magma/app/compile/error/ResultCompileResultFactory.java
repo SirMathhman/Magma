@@ -18,14 +18,8 @@ public class ResultCompileResultFactory implements CompileResultFactory<NodeWith
         return new ResultCompileResultFactory();
     }
 
-    @Override
-    public <Value> CompileResult<Value> fromValue(Value input) {
+    private <Value> CompileResult<Value> fromValue(Value input) {
         return new ResultCompileResult<>(new Ok<>(input));
-    }
-
-    @Override
-    public <Value> CompileResult<Value> fromStringError0(String message, String input) {
-        return new ResultCompileResult<>(new Err<>(new CompileError(message, new StringContext(input))));
     }
 
     @Override
