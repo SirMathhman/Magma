@@ -19,12 +19,12 @@ public final class MapNode implements NodeWithEverything {
         this.strings = strings;
     }
 
-    private static NodeWithEverything withNodeLists(MapNode mapNode, NodeProperties<List<NodeWithEverything>, NodeWithEverything> nodeLists) {
-        return new MapNode(mapNode.strings, nodeLists);
+    private static NodeWithEverything withNodeLists(NodeWithStrings<NodeWithEverything> node, NodeProperties<List<NodeWithEverything>, NodeWithEverything> nodeLists) {
+        return new MapNode(node.strings(), nodeLists);
     }
 
-    private static NodeWithEverything withStrings(MapNode mapNode, NodeProperties<String, NodeWithEverything> strings) {
-        return new MapNode(strings, mapNode.nodeLists);
+    private static NodeWithEverything withStrings(NodeWithNodeLists<NodeWithEverything> node, NodeProperties<String, NodeWithEverything> strings) {
+        return new MapNode(strings, node.nodeLists());
     }
 
     @Override

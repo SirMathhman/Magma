@@ -50,8 +50,8 @@ RuleBuilder --> LastRule
 RuleBuilder --> OrRule
 RuleBuilder --> Rule
 RuleBuilder --> StringRule
-RuleBuilder --> NodeListRule
 RuleBuilder --> TruncateRule
+RuleBuilder --> NodeListRule
 RuleBuilder --> List
 class RuleCompiler
 RuleCompiler --> CompileResult
