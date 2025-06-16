@@ -215,15 +215,10 @@ class Main
 Main --> Application
 Main --> RuleCompiler
 Main --> DefaultCompileResultFactory
-Main --> FormattedError
-Main --> NodeResult
-Main --> StringResult
 Main --> JavaRootRuleFactory
 Main --> PlantUMLRootRuleFactory
 Main --> FactoryRuleBuilder
 Main --> MapNodeFactory
-Main --> NodeWithEverything
-Main --> Rule
 class Divider
 Divider --> List
 @enduml
