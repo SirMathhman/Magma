@@ -6,7 +6,7 @@ import magma.app.compile.error.CompileError;
 import magma.app.compile.error.string.StringErr;
 import magma.app.compile.error.string.StringResult;
 import magma.app.compile.node.NodeWithEverything;
-import magma.app.compile.rule.State;
+import magma.app.compile.rule.OrState;
 
 import java.util.List;
 import java.util.function.Function;
@@ -23,7 +23,7 @@ public record NodeErr(CompileError error) implements NodeResult<NodeWithEverythi
     }
 
     @Override
-    public State<NodeWithEverything> attachToState(State<NodeWithEverything> state) {
+    public OrState<NodeWithEverything> attachToState(OrState<NodeWithEverything> state) {
         return state.withError(this.error);
     }
 

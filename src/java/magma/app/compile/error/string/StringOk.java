@@ -3,7 +3,7 @@ package magma.app.compile.error.string;
 import magma.api.Ok;
 import magma.api.Result;
 import magma.app.compile.error.CompileError;
-import magma.app.compile.rule.State;
+import magma.app.compile.rule.OrState;
 
 import java.util.function.Function;
 import java.util.function.Supplier;
@@ -36,7 +36,7 @@ public record StringOk(String value) implements StringResult {
     }
 
     @Override
-    public State<String> attachToState(State<String> state) {
+    public OrState<String> attachToState(OrState<String> state) {
         return state.withValue(this.value);
     }
 }

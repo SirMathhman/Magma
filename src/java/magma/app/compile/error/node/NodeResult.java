@@ -3,7 +3,7 @@ package magma.app.compile.error.node;
 import magma.api.Result;
 import magma.app.compile.error.CompileError;
 import magma.app.compile.error.string.StringResult;
-import magma.app.compile.rule.State;
+import magma.app.compile.rule.OrState;
 
 import java.util.List;
 import java.util.function.Function;
@@ -13,7 +13,7 @@ public interface NodeResult<Node> {
 
     StringResult generate(Function<Node, StringResult> generator);
 
-    State<Node> attachToState(State<Node> nodeState);
+    OrState<Node> attachToState(OrState<Node> nodeState);
 
     Result<List<Node>, CompileError> attachToList(List<Node> nodes);
 }

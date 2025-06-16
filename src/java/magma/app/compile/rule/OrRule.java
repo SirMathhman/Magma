@@ -19,7 +19,7 @@ public final class OrRule<Node, R extends Rule<Node>> implements Rule<Node> {
     @Override
     public NodeResult<Node> lex(String input) {
         return this.rules.stream()
-                .reduce(new State<Node>(), (nodeState, rule) -> rule.lex(input)
+                .<OrState<Node>>reduce(new MutableOrState<Node>(), (nodeState, rule) -> rule.lex(input)
                         .attachToState(nodeState), (_, next) -> next)
                 .toResult()
                 .match(this.factory::fromNode, errors -> this.factory.fromStringErrorWithChildren("Invalid combination", input, errors));
@@ -28,7 +28,7 @@ public final class OrRule<Node, R extends Rule<Node>> implements Rule<Node> {
     @Override
     public StringResult generate(Node node) {
         return this.rules.stream()
-                .reduce(new State<String>(), (nodeState, rule) -> rule.generate(node)
+                .<OrState<String>>reduce(new MutableOrState<>(), (nodeState, rule) -> rule.generate(node)
                         .attachToState(nodeState), (_, next) -> next)
                 .toResult()
                 .match(this.factory::fromString, errors -> this.factory.fromNodeErrorWithChildren("Invalid combination", node, errors));

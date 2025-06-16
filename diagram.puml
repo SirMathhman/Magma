@@ -35,6 +35,10 @@ Result --> Optional
 Result --> Function
 class SuffixTruncator
 SuffixTruncator --> Optional
+class OrState
+OrState --> Result
+OrState --> CompileError
+OrState --> List
 class NodeListResult
 NodeListResult --> NodeResult
 NodeListResult --> Supplier
@@ -50,7 +54,7 @@ NodeErr --> CompileError
 NodeErr --> StringErr
 NodeErr --> StringResult
 NodeErr --> NodeWithEverything
-NodeErr --> State
+NodeErr --> OrState
 NodeErr --> List
 NodeErr --> Function
 class OrRule
@@ -78,17 +82,9 @@ class StringOk
 StringOk --> Ok
 StringOk --> Result
 StringOk --> CompileError
-StringOk --> State
+StringOk --> OrState
 StringOk --> Function
 StringOk --> Supplier
-class State
-State --> Err
-State --> Ok
-State --> Result
-State --> CompileError
-State --> ArrayList
-State --> List
-State --> Optional
 class NodeWithEverything
 class Rule
 Rule --> NodeResult
@@ -96,7 +92,7 @@ Rule --> StringResult
 class StringResult
 StringResult --> Result
 StringResult --> CompileError
-StringResult --> State
+StringResult --> OrState
 StringResult --> Function
 StringResult --> Supplier
 class NodeWithNodeLists
@@ -153,7 +149,7 @@ class NodeResult
 NodeResult --> Result
 NodeResult --> CompileError
 NodeResult --> StringResult
-NodeResult --> State
+NodeResult --> OrState
 NodeResult --> List
 NodeResult --> Function
 class NodeListOk
@@ -194,11 +190,19 @@ class StringErr
 StringErr --> Err
 StringErr --> Result
 StringErr --> CompileError
-StringErr --> State
+StringErr --> OrState
 StringErr --> Function
 StringErr --> Supplier
 class StringContext
 class Context
+class MutableOrState
+MutableOrState --> Err
+MutableOrState --> Ok
+MutableOrState --> Result
+MutableOrState --> CompileError
+MutableOrState --> ArrayList
+MutableOrState --> List
+MutableOrState --> Optional
 class Error
 class Completer
 class MutableDivideState
@@ -229,7 +233,7 @@ NodeOk --> Result
 NodeOk --> CompileError
 NodeOk --> StringResult
 NodeOk --> NodeWithEverything
-NodeOk --> State
+NodeOk --> OrState
 NodeOk --> List
 NodeOk --> Function
 class Ok
