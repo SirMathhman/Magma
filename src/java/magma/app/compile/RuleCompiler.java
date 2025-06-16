@@ -9,11 +9,11 @@ import magma.app.compile.rule.Rule;
 import java.util.ArrayList;
 import java.util.Map;
 
-public class CompilerImpl implements Compiler {
+public class RuleCompiler implements Compiler {
     private final Rule<NodeWithEverything> targetRule;
     private final Rule<NodeWithEverything> sourceRule;
 
-    public CompilerImpl(Rule<NodeWithEverything> sourceRule, Rule<NodeWithEverything> targetRule) {
+    public RuleCompiler(Rule<NodeWithEverything> sourceRule, Rule<NodeWithEverything> targetRule) {
         this.sourceRule = sourceRule;
         this.targetRule = targetRule;
     }
