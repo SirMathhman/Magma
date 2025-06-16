@@ -10,6 +10,9 @@ import magma.app.compile.rule.Rule;
 import magma.app.compile.rule.StringRule;
 import magma.app.compile.rule.TruncateRule;
 import magma.app.compile.rule.divide.NodeListRule;
+import magma.app.compile.rule.truncate.PrefixTruncator;
+import magma.app.compile.rule.truncate.StripTruncator;
+import magma.app.compile.rule.truncate.SuffixTruncator;
 
 import java.util.List;
 
@@ -19,7 +22,7 @@ public class RuleBuilder {
     }
 
     public static Rule<NodeWithEverything> Strip(Rule<NodeWithEverything> rule) {
-        return TruncateRule.createStripRule(rule, ResultCompileResultFactory.createResultCompileResultFactory());
+        return new TruncateRule<>(rule, new StripTruncator(), ResultCompileResultFactory.createResultCompileResultFactory());
     }
 
     public static Rule<NodeWithEverything> Last(Rule<NodeWithEverything> parent, String infix, Rule<NodeWithEverything> child) {
@@ -27,11 +30,11 @@ public class RuleBuilder {
     }
 
     public static Rule<NodeWithEverything> Suffix(Rule<NodeWithEverything> last, String suffix) {
-        return TruncateRule.Suffix(last, suffix, ResultCompileResultFactory.createResultCompileResultFactory());
+        return new TruncateRule<>(last, new SuffixTruncator(suffix), ResultCompileResultFactory.createResultCompileResultFactory());
     }
 
     public static Rule<NodeWithEverything> Prefix(Rule<NodeWithEverything> suffix) {
-        return TruncateRule.Prefix("import ", suffix, ResultCompileResultFactory.createResultCompileResultFactory());
+        return new TruncateRule<>(suffix, new PrefixTruncator("import "), ResultCompileResultFactory.createResultCompileResultFactory());
     }
 
     public static Rule<NodeWithEverything> NodeList(List<Rule<NodeWithEverything>> children) {
