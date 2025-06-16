@@ -2,14 +2,13 @@ package magma.app.compile.rule;
 
 import magma.app.compile.error.CompileResultFactory;
 import magma.app.compile.error.NodeListResult;
-import magma.app.compile.error.StringResult;
 import magma.app.compile.node.NodeFactory;
 
-public class EmptyRule<Node, Error, NodeResult> implements Rule<Node, NodeResult, StringResult<Error>> {
+public class EmptyRule<Node, Error, NodeResult, StringResult> implements Rule<Node, NodeResult, StringResult> {
     private final NodeFactory<Node> nodeFactory;
-    private final CompileResultFactory<Node, Error, StringResult<Error>, NodeResult, NodeListResult<Node, Error, NodeResult>> resultFactory;
+    private final CompileResultFactory<Node, Error, StringResult, NodeResult, NodeListResult<Node, Error, NodeResult>> resultFactory;
 
-    public EmptyRule(NodeFactory<Node> nodeFactory, CompileResultFactory<Node, Error, StringResult<Error>, NodeResult, NodeListResult<Node, Error, NodeResult>> resultFactory) {
+    public EmptyRule(NodeFactory<Node> nodeFactory, CompileResultFactory<Node, Error, StringResult, NodeResult, NodeListResult<Node, Error, NodeResult>> resultFactory) {
         this.nodeFactory = nodeFactory;
         this.resultFactory = resultFactory;
     }
@@ -20,7 +19,7 @@ public class EmptyRule<Node, Error, NodeResult> implements Rule<Node, NodeResult
     }
 
     @Override
-    public StringResult<Error> generate(Node node) {
+    public StringResult generate(Node node) {
         return this.resultFactory.fromString("");
     }
 }

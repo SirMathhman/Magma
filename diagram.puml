@@ -12,15 +12,14 @@ FormattedError --> Error
 class EmptyRule
 EmptyRule --> CompileResultFactory
 EmptyRule --> NodeListResult
-EmptyRule --> StringResult
 EmptyRule --> NodeFactory
 class DefaultCompileResultFactory
 DefaultCompileResultFactory --> NodeWithEverything
 DefaultCompileResultFactory --> List
 class LastRule
+LastRule --> Appendable
 LastRule --> CompileResultFactory
 LastRule --> NodeListResult
-LastRule --> StringResult
 class Result
 Result --> Function
 class StringResults
@@ -92,7 +91,6 @@ StringOk --> Supplier
 class NodeWithEverything
 class StringResult
 StringResult --> Function
-StringResult --> Supplier
 class Rule
 class NodeWithNodeLists
 NodeWithNodeLists --> NodeProperties
@@ -116,12 +114,13 @@ Application --> Collectors
 class StringRule
 StringRule --> CompileResultFactory
 StringRule --> NodeListResult
-StringRule --> StringResult
 StringRule --> DisplayableNode
 StringRule --> NodeFactory
 StringRule --> NodeWithStrings
 class Err
 Err --> Function
+class Appendable
+Appendable --> Supplier
 class NodeResults
 NodeResults --> StringContext
 NodeResults --> NodeWithEverything
