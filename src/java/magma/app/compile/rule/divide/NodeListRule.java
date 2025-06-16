@@ -10,19 +10,19 @@ import magma.app.compile.rule.Rule;
 
 import java.util.ArrayList;
 
-public final class NodeListRule<Node extends NodeWithNodeLists<Node> & DisplayableNode, Error, StringResult extends Appendable<StringResult>> implements Rule<Node, NodeResult<Node, Error, magma.app.compile.error.StringResult<Error>>, StringResult> {
+public final class NodeListRule<Node extends NodeWithNodeLists<Node> & DisplayableNode, Error, StringResult extends Appendable<StringResult>> implements Rule<Node, NodeResult<Node, Error, StringResult>, StringResult> {
     private final String key;
-    private final Rule<Node, NodeResult<Node, Error, magma.app.compile.error.StringResult<Error>>, StringResult> rule;
-    private final CompileResultFactory<Node, Error, StringResult, NodeResult<Node, Error, magma.app.compile.error.StringResult<Error>>, NodeListResult<Node, Error, NodeResult<Node, Error, magma.app.compile.error.StringResult<Error>>>> resultFactory;
+    private final Rule<Node, NodeResult<Node, Error, StringResult>, StringResult> rule;
+    private final CompileResultFactory<Node, Error, StringResult, NodeResult<Node, Error, StringResult>, NodeListResult<Node, Error, NodeResult<Node, Error, StringResult>>> resultFactory;
 
-    public NodeListRule(String key, Rule<Node, NodeResult<Node, Error, magma.app.compile.error.StringResult<Error>>, StringResult> rule, CompileResultFactory<Node, Error, StringResult, NodeResult<Node, Error, magma.app.compile.error.StringResult<Error>>, NodeListResult<Node, Error, NodeResult<Node, Error, magma.app.compile.error.StringResult<Error>>>> resultFactory) {
+    public NodeListRule(String key, Rule<Node, NodeResult<Node, Error, StringResult>, StringResult> rule, CompileResultFactory<Node, Error, StringResult, NodeResult<Node, Error, StringResult>, NodeListResult<Node, Error, NodeResult<Node, Error, StringResult>>> resultFactory) {
         this.key = key;
         this.rule = rule;
         this.resultFactory = resultFactory;
     }
 
     @Override
-    public NodeResult<Node, Error, magma.app.compile.error.StringResult<Error>> lex(String input) {
+    public NodeResult<Node, Error, StringResult> lex(String input) {
         return Divider.divide(input)
                 .stream()
                 .reduce(this.resultFactory.fromEmptyNodeList(), (maybeCurrent, maybeElement) -> maybeCurrent.add(() -> this.rule.lex(maybeElement)), (_, next) -> next)
