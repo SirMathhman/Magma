@@ -1,8 +1,6 @@
 package magma.app;
 
-import magma.api.Ok;
-import magma.api.Result;
-import magma.app.compile.CompileError;
+import magma.app.compile.CompileResult;
 import magma.app.compile.lang.CommonLang;
 import magma.app.compile.node.MapNode;
 import magma.app.compile.node.NodeWithEverything;
@@ -12,7 +10,7 @@ import java.util.ArrayList;
 import java.util.Map;
 
 public class Compiler {
-    private static Result<String, CompileError> parseAndGenerate(NodeWithNodeLists<NodeWithEverything> tree, String name) {
+    private static CompileResult<String> parseAndGenerate(NodeWithNodeLists<NodeWithEverything> tree, String name) {
         final var children1 = transform(tree, name);
         return CommonLang.createPlantUMLRootRule()
                 .generate(children1)
@@ -36,8 +34,8 @@ public class Compiler {
                 .with("children", list);
     }
 
-    public Result<String, CompileError> compile(Map<String, String> inputs) {
-        Result<StringBuilder, CompileError> buffer = new Ok<>(new StringBuilder());
+    public CompileResult<String> compile(Map<String, String> inputs) {
+        CompileResult<StringBuilder> buffer = CompileResult.from(new StringBuilder());
         for (var input : inputs.entrySet())
             buffer = buffer.flatMap(inner -> {
                 final var result = CommonLang.createJavaRootRule()

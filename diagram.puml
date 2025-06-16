@@ -5,9 +5,8 @@ CompileError --> Error
 CompileError --> Context
 class StringRule
 StringRule --> Err
-StringRule --> Ok
-StringRule --> Result
 StringRule --> CompileError
+StringRule --> CompileResult
 StringRule --> NodeContext
 StringRule --> DisplayableNode
 StringRule --> NodeFactory
@@ -17,9 +16,7 @@ class Err
 Err --> Optional
 Err --> Function
 class EmptyRule
-EmptyRule --> Ok
-EmptyRule --> Result
-EmptyRule --> CompileError
+EmptyRule --> CompileResult
 EmptyRule --> NodeFactory
 class MapNode
 MapNode --> MapNodeProperties
@@ -31,8 +28,8 @@ MapNodeProperties --> Map
 MapNodeProperties --> Optional
 class LastRule
 LastRule --> Err
-LastRule --> Result
 LastRule --> CompileError
+LastRule --> CompileResult
 LastRule --> StringContext
 class ThrowableError
 ThrowableError --> IOException
@@ -59,9 +56,7 @@ RuleBuilder --> List
 class StringContext
 class Context
 class Compiler
-Compiler --> Ok
-Compiler --> Result
-Compiler --> CompileError
+Compiler --> CompileResult
 Compiler --> CommonLang
 Compiler --> MapNode
 Compiler --> NodeWithEverything
@@ -72,9 +67,8 @@ class PrefixTruncator
 PrefixTruncator --> Optional
 class OrRule
 OrRule --> Err
-OrRule --> Ok
-OrRule --> Result
 OrRule --> CompileError
+OrRule --> CompileResult
 OrRule --> StringContext
 OrRule --> List
 OrRule --> Optional
@@ -98,15 +92,12 @@ CommonLang --> Rule
 CommonLang --> List
 class TruncateRule
 TruncateRule --> Err
-TruncateRule --> Ok
-TruncateRule --> Result
 TruncateRule --> CompileError
+TruncateRule --> CompileResult
 TruncateRule --> StringContext
 TruncateRule --> Rule
 class NodeListRule
-NodeListRule --> Ok
-NodeListRule --> Result
-NodeListRule --> CompileError
+NodeListRule --> CompileResult
 NodeListRule --> DisplayableNode
 NodeListRule --> NodeFactory
 NodeListRule --> NodeWithNodeLists
@@ -117,9 +108,13 @@ class NodeFactory
 class NodeWithEverything
 class NodeWithStrings
 NodeWithStrings --> NodeProperties
+class CompileResult
+CompileResult --> Ok
+CompileResult --> Result
+CompileResult --> Optional
+CompileResult --> Function
 class Rule
-Rule --> Result
-Rule --> CompileError
+Rule --> CompileResult
 class NodeWithNodeLists
 NodeWithNodeLists --> NodeProperties
 NodeWithNodeLists --> List

@@ -1,9 +1,8 @@
 package magma.app.compile.rule;
 
 import magma.api.Err;
-import magma.api.Ok;
-import magma.api.Result;
 import magma.app.compile.CompileError;
+import magma.app.compile.CompileResult;
 import magma.app.compile.context.NodeContext;
 import magma.app.compile.node.DisplayableNode;
 import magma.app.compile.node.NodeFactory;
@@ -19,17 +18,17 @@ public final class StringRule<Node extends NodeWithStrings<Node> & DisplayableNo
     }
 
     @Override
-    public Result<Node, CompileError> lex(String input) {
-        return new Ok<>(this.factory.create()
+    public CompileResult<Node> lex(String input) {
+        return CompileResult.from(this.factory.create()
                 .strings()
                 .with(this.key, input));
     }
 
     @Override
-    public Result<String, CompileError> generate(Node node) {
+    public CompileResult<String> generate(Node node) {
         return node.strings()
                 .find(this.key)
-                .<Result<String, CompileError>>map(Ok::new)
-                .orElseGet(() -> new Err<>(new CompileError("Invalid rule", new NodeContext(node))));
+                .map(CompileResult::from)
+                .orElseGet(() -> new CompileResult<>(new Err<>(new CompileError("Invalid rule", new NodeContext(node)))));
     }
 }

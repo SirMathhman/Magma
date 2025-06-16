@@ -1,8 +1,6 @@
 package magma.app.compile.rule.divide;
 
-import magma.api.Ok;
-import magma.api.Result;
-import magma.app.compile.CompileError;
+import magma.app.compile.CompileResult;
 import magma.app.compile.node.DisplayableNode;
 import magma.app.compile.node.NodeFactory;
 import magma.app.compile.node.NodeWithNodeLists;
@@ -23,17 +21,17 @@ public final class NodeListRule<Node extends NodeWithNodeLists<Node> & Displayab
     }
 
     @Override
-    public Result<Node, CompileError> lex(String input) {
+    public CompileResult<Node> lex(String input) {
         return Divider.divide(input)
                 .stream()
                 .map(this.rule::lex)
-                .reduce(new Ok<>(new ArrayList<>()), this::foldList, (_, next) -> next)
+                .reduce(CompileResult.from(new ArrayList<>()), this::foldList, (_, next) -> next)
                 .mapValue(children -> this.factory.create()
                         .nodeLists()
                         .with(this.key, children));
     }
 
-    private Result<List<Node>, CompileError> foldList(Result<List<Node>, CompileError> maybeCurrent, Result<Node, CompileError> maybeElement) {
+    private CompileResult<List<Node>> foldList(CompileResult<List<Node>> maybeCurrent, CompileResult<Node> maybeElement) {
         return maybeCurrent.flatMap(current -> maybeElement.mapValue(element -> {
             current.add(element);
             return current;
@@ -41,18 +39,18 @@ public final class NodeListRule<Node extends NodeWithNodeLists<Node> & Displayab
     }
 
     @Override
-    public Result<String, CompileError> generate(Node node) {
+    public CompileResult<String> generate(Node node) {
         final var children = node.nodeLists()
                 .find(this.key)
                 .orElse(new ArrayList<>());
 
         return children.stream()
                 .map(this.rule::generate)
-                .reduce(new Ok<>(new StringBuilder()), this::foldString, (_, next) -> next)
+                .reduce(CompileResult.from(new StringBuilder()), this::foldString, (_, next) -> next)
                 .mapValue(StringBuilder::toString);
     }
 
-    private Result<StringBuilder, CompileError> foldString(Result<StringBuilder, CompileError> maybeCurrent, Result<String, CompileError> maybeElement) {
+    private CompileResult<StringBuilder> foldString(CompileResult<StringBuilder> maybeCurrent, CompileResult<String> maybeElement) {
         return maybeCurrent.flatMap(current -> maybeElement.mapValue(current::append));
     }
 }
