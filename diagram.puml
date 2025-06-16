@@ -92,6 +92,7 @@ class DisplayableNode
 class StripTruncator
 StripTruncator --> Optional
 class CommonLang
+CommonLang --> RuleBuilder
 CommonLang --> NodeWithEverything
 CommonLang --> Rule
 CommonLang --> List

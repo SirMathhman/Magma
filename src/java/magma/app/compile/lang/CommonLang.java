@@ -1,5 +1,6 @@
 package magma.app.compile.lang;
 
+import magma.app.compile.lang.build.RuleBuilder;
 import magma.app.compile.node.NodeWithEverything;
 import magma.app.compile.rule.Rule;
 

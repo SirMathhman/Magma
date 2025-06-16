@@ -1,4 +1,4 @@
-package magma.app.compile.lang;
+package magma.app.compile.lang.build;
 
 import magma.app.compile.node.MapNodeFactory;
 import magma.app.compile.node.NodeWithEverything;
