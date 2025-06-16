@@ -29,12 +29,12 @@ public class RuleBuilder {
         return TruncateRule.Suffix(last, suffix);
     }
 
-    static Rule<NodeWithEverything> Prefix(Rule<NodeWithEverything> suffix, String prefix) {
-        return TruncateRule.Prefix(prefix, suffix);
+    static Rule<NodeWithEverything> Prefix(Rule<NodeWithEverything> suffix) {
+        return TruncateRule.Prefix("import ", suffix);
     }
 
-    static Rule<NodeWithEverything> NodeList(String key, List<Rule<NodeWithEverything>> children) {
-        return new NodeListRule<>(key, new OrRule<>(children), new MapNodeFactory());
+    static Rule<NodeWithEverything> NodeList(List<Rule<NodeWithEverything>> children) {
+        return new NodeListRule<>("children", new OrRule<>(children), new MapNodeFactory());
     }
 
     static Rule<NodeWithEverything> Empty() {

@@ -15,7 +15,7 @@ import static magma.app.compile.lang.RuleBuilder.Suffix;
 
 public class CommonLang {
     public static Rule<NodeWithEverything> createPlantUMLRootRule() {
-        return NodeList("children", List.of(createDependencyRule(), Empty()));
+        return NodeList(List.of(createDependencyRule(), Empty()));
     }
 
     private static Rule<NodeWithEverything> createDependencyRule() {
@@ -25,12 +25,12 @@ public class CommonLang {
     }
 
     public static Rule<NodeWithEverything> createJavaRootRule() {
-        return NodeList("children", List.of(createImportRule(), String("value")));
+        return NodeList(List.of(createImportRule(), String("value")));
     }
 
     private static Rule<NodeWithEverything> createImportRule() {
         final var parent = String("parent");
         final var child = String("child");
-        return Strip(Prefix(Suffix(Last(parent, ".", child), ";"), "import "));
+        return Strip(Prefix(Suffix(Last(parent, ".", child), ";")));
     }
 }
