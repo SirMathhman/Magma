@@ -66,13 +66,15 @@ NodeErr --> OrState
 NodeErr --> List
 NodeErr --> Function
 class OrRule
+OrRule --> AttachableToState
 OrRule --> CompileResultFactory
 OrRule --> NodeListResult
-OrRule --> NodeResult
 OrRule --> StringResult
 OrRule --> List
 class NodeContext
 NodeContext --> DisplayableNode
+class AttachableToState
+AttachableToState --> OrState
 class Truncator
 Truncator --> Optional
 class DivideState
@@ -82,7 +84,6 @@ CompileResultFactory --> List
 class TruncateRule
 TruncateRule --> CompileResultFactory
 TruncateRule --> NodeListResult
-TruncateRule --> NodeResult
 TruncateRule --> StringResult
 TruncateRule --> Truncator
 class NodeFactory
@@ -99,7 +100,6 @@ StringResult --> OrState
 StringResult --> Function
 StringResult --> Supplier
 class Rule
-Rule --> NodeResult
 Rule --> StringResult
 class NodeWithNodeLists
 NodeWithNodeLists --> NodeProperties
@@ -123,7 +123,6 @@ Application --> Collectors
 class StringRule
 StringRule --> CompileResultFactory
 StringRule --> NodeListResult
-StringRule --> NodeResult
 StringRule --> StringResult
 StringRule --> DisplayableNode
 StringRule --> NodeFactory
@@ -153,7 +152,6 @@ class NodeProperties
 NodeProperties --> Optional
 class NodeResult
 NodeResult --> Result
-NodeResult --> OrState
 NodeResult --> List
 NodeResult --> Function
 class NodeListOk
@@ -163,6 +161,7 @@ NodeListOk --> ArrayList
 NodeListOk --> List
 NodeListOk --> Supplier
 class RuleBuilder
+RuleBuilder --> NodeResult
 RuleBuilder --> NodeWithEverything
 RuleBuilder --> Rule
 RuleBuilder --> List
@@ -202,6 +201,7 @@ class DisplayableNode
 class CommonLang
 CommonLang --> DefaultCompileResultFactory
 CommonLang --> FormattedError
+CommonLang --> NodeResult
 CommonLang --> FactoryRuleBuilder
 CommonLang --> RuleBuilder
 CommonLang --> NodeWithEverything

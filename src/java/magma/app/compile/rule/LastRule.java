@@ -5,13 +5,13 @@ import magma.app.compile.error.NodeListResult;
 import magma.app.compile.error.NodeResult;
 import magma.app.compile.error.StringResult;
 
-public final class LastRule<Node, Error> implements Rule<Node, Error> {
-    private final Rule<Node, Error> leftRule;
+public final class LastRule<Node, Error> implements Rule<Node, Error, NodeResult<Node, Error>> {
+    private final Rule<Node, Error, NodeResult<Node, Error>> leftRule;
     private final String infix;
-    private final Rule<Node, Error> rightRule;
+    private final Rule<Node, Error, NodeResult<Node, Error>> rightRule;
     private final CompileResultFactory<Node, Error, StringResult<Error>, NodeResult<Node, Error>, NodeListResult<Node, Error>> resultFactory;
 
-    public LastRule(Rule<Node, Error> leftRule, String infix, Rule<Node, Error> rightRule, CompileResultFactory<Node, Error, StringResult<Error>, NodeResult<Node, Error>, NodeListResult<Node, Error>> resultFactory) {
+    public LastRule(Rule<Node, Error, NodeResult<Node, Error>> leftRule, String infix, Rule<Node, Error, NodeResult<Node, Error>> rightRule, CompileResultFactory<Node, Error, StringResult<Error>, NodeResult<Node, Error>, NodeListResult<Node, Error>> resultFactory) {
         this.leftRule = leftRule;
         this.infix = infix;
         this.rightRule = rightRule;
