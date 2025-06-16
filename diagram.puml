@@ -85,14 +85,11 @@ TruncateRule --> StringResult
 TruncateRule --> Truncator
 class NodeFactory
 class StringOk
-StringOk --> Ok
-StringOk --> Result
 StringOk --> OrState
 StringOk --> Function
 StringOk --> Supplier
 class NodeWithEverything
 class StringResult
-StringResult --> Result
 StringResult --> OrState
 StringResult --> Function
 StringResult --> Supplier
@@ -172,8 +169,6 @@ RuleCompiler --> Rule
 RuleCompiler --> ArrayList
 RuleCompiler --> Map
 class StringErr
-StringErr --> Err
-StringErr --> Result
 StringErr --> OrState
 StringErr --> Function
 StringErr --> Supplier

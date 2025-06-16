@@ -1,7 +1,5 @@
 package magma.app.compile.error;
 
-import magma.api.Ok;
-import magma.api.Result;
 import magma.app.compile.rule.OrState;
 
 import java.util.function.Function;
@@ -30,12 +28,12 @@ public record StringOk<Error>(String value) implements StringResult<Error> {
     }
 
     @Override
-    public Result<String, Error> toResult() {
-        return new Ok<>(this.value);
+    public OrState<String, Error> attachToState(OrState<String, Error> state) {
+        return state.withValue(this.value);
     }
 
     @Override
-    public OrState<String, Error> attachToState(OrState<String, Error> state) {
-        return state.withValue(this.value);
+    public <Return> Return match(Function<String, Return> whenOk, Function<Error, Return> whenErr) {
+        return whenOk.apply(this.value);
     }
 }
