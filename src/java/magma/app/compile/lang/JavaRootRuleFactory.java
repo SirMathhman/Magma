@@ -1,13 +1,13 @@
 package magma.app.compile.lang;
 
-import magma.app.compile.lang.build.RuleBuilder;
+import magma.app.compile.lang.build.RuleFactory;
 
 import java.util.List;
 
 public final class JavaRootRuleFactory<Rule> {
-    private final RuleBuilder<Rule> builder;
+    private final RuleFactory<Rule> builder;
 
-    public JavaRootRuleFactory(RuleBuilder<Rule> builder) {
+    public JavaRootRuleFactory(RuleFactory<Rule> builder) {
         this.builder = builder;
     }
 

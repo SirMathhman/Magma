@@ -2,7 +2,7 @@ package magma.app.compile.lang.build;
 
 import java.util.List;
 
-public interface RuleBuilder<Rule> {
+public interface RuleFactory<Rule> {
     Rule String(String value);
 
     Rule Strip(Rule rule);

@@ -19,11 +19,11 @@ import magma.app.compile.rule.truncate.SuffixTruncator;
 
 import java.util.List;
 
-public class FactoryRuleBuilder<Error> implements RuleBuilder<Rule<NodeWithEverything, NodeResult<NodeWithEverything, Error, StringResult<Error>>, StringResult<Error>>> {
+public class CompositeRuleFactory<Error> implements RuleFactory<Rule<NodeWithEverything, NodeResult<NodeWithEverything, Error, StringResult<Error>>, StringResult<Error>>> {
     private final CompileResultFactory<NodeWithEverything, Error, StringResult<Error>, NodeResult<NodeWithEverything, Error, StringResult<Error>>, NodeListResult<NodeWithEverything, NodeResult<NodeWithEverything, Error, StringResult<Error>>>> resultFactory;
     private final NodeFactory<NodeWithEverything> nodeFactory;
 
-    public FactoryRuleBuilder(NodeFactory<NodeWithEverything> nodeFactory, CompileResultFactory<NodeWithEverything, Error, StringResult<Error>, NodeResult<NodeWithEverything, Error, StringResult<Error>>, NodeListResult<NodeWithEverything, NodeResult<NodeWithEverything, Error, StringResult<Error>>>> resultFactory) {
+    public CompositeRuleFactory(NodeFactory<NodeWithEverything> nodeFactory, CompileResultFactory<NodeWithEverything, Error, StringResult<Error>, NodeResult<NodeWithEverything, Error, StringResult<Error>>, NodeListResult<NodeWithEverything, NodeResult<NodeWithEverything, Error, StringResult<Error>>>> resultFactory) {
         this.resultFactory = resultFactory;
         this.nodeFactory = nodeFactory;
     }

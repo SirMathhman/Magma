@@ -1,10 +1,10 @@
 package magma.app.compile.lang;
 
-import magma.app.compile.lang.build.RuleBuilder;
+import magma.app.compile.lang.build.RuleFactory;
 
 import java.util.List;
 
-public record PlantUMLRootRuleFactory<Rule>(RuleBuilder<Rule> builder) {
+public record PlantUMLRootRuleFactory<Rule>(RuleFactory<Rule> builder) {
     public Rule create() {
         return this.builder.NodeList(List.of(this.createDependencyRule(), this.builder.Empty()));
     }
