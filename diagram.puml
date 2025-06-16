@@ -15,6 +15,14 @@ EmptyRule --> NodeFactory
 class DefaultCompileResultFactory
 DefaultCompileResultFactory --> NodeContext
 DefaultCompileResultFactory --> StringContext
+DefaultCompileResultFactory --> NodeListOk
+DefaultCompileResultFactory --> NodeListResult
+DefaultCompileResultFactory --> NodeErr
+DefaultCompileResultFactory --> NodeOk
+DefaultCompileResultFactory --> NodeResult
+DefaultCompileResultFactory --> StringErr
+DefaultCompileResultFactory --> StringOk
+DefaultCompileResultFactory --> StringResult
 DefaultCompileResultFactory --> NodeWithEverything
 DefaultCompileResultFactory --> List
 class LastRule
@@ -28,6 +36,7 @@ Result --> Function
 class SuffixTruncator
 SuffixTruncator --> Optional
 class NodeListResult
+NodeListResult --> NodeResult
 NodeListResult --> Supplier
 class Compiler
 Compiler --> StringResult
@@ -37,6 +46,9 @@ PrefixTruncator --> Optional
 class NodeErr
 NodeErr --> Err
 NodeErr --> Result
+NodeErr --> CompileError
+NodeErr --> StringErr
+NodeErr --> StringResult
 NodeErr --> NodeWithEverything
 NodeErr --> State
 NodeErr --> List
@@ -65,6 +77,7 @@ class NodeFactory
 class StringOk
 StringOk --> Ok
 StringOk --> Result
+StringOk --> CompileError
 StringOk --> State
 StringOk --> Function
 StringOk --> Supplier
@@ -77,14 +90,15 @@ State --> ArrayList
 State --> List
 State --> Optional
 class NodeWithEverything
-class StringResult
-StringResult --> Result
-StringResult --> State
-StringResult --> Function
-StringResult --> Supplier
 class Rule
 Rule --> NodeResult
 Rule --> StringResult
+class StringResult
+StringResult --> Result
+StringResult --> CompileError
+StringResult --> State
+StringResult --> Function
+StringResult --> Supplier
 class NodeWithNodeLists
 NodeWithNodeLists --> NodeProperties
 NodeWithNodeLists --> List
@@ -119,13 +133,16 @@ class MapNode
 MapNode --> MapNodeProperties
 MapNode --> NodeProperties
 MapNode --> List
+class NodeListErr
+NodeListErr --> CompileError
+NodeListErr --> NodeErr
+NodeListErr --> NodeResult
+NodeListErr --> NodeWithEverything
+NodeListErr --> Supplier
 class MapNodeProperties
 MapNodeProperties --> HashMap
 MapNodeProperties --> Map
 MapNodeProperties --> Optional
-class NodeListErr
-NodeListErr --> NodeWithEverything
-NodeListErr --> Supplier
 class ThrowableError
 ThrowableError --> IOException
 ThrowableError --> PrintWriter
@@ -134,10 +151,14 @@ class NodeProperties
 NodeProperties --> Optional
 class NodeResult
 NodeResult --> Result
+NodeResult --> CompileError
+NodeResult --> StringResult
 NodeResult --> State
 NodeResult --> List
 NodeResult --> Function
 class NodeListOk
+NodeListOk --> NodeOk
+NodeListOk --> NodeResult
 NodeListOk --> MapNode
 NodeListOk --> NodeWithEverything
 NodeListOk --> ArrayList
@@ -172,6 +193,7 @@ RuleCompiler --> Map
 class StringErr
 StringErr --> Err
 StringErr --> Result
+StringErr --> CompileError
 StringErr --> State
 StringErr --> Function
 StringErr --> Supplier
@@ -204,6 +226,8 @@ NodeWithStrings --> NodeProperties
 class NodeOk
 NodeOk --> Ok
 NodeOk --> Result
+NodeOk --> CompileError
+NodeOk --> StringResult
 NodeOk --> NodeWithEverything
 NodeOk --> State
 NodeOk --> List

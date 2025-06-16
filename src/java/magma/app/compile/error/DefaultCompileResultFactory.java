@@ -2,6 +2,14 @@ package magma.app.compile.error;
 
 import magma.app.compile.context.NodeContext;
 import magma.app.compile.context.StringContext;
+import magma.app.compile.error.list.NodeListOk;
+import magma.app.compile.error.list.NodeListResult;
+import magma.app.compile.error.node.NodeErr;
+import magma.app.compile.error.node.NodeOk;
+import magma.app.compile.error.node.NodeResult;
+import magma.app.compile.error.string.StringErr;
+import magma.app.compile.error.string.StringOk;
+import magma.app.compile.error.string.StringResult;
 import magma.app.compile.node.NodeWithEverything;
 
 import java.util.List;

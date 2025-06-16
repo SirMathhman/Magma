@@ -1,5 +1,7 @@
-package magma.app.compile.error;
+package magma.app.compile.error.list;
 
+import magma.app.compile.error.node.NodeOk;
+import magma.app.compile.error.node.NodeResult;
 import magma.app.compile.node.MapNode;
 import magma.app.compile.node.NodeWithEverything;
 

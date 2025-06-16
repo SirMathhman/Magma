@@ -1,6 +1,6 @@
 package magma.app.compile;
 
-import magma.app.compile.error.StringResult;
+import magma.app.compile.error.string.StringResult;
 
 import java.util.Map;
 

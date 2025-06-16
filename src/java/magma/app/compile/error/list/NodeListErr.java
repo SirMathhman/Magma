@@ -1,5 +1,8 @@
-package magma.app.compile.error;
+package magma.app.compile.error.list;
 
+import magma.app.compile.error.CompileError;
+import magma.app.compile.error.node.NodeErr;
+import magma.app.compile.error.node.NodeResult;
 import magma.app.compile.node.NodeWithEverything;
 
 import java.util.function.Supplier;
