@@ -2,7 +2,6 @@ package magma.app.compile.lang;
 
 import magma.app.compile.node.NodeWithEverything;
 import magma.app.compile.rule.Rule;
-import magma.app.compile.rule.RuleBuilder;
 
 import java.util.List;
 

@@ -1,7 +1,12 @@
-package magma.app.compile.rule;
+package magma.app.compile.lang;
 
 import magma.app.compile.node.MapNodeFactory;
 import magma.app.compile.node.NodeWithEverything;
+import magma.app.compile.rule.EmptyRule;
+import magma.app.compile.rule.LastRule;
+import magma.app.compile.rule.OrRule;
+import magma.app.compile.rule.Rule;
+import magma.app.compile.rule.StringRule;
 import magma.app.compile.rule.divide.NodeListRule;
 import magma.app.compile.rule.truncate.TruncateRule;
 
