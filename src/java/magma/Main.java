@@ -22,8 +22,15 @@ public class Main {
             for (var source : sources)
                 inputs.putAll(readSource(source));
 
-            final var output = new Compiler().compile(inputs);
-            Files.writeString(Paths.get(".", "diagram.puml"), output);
+            new Compiler().compile(inputs)
+                    .consume(output -> {
+                        try {
+                            Files.writeString(Paths.get(".", "diagram.puml"), output);
+                        } catch (IOException e) {
+                            //noinspection CallToPrintStackTrace
+                            e.printStackTrace();
+                        }
+                    }, error -> System.err.println(error.display()));
         } catch (IOException e) {
             //noinspection CallToPrintStackTrace
             e.printStackTrace();

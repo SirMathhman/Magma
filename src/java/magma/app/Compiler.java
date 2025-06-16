@@ -1,5 +1,6 @@
 package magma.app;
 
+import magma.api.Ok;
 import magma.api.Result;
 import magma.app.compile.CompileError;
 import magma.app.compile.lang.CommonLang;
@@ -35,18 +36,17 @@ public class Compiler {
                 .with("children", list);
     }
 
-    public String compile(Map<String, String> inputs) {
-        final var buffer = new StringBuilder();
-        for (var input : inputs.entrySet()) {
-            final var str = CommonLang.createJavaRootRule()
-                    .lex(input.getValue())
-                    .flatMap(tree -> parseAndGenerate(tree, input.getKey()))
-                    .findValue()
-                    .orElse("");
+    public Result<String, CompileError> compile(Map<String, String> inputs) {
+        Result<StringBuilder, CompileError> buffer = new Ok<>(new StringBuilder());
+        for (var input : inputs.entrySet())
+            buffer = buffer.flatMap(inner -> {
+                final var result = CommonLang.createJavaRootRule()
+                        .lex(input.getValue())
+                        .flatMap(tree -> parseAndGenerate(tree, input.getKey()));
 
-            buffer.append(str);
-        }
+                return result.map(inner::append);
+            });
 
-        return "@startuml\nskinparam linetype ortho\n" + buffer + "@enduml";
+        return buffer.map(inner -> "@startuml\nskinparam linetype ortho\n" + inner + "@enduml");
     }
 }

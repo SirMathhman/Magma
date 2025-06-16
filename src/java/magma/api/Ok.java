@@ -1,6 +1,7 @@
 package magma.api;
 
 import java.util.Optional;
+import java.util.function.Consumer;
 import java.util.function.Function;
 
 public record Ok<Value, Error>(Value value) implements Result<Value, Error> {
@@ -17,5 +18,10 @@ public record Ok<Value, Error>(Value value) implements Result<Value, Error> {
     @Override
     public Optional<Value> findValue() {
         return Optional.of(this.value);
+    }
+
+    @Override
+    public void consume(Consumer<Value> whenOk, Consumer<Error> whenErr) {
+        whenOk.accept(this.value);
     }
 }

@@ -1,6 +1,7 @@
 @startuml
 skinparam linetype ortho
 class CompileError
+CompileError --> Error
 CompileError --> Context
 class StringRule
 StringRule --> Err
@@ -13,6 +14,7 @@ StringRule --> NodeWithStrings
 class MapNodeFactory
 class Err
 Err --> Optional
+Err --> Consumer
 Err --> Function
 class EmptyRule
 EmptyRule --> Ok
@@ -34,6 +36,7 @@ LastRule --> CompileError
 LastRule --> StringContext
 class Result
 Result --> Optional
+Result --> Consumer
 Result --> Function
 class SuffixTruncator
 SuffixTruncator --> Optional
@@ -53,6 +56,7 @@ RuleBuilder --> List
 class StringContext
 class Context
 class Compiler
+Compiler --> Ok
 Compiler --> Result
 Compiler --> CompileError
 Compiler --> CommonLang
@@ -71,6 +75,9 @@ OrRule --> CompileError
 OrRule --> StringContext
 OrRule --> List
 OrRule --> Optional
+class NodeContext
+NodeContext --> DisplayableNode
+class Error
 class Completer
 class MutableDivideState
 MutableDivideState --> ArrayList
@@ -79,6 +86,7 @@ class Truncator
 Truncator --> Optional
 class DivideState
 DivideState --> List
+class DisplayableNode
 class StripTruncator
 StripTruncator --> Optional
 class CommonLang
@@ -97,7 +105,9 @@ NodeListRule --> Err
 NodeListRule --> Ok
 NodeListRule --> Result
 NodeListRule --> CompileError
+NodeListRule --> NodeContext
 NodeListRule --> StringContext
+NodeListRule --> DisplayableNode
 NodeListRule --> NodeFactory
 NodeListRule --> NodeWithNodeLists
 NodeListRule --> Rule
@@ -117,6 +127,7 @@ NodeWithNodeLists --> NodeProperties
 NodeWithNodeLists --> List
 class Ok
 Ok --> Optional
+Ok --> Consumer
 Ok --> Function
 class Main
 Main --> Compiler

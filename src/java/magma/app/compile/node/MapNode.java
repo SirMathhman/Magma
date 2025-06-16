@@ -36,4 +36,9 @@ public final class MapNode implements NodeWithEverything {
     public NodeProperties<String, NodeWithEverything> strings() {
         return this.strings;
     }
+
+    @Override
+    public String display() {
+        return this.toString();
+    }
 }
