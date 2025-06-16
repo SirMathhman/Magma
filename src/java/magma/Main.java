@@ -8,7 +8,6 @@ import magma.app.compile.lang.PlantUMLRootRuleFactory;
 import magma.app.compile.lang.build.FactoryRuleBuilder;
 import magma.app.compile.node.MapNodeFactory;
 
-@SuppressWarnings("ClassWithTooManyTransitiveDependencies")
 public class Main {
     public static void main(String[] args) {
         var builder = new FactoryRuleBuilder<>(new MapNodeFactory(), DefaultCompileResultFactory.create());
