@@ -2,8 +2,8 @@ package magma.app.compile.error;
 
 import java.util.function.Supplier;
 
-public interface NodeListResult<Node, Error, NodeResult> {
+public interface NodeListResult<Node, NodeResult> {
     NodeResult toNode(String key);
 
-    NodeListResult<Node, Error, NodeResult> add(Supplier<NodeResult> other);
+    NodeListResult<Node, NodeResult> add(Supplier<NodeResult> other);
 }

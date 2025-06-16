@@ -4,11 +4,11 @@ import magma.app.compile.node.NodeWithEverything;
 
 import java.util.List;
 
-public class DefaultCompileResultFactory implements CompileResultFactory<NodeWithEverything, FormattedError, StringResult<FormattedError>, NodeResult<NodeWithEverything, FormattedError, StringResult<FormattedError>>, NodeListResult<NodeWithEverything, FormattedError, NodeResult<NodeWithEverything, FormattedError, StringResult<FormattedError>>>> {
+public class DefaultCompileResultFactory implements CompileResultFactory<NodeWithEverything, FormattedError, StringResult<FormattedError>, NodeResult<NodeWithEverything, FormattedError, StringResult<FormattedError>>, NodeListResult<NodeWithEverything, NodeResult<NodeWithEverything, FormattedError, StringResult<FormattedError>>>> {
     private DefaultCompileResultFactory() {
     }
 
-    public static CompileResultFactory<NodeWithEverything, FormattedError, StringResult<FormattedError>, NodeResult<NodeWithEverything, FormattedError, StringResult<FormattedError>>, NodeListResult<NodeWithEverything, FormattedError, NodeResult<NodeWithEverything, FormattedError, StringResult<FormattedError>>>> create() {
+    public static CompileResultFactory<NodeWithEverything, FormattedError, StringResult<FormattedError>, NodeResult<NodeWithEverything, FormattedError, StringResult<FormattedError>>, NodeListResult<NodeWithEverything, NodeResult<NodeWithEverything, FormattedError, StringResult<FormattedError>>>> create() {
         return new DefaultCompileResultFactory();
     }
 
@@ -33,7 +33,7 @@ public class DefaultCompileResultFactory implements CompileResultFactory<NodeWit
     }
 
     @Override
-    public NodeListResult<NodeWithEverything, FormattedError, NodeResult<NodeWithEverything, FormattedError, StringResult<FormattedError>>> fromEmptyNodeList() {
+    public NodeListResult<NodeWithEverything, NodeResult<NodeWithEverything, FormattedError, StringResult<FormattedError>>> fromEmptyNodeList() {
         return new NodeListOk<>();
     }
 

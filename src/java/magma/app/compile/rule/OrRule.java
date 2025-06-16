@@ -8,9 +8,9 @@ import java.util.List;
 
 public final class OrRule<Node, Error, NodeResult extends AttachableToState<Node, Error>, StringResult extends AttachableToState<String, Error>> implements Rule<Node, NodeResult, StringResult> {
     private final List<Rule<Node, NodeResult, StringResult>> rules;
-    private final CompileResultFactory<Node, Error, StringResult, NodeResult, NodeListResult<Node, Error, NodeResult>> factory;
+    private final CompileResultFactory<Node, Error, StringResult, NodeResult, NodeListResult<Node, NodeResult>> factory;
 
-    public OrRule(List<Rule<Node, NodeResult, StringResult>> rules, CompileResultFactory<Node, Error, StringResult, NodeResult, NodeListResult<Node, Error, NodeResult>> factory) {
+    public OrRule(List<Rule<Node, NodeResult, StringResult>> rules, CompileResultFactory<Node, Error, StringResult, NodeResult, NodeListResult<Node, NodeResult>> factory) {
         this.rules = rules;
         this.factory = factory;
     }

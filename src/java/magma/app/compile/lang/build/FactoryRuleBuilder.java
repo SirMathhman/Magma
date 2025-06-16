@@ -20,10 +20,10 @@ import magma.app.compile.rule.truncate.SuffixTruncator;
 import java.util.List;
 
 public class FactoryRuleBuilder<Error> implements RuleBuilder<Rule<NodeWithEverything, NodeResult<NodeWithEverything, Error, StringResult<Error>>, StringResult<Error>>> {
-    private final CompileResultFactory<NodeWithEverything, Error, StringResult<Error>, NodeResult<NodeWithEverything, Error, StringResult<Error>>, NodeListResult<NodeWithEverything, Error, NodeResult<NodeWithEverything, Error, StringResult<Error>>>> resultFactory;
+    private final CompileResultFactory<NodeWithEverything, Error, StringResult<Error>, NodeResult<NodeWithEverything, Error, StringResult<Error>>, NodeListResult<NodeWithEverything, NodeResult<NodeWithEverything, Error, StringResult<Error>>>> resultFactory;
     private final NodeFactory<NodeWithEverything> nodeFactory;
 
-    public FactoryRuleBuilder(CompileResultFactory<NodeWithEverything, Error, StringResult<Error>, NodeResult<NodeWithEverything, Error, StringResult<Error>>, NodeListResult<NodeWithEverything, Error, NodeResult<NodeWithEverything, Error, StringResult<Error>>>> resultFactory, NodeFactory<NodeWithEverything> nodeFactory) {
+    public FactoryRuleBuilder(CompileResultFactory<NodeWithEverything, Error, StringResult<Error>, NodeResult<NodeWithEverything, Error, StringResult<Error>>, NodeListResult<NodeWithEverything, NodeResult<NodeWithEverything, Error, StringResult<Error>>>> resultFactory, NodeFactory<NodeWithEverything> nodeFactory) {
         this.resultFactory = resultFactory;
         this.nodeFactory = nodeFactory;
     }

@@ -13,9 +13,9 @@ import java.util.ArrayList;
 public final class NodeListRule<Node extends NodeWithNodeLists<Node> & DisplayableNode, Error, StringResult extends Appendable<StringResult>> implements Rule<Node, NodeResult<Node, Error, StringResult>, StringResult> {
     private final String key;
     private final Rule<Node, NodeResult<Node, Error, StringResult>, StringResult> rule;
-    private final CompileResultFactory<Node, Error, StringResult, NodeResult<Node, Error, StringResult>, NodeListResult<Node, Error, NodeResult<Node, Error, StringResult>>> resultFactory;
+    private final CompileResultFactory<Node, Error, StringResult, NodeResult<Node, Error, StringResult>, NodeListResult<Node, NodeResult<Node, Error, StringResult>>> resultFactory;
 
-    public NodeListRule(String key, Rule<Node, NodeResult<Node, Error, StringResult>, StringResult> rule, CompileResultFactory<Node, Error, StringResult, NodeResult<Node, Error, StringResult>, NodeListResult<Node, Error, NodeResult<Node, Error, StringResult>>> resultFactory) {
+    public NodeListRule(String key, Rule<Node, NodeResult<Node, Error, StringResult>, StringResult> rule, CompileResultFactory<Node, Error, StringResult, NodeResult<Node, Error, StringResult>, NodeListResult<Node, NodeResult<Node, Error, StringResult>>> resultFactory) {
         this.key = key;
         this.rule = rule;
         this.resultFactory = resultFactory;

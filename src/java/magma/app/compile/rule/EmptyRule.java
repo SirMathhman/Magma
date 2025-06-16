@@ -6,9 +6,9 @@ import magma.app.compile.node.NodeFactory;
 
 public class EmptyRule<Node, Error, NodeResult, StringResult> implements Rule<Node, NodeResult, StringResult> {
     private final NodeFactory<Node> nodeFactory;
-    private final CompileResultFactory<Node, Error, StringResult, NodeResult, NodeListResult<Node, Error, NodeResult>> resultFactory;
+    private final CompileResultFactory<Node, Error, StringResult, NodeResult, NodeListResult<Node, NodeResult>> resultFactory;
 
-    public EmptyRule(NodeFactory<Node> nodeFactory, CompileResultFactory<Node, Error, StringResult, NodeResult, NodeListResult<Node, Error, NodeResult>> resultFactory) {
+    public EmptyRule(NodeFactory<Node> nodeFactory, CompileResultFactory<Node, Error, StringResult, NodeResult, NodeListResult<Node, NodeResult>> resultFactory) {
         this.nodeFactory = nodeFactory;
         this.resultFactory = resultFactory;
     }

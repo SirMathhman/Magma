@@ -7,7 +7,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Supplier;
 
-public final class NodeListOk<Error> implements NodeListResult<NodeWithEverything, Error, NodeResult<NodeWithEverything, Error, StringResult<Error>>> {
+public final class NodeListOk<Error> implements NodeListResult<NodeWithEverything, NodeResult<NodeWithEverything, Error, StringResult<Error>>> {
     public final List<NodeWithEverything> nodes;
 
     public NodeListOk(List<NodeWithEverything> nodes) {
@@ -25,7 +25,7 @@ public final class NodeListOk<Error> implements NodeListResult<NodeWithEverythin
     }
 
     @Override
-    public NodeListResult<NodeWithEverything, Error, NodeResult<NodeWithEverything, Error, StringResult<Error>>> add(Supplier<NodeResult<NodeWithEverything, Error, StringResult<Error>>> other) {
+    public NodeListResult<NodeWithEverything, NodeResult<NodeWithEverything, Error, StringResult<Error>>> add(Supplier<NodeResult<NodeWithEverything, Error, StringResult<Error>>> other) {
         return other.get()
                 .attachToList(this.nodes)
                 .match(NodeListOk::new, NodeListErr::new);
