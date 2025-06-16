@@ -3,6 +3,7 @@ package magma.app.compile.error.string;
 import magma.api.Err;
 import magma.api.Error;
 import magma.api.Result;
+import magma.app.compile.error.StringResult;
 import magma.app.compile.rule.OrState;
 
 import java.util.function.Function;

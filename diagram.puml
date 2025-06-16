@@ -16,16 +16,7 @@ EmptyRule --> StringResult
 EmptyRule --> NodeFactory
 class DefaultCompileResultFactory
 DefaultCompileResultFactory --> Error
-DefaultCompileResultFactory --> NodeContext
-DefaultCompileResultFactory --> StringContext
 DefaultCompileResultFactory --> NodeListOk
-DefaultCompileResultFactory --> NodeListResult
-DefaultCompileResultFactory --> NodeErr
-DefaultCompileResultFactory --> NodeOk
-DefaultCompileResultFactory --> NodeResult
-DefaultCompileResultFactory --> StringErr
-DefaultCompileResultFactory --> StringOk
-DefaultCompileResultFactory --> StringResult
 DefaultCompileResultFactory --> NodeWithEverything
 DefaultCompileResultFactory --> List
 class LastRule
@@ -35,6 +26,13 @@ LastRule --> NodeResult
 LastRule --> StringResult
 class Result
 Result --> Function
+class StringResults
+StringResults --> Error
+StringResults --> NodeContext
+StringResults --> StringErr
+StringResults --> StringOk
+StringResults --> NodeWithEverything
+StringResults --> List
 class SuffixTruncator
 SuffixTruncator --> Optional
 class OrState
@@ -42,7 +40,6 @@ OrState --> Error
 OrState --> Result
 OrState --> List
 class NodeListResult
-NodeListResult --> NodeResult
 NodeListResult --> Supplier
 class Compiler
 Compiler --> StringResult
@@ -53,8 +50,9 @@ class NodeErr
 NodeErr --> Err
 NodeErr --> Error
 NodeErr --> Result
-NodeErr --> StringErr
+NodeErr --> NodeResult
 NodeErr --> StringResult
+NodeErr --> StringResults
 NodeErr --> NodeWithEverything
 NodeErr --> OrState
 NodeErr --> List
@@ -85,19 +83,20 @@ class StringOk
 StringOk --> Error
 StringOk --> Ok
 StringOk --> Result
+StringOk --> StringResult
 StringOk --> OrState
 StringOk --> Function
 StringOk --> Supplier
 class NodeWithEverything
-class Rule
-Rule --> NodeResult
-Rule --> StringResult
 class StringResult
 StringResult --> Error
 StringResult --> Result
 StringResult --> OrState
 StringResult --> Function
 StringResult --> Supplier
+class Rule
+Rule --> NodeResult
+Rule --> StringResult
 class NodeWithNodeLists
 NodeWithNodeLists --> NodeProperties
 NodeWithNodeLists --> List
@@ -127,13 +126,21 @@ StringRule --> NodeFactory
 StringRule --> NodeWithStrings
 class Err
 Err --> Function
+class NodeResults
+NodeResults --> Error
+NodeResults --> StringContext
+NodeResults --> NodeErr
+NodeResults --> NodeOk
+NodeResults --> NodeWithEverything
+NodeResults --> List
 class MapNode
 MapNode --> MapNodeProperties
 MapNode --> NodeProperties
 MapNode --> List
 class NodeListErr
 NodeListErr --> Error
-NodeListErr --> NodeErr
+NodeListErr --> NodeListResult
+NodeListErr --> NodeResults
 NodeListErr --> NodeResult
 NodeListErr --> NodeWithEverything
 NodeListErr --> Supplier
@@ -150,12 +157,12 @@ NodeProperties --> Optional
 class NodeResult
 NodeResult --> Error
 NodeResult --> Result
-NodeResult --> StringResult
 NodeResult --> OrState
 NodeResult --> List
 NodeResult --> Function
 class NodeListOk
-NodeListOk --> NodeOk
+NodeListOk --> NodeListResult
+NodeListOk --> NodeResults
 NodeListOk --> NodeResult
 NodeListOk --> MapNode
 NodeListOk --> NodeWithEverything
@@ -179,7 +186,7 @@ RuleBuilder --> SuffixTruncator
 RuleBuilder --> List
 class RuleCompiler
 RuleCompiler --> DefaultCompileResultFactory
-RuleCompiler --> NodeOk
+RuleCompiler --> NodeResults
 RuleCompiler --> NodeResult
 RuleCompiler --> StringResult
 RuleCompiler --> MapNode
@@ -192,6 +199,7 @@ class StringErr
 StringErr --> Err
 StringErr --> Error
 StringErr --> Result
+StringErr --> StringResult
 StringErr --> OrState
 StringErr --> Function
 StringErr --> Supplier
@@ -233,6 +241,7 @@ class NodeOk
 NodeOk --> Error
 NodeOk --> Ok
 NodeOk --> Result
+NodeOk --> NodeResult
 NodeOk --> StringResult
 NodeOk --> NodeWithEverything
 NodeOk --> OrState

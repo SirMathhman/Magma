@@ -1,7 +1,8 @@
 package magma.app.compile.error.list;
 
-import magma.app.compile.error.node.NodeOk;
-import magma.app.compile.error.node.NodeResult;
+import magma.app.compile.error.NodeListResult;
+import magma.app.compile.error.NodeResult;
+import magma.app.compile.error.NodeResults;
 import magma.app.compile.node.MapNode;
 import magma.app.compile.node.NodeWithEverything;
 
@@ -16,7 +17,7 @@ public record NodeListOk(List<NodeWithEverything> nodes) implements NodeListResu
 
     @Override
     public NodeResult<NodeWithEverything> toNode(String key) {
-        return new NodeOk(new MapNode().nodeLists()
+        return NodeResults.Ok(new MapNode().nodeLists()
                 .with(key, this.nodes));
     }
 

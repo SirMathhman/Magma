@@ -1,9 +1,9 @@
 package magma.app.compile.rule.divide;
 
 import magma.app.compile.error.CompileResultFactory;
-import magma.app.compile.error.list.NodeListResult;
-import magma.app.compile.error.node.NodeResult;
-import magma.app.compile.error.string.StringResult;
+import magma.app.compile.error.NodeListResult;
+import magma.app.compile.error.NodeResult;
+import magma.app.compile.error.StringResult;
 import magma.app.compile.node.DisplayableNode;
 import magma.app.compile.node.NodeWithNodeLists;
 import magma.app.compile.rule.Rule;

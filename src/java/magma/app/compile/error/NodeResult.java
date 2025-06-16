@@ -1,8 +1,7 @@
-package magma.app.compile.error.node;
+package magma.app.compile.error;
 
 import magma.api.Error;
 import magma.api.Result;
-import magma.app.compile.error.string.StringResult;
 import magma.app.compile.rule.OrState;
 
 import java.util.List;

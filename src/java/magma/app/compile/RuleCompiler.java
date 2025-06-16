@@ -1,9 +1,9 @@
 package magma.app.compile;
 
 import magma.app.compile.error.DefaultCompileResultFactory;
-import magma.app.compile.error.node.NodeOk;
-import magma.app.compile.error.node.NodeResult;
-import magma.app.compile.error.string.StringResult;
+import magma.app.compile.error.NodeResult;
+import magma.app.compile.error.NodeResults;
+import magma.app.compile.error.StringResult;
 import magma.app.compile.node.MapNode;
 import magma.app.compile.node.NodeWithEverything;
 import magma.app.compile.node.NodeWithNodeLists;
@@ -30,7 +30,7 @@ public class RuleCompiler implements Compiler {
                         .with("parent", name))
                 .toList();
 
-        return new NodeOk(new MapNode().nodeLists()
+        return NodeResults.Ok(new MapNode().nodeLists()
                 .with("children", list));
     }
 

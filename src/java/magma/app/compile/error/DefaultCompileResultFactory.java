@@ -1,16 +1,7 @@
 package magma.app.compile.error;
 
 import magma.api.Error;
-import magma.app.compile.context.NodeContext;
-import magma.app.compile.context.StringContext;
 import magma.app.compile.error.list.NodeListOk;
-import magma.app.compile.error.list.NodeListResult;
-import magma.app.compile.error.node.NodeErr;
-import magma.app.compile.error.node.NodeOk;
-import magma.app.compile.error.node.NodeResult;
-import magma.app.compile.error.string.StringErr;
-import magma.app.compile.error.string.StringOk;
-import magma.app.compile.error.string.StringResult;
 import magma.app.compile.node.NodeWithEverything;
 
 import java.util.List;
@@ -25,22 +16,22 @@ public class DefaultCompileResultFactory implements CompileResultFactory<NodeWit
 
     @Override
     public NodeResult<NodeWithEverything> fromNode(NodeWithEverything node) {
-        return new NodeOk(node);
+        return NodeResults.Ok(node);
     }
 
     @Override
     public StringResult fromString(String value) {
-        return new StringOk(value);
+        return StringResults.Ok(value);
     }
 
     @Override
     public StringResult fromNodeError(String message, NodeWithEverything context) {
-        return new StringErr(new CompileError(message, new NodeContext(context)));
+        return StringResults.ErrWithNodes(message, context);
     }
 
     @Override
     public NodeResult<NodeWithEverything> fromStringError(String message, String context) {
-        return new NodeErr(new CompileError(message, new StringContext(context)));
+        return NodeResults.ErrWithString(message, context);
     }
 
     @Override
@@ -55,11 +46,11 @@ public class DefaultCompileResultFactory implements CompileResultFactory<NodeWit
 
     @Override
     public NodeResult<NodeWithEverything> fromStringErrorWithChildren(String message, String context, List<Error> errors) {
-        return new NodeErr(new CompileError(message, new StringContext(context), errors));
+        return NodeResults.ErrWithChildren(message, context, errors);
     }
 
     @Override
     public StringResult fromNodeErrorWithChildren(String message, NodeWithEverything node, List<Error> errors) {
-        return new StringErr(new CompileError(message, new NodeContext(node), errors));
+        return StringResults.ErrWithChildren(message, node, errors);
     }
 }

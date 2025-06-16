@@ -1,4 +1,4 @@
-package magma.app.compile.error.string;
+package magma.app.compile.error;
 
 import magma.api.Error;
 import magma.api.Result;

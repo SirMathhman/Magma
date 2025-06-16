@@ -3,8 +3,9 @@ package magma.app.compile.error.node;
 import magma.api.Err;
 import magma.api.Error;
 import magma.api.Result;
-import magma.app.compile.error.string.StringErr;
-import magma.app.compile.error.string.StringResult;
+import magma.app.compile.error.NodeResult;
+import magma.app.compile.error.StringResult;
+import magma.app.compile.error.StringResults;
 import magma.app.compile.node.NodeWithEverything;
 import magma.app.compile.rule.OrState;
 
@@ -19,7 +20,7 @@ public record NodeErr(Error error) implements NodeResult<NodeWithEverything> {
 
     @Override
     public StringResult generate(Function<NodeWithEverything, StringResult> generator) {
-        return new StringErr(this.error);
+        return StringResults.Err(this.error);
     }
 
     @Override
