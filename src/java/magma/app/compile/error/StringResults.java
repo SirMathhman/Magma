@@ -1,9 +1,6 @@
 package magma.app.compile.error;
 
-import magma.api.Error;
 import magma.app.compile.context.NodeContext;
-import magma.app.compile.error.string.StringErr;
-import magma.app.compile.error.string.StringOk;
 import magma.app.compile.node.NodeWithEverything;
 
 import java.util.List;
@@ -13,11 +10,11 @@ public class StringResults {
         return new StringOk(value);
     }
 
-    public static StringResult Err(Error error) {
+    public static StringResult Err(FormattedError error) {
         return new StringErr(error);
     }
 
-    static StringResult ErrWithChildren(String message, NodeWithEverything node, List<Error> errors) {
+    static StringResult ErrWithChildren(String message, NodeWithEverything node, List<FormattedError> errors) {
         return Err(new CompileError(message, new NodeContext(node), errors));
     }
 

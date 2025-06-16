@@ -1,9 +1,6 @@
 package magma.app.compile.error;
 
-import magma.api.Error;
 import magma.app.compile.context.StringContext;
-import magma.app.compile.error.node.NodeErr;
-import magma.app.compile.error.node.NodeOk;
 import magma.app.compile.node.NodeWithEverything;
 
 import java.util.List;
@@ -13,7 +10,7 @@ public class NodeResults {
         return new NodeOk(node);
     }
 
-    public static NodeResult<NodeWithEverything> Err(Error error) {
+    public static NodeResult<NodeWithEverything> Err(FormattedError error) {
         return new NodeErr(error);
     }
 
@@ -21,7 +18,7 @@ public class NodeResults {
         return Err(new CompileError(message, new StringContext(context)));
     }
 
-    static NodeResult<NodeWithEverything> ErrWithChildren(String message, String context, List<Error> errors) {
+    static NodeResult<NodeWithEverything> ErrWithChildren(String message, String context, List<FormattedError> errors) {
         return Err(new CompileError(message, new StringContext(context), errors));
     }
 }

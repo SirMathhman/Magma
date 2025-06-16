@@ -16,7 +16,6 @@ EmptyRule --> StringResult
 EmptyRule --> NodeFactory
 class DefaultCompileResultFactory
 DefaultCompileResultFactory --> Error
-DefaultCompileResultFactory --> NodeListOk
 DefaultCompileResultFactory --> NodeWithEverything
 DefaultCompileResultFactory --> List
 class LastRule
@@ -29,8 +28,6 @@ Result --> Function
 class StringResults
 StringResults --> Error
 StringResults --> NodeContext
-StringResults --> StringErr
-StringResults --> StringOk
 StringResults --> NodeWithEverything
 StringResults --> List
 class SuffixTruncator
@@ -66,11 +63,7 @@ class PrefixTruncator
 PrefixTruncator --> Optional
 class NodeErr
 NodeErr --> Err
-NodeErr --> Error
 NodeErr --> Result
-NodeErr --> NodeResult
-NodeErr --> StringResult
-NodeErr --> StringResults
 NodeErr --> NodeWithEverything
 NodeErr --> OrState
 NodeErr --> List
@@ -98,16 +91,13 @@ TruncateRule --> StringResult
 TruncateRule --> Truncator
 class NodeFactory
 class StringOk
-StringOk --> Error
 StringOk --> Ok
 StringOk --> Result
-StringOk --> StringResult
 StringOk --> OrState
 StringOk --> Function
 StringOk --> Supplier
 class NodeWithEverything
 class StringResult
-StringResult --> Error
 StringResult --> Result
 StringResult --> OrState
 StringResult --> Function
@@ -147,25 +137,19 @@ Err --> Function
 class NodeResults
 NodeResults --> Error
 NodeResults --> StringContext
-NodeResults --> NodeErr
-NodeResults --> NodeOk
 NodeResults --> NodeWithEverything
 NodeResults --> List
 class MapNode
 MapNode --> MapNodeProperties
 MapNode --> NodeProperties
 MapNode --> List
-class NodeListErr
-NodeListErr --> Error
-NodeListErr --> NodeListResult
-NodeListErr --> NodeResult
-NodeListErr --> NodeResults
-NodeListErr --> NodeWithEverything
-NodeListErr --> Supplier
 class MapNodeProperties
 MapNodeProperties --> HashMap
 MapNodeProperties --> Map
 MapNodeProperties --> Optional
+class NodeListErr
+NodeListErr --> NodeWithEverything
+NodeListErr --> Supplier
 class ThrowableError
 ThrowableError --> IOException
 ThrowableError --> PrintWriter
@@ -173,15 +157,11 @@ ThrowableError --> StringWriter
 class NodeProperties
 NodeProperties --> Optional
 class NodeResult
-NodeResult --> Error
 NodeResult --> Result
 NodeResult --> OrState
 NodeResult --> List
 NodeResult --> Function
 class NodeListOk
-NodeListOk --> NodeListResult
-NodeListOk --> NodeResult
-NodeListOk --> NodeResults
 NodeListOk --> MapNode
 NodeListOk --> NodeWithEverything
 NodeListOk --> ArrayList
@@ -206,7 +186,6 @@ class StringErr
 StringErr --> Err
 StringErr --> Error
 StringErr --> Result
-StringErr --> StringResult
 StringErr --> OrState
 StringErr --> Function
 StringErr --> Supplier
@@ -228,8 +207,8 @@ MutableDivideState --> List
 class DisplayableNode
 class CommonLang
 CommonLang --> DefaultCompileResultFactory
-CommonLang --> RuleBuilder
 CommonLang --> FactoryRuleBuilder
+CommonLang --> RuleBuilder
 CommonLang --> NodeWithEverything
 CommonLang --> Rule
 CommonLang --> List
@@ -247,11 +226,8 @@ NodeListRule --> ArrayList
 class NodeWithStrings
 NodeWithStrings --> NodeProperties
 class NodeOk
-NodeOk --> Error
 NodeOk --> Ok
 NodeOk --> Result
-NodeOk --> NodeResult
-NodeOk --> StringResult
 NodeOk --> NodeWithEverything
 NodeOk --> OrState
 NodeOk --> List

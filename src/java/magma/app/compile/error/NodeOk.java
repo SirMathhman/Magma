@@ -1,10 +1,7 @@
-package magma.app.compile.error.node;
+package magma.app.compile.error;
 
-import magma.api.Error;
 import magma.api.Ok;
 import magma.api.Result;
-import magma.app.compile.error.NodeResult;
-import magma.app.compile.error.StringResult;
 import magma.app.compile.node.NodeWithEverything;
 import magma.app.compile.rule.OrState;
 
@@ -28,7 +25,7 @@ public record NodeOk(NodeWithEverything node) implements NodeResult<NodeWithEver
     }
 
     @Override
-    public Result<List<NodeWithEverything>, Error> attachToList(List<NodeWithEverything> list) {
+    public Result<List<NodeWithEverything>, FormattedError> attachToList(List<NodeWithEverything> list) {
         list.add(this.node);
         return new Ok<>(list);
     }

@@ -1,7 +1,5 @@
 package magma.app.compile.error;
 
-import magma.api.Error;
-import magma.app.compile.error.list.NodeListOk;
 import magma.app.compile.node.NodeWithEverything;
 
 import java.util.List;
@@ -45,12 +43,12 @@ public class DefaultCompileResultFactory implements CompileResultFactory<NodeWit
     }
 
     @Override
-    public NodeResult<NodeWithEverything> fromStringErrorWithChildren(String message, String context, List<Error> errors) {
+    public NodeResult<NodeWithEverything> fromStringErrorWithChildren(String message, String context, List<FormattedError> errors) {
         return NodeResults.ErrWithChildren(message, context, errors);
     }
 
     @Override
-    public StringResult fromNodeErrorWithChildren(String message, NodeWithEverything node, List<Error> errors) {
+    public StringResult fromNodeErrorWithChildren(String message, NodeWithEverything node, List<FormattedError> errors) {
         return StringResults.ErrWithChildren(message, node, errors);
     }
 }

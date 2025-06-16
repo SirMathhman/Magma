@@ -1,43 +1,40 @@
-package magma.app.compile.error.string;
+package magma.app.compile.error;
 
-import magma.api.Error;
-import magma.api.Ok;
+import magma.api.Err;
 import magma.api.Result;
-import magma.app.compile.error.StringResult;
 import magma.app.compile.rule.OrState;
 
 import java.util.function.Function;
 import java.util.function.Supplier;
 
-public record StringOk(String value) implements StringResult {
+public record StringErr(FormattedError error) implements StringResult {
     @Override
     public StringResult appendResult(Supplier<StringResult> other) {
-        return other.get()
-                .prependSlice(this.value);
+        return this;
     }
 
     @Override
     public StringResult complete(Function<String, String> mapper) {
-        return new StringOk(mapper.apply(this.value));
+        return this;
     }
 
     @Override
     public StringResult prependSlice(String slice) {
-        return new StringOk(slice + this.value);
+        return this;
     }
 
     @Override
     public StringResult appendSlice(String slice) {
-        return new StringOk(this.value + slice);
+        return this;
     }
 
     @Override
-    public Result<String, Error> toResult() {
-        return new Ok<>(this.value);
+    public Result<String, FormattedError> toResult() {
+        return new Err<>(this.error);
     }
 
     @Override
     public OrState<String> attachToState(OrState<String> state) {
-        return state.withValue(this.value);
+        return state.withError(this.error);
     }
 }
