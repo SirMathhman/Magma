@@ -5,9 +5,9 @@ CompileError --> Error
 CompileError --> Context
 class StringRule
 StringRule --> Err
+StringRule --> NodeContext
 StringRule --> CompileError
 StringRule --> CompileResult
-StringRule --> NodeContext
 StringRule --> DisplayableNode
 StringRule --> NodeFactory
 StringRule --> NodeWithStrings
@@ -28,9 +28,9 @@ MapNodeProperties --> Map
 MapNodeProperties --> Optional
 class LastRule
 LastRule --> Err
+LastRule --> StringContext
 LastRule --> CompileError
 LastRule --> CompileResult
-LastRule --> StringContext
 class ThrowableError
 ThrowableError --> IOException
 ThrowableError --> PrintWriter
@@ -62,17 +62,17 @@ class PrefixTruncator
 PrefixTruncator --> Optional
 class OrRule
 OrRule --> Err
+OrRule --> StringContext
 OrRule --> CompileError
 OrRule --> CompileResult
-OrRule --> StringContext
 OrRule --> List
 OrRule --> Optional
 class CompilerImpl
 CompilerImpl --> CompileResult
-CompilerImpl --> CommonLang
 CompilerImpl --> MapNode
 CompilerImpl --> NodeWithEverything
 CompilerImpl --> NodeWithNodeLists
+CompilerImpl --> Rule
 CompilerImpl --> ArrayList
 CompilerImpl --> Map
 class NodeContext
@@ -95,9 +95,9 @@ CommonLang --> Rule
 CommonLang --> List
 class TruncateRule
 TruncateRule --> Err
+TruncateRule --> StringContext
 TruncateRule --> CompileError
 TruncateRule --> CompileResult
-TruncateRule --> StringContext
 TruncateRule --> Rule
 class NodeListRule
 NodeListRule --> CompileResult
@@ -142,6 +142,7 @@ Application --> Collectors
 class Main
 Main --> Application
 Main --> CompilerImpl
+Main --> CommonLang
 class Divider
 Divider --> List
 @enduml

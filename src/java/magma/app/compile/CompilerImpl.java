@@ -1,27 +1,34 @@
 package magma.app.compile;
 
 import magma.app.compile.error.CompileResult;
-import magma.app.compile.lang.CommonLang;
 import magma.app.compile.node.MapNode;
 import magma.app.compile.node.NodeWithEverything;
 import magma.app.compile.node.NodeWithNodeLists;
+import magma.app.compile.rule.Rule;
 
 import java.util.ArrayList;
 import java.util.Map;
 
 public class CompilerImpl implements Compiler {
-    private static CompileResult<String> parseAndGenerate(NodeWithNodeLists<NodeWithEverything> tree, String name) {
-        final var children1 = transform(tree, name);
-        return CommonLang.createPlantUMLRootRule()
-                .generate(children1)
-                .mapValue(joined -> generate(name, joined));
+    private final Rule<NodeWithEverything> targetRule;
+    private final Rule<NodeWithEverything> sourceRule;
+
+    public CompilerImpl(Rule<NodeWithEverything> sourceRule, Rule<NodeWithEverything> targetRule) {
+        this.sourceRule = sourceRule;
+        this.targetRule = targetRule;
     }
 
-    private static String generate(String name, String joined) {
+    private CompileResult<String> parseAndGenerate(NodeWithNodeLists<NodeWithEverything> tree, String name) {
+        final var children1 = this.transform(tree, name);
+        return this.targetRule.generate(children1)
+                .mapValue(joined -> this.generate(name, joined));
+    }
+
+    private String generate(String name, String joined) {
         return "class " + name + "\n" + joined;
     }
 
-    private static NodeWithEverything transform(NodeWithNodeLists<NodeWithEverything> tree, String name) {
+    private NodeWithEverything transform(NodeWithNodeLists<NodeWithEverything> tree, String name) {
         final var list = tree.nodeLists()
                 .find("children")
                 .orElse(new ArrayList<>())
@@ -39,9 +46,8 @@ public class CompilerImpl implements Compiler {
         CompileResult<StringBuilder> buffer = CompileResult.from(new StringBuilder());
         for (var input : inputs.entrySet())
             buffer = buffer.flatMap(inner -> {
-                final var result = CommonLang.createJavaRootRule()
-                        .lex(input.getValue())
-                        .flatMap(tree -> parseAndGenerate(tree, input.getKey()));
+                final var result = this.sourceRule.lex(input.getValue())
+                        .flatMap(tree -> this.parseAndGenerate(tree, input.getKey()));
 
                 return result.mapValue(inner::append);
             });
