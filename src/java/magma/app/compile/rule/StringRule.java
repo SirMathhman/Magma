@@ -10,9 +10,9 @@ import magma.app.compile.node.NodeWithStrings;
 public final class StringRule<Node extends NodeWithStrings<Node> & DisplayableNode, Error, NodeResult> implements Rule<Node, Error, NodeResult> {
     private final String key;
     private final NodeFactory<Node> nodeFactory;
-    private final CompileResultFactory<Node, Error, StringResult<Error>, NodeResult, NodeListResult<Node, Error>> resultFactory;
+    private final CompileResultFactory<Node, Error, StringResult<Error>, NodeResult, NodeListResult<Node, Error, NodeResult>> resultFactory;
 
-    public StringRule(String key, NodeFactory<Node> nodeFactory, CompileResultFactory<Node, Error, StringResult<Error>, NodeResult, NodeListResult<Node, Error>> resultFactory) {
+    public StringRule(String key, NodeFactory<Node> nodeFactory, CompileResultFactory<Node, Error, StringResult<Error>, NodeResult, NodeListResult<Node, Error, NodeResult>> resultFactory) {
         this.key = key;
         this.nodeFactory = nodeFactory;
         this.resultFactory = resultFactory;

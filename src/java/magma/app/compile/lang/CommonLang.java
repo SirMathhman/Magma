@@ -11,7 +11,7 @@ import magma.app.compile.rule.Rule;
 import java.util.List;
 
 public class CommonLang {
-    private static final RuleBuilder<FormattedError> BUILDER = new FactoryRuleBuilder<>(DefaultCompileResultFactory.create());
+    private static final RuleBuilder<FormattedError, NodeResult<NodeWithEverything, FormattedError>> BUILDER = new FactoryRuleBuilder<>(DefaultCompileResultFactory.create());
 
     public static Rule<NodeWithEverything, FormattedError, NodeResult<NodeWithEverything, FormattedError>> createPlantUMLRootRule() {
         return BUILDER.NodeList(List.of(createDependencyRule(), BUILDER.Empty()));

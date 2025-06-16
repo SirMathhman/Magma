@@ -10,7 +10,6 @@ FormattedError --> Error
 class EmptyRule
 EmptyRule --> CompileResultFactory
 EmptyRule --> NodeListResult
-EmptyRule --> NodeResult
 EmptyRule --> StringResult
 EmptyRule --> NodeFactory
 class DefaultCompileResultFactory
@@ -19,7 +18,6 @@ DefaultCompileResultFactory --> List
 class LastRule
 LastRule --> CompileResultFactory
 LastRule --> NodeListResult
-LastRule --> NodeResult
 LastRule --> StringResult
 class Result
 Result --> Function
@@ -161,7 +159,6 @@ NodeListOk --> ArrayList
 NodeListOk --> List
 NodeListOk --> Supplier
 class RuleBuilder
-RuleBuilder --> NodeResult
 RuleBuilder --> NodeWithEverything
 RuleBuilder --> Rule
 RuleBuilder --> List

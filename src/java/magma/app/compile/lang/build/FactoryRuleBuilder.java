@@ -19,10 +19,10 @@ import magma.app.compile.rule.truncate.SuffixTruncator;
 
 import java.util.List;
 
-public class FactoryRuleBuilder<Error> implements RuleBuilder<Error> {
-    private final CompileResultFactory<NodeWithEverything, Error, StringResult<Error>, NodeResult<NodeWithEverything, Error>, NodeListResult<NodeWithEverything, Error>> factory;
+public class FactoryRuleBuilder<Error> implements RuleBuilder<Error, NodeResult<NodeWithEverything, Error>> {
+    private final CompileResultFactory<NodeWithEverything, Error, StringResult<Error>, NodeResult<NodeWithEverything, Error>, NodeListResult<NodeWithEverything, Error, NodeResult<NodeWithEverything, Error>>> factory;
 
-    public FactoryRuleBuilder(CompileResultFactory<NodeWithEverything, Error, StringResult<Error>, NodeResult<NodeWithEverything, Error>, NodeListResult<NodeWithEverything, Error>> factory) {
+    public FactoryRuleBuilder(CompileResultFactory<NodeWithEverything, Error, StringResult<Error>, NodeResult<NodeWithEverything, Error>, NodeListResult<NodeWithEverything, Error, NodeResult<NodeWithEverything, Error>>> factory) {
         this.factory = factory;
     }
 

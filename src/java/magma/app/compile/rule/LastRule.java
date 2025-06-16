@@ -2,16 +2,15 @@ package magma.app.compile.rule;
 
 import magma.app.compile.error.CompileResultFactory;
 import magma.app.compile.error.NodeListResult;
-import magma.app.compile.error.NodeResult;
 import magma.app.compile.error.StringResult;
 
-public final class LastRule<Node, Error> implements Rule<Node, Error, NodeResult<Node, Error>> {
-    private final Rule<Node, Error, NodeResult<Node, Error>> leftRule;
+public final class LastRule<Node, Error, NodeResult> implements Rule<Node, Error, NodeResult> {
+    private final Rule<Node, Error, NodeResult> leftRule;
     private final String infix;
-    private final Rule<Node, Error, NodeResult<Node, Error>> rightRule;
-    private final CompileResultFactory<Node, Error, StringResult<Error>, NodeResult<Node, Error>, NodeListResult<Node, Error>> resultFactory;
+    private final Rule<Node, Error, NodeResult> rightRule;
+    private final CompileResultFactory<Node, Error, StringResult<Error>, NodeResult, NodeListResult<Node, Error, NodeResult>> resultFactory;
 
-    public LastRule(Rule<Node, Error, NodeResult<Node, Error>> leftRule, String infix, Rule<Node, Error, NodeResult<Node, Error>> rightRule, CompileResultFactory<Node, Error, StringResult<Error>, NodeResult<Node, Error>, NodeListResult<Node, Error>> resultFactory) {
+    public LastRule(Rule<Node, Error, NodeResult> leftRule, String infix, Rule<Node, Error, NodeResult> rightRule, CompileResultFactory<Node, Error, StringResult<Error>, NodeResult, NodeListResult<Node, Error, NodeResult>> resultFactory) {
         this.leftRule = leftRule;
         this.infix = infix;
         this.rightRule = rightRule;
@@ -19,7 +18,7 @@ public final class LastRule<Node, Error> implements Rule<Node, Error, NodeResult
     }
 
     @Override
-    public NodeResult<Node, Error> lex(String input) {
+    public NodeResult lex(String input) {
         final var separator = input.lastIndexOf(this.infix);
         if (separator < 0)
             return this.resultFactory.fromStringError("Infix '" + this.infix + "' not present", input);

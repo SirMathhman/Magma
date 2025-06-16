@@ -13,9 +13,9 @@ import java.util.ArrayList;
 public final class NodeListRule<Node extends NodeWithNodeLists<Node> & DisplayableNode, Error> implements Rule<Node, Error, NodeResult<Node, Error>> {
     private final String key;
     private final Rule<Node, Error, NodeResult<Node, Error>> rule;
-    private final CompileResultFactory<Node, Error, StringResult<Error>, NodeResult<Node, Error>, NodeListResult<Node, Error>> resultFactory;
+    private final CompileResultFactory<Node, Error, StringResult<Error>, NodeResult<Node, Error>, NodeListResult<Node, Error, NodeResult<Node, Error>>> resultFactory;
 
-    public NodeListRule(String key, Rule<Node, Error, NodeResult<Node, Error>> rule, CompileResultFactory<Node, Error, StringResult<Error>, NodeResult<Node, Error>, NodeListResult<Node, Error>> resultFactory) {
+    public NodeListRule(String key, Rule<Node, Error, NodeResult<Node, Error>> rule, CompileResultFactory<Node, Error, StringResult<Error>, NodeResult<Node, Error>, NodeListResult<Node, Error, NodeResult<Node, Error>>> resultFactory) {
         this.key = key;
         this.rule = rule;
         this.resultFactory = resultFactory;

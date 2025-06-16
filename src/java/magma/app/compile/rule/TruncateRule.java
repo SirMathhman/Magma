@@ -8,9 +8,9 @@ import magma.app.compile.rule.truncate.Truncator;
 public final class TruncateRule<Node, Error, NodeResult> implements Rule<Node, Error, NodeResult> {
     private final Rule<Node, Error, NodeResult> rule;
     private final Truncator truncator;
-    private final CompileResultFactory<Node, Error, StringResult<Error>, NodeResult, NodeListResult<Node, Error>> resultFactory;
+    private final CompileResultFactory<Node, Error, StringResult<Error>, NodeResult, NodeListResult<Node, Error, NodeResult>> resultFactory;
 
-    public TruncateRule(Rule<Node, Error, NodeResult> rule, Truncator truncator, CompileResultFactory<Node, Error, StringResult<Error>, NodeResult, NodeListResult<Node, Error>> resultFactory) {
+    public TruncateRule(Rule<Node, Error, NodeResult> rule, Truncator truncator, CompileResultFactory<Node, Error, StringResult<Error>, NodeResult, NodeListResult<Node, Error, NodeResult>> resultFactory) {
         this.rule = rule;
         this.truncator = truncator;
         this.resultFactory = resultFactory;
