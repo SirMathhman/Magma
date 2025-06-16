@@ -1,7 +1,7 @@
 package magma.app.compile.rule;
 
 import magma.app.compile.error.CompileResult;
-import magma.app.compile.error.ResultCompileResult;
+import magma.app.compile.error.ResultCompileResultFactory;
 import magma.app.compile.node.NodeFactory;
 
 public class EmptyRule<Node> implements Rule<Node> {
@@ -13,11 +13,13 @@ public class EmptyRule<Node> implements Rule<Node> {
 
     @Override
     public CompileResult<Node> lex(String input) {
-        return ResultCompileResult.fromValue(this.factory.create());
+        return ResultCompileResultFactory.createResultCompileResultFactory()
+                .fromValue(this.factory.create());
     }
 
     @Override
     public CompileResult<String> generate(Node node) {
-        return ResultCompileResult.fromValue("");
+        return ResultCompileResultFactory.createResultCompileResultFactory()
+                .fromValue("");
     }
 }

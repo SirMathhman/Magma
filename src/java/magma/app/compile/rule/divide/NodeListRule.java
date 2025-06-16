@@ -1,7 +1,7 @@
 package magma.app.compile.rule.divide;
 
 import magma.app.compile.error.CompileResult;
-import magma.app.compile.error.ResultCompileResult;
+import magma.app.compile.error.ResultCompileResultFactory;
 import magma.app.compile.node.DisplayableNode;
 import magma.app.compile.node.NodeFactory;
 import magma.app.compile.node.NodeWithNodeLists;
@@ -26,7 +26,8 @@ public final class NodeListRule<Node extends NodeWithNodeLists<Node> & Displayab
         return Divider.divide(input)
                 .stream()
                 .map(this.rule::lex)
-                .reduce(ResultCompileResult.fromValue(new ArrayList<>()), this::foldList, (_, next) -> next)
+                .reduce(ResultCompileResultFactory.createResultCompileResultFactory()
+                        .fromValue(new ArrayList<>()), this::foldList, (_, next) -> next)
                 .mapValue(children -> this.factory.create()
                         .nodeLists()
                         .with(this.key, children));
@@ -47,7 +48,8 @@ public final class NodeListRule<Node extends NodeWithNodeLists<Node> & Displayab
 
         return children.stream()
                 .map(this.rule::generate)
-                .reduce(ResultCompileResult.fromValue(new StringBuilder()), this::foldString, (_, next) -> next)
+                .reduce(ResultCompileResultFactory.createResultCompileResultFactory()
+                        .fromValue(new StringBuilder()), this::foldString, (_, next) -> next)
                 .mapValue(StringBuilder::toString);
     }
 

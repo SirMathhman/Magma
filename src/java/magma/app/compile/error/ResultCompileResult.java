@@ -1,21 +1,10 @@
 package magma.app.compile.error;
 
-import magma.api.Err;
-import magma.api.Ok;
 import magma.api.Result;
-import magma.app.compile.context.StringContext;
 
 import java.util.function.Function;
 
 public record ResultCompileResult<Value>(Result<Value, CompileError> result) implements CompileResult<Value> {
-    public static <Value> CompileResult<Value> fromValue(Value input) {
-        return new ResultCompileResult<>(new Ok<>(input));
-    }
-
-    public static <Value> CompileResult<Value> fromStringError(String message, String input) {
-        return new ResultCompileResult<>(new Err<>(new CompileError(message, new StringContext(input))));
-    }
-
     @Override
     public <Return> CompileResult<Return> flatMap(Function<Value, CompileResult<Return>> mapper) {
         return new ResultCompileResult<>(this.result.flatMap(value -> mapper.apply(value)

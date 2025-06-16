@@ -5,7 +5,7 @@ CompileError --> Error
 CompileError --> Context
 class StringRule
 StringRule --> CompileResult
-StringRule --> ResultCompileResult
+StringRule --> ResultCompileResultFactory
 StringRule --> DisplayableNode
 StringRule --> NodeFactory
 StringRule --> NodeWithStrings
@@ -15,7 +15,7 @@ Err --> Optional
 Err --> Function
 class EmptyRule
 EmptyRule --> CompileResult
-EmptyRule --> ResultCompileResult
+EmptyRule --> ResultCompileResultFactory
 EmptyRule --> NodeFactory
 class MapNode
 MapNode --> MapNodeProperties
@@ -27,7 +27,7 @@ MapNodeProperties --> Map
 MapNodeProperties --> Optional
 class LastRule
 LastRule --> CompileResult
-LastRule --> ResultCompileResult
+LastRule --> ResultCompileResultFactory
 class ThrowableError
 ThrowableError --> IOException
 ThrowableError --> PrintWriter
@@ -52,7 +52,7 @@ RuleBuilder --> NodeListRule
 RuleBuilder --> List
 class RuleCompiler
 RuleCompiler --> CompileResult
-RuleCompiler --> ResultCompileResult
+RuleCompiler --> ResultCompileResultFactory
 RuleCompiler --> MapNode
 RuleCompiler --> NodeWithEverything
 RuleCompiler --> NodeWithNodeLists
@@ -68,16 +68,13 @@ class PrefixTruncator
 PrefixTruncator --> Optional
 class OrRule
 OrRule --> CompileResult
-OrRule --> ResultCompileResult
+OrRule --> ResultCompileResultFactory
 OrRule --> List
 OrRule --> Optional
 class NodeContext
 NodeContext --> DisplayableNode
 class ResultCompileResult
-ResultCompileResult --> Err
-ResultCompileResult --> Ok
 ResultCompileResult --> Result
-ResultCompileResult --> StringContext
 ResultCompileResult --> Function
 class Error
 class Completer
@@ -89,6 +86,11 @@ Truncator --> Optional
 class DivideState
 DivideState --> List
 class DisplayableNode
+class ResultCompileResultFactory
+ResultCompileResultFactory --> Err
+ResultCompileResultFactory --> Ok
+ResultCompileResultFactory --> StringContext
+class CompileResultFactory
 class StripTruncator
 StripTruncator --> Optional
 class CommonLang
@@ -98,14 +100,14 @@ CommonLang --> Rule
 CommonLang --> List
 class TruncateRule
 TruncateRule --> CompileResult
-TruncateRule --> ResultCompileResult
+TruncateRule --> ResultCompileResultFactory
 TruncateRule --> PrefixTruncator
 TruncateRule --> StripTruncator
 TruncateRule --> SuffixTruncator
 TruncateRule --> Truncator
 class NodeListRule
 NodeListRule --> CompileResult
-NodeListRule --> ResultCompileResult
+NodeListRule --> ResultCompileResultFactory
 NodeListRule --> DisplayableNode
 NodeListRule --> NodeFactory
 NodeListRule --> NodeWithNodeLists
