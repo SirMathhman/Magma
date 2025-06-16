@@ -13,7 +13,11 @@ import java.util.List;
 
 public class JavaLang {
     public static EverythingRule createJavaRootRule() {
-        return CommonLang.Divide(List.of(createImportRule(), new StringRule<>("value", new MapNodeFactory())));
+        return CommonLang.Divide(List.of(createImportRule(), getValue()));
+    }
+
+    private static EverythingRule getValue() {
+        return new EverythingRuleImpl(new StringRule<>("value", new MapNodeFactory()));
     }
 
     private static EverythingRule createImportRule() {

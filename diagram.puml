@@ -61,9 +61,7 @@ class CommonLang
 CommonLang --> EverythingRule
 CommonLang --> EverythingRuleImpl
 CommonLang --> MapNodeFactory
-CommonLang --> NodeWithEverything
 CommonLang --> OrRule
-CommonLang --> Rule
 CommonLang --> DivideRule
 CommonLang --> List
 class NodeFactory

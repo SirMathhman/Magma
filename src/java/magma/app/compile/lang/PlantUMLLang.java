@@ -12,7 +12,7 @@ import java.util.List;
 
 public class PlantUMLLang {
     public static EverythingRule createPlantUMLRootRule() {
-        return new EverythingRuleImpl(CommonLang.Divide(List.of(createDependencyRule(), new EmptyRule<>(new MapNodeFactory()))));
+        return new EverythingRuleImpl(CommonLang.Divide(List.of(createDependencyRule(), new EverythingRuleImpl(new EmptyRule<>(new MapNodeFactory())))));
     }
 
     private static EverythingRule createDependencyRule() {
