@@ -1,21 +1,22 @@
 package magma.app.compile.lang.build;
 
+import magma.app.compile.error.StringResult;
 import magma.app.compile.rule.Rule;
 
 import java.util.List;
 
 public interface RuleBuilder<Node, Error, NodeResult> {
-    Rule<Node, Error, NodeResult> String(String value);
+    Rule<Node, NodeResult, StringResult<Error>> String(String value);
 
-    Rule<Node, Error, NodeResult> Strip(Rule<Node, Error, NodeResult> rule);
+    Rule<Node, NodeResult, StringResult<Error>> Strip(Rule<Node, NodeResult, StringResult<Error>> rule);
 
-    Rule<Node, Error, NodeResult> Last(Rule<Node, Error, NodeResult> parent, String infix, Rule<Node, Error, NodeResult> child);
+    Rule<Node, NodeResult, StringResult<Error>> Last(Rule<Node, NodeResult, StringResult<Error>> parent, String infix, Rule<Node, NodeResult, StringResult<Error>> child);
 
-    Rule<Node, Error, NodeResult> Suffix(Rule<Node, Error, NodeResult> last, String suffix);
+    Rule<Node, NodeResult, StringResult<Error>> Suffix(Rule<Node, NodeResult, StringResult<Error>> last, String suffix);
 
-    Rule<Node, Error, NodeResult> Prefix(Rule<Node, Error, NodeResult> suffix);
+    Rule<Node, NodeResult, StringResult<Error>> Prefix(Rule<Node, NodeResult, StringResult<Error>> suffix);
 
-    Rule<Node, Error, NodeResult> NodeList(List<Rule<Node, Error, NodeResult>> children);
+    Rule<Node, NodeResult, StringResult<Error>> NodeList(List<Rule<Node, NodeResult, StringResult<Error>>> children);
 
-    Rule<Node, Error, NodeResult> Empty();
+    Rule<Node, NodeResult, StringResult<Error>> Empty();
 }

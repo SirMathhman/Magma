@@ -29,37 +29,37 @@ public class FactoryRuleBuilder<Error> implements RuleBuilder<NodeWithEverything
     }
 
     @Override
-    public Rule<NodeWithEverything, Error, NodeResult<NodeWithEverything, Error>> String(String value) {
+    public Rule<NodeWithEverything, NodeResult<NodeWithEverything, Error>, StringResult<Error>> String(String value) {
         return new StringRule<>(value, this.nodeFactory, this.resultFactory);
     }
 
     @Override
-    public Rule<NodeWithEverything, Error, NodeResult<NodeWithEverything, Error>> Strip(Rule<NodeWithEverything, Error, NodeResult<NodeWithEverything, Error>> rule) {
+    public Rule<NodeWithEverything, NodeResult<NodeWithEverything, Error>, StringResult<Error>> Strip(Rule<NodeWithEverything, NodeResult<NodeWithEverything, Error>, StringResult<Error>> rule) {
         return new TruncateRule<>(rule, new StripTruncator(), this.resultFactory);
     }
 
     @Override
-    public Rule<NodeWithEverything, Error, NodeResult<NodeWithEverything, Error>> Last(Rule<NodeWithEverything, Error, NodeResult<NodeWithEverything, Error>> parent, String infix, Rule<NodeWithEverything, Error, NodeResult<NodeWithEverything, Error>> child) {
+    public Rule<NodeWithEverything, NodeResult<NodeWithEverything, Error>, StringResult<Error>> Last(Rule<NodeWithEverything, NodeResult<NodeWithEverything, Error>, StringResult<Error>> parent, String infix, Rule<NodeWithEverything, NodeResult<NodeWithEverything, Error>, StringResult<Error>> child) {
         return new LastRule<>(parent, infix, child, this.resultFactory);
     }
 
     @Override
-    public Rule<NodeWithEverything, Error, NodeResult<NodeWithEverything, Error>> Suffix(Rule<NodeWithEverything, Error, NodeResult<NodeWithEverything, Error>> last, String suffix) {
+    public Rule<NodeWithEverything, NodeResult<NodeWithEverything, Error>, StringResult<Error>> Suffix(Rule<NodeWithEverything, NodeResult<NodeWithEverything, Error>, StringResult<Error>> last, String suffix) {
         return new TruncateRule<>(last, new SuffixTruncator(suffix), this.resultFactory);
     }
 
     @Override
-    public Rule<NodeWithEverything, Error, NodeResult<NodeWithEverything, Error>> Prefix(Rule<NodeWithEverything, Error, NodeResult<NodeWithEverything, Error>> suffix) {
+    public Rule<NodeWithEverything, NodeResult<NodeWithEverything, Error>, StringResult<Error>> Prefix(Rule<NodeWithEverything, NodeResult<NodeWithEverything, Error>, StringResult<Error>> suffix) {
         return new TruncateRule<>(suffix, new PrefixTruncator("import "), this.resultFactory);
     }
 
     @Override
-    public Rule<NodeWithEverything, Error, NodeResult<NodeWithEverything, Error>> NodeList(List<Rule<NodeWithEverything, Error, NodeResult<NodeWithEverything, Error>>> children) {
+    public Rule<NodeWithEverything, NodeResult<NodeWithEverything, Error>, StringResult<Error>> NodeList(List<Rule<NodeWithEverything, NodeResult<NodeWithEverything, Error>, StringResult<Error>>> children) {
         return new NodeListRule<>("children", new OrRule<>(children, this.resultFactory), this.resultFactory);
     }
 
     @Override
-    public Rule<NodeWithEverything, Error, NodeResult<NodeWithEverything, Error>> Empty() {
+    public Rule<NodeWithEverything, NodeResult<NodeWithEverything, Error>, StringResult<Error>> Empty() {
         return new EmptyRule<>(this.nodeFactory, this.resultFactory);
     }
 }

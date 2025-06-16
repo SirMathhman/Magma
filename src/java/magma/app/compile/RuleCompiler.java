@@ -14,10 +14,10 @@ import java.util.ArrayList;
 import java.util.Map;
 
 public class RuleCompiler implements Compiler {
-    private final Rule<NodeWithEverything, FormattedError, NodeResult<NodeWithEverything, FormattedError>> targetRule;
-    private final Rule<NodeWithEverything, FormattedError, NodeResult<NodeWithEverything, FormattedError>> sourceRule;
+    private final Rule<NodeWithEverything, NodeResult<NodeWithEverything, FormattedError>, StringResult<FormattedError>> targetRule;
+    private final Rule<NodeWithEverything, NodeResult<NodeWithEverything, FormattedError>, StringResult<FormattedError>> sourceRule;
 
-    public RuleCompiler(Rule<NodeWithEverything, FormattedError, NodeResult<NodeWithEverything, FormattedError>> sourceRule, Rule<NodeWithEverything, FormattedError, NodeResult<NodeWithEverything, FormattedError>> targetRule) {
+    public RuleCompiler(Rule<NodeWithEverything, NodeResult<NodeWithEverything, FormattedError>, StringResult<FormattedError>> sourceRule, Rule<NodeWithEverything, NodeResult<NodeWithEverything, FormattedError>, StringResult<FormattedError>> targetRule) {
         this.sourceRule = sourceRule;
         this.targetRule = targetRule;
     }

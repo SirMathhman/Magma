@@ -5,7 +5,7 @@ import magma.app.compile.error.NodeListResult;
 import magma.app.compile.error.StringResult;
 import magma.app.compile.node.NodeFactory;
 
-public class EmptyRule<Node, Error, NodeResult> implements Rule<Node, Error, NodeResult> {
+public class EmptyRule<Node, Error, NodeResult> implements Rule<Node, NodeResult, StringResult<Error>> {
     private final NodeFactory<Node> nodeFactory;
     private final CompileResultFactory<Node, Error, StringResult<Error>, NodeResult, NodeListResult<Node, Error, NodeResult>> resultFactory;
 

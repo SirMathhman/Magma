@@ -4,6 +4,8 @@ class CompileError
 CompileError --> Context
 CompileError --> ArrayList
 CompileError --> List
+class Completable
+Completable --> Function
 class MapNodeFactory
 class FormattedError
 FormattedError --> Error
@@ -66,7 +68,6 @@ class OrRule
 OrRule --> AttachableToState
 OrRule --> CompileResultFactory
 OrRule --> NodeListResult
-OrRule --> StringResult
 OrRule --> List
 class NodeContext
 NodeContext --> DisplayableNode
@@ -80,8 +81,8 @@ class CompileResultFactory
 CompileResultFactory --> List
 class TruncateRule
 TruncateRule --> CompileResultFactory
+TruncateRule --> Completable
 TruncateRule --> NodeListResult
-TruncateRule --> StringResult
 TruncateRule --> Truncator
 class NodeFactory
 class StringOk
@@ -90,11 +91,9 @@ StringOk --> Function
 StringOk --> Supplier
 class NodeWithEverything
 class StringResult
-StringResult --> OrState
 StringResult --> Function
 StringResult --> Supplier
 class Rule
-Rule --> StringResult
 class NodeWithNodeLists
 NodeWithNodeLists --> NodeProperties
 NodeWithNodeLists --> List
@@ -154,6 +153,7 @@ NodeListOk --> ArrayList
 NodeListOk --> List
 NodeListOk --> Supplier
 class RuleBuilder
+RuleBuilder --> StringResult
 RuleBuilder --> Rule
 RuleBuilder --> List
 class RuleCompiler
@@ -191,6 +191,7 @@ class CommonLang
 CommonLang --> DefaultCompileResultFactory
 CommonLang --> FormattedError
 CommonLang --> NodeResult
+CommonLang --> StringResult
 CommonLang --> FactoryRuleBuilder
 CommonLang --> RuleBuilder
 CommonLang --> MapNodeFactory

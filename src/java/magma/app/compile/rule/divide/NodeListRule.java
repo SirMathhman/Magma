@@ -10,12 +10,12 @@ import magma.app.compile.rule.Rule;
 
 import java.util.ArrayList;
 
-public final class NodeListRule<Node extends NodeWithNodeLists<Node> & DisplayableNode, Error> implements Rule<Node, Error, NodeResult<Node, Error>> {
+public final class NodeListRule<Node extends NodeWithNodeLists<Node> & DisplayableNode, Error> implements Rule<Node, NodeResult<Node, Error>, StringResult<Error>> {
     private final String key;
-    private final Rule<Node, Error, NodeResult<Node, Error>> rule;
+    private final Rule<Node, NodeResult<Node, Error>, StringResult<Error>> rule;
     private final CompileResultFactory<Node, Error, StringResult<Error>, NodeResult<Node, Error>, NodeListResult<Node, Error, NodeResult<Node, Error>>> resultFactory;
 
-    public NodeListRule(String key, Rule<Node, Error, NodeResult<Node, Error>> rule, CompileResultFactory<Node, Error, StringResult<Error>, NodeResult<Node, Error>, NodeListResult<Node, Error, NodeResult<Node, Error>>> resultFactory) {
+    public NodeListRule(String key, Rule<Node, NodeResult<Node, Error>, StringResult<Error>> rule, CompileResultFactory<Node, Error, StringResult<Error>, NodeResult<Node, Error>, NodeListResult<Node, Error, NodeResult<Node, Error>>> resultFactory) {
         this.key = key;
         this.rule = rule;
         this.resultFactory = resultFactory;

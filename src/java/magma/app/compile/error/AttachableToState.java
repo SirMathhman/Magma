@@ -2,6 +2,6 @@ package magma.app.compile.error;
 
 import magma.app.compile.rule.OrState;
 
-public interface AttachableToState<Node, Error> {
-    OrState<Node, Error> attachToState(OrState<Node, Error> nodeState);
+public interface AttachableToState<Value, Error> {
+    OrState<Value, Error> attachToState(OrState<Value, Error> state);
 }
