@@ -22,18 +22,9 @@ class SuffixTruncator
 SuffixTruncator --> Optional
 class NodeProperties
 NodeProperties --> Optional
-class EverythingRuleImpl
-EverythingRuleImpl --> NodeWithEverything
-EverythingRuleImpl --> Rule
-EverythingRuleImpl --> Optional
 class RuleBuilder
 RuleBuilder --> MapNodeFactory
 RuleBuilder --> NodeWithEverything
-RuleBuilder --> EmptyRule
-RuleBuilder --> LastRule
-RuleBuilder --> OrRule
-RuleBuilder --> Rule
-RuleBuilder --> StringRule
 RuleBuilder --> NodeListRule
 RuleBuilder --> TruncateRule
 RuleBuilder --> List
@@ -56,9 +47,6 @@ MutableDivideState --> ArrayList
 MutableDivideState --> List
 class Truncator
 Truncator --> Optional
-class EverythingRule
-EverythingRule --> NodeWithEverything
-EverythingRule --> Rule
 class DivideState
 DivideState --> List
 class StripTruncator
@@ -66,14 +54,8 @@ StripTruncator --> Optional
 class CommonLang
 CommonLang --> NodeWithEverything
 CommonLang --> Rule
+CommonLang --> RuleBuilder
 CommonLang --> List
-CommonLang --> Empty
-CommonLang --> Last
-CommonLang --> NodeList
-CommonLang --> Prefix
-CommonLang --> String
-CommonLang --> Strip
-CommonLang --> Suffix
 class TruncateRule
 TruncateRule --> Rule
 TruncateRule --> Optional
