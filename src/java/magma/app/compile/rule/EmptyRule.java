@@ -4,11 +4,13 @@ import magma.app.compile.error.CompileResult;
 import magma.app.compile.error.CompileResultFactory;
 import magma.app.compile.node.NodeFactory;
 
+import java.util.List;
+
 public class EmptyRule<Node> implements Rule<Node> {
     private final NodeFactory<Node> nodeFactory;
-    private final CompileResultFactory<Node> resultFactory;
+    private final CompileResultFactory<Node, CompileResult<String>, CompileResult<Node>, CompileResult<List<Node>>> resultFactory;
 
-    public EmptyRule(NodeFactory<Node> nodeFactory, CompileResultFactory<Node> resultFactory) {
+    public EmptyRule(NodeFactory<Node> nodeFactory, CompileResultFactory<Node, CompileResult<String>, CompileResult<Node>, CompileResult<List<Node>>> resultFactory) {
         this.nodeFactory = nodeFactory;
         this.resultFactory = resultFactory;
     }

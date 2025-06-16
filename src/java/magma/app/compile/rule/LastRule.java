@@ -3,13 +3,15 @@ package magma.app.compile.rule;
 import magma.app.compile.error.CompileResult;
 import magma.app.compile.error.CompileResultFactory;
 
+import java.util.List;
+
 public final class LastRule<Node> implements Rule<Node> {
     private final Rule<Node> leftRule;
     private final String infix;
     private final Rule<Node> rightRule;
-    private final CompileResultFactory<Node> resultFactory;
+    private final CompileResultFactory<Node, CompileResult<String>, CompileResult<Node>, CompileResult<List<Node>>> resultFactory;
 
-    public LastRule(Rule<Node> leftRule, String infix, Rule<Node> rightRule, CompileResultFactory<Node> resultFactory) {
+    public LastRule(Rule<Node> leftRule, String infix, Rule<Node> rightRule, CompileResultFactory<Node, CompileResult<String>, CompileResult<Node>, CompileResult<List<Node>>> resultFactory) {
         this.leftRule = leftRule;
         this.infix = infix;
         this.rightRule = rightRule;

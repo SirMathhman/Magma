@@ -4,12 +4,14 @@ import magma.app.compile.error.CompileResult;
 import magma.app.compile.error.CompileResultFactory;
 import magma.app.compile.rule.truncate.Truncator;
 
+import java.util.List;
+
 public final class TruncateRule<Node> implements Rule<Node> {
     private final Rule<Node> rule;
     private final Truncator truncator;
-    private final CompileResultFactory<Node> resultFactory;
+    private final CompileResultFactory<Node, CompileResult<String>, CompileResult<Node>, CompileResult<List<Node>>> resultFactory;
 
-    public TruncateRule(Rule<Node> rule, Truncator truncator, CompileResultFactory<Node> resultFactory) {
+    public TruncateRule(Rule<Node> rule, Truncator truncator, CompileResultFactory<Node, CompileResult<String>, CompileResult<Node>, CompileResult<List<Node>>> resultFactory) {
         this.rule = rule;
         this.truncator = truncator;
         this.resultFactory = resultFactory;

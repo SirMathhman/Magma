@@ -10,11 +10,11 @@ import magma.app.compile.node.NodeWithEverything;
 import java.util.ArrayList;
 import java.util.List;
 
-public class ResultCompileResultFactory implements CompileResultFactory<NodeWithEverything> {
+public class ResultCompileResultFactory implements CompileResultFactory<NodeWithEverything, CompileResult<String>, CompileResult<NodeWithEverything>, CompileResult<List<NodeWithEverything>>> {
     private ResultCompileResultFactory() {
     }
 
-    public static CompileResultFactory<NodeWithEverything> createResultCompileResultFactory() {
+    public static CompileResultFactory<NodeWithEverything, CompileResult<String>, CompileResult<NodeWithEverything>, CompileResult<List<NodeWithEverything>>> createResultCompileResultFactory() {
         return new ResultCompileResultFactory();
     }
 

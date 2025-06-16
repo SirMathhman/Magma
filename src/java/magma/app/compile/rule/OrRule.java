@@ -8,9 +8,9 @@ import java.util.Optional;
 
 public final class OrRule<Node, R extends Rule<Node>> implements Rule<Node> {
     private final List<R> rules;
-    private final CompileResultFactory<Node> resultFactory;
+    private final CompileResultFactory<Node, CompileResult<String>, CompileResult<Node>, CompileResult<List<Node>>> resultFactory;
 
-    public OrRule(List<R> rules, CompileResultFactory<Node> resultFactory) {
+    public OrRule(List<R> rules, CompileResultFactory<Node, CompileResult<String>, CompileResult<Node>, CompileResult<List<Node>>> resultFactory) {
         this.rules = rules;
         this.resultFactory = resultFactory;
     }

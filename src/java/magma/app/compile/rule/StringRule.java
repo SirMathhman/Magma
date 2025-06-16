@@ -6,12 +6,14 @@ import magma.app.compile.node.DisplayableNode;
 import magma.app.compile.node.NodeFactory;
 import magma.app.compile.node.NodeWithStrings;
 
+import java.util.List;
+
 public final class StringRule<Node extends NodeWithStrings<Node> & DisplayableNode> implements Rule<Node> {
     private final String key;
     private final NodeFactory<Node> nodeFactory;
-    private final CompileResultFactory<Node> resultFactory;
+    private final CompileResultFactory<Node, CompileResult<String>, CompileResult<Node>, CompileResult<List<Node>>> resultFactory;
 
-    public StringRule(String key, NodeFactory<Node> nodeFactory, CompileResultFactory<Node> resultFactory) {
+    public StringRule(String key, NodeFactory<Node> nodeFactory, CompileResultFactory<Node, CompileResult<String>, CompileResult<Node>, CompileResult<List<Node>>> resultFactory) {
         this.key = key;
         this.nodeFactory = nodeFactory;
         this.resultFactory = resultFactory;

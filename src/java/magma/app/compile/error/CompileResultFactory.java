@@ -1,17 +1,15 @@
 package magma.app.compile.error;
 
-import java.util.List;
+public interface CompileResultFactory<Node, StringResult, NodeResult, NodeListResult> {
+    NodeResult fromNode(Node node);
 
-public interface CompileResultFactory<Node> {
-    CompileResult<Node> fromNode(Node node);
+    StringResult fromString(String generated);
 
-    CompileResult<String> fromString(String generated);
+    StringResult fromNodeError(String message, Node context);
 
-    CompileResult<String> fromNodeError(String message, Node context);
+    NodeResult fromStringError(String message, String context);
 
-    CompileResult<Node> fromStringError(String message, String context);
+    NodeListResult fromEmptyNodeList();
 
-    CompileResult<List<Node>> fromEmptyNodeList();
-
-    CompileResult<String> fromEmptyString();
+    StringResult fromEmptyString();
 }

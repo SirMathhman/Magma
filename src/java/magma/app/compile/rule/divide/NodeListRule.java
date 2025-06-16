@@ -14,9 +14,9 @@ public final class NodeListRule<Node extends NodeWithNodeLists<Node> & Displayab
     private final String key;
     private final Rule<Node> rule;
     private final NodeFactory<Node> factory;
-    private final CompileResultFactory<Node> resultFactory;
+    private final CompileResultFactory<Node, CompileResult<String>, CompileResult<Node>, CompileResult<List<Node>>> resultFactory;
 
-    public NodeListRule(String key, Rule<Node> rule, NodeFactory<Node> factory, CompileResultFactory<Node> resultFactory) {
+    public NodeListRule(String key, Rule<Node> rule, NodeFactory<Node> factory, CompileResultFactory<Node, CompileResult<String>, CompileResult<Node>, CompileResult<List<Node>>> resultFactory) {
         this.key = key;
         this.rule = rule;
         this.factory = factory;
