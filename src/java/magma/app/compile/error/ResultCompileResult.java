@@ -12,7 +12,7 @@ public record ResultCompileResult<Value>(Result<Value, CompileError> result) imp
         return new ResultCompileResult<>(new Ok<>(input));
     }
 
-    public static CompileResult<String> fromStringError(String message, String input) {
+    public static <Value> CompileResult<Value> fromStringError(String message, String input) {
         return new ResultCompileResult<>(new Err<>(new CompileError(message, new StringContext(input))));
     }
 

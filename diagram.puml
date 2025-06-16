@@ -4,9 +4,6 @@ class CompileError
 CompileError --> Error
 CompileError --> Context
 class StringRule
-StringRule --> Err
-StringRule --> NodeContext
-StringRule --> CompileError
 StringRule --> CompileResult
 StringRule --> ResultCompileResult
 StringRule --> DisplayableNode
@@ -29,9 +26,6 @@ MapNodeProperties --> HashMap
 MapNodeProperties --> Map
 MapNodeProperties --> Optional
 class LastRule
-LastRule --> Err
-LastRule --> StringContext
-LastRule --> CompileError
 LastRule --> CompileResult
 LastRule --> ResultCompileResult
 class ThrowableError
@@ -73,9 +67,6 @@ Compiler --> Map
 class PrefixTruncator
 PrefixTruncator --> Optional
 class OrRule
-OrRule --> Err
-OrRule --> StringContext
-OrRule --> CompileError
 OrRule --> CompileResult
 OrRule --> ResultCompileResult
 OrRule --> List

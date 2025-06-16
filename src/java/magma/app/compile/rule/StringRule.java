@@ -1,8 +1,5 @@
 package magma.app.compile.rule;
 
-import magma.api.Err;
-import magma.app.compile.context.NodeContext;
-import magma.app.compile.error.CompileError;
 import magma.app.compile.error.CompileResult;
 import magma.app.compile.error.ResultCompileResult;
 import magma.app.compile.node.DisplayableNode;
@@ -30,6 +27,6 @@ public final class StringRule<Node extends NodeWithStrings<Node> & DisplayableNo
         return node.strings()
                 .find(this.key)
                 .map(ResultCompileResult::fromValue)
-                .orElseGet(() -> new ResultCompileResult<>(new Err<>(new CompileError("Invalid rule", new NodeContext(node)))));
+                .orElseGet(() -> ResultCompileResult.fromStringError("String '" + this.key + "' not present", ""));
     }
 }

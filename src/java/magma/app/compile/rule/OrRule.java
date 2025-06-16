@@ -1,8 +1,5 @@
 package magma.app.compile.rule;
 
-import magma.api.Err;
-import magma.app.compile.context.StringContext;
-import magma.app.compile.error.CompileError;
 import magma.app.compile.error.CompileResult;
 import magma.app.compile.error.ResultCompileResult;
 
@@ -19,7 +16,7 @@ public record OrRule<Node, R extends Rule<Node>>(List<R> rules) implements Rule<
                 .flatMap(Optional::stream)
                 .findFirst()
                 .map(ResultCompileResult::fromValue)
-                .orElseGet(() -> new ResultCompileResult<>(new Err<>(new CompileError("Invalid rule", new StringContext("")))));
+                .orElseGet(() -> ResultCompileResult.fromStringError("Invalid combination", ""));
     }
 
     @Override
@@ -31,6 +28,6 @@ public record OrRule<Node, R extends Rule<Node>>(List<R> rules) implements Rule<
                 .flatMap(Optional::stream)
                 .findFirst()
                 .map(ResultCompileResult::fromValue)
-                .orElseGet(() -> new ResultCompileResult<>(new Err<>(new CompileError("Invalid rule", new StringContext("")))));
+                .orElseGet(() -> ResultCompileResult.fromStringError("Invalid combination", ""));
     }
 }
