@@ -17,7 +17,7 @@ public class Lang {
     public static Rule<Node> createJavaRootRule() {
         return new DivideRule("children",
                 new OrRule(List.of(createNamespacedRule("package"),
-                        new TypeRule("import", createNamespacedRule("import")),
+                        new TypeRule<Node>("import", createNamespacedRule("import")),
                         createStructureRule("class"),
                         createStructureRule("interface"),
                         createStructureRule("record"))));

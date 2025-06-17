@@ -5,10 +5,10 @@ import magma.api.result.Result;
 import magma.app.compile.context.StringContext;
 import magma.app.compile.error.CompileError;
 import magma.app.compile.error.FormattedError;
-import magma.app.compile.node.Merging;
+import magma.app.compile.node.MergingNode;
 
-public record InfixRule<Node extends Merging<Node>>(Rule<Node> leftRule, String infix,
-                                                    Rule<Node> rightRule) implements Rule<Node> {
+public record InfixRule<Node extends MergingNode<Node>>(Rule<Node> leftRule, String infix,
+                                                        Rule<Node> rightRule) implements Rule<Node> {
     @Override
     public Result<Node, FormattedError> lex(String input) {
         final var index = input.indexOf(this.infix);
