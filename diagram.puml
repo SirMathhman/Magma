@@ -48,7 +48,7 @@ class magma.api.Tuple
 magma.app.io.target.Targets --> java.io.IOException
 magma.app.io.target.Targets --> java.util.Optional
 interface magma.app.io.target.Targets
-magma.app.io.source.PathSource --> magma.api.io.JavaPath
+magma.app.io.source.PathSource --> magma.api.io.PathLike
 magma.app.io.source.PathSource --> magma.api.result.Result
 magma.app.io.source.PathSource --> magma.app.io.location.Location
 magma.app.io.source.PathSource --> magma.app.io.location.SimpleLocation
@@ -83,6 +83,11 @@ magma.app.io.source.Source --> magma.api.result.Result
 magma.app.io.source.Source --> magma.app.io.location.Location
 magma.app.io.source.Source --> java.io.IOException
 interface magma.app.io.source.Source
+magma.api.io.PathLike --> magma.api.result.Result
+magma.api.io.PathLike --> java.io.IOException
+magma.api.io.PathLike --> java.util.Optional
+magma.api.io.PathLike --> java.util.Set
+interface magma.api.io.PathLike
 class magma.api.result.Err
 magma.api.result.Err --|> magma.api.result.Result
 magma.api.io.JavaPath --> magma.api.result.Err
@@ -95,7 +100,8 @@ magma.api.io.JavaPath --> java.util.Optional
 magma.api.io.JavaPath --> java.util.Set
 magma.api.io.JavaPath --> java.util.stream.Collectors
 class magma.api.io.JavaPath
-magma.app.io.source.PathSources --> magma.api.io.JavaPath
+magma.api.io.JavaPath --|> magma.api.io.PathLike
+magma.app.io.source.PathSources --> magma.api.io.PathLike
 magma.app.io.source.PathSources --> magma.api.result.Err
 magma.app.io.source.PathSources --> magma.api.result.Ok
 magma.app.io.source.PathSources --> magma.api.result.Result

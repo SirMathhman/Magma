@@ -1,6 +1,6 @@
 package magma.app.io.source;
 
-import magma.api.io.JavaPath;
+import magma.api.io.PathLike;
 import magma.api.result.Result;
 import magma.app.io.location.Location;
 import magma.app.io.location.SimpleLocation;
@@ -9,8 +9,8 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-public record PathSource(JavaPath sourceDirectory, JavaPath source) implements Source {
-    private static List<String> computeNamespace(JavaPath parent) {
+public record PathSource(PathLike sourceDirectory, PathLike source) implements Source {
+    private static List<String> computeNamespace(PathLike parent) {
         final List<String> segments = new ArrayList<>();
         for (var i = 0; i < parent.getNameCount(); i++)
             segments.add(parent.getName(i)
