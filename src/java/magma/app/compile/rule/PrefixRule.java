@@ -9,9 +9,9 @@ import java.util.Objects;
 public final class PrefixRule<Node> implements Rule<Node, Result<Node, FormattedError>, Result<String, FormattedError>> {
     private final String prefix;
     private final Rule<Node, Result<Node, FormattedError>, Result<String, FormattedError>> rule;
-    private final ResultFactory<Node, FormattedError> factory;
+    private final ResultFactory<Node, Result<Node, FormattedError>, Result<String, FormattedError>> factory;
 
-    public PrefixRule(String prefix, Rule<Node, Result<Node, FormattedError>, Result<String, FormattedError>> rule, ResultFactory<Node, FormattedError> factory) {
+    public PrefixRule(String prefix, Rule<Node, Result<Node, FormattedError>, Result<String, FormattedError>> rule, ResultFactory<Node, Result<Node, FormattedError>, Result<String, FormattedError>> factory) {
         this.prefix = prefix;
         this.rule = rule;
         this.factory = factory;

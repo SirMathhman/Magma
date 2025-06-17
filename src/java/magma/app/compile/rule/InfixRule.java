@@ -11,9 +11,9 @@ public final class InfixRule<Node extends MergingNode<Node>> implements Rule<Nod
     private final Rule<Node, Result<Node, FormattedError>, Result<String, FormattedError>> leftRule;
     private final String infix;
     private final Rule<Node, Result<Node, FormattedError>, Result<String, FormattedError>> rightRule;
-    private final ResultFactory<Node, FormattedError> factory;
+    private final ResultFactory<Node, Result<Node, FormattedError>, Result<String, FormattedError>> factory;
 
-    public InfixRule(Rule<Node, Result<Node, FormattedError>, Result<String, FormattedError>> leftRule, String infix, Rule<Node, Result<Node, FormattedError>, Result<String, FormattedError>> rightRule, ResultFactory<Node, FormattedError> factory) {
+    public InfixRule(Rule<Node, Result<Node, FormattedError>, Result<String, FormattedError>> leftRule, String infix, Rule<Node, Result<Node, FormattedError>, Result<String, FormattedError>> rightRule, ResultFactory<Node, Result<Node, FormattedError>, Result<String, FormattedError>> factory) {
         this.leftRule = leftRule;
         this.infix = infix;
         this.rightRule = rightRule;

@@ -7,11 +7,11 @@ import magma.app.compile.context.NodeContext;
 import magma.app.compile.context.StringContext;
 import magma.app.compile.node.Node;
 
-public class ResultFactoryImpl implements ResultFactory<Node, FormattedError> {
+public class ResultFactoryImpl implements ResultFactory<Node, Result<Node, FormattedError>, Result<String, FormattedError>> {
     private ResultFactoryImpl() {
     }
 
-    public static ResultFactory<Node, FormattedError> create() {
+    public static ResultFactory<Node, Result<Node, FormattedError>, Result<String, FormattedError>> create() {
         return new ResultFactoryImpl();
     }
 

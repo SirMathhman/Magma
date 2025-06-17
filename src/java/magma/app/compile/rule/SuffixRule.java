@@ -7,9 +7,9 @@ import magma.app.compile.error.ResultFactory;
 public final class SuffixRule<Node> implements Rule<Node, Result<Node, FormattedError>, Result<String, FormattedError>> {
     private final Rule<Node, Result<Node, FormattedError>, Result<String, FormattedError>> rule;
     private final String suffix;
-    private final ResultFactory<Node, FormattedError> factory;
+    private final ResultFactory<Node, Result<Node, FormattedError>, Result<String, FormattedError>> factory;
 
-    public SuffixRule(Rule<Node, Result<Node, FormattedError>, Result<String, FormattedError>> rule, String suffix, ResultFactory<Node, FormattedError> factory) {
+    public SuffixRule(Rule<Node, Result<Node, FormattedError>, Result<String, FormattedError>> rule, String suffix, ResultFactory<Node, Result<Node, FormattedError>, Result<String, FormattedError>> factory) {
         this.rule = rule;
         this.suffix = suffix;
         this.factory = factory;

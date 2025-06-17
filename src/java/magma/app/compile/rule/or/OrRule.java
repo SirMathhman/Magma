@@ -12,9 +12,9 @@ import java.util.function.Supplier;
 
 public final class OrRule<Node extends DisplayNode> implements Rule<Node, Result<Node, FormattedError>, Result<String, FormattedError>> {
     private final List<Rule<Node, Result<Node, FormattedError>, Result<String, FormattedError>>> rules;
-    private final ResultFactory<Node, FormattedError> factory;
+    private final ResultFactory<Node, Result<Node, FormattedError>, Result<String, FormattedError>> factory;
 
-    public OrRule(List<Rule<Node, Result<Node, FormattedError>, Result<String, FormattedError>>> rules, ResultFactory<Node, FormattedError> factory) {
+    public OrRule(List<Rule<Node, Result<Node, FormattedError>, Result<String, FormattedError>>> rules, ResultFactory<Node, Result<Node, FormattedError>, Result<String, FormattedError>> factory) {
         this.rules = rules;
         this.factory = factory;
     }
