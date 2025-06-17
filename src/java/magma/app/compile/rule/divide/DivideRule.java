@@ -10,7 +10,6 @@ import magma.app.compile.rule.Rule;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.function.Function;
 
 public record DivideRule(String key,
                          Rule<Node, Result<Node, FormattedError>, Result<String, FormattedError>> rule) implements Rule<Node, Result<Node, FormattedError>, Result<String, FormattedError>> {
@@ -47,8 +46,7 @@ public record DivideRule(String key,
             case Err<List<Node>, FormattedError>(FormattedError error) -> new Err<>(error);
             case Ok<List<Node>, FormattedError>(
                     List<Node> value
-            ) -> new Ok<>(((Function<List<Node>, Node>) children -> new MapNode().withNodeList(this.key(),
-                    children)).apply(value));
+            ) -> new Ok<>(new MapNode().withNodeList(this.key(), value));
         };
     }
 
@@ -57,16 +55,20 @@ public record DivideRule(String key,
             case Err<List<Node>, FormattedError>(FormattedError error1) -> new Err<>(error1);
             case Ok<List<Node>, FormattedError>(
                     List<Node> value1
-            ) -> ((Function<List<Node>, Result<List<Node>, FormattedError>>) current -> {
+            ) -> {
                 Result<Node, FormattedError> nodeFormattedErrorResult = this.rule.lex(element);
-                return switch (nodeFormattedErrorResult) {
-                    case Err<Node, FormattedError>(FormattedError error) -> new Err<>(error);
-                    case Ok<Node, FormattedError>(Node value) -> new Ok<>(((Function<Node, List<Node>>) result -> {
-                        current.add(result);
-                        return current;
-                    }).apply(value));
-                };
-            }).apply(value1);
+                yield this.getListFormattedErrorResult(value1, nodeFormattedErrorResult);
+            }
+        };
+    }
+
+    private Result<List<Node>, FormattedError> getListFormattedErrorResult(List<Node> value1, Result<Node, FormattedError> nodeFormattedErrorResult) {
+        return switch (nodeFormattedErrorResult) {
+            case Err<Node, FormattedError>(FormattedError error) -> new Err<>(error);
+            case Ok<Node, FormattedError>(Node value) -> {
+                value1.add(value);
+                yield new Ok<>(value1);
+            }
         };
     }
 
@@ -80,7 +82,7 @@ public record DivideRule(String key,
             case Err<StringBuilder, FormattedError>(FormattedError error) -> new Err<>(error);
             case Ok<StringBuilder, FormattedError>(
                     StringBuilder value
-            ) -> new Ok<>(((Function<StringBuilder, String>) StringBuilder::toString).apply(value));
+            ) -> new Ok<>(value.toString());
         };
     }
 
@@ -89,15 +91,19 @@ public record DivideRule(String key,
             case Err<StringBuilder, FormattedError>(FormattedError error1) -> new Err<>(error1);
             case Ok<StringBuilder, FormattedError>(
                     StringBuilder value1
-            ) -> ((Function<StringBuilder, Result<StringBuilder, FormattedError>>) current -> {
+            ) -> {
                 Result<String, FormattedError> stringFormattedErrorResult = this.rule.generate(element);
-                return switch (stringFormattedErrorResult) {
-                    case Err<String, FormattedError>(FormattedError error) -> new Err<>(error);
-                    case Ok<String, FormattedError>(
-                            String value
-                    ) -> new Ok<>(((Function<String, StringBuilder>) current::append).apply(value));
-                };
-            }).apply(value1);
+                yield this.getStringBuilderFormattedErrorResult(value1, stringFormattedErrorResult);
+            }
+        };
+    }
+
+    private Result<StringBuilder, FormattedError> getStringBuilderFormattedErrorResult(StringBuilder value1, Result<String, FormattedError> stringFormattedErrorResult) {
+        return switch (stringFormattedErrorResult) {
+            case Err<String, FormattedError>(FormattedError error) -> new Err<>(error);
+            case Ok<String, FormattedError>(
+                    String value
+            ) -> new Ok<>(value1.append(value));
         };
     }
 }

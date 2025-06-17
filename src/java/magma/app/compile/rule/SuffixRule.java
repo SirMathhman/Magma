@@ -5,8 +5,6 @@ import magma.api.result.Ok;
 import magma.api.result.Result;
 import magma.app.compile.error.ResultFactory;
 
-import java.util.function.Function;
-
 public final class SuffixRule<Node, Error, NodeResult> implements Rule<Node, NodeResult, Result<String, Error>> {
     private final Rule<Node, NodeResult, Result<String, Error>> rule;
     private final String suffix;
@@ -34,7 +32,7 @@ public final class SuffixRule<Node, Error, NodeResult> implements Rule<Node, Nod
             case Err<String, Error>(Error error) -> new Err<>(error);
             case Ok<String, Error>(
                     String value
-            ) -> new Ok<>(((Function<String, String>) result -> result + this.suffix).apply(value));
+            ) -> new Ok<>(value + this.suffix);
         };
     }
 }

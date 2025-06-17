@@ -7,8 +7,6 @@ import magma.app.compile.error.ResultFactory;
 import magma.app.compile.node.DisplayNode;
 import magma.app.compile.node.TypedNode;
 
-import java.util.function.Function;
-
 public final class TypeRule<Node extends DisplayNode & TypedNode<Node>, Error, StringResult> implements Rule<Node, Result<Node, Error>, StringResult> {
     private final String type;
     private final Rule<Node, Result<Node, Error>, StringResult> rule;
@@ -27,7 +25,7 @@ public final class TypeRule<Node extends DisplayNode & TypedNode<Node>, Error, S
             case Err<Node, Error>(Error error) -> new Err<>(error);
             case Ok<Node, Error>(
                     Node value
-            ) -> new Ok<>(((Function<Node, Node>) result -> result.retype(this.type)).apply(value));
+            ) -> new Ok<>(value.retype(this.type));
         };
     }
 

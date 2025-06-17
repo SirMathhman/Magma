@@ -29,12 +29,10 @@ public final class OrRule<Node extends DisplayNode, Error, StringResult> impleme
 
     private <Value, Return> Return or(Function<Rule<Node, Result<Node, Error>, StringResult>, Return> mapper, Function<Value, Return> whenPresent, Supplier<Return> whenEmpty) {
         return this.rules.stream()
-                .<OrState<Value, Error, Result<Value, Error>>>reduce(new MutableOrState<>(), (state, rule) -> {
-                    return switch ((Result<Value, Error>) mapper.apply(rule)) {
-                        case Ok(Value value) -> state.withValue(value);
-                        case Err(Error error) -> state.withError(error);
-                        default -> null;
-                    };
+                .<OrState<Value, Error, Result<Value, Error>>>reduce(new MutableOrState<>(),
+                        (state, rule) -> switch ((Result<Value, Error>) mapper.apply(rule)) {
+                            case Ok(Value value) -> state.withValue(value);
+                            case Err(Error error) -> state.withError(error);
                 }, (_, next) -> next)
                 .maybeValue()
                 .map(whenPresent)

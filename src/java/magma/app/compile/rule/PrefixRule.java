@@ -5,8 +5,6 @@ import magma.api.result.Ok;
 import magma.api.result.Result;
 import magma.app.compile.error.ResultFactory;
 
-import java.util.function.Function;
-
 public final class PrefixRule<Node, Error> implements Rule<Node, Result<Node, Error>, Result<String, Error>> {
     private final String prefix;
     private final Rule<Node, Result<Node, Error>, Result<String, Error>> rule;
@@ -34,7 +32,7 @@ public final class PrefixRule<Node, Error> implements Rule<Node, Result<Node, Er
             case Err<String, Error>(Error error) -> new Err<>(error);
             case Ok<String, Error>(
                     String value
-            ) -> new Ok<>(((Function<String, String>) result -> this.prefix + result).apply(value));
+            ) -> new Ok<>(this.prefix + value);
         };
     }
 }

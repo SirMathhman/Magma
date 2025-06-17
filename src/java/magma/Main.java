@@ -1,5 +1,6 @@
 package magma;
 
+import magma.api.Error;
 import magma.api.result.Err;
 import magma.api.result.Ok;
 import magma.api.result.Result;
@@ -18,7 +19,6 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Map;
 import java.util.Optional;
-import java.util.function.Function;
 
 public class Main {
     public static void main(String[] args) {
@@ -26,33 +26,27 @@ public class Main {
         handleResult(sources.readAll());
     }
 
-    private static void handleResult(Result<Map<Source, String>, ApplicationError> result) {
+    private static void handleResult(Result<Map<Source, String>, Error> result) {
         (switch (result) {
-            case Ok(Map<Source, String> value) ->
-                    ((Function<Map<Source, String>, Optional<ApplicationError>>) Main::compileAll).apply(value);
-            case Err(ApplicationError error1) ->
-                    ((Function<ApplicationError, Optional<ApplicationError>>) Optional::of).apply(error1);
-            default -> null;
-        })
-                .ifPresent(error -> System.err.println(error.display()));
+            case Ok(Map<Source, String> value) -> compileAll(value);
+            case Err(Error error1) -> Optional.of(error1);
+        }).ifPresent(error -> System.err.println(error.display()));
     }
 
-    private static Optional<ApplicationError> compileAll(Map<Source, String> inputs) {
+    private static Optional<Error> compileAll(Map<Source, String> inputs) {
         final Compiler compiler = new RuleCompiler(Lang.createJavaRootRule(), Lang.createPlantRootRule());
         return handleCompileResult(compiler.compile(inputs));
     }
 
-    private static Optional<ApplicationError> handleCompileResult(Result<String, ApplicationError> result) {
+    private static Optional<Error> handleCompileResult(Result<String, Error> result) {
         return switch (result) {
-            case Ok(String value) -> ((Function<String, Optional<ApplicationError>>) currentOutput -> {
+            case Ok(String value) -> {
                 final var target = Paths.get(".", "diagram.puml");
-                final var content = "@startuml\nskinparam linetype ortho\n" + currentOutput + "@enduml";
-                return writeString(target, content).map(ThrowableError::new)
+                final var content = "@startuml\nskinparam linetype ortho\n" + value + "@enduml";
+                yield writeString(target, content).map(ThrowableError::new)
                         .map(ApplicationError::new);
-            }).apply(value);
-            case Err(ApplicationError error) ->
-                    ((Function<ApplicationError, Optional<ApplicationError>>) Optional::of).apply(error);
-            default -> null;
+            }
+            case Err(Error error) -> Optional.of(error);
         };
     }
 

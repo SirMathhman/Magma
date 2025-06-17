@@ -1,5 +1,6 @@
 package magma.app.compile;
 
+import magma.api.Error;
 import magma.api.result.Err;
 import magma.api.result.Ok;
 import magma.api.result.Result;
@@ -12,7 +13,6 @@ import magma.app.io.Source;
 
 import java.util.ArrayList;
 import java.util.Map;
-import java.util.function.Function;
 
 public class RuleCompiler implements Compiler {
     private final Rule<Node, Result<Node, FormattedError>, Result<String, FormattedError>> targetRule;
@@ -35,7 +35,7 @@ public class RuleCompiler implements Compiler {
         return node.withNodeList("children", transformed);
     }
 
-    Result<String, ApplicationError> compileSource(Source source, String input) {
+    Result<String, Error> compileSource(Source source, String input) {
         final var namespace = source.computeNamespace();
         final var name = source.computeName();
 
@@ -44,13 +44,12 @@ public class RuleCompiler implements Compiler {
         Result<String, FormattedError> stringFormattedErrorResult1 = this.compileRoot(input, joinedName);
         Result<String, FormattedError> stringFormattedErrorResult = switch (stringFormattedErrorResult1) {
             case Err<String, FormattedError>(FormattedError error1) -> new Err<>(error1);
-            case Ok<String, FormattedError>(String value1) ->
-                    new Ok<>(((Function<String, String>) output -> "class " + joinedName + "\n" + output).apply(value1));
+            case Ok<String, FormattedError>(String value1) -> new Ok<>("class " + joinedName + "\n" + value1);
         };
         return switch (stringFormattedErrorResult) {
             case Err<String, FormattedError>(
                     FormattedError error
-            ) -> new Err<>(((Function<FormattedError, ApplicationError>) ApplicationError::new).apply(error));
+            ) -> new Err<>(new ApplicationError(error));
             case Ok<String, FormattedError>(String value) -> new Ok<>(value);
         };
     }
@@ -59,41 +58,51 @@ public class RuleCompiler implements Compiler {
         Result<Node, FormattedError> nodeFormattedErrorResult = this.sourceRule.lex(input);
         Result<Node, FormattedError> nodeFormattedErrorResult1 = switch (nodeFormattedErrorResult) {
             case Err<Node, FormattedError>(FormattedError error) -> new Err<>(error);
-            case Ok<Node, FormattedError>(Node value) ->
-                    new Ok<>(((Function<Node, Node>) children -> transform(source, children)).apply(value));
+            case Ok<Node, FormattedError>(Node value) -> new Ok<>(transform(source, value));
         };
         return switch (nodeFormattedErrorResult1) {
             case Err<Node, FormattedError>(FormattedError error1) -> new Err<>(error1);
             case Ok<Node, FormattedError>(
                     Node value1
-            ) -> ((Function<Node, Result<String, FormattedError>>) this.targetRule::generate).apply(value1);
+            ) -> this.targetRule.generate(value1);
         };
     }
 
     @Override
-    public Result<String, ApplicationError> compile(Map<Source, String> inputs) {
-        Result<StringBuilder, ApplicationError> maybeCurrentOutput = new Ok<>(new StringBuilder());
+    public Result<String, Error> compile(Map<Source, String> inputs) {
+        Result<StringBuilder, Error> maybeCurrentOutput = new Ok<>(new StringBuilder());
         for (var entry : inputs.entrySet())
-            maybeCurrentOutput = switch (maybeCurrentOutput) {
-                case Err<StringBuilder, ApplicationError>(ApplicationError error1) -> new Err<>(error1);
-                case Ok<StringBuilder, ApplicationError>(StringBuilder value1) ->
-                        ((Function<StringBuilder, Result<StringBuilder, ApplicationError>>) currentOutput -> {
-                            Result<String, ApplicationError> stringApplicationErrorResult = this.compileSource(entry.getKey(),
-                                    entry.getValue());
-                            return switch (stringApplicationErrorResult) {
-                                case Err<String, ApplicationError>(ApplicationError error) -> new Err<>(error);
-                                case Ok<String, ApplicationError>(
-                                        String value
-                                ) -> new Ok<>(((Function<String, StringBuilder>) currentOutput::append).apply(value));
-                            };
-                        }).apply(value1);
-            };
+            maybeCurrentOutput = this.getMaybeCurrentOutput(entry, maybeCurrentOutput);
 
+        return this.getStringApplicationErrorResult(maybeCurrentOutput);
+    }
+
+    private Result<StringBuilder, Error> getMaybeCurrentOutput(Map.Entry<Source, String> entry, Result<StringBuilder, Error> maybeCurrentOutput) {
         return switch (maybeCurrentOutput) {
-            case Err<StringBuilder, ApplicationError>(ApplicationError error) -> new Err<>(error);
-            case Ok<StringBuilder, ApplicationError>(
+            case Err<StringBuilder, Error>(Error error1) -> new Err<>(error1);
+            case Ok<StringBuilder, Error>(StringBuilder value1) -> {
+                Result<String, Error> stringApplicationErrorResult = this.compileSource(entry.getKey(),
+                        entry.getValue());
+                yield this.getStringBuilderApplicationErrorResult(value1, stringApplicationErrorResult);
+            }
+        };
+    }
+
+    private Result<String, Error> getStringApplicationErrorResult(Result<StringBuilder, Error> maybeCurrentOutput) {
+        return switch (maybeCurrentOutput) {
+            case Err<StringBuilder, Error>(Error error) -> new Err<>(error);
+            case Ok<StringBuilder, Error>(
                     StringBuilder value
-            ) -> new Ok<>(((Function<StringBuilder, String>) StringBuilder::toString).apply(value));
+            ) -> new Ok<>(value.toString());
+        };
+    }
+
+    private Result<StringBuilder, Error> getStringBuilderApplicationErrorResult(StringBuilder value1, Result<String, Error> stringApplicationErrorResult) {
+        return switch (stringApplicationErrorResult) {
+            case Err<String, Error>(Error error) -> new Err<>(error);
+            case Ok<String, Error>(
+                    String value
+            ) -> new Ok<>(value1.append(value));
         };
     }
 }

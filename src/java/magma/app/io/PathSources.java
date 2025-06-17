@@ -1,5 +1,6 @@
 package magma.app.io;
 
+import magma.api.Error;
 import magma.api.result.Err;
 import magma.api.result.Ok;
 import magma.api.result.Result;
@@ -12,7 +13,6 @@ import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.function.Function;
 
 public record PathSources(Path rootDirectory) implements Sources {
     public static Result<String, IOException> readString(Path source) {
@@ -37,23 +37,19 @@ public record PathSources(Path rootDirectory) implements Sources {
     }
 
     @Override
-    public Result<Map<Source, String>, ApplicationError> readAll() {
+    public Result<Map<Source, String>, Error> readAll() {
         Result<List<Path>, IOException> listIOExceptionResult = collect(this.rootDirectory);
         Result<Map<Source, String>, IOException> mapIOExceptionResult = switch (listIOExceptionResult) {
             case Err<List<Path>, IOException>(IOException error2) -> new Err<>(error2);
-            case Ok<List<Path>, IOException>(List<Path> value2) ->
-                    ((Function<List<Path>, Result<Map<Source, String>, IOException>>) this::readIterable).apply(value2);
+            case Ok<List<Path>, IOException>(List<Path> value2) -> this.readIterable(value2);
         };
-        Result<Map<Source, String>, ThrowableError> mapThrowableErrorResult = switch (mapIOExceptionResult) {
-            case Err<Map<Source, String>, IOException>(IOException error) ->
-                    new Err<>(((Function<IOException, ThrowableError>) ThrowableError::new).apply(error));
+        Result<Map<Source, String>, Error> mapThrowableErrorResult = switch (mapIOExceptionResult) {
+            case Err<Map<Source, String>, IOException>(IOException error) -> new Err<>(new ThrowableError(error));
             case Ok<Map<Source, String>, IOException>(Map<Source, String> value) -> new Ok<>(value);
         };
         return switch (mapThrowableErrorResult) {
-            case Err<Map<Source, String>, ThrowableError>(
-                    ThrowableError error1
-            ) -> new Err<>(((Function<ThrowableError, ApplicationError>) ApplicationError::new).apply(error1));
-            case Ok<Map<Source, String>, ThrowableError>(Map<Source, String> value1) -> new Ok<>(value1);
+            case Err<Map<Source, String>, Error>(Error error1) -> new Err<>(new ApplicationError(error1));
+            case Ok<Map<Source, String>, Error>(Map<Source, String> value1) -> new Ok<>(value1);
         };
     }
 
@@ -62,18 +58,19 @@ public record PathSources(Path rootDirectory) implements Sources {
             case Err<Map<Source, String>, IOException>(IOException error1) -> new Err<>(error1);
             case Ok<Map<Source, String>, IOException>(
                     Map<Source, String> value1
-            ) -> ((Function<Map<Source, String>, Result<Map<Source, String>, IOException>>) inner -> {
-                Result<String, IOException> stringIOExceptionResult = readString(source);
-                return switch (stringIOExceptionResult) {
-                    case Err<String, IOException>(IOException error) -> new Err<>(error);
-                    case Ok<String, IOException>(
-                            String value
-                    ) -> new Ok<>(((Function<String, Map<Source, String>>) input -> {
-                        inner.put(new PathSource(this.rootDirectory, source), input);
-                        return inner;
-                    }).apply(value));
-                };
-            }).apply(value1);
+            ) -> this.getMapIOExceptionResult(source, value1);
+        };
+    }
+
+    private Result<Map<Source, String>, IOException> getMapIOExceptionResult(Path source, Map<Source, String> value1) {
+        return switch (readString(source)) {
+            case Err<String, IOException>(IOException error) -> new Err<>(error);
+            case Ok<String, IOException>(
+                    String value
+            ) -> {
+                value1.put(new PathSource(this.rootDirectory, source), value);
+                yield new Ok<>(value1);
+            }
         };
     }
 
