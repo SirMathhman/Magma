@@ -12,7 +12,6 @@ import magma.app.compile.rule.SuffixRule;
 import magma.app.compile.rule.TypeRule;
 import magma.app.compile.rule.divide.DivideRule;
 import magma.app.compile.rule.or.OrRule;
-import magma.app.compile.rule.or.ResultFactoryImpl;
 
 import java.util.List;
 
@@ -22,8 +21,8 @@ public class Lang {
                 new OrRule<>(List.of(createNamespacedRule("package"),
                         new TypeRule<>("import", createNamespacedRule("import")),
                         createStructureRule("class"),
-                        createStructureRule("interface"), createStructureRule("record")),
-                        new ResultFactoryImpl<Node>()));
+                        createStructureRule("interface"),
+                        createStructureRule("record"))));
     }
 
     static Rule<Node, Result<Node, FormattedError>, Result<String, FormattedError>> createStructureRule(String type) {
@@ -31,7 +30,7 @@ public class Lang {
     }
 
     public static Rule<Node, Result<Node, FormattedError>, Result<String, FormattedError>> createPlantRootRule() {
-        return new DivideRule("children", new OrRule<>(List.of(createDependencyRule()), new ResultFactoryImpl<Node>()));
+        return new DivideRule("children", new OrRule<>(List.of(createDependencyRule())));
     }
 
     static Rule<Node, Result<Node, FormattedError>, Result<String, FormattedError>> createNamespacedRule(String type) {
