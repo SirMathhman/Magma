@@ -1,6 +1,6 @@
 package magma.app.io.source;
 
-import magma.api.Result;
+import magma.api.result.Result;
 import magma.app.io.location.Location;
 
 import java.io.IOException;

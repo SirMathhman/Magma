@@ -1,11 +1,9 @@
-package magma;
+package magma.app;
 
-import magma.api.Err;
-import magma.api.Ok;
-import magma.api.Result;
 import magma.api.Tuple;
-import magma.app.CompileState;
-import magma.app.SimpleCompileState;
+import magma.api.result.Err;
+import magma.api.result.Ok;
+import magma.api.result.Result;
 import magma.app.io.location.SimpleLocation;
 import magma.app.io.source.PathSource;
 import magma.app.io.source.Source;

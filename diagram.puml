@@ -1,16 +1,38 @@
 @startuml
 skinparam linetype ortho
 interface magma.app.io.location.Location
+interface magma.api.result.Result
 class magma.app.io.location.SimpleLocation
 magma.app.io.location.SimpleLocation --|> magma.app.io.location.Location
 magma.app.state.MutableState --> java.util.ArrayList
 magma.app.state.MutableState --> java.util.List
 class magma.app.state.MutableState
 magma.app.state.MutableState --|> magma.app.state.State
+class magma.api.result.Ok
+magma.api.result.Ok --|> magma.api.result.Result
+magma.app.Main --> magma.api.result.Err
+magma.app.Main --> magma.api.result.Ok
+magma.app.Main --> magma.api.result.Result
+magma.app.Main --> magma.api.Tuple
+magma.app.Main --> magma.app.io.location.SimpleLocation
+magma.app.Main --> magma.app.io.source.PathSource
+magma.app.Main --> magma.app.io.source.Source
+magma.app.Main --> magma.app.io.source.Sources
+magma.app.Main --> magma.app.state.MutableState
+magma.app.Main --> magma.app.state.State
+magma.app.Main --> java.io.IOException
+magma.app.Main --> java.nio.file.Files
+magma.app.Main --> java.nio.file.Path
+magma.app.Main --> java.nio.file.Paths
+magma.app.Main --> java.util.Collections
+magma.app.Main --> java.util.List
+magma.app.Main --> java.util.Optional
+magma.app.Main --> java.util.Set
+class magma.app.Main
 class magma.api.Tuple
-magma.app.io.source.PathSource --> magma.api.Err
-magma.app.io.source.PathSource --> magma.api.Ok
-magma.app.io.source.PathSource --> magma.api.Result
+magma.app.io.source.PathSource --> magma.api.result.Err
+magma.app.io.source.PathSource --> magma.api.result.Ok
+magma.app.io.source.PathSource --> magma.api.result.Result
 magma.app.io.source.PathSource --> magma.app.io.location.Location
 magma.app.io.source.PathSource --> magma.app.io.location.SimpleLocation
 magma.app.io.source.PathSource --> java.io.IOException
@@ -20,9 +42,9 @@ magma.app.io.source.PathSource --> java.util.ArrayList
 magma.app.io.source.PathSource --> java.util.List
 class magma.app.io.source.PathSource
 magma.app.io.source.PathSource --|> magma.app.io.source.Source
-magma.app.io.source.Sources --> magma.api.Err
-magma.app.io.source.Sources --> magma.api.Ok
-magma.app.io.source.Sources --> magma.api.Result
+magma.app.io.source.Sources --> magma.api.result.Err
+magma.app.io.source.Sources --> magma.api.result.Ok
+magma.app.io.source.Sources --> magma.api.result.Result
 magma.app.io.source.Sources --> java.io.IOException
 magma.app.io.source.Sources --> java.nio.file.Files
 magma.app.io.source.Sources --> java.nio.file.Path
@@ -38,36 +60,12 @@ magma.app.SimpleCompileState --|> magma.app.CompileState
 magma.app.CompileState --> magma.app.io.location.Location
 magma.app.CompileState --> java.util.Optional
 interface magma.app.CompileState
-magma.Main --> magma.api.Err
-magma.Main --> magma.api.Ok
-magma.Main --> magma.api.Result
-magma.Main --> magma.api.Tuple
-magma.Main --> magma.app.CompileState
-magma.Main --> magma.app.SimpleCompileState
-magma.Main --> magma.app.io.location.SimpleLocation
-magma.Main --> magma.app.io.source.PathSource
-magma.Main --> magma.app.io.source.Source
-magma.Main --> magma.app.io.source.Sources
-magma.Main --> magma.app.state.MutableState
-magma.Main --> magma.app.state.State
-magma.Main --> java.io.IOException
-magma.Main --> java.nio.file.Files
-magma.Main --> java.nio.file.Path
-magma.Main --> java.nio.file.Paths
-magma.Main --> java.util.Collections
-magma.Main --> java.util.List
-magma.Main --> java.util.Optional
-magma.Main --> java.util.Set
-class magma.Main
-magma.app.io.source.Source --> magma.api.Result
+magma.app.io.source.Source --> magma.api.result.Result
 magma.app.io.source.Source --> magma.app.io.location.Location
 magma.app.io.source.Source --> java.io.IOException
 interface magma.app.io.source.Source
-class magma.api.Ok
-magma.api.Ok --|> magma.api.Result
-interface magma.api.Result
 magma.app.state.State --> java.util.List
 interface magma.app.state.State
-class magma.api.Err
-magma.api.Err --|> magma.api.Result
+class magma.api.result.Err
+magma.api.result.Err --|> magma.api.result.Result
 @enduml

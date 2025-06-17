@@ -1,8 +1,8 @@
 package magma.app.io.source;
 
-import magma.api.Err;
-import magma.api.Ok;
-import magma.api.Result;
+import magma.api.result.Err;
+import magma.api.result.Ok;
+import magma.api.result.Result;
 
 import java.io.IOException;
 import java.nio.file.Files;
