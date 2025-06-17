@@ -41,8 +41,12 @@ public class RuleCompiler implements Compiler {
 
         final var joined = String.join(".", namespace);
         final var joinedName = joined + "." + name;
-        Result<String, FormattedError> stringFormattedErrorResult = this.compileRoot(input, joinedName)
-                .mapValue(output -> "class " + joinedName + "\n" + output);
+        Result<String, FormattedError> stringFormattedErrorResult1 = this.compileRoot(input, joinedName);
+        Result<String, FormattedError> stringFormattedErrorResult = switch (stringFormattedErrorResult1) {
+            case Err<String, FormattedError>(FormattedError error1) -> new Err<>(error1);
+            case Ok<String, FormattedError>(String value1) ->
+                    new Ok<>(((Function<String, String>) output -> "class " + joinedName + "\n" + output).apply(value1));
+        };
         return switch (stringFormattedErrorResult) {
             case Err<String, FormattedError>(
                     FormattedError error
@@ -52,8 +56,12 @@ public class RuleCompiler implements Compiler {
     }
 
     Result<String, FormattedError> compileRoot(String input, String source) {
-        return this.sourceRule.lex(input)
-                .mapValue(children -> transform(source, children))
+        Result<Node, FormattedError> nodeFormattedErrorResult = this.sourceRule.lex(input);
+        return ((Result<Node, FormattedError>) switch (nodeFormattedErrorResult) {
+            case Err<Node, FormattedError>(FormattedError error) -> new Err<>(error);
+            case Ok<Node, FormattedError>(Node value) ->
+                    new Ok<>(((Function<Node, Node>) children -> transform(source, children)).apply(value));
+        })
                 .flatMapValue(this.targetRule::generate);
     }
 
@@ -61,10 +69,22 @@ public class RuleCompiler implements Compiler {
     public Result<String, ApplicationError> compile(Map<Source, String> inputs) {
         Result<StringBuilder, ApplicationError> maybeCurrentOutput = new Ok<>(new StringBuilder());
         for (var entry : inputs.entrySet())
-            maybeCurrentOutput = maybeCurrentOutput.flatMapValue(currentOutput -> this.compileSource(entry.getKey(),
-                            entry.getValue())
-                    .mapValue(currentOutput::append));
+            maybeCurrentOutput = maybeCurrentOutput.flatMapValue(currentOutput -> {
+                Result<String, ApplicationError> stringApplicationErrorResult = this.compileSource(entry.getKey(),
+                        entry.getValue());
+                return switch (stringApplicationErrorResult) {
+                    case Err<String, ApplicationError>(ApplicationError error) -> new Err<>(error);
+                    case Ok<String, ApplicationError>(
+                            String value
+                    ) -> new Ok<>(((Function<String, StringBuilder>) currentOutput::append).apply(value));
+                };
+            });
 
-        return maybeCurrentOutput.mapValue(StringBuilder::toString);
+        return switch (maybeCurrentOutput) {
+            case Err<StringBuilder, ApplicationError>(ApplicationError error) -> new Err<>(error);
+            case Ok<StringBuilder, ApplicationError>(
+                    StringBuilder value
+            ) -> new Ok<>(((Function<StringBuilder, String>) StringBuilder::toString).apply(value));
+        };
     }
 }

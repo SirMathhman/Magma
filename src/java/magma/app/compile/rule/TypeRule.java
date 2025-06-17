@@ -1,9 +1,13 @@
 package magma.app.compile.rule;
 
+import magma.api.result.Err;
+import magma.api.result.Ok;
 import magma.api.result.Result;
 import magma.app.compile.error.ResultFactory;
 import magma.app.compile.node.DisplayNode;
 import magma.app.compile.node.TypedNode;
+
+import java.util.function.Function;
 
 public final class TypeRule<Node extends DisplayNode & TypedNode<Node>, Error, StringResult> implements Rule<Node, Result<Node, Error>, StringResult> {
     private final String type;
@@ -18,8 +22,13 @@ public final class TypeRule<Node extends DisplayNode & TypedNode<Node>, Error, S
 
     @Override
     public Result<Node, Error> lex(String input) {
-        return this.rule.lex(input)
-                .mapValue(result -> result.retype(this.type));
+        Result<Node, Error> nodeErrorResult = this.rule.lex(input);
+        return switch (nodeErrorResult) {
+            case Err<Node, Error>(Error error) -> new Err<>(error);
+            case Ok<Node, Error>(
+                    Node value
+            ) -> new Ok<>(((Function<Node, Node>) result -> result.retype(this.type)).apply(value));
+        };
     }
 
     @Override

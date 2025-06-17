@@ -1,7 +1,11 @@
 package magma.app.compile.rule;
 
+import magma.api.result.Err;
+import magma.api.result.Ok;
 import magma.api.result.Result;
 import magma.app.compile.error.ResultFactory;
+
+import java.util.function.Function;
 
 public final class SuffixRule<Node, Error, NodeResult> implements Rule<Node, NodeResult, Result<String, Error>> {
     private final Rule<Node, NodeResult, Result<String, Error>> rule;
@@ -25,7 +29,12 @@ public final class SuffixRule<Node, Error, NodeResult> implements Rule<Node, Nod
 
     @Override
     public Result<String, Error> generate(Node node) {
-        return this.rule.generate(node)
-                .mapValue(result -> result + this.suffix);
+        Result<String, Error> stringErrorResult = this.rule.generate(node);
+        return switch (stringErrorResult) {
+            case Err<String, Error>(Error error) -> new Err<>(error);
+            case Ok<String, Error>(
+                    String value
+            ) -> new Ok<>(((Function<String, String>) result -> result + this.suffix).apply(value));
+        };
     }
 }

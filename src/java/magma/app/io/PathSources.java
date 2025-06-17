@@ -53,10 +53,18 @@ public record PathSources(Path rootDirectory) implements Sources {
     }
 
     private Result<Map<Source, String>, IOException> readFile(Path source, Result<Map<Source, String>, IOException> maybeInputs) {
-        return maybeInputs.flatMapValue(inner -> readString(source).mapValue(input -> {
-            inner.put(new PathSource(this.rootDirectory, source), input);
-            return inner;
-        }));
+        return maybeInputs.flatMapValue(inner -> {
+            Result<String, IOException> stringIOExceptionResult = readString(source);
+            return switch (stringIOExceptionResult) {
+                case Err<String, IOException>(IOException error) -> new Err<>(error);
+                case Ok<String, IOException>(
+                        String value
+                ) -> new Ok<>(((Function<String, Map<Source, String>>) input -> {
+                    inner.put(new PathSource(this.rootDirectory, source), input);
+                    return inner;
+                }).apply(value));
+            };
+        });
     }
 
     public Result<Map<Source, String>, IOException> readIterable(Iterable<Path> files) {
