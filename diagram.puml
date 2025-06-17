@@ -78,6 +78,12 @@ magma.app.rule.SuffixRule --> magma.StringContext
 magma.app.rule.SuffixRule --> magma.api.Err
 magma.app.rule.SuffixRule --> magma.api.Result
 magma.app.rule.SuffixRule --> magma.app.node.Node
+class magma.app.rule.TypeRule
+magma.app.rule.TypeRule --> magma.CompileError
+magma.app.rule.TypeRule --> magma.NodeContext
+magma.app.rule.TypeRule --> magma.api.Err
+magma.app.rule.TypeRule --> magma.api.Result
+magma.app.rule.TypeRule --> magma.app.node.Node
 class magma.ApplicationError
 class magma.CompileError
 class magma.Context
@@ -95,6 +101,7 @@ magma.Main --> magma.app.rule.Rule
 magma.Main --> magma.app.rule.StringRule
 magma.Main --> magma.app.rule.StripRule
 magma.Main --> magma.app.rule.SuffixRule
+magma.Main --> magma.app.rule.TypeRule
 magma.Main --> magma.app.rule.divide.DivideRule
 magma.Main --> java.io.IOException
 magma.Main --> java.nio.file.Files
@@ -110,9 +117,4 @@ class magma.StringContext
 class magma.ThrowableError
 magma.ThrowableError --> java.io.PrintWriter
 magma.ThrowableError --> java.io.StringWriter
-class magma.TypeRule
-magma.TypeRule --> magma.api.Err
-magma.TypeRule --> magma.api.Result
-magma.TypeRule --> magma.app.node.Node
-magma.TypeRule --> magma.app.rule.Rule
 @enduml
