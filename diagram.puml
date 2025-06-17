@@ -100,10 +100,8 @@ class magma.api.Error
 class magma.app.error.ApplicationError
 magma.app.error.ApplicationError --> magma.api.Error
 class magma.app.compile.rule.SuffixRule
+magma.app.compile.rule.SuffixRule --> magma.app.compile.error.AppendableStringResult
 magma.app.compile.rule.SuffixRule --> magma.app.compile.error.ResultFactory
-magma.app.compile.rule.SuffixRule --> magma.app.compile.error.StringErr
-magma.app.compile.rule.SuffixRule --> magma.app.compile.error.StringOk
-magma.app.compile.rule.SuffixRule --> magma.app.compile.error.StringResult
 class magma.app.io.Sources
 magma.app.io.Sources --> magma.api.Error
 magma.app.io.Sources --> magma.api.result.Result
