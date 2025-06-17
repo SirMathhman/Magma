@@ -1,15 +1,14 @@
 package magma.app.compile.rule;
 
-import magma.app.compile.FormattedError;
 import magma.app.compile.PrependStringResult;
 import magma.app.compile.ResultFactory;
 
-public final class PrefixRule<Node, NodeResult, StringResult extends PrependStringResult<StringResult>> implements Rule<Node, NodeResult, StringResult> {
+public final class PrefixRule<Node, Error, NodeResult, StringResult extends PrependStringResult<StringResult>> implements Rule<Node, NodeResult, StringResult> {
     private final String prefix;
     private final Rule<Node, NodeResult, StringResult> rule;
-    private final ResultFactory<Node, FormattedError, NodeResult, StringResult> factory;
+    private final ResultFactory<Node, Error, NodeResult, StringResult> factory;
 
-    public PrefixRule(String prefix, Rule<Node, NodeResult, StringResult> rule, ResultFactory<Node, FormattedError, NodeResult, StringResult> factory) {
+    public PrefixRule(String prefix, Rule<Node, NodeResult, StringResult> rule, ResultFactory<Node, Error, NodeResult, StringResult> factory) {
         this.prefix = prefix;
         this.rule = rule;
         this.factory = factory;
@@ -27,6 +26,6 @@ public final class PrefixRule<Node, NodeResult, StringResult extends PrependStri
     @Override
     public StringResult generate(Node node) {
         return this.rule.generate(node)
-                .prepend(this.prefix);
+                .prependSlice(this.prefix);
     }
 }

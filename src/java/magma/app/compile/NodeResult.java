@@ -8,7 +8,7 @@ import java.util.function.Function;
 public interface NodeResult<Node, Error> extends MergeNodeResult<Node, NodeResult<Node, Error>>, TypeNodeResult<NodeResult<Node, Error>>, AttachableToStateResult<Node, Error> {
     Result<List<Node>, Error> appendTo(List<Node> list);
 
-    StringResult generate(Function<Node, StringResult> mapper);
+    StringResult<FormattedError> generate(Function<Node, StringResult<FormattedError>> mapper);
 
     NodeResult<Node, Error> transform(Function<Node, Node> transformer);
 }

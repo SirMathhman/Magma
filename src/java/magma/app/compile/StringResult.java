@@ -1,4 +1,7 @@
 package magma.app.compile;
 
-public sealed interface StringResult extends AppendableStringResult<StringResult>, PrependStringResult<StringResult>, AttachableToStateResult<String, FormattedError> permits StringErr, StringOk {
+import magma.api.result.Result;
+
+public interface StringResult<Error> extends AppendableStringResult<StringResult<Error>>, PrependStringResult<StringResult<Error>>, AttachableToStateResult<String, Error> {
+    Result<String, Error> toResult();
 }

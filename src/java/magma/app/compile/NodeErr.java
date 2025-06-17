@@ -35,7 +35,7 @@ public record NodeErr(FormattedError error) implements NodeResult<Node, Formatte
     }
 
     @Override
-    public StringResult generate(Function<Node, StringResult> mapper) {
+    public StringResult<FormattedError> generate(Function<Node, StringResult<FormattedError>> mapper) {
         return new StringErr(this.error);
     }
 

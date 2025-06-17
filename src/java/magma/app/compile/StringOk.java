@@ -1,32 +1,45 @@
 package magma.app.compile;
 
+import magma.api.result.Ok;
+import magma.api.result.Result;
 import magma.app.compile.rule.or.Accumulator;
 
 import java.util.function.Supplier;
 
-public record StringOk(String value) implements StringResult {
+public final class StringOk<Error> implements StringResult<Error> {
+    private final String value;
+
+    public StringOk(String value) {
+        this.value = value;
+    }
+
     public StringOk() {
         this("");
     }
 
     @Override
-    public StringResult appendResult(Supplier<StringResult> generate) {
+    public StringResult<Error> appendResult(Supplier<StringResult<Error>> generate) {
         return generate.get()
-                .prepend(this.value);
+                .prependSlice(this.value);
     }
 
     @Override
-    public StringResult prepend(String slice) {
-        return new StringOk(slice + this.value);
+    public StringResult<Error> prependSlice(String slice) {
+        return new StringOk<>(slice + this.value);
     }
 
     @Override
-    public StringResult appendSlice(String infix) {
-        return new StringOk(this.value + infix);
+    public StringResult<Error> appendSlice(String infix) {
+        return new StringOk<>(this.value + infix);
     }
 
     @Override
-    public Accumulator<String, FormattedError> attachToState(Accumulator<String, FormattedError> state) {
+    public Accumulator<String, Error> attachToState(Accumulator<String, Error> state) {
         return state.withValue(this.value);
+    }
+
+    @Override
+    public Result<String, Error> toResult() {
+        return new Ok<>(this.value);
     }
 }

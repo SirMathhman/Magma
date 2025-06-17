@@ -36,7 +36,7 @@ public record NodeOk(Node node) implements NodeResult<Node, FormattedError> {
     }
 
     @Override
-    public StringResult generate(Function<Node, StringResult> mapper) {
+    public StringResult<FormattedError> generate(Function<Node, StringResult<FormattedError>> mapper) {
         return mapper.apply(this.node());
     }
 

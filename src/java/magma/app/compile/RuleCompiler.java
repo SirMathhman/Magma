@@ -12,10 +12,10 @@ import java.util.ArrayList;
 import java.util.Map;
 
 public class RuleCompiler implements Compiler {
-    private final Rule<Node, NodeResult<Node, FormattedError>, StringResult> targetRule;
-    private final Rule<Node, NodeResult<Node, FormattedError>, StringResult> sourceRule;
+    private final Rule<Node, NodeResult<Node, FormattedError>, StringResult<FormattedError>> targetRule;
+    private final Rule<Node, NodeResult<Node, FormattedError>, StringResult<FormattedError>> sourceRule;
 
-    public RuleCompiler(Rule<Node, NodeResult<Node, FormattedError>, StringResult> sourceRule, Rule<Node, NodeResult<Node, FormattedError>, StringResult> targetRule) {
+    public RuleCompiler(Rule<Node, NodeResult<Node, FormattedError>, StringResult<FormattedError>> sourceRule, Rule<Node, NodeResult<Node, FormattedError>, StringResult<FormattedError>> targetRule) {
         this.sourceRule = sourceRule;
         this.targetRule = targetRule;
     }
@@ -38,18 +38,15 @@ public class RuleCompiler implements Compiler {
 
         final var joined = String.join(".", namespace);
         final var joinedName = joined + "." + name;
-        StringResult stringFormattedErrorResult1 = this.compileRoot(input, joinedName);
-        StringResult stringFormattedErrorResult = switch (stringFormattedErrorResult1) {
-            case StringErr(FormattedError error1) -> new StringErr(error1);
-            case StringOk(String value1) -> new StringOk("class " + joinedName + "\n" + value1);
-        };
-        return switch (stringFormattedErrorResult) {
-            case StringErr(FormattedError error) -> new Err<>(new ApplicationError(error));
-            case StringOk(String value) -> new Ok<>(value);
-        };
+
+        final var stringFormattedErrorResult1 = this.compileRoot(input, joinedName)
+                .prependSlice("class " + joinedName + "\n");
+
+        return stringFormattedErrorResult1.toResult()
+                .mapErr(ApplicationError::new);
     }
 
-    StringResult compileRoot(String input, String source) {
+    StringResult<FormattedError> compileRoot(String input, String source) {
         NodeResult<Node, FormattedError> nodeFormattedErrorResult = this.sourceRule.lex(input);
         NodeResult<Node, FormattedError> nodeFormattedErrorResult1 = nodeFormattedErrorResult.transform(value1 -> transform(
                 source,

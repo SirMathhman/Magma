@@ -1,16 +1,15 @@
 package magma.app.compile.rule;
 
-import magma.app.compile.FormattedError;
 import magma.app.compile.ResultFactory;
 import magma.app.compile.TypeNode;
 import magma.app.compile.TypeNodeResult;
 
-public final class TypeRule<Node extends TypeNode<Node>, NodeResult extends TypeNodeResult<NodeResult>, StringResult> implements Rule<Node, NodeResult, StringResult> {
+public final class TypeRule<Node extends TypeNode<Node>, Error, NodeResult extends TypeNodeResult<NodeResult>, StringResult> implements Rule<Node, NodeResult, StringResult> {
     private final String type;
     private final Rule<Node, NodeResult, StringResult> rule;
-    private final ResultFactory<Node, FormattedError, NodeResult, StringResult> factory;
+    private final ResultFactory<Node, Error, NodeResult, StringResult> factory;
 
-    public TypeRule(String type, Rule<Node, NodeResult, StringResult> rule, ResultFactory<Node, FormattedError, NodeResult, StringResult> factory) {
+    public TypeRule(String type, Rule<Node, NodeResult, StringResult> rule, ResultFactory<Node, Error, NodeResult, StringResult> factory) {
         this.type = type;
         this.rule = rule;
         this.factory = factory;
