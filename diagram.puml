@@ -1,3 +1,8 @@
 @startuml
-class Main
+skinparam linetype ortho
+class magma.Main
+magma.Main --> java.io.IOException
+magma.Main --> java.nio.file.Files
+magma.Main --> java.nio.file.Paths
+magma.Main --> java.util.ArrayList
 @enduml
