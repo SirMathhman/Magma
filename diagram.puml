@@ -24,7 +24,7 @@ magma.app.compile.CompilerImpl --> magma.app.compile.state.CompileState
 magma.app.compile.CompilerImpl --> magma.app.compile.state.SimpleCompileState
 magma.app.compile.CompilerImpl --> magma.app.io.location.SimpleLocation
 magma.app.compile.CompilerImpl --> magma.app.io.source.Source
-magma.app.compile.CompilerImpl --> java.util.Collections
+magma.app.compile.CompilerImpl --> java.util.ArrayList
 magma.app.compile.CompilerImpl --> java.util.List
 magma.app.compile.CompilerImpl --> java.util.Map
 magma.app.compile.CompilerImpl --> java.util.Optional

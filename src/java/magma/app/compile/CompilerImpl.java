@@ -8,7 +8,7 @@ import magma.app.compile.state.SimpleCompileState;
 import magma.app.io.location.SimpleLocation;
 import magma.app.io.source.Source;
 
-import java.util.Collections;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -82,7 +82,7 @@ public class CompilerImpl implements Compiler {
             return generate(type, state, List.of(actual.join()));
         }
         else
-            return generate(type, state, Collections.emptyList());
+            return generate(type, state, new ArrayList<>());
     }
 
     private static Optional<Tuple<CompileState, String>> generate(String type, CompileState state, Iterable<String> superTypes) {
