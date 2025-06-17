@@ -1,7 +1,7 @@
 package magma.app.compile.state;
 
+import jvm.list.JVMLists;
 import magma.api.list.ListLike;
-import magma.api.list.Lists;
 import magma.api.option.None;
 import magma.api.option.Option;
 import magma.api.option.Some;
@@ -17,7 +17,7 @@ public final class SimpleCompileState implements CompileState {
     }
 
     public SimpleCompileState(Location location) {
-        this(location, Lists.empty());
+        this(location, JVMLists.empty());
     }
 
     @Override

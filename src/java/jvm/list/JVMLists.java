@@ -1,8 +1,10 @@
-package magma.api.list;
+package jvm.list;
+
+import magma.api.list.ListLike;
 
 import java.util.Arrays;
 
-public class Lists {
+public class JVMLists {
     public static <T> ListLike<T> empty() {
         return new JVMList<>();
     }

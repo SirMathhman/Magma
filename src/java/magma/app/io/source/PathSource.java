@@ -1,9 +1,9 @@
 package magma.app.io.source;
 
+import jvm.list.JVMLists;
 import magma.api.io.IOError;
 import magma.api.io.PathLike;
 import magma.api.list.ListLike;
-import magma.api.list.Lists;
 import magma.api.option.None;
 import magma.api.option.Option;
 import magma.api.option.Some;
@@ -13,7 +13,7 @@ import magma.app.io.location.SimpleLocation;
 
 public record PathSource(PathLike sourceDirectory, PathLike source) implements Source {
     private static ListLike<String> computeNamespace(PathLike parent) {
-        final ListLike<String> segments = Lists.empty();
+        final ListLike<String> segments = JVMLists.empty();
         for (var i = 0; i < parent.getNameCount(); i++)
             segments.add(parent.getName(i)
                     .asString());

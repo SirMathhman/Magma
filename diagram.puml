@@ -1,7 +1,5 @@
 @startuml
 skinparam linetype ortho
-magma.api.list.Lists --> java.util.Arrays
-class magma.api.list.Lists
 class magma.app.io.location.SimpleLocation
 magma.app.io.location.SimpleLocation --|> magma.app.io.location.Location
 magma.app.Application --> magma.api.io.IOError
@@ -18,9 +16,9 @@ magma.app.Application --> java.util.HashMap
 magma.app.Application --> java.util.Map
 magma.app.Application --> java.util.Set
 class magma.app.Application
-magma.app.compile.CompilerImpl --> magma.api.list.ListLike
-magma.app.compile.CompilerImpl --> magma.api.list.Lists
 magma.app.compile.CompilerImpl --> magma.api.Tuple
+magma.app.compile.CompilerImpl --> magma.api.list.ListLike
+magma.app.compile.CompilerImpl --> jvm.list.JVMLists
 magma.app.compile.CompilerImpl --> magma.api.option.None
 magma.app.compile.CompilerImpl --> magma.api.option.Option
 magma.app.compile.CompilerImpl --> magma.api.option.Some
@@ -40,10 +38,10 @@ interface magma.app.compile.state.CompileState
 magma.app.io.target.Targets --> magma.api.io.IOError
 magma.app.io.target.Targets --> magma.api.option.Option
 interface magma.app.io.target.Targets
-magma.app.io.source.PathSource --> magma.api.list.ListLike
-magma.app.io.source.PathSource --> magma.api.list.Lists
 magma.app.io.source.PathSource --> magma.api.io.IOError
 magma.app.io.source.PathSource --> magma.api.io.PathLike
+magma.app.io.source.PathSource --> magma.api.list.ListLike
+magma.app.io.source.PathSource --> jvm.list.JVMLists
 magma.app.io.source.PathSource --> magma.api.option.None
 magma.app.io.source.PathSource --> magma.api.option.Option
 magma.app.io.source.PathSource --> magma.api.option.Some
@@ -66,7 +64,7 @@ magma.app.compile.Compiler --> magma.app.io.source.Source
 magma.app.compile.Compiler --> java.util.Map
 interface magma.app.compile.Compiler
 magma.app.compile.state.SimpleCompileState --> magma.api.list.ListLike
-magma.app.compile.state.SimpleCompileState --> magma.api.list.Lists
+magma.app.compile.state.SimpleCompileState --> jvm.list.JVMLists
 magma.app.compile.state.SimpleCompileState --> magma.api.option.None
 magma.app.compile.state.SimpleCompileState --> magma.api.option.Option
 magma.app.compile.state.SimpleCompileState --> magma.api.option.Some
@@ -108,14 +106,15 @@ jvm.io.JVMPath --|> magma.api.io.PathLike
 jvm.io.JVMPaths --> magma.api.io.PathLike
 jvm.io.JVMPaths --> java.nio.file.Paths
 class jvm.io.JVMPaths
+jvm.list.JVMList --> magma.api.list.ListLike
+jvm.list.JVMList --> java.util.ArrayList
+jvm.list.JVMList --> java.util.List
+class jvm.list.JVMList
+jvm.list.JVMList --|> magma.api.list.ListLike
 interface magma.app.io.location.Location
 interface magma.api.result.Result
-magma.api.option.None --> java.util.function.Consumer
-magma.api.option.None --> java.util.function.Supplier
-class magma.api.option.None
-magma.api.option.None --|> magma.api.option.Option
 magma.app.compile.divide.MutableDivideState --> magma.api.list.ListLike
-magma.app.compile.divide.MutableDivideState --> magma.api.list.Lists
+magma.app.compile.divide.MutableDivideState --> jvm.list.JVMLists
 class magma.app.compile.divide.MutableDivideState
 magma.app.compile.divide.MutableDivideState --|> magma.app.compile.divide.DivideState
 magma.app.io.target.PathTargets --> jvm.io.JVMPaths
@@ -123,13 +122,16 @@ magma.app.io.target.PathTargets --> magma.api.io.IOError
 magma.app.io.target.PathTargets --> magma.api.option.Option
 class magma.app.io.target.PathTargets
 magma.app.io.target.PathTargets --|> magma.app.io.target.Targets
+magma.api.option.None --> java.util.function.Consumer
+magma.api.option.None --> java.util.function.Supplier
+class magma.api.option.None
+magma.api.option.None --|> magma.api.option.Option
 class magma.api.result.Ok
 magma.api.result.Ok --|> magma.api.result.Result
 class magma.api.Tuple
-magma.api.list.JVMList --> java.util.ArrayList
-magma.api.list.JVMList --> java.util.List
-class magma.api.list.JVMList
-magma.api.list.JVMList --|> magma.api.list.ListLike
+jvm.list.JVMLists --> magma.api.list.ListLike
+jvm.list.JVMLists --> java.util.Arrays
+class jvm.list.JVMLists
 magma.app.compile.divide.DivideState --> magma.api.list.ListLike
 interface magma.app.compile.divide.DivideState
 interface magma.api.list.ListLike

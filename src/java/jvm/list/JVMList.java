@@ -1,4 +1,6 @@
-package magma.api.list;
+package jvm.list;
+
+import magma.api.list.ListLike;
 
 import java.util.ArrayList;
 import java.util.List;

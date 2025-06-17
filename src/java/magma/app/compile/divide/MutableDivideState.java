@@ -1,7 +1,7 @@
 package magma.app.compile.divide;
 
+import jvm.list.JVMLists;
 import magma.api.list.ListLike;
-import magma.api.list.Lists;
 
 public class MutableDivideState implements DivideState {
     public ListLike<String> segments;
@@ -15,7 +15,7 @@ public class MutableDivideState implements DivideState {
     }
 
     public MutableDivideState() {
-        this(Lists.empty(), new StringBuilder(), 0);
+        this(JVMLists.empty(), new StringBuilder(), 0);
     }
 
     @Override

@@ -1,8 +1,8 @@
 package magma.app.compile;
 
+import jvm.list.JVMLists;
 import magma.api.Tuple;
 import magma.api.list.ListLike;
-import magma.api.list.Lists;
 import magma.api.option.None;
 import magma.api.option.Option;
 import magma.api.option.Some;
@@ -82,10 +82,10 @@ public class CompilerImpl implements Compiler {
 
             final var actual = state.find(trimmed)
                     .orElse(state.resolveSibling(trimmed));
-            return generate(type, state, Lists.of(actual.join()));
+            return generate(type, state, JVMLists.of(actual.join()));
         }
         else
-            return generate(type, state, Lists.empty());
+            return generate(type, state, JVMLists.empty());
     }
 
     private static Option<Tuple<CompileState, String>> generate(String type, CompileState state, ListLike<String> superTypes) {
