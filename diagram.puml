@@ -13,7 +13,6 @@ magma.app.compile.rule.SuffixRule --> magma.api.result.Result
 magma.app.compile.rule.SuffixRule --> magma.app.compile.context.StringContext
 magma.app.compile.rule.SuffixRule --> magma.app.compile.error.CompileError
 magma.app.compile.rule.SuffixRule --> magma.app.compile.error.FormattedError
-magma.app.compile.rule.SuffixRule --> magma.app.compile.node.Node
 class magma.app.io.Sources
 magma.app.io.Sources --> magma.api.result.Result
 magma.app.io.Sources --> magma.app.error.ApplicationError
@@ -83,7 +82,7 @@ magma.app.compile.rule.or.OrRule --> magma.app.compile.context.Context
 magma.app.compile.rule.or.OrRule --> magma.app.compile.context.NodeContext
 magma.app.compile.rule.or.OrRule --> magma.app.compile.context.StringContext
 magma.app.compile.rule.or.OrRule --> magma.app.compile.error.FormattedError
-magma.app.compile.rule.or.OrRule --> magma.app.compile.node.Node
+magma.app.compile.rule.or.OrRule --> magma.app.compile.node.DisplayNode
 magma.app.compile.rule.or.OrRule --> magma.app.compile.rule.Rule
 magma.app.compile.rule.or.OrRule --> java.util.List
 magma.app.compile.rule.or.OrRule --> java.util.function.Function

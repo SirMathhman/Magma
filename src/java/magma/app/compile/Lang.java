@@ -15,8 +15,7 @@ import java.util.List;
 
 public class Lang {
     public static Rule<Node> createJavaRootRule() {
-        return new DivideRule("children",
-                new OrRule(List.of(createNamespacedRule("package"),
+        return new DivideRule("children", new OrRule<Node>(List.of(createNamespacedRule("package"),
                         new TypeRule<Node>("import", createNamespacedRule("import")),
                         createStructureRule("class"),
                         createStructureRule("interface"),
@@ -28,16 +27,18 @@ public class Lang {
     }
 
     public static Rule<Node> createPlantRootRule() {
-        return new DivideRule("children", new OrRule(List.of(createDependencyRule())));
+        return new DivideRule("children", new OrRule<Node>(List.of(createDependencyRule())));
     }
 
     static Rule<Node> createNamespacedRule(String type) {
         return new StripRule<Node>(new PrefixRule<Node>(type + " ",
-                new SuffixRule(new StringRule("destination"), ";")));
+                new SuffixRule<Node>(new StringRule("destination"), ";")));
     }
 
     static Rule<Node> createDependencyRule() {
-        return new SuffixRule(new InfixRule<Node>(new StringRule("source"), " --> ", new StringRule("destination")),
+        return new SuffixRule<Node>(new InfixRule<Node>(new StringRule("source"),
+                " --> ",
+                new StringRule("destination")),
                 "\n");
     }
 }

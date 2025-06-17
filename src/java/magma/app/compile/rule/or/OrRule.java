@@ -5,13 +5,13 @@ import magma.app.compile.context.Context;
 import magma.app.compile.context.NodeContext;
 import magma.app.compile.context.StringContext;
 import magma.app.compile.error.FormattedError;
-import magma.app.compile.node.Node;
+import magma.app.compile.node.DisplayNode;
 import magma.app.compile.rule.Rule;
 
 import java.util.List;
 import java.util.function.Function;
 
-public record OrRule(List<Rule<Node>> rules) implements Rule<Node> {
+public record OrRule<Node extends DisplayNode>(List<Rule<Node>> rules) implements Rule<Node> {
     @Override
     public Result<Node, FormattedError> lex(String input) {
         return this.or(rule1 -> rule1.lex(input), new StringContext(input));
