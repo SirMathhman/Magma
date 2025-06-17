@@ -11,20 +11,20 @@ import java.util.List;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
-public record NodeOk(Node node) implements NodeResult<Node> {
+public record NodeOk(Node node) implements NodeResult<Node, FormattedError> {
     @Override
-    public NodeResult<Node> mergeResult(Supplier<NodeResult<Node>> other) {
+    public NodeResult<Node, FormattedError> mergeResult(Supplier<NodeResult<Node, FormattedError>> other) {
         return other.get()
                 .mergeNode(this.node);
     }
 
     @Override
-    public NodeResult<Node> mergeNode(Node value1) {
+    public NodeResult<Node, FormattedError> mergeNode(Node value1) {
         return new NodeOk(this.node.merge(value1));
     }
 
     @Override
-    public NodeResult<Node> retype(String type) {
+    public NodeResult<Node, FormattedError> retype(String type) {
         return new NodeOk(this.node.retype(type));
     }
 
@@ -34,7 +34,7 @@ public record NodeOk(Node node) implements NodeResult<Node> {
     }
 
     @Override
-    public NodeResult<Node> transform(Function<Node, Node> transformer) {
+    public NodeResult<Node, FormattedError> transform(Function<Node, Node> transformer) {
         return new NodeOk(transformer.apply(this.node()));
     }
 

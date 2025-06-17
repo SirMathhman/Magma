@@ -1,5 +1,6 @@
 package magma.app.compile;
 
+import magma.app.compile.error.FormattedError;
 import magma.app.compile.error.ResultFactoryImpl;
 import magma.app.compile.error.node.NodeResult;
 import magma.app.compile.error.string.StringResult;
@@ -18,7 +19,7 @@ import magma.app.compile.rule.or.OrRule;
 import java.util.List;
 
 public class Lang {
-    public static Rule<Node, NodeResult<Node>, StringResult> createJavaRootRule() {
+    public static Rule<Node, NodeResult<Node, FormattedError>, StringResult> createJavaRootRule() {
         return new DivideRule("children",
                 new OrRule<>(List.of(createNamespacedRule("package"),
                         new TypeRule<>("import", createNamespacedRule("import"), ResultFactoryImpl.create()),
@@ -27,20 +28,20 @@ public class Lang {
                 new MapNodeFactory());
     }
 
-    static Rule<Node, NodeResult<Node>, StringResult> createStructureRule(String type) {
+    static Rule<Node, NodeResult<Node, FormattedError>, StringResult> createStructureRule(String type) {
         return new InfixRule<>(new StringRule<>("before-infix", ResultFactoryImpl.create(), new MapNodeFactory()),
                 type + " ",
                 new StringRule<>("after-infix", ResultFactoryImpl.create(), new MapNodeFactory()),
                 ResultFactoryImpl.create());
     }
 
-    public static Rule<Node, NodeResult<Node>, StringResult> createPlantRootRule() {
+    public static Rule<Node, NodeResult<Node, FormattedError>, StringResult> createPlantRootRule() {
         return new DivideRule("children",
                 new OrRule<>(List.of(createDependencyRule()), ResultFactoryImpl.create()),
                 new MapNodeFactory());
     }
 
-    static Rule<Node, NodeResult<Node>, StringResult> createNamespacedRule(String type) {
+    static Rule<Node, NodeResult<Node, FormattedError>, StringResult> createNamespacedRule(String type) {
         return new StripRule<>(new PrefixRule<>(type + " ",
                 new SuffixRule<>(new StringRule<>("destination", ResultFactoryImpl.create(), new MapNodeFactory()),
                         ";",
@@ -48,7 +49,7 @@ public class Lang {
                 ResultFactoryImpl.create()));
     }
 
-    static Rule<Node, NodeResult<Node>, StringResult> createDependencyRule() {
+    static Rule<Node, NodeResult<Node, FormattedError>, StringResult> createDependencyRule() {
         return new SuffixRule<>(new InfixRule<>(new StringRule<>("source",
                 ResultFactoryImpl.create(),
                 new MapNodeFactory()),

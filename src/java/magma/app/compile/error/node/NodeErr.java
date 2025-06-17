@@ -12,19 +12,19 @@ import java.util.List;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
-public record NodeErr(FormattedError error) implements NodeResult<Node> {
+public record NodeErr(FormattedError error) implements NodeResult<Node, FormattedError> {
     @Override
-    public NodeResult<Node> mergeResult(Supplier<NodeResult<Node>> other) {
+    public NodeResult<Node, FormattedError> mergeResult(Supplier<NodeResult<Node, FormattedError>> other) {
         return new NodeErr(this.error);
     }
 
     @Override
-    public NodeResult<Node> mergeNode(Node value1) {
+    public NodeResult<Node, FormattedError> mergeNode(Node value1) {
         return new NodeErr(this.error);
     }
 
     @Override
-    public NodeResult<Node> retype(String type) {
+    public NodeResult<Node, FormattedError> retype(String type) {
         return new NodeErr(this.error);
     }
 
@@ -34,7 +34,7 @@ public record NodeErr(FormattedError error) implements NodeResult<Node> {
     }
 
     @Override
-    public NodeResult<Node> transform(Function<Node, Node> transformer) {
+    public NodeResult<Node, FormattedError> transform(Function<Node, Node> transformer) {
         return new NodeErr(this.error);
     }
 

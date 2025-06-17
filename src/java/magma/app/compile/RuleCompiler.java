@@ -19,10 +19,10 @@ import java.util.ArrayList;
 import java.util.Map;
 
 public class RuleCompiler implements Compiler {
-    private final Rule<Node, NodeResult<Node>, StringResult> targetRule;
-    private final Rule<Node, NodeResult<Node>, StringResult> sourceRule;
+    private final Rule<Node, NodeResult<Node, FormattedError>, StringResult> targetRule;
+    private final Rule<Node, NodeResult<Node, FormattedError>, StringResult> sourceRule;
 
-    public RuleCompiler(Rule<Node, NodeResult<Node>, StringResult> sourceRule, Rule<Node, NodeResult<Node>, StringResult> targetRule) {
+    public RuleCompiler(Rule<Node, NodeResult<Node, FormattedError>, StringResult> sourceRule, Rule<Node, NodeResult<Node, FormattedError>, StringResult> targetRule) {
         this.sourceRule = sourceRule;
         this.targetRule = targetRule;
     }
@@ -57,8 +57,9 @@ public class RuleCompiler implements Compiler {
     }
 
     StringResult compileRoot(String input, String source) {
-        NodeResult<Node> nodeFormattedErrorResult = this.sourceRule.lex(input);
-        NodeResult<Node> nodeFormattedErrorResult1 = nodeFormattedErrorResult.transform(value1 -> transform(source,
+        NodeResult<Node, FormattedError> nodeFormattedErrorResult = this.sourceRule.lex(input);
+        NodeResult<Node, FormattedError> nodeFormattedErrorResult1 = nodeFormattedErrorResult.transform(value1 -> transform(
+                source,
                 value1));
         return nodeFormattedErrorResult1.generate(this.targetRule::generate);
     }

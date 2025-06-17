@@ -12,16 +12,16 @@ import magma.app.compile.node.Node;
 
 import java.util.List;
 
-public class ResultFactoryImpl implements ResultFactory<Node, FormattedError, NodeResult<Node>, StringResult> {
+public class ResultFactoryImpl implements ResultFactory<Node, FormattedError, NodeResult<Node, FormattedError>, StringResult> {
     private ResultFactoryImpl() {
     }
 
-    public static ResultFactory<Node, FormattedError, NodeResult<Node>, StringResult> create() {
+    public static ResultFactory<Node, FormattedError, NodeResult<Node, FormattedError>, StringResult> create() {
         return new ResultFactoryImpl();
     }
 
     @Override
-    public NodeResult<Node> fromStringErr(String message, String input) {
+    public NodeResult<Node, FormattedError> fromStringErr(String message, String input) {
         return new NodeErr(new CompileError(message, new StringContext(input)));
     }
 
@@ -31,7 +31,7 @@ public class ResultFactoryImpl implements ResultFactory<Node, FormattedError, No
     }
 
     @Override
-    public NodeResult<Node> fromNode(Node value) {
+    public NodeResult<Node, FormattedError> fromNode(Node value) {
         return new NodeOk(value);
     }
 
@@ -41,7 +41,7 @@ public class ResultFactoryImpl implements ResultFactory<Node, FormattedError, No
     }
 
     @Override
-    public NodeResult<Node> fromStringErrWithChildren(String message, String input, List<FormattedError> errors) {
+    public NodeResult<Node, FormattedError> fromStringErrWithChildren(String message, String input, List<FormattedError> errors) {
         return new NodeErr(new CompileError(message, new StringContext(input), errors));
     }
 

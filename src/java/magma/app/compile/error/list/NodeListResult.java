@@ -1,10 +1,11 @@
 package magma.app.compile.error.list;
 
-import magma.app.compile.error.node.NodeResult;
-import magma.app.compile.node.Node;
+import magma.app.compile.rule.NodeFactory;
 
 import java.util.function.Supplier;
 
-public sealed interface NodeListResult permits NodeListErr, NodeListOk {
-    NodeListResult add(Supplier<NodeResult<Node>> action);
+public sealed interface NodeListResult<Node, NodeResult> permits NodeListErr, NodeListOk {
+    NodeResult toNode(NodeFactory<Node> factory, String key);
+
+    NodeListResult<Node, NodeResult> add(Supplier<NodeResult> action);
 }
