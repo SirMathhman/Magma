@@ -10,7 +10,7 @@ magma.app.compile.rule.divide.DivideState --> java.util.List
 class magma.app.compile.rule.SuffixRule
 magma.app.compile.rule.SuffixRule --> magma.api.result.Result
 magma.app.compile.rule.SuffixRule --> magma.app.compile.error.FormattedError
-magma.app.compile.rule.SuffixRule --> magma.app.compile.error.ResultFactoryImpl
+magma.app.compile.rule.SuffixRule --> magma.app.compile.error.ResultFactory
 class magma.app.io.Sources
 magma.app.io.Sources --> magma.api.result.Result
 magma.app.io.Sources --> magma.app.error.ApplicationError
@@ -32,12 +32,11 @@ magma.app.compile.node.Node --> java.util.stream.Stream
 class magma.app.compile.rule.TypeRule
 magma.app.compile.rule.TypeRule --> magma.api.result.Result
 magma.app.compile.rule.TypeRule --> magma.app.compile.error.FormattedError
-magma.app.compile.rule.TypeRule --> magma.app.compile.error.ResultFactoryImpl
+magma.app.compile.rule.TypeRule --> magma.app.compile.error.ResultFactory
 magma.app.compile.rule.TypeRule --> magma.app.compile.node.DisplayNode
 magma.app.compile.rule.TypeRule --> magma.app.compile.node.TypedNode
 class magma.app.compile.error.ResultFactory
 magma.app.compile.error.ResultFactory --> magma.api.result.Result
-magma.app.compile.error.ResultFactory --> magma.app.compile.node.DisplayNode
 class magma.app.compile.Compiler
 magma.app.compile.Compiler --> magma.api.result.Result
 magma.app.compile.Compiler --> magma.app.error.ApplicationError
@@ -72,7 +71,7 @@ magma.app.compile.error.FormattedError --> magma.api.Error
 class magma.app.compile.rule.or.OrRule
 magma.app.compile.rule.or.OrRule --> magma.api.result.Result
 magma.app.compile.rule.or.OrRule --> magma.app.compile.error.FormattedError
-magma.app.compile.rule.or.OrRule --> magma.app.compile.error.ResultFactoryImpl
+magma.app.compile.rule.or.OrRule --> magma.app.compile.error.ResultFactory
 magma.app.compile.rule.or.OrRule --> magma.app.compile.node.DisplayNode
 magma.app.compile.rule.or.OrRule --> magma.app.compile.rule.Rule
 magma.app.compile.rule.or.OrRule --> java.util.List
@@ -89,6 +88,7 @@ magma.api.result.Ok --> java.util.function.Function
 class magma.app.compile.Lang
 magma.app.compile.Lang --> magma.api.result.Result
 magma.app.compile.Lang --> magma.app.compile.error.FormattedError
+magma.app.compile.Lang --> magma.app.compile.error.ResultFactoryImpl
 magma.app.compile.Lang --> magma.app.compile.node.Node
 magma.app.compile.Lang --> magma.app.compile.rule.InfixRule
 magma.app.compile.Lang --> magma.app.compile.rule.PrefixRule
@@ -119,8 +119,9 @@ magma.app.error.ThrowableError --> java.io.StringWriter
 class magma.app.compile.rule.InfixRule
 magma.app.compile.rule.InfixRule --> magma.api.result.Result
 magma.app.compile.rule.InfixRule --> magma.app.compile.error.FormattedError
-magma.app.compile.rule.InfixRule --> magma.app.compile.error.ResultFactoryImpl
+magma.app.compile.rule.InfixRule --> magma.app.compile.error.ResultFactory
 magma.app.compile.rule.InfixRule --> magma.app.compile.node.MergingNode
+magma.app.compile.rule.InfixRule --> java.util.Objects
 class magma.app.compile.node.MergingNode
 class magma.app.compile.rule.StringRule
 magma.app.compile.rule.StringRule --> magma.api.result.Ok
@@ -142,7 +143,8 @@ magma.app.compile.rule.divide.DivideRule --> java.util.List
 class magma.app.compile.rule.PrefixRule
 magma.app.compile.rule.PrefixRule --> magma.api.result.Result
 magma.app.compile.rule.PrefixRule --> magma.app.compile.error.FormattedError
-magma.app.compile.rule.PrefixRule --> magma.app.compile.error.ResultFactoryImpl
+magma.app.compile.rule.PrefixRule --> magma.app.compile.error.ResultFactory
+magma.app.compile.rule.PrefixRule --> java.util.Objects
 class magma.app.io.PathSource
 magma.app.io.PathSource --> java.nio.file.Path
 magma.app.io.PathSource --> java.util.ArrayList
@@ -167,7 +169,7 @@ magma.app.compile.error.ResultFactoryImpl --> magma.api.result.Ok
 magma.app.compile.error.ResultFactoryImpl --> magma.api.result.Result
 magma.app.compile.error.ResultFactoryImpl --> magma.app.compile.context.NodeContext
 magma.app.compile.error.ResultFactoryImpl --> magma.app.compile.context.StringContext
-magma.app.compile.error.ResultFactoryImpl --> magma.app.compile.node.DisplayNode
+magma.app.compile.error.ResultFactoryImpl --> magma.app.compile.node.Node
 class magma.api.Error
 class magma.api.result.Err
 magma.api.result.Err --> java.util.function.Function

@@ -20,10 +20,10 @@ public class Lang {
     public static Rule<Node, Result<Node, FormattedError>, Result<String, FormattedError>> createJavaRootRule() {
         return new DivideRule("children",
                 new OrRule<>(List.of(createNamespacedRule("package"),
-                        new TypeRule<>("import", createNamespacedRule("import")),
+                        new TypeRule<>("import", createNamespacedRule("import"), ResultFactoryImpl.create()),
                         createStructureRule("class"),
                         createStructureRule("interface"),
-                        createStructureRule("record"))));
+                        createStructureRule("record")), ResultFactoryImpl.create()));
     }
 
     static Rule<Node, Result<Node, FormattedError>, Result<String, FormattedError>> createStructureRule(String type) {
@@ -34,7 +34,7 @@ public class Lang {
     }
 
     public static Rule<Node, Result<Node, FormattedError>, Result<String, FormattedError>> createPlantRootRule() {
-        return new DivideRule("children", new OrRule<>(List.of(createDependencyRule())));
+        return new DivideRule("children", new OrRule<>(List.of(createDependencyRule()), ResultFactoryImpl.create()));
     }
 
     static Rule<Node, Result<Node, FormattedError>, Result<String, FormattedError>> createNamespacedRule(String type) {
