@@ -91,7 +91,6 @@ class magma.app.compile.node.DisplayNode
 class magma.app.compile.rule.or.OrState
 magma.app.compile.rule.or.OrState --> magma.api.result.Result
 magma.app.compile.rule.or.OrState --> magma.app.compile.context.Context
-magma.app.compile.rule.or.OrState --> magma.app.compile.error.FormattedError
 class magma.api.result.Ok
 magma.api.result.Ok --> java.util.function.Function
 class magma.app.compile.Lang

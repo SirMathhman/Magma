@@ -2,12 +2,11 @@ package magma.app.compile.rule.or;
 
 import magma.api.result.Result;
 import magma.app.compile.context.Context;
-import magma.app.compile.error.FormattedError;
 
-public interface OrState<T> {
-    OrState<T> withValue(T node);
+public interface OrState<Value, Error> {
+    OrState<Value, Error> withValue(Value node);
 
-    OrState<T> withError(FormattedError error);
+    OrState<Value, Error> withError(Error error);
 
-    Result<T, FormattedError> toResult(Context context);
+    Result<Value, Error> toResult(Context context);
 }
