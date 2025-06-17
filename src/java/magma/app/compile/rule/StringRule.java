@@ -1,14 +1,15 @@
 package magma.app.compile.rule;
 
+import magma.app.compile.error.FormattedError;
 import magma.app.compile.error.ResultFactory;
 import magma.app.compile.node.NodeWithStrings;
 
 public final class StringRule<Node extends NodeWithStrings<Node>, NodeResult, StringResult> implements Rule<Node, NodeResult, StringResult> {
     private final String key;
-    private final ResultFactory<Node, NodeResult, StringResult> resultFactory;
+    private final ResultFactory<Node, FormattedError, NodeResult, StringResult> resultFactory;
     private final NodeFactory<Node> nodeFactory;
 
-    public StringRule(String key, ResultFactory<Node, NodeResult, StringResult> resultFactory, NodeFactory<Node> nodeFactory) {
+    public StringRule(String key, ResultFactory<Node, FormattedError, NodeResult, StringResult> resultFactory, NodeFactory<Node> nodeFactory) {
         this.key = key;
         this.resultFactory = resultFactory;
         this.nodeFactory = nodeFactory;

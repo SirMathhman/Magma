@@ -1,7 +1,7 @@
 package magma.app.compile.error;
 
-import magma.app.compile.rule.or.OrState;
+import magma.app.compile.rule.or.Accumulator;
 
-public interface AttachableToStateResult<Value> {
-    OrState<Value, FormattedError> attachToState(OrState<Value, FormattedError> state);
+public interface AttachableToStateResult<Value, Error> {
+    Accumulator<Value, Error> attachToState(Accumulator<Value, Error> state);
 }

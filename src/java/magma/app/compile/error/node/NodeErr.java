@@ -6,7 +6,7 @@ import magma.app.compile.error.FormattedError;
 import magma.app.compile.error.string.StringErr;
 import magma.app.compile.error.string.StringResult;
 import magma.app.compile.node.Node;
-import magma.app.compile.rule.or.OrState;
+import magma.app.compile.rule.or.Accumulator;
 
 import java.util.List;
 import java.util.function.Function;
@@ -29,7 +29,7 @@ public record NodeErr(FormattedError error) implements NodeResult<Node> {
     }
 
     @Override
-    public OrState<Node, FormattedError> attachToState(OrState<Node, FormattedError> state) {
+    public Accumulator<Node, FormattedError> attachToState(Accumulator<Node, FormattedError> state) {
         return state.withError(this.error);
     }
 

@@ -1,14 +1,15 @@
 package magma.app.compile.rule;
 
 import magma.app.compile.error.AppendableStringResult;
+import magma.app.compile.error.FormattedError;
 import magma.app.compile.error.ResultFactory;
 
 public final class SuffixRule<Node, NodeResult, StringResult extends AppendableStringResult<StringResult>> implements Rule<Node, NodeResult, StringResult> {
     private final Rule<Node, NodeResult, StringResult> rule;
     private final String suffix;
-    private final ResultFactory<Node, NodeResult, StringResult> factory;
+    private final ResultFactory<Node, FormattedError, NodeResult, StringResult> factory;
 
-    public SuffixRule(Rule<Node, NodeResult, StringResult> rule, String suffix, ResultFactory<Node, NodeResult, StringResult> factory) {
+    public SuffixRule(Rule<Node, NodeResult, StringResult> rule, String suffix, ResultFactory<Node, FormattedError, NodeResult, StringResult> factory) {
         this.rule = rule;
         this.suffix = suffix;
         this.factory = factory;

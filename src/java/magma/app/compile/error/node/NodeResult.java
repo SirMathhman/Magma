@@ -10,7 +10,7 @@ import magma.app.compile.error.string.StringResult;
 import java.util.List;
 import java.util.function.Function;
 
-public interface NodeResult<Node> extends MergeNodeResult<Node, NodeResult<Node>>, TypeNodeResult<NodeResult<Node>>, AttachableToStateResult<Node> {
+public interface NodeResult<Node> extends MergeNodeResult<Node, NodeResult<Node>>, TypeNodeResult<NodeResult<Node>>, AttachableToStateResult<Node, FormattedError> {
     Result<List<Node>, FormattedError> appendTo(List<Node> list);
 
     StringResult generate(Function<Node, StringResult> mapper);

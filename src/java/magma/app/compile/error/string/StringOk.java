@@ -1,7 +1,7 @@
 package magma.app.compile.error.string;
 
 import magma.app.compile.error.FormattedError;
-import magma.app.compile.rule.or.OrState;
+import magma.app.compile.rule.or.Accumulator;
 
 import java.util.function.Supplier;
 
@@ -27,7 +27,7 @@ public record StringOk(String value) implements StringResult {
     }
 
     @Override
-    public OrState<String, FormattedError> attachToState(OrState<String, FormattedError> state) {
+    public Accumulator<String, FormattedError> attachToState(Accumulator<String, FormattedError> state) {
         return state.withValue(this.value);
     }
 }
