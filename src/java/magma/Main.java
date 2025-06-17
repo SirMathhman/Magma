@@ -23,7 +23,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -53,9 +52,9 @@ public class Main {
     private static Result<String, ApplicationError> compile(Path sourceDirectory, Map<Path, String> inputs) {
         Result<StringBuilder, ApplicationError> maybeCurrentOutput = new Ok<>(new StringBuilder());
         for (var entry : inputs.entrySet())
-            maybeCurrentOutput = maybeCurrentOutput.flatMapValue(currentOutput -> compileSource(sourceDirectory,
-                    entry.getKey(),
-                    entry.getValue()).mapValue(currentOutput::append));
+            maybeCurrentOutput = maybeCurrentOutput.flatMapValue(currentOutput -> compileSource(new Source(
+                    sourceDirectory,
+                    entry.getKey()), entry.getValue()).mapValue(currentOutput::append));
 
         return maybeCurrentOutput.mapValue(StringBuilder::toString);
     }
@@ -96,20 +95,9 @@ public class Main {
         }
     }
 
-    private static Result<String, ApplicationError> compileSource(Path sourceDirectory, Path source, String input) {
-        final var relativeParent = sourceDirectory.relativize(source)
-                .getParent();
-
-        final Collection<String> namespace = new ArrayList<>();
-        for (var i = 0; i < relativeParent.getNameCount(); i++)
-            namespace.add(relativeParent.getName(i)
-                    .toString());
-
-        final var fileName = source.getFileName()
-                .toString();
-
-        final var separator = fileName.lastIndexOf(".");
-        final var name = fileName.substring(0, separator);
+    private static Result<String, ApplicationError> compileSource(Source source, String input) {
+        final var namespace = source.computeNamespace();
+        final var name = source.computeName();
 
         final var joined = String.join(".", namespace);
         final var joinedName = joined + "." + name;
