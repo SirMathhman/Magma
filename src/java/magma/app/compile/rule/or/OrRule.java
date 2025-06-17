@@ -11,13 +11,13 @@ import magma.app.compile.rule.Rule;
 import java.util.List;
 import java.util.function.Function;
 
-public record OrRule(List<Rule> rules) implements Rule {
+public record OrRule(List<Rule<Node>> rules) implements Rule<Node> {
     @Override
     public Result<Node, FormattedError> lex(String input) {
         return this.or(rule1 -> rule1.lex(input), new StringContext(input));
     }
 
-    private <Value> Result<Value, FormattedError> or(Function<Rule, Result<Value, FormattedError>> mapper, Context context) {
+    private <Value> Result<Value, FormattedError> or(Function<Rule<Node>, Result<Value, FormattedError>> mapper, Context context) {
         return this.rules.stream()
                 .<OrState<Value>>reduce(new MutableOrState<>(),
                         (state, rule) -> mapper.apply(rule)

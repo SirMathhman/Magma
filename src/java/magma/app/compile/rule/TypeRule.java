@@ -7,7 +7,7 @@ import magma.app.compile.error.CompileError;
 import magma.app.compile.error.FormattedError;
 import magma.app.compile.node.Node;
 
-public record TypeRule(String type, Rule rule) implements Rule {
+public record TypeRule(String type, Rule<Node> rule) implements Rule<Node> {
     @Override
     public Result<Node, FormattedError> lex(String input) {
         return this.rule.lex(input)

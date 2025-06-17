@@ -13,10 +13,10 @@ import java.util.ArrayList;
 import java.util.Map;
 
 public class RuleCompiler implements Compiler {
-    private final Rule targetRule;
-    private final Rule sourceRule;
+    private final Rule<Node> targetRule;
+    private final Rule<Node> sourceRule;
 
-    public RuleCompiler(Rule sourceRule, Rule targetRule) {
+    public RuleCompiler(Rule<Node> sourceRule, Rule<Node> targetRule) {
         this.sourceRule = sourceRule;
         this.targetRule = targetRule;
     }

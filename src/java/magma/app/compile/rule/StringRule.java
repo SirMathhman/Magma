@@ -9,7 +9,7 @@ import magma.app.compile.error.FormattedError;
 import magma.app.compile.node.MapNode;
 import magma.app.compile.node.Node;
 
-public record StringRule(String key) implements Rule {
+public record StringRule(String key) implements Rule<Node> {
     @Override
     public Result<Node, FormattedError> lex(String input) {
         return new Ok<>(new MapNode().withString(this.key, input));

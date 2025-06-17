@@ -1,5 +1,6 @@
 package magma.app.compile;
 
+import magma.app.compile.node.Node;
 import magma.app.compile.rule.InfixRule;
 import magma.app.compile.rule.PrefixRule;
 import magma.app.compile.rule.Rule;
@@ -13,7 +14,7 @@ import magma.app.compile.rule.or.OrRule;
 import java.util.List;
 
 public class Lang {
-    public static Rule createJavaRootRule() {
+    public static Rule<Node> createJavaRootRule() {
         return new DivideRule("children",
                 new OrRule(List.of(createNamespacedRule("package"),
                         new TypeRule("import", createNamespacedRule("import")),
@@ -22,19 +23,20 @@ public class Lang {
                         createStructureRule("record"))));
     }
 
-    static Rule createStructureRule(String type) {
-        return new InfixRule(new StringRule("before-infix"), type + " ", new StringRule("after-infix"));
+    static Rule<Node> createStructureRule(String type) {
+        return new InfixRule<Node>(new StringRule("before-infix"), type + " ", new StringRule("after-infix"));
     }
 
-    public static Rule createPlantRootRule() {
+    public static Rule<Node> createPlantRootRule() {
         return new DivideRule("children", new OrRule(List.of(createDependencyRule())));
     }
 
-    static Rule createNamespacedRule(String type) {
+    static Rule<Node> createNamespacedRule(String type) {
         return new StripRule(new PrefixRule(type + " ", new SuffixRule(new StringRule("destination"), ";")));
     }
 
-    static Rule createDependencyRule() {
-        return new SuffixRule(new InfixRule(new StringRule("source"), " --> ", new StringRule("destination")), "\n");
+    static Rule<Node> createDependencyRule() {
+        return new SuffixRule(new InfixRule<Node>(new StringRule("source"), " --> ", new StringRule("destination")),
+                "\n");
     }
 }
