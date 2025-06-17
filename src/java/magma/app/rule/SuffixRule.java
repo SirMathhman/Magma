@@ -1,6 +1,7 @@
 package magma.app.rule;
 
 import magma.CompileError;
+import magma.StringContext;
 import magma.api.Err;
 import magma.api.Result;
 import magma.app.node.Node;
@@ -9,7 +10,7 @@ public record SuffixRule(Rule rule, String suffix) implements Rule {
     @Override
     public Result<Node, CompileError> lex(String input) {
         if (!input.endsWith(this.suffix))
-            return new Err<>(new CompileError("Suffix '" + this.suffix + "' not present"));
+            return new Err<>(new CompileError("Suffix '" + this.suffix + "' not present", new StringContext(input)));
 
         final var withoutEnd = input.substring(0, input.length() - this.suffix.length());
         return this.rule()

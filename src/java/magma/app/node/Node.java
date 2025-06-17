@@ -17,4 +17,6 @@ public interface Node {
     Node withNodeList(String key, List<Node> values);
 
     Optional<List<Node>> findNodeList(String key);
+
+    String display();
 }

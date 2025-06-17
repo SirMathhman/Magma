@@ -58,4 +58,9 @@ public final class MapNode implements Node {
         else
             return Optional.empty();
     }
+
+    @Override
+    public String display() {
+        return this.toString();
+    }
 }
