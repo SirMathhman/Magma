@@ -7,10 +7,12 @@ magma.app.divide.MutableDivideState --> java.util.ArrayList
 magma.app.divide.MutableDivideState --> java.util.List
 class magma.app.node.MapNode
 magma.app.node.MapNode --> java.util.HashMap
+magma.app.node.MapNode --> java.util.List
 magma.app.node.MapNode --> java.util.Map
 magma.app.node.MapNode --> java.util.Optional
 magma.app.node.MapNode --> java.util.stream.Stream
 class magma.app.node.Node
+magma.app.node.Node --> java.util.List
 magma.app.node.Node --> java.util.Map
 magma.app.node.Node --> java.util.Optional
 magma.app.node.Node --> java.util.stream.Stream
@@ -36,6 +38,7 @@ magma.app.rule.SuffixRule --> java.util.Optional
 class magma.Main
 magma.Main --> magma.app.divide.DivideState
 magma.Main --> magma.app.divide.MutableDivideState
+magma.Main --> magma.app.node.MapNode
 magma.Main --> magma.app.node.Node
 magma.Main --> magma.app.rule.InfixRule
 magma.Main --> magma.app.rule.PrefixRule

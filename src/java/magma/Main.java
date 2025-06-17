@@ -2,6 +2,7 @@ package magma;
 
 import magma.app.divide.DivideState;
 import magma.app.divide.MutableDivideState;
+import magma.app.node.MapNode;
 import magma.app.node.Node;
 import magma.app.rule.InfixRule;
 import magma.app.rule.PrefixRule;
@@ -66,25 +67,36 @@ public class Main {
 
     private static String compileRoot(CharSequence input, String source) {
         final var children = lex(input);
-        final var transformed = children.stream()
+        final var children1 = transform(source, children);
+        return generate(children1);
+    }
+
+    private static Node transform(String source, Node children) {
+        final var transformed = children.findNodeList("children")
+                .orElse(new ArrayList<>())
+                .stream()
                 .map(node -> node.withString("source", source))
                 .toList();
 
-        return generate(transformed);
+        return new MapNode().withNodeList("children", transformed);
     }
 
-    private static String generate(Collection<Node> children) {
-        return children.stream()
+    private static String generate(Node node) {
+        return node.findNodeList("children")
+                .orElse(new ArrayList<>())
+                .stream()
                 .map(createDependencyRule()::generate)
                 .flatMap(Optional::stream)
                 .collect(Collectors.joining());
     }
 
-    private static List<Node> lex(CharSequence input) {
-        return divide(input).stream()
+    private static Node lex(CharSequence input) {
+        final var children = divide(input).stream()
                 .map(createImportRule()::lex)
                 .flatMap(Optional::stream)
                 .toList();
+
+        return new MapNode().withNodeList("children", children);
     }
 
     private static List<String> divide(CharSequence input) {
