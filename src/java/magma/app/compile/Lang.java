@@ -20,10 +20,8 @@ import java.util.List;
 public class Lang {
     public static Rule<Node, NodeResult<Node>, StringResult> createJavaRootRule() {
         return new DivideRule("children",
-                new OrRule<Node>(List.of(createNamespacedRule("package"),
-                        new TypeRule<Node, NodeResult<Node>, StringResult>("import",
-                                createNamespacedRule("import"),
-                                ResultFactoryImpl.create()),
+                new OrRule<>(List.of(createNamespacedRule("package"),
+                        new TypeRule<>("import", createNamespacedRule("import"), ResultFactoryImpl.create()),
                         createStructureRule("class"),
                         createStructureRule("interface"),
                         createStructureRule("record")), ResultFactoryImpl.create()));
@@ -31,13 +29,13 @@ public class Lang {
 
     static Rule<Node, NodeResult<Node>, StringResult> createStructureRule(String type) {
         return new InfixRule<>(new StringRule<>("before-infix", ResultFactoryImpl.create(), new MapNodeFactory()),
-                type + " ", new StringRule<>("after-infix", ResultFactoryImpl.create(), new MapNodeFactory()),
+                type + " ",
+                new StringRule<>("after-infix", ResultFactoryImpl.create(), new MapNodeFactory()),
                 ResultFactoryImpl.create());
     }
 
     public static Rule<Node, NodeResult<Node>, StringResult> createPlantRootRule() {
-        return new DivideRule("children",
-                new OrRule<Node>(List.of(createDependencyRule()), ResultFactoryImpl.create()));
+        return new DivideRule("children", new OrRule<>(List.of(createDependencyRule()), ResultFactoryImpl.create()));
     }
 
     static Rule<Node, NodeResult<Node>, StringResult> createNamespacedRule(String type) {
@@ -52,7 +50,8 @@ public class Lang {
         return new SuffixRule<>(new InfixRule<>(new StringRule<>("source",
                 ResultFactoryImpl.create(),
                 new MapNodeFactory()),
-                " --> ", new StringRule<>("destination", ResultFactoryImpl.create(), new MapNodeFactory()),
+                " --> ",
+                new StringRule<>("destination", ResultFactoryImpl.create(), new MapNodeFactory()),
                 ResultFactoryImpl.create()), "\n", ResultFactoryImpl.create());
     }
 }

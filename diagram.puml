@@ -8,7 +8,6 @@ magma.app.compile.rule.divide.DivideState --> java.util.List
 class magma.app.compile.context.NodeContext
 magma.app.compile.context.NodeContext --> magma.app.compile.node.DisplayNode
 class magma.app.compile.error.StringResult
-magma.app.compile.error.StringResult --> magma.app.compile.rule.or.OrState
 class magma.app.compile.error.TypeNodeResult
 class magma.Main
 magma.Main --> magma.api.Error
@@ -40,7 +39,6 @@ magma.app.compile.error.NodeOk --> java.util.function.Supplier
 class magma.app.compile.rule.NodeFactory
 class magma.app.compile.error.NodeResult
 magma.app.compile.error.NodeResult --> magma.api.result.Result
-magma.app.compile.error.NodeResult --> magma.app.compile.rule.or.OrState
 magma.app.compile.error.NodeResult --> java.util.List
 magma.app.compile.error.NodeResult --> java.util.function.Function
 class magma.app.compile.rule.Rule
@@ -157,16 +155,17 @@ magma.app.compile.node.MapNode --> java.util.List
 magma.app.compile.node.MapNode --> java.util.Map
 magma.app.compile.node.MapNode --> java.util.Optional
 magma.app.compile.node.MapNode --> java.util.stream.Stream
+class magma.app.compile.error.AttachableToStateResult
+magma.app.compile.error.AttachableToStateResult --> magma.app.compile.rule.or.OrState
 class magma.app.compile.error.FormattedError
 magma.app.compile.error.FormattedError --> magma.api.Error
 class magma.app.compile.error.StringOk
 magma.app.compile.error.StringOk --> magma.app.compile.rule.or.OrState
 magma.app.compile.error.StringOk --> java.util.function.Supplier
 class magma.app.compile.rule.or.OrRule
+magma.app.compile.rule.or.OrRule --> magma.app.compile.error.AttachableToStateResult
 magma.app.compile.rule.or.OrRule --> magma.app.compile.error.FormattedError
-magma.app.compile.rule.or.OrRule --> magma.app.compile.error.NodeResult
 magma.app.compile.rule.or.OrRule --> magma.app.compile.error.ResultFactory
-magma.app.compile.rule.or.OrRule --> magma.app.compile.error.StringResult
 magma.app.compile.rule.or.OrRule --> magma.app.compile.rule.Rule
 magma.app.compile.rule.or.OrRule --> java.util.List
 class magma.app.compile.node.DisplayNode

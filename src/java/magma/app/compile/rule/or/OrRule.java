@@ -1,24 +1,23 @@
 package magma.app.compile.rule.or;
 
+import magma.app.compile.error.AttachableToStateResult;
 import magma.app.compile.error.FormattedError;
-import magma.app.compile.error.NodeResult;
 import magma.app.compile.error.ResultFactory;
-import magma.app.compile.error.StringResult;
 import magma.app.compile.rule.Rule;
 
 import java.util.List;
 
-public final class OrRule<Node> implements Rule<Node, NodeResult<Node>, StringResult> {
-    private final List<Rule<Node, NodeResult<Node>, StringResult>> rules;
-    private final ResultFactory<Node, NodeResult<Node>, StringResult> factory;
+public final class OrRule<Node, NodeResult extends AttachableToStateResult<Node>, StringResult extends AttachableToStateResult<String>> implements Rule<Node, NodeResult, StringResult> {
+    private final List<Rule<Node, NodeResult, StringResult>> rules;
+    private final ResultFactory<Node, NodeResult, StringResult> factory;
 
-    public OrRule(List<Rule<Node, NodeResult<Node>, StringResult>> rules, ResultFactory<Node, NodeResult<Node>, StringResult> factory) {
+    public OrRule(List<Rule<Node, NodeResult, StringResult>> rules, ResultFactory<Node, NodeResult, StringResult> factory) {
         this.rules = rules;
         this.factory = factory;
     }
 
     @Override
-    public NodeResult<Node> lex(String input) {
+    public NodeResult lex(String input) {
         return this.rules.stream()
                 .<OrState<Node, FormattedError>>reduce(new MutableOrState<>(),
                         (state, rule) -> rule.lex(input)
