@@ -1,7 +1,6 @@
 @startuml
 skinparam linetype ortho
 class magma.app.compile.AttachableToStateResult
-magma.app.compile.AttachableToStateResult --> magma.api.collect.iter.Iterable
 class magma.app.compile.TypeRule
 class magma.app.compile.MutableAccumulator
 magma.app.compile.MutableAccumulator --> magma.api.collect.iter.Iterable
@@ -19,6 +18,7 @@ magma.app.compile.NodeListOk --> magma.api.collect.list.List
 magma.app.compile.NodeListOk --> magma.api.collect.list.Lists
 magma.app.compile.NodeListOk --> java.util.function.Supplier
 class magma.app.compile.NodeResult
+magma.app.compile.NodeResult --> magma.api.collect.iter.Iterable
 magma.app.compile.NodeResult --> java.util.function.Function
 class magma.app.compile.PrefixRule
 class magma.api.collect.iter.Iter
@@ -95,6 +95,7 @@ magma.app.error.ApplicationError --> magma.api.Error
 class magma.app.compile.ResultFactory
 magma.app.compile.ResultFactory --> magma.api.collect.iter.Iterable
 class magma.app.compile.StringResult
+magma.app.compile.StringResult --> magma.api.collect.iter.Iterable
 class magma.app.compile.TypeNode
 class magma.app.io.Sources
 magma.app.io.Sources --> magma.api.Error
@@ -108,6 +109,7 @@ magma.app.compile.Compiler --> magma.api.result.Result
 magma.app.compile.Compiler --> magma.app.io.Source
 magma.app.compile.Compiler --> java.util.Map
 class magma.app.compile.Accumulator
+magma.app.compile.Accumulator --> magma.api.collect.iter.Iterable
 magma.app.compile.Accumulator --> java.util.function.Function
 class magma.app.compile.InfixRule
 class magma.app.compile.NodeErr

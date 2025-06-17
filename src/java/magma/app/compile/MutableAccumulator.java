@@ -24,7 +24,7 @@ record MutableAccumulator<Value, Error>(Optional<Value> maybeValue,
     }
 
     @Override
-    public <Result extends AttachableToStateResult<Value, Error>> Result match(Function<Value, Result> whenOk, Function<Iterable<Error>, Result> whenErr) {
+    public <Result extends AttachableToStateResult<Value, Error, Iterable<Error>>> Result match(Function<Value, Result> whenOk, Function<Iterable<Error>, Result> whenErr) {
         return this.maybeValue.map(whenOk)
                 .orElseGet(() -> whenErr.apply(this.errors));
     }
