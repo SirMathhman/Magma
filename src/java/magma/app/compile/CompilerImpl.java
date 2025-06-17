@@ -3,9 +3,7 @@ package magma.app.compile;
 import jvm.list.JVMLists;
 import magma.api.Tuple;
 import magma.api.list.ListLike;
-import magma.api.option.None;
 import magma.api.option.Option;
-import magma.api.option.Some;
 import magma.app.compile.divide.DivideState;
 import magma.app.compile.divide.MutableDivideState;
 import magma.app.compile.state.CompileState;
@@ -42,7 +40,7 @@ public class CompilerImpl implements Compiler {
                 final var separator = withoutEnd.lastIndexOf(".");
                 final var parent = withoutEnd.substring(0, separator);
                 final var child = withoutEnd.substring(separator + ".".length());
-                return new Some<>(new Tuple<>(state.addImport(new SimpleLocation(parent, child)),
+                return Option.of(new Tuple<>(state.addImport(new SimpleLocation(parent, child)),
                         state.joinLocation() + " --> " + withoutEnd + "\n"));
             }
         }
@@ -59,7 +57,7 @@ public class CompilerImpl implements Compiler {
                 return maybeStructure;
         }
 
-        return new None<>();
+        return Option.empty();
     }
 
     private static Option<Tuple<CompileState, String>> compileStructureDefinition(String type, String type1, String input, CompileState state) {
@@ -68,7 +66,7 @@ public class CompilerImpl implements Compiler {
             final var afterKeyword = input.substring((type + " ").length() + index);
             return compileStructureDefinitionTruncated(type1, afterKeyword, state);
         }
-        return new None<>();
+        return Option.empty();
     }
 
     private static Option<Tuple<CompileState, String>> compileStructureDefinitionTruncated(String type, String afterKeyword, CompileState state) {
@@ -99,7 +97,7 @@ public class CompilerImpl implements Compiler {
         }
 
         final var generated = type + " " + state.joinLocation() + "\n" + buffer;
-        return new Some<>(new Tuple<>(state, generated));
+        return Option.of(new Tuple<>(state, generated));
     }
 
     private static ListLike<String> divide(CharSequence input) {

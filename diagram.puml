@@ -19,9 +19,7 @@ class magma.app.Application
 magma.app.compile.CompilerImpl --> jvm.list.JVMLists
 magma.app.compile.CompilerImpl --> magma.api.Tuple
 magma.app.compile.CompilerImpl --> magma.api.list.ListLike
-magma.app.compile.CompilerImpl --> magma.api.option.None
 magma.app.compile.CompilerImpl --> magma.api.option.Option
-magma.app.compile.CompilerImpl --> magma.api.option.Some
 magma.app.compile.CompilerImpl --> magma.app.compile.divide.DivideState
 magma.app.compile.CompilerImpl --> magma.app.compile.divide.MutableDivideState
 magma.app.compile.CompilerImpl --> magma.app.compile.state.CompileState
@@ -47,9 +45,7 @@ magma.app.io.source.PathSource --> jvm.list.JVMLists
 magma.app.io.source.PathSource --> magma.api.io.IOError
 magma.app.io.source.PathSource --> magma.api.io.PathLike
 magma.app.io.source.PathSource --> magma.api.list.ListLike
-magma.app.io.source.PathSource --> magma.api.option.None
 magma.app.io.source.PathSource --> magma.api.option.Option
-magma.app.io.source.PathSource --> magma.api.option.Some
 magma.app.io.source.PathSource --> magma.api.result.Result
 magma.app.io.source.PathSource --> magma.app.io.location.Location
 magma.app.io.source.PathSource --> magma.app.io.location.SimpleLocation
@@ -64,9 +60,7 @@ magma.app.compile.Compiler --> java.util.Map
 interface magma.app.compile.Compiler
 magma.app.compile.state.SimpleCompileState --> jvm.list.JVMLists
 magma.app.compile.state.SimpleCompileState --> magma.api.list.ListLike
-magma.app.compile.state.SimpleCompileState --> magma.api.option.None
 magma.app.compile.state.SimpleCompileState --> magma.api.option.Option
-magma.app.compile.state.SimpleCompileState --> magma.api.option.Some
 magma.app.compile.state.SimpleCompileState --> magma.app.io.location.Location
 class magma.app.compile.state.SimpleCompileState
 magma.app.compile.state.SimpleCompileState --|> magma.app.compile.state.CompileState
@@ -126,9 +120,7 @@ magma.app.io.target.PathTargets --> jvm.io.JVMPaths
 magma.app.io.target.PathTargets --> magma.api.io.IOOption
 class magma.app.io.target.PathTargets
 magma.app.io.target.PathTargets --|> magma.app.io.target.Targets
-magma.api.io.SimpleIOOption --> magma.api.option.None
 magma.api.io.SimpleIOOption --> magma.api.option.Option
-magma.api.io.SimpleIOOption --> magma.api.option.Some
 class magma.api.io.SimpleIOOption
 magma.api.io.SimpleIOOption --|> magma.api.io.IOOption
 class magma.api.Tuple

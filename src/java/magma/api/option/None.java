@@ -4,6 +4,9 @@ import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 public class None<T> implements Option<T> {
+    public None() {
+    }
+
     @Override
     public boolean isPresent() {
         return false;

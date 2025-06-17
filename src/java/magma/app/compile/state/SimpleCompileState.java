@@ -2,9 +2,7 @@ package magma.app.compile.state;
 
 import jvm.list.JVMLists;
 import magma.api.list.ListLike;
-import magma.api.option.None;
 import magma.api.option.Option;
-import magma.api.option.Some;
 import magma.app.io.location.Location;
 
 public final class SimpleCompileState implements CompileState {
@@ -30,10 +28,10 @@ public final class SimpleCompileState implements CompileState {
         for (var i = 0; i < this.imports.size(); i++) {
             var anImport = this.imports.get(i);
             if (anImport.isNamed(childName))
-                return new Some<>(anImport);
+                return Option.of(anImport);
         }
 
-        return new None<>();
+        return Option.empty();
     }
 
     @Override

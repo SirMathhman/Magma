@@ -4,9 +4,7 @@ import jvm.list.JVMLists;
 import magma.api.io.IOError;
 import magma.api.io.PathLike;
 import magma.api.list.ListLike;
-import magma.api.option.None;
 import magma.api.option.Option;
-import magma.api.option.Some;
 import magma.api.result.Result;
 import magma.app.io.location.Location;
 import magma.app.io.location.SimpleLocation;
@@ -43,13 +41,13 @@ public record PathSource(PathLike sourceDirectory, PathLike source) implements S
     }
 
     private String join(ListLike<String> list) {
-        Option<String> option = new None<>();
+        Option<String> option = Option.empty();
         for (var i = 0; i < list.size(); i++) {
             final var element = list.get(i);
             if (option.isPresent())
-                option = new Some<>(option.get() + "." + element);
+                option = Option.of(option.get() + "." + element);
             else
-                option = new Some<>(element);
+                option = Option.of(element);
         }
 
         return option.orElse("");
