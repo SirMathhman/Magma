@@ -8,8 +8,4 @@ public record Ok<Value, Error>(Value value) implements Result<Value, Error> {
         return new Ok<>(this.value);
     }
 
-    @Override
-    public <Return> Result<Return, Error> flatMap(Function<Value, Result<Return, Error>> mapper) {
-        return mapper.apply(this.value);
-    }
 }

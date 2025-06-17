@@ -8,8 +8,4 @@ public record Err<Value, Error>(Error error) implements Result<Value, Error> {
         return new Err<>(mapper.apply(this.error));
     }
 
-    @Override
-    public <Return> Result<Return, Error> flatMap(Function<Value, Result<Return, Error>> mapper) {
-        return new Err<>(this.error);
-    }
 }

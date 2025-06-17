@@ -10,6 +10,7 @@ public class Lists {
         return new JavaList<>();
     }
 
+    @SafeVarargs
     public static <T> Iterable<T> of(T... elements) {
         return new JavaList<>(new ArrayList<>(Arrays.asList(elements)));
     }
