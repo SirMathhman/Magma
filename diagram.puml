@@ -3,6 +3,7 @@ skinparam linetype ortho
 class magma.app.io.location.SimpleLocation
 magma.app.io.location.SimpleLocation --|> magma.app.io.location.Location
 magma.app.Application --> magma.api.io.IOError
+magma.app.Application --> magma.api.list.ListLike
 magma.app.Application --> magma.api.option.Option
 magma.app.Application --> magma.api.option.Some
 magma.app.Application --> magma.api.result.Err
@@ -14,11 +15,10 @@ magma.app.Application --> magma.app.io.source.Sources
 magma.app.Application --> magma.app.io.target.Targets
 magma.app.Application --> java.util.HashMap
 magma.app.Application --> java.util.Map
-magma.app.Application --> java.util.Set
 class magma.app.Application
+magma.app.compile.CompilerImpl --> jvm.list.JVMLists
 magma.app.compile.CompilerImpl --> magma.api.Tuple
 magma.app.compile.CompilerImpl --> magma.api.list.ListLike
-magma.app.compile.CompilerImpl --> jvm.list.JVMLists
 magma.app.compile.CompilerImpl --> magma.api.option.None
 magma.app.compile.CompilerImpl --> magma.api.option.Option
 magma.app.compile.CompilerImpl --> magma.api.option.Some
@@ -38,10 +38,16 @@ interface magma.app.compile.state.CompileState
 magma.app.io.target.Targets --> magma.api.io.IOError
 magma.app.io.target.Targets --> magma.api.option.Option
 interface magma.app.io.target.Targets
+jvm.io.JVMIOError --> magma.api.io.IOError
+jvm.io.JVMIOError --> java.io.IOException
+jvm.io.JVMIOError --> java.io.PrintWriter
+jvm.io.JVMIOError --> java.io.StringWriter
+class jvm.io.JVMIOError
+jvm.io.JVMIOError --|> magma.api.io.IOError
+magma.app.io.source.PathSource --> jvm.list.JVMLists
 magma.app.io.source.PathSource --> magma.api.io.IOError
 magma.app.io.source.PathSource --> magma.api.io.PathLike
 magma.app.io.source.PathSource --> magma.api.list.ListLike
-magma.app.io.source.PathSource --> jvm.list.JVMLists
 magma.app.io.source.PathSource --> magma.api.option.None
 magma.app.io.source.PathSource --> magma.api.option.Option
 magma.app.io.source.PathSource --> magma.api.option.Some
@@ -50,21 +56,15 @@ magma.app.io.source.PathSource --> magma.app.io.location.Location
 magma.app.io.source.PathSource --> magma.app.io.location.SimpleLocation
 class magma.app.io.source.PathSource
 magma.app.io.source.PathSource --|> magma.app.io.source.Source
-jvm.io.JVMIOError --> magma.api.io.IOError
-jvm.io.JVMIOError --> java.io.IOException
-jvm.io.JVMIOError --> java.io.PrintWriter
-jvm.io.JVMIOError --> java.io.StringWriter
-class jvm.io.JVMIOError
-jvm.io.JVMIOError --|> magma.api.io.IOError
 magma.app.io.source.Sources --> magma.api.io.IOError
+magma.app.io.source.Sources --> magma.api.list.ListLike
 magma.app.io.source.Sources --> magma.api.result.Result
-magma.app.io.source.Sources --> java.util.Set
 interface magma.app.io.source.Sources
 magma.app.compile.Compiler --> magma.app.io.source.Source
 magma.app.compile.Compiler --> java.util.Map
 interface magma.app.compile.Compiler
-magma.app.compile.state.SimpleCompileState --> magma.api.list.ListLike
 magma.app.compile.state.SimpleCompileState --> jvm.list.JVMLists
+magma.app.compile.state.SimpleCompileState --> magma.api.list.ListLike
 magma.app.compile.state.SimpleCompileState --> magma.api.option.None
 magma.app.compile.state.SimpleCompileState --> magma.api.option.Option
 magma.app.compile.state.SimpleCompileState --> magma.api.option.Some
@@ -77,19 +77,21 @@ magma.Main --> magma.app.compile.CompilerImpl
 magma.Main --> magma.app.io.source.PathSources
 magma.Main --> magma.app.io.target.PathTargets
 class magma.Main
+magma.api.io.PathLike --> magma.api.list.ListLike
+magma.api.io.PathLike --> magma.api.option.Option
+magma.api.io.PathLike --> magma.api.result.Result
+interface magma.api.io.PathLike
 magma.app.io.source.Source --> magma.api.io.IOError
 magma.app.io.source.Source --> magma.api.result.Result
 magma.app.io.source.Source --> magma.app.io.location.Location
 interface magma.app.io.source.Source
-magma.api.io.PathLike --> magma.api.option.Option
-magma.api.io.PathLike --> magma.api.result.Result
-magma.api.io.PathLike --> java.util.Set
-interface magma.api.io.PathLike
 magma.api.option.Option --> java.util.function.Consumer
 magma.api.option.Option --> java.util.function.Supplier
 interface magma.api.option.Option
+jvm.io.JVMPath --> jvm.list.JVMList
 jvm.io.JVMPath --> magma.api.io.IOError
 jvm.io.JVMPath --> magma.api.io.PathLike
+jvm.io.JVMPath --> magma.api.list.ListLike
 jvm.io.JVMPath --> magma.api.option.None
 jvm.io.JVMPath --> magma.api.option.Option
 jvm.io.JVMPath --> magma.api.option.Some
@@ -99,7 +101,6 @@ jvm.io.JVMPath --> magma.api.result.Result
 jvm.io.JVMPath --> java.io.IOException
 jvm.io.JVMPath --> java.nio.file.Files
 jvm.io.JVMPath --> java.nio.file.Path
-jvm.io.JVMPath --> java.util.Set
 jvm.io.JVMPath --> java.util.stream.Collectors
 class jvm.io.JVMPath
 jvm.io.JVMPath --|> magma.api.io.PathLike
@@ -113,8 +114,14 @@ class jvm.list.JVMList
 jvm.list.JVMList --|> magma.api.list.ListLike
 interface magma.app.io.location.Location
 interface magma.api.result.Result
-magma.app.compile.divide.MutableDivideState --> magma.api.list.ListLike
+magma.api.option.None --> java.util.function.Consumer
+magma.api.option.None --> java.util.function.Supplier
+class magma.api.option.None
+magma.api.option.None --|> magma.api.option.Option
+class magma.api.result.Ok
+magma.api.result.Ok --|> magma.api.result.Result
 magma.app.compile.divide.MutableDivideState --> jvm.list.JVMLists
+magma.app.compile.divide.MutableDivideState --> magma.api.list.ListLike
 class magma.app.compile.divide.MutableDivideState
 magma.app.compile.divide.MutableDivideState --|> magma.app.compile.divide.DivideState
 magma.app.io.target.PathTargets --> jvm.io.JVMPaths
@@ -122,12 +129,6 @@ magma.app.io.target.PathTargets --> magma.api.io.IOError
 magma.app.io.target.PathTargets --> magma.api.option.Option
 class magma.app.io.target.PathTargets
 magma.app.io.target.PathTargets --|> magma.app.io.target.Targets
-magma.api.option.None --> java.util.function.Consumer
-magma.api.option.None --> java.util.function.Supplier
-class magma.api.option.None
-magma.api.option.None --|> magma.api.option.Option
-class magma.api.result.Ok
-magma.api.result.Ok --|> magma.api.result.Result
 class magma.api.Tuple
 jvm.list.JVMLists --> magma.api.list.ListLike
 jvm.list.JVMLists --> java.util.Arrays
@@ -141,14 +142,13 @@ class magma.api.option.Some
 magma.api.option.Some --|> magma.api.option.Option
 class magma.api.result.Err
 magma.api.result.Err --|> magma.api.result.Result
+magma.app.io.source.PathSources --> jvm.list.JVMLists
 magma.app.io.source.PathSources --> magma.api.io.IOError
 magma.app.io.source.PathSources --> magma.api.io.PathLike
+magma.app.io.source.PathSources --> magma.api.list.ListLike
 magma.app.io.source.PathSources --> magma.api.result.Err
 magma.app.io.source.PathSources --> magma.api.result.Ok
 magma.app.io.source.PathSources --> magma.api.result.Result
-magma.app.io.source.PathSources --> java.util.Collection
-magma.app.io.source.PathSources --> java.util.Set
-magma.app.io.source.PathSources --> java.util.stream.Collectors
 class magma.app.io.source.PathSources
 magma.app.io.source.PathSources --|> magma.app.io.source.Sources
 @enduml

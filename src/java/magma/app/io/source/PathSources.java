@@ -1,30 +1,32 @@
 package magma.app.io.source;
 
+import jvm.list.JVMLists;
 import magma.api.io.IOError;
 import magma.api.io.PathLike;
+import magma.api.list.ListLike;
 import magma.api.result.Err;
 import magma.api.result.Ok;
 import magma.api.result.Result;
 
-import java.util.Collection;
-import java.util.Set;
-import java.util.stream.Collectors;
-
 public record PathSources(PathLike root) implements Sources {
     @Override
-    public Result<Set<Source>, IOError> collect() {
+    public Result<ListLike<Source>, IOError> collect() {
         return switch (this.root.walk()) {
             case Ok(var sources) -> this.filter(sources);
             case Err(var error) -> new Err<>(error);
         };
     }
 
-    private Result<Set<Source>, IOError> filter(Collection<PathLike> sources) {
-        return new Ok<>(sources.stream()
-                .filter(PathLike::isRegularFile)
-                .filter(path -> path.asString()
-                        .endsWith(".java"))
-                .map(source -> new PathSource(this.root, source))
-                .collect(Collectors.toSet()));
+    private Result<ListLike<Source>, IOError> filter(ListLike<PathLike> sources) {
+        final var set = JVMLists.<Source>empty();
+        for (var i = 0; i < sources.size(); i++) {
+            final var source = sources.get(i);
+
+            if (source.isRegularFile() && source.asString()
+                    .endsWith(".java"))
+                set.add(new PathSource(this.root, source));
+        }
+
+        return new Ok<>(set);
     }
 }

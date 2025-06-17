@@ -1,6 +1,7 @@
 package magma.app;
 
 import magma.api.io.IOError;
+import magma.api.list.ListLike;
 import magma.api.option.Option;
 import magma.api.option.Some;
 import magma.api.result.Err;
@@ -13,10 +14,9 @@ import magma.app.io.target.Targets;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Set;
 
 public record Application(Sources sources, Compiler compiler, Targets targets) {
-    private static Option<IOError> compileAll(Iterable<Source> sources, Targets targets, Compiler compiler) {
+    private static Option<IOError> compileAll(ListLike<Source> sources, Targets targets, Compiler compiler) {
         return switch (readAll(sources)) {
             case Err(var error) -> new Some<>(error);
             case Ok(var sourceMap) -> compileAndWrite(sourceMap, targets, compiler);
@@ -28,9 +28,10 @@ public record Application(Sources sources, Compiler compiler, Targets targets) {
         return targets.write("@startuml\nskinparam linetype ortho\n" + fileName + "@enduml");
     }
 
-    private static Result<Map<Source, String>, IOError> readAll(Iterable<Source> sources) {
+    private static Result<Map<Source, String>, IOError> readAll(ListLike<Source> sources) {
         final var sourceMap = new HashMap<Source, String>();
-        for (var source : sources) {
+        for (var i = 0; i < sources.size(); i++) {
+            final var source = sources.get(i);
             final var result = source.readString();
             switch (result) {
                 case Err(var error) -> {
@@ -45,8 +46,8 @@ public record Application(Sources sources, Compiler compiler, Targets targets) {
 
     public Option<IOError> run() {
         return switch (this.sources.collect()) {
-            case Err<Set<Source>, IOError>(var error) -> new Some<>(error);
-            case Ok<Set<Source>, IOError>(var files) -> compileAll(files, this.targets, this.compiler);
+            case Err<ListLike<Source>, IOError>(var error) -> new Some<>(error);
+            case Ok<ListLike<Source>, IOError>(var files) -> compileAll(files, this.targets, this.compiler);
         };
     }
 }

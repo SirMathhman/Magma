@@ -1,14 +1,13 @@
 package magma.api.io;
 
+import magma.api.list.ListLike;
 import magma.api.option.Option;
 import magma.api.result.Result;
-
-import java.util.Set;
 
 public interface PathLike {
     Option<IOError> writeString(CharSequence output);
 
-    Result<Set<PathLike>, IOError> walk();
+    Result<ListLike<PathLike>, IOError> walk();
 
     Result<String, IOError> readString();
 
