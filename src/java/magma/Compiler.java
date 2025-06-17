@@ -6,7 +6,6 @@ import magma.app.compile.error.FormattedError;
 import magma.app.compile.node.MapNode;
 import magma.app.compile.node.Node;
 import magma.app.compile.rule.InfixRule;
-import magma.app.compile.rule.OrRule;
 import magma.app.compile.rule.PrefixRule;
 import magma.app.compile.rule.Rule;
 import magma.app.compile.rule.StringRule;
@@ -14,6 +13,7 @@ import magma.app.compile.rule.StripRule;
 import magma.app.compile.rule.SuffixRule;
 import magma.app.compile.rule.TypeRule;
 import magma.app.compile.rule.divide.DivideRule;
+import magma.app.compile.rule.or.OrRule;
 import magma.app.error.ApplicationError;
 import magma.app.io.Source;
 
