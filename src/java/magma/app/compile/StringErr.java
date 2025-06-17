@@ -1,7 +1,5 @@
 package magma.app.compile;
 
-import magma.api.result.Err;
-import magma.api.result.Result;
 import magma.app.compile.rule.or.Accumulator;
 
 import java.util.function.Supplier;
@@ -9,7 +7,7 @@ import java.util.function.Supplier;
 public record StringErr<Error>(Error error) implements StringResult<Error> {
     @Override
     public StringResult<Error> appendResult(Supplier<StringResult<Error>> generate) {
-        return new StringErr<Error>(this.error());
+        return new StringErr<>(this.error());
     }
 
     @Override
@@ -27,8 +25,4 @@ public record StringErr<Error>(Error error) implements StringResult<Error> {
         return state.withError(this.error());
     }
 
-    @Override
-    public Result<String, Error> toResult() {
-        return new Err<>(this.error);
-    }
 }

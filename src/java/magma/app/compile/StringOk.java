@@ -1,18 +1,10 @@
 package magma.app.compile;
 
-import magma.api.result.Ok;
-import magma.api.result.Result;
 import magma.app.compile.rule.or.Accumulator;
 
 import java.util.function.Supplier;
 
-public final class StringOk<Error> implements StringResult<Error> {
-    private final String value;
-
-    public StringOk(String value) {
-        this.value = value;
-    }
-
+public record StringOk<Error>(String value) implements StringResult<Error> {
     public StringOk() {
         this("");
     }
@@ -38,8 +30,4 @@ public final class StringOk<Error> implements StringResult<Error> {
         return state.withValue(this.value);
     }
 
-    @Override
-    public Result<String, Error> toResult() {
-        return new Ok<>(this.value);
-    }
 }

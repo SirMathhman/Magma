@@ -11,9 +11,6 @@ class magma.app.compile.context.NodeContext
 magma.app.compile.context.NodeContext --> magma.app.compile.DisplayNode
 class magma.app.compile.PrependStringResult
 class magma.app.compile.NodeListOk
-magma.app.compile.NodeListOk --> magma.api.result.Err
-magma.app.compile.NodeListOk --> magma.api.result.Ok
-magma.app.compile.NodeListOk --> magma.api.result.Result
 magma.app.compile.NodeListOk --> java.util.ArrayList
 magma.app.compile.NodeListOk --> java.util.List
 magma.app.compile.NodeListOk --> java.util.function.Supplier
@@ -88,8 +85,6 @@ magma.app.io.PathSource --> java.nio.file.Path
 magma.app.io.PathSource --> java.util.ArrayList
 magma.app.io.PathSource --> java.util.Collection
 class magma.app.compile.StringErr
-magma.app.compile.StringErr --> magma.api.result.Err
-magma.app.compile.StringErr --> magma.api.result.Result
 magma.app.compile.StringErr --> magma.app.compile.rule.or.Accumulator
 magma.app.compile.StringErr --> java.util.function.Supplier
 class magma.api.Error
@@ -99,7 +94,6 @@ magma.app.error.ApplicationError --> magma.api.Error
 class magma.app.compile.ResultFactory
 magma.app.compile.ResultFactory --> java.util.List
 class magma.app.compile.StringResult
-magma.app.compile.StringResult --> magma.api.result.Result
 class magma.app.compile.rule.SuffixRule
 magma.app.compile.rule.SuffixRule --> magma.app.compile.AppendableStringResult
 magma.app.compile.rule.SuffixRule --> magma.app.compile.ResultFactory
@@ -159,8 +153,6 @@ class magma.app.compile.Node
 magma.app.compile.Node --> java.util.Map
 magma.app.compile.Node --> java.util.stream.Stream
 class magma.app.compile.StringOk
-magma.app.compile.StringOk --> magma.api.result.Ok
-magma.app.compile.StringOk --> magma.api.result.Result
 magma.app.compile.StringOk --> magma.app.compile.rule.or.Accumulator
 magma.app.compile.StringOk --> java.util.function.Supplier
 class magma.app.compile.RuleCompiler

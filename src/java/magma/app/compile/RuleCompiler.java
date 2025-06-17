@@ -42,8 +42,15 @@ public class RuleCompiler implements Compiler {
         final var stringFormattedErrorResult1 = this.compileRoot(input, joinedName)
                 .prependSlice("class " + joinedName + "\n");
 
-        return stringFormattedErrorResult1.toResult()
+        return this.toResult(stringFormattedErrorResult1)
                 .mapErr(ApplicationError::new);
+    }
+
+    private Result<String, FormattedError> toResult(StringResult<FormattedError> result) {
+        return switch (result) {
+            case StringOk(var value) -> new Ok<>(value);
+            case StringErr(FormattedError error) -> new Err<>(error);
+        };
     }
 
     StringResult<FormattedError> compileRoot(String input, String source) {
