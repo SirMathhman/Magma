@@ -14,6 +14,10 @@ magma.app.compile.rule.SuffixRule --> magma.app.compile.context.StringContext
 magma.app.compile.rule.SuffixRule --> magma.app.compile.error.CompileError
 magma.app.compile.rule.SuffixRule --> magma.app.compile.error.FormattedError
 magma.app.compile.rule.SuffixRule --> magma.app.compile.node.Node
+class magma.app.io.Sources
+magma.app.io.Sources --> magma.api.result.Result
+magma.app.io.Sources --> magma.app.error.ApplicationError
+magma.app.io.Sources --> java.util.Map
 class magma.app.compile.context.NodeContext
 magma.app.compile.context.NodeContext --> magma.app.compile.node.Node
 class magma.app.compile.rule.StripRule
@@ -48,22 +52,18 @@ magma.app.compile.Compiler --> magma.app.error.ApplicationError
 magma.app.compile.Compiler --> magma.app.io.Source
 magma.app.compile.Compiler --> java.util.Map
 class magma.Main
-magma.Main --> magma.api.result.Err
-magma.Main --> magma.api.result.Ok
 magma.Main --> magma.api.result.Result
 magma.Main --> magma.app.compile.Compiler
 magma.Main --> magma.app.compile.Lang
 magma.Main --> magma.app.compile.RuleCompiler
 magma.Main --> magma.app.error.ApplicationError
 magma.Main --> magma.app.error.ThrowableError
-magma.Main --> magma.app.io.PathSource
+magma.Main --> magma.app.io.PathSources
 magma.Main --> magma.app.io.Source
 magma.Main --> java.io.IOException
 magma.Main --> java.nio.file.Files
 magma.Main --> java.nio.file.Path
 magma.Main --> java.nio.file.Paths
-magma.Main --> java.util.HashMap
-magma.Main --> java.util.List
 magma.Main --> java.util.Map
 magma.Main --> java.util.Optional
 class magma.app.io.Source
@@ -162,6 +162,18 @@ class magma.app.io.PathSource
 magma.app.io.PathSource --> java.nio.file.Path
 magma.app.io.PathSource --> java.util.ArrayList
 magma.app.io.PathSource --> java.util.Collection
+class magma.app.io.PathSources
+magma.app.io.PathSources --> magma.api.result.Err
+magma.app.io.PathSources --> magma.api.result.Ok
+magma.app.io.PathSources --> magma.api.result.Result
+magma.app.io.PathSources --> magma.app.error.ApplicationError
+magma.app.io.PathSources --> magma.app.error.ThrowableError
+magma.app.io.PathSources --> java.io.IOException
+magma.app.io.PathSources --> java.nio.file.Files
+magma.app.io.PathSources --> java.nio.file.Path
+magma.app.io.PathSources --> java.util.HashMap
+magma.app.io.PathSources --> java.util.List
+magma.app.io.PathSources --> java.util.Map
 class magma.app.compile.error.CompileError
 magma.app.compile.error.CompileError --> magma.app.compile.context.Context
 class magma.api.Error
