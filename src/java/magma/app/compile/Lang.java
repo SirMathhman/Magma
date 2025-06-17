@@ -20,12 +20,13 @@ import java.util.List;
 
 public class Lang {
     public static Rule<Node, NodeResult<Node, FormattedError>, StringResult> createJavaRootRule() {
-        return new DivideRule("children",
+        return new DivideRule<Node, FormattedError, NodeResult<Node, FormattedError>, StringResult>("children",
                 new OrRule<>(List.of(createNamespacedRule("package"),
                         new TypeRule<>("import", createNamespacedRule("import"), ResultFactoryImpl.create()),
                         createStructureRule("class"),
                         createStructureRule("interface"), createStructureRule("record")), ResultFactoryImpl.create()),
-                new MapNodeFactory());
+                new MapNodeFactory(),
+                ResultFactoryImpl.create());
     }
 
     static Rule<Node, NodeResult<Node, FormattedError>, StringResult> createStructureRule(String type) {
@@ -36,9 +37,10 @@ public class Lang {
     }
 
     public static Rule<Node, NodeResult<Node, FormattedError>, StringResult> createPlantRootRule() {
-        return new DivideRule("children",
+        return new DivideRule<Node, FormattedError, NodeResult<Node, FormattedError>, StringResult>("children",
                 new OrRule<>(List.of(createDependencyRule()), ResultFactoryImpl.create()),
-                new MapNodeFactory());
+                new MapNodeFactory(),
+                ResultFactoryImpl.create());
     }
 
     static Rule<Node, NodeResult<Node, FormattedError>, StringResult> createNamespacedRule(String type) {

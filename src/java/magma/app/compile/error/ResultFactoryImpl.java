@@ -2,6 +2,8 @@ package magma.app.compile.error;
 
 import magma.app.compile.context.NodeContext;
 import magma.app.compile.context.StringContext;
+import magma.app.compile.error.list.NodeListOk;
+import magma.app.compile.error.list.NodeListResult;
 import magma.app.compile.error.node.NodeErr;
 import magma.app.compile.error.node.NodeOk;
 import magma.app.compile.error.node.NodeResult;
@@ -48,5 +50,15 @@ public class ResultFactoryImpl implements ResultFactory<Node, FormattedError, No
     @Override
     public StringResult fromNodeErrWithChildren(String message, Node node, List<FormattedError> errors) {
         return new StringErr(new CompileError(message, new NodeContext(node), errors));
+    }
+
+    @Override
+    public NodeListResult<Node, NodeResult<Node, FormattedError>> fromEmptyNodeList() {
+        return new NodeListOk();
+    }
+
+    @Override
+    public StringResult fromEmptyString() {
+        return new StringOk();
     }
 }

@@ -1,27 +1,25 @@
 package magma.app.compile.rule.divide;
 
-import magma.app.compile.error.FormattedError;
-import magma.app.compile.error.list.NodeListOk;
-import magma.app.compile.error.list.NodeListResult;
-import magma.app.compile.error.node.NodeResult;
-import magma.app.compile.error.string.StringOk;
-import magma.app.compile.error.string.StringResult;
-import magma.app.compile.node.Node;
+import magma.app.compile.error.AppendableStringResult;
+import magma.app.compile.error.ResultFactory;
+import magma.app.compile.node.NodeWithNodeLists;
 import magma.app.compile.rule.NodeFactory;
 import magma.app.compile.rule.Rule;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public final class DivideRule implements Rule<Node, NodeResult<Node, FormattedError>, StringResult> {
+public final class DivideRule<Node extends NodeWithNodeLists<Node>, Error, NodeResult, StringResult extends AppendableStringResult<StringResult>> implements Rule<Node, NodeResult, StringResult> {
     private final String key;
-    private final Rule<Node, NodeResult<Node, FormattedError>, StringResult> rule;
-    private final NodeFactory<Node> factory;
+    private final Rule<Node, NodeResult, StringResult> rule;
+    private final NodeFactory<Node> nodeFactory;
+    private final ResultFactory<Node, Error, NodeResult, StringResult> resultFactory;
 
-    public DivideRule(String key, Rule<Node, NodeResult<Node, FormattedError>, StringResult> rule, NodeFactory<Node> factory) {
+    public DivideRule(String key, Rule<Node, NodeResult, StringResult> rule, NodeFactory<Node> nodeFactory, ResultFactory<Node, Error, NodeResult, StringResult> resultFactory) {
         this.key = key;
         this.rule = rule;
-        this.factory = factory;
+        this.nodeFactory = nodeFactory;
+        this.resultFactory = resultFactory;
     }
 
     private static List<String> divide(CharSequence input) {
@@ -50,11 +48,12 @@ public final class DivideRule implements Rule<Node, NodeResult<Node, FormattedEr
     }
 
     @Override
-    public NodeResult<Node, FormattedError> lex(String input) {
+    public NodeResult lex(String input) {
         return divide(input).stream()
-                .<NodeListResult<Node, NodeResult<Node, FormattedError>>>reduce(new NodeListOk(),
-                        (maybeCurrent, element) -> maybeCurrent.add(() -> this.rule.lex(element)), (_, next) -> next)
-                .toNode(this.factory, this.key);
+                .reduce(this.resultFactory.fromEmptyNodeList(),
+                        (maybeCurrent, element) -> maybeCurrent.add(() -> this.rule.lex(element)),
+                        (_, next) -> next)
+                .toNode(this.nodeFactory, this.key);
     }
 
     @Override
@@ -62,7 +61,7 @@ public final class DivideRule implements Rule<Node, NodeResult<Node, FormattedEr
         return node.findNodeList(this.key)
                 .orElse(new ArrayList<>())
                 .stream()
-                .reduce(new StringOk(), this::foldString, (_, next) -> next);
+                .reduce(this.resultFactory.fromEmptyString(), this::foldString, (_, next) -> next);
     }
 
     private StringResult foldString(StringResult maybeCurrent, Node element) {

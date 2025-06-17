@@ -1,5 +1,7 @@
 package magma.app.compile.error;
 
+import magma.app.compile.error.list.NodeListResult;
+
 import java.util.List;
 
 public interface ResultFactory<Node, Error, NodeResult, StringResult> {
@@ -14,4 +16,8 @@ public interface ResultFactory<Node, Error, NodeResult, StringResult> {
     NodeResult fromStringErrWithChildren(String message, String input, List<Error> errors);
 
     StringResult fromNodeErrWithChildren(String message, Node node, List<Error> errors);
+
+    NodeListResult<Node, NodeResult> fromEmptyNodeList();
+
+    StringResult fromEmptyString();
 }
