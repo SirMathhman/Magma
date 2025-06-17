@@ -2,16 +2,18 @@ package magma.app.io.source;
 
 import magma.api.io.IOError;
 import magma.api.io.PathLike;
+import magma.api.list.ListLike;
+import magma.api.list.Lists;
+import magma.api.option.None;
+import magma.api.option.Option;
+import magma.api.option.Some;
 import magma.api.result.Result;
 import magma.app.io.location.Location;
 import magma.app.io.location.SimpleLocation;
 
-import java.util.ArrayList;
-import java.util.List;
-
 public record PathSource(PathLike sourceDirectory, PathLike source) implements Source {
-    private static List<String> computeNamespace(PathLike parent) {
-        final List<String> segments = new ArrayList<>();
+    private static ListLike<String> computeNamespace(PathLike parent) {
+        final ListLike<String> segments = Lists.empty();
         for (var i = 0; i < parent.getNameCount(); i++)
             segments.add(parent.getName(i)
                     .asString());
@@ -30,7 +32,7 @@ public record PathSource(PathLike sourceDirectory, PathLike source) implements S
         final var relativeParent = relative.getParent();
 
         final var segments = computeNamespace(relativeParent);
-        final var namespace = String.join(".", segments);
+        final var namespace = this.join(".", segments);
 
         final var fileName = this.source.getFileName()
                 .asString();
@@ -38,5 +40,18 @@ public record PathSource(PathLike sourceDirectory, PathLike source) implements S
         final var name = fileName.substring(0, separator);
 
         return new SimpleLocation(namespace, name);
+    }
+
+    private String join(String delimeter, ListLike<String> list) {
+        Option<String> option = new None<String>();
+        for (var i = 0; i < list.size(); i++) {
+            final var element = list.get(i);
+            if (option.isPresent())
+                option = new Some<>(option.get() + delimeter + element);
+            else
+                option = new Some<>(element);
+        }
+
+        return option.orElse("");
     }
 }

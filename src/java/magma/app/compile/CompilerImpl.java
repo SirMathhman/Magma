@@ -1,6 +1,8 @@
 package magma.app.compile;
 
 import magma.api.Tuple;
+import magma.api.list.ListLike;
+import magma.api.list.Lists;
 import magma.api.option.None;
 import magma.api.option.Option;
 import magma.api.option.Some;
@@ -11,8 +13,6 @@ import magma.app.compile.state.SimpleCompileState;
 import magma.app.io.location.SimpleLocation;
 import magma.app.io.source.Source;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Map;
 
 public class CompilerImpl implements Compiler {
@@ -21,7 +21,8 @@ public class CompilerImpl implements Compiler {
 
         var current = state;
         final var output = new StringBuilder();
-        for (var segment : segments) {
+        for (var i = 0; i < segments.size(); i++) {
+            final var segment = segments.get(i);
             final var maybeCompiled = compileRootSegment(segment, current);
             if (maybeCompiled.isPresent()) {
                 final var compiled = maybeCompiled.get();
@@ -81,25 +82,27 @@ public class CompilerImpl implements Compiler {
 
             final var actual = state.find(trimmed)
                     .orElse(state.resolveSibling(trimmed));
-            return generate(type, state, List.of(actual.join()));
+            return generate(type, state, Lists.of(actual.join()));
         }
         else
-            return generate(type, state, new ArrayList<>());
+            return generate(type, state, Lists.empty());
     }
 
-    private static Option<Tuple<CompileState, String>> generate(String type, CompileState state, Iterable<String> superTypes) {
+    private static Option<Tuple<CompileState, String>> generate(String type, CompileState state, ListLike<String> superTypes) {
         final var buffer = new StringBuilder();
-        for (var superType : superTypes)
+        for (var i = 0; i < superTypes.size(); i++) {
+            final var superType = superTypes.get(i);
             buffer.append(state.joinLocation())
                     .append(" --|> ")
                     .append(superType)
                     .append("\n");
+        }
 
         final var generated = type + " " + state.joinLocation() + "\n" + buffer;
         return new Some<>(new Tuple<>(state, generated));
     }
 
-    private static List<String> divide(CharSequence input) {
+    private static ListLike<String> divide(CharSequence input) {
         DivideState current = new MutableDivideState();
         for (var i = 0; i < input.length(); i++) {
             final var c = input.charAt(i);

@@ -1,24 +1,23 @@
 package magma.app.compile.state;
 
+import magma.api.list.ListLike;
+import magma.api.list.Lists;
 import magma.api.option.None;
 import magma.api.option.Option;
 import magma.api.option.Some;
 import magma.app.io.location.Location;
 
-import java.util.ArrayList;
-import java.util.List;
-
 public final class SimpleCompileState implements CompileState {
     private final Location current;
-    private final List<Location> imports;
+    private final ListLike<Location> imports;
 
-    public SimpleCompileState(Location current, List<Location> imports) {
+    public SimpleCompileState(Location current, ListLike<Location> imports) {
         this.current = current;
         this.imports = imports;
     }
 
     public SimpleCompileState(Location location) {
-        this(location, new ArrayList<>());
+        this(location, Lists.empty());
     }
 
     @Override
@@ -28,10 +27,11 @@ public final class SimpleCompileState implements CompileState {
 
     @Override
     public Option<Location> find(String childName) {
-        for (var anImport : this.imports)
-            if (anImport.isNamed(childName)) {
+        for (var i = 0; i < this.imports.size(); i++) {
+            var anImport = this.imports.get(i);
+            if (anImport.isNamed(childName))
                 return new Some<>(anImport);
-            }
+        }
 
         return new None<>();
     }
