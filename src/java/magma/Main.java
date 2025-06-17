@@ -3,7 +3,6 @@ package magma;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -23,38 +22,21 @@ public class Main {
     }
 
     private static List<String> divide(CharSequence input) {
-        final List<String> segments = new ArrayList<>();
-        var buffer = new StringBuilder();
-
-        return getStrings(input, new State(segments, buffer));
-    }
-
-    private static List<String> getStrings(CharSequence input, State state) {
+        State current = new MutableState();
         for (var i = 0; i < input.length(); i++) {
             final var c = input.charAt(i);
-            append(state, c);
-            if (c == ';')
-                extracted(state);
+            current = fold(current, c);
         }
 
-        extracted(state);
-        return state.segments();
+        return current.advance()
+                .segments();
     }
 
-    private static State append(State state, char c) {
-        state.getBuffer()
-                .append(c);
-
-        return state;
-    }
-
-    private static State extracted(State state) {
-        final var fileName = state.getBuffer()
-                .toString();
-        state.segments()
-                .add(fileName);
-        state.setBuffer(new StringBuilder());
-        return state;
+    private static State fold(State state, char c) {
+        final var appended = state.append(c);
+        if (c == ';')
+            return appended.advance();
+        return appended;
     }
 
     private static StringBuilder compileSegments(Iterable<String> segments) {
