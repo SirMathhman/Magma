@@ -1,8 +1,5 @@
 package magma;
 
-import magma.state.MutableState;
-import magma.state.State;
-
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -90,6 +87,13 @@ public class Main {
             return Optional.empty();
 
         final var withoutEnd = withoutStart.substring(0, withoutStart.length() - ";".length());
-        return Optional.of(name + " --> " + withoutEnd + "\n");
+        return generate(new MapNode().withString("source", name)
+                .withString("destination", withoutEnd));
+    }
+
+    private static Optional<String> generate(Node node) {
+        return Optional.of(node.findString("source")
+                .orElse("") + " --> " + node.findString("destination")
+                .orElse("") + "\n");
     }
 }
