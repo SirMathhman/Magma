@@ -1,4 +1,6 @@
-package magma.api.list;
+package magma.api.collect.list;
+
+import magma.api.collect.iter.Collector;
 
 public record ListCollector<T>() implements Collector<T, List<T>> {
     @Override

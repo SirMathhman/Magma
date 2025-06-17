@@ -1,8 +1,8 @@
 package magma.app.io;
 
-import magma.api.list.Iterable;
-import magma.api.list.List;
-import magma.api.list.Lists;
+import magma.api.collect.iter.Iterable;
+import magma.api.collect.list.List;
+import magma.api.collect.list.Lists;
 
 import java.nio.file.Path;
 

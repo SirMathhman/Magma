@@ -1,6 +1,6 @@
 package magma.app.compile;
 
-import magma.api.list.Iterable;
+import magma.api.collect.iter.Iterable;
 
 import java.util.function.Supplier;
 

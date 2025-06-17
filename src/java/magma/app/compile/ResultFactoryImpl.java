@@ -1,6 +1,6 @@
 package magma.app.compile;
 
-import magma.api.list.Iterable;
+import magma.api.collect.iter.Iterable;
 
 public class ResultFactoryImpl implements ResultFactory<Node, FormattedError, NodeResult<Node, FormattedError>, StringResult<FormattedError>> {
     private ResultFactoryImpl() {

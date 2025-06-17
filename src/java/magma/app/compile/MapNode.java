@@ -1,8 +1,8 @@
 package magma.app.compile;
 
-import magma.api.list.Iter;
-import magma.api.list.Iterable;
-import magma.api.list.JavaList;
+import magma.api.collect.iter.Iter;
+import magma.api.collect.iter.Iterable;
+import magma.api.collect.list.JavaList;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -46,7 +46,7 @@ public final class MapNode implements Node {
 
     @Override
     public Iter<Map.Entry<String, String>> streamStrings() {
-        return new JavaList<>(new ArrayList<>(this.strings.entrySet())).stream();
+        return new JavaList<>(new ArrayList<>(this.strings.entrySet())).iter();
     }
 
     @Override

@@ -1,4 +1,4 @@
-package magma.api.list;
+package magma.api.collect.head;
 
 import java.util.Optional;
 

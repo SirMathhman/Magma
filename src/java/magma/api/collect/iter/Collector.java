@@ -1,4 +1,4 @@
-package magma.api.list;
+package magma.api.collect.iter;
 
 public interface Collector<T, C> {
     C createInitial();

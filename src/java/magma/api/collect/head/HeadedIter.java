@@ -1,4 +1,7 @@
-package magma.api.list;
+package magma.api.collect.head;
+
+import magma.api.collect.iter.Collector;
+import magma.api.collect.iter.Iter;
 
 import java.util.function.BiFunction;
 import java.util.function.Function;

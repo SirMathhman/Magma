@@ -1,8 +1,8 @@
 package magma.app.compile;
 
 import magma.api.Error;
-import magma.api.list.Joiner;
-import magma.api.list.Lists;
+import magma.api.collect.Joiner;
+import magma.api.collect.list.Lists;
 import magma.api.result.Err;
 import magma.api.result.Ok;
 import magma.api.result.Result;
@@ -23,7 +23,7 @@ public class RuleCompiler implements Compiler {
     static Node transform(String source, NodeWithNodeLists<Node> root) {
         final var transformed = root.findNodeList("children")
                 .orElse(Lists.empty())
-                .stream()
+                .iter()
                 .filter(node -> node.is("import"))
                 .map(node -> node.withString("source", source))
                 .toList();
@@ -36,7 +36,7 @@ public class RuleCompiler implements Compiler {
         final var namespace = source.computeNamespace();
         final var name = source.computeName();
 
-        final var joined = namespace.stream()
+        final var joined = namespace.iter()
                 .collect(new Joiner("."))
                 .orElse("");
 

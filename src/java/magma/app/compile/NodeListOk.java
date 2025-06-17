@@ -1,7 +1,7 @@
 package magma.app.compile;
 
-import magma.api.list.List;
-import magma.api.list.Lists;
+import magma.api.collect.list.List;
+import magma.api.collect.list.Lists;
 
 import java.util.function.Supplier;
 

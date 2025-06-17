@@ -1,6 +1,6 @@
 package magma.app.io;
 
-import magma.api.list.Iterable;
+import magma.api.collect.iter.Iterable;
 
 public interface Source {
     String computeName();

@@ -1,8 +1,8 @@
 package magma.app.io;
 
 import magma.api.Error;
-import magma.api.list.Iterable;
-import magma.api.list.JavaList;
+import magma.api.collect.iter.Iterable;
+import magma.api.collect.list.JavaList;
 import magma.api.result.Err;
 import magma.api.result.Ok;
 import magma.api.result.Result;
@@ -76,7 +76,7 @@ public record PathSources(Path rootDirectory) implements Sources {
     }
 
     public Result<Map<Source, String>, IOException> readIterable(Iterable<Path> files) {
-        return files.stream()
+        return files.iter()
                 .<Result<Map<Source, String>, IOException>>fold(new Ok<>(new HashMap<>()),
                         (currentResult, path) -> this.readFile(path, currentResult));
     }

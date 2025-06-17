@@ -1,6 +1,6 @@
 package magma.app.compile;
 
-import magma.api.list.Iterable;
+import magma.api.collect.iter.Iterable;
 
 public interface DivideState {
     DivideState append(char c);

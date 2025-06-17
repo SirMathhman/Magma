@@ -1,7 +1,7 @@
 package magma.app.compile;
 
-import magma.api.list.Iterable;
-import magma.api.list.Lists;
+import magma.api.collect.iter.Iterable;
+import magma.api.collect.list.Lists;
 
 public record CompileError(String message, Context context, Iterable<FormattedError> errors) implements FormattedError {
     public CompileError(String message, Context context) {

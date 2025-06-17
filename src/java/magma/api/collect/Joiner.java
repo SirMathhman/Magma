@@ -1,4 +1,6 @@
-package magma.api.list;
+package magma.api.collect;
+
+import magma.api.collect.iter.Collector;
 
 import java.util.Optional;
 

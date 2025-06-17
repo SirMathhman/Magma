@@ -1,7 +1,7 @@
 package magma.app.compile;
 
-import magma.api.list.Iterable;
-import magma.api.list.Lists;
+import magma.api.collect.iter.Iterable;
+import magma.api.collect.list.Lists;
 
 public final class DivideRule<Node extends NodeWithNodeLists<Node>, Error, NodeResult, StringResult extends AppendableStringResult<StringResult>> implements Rule<Node, NodeResult, StringResult> {
     private final String key;
@@ -43,7 +43,7 @@ public final class DivideRule<Node extends NodeWithNodeLists<Node>, Error, NodeR
 
     @Override
     public NodeResult lex(String input) {
-        return divide(input).stream()
+        return divide(input).iter()
                 .fold(this.resultFactory.fromEmptyNodeList(),
                         (maybeCurrent, element) -> maybeCurrent.add(() -> this.rule.lex(element)))
                 .toNode(this.nodeFactory, this.key);
@@ -53,7 +53,7 @@ public final class DivideRule<Node extends NodeWithNodeLists<Node>, Error, NodeR
     public StringResult generate(Node node) {
         return node.findNodeList(this.key)
                 .orElse(Lists.empty())
-                .stream()
+                .iter()
                 .fold(this.resultFactory.fromEmptyString(), this::foldString);
     }
 

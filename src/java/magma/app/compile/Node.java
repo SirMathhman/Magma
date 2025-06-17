@@ -1,6 +1,6 @@
 package magma.app.compile;
 
-import magma.api.list.Iter;
+import magma.api.collect.iter.Iter;
 
 import java.util.Map;
 

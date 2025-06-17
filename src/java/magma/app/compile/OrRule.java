@@ -1,6 +1,6 @@
 package magma.app.compile;
 
-import magma.api.list.Iterable;
+import magma.api.collect.iter.Iterable;
 
 import java.util.function.Function;
 
@@ -21,7 +21,7 @@ public final class OrRule<Node, Error, NodeResult extends AttachableToStateResul
     }
 
     private <Value, Result extends AttachableToStateResult<Value, Error>> Result or(Function<Rule<Node, NodeResult, StringResult>, Result> mapper, Function<Value, Result> whenOk, Function<Iterable<Error>, Result> whenErr) {
-        final var reduce = this.rules.stream()
+        final var reduce = this.rules.iter()
                 .<Accumulator<Value, Error, Iterable<Error>>>fold(new MutableAccumulator<>(),
                         (state, rule) -> mapper.apply(rule)
                                 .attachToState(state));
