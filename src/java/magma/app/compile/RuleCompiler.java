@@ -14,10 +14,10 @@ import magma.app.io.Source;
 import java.util.Map;
 
 public class RuleCompiler implements Compiler {
-    private final Rule<Node, NodeResult<Node, FormattedError>, StringResult<FormattedError, Iterable<FormattedError>>> targetRule;
-    private final Rule<Node, NodeResult<Node, FormattedError>, StringResult<FormattedError, Iterable<FormattedError>>> sourceRule;
+    private final Rule<Node, NodeResult<Node, FormattedError, Iterable<FormattedError>>, StringResult<FormattedError, Iterable<FormattedError>>> targetRule;
+    private final Rule<Node, NodeResult<Node, FormattedError, Iterable<FormattedError>>, StringResult<FormattedError, Iterable<FormattedError>>> sourceRule;
 
-    public RuleCompiler(Rule<Node, NodeResult<Node, FormattedError>, StringResult<FormattedError, Iterable<FormattedError>>> sourceRule, Rule<Node, NodeResult<Node, FormattedError>, StringResult<FormattedError, Iterable<FormattedError>>> targetRule) {
+    public RuleCompiler(Rule<Node, NodeResult<Node, FormattedError, Iterable<FormattedError>>, StringResult<FormattedError, Iterable<FormattedError>>> sourceRule, Rule<Node, NodeResult<Node, FormattedError, Iterable<FormattedError>>, StringResult<FormattedError, Iterable<FormattedError>>> targetRule) {
         this.sourceRule = sourceRule;
         this.targetRule = targetRule;
     }
@@ -59,8 +59,9 @@ public class RuleCompiler implements Compiler {
     }
 
     StringResult<FormattedError, Iterable<FormattedError>> compileRoot(String input, String source) {
-        NodeResult<Node, FormattedError> nodeFormattedErrorResult = this.sourceRule.lex(input);
-        NodeResult<Node, FormattedError> nodeFormattedErrorResult1 = nodeFormattedErrorResult.transform(value1 -> transform(
+        NodeResult<Node, FormattedError, Iterable<FormattedError>> nodeFormattedErrorResult = this.sourceRule.lex(input);
+        NodeResult<Node, FormattedError, Iterable<FormattedError>> nodeFormattedErrorResult1 = nodeFormattedErrorResult.transform(
+                value1 -> transform(
                 source,
                 value1));
         return nodeFormattedErrorResult1.generate(this.targetRule::generate);

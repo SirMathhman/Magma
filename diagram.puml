@@ -14,11 +14,11 @@ magma.api.collect.list.Lists --> java.util.ArrayList
 magma.api.collect.list.Lists --> java.util.Arrays
 class magma.app.compile.PrependStringResult
 class magma.app.compile.NodeListOk
+magma.app.compile.NodeListOk --> magma.api.collect.iter.Iterable
 magma.app.compile.NodeListOk --> magma.api.collect.list.List
 magma.app.compile.NodeListOk --> magma.api.collect.list.Lists
 magma.app.compile.NodeListOk --> java.util.function.Supplier
 class magma.app.compile.NodeResult
-magma.app.compile.NodeResult --> magma.api.collect.iter.Iterable
 magma.app.compile.NodeResult --> java.util.function.Function
 class magma.app.compile.PrefixRule
 class magma.api.collect.iter.Iter
@@ -121,6 +121,7 @@ magma.app.compile.MutableDivideState --> magma.api.collect.iter.Iterable
 magma.app.compile.MutableDivideState --> magma.api.collect.list.List
 magma.app.compile.MutableDivideState --> magma.api.collect.list.Lists
 class magma.app.compile.NodeListErr
+magma.app.compile.NodeListErr --> magma.api.collect.iter.Iterable
 magma.app.compile.NodeListErr --> java.util.function.Supplier
 class magma.app.compile.StringContext
 class magma.app.compile.MapNode
@@ -177,7 +178,6 @@ magma.app.compile.CompileError --> magma.api.collect.list.Lists
 class magma.app.compile.ResultFactoryImpl
 magma.app.compile.ResultFactoryImpl --> magma.api.collect.iter.Iterable
 class magma.app.compile.NodeOk
-magma.app.compile.NodeOk --> magma.api.collect.iter.Iterable
 magma.app.compile.NodeOk --> java.util.function.Function
 magma.app.compile.NodeOk --> java.util.function.Supplier
 class magma.app.io.PathSources

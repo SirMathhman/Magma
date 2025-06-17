@@ -2,16 +2,16 @@ package magma.app.compile;
 
 import magma.api.collect.iter.Iterable;
 
-public class ResultFactoryImpl implements ResultFactory<Node, FormattedError, NodeResult<Node, FormattedError>, StringResult<FormattedError, Iterable<FormattedError>>> {
+public class ResultFactoryImpl implements ResultFactory<Node, FormattedError, NodeResult<Node, FormattedError, Iterable<FormattedError>>, StringResult<FormattedError, Iterable<FormattedError>>> {
     private ResultFactoryImpl() {
     }
 
-    public static ResultFactory<Node, FormattedError, NodeResult<Node, FormattedError>, StringResult<FormattedError, Iterable<FormattedError>>> create() {
+    public static ResultFactory<Node, FormattedError, NodeResult<Node, FormattedError, Iterable<FormattedError>>, StringResult<FormattedError, Iterable<FormattedError>>> create() {
         return new ResultFactoryImpl();
     }
 
     @Override
-    public NodeResult<Node, FormattedError> fromStringErr(String message, String input) {
+    public NodeResult<Node, FormattedError, Iterable<FormattedError>> fromStringErr(String message, String input) {
         return new NodeErr<>(new CompileError(message, new StringContext(input)));
     }
 
@@ -21,7 +21,7 @@ public class ResultFactoryImpl implements ResultFactory<Node, FormattedError, No
     }
 
     @Override
-    public NodeResult<Node, FormattedError> fromNode(Node value) {
+    public NodeResult<Node, FormattedError, Iterable<FormattedError>> fromNode(Node value) {
         return new NodeOk<>(value);
     }
 
@@ -31,7 +31,7 @@ public class ResultFactoryImpl implements ResultFactory<Node, FormattedError, No
     }
 
     @Override
-    public NodeResult<Node, FormattedError> fromStringErrWithChildren(String message, String input, Iterable<FormattedError> errors) {
+    public NodeResult<Node, FormattedError, Iterable<FormattedError>> fromStringErrWithChildren(String message, String input, Iterable<FormattedError> errors) {
         return new NodeErr<>(new CompileError(message, new StringContext(input), errors));
     }
 
@@ -41,7 +41,7 @@ public class ResultFactoryImpl implements ResultFactory<Node, FormattedError, No
     }
 
     @Override
-    public NodeListResult<Node, NodeResult<Node, FormattedError>> fromEmptyNodeList() {
+    public NodeListResult<Node, NodeResult<Node, FormattedError, Iterable<FormattedError>>> fromEmptyNodeList() {
         return new NodeListOk<>();
     }
 

@@ -5,19 +5,19 @@ import magma.api.collect.iter.Iterable;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
-public record NodeErr<Node, Error>(Error error) implements NodeResult<Node, Error> {
+public record NodeErr<Node, Error>(Error error) implements NodeResult<Node, Error, Iterable<Error>> {
     @Override
-    public NodeResult<Node, Error> mergeResult(Supplier<NodeResult<Node, Error>> other) {
+    public NodeResult<Node, Error, Iterable<Error>> mergeResult(Supplier<NodeResult<Node, Error, Iterable<Error>>> other) {
         return new NodeErr<>(this.error);
     }
 
     @Override
-    public NodeResult<Node, Error> mergeNode(Node value1) {
+    public NodeResult<Node, Error, Iterable<Error>> mergeNode(Node value1) {
         return new NodeErr<>(this.error);
     }
 
     @Override
-    public NodeResult<Node, Error> retype(String type) {
+    public NodeResult<Node, Error, Iterable<Error>> retype(String type) {
         return new NodeErr<>(this.error);
     }
 
@@ -27,7 +27,7 @@ public record NodeErr<Node, Error>(Error error) implements NodeResult<Node, Erro
     }
 
     @Override
-    public NodeResult<Node, Error> transform(Function<Node, Node> transformer) {
+    public NodeResult<Node, Error, Iterable<Error>> transform(Function<Node, Node> transformer) {
         return new NodeErr<>(this.error);
     }
 

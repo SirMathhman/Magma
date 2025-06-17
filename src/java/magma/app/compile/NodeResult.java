@@ -1,11 +1,11 @@
 package magma.app.compile;
 
-import magma.api.collect.iter.Iterable;
-
 import java.util.function.Function;
 
-public sealed interface NodeResult<Node, Error> extends MergeNodeResult<Node, NodeResult<Node, Error>>, TypeNodeResult<NodeResult<Node, Error>>, AttachableToStateResult<Accumulator<Node, Error, Iterable<Error>>> permits NodeErr, NodeOk {
-    StringResult<Error, Iterable<Error>> generate(Function<Node, StringResult<Error, Iterable<Error>>> mapper);
+public sealed interface NodeResult<Node, Error, Iterable> extends MergeNodeResult<Node, NodeResult<Node, Error, Iterable>>,
+        TypeNodeResult<NodeResult<Node, Error, Iterable>>,
+        AttachableToStateResult<Accumulator<Node, Error, Iterable>> permits NodeErr, NodeOk {
+    StringResult<Error, Iterable> generate(Function<Node, StringResult<Error, Iterable>> mapper);
 
-    NodeResult<Node, Error> transform(Function<Node, Node> transformer);
+    NodeResult<Node, Error, Iterable> transform(Function<Node, Node> transformer);
 }
