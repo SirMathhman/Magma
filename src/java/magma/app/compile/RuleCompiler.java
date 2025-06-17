@@ -37,9 +37,11 @@ public class RuleCompiler implements Compiler {
     Result<String, Error> compileSource(Source source, String input) {
         final var namespace = source.computeNamespace();
         final var name = source.computeName();
+        return this.getStringErrorResult(input, namespace, name);
+    }
 
-        final var joined = namespace.iter()
-                .collect(new Joiner("."))
+    private Result<String, Error> getStringErrorResult(String input, Iterable<String> namespace, String name) {
+        final var joined = namespace.collect(new Joiner("."))
                 .orElse("");
 
         final var joinedName = joined + "." + name;
@@ -61,9 +63,7 @@ public class RuleCompiler implements Compiler {
     StringResult<FormattedError, Iterable<FormattedError>> compileRoot(String input, String source) {
         NodeResult<Node, FormattedError, Iterable<FormattedError>> nodeFormattedErrorResult = this.sourceRule.lex(input);
         NodeResult<Node, FormattedError, Iterable<FormattedError>> nodeFormattedErrorResult1 = nodeFormattedErrorResult.transform(
-                value1 -> transform(
-                source,
-                value1));
+                value1 -> transform(source, value1));
         return nodeFormattedErrorResult1.generate(this.targetRule::generate);
     }
 
