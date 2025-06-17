@@ -21,8 +21,10 @@ class magma.app.compile.context.NodeContext
 magma.app.compile.context.NodeContext --> magma.app.compile.node.DisplayNode
 class magma.app.compile.rule.StripRule
 class magma.app.compile.result.ResultFactory
+magma.app.compile.result.ResultFactory --> magma.api.result.Result
 magma.app.compile.result.ResultFactory --> magma.app.compile.context.Context
 class magma.app.compile.rule.or.MutableOrState
+magma.app.compile.rule.or.MutableOrState --> magma.api.result.Result
 magma.app.compile.rule.or.MutableOrState --> magma.app.compile.context.Context
 magma.app.compile.rule.or.MutableOrState --> magma.app.compile.result.ResultFactory
 magma.app.compile.rule.or.MutableOrState --> java.util.ArrayList
