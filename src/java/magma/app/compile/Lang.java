@@ -3,6 +3,7 @@ package magma.app.compile;
 import magma.app.compile.error.NodeResult;
 import magma.app.compile.error.ResultFactoryImpl;
 import magma.app.compile.error.StringResult;
+import magma.app.compile.node.Node;
 import magma.app.compile.rule.InfixRule;
 import magma.app.compile.rule.PrefixRule;
 import magma.app.compile.rule.Rule;
@@ -16,7 +17,7 @@ import magma.app.compile.rule.or.OrRule;
 import java.util.List;
 
 public class Lang {
-    public static Rule<NodeResult, StringResult> createJavaRootRule() {
+    public static Rule<Node, NodeResult, StringResult> createJavaRootRule() {
         return new DivideRule("children",
                 new OrRule(List.of(createNamespacedRule("package"),
                         new TypeRule("import", createNamespacedRule("import"), ResultFactoryImpl.create()),
@@ -25,18 +26,18 @@ public class Lang {
                         createStructureRule("record")), ResultFactoryImpl.create()));
     }
 
-    static Rule<NodeResult, StringResult> createStructureRule(String type) {
-        return new InfixRule(new StringRule<>("before-infix", ResultFactoryImpl.create()),
+    static Rule<Node, NodeResult, StringResult> createStructureRule(String type) {
+        return new InfixRule<>(new StringRule<>("before-infix", ResultFactoryImpl.create()),
                 type + " ",
                 new StringRule<>("after-infix", ResultFactoryImpl.create()),
                 ResultFactoryImpl.create());
     }
 
-    public static Rule<NodeResult, StringResult> createPlantRootRule() {
+    public static Rule<Node, NodeResult, StringResult> createPlantRootRule() {
         return new DivideRule("children", new OrRule(List.of(createDependencyRule()), ResultFactoryImpl.create()));
     }
 
-    static Rule<NodeResult, StringResult> createNamespacedRule(String type) {
+    static Rule<Node, NodeResult, StringResult> createNamespacedRule(String type) {
         return new StripRule<>(new PrefixRule<>(type + " ",
                 new SuffixRule<>(new StringRule<>("destination", ResultFactoryImpl.create()),
                         ";",
@@ -44,8 +45,8 @@ public class Lang {
                 ResultFactoryImpl.create()));
     }
 
-    static Rule<NodeResult, StringResult> createDependencyRule() {
-        return new SuffixRule<>(new InfixRule(new StringRule<>("source", ResultFactoryImpl.create()),
+    static Rule<Node, NodeResult, StringResult> createDependencyRule() {
+        return new SuffixRule<>(new InfixRule<>(new StringRule<>("source", ResultFactoryImpl.create()),
                 " --> ",
                 new StringRule<>("destination", ResultFactoryImpl.create()),
                 ResultFactoryImpl.create()), "\n", ResultFactoryImpl.create());

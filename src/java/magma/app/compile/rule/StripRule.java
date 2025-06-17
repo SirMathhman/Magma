@@ -1,6 +1,7 @@
 package magma.app.compile.rule;
 
-public record StripRule<Node, Lex, Generate>(Rule<Lex, Generate> rule) implements Rule<Lex, Generate> {
+public record StripRule<Node, Lex, Generate>(
+        Rule<magma.app.compile.node.Node, Lex, Generate> rule) implements Rule<magma.app.compile.node.Node, Lex, Generate> {
     @Override
     public Lex lex(String segment) {
         return this.rule.lex(segment.strip());

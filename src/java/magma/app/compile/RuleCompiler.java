@@ -21,10 +21,10 @@ import java.util.ArrayList;
 import java.util.Map;
 
 public class RuleCompiler implements Compiler {
-    private final Rule<NodeResult, StringResult> targetRule;
-    private final Rule<NodeResult, StringResult> sourceRule;
+    private final Rule<Node, NodeResult, StringResult> targetRule;
+    private final Rule<Node, NodeResult, StringResult> sourceRule;
 
-    public RuleCompiler(Rule<NodeResult, StringResult> sourceRule, Rule<NodeResult, StringResult> targetRule) {
+    public RuleCompiler(Rule<Node, NodeResult, StringResult> sourceRule, Rule<Node, NodeResult, StringResult> targetRule) {
         this.sourceRule = sourceRule;
         this.targetRule = targetRule;
     }

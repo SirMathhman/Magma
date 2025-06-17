@@ -5,7 +5,7 @@ import magma.app.compile.error.ResultFactory;
 import magma.app.compile.node.MapNode;
 import magma.app.compile.node.Node;
 
-public final class StringRule<StringResult> implements Rule<NodeResult, StringResult> {
+public final class StringRule<StringResult> implements Rule<Node, NodeResult, StringResult> {
     private final String key;
     private final ResultFactory<Node, NodeResult, StringResult> factory;
 

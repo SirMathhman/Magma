@@ -5,12 +5,12 @@ import magma.app.compile.error.StringErr;
 import magma.app.compile.error.StringOk;
 import magma.app.compile.error.StringResult;
 
-public final class SuffixRule<Node, Error, NodeResult> implements Rule<NodeResult, StringResult> {
-    private final Rule<NodeResult, StringResult> rule;
+public final class SuffixRule<Node, Error, NodeResult> implements Rule<magma.app.compile.node.Node, NodeResult, StringResult> {
+    private final Rule<magma.app.compile.node.Node, NodeResult, StringResult> rule;
     private final String suffix;
     private final ResultFactory<Node, NodeResult, StringResult> factory;
 
-    public SuffixRule(Rule<NodeResult, StringResult> rule, String suffix, ResultFactory<Node, NodeResult, StringResult> factory) {
+    public SuffixRule(Rule<magma.app.compile.node.Node, NodeResult, StringResult> rule, String suffix, ResultFactory<Node, NodeResult, StringResult> factory) {
         this.rule = rule;
         this.suffix = suffix;
         this.factory = factory;

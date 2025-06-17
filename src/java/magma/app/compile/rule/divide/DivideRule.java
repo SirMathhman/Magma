@@ -17,7 +17,8 @@ import magma.app.compile.rule.Rule;
 import java.util.ArrayList;
 import java.util.List;
 
-public record DivideRule(String key, Rule<NodeResult, StringResult> rule) implements Rule<NodeResult, StringResult> {
+public record DivideRule(String key,
+                         Rule<Node, NodeResult, StringResult> rule) implements Rule<Node, NodeResult, StringResult> {
     private static List<String> divide(CharSequence input) {
         DivideState current = new MutableDivideState();
         for (var i = 0; i < input.length(); i++) {

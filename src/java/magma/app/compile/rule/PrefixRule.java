@@ -6,12 +6,12 @@ import magma.app.compile.error.StringErr;
 import magma.app.compile.error.StringOk;
 import magma.app.compile.error.StringResult;
 
-public final class PrefixRule<Node, Error> implements Rule<NodeResult, StringResult> {
+public final class PrefixRule<Node, Error> implements Rule<magma.app.compile.node.Node, NodeResult, StringResult> {
     private final String prefix;
-    private final Rule<NodeResult, StringResult> rule;
+    private final Rule<magma.app.compile.node.Node, NodeResult, StringResult> rule;
     private final ResultFactory<Node, NodeResult, StringResult> factory;
 
-    public PrefixRule(String prefix, Rule<NodeResult, StringResult> rule, ResultFactory<Node, NodeResult, StringResult> factory) {
+    public PrefixRule(String prefix, Rule<magma.app.compile.node.Node, NodeResult, StringResult> rule, ResultFactory<Node, NodeResult, StringResult> factory) {
         this.prefix = prefix;
         this.rule = rule;
         this.factory = factory;

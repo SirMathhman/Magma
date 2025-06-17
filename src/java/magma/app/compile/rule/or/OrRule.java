@@ -13,11 +13,11 @@ import magma.app.compile.rule.Rule;
 
 import java.util.List;
 
-public final class OrRule implements Rule<NodeResult, StringResult> {
-    private final List<Rule<NodeResult, StringResult>> rules;
+public final class OrRule implements Rule<Node, NodeResult, StringResult> {
+    private final List<Rule<Node, NodeResult, StringResult>> rules;
     private final ResultFactory<Node, NodeResult, StringResult> factory;
 
-    public OrRule(List<Rule<NodeResult, StringResult>> rules, ResultFactory<Node, NodeResult, StringResult> factory) {
+    public OrRule(List<Rule<Node, NodeResult, StringResult>> rules, ResultFactory<Node, NodeResult, StringResult> factory) {
         this.rules = rules;
         this.factory = factory;
     }

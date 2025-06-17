@@ -1,17 +1,16 @@
 package magma.app.compile.rule;
 
-import magma.app.compile.error.NodeResult;
+import magma.app.compile.error.AppendableStringResult;
+import magma.app.compile.error.MergeNodeResult;
 import magma.app.compile.error.ResultFactory;
-import magma.app.compile.error.StringResult;
-import magma.app.compile.node.Node;
 
-public final class InfixRule implements Rule<NodeResult, StringResult> {
-    private final Rule<NodeResult, StringResult> leftRule;
+public final class InfixRule<Node, NodeResult extends MergeNodeResult<Node, NodeResult>, StringResult extends AppendableStringResult<StringResult>> implements Rule<Node, NodeResult, StringResult> {
+    private final Rule<Node, NodeResult, StringResult> leftRule;
     private final String infix;
-    private final Rule<NodeResult, StringResult> rightRule;
+    private final Rule<Node, NodeResult, StringResult> rightRule;
     private final ResultFactory<Node, NodeResult, StringResult> factory;
 
-    public InfixRule(Rule<NodeResult, StringResult> leftRule, String infix, Rule<NodeResult, StringResult> rightRule, ResultFactory<Node, NodeResult, StringResult> factory) {
+    public InfixRule(Rule<Node, NodeResult, StringResult> leftRule, String infix, Rule<Node, NodeResult, StringResult> rightRule, ResultFactory<Node, NodeResult, StringResult> factory) {
         this.leftRule = leftRule;
         this.infix = infix;
         this.rightRule = rightRule;
@@ -27,7 +26,7 @@ public final class InfixRule implements Rule<NodeResult, StringResult> {
         final var left = input.substring(0, index);
         final var right = input.substring(index + this.infix.length());
         return this.leftRule.lex(left)
-                .merge(() -> this.rightRule.lex(right));
+                .mergeResult(() -> this.rightRule.lex(right));
     }
 
     @Override
