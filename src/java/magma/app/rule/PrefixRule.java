@@ -1,23 +1,23 @@
 package magma.app.rule;
 
+import magma.CompileError;
+import magma.api.Err;
+import magma.api.Result;
 import magma.app.node.Node;
-
-import java.util.Optional;
 
 public record PrefixRule(String prefix, Rule rule) implements Rule {
     @Override
-    public Optional<Node> lex(String input) {
-        if (!input.startsWith(this.prefix()))
-            return Optional.empty();
+    public Result<Node, CompileError> lex(String input) {
+        if (!input.startsWith(this.prefix))
+            return new Err<>(new CompileError("Prefix '" + this.prefix + "' not present"));
 
-        final var slice = input.substring(this.prefix()
-                .length());
+        final var slice = input.substring(this.prefix.length());
         return this.rule()
                 .lex(slice);
     }
 
     @Override
-    public Optional<String> generate(Node node) {
+    public Result<String, CompileError> generate(Node node) {
         return this.rule.generate(node)
                 .map(result -> this.prefix + result);
     }

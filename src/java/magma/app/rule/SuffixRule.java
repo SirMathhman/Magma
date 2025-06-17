@@ -1,23 +1,23 @@
 package magma.app.rule;
 
+import magma.CompileError;
+import magma.api.Err;
+import magma.api.Result;
 import magma.app.node.Node;
-
-import java.util.Optional;
 
 public record SuffixRule(Rule rule, String suffix) implements Rule {
     @Override
-    public Optional<Node> lex(String input) {
-        if (!input.endsWith(this.suffix()))
-            return Optional.empty();
+    public Result<Node, CompileError> lex(String input) {
+        if (!input.endsWith(this.suffix))
+            return new Err<>(new CompileError("Suffix '" + this.suffix + "' not present"));
 
-        final var withoutEnd = input.substring(0, input.length() - this.suffix()
-                .length());
+        final var withoutEnd = input.substring(0, input.length() - this.suffix.length());
         return this.rule()
                 .lex(withoutEnd);
     }
 
     @Override
-    public Optional<String> generate(Node node) {
+    public Result<String, CompileError> generate(Node node) {
         return this.rule.generate(node)
                 .map(result -> result + this.suffix);
     }

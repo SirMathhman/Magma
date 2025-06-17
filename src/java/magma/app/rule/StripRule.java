@@ -1,17 +1,17 @@
 package magma.app.rule;
 
+import magma.CompileError;
+import magma.api.Result;
 import magma.app.node.Node;
-
-import java.util.Optional;
 
 public record StripRule(Rule rule) implements Rule {
     @Override
-    public Optional<Node> lex(String segment) {
+    public Result<Node, CompileError> lex(String segment) {
         return this.rule.lex(segment.strip());
     }
 
     @Override
-    public Optional<String> generate(Node node) {
+    public Result<String, CompileError> generate(Node node) {
         return this.rule.generate(node);
     }
 }

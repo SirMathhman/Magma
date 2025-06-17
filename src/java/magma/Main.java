@@ -1,5 +1,6 @@
 package magma;
 
+import magma.api.Result;
 import magma.app.node.MapNode;
 import magma.app.node.Node;
 import magma.app.rule.InfixRule;
@@ -57,15 +58,16 @@ public class Main {
         final var input = Files.readString(source);
         final var joinedName = joined + "." + name;
 
-        final var output = compileRoot(input, joinedName);
+        final var output = compileRoot(input, joinedName).findValue()
+                .orElse("");
+
         return "class " + joinedName + "\n" + output;
     }
 
-    private static String compileRoot(String input, String source) {
+    private static Result<String, CompileError> compileRoot(String input, String source) {
         return createJavaRootRule().lex(input)
                 .map(children -> transform(source, children))
-                .flatMap(createPlantRootRule()::generate)
-                .orElse("");
+                .flatMap(createPlantRootRule()::generate);
     }
 
     private static Rule createJavaRootRule() {

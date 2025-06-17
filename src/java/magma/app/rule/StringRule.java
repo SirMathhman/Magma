@@ -1,18 +1,22 @@
 package magma.app.rule;
 
+import magma.CompileError;
+import magma.api.Err;
+import magma.api.Ok;
+import magma.api.Result;
 import magma.app.node.MapNode;
 import magma.app.node.Node;
 
-import java.util.Optional;
-
 public record StringRule(String key) implements Rule {
     @Override
-    public Optional<Node> lex(String input) {
-        return Optional.of(new MapNode().withString(this.key, input));
+    public Result<Node, CompileError> lex(String input) {
+        return new Ok<>(new MapNode().withString(this.key, input));
     }
 
     @Override
-    public Optional<String> generate(Node node) {
-        return node.findString(this.key);
+    public Result<String, CompileError> generate(Node node) {
+        return node.findString(this.key)
+                .<Result<String, CompileError>>map(Ok::new)
+                .orElseGet(() -> new Err<>(new CompileError("String '" + this.key + "' not present")));
     }
 }

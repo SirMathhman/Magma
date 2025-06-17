@@ -1,15 +1,16 @@
 package magma.app.rule;
 
+import magma.CompileError;
+import magma.api.Err;
+import magma.api.Result;
 import magma.app.node.Node;
-
-import java.util.Optional;
 
 public record InfixRule(Rule leftRule, String infix, Rule rightRule) implements Rule {
     @Override
-    public Optional<Node> lex(String input) {
+    public Result<Node, CompileError> lex(String input) {
         final var index = input.indexOf(this.infix);
         if (index == -1)
-            return Optional.empty();
+            return new Err<>(new CompileError("Infix '" + this.infix + "' not present"));
 
         final var left = input.substring(0, index);
         final var right = input.substring(index + this.infix.length());
@@ -19,7 +20,7 @@ public record InfixRule(Rule leftRule, String infix, Rule rightRule) implements 
     }
 
     @Override
-    public Optional<String> generate(Node node) {
+    public Result<String, CompileError> generate(Node node) {
         return this.leftRule.generate(node)
                 .flatMap(leftResult -> this.rightRule.generate(node)
                         .map(rightResult -> leftResult + this.infix + rightResult));

@@ -1,13 +1,14 @@
 package magma.app.rule.divide;
 
+import magma.CompileError;
+import magma.api.Ok;
+import magma.api.Result;
 import magma.app.node.MapNode;
 import magma.app.node.Node;
 import magma.app.rule.Rule;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
-import java.util.stream.Collectors;
 
 public record DivideRule(String key, Rule rule) implements Rule {
     private static List<String> divide(CharSequence input) {
@@ -30,22 +31,31 @@ public record DivideRule(String key, Rule rule) implements Rule {
     }
 
     @Override
-    public Optional<Node> lex(String input) {
-        final var children = divide(input).stream()
-                .map(this.rule::lex)
-                .flatMap(Optional::stream)
-                .toList();
+    public Result<Node, CompileError> lex(String input) {
+        return divide(input).stream()
+                .reduce(new Ok<>(new ArrayList<>()), this::foldElement, (_, next) -> next)
+                .map(children -> new MapNode().withNodeList(this.key(), children));
+    }
 
-        return Optional.of(new MapNode().withNodeList(this.key(), children));
+    private Result<List<Node>, CompileError> foldElement(Result<List<Node>, CompileError> maybeCurrent, String element) {
+        return maybeCurrent.flatMap(current -> DivideRule.this.rule.lex(element)
+                .map(result -> {
+                    current.add(result);
+                    return current;
+                }));
     }
 
     @Override
-    public Optional<String> generate(Node node) {
-        return Optional.of(node.findNodeList(this.key)
+    public Result<String, CompileError> generate(Node node) {
+        return node.findNodeList(this.key)
                 .orElse(new ArrayList<>())
                 .stream()
-                .map(this.rule::generate)
-                .flatMap(Optional::stream)
-                .collect(Collectors.joining()));
+                .reduce(new Ok<>(new StringBuilder()), this::foldString, (_, next) -> next)
+                .map(StringBuilder::toString);
+    }
+
+    private Result<StringBuilder, CompileError> foldString(Result<StringBuilder, CompileError> maybeCurrent, Node element) {
+        return maybeCurrent.flatMap(current -> this.rule.generate(element)
+                .map(current::append));
     }
 }
