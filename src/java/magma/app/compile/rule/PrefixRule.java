@@ -2,8 +2,8 @@ package magma.app.compile.rule;
 
 import magma.api.result.Err;
 import magma.api.result.Result;
-import magma.app.compile.CompileError;
 import magma.app.compile.context.StringContext;
+import magma.app.compile.error.CompileError;
 import magma.app.compile.node.Node;
 
 public record PrefixRule(String prefix, Rule rule) implements Rule {

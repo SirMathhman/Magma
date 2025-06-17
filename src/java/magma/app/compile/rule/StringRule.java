@@ -3,8 +3,8 @@ package magma.app.compile.rule;
 import magma.api.result.Err;
 import magma.api.result.Ok;
 import magma.api.result.Result;
-import magma.app.compile.CompileError;
 import magma.app.compile.context.NodeContext;
+import magma.app.compile.error.CompileError;
 import magma.app.compile.node.MapNode;
 import magma.app.compile.node.Node;
 
