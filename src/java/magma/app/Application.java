@@ -3,7 +3,7 @@ package magma.app;
 import magma.api.io.IOError;
 import magma.api.io.IOOption;
 import magma.api.io.SimpleIOOption;
-import magma.api.list.ListLike;
+import magma.api.list.Sequence;
 import magma.api.result.Err;
 import magma.api.result.Ok;
 import magma.api.result.Result;
@@ -16,7 +16,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 public record Application(Sources sources, Compiler compiler, Targets targets) {
-    private static IOOption compileAll(ListLike<Source> sources, Targets targets, Compiler compiler) {
+    private static IOOption compileAll(Sequence<Source> sources, Targets targets, Compiler compiler) {
         return switch (readAll(sources)) {
             case Err(var error) -> SimpleIOOption.of(error);
             case Ok(var sourceMap) -> compileAndWrite(sourceMap, targets, compiler);
@@ -28,7 +28,7 @@ public record Application(Sources sources, Compiler compiler, Targets targets) {
         return targets.write("@startuml\nskinparam linetype ortho\n" + fileName + "@enduml");
     }
 
-    private static Result<Map<Source, String>, IOError> readAll(ListLike<Source> sources) {
+    private static Result<Map<Source, String>, IOError> readAll(Sequence<Source> sources) {
         final var sourceMap = new HashMap<Source, String>();
         for (var i = 0; i < sources.size(); i++) {
             final var source = sources.get(i);
@@ -46,8 +46,8 @@ public record Application(Sources sources, Compiler compiler, Targets targets) {
 
     public IOOption run() {
         return switch (this.sources.collect()) {
-            case Err<ListLike<Source>, IOError>(var error) -> SimpleIOOption.of(error);
-            case Ok<ListLike<Source>, IOError>(var files) -> compileAll(files, this.targets, this.compiler);
+            case Err<Sequence<Source>, IOError>(var error) -> SimpleIOOption.of(error);
+            case Ok<Sequence<Source>, IOError>(var files) -> compileAll(files, this.targets, this.compiler);
         };
     }
 }

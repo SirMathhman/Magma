@@ -4,13 +4,14 @@ import jvm.list.JVMLists;
 import magma.api.io.IOError;
 import magma.api.io.PathLike;
 import magma.api.list.ListLike;
+import magma.api.list.Sequence;
 import magma.api.option.Option;
 import magma.api.result.Result;
 import magma.app.io.location.Location;
 import magma.app.io.location.SimpleLocation;
 
 public record PathSource(PathLike sourceDirectory, PathLike source) implements Source {
-    private static ListLike<String> computeNamespace(PathLike parent) {
+    private static Sequence<String> computeNamespace(PathLike parent) {
         final ListLike<String> segments = JVMLists.empty();
         for (var i = 0; i < parent.getNameCount(); i++)
             segments.add(parent.getName(i)
@@ -40,7 +41,7 @@ public record PathSource(PathLike sourceDirectory, PathLike source) implements S
         return new SimpleLocation(namespace, name);
     }
 
-    private String join(ListLike<String> list) {
+    private String join(Sequence<String> list) {
         Option<String> option = Option.empty();
         for (var i = 0; i < list.size(); i++) {
             final var element = list.get(i);

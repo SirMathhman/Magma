@@ -1,6 +1,6 @@
 package magma.app.compile.divide;
 
-import magma.api.list.ListLike;
+import magma.api.list.Sequence;
 
 public interface DivideState {
     DivideState enter();
@@ -13,5 +13,5 @@ public interface DivideState {
 
     boolean isLevel();
 
-    ListLike<String> unwrap();
+    Sequence<String> unwrap();
 }

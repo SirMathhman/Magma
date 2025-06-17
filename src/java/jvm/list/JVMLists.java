@@ -1,6 +1,7 @@
 package jvm.list;
 
 import magma.api.list.ListLike;
+import magma.api.list.Sequence;
 
 import java.util.Arrays;
 
@@ -10,7 +11,7 @@ public class JVMLists {
     }
 
     @SafeVarargs
-    public static <T> ListLike<T> of(T... elements) {
+    public static <T> Sequence<T> of(T... elements) {
         return new JVMList<>(Arrays.asList(elements));
     }
 }

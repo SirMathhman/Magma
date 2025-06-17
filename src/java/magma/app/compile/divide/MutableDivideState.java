@@ -2,6 +2,7 @@ package magma.app.compile.divide;
 
 import jvm.list.JVMLists;
 import magma.api.list.ListLike;
+import magma.api.list.Sequence;
 
 public class MutableDivideState implements DivideState {
     public ListLike<String> segments;
@@ -49,7 +50,7 @@ public class MutableDivideState implements DivideState {
     }
 
     @Override
-    public ListLike<String> unwrap() {
+    public Sequence<String> unwrap() {
         return this.segments;
     }
 }

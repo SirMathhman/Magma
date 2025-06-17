@@ -2,7 +2,7 @@ package magma.app.compile;
 
 import jvm.list.JVMLists;
 import magma.api.Tuple;
-import magma.api.list.ListLike;
+import magma.api.list.Sequence;
 import magma.api.option.Option;
 import magma.app.compile.divide.DivideState;
 import magma.app.compile.divide.MutableDivideState;
@@ -86,7 +86,7 @@ public class CompilerImpl implements Compiler {
             return generate(type, state, JVMLists.empty());
     }
 
-    private static Option<Tuple<CompileState, String>> generate(String type, CompileState state, ListLike<String> superTypes) {
+    private static Option<Tuple<CompileState, String>> generate(String type, CompileState state, Sequence<String> superTypes) {
         final var buffer = new StringBuilder();
         for (var i = 0; i < superTypes.size(); i++) {
             final var superType = superTypes.get(i);
@@ -100,7 +100,7 @@ public class CompilerImpl implements Compiler {
         return Option.of(new Tuple<>(state, generated));
     }
 
-    private static ListLike<String> divide(CharSequence input) {
+    private static Sequence<String> divide(CharSequence input) {
         DivideState current = new MutableDivideState();
         for (var i = 0; i < input.length(); i++) {
             final var c = input.charAt(i);

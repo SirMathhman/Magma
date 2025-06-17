@@ -1,12 +1,12 @@
 package magma.api.io;
 
-import magma.api.list.ListLike;
+import magma.api.list.Sequence;
 import magma.api.result.Result;
 
 public interface PathLike {
     IOOption writeString(CharSequence output);
 
-    Result<ListLike<PathLike>, IOError> walk();
+    Result<Sequence<PathLike>, IOError> walk();
 
     Result<String, IOError> readString();
 

@@ -5,7 +5,7 @@ import magma.api.io.IOError;
 import magma.api.io.IOOption;
 import magma.api.io.PathLike;
 import magma.api.io.SimpleIOOption;
-import magma.api.list.ListLike;
+import magma.api.list.Sequence;
 import magma.api.result.Err;
 import magma.api.result.Ok;
 import magma.api.result.Result;
@@ -27,7 +27,7 @@ public record JVMPath(Path path) implements PathLike {
     }
 
     @Override
-    public Result<ListLike<PathLike>, IOError> walk() {
+    public Result<Sequence<PathLike>, IOError> walk() {
         try (final var stream = Files.walk(this.path)) {
             return new Ok<>(new JVMList<>(stream.map(JVMPath::new)
                     .collect(Collectors.toList())));
