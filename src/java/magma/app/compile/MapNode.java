@@ -1,11 +1,13 @@
 package magma.app.compile;
 
+import magma.api.list.Iter;
+import magma.api.list.JavaList;
 import magma.api.list.Streamable;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
-import java.util.stream.Stream;
 
 public final class MapNode implements Node {
     private final Optional<String> maybeType;
@@ -39,15 +41,12 @@ public final class MapNode implements Node {
     @Override
     public Node merge(Node other) {
         return other.streamStrings()
-                .<Node>reduce(this,
-                        (node, entry) -> node.withString(entry.getKey(), entry.getValue()),
-                        (_, next) -> next);
+                .<Node>fold(this, (node, entry) -> node.withString(entry.getKey(), entry.getValue()));
     }
 
     @Override
-    public Stream<Map.Entry<String, String>> streamStrings() {
-        return this.strings.entrySet()
-                .stream();
+    public Iter<Map.Entry<String, String>> streamStrings() {
+        return new JavaList<>(new ArrayList<>(this.strings.entrySet())).stream();
     }
 
     @Override

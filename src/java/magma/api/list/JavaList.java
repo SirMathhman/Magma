@@ -1,7 +1,6 @@
 package magma.api.list;
 
 import java.util.ArrayList;
-import java.util.stream.Stream;
 
 public record JavaList<T>(java.util.List<T> elements) implements List<T> {
     public JavaList() {
@@ -9,8 +8,8 @@ public record JavaList<T>(java.util.List<T> elements) implements List<T> {
     }
 
     @Override
-    public Stream<T> stream() {
-        return this.elements.stream();
+    public Iter<T> stream() {
+        return new HeadedIter<>(new RangeHead(this.elements.size())).map(this.elements::get);
     }
 
     @Override

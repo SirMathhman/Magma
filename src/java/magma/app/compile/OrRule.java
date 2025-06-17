@@ -22,9 +22,9 @@ public final class OrRule<Node, Error, NodeResult extends AttachableToStateResul
 
     private <Value, Result extends AttachableToStateResult<Value, Error>> Result or(Function<Rule<Node, NodeResult, StringResult>, Result> mapper, Function<Value, Result> whenOk, Function<Streamable<Error>, Result> whenErr) {
         final var reduce = this.rules.stream()
-                .<Accumulator<Value, Error, Streamable<Error>>>reduce(new MutableAccumulator<>(),
+                .<Accumulator<Value, Error, Streamable<Error>>>fold(new MutableAccumulator<>(),
                         (state, rule) -> mapper.apply(rule)
-                                .attachToState(state), (_, next) -> next);
+                                .attachToState(state));
         return reduce.match(whenOk, whenErr);
     }
 

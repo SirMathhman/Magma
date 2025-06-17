@@ -1,8 +1,9 @@
 package magma.app.compile;
 
+import magma.api.list.Iter;
+
 import java.util.Map;
-import java.util.stream.Stream;
 
 public interface Node extends MergeNode<Node>, TypeNode<Node>, DisplayNode, NodeWithStrings<Node>, NodeWithNodeLists<Node> {
-    Stream<Map.Entry<String, String>> streamStrings();
+    Iter<Map.Entry<String, String>> streamStrings();
 }

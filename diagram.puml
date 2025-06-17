@@ -41,6 +41,12 @@ magma.Main --> java.util.Map
 magma.Main --> java.util.Optional
 class magma.app.compile.MergeNode
 class magma.app.compile.Rule
+class magma.api.list.Head
+magma.api.list.Head --> java.util.Optional
+class magma.api.list.HeadedIter
+magma.api.list.HeadedIter --> java.util.function.BiFunction
+magma.api.list.HeadedIter --> java.util.function.Function
+magma.api.list.HeadedIter --> java.util.function.Predicate
 class magma.app.compile.AppendableStringResult
 magma.app.compile.AppendableStringResult --> java.util.function.Supplier
 class magma.app.compile.DivideRule
@@ -56,6 +62,11 @@ magma.app.compile.Lang --> magma.api.list.Lists
 class magma.app.compile.NodeWithNodeLists
 magma.app.compile.NodeWithNodeLists --> magma.api.list.Streamable
 magma.app.compile.NodeWithNodeLists --> java.util.Optional
+class magma.api.list.RangeHead
+magma.api.list.RangeHead --> java.util.Optional
+class magma.api.list.FilterHead
+magma.api.list.FilterHead --> java.util.Optional
+magma.api.list.FilterHead --> java.util.function.Predicate
 class magma.app.error.ThrowableError
 magma.app.error.ThrowableError --> magma.api.Error
 magma.app.error.ThrowableError --> java.io.PrintWriter
@@ -69,7 +80,6 @@ class magma.api.list.List
 class magma.app.compile.TypeNodeResult
 class magma.api.list.JavaList
 magma.api.list.JavaList --> java.util.ArrayList
-magma.api.list.JavaList --> java.util.stream.Stream
 class magma.app.compile.FormattedError
 magma.app.compile.FormattedError --> magma.api.Error
 class magma.app.io.PathSource
@@ -93,8 +103,8 @@ magma.app.io.Sources --> magma.api.Error
 magma.app.io.Sources --> magma.api.result.Result
 magma.app.io.Sources --> java.util.Map
 class magma.api.list.Streamable
-magma.api.list.Streamable --> java.util.stream.Stream
 class magma.app.compile.Context
+class magma.api.list.ListCollector
 class magma.app.compile.NodeFactory
 class magma.app.compile.Compiler
 magma.app.compile.Compiler --> magma.api.Error
@@ -118,27 +128,36 @@ class magma.app.compile.NodeListErr
 magma.app.compile.NodeListErr --> java.util.function.Supplier
 class magma.app.compile.StringContext
 class magma.app.compile.MapNode
+magma.app.compile.MapNode --> magma.api.list.JavaList
+magma.app.compile.MapNode --> magma.api.list.Iter
 magma.app.compile.MapNode --> magma.api.list.Streamable
+magma.app.compile.MapNode --> java.util.ArrayList
 magma.app.compile.MapNode --> java.util.HashMap
 magma.app.compile.MapNode --> java.util.Map
 magma.app.compile.MapNode --> java.util.Optional
-magma.app.compile.MapNode --> java.util.stream.Stream
 class magma.app.compile.NodeWithStrings
 magma.app.compile.NodeWithStrings --> java.util.Optional
 class magma.app.compile.MergeNodeResult
 magma.app.compile.MergeNodeResult --> java.util.function.Supplier
+class magma.api.list.Iter
+magma.api.list.Iter --> java.util.function.BiFunction
+magma.api.list.Iter --> java.util.function.Function
+magma.api.list.Iter --> java.util.function.Predicate
 class magma.app.compile.StripRule
 class magma.api.result.Ok
 magma.api.result.Ok --> java.util.function.Function
 class magma.app.compile.Node
 magma.app.compile.Node --> java.util.Map
-magma.app.compile.Node --> java.util.stream.Stream
+magma.app.compile.Node --> magma.api.list.Iter
+class magma.api.list.Collector
 class magma.app.compile.StringOk
 magma.app.compile.StringOk --> magma.api.list.Streamable
 magma.app.compile.StringOk --> java.util.function.Supplier
+class magma.api.list.Joiner
+magma.api.list.Joiner --> java.util.Optional
 class magma.app.compile.RuleCompiler
 magma.app.compile.RuleCompiler --> magma.api.Error
-magma.app.compile.RuleCompiler --> magma.api.list.JavaList
+magma.app.compile.RuleCompiler --> magma.api.list.Joiner
 magma.app.compile.RuleCompiler --> magma.api.list.Lists
 magma.app.compile.RuleCompiler --> magma.api.result.Err
 magma.app.compile.RuleCompiler --> magma.api.result.Ok
@@ -146,7 +165,6 @@ magma.app.compile.RuleCompiler --> magma.api.result.Result
 magma.app.compile.RuleCompiler --> magma.app.error.ApplicationError
 magma.app.compile.RuleCompiler --> magma.app.io.Source
 magma.app.compile.RuleCompiler --> java.util.Map
-magma.app.compile.RuleCompiler --> java.util.stream.Collectors
 class magma.app.compile.NodeContext
 class magma.app.compile.StringRule
 class magma.app.compile.CompileError

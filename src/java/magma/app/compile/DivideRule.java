@@ -44,9 +44,8 @@ public final class DivideRule<Node extends NodeWithNodeLists<Node>, Error, NodeR
     @Override
     public NodeResult lex(String input) {
         return divide(input).stream()
-                .reduce(this.resultFactory.fromEmptyNodeList(),
-                        (maybeCurrent, element) -> maybeCurrent.add(() -> this.rule.lex(element)),
-                        (_, next) -> next)
+                .fold(this.resultFactory.fromEmptyNodeList(),
+                        (maybeCurrent, element) -> maybeCurrent.add(() -> this.rule.lex(element)))
                 .toNode(this.nodeFactory, this.key);
     }
 
@@ -55,7 +54,7 @@ public final class DivideRule<Node extends NodeWithNodeLists<Node>, Error, NodeR
         return node.findNodeList(this.key)
                 .orElse(Lists.empty())
                 .stream()
-                .reduce(this.resultFactory.fromEmptyString(), this::foldString, (_, next) -> next);
+                .fold(this.resultFactory.fromEmptyString(), this::foldString);
     }
 
     private StringResult foldString(StringResult maybeCurrent, Node element) {

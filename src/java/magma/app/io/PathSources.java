@@ -77,9 +77,8 @@ public record PathSources(Path rootDirectory) implements Sources {
 
     public Result<Map<Source, String>, IOException> readIterable(Streamable<Path> files) {
         return files.stream()
-                .<Result<Map<Source, String>, IOException>>reduce(new Ok<>(new HashMap<>()),
-                        (currentResult, path) -> this.readFile(path, currentResult),
-                        (_, next) -> next);
+                .<Result<Map<Source, String>, IOException>>fold(new Ok<>(new HashMap<>()),
+                        (currentResult, path) -> this.readFile(path, currentResult));
     }
 
 }
