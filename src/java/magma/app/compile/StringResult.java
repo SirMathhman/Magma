@@ -1,5 +1,7 @@
 package magma.app.compile;
 
-public interface StringResult<Error, Result> extends AppendableStringResult<StringResult<Error, magma.api.result.Result<String, Error>>>, PrependStringResult<StringResult<Error, magma.api.result.Result<String, Error>>>, AttachableToStateResult<String, Error> {
-    Result toResult();
+import magma.api.result.Result;
+
+public interface StringResult<Error> extends AppendableStringResult<StringResult<Error>>, PrependStringResult<StringResult<Error>>, AttachableToStateResult<String, Error> {
+    Result<String, Error> toResult();
 }

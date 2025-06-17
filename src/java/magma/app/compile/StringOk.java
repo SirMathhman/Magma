@@ -6,7 +6,7 @@ import magma.app.compile.rule.or.Accumulator;
 
 import java.util.function.Supplier;
 
-public final class StringOk<Error> implements StringResult<Error, Result<String, Error>> {
+public final class StringOk<Error> implements StringResult<Error> {
     private final String value;
 
     public StringOk(String value) {
@@ -18,18 +18,18 @@ public final class StringOk<Error> implements StringResult<Error, Result<String,
     }
 
     @Override
-    public StringResult<Error, Result<String, Error>> appendResult(Supplier<StringResult<Error, Result<String, Error>>> generate) {
+    public StringResult<Error> appendResult(Supplier<StringResult<Error>> generate) {
         return generate.get()
                 .prependSlice(this.value);
     }
 
     @Override
-    public StringResult<Error, Result<String, Error>> prependSlice(String slice) {
+    public StringResult<Error> prependSlice(String slice) {
         return new StringOk<>(slice + this.value);
     }
 
     @Override
-    public StringResult<Error, Result<String, Error>> appendSlice(String infix) {
+    public StringResult<Error> appendSlice(String infix) {
         return new StringOk<>(this.value + infix);
     }
 

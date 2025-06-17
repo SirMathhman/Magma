@@ -1,16 +1,15 @@
 package magma.app.compile;
 
-import magma.api.result.Result;
 import magma.app.compile.context.NodeContext;
 import magma.app.compile.context.StringContext;
 
 import java.util.List;
 
-public class ResultFactoryImpl implements ResultFactory<Node, FormattedError, NodeResult<Node, FormattedError>, StringResult<FormattedError, Result<String, FormattedError>>> {
+public class ResultFactoryImpl implements ResultFactory<Node, FormattedError, NodeResult<Node, FormattedError>, StringResult<FormattedError>> {
     private ResultFactoryImpl() {
     }
 
-    public static ResultFactory<Node, FormattedError, NodeResult<Node, FormattedError>, StringResult<FormattedError, Result<String, FormattedError>>> create() {
+    public static ResultFactory<Node, FormattedError, NodeResult<Node, FormattedError>, StringResult<FormattedError>> create() {
         return new ResultFactoryImpl();
     }
 
@@ -20,7 +19,7 @@ public class ResultFactoryImpl implements ResultFactory<Node, FormattedError, No
     }
 
     @Override
-    public StringResult<FormattedError, Result<String, FormattedError>> fromNodeErr(String message, Node node) {
+    public StringResult<FormattedError> fromNodeErr(String message, Node node) {
         return new StringErr<FormattedError>(new CompileError(message, new NodeContext(node)));
     }
 
@@ -30,7 +29,7 @@ public class ResultFactoryImpl implements ResultFactory<Node, FormattedError, No
     }
 
     @Override
-    public StringResult<FormattedError, Result<String, FormattedError>> fromString(String value) {
+    public StringResult<FormattedError> fromString(String value) {
         return new StringOk<FormattedError>(value);
     }
 
@@ -40,7 +39,7 @@ public class ResultFactoryImpl implements ResultFactory<Node, FormattedError, No
     }
 
     @Override
-    public StringResult<FormattedError, Result<String, FormattedError>> fromNodeErrWithChildren(String message, Node node, List<FormattedError> errors) {
+    public StringResult<FormattedError> fromNodeErrWithChildren(String message, Node node, List<FormattedError> errors) {
         return new StringErr<FormattedError>(new CompileError(message, new NodeContext(node), errors));
     }
 
@@ -50,7 +49,7 @@ public class ResultFactoryImpl implements ResultFactory<Node, FormattedError, No
     }
 
     @Override
-    public StringResult<FormattedError, Result<String, FormattedError>> fromEmptyString() {
+    public StringResult<FormattedError> fromEmptyString() {
         return new StringOk<FormattedError>();
     }
 }
