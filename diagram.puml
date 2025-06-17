@@ -3,6 +3,7 @@ skinparam linetype ortho
 class magma.io.Location
 magma.Main --> magma.io.Location
 magma.Main --> magma.io.Source
+magma.Main --> magma.io.Sources
 magma.Main --> magma.state.MutableState
 magma.Main --> magma.state.State
 magma.Main --> java.io.IOException
@@ -13,8 +14,6 @@ magma.Main --> java.util.HashMap
 magma.Main --> java.util.List
 magma.Main --> java.util.Map
 magma.Main --> java.util.Optional
-magma.Main --> java.util.Set
-magma.Main --> java.util.stream.Collectors
 class magma.Main
 magma.state.State --> java.util.List
 interface magma.state.State
@@ -28,4 +27,10 @@ magma.state.MutableState --> java.util.ArrayList
 magma.state.MutableState --> java.util.List
 class magma.state.MutableState
 magma.state.MutableState --|> magma.state.State
+magma.io.Sources --> java.io.IOException
+magma.io.Sources --> java.nio.file.Files
+magma.io.Sources --> java.nio.file.Path
+magma.io.Sources --> java.util.Set
+magma.io.Sources --> java.util.stream.Collectors
+class magma.io.Sources
 @enduml

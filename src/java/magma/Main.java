@@ -2,6 +2,7 @@ package magma;
 
 import magma.io.Location;
 import magma.io.Source;
+import magma.io.Sources;
 import magma.state.MutableState;
 import magma.state.State;
 
@@ -13,13 +14,11 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.Set;
-import java.util.stream.Collectors;
 
 public class Main {
     public static void main(String[] args) {
         try {
-            final var sources = collect();
+            final var sources = new Sources(Paths.get(".", "src", "java")).collect();
             final var builder = new StringBuilder();
             for (var source : sources)
                 builder.append(compileSource(source));
@@ -29,17 +28,6 @@ public class Main {
         } catch (IOException e) {
             //noinspection CallToPrintStackTrace
             e.printStackTrace();
-        }
-    }
-
-    private static Set<Source> collect() throws IOException {
-        final var sourceDirectory = Paths.get(".", "src", "java");
-        try (final var stream = Files.walk(sourceDirectory)) {
-            return stream.filter(Files::isRegularFile)
-                    .filter(path -> path.toString()
-                            .endsWith(".java"))
-                    .map(source -> new Source(sourceDirectory, source))
-                    .collect(Collectors.toSet());
         }
     }
 
