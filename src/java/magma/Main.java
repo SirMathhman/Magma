@@ -24,7 +24,9 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 public class Main {
@@ -37,17 +39,39 @@ public class Main {
     }
 
     private static Optional<ApplicationError> collect(Iterable<Path> sources, Path sourceDirectory) {
-        Result<StringBuilder, ApplicationError> maybeCurrentOutput = new Ok<>(new StringBuilder());
-        for (var source : sources)
-            maybeCurrentOutput = maybeCurrentOutput.flatMap(currentOutput -> compileSource(sourceDirectory,
-                    source).mapValue(currentOutput::append));
-
-        return maybeCurrentOutput.match(currentOutput -> {
-            final var target = Paths.get(".", "diagram.puml");
-            final var content = "@startuml\nskinparam linetype ortho\n" + currentOutput + "@enduml";
-            return writeString(target, content).map(ThrowableError::new)
-                    .map(ApplicationError::new);
+        final var maybeInputs = readAll(sources);
+        return maybeInputs.match(inputs -> {
+            return compile(sourceDirectory, inputs).match(currentOutput -> {
+                final var target = Paths.get(".", "diagram.puml");
+                final var content = "@startuml\nskinparam linetype ortho\n" + currentOutput + "@enduml";
+                return writeString(target, content).map(ThrowableError::new)
+                        .map(ApplicationError::new);
+            }, Optional::of);
         }, Optional::of);
+    }
+
+    private static Result<String, ApplicationError> compile(Path sourceDirectory, Map<Path, String> inputs) {
+        Result<StringBuilder, ApplicationError> maybeCurrentOutput = new Ok<>(new StringBuilder());
+        for (var entry : inputs.entrySet())
+            maybeCurrentOutput = maybeCurrentOutput.flatMapValue(currentOutput -> compileSource(sourceDirectory,
+                    entry.getKey(),
+                    entry.getValue()).mapValue(currentOutput::append));
+
+        return maybeCurrentOutput.mapValue(StringBuilder::toString);
+    }
+
+    private static Result<Map<Path, String>, ApplicationError> readAll(Iterable<Path> sources) {
+        Result<Map<Path, String>, ApplicationError> maybeInputs = new Ok<>(new HashMap<>());
+        for (var source : sources)
+            maybeInputs = maybeInputs.flatMapValue(inner -> {
+                return readString(source).mapErr(ThrowableError::new)
+                        .mapErr(ApplicationError::new)
+                        .mapValue(input -> {
+                            inner.put(source, input);
+                            return inner;
+                        });
+            });
+        return maybeInputs;
     }
 
     private static Result<List<Path>, IOException> collect(Path sourceDirectory) {
@@ -72,7 +96,7 @@ public class Main {
         }
     }
 
-    private static Result<String, ApplicationError> compileSource(Path sourceDirectory, Path source) {
+    private static Result<String, ApplicationError> compileSource(Path sourceDirectory, Path source, String input) {
         final var relativeParent = sourceDirectory.relativize(source)
                 .getParent();
 
@@ -88,13 +112,9 @@ public class Main {
         final var name = fileName.substring(0, separator);
 
         final var joined = String.join(".", namespace);
-        return readString(source).mapErr(ThrowableError::new)
-                .mapErr(ApplicationError::new)
-                .flatMap(input -> {
-                    final var joinedName = joined + "." + name;
-                    return compileRoot(input, joinedName).mapValue(output -> "class " + joinedName + "\n" + output)
-                            .mapErr(ApplicationError::new);
-                });
+        final var joinedName = joined + "." + name;
+        return compileRoot(input, joinedName).mapValue(output -> "class " + joinedName + "\n" + output)
+                .mapErr(ApplicationError::new);
     }
 
     private static Result<String, IOException> readString(Path source) {
@@ -108,7 +128,7 @@ public class Main {
     private static Result<String, CompileError> compileRoot(String input, String source) {
         return createJavaRootRule().lex(input)
                 .mapValue(children -> transform(source, children))
-                .flatMap(createPlantRootRule()::generate);
+                .flatMapValue(createPlantRootRule()::generate);
     }
 
     private static Rule createJavaRootRule() {

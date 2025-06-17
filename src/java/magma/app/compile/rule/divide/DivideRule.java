@@ -44,7 +44,7 @@ public record DivideRule(String key, Rule rule) implements Rule {
     }
 
     private Result<List<Node>, CompileError> foldElement(Result<List<Node>, CompileError> maybeCurrent, String element) {
-        return maybeCurrent.flatMap(current -> DivideRule.this.rule.lex(element)
+        return maybeCurrent.flatMapValue(current -> DivideRule.this.rule.lex(element)
                 .mapValue(result -> {
                     current.add(result);
                     return current;
@@ -61,7 +61,7 @@ public record DivideRule(String key, Rule rule) implements Rule {
     }
 
     private Result<StringBuilder, CompileError> foldString(Result<StringBuilder, CompileError> maybeCurrent, Node element) {
-        return maybeCurrent.flatMap(current -> this.rule.generate(element)
+        return maybeCurrent.flatMapValue(current -> this.rule.generate(element)
                 .mapValue(current::append));
     }
 }
