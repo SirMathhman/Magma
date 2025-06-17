@@ -1,10 +1,6 @@
 package magma.app.compile.rule.or;
 
-import magma.api.result.Err;
-import magma.api.result.Ok;
 import magma.api.result.Result;
-import magma.app.compile.context.Context;
-import magma.app.compile.error.CompileError;
 import magma.app.compile.error.FormattedError;
 
 import java.util.ArrayList;
@@ -29,8 +25,7 @@ record MutableOrState<T>(Optional<T> maybeValue,
     }
 
     @Override
-    public Result<T, FormattedError> toResult(Context context) {
-        return this.maybeValue.<Result<T, FormattedError>>map(Ok::new)
-                .orElseGet(() -> new Err<>(new CompileError("No combination present", context)));
+    public Optional<T> maybeValue() {
+        return this.maybeValue;
     }
 }
