@@ -1,5 +1,7 @@
 package magma;
 
+import magma.api.result.Err;
+import magma.api.result.Ok;
 import magma.api.result.Result;
 import magma.app.compile.Compiler;
 import magma.app.compile.Lang;
@@ -16,6 +18,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Map;
 import java.util.Optional;
+import java.util.function.Function;
 
 public class Main {
     public static void main(String[] args) {
@@ -24,7 +27,13 @@ public class Main {
     }
 
     private static void handleResult(Result<Map<Source, String>, ApplicationError> result) {
-        result.match(Main::compileAll, Optional::of)
+        (switch (result) {
+            case Ok(Map<Source, String> value) ->
+                    ((Function<Map<Source, String>, Optional<ApplicationError>>) Main::compileAll).apply(value);
+            case Err(ApplicationError error1) ->
+                    ((Function<ApplicationError, Optional<ApplicationError>>) Optional::of).apply(error1);
+            default -> null;
+        })
                 .ifPresent(error -> System.err.println(error.display()));
     }
 
@@ -34,12 +43,17 @@ public class Main {
     }
 
     private static Optional<ApplicationError> handleCompileResult(Result<String, ApplicationError> result) {
-        return result.match(currentOutput -> {
-            final var target = Paths.get(".", "diagram.puml");
-            final var content = "@startuml\nskinparam linetype ortho\n" + currentOutput + "@enduml";
-            return writeString(target, content).map(ThrowableError::new)
-                    .map(ApplicationError::new);
-        }, Optional::of);
+        return switch (result) {
+            case Ok(String value) -> ((Function<String, Optional<ApplicationError>>) currentOutput -> {
+                final var target = Paths.get(".", "diagram.puml");
+                final var content = "@startuml\nskinparam linetype ortho\n" + currentOutput + "@enduml";
+                return writeString(target, content).map(ThrowableError::new)
+                        .map(ApplicationError::new);
+            }).apply(value);
+            case Err(ApplicationError error) ->
+                    ((Function<ApplicationError, Optional<ApplicationError>>) Optional::of).apply(error);
+            default -> null;
+        };
     }
 
     private static Optional<IOException> writeString(Path target, CharSequence content) {

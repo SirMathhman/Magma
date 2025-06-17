@@ -1,6 +1,7 @@
 package magma.app.compile.rule.or;
 
-import magma.api.result.Matching;
+import magma.api.result.Err;
+import magma.api.result.Ok;
 import magma.api.result.Result;
 import magma.app.compile.error.ResultFactory;
 import magma.app.compile.node.DisplayNode;
@@ -10,7 +11,7 @@ import java.util.List;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
-public final class OrRule<Node extends DisplayNode, Error, StringResult extends Matching<String, Error>> implements Rule<Node, Result<Node, Error>, StringResult> {
+public final class OrRule<Node extends DisplayNode, Error, StringResult> implements Rule<Node, Result<Node, Error>, StringResult> {
     private final List<Rule<Node, Result<Node, Error>, StringResult>> rules;
     private final ResultFactory<Node, Result<Node, Error>, StringResult> factory;
 
@@ -26,12 +27,15 @@ public final class OrRule<Node extends DisplayNode, Error, StringResult extends 
                 () -> this.factory.fromStringErr("No combination present", input));
     }
 
-    private <Value, Return extends Matching<Value, Error>> Return or(Function<Rule<Node, Result<Node, Error>, StringResult>, Return> mapper, Function<Value, Return> whenPresent, Supplier<Return> whenEmpty) {
+    private <Value, Return> Return or(Function<Rule<Node, Result<Node, Error>, StringResult>, Return> mapper, Function<Value, Return> whenPresent, Supplier<Return> whenEmpty) {
         return this.rules.stream()
-                .<OrState<Value, Error, Result<Value, Error>>>reduce(new MutableOrState<>(),
-                        (state, rule) -> mapper.apply(rule)
-                                .match(state::withValue, state::withError),
-                        (_, next) -> next)
+                .<OrState<Value, Error, Result<Value, Error>>>reduce(new MutableOrState<>(), (state, rule) -> {
+                    return switch ((Result<Value, Error>) mapper.apply(rule)) {
+                        case Ok(Value value) -> state.withValue(value);
+                        case Err(Error error) -> state.withError(error);
+                        default -> null;
+                    };
+                }, (_, next) -> next)
                 .maybeValue()
                 .map(whenPresent)
                 .orElseGet(whenEmpty);

@@ -5,8 +5,6 @@ magma.app.compile.rule.divide.MutableDivideState --> java.util.ArrayList
 magma.app.compile.rule.divide.MutableDivideState --> java.util.List
 class magma.app.error.ApplicationError
 magma.app.error.ApplicationError --> magma.api.Error
-class magma.api.result.Matching
-magma.api.result.Matching --> java.util.function.Function
 class magma.app.compile.rule.divide.DivideState
 magma.app.compile.rule.divide.DivideState --> java.util.List
 class magma.app.compile.rule.SuffixRule
@@ -41,6 +39,8 @@ magma.app.compile.Compiler --> magma.app.error.ApplicationError
 magma.app.compile.Compiler --> magma.app.io.Source
 magma.app.compile.Compiler --> java.util.Map
 class magma.Main
+magma.Main --> magma.api.result.Err
+magma.Main --> magma.api.result.Ok
 magma.Main --> magma.api.result.Result
 magma.Main --> magma.app.compile.Compiler
 magma.Main --> magma.app.compile.Lang
@@ -56,6 +56,7 @@ magma.Main --> java.nio.file.Path
 magma.Main --> java.nio.file.Paths
 magma.Main --> java.util.Map
 magma.Main --> java.util.Optional
+magma.Main --> java.util.function.Function
 class magma.app.io.Source
 magma.app.io.Source --> java.util.Collection
 class magma.app.compile.node.MapNode
@@ -67,7 +68,8 @@ magma.app.compile.node.MapNode --> java.util.stream.Stream
 class magma.app.compile.error.FormattedError
 magma.app.compile.error.FormattedError --> magma.api.Error
 class magma.app.compile.rule.or.OrRule
-magma.app.compile.rule.or.OrRule --> magma.api.result.Matching
+magma.app.compile.rule.or.OrRule --> magma.api.result.Err
+magma.app.compile.rule.or.OrRule --> magma.api.result.Ok
 magma.app.compile.rule.or.OrRule --> magma.api.result.Result
 magma.app.compile.rule.or.OrRule --> magma.app.compile.error.ResultFactory
 magma.app.compile.rule.or.OrRule --> magma.app.compile.node.DisplayNode
@@ -118,7 +120,6 @@ class magma.app.compile.rule.InfixRule
 magma.app.compile.rule.InfixRule --> magma.api.result.Result
 magma.app.compile.rule.InfixRule --> magma.app.compile.error.ResultFactory
 magma.app.compile.rule.InfixRule --> magma.app.compile.node.MergingNode
-magma.app.compile.rule.InfixRule --> java.util.Objects
 class magma.app.compile.node.MergingNode
 class magma.app.compile.rule.StringRule
 magma.app.compile.rule.StringRule --> magma.api.result.Result

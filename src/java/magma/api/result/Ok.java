@@ -2,13 +2,7 @@ package magma.api.result;
 
 import java.util.function.Function;
 
-public class Ok<T, X> implements Result<T, X> {
-    private final T value;
-
-    public Ok(T value) {
-        this.value = value;
-    }
-
+public record Ok<T, X>(T value) implements Result<T, X> {
     @Override
     public <R> Result<R, X> mapValue(Function<T, R> mapper) {
         return new Ok<>(mapper.apply(this.value));
@@ -24,7 +18,6 @@ public class Ok<T, X> implements Result<T, X> {
         return new Ok<>(this.value);
     }
 
-    @Override
     public <R> R match(Function<T, R> whenOk, Function<X, R> whenErr) {
         return whenOk.apply(this.value);
     }
