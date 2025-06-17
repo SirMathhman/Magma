@@ -83,12 +83,17 @@ public class Main {
             return Optional.empty();
 
         final var withoutStart = stripped.substring("import ".length());
+        return getString(withoutStart).map(node -> node.withString("source", name))
+                .flatMap(Main::generate);
+    }
+
+    private static Optional<Node> getString(String withoutStart) {
         if (!withoutStart.endsWith(";"))
             return Optional.empty();
 
         final var withoutEnd = withoutStart.substring(0, withoutStart.length() - ";".length());
-        return generate(new MapNode().withString("source", name)
-                .withString("destination", withoutEnd));
+        final var node = new MapNode().withString("destination", withoutEnd);
+        return Optional.of(node);
     }
 
     private static Optional<String> generate(Node node) {
