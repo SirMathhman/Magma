@@ -21,9 +21,10 @@ class magma.app.compile.context.NodeContext
 magma.app.compile.context.NodeContext --> magma.app.compile.node.DisplayNode
 class magma.app.compile.rule.StripRule
 class magma.app.compile.rule.or.ResultFactory
+magma.app.compile.rule.or.ResultFactory --> magma.api.result.Result
+magma.app.compile.rule.or.ResultFactory --> magma.app.compile.error.FormattedError
 magma.app.compile.rule.or.ResultFactory --> magma.app.compile.result.ResultCreator
-class magma.api.result.Matchable
-magma.api.result.Matchable --> java.util.function.Function
+magma.app.compile.rule.or.ResultFactory --> magma.app.compile.result.SimpleResultCreator
 class magma.app.compile.rule.or.MutableOrState
 magma.app.compile.rule.or.MutableOrState --> magma.app.compile.context.Context
 magma.app.compile.rule.or.MutableOrState --> magma.app.compile.result.ResultCreator
@@ -66,11 +67,6 @@ magma.Main --> java.util.Map
 magma.Main --> java.util.Optional
 class magma.app.io.Source
 magma.app.io.Source --> java.util.Collection
-class magma.app.compile.rule.or.ResultFactoryImpl
-magma.app.compile.rule.or.ResultFactoryImpl --> magma.api.result.Result
-magma.app.compile.rule.or.ResultFactoryImpl --> magma.app.compile.error.FormattedError
-magma.app.compile.rule.or.ResultFactoryImpl --> magma.app.compile.result.ResultCreator
-magma.app.compile.rule.or.ResultFactoryImpl --> magma.app.compile.result.SimpleResultCreator
 class magma.app.compile.node.MapNode
 magma.app.compile.node.MapNode --> java.util.HashMap
 magma.app.compile.node.MapNode --> java.util.List
@@ -80,10 +76,11 @@ magma.app.compile.node.MapNode --> java.util.stream.Stream
 class magma.app.compile.error.FormattedError
 magma.app.compile.error.FormattedError --> magma.api.Error
 class magma.app.compile.rule.or.OrRule
-magma.app.compile.rule.or.OrRule --> magma.api.result.Matchable
+magma.app.compile.rule.or.OrRule --> magma.api.result.Result
 magma.app.compile.rule.or.OrRule --> magma.app.compile.context.Context
 magma.app.compile.rule.or.OrRule --> magma.app.compile.context.NodeContext
 magma.app.compile.rule.or.OrRule --> magma.app.compile.context.StringContext
+magma.app.compile.rule.or.OrRule --> magma.app.compile.error.FormattedError
 magma.app.compile.rule.or.OrRule --> magma.app.compile.node.DisplayNode
 magma.app.compile.rule.or.OrRule --> magma.app.compile.result.ResultCreator
 magma.app.compile.rule.or.OrRule --> magma.app.compile.rule.Rule
@@ -110,7 +107,6 @@ magma.app.compile.Lang --> magma.app.compile.rule.SuffixRule
 magma.app.compile.Lang --> magma.app.compile.rule.TypeRule
 magma.app.compile.Lang --> magma.app.compile.rule.divide.DivideRule
 magma.app.compile.Lang --> magma.app.compile.rule.or.OrRule
-magma.app.compile.Lang --> magma.app.compile.rule.or.ResultFactoryImpl
 magma.app.compile.Lang --> java.util.List
 class magma.app.compile.RuleCompiler
 magma.app.compile.RuleCompiler --> magma.api.result.Ok

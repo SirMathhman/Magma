@@ -1,9 +1,10 @@
 package magma.app.compile.rule.or;
 
-import magma.api.result.Matchable;
+import magma.api.result.Result;
 import magma.app.compile.context.Context;
 import magma.app.compile.context.NodeContext;
 import magma.app.compile.context.StringContext;
+import magma.app.compile.error.FormattedError;
 import magma.app.compile.node.DisplayNode;
 import magma.app.compile.result.ResultCreator;
 import magma.app.compile.rule.Rule;
@@ -11,23 +12,23 @@ import magma.app.compile.rule.Rule;
 import java.util.List;
 import java.util.function.Function;
 
-public final class OrRule<Node extends DisplayNode, Error, NodeResult extends Matchable<Node, Error>, StringResult extends Matchable<String, Error>> implements Rule<Node, NodeResult, StringResult> {
-    private final List<Rule<Node, NodeResult, StringResult>> rules;
-    private final ResultFactory<Node, NodeResult, StringResult> factory;
+public final class OrRule<Node extends DisplayNode> implements Rule<Node, Result<Node, FormattedError>, Result<String, FormattedError>> {
+    private final List<Rule<Node, Result<Node, FormattedError>, Result<String, FormattedError>>> rules;
+    private final ResultFactory<Node, Result<Node, FormattedError>, Result<String, FormattedError>> factory;
 
-    public OrRule(List<Rule<Node, NodeResult, StringResult>> rules, ResultFactory<Node, NodeResult, StringResult> factory) {
+    public OrRule(List<Rule<Node, Result<Node, FormattedError>, Result<String, FormattedError>>> rules, ResultFactory<Node, Result<Node, FormattedError>, Result<String, FormattedError>> factory) {
         this.rules = rules;
         this.factory = factory;
     }
 
     @Override
-    public NodeResult lex(String input) {
-        return this.or(this.factory.createNodeCreator(), rule -> rule.lex(input), new StringContext(input));
+    public Result<Node, FormattedError> lex(String input) {
+        return this.or(this.factory.createNodeCreator(), rule1 -> rule1.lex(input), new StringContext(input));
     }
 
-    private <Value, ValueResult extends Matchable<Value, Error>> ValueResult or(ResultCreator<Value, ValueResult> creator, Function<Rule<Node, NodeResult, StringResult>, ValueResult> mapper, Context context) {
+    private <Value> Result<Value, FormattedError> or(ResultCreator<Value, Result<Value, FormattedError>> factory, Function<Rule<Node, Result<Node, FormattedError>, Result<String, FormattedError>>, Result<Value, FormattedError>> mapper, Context context) {
         return this.rules.stream()
-                .<OrState<Value, Error, ValueResult>>reduce(new MutableOrState<>(creator),
+                .<OrState<Value, FormattedError, Result<Value, FormattedError>>>reduce(new MutableOrState<>(factory),
                         (state, rule) -> mapper.apply(rule)
                                 .match(state::withValue, state::withError),
                         (_, next) -> next)
@@ -35,7 +36,7 @@ public final class OrRule<Node extends DisplayNode, Error, NodeResult extends Ma
     }
 
     @Override
-    public StringResult generate(Node node) {
-        return this.or(this.factory.createStringCreator(), rule -> rule.generate(node), new NodeContext(node));
+    public Result<String, FormattedError> generate(Node node) {
+        return this.or(this.factory.createStringCreator(), rule1 -> rule1.generate(node), new NodeContext(node));
     }
 }
