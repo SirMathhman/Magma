@@ -8,10 +8,9 @@ import magma.app.compile.CompilerImpl;
 import magma.app.io.source.PathSources;
 import magma.app.io.source.Source;
 import magma.app.io.source.Sources;
+import magma.app.io.target.PathTargets;
 
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Map;
@@ -40,9 +39,7 @@ public class Main {
     private static Optional<IOException> compileAndWrite(Map<Source, String> sourceMap) {
         final Compiler compiler = new CompilerImpl();
         final var fileName = compiler.compile(sourceMap);
-        final var path = Paths.get(".", "diagram.puml");
-        final var output = "@startuml\nskinparam linetype ortho\n" + fileName + "@enduml";
-        return writeString(path, output);
+        return new PathTargets().write("@startuml\nskinparam linetype ortho\n" + fileName + "@enduml");
     }
 
     private static Result<Map<Source, String>, IOException> readAll(Iterable<Source> sources) {
@@ -59,14 +56,4 @@ public class Main {
 
         return new Ok<>(sourceMap);
     }
-
-    private static Optional<IOException> writeString(Path path, CharSequence output) {
-        try {
-            Files.writeString(path, output);
-            return Optional.empty();
-        } catch (IOException e) {
-            return Optional.of(e);
-        }
-    }
-
 }
