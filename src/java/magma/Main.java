@@ -12,6 +12,7 @@ import magma.app.rule.Rule;
 import magma.app.rule.StringRule;
 import magma.app.rule.StripRule;
 import magma.app.rule.SuffixRule;
+import magma.app.rule.TypeRule;
 import magma.app.rule.divide.DivideRule;
 
 import java.io.IOException;
