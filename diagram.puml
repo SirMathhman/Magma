@@ -121,10 +121,8 @@ magma.app.compile.rule.InfixRule --> magma.app.compile.node.MergingNode
 magma.app.compile.rule.InfixRule --> java.util.Objects
 class magma.app.compile.node.MergingNode
 class magma.app.compile.rule.StringRule
-magma.app.compile.rule.StringRule --> magma.api.result.Ok
 magma.app.compile.rule.StringRule --> magma.api.result.Result
-magma.app.compile.rule.StringRule --> magma.app.compile.error.FormattedError
-magma.app.compile.rule.StringRule --> magma.app.compile.error.ResultFactoryImpl
+magma.app.compile.rule.StringRule --> magma.app.compile.error.ResultFactory
 magma.app.compile.rule.StringRule --> magma.app.compile.node.MapNode
 magma.app.compile.rule.StringRule --> magma.app.compile.node.Node
 class magma.app.compile.context.StringContext

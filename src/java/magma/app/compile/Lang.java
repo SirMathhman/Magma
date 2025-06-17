@@ -27,8 +27,11 @@ public class Lang {
     }
 
     static Rule<Node, Result<Node, FormattedError>, Result<String, FormattedError>> createStructureRule(String type) {
-        return new InfixRule<>(new StringRule("before-infix", ResultFactoryImpl.create()),
-                type + " ", new StringRule("after-infix", ResultFactoryImpl.create()),
+        return new InfixRule<>(new StringRule<FormattedError, Result<String, FormattedError>>("before-infix",
+                ResultFactoryImpl.create()),
+                type + " ",
+                new StringRule<FormattedError, Result<String, FormattedError>>("after-infix",
+                        ResultFactoryImpl.create()),
                 ResultFactoryImpl.create());
     }
 
@@ -38,15 +41,19 @@ public class Lang {
 
     static Rule<Node, Result<Node, FormattedError>, Result<String, FormattedError>> createNamespacedRule(String type) {
         return new StripRule<>(new PrefixRule<>(type + " ",
-                new SuffixRule<>(new StringRule("destination", ResultFactoryImpl.create()),
+                new SuffixRule<>(new StringRule<FormattedError, Result<String, FormattedError>>("destination",
+                        ResultFactoryImpl.create()),
                         ";",
                         ResultFactoryImpl.create()),
                 ResultFactoryImpl.create()));
     }
 
     static Rule<Node, Result<Node, FormattedError>, Result<String, FormattedError>> createDependencyRule() {
-        return new SuffixRule<>(new InfixRule<>(new StringRule("source", ResultFactoryImpl.create()),
-                " --> ", new StringRule("destination", ResultFactoryImpl.create()),
+        return new SuffixRule<>(new InfixRule<>(new StringRule<FormattedError, Result<String, FormattedError>>("source",
+                ResultFactoryImpl.create()),
+                " --> ",
+                new StringRule<FormattedError, Result<String, FormattedError>>("destination",
+                        ResultFactoryImpl.create()),
                 ResultFactoryImpl.create()), "\n", ResultFactoryImpl.create());
     }
 }
