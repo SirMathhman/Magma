@@ -1,13 +1,13 @@
 package magma.api.io;
 
+import magma.api.option.Option;
 import magma.api.result.Result;
 
 import java.io.IOException;
-import java.util.Optional;
 import java.util.Set;
 
 public interface PathLike {
-    Optional<IOException> writeString(CharSequence output);
+    Option<IOException> writeString(CharSequence output);
 
     Result<Set<PathLike>, IOException> walk();
 

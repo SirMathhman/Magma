@@ -1,6 +1,9 @@
 package magma.app.compile;
 
 import magma.api.Tuple;
+import magma.api.option.None;
+import magma.api.option.Option;
+import magma.api.option.Some;
 import magma.app.compile.divide.DivideState;
 import magma.app.compile.divide.MutableDivideState;
 import magma.app.compile.state.CompileState;
@@ -11,7 +14,6 @@ import magma.app.io.source.Source;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 
 public class CompilerImpl implements Compiler {
     private static String compile(CompileState state, CharSequence input) {
@@ -30,7 +32,7 @@ public class CompilerImpl implements Compiler {
         return output.toString();
     }
 
-    private static Optional<Tuple<CompileState, String>> compileRootSegment(String input, CompileState state) {
+    private static Option<Tuple<CompileState, String>> compileRootSegment(String input, CompileState state) {
         final var strip = input.strip();
         if (strip.startsWith("import ")) {
             final var withoutStart = strip.substring("import ".length());
@@ -39,7 +41,7 @@ public class CompilerImpl implements Compiler {
                 final var separator = withoutEnd.lastIndexOf(".");
                 final var parent = withoutEnd.substring(0, separator);
                 final var child = withoutEnd.substring(separator + ".".length());
-                return Optional.of(new Tuple<>(state.addImport(new SimpleLocation(parent, child)),
+                return new Some<>(new Tuple<CompileState, String>(state.addImport(new SimpleLocation(parent, child)),
                         state.joinLocation() + " --> " + withoutEnd + "\n"));
             }
         }
@@ -56,19 +58,19 @@ public class CompilerImpl implements Compiler {
                 return maybeStructure;
         }
 
-        return Optional.empty();
+        return new None<>();
     }
 
-    private static Optional<Tuple<CompileState, String>> compileStructureDefinition(String type, String type1, String input, CompileState state) {
+    private static Option<Tuple<CompileState, String>> compileStructureDefinition(String type, String type1, String input, CompileState state) {
         final var index = input.indexOf(type + " ");
         if (index >= 0) {
             final var afterKeyword = input.substring((type + " ").length() + index);
             return compileStructureDefinitionTruncated(type1, afterKeyword, state);
         }
-        return Optional.empty();
+        return new None<>();
     }
 
-    private static Optional<Tuple<CompileState, String>> compileStructureDefinitionTruncated(String type, String afterKeyword, CompileState state) {
+    private static Option<Tuple<CompileState, String>> compileStructureDefinitionTruncated(String type, String afterKeyword, CompileState state) {
         final var index = afterKeyword.indexOf("implements ");
         if (index >= 0) {
             final var childName = afterKeyword.substring(index + "implements ".length())
@@ -85,7 +87,7 @@ public class CompilerImpl implements Compiler {
             return generate(type, state, new ArrayList<>());
     }
 
-    private static Optional<Tuple<CompileState, String>> generate(String type, CompileState state, Iterable<String> superTypes) {
+    private static Option<Tuple<CompileState, String>> generate(String type, CompileState state, Iterable<String> superTypes) {
         final var buffer = new StringBuilder();
         for (var superType : superTypes)
             buffer.append(state.joinLocation())
@@ -94,7 +96,7 @@ public class CompilerImpl implements Compiler {
                     .append("\n");
 
         final var generated = type + " " + state.joinLocation() + "\n" + buffer;
-        return Optional.of(new Tuple<>(state, generated));
+        return new Some<>(new Tuple<CompileState, String>(state, generated));
     }
 
     private static List<String> divide(CharSequence input) {

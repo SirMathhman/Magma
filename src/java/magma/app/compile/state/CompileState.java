@@ -1,13 +1,12 @@
 package magma.app.compile.state;
 
+import magma.api.option.Option;
 import magma.app.io.location.Location;
-
-import java.util.Optional;
 
 public interface CompileState {
     String joinLocation();
 
-    Optional<Location> find(String childName);
+    Option<Location> find(String childName);
 
     CompileState addImport(Location location);
 

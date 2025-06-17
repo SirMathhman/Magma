@@ -1,5 +1,8 @@
 package magma.api.io;
 
+import magma.api.option.None;
+import magma.api.option.Option;
+import magma.api.option.Some;
 import magma.api.result.Err;
 import magma.api.result.Ok;
 import magma.api.result.Result;
@@ -7,18 +10,17 @@ import magma.api.result.Result;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
 public record JavaPath(Path path) implements PathLike {
     @Override
-    public Optional<IOException> writeString(CharSequence output) {
+    public Option<IOException> writeString(CharSequence output) {
         try {
             Files.writeString(this.path, output);
-            return Optional.empty();
+            return new None<>();
         } catch (IOException e) {
-            return Optional.of(e);
+            return new Some<>(e);
         }
     }
 

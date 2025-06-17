@@ -1,10 +1,12 @@
 package magma.app.compile.state;
 
+import magma.api.option.None;
+import magma.api.option.Option;
+import magma.api.option.Some;
 import magma.app.io.location.Location;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 public final class SimpleCompileState implements CompileState {
     private final Location current;
@@ -25,12 +27,13 @@ public final class SimpleCompileState implements CompileState {
     }
 
     @Override
-    public Optional<Location> find(String childName) {
+    public Option<Location> find(String childName) {
         for (var anImport : this.imports)
-            if (anImport.isNamed(childName))
-                return Optional.of(anImport);
+            if (anImport.isNamed(childName)) {
+                return new Some<>(anImport);
+            }
 
-        return Optional.empty();
+        return new None<>();
     }
 
     @Override

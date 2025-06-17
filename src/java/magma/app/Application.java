@@ -1,5 +1,7 @@
 package magma.app;
 
+import magma.api.option.Option;
+import magma.api.option.Some;
 import magma.api.result.Err;
 import magma.api.result.Ok;
 import magma.api.result.Result;
@@ -11,18 +13,17 @@ import magma.app.io.target.Targets;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Set;
 
 public record Application(Sources sources, Compiler compiler, Targets targets) {
-    private static Optional<IOException> compileAll(Iterable<Source> sources, Targets targets, Compiler compiler) {
+    private static Option<IOException> compileAll(Iterable<Source> sources, Targets targets, Compiler compiler) {
         return switch (readAll(sources)) {
-            case Err(var error) -> Optional.of(error);
+            case Err(var error) -> new Some<>(error);
             case Ok(var sourceMap) -> compileAndWrite(sourceMap, targets, compiler);
         };
     }
 
-    private static Optional<IOException> compileAndWrite(Map<Source, String> sourceMap, Targets targets, Compiler compiler) {
+    private static Option<IOException> compileAndWrite(Map<Source, String> sourceMap, Targets targets, Compiler compiler) {
         final var fileName = compiler.compile(sourceMap);
         return targets.write("@startuml\nskinparam linetype ortho\n" + fileName + "@enduml");
     }
@@ -42,9 +43,9 @@ public record Application(Sources sources, Compiler compiler, Targets targets) {
         return new Ok<>(sourceMap);
     }
 
-    public Optional<IOException> run() {
+    public Option<IOException> run() {
         return switch (this.sources.collect()) {
-            case Err<Set<Source>, IOException>(var error) -> Optional.of(error);
+            case Err<Set<Source>, IOException>(var error) -> new Some<>(error);
             case Ok<Set<Source>, IOException>(var files) -> compileAll(files, this.targets, this.compiler);
         };
     }
