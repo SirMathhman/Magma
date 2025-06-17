@@ -1,4 +1,7 @@
 package magma.api.result;
 
-public sealed interface Result<T, X> permits Ok, Err {
+import java.util.function.Function;
+
+public sealed interface Result<Value, Error> permits Ok, Err {
+    <Result> Result match(Function<Value, Result> whenOk, Function<Error, Result> whenErr);
 }

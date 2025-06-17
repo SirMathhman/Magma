@@ -50,6 +50,7 @@ magma.app.compile.error.node.NodeErr --> java.util.function.Function
 magma.app.compile.error.node.NodeErr --> java.util.function.Supplier
 class magma.app.compile.rule.Rule
 class magma.api.result.Result
+magma.api.result.Result --> java.util.function.Function
 class magma.app.compile.error.PrependStringResult
 class magma.app.compile.Lang
 magma.app.compile.Lang --> magma.app.compile.error.ResultFactoryImpl
@@ -194,8 +195,6 @@ magma.app.compile.error.list.NodeListErr --> magma.app.compile.error.node.NodeRe
 magma.app.compile.error.list.NodeListErr --> magma.app.compile.node.Node
 magma.app.compile.error.list.NodeListErr --> java.util.function.Supplier
 class magma.app.compile.rule.or.OrRule
-magma.app.compile.rule.or.OrRule --> magma.api.result.Err
-magma.app.compile.rule.or.OrRule --> magma.api.result.Ok
 magma.app.compile.rule.or.OrRule --> magma.app.compile.error.AttachableToStateResult
 magma.app.compile.rule.or.OrRule --> magma.app.compile.error.ResultFactory
 magma.app.compile.rule.or.OrRule --> magma.app.compile.rule.Rule
@@ -203,6 +202,7 @@ magma.app.compile.rule.or.OrRule --> java.util.List
 magma.app.compile.rule.or.OrRule --> java.util.function.Function
 class magma.app.compile.node.DisplayNode
 class magma.api.result.Ok
+magma.api.result.Ok --> java.util.function.Function
 class magma.app.compile.RuleCompiler
 magma.app.compile.RuleCompiler --> magma.api.Error
 magma.app.compile.RuleCompiler --> magma.api.result.Err
@@ -260,6 +260,7 @@ magma.app.compile.error.ResultFactoryImpl --> magma.app.compile.error.string.Str
 magma.app.compile.error.ResultFactoryImpl --> magma.app.compile.node.Node
 magma.app.compile.error.ResultFactoryImpl --> java.util.List
 class magma.api.result.Err
+magma.api.result.Err --> java.util.function.Function
 class magma.app.compile.error.string.StringOk
 magma.app.compile.error.string.StringOk --> magma.app.compile.error.FormattedError
 magma.app.compile.error.string.StringOk --> magma.app.compile.rule.or.Accumulator

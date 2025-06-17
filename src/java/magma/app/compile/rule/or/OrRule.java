@@ -1,7 +1,5 @@
 package magma.app.compile.rule.or;
 
-import magma.api.result.Err;
-import magma.api.result.Ok;
 import magma.app.compile.error.AttachableToStateResult;
 import magma.app.compile.error.ResultFactory;
 import magma.app.compile.rule.Rule;
@@ -32,10 +30,7 @@ public final class OrRule<Node, Error, NodeResult extends AttachableToStateResul
                         (_, next) -> next)
                 .toResult();
 
-        return switch (result) {
-            case Ok<Value, List<Error>>(var value) -> whenOk.apply(value);
-            case Err<Value, List<Error>>(var errors) -> whenErr.apply(errors);
-        };
+        return result.match(whenOk, whenErr);
     }
 
     @Override
