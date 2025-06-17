@@ -3,6 +3,7 @@ package magma;
 import magma.app.divide.DivideState;
 import magma.app.divide.MutableDivideState;
 import magma.app.node.Node;
+import magma.app.rule.PrefixRule;
 import magma.app.rule.StringRule;
 import magma.app.rule.SuffixRule;
 
@@ -85,11 +86,7 @@ public class Main {
 
     private static Optional<String> compileImport(String segment, String name) {
         final var stripped = segment.strip();
-        if (!stripped.startsWith("import "))
-            return Optional.empty();
-
-        final var withoutStart = stripped.substring("import ".length());
-        return new SuffixRule(new StringRule("destination"), ";").lex(withoutStart)
+        return new PrefixRule("import ", new SuffixRule(new StringRule("destination"), ";")).lex(stripped)
                 .map(node -> node.withString("source", name))
                 .flatMap(Main::generate);
     }
