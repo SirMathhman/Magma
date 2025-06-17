@@ -1,28 +1,29 @@
 package magma.app.compile.rule;
 
-import magma.app.compile.error.NodeResult;
 import magma.app.compile.error.ResultFactory;
-import magma.app.compile.node.MapNode;
-import magma.app.compile.node.Node;
+import magma.app.compile.node.NodeWithStrings;
 
-public final class StringRule<StringResult> implements Rule<Node, NodeResult, StringResult> {
+public final class StringRule<Node extends NodeWithStrings<Node>, NodeResult, StringResult> implements Rule<Node, NodeResult, StringResult> {
     private final String key;
-    private final ResultFactory<Node, NodeResult, StringResult> factory;
+    private final ResultFactory<Node, NodeResult, StringResult> resultFactory;
+    private final NodeFactory<Node> nodeFactory;
 
-    public StringRule(String key, ResultFactory<Node, NodeResult, StringResult> factory) {
+    public StringRule(String key, ResultFactory<Node, NodeResult, StringResult> resultFactory, NodeFactory<Node> nodeFactory) {
         this.key = key;
-        this.factory = factory;
+        this.resultFactory = resultFactory;
+        this.nodeFactory = nodeFactory;
     }
 
     @Override
     public NodeResult lex(String input) {
-        return this.factory.fromNode(new MapNode().withString(this.key, input));
+        return this.resultFactory.fromNode(this.nodeFactory.create()
+                .withString(this.key, input));
     }
 
     @Override
     public StringResult generate(Node node) {
         return node.findString(this.key)
-                .map(this.factory::fromString)
-                .orElseGet(() -> this.factory.fromNodeErr("String '" + this.key + "' not present", node));
+                .map(this.resultFactory::fromString)
+                .orElseGet(() -> this.resultFactory.fromNodeErr("String '" + this.key + "' not present", node));
     }
 }

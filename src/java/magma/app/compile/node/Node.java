@@ -5,11 +5,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Stream;
 
-public interface Node extends MergingNode<Node>, TypeNode<Node>, DisplayNode {
-    Node withString(String key, String value);
-
-    Optional<String> findString(String key);
-
+public interface Node extends MergingNode<Node>, TypeNode<Node>, DisplayNode, NodeWithStrings<Node> {
     Stream<Map.Entry<String, String>> streamStrings();
 
     Node withNodeList(String key, List<Node> values);

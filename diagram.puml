@@ -31,6 +31,7 @@ magma.Main --> java.util.Optional
 class magma.app.compile.error.NodeOk
 magma.app.compile.error.NodeOk --> magma.app.compile.node.Node
 magma.app.compile.error.NodeOk --> java.util.function.Supplier
+class magma.app.compile.rule.NodeFactory
 class magma.app.compile.error.NodeResult
 magma.app.compile.error.NodeResult --> magma.app.compile.node.Node
 class magma.app.compile.rule.Rule
@@ -44,6 +45,7 @@ magma.app.compile.Lang --> magma.app.compile.error.ResultFactoryImpl
 magma.app.compile.Lang --> magma.app.compile.error.StringResult
 magma.app.compile.Lang --> magma.app.compile.node.Node
 magma.app.compile.Lang --> magma.app.compile.rule.InfixRule
+magma.app.compile.Lang --> magma.app.compile.rule.MapNodeFactory
 magma.app.compile.Lang --> magma.app.compile.rule.PrefixRule
 magma.app.compile.Lang --> magma.app.compile.rule.Rule
 magma.app.compile.Lang --> magma.app.compile.rule.StringRule
@@ -56,16 +58,16 @@ magma.app.compile.Lang --> java.util.List
 class magma.app.compile.node.TypeNode
 class magma.app.compile.error.StringErr
 magma.app.compile.error.StringErr --> java.util.function.Supplier
+class magma.app.compile.node.NodeWithStrings
+magma.app.compile.node.NodeWithStrings --> java.util.Optional
 class magma.app.error.ThrowableError
 magma.app.error.ThrowableError --> magma.api.Error
 magma.app.error.ThrowableError --> java.io.PrintWriter
 magma.app.error.ThrowableError --> java.io.StringWriter
 class magma.app.compile.node.MergingNode
 class magma.app.compile.rule.StringRule
-magma.app.compile.rule.StringRule --> magma.app.compile.error.NodeResult
 magma.app.compile.rule.StringRule --> magma.app.compile.error.ResultFactory
-magma.app.compile.rule.StringRule --> magma.app.compile.node.MapNode
-magma.app.compile.rule.StringRule --> magma.app.compile.node.Node
+magma.app.compile.rule.StringRule --> magma.app.compile.node.NodeWithStrings
 class magma.app.compile.error.AppendableStringResult
 magma.app.compile.error.AppendableStringResult --> java.util.function.Supplier
 class magma.app.compile.context.StringContext
@@ -129,6 +131,9 @@ magma.app.compile.Compiler --> magma.api.Error
 magma.app.compile.Compiler --> magma.api.result.Result
 magma.app.compile.Compiler --> magma.app.io.Source
 magma.app.compile.Compiler --> java.util.Map
+class magma.app.compile.rule.MapNodeFactory
+magma.app.compile.rule.MapNodeFactory --> magma.app.compile.node.MapNode
+magma.app.compile.rule.MapNodeFactory --> magma.app.compile.node.Node
 class magma.app.io.Source
 magma.app.io.Source --> java.util.Collection
 class magma.app.compile.error.MergeNodeResult
