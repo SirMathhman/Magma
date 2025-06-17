@@ -1,4 +1,4 @@
-package magma.app.compile.context;
+package magma.app.compile;
 
 public interface Context {
     String display();

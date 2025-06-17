@@ -1,7 +1,4 @@
-package magma.app.compile.rule;
-
-import magma.app.compile.PrependStringResult;
-import magma.app.compile.ResultFactory;
+package magma.app.compile;
 
 public final class PrefixRule<Node, Error, NodeResult, StringResult extends PrependStringResult<StringResult>> implements Rule<Node, NodeResult, StringResult> {
     private final String prefix;

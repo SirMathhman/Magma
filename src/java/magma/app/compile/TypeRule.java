@@ -1,8 +1,4 @@
-package magma.app.compile.rule;
-
-import magma.app.compile.ResultFactory;
-import magma.app.compile.TypeNode;
-import magma.app.compile.TypeNodeResult;
+package magma.app.compile;
 
 public final class TypeRule<Node extends TypeNode<Node>, Error, NodeResult extends TypeNodeResult<NodeResult>, StringResult> implements Rule<Node, NodeResult, StringResult> {
     private final String type;

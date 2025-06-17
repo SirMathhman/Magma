@@ -1,4 +1,4 @@
-package magma.app.compile.rule;
+package magma.app.compile;
 
 public record StripRule<Node, Lex, Generate>(Rule<Node, Lex, Generate> rule) implements Rule<Node, Lex, Generate> {
     @Override

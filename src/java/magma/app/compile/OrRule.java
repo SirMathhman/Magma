@@ -1,8 +1,4 @@
-package magma.app.compile.rule.or;
-
-import magma.app.compile.AttachableToStateResult;
-import magma.app.compile.ResultFactory;
-import magma.app.compile.rule.Rule;
+package magma.app.compile;
 
 import java.util.List;
 import java.util.function.Function;

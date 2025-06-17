@@ -1,7 +1,4 @@
-package magma.app.compile.rule;
-
-import magma.app.compile.AppendableStringResult;
-import magma.app.compile.ResultFactory;
+package magma.app.compile;
 
 public final class SuffixRule<Node, Error, NodeResult, StringResult extends AppendableStringResult<StringResult>> implements Rule<Node, NodeResult, StringResult> {
     private final Rule<Node, NodeResult, StringResult> rule;

@@ -1,15 +1,5 @@
 package magma.app.compile;
 
-import magma.app.compile.rule.InfixRule;
-import magma.app.compile.rule.PrefixRule;
-import magma.app.compile.rule.Rule;
-import magma.app.compile.rule.StringRule;
-import magma.app.compile.rule.StripRule;
-import magma.app.compile.rule.SuffixRule;
-import magma.app.compile.rule.TypeRule;
-import magma.app.compile.rule.divide.DivideRule;
-import magma.app.compile.rule.or.OrRule;
-
 import java.util.List;
 
 public class Lang {

@@ -1,7 +1,5 @@
 package magma.app.compile;
 
-import magma.app.compile.rule.or.Accumulator;
-
 import java.util.function.Function;
 import java.util.function.Supplier;
 

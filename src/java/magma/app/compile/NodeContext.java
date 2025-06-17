@@ -1,6 +1,4 @@
-package magma.app.compile.context;
-
-import magma.app.compile.DisplayNode;
+package magma.app.compile;
 
 public final class NodeContext implements Context {
     private final DisplayNode node;

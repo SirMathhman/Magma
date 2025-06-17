@@ -1,4 +1,4 @@
-package magma.app.compile.context;
+package magma.app.compile;
 
 public record StringContext(String value) implements Context {
     @Override

@@ -4,7 +4,6 @@ import magma.api.Error;
 import magma.api.result.Err;
 import magma.api.result.Ok;
 import magma.api.result.Result;
-import magma.app.compile.rule.Rule;
 import magma.app.error.ApplicationError;
 import magma.app.io.Source;
 

@@ -1,8 +1,4 @@
-package magma.app.compile.rule;
-
-import magma.app.compile.NodeFactory;
-import magma.app.compile.NodeWithStrings;
-import magma.app.compile.ResultFactory;
+package magma.app.compile;
 
 public final class StringRule<Node extends NodeWithStrings<Node>, Error, NodeResult, StringResult> implements Rule<Node, NodeResult, StringResult> {
     private final String key;

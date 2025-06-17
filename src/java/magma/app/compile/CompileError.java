@@ -1,7 +1,5 @@
 package magma.app.compile;
 
-import magma.app.compile.context.Context;
-
 import java.util.ArrayList;
 import java.util.List;
 

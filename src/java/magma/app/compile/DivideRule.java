@@ -1,10 +1,4 @@
-package magma.app.compile.rule.divide;
-
-import magma.app.compile.AppendableStringResult;
-import magma.app.compile.NodeFactory;
-import magma.app.compile.NodeWithNodeLists;
-import magma.app.compile.ResultFactory;
-import magma.app.compile.rule.Rule;
+package magma.app.compile;
 
 import java.util.ArrayList;
 import java.util.List;

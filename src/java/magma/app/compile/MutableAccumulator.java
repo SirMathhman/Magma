@@ -1,6 +1,4 @@
-package magma.app.compile.rule.or;
-
-import magma.app.compile.AttachableToStateResult;
+package magma.app.compile;
 
 import java.util.ArrayList;
 import java.util.List;
