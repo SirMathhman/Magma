@@ -1,8 +1,8 @@
 package magma;
 
-import magma.app.MutableState;
-import magma.app.Node;
-import magma.app.State;
+import magma.app.divide.DivideState;
+import magma.app.divide.MutableDivideState;
+import magma.app.node.Node;
 import magma.app.rule.StringRule;
 import magma.app.rule.SuffixRule;
 
@@ -59,7 +59,7 @@ public class Main {
     }
 
     private static List<String> divide(CharSequence input) {
-        State current = new MutableState();
+        DivideState current = new MutableDivideState();
         for (var i = 0; i < input.length(); i++) {
             final var c = input.charAt(i);
             current = fold(current, c);
@@ -69,8 +69,8 @@ public class Main {
                 .segments();
     }
 
-    private static State fold(State state, char c) {
-        final var appended = state.append(c);
+    private static DivideState fold(DivideState divideState, char c) {
+        final var appended = divideState.append(c);
         if (c == ';')
             return appended.advance();
         return appended;

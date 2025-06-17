@@ -1,4 +1,4 @@
-package magma.app;
+package magma.app.node;
 
 import java.util.Optional;
 

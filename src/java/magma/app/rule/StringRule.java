@@ -1,7 +1,7 @@
 package magma.app.rule;
 
-import magma.app.MapNode;
-import magma.app.Node;
+import magma.app.node.MapNode;
+import magma.app.node.Node;
 
 import java.util.Optional;
 
