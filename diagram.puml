@@ -4,5 +4,7 @@ magma.Main --> java.io.IOException
 magma.Main --> java.nio.file.Files
 magma.Main --> java.nio.file.Paths
 magma.Main --> java.util.ArrayList
+magma.Main --> java.util.List
+magma.Main --> java.util.Optional
 class magma.Main
 @enduml
