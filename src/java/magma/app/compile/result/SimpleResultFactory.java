@@ -8,9 +8,6 @@ import magma.app.compile.error.CompileError;
 import magma.app.compile.error.FormattedError;
 
 public class SimpleResultFactory<T> implements ResultFactory<T, Result<T, FormattedError>> {
-    public SimpleResultFactory() {
-    }
-
     @Override
     public Result<T, FormattedError> fromError(Context context) {
         return new Err<>(new CompileError("No combination present", context));

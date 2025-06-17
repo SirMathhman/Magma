@@ -6,6 +6,7 @@ import magma.app.compile.context.NodeContext;
 import magma.app.compile.context.StringContext;
 import magma.app.compile.error.FormattedError;
 import magma.app.compile.node.DisplayNode;
+import magma.app.compile.result.ResultFactory;
 import magma.app.compile.result.SimpleResultFactory;
 import magma.app.compile.rule.Rule;
 
@@ -16,12 +17,12 @@ public record OrRule<Node extends DisplayNode>(
         List<Rule<Node, Result<Node, FormattedError>, Result<String, FormattedError>>> rules) implements Rule<Node, Result<Node, FormattedError>, Result<String, FormattedError>> {
     @Override
     public Result<Node, FormattedError> lex(String input) {
-        return this.or(rule1 -> rule1.lex(input), new StringContext(input));
+        return this.or(new SimpleResultFactory<>(), rule1 -> rule1.lex(input), new StringContext(input));
     }
 
-    private <Value> Result<Value, FormattedError> or(Function<Rule<Node, Result<Node, FormattedError>, Result<String, FormattedError>>, Result<Value, FormattedError>> mapper, Context context) {
+    private <Value> Result<Value, FormattedError> or(ResultFactory<Value, Result<Value, FormattedError>> factory, Function<Rule<Node, Result<Node, FormattedError>, Result<String, FormattedError>>, Result<Value, FormattedError>> mapper, Context context) {
         return this.rules.stream()
-                .<OrState<Value, FormattedError, Result<Value, FormattedError>>>reduce(new MutableOrState<>(new SimpleResultFactory<>()),
+                .<OrState<Value, FormattedError, Result<Value, FormattedError>>>reduce(new MutableOrState<>(factory),
                         (state, rule) -> mapper.apply(rule)
                                 .match(state::withValue, state::withError),
                         (_, next) -> next)
@@ -30,6 +31,6 @@ public record OrRule<Node extends DisplayNode>(
 
     @Override
     public Result<String, FormattedError> generate(Node node) {
-        return this.or(rule1 -> rule1.generate(node), new NodeContext(node));
+        return this.or(new SimpleResultFactory<>(), rule1 -> rule1.generate(node), new NodeContext(node));
     }
 }
