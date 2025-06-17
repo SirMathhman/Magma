@@ -1,13 +1,11 @@
 package magma.app.compile;
 
-import magma.api.list.Streamable;
-
 import java.util.function.Function;
 
-public interface Accumulator<Value, Error> {
-    <Result extends AttachableToStateResult<Value, Error>> Result match(Function<Value, Result> whenOk, Function<Streamable<Error>, Result> whenErr);
+public interface Accumulator<Value, Error, Collection> {
+    <Result extends AttachableToStateResult<Value, Error>> Result match(Function<Value, Result> whenOk, Function<Collection, Result> whenErr);
 
-    Accumulator<Value, Error> withValue(Value node);
+    Accumulator<Value, Error, Collection> withValue(Value node);
 
-    Accumulator<Value, Error> withError(Error error);
+    Accumulator<Value, Error, Collection> withError(Error error);
 }

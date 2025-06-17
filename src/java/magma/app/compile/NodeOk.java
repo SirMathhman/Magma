@@ -1,5 +1,7 @@
 package magma.app.compile;
 
+import magma.api.list.Streamable;
+
 import java.util.function.Function;
 import java.util.function.Supplier;
 
@@ -22,7 +24,7 @@ public record NodeOk<Node extends MergeNode<Node> & TypeNode<Node>, Error>(
     }
 
     @Override
-    public Accumulator<Node, Error> attachToState(Accumulator<Node, Error> state) {
+    public Accumulator<Node, Error, Streamable<Error>> attachToState(Accumulator<Node, Error, Streamable<Error>> state) {
         return state.withValue(this.node());
     }
 

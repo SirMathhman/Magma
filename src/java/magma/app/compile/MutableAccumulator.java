@@ -8,18 +8,18 @@ import java.util.Optional;
 import java.util.function.Function;
 
 record MutableAccumulator<Value, Error>(Optional<Value> maybeValue,
-                                        List<Error> errors) implements Accumulator<Value, Error> {
+                                        List<Error> errors) implements Accumulator<Value, Error, Streamable<Error>> {
     public MutableAccumulator() {
         this(Optional.empty(), Lists.empty());
     }
 
     @Override
-    public Accumulator<Value, Error> withValue(Value node) {
+    public Accumulator<Value, Error, Streamable<Error>> withValue(Value node) {
         return new MutableAccumulator<>(Optional.of(node), this.errors);
     }
 
     @Override
-    public Accumulator<Value, Error> withError(Error error) {
+    public Accumulator<Value, Error, Streamable<Error>> withError(Error error) {
         return new MutableAccumulator<>(this.maybeValue, this.errors.add(error));
     }
 

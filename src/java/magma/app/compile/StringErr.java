@@ -1,5 +1,7 @@
 package magma.app.compile;
 
+import magma.api.list.Streamable;
+
 import java.util.function.Supplier;
 
 public record StringErr<Error>(Error error) implements StringResult<Error> {
@@ -19,7 +21,7 @@ public record StringErr<Error>(Error error) implements StringResult<Error> {
     }
 
     @Override
-    public Accumulator<String, Error> attachToState(Accumulator<String, Error> state) {
+    public Accumulator<String, Error, Streamable<Error>> attachToState(Accumulator<String, Error, Streamable<Error>> state) {
         return state.withError(this.error());
     }
 

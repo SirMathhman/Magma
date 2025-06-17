@@ -4,6 +4,7 @@ class magma.api.list.Lists
 magma.api.list.Lists --> java.util.ArrayList
 magma.api.list.Lists --> java.util.Arrays
 class magma.app.compile.AttachableToStateResult
+magma.app.compile.AttachableToStateResult --> magma.api.list.Streamable
 class magma.app.compile.TypeRule
 class magma.app.compile.MutableAccumulator
 magma.app.compile.MutableAccumulator --> magma.api.list.List
@@ -77,6 +78,7 @@ magma.app.io.PathSource --> magma.api.list.Lists
 magma.app.io.PathSource --> magma.api.list.Streamable
 magma.app.io.PathSource --> java.nio.file.Path
 class magma.app.compile.StringErr
+magma.app.compile.StringErr --> magma.api.list.Streamable
 magma.app.compile.StringErr --> java.util.function.Supplier
 class magma.api.Error
 class magma.app.compile.DisplayNode
@@ -100,10 +102,10 @@ magma.app.compile.Compiler --> magma.api.result.Result
 magma.app.compile.Compiler --> magma.app.io.Source
 magma.app.compile.Compiler --> java.util.Map
 class magma.app.compile.Accumulator
-magma.app.compile.Accumulator --> magma.api.list.Streamable
 magma.app.compile.Accumulator --> java.util.function.Function
 class magma.app.compile.InfixRule
 class magma.app.compile.NodeErr
+magma.app.compile.NodeErr --> magma.api.list.Streamable
 magma.app.compile.NodeErr --> java.util.function.Function
 magma.app.compile.NodeErr --> java.util.function.Supplier
 class magma.app.io.Source
@@ -132,6 +134,7 @@ class magma.app.compile.Node
 magma.app.compile.Node --> java.util.Map
 magma.app.compile.Node --> java.util.stream.Stream
 class magma.app.compile.StringOk
+magma.app.compile.StringOk --> magma.api.list.Streamable
 magma.app.compile.StringOk --> java.util.function.Supplier
 class magma.app.compile.RuleCompiler
 magma.app.compile.RuleCompiler --> magma.api.Error
@@ -152,6 +155,7 @@ magma.app.compile.CompileError --> magma.api.list.Streamable
 class magma.app.compile.ResultFactoryImpl
 magma.app.compile.ResultFactoryImpl --> magma.api.list.Streamable
 class magma.app.compile.NodeOk
+magma.app.compile.NodeOk --> magma.api.list.Streamable
 magma.app.compile.NodeOk --> java.util.function.Function
 magma.app.compile.NodeOk --> java.util.function.Supplier
 class magma.app.io.PathSources
