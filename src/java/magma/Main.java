@@ -83,7 +83,8 @@ public class Main {
                 .map(node -> node.withString("source", source))
                 .toList();
 
-        return new MapNode().withNodeList("children", transformed);
+        final Node node = new MapNode();
+        return node.withNodeList("children", transformed);
     }
 
     private static Rule createImportRule() {
