@@ -11,7 +11,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 public record Sources(Path sourceDirectory) {
-    public Result<Set<PathSource>, IOException> collect() {
+    public Result<Set<Source>, IOException> collect() {
         try (final var stream = Files.walk(this.sourceDirectory)) {
             return new Ok<>(stream.filter(Files::isRegularFile)
                     .filter(path -> path.toString()
