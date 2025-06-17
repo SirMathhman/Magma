@@ -9,4 +9,9 @@ public record StripRule(Rule rule) implements Rule {
     public Optional<Node> lex(String segment) {
         return this.rule.lex(segment.strip());
     }
+
+    @Override
+    public Optional<String> generate(Node node) {
+        return this.rule.generate(node);
+    }
 }

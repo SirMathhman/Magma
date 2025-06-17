@@ -9,8 +9,14 @@ class magma.app.node.MapNode
 magma.app.node.MapNode --> java.util.HashMap
 magma.app.node.MapNode --> java.util.Map
 magma.app.node.MapNode --> java.util.Optional
+magma.app.node.MapNode --> java.util.stream.Stream
 class magma.app.node.Node
+magma.app.node.Node --> java.util.Map
 magma.app.node.Node --> java.util.Optional
+magma.app.node.Node --> java.util.stream.Stream
+class magma.app.rule.InfixRule
+magma.app.rule.InfixRule --> magma.app.node.Node
+magma.app.rule.InfixRule --> java.util.Optional
 class magma.app.rule.PrefixRule
 magma.app.rule.PrefixRule --> magma.app.node.Node
 magma.app.rule.PrefixRule --> java.util.Optional
@@ -31,6 +37,7 @@ class magma.Main
 magma.Main --> magma.app.divide.DivideState
 magma.Main --> magma.app.divide.MutableDivideState
 magma.Main --> magma.app.node.Node
+magma.Main --> magma.app.rule.InfixRule
 magma.Main --> magma.app.rule.PrefixRule
 magma.Main --> magma.app.rule.Rule
 magma.Main --> magma.app.rule.StringRule

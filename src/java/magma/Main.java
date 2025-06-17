@@ -3,6 +3,7 @@ package magma;
 import magma.app.divide.DivideState;
 import magma.app.divide.MutableDivideState;
 import magma.app.node.Node;
+import magma.app.rule.InfixRule;
 import magma.app.rule.PrefixRule;
 import magma.app.rule.Rule;
 import magma.app.rule.StringRule;
@@ -97,8 +98,6 @@ public class Main {
     }
 
     private static Optional<String> generate(Node node) {
-        return Optional.of(node.findString("source")
-                .orElse("") + " --> " + node.findString("destination")
-                .orElse("") + "\n");
+        return new SuffixRule(new InfixRule(new StringRule("source"), " --> ", new StringRule("destination")), "\n").generate(node);
     }
 }

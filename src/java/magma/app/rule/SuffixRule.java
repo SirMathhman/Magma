@@ -15,4 +15,10 @@ public record SuffixRule(Rule rule, String suffix) implements Rule {
         return this.rule()
                 .lex(withoutEnd);
     }
+
+    @Override
+    public Optional<String> generate(Node node) {
+        return this.rule.generate(node)
+                .map(result -> result + this.suffix);
+    }
 }
