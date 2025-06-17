@@ -1,8 +1,8 @@
 package magma.app.compile.rule.or;
 
 import magma.api.result.Result;
-import magma.app.compile.error.CompileErrors;
 import magma.app.compile.error.FormattedError;
+import magma.app.compile.error.ResultFactoryImpl;
 import magma.app.compile.node.DisplayNode;
 import magma.app.compile.rule.Rule;
 
@@ -15,8 +15,9 @@ public record OrRule<Node extends DisplayNode>(
     @Override
     public Result<Node, FormattedError> lex(String input) {
         return this.or(rule1 -> rule1.lex(input),
-                CompileErrors::fromNode,
-                () -> CompileErrors.fromStringErr("No combination present", input));
+                ResultFactoryImpl.create()::fromNode,
+                () -> ResultFactoryImpl.create()
+                        .fromStringErr("No combination present", input));
     }
 
     private <Value> Result<Value, FormattedError> or(Function<Rule<Node, Result<Node, FormattedError>, Result<String, FormattedError>>, Result<Value, FormattedError>> mapper, Function<Value, Result<Value, FormattedError>> whenPresent, Supplier<Result<Value, FormattedError>> whenEmpty) {
@@ -33,7 +34,8 @@ public record OrRule<Node extends DisplayNode>(
     @Override
     public Result<String, FormattedError> generate(Node node) {
         return this.or(rule1 -> rule1.generate(node),
-                CompileErrors::fromString,
-                () -> CompileErrors.fromNodeErr("No combination present", node));
+                ResultFactoryImpl.create()::fromString,
+                () -> ResultFactoryImpl.create()
+                        .fromNodeErr("No combination present", node));
     }
 }

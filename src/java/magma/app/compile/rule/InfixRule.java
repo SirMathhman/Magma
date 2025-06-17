@@ -1,8 +1,8 @@
 package magma.app.compile.rule;
 
 import magma.api.result.Result;
-import magma.app.compile.error.CompileErrors;
 import magma.app.compile.error.FormattedError;
+import magma.app.compile.error.ResultFactoryImpl;
 import magma.app.compile.node.MergingNode;
 
 public record InfixRule<Node extends MergingNode<Node>>(
@@ -12,7 +12,8 @@ public record InfixRule<Node extends MergingNode<Node>>(
     public Result<Node, FormattedError> lex(String input) {
         final var index = input.indexOf(this.infix);
         if (index == -1)
-            return CompileErrors.fromStringErr("Infix '" + this.infix + "' not present", input);
+            return ResultFactoryImpl.create()
+                    .fromStringErr("Infix '" + this.infix + "' not present", input);
 
         final var left = input.substring(0, index);
         final var right = input.substring(index + this.infix.length());

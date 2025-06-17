@@ -1,8 +1,8 @@
 package magma.app.compile.rule;
 
 import magma.api.result.Result;
-import magma.app.compile.error.CompileErrors;
 import magma.app.compile.error.FormattedError;
+import magma.app.compile.error.ResultFactoryImpl;
 
 public final class SuffixRule<Node> implements Rule<Node, Result<Node, FormattedError>, Result<String, FormattedError>> {
     private final Rule<Node, Result<Node, FormattedError>, Result<String, FormattedError>> rule;
@@ -16,7 +16,8 @@ public final class SuffixRule<Node> implements Rule<Node, Result<Node, Formatted
     @Override
     public Result<Node, FormattedError> lex(String input) {
         if (!input.endsWith(this.suffix))
-            return CompileErrors.fromStringErr("Suffix '" + this.suffix + "' not present", input);
+            return ResultFactoryImpl.create()
+                    .fromStringErr("Suffix '" + this.suffix + "' not present", input);
 
         final var withoutEnd = input.substring(0, input.length() - this.suffix.length());
         return this.rule.lex(withoutEnd);
