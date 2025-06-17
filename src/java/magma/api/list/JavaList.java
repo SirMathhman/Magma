@@ -19,8 +19,4 @@ public record JavaList<T>(java.util.List<T> elements) implements List<T> {
         return this;
     }
 
-    @Override
-    public java.util.List<T> unwrap() {
-        return this.elements;
-    }
 }

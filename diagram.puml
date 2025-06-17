@@ -139,6 +139,7 @@ magma.app.compile.RuleCompiler --> magma.api.result.Result
 magma.app.compile.RuleCompiler --> magma.app.error.ApplicationError
 magma.app.compile.RuleCompiler --> magma.app.io.Source
 magma.app.compile.RuleCompiler --> java.util.Map
+magma.app.compile.RuleCompiler --> java.util.stream.Collectors
 class magma.app.compile.NodeContext
 class magma.app.compile.StringRule
 class magma.app.compile.CompileError

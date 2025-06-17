@@ -10,6 +10,7 @@ import magma.app.error.ApplicationError;
 import magma.app.io.Source;
 
 import java.util.Map;
+import java.util.stream.Collectors;
 
 public class RuleCompiler implements Compiler {
     private final Rule<Node, NodeResult<Node, FormattedError>, StringResult<FormattedError>> targetRule;
@@ -36,7 +37,9 @@ public class RuleCompiler implements Compiler {
         final var namespace = source.computeNamespace();
         final var name = source.computeName();
 
-        final var joined = String.join(".", namespace.unwrap());
+        final var joined = namespace.stream()
+                .collect(Collectors.joining("."));
+
         final var joinedName = joined + "." + name;
 
         final var stringFormattedErrorResult1 = this.compileRoot(input, joinedName)
