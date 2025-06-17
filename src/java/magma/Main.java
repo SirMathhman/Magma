@@ -1,5 +1,8 @@
 package magma;
 
+import magma.state.MutableState;
+import magma.state.State;
+
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -42,11 +45,11 @@ public class Main {
     private static StringBuilder compileSegments(Iterable<String> segments) {
         final var output = new StringBuilder();
         for (var segment : segments)
-            extracted(segment).ifPresent(output::append);
+            compileImport(segment).ifPresent(output::append);
         return output;
     }
 
-    private static Optional<String> extracted(String segment) {
+    private static Optional<String> compileImport(String segment) {
         final var stripped = segment.strip();
         if (!stripped.startsWith("import "))
             return Optional.empty();

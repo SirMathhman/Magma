@@ -1,6 +1,8 @@
 @startuml
 skinparam linetype ortho
 class magma.Main
+magma.Main --> magma.state.MutableState
+magma.Main --> magma.state.State
 magma.Main --> java.io.IOException
 magma.Main --> java.nio.file.Files
 magma.Main --> java.nio.file.Paths
