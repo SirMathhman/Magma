@@ -7,23 +7,29 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Supplier;
 
-public record NodeListOk(List<Node> node) implements NodeListResult<Node, NodeResult<Node, FormattedError>> {
+public final class NodeListOk<Node extends NodeWithNodeLists<Node> & MergeNode<Node> & TypeNode<Node>, Error> implements NodeListResult<Node, NodeResult<Node, Error>> {
+    private final List<Node> node;
+
+    public NodeListOk(List<Node> node) {
+        this.node = node;
+    }
+
     public NodeListOk() {
         this(new ArrayList<>());
     }
 
     @Override
-    public NodeListResult<Node, NodeResult<Node, FormattedError>> add(Supplier<NodeResult<Node, FormattedError>> action) {
+    public NodeListResult<Node, NodeResult<Node, Error>> add(Supplier<NodeResult<Node, Error>> action) {
         return switch (action.get()
                 .appendTo(this.node)) {
-            case Err<List<Node>, FormattedError>(var error) -> new NodeListErr(error);
-            case Ok<List<Node>, FormattedError>(var value) -> new NodeListOk(value);
+            case Err<List<Node>, Error>(var error) -> new NodeListErr<>(error);
+            case Ok<List<Node>, Error>(var value) -> new NodeListOk<>(value);
         };
     }
 
     @Override
-    public NodeResult<Node, FormattedError> toNode(NodeFactory<Node> factory, String key) {
-        return new NodeOk(factory.create()
+    public NodeResult<Node, Error> toNode(NodeFactory<Node> factory, String key) {
+        return new NodeOk<>(factory.create()
                 .withNodeList(key, this.node));
     }
 }

@@ -39,6 +39,7 @@ magma.Main --> java.nio.file.Path
 magma.Main --> java.nio.file.Paths
 magma.Main --> java.util.Map
 magma.Main --> java.util.Optional
+class magma.app.compile.MergeNode
 class magma.app.compile.AppendableStringResult
 magma.app.compile.AppendableStringResult --> java.util.function.Supplier
 class magma.app.compile.rule.Rule
@@ -185,7 +186,6 @@ class magma.app.compile.rule.InfixRule
 magma.app.compile.rule.InfixRule --> magma.app.compile.AppendableStringResult
 magma.app.compile.rule.InfixRule --> magma.app.compile.MergeNodeResult
 magma.app.compile.rule.InfixRule --> magma.app.compile.ResultFactory
-class magma.app.compile.MergingNode
 class magma.app.compile.ResultFactoryImpl
 magma.app.compile.ResultFactoryImpl --> magma.app.compile.context.NodeContext
 magma.app.compile.ResultFactoryImpl --> magma.app.compile.context.StringContext

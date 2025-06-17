@@ -15,17 +15,17 @@ public class ResultFactoryImpl implements ResultFactory<Node, FormattedError, No
 
     @Override
     public NodeResult<Node, FormattedError> fromStringErr(String message, String input) {
-        return new NodeErr(new CompileError(message, new StringContext(input)));
+        return new NodeErr<Node, FormattedError>(new CompileError(message, new StringContext(input)));
     }
 
     @Override
     public StringResult<FormattedError> fromNodeErr(String message, Node node) {
-        return new StringErr(new CompileError(message, new NodeContext(node)));
+        return new StringErr<FormattedError>(new CompileError(message, new NodeContext(node)));
     }
 
     @Override
     public NodeResult<Node, FormattedError> fromNode(Node value) {
-        return new NodeOk(value);
+        return new NodeOk<Node, FormattedError>(value);
     }
 
     @Override
@@ -35,17 +35,17 @@ public class ResultFactoryImpl implements ResultFactory<Node, FormattedError, No
 
     @Override
     public NodeResult<Node, FormattedError> fromStringErrWithChildren(String message, String input, List<FormattedError> errors) {
-        return new NodeErr(new CompileError(message, new StringContext(input), errors));
+        return new NodeErr<Node, FormattedError>(new CompileError(message, new StringContext(input), errors));
     }
 
     @Override
     public StringResult<FormattedError> fromNodeErrWithChildren(String message, Node node, List<FormattedError> errors) {
-        return new StringErr(new CompileError(message, new NodeContext(node), errors));
+        return new StringErr<FormattedError>(new CompileError(message, new NodeContext(node), errors));
     }
 
     @Override
     public NodeListResult<Node, NodeResult<Node, FormattedError>> fromEmptyNodeList() {
-        return new NodeListOk();
+        return new NodeListOk<Node, FormattedError>();
     }
 
     @Override

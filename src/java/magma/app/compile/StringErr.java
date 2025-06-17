@@ -6,29 +6,29 @@ import magma.app.compile.rule.or.Accumulator;
 
 import java.util.function.Supplier;
 
-public record StringErr(FormattedError error) implements StringResult<FormattedError> {
+public record StringErr<Error>(Error error) implements StringResult<Error> {
     @Override
-    public StringResult<FormattedError> appendResult(Supplier<StringResult<FormattedError>> generate) {
-        return new StringErr(this.error());
+    public StringResult<Error> appendResult(Supplier<StringResult<Error>> generate) {
+        return new StringErr<Error>(this.error());
     }
 
     @Override
-    public StringResult<FormattedError> prependSlice(String slice) {
-        return new StringErr(this.error());
+    public StringResult<Error> prependSlice(String slice) {
+        return new StringErr<>(this.error());
     }
 
     @Override
-    public StringResult<FormattedError> appendSlice(String infix) {
+    public StringResult<Error> appendSlice(String infix) {
         return this;
     }
 
     @Override
-    public Accumulator<String, FormattedError> attachToState(Accumulator<String, FormattedError> state) {
+    public Accumulator<String, Error> attachToState(Accumulator<String, Error> state) {
         return state.withError(this.error());
     }
 
     @Override
-    public Result<String, FormattedError> toResult() {
+    public Result<String, Error> toResult() {
         return new Err<>(this.error);
     }
 }
