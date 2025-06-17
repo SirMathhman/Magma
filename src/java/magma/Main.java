@@ -5,7 +5,10 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -57,19 +60,30 @@ public class Main {
     private static StringBuilder compile(CharSequence input, String namespace, String name) {
         final var segments = divide(input);
 
+        final var imports = new HashMap<String, String>();
         final var output = new StringBuilder();
         for (var segment : segments)
-            compileRootSegment(segment, namespace, name).ifPresent(output::append);
+            compileRootSegment(segment, namespace, name, imports).ifPresent(obj -> {
+                for (var entry : obj.entrySet()) {
+                    output.append(entry.getKey());
+                    imports.putAll(entry.getValue());
+                }
+            });
         return output;
     }
 
-    private static Optional<String> compileRootSegment(String input, String namespace, String name) {
+    private static Optional<Map<String, Map<String, String>>> compileRootSegment(String input, String namespace, String name, Map<String, String> imports) {
         final var strip = input.strip();
         if (strip.startsWith("import ")) {
             final var withoutStart = strip.substring("import ".length());
             if (withoutStart.endsWith(";")) {
                 final var withoutEnd = withoutStart.substring(0, withoutStart.length() - ";".length());
-                return Optional.of(namespace + "." + name + " --> " + withoutEnd + "\n");
+                final var separator = withoutEnd.lastIndexOf(".");
+                final var parent = withoutEnd.substring(0, separator);
+                final var child = withoutEnd.substring(separator + ".".length());
+                final var parent1 = Map.of(child, parent);
+                final var generated = Map.of(namespace + "." + name + " --> " + withoutEnd + "\n", parent1);
+                return Optional.of(generated);
             }
         }
 
@@ -79,17 +93,39 @@ public class Main {
             final var classIndex = beforeContent.indexOf("class ");
             if (classIndex >= 0) {
                 final var afterKeyword = beforeContent.substring("class ".length() + classIndex);
-                return Optional.of("class " + namespace + "." + afterKeyword + "\n");
+                return compileStructure("class", namespace, afterKeyword, imports);
             }
 
             final var interfaceIndex = beforeContent.indexOf("interface ");
             if (interfaceIndex >= 0) {
                 final var afterKeyword = beforeContent.substring("interface ".length() + interfaceIndex);
-                return Optional.of("interface " + namespace + "." + afterKeyword + "\n");
+                return compileStructure("interface", namespace, afterKeyword, imports);
             }
         }
 
         return Optional.empty();
+    }
+
+    private static Optional<Map<String, Map<String, String>>> compileStructure(String type, String namespace, String afterKeyword, Map<String, String> imports) {
+        final var index = afterKeyword.indexOf("implements ");
+        if (index >= 0) {
+            final var substring = afterKeyword.substring(0, index);
+            final var substring1 = afterKeyword.substring(index + "implements ".length())
+                    .strip();
+
+            final var superTypeNamespace = imports.getOrDefault(substring1, namespace);
+            return generate(type, namespace, substring, List.of(superTypeNamespace + "." + substring1));
+        }
+        else
+            return generate(type, namespace, afterKeyword, Collections.emptyList());
+    }
+
+    private static Optional<Map<String, Map<String, String>>> generate(String type, String namespace, String name, List<String> superTypes) {
+        final var buffer = new StringBuilder();
+        for (var superType : superTypes)
+            buffer.append(namespace + "." + name + " --|> " + superType + "\n");
+
+        return Optional.of(Map.of(type + " " + namespace + "." + name + "\n" + buffer, Collections.emptyMap()));
     }
 
     private static List<String> divide(CharSequence input) {
