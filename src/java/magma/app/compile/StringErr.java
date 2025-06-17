@@ -1,27 +1,25 @@
 package magma.app.compile;
 
-import magma.api.collect.iter.Iterable;
-
 import java.util.function.Supplier;
 
-public record StringErr<Error>(Error error) implements StringResult<Error, Iterable<Error>> {
+public record StringErr<Error, Iterable>(Error error) implements StringResult<Error, Iterable> {
     @Override
-    public StringResult<Error, Iterable<Error>> appendResult(Supplier<StringResult<Error, Iterable<Error>>> generate) {
-        return new StringErr<>(this.error());
+    public StringResult<Error, Iterable> appendResult(Supplier<StringResult<Error, Iterable>> generate) {
+        return new StringErr<>(this.error);
     }
 
     @Override
-    public StringResult<Error, Iterable<Error>> prependSlice(String slice) {
-        return new StringErr<>(this.error());
+    public StringResult<Error, Iterable> prependSlice(String slice) {
+        return new StringErr<>(this.error);
     }
 
     @Override
-    public StringResult<Error, Iterable<Error>> appendSlice(String infix) {
+    public StringResult<Error, Iterable> appendSlice(String infix) {
         return this;
     }
 
     @Override
-    public Accumulator<String, Error, Iterable<Error>> attachToAccumulator(Accumulator<String, Error, Iterable<Error>> state) {
-        return state.withError(this.error());
+    public Accumulator<String, Error, Iterable> attachToAccumulator(Accumulator<String, Error, Iterable> state) {
+        return state.withError(this.error);
     }
 }

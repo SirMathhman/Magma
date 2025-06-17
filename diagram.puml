@@ -87,7 +87,6 @@ magma.app.io.PathSource --> java.nio.file.Path
 class magma.api.collect.list.List
 magma.api.collect.list.List --> magma.api.collect.iter.Iterable
 class magma.app.compile.StringErr
-magma.app.compile.StringErr --> magma.api.collect.iter.Iterable
 magma.app.compile.StringErr --> java.util.function.Supplier
 class magma.api.Error
 class magma.app.compile.DisplayNode
