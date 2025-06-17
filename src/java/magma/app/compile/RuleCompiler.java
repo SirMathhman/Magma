@@ -5,8 +5,6 @@ import magma.api.result.Err;
 import magma.api.result.Ok;
 import magma.api.result.Result;
 import magma.app.compile.error.FormattedError;
-import magma.app.compile.error.NodeErr;
-import magma.app.compile.error.NodeOk;
 import magma.app.compile.error.NodeResult;
 import magma.app.compile.error.StringErr;
 import magma.app.compile.error.StringOk;
@@ -21,10 +19,10 @@ import java.util.ArrayList;
 import java.util.Map;
 
 public class RuleCompiler implements Compiler {
-    private final Rule<Node, NodeResult, StringResult> targetRule;
-    private final Rule<Node, NodeResult, StringResult> sourceRule;
+    private final Rule<Node, NodeResult<Node>, StringResult> targetRule;
+    private final Rule<Node, NodeResult<Node>, StringResult> sourceRule;
 
-    public RuleCompiler(Rule<Node, NodeResult, StringResult> sourceRule, Rule<Node, NodeResult, StringResult> targetRule) {
+    public RuleCompiler(Rule<Node, NodeResult<Node>, StringResult> sourceRule, Rule<Node, NodeResult<Node>, StringResult> targetRule) {
         this.sourceRule = sourceRule;
         this.targetRule = targetRule;
     }
@@ -59,17 +57,10 @@ public class RuleCompiler implements Compiler {
     }
 
     StringResult compileRoot(String input, String source) {
-        NodeResult nodeFormattedErrorResult = this.sourceRule.lex(input);
-        NodeResult nodeFormattedErrorResult1 = switch (nodeFormattedErrorResult) {
-            case NodeErr(FormattedError error) -> new NodeErr(error);
-            case NodeOk(Node value) -> new NodeOk(transform(source, value));
-        };
-        return switch (nodeFormattedErrorResult1) {
-            case NodeErr(FormattedError error1) -> new StringErr(error1);
-            case NodeOk(
-                    Node value1
-            ) -> this.targetRule.generate(value1);
-        };
+        NodeResult<Node> nodeFormattedErrorResult = this.sourceRule.lex(input);
+        NodeResult<Node> nodeFormattedErrorResult1 = nodeFormattedErrorResult.transform(value1 -> transform(source,
+                value1));
+        return nodeFormattedErrorResult1.generate(this.targetRule::generate);
     }
 
     @Override

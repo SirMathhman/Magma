@@ -18,7 +18,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public record DivideRule(String key,
-                         Rule<Node, NodeResult, StringResult> rule) implements Rule<Node, NodeResult, StringResult> {
+                         Rule<Node, NodeResult<Node>, StringResult> rule) implements Rule<Node, NodeResult<Node>, StringResult> {
     private static List<String> divide(CharSequence input) {
         DivideState current = new MutableDivideState();
         for (var i = 0; i < input.length(); i++) {
@@ -45,7 +45,7 @@ public record DivideRule(String key,
     }
 
     @Override
-    public NodeResult lex(String input) {
+    public NodeResult<Node> lex(String input) {
         Result<List<Node>, FormattedError> listFormattedErrorResult = divide(input).stream()
                 .reduce(new Ok<>(new ArrayList<>()), this::foldElement, (_, next) -> next);
         return switch (listFormattedErrorResult) {
@@ -62,20 +62,14 @@ public record DivideRule(String key,
             case Ok<List<Node>, FormattedError>(
                     List<Node> value1
             ) -> {
-                NodeResult nodeFormattedErrorResult = this.rule.lex(element);
+                NodeResult<Node> nodeFormattedErrorResult = this.rule.lex(element);
                 yield this.getListFormattedErrorResult(value1, nodeFormattedErrorResult);
             }
         };
     }
 
-    private Result<List<Node>, FormattedError> getListFormattedErrorResult(List<Node> value1, NodeResult nodeFormattedErrorResult) {
-        return switch (nodeFormattedErrorResult) {
-            case NodeErr(FormattedError error) -> new Err<>(error);
-            case NodeOk(Node value) -> {
-                value1.add(value);
-                yield new Ok<>(value1);
-            }
-        };
+    private Result<List<Node>, FormattedError> getListFormattedErrorResult(List<Node> value1, NodeResult<Node> nodeFormattedErrorResult) {
+        return nodeFormattedErrorResult.appendTo(value1);
     }
 
     @Override

@@ -1,8 +1,17 @@
 package magma.app.compile.error;
 
-import magma.app.compile.node.Node;
+import magma.api.result.Result;
 import magma.app.compile.rule.or.OrState;
 
-public sealed interface NodeResult extends MergeNodeResult<Node, NodeResult>, TypeNodeResult<NodeResult> permits NodeErr, NodeOk {
+import java.util.List;
+import java.util.function.Function;
+
+public interface NodeResult<Node> extends MergeNodeResult<Node, NodeResult<Node>>, TypeNodeResult<NodeResult<Node>> {
+    Result<List<Node>, FormattedError> appendTo(List<Node> list);
+
+    StringResult generate(Function<Node, StringResult> mapper);
+
+    NodeResult<Node> transform(Function<Node, Node> transformer);
+
     OrState<Node, FormattedError> attachToState(OrState<Node, FormattedError> state);
 }
