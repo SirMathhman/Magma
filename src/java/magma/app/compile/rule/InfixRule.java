@@ -1,21 +1,21 @@
 package magma.app.compile.rule;
 
-import magma.api.result.Err;
-import magma.api.result.Ok;
-import magma.api.result.Result;
+import magma.app.compile.error.NodeErr;
+import magma.app.compile.error.NodeOk;
+import magma.app.compile.error.NodeResult;
 import magma.app.compile.error.ResultFactory;
 import magma.app.compile.error.StringErr;
 import magma.app.compile.error.StringOk;
 import magma.app.compile.error.StringResult;
-import magma.app.compile.node.MergingNode;
+import magma.app.compile.node.Node;
 
-public final class InfixRule<Node extends MergingNode<Node>, Error> implements Rule<Node, Result<Node, Error>, StringResult> {
-    private final Rule<Node, Result<Node, Error>, StringResult> leftRule;
+public final class InfixRule<Error> implements Rule<NodeResult, StringResult> {
+    private final Rule<NodeResult, StringResult> leftRule;
     private final String infix;
-    private final Rule<Node, Result<Node, Error>, StringResult> rightRule;
-    private final ResultFactory<Node, Result<Node, Error>, StringResult> factory;
+    private final Rule<NodeResult, StringResult> rightRule;
+    private final ResultFactory<Node, NodeResult, StringResult> factory;
 
-    public InfixRule(Rule<Node, Result<Node, Error>, StringResult> leftRule, String infix, Rule<Node, Result<Node, Error>, StringResult> rightRule, ResultFactory<Node, Result<Node, Error>, StringResult> factory) {
+    public InfixRule(Rule<NodeResult, StringResult> leftRule, String infix, Rule<NodeResult, StringResult> rightRule, ResultFactory<Node, NodeResult, StringResult> factory) {
         this.leftRule = leftRule;
         this.infix = infix;
         this.rightRule = rightRule;
@@ -23,31 +23,29 @@ public final class InfixRule<Node extends MergingNode<Node>, Error> implements R
     }
 
     @Override
-    public Result<Node, Error> lex(String input) {
+    public NodeResult lex(String input) {
         final var index = input.indexOf(this.infix);
         if (index == -1)
             return this.factory.fromStringErr("Infix '" + this.infix + "' not present", input);
 
         final var left = input.substring(0, index);
         final var right = input.substring(index + this.infix.length());
-        Result<Node, Error> nodeErrorResult1 = this.leftRule.lex(left);
+        NodeResult nodeErrorResult1 = this.leftRule.lex(left);
         return switch (nodeErrorResult1) {
-            case Err<Node, Error>(Error error1) -> new Err<>(error1);
-            case Ok<Node, Error>(
-                    Node value1
-            ) -> {
-                Result<Node, Error> nodeErrorResult = this.rightRule.lex(right);
+            case NodeErr(var error1) -> new NodeErr(error1);
+            case NodeOk(var value1) -> {
+                NodeResult nodeErrorResult = this.rightRule.lex(right);
                 yield this.getNodeErrorResult(value1, nodeErrorResult);
             }
         };
     }
 
-    private Result<Node, Error> getNodeErrorResult(Node value1, Result<Node, Error> nodeErrorResult) {
+    private NodeResult getNodeErrorResult(Node value1, NodeResult nodeErrorResult) {
         return switch (nodeErrorResult) {
-            case Err<Node, Error>(Error error) -> new Err<>(error);
-            case Ok<Node, Error>(
-                    Node value
-            ) -> new Ok<>(value1.merge(value));
+            case NodeErr(var error) -> new NodeErr(error);
+            case NodeOk(
+                    var value
+            ) -> new NodeOk(value1.merge(value));
         };
     }
 

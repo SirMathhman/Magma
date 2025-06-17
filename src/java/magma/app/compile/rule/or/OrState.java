@@ -2,10 +2,10 @@ package magma.app.compile.rule.or;
 
 import java.util.Optional;
 
-public interface OrState<Value, Error, Result> {
-    OrState<Value, Error, Result> withValue(Value node);
+public interface OrState<Value, Error> {
+    OrState<Value, Error> withValue(Value node);
 
-    OrState<Value, Error, Result> withError(Error error);
+    OrState<Value, Error> withError(Error error);
 
     Optional<Value> maybeValue();
 

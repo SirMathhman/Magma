@@ -1,31 +1,29 @@
 package magma.app.compile.rule;
 
-import magma.api.result.Err;
-import magma.api.result.Ok;
-import magma.api.result.Result;
+import magma.app.compile.error.NodeErr;
+import magma.app.compile.error.NodeOk;
+import magma.app.compile.error.NodeResult;
 import magma.app.compile.error.ResultFactory;
-import magma.app.compile.node.DisplayNode;
-import magma.app.compile.node.TypedNode;
+import magma.app.compile.error.StringResult;
+import magma.app.compile.node.Node;
 
-public final class TypeRule<Node extends DisplayNode & TypedNode<Node>, Error, StringResult> implements Rule<Node, Result<Node, Error>, StringResult> {
+public final class TypeRule implements Rule<NodeResult, StringResult> {
     private final String type;
-    private final Rule<Node, Result<Node, Error>, StringResult> rule;
-    private final ResultFactory<Node, Result<Node, Error>, StringResult> factory;
+    private final Rule<NodeResult, StringResult> rule;
+    private final ResultFactory<Node, NodeResult, StringResult> factory;
 
-    public TypeRule(String type, Rule<Node, Result<Node, Error>, StringResult> rule, ResultFactory<Node, Result<Node, Error>, StringResult> factory) {
+    public TypeRule(String type, Rule<NodeResult, StringResult> rule, ResultFactory<Node, NodeResult, StringResult> factory) {
         this.type = type;
         this.rule = rule;
         this.factory = factory;
     }
 
     @Override
-    public Result<Node, Error> lex(String input) {
-        Result<Node, Error> nodeErrorResult = this.rule.lex(input);
+    public NodeResult lex(String input) {
+        NodeResult nodeErrorResult = this.rule.lex(input);
         return switch (nodeErrorResult) {
-            case Err<Node, Error>(Error error) -> new Err<>(error);
-            case Ok<Node, Error>(
-                    Node value
-            ) -> new Ok<>(value.retype(this.type));
+            case NodeErr(var error) -> new NodeErr(error);
+            case NodeOk(var value) -> new NodeOk(value.retype(this.type));
         };
     }
 

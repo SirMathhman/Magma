@@ -5,6 +5,9 @@ import magma.api.result.Err;
 import magma.api.result.Ok;
 import magma.api.result.Result;
 import magma.app.compile.error.FormattedError;
+import magma.app.compile.error.NodeErr;
+import magma.app.compile.error.NodeOk;
+import magma.app.compile.error.NodeResult;
 import magma.app.compile.error.StringErr;
 import magma.app.compile.error.StringOk;
 import magma.app.compile.error.StringResult;
@@ -18,10 +21,10 @@ import java.util.ArrayList;
 import java.util.Map;
 
 public class RuleCompiler implements Compiler {
-    private final Rule<Node, Result<Node, FormattedError>, StringResult> targetRule;
-    private final Rule<Node, Result<Node, FormattedError>, StringResult> sourceRule;
+    private final Rule<NodeResult, StringResult> targetRule;
+    private final Rule<NodeResult, StringResult> sourceRule;
 
-    public RuleCompiler(Rule<Node, Result<Node, FormattedError>, StringResult> sourceRule, Rule<Node, Result<Node, FormattedError>, StringResult> targetRule) {
+    public RuleCompiler(Rule<NodeResult, StringResult> sourceRule, Rule<NodeResult, StringResult> targetRule) {
         this.sourceRule = sourceRule;
         this.targetRule = targetRule;
     }
@@ -56,14 +59,14 @@ public class RuleCompiler implements Compiler {
     }
 
     StringResult compileRoot(String input, String source) {
-        Result<Node, FormattedError> nodeFormattedErrorResult = this.sourceRule.lex(input);
-        Result<Node, FormattedError> nodeFormattedErrorResult1 = switch (nodeFormattedErrorResult) {
-            case Err<Node, FormattedError>(FormattedError error) -> new Err<>(error);
-            case Ok<Node, FormattedError>(Node value) -> new Ok<>(transform(source, value));
+        NodeResult nodeFormattedErrorResult = this.sourceRule.lex(input);
+        NodeResult nodeFormattedErrorResult1 = switch (nodeFormattedErrorResult) {
+            case NodeErr(FormattedError error) -> new NodeErr(error);
+            case NodeOk(Node value) -> new NodeOk(transform(source, value));
         };
         return switch (nodeFormattedErrorResult1) {
-            case Err<Node, FormattedError>(FormattedError error1) -> new StringErr(error1);
-            case Ok<Node, FormattedError>(
+            case NodeErr(FormattedError error1) -> new StringErr(error1);
+            case NodeOk(
                     Node value1
             ) -> this.targetRule.generate(value1);
         };

@@ -1,23 +1,20 @@
 package magma.app.compile.error;
 
-import magma.api.result.Err;
-import magma.api.result.Ok;
-import magma.api.result.Result;
 import magma.app.compile.context.NodeContext;
 import magma.app.compile.context.StringContext;
 import magma.app.compile.node.Node;
 
-public class ResultFactoryImpl implements ResultFactory<Node, Result<Node, FormattedError>, StringResult> {
+public class ResultFactoryImpl implements ResultFactory<Node, NodeResult, StringResult> {
     private ResultFactoryImpl() {
     }
 
-    public static ResultFactory<Node, Result<Node, FormattedError>, StringResult> create() {
+    public static ResultFactory<Node, NodeResult, StringResult> create() {
         return new ResultFactoryImpl();
     }
 
     @Override
-    public Result<Node, FormattedError> fromStringErr(String message, String input) {
-        return new Err<>(new CompileError(message, new StringContext(input)));
+    public NodeResult fromStringErr(String message, String input) {
+        return new NodeErr(new CompileError(message, new StringContext(input)));
     }
 
     @Override
@@ -26,8 +23,8 @@ public class ResultFactoryImpl implements ResultFactory<Node, Result<Node, Forma
     }
 
     @Override
-    public Result<Node, FormattedError> fromNode(Node value) {
-        return new Ok<>(value);
+    public NodeResult fromNode(Node value) {
+        return new NodeOk(value);
     }
 
     @Override

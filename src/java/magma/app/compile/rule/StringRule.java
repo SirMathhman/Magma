@@ -1,21 +1,21 @@
 package magma.app.compile.rule;
 
-import magma.api.result.Result;
+import magma.app.compile.error.NodeResult;
 import magma.app.compile.error.ResultFactory;
 import magma.app.compile.node.MapNode;
 import magma.app.compile.node.Node;
 
-public final class StringRule<Error, StringResult> implements Rule<Node, Result<Node, Error>, StringResult> {
+public final class StringRule<StringResult> implements Rule<NodeResult, StringResult> {
     private final String key;
-    private final ResultFactory<Node, Result<Node, Error>, StringResult> factory;
+    private final ResultFactory<Node, NodeResult, StringResult> factory;
 
-    public StringRule(String key, ResultFactory<Node, Result<Node, Error>, StringResult> factory) {
+    public StringRule(String key, ResultFactory<Node, NodeResult, StringResult> factory) {
         this.key = key;
         this.factory = factory;
     }
 
     @Override
-    public Result<Node, Error> lex(String input) {
+    public NodeResult lex(String input) {
         return this.factory.fromNode(new MapNode().withString(this.key, input));
     }
 

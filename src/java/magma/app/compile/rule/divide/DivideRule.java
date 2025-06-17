@@ -4,6 +4,9 @@ import magma.api.result.Err;
 import magma.api.result.Ok;
 import magma.api.result.Result;
 import magma.app.compile.error.FormattedError;
+import magma.app.compile.error.NodeErr;
+import magma.app.compile.error.NodeOk;
+import magma.app.compile.error.NodeResult;
 import magma.app.compile.error.StringErr;
 import magma.app.compile.error.StringOk;
 import magma.app.compile.error.StringResult;
@@ -14,8 +17,7 @@ import magma.app.compile.rule.Rule;
 import java.util.ArrayList;
 import java.util.List;
 
-public record DivideRule(String key,
-                         Rule<Node, Result<Node, FormattedError>, StringResult> rule) implements Rule<Node, Result<Node, FormattedError>, StringResult> {
+public record DivideRule(String key, Rule<NodeResult, StringResult> rule) implements Rule<NodeResult, StringResult> {
     private static List<String> divide(CharSequence input) {
         DivideState current = new MutableDivideState();
         for (var i = 0; i < input.length(); i++) {
@@ -42,14 +44,14 @@ public record DivideRule(String key,
     }
 
     @Override
-    public Result<Node, FormattedError> lex(String input) {
+    public NodeResult lex(String input) {
         Result<List<Node>, FormattedError> listFormattedErrorResult = divide(input).stream()
                 .reduce(new Ok<>(new ArrayList<>()), this::foldElement, (_, next) -> next);
         return switch (listFormattedErrorResult) {
-            case Err<List<Node>, FormattedError>(FormattedError error) -> new Err<>(error);
+            case Err<List<Node>, FormattedError>(FormattedError error) -> new NodeErr(error);
             case Ok<List<Node>, FormattedError>(
                     List<Node> value
-            ) -> new Ok<>(new MapNode().withNodeList(this.key(), value));
+            ) -> new NodeOk(new MapNode().withNodeList(this.key(), value));
         };
     }
 
@@ -59,16 +61,16 @@ public record DivideRule(String key,
             case Ok<List<Node>, FormattedError>(
                     List<Node> value1
             ) -> {
-                Result<Node, FormattedError> nodeFormattedErrorResult = this.rule.lex(element);
+                NodeResult nodeFormattedErrorResult = this.rule.lex(element);
                 yield this.getListFormattedErrorResult(value1, nodeFormattedErrorResult);
             }
         };
     }
 
-    private Result<List<Node>, FormattedError> getListFormattedErrorResult(List<Node> value1, Result<Node, FormattedError> nodeFormattedErrorResult) {
+    private Result<List<Node>, FormattedError> getListFormattedErrorResult(List<Node> value1, NodeResult nodeFormattedErrorResult) {
         return switch (nodeFormattedErrorResult) {
-            case Err<Node, FormattedError>(FormattedError error) -> new Err<>(error);
-            case Ok<Node, FormattedError>(Node value) -> {
+            case NodeErr(FormattedError error) -> new Err<>(error);
+            case NodeOk(Node value) -> {
                 value1.add(value);
                 yield new Ok<>(value1);
             }
