@@ -9,7 +9,6 @@ import magma.state.State;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -34,25 +33,22 @@ public class Main {
     private static StringBuilder compileSource(Source source) throws IOException {
         final var location = source.computeLocation();
         final var input = source.readString();
-        return compile(input, location);
+        return compile(input, new CompileState(location));
     }
 
-    private static StringBuilder compile(CharSequence input, Location location) {
+    private static StringBuilder compile(CharSequence input, CompileState state) {
         final var segments = divide(input);
 
-        List<Location> imports = new ArrayList<>();
         final var output = new StringBuilder();
         for (var segment : segments)
-            compileRootSegment(segment, imports, location).ifPresent(obj -> {
-                for (var entry : obj.entrySet()) {
-                    imports.add(entry.getKey());
+            compileRootSegment(segment, state).ifPresent(obj -> {
+                for (var entry : obj.entrySet())
                     output.append(entry.getValue());
-                }
             });
         return output;
     }
 
-    private static Optional<Map<Location, String>> compileRootSegment(String input, List<Location> imports, Location location) {
+    private static Optional<Map<CompileState, String>> compileRootSegment(String input, CompileState state) {
         final var strip = input.strip();
         if (strip.startsWith("import ")) {
             final var withoutStart = strip.substring("import ".length());
@@ -61,49 +57,48 @@ public class Main {
                 final var separator = withoutEnd.lastIndexOf(".");
                 final var parent = withoutEnd.substring(0, separator);
                 final var child = withoutEnd.substring(separator + ".".length());
-                final var parent1 = new Location(parent, child);
-                final var generated = Map.of(parent1, location.join() + " --> " + withoutEnd + "\n");
-                return Optional.of(generated);
+                return Optional.of(Map.of(state.addImport(new Location(parent, child)),
+                        state.current()
+                                .join() + " --> " + withoutEnd + "\n"));
             }
         }
 
         final var separator = strip.indexOf("{");
         if (separator >= 0) {
             final var beforeContent = strip.substring(0, separator);
-            final var or = compileStructureDefinition("class",
+            final var maybeStructure = compileStructureDefinition("class",
                     "class",
-                    imports,
-                    location, beforeContent).or(() -> compileStructureDefinition("interface", "interface",
-                            imports, location, beforeContent))
-                    .or(() -> compileStructureDefinition("record", "class", imports, location, beforeContent));
-
-            if (or.isPresent())
-                return or;
+                    beforeContent,
+                    state).or(() -> compileStructureDefinition("interface", "interface", beforeContent, state))
+                    .or(() -> compileStructureDefinition("record", "class", beforeContent, state));
+            if (maybeStructure.isPresent())
+                return maybeStructure;
         }
 
         return Optional.empty();
     }
 
-    private static Optional<Map<Location, String>> compileStructureDefinition(String type, String type1, List<Location> imports, Location location, String input) {
+    private static Optional<Map<CompileState, String>> compileStructureDefinition(String type, String type1, String input, CompileState state) {
         final var index = input.indexOf(type + " ");
         if (index >= 0) {
             final var afterKeyword = input.substring((type + " ").length() + index);
-            return compileStructureDefinitionTruncated(type1, afterKeyword, imports, location);
+            return compileStructureDefinitionTruncated(type1, afterKeyword, state);
         }
         return Optional.empty();
     }
 
-    private static Optional<Map<Location, String>> compileStructureDefinitionTruncated(String type, String afterKeyword, List<Location> imports, Location location) {
+    private static Optional<Map<CompileState, String>> compileStructureDefinitionTruncated(String type, String afterKeyword, CompileState state) {
         final var index = afterKeyword.indexOf("implements ");
         if (index >= 0) {
             final var childName = afterKeyword.substring(index + "implements ".length())
                     .strip();
 
-            final var actual = find(imports, childName).orElse(location.withName(childName));
-            return generate(type, location, List.of(actual.join()));
+            final var actual = find(state.imports(), childName).orElse(state.current()
+                    .resolveSibling(childName));
+            return generate(type, state, List.of(actual.join()));
         }
         else
-            return generate(type, location, Collections.emptyList());
+            return generate(type, state, Collections.emptyList());
     }
 
     private static Optional<Location> find(List<Location> imports, String name) {
@@ -114,17 +109,19 @@ public class Main {
         return Optional.empty();
     }
 
-    private static Optional<Map<Location, String>> generate(String type, Location location, List<String> superTypes) {
+    private static Optional<Map<CompileState, String>> generate(String type, CompileState state, List<String> superTypes) {
         final var buffer = new StringBuilder();
         for (var superType : superTypes)
-            buffer.append(location.namespace())
-                    .append(".")
-                    .append(location.name())
+            buffer.append(state.current()
+                            .join())
                     .append(" --|> ")
                     .append(superType)
                     .append("\n");
 
-        return Optional.of(Map.of(location, type + " " + location.namespace() + "." + location.name() + "\n" + buffer));
+        final var generated = type + " " + state.current()
+                .join() + "\n" + buffer;
+
+        return Optional.of(Map.of(state, generated));
     }
 
     private static List<String> divide(CharSequence input) {

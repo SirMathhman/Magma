@@ -9,7 +9,6 @@ magma.Main --> magma.state.State
 magma.Main --> java.io.IOException
 magma.Main --> java.nio.file.Files
 magma.Main --> java.nio.file.Paths
-magma.Main --> java.util.ArrayList
 magma.Main --> java.util.Collections
 magma.Main --> java.util.List
 magma.Main --> java.util.Map
@@ -30,6 +29,10 @@ magma.io.PathSource --> java.util.ArrayList
 magma.io.PathSource --> java.util.List
 class magma.io.PathSource
 magma.io.PathSource --|> magma.io.Source
+magma.CompileState --> magma.io.Location
+magma.CompileState --> java.util.ArrayList
+magma.CompileState --> java.util.List
+class magma.CompileState
 magma.io.Sources --> java.io.IOException
 magma.io.Sources --> java.nio.file.Files
 magma.io.Sources --> java.nio.file.Path

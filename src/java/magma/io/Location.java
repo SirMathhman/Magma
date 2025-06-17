@@ -25,7 +25,7 @@ public final class Location {
         return this.name.equals(childName);
     }
 
-    public Location withName(String name) {
+    public Location resolveSibling(String name) {
         return new Location(this.namespace, name);
     }
 }
