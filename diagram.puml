@@ -28,12 +28,12 @@ magma.Main --> java.nio.file.Files
 magma.Main --> java.nio.file.Paths
 magma.Main --> java.util.Collections
 magma.Main --> java.util.List
-magma.Main --> java.util.Map
 magma.Main --> java.util.Optional
 class magma.Main
 magma.app.io.source.Source --> magma.app.io.location.Location
 magma.app.io.source.Source --> java.io.IOException
 interface magma.app.io.source.Source
+class magma.Tuple
 magma.app.io.source.PathSource --> magma.app.io.location.Location
 magma.app.io.source.PathSource --> magma.app.io.location.SimpleLocation
 magma.app.io.source.PathSource --> java.io.IOException

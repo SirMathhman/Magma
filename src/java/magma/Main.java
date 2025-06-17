@@ -13,7 +13,6 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 
 public class Main {
@@ -35,22 +34,26 @@ public class Main {
     private static StringBuilder compileSource(Source source) throws IOException {
         final var location = source.computeLocation();
         final var input = source.readString();
-        return compile(input, new SimpleCompileState(location));
+        return compile(new SimpleCompileState(location), input);
     }
 
-    private static StringBuilder compile(CharSequence input, CompileState state) {
+    private static StringBuilder compile(CompileState state, CharSequence input) {
         final var segments = divide(input);
 
+        var current = state;
         final var output = new StringBuilder();
-        for (var segment : segments)
-            compileRootSegment(segment, state).ifPresent(obj -> {
-                for (var entry : obj.entrySet())
-                    output.append(entry.getValue());
-            });
+        for (var segment : segments) {
+            final var maybeCompiled = compileRootSegment(segment, current);
+            if (maybeCompiled.isPresent()) {
+                final var compiled = maybeCompiled.get();
+                current = compiled.left();
+                output.append(compiled.right());
+            }
+        }
         return output;
     }
 
-    private static Optional<Map<CompileState, String>> compileRootSegment(String input, CompileState state) {
+    private static Optional<Tuple<CompileState, String>> compileRootSegment(String input, CompileState state) {
         final var strip = input.strip();
         if (strip.startsWith("import ")) {
             final var withoutStart = strip.substring("import ".length());
@@ -59,7 +62,7 @@ public class Main {
                 final var separator = withoutEnd.lastIndexOf(".");
                 final var parent = withoutEnd.substring(0, separator);
                 final var child = withoutEnd.substring(separator + ".".length());
-                return Optional.of(Map.of(state.addImport(new SimpleLocation(parent, child)),
+                return Optional.of(new Tuple<>(state.addImport(new SimpleLocation(parent, child)),
                         state.joinLocation() + " --> " + withoutEnd + "\n"));
             }
         }
@@ -79,7 +82,7 @@ public class Main {
         return Optional.empty();
     }
 
-    private static Optional<Map<CompileState, String>> compileStructureDefinition(String type, String type1, String input, CompileState state) {
+    private static Optional<Tuple<CompileState, String>> compileStructureDefinition(String type, String type1, String input, CompileState state) {
         final var index = input.indexOf(type + " ");
         if (index >= 0) {
             final var afterKeyword = input.substring((type + " ").length() + index);
@@ -88,7 +91,7 @@ public class Main {
         return Optional.empty();
     }
 
-    private static Optional<Map<CompileState, String>> compileStructureDefinitionTruncated(String type, String afterKeyword, CompileState state) {
+    private static Optional<Tuple<CompileState, String>> compileStructureDefinitionTruncated(String type, String afterKeyword, CompileState state) {
         final var index = afterKeyword.indexOf("implements ");
         if (index >= 0) {
             final var childName = afterKeyword.substring(index + "implements ".length())
@@ -102,7 +105,7 @@ public class Main {
             return generate(type, state, Collections.emptyList());
     }
 
-    private static Optional<Map<CompileState, String>> generate(String type, CompileState state, Iterable<String> superTypes) {
+    private static Optional<Tuple<CompileState, String>> generate(String type, CompileState state, Iterable<String> superTypes) {
         final var buffer = new StringBuilder();
         for (var superType : superTypes)
             buffer.append(state.joinLocation())
@@ -111,7 +114,7 @@ public class Main {
                     .append("\n");
 
         final var generated = type + " " + state.joinLocation() + "\n" + buffer;
-        return Optional.of(Map.of(state, generated));
+        return Optional.of(new Tuple<>(state, generated));
     }
 
     private static List<String> divide(CharSequence input) {
