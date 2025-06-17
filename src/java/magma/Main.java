@@ -1,9 +1,13 @@
 package magma;
 
+import magma.api.Err;
+import magma.api.Ok;
+import magma.api.Result;
 import magma.api.Tuple;
 import magma.app.CompileState;
 import magma.app.SimpleCompileState;
 import magma.app.io.location.SimpleLocation;
+import magma.app.io.source.PathSource;
 import magma.app.io.source.Source;
 import magma.app.io.source.Sources;
 import magma.app.state.MutableState;
@@ -11,34 +15,61 @@ import magma.app.state.State;
 
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 public class Main {
     public static void main(String[] args) {
-        try {
-            final var sources = new Sources(Paths.get(".", "src", "java")).collect();
-            final var builder = new StringBuilder();
-            for (var source : sources)
-                builder.append(compileSource(source));
+        run().ifPresent(Throwable::printStackTrace);
+    }
 
-            final var path = Paths.get(".", "diagram.puml");
-            Files.writeString(path, "@startuml\nskinparam linetype ortho\n" + builder + "@enduml");
+    private static Optional<IOException> run() {
+        return switch (new Sources(Paths.get(".", "src", "java")).collect()) {
+            case Err<Set<PathSource>, IOException>(var error) -> Optional.of(error);
+            case Ok<Set<PathSource>, IOException>(var files) -> compileAll(files);
+        };
+    }
+
+    private static Optional<IOException> compileAll(Iterable<PathSource> files) {
+        final var builder = new StringBuilder();
+        for (var source : files) {
+            final var compiled = compileSource(source);
+            switch (compiled) {
+                case Err<String, IOException>(var error) -> {
+                    return Optional.of(error);
+                }
+                case Ok<String, IOException>(var value) -> builder.append(value);
+            }
+        }
+
+        final var path = Paths.get(".", "diagram.puml");
+        final var output = "@startuml\nskinparam linetype ortho\n" + builder + "@enduml";
+        return writeString(path, output);
+    }
+
+    private static Optional<IOException> writeString(Path path, String output) {
+        try {
+            Files.writeString(path, output);
+            return Optional.empty();
         } catch (IOException e) {
-            //noinspection CallToPrintStackTrace
-            e.printStackTrace();
+            return Optional.of(e);
         }
     }
 
-    private static StringBuilder compileSource(Source source) throws IOException {
+    private static Result<String, IOException> compileSource(Source source) {
         final var location = source.computeLocation();
         final var input = source.readString();
-        return compile(new SimpleCompileState(location), input);
+        return switch (input) {
+            case Err<String, IOException>(var error) -> new Err<>(error);
+            case Ok<String, IOException>(var input0) -> new Ok<>(compile(new SimpleCompileState(location), input0));
+        };
     }
 
-    private static StringBuilder compile(CompileState state, CharSequence input) {
+    private static String compile(CompileState state, CharSequence input) {
         final var segments = divide(input);
 
         var current = state;
@@ -51,7 +82,7 @@ public class Main {
                 output.append(compiled.right());
             }
         }
-        return output;
+        return output.toString();
     }
 
     private static Optional<Tuple<CompileState, String>> compileRootSegment(String input, CompileState state) {

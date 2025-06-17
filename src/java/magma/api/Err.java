@@ -1,4 +1,4 @@
 package magma.api;
 
-public class Err<T, X> implements Result<T, X> {
+public record Err<T, X>(X error) implements Result<T, X> {
 }

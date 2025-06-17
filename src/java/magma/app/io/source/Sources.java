@@ -1,5 +1,9 @@
 package magma.app.io.source;
 
+import magma.api.Err;
+import magma.api.Ok;
+import magma.api.Result;
+
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -7,13 +11,15 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 public record Sources(Path sourceDirectory) {
-    public Set<Source> collect() throws IOException {
+    public Result<Set<PathSource>, IOException> collect() {
         try (final var stream = Files.walk(this.sourceDirectory)) {
-            return stream.filter(Files::isRegularFile)
+            return new Ok<>(stream.filter(Files::isRegularFile)
                     .filter(path -> path.toString()
                             .endsWith(".java"))
                     .map(source -> new PathSource(this.sourceDirectory, source))
-                    .collect(Collectors.toSet());
+                    .collect(Collectors.toSet()));
+        } catch (IOException e) {
+            return new Err<>(e);
         }
     }
 }

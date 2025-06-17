@@ -1,4 +1,4 @@
 package magma.api;
 
-public class Ok<T, X> implements Result<T, X> {
+public record Ok<T, X>(T value) implements Result<T, X> {
 }

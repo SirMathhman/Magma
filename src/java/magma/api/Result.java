@@ -1,4 +1,4 @@
 package magma.api;
 
-public interface Result<T, X> {
+public sealed interface Result<T, X> permits Err, Ok {
 }

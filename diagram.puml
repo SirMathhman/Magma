@@ -8,6 +8,9 @@ magma.app.state.MutableState --> java.util.List
 class magma.app.state.MutableState
 magma.app.state.MutableState --|> magma.app.state.State
 class magma.api.Tuple
+magma.app.io.source.PathSource --> magma.api.Err
+magma.app.io.source.PathSource --> magma.api.Ok
+magma.app.io.source.PathSource --> magma.api.Result
 magma.app.io.source.PathSource --> magma.app.io.location.Location
 magma.app.io.source.PathSource --> magma.app.io.location.SimpleLocation
 magma.app.io.source.PathSource --> java.io.IOException
@@ -17,6 +20,9 @@ magma.app.io.source.PathSource --> java.util.ArrayList
 magma.app.io.source.PathSource --> java.util.List
 class magma.app.io.source.PathSource
 magma.app.io.source.PathSource --|> magma.app.io.source.Source
+magma.app.io.source.Sources --> magma.api.Err
+magma.app.io.source.Sources --> magma.api.Ok
+magma.app.io.source.Sources --> magma.api.Result
 magma.app.io.source.Sources --> java.io.IOException
 magma.app.io.source.Sources --> java.nio.file.Files
 magma.app.io.source.Sources --> java.nio.file.Path
@@ -32,21 +38,28 @@ magma.app.SimpleCompileState --|> magma.app.CompileState
 magma.app.CompileState --> magma.app.io.location.Location
 magma.app.CompileState --> java.util.Optional
 interface magma.app.CompileState
+magma.Main --> magma.api.Err
+magma.Main --> magma.api.Ok
+magma.Main --> magma.api.Result
 magma.Main --> magma.api.Tuple
 magma.Main --> magma.app.CompileState
 magma.Main --> magma.app.SimpleCompileState
 magma.Main --> magma.app.io.location.SimpleLocation
+magma.Main --> magma.app.io.source.PathSource
 magma.Main --> magma.app.io.source.Source
 magma.Main --> magma.app.io.source.Sources
 magma.Main --> magma.app.state.MutableState
 magma.Main --> magma.app.state.State
 magma.Main --> java.io.IOException
 magma.Main --> java.nio.file.Files
+magma.Main --> java.nio.file.Path
 magma.Main --> java.nio.file.Paths
 magma.Main --> java.util.Collections
 magma.Main --> java.util.List
 magma.Main --> java.util.Optional
+magma.Main --> java.util.Set
 class magma.Main
+magma.app.io.source.Source --> magma.api.Result
 magma.app.io.source.Source --> magma.app.io.location.Location
 magma.app.io.source.Source --> java.io.IOException
 interface magma.app.io.source.Source

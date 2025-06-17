@@ -1,5 +1,8 @@
 package magma.app.io.source;
 
+import magma.api.Err;
+import magma.api.Ok;
+import magma.api.Result;
 import magma.app.io.location.Location;
 import magma.app.io.location.SimpleLocation;
 
@@ -19,8 +22,12 @@ public record PathSource(Path sourceDirectory, Path source) implements Source {
     }
 
     @Override
-    public String readString() throws IOException {
-        return Files.readString(this.source);
+    public Result<String, IOException> readString() {
+        try {
+            return new Ok<>(Files.readString(this.source));
+        } catch (IOException e) {
+            return new Err<>(e);
+        }
     }
 
     @Override
