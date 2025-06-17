@@ -32,7 +32,8 @@ public class Lang {
     }
 
     static Rule<Node> createNamespacedRule(String type) {
-        return new StripRule(new PrefixRule(type + " ", new SuffixRule(new StringRule("destination"), ";")));
+        return new StripRule<Node>(new PrefixRule<Node>(type + " ",
+                new SuffixRule(new StringRule("destination"), ";")));
     }
 
     static Rule<Node> createDependencyRule() {

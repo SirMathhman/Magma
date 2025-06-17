@@ -23,7 +23,6 @@ magma.app.compile.context.NodeContext --> magma.app.compile.node.DisplayNode
 class magma.app.compile.rule.StripRule
 magma.app.compile.rule.StripRule --> magma.api.result.Result
 magma.app.compile.rule.StripRule --> magma.app.compile.error.FormattedError
-magma.app.compile.rule.StripRule --> magma.app.compile.node.Node
 class magma.app.compile.rule.or.MutableOrState
 magma.app.compile.rule.or.MutableOrState --> magma.api.result.Err
 magma.app.compile.rule.or.MutableOrState --> magma.api.result.Ok
@@ -161,7 +160,6 @@ magma.app.compile.rule.PrefixRule --> magma.api.result.Result
 magma.app.compile.rule.PrefixRule --> magma.app.compile.context.StringContext
 magma.app.compile.rule.PrefixRule --> magma.app.compile.error.CompileError
 magma.app.compile.rule.PrefixRule --> magma.app.compile.error.FormattedError
-magma.app.compile.rule.PrefixRule --> magma.app.compile.node.Node
 class magma.app.io.PathSource
 magma.app.io.PathSource --> java.nio.file.Path
 magma.app.io.PathSource --> java.util.ArrayList
