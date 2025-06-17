@@ -1,13 +1,10 @@
 @startuml
 skinparam linetype ortho
 class magma.api.Err
-magma.api.Err --> java.util.Optional
 magma.api.Err --> java.util.function.Function
 class magma.api.Ok
-magma.api.Ok --> java.util.Optional
 magma.api.Ok --> java.util.function.Function
 class magma.api.Result
-magma.api.Result --> java.util.Optional
 magma.api.Result --> java.util.function.Function
 class magma.app.node.MapNode
 magma.app.node.MapNode --> java.util.HashMap

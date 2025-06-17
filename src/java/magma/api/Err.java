@@ -1,6 +1,5 @@
 package magma.api;
 
-import java.util.Optional;
 import java.util.function.Function;
 
 public class Err<T, X> implements Result<T, X> {
@@ -18,11 +17,6 @@ public class Err<T, X> implements Result<T, X> {
     @Override
     public <R> Result<R, X> flatMap(Function<T, Result<R, X>> mapper) {
         return new Err<>(this.error);
-    }
-
-    @Override
-    public Optional<T> findValue() {
-        return Optional.empty();
     }
 
     @Override
