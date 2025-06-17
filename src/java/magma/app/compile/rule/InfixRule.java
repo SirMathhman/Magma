@@ -1,14 +1,14 @@
-package magma.app.compile.merge;
+package magma.app.compile.rule;
 
 import magma.api.result.Err;
 import magma.api.result.Result;
 import magma.app.compile.context.StringContext;
 import magma.app.compile.error.CompileError;
 import magma.app.compile.error.FormattedError;
-import magma.app.compile.rule.Rule;
+import magma.app.compile.node.MergingNode;
 
-public record MergeRule<Node extends MergeNode<Node>>(Rule<Node> leftRule, String infix,
-                                                      Rule<Node> rightRule) implements Rule<Node> {
+public record InfixRule<Node extends MergingNode<Node>>(Rule<Node> leftRule, String infix,
+                                                        Rule<Node> rightRule) implements Rule<Node> {
     @Override
     public Result<Node, FormattedError> lex(String input) {
         final var index = input.indexOf(this.infix);
