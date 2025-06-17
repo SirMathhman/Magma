@@ -1,9 +1,5 @@
 package magma.api.list;
 
-import java.util.stream.Stream;
-
-public interface List<T> {
-    Stream<T> stream();
-
+public interface List<T> extends Streamable<T> {
     List<T> add(T element);
 }

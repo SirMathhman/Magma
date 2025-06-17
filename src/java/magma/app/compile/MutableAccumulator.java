@@ -2,6 +2,7 @@ package magma.app.compile;
 
 import magma.api.list.List;
 import magma.api.list.Lists;
+import magma.api.list.Streamable;
 
 import java.util.Optional;
 import java.util.function.Function;
@@ -23,7 +24,7 @@ record MutableAccumulator<Value, Error>(Optional<Value> maybeValue,
     }
 
     @Override
-    public <Result extends AttachableToStateResult<Value, Error>> Result getMatch(Function<Value, Result> whenOk, Function<List<Error>, Result> whenErr) {
+    public <Result extends AttachableToStateResult<Value, Error>> Result match(Function<Value, Result> whenOk, Function<Streamable<Error>, Result> whenErr) {
         return this.maybeValue.map(whenOk)
                 .orElseGet(() -> whenErr.apply(this.errors));
     }

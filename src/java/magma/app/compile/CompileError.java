@@ -1,9 +1,10 @@
 package magma.app.compile;
 
-import magma.api.list.List;
 import magma.api.list.Lists;
+import magma.api.list.Streamable;
 
-public record CompileError(String message, Context context, List<FormattedError> errors) implements FormattedError {
+public record CompileError(String message, Context context,
+                           Streamable<FormattedError> errors) implements FormattedError {
     public CompileError(String message, Context context) {
         this(message, context, Lists.empty());
     }

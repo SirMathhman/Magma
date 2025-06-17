@@ -1,6 +1,6 @@
 package magma.app.compile;
 
-import magma.api.list.List;
+import magma.api.list.Streamable;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -10,13 +10,13 @@ import java.util.stream.Stream;
 public final class MapNode implements Node {
     private final Optional<String> maybeType;
     private final Map<String, String> strings;
-    private final Map<String, List<Node>> nodeLists;
+    private final Map<String, Streamable<Node>> nodeLists;
 
     public MapNode() {
         this(Optional.empty(), new HashMap<>(), new HashMap<>());
     }
 
-    public MapNode(Optional<String> maybeType, Map<String, String> strings, Map<String, List<Node>> nodeLists) {
+    public MapNode(Optional<String> maybeType, Map<String, String> strings, Map<String, Streamable<Node>> nodeLists) {
         this.maybeType = maybeType;
         this.strings = strings;
         this.nodeLists = nodeLists;
@@ -51,13 +51,13 @@ public final class MapNode implements Node {
     }
 
     @Override
-    public Node withNodeList(String key, List<Node> values) {
+    public Node withNodeList(String key, Streamable<Node> values) {
         this.nodeLists.put(key, values);
         return this;
     }
 
     @Override
-    public Optional<List<Node>> findNodeList(String key) {
+    public Optional<Streamable<Node>> findNodeList(String key) {
         if (this.nodeLists.containsKey(key))
             return Optional.of(this.nodeLists.get(key));
         else

@@ -1,9 +1,9 @@
 package magma.app.io;
 
-import magma.api.list.List;
+import magma.api.list.Streamable;
 
 public interface Source {
     String computeName();
 
-    List<String> computeNamespace();
+    Streamable<String> computeNamespace();
 }

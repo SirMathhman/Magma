@@ -1,6 +1,6 @@
 package magma.app.compile;
 
-import magma.api.list.List;
+import magma.api.list.Streamable;
 
 public class ResultFactoryImpl implements ResultFactory<Node, FormattedError, NodeResult<Node, FormattedError>, StringResult<FormattedError>> {
     private ResultFactoryImpl() {
@@ -31,12 +31,12 @@ public class ResultFactoryImpl implements ResultFactory<Node, FormattedError, No
     }
 
     @Override
-    public NodeResult<Node, FormattedError> fromStringErrWithChildren(String message, String input, List<FormattedError> errors) {
+    public NodeResult<Node, FormattedError> fromStringErrWithChildren(String message, String input, Streamable<FormattedError> errors) {
         return new NodeErr<>(new CompileError(message, new StringContext(input), errors));
     }
 
     @Override
-    public StringResult<FormattedError> fromNodeErrWithChildren(String message, Node node, List<FormattedError> errors) {
+    public StringResult<FormattedError> fromNodeErrWithChildren(String message, Node node, Streamable<FormattedError> errors) {
         return new StringErr<>(new CompileError(message, new NodeContext(node), errors));
     }
 

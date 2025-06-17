@@ -1,6 +1,6 @@
 package magma.app.compile;
 
-import magma.api.list.List;
+import magma.api.list.Streamable;
 
 public interface ResultFactory<Node, Error, NodeResult, StringResult> {
     NodeResult fromStringErr(String message, String input);
@@ -11,9 +11,9 @@ public interface ResultFactory<Node, Error, NodeResult, StringResult> {
 
     StringResult fromString(String value);
 
-    NodeResult fromStringErrWithChildren(String message, String input, List<Error> errors);
+    NodeResult fromStringErrWithChildren(String message, String input, Streamable<Error> errors);
 
-    StringResult fromNodeErrWithChildren(String message, Node node, List<Error> errors);
+    StringResult fromNodeErrWithChildren(String message, Node node, Streamable<Error> errors);
 
     NodeListResult<Node, NodeResult> fromEmptyNodeList();
 

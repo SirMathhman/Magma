@@ -2,6 +2,7 @@ package magma.app.compile;
 
 import magma.api.list.List;
 import magma.api.list.Lists;
+import magma.api.list.Streamable;
 
 public class MutableDivideState implements DivideState {
     private final List<String> segments;
@@ -32,7 +33,7 @@ public class MutableDivideState implements DivideState {
     }
 
     @Override
-    public List<String> segments() {
+    public Streamable<String> segments() {
         return this.segments;
     }
 

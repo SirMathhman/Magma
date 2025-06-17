@@ -8,6 +8,7 @@ class magma.app.compile.TypeRule
 class magma.app.compile.MutableAccumulator
 magma.app.compile.MutableAccumulator --> magma.api.list.List
 magma.app.compile.MutableAccumulator --> magma.api.list.Lists
+magma.app.compile.MutableAccumulator --> magma.api.list.Streamable
 magma.app.compile.MutableAccumulator --> java.util.Optional
 magma.app.compile.MutableAccumulator --> java.util.function.Function
 class magma.app.compile.PrependStringResult
@@ -42,8 +43,8 @@ class magma.app.compile.Rule
 class magma.app.compile.AppendableStringResult
 magma.app.compile.AppendableStringResult --> java.util.function.Supplier
 class magma.app.compile.DivideRule
-magma.app.compile.DivideRule --> magma.api.list.List
 magma.app.compile.DivideRule --> magma.api.list.Lists
+magma.app.compile.DivideRule --> magma.api.list.Streamable
 class magma.api.result.Result
 magma.api.result.Result --> java.util.function.Function
 class magma.app.compile.NodeListResult
@@ -52,19 +53,18 @@ class magma.app.compile.SuffixRule
 class magma.app.compile.Lang
 magma.app.compile.Lang --> magma.api.list.Lists
 class magma.app.compile.NodeWithNodeLists
-magma.app.compile.NodeWithNodeLists --> magma.api.list.List
+magma.app.compile.NodeWithNodeLists --> magma.api.list.Streamable
 magma.app.compile.NodeWithNodeLists --> java.util.Optional
 class magma.app.error.ThrowableError
 magma.app.error.ThrowableError --> magma.api.Error
 magma.app.error.ThrowableError --> java.io.PrintWriter
 magma.app.error.ThrowableError --> java.io.StringWriter
 class magma.app.compile.OrRule
-magma.app.compile.OrRule --> magma.api.list.List
+magma.app.compile.OrRule --> magma.api.list.Streamable
 magma.app.compile.OrRule --> java.util.function.Function
 class magma.app.compile.DivideState
-magma.app.compile.DivideState --> magma.api.list.List
+magma.app.compile.DivideState --> magma.api.list.Streamable
 class magma.api.list.List
-magma.api.list.List --> java.util.stream.Stream
 class magma.app.compile.TypeNodeResult
 class magma.api.list.JavaList
 magma.api.list.JavaList --> java.util.ArrayList
@@ -74,6 +74,7 @@ magma.app.compile.FormattedError --> magma.api.Error
 class magma.app.io.PathSource
 magma.app.io.PathSource --> magma.api.list.List
 magma.app.io.PathSource --> magma.api.list.Lists
+magma.app.io.PathSource --> magma.api.list.Streamable
 magma.app.io.PathSource --> java.nio.file.Path
 class magma.app.compile.StringErr
 magma.app.compile.StringErr --> java.util.function.Supplier
@@ -82,13 +83,15 @@ class magma.app.compile.DisplayNode
 class magma.app.error.ApplicationError
 magma.app.error.ApplicationError --> magma.api.Error
 class magma.app.compile.ResultFactory
-magma.app.compile.ResultFactory --> magma.api.list.List
+magma.app.compile.ResultFactory --> magma.api.list.Streamable
 class magma.app.compile.StringResult
 class magma.app.compile.TypeNode
 class magma.app.io.Sources
 magma.app.io.Sources --> magma.api.Error
 magma.app.io.Sources --> magma.api.result.Result
 magma.app.io.Sources --> java.util.Map
+class magma.api.list.Streamable
+magma.api.list.Streamable --> java.util.stream.Stream
 class magma.app.compile.Context
 class magma.app.compile.NodeFactory
 class magma.app.compile.Compiler
@@ -97,22 +100,23 @@ magma.app.compile.Compiler --> magma.api.result.Result
 magma.app.compile.Compiler --> magma.app.io.Source
 magma.app.compile.Compiler --> java.util.Map
 class magma.app.compile.Accumulator
-magma.app.compile.Accumulator --> magma.api.list.List
+magma.app.compile.Accumulator --> magma.api.list.Streamable
 magma.app.compile.Accumulator --> java.util.function.Function
 class magma.app.compile.InfixRule
 class magma.app.compile.NodeErr
 magma.app.compile.NodeErr --> java.util.function.Function
 magma.app.compile.NodeErr --> java.util.function.Supplier
 class magma.app.io.Source
-magma.app.io.Source --> magma.api.list.List
+magma.app.io.Source --> magma.api.list.Streamable
 class magma.app.compile.MutableDivideState
 magma.app.compile.MutableDivideState --> magma.api.list.List
 magma.app.compile.MutableDivideState --> magma.api.list.Lists
+magma.app.compile.MutableDivideState --> magma.api.list.Streamable
 class magma.app.compile.NodeListErr
 magma.app.compile.NodeListErr --> java.util.function.Supplier
 class magma.app.compile.StringContext
 class magma.app.compile.MapNode
-magma.app.compile.MapNode --> magma.api.list.List
+magma.app.compile.MapNode --> magma.api.list.Streamable
 magma.app.compile.MapNode --> java.util.HashMap
 magma.app.compile.MapNode --> java.util.Map
 magma.app.compile.MapNode --> java.util.Optional
@@ -143,17 +147,17 @@ magma.app.compile.RuleCompiler --> java.util.stream.Collectors
 class magma.app.compile.NodeContext
 class magma.app.compile.StringRule
 class magma.app.compile.CompileError
-magma.app.compile.CompileError --> magma.api.list.List
 magma.app.compile.CompileError --> magma.api.list.Lists
+magma.app.compile.CompileError --> magma.api.list.Streamable
 class magma.app.compile.ResultFactoryImpl
-magma.app.compile.ResultFactoryImpl --> magma.api.list.List
+magma.app.compile.ResultFactoryImpl --> magma.api.list.Streamable
 class magma.app.compile.NodeOk
 magma.app.compile.NodeOk --> java.util.function.Function
 magma.app.compile.NodeOk --> java.util.function.Supplier
 class magma.app.io.PathSources
 magma.app.io.PathSources --> magma.api.Error
 magma.app.io.PathSources --> magma.api.list.JavaList
-magma.app.io.PathSources --> magma.api.list.List
+magma.app.io.PathSources --> magma.api.list.Streamable
 magma.app.io.PathSources --> magma.api.result.Err
 magma.app.io.PathSources --> magma.api.result.Ok
 magma.app.io.PathSources --> magma.api.result.Result

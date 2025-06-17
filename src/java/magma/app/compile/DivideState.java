@@ -1,13 +1,13 @@
 package magma.app.compile;
 
-import magma.api.list.List;
+import magma.api.list.Streamable;
 
 public interface DivideState {
     DivideState append(char c);
 
     DivideState advance();
 
-    List<String> segments();
+    Streamable<String> segments();
 
     boolean isLevel();
 

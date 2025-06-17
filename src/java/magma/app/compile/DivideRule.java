@@ -1,7 +1,7 @@
 package magma.app.compile;
 
-import magma.api.list.List;
 import magma.api.list.Lists;
+import magma.api.list.Streamable;
 
 public final class DivideRule<Node extends NodeWithNodeLists<Node>, Error, NodeResult, StringResult extends AppendableStringResult<StringResult>> implements Rule<Node, NodeResult, StringResult> {
     private final String key;
@@ -16,7 +16,7 @@ public final class DivideRule<Node extends NodeWithNodeLists<Node>, Error, NodeR
         this.resultFactory = resultFactory;
     }
 
-    private static List<String> divide(CharSequence input) {
+    private static Streamable<String> divide(CharSequence input) {
         DivideState current = new MutableDivideState();
         for (var i = 0; i < input.length(); i++) {
             final var c = input.charAt(i);
