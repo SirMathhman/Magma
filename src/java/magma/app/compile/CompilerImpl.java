@@ -41,7 +41,7 @@ public class CompilerImpl implements Compiler {
                 final var separator = withoutEnd.lastIndexOf(".");
                 final var parent = withoutEnd.substring(0, separator);
                 final var child = withoutEnd.substring(separator + ".".length());
-                return new Some<>(new Tuple<CompileState, String>(state.addImport(new SimpleLocation(parent, child)),
+                return new Some<>(new Tuple<>(state.addImport(new SimpleLocation(parent, child)),
                         state.joinLocation() + " --> " + withoutEnd + "\n"));
             }
         }
@@ -96,7 +96,7 @@ public class CompilerImpl implements Compiler {
                     .append("\n");
 
         final var generated = type + " " + state.joinLocation() + "\n" + buffer;
-        return new Some<>(new Tuple<CompileState, String>(state, generated));
+        return new Some<>(new Tuple<>(state, generated));
     }
 
     private static List<String> divide(CharSequence input) {

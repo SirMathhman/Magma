@@ -3,15 +3,14 @@ package magma.api.io;
 import magma.api.option.Option;
 import magma.api.result.Result;
 
-import java.io.IOException;
 import java.util.Set;
 
 public interface PathLike {
-    Option<IOException> writeString(CharSequence output);
+    Option<IOError> writeString(CharSequence output);
 
-    Result<Set<PathLike>, IOException> walk();
+    Result<Set<PathLike>, IOError> walk();
 
-    Result<String, IOException> readString();
+    Result<String, IOError> readString();
 
     int getNameCount();
 

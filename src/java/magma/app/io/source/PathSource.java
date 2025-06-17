@@ -1,11 +1,11 @@
 package magma.app.io.source;
 
+import magma.api.io.IOError;
 import magma.api.io.PathLike;
 import magma.api.result.Result;
 import magma.app.io.location.Location;
 import magma.app.io.location.SimpleLocation;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -19,7 +19,7 @@ public record PathSource(PathLike sourceDirectory, PathLike source) implements S
     }
 
     @Override
-    public Result<String, IOException> readString() {
+    public Result<String, IOError> readString() {
         return this.source.readString();
     }
 

@@ -1,9 +1,8 @@
 package magma.app.io.target;
 
+import magma.api.io.IOError;
 import magma.api.option.Option;
 
-import java.io.IOException;
-
 public interface Targets {
-    Option<IOException> write(String output);
+    Option<IOError> write(String output);
 }

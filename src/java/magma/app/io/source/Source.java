@@ -1,12 +1,11 @@
 package magma.app.io.source;
 
+import magma.api.io.IOError;
 import magma.api.result.Result;
 import magma.app.io.location.Location;
 
-import java.io.IOException;
-
 public interface Source {
-    Result<String, IOException> readString();
+    Result<String, IOError> readString();
 
     Location computeLocation();
 }

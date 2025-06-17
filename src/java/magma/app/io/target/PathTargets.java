@@ -1,14 +1,13 @@
 package magma.app.io.target;
 
-import magma.api.io.Paths;
+import jvm.io.JVMPaths;
+import magma.api.io.IOError;
 import magma.api.option.Option;
-
-import java.io.IOException;
 
 public class PathTargets implements Targets {
     @Override
-    public Option<IOException> write(String output) {
-        final var path = Paths.get(".", "diagram.puml");
+    public Option<IOError> write(String output) {
+        final var path = JVMPaths.get(".", "diagram.puml");
         return path.writeString(output);
     }
 }
