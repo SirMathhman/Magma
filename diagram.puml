@@ -120,17 +120,17 @@ magma.app.compile.NodeErr --> java.util.function.Supplier
 class magma.app.io.Source
 magma.app.io.Source --> java.util.Collection
 class magma.app.compile.rule.or.MutableAccumulator
-magma.app.compile.rule.or.MutableAccumulator --> magma.api.result.Err
-magma.app.compile.rule.or.MutableAccumulator --> magma.api.result.Ok
-magma.app.compile.rule.or.MutableAccumulator --> magma.api.result.Result
+magma.app.compile.rule.or.MutableAccumulator --> magma.app.compile.AttachableToStateResult
 magma.app.compile.rule.or.MutableAccumulator --> java.util.ArrayList
 magma.app.compile.rule.or.MutableAccumulator --> java.util.List
 magma.app.compile.rule.or.MutableAccumulator --> java.util.Optional
+magma.app.compile.rule.or.MutableAccumulator --> java.util.function.Function
 class magma.app.compile.NodeListErr
 magma.app.compile.NodeListErr --> java.util.function.Supplier
 class magma.app.compile.rule.or.Accumulator
-magma.app.compile.rule.or.Accumulator --> magma.api.result.Result
+magma.app.compile.rule.or.Accumulator --> magma.app.compile.AttachableToStateResult
 magma.app.compile.rule.or.Accumulator --> java.util.List
+magma.app.compile.rule.or.Accumulator --> java.util.function.Function
 class magma.app.compile.MapNode
 magma.app.compile.MapNode --> java.util.HashMap
 magma.app.compile.MapNode --> java.util.List

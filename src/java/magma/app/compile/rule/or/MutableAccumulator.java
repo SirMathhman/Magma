@@ -1,12 +1,11 @@
 package magma.app.compile.rule.or;
 
-import magma.api.result.Err;
-import magma.api.result.Ok;
-import magma.api.result.Result;
+import magma.app.compile.AttachableToStateResult;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Function;
 
 record MutableAccumulator<Value, Error>(Optional<Value> maybeValue,
                                         List<Error> errors) implements Accumulator<Value, Error> {
@@ -26,8 +25,8 @@ record MutableAccumulator<Value, Error>(Optional<Value> maybeValue,
     }
 
     @Override
-    public Result<Value, List<Error>> toResult() {
-        return this.maybeValue.<Result<Value, List<Error>>>map(Ok::new)
-                .orElseGet(() -> new Err<>(this.errors));
+    public <Result extends AttachableToStateResult<Value, Error>> Result getMatch(Function<Value, Result> whenOk, Function<List<Error>, Result> whenErr) {
+        return this.maybeValue.map(whenOk)
+                .orElseGet(() -> whenErr.apply(this.errors));
     }
 }
