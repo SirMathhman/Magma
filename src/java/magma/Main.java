@@ -13,6 +13,7 @@ public class Main {
         final var targets = new PathTargets();
         final var application = new Application(sources, compiler, targets);
         final var result = application.run();
-        result.ifPresent(error -> System.err.println(error.display()));
+        result.printIfPresent();
     }
+
 }

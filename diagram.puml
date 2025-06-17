@@ -109,7 +109,6 @@ jvm.list.JVMList --> java.util.ArrayList
 jvm.list.JVMList --> java.util.List
 class jvm.list.JVMList
 jvm.list.JVMList --|> magma.api.list.ListLike
-magma.api.io.IOOption --> java.util.function.Consumer
 interface magma.api.io.IOOption
 interface magma.app.io.location.Location
 interface magma.api.result.Result
@@ -130,7 +129,6 @@ magma.app.io.target.PathTargets --|> magma.app.io.target.Targets
 magma.api.io.SimpleIOOption --> magma.api.option.None
 magma.api.io.SimpleIOOption --> magma.api.option.Option
 magma.api.io.SimpleIOOption --> magma.api.option.Some
-magma.api.io.SimpleIOOption --> java.util.function.Consumer
 class magma.api.io.SimpleIOOption
 magma.api.io.SimpleIOOption --|> magma.api.io.IOOption
 class magma.api.Tuple
