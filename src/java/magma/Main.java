@@ -107,15 +107,15 @@ public class Main {
     }
 
     private static Rule createJavaRootRule() {
-        return new DivideRule("children", new OrRule(List.of(createImportRule(), new StringRule("value"))));
+        return new DivideRule("children", new OrRule(List.of(createNamespacedRule("package"), createNamespacedRule("import"), new StringRule("value"))));
     }
 
     private static Rule createPlantRootRule() {
         return new DivideRule("children", new OrRule(List.of(createDependencyRule(), new EmptyRule())));
     }
 
-    private static Node transform(String source, Node children) {
-        final var transformed = children.findNodeList("children")
+    private static Node transform(String source, Node root) {
+        final var transformed = root.findNodeList("children")
                 .orElse(new ArrayList<>())
                 .stream()
                 .map(node -> node.withString("source", source))
@@ -125,8 +125,8 @@ public class Main {
         return node.withNodeList("children", transformed);
     }
 
-    private static Rule createImportRule() {
-        return new StripRule(new PrefixRule("import ", new SuffixRule(new StringRule("destination"), ";")));
+    private static Rule createNamespacedRule(String type) {
+        return new StripRule(new PrefixRule(type + " ", new SuffixRule(new StringRule("destination"), ";")));
     }
 
     private static Rule createDependencyRule() {
