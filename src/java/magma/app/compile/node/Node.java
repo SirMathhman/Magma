@@ -1,11 +1,14 @@
 package magma.app.compile.node;
 
+import magma.app.compile.merge.MergeNode;
+import magma.app.compile.type.TypeNode;
+
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Stream;
 
-public interface Node extends MergingNode<Node>, TypedNode<Node>, DisplayNode {
+public interface Node extends MergeNode<Node>, TypeNode<Node>, DisplayNode {
     Node withString(String key, String value);
 
     Optional<String> findString(String key);

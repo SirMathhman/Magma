@@ -1,15 +1,15 @@
 package magma.app.compile;
 
+import magma.app.compile.merge.MergeRule;
 import magma.app.compile.node.Node;
-import magma.app.compile.rule.InfixRule;
 import magma.app.compile.rule.PrefixRule;
 import magma.app.compile.rule.Rule;
 import magma.app.compile.rule.StringRule;
 import magma.app.compile.rule.StripRule;
 import magma.app.compile.rule.SuffixRule;
-import magma.app.compile.rule.TypeRule;
 import magma.app.compile.rule.divide.DivideRule;
 import magma.app.compile.rule.or.OrRule;
+import magma.app.compile.type.TypeRule;
 
 import java.util.List;
 
@@ -24,7 +24,7 @@ public class Lang {
     }
 
     static Rule<Node> createStructureRule(String type) {
-        return new InfixRule<>(new StringRule("before-infix"), type + " ", new StringRule("after-infix"));
+        return new MergeRule<>(new StringRule("before-infix"), type + " ", new StringRule("after-infix"));
     }
 
     public static Rule<Node> createPlantRootRule() {
@@ -36,7 +36,7 @@ public class Lang {
     }
 
     static Rule<Node> createDependencyRule() {
-        return new SuffixRule<>(new InfixRule<>(new StringRule("source"), " --> ", new StringRule("destination")),
+        return new SuffixRule<>(new MergeRule<>(new StringRule("source"), " --> ", new StringRule("destination")),
                 "\n");
     }
 }
