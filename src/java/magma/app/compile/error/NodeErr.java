@@ -23,9 +23,6 @@ public record NodeErr(FormattedError node) implements NodeResult {
 
     @Override
     public OrState<Node, FormattedError> attachToState(OrState<Node, FormattedError> state) {
-        return switch (this) {
-            case NodeOk(var value) -> state.withValue(value);
-            case NodeErr(var error) -> state.withError(error);
-        };
+        return state.withError(this.node());
     }
 }

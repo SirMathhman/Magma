@@ -8,6 +8,7 @@ magma.app.compile.rule.divide.DivideState --> java.util.List
 class magma.app.compile.context.NodeContext
 magma.app.compile.context.NodeContext --> magma.app.compile.node.DisplayNode
 class magma.app.compile.error.StringResult
+magma.app.compile.error.StringResult --> magma.app.compile.rule.or.OrState
 class magma.app.compile.error.TypeNodeResult
 class magma.Main
 magma.Main --> magma.api.Error
@@ -30,10 +31,12 @@ magma.Main --> java.util.Map
 magma.Main --> java.util.Optional
 class magma.app.compile.error.NodeOk
 magma.app.compile.error.NodeOk --> magma.app.compile.node.Node
+magma.app.compile.error.NodeOk --> magma.app.compile.rule.or.OrState
 magma.app.compile.error.NodeOk --> java.util.function.Supplier
 class magma.app.compile.rule.NodeFactory
 class magma.app.compile.error.NodeResult
 magma.app.compile.error.NodeResult --> magma.app.compile.node.Node
+magma.app.compile.error.NodeResult --> magma.app.compile.rule.or.OrState
 class magma.app.compile.rule.Rule
 class magma.api.result.Result
 class magma.app.compile.rule.or.OrState
@@ -57,6 +60,7 @@ magma.app.compile.Lang --> magma.app.compile.rule.or.OrRule
 magma.app.compile.Lang --> java.util.List
 class magma.app.compile.node.TypeNode
 class magma.app.compile.error.StringErr
+magma.app.compile.error.StringErr --> magma.app.compile.rule.or.OrState
 magma.app.compile.error.StringErr --> java.util.function.Supplier
 class magma.app.compile.node.NodeWithStrings
 magma.app.compile.node.NodeWithStrings --> java.util.Optional
@@ -109,6 +113,7 @@ magma.app.io.Sources --> java.util.Map
 class magma.app.compile.rule.StripRule
 class magma.app.compile.error.NodeErr
 magma.app.compile.error.NodeErr --> magma.app.compile.node.Node
+magma.app.compile.error.NodeErr --> magma.app.compile.rule.or.OrState
 magma.app.compile.error.NodeErr --> java.util.function.Supplier
 class magma.app.compile.rule.or.MutableOrState
 magma.app.compile.rule.or.MutableOrState --> java.util.ArrayList
@@ -145,15 +150,12 @@ magma.app.compile.node.MapNode --> java.util.stream.Stream
 class magma.app.compile.error.FormattedError
 magma.app.compile.error.FormattedError --> magma.api.Error
 class magma.app.compile.error.StringOk
+magma.app.compile.error.StringOk --> magma.app.compile.rule.or.OrState
 magma.app.compile.error.StringOk --> java.util.function.Supplier
 class magma.app.compile.rule.or.OrRule
 magma.app.compile.rule.or.OrRule --> magma.app.compile.error.FormattedError
-magma.app.compile.rule.or.OrRule --> magma.app.compile.error.NodeErr
-magma.app.compile.rule.or.OrRule --> magma.app.compile.error.NodeOk
 magma.app.compile.rule.or.OrRule --> magma.app.compile.error.NodeResult
 magma.app.compile.rule.or.OrRule --> magma.app.compile.error.ResultFactory
-magma.app.compile.rule.or.OrRule --> magma.app.compile.error.StringErr
-magma.app.compile.rule.or.OrRule --> magma.app.compile.error.StringOk
 magma.app.compile.rule.or.OrRule --> magma.app.compile.error.StringResult
 magma.app.compile.rule.or.OrRule --> magma.app.compile.node.Node
 magma.app.compile.rule.or.OrRule --> magma.app.compile.rule.Rule

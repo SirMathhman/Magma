@@ -22,9 +22,6 @@ public record StringErr(FormattedError error) implements StringResult {
 
     @Override
     public OrState<String, FormattedError> attachToState(OrState<String, FormattedError> state) {
-        return switch (this) {
-            case StringOk(String value) -> state.withValue(value);
-            case StringErr(var error) -> state.withError(error);
-        };
+        return state.withError(this.error());
     }
 }
