@@ -1,7 +1,10 @@
-package magma.app.compile.error;
+package magma.app.compile.error.node;
 
-import magma.api.result.Ok;
+import magma.api.result.Err;
 import magma.api.result.Result;
+import magma.app.compile.error.FormattedError;
+import magma.app.compile.error.string.StringErr;
+import magma.app.compile.error.string.StringResult;
 import magma.app.compile.node.Node;
 import magma.app.compile.rule.or.OrState;
 
@@ -9,41 +12,39 @@ import java.util.List;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
-public record NodeOk(Node node) implements NodeResult<Node> {
+public record NodeErr(FormattedError error) implements NodeResult<Node> {
     @Override
     public NodeResult<Node> mergeResult(Supplier<NodeResult<Node>> other) {
-        return other.get()
-                .mergeNode(this.node);
+        return new NodeErr(this.error);
     }
 
     @Override
     public NodeResult<Node> mergeNode(Node value1) {
-        return new NodeOk(this.node.merge(value1));
+        return new NodeErr(this.error);
     }
 
     @Override
     public NodeResult<Node> retype(String type) {
-        return new NodeOk(this.node.retype(type));
+        return new NodeErr(this.error);
     }
 
     @Override
     public OrState<Node, FormattedError> attachToState(OrState<Node, FormattedError> state) {
-        return state.withValue(this.node());
+        return state.withError(this.error);
     }
 
     @Override
     public NodeResult<Node> transform(Function<Node, Node> transformer) {
-        return new NodeOk(transformer.apply(this.node()));
+        return new NodeErr(this.error);
     }
 
     @Override
     public StringResult generate(Function<Node, StringResult> mapper) {
-        return mapper.apply(this.node());
+        return new StringErr(this.error);
     }
 
     @Override
     public Result<List<Node>, FormattedError> appendTo(List<Node> list) {
-        list.add(this.node);
-        return new Ok<>(list);
+        return new Err<>(this.error);
     }
 }

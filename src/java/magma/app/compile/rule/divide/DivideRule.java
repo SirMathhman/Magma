@@ -1,14 +1,14 @@
 package magma.app.compile.rule.divide;
 
 import magma.app.compile.error.FormattedError;
-import magma.app.compile.error.NodeErr;
-import magma.app.compile.error.NodeListErr;
-import magma.app.compile.error.NodeListOk;
-import magma.app.compile.error.NodeListResult;
-import magma.app.compile.error.NodeOk;
-import magma.app.compile.error.NodeResult;
-import magma.app.compile.error.StringOk;
-import magma.app.compile.error.StringResult;
+import magma.app.compile.error.list.NodeListErr;
+import magma.app.compile.error.list.NodeListOk;
+import magma.app.compile.error.list.NodeListResult;
+import magma.app.compile.error.node.NodeErr;
+import magma.app.compile.error.node.NodeOk;
+import magma.app.compile.error.node.NodeResult;
+import magma.app.compile.error.string.StringOk;
+import magma.app.compile.error.string.StringResult;
 import magma.app.compile.node.Node;
 import magma.app.compile.rule.NodeFactory;
 import magma.app.compile.rule.Rule;

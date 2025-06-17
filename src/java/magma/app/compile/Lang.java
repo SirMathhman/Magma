@@ -1,8 +1,8 @@
 package magma.app.compile;
 
-import magma.app.compile.error.NodeResult;
 import magma.app.compile.error.ResultFactoryImpl;
-import magma.app.compile.error.StringResult;
+import magma.app.compile.error.node.NodeResult;
+import magma.app.compile.error.string.StringResult;
 import magma.app.compile.node.Node;
 import magma.app.compile.rule.InfixRule;
 import magma.app.compile.rule.MapNodeFactory;

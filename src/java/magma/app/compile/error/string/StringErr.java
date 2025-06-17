@@ -1,32 +1,28 @@
-package magma.app.compile.error;
+package magma.app.compile.error.string;
 
+import magma.app.compile.error.FormattedError;
 import magma.app.compile.rule.or.OrState;
 
 import java.util.function.Supplier;
 
-public record StringOk(String value) implements StringResult {
-    public StringOk() {
-        this("");
-    }
-
+public record StringErr(FormattedError error) implements StringResult {
     @Override
     public StringResult appendResult(Supplier<StringResult> generate) {
-        return generate.get()
-                .prepend(this.value);
+        return new StringErr(this.error());
     }
 
     @Override
     public StringResult prepend(String slice) {
-        return new StringOk(slice + this.value);
+        return new StringErr(this.error());
     }
 
     @Override
     public StringResult appendSlice(String infix) {
-        return new StringOk(this.value + infix);
+        return this;
     }
 
     @Override
     public OrState<String, FormattedError> attachToState(OrState<String, FormattedError> state) {
-        return state.withValue(this.value);
+        return state.withError(this.error());
     }
 }
