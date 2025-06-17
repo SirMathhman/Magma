@@ -5,7 +5,6 @@ import magma.api.Ok;
 import magma.api.Result;
 import magma.app.node.MapNode;
 import magma.app.node.Node;
-import magma.app.rule.EmptyRule;
 import magma.app.rule.InfixRule;
 import magma.app.rule.OrRule;
 import magma.app.rule.PrefixRule;
@@ -80,6 +79,7 @@ public class Main {
 
         final var fileName = source.getFileName()
                 .toString();
+
         final var separator = fileName.lastIndexOf(".");
         final var name = fileName.substring(0, separator);
 
@@ -110,7 +110,7 @@ public class Main {
     private static Rule createJavaRootRule() {
         return new DivideRule("children",
                 new OrRule(List.of(createNamespacedRule("package"),
-                        createNamespacedRule("import"),
+                        new TypeRule("import", createNamespacedRule("import")),
                         createStructureRule("class"),
                         createStructureRule("interface"),
                         createStructureRule("record"))));
@@ -121,13 +121,14 @@ public class Main {
     }
 
     private static Rule createPlantRootRule() {
-        return new DivideRule("children", new OrRule(List.of(createDependencyRule(), new EmptyRule())));
+        return new DivideRule("children", new OrRule(List.of(createDependencyRule())));
     }
 
     private static Node transform(String source, Node root) {
         final var transformed = root.findNodeList("children")
                 .orElse(new ArrayList<>())
                 .stream()
+                .filter(node -> node.is("import"))
                 .map(node -> node.withString("source", source))
                 .toList();
 

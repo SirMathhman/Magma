@@ -7,14 +7,16 @@ import java.util.Optional;
 import java.util.stream.Stream;
 
 public final class MapNode implements Node {
+    private final Optional<String> maybeType;
     private final Map<String, String> strings;
     private final Map<String, List<Node>> nodeLists;
 
     public MapNode() {
-        this(new HashMap<>(), new HashMap<>());
+        this(Optional.empty(), new HashMap<>(), new HashMap<>());
     }
 
-    public MapNode(Map<String, String> strings, Map<String, List<Node>> nodeLists) {
+    public MapNode(Optional<String> maybeType, Map<String, String> strings, Map<String, List<Node>> nodeLists) {
+        this.maybeType = maybeType;
         this.strings = strings;
         this.nodeLists = nodeLists;
     }
@@ -36,7 +38,9 @@ public final class MapNode implements Node {
     @Override
     public Node merge(Node other) {
         return other.streamStrings()
-                .<Node>reduce(this, (node, entry) -> node.withString(entry.getKey(), entry.getValue()), (_, next) -> next);
+                .<Node>reduce(this,
+                        (node, entry) -> node.withString(entry.getKey(), entry.getValue()),
+                        (_, next) -> next);
     }
 
     @Override
@@ -61,6 +65,17 @@ public final class MapNode implements Node {
 
     @Override
     public String display() {
-        return this.toString();
+        return this.strings.toString() + this.nodeLists.toString();
+    }
+
+    @Override
+    public boolean is(String type) {
+        return this.maybeType.isPresent() && this.maybeType.get()
+                .equals(type);
+    }
+
+    @Override
+    public Node retype(String type) {
+        return new MapNode(Optional.of(type), this.strings, this.nodeLists);
     }
 }

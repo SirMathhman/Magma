@@ -19,4 +19,8 @@ public interface Node {
     Optional<List<Node>> findNodeList(String key);
 
     String display();
+
+    boolean is(String type);
+
+    Node retype(String type);
 }
