@@ -7,7 +7,6 @@ public record Err<T, X>(X error) implements Result<T, X> {
         return new Err<>(this.error);
     }
 
-    @Override
     public <R> Result<R, X> flatMapValue(Function<T, Result<R, X>> mapper) {
         return new Err<>(this.error);
     }

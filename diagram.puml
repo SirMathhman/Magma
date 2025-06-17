@@ -85,7 +85,6 @@ magma.app.compile.rule.or.OrRule --> java.util.function.Function
 magma.app.compile.rule.or.OrRule --> java.util.function.Supplier
 class magma.app.compile.rule.Rule
 class magma.api.result.Result
-magma.api.result.Result --> java.util.function.Function
 class magma.app.compile.node.DisplayNode
 class magma.app.compile.rule.or.OrState
 magma.app.compile.rule.or.OrState --> java.util.Optional

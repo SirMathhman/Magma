@@ -38,7 +38,12 @@ public record PathSources(Path rootDirectory) implements Sources {
 
     @Override
     public Result<Map<Source, String>, ApplicationError> readAll() {
-        Result<Map<Source, String>, IOException> mapIOExceptionResult = collect(this.rootDirectory).flatMapValue(this::readIterable);
+        Result<List<Path>, IOException> listIOExceptionResult = collect(this.rootDirectory);
+        Result<Map<Source, String>, IOException> mapIOExceptionResult = switch (listIOExceptionResult) {
+            case Err<List<Path>, IOException>(IOException error2) -> new Err<>(error2);
+            case Ok<List<Path>, IOException>(List<Path> value2) ->
+                    ((Function<List<Path>, Result<Map<Source, String>, IOException>>) this::readIterable).apply(value2);
+        };
         Result<Map<Source, String>, ThrowableError> mapThrowableErrorResult = switch (mapIOExceptionResult) {
             case Err<Map<Source, String>, IOException>(IOException error) ->
                     new Err<>(((Function<IOException, ThrowableError>) ThrowableError::new).apply(error));
@@ -53,18 +58,23 @@ public record PathSources(Path rootDirectory) implements Sources {
     }
 
     private Result<Map<Source, String>, IOException> readFile(Path source, Result<Map<Source, String>, IOException> maybeInputs) {
-        return maybeInputs.flatMapValue(inner -> {
-            Result<String, IOException> stringIOExceptionResult = readString(source);
-            return switch (stringIOExceptionResult) {
-                case Err<String, IOException>(IOException error) -> new Err<>(error);
-                case Ok<String, IOException>(
-                        String value
-                ) -> new Ok<>(((Function<String, Map<Source, String>>) input -> {
-                    inner.put(new PathSource(this.rootDirectory, source), input);
-                    return inner;
-                }).apply(value));
-            };
-        });
+        return switch (maybeInputs) {
+            case Err<Map<Source, String>, IOException>(IOException error1) -> new Err<>(error1);
+            case Ok<Map<Source, String>, IOException>(
+                    Map<Source, String> value1
+            ) -> ((Function<Map<Source, String>, Result<Map<Source, String>, IOException>>) inner -> {
+                Result<String, IOException> stringIOExceptionResult = readString(source);
+                return switch (stringIOExceptionResult) {
+                    case Err<String, IOException>(IOException error) -> new Err<>(error);
+                    case Ok<String, IOException>(
+                            String value
+                    ) -> new Ok<>(((Function<String, Map<Source, String>>) input -> {
+                        inner.put(new PathSource(this.rootDirectory, source), input);
+                        return inner;
+                    }).apply(value));
+                };
+            }).apply(value1);
+        };
     }
 
     public Result<Map<Source, String>, IOException> readIterable(Iterable<Path> files) {

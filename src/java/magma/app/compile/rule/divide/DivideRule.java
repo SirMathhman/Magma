@@ -53,16 +53,21 @@ public record DivideRule(String key,
     }
 
     private Result<List<Node>, FormattedError> foldElement(Result<List<Node>, FormattedError> maybeCurrent, String element) {
-        return maybeCurrent.flatMapValue(current -> {
-            Result<Node, FormattedError> nodeFormattedErrorResult = DivideRule.this.rule.lex(element);
-            return switch (nodeFormattedErrorResult) {
-                case Err<Node, FormattedError>(FormattedError error) -> new Err<>(error);
-                case Ok<Node, FormattedError>(Node value) -> new Ok<>(((Function<Node, List<Node>>) result -> {
-                    current.add(result);
-                    return current;
-                }).apply(value));
-            };
-        });
+        return switch (maybeCurrent) {
+            case Err<List<Node>, FormattedError>(FormattedError error1) -> new Err<>(error1);
+            case Ok<List<Node>, FormattedError>(
+                    List<Node> value1
+            ) -> ((Function<List<Node>, Result<List<Node>, FormattedError>>) current -> {
+                Result<Node, FormattedError> nodeFormattedErrorResult = this.rule.lex(element);
+                return switch (nodeFormattedErrorResult) {
+                    case Err<Node, FormattedError>(FormattedError error) -> new Err<>(error);
+                    case Ok<Node, FormattedError>(Node value) -> new Ok<>(((Function<Node, List<Node>>) result -> {
+                        current.add(result);
+                        return current;
+                    }).apply(value));
+                };
+            }).apply(value1);
+        };
     }
 
     @Override
@@ -80,14 +85,19 @@ public record DivideRule(String key,
     }
 
     private Result<StringBuilder, FormattedError> foldString(Result<StringBuilder, FormattedError> maybeCurrent, Node element) {
-        return maybeCurrent.flatMapValue(current -> {
-            Result<String, FormattedError> stringFormattedErrorResult = this.rule.generate(element);
-            return switch (stringFormattedErrorResult) {
-                case Err<String, FormattedError>(FormattedError error) -> new Err<>(error);
-                case Ok<String, FormattedError>(
-                        String value
-                ) -> new Ok<>(((Function<String, StringBuilder>) current::append).apply(value));
-            };
-        });
+        return switch (maybeCurrent) {
+            case Err<StringBuilder, FormattedError>(FormattedError error1) -> new Err<>(error1);
+            case Ok<StringBuilder, FormattedError>(
+                    StringBuilder value1
+            ) -> ((Function<StringBuilder, Result<StringBuilder, FormattedError>>) current -> {
+                Result<String, FormattedError> stringFormattedErrorResult = this.rule.generate(element);
+                return switch (stringFormattedErrorResult) {
+                    case Err<String, FormattedError>(FormattedError error) -> new Err<>(error);
+                    case Ok<String, FormattedError>(
+                            String value
+                    ) -> new Ok<>(((Function<String, StringBuilder>) current::append).apply(value));
+                };
+            }).apply(value1);
+        };
     }
 }

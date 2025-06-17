@@ -29,31 +29,41 @@ public final class InfixRule<Node extends MergingNode<Node>, Error> implements R
 
         final var left = input.substring(0, index);
         final var right = input.substring(index + this.infix.length());
-        return this.leftRule.lex(left)
-                .flatMapValue(leftResult -> {
-                    Result<Node, Error> nodeErrorResult = this.rightRule.lex(right);
-                    return switch (nodeErrorResult) {
-                        case Err<Node, Error>(Error error) -> new Err<>(error);
-                        case Ok<Node, Error>(
-                                Node value
-                        ) -> new Ok<>(((Function<Node, Node>) leftResult::merge).apply(value));
-                    };
-                });
+        Result<Node, Error> nodeErrorResult1 = this.leftRule.lex(left);
+        return switch (nodeErrorResult1) {
+            case Err<Node, Error>(Error error1) -> new Err<>(error1);
+            case Ok<Node, Error>(
+                    Node value1
+            ) -> ((Function<Node, Result<Node, Error>>) leftResult -> {
+                Result<Node, Error> nodeErrorResult = this.rightRule.lex(right);
+                return switch (nodeErrorResult) {
+                    case Err<Node, Error>(Error error) -> new Err<>(error);
+                    case Ok<Node, Error>(
+                            Node value
+                    ) -> new Ok<>(((Function<Node, Node>) leftResult::merge).apply(value));
+                };
+            }).apply(value1);
+        };
     }
 
     @Override
     public Result<String, Error> generate(Node node) {
-        return this.leftRule.generate(node)
-                .flatMapValue(leftResult -> {
-                    Result<String, Error> stringErrorResult = this.rightRule.generate(node);
-                    return switch (stringErrorResult) {
-                        case Err<String, Error>(Error error) -> new Err<>(error);
-                        case Ok<String, Error>(
-                                String value
-                        ) ->
-                                new Ok<>(((Function<String, String>) rightResult -> leftResult + this.infix + rightResult).apply(
-                                        value));
-                    };
-                });
+        Result<String, Error> stringErrorResult1 = this.leftRule.generate(node);
+        return switch (stringErrorResult1) {
+            case Err<String, Error>(Error error1) -> new Err<>(error1);
+            case Ok<String, Error>(
+                    String value1
+            ) -> ((Function<String, Result<String, Error>>) leftResult -> {
+                Result<String, Error> stringErrorResult = this.rightRule.generate(node);
+                return switch (stringErrorResult) {
+                    case Err<String, Error>(Error error) -> new Err<>(error);
+                    case Ok<String, Error>(
+                            String value
+                    ) ->
+                            new Ok<>(((Function<String, String>) rightResult -> leftResult + this.infix + rightResult).apply(
+                                    value));
+                };
+            }).apply(value1);
+        };
     }
 }

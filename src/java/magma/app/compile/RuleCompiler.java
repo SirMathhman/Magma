@@ -57,28 +57,37 @@ public class RuleCompiler implements Compiler {
 
     Result<String, FormattedError> compileRoot(String input, String source) {
         Result<Node, FormattedError> nodeFormattedErrorResult = this.sourceRule.lex(input);
-        return ((Result<Node, FormattedError>) switch (nodeFormattedErrorResult) {
+        Result<Node, FormattedError> nodeFormattedErrorResult1 = switch (nodeFormattedErrorResult) {
             case Err<Node, FormattedError>(FormattedError error) -> new Err<>(error);
             case Ok<Node, FormattedError>(Node value) ->
                     new Ok<>(((Function<Node, Node>) children -> transform(source, children)).apply(value));
-        })
-                .flatMapValue(this.targetRule::generate);
+        };
+        return switch (nodeFormattedErrorResult1) {
+            case Err<Node, FormattedError>(FormattedError error1) -> new Err<>(error1);
+            case Ok<Node, FormattedError>(
+                    Node value1
+            ) -> ((Function<Node, Result<String, FormattedError>>) this.targetRule::generate).apply(value1);
+        };
     }
 
     @Override
     public Result<String, ApplicationError> compile(Map<Source, String> inputs) {
         Result<StringBuilder, ApplicationError> maybeCurrentOutput = new Ok<>(new StringBuilder());
         for (var entry : inputs.entrySet())
-            maybeCurrentOutput = maybeCurrentOutput.flatMapValue(currentOutput -> {
-                Result<String, ApplicationError> stringApplicationErrorResult = this.compileSource(entry.getKey(),
-                        entry.getValue());
-                return switch (stringApplicationErrorResult) {
-                    case Err<String, ApplicationError>(ApplicationError error) -> new Err<>(error);
-                    case Ok<String, ApplicationError>(
-                            String value
-                    ) -> new Ok<>(((Function<String, StringBuilder>) currentOutput::append).apply(value));
-                };
-            });
+            maybeCurrentOutput = switch (maybeCurrentOutput) {
+                case Err<StringBuilder, ApplicationError>(ApplicationError error1) -> new Err<>(error1);
+                case Ok<StringBuilder, ApplicationError>(StringBuilder value1) ->
+                        ((Function<StringBuilder, Result<StringBuilder, ApplicationError>>) currentOutput -> {
+                            Result<String, ApplicationError> stringApplicationErrorResult = this.compileSource(entry.getKey(),
+                                    entry.getValue());
+                            return switch (stringApplicationErrorResult) {
+                                case Err<String, ApplicationError>(ApplicationError error) -> new Err<>(error);
+                                case Ok<String, ApplicationError>(
+                                        String value
+                                ) -> new Ok<>(((Function<String, StringBuilder>) currentOutput::append).apply(value));
+                            };
+                        }).apply(value1);
+            };
 
         return switch (maybeCurrentOutput) {
             case Err<StringBuilder, ApplicationError>(ApplicationError error) -> new Err<>(error);
