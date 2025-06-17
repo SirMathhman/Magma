@@ -1,6 +1,7 @@
 package magma.app.compile.error;
 
 import magma.app.compile.node.Node;
+import magma.app.compile.rule.or.OrState;
 
 import java.util.function.Supplier;
 
@@ -19,5 +20,13 @@ public record NodeOk(Node node) implements NodeResult {
     @Override
     public NodeResult retype(String type) {
         return new NodeOk(this.node.retype(type));
+    }
+
+    @Override
+    public OrState<Node, FormattedError> attachToState(OrState<Node, FormattedError> state) {
+        return switch (this) {
+            case NodeOk(var value) -> state.withValue(value);
+            case NodeErr(var error) -> state.withError(error);
+        };
     }
 }

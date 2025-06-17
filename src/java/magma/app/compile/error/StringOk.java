@@ -1,5 +1,7 @@
 package magma.app.compile.error;
 
+import magma.app.compile.rule.or.OrState;
+
 import java.util.function.Supplier;
 
 public record StringOk(String value) implements StringResult {
@@ -20,5 +22,13 @@ public record StringOk(String value) implements StringResult {
     public StringResult appendSlice(String infix) {
         StringOk stringOk = this;
         return new StringOk(stringOk.value() + infix);
+    }
+
+    @Override
+    public OrState<String, FormattedError> attachToState(OrState<String, FormattedError> state) {
+        return switch (this) {
+            case StringOk(String value) -> state.withValue(value);
+            case StringErr(var error) -> state.withError(error);
+        };
     }
 }

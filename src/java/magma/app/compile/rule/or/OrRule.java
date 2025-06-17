@@ -1,12 +1,8 @@
 package magma.app.compile.rule.or;
 
 import magma.app.compile.error.FormattedError;
-import magma.app.compile.error.NodeErr;
-import magma.app.compile.error.NodeOk;
 import magma.app.compile.error.NodeResult;
 import magma.app.compile.error.ResultFactory;
-import magma.app.compile.error.StringErr;
-import magma.app.compile.error.StringOk;
 import magma.app.compile.error.StringResult;
 import magma.app.compile.node.Node;
 import magma.app.compile.rule.Rule;
@@ -26,10 +22,8 @@ public final class OrRule implements Rule<Node, NodeResult, StringResult> {
     public NodeResult lex(String input) {
         return this.rules.stream()
                 .<OrState<Node, FormattedError>>reduce(new MutableOrState<>(),
-                        (state, rule) -> switch (rule.lex(input)) {
-                            case NodeOk(var value) -> state.withValue(value);
-                            case NodeErr(var error) -> state.withError(error);
-                        },
+                        (state, rule) -> rule.lex(input)
+                                .attachToState(state),
                         (_, next) -> next)
                 .maybeValue()
                 .map(this.factory::fromNode)
@@ -40,13 +34,12 @@ public final class OrRule implements Rule<Node, NodeResult, StringResult> {
     public StringResult generate(Node node) {
         return this.rules.stream()
                 .<OrState<String, FormattedError>>reduce(new MutableOrState<>(),
-                        (state, rule) -> switch (rule.generate(node)) {
-                            case StringOk(String value) -> state.withValue(value);
-                            case StringErr(var error) -> state.withError(error);
-                        },
+                        (state, rule) -> rule.generate(node)
+                                .attachToState(state),
                         (_, next) -> next)
                 .maybeValue()
                 .map(this.factory::fromString)
                 .orElseGet(() -> this.factory.fromNodeErr("No combination present", node));
     }
+
 }
