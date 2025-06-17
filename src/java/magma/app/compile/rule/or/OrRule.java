@@ -24,13 +24,12 @@ public final class OrRule<Node, Error, NodeResult extends AttachableToStateResul
     }
 
     private <Value, Result extends AttachableToStateResult<Value, Error>> Result or(Function<Rule<Node, NodeResult, StringResult>, Result> mapper, Function<Value, Result> whenOk, Function<List<Error>, Result> whenErr) {
-        final var result = this.rules.stream()
+        return this.rules.stream()
                 .<Accumulator<Value, Error>>reduce(new MutableAccumulator<>(), (state, rule) -> mapper.apply(rule)
                                 .attachToState(state),
                         (_, next) -> next)
-                .toResult();
-
-        return result.match(whenOk, whenErr);
+                .toResult()
+                .match(whenOk, whenErr);
     }
 
     @Override
