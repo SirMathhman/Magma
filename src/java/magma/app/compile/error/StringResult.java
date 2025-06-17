@@ -1,5 +1,4 @@
 package magma.app.compile.error;
 
-public sealed interface StringResult extends AppendableStringResult<StringResult> permits StringErr, StringOk {
-    StringResult prepend(String slice);
+public sealed interface StringResult extends AppendableStringResult<StringResult>, PrependStringResult<StringResult> permits StringErr, StringOk {
 }

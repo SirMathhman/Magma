@@ -1,17 +1,14 @@
 package magma.app.compile.rule;
 
-import magma.app.compile.error.NodeResult;
+import magma.app.compile.error.PrependStringResult;
 import magma.app.compile.error.ResultFactory;
-import magma.app.compile.error.StringErr;
-import magma.app.compile.error.StringOk;
-import magma.app.compile.error.StringResult;
 
-public final class PrefixRule<Node, Error> implements Rule<magma.app.compile.node.Node, NodeResult, StringResult> {
+public final class PrefixRule<Node, NodeResult, StringResult extends PrependStringResult<StringResult>> implements Rule<Node, NodeResult, StringResult> {
     private final String prefix;
-    private final Rule<magma.app.compile.node.Node, NodeResult, StringResult> rule;
+    private final Rule<Node, NodeResult, StringResult> rule;
     private final ResultFactory<Node, NodeResult, StringResult> factory;
 
-    public PrefixRule(String prefix, Rule<magma.app.compile.node.Node, NodeResult, StringResult> rule, ResultFactory<Node, NodeResult, StringResult> factory) {
+    public PrefixRule(String prefix, Rule<Node, NodeResult, StringResult> rule, ResultFactory<Node, NodeResult, StringResult> factory) {
         this.prefix = prefix;
         this.rule = rule;
         this.factory = factory;
@@ -27,13 +24,8 @@ public final class PrefixRule<Node, Error> implements Rule<magma.app.compile.nod
     }
 
     @Override
-    public StringResult generate(magma.app.compile.node.Node node) {
-        StringResult stringErrorResult = this.rule.generate(node);
-        return switch (stringErrorResult) {
-            case StringErr(var error) -> new StringErr(error);
-            case StringOk(
-                    String value
-            ) -> new StringOk(this.prefix + value);
-        };
+    public StringResult generate(Node node) {
+        return this.rule.generate(node)
+                .prepend(this.prefix);
     }
 }
