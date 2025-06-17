@@ -1,13 +1,13 @@
 package magma;
 
+import magma.io.Location;
+import magma.io.Source;
 import magma.state.MutableState;
 import magma.state.State;
 
 import java.io.IOException;
 import java.nio.file.Files;
-import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -26,7 +26,7 @@ public class Main {
 
             final var builder = new StringBuilder();
             for (var source : sources)
-                builder.append(compileSource(source, sourceDirectory));
+                builder.append(compileSource(new Source(sourceDirectory, source)));
 
             final var path = Paths.get(".", "diagram.puml");
             Files.writeString(path, "@startuml\nskinparam linetype ortho\n" + builder + "@enduml");
@@ -36,29 +36,10 @@ public class Main {
         }
     }
 
-    private static StringBuilder compileSource(Path source, Path sourceDirectory) throws IOException {
-        final var relative = sourceDirectory.relativize(source);
-        final var relativeParent = relative.getParent();
-
-        final var input = Files.readString(source);
-        final var segments = computeNamespace(relativeParent);
-
-        final var fileName = source.getFileName()
-                .toString();
-        final var separator = fileName.lastIndexOf(".");
-        final var name = fileName.substring(0, separator);
-
-        final var namespace = String.join(".", segments);
-        final var location = new Location(namespace, name);
+    private static StringBuilder compileSource(Source source) throws IOException {
+        final var location = source.computeLocation();
+        final var input = Files.readString(source.source());
         return compile(input, location);
-    }
-
-    private static List<String> computeNamespace(Path parent) {
-        final List<String> segments = new ArrayList<>();
-        for (var i = 0; i < parent.getNameCount(); i++)
-            segments.add(parent.getName(i)
-                    .toString());
-        return segments;
     }
 
     private static StringBuilder compile(CharSequence input, Location location) {

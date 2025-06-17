@@ -1,17 +1,21 @@
 @startuml
 skinparam linetype ortho
+magma.io.Source --> java.nio.file.Path
+magma.io.Source --> java.util.ArrayList
+magma.io.Source --> java.util.List
+class magma.io.Source
 magma.state.MutableState --> java.util.ArrayList
 magma.state.MutableState --> java.util.List
 class magma.state.MutableState
 magma.state.MutableState --|> magma.state.State
-class magma.Location
+class magma.io.Location
+magma.Main --> magma.io.Location
+magma.Main --> magma.io.Source
 magma.Main --> magma.state.MutableState
 magma.Main --> magma.state.State
 magma.Main --> java.io.IOException
 magma.Main --> java.nio.file.Files
-magma.Main --> java.nio.file.Path
 magma.Main --> java.nio.file.Paths
-magma.Main --> java.util.ArrayList
 magma.Main --> java.util.Collections
 magma.Main --> java.util.HashMap
 magma.Main --> java.util.List
