@@ -22,14 +22,14 @@ interface magma.io.Source
 magma.state.MutableState --> java.util.ArrayList
 magma.state.MutableState --> java.util.List
 class magma.state.MutableState
-magma.state.MutableState --|> magma.state.MutableState
+magma.state.MutableState --|> magma.state.State
 magma.io.PathSource --> java.io.IOException
 magma.io.PathSource --> java.nio.file.Files
 magma.io.PathSource --> java.nio.file.Path
 magma.io.PathSource --> java.util.ArrayList
 magma.io.PathSource --> java.util.List
 class magma.io.PathSource
-magma.io.PathSource --|> magma.io.PathSource
+magma.io.PathSource --|> magma.io.Source
 magma.io.Sources --> java.io.IOException
 magma.io.Sources --> java.nio.file.Files
 magma.io.Sources --> java.nio.file.Path

@@ -99,7 +99,7 @@ public class Main {
             final var childName = afterKeyword.substring(index + "implements ".length())
                     .strip();
 
-            final var actual = find(imports, childName).orElse(location);
+            final var actual = find(imports, childName).orElse(location.withName(childName));
             return generate(type, location, List.of(actual.join()));
         }
         else
@@ -108,9 +108,8 @@ public class Main {
 
     private static Optional<Location> find(List<Location> imports, String name) {
         for (var anImport : imports)
-            if (anImport.isNamed(name)) {
+            if (anImport.isNamed(name))
                 return Optional.of(anImport);
-            }
 
         return Optional.empty();
     }

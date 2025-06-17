@@ -24,4 +24,8 @@ public final class Location {
     public boolean isNamed(String childName) {
         return this.name.equals(childName);
     }
+
+    public Location withName(String name) {
+        return new Location(this.namespace, name);
+    }
 }
