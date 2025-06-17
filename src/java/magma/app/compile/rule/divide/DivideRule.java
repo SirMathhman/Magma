@@ -10,7 +10,8 @@ import magma.app.compile.rule.Rule;
 import java.util.ArrayList;
 import java.util.List;
 
-public record DivideRule(String key, Rule<Node> rule) implements Rule<Node> {
+public record DivideRule(String key,
+                         Rule<Node, Result<Node, FormattedError>, Result<String, FormattedError>> rule) implements Rule<Node, Result<Node, FormattedError>, Result<String, FormattedError>> {
     private static List<String> divide(CharSequence input) {
         DivideState current = new MutableDivideState();
         for (var i = 0; i < input.length(); i++) {

@@ -10,11 +10,11 @@ import magma.app.compile.node.TypedNode;
 
 public final class TypeRule<Node extends DisplayNode & TypedNode<Node>> implements Rule
 
-        <Node> {
+        <Node, Result<Node, FormattedError>, Result<String, FormattedError>> {
     private final String type;
-    private final Rule<Node> rule;
+    private final Rule<Node, Result<Node, FormattedError>, Result<String, FormattedError>> rule;
 
-    public TypeRule(String type, Rule<Node> rule) {
+    public TypeRule(String type, Rule<Node, Result<Node, FormattedError>, Result<String, FormattedError>> rule) {
         this.type = type;
         this.rule = rule;
     }

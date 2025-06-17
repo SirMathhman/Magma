@@ -7,8 +7,9 @@ import magma.app.compile.error.CompileError;
 import magma.app.compile.error.FormattedError;
 import magma.app.compile.node.MergingNode;
 
-public record InfixRule<Node extends MergingNode<Node>>(Rule<Node> leftRule, String infix,
-                                                        Rule<Node> rightRule) implements Rule<Node> {
+public record InfixRule<Node extends MergingNode<Node>>(
+        Rule<Node, Result<Node, FormattedError>, Result<String, FormattedError>> leftRule, String infix,
+        Rule<Node, Result<Node, FormattedError>, Result<String, FormattedError>> rightRule) implements Rule<Node, Result<Node, FormattedError>, Result<String, FormattedError>> {
     @Override
     public Result<Node, FormattedError> lex(String input) {
         final var index = input.indexOf(this.infix);

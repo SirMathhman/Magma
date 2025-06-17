@@ -87,8 +87,6 @@ magma.app.compile.rule.or.OrRule --> magma.app.compile.rule.Rule
 magma.app.compile.rule.or.OrRule --> java.util.List
 magma.app.compile.rule.or.OrRule --> java.util.function.Function
 class magma.app.compile.rule.Rule
-magma.app.compile.rule.Rule --> magma.api.result.Result
-magma.app.compile.rule.Rule --> magma.app.compile.error.FormattedError
 class magma.api.result.Result
 magma.api.result.Result --> java.util.function.Function
 class magma.app.compile.node.DisplayNode
@@ -99,6 +97,8 @@ magma.app.compile.rule.or.OrState --> magma.app.compile.error.FormattedError
 class magma.api.result.Ok
 magma.api.result.Ok --> java.util.function.Function
 class magma.app.compile.Lang
+magma.app.compile.Lang --> magma.api.result.Result
+magma.app.compile.Lang --> magma.app.compile.error.FormattedError
 magma.app.compile.Lang --> magma.app.compile.node.Node
 magma.app.compile.Lang --> magma.app.compile.rule.InfixRule
 magma.app.compile.Lang --> magma.app.compile.rule.PrefixRule

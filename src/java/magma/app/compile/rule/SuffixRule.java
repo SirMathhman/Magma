@@ -6,11 +6,11 @@ import magma.app.compile.context.StringContext;
 import magma.app.compile.error.CompileError;
 import magma.app.compile.error.FormattedError;
 
-public final class SuffixRule<Node> implements Rule<Node> {
-    private final Rule<Node> rule;
+public final class SuffixRule<Node> implements Rule<Node, Result<Node, FormattedError>, Result<String, FormattedError>> {
+    private final Rule<Node, Result<Node, FormattedError>, Result<String, FormattedError>> rule;
     private final String suffix;
 
-    public SuffixRule(Rule<Node> rule, String suffix) {
+    public SuffixRule(Rule<Node, Result<Node, FormattedError>, Result<String, FormattedError>> rule, String suffix) {
         this.rule = rule;
         this.suffix = suffix;
     }

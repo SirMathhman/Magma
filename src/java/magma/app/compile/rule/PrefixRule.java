@@ -6,7 +6,8 @@ import magma.app.compile.context.StringContext;
 import magma.app.compile.error.CompileError;
 import magma.app.compile.error.FormattedError;
 
-public record PrefixRule<Node>(String prefix, Rule<Node> rule) implements Rule<Node> {
+public record PrefixRule<Node>(String prefix,
+                               Rule<Node, Result<Node, FormattedError>, Result<String, FormattedError>> rule) implements Rule<Node, Result<Node, FormattedError>, Result<String, FormattedError>> {
     @Override
     public Result<Node, FormattedError> lex(String input) {
         if (!input.startsWith(this.prefix))
