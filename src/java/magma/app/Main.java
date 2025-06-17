@@ -4,8 +4,8 @@ import magma.api.result.Err;
 import magma.api.result.Ok;
 import magma.api.result.Result;
 import magma.app.compile.CompilerImpl;
+import magma.app.io.source.PathSources;
 import magma.app.io.source.Source;
-import magma.app.io.source.Sources;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -22,7 +22,7 @@ public class Main {
     }
 
     private static Optional<IOException> run() {
-        return switch (new Sources(Paths.get(".", "src", "java")).collect()) {
+        return switch (new PathSources(Paths.get(".", "src", "java")).collect()) {
             case Err<Set<Source>, IOException>(var error) -> Optional.of(error);
             case Ok<Set<Source>, IOException>(var files) -> compileAll(files);
         };

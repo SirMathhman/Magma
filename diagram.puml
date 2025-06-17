@@ -27,8 +27,8 @@ magma.app.Main --> magma.api.result.Err
 magma.app.Main --> magma.api.result.Ok
 magma.app.Main --> magma.api.result.Result
 magma.app.Main --> magma.app.compile.CompilerImpl
+magma.app.Main --> magma.app.io.source.PathSources
 magma.app.Main --> magma.app.io.source.Source
-magma.app.Main --> magma.app.io.source.Sources
 magma.app.Main --> java.io.IOException
 magma.app.Main --> java.nio.file.Files
 magma.app.Main --> java.nio.file.Path
@@ -54,15 +54,10 @@ magma.app.io.source.PathSource --> java.util.ArrayList
 magma.app.io.source.PathSource --> java.util.List
 class magma.app.io.source.PathSource
 magma.app.io.source.PathSource --|> magma.app.io.source.Source
-magma.app.io.source.Sources --> magma.api.result.Err
-magma.app.io.source.Sources --> magma.api.result.Ok
 magma.app.io.source.Sources --> magma.api.result.Result
 magma.app.io.source.Sources --> java.io.IOException
-magma.app.io.source.Sources --> java.nio.file.Files
-magma.app.io.source.Sources --> java.nio.file.Path
 magma.app.io.source.Sources --> java.util.Set
-magma.app.io.source.Sources --> java.util.stream.Collectors
-class magma.app.io.source.Sources
+interface magma.app.io.source.Sources
 magma.app.compile.divide.DivideState --> java.util.List
 interface magma.app.compile.divide.DivideState
 magma.app.compile.Compiler --> magma.app.io.source.Source
@@ -80,4 +75,14 @@ magma.app.io.source.Source --> java.io.IOException
 interface magma.app.io.source.Source
 class magma.api.result.Err
 magma.api.result.Err --|> magma.api.result.Result
+magma.app.io.source.PathSources --> magma.api.result.Err
+magma.app.io.source.PathSources --> magma.api.result.Ok
+magma.app.io.source.PathSources --> magma.api.result.Result
+magma.app.io.source.PathSources --> java.io.IOException
+magma.app.io.source.PathSources --> java.nio.file.Files
+magma.app.io.source.PathSources --> java.nio.file.Path
+magma.app.io.source.PathSources --> java.util.Set
+magma.app.io.source.PathSources --> java.util.stream.Collectors
+class magma.app.io.source.PathSources
+magma.app.io.source.PathSources --|> magma.app.io.source.Sources
 @enduml
