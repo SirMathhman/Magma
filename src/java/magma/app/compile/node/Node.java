@@ -5,7 +5,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Stream;
 
-public interface Node extends MergingNode<Node>, TypedNode<Node>, DisplayNode {
+public interface Node extends MergingNode<Node>, TypeNode<Node>, DisplayNode {
     Node withString(String key, String value);
 
     Optional<String> findString(String key);

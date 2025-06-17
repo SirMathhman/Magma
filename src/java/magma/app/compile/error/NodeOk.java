@@ -15,4 +15,9 @@ public record NodeOk(Node node) implements NodeResult {
     public NodeResult mergeNode(Node value1) {
         return new NodeOk(this.node.merge(value1));
     }
+
+    @Override
+    public NodeResult retype(String type) {
+        return new NodeOk(this.node.retype(type));
+    }
 }

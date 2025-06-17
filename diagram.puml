@@ -33,13 +33,11 @@ magma.app.compile.node.Node --> java.util.Map
 magma.app.compile.node.Node --> java.util.Optional
 magma.app.compile.node.Node --> java.util.stream.Stream
 class magma.app.compile.rule.TypeRule
-magma.app.compile.rule.TypeRule --> magma.app.compile.error.NodeErr
-magma.app.compile.rule.TypeRule --> magma.app.compile.error.NodeOk
-magma.app.compile.rule.TypeRule --> magma.app.compile.error.NodeResult
 magma.app.compile.rule.TypeRule --> magma.app.compile.error.ResultFactory
-magma.app.compile.rule.TypeRule --> magma.app.compile.error.StringResult
-magma.app.compile.rule.TypeRule --> magma.app.compile.node.Node
+magma.app.compile.rule.TypeRule --> magma.app.compile.error.TypeNodeResult
+magma.app.compile.rule.TypeRule --> magma.app.compile.node.TypeNode
 class magma.app.compile.error.ResultFactory
+class magma.app.compile.error.TypeNodeResult
 class magma.app.compile.Compiler
 magma.app.compile.Compiler --> magma.api.Error
 magma.app.compile.Compiler --> magma.api.result.Result
@@ -135,6 +133,7 @@ magma.app.compile.RuleCompiler --> magma.app.error.ApplicationError
 magma.app.compile.RuleCompiler --> magma.app.io.Source
 magma.app.compile.RuleCompiler --> java.util.ArrayList
 magma.app.compile.RuleCompiler --> java.util.Map
+class magma.app.compile.node.TypeNode
 class magma.app.compile.context.Context
 class magma.app.compile.error.StringErr
 magma.app.compile.error.StringErr --> java.util.function.Supplier
@@ -202,5 +201,4 @@ magma.app.compile.error.ResultFactoryImpl --> magma.app.compile.context.StringCo
 magma.app.compile.error.ResultFactoryImpl --> magma.app.compile.node.Node
 class magma.api.Error
 class magma.api.result.Err
-class magma.app.compile.node.TypedNode
 @enduml

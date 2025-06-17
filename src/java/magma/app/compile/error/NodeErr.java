@@ -14,4 +14,9 @@ public record NodeErr(FormattedError node) implements NodeResult {
     public NodeResult mergeNode(Node value1) {
         return new NodeErr(this.node);
     }
+
+    @Override
+    public NodeResult retype(String type) {
+        return new NodeErr(this.node);
+    }
 }
