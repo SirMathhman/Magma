@@ -36,6 +36,7 @@ magma.app.rule.SuffixRule --> java.util.Optional
 class magma.Main
 magma.Main --> magma.app.divide.DivideState
 magma.Main --> magma.app.divide.MutableDivideState
+magma.Main --> magma.app.node.Node
 magma.Main --> magma.app.rule.InfixRule
 magma.Main --> magma.app.rule.PrefixRule
 magma.Main --> magma.app.rule.Rule
