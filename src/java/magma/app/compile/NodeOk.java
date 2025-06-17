@@ -1,5 +1,6 @@
 package magma.app.compile;
 
+import magma.api.result.Result;
 import magma.app.compile.rule.or.Accumulator;
 
 import java.util.function.Function;
@@ -34,7 +35,7 @@ public record NodeOk<Node extends MergeNode<Node> & TypeNode<Node>, Error>(
     }
 
     @Override
-    public StringResult<Error> generate(Function<Node, StringResult<Error>> mapper) {
+    public StringResult<Error, Result<String, Error>> generate(Function<Node, StringResult<Error, Result<String, Error>>> mapper) {
         return mapper.apply(this.node());
     }
 }

@@ -1,5 +1,6 @@
 package magma.app.compile;
 
+import magma.api.result.Result;
 import magma.app.compile.rule.or.Accumulator;
 
 import java.util.function.Function;
@@ -32,7 +33,7 @@ public record NodeErr<Node, Error>(Error error) implements NodeResult<Node, Erro
     }
 
     @Override
-    public StringResult<Error> generate(Function<Node, StringResult<Error>> mapper) {
+    public StringResult<Error, Result<String, Error>> generate(Function<Node, StringResult<Error, Result<String, Error>>> mapper) {
         return new StringErr<>(this.error);
     }
 }

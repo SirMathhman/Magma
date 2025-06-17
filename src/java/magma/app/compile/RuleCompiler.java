@@ -12,10 +12,10 @@ import java.util.ArrayList;
 import java.util.Map;
 
 public class RuleCompiler implements Compiler {
-    private final Rule<Node, NodeResult<Node, FormattedError>, StringResult<FormattedError>> targetRule;
-    private final Rule<Node, NodeResult<Node, FormattedError>, StringResult<FormattedError>> sourceRule;
+    private final Rule<Node, NodeResult<Node, FormattedError>, StringResult<FormattedError, Result<String, FormattedError>>> targetRule;
+    private final Rule<Node, NodeResult<Node, FormattedError>, StringResult<FormattedError, Result<String, FormattedError>>> sourceRule;
 
-    public RuleCompiler(Rule<Node, NodeResult<Node, FormattedError>, StringResult<FormattedError>> sourceRule, Rule<Node, NodeResult<Node, FormattedError>, StringResult<FormattedError>> targetRule) {
+    public RuleCompiler(Rule<Node, NodeResult<Node, FormattedError>, StringResult<FormattedError, Result<String, FormattedError>>> sourceRule, Rule<Node, NodeResult<Node, FormattedError>, StringResult<FormattedError, Result<String, FormattedError>>> targetRule) {
         this.sourceRule = sourceRule;
         this.targetRule = targetRule;
     }
@@ -46,7 +46,7 @@ public class RuleCompiler implements Compiler {
                 .mapErr(ApplicationError::new);
     }
 
-    StringResult<FormattedError> compileRoot(String input, String source) {
+    StringResult<FormattedError, Result<String, FormattedError>> compileRoot(String input, String source) {
         NodeResult<Node, FormattedError> nodeFormattedErrorResult = this.sourceRule.lex(input);
         NodeResult<Node, FormattedError> nodeFormattedErrorResult1 = nodeFormattedErrorResult.transform(value1 -> transform(
                 source,

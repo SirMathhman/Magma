@@ -6,19 +6,19 @@ import magma.app.compile.rule.or.Accumulator;
 
 import java.util.function.Supplier;
 
-public record StringErr<Error>(Error error) implements StringResult<Error> {
+public record StringErr<Error>(Error error) implements StringResult<Error, Result<String, Error>> {
     @Override
-    public StringResult<Error> appendResult(Supplier<StringResult<Error>> generate) {
+    public StringResult<Error, Result<String, Error>> appendResult(Supplier<StringResult<Error, Result<String, Error>>> generate) {
         return new StringErr<Error>(this.error());
     }
 
     @Override
-    public StringResult<Error> prependSlice(String slice) {
+    public StringResult<Error, Result<String, Error>> prependSlice(String slice) {
         return new StringErr<>(this.error());
     }
 
     @Override
-    public StringResult<Error> appendSlice(String infix) {
+    public StringResult<Error, Result<String, Error>> appendSlice(String infix) {
         return this;
     }
 
