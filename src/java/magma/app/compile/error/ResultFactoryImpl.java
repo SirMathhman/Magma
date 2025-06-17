@@ -7,11 +7,11 @@ import magma.app.compile.context.NodeContext;
 import magma.app.compile.context.StringContext;
 import magma.app.compile.node.Node;
 
-public class ResultFactoryImpl implements ResultFactory<Node, Result<Node, FormattedError>, Result<String, FormattedError>> {
+public class ResultFactoryImpl implements ResultFactory<Node, Result<Node, FormattedError>, StringResult> {
     private ResultFactoryImpl() {
     }
 
-    public static ResultFactory<Node, Result<Node, FormattedError>, Result<String, FormattedError>> create() {
+    public static ResultFactory<Node, Result<Node, FormattedError>, StringResult> create() {
         return new ResultFactoryImpl();
     }
 
@@ -21,8 +21,8 @@ public class ResultFactoryImpl implements ResultFactory<Node, Result<Node, Forma
     }
 
     @Override
-    public Result<String, FormattedError> fromNodeErr(String message, Node node) {
-        return new Err<>(new CompileError(message, new NodeContext(node)));
+    public StringResult fromNodeErr(String message, Node node) {
+        return new StringErr(new CompileError(message, new NodeContext(node)));
     }
 
     @Override
@@ -31,7 +31,7 @@ public class ResultFactoryImpl implements ResultFactory<Node, Result<Node, Forma
     }
 
     @Override
-    public Result<String, FormattedError> fromString(String value) {
-        return new Ok<>(value);
+    public StringResult fromString(String value) {
+        return new StringOk(value);
     }
 }

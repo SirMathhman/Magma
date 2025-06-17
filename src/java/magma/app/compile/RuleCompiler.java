@@ -5,6 +5,9 @@ import magma.api.result.Err;
 import magma.api.result.Ok;
 import magma.api.result.Result;
 import magma.app.compile.error.FormattedError;
+import magma.app.compile.error.StringErr;
+import magma.app.compile.error.StringOk;
+import magma.app.compile.error.StringResult;
 import magma.app.compile.node.MapNode;
 import magma.app.compile.node.Node;
 import magma.app.compile.rule.Rule;
@@ -15,10 +18,10 @@ import java.util.ArrayList;
 import java.util.Map;
 
 public class RuleCompiler implements Compiler {
-    private final Rule<Node, Result<Node, FormattedError>, Result<String, FormattedError>> targetRule;
-    private final Rule<Node, Result<Node, FormattedError>, Result<String, FormattedError>> sourceRule;
+    private final Rule<Node, Result<Node, FormattedError>, StringResult> targetRule;
+    private final Rule<Node, Result<Node, FormattedError>, StringResult> sourceRule;
 
-    public RuleCompiler(Rule<Node, Result<Node, FormattedError>, Result<String, FormattedError>> sourceRule, Rule<Node, Result<Node, FormattedError>, Result<String, FormattedError>> targetRule) {
+    public RuleCompiler(Rule<Node, Result<Node, FormattedError>, StringResult> sourceRule, Rule<Node, Result<Node, FormattedError>, StringResult> targetRule) {
         this.sourceRule = sourceRule;
         this.targetRule = targetRule;
     }
@@ -41,27 +44,25 @@ public class RuleCompiler implements Compiler {
 
         final var joined = String.join(".", namespace);
         final var joinedName = joined + "." + name;
-        Result<String, FormattedError> stringFormattedErrorResult1 = this.compileRoot(input, joinedName);
-        Result<String, FormattedError> stringFormattedErrorResult = switch (stringFormattedErrorResult1) {
-            case Err<String, FormattedError>(FormattedError error1) -> new Err<>(error1);
-            case Ok<String, FormattedError>(String value1) -> new Ok<>("class " + joinedName + "\n" + value1);
+        StringResult stringFormattedErrorResult1 = this.compileRoot(input, joinedName);
+        StringResult stringFormattedErrorResult = switch (stringFormattedErrorResult1) {
+            case StringErr(FormattedError error1) -> new StringErr(error1);
+            case StringOk(String value1) -> new StringOk("class " + joinedName + "\n" + value1);
         };
         return switch (stringFormattedErrorResult) {
-            case Err<String, FormattedError>(
-                    FormattedError error
-            ) -> new Err<>(new ApplicationError(error));
-            case Ok<String, FormattedError>(String value) -> new Ok<>(value);
+            case StringErr(FormattedError error) -> new Err<>(new ApplicationError(error));
+            case StringOk(String value) -> new Ok<>(value);
         };
     }
 
-    Result<String, FormattedError> compileRoot(String input, String source) {
+    StringResult compileRoot(String input, String source) {
         Result<Node, FormattedError> nodeFormattedErrorResult = this.sourceRule.lex(input);
         Result<Node, FormattedError> nodeFormattedErrorResult1 = switch (nodeFormattedErrorResult) {
             case Err<Node, FormattedError>(FormattedError error) -> new Err<>(error);
             case Ok<Node, FormattedError>(Node value) -> new Ok<>(transform(source, value));
         };
         return switch (nodeFormattedErrorResult1) {
-            case Err<Node, FormattedError>(FormattedError error1) -> new Err<>(error1);
+            case Err<Node, FormattedError>(FormattedError error1) -> new StringErr(error1);
             case Ok<Node, FormattedError>(
                     Node value1
             ) -> this.targetRule.generate(value1);

@@ -1,16 +1,16 @@
 package magma.app.compile.rule;
 
-import magma.api.result.Err;
-import magma.api.result.Ok;
-import magma.api.result.Result;
 import magma.app.compile.error.ResultFactory;
+import magma.app.compile.error.StringErr;
+import magma.app.compile.error.StringOk;
+import magma.app.compile.error.StringResult;
 
-public final class SuffixRule<Node, Error, NodeResult> implements Rule<Node, NodeResult, Result<String, Error>> {
-    private final Rule<Node, NodeResult, Result<String, Error>> rule;
+public final class SuffixRule<Node, Error, NodeResult> implements Rule<Node, NodeResult, StringResult> {
+    private final Rule<Node, NodeResult, StringResult> rule;
     private final String suffix;
-    private final ResultFactory<Node, NodeResult, Result<String, Error>> factory;
+    private final ResultFactory<Node, NodeResult, StringResult> factory;
 
-    public SuffixRule(Rule<Node, NodeResult, Result<String, Error>> rule, String suffix, ResultFactory<Node, NodeResult, Result<String, Error>> factory) {
+    public SuffixRule(Rule<Node, NodeResult, StringResult> rule, String suffix, ResultFactory<Node, NodeResult, StringResult> factory) {
         this.rule = rule;
         this.suffix = suffix;
         this.factory = factory;
@@ -26,13 +26,13 @@ public final class SuffixRule<Node, Error, NodeResult> implements Rule<Node, Nod
     }
 
     @Override
-    public Result<String, Error> generate(Node node) {
-        Result<String, Error> stringErrorResult = this.rule.generate(node);
+    public StringResult generate(Node node) {
+        StringResult stringErrorResult = this.rule.generate(node);
         return switch (stringErrorResult) {
-            case Err<String, Error>(Error error) -> new Err<>(error);
-            case Ok<String, Error>(
+            case StringErr(var error) -> new StringErr(error);
+            case StringOk(
                     String value
-            ) -> new Ok<>(value + this.suffix);
+            ) -> new StringOk(value + this.suffix);
         };
     }
 }

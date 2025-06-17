@@ -1,16 +1,17 @@
 package magma.app.compile.rule;
 
-import magma.api.result.Err;
-import magma.api.result.Ok;
 import magma.api.result.Result;
 import magma.app.compile.error.ResultFactory;
+import magma.app.compile.error.StringErr;
+import magma.app.compile.error.StringOk;
+import magma.app.compile.error.StringResult;
 
-public final class PrefixRule<Node, Error> implements Rule<Node, Result<Node, Error>, Result<String, Error>> {
+public final class PrefixRule<Node, Error> implements Rule<Node, Result<Node, Error>, StringResult> {
     private final String prefix;
-    private final Rule<Node, Result<Node, Error>, Result<String, Error>> rule;
-    private final ResultFactory<Node, Result<Node, Error>, Result<String, Error>> factory;
+    private final Rule<Node, Result<Node, Error>, StringResult> rule;
+    private final ResultFactory<Node, Result<Node, Error>, StringResult> factory;
 
-    public PrefixRule(String prefix, Rule<Node, Result<Node, Error>, Result<String, Error>> rule, ResultFactory<Node, Result<Node, Error>, Result<String, Error>> factory) {
+    public PrefixRule(String prefix, Rule<Node, Result<Node, Error>, StringResult> rule, ResultFactory<Node, Result<Node, Error>, StringResult> factory) {
         this.prefix = prefix;
         this.rule = rule;
         this.factory = factory;
@@ -26,13 +27,13 @@ public final class PrefixRule<Node, Error> implements Rule<Node, Result<Node, Er
     }
 
     @Override
-    public Result<String, Error> generate(Node node) {
-        Result<String, Error> stringErrorResult = this.rule.generate(node);
+    public StringResult generate(Node node) {
+        StringResult stringErrorResult = this.rule.generate(node);
         return switch (stringErrorResult) {
-            case Err<String, Error>(Error error) -> new Err<>(error);
-            case Ok<String, Error>(
+            case StringErr(var error) -> new StringErr(error);
+            case StringOk(
                     String value
-            ) -> new Ok<>(this.prefix + value);
+            ) -> new StringOk(this.prefix + value);
         };
     }
 }

@@ -4,6 +4,9 @@ import magma.api.result.Err;
 import magma.api.result.Ok;
 import magma.api.result.Result;
 import magma.app.compile.error.FormattedError;
+import magma.app.compile.error.StringErr;
+import magma.app.compile.error.StringOk;
+import magma.app.compile.error.StringResult;
 import magma.app.compile.node.MapNode;
 import magma.app.compile.node.Node;
 import magma.app.compile.rule.Rule;
@@ -12,7 +15,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public record DivideRule(String key,
-                         Rule<Node, Result<Node, FormattedError>, Result<String, FormattedError>> rule) implements Rule<Node, Result<Node, FormattedError>, Result<String, FormattedError>> {
+                         Rule<Node, Result<Node, FormattedError>, StringResult> rule) implements Rule<Node, Result<Node, FormattedError>, StringResult> {
     private static List<String> divide(CharSequence input) {
         DivideState current = new MutableDivideState();
         for (var i = 0; i < input.length(); i++) {
@@ -73,16 +76,16 @@ public record DivideRule(String key,
     }
 
     @Override
-    public Result<String, FormattedError> generate(Node node) {
+    public StringResult generate(Node node) {
         Result<StringBuilder, FormattedError> stringBuilderFormattedErrorResult = node.findNodeList(this.key)
                 .orElse(new ArrayList<>())
                 .stream()
                 .reduce(new Ok<>(new StringBuilder()), this::foldString, (_, next) -> next);
         return switch (stringBuilderFormattedErrorResult) {
-            case Err<StringBuilder, FormattedError>(FormattedError error) -> new Err<>(error);
+            case Err<StringBuilder, FormattedError>(FormattedError error) -> new StringErr(error);
             case Ok<StringBuilder, FormattedError>(
                     StringBuilder value
-            ) -> new Ok<>(value.toString());
+            ) -> new StringOk(value.toString());
         };
     }
 
@@ -92,16 +95,16 @@ public record DivideRule(String key,
             case Ok<StringBuilder, FormattedError>(
                     StringBuilder value1
             ) -> {
-                Result<String, FormattedError> stringFormattedErrorResult = this.rule.generate(element);
+                StringResult stringFormattedErrorResult = this.rule.generate(element);
                 yield this.getStringBuilderFormattedErrorResult(value1, stringFormattedErrorResult);
             }
         };
     }
 
-    private Result<StringBuilder, FormattedError> getStringBuilderFormattedErrorResult(StringBuilder value1, Result<String, FormattedError> stringFormattedErrorResult) {
+    private Result<StringBuilder, FormattedError> getStringBuilderFormattedErrorResult(StringBuilder value1, StringResult stringFormattedErrorResult) {
         return switch (stringFormattedErrorResult) {
-            case Err<String, FormattedError>(FormattedError error) -> new Err<>(error);
-            case Ok<String, FormattedError>(
+            case StringErr(FormattedError error) -> new Err<>(error);
+            case StringOk(
                     String value
             ) -> new Ok<>(value1.append(value));
         };

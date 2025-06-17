@@ -4,15 +4,18 @@ import magma.api.result.Err;
 import magma.api.result.Ok;
 import magma.api.result.Result;
 import magma.app.compile.error.ResultFactory;
+import magma.app.compile.error.StringErr;
+import magma.app.compile.error.StringOk;
+import magma.app.compile.error.StringResult;
 import magma.app.compile.node.MergingNode;
 
-public final class InfixRule<Node extends MergingNode<Node>, Error> implements Rule<Node, Result<Node, Error>, Result<String, Error>> {
-    private final Rule<Node, Result<Node, Error>, Result<String, Error>> leftRule;
+public final class InfixRule<Node extends MergingNode<Node>, Error> implements Rule<Node, Result<Node, Error>, StringResult> {
+    private final Rule<Node, Result<Node, Error>, StringResult> leftRule;
     private final String infix;
-    private final Rule<Node, Result<Node, Error>, Result<String, Error>> rightRule;
-    private final ResultFactory<Node, Result<Node, Error>, Result<String, Error>> factory;
+    private final Rule<Node, Result<Node, Error>, StringResult> rightRule;
+    private final ResultFactory<Node, Result<Node, Error>, StringResult> factory;
 
-    public InfixRule(Rule<Node, Result<Node, Error>, Result<String, Error>> leftRule, String infix, Rule<Node, Result<Node, Error>, Result<String, Error>> rightRule, ResultFactory<Node, Result<Node, Error>, Result<String, Error>> factory) {
+    public InfixRule(Rule<Node, Result<Node, Error>, StringResult> leftRule, String infix, Rule<Node, Result<Node, Error>, StringResult> rightRule, ResultFactory<Node, Result<Node, Error>, StringResult> factory) {
         this.leftRule = leftRule;
         this.infix = infix;
         this.rightRule = rightRule;
@@ -49,23 +52,23 @@ public final class InfixRule<Node extends MergingNode<Node>, Error> implements R
     }
 
     @Override
-    public Result<String, Error> generate(Node node) {
-        Result<String, Error> stringErrorResult1 = this.leftRule.generate(node);
+    public StringResult generate(Node node) {
+        StringResult stringErrorResult1 = this.leftRule.generate(node);
         return switch (stringErrorResult1) {
-            case Err<String, Error>(Error error1) -> new Err<>(error1);
-            case Ok<String, Error>(
+            case StringErr(var error1) -> new StringErr(error1);
+            case StringOk(
                     String value1
             ) -> {
-                Result<String, Error> stringErrorResult = this.rightRule.generate(node);
+                StringResult stringErrorResult = this.rightRule.generate(node);
                 yield this.getStringErrorResult(value1, stringErrorResult);
             }
         };
     }
 
-    private Result<String, Error> getStringErrorResult(String value1, Result<String, Error> stringErrorResult) {
+    private StringResult getStringErrorResult(String value1, StringResult stringErrorResult) {
         return switch (stringErrorResult) {
-            case Err<String, Error>(Error error) -> new Err<>(error);
-            case Ok<String, Error>(String value) -> new Ok<>(value1 + this.infix + value);
+            case StringErr(var error) -> new StringErr(error);
+            case StringOk(var value) -> new StringOk(value1 + this.infix + value);
         };
     }
 }
