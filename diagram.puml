@@ -1,6 +1,28 @@
 @startuml
 skinparam linetype ortho
 interface magma.app.io.location.Location
+class magma.app.io.location.SimpleLocation
+magma.app.io.location.SimpleLocation --|> magma.app.io.location.Location
+magma.app.state.MutableState --> java.util.ArrayList
+magma.app.state.MutableState --> java.util.List
+class magma.app.state.MutableState
+magma.app.state.MutableState --|> magma.app.state.State
+class magma.api.Tuple
+magma.app.io.source.PathSource --> magma.app.io.location.Location
+magma.app.io.source.PathSource --> magma.app.io.location.SimpleLocation
+magma.app.io.source.PathSource --> java.io.IOException
+magma.app.io.source.PathSource --> java.nio.file.Files
+magma.app.io.source.PathSource --> java.nio.file.Path
+magma.app.io.source.PathSource --> java.util.ArrayList
+magma.app.io.source.PathSource --> java.util.List
+class magma.app.io.source.PathSource
+magma.app.io.source.PathSource --|> magma.app.io.source.Source
+magma.app.io.source.Sources --> java.io.IOException
+magma.app.io.source.Sources --> java.nio.file.Files
+magma.app.io.source.Sources --> java.nio.file.Path
+magma.app.io.source.Sources --> java.util.Set
+magma.app.io.source.Sources --> java.util.stream.Collectors
+class magma.app.io.source.Sources
 magma.app.SimpleCompileState --> magma.app.io.location.Location
 magma.app.SimpleCompileState --> java.util.ArrayList
 magma.app.SimpleCompileState --> java.util.List
@@ -10,12 +32,7 @@ magma.app.SimpleCompileState --|> magma.app.CompileState
 magma.app.CompileState --> magma.app.io.location.Location
 magma.app.CompileState --> java.util.Optional
 interface magma.app.CompileState
-class magma.app.io.location.SimpleLocation
-magma.app.io.location.SimpleLocation --|> magma.app.io.location.Location
-magma.app.state.MutableState --> java.util.ArrayList
-magma.app.state.MutableState --> java.util.List
-class magma.app.state.MutableState
-magma.app.state.MutableState --|> magma.app.state.State
+magma.Main --> magma.api.Tuple
 magma.Main --> magma.app.CompileState
 magma.Main --> magma.app.SimpleCompileState
 magma.Main --> magma.app.io.location.SimpleLocation
@@ -33,22 +50,11 @@ class magma.Main
 magma.app.io.source.Source --> magma.app.io.location.Location
 magma.app.io.source.Source --> java.io.IOException
 interface magma.app.io.source.Source
-class magma.Tuple
-magma.app.io.source.PathSource --> magma.app.io.location.Location
-magma.app.io.source.PathSource --> magma.app.io.location.SimpleLocation
-magma.app.io.source.PathSource --> java.io.IOException
-magma.app.io.source.PathSource --> java.nio.file.Files
-magma.app.io.source.PathSource --> java.nio.file.Path
-magma.app.io.source.PathSource --> java.util.ArrayList
-magma.app.io.source.PathSource --> java.util.List
-class magma.app.io.source.PathSource
-magma.app.io.source.PathSource --|> magma.app.io.source.Source
-magma.app.io.source.Sources --> java.io.IOException
-magma.app.io.source.Sources --> java.nio.file.Files
-magma.app.io.source.Sources --> java.nio.file.Path
-magma.app.io.source.Sources --> java.util.Set
-magma.app.io.source.Sources --> java.util.stream.Collectors
-class magma.app.io.source.Sources
+class magma.api.Ok
+magma.api.Ok --|> magma.api.Result
+interface magma.api.Result
 magma.app.state.State --> java.util.List
 interface magma.app.state.State
+class magma.api.Err
+magma.api.Err --|> magma.api.Result
 @enduml

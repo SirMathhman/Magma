@@ -1,5 +1,6 @@
 package magma;
 
+import magma.api.Tuple;
 import magma.app.CompileState;
 import magma.app.SimpleCompileState;
 import magma.app.io.location.SimpleLocation;
@@ -97,8 +98,11 @@ public class Main {
             final var childName = afterKeyword.substring(index + "implements ".length())
                     .strip();
 
-            final var actual = state.find(childName)
-                    .orElse(state.resolveSibling(childName));
+            final var separator = childName.indexOf("<");
+            final var trimmed = separator == -1 ? childName : childName.substring(0, separator);
+
+            final var actual = state.find(trimmed)
+                    .orElse(state.resolveSibling(trimmed));
             return generate(type, state, List.of(actual.join()));
         }
         else
