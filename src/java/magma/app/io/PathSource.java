@@ -1,11 +1,12 @@
-package magma;
+package magma.app.io;
 
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collection;
 
-public record Source(Path sourceDirectory, Path source) {
-    String computeName() {
+public record PathSource(Path sourceDirectory, Path source) implements Source {
+    @Override
+    public String computeName() {
         final var fileName = this.source.getFileName()
                 .toString();
 
@@ -13,7 +14,8 @@ public record Source(Path sourceDirectory, Path source) {
         return fileName.substring(0, separator);
     }
 
-    Collection<String> computeNamespace() {
+    @Override
+    public Collection<String> computeNamespace() {
         final var relativeParent = this.sourceDirectory.relativize(this.source)
                 .getParent();
 

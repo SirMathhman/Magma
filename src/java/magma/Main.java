@@ -17,6 +17,8 @@ import magma.app.compile.rule.TypeRule;
 import magma.app.compile.rule.divide.DivideRule;
 import magma.app.error.ApplicationError;
 import magma.app.error.ThrowableError;
+import magma.app.io.PathSource;
+import magma.app.io.Source;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -38,9 +40,8 @@ public class Main {
     }
 
     private static Optional<ApplicationError> collect(Iterable<Path> sources, Path sourceDirectory) {
-        final var maybeInputs = readAll(sources);
-        return maybeInputs.match(inputs -> {
-            return compile(sourceDirectory, inputs).match(currentOutput -> {
+        return readAll(sources, sourceDirectory).match(inputs -> {
+            return compile(inputs).match(currentOutput -> {
                 final var target = Paths.get(".", "diagram.puml");
                 final var content = "@startuml\nskinparam linetype ortho\n" + currentOutput + "@enduml";
                 return writeString(target, content).map(ThrowableError::new)
@@ -49,28 +50,30 @@ public class Main {
         }, Optional::of);
     }
 
-    private static Result<String, ApplicationError> compile(Path sourceDirectory, Map<Path, String> inputs) {
+    private static Result<String, ApplicationError> compile(Map<Source, String> inputs) {
         Result<StringBuilder, ApplicationError> maybeCurrentOutput = new Ok<>(new StringBuilder());
         for (var entry : inputs.entrySet())
-            maybeCurrentOutput = maybeCurrentOutput.flatMapValue(currentOutput -> compileSource(new Source(
-                    sourceDirectory,
-                    entry.getKey()), entry.getValue()).mapValue(currentOutput::append));
+            maybeCurrentOutput = maybeCurrentOutput.flatMapValue(currentOutput -> {
+                return compileSource(entry.getKey(), entry.getValue()).mapValue(currentOutput::append);
+            });
 
         return maybeCurrentOutput.mapValue(StringBuilder::toString);
     }
 
-    private static Result<Map<Path, String>, ApplicationError> readAll(Iterable<Path> sources) {
-        Result<Map<Path, String>, ApplicationError> maybeInputs = new Ok<>(new HashMap<>());
+    private static Result<Map<Source, String>, ApplicationError> readAll(Iterable<Path> sources, Path sourceDirectory) {
+        Result<Map<Source, String>, ApplicationError> maybeInputs = new Ok<>(new HashMap<>());
         for (var source : sources)
-            maybeInputs = maybeInputs.flatMapValue(inner -> {
-                return readString(source).mapErr(ThrowableError::new)
-                        .mapErr(ApplicationError::new)
-                        .mapValue(input -> {
-                            inner.put(source, input);
-                            return inner;
-                        });
-            });
+            maybeInputs = getMaybeInputs(sourceDirectory, source, maybeInputs);
         return maybeInputs;
+    }
+
+    private static Result<Map<Source, String>, ApplicationError> getMaybeInputs(Path sourceDirectory, Path source, Result<Map<Source, String>, ApplicationError> maybeInputs) {
+        return maybeInputs.flatMapValue(inner -> readString(source).mapErr(ThrowableError::new)
+                .mapErr(ApplicationError::new)
+                .mapValue(input -> {
+                    inner.put(new PathSource(sourceDirectory, source), input);
+                    return inner;
+                }));
     }
 
     private static Result<List<Path>, IOException> collect(Path sourceDirectory) {
