@@ -34,12 +34,6 @@ magma.app.rule.divide.DivideState --> java.util.List
 class magma.app.rule.divide.MutableDivideState
 magma.app.rule.divide.MutableDivideState --> java.util.ArrayList
 magma.app.rule.divide.MutableDivideState --> java.util.List
-class magma.app.rule.EmptyRule
-magma.app.rule.EmptyRule --> magma.CompileError
-magma.app.rule.EmptyRule --> magma.api.Ok
-magma.app.rule.EmptyRule --> magma.api.Result
-magma.app.rule.EmptyRule --> magma.app.node.MapNode
-magma.app.rule.EmptyRule --> magma.app.node.Node
 class magma.app.rule.InfixRule
 magma.app.rule.InfixRule --> magma.CompileError
 magma.app.rule.InfixRule --> magma.StringContext
