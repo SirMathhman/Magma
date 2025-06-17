@@ -1,9 +1,11 @@
 @startuml
 skinparam linetype ortho
-magma.MutableState --> java.util.ArrayList
-magma.MutableState --> java.util.List
-class magma.MutableState 
-magma.MutableState  --|> magma.State
+magma.state.MutableState --> java.util.ArrayList
+magma.state.MutableState --> java.util.List
+class magma.state.MutableState 
+magma.state.MutableState  --|> magma.state.State
+magma.Main --> magma.state.MutableState
+magma.Main --> magma.state.State
 magma.Main --> java.io.IOException
 magma.Main --> java.nio.file.Files
 magma.Main --> java.nio.file.Path
@@ -16,6 +18,6 @@ magma.Main --> java.util.Map
 magma.Main --> java.util.Optional
 magma.Main --> java.util.stream.Collectors
 class magma.Main 
-magma.State --> java.util.List
-interface magma.State 
+magma.state.State --> java.util.List
+interface magma.state.State 
 @enduml
