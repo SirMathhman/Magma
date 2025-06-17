@@ -39,7 +39,7 @@ magma.app.compile.divide.MutableDivideState --|> magma.app.compile.divide.Divide
 magma.app.io.target.PathTargets --> java.io.IOException
 magma.app.io.target.PathTargets --> java.nio.file.Files
 magma.app.io.target.PathTargets --> java.nio.file.Path
-magma.app.io.target.PathTargets --> java.nio.file.Paths
+magma.app.io.target.PathTargets --> magma.api.io.Paths
 magma.app.io.target.PathTargets --> java.util.Optional
 class magma.app.io.target.PathTargets
 magma.app.io.target.PathTargets --|> magma.app.io.target.Targets
@@ -68,6 +68,8 @@ magma.app.io.source.Sources --> java.util.Set
 interface magma.app.io.source.Sources
 magma.app.compile.divide.DivideState --> java.util.List
 interface magma.app.compile.divide.DivideState
+magma.api.io.Paths --> java.nio.file.Path
+class magma.api.io.Paths
 magma.app.compile.Compiler --> magma.app.io.source.Source
 magma.app.compile.Compiler --> java.util.Map
 interface magma.app.compile.Compiler
@@ -81,7 +83,7 @@ magma.Main --> magma.app.Application
 magma.Main --> magma.app.compile.CompilerImpl
 magma.Main --> magma.app.io.source.PathSources
 magma.Main --> magma.app.io.target.PathTargets
-magma.Main --> java.nio.file.Paths
+magma.Main --> magma.api.io.Paths
 class magma.Main
 magma.app.io.source.Source --> magma.api.result.Result
 magma.app.io.source.Source --> magma.app.io.location.Location

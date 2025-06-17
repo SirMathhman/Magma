@@ -1,11 +1,10 @@
 package magma;
 
+import magma.api.io.Paths;
 import magma.app.Application;
 import magma.app.compile.CompilerImpl;
 import magma.app.io.source.PathSources;
 import magma.app.io.target.PathTargets;
-
-import java.nio.file.Paths;
 
 public class Main {
     public static void main(String[] args) {
