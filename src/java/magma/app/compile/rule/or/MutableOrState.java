@@ -11,18 +11,19 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-record MutableOrState<T>(Optional<T> maybeValue, List<FormattedError> errors) implements OrState<T, FormattedError> {
+record MutableOrState<T>(Optional<T> maybeValue,
+                         List<FormattedError> errors) implements OrState<T, FormattedError, Result<T, FormattedError>> {
     public MutableOrState() {
         this(Optional.empty(), new ArrayList<>());
     }
 
     @Override
-    public OrState<T, FormattedError> withValue(T node) {
+    public OrState<T, FormattedError, Result<T, FormattedError>> withValue(T node) {
         return new MutableOrState<>(Optional.of(node), this.errors);
     }
 
     @Override
-    public OrState<T, FormattedError> withError(FormattedError error) {
+    public OrState<T, FormattedError, Result<T, FormattedError>> withError(FormattedError error) {
         this.errors.add(error);
         return this;
     }
