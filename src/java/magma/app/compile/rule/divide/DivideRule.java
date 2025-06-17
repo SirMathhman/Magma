@@ -1,11 +1,11 @@
-package magma.app.rule.divide;
+package magma.app.compile.rule.divide;
 
-import magma.CompileError;
-import magma.api.Ok;
-import magma.api.Result;
-import magma.app.node.MapNode;
-import magma.app.node.Node;
-import magma.app.rule.Rule;
+import magma.api.result.Ok;
+import magma.api.result.Result;
+import magma.app.compile.CompileError;
+import magma.app.compile.node.MapNode;
+import magma.app.compile.node.Node;
+import magma.app.compile.rule.Rule;
 
 import java.util.ArrayList;
 import java.util.List;

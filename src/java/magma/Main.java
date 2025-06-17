@@ -1,19 +1,22 @@
 package magma;
 
-import magma.api.Err;
-import magma.api.Ok;
-import magma.api.Result;
-import magma.app.node.MapNode;
-import magma.app.node.Node;
-import magma.app.rule.InfixRule;
-import magma.app.rule.OrRule;
-import magma.app.rule.PrefixRule;
-import magma.app.rule.Rule;
-import magma.app.rule.StringRule;
-import magma.app.rule.StripRule;
-import magma.app.rule.SuffixRule;
-import magma.app.rule.TypeRule;
-import magma.app.rule.divide.DivideRule;
+import magma.api.result.Err;
+import magma.api.result.Ok;
+import magma.api.result.Result;
+import magma.app.compile.CompileError;
+import magma.app.compile.node.MapNode;
+import magma.app.compile.node.Node;
+import magma.app.compile.rule.InfixRule;
+import magma.app.compile.rule.OrRule;
+import magma.app.compile.rule.PrefixRule;
+import magma.app.compile.rule.Rule;
+import magma.app.compile.rule.StringRule;
+import magma.app.compile.rule.StripRule;
+import magma.app.compile.rule.SuffixRule;
+import magma.app.compile.rule.TypeRule;
+import magma.app.compile.rule.divide.DivideRule;
+import magma.app.error.ApplicationError;
+import magma.app.error.ThrowableError;
 
 import java.io.IOException;
 import java.nio.file.Files;

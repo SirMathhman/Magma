@@ -1,8 +1,8 @@
-package magma.app.rule;
+package magma.app.compile.rule;
 
-import magma.CompileError;
-import magma.api.Result;
-import magma.app.node.Node;
+import magma.api.result.Result;
+import magma.app.compile.CompileError;
+import magma.app.compile.node.Node;
 
 public record StripRule(Rule rule) implements Rule {
     @Override

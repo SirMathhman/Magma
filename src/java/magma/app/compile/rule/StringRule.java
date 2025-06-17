@@ -1,12 +1,12 @@
-package magma.app.rule;
+package magma.app.compile.rule;
 
-import magma.CompileError;
-import magma.NodeContext;
-import magma.api.Err;
-import magma.api.Ok;
-import magma.api.Result;
-import magma.app.node.MapNode;
-import magma.app.node.Node;
+import magma.api.result.Err;
+import magma.api.result.Ok;
+import magma.api.result.Result;
+import magma.app.compile.CompileError;
+import magma.app.compile.context.NodeContext;
+import magma.app.compile.node.MapNode;
+import magma.app.compile.node.Node;
 
 public record StringRule(String key) implements Rule {
     @Override

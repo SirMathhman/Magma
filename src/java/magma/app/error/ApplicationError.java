@@ -1,4 +1,6 @@
-package magma;
+package magma.app.error;
+
+import magma.api.Error;
 
 public record ApplicationError(Error error) implements Error {
     @Override

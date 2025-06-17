@@ -1,31 +1,31 @@
-package magma.api;
+package magma.api.result;
 
 import java.util.function.Function;
 
-public class Ok<T, X> implements Result<T, X> {
-    private final T value;
+public class Err<T, X> implements Result<T, X> {
+    private final X error;
 
-    public Ok(T value) {
-        this.value = value;
+    public Err(X error) {
+        this.error = error;
     }
 
     @Override
     public <R> Result<R, X> mapValue(Function<T, R> mapper) {
-        return new Ok<>(mapper.apply(this.value));
+        return new Err<>(this.error);
     }
 
     @Override
     public <R> Result<R, X> flatMap(Function<T, Result<R, X>> mapper) {
-        return mapper.apply(this.value);
+        return new Err<>(this.error);
     }
 
     @Override
     public <R> Result<T, R> mapErr(Function<X, R> mapper) {
-        return new Ok<>(this.value);
+        return new Err<>(mapper.apply(this.error));
     }
 
     @Override
     public <R> R match(Function<T, R> whenOk, Function<X, R> whenErr) {
-        return whenOk.apply(this.value);
+        return whenErr.apply(this.error);
     }
 }

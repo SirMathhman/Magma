@@ -1,4 +1,6 @@
-package magma;
+package magma.app.error;
+
+import magma.api.Error;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;

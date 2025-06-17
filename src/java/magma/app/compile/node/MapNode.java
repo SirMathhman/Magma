@@ -1,4 +1,4 @@
-package magma.app.node;
+package magma.app.compile.node;
 
 import java.util.HashMap;
 import java.util.List;
