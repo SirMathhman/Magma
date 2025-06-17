@@ -1,6 +1,6 @@
 package magma.app.compile;
 
-import magma.api.list.Streamable;
+import magma.api.list.Iterable;
 
 import java.util.function.Supplier;
 
@@ -26,7 +26,7 @@ public record StringOk<Error>(String value) implements StringResult<Error> {
     }
 
     @Override
-    public Accumulator<String, Error, Streamable<Error>> attachToState(Accumulator<String, Error, Streamable<Error>> state) {
+    public Accumulator<String, Error, Iterable<Error>> attachToState(Accumulator<String, Error, Iterable<Error>> state) {
         return state.withValue(this.value);
     }
 

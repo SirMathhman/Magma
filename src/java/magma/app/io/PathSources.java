@@ -1,8 +1,8 @@
 package magma.app.io;
 
 import magma.api.Error;
+import magma.api.list.Iterable;
 import magma.api.list.JavaList;
-import magma.api.list.Streamable;
 import magma.api.result.Err;
 import magma.api.result.Ok;
 import magma.api.result.Result;
@@ -24,7 +24,7 @@ public record PathSources(Path rootDirectory) implements Sources {
         }
     }
 
-    static Result<Streamable<Path>, IOException> collect(Path sourceDirectory) {
+    static Result<Iterable<Path>, IOException> collect(Path sourceDirectory) {
         try (var files = Files.walk(sourceDirectory)) {
             final var sources = new JavaList<>(files.filter(Files::isRegularFile)
                     .filter(path -> path.toString()
@@ -39,10 +39,10 @@ public record PathSources(Path rootDirectory) implements Sources {
 
     @Override
     public Result<Map<Source, String>, Error> readAll() {
-        Result<Streamable<Path>, IOException> listIOExceptionResult = collect(this.rootDirectory);
+        Result<Iterable<Path>, IOException> listIOExceptionResult = collect(this.rootDirectory);
         Result<Map<Source, String>, IOException> mapIOExceptionResult = switch (listIOExceptionResult) {
-            case Err<Streamable<Path>, IOException>(IOException error2) -> new Err<>(error2);
-            case Ok<Streamable<Path>, IOException>(Streamable<Path> value2) -> this.readIterable(value2);
+            case Err<Iterable<Path>, IOException>(IOException error2) -> new Err<>(error2);
+            case Ok<Iterable<Path>, IOException>(Iterable<Path> value2) -> this.readIterable(value2);
         };
         Result<Map<Source, String>, Error> mapThrowableErrorResult = switch (mapIOExceptionResult) {
             case Err<Map<Source, String>, IOException>(IOException error) -> new Err<>(new ThrowableError(error));
@@ -75,7 +75,7 @@ public record PathSources(Path rootDirectory) implements Sources {
         };
     }
 
-    public Result<Map<Source, String>, IOException> readIterable(Streamable<Path> files) {
+    public Result<Map<Source, String>, IOException> readIterable(Iterable<Path> files) {
         return files.stream()
                 .<Result<Map<Source, String>, IOException>>fold(new Ok<>(new HashMap<>()),
                         (currentResult, path) -> this.readFile(path, currentResult));

@@ -1,7 +1,7 @@
 package magma.app.compile;
 
-import magma.api.list.Streamable;
+import magma.api.list.Iterable;
 
 public interface AttachableToStateResult<Value, Error> {
-    Accumulator<Value, Error, Streamable<Error>> attachToState(Accumulator<Value, Error, Streamable<Error>> state);
+    Accumulator<Value, Error, Iterable<Error>> attachToState(Accumulator<Value, Error, Iterable<Error>> state);
 }

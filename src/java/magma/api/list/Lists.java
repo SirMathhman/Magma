@@ -8,7 +8,7 @@ public class Lists {
         return new JavaList<>();
     }
 
-    public static <T> Streamable<T> of(T... elements) {
+    public static <T> Iterable<T> of(T... elements) {
         return new JavaList<>(new ArrayList<>(Arrays.asList(elements)));
     }
 }

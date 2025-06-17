@@ -1,8 +1,8 @@
 package magma.app.io;
 
+import magma.api.list.Iterable;
 import magma.api.list.List;
 import magma.api.list.Lists;
-import magma.api.list.Streamable;
 
 import java.nio.file.Path;
 
@@ -17,7 +17,7 @@ public record PathSource(Path sourceDirectory, Path source) implements Source {
     }
 
     @Override
-    public Streamable<String> computeNamespace() {
+    public Iterable<String> computeNamespace() {
         final var relativeParent = this.sourceDirectory.relativize(this.source)
                 .getParent();
 

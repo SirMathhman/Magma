@@ -1,11 +1,11 @@
 package magma.app.compile;
 
-import magma.api.list.Streamable;
+import magma.api.list.Iterable;
 
 import java.util.Optional;
 
 public interface NodeWithNodeLists<Node> {
-    Node withNodeList(String key, Streamable<Node> values);
+    Node withNodeList(String key, Iterable<Node> values);
 
-    Optional<Streamable<Node>> findNodeList(String key);
+    Optional<Iterable<Node>> findNodeList(String key);
 }

@@ -1,5 +1,5 @@
 package magma.api.list;
 
-public interface Streamable<T> {
+public interface Iterable<T> {
     Iter<T> stream();
 }
