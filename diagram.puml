@@ -6,8 +6,6 @@ magma.app.Application --> magma.api.io.IOError
 magma.app.Application --> magma.api.io.IOOption
 magma.app.Application --> magma.api.io.SimpleIOOption
 magma.app.Application --> magma.api.list.Sequence
-magma.app.Application --> magma.api.result.Err
-magma.app.Application --> magma.api.result.Ok
 magma.app.Application --> magma.api.result.Result
 magma.app.Application --> magma.app.compile.Compiler
 magma.app.Application --> magma.app.io.source.Source
@@ -44,8 +42,8 @@ jvm.io.JVMIOError --|> magma.api.io.IOError
 magma.app.io.source.PathSource --> jvm.list.JVMLists
 magma.app.io.source.PathSource --> magma.api.io.IOError
 magma.app.io.source.PathSource --> magma.api.io.PathLike
-magma.app.io.source.PathSource --> magma.api.list.Sequence
 magma.app.io.source.PathSource --> magma.api.list.ListLike
+magma.app.io.source.PathSource --> magma.api.list.Sequence
 magma.app.io.source.PathSource --> magma.api.option.Option
 magma.app.io.source.PathSource --> magma.api.result.Result
 magma.app.io.source.PathSource --> magma.app.io.location.Location
@@ -87,8 +85,6 @@ jvm.io.JVMPath --> magma.api.io.IOOption
 jvm.io.JVMPath --> magma.api.io.PathLike
 jvm.io.JVMPath --> magma.api.io.SimpleIOOption
 jvm.io.JVMPath --> magma.api.list.Sequence
-jvm.io.JVMPath --> magma.api.result.Err
-jvm.io.JVMPath --> magma.api.result.Ok
 jvm.io.JVMPath --> magma.api.result.Result
 jvm.io.JVMPath --> java.io.IOException
 jvm.io.JVMPath --> java.nio.file.Files
@@ -117,8 +113,8 @@ magma.api.result.Ok --> java.util.function.Function
 class magma.api.result.Ok
 magma.api.result.Ok --|> magma.api.result.Result
 magma.app.compile.divide.MutableDivideState --> jvm.list.JVMLists
-magma.app.compile.divide.MutableDivideState --> magma.api.list.Sequence
 magma.app.compile.divide.MutableDivideState --> magma.api.list.ListLike
+magma.app.compile.divide.MutableDivideState --> magma.api.list.Sequence
 class magma.app.compile.divide.MutableDivideState
 magma.app.compile.divide.MutableDivideState --|> magma.app.compile.divide.DivideState
 magma.app.io.target.PathTargets --> jvm.io.JVMPaths
@@ -129,8 +125,8 @@ magma.api.io.SimpleIOOption --> magma.api.option.Option
 class magma.api.io.SimpleIOOption
 magma.api.io.SimpleIOOption --|> magma.api.io.IOOption
 class magma.api.Tuple
-jvm.list.JVMLists --> magma.api.list.Sequence
 jvm.list.JVMLists --> magma.api.list.ListLike
+jvm.list.JVMLists --> magma.api.list.Sequence
 jvm.list.JVMLists --> java.util.Arrays
 class jvm.list.JVMLists
 magma.app.compile.divide.DivideState --> magma.api.list.Sequence
