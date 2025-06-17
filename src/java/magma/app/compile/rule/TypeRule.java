@@ -1,9 +1,7 @@
 package magma.app.compile.rule;
 
-import magma.api.result.Err;
 import magma.api.result.Result;
-import magma.app.compile.context.NodeContext;
-import magma.app.compile.error.CompileError;
+import magma.app.compile.error.CompileErrors;
 import magma.app.compile.error.FormattedError;
 import magma.app.compile.node.DisplayNode;
 import magma.app.compile.node.TypedNode;
@@ -29,6 +27,6 @@ public final class TypeRule<Node extends DisplayNode & TypedNode<Node>> implemen
     public Result<String, FormattedError> generate(Node node) {
         if (node.is(this.type))
             return this.rule.generate(node);
-        return new Err<>(new CompileError("Not of type '" + this.type + "'", new NodeContext(node)));
+        return CompileErrors.fromNodeErr("Not of type '" + this.type + "'", node);
     }
 }

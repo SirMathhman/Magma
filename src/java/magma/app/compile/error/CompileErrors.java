@@ -8,7 +8,7 @@ import magma.app.compile.context.StringContext;
 import magma.app.compile.node.DisplayNode;
 
 public class CompileErrors {
-    public static <Node extends DisplayNode> Result<Node, FormattedError> fromStringErr(String message, String input) {
+    public static <Node> Result<Node, FormattedError> fromStringErr(String message, String input) {
         return new Err<>(new CompileError(message, new StringContext(input)));
     }
 
@@ -16,7 +16,7 @@ public class CompileErrors {
         return new Err<>(new CompileError(message, new NodeContext(node)));
     }
 
-    public static <Node extends DisplayNode> Result<Node, FormattedError> fromNode(Node value) {
+    public static <Node> Result<Node, FormattedError> fromNode(Node value) {
         return new Ok<>(value);
     }
 
