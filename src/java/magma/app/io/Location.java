@@ -1,4 +1,4 @@
-package magma.io;
+package magma.app.io;
 
 public interface Location {
     String join();

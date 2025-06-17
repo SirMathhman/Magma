@@ -1,10 +1,12 @@
 package magma;
 
-import magma.io.SimpleLocation;
-import magma.io.Source;
-import magma.io.Sources;
-import magma.state.MutableState;
-import magma.state.State;
+import magma.app.CompileState;
+import magma.app.SimpleCompileState;
+import magma.app.io.SimpleLocation;
+import magma.app.io.Source;
+import magma.app.io.Sources;
+import magma.app.state.MutableState;
+import magma.app.state.State;
 
 import java.io.IOException;
 import java.nio.file.Files;

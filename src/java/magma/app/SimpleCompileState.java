@@ -1,6 +1,6 @@
-package magma;
+package magma.app;
 
-import magma.io.Location;
+import magma.app.io.Location;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -27,9 +27,8 @@ public final class SimpleCompileState implements CompileState {
     @Override
     public Optional<Location> find(String childName) {
         for (var anImport : this.imports)
-            if (anImport.isNamed(childName)) {
+            if (anImport.isNamed(childName))
                 return Optional.of(anImport);
-            }
 
         return Optional.empty();
     }

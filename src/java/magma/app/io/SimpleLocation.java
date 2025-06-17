@@ -1,4 +1,4 @@
-package magma.io;
+package magma.app.io;
 
 public final class SimpleLocation implements Location {
     private final String namespace;
