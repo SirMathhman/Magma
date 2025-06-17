@@ -8,12 +8,20 @@ class magma.app.node.Node
 class magma.app.rule.divide.DivideRule
 class magma.app.rule.divide.DivideState
 class magma.app.rule.divide.MutableDivideState
+class magma.app.rule.EmptyRule
 class magma.app.rule.InfixRule
+class magma.app.rule.OrRule
 class magma.app.rule.PrefixRule
 class magma.app.rule.Rule
 class magma.app.rule.StringRule
 class magma.app.rule.StripRule
 class magma.app.rule.SuffixRule
+class magma.ApplicationError
 class magma.CompileError
+class magma.Context
+class magma.Error
 class magma.Main
+class magma.NodeContext
+class magma.StringContext
+class magma.ThrowableError
 @enduml

@@ -5,7 +5,9 @@ import magma.api.Ok;
 import magma.api.Result;
 import magma.app.node.MapNode;
 import magma.app.node.Node;
+import magma.app.rule.EmptyRule;
 import magma.app.rule.InfixRule;
+import magma.app.rule.OrRule;
 import magma.app.rule.PrefixRule;
 import magma.app.rule.Rule;
 import magma.app.rule.StringRule;
@@ -105,11 +107,11 @@ public class Main {
     }
 
     private static Rule createJavaRootRule() {
-        return new DivideRule("children", createImportRule());
+        return new DivideRule("children", new OrRule(List.of(createImportRule(), new StringRule("value"))));
     }
 
     private static Rule createPlantRootRule() {
-        return new DivideRule("children", createDependencyRule());
+        return new DivideRule("children", new OrRule(List.of(createDependencyRule(), new EmptyRule())));
     }
 
     private static Node transform(String source, Node children) {
