@@ -1,10 +1,8 @@
-package magma.app.compile.node;
+package magma.app.compile;
 
 import magma.api.result.Ok;
 import magma.api.result.Result;
-import magma.app.compile.FormattedError;
 import magma.app.compile.rule.or.Accumulator;
-import magma.app.compile.string.StringResult;
 
 import java.util.List;
 import java.util.function.Function;

@@ -2,8 +2,8 @@ package magma.app.compile.rule;
 
 import magma.app.compile.FormattedError;
 import magma.app.compile.ResultFactory;
+import magma.app.compile.TypeNode;
 import magma.app.compile.TypeNodeResult;
-import magma.app.compile.node.TypeNode;
 
 public final class TypeRule<Node extends TypeNode<Node>, NodeResult extends TypeNodeResult<NodeResult>, StringResult> implements Rule<Node, NodeResult, StringResult> {
     private final String type;

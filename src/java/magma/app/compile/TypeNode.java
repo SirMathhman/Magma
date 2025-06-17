@@ -1,4 +1,4 @@
-package magma.app.compile.node;
+package magma.app.compile;
 
 public interface TypeNode<Node> {
     boolean is(String type);

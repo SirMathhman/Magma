@@ -1,4 +1,4 @@
-package magma.app.compile.node;
+package magma.app.compile;
 
 import java.util.Map;
 import java.util.stream.Stream;

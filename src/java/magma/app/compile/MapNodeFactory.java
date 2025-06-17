@@ -1,7 +1,4 @@
-package magma.app.compile.rule;
-
-import magma.app.compile.node.MapNode;
-import magma.app.compile.node.Node;
+package magma.app.compile;
 
 public class MapNodeFactory implements NodeFactory<Node> {
     @Override

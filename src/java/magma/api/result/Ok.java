@@ -4,7 +4,7 @@ import java.util.function.Function;
 
 public record Ok<T, X>(T value) implements Result<T, X> {
     @Override
-    public <Result> Result match(Function<T, Result> whenOk, Function<X, Result> whenErr) {
+    public <Return> Return match(Function<T, Return> whenOk, Function<X, Return> whenErr) {
         return whenOk.apply(this.value);
     }
 }

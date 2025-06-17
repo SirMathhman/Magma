@@ -1,4 +1,4 @@
-package magma.app.compile.rule;
+package magma.app.compile;
 
 public interface NodeFactory<Node> {
     Node create();

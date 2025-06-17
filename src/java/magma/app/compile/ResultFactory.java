@@ -1,7 +1,5 @@
 package magma.app.compile;
 
-import magma.app.compile.list.NodeListResult;
-
 import java.util.List;
 
 public interface ResultFactory<Node, Error, NodeResult, StringResult> {

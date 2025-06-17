@@ -1,6 +1,4 @@
-package magma.app.compile.list;
-
-import magma.app.compile.rule.NodeFactory;
+package magma.app.compile;
 
 import java.util.function.Supplier;
 

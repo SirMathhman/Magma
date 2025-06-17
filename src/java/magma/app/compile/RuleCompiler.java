@@ -4,13 +4,7 @@ import magma.api.Error;
 import magma.api.result.Err;
 import magma.api.result.Ok;
 import magma.api.result.Result;
-import magma.app.compile.node.MapNode;
-import magma.app.compile.node.Node;
-import magma.app.compile.node.NodeResult;
 import magma.app.compile.rule.Rule;
-import magma.app.compile.string.StringErr;
-import magma.app.compile.string.StringOk;
-import magma.app.compile.string.StringResult;
 import magma.app.error.ApplicationError;
 import magma.app.io.Source;
 
@@ -26,7 +20,7 @@ public class RuleCompiler implements Compiler {
         this.targetRule = targetRule;
     }
 
-    static Node transform(String source, Node root) {
+    static Node transform(String source, NodeWithNodeLists<Node> root) {
         final var transformed = root.findNodeList("children")
                 .orElse(new ArrayList<>())
                 .stream()
