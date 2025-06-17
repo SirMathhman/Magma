@@ -1,6 +1,6 @@
 package magma.app.compile;
 
-import magma.api.List;
+import magma.api.list.List;
 
 public interface ResultFactory<Node, Error, NodeResult, StringResult> {
     NodeResult fromStringErr(String message, String input);

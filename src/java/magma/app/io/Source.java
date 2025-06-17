@@ -1,6 +1,6 @@
 package magma.app.io;
 
-import magma.api.List;
+import magma.api.list.List;
 
 public interface Source {
     String computeName();

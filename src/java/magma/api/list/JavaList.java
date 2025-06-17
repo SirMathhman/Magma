@@ -1,4 +1,4 @@
-package magma.api;
+package magma.api.list;
 
 import java.util.ArrayList;
 import java.util.stream.Stream;

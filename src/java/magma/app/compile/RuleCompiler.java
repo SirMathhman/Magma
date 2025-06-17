@@ -1,8 +1,8 @@
 package magma.app.compile;
 
 import magma.api.Error;
-import magma.api.JavaList;
-import magma.api.List;
+import magma.api.list.JavaList;
+import magma.api.list.List;
 import magma.api.result.Err;
 import magma.api.result.Ok;
 import magma.api.result.Result;

@@ -1,6 +1,6 @@
 package magma.app.compile;
 
-import magma.api.List;
+import magma.api.list.List;
 
 import java.util.Optional;
 

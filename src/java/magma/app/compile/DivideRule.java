@@ -1,6 +1,6 @@
 package magma.app.compile;
 
-import magma.api.List;
+import magma.api.list.List;
 
 public final class DivideRule<Node extends NodeWithNodeLists<Node>, Error, NodeResult, StringResult extends AppendableStringResult<StringResult>> implements Rule<Node, NodeResult, StringResult> {
     private final String key;

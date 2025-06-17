@@ -1,6 +1,6 @@
 package magma.app.compile;
 
-import magma.api.List;
+import magma.api.list.List;
 
 public record CompileError(String message, Context context, List<FormattedError> errors) implements FormattedError {
     public CompileError(String message, Context context) {
