@@ -36,7 +36,8 @@ public class Main {
     private static Optional<ApplicationError> collect(Iterable<Path> sources, Path sourceDirectory) {
         Result<StringBuilder, ApplicationError> maybeCurrentOutput = new Ok<>(new StringBuilder());
         for (var source : sources)
-            maybeCurrentOutput = maybeCurrentOutput.flatMap(currentOutput -> compileSource(sourceDirectory, source).mapValue(currentOutput::append));
+            maybeCurrentOutput = maybeCurrentOutput.flatMap(currentOutput -> compileSource(sourceDirectory,
+                    source).mapValue(currentOutput::append));
 
         return maybeCurrentOutput.match(currentOutput -> {
             final var target = Paths.get(".", "diagram.puml");
@@ -107,7 +108,16 @@ public class Main {
     }
 
     private static Rule createJavaRootRule() {
-        return new DivideRule("children", new OrRule(List.of(createNamespacedRule("package"), createNamespacedRule("import"), new StringRule("value"))));
+        return new DivideRule("children",
+                new OrRule(List.of(createNamespacedRule("package"),
+                        createNamespacedRule("import"),
+                        createStructureRule("class"),
+                        createStructureRule("interface"),
+                        createStructureRule("record"))));
+    }
+
+    private static Rule createStructureRule(String type) {
+        return new InfixRule(new StringRule("before-infix"), type + " ", new StringRule("after-infix"));
     }
 
     private static Rule createPlantRootRule() {

@@ -8,4 +8,10 @@ public interface DivideState {
     DivideState advance();
 
     List<String> segments();
+
+    boolean isLevel();
+
+    DivideState enter();
+
+    DivideState exit();
 }

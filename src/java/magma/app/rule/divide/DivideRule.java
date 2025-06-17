@@ -24,8 +24,14 @@ public record DivideRule(String key, Rule rule) implements Rule {
 
     private static DivideState fold(DivideState divideState, char c) {
         final var appended = divideState.append(c);
-        if (c == ';')
+        if (c == ';' && appended.isLevel())
             return appended.advance();
+
+        if (c == '{')
+            return appended.enter();
+
+        if (c == '}')
+            return appended.exit();
 
         return appended;
     }
