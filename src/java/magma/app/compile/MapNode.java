@@ -1,6 +1,6 @@
 package magma.app.compile;
 
-import magma.api.collect.iter.Iter;
+import magma.api.collect.iter.Collector;
 import magma.api.collect.iter.Iterable;
 import magma.api.collect.list.JavaList;
 
@@ -40,13 +40,7 @@ public final class MapNode implements Node {
 
     @Override
     public Node merge(Node other) {
-        return other.streamStrings()
-                .<Node>fold(this, (node, entry) -> node.withString(entry.getKey(), entry.getValue()));
-    }
-
-    @Override
-    public Iter<Map.Entry<String, String>> streamStrings() {
-        return new JavaList<>(new ArrayList<>(this.strings.entrySet())).iter();
+        return other.collect(new StringNodeCollector(this));
     }
 
     @Override
@@ -77,5 +71,11 @@ public final class MapNode implements Node {
     @Override
     public Node retype(String type) {
         return new MapNode(Optional.of(type), this.strings, this.nodeLists);
+    }
+
+    @Override
+    public Node collect(Collector<Map.Entry<String, String>, Node> collector) {
+        return new JavaList<>(new ArrayList<>(this.strings.entrySet())).iter()
+                .collect(collector);
     }
 }

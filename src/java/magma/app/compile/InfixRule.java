@@ -1,6 +1,7 @@
 package magma.app.compile;
 
-public final class InfixRule<Node, Error, NodeResult extends MergeNodeResult<Node, NodeResult>, StringResult extends AppendableStringResult<StringResult>> implements Rule<Node, NodeResult, StringResult> {
+public final class InfixRule<Node, Error, NodeResult extends MergeNodeResult<Node, NodeResult>, StringResult extends AppendableStringResult<StringResult>> implements
+        Rule<Node, NodeResult, StringResult> {
     private final Rule<Node, NodeResult, StringResult> leftRule;
     private final String infix;
     private final Rule<Node, NodeResult, StringResult> rightRule;
@@ -21,14 +22,23 @@ public final class InfixRule<Node, Error, NodeResult extends MergeNodeResult<Nod
 
         final var left = input.substring(0, index);
         final var right = input.substring(index + this.infix.length());
-        return this.leftRule.lex(left)
-                .mergeResult(() -> this.rightRule.lex(right));
+        return this.getNodeResult(this.leftRule.lex(left), right);
+    }
+
+    private NodeResult getNodeResult(NodeResult leftResult, String slice) {
+        return leftResult.mergeResult(() -> this.rightRule.lex(slice));
     }
 
     @Override
     public StringResult generate(Node node) {
-        return this.leftRule.generate(node)
-                .appendSlice(this.infix)
-                .appendResult(() -> this.rightRule.generate(node));
+        return this.appendInfix(node, this.leftRule.generate(node));
+    }
+
+    private StringResult appendInfix(Node node, StringResult result) {
+        return this.appendRight(node, result.appendSlice(this.infix));
+    }
+
+    private StringResult appendRight(Node node, StringResult result1) {
+        return result1.appendResult(() -> this.rightRule.generate(node));
     }
 }
