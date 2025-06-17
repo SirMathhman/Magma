@@ -15,30 +15,28 @@ import java.util.List;
 
 public class Lang {
     public static Rule<Node> createJavaRootRule() {
-        return new DivideRule("children", new OrRule<Node>(List.of(createNamespacedRule("package"),
-                        new TypeRule<Node>("import", createNamespacedRule("import")),
+        return new DivideRule("children",
+                new OrRule<>(List.of(createNamespacedRule("package"),
+                        new TypeRule<>("import", createNamespacedRule("import")),
                         createStructureRule("class"),
                         createStructureRule("interface"),
                         createStructureRule("record"))));
     }
 
     static Rule<Node> createStructureRule(String type) {
-        return new InfixRule<Node>(new StringRule("before-infix"), type + " ", new StringRule("after-infix"));
+        return new InfixRule<>(new StringRule("before-infix"), type + " ", new StringRule("after-infix"));
     }
 
     public static Rule<Node> createPlantRootRule() {
-        return new DivideRule("children", new OrRule<Node>(List.of(createDependencyRule())));
+        return new DivideRule("children", new OrRule<>(List.of(createDependencyRule())));
     }
 
     static Rule<Node> createNamespacedRule(String type) {
-        return new StripRule<Node>(new PrefixRule<Node>(type + " ",
-                new SuffixRule<Node>(new StringRule("destination"), ";")));
+        return new StripRule<>(new PrefixRule<>(type + " ", new SuffixRule<>(new StringRule("destination"), ";")));
     }
 
     static Rule<Node> createDependencyRule() {
-        return new SuffixRule<Node>(new InfixRule<Node>(new StringRule("source"),
-                " --> ",
-                new StringRule("destination")),
+        return new SuffixRule<>(new InfixRule<>(new StringRule("source"), " --> ", new StringRule("destination")),
                 "\n");
     }
 }
