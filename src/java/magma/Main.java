@@ -1,5 +1,7 @@
 package magma;
 
+import magma.api.Err;
+import magma.api.Ok;
 import magma.api.Result;
 import magma.app.node.MapNode;
 import magma.app.node.Node;
@@ -17,29 +19,54 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
+import java.util.Optional;
 
 public class Main {
     public static void main(String[] args) {
         final var sourceDirectory = Paths.get(".", "src", "java");
+        collect(sourceDirectory).mapErr(ThrowableError::new)
+                .mapErr(ApplicationError::new)
+                .match(sources -> collect(sources, sourceDirectory), Optional::of)
+                .ifPresent(error -> System.err.println(error.display()));
+    }
+
+    private static Optional<ApplicationError> collect(Iterable<Path> sources, Path sourceDirectory) {
+        Result<StringBuilder, ApplicationError> maybeCurrentOutput = new Ok<>(new StringBuilder());
+        for (var source : sources)
+            maybeCurrentOutput = maybeCurrentOutput.flatMap(currentOutput -> compileSource(sourceDirectory, source).mapValue(currentOutput::append));
+
+        return maybeCurrentOutput.match(currentOutput -> {
+            final var target = Paths.get(".", "diagram.puml");
+            final var content = "@startuml\nskinparam linetype ortho\n" + currentOutput + "@enduml";
+            return writeString(target, content).map(ThrowableError::new)
+                    .map(ApplicationError::new);
+        }, Optional::of);
+    }
+
+    private static Result<List<Path>, IOException> collect(Path sourceDirectory) {
         try (var files = Files.walk(sourceDirectory)) {
             final var sources = files.filter(Files::isRegularFile)
                     .filter(path -> path.toString()
                             .endsWith("java"))
                     .toList();
 
-            final var stringBuilder = new StringBuilder();
-            for (var source : sources)
-                stringBuilder.append(compileSource(sourceDirectory, source));
-
-            final var target = Paths.get(".", "diagram.puml");
-            Files.writeString(target, "@startuml\nskinparam linetype ortho\n" + stringBuilder + "@enduml");
+            return new Ok<>(sources);
         } catch (IOException e) {
-            //noinspection CallToPrintStackTrace
-            e.printStackTrace();
+            return new Err<>(e);
         }
     }
 
-    private static String compileSource(Path sourceDirectory, Path source) throws IOException {
+    private static Optional<IOException> writeString(Path target, CharSequence content) {
+        try {
+            Files.writeString(target, content);
+            return Optional.empty();
+        } catch (IOException e) {
+            return Optional.of(e);
+        }
+    }
+
+    private static Result<String, ApplicationError> compileSource(Path sourceDirectory, Path source) {
         final var relativeParent = sourceDirectory.relativize(source)
                 .getParent();
 
@@ -54,19 +81,26 @@ public class Main {
         final var name = fileName.substring(0, separator);
 
         final var joined = String.join(".", namespace);
+        return readString(source).mapErr(ThrowableError::new)
+                .mapErr(ApplicationError::new)
+                .flatMap(input -> {
+                    final var joinedName = joined + "." + name;
+                    return compileRoot(input, joinedName).mapValue(output -> "class " + joinedName + "\n" + output)
+                            .mapErr(ApplicationError::new);
+                });
+    }
 
-        final var input = Files.readString(source);
-        final var joinedName = joined + "." + name;
-
-        final var output = compileRoot(input, joinedName).findValue()
-                .orElse("");
-
-        return "class " + joinedName + "\n" + output;
+    private static Result<String, IOException> readString(Path source) {
+        try {
+            return new Ok<>(Files.readString(source));
+        } catch (IOException e) {
+            return new Err<>(e);
+        }
     }
 
     private static Result<String, CompileError> compileRoot(String input, String source) {
         return createJavaRootRule().lex(input)
-                .map(children -> transform(source, children))
+                .mapValue(children -> transform(source, children))
                 .flatMap(createPlantRootRule()::generate);
     }
 

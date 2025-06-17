@@ -11,7 +11,7 @@ public class Err<T, X> implements Result<T, X> {
     }
 
     @Override
-    public <R> Result<R, X> map(Function<T, R> mapper) {
+    public <R> Result<R, X> mapValue(Function<T, R> mapper) {
         return new Err<>(this.error);
     }
 
@@ -23,5 +23,15 @@ public class Err<T, X> implements Result<T, X> {
     @Override
     public Optional<T> findValue() {
         return Optional.empty();
+    }
+
+    @Override
+    public <R> Result<T, R> mapErr(Function<X, R> mapper) {
+        return new Err<>(mapper.apply(this.error));
+    }
+
+    @Override
+    public <R> R match(Function<T, R> whenOk, Function<X, R> whenErr) {
+        return whenErr.apply(this.error);
     }
 }

@@ -19,6 +19,6 @@ public record SuffixRule(Rule rule, String suffix) implements Rule {
     @Override
     public Result<String, CompileError> generate(Node node) {
         return this.rule.generate(node)
-                .map(result -> result + this.suffix);
+                .mapValue(result -> result + this.suffix);
     }
 }

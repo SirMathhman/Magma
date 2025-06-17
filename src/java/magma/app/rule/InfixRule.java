@@ -16,13 +16,13 @@ public record InfixRule(Rule leftRule, String infix, Rule rightRule) implements 
         final var right = input.substring(index + this.infix.length());
         return this.leftRule.lex(left)
                 .flatMap(leftResult -> this.rightRule.lex(right)
-                        .map(leftResult::merge));
+                        .mapValue(leftResult::merge));
     }
 
     @Override
     public Result<String, CompileError> generate(Node node) {
         return this.leftRule.generate(node)
                 .flatMap(leftResult -> this.rightRule.generate(node)
-                        .map(rightResult -> leftResult + this.infix + rightResult));
+                        .mapValue(rightResult -> leftResult + this.infix + rightResult));
     }
 }

@@ -34,12 +34,12 @@ public record DivideRule(String key, Rule rule) implements Rule {
     public Result<Node, CompileError> lex(String input) {
         return divide(input).stream()
                 .reduce(new Ok<>(new ArrayList<>()), this::foldElement, (_, next) -> next)
-                .map(children -> new MapNode().withNodeList(this.key(), children));
+                .mapValue(children -> new MapNode().withNodeList(this.key(), children));
     }
 
     private Result<List<Node>, CompileError> foldElement(Result<List<Node>, CompileError> maybeCurrent, String element) {
         return maybeCurrent.flatMap(current -> DivideRule.this.rule.lex(element)
-                .map(result -> {
+                .mapValue(result -> {
                     current.add(result);
                     return current;
                 }));
@@ -51,11 +51,11 @@ public record DivideRule(String key, Rule rule) implements Rule {
                 .orElse(new ArrayList<>())
                 .stream()
                 .reduce(new Ok<>(new StringBuilder()), this::foldString, (_, next) -> next)
-                .map(StringBuilder::toString);
+                .mapValue(StringBuilder::toString);
     }
 
     private Result<StringBuilder, CompileError> foldString(Result<StringBuilder, CompileError> maybeCurrent, Node element) {
         return maybeCurrent.flatMap(current -> this.rule.generate(element)
-                .map(current::append));
+                .mapValue(current::append));
     }
 }
