@@ -49,7 +49,8 @@ public class Main {
         final var name = fileName.substring(0, separator);
 
         final var namespace = String.join(".", segments);
-        return compile(input, namespace, name);
+        final var location = new Location(namespace, name);
+        return compile(input, location);
     }
 
     private static List<String> computeNamespace(Path parent) {
@@ -60,13 +61,13 @@ public class Main {
         return segments;
     }
 
-    private static StringBuilder compile(CharSequence input, String namespace, String name) {
+    private static StringBuilder compile(CharSequence input, Location location) {
         final var segments = divide(input);
 
         final var imports = new HashMap<String, String>();
         final var output = new StringBuilder();
         for (var segment : segments)
-            compileRootSegment(segment, namespace, name, imports).ifPresent(obj -> {
+            compileRootSegment(segment, imports, location).ifPresent(obj -> {
                 for (var entry : obj.entrySet()) {
                     output.append(entry.getKey());
                     imports.putAll(entry.getValue());
@@ -75,7 +76,10 @@ public class Main {
         return output;
     }
 
-    private static Optional<Map<String, Map<String, String>>> compileRootSegment(String input, String namespace, String name, Map<String, String> imports) {
+    private static Optional<Map<String, Map<String, String>>> compileRootSegment(String input, Map<String, String> imports, Location location) {
+        final var namespace = location.namespace();
+        final var name = location.name();
+
         final var strip = input.strip();
         if (strip.startsWith("import ")) {
             final var withoutStart = strip.substring("import ".length());
@@ -93,42 +97,61 @@ public class Main {
         final var separator = strip.indexOf("{");
         if (separator >= 0) {
             final var beforeContent = strip.substring(0, separator);
-            final var classIndex = beforeContent.indexOf("class ");
-            if (classIndex >= 0) {
-                final var afterKeyword = beforeContent.substring("class ".length() + classIndex);
-                return compileStructure("class", namespace, afterKeyword, imports);
-            }
+            final var or = compileStructureDefinition("class", "class", imports, location, beforeContent, namespace).or(
+                            () -> compileStructureDefinition("interface",
+                                    "interface",
+                                    imports,
+                                    location,
+                                    beforeContent,
+                                    namespace))
+                    .or(() -> compileStructureDefinition("record",
+                            "class",
+                            imports,
+                            location,
+                            beforeContent,
+                            namespace));
 
-            final var interfaceIndex = beforeContent.indexOf("interface ");
-            if (interfaceIndex >= 0) {
-                final var afterKeyword = beforeContent.substring("interface ".length() + interfaceIndex);
-                return compileStructure("interface", namespace, afterKeyword, imports);
-            }
+            if (or.isPresent())
+                return or;
         }
 
         return Optional.empty();
     }
 
-    private static Optional<Map<String, Map<String, String>>> compileStructure(String type, String namespace, String afterKeyword, Map<String, String> imports) {
+    private static Optional<Map<String, Map<String, String>>> compileStructureDefinition(String type, String type1, Map<String, String> imports, Location location, String input, String namespace) {
+        final var index = input.indexOf(type + " ");
+        if (index >= 0) {
+            final var afterKeyword = input.substring((type + " ").length() + index);
+            return compileStructureDefinitionTruncated(type1, namespace, afterKeyword, imports, location);
+        }
+        return Optional.empty();
+    }
+
+    private static Optional<Map<String, Map<String, String>>> compileStructureDefinitionTruncated(String type, String namespace, String afterKeyword, Map<String, String> imports, Location location) {
         final var index = afterKeyword.indexOf("implements ");
         if (index >= 0) {
-            final var substring = afterKeyword.substring(0, index);
             final var substring1 = afterKeyword.substring(index + "implements ".length())
                     .strip();
 
             final var superTypeNamespace = imports.getOrDefault(substring1, namespace);
-            return generate(type, namespace, substring, List.of(superTypeNamespace + "." + substring1));
+            return generate(type, location, List.of(superTypeNamespace + "." + substring1));
         }
         else
-            return generate(type, namespace, afterKeyword, Collections.emptyList());
+            return generate(type, location, Collections.emptyList());
     }
 
-    private static Optional<Map<String, Map<String, String>>> generate(String type, String namespace, String name, List<String> superTypes) {
+    private static Optional<Map<String, Map<String, String>>> generate(String type, Location location, List<String> superTypes) {
         final var buffer = new StringBuilder();
         for (var superType : superTypes)
-            buffer.append(namespace + "." + name + " --|> " + superType + "\n");
+            buffer.append(location.namespace())
+                    .append(".")
+                    .append(location.name())
+                    .append(" --|> ")
+                    .append(superType)
+                    .append("\n");
 
-        return Optional.of(Map.of(type + " " + namespace + "." + name + "\n" + buffer, Collections.emptyMap()));
+        return Optional.of(Map.of(type + " " + location.namespace() + "." + location.name() + "\n" + buffer,
+                Collections.emptyMap()));
     }
 
     private static List<String> divide(CharSequence input) {
