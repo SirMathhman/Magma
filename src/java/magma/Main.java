@@ -3,6 +3,9 @@ package magma;
 import magma.api.result.Err;
 import magma.api.result.Ok;
 import magma.api.result.Result;
+import magma.app.compile.Compiler;
+import magma.app.compile.Lang;
+import magma.app.compile.RuleCompiler;
 import magma.app.error.ApplicationError;
 import magma.app.error.ThrowableError;
 import magma.app.io.PathSource;
@@ -27,7 +30,8 @@ public class Main {
     }
 
     private static Optional<ApplicationError> collect(Iterable<Path> sources, Path sourceDirectory) {
-        return readAll(sources, sourceDirectory).match(inputs -> handleCompileResult(new Compiler().compile(inputs)),
+        final Compiler compiler = new RuleCompiler(Lang.createJavaRootRule(), Lang.createPlantRootRule());
+        return readAll(sources, sourceDirectory).match(inputs -> handleCompileResult(compiler.compile(inputs)),
                 Optional::of);
     }
 

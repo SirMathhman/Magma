@@ -42,10 +42,18 @@ magma.app.compile.rule.TypeRule --> magma.app.compile.context.NodeContext
 magma.app.compile.rule.TypeRule --> magma.app.compile.error.CompileError
 magma.app.compile.rule.TypeRule --> magma.app.compile.error.FormattedError
 magma.app.compile.rule.TypeRule --> magma.app.compile.node.Node
+class magma.app.compile.Compiler
+magma.app.compile.Compiler --> magma.api.result.Result
+magma.app.compile.Compiler --> magma.app.error.ApplicationError
+magma.app.compile.Compiler --> magma.app.io.Source
+magma.app.compile.Compiler --> java.util.Map
 class magma.Main
 magma.Main --> magma.api.result.Err
 magma.Main --> magma.api.result.Ok
 magma.Main --> magma.api.result.Result
+magma.Main --> magma.app.compile.Compiler
+magma.Main --> magma.app.compile.Lang
+magma.Main --> magma.app.compile.RuleCompiler
 magma.Main --> magma.app.error.ApplicationError
 magma.Main --> magma.app.error.ThrowableError
 magma.Main --> magma.app.io.PathSource
@@ -66,26 +74,6 @@ magma.app.compile.node.MapNode --> java.util.List
 magma.app.compile.node.MapNode --> java.util.Map
 magma.app.compile.node.MapNode --> java.util.Optional
 magma.app.compile.node.MapNode --> java.util.stream.Stream
-class magma.Compiler
-magma.Compiler --> magma.api.result.Ok
-magma.Compiler --> magma.api.result.Result
-magma.Compiler --> magma.app.compile.error.FormattedError
-magma.Compiler --> magma.app.compile.node.MapNode
-magma.Compiler --> magma.app.compile.node.Node
-magma.Compiler --> magma.app.compile.rule.InfixRule
-magma.Compiler --> magma.app.compile.rule.PrefixRule
-magma.Compiler --> magma.app.compile.rule.Rule
-magma.Compiler --> magma.app.compile.rule.StringRule
-magma.Compiler --> magma.app.compile.rule.StripRule
-magma.Compiler --> magma.app.compile.rule.SuffixRule
-magma.Compiler --> magma.app.compile.rule.TypeRule
-magma.Compiler --> magma.app.compile.rule.divide.DivideRule
-magma.Compiler --> magma.app.compile.rule.or.OrRule
-magma.Compiler --> magma.app.error.ApplicationError
-magma.Compiler --> magma.app.io.Source
-magma.Compiler --> java.util.ArrayList
-magma.Compiler --> java.util.List
-magma.Compiler --> java.util.Map
 class magma.app.compile.error.FormattedError
 magma.app.compile.error.FormattedError --> magma.api.Error
 class magma.app.compile.rule.or.OrRule
@@ -110,6 +98,28 @@ magma.app.compile.rule.or.OrState --> magma.app.compile.context.Context
 magma.app.compile.rule.or.OrState --> magma.app.compile.error.FormattedError
 class magma.api.result.Ok
 magma.api.result.Ok --> java.util.function.Function
+class magma.app.compile.Lang
+magma.app.compile.Lang --> magma.app.compile.rule.InfixRule
+magma.app.compile.Lang --> magma.app.compile.rule.PrefixRule
+magma.app.compile.Lang --> magma.app.compile.rule.Rule
+magma.app.compile.Lang --> magma.app.compile.rule.StringRule
+magma.app.compile.Lang --> magma.app.compile.rule.StripRule
+magma.app.compile.Lang --> magma.app.compile.rule.SuffixRule
+magma.app.compile.Lang --> magma.app.compile.rule.TypeRule
+magma.app.compile.Lang --> magma.app.compile.rule.divide.DivideRule
+magma.app.compile.Lang --> magma.app.compile.rule.or.OrRule
+magma.app.compile.Lang --> java.util.List
+class magma.app.compile.RuleCompiler
+magma.app.compile.RuleCompiler --> magma.api.result.Ok
+magma.app.compile.RuleCompiler --> magma.api.result.Result
+magma.app.compile.RuleCompiler --> magma.app.compile.error.FormattedError
+magma.app.compile.RuleCompiler --> magma.app.compile.node.MapNode
+magma.app.compile.RuleCompiler --> magma.app.compile.node.Node
+magma.app.compile.RuleCompiler --> magma.app.compile.rule.Rule
+magma.app.compile.RuleCompiler --> magma.app.error.ApplicationError
+magma.app.compile.RuleCompiler --> magma.app.io.Source
+magma.app.compile.RuleCompiler --> java.util.ArrayList
+magma.app.compile.RuleCompiler --> java.util.Map
 class magma.app.compile.context.Context
 class magma.app.error.ThrowableError
 magma.app.error.ThrowableError --> magma.api.Error
