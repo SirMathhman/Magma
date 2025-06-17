@@ -4,6 +4,19 @@ interface magma.app.io.location.Location
 interface magma.api.result.Result
 class magma.app.io.location.SimpleLocation
 magma.app.io.location.SimpleLocation --|> magma.app.io.location.Location
+magma.app.compile.CompilerImpl --> magma.api.Tuple
+magma.app.compile.CompilerImpl --> magma.app.compile.divide.DivideState
+magma.app.compile.CompilerImpl --> magma.app.compile.divide.MutableDivideState
+magma.app.compile.CompilerImpl --> magma.app.compile.state.CompileState
+magma.app.compile.CompilerImpl --> magma.app.compile.state.SimpleCompileState
+magma.app.compile.CompilerImpl --> magma.app.io.location.SimpleLocation
+magma.app.compile.CompilerImpl --> magma.app.io.source.Source
+magma.app.compile.CompilerImpl --> java.util.Collections
+magma.app.compile.CompilerImpl --> java.util.List
+magma.app.compile.CompilerImpl --> java.util.Map
+magma.app.compile.CompilerImpl --> java.util.Optional
+class magma.app.compile.CompilerImpl
+magma.app.compile.CompilerImpl --|> magma.app.compile.Compiler
 class magma.api.result.Ok
 magma.api.result.Ok --|> magma.api.result.Result
 magma.app.compile.divide.MutableDivideState --> java.util.ArrayList
@@ -13,7 +26,7 @@ magma.app.compile.divide.MutableDivideState --|> magma.app.compile.divide.Divide
 magma.app.Main --> magma.api.result.Err
 magma.app.Main --> magma.api.result.Ok
 magma.app.Main --> magma.api.result.Result
-magma.app.Main --> magma.app.compile.Compiler
+magma.app.Main --> magma.app.compile.CompilerImpl
 magma.app.Main --> magma.app.io.source.Source
 magma.app.Main --> magma.app.io.source.Sources
 magma.app.Main --> java.io.IOException
@@ -52,18 +65,9 @@ magma.app.io.source.Sources --> java.util.stream.Collectors
 class magma.app.io.source.Sources
 magma.app.compile.divide.DivideState --> java.util.List
 interface magma.app.compile.divide.DivideState
-magma.app.compile.Compiler --> magma.api.Tuple
-magma.app.compile.Compiler --> magma.app.compile.divide.DivideState
-magma.app.compile.Compiler --> magma.app.compile.divide.MutableDivideState
-magma.app.compile.Compiler --> magma.app.compile.state.CompileState
-magma.app.compile.Compiler --> magma.app.compile.state.SimpleCompileState
-magma.app.compile.Compiler --> magma.app.io.location.SimpleLocation
 magma.app.compile.Compiler --> magma.app.io.source.Source
-magma.app.compile.Compiler --> java.util.Collections
-magma.app.compile.Compiler --> java.util.List
 magma.app.compile.Compiler --> java.util.Map
-magma.app.compile.Compiler --> java.util.Optional
-class magma.app.compile.Compiler
+interface magma.app.compile.Compiler
 magma.app.compile.state.SimpleCompileState --> magma.app.io.location.Location
 magma.app.compile.state.SimpleCompileState --> java.util.ArrayList
 magma.app.compile.state.SimpleCompileState --> java.util.List

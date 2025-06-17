@@ -3,7 +3,7 @@ package magma.app;
 import magma.api.result.Err;
 import magma.api.result.Ok;
 import magma.api.result.Result;
-import magma.app.compile.Compiler;
+import magma.app.compile.CompilerImpl;
 import magma.app.io.source.Source;
 import magma.app.io.source.Sources;
 
@@ -36,7 +36,7 @@ public class Main {
     }
 
     private static Optional<IOException> compileAndWrite(Map<Source, String> sourceMap) {
-        final var fileName = Compiler.compile(sourceMap);
+        final var fileName = new CompilerImpl().compile(sourceMap);
         final var path = Paths.get(".", "diagram.puml");
         final var output = "@startuml\nskinparam linetype ortho\n" + fileName + "@enduml";
         return writeString(path, output);
