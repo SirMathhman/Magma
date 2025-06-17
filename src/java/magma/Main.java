@@ -17,6 +17,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 public class Main {
     public static void main(String[] args) {
@@ -54,11 +55,26 @@ public class Main {
         final var name = fileName.substring(0, separator);
 
         final var joined = String.join(".", namespace);
+
         final var input = Files.readString(source);
-        final var segments = divide(input);
         final var joinedName = joined + "." + name;
-        final var output = compileSegments(segments, joinedName);
+
+        final var output = compileRoot(input, joinedName);
         return "class " + joinedName + "\n" + output;
+    }
+
+    private static String compileRoot(CharSequence input, String source) {
+        return divide(input).stream()
+                .map(createImportRule()::lex)
+                .flatMap(Optional::stream)
+                .toList()
+                .stream()
+                .map(node -> node.withString("source", source))
+                .toList()
+                .stream()
+                .map(createDependencyRule()::generate)
+                .flatMap(Optional::stream)
+                .collect(Collectors.joining());
     }
 
     private static List<String> divide(CharSequence input) {
@@ -77,19 +93,6 @@ public class Main {
         if (c == ';')
             return appended.advance();
         return appended;
-    }
-
-    private static StringBuilder compileSegments(Iterable<String> segments, String name) {
-        final var output = new StringBuilder();
-        for (var segment : segments)
-            compileImport(segment, name).ifPresent(output::append);
-        return output;
-    }
-
-    private static Optional<String> compileImport(String segment, String name) {
-        return createImportRule().lex(segment)
-                .map(node -> node.withString("source", name))
-                .flatMap(node1 -> createDependencyRule().generate(node1));
     }
 
     private static Rule createImportRule() {
