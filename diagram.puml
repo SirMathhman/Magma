@@ -1,6 +1,23 @@
 @startuml
 skinparam linetype ortho
+class magma.app.MapNode
+magma.app.MapNode --> java.util.HashMap
+magma.app.MapNode --> java.util.Map
+magma.app.MapNode --> java.util.Optional
+class magma.app.MutableState
+magma.app.MutableState --> java.util.ArrayList
+magma.app.MutableState --> java.util.List
+class magma.app.Node
+magma.app.Node --> java.util.Optional
+class magma.app.State
+magma.app.State --> java.util.List
+class magma.app.StringRule
+magma.app.StringRule --> java.util.Optional
 class magma.Main
+magma.Main --> magma.app.MutableState
+magma.Main --> magma.app.Node
+magma.Main --> magma.app.State
+magma.Main --> magma.app.StringRule
 magma.Main --> java.io.IOException
 magma.Main --> java.nio.file.Files
 magma.Main --> java.nio.file.Path
@@ -9,15 +26,4 @@ magma.Main --> java.util.ArrayList
 magma.Main --> java.util.Collection
 magma.Main --> java.util.List
 magma.Main --> java.util.Optional
-class magma.MapNode
-magma.MapNode --> java.util.HashMap
-magma.MapNode --> java.util.Map
-magma.MapNode --> java.util.Optional
-class magma.MutableState
-magma.MutableState --> java.util.ArrayList
-magma.MutableState --> java.util.List
-class magma.Node
-magma.Node --> java.util.Optional
-class magma.State
-magma.State --> java.util.List
 @enduml
