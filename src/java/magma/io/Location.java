@@ -20,4 +20,8 @@ public final class Location {
     public String name() {
         return this.name;
     }
+
+    public boolean isNamed(String childName) {
+        return this.name.equals(childName);
+    }
 }

@@ -9,8 +9,8 @@ magma.Main --> magma.state.State
 magma.Main --> java.io.IOException
 magma.Main --> java.nio.file.Files
 magma.Main --> java.nio.file.Paths
+magma.Main --> java.util.ArrayList
 magma.Main --> java.util.Collections
-magma.Main --> java.util.HashMap
 magma.Main --> java.util.List
 magma.Main --> java.util.Map
 magma.Main --> java.util.Optional
@@ -22,14 +22,14 @@ interface magma.io.Source
 magma.state.MutableState --> java.util.ArrayList
 magma.state.MutableState --> java.util.List
 class magma.state.MutableState
-magma.state.MutableState --|> magma.state.State
+magma.state.MutableState --|> magma.state.MutableState
 magma.io.PathSource --> java.io.IOException
 magma.io.PathSource --> java.nio.file.Files
 magma.io.PathSource --> java.nio.file.Path
 magma.io.PathSource --> java.util.ArrayList
 magma.io.PathSource --> java.util.List
 class magma.io.PathSource
-magma.io.PathSource --|> magma.io.Source
+magma.io.PathSource --|> magma.io.PathSource
 magma.io.Sources --> java.io.IOException
 magma.io.Sources --> java.nio.file.Files
 magma.io.Sources --> java.nio.file.Path
