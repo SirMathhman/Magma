@@ -1,10 +1,10 @@
 package magma.app.compile.rule.divide;
 
-import magma.api.result.Err;
-import magma.api.result.Ok;
-import magma.api.result.Result;
 import magma.app.compile.error.FormattedError;
 import magma.app.compile.error.NodeErr;
+import magma.app.compile.error.NodeListErr;
+import magma.app.compile.error.NodeListOk;
+import magma.app.compile.error.NodeListResult;
 import magma.app.compile.error.NodeOk;
 import magma.app.compile.error.NodeResult;
 import magma.app.compile.error.StringOk;
@@ -54,22 +54,16 @@ public final class DivideRule implements Rule<Node, NodeResult<Node>, StringResu
 
     @Override
     public NodeResult<Node> lex(String input) {
-        Result<List<Node>, FormattedError> listFormattedErrorResult = divide(input).stream()
-                .reduce(new Ok<>(new ArrayList<>()), this::foldElement, (_, next) -> next);
+        NodeListResult listFormattedErrorResult = divide(input).stream()
+                .<NodeListResult>reduce(new NodeListOk(),
+                        (maybeCurrent, element) -> maybeCurrent.add(() -> this.rule.lex(element)),
+                        (_, next) -> next);
         return switch (listFormattedErrorResult) {
-            case Err<List<Node>, FormattedError>(FormattedError error) -> new NodeErr(error);
-            case Ok<List<Node>, FormattedError>(
+            case NodeListErr(FormattedError error) -> new NodeErr(error);
+            case NodeListOk(
                     List<Node> value
             ) -> new NodeOk(this.factory.create()
                     .withNodeList(this.key, value));
-        };
-    }
-
-    private Result<List<Node>, FormattedError> foldElement(Result<List<Node>, FormattedError> maybeCurrent, String element) {
-        return switch (maybeCurrent) {
-            case Err<List<Node>, FormattedError>(FormattedError error1) -> new Err<>(error1);
-            case Ok<List<Node>, FormattedError>(List<Node> value1) -> this.rule.lex(element)
-                    .appendTo(value1);
         };
     }
 

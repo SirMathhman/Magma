@@ -37,6 +37,13 @@ magma.app.compile.error.NodeOk --> java.util.List
 magma.app.compile.error.NodeOk --> java.util.function.Function
 magma.app.compile.error.NodeOk --> java.util.function.Supplier
 class magma.app.compile.rule.NodeFactory
+class magma.app.compile.error.NodeListOk
+magma.app.compile.error.NodeListOk --> magma.api.result.Err
+magma.app.compile.error.NodeListOk --> magma.api.result.Ok
+magma.app.compile.error.NodeListOk --> magma.app.compile.node.Node
+magma.app.compile.error.NodeListOk --> java.util.ArrayList
+magma.app.compile.error.NodeListOk --> java.util.List
+magma.app.compile.error.NodeListOk --> java.util.function.Supplier
 class magma.app.compile.error.NodeResult
 magma.app.compile.error.NodeResult --> magma.api.result.Result
 magma.app.compile.error.NodeResult --> java.util.List
@@ -63,6 +70,9 @@ magma.app.compile.Lang --> magma.app.compile.rule.divide.DivideRule
 magma.app.compile.Lang --> magma.app.compile.rule.or.OrRule
 magma.app.compile.Lang --> java.util.List
 class magma.app.compile.node.TypeNode
+class magma.app.compile.error.NodeListResult
+magma.app.compile.error.NodeListResult --> magma.app.compile.node.Node
+magma.app.compile.error.NodeListResult --> java.util.function.Supplier
 class magma.app.compile.error.StringErr
 magma.app.compile.error.StringErr --> magma.app.compile.rule.or.OrState
 magma.app.compile.error.StringErr --> java.util.function.Supplier
@@ -80,18 +90,17 @@ class magma.app.compile.error.AppendableStringResult
 magma.app.compile.error.AppendableStringResult --> java.util.function.Supplier
 class magma.app.compile.context.StringContext
 class magma.app.compile.rule.divide.DivideRule
-magma.app.compile.rule.divide.DivideRule --> magma.api.result.Err
-magma.app.compile.rule.divide.DivideRule --> magma.api.result.Ok
-magma.app.compile.rule.divide.DivideRule --> magma.api.result.Result
 magma.app.compile.rule.divide.DivideRule --> magma.app.compile.error.FormattedError
 magma.app.compile.rule.divide.DivideRule --> magma.app.compile.error.NodeErr
+magma.app.compile.rule.divide.DivideRule --> magma.app.compile.error.NodeListErr
+magma.app.compile.rule.divide.DivideRule --> magma.app.compile.error.NodeListOk
+magma.app.compile.rule.divide.DivideRule --> magma.app.compile.error.NodeListResult
 magma.app.compile.rule.divide.DivideRule --> magma.app.compile.error.NodeOk
 magma.app.compile.rule.divide.DivideRule --> magma.app.compile.error.NodeResult
-magma.app.compile.rule.divide.DivideRule --> magma.app.compile.error.StringErr
 magma.app.compile.rule.divide.DivideRule --> magma.app.compile.error.StringOk
 magma.app.compile.rule.divide.DivideRule --> magma.app.compile.error.StringResult
-magma.app.compile.rule.divide.DivideRule --> magma.app.compile.node.MapNode
 magma.app.compile.rule.divide.DivideRule --> magma.app.compile.node.Node
+magma.app.compile.rule.divide.DivideRule --> magma.app.compile.rule.NodeFactory
 magma.app.compile.rule.divide.DivideRule --> magma.app.compile.rule.Rule
 magma.app.compile.rule.divide.DivideRule --> java.util.ArrayList
 magma.app.compile.rule.divide.DivideRule --> java.util.List
@@ -136,6 +145,9 @@ class magma.app.compile.rule.TypeRule
 magma.app.compile.rule.TypeRule --> magma.app.compile.error.ResultFactory
 magma.app.compile.rule.TypeRule --> magma.app.compile.error.TypeNodeResult
 magma.app.compile.rule.TypeRule --> magma.app.compile.node.TypeNode
+class magma.app.compile.error.NodeListErr
+magma.app.compile.error.NodeListErr --> magma.app.compile.node.Node
+magma.app.compile.error.NodeListErr --> java.util.function.Supplier
 class magma.app.compile.error.ResultFactory
 class magma.app.compile.Compiler
 magma.app.compile.Compiler --> magma.api.Error
