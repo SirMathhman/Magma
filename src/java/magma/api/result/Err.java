@@ -13,7 +13,6 @@ public record Err<T, X>(X error) implements Result<T, X> {
         return new Err<>(this.error);
     }
 
-    @Override
     public <R> Result<T, R> mapErr(Function<X, R> mapper) {
         return new Err<>(mapper.apply(this.error));
     }

@@ -101,6 +101,7 @@ magma.app.compile.Lang --> magma.app.compile.rule.divide.DivideRule
 magma.app.compile.Lang --> magma.app.compile.rule.or.OrRule
 magma.app.compile.Lang --> java.util.List
 class magma.app.compile.RuleCompiler
+magma.app.compile.RuleCompiler --> magma.api.result.Err
 magma.app.compile.RuleCompiler --> magma.api.result.Ok
 magma.app.compile.RuleCompiler --> magma.api.result.Result
 magma.app.compile.RuleCompiler --> magma.app.compile.error.FormattedError
@@ -111,6 +112,7 @@ magma.app.compile.RuleCompiler --> magma.app.error.ApplicationError
 magma.app.compile.RuleCompiler --> magma.app.io.Source
 magma.app.compile.RuleCompiler --> java.util.ArrayList
 magma.app.compile.RuleCompiler --> java.util.Map
+magma.app.compile.RuleCompiler --> java.util.function.Function
 class magma.app.compile.context.Context
 class magma.app.error.ThrowableError
 magma.app.error.ThrowableError --> magma.api.Error
@@ -155,6 +157,7 @@ magma.app.io.PathSources --> java.nio.file.Path
 magma.app.io.PathSources --> java.util.HashMap
 magma.app.io.PathSources --> java.util.List
 magma.app.io.PathSources --> java.util.Map
+magma.app.io.PathSources --> java.util.function.Function
 class magma.app.compile.error.CompileError
 magma.app.compile.error.CompileError --> magma.app.compile.context.Context
 class magma.app.compile.error.ResultFactoryImpl

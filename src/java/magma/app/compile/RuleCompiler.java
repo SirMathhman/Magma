@@ -1,5 +1,6 @@
 package magma.app.compile;
 
+import magma.api.result.Err;
 import magma.api.result.Ok;
 import magma.api.result.Result;
 import magma.app.compile.error.FormattedError;
@@ -11,6 +12,7 @@ import magma.app.io.Source;
 
 import java.util.ArrayList;
 import java.util.Map;
+import java.util.function.Function;
 
 public class RuleCompiler implements Compiler {
     private final Rule<Node, Result<Node, FormattedError>, Result<String, FormattedError>> targetRule;
@@ -39,9 +41,14 @@ public class RuleCompiler implements Compiler {
 
         final var joined = String.join(".", namespace);
         final var joinedName = joined + "." + name;
-        return this.compileRoot(input, joinedName)
-                .mapValue(output -> "class " + joinedName + "\n" + output)
-                .mapErr(ApplicationError::new);
+        Result<String, FormattedError> stringFormattedErrorResult = this.compileRoot(input, joinedName)
+                .mapValue(output -> "class " + joinedName + "\n" + output);
+        return switch (stringFormattedErrorResult) {
+            case Err<String, FormattedError>(
+                    FormattedError error
+            ) -> new Err<>(((Function<FormattedError, ApplicationError>) ApplicationError::new).apply(error));
+            case Ok<String, FormattedError>(String value) -> new Ok<>(value);
+        };
     }
 
     Result<String, FormattedError> compileRoot(String input, String source) {

@@ -13,7 +13,6 @@ public record Ok<T, X>(T value) implements Result<T, X> {
         return mapper.apply(this.value);
     }
 
-    @Override
     public <R> Result<T, R> mapErr(Function<X, R> mapper) {
         return new Ok<>(this.value);
     }

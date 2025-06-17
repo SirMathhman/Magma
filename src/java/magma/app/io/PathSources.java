@@ -12,6 +12,7 @@ import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
 
 public record PathSources(Path rootDirectory) implements Sources {
     public static Result<String, IOException> readString(Path source) {
@@ -37,9 +38,18 @@ public record PathSources(Path rootDirectory) implements Sources {
 
     @Override
     public Result<Map<Source, String>, ApplicationError> readAll() {
-        return collect(this.rootDirectory).flatMapValue(this::readIterable)
-                .mapErr(ThrowableError::new)
-                .mapErr(ApplicationError::new);
+        Result<Map<Source, String>, IOException> mapIOExceptionResult = collect(this.rootDirectory).flatMapValue(this::readIterable);
+        Result<Map<Source, String>, ThrowableError> mapThrowableErrorResult = switch (mapIOExceptionResult) {
+            case Err<Map<Source, String>, IOException>(IOException error) ->
+                    new Err<>(((Function<IOException, ThrowableError>) ThrowableError::new).apply(error));
+            case Ok<Map<Source, String>, IOException>(Map<Source, String> value) -> new Ok<>(value);
+        };
+        return switch (mapThrowableErrorResult) {
+            case Err<Map<Source, String>, ThrowableError>(
+                    ThrowableError error1
+            ) -> new Err<>(((Function<ThrowableError, ApplicationError>) ApplicationError::new).apply(error1));
+            case Ok<Map<Source, String>, ThrowableError>(Map<Source, String> value1) -> new Ok<>(value1);
+        };
     }
 
     private Result<Map<Source, String>, IOException> readFile(Path source, Result<Map<Source, String>, IOException> maybeInputs) {
