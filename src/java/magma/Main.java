@@ -27,13 +27,17 @@ public class Main {
     }
 
     private static Optional<ApplicationError> collect(Iterable<Path> sources, Path sourceDirectory) {
-        return readAll(sources, sourceDirectory).match(inputs -> new Compiler().compile(inputs)
-                .match(currentOutput -> {
-                    final var target = Paths.get(".", "diagram.puml");
-                    final var content = "@startuml\nskinparam linetype ortho\n" + currentOutput + "@enduml";
-                    return writeString(target, content).map(ThrowableError::new)
-                            .map(ApplicationError::new);
-                }, Optional::of), Optional::of);
+        return readAll(sources, sourceDirectory).match(inputs -> handleCompileResult(new Compiler().compile(inputs)),
+                Optional::of);
+    }
+
+    private static Optional<ApplicationError> handleCompileResult(Result<String, ApplicationError> result) {
+        return result.match(currentOutput -> {
+            final var target = Paths.get(".", "diagram.puml");
+            final var content = "@startuml\nskinparam linetype ortho\n" + currentOutput + "@enduml";
+            return writeString(target, content).map(ThrowableError::new)
+                    .map(ApplicationError::new);
+        }, Optional::of);
     }
 
     private static Result<Map<Source, String>, ApplicationError> readAll(Iterable<Path> sources, Path sourceDirectory) {

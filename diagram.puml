@@ -73,7 +73,6 @@ magma.Compiler --> magma.app.compile.error.FormattedError
 magma.Compiler --> magma.app.compile.node.MapNode
 magma.Compiler --> magma.app.compile.node.Node
 magma.Compiler --> magma.app.compile.rule.InfixRule
-magma.Compiler --> magma.app.compile.rule.or.OrRule
 magma.Compiler --> magma.app.compile.rule.PrefixRule
 magma.Compiler --> magma.app.compile.rule.Rule
 magma.Compiler --> magma.app.compile.rule.StringRule
@@ -81,6 +80,7 @@ magma.Compiler --> magma.app.compile.rule.StripRule
 magma.Compiler --> magma.app.compile.rule.SuffixRule
 magma.Compiler --> magma.app.compile.rule.TypeRule
 magma.Compiler --> magma.app.compile.rule.divide.DivideRule
+magma.Compiler --> magma.app.compile.rule.or.OrRule
 magma.Compiler --> magma.app.error.ApplicationError
 magma.Compiler --> magma.app.io.Source
 magma.Compiler --> java.util.ArrayList

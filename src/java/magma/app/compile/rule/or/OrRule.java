@@ -19,7 +19,7 @@ public record OrRule(List<Rule> rules) implements Rule {
 
     private <Value> Result<Value, FormattedError> or(Function<Rule, Result<Value, FormattedError>> mapper, Context context) {
         return this.rules.stream()
-                .<OrState<Value>>reduce(new MutableOrState<Value>(),
+                .<OrState<Value>>reduce(new MutableOrState<>(),
                         (state, rule) -> mapper.apply(rule)
                                 .match(state::withValue, state::withError),
                         (_, next) -> next)
