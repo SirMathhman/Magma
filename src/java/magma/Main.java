@@ -11,12 +11,19 @@ public class Main {
             final var input = Files.readString(Paths.get(".", "src", "java", "magma", "Main.java"));
             final var segments = new ArrayList<String>();
             var buffer = new StringBuilder();
+            var depth = 0;
             for (var i = 0; i < input.length(); i++) {
                 final var c = input.charAt(i);
                 buffer.append(c);
-                if (c == ';') {
+                if (c == ';' && depth == 0) {
                     segments.add(buffer.toString());
                     buffer = new StringBuilder();
+                }
+                else {
+                    if (c == '{')
+                        depth++;
+                    if (c == '}')
+                        depth--;
                 }
             }
             segments.add(buffer.toString());
@@ -31,10 +38,12 @@ public class Main {
                         output.append("magma.Main --> " + withoutEnd + "\n");
                     }
                 }
+                if (strip.contains("class "))
+                    output.append("class magma.Main\n");
             }
 
             final var path = Paths.get(".", "diagram.puml");
-            Files.writeString(path, "@startuml\nskinparam linetype ortho\nclass magma.Main\n" + output + "@enduml");
+            Files.writeString(path, "@startuml\nskinparam linetype ortho\n" + output + "@enduml");
         } catch (IOException e) {
             //noinspection CallToPrintStackTrace
             e.printStackTrace();
