@@ -1,4 +1,4 @@
-package magma.app.divide;
+package magma.app.rule.divide;
 
 import java.util.ArrayList;
 import java.util.List;

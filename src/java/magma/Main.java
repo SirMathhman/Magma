@@ -1,7 +1,5 @@
 package magma;
 
-import magma.app.divide.DivideState;
-import magma.app.divide.MutableDivideState;
 import magma.app.node.MapNode;
 import magma.app.node.Node;
 import magma.app.rule.InfixRule;
@@ -10,6 +8,7 @@ import magma.app.rule.Rule;
 import magma.app.rule.StringRule;
 import magma.app.rule.StripRule;
 import magma.app.rule.SuffixRule;
+import magma.app.rule.divide.DivideRule;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -17,9 +16,6 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.List;
-import java.util.Optional;
-import java.util.stream.Collectors;
 
 public class Main {
     public static void main(String[] args) {
@@ -65,10 +61,19 @@ public class Main {
         return "class " + joinedName + "\n" + output;
     }
 
-    private static String compileRoot(CharSequence input, String source) {
-        final var children = lex(input);
-        final var children1 = transform(source, children);
-        return generate(children1);
+    private static String compileRoot(String input, String source) {
+        return createJavaRootRule().lex(input)
+                .map(children -> transform(source, children))
+                .flatMap(createPlantRootRule()::generate)
+                .orElse("");
+    }
+
+    private static Rule createJavaRootRule() {
+        return new DivideRule("children", createImportRule());
+    }
+
+    private static Rule createPlantRootRule() {
+        return new DivideRule("children", createDependencyRule());
     }
 
     private static Node transform(String source, Node children) {
@@ -79,42 +84,6 @@ public class Main {
                 .toList();
 
         return new MapNode().withNodeList("children", transformed);
-    }
-
-    private static String generate(Node node) {
-        return node.findNodeList("children")
-                .orElse(new ArrayList<>())
-                .stream()
-                .map(createDependencyRule()::generate)
-                .flatMap(Optional::stream)
-                .collect(Collectors.joining());
-    }
-
-    private static Node lex(CharSequence input) {
-        final var children = divide(input).stream()
-                .map(createImportRule()::lex)
-                .flatMap(Optional::stream)
-                .toList();
-
-        return new MapNode().withNodeList("children", children);
-    }
-
-    private static List<String> divide(CharSequence input) {
-        DivideState current = new MutableDivideState();
-        for (var i = 0; i < input.length(); i++) {
-            final var c = input.charAt(i);
-            current = fold(current, c);
-        }
-
-        return current.advance()
-                .segments();
-    }
-
-    private static DivideState fold(DivideState divideState, char c) {
-        final var appended = divideState.append(c);
-        if (c == ';')
-            return appended.advance();
-        return appended;
     }
 
     private static Rule createImportRule() {

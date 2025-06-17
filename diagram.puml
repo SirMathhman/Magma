@@ -1,10 +1,5 @@
 @startuml
 skinparam linetype ortho
-class magma.app.divide.DivideState
-magma.app.divide.DivideState --> java.util.List
-class magma.app.divide.MutableDivideState
-magma.app.divide.MutableDivideState --> java.util.ArrayList
-magma.app.divide.MutableDivideState --> java.util.List
 class magma.app.node.MapNode
 magma.app.node.MapNode --> java.util.HashMap
 magma.app.node.MapNode --> java.util.List
@@ -16,6 +11,19 @@ magma.app.node.Node --> java.util.List
 magma.app.node.Node --> java.util.Map
 magma.app.node.Node --> java.util.Optional
 magma.app.node.Node --> java.util.stream.Stream
+class magma.app.rule.divide.DivideRule
+magma.app.rule.divide.DivideRule --> magma.app.rule.Rule
+magma.app.rule.divide.DivideRule --> magma.app.node.MapNode
+magma.app.rule.divide.DivideRule --> magma.app.node.Node
+magma.app.rule.divide.DivideRule --> java.util.ArrayList
+magma.app.rule.divide.DivideRule --> java.util.List
+magma.app.rule.divide.DivideRule --> java.util.Optional
+magma.app.rule.divide.DivideRule --> java.util.stream.Collectors
+class magma.app.rule.divide.DivideState
+magma.app.rule.divide.DivideState --> java.util.List
+class magma.app.rule.divide.MutableDivideState
+magma.app.rule.divide.MutableDivideState --> java.util.ArrayList
+magma.app.rule.divide.MutableDivideState --> java.util.List
 class magma.app.rule.InfixRule
 magma.app.rule.InfixRule --> magma.app.node.Node
 magma.app.rule.InfixRule --> java.util.Optional
@@ -36,10 +44,9 @@ class magma.app.rule.SuffixRule
 magma.app.rule.SuffixRule --> magma.app.node.Node
 magma.app.rule.SuffixRule --> java.util.Optional
 class magma.Main
-magma.Main --> magma.app.divide.DivideState
-magma.Main --> magma.app.divide.MutableDivideState
 magma.Main --> magma.app.node.MapNode
 magma.Main --> magma.app.node.Node
+magma.Main --> magma.app.rule.divide.DivideRule
 magma.Main --> magma.app.rule.InfixRule
 magma.Main --> magma.app.rule.PrefixRule
 magma.Main --> magma.app.rule.Rule
@@ -52,7 +59,4 @@ magma.Main --> java.nio.file.Path
 magma.Main --> java.nio.file.Paths
 magma.Main --> java.util.ArrayList
 magma.Main --> java.util.Collection
-magma.Main --> java.util.List
-magma.Main --> java.util.Optional
-magma.Main --> java.util.stream.Collectors
 @enduml
