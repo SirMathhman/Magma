@@ -53,9 +53,6 @@ public class Main {
     }
 
     private static Optional<Map<String, Map<String, String>>> compileRootSegment(String input, Map<String, String> imports, Location location) {
-        final var namespace = location.namespace();
-        final var name = location.name();
-
         final var strip = input.strip();
         if (strip.startsWith("import ")) {
             final var withoutStart = strip.substring("import ".length());
@@ -65,7 +62,7 @@ public class Main {
                 final var parent = withoutEnd.substring(0, separator);
                 final var child = withoutEnd.substring(separator + ".".length());
                 final var parent1 = Map.of(child, parent);
-                final var generated = Map.of(namespace + "." + name + " --> " + withoutEnd + "\n", parent1);
+                final var generated = Map.of(location.join() + " --> " + withoutEnd + "\n", parent1);
                 return Optional.of(generated);
             }
         }
@@ -73,19 +70,14 @@ public class Main {
         final var separator = strip.indexOf("{");
         if (separator >= 0) {
             final var beforeContent = strip.substring(0, separator);
-            final var or = compileStructureDefinition("class", "class", imports, location, beforeContent, namespace).or(
-                            () -> compileStructureDefinition("interface",
-                                    "interface",
-                                    imports,
-                                    location,
-                                    beforeContent,
-                                    namespace))
-                    .or(() -> compileStructureDefinition("record",
-                            "class",
+            final var or = compileStructureDefinition("class",
+                    "class",
+                    imports,
+                    location,
+                    beforeContent).or(() -> compileStructureDefinition("interface", "interface",
                             imports,
-                            location,
-                            beforeContent,
-                            namespace));
+                            location, beforeContent))
+                    .or(() -> compileStructureDefinition("record", "class", imports, location, beforeContent));
 
             if (or.isPresent())
                 return or;
@@ -94,22 +86,22 @@ public class Main {
         return Optional.empty();
     }
 
-    private static Optional<Map<String, Map<String, String>>> compileStructureDefinition(String type, String type1, Map<String, String> imports, Location location, String input, String namespace) {
+    private static Optional<Map<String, Map<String, String>>> compileStructureDefinition(String type, String type1, Map<String, String> imports, Location location, String input) {
         final var index = input.indexOf(type + " ");
         if (index >= 0) {
             final var afterKeyword = input.substring((type + " ").length() + index);
-            return compileStructureDefinitionTruncated(type1, namespace, afterKeyword, imports, location);
+            return compileStructureDefinitionTruncated(type1, afterKeyword, imports, location);
         }
         return Optional.empty();
     }
 
-    private static Optional<Map<String, Map<String, String>>> compileStructureDefinitionTruncated(String type, String namespace, String afterKeyword, Map<String, String> imports, Location location) {
+    private static Optional<Map<String, Map<String, String>>> compileStructureDefinitionTruncated(String type, String afterKeyword, Map<String, String> imports, Location location) {
         final var index = afterKeyword.indexOf("implements ");
         if (index >= 0) {
             final var substring1 = afterKeyword.substring(index + "implements ".length())
                     .strip();
 
-            final var superTypeNamespace = imports.getOrDefault(substring1, namespace);
+            final var superTypeNamespace = imports.getOrDefault(substring1, location.namespace());
             return generate(type, location, List.of(superTypeNamespace + "." + substring1));
         }
         else
