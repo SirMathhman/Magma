@@ -26,9 +26,11 @@ magma.app.compile.divide.MutableDivideState --|> magma.app.compile.divide.Divide
 magma.app.Main --> magma.api.result.Err
 magma.app.Main --> magma.api.result.Ok
 magma.app.Main --> magma.api.result.Result
+magma.app.Main --> magma.app.compile.Compiler
 magma.app.Main --> magma.app.compile.CompilerImpl
 magma.app.Main --> magma.app.io.source.PathSources
 magma.app.Main --> magma.app.io.source.Source
+magma.app.Main --> magma.app.io.source.Sources
 magma.app.Main --> java.io.IOException
 magma.app.Main --> java.nio.file.Files
 magma.app.Main --> java.nio.file.Path
