@@ -4,7 +4,9 @@ import magma.app.divide.DivideState;
 import magma.app.divide.MutableDivideState;
 import magma.app.node.Node;
 import magma.app.rule.PrefixRule;
+import magma.app.rule.Rule;
 import magma.app.rule.StringRule;
+import magma.app.rule.StripRule;
 import magma.app.rule.SuffixRule;
 
 import java.io.IOException;
@@ -85,10 +87,13 @@ public class Main {
     }
 
     private static Optional<String> compileImport(String segment, String name) {
-        final var stripped = segment.strip();
-        return new PrefixRule("import ", new SuffixRule(new StringRule("destination"), ";")).lex(stripped)
+        return createImportRule().lex(segment)
                 .map(node -> node.withString("source", name))
                 .flatMap(Main::generate);
+    }
+
+    private static Rule createImportRule() {
+        return new StripRule(new PrefixRule("import ", new SuffixRule(new StringRule("destination"), ";")));
     }
 
     private static Optional<String> generate(Node node) {

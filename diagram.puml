@@ -21,15 +21,20 @@ class magma.app.rule.StringRule
 magma.app.rule.StringRule --> magma.app.node.MapNode
 magma.app.rule.StringRule --> magma.app.node.Node
 magma.app.rule.StringRule --> java.util.Optional
+class magma.app.rule.StripRule
+magma.app.rule.StripRule --> magma.app.node.Node
+magma.app.rule.StripRule --> java.util.Optional
 class magma.app.rule.SuffixRule
 magma.app.rule.SuffixRule --> magma.app.node.Node
 magma.app.rule.SuffixRule --> java.util.Optional
 class magma.Main
-magma.Main --> magma.app.rule.PrefixRule
 magma.Main --> magma.app.divide.DivideState
 magma.Main --> magma.app.divide.MutableDivideState
 magma.Main --> magma.app.node.Node
+magma.Main --> magma.app.rule.PrefixRule
+magma.Main --> magma.app.rule.Rule
 magma.Main --> magma.app.rule.StringRule
+magma.Main --> magma.app.rule.StripRule
 magma.Main --> magma.app.rule.SuffixRule
 magma.Main --> java.io.IOException
 magma.Main --> java.nio.file.Files
