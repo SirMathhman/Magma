@@ -8,6 +8,7 @@ import magma.app.error.ApplicationError;
 import magma.app.error.ThrowableError;
 import magma.app.io.PathSources;
 import magma.app.io.Source;
+import magma.app.io.Sources;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -18,7 +19,8 @@ import java.util.Optional;
 
 public class Main {
     public static void main(String[] args) {
-        handleResult(new PathSources(Paths.get(".", "src", "java")).readAll());
+        final Sources sources = new PathSources(Paths.get(".", "src", "java"));
+        handleResult(sources.readAll());
     }
 
     private static void handleResult(Result<Map<Source, String>, ApplicationError> result) {

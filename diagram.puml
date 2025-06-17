@@ -60,6 +60,7 @@ magma.Main --> magma.app.error.ApplicationError
 magma.Main --> magma.app.error.ThrowableError
 magma.Main --> magma.app.io.PathSources
 magma.Main --> magma.app.io.Source
+magma.Main --> magma.app.io.Sources
 magma.Main --> java.io.IOException
 magma.Main --> java.nio.file.Files
 magma.Main --> java.nio.file.Path
