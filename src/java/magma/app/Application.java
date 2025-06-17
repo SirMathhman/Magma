@@ -4,42 +4,27 @@ import magma.api.result.Err;
 import magma.api.result.Ok;
 import magma.api.result.Result;
 import magma.app.compile.Compiler;
-import magma.app.compile.CompilerImpl;
-import magma.app.io.source.PathSources;
 import magma.app.io.source.Source;
 import magma.app.io.source.Sources;
-import magma.app.io.target.PathTargets;
+import magma.app.io.target.Targets;
 
 import java.io.IOException;
-import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
-public class Main {
-    public static void main(String[] args) {
-        run(new PathSources(Paths.get(".", "src", "java"))).ifPresent(Throwable::printStackTrace);
-    }
-
-    private static Optional<IOException> run(Sources sources) {
-        return switch (sources.collect()) {
-            case Err<Set<Source>, IOException>(var error) -> Optional.of(error);
-            case Ok<Set<Source>, IOException>(var files) -> compileAll(files);
-        };
-    }
-
-    private static Optional<IOException> compileAll(Iterable<Source> sources) {
+public record Application(Sources sources, Compiler compiler, Targets targets) {
+    private static Optional<IOException> compileAll(Iterable<Source> sources, Targets targets, Compiler compiler) {
         return switch (readAll(sources)) {
             case Err(var error) -> Optional.of(error);
-            case Ok(var sourceMap) -> compileAndWrite(sourceMap);
+            case Ok(var sourceMap) -> compileAndWrite(sourceMap, targets, compiler);
         };
     }
 
-    private static Optional<IOException> compileAndWrite(Map<Source, String> sourceMap) {
-        final Compiler compiler = new CompilerImpl();
+    private static Optional<IOException> compileAndWrite(Map<Source, String> sourceMap, Targets targets, Compiler compiler) {
         final var fileName = compiler.compile(sourceMap);
-        return new PathTargets().write("@startuml\nskinparam linetype ortho\n" + fileName + "@enduml");
+        return targets.write("@startuml\nskinparam linetype ortho\n" + fileName + "@enduml");
     }
 
     private static Result<Map<Source, String>, IOException> readAll(Iterable<Source> sources) {
@@ -55,5 +40,12 @@ public class Main {
         }
 
         return new Ok<>(sourceMap);
+    }
+
+    public Optional<IOException> run() {
+        return switch (this.sources.collect()) {
+            case Err<Set<Source>, IOException>(var error) -> Optional.of(error);
+            case Ok<Set<Source>, IOException>(var files) -> compileAll(files, this.targets, this.compiler);
+        };
     }
 }
