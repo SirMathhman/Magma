@@ -2,11 +2,11 @@ package magma.app.compile;
 
 import magma.api.collect.iter.Iterable;
 
-public class ResultFactoryImpl implements ResultFactory<Node, FormattedError, NodeResult<Node, FormattedError>, StringResult<FormattedError>> {
+public class ResultFactoryImpl implements ResultFactory<Node, FormattedError, NodeResult<Node, FormattedError>, StringResult<FormattedError, Iterable<FormattedError>>> {
     private ResultFactoryImpl() {
     }
 
-    public static ResultFactory<Node, FormattedError, NodeResult<Node, FormattedError>, StringResult<FormattedError>> create() {
+    public static ResultFactory<Node, FormattedError, NodeResult<Node, FormattedError>, StringResult<FormattedError, Iterable<FormattedError>>> create() {
         return new ResultFactoryImpl();
     }
 
@@ -16,7 +16,7 @@ public class ResultFactoryImpl implements ResultFactory<Node, FormattedError, No
     }
 
     @Override
-    public StringResult<FormattedError> fromNodeErr(String message, Node node) {
+    public StringResult<FormattedError, Iterable<FormattedError>> fromNodeErr(String message, Node node) {
         return new StringErr<>(new CompileError(message, new NodeContext(node)));
     }
 
@@ -26,7 +26,7 @@ public class ResultFactoryImpl implements ResultFactory<Node, FormattedError, No
     }
 
     @Override
-    public StringResult<FormattedError> fromString(String value) {
+    public StringResult<FormattedError, Iterable<FormattedError>> fromString(String value) {
         return new StringOk<>(value);
     }
 
@@ -36,7 +36,7 @@ public class ResultFactoryImpl implements ResultFactory<Node, FormattedError, No
     }
 
     @Override
-    public StringResult<FormattedError> fromNodeErrWithChildren(String message, Node node, Iterable<FormattedError> errors) {
+    public StringResult<FormattedError, Iterable<FormattedError>> fromNodeErrWithChildren(String message, Node node, Iterable<FormattedError> errors) {
         return new StringErr<>(new CompileError(message, new NodeContext(node), errors));
     }
 
@@ -46,7 +46,7 @@ public class ResultFactoryImpl implements ResultFactory<Node, FormattedError, No
     }
 
     @Override
-    public StringResult<FormattedError> fromEmptyString() {
+    public StringResult<FormattedError, Iterable<FormattedError>> fromEmptyString() {
         return new StringOk<>();
     }
 }

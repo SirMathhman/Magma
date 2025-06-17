@@ -57,6 +57,7 @@ class magma.app.compile.NodeListResult
 magma.app.compile.NodeListResult --> java.util.function.Supplier
 class magma.app.compile.SuffixRule
 class magma.app.compile.Lang
+magma.app.compile.Lang --> magma.api.collect.iter.Iterable
 magma.app.compile.Lang --> magma.api.collect.list.Lists
 class magma.app.compile.NodeWithNodeLists
 magma.app.compile.NodeWithNodeLists --> magma.api.collect.iter.Iterable
@@ -95,7 +96,6 @@ magma.app.error.ApplicationError --> magma.api.Error
 class magma.app.compile.ResultFactory
 magma.app.compile.ResultFactory --> magma.api.collect.iter.Iterable
 class magma.app.compile.StringResult
-magma.app.compile.StringResult --> magma.api.collect.iter.Iterable
 class magma.app.compile.TypeNode
 class magma.app.io.Sources
 magma.app.io.Sources --> magma.api.Error
@@ -158,6 +158,7 @@ magma.app.compile.StringOk --> java.util.function.Supplier
 class magma.app.compile.RuleCompiler
 magma.app.compile.RuleCompiler --> magma.api.Error
 magma.app.compile.RuleCompiler --> magma.api.collect.Joiner
+magma.app.compile.RuleCompiler --> magma.api.collect.iter.Iterable
 magma.app.compile.RuleCompiler --> magma.api.collect.list.ListCollector
 magma.app.compile.RuleCompiler --> magma.api.collect.list.Lists
 magma.app.compile.RuleCompiler --> magma.api.result.Err

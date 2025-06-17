@@ -2,6 +2,7 @@ package magma.app.compile;
 
 import magma.api.Error;
 import magma.api.collect.Joiner;
+import magma.api.collect.iter.Iterable;
 import magma.api.collect.list.ListCollector;
 import magma.api.collect.list.Lists;
 import magma.api.result.Err;
@@ -13,10 +14,10 @@ import magma.app.io.Source;
 import java.util.Map;
 
 public class RuleCompiler implements Compiler {
-    private final Rule<Node, NodeResult<Node, FormattedError>, StringResult<FormattedError>> targetRule;
-    private final Rule<Node, NodeResult<Node, FormattedError>, StringResult<FormattedError>> sourceRule;
+    private final Rule<Node, NodeResult<Node, FormattedError>, StringResult<FormattedError, Iterable<FormattedError>>> targetRule;
+    private final Rule<Node, NodeResult<Node, FormattedError>, StringResult<FormattedError, Iterable<FormattedError>>> sourceRule;
 
-    public RuleCompiler(Rule<Node, NodeResult<Node, FormattedError>, StringResult<FormattedError>> sourceRule, Rule<Node, NodeResult<Node, FormattedError>, StringResult<FormattedError>> targetRule) {
+    public RuleCompiler(Rule<Node, NodeResult<Node, FormattedError>, StringResult<FormattedError, Iterable<FormattedError>>> sourceRule, Rule<Node, NodeResult<Node, FormattedError>, StringResult<FormattedError, Iterable<FormattedError>>> targetRule) {
         this.sourceRule = sourceRule;
         this.targetRule = targetRule;
     }
@@ -50,14 +51,14 @@ public class RuleCompiler implements Compiler {
                 .mapErr(ApplicationError::new);
     }
 
-    private Result<String, FormattedError> toResult(StringResult<FormattedError> result) {
+    private Result<String, FormattedError> toResult(StringResult<FormattedError, Iterable<FormattedError>> result) {
         return switch (result) {
             case StringOk(var value) -> new Ok<>(value);
             case StringErr(FormattedError error) -> new Err<>(error);
         };
     }
 
-    StringResult<FormattedError> compileRoot(String input, String source) {
+    StringResult<FormattedError, Iterable<FormattedError>> compileRoot(String input, String source) {
         NodeResult<Node, FormattedError> nodeFormattedErrorResult = this.sourceRule.lex(input);
         NodeResult<Node, FormattedError> nodeFormattedErrorResult1 = nodeFormattedErrorResult.transform(value1 -> transform(
                 source,

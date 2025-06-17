@@ -4,24 +4,24 @@ import magma.api.collect.iter.Iterable;
 
 import java.util.function.Supplier;
 
-public record StringOk<Error>(String value) implements StringResult<Error> {
+public record StringOk<Error>(String value) implements StringResult<Error, Iterable<Error>> {
     public StringOk() {
         this("");
     }
 
     @Override
-    public StringResult<Error> appendResult(Supplier<StringResult<Error>> generate) {
+    public StringResult<Error, Iterable<Error>> appendResult(Supplier<StringResult<Error, Iterable<Error>>> generate) {
         return generate.get()
                 .prependSlice(this.value);
     }
 
     @Override
-    public StringResult<Error> prependSlice(String slice) {
+    public StringResult<Error, Iterable<Error>> prependSlice(String slice) {
         return new StringOk<>(slice + this.value);
     }
 
     @Override
-    public StringResult<Error> appendSlice(String infix) {
+    public StringResult<Error, Iterable<Error>> appendSlice(String infix) {
         return new StringOk<>(this.value + infix);
     }
 

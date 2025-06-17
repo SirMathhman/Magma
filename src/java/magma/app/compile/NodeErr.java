@@ -32,7 +32,7 @@ public record NodeErr<Node, Error>(Error error) implements NodeResult<Node, Erro
     }
 
     @Override
-    public StringResult<Error> generate(Function<Node, StringResult<Error>> mapper) {
+    public StringResult<Error, Iterable<Error>> generate(Function<Node, StringResult<Error, Iterable<Error>>> mapper) {
         return new StringErr<>(this.error);
     }
 }

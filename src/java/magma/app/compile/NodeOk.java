@@ -34,7 +34,7 @@ public record NodeOk<Node extends MergeNode<Node> & TypeNode<Node>, Error>(
     }
 
     @Override
-    public StringResult<Error> generate(Function<Node, StringResult<Error>> mapper) {
+    public StringResult<Error, Iterable<Error>> generate(Function<Node, StringResult<Error, Iterable<Error>>> mapper) {
         return mapper.apply(this.node());
     }
 }
