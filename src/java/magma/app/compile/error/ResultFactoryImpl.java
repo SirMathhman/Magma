@@ -5,28 +5,28 @@ import magma.api.result.Ok;
 import magma.api.result.Result;
 import magma.app.compile.context.NodeContext;
 import magma.app.compile.context.StringContext;
-import magma.app.compile.node.DisplayNode;
+import magma.app.compile.node.Node;
 
-public class ResultFactoryImpl implements ResultFactory {
+public class ResultFactoryImpl implements ResultFactory<Node, FormattedError> {
     private ResultFactoryImpl() {
     }
 
-    public static ResultFactory create() {
+    public static ResultFactory<Node, FormattedError> create() {
         return new ResultFactoryImpl();
     }
 
     @Override
-    public <Node> Result<Node, FormattedError> fromStringErr(String message, String input) {
+    public Result<Node, FormattedError> fromStringErr(String message, String input) {
         return new Err<>(new CompileError(message, new StringContext(input)));
     }
 
     @Override
-    public <Node extends DisplayNode> Result<String, FormattedError> fromNodeErr(String message, Node node) {
+    public Result<String, FormattedError> fromNodeErr(String message, Node node) {
         return new Err<>(new CompileError(message, new NodeContext(node)));
     }
 
     @Override
-    public <Node> Result<Node, FormattedError> fromNode(Node value) {
+    public Result<Node, FormattedError> fromNode(Node value) {
         return new Ok<>(value);
     }
 

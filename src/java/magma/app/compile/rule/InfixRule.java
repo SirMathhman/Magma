@@ -2,18 +2,29 @@ package magma.app.compile.rule;
 
 import magma.api.result.Result;
 import magma.app.compile.error.FormattedError;
-import magma.app.compile.error.ResultFactoryImpl;
+import magma.app.compile.error.ResultFactory;
 import magma.app.compile.node.MergingNode;
 
-public record InfixRule<Node extends MergingNode<Node>>(
-        Rule<Node, Result<Node, FormattedError>, Result<String, FormattedError>> leftRule, String infix,
-        Rule<Node, Result<Node, FormattedError>, Result<String, FormattedError>> rightRule) implements Rule<Node, Result<Node, FormattedError>, Result<String, FormattedError>> {
+import java.util.Objects;
+
+public final class InfixRule<Node extends MergingNode<Node>> implements Rule<Node, Result<Node, FormattedError>, Result<String, FormattedError>> {
+    private final Rule<Node, Result<Node, FormattedError>, Result<String, FormattedError>> leftRule;
+    private final String infix;
+    private final Rule<Node, Result<Node, FormattedError>, Result<String, FormattedError>> rightRule;
+    private final ResultFactory<Node, FormattedError> factory;
+
+    public InfixRule(Rule<Node, Result<Node, FormattedError>, Result<String, FormattedError>> leftRule, String infix, Rule<Node, Result<Node, FormattedError>, Result<String, FormattedError>> rightRule, ResultFactory<Node, FormattedError> factory) {
+        this.leftRule = leftRule;
+        this.infix = infix;
+        this.rightRule = rightRule;
+        this.factory = factory;
+    }
+
     @Override
     public Result<Node, FormattedError> lex(String input) {
         final var index = input.indexOf(this.infix);
         if (index == -1)
-            return ResultFactoryImpl.create()
-                    .fromStringErr("Infix '" + this.infix + "' not present", input);
+            return this.factory.fromStringErr("Infix '" + this.infix + "' not present", input);
 
         final var left = input.substring(0, index);
         final var right = input.substring(index + this.infix.length());
@@ -28,4 +39,39 @@ public record InfixRule<Node extends MergingNode<Node>>(
                 .flatMapValue(leftResult -> this.rightRule.generate(node)
                         .mapValue(rightResult -> leftResult + this.infix + rightResult));
     }
+
+    public Rule<Node, Result<Node, FormattedError>, Result<String, FormattedError>> leftRule() {
+        return this.leftRule;
+    }
+
+    public String infix() {
+        return this.infix;
+    }
+
+    public Rule<Node, Result<Node, FormattedError>, Result<String, FormattedError>> rightRule() {
+        return this.rightRule;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj == this)
+            return true;
+        if (obj == null || obj.getClass() != this.getClass())
+            return false;
+        var that = (InfixRule) obj;
+        return Objects.equals(this.leftRule, that.leftRule) && Objects.equals(this.infix, that.infix) && Objects.equals(
+                this.rightRule,
+                that.rightRule);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(this.leftRule, this.infix, this.rightRule);
+    }
+
+    @Override
+    public String toString() {
+        return "InfixRule[" + "leftRule=" + this.leftRule + ", " + "infix=" + this.infix + ", " + "rightRule=" + this.rightRule + ']';
+    }
+
 }

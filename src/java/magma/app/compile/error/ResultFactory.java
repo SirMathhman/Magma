@@ -1,14 +1,13 @@
 package magma.app.compile.error;
 
 import magma.api.result.Result;
-import magma.app.compile.node.DisplayNode;
 
-public interface ResultFactory {
-    <Node> Result<Node, FormattedError> fromStringErr(String message, String input);
+public interface ResultFactory<Node, Error> {
+    Result<Node, Error> fromStringErr(String message, String input);
 
-    <Node extends DisplayNode> Result<String, FormattedError> fromNodeErr(String message, Node node);
+    Result<String, Error> fromNodeErr(String message, Node node);
 
-    <Node> Result<Node, FormattedError> fromNode(Node value);
+    Result<Node, Error> fromNode(Node value);
 
-    Result<String, FormattedError> fromString(String value);
+    Result<String, Error> fromString(String value);
 }
