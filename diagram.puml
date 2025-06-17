@@ -5,7 +5,15 @@ magma.Main --> magma.state.MutableState
 magma.Main --> magma.state.State
 magma.Main --> java.io.IOException
 magma.Main --> java.nio.file.Files
+magma.Main --> java.nio.file.Path
 magma.Main --> java.nio.file.Paths
+magma.Main --> java.util.ArrayList
+magma.Main --> java.util.Collection
 magma.Main --> java.util.List
 magma.Main --> java.util.Optional
+class magma.state.MutableState
+magma.state.MutableState --> java.util.ArrayList
+magma.state.MutableState --> java.util.List
+class magma.state.State
+magma.state.State --> java.util.List
 @enduml
