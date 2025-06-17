@@ -2,7 +2,6 @@ package magma;
 
 import magma.app.divide.DivideState;
 import magma.app.divide.MutableDivideState;
-import magma.app.node.Node;
 import magma.app.rule.InfixRule;
 import magma.app.rule.PrefixRule;
 import magma.app.rule.Rule;
@@ -90,14 +89,14 @@ public class Main {
     private static Optional<String> compileImport(String segment, String name) {
         return createImportRule().lex(segment)
                 .map(node -> node.withString("source", name))
-                .flatMap(Main::generate);
+                .flatMap(node1 -> createDependencyRule().generate(node1));
     }
 
     private static Rule createImportRule() {
         return new StripRule(new PrefixRule("import ", new SuffixRule(new StringRule("destination"), ";")));
     }
 
-    private static Optional<String> generate(Node node) {
-        return new SuffixRule(new InfixRule(new StringRule("source"), " --> ", new StringRule("destination")), "\n").generate(node);
+    private static Rule createDependencyRule() {
+        return new SuffixRule(new InfixRule(new StringRule("source"), " --> ", new StringRule("destination")), "\n");
     }
 }
