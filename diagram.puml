@@ -20,8 +20,6 @@ magma.app.io.Sources --> java.util.Map
 class magma.app.compile.context.NodeContext
 magma.app.compile.context.NodeContext --> magma.app.compile.node.DisplayNode
 class magma.app.compile.rule.StripRule
-magma.app.compile.rule.StripRule --> magma.api.result.Result
-magma.app.compile.rule.StripRule --> magma.app.compile.error.FormattedError
 class magma.app.compile.rule.or.MutableOrState
 magma.app.compile.rule.or.MutableOrState --> magma.api.result.Err
 magma.app.compile.rule.or.MutableOrState --> magma.api.result.Ok
