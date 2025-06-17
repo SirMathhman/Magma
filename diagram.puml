@@ -22,8 +22,6 @@ class magma.app.compile.NodeResult
 magma.app.compile.NodeResult --> java.util.function.Function
 class magma.app.compile.PrefixRule
 class magma.api.collect.iter.Iter
-magma.api.collect.iter.Iter --> magma.api.collect.list.List
-magma.api.collect.iter.Iter --> magma.api.collect.list.ListCollector
 magma.api.collect.iter.Iter --> java.util.function.BiFunction
 magma.api.collect.iter.Iter --> java.util.function.Function
 magma.api.collect.iter.Iter --> java.util.function.Predicate
@@ -159,6 +157,7 @@ magma.app.compile.StringOk --> java.util.function.Supplier
 class magma.app.compile.RuleCompiler
 magma.app.compile.RuleCompiler --> magma.api.Error
 magma.app.compile.RuleCompiler --> magma.api.collect.Joiner
+magma.app.compile.RuleCompiler --> magma.api.collect.list.ListCollector
 magma.app.compile.RuleCompiler --> magma.api.collect.list.Lists
 magma.app.compile.RuleCompiler --> magma.api.result.Err
 magma.app.compile.RuleCompiler --> magma.api.result.Ok

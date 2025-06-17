@@ -2,6 +2,7 @@ package magma.app.compile;
 
 import magma.api.Error;
 import magma.api.collect.Joiner;
+import magma.api.collect.list.ListCollector;
 import magma.api.collect.list.Lists;
 import magma.api.result.Err;
 import magma.api.result.Ok;
@@ -24,9 +25,9 @@ public class RuleCompiler implements Compiler {
         final var transformed = root.findNodeList("children")
                 .orElse(Lists.empty())
                 .iter()
-                .filter(node -> node.is("import"))
-                .map(node -> node.withString("source", source))
-                .toList();
+                .filter(node1 -> node1.is("import"))
+                .map(node1 -> node1.withString("source", source))
+                .collect(new ListCollector<>());
 
         final Node node = new MapNode();
         return node.withNodeList("children", transformed);
