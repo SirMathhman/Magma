@@ -2,16 +2,14 @@ package magma;
 
 import magma.io.Location;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Optional;
 
-public record CompileState(Location current, List<Location> imports) {
-    public CompileState(Location location) {
-        this(location, new ArrayList<>());
-    }
+public interface CompileState {
+    String joinLocation();
 
-    public CompileState addImport(Location location) {
-        this.imports.add(location);
-        return this;
-    }
+    Optional<Location> find(String childName);
+
+    CompileState addImport(Location location);
+
+    Location resolveSibling(String name);
 }

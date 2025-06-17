@@ -1,6 +1,6 @@
 package magma;
 
-import magma.io.Location;
+import magma.io.SimpleLocation;
 import magma.io.Source;
 import magma.io.Sources;
 import magma.state.MutableState;
@@ -33,7 +33,7 @@ public class Main {
     private static StringBuilder compileSource(Source source) throws IOException {
         final var location = source.computeLocation();
         final var input = source.readString();
-        return compile(input, new CompileState(location));
+        return compile(input, new SimpleCompileState(location));
     }
 
     private static StringBuilder compile(CharSequence input, CompileState state) {
@@ -57,9 +57,8 @@ public class Main {
                 final var separator = withoutEnd.lastIndexOf(".");
                 final var parent = withoutEnd.substring(0, separator);
                 final var child = withoutEnd.substring(separator + ".".length());
-                return Optional.of(Map.of(state.addImport(new Location(parent, child)),
-                        state.current()
-                                .join() + " --> " + withoutEnd + "\n"));
+                return Optional.of(Map.of(state.addImport(new SimpleLocation(parent, child)),
+                        state.joinLocation() + " --> " + withoutEnd + "\n"));
             }
         }
 
@@ -93,34 +92,23 @@ public class Main {
             final var childName = afterKeyword.substring(index + "implements ".length())
                     .strip();
 
-            final var actual = find(state.imports(), childName).orElse(state.current()
-                    .resolveSibling(childName));
+            final var actual = state.find(childName)
+                    .orElse(state.resolveSibling(childName));
             return generate(type, state, List.of(actual.join()));
         }
         else
             return generate(type, state, Collections.emptyList());
     }
 
-    private static Optional<Location> find(List<Location> imports, String name) {
-        for (var anImport : imports)
-            if (anImport.isNamed(name))
-                return Optional.of(anImport);
-
-        return Optional.empty();
-    }
-
     private static Optional<Map<CompileState, String>> generate(String type, CompileState state, List<String> superTypes) {
         final var buffer = new StringBuilder();
         for (var superType : superTypes)
-            buffer.append(state.current()
-                            .join())
+            buffer.append(state.joinLocation())
                     .append(" --|> ")
                     .append(superType)
                     .append("\n");
 
-        final var generated = type + " " + state.current()
-                .join() + "\n" + buffer;
-
+        final var generated = type + " " + state.joinLocation() + "\n" + buffer;
         return Optional.of(Map.of(state, generated));
     }
 

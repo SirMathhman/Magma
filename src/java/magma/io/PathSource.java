@@ -34,7 +34,7 @@ public record PathSource(Path sourceDirectory, Path source) implements Source {
         final var separator = fileName.lastIndexOf(".");
         final var name = fileName.substring(0, separator);
 
-        final var location = new Location(namespace, name);
+        final var location = new SimpleLocation(namespace, name);
         return location;
     }
 }

@@ -1,7 +1,7 @@
 @startuml
 skinparam linetype ortho
-class magma.io.Location
-magma.Main --> magma.io.Location
+interface magma.io.Location
+magma.Main --> magma.io.SimpleLocation
 magma.Main --> magma.io.Source
 magma.Main --> magma.io.Sources
 magma.Main --> magma.state.MutableState
@@ -14,8 +14,16 @@ magma.Main --> java.util.List
 magma.Main --> java.util.Map
 magma.Main --> java.util.Optional
 class magma.Main
+magma.SimpleCompileState --> magma.io.Location
+magma.SimpleCompileState --> java.util.ArrayList
+magma.SimpleCompileState --> java.util.List
+magma.SimpleCompileState --> java.util.Optional
+class magma.SimpleCompileState
+magma.SimpleCompileState --|> magma.CompileState
 magma.state.State --> java.util.List
 interface magma.state.State
+class magma.io.SimpleLocation
+magma.io.SimpleLocation --|> magma.io.Location
 magma.io.Source --> java.io.IOException
 interface magma.io.Source
 magma.state.MutableState --> java.util.ArrayList
@@ -30,9 +38,8 @@ magma.io.PathSource --> java.util.List
 class magma.io.PathSource
 magma.io.PathSource --|> magma.io.Source
 magma.CompileState --> magma.io.Location
-magma.CompileState --> java.util.ArrayList
-magma.CompileState --> java.util.List
-class magma.CompileState
+magma.CompileState --> java.util.Optional
+interface magma.CompileState
 magma.io.Sources --> java.io.IOException
 magma.io.Sources --> java.nio.file.Files
 magma.io.Sources --> java.nio.file.Path
