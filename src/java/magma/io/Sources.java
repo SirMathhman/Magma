@@ -12,7 +12,7 @@ public record Sources(Path sourceDirectory) {
             return stream.filter(Files::isRegularFile)
                     .filter(path -> path.toString()
                             .endsWith(".java"))
-                    .map(source -> new Source(this.sourceDirectory, source))
+                    .map(source -> new PathSource(this.sourceDirectory, source))
                     .collect(Collectors.toSet());
         }
     }
