@@ -9,6 +9,7 @@ public class JVMLists {
         return new JVMList<>();
     }
 
+    @SafeVarargs
     public static <T> ListLike<T> of(T... elements) {
         return new JVMList<>(Arrays.asList(elements));
     }

@@ -43,7 +43,7 @@ public record PathSource(PathLike sourceDirectory, PathLike source) implements S
     }
 
     private String join(String delimeter, ListLike<String> list) {
-        Option<String> option = new None<String>();
+        Option<String> option = new None<>();
         for (var i = 0; i < list.size(); i++) {
             final var element = list.get(i);
             if (option.isPresent())
