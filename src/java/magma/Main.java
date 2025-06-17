@@ -2,9 +2,9 @@ package magma;
 
 import magma.app.CompileState;
 import magma.app.SimpleCompileState;
-import magma.app.io.SimpleLocation;
-import magma.app.io.Source;
-import magma.app.io.Sources;
+import magma.app.io.location.SimpleLocation;
+import magma.app.io.source.Source;
+import magma.app.io.source.Sources;
 import magma.app.state.MutableState;
 import magma.app.state.State;
 
@@ -102,7 +102,7 @@ public class Main {
             return generate(type, state, Collections.emptyList());
     }
 
-    private static Optional<Map<CompileState, String>> generate(String type, CompileState state, List<String> superTypes) {
+    private static Optional<Map<CompileState, String>> generate(String type, CompileState state, Iterable<String> superTypes) {
         final var buffer = new StringBuilder();
         for (var superType : superTypes)
             buffer.append(state.joinLocation())

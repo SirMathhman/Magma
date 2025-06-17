@@ -1,4 +1,4 @@
-package magma.app.io;
+package magma.app.io.source;
 
 import java.io.IOException;
 import java.nio.file.Files;

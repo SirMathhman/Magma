@@ -1,6 +1,6 @@
 package magma.app;
 
-import magma.app.io.Location;
+import magma.app.io.location.Location;
 
 import java.util.Optional;
 

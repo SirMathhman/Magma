@@ -1,4 +1,7 @@
-package magma.app.io;
+package magma.app.io.source;
+
+import magma.app.io.location.Location;
+import magma.app.io.location.SimpleLocation;
 
 import java.io.IOException;
 import java.nio.file.Files;
