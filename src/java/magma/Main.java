@@ -42,8 +42,8 @@ public class Main {
         final var separator = fileName.lastIndexOf(".");
         final var name = fileName.substring(0, separator);
 
-        final var joined = String.join(".", segments);
-        return compile(input, joined + "." + name);
+        final var namespace = String.join(".", segments);
+        return compile(input, namespace, name);
     }
 
     private static List<String> computeNamespace(Path parent) {
@@ -54,26 +54,41 @@ public class Main {
         return segments;
     }
 
-    private static StringBuilder compile(CharSequence input, String name) {
+    private static StringBuilder compile(CharSequence input, String namespace, String name) {
         final var segments = divide(input);
 
         final var output = new StringBuilder();
         for (var segment : segments)
-            compileRootSegment(segment, name).ifPresent(output::append);
+            compileRootSegment(segment, namespace, name).ifPresent(output::append);
         return output;
     }
 
-    private static Optional<String> compileRootSegment(String input, String name) {
+    private static Optional<String> compileRootSegment(String input, String namespace, String name) {
         final var strip = input.strip();
         if (strip.startsWith("import ")) {
             final var withoutStart = strip.substring("import ".length());
             if (withoutStart.endsWith(";")) {
                 final var withoutEnd = withoutStart.substring(0, withoutStart.length() - ";".length());
-                return Optional.of(name + " --> " + withoutEnd + "\n");
+                return Optional.of(namespace + "." + name + " --> " + withoutEnd + "\n");
             }
         }
-        if (strip.contains("class "))
-            return Optional.of("class " + name + "\n");
+
+        final var separator = strip.indexOf("{");
+        if (separator >= 0) {
+            final var beforeContent = strip.substring(0, separator);
+            final var classIndex = beforeContent.indexOf("class ");
+            if (classIndex >= 0) {
+                final var afterKeyword = beforeContent.substring("class ".length() + classIndex);
+                return Optional.of("class " + namespace + "." + afterKeyword + "\n");
+            }
+
+            final var interfaceIndex = beforeContent.indexOf("interface ");
+            if (interfaceIndex >= 0) {
+                final var afterKeyword = beforeContent.substring("interface ".length() + interfaceIndex);
+                return Optional.of("interface " + namespace + "." + afterKeyword + "\n");
+            }
+        }
+
         return Optional.empty();
     }
 

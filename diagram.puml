@@ -2,7 +2,7 @@
 skinparam linetype ortho
 magma.MutableState --> java.util.ArrayList
 magma.MutableState --> java.util.List
-class magma.MutableState
+class magma.MutableState implements State 
 magma.Main --> java.io.IOException
 magma.Main --> java.nio.file.Files
 magma.Main --> java.nio.file.Path
@@ -11,6 +11,7 @@ magma.Main --> java.util.ArrayList
 magma.Main --> java.util.List
 magma.Main --> java.util.Optional
 magma.Main --> java.util.stream.Collectors
-class magma.Main
+class magma.Main 
 magma.State --> java.util.List
+interface magma.State 
 @enduml
