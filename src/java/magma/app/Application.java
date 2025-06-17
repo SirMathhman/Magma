@@ -5,6 +5,7 @@ import magma.api.io.IOOption;
 import magma.api.io.SimpleIOOption;
 import magma.api.list.Sequence;
 import magma.api.result.Result;
+import magma.api.result.Results;
 import magma.app.compile.Compiler;
 import magma.app.io.source.Source;
 import magma.app.io.source.Sources;
@@ -24,7 +25,7 @@ public record Application(Sources sources, Compiler compiler, Targets targets) {
     }
 
     private static Result<Map<Source, String>, IOError> readAll(Sequence<Source> sources) {
-        Result<Map<Source, String>, IOError> maybeSourceMap = Result.fromValue(new HashMap<>());
+        Result<Map<Source, String>, IOError> maybeSourceMap = Results.fromValue(new HashMap<>());
         for (var i = 0; i < sources.size(); i++) {
             final var source = sources.get(i);
             maybeSourceMap = foldSource(maybeSourceMap, source);

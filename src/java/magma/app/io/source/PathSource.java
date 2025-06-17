@@ -6,6 +6,7 @@ import magma.api.io.PathLike;
 import magma.api.list.ListLike;
 import magma.api.list.Sequence;
 import magma.api.option.Option;
+import magma.api.option.Options;
 import magma.api.result.Result;
 import magma.app.io.location.Location;
 import magma.app.io.location.SimpleLocation;
@@ -42,13 +43,13 @@ public record PathSource(PathLike sourceDirectory, PathLike source) implements S
     }
 
     private String join(Sequence<String> list) {
-        Option<String> option = Option.empty();
+        Option<String> option = Options.empty();
         for (var i = 0; i < list.size(); i++) {
             final var element = list.get(i);
             if (option.isPresent())
-                option = Option.of(option.get() + "." + element);
+                option = Options.of(option.get() + "." + element);
             else
-                option = Option.of(element);
+                option = Options.of(element);
         }
 
         return option.orElse("");

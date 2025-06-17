@@ -1,14 +1,15 @@
 package magma.api.io;
 
 import magma.api.option.Option;
+import magma.api.option.Options;
 
 public record SimpleIOOption(Option<IOError> maybeError) implements IOOption {
     public static IOOption empty() {
-        return new SimpleIOOption(Option.empty());
+        return new SimpleIOOption(Options.empty());
     }
 
     public static IOOption of(IOError error) {
-        return new SimpleIOOption(Option.of(error));
+        return new SimpleIOOption(Options.of(error));
     }
 
     @Override

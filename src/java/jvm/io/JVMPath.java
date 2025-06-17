@@ -7,6 +7,7 @@ import magma.api.io.PathLike;
 import magma.api.io.SimpleIOOption;
 import magma.api.list.Sequence;
 import magma.api.result.Result;
+import magma.api.result.Results;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -27,19 +28,19 @@ public record JVMPath(Path path) implements PathLike {
     @Override
     public Result<Sequence<PathLike>, IOError> walk() {
         try (final var stream = Files.walk(this.path)) {
-            return Result.fromValue(new JVMList<>(stream.map(JVMPath::new)
+            return Results.fromValue(new JVMList<>(stream.map(JVMPath::new)
                     .collect(Collectors.toList())));
         } catch (IOException e) {
-            return Result.fromErr(new JVMIOError(e));
+            return Results.fromErr(new JVMIOError(e));
         }
     }
 
     @Override
     public Result<String, IOError> readString() {
         try {
-            return Result.fromValue(Files.readString(this.path));
+            return Results.fromValue(Files.readString(this.path));
         } catch (IOException e) {
-            return Result.fromErr(new JVMIOError(e));
+            return Results.fromErr(new JVMIOError(e));
         }
     }
 
