@@ -31,7 +31,7 @@ public class MutableState implements State {
     }
 
     @Override
-    public MutableState advance() {
+    public State advance() {
         this.segments.add(this.buffer.toString());
         this.buffer = new StringBuilder();
         return this;
