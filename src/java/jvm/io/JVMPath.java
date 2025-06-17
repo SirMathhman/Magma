@@ -2,11 +2,10 @@ package jvm.io;
 
 import jvm.list.JVMList;
 import magma.api.io.IOError;
+import magma.api.io.IOOption;
 import magma.api.io.PathLike;
+import magma.api.io.SimpleIOOption;
 import magma.api.list.ListLike;
-import magma.api.option.None;
-import magma.api.option.Option;
-import magma.api.option.Some;
 import magma.api.result.Err;
 import magma.api.result.Ok;
 import magma.api.result.Result;
@@ -18,12 +17,12 @@ import java.util.stream.Collectors;
 
 public record JVMPath(Path path) implements PathLike {
     @Override
-    public Option<IOError> writeString(CharSequence output) {
+    public IOOption writeString(CharSequence output) {
         try {
             Files.writeString(this.path, output);
-            return new None<>();
+            return SimpleIOOption.empty();
         } catch (IOException e) {
-            return new Some<>(new JVMIOError(e));
+            return SimpleIOOption.of(new JVMIOError(e));
         }
     }
 

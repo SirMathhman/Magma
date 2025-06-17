@@ -32,7 +32,7 @@ public record PathSource(PathLike sourceDirectory, PathLike source) implements S
         final var relativeParent = relative.getParent();
 
         final var segments = computeNamespace(relativeParent);
-        final var namespace = this.join(".", segments);
+        final var namespace = this.join(segments);
 
         final var fileName = this.source.getFileName()
                 .asString();
@@ -42,12 +42,12 @@ public record PathSource(PathLike sourceDirectory, PathLike source) implements S
         return new SimpleLocation(namespace, name);
     }
 
-    private String join(String delimeter, ListLike<String> list) {
+    private String join(ListLike<String> list) {
         Option<String> option = new None<>();
         for (var i = 0; i < list.size(); i++) {
             final var element = list.get(i);
             if (option.isPresent())
-                option = new Some<>(option.get() + delimeter + element);
+                option = new Some<>(option.get() + "." + element);
             else
                 option = new Some<>(element);
         }
