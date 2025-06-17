@@ -1,11 +1,10 @@
 package magma.app.compile;
 
-import magma.api.list.List;
+import magma.api.list.Lists;
 
 public class Lang {
     public static Rule<Node, NodeResult<Node, FormattedError>, StringResult<FormattedError>> createJavaRootRule() {
-        return new DivideRule<>("children",
-                new OrRule<>(List.of(createNamespacedRule("package"),
+        return new DivideRule<>("children", new OrRule<>(Lists.of(createNamespacedRule("package"),
                         new TypeRule<>("import", createNamespacedRule("import"), ResultFactoryImpl.create()),
                         createStructureRule("class"),
                         createStructureRule("interface"), createStructureRule("record")), ResultFactoryImpl.create()),
@@ -21,8 +20,7 @@ public class Lang {
     }
 
     public static Rule<Node, NodeResult<Node, FormattedError>, StringResult<FormattedError>> createPlantRootRule() {
-        return new DivideRule<>("children",
-                new OrRule<>(List.of(createDependencyRule()), ResultFactoryImpl.create()),
+        return new DivideRule<>("children", new OrRule<>(Lists.of(createDependencyRule()), ResultFactoryImpl.create()),
                 new MapNodeFactory(),
                 ResultFactoryImpl.create());
     }

@@ -2,7 +2,7 @@ package magma.app.compile;
 
 import magma.api.Error;
 import magma.api.list.JavaList;
-import magma.api.list.List;
+import magma.api.list.Lists;
 import magma.api.result.Err;
 import magma.api.result.Ok;
 import magma.api.result.Result;
@@ -22,7 +22,7 @@ public class RuleCompiler implements Compiler {
 
     static Node transform(String source, NodeWithNodeLists<Node> root) {
         final var transformed = new JavaList<>(root.findNodeList("children")
-                .orElse(List.empty())
+                .orElse(Lists.empty())
                 .stream()
                 .filter(node -> node.is("import"))
                 .map(node -> node.withString("source", source))

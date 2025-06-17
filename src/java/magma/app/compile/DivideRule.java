@@ -1,6 +1,7 @@
 package magma.app.compile;
 
 import magma.api.list.List;
+import magma.api.list.Lists;
 
 public final class DivideRule<Node extends NodeWithNodeLists<Node>, Error, NodeResult, StringResult extends AppendableStringResult<StringResult>> implements Rule<Node, NodeResult, StringResult> {
     private final String key;
@@ -52,7 +53,7 @@ public final class DivideRule<Node extends NodeWithNodeLists<Node>, Error, NodeR
     @Override
     public StringResult generate(Node node) {
         return node.findNodeList(this.key)
-                .orElse(List.empty())
+                .orElse(Lists.empty())
                 .stream()
                 .reduce(this.resultFactory.fromEmptyString(), this::foldString, (_, next) -> next);
     }

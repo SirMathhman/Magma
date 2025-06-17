@@ -1,6 +1,7 @@
 package magma.app.io;
 
 import magma.api.list.List;
+import magma.api.list.Lists;
 
 import java.nio.file.Path;
 
@@ -19,7 +20,7 @@ public record PathSource(Path sourceDirectory, Path source) implements Source {
         final var relativeParent = this.sourceDirectory.relativize(this.source)
                 .getParent();
 
-        List<String> namespace = List.empty();
+        List<String> namespace = Lists.empty();
         for (var i = 0; i < relativeParent.getNameCount(); i++)
             namespace = namespace.add(relativeParent.getName(i)
                     .toString());

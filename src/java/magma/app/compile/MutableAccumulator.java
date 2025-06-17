@@ -1,6 +1,7 @@
 package magma.app.compile;
 
 import magma.api.list.List;
+import magma.api.list.Lists;
 
 import java.util.Optional;
 import java.util.function.Function;
@@ -8,7 +9,7 @@ import java.util.function.Function;
 record MutableAccumulator<Value, Error>(Optional<Value> maybeValue,
                                         List<Error> errors) implements Accumulator<Value, Error> {
     public MutableAccumulator() {
-        this(Optional.empty(), List.empty());
+        this(Optional.empty(), Lists.empty());
     }
 
     @Override

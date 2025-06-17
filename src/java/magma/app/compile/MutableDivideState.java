@@ -1,6 +1,7 @@
 package magma.app.compile;
 
 import magma.api.list.List;
+import magma.api.list.Lists;
 
 public class MutableDivideState implements DivideState {
     private final List<String> segments;
@@ -14,7 +15,7 @@ public class MutableDivideState implements DivideState {
     }
 
     public MutableDivideState() {
-        this(List.empty(), new StringBuilder(), 0);
+        this(Lists.empty(), new StringBuilder(), 0);
     }
 
     @Override

@@ -1,6 +1,7 @@
 package magma.app.compile;
 
 import magma.api.list.List;
+import magma.api.list.Lists;
 
 import java.util.function.Supplier;
 
@@ -12,7 +13,7 @@ public final class NodeListOk<Node extends NodeWithNodeLists<Node> & MergeNode<N
     }
 
     public NodeListOk() {
-        this(List.empty());
+        this(Lists.empty());
     }
 
     @Override
