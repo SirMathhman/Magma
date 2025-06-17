@@ -1,6 +1,7 @@
 package magma.app.compile;
 
-import java.util.List;
+import magma.api.List;
+
 import java.util.function.Function;
 
 public final class OrRule<Node, Error, NodeResult extends AttachableToStateResult<Node, Error>, StringResult extends AttachableToStateResult<String, Error>> implements Rule<Node, NodeResult, StringResult> {

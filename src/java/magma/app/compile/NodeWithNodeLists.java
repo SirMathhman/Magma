@@ -1,6 +1,7 @@
 package magma.app.compile;
 
-import java.util.List;
+import magma.api.List;
+
 import java.util.Optional;
 
 public interface NodeWithNodeLists<Node> {

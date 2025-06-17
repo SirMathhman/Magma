@@ -1,7 +1,7 @@
 package magma.app.compile;
 
-import java.util.ArrayList;
-import java.util.List;
+import magma.api.List;
+
 import java.util.function.Supplier;
 
 public final class NodeListOk<Node extends NodeWithNodeLists<Node> & MergeNode<Node> & TypeNode<Node>, Error> implements NodeListResult<Node, NodeResult<Node, Error>> {
@@ -12,7 +12,7 @@ public final class NodeListOk<Node extends NodeWithNodeLists<Node> & MergeNode<N
     }
 
     public NodeListOk() {
-        this(new ArrayList<>());
+        this(List.empty());
     }
 
     @Override

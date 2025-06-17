@@ -1,6 +1,6 @@
 package magma.app.compile;
 
-import java.util.List;
+import magma.api.List;
 
 public class ResultFactoryImpl implements ResultFactory<Node, FormattedError, NodeResult<Node, FormattedError>, StringResult<FormattedError>> {
     private ResultFactoryImpl() {

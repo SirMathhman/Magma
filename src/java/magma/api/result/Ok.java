@@ -2,10 +2,14 @@ package magma.api.result;
 
 import java.util.function.Function;
 
-public record Ok<T, X>(T value) implements Result<T, X> {
+public record Ok<Value, Error>(Value value) implements Result<Value, Error> {
+    @Override
+    public <Return> Result<Value, Return> mapErr(Function<Error, Return> mapper) {
+        return new Ok<>(this.value);
+    }
 
     @Override
-    public <Return> Result<T, Return> mapErr(Function<X, Return> mapper) {
-        return new Ok<>(this.value);
+    public <Return> Result<Return, Error> flatMap(Function<Value, Result<Return, Error>> mapper) {
+        return mapper.apply(this.value);
     }
 }

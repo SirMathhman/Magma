@@ -1,13 +1,14 @@
 package magma.app.compile;
 
 import magma.api.Error;
+import magma.api.JavaList;
+import magma.api.List;
 import magma.api.result.Err;
 import magma.api.result.Ok;
 import magma.api.result.Result;
 import magma.app.error.ApplicationError;
 import magma.app.io.Source;
 
-import java.util.ArrayList;
 import java.util.Map;
 
 public class RuleCompiler implements Compiler {
@@ -20,12 +21,12 @@ public class RuleCompiler implements Compiler {
     }
 
     static Node transform(String source, NodeWithNodeLists<Node> root) {
-        final var transformed = root.findNodeList("children")
-                .orElse(new ArrayList<>())
+        final var transformed = new JavaList<>(root.findNodeList("children")
+                .orElse(List.empty())
                 .stream()
                 .filter(node -> node.is("import"))
                 .map(node -> node.withString("source", source))
-                .toList();
+                .toList());
 
         final Node node = new MapNode();
         return node.withNodeList("children", transformed);
@@ -35,7 +36,7 @@ public class RuleCompiler implements Compiler {
         final var namespace = source.computeNamespace();
         final var name = source.computeName();
 
-        final var joined = String.join(".", namespace);
+        final var joined = String.join(".", namespace.unwrap());
         final var joinedName = joined + "." + name;
 
         final var stringFormattedErrorResult1 = this.compileRoot(input, joinedName)

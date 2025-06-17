@@ -1,7 +1,6 @@
 package magma.app.compile;
 
-import java.util.ArrayList;
-import java.util.List;
+import magma.api.List;
 
 public class MutableDivideState implements DivideState {
     private final List<String> segments;
@@ -15,7 +14,7 @@ public class MutableDivideState implements DivideState {
     }
 
     public MutableDivideState() {
-        this(new ArrayList<>(), new StringBuilder(), 0);
+        this(List.empty(), new StringBuilder(), 0);
     }
 
     @Override

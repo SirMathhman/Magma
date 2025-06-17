@@ -1,11 +1,10 @@
 package magma.app.compile;
 
-import java.util.ArrayList;
-import java.util.List;
+import magma.api.List;
 
 public record CompileError(String message, Context context, List<FormattedError> errors) implements FormattedError {
     public CompileError(String message, Context context) {
-        this(message, context, new ArrayList<>());
+        this(message, context, List.empty());
     }
 
     @Override

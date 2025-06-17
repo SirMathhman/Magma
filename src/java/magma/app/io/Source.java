@@ -1,9 +1,9 @@
 package magma.app.io;
 
-import java.util.Collection;
+import magma.api.List;
 
 public interface Source {
     String computeName();
 
-    Collection<String> computeNamespace();
+    List<String> computeNamespace();
 }

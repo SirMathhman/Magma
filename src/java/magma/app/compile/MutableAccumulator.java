@@ -1,14 +1,14 @@
 package magma.app.compile;
 
-import java.util.ArrayList;
-import java.util.List;
+import magma.api.List;
+
 import java.util.Optional;
 import java.util.function.Function;
 
 record MutableAccumulator<Value, Error>(Optional<Value> maybeValue,
                                         List<Error> errors) implements Accumulator<Value, Error> {
     public MutableAccumulator() {
-        this(Optional.empty(), new ArrayList<>());
+        this(Optional.empty(), List.empty());
     }
 
     @Override
@@ -18,8 +18,7 @@ record MutableAccumulator<Value, Error>(Optional<Value> maybeValue,
 
     @Override
     public Accumulator<Value, Error> withError(Error error) {
-        this.errors.add(error);
-        return this;
+        return new MutableAccumulator<>(this.maybeValue, this.errors.add(error));
     }
 
     @Override

@@ -1,6 +1,6 @@
 package magma.app.compile;
 
-import java.util.List;
+import magma.api.List;
 
 public class Lang {
     public static Rule<Node, NodeResult<Node, FormattedError>, StringResult<FormattedError>> createJavaRootRule() {

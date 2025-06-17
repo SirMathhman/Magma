@@ -1,6 +1,8 @@
 package magma.app.io;
 
 import magma.api.Error;
+import magma.api.JavaList;
+import magma.api.List;
 import magma.api.result.Err;
 import magma.api.result.Ok;
 import magma.api.result.Result;
@@ -11,7 +13,6 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 public record PathSources(Path rootDirectory) implements Sources {
@@ -25,10 +26,10 @@ public record PathSources(Path rootDirectory) implements Sources {
 
     static Result<List<Path>, IOException> collect(Path sourceDirectory) {
         try (var files = Files.walk(sourceDirectory)) {
-            final var sources = files.filter(Files::isRegularFile)
+            final var sources = new JavaList<>(files.filter(Files::isRegularFile)
                     .filter(path -> path.toString()
                             .endsWith("java"))
-                    .toList();
+                    .toList());
 
             return new Ok<>(sources);
         } catch (IOException e) {
@@ -74,10 +75,11 @@ public record PathSources(Path rootDirectory) implements Sources {
         };
     }
 
-    public Result<Map<Source, String>, IOException> readIterable(Iterable<Path> files) {
-        Result<Map<Source, String>, IOException> maybeInputs = new Ok<>(new HashMap<>());
-        for (var source : files)
-            maybeInputs = this.readFile(source, maybeInputs);
-        return maybeInputs;
+    public Result<Map<Source, String>, IOException> readIterable(List<Path> files) {
+        return files.stream()
+                .<Result<Map<Source, String>, IOException>>reduce(new Ok<>(new HashMap<>()),
+                        (currentResult, path) -> this.readFile(path, currentResult),
+                        (_, next) -> next);
     }
+
 }

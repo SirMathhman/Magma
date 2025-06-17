@@ -1,8 +1,8 @@
 package magma.app.io;
 
+import magma.api.List;
+
 import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.Collection;
 
 public record PathSource(Path sourceDirectory, Path source) implements Source {
     @Override
@@ -15,13 +15,13 @@ public record PathSource(Path sourceDirectory, Path source) implements Source {
     }
 
     @Override
-    public Collection<String> computeNamespace() {
+    public List<String> computeNamespace() {
         final var relativeParent = this.sourceDirectory.relativize(this.source)
                 .getParent();
 
-        final Collection<String> namespace = new ArrayList<>();
+        List<String> namespace = List.empty();
         for (var i = 0; i < relativeParent.getNameCount(); i++)
-            namespace.add(relativeParent.getName(i)
+            namespace = namespace.add(relativeParent.getName(i)
                     .toString());
         return namespace;
     }
