@@ -1,4 +1,4 @@
-package magma.app.compile.error.list;
+package magma.app.compile.list;
 
 import magma.app.compile.rule.NodeFactory;
 

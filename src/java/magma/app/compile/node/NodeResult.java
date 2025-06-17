@@ -1,10 +1,10 @@
-package magma.app.compile.error.node;
+package magma.app.compile.node;
 
 import magma.api.result.Result;
-import magma.app.compile.error.AttachableToStateResult;
-import magma.app.compile.error.MergeNodeResult;
-import magma.app.compile.error.TypeNodeResult;
-import magma.app.compile.error.string.StringResult;
+import magma.app.compile.AttachableToStateResult;
+import magma.app.compile.MergeNodeResult;
+import magma.app.compile.TypeNodeResult;
+import magma.app.compile.string.StringResult;
 
 import java.util.List;
 import java.util.function.Function;

@@ -4,14 +4,13 @@ import magma.api.Error;
 import magma.api.result.Err;
 import magma.api.result.Ok;
 import magma.api.result.Result;
-import magma.app.compile.error.FormattedError;
-import magma.app.compile.error.node.NodeResult;
-import magma.app.compile.error.string.StringErr;
-import magma.app.compile.error.string.StringOk;
-import magma.app.compile.error.string.StringResult;
 import magma.app.compile.node.MapNode;
 import magma.app.compile.node.Node;
+import magma.app.compile.node.NodeResult;
 import magma.app.compile.rule.Rule;
+import magma.app.compile.string.StringErr;
+import magma.app.compile.string.StringOk;
+import magma.app.compile.string.StringResult;
 import magma.app.error.ApplicationError;
 import magma.app.io.Source;
 

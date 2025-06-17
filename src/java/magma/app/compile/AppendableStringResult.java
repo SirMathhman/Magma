@@ -1,4 +1,4 @@
-package magma.app.compile.error;
+package magma.app.compile;
 
 import java.util.function.Supplier;
 

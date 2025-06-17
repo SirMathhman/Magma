@@ -1,7 +1,7 @@
 package magma.app.compile.rule;
 
-import magma.app.compile.error.FormattedError;
-import magma.app.compile.error.ResultFactory;
+import magma.app.compile.FormattedError;
+import magma.app.compile.ResultFactory;
 import magma.app.compile.node.NodeWithStrings;
 
 public final class StringRule<Node extends NodeWithStrings<Node>, NodeResult, StringResult> implements Rule<Node, NodeResult, StringResult> {

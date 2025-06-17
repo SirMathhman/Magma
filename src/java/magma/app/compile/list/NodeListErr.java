@@ -1,9 +1,9 @@
-package magma.app.compile.error.list;
+package magma.app.compile.list;
 
-import magma.app.compile.error.FormattedError;
-import magma.app.compile.error.node.NodeErr;
-import magma.app.compile.error.node.NodeResult;
+import magma.app.compile.FormattedError;
 import magma.app.compile.node.Node;
+import magma.app.compile.node.NodeErr;
+import magma.app.compile.node.NodeResult;
 import magma.app.compile.rule.NodeFactory;
 
 import java.util.function.Supplier;

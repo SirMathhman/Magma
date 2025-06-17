@@ -1,7 +1,7 @@
 package magma.app.compile.rule.divide;
 
-import magma.app.compile.error.AppendableStringResult;
-import magma.app.compile.error.ResultFactory;
+import magma.app.compile.AppendableStringResult;
+import magma.app.compile.ResultFactory;
 import magma.app.compile.node.NodeWithNodeLists;
 import magma.app.compile.rule.NodeFactory;
 import magma.app.compile.rule.Rule;

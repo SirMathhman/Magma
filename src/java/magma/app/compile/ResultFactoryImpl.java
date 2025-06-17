@@ -1,16 +1,16 @@
-package magma.app.compile.error;
+package magma.app.compile;
 
 import magma.app.compile.context.NodeContext;
 import magma.app.compile.context.StringContext;
-import magma.app.compile.error.list.NodeListOk;
-import magma.app.compile.error.list.NodeListResult;
-import magma.app.compile.error.node.NodeErr;
-import magma.app.compile.error.node.NodeOk;
-import magma.app.compile.error.node.NodeResult;
-import magma.app.compile.error.string.StringErr;
-import magma.app.compile.error.string.StringOk;
-import magma.app.compile.error.string.StringResult;
+import magma.app.compile.list.NodeListOk;
+import magma.app.compile.list.NodeListResult;
 import magma.app.compile.node.Node;
+import magma.app.compile.node.NodeErr;
+import magma.app.compile.node.NodeOk;
+import magma.app.compile.node.NodeResult;
+import magma.app.compile.string.StringErr;
+import magma.app.compile.string.StringOk;
+import magma.app.compile.string.StringResult;
 
 import java.util.List;
 

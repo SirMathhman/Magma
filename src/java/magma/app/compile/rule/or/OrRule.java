@@ -1,7 +1,7 @@
 package magma.app.compile.rule.or;
 
-import magma.app.compile.error.AttachableToStateResult;
-import magma.app.compile.error.ResultFactory;
+import magma.app.compile.AttachableToStateResult;
+import magma.app.compile.ResultFactory;
 import magma.app.compile.rule.Rule;
 
 import java.util.List;

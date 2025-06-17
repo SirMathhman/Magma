@@ -1,6 +1,6 @@
-package magma.app.compile.error.string;
+package magma.app.compile.string;
 
-import magma.app.compile.error.FormattedError;
+import magma.app.compile.FormattedError;
 import magma.app.compile.rule.or.Accumulator;
 
 import java.util.function.Supplier;

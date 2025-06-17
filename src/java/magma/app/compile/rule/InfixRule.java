@@ -1,9 +1,9 @@
 package magma.app.compile.rule;
 
-import magma.app.compile.error.AppendableStringResult;
-import magma.app.compile.error.FormattedError;
-import magma.app.compile.error.MergeNodeResult;
-import magma.app.compile.error.ResultFactory;
+import magma.app.compile.AppendableStringResult;
+import magma.app.compile.FormattedError;
+import magma.app.compile.MergeNodeResult;
+import magma.app.compile.ResultFactory;
 
 public final class InfixRule<Node, NodeResult extends MergeNodeResult<Node, NodeResult>, StringResult extends AppendableStringResult<StringResult>> implements Rule<Node, NodeResult, StringResult> {
     private final Rule<Node, NodeResult, StringResult> leftRule;

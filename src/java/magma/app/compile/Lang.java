@@ -1,10 +1,7 @@
 package magma.app.compile;
 
-import magma.app.compile.error.FormattedError;
-import magma.app.compile.error.ResultFactoryImpl;
-import magma.app.compile.error.node.NodeResult;
-import magma.app.compile.error.string.StringResult;
 import magma.app.compile.node.Node;
+import magma.app.compile.node.NodeResult;
 import magma.app.compile.rule.InfixRule;
 import magma.app.compile.rule.MapNodeFactory;
 import magma.app.compile.rule.PrefixRule;
@@ -15,6 +12,7 @@ import magma.app.compile.rule.SuffixRule;
 import magma.app.compile.rule.TypeRule;
 import magma.app.compile.rule.divide.DivideRule;
 import magma.app.compile.rule.or.OrRule;
+import magma.app.compile.string.StringResult;
 
 import java.util.List;
 
