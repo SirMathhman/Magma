@@ -13,12 +13,11 @@ class magma.app.compile.PrependStringResult
 class magma.app.compile.NodeListOk
 magma.app.compile.NodeListOk --> magma.api.result.Err
 magma.app.compile.NodeListOk --> magma.api.result.Ok
+magma.app.compile.NodeListOk --> magma.api.result.Result
 magma.app.compile.NodeListOk --> java.util.ArrayList
 magma.app.compile.NodeListOk --> java.util.List
 magma.app.compile.NodeListOk --> java.util.function.Supplier
 class magma.app.compile.NodeResult
-magma.app.compile.NodeResult --> magma.api.result.Result
-magma.app.compile.NodeResult --> java.util.List
 magma.app.compile.NodeResult --> java.util.function.Function
 class magma.Main
 magma.Main --> magma.api.Error
@@ -121,10 +120,7 @@ magma.app.compile.Compiler --> magma.api.result.Result
 magma.app.compile.Compiler --> magma.app.io.Source
 magma.app.compile.Compiler --> java.util.Map
 class magma.app.compile.NodeErr
-magma.app.compile.NodeErr --> magma.api.result.Err
-magma.app.compile.NodeErr --> magma.api.result.Result
 magma.app.compile.NodeErr --> magma.app.compile.rule.or.Accumulator
-magma.app.compile.NodeErr --> java.util.List
 magma.app.compile.NodeErr --> java.util.function.Function
 magma.app.compile.NodeErr --> java.util.function.Supplier
 class magma.app.io.Source
@@ -191,10 +187,7 @@ magma.app.compile.ResultFactoryImpl --> magma.app.compile.context.NodeContext
 magma.app.compile.ResultFactoryImpl --> magma.app.compile.context.StringContext
 magma.app.compile.ResultFactoryImpl --> java.util.List
 class magma.app.compile.NodeOk
-magma.app.compile.NodeOk --> magma.api.result.Ok
-magma.app.compile.NodeOk --> magma.api.result.Result
 magma.app.compile.NodeOk --> magma.app.compile.rule.or.Accumulator
-magma.app.compile.NodeOk --> java.util.List
 magma.app.compile.NodeOk --> java.util.function.Function
 magma.app.compile.NodeOk --> java.util.function.Supplier
 class magma.app.io.PathSources
