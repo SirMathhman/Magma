@@ -2,7 +2,7 @@ package magma;
 
 import magma.api.result.Ok;
 import magma.api.result.Result;
-import magma.app.compile.error.CompileError;
+import magma.app.compile.error.FormattedError;
 import magma.app.compile.node.MapNode;
 import magma.app.compile.node.Node;
 import magma.app.compile.rule.InfixRule;
@@ -32,7 +32,7 @@ public class Compiler {
                 .mapErr(ApplicationError::new);
     }
 
-    static Result<String, CompileError> compileRoot(String input, String source) {
+    static Result<String, FormattedError> compileRoot(String input, String source) {
         return createJavaRootRule().lex(input)
                 .mapValue(children -> transform(source, children))
                 .flatMapValue(createPlantRootRule()::generate);

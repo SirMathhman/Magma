@@ -4,17 +4,18 @@ import magma.api.result.Err;
 import magma.api.result.Result;
 import magma.app.compile.context.NodeContext;
 import magma.app.compile.error.CompileError;
+import magma.app.compile.error.FormattedError;
 import magma.app.compile.node.Node;
 
 public record TypeRule(String type, Rule rule) implements Rule {
     @Override
-    public Result<Node, CompileError> lex(String input) {
+    public Result<Node, FormattedError> lex(String input) {
         return this.rule.lex(input)
                 .mapValue(result -> result.retype(this.type));
     }
 
     @Override
-    public Result<String, CompileError> generate(Node node) {
+    public Result<String, FormattedError> generate(Node node) {
         if (node.is(this.type))
             return this.rule.generate(node);
         return new Err<>(new CompileError("Not of type '" + this.type + "'", new NodeContext(node)));

@@ -2,7 +2,7 @@ package magma.app.compile.rule.divide;
 
 import magma.api.result.Ok;
 import magma.api.result.Result;
-import magma.app.compile.error.CompileError;
+import magma.app.compile.error.FormattedError;
 import magma.app.compile.node.MapNode;
 import magma.app.compile.node.Node;
 import magma.app.compile.rule.Rule;
@@ -37,13 +37,13 @@ public record DivideRule(String key, Rule rule) implements Rule {
     }
 
     @Override
-    public Result<Node, CompileError> lex(String input) {
+    public Result<Node, FormattedError> lex(String input) {
         return divide(input).stream()
                 .reduce(new Ok<>(new ArrayList<>()), this::foldElement, (_, next) -> next)
                 .mapValue(children -> new MapNode().withNodeList(this.key(), children));
     }
 
-    private Result<List<Node>, CompileError> foldElement(Result<List<Node>, CompileError> maybeCurrent, String element) {
+    private Result<List<Node>, FormattedError> foldElement(Result<List<Node>, FormattedError> maybeCurrent, String element) {
         return maybeCurrent.flatMapValue(current -> DivideRule.this.rule.lex(element)
                 .mapValue(result -> {
                     current.add(result);
@@ -52,7 +52,7 @@ public record DivideRule(String key, Rule rule) implements Rule {
     }
 
     @Override
-    public Result<String, CompileError> generate(Node node) {
+    public Result<String, FormattedError> generate(Node node) {
         return node.findNodeList(this.key)
                 .orElse(new ArrayList<>())
                 .stream()
@@ -60,7 +60,7 @@ public record DivideRule(String key, Rule rule) implements Rule {
                 .mapValue(StringBuilder::toString);
     }
 
-    private Result<StringBuilder, CompileError> foldString(Result<StringBuilder, CompileError> maybeCurrent, Node element) {
+    private Result<StringBuilder, FormattedError> foldString(Result<StringBuilder, FormattedError> maybeCurrent, Node element) {
         return maybeCurrent.flatMapValue(current -> this.rule.generate(element)
                 .mapValue(current::append));
     }

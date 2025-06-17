@@ -4,11 +4,12 @@ import magma.api.result.Err;
 import magma.api.result.Result;
 import magma.app.compile.context.StringContext;
 import magma.app.compile.error.CompileError;
+import magma.app.compile.error.FormattedError;
 import magma.app.compile.node.Node;
 
 public record PrefixRule(String prefix, Rule rule) implements Rule {
     @Override
-    public Result<Node, CompileError> lex(String input) {
+    public Result<Node, FormattedError> lex(String input) {
         if (!input.startsWith(this.prefix))
             return new Err<>(new CompileError("Prefix '" + this.prefix + "' not present", new StringContext(input)));
 
@@ -18,7 +19,7 @@ public record PrefixRule(String prefix, Rule rule) implements Rule {
     }
 
     @Override
-    public Result<String, CompileError> generate(Node node) {
+    public Result<String, FormattedError> generate(Node node) {
         return this.rule.generate(node)
                 .mapValue(result -> this.prefix + result);
     }

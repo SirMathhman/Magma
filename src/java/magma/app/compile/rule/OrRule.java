@@ -7,6 +7,7 @@ import magma.app.compile.context.Context;
 import magma.app.compile.context.NodeContext;
 import magma.app.compile.context.StringContext;
 import magma.app.compile.error.CompileError;
+import magma.app.compile.error.FormattedError;
 import magma.app.compile.node.Node;
 
 import java.util.ArrayList;
@@ -15,7 +16,7 @@ import java.util.Optional;
 import java.util.function.Function;
 
 public record OrRule(List<Rule> rules) implements Rule {
-    private record State<T>(Optional<T> maybeValue, List<CompileError> errors) {
+    private record State<T>(Optional<T> maybeValue, List<FormattedError> errors) {
         public State() {
             this(Optional.empty(), new ArrayList<>());
         }
@@ -24,23 +25,23 @@ public record OrRule(List<Rule> rules) implements Rule {
             return new State<>(Optional.of(node), this.errors);
         }
 
-        public State<T> withError(CompileError error) {
+        public State<T> withError(FormattedError error) {
             this.errors.add(error);
             return this;
         }
 
-        public Result<T, CompileError> toResult(Context context) {
-            return this.maybeValue.<Result<T, CompileError>>map(Ok::new)
+        public Result<T, FormattedError> toResult(Context context) {
+            return this.maybeValue.<Result<T, FormattedError>>map(Ok::new)
                     .orElseGet(() -> new Err<>(new CompileError("No combination present", context)));
         }
     }
 
     @Override
-    public Result<Node, CompileError> lex(String input) {
+    public Result<Node, FormattedError> lex(String input) {
         return this.or(rule1 -> rule1.lex(input), new StringContext(input));
     }
 
-    private <Value> Result<Value, CompileError> or(Function<Rule, Result<Value, CompileError>> mapper, Context context) {
+    private <Value> Result<Value, FormattedError> or(Function<Rule, Result<Value, FormattedError>> mapper, Context context) {
         return this.rules.stream()
                 .reduce(new State<Value>(), (state, rule) -> mapper.apply(rule)
                         .match(state::withValue, state::withError), (_, next) -> next)
@@ -48,7 +49,7 @@ public record OrRule(List<Rule> rules) implements Rule {
     }
 
     @Override
-    public Result<String, CompileError> generate(Node node) {
+    public Result<String, FormattedError> generate(Node node) {
         return this.or(rule1 -> rule1.generate(node), new NodeContext(node));
     }
 }
