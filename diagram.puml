@@ -5,6 +5,8 @@ magma.app.compile.rule.divide.MutableDivideState --> java.util.ArrayList
 magma.app.compile.rule.divide.MutableDivideState --> java.util.List
 class magma.app.error.ApplicationError
 magma.app.error.ApplicationError --> magma.api.Error
+class magma.api.result.Matching
+magma.api.result.Matching --> java.util.function.Function
 class magma.app.compile.rule.divide.DivideState
 magma.app.compile.rule.divide.DivideState --> java.util.List
 class magma.app.compile.rule.SuffixRule
@@ -19,7 +21,6 @@ magma.app.compile.context.NodeContext --> magma.app.compile.node.DisplayNode
 class magma.app.compile.rule.StripRule
 class magma.app.compile.rule.or.MutableOrState
 magma.app.compile.rule.or.MutableOrState --> magma.api.result.Result
-magma.app.compile.rule.or.MutableOrState --> magma.app.compile.error.FormattedError
 magma.app.compile.rule.or.MutableOrState --> java.util.ArrayList
 magma.app.compile.rule.or.MutableOrState --> java.util.List
 magma.app.compile.rule.or.MutableOrState --> java.util.Optional
@@ -66,8 +67,8 @@ magma.app.compile.node.MapNode --> java.util.stream.Stream
 class magma.app.compile.error.FormattedError
 magma.app.compile.error.FormattedError --> magma.api.Error
 class magma.app.compile.rule.or.OrRule
+magma.app.compile.rule.or.OrRule --> magma.api.result.Matching
 magma.app.compile.rule.or.OrRule --> magma.api.result.Result
-magma.app.compile.rule.or.OrRule --> magma.app.compile.error.FormattedError
 magma.app.compile.rule.or.OrRule --> magma.app.compile.error.ResultFactory
 magma.app.compile.rule.or.OrRule --> magma.app.compile.node.DisplayNode
 magma.app.compile.rule.or.OrRule --> magma.app.compile.rule.Rule
@@ -115,7 +116,6 @@ magma.app.error.ThrowableError --> java.io.PrintWriter
 magma.app.error.ThrowableError --> java.io.StringWriter
 class magma.app.compile.rule.InfixRule
 magma.app.compile.rule.InfixRule --> magma.api.result.Result
-magma.app.compile.rule.InfixRule --> magma.app.compile.error.FormattedError
 magma.app.compile.rule.InfixRule --> magma.app.compile.error.ResultFactory
 magma.app.compile.rule.InfixRule --> magma.app.compile.node.MergingNode
 magma.app.compile.rule.InfixRule --> java.util.Objects
@@ -137,7 +137,6 @@ magma.app.compile.rule.divide.DivideRule --> java.util.ArrayList
 magma.app.compile.rule.divide.DivideRule --> java.util.List
 class magma.app.compile.rule.PrefixRule
 magma.app.compile.rule.PrefixRule --> magma.api.result.Result
-magma.app.compile.rule.PrefixRule --> magma.app.compile.error.FormattedError
 magma.app.compile.rule.PrefixRule --> magma.app.compile.error.ResultFactory
 class magma.app.io.PathSource
 magma.app.io.PathSource --> java.nio.file.Path

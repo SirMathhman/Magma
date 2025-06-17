@@ -1,19 +1,18 @@
 package magma.app.compile.rule;
 
 import magma.api.result.Result;
-import magma.app.compile.error.FormattedError;
 import magma.app.compile.error.ResultFactory;
 import magma.app.compile.node.MergingNode;
 
 import java.util.Objects;
 
-public final class InfixRule<Node extends MergingNode<Node>> implements Rule<Node, Result<Node, FormattedError>, Result<String, FormattedError>> {
-    private final Rule<Node, Result<Node, FormattedError>, Result<String, FormattedError>> leftRule;
+public final class InfixRule<Node extends MergingNode<Node>, Error> implements Rule<Node, Result<Node, Error>, Result<String, Error>> {
+    private final Rule<Node, Result<Node, Error>, Result<String, Error>> leftRule;
     private final String infix;
-    private final Rule<Node, Result<Node, FormattedError>, Result<String, FormattedError>> rightRule;
-    private final ResultFactory<Node, Result<Node, FormattedError>, Result<String, FormattedError>> factory;
+    private final Rule<Node, Result<Node, Error>, Result<String, Error>> rightRule;
+    private final ResultFactory<Node, Result<Node, Error>, Result<String, Error>> factory;
 
-    public InfixRule(Rule<Node, Result<Node, FormattedError>, Result<String, FormattedError>> leftRule, String infix, Rule<Node, Result<Node, FormattedError>, Result<String, FormattedError>> rightRule, ResultFactory<Node, Result<Node, FormattedError>, Result<String, FormattedError>> factory) {
+    public InfixRule(Rule<Node, Result<Node, Error>, Result<String, Error>> leftRule, String infix, Rule<Node, Result<Node, Error>, Result<String, Error>> rightRule, ResultFactory<Node, Result<Node, Error>, Result<String, Error>> factory) {
         this.leftRule = leftRule;
         this.infix = infix;
         this.rightRule = rightRule;
@@ -21,7 +20,7 @@ public final class InfixRule<Node extends MergingNode<Node>> implements Rule<Nod
     }
 
     @Override
-    public Result<Node, FormattedError> lex(String input) {
+    public Result<Node, Error> lex(String input) {
         final var index = input.indexOf(this.infix);
         if (index == -1)
             return this.factory.fromStringErr("Infix '" + this.infix + "' not present", input);
@@ -34,13 +33,13 @@ public final class InfixRule<Node extends MergingNode<Node>> implements Rule<Nod
     }
 
     @Override
-    public Result<String, FormattedError> generate(Node node) {
+    public Result<String, Error> generate(Node node) {
         return this.leftRule.generate(node)
                 .flatMapValue(leftResult -> this.rightRule.generate(node)
                         .mapValue(rightResult -> leftResult + this.infix + rightResult));
     }
 
-    public Rule<Node, Result<Node, FormattedError>, Result<String, FormattedError>> leftRule() {
+    public Rule<Node, Result<Node, Error>, Result<String, Error>> leftRule() {
         return this.leftRule;
     }
 
@@ -48,7 +47,7 @@ public final class InfixRule<Node extends MergingNode<Node>> implements Rule<Nod
         return this.infix;
     }
 
-    public Rule<Node, Result<Node, FormattedError>, Result<String, FormattedError>> rightRule() {
+    public Rule<Node, Result<Node, Error>, Result<String, Error>> rightRule() {
         return this.rightRule;
     }
 
