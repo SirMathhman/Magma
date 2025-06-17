@@ -1,36 +1,42 @@
 package magma.app.compile.rule.or;
 
-import magma.api.result.Err;
-import magma.api.result.Ok;
 import magma.api.result.Result;
 import magma.app.compile.context.Context;
-import magma.app.compile.error.CompileError;
-import magma.app.compile.error.FormattedError;
+import magma.app.compile.result.ResultFactory;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-record MutableOrState<T>(Optional<T> maybeValue,
-                         List<FormattedError> errors) implements OrState<T, FormattedError, Result<T, FormattedError>> {
-    public MutableOrState() {
-        this(Optional.empty(), new ArrayList<>());
+final class MutableOrState<Value, Error> implements OrState<Value, Error, Result<Value, Error>> {
+    private final Optional<Value> maybeValue;
+    private final List<Error> errors;
+    private final ResultFactory<Value, Error> factory;
+
+    MutableOrState(Optional<Value> maybeValue, List<Error> errors, ResultFactory<Value, Error> factory) {
+        this.maybeValue = maybeValue;
+        this.errors = errors;
+        this.factory = factory;
+    }
+
+    public MutableOrState(ResultFactory<Value, Error> factory) {
+        this(Optional.empty(), new ArrayList<>(), factory);
     }
 
     @Override
-    public OrState<T, FormattedError, Result<T, FormattedError>> withValue(T node) {
-        return new MutableOrState<>(Optional.of(node), this.errors);
+    public OrState<Value, Error, Result<Value, Error>> withValue(Value node) {
+        return new MutableOrState<>(Optional.of(node), this.errors, this.factory);
     }
 
     @Override
-    public OrState<T, FormattedError, Result<T, FormattedError>> withError(FormattedError error) {
+    public OrState<Value, Error, Result<Value, Error>> withError(Error error) {
         this.errors.add(error);
         return this;
     }
 
     @Override
-    public Result<T, FormattedError> toResult(Context context) {
-        return this.maybeValue.<Result<T, FormattedError>>map(Ok::new)
-                .orElseGet(() -> new Err<>(new CompileError("No combination present", context)));
+    public Result<Value, Error> toResult(Context context) {
+        return this.maybeValue.map(this.factory::fromValue)
+                .orElseGet(() -> this.factory.fromError(context));
     }
 }
