@@ -6,7 +6,6 @@ import magma.app.compile.context.NodeContext;
 import magma.app.compile.context.StringContext;
 import magma.app.compile.error.FormattedError;
 import magma.app.compile.node.DisplayNode;
-import magma.app.compile.result.SimpleResultFactory;
 import magma.app.compile.rule.Rule;
 
 import java.util.List;
@@ -21,7 +20,7 @@ public record OrRule<Node extends DisplayNode>(
 
     private <Value> Result<Value, FormattedError> or(Function<Rule<Node, Result<Node, FormattedError>, Result<String, FormattedError>>, Result<Value, FormattedError>> mapper, Context context) {
         return this.rules.stream()
-                .<OrState<Value, FormattedError, Result<Value, FormattedError>>>reduce(new MutableOrState<>(new SimpleResultFactory<>()),
+                .<OrState<Value, FormattedError, Result<Value, FormattedError>>>reduce(new MutableOrState<>(),
                         (state, rule) -> mapper.apply(rule)
                                 .match(state::withValue, state::withError),
                         (_, next) -> next)
