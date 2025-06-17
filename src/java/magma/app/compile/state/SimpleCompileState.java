@@ -1,4 +1,4 @@
-package magma.app;
+package magma.app.compile.state;
 
 import magma.app.io.location.Location;
 

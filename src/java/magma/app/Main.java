@@ -4,12 +4,14 @@ import magma.api.Tuple;
 import magma.api.result.Err;
 import magma.api.result.Ok;
 import magma.api.result.Result;
+import magma.app.compile.divide.DivideState;
+import magma.app.compile.divide.MutableDivideState;
+import magma.app.compile.state.CompileState;
+import magma.app.compile.state.SimpleCompileState;
 import magma.app.io.location.SimpleLocation;
 import magma.app.io.source.PathSource;
 import magma.app.io.source.Source;
 import magma.app.io.source.Sources;
-import magma.app.state.MutableState;
-import magma.app.state.State;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -151,7 +153,7 @@ public class Main {
     }
 
     private static List<String> divide(CharSequence input) {
-        State current = new MutableState();
+        DivideState current = new MutableDivideState();
         for (var i = 0; i < input.length(); i++) {
             final var c = input.charAt(i);
             current = fold(current, c);
@@ -161,7 +163,7 @@ public class Main {
                 .unwrap();
     }
 
-    private static State fold(State state, char c) {
+    private static DivideState fold(DivideState state, char c) {
         final var appended = state.append(c);
         if (c == ';' && appended.isLevel())
             return appended.advance();
