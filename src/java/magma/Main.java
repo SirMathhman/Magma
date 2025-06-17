@@ -13,20 +13,16 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 public class Main {
     public static void main(String[] args) {
-        final var sourceDirectory = Paths.get(".", "src", "java");
-        try (final var stream = Files.walk(sourceDirectory)) {
-            final var sources = stream.filter(Files::isRegularFile)
-                    .filter(path -> path.toString()
-                            .endsWith(".java"))
-                    .collect(Collectors.toSet());
-
+        try {
+            final var sources = collect();
             final var builder = new StringBuilder();
             for (var source : sources)
-                builder.append(compileSource(new Source(sourceDirectory, source)));
+                builder.append(compileSource(source));
 
             final var path = Paths.get(".", "diagram.puml");
             Files.writeString(path, "@startuml\nskinparam linetype ortho\n" + builder + "@enduml");
@@ -36,16 +32,27 @@ public class Main {
         }
     }
 
+    private static Set<Source> collect() throws IOException {
+        final var sourceDirectory = Paths.get(".", "src", "java");
+        try (final var stream = Files.walk(sourceDirectory)) {
+            return stream.filter(Files::isRegularFile)
+                    .filter(path -> path.toString()
+                            .endsWith(".java"))
+                    .map(source -> new Source(sourceDirectory, source))
+                    .collect(Collectors.toSet());
+        }
+    }
+
     private static StringBuilder compileSource(Source source) throws IOException {
         final var location = source.computeLocation();
-        final var input = Files.readString(source.source());
+        final var input = source.readString();
         return compile(input, location);
     }
 
     private static StringBuilder compile(CharSequence input, Location location) {
         final var segments = divide(input);
 
-        final var imports = new HashMap<String, String>();
+        final Map<String, String> imports = new HashMap<>();
         final var output = new StringBuilder();
         for (var segment : segments)
             compileRootSegment(segment, imports, location).ifPresent(obj -> {
