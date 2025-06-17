@@ -16,12 +16,8 @@ magma.app.Application --> java.util.HashMap
 magma.app.Application --> java.util.Map
 class magma.app.Application
 magma.app.compile.CompilerImpl --> jvm.list.JVMLists
-magma.app.compile.CompilerImpl --> magma.api.Tuple
 magma.app.compile.CompilerImpl --> magma.api.list.Sequence
-magma.app.compile.CompilerImpl --> magma.api.option.Option
-magma.app.compile.CompilerImpl --> magma.api.option.Options
-magma.app.compile.CompilerImpl --> magma.app.compile.divide.DivideState
-magma.app.compile.CompilerImpl --> magma.app.compile.divide.MutableDivideState
+magma.app.compile.CompilerImpl --> magma.app.compile.divide.Divider
 magma.app.compile.CompilerImpl --> magma.app.compile.state.CompileState
 magma.app.compile.CompilerImpl --> magma.app.compile.state.SimpleCompileState
 magma.app.compile.CompilerImpl --> magma.app.io.location.SimpleLocation
@@ -30,9 +26,15 @@ magma.app.compile.CompilerImpl --> java.util.Map
 class magma.app.compile.CompilerImpl
 magma.app.compile.CompilerImpl --|> magma.app.compile.Compiler
 interface magma.api.io.IOError
+magma.app.compile.CompileResult --> magma.api.Tuple2
+magma.app.compile.CompileResult --> magma.api.option.Option
+magma.app.compile.CompileResult --> magma.app.compile.state.CompileState
+magma.app.compile.CompileResult --> java.util.function.Supplier
+interface magma.app.compile.CompileResult
 magma.app.compile.state.CompileState --> magma.api.option.Option
 magma.app.compile.state.CompileState --> magma.app.io.location.Location
 interface magma.app.compile.state.CompileState
+interface magma.api.Tuple2
 magma.app.io.target.Targets --> magma.api.io.IOOption
 interface magma.app.io.target.Targets
 jvm.io.JVMIOError --> magma.api.io.IOError
@@ -67,6 +69,14 @@ magma.app.compile.state.SimpleCompileState --> magma.api.option.Options
 magma.app.compile.state.SimpleCompileState --> magma.app.io.location.Location
 class magma.app.compile.state.SimpleCompileState
 magma.app.compile.state.SimpleCompileState --|> magma.app.compile.state.CompileState
+magma.app.compile.SimpleCompileResult --> magma.api.Tuple2
+magma.app.compile.SimpleCompileResult --> magma.api.Tuple2Impl
+magma.app.compile.SimpleCompileResult --> magma.api.option.Option
+magma.app.compile.SimpleCompileResult --> magma.api.option.Options
+magma.app.compile.SimpleCompileResult --> magma.app.compile.state.CompileState
+magma.app.compile.SimpleCompileResult --> java.util.function.Supplier
+class magma.app.compile.SimpleCompileResult
+magma.app.compile.SimpleCompileResult --|> magma.app.compile.CompileResult
 magma.Main --> jvm.io.JVMPaths
 magma.Main --> magma.app.Application
 magma.Main --> magma.app.compile.CompilerImpl
@@ -131,8 +141,9 @@ magma.api.io.SimpleIOOption --> magma.api.option.Option
 magma.api.io.SimpleIOOption --> magma.api.option.Options
 class magma.api.io.SimpleIOOption
 magma.api.io.SimpleIOOption --|> magma.api.io.IOOption
-class magma.api.Tuple
 class magma.api.option.Options
+class magma.api.Tuple2Impl
+magma.api.Tuple2Impl --|> magma.api.Tuple2
 jvm.list.JVMLists --> magma.api.list.ListLike
 jvm.list.JVMLists --> magma.api.list.Sequence
 jvm.list.JVMLists --> java.util.Arrays
@@ -140,6 +151,8 @@ class jvm.list.JVMLists
 magma.app.compile.divide.DivideState --> magma.api.list.Sequence
 interface magma.app.compile.divide.DivideState
 interface magma.api.list.ListLike
+magma.app.compile.divide.Divider --> magma.api.list.Sequence
+class magma.app.compile.divide.Divider
 magma.api.option.Some --> java.util.function.Consumer
 magma.api.option.Some --> java.util.function.Supplier
 class magma.api.option.Some

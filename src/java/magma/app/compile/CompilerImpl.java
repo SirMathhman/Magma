@@ -1,12 +1,8 @@
 package magma.app.compile;
 
 import jvm.list.JVMLists;
-import magma.api.Tuple;
 import magma.api.list.Sequence;
-import magma.api.option.Option;
-import magma.api.option.Options;
-import magma.app.compile.divide.DivideState;
-import magma.app.compile.divide.MutableDivideState;
+import magma.app.compile.divide.Divider;
 import magma.app.compile.state.CompileState;
 import magma.app.compile.state.SimpleCompileState;
 import magma.app.io.location.SimpleLocation;
@@ -16,10 +12,11 @@ import java.util.Map;
 
 public class CompilerImpl implements Compiler {
     private static String compile(CompileState state, CharSequence input) {
-        final var segments = divide(input);
+        final var segments = Divider.divide(input);
 
         var current = state;
         final var output = new StringBuilder();
+
         for (var i = 0; i < segments.size(); i++) {
             final var segment = segments.get(i);
             final var maybeCompiled = compileRootSegment(segment, current);
@@ -32,7 +29,7 @@ public class CompilerImpl implements Compiler {
         return output.toString();
     }
 
-    private static Option<Tuple<CompileState, String>> compileRootSegment(String input, CompileState state) {
+    private static CompileResult compileRootSegment(String input, CompileState state) {
         final var strip = input.strip();
         if (strip.startsWith("import ")) {
             final var withoutStart = strip.substring("import ".length());
@@ -41,8 +38,8 @@ public class CompilerImpl implements Compiler {
                 final var separator = withoutEnd.lastIndexOf(".");
                 final var parent = withoutEnd.substring(0, separator);
                 final var child = withoutEnd.substring(separator + ".".length());
-                return Options.of(new Tuple<>(state.addImport(new SimpleLocation(parent, child)),
-                        state.joinLocation() + " --> " + withoutEnd + "\n"));
+                return SimpleCompileResult.fromValues(state.addImport(new SimpleLocation(parent, child)),
+                        state.joinLocation() + " --> " + withoutEnd + "\n");
             }
         }
 
@@ -58,19 +55,19 @@ public class CompilerImpl implements Compiler {
                 return maybeStructure;
         }
 
-        return Options.empty();
+        return SimpleCompileResult.fromEmpty();
     }
 
-    private static Option<Tuple<CompileState, String>> compileStructureDefinition(String type, String type1, String input, CompileState state) {
+    private static CompileResult compileStructureDefinition(String type, String type1, String input, CompileState state) {
         final var index = input.indexOf(type + " ");
         if (index >= 0) {
             final var afterKeyword = input.substring((type + " ").length() + index);
             return compileStructureDefinitionTruncated(type1, afterKeyword, state);
         }
-        return Options.empty();
+        return SimpleCompileResult.fromEmpty();
     }
 
-    private static Option<Tuple<CompileState, String>> compileStructureDefinitionTruncated(String type, String afterKeyword, CompileState state) {
+    private static CompileResult compileStructureDefinitionTruncated(String type, String afterKeyword, CompileState state) {
         final var index = afterKeyword.indexOf("implements ");
         if (index >= 0) {
             final var childName = afterKeyword.substring(index + "implements ".length())
@@ -87,7 +84,7 @@ public class CompilerImpl implements Compiler {
             return generate(type, state, JVMLists.empty());
     }
 
-    private static Option<Tuple<CompileState, String>> generate(String type, CompileState state, Sequence<String> superTypes) {
+    private static CompileResult generate(String type, CompileState state, Sequence<String> superTypes) {
         final var buffer = new StringBuilder();
         for (var i = 0; i < superTypes.size(); i++) {
             final var superType = superTypes.get(i);
@@ -98,31 +95,7 @@ public class CompilerImpl implements Compiler {
         }
 
         final var generated = type + " " + state.joinLocation() + "\n" + buffer;
-        return Options.of(new Tuple<>(state, generated));
-    }
-
-    private static Sequence<String> divide(CharSequence input) {
-        DivideState current = new MutableDivideState();
-        for (var i = 0; i < input.length(); i++) {
-            final var c = input.charAt(i);
-            current = fold(current, c);
-        }
-
-        return current.advance()
-                .unwrap();
-    }
-
-    private static DivideState fold(DivideState state, char c) {
-        final var appended = state.append(c);
-        if (c == ';' && appended.isLevel())
-            return appended.advance();
-        else {
-            if (c == '{')
-                return appended.enter();
-            if (c == '}')
-                return appended.exit();
-        }
-        return appended;
+        return SimpleCompileResult.fromValues(state, generated);
     }
 
     @Override
