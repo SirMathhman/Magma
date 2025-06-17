@@ -1,22 +1,21 @@
 package magma.app.compile.rule;
 
 import magma.api.result.Result;
-import magma.app.compile.error.FormattedError;
 import magma.app.compile.error.ResultFactory;
 
-public final class SuffixRule<Node> implements Rule<Node, Result<Node, FormattedError>, Result<String, FormattedError>> {
-    private final Rule<Node, Result<Node, FormattedError>, Result<String, FormattedError>> rule;
+public final class SuffixRule<Node, Error, NodeResult> implements Rule<Node, NodeResult, Result<String, Error>> {
+    private final Rule<Node, NodeResult, Result<String, Error>> rule;
     private final String suffix;
-    private final ResultFactory<Node, Result<Node, FormattedError>, Result<String, FormattedError>> factory;
+    private final ResultFactory<Node, NodeResult, Result<String, Error>> factory;
 
-    public SuffixRule(Rule<Node, Result<Node, FormattedError>, Result<String, FormattedError>> rule, String suffix, ResultFactory<Node, Result<Node, FormattedError>, Result<String, FormattedError>> factory) {
+    public SuffixRule(Rule<Node, NodeResult, Result<String, Error>> rule, String suffix, ResultFactory<Node, NodeResult, Result<String, Error>> factory) {
         this.rule = rule;
         this.suffix = suffix;
         this.factory = factory;
     }
 
     @Override
-    public Result<Node, FormattedError> lex(String input) {
+    public NodeResult lex(String input) {
         if (!input.endsWith(this.suffix))
             return this.factory.fromStringErr("Suffix '" + this.suffix + "' not present", input);
 
@@ -25,7 +24,7 @@ public final class SuffixRule<Node> implements Rule<Node, Result<Node, Formatted
     }
 
     @Override
-    public Result<String, FormattedError> generate(Node node) {
+    public Result<String, Error> generate(Node node) {
         return this.rule.generate(node)
                 .mapValue(result -> result + this.suffix);
     }
