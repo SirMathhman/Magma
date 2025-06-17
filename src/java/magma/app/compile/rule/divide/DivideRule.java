@@ -7,18 +7,26 @@ import magma.app.compile.error.FormattedError;
 import magma.app.compile.error.NodeErr;
 import magma.app.compile.error.NodeOk;
 import magma.app.compile.error.NodeResult;
-import magma.app.compile.error.StringErr;
 import magma.app.compile.error.StringOk;
 import magma.app.compile.error.StringResult;
-import magma.app.compile.node.MapNode;
 import magma.app.compile.node.Node;
+import magma.app.compile.rule.NodeFactory;
 import magma.app.compile.rule.Rule;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public record DivideRule(String key,
-                         Rule<Node, NodeResult<Node>, StringResult> rule) implements Rule<Node, NodeResult<Node>, StringResult> {
+public final class DivideRule implements Rule<Node, NodeResult<Node>, StringResult> {
+    private final String key;
+    private final Rule<Node, NodeResult<Node>, StringResult> rule;
+    private final NodeFactory<Node> factory;
+
+    public DivideRule(String key, Rule<Node, NodeResult<Node>, StringResult> rule, NodeFactory<Node> factory) {
+        this.key = key;
+        this.rule = rule;
+        this.factory = factory;
+    }
+
     private static List<String> divide(CharSequence input) {
         DivideState current = new MutableDivideState();
         for (var i = 0; i < input.length(); i++) {
@@ -52,58 +60,28 @@ public record DivideRule(String key,
             case Err<List<Node>, FormattedError>(FormattedError error) -> new NodeErr(error);
             case Ok<List<Node>, FormattedError>(
                     List<Node> value
-            ) -> new NodeOk(new MapNode().withNodeList(this.key(), value));
+            ) -> new NodeOk(this.factory.create()
+                    .withNodeList(this.key, value));
         };
     }
 
     private Result<List<Node>, FormattedError> foldElement(Result<List<Node>, FormattedError> maybeCurrent, String element) {
         return switch (maybeCurrent) {
             case Err<List<Node>, FormattedError>(FormattedError error1) -> new Err<>(error1);
-            case Ok<List<Node>, FormattedError>(
-                    List<Node> value1
-            ) -> {
-                NodeResult<Node> nodeFormattedErrorResult = this.rule.lex(element);
-                yield this.getListFormattedErrorResult(value1, nodeFormattedErrorResult);
-            }
+            case Ok<List<Node>, FormattedError>(List<Node> value1) -> this.rule.lex(element)
+                    .appendTo(value1);
         };
-    }
-
-    private Result<List<Node>, FormattedError> getListFormattedErrorResult(List<Node> value1, NodeResult<Node> nodeFormattedErrorResult) {
-        return nodeFormattedErrorResult.appendTo(value1);
     }
 
     @Override
     public StringResult generate(Node node) {
-        Result<StringBuilder, FormattedError> stringBuilderFormattedErrorResult = node.findNodeList(this.key)
+        return node.findNodeList(this.key)
                 .orElse(new ArrayList<>())
                 .stream()
-                .reduce(new Ok<>(new StringBuilder()), this::foldString, (_, next) -> next);
-        return switch (stringBuilderFormattedErrorResult) {
-            case Err<StringBuilder, FormattedError>(FormattedError error) -> new StringErr(error);
-            case Ok<StringBuilder, FormattedError>(
-                    StringBuilder value
-            ) -> new StringOk(value.toString());
-        };
+                .reduce(new StringOk(), this::foldString, (_, next) -> next);
     }
 
-    private Result<StringBuilder, FormattedError> foldString(Result<StringBuilder, FormattedError> maybeCurrent, Node element) {
-        return switch (maybeCurrent) {
-            case Err<StringBuilder, FormattedError>(FormattedError error1) -> new Err<>(error1);
-            case Ok<StringBuilder, FormattedError>(
-                    StringBuilder value1
-            ) -> {
-                StringResult stringFormattedErrorResult = this.rule.generate(element);
-                yield this.getStringBuilderFormattedErrorResult(value1, stringFormattedErrorResult);
-            }
-        };
-    }
-
-    private Result<StringBuilder, FormattedError> getStringBuilderFormattedErrorResult(StringBuilder value1, StringResult stringFormattedErrorResult) {
-        return switch (stringFormattedErrorResult) {
-            case StringErr(FormattedError error) -> new Err<>(error);
-            case StringOk(
-                    String value
-            ) -> new Ok<>(value1.append(value));
-        };
+    private StringResult foldString(StringResult maybeCurrent, Node element) {
+        return maybeCurrent.appendResult(() -> this.rule.generate(element));
     }
 }

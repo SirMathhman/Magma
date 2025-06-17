@@ -23,8 +23,8 @@ public class Lang {
                 new OrRule<>(List.of(createNamespacedRule("package"),
                         new TypeRule<>("import", createNamespacedRule("import"), ResultFactoryImpl.create()),
                         createStructureRule("class"),
-                        createStructureRule("interface"),
-                        createStructureRule("record")), ResultFactoryImpl.create()));
+                        createStructureRule("interface"), createStructureRule("record")), ResultFactoryImpl.create()),
+                new MapNodeFactory());
     }
 
     static Rule<Node, NodeResult<Node>, StringResult> createStructureRule(String type) {
@@ -35,7 +35,9 @@ public class Lang {
     }
 
     public static Rule<Node, NodeResult<Node>, StringResult> createPlantRootRule() {
-        return new DivideRule("children", new OrRule<>(List.of(createDependencyRule()), ResultFactoryImpl.create()));
+        return new DivideRule("children",
+                new OrRule<>(List.of(createDependencyRule()), ResultFactoryImpl.create()),
+                new MapNodeFactory());
     }
 
     static Rule<Node, NodeResult<Node>, StringResult> createNamespacedRule(String type) {
