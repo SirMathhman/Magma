@@ -19,13 +19,16 @@ magma.app.io.Sources --> magma.app.error.ApplicationError
 magma.app.io.Sources --> java.util.Map
 class magma.app.compile.context.NodeContext
 magma.app.compile.context.NodeContext --> magma.app.compile.node.DisplayNode
+class magma.app.compile.error.CompileErrors
+magma.app.compile.error.CompileErrors --> magma.api.result.Err
+magma.app.compile.error.CompileErrors --> magma.api.result.Ok
+magma.app.compile.error.CompileErrors --> magma.api.result.Result
+magma.app.compile.error.CompileErrors --> magma.app.compile.context.NodeContext
+magma.app.compile.error.CompileErrors --> magma.app.compile.context.StringContext
+magma.app.compile.error.CompileErrors --> magma.app.compile.node.DisplayNode
 class magma.app.compile.rule.StripRule
 class magma.app.compile.rule.or.MutableOrState
-magma.app.compile.rule.or.MutableOrState --> magma.api.result.Err
-magma.app.compile.rule.or.MutableOrState --> magma.api.result.Ok
 magma.app.compile.rule.or.MutableOrState --> magma.api.result.Result
-magma.app.compile.rule.or.MutableOrState --> magma.app.compile.context.Context
-magma.app.compile.rule.or.MutableOrState --> magma.app.compile.error.CompileError
 magma.app.compile.rule.or.MutableOrState --> magma.app.compile.error.FormattedError
 magma.app.compile.rule.or.MutableOrState --> java.util.ArrayList
 magma.app.compile.rule.or.MutableOrState --> java.util.List
@@ -76,20 +79,19 @@ class magma.app.compile.error.FormattedError
 magma.app.compile.error.FormattedError --> magma.api.Error
 class magma.app.compile.rule.or.OrRule
 magma.app.compile.rule.or.OrRule --> magma.api.result.Result
-magma.app.compile.rule.or.OrRule --> magma.app.compile.context.Context
-magma.app.compile.rule.or.OrRule --> magma.app.compile.context.NodeContext
-magma.app.compile.rule.or.OrRule --> magma.app.compile.context.StringContext
+magma.app.compile.rule.or.OrRule --> magma.app.compile.error.CompileErrors
 magma.app.compile.rule.or.OrRule --> magma.app.compile.error.FormattedError
 magma.app.compile.rule.or.OrRule --> magma.app.compile.node.DisplayNode
 magma.app.compile.rule.or.OrRule --> magma.app.compile.rule.Rule
 magma.app.compile.rule.or.OrRule --> java.util.List
 magma.app.compile.rule.or.OrRule --> java.util.function.Function
+magma.app.compile.rule.or.OrRule --> java.util.function.Supplier
 class magma.app.compile.rule.Rule
 class magma.api.result.Result
 magma.api.result.Result --> java.util.function.Function
 class magma.app.compile.node.DisplayNode
 class magma.app.compile.rule.or.OrState
-magma.app.compile.rule.or.OrState --> magma.app.compile.context.Context
+magma.app.compile.rule.or.OrState --> java.util.Optional
 class magma.api.result.Ok
 magma.api.result.Ok --> java.util.function.Function
 class magma.app.compile.Lang
