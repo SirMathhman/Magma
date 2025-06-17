@@ -26,7 +26,7 @@ public record StringOk<Error>(String value) implements StringResult<Error> {
     }
 
     @Override
-    public Accumulator<String, Error, Iterable<Error>> attachToState(Accumulator<String, Error, Iterable<Error>> state) {
+    public Accumulator<String, Error, Iterable<Error>> attachToAccumulator(Accumulator<String, Error, Iterable<Error>> state) {
         return state.withValue(this.value);
     }
 

@@ -21,7 +21,7 @@ public record StringErr<Error>(Error error) implements StringResult<Error> {
     }
 
     @Override
-    public Accumulator<String, Error, Iterable<Error>> attachToState(Accumulator<String, Error, Iterable<Error>> state) {
+    public Accumulator<String, Error, Iterable<Error>> attachToAccumulator(Accumulator<String, Error, Iterable<Error>> state) {
         return state.withError(this.error());
     }
 

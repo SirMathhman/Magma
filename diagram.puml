@@ -109,7 +109,6 @@ magma.app.compile.Compiler --> magma.api.result.Result
 magma.app.compile.Compiler --> magma.app.io.Source
 magma.app.compile.Compiler --> java.util.Map
 class magma.app.compile.Accumulator
-magma.app.compile.Accumulator --> magma.api.collect.iter.Iterable
 magma.app.compile.Accumulator --> java.util.function.Function
 class magma.app.compile.InfixRule
 class magma.app.compile.NodeErr

@@ -24,7 +24,7 @@ public record NodeOk<Node extends MergeNode<Node> & TypeNode<Node>, Error>(
     }
 
     @Override
-    public Accumulator<Node, Error, Iterable<Error>> attachToState(Accumulator<Node, Error, Iterable<Error>> state) {
+    public Accumulator<Node, Error, Iterable<Error>> attachToAccumulator(Accumulator<Node, Error, Iterable<Error>> state) {
         return state.withValue(this.node());
     }
 

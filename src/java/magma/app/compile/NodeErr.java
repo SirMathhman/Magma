@@ -22,7 +22,7 @@ public record NodeErr<Node, Error>(Error error) implements NodeResult<Node, Erro
     }
 
     @Override
-    public Accumulator<Node, Error, Iterable<Error>> attachToState(Accumulator<Node, Error, Iterable<Error>> state) {
+    public Accumulator<Node, Error, Iterable<Error>> attachToAccumulator(Accumulator<Node, Error, Iterable<Error>> state) {
         return state.withError(this.error);
     }
 

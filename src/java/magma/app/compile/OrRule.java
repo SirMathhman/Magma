@@ -4,7 +4,7 @@ import magma.api.collect.iter.Iterable;
 
 import java.util.function.Function;
 
-public final class OrRule<Node, Error, NodeResult extends AttachableToStateResult<Node, Error, Iterable<Error>>, StringResult extends AttachableToStateResult<String, Error, Iterable<Error>>> implements Rule<Node, NodeResult, StringResult> {
+public final class OrRule<Node, Error, NodeResult extends AttachableToStateResult<Accumulator<Node, Error, Iterable<Error>>>, StringResult extends AttachableToStateResult<Accumulator<String, Error, Iterable<Error>>>> implements Rule<Node, NodeResult, StringResult> {
     private final Iterable<Rule<Node, NodeResult, StringResult>> rules;
     private final ResultFactory<Node, Error, NodeResult, StringResult> factory;
 
@@ -20,11 +20,11 @@ public final class OrRule<Node, Error, NodeResult extends AttachableToStateResul
                 errors -> this.factory.fromStringErrWithChildren("No combination present", input, errors));
     }
 
-    private <Value, Result extends AttachableToStateResult<Value, Error, Iterable<Error>>> Result or(Function<Rule<Node, NodeResult, StringResult>, Result> mapper, Function<Value, Result> whenOk, Function<Iterable<Error>, Result> whenErr) {
+    private <Value, Result extends AttachableToStateResult<Accumulator<Value, Error, Iterable<Error>>>> Result or(Function<Rule<Node, NodeResult, StringResult>, Result> mapper, Function<Value, Result> whenOk, Function<Iterable<Error>, Result> whenErr) {
         final var reduce = this.rules.iter()
                 .<Accumulator<Value, Error, Iterable<Error>>>fold(new MutableAccumulator<>(),
                         (state, rule) -> mapper.apply(rule)
-                                .attachToState(state));
+                                .attachToAccumulator(state));
         return reduce.match(whenOk, whenErr);
     }
 
