@@ -4,7 +4,7 @@ import magma.app.node.Node;
 
 import java.util.Optional;
 
-public record SuffixRule(LastRule rule, String suffix) implements Rule {
+public record SuffixRule(Rule rule, String suffix) implements Rule {
     @Override
     public Optional<String> generate(Node node) {
         return this.rule.generate(node)

@@ -7,6 +7,7 @@ import magma.app.Rule;
 import magma.app.State;
 import magma.app.StringRule;
 import magma.app.SuffixRule;
+import magma.app.node.MapNode;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -113,8 +114,13 @@ public class Main {
         final var classIndex = input.indexOf(type + " ");
         if (classIndex >= 0) {
             final var slice = input.substring(classIndex);
-            return Optional.of(slice + "\n");
+            final var node = new MapNode().withString("value", slice);
+            return createPlantUMLClassRule().generate(node);
         }
         return Optional.empty();
+    }
+
+    private static Rule createPlantUMLClassRule() {
+        return new SuffixRule(new StringRule("value"), "\n");
     }
 }
