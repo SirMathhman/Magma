@@ -3,10 +3,10 @@ package magma.app.compile.lang;
 import magma.api.collect.list.Lists;
 import magma.app.compile.node.MapNodeFactory;
 import magma.app.compile.node.NodeWithEverything;
+import magma.app.compile.rule.ExtractRule;
 import magma.app.compile.rule.LocateRule;
 import magma.app.compile.rule.ModifyRule;
 import magma.app.compile.rule.NodeListRule;
-import magma.app.compile.rule.NodeRule;
 import magma.app.compile.rule.OrRule;
 import magma.app.compile.rule.Rule;
 import magma.app.compile.rule.StringRule;
@@ -47,7 +47,7 @@ public class JavaLang {
                 new StringRule<>("params", new MapNodeFactory())), withTypeParams));
         final Rule<NodeWithEverything> afterType = new OrRule<>(Lists.of(LocateRule.Last(withParams,
                 " implements ",
-                new NodeRule<>("supertype", createTypeRule(), new MapNodeFactory())), withParams));
+                ExtractRule.Node("supertype", createTypeRule(), new MapNodeFactory())), withParams));
 
         return new TypeRule<>(type, LocateRule.First(beforeType, type + " ", afterType));
     }

@@ -6,11 +6,11 @@ PlantLang --> MapNodeFactory
 
 PlantLang --> NodeWithEverything
 
-PlantLang --> NodeListRule
-
 PlantLang --> LocateRule
 
 PlantLang --> ModifyRule
+
+PlantLang --> NodeListRule
 
 PlantLang --> OrRule
 
@@ -21,6 +21,14 @@ PlantLang --> StringRule
 PlantLang --> TypeRule
 
 class PlantLang 
+NodeExtractor --> NodeWithNodes
+
+NodeExtractor --> Rule
+
+NodeExtractor --> Optional
+
+class NodeExtractor
+NodeExtractor --|> Extractor
 class MapNodeFactory
 MapNodeFactory --|> NodeFactory
 JVMPaths --> Paths
@@ -191,6 +199,11 @@ FirstLocator --> Optional
 
 class FirstLocator
 FirstLocator --|> Locator 
+Extractor --> Rule
+
+Extractor --> Optional
+
+interface Extractor
 Modifier --> Optional
 
 interface Modifier 
@@ -245,6 +258,18 @@ CompileApplication --> Collectors
 
 class CompileApplication
 CompileApplication --|> Application 
+ExtractRule --> NodeFactory
+
+ExtractRule --> NodeWithNodes
+
+ExtractRule --> Extractor
+
+ExtractRule --> NodeExtractor
+
+ExtractRule --> Optional
+
+class ExtractRule
+ExtractRule --|> Rule
 ModifyRule --> Modifier
 
 ModifyRule --> PrefixModifier
@@ -273,14 +298,6 @@ NodeListRule --> Optional
 
 class NodeListRule
 NodeListRule --|> Rule
-NodeRule --> NodeFactory
-
-NodeRule --> NodeWithNodes
-
-NodeRule --> Optional
-
-class NodeRule
-NodeRule --|> Rule
 interface IOError 
 JVMPath --> Err
 
@@ -330,13 +347,13 @@ JavaLang --> MapNodeFactory
 
 JavaLang --> NodeWithEverything
 
-JavaLang --> NodeListRule
-
 JavaLang --> LocateRule
 
 JavaLang --> ModifyRule
 
-JavaLang --> NodeRule
+JavaLang --> NodeListRule
+
+JavaLang --> ExtractRule
 
 JavaLang --> OrRule
 
