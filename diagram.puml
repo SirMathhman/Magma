@@ -1,8 +1,15 @@
 @startuml
+class MutableState
+MutableState --> ArrayList
+MutableState --> List
+class Main
 Main --> IOException
 Main --> Files
+Main --> Path
 Main --> Paths
 Main --> List
 Main --> Optional
-class Main
+Main --> Collectors
+class State
+State --> List
 @enduml

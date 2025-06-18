@@ -2,21 +2,46 @@ package magma;
 
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 public class Main {
     public static void main(String[] args) {
-        try {
-            final var input = Files.readString(Paths.get(".", "src", "java", "magma", "Main.java"));
-            final var segments = divide(input);
-            final var output = compileRootSegments(segments);
-            Files.writeString(Paths.get(".", "diagram.puml"), "@startuml\n" + output + "class Main\n@enduml");
+        try (final var stream = Files.walk(Paths.get(".", "src", "java"))) {
+            final var sources = stream.filter(Files::isRegularFile)
+                    .filter(path -> path.toString()
+                            .endsWith(".java"))
+                    .collect(Collectors.toSet());
+
+            final var output = compileAll(sources);
+            Files.writeString(Paths.get(".", "diagram.puml"), "@startuml\n" + output + "@enduml");
         } catch (IOException e) {
             //noinspection CallToPrintStackTrace
             e.printStackTrace();
         }
+    }
+
+    private static String compileAll(Iterable<Path> sources) throws IOException {
+        final StringBuilder output = new StringBuilder();
+        for (var source : sources) {
+            final var input = Files.readString(source);
+            final var segments = divide(input);
+
+            final var fileName = source.getFileName()
+                    .toString();
+            final var separator = fileName.lastIndexOf(".");
+            final var name = fileName.substring(0, separator);
+
+            output.append("class ")
+                    .append(name)
+                    .append("\n")
+                    .append(compileRootSegments(segments, name));
+        }
+
+        return output.toString();
     }
 
     private static List<String> divide(CharSequence input) {
@@ -37,15 +62,15 @@ public class Main {
         return appended;
     }
 
-    private static String compileRootSegments(Iterable<String> segments) {
+    private static String compileRootSegments(Iterable<String> segments, String name) {
         final var output = new StringBuilder();
         for (var segment : segments)
-            compileRootSegment(segment.strip()).ifPresent(output::append);
+            compileRootSegment(segment.strip(), name).ifPresent(output::append);
 
         return output.toString();
     }
 
-    private static Optional<String> compileRootSegment(String input) {
+    private static Optional<String> compileRootSegment(String input, String source) {
         if (!input.startsWith("import "))
             return Optional.empty();
 
@@ -58,7 +83,7 @@ public class Main {
         if (separator < 0)
             return Optional.empty();
 
-        final var name = withoutEnd.substring(separator + 1);
-        return Optional.of("Main --> " + name + "\n");
+        final var destination = withoutEnd.substring(separator + 1);
+        return Optional.of(source + " --> " + destination + "\n");
     }
 }
