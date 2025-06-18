@@ -1,7 +1,7 @@
-package magma.app;
+package magma.app.compile;
 
-import magma.app.node.MapNode;
-import magma.app.node.Node;
+import magma.app.compile.node.MapNode;
+import magma.app.compile.node.Node;
 
 import java.util.Optional;
 

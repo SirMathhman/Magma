@@ -1,4 +1,4 @@
-package magma.app.locate;
+package magma.app.compile.locate;
 
 import java.util.Optional;
 

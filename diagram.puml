@@ -9,14 +9,31 @@ PrefixRule --> Node
 PrefixRule --> Optional
 class PrefixRule
 PrefixRule --|> Rule
+Compiler --> LocateRule
+Compiler --> MutableState
+Compiler --> OrRule
+Compiler --> PrefixRule
+Compiler --> Rule
+Compiler --> State
+Compiler --> StringRule
+Compiler --> SuffixRule
+Compiler --> TypeRule
+Compiler --> MapNode
+Compiler --> Node
+Compiler --> List
+Compiler --> Map
+Compiler --> Optional
+Compiler --> Collectors
+Compiler --> Stream
+class Compiler
+LastLocator --> Optional
+class LastLocator
+LastLocator --|> Locator
 OrRule --> Node
 OrRule --> List
 OrRule --> Optional
 class OrRule
 OrRule --|> Rule
-LastLocator --> Optional
-class LastLocator
-LastLocator --|> Locator
 Node --> Map
 Node --> Optional
 Node --> Stream
@@ -52,27 +69,14 @@ LocateRule --> Node
 LocateRule --> Optional
 class LocateRule
 LocateRule --|> Rule
-Main --> LocateRule
-Main --> MutableState
-Main --> OrRule
-Main --> PrefixRule
-Main --> Rule
-Main --> State
-Main --> StringRule
-Main --> SuffixRule
-Main --> TypeRule
-Main --> MapNode
-Main --> Node
+Main --> Compiler
 Main --> IOException
 Main --> Files
 Main --> Path
 Main --> Paths
 Main --> HashMap
-Main --> List
 Main --> Map
-Main --> Optional
 Main --> Collectors
-Main --> Stream
 class Main
 TypeRule --> Node
 TypeRule --> Optional

@@ -1,9 +1,9 @@
-package magma.app;
+package magma.app.compile;
 
-import magma.app.locate.FirstLocator;
-import magma.app.locate.LastLocator;
-import magma.app.locate.Locator;
-import magma.app.node.Node;
+import magma.app.compile.locate.FirstLocator;
+import magma.app.compile.locate.LastLocator;
+import magma.app.compile.locate.Locator;
+import magma.app.compile.node.Node;
 
 import java.util.Optional;
 
