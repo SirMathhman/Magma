@@ -3,5 +3,7 @@ Main --> IOException
 Main --> Files
 Main --> Paths
 Main --> ArrayList
+Main --> List
+Main --> Optional
 class Main
 @enduml
