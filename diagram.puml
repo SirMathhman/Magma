@@ -7,10 +7,14 @@ class MutableState
 MutableState --> ArrayList
 MutableState --> List
 class MutableState implements State
+class Rule
+Rule --> Optional
+interface Rule
 class Main
 Main --> LastRule
 Main --> MutableState
 Main --> PrefixRule
+Main --> Rule
 Main --> State
 Main --> StringRule
 Main --> SuffixRule

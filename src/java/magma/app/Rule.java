@@ -1,0 +1,9 @@
+package magma.app;
+
+import java.util.Optional;
+
+public interface Rule {
+    Optional<String> generate(Node node);
+
+    Optional<Node> lex(String input);
+}

@@ -3,6 +3,7 @@ package magma;
 import magma.app.LastRule;
 import magma.app.MutableState;
 import magma.app.PrefixRule;
+import magma.app.Rule;
 import magma.app.State;
 import magma.app.StringRule;
 import magma.app.SuffixRule;
@@ -88,11 +89,11 @@ public class Main {
                 .or(() -> compileStructure(input));
     }
 
-    private static SuffixRule createDependencyRule() {
+    private static Rule createDependencyRule() {
         return new SuffixRule(new LastRule(new StringRule("source"), " --> ", new StringRule("destination")), "\n");
     }
 
-    private static PrefixRule createImportRule() {
+    private static Rule createImportRule() {
         return new PrefixRule("import ",
                 new SuffixRule(new LastRule(new StringRule("temp"), ".", new StringRule("destination")), ";"));
     }
