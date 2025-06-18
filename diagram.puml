@@ -45,11 +45,11 @@ Locator --> Optional
 interface Locator 
 DivideRule --> Lists
 
-DivideRule --> Divider
-
 DivideRule --> MapNode
 
 DivideRule --> NodeWithEverything
+
+DivideRule --> Divider
 
 DivideRule --> Optional
 
@@ -100,8 +100,6 @@ Compiler --> MapNode
 
 Compiler --> NodeWithEverything
 
-Compiler --> DivideRule
-
 Compiler --> Optional
 
 Compiler --> Collectors
@@ -129,6 +127,8 @@ StripRule --> Optional
 class StripRule
 StripRule --|> Rule
 Lang --> NodeWithEverything
+
+Lang --> DivideRule
 
 Lang --> LocateRule
 
@@ -230,13 +230,13 @@ Ok --> Function
 
 class Ok
 Ok --|> Result
+LocateRule --> MergingNode
+
 LocateRule --> FirstLocator
 
 LocateRule --> LastLocator
 
 LocateRule --> Locator
-
-LocateRule --> MergingNode
 
 LocateRule --> Optional
 

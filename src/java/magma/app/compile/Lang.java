@@ -1,6 +1,7 @@
 package magma.app.compile;
 
 import magma.app.compile.node.NodeWithEverything;
+import magma.app.compile.rule.DivideRule;
 import magma.app.compile.rule.LocateRule;
 import magma.app.compile.rule.NodeRule;
 import magma.app.compile.rule.OrRule;
@@ -91,5 +92,13 @@ public class Lang {
 
     public static Rule<NodeWithEverything> createJavaRootSegmentRule() {
         return new OrRule<>(List.of(createImportRule(), createStructureRule()));
+    }
+
+    public static DivideRule createJavaRootRule() {
+        return new DivideRule("children", createJavaRootSegmentRule());
+    }
+
+    public static DivideRule createPlantRootRule() {
+        return new DivideRule("children", createPlantRootSegmentRule());
     }
 }

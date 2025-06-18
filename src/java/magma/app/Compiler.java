@@ -7,7 +7,6 @@ import magma.api.map.MapLike;
 import magma.app.compile.Lang;
 import magma.app.compile.node.MapNode;
 import magma.app.compile.node.NodeWithEverything;
-import magma.app.compile.rule.DivideRule;
 
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -23,9 +22,11 @@ public class Compiler {
     private static Optional<String> compileSourceMapEntry(Tuple<String, String> entry) {
         final var name = entry.left();
         final var input = entry.right();
-        return new DivideRule("children", Lang.createJavaRootSegmentRule()).lex(input)
+        return Lang.createJavaRootRule()
+                .lex(input)
                 .map(root -> modifyRoot(root, name))
-                .flatMap(root -> new DivideRule("children", Lang.createPlantRootSegmentRule()).generate(root));
+                .flatMap(root -> Lang.createPlantRootRule()
+                        .generate(root));
     }
 
     private static NodeWithEverything modifyRoot(NodeWithEverything root, String name) {
