@@ -3,6 +3,7 @@ package magma;
 import magma.app.LastRule;
 import magma.app.MutableState;
 import magma.app.Node;
+import magma.app.PrefixRule;
 import magma.app.State;
 import magma.app.StringRule;
 import magma.app.SuffixRule;
@@ -83,7 +84,10 @@ public class Main {
     }
 
     private static Optional<String> compileRootSegment(String input, String source) {
-        return compileImport(input, source).or(() -> compileStructure(input));
+        return new PrefixRule("import ", new SuffixRule(new LastRule(".", new StringRule("destination")), ";")).lex(
+                        input)
+                .flatMap(node -> generate(node.withString("source", source)))
+                .or(() -> compileStructure(input));
     }
 
     private static Optional<String> compileStructure(String input) {
@@ -107,15 +111,6 @@ public class Main {
             return Optional.of(slice + "\n");
         }
         return Optional.empty();
-    }
-
-    private static Optional<String> compileImport(String input, String source) {
-        if (!input.startsWith("import "))
-            return Optional.empty();
-
-        final var withoutPrefix = input.substring("import ".length());
-        return new SuffixRule(new LastRule(".", new StringRule("destination")), ";").lex(withoutPrefix)
-                .flatMap(node -> generate(node.withString("source", source)));
     }
 
     private static Optional<String> generate(Node node) {

@@ -11,6 +11,7 @@ class Main
 Main --> LastRule
 Main --> MutableState
 Main --> Node
+Main --> PrefixRule
 Main --> State
 Main --> StringRule
 Main --> SuffixRule
@@ -31,6 +32,8 @@ MapNode --> HashMap
 MapNode --> Map
 MapNode --> Optional
 class MapNode implements Node
+class PrefixRule
+PrefixRule --> Optional
 class SuffixRule
 SuffixRule --> Optional
 class State
