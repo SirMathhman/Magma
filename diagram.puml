@@ -10,15 +10,13 @@ PlantLang --> DivideRule
 
 PlantLang --> LocateRule
 
-PlantLang --> OrRule
-
 PlantLang --> ModifyRule
+
+PlantLang --> OrRule
 
 PlantLang --> Rule
 
 PlantLang --> StringRule
-
-PlantLang --> SuffixRule
 
 PlantLang --> TypeRule
 
@@ -104,10 +102,6 @@ OrRule --> Optional
 
 class OrRule
 OrRule --|> Rule
-StripRule --> Optional
-
-class StripRule
-StripRule --|> Rule
 Sequence --> Foldable
 
 interface Sequence
@@ -216,6 +210,10 @@ FirstLocator --|> Locator
 Modifier --> Optional
 
 interface Modifier 
+StripModifier --> Optional
+
+class StripModifier
+StripModifier --|> Modifier 
 LastLocator --> Optional
 
 class LastLocator
@@ -227,6 +225,10 @@ MapLike --> Optional
 MapLike --> Stream
 
 interface MapLike
+SuffixModifier --> Optional
+
+class SuffixModifier
+SuffixModifier --|> Modifier 
 MutableDivideState --> Foldable
 
 MutableDivideState --> ListLike
@@ -263,6 +265,10 @@ ModifyRule --> Modifier
 
 ModifyRule --> PrefixModifier
 
+ModifyRule --> StripModifier
+
+ModifyRule --> SuffixModifier
+
 ModifyRule --> Optional
 
 class ModifyRule
@@ -276,10 +282,6 @@ NodeRule --> Optional
 class NodeRule
 NodeRule --|> Rule
 interface IOError 
-SuffixRule --> Optional
-
-class SuffixRule
-SuffixRule --|> Rule
 JVMPath --> Err
 
 JVMPath --> Ok
@@ -332,19 +334,15 @@ JavaLang --> DivideRule
 
 JavaLang --> LocateRule
 
+JavaLang --> ModifyRule
+
 JavaLang --> NodeRule
 
 JavaLang --> OrRule
 
-JavaLang --> ModifyRule
-
 JavaLang --> Rule
 
 JavaLang --> StringRule
-
-JavaLang --> StripRule
-
-JavaLang --> SuffixRule
 
 JavaLang --> TypeRule
 

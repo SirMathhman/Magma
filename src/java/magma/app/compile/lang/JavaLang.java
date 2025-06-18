@@ -10,20 +10,20 @@ import magma.app.compile.rule.NodeRule;
 import magma.app.compile.rule.OrRule;
 import magma.app.compile.rule.Rule;
 import magma.app.compile.rule.StringRule;
-import magma.app.compile.rule.StripRule;
-import magma.app.compile.rule.SuffixRule;
 import magma.app.compile.rule.TypeRule;
 
 public class JavaLang {
     public static Rule<NodeWithEverything> createDependencyRule() {
         return new TypeRule<>("dependency",
-                new SuffixRule<>(LocateRule.Last(new StringRule<>("source", new MapNodeFactory()),
-                        " --> ", new StringRule<>("destination", new MapNodeFactory())), "\n"));
+                ModifyRule.Suffix(LocateRule.Last(new StringRule<>("source", new MapNodeFactory()),
+                        " --> ",
+                        new StringRule<>("destination", new MapNodeFactory())), "\n"));
     }
 
     public static Rule<NodeWithEverything> createImportRule() {
-        return new TypeRule<>("import", new StripRule<>(ModifyRule.Prefix("import ",
-                        new SuffixRule<>(LocateRule.Last(new StringRule<>("temp", new MapNodeFactory()),
+        return new TypeRule<>("import",
+                ModifyRule.Strip(ModifyRule.Prefix("import ",
+                        ModifyRule.Suffix(LocateRule.Last(new StringRule<>("temp", new MapNodeFactory()),
                                 ".",
                                 new StringRule<>("destination", new MapNodeFactory())), ";"))));
     }
@@ -38,7 +38,7 @@ public class JavaLang {
         final Rule<NodeWithEverything> beforeType = new StringRule<>("before-type", new MapNodeFactory());
 
         final Rule<NodeWithEverything> name = new StringRule<>("name", new MapNodeFactory());
-        final Rule<NodeWithEverything> withTypeParams = new OrRule<>(Lists.of(new StripRule<>(new SuffixRule<>(
+        final Rule<NodeWithEverything> withTypeParams = new OrRule<>(Lists.of(ModifyRule.Strip(ModifyRule.Suffix(
                 LocateRule.First(name, "<", new StringRule<>("type-arguments", new MapNodeFactory())),
                 ">")), name));
 
@@ -62,7 +62,7 @@ public class JavaLang {
 
     private static Rule<NodeWithEverything> createGenericRule() {
         return new TypeRule<>("generic",
-                new StripRule<>(new SuffixRule<>(LocateRule.First(new StringRule<>("base", new MapNodeFactory()),
+                ModifyRule.Strip(ModifyRule.Suffix(LocateRule.First(new StringRule<>("base", new MapNodeFactory()),
                         "<",
                         new StringRule<>("type-arguments", new MapNodeFactory())), ">")));
     }

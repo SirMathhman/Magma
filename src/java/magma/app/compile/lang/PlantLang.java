@@ -9,7 +9,6 @@ import magma.app.compile.rule.ModifyRule;
 import magma.app.compile.rule.OrRule;
 import magma.app.compile.rule.Rule;
 import magma.app.compile.rule.StringRule;
-import magma.app.compile.rule.SuffixRule;
 import magma.app.compile.rule.TypeRule;
 
 public class PlantLang {
@@ -30,7 +29,7 @@ public class PlantLang {
     }
 
     public static Rule<NodeWithEverything> createPlantRootSegmentRule() {
-        return new SuffixRule<>(new OrRule<>(Lists.of(JavaLang.createDependencyRule(),
+        return ModifyRule.Suffix(new OrRule<>(Lists.of(JavaLang.createDependencyRule(),
                 createPlantUMLClassesRule(),
                 createImplementsRule())), "\n");
     }
