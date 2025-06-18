@@ -2,8 +2,8 @@ package magma.app;
 
 import magma.api.Ok;
 import magma.api.Result;
-import magma.api.io.IOError;
-import magma.api.io.PathLike;
+import magma.api.io.error.IOError;
+import magma.api.io.path.PathLike;
 import magma.api.map.MapLike;
 import magma.api.map.Maps;
 import magma.app.compile.Compiler;

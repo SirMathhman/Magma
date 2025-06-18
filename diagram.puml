@@ -73,6 +73,8 @@ Lists --> Arrays
 class Lists 
 PathLike --> Result
 
+PathLike --> IOError
+
 PathLike --> Optional
 
 PathLike --> Set
@@ -272,6 +274,10 @@ JVMPath --> Err
 JVMPath --> Ok
 
 JVMPath --> Result
+
+JVMPath --> IOError
+
+JVMPath --> ThrowableIOError
 
 JVMPath --> IOException
 

@@ -1,6 +1,6 @@
 package magma.app;
 
-import magma.api.io.JVMPaths;
+import magma.api.io.path.JVMPaths;
 import magma.app.compile.build.CompilerBuilder;
 
 public class ApplicationBuilder {

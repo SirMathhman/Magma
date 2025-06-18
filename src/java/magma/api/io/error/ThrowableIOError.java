@@ -1,4 +1,4 @@
-package magma.api.io;
+package magma.api.io.error;
 
 import java.io.IOException;
 import java.io.PrintWriter;
