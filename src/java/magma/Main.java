@@ -5,6 +5,7 @@ import magma.app.MutableState;
 import magma.app.Node;
 import magma.app.State;
 import magma.app.StringRule;
+import magma.app.SuffixRule;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -113,11 +114,7 @@ public class Main {
             return Optional.empty();
 
         final var withoutPrefix = input.substring("import ".length());
-        if (!withoutPrefix.endsWith(";"))
-            return Optional.empty();
-
-        final var withoutEnd = withoutPrefix.substring(0, withoutPrefix.length() - ";".length());
-        return new LastRule(".", new StringRule("destination")).lex(withoutEnd)
+        return new SuffixRule(new LastRule(".", new StringRule("destination")), ";").lex(withoutPrefix)
                 .flatMap(node -> generate(node.withString("source", source)));
     }
 

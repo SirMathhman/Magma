@@ -13,6 +13,7 @@ Main --> MutableState
 Main --> Node
 Main --> State
 Main --> StringRule
+Main --> SuffixRule
 Main --> IOException
 Main --> Files
 Main --> Path
@@ -30,6 +31,8 @@ MapNode --> HashMap
 MapNode --> Map
 MapNode --> Optional
 class MapNode implements Node
+class SuffixRule
+SuffixRule --> Optional
 class State
 State --> List
 interface State
