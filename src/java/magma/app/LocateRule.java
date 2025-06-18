@@ -1,5 +1,6 @@
 package magma.app;
 
+import magma.app.locate.FirstLocator;
 import magma.app.locate.LastLocator;
 import magma.app.locate.Locator;
 import magma.app.node.Node;

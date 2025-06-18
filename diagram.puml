@@ -12,9 +12,9 @@ Locator --> Optional
 interface Locator
 PrefixRule --> Node
 PrefixRule --> Optional
-FirstLocator --> Locator
 FirstLocator --> Optional
 class FirstLocator implements Locator
+LocateRule --> FirstLocator
 LocateRule --> LastLocator
 LocateRule --> Locator
 LocateRule --> Node
