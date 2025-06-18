@@ -1,6 +1,6 @@
 @startuml
 skinparam linetype ortho
-StringRule --> MapNodeWithEverything
+StringRule --> MapNode
 
 StringRule --> NodeWithEverything
 
@@ -17,6 +17,20 @@ Err --> Function
 
 class Err
 Err --|> Result
+MapNode --> Tuple
+
+MapNode --> ListLike
+
+MapNode --> MapLike
+
+MapNode --> Maps
+
+MapNode --> Optional
+
+MapNode --> Stream
+
+class MapNode
+MapNode --|> NodeWithEverything 
 Result --> Function
 
 interface Result
@@ -29,6 +43,18 @@ JVMList --|> ListLike
 Locator --> Optional
 
 interface Locator 
+DivideRule --> Lists
+
+DivideRule --> Divider
+
+DivideRule --> MapNode
+
+DivideRule --> NodeWithEverything
+
+DivideRule --> Optional
+
+class DivideRule
+DivideRule --|> Rule
 class Maps 
 Lists --> ArrayList
 
@@ -48,18 +74,6 @@ FirstLocator --> Optional
 
 class FirstLocator
 FirstLocator --|> Locator 
-MapNodeWithEverything --> Tuple
-
-MapNodeWithEverything --> MapLike
-
-MapNodeWithEverything --> Maps
-
-MapNodeWithEverything --> Optional
-
-MapNodeWithEverything --> Stream
-
-class MapNodeWithEverything
-MapNodeWithEverything --|> NodeWithEverything 
 PrefixRule --> Optional
 
 class PrefixRule
@@ -82,28 +96,30 @@ Compiler --> MapLike
 
 Compiler --> Lang
 
-Compiler --> Divider
-
-Compiler --> MapNodeWithEverything
+Compiler --> MapNode
 
 Compiler --> NodeWithEverything
+
+Compiler --> DivideRule
 
 Compiler --> Optional
 
 Compiler --> Collectors
 
 class Compiler 
+LastLocator --> Optional
+
+class LastLocator
+LastLocator --|> Locator 
 OrRule --> List
 
 OrRule --> Optional
 
 class OrRule
 OrRule --|> Rule
-LastLocator --> Optional
-
-class LastLocator
-LastLocator --|> Locator 
 MapLike --> Tuple
+
+MapLike --> Optional
 
 MapLike --> Stream
 
@@ -144,7 +160,7 @@ MutableDivideState --|> DivideState
 DivideState --> ListLike
 
 interface DivideState 
-NodeRule --> MapNodeWithEverything
+NodeRule --> MapNode
 
 NodeRule --> NodeWithEverything
 
@@ -179,6 +195,8 @@ JVMPath --> Collectors
 
 class JVMPath
 JVMPath --|> PathLike 
+NodeWithEverything --> ListLike
+
 NodeWithEverything --> MergingNode
 
 NodeWithEverything --> NodeWithNodes
@@ -186,6 +204,8 @@ NodeWithEverything --> NodeWithNodes
 NodeWithEverything --> NodeWithStrings
 
 NodeWithEverything --> NodeWithType
+
+NodeWithEverything --> Optional
 
 interface NodeWithEverything extends NodeWithStrings
 NodeWithStrings --> Tuple
@@ -224,9 +244,6 @@ class LocateRule
 LocateRule --|> Rule
 class TupleImpl
 TupleImpl --|> Tuple
-Divider --> ListLike
-
-class Divider 
 JVMMap --> Tuple
 
 JVMMap --> TupleImpl
@@ -234,6 +251,8 @@ JVMMap --> TupleImpl
 JVMMap --> HashMap
 
 JVMMap --> Map
+
+JVMMap --> Optional
 
 JVMMap --> Stream
 
@@ -262,6 +281,9 @@ Main --> Optional
 Main --> Collectors
 
 class Main 
+Divider --> ListLike
+
+class Divider 
 interface ListLike
 interface Tuple
 interface MergingNode

@@ -5,6 +5,7 @@ import magma.api.TupleImpl;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Stream;
 
 public record JVMMap<Key, Value>(Map<Key, Value> map) implements MapLike<Key, Value> {
@@ -26,12 +27,10 @@ public record JVMMap<Key, Value>(Map<Key, Value> map) implements MapLike<Key, Va
     }
 
     @Override
-    public boolean containsKey(Key key) {
-        return this.map.containsKey(key);
-    }
-
-    @Override
-    public Value get(Key key) {
-        return this.map.get(key);
+    public Optional<Value> find(Key key) {
+        if (this.map.containsKey(key))
+            return Optional.of(this.map.get(key));
+        else
+            return Optional.empty();
     }
 }

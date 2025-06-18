@@ -1,47 +1,48 @@
 package magma.app.compile.node;
 
 import magma.api.Tuple;
+import magma.api.list.ListLike;
 import magma.api.map.MapLike;
 import magma.api.map.Maps;
 
 import java.util.Optional;
 import java.util.stream.Stream;
 
-public final class MapNodeWithEverything implements NodeWithEverything {
+public final class MapNode implements NodeWithEverything {
     private final Optional<String> maybeType;
-    private final MapLike<String, String> strings;
-    private final MapLike<String, NodeWithEverything> nodes;
+    private MapLike<String, String> strings;
+    private MapLike<String, NodeWithEverything> nodes;
+    private MapLike<String, ListLike<NodeWithEverything>> nodeLists;
 
-    public MapNodeWithEverything() {
-        this(Optional.empty(), Maps.empty(), Maps.empty());
+    public MapNode() {
+        this(Optional.empty(), Maps.empty(), Maps.empty(), Maps.empty());
     }
 
-    public MapNodeWithEverything(Optional<String> maybeType, MapLike<String, String> strings, MapLike<String, NodeWithEverything> nodes) {
+    public MapNode(Optional<String> maybeType, MapLike<String, String> strings, MapLike<String, NodeWithEverything> nodes, MapLike<String, ListLike<NodeWithEverything>> nodeLists) {
         this.maybeType = maybeType;
         this.strings = strings;
         this.nodes = nodes;
+        this.nodeLists = nodeLists;
     }
 
-    public MapNodeWithEverything(String type) {
-        this(Optional.of(type), Maps.empty(), Maps.empty());
+    public MapNode(String type) {
+        this(Optional.of(type), Maps.empty(), Maps.empty(), Maps.empty());
     }
 
     @Override
     public NodeWithEverything withString(String key, String value) {
-        this.strings.put(key, value);
+        this.strings = this.strings.put(key, value);
         return this;
     }
 
     @Override
     public Optional<String> findString(String key) {
-        if (this.strings.containsKey(key))
-            return Optional.of(this.strings.get(key));
-        return Optional.empty();
+        return this.strings.find(key);
     }
 
     @Override
     public NodeWithEverything retype(String type) {
-        return new MapNodeWithEverything(Optional.of(type), this.strings, this.nodes);
+        return new MapNode(Optional.of(type), this.strings, this.nodes, Maps.empty());
     }
 
     @Override
@@ -67,20 +68,28 @@ public final class MapNodeWithEverything implements NodeWithEverything {
 
     @Override
     public Optional<NodeWithEverything> findNode(String key) {
-        if (this.nodes.containsKey(key))
-            return Optional.of(this.nodes.get(key));
-        else
-            return Optional.empty();
+        return this.nodes.find(key);
     }
 
     @Override
     public NodeWithEverything withNode(String key, NodeWithEverything value) {
-        this.nodes.put(key, value);
+        this.nodes = this.nodes.put(key, value);
         return this;
     }
 
     @Override
     public Stream<Tuple<String, NodeWithEverything>> streamNodes() {
         return this.nodes.stream();
+    }
+
+    @Override
+    public NodeWithEverything withNodeList(String key, ListLike<NodeWithEverything> values) {
+        this.nodeLists = this.nodeLists.put(key, values);
+        return this;
+    }
+
+    @Override
+    public Optional<ListLike<NodeWithEverything>> findNodeList(String key) {
+        return this.nodeLists.find(key);
     }
 }

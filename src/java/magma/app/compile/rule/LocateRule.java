@@ -1,9 +1,9 @@
 package magma.app.compile.rule;
 
-import magma.app.compile.locate.FirstLocator;
-import magma.app.compile.locate.LastLocator;
-import magma.app.compile.locate.Locator;
 import magma.app.compile.node.attribute.MergingNode;
+import magma.app.compile.rule.locate.FirstLocator;
+import magma.app.compile.rule.locate.LastLocator;
+import magma.app.compile.rule.locate.Locator;
 
 import java.util.Optional;
 
