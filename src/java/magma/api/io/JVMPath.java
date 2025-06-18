@@ -1,4 +1,4 @@
-package magma.app.jvm;
+package magma.api.io;
 
 import magma.api.Err;
 import magma.api.Ok;
@@ -19,21 +19,21 @@ public record JVMPath(Path path) implements PathLike {
     }
 
     @Override
-    public Result<String, IOException> readString() {
+    public Result<String, IOError> readString() {
         try {
             return new Ok<>(Files.readString(this.path));
         } catch (IOException e) {
-            return new Err<>(e);
+            return new Err<>(new ThrowableIOError(e));
         }
     }
 
     @Override
-    public Optional<IOException> writeString(CharSequence content) {
+    public Optional<IOError> writeString(CharSequence content) {
         try {
             Files.writeString(this.path, content);
             return Optional.empty();
         } catch (IOException e) {
-            return Optional.of(e);
+            return Optional.of(new ThrowableIOError(e));
         }
     }
 
@@ -43,12 +43,12 @@ public record JVMPath(Path path) implements PathLike {
     }
 
     @Override
-    public Result<Set<PathLike>, IOException> walk() {
+    public Result<Set<PathLike>, IOError> walk() {
         try (var stream = Files.walk(this.path)) {
             return new Ok<>(stream.map(JVMPath::new)
                     .collect(Collectors.toSet()));
         } catch (IOException e) {
-            return new Err<>(e);
+            return new Err<>(new ThrowableIOError(e));
         }
     }
 

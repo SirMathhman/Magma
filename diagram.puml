@@ -5,19 +5,19 @@ StringRule --> NodeWithEverything
 StringRule --> Optional
 class StringRule
 StringRule --|> Rule
-Err --> Function
-class Err
-Err --|> Result
 JVMPaths --> PathLike
 JVMPaths --> Paths
 class JVMPaths
+Err --> Function
+class Err
+Err --|> Result
 Result --> Function
 interface Result
 Locator --> Optional
 interface Locator
 class Maps
 PathLike --> Result
-PathLike --> IOException
+PathLike --> IOError
 PathLike --> Optional
 PathLike --> Set
 interface PathLike
@@ -86,6 +86,7 @@ NodeRule --> NodeWithEverything
 NodeRule --> Optional
 class NodeRule
 NodeRule --|> Rule
+interface IOError
 SuffixRule --> Optional
 class SuffixRule
 SuffixRule --|> Rule
@@ -110,6 +111,11 @@ NodeWithStrings --> Tuple
 NodeWithStrings --> Optional
 NodeWithStrings --> Stream
 interface NodeWithStrings
+ThrowableIOError --> IOException
+ThrowableIOError --> PrintWriter
+ThrowableIOError --> StringWriter
+class ThrowableIOError
+ThrowableIOError --|> IOError
 Rule --> Optional
 interface Rule
 Ok --> Function
@@ -135,12 +141,12 @@ class JVMMap
 JVMMap --|> MapLike
 Main --> Ok
 Main --> Result
+Main --> IOError
 Main --> MapLike
 Main --> Maps
 Main --> Compiler
 Main --> PathLike
 Main --> JVMPaths
-Main --> IOException
 Main --> Collection
 Main --> Optional
 Main --> Collectors

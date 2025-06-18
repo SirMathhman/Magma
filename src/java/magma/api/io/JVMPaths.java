@@ -1,4 +1,4 @@
-package magma.app.jvm;
+package magma.api.io;
 
 import magma.app.PathLike;
 
