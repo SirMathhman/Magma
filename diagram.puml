@@ -3,6 +3,8 @@ class MutableState
 MutableState --> ArrayList
 MutableState --> List
 class Main
+Main --> MutableState
+Main --> State
 Main --> IOException
 Main --> Files
 Main --> Path

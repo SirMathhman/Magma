@@ -1,4 +1,4 @@
-package magma;
+package magma.state;
 
 import java.util.List;
 

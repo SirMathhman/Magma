@@ -1,5 +1,8 @@
 package magma;
 
+import magma.state.MutableState;
+import magma.state.State;
+
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
