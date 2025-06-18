@@ -21,6 +21,8 @@ PlantLang --> TypeRule
 class PlantLang 
 NodeExtractor --> NodeWithNodes
 
+NodeExtractor --> Extractor
+
 NodeExtractor --> Rule
 
 NodeExtractor --> Optional
@@ -254,8 +256,6 @@ ExtractRule --> NodeWithNodes
 
 ExtractRule --> NodeWithStrings
 
-ExtractRule --> Extractor
-
 ExtractRule --> NodeExtractor
 
 ExtractRule --> NodeListExtractor
@@ -329,6 +329,8 @@ NodeListExtractor --> Lists
 
 NodeListExtractor --> NodeWithNodeLists
 
+NodeListExtractor --> Extractor
+
 NodeListExtractor --> Rule
 
 NodeListExtractor --> DivideState
@@ -340,6 +342,8 @@ NodeListExtractor --> Optional
 class NodeListExtractor
 NodeListExtractor --|> Extractor
 StringExtractor --> NodeWithStrings
+
+StringExtractor --> Extractor
 
 StringExtractor --> Optional
 
