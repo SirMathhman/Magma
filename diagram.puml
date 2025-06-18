@@ -8,6 +8,7 @@ MutableState --> ArrayList
 MutableState --> List
 class MutableState implements State
 class Main
+Main --> LastRule
 Main --> MutableState
 Main --> Node
 Main --> State
@@ -22,6 +23,8 @@ Main --> Collectors
 class Main
 class StringRule
 StringRule --> Optional
+class LastRule
+LastRule --> Optional
 class MapNode
 MapNode --> HashMap
 MapNode --> Map
