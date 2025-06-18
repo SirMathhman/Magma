@@ -61,8 +61,12 @@ public class Main {
 
     private static State fold(State current, char c) {
         final var appended = current.append(c);
-        if (c == ';')
+        if (c == ';' && appended.isLevel())
             return appended.advance();
+        if (c == '{')
+            return appended.enter();
+        if (c == '}')
+            return appended.exit();
         return appended;
     }
 
@@ -75,6 +79,17 @@ public class Main {
     }
 
     private static Optional<String> compileRootSegment(String input, String source) {
+        return compileImport(input, source).or(() -> {
+            final var contentStart = input.indexOf("{");
+            if (contentStart >= 0)
+                return Optional.of(input.substring(0, contentStart)
+                        .strip() + "\n");
+            else
+                return Optional.empty();
+        });
+    }
+
+    private static Optional<String> compileImport(String input, String source) {
         if (!input.startsWith("import "))
             return Optional.empty();
 

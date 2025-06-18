@@ -8,4 +8,10 @@ public interface State {
     State advance();
 
     List<String> segments();
+
+    boolean isLevel();
+
+    State enter();
+
+    State exit();
 }
