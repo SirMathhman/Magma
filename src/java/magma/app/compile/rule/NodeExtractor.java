@@ -4,10 +4,11 @@ import magma.app.compile.node.attribute.NodeWithNodes;
 
 import java.util.Optional;
 
-public class NodeExtractor<Node extends NodeWithNodes<Node>> implements Extractor<Node, Node> {
-    private final Rule<Node> rule;
+public class NodeExtractor<Node extends NodeWithNodes<Node>, Rule extends Lexer<Node> & Generator<Node>> implements
+        Extractor<Node, Node> {
+    private final Rule rule;
 
-    public NodeExtractor(Rule<Node> rule) {
+    public NodeExtractor(Rule rule) {
         this.rule = rule;
     }
 

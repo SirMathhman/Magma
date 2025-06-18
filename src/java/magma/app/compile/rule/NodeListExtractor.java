@@ -9,10 +9,11 @@ import magma.app.compile.rule.divide.MutableDivideState;
 
 import java.util.Optional;
 
-public class NodeListExtractor<Node extends NodeWithNodeLists<Node>> implements Extractor<Node, ListLike<Node>> {
-    private final Rule<Node> rule;
+public class NodeListExtractor<Node extends NodeWithNodeLists<Node>, Rule extends Lexer<Node> & Generator<Node>> implements
+        Extractor<Node, ListLike<Node>> {
+    private final Rule rule;
 
-    public NodeListExtractor(Rule<Node> rule) {
+    public NodeListExtractor(Rule rule) {
         this.rule = rule;
     }
 

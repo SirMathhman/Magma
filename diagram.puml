@@ -21,14 +21,9 @@ PlantLang --> TypeRule
 class PlantLang 
 NodeExtractor --> NodeWithNodes
 
-NodeExtractor --> Extractor
-
-NodeExtractor --> Rule
-
 NodeExtractor --> Optional
 
 class NodeExtractor
-NodeExtractor --|> Extractor
 class MapNodeFactory
 MapNodeFactory --|> NodeFactory
 JVMPaths --> Paths
@@ -100,6 +95,9 @@ interface Sequence
 DivideState --> Foldable
 
 interface DivideState 
+Lexer --> Optional
+
+interface Lexer
 interface NodeFactory
 NodeWithEverything --> MergingNode
 
@@ -122,8 +120,6 @@ JavaPlantTransformer --> Optional
 
 class JavaPlantTransformer
 JavaPlantTransformer --|> Transformer 
-Rule --> Optional
-
 interface Rule
 NodeWithNodeLists --> ListLike
 
@@ -150,6 +146,9 @@ JVMMap --> Stream
 class JVMMap
 JVMMap --|> MapLike
 interface MergingNode
+Generator --> Optional
+
+interface Generator
 Transformer --> NodeWithEverything
 
 interface Transformer 
@@ -256,12 +255,6 @@ ExtractRule --> NodeWithNodes
 
 ExtractRule --> NodeWithStrings
 
-ExtractRule --> NodeExtractor
-
-ExtractRule --> NodeListExtractor
-
-ExtractRule --> StringExtractor
-
 ExtractRule --> Optional
 
 class ExtractRule
@@ -329,10 +322,6 @@ NodeListExtractor --> Lists
 
 NodeListExtractor --> NodeWithNodeLists
 
-NodeListExtractor --> Extractor
-
-NodeListExtractor --> Rule
-
 NodeListExtractor --> DivideState
 
 NodeListExtractor --> MutableDivideState
@@ -340,10 +329,7 @@ NodeListExtractor --> MutableDivideState
 NodeListExtractor --> Optional
 
 class NodeListExtractor
-NodeListExtractor --|> Extractor
 StringExtractor --> NodeWithStrings
-
-StringExtractor --> Extractor
 
 StringExtractor --> Optional
 
