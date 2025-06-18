@@ -3,34 +3,40 @@ skinparam linetype ortho
 Node --> Map
 Node --> Optional
 Node --> Stream
-class Node
+interface Node
 Rule --> Node
 Rule --> Optional
-class Rule
+interface Rule
 StringRule --> MapNode
 StringRule --> Node
 StringRule --> Optional
-interface StringRule
+class StringRule
+StringRule --|> Rule
 Locator --> Optional
-class Locator
+interface Locator
 PrefixRule --> Node
 PrefixRule --> Optional
-interface PrefixRule
+class PrefixRule
+PrefixRule --|> Rule
 FirstLocator --> Optional
-interface FirstLocator
+class FirstLocator
+FirstLocator --|> Locator
 OrRule --> Node
 OrRule --> List
 OrRule --> Optional
-interface OrRule
+class OrRule
+OrRule --|> Rule
 LocateRule --> FirstLocator
 LocateRule --> LastLocator
 LocateRule --> Locator
 LocateRule --> Node
 LocateRule --> Optional
-interface LocateRule
+class LocateRule
+LocateRule --|> Rule
 MutableState --> ArrayList
 MutableState --> List
-interface MutableState
+class MutableState
+MutableState --|> State
 Main --> LocateRule
 Main --> MutableState
 Main --> OrRule
@@ -40,6 +46,8 @@ Main --> State
 Main --> StringRule
 Main --> SuffixRule
 Main --> TypeRule
+Main --> MapNode
+Main --> Node
 Main --> IOException
 Main --> Files
 Main --> Path
@@ -47,20 +55,25 @@ Main --> Paths
 Main --> List
 Main --> Optional
 Main --> Collectors
-interface Main
+Main --> Stream
+class Main
 MapNode --> HashMap
 MapNode --> Map
 MapNode --> Optional
 MapNode --> Stream
-interface MapNode
+class MapNode
+MapNode --|> Node
 TypeRule --> Node
 TypeRule --> Optional
-interface TypeRule
+class TypeRule
+TypeRule --|> Rule
 SuffixRule --> Node
 SuffixRule --> Optional
-interface SuffixRule
+class SuffixRule
+SuffixRule --|> Rule
 LastLocator --> Optional
-interface LastLocator
+class LastLocator
+LastLocator --|> Locator
 State --> List
-class State
+interface State
 @enduml

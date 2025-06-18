@@ -9,6 +9,8 @@ import magma.app.State;
 import magma.app.StringRule;
 import magma.app.SuffixRule;
 import magma.app.TypeRule;
+import magma.app.node.MapNode;
+import magma.app.node.Node;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -17,6 +19,7 @@ import java.nio.file.Paths;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class Main {
     public static void main(String[] args) {
@@ -99,21 +102,43 @@ public class Main {
 
     private static Optional<String> compileStructure(String input) {
         final var contentStart = input.indexOf("{");
-        if (contentStart >= 0) {
-            final var stripped = input.substring(0, contentStart)
-                    .strip();
+        if (contentStart < 0)
+            return Optional.empty();
+        final var stripped = input.substring(0, contentStart)
+                .strip();
 
-            return createStructureDefinitionsRule().lex(stripped)
-                    .map(node -> {
-                        if (node.is("record"))
-                            return node.retype("class");
-                        return node;
-                    })
-                    .flatMap(node -> createPlantUMLClassesRule().generate(node));
+        return Optional.of(createStructureDefinitionsRule().lex(stripped)
+                .map(Main::modifyStructureDefinition)
+                .orElse(Stream.empty())
+                .map(node -> createPlantUMLRootSegmentRule().generate(node))
+                .flatMap(Optional::stream)
+                .collect(Collectors.joining()));
+    }
+
+    private static Rule createPlantUMLRootSegmentRule() {
+        return new SuffixRule(new OrRule(List.of(createPlantUMLClassesRule(), createiplementsRule())), "\n");
+    }
+
+    private static Rule createiplementsRule() {
+        return new TypeRule("implements",
+                LocateRule.First(new StringRule("source"), " --|> ", new StringRule("destination")));
+    }
+
+    private static Stream<Node> modifyStructureDefinition(Node node) {
+        final var retyped = node.is("record") ? node.retype("class") : node;
+
+        final var maybeSupertype = retyped.findString("supertype");
+        if (maybeSupertype.isPresent()) {
+            final var supertype = maybeSupertype.get();
+            final var name = retyped.findString("name")
+                    .orElse("");
+
+            return Stream.of(retyped,
+                    new MapNode("implements").withString("source", name)
+                            .withString("destination", supertype));
         }
 
-
-        return Optional.empty();
+        return Stream.of(retyped);
     }
 
     private static Rule createPlantUMLClassesRule() {
@@ -132,13 +157,14 @@ public class Main {
         final Rule name = new StringRule("name");
         final Rule withParams = new OrRule(List.of(LocateRule.First(name, "(", new StringRule("params")), name));
         final Rule afterType = new OrRule(List.of(LocateRule.Last(withParams,
-                " implements ", new StringRule("supertype")), withParams));
+                " implements ",
+                new StringRule("supertype")), withParams));
 
         return new TypeRule(type, LocateRule.First(beforeType, type + " ", afterType));
     }
 
     private static Rule createPlantUMLClassRule(String type) {
         final var afterType = new StringRule("name");
-        return new TypeRule(type, new PrefixRule(type + " ", new SuffixRule(afterType, "\n")));
+        return new TypeRule(type, new PrefixRule(type + " ", afterType));
     }
 }

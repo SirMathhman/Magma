@@ -18,6 +18,10 @@ public final class MapNode implements Node {
         this.strings = strings;
     }
 
+    public MapNode(String type) {
+        this(Optional.of(type), new HashMap<>());
+    }
+
     @Override
     public Node withString(String key, String value) {
         this.strings.put(key, value);
