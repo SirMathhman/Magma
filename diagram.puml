@@ -336,9 +336,9 @@ CompilerBuilder --> StageCompiler
 
 CompilerBuilder --> JavaLang
 
-CompilerBuilder --> PlantLang
-
 CompilerBuilder --> JavaPlantTransformer
+
+CompilerBuilder --> PlantLang
 
 class CompilerBuilder 
 NodeListExtractor --> Folding
