@@ -1,10 +1,10 @@
 package magma;
 
 import magma.app.Compiler;
+import magma.app.JVMFiles;
 import magma.app.JVMPaths;
 
 import java.io.IOException;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.Map;
@@ -12,14 +12,14 @@ import java.util.stream.Collectors;
 
 public class Main {
     public static void main(String[] args) {
-        try (final var stream = Files.walk(JVMPaths.get(".", "src", "java"))) {
-            final var sources = stream.filter(Files::isRegularFile)
+        try (final var stream = JVMFiles.walk(JVMPaths.get(".", "src", "java"))) {
+            final var sources = stream.filter(JVMFiles::isRegularFile)
                     .filter(path -> path.toString()
                             .endsWith(".java"))
                     .collect(Collectors.toSet());
 
             final var output = compileAll(sources);
-            Files.writeString(JVMPaths.get(".", "diagram.puml"),
+            JVMFiles.writeString(JVMPaths.get(".", "diagram.puml"),
                     "@startuml\nskinparam linetype ortho\n" + output + "@enduml");
         } catch (IOException e) {
             //noinspection CallToPrintStackTrace
@@ -39,7 +39,7 @@ public class Main {
                     .toString();
             final var separator = fileName.lastIndexOf(".");
             final var name = fileName.substring(0, separator);
-            final var input = Files.readString(source);
+            final var input = JVMFiles.readString(source);
 
             sourceMap.put(name, input);
         }

@@ -36,6 +36,11 @@ Node --> Map
 Node --> Optional
 Node --> Stream
 interface Node
+JVMFiles --> IOException
+JVMFiles --> Files
+JVMFiles --> Path
+JVMFiles --> Stream
+class JVMFiles
 Lang --> LocateRule
 Lang --> OrRule
 Lang --> PrefixRule
@@ -77,9 +82,9 @@ LocateRule --> Optional
 class LocateRule
 LocateRule --|> Rule
 Main --> Compiler
+Main --> JVMFiles
 Main --> JVMPaths
 Main --> IOException
-Main --> Files
 Main --> Path
 Main --> HashMap
 Main --> Map
