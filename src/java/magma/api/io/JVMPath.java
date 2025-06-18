@@ -3,7 +3,6 @@ package magma.api.io;
 import magma.api.Err;
 import magma.api.Ok;
 import magma.api.Result;
-import magma.app.PathLike;
 
 import java.io.IOException;
 import java.nio.file.Files;

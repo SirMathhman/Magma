@@ -4,10 +4,11 @@ import magma.api.Ok;
 import magma.api.Result;
 import magma.api.io.IOError;
 import magma.api.io.JVMPaths;
+import magma.api.io.PathLike;
 import magma.api.map.MapLike;
 import magma.api.map.Maps;
 import magma.app.Compiler;
-import magma.app.PathLike;
+import magma.app.compile.Lang;
 
 import java.util.Collection;
 import java.util.Optional;
@@ -37,7 +38,8 @@ public class Main {
     }
 
     private static Result<String, IOError> compileAll(Iterable<PathLike> sources) {
-        return readAll(sources).mapValue(Compiler::compile);
+        return readAll(sources).mapValue(sourceMap -> new Compiler(Lang.createJavaRootRule(),
+                Lang.createPlantRootRule()).compile(sourceMap));
     }
 
     private static Result<MapLike<String, String>, IOError> readAll(Iterable<PathLike> sources) {

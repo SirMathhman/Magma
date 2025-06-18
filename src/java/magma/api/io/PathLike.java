@@ -1,7 +1,6 @@
-package magma.app;
+package magma.api.io;
 
 import magma.api.Result;
-import magma.api.io.IOError;
 
 import java.util.Optional;
 import java.util.Set;

@@ -1,7 +1,5 @@
 package magma.api.io;
 
-import magma.app.PathLike;
-
 import java.nio.file.Paths;
 
 public class JVMPaths {

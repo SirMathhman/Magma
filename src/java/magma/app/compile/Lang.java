@@ -94,7 +94,7 @@ public class Lang {
         return new OrRule<>(List.of(createImportRule(), createStructureRule()));
     }
 
-    public static DivideRule createJavaRootRule() {
+    public static Rule<NodeWithEverything> createJavaRootRule() {
         return new DivideRule("children", createJavaRootSegmentRule());
     }
 

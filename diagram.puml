@@ -8,8 +8,9 @@ StringRule --> Optional
 
 class StringRule
 StringRule --|> Rule
-JVMPaths --> PathLike
+Transformer --> NodeWithEverything
 
+interface Transformer 
 JVMPaths --> Paths
 
 class JVMPaths 
@@ -63,8 +64,6 @@ Lists --> Arrays
 class Lists 
 PathLike --> Result
 
-PathLike --> IOError
-
 PathLike --> Optional
 
 PathLike --> Set
@@ -88,17 +87,15 @@ interface NodeWithNodes
 interface NodeWithType
 Compiler --> Tuple
 
-Compiler --> ListLike
-
-Compiler --> Lists
-
 Compiler --> MapLike
 
-Compiler --> Lang
-
-Compiler --> MapNode
-
 Compiler --> NodeWithEverything
+
+Compiler --> Rule
+
+Compiler --> JavaPlantTransformer
+
+Compiler --> Transformer
 
 Compiler --> Optional
 
@@ -179,8 +176,6 @@ JVMPath --> Ok
 
 JVMPath --> Result
 
-JVMPath --> PathLike
-
 JVMPath --> IOException
 
 JVMPath --> Files
@@ -215,6 +210,18 @@ NodeWithStrings --> Optional
 NodeWithStrings --> Stream
 
 interface NodeWithStrings
+JavaPlantTransformer --> ListLike
+
+JavaPlantTransformer --> Lists
+
+JavaPlantTransformer --> MapNode
+
+JavaPlantTransformer --> NodeWithEverything
+
+JavaPlantTransformer --> Optional
+
+class JavaPlantTransformer
+JavaPlantTransformer --|> Transformer 
 ThrowableIOError --> IOException
 
 ThrowableIOError --> PrintWriter
@@ -273,6 +280,8 @@ Main --> Maps
 Main --> Compiler
 
 Main --> PathLike
+
+Main --> Lang
 
 Main --> Collection
 
