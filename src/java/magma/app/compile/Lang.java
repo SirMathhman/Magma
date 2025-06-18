@@ -15,17 +15,16 @@ import java.util.List;
 
 public class Lang {
     public static Rule<NodeWithEverything> createDependencyRule() {
-        return new SuffixRule<>(LocateRule.Last(new StringRule("source"), " --> ", new StringRule("destination")),
-                "\n");
+        return new TypeRule<>("dependency",
+                new SuffixRule<>(LocateRule.Last(new StringRule("source"), " --> ", new StringRule("destination")),
+                        "\n"));
     }
 
     public static Rule<NodeWithEverything> createImportRule() {
-        return new PrefixRule<>("import ",
-                new SuffixRule<>(LocateRule.Last(new StringRule("temp"), ".", new StringRule("destination")), ";"));
-    }
-
-    public static Rule<NodeWithEverything> createPlantUMLRootSegmentRule() {
-        return new SuffixRule<>(new OrRule<>(List.of(createPlantUMLClassesRule(), createImplementsRule())), "\n");
+        return new TypeRule<>("import",
+                new PrefixRule<>("import ",
+                        new SuffixRule<>(LocateRule.Last(new StringRule("temp"), ".", new StringRule("destination")),
+                                ";")));
     }
 
     private static Rule<NodeWithEverything> createImplementsRule() {
@@ -53,11 +52,11 @@ public class Lang {
                 new StringRule("type-arguments")), ">")), name));
 
         final Rule<NodeWithEverything> withParams = new OrRule<>(List.of(LocateRule.First(withTypeParams,
-                        "(",
-                        new StringRule("params")),
-                withTypeParams));
+                "(",
+                new StringRule("params")), withTypeParams));
         final Rule<NodeWithEverything> afterType = new OrRule<>(List.of(LocateRule.Last(withParams,
-                " implements ", new NodeRule("supertype", createTypeRule())), withParams));
+                " implements ",
+                new NodeRule("supertype", createTypeRule())), withParams));
 
         return new TypeRule<>(type, LocateRule.First(beforeType, type + " ", afterType));
     }
@@ -90,6 +89,8 @@ public class Lang {
     }
 
     public static Rule<NodeWithEverything> createPlantRootSegmentRule() {
-        return new OrRule<>(List.of(createDependencyRule(), createPlantUMLRootSegmentRule()));
+        return new SuffixRule<>(new OrRule<>(List.of(createDependencyRule(),
+                createPlantUMLClassesRule(),
+                createImplementsRule())), "\n");
     }
 }

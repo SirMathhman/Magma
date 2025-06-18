@@ -48,7 +48,8 @@ public class Compiler {
 
     private static Stream<NodeWithEverything> modifyRootSegment(String source, NodeWithEverything node) {
         if (node.is("import"))
-            return Stream.of(node.withString("source", source));
+            return Stream.of(node.retype("dependency")
+                    .withString("source", source));
 
         return modifyStructureDefinition(node);
     }
