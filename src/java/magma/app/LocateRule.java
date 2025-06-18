@@ -1,0 +1,42 @@
+package magma.app;
+
+import magma.app.locate.LastLocator;
+import magma.app.locate.Locator;
+import magma.app.node.Node;
+
+import java.util.Optional;
+
+public final class LocateRule implements Rule {
+    private final Rule leftRule;
+    private final String infix;
+    private final Rule rightRule;
+    private final Locator locator;
+
+    public LocateRule(Rule leftRule, String infix, Rule rightRule, Locator locator) {
+        this.leftRule = leftRule;
+        this.infix = infix;
+        this.rightRule = rightRule;
+        this.locator = locator;
+    }
+
+    public static Rule Last(Rule leftRule, String infix, Rule rightRule) {
+        return new LocateRule(leftRule, infix, rightRule, new LastLocator());
+    }
+
+    @Override
+    public Optional<String> generate(Node node) {
+        return Optional.of(this.leftRule.generate(node)
+                .orElse("") + this.infix + this.rightRule.generate(node)
+                .orElse(""));
+    }
+
+    @Override
+    public Optional<Node> lex(String input) {
+        final var maybeIndex = this.locator.locate(input, this.infix);
+        if (maybeIndex.isEmpty())
+            return Optional.empty();
+
+        final var slice = input.substring(maybeIndex.get() + this.infix.length());
+        return this.rightRule.lex(slice);
+    }
+}

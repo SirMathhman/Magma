@@ -1,6 +1,6 @@
 package magma;
 
-import magma.app.LastRule;
+import magma.app.LocateRule;
 import magma.app.MutableState;
 import magma.app.PrefixRule;
 import magma.app.Rule;
@@ -88,12 +88,12 @@ public class Main {
     }
 
     private static Rule createDependencyRule() {
-        return new SuffixRule(new LastRule(new StringRule("source"), " --> ", new StringRule("destination")), "\n");
+        return new SuffixRule(LocateRule.Last(new StringRule("source"), " --> ", new StringRule("destination")), "\n");
     }
 
     private static Rule createImportRule() {
         return new PrefixRule("import ",
-                new SuffixRule(new LastRule(new StringRule("temp"), ".", new StringRule("destination")), ";"));
+                new SuffixRule(LocateRule.Last(new StringRule("temp"), ".", new StringRule("destination")), ";"));
     }
 
     private static Optional<String> compileStructure(String input) {
