@@ -9,12 +9,12 @@ import magma.app.compile.rule.divide.MutableDivideState;
 
 import java.util.Optional;
 
-public final class DivideRule<Node extends NodeWithNodeLists<Node>> implements Rule<Node> {
+public final class NodeListRule<Node extends NodeWithNodeLists<Node>> implements Rule<Node> {
     private final String key;
     private final Rule<Node> rule;
     private final NodeFactory<Node> nodeFactory;
 
-    public DivideRule(String key, Rule<Node> rule, NodeFactory<Node> nodeFactory) {
+    public NodeListRule(String key, Rule<Node> rule, NodeFactory<Node> nodeFactory) {
         this.key = key;
         this.rule = rule;
         this.nodeFactory = nodeFactory;
@@ -45,7 +45,7 @@ public final class DivideRule<Node extends NodeWithNodeLists<Node>> implements R
     @Override
     public Optional<Node> lex(String input) {
         final var children = divide(input).fold(Lists.<Node>empty(),
-                (current, segment) -> DivideRule.this.rule.lex(segment)
+                (current, segment) -> NodeListRule.this.rule.lex(segment)
                         .map(current::add)
                         .orElse(current));
 

@@ -3,9 +3,9 @@ package magma.app.compile.lang;
 import magma.api.collect.list.Lists;
 import magma.app.compile.node.MapNodeFactory;
 import magma.app.compile.node.NodeWithEverything;
-import magma.app.compile.rule.DivideRule;
 import magma.app.compile.rule.LocateRule;
 import magma.app.compile.rule.ModifyRule;
+import magma.app.compile.rule.NodeListRule;
 import magma.app.compile.rule.NodeRule;
 import magma.app.compile.rule.OrRule;
 import magma.app.compile.rule.Rule;
@@ -78,6 +78,6 @@ public class JavaLang {
     }
 
     public static Rule<NodeWithEverything> createJavaRootRule() {
-        return new DivideRule<>("children", createJavaRootSegmentRule(), new MapNodeFactory());
+        return new NodeListRule<>("children", createJavaRootSegmentRule(), new MapNodeFactory());
     }
 }

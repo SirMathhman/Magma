@@ -6,7 +6,7 @@ PlantLang --> MapNodeFactory
 
 PlantLang --> NodeWithEverything
 
-PlantLang --> DivideRule
+PlantLang --> NodeListRule
 
 PlantLang --> LocateRule
 
@@ -49,22 +49,6 @@ PrefixModifier --> Optional
 
 class PrefixModifier
 PrefixModifier --|> Modifier 
-DivideRule --> Foldable
-
-DivideRule --> Lists
-
-DivideRule --> NodeFactory
-
-DivideRule --> NodeWithNodeLists
-
-DivideRule --> DivideState
-
-DivideRule --> MutableDivideState
-
-DivideRule --> Optional
-
-class DivideRule
-DivideRule --|> Rule
 class Maps 
 Lists --> Sequence
 
@@ -273,6 +257,22 @@ ModifyRule --> Optional
 
 class ModifyRule
 ModifyRule --|> Rule
+NodeListRule --> Foldable
+
+NodeListRule --> Lists
+
+NodeListRule --> NodeFactory
+
+NodeListRule --> NodeWithNodeLists
+
+NodeListRule --> DivideState
+
+NodeListRule --> MutableDivideState
+
+NodeListRule --> Optional
+
+class NodeListRule
+NodeListRule --|> Rule
 NodeRule --> NodeFactory
 
 NodeRule --> NodeWithNodes
@@ -330,7 +330,7 @@ JavaLang --> MapNodeFactory
 
 JavaLang --> NodeWithEverything
 
-JavaLang --> DivideRule
+JavaLang --> NodeListRule
 
 JavaLang --> LocateRule
 
