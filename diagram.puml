@@ -14,6 +14,7 @@ Compiler --> MutableState
 Compiler --> State
 Compiler --> MapNode
 Compiler --> Node
+Compiler --> Rule
 Compiler --> List
 Compiler --> Map
 Compiler --> Optional

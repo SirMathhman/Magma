@@ -5,6 +5,7 @@ import magma.app.compile.MutableState;
 import magma.app.compile.State;
 import magma.app.compile.node.MapNode;
 import magma.app.compile.node.Node;
+import magma.app.compile.rule.Rule;
 
 import java.util.List;
 import java.util.Map;
@@ -71,12 +72,14 @@ public class Compiler {
         final var stripped = input.substring(0, contentStart)
                 .strip();
 
-        return Optional.of(Lang.createStructureDefinitionsRule()
-                .lex(stripped)
+        return map(stripped, Lang.createStructureDefinitionsRule(), Lang.createPlantUMLRootSegmentRule());
+    }
+
+    private static Optional<String> map(String input, Rule sourceRule, Rule targetRule) {
+        return Optional.of(sourceRule.lex(input)
                 .map(Compiler::modifyStructureDefinition)
                 .orElse(Stream.empty())
-                .map(node -> Lang.createPlantUMLRootSegmentRule()
-                        .generate(node))
+                .map(targetRule::generate)
                 .flatMap(Optional::stream)
                 .collect(Collectors.joining()));
     }
