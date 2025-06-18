@@ -1,4 +1,4 @@
-package magma.app.compile;
+package magma.app.compile.rule;
 
 import magma.app.compile.node.Node;
 

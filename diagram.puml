@@ -9,15 +9,9 @@ PrefixRule --> Node
 PrefixRule --> Optional
 class PrefixRule
 PrefixRule --|> Rule
-Compiler --> LocateRule
+Compiler --> Lang
 Compiler --> MutableState
-Compiler --> OrRule
-Compiler --> PrefixRule
-Compiler --> Rule
 Compiler --> State
-Compiler --> StringRule
-Compiler --> SuffixRule
-Compiler --> TypeRule
 Compiler --> MapNode
 Compiler --> Node
 Compiler --> List
@@ -38,6 +32,15 @@ Node --> Map
 Node --> Optional
 Node --> Stream
 interface Node
+Lang --> LocateRule
+Lang --> OrRule
+Lang --> PrefixRule
+Lang --> Rule
+Lang --> StringRule
+Lang --> SuffixRule
+Lang --> TypeRule
+Lang --> List
+class Lang
 MapNode --> HashMap
 MapNode --> Map
 MapNode --> Optional
