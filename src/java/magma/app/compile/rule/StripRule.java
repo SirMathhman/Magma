@@ -4,7 +4,7 @@ import magma.app.compile.node.NodeWithEverything;
 
 import java.util.Optional;
 
-public record StripRule(Rule rule) implements Rule {
+public record StripRule(Rule<NodeWithEverything> rule) implements Rule<NodeWithEverything> {
     @Override
     public Optional<String> generate(NodeWithEverything node) {
         return this.rule.generate(node);

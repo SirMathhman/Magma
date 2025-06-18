@@ -5,7 +5,7 @@ import magma.app.compile.node.NodeWithEverything;
 
 import java.util.Optional;
 
-public record StringRule(String key) implements Rule {
+public record StringRule(String key) implements Rule<NodeWithEverything> {
     @Override
     public Optional<String> generate(NodeWithEverything node) {
         return node.findString(this.key);

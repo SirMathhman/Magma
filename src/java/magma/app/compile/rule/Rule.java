@@ -1,11 +1,9 @@
 package magma.app.compile.rule;
 
-import magma.app.compile.node.NodeWithEverything;
-
 import java.util.Optional;
 
-public interface Rule {
-    Optional<String> generate(NodeWithEverything node);
+public interface Rule<Node> {
+    Optional<String> generate(Node node);
 
-    Optional<NodeWithEverything> lex(String input);
+    Optional<Node> lex(String input);
 }

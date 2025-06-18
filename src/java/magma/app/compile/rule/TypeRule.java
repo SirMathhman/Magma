@@ -4,7 +4,7 @@ import magma.app.compile.node.NodeWithEverything;
 
 import java.util.Optional;
 
-public record TypeRule(String type, Rule rule) implements Rule {
+public record TypeRule(String type, Rule<NodeWithEverything> rule) implements Rule<NodeWithEverything> {
     @Override
     public Optional<String> generate(NodeWithEverything node) {
         if (node.is(this.type))

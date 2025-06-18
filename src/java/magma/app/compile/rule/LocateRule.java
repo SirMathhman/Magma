@@ -7,24 +7,24 @@ import magma.app.compile.node.NodeWithEverything;
 
 import java.util.Optional;
 
-public final class LocateRule implements Rule {
-    private final Rule leftRule;
+public final class LocateRule implements Rule<NodeWithEverything> {
+    private final Rule<NodeWithEverything> leftRule;
     private final String infix;
-    private final Rule rightRule;
+    private final Rule<NodeWithEverything> rightRule;
     private final Locator locator;
 
-    public LocateRule(Rule leftRule, String infix, Rule rightRule, Locator locator) {
+    public LocateRule(Rule<NodeWithEverything> leftRule, String infix, Rule<NodeWithEverything> rightRule, Locator locator) {
         this.leftRule = leftRule;
         this.infix = infix;
         this.rightRule = rightRule;
         this.locator = locator;
     }
 
-    public static Rule Last(Rule leftRule, String infix, Rule rightRule) {
+    public static Rule<NodeWithEverything> Last(Rule<NodeWithEverything> leftRule, String infix, Rule<NodeWithEverything> rightRule) {
         return new LocateRule(leftRule, infix, rightRule, new LastLocator());
     }
 
-    public static Rule First(Rule leftRule, String infix, Rule rightRule) {
+    public static Rule<NodeWithEverything> First(Rule<NodeWithEverything> leftRule, String infix, Rule<NodeWithEverything> rightRule) {
         return new LocateRule(leftRule, infix, rightRule, new FirstLocator());
     }
 

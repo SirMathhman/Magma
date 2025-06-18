@@ -61,7 +61,7 @@ public class Compiler {
         return getSource(input, source, Lang.createImportRule(), Lang.createDependencyRule());
     }
 
-    private static Optional<String> getSource(String input, String source, Rule sourceRule, Rule targetRule) {
+    private static Optional<String> getSource(String input, String source, Rule<NodeWithEverything> sourceRule, Rule<NodeWithEverything> targetRule) {
         return sourceRule.lex(input)
                 .map(node -> node.withString("source", source))
                 .flatMap(targetRule::generate)
@@ -78,7 +78,7 @@ public class Compiler {
         return map(stripped, Lang.createStructureDefinitionsRule(), Lang.createPlantUMLRootSegmentRule());
     }
 
-    private static Optional<String> map(String input, Rule sourceRule, Rule targetRule) {
+    private static Optional<String> map(String input, Rule<NodeWithEverything> sourceRule, Rule<NodeWithEverything> targetRule) {
         return Optional.of(sourceRule.lex(input)
                 .map(Compiler::modifyStructureDefinition)
                 .orElse(Stream.empty())

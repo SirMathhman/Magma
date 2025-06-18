@@ -58,6 +58,7 @@ StripRule --> NodeWithEverything
 StripRule --> Optional
 class StripRule
 StripRule --|> Rule
+Lang --> NodeWithEverything
 Lang --> LocateRule
 Lang --> NodeRule
 Lang --> OrRule
@@ -97,7 +98,6 @@ NodeWithStrings --> Map
 NodeWithStrings --> Optional
 NodeWithStrings --> Stream
 interface NodeWithStrings
-Rule --> NodeWithEverything
 Rule --> Optional
 interface Rule
 class Ok
