@@ -58,10 +58,13 @@ public class Compiler {
     }
 
     private static Optional<String> compileRootSegment(String input, String source) {
-        return Lang.createImportRule()
-                .lex(input)
-                .flatMap(node -> Lang.createDependencyRule()
-                        .generate(node.withString("source", source)))
+        return getSource(input, source, Lang.createImportRule(), Lang.createDependencyRule());
+    }
+
+    private static Optional<String> getSource(String input, String source, Rule sourceRule, Rule targetRule) {
+        return sourceRule.lex(input)
+                .map(node -> node.withString("source", source))
+                .flatMap(targetRule::generate)
                 .or(() -> compileStructure(input));
     }
 
