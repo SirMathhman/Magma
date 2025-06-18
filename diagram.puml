@@ -6,11 +6,11 @@ PlantLang --> MapNodeFactory
 
 PlantLang --> NodeWithEverything
 
-PlantLang --> ExtractRules
+PlantLang --> ExtractRule
 
 PlantLang --> LocateRule
 
-PlantLang --> ModifyRules
+PlantLang --> ModifyRule
 
 PlantLang --> OrRule
 
@@ -57,13 +57,6 @@ PrefixModifier --> Optional
 class PrefixModifier
 PrefixModifier --|> Modifier 
 class Maps 
-ModifyRules --> PrefixModifier
-
-ModifyRules --> StripModifier
-
-ModifyRules --> SuffixModifier
-
-class ModifyRules 
 Lists --> Sequence
 
 Lists --> ArrayList
@@ -179,21 +172,6 @@ Err --> Function
 
 class Err
 Err --|> Result
-ExtractRules --> NodeFactory
-
-ExtractRules --> NodeWithNodeLists
-
-ExtractRules --> NodeWithNodes
-
-ExtractRules --> NodeWithStrings
-
-ExtractRules --> NodeExtractor
-
-ExtractRules --> NodeListExtractor
-
-ExtractRules --> StringExtractor
-
-class ExtractRules 
 MapNode --> Tuple
 
 MapNode --> ListLike
@@ -290,13 +268,31 @@ class CompileApplication
 CompileApplication --|> Application 
 ExtractRule --> NodeFactory
 
+ExtractRule --> NodeWithNodeLists
+
+ExtractRule --> NodeWithNodes
+
+ExtractRule --> NodeWithStrings
+
 ExtractRule --> Extractor
+
+ExtractRule --> NodeExtractor
+
+ExtractRule --> NodeListExtractor
+
+ExtractRule --> StringExtractor
 
 ExtractRule --> Optional
 
 class ExtractRule
 ExtractRule --|> Rule
 ModifyRule --> Modifier
+
+ModifyRule --> PrefixModifier
+
+ModifyRule --> StripModifier
+
+ModifyRule --> SuffixModifier
 
 ModifyRule --> Optional
 
@@ -340,9 +336,9 @@ CompilerBuilder --> StageCompiler
 
 CompilerBuilder --> JavaLang
 
-CompilerBuilder --> JavaPlantTransformer
-
 CompilerBuilder --> PlantLang
+
+CompilerBuilder --> JavaPlantTransformer
 
 class CompilerBuilder 
 NodeListExtractor --> Folding
@@ -376,11 +372,11 @@ JavaLang --> MapNodeFactory
 
 JavaLang --> NodeWithEverything
 
-JavaLang --> ExtractRules
+JavaLang --> ExtractRule
 
 JavaLang --> LocateRule
 
-JavaLang --> ModifyRules
+JavaLang --> ModifyRule
 
 JavaLang --> OrRule
 
