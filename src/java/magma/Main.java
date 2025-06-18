@@ -129,9 +129,11 @@ public class Main {
     private static Rule createStructureDefinitionRule(String type) {
         final Rule beforeType = new StringRule("before-type");
 
-        final Rule afterType = new OrRule(List.of(LocateRule.Last(new StringRule("name"),
-                " implements ",
-                new StringRule("supertype")), new StringRule("name")));
+        final Rule name = new StringRule("name");
+        final Rule withParams = new OrRule(List.of(LocateRule.First(name, "(", new StringRule("params")), name));
+        final Rule afterType = new OrRule(List.of(LocateRule.Last(withParams,
+                " implements ", new StringRule("supertype")), withParams));
+
         return new TypeRule(type, LocateRule.First(beforeType, type + " ", afterType));
     }
 

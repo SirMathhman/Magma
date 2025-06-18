@@ -10,18 +10,18 @@ class Rule
 StringRule --> MapNode
 StringRule --> Node
 StringRule --> Optional
-interface StringRule(String key)
+interface StringRule
 Locator --> Optional
 class Locator
 PrefixRule --> Node
 PrefixRule --> Optional
-interface PrefixRule(String prefix, Rule rule)
+interface PrefixRule
 FirstLocator --> Optional
 interface FirstLocator
 OrRule --> Node
 OrRule --> List
 OrRule --> Optional
-interface OrRule(List<Rule> rules)
+interface OrRule
 LocateRule --> FirstLocator
 LocateRule --> LastLocator
 LocateRule --> Locator
@@ -55,10 +55,10 @@ MapNode --> Stream
 interface MapNode
 TypeRule --> Node
 TypeRule --> Optional
-interface TypeRule(String type, Rule rule)
+interface TypeRule
 SuffixRule --> Node
 SuffixRule --> Optional
-interface SuffixRule(Rule rule, String suffix)
+interface SuffixRule
 LastLocator --> Optional
 interface LastLocator
 State --> List
