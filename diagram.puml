@@ -105,7 +105,7 @@ Ok --|> Result
 LocateRule --> FirstLocator
 LocateRule --> LastLocator
 LocateRule --> Locator
-LocateRule --> NodeWithEverything
+LocateRule --> MergingNode
 LocateRule --> Optional
 class LocateRule
 LocateRule --|> Rule

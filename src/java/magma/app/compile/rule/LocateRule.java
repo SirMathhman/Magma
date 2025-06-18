@@ -3,40 +3,40 @@ package magma.app.compile.rule;
 import magma.app.compile.locate.FirstLocator;
 import magma.app.compile.locate.LastLocator;
 import magma.app.compile.locate.Locator;
-import magma.app.compile.node.NodeWithEverything;
+import magma.app.compile.node.MergingNode;
 
 import java.util.Optional;
 
-public final class LocateRule implements Rule<NodeWithEverything> {
-    private final Rule<NodeWithEverything> leftRule;
+public final class LocateRule<Node extends MergingNode<Node>> implements Rule<Node> {
+    private final Rule<Node> leftRule;
     private final String infix;
-    private final Rule<NodeWithEverything> rightRule;
+    private final Rule<Node> rightRule;
     private final Locator locator;
 
-    public LocateRule(Rule<NodeWithEverything> leftRule, String infix, Rule<NodeWithEverything> rightRule, Locator locator) {
+    public LocateRule(Rule<Node> leftRule, String infix, Rule<Node> rightRule, Locator locator) {
         this.leftRule = leftRule;
         this.infix = infix;
         this.rightRule = rightRule;
         this.locator = locator;
     }
 
-    public static Rule<NodeWithEverything> Last(Rule<NodeWithEverything> leftRule, String infix, Rule<NodeWithEverything> rightRule) {
-        return new LocateRule(leftRule, infix, rightRule, new LastLocator());
+    public static <Node extends MergingNode<Node>> Rule<Node> Last(Rule<Node> leftRule, String infix, Rule<Node> rightRule) {
+        return new LocateRule<>(leftRule, infix, rightRule, new LastLocator());
     }
 
-    public static Rule<NodeWithEverything> First(Rule<NodeWithEverything> leftRule, String infix, Rule<NodeWithEverything> rightRule) {
-        return new LocateRule(leftRule, infix, rightRule, new FirstLocator());
+    public static <Node extends MergingNode<Node>> Rule<Node> First(Rule<Node> leftRule, String infix, Rule<Node> rightRule) {
+        return new LocateRule<>(leftRule, infix, rightRule, new FirstLocator());
     }
 
     @Override
-    public Optional<String> generate(NodeWithEverything node) {
+    public Optional<String> generate(Node node) {
         return Optional.of(this.leftRule.generate(node)
                 .orElse("") + this.infix + this.rightRule.generate(node)
                 .orElse(""));
     }
 
     @Override
-    public Optional<NodeWithEverything> lex(String input) {
+    public Optional<Node> lex(String input) {
         final var maybeIndex = this.locator.locate(input, this.infix);
         if (maybeIndex.isEmpty())
             return Optional.empty();
