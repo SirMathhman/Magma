@@ -1,4 +1,6 @@
-package magma.app;
+package magma.app.jvm;
+
+import magma.app.PathLike;
 
 import java.io.IOException;
 import java.nio.file.Files;

@@ -1,9 +1,9 @@
 package magma;
 
 import magma.app.Compiler;
-import magma.app.JVMPath;
-import magma.app.JVMPaths;
 import magma.app.PathLike;
+import magma.app.jvm.JVMPath;
+import magma.app.jvm.JVMPaths;
 
 import java.io.IOException;
 import java.util.HashMap;

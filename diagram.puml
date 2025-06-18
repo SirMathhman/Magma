@@ -5,6 +5,7 @@ StringRule --> Node
 StringRule --> Optional
 class StringRule
 StringRule --|> Rule
+JVMPaths --> PathLike
 JVMPaths --> Paths
 class JVMPaths
 class Err
@@ -22,6 +23,7 @@ MapNode --|> Node
 interface Result
 Locator --> Optional
 interface Locator
+PathLike --> JVMPath
 PathLike --> IOException
 PathLike --> Set
 interface PathLike
@@ -80,6 +82,7 @@ SuffixRule --> Node
 SuffixRule --> Optional
 class SuffixRule
 SuffixRule --|> Rule
+JVMPath --> PathLike
 JVMPath --> IOException
 JVMPath --> Files
 JVMPath --> Path

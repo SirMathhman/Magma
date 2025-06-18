@@ -1,5 +1,7 @@
 package magma.app;
 
+import magma.app.jvm.JVMPath;
+
 import java.io.IOException;
 import java.util.Set;
 
