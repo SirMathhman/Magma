@@ -6,6 +6,8 @@ PlantLang --> MapNodeFactory
 
 PlantLang --> NodeWithEverything
 
+PlantLang --> ExtractRule
+
 PlantLang --> LocateRule
 
 PlantLang --> ModifyRule
@@ -15,8 +17,6 @@ PlantLang --> NodeListRule
 PlantLang --> OrRule
 
 PlantLang --> Rule
-
-PlantLang --> StringRule
 
 PlantLang --> TypeRule
 
@@ -150,14 +150,6 @@ JVMMap --> Stream
 class JVMMap
 JVMMap --|> MapLike
 interface MergingNode
-StringRule --> NodeFactory
-
-StringRule --> NodeWithStrings
-
-StringRule --> Optional
-
-class StringRule
-StringRule --|> Rule
 Transformer --> NodeWithEverything
 
 interface Transformer 
@@ -199,8 +191,6 @@ FirstLocator --> Optional
 
 class FirstLocator
 FirstLocator --|> Locator 
-Extractor --> Rule
-
 Extractor --> Optional
 
 interface Extractor
@@ -262,9 +252,13 @@ ExtractRule --> NodeFactory
 
 ExtractRule --> NodeWithNodes
 
+ExtractRule --> NodeWithStrings
+
 ExtractRule --> Extractor
 
 ExtractRule --> NodeExtractor
+
+ExtractRule --> StringExtractor
 
 ExtractRule --> Optional
 
@@ -341,11 +335,19 @@ CompilerBuilder --> PlantLang
 CompilerBuilder --> JavaPlantTransformer
 
 class CompilerBuilder 
+StringExtractor --> NodeWithStrings
+
+StringExtractor --> Optional
+
+class StringExtractor
+StringExtractor --|> Extractor
 JavaLang --> Lists
 
 JavaLang --> MapNodeFactory
 
 JavaLang --> NodeWithEverything
+
+JavaLang --> ExtractRule
 
 JavaLang --> LocateRule
 
@@ -353,13 +355,9 @@ JavaLang --> ModifyRule
 
 JavaLang --> NodeListRule
 
-JavaLang --> ExtractRule
-
 JavaLang --> OrRule
 
 JavaLang --> Rule
-
-JavaLang --> StringRule
 
 JavaLang --> TypeRule
 

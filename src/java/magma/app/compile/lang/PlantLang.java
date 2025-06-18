@@ -3,20 +3,20 @@ package magma.app.compile.lang;
 import magma.api.collect.list.Lists;
 import magma.app.compile.node.MapNodeFactory;
 import magma.app.compile.node.NodeWithEverything;
+import magma.app.compile.rule.ExtractRule;
 import magma.app.compile.rule.LocateRule;
 import magma.app.compile.rule.ModifyRule;
 import magma.app.compile.rule.NodeListRule;
 import magma.app.compile.rule.OrRule;
 import magma.app.compile.rule.Rule;
-import magma.app.compile.rule.StringRule;
 import magma.app.compile.rule.TypeRule;
 
 public class PlantLang {
     public static Rule<NodeWithEverything> createImplementsRule() {
         return new TypeRule<>("implements",
-                LocateRule.First(new StringRule<>("source", new MapNodeFactory()),
+                LocateRule.First(ExtractRule.createStringRule("source", new MapNodeFactory()),
                         " --|> ",
-                        new StringRule<>("destination", new MapNodeFactory())));
+                        ExtractRule.createStringRule("destination", new MapNodeFactory())));
     }
 
     public static Rule<NodeWithEverything> createPlantUMLClassesRule() {
@@ -24,7 +24,7 @@ public class PlantLang {
     }
 
     public static Rule<NodeWithEverything> createPlantUMLClassRule(String type) {
-        final var afterType = new StringRule<>("name", new MapNodeFactory());
+        final var afterType = ExtractRule.createStringRule("name", new MapNodeFactory());
         return new TypeRule<>(type, ModifyRule.Prefix(type + " ", afterType));
     }
 

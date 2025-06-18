@@ -9,23 +9,22 @@ import magma.app.compile.rule.ModifyRule;
 import magma.app.compile.rule.NodeListRule;
 import magma.app.compile.rule.OrRule;
 import magma.app.compile.rule.Rule;
-import magma.app.compile.rule.StringRule;
 import magma.app.compile.rule.TypeRule;
 
 public class JavaLang {
     public static Rule<NodeWithEverything> createDependencyRule() {
         return new TypeRule<>("dependency",
-                ModifyRule.Suffix(LocateRule.Last(new StringRule<>("source", new MapNodeFactory()),
+                ModifyRule.Suffix(LocateRule.Last(ExtractRule.createStringRule("source", new MapNodeFactory()),
                         " --> ",
-                        new StringRule<>("destination", new MapNodeFactory())), "\n"));
+                        ExtractRule.createStringRule("destination", new MapNodeFactory())), "\n"));
     }
 
     public static Rule<NodeWithEverything> createImportRule() {
         return new TypeRule<>("import",
                 ModifyRule.Strip(ModifyRule.Prefix("import ",
-                        ModifyRule.Suffix(LocateRule.Last(new StringRule<>("temp", new MapNodeFactory()),
+                        ModifyRule.Suffix(LocateRule.Last(ExtractRule.createStringRule("temp", new MapNodeFactory()),
                                 ".",
-                                new StringRule<>("destination", new MapNodeFactory())), ";"))));
+                                ExtractRule.createStringRule("destination", new MapNodeFactory())), ";"))));
     }
 
     public static Rule<NodeWithEverything> createStructureDefinitionsRule() {
@@ -35,16 +34,16 @@ public class JavaLang {
     }
 
     private static Rule<NodeWithEverything> createStructureDefinitionRule(String type) {
-        final Rule<NodeWithEverything> beforeType = new StringRule<>("before-type", new MapNodeFactory());
+        final Rule<NodeWithEverything> beforeType = ExtractRule.createStringRule("before-type", new MapNodeFactory());
 
-        final Rule<NodeWithEverything> name = new StringRule<>("name", new MapNodeFactory());
+        final Rule<NodeWithEverything> name = ExtractRule.createStringRule("name", new MapNodeFactory());
         final Rule<NodeWithEverything> withTypeParams = new OrRule<>(Lists.of(ModifyRule.Strip(ModifyRule.Suffix(
-                LocateRule.First(name, "<", new StringRule<>("type-arguments", new MapNodeFactory())),
+                LocateRule.First(name, "<", ExtractRule.createStringRule("type-arguments", new MapNodeFactory())),
                 ">")), name));
 
         final Rule<NodeWithEverything> withParams = new OrRule<>(Lists.of(LocateRule.First(withTypeParams,
                 "(",
-                new StringRule<>("params", new MapNodeFactory())), withTypeParams));
+                ExtractRule.createStringRule("params", new MapNodeFactory())), withTypeParams));
         final Rule<NodeWithEverything> afterType = new OrRule<>(Lists.of(LocateRule.Last(withParams,
                 " implements ",
                 ExtractRule.Node("supertype", createTypeRule(), new MapNodeFactory())), withParams));
@@ -57,20 +56,21 @@ public class JavaLang {
     }
 
     private static Rule<NodeWithEverything> createIdentifierRule() {
-        return new TypeRule<>("identifier", new StringRule<>("value", new MapNodeFactory()));
+        return new TypeRule<>("identifier", ExtractRule.createStringRule("value", new MapNodeFactory()));
     }
 
     private static Rule<NodeWithEverything> createGenericRule() {
         return new TypeRule<>("generic",
-                ModifyRule.Strip(ModifyRule.Suffix(LocateRule.First(new StringRule<>("base", new MapNodeFactory()),
+                ModifyRule.Strip(ModifyRule.Suffix(LocateRule.First(ExtractRule.createStringRule("base",
+                                new MapNodeFactory()),
                         "<",
-                        new StringRule<>("type-arguments", new MapNodeFactory())), ">")));
+                        ExtractRule.createStringRule("type-arguments", new MapNodeFactory())), ">")));
     }
 
     public static Rule<NodeWithEverything> createStructureRule() {
         return LocateRule.First(createStructureDefinitionsRule(),
                 "{",
-                new StringRule<>("with-braces", new MapNodeFactory()));
+                ExtractRule.createStringRule("with-braces", new MapNodeFactory()));
     }
 
     public static Rule<NodeWithEverything> createJavaRootSegmentRule() {

@@ -6,14 +6,20 @@ import magma.app.compile.rule.Rule;
 import java.util.Optional;
 
 public class NodeExtractor<Node extends NodeWithNodes<Node>> implements Extractor<Node, Node> {
+    private final Rule<Node> rule;
+
+    public NodeExtractor(Rule<Node> rule) {
+        this.rule = rule;
+    }
+
     @Override
     public Node attach(Node node, String key, Node value) {
         return node.withNode(key, value);
     }
 
     @Override
-    public Optional<Node> fromString(String input, Rule<Node> rule) {
-        return rule.lex(input);
+    public Optional<Node> lex(String input) {
+        return this.rule.lex(input);
     }
 
     @Override
@@ -22,7 +28,7 @@ public class NodeExtractor<Node extends NodeWithNodes<Node>> implements Extracto
     }
 
     @Override
-    public Optional<String> generate(Node node, Rule<Node> rule) {
-        return rule.generate(node);
+    public Optional<String> generate(Node node) {
+        return this.rule.generate(node);
     }
 }
