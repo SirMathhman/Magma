@@ -1,6 +1,6 @@
 package magma.app.compile.rule;
 
-import magma.app.compile.node.MapNode;
+import magma.app.compile.node.MapNodeFactory;
 import magma.app.compile.node.NodeWithEverything;
 
 import java.util.Optional;
@@ -15,6 +15,7 @@ public record NodeRule(String key, Rule<NodeWithEverything> rule) implements Rul
     @Override
     public Optional<NodeWithEverything> lex(String input) {
         return this.rule.lex(input)
-                .map(node -> new MapNode().withNode(this.key, node));
+                .map(node -> new MapNodeFactory().create()
+                        .withNode(this.key, node));
     }
 }

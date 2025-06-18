@@ -1,7 +1,7 @@
 package magma.app.compile.rule;
 
 import magma.api.list.Lists;
-import magma.app.compile.node.MapNode;
+import magma.app.compile.node.MapNodeFactory;
 import magma.app.compile.node.NodeWithEverything;
 import magma.app.compile.rule.divide.Divider;
 
@@ -18,7 +18,8 @@ public record DivideRule(String key, Rule<NodeWithEverything> rule) implements R
                     .map(oldChildren::add)
                     .orElse(oldChildren);
         }
-        return Optional.of(new MapNode().withNodeList(this.key, oldChildren));
+        return Optional.of(new MapNodeFactory().create()
+                .withNodeList(this.key, oldChildren));
     }
 
     @Override
