@@ -2,6 +2,7 @@ package magma.app.compile.rule.divide;
 
 import magma.api.list.ListLike;
 import magma.api.list.Lists;
+import magma.api.list.Sequence;
 
 public class MutableDivideState implements DivideState {
     private ListLike<String> segments;
@@ -32,7 +33,7 @@ public class MutableDivideState implements DivideState {
     }
 
     @Override
-    public ListLike<String> segments() {
+    public Sequence<String> segments() {
         return this.segments;
     }
 

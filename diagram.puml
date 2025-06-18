@@ -93,7 +93,7 @@ PrefixRule --|> Rule
 Compiler --> MapLike
 
 interface Compiler 
-OrRule --> ListLike
+OrRule --> Sequence
 
 OrRule --> Optional
 
@@ -103,7 +103,8 @@ StripRule --> Optional
 
 class StripRule
 StripRule --|> Rule
-DivideState --> ListLike
+interface Sequence
+DivideState --> Sequence
 
 interface DivideState 
 interface NodeFactory
@@ -116,9 +117,9 @@ NodeWithEverything --> NodeWithStrings
 NodeWithEverything --> NodeWithType
 
 interface NodeWithEverything extends NodeWithStrings
-JavaPlantTransformer --> ListLike
-
 JavaPlantTransformer --> Lists
+
+JavaPlantTransformer --> Sequence
 
 JavaPlantTransformer --> MapNode
 
@@ -131,7 +132,7 @@ JavaPlantTransformer --|> Transformer
 Rule --> Optional
 
 interface Rule
-NodeWithNodeLists --> ListLike
+NodeWithNodeLists --> Sequence
 
 NodeWithNodeLists --> Optional
 
@@ -173,7 +174,7 @@ class Err
 Err --|> Result
 MapNode --> Tuple
 
-MapNode --> ListLike
+MapNode --> Sequence
 
 MapNode --> MapLike
 
@@ -219,6 +220,8 @@ interface MapLike
 MutableDivideState --> ListLike
 
 MutableDivideState --> Lists
+
+MutableDivideState --> Sequence
 
 class MutableDivideState
 MutableDivideState --|> DivideState 
@@ -342,7 +345,7 @@ TupleImpl --|> Tuple
 Main --> ApplicationBuilder
 
 class Main 
-Divider --> ListLike
+Divider --> Sequence
 
 class Divider 
 interface Tuple

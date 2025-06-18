@@ -1,11 +1,11 @@
 package magma.app.compile.node;
 
-import magma.api.list.ListLike;
+import magma.api.list.Sequence;
 
 import java.util.Optional;
 
 public interface NodeWithNodeLists<Node> {
-    Node withNodeList(String key, ListLike<Node> values);
+    Node withNodeList(String key, Sequence<Node> values);
 
-    Optional<ListLike<Node>> findNodeList(String key);
+    Optional<Sequence<Node>> findNodeList(String key);
 }

@@ -25,7 +25,7 @@ public record JVMList<T>(List<T> list) implements ListLike<T> {
     }
 
     @Override
-    public ListLike<T> addAll(ListLike<T> others) {
+    public ListLike<T> addAll(Sequence<T> others) {
         ListLike<T> current = this;
         for (var i = 0; i < others.size(); i++) {
             final var other = others.get(i);

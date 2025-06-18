@@ -1,7 +1,7 @@
 package magma.app.compile.node;
 
 import magma.api.Tuple;
-import magma.api.list.ListLike;
+import magma.api.list.Sequence;
 import magma.api.map.MapLike;
 import magma.api.map.Maps;
 
@@ -12,13 +12,13 @@ public final class MapNode implements NodeWithEverything {
     private final Optional<String> maybeType;
     private MapLike<String, String> strings;
     private MapLike<String, NodeWithEverything> nodes;
-    private MapLike<String, ListLike<NodeWithEverything>> nodeLists;
+    private MapLike<String, Sequence<NodeWithEverything>> nodeLists;
 
     public MapNode() {
         this(Optional.empty(), Maps.empty(), Maps.empty(), Maps.empty());
     }
 
-    public MapNode(Optional<String> maybeType, MapLike<String, String> strings, MapLike<String, NodeWithEverything> nodes, MapLike<String, ListLike<NodeWithEverything>> nodeLists) {
+    public MapNode(Optional<String> maybeType, MapLike<String, String> strings, MapLike<String, NodeWithEverything> nodes, MapLike<String, Sequence<NodeWithEverything>> nodeLists) {
         this.maybeType = maybeType;
         this.strings = strings;
         this.nodes = nodes;
@@ -83,13 +83,13 @@ public final class MapNode implements NodeWithEverything {
     }
 
     @Override
-    public NodeWithEverything withNodeList(String key, ListLike<NodeWithEverything> values) {
+    public NodeWithEverything withNodeList(String key, Sequence<NodeWithEverything> values) {
         this.nodeLists = this.nodeLists.put(key, values);
         return this;
     }
 
     @Override
-    public Optional<ListLike<NodeWithEverything>> findNodeList(String key) {
+    public Optional<Sequence<NodeWithEverything>> findNodeList(String key) {
         return this.nodeLists.find(key);
     }
 }

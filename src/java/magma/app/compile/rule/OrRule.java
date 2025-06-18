@@ -1,10 +1,10 @@
 package magma.app.compile.rule;
 
-import magma.api.list.ListLike;
+import magma.api.list.Sequence;
 
 import java.util.Optional;
 
-public record OrRule<Node>(ListLike<Rule<Node>> rules) implements Rule<Node> {
+public record OrRule<Node>(Sequence<Rule<Node>> rules) implements Rule<Node> {
     @Override
     public Optional<String> generate(Node node) {
         for (var i = 0; i < this.rules.size(); i++) {
