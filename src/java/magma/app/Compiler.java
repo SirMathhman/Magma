@@ -2,16 +2,15 @@ package magma.app;
 
 import magma.api.Tuple;
 import magma.api.list.ListLike;
+import magma.api.list.Lists;
 import magma.api.map.MapLike;
 import magma.app.compile.Lang;
 import magma.app.compile.divide.Divider;
 import magma.app.compile.node.MapNodeWithEverything;
 import magma.app.compile.node.NodeWithEverything;
-import magma.app.compile.rule.OrRule;
 
 import java.util.Optional;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 public class Compiler {
     public static String compile(MapLike<String, String> sourceMap) {
@@ -23,38 +22,51 @@ public class Compiler {
     private static String compileSourceMapEntry(Tuple<String, String> entry) {
         final var name = entry.left();
         final var input = entry.right();
-        final var segments = Divider.divide(input);
-        return compileRootSegments(segments, name);
+        final var oldChildren = lex(input);
+        final var newChildren = modifyRoot(name, oldChildren);
+        return generate(newChildren);
     }
 
-    private static String compileRootSegments(ListLike<String> segments, String name) {
-        final var output = new StringBuilder();
+    private static ListLike<NodeWithEverything> lex(String input) {
+        final var segments = Divider.divide(input);
+        var oldChildren = Lists.<NodeWithEverything>empty();
         for (var i = 0; i < segments.size(); i++) {
             final var segment = segments.get(i);
-            output.append(compileRootSegment(segment.strip(), name));
+            oldChildren = Lang.createJavaRootSegmentRule()
+                    .lex(segment)
+                    .map(oldChildren::add)
+                    .orElse(oldChildren);
+        }
+        return oldChildren;
+    }
+
+    private static ListLike<NodeWithEverything> modifyRoot(String name, ListLike<NodeWithEverything> oldChildren) {
+        var newChildren = Lists.<NodeWithEverything>empty();
+        for (var i = 0; i < oldChildren.size(); i++) {
+            final var oldChild = oldChildren.get(i);
+            newChildren = newChildren.addAll(modifyRootSegment(name, oldChild));
+        }
+        return newChildren;
+    }
+
+    private static String generate(ListLike<NodeWithEverything> newChildren) {
+        var output = new StringBuilder();
+        for (var i = 0; i < newChildren.size(); i++) {
+            final var newChild = newChildren.get(i);
+            output = Lang.createPlantRootSegmentRule()
+                    .generate(newChild)
+                    .map(output::append)
+                    .orElse(output);
         }
 
         return output.toString();
     }
 
-    private static String compileRootSegment(String input, String source) {
-        return new OrRule<>(Lang.createJavaRootSegmentRule()).lex(input)
-                .map(node -> modifyRootSegment(source, node))
-                .orElse(Stream.empty())
-                .map(Lang.createPlantRootSegmentRule()::generate)
-                .flatMap(Optional::stream)
-                .collect(Collectors.joining());
-    }
-
-    private static Stream<NodeWithEverything> modifyRootSegment(String source, NodeWithEverything node) {
+    private static ListLike<NodeWithEverything> modifyRootSegment(String source, NodeWithEverything node) {
         if (node.is("import"))
-            return Stream.of(node.retype("dependency")
+            return Lists.of(node.retype("dependency")
                     .withString("source", source));
 
-        return modifyStructureDefinition(node);
-    }
-
-    private static Stream<NodeWithEverything> modifyStructureDefinition(NodeWithEverything node) {
         final var retyped = node.is("record") ? node.retype("class") : node;
 
         final var maybeSupertype = retyped.findNode("supertype");
@@ -65,11 +77,11 @@ public class Compiler {
             final var name = retyped.findString("name")
                     .orElse("");
 
-            return Stream.of(retyped, new MapNodeWithEverything("implements").withString("source", name)
+            return Lists.of(retyped, new MapNodeWithEverything("implements").withString("source", name)
                             .withString("destination", destination));
         }
 
-        return Stream.of(retyped);
+        return Lists.of(retyped);
     }
 
     private static Optional<String> findBaseType(NodeWithEverything node) {

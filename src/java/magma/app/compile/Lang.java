@@ -21,10 +21,9 @@ public class Lang {
     }
 
     public static Rule<NodeWithEverything> createImportRule() {
-        return new TypeRule<>("import",
-                new PrefixRule<>("import ",
+        return new TypeRule<>("import", new StripRule<>(new PrefixRule<>("import ",
                         new SuffixRule<>(LocateRule.Last(new StringRule("temp"), ".", new StringRule("destination")),
-                                ";")));
+                                ";"))));
     }
 
     private static Rule<NodeWithEverything> createImplementsRule() {
@@ -84,13 +83,13 @@ public class Lang {
         return LocateRule.First(createStructureDefinitionsRule(), "{", new StringRule("with-braces"));
     }
 
-    public static List<Rule<NodeWithEverything>> createJavaRootSegmentRule() {
-        return List.of(createImportRule(), createStructureRule());
-    }
-
     public static Rule<NodeWithEverything> createPlantRootSegmentRule() {
         return new SuffixRule<>(new OrRule<>(List.of(createDependencyRule(),
                 createPlantUMLClassesRule(),
                 createImplementsRule())), "\n");
+    }
+
+    public static Rule<NodeWithEverything> createJavaRootSegmentRule() {
+        return new OrRule<>(List.of(createImportRule(), createStructureRule()));
     }
 }

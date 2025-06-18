@@ -23,4 +23,14 @@ public record JVMList<T>(List<T> list) implements ListLike<T> {
     public T get(int index) {
         return this.list.get(index);
     }
+
+    @Override
+    public ListLike<T> addAll(ListLike<T> others) {
+        ListLike<T> current = this;
+        for (var i = 0; i < others.size(); i++) {
+            final var other = others.get(i);
+            current = current.add(other);
+        }
+        return current;
+    }
 }

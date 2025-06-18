@@ -6,4 +6,6 @@ public interface ListLike<T> {
     int size();
 
     T get(int index);
+
+    ListLike<T> addAll(ListLike<T> others);
 }

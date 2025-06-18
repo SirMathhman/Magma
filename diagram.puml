@@ -30,6 +30,10 @@ Locator --> Optional
 
 interface Locator 
 class Maps 
+Lists --> ArrayList
+
+Lists --> Arrays
+
 class Lists 
 PathLike --> Result
 
@@ -72,6 +76,8 @@ Compiler --> Tuple
 
 Compiler --> ListLike
 
+Compiler --> Lists
+
 Compiler --> MapLike
 
 Compiler --> Lang
@@ -82,13 +88,9 @@ Compiler --> MapNodeWithEverything
 
 Compiler --> NodeWithEverything
 
-Compiler --> OrRule
-
 Compiler --> Optional
 
 Compiler --> Collectors
-
-Compiler --> Stream
 
 class Compiler 
 OrRule --> List
