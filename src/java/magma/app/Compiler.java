@@ -1,6 +1,7 @@
 package magma.app;
 
 import magma.api.Tuple;
+import magma.api.list.ListLike;
 import magma.api.map.MapLike;
 import magma.app.compile.Lang;
 import magma.app.compile.divide.Divider;
@@ -26,10 +27,12 @@ public class Compiler {
         return compileRootSegments(segments, name);
     }
 
-    private static String compileRootSegments(Iterable<String> segments, String name) {
+    private static String compileRootSegments(ListLike<String> segments, String name) {
         final var output = new StringBuilder();
-        for (var segment : segments)
+        for (var i = 0; i < segments.size(); i++) {
+            final var segment = segments.get(i);
             compileRootSegment(segment.strip(), name).ifPresent(output::append);
+        }
 
         return output.toString();
     }

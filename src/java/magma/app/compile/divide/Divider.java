@@ -1,9 +1,9 @@
 package magma.app.compile.divide;
 
-import java.util.List;
+import magma.api.list.ListLike;
 
 public class Divider {
-    public static List<String> divide(CharSequence input) {
+    public static ListLike<String> divide(CharSequence input) {
         DivideState current = new MutableDivideState();
         for (var i = 0; i < input.length(); i++) {
             final var c = input.charAt(i);

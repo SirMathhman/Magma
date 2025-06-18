@@ -13,9 +13,14 @@ class Err
 Err --|> Result
 Result --> Function
 interface Result
+JVMList --> ArrayList
+JVMList --> List
+class JVMList
+JVMList --|> ListLike
 Locator --> Optional
 interface Locator
 class Maps
+class Lists
 PathLike --> Result
 PathLike --> IOError
 PathLike --> Optional
@@ -39,6 +44,7 @@ NodeWithNodes --> Optional
 NodeWithNodes --> Stream
 interface NodeWithNodes
 interface NodeWithType
+Compiler --> ListLike
 Compiler --> Tuple
 Compiler --> MapLike
 Compiler --> Lang
@@ -75,11 +81,11 @@ Lang --> SuffixRule
 Lang --> TypeRule
 Lang --> List
 class Lang
-MutableDivideState --> ArrayList
-MutableDivideState --> List
+MutableDivideState --> ListLike
+MutableDivideState --> Lists
 class MutableDivideState
 MutableDivideState --|> DivideState
-DivideState --> List
+DivideState --> ListLike
 interface DivideState
 NodeRule --> MapNodeWithEverything
 NodeRule --> NodeWithEverything
@@ -130,7 +136,7 @@ class LocateRule
 LocateRule --|> Rule
 class TupleImpl
 TupleImpl --|> Tuple
-Divider --> List
+Divider --> ListLike
 class Divider
 JVMMap --> Tuple
 JVMMap --> TupleImpl
@@ -142,15 +148,16 @@ JVMMap --|> MapLike
 Main --> Ok
 Main --> Result
 Main --> IOError
+Main --> JVMPaths
 Main --> MapLike
 Main --> Maps
 Main --> Compiler
 Main --> PathLike
-Main --> JVMPaths
 Main --> Collection
 Main --> Optional
 Main --> Collectors
 class Main
+interface ListLike
 interface Tuple
 interface MergingNode
 TypeRule --> NodeWithType

@@ -1,13 +1,13 @@
 package magma.app.compile.divide;
 
-import java.util.List;
+import magma.api.list.ListLike;
 
 public interface DivideState {
     DivideState append(char c);
 
     DivideState advance();
 
-    List<String> segments();
+    ListLike<String> segments();
 
     boolean isLevel();
 
