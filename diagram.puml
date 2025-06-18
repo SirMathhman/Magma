@@ -25,7 +25,6 @@ MapNodeWithEverything --> Optional
 MapNodeWithEverything --> Stream
 class MapNodeWithEverything
 MapNodeWithEverything --|> NodeWithEverything
-PrefixRule --> NodeWithEverything
 PrefixRule --> Optional
 class PrefixRule
 PrefixRule --|> Rule
@@ -46,15 +45,14 @@ Compiler --> Optional
 Compiler --> Collectors
 Compiler --> Stream
 class Compiler
-OrRule --> NodeWithEverything
 OrRule --> List
+OrRule --> Objects
 OrRule --> Optional
 class OrRule
 OrRule --|> Rule
 LastLocator --> Optional
 class LastLocator
 LastLocator --|> Locator
-StripRule --> NodeWithEverything
 StripRule --> Optional
 class StripRule
 StripRule --|> Rule
@@ -79,7 +77,6 @@ MutableState --> ArrayList
 MutableState --> List
 class MutableState
 MutableState --|> State
-SuffixRule --> NodeWithEverything
 SuffixRule --> Optional
 class SuffixRule
 SuffixRule --|> Rule

@@ -1,13 +1,11 @@
 package magma.app.compile.rule;
 
-import magma.app.compile.node.NodeWithEverything;
-
 import java.util.List;
 import java.util.Optional;
 
-public record OrRule(List<Rule<NodeWithEverything>> rules) implements Rule<NodeWithEverything> {
+public record OrRule<Node>(List<Rule<Node>> rules) implements Rule<Node> {
     @Override
-    public Optional<String> generate(NodeWithEverything node) {
+    public Optional<String> generate(Node node) {
         return this.rules.stream()
                 .map(rule -> rule.generate(node))
                 .flatMap(Optional::stream)
@@ -15,7 +13,7 @@ public record OrRule(List<Rule<NodeWithEverything>> rules) implements Rule<NodeW
     }
 
     @Override
-    public Optional<NodeWithEverything> lex(String input) {
+    public Optional<Node> lex(String input) {
         return this.rules.stream()
                 .map(rule -> rule.lex(input))
                 .flatMap(Optional::stream)
