@@ -23,9 +23,9 @@ PlantLang --> TypeRule
 PlantLang --> List
 
 class PlantLang 
-StringRule --> MapNodeFactory
+StringRule --> NodeFactory
 
-StringRule --> NodeWithEverything
+StringRule --> NodeWithStrings
 
 StringRule --> Optional
 
@@ -161,9 +161,9 @@ MutableDivideState --|> DivideState
 DivideState --> ListLike
 
 interface DivideState 
-NodeRule --> MapNodeFactory
+NodeRule --> NodeFactory
 
-NodeRule --> NodeWithEverything
+NodeRule --> NodeWithNodes
 
 NodeRule --> Optional
 

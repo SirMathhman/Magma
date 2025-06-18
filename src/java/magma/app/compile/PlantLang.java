@@ -16,7 +16,9 @@ import java.util.List;
 public class PlantLang {
     public static Rule<NodeWithEverything> createImplementsRule() {
         return new TypeRule<>("implements",
-                LocateRule.First(new StringRule("source"), " --|> ", new StringRule("destination")));
+                LocateRule.First(new StringRule<NodeWithEverything>("source", new MapNodeFactory()),
+                        " --|> ",
+                        new StringRule<NodeWithEverything>("destination", new MapNodeFactory())));
     }
 
     public static Rule<NodeWithEverything> createPlantUMLClassesRule() {
@@ -24,7 +26,7 @@ public class PlantLang {
     }
 
     public static Rule<NodeWithEverything> createPlantUMLClassRule(String type) {
-        final var afterType = new StringRule("name");
+        final var afterType = new StringRule<NodeWithEverything>("name", new MapNodeFactory());
         return new TypeRule<>(type, new PrefixRule<>(type + " ", afterType));
     }
 
