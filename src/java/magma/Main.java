@@ -1,6 +1,8 @@
 package magma;
 
+import magma.state.MapNode;
 import magma.state.MutableState;
+import magma.state.Node;
 import magma.state.State;
 
 import java.io.IOException;
@@ -119,6 +121,13 @@ public class Main {
             return Optional.empty();
 
         final var destination = withoutEnd.substring(separator + 1);
-        return Optional.of(source + " --> " + destination + "\n");
+        return generate(new MapNode().withString("source", source)
+                .withString("destination", destination));
+    }
+
+    private static Optional<String> generate(Node node) {
+        return Optional.of(node.findString("source")
+                .orElse("") + " --> " + node.findString("destination")
+                .orElse("") + "\n");
     }
 }
