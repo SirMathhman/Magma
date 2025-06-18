@@ -27,7 +27,7 @@ public class Compiler {
         return generate(newChildren);
     }
 
-    private static ListLike<NodeWithEverything> lex(String input) {
+    private static ListLike<NodeWithEverything> lex(CharSequence input) {
         final var segments = Divider.divide(input);
         var oldChildren = Lists.<NodeWithEverything>empty();
         for (var i = 0; i < segments.size(); i++) {
