@@ -10,10 +10,7 @@ JVMPaths --> Paths
 class JVMPaths
 class Err
 Err --|> Result
-Node --> Map
-Node --> Optional
-Node --> Stream
-interface Node
+interface Node extends NodeWithStrings, NodeWithType, NodeWithNodes, MergingNode
 MapNode --> HashMap
 MapNode --> Map
 MapNode --> Optional
@@ -33,6 +30,11 @@ PrefixRule --> Node
 PrefixRule --> Optional
 class PrefixRule
 PrefixRule --|> Rule
+NodeWithNodes --> Map
+NodeWithNodes --> Optional
+NodeWithNodes --> Stream
+interface NodeWithNodes
+interface NodeWithType
 Compiler --> Lang
 Compiler --> MutableState
 Compiler --> State
@@ -91,6 +93,10 @@ class JVMPath
 JVMPath --|> PathLike
 State --> List
 interface State
+NodeWithStrings --> Map
+NodeWithStrings --> Optional
+NodeWithStrings --> Stream
+interface NodeWithStrings
 Rule --> Node
 Rule --> Optional
 interface Rule
@@ -111,6 +117,7 @@ Main --> HashMap
 Main --> Map
 Main --> Collectors
 class Main
+interface MergingNode
 TypeRule --> Node
 TypeRule --> Optional
 class TypeRule
