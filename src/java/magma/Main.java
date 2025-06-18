@@ -20,7 +20,8 @@ public class Main {
                     .collect(Collectors.toSet());
 
             final var output = compileAll(sources);
-            Files.writeString(Paths.get(".", "diagram.puml"), "@startuml\n" + output + "@enduml");
+            Files.writeString(Paths.get(".", "diagram.puml"),
+                    "@startuml\nskinparam linetype ortho\n" + output + "@enduml");
         } catch (IOException e) {
             //noinspection CallToPrintStackTrace
             e.printStackTrace();
