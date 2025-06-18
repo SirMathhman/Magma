@@ -16,7 +16,9 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -39,20 +41,32 @@ public class Main {
     }
 
     private static String compileAll(Iterable<Path> sources) throws IOException {
-        final StringBuilder output = new StringBuilder();
-        for (var source : sources) {
-            final var input = Files.readString(source);
-            final var segments = divide(input);
+        final var sourceMap = readAll(sources);
 
-            final var fileName = source.getFileName()
-                    .toString();
-            final var separator = fileName.lastIndexOf(".");
-            final var name = fileName.substring(0, separator);
+        final StringBuilder output = new StringBuilder();
+        for (var entry : sourceMap.entrySet()) {
+            final var name = entry.getKey();
+            final var input = entry.getValue();
+            final var segments = divide(input);
 
             output.append(compileRootSegments(segments, name));
         }
 
         return output.toString();
+    }
+
+    private static Map<String, String> readAll(Iterable<Path> sources) throws IOException {
+        final Map<String, String> sourceMap = new HashMap<String, String>();
+        for (var source : sources) {
+            final var fileName = source.getFileName()
+                    .toString();
+            final var separator = fileName.lastIndexOf(".");
+            final var name = fileName.substring(0, separator);
+            final var input = Files.readString(source);
+
+            sourceMap.put(name, input);
+        }
+        return sourceMap;
     }
 
     private static List<String> divide(CharSequence input) {

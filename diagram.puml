@@ -1,31 +1,50 @@
 @startuml
 skinparam linetype ortho
-Node --> Map
-Node --> Optional
-Node --> Stream
-interface Node
-Rule --> Node
-Rule --> Optional
-interface Rule
 StringRule --> MapNode
 StringRule --> Node
 StringRule --> Optional
 class StringRule
 StringRule --|> Rule
-Locator --> Optional
-interface Locator
 PrefixRule --> Node
 PrefixRule --> Optional
 class PrefixRule
 PrefixRule --|> Rule
-FirstLocator --> Optional
-class FirstLocator
-FirstLocator --|> Locator
 OrRule --> Node
 OrRule --> List
 OrRule --> Optional
 class OrRule
 OrRule --|> Rule
+LastLocator --> Optional
+class LastLocator
+LastLocator --|> Locator
+Node --> Map
+Node --> Optional
+Node --> Stream
+interface Node
+MapNode --> HashMap
+MapNode --> Map
+MapNode --> Optional
+MapNode --> Stream
+class MapNode
+MapNode --|> Node
+Locator --> Optional
+interface Locator
+MutableState --> ArrayList
+MutableState --> List
+class MutableState
+MutableState --|> State
+SuffixRule --> Node
+SuffixRule --> Optional
+class SuffixRule
+SuffixRule --|> Rule
+State --> List
+interface State
+FirstLocator --> Optional
+class FirstLocator
+FirstLocator --|> Locator
+Rule --> Node
+Rule --> Optional
+interface Rule
 LocateRule --> FirstLocator
 LocateRule --> LastLocator
 LocateRule --> Locator
@@ -33,10 +52,6 @@ LocateRule --> Node
 LocateRule --> Optional
 class LocateRule
 LocateRule --|> Rule
-MutableState --> ArrayList
-MutableState --> List
-class MutableState
-MutableState --|> State
 Main --> LocateRule
 Main --> MutableState
 Main --> OrRule
@@ -52,28 +67,15 @@ Main --> IOException
 Main --> Files
 Main --> Path
 Main --> Paths
+Main --> HashMap
 Main --> List
+Main --> Map
 Main --> Optional
 Main --> Collectors
 Main --> Stream
 class Main
-MapNode --> HashMap
-MapNode --> Map
-MapNode --> Optional
-MapNode --> Stream
-class MapNode
-MapNode --|> Node
 TypeRule --> Node
 TypeRule --> Optional
 class TypeRule
 TypeRule --|> Rule
-SuffixRule --> Node
-SuffixRule --> Optional
-class SuffixRule
-SuffixRule --|> Rule
-LastLocator --> Optional
-class LastLocator
-LastLocator --|> Locator
-State --> List
-interface State
 @enduml
