@@ -20,4 +20,6 @@ public interface Node {
     Optional<Node> findNode(String key);
 
     Node withNode(String key, Node value);
+
+    Stream<Map.Entry<String, Node>> streamNodes();
 }

@@ -4,9 +4,11 @@ StringRule --> MapNode
 StringRule --> Node
 StringRule --> Optional
 class StringRule
+StringRule --|> Rule
 JVMPaths --> Paths
 class JVMPaths
 class Err
+Err --|> Result
 Node --> Map
 Node --> Optional
 Node --> Stream
@@ -16,6 +18,7 @@ MapNode --> Map
 MapNode --> Optional
 MapNode --> Stream
 class MapNode
+MapNode --|> Node
 interface Result
 Locator --> Optional
 interface Locator
@@ -24,9 +27,11 @@ PathLike --> Set
 interface PathLike
 FirstLocator --> Optional
 class FirstLocator
+FirstLocator --|> Locator
 PrefixRule --> Node
 PrefixRule --> Optional
 class PrefixRule
+PrefixRule --|> Rule
 Compiler --> Lang
 Compiler --> MutableState
 Compiler --> State
@@ -43,11 +48,14 @@ OrRule --> Node
 OrRule --> List
 OrRule --> Optional
 class OrRule
+OrRule --|> Rule
 LastLocator --> Optional
 class LastLocator
+LastLocator --|> Locator
 StripRule --> Node
 StripRule --> Optional
 class StripRule
+StripRule --|> Rule
 Lang --> LocateRule
 Lang --> NodeRule
 Lang --> OrRule
@@ -63,30 +71,36 @@ NodeRule --> MapNode
 NodeRule --> Node
 NodeRule --> Optional
 class NodeRule
+NodeRule --|> Rule
 MutableState --> ArrayList
 MutableState --> List
 class MutableState
+MutableState --|> State
 SuffixRule --> Node
 SuffixRule --> Optional
 class SuffixRule
+SuffixRule --|> Rule
 JVMPath --> IOException
 JVMPath --> Files
 JVMPath --> Path
 JVMPath --> Set
 JVMPath --> Collectors
 class JVMPath
+JVMPath --|> PathLike
 State --> List
 interface State
 Rule --> Node
 Rule --> Optional
 interface Rule
 class Ok
+Ok --|> Result
 LocateRule --> FirstLocator
 LocateRule --> LastLocator
 LocateRule --> Locator
 LocateRule --> Node
 LocateRule --> Optional
 class LocateRule
+LocateRule --|> Rule
 Main --> Compiler
 Main --> JVMPath
 Main --> JVMPaths
@@ -99,4 +113,5 @@ class Main
 TypeRule --> Node
 TypeRule --> Optional
 class TypeRule
+TypeRule --|> Rule
 @enduml

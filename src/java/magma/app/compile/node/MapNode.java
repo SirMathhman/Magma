@@ -50,9 +50,13 @@ public final class MapNode implements Node {
 
     @Override
     public Node merge(Node other) {
-        return other.streamStrings()
+        final var withStrings = other.streamStrings()
                 .<Node>reduce(this,
-                        (node, entry) -> node.withString(entry.getKey(), entry.getValue()),
+                        (node1, entry1) -> node1.withString(entry1.getKey(), entry1.getValue()),
+                        (_, next) -> next);
+
+        return other.streamNodes()
+                .reduce(withStrings, (node, entry) -> node.withNode(entry.getKey(), entry.getValue()),
                         (_, next) -> next);
     }
 
@@ -74,5 +78,11 @@ public final class MapNode implements Node {
     public Node withNode(String key, Node value) {
         this.nodes.put(key, value);
         return this;
+    }
+
+    @Override
+    public Stream<Map.Entry<String, Node>> streamNodes() {
+        return this.nodes.entrySet()
+                .stream();
     }
 }

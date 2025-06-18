@@ -90,17 +90,27 @@ public class Compiler {
     private static Stream<Node> modifyStructureDefinition(Node node) {
         final var retyped = node.is("record") ? node.retype("class") : node;
 
-        final var maybeSupertype = retyped.findString("supertype");
+        final var maybeSupertype = retyped.findNode("supertype");
         if (maybeSupertype.isPresent()) {
             final var supertype = maybeSupertype.get();
+            final var destination = findBaseType(supertype).orElse("");
+
             final var name = retyped.findString("name")
                     .orElse("");
 
             return Stream.of(retyped,
                     new MapNode("implements").withString("source", name)
-                            .withString("destination", supertype));
+                            .withString("destination", destination));
         }
 
         return Stream.of(retyped);
+    }
+
+    private static Optional<String> findBaseType(Node node) {
+        if (node.is("identifier"))
+            return node.findString("value");
+        if (node.is("generic"))
+            return node.findString("base");
+        return Optional.empty();
     }
 }
