@@ -3,7 +3,7 @@ skinparam linetype ortho
 class MutableState
 MutableState --> ArrayList
 MutableState --> List
- class MutableState implements State
+class MutableState implements State
 class Main
 Main --> MutableState
 Main --> State
@@ -14,8 +14,8 @@ Main --> Paths
 Main --> List
 Main --> Optional
 Main --> Collectors
- class Main
+class Main
 class State
 State --> List
- interface State
+interface State
 @enduml

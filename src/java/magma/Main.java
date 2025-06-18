@@ -80,13 +80,31 @@ public class Main {
 
     private static Optional<String> compileRootSegment(String input, String source) {
         return compileImport(input, source).or(() -> {
-            final var contentStart = input.indexOf("{");
-            if (contentStart >= 0)
-                return Optional.of(input.substring(0, contentStart)
-                        .strip() + "\n");
-            else
-                return Optional.empty();
+            return compileStructure(input);
         });
+    }
+
+    private static Optional<String> compileStructure(String input) {
+        final var contentStart = input.indexOf("{");
+        if (contentStart >= 0) {
+            final var stripped = input.substring(0, contentStart)
+                    .strip();
+
+            return compileStructureDefinition(stripped, "class").or(() -> compileStructureDefinition(stripped,
+                    "interface"));
+        }
+
+
+        return Optional.empty();
+    }
+
+    private static Optional<String> compileStructureDefinition(String input, String type) {
+        final var classIndex = input.indexOf(type + " ");
+        if (classIndex >= 0) {
+            final var slice = input.substring(classIndex);
+            return Optional.of(slice + "\n");
+        }
+        return Optional.empty();
     }
 
     private static Optional<String> compileImport(String input, String source) {
