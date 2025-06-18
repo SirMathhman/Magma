@@ -2,6 +2,7 @@ package magma;
 
 import magma.app.LocateRule;
 import magma.app.MutableState;
+import magma.app.OrRule;
 import magma.app.PrefixRule;
 import magma.app.Rule;
 import magma.app.State;
@@ -101,17 +102,20 @@ public class Main {
             final var stripped = input.substring(0, contentStart)
                     .strip();
 
-            return compileStructureDefinition(stripped, "class").or(() -> compileStructureDefinition(stripped,
-                    "interface"));
+            return createStructureDefinitionsRule().lex(stripped)
+                    .flatMap(node -> createPlantUMLClassesRule().generate(node));
         }
 
 
         return Optional.empty();
     }
 
-    private static Optional<String> compileStructureDefinition(String input, String type) {
-        return createStructureDefinitionRule(type).lex(input)
-                .flatMap(node -> createPlantUMLClassRule(type).generate(node));
+    private static Rule createPlantUMLClassesRule() {
+        return new OrRule(List.of(createPlantUMLClassRule("class"), createPlantUMLClassRule("interface")));
+    }
+
+    private static Rule createStructureDefinitionsRule() {
+        return new OrRule(List.of(createStructureDefinitionRule("class"), createStructureDefinitionRule("interface")));
     }
 
     private static Rule createStructureDefinitionRule(String type) {
