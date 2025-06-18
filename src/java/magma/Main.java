@@ -1,5 +1,6 @@
 package magma;
 
+import magma.app.LastRule;
 import magma.app.MutableState;
 import magma.app.Node;
 import magma.app.State;
@@ -116,12 +117,7 @@ public class Main {
             return Optional.empty();
 
         final var withoutEnd = withoutPrefix.substring(0, withoutPrefix.length() - ";".length());
-        final var separator = withoutEnd.lastIndexOf(".");
-        if (separator < 0)
-            return Optional.empty();
-
-        final var destination = withoutEnd.substring(separator + 1);
-        return new StringRule("destination").lex(destination)
+        return new LastRule(".", new StringRule("destination")).lex(withoutEnd)
                 .flatMap(node -> generate(node.withString("source", source)));
     }
 
