@@ -14,7 +14,7 @@ import magma.app.compile.rule.TypeRule;
 
 import java.util.List;
 
-public class Lang {
+public class JavaLang {
     public static Rule<NodeWithEverything> createDependencyRule() {
         return new TypeRule<>("dependency",
                 new SuffixRule<>(LocateRule.Last(new StringRule("source"), " --> ", new StringRule("destination")),
@@ -25,15 +25,6 @@ public class Lang {
         return new TypeRule<>("import", new StripRule<>(new PrefixRule<>("import ",
                         new SuffixRule<>(LocateRule.Last(new StringRule("temp"), ".", new StringRule("destination")),
                                 ";"))));
-    }
-
-    private static Rule<NodeWithEverything> createImplementsRule() {
-        return new TypeRule<>("implements",
-                LocateRule.First(new StringRule("source"), " --|> ", new StringRule("destination")));
-    }
-
-    private static Rule<NodeWithEverything> createPlantUMLClassesRule() {
-        return new OrRule<>(List.of(createPlantUMLClassRule("class"), createPlantUMLClassRule("interface")));
     }
 
     public static Rule<NodeWithEverything> createStructureDefinitionsRule() {
@@ -75,19 +66,8 @@ public class Lang {
                         new StringRule("type-arguments")), ">")));
     }
 
-    private static Rule<NodeWithEverything> createPlantUMLClassRule(String type) {
-        final var afterType = new StringRule("name");
-        return new TypeRule<>(type, new PrefixRule<>(type + " ", afterType));
-    }
-
     public static Rule<NodeWithEverything> createStructureRule() {
         return LocateRule.First(createStructureDefinitionsRule(), "{", new StringRule("with-braces"));
-    }
-
-    public static Rule<NodeWithEverything> createPlantRootSegmentRule() {
-        return new SuffixRule<>(new OrRule<>(List.of(createDependencyRule(),
-                createPlantUMLClassesRule(),
-                createImplementsRule())), "\n");
     }
 
     public static Rule<NodeWithEverything> createJavaRootSegmentRule() {
@@ -96,9 +76,5 @@ public class Lang {
 
     public static Rule<NodeWithEverything> createJavaRootRule() {
         return new DivideRule("children", createJavaRootSegmentRule());
-    }
-
-    public static DivideRule createPlantRootRule() {
-        return new DivideRule("children", createPlantRootSegmentRule());
     }
 }

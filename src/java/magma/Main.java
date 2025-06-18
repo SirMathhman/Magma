@@ -9,7 +9,8 @@ import magma.api.map.MapLike;
 import magma.api.map.Maps;
 import magma.app.Compiler;
 import magma.app.StageCompiler;
-import magma.app.compile.Lang;
+import magma.app.compile.JavaLang;
+import magma.app.compile.PlantLang;
 import magma.app.compile.transform.JavaPlantTransformer;
 
 import java.util.Collection;
@@ -41,9 +42,9 @@ public class Main {
 
     private static Result<String, IOError> compileAll(Iterable<PathLike> sources) {
         return readAll(sources).mapValue(sourceMap -> {
-            final var sourceRule = Lang.createJavaRootRule();
+            final var sourceRule = JavaLang.createJavaRootRule();
             final var transformer = new JavaPlantTransformer();
-            final var targetRule = Lang.createPlantRootRule();
+            final var targetRule = PlantLang.createPlantRootRule();
             final Compiler compiler = new StageCompiler(sourceRule, transformer, targetRule);
             return compiler.compile(sourceMap);
         });

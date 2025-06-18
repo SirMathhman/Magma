@@ -1,5 +1,26 @@
 @startuml
 skinparam linetype ortho
+PlantLang --> NodeWithEverything
+
+PlantLang --> DivideRule
+
+PlantLang --> LocateRule
+
+PlantLang --> OrRule
+
+PlantLang --> PrefixRule
+
+PlantLang --> Rule
+
+PlantLang --> StringRule
+
+PlantLang --> SuffixRule
+
+PlantLang --> TypeRule
+
+PlantLang --> List
+
+class PlantLang 
 StringRule --> MapNode
 
 StringRule --> NodeWithEverything
@@ -125,31 +146,6 @@ StripRule --> Optional
 
 class StripRule
 StripRule --|> Rule
-Lang --> NodeWithEverything
-
-Lang --> DivideRule
-
-Lang --> LocateRule
-
-Lang --> NodeRule
-
-Lang --> OrRule
-
-Lang --> PrefixRule
-
-Lang --> Rule
-
-Lang --> StringRule
-
-Lang --> StripRule
-
-Lang --> SuffixRule
-
-Lang --> TypeRule
-
-Lang --> List
-
-class Lang 
 MutableDivideState --> ListLike
 
 MutableDivideState --> Lists
@@ -224,6 +220,31 @@ JavaPlantTransformer --> Optional
 
 class JavaPlantTransformer
 JavaPlantTransformer --|> Transformer 
+JavaLang --> NodeWithEverything
+
+JavaLang --> DivideRule
+
+JavaLang --> LocateRule
+
+JavaLang --> NodeRule
+
+JavaLang --> OrRule
+
+JavaLang --> PrefixRule
+
+JavaLang --> Rule
+
+JavaLang --> StringRule
+
+JavaLang --> StripRule
+
+JavaLang --> SuffixRule
+
+JavaLang --> TypeRule
+
+JavaLang --> List
+
+class JavaLang 
 ThrowableIOError --> IOException
 
 ThrowableIOError --> PrintWriter
@@ -285,7 +306,9 @@ Main --> Compiler
 
 Main --> StageCompiler
 
-Main --> Lang
+Main --> JavaLang
+
+Main --> PlantLang
 
 Main --> JavaPlantTransformer
 
