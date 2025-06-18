@@ -45,13 +45,17 @@ class ApplicationBuilder
 Locator --> Optional
 
 interface Locator 
+DivideRule --> Foldable
+
 DivideRule --> Lists
 
 DivideRule --> NodeFactory
 
 DivideRule --> NodeWithNodeLists
 
-DivideRule --> Divider
+DivideRule --> DivideState
+
+DivideRule --> MutableDivideState
 
 DivideRule --> Optional
 
@@ -351,9 +355,6 @@ TupleImpl --|> Tuple
 Main --> ApplicationBuilder
 
 class Main 
-Divider --> Foldable
-
-class Divider 
 interface Tuple
 ListLike --> BiFunction
 

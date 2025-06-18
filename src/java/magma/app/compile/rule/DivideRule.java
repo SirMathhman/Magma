@@ -1,9 +1,11 @@
 package magma.app.compile.rule;
 
+import magma.api.list.Foldable;
 import magma.api.list.Lists;
 import magma.app.compile.node.NodeFactory;
 import magma.app.compile.node.NodeWithNodeLists;
-import magma.app.compile.rule.divide.Divider;
+import magma.app.compile.rule.divide.DivideState;
+import magma.app.compile.rule.divide.MutableDivideState;
 
 import java.util.Optional;
 
@@ -18,13 +20,34 @@ public final class DivideRule<Node extends NodeWithNodeLists<Node>> implements R
         this.nodeFactory = nodeFactory;
     }
 
+    public static Foldable<String> divide(CharSequence input) {
+        DivideState current = new MutableDivideState();
+        for (var i = 0; i < input.length(); i++) {
+            final var c = input.charAt(i);
+            current = fold(current, c);
+        }
+
+        return current.advance()
+                .segments();
+    }
+
+    private static DivideState fold(DivideState current, char c) {
+        final var appended = current.append(c);
+        if (c == ';' && appended.isLevel())
+            return appended.advance();
+        if (c == '{')
+            return appended.enter();
+        if (c == '}')
+            return appended.exit();
+        return appended;
+    }
+
     @Override
     public Optional<Node> lex(String input) {
-        final var children = Divider.divide(input)
-                .fold(Lists.<Node>empty(),
-                        (current, segment) -> DivideRule.this.rule.lex(segment)
-                                .map(current::add)
-                                .orElse(current));
+        final var children = divide(input).fold(Lists.<Node>empty(),
+                (current, segment) -> DivideRule.this.rule.lex(segment)
+                        .map(current::add)
+                        .orElse(current));
 
         return Optional.of(this.nodeFactory.create()
                 .withNodeList(this.key, children));
