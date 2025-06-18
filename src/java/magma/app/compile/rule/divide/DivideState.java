@@ -1,13 +1,13 @@
 package magma.app.compile.rule.divide;
 
-import magma.api.collect.fold.Foldable;
+import magma.api.collect.fold.Folding;
 
 public interface DivideState {
     DivideState append(char c);
 
     DivideState advance();
 
-    Foldable<String> segments();
+    Folding<String> segments();
 
     boolean isLevel();
 

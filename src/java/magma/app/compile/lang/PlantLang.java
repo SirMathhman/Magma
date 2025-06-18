@@ -28,12 +28,19 @@ public class PlantLang {
     }
 
     public static Rule<NodeWithEverything> createPlantRootSegmentRule() {
-        return ModifyRule.Suffix(new OrRule<>(Lists.of(JavaLang.createDependencyRule(),
+        return ModifyRule.Suffix(new OrRule<>(Lists.of(createDependencyRule(),
                 createPlantUMLClassesRule(),
                 createImplementsRule())), "\n");
     }
 
     public static Rule<NodeWithEverything> createPlantRootRule() {
         return ExtractRule.NodeList("children", createPlantRootSegmentRule(), new MapNodeFactory());
+    }
+
+    public static Rule<NodeWithEverything> createDependencyRule() {
+        return new TypeRule<>("dependency",
+                ModifyRule.Suffix(LocateRule.Last(ExtractRule.createStringRule("source", new MapNodeFactory()),
+                        " --> ",
+                        ExtractRule.createStringRule("destination", new MapNodeFactory())), "\n"));
     }
 }

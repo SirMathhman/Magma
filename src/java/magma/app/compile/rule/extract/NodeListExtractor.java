@@ -1,6 +1,6 @@
 package magma.app.compile.rule.extract;
 
-import magma.api.collect.fold.Foldable;
+import magma.api.collect.fold.Folding;
 import magma.api.collect.list.ListLike;
 import magma.api.collect.list.Lists;
 import magma.app.compile.node.NodeWithNodeLists;
@@ -19,7 +19,7 @@ public class NodeListExtractor<Node extends NodeWithNodeLists<Node>, Rule extend
         this.rule = rule;
     }
 
-    public static Foldable<String> divide(CharSequence input) {
+    public static Folding<String> divide(CharSequence input) {
         DivideState current = new MutableDivideState();
         for (var i = 0; i < input.length(); i++) {
             final var c = input.charAt(i);

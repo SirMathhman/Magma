@@ -1,6 +1,6 @@
 package magma.app.compile.rule.divide;
 
-import magma.api.collect.fold.Foldable;
+import magma.api.collect.fold.Folding;
 import magma.api.collect.list.ListLike;
 import magma.api.collect.list.Lists;
 
@@ -33,7 +33,7 @@ public class MutableDivideState implements DivideState {
     }
 
     @Override
-    public Foldable<String> segments() {
+    public Folding<String> segments() {
         return this.segments;
     }
 

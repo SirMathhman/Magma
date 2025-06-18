@@ -1,8 +1,8 @@
 package magma.api.collect.seq;
 
-import magma.api.collect.fold.Foldable;
+import magma.api.collect.fold.Folding;
 
-public interface Sequence<T> extends Foldable<T> {
+public interface Sequence<T> extends Folding<T> {
     int size();
 
     T get(int index);

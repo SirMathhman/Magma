@@ -11,13 +11,6 @@ import magma.app.compile.rule.Rule;
 import magma.app.compile.rule.TypeRule;
 
 public class JavaLang {
-    public static Rule<NodeWithEverything> createDependencyRule() {
-        return new TypeRule<>("dependency",
-                ModifyRule.Suffix(LocateRule.Last(ExtractRule.createStringRule("source", new MapNodeFactory()),
-                        " --> ",
-                        ExtractRule.createStringRule("destination", new MapNodeFactory())), "\n"));
-    }
-
     public static Rule<NodeWithEverything> createImportRule() {
         return new TypeRule<>("import",
                 ModifyRule.Strip(ModifyRule.Prefix("import ",

@@ -1,6 +1,6 @@
 package magma.api.collect.list;
 
-import magma.api.collect.fold.Foldable;
+import magma.api.collect.fold.Folding;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -27,7 +27,7 @@ public record JVMList<T>(List<T> list) implements ListLike<T> {
     }
 
     @Override
-    public ListLike<T> addAll(Foldable<T> others) {
+    public ListLike<T> addAll(Folding<T> others) {
         return others.<ListLike<T>>fold(this, ListLike::add);
     }
 }

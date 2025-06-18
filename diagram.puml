@@ -36,7 +36,7 @@ class JVMPaths
 Result --> Function
 
 interface Result
-JVMList --> Foldable
+JVMList --> Folding
 
 JVMList --> ArrayList
 
@@ -73,9 +73,6 @@ PathLike --> Optional
 PathLike --> Set
 
 interface PathLike 
-Foldable --> BiFunction
-
-interface Foldable
 NodeWithNodes --> Tuple
 
 NodeWithNodes --> Optional
@@ -84,6 +81,17 @@ NodeWithNodes --> Stream
 
 interface NodeWithNodes
 interface NodeWithType
+JavaPlantRootSegmentTransformer --> Folding
+
+JavaPlantRootSegmentTransformer --> Lists
+
+JavaPlantRootSegmentTransformer --> MapNode
+
+JavaPlantRootSegmentTransformer --> NodeWithEverything
+
+JavaPlantRootSegmentTransformer --> Optional
+
+class JavaPlantRootSegmentTransformer 
 Compiler --> MapLike
 
 interface Compiler 
@@ -93,10 +101,10 @@ OrRule --> Optional
 
 class OrRule
 OrRule --|> Rule
-Sequence --> Foldable
+Sequence --> Folding
 
 interface Sequence
-DivideState --> Foldable
+DivideState --> Folding
 
 interface DivideState 
 Lexer --> Optional
@@ -112,15 +120,15 @@ NodeWithEverything --> NodeWithStrings
 NodeWithEverything --> NodeWithType
 
 interface NodeWithEverything extends NodeWithStrings
-JavaPlantTransformer --> Foldable
-
 JavaPlantTransformer --> Lists
+
+JavaPlantTransformer --> JavaPlantRootSegmentTransformer
 
 JavaPlantTransformer --> MapNode
 
 JavaPlantTransformer --> NodeWithEverything
 
-JavaPlantTransformer --> Optional
+JavaPlantTransformer --> Transformer
 
 class JavaPlantTransformer
 JavaPlantTransformer --|> Transformer 
@@ -204,6 +212,9 @@ interface Extractor
 Modifier --> Optional
 
 interface Modifier 
+Folding --> BiFunction
+
+interface Folding
 StripModifier --> Optional
 
 class StripModifier
@@ -223,7 +234,7 @@ SuffixModifier --> Optional
 
 class SuffixModifier
 SuffixModifier --|> Modifier 
-MutableDivideState --> Foldable
+MutableDivideState --> Folding
 
 MutableDivideState --> ListLike
 
@@ -330,7 +341,7 @@ CompilerBuilder --> PlantLang
 CompilerBuilder --> JavaPlantTransformer
 
 class CompilerBuilder 
-NodeListExtractor --> Foldable
+NodeListExtractor --> Folding
 
 NodeListExtractor --> ListLike
 
@@ -403,7 +414,7 @@ TupleImpl --|> Tuple
 Main --> ApplicationBuilder
 
 class Main 
-ListLike --> Foldable
+ListLike --> Folding
 
 ListLike --> Sequence
 

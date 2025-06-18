@@ -1,14 +1,14 @@
-package magma.app.compile.transform;
+package magma.app.compile.lang.segment;
 
-import magma.api.collect.fold.Foldable;
+import magma.api.collect.fold.Folding;
 import magma.api.collect.list.Lists;
 import magma.app.compile.node.MapNode;
 import magma.app.compile.node.NodeWithEverything;
 
 import java.util.Optional;
 
-public class JavaPlantTransformer implements Transformer {
-    public static Foldable<NodeWithEverything> modifyRootSegment(String source, NodeWithEverything node) {
+public class JavaPlantRootSegmentTransformer {
+    public static Folding<NodeWithEverything> modifyRootSegment(String source, NodeWithEverything node) {
         if (node.is("import"))
             return Lists.of(node.retype("dependency")
                     .withString("source", source));
@@ -31,20 +31,11 @@ public class JavaPlantTransformer implements Transformer {
         return Lists.of(retyped);
     }
 
-    private static Optional<String> findBaseType(NodeWithEverything node) {
+    public static Optional<String> findBaseType(NodeWithEverything node) {
         if (node.is("identifier"))
             return node.findString("value");
         if (node.is("generic"))
             return node.findString("base");
         return Optional.empty();
-    }
-
-    @Override
-    public NodeWithEverything transform(NodeWithEverything root, String name) {
-        var newChildren = root.findNodeList("children")
-                .orElse(Lists.empty())
-                .fold(Lists.<NodeWithEverything>empty(), (list, root1) -> list.addAll(modifyRootSegment(name, root1)));
-
-        return new MapNode().withNodeList("children", newChildren);
     }
 }
