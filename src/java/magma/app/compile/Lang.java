@@ -80,4 +80,8 @@ public class Lang {
         final var afterType = new StringRule("name");
         return new TypeRule<>(type, new PrefixRule<>(type + " ", afterType));
     }
+
+    public static Rule<NodeWithEverything> createStructureRule() {
+        return LocateRule.First(createStructureDefinitionsRule(), "{", new StringRule("with-braces"));
+    }
 }

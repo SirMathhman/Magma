@@ -45,17 +45,7 @@ public class Compiler {
         return sourceRule.lex(input)
                 .map(node -> node.withString("source", source))
                 .flatMap(targetRule::generate)
-                .or(() -> compileStructure(input));
-    }
-
-    private static Optional<String> compileStructure(String input) {
-        final var contentStart = input.indexOf("{");
-        if (contentStart < 0)
-            return Optional.empty();
-        final var stripped = input.substring(0, contentStart)
-                .strip();
-
-        return map(stripped, Lang.createStructureDefinitionsRule(), Lang.createPlantUMLRootSegmentRule());
+                .or(() -> map(input, Lang.createStructureRule(), Lang.createPlantUMLRootSegmentRule()));
     }
 
     private static Optional<String> map(String input, Rule<NodeWithEverything> sourceRule, Rule<NodeWithEverything> targetRule) {

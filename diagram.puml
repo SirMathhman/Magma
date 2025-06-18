@@ -7,7 +7,7 @@ class StringRule
 StringRule --|> Rule
 JVMPaths --> PathLike
 JVMPaths --> Paths
-class JVMPaths
+class JVMPaths 
 Err --> Function
 class Err
 Err --|> Result
@@ -18,24 +18,24 @@ JVMList --> List
 class JVMList
 JVMList --|> ListLike
 Locator --> Optional
-interface Locator
-class Maps
-class Lists
+interface Locator 
+class Maps 
+class Lists 
 PathLike --> Result
 PathLike --> IOError
 PathLike --> Optional
 PathLike --> Set
-interface PathLike
+interface PathLike 
 FirstLocator --> Optional
 class FirstLocator
-FirstLocator --|> Locator
+FirstLocator --|> Locator 
 MapNodeWithEverything --> Tuple
 MapNodeWithEverything --> MapLike
 MapNodeWithEverything --> Maps
 MapNodeWithEverything --> Optional
 MapNodeWithEverything --> Stream
 class MapNodeWithEverything
-MapNodeWithEverything --|> NodeWithEverything
+MapNodeWithEverything --|> NodeWithEverything 
 PrefixRule --> Optional
 class PrefixRule
 PrefixRule --|> Rule
@@ -44,8 +44,8 @@ NodeWithNodes --> Optional
 NodeWithNodes --> Stream
 interface NodeWithNodes
 interface NodeWithType
-Compiler --> ListLike
 Compiler --> Tuple
+Compiler --> ListLike
 Compiler --> MapLike
 Compiler --> Lang
 Compiler --> Divider
@@ -55,14 +55,14 @@ Compiler --> Rule
 Compiler --> Optional
 Compiler --> Collectors
 Compiler --> Stream
-class Compiler
+class Compiler 
 OrRule --> List
 OrRule --> Optional
 class OrRule
 OrRule --|> Rule
 LastLocator --> Optional
 class LastLocator
-LastLocator --|> Locator
+LastLocator --|> Locator 
 MapLike --> Tuple
 MapLike --> Stream
 interface MapLike
@@ -80,19 +80,19 @@ Lang --> StripRule
 Lang --> SuffixRule
 Lang --> TypeRule
 Lang --> List
-class Lang
+class Lang 
 MutableDivideState --> ListLike
 MutableDivideState --> Lists
 class MutableDivideState
-MutableDivideState --|> DivideState
+MutableDivideState --|> DivideState 
 DivideState --> ListLike
-interface DivideState
+interface DivideState 
 NodeRule --> MapNodeWithEverything
 NodeRule --> NodeWithEverything
 NodeRule --> Optional
 class NodeRule
 NodeRule --|> Rule
-interface IOError
+interface IOError 
 SuffixRule --> Optional
 class SuffixRule
 SuffixRule --|> Rule
@@ -107,7 +107,7 @@ JVMPath --> Optional
 JVMPath --> Set
 JVMPath --> Collectors
 class JVMPath
-JVMPath --|> PathLike
+JVMPath --|> PathLike 
 NodeWithEverything --> MergingNode
 NodeWithEverything --> NodeWithNodes
 NodeWithEverything --> NodeWithStrings
@@ -121,7 +121,7 @@ ThrowableIOError --> IOException
 ThrowableIOError --> PrintWriter
 ThrowableIOError --> StringWriter
 class ThrowableIOError
-ThrowableIOError --|> IOError
+ThrowableIOError --|> IOError 
 Rule --> Optional
 interface Rule
 Ok --> Function
@@ -137,7 +137,7 @@ LocateRule --|> Rule
 class TupleImpl
 TupleImpl --|> Tuple
 Divider --> ListLike
-class Divider
+class Divider 
 JVMMap --> Tuple
 JVMMap --> TupleImpl
 JVMMap --> HashMap
@@ -156,7 +156,7 @@ Main --> PathLike
 Main --> Collection
 Main --> Optional
 Main --> Collectors
-class Main
+class Main 
 interface ListLike
 interface Tuple
 interface MergingNode
