@@ -17,10 +17,4 @@ public record PrefixRule<Node>(String prefix, Rule<Node> rule) implements Rule<N
         final var slice = input.substring(this.prefix.length());
         return this.rule.lex(slice);
     }
-
-    @Override
-    public String toString() {
-        return "PrefixRule[" + "prefix=" + this.prefix + ", " + "rule=" + this.rule + ']';
-    }
-
 }
