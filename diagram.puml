@@ -1,167 +1,167 @@
 @startuml
 skinparam linetype ortho
-StringRule --> MapNodeWithEverything
-StringRule --> NodeWithEverything
-StringRule --> Optional
-class StringRule
-StringRule --|> Rule
-JVMPaths --> PathLike
-JVMPaths --> Paths
-class JVMPaths 
-Err --> Function
-class Err
-Err --|> Result
-Result --> Function
-interface Result
-JVMList --> ArrayList
-JVMList --> List
-class JVMList
-JVMList --|> ListLike
-Locator --> Optional
-interface Locator 
-class Maps 
-class Lists 
-PathLike --> Result
-PathLike --> IOError
-PathLike --> Optional
-PathLike --> Set
-interface PathLike 
-FirstLocator --> Optional
-class FirstLocator
-FirstLocator --|> Locator 
-MapNodeWithEverything --> Tuple
-MapNodeWithEverything --> MapLike
-MapNodeWithEverything --> Maps
-MapNodeWithEverything --> Optional
-MapNodeWithEverything --> Stream
-class MapNodeWithEverything
-MapNodeWithEverything --|> NodeWithEverything 
-PrefixRule --> Optional
-class PrefixRule
-PrefixRule --|> Rule
-NodeWithNodes --> Tuple
-NodeWithNodes --> Optional
-NodeWithNodes --> Stream
-interface NodeWithNodes
-interface NodeWithType
-Compiler --> Tuple
-Compiler --> ListLike
-Compiler --> MapLike
-Compiler --> Lang
-Compiler --> Divider
-Compiler --> MapNodeWithEverything
-Compiler --> NodeWithEverything
-Compiler --> Rule
-Compiler --> Optional
-Compiler --> Collectors
-Compiler --> Stream
-class Compiler 
-OrRule --> List
-OrRule --> Optional
-class OrRule
-OrRule --|> Rule
-LastLocator --> Optional
-class LastLocator
-LastLocator --|> Locator 
-MapLike --> Tuple
-MapLike --> Stream
-interface MapLike
-StripRule --> Optional
-class StripRule
-StripRule --|> Rule
-Lang --> NodeWithEverything
-Lang --> LocateRule
-Lang --> NodeRule
-Lang --> OrRule
-Lang --> PrefixRule
-Lang --> Rule
-Lang --> StringRule
-Lang --> StripRule
-Lang --> SuffixRule
-Lang --> TypeRule
-Lang --> List
-class Lang 
-MutableDivideState --> ListLike
-MutableDivideState --> Lists
-class MutableDivideState
-MutableDivideState --|> DivideState 
-DivideState --> ListLike
-interface DivideState 
-NodeRule --> MapNodeWithEverything
-NodeRule --> NodeWithEverything
-NodeRule --> Optional
-class NodeRule
-NodeRule --|> Rule
-interface IOError 
-SuffixRule --> Optional
-class SuffixRule
-SuffixRule --|> Rule
-JVMPath --> Err
-JVMPath --> Ok
-JVMPath --> Result
-JVMPath --> PathLike
-JVMPath --> IOException
-JVMPath --> Files
-JVMPath --> Path
-JVMPath --> Optional
-JVMPath --> Set
-JVMPath --> Collectors
-class JVMPath
-JVMPath --|> PathLike 
-NodeWithEverything --> MergingNode
-NodeWithEverything --> NodeWithNodes
-NodeWithEverything --> NodeWithStrings
-NodeWithEverything --> NodeWithType
-interface NodeWithEverything extends NodeWithStrings
-NodeWithStrings --> Tuple
-NodeWithStrings --> Optional
-NodeWithStrings --> Stream
-interface NodeWithStrings
-ThrowableIOError --> IOException
-ThrowableIOError --> PrintWriter
-ThrowableIOError --> StringWriter
-class ThrowableIOError
-ThrowableIOError --|> IOError 
-Rule --> Optional
-interface Rule
-Ok --> Function
-class Ok
-Ok --|> Result
-LocateRule --> FirstLocator
-LocateRule --> LastLocator
-LocateRule --> Locator
-LocateRule --> MergingNode
-LocateRule --> Optional
-class LocateRule
-LocateRule --|> Rule
-class TupleImpl
-TupleImpl --|> Tuple
-Divider --> ListLike
-class Divider 
-JVMMap --> Tuple
-JVMMap --> TupleImpl
-JVMMap --> HashMap
-JVMMap --> Map
-JVMMap --> Stream
-class JVMMap
-JVMMap --|> MapLike
-Main --> Ok
-Main --> Result
-Main --> IOError
-Main --> JVMPaths
-Main --> MapLike
-Main --> Maps
-Main --> Compiler
-Main --> PathLike
-Main --> Collection
-Main --> Optional
-Main --> Collectors
-class Main 
-interface ListLike
-interface Tuple
-interface MergingNode
-TypeRule --> NodeWithType
-TypeRule --> Optional
-class TypeRule
-TypeRule --|> Rule
+ --> MapNodeWithEverything
+ --> NodeWithEverything
+ --> Optional
+ --> 
+StringRule --> Rule
+ --> PathLike
+ --> Paths
+ --> 
+ --> Function
+ --> 
+Err --> Result
+ --> Function
+ --> 
+ --> ArrayList
+ --> List
+ --> 
+JVMList --> ListLike
+ --> Optional
+ --> 
+ --> 
+ --> 
+ --> Result
+ --> IOError
+ --> Optional
+ --> Set
+ --> 
+ --> Optional
+ --> 
+FirstLocator --> Locator 
+ --> Tuple
+ --> MapLike
+ --> Maps
+ --> Optional
+ --> Stream
+ --> 
+MapNodeWithEverything --> NodeWithEverything 
+ --> Optional
+ --> 
+PrefixRule --> Rule
+ --> Tuple
+ --> Optional
+ --> Stream
+ --> 
+ --> 
+ --> Tuple
+ --> ListLike
+ --> MapLike
+ --> Lang
+ --> Divider
+ --> MapNodeWithEverything
+ --> NodeWithEverything
+ --> OrRule
+ --> Optional
+ --> Collectors
+ --> Stream
+ --> 
+ --> List
+ --> Optional
+ --> 
+OrRule --> Rule
+ --> Optional
+ --> 
+LastLocator --> Locator 
+ --> Tuple
+ --> Stream
+ --> 
+ --> Optional
+ --> 
+StripRule --> Rule
+ --> NodeWithEverything
+ --> LocateRule
+ --> NodeRule
+ --> OrRule
+ --> PrefixRule
+ --> Rule
+ --> StringRule
+ --> StripRule
+ --> SuffixRule
+ --> TypeRule
+ --> List
+ --> 
+ --> ListLike
+ --> Lists
+ --> 
+MutableDivideState --> DivideState 
+ --> ListLike
+ --> 
+ --> MapNodeWithEverything
+ --> NodeWithEverything
+ --> Optional
+ --> 
+NodeRule --> Rule
+ --> 
+ --> Optional
+ --> 
+SuffixRule --> Rule
+ --> Err
+ --> Ok
+ --> Result
+ --> PathLike
+ --> IOException
+ --> Files
+ --> Path
+ --> Optional
+ --> Set
+ --> Collectors
+ --> 
+JVMPath --> PathLike 
+ --> MergingNode
+ --> NodeWithNodes
+ --> NodeWithStrings
+ --> NodeWithType
+ --> 
+ --> Tuple
+ --> Optional
+ --> Stream
+ --> 
+ --> IOException
+ --> PrintWriter
+ --> StringWriter
+ --> 
+ThrowableIOError --> IOError 
+ --> Optional
+ --> 
+ --> Function
+ --> 
+Ok --> Result
+ --> FirstLocator
+ --> LastLocator
+ --> Locator
+ --> MergingNode
+ --> Optional
+ --> 
+LocateRule --> Rule
+ --> 
+TupleImpl --> Tuple
+ --> ListLike
+ --> 
+ --> Tuple
+ --> TupleImpl
+ --> HashMap
+ --> Map
+ --> Stream
+ --> 
+JVMMap --> MapLike
+ --> Ok
+ --> Result
+ --> IOError
+ --> JVMPaths
+ --> MapLike
+ --> Maps
+ --> Compiler
+ --> PathLike
+ --> Collection
+ --> Optional
+ --> Collectors
+ --> 
+ --> 
+ --> 
+ --> 
+ --> NodeWithType
+ --> Optional
+ --> 
+TypeRule --> Rule
 @enduml

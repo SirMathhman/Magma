@@ -7,7 +7,7 @@ import magma.app.compile.Lang;
 import magma.app.compile.divide.Divider;
 import magma.app.compile.node.MapNodeWithEverything;
 import magma.app.compile.node.NodeWithEverything;
-import magma.app.compile.rule.Rule;
+import magma.app.compile.rule.OrRule;
 
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -31,30 +31,26 @@ public class Compiler {
         final var output = new StringBuilder();
         for (var i = 0; i < segments.size(); i++) {
             final var segment = segments.get(i);
-            compileRootSegment(segment.strip(), name).ifPresent(output::append);
+            output.append(compileRootSegment(segment.strip(), name));
         }
 
         return output.toString();
     }
 
-    private static Optional<String> compileRootSegment(String input, String source) {
-        return compileRootSegmentWithRules(input, source, Lang.createImportRule(), Lang.createDependencyRule());
-    }
-
-    private static Optional<String> compileRootSegmentWithRules(String input, String source, Rule<NodeWithEverything> sourceRule, Rule<NodeWithEverything> targetRule) {
-        return sourceRule.lex(input)
-                .map(node -> node.withString("source", source))
-                .flatMap(targetRule::generate)
-                .or(() -> map(input, Lang.createStructureRule(), Lang.createPlantUMLRootSegmentRule()));
-    }
-
-    private static Optional<String> map(String input, Rule<NodeWithEverything> sourceRule, Rule<NodeWithEverything> targetRule) {
-        return Optional.of(sourceRule.lex(input)
-                .map(Compiler::modifyStructureDefinition)
+    private static String compileRootSegment(String input, String source) {
+        return new OrRule<>(Lang.createJavaRootSegmentRule()).lex(input)
+                .map(node -> modifyRootSegment(source, node))
                 .orElse(Stream.empty())
-                .map(targetRule::generate)
+                .map(Lang.createPlantRootSegmentRule()::generate)
                 .flatMap(Optional::stream)
-                .collect(Collectors.joining()));
+                .collect(Collectors.joining());
+    }
+
+    private static Stream<NodeWithEverything> modifyRootSegment(String source, NodeWithEverything node) {
+        if (node.is("import"))
+            return Stream.of(node.withString("source", source));
+
+        return modifyStructureDefinition(node);
     }
 
     private static Stream<NodeWithEverything> modifyStructureDefinition(NodeWithEverything node) {

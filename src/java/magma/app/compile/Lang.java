@@ -84,4 +84,12 @@ public class Lang {
     public static Rule<NodeWithEverything> createStructureRule() {
         return LocateRule.First(createStructureDefinitionsRule(), "{", new StringRule("with-braces"));
     }
+
+    public static List<Rule<NodeWithEverything>> createJavaRootSegmentRule() {
+        return List.of(createImportRule(), createStructureRule());
+    }
+
+    public static Rule<NodeWithEverything> createPlantRootSegmentRule() {
+        return new OrRule<>(List.of(createDependencyRule(), createPlantUMLRootSegmentRule()));
+    }
 }
