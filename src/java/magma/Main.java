@@ -79,9 +79,7 @@ public class Main {
     }
 
     private static Optional<String> compileRootSegment(String input, String source) {
-        return compileImport(input, source).or(() -> {
-            return compileStructure(input);
-        });
+        return compileImport(input, source).or(() -> compileStructure(input));
     }
 
     private static Optional<String> compileStructure(String input) {
