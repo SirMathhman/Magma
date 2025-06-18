@@ -1,7 +1,5 @@
 package magma.app;
 
-import magma.app.jvm.JVMPath;
-
 import java.io.IOException;
 import java.util.Set;
 
@@ -12,7 +10,7 @@ public interface PathLike {
 
     boolean isRegularFile();
 
-    Set<JVMPath> walk() throws IOException;
+    Set<PathLike> walk() throws IOException;
 
     String getFileNameAsString();
 

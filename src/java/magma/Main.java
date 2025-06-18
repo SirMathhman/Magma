@@ -2,7 +2,6 @@ package magma;
 
 import magma.app.Compiler;
 import magma.app.PathLike;
-import magma.app.jvm.JVMPath;
 import magma.app.jvm.JVMPaths;
 
 import java.io.IOException;
@@ -34,12 +33,12 @@ public class Main {
         target.writeString("@startuml\nskinparam linetype ortho\n" + output + "@enduml");
     }
 
-    private static String compileAll(Iterable<JVMPath> sources) throws IOException {
+    private static String compileAll(Iterable<PathLike> sources) throws IOException {
         final var sourceMap = readAll(sources);
         return Compiler.compile(sourceMap);
     }
 
-    private static Map<String, String> readAll(Iterable<JVMPath> sources) throws IOException {
+    private static Map<String, String> readAll(Iterable<PathLike> sources) throws IOException {
         final Map<String, String> sourceMap = new HashMap<>();
         for (var source : sources) {
             final var fileName = source.getFileNameAsString();

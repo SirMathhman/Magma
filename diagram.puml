@@ -23,7 +23,6 @@ MapNode --|> Node
 interface Result
 Locator --> Optional
 interface Locator
-PathLike --> JVMPath
 PathLike --> IOException
 PathLike --> Set
 interface PathLike
@@ -105,9 +104,8 @@ LocateRule --> Optional
 class LocateRule
 LocateRule --|> Rule
 Main --> Compiler
-Main --> JVMPath
-Main --> JVMPaths
 Main --> PathLike
+Main --> JVMPaths
 Main --> IOException
 Main --> HashMap
 Main --> Map

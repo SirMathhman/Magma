@@ -30,7 +30,7 @@ public record JVMPath(Path path) implements PathLike {
     }
 
     @Override
-    public Set<JVMPath> walk() throws IOException {
+    public Set<PathLike> walk() throws IOException {
         try (var stream = Files.walk(this.path)) {
             return stream.map(JVMPath::new)
                     .collect(Collectors.toSet());
