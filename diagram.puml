@@ -39,15 +39,7 @@ class JVMList
 JVMList --|> ListLike
 ApplicationBuilder --> JVMPaths
 
-ApplicationBuilder --> Compiler
-
-ApplicationBuilder --> StageCompiler
-
-ApplicationBuilder --> JavaLang
-
-ApplicationBuilder --> PlantLang
-
-ApplicationBuilder --> JavaPlantTransformer
+ApplicationBuilder --> CompilerBuilder
 
 class ApplicationBuilder 
 Locator --> Optional
@@ -292,6 +284,17 @@ NodeWithStrings --> Optional
 NodeWithStrings --> Stream
 
 interface NodeWithStrings
+CompilerBuilder --> Compiler
+
+CompilerBuilder --> StageCompiler
+
+CompilerBuilder --> JavaLang
+
+CompilerBuilder --> PlantLang
+
+CompilerBuilder --> JavaPlantTransformer
+
+class CompilerBuilder 
 JavaLang --> Lists
 
 JavaLang --> MapNodeFactory
