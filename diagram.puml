@@ -10,15 +10,16 @@ JVMPaths --> Paths
 class JVMPaths
 Locator --> Optional
 interface Locator
+class Maps
 PathLike --> IOException
 PathLike --> Set
 interface PathLike
 FirstLocator --> Optional
 class FirstLocator
 FirstLocator --|> Locator
+MapNodeWithEverything --> MapLike
 MapNodeWithEverything --> Tuple
-MapNodeWithEverything --> HashMap
-MapNodeWithEverything --> Map
+MapNodeWithEverything --> Maps
 MapNodeWithEverything --> Optional
 MapNodeWithEverything --> Stream
 class MapNodeWithEverything
@@ -31,6 +32,8 @@ NodeWithNodes --> Optional
 NodeWithNodes --> Stream
 interface NodeWithNodes
 interface NodeWithType
+Compiler --> MapLike
+Compiler --> Tuple
 Compiler --> Lang
 Compiler --> MutableState
 Compiler --> State
@@ -38,7 +41,6 @@ Compiler --> MapNodeWithEverything
 Compiler --> NodeWithEverything
 Compiler --> Rule
 Compiler --> List
-Compiler --> Map
 Compiler --> Optional
 Compiler --> Collectors
 Compiler --> Stream
@@ -50,6 +52,9 @@ OrRule --|> Rule
 LastLocator --> Optional
 class LastLocator
 LastLocator --|> Locator
+MapLike --> Tuple
+MapLike --> Stream
+interface MapLike
 StripRule --> Optional
 class StripRule
 StripRule --|> Rule
@@ -105,15 +110,24 @@ LocateRule --> MergingNode
 LocateRule --> Optional
 class LocateRule
 LocateRule --|> Rule
+class TupleImpl
+TupleImpl --|> Tuple
+JVMMap --> Tuple
+JVMMap --> TupleImpl
+JVMMap --> HashMap
+JVMMap --> Map
+JVMMap --> Stream
+class JVMMap
+JVMMap --|> MapLike
+Main --> MapLike
+Main --> Maps
 Main --> Compiler
 Main --> PathLike
 Main --> JVMPaths
 Main --> IOException
-Main --> HashMap
-Main --> Map
 Main --> Collectors
 class Main
-class Tuple
+interface Tuple
 interface MergingNode
 TypeRule --> NodeWithType
 TypeRule --> Optional

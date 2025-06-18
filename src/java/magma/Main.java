@@ -1,12 +1,12 @@
 package magma;
 
+import magma.api.map.MapLike;
+import magma.api.map.Maps;
 import magma.app.Compiler;
 import magma.app.PathLike;
 import magma.app.jvm.JVMPaths;
 
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.stream.Collectors;
 
 public class Main {
@@ -38,8 +38,8 @@ public class Main {
         return Compiler.compile(sourceMap);
     }
 
-    private static Map<String, String> readAll(Iterable<PathLike> sources) throws IOException {
-        final Map<String, String> sourceMap = new HashMap<>();
+    private static MapLike<String, String> readAll(Iterable<PathLike> sources) throws IOException {
+        MapLike<String, String> sourceMap = Maps.empty();
         for (var source : sources) {
             final var fileName = source.getFileNameAsString();
 
@@ -47,7 +47,7 @@ public class Main {
             final var name = fileName.substring(0, separator);
             final var input = source.readString();
 
-            sourceMap.put(name, input);
+            sourceMap = sourceMap.put(name, input);
         }
         return sourceMap;
     }

@@ -1,5 +1,7 @@
 package magma.app;
 
+import magma.api.Tuple;
+import magma.api.map.MapLike;
 import magma.app.compile.Lang;
 import magma.app.compile.MutableState;
 import magma.app.compile.State;
@@ -8,23 +10,22 @@ import magma.app.compile.node.NodeWithEverything;
 import magma.app.compile.rule.Rule;
 
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class Compiler {
-    public static String compile(Map<String, String> sourceMap) {
-        final StringBuilder output = new StringBuilder();
-        for (var entry : sourceMap.entrySet()) {
-            final var name = entry.getKey();
-            final var input = entry.getValue();
-            final var segments = divide(input);
+    public static String compile(MapLike<String, String> sourceMap) {
+        return sourceMap.stream()
+                .map(Compiler::compileSourceMapEntry)
+                .collect(Collectors.joining());
+    }
 
-            output.append(compileRootSegments(segments, name));
-        }
-
-        return output.toString();
+    private static String compileSourceMapEntry(Tuple<String, String> entry) {
+        final var name = entry.left();
+        final var input = entry.right();
+        final var segments = divide(input);
+        return compileRootSegments(segments, name);
     }
 
     private static List<String> divide(CharSequence input) {

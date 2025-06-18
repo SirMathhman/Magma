@@ -1,29 +1,29 @@
 package magma.app.compile.node;
 
 import magma.api.Tuple;
+import magma.api.map.MapLike;
+import magma.api.map.Maps;
 
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Stream;
 
 public final class MapNodeWithEverything implements NodeWithEverything {
     private final Optional<String> maybeType;
-    private final Map<String, String> strings;
-    private final Map<String, NodeWithEverything> nodes;
+    private final MapLike<String, String> strings;
+    private final MapLike<String, NodeWithEverything> nodes;
 
     public MapNodeWithEverything() {
-        this(Optional.empty(), new HashMap<>(), new HashMap<>());
+        this(Optional.empty(), Maps.empty(), Maps.empty());
     }
 
-    public MapNodeWithEverything(Optional<String> maybeType, Map<String, String> strings, Map<String, NodeWithEverything> nodes) {
+    public MapNodeWithEverything(Optional<String> maybeType, MapLike<String, String> strings, MapLike<String, NodeWithEverything> nodes) {
         this.maybeType = maybeType;
         this.strings = strings;
         this.nodes = nodes;
     }
 
     public MapNodeWithEverything(String type) {
-        this(Optional.of(type), new HashMap<>(), new HashMap<>());
+        this(Optional.of(type), Maps.empty(), Maps.empty());
     }
 
     @Override
@@ -62,9 +62,7 @@ public final class MapNodeWithEverything implements NodeWithEverything {
 
     @Override
     public Stream<Tuple<String, String>> streamStrings() {
-        return this.strings.entrySet()
-                .stream()
-                .map(entry -> new Tuple<>(entry.getKey(), entry.getValue()));
+        return this.strings.stream();
     }
 
     @Override
@@ -83,8 +81,6 @@ public final class MapNodeWithEverything implements NodeWithEverything {
 
     @Override
     public Stream<Tuple<String, NodeWithEverything>> streamNodes() {
-        return this.nodes.entrySet()
-                .stream()
-                .map(entry -> new Tuple<>(entry.getKey(), entry.getValue()));
+        return this.nodes.stream();
     }
 }
