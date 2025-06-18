@@ -23,6 +23,10 @@ public final class LocateRule implements Rule {
         return new LocateRule(leftRule, infix, rightRule, new LastLocator());
     }
 
+    public static Rule First(Rule leftRule, String infix, Rule rightRule) {
+        return new LocateRule(leftRule, infix, rightRule, new FirstLocator());
+    }
+
     @Override
     public Optional<String> generate(Node node) {
         return Optional.of(this.leftRule.generate(node)
