@@ -44,10 +44,7 @@ public class Main {
             final var separator = fileName.lastIndexOf(".");
             final var name = fileName.substring(0, separator);
 
-            output.append("class ")
-                    .append(name)
-                    .append("\n")
-                    .append(compileRootSegments(segments, name));
+            output.append(compileRootSegments(segments, name));
         }
 
         return output.toString();
