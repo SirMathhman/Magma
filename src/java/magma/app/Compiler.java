@@ -3,13 +3,11 @@ package magma.app;
 import magma.api.Tuple;
 import magma.api.map.MapLike;
 import magma.app.compile.Lang;
-import magma.app.compile.MutableState;
-import magma.app.compile.State;
+import magma.app.compile.divide.Divider;
 import magma.app.compile.node.MapNodeWithEverything;
 import magma.app.compile.node.NodeWithEverything;
 import magma.app.compile.rule.Rule;
 
-import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -24,30 +22,8 @@ public class Compiler {
     private static String compileSourceMapEntry(Tuple<String, String> entry) {
         final var name = entry.left();
         final var input = entry.right();
-        final var segments = divide(input);
+        final var segments = Divider.divide(input);
         return compileRootSegments(segments, name);
-    }
-
-    private static List<String> divide(CharSequence input) {
-        State current = new MutableState();
-        for (var i = 0; i < input.length(); i++) {
-            final var c = input.charAt(i);
-            current = fold(current, c);
-        }
-
-        return current.advance()
-                .segments();
-    }
-
-    private static State fold(State current, char c) {
-        final var appended = current.append(c);
-        if (c == ';' && appended.isLevel())
-            return appended.advance();
-        if (c == '{')
-            return appended.enter();
-        if (c == '}')
-            return appended.exit();
-        return appended;
     }
 
     private static String compileRootSegments(Iterable<String> segments, String name) {
@@ -59,10 +35,10 @@ public class Compiler {
     }
 
     private static Optional<String> compileRootSegment(String input, String source) {
-        return getSource(input, source, Lang.createImportRule(), Lang.createDependencyRule());
+        return compileRootSegmentWithRules(input, source, Lang.createImportRule(), Lang.createDependencyRule());
     }
 
-    private static Optional<String> getSource(String input, String source, Rule<NodeWithEverything> sourceRule, Rule<NodeWithEverything> targetRule) {
+    private static Optional<String> compileRootSegmentWithRules(String input, String source, Rule<NodeWithEverything> sourceRule, Rule<NodeWithEverything> targetRule) {
         return sourceRule.lex(input)
                 .map(node -> node.withString("source", source))
                 .flatMap(targetRule::generate)

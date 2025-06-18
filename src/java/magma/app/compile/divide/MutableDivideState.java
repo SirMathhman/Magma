@@ -1,31 +1,31 @@
-package magma.app.compile;
+package magma.app.compile.divide;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class MutableState implements State {
+public class MutableDivideState implements DivideState {
     private final List<String> segments;
     private StringBuilder buffer;
     private int depth;
 
-    public MutableState(List<String> segments, StringBuilder buffer, int depth) {
+    public MutableDivideState(List<String> segments, StringBuilder buffer, int depth) {
         this.buffer = buffer;
         this.segments = segments;
         this.depth = depth;
     }
 
-    public MutableState() {
+    public MutableDivideState() {
         this(new ArrayList<>(), new StringBuilder(), 0);
     }
 
     @Override
-    public State append(char c) {
+    public DivideState append(char c) {
         this.buffer.append(c);
         return this;
     }
 
     @Override
-    public State advance() {
+    public DivideState advance() {
         this.segments.add(this.buffer.toString());
         this.buffer = new StringBuilder();
         return this;
@@ -42,13 +42,13 @@ public class MutableState implements State {
     }
 
     @Override
-    public State enter() {
+    public DivideState enter() {
         this.depth++;
         return this;
     }
 
     @Override
-    public State exit() {
+    public DivideState exit() {
         this.depth--;
         return this;
     }

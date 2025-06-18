@@ -17,8 +17,8 @@ interface PathLike
 FirstLocator --> Optional
 class FirstLocator
 FirstLocator --|> Locator
-MapNodeWithEverything --> MapLike
 MapNodeWithEverything --> Tuple
+MapNodeWithEverything --> MapLike
 MapNodeWithEverything --> Maps
 MapNodeWithEverything --> Optional
 MapNodeWithEverything --> Stream
@@ -32,15 +32,13 @@ NodeWithNodes --> Optional
 NodeWithNodes --> Stream
 interface NodeWithNodes
 interface NodeWithType
-Compiler --> MapLike
 Compiler --> Tuple
+Compiler --> MapLike
 Compiler --> Lang
-Compiler --> MutableState
-Compiler --> State
+Compiler --> Divider
 Compiler --> MapNodeWithEverything
 Compiler --> NodeWithEverything
 Compiler --> Rule
-Compiler --> List
 Compiler --> Optional
 Compiler --> Collectors
 Compiler --> Stream
@@ -70,15 +68,17 @@ Lang --> SuffixRule
 Lang --> TypeRule
 Lang --> List
 class Lang
+MutableDivideState --> ArrayList
+MutableDivideState --> List
+class MutableDivideState
+MutableDivideState --|> DivideState
+DivideState --> List
+interface DivideState
 NodeRule --> MapNodeWithEverything
 NodeRule --> NodeWithEverything
 NodeRule --> Optional
 class NodeRule
 NodeRule --|> Rule
-MutableState --> ArrayList
-MutableState --> List
-class MutableState
-MutableState --|> State
 SuffixRule --> Optional
 class SuffixRule
 SuffixRule --|> Rule
@@ -90,8 +90,6 @@ JVMPath --> Set
 JVMPath --> Collectors
 class JVMPath
 JVMPath --|> PathLike
-State --> List
-interface State
 NodeWithEverything --> MergingNode
 NodeWithEverything --> NodeWithNodes
 NodeWithEverything --> NodeWithStrings
@@ -112,6 +110,8 @@ class LocateRule
 LocateRule --|> Rule
 class TupleImpl
 TupleImpl --|> Tuple
+Divider --> List
+class Divider
 JVMMap --> Tuple
 JVMMap --> TupleImpl
 JVMMap --> HashMap
