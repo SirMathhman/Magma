@@ -1,9 +1,9 @@
 package magma;
 
-import magma.state.MapNode;
-import magma.state.MutableState;
-import magma.state.Node;
-import magma.state.State;
+import magma.app.MutableState;
+import magma.app.Node;
+import magma.app.State;
+import magma.app.StringRule;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -121,8 +121,8 @@ public class Main {
             return Optional.empty();
 
         final var destination = withoutEnd.substring(separator + 1);
-        return generate(new MapNode().withString("source", source)
-                .withString("destination", destination));
+        return new StringRule("destination").lex(destination)
+                .flatMap(node -> generate(node.withString("source", source)));
     }
 
     private static Optional<String> generate(Node node) {
