@@ -3,8 +3,8 @@ package magma.app;
 import magma.app.compile.Lang;
 import magma.app.compile.MutableState;
 import magma.app.compile.State;
-import magma.app.compile.node.MapNode;
-import magma.app.compile.node.Node;
+import magma.app.compile.node.MapNodeWithEverything;
+import magma.app.compile.node.NodeWithEverything;
 import magma.app.compile.rule.Rule;
 
 import java.util.List;
@@ -87,7 +87,7 @@ public class Compiler {
                 .collect(Collectors.joining()));
     }
 
-    private static Stream<Node> modifyStructureDefinition(Node node) {
+    private static Stream<NodeWithEverything> modifyStructureDefinition(NodeWithEverything node) {
         final var retyped = node.is("record") ? node.retype("class") : node;
 
         final var maybeSupertype = retyped.findNode("supertype");
@@ -98,15 +98,14 @@ public class Compiler {
             final var name = retyped.findString("name")
                     .orElse("");
 
-            return Stream.of(retyped,
-                    new MapNode("implements").withString("source", name)
+            return Stream.of(retyped, new MapNodeWithEverything("implements").withString("source", name)
                             .withString("destination", destination));
         }
 
         return Stream.of(retyped);
     }
 
-    private static Optional<String> findBaseType(Node node) {
+    private static Optional<String> findBaseType(NodeWithEverything node) {
         if (node.is("identifier"))
             return node.findString("value");
         if (node.is("generic"))

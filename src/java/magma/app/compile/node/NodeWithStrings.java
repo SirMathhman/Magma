@@ -4,7 +4,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Stream;
 
-public interface NodeWithStrings {
+public interface NodeWithStrings<Node> {
     Node withString(String key, String value);
 
     Optional<String> findString(String key);

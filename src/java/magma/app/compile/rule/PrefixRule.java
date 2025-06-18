@@ -1,18 +1,18 @@
 package magma.app.compile.rule;
 
-import magma.app.compile.node.Node;
+import magma.app.compile.node.NodeWithEverything;
 
 import java.util.Optional;
 
 public record PrefixRule(String prefix, Rule rule) implements Rule {
     @Override
-    public Optional<String> generate(Node node) {
+    public Optional<String> generate(NodeWithEverything node) {
         return this.rule.generate(node)
                 .map(result -> this.prefix + result);
     }
 
     @Override
-    public Optional<Node> lex(String input) {
+    public Optional<NodeWithEverything> lex(String input) {
         if (!input.startsWith(this.prefix))
             return Optional.empty();
 

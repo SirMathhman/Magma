@@ -5,27 +5,27 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Stream;
 
-public final class MapNode implements Node {
+public final class MapNodeWithEverything implements NodeWithEverything {
     private final Optional<String> maybeType;
     private final Map<String, String> strings;
-    private final Map<String, Node> nodes;
+    private final Map<String, NodeWithEverything> nodes;
 
-    public MapNode() {
+    public MapNodeWithEverything() {
         this(Optional.empty(), new HashMap<>(), new HashMap<>());
     }
 
-    public MapNode(Optional<String> maybeType, Map<String, String> strings, Map<String, Node> nodes) {
+    public MapNodeWithEverything(Optional<String> maybeType, Map<String, String> strings, Map<String, NodeWithEverything> nodes) {
         this.maybeType = maybeType;
         this.strings = strings;
         this.nodes = nodes;
     }
 
-    public MapNode(String type) {
+    public MapNodeWithEverything(String type) {
         this(Optional.of(type), new HashMap<>(), new HashMap<>());
     }
 
     @Override
-    public Node withString(String key, String value) {
+    public NodeWithEverything withString(String key, String value) {
         this.strings.put(key, value);
         return this;
     }
@@ -38,8 +38,8 @@ public final class MapNode implements Node {
     }
 
     @Override
-    public Node retype(String type) {
-        return new MapNode(Optional.of(type), this.strings, this.nodes);
+    public NodeWithEverything retype(String type) {
+        return new MapNodeWithEverything(Optional.of(type), this.strings, this.nodes);
     }
 
     @Override
@@ -49,9 +49,9 @@ public final class MapNode implements Node {
     }
 
     @Override
-    public Node merge(Node other) {
+    public NodeWithEverything merge(NodeWithEverything other) {
         final var withStrings = other.streamStrings()
-                .<Node>reduce(this,
+                .<NodeWithEverything>reduce(this,
                         (node1, entry1) -> node1.withString(entry1.getKey(), entry1.getValue()),
                         (_, next) -> next);
 
@@ -67,7 +67,7 @@ public final class MapNode implements Node {
     }
 
     @Override
-    public Optional<Node> findNode(String key) {
+    public Optional<NodeWithEverything> findNode(String key) {
         if (this.nodes.containsKey(key))
             return Optional.of(this.nodes.get(key));
         else
@@ -75,13 +75,13 @@ public final class MapNode implements Node {
     }
 
     @Override
-    public Node withNode(String key, Node value) {
+    public NodeWithEverything withNode(String key, NodeWithEverything value) {
         this.nodes.put(key, value);
         return this;
     }
 
     @Override
-    public Stream<Map.Entry<String, Node>> streamNodes() {
+    public Stream<Map.Entry<String, NodeWithEverything>> streamNodes() {
         return this.nodes.entrySet()
                 .stream();
     }

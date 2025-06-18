@@ -3,7 +3,7 @@ package magma.app.compile.rule;
 import magma.app.compile.locate.FirstLocator;
 import magma.app.compile.locate.LastLocator;
 import magma.app.compile.locate.Locator;
-import magma.app.compile.node.Node;
+import magma.app.compile.node.NodeWithEverything;
 
 import java.util.Optional;
 
@@ -29,14 +29,14 @@ public final class LocateRule implements Rule {
     }
 
     @Override
-    public Optional<String> generate(Node node) {
+    public Optional<String> generate(NodeWithEverything node) {
         return Optional.of(this.leftRule.generate(node)
                 .orElse("") + this.infix + this.rightRule.generate(node)
                 .orElse(""));
     }
 
     @Override
-    public Optional<Node> lex(String input) {
+    public Optional<NodeWithEverything> lex(String input) {
         final var maybeIndex = this.locator.locate(input, this.infix);
         if (maybeIndex.isEmpty())
             return Optional.empty();

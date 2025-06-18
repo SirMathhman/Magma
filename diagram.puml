@@ -1,7 +1,7 @@
 @startuml
 skinparam linetype ortho
-StringRule --> MapNode
-StringRule --> Node
+StringRule --> MapNodeWithEverything
+StringRule --> NodeWithEverything
 StringRule --> Optional
 class StringRule
 StringRule --|> Rule
@@ -10,13 +10,6 @@ JVMPaths --> Paths
 class JVMPaths
 class Err
 Err --|> Result
-interface Node extends NodeWithStrings, NodeWithType, NodeWithNodes, MergingNode
-MapNode --> HashMap
-MapNode --> Map
-MapNode --> Optional
-MapNode --> Stream
-class MapNode
-MapNode --|> Node
 interface Result
 Locator --> Optional
 interface Locator
@@ -26,7 +19,13 @@ interface PathLike
 FirstLocator --> Optional
 class FirstLocator
 FirstLocator --|> Locator
-PrefixRule --> Node
+MapNodeWithEverything --> HashMap
+MapNodeWithEverything --> Map
+MapNodeWithEverything --> Optional
+MapNodeWithEverything --> Stream
+class MapNodeWithEverything
+MapNodeWithEverything --|> NodeWithEverything
+PrefixRule --> NodeWithEverything
 PrefixRule --> Optional
 class PrefixRule
 PrefixRule --|> Rule
@@ -38,8 +37,8 @@ interface NodeWithType
 Compiler --> Lang
 Compiler --> MutableState
 Compiler --> State
-Compiler --> MapNode
-Compiler --> Node
+Compiler --> MapNodeWithEverything
+Compiler --> NodeWithEverything
 Compiler --> Rule
 Compiler --> List
 Compiler --> Map
@@ -47,7 +46,7 @@ Compiler --> Optional
 Compiler --> Collectors
 Compiler --> Stream
 class Compiler
-OrRule --> Node
+OrRule --> NodeWithEverything
 OrRule --> List
 OrRule --> Optional
 class OrRule
@@ -55,7 +54,7 @@ OrRule --|> Rule
 LastLocator --> Optional
 class LastLocator
 LastLocator --|> Locator
-StripRule --> Node
+StripRule --> NodeWithEverything
 StripRule --> Optional
 class StripRule
 StripRule --|> Rule
@@ -70,8 +69,8 @@ Lang --> SuffixRule
 Lang --> TypeRule
 Lang --> List
 class Lang
-NodeRule --> MapNode
-NodeRule --> Node
+NodeRule --> MapNodeWithEverything
+NodeRule --> NodeWithEverything
 NodeRule --> Optional
 class NodeRule
 NodeRule --|> Rule
@@ -79,7 +78,7 @@ MutableState --> ArrayList
 MutableState --> List
 class MutableState
 MutableState --|> State
-SuffixRule --> Node
+SuffixRule --> NodeWithEverything
 SuffixRule --> Optional
 class SuffixRule
 SuffixRule --|> Rule
@@ -93,11 +92,12 @@ class JVMPath
 JVMPath --|> PathLike
 State --> List
 interface State
+interface NodeWithEverything extends NodeWithStrings
 NodeWithStrings --> Map
 NodeWithStrings --> Optional
 NodeWithStrings --> Stream
 interface NodeWithStrings
-Rule --> Node
+Rule --> NodeWithEverything
 Rule --> Optional
 interface Rule
 class Ok
@@ -105,7 +105,7 @@ Ok --|> Result
 LocateRule --> FirstLocator
 LocateRule --> LastLocator
 LocateRule --> Locator
-LocateRule --> Node
+LocateRule --> NodeWithEverything
 LocateRule --> Optional
 class LocateRule
 LocateRule --|> Rule
@@ -118,7 +118,7 @@ Main --> Map
 Main --> Collectors
 class Main
 interface MergingNode
-TypeRule --> Node
+TypeRule --> NodeWithEverything
 TypeRule --> Optional
 class TypeRule
 TypeRule --|> Rule
