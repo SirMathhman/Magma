@@ -84,9 +84,12 @@ public class Main {
     }
 
     private static Optional<String> compileRootSegment(String input, String source) {
-        return new PrefixRule("import ", new SuffixRule(new LastRule(".", new StringRule("destination")), ";")).lex(
+        return new PrefixRule("import ",
+                new SuffixRule(new LastRule(new StringRule("temp"), ".", new StringRule("destination")), ";")).lex(
                         input)
-                .flatMap(node -> generate(node.withString("source", source)))
+                .flatMap(node -> generate(node.withString("source", source),
+                        new StringRule("source"),
+                        new StringRule("destination")))
                 .or(() -> compileStructure(input));
     }
 
@@ -113,9 +116,8 @@ public class Main {
         return Optional.empty();
     }
 
-    private static Optional<String> generate(Node node) {
-        return Optional.of(node.findString("source")
-                .orElse("") + " --> " + node.findString("destination")
-                .orElse("") + "\n");
+    private static Optional<String> generate(Node node, StringRule leftRule, StringRule rightRule) {
+        final var maybeResult = new LastRule(leftRule, " --> ", rightRule).generate(node);
+        return maybeResult.map(result -> result + "\n");
     }
 }

@@ -2,15 +2,19 @@ package magma.app;
 
 import java.util.Optional;
 
-public record LastRule(String infix, StringRule rule) {
+public record LastRule(StringRule leftRule, String infix, StringRule rightRule) {
+    public Optional<String> generate(Node node) {
+        return Optional.of(this.leftRule.generate(node)
+                .orElse("") + this.infix + this.rightRule.generate(node)
+                .orElse(""));
+    }
+
     public Optional<Node> lex(String input) {
-        final var index = input.lastIndexOf(this.infix());
+        final var index = input.lastIndexOf(this.infix);
         if (index < 0)
             return Optional.empty();
 
-        final var slice = input.substring(index + this.infix()
-                .length());
-        return this.rule()
-                .lex(slice);
+        final var slice = input.substring(index + this.infix.length());
+        return this.rightRule.lex(slice);
     }
 }
