@@ -1,5 +1,7 @@
 package magma.app;
 
+import magma.app.node.Node;
+
 import java.util.Optional;
 
 public record LastRule(StringRule leftRule, String infix, StringRule rightRule) {
