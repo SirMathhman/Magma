@@ -6,7 +6,6 @@ import magma.app.compile.node.NodeWithEverything;
 import magma.app.compile.rule.ExtractRule;
 import magma.app.compile.rule.LocateRule;
 import magma.app.compile.rule.ModifyRule;
-import magma.app.compile.rule.NodeListRule;
 import magma.app.compile.rule.OrRule;
 import magma.app.compile.rule.Rule;
 import magma.app.compile.rule.TypeRule;
@@ -35,6 +34,6 @@ public class PlantLang {
     }
 
     public static Rule<NodeWithEverything> createPlantRootRule() {
-        return new NodeListRule<>("children", createPlantRootSegmentRule(), new MapNodeFactory());
+        return ExtractRule.NodeList("children", createPlantRootSegmentRule(), new MapNodeFactory());
     }
 }

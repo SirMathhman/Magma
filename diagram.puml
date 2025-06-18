@@ -12,8 +12,6 @@ PlantLang --> LocateRule
 
 PlantLang --> ModifyRule
 
-PlantLang --> NodeListRule
-
 PlantLang --> OrRule
 
 PlantLang --> Rule
@@ -125,7 +123,7 @@ JavaPlantTransformer --|> Transformer
 Rule --> Optional
 
 interface Rule
-NodeWithNodeLists --> Foldable
+NodeWithNodeLists --> ListLike
 
 NodeWithNodeLists --> Optional
 
@@ -159,7 +157,7 @@ class Err
 Err --|> Result
 MapNode --> Tuple
 
-MapNode --> Foldable
+MapNode --> ListLike
 
 MapNode --> MapLike
 
@@ -250,6 +248,8 @@ class CompileApplication
 CompileApplication --|> Application 
 ExtractRule --> NodeFactory
 
+ExtractRule --> NodeWithNodeLists
+
 ExtractRule --> NodeWithNodes
 
 ExtractRule --> NodeWithStrings
@@ -257,6 +257,8 @@ ExtractRule --> NodeWithStrings
 ExtractRule --> Extractor
 
 ExtractRule --> NodeExtractor
+
+ExtractRule --> NodeListExtractor
 
 ExtractRule --> StringExtractor
 
@@ -276,22 +278,6 @@ ModifyRule --> Optional
 
 class ModifyRule
 ModifyRule --|> Rule
-NodeListRule --> Foldable
-
-NodeListRule --> Lists
-
-NodeListRule --> NodeFactory
-
-NodeListRule --> NodeWithNodeLists
-
-NodeListRule --> DivideState
-
-NodeListRule --> MutableDivideState
-
-NodeListRule --> Optional
-
-class NodeListRule
-NodeListRule --|> Rule
 interface IOError 
 JVMPath --> Err
 
@@ -335,6 +321,24 @@ CompilerBuilder --> PlantLang
 CompilerBuilder --> JavaPlantTransformer
 
 class CompilerBuilder 
+NodeListExtractor --> Foldable
+
+NodeListExtractor --> ListLike
+
+NodeListExtractor --> Lists
+
+NodeListExtractor --> NodeWithNodeLists
+
+NodeListExtractor --> Rule
+
+NodeListExtractor --> DivideState
+
+NodeListExtractor --> MutableDivideState
+
+NodeListExtractor --> Optional
+
+class NodeListExtractor
+NodeListExtractor --|> Extractor
 StringExtractor --> NodeWithStrings
 
 StringExtractor --> Optional
@@ -352,8 +356,6 @@ JavaLang --> ExtractRule
 JavaLang --> LocateRule
 
 JavaLang --> ModifyRule
-
-JavaLang --> NodeListRule
 
 JavaLang --> OrRule
 

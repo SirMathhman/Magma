@@ -1,23 +1,20 @@
-package magma.app.compile.rule;
+package magma.app.compile.rule.extract;
 
 import magma.api.collect.fold.Foldable;
+import magma.api.collect.list.ListLike;
 import magma.api.collect.list.Lists;
-import magma.app.compile.node.NodeFactory;
 import magma.app.compile.node.NodeWithNodeLists;
+import magma.app.compile.rule.Rule;
 import magma.app.compile.rule.divide.DivideState;
 import magma.app.compile.rule.divide.MutableDivideState;
 
 import java.util.Optional;
 
-public final class NodeListRule<Node extends NodeWithNodeLists<Node>> implements Rule<Node> {
-    private final String key;
+public class NodeListExtractor<Node extends NodeWithNodeLists<Node>> implements Extractor<Node, ListLike<Node>> {
     private final Rule<Node> rule;
-    private final NodeFactory<Node> nodeFactory;
 
-    public NodeListRule(String key, Rule<Node> rule, NodeFactory<Node> nodeFactory) {
-        this.key = key;
+    public NodeListExtractor(Rule<Node> rule) {
         this.rule = rule;
-        this.nodeFactory = nodeFactory;
     }
 
     public static Foldable<String> divide(CharSequence input) {
@@ -43,24 +40,29 @@ public final class NodeListRule<Node extends NodeWithNodeLists<Node>> implements
     }
 
     @Override
-    public Optional<Node> lex(String input) {
-        final var children = divide(input).fold(Lists.<Node>empty(),
-                (current, segment) -> NodeListRule.this.rule.lex(segment)
-                        .map(current::add)
-                        .orElse(current));
-
-        return Optional.of(this.nodeFactory.create()
-                .withNodeList(this.key, children));
+    public Node attach(Node node, String key, ListLike<Node> values) {
+        return node.withNodeList(key, values);
     }
 
     @Override
-    public Optional<String> generate(Node root) {
-        final var output = root.findNodeList(this.key)
-                .orElse(Lists.empty())
-                .fold(new StringBuilder(),
-                        (current, node) -> this.rule.generate(node)
-                                .map(current::append)
-                                .orElse(current));
+    public Optional<ListLike<Node>> lex(String input) {
+        return Optional.of(divide(input).fold(Lists.empty(),
+                (current, segment) -> this.rule.lex(segment)
+                        .map(current::add)
+                        .orElse(current)));
+    }
+
+    @Override
+    public Optional<ListLike<Node>> fromNode(Node node, String key) {
+        return node.findNodeList(key);
+    }
+
+    @Override
+    public Optional<String> generate(ListLike<Node> children) {
+        final var output = children.fold(new StringBuilder(),
+                (current, node) -> this.rule.generate(node)
+                        .map(current::append)
+                        .orElse(current));
 
         return Optional.of(output.toString());
     }
