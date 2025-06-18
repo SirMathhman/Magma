@@ -2,27 +2,27 @@ package magma.app.compile.rule;
 
 import magma.api.list.Lists;
 import magma.app.compile.node.NodeFactory;
-import magma.app.compile.node.NodeWithEverything;
+import magma.app.compile.node.NodeWithNodeLists;
 import magma.app.compile.rule.divide.Divider;
 
 import java.util.Objects;
 import java.util.Optional;
 
-public final class DivideRule implements Rule<NodeWithEverything> {
+public final class DivideRule<Node extends NodeWithNodeLists<Node>> implements Rule<Node> {
     private final String key;
-    private final Rule<NodeWithEverything> rule;
-    private final NodeFactory<NodeWithEverything> nodeFactory;
+    private final Rule<Node> rule;
+    private final NodeFactory<Node> nodeFactory;
 
-    public DivideRule(String key, Rule<NodeWithEverything> rule, NodeFactory<NodeWithEverything> nodeFactory) {
+    public DivideRule(String key, Rule<Node> rule, NodeFactory<Node> nodeFactory) {
         this.key = key;
         this.rule = rule;
         this.nodeFactory = nodeFactory;
     }
 
     @Override
-    public Optional<NodeWithEverything> lex(String input) {
+    public Optional<Node> lex(String input) {
         final var segments = Divider.divide(input);
-        var oldChildren = Lists.<NodeWithEverything>empty();
+        var oldChildren = Lists.<Node>empty();
         for (var i = 0; i < segments.size(); i++) {
             final var segment = segments.get(i);
             oldChildren = this.rule.lex(segment)
@@ -34,7 +34,7 @@ public final class DivideRule implements Rule<NodeWithEverything> {
     }
 
     @Override
-    public Optional<String> generate(NodeWithEverything root) {
+    public Optional<String> generate(Node root) {
         final var children = root.findNodeList(this.key)
                 .orElse(Lists.empty());
 
@@ -52,7 +52,7 @@ public final class DivideRule implements Rule<NodeWithEverything> {
         return this.key;
     }
 
-    public Rule<NodeWithEverything> rule() {
+    public Rule<Node> rule() {
         return this.rule;
     }
 
@@ -62,7 +62,7 @@ public final class DivideRule implements Rule<NodeWithEverything> {
             return true;
         if (obj == null || obj.getClass() != this.getClass())
             return false;
-        var that = (DivideRule) obj;
+        var that = (DivideRule<Node>) obj;
         return Objects.equals(this.key, that.key) && Objects.equals(this.rule, that.rule);
     }
 

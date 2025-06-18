@@ -35,6 +35,6 @@ public class PlantLang {
     }
 
     public static Rule<NodeWithEverything> createPlantRootRule() {
-        return new DivideRule("children", createPlantRootSegmentRule(), new MapNodeFactory());
+        return new DivideRule<NodeWithEverything>("children", createPlantRootSegmentRule(), new MapNodeFactory());
     }
 }

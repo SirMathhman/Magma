@@ -76,6 +76,6 @@ public class JavaLang {
     }
 
     public static Rule<NodeWithEverything> createJavaRootRule() {
-        return new DivideRule("children", createJavaRootSegmentRule(), new MapNodeFactory());
+        return new DivideRule<NodeWithEverything>("children", createJavaRootSegmentRule(), new MapNodeFactory());
     }
 }

@@ -1,5 +1,7 @@
 @startuml
 skinparam linetype ortho
+PlantLang --> MapNodeFactory
+
 PlantLang --> NodeWithEverything
 
 PlantLang --> DivideRule
@@ -21,7 +23,7 @@ PlantLang --> TypeRule
 PlantLang --> List
 
 class PlantLang 
-StringRule --> MapNode
+StringRule --> MapNodeFactory
 
 StringRule --> NodeWithEverything
 
@@ -29,6 +31,8 @@ StringRule --> Optional
 
 class StringRule
 StringRule --|> Rule
+class MapNodeFactory
+MapNodeFactory --|> NodeFactory
 Transformer --> NodeWithEverything
 
 interface Transformer 
@@ -83,11 +87,13 @@ Locator --> Optional
 interface Locator 
 DivideRule --> Lists
 
-DivideRule --> MapNode
+DivideRule --> NodeFactory
 
-DivideRule --> NodeWithEverything
+DivideRule --> NodeWithNodeLists
 
 DivideRule --> Divider
+
+DivideRule --> Objects
 
 DivideRule --> Optional
 
@@ -155,7 +161,7 @@ MutableDivideState --|> DivideState
 DivideState --> ListLike
 
 interface DivideState 
-NodeRule --> MapNode
+NodeRule --> MapNodeFactory
 
 NodeRule --> NodeWithEverything
 
@@ -163,6 +169,7 @@ NodeRule --> Optional
 
 class NodeRule
 NodeRule --|> Rule
+interface NodeFactory
 interface IOError 
 SuffixRule --> Optional
 
@@ -188,8 +195,6 @@ JVMPath --> Collectors
 
 class JVMPath
 JVMPath --|> PathLike 
-NodeWithEverything --> ListLike
-
 NodeWithEverything --> MergingNode
 
 NodeWithEverything --> NodeWithNodes
@@ -197,8 +202,6 @@ NodeWithEverything --> NodeWithNodes
 NodeWithEverything --> NodeWithStrings
 
 NodeWithEverything --> NodeWithType
-
-NodeWithEverything --> Optional
 
 interface NodeWithEverything extends NodeWithStrings
 NodeWithStrings --> Tuple
@@ -220,6 +223,8 @@ JavaPlantTransformer --> Optional
 
 class JavaPlantTransformer
 JavaPlantTransformer --|> Transformer 
+JavaLang --> MapNodeFactory
+
 JavaLang --> NodeWithEverything
 
 JavaLang --> DivideRule
@@ -256,6 +261,11 @@ ThrowableIOError --|> IOError
 Rule --> Optional
 
 interface Rule
+NodeWithNodeLists --> ListLike
+
+NodeWithNodeLists --> Optional
+
+interface NodeWithNodeLists
 Ok --> Function
 
 class Ok
