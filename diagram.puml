@@ -29,18 +29,12 @@ OrRule --> List
 OrRule --> Optional
 class OrRule
 OrRule --|> Rule
-JVMPaths --> Path
 JVMPaths --> Paths
 class JVMPaths
 Node --> Map
 Node --> Optional
 Node --> Stream
 interface Node
-JVMFiles --> IOException
-JVMFiles --> Files
-JVMFiles --> Path
-JVMFiles --> Stream
-class JVMFiles
 Lang --> LocateRule
 Lang --> OrRule
 Lang --> PrefixRule
@@ -66,6 +60,16 @@ SuffixRule --> Node
 SuffixRule --> Optional
 class SuffixRule
 SuffixRule --|> Rule
+PathLike --> IOException
+PathLike --> Set
+interface PathLike
+JVMPath --> IOException
+JVMPath --> Files
+JVMPath --> Path
+JVMPath --> Set
+JVMPath --> Collectors
+class JVMPath
+JVMPath --|> PathLike
 State --> List
 interface State
 FirstLocator --> Optional
@@ -82,10 +86,10 @@ LocateRule --> Optional
 class LocateRule
 LocateRule --|> Rule
 Main --> Compiler
-Main --> JVMFiles
+Main --> JVMPath
 Main --> JVMPaths
+Main --> PathLike
 Main --> IOException
-Main --> Path
 Main --> HashMap
 Main --> Map
 Main --> Collectors
