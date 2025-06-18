@@ -12,7 +12,7 @@ PlantLang --> LocateRule
 
 PlantLang --> OrRule
 
-PlantLang --> PrefixRule
+PlantLang --> ModifyRule
 
 PlantLang --> Rule
 
@@ -47,6 +47,10 @@ class ApplicationBuilder
 Locator --> Optional
 
 interface Locator 
+PrefixModifier --> Optional
+
+class PrefixModifier
+PrefixModifier --|> Modifier 
 DivideRule --> Foldable
 
 DivideRule --> Lists
@@ -91,10 +95,6 @@ NodeWithNodes --> Stream
 
 interface NodeWithNodes
 interface NodeWithType
-PrefixRule --> Optional
-
-class PrefixRule
-PrefixRule --|> Rule
 Compiler --> MapLike
 
 interface Compiler 
@@ -213,6 +213,9 @@ FirstLocator --> Optional
 
 class FirstLocator
 FirstLocator --|> Locator 
+Modifier --> Optional
+
+interface Modifier 
 LastLocator --> Optional
 
 class LastLocator
@@ -256,6 +259,14 @@ CompileApplication --> Collectors
 
 class CompileApplication
 CompileApplication --|> Application 
+ModifyRule --> Modifier
+
+ModifyRule --> PrefixModifier
+
+ModifyRule --> Optional
+
+class ModifyRule
+ModifyRule --|> Rule
 NodeRule --> NodeFactory
 
 NodeRule --> NodeWithNodes
@@ -325,7 +336,7 @@ JavaLang --> NodeRule
 
 JavaLang --> OrRule
 
-JavaLang --> PrefixRule
+JavaLang --> ModifyRule
 
 JavaLang --> Rule
 

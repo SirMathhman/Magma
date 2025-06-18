@@ -5,9 +5,9 @@ import magma.app.compile.node.MapNodeFactory;
 import magma.app.compile.node.NodeWithEverything;
 import magma.app.compile.rule.DivideRule;
 import magma.app.compile.rule.LocateRule;
+import magma.app.compile.rule.ModifyRule;
 import magma.app.compile.rule.NodeRule;
 import magma.app.compile.rule.OrRule;
-import magma.app.compile.rule.PrefixRule;
 import magma.app.compile.rule.Rule;
 import magma.app.compile.rule.StringRule;
 import magma.app.compile.rule.StripRule;
@@ -22,8 +22,7 @@ public class JavaLang {
     }
 
     public static Rule<NodeWithEverything> createImportRule() {
-        return new TypeRule<>("import",
-                new StripRule<>(new PrefixRule<>("import ",
+        return new TypeRule<>("import", new StripRule<>(ModifyRule.Prefix("import ",
                         new SuffixRule<>(LocateRule.Last(new StringRule<>("temp", new MapNodeFactory()),
                                 ".",
                                 new StringRule<>("destination", new MapNodeFactory())), ";"))));
