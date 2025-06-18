@@ -14,7 +14,7 @@ public class JVMFiles {
         return Files.isRegularFile(path);
     }
 
-    public static void writeString(Path path, String content) throws IOException {
+    public static void writeString(Path path, CharSequence content) throws IOException {
         Files.writeString(path, content);
     }
 
