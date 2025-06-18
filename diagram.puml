@@ -10,7 +10,6 @@ class MutableState implements State
 class Main
 Main --> LastRule
 Main --> MutableState
-Main --> Node
 Main --> PrefixRule
 Main --> State
 Main --> StringRule

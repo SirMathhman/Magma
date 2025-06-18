@@ -2,7 +2,6 @@ package magma;
 
 import magma.app.LastRule;
 import magma.app.MutableState;
-import magma.app.Node;
 import magma.app.PrefixRule;
 import magma.app.State;
 import magma.app.StringRule;
@@ -84,13 +83,18 @@ public class Main {
     }
 
     private static Optional<String> compileRootSegment(String input, String source) {
-        return new PrefixRule("import ",
-                new SuffixRule(new LastRule(new StringRule("temp"), ".", new StringRule("destination")), ";")).lex(
-                        input)
-                .flatMap(node -> generate(node.withString("source", source),
-                        new StringRule("source"),
-                        new StringRule("destination")))
+        return createImportRule().lex(input)
+                .flatMap(node -> createDependencyRule().generate(node.withString("source", source)))
                 .or(() -> compileStructure(input));
+    }
+
+    private static SuffixRule createDependencyRule() {
+        return new SuffixRule(new LastRule(new StringRule("source"), " --> ", new StringRule("destination")), "\n");
+    }
+
+    private static PrefixRule createImportRule() {
+        return new PrefixRule("import ",
+                new SuffixRule(new LastRule(new StringRule("temp"), ".", new StringRule("destination")), ";"));
     }
 
     private static Optional<String> compileStructure(String input) {
@@ -114,10 +118,5 @@ public class Main {
             return Optional.of(slice + "\n");
         }
         return Optional.empty();
-    }
-
-    private static Optional<String> generate(Node node, StringRule leftRule, StringRule rightRule) {
-        final var maybeResult = new LastRule(leftRule, " --> ", rightRule).generate(node);
-        return maybeResult.map(result -> result + "\n");
     }
 }
