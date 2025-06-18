@@ -46,7 +46,6 @@ Compiler --> Collectors
 Compiler --> Stream
 class Compiler
 OrRule --> List
-OrRule --> Objects
 OrRule --> Optional
 class OrRule
 OrRule --|> Rule
@@ -90,6 +89,10 @@ class JVMPath
 JVMPath --|> PathLike
 State --> List
 interface State
+NodeWithEverything --> MergingNode
+NodeWithEverything --> NodeWithNodes
+NodeWithEverything --> NodeWithStrings
+NodeWithEverything --> NodeWithType
 interface NodeWithEverything extends NodeWithStrings
 NodeWithStrings --> Map
 NodeWithStrings --> Optional

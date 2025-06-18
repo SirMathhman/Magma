@@ -3,7 +3,7 @@ package magma.app.compile.rule;
 import magma.app.compile.locate.FirstLocator;
 import magma.app.compile.locate.LastLocator;
 import magma.app.compile.locate.Locator;
-import magma.app.compile.node.MergingNode;
+import magma.app.compile.node.attribute.MergingNode;
 
 import java.util.Optional;
 

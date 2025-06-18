@@ -1,4 +1,4 @@
-package magma.app.compile.node;
+package magma.app.compile.node.attribute;
 
 public interface NodeWithType<Self> {
     Self retype(String type);

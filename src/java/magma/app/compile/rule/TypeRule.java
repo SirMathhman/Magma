@@ -1,6 +1,6 @@
 package magma.app.compile.rule;
 
-import magma.app.compile.node.NodeWithType;
+import magma.app.compile.node.attribute.NodeWithType;
 
 import java.util.Optional;
 
