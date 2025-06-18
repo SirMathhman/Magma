@@ -21,10 +21,10 @@ public class Lang {
     }
 
     public static Rule createPlantUMLRootSegmentRule() {
-        return new SuffixRule(new OrRule(List.of(createPlantUMLClassesRule(), createiplementsRule())), "\n");
+        return new SuffixRule(new OrRule(List.of(createPlantUMLClassesRule(), createImplementsRule())), "\n");
     }
 
-    private static Rule createiplementsRule() {
+    private static Rule createImplementsRule() {
         return new TypeRule("implements",
                 LocateRule.First(new StringRule("source"), " --|> ", new StringRule("destination")));
     }
