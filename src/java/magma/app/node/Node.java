@@ -1,6 +1,8 @@
 package magma.app.node;
 
+import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Stream;
 
 public interface Node {
     Node withString(String key, String value);
@@ -10,4 +12,8 @@ public interface Node {
     Node retype(String type);
 
     boolean is(String type);
+
+    Node merge(Node other);
+
+    Stream<Map.Entry<String, String>> streamStrings();
 }

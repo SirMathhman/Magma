@@ -41,7 +41,11 @@ public final class LocateRule implements Rule {
         if (maybeIndex.isEmpty())
             return Optional.empty();
 
-        final var slice = input.substring(maybeIndex.get() + this.infix.length());
-        return this.rightRule.lex(slice);
+        final int index = maybeIndex.get();
+        final var leftSlice = input.substring(0, index);
+        final var rightSlice = input.substring(index + this.infix.length());
+        return this.leftRule.lex(leftSlice)
+                .flatMap(leftResult -> this.rightRule.lex(rightSlice)
+                        .map(leftResult::merge));
     }
 }

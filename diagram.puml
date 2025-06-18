@@ -1,6 +1,8 @@
 @startuml
 skinparam linetype ortho
+Node --> Map
 Node --> Optional
+Node --> Stream
 class Node
 Rule --> Node
 Rule --> Optional
@@ -8,24 +10,27 @@ class Rule
 StringRule --> MapNode
 StringRule --> Node
 StringRule --> Optional
+interface StringRule(String key)
 Locator --> Optional
 class Locator
 PrefixRule --> Node
 PrefixRule --> Optional
+interface PrefixRule(String prefix, Rule rule)
 FirstLocator --> Optional
-interface FirstLocator implements Locator
+interface FirstLocator
 OrRule --> Node
 OrRule --> List
 OrRule --> Optional
+interface OrRule(List<Rule> rules)
 LocateRule --> FirstLocator
 LocateRule --> LastLocator
 LocateRule --> Locator
 LocateRule --> Node
 LocateRule --> Optional
-interface LocateRule implements Rule
+interface LocateRule
 MutableState --> ArrayList
 MutableState --> List
-interface MutableState implements State
+interface MutableState
 Main --> LocateRule
 Main --> MutableState
 Main --> OrRule
@@ -46,13 +51,16 @@ interface Main
 MapNode --> HashMap
 MapNode --> Map
 MapNode --> Optional
-interface MapNode implements Node
+MapNode --> Stream
+interface MapNode
 TypeRule --> Node
 TypeRule --> Optional
+interface TypeRule(String type, Rule rule)
 SuffixRule --> Node
 SuffixRule --> Optional
+interface SuffixRule(Rule rule, String suffix)
 LastLocator --> Optional
-interface LastLocator implements Locator
+interface LastLocator
 State --> List
 class State
 @enduml

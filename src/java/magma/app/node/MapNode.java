@@ -3,6 +3,7 @@ package magma.app.node;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Stream;
 
 public final class MapNode implements Node {
     private final Optional<String> maybeType;
@@ -39,5 +40,19 @@ public final class MapNode implements Node {
     public boolean is(String type) {
         return this.maybeType.isPresent() && this.maybeType.get()
                 .equals(type);
+    }
+
+    @Override
+    public Node merge(Node other) {
+        return other.streamStrings()
+                .<Node>reduce(this,
+                        (node, entry) -> node.withString(entry.getKey(), entry.getValue()),
+                        (_, next) -> next);
+    }
+
+    @Override
+    public Stream<Map.Entry<String, String>> streamStrings() {
+        return this.strings.entrySet()
+                .stream();
     }
 }

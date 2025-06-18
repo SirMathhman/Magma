@@ -104,6 +104,11 @@ public class Main {
                     .strip();
 
             return createStructureDefinitionsRule().lex(stripped)
+                    .map(node -> {
+                        if (node.is("record"))
+                            return node.retype("class");
+                        return node;
+                    })
                     .flatMap(node -> createPlantUMLClassesRule().generate(node));
         }
 
@@ -116,17 +121,22 @@ public class Main {
     }
 
     private static Rule createStructureDefinitionsRule() {
-        return new OrRule(List.of(createStructureDefinitionRule("class"), createStructureDefinitionRule("interface")));
+        return new OrRule(List.of(createStructureDefinitionRule("class"),
+                createStructureDefinitionRule("interface"),
+                createStructureDefinitionRule("record")));
     }
 
     private static Rule createStructureDefinitionRule(String type) {
         final Rule beforeType = new StringRule("before-type");
-        final Rule afterType = new StringRule("after-type");
+
+        final Rule afterType = new OrRule(List.of(LocateRule.Last(new StringRule("name"),
+                " implements ",
+                new StringRule("supertype")), new StringRule("name")));
         return new TypeRule(type, LocateRule.First(beforeType, type + " ", afterType));
     }
 
     private static Rule createPlantUMLClassRule(String type) {
-        final var afterType = new StringRule("after-type");
+        final var afterType = new StringRule("name");
         return new TypeRule(type, new PrefixRule(type + " ", new SuffixRule(afterType, "\n")));
     }
 }
