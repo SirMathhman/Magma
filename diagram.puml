@@ -31,17 +31,22 @@ class OrRule
 OrRule --|> Rule
 JVMPaths --> Paths
 class JVMPaths
-class Err<Value, Error>
-Err<Value, Error> --|> Result<Value, Error>
+class Err
+Err --|> Result<Value, Error>
 Node --> Map
 Node --> Optional
 Node --> Stream
 interface Node
+StripRule --> Node
+StripRule --> Optional
+class StripRule
+StripRule --|> Rule
 Lang --> LocateRule
 Lang --> OrRule
 Lang --> PrefixRule
 Lang --> Rule
 Lang --> StringRule
+Lang --> StripRule
 Lang --> SuffixRule
 Lang --> TypeRule
 Lang --> List
@@ -52,7 +57,7 @@ MapNode --> Optional
 MapNode --> Stream
 class MapNode
 MapNode --|> Node
-interface Result<Value, Error>
+interface Result
 Locator --> Optional
 interface Locator
 MutableState --> ArrayList
@@ -81,8 +86,8 @@ FirstLocator --|> Locator
 Rule --> Node
 Rule --> Optional
 interface Rule
-class Ok<Value, Error>
-Ok<Value, Error> --|> Result<Value, Error>
+class Ok
+Ok --|> Result<Value, Error>
 LocateRule --> FirstLocator
 LocateRule --> LastLocator
 LocateRule --> Locator

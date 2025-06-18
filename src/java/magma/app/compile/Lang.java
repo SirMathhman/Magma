@@ -5,6 +5,7 @@ import magma.app.compile.rule.OrRule;
 import magma.app.compile.rule.PrefixRule;
 import magma.app.compile.rule.Rule;
 import magma.app.compile.rule.StringRule;
+import magma.app.compile.rule.StripRule;
 import magma.app.compile.rule.SuffixRule;
 import magma.app.compile.rule.TypeRule;
 
@@ -43,7 +44,12 @@ public class Lang {
         final Rule beforeType = new StringRule("before-type");
 
         final Rule name = new StringRule("name");
-        final Rule withParams = new OrRule(List.of(LocateRule.First(name, "(", new StringRule("params")), name));
+        final Rule withTypeParams = new OrRule(List.of(new StripRule(new SuffixRule(LocateRule.First(name,
+                "<",
+                new StringRule("type-arguments")), ">")), name));
+
+        final Rule withParams = new OrRule(List.of(LocateRule.First(withTypeParams, "(", new StringRule("params")),
+                withTypeParams));
         final Rule afterType = new OrRule(List.of(LocateRule.Last(withParams,
                 " implements ",
                 new StringRule("supertype")), withParams));
