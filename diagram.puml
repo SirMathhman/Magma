@@ -8,9 +8,6 @@ StringRule --|> Rule
 JVMPaths --> PathLike
 JVMPaths --> Paths
 class JVMPaths
-class Err
-Err --|> Result
-interface Result
 Locator --> Optional
 interface Locator
 PathLike --> IOException
@@ -19,6 +16,7 @@ interface PathLike
 FirstLocator --> Optional
 class FirstLocator
 FirstLocator --|> Locator
+MapNodeWithEverything --> Tuple
 MapNodeWithEverything --> HashMap
 MapNodeWithEverything --> Map
 MapNodeWithEverything --> Optional
@@ -28,7 +26,7 @@ MapNodeWithEverything --|> NodeWithEverything
 PrefixRule --> Optional
 class PrefixRule
 PrefixRule --|> Rule
-NodeWithNodes --> Map
+NodeWithNodes --> Tuple
 NodeWithNodes --> Optional
 NodeWithNodes --> Stream
 interface NodeWithNodes
@@ -94,14 +92,12 @@ NodeWithEverything --> NodeWithNodes
 NodeWithEverything --> NodeWithStrings
 NodeWithEverything --> NodeWithType
 interface NodeWithEverything extends NodeWithStrings
-NodeWithStrings --> Map
+NodeWithStrings --> Tuple
 NodeWithStrings --> Optional
 NodeWithStrings --> Stream
 interface NodeWithStrings
 Rule --> Optional
 interface Rule
-class Ok
-Ok --|> Result
 LocateRule --> FirstLocator
 LocateRule --> LastLocator
 LocateRule --> Locator
@@ -117,6 +113,7 @@ Main --> HashMap
 Main --> Map
 Main --> Collectors
 class Main
+class Tuple
 interface MergingNode
 TypeRule --> NodeWithType
 TypeRule --> Optional

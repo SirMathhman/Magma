@@ -1,5 +1,7 @@
 package magma.app.compile.node;
 
+import magma.api.Tuple;
+
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -51,19 +53,18 @@ public final class MapNodeWithEverything implements NodeWithEverything {
     @Override
     public NodeWithEverything merge(NodeWithEverything other) {
         final var withStrings = other.streamStrings()
-                .<NodeWithEverything>reduce(this,
-                        (node1, entry1) -> node1.withString(entry1.getKey(), entry1.getValue()),
+                .<NodeWithEverything>reduce(this, (node1, entry1) -> node1.withString(entry1.left(), entry1.right()),
                         (_, next) -> next);
 
         return other.streamNodes()
-                .reduce(withStrings, (node, entry) -> node.withNode(entry.getKey(), entry.getValue()),
-                        (_, next) -> next);
+                .reduce(withStrings, (node, entry) -> node.withNode(entry.left(), entry.right()), (_, next) -> next);
     }
 
     @Override
-    public Stream<Map.Entry<String, String>> streamStrings() {
+    public Stream<Tuple<String, String>> streamStrings() {
         return this.strings.entrySet()
-                .stream();
+                .stream()
+                .map(entry -> new Tuple<>(entry.getKey(), entry.getValue()));
     }
 
     @Override
@@ -81,8 +82,9 @@ public final class MapNodeWithEverything implements NodeWithEverything {
     }
 
     @Override
-    public Stream<Map.Entry<String, NodeWithEverything>> streamNodes() {
+    public Stream<Tuple<String, NodeWithEverything>> streamNodes() {
         return this.nodes.entrySet()
-                .stream();
+                .stream()
+                .map(entry -> new Tuple<>(entry.getKey(), entry.getValue()));
     }
 }

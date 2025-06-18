@@ -1,6 +1,7 @@
 package magma.app.compile.node.attribute;
 
-import java.util.Map;
+import magma.api.Tuple;
+
 import java.util.Optional;
 import java.util.stream.Stream;
 
@@ -9,5 +10,5 @@ public interface NodeWithStrings<Node> {
 
     Optional<String> findString(String key);
 
-    Stream<Map.Entry<String, String>> streamStrings();
+    Stream<Tuple<String, String>> streamStrings();
 }
