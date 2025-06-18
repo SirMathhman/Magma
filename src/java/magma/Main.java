@@ -23,16 +23,25 @@ public class Main {
     private static List<String> divide(CharSequence input) {
         final var segments = new ArrayList<String>();
         var buffer = new StringBuilder();
+        return getStrings(input, new State(buffer, segments));
+    }
+
+    private static List<String> getStrings(CharSequence input, State state) {
+        var current = state;
         for (var i = 0; i < input.length(); i++) {
             final var c = input.charAt(i);
-            buffer.append(c);
-            if (c == ';') {
-                segments.add(buffer.toString());
-                buffer = new StringBuilder();
-            }
+            current = fold(current, c);
         }
-        segments.add(buffer.toString());
-        return segments;
+
+        return current.advance()
+                .segments();
+    }
+
+    private static State fold(State current, char c) {
+        final var appended = current.append(c);
+        if (c == ';')
+            return appended.advance();
+        return appended;
     }
 
     private static String compileRootSegments(Iterable<String> segments) {
