@@ -1,10 +1,14 @@
 package magma.app.jvm;
 
+import magma.api.Err;
+import magma.api.Ok;
+import magma.api.Result;
 import magma.app.PathLike;
 
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -15,13 +19,22 @@ public record JVMPath(Path path) implements PathLike {
     }
 
     @Override
-    public String readString() throws IOException {
-        return Files.readString(this.path);
+    public Result<String, IOException> readString() {
+        try {
+            return new Ok<>(Files.readString(this.path));
+        } catch (IOException e) {
+            return new Err<>(e);
+        }
     }
 
     @Override
-    public void writeString(CharSequence content) throws IOException {
-        Files.writeString(this.path, content);
+    public Optional<IOException> writeString(CharSequence content) {
+        try {
+            Files.writeString(this.path, content);
+            return Optional.empty();
+        } catch (IOException e) {
+            return Optional.of(e);
+        }
     }
 
     @Override
@@ -30,10 +43,12 @@ public record JVMPath(Path path) implements PathLike {
     }
 
     @Override
-    public Set<PathLike> walk() throws IOException {
+    public Result<Set<PathLike>, IOException> walk() {
         try (var stream = Files.walk(this.path)) {
-            return stream.map(JVMPath::new)
-                    .collect(Collectors.toSet());
+            return new Ok<>(stream.map(JVMPath::new)
+                    .collect(Collectors.toSet()));
+        } catch (IOException e) {
+            return new Err<>(e);
         }
     }
 

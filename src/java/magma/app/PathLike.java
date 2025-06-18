@@ -1,16 +1,19 @@
 package magma.app;
 
+import magma.api.Result;
+
 import java.io.IOException;
+import java.util.Optional;
 import java.util.Set;
 
 public interface PathLike {
-    String readString() throws IOException;
+    Result<String, IOException> readString();
 
-    void writeString(CharSequence content) throws IOException;
+    Optional<IOException> writeString(CharSequence content);
 
     boolean isRegularFile();
 
-    Set<PathLike> walk() throws IOException;
+    Result<Set<PathLike>, IOException> walk();
 
     String getFileNameAsString();
 

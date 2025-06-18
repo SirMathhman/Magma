@@ -5,13 +5,20 @@ StringRule --> NodeWithEverything
 StringRule --> Optional
 class StringRule
 StringRule --|> Rule
+Err --> Function
+class Err
+Err --|> Result
 JVMPaths --> PathLike
 JVMPaths --> Paths
 class JVMPaths
+Result --> Function
+interface Result
 Locator --> Optional
 interface Locator
 class Maps
+PathLike --> Result
 PathLike --> IOException
+PathLike --> Optional
 PathLike --> Set
 interface PathLike
 FirstLocator --> Optional
@@ -82,10 +89,14 @@ NodeRule --|> Rule
 SuffixRule --> Optional
 class SuffixRule
 SuffixRule --|> Rule
+JVMPath --> Err
+JVMPath --> Ok
+JVMPath --> Result
 JVMPath --> PathLike
 JVMPath --> IOException
 JVMPath --> Files
 JVMPath --> Path
+JVMPath --> Optional
 JVMPath --> Set
 JVMPath --> Collectors
 class JVMPath
@@ -101,6 +112,9 @@ NodeWithStrings --> Stream
 interface NodeWithStrings
 Rule --> Optional
 interface Rule
+Ok --> Function
+class Ok
+Ok --|> Result
 LocateRule --> FirstLocator
 LocateRule --> LastLocator
 LocateRule --> Locator
@@ -119,12 +133,16 @@ JVMMap --> Map
 JVMMap --> Stream
 class JVMMap
 JVMMap --|> MapLike
+Main --> Ok
+Main --> Result
 Main --> MapLike
 Main --> Maps
 Main --> Compiler
 Main --> PathLike
 Main --> JVMPaths
 Main --> IOException
+Main --> Collection
+Main --> Optional
 Main --> Collectors
 class Main
 interface Tuple
