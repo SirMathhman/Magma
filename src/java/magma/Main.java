@@ -8,6 +8,7 @@ import magma.app.Rule;
 import magma.app.State;
 import magma.app.StringRule;
 import magma.app.SuffixRule;
+import magma.app.TypeRule;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -119,10 +120,13 @@ public class Main {
     }
 
     private static Rule createStructureDefinitionRule(String type) {
-        return LocateRule.First(new StringRule("before-type"), type + " ", new StringRule("after-type"));
+        final Rule beforeType = new StringRule("before-type");
+        final Rule afterType = new StringRule("after-type");
+        return new TypeRule(type, LocateRule.First(beforeType, type + " ", afterType));
     }
 
     private static Rule createPlantUMLClassRule(String type) {
-        return new PrefixRule(type + " ", new SuffixRule(new StringRule("after-type"), "\n"));
+        final var afterType = new StringRule("after-type");
+        return new TypeRule(type, new PrefixRule(type + " ", new SuffixRule(afterType, "\n")));
     }
 }

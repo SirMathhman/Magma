@@ -13,7 +13,7 @@ class Locator
 PrefixRule --> Node
 PrefixRule --> Optional
 FirstLocator --> Optional
-class FirstLocator implements Locator
+interface FirstLocator implements Locator
 OrRule --> Node
 OrRule --> List
 OrRule --> Optional
@@ -22,10 +22,10 @@ LocateRule --> LastLocator
 LocateRule --> Locator
 LocateRule --> Node
 LocateRule --> Optional
-class LocateRule implements Rule
+interface LocateRule implements Rule
 MutableState --> ArrayList
 MutableState --> List
-class MutableState implements State
+interface MutableState implements State
 Main --> LocateRule
 Main --> MutableState
 Main --> OrRule
@@ -34,6 +34,7 @@ Main --> Rule
 Main --> State
 Main --> StringRule
 Main --> SuffixRule
+Main --> TypeRule
 Main --> IOException
 Main --> Files
 Main --> Path
@@ -41,15 +42,17 @@ Main --> Paths
 Main --> List
 Main --> Optional
 Main --> Collectors
-class Main
+interface Main
 MapNode --> HashMap
 MapNode --> Map
 MapNode --> Optional
-class MapNode implements Node
+interface MapNode implements Node
+TypeRule --> Node
+TypeRule --> Optional
 SuffixRule --> Node
 SuffixRule --> Optional
 LastLocator --> Optional
-class LastLocator implements Locator
+interface LastLocator implements Locator
 State --> List
 class State
 @enduml
