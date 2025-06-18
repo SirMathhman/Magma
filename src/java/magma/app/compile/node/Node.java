@@ -16,4 +16,8 @@ public interface Node {
     Node merge(Node other);
 
     Stream<Map.Entry<String, String>> streamStrings();
+
+    Optional<Node> findNode(String key);
+
+    Node withNode(String key, Node value);
 }

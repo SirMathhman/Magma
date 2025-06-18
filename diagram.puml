@@ -4,11 +4,29 @@ StringRule --> MapNode
 StringRule --> Node
 StringRule --> Optional
 class StringRule
-StringRule --|> Rule
+JVMPaths --> Paths
+class JVMPaths
+class Err
+Node --> Map
+Node --> Optional
+Node --> Stream
+interface Node
+MapNode --> HashMap
+MapNode --> Map
+MapNode --> Optional
+MapNode --> Stream
+class MapNode
+interface Result
+Locator --> Optional
+interface Locator
+PathLike --> IOException
+PathLike --> Set
+interface PathLike
+FirstLocator --> Optional
+class FirstLocator
 PrefixRule --> Node
 PrefixRule --> Optional
 class PrefixRule
-PrefixRule --|> Rule
 Compiler --> Lang
 Compiler --> MutableState
 Compiler --> State
@@ -21,27 +39,17 @@ Compiler --> Optional
 Compiler --> Collectors
 Compiler --> Stream
 class Compiler
-LastLocator --> Optional
-class LastLocator
-LastLocator --|> Locator
 OrRule --> Node
 OrRule --> List
 OrRule --> Optional
 class OrRule
-OrRule --|> Rule
-JVMPaths --> Paths
-class JVMPaths
-class Err
-Err --|> Result<Value, Error>
-Node --> Map
-Node --> Optional
-Node --> Stream
-interface Node
+LastLocator --> Optional
+class LastLocator
 StripRule --> Node
 StripRule --> Optional
 class StripRule
-StripRule --|> Rule
 Lang --> LocateRule
+Lang --> NodeRule
 Lang --> OrRule
 Lang --> PrefixRule
 Lang --> Rule
@@ -51,50 +59,34 @@ Lang --> SuffixRule
 Lang --> TypeRule
 Lang --> List
 class Lang
-MapNode --> HashMap
-MapNode --> Map
-MapNode --> Optional
-MapNode --> Stream
-class MapNode
-MapNode --|> Node
-interface Result
-Locator --> Optional
-interface Locator
+NodeRule --> MapNode
+NodeRule --> Node
+NodeRule --> Optional
+class NodeRule
 MutableState --> ArrayList
 MutableState --> List
 class MutableState
-MutableState --|> State
 SuffixRule --> Node
 SuffixRule --> Optional
 class SuffixRule
-SuffixRule --|> Rule
-PathLike --> IOException
-PathLike --> Set
-interface PathLike
 JVMPath --> IOException
 JVMPath --> Files
 JVMPath --> Path
 JVMPath --> Set
 JVMPath --> Collectors
 class JVMPath
-JVMPath --|> PathLike
 State --> List
 interface State
-FirstLocator --> Optional
-class FirstLocator
-FirstLocator --|> Locator
 Rule --> Node
 Rule --> Optional
 interface Rule
 class Ok
-Ok --|> Result<Value, Error>
 LocateRule --> FirstLocator
 LocateRule --> LastLocator
 LocateRule --> Locator
 LocateRule --> Node
 LocateRule --> Optional
 class LocateRule
-LocateRule --|> Rule
 Main --> Compiler
 Main --> JVMPath
 Main --> JVMPaths
@@ -107,5 +99,4 @@ class Main
 TypeRule --> Node
 TypeRule --> Optional
 class TypeRule
-TypeRule --|> Rule
 @enduml

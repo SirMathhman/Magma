@@ -1,6 +1,7 @@
 package magma.app.compile;
 
 import magma.app.compile.rule.LocateRule;
+import magma.app.compile.rule.NodeRule;
 import magma.app.compile.rule.OrRule;
 import magma.app.compile.rule.PrefixRule;
 import magma.app.compile.rule.Rule;
@@ -51,10 +52,24 @@ public class Lang {
         final Rule withParams = new OrRule(List.of(LocateRule.First(withTypeParams, "(", new StringRule("params")),
                 withTypeParams));
         final Rule afterType = new OrRule(List.of(LocateRule.Last(withParams,
-                " implements ",
-                new StringRule("supertype")), withParams));
+                " implements ", new NodeRule("supertype", createTypeRule())), withParams));
 
         return new TypeRule(type, LocateRule.First(beforeType, type + " ", afterType));
+    }
+
+    private static Rule createTypeRule() {
+        return new OrRule(List.of(createGenericRule(), createIdentifierRule()));
+    }
+
+    private static Rule createIdentifierRule() {
+        return new TypeRule("identifier", new StringRule("value"));
+    }
+
+    private static Rule createGenericRule() {
+        return new TypeRule("generic",
+                new StripRule(new SuffixRule(LocateRule.First(new StringRule("base"),
+                        "<",
+                        new StringRule("type-arguments")), ">")));
     }
 
     private static Rule createPlantUMLClassRule(String type) {
