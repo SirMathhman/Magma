@@ -1,5 +1,6 @@
 package magma.app.compile.lang;
 
+import magma.api.list.Lists;
 import magma.app.compile.node.MapNodeFactory;
 import magma.app.compile.node.NodeWithEverything;
 import magma.app.compile.rule.DivideRule;
@@ -11,8 +12,6 @@ import magma.app.compile.rule.StringRule;
 import magma.app.compile.rule.SuffixRule;
 import magma.app.compile.rule.TypeRule;
 
-import java.util.List;
-
 public class PlantLang {
     public static Rule<NodeWithEverything> createImplementsRule() {
         return new TypeRule<>("implements",
@@ -22,7 +21,7 @@ public class PlantLang {
     }
 
     public static Rule<NodeWithEverything> createPlantUMLClassesRule() {
-        return new OrRule<>(List.of(createPlantUMLClassRule("class"), createPlantUMLClassRule("interface")));
+        return new OrRule<>(Lists.of(createPlantUMLClassRule("class"), createPlantUMLClassRule("interface")));
     }
 
     public static Rule<NodeWithEverything> createPlantUMLClassRule(String type) {
@@ -31,7 +30,7 @@ public class PlantLang {
     }
 
     public static Rule<NodeWithEverything> createPlantRootSegmentRule() {
-        return new SuffixRule<>(new OrRule<>(List.of(JavaLang.createDependencyRule(),
+        return new SuffixRule<>(new OrRule<>(Lists.of(JavaLang.createDependencyRule(),
                 createPlantUMLClassesRule(),
                 createImplementsRule())), "\n");
     }

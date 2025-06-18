@@ -1,5 +1,7 @@
 @startuml
 skinparam linetype ortho
+PlantLang --> Lists
+
 PlantLang --> MapNodeFactory
 
 PlantLang --> NodeWithEverything
@@ -19,8 +21,6 @@ PlantLang --> StringRule
 PlantLang --> SuffixRule
 
 PlantLang --> TypeRule
-
-PlantLang --> List
 
 class PlantLang 
 class MapNodeFactory
@@ -93,7 +93,7 @@ PrefixRule --|> Rule
 Compiler --> MapLike
 
 interface Compiler 
-OrRule --> List
+OrRule --> ListLike
 
 OrRule --> Optional
 
@@ -286,6 +286,8 @@ NodeWithStrings --> Optional
 NodeWithStrings --> Stream
 
 interface NodeWithStrings
+JavaLang --> Lists
+
 JavaLang --> MapNodeFactory
 
 JavaLang --> NodeWithEverything
@@ -309,8 +311,6 @@ JavaLang --> StripRule
 JavaLang --> SuffixRule
 
 JavaLang --> TypeRule
-
-JavaLang --> List
 
 class JavaLang 
 ThrowableIOError --> IOException

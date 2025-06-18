@@ -1,22 +1,31 @@
 package magma.app.compile.rule;
 
-import java.util.List;
+import magma.api.list.ListLike;
+
 import java.util.Optional;
 
-public record OrRule<Node>(List<Rule<Node>> rules) implements Rule<Node> {
+public record OrRule<Node>(ListLike<Rule<Node>> rules) implements Rule<Node> {
     @Override
     public Optional<String> generate(Node node) {
-        return this.rules.stream()
-                .map(rule -> rule.generate(node))
-                .flatMap(Optional::stream)
-                .findFirst();
+        for (var i = 0; i < this.rules.size(); i++) {
+            final var rule = this.rules.get(i);
+            final var maybeGenerated = rule.generate(node);
+            if (maybeGenerated.isPresent())
+                return maybeGenerated;
+        }
+
+        return Optional.empty();
     }
 
     @Override
     public Optional<Node> lex(String input) {
-        return this.rules.stream()
-                .map(rule -> rule.lex(input))
-                .flatMap(Optional::stream)
-                .findFirst();
+        for (var i = 0; i < this.rules.size(); i++) {
+            final var rule = this.rules.get(i);
+            final var maybeLex = rule.lex(input);
+            if (maybeLex.isPresent())
+                return maybeLex;
+        }
+
+        return Optional.empty();
     }
 }
