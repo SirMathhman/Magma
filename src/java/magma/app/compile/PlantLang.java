@@ -1,5 +1,6 @@
 package magma.app.compile;
 
+import magma.app.compile.node.MapNodeFactory;
 import magma.app.compile.node.NodeWithEverything;
 import magma.app.compile.rule.DivideRule;
 import magma.app.compile.rule.LocateRule;
@@ -34,6 +35,6 @@ public class PlantLang {
     }
 
     public static Rule<NodeWithEverything> createPlantRootRule() {
-        return new DivideRule("children", createPlantRootSegmentRule());
+        return new DivideRule("children", createPlantRootSegmentRule(), new MapNodeFactory());
     }
 }

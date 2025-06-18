@@ -1,13 +1,24 @@
 package magma.app.compile.rule;
 
 import magma.api.list.Lists;
-import magma.app.compile.node.MapNodeFactory;
+import magma.app.compile.node.NodeFactory;
 import magma.app.compile.node.NodeWithEverything;
 import magma.app.compile.rule.divide.Divider;
 
+import java.util.Objects;
 import java.util.Optional;
 
-public record DivideRule(String key, Rule<NodeWithEverything> rule) implements Rule<NodeWithEverything> {
+public final class DivideRule implements Rule<NodeWithEverything> {
+    private final String key;
+    private final Rule<NodeWithEverything> rule;
+    private final NodeFactory<NodeWithEverything> nodeFactory;
+
+    public DivideRule(String key, Rule<NodeWithEverything> rule, NodeFactory<NodeWithEverything> nodeFactory) {
+        this.key = key;
+        this.rule = rule;
+        this.nodeFactory = nodeFactory;
+    }
+
     @Override
     public Optional<NodeWithEverything> lex(String input) {
         final var segments = Divider.divide(input);
@@ -18,7 +29,7 @@ public record DivideRule(String key, Rule<NodeWithEverything> rule) implements R
                     .map(oldChildren::add)
                     .orElse(oldChildren);
         }
-        return Optional.of(new MapNodeFactory().create()
+        return Optional.of(this.nodeFactory.create()
                 .withNodeList(this.key, oldChildren));
     }
 
@@ -36,4 +47,33 @@ public record DivideRule(String key, Rule<NodeWithEverything> rule) implements R
 
         return Optional.of(output.toString());
     }
+
+    public String key() {
+        return this.key;
+    }
+
+    public Rule<NodeWithEverything> rule() {
+        return this.rule;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj == this)
+            return true;
+        if (obj == null || obj.getClass() != this.getClass())
+            return false;
+        var that = (DivideRule) obj;
+        return Objects.equals(this.key, that.key) && Objects.equals(this.rule, that.rule);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(this.key, this.rule);
+    }
+
+    @Override
+    public String toString() {
+        return "DivideRule[" + "key=" + this.key + ", " + "rule=" + this.rule + ']';
+    }
+
 }
