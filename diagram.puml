@@ -21,6 +21,10 @@ PlantLang --> TypeRule
 class PlantLang 
 NodeExtractor --> NodeWithNodes
 
+NodeExtractor --> Generator
+
+NodeExtractor --> Lexer
+
 NodeExtractor --> Optional
 
 class NodeExtractor
@@ -120,6 +124,10 @@ JavaPlantTransformer --> Optional
 
 class JavaPlantTransformer
 JavaPlantTransformer --|> Transformer 
+Rule --> Generator
+
+Rule --> Lexer
+
 interface Rule
 NodeWithNodeLists --> ListLike
 
@@ -255,6 +263,14 @@ ExtractRule --> NodeWithNodes
 
 ExtractRule --> NodeWithStrings
 
+ExtractRule --> Extractor
+
+ExtractRule --> NodeExtractor
+
+ExtractRule --> NodeListExtractor
+
+ExtractRule --> StringExtractor
+
 ExtractRule --> Optional
 
 class ExtractRule
@@ -321,6 +337,10 @@ NodeListExtractor --> ListLike
 NodeListExtractor --> Lists
 
 NodeListExtractor --> NodeWithNodeLists
+
+NodeListExtractor --> Generator
+
+NodeListExtractor --> Lexer
 
 NodeListExtractor --> DivideState
 

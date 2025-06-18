@@ -4,6 +4,10 @@ import magma.app.compile.node.NodeFactory;
 import magma.app.compile.node.NodeWithNodeLists;
 import magma.app.compile.node.attribute.NodeWithNodes;
 import magma.app.compile.node.attribute.NodeWithStrings;
+import magma.app.compile.rule.extract.Extractor;
+import magma.app.compile.rule.extract.NodeExtractor;
+import magma.app.compile.rule.extract.NodeListExtractor;
+import magma.app.compile.rule.extract.StringExtractor;
 
 import java.util.Optional;
 

@@ -1,6 +1,8 @@
-package magma.app.compile.rule;
+package magma.app.compile.rule.extract;
 
 import magma.app.compile.node.attribute.NodeWithNodes;
+import magma.app.compile.rule.action.Generator;
+import magma.app.compile.rule.action.Lexer;
 
 import java.util.Optional;
 

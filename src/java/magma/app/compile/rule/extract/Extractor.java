@@ -1,4 +1,4 @@
-package magma.app.compile.rule;
+package magma.app.compile.rule.extract;
 
 import java.util.Optional;
 
