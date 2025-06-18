@@ -1,7 +1,7 @@
 package magma.app.compile.node;
 
 import magma.api.Tuple;
-import magma.api.list.Foldable;
+import magma.api.collect.fold.Foldable;
 import magma.api.map.MapLike;
 import magma.api.map.Maps;
 

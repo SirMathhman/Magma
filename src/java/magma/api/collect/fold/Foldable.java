@@ -1,4 +1,4 @@
-package magma.api.list;
+package magma.api.collect.fold;
 
 import java.util.function.BiFunction;
 

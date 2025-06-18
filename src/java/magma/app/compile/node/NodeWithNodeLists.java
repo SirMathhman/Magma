@@ -1,6 +1,6 @@
 package magma.app.compile.node;
 
-import magma.api.list.Foldable;
+import magma.api.collect.fold.Foldable;
 
 import java.util.Optional;
 

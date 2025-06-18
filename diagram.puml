@@ -31,6 +31,8 @@ class JVMPaths
 Result --> Function
 
 interface Result
+JVMList --> Foldable
+
 JVMList --> ArrayList
 
 JVMList --> List
@@ -62,6 +64,8 @@ DivideRule --> Optional
 class DivideRule
 DivideRule --|> Rule
 class Maps 
+Lists --> Sequence
+
 Lists --> ArrayList
 
 Lists --> Arrays
@@ -102,6 +106,8 @@ StripRule --> Optional
 
 class StripRule
 StripRule --|> Rule
+Sequence --> Foldable
+
 interface Sequence
 DivideState --> Foldable
 
@@ -355,10 +361,14 @@ TupleImpl --|> Tuple
 Main --> ApplicationBuilder
 
 class Main 
-interface Tuple
+ListLike --> Foldable
+
+ListLike --> Sequence
+
 ListLike --> BiFunction
 
 interface ListLike
+interface Tuple
 TypeRule --> NodeWithType
 
 TypeRule --> Optional

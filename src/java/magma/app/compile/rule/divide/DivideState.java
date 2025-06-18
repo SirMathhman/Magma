@@ -1,6 +1,6 @@
 package magma.app.compile.rule.divide;
 
-import magma.api.list.Foldable;
+import magma.api.collect.fold.Foldable;
 
 public interface DivideState {
     DivideState append(char c);

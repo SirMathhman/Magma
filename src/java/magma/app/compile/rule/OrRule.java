@@ -1,6 +1,6 @@
 package magma.app.compile.rule;
 
-import magma.api.list.Sequence;
+import magma.api.collect.seq.Sequence;
 
 import java.util.Optional;
 

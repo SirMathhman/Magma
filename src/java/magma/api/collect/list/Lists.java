@@ -1,4 +1,6 @@
-package magma.api.list;
+package magma.api.collect.list;
+
+import magma.api.collect.seq.Sequence;
 
 import java.util.ArrayList;
 import java.util.Arrays;

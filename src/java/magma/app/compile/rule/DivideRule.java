@@ -1,7 +1,7 @@
 package magma.app.compile.rule;
 
-import magma.api.list.Foldable;
-import magma.api.list.Lists;
+import magma.api.collect.fold.Foldable;
+import magma.api.collect.list.Lists;
 import magma.app.compile.node.NodeFactory;
 import magma.app.compile.node.NodeWithNodeLists;
 import magma.app.compile.rule.divide.DivideState;

@@ -1,6 +1,6 @@
 package magma.app.compile.lang;
 
-import magma.api.list.Lists;
+import magma.api.collect.list.Lists;
 import magma.app.compile.node.MapNodeFactory;
 import magma.app.compile.node.NodeWithEverything;
 import magma.app.compile.rule.DivideRule;
