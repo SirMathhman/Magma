@@ -23,40 +23,11 @@ PlantLang --> TypeRule
 PlantLang --> List
 
 class PlantLang 
-StringRule --> NodeFactory
-
-StringRule --> NodeWithStrings
-
-StringRule --> Optional
-
-class StringRule
-StringRule --|> Rule
 class MapNodeFactory
 MapNodeFactory --|> NodeFactory
-Transformer --> NodeWithEverything
-
-interface Transformer 
 JVMPaths --> Paths
 
 class JVMPaths 
-Err --> Function
-
-class Err
-Err --|> Result
-MapNode --> Tuple
-
-MapNode --> ListLike
-
-MapNode --> MapLike
-
-MapNode --> Maps
-
-MapNode --> Optional
-
-MapNode --> Stream
-
-class MapNode
-MapNode --|> NodeWithEverything 
 Result --> Function
 
 interface Result
@@ -66,22 +37,19 @@ JVMList --> List
 
 class JVMList
 JVMList --|> ListLike
-StageCompiler --> Tuple
+ApplicationBuilder --> JVMPaths
 
-StageCompiler --> MapLike
+ApplicationBuilder --> Compiler
 
-StageCompiler --> NodeWithEverything
+ApplicationBuilder --> StageCompiler
 
-StageCompiler --> Rule
+ApplicationBuilder --> JavaLang
 
-StageCompiler --> Transformer
+ApplicationBuilder --> PlantLang
 
-StageCompiler --> Optional
+ApplicationBuilder --> JavaPlantTransformer
 
-StageCompiler --> Collectors
-
-class StageCompiler
-StageCompiler --|> Compiler 
+class ApplicationBuilder 
 Locator --> Optional
 
 interface Locator 
@@ -110,14 +78,6 @@ PathLike --> Optional
 PathLike --> Set
 
 interface PathLike 
-FirstLocator --> Optional
-
-class FirstLocator
-FirstLocator --|> Locator 
-PrefixRule --> Optional
-
-class PrefixRule
-PrefixRule --|> Rule
 NodeWithNodes --> Tuple
 
 NodeWithNodes --> Optional
@@ -126,19 +86,129 @@ NodeWithNodes --> Stream
 
 interface NodeWithNodes
 interface NodeWithType
+PrefixRule --> Optional
+
+class PrefixRule
+PrefixRule --|> Rule
 Compiler --> MapLike
 
 interface Compiler 
-LastLocator --> Optional
-
-class LastLocator
-LastLocator --|> Locator 
 OrRule --> List
 
 OrRule --> Optional
 
 class OrRule
 OrRule --|> Rule
+StripRule --> Optional
+
+class StripRule
+StripRule --|> Rule
+DivideState --> ListLike
+
+interface DivideState 
+interface NodeFactory
+NodeWithEverything --> MergingNode
+
+NodeWithEverything --> NodeWithNodes
+
+NodeWithEverything --> NodeWithStrings
+
+NodeWithEverything --> NodeWithType
+
+interface NodeWithEverything extends NodeWithStrings
+JavaPlantTransformer --> ListLike
+
+JavaPlantTransformer --> Lists
+
+JavaPlantTransformer --> MapNode
+
+JavaPlantTransformer --> NodeWithEverything
+
+JavaPlantTransformer --> Optional
+
+class JavaPlantTransformer
+JavaPlantTransformer --|> Transformer 
+Rule --> Optional
+
+interface Rule
+NodeWithNodeLists --> ListLike
+
+NodeWithNodeLists --> Optional
+
+interface NodeWithNodeLists
+Application --> IOError
+
+Application --> Optional
+
+interface Application 
+JVMMap --> Tuple
+
+JVMMap --> TupleImpl
+
+JVMMap --> HashMap
+
+JVMMap --> Map
+
+JVMMap --> Optional
+
+JVMMap --> Stream
+
+class JVMMap
+JVMMap --|> MapLike
+interface MergingNode
+StringRule --> NodeFactory
+
+StringRule --> NodeWithStrings
+
+StringRule --> Optional
+
+class StringRule
+StringRule --|> Rule
+Transformer --> NodeWithEverything
+
+interface Transformer 
+Err --> Function
+
+class Err
+Err --|> Result
+MapNode --> Tuple
+
+MapNode --> ListLike
+
+MapNode --> MapLike
+
+MapNode --> Maps
+
+MapNode --> Optional
+
+MapNode --> Stream
+
+class MapNode
+MapNode --|> NodeWithEverything 
+StageCompiler --> Tuple
+
+StageCompiler --> MapLike
+
+StageCompiler --> NodeWithEverything
+
+StageCompiler --> Rule
+
+StageCompiler --> Transformer
+
+StageCompiler --> Optional
+
+StageCompiler --> Collectors
+
+class StageCompiler
+StageCompiler --|> Compiler 
+FirstLocator --> Optional
+
+class FirstLocator
+FirstLocator --|> Locator 
+LastLocator --> Optional
+
+class LastLocator
+LastLocator --|> Locator 
 MapLike --> Tuple
 
 MapLike --> Optional
@@ -146,19 +216,36 @@ MapLike --> Optional
 MapLike --> Stream
 
 interface MapLike
-StripRule --> Optional
-
-class StripRule
-StripRule --|> Rule
 MutableDivideState --> ListLike
 
 MutableDivideState --> Lists
 
 class MutableDivideState
 MutableDivideState --|> DivideState 
-DivideState --> ListLike
+CompileApplication --> Ok
 
-interface DivideState 
+CompileApplication --> Result
+
+CompileApplication --> IOError
+
+CompileApplication --> PathLike
+
+CompileApplication --> MapLike
+
+CompileApplication --> Maps
+
+CompileApplication --> Compiler
+
+CompileApplication --> Collection
+
+CompileApplication --> Optional
+
+CompileApplication --> Set
+
+CompileApplication --> Collectors
+
+class CompileApplication
+CompileApplication --|> Application 
 NodeRule --> NodeFactory
 
 NodeRule --> NodeWithNodes
@@ -167,7 +254,6 @@ NodeRule --> Optional
 
 class NodeRule
 NodeRule --|> Rule
-interface NodeFactory
 interface IOError 
 SuffixRule --> Optional
 
@@ -193,15 +279,6 @@ JVMPath --> Collectors
 
 class JVMPath
 JVMPath --|> PathLike 
-NodeWithEverything --> MergingNode
-
-NodeWithEverything --> NodeWithNodes
-
-NodeWithEverything --> NodeWithStrings
-
-NodeWithEverything --> NodeWithType
-
-interface NodeWithEverything extends NodeWithStrings
 NodeWithStrings --> Tuple
 
 NodeWithStrings --> Optional
@@ -209,18 +286,6 @@ NodeWithStrings --> Optional
 NodeWithStrings --> Stream
 
 interface NodeWithStrings
-JavaPlantTransformer --> ListLike
-
-JavaPlantTransformer --> Lists
-
-JavaPlantTransformer --> MapNode
-
-JavaPlantTransformer --> NodeWithEverything
-
-JavaPlantTransformer --> Optional
-
-class JavaPlantTransformer
-JavaPlantTransformer --|> Transformer 
 JavaLang --> MapNodeFactory
 
 JavaLang --> NodeWithEverything
@@ -256,18 +321,6 @@ ThrowableIOError --> StringWriter
 
 class ThrowableIOError
 ThrowableIOError --|> IOError 
-Rule --> Optional
-
-interface Rule
-NodeWithNodeLists --> ListLike
-
-NodeWithNodeLists --> Optional
-
-interface NodeWithNodeLists
-Ok --> Function
-
-class Ok
-Ok --|> Result
 LocateRule --> MergingNode
 
 LocateRule --> FirstLocator
@@ -280,59 +333,20 @@ LocateRule --> Optional
 
 class LocateRule
 LocateRule --|> Rule
+Ok --> Function
+
+class Ok
+Ok --|> Result
 class TupleImpl
 TupleImpl --|> Tuple
-JVMMap --> Tuple
-
-JVMMap --> TupleImpl
-
-JVMMap --> HashMap
-
-JVMMap --> Map
-
-JVMMap --> Optional
-
-JVMMap --> Stream
-
-class JVMMap
-JVMMap --|> MapLike
-Main --> Ok
-
-Main --> Result
-
-Main --> IOError
-
-Main --> JVMPaths
-
-Main --> PathLike
-
-Main --> MapLike
-
-Main --> Maps
-
-Main --> Compiler
-
-Main --> StageCompiler
-
-Main --> JavaLang
-
-Main --> PlantLang
-
-Main --> JavaPlantTransformer
-
-Main --> Collection
-
-Main --> Optional
-
-Main --> Collectors
+Main --> ApplicationBuilder
 
 class Main 
 Divider --> ListLike
 
 class Divider 
-interface ListLike
 interface Tuple
-interface MergingNode
+interface ListLike
 TypeRule --> NodeWithType
 
 TypeRule --> Optional

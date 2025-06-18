@@ -1,4 +1,4 @@
-package magma.app;
+package magma.app.compile;
 
 import magma.api.Tuple;
 import magma.api.map.MapLike;
