@@ -1,11 +1,11 @@
 package magma.app.compile.node;
 
-import magma.api.list.Sequence;
+import magma.api.list.Foldable;
 
 import java.util.Optional;
 
 public interface NodeWithNodeLists<Node> {
-    Node withNodeList(String key, Sequence<Node> values);
+    Node withNodeList(String key, Foldable<Node> values);
 
-    Optional<Sequence<Node>> findNodeList(String key);
+    Optional<Foldable<Node>> findNodeList(String key);
 }

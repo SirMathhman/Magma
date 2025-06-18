@@ -1,5 +1,6 @@
 package magma.app.compile.transform;
 
+import magma.api.list.Foldable;
 import magma.api.list.Lists;
 import magma.api.list.Sequence;
 import magma.app.compile.node.MapNode;
@@ -8,7 +9,7 @@ import magma.app.compile.node.NodeWithEverything;
 import java.util.Optional;
 
 public class JavaPlantTransformer implements Transformer {
-    public static Sequence<NodeWithEverything> modifyRootSegment(String source, NodeWithEverything node) {
+    public static Foldable<NodeWithEverything> modifyRootSegment(String source, NodeWithEverything node) {
         if (node.is("import"))
             return Lists.of(node.retype("dependency")
                     .withString("source", source));

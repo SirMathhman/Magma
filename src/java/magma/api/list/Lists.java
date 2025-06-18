@@ -9,7 +9,7 @@ public class Lists {
     }
 
     @SafeVarargs
-    public static <T> Sequence<T> of(T... elements) {
+    public static <T> Foldable<T> of(T... elements) {
         return new JVMList<>(new ArrayList<>(Arrays.asList(elements)));
     }
 }

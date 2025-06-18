@@ -103,6 +103,8 @@ StripRule --> Optional
 
 class StripRule
 StripRule --|> Rule
+Sequence --> BiFunction
+
 interface Sequence
 DivideState --> Sequence
 
@@ -349,6 +351,8 @@ Divider --> Sequence
 
 class Divider 
 interface Tuple
+ListLike --> BiFunction
+
 interface ListLike
 TypeRule --> NodeWithType
 

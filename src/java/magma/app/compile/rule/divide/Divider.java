@@ -1,9 +1,9 @@
 package magma.app.compile.rule.divide;
 
-import magma.api.list.Sequence;
+import magma.api.list.Foldable;
 
 public class Divider {
-    public static Sequence<String> divide(CharSequence input) {
+    public static Foldable<String> divide(CharSequence input) {
         DivideState current = new MutableDivideState();
         for (var i = 0; i < input.length(); i++) {
             final var c = input.charAt(i);

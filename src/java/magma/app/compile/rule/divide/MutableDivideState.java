@@ -1,8 +1,8 @@
 package magma.app.compile.rule.divide;
 
+import magma.api.list.Foldable;
 import magma.api.list.ListLike;
 import magma.api.list.Lists;
-import magma.api.list.Sequence;
 
 public class MutableDivideState implements DivideState {
     private ListLike<String> segments;
@@ -33,7 +33,7 @@ public class MutableDivideState implements DivideState {
     }
 
     @Override
-    public Sequence<String> segments() {
+    public Foldable<String> segments() {
         return this.segments;
     }
 
