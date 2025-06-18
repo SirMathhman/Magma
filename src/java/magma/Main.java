@@ -8,7 +8,9 @@ import magma.api.io.PathLike;
 import magma.api.map.MapLike;
 import magma.api.map.Maps;
 import magma.app.Compiler;
+import magma.app.StageCompiler;
 import magma.app.compile.Lang;
+import magma.app.compile.transform.JavaPlantTransformer;
 
 import java.util.Collection;
 import java.util.Optional;
@@ -38,8 +40,13 @@ public class Main {
     }
 
     private static Result<String, IOError> compileAll(Iterable<PathLike> sources) {
-        return readAll(sources).mapValue(sourceMap -> new Compiler(Lang.createJavaRootRule(),
-                Lang.createPlantRootRule()).compile(sourceMap));
+        return readAll(sources).mapValue(sourceMap -> {
+            final var sourceRule = Lang.createJavaRootRule();
+            final var transformer = new JavaPlantTransformer();
+            final var targetRule = Lang.createPlantRootRule();
+            final Compiler compiler = new StageCompiler(sourceRule, transformer, targetRule);
+            return compiler.compile(sourceMap);
+        });
     }
 
     private static Result<MapLike<String, String>, IOError> readAll(Iterable<PathLike> sources) {

@@ -41,6 +41,22 @@ JVMList --> List
 
 class JVMList
 JVMList --|> ListLike
+StageCompiler --> Tuple
+
+StageCompiler --> MapLike
+
+StageCompiler --> NodeWithEverything
+
+StageCompiler --> Rule
+
+StageCompiler --> Transformer
+
+StageCompiler --> Optional
+
+StageCompiler --> Collectors
+
+class StageCompiler
+StageCompiler --|> Compiler 
 Locator --> Optional
 
 interface Locator 
@@ -85,23 +101,9 @@ NodeWithNodes --> Stream
 
 interface NodeWithNodes
 interface NodeWithType
-Compiler --> Tuple
-
 Compiler --> MapLike
 
-Compiler --> NodeWithEverything
-
-Compiler --> Rule
-
-Compiler --> JavaPlantTransformer
-
-Compiler --> Transformer
-
-Compiler --> Optional
-
-Compiler --> Collectors
-
-class Compiler 
+interface Compiler 
 LastLocator --> Optional
 
 class LastLocator
@@ -273,15 +275,19 @@ Main --> IOError
 
 Main --> JVMPaths
 
+Main --> PathLike
+
 Main --> MapLike
 
 Main --> Maps
 
 Main --> Compiler
 
-Main --> PathLike
+Main --> StageCompiler
 
 Main --> Lang
+
+Main --> JavaPlantTransformer
 
 Main --> Collection
 
