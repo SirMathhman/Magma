@@ -5,7 +5,6 @@ import magma.app.compile.node.NodeFactory;
 import magma.app.compile.node.NodeWithNodeLists;
 import magma.app.compile.rule.divide.Divider;
 
-import java.util.Objects;
 import java.util.Optional;
 
 public final class DivideRule<Node extends NodeWithNodeLists<Node>> implements Rule<Node> {
@@ -47,33 +46,4 @@ public final class DivideRule<Node extends NodeWithNodeLists<Node>> implements R
 
         return Optional.of(output.toString());
     }
-
-    public String key() {
-        return this.key;
-    }
-
-    public Rule<Node> rule() {
-        return this.rule;
-    }
-
-    @Override
-    public boolean equals(Object obj) {
-        if (obj == this)
-            return true;
-        if (obj == null || obj.getClass() != this.getClass())
-            return false;
-        var that = (DivideRule<Node>) obj;
-        return Objects.equals(this.key, that.key) && Objects.equals(this.rule, that.rule);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(this.key, this.rule);
-    }
-
-    @Override
-    public String toString() {
-        return "DivideRule[" + "key=" + this.key + ", " + "rule=" + this.rule + ']';
-    }
-
 }

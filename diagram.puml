@@ -93,8 +93,6 @@ DivideRule --> NodeWithNodeLists
 
 DivideRule --> Divider
 
-DivideRule --> Objects
-
 DivideRule --> Optional
 
 class DivideRule

@@ -18,17 +18,17 @@ import java.util.List;
 public class JavaLang {
     public static Rule<NodeWithEverything> createDependencyRule() {
         return new TypeRule<>("dependency",
-                new SuffixRule<>(LocateRule.Last(new StringRule<NodeWithEverything>("source", new MapNodeFactory()),
+                new SuffixRule<>(LocateRule.Last(new StringRule<>("source", new MapNodeFactory()),
                         " --> ",
-                        new StringRule<NodeWithEverything>("destination", new MapNodeFactory())),
+                        new StringRule<>("destination", new MapNodeFactory())),
                         "\n"));
     }
 
     public static Rule<NodeWithEverything> createImportRule() {
         return new TypeRule<>("import", new StripRule<>(new PrefixRule<>("import ",
-                new SuffixRule<>(LocateRule.Last(new StringRule<NodeWithEverything>("temp", new MapNodeFactory()),
+                new SuffixRule<>(LocateRule.Last(new StringRule<>("temp", new MapNodeFactory()),
                         ".",
-                        new StringRule<NodeWithEverything>("destination", new MapNodeFactory())),
+                        new StringRule<>("destination", new MapNodeFactory())),
                                 ";"))));
     }
 
@@ -39,18 +39,18 @@ public class JavaLang {
     }
 
     private static Rule<NodeWithEverything> createStructureDefinitionRule(String type) {
-        final Rule<NodeWithEverything> beforeType = new StringRule<NodeWithEverything>("before-type",
-                new MapNodeFactory());
+        final Rule<NodeWithEverything> beforeType = new StringRule<>("before-type", new MapNodeFactory());
 
-        final Rule<NodeWithEverything> name = new StringRule<NodeWithEverything>("name", new MapNodeFactory());
+        final Rule<NodeWithEverything> name = new StringRule<>("name", new MapNodeFactory());
         final Rule<NodeWithEverything> withTypeParams = new OrRule<>(List.of(new StripRule<>(new SuffixRule<>(LocateRule.First(
-                name,
-                "<", new StringRule<NodeWithEverything>("type-arguments", new MapNodeFactory())), ">")), name));
+                name, "<", new StringRule<>("type-arguments", new MapNodeFactory())), ">")), name));
 
         final Rule<NodeWithEverything> withParams = new OrRule<>(List.of(LocateRule.First(withTypeParams,
-                "(", new StringRule<NodeWithEverything>("params", new MapNodeFactory())), withTypeParams));
+                "(",
+                new StringRule<>("params", new MapNodeFactory())), withTypeParams));
         final Rule<NodeWithEverything> afterType = new OrRule<>(List.of(LocateRule.Last(withParams,
-                " implements ", new NodeRule<NodeWithEverything>("supertype", createTypeRule(), new MapNodeFactory())),
+                        " implements ",
+                        new NodeRule<>("supertype", createTypeRule(), new MapNodeFactory())),
                 withParams));
 
         return new TypeRule<>(type, LocateRule.First(beforeType, type + " ", afterType));
@@ -61,20 +61,20 @@ public class JavaLang {
     }
 
     private static Rule<NodeWithEverything> createIdentifierRule() {
-        return new TypeRule<>("identifier", new StringRule<NodeWithEverything>("value", new MapNodeFactory()));
+        return new TypeRule<>("identifier", new StringRule<>("value", new MapNodeFactory()));
     }
 
     private static Rule<NodeWithEverything> createGenericRule() {
         return new TypeRule<>("generic",
-                new StripRule<>(new SuffixRule<>(LocateRule.First(new StringRule<NodeWithEverything>("base",
-                                new MapNodeFactory()),
-                        "<", new StringRule<NodeWithEverything>("type-arguments", new MapNodeFactory())), ">")));
+                new StripRule<>(new SuffixRule<>(LocateRule.First(new StringRule<>("base", new MapNodeFactory()),
+                        "<",
+                        new StringRule<>("type-arguments", new MapNodeFactory())), ">")));
     }
 
     public static Rule<NodeWithEverything> createStructureRule() {
         return LocateRule.First(createStructureDefinitionsRule(),
                 "{",
-                new StringRule<NodeWithEverything>("with-braces", new MapNodeFactory()));
+                new StringRule<>("with-braces", new MapNodeFactory()));
     }
 
     public static Rule<NodeWithEverything> createJavaRootSegmentRule() {
@@ -82,6 +82,6 @@ public class JavaLang {
     }
 
     public static Rule<NodeWithEverything> createJavaRootRule() {
-        return new DivideRule<NodeWithEverything>("children", createJavaRootSegmentRule(), new MapNodeFactory());
+        return new DivideRule<>("children", createJavaRootSegmentRule(), new MapNodeFactory());
     }
 }
