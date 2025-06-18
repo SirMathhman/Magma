@@ -2,7 +2,6 @@ package magma.app.compile.transform;
 
 import magma.api.list.Foldable;
 import magma.api.list.Lists;
-import magma.api.list.Sequence;
 import magma.app.compile.node.MapNode;
 import magma.app.compile.node.NodeWithEverything;
 
@@ -42,14 +41,9 @@ public class JavaPlantTransformer implements Transformer {
 
     @Override
     public NodeWithEverything transform(NodeWithEverything root, String name) {
-        Sequence<NodeWithEverything> oldChildren = root.findNodeList("children")
-                .orElse(Lists.empty());
-
-        var newChildren = Lists.<NodeWithEverything>empty();
-        for (var i = 0; i < oldChildren.size(); i++) {
-            final var oldChild = oldChildren.get(i);
-            newChildren = newChildren.addAll(modifyRootSegment(name, oldChild));
-        }
+        var newChildren = root.findNodeList("children")
+                .orElse(Lists.empty())
+                .fold(Lists.<NodeWithEverything>empty(), (list, root1) -> list.addAll(modifyRootSegment(name, root1)));
 
         return new MapNode().withNodeList("children", newChildren);
     }

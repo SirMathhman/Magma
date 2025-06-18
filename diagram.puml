@@ -78,6 +78,9 @@ PathLike --> Optional
 PathLike --> Set
 
 interface PathLike 
+Foldable --> BiFunction
+
+interface Foldable
 NodeWithNodes --> Tuple
 
 NodeWithNodes --> Optional
@@ -103,10 +106,8 @@ StripRule --> Optional
 
 class StripRule
 StripRule --|> Rule
-Sequence --> BiFunction
-
 interface Sequence
-DivideState --> Sequence
+DivideState --> Foldable
 
 interface DivideState 
 interface NodeFactory
@@ -119,9 +120,9 @@ NodeWithEverything --> NodeWithStrings
 NodeWithEverything --> NodeWithType
 
 interface NodeWithEverything extends NodeWithStrings
-JavaPlantTransformer --> Lists
+JavaPlantTransformer --> Foldable
 
-JavaPlantTransformer --> Sequence
+JavaPlantTransformer --> Lists
 
 JavaPlantTransformer --> MapNode
 
@@ -134,7 +135,7 @@ JavaPlantTransformer --|> Transformer
 Rule --> Optional
 
 interface Rule
-NodeWithNodeLists --> Sequence
+NodeWithNodeLists --> Foldable
 
 NodeWithNodeLists --> Optional
 
@@ -176,7 +177,7 @@ class Err
 Err --|> Result
 MapNode --> Tuple
 
-MapNode --> Sequence
+MapNode --> Foldable
 
 MapNode --> MapLike
 
@@ -219,11 +220,11 @@ MapLike --> Optional
 MapLike --> Stream
 
 interface MapLike
+MutableDivideState --> Foldable
+
 MutableDivideState --> ListLike
 
 MutableDivideState --> Lists
-
-MutableDivideState --> Sequence
 
 class MutableDivideState
 MutableDivideState --|> DivideState 
@@ -347,7 +348,7 @@ TupleImpl --|> Tuple
 Main --> ApplicationBuilder
 
 class Main 
-Divider --> Sequence
+Divider --> Foldable
 
 class Divider 
 interface Tuple

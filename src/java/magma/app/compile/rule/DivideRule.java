@@ -20,29 +20,24 @@ public final class DivideRule<Node extends NodeWithNodeLists<Node>> implements R
 
     @Override
     public Optional<Node> lex(String input) {
-        final var segments = Divider.divide(input);
-        var oldChildren = Lists.<Node>empty();
-        for (var i = 0; i < segments.size(); i++) {
-            final var segment = segments.get(i);
-            oldChildren = this.rule.lex(segment)
-                    .map(oldChildren::add)
-                    .orElse(oldChildren);
-        }
+        final var children = Divider.divide(input)
+                .fold(Lists.<Node>empty(),
+                        (current, segment) -> DivideRule.this.rule.lex(segment)
+                                .map(current::add)
+                                .orElse(current));
+
         return Optional.of(this.nodeFactory.create()
-                .withNodeList(this.key, oldChildren));
+                .withNodeList(this.key, children));
     }
 
     @Override
     public Optional<String> generate(Node root) {
-        final var children = root.findNodeList(this.key)
-                .orElse(Lists.empty());
-
-        var output = new StringBuilder();
-        for (var i = 0; i < children.size(); i++) {
-            final var newChild = children.get(i);
-            this.rule.generate(newChild)
-                    .map(output::append);
-        }
+        final var output = root.findNodeList(this.key)
+                .orElse(Lists.empty())
+                .fold(new StringBuilder(),
+                        (current, node) -> this.rule.generate(node)
+                                .map(current::append)
+                                .orElse(current));
 
         return Optional.of(output.toString());
     }
