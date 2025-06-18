@@ -3,7 +3,6 @@ package magma;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -21,13 +20,7 @@ public class Main {
     }
 
     private static List<String> divide(CharSequence input) {
-        final var segments = new ArrayList<String>();
-        var buffer = new StringBuilder();
-        return getStrings(input, new State(buffer, segments));
-    }
-
-    private static List<String> getStrings(CharSequence input, State state) {
-        var current = state;
+        State current = new MutableState();
         for (var i = 0; i < input.length(); i++) {
             final var c = input.charAt(i);
             current = fold(current, c);
