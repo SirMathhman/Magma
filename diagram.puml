@@ -29,6 +29,9 @@ OrRule --> List
 OrRule --> Optional
 class OrRule
 OrRule --|> Rule
+JVMPaths --> Path
+JVMPaths --> Paths
+class JVMPaths
 Node --> Map
 Node --> Optional
 Node --> Stream
@@ -74,10 +77,10 @@ LocateRule --> Optional
 class LocateRule
 LocateRule --|> Rule
 Main --> Compiler
+Main --> JVMPaths
 Main --> IOException
 Main --> Files
 Main --> Path
-Main --> Paths
 Main --> HashMap
 Main --> Map
 Main --> Collectors

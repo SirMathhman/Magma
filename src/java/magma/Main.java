@@ -1,25 +1,25 @@
 package magma;
 
 import magma.app.Compiler;
+import magma.app.JVMPaths;
 
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.stream.Collectors;
 
 public class Main {
     public static void main(String[] args) {
-        try (final var stream = Files.walk(Paths.get(".", "src", "java"))) {
+        try (final var stream = Files.walk(JVMPaths.get(".", "src", "java"))) {
             final var sources = stream.filter(Files::isRegularFile)
                     .filter(path -> path.toString()
                             .endsWith(".java"))
                     .collect(Collectors.toSet());
 
             final var output = compileAll(sources);
-            Files.writeString(Paths.get(".", "diagram.puml"),
+            Files.writeString(JVMPaths.get(".", "diagram.puml"),
                     "@startuml\nskinparam linetype ortho\n" + output + "@enduml");
         } catch (IOException e) {
             //noinspection CallToPrintStackTrace
