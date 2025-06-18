@@ -1,12 +1,20 @@
 package magma.app.compile.rule;
 
-import magma.app.compile.node.NodeWithEverything;
+import magma.app.compile.node.NodeWithType;
 
 import java.util.Optional;
 
-public record TypeRule(String type, Rule<NodeWithEverything> rule) implements Rule<NodeWithEverything> {
+public final class TypeRule<Node extends NodeWithType<Node>> implements Rule<Node> {
+    private final String type;
+    private final Rule<Node> rule;
+
+    public TypeRule(String type, Rule<Node> rule) {
+        this.type = type;
+        this.rule = rule;
+    }
+
     @Override
-    public Optional<String> generate(NodeWithEverything node) {
+    public Optional<String> generate(Node node) {
         if (node.is(this.type))
             return this.rule.generate(node);
 
@@ -14,7 +22,7 @@ public record TypeRule(String type, Rule<NodeWithEverything> rule) implements Ru
     }
 
     @Override
-    public Optional<NodeWithEverything> lex(String input) {
+    public Optional<Node> lex(String input) {
         return this.rule.lex(input)
                 .map(node -> node.retype(this.type));
     }

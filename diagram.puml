@@ -118,7 +118,7 @@ Main --> Map
 Main --> Collectors
 class Main
 interface MergingNode
-TypeRule --> NodeWithEverything
+TypeRule --> NodeWithType
 TypeRule --> Optional
 class TypeRule
 TypeRule --|> Rule

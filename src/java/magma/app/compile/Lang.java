@@ -28,7 +28,7 @@ public class Lang {
     }
 
     private static Rule<NodeWithEverything> createImplementsRule() {
-        return new TypeRule("implements",
+        return new TypeRule<NodeWithEverything>("implements",
                 LocateRule.First(new StringRule("source"), " --|> ", new StringRule("destination")));
     }
 
@@ -58,7 +58,7 @@ public class Lang {
         final Rule<NodeWithEverything> afterType = new OrRule(List.of(LocateRule.Last(withParams,
                 " implements ", new NodeRule("supertype", createTypeRule())), withParams));
 
-        return new TypeRule(type, LocateRule.First(beforeType, type + " ", afterType));
+        return new TypeRule<NodeWithEverything>(type, LocateRule.First(beforeType, type + " ", afterType));
     }
 
     private static Rule<NodeWithEverything> createTypeRule() {
@@ -66,11 +66,11 @@ public class Lang {
     }
 
     private static Rule<NodeWithEverything> createIdentifierRule() {
-        return new TypeRule("identifier", new StringRule("value"));
+        return new TypeRule<NodeWithEverything>("identifier", new StringRule("value"));
     }
 
     private static Rule<NodeWithEverything> createGenericRule() {
-        return new TypeRule("generic",
+        return new TypeRule<NodeWithEverything>("generic",
                 new StripRule(new SuffixRule(LocateRule.First(new StringRule("base"),
                         "<",
                         new StringRule("type-arguments")), ">")));
@@ -78,6 +78,6 @@ public class Lang {
 
     private static Rule<NodeWithEverything> createPlantUMLClassRule(String type) {
         final var afterType = new StringRule("name");
-        return new TypeRule(type, new PrefixRule(type + " ", afterType));
+        return new TypeRule<NodeWithEverything>(type, new PrefixRule(type + " ", afterType));
     }
 }
