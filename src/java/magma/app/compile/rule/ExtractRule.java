@@ -4,7 +4,6 @@ import magma.api.Err;
 import magma.api.Ok;
 import magma.api.Result;
 import magma.app.compile.error.CompileError;
-import magma.app.compile.error.StringContext;
 import magma.app.compile.node.NodeFactory;
 import magma.app.compile.node.NodeWithNodeLists;
 import magma.app.compile.node.attribute.NodeWithNodes;
@@ -57,6 +56,6 @@ public final class ExtractRule<Node, Value> implements Rule<Node> {
     public Result<Node, CompileError> lex(String input) {
         return this.lex0(input)
                 .<Result<Node, CompileError>>map(Ok::new)
-                .orElseGet(() -> new Err<>(new CompileError("Invalid input", new StringContext(input))));
+                .orElseGet(() -> new Err<>(new CompileError("Invalid input", input)));
     }
 }

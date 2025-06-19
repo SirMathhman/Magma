@@ -1,6 +1,6 @@
 @startuml
 skinparam linetype ortho
-class CompileError 
+class CompileError
 PlantLang --> Lists
 
 PlantLang --> MapNodeFactory
@@ -107,8 +107,6 @@ OrRule --> Result
 OrRule --> Sequence
 
 OrRule --> CompileError
-
-OrRule --> StringContext
 
 OrRule --> Optional
 
@@ -232,9 +230,6 @@ interface Modifier
 Folding --> BiFunction
 
 interface Folding
-class StringContext
-StringContext --|> Context 
-interface Context 
 StripModifier --> Optional
 
 class StripModifier
@@ -294,8 +289,6 @@ ExtractRule --> Result
 
 ExtractRule --> CompileError
 
-ExtractRule --> StringContext
-
 ExtractRule --> NodeFactory
 
 ExtractRule --> NodeWithNodeLists
@@ -323,8 +316,6 @@ ModifyRule --> Ok
 ModifyRule --> Result
 
 ModifyRule --> CompileError
-
-ModifyRule --> StringContext
 
 ModifyRule --> Modifier
 
@@ -441,8 +432,6 @@ LocateRule --> Result
 
 LocateRule --> CompileError
 
-LocateRule --> StringContext
-
 LocateRule --> MergingNode
 
 LocateRule --> FirstLocator
@@ -481,8 +470,6 @@ TypeRule --> Ok
 TypeRule --> Result
 
 TypeRule --> CompileError
-
-TypeRule --> StringContext
 
 TypeRule --> NodeWithType
 

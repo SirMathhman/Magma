@@ -5,7 +5,6 @@ import magma.api.Ok;
 import magma.api.Result;
 import magma.api.collect.seq.Sequence;
 import magma.app.compile.error.CompileError;
-import magma.app.compile.error.StringContext;
 
 import java.util.Optional;
 
@@ -38,6 +37,6 @@ public record OrRule<Node>(Sequence<Rule<Node>> rules) implements Rule<Node> {
     public Result<Node, CompileError> lex(String input) {
         return this.lex0(input)
                 .<Result<Node, CompileError>>map(Ok::new)
-                .orElseGet(() -> new Err<>(new CompileError("Invalid input", new StringContext(input))));
+                .orElseGet(() -> new Err<>(new CompileError("Invalid input", input)));
     }
 }
