@@ -51,6 +51,6 @@ public final class ExtractRule<Node, Value> implements Rule<Node, NodeResult<Nod
         return this.extractor.fromNode(node, this.key)
                 .flatMap(this.extractor::generate)
                 .map(CompileResults::fromStringValue)
-                .orElseGet(() -> CompileResults.fromStringError(node));
+                .orElseGet(() -> CompileResults.fromStringError("Invalid value", node));
     }
 }

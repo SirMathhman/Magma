@@ -1,5 +1,7 @@
 package magma.app.compile.rule.action;
 
+import magma.api.collect.list.ListLike;
+import magma.api.collect.list.Lists;
 import magma.app.compile.error.node.NodeErr;
 import magma.app.compile.error.node.NodeOk;
 import magma.app.compile.error.node.NodeResult;
@@ -16,11 +18,15 @@ public class CompileResults {
         return new NodeErr<>(new CompileError(message0, input));
     }
 
-    public static <Node> StringResult fromStringError(Node node) {
-        return new StringErr(new CompileError("Invalid value", node.toString()));
+    public static <Node> StringResult fromStringError(String message, Node node) {
+        return fromStringErrorWithChildren(message, node, Lists.empty());
     }
 
     public static StringResult fromStringValue(String value) {
         return new StringOk(value);
+    }
+
+    public static <Node> StringResult fromStringErrorWithChildren(String message, Node context, ListLike<CompileError> children) {
+        return new StringErr(new CompileError(message, context.toString(), children));
     }
 }

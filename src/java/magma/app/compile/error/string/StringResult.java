@@ -4,7 +4,7 @@ import java.util.Optional;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
-public interface StringResult {
+public sealed interface StringResult permits StringErr, StringOk {
     @Deprecated
     Optional<String> findValue();
 

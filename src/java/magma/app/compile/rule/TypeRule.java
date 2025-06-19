@@ -22,6 +22,6 @@ public final class TypeRule<Node extends NodeWithType<Node>> implements Rule<Nod
 
     @Override
     public StringResult generate(Node node) {
-        return node.is(this.type) ? this.rule.generate(node) : CompileResults.fromStringError(node);
+        return node.is(this.type) ? this.rule.generate(node) : CompileResults.fromStringError("Invalid value", node);
     }
 }

@@ -1,5 +1,9 @@
 @startuml
 skinparam linetype ortho
+CompileError --> ListLike
+
+CompileError --> Lists
+
 PlantLang --> Lists
 
 PlantLang --> NodeResult
@@ -100,11 +104,17 @@ NodeErr --> Function
 NodeErr --> Supplier
 
 NodeErr --|> NodeResult
+OrRule --> Lists
+
 OrRule --> Sequence
 
 OrRule --> NodeResult
 
+OrRule --> StringErr
+
 OrRule --> StringResult
+
+OrRule --> CompileError
 
 OrRule --> CompileResults
 
@@ -243,6 +253,10 @@ StripModifier --|> Modifier
 LastLocator --> Optional
 
 LastLocator --|> Locator 
+CompileResults --> ListLike
+
+CompileResults --> Lists
+
 CompileResults --> NodeErr
 
 CompileResults --> NodeOk
