@@ -1,11 +1,11 @@
 package magma.app.compile.rule.action;
 
-import magma.api.Err;
-import magma.api.Ok;
-import magma.api.Result;
-import magma.app.compile.error.NodeErr;
-import magma.app.compile.error.NodeOk;
-import magma.app.compile.error.NodeResult;
+import magma.app.compile.error.node.NodeErr;
+import magma.app.compile.error.node.NodeOk;
+import magma.app.compile.error.node.NodeResult;
+import magma.app.compile.error.string.StringErr;
+import magma.app.compile.error.string.StringOk;
+import magma.app.compile.error.string.StringResult;
 
 import java.util.Optional;
 
@@ -15,8 +15,8 @@ public class CompileResults {
                 .orElseGet(() -> new NodeErr<>(new CompileError()));
     }
 
-    public static <Node> Result<String, CompileError> fromOptionWithNode(Optional<String> option, Node node) {
-        return option.<Result<String, CompileError>>map(Ok::new)
-                .orElseGet(() -> new Err<>(new CompileError()));
+    public static <Node> StringResult fromOptionWithNode(Optional<String> option, Node node) {
+        return option.<StringResult>map(StringOk::new)
+                .orElseGet(() -> new StringErr(new CompileError()));
     }
 }

@@ -1,4 +1,4 @@
-package magma.app.compile.error;
+package magma.app.compile.error.node;
 
 import magma.app.compile.rule.action.CompileError;
 

@@ -1,9 +1,11 @@
 @startuml
 skinparam linetype ortho
 class CompileError
-PlantLang --> Result
-
 PlantLang --> Lists
+
+PlantLang --> NodeResult
+
+PlantLang --> StringResult
 
 PlantLang --> MapNodeFactory
 
@@ -21,16 +23,12 @@ PlantLang --> Rule
 
 PlantLang --> TypeRule
 
-PlantLang --> CompileError
-
 class PlantLang 
-NodeExtractor --> Result
-
 NodeExtractor --> NodeResult
 
-NodeExtractor --> NodeWithNodes
+NodeExtractor --> StringResult
 
-NodeExtractor --> CompileError
+NodeExtractor --> NodeWithNodes
 
 NodeExtractor --> Generator
 
@@ -114,13 +112,11 @@ NodeErr --> Optional
 
 class NodeErr
 NodeErr --|> NodeResult
-OrRule --> Result
-
 OrRule --> Sequence
 
 OrRule --> NodeResult
 
-OrRule --> CompileError
+OrRule --> StringResult
 
 OrRule --> CompileResults
 
@@ -136,6 +132,10 @@ DivideState --> Folding
 interface DivideState 
 interface Lexer
 interface NodeFactory
+StringOk --> Optional
+
+class StringOk
+StringOk --|> StringResult 
 NodeWithEverything --> MergingNode
 
 NodeWithEverything --> NodeWithNodes
@@ -162,6 +162,9 @@ Rule --> Generator
 Rule --> Lexer
 
 interface Rule
+StringResult --> Optional
+
+interface StringResult 
 NodeWithNodeLists --> ListLike
 
 NodeWithNodeLists --> Optional
@@ -211,17 +214,17 @@ MapNode --> Stream
 
 class MapNode
 MapNode --|> NodeWithEverything 
-StageCompiler --> Result
-
 StageCompiler --> Tuple
 
 StageCompiler --> MapLike
 
+StageCompiler --> NodeResult
+
+StageCompiler --> StringResult
+
 StageCompiler --> NodeWithEverything
 
 StageCompiler --> Rule
-
-StageCompiler --> CompileError
 
 StageCompiler --> Transformer
 
@@ -244,6 +247,12 @@ interface Extractor
 Modifier --> Optional
 
 interface Modifier 
+StringErr --> CompileError
+
+StringErr --> Optional
+
+class StringErr
+StringErr --|> StringResult 
 Folding --> BiFunction
 
 interface Folding
@@ -261,11 +270,11 @@ CompileResults --> NodeOk
 
 CompileResults --> NodeResult
 
-CompileResults --> Err
+CompileResults --> StringErr
 
-CompileResults --> Ok
+CompileResults --> StringOk
 
-CompileResults --> Result
+CompileResults --> StringResult
 
 CompileResults --> Optional
 
@@ -313,9 +322,9 @@ CompileApplication --> Collectors
 
 class CompileApplication
 CompileApplication --|> Application 
-ExtractRule --> Result
-
 ExtractRule --> NodeResult
+
+ExtractRule --> StringResult
 
 ExtractRule --> NodeFactory
 
@@ -324,8 +333,6 @@ ExtractRule --> NodeWithNodeLists
 ExtractRule --> NodeWithNodes
 
 ExtractRule --> NodeWithStrings
-
-ExtractRule --> CompileError
 
 ExtractRule --> CompileResults
 
@@ -341,11 +348,9 @@ ExtractRule --> Optional
 
 class ExtractRule
 ExtractRule --|> Rule
-ModifyRule --> Result
-
 ModifyRule --> NodeResult
 
-ModifyRule --> CompileError
+ModifyRule --> StringResult
 
 ModifyRule --> CompileResults
 
@@ -404,8 +409,6 @@ CompilerBuilder --> JavaPlantTransformer
 CompilerBuilder --> PlantLang
 
 class CompilerBuilder 
-NodeListExtractor --> Result
-
 NodeListExtractor --> Folding
 
 NodeListExtractor --> ListLike
@@ -414,9 +417,9 @@ NodeListExtractor --> Lists
 
 NodeListExtractor --> NodeResult
 
-NodeListExtractor --> NodeWithNodeLists
+NodeListExtractor --> StringResult
 
-NodeListExtractor --> CompileError
+NodeListExtractor --> NodeWithNodeLists
 
 NodeListExtractor --> Generator
 
@@ -435,11 +438,11 @@ StringExtractor --> Optional
 
 class StringExtractor
 StringExtractor --|> Extractor
-JavaLang --> Result
-
 JavaLang --> Lists
 
 JavaLang --> NodeResult
+
+JavaLang --> StringResult
 
 JavaLang --> MapNodeFactory
 
@@ -457,13 +460,7 @@ JavaLang --> Rule
 
 JavaLang --> TypeRule
 
-JavaLang --> CompileError
-
 class JavaLang 
-NodeOk --> Optional
-
-class NodeOk
-NodeOk --|> NodeResult
 ThrowableIOError --> IOException
 
 ThrowableIOError --> PrintWriter
@@ -472,13 +469,15 @@ ThrowableIOError --> StringWriter
 
 class ThrowableIOError
 ThrowableIOError --|> IOError 
-LocateRule --> Result
+NodeOk --> Optional
 
+class NodeOk
+NodeOk --|> NodeResult
 LocateRule --> NodeResult
 
-LocateRule --> MergingNode
+LocateRule --> StringResult
 
-LocateRule --> CompileError
+LocateRule --> MergingNode
 
 LocateRule --> CompileResults
 
@@ -511,13 +510,11 @@ ListLike --> BiFunction
 
 interface ListLike
 interface Tuple
-TypeRule --> Result
-
 TypeRule --> NodeResult
 
-TypeRule --> NodeWithType
+TypeRule --> StringResult
 
-TypeRule --> CompileError
+TypeRule --> NodeWithType
 
 TypeRule --> CompileResults
 
