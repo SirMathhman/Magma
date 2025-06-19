@@ -33,7 +33,7 @@ public final class ModifyRule<Node> implements Rule<Node, NodeResult<Node>, Stri
     public NodeResult<Node> lex(String input) {
         return this.modifier.truncate(input)
                 .map(this.rule::lex)
-                .orElseGet(() -> CompileResults.fromNodeError(input, "Invalid value"));
+                .orElseGet(() -> CompileResults.fromNodeError("Invalid value", input));
     }
 
     @Override

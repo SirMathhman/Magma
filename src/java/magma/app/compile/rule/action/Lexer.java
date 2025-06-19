@@ -1,5 +1,5 @@
 package magma.app.compile.rule.action;
 
-public interface Lexer<Node, NodeResult> {
+public interface Lexer<NodeResult> {
     NodeResult lex(String input);
 }

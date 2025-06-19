@@ -5,7 +5,7 @@ import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
-public interface NodeResult<Node> {
+public sealed interface NodeResult<Node> permits NodeErr, NodeOk {
     @Deprecated
     Optional<Node> findValue();
 

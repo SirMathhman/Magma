@@ -43,7 +43,7 @@ public final class ExtractRule<Node, Value> implements Rule<Node, NodeResult<Nod
                     return this.extractor.attach(node, this.key, child);
                 })
                 .map(CompileResults::fromNodeValue)
-                .orElseGet(() -> CompileResults.fromNodeError(input, "Invalid value"));
+                .orElseGet(() -> CompileResults.fromNodeError("Invalid value", input));
     }
 
     @Override

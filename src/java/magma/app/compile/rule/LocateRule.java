@@ -33,7 +33,7 @@ public final class LocateRule<Node extends MergingNode<Node>> implements Rule<No
     public NodeResult<Node> lex(String input) {
         final var maybeIndex = this.locator.locate(input, this.infix);
         if (maybeIndex.isEmpty())
-            return CompileResults.fromNodeError(input, "Infix '" + this.infix + "' not present");
+            return CompileResults.fromNodeError("Infix '" + this.infix + "' not present", input);
 
         final int index = maybeIndex.get();
         final var leftSlice = input.substring(0, index);

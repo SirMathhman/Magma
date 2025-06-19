@@ -108,6 +108,8 @@ OrRule --> Lists
 
 OrRule --> Sequence
 
+OrRule --> NodeErr
+
 OrRule --> NodeResult
 
 OrRule --> StringErr
@@ -117,8 +119,6 @@ OrRule --> StringResult
 OrRule --> CompileError
 
 OrRule --> CompileResults
-
-OrRule --> Optional
 
 OrRule --|> Rule
 Sequence --> Folding

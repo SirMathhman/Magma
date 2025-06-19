@@ -14,8 +14,8 @@ public class CompileResults {
         return new NodeOk<>(node);
     }
 
-    public static <Node> NodeResult<Node> fromNodeError(String input, String message0) {
-        return new NodeErr<>(new CompileError(message0, input));
+    public static <Node> NodeResult<Node> fromNodeError(String message, String input) {
+        return fromNodeErrorWithChildren(message, input, Lists.empty());
     }
 
     public static <Node> StringResult fromStringError(String message, Node node) {
@@ -28,5 +28,9 @@ public class CompileResults {
 
     public static <Node> StringResult fromStringErrorWithChildren(String message, Node context, ListLike<CompileError> children) {
         return new StringErr(new CompileError(message, context.toString(), children));
+    }
+
+    public static <Node> NodeResult<Node> fromNodeErrorWithChildren(String message, String context, ListLike<CompileError> errors) {
+        return new NodeErr<>(new CompileError(message, context, errors));
     }
 }

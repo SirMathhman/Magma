@@ -8,7 +8,7 @@ import magma.app.compile.rule.action.Lexer;
 
 import java.util.Optional;
 
-public class NodeExtractor<Node extends NodeWithNodes<Node>, Rule extends Lexer<Node, NodeResult<Node>> & Generator<Node, StringResult>> implements
+public class NodeExtractor<Node extends NodeWithNodes<Node>, Rule extends Lexer<NodeResult<Node>> & Generator<Node, StringResult>> implements
         Extractor<Node, Node> {
     private final Rule rule;
 
