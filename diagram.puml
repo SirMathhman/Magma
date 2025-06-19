@@ -95,6 +95,8 @@ NodeErr --> Optional
 
 NodeErr --> BiFunction
 
+NodeErr --> Function
+
 NodeErr --> Supplier
 
 NodeErr --|> NodeResult
@@ -212,6 +214,8 @@ StageCompiler --|> Compiler
 NodeResult --> Optional
 
 NodeResult --> BiFunction
+
+NodeResult --> Function
 
 NodeResult --> Supplier
 
@@ -427,6 +431,8 @@ NodeOk --> Optional
 
 NodeOk --> BiFunction
 
+NodeOk --> Function
+
 NodeOk --> Supplier
 
 NodeOk --|> NodeResult
@@ -466,8 +472,6 @@ TypeRule --> StringResult
 TypeRule --> NodeWithType
 
 TypeRule --> CompileResults
-
-TypeRule --> Optional
 
 TypeRule --|> Rule
 @enduml
