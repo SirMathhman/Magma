@@ -1,6 +1,5 @@
 @startuml
 skinparam linetype ortho
-class CompileError
 PlantLang --> Lists
 
 PlantLang --> NodeResult
@@ -23,7 +22,6 @@ PlantLang --> Rule
 
 PlantLang --> TypeRule
 
-class PlantLang 
 NodeExtractor --> NodeResult
 
 NodeExtractor --> StringResult
@@ -36,45 +34,35 @@ NodeExtractor --> Lexer
 
 NodeExtractor --> Optional
 
-class NodeExtractor
-class MapNodeFactory
 MapNodeFactory --|> NodeFactory
 JVMPaths --> Paths
 
-class JVMPaths 
 Result --> Optional
 
 Result --> Function
 
-interface Result
 JVMList --> Folding
 
 JVMList --> ArrayList
 
 JVMList --> List
 
-class JVMList
 JVMList --|> ListLike
 ApplicationBuilder --> JVMPaths
 
 ApplicationBuilder --> CompilerBuilder
 
-class ApplicationBuilder 
 Locator --> Optional
 
-interface Locator 
 PrefixModifier --> Optional
 
-class PrefixModifier
 PrefixModifier --|> Modifier 
-class Maps 
 Lists --> Sequence
 
 Lists --> ArrayList
 
 Lists --> Arrays
 
-class Lists 
 PathLike --> Result
 
 PathLike --> IOError
@@ -83,15 +71,12 @@ PathLike --> Optional
 
 PathLike --> Set
 
-interface PathLike 
 NodeWithNodes --> Tuple
 
 NodeWithNodes --> Optional
 
 NodeWithNodes --> Stream
 
-interface NodeWithNodes
-interface NodeWithType
 JavaPlantRootSegmentTransformer --> Folding
 
 JavaPlantRootSegmentTransformer --> Lists
@@ -102,15 +87,16 @@ JavaPlantRootSegmentTransformer --> NodeWithEverything
 
 JavaPlantRootSegmentTransformer --> Optional
 
-class JavaPlantRootSegmentTransformer 
 Compiler --> MapLike
 
-interface Compiler 
 NodeErr --> CompileError
 
 NodeErr --> Optional
 
-class NodeErr
+NodeErr --> BiFunction
+
+NodeErr --> Supplier
+
 NodeErr --|> NodeResult
 OrRule --> Sequence
 
@@ -122,19 +108,15 @@ OrRule --> CompileResults
 
 OrRule --> Optional
 
-class OrRule
 OrRule --|> Rule
 Sequence --> Folding
 
-interface Sequence
 DivideState --> Folding
 
-interface DivideState 
-interface Lexer
-interface NodeFactory
 StringOk --> Optional
 
-class StringOk
+StringOk --> Supplier
+
 StringOk --|> StringResult 
 NodeWithEverything --> MergingNode
 
@@ -144,7 +126,6 @@ NodeWithEverything --> NodeWithStrings
 
 NodeWithEverything --> NodeWithType
 
-interface NodeWithEverything extends NodeWithStrings
 JavaPlantTransformer --> Lists
 
 JavaPlantTransformer --> JavaPlantRootSegmentTransformer
@@ -155,26 +136,23 @@ JavaPlantTransformer --> NodeWithEverything
 
 JavaPlantTransformer --> Transformer
 
-class JavaPlantTransformer
 JavaPlantTransformer --|> Transformer 
 Rule --> Generator
 
 Rule --> Lexer
 
-interface Rule
 StringResult --> Optional
 
-interface StringResult 
+StringResult --> Supplier
+
 NodeWithNodeLists --> ListLike
 
 NodeWithNodeLists --> Optional
 
-interface NodeWithNodeLists
 Application --> IOError
 
 Application --> Optional
 
-interface Application 
 JVMMap --> Tuple
 
 JVMMap --> TupleImpl
@@ -187,18 +165,13 @@ JVMMap --> Optional
 
 JVMMap --> Stream
 
-class JVMMap
 JVMMap --|> MapLike
-interface MergingNode
-interface Generator
 Transformer --> NodeWithEverything
 
-interface Transformer 
 Err --> Optional
 
 Err --> Function
 
-class Err
 Err --|> Result
 MapNode --> Tuple
 
@@ -212,7 +185,6 @@ MapNode --> Optional
 
 MapNode --> Stream
 
-class MapNode
 MapNode --|> NodeWithEverything 
 StageCompiler --> Tuple
 
@@ -232,37 +204,34 @@ StageCompiler --> Optional
 
 StageCompiler --> Collectors
 
-class StageCompiler
 StageCompiler --|> Compiler 
 NodeResult --> Optional
 
-interface NodeResult
+NodeResult --> BiFunction
+
+NodeResult --> Supplier
+
 FirstLocator --> Optional
 
-class FirstLocator
 FirstLocator --|> Locator 
 Extractor --> Optional
 
-interface Extractor
 Modifier --> Optional
 
-interface Modifier 
 StringErr --> CompileError
 
 StringErr --> Optional
 
-class StringErr
+StringErr --> Supplier
+
 StringErr --|> StringResult 
 Folding --> BiFunction
 
-interface Folding
 StripModifier --> Optional
 
-class StripModifier
 StripModifier --|> Modifier 
 LastLocator --> Optional
 
-class LastLocator
 LastLocator --|> Locator 
 CompileResults --> NodeErr
 
@@ -278,17 +247,14 @@ CompileResults --> StringResult
 
 CompileResults --> Optional
 
-class CompileResults 
 MapLike --> Tuple
 
 MapLike --> Optional
 
 MapLike --> Stream
 
-interface MapLike
 SuffixModifier --> Optional
 
-class SuffixModifier
 SuffixModifier --|> Modifier 
 MutableDivideState --> Folding
 
@@ -296,7 +262,6 @@ MutableDivideState --> ListLike
 
 MutableDivideState --> Lists
 
-class MutableDivideState
 MutableDivideState --|> DivideState 
 CompileApplication --> Ok
 
@@ -320,7 +285,6 @@ CompileApplication --> Set
 
 CompileApplication --> Collectors
 
-class CompileApplication
 CompileApplication --|> Application 
 ExtractRule --> NodeResult
 
@@ -346,7 +310,6 @@ ExtractRule --> StringExtractor
 
 ExtractRule --> Optional
 
-class ExtractRule
 ExtractRule --|> Rule
 ModifyRule --> NodeResult
 
@@ -364,9 +327,7 @@ ModifyRule --> SuffixModifier
 
 ModifyRule --> Optional
 
-class ModifyRule
 ModifyRule --|> Rule
-interface IOError 
 JVMPath --> Err
 
 JVMPath --> Ok
@@ -389,7 +350,6 @@ JVMPath --> Set
 
 JVMPath --> Collectors
 
-class JVMPath
 JVMPath --|> PathLike 
 NodeWithStrings --> Tuple
 
@@ -397,7 +357,6 @@ NodeWithStrings --> Optional
 
 NodeWithStrings --> Stream
 
-interface NodeWithStrings
 CompilerBuilder --> Compiler
 
 CompilerBuilder --> StageCompiler
@@ -408,7 +367,6 @@ CompilerBuilder --> JavaPlantTransformer
 
 CompilerBuilder --> PlantLang
 
-class CompilerBuilder 
 NodeListExtractor --> Folding
 
 NodeListExtractor --> ListLike
@@ -431,12 +389,10 @@ NodeListExtractor --> MutableDivideState
 
 NodeListExtractor --> Optional
 
-class NodeListExtractor
 StringExtractor --> NodeWithStrings
 
 StringExtractor --> Optional
 
-class StringExtractor
 StringExtractor --|> Extractor
 JavaLang --> Lists
 
@@ -460,18 +416,19 @@ JavaLang --> Rule
 
 JavaLang --> TypeRule
 
-class JavaLang 
 ThrowableIOError --> IOException
 
 ThrowableIOError --> PrintWriter
 
 ThrowableIOError --> StringWriter
 
-class ThrowableIOError
 ThrowableIOError --|> IOError 
 NodeOk --> Optional
 
-class NodeOk
+NodeOk --> BiFunction
+
+NodeOk --> Supplier
+
 NodeOk --|> NodeResult
 LocateRule --> NodeResult
 
@@ -487,29 +444,21 @@ LocateRule --> LastLocator
 
 LocateRule --> Locator
 
-LocateRule --> Optional
-
-class LocateRule
 LocateRule --|> Rule
 Ok --> Optional
 
 Ok --> Function
 
-class Ok
 Ok --|> Result
-class TupleImpl
 TupleImpl --|> Tuple
 Main --> ApplicationBuilder
 
-class Main 
 ListLike --> Folding
 
 ListLike --> Sequence
 
 ListLike --> BiFunction
 
-interface ListLike
-interface Tuple
 TypeRule --> NodeResult
 
 TypeRule --> StringResult
@@ -520,6 +469,5 @@ TypeRule --> CompileResults
 
 TypeRule --> Optional
 
-class TypeRule
 TypeRule --|> Rule
 @enduml

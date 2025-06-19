@@ -1,4 +1,4 @@
 package magma.app.compile.rule.action;
 
-public record CompileError() {
+public record CompileError(String message, String context) {
 }

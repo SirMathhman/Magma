@@ -8,8 +8,6 @@ import magma.app.compile.rule.locate.FirstLocator;
 import magma.app.compile.rule.locate.LastLocator;
 import magma.app.compile.rule.locate.Locator;
 
-import java.util.Optional;
-
 public final class LocateRule<Node extends MergingNode<Node>> implements Rule<Node, NodeResult<Node>, StringResult> {
     private final Rule<Node, NodeResult<Node>, StringResult> leftRule;
     private final String infix;
@@ -31,36 +29,23 @@ public final class LocateRule<Node extends MergingNode<Node>> implements Rule<No
         return new LocateRule<>(leftRule, infix, rightRule, new FirstLocator());
     }
 
-    private Optional<String> generate0(Node node) {
-        return Optional.of(this.leftRule.generate(node)
-                .findValue()
-                .orElse("") + this.infix + this.rightRule.generate(node)
-                .findValue()
-                .orElse(""));
-    }
-
-    private Optional<Node> lex0(String input) {
+    @Override
+    public NodeResult<Node> lex(String input) {
         final var maybeIndex = this.locator.locate(input, this.infix);
         if (maybeIndex.isEmpty())
-            return Optional.empty();
+            return CompileResults.fromStringErr("Infix '" + this.infix + "' not present", input);
 
         final int index = maybeIndex.get();
         final var leftSlice = input.substring(0, index);
         final var rightSlice = input.substring(index + this.infix.length());
-        return (this.leftRule).lex(leftSlice)
-                .findValue()
-                .flatMap(leftResult -> (this.rightRule).lex(rightSlice)
-                        .findValue()
-                        .map(leftResult::merge));
-    }
-
-    @Override
-    public NodeResult<Node> lex(String input) {
-        return CompileResults.fromOptionWithString(this.lex0(input), input);
+        return this.leftRule.lex(leftSlice)
+                .mergeResult(() -> this.rightRule.lex(rightSlice), MergingNode::merge);
     }
 
     @Override
     public StringResult generate(Node node) {
-        return CompileResults.fromOptionWithNode(this.generate0(node), node);
+        final var leftResult = this.leftRule.generate(node);
+        return leftResult.appendSlice(this.infix)
+                .appendResult(() -> this.rightRule.generate(node));
     }
 }
