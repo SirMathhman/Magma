@@ -1,6 +1,9 @@
 package magma.app.compile.rule;
 
+import magma.api.Result;
 import magma.app.compile.node.attribute.MergingNode;
+import magma.app.compile.rule.action.CompileError;
+import magma.app.compile.rule.action.CompileResults;
 import magma.app.compile.rule.locate.FirstLocator;
 import magma.app.compile.rule.locate.LastLocator;
 import magma.app.compile.rule.locate.Locator;
@@ -35,8 +38,7 @@ public final class LocateRule<Node extends MergingNode<Node>> implements Rule<No
                 .orElse(""));
     }
 
-    @Override
-    public Optional<Node> lex(String input) {
+    private Optional<Node> lex0(String input) {
         final var maybeIndex = this.locator.locate(input, this.infix);
         if (maybeIndex.isEmpty())
             return Optional.empty();
@@ -44,8 +46,15 @@ public final class LocateRule<Node extends MergingNode<Node>> implements Rule<No
         final int index = maybeIndex.get();
         final var leftSlice = input.substring(0, index);
         final var rightSlice = input.substring(index + this.infix.length());
-        return this.leftRule.lex(leftSlice)
-                .flatMap(leftResult -> this.rightRule.lex(rightSlice)
+        return (this.leftRule).lex(leftSlice)
+                .findValue()
+                .flatMap(leftResult -> (this.rightRule).lex(rightSlice)
+                        .findValue()
                         .map(leftResult::merge));
+    }
+
+    @Override
+    public Result<Node, CompileError> lex(String input) {
+        return CompileResults.fromOption(this.lex0(input), input);
     }
 }

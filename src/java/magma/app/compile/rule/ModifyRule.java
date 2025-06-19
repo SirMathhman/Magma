@@ -1,5 +1,8 @@
 package magma.app.compile.rule;
 
+import magma.api.Result;
+import magma.app.compile.rule.action.CompileError;
+import magma.app.compile.rule.action.CompileResults;
 import magma.app.compile.rule.modify.Modifier;
 import magma.app.compile.rule.modify.PrefixModifier;
 import magma.app.compile.rule.modify.StripModifier;
@@ -34,9 +37,14 @@ public final class ModifyRule<Node> implements Rule<Node> {
                 .map(this.modifier::complete);
     }
 
-    @Override
-    public Optional<Node> lex(String input) {
+    private Optional<Node> lex0(String input) {
         return this.modifier.truncate(input)
-                .flatMap(this.rule::lex);
+                .flatMap(input1 -> (this.rule).lex(input1)
+                        .findValue());
+    }
+
+    @Override
+    public Result<Node, CompileError> lex(String input) {
+        return CompileResults.fromOption(this.lex0(input), input);
     }
 }

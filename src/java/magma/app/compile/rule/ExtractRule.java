@@ -1,9 +1,12 @@
 package magma.app.compile.rule;
 
+import magma.api.Result;
 import magma.app.compile.node.NodeFactory;
 import magma.app.compile.node.NodeWithNodeLists;
 import magma.app.compile.node.attribute.NodeWithNodes;
 import magma.app.compile.node.attribute.NodeWithStrings;
+import magma.app.compile.rule.action.CompileError;
+import magma.app.compile.rule.action.CompileResults;
 import magma.app.compile.rule.extract.Extractor;
 import magma.app.compile.rule.extract.NodeExtractor;
 import magma.app.compile.rule.extract.NodeListExtractor;
@@ -40,12 +43,16 @@ public final class ExtractRule<Node, Value> implements Rule<Node> {
                 .flatMap(this.extractor::generate);
     }
 
-    @Override
-    public Optional<Node> lex(String input) {
+    private Optional<Node> lex0(String input) {
         return this.extractor.lex(input)
                 .map(child -> {
                     final Node node = this.factory.create();
                     return this.extractor.attach(node, this.key, child);
                 });
+    }
+
+    @Override
+    public Result<Node, CompileError> lex(String input) {
+        return CompileResults.fromOption(this.lex0(input), input);
     }
 }

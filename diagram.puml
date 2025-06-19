@@ -1,5 +1,6 @@
 @startuml
 skinparam linetype ortho
+class CompileError
 PlantLang --> Lists
 
 PlantLang --> MapNodeFactory
@@ -33,6 +34,8 @@ MapNodeFactory --|> NodeFactory
 JVMPaths --> Paths
 
 class JVMPaths 
+Result --> Optional
+
 Result --> Function
 
 interface Result
@@ -95,7 +98,13 @@ class JavaPlantRootSegmentTransformer
 Compiler --> MapLike
 
 interface Compiler 
+OrRule --> Result
+
 OrRule --> Sequence
+
+OrRule --> CompileError
+
+OrRule --> CompileResults
 
 OrRule --> Optional
 
@@ -107,7 +116,7 @@ interface Sequence
 DivideState --> Folding
 
 interface DivideState 
-Lexer --> Optional
+Lexer --> Result
 
 interface Lexer
 interface NodeFactory
@@ -168,6 +177,8 @@ interface Generator
 Transformer --> NodeWithEverything
 
 interface Transformer 
+Err --> Optional
+
 Err --> Function
 
 class Err
@@ -223,6 +234,15 @@ LastLocator --> Optional
 
 class LastLocator
 LastLocator --|> Locator 
+CompileResults --> Err
+
+CompileResults --> Ok
+
+CompileResults --> Result
+
+CompileResults --> Optional
+
+class CompileResults 
 MapLike --> Tuple
 
 MapLike --> Optional
@@ -266,6 +286,8 @@ CompileApplication --> Collectors
 
 class CompileApplication
 CompileApplication --|> Application 
+ExtractRule --> Result
+
 ExtractRule --> NodeFactory
 
 ExtractRule --> NodeWithNodeLists
@@ -273,6 +295,10 @@ ExtractRule --> NodeWithNodeLists
 ExtractRule --> NodeWithNodes
 
 ExtractRule --> NodeWithStrings
+
+ExtractRule --> CompileError
+
+ExtractRule --> CompileResults
 
 ExtractRule --> Extractor
 
@@ -286,6 +312,12 @@ ExtractRule --> Optional
 
 class ExtractRule
 ExtractRule --|> Rule
+ModifyRule --> Result
+
+ModifyRule --> CompileError
+
+ModifyRule --> CompileResults
+
 ModifyRule --> Modifier
 
 ModifyRule --> PrefixModifier
@@ -393,7 +425,13 @@ ThrowableIOError --> StringWriter
 
 class ThrowableIOError
 ThrowableIOError --|> IOError 
+LocateRule --> Result
+
 LocateRule --> MergingNode
+
+LocateRule --> CompileError
+
+LocateRule --> CompileResults
 
 LocateRule --> FirstLocator
 
@@ -405,6 +443,8 @@ LocateRule --> Optional
 
 class LocateRule
 LocateRule --|> Rule
+Ok --> Optional
+
 Ok --> Function
 
 class Ok
@@ -422,7 +462,13 @@ ListLike --> BiFunction
 
 interface ListLike
 interface Tuple
+TypeRule --> Result
+
 TypeRule --> NodeWithType
+
+TypeRule --> CompileError
+
+TypeRule --> CompileResults
 
 TypeRule --> Optional
 
