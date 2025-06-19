@@ -1,6 +1,7 @@
 package magma.app.compile.error.string;
 
 import java.util.Optional;
+import java.util.function.Function;
 import java.util.function.Supplier;
 
 public interface StringResult {
@@ -12,4 +13,6 @@ public interface StringResult {
     StringResult appendResult(Supplier<StringResult> other);
 
     StringResult prependSlice(String prefix);
+
+    StringResult map(Function<String, String> mapper);
 }

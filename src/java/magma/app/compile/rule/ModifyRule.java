@@ -8,8 +8,6 @@ import magma.app.compile.rule.modify.PrefixModifier;
 import magma.app.compile.rule.modify.StripModifier;
 import magma.app.compile.rule.modify.SuffixModifier;
 
-import java.util.Optional;
-
 public final class ModifyRule<Node> implements Rule<Node, NodeResult<Node>, StringResult> {
     private final Rule<Node, NodeResult<Node>, StringResult> rule;
     private final Modifier modifier;
@@ -31,29 +29,16 @@ public final class ModifyRule<Node> implements Rule<Node, NodeResult<Node>, Stri
         return new ModifyRule<>(rule, new SuffixModifier(suffix));
     }
 
-    private Optional<String> generate0(Node node) {
-        return this.rule.generate(node)
-                .findValue()
-                .map(this.modifier::complete);
-    }
-
-    private Optional<Node> lex0(String input) {
-        return this.modifier.truncate(input)
-                .flatMap(input1 -> (this.rule).lex(input1)
-                        .findValue());
-    }
-
     @Override
     public NodeResult<Node> lex(String input) {
-        Optional<Node> option = this.lex0(input);
-        return option.map(CompileResults::fromNodeValue)
+        return this.modifier.truncate(input)
+                .map(this.rule::lex)
                 .orElseGet(() -> CompileResults.fromNodeError(input, "Invalid value"));
     }
 
     @Override
     public StringResult generate(Node node) {
-        Optional<String> option = this.generate0(node);
-        return option.map(CompileResults::fromStringValue)
-                .orElseGet(() -> CompileResults.fromStringError(node));
+        return this.rule.generate(node)
+                .map(this.modifier::complete);
     }
 }

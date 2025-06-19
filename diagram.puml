@@ -115,6 +115,8 @@ DivideState --> Folding
 
 StringOk --> Optional
 
+StringOk --> Function
+
 StringOk --> Supplier
 
 StringOk --|> StringResult 
@@ -142,6 +144,8 @@ Rule --> Generator
 Rule --> Lexer
 
 StringResult --> Optional
+
+StringResult --> Function
 
 StringResult --> Supplier
 
@@ -221,6 +225,8 @@ Modifier --> Optional
 StringErr --> CompileError
 
 StringErr --> Optional
+
+StringErr --> Function
 
 StringErr --> Supplier
 
@@ -306,8 +312,6 @@ ExtractRule --> NodeListExtractor
 
 ExtractRule --> StringExtractor
 
-ExtractRule --> Optional
-
 ExtractRule --|> Rule
 ModifyRule --> NodeResult
 
@@ -322,8 +326,6 @@ ModifyRule --> PrefixModifier
 ModifyRule --> StripModifier
 
 ModifyRule --> SuffixModifier
-
-ModifyRule --> Optional
 
 ModifyRule --|> Rule
 JVMPath --> Err

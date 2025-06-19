@@ -1,6 +1,7 @@
 package magma.app.compile.error.string;
 
 import java.util.Optional;
+import java.util.function.Function;
 import java.util.function.Supplier;
 
 public record StringOk(String value) implements StringResult {
@@ -23,5 +24,10 @@ public record StringOk(String value) implements StringResult {
     @Override
     public StringResult prependSlice(String prefix) {
         return new StringOk(prefix + this.value);
+    }
+
+    @Override
+    public StringResult map(Function<String, String> mapper) {
+        return new StringOk(mapper.apply(this.value));
     }
 }

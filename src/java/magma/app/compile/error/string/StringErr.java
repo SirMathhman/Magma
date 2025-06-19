@@ -3,6 +3,7 @@ package magma.app.compile.error.string;
 import magma.app.compile.rule.action.CompileError;
 
 import java.util.Optional;
+import java.util.function.Function;
 import java.util.function.Supplier;
 
 public record StringErr(CompileError error) implements StringResult {
@@ -23,6 +24,11 @@ public record StringErr(CompileError error) implements StringResult {
 
     @Override
     public StringResult prependSlice(String prefix) {
+        return this;
+    }
+
+    @Override
+    public StringResult map(Function<String, String> mapper) {
         return this;
     }
 }
