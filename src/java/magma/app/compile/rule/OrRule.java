@@ -2,13 +2,14 @@ package magma.app.compile.rule;
 
 import magma.api.Result;
 import magma.api.collect.seq.Sequence;
+import magma.app.compile.error.NodeResult;
 import magma.app.compile.rule.action.CompileError;
 import magma.app.compile.rule.action.CompileResults;
 
 import java.util.Optional;
 
 public record OrRule<Node>(
-        Sequence<Rule<Node, Result<Node, CompileError>, Result<String, CompileError>>> rules) implements Rule<Node, Result<Node, CompileError>, Result<String, CompileError>> {
+        Sequence<Rule<Node, NodeResult<Node>, Result<String, CompileError>>> rules) implements Rule<Node, NodeResult<Node>, Result<String, CompileError>> {
     private Optional<String> generate0(Node node) {
         for (var i = 0; i < this.rules.size(); i++) {
             final var rule = this.rules.get(i);
@@ -34,7 +35,7 @@ public record OrRule<Node>(
     }
 
     @Override
-    public Result<Node, CompileError> lex(String input) {
+    public NodeResult<Node> lex(String input) {
         return CompileResults.fromOptionWithString(this.lex0(input), input);
     }
 

@@ -1,6 +1,7 @@
 package magma.app.compile.rule;
 
 import magma.api.Result;
+import magma.app.compile.error.NodeResult;
 import magma.app.compile.rule.action.CompileError;
 import magma.app.compile.rule.action.CompileResults;
 import magma.app.compile.rule.modify.Modifier;
@@ -10,24 +11,24 @@ import magma.app.compile.rule.modify.SuffixModifier;
 
 import java.util.Optional;
 
-public final class ModifyRule<Node> implements Rule<Node, Result<Node, CompileError>, Result<String, CompileError>> {
-    private final Rule<Node, Result<Node, CompileError>, Result<String, CompileError>> rule;
+public final class ModifyRule<Node> implements Rule<Node, NodeResult<Node>, Result<String, CompileError>> {
+    private final Rule<Node, NodeResult<Node>, Result<String, CompileError>> rule;
     private final Modifier modifier;
 
-    public ModifyRule(Rule<Node, Result<Node, CompileError>, Result<String, CompileError>> rule, Modifier modifier) {
+    public ModifyRule(Rule<Node, NodeResult<Node>, Result<String, CompileError>> rule, Modifier modifier) {
         this.modifier = modifier;
         this.rule = rule;
     }
 
-    public static <Node> Rule<Node, Result<Node, CompileError>, Result<String, CompileError>> Prefix(String prefix, Rule<Node, Result<Node, CompileError>, Result<String, CompileError>> rule) {
+    public static <Node> Rule<Node, NodeResult<Node>, Result<String, CompileError>> Prefix(String prefix, Rule<Node, NodeResult<Node>, Result<String, CompileError>> rule) {
         return new ModifyRule<>(rule, new PrefixModifier(prefix));
     }
 
-    public static <Node> Rule<Node, Result<Node, CompileError>, Result<String, CompileError>> Strip(Rule<Node, Result<Node, CompileError>, Result<String, CompileError>> rule) {
+    public static <Node> Rule<Node, NodeResult<Node>, Result<String, CompileError>> Strip(Rule<Node, NodeResult<Node>, Result<String, CompileError>> rule) {
         return new ModifyRule<>(rule, new StripModifier());
     }
 
-    public static <Node> Rule<Node, Result<Node, CompileError>, Result<String, CompileError>> Suffix(Rule<Node, Result<Node, CompileError>, Result<String, CompileError>> rule, String suffix) {
+    public static <Node> Rule<Node, NodeResult<Node>, Result<String, CompileError>> Suffix(Rule<Node, NodeResult<Node>, Result<String, CompileError>> rule, String suffix) {
         return new ModifyRule<>(rule, new SuffixModifier(suffix));
     }
 
@@ -44,7 +45,7 @@ public final class ModifyRule<Node> implements Rule<Node, Result<Node, CompileEr
     }
 
     @Override
-    public Result<Node, CompileError> lex(String input) {
+    public NodeResult<Node> lex(String input) {
         return CompileResults.fromOptionWithString(this.lex0(input), input);
     }
 

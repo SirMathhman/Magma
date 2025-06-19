@@ -1,17 +1,18 @@
 package magma.app.compile.rule;
 
 import magma.api.Result;
+import magma.app.compile.error.NodeResult;
 import magma.app.compile.node.attribute.NodeWithType;
 import magma.app.compile.rule.action.CompileError;
 import magma.app.compile.rule.action.CompileResults;
 
 import java.util.Optional;
 
-public final class TypeRule<Node extends NodeWithType<Node>> implements Rule<Node, Result<Node, CompileError>, Result<String, CompileError>> {
+public final class TypeRule<Node extends NodeWithType<Node>> implements Rule<Node, NodeResult<Node>, Result<String, CompileError>> {
     private final String type;
-    private final Rule<Node, Result<Node, CompileError>, Result<String, CompileError>> rule;
+    private final Rule<Node, NodeResult<Node>, Result<String, CompileError>> rule;
 
-    public TypeRule(String type, Rule<Node, Result<Node, CompileError>, Result<String, CompileError>> rule) {
+    public TypeRule(String type, Rule<Node, NodeResult<Node>, Result<String, CompileError>> rule) {
         this.type = type;
         this.rule = rule;
     }
@@ -31,7 +32,7 @@ public final class TypeRule<Node extends NodeWithType<Node>> implements Rule<Nod
     }
 
     @Override
-    public Result<Node, CompileError> lex(String input) {
+    public NodeResult<Node> lex(String input) {
         return CompileResults.fromOptionWithString(this.lex0(input), input);
     }
 

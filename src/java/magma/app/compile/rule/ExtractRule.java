@@ -1,6 +1,7 @@
 package magma.app.compile.rule;
 
 import magma.api.Result;
+import magma.app.compile.error.NodeResult;
 import magma.app.compile.node.NodeFactory;
 import magma.app.compile.node.NodeWithNodeLists;
 import magma.app.compile.node.attribute.NodeWithNodes;
@@ -14,7 +15,7 @@ import magma.app.compile.rule.extract.StringExtractor;
 
 import java.util.Optional;
 
-public final class ExtractRule<Node, Value> implements Rule<Node, Result<Node, CompileError>, Result<String, CompileError>> {
+public final class ExtractRule<Node, Value> implements Rule<Node, NodeResult<Node>, Result<String, CompileError>> {
     private final Extractor<Node, Value> extractor;
     private final NodeFactory<Node> factory;
     private final String key;
@@ -25,15 +26,15 @@ public final class ExtractRule<Node, Value> implements Rule<Node, Result<Node, C
         this.factory = factory;
     }
 
-    public static <Node extends NodeWithNodes<Node>> Rule<Node, Result<Node, CompileError>, Result<String, CompileError>> Node(String key, Rule<Node, Result<Node, CompileError>, Result<String, CompileError>> rule, NodeFactory<Node> factory) {
+    public static <Node extends NodeWithNodes<Node>> Rule<Node, NodeResult<Node>, Result<String, CompileError>> Node(String key, Rule<Node, NodeResult<Node>, Result<String, CompileError>> rule, NodeFactory<Node> factory) {
         return new ExtractRule<>(key, factory, new NodeExtractor<>(rule));
     }
 
-    public static <Node extends NodeWithStrings<Node>> Rule<Node, Result<Node, CompileError>, Result<String, CompileError>> createStringRule(String key, NodeFactory<Node> factory) {
+    public static <Node extends NodeWithStrings<Node>> Rule<Node, NodeResult<Node>, Result<String, CompileError>> createStringRule(String key, NodeFactory<Node> factory) {
         return new ExtractRule<>(key, factory, new StringExtractor<>());
     }
 
-    public static <Node extends NodeWithNodeLists<Node>> Rule<Node, Result<Node, CompileError>, Result<String, CompileError>> NodeList(String key, Rule<Node, Result<Node, CompileError>, Result<String, CompileError>> rule, NodeFactory<Node> factory) {
+    public static <Node extends NodeWithNodeLists<Node>> Rule<Node, NodeResult<Node>, Result<String, CompileError>> NodeList(String key, Rule<Node, NodeResult<Node>, Result<String, CompileError>> rule, NodeFactory<Node> factory) {
         return new ExtractRule<>(key, factory, new NodeListExtractor<>(rule));
     }
 
@@ -51,7 +52,7 @@ public final class ExtractRule<Node, Value> implements Rule<Node, Result<Node, C
     }
 
     @Override
-    public Result<Node, CompileError> lex(String input) {
+    public NodeResult<Node> lex(String input) {
         return CompileResults.fromOptionWithString(this.lex0(input), input);
     }
 

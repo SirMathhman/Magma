@@ -1,6 +1,7 @@
 package magma.app.compile.rule;
 
 import magma.api.Result;
+import magma.app.compile.error.NodeResult;
 import magma.app.compile.node.attribute.MergingNode;
 import magma.app.compile.rule.action.CompileError;
 import magma.app.compile.rule.action.CompileResults;
@@ -10,24 +11,24 @@ import magma.app.compile.rule.locate.Locator;
 
 import java.util.Optional;
 
-public final class LocateRule<Node extends MergingNode<Node>> implements Rule<Node, Result<Node, CompileError>, Result<String, CompileError>> {
-    private final Rule<Node, Result<Node, CompileError>, Result<String, CompileError>> leftRule;
+public final class LocateRule<Node extends MergingNode<Node>> implements Rule<Node, NodeResult<Node>, Result<String, CompileError>> {
+    private final Rule<Node, NodeResult<Node>, Result<String, CompileError>> leftRule;
     private final String infix;
-    private final Rule<Node, Result<Node, CompileError>, Result<String, CompileError>> rightRule;
+    private final Rule<Node, NodeResult<Node>, Result<String, CompileError>> rightRule;
     private final Locator locator;
 
-    public LocateRule(Rule<Node, Result<Node, CompileError>, Result<String, CompileError>> leftRule, String infix, Rule<Node, Result<Node, CompileError>, Result<String, CompileError>> rightRule, Locator locator) {
+    public LocateRule(Rule<Node, NodeResult<Node>, Result<String, CompileError>> leftRule, String infix, Rule<Node, NodeResult<Node>, Result<String, CompileError>> rightRule, Locator locator) {
         this.leftRule = leftRule;
         this.infix = infix;
         this.rightRule = rightRule;
         this.locator = locator;
     }
 
-    public static <Node extends MergingNode<Node>> Rule<Node, Result<Node, CompileError>, Result<String, CompileError>> Last(Rule<Node, Result<Node, CompileError>, Result<String, CompileError>> leftRule, String infix, Rule<Node, Result<Node, CompileError>, Result<String, CompileError>> rightRule) {
+    public static <Node extends MergingNode<Node>> Rule<Node, NodeResult<Node>, Result<String, CompileError>> Last(Rule<Node, NodeResult<Node>, Result<String, CompileError>> leftRule, String infix, Rule<Node, NodeResult<Node>, Result<String, CompileError>> rightRule) {
         return new LocateRule<>(leftRule, infix, rightRule, new LastLocator());
     }
 
-    public static <Node extends MergingNode<Node>> Rule<Node, Result<Node, CompileError>, Result<String, CompileError>> First(Rule<Node, Result<Node, CompileError>, Result<String, CompileError>> leftRule, String infix, Rule<Node, Result<Node, CompileError>, Result<String, CompileError>> rightRule) {
+    public static <Node extends MergingNode<Node>> Rule<Node, NodeResult<Node>, Result<String, CompileError>> First(Rule<Node, NodeResult<Node>, Result<String, CompileError>> leftRule, String infix, Rule<Node, NodeResult<Node>, Result<String, CompileError>> rightRule) {
         return new LocateRule<>(leftRule, infix, rightRule, new FirstLocator());
     }
 
@@ -55,7 +56,7 @@ public final class LocateRule<Node extends MergingNode<Node>> implements Rule<No
     }
 
     @Override
-    public Result<Node, CompileError> lex(String input) {
+    public NodeResult<Node> lex(String input) {
         return CompileResults.fromOptionWithString(this.lex0(input), input);
     }
 
