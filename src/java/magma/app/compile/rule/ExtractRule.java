@@ -37,26 +37,22 @@ public final class ExtractRule<Node, Value> implements Rule<Node, NodeResult<Nod
         return new ExtractRule<>(key, factory, new NodeListExtractor<>(rule));
     }
 
-    private Optional<String> generate0(Node node) {
-        return this.extractor.fromNode(node, this.key)
-                .flatMap(this.extractor::generate);
-    }
-
-    private Optional<Node> lex0(String input) {
-        return this.extractor.lex(input)
+    @Override
+    public NodeResult<Node> lex(String input) {
+        Optional<Node> option = this.extractor.lex(input)
                 .map(child -> {
                     final Node node = this.factory.create();
                     return this.extractor.attach(node, this.key, child);
                 });
-    }
-
-    @Override
-    public NodeResult<Node> lex(String input) {
-        return CompileResults.fromOptionWithString(this.lex0(input), input);
+        return option.map(CompileResults::fromNodeValue)
+                .orElseGet(() -> CompileResults.fromNodeError(input, "Invalid value"));
     }
 
     @Override
     public StringResult generate(Node node) {
-        return CompileResults.fromOptionWithNode(this.generate0(node), node);
+        Optional<String> option = this.extractor.fromNode(node, this.key)
+                .flatMap(this.extractor::generate);
+        return option.map(CompileResults::fromStringValue)
+                .orElseGet(() -> CompileResults.fromStringError(node));
     }
 }

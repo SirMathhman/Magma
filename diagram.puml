@@ -245,8 +245,6 @@ CompileResults --> StringOk
 
 CompileResults --> StringResult
 
-CompileResults --> Optional
-
 MapLike --> Tuple
 
 MapLike --> Optional

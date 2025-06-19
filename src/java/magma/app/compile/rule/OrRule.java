@@ -35,11 +35,15 @@ public record OrRule<Node>(
 
     @Override
     public NodeResult<Node> lex(String input) {
-        return CompileResults.fromOptionWithString(this.lex0(input), input);
+        Optional<Node> option = this.lex0(input);
+        return option.map(CompileResults::fromNodeValue)
+                .orElseGet(() -> CompileResults.fromNodeError(input, "Invalid value"));
     }
 
     @Override
     public StringResult generate(Node node) {
-        return CompileResults.fromOptionWithNode(this.generate0(node), node);
+        Optional<String> option = this.generate0(node);
+        return option.map(CompileResults::fromStringValue)
+                .orElseGet(() -> CompileResults.fromStringError(node));
     }
 }
