@@ -1,6 +1,5 @@
 package magma.api;
 
-import java.util.Optional;
 import java.util.function.Function;
 
 public interface Result<Value, Error> {
@@ -9,6 +8,4 @@ public interface Result<Value, Error> {
     <Return> Result<Return, Error> flatMapValue(Function<Value, Result<Return, Error>> mapper);
 
     <Return> Result<Return, Error> mapValue(Function<Value, Return> mapper);
-
-    Optional<Value> findValue();
 }

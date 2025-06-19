@@ -32,7 +32,6 @@ public class StageCompiler implements Compiler {
         final var name = entry.left();
         final var input = entry.right();
         return this.sourceRule.lex(input)
-                .findValue()
                 .map(root -> this.transformer.transform(root, name))
                 .flatMap(this.targetRule::generate);
     }

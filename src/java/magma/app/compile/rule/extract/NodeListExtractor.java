@@ -49,8 +49,7 @@ public class NodeListExtractor<Node extends NodeWithNodeLists<Node>, Rule extend
     @Override
     public Optional<ListLike<Node>> lex(String input) {
         return Optional.of(divide(input).fold(Lists.empty(),
-                (current, segment) -> (this.rule).lex(segment)
-                        .findValue()
+                (current, segment) -> this.rule.lex(segment)
                         .map(current::add)
                         .orElse(current)));
     }
