@@ -13,7 +13,7 @@ import magma.app.compile.rule.divide.MutableDivideState;
 
 import java.util.Optional;
 
-public class NodeListExtractor<Node extends NodeWithNodeLists<Node>, Rule extends Lexer<Node, Result<Node, CompileError>> & Generator<Node>> implements
+public class NodeListExtractor<Node extends NodeWithNodeLists<Node>, Rule extends Lexer<Node, Result<Node, CompileError>> & Generator<Node, Result<String, CompileError>>> implements
         Extractor<Node, ListLike<Node>> {
     private final Rule rule;
 

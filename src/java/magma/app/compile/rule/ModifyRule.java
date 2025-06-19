@@ -10,24 +10,24 @@ import magma.app.compile.rule.modify.SuffixModifier;
 
 import java.util.Optional;
 
-public final class ModifyRule<Node> implements Rule<Node, Result<Node, CompileError>> {
-    private final Rule<Node, Result<Node, CompileError>> rule;
+public final class ModifyRule<Node> implements Rule<Node, Result<Node, CompileError>, Result<String, CompileError>> {
+    private final Rule<Node, Result<Node, CompileError>, Result<String, CompileError>> rule;
     private final Modifier modifier;
 
-    public ModifyRule(Rule<Node, Result<Node, CompileError>> rule, Modifier modifier) {
+    public ModifyRule(Rule<Node, Result<Node, CompileError>, Result<String, CompileError>> rule, Modifier modifier) {
         this.modifier = modifier;
         this.rule = rule;
     }
 
-    public static <Node> Rule<Node, Result<Node, CompileError>> Prefix(String prefix, Rule<Node, Result<Node, CompileError>> rule) {
+    public static <Node> Rule<Node, Result<Node, CompileError>, Result<String, CompileError>> Prefix(String prefix, Rule<Node, Result<Node, CompileError>, Result<String, CompileError>> rule) {
         return new ModifyRule<>(rule, new PrefixModifier(prefix));
     }
 
-    public static <Node> Rule<Node, Result<Node, CompileError>> Strip(Rule<Node, Result<Node, CompileError>> rule) {
+    public static <Node> Rule<Node, Result<Node, CompileError>, Result<String, CompileError>> Strip(Rule<Node, Result<Node, CompileError>, Result<String, CompileError>> rule) {
         return new ModifyRule<>(rule, new StripModifier());
     }
 
-    public static <Node> Rule<Node, Result<Node, CompileError>> Suffix(Rule<Node, Result<Node, CompileError>> rule, String suffix) {
+    public static <Node> Rule<Node, Result<Node, CompileError>, Result<String, CompileError>> Suffix(Rule<Node, Result<Node, CompileError>, Result<String, CompileError>> rule, String suffix) {
         return new ModifyRule<>(rule, new SuffixModifier(suffix));
     }
 

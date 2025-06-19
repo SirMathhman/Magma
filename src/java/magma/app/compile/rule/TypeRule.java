@@ -7,11 +7,11 @@ import magma.app.compile.rule.action.CompileResults;
 
 import java.util.Optional;
 
-public final class TypeRule<Node extends NodeWithType<Node>> implements Rule<Node, Result<Node, CompileError>> {
+public final class TypeRule<Node extends NodeWithType<Node>> implements Rule<Node, Result<Node, CompileError>, Result<String, CompileError>> {
     private final String type;
-    private final Rule<Node, Result<Node, CompileError>> rule;
+    private final Rule<Node, Result<Node, CompileError>, Result<String, CompileError>> rule;
 
-    public TypeRule(String type, Rule<Node, Result<Node, CompileError>> rule) {
+    public TypeRule(String type, Rule<Node, Result<Node, CompileError>, Result<String, CompileError>> rule) {
         this.type = type;
         this.rule = rule;
     }

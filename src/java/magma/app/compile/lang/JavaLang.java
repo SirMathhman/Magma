@@ -13,7 +13,7 @@ import magma.app.compile.rule.TypeRule;
 import magma.app.compile.rule.action.CompileError;
 
 public class JavaLang {
-    public static Rule<NodeWithEverything, Result<NodeWithEverything, CompileError>> createImportRule() {
+    public static Rule<NodeWithEverything, Result<NodeWithEverything, CompileError>, Result<String, CompileError>> createImportRule() {
         return new TypeRule<>("import",
                 ModifyRule.Strip(ModifyRule.Prefix("import ",
                         ModifyRule.Suffix(LocateRule.Last(ExtractRule.createStringRule("temp", new MapNodeFactory()),
@@ -21,30 +21,33 @@ public class JavaLang {
                                 ExtractRule.createStringRule("destination", new MapNodeFactory())), ";"))));
     }
 
-    public static Rule<NodeWithEverything, Result<NodeWithEverything, CompileError>> createStructureDefinitionsRule() {
+    public static Rule<NodeWithEverything, Result<NodeWithEverything, CompileError>, Result<String, CompileError>> createStructureDefinitionsRule() {
         return new OrRule<>(Lists.of(createStructureDefinitionRule("class"),
                 createStructureDefinitionRule("interface"),
                 createStructureDefinitionRule("record")));
     }
 
-    private static Rule<NodeWithEverything, Result<NodeWithEverything, CompileError>> createStructureDefinitionRule(String type) {
-        final Rule<NodeWithEverything, Result<NodeWithEverything, CompileError>> beforeType = ExtractRule.createStringRule(
+    private static Rule<NodeWithEverything, Result<NodeWithEverything, CompileError>, Result<String, CompileError>> createStructureDefinitionRule(String type) {
+        final Rule<NodeWithEverything, Result<NodeWithEverything, CompileError>, Result<String, CompileError>> beforeType = ExtractRule.createStringRule(
                 "before-type",
                 new MapNodeFactory());
 
-        final Rule<NodeWithEverything, Result<NodeWithEverything, CompileError>> name = ExtractRule.createStringRule(
+        final Rule<NodeWithEverything, Result<NodeWithEverything, CompileError>, Result<String, CompileError>> name = ExtractRule.createStringRule(
                 "name",
                 new MapNodeFactory());
-        final Rule<NodeWithEverything, Result<NodeWithEverything, CompileError>> withTypeParams = new OrRule<>(Lists.of(
+        final Rule<NodeWithEverything, Result<NodeWithEverything, CompileError>, Result<String, CompileError>> withTypeParams = new OrRule<>(
+                Lists.of(
                 ModifyRule.Strip(ModifyRule.Suffix(
                 LocateRule.First(name, "<", ExtractRule.createStringRule("type-arguments", new MapNodeFactory())),
                 ">")), name));
 
-        final Rule<NodeWithEverything, Result<NodeWithEverything, CompileError>> withParams = new OrRule<>(Lists.of(
+        final Rule<NodeWithEverything, Result<NodeWithEverything, CompileError>, Result<String, CompileError>> withParams = new OrRule<>(
+                Lists.of(
                 LocateRule.First(withTypeParams,
                 "(",
                 ExtractRule.createStringRule("params", new MapNodeFactory())), withTypeParams));
-        final Rule<NodeWithEverything, Result<NodeWithEverything, CompileError>> afterType = new OrRule<>(Lists.of(
+        final Rule<NodeWithEverything, Result<NodeWithEverything, CompileError>, Result<String, CompileError>> afterType = new OrRule<>(
+                Lists.of(
                 LocateRule.Last(withParams,
                 " implements ",
                 ExtractRule.Node("supertype", createTypeRule(), new MapNodeFactory())), withParams));
@@ -52,15 +55,15 @@ public class JavaLang {
         return new TypeRule<>(type, LocateRule.First(beforeType, type + " ", afterType));
     }
 
-    private static Rule<NodeWithEverything, Result<NodeWithEverything, CompileError>> createTypeRule() {
+    private static Rule<NodeWithEverything, Result<NodeWithEverything, CompileError>, Result<String, CompileError>> createTypeRule() {
         return new OrRule<>(Lists.of(createGenericRule(), createIdentifierRule()));
     }
 
-    private static Rule<NodeWithEverything, Result<NodeWithEverything, CompileError>> createIdentifierRule() {
+    private static Rule<NodeWithEverything, Result<NodeWithEverything, CompileError>, Result<String, CompileError>> createIdentifierRule() {
         return new TypeRule<>("identifier", ExtractRule.createStringRule("value", new MapNodeFactory()));
     }
 
-    private static Rule<NodeWithEverything, Result<NodeWithEverything, CompileError>> createGenericRule() {
+    private static Rule<NodeWithEverything, Result<NodeWithEverything, CompileError>, Result<String, CompileError>> createGenericRule() {
         return new TypeRule<>("generic",
                 ModifyRule.Strip(ModifyRule.Suffix(LocateRule.First(ExtractRule.createStringRule("base",
                                 new MapNodeFactory()),
@@ -68,17 +71,17 @@ public class JavaLang {
                         ExtractRule.createStringRule("type-arguments", new MapNodeFactory())), ">")));
     }
 
-    public static Rule<NodeWithEverything, Result<NodeWithEverything, CompileError>> createStructureRule() {
+    public static Rule<NodeWithEverything, Result<NodeWithEverything, CompileError>, Result<String, CompileError>> createStructureRule() {
         return LocateRule.First(createStructureDefinitionsRule(),
                 "{",
                 ExtractRule.createStringRule("with-braces", new MapNodeFactory()));
     }
 
-    public static Rule<NodeWithEverything, Result<NodeWithEverything, CompileError>> createJavaRootSegmentRule() {
+    public static Rule<NodeWithEverything, Result<NodeWithEverything, CompileError>, Result<String, CompileError>> createJavaRootSegmentRule() {
         return new OrRule<>(Lists.of(createImportRule(), createStructureRule()));
     }
 
-    public static Rule<NodeWithEverything, Result<NodeWithEverything, CompileError>> createJavaRootRule() {
+    public static Rule<NodeWithEverything, Result<NodeWithEverything, CompileError>, Result<String, CompileError>> createJavaRootRule() {
         return ExtractRule.NodeList("children", createJavaRootSegmentRule(), new MapNodeFactory());
     }
 }

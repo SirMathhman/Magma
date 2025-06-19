@@ -12,11 +12,11 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 public class StageCompiler implements Compiler {
-    private final Rule<NodeWithEverything, Result<NodeWithEverything, CompileError>> sourceRule;
-    private final Rule<NodeWithEverything, Result<NodeWithEverything, CompileError>> targetRule;
+    private final Rule<NodeWithEverything, Result<NodeWithEverything, CompileError>, Result<String, CompileError>> sourceRule;
+    private final Rule<NodeWithEverything, Result<NodeWithEverything, CompileError>, Result<String, CompileError>> targetRule;
     private final Transformer transformer;
 
-    public StageCompiler(Rule<NodeWithEverything, Result<NodeWithEverything, CompileError>> sourceRule, Transformer transformer, Rule<NodeWithEverything, Result<NodeWithEverything, CompileError>> targetRule) {
+    public StageCompiler(Rule<NodeWithEverything, Result<NodeWithEverything, CompileError>, Result<String, CompileError>> sourceRule, Transformer transformer, Rule<NodeWithEverything, Result<NodeWithEverything, CompileError>, Result<String, CompileError>> targetRule) {
         this.sourceRule = sourceRule;
         this.targetRule = targetRule;
         this.transformer = transformer;

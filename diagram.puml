@@ -1,6 +1,8 @@
 @startuml
 skinparam linetype ortho
 class CompileError
+PlantLang --> Result
+
 PlantLang --> Lists
 
 PlantLang --> MapNodeFactory
@@ -19,8 +21,14 @@ PlantLang --> Rule
 
 PlantLang --> TypeRule
 
+PlantLang --> CompileError
+
 class PlantLang 
+NodeExtractor --> Result
+
 NodeExtractor --> NodeWithNodes
+
+NodeExtractor --> CompileError
 
 NodeExtractor --> Generator
 
@@ -116,8 +124,6 @@ interface Sequence
 DivideState --> Folding
 
 interface DivideState 
-Lexer --> Result
-
 interface Lexer
 interface NodeFactory
 NodeWithEverything --> MergingNode
@@ -171,8 +177,6 @@ JVMMap --> Stream
 class JVMMap
 JVMMap --|> MapLike
 interface MergingNode
-Generator --> Result
-
 interface Generator
 Transformer --> NodeWithEverything
 
@@ -197,6 +201,8 @@ MapNode --> Stream
 
 class MapNode
 MapNode --|> NodeWithEverything 
+StageCompiler --> Result
+
 StageCompiler --> Tuple
 
 StageCompiler --> MapLike
@@ -204,6 +210,8 @@ StageCompiler --> MapLike
 StageCompiler --> NodeWithEverything
 
 StageCompiler --> Rule
+
+StageCompiler --> CompileError
 
 StageCompiler --> Transformer
 
@@ -373,6 +381,8 @@ CompilerBuilder --> JavaPlantTransformer
 CompilerBuilder --> PlantLang
 
 class CompilerBuilder 
+NodeListExtractor --> Result
+
 NodeListExtractor --> Folding
 
 NodeListExtractor --> ListLike
@@ -380,6 +390,8 @@ NodeListExtractor --> ListLike
 NodeListExtractor --> Lists
 
 NodeListExtractor --> NodeWithNodeLists
+
+NodeListExtractor --> CompileError
 
 NodeListExtractor --> Generator
 
@@ -398,6 +410,8 @@ StringExtractor --> Optional
 
 class StringExtractor
 StringExtractor --|> Extractor
+JavaLang --> Result
+
 JavaLang --> Lists
 
 JavaLang --> MapNodeFactory
@@ -415,6 +429,8 @@ JavaLang --> OrRule
 JavaLang --> Rule
 
 JavaLang --> TypeRule
+
+JavaLang --> CompileError
 
 class JavaLang 
 ThrowableIOError --> IOException
