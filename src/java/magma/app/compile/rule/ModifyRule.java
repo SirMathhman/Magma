@@ -4,6 +4,7 @@ import magma.api.Err;
 import magma.api.Ok;
 import magma.api.Result;
 import magma.app.compile.error.CompileError;
+import magma.app.compile.error.StringContext;
 import magma.app.compile.rule.modify.Modifier;
 import magma.app.compile.rule.modify.PrefixModifier;
 import magma.app.compile.rule.modify.StripModifier;
@@ -48,6 +49,6 @@ public final class ModifyRule<Node> implements Rule<Node> {
     public Result<Node, CompileError> lex(String input) {
         return this.lex0(input)
                 .<Result<Node, CompileError>>map(Ok::new)
-                .orElseGet(() -> new Err<>(new CompileError("Invalid input", input)));
+                .orElseGet(() -> new Err<>(new CompileError("Invalid input", new StringContext(input))));
     }
 }

@@ -1,4 +1,6 @@
 package magma.app.compile.error;
 
-public record CompileError(String message, String input) {
+public final class CompileError {
+    public CompileError(String message, Context context) {
+    }
 }
