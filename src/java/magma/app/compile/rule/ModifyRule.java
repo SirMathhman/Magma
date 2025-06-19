@@ -31,9 +31,9 @@ public final class ModifyRule<Node> implements Rule<Node> {
         return new ModifyRule<>(rule, new SuffixModifier(suffix));
     }
 
-    @Override
-    public Optional<String> generate(Node node) {
+    private Optional<String> generate0(Node node) {
         return this.rule.generate(node)
+                .findValue()
                 .map(this.modifier::complete);
     }
 
@@ -45,6 +45,11 @@ public final class ModifyRule<Node> implements Rule<Node> {
 
     @Override
     public Result<Node, CompileError> lex(String input) {
-        return CompileResults.fromOption(this.lex0(input), input);
+        return CompileResults.fromOptionWithString(this.lex0(input), input);
+    }
+
+    @Override
+    public Result<String, CompileError> generate(Node node) {
+        return CompileResults.fromOptionWithNode(this.generate0(node), node);
     }
 }

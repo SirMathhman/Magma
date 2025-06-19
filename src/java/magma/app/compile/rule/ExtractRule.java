@@ -37,8 +37,7 @@ public final class ExtractRule<Node, Value> implements Rule<Node> {
         return new ExtractRule<>(key, factory, new NodeListExtractor<>(rule));
     }
 
-    @Override
-    public Optional<String> generate(Node node) {
+    private Optional<String> generate0(Node node) {
         return this.extractor.fromNode(node, this.key)
                 .flatMap(this.extractor::generate);
     }
@@ -53,6 +52,11 @@ public final class ExtractRule<Node, Value> implements Rule<Node> {
 
     @Override
     public Result<Node, CompileError> lex(String input) {
-        return CompileResults.fromOption(this.lex0(input), input);
+        return CompileResults.fromOptionWithString(this.lex0(input), input);
+    }
+
+    @Override
+    public Result<String, CompileError> generate(Node node) {
+        return CompileResults.fromOptionWithNode(this.generate0(node), node);
     }
 }

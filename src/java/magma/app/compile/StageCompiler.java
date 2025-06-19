@@ -34,6 +34,7 @@ public class StageCompiler implements Compiler {
         return this.sourceRule.lex(input)
                 .findValue()
                 .map(root -> this.transformer.transform(root, name))
-                .flatMap(this.targetRule::generate);
+                .flatMap(node -> this.targetRule.generate(node)
+                        .findValue());
     }
 }

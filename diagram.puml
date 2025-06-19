@@ -171,7 +171,7 @@ JVMMap --> Stream
 class JVMMap
 JVMMap --|> MapLike
 interface MergingNode
-Generator --> Optional
+Generator --> Result
 
 interface Generator
 Transformer --> NodeWithEverything

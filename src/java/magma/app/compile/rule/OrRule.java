@@ -8,11 +8,11 @@ import magma.app.compile.rule.action.CompileResults;
 import java.util.Optional;
 
 public record OrRule<Node>(Sequence<Rule<Node>> rules) implements Rule<Node> {
-    @Override
-    public Optional<String> generate(Node node) {
+    private Optional<String> generate0(Node node) {
         for (var i = 0; i < this.rules.size(); i++) {
             final var rule = this.rules.get(i);
-            final var maybeGenerated = rule.generate(node);
+            final var maybeGenerated = rule.generate(node)
+                    .findValue();
             if (maybeGenerated.isPresent())
                 return maybeGenerated;
         }
@@ -34,6 +34,11 @@ public record OrRule<Node>(Sequence<Rule<Node>> rules) implements Rule<Node> {
 
     @Override
     public Result<Node, CompileError> lex(String input) {
-        return CompileResults.fromOption(this.lex0(input), input);
+        return CompileResults.fromOptionWithString(this.lex0(input), input);
+    }
+
+    @Override
+    public Result<String, CompileError> generate(Node node) {
+        return CompileResults.fromOptionWithNode(this.generate0(node), node);
     }
 }

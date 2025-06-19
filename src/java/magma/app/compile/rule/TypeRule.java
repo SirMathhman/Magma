@@ -16,10 +16,10 @@ public final class TypeRule<Node extends NodeWithType<Node>> implements Rule<Nod
         this.rule = rule;
     }
 
-    @Override
-    public Optional<String> generate(Node node) {
+    private Optional<String> generate0(Node node) {
         if (node.is(this.type))
-            return this.rule.generate(node);
+            return this.rule.generate(node)
+                    .findValue();
 
         return Optional.empty();
     }
@@ -32,6 +32,11 @@ public final class TypeRule<Node extends NodeWithType<Node>> implements Rule<Nod
 
     @Override
     public Result<Node, CompileError> lex(String input) {
-        return CompileResults.fromOption(this.lex0(input), input);
+        return CompileResults.fromOptionWithString(this.lex0(input), input);
+    }
+
+    @Override
+    public Result<String, CompileError> generate(Node node) {
+        return CompileResults.fromOptionWithNode(this.generate0(node), node);
     }
 }

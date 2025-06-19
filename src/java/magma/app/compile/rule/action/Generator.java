@@ -1,7 +1,7 @@
 package magma.app.compile.rule.action;
 
-import java.util.Optional;
+import magma.api.Result;
 
 public interface Generator<Node> {
-    Optional<String> generate(Node node);
+    Result<String, CompileError> generate(Node node);
 }

@@ -64,6 +64,7 @@ public class NodeListExtractor<Node extends NodeWithNodeLists<Node>, Rule extend
     public Optional<String> generate(ListLike<Node> children) {
         final var output = children.fold(new StringBuilder(),
                 (current, node) -> this.rule.generate(node)
+                        .findValue()
                         .map(current::append)
                         .orElse(current));
 

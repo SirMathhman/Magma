@@ -32,6 +32,7 @@ public class NodeExtractor<Node extends NodeWithNodes<Node>, Rule extends Lexer<
 
     @Override
     public Optional<String> generate(Node node) {
-        return this.rule.generate(node);
+        return this.rule.generate(node)
+                .findValue();
     }
 }

@@ -31,10 +31,11 @@ public final class LocateRule<Node extends MergingNode<Node>> implements Rule<No
         return new LocateRule<>(leftRule, infix, rightRule, new FirstLocator());
     }
 
-    @Override
-    public Optional<String> generate(Node node) {
+    private Optional<String> generate0(Node node) {
         return Optional.of(this.leftRule.generate(node)
+                .findValue()
                 .orElse("") + this.infix + this.rightRule.generate(node)
+                .findValue()
                 .orElse(""));
     }
 
@@ -55,6 +56,11 @@ public final class LocateRule<Node extends MergingNode<Node>> implements Rule<No
 
     @Override
     public Result<Node, CompileError> lex(String input) {
-        return CompileResults.fromOption(this.lex0(input), input);
+        return CompileResults.fromOptionWithString(this.lex0(input), input);
+    }
+
+    @Override
+    public Result<String, CompileError> generate(Node node) {
+        return CompileResults.fromOptionWithNode(this.generate0(node), node);
     }
 }
