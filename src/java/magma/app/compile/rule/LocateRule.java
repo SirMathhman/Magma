@@ -10,24 +10,24 @@ import magma.app.compile.rule.locate.Locator;
 
 import java.util.Optional;
 
-public final class LocateRule<Node extends MergingNode<Node>> implements Rule<Node> {
-    private final Rule<Node> leftRule;
+public final class LocateRule<Node extends MergingNode<Node>> implements Rule<Node, Result<Node, CompileError>> {
+    private final Rule<Node, Result<Node, CompileError>> leftRule;
     private final String infix;
-    private final Rule<Node> rightRule;
+    private final Rule<Node, Result<Node, CompileError>> rightRule;
     private final Locator locator;
 
-    public LocateRule(Rule<Node> leftRule, String infix, Rule<Node> rightRule, Locator locator) {
+    public LocateRule(Rule<Node, Result<Node, CompileError>> leftRule, String infix, Rule<Node, Result<Node, CompileError>> rightRule, Locator locator) {
         this.leftRule = leftRule;
         this.infix = infix;
         this.rightRule = rightRule;
         this.locator = locator;
     }
 
-    public static <Node extends MergingNode<Node>> Rule<Node> Last(Rule<Node> leftRule, String infix, Rule<Node> rightRule) {
+    public static <Node extends MergingNode<Node>> Rule<Node, Result<Node, CompileError>> Last(Rule<Node, Result<Node, CompileError>> leftRule, String infix, Rule<Node, Result<Node, CompileError>> rightRule) {
         return new LocateRule<>(leftRule, infix, rightRule, new LastLocator());
     }
 
-    public static <Node extends MergingNode<Node>> Rule<Node> First(Rule<Node> leftRule, String infix, Rule<Node> rightRule) {
+    public static <Node extends MergingNode<Node>> Rule<Node, Result<Node, CompileError>> First(Rule<Node, Result<Node, CompileError>> leftRule, String infix, Rule<Node, Result<Node, CompileError>> rightRule) {
         return new LocateRule<>(leftRule, infix, rightRule, new FirstLocator());
     }
 

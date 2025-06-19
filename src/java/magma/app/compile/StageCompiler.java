@@ -1,20 +1,22 @@
 package magma.app.compile;
 
+import magma.api.Result;
 import magma.api.Tuple;
 import magma.api.map.MapLike;
 import magma.app.compile.node.NodeWithEverything;
 import magma.app.compile.rule.Rule;
+import magma.app.compile.rule.action.CompileError;
 import magma.app.compile.transform.Transformer;
 
 import java.util.Optional;
 import java.util.stream.Collectors;
 
 public class StageCompiler implements Compiler {
-    private final Rule<NodeWithEverything> sourceRule;
-    private final Rule<NodeWithEverything> targetRule;
+    private final Rule<NodeWithEverything, Result<NodeWithEverything, CompileError>> sourceRule;
+    private final Rule<NodeWithEverything, Result<NodeWithEverything, CompileError>> targetRule;
     private final Transformer transformer;
 
-    public StageCompiler(Rule<NodeWithEverything> sourceRule, Transformer transformer, Rule<NodeWithEverything> targetRule) {
+    public StageCompiler(Rule<NodeWithEverything, Result<NodeWithEverything, CompileError>> sourceRule, Transformer transformer, Rule<NodeWithEverything, Result<NodeWithEverything, CompileError>> targetRule) {
         this.sourceRule = sourceRule;
         this.targetRule = targetRule;
         this.transformer = transformer;

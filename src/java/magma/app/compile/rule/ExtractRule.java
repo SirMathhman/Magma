@@ -14,7 +14,7 @@ import magma.app.compile.rule.extract.StringExtractor;
 
 import java.util.Optional;
 
-public final class ExtractRule<Node, Value> implements Rule<Node> {
+public final class ExtractRule<Node, Value> implements Rule<Node, Result<Node, CompileError>> {
     private final Extractor<Node, Value> extractor;
     private final NodeFactory<Node> factory;
     private final String key;
@@ -25,15 +25,15 @@ public final class ExtractRule<Node, Value> implements Rule<Node> {
         this.factory = factory;
     }
 
-    public static <Node extends NodeWithNodes<Node>> Rule<Node> Node(String key, Rule<Node> rule, NodeFactory<Node> factory) {
+    public static <Node extends NodeWithNodes<Node>> Rule<Node, Result<Node, CompileError>> Node(String key, Rule<Node, Result<Node, CompileError>> rule, NodeFactory<Node> factory) {
         return new ExtractRule<>(key, factory, new NodeExtractor<>(rule));
     }
 
-    public static <Node extends NodeWithStrings<Node>> Rule<Node> createStringRule(String key, NodeFactory<Node> factory) {
+    public static <Node extends NodeWithStrings<Node>> Rule<Node, Result<Node, CompileError>> createStringRule(String key, NodeFactory<Node> factory) {
         return new ExtractRule<>(key, factory, new StringExtractor<>());
     }
 
-    public static <Node extends NodeWithNodeLists<Node>> Rule<Node> NodeList(String key, Rule<Node> rule, NodeFactory<Node> factory) {
+    public static <Node extends NodeWithNodeLists<Node>> Rule<Node, Result<Node, CompileError>> NodeList(String key, Rule<Node, Result<Node, CompileError>> rule, NodeFactory<Node> factory) {
         return new ExtractRule<>(key, factory, new NodeListExtractor<>(rule));
     }
 

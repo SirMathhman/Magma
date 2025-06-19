@@ -7,7 +7,8 @@ import magma.app.compile.rule.action.CompileResults;
 
 import java.util.Optional;
 
-public record OrRule<Node>(Sequence<Rule<Node>> rules) implements Rule<Node> {
+public record OrRule<Node>(
+        Sequence<Rule<Node, Result<Node, CompileError>>> rules) implements Rule<Node, Result<Node, CompileError>> {
     private Optional<String> generate0(Node node) {
         for (var i = 0; i < this.rules.size(); i++) {
             final var rule = this.rules.get(i);

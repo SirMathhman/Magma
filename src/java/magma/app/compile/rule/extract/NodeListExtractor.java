@@ -1,9 +1,11 @@
 package magma.app.compile.rule.extract;
 
+import magma.api.Result;
 import magma.api.collect.fold.Folding;
 import magma.api.collect.list.ListLike;
 import magma.api.collect.list.Lists;
 import magma.app.compile.node.NodeWithNodeLists;
+import magma.app.compile.rule.action.CompileError;
 import magma.app.compile.rule.action.Generator;
 import magma.app.compile.rule.action.Lexer;
 import magma.app.compile.rule.divide.DivideState;
@@ -11,7 +13,7 @@ import magma.app.compile.rule.divide.MutableDivideState;
 
 import java.util.Optional;
 
-public class NodeListExtractor<Node extends NodeWithNodeLists<Node>, Rule extends Lexer<Node> & Generator<Node>> implements
+public class NodeListExtractor<Node extends NodeWithNodeLists<Node>, Rule extends Lexer<Node, Result<Node, CompileError>> & Generator<Node>> implements
         Extractor<Node, ListLike<Node>> {
     private final Rule rule;
 
