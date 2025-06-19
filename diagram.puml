@@ -1,5 +1,6 @@
 @startuml
 skinparam linetype ortho
+class CompileError
 PlantLang --> Lists
 
 PlantLang --> MapNodeFactory
@@ -33,6 +34,8 @@ MapNodeFactory --|> NodeFactory
 JVMPaths --> Paths
 
 class JVMPaths 
+Result --> Optional
+
 Result --> Function
 
 interface Result
@@ -95,7 +98,15 @@ class JavaPlantRootSegmentTransformer
 Compiler --> MapLike
 
 interface Compiler 
+OrRule --> Err
+
+OrRule --> Ok
+
+OrRule --> Result
+
 OrRule --> Sequence
+
+OrRule --> CompileError
 
 OrRule --> Optional
 
@@ -107,7 +118,9 @@ interface Sequence
 DivideState --> Folding
 
 interface DivideState 
-Lexer --> Optional
+Lexer --> Result
+
+Lexer --> CompileError
 
 interface Lexer
 interface NodeFactory
@@ -168,6 +181,8 @@ interface Generator
 Transformer --> NodeWithEverything
 
 interface Transformer 
+Err --> Optional
+
 Err --> Function
 
 class Err
@@ -266,6 +281,14 @@ CompileApplication --> Collectors
 
 class CompileApplication
 CompileApplication --|> Application 
+ExtractRule --> Err
+
+ExtractRule --> Ok
+
+ExtractRule --> Result
+
+ExtractRule --> CompileError
+
 ExtractRule --> NodeFactory
 
 ExtractRule --> NodeWithNodeLists
@@ -286,6 +309,14 @@ ExtractRule --> Optional
 
 class ExtractRule
 ExtractRule --|> Rule
+ModifyRule --> Err
+
+ModifyRule --> Ok
+
+ModifyRule --> Result
+
+ModifyRule --> CompileError
+
 ModifyRule --> Modifier
 
 ModifyRule --> PrefixModifier
@@ -393,6 +424,14 @@ ThrowableIOError --> StringWriter
 
 class ThrowableIOError
 ThrowableIOError --|> IOError 
+LocateRule --> Err
+
+LocateRule --> Ok
+
+LocateRule --> Result
+
+LocateRule --> CompileError
+
 LocateRule --> MergingNode
 
 LocateRule --> FirstLocator
@@ -405,6 +444,8 @@ LocateRule --> Optional
 
 class LocateRule
 LocateRule --|> Rule
+Ok --> Optional
+
 Ok --> Function
 
 class Ok
@@ -422,6 +463,14 @@ ListLike --> BiFunction
 
 interface ListLike
 interface Tuple
+TypeRule --> Err
+
+TypeRule --> Ok
+
+TypeRule --> Result
+
+TypeRule --> CompileError
+
 TypeRule --> NodeWithType
 
 TypeRule --> Optional

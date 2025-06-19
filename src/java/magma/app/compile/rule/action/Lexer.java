@@ -1,7 +1,8 @@
 package magma.app.compile.rule.action;
 
-import java.util.Optional;
+import magma.api.Result;
+import magma.app.compile.error.CompileError;
 
 public interface Lexer<Node> {
-    Optional<Node> lex(String input);
+    Result<Node, CompileError> lex(String input);
 }

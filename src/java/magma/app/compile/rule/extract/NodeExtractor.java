@@ -21,7 +21,8 @@ public class NodeExtractor<Node extends NodeWithNodes<Node>, Rule extends Lexer<
 
     @Override
     public Optional<Node> lex(String input) {
-        return this.rule.lex(input);
+        return (this.rule).lex(input)
+                .findValue();
     }
 
     @Override

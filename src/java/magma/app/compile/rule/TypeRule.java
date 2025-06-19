@@ -1,5 +1,9 @@
 package magma.app.compile.rule;
 
+import magma.api.Err;
+import magma.api.Ok;
+import magma.api.Result;
+import magma.app.compile.error.CompileError;
 import magma.app.compile.node.attribute.NodeWithType;
 
 import java.util.Optional;
@@ -21,9 +25,16 @@ public final class TypeRule<Node extends NodeWithType<Node>> implements Rule<Nod
         return Optional.empty();
     }
 
-    @Override
-    public Optional<Node> lex(String input) {
-        return this.rule.lex(input)
+    private Optional<Node> lex0(String input) {
+        return (this.rule).lex(input)
+                .findValue()
                 .map(node -> node.retype(this.type));
+    }
+
+    @Override
+    public Result<Node, CompileError> lex(String input) {
+        return this.lex0(input)
+                .<Result<Node, CompileError>>map(Ok::new)
+                .orElseGet(() -> new Err<>(new CompileError("Invalid input", input)));
     }
 }
