@@ -12,8 +12,6 @@ import magma.app.compile.rule.extract.NodeExtractor;
 import magma.app.compile.rule.extract.NodeListExtractor;
 import magma.app.compile.rule.extract.StringExtractor;
 
-import java.util.Optional;
-
 public final class ExtractRule<Node, Value> implements Rule<Node, NodeResult<Node>, StringResult> {
     private final Extractor<Node, Value> extractor;
     private final NodeFactory<Node> factory;
@@ -39,20 +37,20 @@ public final class ExtractRule<Node, Value> implements Rule<Node, NodeResult<Nod
 
     @Override
     public NodeResult<Node> lex(String input) {
-        Optional<Node> option = this.extractor.lex(input)
+        return this.extractor.lex(input)
                 .map(child -> {
                     final Node node = this.factory.create();
                     return this.extractor.attach(node, this.key, child);
-                });
-        return option.map(CompileResults::fromNodeValue)
+                })
+                .map(CompileResults::fromNodeValue)
                 .orElseGet(() -> CompileResults.fromNodeError(input, "Invalid value"));
     }
 
     @Override
     public StringResult generate(Node node) {
-        Optional<String> option = this.extractor.fromNode(node, this.key)
-                .flatMap(this.extractor::generate);
-        return option.map(CompileResults::fromStringValue)
+        return this.extractor.fromNode(node, this.key)
+                .flatMap(this.extractor::generate)
+                .map(CompileResults::fromStringValue)
                 .orElseGet(() -> CompileResults.fromStringError(node));
     }
 }
