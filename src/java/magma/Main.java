@@ -5,7 +5,7 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.List;
 
-final class Main {
+class Main {
     private Main() {
     }
 

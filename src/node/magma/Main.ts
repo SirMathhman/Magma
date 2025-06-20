@@ -5,7 +5,7 @@ import java.nio.file.Files;*//*
 import java.nio.file.Paths;*//*
 import java.util.List;*//*
 
-final class Main {
+class Main {
     private Main() {
     }
 
@@ -35,6 +35,7 @@ final class Main {
         final var strip = input.strip();*//*
         if (strip.startsWith("package "))
             return "";*//*
+
 
         return Main.generatePlaceholder(input);*//*
     }
