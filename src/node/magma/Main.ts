@@ -1,11 +1,11 @@
-/*package magma;*//*
+/*
 
 import java.io.IOException;*//*
 import java.nio.file.Files;*//*
 import java.nio.file.Paths;*//*
 import java.util.List;*//*
 
-public final class Main {
+final class Main {
     private Main() {
     }
 
@@ -17,8 +17,7 @@ public final class Main {
 
             final var output = new StringBuilder();*//*
             for (final var segment : segments)
-                output.append(Main.generatePlaceholder(segment));*//*
-
+                output.append(Main.compileRootSegment(segment));*//*
 
             final var targetParent = Paths.get(".", "src", "node", "magma");*//*
             if (!Files.exists(targetParent))
@@ -30,6 +29,14 @@ public final class Main {
             //noinspection CallToPrintStackTrace
             e.printStackTrace();*//*
         }
+    }
+
+    private static String compileRootSegment(final String input) {
+        final var strip = input.strip();*//*
+        if (strip.startsWith("package "))
+            return "";*//*
+
+        return Main.generatePlaceholder(input);*//*
     }
 
     private static List<String> divide(final CharSequence input) {
