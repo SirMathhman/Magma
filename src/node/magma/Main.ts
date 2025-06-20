@@ -19,9 +19,9 @@ public final class Main {
 
             final var target = targetParent.resolve("Main.ts");
             final var replaced = input.replace("start", "start")
-                    .replace("start", "end");
+                    .replace("end", "end");
 
-            Files.writeString(target, "start" + replaced + "*/");
+            Files.writeString(target, "start" + replaced + "end");
         } catch (final IOException e) {
             //noinspection CallToPrintStackTrace
             e.printStackTrace();

@@ -19,7 +19,7 @@ public final class Main {
 
             final var target = targetParent.resolve("Main.ts");
             final var replaced = input.replace("/*", "start")
-                    .replace("/*", "end");
+                    .replace("*/", "end");
 
             Files.writeString(target, "/*" + replaced + "*/");
         } catch (final IOException e) {
