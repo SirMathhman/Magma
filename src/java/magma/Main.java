@@ -36,6 +36,29 @@ class Main {
         if (strip.startsWith("package "))
             return "";
 
+        if (strip.startsWith("import "))
+            return Main.generatePlaceholder(strip) + System.lineSeparator();
+
+        final var contentStart = input.indexOf('{');
+        if (0 <= contentStart) {
+            final var beforeContent = input.substring(0, contentStart);
+            final var withEnd = input.substring(contentStart + "{".length());
+            return Main.compileClassHeader(beforeContent) + "{" + Main.generatePlaceholder(withEnd);
+        }
+
+        return Main.generatePlaceholder(input);
+    }
+
+    private static String compileClassHeader(final String input) {
+        final var classIndex = input.indexOf("class ");
+        if (0 <= classIndex) {
+            final var oldBeforeKeyword = input.substring(0, classIndex)
+                    .strip();
+
+            final var afterKeyword = input.substring(classIndex + "class ".length());
+            final var newBeforeKeyword = oldBeforeKeyword.isEmpty() ? "" : Main.generatePlaceholder(oldBeforeKeyword);
+            return newBeforeKeyword + "class " + afterKeyword.strip() + " ";
+        }
 
         return Main.generatePlaceholder(input);
     }
