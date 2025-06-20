@@ -3,7 +3,6 @@
 import java.io.IOException;*//*
 import java.nio.file.Files;*//*
 import java.nio.file.Paths;*//*
-import java.util.ArrayList;*//*
 import java.util.List;*//*
 
 public final class Main {
@@ -34,19 +33,23 @@ public final class Main {
     }
 
     private static List<String> divide(final CharSequence input) {
-        final List<String> segments = new ArrayList<>();*//*
-        final var buffer = new StringBuilder();*//*
+        final State state = new MutableState();*//*
         final var length = input.length();*//*
+        var current = state;*//*
         for (var i = 0;*//* i < length;*//* i++) {
             final var c = input.charAt(i);*//*
-            buffer.append(c);*//*
-            if (';*//*' == c) {
-                segments.add(buffer.toString());*//*
-                buffer.setLength(0);*//*
-            }
+            current = Main.fold(current, c);*//*
         }
-        segments.add(buffer.toString());*//*
-        return segments;*//*
+
+        return current.advance()
+                .unwrap();*//*
+    }
+
+    private static State fold(final State state, final char c) {
+        final var appended = state.append(c);*//*
+        if (';*//*' == c)
+            return appended.advance();*//*
+        return appended;*//*
     }
 
     private static String generatePlaceholder(final String input) {
