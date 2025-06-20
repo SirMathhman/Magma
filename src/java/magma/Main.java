@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.List;
+import java.util.function.Function;
 
 class Main {
     private Main() {
@@ -13,22 +14,32 @@ class Main {
         try {
             final var source = Paths.get(".", "src", "java", "magma", "Main.java");
             final var input = Files.readString(source);
-            final var segments = Main.divide(input);
 
-            final var output = new StringBuilder();
-            for (final var segment : segments)
-                output.append(Main.compileRootSegment(segment));
+            final var output = Main.compileRoot(input);
 
             final var targetParent = Paths.get(".", "src", "node", "magma");
             if (!Files.exists(targetParent))
                 Files.createDirectories(targetParent);
 
             final var target = targetParent.resolve("Main.ts");
-            Files.writeString(target, output.toString());
+            Files.writeString(target, output);
         } catch (final IOException e) {
             //noinspection CallToPrintStackTrace
             e.printStackTrace();
         }
+    }
+
+    private static String compileRoot(final CharSequence input) {
+        return Main.compileStatements(input, Main::compileRootSegment);
+    }
+
+    private static String compileStatements(final CharSequence input, final Function<String, String> mapper) {
+        final var segments = Main.divide(input);
+        final var output = new StringBuilder();
+        for (final var segment : segments)
+            output.append(mapper.apply(segment));
+
+        return output.toString();
     }
 
     private static String compileRootSegment(final String input) {
@@ -43,9 +54,17 @@ class Main {
         if (0 <= contentStart) {
             final var beforeContent = input.substring(0, contentStart);
             final var withEnd = input.substring(contentStart + "{".length());
-            return Main.compileClassHeader(beforeContent) + "{" + Main.generatePlaceholder(withEnd);
+            if (withEnd.endsWith("}")) {
+                final var content = withEnd.substring(0, withEnd.length() - "}".length());
+                return Main.compileClassHeader(beforeContent) + "{" + Main.compileStatements(content,
+                        Main::compileClassSegment) + "}";
+            }
         }
 
+        return Main.generatePlaceholder(input);
+    }
+
+    private static String compileClassSegment(final String input) {
         return Main.generatePlaceholder(input);
     }
 
