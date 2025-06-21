@@ -9,7 +9,6 @@ JavaIOError --> StringWriter
 class JavaList
 JavaList --> ArrayList
 JavaList --> List
-class MutableState
 class StreamLike
 StreamLike --> Function
 StreamLike --> Predicate
@@ -39,10 +38,11 @@ OptionalLike --> Function
 class ResultCollector
 ResultCollector --> Ok
 ResultCollector --> Result
-class State
 class JavaMap
 JavaMap --> HashMap
 JavaMap --> Map
+class DivideState
+DivideState --> ListLike
 class JavaStream
 JavaStream --> Function
 JavaStream --> Predicate
@@ -62,7 +62,12 @@ class Sets
 class PathLikes
 PathLikes --> Paths
 class Main
+Main --> DivideState
+Main --> MutableDivideState
 Main --> Result
+class MutableDivideState
+MutableDivideState --> ListLike
+MutableDivideState --> Lists
 class Optionals
 Optionals --> Optional
 class Maps

@@ -1,5 +1,7 @@
 package magma;
 
+import magma.divide.DivideState;
+import magma.divide.MutableDivideState;
 import magma.result.Result;
 
 class Main {
@@ -81,7 +83,7 @@ class Main {
     }
 
     private static ListLike<String> divide(final CharSequence input) {
-        final State state = new MutableState();
+        final DivideState state = new MutableDivideState();
         final var length = input.length();
         var current = state;
         for (var i = 0; i < length; i++) {
@@ -93,7 +95,7 @@ class Main {
                 .segments();
     }
 
-    private static State fold(final State state, final char c) {
+    private static DivideState fold(final DivideState state, final char c) {
         final var appended = state.append(c);
         if (';' == c)
             return appended.advance();
