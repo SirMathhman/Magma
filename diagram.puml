@@ -6,10 +6,11 @@ class MutableState
 MutableState --> ArrayList
 MutableState --> List
 class Main
-Main --> MapNode
+Main --> LastRule
 Main --> MutableState
 Main --> Node
 Main --> State
+Main --> StringRule
 Main --> IOException
 Main --> Files
 Main --> Path
@@ -19,6 +20,10 @@ Main --> Optional
 Main --> Set
 Main --> Collector
 Main --> Collectors
+class StringRule
+StringRule --> Optional
+class LastRule
+LastRule --> Optional
 class MapNode
 MapNode --> Collections
 MapNode --> HashMap

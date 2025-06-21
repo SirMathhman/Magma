@@ -1,9 +1,10 @@
 package magma;
 
-import magma.app.MapNode;
+import magma.app.LastRule;
 import magma.app.MutableState;
 import magma.app.Node;
 import magma.app.State;
+import magma.app.StringRule;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -83,17 +84,10 @@ public class Main {
         final var suffixLength = ";".length();
         final var withoutEnd = withoutPrefix.substring(0, inputLength - suffixLength);
 
-        final var separator = withoutEnd.lastIndexOf('.');
-        if (0 > separator)
-            return Optional.empty();
-
-        final var infixLength = ".".length();
-        final var destination = withoutEnd.substring(separator + infixLength);
-        final var node = MapNode.empty()
-                .withString("source", source)
-                .withString("destination", destination);
-
-        return Main.generate(node);
+        return new LastRule(".", new StringRule("destination")).lex(withoutEnd)
+                .flatMap(node -> {
+                    return Main.generate(node.withString("source", source));
+                });
     }
 
     private static Optional<String> generate(final Node node) {
