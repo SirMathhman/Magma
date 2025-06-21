@@ -15,7 +15,7 @@ class Main {
     public static void main(final String[] args) {
         final var sourceRoot = Paths.get(".", "src", "java");
         try {
-            final var files = new JavaStream<>(Files.walk(sourceRoot));
+            final StreamLike<Path> files = new JavaStream<>(Files.walk(sourceRoot));
             final Collector<Path, Set<Path>> toSet = new SetCollector<>();
             final var sources = files.filter(Files::isRegularFile)
                     .filter(path -> {
