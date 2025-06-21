@@ -11,9 +11,10 @@ Rule --> Optional
 class Main
 Main --> LastRule
 Main --> MutableState
-Main --> Node
 Main --> State
 Main --> StringRule
+Main --> SuffixRule
+Main --> Node
 Main --> IOException
 Main --> Files
 Main --> Path
@@ -35,6 +36,9 @@ StringRule --> Optional
 class LastRule
 LastRule --> Node
 LastRule --> Optional
+class SuffixRule
+SuffixRule --> Node
+SuffixRule --> Optional
 class State
 State --> List
 

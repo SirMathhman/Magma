@@ -4,6 +4,7 @@ import magma.app.LastRule;
 import magma.app.MutableState;
 import magma.app.State;
 import magma.app.StringRule;
+import magma.app.SuffixRule;
 import magma.app.node.Node;
 
 import java.io.IOException;
@@ -76,15 +77,7 @@ public class Main {
 
         final var prefixLength = "import ".length();
         final var withoutPrefix = strip.substring(prefixLength);
-        final var inputLength0 = withoutPrefix.length();
-        if (withoutPrefix.isEmpty() || ';' != withoutPrefix.charAt(inputLength0 - 1))
-            return Optional.empty();
-
-        final var inputLength = withoutPrefix.length();
-        final var suffixLength = ";".length();
-        final var withoutEnd = withoutPrefix.substring(0, inputLength - suffixLength);
-
-        return new LastRule(".", new StringRule("destination")).lex(withoutEnd)
+        return new SuffixRule(new LastRule(".", new StringRule("destination")), ";").lex(withoutPrefix)
                 .flatMap(node -> Main.generate(node.withString("source", source)));
     }
 
