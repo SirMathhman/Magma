@@ -2,6 +2,7 @@ package magma;
 
 import magma.divide.DivideState;
 import magma.divide.MutableDivideState;
+import magma.list.ListLike;
 import magma.result.Result;
 import magma.rule.LastRule;
 import magma.rule.PrefixRule;

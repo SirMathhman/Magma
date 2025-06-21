@@ -1,4 +1,7 @@
-package magma;
+package magma.list;
+
+import magma.JavaStream;
+import magma.StreamLike;
 
 import java.util.ArrayList;
 import java.util.List;

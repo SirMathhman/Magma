@@ -1,7 +1,7 @@
 package magma.divide;
 
-import magma.ListLike;
-import magma.Lists;
+import magma.list.ListLike;
+import magma.list.Lists;
 
 public record MutableDivideState(ListLike<String> segments, StringBuilder buffer) implements DivideState {
     public MutableDivideState() {

@@ -1,4 +1,4 @@
-package magma;
+package magma.list;
 
 public class Lists {
     private Lists() {

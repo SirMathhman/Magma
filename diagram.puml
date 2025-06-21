@@ -11,9 +11,6 @@ class JavaIOError
 JavaIOError --> IOException
 JavaIOError --> PrintWriter
 JavaIOError --> StringWriter
-class JavaList
-JavaList --> ArrayList
-JavaList --> List
 class StringRule
 StringRule --> MapNode
 StringRule --> Node
@@ -29,7 +26,6 @@ class Maps
 class Joiner
 Joiner --> Optional
 class IOError
-class Lists
 class JavaPath
 JavaPath --> Err
 JavaPath --> Ok
@@ -79,6 +75,13 @@ JavaMap --> Map
 class SetCollector
 SetCollector --> SetLike
 SetCollector --> Sets
+class ListLike
+ListLike --> StreamLike
+class JavaList
+JavaList --> JavaStream
+JavaList --> StreamLike
+JavaList --> ArrayList
+JavaList --> List
 class MapNode
 MapNode --> MapLike
 MapNode --> Maps
@@ -92,6 +95,7 @@ Rule --> OptionalLike
 class Main
 Main --> DivideState
 Main --> MutableDivideState
+Main --> ListLike
 Main --> Result
 Main --> LastRule
 Main --> PrefixRule
@@ -105,9 +109,9 @@ MutableDivideState --> ListLike
 MutableDivideState --> Lists
 class Optionals
 Optionals --> Optional
+class Lists
 class Ok
 Ok --> Function
-class ListLike
 class JavaOptional
 JavaOptional --> Optional
 JavaOptional --> Consumer

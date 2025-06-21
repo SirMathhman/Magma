@@ -1,6 +1,6 @@
 package magma.divide;
 
-import magma.ListLike;
+import magma.list.ListLike;
 
 public interface DivideState {
     DivideState append(char c);
