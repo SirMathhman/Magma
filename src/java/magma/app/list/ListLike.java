@@ -1,4 +1,4 @@
-package magma.app;
+package magma.app.list;
 
 import java.util.stream.Stream;
 

@@ -1,10 +1,16 @@
 @startuml
 skinparam linetype ortho
+class ListLike
+ListLike --> Stream
 class Node
 Node --> Optional
 class StripRule
 StripRule --> Node
 StripRule --> Optional
+class JavaList
+JavaList --> ArrayList
+JavaList --> List
+JavaList --> Stream
 class Rule
 Rule --> Node
 Rule --> Optional
@@ -16,8 +22,7 @@ class PrefixRule
 PrefixRule --> Node
 PrefixRule --> Optional
 class MutableState
-class ListLike
-ListLike --> Stream
+MutableState --> ListLike
 class Main
 Main --> LastRule
 Main --> ListLike
@@ -37,10 +42,6 @@ Main --> Optional
 Main --> Set
 Main --> Collector
 Main --> Collectors
-class JavaList
-JavaList --> ArrayList
-JavaList --> List
-JavaList --> Stream
 class MapNode
 MapNode --> Collections
 MapNode --> HashMap
@@ -53,5 +54,6 @@ class SuffixRule
 SuffixRule --> Node
 SuffixRule --> Optional
 class State
+State --> ListLike
 
 @enduml

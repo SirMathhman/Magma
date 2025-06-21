@@ -1,7 +1,6 @@
 package magma;
 
 import magma.app.LastRule;
-import magma.app.ListLike;
 import magma.app.MutableState;
 import magma.app.PrefixRule;
 import magma.app.Rule;
@@ -9,6 +8,7 @@ import magma.app.State;
 import magma.app.StringRule;
 import magma.app.StripRule;
 import magma.app.SuffixRule;
+import magma.app.list.ListLike;
 import magma.app.node.Node;
 
 import java.io.IOException;

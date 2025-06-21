@@ -1,10 +1,10 @@
-package magma.app;
+package magma.app.list;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Stream;
 
-public record JavaList<Value>(List<Value> elements) implements ListLike<Value> {
+record JavaList<Value>(List<Value> elements) implements ListLike<Value> {
     public JavaList() {
         this(new ArrayList<>());
     }
