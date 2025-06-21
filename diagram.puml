@@ -40,7 +40,6 @@ Main --> Files
 Main --> Path
 Main --> Paths
 Main --> Set
-Main --> Collectors
 class Optionals
 Optionals --> Optional
 class Maps
