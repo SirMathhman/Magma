@@ -56,13 +56,13 @@ class Err
 Err --> Function
 class MapNode
 class Sets
+class PathLikes
 class Main
 Main --> Files
 Main --> Path
 class Optionals
 Optionals --> Optional
 class Maps
-class Paths
 class ListLike
 class JavaOptional
 JavaOptional --> Optional

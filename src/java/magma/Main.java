@@ -10,7 +10,7 @@ class Main {
     }
 
     public static void main(final String[] args) {
-        final var sourceRoot = Paths.get(".", "src", "java");
+        final var sourceRoot = PathLikes.get(".", "src", "java");
         sourceRoot.walk()
                 .mapValue(Main::filter)
                 .flatMapValue(Main::compileSources)
@@ -19,7 +19,7 @@ class Main {
     }
 
     private static OptionalLike<IOError> write(final String output) {
-        final var target = Paths.get(".", "diagram.puml");
+        final var target = PathLikes.get(".", "diagram.puml");
         final var joined = String.join(Main.SEPARATOR, "@startuml", "skinparam linetype ortho", output, "@enduml");
         return target.writeString(joined);
     }
