@@ -2,7 +2,6 @@ package magma;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 
 class Main {
     private static final String SEPARATOR = System.lineSeparator();
@@ -12,7 +11,7 @@ class Main {
 
     public static void main(final String[] args) {
         final var sourceRoot = Paths.get(".", "src", "java");
-        new JavaPath(sourceRoot).walk()
+        sourceRoot.walk()
                 .mapValue(Main::filter)
                 .flatMapValue(Main::compileSources)
                 .match(Main::write, Optionals::of)
@@ -22,7 +21,7 @@ class Main {
     private static OptionalLike<IOError> write(final String output) {
         final var target = Paths.get(".", "diagram.puml");
         final var joined = String.join(Main.SEPARATOR, "@startuml", "skinparam linetype ortho", output, "@enduml");
-        return new JavaPath(target).writeString(joined);
+        return target.writeString(joined);
     }
 
     private static Result<String, IOError> compileSources(final SetLike<Path> sources) {
@@ -48,7 +47,7 @@ class Main {
 
         return new JavaPath(source).readString()
                 .mapValue(input -> {
-            final var compiled = Main.compile(input, name);
+                    final var compiled = Main.compile(input, name);
                     return "class " + name + Main.SEPARATOR + compiled;
                 });
     }

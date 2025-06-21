@@ -4,8 +4,9 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
-public record JavaPath(Path path) {
-    Result<String, IOError> readString() {
+public record JavaPath(Path path) implements PathLike {
+    @Override
+    public Result<String, IOError> readString() {
         try {
             final var input = Files.readString(this.path);
             return new Ok<>(input);
@@ -14,7 +15,8 @@ public record JavaPath(Path path) {
         }
     }
 
-    Result<StreamLike<Path>, IOError> walk() {
+    @Override
+    public Result<StreamLike<Path>, IOError> walk() {
         try {
             return new Ok<>(new JavaStream<>(Files.walk(this.path)));
         } catch (final IOException e) {
@@ -22,7 +24,8 @@ public record JavaPath(Path path) {
         }
     }
 
-    OptionalLike<IOError> writeString(final String output) {
+    @Override
+    public OptionalLike<IOError> writeString(final String output) {
         try {
             Files.writeString(this.path, output);
             return Optionals.empty();

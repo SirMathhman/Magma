@@ -15,6 +15,8 @@ StreamLike --> Function
 StreamLike --> Predicate
 StreamLike --> Stream
 class PrefixRule
+class PathLike
+PathLike --> Path
 class StringRule
 class StripRule
 class Joiner
@@ -57,10 +59,10 @@ class Sets
 class Main
 Main --> Files
 Main --> Path
-Main --> Paths
 class Optionals
 Optionals --> Optional
 class Maps
+class Paths
 class ListLike
 class JavaOptional
 JavaOptional --> Optional
