@@ -1,7 +1,7 @@
-package magma.app.stream;
+package magma.app;
 
 import java.util.function.Function;
-import java.util.function.Predicate;
+import java.util.stream.Collector;
 import java.util.stream.Stream;
 
 public interface StreamLike<Value> {
@@ -9,7 +9,5 @@ public interface StreamLike<Value> {
 
     <Return> StreamLike<Return> flatMap(Function<Value, Stream<Return>> mapper);
 
-    <Collection> Collection collect(CollectorLike<Value, Collection> collector);
-
-    StreamLike<Value> filter(Predicate<Value> predicate);
+    <Collection> Collection collect(Collector<? super Value, ?, Collection> collector);
 }
