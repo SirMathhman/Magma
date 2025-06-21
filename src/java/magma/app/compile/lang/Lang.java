@@ -1,4 +1,4 @@
-package magma.app.compile;
+package magma.app.compile.lang;
 
 import magma.app.compile.rule.LastRule;
 import magma.app.compile.rule.PrefixRule;

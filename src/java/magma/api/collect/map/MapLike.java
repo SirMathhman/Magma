@@ -1,5 +1,7 @@
 package magma.api.collect.map;
 
+import magma.api.Tuple;
+import magma.api.collect.stream.StreamLike;
 import magma.api.optional.OptionalLike;
 
 public interface MapLike<Key, Value> {
@@ -7,4 +9,6 @@ public interface MapLike<Key, Value> {
     OptionalLike<Value> find(Key key);
 
     MapLike<Key, Value> put(Key key, Value value);
+
+    StreamLike<Tuple<Key, Value>> stream();
 }

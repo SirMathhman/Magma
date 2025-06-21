@@ -1,9 +1,10 @@
 package magma.app;
 
-import magma.api.collect.list.ListLike;
+import magma.api.Tuple;
+import magma.api.collect.map.MapCollector;
+import magma.api.collect.map.MapLike;
 import magma.api.collect.set.SetCollector;
 import magma.api.collect.set.SetLike;
-import magma.api.collect.stream.Joiner;
 import magma.api.collect.stream.ResultCollector;
 import magma.api.collect.stream.StreamLike;
 import magma.api.io.IOError;
@@ -12,10 +13,8 @@ import magma.api.io.path.PathLikes;
 import magma.api.optional.OptionalLike;
 import magma.api.optional.Optionals;
 import magma.api.result.Result;
-import magma.app.compile.Lang;
-import magma.app.compile.divide.DivideState;
-import magma.app.compile.divide.MutableDivideState;
-import magma.app.compile.node.Node;
+import magma.app.compile.Compiler;
+import magma.app.compile.lang.Lang;
 
 class Main {
     private Main() {
@@ -37,20 +36,17 @@ class Main {
     }
 
     private static Result<String, IOError> compileSources(final SetLike<PathLike> sources) {
+        return Main.readSources(sources)
+                .mapValue(Compiler::compileEntries);
+    }
+
+    private static Result<MapLike<String, String>, IOError> readSources(final SetLike<PathLike> sources) {
         return sources.stream()
-                .map(Main::compileSource)
-                .collect(new ResultCollector<>(new Joiner()))
-                .mapValue(value -> value.orElse(""));
+                .map(Main::readSource)
+                .collect(new ResultCollector<>(new MapCollector<>()));
     }
 
-    private static SetLike<PathLike> filter(final StreamLike<PathLike> files) {
-        return files.filter(PathLike::isRegularFile)
-                .filter(path -> path.asString()
-                        .endsWith(".java"))
-                .collect(new SetCollector<>());
-    }
-
-    private static Result<String, IOError> compileSource(final PathLike source) {
+    private static Result<Tuple<String, String>, IOError> readSource(final PathLike source) {
         final var fileName = source.getFileName()
                 .asString();
 
@@ -58,48 +54,14 @@ class Main {
         final var name = fileName.substring(0, separator);
 
         return source.readString()
-                .mapValue(input -> {
-                    final var compiled = Main.compile(input, name);
-                    return "class " + name + Lang.SEPARATOR + compiled;
-                });
+                .mapValue(input -> new Tuple<>(name, input));
     }
 
-    private static String compile(final CharSequence input, final String source) {
-        return Main.divide(input)
-                .stream()
-                .map(segment -> Main.compileRootSegment(segment, source))
-                .flatMap(OptionalLike::stream)
-                .collect(new Joiner())
-                .orElse("");
-    }
 
-    private static OptionalLike<String> compileRootSegment(final String input, final String name) {
-        return Lang.createImportRule()
-                .lex(input)
-                .flatMap(node -> {
-                    final Node withSource = node.withString("source", name);
-                    return Lang.createDependencyRule()
-                            .generate(withSource);
-                });
-    }
-
-    private static ListLike<String> divide(final CharSequence input) {
-        final DivideState state = new MutableDivideState();
-        final var length = input.length();
-        var current = state;
-        for (var i = 0; i < length; i++) {
-            final var c = input.charAt(i);
-            current = Main.fold(current, c);
-        }
-
-        return current.advance()
-                .segments();
-    }
-
-    private static DivideState fold(final DivideState state, final char c) {
-        final var appended = state.append(c);
-        if (';' == c)
-            return appended.advance();
-        return appended;
+    private static SetLike<PathLike> filter(final StreamLike<PathLike> files) {
+        return files.filter(PathLike::isRegularFile)
+                .filter(path -> path.asString()
+                        .endsWith(".java"))
+                .collect(new SetCollector<>());
     }
 }
