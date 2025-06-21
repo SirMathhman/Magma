@@ -1,7 +1,8 @@
 package jvm.map;
 
-import magma.OptionalLike;
 import magma.app.map.MapLike;
+import magma.app.optional.OptionalLike;
+import magma.app.optional.Optionals;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -15,10 +16,10 @@ public record JavaMap<Key, Value>(Map<Key, Value> map) implements MapLike<Key, V
     public OptionalLike<Value> find(final Key key) {
         if (this.map.containsKey(key)) {
             final var found = this.map.get(key);
-            return OptionalLike.of(found);
+            return Optionals.of(found);
         }
         else
-            return OptionalLike.empty();
+            return Optionals.empty();
     }
 
     @Override

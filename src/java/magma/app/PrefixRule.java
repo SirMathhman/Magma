@@ -1,13 +1,14 @@
 package magma.app;
 
-import magma.OptionalLike;
 import magma.app.node.Node;
+import magma.app.optional.OptionalLike;
+import magma.app.optional.Optionals;
 
 public record PrefixRule(String prefix, Rule rule) implements Rule {
     @Override
     public OptionalLike<Node> lex(final String input) {
         if (!input.startsWith(this.prefix))
-            return OptionalLike.empty();
+            return Optionals.empty();
 
         final var prefixLength = this.prefix.length();
         final var slice = input.substring(prefixLength);

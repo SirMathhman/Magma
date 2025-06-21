@@ -13,14 +13,19 @@ class Rule
 Rule --> Node
 Rule --> OptionalLike
 class JavaMap
+JavaMap --> OptionalLike
 JavaMap --> MapLike
+JavaMap --> Optionals
 JavaMap --> HashMap
 JavaMap --> Map
-JavaMap --> OptionalLike
+class OptionalLike
+OptionalLike --> StreamLike
+OptionalLike --> Function
 class StringRule
 StringRule --> MapNode
 StringRule --> Node
 StringRule --> OptionalLike
+StringRule --> Optionals
 class JavaList
 JavaList --> JavaStream
 JavaList --> StreamLike
@@ -30,6 +35,7 @@ JavaList --> List
 class PrefixRule
 PrefixRule --> Node
 PrefixRule --> OptionalLike
+PrefixRule --> Optionals
 class StreamLike
 StreamLike --> Function
 StreamLike --> Collector
@@ -37,13 +43,13 @@ StreamLike --> Stream
 class MutableState
 MutableState --> ListLike
 MutableState --> Lists
-class OptionalLike
-OptionalLike --> StreamLike
-OptionalLike --> Optional
-OptionalLike --> Function
+class Optionals
+Optionals --> JavaOptional
+Optionals --> Optional
 class Main
 Main --> LastRule
 Main --> MutableState
+Main --> OptionalLike
 Main --> PrefixRule
 Main --> Rule
 Main --> State
@@ -59,18 +65,26 @@ Main --> Paths
 Main --> Set
 Main --> Collector
 Main --> Collectors
+class JavaOptional
+JavaOptional --> JavaStream
+JavaOptional --> OptionalLike
+JavaOptional --> StreamLike
+JavaOptional --> Optional
+JavaOptional --> Function
 class Lists
 Lists --> JavaList
 class MapNode
+MapNode --> OptionalLike
 MapNode --> MapLike
 MapNode --> Maps
-MapNode --> OptionalLike
 class LastRule
 LastRule --> Node
 LastRule --> OptionalLike
+LastRule --> Optionals
 class SuffixRule
 SuffixRule --> Node
 SuffixRule --> OptionalLike
+SuffixRule --> Optionals
 class MapLike
 MapLike --> OptionalLike
 class JavaStream
@@ -80,10 +94,5 @@ JavaStream --> Collector
 JavaStream --> Stream
 class State
 State --> ListLike
-class JavaOptional
-JavaOptional --> JavaStream
-JavaOptional --> StreamLike
-JavaOptional --> Optional
-JavaOptional --> Function
 
 @enduml

@@ -1,8 +1,9 @@
 package magma.app;
 
-import magma.OptionalLike;
 import magma.app.node.MapNode;
 import magma.app.node.Node;
+import magma.app.optional.OptionalLike;
+import magma.app.optional.Optionals;
 
 public record StringRule(String key) implements Rule {
     @Override
@@ -10,7 +11,7 @@ public record StringRule(String key) implements Rule {
         final var node = MapNode.empty()
                 .withString(this.key, input);
 
-        return OptionalLike.of(node);
+        return Optionals.of(node);
     }
 
     @Override

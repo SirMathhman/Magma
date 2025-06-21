@@ -1,14 +1,15 @@
 package magma.app;
 
-import magma.OptionalLike;
 import magma.app.node.Node;
+import magma.app.optional.OptionalLike;
+import magma.app.optional.Optionals;
 
 public record LastRule(Rule leftRule, String infix, Rule rightRule) implements Rule {
     @Override
     public OptionalLike<Node> lex(final String input) {
         final var separator = input.lastIndexOf(this.infix);
         if (0 > separator)
-            return OptionalLike.empty();
+            return Optionals.empty();
 
         final var infixLength = this.infix.length();
         final var destination = input.substring(separator + infixLength);

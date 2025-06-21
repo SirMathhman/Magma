@@ -1,6 +1,6 @@
 package magma.app.node;
 
-import magma.OptionalLike;
+import magma.app.optional.OptionalLike;
 
 public interface Node {
     Node withString(String key, String value);

@@ -10,6 +10,7 @@ import magma.app.StripRule;
 import magma.app.SuffixRule;
 import magma.app.list.ListLike;
 import magma.app.node.Node;
+import magma.app.optional.OptionalLike;
 
 import java.io.IOException;
 import java.nio.file.Files;
