@@ -71,9 +71,6 @@ class Optionals
 Optionals --> Optional
 class SetCollector
 SetCollector --> Collector
-class MutableDivideState
-MutableDivideState --> ListLike
-MutableDivideState --> Lists
 class Main
 Main --> ListLike
 Main --> SetCollector
@@ -116,9 +113,9 @@ MapNode --> Maps
 MapNode --> OptionalLike
 class Lists
 class IOError
-class Collector
 class DivideState
 DivideState --> ListLike
+class Collector
 class JavaMap
 JavaMap --> OptionalLike
 JavaMap --> Optionals
@@ -132,6 +129,9 @@ JavaOptional --> StreamLike
 JavaOptional --> Optional
 JavaOptional --> Consumer
 JavaOptional --> Function
+class MutableDivideState
+MutableDivideState --> ListLike
+MutableDivideState --> Lists
 class Rule
 Rule --> OptionalLike
 Rule --> Node

@@ -12,9 +12,9 @@ import magma.api.io.path.PathLikes;
 import magma.api.optional.OptionalLike;
 import magma.api.optional.Optionals;
 import magma.api.result.Result;
-import magma.app.compile.DivideState;
 import magma.app.compile.Lang;
-import magma.app.compile.MutableDivideState;
+import magma.app.compile.divide.DivideState;
+import magma.app.compile.divide.MutableDivideState;
 import magma.app.compile.node.Node;
 
 class Main {
