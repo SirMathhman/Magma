@@ -1,7 +1,7 @@
 package magma.app.rule;
 
 import magma.api.optional.OptionalLike;
-import magma.app.node.Node;
+import magma.app.Node;
 
 public interface Rule {
     OptionalLike<Node> lex(String input);

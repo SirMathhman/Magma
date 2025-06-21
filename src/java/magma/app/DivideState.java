@@ -1,4 +1,4 @@
-package magma.app.divide;
+package magma.app;
 
 import magma.api.collect.list.ListLike;
 

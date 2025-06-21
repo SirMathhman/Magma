@@ -1,9 +1,9 @@
 @startuml
 skinparam linetype ortho
-class Joiner
-Joiner --> Optional
 class Node
 Node --> OptionalLike
+class Joiner
+Joiner --> Optional
 class Maps
 class JavaIOError
 JavaIOError --> IOException
@@ -11,15 +11,17 @@ JavaIOError --> PrintWriter
 JavaIOError --> StringWriter
 class Result
 Result --> Function
+class DivideState
+DivideState --> ListLike
 class LastRule
-LastRule --> Node
 LastRule --> OptionalLike
 LastRule --> Optionals
+LastRule --> Node
 class JavaPath
-JavaPath --> IOError
-JavaPath --> JavaIOError
 JavaPath --> JavaStream
 JavaPath --> StreamLike
+JavaPath --> IOError
+JavaPath --> JavaIOError
 JavaPath --> OptionalLike
 JavaPath --> Optionals
 JavaPath --> Err
@@ -43,8 +45,8 @@ JavaList --> ArrayList
 JavaList --> List
 class Sets
 class PathLike
-PathLike --> IOError
 PathLike --> StreamLike
+PathLike --> IOError
 PathLike --> OptionalLike
 PathLike --> Result
 class PathLikes
@@ -53,26 +55,22 @@ class OptionalLike
 OptionalLike --> StreamLike
 OptionalLike --> Consumer
 OptionalLike --> Function
-class MapNode
-MapNode --> MapLike
-MapNode --> Maps
-MapNode --> OptionalLike
 class MapLike
 MapLike --> OptionalLike
 class Optionals
 Optionals --> Optional
-class DivideState
-DivideState --> ListLike
 class Main
-Main --> DivideState
-Main --> MutableDivideState
-Main --> IOError
 Main --> ListLike
-Main --> Node
-Main --> OptionalLike
-Main --> Optionals
+Main --> SetLike
+Main --> Joiner
+Main --> ResultCollector
+Main --> SetCollector
+Main --> StreamLike
+Main --> IOError
 Main --> PathLike
 Main --> PathLikes
+Main --> OptionalLike
+Main --> Optionals
 Main --> Result
 Main --> LastRule
 Main --> PrefixRule
@@ -80,14 +78,12 @@ Main --> Rule
 Main --> StringRule
 Main --> StripRule
 Main --> SuffixRule
-Main --> SetLike
-Main --> Joiner
-Main --> ResultCollector
-Main --> SetCollector
-Main --> StreamLike
 class Rule
-Rule --> Node
 Rule --> OptionalLike
+Rule --> Node
+class MutableDivideState
+MutableDivideState --> ListLike
+MutableDivideState --> Lists
 class ResultCollector
 ResultCollector --> Ok
 ResultCollector --> Result
@@ -95,26 +91,30 @@ class JavaStream
 JavaStream --> Function
 JavaStream --> Predicate
 JavaStream --> Stream
+class MapNode
+MapNode --> MapLike
+MapNode --> Maps
+MapNode --> OptionalLike
 class JavaSet
 JavaSet --> JavaStream
 JavaSet --> StreamLike
 JavaSet --> HashSet
 JavaSet --> Set
 class PrefixRule
-PrefixRule --> Node
 PrefixRule --> OptionalLike
 PrefixRule --> Optionals
+PrefixRule --> Node
 class StringRule
-StringRule --> MapNode
-StringRule --> Node
 StringRule --> OptionalLike
 StringRule --> Optionals
+StringRule --> MapNode
+StringRule --> Node
 class Lists
 class IOError
 class SuffixRule
-SuffixRule --> Node
 SuffixRule --> OptionalLike
 SuffixRule --> Optionals
+SuffixRule --> Node
 class Collector
 class JavaMap
 JavaMap --> OptionalLike
@@ -122,8 +122,8 @@ JavaMap --> Optionals
 JavaMap --> HashMap
 JavaMap --> Map
 class StripRule
-StripRule --> Node
 StripRule --> OptionalLike
+StripRule --> Node
 class SetLike
 SetLike --> StreamLike
 class SetCollector
@@ -135,9 +135,6 @@ JavaOptional --> StreamLike
 JavaOptional --> Optional
 JavaOptional --> Consumer
 JavaOptional --> Function
-class MutableDivideState
-MutableDivideState --> ListLike
-MutableDivideState --> Lists
 class Ok
 Ok --> Function
 
