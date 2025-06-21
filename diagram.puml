@@ -35,6 +35,13 @@ class MapNode
 MapNode --> MapLike
 MapNode --> Maps
 MapNode --> OptionalLike
+class PathSources
+PathSources --> SetCollector
+PathSources --> SetLike
+PathSources --> StreamLike
+PathSources --> IOError
+PathSources --> PathLike
+PathSources --> Result
 class LastRule
 LastRule --> OptionalLike
 LastRule --> Optionals
@@ -119,6 +126,11 @@ JavaOptional --> Consumer
 JavaOptional --> Function
 class DivideState
 DivideState --> ListLike
+class Sources
+Sources --> SetLike
+Sources --> IOError
+Sources --> PathLike
+Sources --> Result
 class IOError
 class SuffixRule
 SuffixRule --> OptionalLike
@@ -139,10 +151,8 @@ class Main
 Main --> Tuple
 Main --> MapCollector
 Main --> MapLike
-Main --> SetCollector
 Main --> SetLike
 Main --> ResultCollector
-Main --> StreamLike
 Main --> IOError
 Main --> PathLike
 Main --> PathLikes
@@ -151,6 +161,7 @@ Main --> Optionals
 Main --> Result
 Main --> Compiler
 Main --> Lang
+Main --> PathSources
 class ListLike
 ListLike --> StreamLike
 class Tuple

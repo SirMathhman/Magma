@@ -3,10 +3,8 @@ package magma.app;
 import magma.api.Tuple;
 import magma.api.collect.map.MapCollector;
 import magma.api.collect.map.MapLike;
-import magma.api.collect.set.SetCollector;
 import magma.api.collect.set.SetLike;
 import magma.api.collect.stream.ResultCollector;
-import magma.api.collect.stream.StreamLike;
 import magma.api.io.IOError;
 import magma.api.io.path.PathLike;
 import magma.api.io.path.PathLikes;
@@ -15,15 +13,16 @@ import magma.api.optional.Optionals;
 import magma.api.result.Result;
 import magma.app.compile.Compiler;
 import magma.app.compile.lang.Lang;
+import magma.app.io.PathSources;
+import magma.app.io.Sources;
 
 class Main {
     private Main() {
     }
 
     public static void main(final String[] args) {
-        final var sourceRoot = PathLikes.get(".", "src", "java");
-        sourceRoot.walk()
-                .mapValue(Main::filter)
+        final Sources sources = new PathSources(PathLikes.get(".", "src", "java"));
+        sources.collect()
                 .flatMapValue(Main::compileSources)
                 .match(Main::write, Optionals::of)
                 .ifPresent(error -> System.err.println(error.display()));
@@ -55,13 +54,5 @@ class Main {
 
         return source.readString()
                 .mapValue(input -> new Tuple<>(name, input));
-    }
-
-
-    private static SetLike<PathLike> filter(final StreamLike<PathLike> files) {
-        return files.filter(PathLike::isRegularFile)
-                .filter(path -> path.asString()
-                        .endsWith(".java"))
-                .collect(new SetCollector<>());
     }
 }
