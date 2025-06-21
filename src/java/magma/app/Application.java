@@ -1,7 +1,7 @@
 package magma.app;
 
-import magma.api.optional.OptionalLike;
+import magma.api.optional.Option;
 
 public interface Application {
-    OptionalLike<ApplicationError> run();
+    Option<ApplicationError> run();
 }

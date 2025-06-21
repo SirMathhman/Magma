@@ -4,7 +4,7 @@ import magma.api.collect.stream.JavaStream;
 import magma.api.collect.stream.StreamLike;
 import magma.api.io.IOError;
 import magma.api.io.JavaIOError;
-import magma.api.optional.OptionalLike;
+import magma.api.optional.Option;
 import magma.api.optional.Optionals;
 import magma.api.result.Err;
 import magma.api.result.Ok;
@@ -35,7 +35,7 @@ public record JavaPath(Path path) implements PathLike {
     }
 
     @Override
-    public OptionalLike<IOError> writeString(final String output) {
+    public Option<IOError> writeString(final String output) {
         try {
             Files.writeString(this.path, output);
             return Optionals.empty();

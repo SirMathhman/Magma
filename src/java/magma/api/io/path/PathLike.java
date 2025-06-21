@@ -2,7 +2,7 @@ package magma.api.io.path;
 
 import magma.api.collect.stream.StreamLike;
 import magma.api.io.IOError;
-import magma.api.optional.OptionalLike;
+import magma.api.optional.Option;
 import magma.api.result.Result;
 
 public interface PathLike {
@@ -10,7 +10,7 @@ public interface PathLike {
 
     Result<StreamLike<PathLike>, IOError> walk();
 
-    OptionalLike<IOError> writeString(String output);
+    Option<IOError> writeString(String output);
 
     PathLike getFileName();
 

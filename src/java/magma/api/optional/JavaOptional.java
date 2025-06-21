@@ -4,10 +4,10 @@ import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
-public record JavaOptional<T>(Optional<T> optional) implements OptionalLike<T> {
+public record JavaOptional<T>(Optional<T> optional) implements Option<T> {
 
     @Override
-    public <Return> OptionalLike<Return> map(final Function<T, Return> mapper) {
+    public <Return> Option<Return> map(final Function<T, Return> mapper) {
         return new JavaOptional<>(this.optional.map(mapper));
     }
 

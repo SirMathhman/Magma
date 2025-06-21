@@ -1,6 +1,6 @@
 package magma.api.result;
 
-import magma.api.optional.OptionalLike;
+import magma.api.optional.Option;
 import magma.api.optional.Optionals;
 
 import java.util.function.Function;
@@ -27,7 +27,7 @@ public record Ok<Value, Error>(Value value) implements Result<Value, Error> {
     }
 
     @Override
-    public OptionalLike<Value> findValue() {
+    public Option<Value> findValue() {
         return Optionals.of(this.value);
     }
 }

@@ -1,6 +1,6 @@
 package magma.api.result;
 
-import magma.api.optional.OptionalLike;
+import magma.api.optional.Option;
 
 import java.util.function.Function;
 
@@ -13,5 +13,5 @@ public interface Result<Value, Error> {
 
     <Return> Result<Value, Return> mapErr(Function<Error, Return> mapper);
 
-    OptionalLike<Value> findValue();
+    Option<Value> findValue();
 }

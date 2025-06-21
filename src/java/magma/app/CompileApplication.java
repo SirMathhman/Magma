@@ -1,6 +1,6 @@
 package magma.app;
 
-import magma.api.optional.OptionalLike;
+import magma.api.optional.Option;
 import magma.api.optional.Optionals;
 import magma.app.compile.Compiler;
 import magma.app.compile.lang.Lang;
@@ -10,20 +10,20 @@ import magma.app.io.target.Targets;
 
 public record CompileApplication(Sources sources, Targets targets) implements Application {
     @Override
-    public OptionalLike<ApplicationError> run() {
+    public Option<ApplicationError> run() {
         return this.sources.readSourceSet()
                 .mapErr(ApplicationError::new)
                 .mapValue(Compiler::compileEntries)
                 .match(this::writeResult, Optionals::of);
     }
 
-    private OptionalLike<ApplicationError> writeResult(final GenerateResult output) {
+    private Option<ApplicationError> writeResult(final GenerateResult output) {
         return output.toResult()
                 .mapErr(ApplicationError::new)
                 .match(this::write, Optionals::of);
     }
 
-    private OptionalLike<ApplicationError> write(final String output) {
+    private Option<ApplicationError> write(final String output) {
         return this.targets.write(String.join(Lang.SEPARATOR,
                         "@startuml",
                         "skinparam linetype ortho",
