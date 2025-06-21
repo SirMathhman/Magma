@@ -1,4 +1,4 @@
-package magma;
+package magma.set;
 
 public class Sets {
     public static <Value> SetLike<Value> empty() {

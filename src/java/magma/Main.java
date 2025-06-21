@@ -3,6 +3,7 @@ package magma;
 import magma.divide.DivideState;
 import magma.divide.MutableDivideState;
 import magma.result.Result;
+import magma.set.SetLike;
 
 class Main {
     private static final String SEPARATOR = System.lineSeparator();

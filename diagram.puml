@@ -43,6 +43,9 @@ JavaMap --> HashMap
 JavaMap --> Map
 class DivideState
 DivideState --> ListLike
+class SetLike
+SetLike --> StreamLike
+class Sets
 class JavaStream
 JavaStream --> Function
 JavaStream --> Predicate
@@ -50,21 +53,24 @@ JavaStream --> Stream
 class LastRule
 class Result
 Result --> Function
-class SetLike
-class Err
-Err --> Function
 class JavaSet
+JavaSet --> JavaStream
+JavaSet --> StreamLike
 JavaSet --> HashSet
 JavaSet --> Set
+class Err
+Err --> Function
 class SetCollector
+SetCollector --> SetLike
+SetCollector --> Sets
 class MapNode
-class Sets
 class PathLikes
 PathLikes --> Paths
 class Main
 Main --> DivideState
 Main --> MutableDivideState
 Main --> Result
+Main --> SetLike
 class MutableDivideState
 MutableDivideState --> ListLike
 MutableDivideState --> Lists

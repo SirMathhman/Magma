@@ -1,4 +1,7 @@
-package magma;
+package magma.set;
+
+import magma.JavaStream;
+import magma.StreamLike;
 
 import java.util.HashSet;
 import java.util.Set;

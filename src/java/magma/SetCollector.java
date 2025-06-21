@@ -1,5 +1,8 @@
 package magma;
 
+import magma.set.SetLike;
+import magma.set.Sets;
+
 public class SetCollector<Value> implements Collector<Value, SetLike<Value>> {
     @Override
     public SetLike<Value> createInitial() {
