@@ -9,10 +9,6 @@ JavaIOError --> PrintWriter
 JavaIOError --> StringWriter
 class Result
 Result --> Function
-class StripRule
-StripRule --> OptionalLike
-class DivideState
-DivideState --> ListLike
 class JavaPath
 JavaPath --> JavaStream
 JavaPath --> StreamLike
@@ -30,15 +26,19 @@ class StreamLike
 StreamLike --> Function
 StreamLike --> Predicate
 StreamLike --> Stream
-class Rule
-Rule --> OptionalLike
+class StringRule
+StringRule --> OptionalLike
+StringRule --> Optionals
+StringRule --> MapNode
+StringRule --> Node
+class PrefixRule
+PrefixRule --> OptionalLike
+PrefixRule --> Optionals
+PrefixRule --> Node
 class ListLike
 ListLike --> StreamLike
 class Err
 Err --> Function
-class StringRule
-StringRule --> OptionalLike
-StringRule --> Optionals
 class JavaList
 JavaList --> JavaStream
 JavaList --> StreamLike
@@ -50,17 +50,15 @@ PathLike --> StreamLike
 PathLike --> IOError
 PathLike --> OptionalLike
 PathLike --> Result
-class LastRule
-LastRule --> OptionalLike
-LastRule --> Optionals
-class PrefixRule
-PrefixRule --> OptionalLike
-PrefixRule --> Optionals
 class PathLikes
 PathLikes --> Paths
-class SuffixRule
-SuffixRule --> OptionalLike
-SuffixRule --> Optionals
+class Lang
+Lang --> LastRule
+Lang --> PrefixRule
+Lang --> Rule
+Lang --> StringRule
+Lang --> StripRule
+Lang --> SuffixRule
 class OptionalLike
 OptionalLike --> StreamLike
 OptionalLike --> Consumer
@@ -71,12 +69,15 @@ class Optionals
 Optionals --> Optional
 class SetCollector
 SetCollector --> Collector
+class MutableDivideState
+MutableDivideState --> ListLike
+MutableDivideState --> Lists
 class Main
 Main --> ListLike
+Main --> SetCollector
 Main --> SetLike
 Main --> Joiner
 Main --> ResultCollector
-Main --> SetCollector
 Main --> StreamLike
 Main --> IOError
 Main --> PathLike
@@ -84,16 +85,14 @@ Main --> PathLikes
 Main --> OptionalLike
 Main --> Optionals
 Main --> Result
-Main --> LastRule
+Main --> DivideState
+Main --> Lang
+Main --> MutableDivideState
 Main --> Node
-Main --> PrefixRule
-Main --> Rule
-Main --> StringRule
-Main --> StripRule
-Main --> SuffixRule
-class MutableDivideState
-MutableDivideState --> ListLike
-MutableDivideState --> Lists
+class LastRule
+LastRule --> OptionalLike
+LastRule --> Optionals
+LastRule --> Node
 class ResultCollector
 ResultCollector --> Ok
 ResultCollector --> Result
@@ -101,6 +100,9 @@ class JavaStream
 JavaStream --> Function
 JavaStream --> Predicate
 JavaStream --> Stream
+class StripRule
+StripRule --> OptionalLike
+StripRule --> Node
 class JavaSet
 JavaSet --> JavaStream
 JavaSet --> StreamLike
@@ -113,6 +115,8 @@ MapNode --> MapLike
 MapNode --> Maps
 MapNode --> OptionalLike
 class Collector
+class DivideState
+DivideState --> ListLike
 class JavaMap
 JavaMap --> OptionalLike
 JavaMap --> Optionals
@@ -126,8 +130,15 @@ JavaOptional --> StreamLike
 JavaOptional --> Optional
 JavaOptional --> Consumer
 JavaOptional --> Function
+class Rule
+Rule --> OptionalLike
+Rule --> Node
 class Node
 Node --> OptionalLike
+class SuffixRule
+SuffixRule --> OptionalLike
+SuffixRule --> Optionals
+SuffixRule --> Node
 class Ok
 Ok --> Function
 

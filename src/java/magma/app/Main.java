@@ -12,17 +12,12 @@ import magma.api.io.path.PathLikes;
 import magma.api.optional.OptionalLike;
 import magma.api.optional.Optionals;
 import magma.api.result.Result;
-import magma.app.compile.LastRule;
+import magma.app.compile.DivideState;
+import magma.app.compile.Lang;
+import magma.app.compile.MutableDivideState;
 import magma.app.compile.Node;
-import magma.app.compile.PrefixRule;
-import magma.app.compile.Rule;
-import magma.app.compile.StringRule;
-import magma.app.compile.StripRule;
-import magma.app.compile.SuffixRule;
 
 class Main {
-    private static final String SEPARATOR = System.lineSeparator();
-
     private Main() {
     }
 
@@ -37,7 +32,7 @@ class Main {
 
     private static OptionalLike<IOError> write(final String output) {
         final var target = PathLikes.get(".", "diagram.puml");
-        final var joined = String.join(Main.SEPARATOR, "@startuml", "skinparam linetype ortho", output, "@enduml");
+        final var joined = String.join(Lang.SEPARATOR, "@startuml", "skinparam linetype ortho", output, "@enduml");
         return target.writeString(joined);
     }
 
@@ -65,7 +60,7 @@ class Main {
         return source.readString()
                 .mapValue(input -> {
                     final var compiled = Main.compile(input, name);
-                    return "class " + name + Main.SEPARATOR + compiled;
+                    return "class " + name + Lang.SEPARATOR + compiled;
                 });
     }
 
@@ -79,23 +74,13 @@ class Main {
     }
 
     private static OptionalLike<String> compileRootSegment(final String input, final String name) {
-        return Main.createImportRule()
+        return Lang.createImportRule()
                 .lex(input)
                 .flatMap(node -> {
                     final Node withSource = node.withString("source", name);
-                    return Main.createDependencyRule()
+                    return Lang.createDependencyRule()
                             .generate(withSource);
                 });
-    }
-
-    private static Rule createImportRule() {
-        return new StripRule(new PrefixRule("import ",
-                new SuffixRule(new LastRule(new StringRule("parent"), ".", new StringRule("destination")), ";")));
-    }
-
-    private static Rule createDependencyRule() {
-        return new SuffixRule(new LastRule(new StringRule("source"), " --> ", new StringRule("destination")),
-                Main.SEPARATOR);
     }
 
     private static ListLike<String> divide(final CharSequence input) {

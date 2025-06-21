@@ -1,7 +1,8 @@
-package magma.app.compile;
+package magma.app.compile.rule;
 
 import magma.api.optional.OptionalLike;
 import magma.api.optional.Optionals;
+import magma.app.compile.Node;
 
 public record PrefixRule(String prefix, Rule rule) implements Rule {
     @Override

@@ -1,4 +1,4 @@
-package magma.app;
+package magma.app.compile;
 
 import magma.api.collect.list.ListLike;
 
