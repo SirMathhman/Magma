@@ -2,6 +2,7 @@ package magma;
 
 import magma.app.LastRule;
 import magma.app.MutableState;
+import magma.app.PrefixRule;
 import magma.app.State;
 import magma.app.StringRule;
 import magma.app.SuffixRule;
@@ -72,12 +73,8 @@ public class Main {
 
     private static Optional<String> compileRootSegment(final String segment, final String source) {
         final var strip = segment.strip();
-        if (!strip.startsWith("import "))
-            return Optional.empty();
-
-        final var prefixLength = "import ".length();
-        final var withoutPrefix = strip.substring(prefixLength);
-        return new SuffixRule(new LastRule(".", new StringRule("destination")), ";").lex(withoutPrefix)
+        return new PrefixRule("import ", new SuffixRule(new LastRule(".", new StringRule("destination")), ";")).lex(
+                        strip)
                 .flatMap(node -> Main.generate(node.withString("source", source)));
     }
 

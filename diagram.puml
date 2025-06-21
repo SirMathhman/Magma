@@ -11,6 +11,7 @@ Rule --> Optional
 class Main
 Main --> LastRule
 Main --> MutableState
+Main --> PrefixRule
 Main --> State
 Main --> StringRule
 Main --> SuffixRule
@@ -36,6 +37,9 @@ StringRule --> Optional
 class LastRule
 LastRule --> Node
 LastRule --> Optional
+class PrefixRule
+PrefixRule --> Node
+PrefixRule --> Optional
 class SuffixRule
 SuffixRule --> Node
 SuffixRule --> Optional
