@@ -1,6 +1,5 @@
 package magma;
 
-import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -13,7 +12,7 @@ class Main {
 
     public static void main(final String[] args) {
         final var sourceRoot = Paths.get(".", "src", "java");
-        Main.walk(sourceRoot)
+        new JavaPath(sourceRoot).walk()
                 .mapValue(Main::filter)
                 .flatMapValue(Main::compileSources)
                 .match(Main::write, Optionals::of)
@@ -23,16 +22,7 @@ class Main {
     private static OptionalLike<IOError> write(final String output) {
         final var target = Paths.get(".", "diagram.puml");
         final var joined = String.join(Main.SEPARATOR, "@startuml", "skinparam linetype ortho", output, "@enduml");
-        return Main.writeString(target, joined);
-    }
-
-    private static OptionalLike<IOError> writeString(final Path target, final String joined) {
-        try {
-            Files.writeString(target, joined);
-            return Optionals.empty();
-        } catch (final IOException e) {
-            return Optionals.of(new JavaIOError(e));
-        }
+        return new JavaPath(target).writeString(joined);
     }
 
     private static Result<String, IOError> compileSources(final SetLike<Path> sources) {
@@ -49,28 +39,18 @@ class Main {
                 .collect(new SetCollector<Path>());
     }
 
-    private static Result<StreamLike<Path>, IOError> walk(final Path sourceRoot) {
-        try {
-            return new Ok<>(new JavaStream<>(Files.walk(sourceRoot)));
-        } catch (final IOException e) {
-            return new Err<>(new JavaIOError(e));
-        }
-    }
-
     private static Result<String, IOError> compileSource(final Path source) {
-        try {
-            final var fileName = source.getFileName()
-                    .toString();
-            final var separator = fileName.lastIndexOf('.');
-            final var name = fileName.substring(0, separator);
+        final var fileName = source.getFileName()
+                .toString();
 
-            final var input = Files.readString(source);
+        final var separator = fileName.lastIndexOf('.');
+        final var name = fileName.substring(0, separator);
+
+        return new JavaPath(source).readString()
+                .mapValue(input -> {
             final var compiled = Main.compile(input, name);
-
-            return new Ok<>("class " + name + Main.SEPARATOR + compiled);
-        } catch (final IOException e) {
-            return new Err<>(new JavaIOError(e));
-        }
+                    return "class " + name + Main.SEPARATOR + compiled;
+                });
     }
 
     private static String compile(final CharSequence input, final String source) {

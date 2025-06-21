@@ -22,6 +22,10 @@ Joiner --> Optional
 class Rule
 class IOError
 class Lists
+class JavaPath
+JavaPath --> IOException
+JavaPath --> Files
+JavaPath --> Path
 class Node
 class Collector
 class OptionalLike
@@ -51,7 +55,6 @@ Err --> Function
 class MapNode
 class Sets
 class Main
-Main --> IOException
 Main --> Files
 Main --> Path
 Main --> Paths
