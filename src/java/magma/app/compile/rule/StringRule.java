@@ -9,7 +9,7 @@ import magma.app.compile.result.GenerateResult;
 import magma.app.compile.result.LexOk;
 import magma.app.compile.result.LexResult;
 
-public record StringRule(String key) implements Rule {
+public record StringRule(String key) implements Rule<Node> {
     @Override
     public LexResult lex(final String input) {
         final var node = MapNode.empty()

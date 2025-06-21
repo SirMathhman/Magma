@@ -6,7 +6,7 @@ import magma.app.compile.result.GenerateResult;
 import magma.app.compile.result.LexErr;
 import magma.app.compile.result.LexResult;
 
-public record LastRule(Rule leftRule, String infix, Rule rightRule) implements Rule {
+public record LastRule(Rule<Node> leftRule, String infix, Rule<Node> rightRule) implements Rule<Node> {
     @Override
     public LexResult lex(final String input) {
         final var separator = input.lastIndexOf(this.infix);

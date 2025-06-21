@@ -6,7 +6,7 @@ import magma.app.compile.result.GenerateResult;
 import magma.app.compile.result.LexErr;
 import magma.app.compile.result.LexResult;
 
-public record PrefixRule(String prefix, Rule rule) implements Rule {
+public record PrefixRule(String prefix, Rule<Node> rule) implements Rule<Node> {
     @Override
     public LexResult lex(final String input) {
         if (!input.startsWith(this.prefix))

@@ -27,7 +27,7 @@ LastRule --> GenerateResult
 LastRule --> LexErr
 LastRule --> LexResult
 class Result
-Result --> OptionalLike
+Result --> Option
 Result --> Function
 class LexErr
 LexErr --> Node
@@ -37,7 +37,7 @@ class Lists
 class PathLike
 PathLike --> StreamLike
 PathLike --> IOError
-PathLike --> OptionalLike
+PathLike --> Option
 PathLike --> Result
 class ResultCollector
 ResultCollector --> Ok
@@ -65,7 +65,6 @@ PathSource --> Result
 class PathLikes
 PathLikes --> Paths
 class StripRule
-StripRule --> Node
 StripRule --> GenerateResult
 StripRule --> LexResult
 class JavaList
@@ -74,6 +73,7 @@ JavaList --> StreamLike
 JavaList --> ArrayList
 JavaList --> List
 class Lang
+Lang --> Node
 Lang --> LastRule
 Lang --> PrefixRule
 Lang --> Rule
@@ -85,7 +85,7 @@ JavaPath --> JavaStream
 JavaPath --> StreamLike
 JavaPath --> IOError
 JavaPath --> JavaIOError
-JavaPath --> OptionalLike
+JavaPath --> Option
 JavaPath --> Optionals
 JavaPath --> Err
 JavaPath --> Ok
@@ -106,16 +106,18 @@ Sources --> Result
 class PathTargets
 PathTargets --> IOError
 PathTargets --> PathLike
-PathTargets --> OptionalLike
+PathTargets --> Option
+class Option
+Option --> Consumer
+Option --> Function
 class LexResult
 LexResult --> Node
 LexResult --> Function
 class Rule
-Rule --> Node
 Rule --> GenerateResult
 Rule --> LexResult
 class Application
-Application --> OptionalLike
+Application --> Option
 class StreamLike
 StreamLike --> Function
 StreamLike --> Predicate
@@ -133,7 +135,7 @@ JavaIOError --> IOException
 JavaIOError --> PrintWriter
 JavaIOError --> StringWriter
 class Err
-Err --> OptionalLike
+Err --> Option
 Err --> Optionals
 Err --> Function
 class MapNode
@@ -153,9 +155,6 @@ PathSources --> Result
 class Source
 Source --> IOError
 Source --> Result
-class OptionalLike
-OptionalLike --> Consumer
-OptionalLike --> Function
 class GenerateErr
 GenerateErr --> Err
 GenerateErr --> Result
@@ -188,12 +187,12 @@ class GenerateResultJoiner
 GenerateResultJoiner --> Collector
 class Targets
 Targets --> IOError
-Targets --> OptionalLike
+Targets --> Option
 class MutableDivideState
 MutableDivideState --> ListLike
 MutableDivideState --> Lists
 class CompileApplication
-CompileApplication --> OptionalLike
+CompileApplication --> Option
 CompileApplication --> Optionals
 CompileApplication --> Compiler
 CompileApplication --> Lang
@@ -208,7 +207,7 @@ SuffixRule --> GenerateResult
 SuffixRule --> LexErr
 SuffixRule --> LexResult
 class Ok
-Ok --> OptionalLike
+Ok --> Option
 Ok --> Optionals
 Ok --> Function
 class TupleImpl
