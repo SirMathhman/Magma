@@ -1,10 +1,10 @@
-package magma;
+package magma.state;
 
 import java.util.ArrayList;
 import java.util.List;
 
-record MutableState(List<String> segments, StringBuilder buffer) implements State {
-    MutableState() {
+public record MutableState(List<String> segments, StringBuilder buffer) implements State {
+    public MutableState() {
         this(new ArrayList<>(), new StringBuilder());
     }
 

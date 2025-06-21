@@ -1,10 +1,21 @@
 @startuml
 skinparam linetype ortho
+class MutableState
+MutableState --> ArrayList
+MutableState --> List
 class Main
+Main --> MutableState
+Main --> State
 Main --> IOException
 Main --> Files
+Main --> Path
 Main --> Paths
 Main --> List
 Main --> Optional
+Main --> Set
+Main --> Collector
+Main --> Collectors
+class State
+State --> List
 
 @enduml

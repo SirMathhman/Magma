@@ -1,10 +1,17 @@
 package magma;
 
+import magma.state.MutableState;
+import magma.state.State;
+
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collector;
+import java.util.stream.Collectors;
 
 public class Main {
     private static final String SEPARATOR = System.lineSeparator();
@@ -13,18 +20,34 @@ public class Main {
     }
 
     public static void main(final String[] args) {
-        try {
-            final var source = Paths.get(".", "src", "java", "magma", "Main.java");
-            final var input = Files.readString(source);
-            final var output = Main.compile(input);
+        final var sourceRoot = Paths.get(".", "src", "java");
+        try (final var files = Files.walk(sourceRoot)) {
+            final Collector<Path, ?, Set<Path>> toSet = Collectors.toSet();
+            final var sources = files.filter(Files::isRegularFile)
+                    .filter(path -> {
+                        final var pathAsString = path.toString();
+                        return pathAsString.endsWith(".java");
+                    })
+                    .collect(toSet);
+
+            final StringBuilder output = new StringBuilder();
+            for (final var source : sources) {
+                final var fileName = source.getFileName()
+                        .toString();
+                final var separator = fileName.lastIndexOf('.');
+                final var name = fileName.substring(0, separator);
+
+                final var input = Files.readString(source);
+                final var compiled = Main.compile(input, name);
+
+                output.append("class ")
+                        .append(name)
+                        .append(Main.SEPARATOR)
+                        .append(compiled);
+            }
 
             final var target = Paths.get(".", "diagram.puml");
-            final var joined = String.join(Main.SEPARATOR,
-                    "@startuml",
-                    "skinparam linetype ortho",
-                    "class Main",
-                    output,
-                    "@enduml");
+            final var joined = String.join(Main.SEPARATOR, "@startuml", "skinparam linetype ortho", output, "@enduml");
             Files.writeString(target, joined);
         } catch (final IOException e) {
             //noinspection CallToPrintStackTrace
@@ -32,18 +55,18 @@ public class Main {
         }
     }
 
-    private static String compile(final CharSequence input) {
+    private static String compile(final CharSequence input, final String source) {
         final var segments = Main.divide(input);
 
         final var outputBuilder = new StringBuilder();
         for (final var segment : segments)
-            Main.compileRootSegment(segment)
+            Main.compileRootSegment(segment, source)
                     .ifPresent(outputBuilder::append);
 
         return outputBuilder.toString();
     }
 
-    private static Optional<String> compileRootSegment(final String segment) {
+    private static Optional<String> compileRootSegment(final String segment, final String source) {
         final var strip = segment.strip();
         if (!strip.startsWith("import "))
             return Optional.empty();
@@ -63,8 +86,8 @@ public class Main {
             return Optional.empty();
 
         final var infixLength = ".".length();
-        final var name = withoutEnd.substring(separator + infixLength);
-        return Optional.of("Main --> " + name + Main.SEPARATOR);
+        final var destination = withoutEnd.substring(separator + infixLength);
+        return Optional.of(source + " --> " + destination + Main.SEPARATOR);
     }
 
     private static List<String> divide(final CharSequence input) {
