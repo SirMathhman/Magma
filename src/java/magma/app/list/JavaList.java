@@ -5,7 +5,7 @@ import java.util.List;
 import java.util.stream.Stream;
 
 record JavaList<Value>(List<Value> elements) implements ListLike<Value> {
-    public JavaList() {
+    JavaList() {
         this(new ArrayList<>());
     }
 
