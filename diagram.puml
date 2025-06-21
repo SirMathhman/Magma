@@ -1,22 +1,7 @@
 @startuml
 skinparam linetype ortho
-class StreamLike
-StreamLike --> Function
-StreamLike --> Predicate
-StreamLike --> Stream
-class StringRule
-StringRule --> OptionalLike
-StringRule --> Optionals
-StringRule --> MapNode
-StringRule --> Node
 class Optionals
 Optionals --> Optional
-class JavaIOError
-JavaIOError --> IOException
-JavaIOError --> PrintWriter
-JavaIOError --> StringWriter
-class Err
-Err --> Function
 class JavaMap
 JavaMap --> Tuple
 JavaMap --> TupleImpl
@@ -32,42 +17,19 @@ class JavaStream
 JavaStream --> Function
 JavaStream --> Predicate
 JavaStream --> Stream
-class MapNode
-MapNode --> MapLike
-MapNode --> Maps
-MapNode --> OptionalLike
-class PathSources
-PathSources --> SetCollector
-PathSources --> SetLike
-PathSources --> StreamLike
-PathSources --> IOError
-PathSources --> PathLike
-PathSources --> Result
-class Source
-Source --> IOError
-Source --> Result
 class LastRule
 LastRule --> OptionalLike
 LastRule --> Optionals
 LastRule --> Node
 class Result
 Result --> Function
-class OptionalLike
-OptionalLike --> StreamLike
-OptionalLike --> Consumer
-OptionalLike --> Function
 class Maps
 class Lists
-class Sets
 class PathLike
 PathLike --> StreamLike
 PathLike --> IOError
 PathLike --> OptionalLike
 PathLike --> Result
-class Collector
-class MapCollector
-MapCollector --> Tuple
-MapCollector --> Collector
 class ResultCollector
 ResultCollector --> Ok
 ResultCollector --> Result
@@ -83,16 +45,10 @@ Compiler --> OptionalLike
 Compiler --> Divider
 Compiler --> Lang
 Compiler --> Node
-class Joiner
-Joiner --> Optional
 class PathSource
 PathSource --> IOError
 PathSource --> PathLike
 PathSource --> Result
-class MapLike
-MapLike --> Tuple
-MapLike --> StreamLike
-MapLike --> OptionalLike
 class PathLikes
 PathLikes --> Paths
 class StripRule
@@ -123,9 +79,6 @@ JavaPath --> Result
 JavaPath --> IOException
 JavaPath --> Files
 JavaPath --> Path
-class MutableDivideState
-MutableDivideState --> ListLike
-MutableDivideState --> Lists
 class JavaOptional
 JavaOptional --> JavaStream
 JavaOptional --> StreamLike
@@ -138,16 +91,88 @@ class Sources
 Sources --> SetLike
 Sources --> IOError
 Sources --> Result
+class PathTargets
+PathTargets --> IOError
+PathTargets --> PathLike
+PathTargets --> OptionalLike
+class Rule
+Rule --> OptionalLike
+Rule --> Node
+class SetCollector
+SetCollector --> Collector
+class Application
+Application --> IOError
+Application --> OptionalLike
+class StringRule
+StringRule --> OptionalLike
+StringRule --> Optionals
+StringRule --> MapNode
+StringRule --> Node
+class StreamLike
+StreamLike --> Function
+StreamLike --> Predicate
+StreamLike --> Stream
+class JavaIOError
+JavaIOError --> IOException
+JavaIOError --> PrintWriter
+JavaIOError --> StringWriter
+class Err
+Err --> Function
+class MapNode
+MapNode --> MapLike
+MapNode --> Maps
+MapNode --> OptionalLike
+class PathSources
+PathSources --> SetCollector
+PathSources --> SetLike
+PathSources --> StreamLike
+PathSources --> IOError
+PathSources --> PathLike
+PathSources --> Result
+class Source
+Source --> IOError
+Source --> Result
+class OptionalLike
+OptionalLike --> StreamLike
+OptionalLike --> Consumer
+OptionalLike --> Function
+class Sets
+class Collector
+class MapCollector
+MapCollector --> Tuple
+MapCollector --> Collector
+class Joiner
+Joiner --> Optional
+class MapLike
+MapLike --> Tuple
+MapLike --> StreamLike
+MapLike --> OptionalLike
+class Targets
+Targets --> IOError
+Targets --> OptionalLike
+class MutableDivideState
+MutableDivideState --> ListLike
+MutableDivideState --> Lists
+class CompileApplication
+CompileApplication --> Tuple
+CompileApplication --> TupleImpl
+CompileApplication --> MapCollector
+CompileApplication --> SetLike
+CompileApplication --> ResultCollector
+CompileApplication --> IOError
+CompileApplication --> OptionalLike
+CompileApplication --> Optionals
+CompileApplication --> Result
+CompileApplication --> Compiler
+CompileApplication --> Lang
+CompileApplication --> Source
+CompileApplication --> Sources
+CompileApplication --> Targets
 class IOError
 class SuffixRule
 SuffixRule --> OptionalLike
 SuffixRule --> Optionals
 SuffixRule --> Node
-class SetCollector
-SetCollector --> Collector
-class Rule
-Rule --> OptionalLike
-Rule --> Node
 class SetLike
 SetLike --> StreamLike
 class Ok
@@ -155,26 +180,14 @@ Ok --> Function
 class TupleImpl
 class Divider
 Divider --> ListLike
-class Application
-Application --> Tuple
-Application --> TupleImpl
-Application --> MapCollector
-Application --> SetLike
-Application --> ResultCollector
-Application --> IOError
-Application --> PathLikes
-Application --> OptionalLike
-Application --> Optionals
-Application --> Result
-Application --> Compiler
-Application --> Lang
-Application --> Source
-Application --> Sources
 class Main
 Main --> PathLikes
 Main --> Application
+Main --> CompileApplication
 Main --> PathSources
+Main --> PathTargets
 Main --> Sources
+Main --> Targets
 class ListLike
 ListLike --> StreamLike
 class Tuple
