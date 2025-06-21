@@ -153,20 +153,25 @@ class Ok
 Ok --> Function
 class Divider
 Divider --> ListLike
+class Application
+Application --> Tuple
+Application --> MapCollector
+Application --> MapLike
+Application --> SetLike
+Application --> ResultCollector
+Application --> IOError
+Application --> PathLikes
+Application --> OptionalLike
+Application --> Optionals
+Application --> Result
+Application --> Compiler
+Application --> Lang
+Application --> Source
+Application --> Sources
 class Main
-Main --> Tuple
-Main --> MapCollector
-Main --> SetLike
-Main --> ResultCollector
-Main --> IOError
 Main --> PathLikes
-Main --> OptionalLike
-Main --> Optionals
-Main --> Result
-Main --> Compiler
-Main --> Lang
+Main --> Application
 Main --> PathSources
-Main --> Source
 Main --> Sources
 class ListLike
 ListLike --> StreamLike

@@ -11,20 +11,17 @@ import magma.api.optional.Optionals;
 import magma.api.result.Result;
 import magma.app.compile.Compiler;
 import magma.app.compile.lang.Lang;
-import magma.app.io.PathSources;
 import magma.app.io.Source;
 import magma.app.io.Sources;
 
-class Main {
-    private Main() {
+public class Application {
+    private Application() {
     }
 
-    public static void main(final String[] args) {
-        final Sources sources = new PathSources(PathLikes.get(".", "src", "java"));
-        sources.collect()
-                .flatMapValue(Main::compileSources)
-                .match(Main::write, Optionals::of)
-                .ifPresent(error -> System.err.println(error.display()));
+    public static OptionalLike<IOError> run(final Sources sources) {
+        return sources.collect()
+                .flatMapValue(Application::compileSources)
+                .match(Application::write, Optionals::of);
     }
 
     private static OptionalLike<IOError> write(final String output) {
@@ -35,7 +32,7 @@ class Main {
 
     private static Result<String, IOError> compileSources(final SetLike<Source> sources) {
         return sources.stream()
-                .map(Main::readSource)
+                .map(Application::readSource)
                 .collect(new ResultCollector<>(new MapCollector<>()))
                 .mapValue(Compiler::compileEntries);
     }
