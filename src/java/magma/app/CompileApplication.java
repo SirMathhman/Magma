@@ -1,6 +1,5 @@
 package magma.app;
 
-import magma.api.io.IOError;
 import magma.api.optional.OptionalLike;
 import magma.api.optional.Optionals;
 import magma.app.compile.Compiler;
@@ -10,20 +9,26 @@ import magma.app.io.source.Sources;
 import magma.app.io.target.Targets;
 
 public record CompileApplication(Sources sources, Targets targets) implements Application {
-
     @Override
-    public OptionalLike<IOError> run() {
+    public OptionalLike<ApplicationError> run() {
         return this.sources.readSourceSet()
+                .mapErr(ApplicationError::new)
                 .mapValue(Compiler::compileEntries)
-                .match((GenerateResult output) -> output.unwrap()
-                        .flatMap(this::write), Optionals::of);
+                .match(this::writeResult, Optionals::of);
     }
 
-    private OptionalLike<IOError> write(final String output) {
+    private OptionalLike<ApplicationError> writeResult(final GenerateResult output) {
+        return output.toResult()
+                .mapErr(ApplicationError::new)
+                .match(this::write, Optionals::of);
+    }
+
+    private OptionalLike<ApplicationError> write(final String output) {
         return this.targets.write(String.join(Lang.SEPARATOR,
-                "@startuml",
-                "skinparam linetype ortho",
-                output,
-                "@enduml"));
+                        "@startuml",
+                        "skinparam linetype ortho",
+                        output,
+                        "@enduml"))
+                .map(ApplicationError::new);
     }
 }

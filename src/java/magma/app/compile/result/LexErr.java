@@ -4,9 +4,9 @@ import magma.app.compile.node.Node;
 
 import java.util.function.Function;
 
-public record LexErr() implements LexResult {
+public record LexErr(CompileError error) implements LexResult {
     @Override
     public GenerateResult generate(final Function<Node, GenerateResult> mapper) {
-        return new GenerateErr();
+        return new GenerateErr(this.error);
     }
 }

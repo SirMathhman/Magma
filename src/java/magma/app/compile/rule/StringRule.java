@@ -2,6 +2,7 @@ package magma.app.compile.rule;
 
 import magma.app.compile.node.MapNode;
 import magma.app.compile.node.Node;
+import magma.app.compile.result.CompileError;
 import magma.app.compile.result.GenerateErr;
 import magma.app.compile.result.GenerateOk;
 import magma.app.compile.result.GenerateResult;
@@ -21,6 +22,7 @@ public record StringRule(String key) implements Rule {
     public GenerateResult generate(final Node node) {
         return node.findString(this.key)
                 .<GenerateResult>map(GenerateOk::new)
-                .orElseGet(GenerateErr::new);
+                .orElseGet(() -> new GenerateErr(new CompileError("String '" + this.key + "' not present",
+                        node.asString())));
     }
 }

@@ -1,6 +1,6 @@
 package magma.app.compile.result;
 
-import magma.api.optional.OptionalLike;
+import magma.api.result.Result;
 
 import java.util.function.Supplier;
 
@@ -9,7 +9,7 @@ public interface GenerateResult {
 
     GenerateResult prependSlice(String slice);
 
-    OptionalLike<String> unwrap();
+    Result<String, CompileError> toResult();
 
     GenerateResult appendSlice(String slice);
 }

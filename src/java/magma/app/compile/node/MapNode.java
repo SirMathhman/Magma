@@ -25,4 +25,9 @@ public final class MapNode implements Node {
     public OptionalLike<String> findString(final String key) {
         return this.strings.find(key);
     }
+
+    @Override
+    public String asString() {
+        return this.toString();
+    }
 }

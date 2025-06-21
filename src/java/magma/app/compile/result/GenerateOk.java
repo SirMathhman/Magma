@@ -1,7 +1,7 @@
 package magma.app.compile.result;
 
-import magma.api.optional.OptionalLike;
-import magma.api.optional.Optionals;
+import magma.api.result.Ok;
+import magma.api.result.Result;
 
 import java.util.function.Supplier;
 
@@ -18,8 +18,8 @@ public record GenerateOk(String value) implements GenerateResult {
     }
 
     @Override
-    public OptionalLike<String> unwrap() {
-        return Optionals.of(this.value);
+    public Result<String, CompileError> toResult() {
+        return new Ok<>(this.value);
     }
 
     @Override

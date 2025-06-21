@@ -1,11 +1,11 @@
 package magma.app.compile.result;
 
-import magma.api.optional.OptionalLike;
-import magma.api.optional.Optionals;
+import magma.api.result.Err;
+import magma.api.result.Result;
 
 import java.util.function.Supplier;
 
-public record GenerateErr() implements GenerateResult {
+public record GenerateErr(CompileError error) implements GenerateResult {
     @Override
     public GenerateResult appendResult(final Supplier<GenerateResult> other) {
         return this;
@@ -17,8 +17,8 @@ public record GenerateErr() implements GenerateResult {
     }
 
     @Override
-    public OptionalLike<String> unwrap() {
-        return Optionals.empty();
+    public Result<String, CompileError> toResult() {
+        return new Err<>(this.error);
     }
 
     @Override

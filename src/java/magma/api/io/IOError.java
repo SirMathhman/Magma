@@ -1,5 +1,4 @@
 package magma.api.io;
 
-public interface IOError {
-    String display();
+public interface IOError extends Error {
 }

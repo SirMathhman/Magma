@@ -17,4 +17,9 @@ public record Ok<Value, Error>(Value value) implements Result<Value, Error> {
     public <Return> Return match(final Function<Value, Return> whenOk, final Function<Error, Return> whenErr) {
         return whenOk.apply(this.value);
     }
+
+    @Override
+    public <Return> Result<Value, Return> mapErr(final Function<Error, Return> mapper) {
+        return new Ok<>(this.value);
+    }
 }
