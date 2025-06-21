@@ -2,7 +2,8 @@ package magma.app;
 
 import java.util.Optional;
 
-public record LastRule(String infix, StringRule child) {
+public record LastRule(String infix, Rule child) implements Rule {
+    @Override
     public Optional<Node> lex(final String input) {
         final var separator = input.lastIndexOf(this.infix);
         if (0 > separator)
