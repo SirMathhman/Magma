@@ -1,11 +1,12 @@
 @startuml
 skinparam linetype ortho
-class Node
-Node --> Optional
 class MutableState
 MutableState --> ArrayList
 MutableState --> List
+class Node
+Node --> Optional
 class Rule
+Rule --> Node
 Rule --> Optional
 class Main
 Main --> LastRule
@@ -22,15 +23,18 @@ Main --> Optional
 Main --> Set
 Main --> Collector
 Main --> Collectors
-class StringRule
-StringRule --> Optional
-class LastRule
-LastRule --> Optional
 class MapNode
 MapNode --> Collections
 MapNode --> HashMap
 MapNode --> Map
 MapNode --> Optional
+class StringRule
+StringRule --> MapNode
+StringRule --> Node
+StringRule --> Optional
+class LastRule
+LastRule --> Node
+LastRule --> Optional
 class State
 State --> List
 

@@ -2,9 +2,9 @@ package magma;
 
 import magma.app.LastRule;
 import magma.app.MutableState;
-import magma.app.Node;
 import magma.app.State;
 import magma.app.StringRule;
+import magma.app.node.Node;
 
 import java.io.IOException;
 import java.nio.file.Files;
