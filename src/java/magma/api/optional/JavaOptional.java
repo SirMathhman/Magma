@@ -34,4 +34,9 @@ public record JavaOptional<T>(Optional<T> optional) implements OptionalLike<T> {
     public T orElseGet(final Supplier<T> supplier) {
         return this.optional.orElseGet(supplier);
     }
+
+    @Override
+    public T orElse(final T other) {
+        return this.optional.orElse(other);
+    }
 }

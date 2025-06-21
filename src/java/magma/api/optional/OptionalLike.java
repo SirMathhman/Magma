@@ -16,4 +16,6 @@ public interface OptionalLike<Value> {
     void ifPresent(Consumer<Value> consumer);
 
     Value orElseGet(Supplier<Value> supplier);
+
+    Value orElse(Value other);
 }

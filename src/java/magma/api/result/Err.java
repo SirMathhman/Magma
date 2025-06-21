@@ -1,5 +1,8 @@
 package magma.api.result;
 
+import magma.api.optional.OptionalLike;
+import magma.api.optional.Optionals;
+
 import java.util.function.Function;
 
 public record Err<Value, Error>(Error error) implements Result<Value, Error> {
@@ -21,5 +24,10 @@ public record Err<Value, Error>(Error error) implements Result<Value, Error> {
     @Override
     public <Return> Result<Value, Return> mapErr(final Function<Error, Return> mapper) {
         return new Err<>(mapper.apply(this.error));
+    }
+
+    @Override
+    public OptionalLike<Value> findValue() {
+        return Optionals.empty();
     }
 }
