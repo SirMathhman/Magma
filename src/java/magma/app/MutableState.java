@@ -1,10 +1,11 @@
 package magma.app;
 
 import magma.app.list.ListLike;
+import magma.app.list.Lists;
 
 public record MutableState(ListLike<String> segments, StringBuilder buffer) implements State {
     public MutableState() {
-        this(ListLike.empty(), new StringBuilder());
+        this(Lists.empty(), new StringBuilder());
     }
 
     @Override

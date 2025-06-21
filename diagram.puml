@@ -7,10 +7,6 @@ Node --> Optional
 class StripRule
 StripRule --> Node
 StripRule --> Optional
-class JavaList
-JavaList --> ArrayList
-JavaList --> List
-JavaList --> Stream
 class Rule
 Rule --> Node
 Rule --> Optional
@@ -23,9 +19,14 @@ PrefixRule --> Node
 PrefixRule --> Optional
 class MutableState
 MutableState --> ListLike
+MutableState --> Lists
+class JavaList
+JavaList --> ListLike
+JavaList --> ArrayList
+JavaList --> List
+JavaList --> Stream
 class Main
 Main --> LastRule
-Main --> ListLike
 Main --> MutableState
 Main --> PrefixRule
 Main --> Rule
@@ -33,6 +34,7 @@ Main --> State
 Main --> StringRule
 Main --> StripRule
 Main --> SuffixRule
+Main --> ListLike
 Main --> Node
 Main --> IOException
 Main --> Files
@@ -42,6 +44,8 @@ Main --> Optional
 Main --> Set
 Main --> Collector
 Main --> Collectors
+class Lists
+Lists --> JavaList
 class MapNode
 MapNode --> Collections
 MapNode --> HashMap
