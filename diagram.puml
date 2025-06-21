@@ -66,12 +66,10 @@ PrefixRule --> Optionals
 PrefixRule --> Node
 class Compiler
 Compiler --> Tuple
-Compiler --> ListLike
 Compiler --> MapLike
 Compiler --> Joiner
 Compiler --> OptionalLike
-Compiler --> DivideState
-Compiler --> MutableDivideState
+Compiler --> Divider
 Compiler --> Lang
 Compiler --> Node
 class Joiner
@@ -135,6 +133,8 @@ class SetLike
 SetLike --> StreamLike
 class Ok
 Ok --> Function
+class Divider
+Divider --> ListLike
 class Main
 Main --> Tuple
 Main --> MapCollector
