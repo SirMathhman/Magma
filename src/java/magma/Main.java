@@ -3,8 +3,10 @@ package magma;
 import magma.app.LastRule;
 import magma.app.MutableState;
 import magma.app.PrefixRule;
+import magma.app.Rule;
 import magma.app.State;
 import magma.app.StringRule;
+import magma.app.StripRule;
 import magma.app.SuffixRule;
 import magma.app.node.Node;
 
@@ -65,17 +67,17 @@ public class Main {
 
         final var outputBuilder = new StringBuilder();
         for (final var segment : segments)
-            Main.compileRootSegment(segment, source)
+            Main.createImportRule()
+                    .lex(segment)
+                    .flatMap(node -> Main.generate(node.withString("source", source)))
                     .ifPresent(outputBuilder::append);
 
         return outputBuilder.toString();
     }
 
-    private static Optional<String> compileRootSegment(final String segment, final String source) {
-        final var strip = segment.strip();
-        return new PrefixRule("import ", new SuffixRule(new LastRule(".", new StringRule("destination")), ";")).lex(
-                        strip)
-                .flatMap(node -> Main.generate(node.withString("source", source)));
+    private static Rule createImportRule() {
+        return new StripRule(new PrefixRule("import ",
+                new SuffixRule(new LastRule(".", new StringRule("destination")), ";")));
     }
 
     private static Optional<String> generate(final Node node) {

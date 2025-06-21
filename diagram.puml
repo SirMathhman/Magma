@@ -5,6 +5,9 @@ MutableState --> ArrayList
 MutableState --> List
 class Node
 Node --> Optional
+class StripRule
+StripRule --> Node
+StripRule --> Optional
 class Rule
 Rule --> Node
 Rule --> Optional
@@ -12,8 +15,10 @@ class Main
 Main --> LastRule
 Main --> MutableState
 Main --> PrefixRule
+Main --> Rule
 Main --> State
 Main --> StringRule
+Main --> StripRule
 Main --> SuffixRule
 Main --> Node
 Main --> IOException
