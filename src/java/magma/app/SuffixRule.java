@@ -15,4 +15,10 @@ public record SuffixRule(Rule child, String suffix) implements Rule {
         final var slice = input.substring(0, inputLength - suffixLength);
         return this.child.lex(slice);
     }
+
+    @Override
+    public Optional<String> generate(final Node node) {
+        return this.child.generate(node)
+                .map(result -> result + this.suffix);
+    }
 }

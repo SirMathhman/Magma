@@ -13,4 +13,9 @@ public record StringRule(String key) implements Rule {
 
         return Optional.of(node);
     }
+
+    @Override
+    public Optional<String> generate(final Node node) {
+        return node.findString(this.key);
+    }
 }

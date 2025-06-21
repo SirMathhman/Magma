@@ -10,4 +10,9 @@ public record StripRule(Rule rule) implements Rule {
         final var strip = input.strip();
         return this.rule.lex(strip);
     }
+
+    @Override
+    public Optional<String> generate(final Node node) {
+        return this.rule.generate(node);
+    }
 }

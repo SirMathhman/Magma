@@ -15,7 +15,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
-import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collector;
 import java.util.stream.Collectors;
@@ -69,7 +68,11 @@ public class Main {
         for (final var segment : segments)
             Main.createImportRule()
                     .lex(segment)
-                    .flatMap(node -> Main.generate(node.withString("source", source)))
+                    .flatMap(node -> {
+                        final Node node1 = node.withString("source", source);
+                        return Main.createDependencyRule()
+                                .generate(node1);
+                    })
                     .ifPresent(outputBuilder::append);
 
         return outputBuilder.toString();
@@ -77,15 +80,12 @@ public class Main {
 
     private static Rule createImportRule() {
         return new StripRule(new PrefixRule("import ",
-                new SuffixRule(new LastRule(".", new StringRule("destination")), ";")));
+                new SuffixRule(new LastRule(new StringRule("parent"), ".", new StringRule("destination")), ";")));
     }
 
-    private static Optional<String> generate(final Node node) {
-        final var source = node.findString("source")
-                .orElse("");
-        final var destination = node.findString("destination")
-                .orElse("");
-        return Optional.of(source + " --> " + destination + Main.SEPARATOR);
+    private static Rule createDependencyRule() {
+        return new SuffixRule(new LastRule(new StringRule("source"), " --> ", new StringRule("destination")),
+                Main.SEPARATOR);
     }
 
     private static List<String> divide(final CharSequence input) {
