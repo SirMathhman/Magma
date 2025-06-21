@@ -7,9 +7,16 @@ Node --> Optional
 class StripRule
 StripRule --> Node
 StripRule --> Optional
+class Maps
+Maps --> JavaMap
 class Rule
 Rule --> Node
 Rule --> Optional
+class JavaMap
+JavaMap --> MapLike
+JavaMap --> HashMap
+JavaMap --> Map
+JavaMap --> Optional
 class StringRule
 StringRule --> MapNode
 StringRule --> Node
@@ -52,9 +59,8 @@ Main --> Collectors
 class Lists
 Lists --> JavaList
 class MapNode
-MapNode --> Collections
-MapNode --> HashMap
-MapNode --> Map
+MapNode --> MapLike
+MapNode --> Maps
 MapNode --> Optional
 class LastRule
 LastRule --> Node
@@ -62,6 +68,8 @@ LastRule --> Optional
 class SuffixRule
 SuffixRule --> Node
 SuffixRule --> Optional
+class MapLike
+MapLike --> Optional
 class JavaStream
 JavaStream --> StreamLike
 JavaStream --> Function
