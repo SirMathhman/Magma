@@ -1,10 +1,10 @@
 package magma.app;
 
 import magma.api.collect.list.ListLike;
+import magma.api.collect.set.SetCollector;
 import magma.api.collect.set.SetLike;
 import magma.api.collect.stream.Joiner;
 import magma.api.collect.stream.ResultCollector;
-import magma.api.collect.stream.SetCollector;
 import magma.api.collect.stream.StreamLike;
 import magma.api.io.IOError;
 import magma.api.io.path.PathLike;
@@ -12,12 +12,13 @@ import magma.api.io.path.PathLikes;
 import magma.api.optional.OptionalLike;
 import magma.api.optional.Optionals;
 import magma.api.result.Result;
-import magma.app.rule.LastRule;
-import magma.app.rule.PrefixRule;
-import magma.app.rule.Rule;
-import magma.app.rule.StringRule;
-import magma.app.rule.StripRule;
-import magma.app.rule.SuffixRule;
+import magma.app.compile.LastRule;
+import magma.app.compile.Node;
+import magma.app.compile.PrefixRule;
+import magma.app.compile.Rule;
+import magma.app.compile.StringRule;
+import magma.app.compile.StripRule;
+import magma.app.compile.SuffixRule;
 
 class Main {
     private static final String SEPARATOR = System.lineSeparator();

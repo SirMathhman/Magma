@@ -1,7 +1,6 @@
-package magma.api.collect.stream;
+package magma.api.collect.set;
 
-import magma.api.collect.set.SetLike;
-import magma.api.collect.set.Sets;
+import magma.api.collect.stream.Collector;
 
 public class SetCollector<Value> implements Collector<Value, SetLike<Value>> {
     @Override
