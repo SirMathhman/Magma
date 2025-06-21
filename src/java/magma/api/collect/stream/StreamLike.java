@@ -7,8 +7,6 @@ import java.util.stream.Stream;
 public interface StreamLike<Value> {
     <Return> StreamLike<Return> map(Function<Value, Return> mapper);
 
-    <Return> StreamLike<Return> flatMap(Function<Value, StreamLike<Return>> mapper);
-
     <Collection> Collection collect(Collector<? super Value, Collection> collector);
 
     Stream<Value> unwrap();
