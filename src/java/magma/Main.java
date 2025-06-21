@@ -5,8 +5,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Set;
-import java.util.stream.Collector;
-import java.util.stream.Collectors;
 
 class Main {
     private static final String SEPARATOR = System.lineSeparator();
@@ -16,8 +14,9 @@ class Main {
 
     public static void main(final String[] args) {
         final var sourceRoot = Paths.get(".", "src", "java");
-        try (final var files = Files.walk(sourceRoot)) {
-            final Collector<Path, ?, Set<Path>> toSet = Collectors.toSet();
+        try {
+            final var files = new JavaStream<>(Files.walk(sourceRoot));
+            final Collector<Path, Set<Path>> toSet = new SetCollector<>();
             final var sources = files.filter(Files::isRegularFile)
                     .filter(path -> {
                         final var pathAsString = path.toString();
@@ -55,7 +54,8 @@ class Main {
                 .stream()
                 .map(segment -> Main.compileRootSegment(segment, source))
                 .flatMap(OptionalLike::stream)
-                .collect(Collectors.joining());
+                .collect(new Joiner())
+                .orElse("");
     }
 
     private static OptionalLike<String> compileRootSegment(final String input, final String name) {

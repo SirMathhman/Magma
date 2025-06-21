@@ -1,44 +1,49 @@
 @startuml
 skinparam linetype ortho
-class JavaStream
-JavaStream --> Function
-JavaStream --> Collector
-JavaStream --> Stream
 class MapLike
 class SuffixRule
-class LastRule
 class JavaList
 JavaList --> ArrayList
 JavaList --> List
 class MutableState
 class StreamLike
 StreamLike --> Function
-StreamLike --> Collector
+StreamLike --> Predicate
 StreamLike --> Stream
 class PrefixRule
 class StringRule
 class StripRule
+class Joiner
+Joiner --> Optional
 class Rule
-class MapNode
 class Lists
 class Node
+class Collector
 class OptionalLike
 OptionalLike --> Function
+class State
+class JavaMap
+JavaMap --> HashMap
+JavaMap --> Map
+class JavaStream
+JavaStream --> Function
+JavaStream --> Predicate
+JavaStream --> Stream
+class LastRule
+class SetCollector
+SetCollector --> HashSet
+SetCollector --> Set
+class MapNode
 class Main
 Main --> IOException
 Main --> Files
 Main --> Path
 Main --> Paths
 Main --> Set
-Main --> Collector
 Main --> Collectors
-class State
 class Optionals
 Optionals --> Optional
 class Maps
-class JavaMap
-JavaMap --> HashMap
-JavaMap --> Map
 class ListLike
 class JavaOptional
 JavaOptional --> Optional
