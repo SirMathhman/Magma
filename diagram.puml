@@ -97,7 +97,6 @@ class JavaOptional
 JavaOptional --> Optional
 JavaOptional --> Consumer
 JavaOptional --> Function
-JavaOptional --> Supplier
 class DivideState
 DivideState --> ListLike
 class Sources
@@ -120,7 +119,6 @@ Application --> OptionalLike
 class StreamLike
 StreamLike --> Function
 StreamLike --> Predicate
-StreamLike --> Stream
 class StringRule
 StringRule --> MapNode
 StringRule --> Node
@@ -158,7 +156,6 @@ Source --> Result
 class OptionalLike
 OptionalLike --> Consumer
 OptionalLike --> Function
-OptionalLike --> Supplier
 class GenerateErr
 GenerateErr --> Err
 GenerateErr --> Result

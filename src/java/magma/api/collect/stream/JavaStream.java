@@ -16,11 +16,6 @@ public record JavaStream<Value>(Stream<Value> stream) implements StreamLike<Valu
     }
 
     @Override
-    public Stream<Value> unwrap() {
-        return this.stream;
-    }
-
-    @Override
     public StreamLike<Value> filter(final Predicate<Value> filter) {
         return new JavaStream<>(this.stream.filter(filter));
     }
