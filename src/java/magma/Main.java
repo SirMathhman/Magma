@@ -5,7 +5,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
-
 class Main {
     private static final String SEPARATOR = System.lineSeparator();
 
@@ -18,46 +17,47 @@ class Main {
                 .mapValue(Main::filter)
                 .flatMapValue(Main::compileSources)
                 .match(Main::write, Optionals::of)
-                .ifPresent(Throwable::printStackTrace);
+                .ifPresent(error -> System.err.println(error.display()));
     }
 
-    private static OptionalLike<IOException> write(final String output) {
+    private static OptionalLike<IOError> write(final String output) {
+        final var target = Paths.get(".", "diagram.puml");
+        final var joined = String.join(Main.SEPARATOR, "@startuml", "skinparam linetype ortho", output, "@enduml");
+        return Main.writeString(target, joined);
+    }
+
+    private static OptionalLike<IOError> writeString(final Path target, final String joined) {
         try {
-            final var target = Paths.get(".", "diagram.puml");
-            final var joined = String.join(Main.SEPARATOR, "@startuml", "skinparam linetype ortho", output, "@enduml");
             Files.writeString(target, joined);
             return Optionals.empty();
         } catch (final IOException e) {
-            return Optionals.of(e);
+            return Optionals.of(new JavaIOError(e));
         }
     }
 
-    private static Result<String, IOException> compileSources(final SetLike<Path> sources) {
+    private static Result<String, IOError> compileSources(final SetLike<Path> sources) {
         return sources.stream()
                 .map(Main::compileSource)
                 .collect(new ResultCollector<>(new Joiner()))
                 .mapValue(value -> value.orElse(""));
     }
 
-    private static SetLike<Path> filter(final JavaStream<Path> files) {
-        final Collector<Path, SetLike<Path>> toSet = new SetCollector<>();
+    private static SetLike<Path> filter(final StreamLike<Path> files) {
         return files.filter(Files::isRegularFile)
-                .filter(path -> {
-                    final var pathAsString = path.toString();
-                    return pathAsString.endsWith(".java");
-                })
-                .collect(toSet);
+                .filter(path -> path.toString()
+                        .endsWith(".java"))
+                .collect(new SetCollector<Path>());
     }
 
-    private static Result<JavaStream<Path>, IOException> walk(final Path sourceRoot) {
+    private static Result<StreamLike<Path>, IOError> walk(final Path sourceRoot) {
         try {
             return new Ok<>(new JavaStream<>(Files.walk(sourceRoot)));
         } catch (final IOException e) {
-            return new Err<>(e);
+            return new Err<>(new JavaIOError(e));
         }
     }
 
-    private static Result<String, IOException> compileSource(final Path source) {
+    private static Result<String, IOError> compileSource(final Path source) {
         try {
             final var fileName = source.getFileName()
                     .toString();
@@ -69,7 +69,7 @@ class Main {
 
             return new Ok<>("class " + name + Main.SEPARATOR + compiled);
         } catch (final IOException e) {
-            return new Err<>(e);
+            return new Err<>(new JavaIOError(e));
         }
     }
 

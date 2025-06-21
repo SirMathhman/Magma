@@ -2,6 +2,10 @@
 skinparam linetype ortho
 class MapLike
 class SuffixRule
+class JavaIOError
+JavaIOError --> IOException
+JavaIOError --> PrintWriter
+JavaIOError --> StringWriter
 class JavaList
 JavaList --> ArrayList
 JavaList --> List
@@ -16,6 +20,7 @@ class StripRule
 class Joiner
 Joiner --> Optional
 class Rule
+class IOError
 class Lists
 class Node
 class Collector
