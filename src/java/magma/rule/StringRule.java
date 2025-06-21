@@ -1,4 +1,9 @@
-package magma;
+package magma.rule;
+
+import magma.MapNode;
+import magma.Node;
+import magma.OptionalLike;
+import magma.Optionals;
 
 public record StringRule(String key) implements Rule {
     @Override

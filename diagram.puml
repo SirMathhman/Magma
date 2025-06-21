@@ -1,7 +1,13 @@
 @startuml
 skinparam linetype ortho
+class PrefixRule
+PrefixRule --> Node
+PrefixRule --> OptionalLike
+PrefixRule --> Optionals
 class MapLike
-class SuffixRule
+class StripRule
+StripRule --> Node
+StripRule --> OptionalLike
 class JavaIOError
 JavaIOError --> IOException
 JavaIOError --> PrintWriter
@@ -9,18 +15,19 @@ JavaIOError --> StringWriter
 class JavaList
 JavaList --> ArrayList
 JavaList --> List
+class StringRule
+StringRule --> MapNode
+StringRule --> Node
+StringRule --> OptionalLike
+StringRule --> Optionals
 class StreamLike
 StreamLike --> Function
 StreamLike --> Predicate
 StreamLike --> Stream
-class PrefixRule
 class PathLike
 PathLike --> Result
-class StringRule
-class StripRule
 class Joiner
 Joiner --> Optional
-class Rule
 class IOError
 class Lists
 class JavaPath
@@ -31,6 +38,10 @@ JavaPath --> IOException
 JavaPath --> Files
 JavaPath --> Path
 class Node
+class SuffixRule
+SuffixRule --> Node
+SuffixRule --> OptionalLike
+SuffixRule --> Optionals
 class Collector
 class OptionalLike
 OptionalLike --> Consumer
@@ -51,6 +62,9 @@ JavaStream --> Function
 JavaStream --> Predicate
 JavaStream --> Stream
 class LastRule
+LastRule --> Node
+LastRule --> OptionalLike
+LastRule --> Optionals
 class Result
 Result --> Function
 class JavaSet
@@ -66,10 +80,19 @@ SetCollector --> Sets
 class MapNode
 class PathLikes
 PathLikes --> Paths
+class Rule
+Rule --> Node
+Rule --> OptionalLike
 class Main
 Main --> DivideState
 Main --> MutableDivideState
 Main --> Result
+Main --> LastRule
+Main --> PrefixRule
+Main --> Rule
+Main --> StringRule
+Main --> StripRule
+Main --> SuffixRule
 Main --> SetLike
 class MutableDivideState
 MutableDivideState --> ListLike

@@ -3,6 +3,12 @@ package magma;
 import magma.divide.DivideState;
 import magma.divide.MutableDivideState;
 import magma.result.Result;
+import magma.rule.LastRule;
+import magma.rule.PrefixRule;
+import magma.rule.Rule;
+import magma.rule.StringRule;
+import magma.rule.StripRule;
+import magma.rule.SuffixRule;
 import magma.set.SetLike;
 
 class Main {

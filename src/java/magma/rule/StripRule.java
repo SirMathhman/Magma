@@ -1,4 +1,7 @@
-package magma;
+package magma.rule;
+
+import magma.Node;
+import magma.OptionalLike;
 
 public record StripRule(Rule rule) implements Rule {
     @Override
