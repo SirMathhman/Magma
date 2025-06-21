@@ -85,9 +85,7 @@ public class Main {
         final var withoutEnd = withoutPrefix.substring(0, inputLength - suffixLength);
 
         return new LastRule(".", new StringRule("destination")).lex(withoutEnd)
-                .flatMap(node -> {
-                    return Main.generate(node.withString("source", source));
-                });
+                .flatMap(node -> Main.generate(node.withString("source", source)));
     }
 
     private static Optional<String> generate(final Node node) {
