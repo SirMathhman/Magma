@@ -1,4 +1,7 @@
 package magma.api;
 
-public record Tuple<Left, Right>(Left left, Right right) {
+public interface Tuple<Left, Right> {
+    Left left();
+
+    Right right();
 }

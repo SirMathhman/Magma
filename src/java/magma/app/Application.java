@@ -1,6 +1,7 @@
 package magma.app;
 
 import magma.api.Tuple;
+import magma.api.TupleImpl;
 import magma.api.collect.map.MapCollector;
 import magma.api.collect.set.SetLike;
 import magma.api.collect.stream.ResultCollector;
@@ -40,6 +41,6 @@ public class Application {
     private static Result<Tuple<String, String>, IOError> readSource(final Source source) {
         final var name = source.computeName();
         return source.read()
-                .mapValue(input -> new Tuple<>(name, input));
+                .mapValue(input -> new TupleImpl<>(name, input));
     }
 }

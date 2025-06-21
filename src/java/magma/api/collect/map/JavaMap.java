@@ -1,6 +1,7 @@
 package magma.api.collect.map;
 
 import magma.api.Tuple;
+import magma.api.TupleImpl;
 import magma.api.collect.stream.JavaStream;
 import magma.api.collect.stream.StreamLike;
 import magma.api.optional.OptionalLike;
@@ -34,6 +35,6 @@ public record JavaMap<Key, Value>(Map<Key, Value> map) implements MapLike<Key, V
     public StreamLike<Tuple<Key, Value>> stream() {
         return new JavaStream<>(this.map.entrySet()
                 .stream()
-                .map(entry -> new Tuple<>(entry.getKey(), entry.getValue())));
+                .map(entry -> new TupleImpl<>(entry.getKey(), entry.getValue())));
     }
 }

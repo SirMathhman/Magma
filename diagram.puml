@@ -19,6 +19,7 @@ class Err
 Err --> Function
 class JavaMap
 JavaMap --> Tuple
+JavaMap --> TupleImpl
 JavaMap --> JavaStream
 JavaMap --> StreamLike
 JavaMap --> OptionalLike
@@ -151,12 +152,13 @@ class SetLike
 SetLike --> StreamLike
 class Ok
 Ok --> Function
+class TupleImpl
 class Divider
 Divider --> ListLike
 class Application
 Application --> Tuple
+Application --> TupleImpl
 Application --> MapCollector
-Application --> MapLike
 Application --> SetLike
 Application --> ResultCollector
 Application --> IOError
