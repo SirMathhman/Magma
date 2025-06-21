@@ -1,7 +1,7 @@
 package magma.map;
 
-import magma.OptionalLike;
-import magma.Optionals;
+import magma.optional.OptionalLike;
+import magma.optional.Optionals;
 
 import java.util.HashMap;
 import java.util.Map;

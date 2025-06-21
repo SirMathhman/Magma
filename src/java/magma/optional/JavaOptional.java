@@ -1,4 +1,7 @@
-package magma;
+package magma.optional;
+
+import magma.JavaStream;
+import magma.StreamLike;
 
 import java.util.Optional;
 import java.util.function.Consumer;

@@ -1,5 +1,7 @@
 package magma;
 
+import magma.optional.OptionalLike;
+import magma.optional.Optionals;
 import magma.result.Err;
 import magma.result.Ok;
 import magma.result.Result;

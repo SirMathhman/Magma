@@ -1,5 +1,6 @@
 package magma;
 
+import magma.optional.OptionalLike;
 import magma.result.Result;
 
 public interface PathLike {

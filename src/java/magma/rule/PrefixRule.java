@@ -1,8 +1,8 @@
 package magma.rule;
 
 import magma.Node;
-import magma.OptionalLike;
-import magma.Optionals;
+import magma.optional.OptionalLike;
+import magma.optional.Optionals;
 
 public record PrefixRule(String prefix, Rule rule) implements Rule {
     @Override

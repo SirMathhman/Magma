@@ -1,5 +1,15 @@
 @startuml
 skinparam linetype ortho
+class JavaOptional
+JavaOptional --> JavaStream
+JavaOptional --> StreamLike
+JavaOptional --> Optional
+JavaOptional --> Consumer
+JavaOptional --> Function
+class OptionalLike
+OptionalLike --> StreamLike
+OptionalLike --> Consumer
+OptionalLike --> Function
 class PrefixRule
 PrefixRule --> Node
 PrefixRule --> OptionalLike
@@ -21,12 +31,15 @@ StreamLike --> Function
 StreamLike --> Predicate
 StreamLike --> Stream
 class PathLike
+PathLike --> OptionalLike
 PathLike --> Result
 class Maps
 class Joiner
 Joiner --> Optional
 class IOError
 class JavaPath
+JavaPath --> OptionalLike
+JavaPath --> Optionals
 JavaPath --> Err
 JavaPath --> Ok
 JavaPath --> Result
@@ -34,14 +47,12 @@ JavaPath --> IOException
 JavaPath --> Files
 JavaPath --> Path
 class Node
+Node --> OptionalLike
 class SuffixRule
 SuffixRule --> Node
 SuffixRule --> OptionalLike
 SuffixRule --> Optionals
 class Collector
-class OptionalLike
-OptionalLike --> Consumer
-OptionalLike --> Function
 class ResultCollector
 ResultCollector --> Ok
 ResultCollector --> Result
@@ -85,6 +96,7 @@ JavaList --> List
 class MapNode
 MapNode --> MapLike
 MapNode --> Maps
+MapNode --> OptionalLike
 class MapLike
 MapLike --> OptionalLike
 class PathLikes
@@ -96,6 +108,8 @@ class Main
 Main --> DivideState
 Main --> MutableDivideState
 Main --> ListLike
+Main --> OptionalLike
+Main --> Optionals
 Main --> Result
 Main --> LastRule
 Main --> PrefixRule
@@ -112,9 +126,5 @@ Optionals --> Optional
 class Lists
 class Ok
 Ok --> Function
-class JavaOptional
-JavaOptional --> Optional
-JavaOptional --> Consumer
-JavaOptional --> Function
 
 @enduml
