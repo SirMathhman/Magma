@@ -4,11 +4,13 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.List;
+import java.util.Optional;
 
-public enum Main {
-    ;
+public class Main {
+    private static final String SEPARATOR = System.lineSeparator();
 
-    public static final String SEPARATOR = System.lineSeparator();
+    private Main() {
+    }
 
     public static void main(final String[] args) {
         try {
@@ -30,38 +32,43 @@ public enum Main {
         }
     }
 
-    private static String compile(final String input) {
+    private static String compile(final CharSequence input) {
         final var segments = Main.divide(input);
 
         final var outputBuilder = new StringBuilder();
-        for (final var segment : segments) {
-            final var strip = segment.strip();
-            if (strip.startsWith("import ")) {
-                final var prefixLength = "import ".length();
-                final var withoutPrefix = strip.substring(prefixLength);
-                final var inputLength0 = withoutPrefix.length();
-                if (!withoutPrefix.isEmpty() && ';' == withoutPrefix.charAt(inputLength0 - 1)) {
-                    final var inputLength = withoutPrefix.length();
-                    final var suffixLength = ";".length();
-                    final var withoutEnd = withoutPrefix.substring(0, inputLength - suffixLength);
-
-                    final var separator = withoutEnd.lastIndexOf('.');
-                    if (0 <= separator) {
-                        final var infixLength = ".".length();
-                        final var name = withoutEnd.substring(separator + infixLength);
-                        outputBuilder.append("Main --> ")
-                                .append(name)
-                                .append(Main.SEPARATOR);
-                    }
-                }
-            }
-        }
+        for (final var segment : segments)
+            Main.compileRootSegment(segment)
+                    .ifPresent(outputBuilder::append);
 
         return outputBuilder.toString();
     }
 
-    private static List<String> divide(final String input) {
-        final State state = new State();
+    private static Optional<String> compileRootSegment(final String segment) {
+        final var strip = segment.strip();
+        if (!strip.startsWith("import "))
+            return Optional.empty();
+
+        final var prefixLength = "import ".length();
+        final var withoutPrefix = strip.substring(prefixLength);
+        final var inputLength0 = withoutPrefix.length();
+        if (withoutPrefix.isEmpty() || ';' != withoutPrefix.charAt(inputLength0 - 1))
+            return Optional.empty();
+
+        final var inputLength = withoutPrefix.length();
+        final var suffixLength = ";".length();
+        final var withoutEnd = withoutPrefix.substring(0, inputLength - suffixLength);
+
+        final var separator = withoutEnd.lastIndexOf('.');
+        if (0 > separator)
+            return Optional.empty();
+
+        final var infixLength = ".".length();
+        final var name = withoutEnd.substring(separator + infixLength);
+        return Optional.of("Main --> " + name + Main.SEPARATOR);
+    }
+
+    private static List<String> divide(final CharSequence input) {
+        final State state = new MutableState();
         final var length = input.length();
         var current = state;
         for (var i = 0; i < length; i++) {
