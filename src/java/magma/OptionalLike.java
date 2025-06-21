@@ -1,6 +1,4 @@
-package magma.app.optional;
-
-import magma.app.StreamLike;
+package magma;
 
 import java.util.function.Function;
 

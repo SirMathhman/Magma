@@ -1,8 +1,4 @@
-package magma.app;
-
-import magma.app.node.Node;
-import magma.app.optional.OptionalLike;
-import magma.app.optional.Optionals;
+package magma;
 
 public record SuffixRule(Rule child, String suffix) implements Rule {
     @Override

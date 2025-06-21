@@ -1,6 +1,4 @@
-package magma.app.map;
-
-import jvm.map.JavaMap;
+package magma;
 
 public class Maps {
     private Maps() {

@@ -1,8 +1,4 @@
-package jvm.map;
-
-import magma.app.map.MapLike;
-import magma.app.optional.OptionalLike;
-import magma.app.optional.Optionals;
+package magma;
 
 import java.util.HashMap;
 import java.util.Map;

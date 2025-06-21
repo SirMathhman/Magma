@@ -1,6 +1,4 @@
-package magma.app.list;
-
-import jvm.list.JavaList;
+package magma;
 
 public class Lists {
     private Lists() {

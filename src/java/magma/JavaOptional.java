@@ -1,8 +1,4 @@
-package jvm.optional;
-
-import jvm.stream.JavaStream;
-import magma.app.StreamLike;
-import magma.app.optional.OptionalLike;
+package magma;
 
 import java.util.Optional;
 import java.util.function.Function;

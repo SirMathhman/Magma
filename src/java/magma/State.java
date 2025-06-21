@@ -1,6 +1,4 @@
-package magma.app;
-
-import magma.app.list.ListLike;
+package magma;
 
 public interface State {
     State append(char c);

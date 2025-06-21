@@ -1,17 +1,5 @@
 package magma;
 
-import magma.app.LastRule;
-import magma.app.MutableState;
-import magma.app.PrefixRule;
-import magma.app.Rule;
-import magma.app.State;
-import magma.app.StringRule;
-import magma.app.StripRule;
-import magma.app.SuffixRule;
-import magma.app.list.ListLike;
-import magma.app.node.Node;
-import magma.app.optional.OptionalLike;
-
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -20,7 +8,7 @@ import java.util.Set;
 import java.util.stream.Collector;
 import java.util.stream.Collectors;
 
-public class Main {
+class Main {
     private static final String SEPARATOR = System.lineSeparator();
 
     private Main() {

@@ -1,6 +1,4 @@
-package magma.app.optional;
-
-import jvm.optional.JavaOptional;
+package magma;
 
 import java.util.Optional;
 

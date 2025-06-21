@@ -1,63 +1,30 @@
 @startuml
 skinparam linetype ortho
-class ListLike
-ListLike --> StreamLike
-class Node
-Node --> OptionalLike
-class StripRule
-StripRule --> Node
-StripRule --> OptionalLike
-class Maps
-Maps --> JavaMap
-class Rule
-Rule --> Node
-Rule --> OptionalLike
-class JavaMap
-JavaMap --> OptionalLike
-JavaMap --> MapLike
-JavaMap --> Optionals
-JavaMap --> HashMap
-JavaMap --> Map
-class OptionalLike
-OptionalLike --> StreamLike
-OptionalLike --> Function
-class StringRule
-StringRule --> MapNode
-StringRule --> Node
-StringRule --> OptionalLike
-StringRule --> Optionals
+class JavaStream
+JavaStream --> Function
+JavaStream --> Collector
+JavaStream --> Stream
+class MapLike
+class SuffixRule
+class LastRule
 class JavaList
-JavaList --> JavaStream
-JavaList --> StreamLike
-JavaList --> ListLike
 JavaList --> ArrayList
 JavaList --> List
-class PrefixRule
-PrefixRule --> Node
-PrefixRule --> OptionalLike
-PrefixRule --> Optionals
+class MutableState
 class StreamLike
 StreamLike --> Function
 StreamLike --> Collector
 StreamLike --> Stream
-class MutableState
-MutableState --> ListLike
-MutableState --> Lists
-class Optionals
-Optionals --> JavaOptional
-Optionals --> Optional
+class PrefixRule
+class StringRule
+class StripRule
+class Rule
+class MapNode
+class Lists
+class Node
+class OptionalLike
+OptionalLike --> Function
 class Main
-Main --> LastRule
-Main --> MutableState
-Main --> OptionalLike
-Main --> PrefixRule
-Main --> Rule
-Main --> State
-Main --> StringRule
-Main --> StripRule
-Main --> SuffixRule
-Main --> ListLike
-Main --> Node
 Main --> IOException
 Main --> Files
 Main --> Path
@@ -65,34 +32,16 @@ Main --> Paths
 Main --> Set
 Main --> Collector
 Main --> Collectors
+class State
+class Optionals
+Optionals --> Optional
+class Maps
+class JavaMap
+JavaMap --> HashMap
+JavaMap --> Map
+class ListLike
 class JavaOptional
-JavaOptional --> JavaStream
-JavaOptional --> OptionalLike
-JavaOptional --> StreamLike
 JavaOptional --> Optional
 JavaOptional --> Function
-class Lists
-Lists --> JavaList
-class MapNode
-MapNode --> OptionalLike
-MapNode --> MapLike
-MapNode --> Maps
-class LastRule
-LastRule --> Node
-LastRule --> OptionalLike
-LastRule --> Optionals
-class SuffixRule
-SuffixRule --> Node
-SuffixRule --> OptionalLike
-SuffixRule --> Optionals
-class MapLike
-MapLike --> OptionalLike
-class JavaStream
-JavaStream --> StreamLike
-JavaStream --> Function
-JavaStream --> Collector
-JavaStream --> Stream
-class State
-State --> ListLike
 
 @enduml
