@@ -4,7 +4,6 @@ class PrefixRule
 PrefixRule --> Node
 PrefixRule --> OptionalLike
 PrefixRule --> Optionals
-class MapLike
 class StripRule
 StripRule --> Node
 StripRule --> OptionalLike
@@ -26,6 +25,7 @@ StreamLike --> Predicate
 StreamLike --> Stream
 class PathLike
 PathLike --> Result
+class Maps
 class Joiner
 Joiner --> Optional
 class IOError
@@ -49,9 +49,6 @@ OptionalLike --> Function
 class ResultCollector
 ResultCollector --> Ok
 ResultCollector --> Result
-class JavaMap
-JavaMap --> HashMap
-JavaMap --> Map
 class DivideState
 DivideState --> ListLike
 class SetLike
@@ -74,10 +71,19 @@ JavaSet --> HashSet
 JavaSet --> Set
 class Err
 Err --> Function
+class JavaMap
+JavaMap --> OptionalLike
+JavaMap --> Optionals
+JavaMap --> HashMap
+JavaMap --> Map
 class SetCollector
 SetCollector --> SetLike
 SetCollector --> Sets
 class MapNode
+MapNode --> MapLike
+MapNode --> Maps
+class MapLike
+MapLike --> OptionalLike
 class PathLikes
 PathLikes --> Paths
 class Rule
@@ -99,7 +105,6 @@ MutableDivideState --> ListLike
 MutableDivideState --> Lists
 class Optionals
 Optionals --> Optional
-class Maps
 class Ok
 Ok --> Function
 class ListLike

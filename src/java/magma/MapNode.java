@@ -1,5 +1,8 @@
 package magma;
 
+import magma.map.MapLike;
+import magma.map.Maps;
+
 public final class MapNode implements Node {
     private MapLike<String, String> strings;
 

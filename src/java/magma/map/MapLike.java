@@ -1,4 +1,6 @@
-package magma;
+package magma.map;
+
+import magma.OptionalLike;
 
 public interface MapLike<Key, Value> {
 
