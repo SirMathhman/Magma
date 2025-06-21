@@ -12,7 +12,8 @@ public class Main {
         try {
             final var target = Paths.get(".", "diagram.puml");
             final var separator = System.lineSeparator();
-            Files.writeString(target, "@startuml" + separator + "class Main" + separator + "@enduml");
+            final var joined = String.join(separator, "@startuml", "class Main", "@enduml");
+            Files.writeString(target, joined);
         } catch (final IOException e) {
             //noinspection CallToPrintStackTrace
             e.printStackTrace();
