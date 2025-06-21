@@ -1,6 +1,7 @@
 package magma;
 
 import magma.app.LastRule;
+import magma.app.ListLike;
 import magma.app.MutableState;
 import magma.app.PrefixRule;
 import magma.app.Rule;
@@ -14,7 +15,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collector;
 import java.util.stream.Collectors;
@@ -62,20 +63,21 @@ public class Main {
     }
 
     private static String compile(final CharSequence input, final String source) {
-        final var segments = Main.divide(input);
+        return Main.divide(input)
+                .stream()
+                .map(segment -> Main.compileRootSegment(segment, source))
+                .flatMap(Optional::stream)
+                .collect(Collectors.joining());
+    }
 
-        final var outputBuilder = new StringBuilder();
-        for (final var segment : segments)
-            Main.createImportRule()
-                    .lex(segment)
-                    .flatMap(node -> {
-                        final Node node1 = node.withString("source", source);
-                        return Main.createDependencyRule()
-                                .generate(node1);
-                    })
-                    .ifPresent(outputBuilder::append);
-
-        return outputBuilder.toString();
+    private static Optional<String> compileRootSegment(final String input, final String name) {
+        return Main.createImportRule()
+                .lex(input)
+                .flatMap(node -> {
+                    final Node withSource = node.withString("source", name);
+                    return Main.createDependencyRule()
+                            .generate(withSource);
+                });
     }
 
     private static Rule createImportRule() {
@@ -88,7 +90,7 @@ public class Main {
                 Main.SEPARATOR);
     }
 
-    private static List<String> divide(final CharSequence input) {
+    private static ListLike<String> divide(final CharSequence input) {
         final State state = new MutableState();
         final var length = input.length();
         var current = state;

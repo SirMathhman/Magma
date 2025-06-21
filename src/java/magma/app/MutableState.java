@@ -1,11 +1,8 @@
 package magma.app;
 
-import java.util.ArrayList;
-import java.util.List;
-
-public record MutableState(List<String> segments, StringBuilder buffer) implements State {
+public record MutableState(ListLike<String> segments, StringBuilder buffer) implements State {
     public MutableState() {
-        this(new ArrayList<>(), new StringBuilder());
+        this(ListLike.empty(), new StringBuilder());
     }
 
     @Override
@@ -17,8 +14,7 @@ public record MutableState(List<String> segments, StringBuilder buffer) implemen
     @Override
     public State advance() {
         final var segment = this.buffer.toString();
-        this.segments.add(segment);
         this.buffer.setLength(0);
-        return this;
+        return new MutableState(this.segments.add(segment), this.buffer);
     }
 }
