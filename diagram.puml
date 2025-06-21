@@ -9,12 +9,13 @@ JavaMap --> Tuple
 JavaMap --> TupleImpl
 JavaMap --> JavaStream
 JavaMap --> StreamLike
-JavaMap --> OptionalLike
-JavaMap --> Optionals
 JavaMap --> HashMap
 JavaMap --> Map
+JavaMap --> Function
+JavaMap --> Supplier
 class Node
-Node --> OptionalLike
+Node --> Function
+Node --> Supplier
 class JavaStream
 JavaStream --> Function
 JavaStream --> Predicate
@@ -93,8 +94,6 @@ JavaPath --> IOException
 JavaPath --> Files
 JavaPath --> Path
 class JavaOptional
-JavaOptional --> JavaStream
-JavaOptional --> StreamLike
 JavaOptional --> Optional
 JavaOptional --> Consumer
 JavaOptional --> Function
@@ -142,7 +141,8 @@ Err --> Function
 class MapNode
 MapNode --> MapLike
 MapNode --> Maps
-MapNode --> OptionalLike
+MapNode --> Function
+MapNode --> Supplier
 class PathSources
 PathSources --> Tuple
 PathSources --> TupleImpl
@@ -156,7 +156,6 @@ class Source
 Source --> IOError
 Source --> Result
 class OptionalLike
-OptionalLike --> StreamLike
 OptionalLike --> Consumer
 OptionalLike --> Function
 OptionalLike --> Supplier
@@ -185,7 +184,8 @@ LexOk --> Function
 class MapLike
 MapLike --> Tuple
 MapLike --> StreamLike
-MapLike --> OptionalLike
+MapLike --> Function
+MapLike --> Supplier
 class Error
 class GenerateResultJoiner
 GenerateResultJoiner --> Collector

@@ -1,11 +1,12 @@
 package magma.app.compile.node;
 
-import magma.api.optional.OptionalLike;
+import java.util.function.Function;
+import java.util.function.Supplier;
 
 public interface Node {
-    Node withString(String key, String value);
+    <Return> Return findStringOrElse(String key, Function<String, Return> ifPresent, Supplier<Return> ifMissing);
 
-    OptionalLike<String> findString(String key);
+    Node withString(String key, String value);
 
     String asString();
 }

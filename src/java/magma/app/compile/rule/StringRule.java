@@ -20,9 +20,8 @@ public record StringRule(String key) implements Rule {
 
     @Override
     public GenerateResult generate(final Node node) {
-        return node.findString(this.key)
-                .<GenerateResult>map(GenerateOk::new)
-                .orElseGet(() -> new GenerateErr(new CompileError("String '" + this.key + "' not present",
-                        node.asString())));
+        return node.findStringOrElse(this.key,
+                GenerateOk::new,
+                () -> new GenerateErr(new CompileError("String '" + this.key + "' not present", node.asString())));
     }
 }
