@@ -85,33 +85,31 @@ JavaOptional --> StreamLike
 JavaOptional --> Optional
 JavaOptional --> Consumer
 JavaOptional --> Function
+class DivideState
+DivideState --> ListLike
+class Sources
+Sources --> MapLike
+Sources --> IOError
+Sources --> Result
 class PathTargets
 PathTargets --> IOError
 PathTargets --> PathLike
 PathTargets --> OptionalLike
-class DivideState
-DivideState --> ListLike
-class Sources
-Sources --> SetLike
-Sources --> IOError
-Sources --> Result
 class Rule
 Rule --> OptionalLike
 Rule --> Node
-class SetCollector
-SetCollector --> Collector
 class Application
 Application --> IOError
 Application --> OptionalLike
+class StreamLike
+StreamLike --> Function
+StreamLike --> Predicate
+StreamLike --> Stream
 class StringRule
 StringRule --> OptionalLike
 StringRule --> Optionals
 StringRule --> MapNode
 StringRule --> Node
-class StreamLike
-StreamLike --> Function
-StreamLike --> Predicate
-StreamLike --> Stream
 class JavaIOError
 JavaIOError --> IOException
 JavaIOError --> PrintWriter
@@ -122,16 +120,18 @@ class MapNode
 MapNode --> MapLike
 MapNode --> Maps
 MapNode --> OptionalLike
-class Source
-Source --> IOError
-Source --> Result
 class PathSources
-PathSources --> SetCollector
-PathSources --> SetLike
-PathSources --> StreamLike
+PathSources --> Tuple
+PathSources --> TupleImpl
+PathSources --> MapCollector
+PathSources --> MapLike
+PathSources --> ResultCollector
 PathSources --> IOError
 PathSources --> PathLike
 PathSources --> Result
+class Source
+Source --> IOError
+Source --> Result
 class OptionalLike
 OptionalLike --> StreamLike
 OptionalLike --> Consumer
@@ -154,18 +154,11 @@ class MutableDivideState
 MutableDivideState --> ListLike
 MutableDivideState --> Lists
 class CompileApplication
-CompileApplication --> Tuple
-CompileApplication --> TupleImpl
-CompileApplication --> MapCollector
-CompileApplication --> SetLike
-CompileApplication --> ResultCollector
 CompileApplication --> IOError
 CompileApplication --> OptionalLike
 CompileApplication --> Optionals
-CompileApplication --> Result
 CompileApplication --> Compiler
 CompileApplication --> Lang
-CompileApplication --> Source
 CompileApplication --> Sources
 CompileApplication --> Targets
 class IOError
@@ -185,8 +178,8 @@ Main --> PathLikes
 Main --> Application
 Main --> CompileApplication
 Main --> PathSources
-Main --> PathTargets
 Main --> Sources
+Main --> PathTargets
 Main --> Targets
 class ListLike
 ListLike --> StreamLike
