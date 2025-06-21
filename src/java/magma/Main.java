@@ -1,7 +1,9 @@
 package magma;
 
-import magma.state.MutableState;
-import magma.state.State;
+import magma.app.MapNode;
+import magma.app.MutableState;
+import magma.app.Node;
+import magma.app.State;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -87,6 +89,18 @@ public class Main {
 
         final var infixLength = ".".length();
         final var destination = withoutEnd.substring(separator + infixLength);
+        final var node = MapNode.empty()
+                .withString("source", source)
+                .withString("destination", destination);
+
+        return Main.generate(node);
+    }
+
+    private static Optional<String> generate(final Node node) {
+        final var source = node.findString("source")
+                .orElse("");
+        final var destination = node.findString("destination")
+                .orElse("");
         return Optional.of(source + " --> " + destination + Main.SEPARATOR);
     }
 
