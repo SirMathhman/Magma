@@ -4,7 +4,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Set;
+
 
 class Main {
     private static final String SEPARATOR = System.lineSeparator();
@@ -14,38 +14,62 @@ class Main {
 
     public static void main(final String[] args) {
         final var sourceRoot = Paths.get(".", "src", "java");
+        Main.walk(sourceRoot)
+                .mapValue(Main::filter)
+                .flatMapValue(Main::compileSources)
+                .match(Main::write, Optionals::of)
+                .ifPresent(Throwable::printStackTrace);
+    }
+
+    private static OptionalLike<IOException> write(final String output) {
         try {
-            final StreamLike<Path> files = new JavaStream<>(Files.walk(sourceRoot));
-            final Collector<Path, Set<Path>> toSet = new SetCollector<>();
-            final var sources = files.filter(Files::isRegularFile)
-                    .filter(path -> {
-                        final var pathAsString = path.toString();
-                        return pathAsString.endsWith(".java");
-                    })
-                    .collect(toSet);
-
-            final StringBuilder output = new StringBuilder();
-            for (final var source : sources) {
-                final var fileName = source.getFileName()
-                        .toString();
-                final var separator = fileName.lastIndexOf('.');
-                final var name = fileName.substring(0, separator);
-
-                final var input = Files.readString(source);
-                final var compiled = Main.compile(input, name);
-
-                output.append("class ")
-                        .append(name)
-                        .append(Main.SEPARATOR)
-                        .append(compiled);
-            }
-
             final var target = Paths.get(".", "diagram.puml");
             final var joined = String.join(Main.SEPARATOR, "@startuml", "skinparam linetype ortho", output, "@enduml");
             Files.writeString(target, joined);
+            return Optionals.empty();
         } catch (final IOException e) {
-            //noinspection CallToPrintStackTrace
-            e.printStackTrace();
+            return Optionals.of(e);
+        }
+    }
+
+    private static Result<String, IOException> compileSources(final SetLike<Path> sources) {
+        return sources.stream()
+                .map(Main::compileSource)
+                .collect(new ResultCollector<>(new Joiner()))
+                .mapValue(value -> value.orElse(""));
+    }
+
+    private static SetLike<Path> filter(final JavaStream<Path> files) {
+        final Collector<Path, SetLike<Path>> toSet = new SetCollector<>();
+        return files.filter(Files::isRegularFile)
+                .filter(path -> {
+                    final var pathAsString = path.toString();
+                    return pathAsString.endsWith(".java");
+                })
+                .collect(toSet);
+    }
+
+    private static Result<JavaStream<Path>, IOException> walk(final Path sourceRoot) {
+        try {
+            return new Ok<>(new JavaStream<>(Files.walk(sourceRoot)));
+        } catch (final IOException e) {
+            return new Err<>(e);
+        }
+    }
+
+    private static Result<String, IOException> compileSource(final Path source) {
+        try {
+            final var fileName = source.getFileName()
+                    .toString();
+            final var separator = fileName.lastIndexOf('.');
+            final var name = fileName.substring(0, separator);
+
+            final var input = Files.readString(source);
+            final var compiled = Main.compile(input, name);
+
+            return new Ok<>("class " + name + Main.SEPARATOR + compiled);
+        } catch (final IOException e) {
+            return new Err<>(e);
         }
     }
 

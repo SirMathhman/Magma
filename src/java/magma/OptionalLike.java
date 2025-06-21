@@ -1,5 +1,6 @@
 package magma;
 
+import java.util.function.Consumer;
 import java.util.function.Function;
 
 public interface OptionalLike<Value> {
@@ -8,4 +9,6 @@ public interface OptionalLike<Value> {
     <Return> OptionalLike<Return> map(Function<Value, Return> mapper);
 
     StreamLike<Value> stream();
+
+    void ifPresent(Consumer<Value> consumer);
 }

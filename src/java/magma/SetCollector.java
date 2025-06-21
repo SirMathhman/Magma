@@ -1,17 +1,13 @@
 package magma;
 
-import java.util.HashSet;
-import java.util.Set;
-
-public class SetCollector<Value> implements Collector<Value, Set<Value>> {
+public class SetCollector<Value> implements Collector<Value, SetLike<Value>> {
     @Override
-    public Set<Value> createInitial() {
-        return new HashSet<>();
+    public SetLike<Value> createInitial() {
+        return Sets.empty();
     }
 
     @Override
-    public Set<Value> fold(final Set<Value> values, final Value value) {
-        values.add(value);
-        return values;
+    public SetLike<Value> fold(final SetLike<Value> values, final Value value) {
+        return values.add(value);
     }
 }

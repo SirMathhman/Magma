@@ -20,8 +20,12 @@ class Lists
 class Node
 class Collector
 class OptionalLike
+OptionalLike --> Consumer
 OptionalLike --> Function
+class ResultCollector
 class State
+class Result
+Result --> Function
 class JavaMap
 JavaMap --> HashMap
 JavaMap --> Map
@@ -29,23 +33,30 @@ class JavaStream
 JavaStream --> Function
 JavaStream --> Predicate
 JavaStream --> Stream
+class Ok
+Ok --> Function
 class LastRule
+class SetLike
+class JavaSet
+JavaSet --> HashSet
+JavaSet --> Set
 class SetCollector
-SetCollector --> HashSet
-SetCollector --> Set
+class Err
+Err --> Function
 class MapNode
+class Sets
 class Main
 Main --> IOException
 Main --> Files
 Main --> Path
 Main --> Paths
-Main --> Set
 class Optionals
 Optionals --> Optional
 class Maps
 class ListLike
 class JavaOptional
 JavaOptional --> Optional
+JavaOptional --> Consumer
 JavaOptional --> Function
 
 @enduml

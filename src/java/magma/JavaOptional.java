@@ -1,6 +1,7 @@
 package magma;
 
 import java.util.Optional;
+import java.util.function.Consumer;
 import java.util.function.Function;
 
 public record JavaOptional<T>(Optional<T> optional) implements OptionalLike<T> {
@@ -18,5 +19,10 @@ public record JavaOptional<T>(Optional<T> optional) implements OptionalLike<T> {
     @Override
     public StreamLike<T> stream() {
         return new JavaStream<>(this.optional.stream());
+    }
+
+    @Override
+    public void ifPresent(final Consumer<T> consumer) {
+        this.optional.ifPresent(consumer);
     }
 }
