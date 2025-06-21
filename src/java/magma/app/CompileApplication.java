@@ -5,6 +5,7 @@ import magma.api.optional.OptionalLike;
 import magma.api.optional.Optionals;
 import magma.app.compile.Compiler;
 import magma.app.compile.lang.Lang;
+import magma.app.compile.result.GenerateResult;
 import magma.app.io.source.Sources;
 import magma.app.io.target.Targets;
 
@@ -14,7 +15,8 @@ public record CompileApplication(Sources sources, Targets targets) implements Ap
     public OptionalLike<IOError> run() {
         return this.sources.readSourceSet()
                 .mapValue(Compiler::compileEntries)
-                .match(this::write, Optionals::of);
+                .match((GenerateResult output) -> output.unwrap()
+                        .flatMap(this::write), Optionals::of);
     }
 
     private OptionalLike<IOError> write(final String output) {

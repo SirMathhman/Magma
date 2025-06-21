@@ -1,15 +1,16 @@
 package magma.app.compile.rule;
 
-import magma.api.optional.OptionalLike;
-import magma.api.optional.Optionals;
 import magma.app.compile.node.Node;
+import magma.app.compile.result.GenerateResult;
+import magma.app.compile.result.LexErr;
+import magma.app.compile.result.LexResult;
 
 public record LastRule(Rule leftRule, String infix, Rule rightRule) implements Rule {
     @Override
-    public OptionalLike<Node> lex(final String input) {
+    public LexResult lex(final String input) {
         final var separator = input.lastIndexOf(this.infix);
         if (0 > separator)
-            return Optionals.empty();
+            return new LexErr();
 
         final var infixLength = this.infix.length();
         final var destination = input.substring(separator + infixLength);
@@ -17,9 +18,9 @@ public record LastRule(Rule leftRule, String infix, Rule rightRule) implements R
     }
 
     @Override
-    public OptionalLike<String> generate(final Node node) {
+    public GenerateResult generate(final Node node) {
         return this.leftRule.generate(node)
-                .flatMap(leftResult -> this.rightRule.generate(node)
-                        .map(rightResult -> leftResult + this.infix + rightResult));
+                .appendSlice(this.infix)
+                .appendResult(() -> this.rightRule.generate(node));
     }
 }

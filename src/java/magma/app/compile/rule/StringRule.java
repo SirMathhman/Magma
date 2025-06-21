@@ -1,21 +1,26 @@
 package magma.app.compile.rule;
 
-import magma.api.optional.OptionalLike;
-import magma.api.optional.Optionals;
 import magma.app.compile.node.MapNode;
 import magma.app.compile.node.Node;
+import magma.app.compile.result.GenerateErr;
+import magma.app.compile.result.GenerateOk;
+import magma.app.compile.result.GenerateResult;
+import magma.app.compile.result.LexOk;
+import magma.app.compile.result.LexResult;
 
 public record StringRule(String key) implements Rule {
     @Override
-    public OptionalLike<Node> lex(final String input) {
+    public LexResult lex(final String input) {
         final var node = MapNode.empty()
                 .withString(this.key, input);
 
-        return Optionals.of(node);
+        return new LexOk(node);
     }
 
     @Override
-    public OptionalLike<String> generate(final Node node) {
-        return node.findString(this.key);
+    public GenerateResult generate(final Node node) {
+        return node.findString(this.key)
+                .<GenerateResult>map(GenerateOk::new)
+                .orElseGet(GenerateErr::new);
     }
 }

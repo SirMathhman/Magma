@@ -1,14 +1,15 @@
 package magma.app.compile.rule;
 
-import magma.api.optional.OptionalLike;
-import magma.api.optional.Optionals;
 import magma.app.compile.node.Node;
+import magma.app.compile.result.GenerateResult;
+import magma.app.compile.result.LexErr;
+import magma.app.compile.result.LexResult;
 
 public record SuffixRule(Rule child, String suffix) implements Rule {
     @Override
-    public OptionalLike<Node> lex(final String input) {
+    public LexResult lex(final String input) {
         if (!input.endsWith(this.suffix))
-            return Optionals.empty();
+            return new LexErr();
 
         final var inputLength = input.length();
         final var suffixLength = this.suffix.length();
@@ -17,8 +18,8 @@ public record SuffixRule(Rule child, String suffix) implements Rule {
     }
 
     @Override
-    public OptionalLike<String> generate(final Node node) {
+    public GenerateResult generate(final Node node) {
         return this.child.generate(node)
-                .map(result -> result + this.suffix);
+                .appendSlice(this.suffix);
     }
 }

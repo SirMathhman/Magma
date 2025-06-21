@@ -1,10 +1,11 @@
 package magma.app.compile.rule;
 
-import magma.api.optional.OptionalLike;
 import magma.app.compile.node.Node;
+import magma.app.compile.result.GenerateResult;
+import magma.app.compile.result.LexResult;
 
 public interface Rule {
-    OptionalLike<Node> lex(String input);
+    LexResult lex(String input);
 
-    OptionalLike<String> generate(Node node);
+    GenerateResult generate(Node node);
 }

@@ -4,6 +4,7 @@ import magma.api.collect.stream.StreamLike;
 
 import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.function.Supplier;
 
 public interface OptionalLike<Value> {
     <Return> OptionalLike<Return> flatMap(Function<Value, OptionalLike<Return>> mapper);
@@ -13,4 +14,6 @@ public interface OptionalLike<Value> {
     StreamLike<Value> stream();
 
     void ifPresent(Consumer<Value> consumer);
+
+    Value orElseGet(Supplier<Value> supplier);
 }

@@ -1,7 +1,22 @@
 @startuml
 skinparam linetype ortho
+class StreamLike
+StreamLike --> Function
+StreamLike --> Predicate
+StreamLike --> Stream
+class StringRule
+StringRule --> OptionalLike
+StringRule --> Optionals
+StringRule --> MapNode
+StringRule --> Node
 class Optionals
 Optionals --> Optional
+class JavaIOError
+JavaIOError --> IOException
+JavaIOError --> PrintWriter
+JavaIOError --> StringWriter
+class Err
+Err --> Function
 class JavaMap
 JavaMap --> Tuple
 JavaMap --> TupleImpl
@@ -17,12 +32,32 @@ class JavaStream
 JavaStream --> Function
 JavaStream --> Predicate
 JavaStream --> Stream
+class MapNode
+MapNode --> MapLike
+MapNode --> Maps
+MapNode --> OptionalLike
 class LastRule
 LastRule --> OptionalLike
 LastRule --> Optionals
 LastRule --> Node
+class PathSources
+PathSources --> Tuple
+PathSources --> TupleImpl
+PathSources --> MapCollector
+PathSources --> MapLike
+PathSources --> ResultCollector
+PathSources --> IOError
+PathSources --> PathLike
+PathSources --> Result
+class Source
+Source --> IOError
+Source --> Result
 class Result
 Result --> Function
+class OptionalLike
+OptionalLike --> StreamLike
+OptionalLike --> Consumer
+OptionalLike --> Function
 class Maps
 class Lists
 class PathLike
@@ -30,6 +65,10 @@ PathLike --> StreamLike
 PathLike --> IOError
 PathLike --> OptionalLike
 PathLike --> Result
+class Collector
+class MapCollector
+MapCollector --> Tuple
+MapCollector --> Collector
 class ResultCollector
 ResultCollector --> Ok
 ResultCollector --> Result
@@ -45,6 +84,12 @@ Compiler --> OptionalLike
 Compiler --> Divider
 Compiler --> Lang
 Compiler --> Node
+class Joiner
+Joiner --> Optional
+class MapLike
+MapLike --> Tuple
+MapLike --> StreamLike
+MapLike --> OptionalLike
 class PathSource
 PathSource --> IOError
 PathSource --> PathLike
@@ -66,6 +111,9 @@ Lang --> Rule
 Lang --> StringRule
 Lang --> StripRule
 Lang --> SuffixRule
+class Targets
+Targets --> IOError
+Targets --> OptionalLike
 class JavaPath
 JavaPath --> JavaStream
 JavaPath --> StreamLike
@@ -79,12 +127,23 @@ JavaPath --> Result
 JavaPath --> IOException
 JavaPath --> Files
 JavaPath --> Path
+class MutableDivideState
+MutableDivideState --> ListLike
+MutableDivideState --> Lists
 class JavaOptional
 JavaOptional --> JavaStream
 JavaOptional --> StreamLike
 JavaOptional --> Optional
 JavaOptional --> Consumer
 JavaOptional --> Function
+class CompileApplication
+CompileApplication --> IOError
+CompileApplication --> OptionalLike
+CompileApplication --> Optionals
+CompileApplication --> Compiler
+CompileApplication --> Lang
+CompileApplication --> Sources
+CompileApplication --> Targets
 class DivideState
 DivideState --> ListLike
 class Sources
@@ -95,82 +154,20 @@ class PathTargets
 PathTargets --> IOError
 PathTargets --> PathLike
 PathTargets --> OptionalLike
-class Rule
-Rule --> OptionalLike
-Rule --> Node
-class Application
-Application --> IOError
-Application --> OptionalLike
-class StreamLike
-StreamLike --> Function
-StreamLike --> Predicate
-StreamLike --> Stream
-class StringRule
-StringRule --> OptionalLike
-StringRule --> Optionals
-StringRule --> MapNode
-StringRule --> Node
-class JavaIOError
-JavaIOError --> IOException
-JavaIOError --> PrintWriter
-JavaIOError --> StringWriter
-class Err
-Err --> Function
-class MapNode
-MapNode --> MapLike
-MapNode --> Maps
-MapNode --> OptionalLike
-class PathSources
-PathSources --> Tuple
-PathSources --> TupleImpl
-PathSources --> MapCollector
-PathSources --> MapLike
-PathSources --> ResultCollector
-PathSources --> IOError
-PathSources --> PathLike
-PathSources --> Result
-class Source
-Source --> IOError
-Source --> Result
-class OptionalLike
-OptionalLike --> StreamLike
-OptionalLike --> Consumer
-OptionalLike --> Function
-class Sets
-class Collector
-class MapCollector
-MapCollector --> Tuple
-MapCollector --> Collector
-class Joiner
-Joiner --> Optional
-class MapLike
-MapLike --> Tuple
-MapLike --> StreamLike
-MapLike --> OptionalLike
-class Targets
-Targets --> IOError
-Targets --> OptionalLike
-class MutableDivideState
-MutableDivideState --> ListLike
-MutableDivideState --> Lists
-class CompileApplication
-CompileApplication --> IOError
-CompileApplication --> OptionalLike
-CompileApplication --> Optionals
-CompileApplication --> Compiler
-CompileApplication --> Lang
-CompileApplication --> Sources
-CompileApplication --> Targets
 class IOError
 class SuffixRule
 SuffixRule --> OptionalLike
 SuffixRule --> Optionals
 SuffixRule --> Node
-class SetLike
-SetLike --> StreamLike
+class Rule
+Rule --> OptionalLike
+Rule --> Node
 class Ok
 Ok --> Function
 class TupleImpl
+class Application
+Application --> IOError
+Application --> OptionalLike
 class Divider
 Divider --> ListLike
 class Main
@@ -184,10 +181,5 @@ Main --> Targets
 class ListLike
 ListLike --> StreamLike
 class Tuple
-class JavaSet
-JavaSet --> JavaStream
-JavaSet --> StreamLike
-JavaSet --> HashSet
-JavaSet --> Set
 
 @enduml
