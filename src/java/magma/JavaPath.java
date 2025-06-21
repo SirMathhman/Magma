@@ -1,5 +1,9 @@
 package magma;
 
+import magma.result.Err;
+import magma.result.Ok;
+import magma.result.Result;
+
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;

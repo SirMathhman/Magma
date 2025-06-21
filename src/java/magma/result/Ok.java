@@ -1,20 +1,20 @@
-package magma;
+package magma.result;
 
 import java.util.function.Function;
 
-public record Err<Value, Error>(Error error) implements Result<Value, Error> {
+public record Ok<Value, Error>(Value value) implements Result<Value, Error> {
     @Override
     public <Return> Result<Return, Error> flatMapValue(final Function<Value, Result<Return, Error>> mapper) {
-        return new Err<>(this.error);
+        return mapper.apply(this.value);
     }
 
     @Override
     public <Return> Result<Return, Error> mapValue(final Function<Value, Return> mapper) {
-        return new Err<>(this.error);
+        return new Ok<>(mapper.apply(this.value));
     }
 
     @Override
     public <Return> Return match(final Function<Value, Return> whenOk, final Function<Error, Return> whenErr) {
-        return whenErr.apply(this.error);
+        return whenOk.apply(this.value);
     }
 }

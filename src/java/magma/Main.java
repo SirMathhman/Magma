@@ -1,5 +1,7 @@
 package magma;
 
+import magma.result.Result;
+
 class Main {
     private static final String SEPARATOR = System.lineSeparator();
 

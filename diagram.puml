@@ -16,6 +16,7 @@ StreamLike --> Predicate
 StreamLike --> Stream
 class PrefixRule
 class PathLike
+PathLike --> Result
 class StringRule
 class StripRule
 class Joiner
@@ -24,6 +25,9 @@ class Rule
 class IOError
 class Lists
 class JavaPath
+JavaPath --> Err
+JavaPath --> Ok
+JavaPath --> Result
 JavaPath --> IOException
 JavaPath --> Files
 JavaPath --> Path
@@ -33,9 +37,9 @@ class OptionalLike
 OptionalLike --> Consumer
 OptionalLike --> Function
 class ResultCollector
+ResultCollector --> Ok
+ResultCollector --> Result
 class State
-class Result
-Result --> Function
 class JavaMap
 JavaMap --> HashMap
 JavaMap --> Map
@@ -43,24 +47,27 @@ class JavaStream
 JavaStream --> Function
 JavaStream --> Predicate
 JavaStream --> Stream
-class Ok
-Ok --> Function
 class LastRule
+class Result
+Result --> Function
 class SetLike
+class Err
+Err --> Function
 class JavaSet
 JavaSet --> HashSet
 JavaSet --> Set
 class SetCollector
-class Err
-Err --> Function
 class MapNode
 class Sets
 class PathLikes
 PathLikes --> Paths
 class Main
+Main --> Result
 class Optionals
 Optionals --> Optional
 class Maps
+class Ok
+Ok --> Function
 class ListLike
 class JavaOptional
 JavaOptional --> Optional

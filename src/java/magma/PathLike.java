@@ -1,5 +1,7 @@
 package magma;
 
+import magma.result.Result;
+
 public interface PathLike {
     Result<String, IOError> readString();
 

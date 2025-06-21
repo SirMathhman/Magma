@@ -1,5 +1,8 @@
 package magma;
 
+import magma.result.Ok;
+import magma.result.Result;
+
 public record ResultCollector<Value, Collection, Error>(
         Collector<Value, Collection> collector) implements Collector<Result<Value, Error>, Result<Collection, Error>> {
     @Override
