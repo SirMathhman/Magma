@@ -1,5 +1,9 @@
-package magma;
+package magma.path;
 
+import magma.IOError;
+import magma.JavaIOError;
+import magma.JavaStream;
+import magma.StreamLike;
 import magma.optional.OptionalLike;
 import magma.optional.Optionals;
 import magma.result.Err;

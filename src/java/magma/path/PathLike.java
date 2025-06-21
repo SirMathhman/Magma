@@ -1,5 +1,7 @@
-package magma;
+package magma.path;
 
+import magma.IOError;
+import magma.StreamLike;
 import magma.optional.OptionalLike;
 import magma.result.Result;
 

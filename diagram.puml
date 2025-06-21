@@ -30,22 +30,17 @@ class StreamLike
 StreamLike --> Function
 StreamLike --> Predicate
 StreamLike --> Stream
+class PathLikes
+PathLikes --> Paths
 class PathLike
+PathLike --> IOError
+PathLike --> StreamLike
 PathLike --> OptionalLike
 PathLike --> Result
 class Maps
 class Joiner
 Joiner --> Optional
 class IOError
-class JavaPath
-JavaPath --> OptionalLike
-JavaPath --> Optionals
-JavaPath --> Err
-JavaPath --> Ok
-JavaPath --> Result
-JavaPath --> IOException
-JavaPath --> Files
-JavaPath --> Path
 class Node
 Node --> OptionalLike
 class SuffixRule
@@ -65,6 +60,19 @@ class JavaStream
 JavaStream --> Function
 JavaStream --> Predicate
 JavaStream --> Stream
+class JavaPath
+JavaPath --> IOError
+JavaPath --> JavaIOError
+JavaPath --> JavaStream
+JavaPath --> StreamLike
+JavaPath --> OptionalLike
+JavaPath --> Optionals
+JavaPath --> Err
+JavaPath --> Ok
+JavaPath --> Result
+JavaPath --> IOException
+JavaPath --> Files
+JavaPath --> Path
 class LastRule
 LastRule --> Node
 LastRule --> OptionalLike
@@ -99,8 +107,6 @@ MapNode --> Maps
 MapNode --> OptionalLike
 class MapLike
 MapLike --> OptionalLike
-class PathLikes
-PathLikes --> Paths
 class Rule
 Rule --> Node
 Rule --> OptionalLike
@@ -110,6 +116,8 @@ Main --> MutableDivideState
 Main --> ListLike
 Main --> OptionalLike
 Main --> Optionals
+Main --> PathLike
+Main --> PathLikes
 Main --> Result
 Main --> LastRule
 Main --> PrefixRule

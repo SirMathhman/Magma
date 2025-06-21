@@ -5,6 +5,8 @@ import magma.divide.MutableDivideState;
 import magma.list.ListLike;
 import magma.optional.OptionalLike;
 import magma.optional.Optionals;
+import magma.path.PathLike;
+import magma.path.PathLikes;
 import magma.result.Result;
 import magma.rule.LastRule;
 import magma.rule.PrefixRule;

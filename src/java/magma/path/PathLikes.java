@@ -1,4 +1,4 @@
-package magma;
+package magma.path;
 
 import java.nio.file.Paths;
 
