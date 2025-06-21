@@ -1,9 +1,10 @@
 package jvm.stream;
 
-import magma.app.StreamLike;
+import magma.app.stream.CollectorLike;
+import magma.app.stream.StreamLike;
 
 import java.util.function.Function;
-import java.util.stream.Collector;
+import java.util.function.Predicate;
 import java.util.stream.Stream;
 
 public record JavaStream<Value>(Stream<Value> stream) implements StreamLike<Value> {
@@ -18,7 +19,12 @@ public record JavaStream<Value>(Stream<Value> stream) implements StreamLike<Valu
     }
 
     @Override
-    public <Collection> Collection collect(final Collector<? super Value, ?, Collection> collector) {
-        return this.stream.collect(collector);
+    public <Collection> Collection collect(final CollectorLike<Value, Collection> collector) {
+        return this.stream.reduce(collector.createInitial(), collector::fold, (_, next) -> next);
+    }
+
+    @Override
+    public StreamLike<Value> filter(final Predicate<Value> predicate) {
+        return new JavaStream<>(this.stream.filter(predicate));
     }
 }

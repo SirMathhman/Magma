@@ -1,8 +1,8 @@
 package jvm.list;
 
 import jvm.stream.JavaStream;
-import magma.app.StreamLike;
 import magma.app.list.ListLike;
+import magma.app.stream.StreamLike;
 
 import java.util.ArrayList;
 import java.util.List;

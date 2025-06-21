@@ -1,6 +1,6 @@
 package magma.app.list;
 
-import magma.app.StreamLike;
+import magma.app.stream.StreamLike;
 
 public interface ListLike<T> {
     StreamLike<T> stream();

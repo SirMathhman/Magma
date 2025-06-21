@@ -1,5 +1,6 @@
 package magma;
 
+import jvm.stream.JavaStream;
 import magma.app.LastRule;
 import magma.app.MutableState;
 import magma.app.PrefixRule;
@@ -10,15 +11,14 @@ import magma.app.StripRule;
 import magma.app.SuffixRule;
 import magma.app.list.ListLike;
 import magma.app.node.Node;
+import magma.app.stream.Joiner;
+import magma.app.stream.SetCollector;
 
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Optional;
-import java.util.Set;
-import java.util.stream.Collector;
-import java.util.stream.Collectors;
 
 public class Main {
     private static final String SEPARATOR = System.lineSeparator();
@@ -28,14 +28,13 @@ public class Main {
 
     public static void main(final String[] args) {
         final var sourceRoot = Paths.get(".", "src", "java");
-        try (final var files = Files.walk(sourceRoot)) {
-            final Collector<Path, ?, Set<Path>> toSet = Collectors.toSet();
-            final var sources = files.filter(Files::isRegularFile)
+        try {
+            final var sources = new JavaStream<>(Files.walk(sourceRoot)).filter(Files::isRegularFile)
                     .filter(path -> {
                         final var pathAsString = path.toString();
                         return pathAsString.endsWith(".java");
                     })
-                    .collect(toSet);
+                    .collect(new SetCollector<Path>());
 
             final StringBuilder output = new StringBuilder();
             for (final var source : sources) {
@@ -67,7 +66,8 @@ public class Main {
                 .stream()
                 .map(segment -> Main.compileRootSegment(segment, source))
                 .flatMap(Optional::stream)
-                .collect(Collectors.joining());
+                .collect(new Joiner())
+                .orElse("");
     }
 
     private static Optional<String> compileRootSegment(final String input, final String name) {
