@@ -12,6 +12,7 @@ import magma.api.optional.Optionals;
 import magma.api.result.Result;
 import magma.app.compile.Compiler;
 import magma.app.compile.lang.Lang;
+import magma.app.io.PathTargets;
 import magma.app.io.Source;
 import magma.app.io.Sources;
 
@@ -27,8 +28,11 @@ public class Application {
 
     private static OptionalLike<IOError> write(final String output) {
         final var target = PathLikes.get(".", "diagram.puml");
-        final var joined = String.join(Lang.SEPARATOR, "@startuml", "skinparam linetype ortho", output, "@enduml");
-        return target.writeString(joined);
+        return new PathTargets(target).write(String.join(Lang.SEPARATOR,
+                "@startuml",
+                "skinparam linetype ortho",
+                output,
+                "@enduml"));
     }
 
     private static Result<String, IOError> compileSources(final SetLike<Source> sources) {
