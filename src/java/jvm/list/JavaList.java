@@ -1,5 +1,6 @@
-package jvm;
+package jvm.list;
 
+import jvm.stream.JavaStream;
 import magma.app.StreamLike;
 import magma.app.list.ListLike;
 

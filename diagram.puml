@@ -14,14 +14,15 @@ class StringRule
 StringRule --> MapNode
 StringRule --> Node
 StringRule --> Optional
+class JavaList
+JavaList --> JavaStream
+JavaList --> StreamLike
+JavaList --> ListLike
+JavaList --> ArrayList
+JavaList --> List
 class PrefixRule
 PrefixRule --> Node
 PrefixRule --> Optional
-class JavaStream
-JavaStream --> StreamLike
-JavaStream --> Function
-JavaStream --> Collector
-JavaStream --> Stream
 class StreamLike
 StreamLike --> Function
 StreamLike --> Collector
@@ -29,11 +30,6 @@ StreamLike --> Stream
 class MutableState
 MutableState --> ListLike
 MutableState --> Lists
-class JavaList
-JavaList --> ListLike
-JavaList --> ArrayList
-JavaList --> List
-JavaList --> StreamLike
 class Main
 Main --> LastRule
 Main --> MutableState
@@ -66,6 +62,11 @@ LastRule --> Optional
 class SuffixRule
 SuffixRule --> Node
 SuffixRule --> Optional
+class JavaStream
+JavaStream --> StreamLike
+JavaStream --> Function
+JavaStream --> Collector
+JavaStream --> Stream
 class State
 State --> ListLike
 

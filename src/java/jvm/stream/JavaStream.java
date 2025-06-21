@@ -1,4 +1,4 @@
-package jvm;
+package jvm.stream;
 
 import magma.app.StreamLike;
 
