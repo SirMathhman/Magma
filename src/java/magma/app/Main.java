@@ -1,0 +1,122 @@
+package magma.app;
+
+import magma.api.collect.list.ListLike;
+import magma.api.collect.set.SetLike;
+import magma.api.collect.stream.Joiner;
+import magma.api.collect.stream.ResultCollector;
+import magma.api.collect.stream.SetCollector;
+import magma.api.collect.stream.StreamLike;
+import magma.api.io.IOError;
+import magma.api.io.path.PathLike;
+import magma.api.io.path.PathLikes;
+import magma.api.optional.OptionalLike;
+import magma.api.optional.Optionals;
+import magma.api.result.Result;
+import magma.app.divide.DivideState;
+import magma.app.divide.MutableDivideState;
+import magma.app.node.Node;
+import magma.app.rule.LastRule;
+import magma.app.rule.PrefixRule;
+import magma.app.rule.Rule;
+import magma.app.rule.StringRule;
+import magma.app.rule.StripRule;
+import magma.app.rule.SuffixRule;
+
+class Main {
+    private static final String SEPARATOR = System.lineSeparator();
+
+    private Main() {
+    }
+
+    public static void main(final String[] args) {
+        final var sourceRoot = PathLikes.get(".", "src", "java");
+        sourceRoot.walk()
+                .mapValue(Main::filter)
+                .flatMapValue(Main::compileSources)
+                .match(Main::write, Optionals::of)
+                .ifPresent(error -> System.err.println(error.display()));
+    }
+
+    private static OptionalLike<IOError> write(final String output) {
+        final var target = PathLikes.get(".", "diagram.puml");
+        final var joined = String.join(Main.SEPARATOR, "@startuml", "skinparam linetype ortho", output, "@enduml");
+        return target.writeString(joined);
+    }
+
+    private static Result<String, IOError> compileSources(final SetLike<PathLike> sources) {
+        return sources.stream()
+                .map(Main::compileSource)
+                .collect(new ResultCollector<>(new Joiner()))
+                .mapValue(value -> value.orElse(""));
+    }
+
+    private static SetLike<PathLike> filter(final StreamLike<PathLike> files) {
+        return files.filter(PathLike::isRegularFile)
+                .filter(path -> path.asString()
+                        .endsWith(".java"))
+                .collect(new SetCollector<>());
+    }
+
+    private static Result<String, IOError> compileSource(final PathLike source) {
+        final var fileName = source.getFileName()
+                .asString();
+
+        final var separator = fileName.lastIndexOf('.');
+        final var name = fileName.substring(0, separator);
+
+        return source.readString()
+                .mapValue(input -> {
+                    final var compiled = Main.compile(input, name);
+                    return "class " + name + Main.SEPARATOR + compiled;
+                });
+    }
+
+    private static String compile(final CharSequence input, final String source) {
+        return Main.divide(input)
+                .stream()
+                .map(segment -> Main.compileRootSegment(segment, source))
+                .flatMap(OptionalLike::stream)
+                .collect(new Joiner())
+                .orElse("");
+    }
+
+    private static OptionalLike<String> compileRootSegment(final String input, final String name) {
+        return Main.createImportRule()
+                .lex(input)
+                .flatMap(node -> {
+                    final Node withSource = node.withString("source", name);
+                    return Main.createDependencyRule()
+                            .generate(withSource);
+                });
+    }
+
+    private static Rule createImportRule() {
+        return new StripRule(new PrefixRule("import ",
+                new SuffixRule(new LastRule(new StringRule("parent"), ".", new StringRule("destination")), ";")));
+    }
+
+    private static Rule createDependencyRule() {
+        return new SuffixRule(new LastRule(new StringRule("source"), " --> ", new StringRule("destination")),
+                Main.SEPARATOR);
+    }
+
+    private static ListLike<String> divide(final CharSequence input) {
+        final DivideState state = new MutableDivideState();
+        final var length = input.length();
+        var current = state;
+        for (var i = 0; i < length; i++) {
+            final var c = input.charAt(i);
+            current = Main.fold(current, c);
+        }
+
+        return current.advance()
+                .segments();
+    }
+
+    private static DivideState fold(final DivideState state, final char c) {
+        final var appended = state.append(c);
+        if (';' == c)
+            return appended.advance();
+        return appended;
+    }
+}

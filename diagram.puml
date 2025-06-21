@@ -1,65 +1,20 @@
 @startuml
 skinparam linetype ortho
-class JavaOptional
-JavaOptional --> JavaStream
-JavaOptional --> StreamLike
-JavaOptional --> Optional
-JavaOptional --> Consumer
-JavaOptional --> Function
-class OptionalLike
-OptionalLike --> StreamLike
-OptionalLike --> Consumer
-OptionalLike --> Function
-class PrefixRule
-PrefixRule --> Node
-PrefixRule --> OptionalLike
-PrefixRule --> Optionals
-class StripRule
-StripRule --> Node
-StripRule --> OptionalLike
+class Joiner
+Joiner --> Optional
+class Node
+Node --> OptionalLike
+class Maps
 class JavaIOError
 JavaIOError --> IOException
 JavaIOError --> PrintWriter
 JavaIOError --> StringWriter
-class StringRule
-StringRule --> MapNode
-StringRule --> Node
-StringRule --> OptionalLike
-StringRule --> Optionals
-class StreamLike
-StreamLike --> Function
-StreamLike --> Predicate
-StreamLike --> Stream
-class PathLikes
-PathLikes --> Paths
-class PathLike
-PathLike --> IOError
-PathLike --> StreamLike
-PathLike --> OptionalLike
-PathLike --> Result
-class Maps
-class Joiner
-Joiner --> Optional
-class IOError
-class Node
-Node --> OptionalLike
-class SuffixRule
-SuffixRule --> Node
-SuffixRule --> OptionalLike
-SuffixRule --> Optionals
-class Collector
-class ResultCollector
-ResultCollector --> Ok
-ResultCollector --> Result
-class DivideState
-DivideState --> ListLike
-class SetLike
-SetLike --> StreamLike
-class Sets
-class JavaStream
-JavaStream --> Function
-JavaStream --> Predicate
-JavaStream --> Stream
+class Result
+Result --> Function
+class LastRule
+LastRule --> Node
+LastRule --> OptionalLike
+LastRule --> Optionals
 class JavaPath
 JavaPath --> IOError
 JavaPath --> JavaIOError
@@ -73,47 +28,47 @@ JavaPath --> Result
 JavaPath --> IOException
 JavaPath --> Files
 JavaPath --> Path
-class LastRule
-LastRule --> Node
-LastRule --> OptionalLike
-LastRule --> Optionals
-class Result
-Result --> Function
-class JavaSet
-JavaSet --> JavaStream
-JavaSet --> StreamLike
-JavaSet --> HashSet
-JavaSet --> Set
-class Err
-Err --> Function
-class JavaMap
-JavaMap --> OptionalLike
-JavaMap --> Optionals
-JavaMap --> HashMap
-JavaMap --> Map
-class SetCollector
-SetCollector --> SetLike
-SetCollector --> Sets
+class StreamLike
+StreamLike --> Function
+StreamLike --> Predicate
+StreamLike --> Stream
 class ListLike
 ListLike --> StreamLike
+class Err
+Err --> Function
 class JavaList
 JavaList --> JavaStream
 JavaList --> StreamLike
 JavaList --> ArrayList
 JavaList --> List
+class Sets
+class PathLike
+PathLike --> IOError
+PathLike --> StreamLike
+PathLike --> OptionalLike
+PathLike --> Result
+class PathLikes
+PathLikes --> Paths
+class OptionalLike
+OptionalLike --> StreamLike
+OptionalLike --> Consumer
+OptionalLike --> Function
 class MapNode
 MapNode --> MapLike
 MapNode --> Maps
 MapNode --> OptionalLike
 class MapLike
 MapLike --> OptionalLike
-class Rule
-Rule --> Node
-Rule --> OptionalLike
+class Optionals
+Optionals --> Optional
+class DivideState
+DivideState --> ListLike
 class Main
 Main --> DivideState
 Main --> MutableDivideState
+Main --> IOError
 Main --> ListLike
+Main --> Node
 Main --> OptionalLike
 Main --> Optionals
 Main --> PathLike
@@ -126,12 +81,63 @@ Main --> StringRule
 Main --> StripRule
 Main --> SuffixRule
 Main --> SetLike
+Main --> Joiner
+Main --> ResultCollector
+Main --> SetCollector
+Main --> StreamLike
+class Rule
+Rule --> Node
+Rule --> OptionalLike
+class ResultCollector
+ResultCollector --> Ok
+ResultCollector --> Result
+class JavaStream
+JavaStream --> Function
+JavaStream --> Predicate
+JavaStream --> Stream
+class JavaSet
+JavaSet --> JavaStream
+JavaSet --> StreamLike
+JavaSet --> HashSet
+JavaSet --> Set
+class PrefixRule
+PrefixRule --> Node
+PrefixRule --> OptionalLike
+PrefixRule --> Optionals
+class StringRule
+StringRule --> MapNode
+StringRule --> Node
+StringRule --> OptionalLike
+StringRule --> Optionals
+class Lists
+class IOError
+class SuffixRule
+SuffixRule --> Node
+SuffixRule --> OptionalLike
+SuffixRule --> Optionals
+class Collector
+class JavaMap
+JavaMap --> OptionalLike
+JavaMap --> Optionals
+JavaMap --> HashMap
+JavaMap --> Map
+class StripRule
+StripRule --> Node
+StripRule --> OptionalLike
+class SetLike
+SetLike --> StreamLike
+class SetCollector
+SetCollector --> SetLike
+SetCollector --> Sets
+class JavaOptional
+JavaOptional --> JavaStream
+JavaOptional --> StreamLike
+JavaOptional --> Optional
+JavaOptional --> Consumer
+JavaOptional --> Function
 class MutableDivideState
 MutableDivideState --> ListLike
 MutableDivideState --> Lists
-class Optionals
-Optionals --> Optional
-class Lists
 class Ok
 Ok --> Function
 
