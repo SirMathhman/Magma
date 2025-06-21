@@ -16,7 +16,6 @@ StreamLike --> Predicate
 StreamLike --> Stream
 class PrefixRule
 class PathLike
-PathLike --> Path
 class StringRule
 class StripRule
 class Joiner
@@ -57,9 +56,8 @@ Err --> Function
 class MapNode
 class Sets
 class PathLikes
+PathLikes --> Paths
 class Main
-Main --> Files
-Main --> Path
 class Optionals
 Optionals --> Optional
 class Maps

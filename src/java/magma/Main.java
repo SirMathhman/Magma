@@ -1,8 +1,5 @@
 package magma;
 
-import java.nio.file.Files;
-import java.nio.file.Path;
-
 class Main {
     private static final String SEPARATOR = System.lineSeparator();
 
@@ -24,28 +21,28 @@ class Main {
         return target.writeString(joined);
     }
 
-    private static Result<String, IOError> compileSources(final SetLike<Path> sources) {
+    private static Result<String, IOError> compileSources(final SetLike<PathLike> sources) {
         return sources.stream()
                 .map(Main::compileSource)
                 .collect(new ResultCollector<>(new Joiner()))
                 .mapValue(value -> value.orElse(""));
     }
 
-    private static SetLike<Path> filter(final StreamLike<Path> files) {
-        return files.filter(Files::isRegularFile)
-                .filter(path -> path.toString()
+    private static SetLike<PathLike> filter(final StreamLike<PathLike> files) {
+        return files.filter(PathLike::isRegularFile)
+                .filter(path -> path.asString()
                         .endsWith(".java"))
-                .collect(new SetCollector<Path>());
+                .collect(new SetCollector<>());
     }
 
-    private static Result<String, IOError> compileSource(final Path source) {
+    private static Result<String, IOError> compileSource(final PathLike source) {
         final var fileName = source.getFileName()
-                .toString();
+                .asString();
 
         final var separator = fileName.lastIndexOf('.');
         final var name = fileName.substring(0, separator);
 
-        return new JavaPath(source).readString()
+        return source.readString()
                 .mapValue(input -> {
                     final var compiled = Main.compile(input, name);
                     return "class " + name + Main.SEPARATOR + compiled;

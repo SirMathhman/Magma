@@ -16,9 +16,9 @@ public record JavaPath(Path path) implements PathLike {
     }
 
     @Override
-    public Result<StreamLike<Path>, IOError> walk() {
+    public Result<StreamLike<PathLike>, IOError> walk() {
         try {
-            return new Ok<>(new JavaStream<>(Files.walk(this.path)));
+            return new Ok<>(new JavaStream<>(Files.walk(this.path)).map(JavaPath::new));
         } catch (final IOException e) {
             return new Err<>(new JavaIOError(e));
         }
@@ -32,5 +32,20 @@ public record JavaPath(Path path) implements PathLike {
         } catch (final IOException e) {
             return Optionals.of(new JavaIOError(e));
         }
+    }
+
+    @Override
+    public PathLike getFileName() {
+        return new JavaPath(this.path.getFileName());
+    }
+
+    @Override
+    public String asString() {
+        return this.path.toString();
+    }
+
+    @Override
+    public boolean isRegularFile() {
+        return Files.isRegularFile(this.path);
     }
 }
