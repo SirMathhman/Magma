@@ -5,6 +5,9 @@ import jvm.optional.JavaOptional;
 import java.util.Optional;
 
 public class Optionals {
+    private Optionals() {
+    }
+
     public static <Value> OptionalLike<Value> empty() {
         return new JavaOptional<>(Optional.empty());
     }
