@@ -11,9 +11,9 @@ import magma.api.optional.Optionals;
 import magma.api.result.Result;
 import magma.app.compile.Compiler;
 import magma.app.compile.lang.Lang;
-import magma.app.io.Source;
-import magma.app.io.Sources;
-import magma.app.io.Targets;
+import magma.app.io.source.Source;
+import magma.app.io.source.Sources;
+import magma.app.io.target.Targets;
 
 public record CompileApplication(Sources sources, Targets targets) implements Application {
     private static Result<String, IOError> compileSources(final SetLike<Source> sources) {

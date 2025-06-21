@@ -1,4 +1,4 @@
-package magma.app.io;
+package magma.app.io.source;
 
 import magma.api.collect.set.SetLike;
 import magma.api.io.IOError;

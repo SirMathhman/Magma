@@ -85,16 +85,16 @@ JavaOptional --> StreamLike
 JavaOptional --> Optional
 JavaOptional --> Consumer
 JavaOptional --> Function
+class PathTargets
+PathTargets --> IOError
+PathTargets --> PathLike
+PathTargets --> OptionalLike
 class DivideState
 DivideState --> ListLike
 class Sources
 Sources --> SetLike
 Sources --> IOError
 Sources --> Result
-class PathTargets
-PathTargets --> IOError
-PathTargets --> PathLike
-PathTargets --> OptionalLike
 class Rule
 Rule --> OptionalLike
 Rule --> Node
@@ -122,6 +122,9 @@ class MapNode
 MapNode --> MapLike
 MapNode --> Maps
 MapNode --> OptionalLike
+class Source
+Source --> IOError
+Source --> Result
 class PathSources
 PathSources --> SetCollector
 PathSources --> SetLike
@@ -129,9 +132,6 @@ PathSources --> StreamLike
 PathSources --> IOError
 PathSources --> PathLike
 PathSources --> Result
-class Source
-Source --> IOError
-Source --> Result
 class OptionalLike
 OptionalLike --> StreamLike
 OptionalLike --> Consumer

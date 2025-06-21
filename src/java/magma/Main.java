@@ -3,10 +3,10 @@ package magma;
 import magma.api.io.path.PathLikes;
 import magma.app.Application;
 import magma.app.CompileApplication;
-import magma.app.io.PathSources;
-import magma.app.io.PathTargets;
-import magma.app.io.Sources;
-import magma.app.io.Targets;
+import magma.app.io.source.PathSources;
+import magma.app.io.source.Sources;
+import magma.app.io.target.PathTargets;
+import magma.app.io.target.Targets;
 
 class Main {
     private Main() {
