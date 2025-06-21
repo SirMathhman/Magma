@@ -1,4 +1,4 @@
-package magma.app.compile;
+package magma.app.compile.node;
 
 import magma.api.optional.OptionalLike;
 

@@ -2,7 +2,7 @@ package magma.app.compile.rule;
 
 import magma.api.optional.OptionalLike;
 import magma.api.optional.Optionals;
-import magma.app.compile.Node;
+import magma.app.compile.node.Node;
 
 public record SuffixRule(Rule child, String suffix) implements Rule {
     @Override

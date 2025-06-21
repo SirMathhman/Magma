@@ -15,7 +15,7 @@ import magma.api.result.Result;
 import magma.app.compile.DivideState;
 import magma.app.compile.Lang;
 import magma.app.compile.MutableDivideState;
-import magma.app.compile.Node;
+import magma.app.compile.node.Node;
 
 class Main {
     private Main() {

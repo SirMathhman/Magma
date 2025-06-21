@@ -1,7 +1,7 @@
 package magma.app.compile.rule;
 
 import magma.api.optional.OptionalLike;
-import magma.app.compile.Node;
+import magma.app.compile.node.Node;
 
 public record StripRule(Rule rule) implements Rule {
     @Override

@@ -52,6 +52,8 @@ PathLike --> OptionalLike
 PathLike --> Result
 class PathLikes
 PathLikes --> Paths
+class Node
+Node --> OptionalLike
 class Lang
 Lang --> LastRule
 Lang --> PrefixRule
@@ -108,12 +110,12 @@ JavaSet --> JavaStream
 JavaSet --> StreamLike
 JavaSet --> HashSet
 JavaSet --> Set
-class Lists
-class IOError
 class MapNode
 MapNode --> MapLike
 MapNode --> Maps
 MapNode --> OptionalLike
+class Lists
+class IOError
 class Collector
 class DivideState
 DivideState --> ListLike
@@ -133,8 +135,6 @@ JavaOptional --> Function
 class Rule
 Rule --> OptionalLike
 Rule --> Node
-class Node
-Node --> OptionalLike
 class SuffixRule
 SuffixRule --> OptionalLike
 SuffixRule --> Optionals
