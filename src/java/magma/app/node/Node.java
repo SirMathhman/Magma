@@ -1,9 +1,9 @@
 package magma.app.node;
 
-import java.util.Optional;
+import magma.OptionalLike;
 
 public interface Node {
     Node withString(String key, String value);
 
-    Optional<String> findString(String key);
+    OptionalLike<String> findString(String key);
 }

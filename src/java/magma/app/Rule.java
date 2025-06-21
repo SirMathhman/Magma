@@ -1,11 +1,10 @@
 package magma.app;
 
+import magma.OptionalLike;
 import magma.app.node.Node;
 
-import java.util.Optional;
-
 public interface Rule {
-    Optional<Node> lex(String input);
+    OptionalLike<Node> lex(String input);
 
-    Optional<String> generate(Node node);
+    OptionalLike<String> generate(Node node);
 }

@@ -1,21 +1,20 @@
 package magma.app;
 
+import magma.OptionalLike;
 import magma.app.node.MapNode;
 import magma.app.node.Node;
 
-import java.util.Optional;
-
 public record StringRule(String key) implements Rule {
     @Override
-    public Optional<Node> lex(final String input) {
+    public OptionalLike<Node> lex(final String input) {
         final var node = MapNode.empty()
                 .withString(this.key, input);
 
-        return Optional.of(node);
+        return OptionalLike.of(node);
     }
 
     @Override
-    public Optional<String> generate(final Node node) {
+    public OptionalLike<String> generate(final Node node) {
         return node.findString(this.key);
     }
 }

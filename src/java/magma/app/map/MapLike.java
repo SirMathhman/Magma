@@ -1,10 +1,10 @@
 package magma.app.map;
 
-import java.util.Optional;
+import magma.OptionalLike;
 
 public interface MapLike<Key, Value> {
 
-    Optional<Value> find(Key key);
+    OptionalLike<Value> find(Key key);
 
     MapLike<Key, Value> put(Key key, Value value);
 }

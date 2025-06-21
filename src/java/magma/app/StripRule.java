@@ -1,18 +1,17 @@
 package magma.app;
 
+import magma.OptionalLike;
 import magma.app.node.Node;
-
-import java.util.Optional;
 
 public record StripRule(Rule rule) implements Rule {
     @Override
-    public Optional<Node> lex(final String input) {
+    public OptionalLike<Node> lex(final String input) {
         final var strip = input.strip();
         return this.rule.lex(strip);
     }
 
     @Override
-    public Optional<String> generate(final Node node) {
+    public OptionalLike<String> generate(final Node node) {
         return this.rule.generate(node);
     }
 }

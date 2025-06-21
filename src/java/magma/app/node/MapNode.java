@@ -1,9 +1,8 @@
 package magma.app.node;
 
+import magma.OptionalLike;
 import magma.app.map.MapLike;
 import magma.app.map.Maps;
-
-import java.util.Optional;
 
 public final class MapNode implements Node {
     private MapLike<String, String> strings;
@@ -23,7 +22,7 @@ public final class MapNode implements Node {
     }
 
     @Override
-    public Optional<String> findString(final String key) {
+    public OptionalLike<String> findString(final String key) {
         return this.strings.find(key);
     }
 }

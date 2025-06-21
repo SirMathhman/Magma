@@ -13,12 +13,18 @@ public record JavaStream<Value>(Stream<Value> stream) implements StreamLike<Valu
     }
 
     @Override
-    public <Return> StreamLike<Return> flatMap(final Function<Value, Stream<Return>> mapper) {
-        return new JavaStream<>(this.stream.flatMap(mapper));
+    public <Return> StreamLike<Return> flatMap(final Function<Value, StreamLike<Return>> mapper) {
+        return new JavaStream<>(this.stream.flatMap(value -> mapper.apply(value)
+                .unwrap()));
     }
 
     @Override
     public <Collection> Collection collect(final Collector<? super Value, ?, Collection> collector) {
         return this.stream.collect(collector);
+    }
+
+    @Override
+    public Stream<Value> unwrap() {
+        return this.stream;
     }
 }

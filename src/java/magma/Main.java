@@ -15,7 +15,6 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collector;
 import java.util.stream.Collectors;
@@ -66,11 +65,11 @@ public class Main {
         return Main.divide(input)
                 .stream()
                 .map(segment -> Main.compileRootSegment(segment, source))
-                .flatMap(Optional::stream)
+                .flatMap(OptionalLike::stream)
                 .collect(Collectors.joining());
     }
 
-    private static Optional<String> compileRootSegment(final String input, final String name) {
+    private static OptionalLike<String> compileRootSegment(final String input, final String name) {
         return Main.createImportRule()
                 .lex(input)
                 .flatMap(node -> {
