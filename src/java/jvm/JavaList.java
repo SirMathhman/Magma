@@ -1,10 +1,10 @@
 package jvm;
 
+import magma.app.StreamLike;
 import magma.app.list.ListLike;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Stream;
 
 public record JavaList<Value>(List<Value> elements) implements ListLike<Value> {
     public JavaList() {
@@ -12,8 +12,8 @@ public record JavaList<Value>(List<Value> elements) implements ListLike<Value> {
     }
 
     @Override
-    public Stream<Value> stream() {
-        return this.elements.stream();
+    public StreamLike<Value> stream() {
+        return new JavaStream<>(this.elements.stream());
     }
 
     @Override

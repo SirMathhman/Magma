@@ -1,9 +1,9 @@
 package magma.app.list;
 
-import java.util.stream.Stream;
+import magma.app.StreamLike;
 
 public interface ListLike<T> {
-    Stream<T> stream();
+    StreamLike<T> stream();
 
     ListLike<T> add(T element);
 }
