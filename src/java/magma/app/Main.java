@@ -2,18 +2,15 @@ package magma.app;
 
 import magma.api.Tuple;
 import magma.api.collect.map.MapCollector;
-import magma.api.collect.map.MapLike;
 import magma.api.collect.set.SetLike;
 import magma.api.collect.stream.ResultCollector;
 import magma.api.io.IOError;
-import magma.api.io.path.PathLike;
 import magma.api.io.path.PathLikes;
 import magma.api.optional.OptionalLike;
 import magma.api.optional.Optionals;
 import magma.api.result.Result;
 import magma.app.compile.Compiler;
 import magma.app.compile.lang.Lang;
-import magma.app.io.PathSource;
 import magma.app.io.PathSources;
 import magma.app.io.Source;
 import magma.app.io.Sources;
@@ -36,15 +33,11 @@ class Main {
         return target.writeString(joined);
     }
 
-    private static Result<String, IOError> compileSources(final SetLike<PathLike> sources) {
-        return Main.readSources(sources)
-                .mapValue(Compiler::compileEntries);
-    }
-
-    private static Result<MapLike<String, String>, IOError> readSources(final SetLike<PathLike> sources) {
+    private static Result<String, IOError> compileSources(final SetLike<Source> sources) {
         return sources.stream()
-                .map(source -> Main.readSource(new PathSource(source)))
-                .collect(new ResultCollector<>(new MapCollector<>()));
+                .map(Main::readSource)
+                .collect(new ResultCollector<>(new MapCollector<>()))
+                .mapValue(Compiler::compileEntries);
     }
 
     private static Result<Tuple<String, String>, IOError> readSource(final Source source) {
