@@ -13,7 +13,9 @@ import magma.api.optional.Optionals;
 import magma.api.result.Result;
 import magma.app.compile.Compiler;
 import magma.app.compile.lang.Lang;
+import magma.app.io.PathSource;
 import magma.app.io.PathSources;
+import magma.app.io.Source;
 import magma.app.io.Sources;
 
 class Main {
@@ -41,18 +43,13 @@ class Main {
 
     private static Result<MapLike<String, String>, IOError> readSources(final SetLike<PathLike> sources) {
         return sources.stream()
-                .map(Main::readSource)
+                .map(source -> Main.readSource(new PathSource(source)))
                 .collect(new ResultCollector<>(new MapCollector<>()));
     }
 
-    private static Result<Tuple<String, String>, IOError> readSource(final PathLike source) {
-        final var fileName = source.getFileName()
-                .asString();
-
-        final var separator = fileName.lastIndexOf('.');
-        final var name = fileName.substring(0, separator);
-
-        return source.readString()
+    private static Result<Tuple<String, String>, IOError> readSource(final Source source) {
+        final var name = source.computeName();
+        return source.read()
                 .mapValue(input -> new Tuple<>(name, input));
     }
 }

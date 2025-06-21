@@ -42,6 +42,9 @@ PathSources --> StreamLike
 PathSources --> IOError
 PathSources --> PathLike
 PathSources --> Result
+class Source
+Source --> IOError
+Source --> Result
 class LastRule
 LastRule --> OptionalLike
 LastRule --> Optionals
@@ -81,6 +84,10 @@ Compiler --> Lang
 Compiler --> Node
 class Joiner
 Joiner --> Optional
+class PathSource
+PathSource --> IOError
+PathSource --> PathLike
+PathSource --> Result
 class MapLike
 MapLike --> Tuple
 MapLike --> StreamLike
@@ -161,7 +168,10 @@ Main --> Optionals
 Main --> Result
 Main --> Compiler
 Main --> Lang
+Main --> PathSource
 Main --> PathSources
+Main --> Source
+Main --> Sources
 class ListLike
 ListLike --> StreamLike
 class Tuple
