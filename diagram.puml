@@ -51,11 +51,8 @@ class NodeResult
 NodeResult --> Node
 NodeResult --> StringResult
 class None
-None --> Supplier
 class Option
-Option --> Supplier
 class Some
-Some --> Supplier
 class JavaPath
 JavaPath --> IOError
 JavaPath --> JavaIOError
@@ -99,7 +96,6 @@ class StringOk
 StringOk --> Option
 StringOk --> Some
 StringOk --> StringResult
-StringOk --> Supplier
 class StringRule
 StringRule --> MapNode
 StringRule --> Node
@@ -117,11 +113,9 @@ SuffixRule --> NodeErr
 SuffixRule --> NodeResult
 SuffixRule --> Appending
 class Appending
-Appending --> Supplier
 class StringErr
 StringErr --> None
 StringErr --> Option
-StringErr --> Supplier
 class StringResult
 StringResult --> Option
 

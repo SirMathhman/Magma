@@ -85,12 +85,17 @@ class Main {
     }
 
     private static StringResult getRecord(final Node node) {
-        if (!ListLikes.of("Function", "Consumer")
-                .contains(node.findString("destination")
-                        .orElse("")))
-            return Main.getStringSome(node);
+        final var destination = node.findString("destination")
+                .orElse("");
+        if (Main.isFunctionalInterface(destination))
+            return new StringErr();
 
-        return new StringErr();
+        return Main.getStringSome(node);
+    }
+
+    private static boolean isFunctionalInterface(final String destination) {
+        return ListLikes.of("Consumer", "Function", "Supplier")
+                .contains(destination);
     }
 
     private static StringResult getStringSome(final Node node) {
