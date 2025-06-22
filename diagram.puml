@@ -29,11 +29,8 @@ MapNode --> Some
 MapNode --> HashMap
 MapNode --> Map
 class None
-None --> Consumer
 class Option
-Option --> Consumer
 class Some
-Some --> Consumer
 class JavaPath
 JavaPath --> IOError
 JavaPath --> JavaIOError

@@ -83,7 +83,7 @@ public class Main {
     }
 
     private static Option<String> getRecord(final MapNode mapNode) {
-        if (!ListLike.of("Function", "Supplier")
+        if (!ListLike.of("Function", "Consumer")
                 .contains(mapNode.findString("destination")
                         .orElse("")))
             return new Some<>(mapNode.findString("source")
