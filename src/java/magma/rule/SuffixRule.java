@@ -3,9 +3,10 @@ package magma.rule;
 import magma.node.Node;
 import magma.node.result.NodeErr;
 import magma.node.result.NodeResult;
-import magma.string.StringResult;
+import magma.string.Appending;
 
-public record SuffixRule(Rule rule, String suffix) implements Rule {
+public record SuffixRule<StringResult extends Appending<StringResult>>(Rule<Node, StringResult> rule,
+                                                                       String suffix) implements Rule<Node, StringResult> {
     @Override
     public NodeResult lex(final String input) {
         if (input.endsWith(this.suffix))

@@ -79,7 +79,7 @@ class Main {
         return "class " + name + Main.SEPARATOR + output;
     }
 
-    private static Rule createImportRule(final String name) {
+    private static Rule<Node, StringResult> createImportRule(final String name) {
         final var destination = new StringRule("destination");
         return new StripRule(name, new PrefixRule("import ", new LastRule(null, ".", destination)));
     }
@@ -94,7 +94,7 @@ class Main {
     }
 
     private static StringResult getStringSome(final Node node) {
-        return new SuffixRule(new LastRule(new StringRule("source"), " --> ", new StringRule("destination")),
+        return new SuffixRule<>(new LastRule(new StringRule("source"), " --> ", new StringRule("destination")),
                 Main.SEPARATOR).generate(node);
     }
 }

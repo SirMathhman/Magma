@@ -41,15 +41,15 @@ MapNode --> Map
 class Node
 Node --> Option
 class NodeErr
+NodeErr --> Node
 NodeErr --> StringErr
 NodeErr --> StringResult
-NodeErr --> Node
 class NodeOk
-NodeOk --> StringResult
 NodeOk --> Node
+NodeOk --> StringResult
 class NodeResult
-NodeResult --> StringResult
 NodeResult --> Node
+NodeResult --> StringResult
 class None
 None --> Supplier
 class Option
@@ -84,46 +84,45 @@ Ok --> IOError
 class Result
 Result --> IOError
 class LastRule
-LastRule --> StringResult
 LastRule --> Node
 LastRule --> NodeErr
 LastRule --> NodeResult
+LastRule --> StringResult
 class PrefixRule
-PrefixRule --> StringResult
 PrefixRule --> Node
 PrefixRule --> NodeErr
 PrefixRule --> NodeResult
+PrefixRule --> StringResult
 class Rule
-Rule --> Node
 Rule --> NodeResult
-Rule --> StringResult
 class StringOk
-StringOk --> StringResult
 StringOk --> Option
 StringOk --> Some
+StringOk --> StringResult
 StringOk --> Supplier
 class StringRule
-StringRule --> StringErr
-StringRule --> StringResult
 StringRule --> MapNode
 StringRule --> Node
 StringRule --> NodeOk
 StringRule --> NodeResult
+StringRule --> StringErr
+StringRule --> StringResult
 class StripRule
 StripRule --> Node
 StripRule --> NodeResult
 StripRule --> StringResult
 class SuffixRule
-SuffixRule --> StringResult
 SuffixRule --> Node
 SuffixRule --> NodeErr
 SuffixRule --> NodeResult
+SuffixRule --> Appending
+class Appending
+Appending --> Supplier
 class StringErr
 StringErr --> None
 StringErr --> Option
 StringErr --> Supplier
 class StringResult
 StringResult --> Option
-StringResult --> Supplier
 
 @enduml

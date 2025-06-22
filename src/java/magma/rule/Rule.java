@@ -1,10 +1,8 @@
 package magma.rule;
 
-import magma.node.Node;
 import magma.node.result.NodeResult;
-import magma.string.StringResult;
 
-public interface Rule {
+public interface Rule<Node, StringResult> {
     NodeResult lex(String input);
 
     StringResult generate(Node node);

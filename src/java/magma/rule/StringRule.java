@@ -7,7 +7,7 @@ import magma.node.result.NodeResult;
 import magma.string.StringErr;
 import magma.string.StringResult;
 
-public record StringRule(String key) implements Rule {
+public record StringRule(String key) implements Rule<Node, StringResult> {
     @Override
     public NodeResult lex(final String input) {
         return new NodeOk(new MapNode().withString(this.key(), input));

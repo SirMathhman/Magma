@@ -4,7 +4,7 @@ import magma.node.Node;
 import magma.node.result.NodeResult;
 import magma.string.StringResult;
 
-public record StripRule(String name, Rule rule) implements Rule {
+public record StripRule(String name, Rule<Node, StringResult> rule) implements Rule<Node, StringResult> {
     @Override
     public NodeResult lex(final String input) {
         final var strip = input.strip();

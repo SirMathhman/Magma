@@ -5,7 +5,8 @@ import magma.node.result.NodeErr;
 import magma.node.result.NodeResult;
 import magma.string.StringResult;
 
-public record LastRule(Rule leftRule, String infix, Rule rightRule) implements Rule {
+public record LastRule(Rule<Node, StringResult> leftRule, String infix, Rule<Node, StringResult> rightRule) implements
+        Rule<Node, StringResult> {
     @Override
     public NodeResult lex(final String input) {
         final var separator = input.lastIndexOf(this.infix());
