@@ -193,17 +193,22 @@ class Main {
     }
 
     private static Rule<EverythingNode, NodeResult<EverythingNode>, StringResult> createStructureRule(final String infix) {
-        return new InfixRule<>(new StringRule("before-keyword", new MapNodeFactory(), new SimpleResultFactory()),
-                infix, new StringRule("after-keyword", new MapNodeFactory(), new SimpleResultFactory()));
+        return new InfixRule<>(new StringRule<EverythingNode>("before-keyword",
+                new MapNodeFactory(),
+                new SimpleResultFactory()),
+                infix,
+                new StringRule<EverythingNode>("after-keyword", new MapNodeFactory(), new SimpleResultFactory()));
     }
 
     private static Rule<EverythingNode, NodeResult<EverythingNode>, StringResult> createImportRule(final String type) {
-        final var destination = new StringRule("destination", new MapNodeFactory(), new SimpleResultFactory());
-        final var withParent = new InfixRule<>(new StringRule("parent",
+        final var destination = new StringRule<EverythingNode>("destination",
+                new MapNodeFactory(),
+                new SimpleResultFactory());
+        final var withParent = new InfixRule<>(new StringRule<EverythingNode>("parent",
                 new MapNodeFactory(),
                 new SimpleResultFactory()), ".", destination);
         final var parent = new OrRule<>(ListLikes.of(withParent,
-                new StringRule("value", new MapNodeFactory(), new SimpleResultFactory())));
+                new StringRule<EverythingNode>("value", new MapNodeFactory(), new SimpleResultFactory())));
 
         return new TypeRule<>(type, new StripRule<>(new PrefixRule<>(type + " ", new SuffixRule<>(parent, ";"))));
     }
@@ -218,15 +223,16 @@ class Main {
     }
 
     private static Rule<EverythingNode, NodeResult<EverythingNode>, StringResult> createPlaceholderRule() {
-        return new TypeRule<>("placeholder", new StringRule("value", new MapNodeFactory(), new SimpleResultFactory()));
+        return new TypeRule<>("placeholder",
+                new StringRule<EverythingNode>("value", new MapNodeFactory(), new SimpleResultFactory()));
     }
 
     private static Rule<EverythingNode, NodeResult<EverythingNode>, StringResult> createDependencyRule() {
-        return new TypeRule<>("dependency",
-                new SuffixRule<>(new InfixRule<>(new StringRule("source",
+        return new TypeRule<>("dependency", new SuffixRule<>(new InfixRule<>(new StringRule<EverythingNode>("source",
                         new MapNodeFactory(),
                         new SimpleResultFactory()),
-                        " --> ", new StringRule("destination", new MapNodeFactory(), new SimpleResultFactory())),
+                " --> ",
+                new StringRule<EverythingNode>("destination", new MapNodeFactory(), new SimpleResultFactory())),
                         Main.SEPARATOR));
     }
 }

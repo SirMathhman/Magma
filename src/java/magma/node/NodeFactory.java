@@ -1,5 +1,5 @@
 package magma.node;
 
-public interface NodeFactory {
-    EverythingNode createNode();
+public interface NodeFactory<Node> {
+    Node createNode();
 }
