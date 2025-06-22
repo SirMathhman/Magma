@@ -2,14 +2,14 @@ package magma.app.compile.result;
 
 import magma.api.collect.stream.Collector;
 
-public record GenerateResultJoiner() implements Collector<GenerateResult, GenerateResult> {
+public record GenerateResultJoiner() implements Collector<StringResult, StringResult> {
     @Override
-    public GenerateResult createInitial() {
-        return new GenerateOk("");
+    public StringResult createInitial() {
+        return new StringOk("");
     }
 
     @Override
-    public GenerateResult fold(final GenerateResult current, final GenerateResult other) {
+    public StringResult fold(final StringResult current, final StringResult other) {
         return current.appendResult(() -> other);
     }
 }

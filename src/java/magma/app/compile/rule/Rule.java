@@ -1,10 +1,10 @@
 package magma.app.compile.rule;
 
-import magma.app.compile.result.GenerateResult;
-import magma.app.compile.result.LexResult;
+import magma.app.compile.result.NodeResult;
+import magma.app.compile.result.StringResult;
 
 public interface Rule<Node> {
-    LexResult lex(String input);
+    NodeResult lex(String input);
 
-    GenerateResult generate(Node node);
+    StringResult generate(Node node);
 }

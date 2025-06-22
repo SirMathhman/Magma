@@ -5,16 +5,16 @@ import magma.api.result.Result;
 
 import java.util.function.Supplier;
 
-public record GenerateOk(String value) implements GenerateResult {
+public record StringOk(String value) implements StringResult {
     @Override
-    public GenerateResult appendResult(final Supplier<GenerateResult> other) {
+    public StringResult appendResult(final Supplier<StringResult> other) {
         return other.get()
                 .prependSlice(this.value);
     }
 
     @Override
-    public GenerateResult prependSlice(final String slice) {
-        return new GenerateOk(slice + this.value);
+    public StringResult prependSlice(final String slice) {
+        return new StringOk(slice + this.value);
     }
 
     @Override
@@ -23,7 +23,7 @@ public record GenerateOk(String value) implements GenerateResult {
     }
 
     @Override
-    public GenerateResult appendSlice(final String slice) {
-        return new GenerateOk(this.value + slice);
+    public StringResult appendSlice(final String slice) {
+        return new StringOk(this.value + slice);
     }
 }

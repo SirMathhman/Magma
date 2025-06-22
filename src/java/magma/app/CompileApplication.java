@@ -4,7 +4,7 @@ import magma.api.optional.Option;
 import magma.api.optional.Optionals;
 import magma.app.compile.Compiler;
 import magma.app.compile.lang.Lang;
-import magma.app.compile.result.GenerateResult;
+import magma.app.compile.result.StringResult;
 import magma.app.io.source.Sources;
 import magma.app.io.target.Targets;
 
@@ -17,7 +17,7 @@ public record CompileApplication(Sources sources, Targets targets) implements Ap
                 .match(this::writeResult, Optionals::of);
     }
 
-    private Option<ApplicationError> writeResult(final GenerateResult output) {
+    private Option<ApplicationError> writeResult(final StringResult output) {
         return output.toResult()
                 .mapErr(ApplicationError::new)
                 .match(this::write, Optionals::of);

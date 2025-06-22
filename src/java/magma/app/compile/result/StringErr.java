@@ -5,14 +5,14 @@ import magma.api.result.Result;
 
 import java.util.function.Supplier;
 
-public record GenerateErr(CompileError error) implements GenerateResult {
+public record StringErr(CompileError error) implements StringResult {
     @Override
-    public GenerateResult appendResult(final Supplier<GenerateResult> other) {
+    public StringResult appendResult(final Supplier<StringResult> other) {
         return this;
     }
 
     @Override
-    public GenerateResult prependSlice(final String slice) {
+    public StringResult prependSlice(final String slice) {
         return this;
     }
 
@@ -22,7 +22,7 @@ public record GenerateErr(CompileError error) implements GenerateResult {
     }
 
     @Override
-    public GenerateResult appendSlice(final String slice) {
+    public StringResult appendSlice(final String slice) {
         return this;
     }
 }

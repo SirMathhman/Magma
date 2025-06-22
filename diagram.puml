@@ -1,228 +1,67 @@
 @startuml
 skinparam linetype ortho
 class CompileError
-CompileError --> Error
 class Optionals
-Optionals --> Optional
 class JavaMap
-JavaMap --> Tuple
-JavaMap --> TupleImpl
-JavaMap --> JavaStream
-JavaMap --> StreamLike
-JavaMap --> HashMap
-JavaMap --> Map
-JavaMap --> Function
-JavaMap --> Supplier
 class Node
-Node --> Function
-Node --> Supplier
 class JavaStream
-JavaStream --> Function
-JavaStream --> Predicate
-JavaStream --> Stream
 class LastRule
-LastRule --> Node
-LastRule --> CompileError
-LastRule --> GenerateResult
-LastRule --> LexErr
-LastRule --> LexResult
 class Result
-Result --> Option
-Result --> Function
-class LexErr
-LexErr --> Node
-LexErr --> Function
+class ListCollector
 class Maps
+class NodeListResult
 class Lists
 class PathLike
-PathLike --> StreamLike
-PathLike --> IOError
-PathLike --> Option
-PathLike --> Result
 class ResultCollector
-ResultCollector --> Ok
-ResultCollector --> Result
 class PrefixRule
-PrefixRule --> Node
-PrefixRule --> CompileError
-PrefixRule --> GenerateResult
-PrefixRule --> LexErr
-PrefixRule --> LexResult
 class Compiler
-Compiler --> Tuple
-Compiler --> MapLike
-Compiler --> Joiner
-Compiler --> Divider
-Compiler --> Lang
-Compiler --> Node
-Compiler --> GenerateOk
-Compiler --> GenerateResult
-Compiler --> GenerateResultJoiner
+class NodeListResultCollector
+class NodeErr
 class PathSource
-PathSource --> IOError
-PathSource --> PathLike
-PathSource --> Result
 class PathLikes
-PathLikes --> Paths
 class StripRule
-StripRule --> GenerateResult
-StripRule --> LexResult
 class JavaList
-JavaList --> JavaStream
-JavaList --> StreamLike
-JavaList --> ArrayList
-JavaList --> List
 class Lang
-Lang --> Node
-Lang --> LastRule
-Lang --> PrefixRule
-Lang --> Rule
-Lang --> StringRule
-Lang --> StripRule
-Lang --> SuffixRule
 class JavaPath
-JavaPath --> JavaStream
-JavaPath --> StreamLike
-JavaPath --> IOError
-JavaPath --> JavaIOError
-JavaPath --> Option
-JavaPath --> Optionals
-JavaPath --> Err
-JavaPath --> Ok
-JavaPath --> Result
-JavaPath --> IOException
-JavaPath --> Files
-JavaPath --> Path
 class JavaOptional
-JavaOptional --> Optional
-JavaOptional --> Consumer
-JavaOptional --> Function
 class DivideState
-DivideState --> ListLike
+class StringResultJoiner
 class Sources
-Sources --> MapLike
-Sources --> IOError
-Sources --> Result
 class PathTargets
-PathTargets --> IOError
-PathTargets --> PathLike
-PathTargets --> Option
+class StringOk
 class Option
-Option --> Consumer
-Option --> Function
-class LexResult
-LexResult --> Node
-LexResult --> Function
+class StringResult
 class Rule
-Rule --> GenerateResult
-Rule --> LexResult
 class Application
-Application --> Option
 class StreamLike
-StreamLike --> Function
-StreamLike --> Predicate
 class StringRule
-StringRule --> MapNode
-StringRule --> Node
-StringRule --> CompileError
-StringRule --> GenerateErr
-StringRule --> GenerateOk
-StringRule --> GenerateResult
-StringRule --> LexOk
-StringRule --> LexResult
 class JavaIOError
-JavaIOError --> IOException
-JavaIOError --> PrintWriter
-JavaIOError --> StringWriter
 class Err
-Err --> Option
-Err --> Optionals
-Err --> Function
 class MapNode
-MapNode --> MapLike
-MapNode --> Maps
-MapNode --> Function
-MapNode --> Supplier
+class NodeListErr
 class PathSources
-PathSources --> Tuple
-PathSources --> TupleImpl
-PathSources --> MapCollector
-PathSources --> MapLike
-PathSources --> ResultCollector
-PathSources --> IOError
-PathSources --> PathLike
-PathSources --> Result
 class Source
-Source --> IOError
-Source --> Result
-class GenerateErr
-GenerateErr --> Err
-GenerateErr --> Result
-GenerateErr --> Supplier
+class NodeResult
 class Collector
 class ApplicationError
-ApplicationError --> Error
-class GenerateOk
-GenerateOk --> Ok
-GenerateOk --> Result
-GenerateOk --> Supplier
+class NodeListOk
 class MapCollector
-MapCollector --> Tuple
-MapCollector --> Collector
+class StringErr
 class Joiner
-Joiner --> Optional
-class GenerateResult
-GenerateResult --> Result
-GenerateResult --> Supplier
-class LexOk
-LexOk --> Node
-LexOk --> Function
 class MapLike
-MapLike --> Tuple
-MapLike --> StreamLike
-MapLike --> Function
-MapLike --> Supplier
 class Error
 class GenerateResultJoiner
-GenerateResultJoiner --> Collector
 class Targets
-Targets --> IOError
-Targets --> Option
 class MutableDivideState
-MutableDivideState --> ListLike
-MutableDivideState --> Lists
 class CompileApplication
-CompileApplication --> Option
-CompileApplication --> Optionals
-CompileApplication --> Compiler
-CompileApplication --> Lang
-CompileApplication --> GenerateResult
-CompileApplication --> Sources
-CompileApplication --> Targets
 class IOError
 class SuffixRule
-SuffixRule --> Node
-SuffixRule --> CompileError
-SuffixRule --> GenerateResult
-SuffixRule --> LexErr
-SuffixRule --> LexResult
+class NodeOk
 class Ok
-Ok --> Option
-Ok --> Optionals
-Ok --> Function
 class TupleImpl
 class Divider
-Divider --> ListLike
 class Main
-Main --> PathLikes
-Main --> Application
-Main --> CompileApplication
-Main --> PathSources
-Main --> Sources
-Main --> PathTargets
-Main --> Targets
 class ListLike
-ListLike --> StreamLike
 class Tuple
 
 @enduml
