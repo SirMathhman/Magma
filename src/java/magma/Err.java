@@ -3,9 +3,14 @@ package magma;
 import java.io.IOException;
 import java.util.function.Function;
 
-public record Err(IOException e) implements Result {
+public record Err<Value>(IOException error) implements Result<Value> {
     @Override
-    public <Return> Return match(final Function<String, Return> whenOk, final Function<IOException, Return> whenError) {
-        return whenError.apply(this.e);
+    public <Return> Return match(final Function<Value, Return> whenOk, final Function<IOException, Return> whenError) {
+        return whenError.apply(this.error);
+    }
+
+    @Override
+    public <Return> Result<Return> map(final Function<Value, Return> mapper) {
+        return new Err<>(this.error);
     }
 }
