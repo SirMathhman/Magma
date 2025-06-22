@@ -10,7 +10,7 @@ import magma.api.option.Some;
 import magma.api.result.Ok;
 import magma.api.result.Result;
 import magma.app.Compiler;
-import magma.app.Lang;
+import magma.app.lang.Lang;
 
 import java.util.HashMap;
 import java.util.Map;

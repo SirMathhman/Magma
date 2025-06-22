@@ -40,6 +40,7 @@ Compiler --> Result
 Compiler --> DivideState
 Compiler --> MutableDivideState
 Compiler --> FormattedError
+Compiler --> Lang
 Compiler --> EverythingNode
 Compiler --> NodeErr
 Compiler --> NodeOk

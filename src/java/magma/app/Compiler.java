@@ -11,6 +11,7 @@ import magma.api.result.Result;
 import magma.app.divide.DivideState;
 import magma.app.divide.MutableDivideState;
 import magma.app.error.FormattedError;
+import magma.app.lang.Lang;
 import magma.app.node.EverythingNode;
 import magma.app.node.result.NodeErr;
 import magma.app.node.result.NodeOk;

@@ -1,4 +1,4 @@
-package magma.app;
+package magma.app.lang;
 
 import magma.api.error.list.ErrorSequence;
 import magma.api.list.ListLikes;
