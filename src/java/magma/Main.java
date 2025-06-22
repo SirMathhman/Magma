@@ -78,17 +78,20 @@ class Main {
 
     private static Rule createImportRule(final String name) {
         final var destination = new StringRule("destination");
-        return new StripRule(name, new PrefixRule("import ", new LastRule(".", destination)));
+        return new StripRule(name, new PrefixRule("import ", new LastRule(null, ".", destination)));
     }
 
     private static Option<String> getRecord(final Node node) {
         if (!ListLikes.of("Function", "Consumer")
                 .contains(node.findString("destination")
                         .orElse("")))
-            return new Some<>(node.findString("source")
-                    .orElse("") + " --> " + node.findString("destination")
-                    .orElse("") + Main.SEPARATOR);
+            return Main.getStringSome(node);
 
         return new None<>();
+    }
+
+    private static Option<String> getStringSome(final Node node) {
+        return new SuffixRule(new LastRule(new StringRule("source"), " --> ", new StringRule("destination")),
+                Main.SEPARATOR).generate(node);
     }
 }

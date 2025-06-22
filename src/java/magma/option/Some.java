@@ -1,6 +1,7 @@
 package magma.option;
 
 import java.util.function.Consumer;
+import java.util.function.Function;
 
 public record Some<T>(T value) implements Option<T> {
     @Override
@@ -13,4 +14,13 @@ public record Some<T>(T value) implements Option<T> {
         return this.value;
     }
 
+    @Override
+    public <Return> Option<Return> map(final Function<T, Return> mapper) {
+        return new Some<>(mapper.apply(this.value));
+    }
+
+    @Override
+    public <Return> Option<Return> flatMap(final Function<T, Option<Return>> mapper) {
+        return mapper.apply(this.value);
+    }
 }
