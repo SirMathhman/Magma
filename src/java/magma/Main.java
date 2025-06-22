@@ -1,7 +1,9 @@
 package magma;
 
+import magma.divide.DivideState;
+import magma.divide.MutableDivideState;
 import magma.error.ApplicationError;
-import magma.error.CompileError;
+import magma.error.FormattedError;
 import magma.error.IOError;
 import magma.list.ListLike;
 import magma.list.ListLikes;
@@ -100,30 +102,45 @@ class Main {
     }
 
     private static StringResult compile(final CharSequence input, final String name) {
-        var segments = ListLikes.<String>empty();
-        var buffer = new StringBuilder();
-        var depth = 0;
-        for (var i = 0; i < input.length(); i++) {
-            final var c = input.charAt(i);
-            buffer.append(c);
-            if (';' == c && 0 == depth) {
-                segments = segments.add(buffer.toString());
-                buffer = new StringBuilder();
-            }
-            else {
-                if ('{' == c)
-                    depth++;
-                if ('}' == c)
-                    depth--;
-            }
-        }
-        segments = segments.add(buffer.toString());
-
+        final var segments = Main.divide(input);
         return segments.stream()
                 .<StringResult>reduce(new StringOk(),
                         (output, segment) -> Main.getStringResult(name, output, segment),
                         (_, next) -> next)
                 .prepend("class " + name + Main.SEPARATOR);
+    }
+
+    private static ListLike<String> divide(final CharSequence input) {
+        final var segments = ListLikes.<String>empty();
+        final var buffer = new StringBuilder();
+        final var depth = 0;
+        return Main.getStringListLike(input, new MutableDivideState(segments, buffer, depth));
+    }
+
+    private static ListLike<String> getStringListLike(final CharSequence input, final DivideState state) {
+        var current = state;
+        final var length = input.length();
+        for (var i = 0; i < length; i++) {
+            final var c = input.charAt(i);
+            current = Main.fold(current, c);
+        }
+
+        return current.advance()
+                .toList();
+    }
+
+    private static DivideState fold(final DivideState current, final char c) {
+        final var appended = current.append(c);
+        if (';' == c && appended.isLevel())
+            return appended.advance();
+
+        if ('{' == c)
+            return appended.enter();
+
+        if ('}' == c)
+            return appended.exit();
+
+        return appended;
     }
 
     private static StringResult getStringResult(final String name, final StringResult output, final String segment) {
@@ -132,8 +149,8 @@ class Main {
                 .mapToResult(destination -> Main.transformAndGenerate(name, destination));
 
         return switch (generated) {
-            case Err<Option<StringResult>, CompileError>(final var error) -> new StringErr(error);
-            case Ok<Option<StringResult>, CompileError>(final var value) ->
+            case Err<Option<StringResult>, FormattedError>(final var error) -> new StringErr(error);
+            case Ok<Option<StringResult>, FormattedError>(final var value) ->
                     value instanceof Some(final var result) ? output.appendResult(result) : output;
         };
     }

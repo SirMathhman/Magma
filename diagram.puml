@@ -5,7 +5,7 @@ CompileError --> ListLike
 CompileError --> ListLikes
 CompileError --> Collectors
 class Accumulator
-Accumulator --> CompileError
+Accumulator --> FormattedError
 Accumulator --> ListLike
 class StringRule
 StringRule --> CompileError
@@ -21,14 +21,9 @@ JavaIOError --> IOException
 JavaIOError --> PrintWriter
 JavaIOError --> StringWriter
 class Err
+class FormattedError
 class Node
 Node --> Option
-class EmptyRule
-EmptyRule --> MapNode
-EmptyRule --> Node
-EmptyRule --> NodeOk
-EmptyRule --> NodeResult
-EmptyRule --> StringResult
 class MapNode
 MapNode --> None
 MapNode --> Option
@@ -37,9 +32,9 @@ MapNode --> HashMap
 MapNode --> Map
 class Result
 class Matching
-Matching --> CompileError
+Matching --> FormattedError
 class NodeResult
-NodeResult --> CompileError
+NodeResult --> FormattedError
 NodeResult --> Node
 NodeResult --> Result
 class PathLike
@@ -49,7 +44,7 @@ PathLike --> Option
 PathLike --> Result
 class ApplicationError
 class ImmutableAccumulator
-ImmutableAccumulator --> CompileError
+ImmutableAccumulator --> FormattedError
 ImmutableAccumulator --> ListLike
 ImmutableAccumulator --> ListLikes
 ImmutableAccumulator --> None
@@ -57,7 +52,7 @@ ImmutableAccumulator --> Option
 ImmutableAccumulator --> Some
 class Appending
 class StringErr
-StringErr --> CompileError
+StringErr --> FormattedError
 StringErr --> Err
 StringErr --> Result
 class StringContext
@@ -70,7 +65,7 @@ PrefixRule --> NodeErr
 PrefixRule --> NodeResult
 PrefixRule --> StringResult
 class NodeErr
-NodeErr --> CompileError
+NodeErr --> FormattedError
 NodeErr --> Node
 NodeErr --> Err
 NodeErr --> Result
@@ -83,6 +78,7 @@ InfixRule --> NodeResult
 InfixRule --> StringResult
 class OrRule
 OrRule --> CompileError
+OrRule --> FormattedError
 OrRule --> NodeContext
 OrRule --> StringContext
 OrRule --> ListLike
@@ -106,6 +102,8 @@ class JavaList
 JavaList --> ArrayList
 JavaList --> List
 JavaList --> Stream
+class MutableDivideState
+MutableDivideState --> ListLike
 class JavaPath
 JavaPath --> IOError
 JavaPath --> JavaIOError
@@ -120,6 +118,8 @@ JavaPath --> Result
 JavaPath --> IOException
 JavaPath --> Files
 JavaPath --> Path
+class DivideState
+DivideState --> ListLike
 class Some
 Some --> Predicate
 class IOError
@@ -127,7 +127,7 @@ class ListLikes
 ListLikes --> ArrayList
 ListLikes --> Arrays
 class StringOk
-StringOk --> CompileError
+StringOk --> FormattedError
 StringOk --> Ok
 StringOk --> Result
 StringOk --> StringResult
@@ -141,20 +141,22 @@ SuffixRule --> Appending
 class Option
 Option --> Predicate
 class NodeOk
-NodeOk --> CompileError
+NodeOk --> FormattedError
 NodeOk --> Node
 NodeOk --> Ok
 NodeOk --> Result
 class Rule
 Rule --> NodeResult
 class StringResult
-StringResult --> CompileError
+StringResult --> FormattedError
 StringResult --> Matching
 StringResult --> Result
 class Ok
 class Main
+Main --> DivideState
+Main --> MutableDivideState
 Main --> ApplicationError
-Main --> CompileError
+Main --> FormattedError
 Main --> IOError
 Main --> ListLike
 Main --> ListLikes

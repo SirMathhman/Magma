@@ -1,6 +1,7 @@
 package magma.rule;
 
 import magma.error.CompileError;
+import magma.error.FormattedError;
 import magma.error.NodeContext;
 import magma.error.StringContext;
 import magma.list.ListLike;
@@ -22,9 +23,9 @@ public record OrRule(ListLike<Rule<Node, StringResult>> rules) implements Rule<N
                 errors -> new NodeErr(new CompileError("Invalid combination", new StringContext(input), errors)));
     }
 
-    private <Value, Result extends Matching<Value>, Return> Return or(final Function<Rule<Node, StringResult>, Result> mapper, final Function<Value, Return> whenOk, final Function<ListLike<CompileError>, Return> whenError) {
+    private <Value, Result extends Matching<Value>, Return> Return or(final Function<Rule<Node, StringResult>, Result> mapper, final Function<Value, Return> whenOk, final Function<ListLike<FormattedError>, Return> whenError) {
         return this.rules.stream()
-                .<Accumulator<Value>>reduce(new ImmutableAccumulator<Value>(), (orState, result) -> {
+                .<Accumulator<Value>>reduce(new ImmutableAccumulator<>(), (orState, result) -> {
                     if (orState.hasValue())
                         return orState;
                     return mapper.apply(result)

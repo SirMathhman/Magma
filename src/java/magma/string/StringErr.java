@@ -1,20 +1,20 @@
 package magma.string;
 
-import magma.error.CompileError;
+import magma.error.FormattedError;
 import magma.result.Err;
 import magma.result.Result;
 
 import java.util.function.Function;
 import java.util.function.Supplier;
 
-public record StringErr(CompileError error) implements StringResult {
+public record StringErr(FormattedError error) implements StringResult {
     @Override
     public StringResult appendSlice(final String slice) {
         return this;
     }
 
     @Override
-    public Result<String, CompileError> toResult() {
+    public Result<String, FormattedError> toResult() {
         return new Err<>(this.error);
     }
 
@@ -34,7 +34,7 @@ public record StringErr(CompileError error) implements StringResult {
     }
 
     @Override
-    public <Return> Return match(final Function<String, Return> whenOk, final Function<CompileError, Return> whenError) {
+    public <Return> Return match(final Function<String, Return> whenOk, final Function<FormattedError, Return> whenError) {
         return whenError.apply(this.error);
     }
 }

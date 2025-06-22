@@ -47,7 +47,7 @@ public final class MapNode implements Node {
 
     @Override
     public boolean is(final String type) {
-        return this.maybeType.filter(inner -> inner.equals(type))
+        return this.maybeType.filter(inner -> inner.contentEquals(type))
                 .isPresent();
     }
 }

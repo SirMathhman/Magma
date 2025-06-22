@@ -5,7 +5,7 @@ import magma.list.ListLikes;
 
 import java.util.stream.Collectors;
 
-public record CompileError(String message, Context context, ListLike<CompileError> errors) implements FormattedError {
+public record CompileError(String message, Context context, ListLike<FormattedError> errors) implements FormattedError {
     public CompileError(final String message, final Context context) {
         this(message, context, ListLikes.empty());
     }

@@ -1,6 +1,6 @@
 package magma.rule;
 
-import magma.error.CompileError;
+import magma.error.FormattedError;
 import magma.result.Ok;
 import magma.result.Result;
 import magma.string.StringResult;
@@ -19,7 +19,7 @@ public record StringOk(String value) implements StringResult {
     }
 
     @Override
-    public Result<String, CompileError> toResult() {
+    public Result<String, FormattedError> toResult() {
         return new Ok<>(this.value);
     }
 
@@ -39,7 +39,7 @@ public record StringOk(String value) implements StringResult {
     }
 
     @Override
-    public <Return> Return match(final Function<String, Return> whenOk, final Function<CompileError, Return> whenError) {
+    public <Return> Return match(final Function<String, Return> whenOk, final Function<FormattedError, Return> whenError) {
         return whenOk.apply(this.value);
     }
 }
