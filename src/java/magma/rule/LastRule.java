@@ -3,7 +3,7 @@ package magma.rule;
 import magma.node.Node;
 import magma.node.result.NodeErr;
 import magma.node.result.NodeResult;
-import magma.option.Option;
+import magma.string.StringResult;
 
 public record LastRule(Rule leftRule, String infix, Rule rightRule) implements Rule {
     @Override
@@ -19,9 +19,9 @@ public record LastRule(Rule leftRule, String infix, Rule rightRule) implements R
     }
 
     @Override
-    public Option<String> generate(final Node node) {
+    public StringResult generate(final Node node) {
         return this.leftRule.generate(node)
-                .flatMap(leftSlice -> this.rightRule.generate(node)
-                        .map(rightSlice -> leftSlice + this.infix + rightSlice));
+                .appendSlice(this.infix)
+                .appendResult(() -> this.rightRule.generate(node));
     }
 }

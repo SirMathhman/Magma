@@ -2,10 +2,10 @@ package magma.rule;
 
 import magma.node.Node;
 import magma.node.result.NodeResult;
-import magma.option.Option;
+import magma.string.StringResult;
 
 public interface Rule {
     NodeResult lex(String input);
 
-    Option<String> generate(Node node);
+    StringResult generate(Node node);
 }

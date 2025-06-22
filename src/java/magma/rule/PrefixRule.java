@@ -3,7 +3,7 @@ package magma.rule;
 import magma.node.Node;
 import magma.node.result.NodeErr;
 import magma.node.result.NodeResult;
-import magma.option.Option;
+import magma.string.StringResult;
 
 public record PrefixRule(String prefix, Rule rule) implements Rule {
     @Override
@@ -18,8 +18,8 @@ public record PrefixRule(String prefix, Rule rule) implements Rule {
     }
 
     @Override
-    public Option<String> generate(final Node node) {
+    public StringResult generate(final Node node) {
         return this.rule.generate(node)
-                .map(result -> this.prefix + result);
+                .prepend(this.prefix);
     }
 }

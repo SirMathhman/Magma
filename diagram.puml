@@ -18,7 +18,6 @@ Main --> IOError
 Main --> ListLike
 Main --> ListLikes
 Main --> Node
-Main --> None
 Main --> Option
 Main --> Some
 Main --> PathLike
@@ -30,6 +29,9 @@ Main --> PrefixRule
 Main --> Rule
 Main --> StringRule
 Main --> StripRule
+Main --> SuffixRule
+Main --> StringErr
+Main --> StringResult
 class MapNode
 MapNode --> None
 MapNode --> Option
@@ -39,18 +41,21 @@ MapNode --> Map
 class Node
 Node --> Option
 class NodeErr
+NodeErr --> StringErr
+NodeErr --> StringResult
 NodeErr --> Node
-NodeErr --> None
-NodeErr --> Option
 class NodeOk
+NodeOk --> StringResult
 NodeOk --> Node
-NodeOk --> Option
 class NodeResult
+NodeResult --> StringResult
 NodeResult --> Node
-NodeResult --> Option
 class None
+None --> Supplier
 class Option
+Option --> Supplier
 class Some
+Some --> Supplier
 class JavaPath
 JavaPath --> IOError
 JavaPath --> JavaIOError
@@ -79,34 +84,46 @@ Ok --> IOError
 class Result
 Result --> IOError
 class LastRule
+LastRule --> StringResult
 LastRule --> Node
 LastRule --> NodeErr
 LastRule --> NodeResult
-LastRule --> Option
 class PrefixRule
+PrefixRule --> StringResult
 PrefixRule --> Node
 PrefixRule --> NodeErr
 PrefixRule --> NodeResult
-PrefixRule --> Option
 class Rule
 Rule --> Node
 Rule --> NodeResult
-Rule --> Option
+Rule --> StringResult
+class StringOk
+StringOk --> StringResult
+StringOk --> Option
+StringOk --> Some
+StringOk --> Supplier
 class StringRule
+StringRule --> StringErr
+StringRule --> StringResult
 StringRule --> MapNode
 StringRule --> Node
 StringRule --> NodeOk
 StringRule --> NodeResult
-StringRule --> Option
 class StripRule
 StripRule --> Node
 StripRule --> NodeResult
-StripRule --> Option
+StripRule --> StringResult
 class SuffixRule
+SuffixRule --> StringResult
 SuffixRule --> Node
 SuffixRule --> NodeErr
 SuffixRule --> NodeResult
-SuffixRule --> Option
-SuffixRule --> Rule
+class StringErr
+StringErr --> None
+StringErr --> Option
+StringErr --> Supplier
+class StringResult
+StringResult --> Option
+StringResult --> Supplier
 
 @enduml

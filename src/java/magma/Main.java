@@ -4,7 +4,6 @@ import magma.error.IOError;
 import magma.list.ListLike;
 import magma.list.ListLikes;
 import magma.node.Node;
-import magma.option.None;
 import magma.option.Option;
 import magma.option.Some;
 import magma.path.PathLike;
@@ -16,6 +15,9 @@ import magma.rule.PrefixRule;
 import magma.rule.Rule;
 import magma.rule.StringRule;
 import magma.rule.StripRule;
+import magma.rule.SuffixRule;
+import magma.string.StringErr;
+import magma.string.StringResult;
 
 class Main {
     private static final String SEPARATOR = System.lineSeparator();
@@ -71,6 +73,7 @@ class Main {
             Main.createImportRule(name)
                     .lex(segment)
                     .flatMap(destination -> Main.getRecord(destination.withString("source", name)))
+                    .toOption()
                     .ifPresent(output::append);
 
         return "class " + name + Main.SEPARATOR + output;
@@ -81,16 +84,16 @@ class Main {
         return new StripRule(name, new PrefixRule("import ", new LastRule(null, ".", destination)));
     }
 
-    private static Option<String> getRecord(final Node node) {
+    private static StringResult getRecord(final Node node) {
         if (!ListLikes.of("Function", "Consumer")
                 .contains(node.findString("destination")
                         .orElse("")))
             return Main.getStringSome(node);
 
-        return new None<>();
+        return new StringErr();
     }
 
-    private static Option<String> getStringSome(final Node node) {
+    private static StringResult getStringSome(final Node node) {
         return new SuffixRule(new LastRule(new StringRule("source"), " --> ", new StringRule("destination")),
                 Main.SEPARATOR).generate(node);
     }

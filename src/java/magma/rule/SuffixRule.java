@@ -1,10 +1,9 @@
-package magma;
+package magma.rule;
 
 import magma.node.Node;
 import magma.node.result.NodeErr;
 import magma.node.result.NodeResult;
-import magma.option.Option;
-import magma.rule.Rule;
+import magma.string.StringResult;
 
 public record SuffixRule(Rule rule, String suffix) implements Rule {
     @Override
@@ -16,8 +15,8 @@ public record SuffixRule(Rule rule, String suffix) implements Rule {
     }
 
     @Override
-    public Option<String> generate(final Node node) {
+    public StringResult generate(final Node node) {
         return this.rule.generate(node)
-                .map(value -> value + this.suffix);
+                .appendSlice(this.suffix);
     }
 }

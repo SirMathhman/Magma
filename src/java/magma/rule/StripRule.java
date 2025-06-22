@@ -2,7 +2,7 @@ package magma.rule;
 
 import magma.node.Node;
 import magma.node.result.NodeResult;
-import magma.option.Option;
+import magma.string.StringResult;
 
 public record StripRule(String name, Rule rule) implements Rule {
     @Override
@@ -13,7 +13,7 @@ public record StripRule(String name, Rule rule) implements Rule {
     }
 
     @Override
-    public Option<String> generate(final Node node) {
+    public StringResult generate(final Node node) {
         return this.rule.generate(node);
     }
 }
