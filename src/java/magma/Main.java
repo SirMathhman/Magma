@@ -1,6 +1,5 @@
 package magma;
 
-import magma.api.error.FormattedError;
 import magma.api.io.IOError;
 import magma.api.io.PathLike;
 import magma.api.io.PathLikes;
@@ -12,16 +11,17 @@ import magma.api.option.Some;
 import magma.api.result.Err;
 import magma.api.result.Ok;
 import magma.api.result.Result;
-import magma.compile.Lang;
-import magma.divide.DivideState;
-import magma.divide.MutableDivideState;
-import magma.error.ApplicationError;
-import magma.node.EverythingNode;
-import magma.node.result.NodeErr;
-import magma.node.result.NodeOk;
-import magma.string.StringErr;
-import magma.string.StringOk;
-import magma.string.StringResult;
+import magma.app.ApplicationError;
+import magma.app.Lang;
+import magma.app.divide.DivideState;
+import magma.app.divide.MutableDivideState;
+import magma.app.error.FormattedError;
+import magma.app.node.EverythingNode;
+import magma.app.node.result.NodeErr;
+import magma.app.node.result.NodeOk;
+import magma.app.string.StringErr;
+import magma.app.string.StringOk;
+import magma.app.string.StringResult;
 
 import java.util.HashMap;
 import java.util.Map;

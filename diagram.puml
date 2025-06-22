@@ -40,8 +40,8 @@ InfixRule --> ResultFactory
 InfixRule --> Appending
 class OrRule
 OrRule --> ErrorSequence
-OrRule --> ResultFactory
 OrRule --> ListLike
+OrRule --> ResultFactory
 OrRule --> DisplayNode
 OrRule --> Matching
 OrRule --> NodeResult
@@ -62,11 +62,11 @@ JavaList --> Stream
 class Lang
 Lang --> ErrorSequence
 Lang --> FormattedError
+Lang --> ListLikes
 Lang --> CompileErrorFactory
 Lang --> CompileErrorResultFactory
 Lang --> ResultFactory
 Lang --> SimpleContextFactory
-Lang --> ListLikes
 Lang --> EverythingNode
 Lang --> MapNodeFactory
 Lang --> NodeFactory
@@ -97,6 +97,7 @@ DivideState --> ListLike
 class Some
 Some --> Predicate
 class ErrorList
+ErrorList --> ErrorSequence
 class EverythingNode
 class NodeFactory
 class StringOk
@@ -127,10 +128,10 @@ MapNode --> HashMap
 MapNode --> Map
 class DisplayNode
 class CompileErrorFactory
-CompileErrorFactory --> CompileError
-CompileErrorFactory --> Context
 CompileErrorFactory --> ErrorSequence
 CompileErrorFactory --> FormattedError
+CompileErrorFactory --> CompileError
+CompileErrorFactory --> Context
 class NodeResult
 class ApplicationError
 ApplicationError --> Error
@@ -173,25 +174,25 @@ class Ok
 class None
 None --> Predicate
 class Main
+Main --> FormattedError
+Main --> IOError
+Main --> PathLike
+Main --> PathLikes
+Main --> ListLike
+Main --> ListLikes
+Main --> None
+Main --> Option
+Main --> Some
+Main --> Err
+Main --> Ok
+Main --> Result
 Main --> Lang
 Main --> DivideState
 Main --> MutableDivideState
 Main --> ApplicationError
-Main --> FormattedError
-Main --> IOError
-Main --> ListLike
-Main --> ListLikes
 Main --> EverythingNode
 Main --> NodeErr
 Main --> NodeOk
-Main --> None
-Main --> Option
-Main --> Some
-Main --> PathLike
-Main --> PathLikes
-Main --> Err
-Main --> Ok
-Main --> Result
 Main --> StringErr
 Main --> StringOk
 Main --> StringResult
