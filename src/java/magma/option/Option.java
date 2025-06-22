@@ -11,7 +11,5 @@ public interface Option<Value> {
 
     <Return> Option<Return> map(Function<Value, Return> mapper);
 
-    <Return> Option<Return> flatMap(Function<Value, Option<Return>> mapper);
-
     Value orElseGet(Supplier<Value> other);
 }

@@ -20,11 +20,6 @@ public record None<T>() implements Option<T> {
     }
 
     @Override
-    public <Return> Option<Return> flatMap(final Function<T, Option<Return>> mapper) {
-        return new None<>();
-    }
-
-    @Override
     public T orElseGet(final Supplier<T> other) {
         return other.get();
     }
