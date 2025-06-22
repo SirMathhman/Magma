@@ -58,7 +58,6 @@ NodeContext --> DisplayNode
 class PathLikes
 PathLikes --> Paths
 class StripRule
-StripRule --> FormattedError
 StripRule --> NodeResult
 StripRule --> StringResult
 class ErrorSequence
@@ -69,10 +68,11 @@ JavaList --> Stream
 class Lang
 Lang --> ErrorSequence
 Lang --> ListLikes
-Lang --> FormattedError
 Lang --> ResultFactory
-Lang --> EverythingNode
+Lang --> DisplayNode
 Lang --> NodeFactory
+Lang --> StringNode
+Lang --> TypedNode
 Lang --> NodeResult
 Lang --> InfixRule
 Lang --> OrRule
@@ -120,7 +120,6 @@ class Accumulator
 Accumulator --> ErrorSequence
 class StringRule
 StringRule --> ErrorSequence
-StringRule --> FormattedError
 StringRule --> ResultFactory
 StringRule --> NodeFactory
 StringRule --> StringNode

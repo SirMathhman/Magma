@@ -1,19 +1,18 @@
 package magma.app.compile.rule;
 
 import magma.api.error.list.ErrorSequence;
-import magma.app.compile.error.FormattedError;
 import magma.app.compile.factory.ResultFactory;
 import magma.app.compile.node.NodeFactory;
 import magma.app.compile.node.StringNode;
 import magma.app.compile.node.result.Mapping;
 
-public final class StringRule<Node extends StringNode<Node>, NodeResult extends Mapping<Node, NodeResult>, StringResult> implements
+public final class StringRule<Node extends StringNode<Node>, Error, NodeResult extends Mapping<Node, NodeResult>, StringResult> implements
         Rule<Node, NodeResult, StringResult> {
     private final String key;
-    private final ResultFactory<Node, NodeResult, StringResult, ErrorSequence<FormattedError>> resultFactory;
+    private final ResultFactory<Node, NodeResult, StringResult, ErrorSequence<Error>> resultFactory;
     private final NodeFactory<Node> nodeFactory;
 
-    public StringRule(final String key, final NodeFactory<Node> nodeFactory, final ResultFactory<Node, NodeResult, StringResult, ErrorSequence<FormattedError>> resultFactory) {
+    public StringRule(final String key, final NodeFactory<Node> nodeFactory, final ResultFactory<Node, NodeResult, StringResult, ErrorSequence<Error>> resultFactory) {
         this.key = key;
         this.nodeFactory = nodeFactory;
         this.resultFactory = resultFactory;
