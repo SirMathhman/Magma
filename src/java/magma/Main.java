@@ -26,35 +26,37 @@ public class Main {
                         .endsWith(".java"))
                 .toList();
 
-        final var compiled = new StringBuilder();
+        return Main.compileAll(sources)
+                .match(Main::writeTarget, Optional::of);
+    }
+
+    private static Optional<IOException> writeTarget(final String compiled) {
+        final var target = Paths.get(".", "diagram.puml");
+        final var output = String.join(Main.SEPARATOR,
+                "@startuml",
+                "skinparam linetype ortho",
+                "class Main",
+                compiled,
+                "@enduml");
+
+        return Main.writeString(target, output);
+    }
+
+    private static Result<String> compileAll(final Iterable<Path> sources) {
+        Result<StringBuilder> maybeCompiled = new Ok<>(new StringBuilder());
         for (final var source : sources) {
             final var fileName = source.getFileName()
                     .toString();
             final var separator = fileName.lastIndexOf('.');
             final var name = fileName.substring(0, separator);
 
-            final var result = Main.readString(source)
+            final var maybeOutput = Main.readString(source)
                     .map(value -> Main.compile(value, name));
 
-            switch (result) {
-                case Err<StringBuilder>(final var error) -> {
-                    return Optional.of(error);
-                }
-                case Ok<StringBuilder>(final var value) -> {
-                    compiled.append(value);
-                }
-            }
+            maybeCompiled = maybeCompiled.flatMap(compiled -> maybeOutput.map(compiled::append));
         }
 
-        final var target = Paths.get(".", "diagram.puml");
-        final var output = String.join(Main.SEPARATOR,
-                "@startuml",
-                "skinparam linetype ortho",
-                "class Main",
-                compiled.toString(),
-                "@enduml");
-
-        return Main.writeString(target, output);
+        return maybeCompiled.map(StringBuilder::toString);
     }
 
     private static Result<List<Path>> walk() {
@@ -95,16 +97,18 @@ public class Main {
 
     private static Optional<String> compileRootSegment(final String input, final String name) {
         final var strip = input.strip();
-        if (strip.startsWith("import ")) {
-            final var withoutPrefix = strip.substring("import ".length());
-            final var separator = withoutPrefix.lastIndexOf('.');
-            if (0 <= separator) {
-                final var child = withoutPrefix.substring(separator + ".".length());
-                if (!List.of("Function", "Supplier")
-                        .contains(child))
-                    return Optional.of(name + " --> " + child + Main.SEPARATOR);
-            }
-        }
+        if (!strip.startsWith("import "))
+            return Optional.empty();
+
+        final var withoutPrefix = strip.substring("import ".length());
+        final var separator = withoutPrefix.lastIndexOf('.');
+        if (0 > separator)
+            return Optional.empty();
+
+        final var child = withoutPrefix.substring(separator + ".".length());
+        if (!List.of("Function", "Supplier")
+                .contains(child))
+            return Optional.of(name + " --> " + child + Main.SEPARATOR);
 
         return Optional.empty();
     }

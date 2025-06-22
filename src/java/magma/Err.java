@@ -13,4 +13,9 @@ public record Err<Value>(IOException error) implements Result<Value> {
     public <Return> Result<Return> map(final Function<Value, Return> mapper) {
         return new Err<>(this.error);
     }
+
+    @Override
+    public <Return> Result<Return> flatMap(final Function<Value, Result<Return>> mapper) {
+        return new Err<>(this.error);
+    }
 }

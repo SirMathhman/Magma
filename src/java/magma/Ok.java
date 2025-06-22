@@ -13,4 +13,9 @@ public record Ok<String>(String value) implements Result<String> {
     public <Return> Result<Return> map(final Function<String, Return> mapper) {
         return new Ok<>(mapper.apply(this.value));
     }
+
+    @Override
+    public <Return> Result<Return> flatMap(final Function<String, Result<Return>> mapper) {
+        return mapper.apply(this.value);
+    }
 }
