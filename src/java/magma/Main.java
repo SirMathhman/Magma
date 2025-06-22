@@ -14,6 +14,7 @@ import magma.path.PathLikes;
 import magma.result.Err;
 import magma.result.Ok;
 import magma.result.Result;
+import magma.rule.EmptyRule;
 import magma.rule.LastRule;
 import magma.rule.OrRule;
 import magma.rule.PrefixRule;
@@ -142,7 +143,11 @@ class Main {
     }
 
     private static StringResult generate(final Node node) {
+        return new OrRule(ListLikes.of(Main.createDependencyRule(), new EmptyRule())).generate(node);
+    }
+
+    private static Rule<Node, StringResult> createDependencyRule() {
         return new SuffixRule<>(new LastRule(new StringRule("source"), " --> ", new StringRule("destination")),
-                Main.SEPARATOR).generate(node);
+                Main.SEPARATOR);
     }
 }

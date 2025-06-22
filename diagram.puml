@@ -1,122 +1,45 @@
 @startuml
 skinparam linetype ortho
-class IOError
-class JavaIOError
-JavaIOError --> IOException
-JavaIOError --> PrintWriter
-JavaIOError --> StringWriter
-class JavaList
-JavaList --> List
-JavaList --> Stream
-class ListLike
-ListLike --> Stream
-class ListLikes
-ListLikes --> ArrayList
-ListLikes --> Arrays
-class Main
-Main --> IOError
-Main --> ListLike
-Main --> ListLikes
-Main --> Node
-Main --> Option
-Main --> Some
-Main --> PathLike
-Main --> PathLikes
-Main --> Ok
-Main --> Result
-Main --> LastRule
-Main --> PrefixRule
-Main --> Rule
-Main --> StringRule
-Main --> StripRule
-Main --> SuffixRule
-Main --> StringErr
-Main --> StringResult
-class MapNode
-MapNode --> None
-MapNode --> Option
-MapNode --> Some
-MapNode --> HashMap
-MapNode --> Map
-class Node
-Node --> Option
-class NodeErr
-NodeErr --> Node
-NodeErr --> StringErr
-NodeErr --> StringResult
-class NodeOk
-NodeOk --> Node
-NodeOk --> StringResult
-class NodeResult
-NodeResult --> Node
-NodeResult --> StringResult
-class None
-class Option
-class Some
-class JavaPath
-JavaPath --> IOError
-JavaPath --> JavaIOError
-JavaPath --> JavaList
-JavaPath --> ListLike
-JavaPath --> None
-JavaPath --> Option
-JavaPath --> Some
-JavaPath --> Err
-JavaPath --> Ok
-JavaPath --> Result
-JavaPath --> IOException
-JavaPath --> Files
-JavaPath --> Path
-class PathLike
-PathLike --> IOError
-PathLike --> ListLike
-PathLike --> Option
-PathLike --> Result
-class PathLikes
-PathLikes --> Paths
-class Err
-Err --> IOError
-class Ok
-Ok --> IOError
-class Result
-Result --> IOError
-class LastRule
-LastRule --> Node
-LastRule --> NodeErr
-LastRule --> NodeResult
-LastRule --> StringResult
-class PrefixRule
-PrefixRule --> Node
-PrefixRule --> NodeErr
-PrefixRule --> NodeResult
-PrefixRule --> StringResult
-class Rule
-Rule --> NodeResult
-class StringOk
-StringOk --> Option
-StringOk --> Some
-StringOk --> StringResult
+class CompileError
+class Accumulator
 class StringRule
-StringRule --> MapNode
-StringRule --> Node
-StringRule --> NodeOk
-StringRule --> NodeResult
-StringRule --> StringErr
-StringRule --> StringResult
-class StripRule
-StripRule --> Node
-StripRule --> NodeResult
-StripRule --> StringResult
-class SuffixRule
-SuffixRule --> Node
-SuffixRule --> NodeErr
-SuffixRule --> NodeResult
-SuffixRule --> Appending
+class JavaIOError
+class Err
+class Node
+class EmptyRule
+class MapNode
+class LastRule
+class Result
+class Matching
+class NodeResult
+class PathLike
+class ApplicationError
+class ImmutableAccumulator
 class Appending
 class StringErr
-StringErr --> None
-StringErr --> Option
+class StringContext
+class Context
+class PrefixRule
+class NodeErr
+class OrRule
+class NodeContext
+class PathLikes
+class StripRule
+class Error
+class JavaList
+class JavaPath
+class Some
+class IOError
+class ListLikes
+class StringOk
+class SuffixRule
+class Option
+class NodeOk
+class Rule
 class StringResult
-StringResult --> Option
+class Ok
+class Main
+class None
+class ListLike
 
 @enduml
