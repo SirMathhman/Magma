@@ -12,21 +12,14 @@ PathLike --> ListLike
 PathLike --> Option
 PathLike --> Result
 class PrefixRule
-PrefixRule --> CompileError
-PrefixRule --> FormattedError
-PrefixRule --> StringContext
-PrefixRule --> NodeErr
+PrefixRule --> ResultFactory
 PrefixRule --> NodeResult
 PrefixRule --> StringResult
 class NodeErr
 NodeErr --> FormattedError
 class InfixRule
-InfixRule --> CompileError
-InfixRule --> FormattedError
-InfixRule --> StringContext
-InfixRule --> NodeErr
-InfixRule --> NodeResult
-InfixRule --> StringResult
+InfixRule --> ResultFactory
+InfixRule --> Appending
 class OrRule
 OrRule --> ErrorList
 OrRule --> ResultFactory
@@ -66,7 +59,6 @@ DivideState --> ListLike
 class Some
 Some --> Predicate
 class ErrorList
-ErrorList --> ListLike
 class EverythingNode
 class NodeFactory
 class StringOk

@@ -194,21 +194,23 @@ class Main {
 
     private static Rule<EverythingNode, NodeResult<EverythingNode, FormattedError>, StringResult<FormattedError>> createStructureRule(final String infix) {
         return new InfixRule<>(new StringRule<>("before-keyword", new MapNodeFactory(), new SimpleResultFactory<>()),
-                infix, new StringRule<>("after-keyword", new MapNodeFactory(), new SimpleResultFactory<>()));
+                infix,
+                new StringRule<>("after-keyword", new MapNodeFactory(), new SimpleResultFactory<>()),
+                new SimpleResultFactory<>());
     }
 
     private static Rule<EverythingNode, NodeResult<EverythingNode, FormattedError>, StringResult<FormattedError>> createImportRule(final String type) {
         final var destination = new StringRule<>("destination", new MapNodeFactory(), new SimpleResultFactory<>());
         final var withParent = new InfixRule<>(new StringRule<>("parent",
-                new MapNodeFactory(),
-                new SimpleResultFactory<>()), ".", destination);
+                new MapNodeFactory(), new SimpleResultFactory<>()), ".", destination, new SimpleResultFactory<>());
         final var parent = new OrRule<>(ListLikes.of(withParent,
                 new StringRule<>("value", new MapNodeFactory(), new SimpleResultFactory<>())),
                 new SimpleResultFactory<>());
 
         return new TypeRule<>(type,
                 new StripRule<>(new PrefixRule<>(type + " ",
-                        new SuffixRule<>(parent, ";", new SimpleResultFactory<>()))),
+                        new SuffixRule<>(parent, ";", new SimpleResultFactory<>()),
+                        new SimpleResultFactory<>())),
                 new SimpleResultFactory<>());
     }
 
@@ -232,7 +234,9 @@ class Main {
         return new TypeRule<>("dependency", new SuffixRule<>(new InfixRule<>(new StringRule<>("source",
                 new MapNodeFactory(),
                 new SimpleResultFactory<>()),
-                " --> ", new StringRule<>("destination", new MapNodeFactory(), new SimpleResultFactory<>())),
+                " --> ",
+                new StringRule<>("destination", new MapNodeFactory(), new SimpleResultFactory<>()),
+                new SimpleResultFactory<>()),
                 Main.SEPARATOR,
                 new SimpleResultFactory<>()), new SimpleResultFactory<>());
     }
