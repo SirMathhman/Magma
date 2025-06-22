@@ -1,12 +1,11 @@
 package magma.rule;
 
 import magma.node.EverythingNode;
-import magma.node.MapNode;
 import magma.node.result.NodeResult;
 import magma.string.StringResult;
 
-public interface ResultFactory {
-    NodeResult<EverythingNode> fromNode(MapNode node);
+interface ResultFactory {
+    NodeResult<EverythingNode> fromNode(EverythingNode node);
 
     StringResult fromStringError(String message, EverythingNode node);
 
