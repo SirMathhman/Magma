@@ -9,7 +9,7 @@ import magma.string.StringErr;
 import magma.string.StringOk;
 import magma.string.StringResult;
 
-public class SimpleResultFactory implements ResultFactory<EverythingNode> {
+public class SimpleResultFactory implements ResultFactory<EverythingNode, NodeResult<EverythingNode>, StringResult> {
     @Override
     public NodeResult<EverythingNode> fromNode(final EverythingNode node) {
         return new NodeOk<>(node);

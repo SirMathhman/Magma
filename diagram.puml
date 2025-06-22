@@ -6,6 +6,7 @@ CompileError --> ListLikes
 CompileError --> Collectors
 class MapNodeFactory
 class FormattedError
+class Mapping
 class Result
 class Matching
 Matching --> FormattedError
@@ -72,7 +73,6 @@ DivideState --> ListLike
 class Some
 Some --> Predicate
 class EverythingNode
-EverythingNode --> Option
 class NodeFactory
 class StringOk
 StringOk --> FormattedError
@@ -85,11 +85,10 @@ class Accumulator
 Accumulator --> FormattedError
 Accumulator --> ListLike
 class StringRule
-StringRule --> EverythingNode
-StringRule --> NodeFactory
-StringRule --> NodeResult
 StringRule --> ResultFactory
-StringRule --> StringResult
+StringRule --> NodeFactory
+StringRule --> StringNode
+StringRule --> Mapping
 class JavaIOError
 JavaIOError --> IOException
 JavaIOError --> PrintWriter
@@ -113,6 +112,8 @@ SimpleResultFactory --> StringOk
 SimpleResultFactory --> StringResult
 class NodeResult
 class ApplicationError
+class StringNode
+StringNode --> Option
 class ImmutableAccumulator
 ImmutableAccumulator --> FormattedError
 ImmutableAccumulator --> ListLike
@@ -129,8 +130,6 @@ class Error
 class MutableDivideState
 MutableDivideState --> ListLike
 class ResultFactory
-ResultFactory --> NodeResult
-ResultFactory --> StringResult
 class TypedNode
 class IOError
 class ListLikes
@@ -151,9 +150,11 @@ Main --> MutableDivideState
 Main --> ApplicationError
 Main --> FormattedError
 Main --> IOError
+Main --> SimpleResultFactory
 Main --> ListLike
 Main --> ListLikes
 Main --> EverythingNode
+Main --> MapNodeFactory
 Main --> NodeErr
 Main --> NodeOk
 Main --> NodeResult
@@ -166,11 +167,9 @@ Main --> Err
 Main --> Ok
 Main --> Result
 Main --> InfixRule
-Main --> MapNodeFactory
 Main --> OrRule
 Main --> PrefixRule
 Main --> Rule
-Main --> SimpleResultFactory
 Main --> StringRule
 Main --> StripRule
 Main --> SuffixRule

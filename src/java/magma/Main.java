@@ -155,10 +155,10 @@ class Main {
     }
 
     private static StringResult getStringResult(final String name, final StringResult output, final String segment) {
-        final var lexed = Main.createRootSegmentRule()
+        final var tree = Main.createRootSegmentRule()
                 .lex(segment);
 
-        final var generated = (Result<Option<StringResult>, FormattedError>) switch (lexed) {
+        final var generated = (Result<Option<StringResult>, FormattedError>) switch (tree) {
             case NodeErr(final var error1) -> new Err<>(error1);
             case NodeOk(final EverythingNode value1) -> new Ok<>(Main.transformAndGenerate(name, value1));
         };
@@ -193,22 +193,17 @@ class Main {
     }
 
     private static Rule<EverythingNode, NodeResult<EverythingNode>, StringResult> createStructureRule(final String infix) {
-        return new InfixRule<>(new StringRule<EverythingNode>("before-keyword",
-                new MapNodeFactory(),
-                new SimpleResultFactory()),
-                infix,
-                new StringRule<EverythingNode>("after-keyword", new MapNodeFactory(), new SimpleResultFactory()));
+        return new InfixRule<>(new StringRule<>("before-keyword", new MapNodeFactory(), new SimpleResultFactory()),
+                infix, new StringRule<>("after-keyword", new MapNodeFactory(), new SimpleResultFactory()));
     }
 
     private static Rule<EverythingNode, NodeResult<EverythingNode>, StringResult> createImportRule(final String type) {
-        final var destination = new StringRule<EverythingNode>("destination",
-                new MapNodeFactory(),
-                new SimpleResultFactory());
-        final var withParent = new InfixRule<>(new StringRule<EverythingNode>("parent",
+        final var destination = new StringRule<>("destination", new MapNodeFactory(), new SimpleResultFactory());
+        final var withParent = new InfixRule<>(new StringRule<>("parent",
                 new MapNodeFactory(),
                 new SimpleResultFactory()), ".", destination);
         final var parent = new OrRule<>(ListLikes.of(withParent,
-                new StringRule<EverythingNode>("value", new MapNodeFactory(), new SimpleResultFactory())));
+                new StringRule<>("value", new MapNodeFactory(), new SimpleResultFactory())));
 
         return new TypeRule<>(type, new StripRule<>(new PrefixRule<>(type + " ", new SuffixRule<>(parent, ";"))));
     }
@@ -224,15 +219,15 @@ class Main {
 
     private static Rule<EverythingNode, NodeResult<EverythingNode>, StringResult> createPlaceholderRule() {
         return new TypeRule<>("placeholder",
-                new StringRule<EverythingNode>("value", new MapNodeFactory(), new SimpleResultFactory()));
+                new StringRule<>("value", new MapNodeFactory(), new SimpleResultFactory()));
     }
 
     private static Rule<EverythingNode, NodeResult<EverythingNode>, StringResult> createDependencyRule() {
-        return new TypeRule<>("dependency", new SuffixRule<>(new InfixRule<>(new StringRule<EverythingNode>("source",
+        return new TypeRule<>("dependency", new SuffixRule<>(new InfixRule<>(new StringRule<>("source",
                         new MapNodeFactory(),
                         new SimpleResultFactory()),
                 " --> ",
-                new StringRule<EverythingNode>("destination", new MapNodeFactory(), new SimpleResultFactory())),
+                new StringRule<>("destination", new MapNodeFactory(), new SimpleResultFactory())),
                         Main.SEPARATOR));
     }
 }
