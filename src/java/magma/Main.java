@@ -2,13 +2,14 @@ package magma;
 
 import magma.error.IOError;
 import magma.error.JavaIOError;
+import magma.path.JavaPath;
+import magma.path.PathLike;
 import magma.result.Err;
 import magma.result.Ok;
 import magma.result.Result;
 
 import java.io.IOException;
 import java.nio.file.Files;
-import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Collection;
 import java.util.List;
@@ -21,14 +22,15 @@ public class Main {
     }
 
     public static void main(final String[] args) {
-        Main.walk()
+        final var sourceDirectory = Paths.get(".", "src", "java");
+        Main.walk(new JavaPath(sourceDirectory))
                 .match(Main::runWithFiles, Optional::of)
                 .ifPresent(error -> System.err.println(error.display()));
     }
 
-    private static Optional<IOError> runWithFiles(final Collection<Path> files) {
+    private static Optional<IOError> runWithFiles(final Collection<PathLike> files) {
         final var sources = files.stream()
-                .filter(file -> file.toString()
+                .filter(file -> file.asString()
                         .endsWith(".java"))
                 .toList();
 
@@ -39,15 +41,14 @@ public class Main {
     private static Optional<IOError> writeTarget(final String compiled) {
         final var target = Paths.get(".", "diagram.puml");
         final var output = String.join(Main.SEPARATOR, "@startuml", "skinparam linetype ortho", compiled, "@enduml");
-
-        return Main.writeString(target, output);
+        return Main.writeString(new JavaPath(target), output);
     }
 
-    private static Result<String> compileAll(final Iterable<Path> sources) {
+    private static Result<String> compileAll(final Iterable<PathLike> sources) {
         Result<StringBuilder> maybeCompiled = new Ok<>(new StringBuilder());
         for (final var source : sources) {
             final var fileName = source.getFileName()
-                    .toString();
+                    .asString();
             final var separator = fileName.lastIndexOf('.');
             final var name = fileName.substring(0, separator);
 
@@ -60,26 +61,27 @@ public class Main {
         return maybeCompiled.map(StringBuilder::toString);
     }
 
-    private static Result<List<Path>> walk() {
-        try (final var stream = Files.walk(Paths.get(".", "src", "java"))) {
-            return new Ok<>(stream.toList());
+    private static Result<List<PathLike>> walk(final PathLike rootDirectory) {
+        try (final var stream = Files.walk(rootDirectory.unwrap())) {
+            return new Ok<>(stream.<PathLike>map(JavaPath::new)
+                    .toList());
         } catch (final IOException e) {
             return new Err<>(new JavaIOError(e));
         }
     }
 
-    private static Optional<IOError> writeString(final Path target, final CharSequence output) {
+    private static Optional<IOError> writeString(final PathLike target, final CharSequence output) {
         try {
-            Files.writeString(target, output);
+            Files.writeString(target.unwrap(), output);
             return Optional.empty();
         } catch (final IOException e) {
             return Optional.of(new JavaIOError(e));
         }
     }
 
-    private static Result<String> readString(final Path source) {
+    private static Result<String> readString(final PathLike source) {
         try {
-            return new Ok<>(Files.readString(source));
+            return new Ok<>(Files.readString(source.unwrap()));
         } catch (final IOException e) {
             return new Err<>(new JavaIOError(e));
         }
