@@ -8,6 +8,8 @@ import magma.error.IOError;
 import magma.list.ListLike;
 import magma.list.ListLikes;
 import magma.node.EverythingNode;
+import magma.node.result.NodeErr;
+import magma.node.result.NodeOk;
 import magma.node.result.NodeResult;
 import magma.option.None;
 import magma.option.Option;
@@ -151,9 +153,13 @@ class Main {
     }
 
     private static StringResult getStringResult(final String name, final StringResult output, final String segment) {
-        final var generated = Main.createRootSegmentRule()
-                .lex(segment)
-                .mapToResult(destination -> Main.transformAndGenerate(name, destination));
+        final var lexed = Main.createRootSegmentRule()
+                .lex(segment);
+
+        final var generated = (Result<Option<StringResult>, FormattedError>) switch (lexed) {
+            case NodeErr(final var error1) -> new Err<>(error1);
+            case NodeOk(final EverythingNode value1) -> new Ok<>(Main.transformAndGenerate(name, value1));
+        };
 
         return switch (generated) {
             case Err<Option<StringResult>, FormattedError>(final var error) -> new StringErr(error);

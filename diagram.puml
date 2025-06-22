@@ -15,6 +15,7 @@ StringRule --> MapNode
 StringRule --> NodeOk
 StringRule --> NodeResult
 StringRule --> StringErr
+StringRule --> StringOk
 StringRule --> StringResult
 class JavaIOError
 JavaIOError --> IOException
@@ -33,8 +34,6 @@ class Matching
 Matching --> FormattedError
 class DisplayNode
 class NodeResult
-NodeResult --> FormattedError
-NodeResult --> Result
 class PathLike
 PathLike --> IOError
 PathLike --> ListLike
@@ -51,8 +50,6 @@ ImmutableAccumulator --> Some
 class Appending
 class StringErr
 StringErr --> FormattedError
-StringErr --> Err
-StringErr --> Result
 class StringContext
 class Context
 class PrefixRule
@@ -63,8 +60,6 @@ PrefixRule --> NodeResult
 PrefixRule --> StringResult
 class NodeErr
 NodeErr --> FormattedError
-NodeErr --> Err
-NodeErr --> Result
 class InfixRule
 InfixRule --> CompileError
 InfixRule --> StringContext
@@ -83,6 +78,7 @@ OrRule --> NodeErr
 OrRule --> NodeOk
 OrRule --> NodeResult
 OrRule --> StringErr
+OrRule --> StringOk
 OrRule --> StringResult
 class NodeContext
 NodeContext --> DisplayNode
@@ -123,28 +119,21 @@ class IOError
 class ListLikes
 ListLikes --> ArrayList
 ListLikes --> Arrays
-class StringOk
-StringOk --> FormattedError
-StringOk --> Ok
-StringOk --> Result
-StringOk --> StringResult
 class SuffixRule
 SuffixRule --> CompileError
 SuffixRule --> StringContext
 SuffixRule --> NodeErr
 SuffixRule --> NodeResult
 SuffixRule --> Appending
+class StringOk
+StringOk --> FormattedError
 class Option
 Option --> Predicate
 class NodeOk
 NodeOk --> FormattedError
-NodeOk --> Ok
-NodeOk --> Result
 class Rule
 class StringResult
-StringResult --> FormattedError
 StringResult --> Matching
-StringResult --> Result
 class Ok
 class Main
 Main --> DivideState
@@ -155,6 +144,8 @@ Main --> IOError
 Main --> ListLike
 Main --> ListLikes
 Main --> EverythingNode
+Main --> NodeErr
+Main --> NodeOk
 Main --> NodeResult
 Main --> None
 Main --> Option
@@ -168,12 +159,12 @@ Main --> InfixRule
 Main --> OrRule
 Main --> PrefixRule
 Main --> Rule
-Main --> StringOk
 Main --> StringRule
 Main --> StripRule
 Main --> SuffixRule
 Main --> TypeRule
 Main --> StringErr
+Main --> StringOk
 Main --> StringResult
 Main --> HashMap
 Main --> Map
