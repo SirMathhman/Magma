@@ -2,12 +2,11 @@ package magma;
 
 import magma.error.IOError;
 import magma.list.ListLike;
+import magma.option.Option;
 import magma.path.PathLike;
 import magma.path.PathLikes;
 import magma.result.Ok;
 import magma.result.Result;
-
-import java.util.Optional;
 
 public class Main {
     private static final String SEPARATOR = System.lineSeparator();
@@ -18,21 +17,21 @@ public class Main {
     public static void main(final String[] args) {
         PathLikes.get(".", "src", "java")
                 .walk()
-                .match(Main::runWithFiles, Optional::of)
+                .match(Main::runWithFiles, Option::of)
                 .ifPresent(error -> System.err.println(error.display()));
     }
 
-    private static Optional<IOError> runWithFiles(final ListLike<PathLike> files) {
+    private static Option<IOError> runWithFiles(final ListLike<PathLike> files) {
         final var sources = files.stream()
                 .filter(file -> file.asString()
                         .endsWith(".java"))
                 .toList();
 
         return Main.compileAll(sources)
-                .match(Main::writeTarget, Optional::of);
+                .match(Main::writeTarget, Option::of);
     }
 
-    private static Optional<IOError> writeTarget(final String compiled) {
+    private static Option<IOError> writeTarget(final String compiled) {
         final var target = PathLikes.get(".", "diagram.puml");
         final var output = String.join(Main.SEPARATOR, "@startuml", "skinparam linetype ortho", compiled, "@enduml");
         return target.writeString(output);
@@ -66,21 +65,21 @@ public class Main {
         return "class " + name + Main.SEPARATOR + output;
     }
 
-    private static Optional<String> compileRootSegment(final String input, final String name) {
+    private static Option<String> compileRootSegment(final String input, final String name) {
         final var strip = input.strip();
         if (!strip.startsWith("import "))
-            return Optional.empty();
+            return Option.empty();
 
         final var withoutPrefix = strip.substring("import ".length());
         final var separator = withoutPrefix.lastIndexOf('.');
         if (0 > separator)
-            return Optional.empty();
+            return Option.empty();
 
         final var child = withoutPrefix.substring(separator + ".".length());
         if (!ListLike.of("Function", "Supplier")
                 .contains(child))
-            return Optional.of(name + " --> " + child + Main.SEPARATOR);
+            return Option.of(name + " --> " + child + Main.SEPARATOR);
 
-        return Optional.empty();
+        return Option.empty();
     }
 }
