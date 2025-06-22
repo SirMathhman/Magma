@@ -2,6 +2,8 @@ package magma;
 
 import magma.error.IOError;
 import magma.list.ListLike;
+import magma.node.MapNode;
+import magma.node.Node;
 import magma.option.None;
 import magma.option.Option;
 import magma.option.Some;
@@ -82,12 +84,12 @@ public class Main {
                 .withString("destination", child));
     }
 
-    private static Option<String> getRecord(final MapNode mapNode) {
+    private static Option<String> getRecord(final Node node) {
         if (!ListLike.of("Function", "Consumer")
-                .contains(mapNode.findString("destination")
+                .contains(node.findString("destination")
                         .orElse("")))
-            return new Some<>(mapNode.findString("source")
-                    .orElse("") + " --> " + mapNode.findString("destination")
+            return new Some<>(node.findString("source")
+                    .orElse("") + " --> " + node.findString("destination")
                     .orElse("") + Main.SEPARATOR);
 
         return new None<>();

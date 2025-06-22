@@ -15,6 +15,8 @@ ListLike --> Stream
 class Main
 Main --> IOError
 Main --> ListLike
+Main --> MapNode
+Main --> Node
 Main --> None
 Main --> Option
 Main --> Some
@@ -28,6 +30,8 @@ MapNode --> Option
 MapNode --> Some
 MapNode --> HashMap
 MapNode --> Map
+class Node
+Node --> Option
 class None
 class Option
 class Some
