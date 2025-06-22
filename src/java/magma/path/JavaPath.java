@@ -2,6 +2,8 @@ package magma.path;
 
 import magma.error.IOError;
 import magma.error.JavaIOError;
+import magma.list.JavaList;
+import magma.list.ListLike;
 import magma.result.Err;
 import magma.result.Ok;
 import magma.result.Result;
@@ -9,7 +11,6 @@ import magma.result.Result;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.List;
 import java.util.Optional;
 
 record JavaPath(Path path) implements PathLike {
@@ -34,10 +35,10 @@ record JavaPath(Path path) implements PathLike {
     }
 
     @Override
-    public Result<List<PathLike>> walk() {
+    public Result<ListLike<PathLike>> walk() {
         try (final var stream = Files.walk(this.path)) {
-            return new Ok<>(stream.<PathLike>map(JavaPath::new)
-                    .toList());
+            return new Ok<>(new JavaList<>(stream.<PathLike>map(JavaPath::new)
+                    .toList()));
         } catch (final IOException e) {
             return new Err<>(new JavaIOError(e));
         }

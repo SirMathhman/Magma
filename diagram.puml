@@ -5,16 +5,24 @@ class JavaIOError
 JavaIOError --> IOException
 JavaIOError --> PrintWriter
 JavaIOError --> StringWriter
+class JavaList
+JavaList --> List
+JavaList --> Stream
+class ListLike
+ListLike --> ArrayList
+ListLike --> Arrays
+ListLike --> Stream
 class Main
 Main --> IOError
+Main --> ListLike
 Main --> PathLike
 Main --> PathLikes
 Main --> Ok
 Main --> Result
-Main --> Collection
-Main --> List
 Main --> Optional
 class JavaPath
+JavaPath --> JavaList
+JavaPath --> ListLike
 JavaPath --> IOError
 JavaPath --> JavaIOError
 JavaPath --> Err
@@ -23,12 +31,11 @@ JavaPath --> Result
 JavaPath --> IOException
 JavaPath --> Files
 JavaPath --> Path
-JavaPath --> List
 JavaPath --> Optional
 class PathLike
+PathLike --> ListLike
 PathLike --> IOError
 PathLike --> Result
-PathLike --> List
 PathLike --> Optional
 class PathLikes
 PathLikes --> Paths

@@ -1,13 +1,12 @@
 package magma;
 
 import magma.error.IOError;
+import magma.list.ListLike;
 import magma.path.PathLike;
 import magma.path.PathLikes;
 import magma.result.Ok;
 import magma.result.Result;
 
-import java.util.Collection;
-import java.util.List;
 import java.util.Optional;
 
 public class Main {
@@ -23,7 +22,7 @@ public class Main {
                 .ifPresent(error -> System.err.println(error.display()));
     }
 
-    private static Optional<IOError> runWithFiles(final Collection<PathLike> files) {
+    private static Optional<IOError> runWithFiles(final ListLike<PathLike> files) {
         final var sources = files.stream()
                 .filter(file -> file.asString()
                         .endsWith(".java"))
@@ -78,7 +77,7 @@ public class Main {
             return Optional.empty();
 
         final var child = withoutPrefix.substring(separator + ".".length());
-        if (!List.of("Function", "Supplier")
+        if (!ListLike.of("Function", "Supplier")
                 .contains(child))
             return Optional.of(name + " --> " + child + Main.SEPARATOR);
 
