@@ -11,4 +11,6 @@ public interface Accumulator<Value> {
     Accumulator<Value> withError(CompileError error);
 
     <Return> Return match(Function<Value, Return> whenPresent, Function<ListLike<CompileError>, Return> whenErr);
+
+    boolean hasValue();
 }

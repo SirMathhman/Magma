@@ -166,8 +166,10 @@ class Main {
 
     private static Rule<Node, StringResult> createImportRule(final String type) {
         final var destination = new StringRule("destination");
-        return new TypeRule(type,
-                new StripRule(new PrefixRule(type + " ", new InfixRule(new StringRule("parent"), ".", destination))));
+        final var withParent = new InfixRule(new StringRule("parent"), ".", destination);
+        final var parent = new OrRule(ListLikes.of(withParent, new StringRule("value")));
+
+        return new TypeRule(type, new StripRule(new PrefixRule(type + " ", new SuffixRule<>(parent, ";"))));
     }
 
     private static boolean isFunctionalInterface(final String destination) {

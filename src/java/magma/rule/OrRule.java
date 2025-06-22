@@ -24,10 +24,12 @@ public record OrRule(ListLike<Rule<Node, StringResult>> rules) implements Rule<N
 
     private <Value, Result extends Matching<Value>, Return> Return or(final Function<Rule<Node, StringResult>, Result> mapper, final Function<Value, Return> whenOk, final Function<ListLike<CompileError>, Return> whenError) {
         return this.rules.stream()
-                .map(mapper)
-                .<Accumulator<Value>>reduce(new ImmutableAccumulator<Value>(),
-                        (orState, result) -> result.match(orState::withValue, orState::withError),
-                        (_, next) -> next)
+                .<Accumulator<Value>>reduce(new ImmutableAccumulator<Value>(), (orState, result) -> {
+                    if (orState.hasValue())
+                        return orState;
+                    return mapper.apply(result)
+                            .match(orState::withValue, orState::withError);
+                }, (_, next) -> next)
                 .match(whenOk, whenError);
     }
 

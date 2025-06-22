@@ -37,4 +37,9 @@ final class ImmutableAccumulator<Value> implements Accumulator<Value> {
         return this.maybeValue.map(whenPresent)
                 .orElseGet(() -> whenErr.apply(this.errors));
     }
+
+    @Override
+    public boolean hasValue() {
+        return this.maybeValue.isPresent();
+    }
 }
