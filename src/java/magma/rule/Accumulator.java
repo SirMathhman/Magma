@@ -1,16 +1,15 @@
 package magma.rule;
 
-import magma.error.FormattedError;
 import magma.list.ListLike;
 
 import java.util.function.Function;
 
-public interface Accumulator<Value> {
-    Accumulator<Value> withValue(Value value);
+public interface Accumulator<Value, Error> {
+    Accumulator<Value, Error> withValue(Value value);
 
-    Accumulator<Value> withError(FormattedError error);
+    Accumulator<Value, Error> withError(Error error);
 
-    <Return> Return match(Function<Value, Return> whenPresent, Function<ListLike<FormattedError>, Return> whenErr);
+    <Return> Return match(Function<Value, Return> whenPresent, Function<ListLike<Error>, Return> whenErr);
 
     boolean hasValue();
 }

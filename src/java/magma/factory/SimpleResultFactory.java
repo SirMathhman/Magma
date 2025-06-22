@@ -13,29 +13,34 @@ import magma.string.StringErr;
 import magma.string.StringOk;
 import magma.string.StringResult;
 
-public class SimpleResultFactory<Node extends DisplayNode> implements ResultFactory<Node, NodeResult<Node>, StringResult> {
+public class SimpleResultFactory<Node extends DisplayNode> implements ResultFactory<Node, FormattedError, NodeResult<Node, FormattedError>, StringResult<FormattedError>> {
     @Override
-    public NodeResult<Node> fromNode(final Node node) {
+    public NodeResult<Node, FormattedError> fromNode(final Node node) {
         return new NodeOk<>(node);
     }
 
     @Override
-    public StringResult fromStringError(final String message, final Node node) {
-        return new StringErr(new CompileError(message, new NodeContext(node)));
+    public NodeResult<Node, FormattedError> fromNodeError(final String message, final String context) {
+        return new NodeErr<>(new CompileError(message, new StringContext(context)));
     }
 
     @Override
-    public StringResult fromString(final String value) {
-        return new StringOk(value);
+    public StringResult<FormattedError> fromStringError(final String message, final Node node) {
+        return new StringErr<>(new CompileError(message, new NodeContext(node)));
     }
 
     @Override
-    public NodeResult<Node> fromNodeErrorWithChildren(final String message, final String context, final ListLike<FormattedError> errors) {
+    public StringResult<FormattedError> fromString(final String value) {
+        return new StringOk<>(value);
+    }
+
+    @Override
+    public NodeResult<Node, FormattedError> fromNodeErrorWithChildren(final String message, final String context, final ListLike<FormattedError> errors) {
         return new NodeErr<>(new CompileError(message, new StringContext(context), errors));
     }
 
     @Override
-    public StringResult fromStringErrorWithChildren(final String message, final Node context, final ListLike<FormattedError> errors) {
-        return new StringErr(new CompileError(message, new NodeContext(context), errors));
+    public StringResult<FormattedError> fromStringErrorWithChildren(final String message, final Node context, final ListLike<FormattedError> errors) {
+        return new StringErr<>(new CompileError(message, new NodeContext(context), errors));
     }
 }

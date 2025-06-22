@@ -9,7 +9,6 @@ class FormattedError
 class Mapping
 class Result
 class Matching
-Matching --> FormattedError
 class PathLike
 PathLike --> IOError
 PathLike --> ListLike
@@ -17,6 +16,7 @@ PathLike --> Option
 PathLike --> Result
 class PrefixRule
 PrefixRule --> CompileError
+PrefixRule --> FormattedError
 PrefixRule --> StringContext
 PrefixRule --> NodeErr
 PrefixRule --> NodeResult
@@ -25,12 +25,12 @@ class NodeErr
 NodeErr --> FormattedError
 class InfixRule
 InfixRule --> CompileError
+InfixRule --> FormattedError
 InfixRule --> StringContext
 InfixRule --> NodeErr
 InfixRule --> NodeResult
 InfixRule --> StringResult
 class OrRule
-OrRule --> FormattedError
 OrRule --> ResultFactory
 OrRule --> ListLike
 OrRule --> DisplayNode
@@ -42,6 +42,7 @@ NodeContext --> DisplayNode
 class PathLikes
 PathLikes --> Paths
 class StripRule
+StripRule --> FormattedError
 StripRule --> NodeResult
 StripRule --> StringResult
 class JavaList
@@ -69,16 +70,15 @@ Some --> Predicate
 class EverythingNode
 class NodeFactory
 class StringOk
-StringOk --> FormattedError
 class Option
 Option --> Predicate
 class Rule
 class StringResult
 StringResult --> Matching
 class Accumulator
-Accumulator --> FormattedError
 Accumulator --> ListLike
 class StringRule
+StringRule --> FormattedError
 StringRule --> ResultFactory
 StringRule --> NodeFactory
 StringRule --> StringNode
@@ -113,7 +113,6 @@ class ApplicationError
 class StringNode
 StringNode --> Option
 class ImmutableAccumulator
-ImmutableAccumulator --> FormattedError
 ImmutableAccumulator --> ListLike
 ImmutableAccumulator --> ListLikes
 ImmutableAccumulator --> None
@@ -121,14 +120,12 @@ ImmutableAccumulator --> Option
 ImmutableAccumulator --> Some
 class Appending
 class StringErr
-StringErr --> FormattedError
 class StringContext
 class Context
 class Error
 class MutableDivideState
 MutableDivideState --> ListLike
 class ResultFactory
-ResultFactory --> FormattedError
 ResultFactory --> ListLike
 class TypedNode
 class IOError
@@ -136,9 +133,7 @@ class ListLikes
 ListLikes --> ArrayList
 ListLikes --> Arrays
 class SuffixRule
-SuffixRule --> CompileError
-SuffixRule --> StringContext
-SuffixRule --> NodeErr
+SuffixRule --> ResultFactory
 SuffixRule --> NodeResult
 SuffixRule --> Appending
 class NodeOk
@@ -184,12 +179,10 @@ None --> Predicate
 class ListLike
 ListLike --> Stream
 class TypeRule
-TypeRule --> CompileError
-TypeRule --> NodeContext
+TypeRule --> ResultFactory
 TypeRule --> DisplayNode
 TypeRule --> TypedNode
 TypeRule --> NodeResult
-TypeRule --> StringErr
 TypeRule --> StringResult
 
 @enduml

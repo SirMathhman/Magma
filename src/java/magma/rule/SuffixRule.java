@@ -1,20 +1,18 @@
 package magma.rule;
 
-import magma.error.CompileError;
-import magma.error.StringContext;
-import magma.node.result.NodeErr;
+import magma.factory.ResultFactory;
 import magma.node.result.NodeResult;
 import magma.string.Appending;
 
-public record SuffixRule<Node, StringResult extends Appending<StringResult>>(
-        Rule<Node, NodeResult<Node>, StringResult> rule,
-        String suffix) implements Rule<Node, NodeResult<Node>, StringResult> {
+public record SuffixRule<Node, Error, StringResult extends Appending<StringResult>>(
+        Rule<Node, NodeResult<Node, Error>, StringResult> rule, String suffix,
+        ResultFactory<Node, Error, NodeResult<Node, Error>, StringResult> factory) implements Rule<Node, NodeResult<Node, Error>, StringResult> {
     @Override
-    public NodeResult<Node> lex(final String input) {
+    public NodeResult<Node, Error> lex(final String input) {
         if (input.endsWith(this.suffix))
             return this.rule.lex(input.substring(0, input.length() - this.suffix.length()));
 
-        return new NodeErr<>(new CompileError("Suffix '" + this.suffix + "' not present", new StringContext(input)));
+        return this.factory.fromNodeError("Suffix '" + this.suffix + "' not present", input);
     }
 
     @Override

@@ -1,33 +1,31 @@
 package magma.string;
 
-import magma.error.FormattedError;
-
 import java.util.function.Function;
 import java.util.function.Supplier;
 
-public record StringErr(FormattedError error) implements StringResult {
+public record StringErr<Error>(Error error) implements StringResult<Error> {
     @Override
-    public StringResult appendSlice(final String slice) {
+    public StringResult<Error> appendSlice(final String slice) {
         return this;
     }
 
     @Override
-    public StringResult prepend(final String slice) {
+    public StringResult<Error> prepend(final String slice) {
         return this;
     }
 
     @Override
-    public StringResult tryAppendResult(final Supplier<StringResult> other) {
+    public StringResult<Error> tryAppendResult(final Supplier<StringResult<Error>> other) {
         return this;
     }
 
     @Override
-    public StringResult appendResult(final StringResult other) {
-        return new StringErr(this.error);
+    public StringResult<Error> appendResult(final StringResult<Error> other) {
+        return new StringErr<>(this.error);
     }
 
     @Override
-    public <Return> Return match(final Function<String, Return> whenOk, final Function<FormattedError, Return> whenError) {
+    public <Return> Return match(final Function<String, Return> whenOk, final Function<Error, Return> whenError) {
         return whenError.apply(this.error);
     }
 }

@@ -2,6 +2,8 @@ package magma.string;
 
 import magma.node.result.Matching;
 
-public sealed interface StringResult extends Appending<StringResult>, Matching<String> permits StringOk, StringErr {
-    StringResult prepend(String slice);
+public sealed interface StringResult<Error> extends Appending<StringResult<Error>>, Matching<String, Error> permits
+        StringOk,
+        StringErr {
+    StringResult<Error> prepend(String slice);
 }

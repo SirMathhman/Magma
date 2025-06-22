@@ -100,8 +100,8 @@ class Main {
                 }));
     }
 
-    private static StringResult compileEntry(final Map<String, String> inputs) {
-        StringResult maybeCompiled = new StringOk();
+    private static StringResult<FormattedError> compileEntry(final Map<String, String> inputs) {
+        StringResult<FormattedError> maybeCompiled = new StringOk<>();
         for (final var source : inputs.entrySet()) {
             final var name = source.getKey();
             final var input = source.getValue();
@@ -112,10 +112,10 @@ class Main {
         return maybeCompiled;
     }
 
-    private static StringResult compile(final CharSequence input, final String name) {
+    private static StringResult<FormattedError> compile(final CharSequence input, final String name) {
         final var segments = Main.divide(input);
         return segments.stream()
-                .<StringResult>reduce(new StringOk(),
+                .<StringResult<FormattedError>>reduce(new StringOk<>(),
                         (output, segment) -> Main.getStringResult(name, output, segment),
                         (_, next) -> next)
                 .prepend("class " + name + Main.SEPARATOR);
@@ -154,23 +154,23 @@ class Main {
         return appended;
     }
 
-    private static StringResult getStringResult(final String name, final StringResult output, final String segment) {
+    private static StringResult<FormattedError> getStringResult(final String name, final StringResult<FormattedError> output, final String segment) {
         final var tree = Main.createRootSegmentRule()
                 .lex(segment);
 
-        final var generated = (Result<Option<StringResult>, FormattedError>) switch (tree) {
+        final var generated = (Result<Option<StringResult<FormattedError>>, FormattedError>) switch (tree) {
             case NodeErr(final var error1) -> new Err<>(error1);
             case NodeOk(final EverythingNode value1) -> new Ok<>(Main.transformAndGenerate(name, value1));
         };
 
         return switch (generated) {
-            case Err<Option<StringResult>, FormattedError>(final var error) -> new StringErr(error);
-            case Ok<Option<StringResult>, FormattedError>(final var value) ->
+            case Err<Option<StringResult<FormattedError>>, FormattedError>(final var error) -> new StringErr<>(error);
+            case Ok<Option<StringResult<FormattedError>>, FormattedError>(final var value) ->
                     value instanceof Some(final var result) ? output.appendResult(result) : output;
         };
     }
 
-    private static Option<StringResult> transformAndGenerate(final String name, final EverythingNode destination) {
+    private static Option<StringResult<FormattedError>> transformAndGenerate(final String name, final EverythingNode destination) {
         final var node = destination.withString("source", name);
         final var destination1 = node.findString("destination")
                 .orElse("");
@@ -184,33 +184,32 @@ class Main {
             return new None<>();
     }
 
-    private static Rule<EverythingNode, NodeResult<EverythingNode>, StringResult> createRootSegmentRule() {
+    private static Rule<EverythingNode, NodeResult<EverythingNode, FormattedError>, StringResult<FormattedError>> createRootSegmentRule() {
         return new OrRule<>(ListLikes.of(Main.createImportRule("package"),
                 Main.createImportRule("import"),
                 Main.createStructureRule("record"),
-                Main.createStructureRule("interface"), Main.createStructureRule("class")),
-                new SimpleResultFactory<EverythingNode>());
+                Main.createStructureRule("interface"),
+                Main.createStructureRule("class")), new SimpleResultFactory<>());
     }
 
-    private static Rule<EverythingNode, NodeResult<EverythingNode>, StringResult> createStructureRule(final String infix) {
-        return new InfixRule<>(new StringRule<>("before-keyword",
-                new MapNodeFactory(),
-                new SimpleResultFactory<EverythingNode>()),
-                infix,
-                new StringRule<>("after-keyword", new MapNodeFactory(), new SimpleResultFactory<EverythingNode>()));
+    private static Rule<EverythingNode, NodeResult<EverythingNode, FormattedError>, StringResult<FormattedError>> createStructureRule(final String infix) {
+        return new InfixRule<>(new StringRule<>("before-keyword", new MapNodeFactory(), new SimpleResultFactory<>()),
+                infix, new StringRule<>("after-keyword", new MapNodeFactory(), new SimpleResultFactory<>()));
     }
 
-    private static Rule<EverythingNode, NodeResult<EverythingNode>, StringResult> createImportRule(final String type) {
-        final var destination = new StringRule<>("destination",
-                new MapNodeFactory(),
-                new SimpleResultFactory<EverythingNode>());
+    private static Rule<EverythingNode, NodeResult<EverythingNode, FormattedError>, StringResult<FormattedError>> createImportRule(final String type) {
+        final var destination = new StringRule<>("destination", new MapNodeFactory(), new SimpleResultFactory<>());
         final var withParent = new InfixRule<>(new StringRule<>("parent",
-                new MapNodeFactory(), new SimpleResultFactory<EverythingNode>()), ".", destination);
+                new MapNodeFactory(),
+                new SimpleResultFactory<>()), ".", destination);
         final var parent = new OrRule<>(ListLikes.of(withParent,
-                new StringRule<>("value", new MapNodeFactory(), new SimpleResultFactory<EverythingNode>())),
-                new SimpleResultFactory<EverythingNode>());
+                new StringRule<>("value", new MapNodeFactory(), new SimpleResultFactory<>())),
+                new SimpleResultFactory<>());
 
-        return new TypeRule<>(type, new StripRule<>(new PrefixRule<>(type + " ", new SuffixRule<>(parent, ";"))));
+        return new TypeRule<>(type,
+                new StripRule<>(new PrefixRule<>(type + " ",
+                        new SuffixRule<>(parent, ";", new SimpleResultFactory<>()))),
+                new SimpleResultFactory<>());
     }
 
     private static boolean isFunctionalInterface(final String destination) {
@@ -218,21 +217,23 @@ class Main {
                 .contains(destination);
     }
 
-    private static StringResult generate(final EverythingNode node) {
+    private static StringResult<FormattedError> generate(final EverythingNode node) {
         return new OrRule<>(ListLikes.of(Main.createDependencyRule(), Main.createPlaceholderRule()),
-                new SimpleResultFactory<EverythingNode>()).generate(node);
+                new SimpleResultFactory<>()).generate(node);
     }
 
-    private static Rule<EverythingNode, NodeResult<EverythingNode>, StringResult> createPlaceholderRule() {
+    private static Rule<EverythingNode, NodeResult<EverythingNode, FormattedError>, StringResult<FormattedError>> createPlaceholderRule() {
         return new TypeRule<>("placeholder",
-                new StringRule<>("value", new MapNodeFactory(), new SimpleResultFactory<EverythingNode>()));
+                new StringRule<>("value", new MapNodeFactory(), new SimpleResultFactory<>()),
+                new SimpleResultFactory<>());
     }
 
-    private static Rule<EverythingNode, NodeResult<EverythingNode>, StringResult> createDependencyRule() {
+    private static Rule<EverythingNode, NodeResult<EverythingNode, FormattedError>, StringResult<FormattedError>> createDependencyRule() {
         return new TypeRule<>("dependency", new SuffixRule<>(new InfixRule<>(new StringRule<>("source",
-                        new MapNodeFactory(), new SimpleResultFactory<EverythingNode>()),
-                " --> ",
-                new StringRule<>("destination", new MapNodeFactory(), new SimpleResultFactory<EverythingNode>())),
-                        Main.SEPARATOR));
+                new MapNodeFactory(),
+                new SimpleResultFactory<>()),
+                " --> ", new StringRule<>("destination", new MapNodeFactory(), new SimpleResultFactory<>())),
+                Main.SEPARATOR,
+                new SimpleResultFactory<>()), new SimpleResultFactory<>());
     }
 }

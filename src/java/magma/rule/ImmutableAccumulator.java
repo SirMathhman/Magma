@@ -1,6 +1,5 @@
 package magma.rule;
 
-import magma.error.FormattedError;
 import magma.list.ListLike;
 import magma.list.ListLikes;
 import magma.option.None;
@@ -9,11 +8,11 @@ import magma.option.Some;
 
 import java.util.function.Function;
 
-final class ImmutableAccumulator<Value> implements Accumulator<Value> {
+final class ImmutableAccumulator<Value, Error> implements Accumulator<Value, Error> {
     private final Option<Value> maybeValue;
-    private final ListLike<FormattedError> errors;
+    private final ListLike<Error> errors;
 
-    private ImmutableAccumulator(final Option<Value> maybeValue, final ListLike<FormattedError> errors) {
+    private ImmutableAccumulator(final Option<Value> maybeValue, final ListLike<Error> errors) {
         this.maybeValue = maybeValue;
         this.errors = errors;
     }
@@ -23,17 +22,17 @@ final class ImmutableAccumulator<Value> implements Accumulator<Value> {
     }
 
     @Override
-    public Accumulator<Value> withValue(final Value value) {
+    public Accumulator<Value, Error> withValue(final Value value) {
         return new ImmutableAccumulator<>(new Some<>(value), this.errors);
     }
 
     @Override
-    public Accumulator<Value> withError(final FormattedError error) {
+    public Accumulator<Value, Error> withError(final Error error) {
         return new ImmutableAccumulator<>(this.maybeValue, this.errors.add(error));
     }
 
     @Override
-    public <Return> Return match(final Function<Value, Return> whenPresent, final Function<ListLike<FormattedError>, Return> whenErr) {
+    public <Return> Return match(final Function<Value, Return> whenPresent, final Function<ListLike<Error>, Return> whenErr) {
         return this.maybeValue.map(whenPresent)
                 .orElseGet(() -> whenErr.apply(this.errors));
     }
