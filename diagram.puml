@@ -102,6 +102,10 @@ class PathTargets
 PathTargets --> WrappedError
 PathTargets --> PathLike
 PathTargets --> Option
+class Sources
+Sources --> WrappedError
+Sources --> Result
+Sources --> Map
 class Some
 Some --> Predicate
 class ErrorList
@@ -133,6 +137,16 @@ MapNode --> Option
 MapNode --> Some
 MapNode --> HashMap
 MapNode --> Map
+class PathSources
+PathSources --> WrappedError
+PathSources --> IOError
+PathSources --> PathLike
+PathSources --> ListLike
+PathSources --> Ok
+PathSources --> Result
+PathSources --> HashMap
+PathSources --> List
+PathSources --> Map
 class DisplayNode
 class CompileErrorFactory
 CompileErrorFactory --> ErrorSequence
@@ -203,18 +217,12 @@ class None
 None --> Predicate
 class Main
 Main --> WrappedError
-Main --> IOError
-Main --> PathLike
 Main --> PathLikes
-Main --> ListLike
 Main --> Option
 Main --> Some
-Main --> Ok
-Main --> Result
 Main --> Compiler
 Main --> RuleCompiler
 Main --> Lang
-Main --> HashMap
 Main --> Map
 class ListLike
 ListLike --> Stream

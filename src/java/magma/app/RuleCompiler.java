@@ -22,8 +22,6 @@ import magma.app.string.StringResult;
 import java.util.Map;
 
 public class RuleCompiler implements Compiler {
-    public RuleCompiler() {
-    }
 
     private static StringResult<FormattedError> compileEntry(final Map<String, String> inputs) {
         StringResult<FormattedError> maybeCompiled = new StringOk<>();
