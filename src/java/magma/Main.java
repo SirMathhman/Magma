@@ -13,32 +13,41 @@ public class Main {
     }
 
     public static void main(final String[] args) {
+        final var source = Paths.get(".", "src", "java", "magma", "Main.java");
+        Main.readString(source)
+                .match(Main::compileAndWrite, Optional::of)
+                .ifPresent(Throwable::printStackTrace);
+    }
+
+    private static Optional<IOException> compileAndWrite(final String input) {
+        final var compiled = Main.compile(input);
+
+        final var target = Paths.get(".", "diagram.puml");
+        final var output = String.join(Main.SEPARATOR,
+                "@startuml",
+                "skinparam linetype ortho",
+                "class Main",
+                compiled.toString(),
+                "@enduml");
+
+        return Main.writeString(target, output);
+    }
+
+    private static Optional<IOException> writeString(final Path target, final CharSequence output) {
         try {
-            final var source = Paths.get(".", "src", "java", "magma", "Main.java");
-            final var input = Main.getReadString(source);
-            final var compiled = Main.compile(input);
-
-            final var target = Paths.get(".", "diagram.puml");
-            final var output = String.join(Main.SEPARATOR,
-                    "@startuml",
-                    "skinparam linetype ortho",
-                    "class Main",
-                    compiled.toString(),
-                    "@enduml");
-
-            Main.writeString(target, output);
+            Files.writeString(target, output);
+            return Optional.empty();
         } catch (final IOException e) {
-            //noinspection CallToPrintStackTrace
-            e.printStackTrace();
+            return Optional.of(e);
         }
     }
 
-    private static void writeString(final Path target, final CharSequence output) throws IOException {
-        Files.writeString(target, output);
-    }
-
-    private static String getReadString(final Path source) throws IOException {
-        return Files.readString(source);
+    private static Result readString(final Path source) {
+        try {
+            return new Ok(Files.readString(source));
+        } catch (final IOException e) {
+            return new Err(e);
+        }
     }
 
     private static StringBuilder compile(final String input) {
