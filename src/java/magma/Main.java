@@ -10,9 +10,10 @@ import magma.path.PathLike;
 import magma.path.PathLikes;
 import magma.result.Ok;
 import magma.result.Result;
-import magma.rule.LexRule;
+import magma.rule.LastRule;
+import magma.rule.StringRule;
 
-public class Main {
+class Main {
     private static final String SEPARATOR = System.lineSeparator();
 
     private Main() {
@@ -75,15 +76,8 @@ public class Main {
             return new None<>();
 
         final var withoutPrefix = strip.substring("import ".length());
-        final var separator = withoutPrefix.lastIndexOf('.');
-        if (0 > separator)
-            return new None<>();
-
-        final var child = withoutPrefix.substring(separator + ".".length());
-        return new LexRule("destination").lex(child)
-                .flatMap(destination -> {
-                    return Main.getRecord(destination.withString("source", name));
-                });
+        return new LastRule(".", new StringRule("destination")).lex(withoutPrefix)
+                .flatMap(destination -> Main.getRecord(destination.withString("source", name)));
     }
 
     private static Option<String> getRecord(final Node node) {

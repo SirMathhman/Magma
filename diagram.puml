@@ -23,7 +23,8 @@ Main --> PathLike
 Main --> PathLikes
 Main --> Ok
 Main --> Result
-Main --> LexRule
+Main --> LastRule
+Main --> StringRule
 class MapNode
 MapNode --> None
 MapNode --> Option
@@ -62,10 +63,17 @@ class Ok
 Ok --> IOError
 class Result
 Result --> IOError
-class LexRule
-LexRule --> MapNode
-LexRule --> Node
-LexRule --> Option
-LexRule --> Some
+class LastRule
+LastRule --> Node
+LastRule --> None
+LastRule --> Option
+class Rule
+Rule --> Node
+Rule --> Option
+class StringRule
+StringRule --> MapNode
+StringRule --> Node
+StringRule --> Option
+StringRule --> Some
 
 @enduml
