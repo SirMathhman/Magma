@@ -6,15 +6,15 @@ import magma.result.Result;
 
 import java.util.function.Supplier;
 
-public record StringErr() implements StringResult {
+public record StringErr(CompileError error) implements StringResult {
     @Override
     public StringResult appendSlice(final String slice) {
-        return new StringErr();
+        return this;
     }
 
     @Override
     public Result<String, CompileError> toResult() {
-        return new Err<>(new CompileError());
+        return new Err<>(this.error);
     }
 
     @Override

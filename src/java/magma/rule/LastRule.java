@@ -1,5 +1,6 @@
 package magma.rule;
 
+import magma.error.CompileError;
 import magma.node.Node;
 import magma.node.result.NodeErr;
 import magma.node.result.NodeResult;
@@ -9,14 +10,12 @@ public record LastRule(Rule<Node, StringResult> leftRule, String infix, Rule<Nod
         Rule<Node, StringResult> {
     @Override
     public NodeResult lex(final String input) {
-        final var separator = input.lastIndexOf(this.infix());
+        final var separator = input.lastIndexOf(this.infix);
         if (0 > separator)
-            return new NodeErr();
+            return new NodeErr(new CompileError("Infix '" + this.infix + "' not present"));
 
-        final var rightSlice = input.substring(separator + this.infix()
-                .length());
-        return this.rightRule()
-                .lex(rightSlice);
+        final var rightSlice = input.substring(separator + this.infix.length());
+        return this.rightRule.lex(rightSlice);
     }
 
     @Override

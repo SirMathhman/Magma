@@ -1,5 +1,6 @@
 package magma.rule;
 
+import magma.error.CompileError;
 import magma.node.MapNode;
 import magma.node.Node;
 import magma.node.result.NodeOk;
@@ -17,6 +18,6 @@ public record StringRule(String key) implements Rule<Node, StringResult> {
     public StringResult generate(final Node node) {
         return node.findString(this.key)
                 .<StringResult>map(StringOk::new)
-                .orElseGet(StringErr::new);
+                .orElseGet(() -> new StringErr(new CompileError("String '" + this.key + "' not present")));
     }
 }

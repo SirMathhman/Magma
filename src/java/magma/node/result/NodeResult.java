@@ -6,5 +6,5 @@ import magma.string.StringResult;
 import java.util.function.Function;
 
 public interface NodeResult {
-    StringResult flatMap(Function<Node, StringResult> mapper);
+    StringResult generate(Function<Node, StringResult> mapper);
 }

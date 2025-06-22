@@ -7,7 +7,7 @@ import java.util.function.Function;
 
 public record NodeOk(Node node) implements NodeResult {
     @Override
-    public StringResult flatMap(final Function<Node, StringResult> mapper) {
+    public StringResult generate(final Function<Node, StringResult> mapper) {
         return mapper.apply(this.node);
     }
 }

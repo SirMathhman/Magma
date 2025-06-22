@@ -1,6 +1,7 @@
 package magma;
 
 import magma.error.ApplicationError;
+import magma.error.CompileError;
 import magma.error.IOError;
 import magma.list.ListLike;
 import magma.list.ListLikes;
@@ -101,7 +102,7 @@ class Main {
         for (final var segment : segments)
             output = output.appendResult(() -> Main.createImportRule(name)
                     .lex(segment)
-                    .flatMap(destination -> Main.getRecord(destination.withString("source", name))));
+                    .generate(destination -> Main.getRecord(destination.withString("source", name))));
 
         return output.prepend("class " + name + Main.SEPARATOR);
     }
@@ -115,7 +116,7 @@ class Main {
         final var destination = node.findString("destination")
                 .orElse("");
         if (Main.isFunctionalInterface(destination))
-            return new StringErr();
+            return new StringErr(new CompileError("?"));
 
         return Main.getStringSome(node);
     }
