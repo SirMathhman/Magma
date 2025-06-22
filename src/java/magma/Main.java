@@ -6,7 +6,6 @@ import magma.api.option.Option;
 import magma.api.option.Some;
 import magma.app.compile.Compiler;
 import magma.app.compile.RuleCompiler;
-import magma.app.compile.lang.Lang;
 import magma.app.io.sources.PathSources;
 import magma.app.io.sources.Sources;
 import magma.app.io.targets.PathTargets;
@@ -36,7 +35,11 @@ class Main {
     }
 
     private static Option<WrappedError> writeTarget(final String compiled, final Targets targets) {
-        final var output = String.join(Lang.SEPARATOR, "@startuml", "skinparam linetype ortho", compiled, "@enduml");
+        final var output = String.join(System.lineSeparator(),
+                "@startuml",
+                "skinparam linetype ortho",
+                compiled,
+                "@enduml");
         return targets.write(output);
     }
 }

@@ -39,11 +39,11 @@ public class RuleCompiler implements Compiler {
                 .<StringResult<FormattedError>>reduce(new StringOk<>(),
                         (output, segment) -> RuleCompiler.getStringResult(name, output, segment),
                         (_, next) -> next)
-                .prepend("class " + name + Lang.SEPARATOR);
+                .prepend("class " + name + System.lineSeparator());
     }
 
     private static StringResult<FormattedError> getStringResult(final String name, final StringResult<FormattedError> output, final String segment) {
-        final var tree = Lang.createRootSegmentRule()
+        final var tree = new Lang().createRootSegmentRule()
                 .lex(segment);
 
         final var generated = (Result<Option<StringResult<FormattedError>>, FormattedError>) switch (tree) {
@@ -78,7 +78,7 @@ public class RuleCompiler implements Compiler {
     }
 
     private static StringResult<FormattedError> generate(final EverythingNode node) {
-        return Lang.createPlantUMLRootSegmentRule()
+        return new Lang().createPlantUMLRootSegmentRule()
                 .generate(node);
     }
 
