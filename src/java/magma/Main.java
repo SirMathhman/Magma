@@ -1,12 +1,11 @@
 package magma;
 
 import magma.error.IOError;
-import magma.path.JavaPath;
 import magma.path.PathLike;
+import magma.path.PathLikes;
 import magma.result.Ok;
 import magma.result.Result;
 
-import java.nio.file.Paths;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
@@ -18,8 +17,8 @@ public class Main {
     }
 
     public static void main(final String[] args) {
-        final var sourceDirectory = Paths.get(".", "src", "java");
-        new JavaPath(sourceDirectory).walk()
+        PathLikes.get(".", "src", "java")
+                .walk()
                 .match(Main::runWithFiles, Optional::of)
                 .ifPresent(error -> System.err.println(error.display()));
     }
@@ -35,9 +34,9 @@ public class Main {
     }
 
     private static Optional<IOError> writeTarget(final String compiled) {
-        final var target = Paths.get(".", "diagram.puml");
+        final var target = PathLikes.get(".", "diagram.puml");
         final var output = String.join(Main.SEPARATOR, "@startuml", "skinparam linetype ortho", compiled, "@enduml");
-        return new JavaPath(target).writeString(output);
+        return target.writeString(output);
     }
 
     private static Result<String> compileAll(final Iterable<PathLike> sources) {
