@@ -2,6 +2,7 @@ package magma;
 
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Optional;
 
@@ -13,20 +14,31 @@ public class Main {
 
     public static void main(final String[] args) {
         try {
-            final var input = Files.readString(Paths.get(".", "src", "java", "magma", "Main.java"));
-            final var output = Main.compile(input);
+            final var source = Paths.get(".", "src", "java", "magma", "Main.java");
+            final var input = Main.getReadString(source);
+            final var compiled = Main.compile(input);
 
-            Files.writeString(Paths.get(".", "diagram.puml"),
-                    String.join(Main.SEPARATOR,
-                            "@startuml",
-                            "skinparam linetype ortho",
-                            "class Main",
-                            output.toString(),
-                            "@enduml"));
+            final var target = Paths.get(".", "diagram.puml");
+            final var output = String.join(Main.SEPARATOR,
+                    "@startuml",
+                    "skinparam linetype ortho",
+                    "class Main",
+                    compiled.toString(),
+                    "@enduml");
+
+            Main.writeString(target, output);
         } catch (final IOException e) {
             //noinspection CallToPrintStackTrace
             e.printStackTrace();
         }
+    }
+
+    private static void writeString(final Path target, final String output) throws IOException {
+        Files.writeString(target, output);
+    }
+
+    private static String getReadString(final Path source) throws IOException {
+        return Files.readString(source);
     }
 
     private static StringBuilder compile(final String input) {
