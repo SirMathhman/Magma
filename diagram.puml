@@ -70,12 +70,8 @@ class Lang
 Lang --> ErrorSequence
 Lang --> ListLikes
 Lang --> FormattedError
-Lang --> CompileErrorFactory
-Lang --> CompileErrorResultFactory
 Lang --> ResultFactory
-Lang --> SimpleContextFactory
 Lang --> EverythingNode
-Lang --> MapNodeFactory
 Lang --> NodeFactory
 Lang --> NodeResult
 Lang --> InfixRule
@@ -178,8 +174,12 @@ RuleCompiler --> Ok
 RuleCompiler --> Result
 RuleCompiler --> Divide
 RuleCompiler --> FormattedError
+RuleCompiler --> CompileErrorFactory
+RuleCompiler --> CompileErrorResultFactory
+RuleCompiler --> SimpleContextFactory
 RuleCompiler --> Lang
 RuleCompiler --> EverythingNode
+RuleCompiler --> MapNodeFactory
 RuleCompiler --> NodeErr
 RuleCompiler --> NodeOk
 RuleCompiler --> StringErr
@@ -223,7 +223,6 @@ Main --> Option
 Main --> Some
 Main --> Compiler
 Main --> RuleCompiler
-Main --> Lang
 Main --> PathSources
 Main --> Sources
 Main --> PathTargets

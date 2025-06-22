@@ -1,6 +1,5 @@
 package magma.app.compile;
 
-import magma.api.error.list.ErrorSequence;
 import magma.api.list.ListLikes;
 import magma.api.option.None;
 import magma.api.option.Option;
@@ -25,6 +24,8 @@ import magma.app.compile.string.StringResult;
 import java.util.Map;
 
 public class RuleCompiler implements Compiler {
+    public static final Lang LANG = new Lang(new MapNodeFactory(),
+            new CompileErrorResultFactory<>(new SimpleContextFactory<>(), new CompileErrorFactory()));
 
     private static StringResult<FormattedError> compileEntry(final Map<String, String> inputs) {
         StringResult<FormattedError> maybeCompiled = new StringOk<>();
@@ -48,9 +49,7 @@ public class RuleCompiler implements Compiler {
     }
 
     private static StringResult<FormattedError> getStringResult(final String name, final StringResult<FormattedError> output, final String segment) {
-        final var tree = new Lang(new MapNodeFactory(),
-                new CompileErrorResultFactory<EverythingNode, FormattedError, ErrorSequence<FormattedError>>(new SimpleContextFactory<>(),
-                        new CompileErrorFactory())).createRootSegmentRule()
+        final var tree = RuleCompiler.LANG.createRootSegmentRule()
                 .lex(segment);
 
         final var generated = (Result<Option<StringResult<FormattedError>>, FormattedError>) switch (tree) {
@@ -85,9 +84,7 @@ public class RuleCompiler implements Compiler {
     }
 
     private static StringResult<FormattedError> generate(final EverythingNode node) {
-        return new Lang(new MapNodeFactory(),
-                new CompileErrorResultFactory<EverythingNode, FormattedError, ErrorSequence<FormattedError>>(new SimpleContextFactory<>(),
-                        new CompileErrorFactory())).createPlantUMLRootSegmentRule()
+        return RuleCompiler.LANG.createPlantUMLRootSegmentRule()
                 .generate(node);
     }
 
