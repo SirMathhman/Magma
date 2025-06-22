@@ -5,6 +5,7 @@ import magma.result.Ok;
 import magma.result.Result;
 import magma.string.StringResult;
 
+import java.util.function.Function;
 import java.util.function.Supplier;
 
 public record StringOk(String value) implements StringResult {
@@ -28,8 +29,17 @@ public record StringOk(String value) implements StringResult {
     }
 
     @Override
-    public StringResult appendResult(final Supplier<StringResult> other) {
-        return other.get()
-                .prepend(this.value);
+    public StringResult tryAppendResult(final Supplier<StringResult> other) {
+        return this.appendResult(other.get());
+    }
+
+    @Override
+    public StringResult appendResult(final StringResult other) {
+        return other.prepend(this.value);
+    }
+
+    @Override
+    public <Return> Return match(final Function<String, Return> whenOk, final Function<CompileError, Return> whenError) {
+        return whenOk.apply(this.value);
     }
 }

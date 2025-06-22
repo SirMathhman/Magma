@@ -4,6 +4,7 @@ import magma.error.CompileError;
 import magma.result.Err;
 import magma.result.Result;
 
+import java.util.function.Function;
 import java.util.function.Supplier;
 
 public record StringErr(CompileError error) implements StringResult {
@@ -23,7 +24,17 @@ public record StringErr(CompileError error) implements StringResult {
     }
 
     @Override
-    public StringResult appendResult(final Supplier<StringResult> other) {
+    public StringResult tryAppendResult(final Supplier<StringResult> other) {
         return this;
+    }
+
+    @Override
+    public StringResult appendResult(final StringResult other) {
+        return new StringErr(this.error);
+    }
+
+    @Override
+    public <Return> Return match(final Function<String, Return> whenOk, final Function<CompileError, Return> whenError) {
+        return whenError.apply(this.error);
     }
 }

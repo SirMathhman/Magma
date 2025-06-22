@@ -1,6 +1,7 @@
 package magma.rule;
 
 import magma.error.CompileError;
+import magma.error.StringContext;
 import magma.node.Node;
 import magma.node.result.NodeErr;
 import magma.node.result.NodeResult;
@@ -13,7 +14,7 @@ public record SuffixRule<StringResult extends Appending<StringResult>>(Rule<Node
         if (input.endsWith(this.suffix))
             return this.rule.lex(input.substring(0, input.length() - this.suffix.length()));
 
-        return new NodeErr(new CompileError("?", "?"));
+        return new NodeErr(new CompileError("Suffix '" + this.suffix + "' not present", new StringContext(input)));
     }
 
     @Override

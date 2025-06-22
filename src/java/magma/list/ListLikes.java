@@ -11,4 +11,8 @@ public class ListLikes {
     public static <T> ListLike<T> of(final T... elements) {
         return new JavaList<>(new ArrayList<>(Arrays.asList(elements)));
     }
+
+    public static <T> ListLike<T> empty() {
+        return new JavaList<>();
+    }
 }

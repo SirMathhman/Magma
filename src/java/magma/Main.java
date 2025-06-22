@@ -6,13 +6,16 @@ import magma.error.IOError;
 import magma.list.ListLike;
 import magma.list.ListLikes;
 import magma.node.Node;
+import magma.option.None;
 import magma.option.Option;
 import magma.option.Some;
 import magma.path.PathLike;
 import magma.path.PathLikes;
+import magma.result.Err;
 import magma.result.Ok;
 import magma.result.Result;
 import magma.rule.LastRule;
+import magma.rule.OrRule;
 import magma.rule.PrefixRule;
 import magma.rule.Rule;
 import magma.rule.StringOk;
@@ -89,7 +92,7 @@ class Main {
             final var name = source.getKey();
             final var input = source.getValue();
 
-            maybeCompiled = maybeCompiled.appendResult(() -> Main.compile(input, name));
+            maybeCompiled = maybeCompiled.tryAppendResult(() -> Main.compile(input, name));
         }
 
         return maybeCompiled;
@@ -99,12 +102,23 @@ class Main {
         final var segments = input.split(";");
 
         StringResult output = new StringOk();
-        for (final var segment : segments)
-            output = output.appendResult(() -> Main.createImportRule(name)
+        for (final var segment : segments) {
+            final var generated = Main.createRootSegmentRule(name)
                     .lex(segment)
-                    .generate(destination -> Main.getRecord(destination.withString("source", name))));
+                    .map(destination -> Main.transformAndGenerate(destination.withString("source", name)));
+
+            output = switch (generated) {
+                case Err<Option<StringResult>, CompileError>(final var error) -> new StringErr(error);
+                case Ok<Option<StringResult>, CompileError>(final var value) ->
+                        value instanceof Some(final var result) ? output.appendResult(result) : output;
+            };
+        }
 
         return output.prepend("class " + name + Main.SEPARATOR);
+    }
+
+    private static Rule<Node, StringResult> createRootSegmentRule(final String name) {
+        return new OrRule(ListLikes.of(Main.createImportRule(name), new StringRule("value")));
     }
 
     private static Rule<Node, StringResult> createImportRule(final String name) {
@@ -112,13 +126,14 @@ class Main {
         return new StripRule(name, new PrefixRule("import ", new LastRule(null, ".", destination)));
     }
 
-    private static StringResult getRecord(final Node node) {
+    private static Option<StringResult> transformAndGenerate(final Node node) {
         final var destination = node.findString("destination")
                 .orElse("");
-        if (Main.isFunctionalInterface(destination))
-            return new StringErr(new CompileError("?", "?"));
 
-        return Main.getStringSome(node);
+        if (Main.isFunctionalInterface(destination))
+            return new None<>();
+
+        return new Some<>(Main.generate(node));
     }
 
     private static boolean isFunctionalInterface(final String destination) {
@@ -126,7 +141,7 @@ class Main {
                 .contains(destination);
     }
 
-    private static StringResult getStringSome(final Node node) {
+    private static StringResult generate(final Node node) {
         return new SuffixRule<>(new LastRule(new StringRule("source"), " --> ", new StringRule("destination")),
                 Main.SEPARATOR).generate(node);
     }

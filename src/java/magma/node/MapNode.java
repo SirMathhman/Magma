@@ -31,4 +31,9 @@ public final class MapNode implements Node {
 
         return new None<>();
     }
+
+    @Override
+    public String display() {
+        return this.strings.toString();
+    }
 }

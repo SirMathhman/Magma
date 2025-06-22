@@ -1,6 +1,7 @@
 package magma.rule;
 
 import magma.error.CompileError;
+import magma.error.StringContext;
 import magma.node.Node;
 import magma.node.result.NodeErr;
 import magma.node.result.NodeResult;
@@ -10,7 +11,7 @@ public record PrefixRule(String prefix, Rule<Node, StringResult> rule) implement
     @Override
     public NodeResult lex(final String input) {
         if (!input.startsWith(this.prefix))
-            return new NodeErr(new CompileError("Prefix '" + this.prefix + "' not present", input));
+            return new NodeErr(new CompileError("Prefix '" + this.prefix + "' not present", new StringContext(input)));
 
         final var slice = input.substring(this.prefix.length());
         return this.rule.lex(slice);

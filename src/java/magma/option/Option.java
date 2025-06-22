@@ -4,7 +4,7 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
-public interface Option<Value> {
+public sealed interface Option<Value> permits None, Some {
     void ifPresent(Consumer<Value> consumer);
 
     Value orElse(Value other);
