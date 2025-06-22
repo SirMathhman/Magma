@@ -2,7 +2,6 @@ package magma;
 
 import magma.error.IOError;
 import magma.list.ListLike;
-import magma.node.MapNode;
 import magma.node.Node;
 import magma.option.None;
 import magma.option.Option;
@@ -11,6 +10,7 @@ import magma.path.PathLike;
 import magma.path.PathLikes;
 import magma.result.Ok;
 import magma.result.Result;
+import magma.rule.LexRule;
 
 public class Main {
     private static final String SEPARATOR = System.lineSeparator();
@@ -80,8 +80,10 @@ public class Main {
             return new None<>();
 
         final var child = withoutPrefix.substring(separator + ".".length());
-        return Main.getRecord(new MapNode().withString("source", name)
-                .withString("destination", child));
+        return new LexRule("destination").lex(child)
+                .flatMap(destination -> {
+                    return Main.getRecord(destination.withString("source", name));
+                });
     }
 
     private static Option<String> getRecord(final Node node) {

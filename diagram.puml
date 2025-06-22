@@ -15,7 +15,6 @@ ListLike --> Stream
 class Main
 Main --> IOError
 Main --> ListLike
-Main --> MapNode
 Main --> Node
 Main --> None
 Main --> Option
@@ -24,6 +23,7 @@ Main --> PathLike
 Main --> PathLikes
 Main --> Ok
 Main --> Result
+Main --> LexRule
 class MapNode
 MapNode --> None
 MapNode --> Option
@@ -62,5 +62,10 @@ class Ok
 Ok --> IOError
 class Result
 Result --> IOError
+class LexRule
+LexRule --> MapNode
+LexRule --> Node
+LexRule --> Option
+LexRule --> Some
 
 @enduml
