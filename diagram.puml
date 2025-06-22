@@ -9,12 +9,14 @@ class JavaList
 JavaList --> List
 JavaList --> Stream
 class ListLike
-ListLike --> ArrayList
-ListLike --> Arrays
 ListLike --> Stream
+class ListLikes
+ListLikes --> ArrayList
+ListLikes --> Arrays
 class Main
 Main --> IOError
 Main --> ListLike
+Main --> ListLikes
 Main --> Node
 Main --> None
 Main --> Option

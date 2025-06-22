@@ -1,0 +1,11 @@
+package magma.list;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+
+public class ListLikes {
+    @SafeVarargs
+    public static <T> ListLike<T> of(final T... elements) {
+        return new JavaList<>(new ArrayList<>(Arrays.asList(elements)));
+    }
+}

@@ -2,6 +2,7 @@ package magma;
 
 import magma.error.IOError;
 import magma.list.ListLike;
+import magma.list.ListLikes;
 import magma.node.Node;
 import magma.option.None;
 import magma.option.Option;
@@ -81,7 +82,7 @@ class Main {
     }
 
     private static Option<String> getRecord(final Node node) {
-        if (!ListLike.of("Function", "Consumer")
+        if (!ListLikes.of("Function", "Consumer")
                 .contains(node.findString("destination")
                         .orElse("")))
             return new Some<>(node.findString("source")
