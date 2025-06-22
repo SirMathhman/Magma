@@ -1,7 +1,9 @@
 @startuml
 skinparam linetype ortho
 class Main
-Err --> IOException
+Main --> Err
+Main --> Ok
+Main --> Result
 Main --> IOException
 Main --> Files
 Main --> Path
@@ -9,6 +11,7 @@ Main --> Paths
 Main --> Collection
 Main --> List
 Main --> Optional
+Err --> IOException
 Ok --> IOException
 Result --> IOException
 
