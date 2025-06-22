@@ -7,22 +7,30 @@ JavaIOError --> PrintWriter
 JavaIOError --> StringWriter
 class Main
 Main --> IOError
-Main --> JavaIOError
 Main --> JavaPath
 Main --> PathLike
-Main --> Err
 Main --> Ok
 Main --> Result
-Main --> IOException
-Main --> Files
 Main --> Paths
 Main --> Collection
 Main --> List
 Main --> Optional
 class JavaPath
+JavaPath --> IOError
+JavaPath --> JavaIOError
+JavaPath --> Err
+JavaPath --> Ok
+JavaPath --> Result
+JavaPath --> IOException
+JavaPath --> Files
 JavaPath --> Path
+JavaPath --> List
+JavaPath --> Optional
 class PathLike
-PathLike --> Path
+PathLike --> IOError
+PathLike --> Result
+PathLike --> List
+PathLike --> Optional
 class Err
 Err --> IOError
 class Ok

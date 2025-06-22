@@ -1,15 +1,11 @@
 package magma;
 
 import magma.error.IOError;
-import magma.error.JavaIOError;
 import magma.path.JavaPath;
 import magma.path.PathLike;
-import magma.result.Err;
 import magma.result.Ok;
 import magma.result.Result;
 
-import java.io.IOException;
-import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.Collection;
 import java.util.List;
@@ -23,7 +19,7 @@ public class Main {
 
     public static void main(final String[] args) {
         final var sourceDirectory = Paths.get(".", "src", "java");
-        Main.walk(new JavaPath(sourceDirectory))
+        new JavaPath(sourceDirectory).walk()
                 .match(Main::runWithFiles, Optional::of)
                 .ifPresent(error -> System.err.println(error.display()));
     }
@@ -41,7 +37,7 @@ public class Main {
     private static Optional<IOError> writeTarget(final String compiled) {
         final var target = Paths.get(".", "diagram.puml");
         final var output = String.join(Main.SEPARATOR, "@startuml", "skinparam linetype ortho", compiled, "@enduml");
-        return Main.writeString(new JavaPath(target), output);
+        return new JavaPath(target).writeString(output);
     }
 
     private static Result<String> compileAll(final Iterable<PathLike> sources) {
@@ -52,39 +48,13 @@ public class Main {
             final var separator = fileName.lastIndexOf('.');
             final var name = fileName.substring(0, separator);
 
-            final var maybeOutput = Main.readString(source)
+            final var maybeOutput = source.readString()
                     .map(value -> Main.compile(value, name));
 
             maybeCompiled = maybeCompiled.flatMap(compiled -> maybeOutput.map(compiled::append));
         }
 
         return maybeCompiled.map(StringBuilder::toString);
-    }
-
-    private static Result<List<PathLike>> walk(final PathLike rootDirectory) {
-        try (final var stream = Files.walk(rootDirectory.unwrap())) {
-            return new Ok<>(stream.<PathLike>map(JavaPath::new)
-                    .toList());
-        } catch (final IOException e) {
-            return new Err<>(new JavaIOError(e));
-        }
-    }
-
-    private static Optional<IOError> writeString(final PathLike target, final CharSequence output) {
-        try {
-            Files.writeString(target.unwrap(), output);
-            return Optional.empty();
-        } catch (final IOException e) {
-            return Optional.of(new JavaIOError(e));
-        }
-    }
-
-    private static Result<String> readString(final PathLike source) {
-        try {
-            return new Ok<>(Files.readString(source.unwrap()));
-        } catch (final IOException e) {
-            return new Err<>(new JavaIOError(e));
-        }
     }
 
     private static String compile(final String input, final String name) {

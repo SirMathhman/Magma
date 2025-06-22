@@ -1,11 +1,19 @@
 package magma.path;
 
-import java.nio.file.Path;
+import magma.error.IOError;
+import magma.result.Result;
+
+import java.util.List;
+import java.util.Optional;
 
 public interface PathLike {
-    PathLike getFileName();
+    Result<String> readString();
 
-    Path unwrap();
+    Result<List<PathLike>> walk();
+
+    Optional<IOError> writeString(CharSequence output);
+
+    PathLike getFileName();
 
     String asString();
 }
