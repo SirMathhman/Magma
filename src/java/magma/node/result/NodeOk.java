@@ -14,7 +14,12 @@ public record NodeOk(Node node) implements NodeResult {
     }
 
     @Override
-    public <Return> Result<Return, CompileError> map(final Function<Node, Return> mapper) {
+    public <Return> Result<Return, CompileError> mapToResult(final Function<Node, Return> mapper) {
         return new Ok<>(mapper.apply(this.node));
+    }
+
+    @Override
+    public NodeResult map(final Function<Node, Node> mapper) {
+        return new NodeOk(mapper.apply(this.node));
     }
 }

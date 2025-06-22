@@ -14,7 +14,12 @@ public record NodeErr(CompileError error) implements NodeResult {
     }
 
     @Override
-    public <Return> Result<Return, CompileError> map(final Function<Node, Return> mapper) {
+    public <Return> Result<Return, CompileError> mapToResult(final Function<Node, Return> mapper) {
         return new Err<>(this.error);
+    }
+
+    @Override
+    public NodeResult map(final Function<Node, Node> mapper) {
+        return new NodeErr(this.error);
     }
 }

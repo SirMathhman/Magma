@@ -8,4 +8,8 @@ public interface Node {
     Option<String> findString(String key);
 
     String display();
+
+    Node retype(String type);
+
+    boolean is(String type);
 }

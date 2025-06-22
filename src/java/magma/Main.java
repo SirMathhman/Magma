@@ -23,6 +23,7 @@ import magma.rule.StringOk;
 import magma.rule.StringRule;
 import magma.rule.StripRule;
 import magma.rule.SuffixRule;
+import magma.rule.TypeRule;
 import magma.string.StringErr;
 import magma.string.StringResult;
 
@@ -106,7 +107,7 @@ class Main {
         for (final var segment : segments) {
             final var generated = Main.createRootSegmentRule(name)
                     .lex(segment)
-                    .map(destination -> Main.transformAndGenerate(destination.withString("source", name)));
+                    .mapToResult(destination -> Main.transformAndGenerate(destination.withString("source", name)));
 
             output = switch (generated) {
                 case Err<Option<StringResult>, CompileError>(final var error) -> new StringErr(error);
@@ -143,11 +144,16 @@ class Main {
     }
 
     private static StringResult generate(final Node node) {
-        return new OrRule(ListLikes.of(Main.createDependencyRule(), new EmptyRule())).generate(node);
+        return new OrRule(ListLikes.of(Main.createDependencyRule(), Main.createPlaceholderRule())).generate(node);
+    }
+
+    private static Rule<Node, StringResult> createPlaceholderRule() {
+        return new TypeRule("placeholder", new EmptyRule());
     }
 
     private static Rule<Node, StringResult> createDependencyRule() {
-        return new SuffixRule<>(new LastRule(new StringRule("source"), " --> ", new StringRule("destination")),
-                Main.SEPARATOR);
+        return new TypeRule("dependency",
+                new SuffixRule<>(new LastRule(new StringRule("source"), " --> ", new StringRule("destination")),
+                        Main.SEPARATOR));
     }
 }

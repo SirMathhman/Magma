@@ -2,6 +2,7 @@ package magma.option;
 
 import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.function.Predicate;
 import java.util.function.Supplier;
 
 public record None<T>() implements Option<T> {
@@ -22,5 +23,15 @@ public record None<T>() implements Option<T> {
     @Override
     public T orElseGet(final Supplier<T> other) {
         return other.get();
+    }
+
+    @Override
+    public Option<T> filter(final Predicate<T> predicate) {
+        return this;
+    }
+
+    @Override
+    public boolean isPresent() {
+        return false;
     }
 }

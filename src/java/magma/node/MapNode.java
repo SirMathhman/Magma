@@ -8,14 +8,16 @@ import java.util.HashMap;
 import java.util.Map;
 
 public final class MapNode implements Node {
+    private final Option<String> maybeType;
     private final Map<String, String> strings;
 
-    private MapNode(final Map<String, String> strings) {
+    private MapNode(final Option<String> maybeType, final Map<String, String> strings) {
+        this.maybeType = maybeType;
         this.strings = strings;
     }
 
     public MapNode() {
-        this(new HashMap<>());
+        this(new None<>(), new HashMap<>());
     }
 
     @Override
@@ -35,5 +37,16 @@ public final class MapNode implements Node {
     @Override
     public String display() {
         return this.strings.toString();
+    }
+
+    @Override
+    public Node retype(final String type) {
+        return new MapNode(new Some<>(type), this.strings);
+    }
+
+    @Override
+    public boolean is(final String type) {
+        return this.maybeType.filter(inner -> inner.equals(type))
+                .isPresent();
     }
 }
