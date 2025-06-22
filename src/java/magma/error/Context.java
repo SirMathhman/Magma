@@ -1,5 +1,5 @@
 package magma.error;
 
-interface Context {
+public interface Context {
     String display();
 }
