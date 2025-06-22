@@ -122,7 +122,6 @@ Application --> Option
 class Accumulator
 Accumulator --> ErrorSequence
 class StringRule
-StringRule --> ErrorSequence
 StringRule --> ResultFactory
 StringRule --> NodeFactory
 StringRule --> StringNode

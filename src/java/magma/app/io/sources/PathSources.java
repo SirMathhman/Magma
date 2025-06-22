@@ -1,5 +1,6 @@
 package magma.app.io.sources;
 
+import magma.api.error.Error;
 import magma.api.error.WrappedError;
 import magma.api.io.IOError;
 import magma.api.io.PathLike;
@@ -40,7 +41,7 @@ public record PathSources(PathLike rootDirectory) implements Sources {
     }
 
     @Override
-    public Result<Map<String, String>, WrappedError> collect() {
+    public Result<Map<String, String>, Error> collect() {
         return this.rootDirectory.walk()
                 .mapValue(PathSources::filter)
                 .mapErr(WrappedError::new)
