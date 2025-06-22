@@ -100,7 +100,9 @@ public class Main {
             final var separator = withoutPrefix.lastIndexOf('.');
             if (0 <= separator) {
                 final var child = withoutPrefix.substring(separator + ".".length());
-                return Optional.of(name + " --> " + child + Main.SEPARATOR);
+                if (!List.of("Function", "Supplier")
+                        .contains(child))
+                    return Optional.of(name + " --> " + child + Main.SEPARATOR);
             }
         }
 

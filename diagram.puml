@@ -2,7 +2,6 @@
 skinparam linetype ortho
 class Main
 Err --> IOException
-Err --> Function
 Main --> IOException
 Main --> Files
 Main --> Path
@@ -11,8 +10,6 @@ Main --> Collection
 Main --> List
 Main --> Optional
 Ok --> IOException
-Ok --> Function
 Result --> IOException
-Result --> Function
 
 @enduml
