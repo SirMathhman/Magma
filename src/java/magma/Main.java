@@ -4,9 +4,13 @@ import magma.api.error.WrappedError;
 import magma.api.io.PathLikes;
 import magma.api.option.Option;
 import magma.api.option.Some;
-import magma.app.Compiler;
-import magma.app.RuleCompiler;
-import magma.app.lang.Lang;
+import magma.app.compile.Compiler;
+import magma.app.compile.RuleCompiler;
+import magma.app.compile.lang.Lang;
+import magma.app.io.sources.PathSources;
+import magma.app.io.sources.Sources;
+import magma.app.io.targets.PathTargets;
+import magma.app.io.targets.Targets;
 
 import java.util.Map;
 

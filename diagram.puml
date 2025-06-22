@@ -223,6 +223,10 @@ Main --> Some
 Main --> Compiler
 Main --> RuleCompiler
 Main --> Lang
+Main --> PathSources
+Main --> PathTargets
+Main --> Sources
+Main --> Targets
 Main --> Map
 class ListLike
 ListLike --> Stream
