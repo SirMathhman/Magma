@@ -10,7 +10,8 @@ public class Main {
 
     public static void main(final String[] args) {
         try {
-            Files.writeString(Paths.get(".", "diagram.puml"), "");
+            Files.writeString(Paths.get(".", "diagram.puml"),
+                    String.join(System.lineSeparator(), "@startuml", "class Main", "@enduml"));
         } catch (final IOException e) {
             //noinspection CallToPrintStackTrace
             e.printStackTrace();
