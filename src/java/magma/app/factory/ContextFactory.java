@@ -1,9 +1,8 @@
 package magma.app.factory;
 
 import magma.app.context.Context;
-import magma.app.node.DisplayNode;
 
-interface ContextFactory<Node extends DisplayNode> {
+interface ContextFactory<Node> {
     Context createStringContext(String context);
 
     Context createNodeContext(Node context);

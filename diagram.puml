@@ -17,7 +17,6 @@ PathLike --> Option
 PathLike --> Result
 class CompileErrorResultFactory
 CompileErrorResultFactory --> Context
-CompileErrorResultFactory --> DisplayNode
 CompileErrorResultFactory --> NodeErr
 CompileErrorResultFactory --> NodeOk
 CompileErrorResultFactory --> NodeResult
@@ -133,10 +132,9 @@ CompileErrorFactory --> Context
 CompileErrorFactory --> CompileError
 CompileErrorFactory --> FormattedError
 class NodeResult
-class ApplicationError
-ApplicationError --> Error
 class StringNode
 StringNode --> Option
+class WrappedError
 class ImmutableAccumulator
 ImmutableAccumulator --> ErrorList
 ImmutableAccumulator --> ErrorSequence
@@ -154,7 +152,6 @@ MutableDivideState --> ListLike
 class ResultFactory
 class ContextFactory
 ContextFactory --> Context
-ContextFactory --> DisplayNode
 class TypedNode
 class IOError
 IOError --> Error
@@ -174,6 +171,7 @@ class Ok
 class None
 None --> Predicate
 class Main
+Main --> WrappedError
 Main --> IOError
 Main --> PathLike
 Main --> PathLikes
@@ -185,7 +183,6 @@ Main --> Some
 Main --> Err
 Main --> Ok
 Main --> Result
-Main --> ApplicationError
 Main --> Lang
 Main --> DivideState
 Main --> MutableDivideState
