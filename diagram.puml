@@ -15,7 +15,9 @@ ListLike --> Stream
 class Main
 Main --> IOError
 Main --> ListLike
+Main --> None
 Main --> Option
+Main --> Some
 Main --> PathLike
 Main --> PathLikes
 Main --> Ok
@@ -31,18 +33,20 @@ JavaPath --> IOError
 JavaPath --> JavaIOError
 JavaPath --> JavaList
 JavaPath --> ListLike
+JavaPath --> None
+JavaPath --> Option
+JavaPath --> Some
 JavaPath --> Err
 JavaPath --> Ok
 JavaPath --> Result
 JavaPath --> IOException
 JavaPath --> Files
 JavaPath --> Path
-JavaPath --> Option
 class PathLike
 PathLike --> IOError
 PathLike --> ListLike
-PathLike --> Result
 PathLike --> Option
+PathLike --> Result
 class PathLikes
 PathLikes --> Paths
 class Err

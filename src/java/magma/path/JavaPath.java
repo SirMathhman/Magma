@@ -4,7 +4,9 @@ import magma.error.IOError;
 import magma.error.JavaIOError;
 import magma.list.JavaList;
 import magma.list.ListLike;
+import magma.option.None;
 import magma.option.Option;
+import magma.option.Some;
 import magma.result.Err;
 import magma.result.Ok;
 import magma.result.Result;
@@ -28,9 +30,9 @@ record JavaPath(Path path) implements PathLike {
     public Option<IOError> writeString(final CharSequence output) {
         try {
             Files.writeString(this.path, output);
-            return Option.empty();
+            return new None<IOError>();
         } catch (final IOException e) {
-            return Option.of(new JavaIOError(e));
+            return new Some<IOError>(new JavaIOError(e));
         }
     }
 

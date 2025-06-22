@@ -2,7 +2,9 @@ package magma;
 
 import magma.error.IOError;
 import magma.list.ListLike;
+import magma.option.None;
 import magma.option.Option;
+import magma.option.Some;
 import magma.path.PathLike;
 import magma.path.PathLikes;
 import magma.result.Ok;
@@ -17,7 +19,7 @@ public class Main {
     public static void main(final String[] args) {
         PathLikes.get(".", "src", "java")
                 .walk()
-                .match(Main::runWithFiles, Option::of)
+                .match(Main::runWithFiles, value -> new Some<IOError>(value))
                 .ifPresent(error -> System.err.println(error.display()));
     }
 
@@ -28,7 +30,7 @@ public class Main {
                 .toList();
 
         return Main.compileAll(sources)
-                .match(Main::writeTarget, Option::of);
+                .match(Main::writeTarget, value -> new Some<IOError>(value));
     }
 
     private static Option<IOError> writeTarget(final String compiled) {
@@ -68,18 +70,18 @@ public class Main {
     private static Option<String> compileRootSegment(final String input, final String name) {
         final var strip = input.strip();
         if (!strip.startsWith("import "))
-            return Option.empty();
+            return new None<String>();
 
         final var withoutPrefix = strip.substring("import ".length());
         final var separator = withoutPrefix.lastIndexOf('.');
         if (0 > separator)
-            return Option.empty();
+            return new None<String>();
 
         final var child = withoutPrefix.substring(separator + ".".length());
         if (!ListLike.of("Function", "Supplier")
                 .contains(child))
-            return Option.of(name + " --> " + child + Main.SEPARATOR);
+            return new Some<String>(name + " --> " + child + Main.SEPARATOR);
 
-        return Option.empty();
+        return new None<String>();
     }
 }
