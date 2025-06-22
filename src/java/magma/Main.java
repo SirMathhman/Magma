@@ -33,7 +33,7 @@ public class Main {
         }
     }
 
-    private static void writeString(final Path target, final String output) throws IOException {
+    private static void writeString(final Path target, final CharSequence output) throws IOException {
         Files.writeString(target, output);
     }
 
