@@ -1,5 +1,7 @@
 package magma;
 
+import magma.error.IOError;
+import magma.error.JavaIOError;
 import magma.result.Err;
 import magma.result.Ok;
 import magma.result.Result;
@@ -21,10 +23,10 @@ public class Main {
     public static void main(final String[] args) {
         Main.walk()
                 .match(Main::runWithFiles, Optional::of)
-                .ifPresent(Throwable::printStackTrace);
+                .ifPresent(error -> System.err.println(error.display()));
     }
 
-    private static Optional<IOException> runWithFiles(final Collection<Path> files) {
+    private static Optional<IOError> runWithFiles(final Collection<Path> files) {
         final var sources = files.stream()
                 .filter(file -> file.toString()
                         .endsWith(".java"))
@@ -34,14 +36,9 @@ public class Main {
                 .match(Main::writeTarget, Optional::of);
     }
 
-    private static Optional<IOException> writeTarget(final String compiled) {
+    private static Optional<IOError> writeTarget(final String compiled) {
         final var target = Paths.get(".", "diagram.puml");
-        final var output = String.join(Main.SEPARATOR,
-                "@startuml",
-                "skinparam linetype ortho",
-                "class Main",
-                compiled,
-                "@enduml");
+        final var output = String.join(Main.SEPARATOR, "@startuml", "skinparam linetype ortho", compiled, "@enduml");
 
         return Main.writeString(target, output);
     }
@@ -67,16 +64,16 @@ public class Main {
         try (final var stream = Files.walk(Paths.get(".", "src", "java"))) {
             return new Ok<>(stream.toList());
         } catch (final IOException e) {
-            return new Err<>(e);
+            return new Err<>(new JavaIOError(e));
         }
     }
 
-    private static Optional<IOException> writeString(final Path target, final CharSequence output) {
+    private static Optional<IOError> writeString(final Path target, final CharSequence output) {
         try {
             Files.writeString(target, output);
             return Optional.empty();
         } catch (final IOException e) {
-            return Optional.of(e);
+            return Optional.of(new JavaIOError(e));
         }
     }
 
@@ -84,11 +81,11 @@ public class Main {
         try {
             return new Ok<>(Files.readString(source));
         } catch (final IOException e) {
-            return new Err<>(e);
+            return new Err<>(new JavaIOError(e));
         }
     }
 
-    private static StringBuilder compile(final String input, final String name) {
+    private static String compile(final String input, final String name) {
         final var segments = input.split(";");
 
         final var output = new StringBuilder();
@@ -96,7 +93,7 @@ public class Main {
             Main.compileRootSegment(segment, name)
                     .ifPresent(output::append);
 
-        return output;
+        return "class " + name + Main.SEPARATOR + output;
     }
 
     private static Optional<String> compileRootSegment(final String input, final String name) {

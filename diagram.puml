@@ -1,6 +1,13 @@
 @startuml
 skinparam linetype ortho
+class IOError
+class JavaIOError
+JavaIOError --> IOException
+JavaIOError --> PrintWriter
+JavaIOError --> StringWriter
 class Main
+Main --> IOError
+Main --> JavaIOError
 Main --> Err
 Main --> Ok
 Main --> Result
@@ -11,8 +18,11 @@ Main --> Paths
 Main --> Collection
 Main --> List
 Main --> Optional
-Err --> IOException
-Ok --> IOException
-Result --> IOException
+class Err
+Err --> IOError
+class Ok
+Ok --> IOError
+class Result
+Result --> IOError
 
 @enduml

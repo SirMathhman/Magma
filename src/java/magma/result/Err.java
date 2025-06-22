@@ -1,11 +1,12 @@
 package magma.result;
 
-import java.io.IOException;
+import magma.error.IOError;
+
 import java.util.function.Function;
 
-public record Err<Value>(IOException error) implements Result<Value> {
+public record Err<Value>(IOError error) implements Result<Value> {
     @Override
-    public <Return> Return match(final Function<Value, Return> whenOk, final Function<IOException, Return> whenError) {
+    public <Return> Return match(final Function<Value, Return> whenOk, final Function<IOError, Return> whenError) {
         return whenError.apply(this.error);
     }
 
