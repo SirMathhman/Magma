@@ -1,8 +1,7 @@
 package magma.factory;
 
-import magma.error.CompileError;
+import magma.error.Context;
 import magma.error.ErrorList;
-import magma.error.FormattedError;
 import magma.node.DisplayNode;
 import magma.node.result.NodeErr;
 import magma.node.result.NodeOk;
@@ -11,11 +10,13 @@ import magma.string.StringErr;
 import magma.string.StringOk;
 import magma.string.StringResult;
 
-public class CompileErrorResultFactory<Node extends DisplayNode> implements ResultFactory<Node, FormattedError, NodeResult<Node, FormattedError>, StringResult<FormattedError>> {
+public class CompileErrorResultFactory<Node extends DisplayNode, FormattedError> implements ResultFactory<Node, FormattedError, NodeResult<Node, FormattedError>, StringResult<FormattedError>> {
     private final ContextFactory<Node> contextFactory;
+    private final ErrorFactory<Context, FormattedError, ErrorList<FormattedError>> errorFactory;
 
-    public CompileErrorResultFactory(final ContextFactory<Node> contextFactory) {
+    public CompileErrorResultFactory(final ContextFactory<Node> contextFactory, final ErrorFactory<Context, FormattedError, ErrorList<FormattedError>> errorFactory) {
         this.contextFactory = contextFactory;
+        this.errorFactory = errorFactory;
     }
 
     @Override
@@ -25,12 +26,12 @@ public class CompileErrorResultFactory<Node extends DisplayNode> implements Resu
 
     @Override
     public NodeResult<Node, FormattedError> fromNodeError(final String message, final String context) {
-        return new NodeErr<>(new CompileError(message, this.contextFactory.createStringContext(context)));
+        return new NodeErr<>(this.errorFactory.createError(message, this.contextFactory.createStringContext(context)));
     }
 
     @Override
     public StringResult<FormattedError> fromStringError(final String message, final Node node) {
-        return new StringErr<>(new CompileError(message, this.contextFactory.createNodeContext(node)));
+        return new StringErr<>(this.errorFactory.createError(message, this.contextFactory.createNodeContext(node)));
     }
 
     @Override
@@ -40,11 +41,15 @@ public class CompileErrorResultFactory<Node extends DisplayNode> implements Resu
 
     @Override
     public NodeResult<Node, FormattedError> fromNodeErrorWithChildren(final String message, final String context, final ErrorList<FormattedError> errors) {
-        return new NodeErr<>(new CompileError(message, this.contextFactory.createStringContext(context), errors));
+        return new NodeErr<>(this.errorFactory.createErrorWithChildren(message,
+                this.contextFactory.createStringContext(context),
+                errors));
     }
 
     @Override
     public StringResult<FormattedError> fromStringErrorWithChildren(final String message, final Node context, final ErrorList<FormattedError> errors) {
-        return new StringErr<>(new CompileError(message, this.contextFactory.createNodeContext(context), errors));
+        return new StringErr<>(this.errorFactory.createErrorWithChildren(message,
+                this.contextFactory.createNodeContext(context),
+                errors));
     }
 }

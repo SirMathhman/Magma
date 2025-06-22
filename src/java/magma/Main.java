@@ -5,6 +5,7 @@ import magma.divide.MutableDivideState;
 import magma.error.ApplicationError;
 import magma.error.FormattedError;
 import magma.error.IOError;
+import magma.factory.CompileErrorFactory;
 import magma.factory.CompileErrorResultFactory;
 import magma.factory.SimpleContextFactory;
 import magma.list.ListLike;
@@ -39,6 +40,10 @@ import java.util.Map;
 
 class Main {
     private static final String SEPARATOR = System.lineSeparator();
+    private static final MapNodeFactory mapNodeFactory = new MapNodeFactory();
+    private static final CompileErrorResultFactory<EverythingNode, FormattedError> resultFactory = new CompileErrorResultFactory<>(
+            new SimpleContextFactory<>(),
+            new CompileErrorFactory());
 
     private Main() {
     }
@@ -189,39 +194,26 @@ class Main {
         return new OrRule<>(ListLikes.of(Main.createImportRule("package"),
                 Main.createImportRule("import"),
                 Main.createStructureRule("record"),
-                Main.createStructureRule("interface"), Main.createStructureRule("class")),
-                new CompileErrorResultFactory<>(new SimpleContextFactory<>()));
+                Main.createStructureRule("interface"),
+                Main.createStructureRule("class")), Main.resultFactory);
     }
 
     private static Rule<EverythingNode, NodeResult<EverythingNode, FormattedError>, StringResult<FormattedError>> createStructureRule(final String infix) {
-        return new InfixRule<>(new StringRule<>("before-keyword",
-                new MapNodeFactory(), new CompileErrorResultFactory<>(new SimpleContextFactory<>())),
-                infix,
-                new StringRule<>("after-keyword",
-                        new MapNodeFactory(),
-                        new CompileErrorResultFactory<>(new SimpleContextFactory<>())),
-                new CompileErrorResultFactory<>(new SimpleContextFactory<>()));
+        return new InfixRule<>(new StringRule<>("before-keyword", Main.mapNodeFactory, Main.resultFactory),
+                infix, new StringRule<>("after-keyword", Main.mapNodeFactory, Main.resultFactory), Main.resultFactory);
     }
 
     private static Rule<EverythingNode, NodeResult<EverythingNode, FormattedError>, StringResult<FormattedError>> createImportRule(final String type) {
-        final var destination = new StringRule<>("destination",
-                new MapNodeFactory(), new CompileErrorResultFactory<>(new SimpleContextFactory<>()));
-        final var withParent = new InfixRule<>(new StringRule<>("parent",
-                new MapNodeFactory(), new CompileErrorResultFactory<>(new SimpleContextFactory<>())),
-                ".",
-                destination,
-                new CompileErrorResultFactory<>(new SimpleContextFactory<>()));
+        final var destination = new StringRule<>("destination", Main.mapNodeFactory, Main.resultFactory);
+        final var withParent = new InfixRule<>(new StringRule<>("parent", Main.mapNodeFactory, Main.resultFactory),
+                ".", destination, Main.resultFactory);
         final var parent = new OrRule<>(ListLikes.of(withParent,
-                new StringRule<>("value",
-                        new MapNodeFactory(),
-                        new CompileErrorResultFactory<>(new SimpleContextFactory<>()))),
-                new CompileErrorResultFactory<>(new SimpleContextFactory<>()));
+                new StringRule<>("value", Main.mapNodeFactory, Main.resultFactory)), Main.resultFactory);
 
         return new TypeRule<>(type,
                 new StripRule<>(new PrefixRule<>(type + " ",
-                        new SuffixRule<>(parent, ";", new CompileErrorResultFactory<>(new SimpleContextFactory<>())),
-                        new CompileErrorResultFactory<>(new SimpleContextFactory<>()))),
-                new CompileErrorResultFactory<>(new SimpleContextFactory<>()));
+                        new SuffixRule<>(parent, ";", Main.resultFactory),
+                        Main.resultFactory)), Main.resultFactory);
     }
 
     private static boolean isFunctionalInterface(final String destination) {
@@ -231,28 +223,21 @@ class Main {
 
     private static StringResult<FormattedError> generate(final EverythingNode node) {
         return new OrRule<>(ListLikes.of(Main.createDependencyRule(), Main.createPlaceholderRule()),
-                new CompileErrorResultFactory<>(new SimpleContextFactory<>())).generate(node);
+                Main.resultFactory).generate(node);
     }
 
     private static Rule<EverythingNode, NodeResult<EverythingNode, FormattedError>, StringResult<FormattedError>> createPlaceholderRule() {
         return new TypeRule<>("placeholder",
-                new StringRule<>("value",
-                        new MapNodeFactory(),
-                        new CompileErrorResultFactory<>(new SimpleContextFactory<>())),
-                new CompileErrorResultFactory<>(new SimpleContextFactory<>()));
+                new StringRule<>("value", Main.mapNodeFactory, Main.resultFactory),
+                Main.resultFactory);
     }
 
     private static Rule<EverythingNode, NodeResult<EverythingNode, FormattedError>, StringResult<FormattedError>> createDependencyRule() {
-        return new TypeRule<>("dependency", new SuffixRule<>(new InfixRule<>(new StringRule<>("source",
-                new MapNodeFactory(),
-                new CompileErrorResultFactory<>(new SimpleContextFactory<>())),
-                " --> ",
-                new StringRule<>("destination",
-                        new MapNodeFactory(),
-                        new CompileErrorResultFactory<>(new SimpleContextFactory<>())),
-                new CompileErrorResultFactory<>(new SimpleContextFactory<>())),
-                Main.SEPARATOR,
-                new CompileErrorResultFactory<>(new SimpleContextFactory<>())),
-                new CompileErrorResultFactory<>(new SimpleContextFactory<>()));
+        return new TypeRule<>("dependency",
+                new SuffixRule<>(new InfixRule<>(new StringRule<>("source", Main.mapNodeFactory, Main.resultFactory),
+                        " --> ",
+                        new StringRule<>("destination", Main.mapNodeFactory, Main.resultFactory),
+                        Main.resultFactory), Main.SEPARATOR, Main.resultFactory),
+                Main.resultFactory);
     }
 }

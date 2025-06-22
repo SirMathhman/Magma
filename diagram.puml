@@ -1,6 +1,7 @@
 @startuml
 skinparam linetype ortho
 class CompileError
+class ErrorFactory
 class MapNodeFactory
 class FormattedError
 class Mapping
@@ -11,12 +12,26 @@ PathLike --> IOError
 PathLike --> ListLike
 PathLike --> Option
 PathLike --> Result
+class CompileErrorResultFactory
+CompileErrorResultFactory --> Context
+CompileErrorResultFactory --> ErrorList
+CompileErrorResultFactory --> DisplayNode
+CompileErrorResultFactory --> NodeErr
+CompileErrorResultFactory --> NodeOk
+CompileErrorResultFactory --> NodeResult
+CompileErrorResultFactory --> StringErr
+CompileErrorResultFactory --> StringOk
+CompileErrorResultFactory --> StringResult
 class PrefixRule
 PrefixRule --> ResultFactory
 PrefixRule --> NodeResult
 PrefixRule --> StringResult
+class SimpleContextFactory
+SimpleContextFactory --> Context
+SimpleContextFactory --> NodeContext
+SimpleContextFactory --> StringContext
+SimpleContextFactory --> DisplayNode
 class NodeErr
-NodeErr --> FormattedError
 class InfixRule
 InfixRule --> ResultFactory
 InfixRule --> Appending
@@ -87,19 +102,11 @@ MapNode --> Some
 MapNode --> HashMap
 MapNode --> Map
 class DisplayNode
-class SimpleResultFactory
-SimpleResultFactory --> CompileError
-SimpleResultFactory --> ErrorList
-SimpleResultFactory --> FormattedError
-SimpleResultFactory --> NodeContext
-SimpleResultFactory --> StringContext
-SimpleResultFactory --> DisplayNode
-SimpleResultFactory --> NodeErr
-SimpleResultFactory --> NodeOk
-SimpleResultFactory --> NodeResult
-SimpleResultFactory --> StringErr
-SimpleResultFactory --> StringOk
-SimpleResultFactory --> StringResult
+class CompileErrorFactory
+CompileErrorFactory --> CompileError
+CompileErrorFactory --> Context
+CompileErrorFactory --> ErrorList
+CompileErrorFactory --> FormattedError
 class NodeResult
 class ApplicationError
 class StringNode
@@ -119,6 +126,9 @@ class MutableDivideState
 MutableDivideState --> ListLike
 class ResultFactory
 ResultFactory --> ErrorList
+class ContextFactory
+ContextFactory --> Context
+ContextFactory --> DisplayNode
 class TypedNode
 class IOError
 class ListLikes
@@ -133,7 +143,6 @@ ImmutableErrorList --> ListLike
 ImmutableErrorList --> ListLikes
 ImmutableErrorList --> Collectors
 class NodeOk
-NodeOk --> FormattedError
 class Ok
 class Main
 Main --> DivideState
@@ -141,7 +150,9 @@ Main --> MutableDivideState
 Main --> ApplicationError
 Main --> FormattedError
 Main --> IOError
-Main --> SimpleResultFactory
+Main --> CompileErrorFactory
+Main --> CompileErrorResultFactory
+Main --> SimpleContextFactory
 Main --> ListLike
 Main --> ListLikes
 Main --> EverythingNode
