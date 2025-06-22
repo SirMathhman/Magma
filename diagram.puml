@@ -11,6 +11,9 @@ FormattedError --> Error
 class Mapping
 class Result
 class Matching
+class Divide
+Divide --> ListLike
+Divide --> ListLikes
 class PathLike
 PathLike --> ListLike
 PathLike --> Option
@@ -98,14 +101,14 @@ JavaPath --> Files
 JavaPath --> Path
 class DivideState
 DivideState --> ListLike
-class PathTargets
-PathTargets --> WrappedError
-PathTargets --> PathLike
-PathTargets --> Option
 class Sources
 Sources --> WrappedError
 Sources --> Result
 Sources --> Map
+class PathTargets
+PathTargets --> WrappedError
+PathTargets --> PathLike
+PathTargets --> Option
 class Some
 Some --> Predicate
 class ErrorList
@@ -166,7 +169,6 @@ ImmutableAccumulator --> Option
 ImmutableAccumulator --> Some
 class Appending
 class RuleCompiler
-RuleCompiler --> ListLike
 RuleCompiler --> ListLikes
 RuleCompiler --> None
 RuleCompiler --> Option
@@ -174,8 +176,7 @@ RuleCompiler --> Some
 RuleCompiler --> Err
 RuleCompiler --> Ok
 RuleCompiler --> Result
-RuleCompiler --> DivideState
-RuleCompiler --> MutableDivideState
+RuleCompiler --> Divide
 RuleCompiler --> FormattedError
 RuleCompiler --> Lang
 RuleCompiler --> EverythingNode
@@ -224,8 +225,8 @@ Main --> Compiler
 Main --> RuleCompiler
 Main --> Lang
 Main --> PathSources
-Main --> PathTargets
 Main --> Sources
+Main --> PathTargets
 Main --> Targets
 Main --> Map
 class ListLike

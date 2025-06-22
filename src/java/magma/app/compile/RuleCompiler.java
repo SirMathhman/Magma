@@ -1,6 +1,5 @@
 package magma.app.compile;
 
-import magma.api.list.ListLike;
 import magma.api.list.ListLikes;
 import magma.api.option.None;
 import magma.api.option.Option;
@@ -8,8 +7,7 @@ import magma.api.option.Some;
 import magma.api.result.Err;
 import magma.api.result.Ok;
 import magma.api.result.Result;
-import magma.app.compile.divide.DivideState;
-import magma.app.compile.divide.MutableDivideState;
+import magma.app.compile.divide.Divide;
 import magma.app.compile.error.FormattedError;
 import magma.app.compile.lang.Lang;
 import magma.app.compile.node.EverythingNode;
@@ -36,45 +34,12 @@ public class RuleCompiler implements Compiler {
     }
 
     private static StringResult<FormattedError> compile(final CharSequence input, final String name) {
-        final var segments = RuleCompiler.divide(input);
+        final var segments = Divide.divide(input);
         return segments.stream()
                 .<StringResult<FormattedError>>reduce(new StringOk<>(),
                         (output, segment) -> RuleCompiler.getStringResult(name, output, segment),
                         (_, next) -> next)
                 .prepend("class " + name + Lang.SEPARATOR);
-    }
-
-    private static ListLike<String> divide(final CharSequence input) {
-        final var segments = ListLikes.<String>empty();
-        final var buffer = new StringBuilder();
-        final var depth = 0;
-        return RuleCompiler.getStringListLike(input, new MutableDivideState(segments, buffer, depth));
-    }
-
-    private static ListLike<String> getStringListLike(final CharSequence input, final DivideState state) {
-        var current = state;
-        final var length = input.length();
-        for (var i = 0; i < length; i++) {
-            final var c = input.charAt(i);
-            current = RuleCompiler.fold(current, c);
-        }
-
-        return current.advance()
-                .toList();
-    }
-
-    private static DivideState fold(final DivideState current, final char c) {
-        final var appended = current.append(c);
-        if (';' == c && appended.isLevel())
-            return appended.advance();
-
-        if ('{' == c)
-            return appended.enter();
-
-        if ('}' == c)
-            return appended.exit();
-
-        return appended;
     }
 
     private static StringResult<FormattedError> getStringResult(final String name, final StringResult<FormattedError> output, final String segment) {
