@@ -12,7 +12,7 @@ public record LastRule(Rule<Node, StringResult> leftRule, String infix, Rule<Nod
     public NodeResult lex(final String input) {
         final var separator = input.lastIndexOf(this.infix);
         if (0 > separator)
-            return new NodeErr(new CompileError("Infix '" + this.infix + "' not present"));
+            return new NodeErr(new CompileError("Infix '" + this.infix + "' not present", "?"));
 
         final var rightSlice = input.substring(separator + this.infix.length());
         return this.rightRule.lex(rightSlice);

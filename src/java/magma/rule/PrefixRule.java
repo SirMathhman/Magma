@@ -10,7 +10,7 @@ public record PrefixRule(String prefix, Rule<Node, StringResult> rule) implement
     @Override
     public NodeResult lex(final String input) {
         if (!input.startsWith(this.prefix))
-            return new NodeErr(new CompileError("Prefix '" + this.prefix + "' not present"));
+            return new NodeErr(new CompileError("Prefix '" + this.prefix + "' not present", input));
 
         final var slice = input.substring(this.prefix.length());
         return this.rule.lex(slice);

@@ -18,6 +18,6 @@ public record StringRule(String key) implements Rule<Node, StringResult> {
     public StringResult generate(final Node node) {
         return node.findString(this.key)
                 .<StringResult>map(StringOk::new)
-                .orElseGet(() -> new StringErr(new CompileError("String '" + this.key + "' not present")));
+                .orElseGet(() -> new StringErr(new CompileError("String '" + this.key + "' not present", "?")));
     }
 }

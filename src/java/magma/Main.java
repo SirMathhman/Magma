@@ -116,7 +116,7 @@ class Main {
         final var destination = node.findString("destination")
                 .orElse("");
         if (Main.isFunctionalInterface(destination))
-            return new StringErr(new CompileError("?"));
+            return new StringErr(new CompileError("?", "?"));
 
         return Main.getStringSome(node);
     }

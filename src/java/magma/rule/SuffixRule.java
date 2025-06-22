@@ -13,7 +13,7 @@ public record SuffixRule<StringResult extends Appending<StringResult>>(Rule<Node
         if (input.endsWith(this.suffix))
             return this.rule.lex(input.substring(0, input.length() - this.suffix.length()));
 
-        return new NodeErr(new CompileError("?"));
+        return new NodeErr(new CompileError("?", "?"));
     }
 
     @Override
