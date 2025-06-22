@@ -1,7 +1,6 @@
 package magma.factory;
 
 import magma.error.Context;
-import magma.error.ErrorList;
 import magma.node.DisplayNode;
 import magma.node.result.NodeErr;
 import magma.node.result.NodeOk;
@@ -10,11 +9,11 @@ import magma.string.StringErr;
 import magma.string.StringOk;
 import magma.string.StringResult;
 
-public class CompileErrorResultFactory<Node extends DisplayNode, FormattedError> implements ResultFactory<Node, FormattedError, NodeResult<Node, FormattedError>, StringResult<FormattedError>> {
+public class CompileErrorResultFactory<Node extends DisplayNode, FormattedError, ErrorList> implements ResultFactory<Node, NodeResult<Node, FormattedError>, StringResult<FormattedError>, ErrorList> {
     private final ContextFactory<Node> contextFactory;
-    private final ErrorFactory<Context, FormattedError, ErrorList<FormattedError>> errorFactory;
+    private final ErrorFactory<Context, FormattedError, ErrorList> errorFactory;
 
-    public CompileErrorResultFactory(final ContextFactory<Node> contextFactory, final ErrorFactory<Context, FormattedError, ErrorList<FormattedError>> errorFactory) {
+    public CompileErrorResultFactory(final ContextFactory<Node> contextFactory, final ErrorFactory<Context, FormattedError, ErrorList> errorFactory) {
         this.contextFactory = contextFactory;
         this.errorFactory = errorFactory;
     }
@@ -40,14 +39,14 @@ public class CompileErrorResultFactory<Node extends DisplayNode, FormattedError>
     }
 
     @Override
-    public NodeResult<Node, FormattedError> fromNodeErrorWithChildren(final String message, final String context, final ErrorList<FormattedError> errors) {
+    public NodeResult<Node, FormattedError> fromNodeErrorWithChildren(final String message, final String context, final ErrorList errors) {
         return new NodeErr<>(this.errorFactory.createErrorWithChildren(message,
                 this.contextFactory.createStringContext(context),
                 errors));
     }
 
     @Override
-    public StringResult<FormattedError> fromStringErrorWithChildren(final String message, final Node context, final ErrorList<FormattedError> errors) {
+    public StringResult<FormattedError> fromStringErrorWithChildren(final String message, final Node context, final ErrorList errors) {
         return new StringErr<>(this.errorFactory.createErrorWithChildren(message,
                 this.contextFactory.createNodeContext(context),
                 errors));

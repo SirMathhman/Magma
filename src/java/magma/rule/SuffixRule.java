@@ -1,12 +1,13 @@
 package magma.rule;
 
+import magma.error.ErrorList;
 import magma.factory.ResultFactory;
 import magma.node.result.NodeResult;
 import magma.string.Appending;
 
 public record SuffixRule<Node, Error, StringResult extends Appending<StringResult>>(
         Rule<Node, NodeResult<Node, Error>, StringResult> rule, String suffix,
-        ResultFactory<Node, Error, NodeResult<Node, Error>, StringResult> factory) implements Rule<Node, NodeResult<Node, Error>, StringResult> {
+        ResultFactory<Node, NodeResult<Node, Error>, StringResult, ErrorList<Error>> factory) implements Rule<Node, NodeResult<Node, Error>, StringResult> {
     @Override
     public NodeResult<Node, Error> lex(final String input) {
         if (input.endsWith(this.suffix))

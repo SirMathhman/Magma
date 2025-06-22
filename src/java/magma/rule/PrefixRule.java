@@ -1,5 +1,6 @@
 package magma.rule;
 
+import magma.error.ErrorList;
 import magma.factory.ResultFactory;
 import magma.node.result.NodeResult;
 import magma.string.StringResult;
@@ -7,9 +8,9 @@ import magma.string.StringResult;
 public final class PrefixRule<Node, Error> implements Rule<Node, NodeResult<Node, Error>, StringResult<Error>> {
     private final String prefix;
     private final Rule<Node, NodeResult<Node, Error>, StringResult<Error>> rule;
-    private final ResultFactory<Node, Error, NodeResult<Node, Error>, StringResult<Error>> factory;
+    private final ResultFactory<Node, NodeResult<Node, Error>, StringResult<Error>, ErrorList<Error>> factory;
 
-    public PrefixRule(final String prefix, final Rule<Node, NodeResult<Node, Error>, StringResult<Error>> rule, final ResultFactory<Node, Error, NodeResult<Node, Error>, StringResult<Error>> factory) {
+    public PrefixRule(final String prefix, final Rule<Node, NodeResult<Node, Error>, StringResult<Error>> rule, final ResultFactory<Node, NodeResult<Node, Error>, StringResult<Error>, ErrorList<Error>> factory) {
         this.prefix = prefix;
         this.rule = rule;
         this.factory = factory;

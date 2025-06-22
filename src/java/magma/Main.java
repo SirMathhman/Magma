@@ -3,6 +3,7 @@ package magma;
 import magma.divide.DivideState;
 import magma.divide.MutableDivideState;
 import magma.error.ApplicationError;
+import magma.error.ErrorList;
 import magma.error.FormattedError;
 import magma.error.IOError;
 import magma.factory.CompileErrorFactory;
@@ -41,7 +42,7 @@ import java.util.Map;
 class Main {
     private static final String SEPARATOR = System.lineSeparator();
     private static final MapNodeFactory mapNodeFactory = new MapNodeFactory();
-    private static final CompileErrorResultFactory<EverythingNode, FormattedError> resultFactory = new CompileErrorResultFactory<>(
+    private static final CompileErrorResultFactory<EverythingNode, FormattedError, ErrorList<FormattedError>> resultFactory = new CompileErrorResultFactory<>(
             new SimpleContextFactory<>(),
             new CompileErrorFactory());
 

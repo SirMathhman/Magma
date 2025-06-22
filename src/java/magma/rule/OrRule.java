@@ -12,9 +12,9 @@ import java.util.function.Function;
 
 public final class OrRule<Node extends DisplayNode, Error> implements Rule<Node, NodeResult<Node, Error>, StringResult<Error>> {
     private final ListLike<Rule<Node, NodeResult<Node, Error>, StringResult<Error>>> rules;
-    private final ResultFactory<Node, Error, NodeResult<Node, Error>, StringResult<Error>> resultFactory;
+    private final ResultFactory<Node, NodeResult<Node, Error>, StringResult<Error>, ErrorList<Error>> resultFactory;
 
-    public OrRule(final ListLike<Rule<Node, NodeResult<Node, Error>, StringResult<Error>>> rules, final ResultFactory<Node, Error, NodeResult<Node, Error>, StringResult<Error>> resultFactory) {
+    public OrRule(final ListLike<Rule<Node, NodeResult<Node, Error>, StringResult<Error>>> rules, final ResultFactory<Node, NodeResult<Node, Error>, StringResult<Error>, ErrorList<Error>> resultFactory) {
         this.rules = rules;
         this.resultFactory = resultFactory;
     }
