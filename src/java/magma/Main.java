@@ -160,7 +160,7 @@ class Main {
         return new InfixRule(new StringRule("before-keyword"), "record", new StringRule("after-keyword"));
     }
 
-    OK
+
     private static Rule<Node, StringResult> createImportRule(final String name) {
         final var destination = new StringRule("destination");
         return new TypeRule("import",
