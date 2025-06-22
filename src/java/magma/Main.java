@@ -127,7 +127,7 @@ class Main {
     }
 
     private static StringResult getStringResult(final String name, final StringResult output, final String segment) {
-        final var generated = Main.createRootSegmentRule(name)
+        final var generated = Main.createRootSegmentRule()
                 .lex(segment)
                 .mapToResult(destination -> Main.transformAndGenerate(name, destination));
 
@@ -152,19 +152,22 @@ class Main {
             return new None<>();
     }
 
-    private static Rule<Node, StringResult> createRootSegmentRule(final String name) {
-        return new OrRule(ListLikes.of(Main.createImportRule(name), Main.createStructureRule()));
+    private static Rule<Node, StringResult> createRootSegmentRule() {
+        return new OrRule(ListLikes.of(Main.createImportRule("package"),
+                Main.createImportRule("import"),
+                Main.createStructureRule("record"),
+                Main.createStructureRule("interface"),
+                Main.createStructureRule("class")));
     }
 
-    private static Rule<Node, StringResult> createStructureRule() {
-        return new InfixRule(new StringRule("before-keyword"), "record", new StringRule("after-keyword"));
+    private static Rule<Node, StringResult> createStructureRule(final String infix) {
+        return new InfixRule(new StringRule("before-keyword"), infix, new StringRule("after-keyword"));
     }
 
-
-    private static Rule<Node, StringResult> createImportRule(final String name) {
+    private static Rule<Node, StringResult> createImportRule(final String type) {
         final var destination = new StringRule("destination");
-        return new TypeRule("import",
-                new StripRule(name, new PrefixRule("import ", new InfixRule(null, ".", destination))));
+        return new TypeRule(type,
+                new StripRule(new PrefixRule(type + " ", new InfixRule(new StringRule("parent"), ".", destination))));
     }
 
     private static boolean isFunctionalInterface(final String destination) {
