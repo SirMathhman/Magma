@@ -14,7 +14,6 @@ import magma.path.PathLikes;
 import magma.result.Err;
 import magma.result.Ok;
 import magma.result.Result;
-import magma.rule.EmptyRule;
 import magma.rule.LastRule;
 import magma.rule.OrRule;
 import magma.rule.PrefixRule;
@@ -107,7 +106,7 @@ class Main {
         for (final var segment : segments) {
             final var generated = Main.createRootSegmentRule(name)
                     .lex(segment)
-                    .mapToResult(destination -> Main.transformAndGenerate(destination.withString("source", name)));
+                    .mapToResult(destination -> Main.transformAndGenerate(name, destination));
 
             output = switch (generated) {
                 case Err<Option<StringResult>, CompileError>(final var error) -> new StringErr(error);
@@ -119,23 +118,28 @@ class Main {
         return output.prepend("class " + name + Main.SEPARATOR);
     }
 
+    private static Option<StringResult> transformAndGenerate(final String name, final Node destination) {
+        final var node = destination.withString("source", name);
+        final var destination1 = node.findString("destination")
+                .orElse("");
+
+        if (Main.isFunctionalInterface(destination1))
+            return new None<>();
+
+        if (node.is("import"))
+            return new Some<>(Main.generate(node.retype("dependency")));
+        else
+            return new None<>();
+    }
+
     private static Rule<Node, StringResult> createRootSegmentRule(final String name) {
-        return new OrRule(ListLikes.of(Main.createImportRule(name), new StringRule("value")));
+        return new OrRule(ListLikes.of(Main.createImportRule(name)));
     }
 
     private static Rule<Node, StringResult> createImportRule(final String name) {
         final var destination = new StringRule("destination");
-        return new StripRule(name, new PrefixRule("import ", new LastRule(null, ".", destination)));
-    }
-
-    private static Option<StringResult> transformAndGenerate(final Node node) {
-        final var destination = node.findString("destination")
-                .orElse("");
-
-        if (Main.isFunctionalInterface(destination))
-            return new None<>();
-
-        return new Some<>(Main.generate(node));
+        return new TypeRule("import",
+                new StripRule(name, new PrefixRule("import ", new LastRule(null, ".", destination))));
     }
 
     private static boolean isFunctionalInterface(final String destination) {
@@ -148,7 +152,7 @@ class Main {
     }
 
     private static Rule<Node, StringResult> createPlaceholderRule() {
-        return new TypeRule("placeholder", new EmptyRule());
+        return new TypeRule("placeholder", new StringRule("value"));
     }
 
     private static Rule<Node, StringResult> createDependencyRule() {

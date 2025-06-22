@@ -41,5 +41,6 @@ class Ok
 class Main
 class None
 class ListLike
+class TypeRule
 
 @enduml

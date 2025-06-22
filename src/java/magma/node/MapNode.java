@@ -36,7 +36,8 @@ public final class MapNode implements Node {
 
     @Override
     public String display() {
-        return this.strings.toString();
+        return this.maybeType.map(type -> type + " ")
+                .orElse("") + this.strings.toString();
     }
 
     @Override
