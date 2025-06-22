@@ -1,18 +1,16 @@
 package magma.rule;
 
-import magma.node.EverythingNode;
 import magma.node.result.NodeResult;
 import magma.string.StringResult;
 
-public record StripRule(Rule<EverythingNode, StringResult> rule) implements Rule<EverythingNode, StringResult> {
+public record StripRule<Node>(Rule<Node, StringResult> rule) implements Rule<Node, StringResult> {
     @Override
-    public NodeResult lex(final String input) {
-        final var strip = input.strip();
-        return this.rule.lex(strip);
+    public NodeResult<Node> lex(final String input) {
+        return this.rule.lex(input.strip());
     }
 
     @Override
-    public StringResult generate(final EverythingNode node) {
+    public StringResult generate(final Node node) {
         return this.rule.generate(node);
     }
 }

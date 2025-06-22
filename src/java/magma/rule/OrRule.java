@@ -5,7 +5,7 @@ import magma.error.FormattedError;
 import magma.error.NodeContext;
 import magma.error.StringContext;
 import magma.list.ListLike;
-import magma.node.EverythingNode;
+import magma.node.DisplayNode;
 import magma.node.result.Matching;
 import magma.node.result.NodeErr;
 import magma.node.result.NodeOk;
@@ -15,15 +15,21 @@ import magma.string.StringResult;
 
 import java.util.function.Function;
 
-public record OrRule(ListLike<Rule<EverythingNode, StringResult>> rules) implements Rule<EverythingNode, StringResult> {
-    @Override
-    public NodeResult lex(final String input) {
-        return this.or(rule -> rule.lex(input),
-                NodeOk::new,
-                errors -> new NodeErr(new CompileError("Invalid combination", new StringContext(input), errors)));
+public final class OrRule<Node extends DisplayNode> implements Rule<Node, StringResult> {
+    private final ListLike<Rule<Node, StringResult>> rules;
+
+    public OrRule(final ListLike<Rule<Node, StringResult>> rules) {
+        this.rules = rules;
     }
 
-    private <Value, Result extends Matching<Value>, Return> Return or(final Function<Rule<EverythingNode, StringResult>, Result> mapper, final Function<Value, Return> whenOk, final Function<ListLike<FormattedError>, Return> whenError) {
+    @Override
+    public NodeResult<Node> lex(final String input) {
+        return this.or(rule -> rule.lex(input),
+                NodeOk::new,
+                errors -> new NodeErr<>(new CompileError("Invalid combination", new StringContext(input), errors)));
+    }
+
+    private <Value, Result extends Matching<Value>, Return> Return or(final Function<Rule<Node, StringResult>, Result> mapper, final Function<Value, Return> whenOk, final Function<ListLike<FormattedError>, Return> whenError) {
         return this.rules.stream()
                 .<Accumulator<Value>>reduce(new ImmutableAccumulator<>(), (orState, result) -> {
                     if (orState.hasValue())
@@ -35,7 +41,7 @@ public record OrRule(ListLike<Rule<EverythingNode, StringResult>> rules) impleme
     }
 
     @Override
-    public StringResult generate(final EverythingNode node) {
+    public StringResult generate(final Node node) {
         return this.<String, StringResult, StringResult>or(rule -> rule.generate(node),
                 StringOk::new,
                 errors -> new StringErr(new CompileError("Invalid combination", new NodeContext(node), errors)));

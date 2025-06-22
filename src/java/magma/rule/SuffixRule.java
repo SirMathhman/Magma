@@ -2,23 +2,22 @@ package magma.rule;
 
 import magma.error.CompileError;
 import magma.error.StringContext;
-import magma.node.EverythingNode;
 import magma.node.result.NodeErr;
 import magma.node.result.NodeResult;
 import magma.string.Appending;
 
-public record SuffixRule<StringResult extends Appending<StringResult>>(Rule<EverythingNode, StringResult> rule,
-                                                                       String suffix) implements Rule<EverythingNode, StringResult> {
+public record SuffixRule<Node, StringResult extends Appending<StringResult>>(Rule<Node, StringResult> rule,
+                                                                             String suffix) implements Rule<Node, StringResult> {
     @Override
-    public NodeResult lex(final String input) {
+    public NodeResult<Node> lex(final String input) {
         if (input.endsWith(this.suffix))
             return this.rule.lex(input.substring(0, input.length() - this.suffix.length()));
 
-        return new NodeErr(new CompileError("Suffix '" + this.suffix + "' not present", new StringContext(input)));
+        return new NodeErr<>(new CompileError("Suffix '" + this.suffix + "' not present", new StringContext(input)));
     }
 
     @Override
-    public StringResult generate(final EverythingNode node) {
+    public StringResult generate(final Node node) {
         return this.rule.generate(node)
                 .appendSlice(this.suffix);
     }

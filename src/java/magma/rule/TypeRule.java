@@ -18,7 +18,7 @@ public final class TypeRule<Node extends TypedNode<Node> & DisplayNode> implemen
     }
 
     @Override
-    public NodeResult lex(final String input) {
+    public NodeResult<Node> lex(final String input) {
         return this.rule.lex(input)
                 .map(node -> node.retype(this.type));
     }

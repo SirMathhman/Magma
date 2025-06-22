@@ -10,8 +10,8 @@ Accumulator --> ListLike
 class StringRule
 StringRule --> CompileError
 StringRule --> NodeContext
-StringRule --> MapNode
 StringRule --> EverythingNode
+StringRule --> MapNode
 StringRule --> NodeOk
 StringRule --> NodeResult
 StringRule --> StringErr
@@ -34,7 +34,6 @@ Matching --> FormattedError
 class DisplayNode
 class NodeResult
 NodeResult --> FormattedError
-NodeResult --> EverythingNode
 NodeResult --> Result
 class PathLike
 PathLike --> IOError
@@ -59,19 +58,16 @@ class Context
 class PrefixRule
 PrefixRule --> CompileError
 PrefixRule --> StringContext
-PrefixRule --> EverythingNode
 PrefixRule --> NodeErr
 PrefixRule --> NodeResult
 PrefixRule --> StringResult
 class NodeErr
 NodeErr --> FormattedError
-NodeErr --> EverythingNode
 NodeErr --> Err
 NodeErr --> Result
 class InfixRule
 InfixRule --> CompileError
 InfixRule --> StringContext
-InfixRule --> EverythingNode
 InfixRule --> NodeErr
 InfixRule --> NodeResult
 InfixRule --> StringResult
@@ -81,7 +77,7 @@ OrRule --> FormattedError
 OrRule --> NodeContext
 OrRule --> StringContext
 OrRule --> ListLike
-OrRule --> EverythingNode
+OrRule --> DisplayNode
 OrRule --> Matching
 OrRule --> NodeErr
 OrRule --> NodeOk
@@ -93,7 +89,6 @@ NodeContext --> DisplayNode
 class PathLikes
 PathLikes --> Paths
 class StripRule
-StripRule --> EverythingNode
 StripRule --> NodeResult
 StripRule --> StringResult
 class Error
@@ -136,7 +131,6 @@ StringOk --> StringResult
 class SuffixRule
 SuffixRule --> CompileError
 SuffixRule --> StringContext
-SuffixRule --> EverythingNode
 SuffixRule --> NodeErr
 SuffixRule --> NodeResult
 SuffixRule --> Appending
@@ -144,7 +138,6 @@ class Option
 Option --> Predicate
 class NodeOk
 NodeOk --> FormattedError
-NodeOk --> EverythingNode
 NodeOk --> Ok
 NodeOk --> Result
 class Rule

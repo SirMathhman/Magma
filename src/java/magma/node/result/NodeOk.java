@@ -1,25 +1,30 @@
 package magma.node.result;
 
 import magma.error.FormattedError;
-import magma.node.EverythingNode;
 import magma.result.Ok;
 import magma.result.Result;
 
 import java.util.function.Function;
 
-public record NodeOk(EverythingNode node) implements NodeResult {
+public final class NodeOk<Node> implements NodeResult<Node> {
+    private final Node node;
+
+    public NodeOk(final Node node) {
+        this.node = node;
+    }
+
     @Override
-    public <Return> Return match(final Function<EverythingNode, Return> whenOk, final Function<FormattedError, Return> whenError) {
+    public <Return> Return match(final Function<Node, Return> whenOk, final Function<FormattedError, Return> whenError) {
         return whenOk.apply(this.node);
     }
 
     @Override
-    public <Return> Result<Return, FormattedError> mapToResult(final Function<EverythingNode, Return> mapper) {
+    public <Return> Result<Return, FormattedError> mapToResult(final Function<Node, Return> mapper) {
         return new Ok<>(mapper.apply(this.node));
     }
 
     @Override
-    public NodeResult map(final Function<EverythingNode, EverythingNode> mapper) {
-        return new NodeOk(mapper.apply(this.node));
+    public NodeResult<Node> map(final Function<Node, Node> mapper) {
+        return new NodeOk<Node>(mapper.apply(this.node));
     }
 }

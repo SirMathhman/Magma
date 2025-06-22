@@ -11,8 +11,8 @@ import magma.string.StringResult;
 
 public record StringRule(String key) implements Rule<EverythingNode, StringResult> {
     @Override
-    public NodeResult lex(final String input) {
-        return new NodeOk(new MapNode().withString(this.key(), input));
+    public NodeResult<EverythingNode> lex(final String input) {
+        return new NodeOk<EverythingNode>(new MapNode().withString(this.key(), input));
     }
 
     @Override
