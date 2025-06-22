@@ -11,7 +11,7 @@ class StringRule
 StringRule --> CompileError
 StringRule --> NodeContext
 StringRule --> MapNode
-StringRule --> Node
+StringRule --> EverythingNode
 StringRule --> NodeOk
 StringRule --> NodeResult
 StringRule --> StringErr
@@ -22,8 +22,6 @@ JavaIOError --> PrintWriter
 JavaIOError --> StringWriter
 class Err
 class FormattedError
-class Node
-Node --> Option
 class MapNode
 MapNode --> None
 MapNode --> Option
@@ -33,9 +31,10 @@ MapNode --> Map
 class Result
 class Matching
 Matching --> FormattedError
+class DisplayNode
 class NodeResult
 NodeResult --> FormattedError
-NodeResult --> Node
+NodeResult --> EverythingNode
 NodeResult --> Result
 class PathLike
 PathLike --> IOError
@@ -60,19 +59,19 @@ class Context
 class PrefixRule
 PrefixRule --> CompileError
 PrefixRule --> StringContext
-PrefixRule --> Node
+PrefixRule --> EverythingNode
 PrefixRule --> NodeErr
 PrefixRule --> NodeResult
 PrefixRule --> StringResult
 class NodeErr
 NodeErr --> FormattedError
-NodeErr --> Node
+NodeErr --> EverythingNode
 NodeErr --> Err
 NodeErr --> Result
 class InfixRule
 InfixRule --> CompileError
 InfixRule --> StringContext
-InfixRule --> Node
+InfixRule --> EverythingNode
 InfixRule --> NodeErr
 InfixRule --> NodeResult
 InfixRule --> StringResult
@@ -82,7 +81,7 @@ OrRule --> FormattedError
 OrRule --> NodeContext
 OrRule --> StringContext
 OrRule --> ListLike
-OrRule --> Node
+OrRule --> EverythingNode
 OrRule --> Matching
 OrRule --> NodeErr
 OrRule --> NodeOk
@@ -90,11 +89,11 @@ OrRule --> NodeResult
 OrRule --> StringErr
 OrRule --> StringResult
 class NodeContext
-NodeContext --> Node
+NodeContext --> DisplayNode
 class PathLikes
 PathLikes --> Paths
 class StripRule
-StripRule --> Node
+StripRule --> EverythingNode
 StripRule --> NodeResult
 StripRule --> StringResult
 class Error
@@ -120,8 +119,11 @@ JavaPath --> Files
 JavaPath --> Path
 class DivideState
 DivideState --> ListLike
+class TypedNode
 class Some
 Some --> Predicate
+class EverythingNode
+EverythingNode --> Option
 class IOError
 class ListLikes
 ListLikes --> ArrayList
@@ -134,7 +136,7 @@ StringOk --> StringResult
 class SuffixRule
 SuffixRule --> CompileError
 SuffixRule --> StringContext
-SuffixRule --> Node
+SuffixRule --> EverythingNode
 SuffixRule --> NodeErr
 SuffixRule --> NodeResult
 SuffixRule --> Appending
@@ -142,7 +144,7 @@ class Option
 Option --> Predicate
 class NodeOk
 NodeOk --> FormattedError
-NodeOk --> Node
+NodeOk --> EverythingNode
 NodeOk --> Ok
 NodeOk --> Result
 class Rule
@@ -160,7 +162,7 @@ Main --> FormattedError
 Main --> IOError
 Main --> ListLike
 Main --> ListLikes
-Main --> Node
+Main --> EverythingNode
 Main --> None
 Main --> Option
 Main --> Some
@@ -189,7 +191,8 @@ ListLike --> Stream
 class TypeRule
 TypeRule --> CompileError
 TypeRule --> NodeContext
-TypeRule --> Node
+TypeRule --> DisplayNode
+TypeRule --> TypedNode
 TypeRule --> NodeResult
 TypeRule --> StringErr
 TypeRule --> StringResult

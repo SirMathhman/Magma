@@ -2,12 +2,21 @@ package magma.rule;
 
 import magma.error.CompileError;
 import magma.error.NodeContext;
-import magma.node.Node;
+import magma.node.DisplayNode;
+import magma.node.TypedNode;
 import magma.node.result.NodeResult;
 import magma.string.StringErr;
 import magma.string.StringResult;
 
-public record TypeRule(String type, Rule<Node, StringResult> rule) implements Rule<Node, StringResult> {
+public final class TypeRule<Node extends TypedNode<Node> & DisplayNode> implements Rule<Node, StringResult> {
+    private final String type;
+    private final Rule<Node, StringResult> rule;
+
+    public TypeRule(final String type, final Rule<Node, StringResult> rule) {
+        this.type = type;
+        this.rule = rule;
+    }
+
     @Override
     public NodeResult lex(final String input) {
         return this.rule.lex(input)

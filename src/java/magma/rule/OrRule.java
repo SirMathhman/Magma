@@ -5,7 +5,7 @@ import magma.error.FormattedError;
 import magma.error.NodeContext;
 import magma.error.StringContext;
 import magma.list.ListLike;
-import magma.node.Node;
+import magma.node.EverythingNode;
 import magma.node.result.Matching;
 import magma.node.result.NodeErr;
 import magma.node.result.NodeOk;
@@ -15,7 +15,7 @@ import magma.string.StringResult;
 
 import java.util.function.Function;
 
-public record OrRule(ListLike<Rule<Node, StringResult>> rules) implements Rule<Node, StringResult> {
+public record OrRule(ListLike<Rule<EverythingNode, StringResult>> rules) implements Rule<EverythingNode, StringResult> {
     @Override
     public NodeResult lex(final String input) {
         return this.or(rule -> rule.lex(input),
@@ -23,7 +23,7 @@ public record OrRule(ListLike<Rule<Node, StringResult>> rules) implements Rule<N
                 errors -> new NodeErr(new CompileError("Invalid combination", new StringContext(input), errors)));
     }
 
-    private <Value, Result extends Matching<Value>, Return> Return or(final Function<Rule<Node, StringResult>, Result> mapper, final Function<Value, Return> whenOk, final Function<ListLike<FormattedError>, Return> whenError) {
+    private <Value, Result extends Matching<Value>, Return> Return or(final Function<Rule<EverythingNode, StringResult>, Result> mapper, final Function<Value, Return> whenOk, final Function<ListLike<FormattedError>, Return> whenError) {
         return this.rules.stream()
                 .<Accumulator<Value>>reduce(new ImmutableAccumulator<>(), (orState, result) -> {
                     if (orState.hasValue())
@@ -35,7 +35,7 @@ public record OrRule(ListLike<Rule<Node, StringResult>> rules) implements Rule<N
     }
 
     @Override
-    public StringResult generate(final Node node) {
+    public StringResult generate(final EverythingNode node) {
         return this.<String, StringResult, StringResult>or(rule -> rule.generate(node),
                 StringOk::new,
                 errors -> new StringErr(new CompileError("Invalid combination", new NodeContext(node), errors)));

@@ -2,13 +2,13 @@ package magma.rule;
 
 import magma.error.CompileError;
 import magma.error.StringContext;
-import magma.node.Node;
+import magma.node.EverythingNode;
 import magma.node.result.NodeErr;
 import magma.node.result.NodeResult;
 import magma.string.StringResult;
 
-public record InfixRule(Rule<Node, StringResult> leftRule, String infix, Rule<Node, StringResult> rightRule) implements
-        Rule<Node, StringResult> {
+public record InfixRule(Rule<EverythingNode, StringResult> leftRule, String infix,
+                        Rule<EverythingNode, StringResult> rightRule) implements Rule<EverythingNode, StringResult> {
     @Override
     public NodeResult lex(final String input) {
         final var separator = input.lastIndexOf(this.infix);
@@ -20,7 +20,7 @@ public record InfixRule(Rule<Node, StringResult> leftRule, String infix, Rule<No
     }
 
     @Override
-    public StringResult generate(final Node node) {
+    public StringResult generate(final EverythingNode node) {
         return this.leftRule.generate(node)
                 .appendSlice(this.infix)
                 .tryAppendResult(() -> this.rightRule.generate(node));

@@ -2,13 +2,13 @@ package magma.rule;
 
 import magma.error.CompileError;
 import magma.error.StringContext;
-import magma.node.Node;
+import magma.node.EverythingNode;
 import magma.node.result.NodeErr;
 import magma.node.result.NodeResult;
 import magma.string.Appending;
 
-public record SuffixRule<StringResult extends Appending<StringResult>>(Rule<Node, StringResult> rule,
-                                                                       String suffix) implements Rule<Node, StringResult> {
+public record SuffixRule<StringResult extends Appending<StringResult>>(Rule<EverythingNode, StringResult> rule,
+                                                                       String suffix) implements Rule<EverythingNode, StringResult> {
     @Override
     public NodeResult lex(final String input) {
         if (input.endsWith(this.suffix))
@@ -18,7 +18,7 @@ public record SuffixRule<StringResult extends Appending<StringResult>>(Rule<Node
     }
 
     @Override
-    public StringResult generate(final Node node) {
+    public StringResult generate(final EverythingNode node) {
         return this.rule.generate(node)
                 .appendSlice(this.suffix);
     }

@@ -7,7 +7,7 @@ import magma.option.Some;
 import java.util.HashMap;
 import java.util.Map;
 
-public final class MapNode implements Node {
+public final class MapNode implements EverythingNode {
     private final Option<String> maybeType;
     private final Map<String, String> strings;
 
@@ -21,7 +21,7 @@ public final class MapNode implements Node {
     }
 
     @Override
-    public Node withString(final String key, final String value) {
+    public EverythingNode withString(final String key, final String value) {
         this.strings.put(key, value);
         return this;
     }
@@ -41,7 +41,7 @@ public final class MapNode implements Node {
     }
 
     @Override
-    public Node retype(final String type) {
+    public EverythingNode retype(final String type) {
         return new MapNode(new Some<>(type), this.strings);
     }
 
