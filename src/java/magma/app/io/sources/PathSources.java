@@ -44,7 +44,7 @@ public record PathSources(PathLike rootDirectory) implements Sources {
     public Result<Map<String, String>, Error> collect() {
         return this.rootDirectory.walk()
                 .mapValue(PathSources::filter)
-                .mapErr(WrappedError::new)
+                .<Error>mapErr(WrappedError::new)
                 .flatMapValue(files -> PathSources.readAll(files)
                         .mapErr(WrappedError::new));
     }

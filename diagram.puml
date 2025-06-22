@@ -98,10 +98,11 @@ JavaPath --> Path
 class DivideState
 DivideState --> ListLike
 class Sources
-Sources --> WrappedError
+Sources --> Error
 Sources --> Result
 Sources --> Map
 class PathTargets
+PathTargets --> Error
 PathTargets --> WrappedError
 PathTargets --> PathLike
 PathTargets --> Option
@@ -117,7 +118,7 @@ class Rule
 class StringResult
 StringResult --> Matching
 class Application
-Application --> WrappedError
+Application --> Error
 Application --> Option
 class Accumulator
 Accumulator --> ErrorSequence
@@ -138,6 +139,7 @@ MapNode --> Some
 MapNode --> HashMap
 MapNode --> Map
 class PathSources
+PathSources --> Error
 PathSources --> WrappedError
 PathSources --> IOError
 PathSources --> PathLike
@@ -192,12 +194,13 @@ class StringContext
 class Context
 class Error
 class Targets
-Targets --> WrappedError
+Targets --> Error
 Targets --> Option
 class MutableDivideState
 MutableDivideState --> ListLike
 class ResultFactory
 class CompileApplication
+CompileApplication --> Error
 CompileApplication --> WrappedError
 CompileApplication --> Option
 CompileApplication --> Some
