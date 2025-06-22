@@ -1,5 +1,6 @@
 package magma.app.compile;
 
+import magma.api.error.list.ErrorSequence;
 import magma.api.list.ListLikes;
 import magma.api.option.None;
 import magma.api.option.Option;
@@ -9,8 +10,12 @@ import magma.api.result.Ok;
 import magma.api.result.Result;
 import magma.app.compile.divide.Divide;
 import magma.app.compile.error.FormattedError;
+import magma.app.compile.factory.CompileErrorFactory;
+import magma.app.compile.factory.CompileErrorResultFactory;
+import magma.app.compile.factory.SimpleContextFactory;
 import magma.app.compile.lang.Lang;
 import magma.app.compile.node.EverythingNode;
+import magma.app.compile.node.MapNodeFactory;
 import magma.app.compile.node.result.NodeErr;
 import magma.app.compile.node.result.NodeOk;
 import magma.app.compile.string.StringErr;
@@ -43,7 +48,9 @@ public class RuleCompiler implements Compiler {
     }
 
     private static StringResult<FormattedError> getStringResult(final String name, final StringResult<FormattedError> output, final String segment) {
-        final var tree = new Lang().createRootSegmentRule()
+        final var tree = new Lang(new MapNodeFactory(),
+                new CompileErrorResultFactory<EverythingNode, FormattedError, ErrorSequence<FormattedError>>(new SimpleContextFactory<>(),
+                        new CompileErrorFactory())).createRootSegmentRule()
                 .lex(segment);
 
         final var generated = (Result<Option<StringResult<FormattedError>>, FormattedError>) switch (tree) {
@@ -78,7 +85,9 @@ public class RuleCompiler implements Compiler {
     }
 
     private static StringResult<FormattedError> generate(final EverythingNode node) {
-        return new Lang().createPlantUMLRootSegmentRule()
+        return new Lang(new MapNodeFactory(),
+                new CompileErrorResultFactory<EverythingNode, FormattedError, ErrorSequence<FormattedError>>(new SimpleContextFactory<>(),
+                        new CompileErrorFactory())).createPlantUMLRootSegmentRule()
                 .generate(node);
     }
 
