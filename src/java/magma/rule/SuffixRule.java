@@ -6,8 +6,9 @@ import magma.node.result.NodeErr;
 import magma.node.result.NodeResult;
 import magma.string.Appending;
 
-public record SuffixRule<Node, StringResult extends Appending<StringResult>>(Rule<Node, StringResult> rule,
-                                                                             String suffix) implements Rule<Node, StringResult> {
+public record SuffixRule<Node, StringResult extends Appending<StringResult>>(
+        Rule<Node, NodeResult<Node>, StringResult> rule,
+        String suffix) implements Rule<Node, NodeResult<Node>, StringResult> {
     @Override
     public NodeResult<Node> lex(final String input) {
         if (input.endsWith(this.suffix))

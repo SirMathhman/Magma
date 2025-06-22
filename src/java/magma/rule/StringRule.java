@@ -9,10 +9,10 @@ import magma.node.result.NodeResult;
 import magma.string.StringErr;
 import magma.string.StringResult;
 
-public record StringRule(String key) implements Rule<EverythingNode, StringResult> {
+public record StringRule(String key) implements Rule<EverythingNode, NodeResult<EverythingNode>, StringResult> {
     @Override
     public NodeResult<EverythingNode> lex(final String input) {
-        return new NodeOk<EverythingNode>(new MapNode().withString(this.key(), input));
+        return new NodeOk<>(new MapNode().withString(this.key(), input));
     }
 
     @Override

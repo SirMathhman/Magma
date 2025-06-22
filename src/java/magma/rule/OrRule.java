@@ -15,10 +15,10 @@ import magma.string.StringResult;
 
 import java.util.function.Function;
 
-public final class OrRule<Node extends DisplayNode> implements Rule<Node, StringResult> {
-    private final ListLike<Rule<Node, StringResult>> rules;
+public final class OrRule<Node extends DisplayNode> implements Rule<Node, NodeResult<Node>, StringResult> {
+    private final ListLike<Rule<Node, NodeResult<Node>, StringResult>> rules;
 
-    public OrRule(final ListLike<Rule<Node, StringResult>> rules) {
+    public OrRule(final ListLike<Rule<Node, NodeResult<Node>, StringResult>> rules) {
         this.rules = rules;
     }
 
@@ -29,7 +29,7 @@ public final class OrRule<Node extends DisplayNode> implements Rule<Node, String
                 errors -> new NodeErr<>(new CompileError("Invalid combination", new StringContext(input), errors)));
     }
 
-    private <Value, Result extends Matching<Value>, Return> Return or(final Function<Rule<Node, StringResult>, Result> mapper, final Function<Value, Return> whenOk, final Function<ListLike<FormattedError>, Return> whenError) {
+    private <Value, Result extends Matching<Value>, Return> Return or(final Function<Rule<Node, NodeResult<Node>, StringResult>, Result> mapper, final Function<Value, Return> whenOk, final Function<ListLike<FormattedError>, Return> whenError) {
         return this.rules.stream()
                 .<Accumulator<Value>>reduce(new ImmutableAccumulator<>(), (orState, result) -> {
                     if (orState.hasValue())

@@ -8,6 +8,7 @@ import magma.error.IOError;
 import magma.list.ListLike;
 import magma.list.ListLikes;
 import magma.node.EverythingNode;
+import magma.node.result.NodeResult;
 import magma.option.None;
 import magma.option.Option;
 import magma.option.Some;
@@ -169,26 +170,24 @@ class Main {
             return new None<>();
     }
 
-    private static Rule<EverythingNode, StringResult> createRootSegmentRule() {
-        return new OrRule<EverythingNode>(ListLikes.of(Main.createImportRule("package"),
+    private static Rule<EverythingNode, NodeResult<EverythingNode>, StringResult> createRootSegmentRule() {
+        return new OrRule<>(ListLikes.of(Main.createImportRule("package"),
                 Main.createImportRule("import"),
                 Main.createStructureRule("record"),
                 Main.createStructureRule("interface"),
                 Main.createStructureRule("class")));
     }
 
-    private static Rule<EverythingNode, StringResult> createStructureRule(final String infix) {
-        return new InfixRule<EverythingNode>(new StringRule("before-keyword"), infix, new StringRule("after-keyword"));
+    private static Rule<EverythingNode, NodeResult<EverythingNode>, StringResult> createStructureRule(final String infix) {
+        return new InfixRule<>(new StringRule("before-keyword"), infix, new StringRule("after-keyword"));
     }
 
-    private static Rule<EverythingNode, StringResult> createImportRule(final String type) {
+    private static Rule<EverythingNode, NodeResult<EverythingNode>, StringResult> createImportRule(final String type) {
         final var destination = new StringRule("destination");
-        final var withParent = new InfixRule<EverythingNode>(new StringRule("parent"), ".", destination);
-        final var parent = new OrRule<EverythingNode>(ListLikes.of(withParent, new StringRule("value")));
+        final var withParent = new InfixRule<>(new StringRule("parent"), ".", destination);
+        final var parent = new OrRule<>(ListLikes.of(withParent, new StringRule("value")));
 
-        return new TypeRule<>(type,
-                new StripRule<EverythingNode>(new PrefixRule<EverythingNode>(type + " ",
-                        new SuffixRule<>(parent, ";"))));
+        return new TypeRule<>(type, new StripRule<>(new PrefixRule<>(type + " ", new SuffixRule<>(parent, ";"))));
     }
 
     private static boolean isFunctionalInterface(final String destination) {
@@ -197,19 +196,16 @@ class Main {
     }
 
     private static StringResult generate(final EverythingNode node) {
-        return new OrRule<EverythingNode>(ListLikes.of(Main.createDependencyRule(),
-                Main.createPlaceholderRule())).generate(node);
+        return new OrRule<>(ListLikes.of(Main.createDependencyRule(), Main.createPlaceholderRule())).generate(node);
     }
 
-    private static Rule<EverythingNode, StringResult> createPlaceholderRule() {
+    private static Rule<EverythingNode, NodeResult<EverythingNode>, StringResult> createPlaceholderRule() {
         return new TypeRule<>("placeholder", new StringRule("value"));
     }
 
-    private static Rule<EverythingNode, StringResult> createDependencyRule() {
+    private static Rule<EverythingNode, NodeResult<EverythingNode>, StringResult> createDependencyRule() {
         return new TypeRule<>("dependency",
-                new SuffixRule<>(new InfixRule<EverythingNode>(new StringRule("source"),
-                        " --> ",
-                        new StringRule("destination")),
+                new SuffixRule<>(new InfixRule<>(new StringRule("source"), " --> ", new StringRule("destination")),
                         Main.SEPARATOR));
     }
 }

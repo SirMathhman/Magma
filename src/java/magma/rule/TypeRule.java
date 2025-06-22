@@ -8,11 +8,11 @@ import magma.node.result.NodeResult;
 import magma.string.StringErr;
 import magma.string.StringResult;
 
-public final class TypeRule<Node extends TypedNode<Node> & DisplayNode> implements Rule<Node, StringResult> {
+public final class TypeRule<Node extends TypedNode<Node> & DisplayNode> implements Rule<Node, NodeResult<Node>, StringResult> {
     private final String type;
-    private final Rule<Node, StringResult> rule;
+    private final Rule<Node, NodeResult<Node>, StringResult> rule;
 
-    public TypeRule(final String type, final Rule<Node, StringResult> rule) {
+    public TypeRule(final String type, final Rule<Node, NodeResult<Node>, StringResult> rule) {
         this.type = type;
         this.rule = rule;
     }

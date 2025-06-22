@@ -25,6 +25,6 @@ public final class NodeOk<Node> implements NodeResult<Node> {
 
     @Override
     public NodeResult<Node> map(final Function<Node, Node> mapper) {
-        return new NodeOk<Node>(mapper.apply(this.node));
+        return new NodeOk<>(mapper.apply(this.node));
     }
 }

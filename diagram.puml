@@ -141,7 +141,6 @@ NodeOk --> FormattedError
 NodeOk --> Ok
 NodeOk --> Result
 class Rule
-Rule --> NodeResult
 class StringResult
 StringResult --> FormattedError
 StringResult --> Matching
@@ -156,6 +155,7 @@ Main --> IOError
 Main --> ListLike
 Main --> ListLikes
 Main --> EverythingNode
+Main --> NodeResult
 Main --> None
 Main --> Option
 Main --> Some

@@ -25,6 +25,6 @@ public final class NodeErr<Node> implements NodeResult<Node> {
 
     @Override
     public NodeResult<Node> map(final Function<Node, Node> mapper) {
-        return new NodeErr<Node>(this.error);
+        return new NodeErr<>(this.error);
     }
 }

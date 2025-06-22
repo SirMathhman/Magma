@@ -6,12 +6,12 @@ import magma.node.result.NodeErr;
 import magma.node.result.NodeResult;
 import magma.string.StringResult;
 
-public final class InfixRule<Node> implements Rule<Node, StringResult> {
-    private final Rule<Node, StringResult> leftRule;
+public final class InfixRule<Node> implements Rule<Node, NodeResult<Node>, StringResult> {
+    private final Rule<Node, NodeResult<Node>, StringResult> leftRule;
     private final String infix;
-    private final Rule<Node, StringResult> rightRule;
+    private final Rule<Node, NodeResult<Node>, StringResult> rightRule;
 
-    public InfixRule(final Rule<Node, StringResult> leftRule, final String infix, final Rule<Node, StringResult> rightRule) {
+    public InfixRule(final Rule<Node, NodeResult<Node>, StringResult> leftRule, final String infix, final Rule<Node, NodeResult<Node>, StringResult> rightRule) {
         this.leftRule = leftRule;
         this.infix = infix;
         this.rightRule = rightRule;
