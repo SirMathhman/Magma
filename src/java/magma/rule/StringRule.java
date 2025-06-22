@@ -7,6 +7,7 @@ import magma.node.MapNode;
 import magma.node.result.NodeOk;
 import magma.node.result.NodeResult;
 import magma.string.StringErr;
+import magma.string.StringOk;
 import magma.string.StringResult;
 
 public record StringRule(String key) implements Rule<EverythingNode, NodeResult<EverythingNode>, StringResult> {

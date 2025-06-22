@@ -11,6 +11,7 @@ import magma.node.result.NodeErr;
 import magma.node.result.NodeOk;
 import magma.node.result.NodeResult;
 import magma.string.StringErr;
+import magma.string.StringOk;
 import magma.string.StringResult;
 
 import java.util.function.Function;

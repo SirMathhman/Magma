@@ -1,9 +1,6 @@
-package magma.rule;
+package magma.string;
 
 import magma.error.FormattedError;
-import magma.result.Ok;
-import magma.result.Result;
-import magma.string.StringResult;
 
 import java.util.function.Function;
 import java.util.function.Supplier;
@@ -16,11 +13,6 @@ public record StringOk(String value) implements StringResult {
     @Override
     public StringResult appendSlice(final String slice) {
         return new StringOk(this.value + slice);
-    }
-
-    @Override
-    public Result<String, FormattedError> toResult() {
-        return new Ok<>(this.value);
     }
 
     @Override

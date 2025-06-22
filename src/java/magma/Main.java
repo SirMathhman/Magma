@@ -21,12 +21,12 @@ import magma.rule.InfixRule;
 import magma.rule.OrRule;
 import magma.rule.PrefixRule;
 import magma.rule.Rule;
-import magma.rule.StringOk;
 import magma.rule.StringRule;
 import magma.rule.StripRule;
 import magma.rule.SuffixRule;
 import magma.rule.TypeRule;
 import magma.string.StringErr;
+import magma.string.StringOk;
 import magma.string.StringResult;
 
 import java.util.HashMap;
@@ -65,9 +65,15 @@ class Main {
     private static Result<String, ApplicationError> compileAll(final Iterable<PathLike> sources) {
         return Main.readAll(sources)
                 .mapErr(ApplicationError::new)
-                .flatMapValue(inputs -> Main.compileEntry(inputs)
-                        .toResult()
+                .flatMapValue(inputs -> Main.compileEntryToResult(inputs)
                         .mapErr(ApplicationError::new));
+    }
+
+    private static Result<String, FormattedError> compileEntryToResult(final Map<String, String> inputs) {
+        return switch (Main.compileEntry(inputs)) {
+            case StringErr(final var error) -> new Err<>(error);
+            case StringOk(final var value) -> new Ok<>(value);
+        };
     }
 
     private static Result<Map<String, String>, IOError> readAll(final Iterable<PathLike> sources) {

@@ -1,8 +1,6 @@
 package magma.string;
 
 import magma.error.FormattedError;
-import magma.result.Err;
-import magma.result.Result;
 
 import java.util.function.Function;
 import java.util.function.Supplier;
@@ -11,11 +9,6 @@ public record StringErr(FormattedError error) implements StringResult {
     @Override
     public StringResult appendSlice(final String slice) {
         return this;
-    }
-
-    @Override
-    public Result<String, FormattedError> toResult() {
-        return new Err<>(this.error);
     }
 
     @Override
