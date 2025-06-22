@@ -3,6 +3,6 @@ package magma.rule;
 import magma.node.Node;
 import magma.option.Option;
 
-interface Rule {
+public interface Rule {
     Option<Node> lex(String input);
 }

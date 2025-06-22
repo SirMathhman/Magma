@@ -12,7 +12,10 @@ import magma.path.PathLikes;
 import magma.result.Ok;
 import magma.result.Result;
 import magma.rule.LastRule;
+import magma.rule.PrefixRule;
+import magma.rule.Rule;
 import magma.rule.StringRule;
+import magma.rule.StripRule;
 
 class Main {
     private static final String SEPARATOR = System.lineSeparator();
@@ -65,20 +68,17 @@ class Main {
 
         final var output = new StringBuilder();
         for (final var segment : segments)
-            Main.compileRootSegment(segment, name)
+            Main.createImportRule(name)
+                    .lex(segment)
+                    .flatMap(destination -> Main.getRecord(destination.withString("source", name)))
                     .ifPresent(output::append);
 
         return "class " + name + Main.SEPARATOR + output;
     }
 
-    private static Option<String> compileRootSegment(final String input, final String name) {
-        final var strip = input.strip();
-        if (!strip.startsWith("import "))
-            return new None<>();
-
-        final var withoutPrefix = strip.substring("import ".length());
-        return new LastRule(".", new StringRule("destination")).lex(withoutPrefix)
-                .flatMap(destination -> Main.getRecord(destination.withString("source", name)));
+    private static Rule createImportRule(final String name) {
+        final var destination = new StringRule("destination");
+        return new StripRule(name, new PrefixRule("import ", new LastRule(".", destination)));
     }
 
     private static Option<String> getRecord(final Node node) {

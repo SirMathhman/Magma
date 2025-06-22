@@ -26,7 +26,10 @@ Main --> PathLikes
 Main --> Ok
 Main --> Result
 Main --> LastRule
+Main --> PrefixRule
+Main --> Rule
 Main --> StringRule
+Main --> StripRule
 class MapNode
 MapNode --> None
 MapNode --> Option
@@ -69,6 +72,10 @@ class LastRule
 LastRule --> Node
 LastRule --> None
 LastRule --> Option
+class PrefixRule
+PrefixRule --> Node
+PrefixRule --> None
+PrefixRule --> Option
 class Rule
 Rule --> Node
 Rule --> Option
@@ -77,5 +84,8 @@ StringRule --> MapNode
 StringRule --> Node
 StringRule --> Option
 StringRule --> Some
+class StripRule
+StripRule --> Node
+StripRule --> Option
 
 @enduml
