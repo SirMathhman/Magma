@@ -1,21 +1,16 @@
 package magma;
 
+import magma.compile.Lang;
 import magma.divide.DivideState;
 import magma.divide.MutableDivideState;
 import magma.error.ApplicationError;
-import magma.error.ErrorSequence;
 import magma.error.FormattedError;
 import magma.error.IOError;
-import magma.factory.CompileErrorFactory;
-import magma.factory.CompileErrorResultFactory;
-import magma.factory.SimpleContextFactory;
 import magma.list.ListLike;
 import magma.list.ListLikes;
 import magma.node.EverythingNode;
-import magma.node.MapNodeFactory;
 import magma.node.result.NodeErr;
 import magma.node.result.NodeOk;
-import magma.node.result.NodeResult;
 import magma.option.None;
 import magma.option.Option;
 import magma.option.Some;
@@ -24,14 +19,6 @@ import magma.path.PathLikes;
 import magma.result.Err;
 import magma.result.Ok;
 import magma.result.Result;
-import magma.rule.InfixRule;
-import magma.rule.OrRule;
-import magma.rule.PrefixRule;
-import magma.rule.Rule;
-import magma.rule.StringRule;
-import magma.rule.StripRule;
-import magma.rule.SuffixRule;
-import magma.rule.TypeRule;
 import magma.string.StringErr;
 import magma.string.StringOk;
 import magma.string.StringResult;
@@ -40,12 +27,6 @@ import java.util.HashMap;
 import java.util.Map;
 
 class Main {
-    private static final String SEPARATOR = System.lineSeparator();
-    private static final MapNodeFactory mapNodeFactory = new MapNodeFactory();
-    private static final CompileErrorResultFactory<EverythingNode, FormattedError, ErrorSequence<FormattedError>> resultFactory = new CompileErrorResultFactory<>(
-            new SimpleContextFactory<>(),
-            new CompileErrorFactory());
-
     private Main() {
     }
 
@@ -68,7 +49,7 @@ class Main {
 
     private static Option<ApplicationError> writeTarget(final String compiled) {
         final var target = PathLikes.get(".", "diagram.puml");
-        final var output = String.join(Main.SEPARATOR, "@startuml", "skinparam linetype ortho", compiled, "@enduml");
+        final var output = String.join(Lang.SEPARATOR, "@startuml", "skinparam linetype ortho", compiled, "@enduml");
         return target.writeString(output)
                 .map(ApplicationError::new);
     }
@@ -125,7 +106,7 @@ class Main {
                 .<StringResult<FormattedError>>reduce(new StringOk<>(),
                         (output, segment) -> Main.getStringResult(name, output, segment),
                         (_, next) -> next)
-                .prepend("class " + name + Main.SEPARATOR);
+                .prepend("class " + name + Lang.SEPARATOR);
     }
 
     private static ListLike<String> divide(final CharSequence input) {
@@ -162,7 +143,7 @@ class Main {
     }
 
     private static StringResult<FormattedError> getStringResult(final String name, final StringResult<FormattedError> output, final String segment) {
-        final var tree = Main.createRootSegmentRule()
+        final var tree = Lang.createRootSegmentRule()
                 .lex(segment);
 
         final var generated = (Result<Option<StringResult<FormattedError>>, FormattedError>) switch (tree) {
@@ -191,57 +172,13 @@ class Main {
             return new None<>();
     }
 
-    private static Rule<EverythingNode, NodeResult<EverythingNode, FormattedError>, StringResult<FormattedError>> createRootSegmentRule() {
-        return new OrRule<>(ListLikes.of(Main.createImportRule("package"),
-                Main.createImportRule("import"),
-                Main.createStructureRule("record"),
-                Main.createStructureRule("interface"),
-                Main.createStructureRule("class")), Main.resultFactory);
-    }
-
-    private static Rule<EverythingNode, NodeResult<EverythingNode, FormattedError>, StringResult<FormattedError>> createStructureRule(final String infix) {
-        return new InfixRule<>(new StringRule<>("before-keyword", Main.mapNodeFactory, Main.resultFactory),
-                infix,
-                new StringRule<>("after-keyword", Main.mapNodeFactory, Main.resultFactory),
-                Main.resultFactory);
-    }
-
-    private static Rule<EverythingNode, NodeResult<EverythingNode, FormattedError>, StringResult<FormattedError>> createImportRule(final String type) {
-        final var destination = new StringRule<>("destination", Main.mapNodeFactory, Main.resultFactory);
-        final var withParent = new InfixRule<>(new StringRule<>("parent", Main.mapNodeFactory, Main.resultFactory),
-                ".",
-                destination,
-                Main.resultFactory);
-        final var parent = new OrRule<>(ListLikes.of(withParent,
-                new StringRule<>("value", Main.mapNodeFactory, Main.resultFactory)), Main.resultFactory);
-
-        return new TypeRule<>(type,
-                new StripRule<>(new PrefixRule<>(type + " ",
-                        new SuffixRule<>(parent, ";", Main.resultFactory), Main.resultFactory)), Main.resultFactory);
-    }
-
     private static boolean isFunctionalInterface(final String destination) {
         return ListLikes.of("Consumer", "Function", "Supplier")
                 .contains(destination);
     }
 
     private static StringResult<FormattedError> generate(final EverythingNode node) {
-        return new OrRule<>(ListLikes.of(Main.createDependencyRule(), Main.createPlaceholderRule()),
-                Main.resultFactory).generate(node);
-    }
-
-    private static Rule<EverythingNode, NodeResult<EverythingNode, FormattedError>, StringResult<FormattedError>> createPlaceholderRule() {
-        return new TypeRule<>("placeholder",
-                new StringRule<>("value", Main.mapNodeFactory, Main.resultFactory),
-                Main.resultFactory);
-    }
-
-    private static Rule<EverythingNode, NodeResult<EverythingNode, FormattedError>, StringResult<FormattedError>> createDependencyRule() {
-        return new TypeRule<>("dependency",
-                new SuffixRule<>(new InfixRule<>(new StringRule<>("source", Main.mapNodeFactory, Main.resultFactory),
-                        " --> ",
-                        new StringRule<>("destination", Main.mapNodeFactory, Main.resultFactory),
-                        Main.resultFactory), Main.SEPARATOR, Main.resultFactory),
-                Main.resultFactory);
+        return Lang.createPlantUMLRootSegmentRule()
+                .generate(node);
     }
 }

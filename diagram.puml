@@ -53,6 +53,27 @@ StripRule --> FormattedError
 StripRule --> NodeResult
 StripRule --> StringResult
 class ErrorSequence
+class Lang
+Lang --> ErrorSequence
+Lang --> FormattedError
+Lang --> CompileErrorFactory
+Lang --> CompileErrorResultFactory
+Lang --> ResultFactory
+Lang --> SimpleContextFactory
+Lang --> ListLikes
+Lang --> EverythingNode
+Lang --> MapNodeFactory
+Lang --> NodeFactory
+Lang --> NodeResult
+Lang --> InfixRule
+Lang --> OrRule
+Lang --> PrefixRule
+Lang --> Rule
+Lang --> StringRule
+Lang --> StripRule
+Lang --> SuffixRule
+Lang --> TypeRule
+Lang --> StringResult
 class JavaList
 JavaList --> ArrayList
 JavaList --> List
@@ -138,7 +159,6 @@ class ListLikes
 ListLikes --> ArrayList
 ListLikes --> Arrays
 class SuffixRule
-SuffixRule --> ErrorSequence
 SuffixRule --> ResultFactory
 SuffixRule --> NodeResult
 SuffixRule --> Appending
@@ -149,22 +169,17 @@ ImmutableErrorList --> Collectors
 class NodeOk
 class Ok
 class Main
+Main --> Lang
 Main --> DivideState
 Main --> MutableDivideState
 Main --> ApplicationError
-Main --> ErrorSequence
 Main --> FormattedError
 Main --> IOError
-Main --> CompileErrorFactory
-Main --> CompileErrorResultFactory
-Main --> SimpleContextFactory
 Main --> ListLike
 Main --> ListLikes
 Main --> EverythingNode
-Main --> MapNodeFactory
 Main --> NodeErr
 Main --> NodeOk
-Main --> NodeResult
 Main --> None
 Main --> Option
 Main --> Some
@@ -173,14 +188,6 @@ Main --> PathLikes
 Main --> Err
 Main --> Ok
 Main --> Result
-Main --> InfixRule
-Main --> OrRule
-Main --> PrefixRule
-Main --> Rule
-Main --> StringRule
-Main --> StripRule
-Main --> SuffixRule
-Main --> TypeRule
 Main --> StringErr
 Main --> StringOk
 Main --> StringResult
