@@ -30,18 +30,12 @@ InfixRule --> NodeErr
 InfixRule --> NodeResult
 InfixRule --> StringResult
 class OrRule
-OrRule --> CompileError
 OrRule --> FormattedError
-OrRule --> NodeContext
-OrRule --> StringContext
+OrRule --> ResultFactory
 OrRule --> ListLike
 OrRule --> DisplayNode
 OrRule --> Matching
-OrRule --> NodeErr
-OrRule --> NodeOk
 OrRule --> NodeResult
-OrRule --> StringErr
-OrRule --> StringOk
 OrRule --> StringResult
 class NodeContext
 NodeContext --> DisplayNode
@@ -103,8 +97,12 @@ MapNode --> Map
 class DisplayNode
 class SimpleResultFactory
 SimpleResultFactory --> CompileError
+SimpleResultFactory --> FormattedError
 SimpleResultFactory --> NodeContext
-SimpleResultFactory --> EverythingNode
+SimpleResultFactory --> StringContext
+SimpleResultFactory --> ListLike
+SimpleResultFactory --> DisplayNode
+SimpleResultFactory --> NodeErr
 SimpleResultFactory --> NodeOk
 SimpleResultFactory --> NodeResult
 SimpleResultFactory --> StringErr
@@ -130,6 +128,8 @@ class Error
 class MutableDivideState
 MutableDivideState --> ListLike
 class ResultFactory
+ResultFactory --> FormattedError
+ResultFactory --> ListLike
 class TypedNode
 class IOError
 class ListLikes
