@@ -8,14 +8,9 @@ class Accumulator
 Accumulator --> FormattedError
 Accumulator --> ListLike
 class StringRule
-StringRule --> CompileError
-StringRule --> NodeContext
 StringRule --> EverythingNode
 StringRule --> MapNode
-StringRule --> NodeOk
 StringRule --> NodeResult
-StringRule --> StringErr
-StringRule --> StringOk
 StringRule --> StringResult
 class JavaIOError
 JavaIOError --> IOException
@@ -33,6 +28,16 @@ class Result
 class Matching
 Matching --> FormattedError
 class DisplayNode
+class SimpleResultFactory
+SimpleResultFactory --> CompileError
+SimpleResultFactory --> NodeContext
+SimpleResultFactory --> EverythingNode
+SimpleResultFactory --> MapNode
+SimpleResultFactory --> NodeOk
+SimpleResultFactory --> NodeResult
+SimpleResultFactory --> StringErr
+SimpleResultFactory --> StringOk
+SimpleResultFactory --> StringResult
 class NodeResult
 class PathLike
 PathLike --> IOError
@@ -108,6 +113,11 @@ JavaPath --> Result
 JavaPath --> IOException
 JavaPath --> Files
 JavaPath --> Path
+class ResultFactory
+ResultFactory --> EverythingNode
+ResultFactory --> MapNode
+ResultFactory --> NodeResult
+ResultFactory --> StringResult
 class DivideState
 DivideState --> ListLike
 class TypedNode
@@ -159,6 +169,7 @@ Main --> InfixRule
 Main --> OrRule
 Main --> PrefixRule
 Main --> Rule
+Main --> SimpleResultFactory
 Main --> StringRule
 Main --> StripRule
 Main --> SuffixRule

@@ -23,6 +23,7 @@ import magma.rule.InfixRule;
 import magma.rule.OrRule;
 import magma.rule.PrefixRule;
 import magma.rule.Rule;
+import magma.rule.SimpleResultFactory;
 import magma.rule.StringRule;
 import magma.rule.StripRule;
 import magma.rule.SuffixRule;
@@ -191,13 +192,15 @@ class Main {
     }
 
     private static Rule<EverythingNode, NodeResult<EverythingNode>, StringResult> createStructureRule(final String infix) {
-        return new InfixRule<>(new StringRule("before-keyword"), infix, new StringRule("after-keyword"));
+        return new InfixRule<>(new StringRule("before-keyword", new SimpleResultFactory()),
+                infix,
+                new StringRule("after-keyword", new SimpleResultFactory()));
     }
 
     private static Rule<EverythingNode, NodeResult<EverythingNode>, StringResult> createImportRule(final String type) {
-        final var destination = new StringRule("destination");
-        final var withParent = new InfixRule<>(new StringRule("parent"), ".", destination);
-        final var parent = new OrRule<>(ListLikes.of(withParent, new StringRule("value")));
+        final var destination = new StringRule("destination", new SimpleResultFactory());
+        final var withParent = new InfixRule<>(new StringRule("parent", new SimpleResultFactory()), ".", destination);
+        final var parent = new OrRule<>(ListLikes.of(withParent, new StringRule("value", new SimpleResultFactory())));
 
         return new TypeRule<>(type, new StripRule<>(new PrefixRule<>(type + " ", new SuffixRule<>(parent, ";"))));
     }
@@ -212,12 +215,13 @@ class Main {
     }
 
     private static Rule<EverythingNode, NodeResult<EverythingNode>, StringResult> createPlaceholderRule() {
-        return new TypeRule<>("placeholder", new StringRule("value"));
+        return new TypeRule<>("placeholder", new StringRule("value", new SimpleResultFactory()));
     }
 
     private static Rule<EverythingNode, NodeResult<EverythingNode>, StringResult> createDependencyRule() {
         return new TypeRule<>("dependency",
-                new SuffixRule<>(new InfixRule<>(new StringRule("source"), " --> ", new StringRule("destination")),
-                        Main.SEPARATOR));
+                new SuffixRule<>(new InfixRule<>(new StringRule("source", new SimpleResultFactory()),
+                        " --> ",
+                        new StringRule("destination", new SimpleResultFactory())), Main.SEPARATOR));
     }
 }
