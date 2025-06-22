@@ -1,10 +1,10 @@
 package magma.factory;
 
 import magma.error.CompileError;
+import magma.error.ErrorList;
 import magma.error.FormattedError;
 import magma.error.NodeContext;
 import magma.error.StringContext;
-import magma.list.ListLike;
 import magma.node.DisplayNode;
 import magma.node.result.NodeErr;
 import magma.node.result.NodeOk;
@@ -35,12 +35,12 @@ public class SimpleResultFactory<Node extends DisplayNode> implements ResultFact
     }
 
     @Override
-    public NodeResult<Node, FormattedError> fromNodeErrorWithChildren(final String message, final String context, final ListLike<FormattedError> errors) {
+    public NodeResult<Node, FormattedError> fromNodeErrorWithChildren(final String message, final String context, final ErrorList<FormattedError> errors) {
         return new NodeErr<>(new CompileError(message, new StringContext(context), errors));
     }
 
     @Override
-    public StringResult<FormattedError> fromStringErrorWithChildren(final String message, final Node context, final ListLike<FormattedError> errors) {
+    public StringResult<FormattedError> fromStringErrorWithChildren(final String message, final Node context, final ErrorList<FormattedError> errors) {
         return new StringErr<>(new CompileError(message, new NodeContext(context), errors));
     }
 }

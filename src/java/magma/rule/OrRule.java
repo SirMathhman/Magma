@@ -1,5 +1,6 @@
 package magma.rule;
 
+import magma.error.ErrorList;
 import magma.factory.ResultFactory;
 import magma.list.ListLike;
 import magma.node.DisplayNode;
@@ -25,7 +26,8 @@ public final class OrRule<Node extends DisplayNode, Error> implements Rule<Node,
                 errors -> this.resultFactory.fromNodeErrorWithChildren("Invalid combination", input, errors));
     }
 
-    private <Value, Result extends Matching<Value, Error>, Return> Return or(final Function<Rule<Node, NodeResult<Node, Error>, StringResult<Error>>, Result> mapper, final Function<Value, Return> whenOk, final Function<ListLike<Error>, Return> whenError) {
+    private <Value, Result extends Matching<Value, Error>, Return> Return or(final Function<Rule<Node, NodeResult<Node, Error>, StringResult<Error>>, Result> mapper, final Function<Value, Return> whenOk, final Function<ErrorList<Error>, Return> whenError) {
+        
         return this.rules.stream()
                 .<Accumulator<Value, Error>>reduce(new ImmutableAccumulator<>(), (orState, result) -> {
                     if (orState.hasValue())

@@ -1,7 +1,7 @@
 package magma.rule;
 
-import magma.list.ListLike;
-import magma.list.ListLikes;
+import magma.error.ErrorList;
+import magma.error.ImmutableErrorList;
 import magma.option.None;
 import magma.option.Option;
 import magma.option.Some;
@@ -10,15 +10,15 @@ import java.util.function.Function;
 
 final class ImmutableAccumulator<Value, Error> implements Accumulator<Value, Error> {
     private final Option<Value> maybeValue;
-    private final ListLike<Error> errors;
+    private final ErrorList<Error> errors;
 
-    private ImmutableAccumulator(final Option<Value> maybeValue, final ListLike<Error> errors) {
+    private ImmutableAccumulator(final Option<Value> maybeValue, final ErrorList<Error> errors) {
         this.maybeValue = maybeValue;
         this.errors = errors;
     }
 
     ImmutableAccumulator() {
-        this(new None<>(), ListLikes.empty());
+        this(new None<>(), new ImmutableErrorList<>());
     }
 
     @Override
@@ -32,7 +32,7 @@ final class ImmutableAccumulator<Value, Error> implements Accumulator<Value, Err
     }
 
     @Override
-    public <Return> Return match(final Function<Value, Return> whenPresent, final Function<ListLike<Error>, Return> whenErr) {
+    public <Return> Return match(final Function<Value, Return> whenPresent, final Function<ErrorList<Error>, Return> whenErr) {
         return this.maybeValue.map(whenPresent)
                 .orElseGet(() -> whenErr.apply(this.errors));
     }

@@ -1,9 +1,6 @@
 @startuml
 skinparam linetype ortho
 class CompileError
-CompileError --> ListLike
-CompileError --> ListLikes
-CompileError --> Collectors
 class MapNodeFactory
 class FormattedError
 class Mapping
@@ -31,6 +28,7 @@ InfixRule --> NodeErr
 InfixRule --> NodeResult
 InfixRule --> StringResult
 class OrRule
+OrRule --> ErrorList
 OrRule --> ResultFactory
 OrRule --> ListLike
 OrRule --> DisplayNode
@@ -67,6 +65,8 @@ class DivideState
 DivideState --> ListLike
 class Some
 Some --> Predicate
+class ErrorList
+ErrorList --> ListLike
 class EverythingNode
 class NodeFactory
 class StringOk
@@ -76,7 +76,7 @@ class Rule
 class StringResult
 StringResult --> Matching
 class Accumulator
-Accumulator --> ListLike
+Accumulator --> ErrorList
 class StringRule
 StringRule --> FormattedError
 StringRule --> ResultFactory
@@ -97,10 +97,10 @@ MapNode --> Map
 class DisplayNode
 class SimpleResultFactory
 SimpleResultFactory --> CompileError
+SimpleResultFactory --> ErrorList
 SimpleResultFactory --> FormattedError
 SimpleResultFactory --> NodeContext
 SimpleResultFactory --> StringContext
-SimpleResultFactory --> ListLike
 SimpleResultFactory --> DisplayNode
 SimpleResultFactory --> NodeErr
 SimpleResultFactory --> NodeOk
@@ -113,8 +113,8 @@ class ApplicationError
 class StringNode
 StringNode --> Option
 class ImmutableAccumulator
-ImmutableAccumulator --> ListLike
-ImmutableAccumulator --> ListLikes
+ImmutableAccumulator --> ErrorList
+ImmutableAccumulator --> ImmutableErrorList
 ImmutableAccumulator --> None
 ImmutableAccumulator --> Option
 ImmutableAccumulator --> Some
@@ -126,7 +126,7 @@ class Error
 class MutableDivideState
 MutableDivideState --> ListLike
 class ResultFactory
-ResultFactory --> ListLike
+ResultFactory --> ErrorList
 class TypedNode
 class IOError
 class ListLikes
@@ -136,6 +136,10 @@ class SuffixRule
 SuffixRule --> ResultFactory
 SuffixRule --> NodeResult
 SuffixRule --> Appending
+class ImmutableErrorList
+ImmutableErrorList --> ListLike
+ImmutableErrorList --> ListLikes
+ImmutableErrorList --> Collectors
 class NodeOk
 NodeOk --> FormattedError
 class Ok
