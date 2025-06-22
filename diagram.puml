@@ -2,11 +2,12 @@
 skinparam linetype ortho
 class CompileError
 CompileError --> ErrorSequence
-CompileError --> FormattedError
 CompileError --> ImmutableErrorList
+CompileError --> Context
 class ErrorFactory
 class MapNodeFactory
 class FormattedError
+FormattedError --> Error
 class Mapping
 class Result
 class Matching
@@ -61,8 +62,8 @@ JavaList --> List
 JavaList --> Stream
 class Lang
 Lang --> ErrorSequence
-Lang --> FormattedError
 Lang --> ListLikes
+Lang --> FormattedError
 Lang --> CompileErrorFactory
 Lang --> CompileErrorResultFactory
 Lang --> ResultFactory
@@ -97,7 +98,6 @@ DivideState --> ListLike
 class Some
 Some --> Predicate
 class ErrorList
-ErrorList --> ErrorSequence
 class EverythingNode
 class NodeFactory
 class StringOk
@@ -129,9 +129,9 @@ MapNode --> Map
 class DisplayNode
 class CompileErrorFactory
 CompileErrorFactory --> ErrorSequence
-CompileErrorFactory --> FormattedError
-CompileErrorFactory --> CompileError
 CompileErrorFactory --> Context
+CompileErrorFactory --> CompileError
+CompileErrorFactory --> FormattedError
 class NodeResult
 class ApplicationError
 ApplicationError --> Error
@@ -174,7 +174,6 @@ class Ok
 class None
 None --> Predicate
 class Main
-Main --> FormattedError
 Main --> IOError
 Main --> PathLike
 Main --> PathLikes
@@ -186,10 +185,11 @@ Main --> Some
 Main --> Err
 Main --> Ok
 Main --> Result
+Main --> ApplicationError
 Main --> Lang
 Main --> DivideState
 Main --> MutableDivideState
-Main --> ApplicationError
+Main --> FormattedError
 Main --> EverythingNode
 Main --> NodeErr
 Main --> NodeOk
