@@ -116,6 +116,9 @@ Option --> Predicate
 class Rule
 class StringResult
 StringResult --> Matching
+class Application
+Application --> WrappedError
+Application --> Option
 class Accumulator
 Accumulator --> ErrorSequence
 class StringRule
@@ -195,6 +198,14 @@ Targets --> Option
 class MutableDivideState
 MutableDivideState --> ListLike
 class ResultFactory
+class CompileApplication
+CompileApplication --> WrappedError
+CompileApplication --> Option
+CompileApplication --> Some
+CompileApplication --> Compiler
+CompileApplication --> Sources
+CompileApplication --> Targets
+CompileApplication --> Map
 class ContextFactory
 ContextFactory --> Context
 class TypedNode
@@ -216,17 +227,15 @@ class Ok
 class None
 None --> Predicate
 class Main
-Main --> WrappedError
 Main --> PathLikes
-Main --> Option
-Main --> Some
+Main --> Application
+Main --> CompileApplication
 Main --> Compiler
 Main --> RuleCompiler
 Main --> PathSources
 Main --> Sources
 Main --> PathTargets
 Main --> Targets
-Main --> Map
 class ListLike
 ListLike --> Stream
 class TypeRule

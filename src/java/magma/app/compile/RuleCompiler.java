@@ -24,7 +24,7 @@ import magma.app.compile.string.StringResult;
 import java.util.Map;
 
 public class RuleCompiler implements Compiler {
-    public static final Lang<EverythingNode, FormattedError> LANG = new Lang<>(new MapNodeFactory(),
+    private static final Lang<EverythingNode, FormattedError> LANG = new Lang<>(new MapNodeFactory(),
             new CompileErrorResultFactory<>(new SimpleContextFactory<>(), new CompileErrorFactory()));
 
     private static StringResult<FormattedError> compileEntry(final Map<String, String> inputs) {
