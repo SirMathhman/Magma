@@ -14,7 +14,7 @@ import magma.path.PathLikes;
 import magma.result.Err;
 import magma.result.Ok;
 import magma.result.Result;
-import magma.rule.LastRule;
+import magma.rule.InfixRule;
 import magma.rule.OrRule;
 import magma.rule.PrefixRule;
 import magma.rule.Rule;
@@ -100,22 +100,42 @@ class Main {
     }
 
     private static StringResult compile(final String input, final String name) {
-        final var segments = input.split(";");
-
-        StringResult output = new StringOk();
-        for (final var segment : segments) {
-            final var generated = Main.createRootSegmentRule(name)
-                    .lex(segment)
-                    .mapToResult(destination -> Main.transformAndGenerate(name, destination));
-
-            output = switch (generated) {
-                case Err<Option<StringResult>, CompileError>(final var error) -> new StringErr(error);
-                case Ok<Option<StringResult>, CompileError>(final var value) ->
-                        value instanceof Some(final var result) ? output.appendResult(result) : output;
-            };
+        var segments = ListLikes.<String>empty();
+        var buffer = new StringBuilder();
+        var depth = 0;
+        for (var i = 0; i < input.length(); i++) {
+            final var c = input.charAt(i);
+            buffer.append(c);
+            if (';' == c && 0 == depth) {
+                segments = segments.add(buffer.toString());
+                buffer = new StringBuilder();
+            }
+            else {
+                if ('{' == c)
+                    depth++;
+                if ('}' == c)
+                    depth--;
+            }
         }
+        segments = segments.add(buffer.toString());
 
-        return output.prepend("class " + name + Main.SEPARATOR);
+        return segments.stream()
+                .<StringResult>reduce(new StringOk(),
+                        (output, segment) -> Main.getStringResult(name, output, segment),
+                        (_, next) -> next)
+                .prepend("class " + name + Main.SEPARATOR);
+    }
+
+    private static StringResult getStringResult(final String name, final StringResult output, final String segment) {
+        final var generated = Main.createRootSegmentRule(name)
+                .lex(segment)
+                .mapToResult(destination -> Main.transformAndGenerate(name, destination));
+
+        return switch (generated) {
+            case Err<Option<StringResult>, CompileError>(final var error) -> new StringErr(error);
+            case Ok<Option<StringResult>, CompileError>(final var value) ->
+                    value instanceof Some(final var result) ? output.appendResult(result) : output;
+        };
     }
 
     private static Option<StringResult> transformAndGenerate(final String name, final Node destination) {
@@ -133,13 +153,18 @@ class Main {
     }
 
     private static Rule<Node, StringResult> createRootSegmentRule(final String name) {
-        return new OrRule(ListLikes.of(Main.createImportRule(name)));
+        return new OrRule(ListLikes.of(Main.createImportRule(name), Main.createStructureRule()));
     }
 
+    private static Rule<Node, StringResult> createStructureRule() {
+        return new InfixRule(new StringRule("before-keyword"), "record", new StringRule("after-keyword"));
+    }
+
+    OK
     private static Rule<Node, StringResult> createImportRule(final String name) {
         final var destination = new StringRule("destination");
         return new TypeRule("import",
-                new StripRule(name, new PrefixRule("import ", new LastRule(null, ".", destination))));
+                new StripRule(name, new PrefixRule("import ", new InfixRule(null, ".", destination))));
     }
 
     private static boolean isFunctionalInterface(final String destination) {
@@ -157,7 +182,7 @@ class Main {
 
     private static Rule<Node, StringResult> createDependencyRule() {
         return new TypeRule("dependency",
-                new SuffixRule<>(new LastRule(new StringRule("source"), " --> ", new StringRule("destination")),
+                new SuffixRule<>(new InfixRule(new StringRule("source"), " --> ", new StringRule("destination")),
                         Main.SEPARATOR));
     }
 }

@@ -7,7 +7,7 @@ import magma.node.result.NodeErr;
 import magma.node.result.NodeResult;
 import magma.string.StringResult;
 
-public record LastRule(Rule<Node, StringResult> leftRule, String infix, Rule<Node, StringResult> rightRule) implements
+public record InfixRule(Rule<Node, StringResult> leftRule, String infix, Rule<Node, StringResult> rightRule) implements
         Rule<Node, StringResult> {
     @Override
     public NodeResult lex(final String input) {
