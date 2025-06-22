@@ -1,5 +1,6 @@
 package magma;
 
+import magma.error.ApplicationError;
 import magma.error.IOError;
 import magma.list.ListLike;
 import magma.list.ListLikes;
@@ -13,11 +14,15 @@ import magma.result.Result;
 import magma.rule.LastRule;
 import magma.rule.PrefixRule;
 import magma.rule.Rule;
+import magma.rule.StringOk;
 import magma.rule.StringRule;
 import magma.rule.StripRule;
 import magma.rule.SuffixRule;
 import magma.string.StringErr;
 import magma.string.StringResult;
+
+import java.util.HashMap;
+import java.util.Map;
 
 class Main {
     private static final String SEPARATOR = System.lineSeparator();
@@ -32,7 +37,7 @@ class Main {
                 .ifPresent(error -> System.err.println(error.display()));
     }
 
-    private static Option<IOError> runWithFiles(final ListLike<PathLike> files) {
+    private static Option<ApplicationError> runWithFiles(final ListLike<PathLike> files) {
         final var sources = files.stream()
                 .filter(file -> file.asString()
                         .endsWith(".java"))
@@ -42,41 +47,63 @@ class Main {
                 .match(Main::writeTarget, Some::new);
     }
 
-    private static Option<IOError> writeTarget(final String compiled) {
+    private static Option<ApplicationError> writeTarget(final String compiled) {
         final var target = PathLikes.get(".", "diagram.puml");
         final var output = String.join(Main.SEPARATOR, "@startuml", "skinparam linetype ortho", compiled, "@enduml");
-        return target.writeString(output);
+        return target.writeString(output)
+                .map(ApplicationError::new);
     }
 
-    private static Result<String> compileAll(final Iterable<PathLike> sources) {
-        Result<StringBuilder> maybeCompiled = new Ok<>(new StringBuilder());
-        for (final var source : sources) {
-            final var fileName = source.getFileName()
-                    .asString();
-            final var separator = fileName.lastIndexOf('.');
-            final var name = fileName.substring(0, separator);
+    private static Result<String, ApplicationError> compileAll(final Iterable<PathLike> sources) {
+        return Main.readAll(sources)
+                .mapErr(ApplicationError::new)
+                .flatMapValue(inputs -> Main.compileEntry(inputs)
+                        .toResult()
+                        .mapErr(ApplicationError::new));
+    }
 
-            final var maybeOutput = source.readString()
-                    .map(value -> Main.compile(value, name));
+    private static Result<Map<String, String>, IOError> readAll(final Iterable<PathLike> sources) {
+        Result<Map<String, String>, IOError> maybeInputs = new Ok<>(new HashMap<>());
+        for (final var source : sources)
+            maybeInputs = Main.attachEntry(source, maybeInputs);
+        return maybeInputs;
+    }
 
-            maybeCompiled = maybeCompiled.flatMap(compiled -> maybeOutput.map(compiled::append));
+    private static Result<Map<String, String>, IOError> attachEntry(final PathLike source, final Result<Map<String, String>, IOError> maybeInputs) {
+        final var fileName = source.getFileName()
+                .asString();
+        final var separator = fileName.lastIndexOf('.');
+        final var name = fileName.substring(0, separator);
+
+        return maybeInputs.flatMapValue(inputs -> source.readString()
+                .mapValue(input -> {
+                    inputs.put(name, input);
+                    return inputs;
+                }));
+    }
+
+    private static StringResult compileEntry(final Map<String, String> inputs) {
+        StringResult maybeCompiled = new StringOk();
+        for (final var source : inputs.entrySet()) {
+            final var name = source.getKey();
+            final var input = source.getValue();
+
+            maybeCompiled = maybeCompiled.appendResult(() -> Main.compile(input, name));
         }
 
-        return maybeCompiled.map(StringBuilder::toString);
+        return maybeCompiled;
     }
 
-    private static String compile(final String input, final String name) {
+    private static StringResult compile(final String input, final String name) {
         final var segments = input.split(";");
 
-        final var output = new StringBuilder();
+        StringResult output = new StringOk();
         for (final var segment : segments)
-            Main.createImportRule(name)
+            output = output.appendResult(() -> Main.createImportRule(name)
                     .lex(segment)
-                    .flatMap(destination -> Main.getRecord(destination.withString("source", name)))
-                    .toOption()
-                    .ifPresent(output::append);
+                    .flatMap(destination -> Main.getRecord(destination.withString("source", name))));
 
-        return "class " + name + Main.SEPARATOR + output;
+        return output.prepend("class " + name + Main.SEPARATOR);
     }
 
     private static Rule<Node, StringResult> createImportRule(final String name) {

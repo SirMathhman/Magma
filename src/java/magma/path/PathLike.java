@@ -6,9 +6,9 @@ import magma.option.Option;
 import magma.result.Result;
 
 public interface PathLike {
-    Result<String> readString();
+    Result<String, IOError> readString();
 
-    Result<ListLike<PathLike>> walk();
+    Result<ListLike<PathLike>, IOError> walk();
 
     Option<IOError> writeString(CharSequence output);
 

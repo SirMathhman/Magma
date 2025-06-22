@@ -1,22 +1,25 @@
 package magma.result;
 
-import magma.error.IOError;
-
 import java.util.function.Function;
 
-public record Ok<String>(String value) implements Result<String> {
+public record Ok<Value, Error>(Value value) implements Result<Value, Error> {
     @Override
-    public <Return> Return match(final Function<String, Return> whenOk, final Function<IOError, Return> whenError) {
+    public <Return> Return match(final Function<Value, Return> whenOk, final Function<Error, Return> whenError) {
         return whenOk.apply(this.value);
     }
 
     @Override
-    public <Return> Result<Return> map(final Function<String, Return> mapper) {
+    public <Return> Result<Return, Error> mapValue(final Function<Value, Return> mapper) {
         return new Ok<>(mapper.apply(this.value));
     }
 
     @Override
-    public <Return> Result<Return> flatMap(final Function<String, Result<Return>> mapper) {
+    public <Return> Result<Return, Error> flatMapValue(final Function<Value, Result<Return, Error>> mapper) {
         return mapper.apply(this.value);
+    }
+
+    @Override
+    public <Return> Result<Value, Return> mapErr(final Function<Error, Return> mapper) {
+        return new Ok<>(this.value);
     }
 }

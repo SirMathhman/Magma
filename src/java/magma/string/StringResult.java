@@ -1,9 +1,10 @@
 package magma.string;
 
-import magma.option.Option;
+import magma.error.CompileError;
+import magma.result.Result;
 
 public interface StringResult extends Appending<StringResult> {
-    Option<String> toOption();
+    Result<String, CompileError> toResult();
 
     StringResult prepend(String slice);
 }

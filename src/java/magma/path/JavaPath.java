@@ -37,7 +37,7 @@ record JavaPath(Path path) implements PathLike {
     }
 
     @Override
-    public Result<ListLike<PathLike>> walk() {
+    public Result<ListLike<PathLike>, IOError> walk() {
         try (final var stream = Files.walk(this.path)) {
             return new Ok<>(new JavaList<>(stream.<PathLike>map(JavaPath::new)
                     .toList()));
@@ -47,7 +47,7 @@ record JavaPath(Path path) implements PathLike {
     }
 
     @Override
-    public Result<String> readString() {
+    public Result<String, IOError> readString() {
         try {
             return new Ok<>(Files.readString(this.path));
         } catch (final IOException e) {

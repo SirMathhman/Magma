@@ -1,7 +1,8 @@
 package magma.string;
 
-import magma.option.None;
-import magma.option.Option;
+import magma.error.CompileError;
+import magma.result.Err;
+import magma.result.Result;
 
 import java.util.function.Supplier;
 
@@ -12,8 +13,8 @@ public record StringErr() implements StringResult {
     }
 
     @Override
-    public Option<String> toOption() {
-        return new None<>();
+    public Result<String, CompileError> toResult() {
+        return new Err<>(new CompileError());
     }
 
     @Override
