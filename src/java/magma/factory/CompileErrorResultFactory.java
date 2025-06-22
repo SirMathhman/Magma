@@ -13,7 +13,7 @@ import magma.string.StringErr;
 import magma.string.StringOk;
 import magma.string.StringResult;
 
-public class SimpleResultFactory<Node extends DisplayNode> implements ResultFactory<Node, FormattedError, NodeResult<Node, FormattedError>, StringResult<FormattedError>> {
+public class CompileErrorResultFactory<Node extends DisplayNode> implements ResultFactory<Node, FormattedError, NodeResult<Node, FormattedError>, StringResult<FormattedError>> {
     @Override
     public NodeResult<Node, FormattedError> fromNode(final Node node) {
         return new NodeOk<>(node);

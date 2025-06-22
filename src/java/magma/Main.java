@@ -5,7 +5,7 @@ import magma.divide.MutableDivideState;
 import magma.error.ApplicationError;
 import magma.error.FormattedError;
 import magma.error.IOError;
-import magma.factory.SimpleResultFactory;
+import magma.factory.CompileErrorResultFactory;
 import magma.list.ListLike;
 import magma.list.ListLikes;
 import magma.node.EverythingNode;
@@ -188,30 +188,34 @@ class Main {
         return new OrRule<>(ListLikes.of(Main.createImportRule("package"),
                 Main.createImportRule("import"),
                 Main.createStructureRule("record"),
-                Main.createStructureRule("interface"),
-                Main.createStructureRule("class")), new SimpleResultFactory<>());
+                Main.createStructureRule("interface"), Main.createStructureRule("class")),
+                new CompileErrorResultFactory<>());
     }
 
     private static Rule<EverythingNode, NodeResult<EverythingNode, FormattedError>, StringResult<FormattedError>> createStructureRule(final String infix) {
-        return new InfixRule<>(new StringRule<>("before-keyword", new MapNodeFactory(), new SimpleResultFactory<>()),
+        return new InfixRule<>(new StringRule<>("before-keyword",
+                new MapNodeFactory(),
+                new CompileErrorResultFactory<>()),
                 infix,
-                new StringRule<>("after-keyword", new MapNodeFactory(), new SimpleResultFactory<>()),
-                new SimpleResultFactory<>());
+                new StringRule<>("after-keyword", new MapNodeFactory(), new CompileErrorResultFactory<>()),
+                new CompileErrorResultFactory<>());
     }
 
     private static Rule<EverythingNode, NodeResult<EverythingNode, FormattedError>, StringResult<FormattedError>> createImportRule(final String type) {
-        final var destination = new StringRule<>("destination", new MapNodeFactory(), new SimpleResultFactory<>());
+        final var destination = new StringRule<>("destination",
+                new MapNodeFactory(),
+                new CompileErrorResultFactory<>());
         final var withParent = new InfixRule<>(new StringRule<>("parent",
-                new MapNodeFactory(), new SimpleResultFactory<>()), ".", destination, new SimpleResultFactory<>());
+                new MapNodeFactory(),
+                new CompileErrorResultFactory<>()), ".", destination, new CompileErrorResultFactory<>());
         final var parent = new OrRule<>(ListLikes.of(withParent,
-                new StringRule<>("value", new MapNodeFactory(), new SimpleResultFactory<>())),
-                new SimpleResultFactory<>());
+                new StringRule<>("value", new MapNodeFactory(), new CompileErrorResultFactory<>())),
+                new CompileErrorResultFactory<>());
 
         return new TypeRule<>(type,
                 new StripRule<>(new PrefixRule<>(type + " ",
-                        new SuffixRule<>(parent, ";", new SimpleResultFactory<>()),
-                        new SimpleResultFactory<>())),
-                new SimpleResultFactory<>());
+                        new SuffixRule<>(parent, ";", new CompileErrorResultFactory<>()),
+                        new CompileErrorResultFactory<>())), new CompileErrorResultFactory<>());
     }
 
     private static boolean isFunctionalInterface(final String destination) {
@@ -221,23 +225,21 @@ class Main {
 
     private static StringResult<FormattedError> generate(final EverythingNode node) {
         return new OrRule<>(ListLikes.of(Main.createDependencyRule(), Main.createPlaceholderRule()),
-                new SimpleResultFactory<>()).generate(node);
+                new CompileErrorResultFactory<>()).generate(node);
     }
 
     private static Rule<EverythingNode, NodeResult<EverythingNode, FormattedError>, StringResult<FormattedError>> createPlaceholderRule() {
         return new TypeRule<>("placeholder",
-                new StringRule<>("value", new MapNodeFactory(), new SimpleResultFactory<>()),
-                new SimpleResultFactory<>());
+                new StringRule<>("value", new MapNodeFactory(), new CompileErrorResultFactory<>()),
+                new CompileErrorResultFactory<>());
     }
 
     private static Rule<EverythingNode, NodeResult<EverythingNode, FormattedError>, StringResult<FormattedError>> createDependencyRule() {
         return new TypeRule<>("dependency", new SuffixRule<>(new InfixRule<>(new StringRule<>("source",
-                new MapNodeFactory(),
-                new SimpleResultFactory<>()),
+                new MapNodeFactory(), new CompileErrorResultFactory<>()),
                 " --> ",
-                new StringRule<>("destination", new MapNodeFactory(), new SimpleResultFactory<>()),
-                new SimpleResultFactory<>()),
-                Main.SEPARATOR,
-                new SimpleResultFactory<>()), new SimpleResultFactory<>());
+                new StringRule<>("destination", new MapNodeFactory(), new CompileErrorResultFactory<>()),
+                new CompileErrorResultFactory<>()),
+                Main.SEPARATOR, new CompileErrorResultFactory<>()), new CompileErrorResultFactory<>());
     }
 }
