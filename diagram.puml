@@ -29,24 +29,8 @@ PrefixRule --> ResultFactory
 PrefixRule --> NodeResult
 PrefixRule --> StringResult
 class Compiler
-Compiler --> ListLike
-Compiler --> ListLikes
-Compiler --> None
-Compiler --> Option
-Compiler --> Some
-Compiler --> Err
-Compiler --> Ok
 Compiler --> Result
-Compiler --> DivideState
-Compiler --> MutableDivideState
 Compiler --> FormattedError
-Compiler --> Lang
-Compiler --> EverythingNode
-Compiler --> NodeErr
-Compiler --> NodeOk
-Compiler --> StringErr
-Compiler --> StringOk
-Compiler --> StringResult
 Compiler --> Map
 class SimpleContextFactory
 SimpleContextFactory --> Context
@@ -114,6 +98,10 @@ JavaPath --> Files
 JavaPath --> Path
 class DivideState
 DivideState --> ListLike
+class PathTargets
+PathTargets --> WrappedError
+PathTargets --> PathLike
+PathTargets --> Option
 class Some
 Some --> Predicate
 class ErrorList
@@ -163,10 +151,33 @@ ImmutableAccumulator --> None
 ImmutableAccumulator --> Option
 ImmutableAccumulator --> Some
 class Appending
+class RuleCompiler
+RuleCompiler --> ListLike
+RuleCompiler --> ListLikes
+RuleCompiler --> None
+RuleCompiler --> Option
+RuleCompiler --> Some
+RuleCompiler --> Err
+RuleCompiler --> Ok
+RuleCompiler --> Result
+RuleCompiler --> DivideState
+RuleCompiler --> MutableDivideState
+RuleCompiler --> FormattedError
+RuleCompiler --> Lang
+RuleCompiler --> EverythingNode
+RuleCompiler --> NodeErr
+RuleCompiler --> NodeOk
+RuleCompiler --> StringErr
+RuleCompiler --> StringOk
+RuleCompiler --> StringResult
+RuleCompiler --> Map
 class StringErr
 class StringContext
 class Context
 class Error
+class Targets
+Targets --> WrappedError
+Targets --> Option
 class MutableDivideState
 MutableDivideState --> ListLike
 class ResultFactory
@@ -201,6 +212,7 @@ Main --> Some
 Main --> Ok
 Main --> Result
 Main --> Compiler
+Main --> RuleCompiler
 Main --> Lang
 Main --> HashMap
 Main --> Map
