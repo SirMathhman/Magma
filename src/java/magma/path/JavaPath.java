@@ -12,7 +12,7 @@ import java.nio.file.Path;
 import java.util.List;
 import java.util.Optional;
 
-public record JavaPath(Path path) implements PathLike {
+record JavaPath(Path path) implements PathLike {
     @Override
     public PathLike getFileName() {
         return new JavaPath(this.path.getFileName());
@@ -35,11 +35,9 @@ public record JavaPath(Path path) implements PathLike {
 
     @Override
     public Result<List<PathLike>> walk() {
-        try {
-            try (final var stream = Files.walk(this.path)) {
-                return new Ok<>(stream.<PathLike>map(JavaPath::new)
-                        .toList());
-            }
+        try (final var stream = Files.walk(this.path)) {
+            return new Ok<>(stream.<PathLike>map(JavaPath::new)
+                    .toList());
         } catch (final IOException e) {
             return new Err<>(new JavaIOError(e));
         }
