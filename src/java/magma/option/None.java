@@ -1,7 +1,6 @@
 package magma.option;
 
 import java.util.function.Consumer;
-import java.util.function.Function;
 
 public record None<T>() implements Option<T> {
     @Override
@@ -13,8 +12,4 @@ public record None<T>() implements Option<T> {
         return other;
     }
 
-    @Override
-    public <Return> Option<Return> flatMap(final Function<T, Option<Return>> mapper) {
-        return new None<>();
-    }
 }

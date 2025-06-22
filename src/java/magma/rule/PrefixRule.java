@@ -1,14 +1,13 @@
 package magma.rule;
 
-import magma.node.Node;
-import magma.option.None;
-import magma.option.Option;
+import magma.node.result.NodeErr;
+import magma.node.result.NodeResult;
 
 public record PrefixRule(String prefix, Rule rule) implements Rule {
     @Override
-    public Option<Node> lex(final String input) {
+    public NodeResult lex(final String input) {
         if (!input.startsWith(this.prefix()))
-            return new None<>();
+            return new NodeErr();
 
         final var slice = input.substring(this.prefix()
                 .length());

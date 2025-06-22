@@ -38,6 +38,16 @@ MapNode --> HashMap
 MapNode --> Map
 class Node
 Node --> Option
+class NodeErr
+NodeErr --> Node
+NodeErr --> None
+NodeErr --> Option
+class NodeOk
+NodeOk --> Node
+NodeOk --> Option
+class NodeResult
+NodeResult --> Node
+NodeResult --> Option
 class None
 class Option
 class Some
@@ -69,23 +79,18 @@ Ok --> IOError
 class Result
 Result --> IOError
 class LastRule
-LastRule --> Node
-LastRule --> None
-LastRule --> Option
+LastRule --> NodeErr
+LastRule --> NodeResult
 class PrefixRule
-PrefixRule --> Node
-PrefixRule --> None
-PrefixRule --> Option
+PrefixRule --> NodeErr
+PrefixRule --> NodeResult
 class Rule
-Rule --> Node
-Rule --> Option
+Rule --> NodeResult
 class StringRule
+StringRule --> NodeOk
+StringRule --> NodeResult
 StringRule --> MapNode
-StringRule --> Node
-StringRule --> Option
-StringRule --> Some
 class StripRule
-StripRule --> Node
-StripRule --> Option
+StripRule --> NodeResult
 
 @enduml

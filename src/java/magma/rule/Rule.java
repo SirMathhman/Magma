@@ -1,8 +1,7 @@
 package magma.rule;
 
-import magma.node.Node;
-import magma.option.Option;
+import magma.node.result.NodeResult;
 
 public interface Rule {
-    Option<Node> lex(String input);
+    NodeResult lex(String input);
 }
