@@ -1,8 +1,8 @@
 package magma.node;
 
-import magma.option.None;
-import magma.option.Option;
-import magma.option.Some;
+import magma.api.option.None;
+import magma.api.option.Option;
+import magma.api.option.Some;
 
 import java.util.HashMap;
 import java.util.Map;

@@ -1,7 +1,7 @@
 package magma.rule;
 
-import magma.error.ErrorSequence;
-import magma.error.FormattedError;
+import magma.api.error.ErrorSequence;
+import magma.api.error.FormattedError;
 import magma.factory.ResultFactory;
 import magma.node.NodeFactory;
 import magma.node.StringNode;

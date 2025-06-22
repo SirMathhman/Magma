@@ -1,12 +1,12 @@
 package magma.compile;
 
-import magma.error.ErrorSequence;
-import magma.error.FormattedError;
+import magma.api.error.ErrorSequence;
+import magma.api.error.FormattedError;
+import magma.api.list.ListLikes;
 import magma.factory.CompileErrorFactory;
 import magma.factory.CompileErrorResultFactory;
 import magma.factory.ResultFactory;
 import magma.factory.SimpleContextFactory;
-import magma.list.ListLikes;
 import magma.node.EverythingNode;
 import magma.node.MapNodeFactory;
 import magma.node.NodeFactory;

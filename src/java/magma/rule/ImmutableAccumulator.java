@@ -1,11 +1,11 @@
 package magma.rule;
 
-import magma.error.ErrorList;
-import magma.error.ErrorSequence;
-import magma.error.ImmutableErrorList;
-import magma.option.None;
-import magma.option.Option;
-import magma.option.Some;
+import magma.api.error.ErrorList;
+import magma.api.error.ErrorSequence;
+import magma.api.error.ImmutableErrorList;
+import magma.api.option.None;
+import magma.api.option.Option;
+import magma.api.option.Some;
 
 import java.util.function.Function;
 

@@ -1,5 +1,9 @@
 package magma.error;
 
+import magma.api.error.ErrorSequence;
+import magma.api.error.FormattedError;
+import magma.api.error.ImmutableErrorList;
+
 public record CompileError(String message, Context context, ErrorSequence<FormattedError> errors) implements
         FormattedError {
     public CompileError(final String message, final Context context) {

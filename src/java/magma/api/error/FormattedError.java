@@ -1,4 +1,4 @@
-package magma.error;
+package magma.api.error;
 
 public interface FormattedError extends Error {
     @Override

@@ -1,8 +1,8 @@
 package magma.rule;
 
-import magma.error.ErrorSequence;
+import magma.api.error.ErrorSequence;
+import magma.api.list.ListLike;
 import magma.factory.ResultFactory;
-import magma.list.ListLike;
 import magma.node.DisplayNode;
 import magma.node.result.Matching;
 import magma.node.result.NodeResult;

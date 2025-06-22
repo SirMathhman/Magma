@@ -1,15 +1,13 @@
-package magma.path;
+package magma.api.io;
 
-import magma.error.IOError;
-import magma.error.JavaIOError;
-import magma.list.JavaList;
-import magma.list.ListLike;
-import magma.option.None;
-import magma.option.Option;
-import magma.option.Some;
-import magma.result.Err;
-import magma.result.Ok;
-import magma.result.Result;
+import magma.api.list.JavaList;
+import magma.api.list.ListLike;
+import magma.api.option.None;
+import magma.api.option.Option;
+import magma.api.option.Some;
+import magma.api.result.Err;
+import magma.api.result.Ok;
+import magma.api.result.Result;
 
 import java.io.IOException;
 import java.nio.file.Files;

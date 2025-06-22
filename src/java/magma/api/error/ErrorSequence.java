@@ -1,4 +1,4 @@
-package magma.error;
+package magma.api.error;
 
 import java.util.function.Function;
 

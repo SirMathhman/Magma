@@ -1,7 +1,7 @@
-package magma.error;
+package magma.api.error;
 
-import magma.list.ListLike;
-import magma.list.ListLikes;
+import magma.api.list.ListLike;
+import magma.api.list.ListLikes;
 
 import java.util.function.Function;
 import java.util.stream.Collectors;

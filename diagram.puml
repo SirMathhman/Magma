@@ -1,6 +1,9 @@
 @startuml
 skinparam linetype ortho
 class CompileError
+CompileError --> ErrorSequence
+CompileError --> FormattedError
+CompileError --> ImmutableErrorList
 class ErrorFactory
 class MapNodeFactory
 class FormattedError
@@ -8,7 +11,6 @@ class Mapping
 class Result
 class Matching
 class PathLike
-PathLike --> IOError
 PathLike --> ListLike
 PathLike --> Option
 PathLike --> Result
@@ -53,6 +55,10 @@ StripRule --> FormattedError
 StripRule --> NodeResult
 StripRule --> StringResult
 class ErrorSequence
+class JavaList
+JavaList --> ArrayList
+JavaList --> List
+JavaList --> Stream
 class Lang
 Lang --> ErrorSequence
 Lang --> FormattedError
@@ -74,13 +80,7 @@ Lang --> StripRule
 Lang --> SuffixRule
 Lang --> TypeRule
 Lang --> StringResult
-class JavaList
-JavaList --> ArrayList
-JavaList --> List
-JavaList --> Stream
 class JavaPath
-JavaPath --> IOError
-JavaPath --> JavaIOError
 JavaPath --> JavaList
 JavaPath --> ListLike
 JavaPath --> None
@@ -133,6 +133,7 @@ CompileErrorFactory --> ErrorSequence
 CompileErrorFactory --> FormattedError
 class NodeResult
 class ApplicationError
+ApplicationError --> Error
 class StringNode
 StringNode --> Option
 class ImmutableAccumulator
@@ -155,6 +156,7 @@ ContextFactory --> Context
 ContextFactory --> DisplayNode
 class TypedNode
 class IOError
+IOError --> Error
 class ListLikes
 ListLikes --> ArrayList
 ListLikes --> Arrays
@@ -168,6 +170,8 @@ ImmutableErrorList --> ListLikes
 ImmutableErrorList --> Collectors
 class NodeOk
 class Ok
+class None
+None --> Predicate
 class Main
 Main --> Lang
 Main --> DivideState
@@ -193,8 +197,6 @@ Main --> StringOk
 Main --> StringResult
 Main --> HashMap
 Main --> Map
-class None
-None --> Predicate
 class ListLike
 ListLike --> Stream
 class TypeRule

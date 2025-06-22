@@ -1,9 +1,8 @@
-package magma.path;
+package magma.api.io;
 
-import magma.error.IOError;
-import magma.list.ListLike;
-import magma.option.Option;
-import magma.result.Result;
+import magma.api.list.ListLike;
+import magma.api.option.Option;
+import magma.api.result.Result;
 
 public interface PathLike {
     Result<String, IOError> readString();

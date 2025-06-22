@@ -1,6 +1,6 @@
 package magma.rule;
 
-import magma.error.ErrorSequence;
+import magma.api.error.ErrorSequence;
 
 import java.util.function.Function;
 

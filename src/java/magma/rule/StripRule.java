@@ -1,6 +1,6 @@
 package magma.rule;
 
-import magma.error.FormattedError;
+import magma.api.error.FormattedError;
 import magma.node.result.NodeResult;
 import magma.string.StringResult;
 

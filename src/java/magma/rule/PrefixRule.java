@@ -1,6 +1,6 @@
 package magma.rule;
 
-import magma.error.ErrorSequence;
+import magma.api.error.ErrorSequence;
 import magma.factory.ResultFactory;
 import magma.node.result.NodeResult;
 import magma.string.StringResult;

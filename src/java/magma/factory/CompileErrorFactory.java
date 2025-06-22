@@ -1,9 +1,9 @@
 package magma.factory;
 
+import magma.api.error.ErrorSequence;
+import magma.api.error.FormattedError;
 import magma.error.CompileError;
 import magma.error.Context;
-import magma.error.ErrorSequence;
-import magma.error.FormattedError;
 
 public class CompileErrorFactory implements ErrorFactory<Context, FormattedError, ErrorSequence<FormattedError>> {
     @Override
