@@ -78,9 +78,17 @@ public class Main {
             return new None<>();
 
         final var child = withoutPrefix.substring(separator + ".".length());
+        return Main.getRecord(new MapNode().withString("source", name)
+                .withString("destination", child));
+    }
+
+    private static Option<String> getRecord(final MapNode mapNode) {
         if (!ListLike.of("Function", "Supplier")
-                .contains(child))
-            return new Some<>(name + " --> " + child + Main.SEPARATOR);
+                .contains(mapNode.findString("destination")
+                        .orElse("")))
+            return new Some<>(mapNode.findString("source")
+                    .orElse("") + " --> " + mapNode.findString("destination")
+                    .orElse("") + Main.SEPARATOR);
 
         return new None<>();
     }

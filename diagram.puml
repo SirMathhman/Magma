@@ -22,6 +22,12 @@ Main --> PathLike
 Main --> PathLikes
 Main --> Ok
 Main --> Result
+class MapNode
+MapNode --> None
+MapNode --> Option
+MapNode --> Some
+MapNode --> HashMap
+MapNode --> Map
 class None
 None --> Consumer
 class Option
