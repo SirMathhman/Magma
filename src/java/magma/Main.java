@@ -19,7 +19,7 @@ public class Main {
     public static void main(final String[] args) {
         PathLikes.get(".", "src", "java")
                 .walk()
-                .match(Main::runWithFiles, value -> new Some<IOError>(value))
+                .match(Main::runWithFiles, Some::new)
                 .ifPresent(error -> System.err.println(error.display()));
     }
 
@@ -30,7 +30,7 @@ public class Main {
                 .toList();
 
         return Main.compileAll(sources)
-                .match(Main::writeTarget, value -> new Some<IOError>(value));
+                .match(Main::writeTarget, Some::new);
     }
 
     private static Option<IOError> writeTarget(final String compiled) {
@@ -70,18 +70,18 @@ public class Main {
     private static Option<String> compileRootSegment(final String input, final String name) {
         final var strip = input.strip();
         if (!strip.startsWith("import "))
-            return new None<String>();
+            return new None<>();
 
         final var withoutPrefix = strip.substring("import ".length());
         final var separator = withoutPrefix.lastIndexOf('.');
         if (0 > separator)
-            return new None<String>();
+            return new None<>();
 
         final var child = withoutPrefix.substring(separator + ".".length());
         if (!ListLike.of("Function", "Supplier")
                 .contains(child))
-            return new Some<String>(name + " --> " + child + Main.SEPARATOR);
+            return new Some<>(name + " --> " + child + Main.SEPARATOR);
 
-        return new None<String>();
+        return new None<>();
     }
 }

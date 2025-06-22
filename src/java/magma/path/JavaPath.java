@@ -30,9 +30,9 @@ record JavaPath(Path path) implements PathLike {
     public Option<IOError> writeString(final CharSequence output) {
         try {
             Files.writeString(this.path, output);
-            return new None<IOError>();
+            return new None<>();
         } catch (final IOException e) {
-            return new Some<IOError>(new JavaIOError(e));
+            return new Some<>(new JavaIOError(e));
         }
     }
 
