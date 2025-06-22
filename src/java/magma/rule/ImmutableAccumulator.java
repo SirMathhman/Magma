@@ -1,6 +1,7 @@
 package magma.rule;
 
 import magma.error.ErrorList;
+import magma.error.ErrorSequence;
 import magma.error.ImmutableErrorList;
 import magma.option.None;
 import magma.option.Option;
@@ -32,7 +33,7 @@ final class ImmutableAccumulator<Value, Error> implements Accumulator<Value, Err
     }
 
     @Override
-    public <Return> Return match(final Function<Value, Return> whenPresent, final Function<ErrorList<Error>, Return> whenErr) {
+    public <Return> Return match(final Function<Value, Return> whenPresent, final Function<ErrorSequence<Error>, Return> whenErr) {
         return this.maybeValue.map(whenPresent)
                 .orElseGet(() -> whenErr.apply(this.errors));
     }

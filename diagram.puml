@@ -14,7 +14,6 @@ PathLike --> Option
 PathLike --> Result
 class CompileErrorResultFactory
 CompileErrorResultFactory --> Context
-CompileErrorResultFactory --> ErrorList
 CompileErrorResultFactory --> DisplayNode
 CompileErrorResultFactory --> NodeErr
 CompileErrorResultFactory --> NodeOk
@@ -23,6 +22,7 @@ CompileErrorResultFactory --> StringErr
 CompileErrorResultFactory --> StringOk
 CompileErrorResultFactory --> StringResult
 class PrefixRule
+PrefixRule --> ErrorSequence
 PrefixRule --> ResultFactory
 PrefixRule --> NodeResult
 PrefixRule --> StringResult
@@ -33,10 +33,11 @@ SimpleContextFactory --> StringContext
 SimpleContextFactory --> DisplayNode
 class NodeErr
 class InfixRule
+InfixRule --> ErrorSequence
 InfixRule --> ResultFactory
 InfixRule --> Appending
 class OrRule
-OrRule --> ErrorList
+OrRule --> ErrorSequence
 OrRule --> ResultFactory
 OrRule --> ListLike
 OrRule --> DisplayNode
@@ -51,6 +52,7 @@ class StripRule
 StripRule --> FormattedError
 StripRule --> NodeResult
 StripRule --> StringResult
+class ErrorSequence
 class JavaList
 JavaList --> ArrayList
 JavaList --> List
@@ -83,8 +85,9 @@ class Rule
 class StringResult
 StringResult --> Matching
 class Accumulator
-Accumulator --> ErrorList
+Accumulator --> ErrorSequence
 class StringRule
+StringRule --> ErrorSequence
 StringRule --> FormattedError
 StringRule --> ResultFactory
 StringRule --> NodeFactory
@@ -105,7 +108,7 @@ class DisplayNode
 class CompileErrorFactory
 CompileErrorFactory --> CompileError
 CompileErrorFactory --> Context
-CompileErrorFactory --> ErrorList
+CompileErrorFactory --> ErrorSequence
 CompileErrorFactory --> FormattedError
 class NodeResult
 class ApplicationError
@@ -113,6 +116,7 @@ class StringNode
 StringNode --> Option
 class ImmutableAccumulator
 ImmutableAccumulator --> ErrorList
+ImmutableAccumulator --> ErrorSequence
 ImmutableAccumulator --> ImmutableErrorList
 ImmutableAccumulator --> None
 ImmutableAccumulator --> Option
@@ -125,7 +129,6 @@ class Error
 class MutableDivideState
 MutableDivideState --> ListLike
 class ResultFactory
-ResultFactory --> ErrorList
 class ContextFactory
 ContextFactory --> Context
 ContextFactory --> DisplayNode
@@ -135,6 +138,7 @@ class ListLikes
 ListLikes --> ArrayList
 ListLikes --> Arrays
 class SuffixRule
+SuffixRule --> ErrorSequence
 SuffixRule --> ResultFactory
 SuffixRule --> NodeResult
 SuffixRule --> Appending
@@ -148,6 +152,7 @@ class Main
 Main --> DivideState
 Main --> MutableDivideState
 Main --> ApplicationError
+Main --> ErrorSequence
 Main --> FormattedError
 Main --> IOError
 Main --> CompileErrorFactory

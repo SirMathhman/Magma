@@ -3,7 +3,7 @@ package magma;
 import magma.divide.DivideState;
 import magma.divide.MutableDivideState;
 import magma.error.ApplicationError;
-import magma.error.ErrorList;
+import magma.error.ErrorSequence;
 import magma.error.FormattedError;
 import magma.error.IOError;
 import magma.factory.CompileErrorFactory;
@@ -42,7 +42,7 @@ import java.util.Map;
 class Main {
     private static final String SEPARATOR = System.lineSeparator();
     private static final MapNodeFactory mapNodeFactory = new MapNodeFactory();
-    private static final CompileErrorResultFactory<EverythingNode, FormattedError, ErrorList<FormattedError>> resultFactory = new CompileErrorResultFactory<>(
+    private static final CompileErrorResultFactory<EverythingNode, FormattedError, ErrorSequence<FormattedError>> resultFactory = new CompileErrorResultFactory<>(
             new SimpleContextFactory<>(),
             new CompileErrorFactory());
 
@@ -201,20 +201,23 @@ class Main {
 
     private static Rule<EverythingNode, NodeResult<EverythingNode, FormattedError>, StringResult<FormattedError>> createStructureRule(final String infix) {
         return new InfixRule<>(new StringRule<>("before-keyword", Main.mapNodeFactory, Main.resultFactory),
-                infix, new StringRule<>("after-keyword", Main.mapNodeFactory, Main.resultFactory), Main.resultFactory);
+                infix,
+                new StringRule<>("after-keyword", Main.mapNodeFactory, Main.resultFactory),
+                Main.resultFactory);
     }
 
     private static Rule<EverythingNode, NodeResult<EverythingNode, FormattedError>, StringResult<FormattedError>> createImportRule(final String type) {
         final var destination = new StringRule<>("destination", Main.mapNodeFactory, Main.resultFactory);
         final var withParent = new InfixRule<>(new StringRule<>("parent", Main.mapNodeFactory, Main.resultFactory),
-                ".", destination, Main.resultFactory);
+                ".",
+                destination,
+                Main.resultFactory);
         final var parent = new OrRule<>(ListLikes.of(withParent,
                 new StringRule<>("value", Main.mapNodeFactory, Main.resultFactory)), Main.resultFactory);
 
         return new TypeRule<>(type,
                 new StripRule<>(new PrefixRule<>(type + " ",
-                        new SuffixRule<>(parent, ";", Main.resultFactory),
-                        Main.resultFactory)), Main.resultFactory);
+                        new SuffixRule<>(parent, ";", Main.resultFactory), Main.resultFactory)), Main.resultFactory);
     }
 
     private static boolean isFunctionalInterface(final String destination) {

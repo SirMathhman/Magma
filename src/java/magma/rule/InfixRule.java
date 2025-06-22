@@ -1,6 +1,6 @@
 package magma.rule;
 
-import magma.error.ErrorList;
+import magma.error.ErrorSequence;
 import magma.factory.ResultFactory;
 import magma.string.Appending;
 
@@ -8,9 +8,9 @@ public final class InfixRule<Node, Error, NodeResult, StringResult extends Appen
     private final Rule<Node, NodeResult, StringResult> leftRule;
     private final String infix;
     private final Rule<Node, NodeResult, StringResult> rightRule;
-    private final ResultFactory<Node, NodeResult, StringResult, ErrorList<Error>> factory;
+    private final ResultFactory<Node, NodeResult, StringResult, ErrorSequence<Error>> factory;
 
-    public InfixRule(final Rule<Node, NodeResult, StringResult> leftRule, final String infix, final Rule<Node, NodeResult, StringResult> rightRule, final ResultFactory<Node, NodeResult, StringResult, ErrorList<Error>> factory) {
+    public InfixRule(final Rule<Node, NodeResult, StringResult> leftRule, final String infix, final Rule<Node, NodeResult, StringResult> rightRule, final ResultFactory<Node, NodeResult, StringResult, ErrorSequence<Error>> factory) {
         this.leftRule = leftRule;
         this.infix = infix;
         this.rightRule = rightRule;

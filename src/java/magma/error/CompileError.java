@@ -1,7 +1,7 @@
 package magma.error;
 
-public record CompileError(String message, Context context,
-                           ErrorList<FormattedError> errors) implements FormattedError {
+public record CompileError(String message, Context context, ErrorSequence<FormattedError> errors) implements
+        FormattedError {
     public CompileError(final String message, final Context context) {
         this(message, context, new ImmutableErrorList<>());
     }

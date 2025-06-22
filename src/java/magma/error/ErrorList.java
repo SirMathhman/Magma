@@ -1,9 +1,5 @@
 package magma.error;
 
-import java.util.function.Function;
-
-public interface ErrorList<Error> {
-    String join(Function<Error, String> mapper);
-
+public interface ErrorList<Error> extends ErrorSequence<Error> {
     ErrorList<Error> add(Error error);
 }
