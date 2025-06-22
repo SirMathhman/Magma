@@ -1,5 +1,6 @@
 package magma;
 
+import magma.api.error.WrappedError;
 import magma.api.io.IOError;
 import magma.api.io.PathLike;
 import magma.api.io.PathLikes;
@@ -11,17 +12,16 @@ import magma.api.option.Some;
 import magma.api.result.Err;
 import magma.api.result.Ok;
 import magma.api.result.Result;
-import magma.app.ApplicationError;
 import magma.app.Lang;
-import magma.app.compile.divide.DivideState;
-import magma.app.compile.divide.MutableDivideState;
-import magma.app.compile.error.FormattedError;
-import magma.app.compile.node.EverythingNode;
-import magma.app.compile.node.result.NodeErr;
-import magma.app.compile.node.result.NodeOk;
-import magma.app.compile.string.StringErr;
-import magma.app.compile.string.StringOk;
-import magma.app.compile.string.StringResult;
+import magma.app.divide.DivideState;
+import magma.app.divide.MutableDivideState;
+import magma.app.error.FormattedError;
+import magma.app.node.EverythingNode;
+import magma.app.node.result.NodeErr;
+import magma.app.node.result.NodeOk;
+import magma.app.string.StringErr;
+import magma.app.string.StringOk;
+import magma.app.string.StringResult;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -37,7 +37,7 @@ class Main {
                 .ifPresent(error -> System.err.println(error.display()));
     }
 
-    private static Option<ApplicationError> runWithFiles(final ListLike<PathLike> files) {
+    private static Option<WrappedError> runWithFiles(final ListLike<PathLike> files) {
         final var sources = files.stream()
                 .filter(file -> file.asString()
                         .endsWith(".java"))
@@ -47,18 +47,18 @@ class Main {
                 .match(Main::writeTarget, Some::new);
     }
 
-    private static Option<ApplicationError> writeTarget(final String compiled) {
+    private static Option<WrappedError> writeTarget(final String compiled) {
         final var target = PathLikes.get(".", "diagram.puml");
         final var output = String.join(Lang.SEPARATOR, "@startuml", "skinparam linetype ortho", compiled, "@enduml");
         return target.writeString(output)
-                .map(ApplicationError::new);
+                .map(WrappedError::new);
     }
 
-    private static Result<String, ApplicationError> compileAll(final Iterable<PathLike> sources) {
+    private static Result<String, WrappedError> compileAll(final Iterable<PathLike> sources) {
         return Main.readAll(sources)
-                .mapErr(ApplicationError::new)
+                .mapErr(WrappedError::new)
                 .flatMapValue(inputs -> Main.compileEntryToResult(inputs)
-                        .mapErr(ApplicationError::new));
+                        .mapErr(WrappedError::new));
     }
 
     private static Result<String, FormattedError> compileEntryToResult(final Map<String, String> inputs) {
