@@ -1,4 +1,4 @@
-package magma.rule;
+package magma.factory;
 
 import magma.error.CompileError;
 import magma.error.NodeContext;
@@ -9,7 +9,7 @@ import magma.string.StringErr;
 import magma.string.StringOk;
 import magma.string.StringResult;
 
-public class SimpleResultFactory implements ResultFactory {
+public class SimpleResultFactory implements ResultFactory<EverythingNode> {
     @Override
     public NodeResult<EverythingNode> fromNode(final EverythingNode node) {
         return new NodeOk<>(node);

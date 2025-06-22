@@ -4,59 +4,16 @@ class CompileError
 CompileError --> ListLike
 CompileError --> ListLikes
 CompileError --> Collectors
-class Accumulator
-Accumulator --> FormattedError
-Accumulator --> ListLike
-class StringRule
-StringRule --> EverythingNode
-StringRule --> MapNode
-StringRule --> NodeResult
-StringRule --> StringResult
-class JavaIOError
-JavaIOError --> IOException
-JavaIOError --> PrintWriter
-JavaIOError --> StringWriter
-class Err
+class MapNodeFactory
 class FormattedError
-class MapNode
-MapNode --> None
-MapNode --> Option
-MapNode --> Some
-MapNode --> HashMap
-MapNode --> Map
 class Result
 class Matching
 Matching --> FormattedError
-class DisplayNode
-class SimpleResultFactory
-SimpleResultFactory --> CompileError
-SimpleResultFactory --> NodeContext
-SimpleResultFactory --> EverythingNode
-SimpleResultFactory --> MapNode
-SimpleResultFactory --> NodeOk
-SimpleResultFactory --> NodeResult
-SimpleResultFactory --> StringErr
-SimpleResultFactory --> StringOk
-SimpleResultFactory --> StringResult
-class NodeResult
 class PathLike
 PathLike --> IOError
 PathLike --> ListLike
 PathLike --> Option
 PathLike --> Result
-class ApplicationError
-class ImmutableAccumulator
-ImmutableAccumulator --> FormattedError
-ImmutableAccumulator --> ListLike
-ImmutableAccumulator --> ListLikes
-ImmutableAccumulator --> None
-ImmutableAccumulator --> Option
-ImmutableAccumulator --> Some
-class Appending
-class StringErr
-StringErr --> FormattedError
-class StringContext
-class Context
 class PrefixRule
 PrefixRule --> CompileError
 PrefixRule --> StringContext
@@ -92,13 +49,10 @@ PathLikes --> Paths
 class StripRule
 StripRule --> NodeResult
 StripRule --> StringResult
-class Error
 class JavaList
 JavaList --> ArrayList
 JavaList --> List
 JavaList --> Stream
-class MutableDivideState
-MutableDivideState --> ListLike
 class JavaPath
 JavaPath --> IOError
 JavaPath --> JavaIOError
@@ -113,18 +67,71 @@ JavaPath --> Result
 JavaPath --> IOException
 JavaPath --> Files
 JavaPath --> Path
-class ResultFactory
-ResultFactory --> EverythingNode
-ResultFactory --> MapNode
-ResultFactory --> NodeResult
-ResultFactory --> StringResult
 class DivideState
 DivideState --> ListLike
-class TypedNode
 class Some
 Some --> Predicate
 class EverythingNode
 EverythingNode --> Option
+class NodeFactory
+class StringOk
+StringOk --> FormattedError
+class Option
+Option --> Predicate
+class Rule
+class StringResult
+StringResult --> Matching
+class Accumulator
+Accumulator --> FormattedError
+Accumulator --> ListLike
+class StringRule
+StringRule --> EverythingNode
+StringRule --> NodeFactory
+StringRule --> NodeResult
+StringRule --> ResultFactory
+StringRule --> StringResult
+class JavaIOError
+JavaIOError --> IOException
+JavaIOError --> PrintWriter
+JavaIOError --> StringWriter
+class Err
+class MapNode
+MapNode --> None
+MapNode --> Option
+MapNode --> Some
+MapNode --> HashMap
+MapNode --> Map
+class DisplayNode
+class SimpleResultFactory
+SimpleResultFactory --> CompileError
+SimpleResultFactory --> NodeContext
+SimpleResultFactory --> EverythingNode
+SimpleResultFactory --> NodeOk
+SimpleResultFactory --> NodeResult
+SimpleResultFactory --> StringErr
+SimpleResultFactory --> StringOk
+SimpleResultFactory --> StringResult
+class NodeResult
+class ApplicationError
+class ImmutableAccumulator
+ImmutableAccumulator --> FormattedError
+ImmutableAccumulator --> ListLike
+ImmutableAccumulator --> ListLikes
+ImmutableAccumulator --> None
+ImmutableAccumulator --> Option
+ImmutableAccumulator --> Some
+class Appending
+class StringErr
+StringErr --> FormattedError
+class StringContext
+class Context
+class Error
+class MutableDivideState
+MutableDivideState --> ListLike
+class ResultFactory
+ResultFactory --> NodeResult
+ResultFactory --> StringResult
+class TypedNode
 class IOError
 class ListLikes
 ListLikes --> ArrayList
@@ -135,15 +142,8 @@ SuffixRule --> StringContext
 SuffixRule --> NodeErr
 SuffixRule --> NodeResult
 SuffixRule --> Appending
-class StringOk
-StringOk --> FormattedError
-class Option
-Option --> Predicate
 class NodeOk
 NodeOk --> FormattedError
-class Rule
-class StringResult
-StringResult --> Matching
 class Ok
 class Main
 Main --> DivideState
@@ -166,6 +166,7 @@ Main --> Err
 Main --> Ok
 Main --> Result
 Main --> InfixRule
+Main --> MapNodeFactory
 Main --> OrRule
 Main --> PrefixRule
 Main --> Rule
