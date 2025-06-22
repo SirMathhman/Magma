@@ -28,6 +28,25 @@ PrefixRule --> ErrorSequence
 PrefixRule --> ResultFactory
 PrefixRule --> NodeResult
 PrefixRule --> StringResult
+class Compiler
+Compiler --> ListLike
+Compiler --> ListLikes
+Compiler --> None
+Compiler --> Option
+Compiler --> Some
+Compiler --> Err
+Compiler --> Ok
+Compiler --> Result
+Compiler --> DivideState
+Compiler --> MutableDivideState
+Compiler --> FormattedError
+Compiler --> EverythingNode
+Compiler --> NodeErr
+Compiler --> NodeOk
+Compiler --> StringErr
+Compiler --> StringOk
+Compiler --> StringResult
+Compiler --> Map
 class SimpleContextFactory
 SimpleContextFactory --> Context
 SimpleContextFactory --> NodeContext
@@ -176,23 +195,12 @@ Main --> IOError
 Main --> PathLike
 Main --> PathLikes
 Main --> ListLike
-Main --> ListLikes
-Main --> None
 Main --> Option
 Main --> Some
-Main --> Err
 Main --> Ok
 Main --> Result
+Main --> Compiler
 Main --> Lang
-Main --> DivideState
-Main --> MutableDivideState
-Main --> FormattedError
-Main --> EverythingNode
-Main --> NodeErr
-Main --> NodeOk
-Main --> StringErr
-Main --> StringOk
-Main --> StringResult
 Main --> HashMap
 Main --> Map
 class ListLike
