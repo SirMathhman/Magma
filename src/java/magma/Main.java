@@ -99,7 +99,7 @@ class Main {
         return maybeCompiled;
     }
 
-    private static StringResult compile(final String input, final String name) {
+    private static StringResult compile(final CharSequence input, final String name) {
         var segments = ListLikes.<String>empty();
         var buffer = new StringBuilder();
         var depth = 0;
