@@ -114,6 +114,7 @@ PathTargets --> Error
 PathTargets --> WrappedError
 PathTargets --> PathLike
 PathTargets --> Option
+class ParentNodeResultFactory
 class Some
 Some --> Predicate
 class ErrorList
@@ -235,7 +236,7 @@ class ListLikes
 ListLikes --> ArrayList
 ListLikes --> Arrays
 class SuffixRule
-SuffixRule --> NodeResultFactory
+SuffixRule --> ParentNodeResultFactory
 SuffixRule --> Appending
 class ImmutableErrorList
 ImmutableErrorList --> ListLike

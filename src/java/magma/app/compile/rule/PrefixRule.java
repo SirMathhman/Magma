@@ -3,7 +3,7 @@ package magma.app.compile.rule;
 import magma.app.compile.factory.NodeResultFactory;
 import magma.app.compile.string.Prepending;
 
-public final class PrefixRule<Node, NodeResult, StringResult extends Prepending<StringResult>, Factory extends NodeResultFactory<Node, NodeResult, ?>> implements
+public final class PrefixRule<Node, NodeResult, StringResult extends Prepending<StringResult>, Factory extends NodeResultFactory<Node, NodeResult>> implements
         Rule<Node, NodeResult, StringResult> {
     private final String prefix;
     private final Rule<Node, NodeResult, StringResult> rule;

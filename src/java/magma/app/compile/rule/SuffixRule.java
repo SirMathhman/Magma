@@ -1,9 +1,9 @@
 package magma.app.compile.rule;
 
-import magma.app.compile.factory.NodeResultFactory;
+import magma.app.compile.factory.ParentNodeResultFactory;
 import magma.app.compile.string.Appending;
 
-public record SuffixRule<Node, StringResult extends Appending<StringResult>, NodeResult, Factory extends NodeResultFactory<Node, NodeResult, ?>>(
+public record SuffixRule<Node, StringResult extends Appending<StringResult>, NodeResult, Factory extends ParentNodeResultFactory<Node, NodeResult, ?>>(
         Rule<Node, NodeResult, StringResult> rule, String suffix,
         Factory factory) implements Rule<Node, NodeResult, StringResult> {
     @Override
