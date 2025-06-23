@@ -51,6 +51,8 @@ public class Main {
         Optional<List<Node>> findNodeList(String key);
 
         String display();
+
+        Stream<Map.Entry<String, List<Node>>> streamNodeLists();
     }
 
     private interface Rule {
@@ -193,6 +195,11 @@ public class Main {
         }
 
         @Override
+        public String toString() {
+            return display();
+        }
+
+        @Override
         public Node withString(final String key, final String value) {
             strings.put(key, value);
             return this;
@@ -205,9 +212,14 @@ public class Main {
 
         @Override
         public Node merge(final Node other) {
-            return other.streamStrings()
+            final var withStrings = other.streamStrings()
                     .<Node>reduce(this,
                             (node, entry) -> node.withString(entry.getKey(), entry.getValue()),
+                            (_, next) -> next);
+
+            return other.streamNodeLists()
+                    .reduce(withStrings,
+                            (node, entry) -> node.withNodeList(entry.getKey(), entry.getValue()),
                             (_, next) -> next);
         }
 
@@ -219,7 +231,7 @@ public class Main {
 
         @Override
         public Node retype(final String type) {
-            return new MapNode(Optional.of(type), strings, new HashMap<>());
+            return new MapNode(Optional.of(type), strings, nodeLists);
         }
 
         @Override
@@ -242,6 +254,12 @@ public class Main {
         @Override
         public String display() {
             return maybeType.toString() + strings.toString() + nodeLists.toString();
+        }
+
+        @Override
+        public Stream<Map.Entry<String, List<Node>>> streamNodeLists() {
+            return nodeLists.entrySet()
+                    .stream();
         }
     }
 
@@ -275,10 +293,10 @@ public class Main {
                 return new Err<>(new CompileError("Infix '" + infix + "' not present", new StringContext(input)));
 
             final var beforeContent = input.substring(0, index);
-            final var leftResult = leftRule().lex(beforeContent);
+            final var leftResult = leftRule.lex(beforeContent);
 
             final var content = input.substring(index + infix().length());
-            final var rightResult = rightRule().lex(content);
+            final var rightResult = rightRule.lex(content);
 
             return leftResult.flatMapValue(leftValue -> rightResult.mapValue(leftValue::merge));
         }
@@ -433,7 +451,8 @@ public class Main {
 
         @Override
         public Result<Node, FormatError> lex(final String input) {
-            return DivideRule.reduce(DivideRule.divide(input), new ArrayList<Node>(), rule::lex, (nodes, node) -> {
+            final var divisions = DivideRule.divide(input);
+            return DivideRule.reduce(divisions, new ArrayList<Node>(), rule::lex, (nodes, node) -> {
                         nodes.add(node);
                         return nodes;
                     })
@@ -624,6 +643,6 @@ public class Main {
     }
 
     private static Rule createStructureMemberRule() {
-        return new OrRule(List.of(new StringRule("placeholder")));
+        return new OrRule(List.of(new PlaceholderRule(new StringRule("placeholder"))));
     }
 }
