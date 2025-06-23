@@ -228,6 +228,25 @@
         }
     }
 
+    private record OrRule(List<Rule> rules) implements Rule {
+        @Override
+        public Optional<String> generate(final Node node) {
+            return apply(rule -> rule.generate(node));
+        }
+
+        private <T> Optional<T> apply(final Function<Rule, Optional<T>> mapper) {
+            return rules.stream()
+                    .map(mapper)
+                    .flatMap(Optional::stream)
+                    .findFirst();
+        }
+
+        @Override
+        public Optional<Node> lex(final String input) {
+            return apply(rule -> rule.lex(input));
+        }
+    }
+
     private Main() {
     }
 
@@ -259,23 +278,19 @@
         if (stripped.startsWith("package ") || stripped.startsWith("import "))
             return "";
 
-        return Main.createStructureRule()
-                .lex(stripped)
+        return new OrRule(List.of(Main.createStructureRule())).lex(stripped)
                 .flatMap(node -> {
-                    return Main.createBlockRule()
+                    return Main.createStructureRule()
                             .generate(node);
                 })
                 .orElseGet(() -> Main.generatePlaceholder(stripped));
     }
 
-    private static Rule createBlockRule() {
-        return new SuffixRule(new InfixRule(new PlaceholderRule(new StringRule("before-children")),
-                "{",
-                new PlaceholderRule(new StringRule("children"))), "}");
-    }
-
     private static Rule createStructureRule() {
-        return new TypeRule("structure", new StripRule(Main.createBlockRule()));
+        return new TypeRule("structure",
+                new StripRule(new SuffixRule(new InfixRule(new PlaceholderRule(new StringRule("before-children")),
+                        "{",
+                        new PlaceholderRule(new StringRule("children"))), "}")));
     }
 
     private static Collection<String> divide(final CharSequence input) {

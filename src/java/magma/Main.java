@@ -7,8 +7,10 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.function.Function;
 import java.util.stream.Stream;
 
 public class Main {
@@ -241,6 +243,25 @@ public class Main {
         }
     }
 
+    private record OrRule(List<Rule> rules) implements Rule {
+        @Override
+        public Optional<String> generate(final Node node) {
+            return apply(rule -> rule.generate(node));
+        }
+
+        private <T> Optional<T> apply(final Function<Rule, Optional<T>> mapper) {
+            return rules.stream()
+                    .map(mapper)
+                    .flatMap(Optional::stream)
+                    .findFirst();
+        }
+
+        @Override
+        public Optional<Node> lex(final String input) {
+            return apply(rule -> rule.lex(input));
+        }
+    }
+
     private Main() {
     }
 
@@ -272,8 +293,7 @@ public class Main {
         if (stripped.startsWith("package ") || stripped.startsWith("import "))
             return "";
 
-        return Main.createStructureRule()
-                .lex(stripped)
+        return new OrRule(List.of(Main.createStructureRule())).lex(stripped)
                 .flatMap(node -> {
                     return Main.createStructureRule()
                             .generate(node);
