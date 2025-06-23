@@ -6,6 +6,8 @@ CompileError --> ImmutableErrorList
 CompileError --> Context
 class ErrorFactory
 class MapNodeFactory
+MapNodeFactory --> CompoundNode
+MapNodeFactory --> NodeFactory
 class FormattedError
 FormattedError --> Error
 class Mapping
@@ -18,14 +20,6 @@ class PathLike
 PathLike --> ListLike
 PathLike --> Option
 PathLike --> Result
-class CompileErrorResultFactory
-CompileErrorResultFactory --> Context
-CompileErrorResultFactory --> NodeErr
-CompileErrorResultFactory --> NodeOk
-CompileErrorResultFactory --> NodeResult
-CompileErrorResultFactory --> StringErr
-CompileErrorResultFactory --> StringOk
-CompileErrorResultFactory --> StringResult
 class PrefixRule
 PrefixRule --> NodeResultFactory
 PrefixRule --> Prepending
@@ -34,11 +28,7 @@ class Compiler
 Compiler --> Result
 Compiler --> FormattedError
 Compiler --> Map
-class ParentStringResultFactory
 class SimpleContextFactory
-SimpleContextFactory --> Context
-SimpleContextFactory --> NodeContext
-SimpleContextFactory --> StringContext
 SimpleContextFactory --> DisplayNode
 class NodeErr
 class InfixRule
@@ -53,6 +43,7 @@ OrRule --> ParentNodeResultFactory
 OrRule --> ParentStringResultFactory
 OrRule --> DisplayNode
 OrRule --> Matching
+class ParentStringResultFactory
 class NodeContext
 NodeContext --> DisplayNode
 class PlantUMLJavaLang
@@ -77,13 +68,13 @@ JavaList --> Stream
 class Lang
 Lang --> ErrorSequence
 Lang --> ListLike
+Lang --> ImmutableAccumulatorFactory
 Lang --> ResultFactory
 Lang --> DisplayNode
 Lang --> NodeFactory
 Lang --> StringNode
 Lang --> TypedNode
 Lang --> NodeResult
-Lang --> ImmutableAccumulatorFactory
 Lang --> InfixRule
 Lang --> OrRule
 Lang --> PrefixRule
@@ -116,11 +107,19 @@ PathTargets --> Error
 PathTargets --> WrappedError
 PathTargets --> PathLike
 PathTargets --> Option
+class ContextErrorResultFactory
+ContextErrorResultFactory --> ErrorFactory
+ContextErrorResultFactory --> ResultFactory
+ContextErrorResultFactory --> NodeErr
+ContextErrorResultFactory --> NodeOk
+ContextErrorResultFactory --> NodeResult
+ContextErrorResultFactory --> StringErr
+ContextErrorResultFactory --> StringOk
+ContextErrorResultFactory --> StringResult
 class ParentNodeResultFactory
 class Some
 Some --> Predicate
 class ErrorList
-class EverythingNode
 class NodeFactory
 class StringOk
 class NodeResultFactory
@@ -148,6 +147,7 @@ class MapNode
 MapNode --> None
 MapNode --> Option
 MapNode --> Some
+MapNode --> CompoundNode
 MapNode --> HashMap
 MapNode --> Map
 class PathSources
@@ -165,8 +165,6 @@ class DisplayNode
 class CompileErrorFactory
 CompileErrorFactory --> ErrorSequence
 CompileErrorFactory --> Context
-CompileErrorFactory --> CompileError
-CompileErrorFactory --> FormattedError
 class NodeResult
 class StringNode
 StringNode --> Option
@@ -190,7 +188,7 @@ RuleCompiler --> Result
 RuleCompiler --> Divide
 RuleCompiler --> FormattedError
 RuleCompiler --> RuleFactory
-RuleCompiler --> EverythingNode
+RuleCompiler --> CompoundNode
 RuleCompiler --> NodeErr
 RuleCompiler --> NodeOk
 RuleCompiler --> NodeResult
@@ -210,6 +208,8 @@ Targets --> Option
 class MutableDivideState
 MutableDivideState --> ListLike
 class ResultFactory
+ResultFactory --> ParentNodeResultFactory
+ResultFactory --> ParentStringResultFactory
 class CompileApplication
 CompileApplication --> Error
 CompileApplication --> WrappedError
@@ -220,7 +220,6 @@ CompileApplication --> Sources
 CompileApplication --> Targets
 CompileApplication --> Map
 class ContextFactory
-ContextFactory --> Context
 class TypedNode
 class ImmutableAccumulatorFactory
 ImmutableAccumulatorFactory --> ErrorSequence
@@ -233,6 +232,7 @@ class SuffixRule
 SuffixRule --> ParentNodeResultFactory
 SuffixRule --> Appending
 class AccumulatorFactory
+class CompoundNode
 class ImmutableErrorList
 ImmutableErrorList --> ListLike
 ImmutableErrorList --> ListLikes
@@ -262,13 +262,13 @@ Main --> RuleCompiler
 Main --> Context
 Main --> FormattedError
 Main --> CompileErrorFactory
-Main --> CompileErrorResultFactory
+Main --> ContextErrorResultFactory
 Main --> ErrorFactory
 Main --> ResultFactory
 Main --> SimpleContextFactory
 Main --> JavaLang
 Main --> PlantUMLJavaLang
-Main --> EverythingNode
+Main --> CompoundNode
 Main --> MapNodeFactory
 Main --> NodeFactory
 Main --> NodeResult

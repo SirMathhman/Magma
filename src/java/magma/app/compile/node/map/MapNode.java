@@ -1,13 +1,14 @@
-package magma.app.compile.node;
+package magma.app.compile.node.map;
 
 import magma.api.option.None;
 import magma.api.option.Option;
 import magma.api.option.Some;
+import magma.app.compile.node.property.CompoundNode;
 
 import java.util.HashMap;
 import java.util.Map;
 
-public final class MapNode implements EverythingNode {
+public final class MapNode implements CompoundNode {
     private final Option<String> maybeType;
     private final Map<String, String> strings;
 
@@ -21,7 +22,7 @@ public final class MapNode implements EverythingNode {
     }
 
     @Override
-    public EverythingNode withString(final String key, final String value) {
+    public CompoundNode withString(final String key, final String value) {
         strings.put(key, value);
         return this;
     }
@@ -41,7 +42,7 @@ public final class MapNode implements EverythingNode {
     }
 
     @Override
-    public EverythingNode retype(final String type) {
+    public CompoundNode retype(final String type) {
         return new MapNode(new Some<>(type), strings);
     }
 

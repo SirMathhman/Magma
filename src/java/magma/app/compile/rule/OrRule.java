@@ -3,10 +3,10 @@ package magma.app.compile.rule;
 import magma.api.list.ListLike;
 import magma.app.compile.accumulate.Accumulator;
 import magma.app.compile.accumulate.AccumulatorFactory;
-import magma.app.compile.factory.ParentNodeResultFactory;
-import magma.app.compile.factory.ParentStringResultFactory;
-import magma.app.compile.node.DisplayNode;
+import magma.app.compile.node.factory.ParentNodeResultFactory;
+import magma.app.compile.node.property.DisplayNode;
 import magma.app.compile.node.result.Matching;
+import magma.app.compile.string.ParentStringResultFactory;
 
 import java.util.function.Function;
 

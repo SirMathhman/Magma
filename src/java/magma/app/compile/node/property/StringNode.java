@@ -1,4 +1,4 @@
-package magma.app.compile.node;
+package magma.app.compile.node.property;
 
 import magma.api.option.Option;
 

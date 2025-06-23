@@ -1,4 +1,4 @@
-package magma.app.compile.factory;
+package magma.app.compile.error;
 
 public interface ErrorFactory<Context, Error, ErrorList> {
     Error createError(String message, Context context);

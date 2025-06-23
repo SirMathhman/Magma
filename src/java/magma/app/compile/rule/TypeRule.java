@@ -1,9 +1,9 @@
 package magma.app.compile.rule;
 
-import magma.app.compile.factory.ParentStringResultFactory;
-import magma.app.compile.node.DisplayNode;
-import magma.app.compile.node.TypedNode;
+import magma.app.compile.node.property.DisplayNode;
+import magma.app.compile.node.property.TypedNode;
 import magma.app.compile.node.result.Mapping;
+import magma.app.compile.string.ParentStringResultFactory;
 
 public final class TypeRule<Node extends TypedNode<Node> & DisplayNode, Error, NodeResult extends Mapping<Node, NodeResult>, StringResult, Factory extends ParentStringResultFactory<Node, StringResult, Error>> implements
         Rule<Node, NodeResult, StringResult> {

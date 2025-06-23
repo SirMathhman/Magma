@@ -1,4 +1,4 @@
-package magma.app.compile.factory;
+package magma.app.compile.node.factory;
 
 public interface NodeResultFactory<Node, NodeResult> {
     NodeResult fromNode(Node node);

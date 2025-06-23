@@ -1,6 +1,7 @@
-package magma.app.compile.factory;
+package magma.app.compile.context;
 
-import magma.app.compile.context.Context;
+import magma.app.compile.error.ErrorFactory;
+import magma.app.compile.factory.ResultFactory;
 import magma.app.compile.node.result.NodeErr;
 import magma.app.compile.node.result.NodeOk;
 import magma.app.compile.node.result.NodeResult;
@@ -8,11 +9,11 @@ import magma.app.compile.string.StringErr;
 import magma.app.compile.string.StringOk;
 import magma.app.compile.string.StringResult;
 
-public class CompileErrorResultFactory<Node, FormattedError, ErrorList> implements ResultFactory<Node, NodeResult<Node, FormattedError>, StringResult<FormattedError>, ErrorList> {
+public class ContextErrorResultFactory<Node, FormattedError, ErrorList> implements ResultFactory<Node, NodeResult<Node, FormattedError>, StringResult<FormattedError>, ErrorList> {
     private final ContextFactory<Node> contextFactory;
     private final ErrorFactory<Context, FormattedError, ErrorList> errorFactory;
 
-    public CompileErrorResultFactory(final ContextFactory<Node> contextFactory, final ErrorFactory<Context, FormattedError, ErrorList> errorFactory) {
+    public ContextErrorResultFactory(final ContextFactory<Node> contextFactory, final ErrorFactory<Context, FormattedError, ErrorList> errorFactory) {
         this.contextFactory = contextFactory;
         this.errorFactory = errorFactory;
     }

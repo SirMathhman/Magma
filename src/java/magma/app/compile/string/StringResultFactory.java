@@ -1,4 +1,4 @@
-package magma.app.compile.factory;
+package magma.app.compile.string;
 
 public interface StringResultFactory<Node, StringResult> {
     StringResult fromString(String value);

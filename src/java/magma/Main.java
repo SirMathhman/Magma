@@ -7,17 +7,17 @@ import magma.app.CompileApplication;
 import magma.app.compile.Compiler;
 import magma.app.compile.RuleCompiler;
 import magma.app.compile.context.Context;
+import magma.app.compile.context.ContextErrorResultFactory;
+import magma.app.compile.context.SimpleContextFactory;
+import magma.app.compile.error.CompileErrorFactory;
+import magma.app.compile.error.ErrorFactory;
 import magma.app.compile.error.FormattedError;
-import magma.app.compile.factory.CompileErrorFactory;
-import magma.app.compile.factory.CompileErrorResultFactory;
-import magma.app.compile.factory.ErrorFactory;
 import magma.app.compile.factory.ResultFactory;
-import magma.app.compile.factory.SimpleContextFactory;
 import magma.app.compile.lang.JavaLang;
 import magma.app.compile.lang.PlantUMLJavaLang;
-import magma.app.compile.node.EverythingNode;
-import magma.app.compile.node.MapNodeFactory;
-import magma.app.compile.node.NodeFactory;
+import magma.app.compile.node.map.MapNodeFactory;
+import magma.app.compile.node.property.CompoundNode;
+import magma.app.compile.node.property.NodeFactory;
 import magma.app.compile.node.result.NodeResult;
 import magma.app.compile.string.StringResult;
 import magma.app.io.sources.PathSources;
@@ -44,9 +44,9 @@ class Main {
     }
 
     private static Compiler createCompiler() {
-        final NodeFactory<EverythingNode> nodeFactory = new MapNodeFactory();
+        final NodeFactory<CompoundNode> nodeFactory = new MapNodeFactory();
         final ErrorFactory<Context, FormattedError, ErrorSequence<FormattedError>> errorFactory = new CompileErrorFactory();
-        final ResultFactory<EverythingNode, NodeResult<EverythingNode, FormattedError>, StringResult<FormattedError>, ErrorSequence<FormattedError>> resultsFactory = new CompileErrorResultFactory<>(
+        final ResultFactory<CompoundNode, NodeResult<CompoundNode, FormattedError>, StringResult<FormattedError>, ErrorSequence<FormattedError>> resultsFactory = new ContextErrorResultFactory<>(
                 new SimpleContextFactory<>(),
                 errorFactory);
 

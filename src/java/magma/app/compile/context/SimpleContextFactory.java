@@ -1,9 +1,6 @@
-package magma.app.compile.factory;
+package magma.app.compile.context;
 
-import magma.app.compile.context.Context;
-import magma.app.compile.context.NodeContext;
-import magma.app.compile.context.StringContext;
-import magma.app.compile.node.DisplayNode;
+import magma.app.compile.node.property.DisplayNode;
 
 public class SimpleContextFactory<Node extends DisplayNode> implements ContextFactory<Node> {
     @Override

@@ -10,7 +10,7 @@ import magma.api.result.Result;
 import magma.app.compile.divide.Divide;
 import magma.app.compile.error.FormattedError;
 import magma.app.compile.lang.RuleFactory;
-import magma.app.compile.node.EverythingNode;
+import magma.app.compile.node.property.CompoundNode;
 import magma.app.compile.node.result.NodeErr;
 import magma.app.compile.node.result.NodeOk;
 import magma.app.compile.node.result.NodeResult;
@@ -22,10 +22,10 @@ import magma.app.compile.string.StringResult;
 import java.util.Map;
 
 public class RuleCompiler implements Compiler {
-    private final RuleFactory<Rule<EverythingNode, NodeResult<EverythingNode, FormattedError>, StringResult<FormattedError>>> sourceRuleFactory;
-    private final RuleFactory<Rule<EverythingNode, NodeResult<EverythingNode, FormattedError>, StringResult<FormattedError>>> targetRuleFactory;
+    private final RuleFactory<Rule<CompoundNode, NodeResult<CompoundNode, FormattedError>, StringResult<FormattedError>>> sourceRuleFactory;
+    private final RuleFactory<Rule<CompoundNode, NodeResult<CompoundNode, FormattedError>, StringResult<FormattedError>>> targetRuleFactory;
 
-    public RuleCompiler(final RuleFactory<Rule<EverythingNode, NodeResult<EverythingNode, FormattedError>, StringResult<FormattedError>>> sourceRuleFactory, final RuleFactory<Rule<EverythingNode, NodeResult<EverythingNode, FormattedError>, StringResult<FormattedError>>> targetRuleFactory) {
+    public RuleCompiler(final RuleFactory<Rule<CompoundNode, NodeResult<CompoundNode, FormattedError>, StringResult<FormattedError>>> sourceRuleFactory, final RuleFactory<Rule<CompoundNode, NodeResult<CompoundNode, FormattedError>, StringResult<FormattedError>>> targetRuleFactory) {
         this.sourceRuleFactory = sourceRuleFactory;
         this.targetRuleFactory = targetRuleFactory;
     }
@@ -62,7 +62,7 @@ public class RuleCompiler implements Compiler {
 
         final var generated = (Result<Option<StringResult<FormattedError>>, FormattedError>) switch (tree) {
             case NodeErr(final var error1) -> new Err<>(error1);
-            case NodeOk(final EverythingNode value1) -> new Ok<>(transformAndGenerate(name, value1));
+            case NodeOk(final CompoundNode value1) -> new Ok<>(transformAndGenerate(name, value1));
         };
 
         return switch (generated) {
@@ -72,7 +72,7 @@ public class RuleCompiler implements Compiler {
         };
     }
 
-    private Option<StringResult<FormattedError>> transformAndGenerate(final String name, final EverythingNode destination) {
+    private Option<StringResult<FormattedError>> transformAndGenerate(final String name, final CompoundNode destination) {
         final var node = destination.withString("source", name);
         final var destination1 = node.findString("destination")
                 .orElse("");
@@ -86,7 +86,7 @@ public class RuleCompiler implements Compiler {
             return new None<>();
     }
 
-    private StringResult<FormattedError> generate(final EverythingNode node) {
+    private StringResult<FormattedError> generate(final CompoundNode node) {
         return targetRuleFactory.create()
                 .generate(node);
     }

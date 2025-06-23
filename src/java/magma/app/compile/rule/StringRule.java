@@ -1,8 +1,8 @@
 package magma.app.compile.rule;
 
 import magma.app.compile.factory.ResultFactory;
-import magma.app.compile.node.NodeFactory;
-import magma.app.compile.node.StringNode;
+import magma.app.compile.node.property.NodeFactory;
+import magma.app.compile.node.property.StringNode;
 import magma.app.compile.node.result.Mapping;
 
 public final class StringRule<Node extends StringNode<Node>, NodeResult extends Mapping<Node, NodeResult>, ErrorSequence, StringResult> implements
