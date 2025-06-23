@@ -34,6 +34,6 @@ public class JavaLang<Node extends DisplayNode & StringNode<Node> & TypedNode<No
         final var destination = String("destination");
         final var withParent = Infix(destination, ".", String("parent"));
         final var parent = Or(ListLikes.of(withParent, String("value")));
-        return Type("import", Strip(Prefix(type, Suffix(parent, ";"))));
+        return Type(type, Strip(Prefix(type, Suffix(parent, ";"))));
     }
 }

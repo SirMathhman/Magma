@@ -4,14 +4,14 @@ import magma.app.compile.factory.ResultFactory;
 import magma.app.compile.node.DisplayNode;
 import magma.app.compile.node.TypedNode;
 import magma.app.compile.node.result.NodeResult;
-import magma.app.compile.string.StringResult;
 
-public final class TypeRule<Node extends TypedNode<Node> & DisplayNode, Error, ErrorSequence> implements Rule<Node, NodeResult<Node, Error>, StringResult<Error>> {
+public final class TypeRule<Node extends TypedNode<Node> & DisplayNode, Error, ErrorSequence, StringResult> implements
+        Rule<Node, NodeResult<Node, Error>, StringResult> {
     private final String type;
-    private final Rule<Node, NodeResult<Node, Error>, StringResult<Error>> rule;
-    private final ResultFactory<Node, NodeResult<Node, Error>, StringResult<Error>, ErrorSequence> factory;
+    private final Rule<Node, NodeResult<Node, Error>, StringResult> rule;
+    private final ResultFactory<Node, NodeResult<Node, Error>, StringResult, ErrorSequence> factory;
 
-    public TypeRule(final String type, final Rule<Node, NodeResult<Node, Error>, StringResult<Error>> rule, final ResultFactory<Node, NodeResult<Node, Error>, StringResult<Error>, ErrorSequence> factory) {
+    public TypeRule(final String type, final Rule<Node, NodeResult<Node, Error>, StringResult> rule, final ResultFactory<Node, NodeResult<Node, Error>, StringResult, ErrorSequence> factory) {
         this.type = type;
         this.rule = rule;
         this.factory = factory;
@@ -24,7 +24,7 @@ public final class TypeRule<Node extends TypedNode<Node> & DisplayNode, Error, E
     }
 
     @Override
-    public StringResult<Error> generate(final Node node) {
+    public StringResult generate(final Node node) {
         if (node.is(type))
             return rule.generate(node);
 

@@ -55,6 +55,17 @@ OrRule --> NodeResult
 OrRule --> StringResult
 class NodeContext
 NodeContext --> DisplayNode
+class PlantUMLJavaLang
+PlantUMLJavaLang --> ErrorSequence
+PlantUMLJavaLang --> ListLikes
+PlantUMLJavaLang --> ResultFactory
+PlantUMLJavaLang --> DisplayNode
+PlantUMLJavaLang --> NodeFactory
+PlantUMLJavaLang --> StringNode
+PlantUMLJavaLang --> TypedNode
+PlantUMLJavaLang --> NodeResult
+PlantUMLJavaLang --> Rule
+PlantUMLJavaLang --> StringResult
 class PathLikes
 PathLikes --> Paths
 class StripRule
@@ -67,7 +78,7 @@ JavaList --> List
 JavaList --> Stream
 class Lang
 Lang --> ErrorSequence
-Lang --> ListLikes
+Lang --> ListLike
 Lang --> ResultFactory
 Lang --> DisplayNode
 Lang --> NodeFactory
@@ -168,6 +179,7 @@ ImmutableAccumulator --> Option
 ImmutableAccumulator --> Some
 class Appending
 class RuleCompiler
+RuleCompiler --> ErrorSequence
 RuleCompiler --> ListLikes
 RuleCompiler --> None
 RuleCompiler --> Option
@@ -179,12 +191,17 @@ RuleCompiler --> Divide
 RuleCompiler --> FormattedError
 RuleCompiler --> CompileErrorFactory
 RuleCompiler --> CompileErrorResultFactory
+RuleCompiler --> ResultFactory
 RuleCompiler --> SimpleContextFactory
-RuleCompiler --> Lang
+RuleCompiler --> JavaLang
+RuleCompiler --> PlantUMLJavaLang
+RuleCompiler --> RootRule
 RuleCompiler --> EverythingNode
 RuleCompiler --> MapNodeFactory
+RuleCompiler --> NodeFactory
 RuleCompiler --> NodeErr
 RuleCompiler --> NodeOk
+RuleCompiler --> NodeResult
 RuleCompiler --> StringErr
 RuleCompiler --> StringOk
 RuleCompiler --> StringResult
@@ -220,10 +237,28 @@ class SuffixRule
 SuffixRule --> ResultFactory
 SuffixRule --> NodeResult
 SuffixRule --> Appending
+class RootRule
+RootRule --> DisplayNode
+RootRule --> StringNode
+RootRule --> TypedNode
+RootRule --> NodeResult
+RootRule --> Rule
+RootRule --> StringResult
 class ImmutableErrorList
 ImmutableErrorList --> ListLike
 ImmutableErrorList --> ListLikes
 ImmutableErrorList --> Collectors
+class JavaLang
+JavaLang --> ErrorSequence
+JavaLang --> ListLikes
+JavaLang --> ResultFactory
+JavaLang --> DisplayNode
+JavaLang --> NodeFactory
+JavaLang --> StringNode
+JavaLang --> TypedNode
+JavaLang --> NodeResult
+JavaLang --> Rule
+JavaLang --> StringResult
 class NodeOk
 class Ok
 class None
@@ -245,6 +280,5 @@ TypeRule --> ResultFactory
 TypeRule --> DisplayNode
 TypeRule --> TypedNode
 TypeRule --> NodeResult
-TypeRule --> StringResult
 
 @enduml
