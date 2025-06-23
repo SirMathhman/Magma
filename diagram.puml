@@ -102,6 +102,8 @@ PathTargets --> WrappedError
 PathTargets --> PathLike
 PathTargets --> Option
 class ContextErrorResultFactory
+ContextErrorResultFactory --> Context
+ContextErrorResultFactory --> ContextFactory
 ContextErrorResultFactory --> ErrorFactory
 ContextErrorResultFactory --> ResultFactory
 ContextErrorResultFactory --> NodeErr
@@ -230,7 +232,8 @@ SuffixRule --> Appending
 class AccumulatorFactory
 class CompilerBuilder
 CompilerBuilder --> ErrorSequence
-CompilerBuilder --> ContextErrorResultFactory
+CompilerBuilder --> Compiler
+CompilerBuilder --> RuleCompiler
 CompilerBuilder --> SimpleContextFactory
 CompilerBuilder --> CompileErrorFactory
 CompilerBuilder --> FormattedError

@@ -3,7 +3,7 @@ package magma;
 import magma.api.io.PathLikes;
 import magma.app.Application;
 import magma.app.CompileApplication;
-import magma.app.compile.CompilerBuilder;
+import magma.app.compile.build.CompilerBuilder;
 import magma.app.io.sources.PathSources;
 import magma.app.io.sources.Sources;
 import magma.app.io.targets.PathTargets;

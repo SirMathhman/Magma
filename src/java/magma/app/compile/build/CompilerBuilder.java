@@ -1,7 +1,8 @@
-package magma.app.compile;
+package magma.app.compile.build;
 
 import magma.api.error.list.ErrorSequence;
-import magma.app.compile.context.ContextErrorResultFactory;
+import magma.app.compile.Compiler;
+import magma.app.compile.RuleCompiler;
 import magma.app.compile.context.SimpleContextFactory;
 import magma.app.compile.error.CompileErrorFactory;
 import magma.app.compile.error.FormattedError;

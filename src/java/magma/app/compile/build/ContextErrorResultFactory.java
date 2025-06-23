@@ -1,5 +1,7 @@
-package magma.app.compile.context;
+package magma.app.compile.build;
 
+import magma.app.compile.context.Context;
+import magma.app.compile.context.ContextFactory;
 import magma.app.compile.error.ErrorFactory;
 import magma.app.compile.factory.ResultFactory;
 import magma.app.compile.node.result.NodeErr;
