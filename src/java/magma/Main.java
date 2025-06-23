@@ -5,8 +5,49 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 
 public class Main {
+    private interface DivideState {
+        DivideState append(char c);
+
+        DivideState advance();
+
+        Collection<String> unwrap();
+    }
+
+    private static class MutableDivideState implements DivideState {
+        private final Collection<String> segments;
+        private StringBuilder buffer;
+
+        private MutableDivideState(final Collection<String> segments, final StringBuilder buffer) {
+            this.segments = new ArrayList<>(segments);
+            this.buffer = buffer;
+        }
+
+        private MutableDivideState() {
+            this(new ArrayList<>(), new StringBuilder());
+        }
+
+        @Override
+        public Collection<String> unwrap() {
+            return Collections.unmodifiableCollection(segments);
+        }
+
+        @Override
+        public DivideState append(final char c) {
+            buffer.append(c);
+            return this;
+        }
+
+        @Override
+        public DivideState advance() {
+            segments.add(buffer.toString());
+            buffer = new StringBuilder();
+            return this;
+        }
+    }
+
     private Main() {
     }
 
@@ -42,20 +83,23 @@ public class Main {
     }
 
     private static Collection<String> divide(final CharSequence input) {
-        final Collection<String> segments = new ArrayList<>();
-        var buffer = new StringBuilder();
-
+        final DivideState state = new MutableDivideState();
         final var length = input.length();
+        var current = state;
         for (var i = 0; i < length; i++) {
             final var c = input.charAt(i);
-            buffer.append(c);
-            if (';' == c) {
-                segments.add(buffer.toString());
-                buffer = new StringBuilder();
-            }
+            current = Main.fold(current, c);
         }
-        segments.add(buffer.toString());
-        return segments;
+
+        return current.advance()
+                .unwrap();
+    }
+
+    private static DivideState fold(final DivideState state, final char c) {
+        final var appended = state.append(c);
+        if (';' == c)
+            return appended.advance();
+        return appended;
     }
 
     private static String generatePlaceholder(final String input) {
