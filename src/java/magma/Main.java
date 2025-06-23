@@ -11,6 +11,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class Main {
@@ -294,13 +295,10 @@ public class Main {
     }
 
     private static String compile(final CharSequence input) {
-        final var segments = Main.divide(input);
-
-        final var output = new StringBuilder();
-        for (final var segment : segments)
-            output.append(Main.compileRootSegment(segment));
-
-        return output.toString();
+        return Main.divide(input)
+                .stream()
+                .map(Main::compileRootSegment)
+                .collect(Collectors.joining());
     }
 
     private static String compileRootSegment(final String input) {
