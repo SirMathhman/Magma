@@ -41,14 +41,14 @@ public class Main {
         private int depth;
         private StringBuilder buffer;
 
-        private MutableDivideState(final Collection<String> segments, final StringBuilder buffer, final int depth) {
+        private MutableDivideState(final Collection<String> segments, final StringBuilder buffer) {
             this.segments = new ArrayList<>(segments);
             this.buffer = buffer;
-            this.depth = depth;
+            depth = 0;
         }
 
         private MutableDivideState() {
-            this(new ArrayList<>(), new StringBuilder(), 0);
+            this(new ArrayList<>(), new StringBuilder());
         }
 
         @Override
@@ -124,6 +124,12 @@ public class Main {
         }
     }
 
+    private record StringRule(String key) {
+        Optional<Node> lex(final String input) {
+            return Optional.of(new MapNode().withString(key(), input));
+        }
+    }
+
     private Main() {
     }
 
@@ -166,11 +172,13 @@ public class Main {
             final var contentStart = withoutEnd.indexOf('{');
             if (0 <= contentStart) {
                 final var beforeContent = withoutEnd.substring(0, contentStart);
-                final var node = new MapNode().withString("before-content", beforeContent);
+                final var leftResult = new StringRule("before-content").lex(beforeContent);
 
                 final var content = withoutEnd.substring(contentStart + "{".length());
-                final var node1 = new MapNode().withString("content", content);
-                return Main.generate(node.merge(node1));
+                final var rightResult = new StringRule("content").lex(content);
+
+                return leftResult.flatMap(leftValue -> rightResult.map(leftValue::merge))
+                        .flatMap(Main::generate);
             }
         }
 
