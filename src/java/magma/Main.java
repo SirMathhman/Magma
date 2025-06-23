@@ -295,23 +295,22 @@ public class Main {
     }
 
     private static String compile(final CharSequence input) {
-        return Main.divide(input)
+        final var oldChildren = Main.divide(input)
                 .stream()
-                .map(Main::compileRootSegment)
-                .collect(Collectors.joining());
-    }
+                .map(input1 -> Main.createJavaRootSegmentRule()
+                        .lex(input1))
+                .flatMap(Optional::stream)
+                .toList();
 
-    private static String compileRootSegment(final String input) {
-        return Main.createJavaRootSegmentRule()
-                .lex(input)
-                .flatMap(node -> {
-                    if (node.is("structure"))
-                        return Main.createStructureRule()
-                                .generate(node);
-                    else
-                        return Optional.of("");
-                })
-                .orElseGet(() -> Main.generatePlaceholder(input));
+        final var newChildren = oldChildren.stream()
+                .filter(child -> child.is("structure"))
+                .toList();
+
+        return newChildren.stream()
+                .map(node -> Main.createStructureRule()
+                        .generate(node))
+                .flatMap(Optional::stream)
+                .collect(Collectors.joining());
     }
 
     private static Rule createJavaRootSegmentRule() {

@@ -279,26 +279,22 @@
     }
 
     private static String compile(final CharSequence input) {
-        final var segments = Main.divide(input);
+        final var oldChildren = Main.divide(input)
+                .stream()
+                .map(input1 -> Main.createJavaRootSegmentRule()
+                        .lex(input1))
+                .flatMap(Optional::stream)
+                .toList();
 
-        final var output = new StringBuilder();
-        for (final var segment : segments)
-            output.append(Main.compileRootSegment(segment));
+        final var newChildren = oldChildren.stream()
+                .filter(child -> child.is("structure"))
+                .toList();
 
-        return output.toString();
-    }
-
-    private static String compileRootSegment(final String input) {
-        return Main.createJavaRootSegmentRule()
-                .lex(input)
-                .flatMap(node -> {
-                    if (node.is("structure"))
-                        return Main.createStructureRule()
-                                .generate(node);
-                    else
-                        return Optional.of("");
-                })
-                .orElseGet(() -> Main.generatePlaceholder(input));
+        return newChildren.stream()
+                .map(node -> Main.createStructureRule()
+                        .generate(node))
+                .flatMap(Optional::stream)
+                .collect(Collectors.joining());
     }
 
     private static Rule createJavaRootSegmentRule() {
