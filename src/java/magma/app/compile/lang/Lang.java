@@ -1,7 +1,7 @@
 package magma.app.compile.lang;
 
 import magma.api.error.list.ErrorSequence;
-import magma.api.list.ListLikes;
+import magma.api.list.ListLike;
 import magma.app.compile.factory.ResultFactory;
 import magma.app.compile.node.DisplayNode;
 import magma.app.compile.node.NodeFactory;
@@ -18,56 +18,40 @@ import magma.app.compile.rule.SuffixRule;
 import magma.app.compile.rule.TypeRule;
 import magma.app.compile.string.StringResult;
 
-public class Lang<EverythingNode extends DisplayNode & StringNode<EverythingNode> & TypedNode<EverythingNode>, FormattedError> {
-    private final ResultFactory<EverythingNode, NodeResult<EverythingNode, FormattedError>, StringResult<FormattedError>, ErrorSequence<FormattedError>> resultFactory;
-    private final NodeFactory<EverythingNode> nodeFactory;
+public class Lang<Node extends DisplayNode & StringNode<Node> & TypedNode<Node>, Error> {
+    protected final ResultFactory<Node, NodeResult<Node, Error>, StringResult<Error>, ErrorSequence<Error>> resultFactory;
+    protected final NodeFactory<Node> nodeFactory;
 
-    public Lang(final NodeFactory<EverythingNode> nodeFactory, final ResultFactory<EverythingNode, NodeResult<EverythingNode, FormattedError>, StringResult<FormattedError>, ErrorSequence<FormattedError>> resultFactory) {
-        this.nodeFactory = nodeFactory;
+    public Lang(final ResultFactory<Node, NodeResult<Node, Error>, StringResult<Error>, ErrorSequence<Error>> resultFactory, final NodeFactory<Node> nodeFactory) {
         this.resultFactory = resultFactory;
+        this.nodeFactory = nodeFactory;
     }
 
-    public Rule<EverythingNode, NodeResult<EverythingNode, FormattedError>, StringResult<FormattedError>> createRootSegmentRule() {
-        return new OrRule<>(ListLikes.of(createImportRule("package"),
-                createImportRule("import"),
-                createStructureRule("record"),
-                createStructureRule("interface"), createStructureRule("class")), resultFactory);
+    protected Rule<Node, NodeResult<Node, Error>, StringResult<Error>> Or(final ListLike<Rule<Node, NodeResult<Node, Error>, StringResult<Error>>> rules) {
+        return new OrRule<>(rules, resultFactory);
     }
 
-    private Rule<EverythingNode, NodeResult<EverythingNode, FormattedError>, StringResult<FormattedError>> createStructureRule(final String infix) {
-        return new InfixRule<>(new StringRule<>("before-keyword", nodeFactory, resultFactory),
-                infix,
-                new StringRule<>("after-keyword", nodeFactory, resultFactory),
-                resultFactory);
+    protected Rule<Node, NodeResult<Node, Error>, StringResult<Error>> String(final String key) {
+        return new StringRule<>(key, nodeFactory, resultFactory);
     }
 
-    private Rule<EverythingNode, NodeResult<EverythingNode, FormattedError>, StringResult<FormattedError>> createImportRule(final String type) {
-        final var destination = new StringRule<>("destination", nodeFactory, resultFactory);
-        final var withParent = new InfixRule<>(new StringRule<>("parent", nodeFactory, resultFactory),
-                ".", destination, resultFactory);
-        final var parent = new OrRule<>(ListLikes.of(withParent, new StringRule<>("value", nodeFactory, resultFactory)),
-                resultFactory);
-
-        return new TypeRule<>(type,
-                new StripRule<>(new PrefixRule<>(type + " ",
-                        new SuffixRule<>(parent, ";", resultFactory),
-                        resultFactory)), resultFactory);
+    protected Rule<Node, NodeResult<Node, Error>, StringResult<Error>> Suffix(final Rule<Node, NodeResult<Node, Error>, StringResult<Error>> rule, final String suffix) {
+        return new SuffixRule<>(rule, suffix, resultFactory);
     }
 
-    private Rule<EverythingNode, NodeResult<EverythingNode, FormattedError>, StringResult<FormattedError>> createPlaceholderRule() {
-        return new TypeRule<>("placeholder", new StringRule<>("value", nodeFactory, resultFactory), resultFactory);
+    protected Rule<Node, NodeResult<Node, Error>, StringResult<Error>> Type(final String type, final Rule<Node, NodeResult<Node, Error>, StringResult<Error>> rule) {
+        return new TypeRule<>(type, rule, resultFactory);
     }
 
-    private Rule<EverythingNode, NodeResult<EverythingNode, FormattedError>, StringResult<FormattedError>> createDependencyRule() {
-        return new TypeRule<>("dependency",
-                new SuffixRule<>(new InfixRule<>(new StringRule<>("source", nodeFactory, resultFactory),
-                        " --> ",
-                        new StringRule<>("destination", nodeFactory, resultFactory),
-                        resultFactory), System.lineSeparator(), resultFactory),
-                resultFactory);
+    protected Rule<Node, NodeResult<Node, Error>, StringResult<Error>> Infix(final Rule<Node, NodeResult<Node, Error>, StringResult<Error>> rightRule, final String infix, final Rule<Node, NodeResult<Node, Error>, StringResult<Error>> leftRule) {
+        return new InfixRule<>(leftRule, infix, rightRule, resultFactory);
     }
 
-    public Rule<EverythingNode, NodeResult<EverythingNode, FormattedError>, StringResult<FormattedError>> createPlantUMLRootSegmentRule() {
-        return new OrRule<>(ListLikes.of(createDependencyRule(), createPlaceholderRule()), resultFactory);
+    protected PrefixRule<Node, Error> Prefix(final String type, final Rule<Node, NodeResult<Node, Error>, StringResult<Error>> rule) {
+        return new PrefixRule<>(type + " ", rule, resultFactory);
+    }
+
+    protected StripRule<Node, Error> Strip(final PrefixRule<Node, Error> rule) {
+        return new StripRule<>(rule);
     }
 }

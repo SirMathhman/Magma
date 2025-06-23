@@ -12,7 +12,7 @@ import magma.app.compile.error.FormattedError;
 import magma.app.compile.factory.CompileErrorFactory;
 import magma.app.compile.factory.CompileErrorResultFactory;
 import magma.app.compile.factory.SimpleContextFactory;
-import magma.app.compile.lang.Lang;
+import magma.app.compile.lang.JavaLang;
 import magma.app.compile.node.EverythingNode;
 import magma.app.compile.node.MapNodeFactory;
 import magma.app.compile.node.result.NodeErr;
@@ -24,7 +24,7 @@ import magma.app.compile.string.StringResult;
 import java.util.Map;
 
 public class RuleCompiler implements Compiler {
-    private static final Lang<EverythingNode, FormattedError> LANG = new Lang<>(new MapNodeFactory(),
+    private static final JavaLang<EverythingNode, FormattedError> LANG = new JavaLang<>(new MapNodeFactory(),
             new CompileErrorResultFactory<>(new SimpleContextFactory<>(), new CompileErrorFactory()));
 
     private static StringResult<FormattedError> compileEntry(final Map<String, String> inputs) {
