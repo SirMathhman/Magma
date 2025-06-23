@@ -50,16 +50,15 @@ public class RuleCompiler implements Compiler {
     private StringResult<FormattedError> compile(final CharSequence input, final String name) {
         return Divide.divide(input)
                 .stream()
+                .map(segment -> sourceRuleFactory.create()
+                        .lex(segment))
                 .<StringResult<FormattedError>>reduce(new StringOk<>(),
                         (output, segment) -> getStringResult(name, output, segment),
                         (_, next) -> next)
                 .prepend("class " + name + System.lineSeparator());
     }
 
-    private StringResult<FormattedError> getStringResult(final String name, final StringResult<FormattedError> output, final String segment) {
-        final var tree = sourceRuleFactory.create()
-                .lex(segment);
-
+    private StringResult<FormattedError> getStringResult(final String name, final StringResult<FormattedError> output, final NodeResult<CompoundNode, FormattedError> tree) {
         return switch (getRecord(name, tree)) {
             case Err(final var error) -> new StringErr<>(error);
             case Ok(final var value) ->
