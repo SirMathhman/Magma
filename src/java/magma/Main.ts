@@ -1,4 +1,4 @@
-/*public */class Main{/*private */class DivideState{/*
+/*private */class DivideState{/*
         DivideState append(char c);*//*
 
         DivideState advance();*//*
@@ -38,6 +38,16 @@
         String display();*//*
 
         Stream<Map.Entry<String, List<Node>>> streamNodeLists();*//*
+
+        Stream<String> streamPropertyNames();*//*
+
+        Optional<Tuple<Node, String>> removeString(String key);*//*
+
+        boolean hasNoProperties();*//*
+
+        Optional<Tuple<Node, List<Node>>> removeNodeList(String key);*//*
+
+        boolean hasNoName();*//*
     */}/*private */class Rule{/*
         Result<String, FormatError> generate(Node node);*//*
 
@@ -69,6 +79,20 @@
         }*//*
 
         String format(int depth);*//*
+    */}/*private sealed */class JavaRootSegment permits Whitespace, Package, Import, JavaStructure{/*
+    */}/*private sealed */class JavaStructureMember permits JavaStructure, Placeholder{/*
+    */}/*@Retention(RetentionPolicy.RUNTIME)
+    private @*/class NodeRepr{/*
+        String name();*//*
+    */}/*private */class TSRootSegment{/*
+    */}/*@NodeRepr(name = "whitespace")
+    private */class Whitespace() implements JavaRootSegment{/*
+    */}/*@NodeRepr(name = "placeholder")
+    private */class Placeholder(String value) implements JavaStructureMember{/*
+    */}/*@NodeRepr(name = "package")
+    private */class Package(String content) implements JavaRootSegment{/*
+    */}/*@NodeRepr(name = "import")
+    private */class Import(String content) implements JavaRootSegment{/*
     */}/*private */class StringContext(String value) implements Context{/*
         @Override
         public String display() {
@@ -249,6 +273,46 @@
             return nodeLists.entrySet()
                     .stream();
         }*//*
+
+        @Override
+        public Stream<String> streamPropertyNames() {
+            return Stream.concat(strings.keySet()
+                            .stream(),
+                    nodeLists.keySet()
+                            .stream());
+        }*//*
+
+        @Override
+        public Optional<Tuple<Node, String>> removeString(final String key) {
+            if (strings.containsKey(key)) {
+                final var copy = new HashMap<>(strings);
+                final var value = copy.remove(key);
+                return Optional.of(new Tuple<>(new MapNode(maybeType, copy, nodeLists), value));
+            }
+
+            return Optional.empty();
+        }*//*
+
+        @Override
+        public boolean hasNoProperties() {
+            return strings.isEmpty() && nodeLists.isEmpty();
+        }*//*
+
+        @Override
+        public Optional<Tuple<Node, List<Node>>> removeNodeList(final String key) {
+            if (nodeLists.containsKey(key)) {
+                final var copy = new HashMap<>(nodeLists);
+                final var value = copy.remove(key);
+                return Optional.of(new Tuple<>(new MapNode(maybeType, strings, copy), value));
+            }
+
+            return Optional.empty();
+        }*//*
+
+        @Override
+        public boolean hasNoName() {
+            return maybeType.isEmpty();
+        }*//*
     */}/*private */class StringRule(String key) implements Rule{/*
         @Override
         public Result<String, FormatError> generate(final Node node) {
@@ -344,24 +408,12 @@
     */}/*private */class OrRule(List<Rule> rules) implements Rule{/*
         @Override
         public Result<String, FormatError> generate(final Node node) {
-            return apply(rule -> rule.generate(node), new NodeContext(node));
-        }*//*
-
-        private <T> Result<T, FormatError> apply(final Function<Rule, Result<T, FormatError>> mapper, final Context context) {
-            return rules.stream()
-                    .map(mapper)
-                    .<Accumulator<T>>reduce(new ImmutableAccumulator<>(), (accumulator, result) -> {
-                        if (accumulator.hasValue())
-                            return accumulator;
-                        return result.match(accumulator::withValue, accumulator::withError);
-                    }, (_, next) -> next)
-                    .<Result<T, FormatError>>match(Ok::new,
-                            errors -> new Err<>(new CompileError("Invalid combination", context, errors)));
+            return Main.disjoin(rules, rule -> rule.generate(node), new NodeContext(node));
         }*//*
 
         @Override
         public Result<Node, FormatError> lex(final String input) {
-            return apply(rule -> rule.lex(input), new StringContext(input));
+            return Main.disjoin(rules, rule -> rule.lex(input), new StringContext(input));
         }*//*
     */}/*private */class PrefixRule(String prefix, Rule rule) implements Rule{/*
         @Override
@@ -398,7 +450,7 @@
 
         private static DivideState fold(final DivideState state, final char c) {
             return DivideRule.foldSingleQuotes(state, c)
-                    .orElseGet(() -> Main.foldStatement(state, c));
+                    .orElseGet(() -> DivideRule.foldStatement(state, c));
         }*//*
 
         private static Optional<DivideState> foldSingleQuotes(final DivideState state, final char c) {
@@ -412,19 +464,24 @@
 
         }*//*
 
-        private static <Element, Value, Collection> Result<Collection, FormatError> reduce(final java.util.Collection<Element> elements, final Collection initial, final Function<Element, Result<Value, FormatError>> mapper, final BiFunction<Collection, Value, Collection> folder) {
-            return elements.stream()
-                    .map(mapper)
-                    .<Result<Collection, FormatError>>reduce(new Ok<>(initial),
-                            (maybeBuffer, maybeElement) -> maybeBuffer.flatMapValue(buffer -> maybeElement.mapValue(
-                                    value -> folder.apply(buffer, value))),
-                            (_, next) -> next);
+        private static DivideState foldStatement(final DivideState state, final char c) {
+            final var appended = state.append(c);
+            if (';' == c && appended.isLevel())
+                return appended.advance();
+            if ('}' == c && appended.isShallow())
+                return appended.exit()
+                        .advance();
+            if ('{' == c)
+                return appended.enter();
+            if ('}' == c)
+                return appended.exit();
+            return appended;
         }*//*
 
         @Override
         public Result<String, FormatError> generate(final Node node) {
             return node.findNodeList(key)
-                    .map(nodes -> DivideRule.reduce(nodes, new StringBuilder(), rule::generate, StringBuilder::append)
+                    .map(nodes -> Main.combine(nodes, new StringBuilder(), rule::generate, StringBuilder::append)
                             .mapValue(StringBuilder::toString))
                     .orElseGet(() -> new Err<>(new CompileError("Node list '" + key + "' not present",
                             new NodeContext(node))));
@@ -433,7 +490,7 @@
         @Override
         public Result<Node, FormatError> lex(final String input) {
             final var divisions = DivideRule.divide(input);
-            return DivideRule.reduce(divisions, new ArrayList<Node>(), rule::lex, (nodes, node) -> {
+            return Main.combine(divisions, new ArrayList<Node>(), rule::lex, (nodes, node) -> {
                         nodes.add(node);
                         return nodes;
                     })
@@ -549,126 +606,17 @@
             return findRule(new StringContext(input)).flatMapValue(rule -> rule.lex(input));
         }*//*
 
-        public void set(final Rule rule) {
+        void set(final Rule rule) {
             maybeRule = Optional.of(rule);
         }*//*
-    */}/*
-
-    private Main() {
-    }*//*
-
-    private static DivideState foldStatement(final DivideState state, final char c) {
-        final var appended = state.append(c);
-        if (';' == c && appended.isLevel())
-            return appended.advance();
-        if ('}' == c && appended.isShallow())
-            return appended.exit()
-                    .advance();
-        if ('{' == c)
-            return appended.enter();
-        if ('}' == c)
-            return appended.exit();
-        return appended;
-    }*//*
-
-    public static void main(final String[] args) {
-        final var source = Paths.get(".", "src", "java", "magma", "Main.java");
-        final var target = source.resolveSibling("Main.ts");
-        final var result = Main.run(source, target);
-        result.ifPresent(error -> System.err.println(error.display()));
-    }*//*
-
-    private static Optional<ApplicationError> run(final Path source, final Path target) {
-        return Main.readString(source)
-                .mapErr(ApplicationError::new)
-                .match(input -> Main.compileAndWrite(target, input), Optional::of);
-    }*//*
-
-    private static Optional<ApplicationError> compileAndWrite(final Path target, final String input) {
-        return Main.compile(input)
-                .mapErr(ApplicationError::new)
-                .match(output -> Main.writeString(target, output)
-                        .map(ApplicationError::new), Optional::of);
-    }*//*
-
-    private static Optional<ThrowableError> writeString(final Path target, final CharSequence output) {
-        try {
-            Files.writeString(target, output);
-            return Optional.empty();
-        } catch (final IOException e) {
-            return Optional.of(new ThrowableError(e));
-        }
-    }*//*
-
-    private static Result<String, ThrowableError> readString(final Path source) {
-        try {
-            return new Ok<>(Files.readString(source));
-        } catch (final IOException e) {
-            return new Err<>(new ThrowableError(e));
-        }
-    }*//*
-
-    private static Result<String, FormatError> compile(final String input) {
-        return Main.createJavaRootRule()
-                .lex(input)
-                .mapValue(Main::modify)
-                .flatMapValue(children -> Main.createTSRootRule()
-                        .generate(children));
-    }*//*
-
-    private static Node modify(final Node children) {
-        final var oldChildren = children.findNodeList("children")
-                .orElse(Collections.emptyList());
-
-        final var newChildren = oldChildren.stream()
-                .filter(child -> child.is("structure"))
-                .toList();
-
-        return new MapNode().withNodeList("children", newChildren);
-    }*//*
-
-    private static Rule createTSRootRule() {
-        return Main.Statements(Main.createStructureRule());
-    }*//*
-
-    private static Rule createJavaRootRule() {
-        return Main.Statements(Main.createJavaRootSegmentRule());
-    }*//*
-
-    private static Rule Statements(final Rule rule) {
-        return new DivideRule("children", rule);
-    }*//*
-
-    private static Rule createJavaRootSegmentRule() {
-        final var structureRule = Main.createStructureRule();
-        return new OrRule(List.of(new StripRule(new EmptyRule()),
-                Main.createLocationRule("package"),
-                Main.createLocationRule("import"),
-                structureRule));
-    }*//*
-
-    private static Rule createStructureRule() {
-        final var structureRule = new LazyRule();
-        final var modifiers = new PlaceholderRule(new StringRule("modifiers"));
-        final var name = new StripRule(new StringRule("name"));
-
-        final var rules = Stream.of("class ", "interface ", "record ")
-                .<Rule>map(infix -> new InfixRule(modifiers, infix, name))
-                .toList();
-
-        final var beforeChildren = new OrRule(rules);
-
-        final var children = Main.Statements(Main.createStructureMemberRule(structureRule));
-        structureRule.set(new TypeRule("structure",
-                new StripRule(new SuffixRule(new InfixRule(beforeChildren, "{", children), "}"))));
-        return structureRule;
-    }*//*
-
-    private static Rule createLocationRule(final String type) {
-        return new TypeRule(type, new StripRule(new PrefixRule(type + " ", new StringRule("content"))));
-    }*//*
-
-    private static Rule createStructureMemberRule(final Rule structureRule) {
-        return new OrRule(List.of(structureRule, new PlaceholderRule(new StringRule("placeholder"))));
-    }*//*
-*/}
+    */}/*@NodeRepr(name = "structure")
+    private */class JavaStructure(String name, String modifiers, List<JavaStructureMember> members) implements
+            JavaRootSegment,
+            JavaStructureMember{/*
+    */}/*private */class JavaRoot(List<JavaRootSegment> children){/*
+    */}/*@NodeRepr(name = "root")
+    private */class TSRoot(List<TSRootSegment> children){/*
+    */}/*@NodeRepr(name = "structure")
+    private */class TSStructure(String modifiers, String name, List<JavaStructureMember> members) implements
+            TSRootSegment{/*
+    */}

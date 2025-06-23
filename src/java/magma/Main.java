@@ -3,6 +3,8 @@ package magma;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.RecordComponent;
@@ -15,11 +17,11 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.BiFunction;
 import java.util.function.Function;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -121,18 +123,33 @@ public class Main {
         String format(int depth);
     }
 
-    private sealed interface JavaRootSegment permits Package, Import, Structure {
+    private sealed interface JavaRootSegment permits Whitespace, Package, Import, JavaStructure {
     }
 
-    private sealed interface JavaStructureMembers permits Structure, Placeholder {
+    private sealed interface JavaStructureMember permits JavaStructure, Placeholder {
     }
 
-    private record Placeholder(String value) implements JavaStructureMembers {
+    @Retention(RetentionPolicy.RUNTIME)
+    private @interface NodeRepr {
+        String name();
     }
 
+    private interface TSRootSegment {
+    }
+
+    @NodeRepr(name = "whitespace")
+    private record Whitespace() implements JavaRootSegment {
+    }
+
+    @NodeRepr(name = "placeholder")
+    private record Placeholder(String value) implements JavaStructureMember {
+    }
+
+    @NodeRepr(name = "package")
     private record Package(String content) implements JavaRootSegment {
     }
 
+    @NodeRepr(name = "import")
     private record Import(String content) implements JavaRootSegment {
     }
 
@@ -475,24 +492,12 @@ public class Main {
     private record OrRule(List<Rule> rules) implements Rule {
         @Override
         public Result<String, FormatError> generate(final Node node) {
-            return apply(rule -> rule.generate(node), new NodeContext(node));
-        }
-
-        private <T> Result<T, FormatError> apply(final Function<Rule, Result<T, FormatError>> mapper, final Context context) {
-            return rules.stream()
-                    .map(mapper)
-                    .<Accumulator<T>>reduce(new ImmutableAccumulator<>(), (accumulator, result) -> {
-                        if (accumulator.hasValue())
-                            return accumulator;
-                        return result.match(accumulator::withValue, accumulator::withError);
-                    }, (_, next) -> next)
-                    .<Result<T, FormatError>>match(Ok::new,
-                            errors -> new Err<>(new CompileError("Invalid combination", context, errors)));
+            return Main.disjoin(rules, rule -> rule.generate(node), new NodeContext(node));
         }
 
         @Override
         public Result<Node, FormatError> lex(final String input) {
-            return apply(rule -> rule.lex(input), new StringContext(input));
+            return Main.disjoin(rules, rule -> rule.lex(input), new StringContext(input));
         }
     }
 
@@ -533,7 +538,7 @@ public class Main {
 
         private static DivideState fold(final DivideState state, final char c) {
             return DivideRule.foldSingleQuotes(state, c)
-                    .orElseGet(() -> Main.foldStatement(state, c));
+                    .orElseGet(() -> DivideRule.foldStatement(state, c));
         }
 
         private static Optional<DivideState> foldSingleQuotes(final DivideState state, final char c) {
@@ -547,19 +552,24 @@ public class Main {
 
         }
 
-        private static <Element, Value, Collection> Result<Collection, FormatError> reduce(final java.util.Collection<Element> elements, final Collection initial, final Function<Element, Result<Value, FormatError>> mapper, final BiFunction<Collection, Value, Collection> folder) {
-            return elements.stream()
-                    .map(mapper)
-                    .<Result<Collection, FormatError>>reduce(new Ok<>(initial),
-                            (maybeBuffer, maybeElement) -> maybeBuffer.flatMapValue(buffer -> maybeElement.mapValue(
-                                    value -> folder.apply(buffer, value))),
-                            (_, next) -> next);
+        private static DivideState foldStatement(final DivideState state, final char c) {
+            final var appended = state.append(c);
+            if (';' == c && appended.isLevel())
+                return appended.advance();
+            if ('}' == c && appended.isShallow())
+                return appended.exit()
+                        .advance();
+            if ('{' == c)
+                return appended.enter();
+            if ('}' == c)
+                return appended.exit();
+            return appended;
         }
 
         @Override
         public Result<String, FormatError> generate(final Node node) {
             return node.findNodeList(key)
-                    .map(nodes -> DivideRule.reduce(nodes, new StringBuilder(), rule::generate, StringBuilder::append)
+                    .map(nodes -> Main.combine(nodes, new StringBuilder(), rule::generate, StringBuilder::append)
                             .mapValue(StringBuilder::toString))
                     .orElseGet(() -> new Err<>(new CompileError("Node list '" + key + "' not present",
                             new NodeContext(node))));
@@ -568,7 +578,7 @@ public class Main {
         @Override
         public Result<Node, FormatError> lex(final String input) {
             final var divisions = DivideRule.divide(input);
-            return DivideRule.reduce(divisions, new ArrayList<Node>(), rule::lex, (nodes, node) -> {
+            return Main.combine(divisions, new ArrayList<Node>(), rule::lex, (nodes, node) -> {
                         nodes.add(node);
                         return nodes;
                     })
@@ -698,34 +708,29 @@ public class Main {
             return findRule(new StringContext(input)).flatMapValue(rule -> rule.lex(input));
         }
 
-        public void set(final Rule rule) {
+        void set(final Rule rule) {
             maybeRule = Optional.of(rule);
         }
     }
 
-    private record Structure(String name, String modifiers, List<JavaStructureMembers> members) implements
-            JavaRootSegment,
-            JavaStructureMembers {
+    @NodeRepr(name = "structure")
+    private record JavaStructure(String name, String modifiers, List<JavaStructureMember> members) implements
+            JavaRootSegment, JavaStructureMember {
     }
 
     private record JavaRoot(List<JavaRootSegment> children) {
     }
 
-    private Main() {
+    @NodeRepr(name = "root")
+    private record TSRoot(List<TSRootSegment> children) {
     }
 
-    private static DivideState foldStatement(final DivideState state, final char c) {
-        final var appended = state.append(c);
-        if (';' == c && appended.isLevel())
-            return appended.advance();
-        if ('}' == c && appended.isShallow())
-            return appended.exit()
-                    .advance();
-        if ('{' == c)
-            return appended.enter();
-        if ('}' == c)
-            return appended.exit();
-        return appended;
+    @NodeRepr(name = "structure")
+    private record TSStructure(String modifiers, String name, List<JavaStructureMember> members) implements
+            TSRootSegment {
+    }
+
+    private Main() {
     }
 
     public static void main(final String[] args) {
@@ -768,68 +773,125 @@ public class Main {
     private static Result<String, FormatError> compile(final String input) {
         return Main.createJavaRootRule()
                 .lex(input)
-                .flatMapValue(node -> Main.deserialize(JavaRoot.class, node))
-                .mapValue(Main::modify)
+                .flatMapValue(root -> Main.deserialize(JavaRoot.class, root))
+                .mapValue(Main::modifyRoot)
+                .flatMapValue(Main::serialize)
                 .flatMapValue(children -> Main.createTSRootRule()
                         .generate(children));
     }
 
-    private static <Type> Result<Type, FormatError> deserialize(final Class<Type> clazz, final Main.Node node) {
-        if (clazz.isRecord()) {
-            final var components = clazz.getRecordComponents();
+    private static <Value> Result<Node, FormatError> serialize(final Value node) {
+        final Class<?> clazz = node.getClass();
 
-            Result<Tuple<Main.Node, List<Object>>, FormatError> maybeCurrent = new Ok<>(new Tuple<>(node,
-                    new ArrayList<>()));
-
-            for (final var component : components)
-                maybeCurrent = maybeCurrent.flatMapValue(current -> {
-                    return Main.getTupleCompileErrorResult(node, component, current);
-                });
-
-            return maybeCurrent.flatMapValue(current -> {
-                if (current.left.hasNoProperties()) {
-                    final var arguments = current.right;
-
-                    final var constructorParamTypes = Arrays.stream(components)
-                            .map(RecordComponent::getType)
-                            .toArray(Class<?>[]::new);
-
-                    try {
-                        final var constructor = clazz.getDeclaredConstructor(constructorParamTypes);
-                        final var instance = constructor.newInstance(arguments.toArray());
-                        return new Ok<>(instance);
-                    } catch (final NoSuchMethodException | InstantiationException | IllegalAccessException |
-                                   InvocationTargetException e) {
-                        return new Err<>(new CompileError("Failed to instantiate", new NodeContext(node)));
+        final var annotation = clazz.getAnnotation(NodeRepr.class);
+        Result<Node, FormatError> maybeCurrent = new Ok<>(new MapNode());
+        for (final var field : clazz.getDeclaredFields())
+            maybeCurrent = maybeCurrent.flatMapValue(current -> {
+                final var name = field.getName();
+                try {
+                    final var value = field.get(node);
+                    if (value instanceof final List<?> list) {
+                        return Main.combine(list, new ArrayList<Node>(), Main::serialize, (objects, node1) -> {
+                                    objects.add(node1);
+                                    return objects;
+                                })
+                                .mapValue(serializedArguments -> {
+                                    return current.withNodeList(name, serializedArguments);
+                                });
                     }
+
+                    if (value instanceof final String string) {
+                        return new Ok<>(current.withString(name, string));
+                    }
+
+                    return new Err<>(new CompileError("Unknown type",
+                            new StringContext(value.getClass()
+                                    .getName())));
+                } catch (final IllegalAccessException e) {
+                    return new Err<>(new CompileError("Failed to get field", new StringContext(name)));
                 }
-
-                final var joined = current.left.streamPropertyNames()
-                        .collect(Collectors.joining(", "));
-
-                return new Err<>(new CompileError("Fields remain: [" + joined + "]", new NodeContext(node)));
             });
-        }
 
-        if (clazz.isInterface()) {
-            final var permittedSubclasses = clazz.getPermittedSubclasses();
-            if (null != permittedSubclasses)
-                if (node.hasNoName()) {
-                    return new Err<>(new CompileError("Node has no name", new NodeContext(node)));
-                }
-
-            for (final var permittedSubclass : permittedSubclasses) {
-                final var name = permittedSubclass.getSimpleName();
-                if (node.is(name.toLowerCase(Locale.ROOT)))
-                    return Main.deserialize(permittedSubclass, node)
-                            .mapValue(clazz::cast);
-            }
-        }
-
-        return new Err<>(new CompileError("Cannot instantiate", new NodeContext(node)));
+        return maybeCurrent.mapValue(inner -> inner.retype(annotation.name()));
     }
 
-    private static Result<Tuple<Main.Node, List<Object>>, FormatError> getTupleCompileErrorResult(final Node node, final RecordComponent component, final Tuple<Node, List<Object>> current) {
+    private static <Type> Result<Type, FormatError> deserialize(final Class<Type> clazz, final Node node) {
+        return Main.disjoin(List.<Supplier<Result<Type, FormatError>>>of(() -> Main.deserializeRecord(clazz, node),
+                () -> Main.deserializeInterface(clazz, node)), Supplier::get, new NodeContext(node));
+    }
+
+    private static <Type> Result<Type, FormatError> deserializeRecord(final Class<Type> clazz, final Node node) {
+        if (!clazz.isRecord())
+            return new Err<>(new CompileError("Not a record", new StringContext(clazz.getName())));
+
+        final var components = clazz.getRecordComponents();
+
+        Result<Tuple<Node, List<Object>>, FormatError> maybeCurrent = new Ok<>(new Tuple<>(node, new ArrayList<>()));
+
+        for (final var component : components)
+            maybeCurrent = maybeCurrent.flatMapValue(current -> {
+                return Main.getTupleCompileErrorResult(node, component, current);
+            });
+
+        return maybeCurrent.flatMapValue(current -> {
+            if (current.left.hasNoProperties()) {
+                final var arguments = current.right;
+
+                final var constructorParamTypes = Arrays.stream(components)
+                        .map(RecordComponent::getType)
+                        .toArray(Class<?>[]::new);
+
+                try {
+                    final var constructor = clazz.getDeclaredConstructor(constructorParamTypes);
+                    final var instance = constructor.newInstance(arguments.toArray());
+                    return new Ok<>(instance);
+                } catch (final NoSuchMethodException | InstantiationException | IllegalAccessException |
+                               InvocationTargetException e) {
+                    return new Err<>(new CompileError("Failed to instantiate", new NodeContext(node)));
+                }
+            }
+
+            final var joined = current.left.streamPropertyNames()
+                    .collect(Collectors.joining(", "));
+
+            return new Err<>(new CompileError("Fields remain: [" + joined + "]", new NodeContext(node)));
+        });
+
+    }
+
+    private static <Type> Result<Type, FormatError> deserializeInterface(final Class<Type> clazz, final Node node) {
+        if (!clazz.isInterface())
+            return new Err<>(new CompileError("Not an interface", new StringContext(clazz.getName())));
+
+        final var permittedSubclasses = clazz.getPermittedSubclasses();
+        if (null == permittedSubclasses)
+            return new Err<>(new CompileError("No permitted classes present on interface",
+                    new StringContext(clazz.getName())));
+
+        if (node.hasNoName())
+            return new Err<>(new CompileError("Node has no name", new NodeContext(node)));
+
+        return Main.disjoin(Arrays.asList(permittedSubclasses),
+                        permittedSubclass -> Main.getObjectFormatErrorResult(node, permittedSubclass),
+                        new NodeContext(node))
+                .mapValue(clazz::cast);
+    }
+
+    private static Result<?, FormatError> getObjectFormatErrorResult(final Node node, final Class<?> permittedSubclass) {
+        final var name = permittedSubclass.getSimpleName();
+
+        final var annotation = permittedSubclass.getAnnotation(NodeRepr.class);
+        if (null == annotation)
+            return new Err<>(new CompileError("No annotation present", new StringContext(permittedSubclass.getName())));
+
+        final var nodeName = annotation.name();
+        if (node.is(nodeName))
+            return Main.deserialize(permittedSubclass, node);
+
+        return new Err<>(new CompileError("Node name was not equal to '" + name + "'", new NodeContext(node)));
+    }
+
+    private static Result<Tuple<Node, List<Object>>, FormatError> getTupleCompileErrorResult(final Node node, final RecordComponent component, final Tuple<Node, List<Object>> current) {
         final var currentNode = current.left;
         final var currentArguments = current.right;
 
@@ -851,7 +913,7 @@ public class Main {
         }
 
         if (type.isAssignableFrom(String.class))
-            return Main.pruneString(node, name)
+            return Main.pruneString(current.left, name)
                     .mapValue(pruned -> {
                         currentArguments.add(pruned.right);
                         return new Tuple<>(pruned.left, currentArguments);
@@ -894,8 +956,37 @@ public class Main {
                         new NodeContext(current))));
     }
 
-    private static Node modify(final JavaRoot children) {
-        return new MapNode();
+    private static TSRoot modifyRoot(final JavaRoot root) {
+        final var structures = root.children.stream()
+                .map(Main::modifyRootSegment)
+                .flatMap(Collection::stream)
+                .<TSRootSegment>map(value -> value)
+                .toList();
+
+        return new TSRoot(structures);
+    }
+
+    private static List<TSStructure> modifyRootSegment(final JavaRootSegment segment) {
+        return switch (segment) {
+            case final JavaStructure structure -> {
+                yield structure.members.stream()
+                        .map(Main::modifyStructureMember)
+                        .flatMap(Optional::stream)
+                        .toList();
+            }
+            default -> Collections.emptyList();
+        };
+    }
+
+    private static Optional<TSStructure> modifyStructureMember(final JavaStructureMember member) {
+        return switch (member) {
+            case final JavaStructure structure -> Optional.of(Main.parseStructure(structure));
+            default -> Optional.empty();
+        };
+    }
+
+    private static TSStructure parseStructure(final JavaStructure structure) {
+        return new TSStructure(structure.modifiers, structure.name, structure.members);
     }
 
     private static Rule createTSRootRule() {
@@ -912,7 +1003,7 @@ public class Main {
 
     private static Rule createJavaRootSegmentRule() {
         final var structureRule = Main.createStructureRule();
-        return new OrRule(List.of(new StripRule(new EmptyRule()),
+        return new OrRule(List.of(new TypeRule("whitespace", new StripRule(new EmptyRule())),
                 Main.createLocationRule("package"),
                 Main.createLocationRule("import"),
                 structureRule));
@@ -942,5 +1033,27 @@ public class Main {
     private static Rule createStructureMemberRule(final Rule structureRule) {
         return new OrRule(List.of(structureRule,
                 new TypeRule("placeholder", new PlaceholderRule(new StringRule("value")))));
+    }
+
+    private static <Element, Value> Result<Value, FormatError> disjoin(final List<Element> elements, final Function<Element, Result<Value, FormatError>> mapper, final Context context) {
+        return elements.stream()
+                .map(mapper)
+                .<Accumulator<Value>>reduce(new ImmutableAccumulator<>(), (accumulator, result) -> {
+                    if (accumulator.hasValue())
+                        return accumulator;
+                    return result.match(accumulator::withValue, accumulator::withError);
+                }, (_, next) -> next)
+                .<Result<Value, FormatError>>match(Ok::new,
+                        errors -> new Err<>(new CompileError("Invalid combination", context, errors)));
+    }
+
+    private static <Element, Value, Elements> Result<Elements, FormatError> combine(final Collection<Element> elements, final Elements initial, final Function<Element, Result<Value, FormatError>> mapper, final BiFunction<Elements, Value, Elements> folder) {
+        return elements.stream()
+                .map(mapper)
+                .<Result<Elements, FormatError>>reduce(new Ok<>(initial),
+                        (maybeBuffer, maybeElement) -> maybeBuffer.flatMapValue(buffer -> maybeElement.mapValue(value -> folder.apply(
+                                buffer,
+                                value))),
+                        (_, next) -> next);
     }
 }
