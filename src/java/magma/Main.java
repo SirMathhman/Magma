@@ -10,7 +10,14 @@ public class Main {
 
     public static void main(final String[] args) {
         try {
-            Files.writeString(Paths.get(".", "src", "java", "magma", "Main.ts"), "/**/");
+            final var source = Paths.get(".", "src", "java", "magma", "Main.java");
+            final var input = Files.readString(source);
+
+            final var target = source.resolveSibling("Main.ts");
+
+            final var replaced = input.replace("/*", "start")
+                    .replace("*/", "end");
+            Files.writeString(target, "/*" + replaced + "*/");
         } catch (final IOException e) {
             //noinspection CallToPrintStackTrace
             e.printStackTrace();
