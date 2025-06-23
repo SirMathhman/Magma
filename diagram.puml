@@ -234,20 +234,14 @@ SuffixRule --> Appending
 class AccumulatorFactory
 class CompilerBuilder
 CompilerBuilder --> ErrorSequence
-CompilerBuilder --> Context
 CompilerBuilder --> ContextErrorResultFactory
 CompilerBuilder --> SimpleContextFactory
 CompilerBuilder --> CompileErrorFactory
-CompilerBuilder --> ErrorFactory
 CompilerBuilder --> FormattedError
-CompilerBuilder --> ResultFactory
 CompilerBuilder --> JavaLang
 CompilerBuilder --> PlantUMLJavaLang
 CompilerBuilder --> MapNodeFactory
 CompilerBuilder --> CompoundNode
-CompilerBuilder --> NodeFactory
-CompilerBuilder --> NodeResult
-CompilerBuilder --> StringResult
 class CompoundNode
 class ImmutableErrorList
 ImmutableErrorList --> ListLike
