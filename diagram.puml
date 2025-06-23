@@ -46,7 +46,8 @@ InfixRule --> ResultFactory
 InfixRule --> Appending
 class OrRule
 OrRule --> ListLike
-OrRule --> ResultFactory
+OrRule --> ParentNodeResultFactory
+OrRule --> StringResultFactory
 OrRule --> DisplayNode
 OrRule --> Matching
 class NodeContext
@@ -129,7 +130,6 @@ class Application
 Application --> Error
 Application --> Option
 class Accumulator
-Accumulator --> ErrorSequence
 class StringRule
 StringRule --> ResultFactory
 StringRule --> NodeFactory
