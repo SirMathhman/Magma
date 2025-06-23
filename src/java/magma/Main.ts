@@ -23,19 +23,23 @@
         Stream<Map.Entry<String, String>> streamStrings();
     }
 
+    private interface Rule {
+        Optional<Node> lex(String input);
+    }
+
     private static class MutableDivideState implements DivideState {
         private final Collection<String> segments;
         private int depth;
         private StringBuilder buffer;
 
-        private MutableDivideState(final Collection<String> segments, final StringBuilder buffer, final int depth) {
+        private MutableDivideState(final Collection<String> segments, final StringBuilder buffer) {
             this.segments = new ArrayList<>(segments);
             this.buffer = buffer;
-            this.depth = depth;
+            depth = 0;
         }
 
         private MutableDivideState() {
-            this(new ArrayList<>(), new StringBuilder(), 0);
+            this(new ArrayList<>(), new StringBuilder());
         }
 
         @Override
@@ -111,6 +115,49 @@
         }
     }
 
+    private record StringRule(String key) implements Rule {
+        @Override
+        public Optional<Node> lex(final String input) {
+            return Optional.of(new MapNode().withString(key(), input));
+        }
+    }
+
+    private record InfixRule(Rule leftRule, String infix, Rule rightRule) implements Rule {
+        @Override
+        public Optional<Node> lex(final String input) {
+            final var index = input.indexOf(infix());
+            if (0 > index)
+                return Optional.empty();
+
+            final var beforeContent = input.substring(0, index);
+            final var leftResult = leftRule().lex(beforeContent);
+
+            final var content = input.substring(index + infix().length());
+            final var rightResult = rightRule().lex(content);
+
+            return leftResult.flatMap(leftValue -> rightResult.map(leftValue::merge));
+        }
+    }
+
+    private record SuffixRule(Rule rule, String suffix) implements Rule {
+        @Override
+        public Optional<Node> lex(final String input) {
+            if (!input.endsWith(suffix()))
+                return Optional.empty();
+
+            final var withoutEnd = input.substring(0, input.length() - suffix().length());
+            return rule().lex(withoutEnd);
+        }
+    }
+
+    private record StripRule(Rule rule) implements Rule {
+        @Override
+        public Optional<Node> lex(final String input) {
+            final var stripped = input.strip();
+            return rule.lex(stripped);
+        }
+    }
+
     private Main() {
     }
 
@@ -142,26 +189,16 @@
         if (stripped.startsWith("package ") || stripped.startsWith("import "))
             return "";
 
-        return Main.compileStructure(stripped)
+        return Main.createStructureRule()
+                .lex(stripped)
+                .flatMap(Main::generate)
                 .orElseGet(() -> Main.generatePlaceholder(stripped));
     }
 
-    private static Optional<String> compileStructure(final String input) {
-        final var stripped = input.strip();
-        if (stripped.endsWith("}")) {
-            final var withoutEnd = stripped.substring(0, stripped.length() - "}".length());
-            final var contentStart = withoutEnd.indexOf('{');
-            if (0 <= contentStart) {
-                final var beforeContent = withoutEnd.substring(0, contentStart);
-                final var node = new MapNode().withString("before-content", beforeContent);
-
-                final var content = withoutEnd.substring(contentStart + "{".length());
-                final var node1 = new MapNode().withString("content", content);
-                return Main.generate(node.merge(node1));
-            }
-        }
-
-        return Optional.empty();
+    private static Rule createStructureRule() {
+        return new StripRule(new SuffixRule(new InfixRule(new StringRule("before-content"),
+                "{",
+                new StringRule("content")), "}"));
     }
 
     private static Optional<String> generate(final Node node) {
