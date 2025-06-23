@@ -1,7 +1,7 @@
 package magma.api.io;
 
 import magma.api.list.JavaList;
-import magma.api.list.ListLike;
+import magma.api.list.Streamable;
 import magma.api.option.None;
 import magma.api.option.Option;
 import magma.api.option.Some;
@@ -35,7 +35,7 @@ record JavaPath(Path path) implements PathLike {
     }
 
     @Override
-    public Result<ListLike<PathLike>, IOError> walk() {
+    public Result<Streamable<PathLike>, IOError> walk() {
         try (final var stream = Files.walk(path)) {
             return new Ok<>(new JavaList<>(stream.<PathLike>map(JavaPath::new)
                     .toList()));

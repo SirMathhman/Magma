@@ -1,7 +1,7 @@
 package magma.app.compile.lang;
 
 import magma.api.error.list.ErrorSequence;
-import magma.api.list.ListLike;
+import magma.api.list.Streamable;
 import magma.app.compile.accumulate.ImmutableAccumulatorFactory;
 import magma.app.compile.factory.ResultFactory;
 import magma.app.compile.node.property.DisplayNode;
@@ -28,7 +28,7 @@ class Lang<Node extends DisplayNode & StringNode<Node> & TypedNode<Node>, Error>
         this.nodeFactory = nodeFactory;
     }
 
-    Rule<Node, NodeResult<Node, Error>, StringResult<Error>> Or(final ListLike<Rule<Node, NodeResult<Node, Error>, StringResult<Error>>> rules) {
+    Rule<Node, NodeResult<Node, Error>, StringResult<Error>> Or(final Streamable<Rule<Node, NodeResult<Node, Error>, StringResult<Error>>> rules) {
         return new OrRule<>(rules, resultFactory, new ImmutableAccumulatorFactory<>());
     }
 

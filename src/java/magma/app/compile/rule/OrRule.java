@@ -1,6 +1,6 @@
 package magma.app.compile.rule;
 
-import magma.api.list.ListLike;
+import magma.api.list.Streamable;
 import magma.app.compile.accumulate.Accumulator;
 import magma.app.compile.accumulate.AccumulatorFactory;
 import magma.app.compile.node.factory.ParentNodeResultFactory;
@@ -12,11 +12,11 @@ import java.util.function.Function;
 
 public final class OrRule<Node extends DisplayNode, Error, NodeResult extends Matching<Node, Error>, StringResult extends Matching<String, Error>, Errors, Factory extends ParentNodeResultFactory<Node, NodeResult, Errors> & ParentStringResultFactory<Node, StringResult, Errors>> implements
         Rule<Node, NodeResult, StringResult> {
-    private final ListLike<Rule<Node, NodeResult, StringResult>> rules;
+    private final Streamable<Rule<Node, NodeResult, StringResult>> rules;
     private final Factory resultFactory;
     private final AccumulatorFactory<Error, Errors> accumulatorFactory;
 
-    public OrRule(final ListLike<Rule<Node, NodeResult, StringResult>> rules, final Factory resultFactory, final AccumulatorFactory<Error, Errors> accumulatorFactory) {
+    public OrRule(final Streamable<Rule<Node, NodeResult, StringResult>> rules, final Factory resultFactory, final AccumulatorFactory<Error, Errors> accumulatorFactory) {
         this.rules = rules;
         this.resultFactory = resultFactory;
         this.accumulatorFactory = accumulatorFactory;

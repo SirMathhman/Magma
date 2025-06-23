@@ -1,13 +1,13 @@
 package magma.app.compile.divide;
 
-import magma.api.list.ListLike;
 import magma.api.list.ListLikes;
+import magma.api.list.Streamable;
 
 public class Divide {
     private Divide() {
     }
 
-    public static ListLike<String> divide(final CharSequence input) {
+    public static Streamable<String> divide(final CharSequence input) {
         final var segments = ListLikes.<String>empty();
         final var buffer = new StringBuilder();
         final var depth = 0;

@@ -1,6 +1,7 @@
 package magma.app.compile.divide;
 
 import magma.api.list.ListLike;
+import magma.api.list.Streamable;
 
 public class MutableDivideState implements DivideState {
     private ListLike<String> segments;
@@ -44,7 +45,7 @@ public class MutableDivideState implements DivideState {
     }
 
     @Override
-    public ListLike<String> toList() {
+    public Streamable<String> toList() {
         return segments;
     }
 }

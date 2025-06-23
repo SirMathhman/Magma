@@ -1,6 +1,6 @@
 package magma.app.compile.divide;
 
-import magma.api.list.ListLike;
+import magma.api.list.Streamable;
 
 public interface DivideState {
     DivideState append(char c);
@@ -13,5 +13,5 @@ public interface DivideState {
 
     DivideState advance();
 
-    ListLike<String> toList();
+    Streamable<String> toList();
 }

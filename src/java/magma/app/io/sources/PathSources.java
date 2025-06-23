@@ -4,7 +4,7 @@ import magma.api.error.Error;
 import magma.api.error.WrappedError;
 import magma.api.io.IOError;
 import magma.api.io.PathLike;
-import magma.api.list.ListLike;
+import magma.api.list.Streamable;
 import magma.api.result.Ok;
 import magma.api.result.Result;
 
@@ -33,7 +33,7 @@ public record PathSources(PathLike rootDirectory) implements Sources {
         return maybeInputs;
     }
 
-    private static List<PathLike> filter(final ListLike<PathLike> files) {
+    private static List<PathLike> filter(final Streamable<PathLike> files) {
         return files.stream()
                 .filter(file -> file.asString()
                         .endsWith(".java"))
