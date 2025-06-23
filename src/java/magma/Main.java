@@ -6,6 +6,7 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Optional;
 
 public class Main {
     private interface DivideState {
@@ -104,17 +105,23 @@ public class Main {
         if (stripped.startsWith("package ") || stripped.startsWith("import "))
             return "";
 
+        return Main.compileStructure(stripped)
+                .orElseGet(() -> Main.generatePlaceholder(stripped));
+    }
+
+    private static Optional<String> compileStructure(final String input) {
+        final var stripped = input.strip();
         if (stripped.endsWith("}")) {
             final var withoutEnd = stripped.substring(0, stripped.length() - "}".length());
             final var contentStart = withoutEnd.indexOf('{');
             if (0 <= contentStart) {
                 final var beforeContent = withoutEnd.substring(0, contentStart);
                 final var content = withoutEnd.substring(contentStart + "{".length());
-                return Main.generatePlaceholder(beforeContent) + "{" + Main.generatePlaceholder(content) + "}";
+                return Optional.of(Main.generatePlaceholder(beforeContent) + "{" + Main.generatePlaceholder(content) + "}");
             }
         }
 
-        return Main.generatePlaceholder(stripped);
+        return Optional.empty();
     }
 
     private static Collection<String> divide(final CharSequence input) {
