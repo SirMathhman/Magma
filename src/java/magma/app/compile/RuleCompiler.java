@@ -16,13 +16,14 @@ import magma.app.compile.factory.ResultFactory;
 import magma.app.compile.factory.SimpleContextFactory;
 import magma.app.compile.lang.JavaLang;
 import magma.app.compile.lang.PlantUMLJavaLang;
-import magma.app.compile.lang.RootRule;
+import magma.app.compile.lang.RuleFactory;
 import magma.app.compile.node.EverythingNode;
 import magma.app.compile.node.MapNodeFactory;
 import magma.app.compile.node.NodeFactory;
 import magma.app.compile.node.result.NodeErr;
 import magma.app.compile.node.result.NodeOk;
 import magma.app.compile.node.result.NodeResult;
+import magma.app.compile.rule.Rule;
 import magma.app.compile.string.StringErr;
 import magma.app.compile.string.StringOk;
 import magma.app.compile.string.StringResult;
@@ -35,10 +36,12 @@ public class RuleCompiler implements Compiler {
             new SimpleContextFactory<>(),
             new CompileErrorFactory());
 
-    private static final RootRule<EverythingNode, FormattedError> JAVA_LANG = new JavaLang<>(RuleCompiler.NODE_FACTORY,
+    private static final RuleFactory<Rule<EverythingNode, NodeResult<EverythingNode, FormattedError>, StringResult<FormattedError>>> JAVA_LANG = new JavaLang<>(
+            RuleCompiler.NODE_FACTORY,
             RuleCompiler.RESULTS_FACTORY);
 
-    private static final RootRule<EverythingNode, FormattedError> PLANT_UML_LANG = new PlantUMLJavaLang<>(RuleCompiler.NODE_FACTORY,
+    private static final RuleFactory<Rule<EverythingNode, NodeResult<EverythingNode, FormattedError>, StringResult<FormattedError>>> PLANT_UML_LANG = new PlantUMLJavaLang<>(
+            RuleCompiler.NODE_FACTORY,
             RuleCompiler.RESULTS_FACTORY);
 
     private static StringResult<FormattedError> compileEntry(final Map<String, String> inputs) {

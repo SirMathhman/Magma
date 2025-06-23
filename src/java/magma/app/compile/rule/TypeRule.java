@@ -1,24 +1,24 @@
 package magma.app.compile.rule;
 
-import magma.app.compile.factory.ResultFactory;
+import magma.app.compile.factory.StringResultFactory;
 import magma.app.compile.node.DisplayNode;
 import magma.app.compile.node.TypedNode;
-import magma.app.compile.node.result.NodeResult;
+import magma.app.compile.node.result.Mapping;
 
-public final class TypeRule<Node extends TypedNode<Node> & DisplayNode, Error, ErrorSequence, StringResult> implements
-        Rule<Node, NodeResult<Node, Error>, StringResult> {
+public final class TypeRule<Node extends TypedNode<Node> & DisplayNode, Error, NodeResult extends Mapping<Node, NodeResult>, StringResult, Factory extends StringResultFactory<Node, StringResult, Error>> implements
+        Rule<Node, NodeResult, StringResult> {
     private final String type;
-    private final Rule<Node, NodeResult<Node, Error>, StringResult> rule;
-    private final ResultFactory<Node, NodeResult<Node, Error>, StringResult, ErrorSequence> factory;
+    private final Rule<Node, NodeResult, StringResult> rule;
+    private final Factory factory;
 
-    public TypeRule(final String type, final Rule<Node, NodeResult<Node, Error>, StringResult> rule, final ResultFactory<Node, NodeResult<Node, Error>, StringResult, ErrorSequence> factory) {
+    public TypeRule(final String type, final Rule<Node, NodeResult, StringResult> rule, final Factory factory) {
         this.type = type;
         this.rule = rule;
         this.factory = factory;
     }
 
     @Override
-    public NodeResult<Node, Error> lex(final String input) {
+    public NodeResult lex(final String input) {
         return rule.lex(input)
                 .map(node -> node.retype(type));
     }

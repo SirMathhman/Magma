@@ -143,6 +143,7 @@ JavaIOError --> IOException
 JavaIOError --> PrintWriter
 JavaIOError --> StringWriter
 class Err
+class StringResultFactory
 class MapNode
 MapNode --> None
 MapNode --> Option
@@ -195,13 +196,14 @@ RuleCompiler --> ResultFactory
 RuleCompiler --> SimpleContextFactory
 RuleCompiler --> JavaLang
 RuleCompiler --> PlantUMLJavaLang
-RuleCompiler --> RootRule
+RuleCompiler --> RuleFactory
 RuleCompiler --> EverythingNode
 RuleCompiler --> MapNodeFactory
 RuleCompiler --> NodeFactory
 RuleCompiler --> NodeErr
 RuleCompiler --> NodeOk
 RuleCompiler --> NodeResult
+RuleCompiler --> Rule
 RuleCompiler --> StringErr
 RuleCompiler --> StringOk
 RuleCompiler --> StringResult
@@ -209,6 +211,7 @@ RuleCompiler --> Map
 class StringErr
 class StringContext
 class Context
+class RuleFactory
 class Error
 class Targets
 Targets --> Error
@@ -237,13 +240,6 @@ class SuffixRule
 SuffixRule --> ResultFactory
 SuffixRule --> NodeResult
 SuffixRule --> Appending
-class RootRule
-RootRule --> DisplayNode
-RootRule --> StringNode
-RootRule --> TypedNode
-RootRule --> NodeResult
-RootRule --> Rule
-RootRule --> StringResult
 class ImmutableErrorList
 ImmutableErrorList --> ListLike
 ImmutableErrorList --> ListLikes
@@ -276,9 +272,9 @@ Main --> Targets
 class ListLike
 ListLike --> Stream
 class TypeRule
-TypeRule --> ResultFactory
+TypeRule --> StringResultFactory
 TypeRule --> DisplayNode
 TypeRule --> TypedNode
-TypeRule --> NodeResult
+TypeRule --> Mapping
 
 @enduml

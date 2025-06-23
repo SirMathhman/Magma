@@ -18,7 +18,7 @@ import magma.app.compile.rule.SuffixRule;
 import magma.app.compile.rule.TypeRule;
 import magma.app.compile.string.StringResult;
 
-class Lang<Node extends DisplayNode & StringNode<Node> & TypedNode<Node>, Error> {
+class Lang<Node extends DisplayNode & StringNode<Node> & TypedNode<Node>, Error, Rule0> {
     private final ResultFactory<Node, NodeResult<Node, Error>, StringResult<Error>, ErrorSequence<Error>> resultFactory;
     private final NodeFactory<Node> nodeFactory;
 
