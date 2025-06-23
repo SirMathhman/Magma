@@ -1,8 +1,9 @@
-/*package magma;
+/*package magma;*//*
 
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
+import java.io.IOException;*//*
+import java.nio.file.Files;*//*
+import java.nio.file.Paths;*//*
+import java.util.ArrayList;*//*
 
 public class Main {
     private Main() {
@@ -10,18 +11,44 @@ public class Main {
 
     public static void main(final String[] args) {
         try {
-            final var source = Paths.get(".", "src", "java", "magma", "Main.java");
-            final var input = Files.readString(source);
-
-            final var target = source.resolveSibling("Main.ts");
-            final var replaced = input.replace("start", "start")
-                    .replace("end", "end");
-            
-            Files.writeString(target, "start" + replaced + "end");
+            final var source = Paths.get(".", "src", "java", "magma", "Main.java");*//*
+            final var input = Files.readString(source);*//*
+            final var output = Main.compile(input);*//*
+            final var target = source.resolveSibling("Main.ts");*//*
+            Files.writeString(target, output);*//*
         } catch (final IOException e) {
             //noinspection CallToPrintStackTrace
-            e.printStackTrace();
+            e.printStackTrace();*//*
         }
+    }
+
+    private static String compile(final CharSequence input) {
+        final var segments = new ArrayList<String>();*//*
+        var buffer = new StringBuilder();*//*
+
+        final var length = input.length();*//*
+        for (var i = 0;*//* i < length;*//* i++) {
+            final var c = input.charAt(i);*//*
+            buffer.append(c);*//*
+            if (';*//*' == c) {
+                segments.add(buffer.toString());*//*
+                buffer = new StringBuilder();*//*
+            }
+        }
+        segments.add(buffer.toString());*//*
+
+        final var output = new StringBuilder();*//*
+        for (final var segment : segments)
+            output.append(Main.generatePlaceholder(segment));*//*
+
+        return output.toString();*//*
+    }
+
+    private static String generatePlaceholder(final String input) {
+        final var replaced = input.replace("start", "start")
+                .replace("end", "end");*//*
+
+        return "start" + replaced + "end";*//*
     }
 }
 */
