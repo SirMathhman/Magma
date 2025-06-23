@@ -1,23 +1,22 @@
 package magma.app.compile.rule;
 
-import magma.api.error.list.ErrorSequence;
-import magma.app.compile.factory.ResultFactory;
-import magma.app.compile.node.result.NodeResult;
-import magma.app.compile.string.StringResult;
+import magma.app.compile.factory.NodeResultFactory;
+import magma.app.compile.string.Prepending;
 
-public final class PrefixRule<Node, Error> implements Rule<Node, NodeResult<Node, Error>, StringResult<Error>> {
+public final class PrefixRule<Node, NodeResult, StringResult extends Prepending<StringResult>, Factory extends NodeResultFactory<Node, NodeResult, ?>> implements
+        Rule<Node, NodeResult, StringResult> {
     private final String prefix;
-    private final Rule<Node, NodeResult<Node, Error>, StringResult<Error>> rule;
-    private final ResultFactory<Node, NodeResult<Node, Error>, StringResult<Error>, ErrorSequence<Error>> factory;
+    private final Rule<Node, NodeResult, StringResult> rule;
+    private final Factory factory;
 
-    public PrefixRule(final String prefix, final Rule<Node, NodeResult<Node, Error>, StringResult<Error>> rule, final ResultFactory<Node, NodeResult<Node, Error>, StringResult<Error>, ErrorSequence<Error>> factory) {
+    public PrefixRule(final String prefix, final Rule<Node, NodeResult, StringResult> rule, final Factory factory) {
         this.prefix = prefix;
         this.rule = rule;
         this.factory = factory;
     }
 
     @Override
-    public NodeResult<Node, Error> lex(final String input) {
+    public NodeResult lex(final String input) {
         if (!input.startsWith(prefix))
             return factory.fromNodeError("Prefix '" + prefix + "' not present", input);
 
@@ -26,7 +25,7 @@ public final class PrefixRule<Node, Error> implements Rule<Node, NodeResult<Node
     }
 
     @Override
-    public StringResult<Error> generate(final Node node) {
+    public StringResult generate(final Node node) {
         return rule.generate(node)
                 .prepend(prefix);
     }
