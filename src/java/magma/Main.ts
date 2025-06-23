@@ -247,6 +247,21 @@
         }
     }
 
+    private record PrefixRule(String prefix, Rule rule) implements Rule {
+        @Override
+        public Optional<String> generate(final Node node) {
+            return rule.generate(node)
+                    .map(result -> prefix + result);
+        }
+
+        @Override
+        public Optional<Node> lex(final String input) {
+            if (input.startsWith(prefix))
+                return rule.lex(input.substring(prefix.length()));
+            return Optional.empty();
+        }
+    }
+
     private Main() {
     }
 
@@ -274,16 +289,26 @@
     }
 
     private static String compileRootSegment(final String input) {
-        final var stripped = input.strip();
-        if (stripped.startsWith("package ") || stripped.startsWith("import "))
-            return "";
-
-        return new OrRule(List.of(Main.createStructureRule())).lex(stripped)
+        return Main.createJavaRootSegmentRule()
+                .lex(input)
                 .flatMap(node -> {
-                    return Main.createStructureRule()
-                            .generate(node);
+                    if (node.is("structure"))
+                        return Main.createStructureRule()
+                                .generate(node);
+                    else
+                        return Optional.of("");
                 })
-                .orElseGet(() -> Main.generatePlaceholder(stripped));
+                .orElseGet(() -> Main.generatePlaceholder(input));
+    }
+
+    private static Rule createJavaRootSegmentRule() {
+        return new OrRule(List.of(Main.createLocationRule("package"),
+                Main.createLocationRule("import"),
+                Main.createStructureRule()));
+    }
+
+    private static TypeRule createLocationRule(final String type) {
+        return new TypeRule(type, new StripRule(new PrefixRule(type + " ", new StringRule("content"))));
     }
 
     private static Rule createStructureRule() {
