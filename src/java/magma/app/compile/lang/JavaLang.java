@@ -11,12 +11,14 @@ import magma.app.compile.node.result.NodeResult;
 import magma.app.compile.rule.Rule;
 import magma.app.compile.string.StringResult;
 
-public class JavaLang<Node extends DisplayNode & StringNode<Node> & TypedNode<Node>, Error> extends Lang<Node, Error> {
+public class JavaLang<Node extends DisplayNode & StringNode<Node> & TypedNode<Node>, Error> extends Lang<Node, Error> implements
+        RootRule<Node, Error> {
     public JavaLang(final NodeFactory<Node> nodeFactory, final ResultFactory<Node, NodeResult<Node, Error>, StringResult<Error>, ErrorSequence<Error>> resultFactory) {
         super(resultFactory, nodeFactory);
     }
 
-    public Rule<Node, NodeResult<Node, Error>, StringResult<Error>> createRootSegmentRule() {
+    @Override
+    public Rule<Node, NodeResult<Node, Error>, StringResult<Error>> create() {
         return Or(ListLikes.of(createImportRule("package"),
                 createImportRule("import"),
                 createStructureRule("record"),
@@ -33,18 +35,5 @@ public class JavaLang<Node extends DisplayNode & StringNode<Node> & TypedNode<No
         final var withParent = Infix(destination, ".", String("parent"));
         final var parent = Or(ListLikes.of(withParent, String("value")));
         return Type("import", Strip(Prefix(type, Suffix(parent, ";"))));
-    }
-
-    private Rule<Node, NodeResult<Node, Error>, StringResult<Error>> createPlaceholderRule() {
-        return Type("placeholder", String("value"));
-    }
-
-    private Rule<Node, NodeResult<Node, Error>, StringResult<Error>> createDependencyRule() {
-        return Type("dependency",
-                Suffix(Infix(String("destination"), " --> ", String("source")), System.lineSeparator()));
-    }
-
-    public Rule<Node, NodeResult<Node, Error>, StringResult<Error>> createPlantUMLRootSegmentRule() {
-        return Or(ListLikes.of(createDependencyRule(), createPlaceholderRule()));
     }
 }

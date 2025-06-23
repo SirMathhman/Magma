@@ -18,40 +18,40 @@ import magma.app.compile.rule.SuffixRule;
 import magma.app.compile.rule.TypeRule;
 import magma.app.compile.string.StringResult;
 
-public class Lang<Node extends DisplayNode & StringNode<Node> & TypedNode<Node>, Error> {
-    protected final ResultFactory<Node, NodeResult<Node, Error>, StringResult<Error>, ErrorSequence<Error>> resultFactory;
-    protected final NodeFactory<Node> nodeFactory;
+class Lang<Node extends DisplayNode & StringNode<Node> & TypedNode<Node>, Error> {
+    private final ResultFactory<Node, NodeResult<Node, Error>, StringResult<Error>, ErrorSequence<Error>> resultFactory;
+    private final NodeFactory<Node> nodeFactory;
 
-    public Lang(final ResultFactory<Node, NodeResult<Node, Error>, StringResult<Error>, ErrorSequence<Error>> resultFactory, final NodeFactory<Node> nodeFactory) {
+    Lang(final ResultFactory<Node, NodeResult<Node, Error>, StringResult<Error>, ErrorSequence<Error>> resultFactory, final NodeFactory<Node> nodeFactory) {
         this.resultFactory = resultFactory;
         this.nodeFactory = nodeFactory;
     }
 
-    protected Rule<Node, NodeResult<Node, Error>, StringResult<Error>> Or(final ListLike<Rule<Node, NodeResult<Node, Error>, StringResult<Error>>> rules) {
+    Rule<Node, NodeResult<Node, Error>, StringResult<Error>> Or(final ListLike<Rule<Node, NodeResult<Node, Error>, StringResult<Error>>> rules) {
         return new OrRule<>(rules, resultFactory);
     }
 
-    protected Rule<Node, NodeResult<Node, Error>, StringResult<Error>> String(final String key) {
+    Rule<Node, NodeResult<Node, Error>, StringResult<Error>> String(final String key) {
         return new StringRule<>(key, nodeFactory, resultFactory);
     }
 
-    protected Rule<Node, NodeResult<Node, Error>, StringResult<Error>> Suffix(final Rule<Node, NodeResult<Node, Error>, StringResult<Error>> rule, final String suffix) {
+    Rule<Node, NodeResult<Node, Error>, StringResult<Error>> Suffix(final Rule<Node, NodeResult<Node, Error>, StringResult<Error>> rule, final String suffix) {
         return new SuffixRule<>(rule, suffix, resultFactory);
     }
 
-    protected Rule<Node, NodeResult<Node, Error>, StringResult<Error>> Type(final String type, final Rule<Node, NodeResult<Node, Error>, StringResult<Error>> rule) {
+    Rule<Node, NodeResult<Node, Error>, StringResult<Error>> Type(final String type, final Rule<Node, NodeResult<Node, Error>, StringResult<Error>> rule) {
         return new TypeRule<>(type, rule, resultFactory);
     }
 
-    protected Rule<Node, NodeResult<Node, Error>, StringResult<Error>> Infix(final Rule<Node, NodeResult<Node, Error>, StringResult<Error>> rightRule, final String infix, final Rule<Node, NodeResult<Node, Error>, StringResult<Error>> leftRule) {
+    Rule<Node, NodeResult<Node, Error>, StringResult<Error>> Infix(final Rule<Node, NodeResult<Node, Error>, StringResult<Error>> rightRule, final String infix, final Rule<Node, NodeResult<Node, Error>, StringResult<Error>> leftRule) {
         return new InfixRule<>(leftRule, infix, rightRule, resultFactory);
     }
 
-    protected PrefixRule<Node, Error> Prefix(final String type, final Rule<Node, NodeResult<Node, Error>, StringResult<Error>> rule) {
+    Rule<Node, NodeResult<Node, Error>, StringResult<Error>> Prefix(final String type, final Rule<Node, NodeResult<Node, Error>, StringResult<Error>> rule) {
         return new PrefixRule<>(type + " ", rule, resultFactory);
     }
 
-    protected StripRule<Node, Error> Strip(final PrefixRule<Node, Error> rule) {
+    Rule<Node, NodeResult<Node, Error>, StringResult<Error>> Strip(final Rule<Node, NodeResult<Node, Error>, StringResult<Error>> rule) {
         return new StripRule<>(rule);
     }
 }
