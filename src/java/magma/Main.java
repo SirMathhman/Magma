@@ -15,6 +15,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.BiFunction;
@@ -73,6 +74,8 @@ public class Main {
         boolean hasNoProperties();
 
         Optional<Tuple<Node, List<Node>>> removeNodeList(String key);
+
+        boolean hasNoName();
     }
 
     private interface Rule {
@@ -119,6 +122,12 @@ public class Main {
     }
 
     private sealed interface JavaRootSegment permits Package, Import, Structure {
+    }
+
+    private sealed interface JavaStructureMembers permits Structure, Placeholder {
+    }
+
+    private record Placeholder(String value) implements JavaStructureMembers {
     }
 
     private record Package(String content) implements JavaRootSegment {
@@ -351,6 +360,11 @@ public class Main {
             }
 
             return Optional.empty();
+        }
+
+        @Override
+        public boolean hasNoName() {
+            return maybeType.isEmpty();
         }
     }
 
@@ -689,7 +703,9 @@ public class Main {
         }
     }
 
-    private record Structure() implements JavaRootSegment {
+    private record Structure(String name, String modifiers, List<JavaStructureMembers> members) implements
+            JavaRootSegment,
+            JavaStructureMembers {
     }
 
     private record JavaRoot(List<JavaRootSegment> children) {
@@ -797,9 +813,14 @@ public class Main {
 
         if (clazz.isInterface()) {
             final var permittedSubclasses = clazz.getPermittedSubclasses();
+            if (null != permittedSubclasses)
+                if (node.hasNoName()) {
+                    return new Err<>(new CompileError("Node has no name", new NodeContext(node)));
+                }
+
             for (final var permittedSubclass : permittedSubclasses) {
                 final var name = permittedSubclass.getSimpleName();
-                if (node.is(name.toLowerCase()))
+                if (node.is(name.toLowerCase(Locale.ROOT)))
                     return Main.deserialize(permittedSubclass, node)
                             .mapValue(clazz::cast);
             }
@@ -878,15 +899,15 @@ public class Main {
     }
 
     private static Rule createTSRootRule() {
-        return Main.Statements(Main.createStructureRule());
+        return Main.Statements(Main.createStructureRule(), "children");
     }
 
     private static Rule createJavaRootRule() {
-        return Main.Statements(Main.createJavaRootSegmentRule());
+        return Main.Statements(Main.createJavaRootSegmentRule(), "children");
     }
 
-    private static Rule Statements(final Rule rule) {
-        return new DivideRule("children", rule);
+    private static Rule Statements(final Rule rule, final String key) {
+        return new DivideRule(key, rule);
     }
 
     private static Rule createJavaRootSegmentRule() {
@@ -908,7 +929,7 @@ public class Main {
 
         final var beforeChildren = new OrRule(rules);
 
-        final var children = Main.Statements(Main.createStructureMemberRule(structureRule));
+        final var children = Main.Statements(Main.createStructureMemberRule(structureRule), "members");
         structureRule.set(new TypeRule("structure",
                 new StripRule(new SuffixRule(new InfixRule(beforeChildren, "{", children), "}"))));
         return structureRule;
@@ -919,6 +940,7 @@ public class Main {
     }
 
     private static Rule createStructureMemberRule(final Rule structureRule) {
-        return new OrRule(List.of(structureRule, new PlaceholderRule(new StringRule("placeholder"))));
+        return new OrRule(List.of(structureRule,
+                new TypeRule("placeholder", new PlaceholderRule(new StringRule("value")))));
     }
 }
