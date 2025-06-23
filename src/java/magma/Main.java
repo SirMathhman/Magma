@@ -104,6 +104,16 @@ public class Main {
         if (stripped.startsWith("package ") || stripped.startsWith("import "))
             return "";
 
+        if (stripped.endsWith("}")) {
+            final var withoutEnd = stripped.substring(0, stripped.length() - "}".length());
+            final var contentStart = withoutEnd.indexOf('{');
+            if (0 <= contentStart) {
+                final var beforeContent = withoutEnd.substring(0, contentStart);
+                final var content = withoutEnd.substring(contentStart + "{".length());
+                return Main.generatePlaceholder(beforeContent) + "{" + Main.generatePlaceholder(content) + "}";
+            }
+        }
+
         return Main.generatePlaceholder(stripped);
     }
 
