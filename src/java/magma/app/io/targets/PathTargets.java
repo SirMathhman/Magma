@@ -8,7 +8,7 @@ import magma.api.option.Option;
 public record PathTargets(PathLike target) implements Targets {
     @Override
     public Option<Error> write(final String output) {
-        return this.target.writeString(output)
+        return target.writeString(output)
                 .map(WrappedError::new);
     }
 }

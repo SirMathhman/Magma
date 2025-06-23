@@ -22,32 +22,32 @@ public final class MapNode implements EverythingNode {
 
     @Override
     public EverythingNode withString(final String key, final String value) {
-        this.strings.put(key, value);
+        strings.put(key, value);
         return this;
     }
 
     @Override
     public Option<String> findString(final String key) {
-        if (this.strings.containsKey(key))
-            return new Some<>(this.strings.get(key));
+        if (strings.containsKey(key))
+            return new Some<>(strings.get(key));
 
         return new None<>();
     }
 
     @Override
     public String display() {
-        return this.maybeType.map(type -> type + " ")
-                .orElse("") + this.strings.toString();
+        return maybeType.map(type -> type + " ")
+                .orElse("") + strings.toString();
     }
 
     @Override
     public EverythingNode retype(final String type) {
-        return new MapNode(new Some<>(type), this.strings);
+        return new MapNode(new Some<>(type), strings);
     }
 
     @Override
     public boolean is(final String type) {
-        return this.maybeType.filter(inner -> inner.contentEquals(type))
+        return maybeType.filter(inner -> inner.contentEquals(type))
                 .isPresent();
     }
 }

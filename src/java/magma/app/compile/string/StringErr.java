@@ -21,11 +21,11 @@ public record StringErr<Error>(Error error) implements StringResult<Error> {
 
     @Override
     public StringResult<Error> appendResult(final StringResult<Error> other) {
-        return new StringErr<>(this.error);
+        return new StringErr<>(error);
     }
 
     @Override
     public <Return> Return match(final Function<String, Return> whenOk, final Function<Error, Return> whenError) {
-        return whenError.apply(this.error);
+        return whenError.apply(error);
     }
 }

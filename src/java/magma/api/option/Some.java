@@ -8,27 +8,27 @@ import java.util.function.Supplier;
 public record Some<T>(T value) implements Option<T> {
     @Override
     public void ifPresent(final Consumer<T> consumer) {
-        consumer.accept(this.value);
+        consumer.accept(value);
     }
 
     @Override
     public T orElse(final T other) {
-        return this.value;
+        return value;
     }
 
     @Override
     public <Return> Option<Return> map(final Function<T, Return> mapper) {
-        return new Some<>(mapper.apply(this.value));
+        return new Some<>(mapper.apply(value));
     }
 
     @Override
     public T orElseGet(final Supplier<T> other) {
-        return this.value;
+        return value;
     }
 
     @Override
     public Option<T> filter(final Predicate<T> predicate) {
-        return predicate.test(this.value) ? this : new None<>();
+        return predicate.test(value) ? this : new None<>();
     }
 
     @Override

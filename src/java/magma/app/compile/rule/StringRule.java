@@ -19,14 +19,14 @@ public final class StringRule<Node extends StringNode<Node>, NodeResult extends 
 
     @Override
     public NodeResult lex(final String input) {
-        return this.resultFactory.fromNode(this.nodeFactory.createNode())
-                .map(node -> node.withString(this.key, input));
+        return resultFactory.fromNode(nodeFactory.createNode())
+                .map(node -> node.withString(key, input));
     }
 
     @Override
     public StringResult generate(final Node node) {
-        return node.findString(this.key)
-                .map(this.resultFactory::fromString)
-                .orElseGet(() -> this.resultFactory.fromStringError("String '" + this.key + "' not present", node));
+        return node.findString(key)
+                .map(resultFactory::fromString)
+                .orElseGet(() -> resultFactory.fromStringError("String '" + key + "' not present", node));
     }
 }

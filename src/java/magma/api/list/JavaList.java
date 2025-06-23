@@ -11,17 +11,17 @@ public record JavaList<T>(List<T> list) implements ListLike<T> {
 
     @Override
     public boolean contains(final T element) {
-        return this.list.contains(element);
+        return list.contains(element);
     }
 
     @Override
     public Stream<T> stream() {
-        return this.list.stream();
+        return list.stream();
     }
 
     @Override
     public ListLike<T> add(final T element) {
-        this.list.add(element);
+        list.add(element);
         return this;
     }
 }

@@ -10,12 +10,12 @@ public record StringOk<Error>(String value) implements StringResult<Error> {
 
     @Override
     public StringResult<Error> appendSlice(final String slice) {
-        return new StringOk<>(this.value + slice);
+        return new StringOk<>(value + slice);
     }
 
     @Override
     public StringResult<Error> prepend(final String slice) {
-        return new StringOk<>(slice + this.value);
+        return new StringOk<>(slice + value);
     }
 
     @Override
@@ -25,11 +25,11 @@ public record StringOk<Error>(String value) implements StringResult<Error> {
 
     @Override
     public StringResult<Error> appendResult(final StringResult<Error> other) {
-        return other.prepend(this.value);
+        return other.prepend(value);
     }
 
     @Override
     public <Return> Return match(final Function<String, Return> whenOk, final Function<Error, Return> whenError) {
-        return whenOk.apply(this.value);
+        return whenOk.apply(value);
     }
 }

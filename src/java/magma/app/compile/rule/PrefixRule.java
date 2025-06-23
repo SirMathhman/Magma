@@ -18,16 +18,16 @@ public final class PrefixRule<Node, Error> implements Rule<Node, NodeResult<Node
 
     @Override
     public NodeResult<Node, Error> lex(final String input) {
-        if (!input.startsWith(this.prefix))
-            return this.factory.fromNodeError("Prefix '" + this.prefix + "' not present", input);
+        if (!input.startsWith(prefix))
+            return factory.fromNodeError("Prefix '" + prefix + "' not present", input);
 
-        final var slice = input.substring(this.prefix.length());
-        return this.rule.lex(slice);
+        final var slice = input.substring(prefix.length());
+        return rule.lex(slice);
     }
 
     @Override
     public StringResult<Error> generate(final Node node) {
-        return this.rule.generate(node)
-                .prepend(this.prefix);
+        return rule.generate(node)
+                .prepend(prefix);
     }
 }

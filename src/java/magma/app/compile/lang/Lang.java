@@ -31,41 +31,43 @@ public class Lang<EverythingNode extends DisplayNode & StringNode<EverythingNode
         return new OrRule<>(ListLikes.of(createImportRule("package"),
                 createImportRule("import"),
                 createStructureRule("record"),
-                createStructureRule("interface"),
-                createStructureRule("class")), this.resultFactory);
+                createStructureRule("interface"), createStructureRule("class")), resultFactory);
     }
 
     private Rule<EverythingNode, NodeResult<EverythingNode, FormattedError>, StringResult<FormattedError>> createStructureRule(final String infix) {
-        return new InfixRule<>(new StringRule<>("before-keyword", this.nodeFactory, this.resultFactory),
-                infix, new StringRule<>("after-keyword", this.nodeFactory, this.resultFactory), this.resultFactory);
+        return new InfixRule<>(new StringRule<>("before-keyword", nodeFactory, resultFactory),
+                infix,
+                new StringRule<>("after-keyword", nodeFactory, resultFactory),
+                resultFactory);
     }
 
     private Rule<EverythingNode, NodeResult<EverythingNode, FormattedError>, StringResult<FormattedError>> createImportRule(final String type) {
-        final var destination = new StringRule<>("destination", this.nodeFactory, this.resultFactory);
-        final var withParent = new InfixRule<>(new StringRule<>("parent", this.nodeFactory, this.resultFactory),
-                ".",
-                destination, this.resultFactory);
-        final var parent = new OrRule<>(ListLikes.of(withParent, new StringRule<>("value", this.nodeFactory,
-                this.resultFactory)),
-                this.resultFactory);
+        final var destination = new StringRule<>("destination", nodeFactory, resultFactory);
+        final var withParent = new InfixRule<>(new StringRule<>("parent", nodeFactory, resultFactory),
+                ".", destination, resultFactory);
+        final var parent = new OrRule<>(ListLikes.of(withParent, new StringRule<>("value", nodeFactory, resultFactory)),
+                resultFactory);
 
         return new TypeRule<>(type,
                 new StripRule<>(new PrefixRule<>(type + " ",
-                        new SuffixRule<>(parent, ";", this.resultFactory), this.resultFactory)), this.resultFactory);
+                        new SuffixRule<>(parent, ";", resultFactory),
+                        resultFactory)), resultFactory);
     }
 
     private Rule<EverythingNode, NodeResult<EverythingNode, FormattedError>, StringResult<FormattedError>> createPlaceholderRule() {
-        return new TypeRule<>("placeholder", new StringRule<>("value", this.nodeFactory, this.resultFactory), this.resultFactory);
+        return new TypeRule<>("placeholder", new StringRule<>("value", nodeFactory, resultFactory), resultFactory);
     }
 
     private Rule<EverythingNode, NodeResult<EverythingNode, FormattedError>, StringResult<FormattedError>> createDependencyRule() {
         return new TypeRule<>("dependency",
-                new SuffixRule<>(new InfixRule<>(new StringRule<>("source", this.nodeFactory, this.resultFactory),
-                        " --> ", new StringRule<>("destination", this.nodeFactory, this.resultFactory), this.resultFactory),
-                        System.lineSeparator(), this.resultFactory), this.resultFactory);
+                new SuffixRule<>(new InfixRule<>(new StringRule<>("source", nodeFactory, resultFactory),
+                        " --> ",
+                        new StringRule<>("destination", nodeFactory, resultFactory),
+                        resultFactory), System.lineSeparator(), resultFactory),
+                resultFactory);
     }
 
     public Rule<EverythingNode, NodeResult<EverythingNode, FormattedError>, StringResult<FormattedError>> createPlantUMLRootSegmentRule() {
-        return new OrRule<>(ListLikes.of(createDependencyRule(), createPlaceholderRule()), this.resultFactory);
+        return new OrRule<>(ListLikes.of(createDependencyRule(), createPlaceholderRule()), resultFactory);
     }
 }

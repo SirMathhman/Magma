@@ -5,11 +5,11 @@ import java.util.function.Function;
 public record NodeOk<Node, Error>(Node node) implements NodeResult<Node, Error> {
     @Override
     public <Return> Return match(final Function<Node, Return> whenOk, final Function<Error, Return> whenError) {
-        return whenOk.apply(this.node);
+        return whenOk.apply(node);
     }
 
     @Override
     public NodeResult<Node, Error> map(final Function<Node, Node> mapper) {
-        return new NodeOk<>(mapper.apply(this.node));
+        return new NodeOk<>(mapper.apply(node));
     }
 }

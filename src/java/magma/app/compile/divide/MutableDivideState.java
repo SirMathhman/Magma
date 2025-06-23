@@ -15,36 +15,36 @@ public class MutableDivideState implements DivideState {
 
     @Override
     public DivideState append(final char c) {
-        this.buffer.append(c);
+        buffer.append(c);
         return this;
     }
 
     @Override
     public boolean isLevel() {
-        return 0 == this.depth;
+        return 0 == depth;
     }
 
     @Override
     public DivideState exit() {
-        this.depth = this.depth - 1;
+        depth = depth - 1;
         return this;
     }
 
     @Override
     public DivideState enter() {
-        this.depth = this.depth + 1;
+        depth = depth + 1;
         return this;
     }
 
     @Override
     public DivideState advance() {
-        this.segments = this.segments.add(this.buffer.toString());
-        this.buffer = new StringBuilder();
+        segments = segments.add(buffer.toString());
+        buffer = new StringBuilder();
         return this;
     }
 
     @Override
     public ListLike<String> toList() {
-        return this.segments;
+        return segments;
     }
 }

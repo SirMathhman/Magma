@@ -24,22 +24,22 @@ final class ImmutableAccumulator<Value, Error> implements Accumulator<Value, Err
 
     @Override
     public Accumulator<Value, Error> withValue(final Value value) {
-        return new ImmutableAccumulator<>(new Some<>(value), this.errors);
+        return new ImmutableAccumulator<>(new Some<>(value), errors);
     }
 
     @Override
     public Accumulator<Value, Error> withError(final Error error) {
-        return new ImmutableAccumulator<>(this.maybeValue, this.errors.add(error));
+        return new ImmutableAccumulator<>(maybeValue, errors.add(error));
     }
 
     @Override
     public <Return> Return match(final Function<Value, Return> whenPresent, final Function<ErrorSequence<Error>, Return> whenErr) {
-        return this.maybeValue.map(whenPresent)
-                .orElseGet(() -> whenErr.apply(this.errors));
+        return maybeValue.map(whenPresent)
+                .orElseGet(() -> whenErr.apply(errors));
     }
 
     @Override
     public boolean hasValue() {
-        return this.maybeValue.isPresent();
+        return maybeValue.isPresent();
     }
 }

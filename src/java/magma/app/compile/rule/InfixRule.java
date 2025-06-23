@@ -19,18 +19,18 @@ public final class InfixRule<Node, Error, NodeResult, StringResult extends Appen
 
     @Override
     public NodeResult lex(final String input) {
-        final var separator = input.lastIndexOf(this.infix);
+        final var separator = input.lastIndexOf(infix);
         if (0 > separator)
-            return this.factory.fromNodeError("Infix '" + this.infix + "' not present", this.infix);
+            return factory.fromNodeError("Infix '" + infix + "' not present", infix);
 
-        final var rightSlice = input.substring(separator + this.infix.length());
-        return this.rightRule.lex(rightSlice);
+        final var rightSlice = input.substring(separator + infix.length());
+        return rightRule.lex(rightSlice);
     }
 
     @Override
     public StringResult generate(final Node node) {
-        return this.leftRule.generate(node)
-                .appendSlice(this.infix)
-                .tryAppendResult(() -> this.rightRule.generate(node));
+        return leftRule.generate(node)
+                .appendSlice(infix)
+                .tryAppendResult(() -> rightRule.generate(node));
     }
 }

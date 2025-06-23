@@ -19,15 +19,15 @@ public final class TypeRule<Node extends TypedNode<Node> & DisplayNode, Error, E
 
     @Override
     public NodeResult<Node, Error> lex(final String input) {
-        return this.rule.lex(input)
-                .map(node -> node.retype(this.type));
+        return rule.lex(input)
+                .map(node -> node.retype(type));
     }
 
     @Override
     public StringResult<Error> generate(final Node node) {
-        if (node.is(this.type))
-            return this.rule.generate(node);
+        if (node.is(type))
+            return rule.generate(node);
 
-        return this.factory.fromStringError("Type '" + this.type + "' not present", node);
+        return factory.fromStringError("Type '" + type + "' not present", node);
     }
 }

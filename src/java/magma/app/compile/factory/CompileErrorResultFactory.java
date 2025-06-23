@@ -24,12 +24,12 @@ public class CompileErrorResultFactory<Node, FormattedError, ErrorList> implemen
 
     @Override
     public NodeResult<Node, FormattedError> fromNodeError(final String message, final String context) {
-        return new NodeErr<>(this.errorFactory.createError(message, this.contextFactory.createStringContext(context)));
+        return new NodeErr<>(errorFactory.createError(message, contextFactory.createStringContext(context)));
     }
 
     @Override
     public StringResult<FormattedError> fromStringError(final String message, final Node node) {
-        return new StringErr<>(this.errorFactory.createError(message, this.contextFactory.createNodeContext(node)));
+        return new StringErr<>(errorFactory.createError(message, contextFactory.createNodeContext(node)));
     }
 
     @Override
@@ -39,13 +39,13 @@ public class CompileErrorResultFactory<Node, FormattedError, ErrorList> implemen
 
     @Override
     public NodeResult<Node, FormattedError> fromNodeErrorWithChildren(final String message, final String context, final ErrorList errors) {
-        return new NodeErr<>(this.errorFactory.createErrorWithChildren(message, this.contextFactory.createStringContext(context),
+        return new NodeErr<>(errorFactory.createErrorWithChildren(message, contextFactory.createStringContext(context),
                 errors));
     }
 
     @Override
     public StringResult<FormattedError> fromStringErrorWithChildren(final String message, final Node context, final ErrorList errors) {
-        return new StringErr<>(this.errorFactory.createErrorWithChildren(message, this.contextFactory.createNodeContext(context),
+        return new StringErr<>(errorFactory.createErrorWithChildren(message, contextFactory.createNodeContext(context),
                 errors));
     }
 }

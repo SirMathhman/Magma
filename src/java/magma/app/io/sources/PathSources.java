@@ -42,7 +42,7 @@ public record PathSources(PathLike rootDirectory) implements Sources {
 
     @Override
     public Result<Map<String, String>, Error> collect() {
-        return this.rootDirectory.walk()
+        return rootDirectory.walk()
                 .mapValue(PathSources::filter)
                 .<Error>mapErr(WrappedError::new)
                 .flatMapValue(files -> PathSources.readAll(files)

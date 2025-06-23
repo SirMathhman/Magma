@@ -13,13 +13,13 @@ public record ImmutableErrorList<Error>(ListLike<Error> errors) implements Error
 
     @Override
     public String join(final Function<Error, String> mapper) {
-        return this.errors.stream()
+        return errors.stream()
                 .map(mapper)
                 .collect(Collectors.joining());
     }
 
     @Override
     public ErrorList<Error> add(final Error error) {
-        return new ImmutableErrorList<>(this.errors.add(error));
+        return new ImmutableErrorList<>(errors.add(error));
     }
 }

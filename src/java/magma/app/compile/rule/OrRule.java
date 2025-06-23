@@ -21,13 +21,14 @@ public final class OrRule<Node extends DisplayNode, Error> implements Rule<Node,
 
     @Override
     public NodeResult<Node, Error> lex(final String input) {
-        return or(rule -> rule.lex(input), this.resultFactory::fromNode,
-                errors -> this.resultFactory.fromNodeErrorWithChildren("Invalid combination", input, errors));
+        return or(rule -> rule.lex(input),
+                resultFactory::fromNode,
+                errors -> resultFactory.fromNodeErrorWithChildren("Invalid combination", input, errors));
     }
 
     private <Value, Result extends Matching<Value, Error>, Return> Return or(final Function<Rule<Node, NodeResult<Node, Error>, StringResult<Error>>, Result> mapper, final Function<Value, Return> whenOk, final Function<ErrorSequence<Error>, Return> whenError) {
 
-        return this.rules.stream()
+        return rules.stream()
                 .<Accumulator<Value, Error>>reduce(new ImmutableAccumulator<>(), (orState, result) -> {
                     if (orState.hasValue())
                         return orState;
@@ -39,7 +40,8 @@ public final class OrRule<Node extends DisplayNode, Error> implements Rule<Node,
 
     @Override
     public StringResult<Error> generate(final Node node) {
-        return or(rule -> rule.generate(node), this.resultFactory::fromString,
-                errors -> this.resultFactory.fromStringErrorWithChildren("Invalid combination", node, errors));
+        return or(rule -> rule.generate(node),
+                resultFactory::fromString,
+                errors -> resultFactory.fromStringErrorWithChildren("Invalid combination", node, errors));
     }
 }
