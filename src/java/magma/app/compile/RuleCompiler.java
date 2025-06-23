@@ -1,6 +1,5 @@
 package magma.app.compile;
 
-import magma.api.error.list.ErrorSequence;
 import magma.api.list.ListLikes;
 import magma.api.option.None;
 import magma.api.option.Option;
@@ -10,16 +9,8 @@ import magma.api.result.Ok;
 import magma.api.result.Result;
 import magma.app.compile.divide.Divide;
 import magma.app.compile.error.FormattedError;
-import magma.app.compile.factory.CompileErrorFactory;
-import magma.app.compile.factory.CompileErrorResultFactory;
-import magma.app.compile.factory.ResultFactory;
-import magma.app.compile.factory.SimpleContextFactory;
-import magma.app.compile.lang.JavaLang;
-import magma.app.compile.lang.PlantUMLJavaLang;
 import magma.app.compile.lang.RuleFactory;
 import magma.app.compile.node.EverythingNode;
-import magma.app.compile.node.MapNodeFactory;
-import magma.app.compile.node.NodeFactory;
 import magma.app.compile.node.result.NodeErr;
 import magma.app.compile.node.result.NodeOk;
 import magma.app.compile.node.result.NodeResult;
@@ -31,18 +22,13 @@ import magma.app.compile.string.StringResult;
 import java.util.Map;
 
 public class RuleCompiler implements Compiler {
-    private static final NodeFactory<EverythingNode> NODE_FACTORY = new MapNodeFactory();
-    private static final ResultFactory<EverythingNode, NodeResult<EverythingNode, FormattedError>, StringResult<FormattedError>, ErrorSequence<FormattedError>> RESULTS_FACTORY = new CompileErrorResultFactory<>(
-            new SimpleContextFactory<>(),
-            new CompileErrorFactory());
+    private final RuleFactory<Rule<EverythingNode, NodeResult<EverythingNode, FormattedError>, StringResult<FormattedError>>> sourceRuleFactory;
+    private final RuleFactory<Rule<EverythingNode, NodeResult<EverythingNode, FormattedError>, StringResult<FormattedError>>> targetRuleFactory;
 
-    private final RuleFactory<Rule<EverythingNode, NodeResult<EverythingNode, FormattedError>, StringResult<FormattedError>>> JAVA_LANG = new JavaLang<>(
-            RuleCompiler.NODE_FACTORY,
-            RuleCompiler.RESULTS_FACTORY);
-
-    private final RuleFactory<Rule<EverythingNode, NodeResult<EverythingNode, FormattedError>, StringResult<FormattedError>>> PLANT_UML_LANG = new PlantUMLJavaLang<>(
-            RuleCompiler.NODE_FACTORY,
-            RuleCompiler.RESULTS_FACTORY);
+    public RuleCompiler(final RuleFactory<Rule<EverythingNode, NodeResult<EverythingNode, FormattedError>, StringResult<FormattedError>>> sourceRuleFactory, final RuleFactory<Rule<EverythingNode, NodeResult<EverythingNode, FormattedError>, StringResult<FormattedError>>> targetRuleFactory) {
+        this.sourceRuleFactory = sourceRuleFactory;
+        this.targetRuleFactory = targetRuleFactory;
+    }
 
     private static boolean isFunctionalInterface(final String destination) {
         return ListLikes.of("Consumer", "Function", "Supplier")
@@ -71,7 +57,7 @@ public class RuleCompiler implements Compiler {
     }
 
     private StringResult<FormattedError> getStringResult(final String name, final StringResult<FormattedError> output, final String segment) {
-        final var tree = JAVA_LANG.create()
+        final var tree = sourceRuleFactory.create()
                 .lex(segment);
 
         final var generated = (Result<Option<StringResult<FormattedError>>, FormattedError>) switch (tree) {
@@ -101,7 +87,7 @@ public class RuleCompiler implements Compiler {
     }
 
     private StringResult<FormattedError> generate(final EverythingNode node) {
-        return PLANT_UML_LANG.create()
+        return targetRuleFactory.create()
                 .generate(node);
     }
 

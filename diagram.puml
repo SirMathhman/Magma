@@ -178,7 +178,6 @@ ImmutableAccumulator --> Option
 ImmutableAccumulator --> Some
 class Appending
 class RuleCompiler
-RuleCompiler --> ErrorSequence
 RuleCompiler --> ListLikes
 RuleCompiler --> None
 RuleCompiler --> Option
@@ -188,16 +187,8 @@ RuleCompiler --> Ok
 RuleCompiler --> Result
 RuleCompiler --> Divide
 RuleCompiler --> FormattedError
-RuleCompiler --> CompileErrorFactory
-RuleCompiler --> CompileErrorResultFactory
-RuleCompiler --> ResultFactory
-RuleCompiler --> SimpleContextFactory
-RuleCompiler --> JavaLang
-RuleCompiler --> PlantUMLJavaLang
 RuleCompiler --> RuleFactory
 RuleCompiler --> EverythingNode
-RuleCompiler --> MapNodeFactory
-RuleCompiler --> NodeFactory
 RuleCompiler --> NodeErr
 RuleCompiler --> NodeOk
 RuleCompiler --> NodeResult
@@ -260,11 +251,24 @@ class Ok
 class None
 None --> Predicate
 class Main
+Main --> ErrorSequence
 Main --> PathLikes
 Main --> Application
 Main --> CompileApplication
 Main --> Compiler
 Main --> RuleCompiler
+Main --> FormattedError
+Main --> CompileErrorFactory
+Main --> CompileErrorResultFactory
+Main --> ResultFactory
+Main --> SimpleContextFactory
+Main --> JavaLang
+Main --> PlantUMLJavaLang
+Main --> EverythingNode
+Main --> MapNodeFactory
+Main --> NodeFactory
+Main --> NodeResult
+Main --> StringResult
 Main --> PathSources
 Main --> Sources
 Main --> PathTargets
