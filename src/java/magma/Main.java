@@ -6,6 +6,8 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Optional;
 
 public class Main {
@@ -21,6 +23,12 @@ public class Main {
         DivideState exit();
 
         DivideState enter();
+    }
+
+    private interface Node {
+        Node withString(String key, String value);
+
+        Optional<String> findString(String key);
     }
 
     private static class MutableDivideState implements DivideState {
@@ -74,6 +82,29 @@ public class Main {
         }
     }
 
+    private static final class MapNode implements Node {
+        private final Map<String, String> strings;
+
+        private MapNode(final Map<String, String> strings) {
+            this.strings = strings;
+        }
+
+        private MapNode() {
+            this(new HashMap<>());
+        }
+
+        @Override
+        public Node withString(final String key, final String value) {
+            strings.put(key, value);
+            return this;
+        }
+
+        @Override
+        public Optional<String> findString(final String key) {
+            return Optional.ofNullable(strings.get(key));
+        }
+    }
+
     private Main() {
     }
 
@@ -117,11 +148,18 @@ public class Main {
             if (0 <= contentStart) {
                 final var beforeContent = withoutEnd.substring(0, contentStart);
                 final var content = withoutEnd.substring(contentStart + "{".length());
-                return Optional.of(Main.generatePlaceholder(beforeContent) + "{" + Main.generatePlaceholder(content) + "}");
+                return Main.generate(new MapNode().withString("before-content", beforeContent)
+                        .withString("content", content));
             }
         }
 
         return Optional.empty();
+    }
+
+    private static Optional<String> generate(final Node node) {
+        return Optional.of(Main.generatePlaceholder(node.findString("before-content")
+                .orElse("")) + "{" + Main.generatePlaceholder(node.findString("content")
+                .orElse("")) + "}");
     }
 
     private static Collection<String> divide(final CharSequence input) {
