@@ -1,4 +1,4 @@
-/*public class Main */{/*
+/*public */class Main{/*
     private interface DivideState {
         DivideState append(char c);
 
@@ -389,8 +389,12 @@
     }
 
     private static Rule createStructureRule() {
+        final var beforeChildren = new OrRule(List.of(new InfixRule(new PlaceholderRule(new StringRule("modifiers")),
+                "class ",
+                new StripRule(new StringRule("name")))));
+
         return new TypeRule("structure",
-                new StripRule(new SuffixRule(new InfixRule(new PlaceholderRule(new StringRule("before-children")),
+                new StripRule(new SuffixRule(new InfixRule(beforeChildren,
                         "{",
                         new PlaceholderRule(new StringRule("children"))), "}")));
     }

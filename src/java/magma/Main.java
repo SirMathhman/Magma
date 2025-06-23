@@ -405,8 +405,11 @@ public class Main {
     }
 
     private static Rule createStructureRule() {
-        return new TypeRule("structure",
-                new StripRule(new SuffixRule(new InfixRule(new PlaceholderRule(new StringRule("before-children")),
+        final var beforeChildren = new OrRule(List.of(new InfixRule(new PlaceholderRule(new StringRule("modifiers")),
+                "class ",
+                new StripRule(new StringRule("name")))));
+
+        return new TypeRule("structure", new StripRule(new SuffixRule(new InfixRule(beforeChildren,
                         "{",
                         new PlaceholderRule(new StringRule("children"))), "}")));
     }
