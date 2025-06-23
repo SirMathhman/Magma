@@ -47,6 +47,8 @@ InfixRule --> ResultFactory
 InfixRule --> Appending
 class OrRule
 OrRule --> ListLike
+OrRule --> Accumulator
+OrRule --> AccumulatorFactory
 OrRule --> ParentNodeResultFactory
 OrRule --> ParentStringResultFactory
 OrRule --> DisplayNode
@@ -257,9 +259,11 @@ Main --> Application
 Main --> CompileApplication
 Main --> Compiler
 Main --> RuleCompiler
+Main --> Context
 Main --> FormattedError
 Main --> CompileErrorFactory
 Main --> CompileErrorResultFactory
+Main --> ErrorFactory
 Main --> ResultFactory
 Main --> SimpleContextFactory
 Main --> JavaLang

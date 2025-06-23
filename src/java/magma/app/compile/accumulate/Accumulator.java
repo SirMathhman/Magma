@@ -1,4 +1,4 @@
-package magma.app.compile.rule;
+package magma.app.compile.accumulate;
 
 import java.util.function.Function;
 

@@ -6,9 +6,11 @@ import magma.app.Application;
 import magma.app.CompileApplication;
 import magma.app.compile.Compiler;
 import magma.app.compile.RuleCompiler;
+import magma.app.compile.context.Context;
 import magma.app.compile.error.FormattedError;
 import magma.app.compile.factory.CompileErrorFactory;
 import magma.app.compile.factory.CompileErrorResultFactory;
+import magma.app.compile.factory.ErrorFactory;
 import magma.app.compile.factory.ResultFactory;
 import magma.app.compile.factory.SimpleContextFactory;
 import magma.app.compile.lang.JavaLang;
@@ -24,10 +26,6 @@ import magma.app.io.targets.PathTargets;
 import magma.app.io.targets.Targets;
 
 class Main {
-    public static final NodeFactory<EverythingNode> NODE_FACTORY = new MapNodeFactory();
-    public static final ResultFactory<EverythingNode, NodeResult<EverythingNode, FormattedError>, StringResult<FormattedError>, ErrorSequence<FormattedError>> RESULTS_FACTORY = new CompileErrorResultFactory<>(
-            new SimpleContextFactory<>(),
-            new CompileErrorFactory());
 
     private Main() {
     }
@@ -35,12 +33,24 @@ class Main {
     public static void main(final String[] args) {
         final var rootDirectory = PathLikes.get(".", "src", "java");
         final Sources sources = new PathSources(rootDirectory);
-        final Compiler compiler = new RuleCompiler(new JavaLang<>(Main.NODE_FACTORY, Main.RESULTS_FACTORY),
-                new PlantUMLJavaLang<>(Main.NODE_FACTORY, Main.RESULTS_FACTORY));
+
+
+        final var compiler = Main.createCompiler();
         final Targets targets = new PathTargets(PathLikes.get(".", "diagram.puml"));
 
         final Application application = new CompileApplication(sources, compiler, targets);
         application.run()
                 .ifPresent(error -> System.err.println(error.display()));
+    }
+
+    private static Compiler createCompiler() {
+        final NodeFactory<EverythingNode> nodeFactory = new MapNodeFactory();
+        final ErrorFactory<Context, FormattedError, ErrorSequence<FormattedError>> errorFactory = new CompileErrorFactory();
+        final ResultFactory<EverythingNode, NodeResult<EverythingNode, FormattedError>, StringResult<FormattedError>, ErrorSequence<FormattedError>> resultsFactory = new CompileErrorResultFactory<>(
+                new SimpleContextFactory<>(),
+                errorFactory);
+
+        return new RuleCompiler(new JavaLang<>(nodeFactory, resultsFactory),
+                new PlantUMLJavaLang<>(nodeFactory, resultsFactory));
     }
 }

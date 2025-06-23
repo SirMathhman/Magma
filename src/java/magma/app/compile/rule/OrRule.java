@@ -1,6 +1,8 @@
 package magma.app.compile.rule;
 
 import magma.api.list.ListLike;
+import magma.app.compile.accumulate.Accumulator;
+import magma.app.compile.accumulate.AccumulatorFactory;
 import magma.app.compile.factory.ParentNodeResultFactory;
 import magma.app.compile.factory.ParentStringResultFactory;
 import magma.app.compile.node.DisplayNode;

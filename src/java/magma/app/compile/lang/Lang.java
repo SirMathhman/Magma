@@ -2,13 +2,13 @@ package magma.app.compile.lang;
 
 import magma.api.error.list.ErrorSequence;
 import magma.api.list.ListLike;
+import magma.app.compile.accumulate.ImmutableAccumulatorFactory;
 import magma.app.compile.factory.ResultFactory;
 import magma.app.compile.node.DisplayNode;
 import magma.app.compile.node.NodeFactory;
 import magma.app.compile.node.StringNode;
 import magma.app.compile.node.TypedNode;
 import magma.app.compile.node.result.NodeResult;
-import magma.app.compile.rule.ImmutableAccumulatorFactory;
 import magma.app.compile.rule.InfixRule;
 import magma.app.compile.rule.OrRule;
 import magma.app.compile.rule.PrefixRule;

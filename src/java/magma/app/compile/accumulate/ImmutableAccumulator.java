@@ -1,4 +1,4 @@
-package magma.app.compile.rule;
+package magma.app.compile.accumulate;
 
 import magma.api.error.list.ErrorList;
 import magma.api.error.list.ErrorSequence;
