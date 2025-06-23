@@ -35,6 +35,10 @@ public class Main {
         boolean isShallow();
 
         Optional<Tuple<DivideState, Character>> pop();
+
+        Optional<Tuple<DivideState, Character>> popAndAppendToTuple();
+
+        Optional<DivideState> popAndAppendToOption();
     }
 
     private interface Node {
@@ -184,6 +188,16 @@ public class Main {
             }
             else
                 return Optional.empty();
+        }
+
+        @Override
+        public Optional<Tuple<DivideState, Character>> popAndAppendToTuple() {
+            return pop().map(tuple -> new Tuple<>(tuple.left.append(tuple.right), tuple.right));
+        }
+
+        @Override
+        public Optional<DivideState> popAndAppendToOption() {
+            return pop().map(tuple -> tuple.left.append(tuple.right));
         }
 
         @Override
@@ -448,17 +462,19 @@ public class Main {
         }
 
         private static DivideState fold(final DivideState state, final char c) {
-            final var appended = state.append(c);
-            if (';' == c && appended.isLevel())
-                return appended.advance();
-            if ('}' == c && appended.isShallow())
-                return appended.exit()
-                        .advance();
-            if ('{' == c)
-                return appended.enter();
-            if ('}' == c)
-                return appended.exit();
-            return appended;
+            return DivideRule.foldSingleQuotes(state, c)
+                    .orElseGet(() -> Main.foldStatement(state, c));
+        }
+
+        private static Optional<DivideState> foldSingleQuotes(final DivideState state, final char c) {
+            if ('\'' != c)
+                return Optional.empty();
+
+            final var appended = state.append('\'');
+            return appended.popAndAppendToTuple()
+                    .flatMap(tuple -> '\\' == tuple.right ? tuple.left.popAndAppendToOption() : Optional.of(tuple.left))
+                    .flatMap(DivideState::popAndAppendToOption);
+
         }
 
         private static <Element, Value, Collection> Result<Collection, FormatError> reduce(final java.util.Collection<Element> elements, final Collection initial, final Function<Element, Result<Value, FormatError>> mapper, final BiFunction<Collection, Value, Collection> folder) {
@@ -595,6 +611,20 @@ public class Main {
     }
 
     private Main() {
+    }
+
+    private static DivideState foldStatement(final DivideState state, final char c) {
+        final var appended = state.append(c);
+        if (';' == c && appended.isLevel())
+            return appended.advance();
+        if ('}' == c && appended.isShallow())
+            return appended.exit()
+                    .advance();
+        if ('{' == c)
+            return appended.enter();
+        if ('}' == c)
+            return appended.exit();
+        return appended;
     }
 
     public static void main(final String[] args) {
