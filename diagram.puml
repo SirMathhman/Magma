@@ -69,8 +69,6 @@ PlantUMLJavaLang --> StringResult
 class PathLikes
 PathLikes --> Paths
 class StripRule
-StripRule --> NodeResult
-StripRule --> StringResult
 class ErrorSequence
 class JavaList
 JavaList --> ArrayList
@@ -123,6 +121,7 @@ class ErrorList
 class EverythingNode
 class NodeFactory
 class StringOk
+class NodeResultFactory
 class Option
 Option --> Predicate
 class Rule
@@ -237,8 +236,7 @@ class ListLikes
 ListLikes --> ArrayList
 ListLikes --> Arrays
 class SuffixRule
-SuffixRule --> ResultFactory
-SuffixRule --> NodeResult
+SuffixRule --> NodeResultFactory
 SuffixRule --> Appending
 class ImmutableErrorList
 ImmutableErrorList --> ListLike

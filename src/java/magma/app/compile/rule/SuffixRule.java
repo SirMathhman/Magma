@@ -1,14 +1,13 @@
 package magma.app.compile.rule;
 
-import magma.app.compile.factory.ResultFactory;
-import magma.app.compile.node.result.NodeResult;
+import magma.app.compile.factory.NodeResultFactory;
 import magma.app.compile.string.Appending;
 
-public record SuffixRule<Node, Error, StringResult extends Appending<StringResult>, ErrorSequence>(
-        Rule<Node, NodeResult<Node, Error>, StringResult> rule, String suffix,
-        ResultFactory<Node, NodeResult<Node, Error>, StringResult, ErrorSequence> factory) implements Rule<Node, NodeResult<Node, Error>, StringResult> {
+public record SuffixRule<Node, StringResult extends Appending<StringResult>, NodeResult, Factory extends NodeResultFactory<Node, NodeResult, ?>>(
+        Rule<Node, NodeResult, StringResult> rule, String suffix,
+        Factory factory) implements Rule<Node, NodeResult, StringResult> {
     @Override
-    public NodeResult<Node, Error> lex(final String input) {
+    public NodeResult lex(final String input) {
         if (input.endsWith(suffix))
             return rule.lex(input.substring(0, input.length() - suffix.length()));
 
