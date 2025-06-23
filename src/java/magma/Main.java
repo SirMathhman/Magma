@@ -28,9 +28,17 @@ public class Main {
 
         final var output = new StringBuilder();
         for (final var segment : segments)
-            output.append(Main.generatePlaceholder(segment));
+            output.append(Main.compileRootSegment(segment));
 
         return output.toString();
+    }
+
+    private static String compileRootSegment(final String input) {
+        final var stripped = input.strip();
+        if (stripped.startsWith("package ") || stripped.startsWith("import "))
+            return "";
+
+        return Main.generatePlaceholder(stripped);
     }
 
     private static Collection<String> divide(final CharSequence input) {
