@@ -31,6 +31,8 @@ public class Main {
         DivideState exit();
 
         DivideState enter();
+
+        boolean isShallow();
     }
 
     private interface Node {
@@ -163,6 +165,11 @@ public class Main {
         public DivideState enter() {
             depth++;
             return this;
+        }
+
+        @Override
+        public boolean isShallow() {
+            return 1 == depth;
         }
 
         @Override
@@ -424,6 +431,9 @@ public class Main {
             final var appended = state.append(c);
             if (';' == c && appended.isLevel())
                 return appended.advance();
+            if ('}' == c && appended.isShallow())
+                return appended.exit()
+                        .advance();
             if ('{' == c)
                 return appended.enter();
             if ('}' == c)
