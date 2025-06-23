@@ -25,6 +25,10 @@
         Node retype(String type);
 
         boolean is(String type);
+
+        Node withNodeList(String key, List<Node> values);
+
+        Optional<List<Node>> findNodeList(String key);
     }
 
     private interface Rule {
@@ -87,14 +91,16 @@
     private static final class MapNode implements Node {
         private final Optional<String> maybeType;
         private final Map<String, String> strings;
+        private final Map<String, List<Node>> nodeLists;
 
-        private MapNode(final Optional<String> maybeType, final Map<String, String> strings) {
+        private MapNode(final Optional<String> maybeType, final Map<String, String> strings, final Map<String, List<Node>> nodeLists) {
             this.maybeType = maybeType;
             this.strings = strings;
+            this.nodeLists = nodeLists;
         }
 
         private MapNode() {
-            this(Optional.empty(), new HashMap<>());
+            this(Optional.empty(), new HashMap<>(), new HashMap<>());
         }
 
         @Override
@@ -124,13 +130,24 @@
 
         @Override
         public Node retype(final String type) {
-            return new MapNode(Optional.of(type), strings);
+            return new MapNode(Optional.of(type), strings, new HashMap<>());
         }
 
         @Override
         public boolean is(final String type) {
             return maybeType.isPresent() && maybeType.get()
                     .contentEquals(type);
+        }
+
+        @Override
+        public Node withNodeList(final String key, final List<Node> values) {
+            nodeLists.put(key, values);
+            return this;
+        }
+
+        @Override
+        public Optional<List<Node>> findNodeList(final String key) {
+            return Optional.ofNullable(nodeLists.get(key));
         }
     }
 
@@ -216,10 +233,17 @@
     }
 
     private record PlaceholderRule(Rule rule) implements Rule {
+        private static String generatePlaceholder(final String input) {
+            final var replaced = input.replace("start", "start")
+                    .replace("end", "end");
+
+            return "start" + replaced + "end";
+        }
+
         @Override
         public Optional<String> generate(final Node node) {
             return rule.generate(node)
-                    .map(Main::generatePlaceholder);
+                    .map(PlaceholderRule::generatePlaceholder);
         }
 
         @Override
@@ -262,6 +286,54 @@
         }
     }
 
+    private record DivideRule(String key, Rule rule) implements Rule {
+        private static Collection<String> divide(final CharSequence input) {
+            final DivideState state = new MutableDivideState();
+            final var length = input.length();
+            var current = state;
+            for (var i = 0; i < length; i++) {
+                final var c = input.charAt(i);
+                current = DivideRule.fold(current, c);
+            }
+
+            return current.advance()
+                    .unwrap();
+        }
+
+        private static DivideState fold(final DivideState state, final char c) {
+            final var appended = state.append(c);
+            if (';' == c && appended.isLevel())
+                return appended.advance();
+            if ('{' == c)
+                return appended.enter();
+            if ('}' == c)
+                return appended.exit();
+            return appended;
+        }
+
+        @Override
+        public Optional<String> generate(final Node node) {
+            return Optional.of(node.findNodeList(key())
+                    .orElse(Collections.emptyList())
+                    .stream()
+                    .map(rule()::generate)
+                    .flatMap(Optional::stream)
+                    .collect(Collectors.joining()));
+        }
+
+        @Override
+        public Optional<Node> lex(final String input) {
+            final var oldChildren = DivideRule.divide(input)
+                    .stream()
+                    .map(rule()::lex)
+                    .flatMap(Optional::stream)
+                    .toList();
+
+            final Node node = new MapNode();
+            return Optional.of(node.withNodeList(key(), oldChildren));
+        }
+    }
+
     private Main() {
     }
 
@@ -278,23 +350,32 @@
         }
     }
 
-    private static String compile(final CharSequence input) {
-        final var oldChildren = Main.divide(input)
-                .stream()
-                .map(input1 -> Main.createJavaRootSegmentRule()
-                        .lex(input1))
-                .flatMap(Optional::stream)
-                .toList();
+    private static String compile(final String input) {
+        return Main.createJavaRootRule()
+                .lex(input)
+                .map(Main::modify)
+                .flatMap(children -> Main.createTSRootRule()
+                        .generate(children))
+                .orElse("");
+    }
+
+    private static Node modify(final Node children) {
+        final var oldChildren = children.findNodeList("children")
+                .orElse(Collections.emptyList());
 
         final var newChildren = oldChildren.stream()
                 .filter(child -> child.is("structure"))
                 .toList();
 
-        return newChildren.stream()
-                .map(node -> Main.createStructureRule()
-                        .generate(node))
-                .flatMap(Optional::stream)
-                .collect(Collectors.joining());
+        return new MapNode().withNodeList("children", newChildren);
+    }
+
+    private static Rule createTSRootRule() {
+        return new DivideRule("children", Main.createStructureRule());
+    }
+
+    private static Rule createJavaRootRule() {
+        return new DivideRule("children", Main.createJavaRootSegmentRule());
     }
 
     private static Rule createJavaRootSegmentRule() {
@@ -303,7 +384,7 @@
                 Main.createStructureRule()));
     }
 
-    private static TypeRule createLocationRule(final String type) {
+    private static Rule createLocationRule(final String type) {
         return new TypeRule(type, new StripRule(new PrefixRule(type + " ", new StringRule("content"))));
     }
 
@@ -312,36 +393,5 @@
                 new StripRule(new SuffixRule(new InfixRule(new PlaceholderRule(new StringRule("before-children")),
                         "{",
                         new PlaceholderRule(new StringRule("children"))), "}")));
-    }
-
-    private static Collection<String> divide(final CharSequence input) {
-        final DivideState state = new MutableDivideState();
-        final var length = input.length();
-        var current = state;
-        for (var i = 0; i < length; i++) {
-            final var c = input.charAt(i);
-            current = Main.fold(current, c);
-        }
-
-        return current.advance()
-                .unwrap();
-    }
-
-    private static DivideState fold(final DivideState state, final char c) {
-        final var appended = state.append(c);
-        if (';' == c && appended.isLevel())
-            return appended.advance();
-        if ('{' == c)
-            return appended.enter();
-        if ('}' == c)
-            return appended.exit();
-        return appended;
-    }
-
-    private static String generatePlaceholder(final String input) {
-        final var replaced = input.replace("start", "start")
-                .replace("end", "end");
-
-        return "start" + replaced + "end";
     }
 */}
