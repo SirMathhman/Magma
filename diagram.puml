@@ -169,6 +169,8 @@ class NodeResult
 class StringNode
 StringNode --> Option
 class WrappedError
+class Streamable
+Streamable --> Stream
 class ImmutableAccumulator
 ImmutableAccumulator --> ErrorList
 ImmutableAccumulator --> ErrorSequence
@@ -272,7 +274,6 @@ Main --> Sources
 Main --> PathTargets
 Main --> Targets
 class ListLike
-ListLike --> Stream
 class TypeRule
 TypeRule --> DisplayNode
 TypeRule --> TypedNode
