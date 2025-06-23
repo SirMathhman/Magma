@@ -610,6 +610,29 @@ public class Main {
         }
     }
 
+    private static class LazyRule implements Rule {
+        private Optional<Rule> maybeRule = Optional.empty();
+
+        @Override
+        public Result<String, FormatError> generate(final Node node) {
+            return findRule(new NodeContext(node)).flatMapValue(rule -> rule.generate(node));
+        }
+
+        private Result<Rule, FormatError> findRule(final Context context) {
+            return maybeRule.<Result<Rule, FormatError>>map(Ok::new)
+                    .orElseGet(() -> new Err<>(new CompileError("Rule not set", context)));
+        }
+
+        @Override
+        public Result<Node, FormatError> lex(final String input) {
+            return findRule(new StringContext(input)).flatMapValue(rule -> rule.lex(input));
+        }
+
+        public void set(final Rule rule) {
+            maybeRule = Optional.of(rule);
+        }
+    }
+
     private Main() {
     }
 
@@ -696,26 +719,33 @@ public class Main {
     }
 
     private static Rule createJavaRootSegmentRule() {
+        final var structureRule = Main.createStructureRule();
         return new OrRule(List.of(new StripRule(new EmptyRule()), Main.createLocationRule("package"),
-                Main.createLocationRule("import"),
-                Main.createStructureRule()));
+                Main.createLocationRule("import"), structureRule));
+    }
+
+    private static Rule createStructureRule() {
+        final var structureRule = new LazyRule();
+        final var modifiers = new PlaceholderRule(new StringRule("modifiers"));
+        final var name = new StripRule(new StringRule("name"));
+
+        final var rules = Stream.of("class ", "interface ", "record ")
+                .<Rule>map(infix -> new InfixRule(modifiers, infix, name))
+                .toList();
+
+        final var beforeChildren = new OrRule(rules);
+
+        final var children = Main.Statements(Main.createStructureMemberRule(structureRule));
+        structureRule.set(new TypeRule("structure",
+                new StripRule(new SuffixRule(new InfixRule(beforeChildren, "{", children), "}"))));
+        return structureRule;
     }
 
     private static Rule createLocationRule(final String type) {
         return new TypeRule(type, new StripRule(new PrefixRule(type + " ", new StringRule("content"))));
     }
 
-    private static Rule createStructureRule() {
-        final var beforeChildren = new OrRule(List.of(new InfixRule(new PlaceholderRule(new StringRule("modifiers")),
-                "class ",
-                new StripRule(new StringRule("name")))));
-
-        final var children = Main.Statements(Main.createStructureMemberRule());
-        return new TypeRule("structure",
-                new StripRule(new SuffixRule(new InfixRule(beforeChildren, "{", children), "}")));
-    }
-
-    private static Rule createStructureMemberRule() {
-        return new OrRule(List.of(new PlaceholderRule(new StringRule("placeholder"))));
+    private static Rule createStructureMemberRule(final Rule structureRule) {
+        return new OrRule(List.of(structureRule, new PlaceholderRule(new StringRule("placeholder"))));
     }
 }
