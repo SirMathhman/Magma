@@ -5,7 +5,7 @@ import magma.api.error.Error;
 public interface FormattedError extends Error {
     @Override
     default String display() {
-        return this.format(0);
+        return format(0);
     }
 
     String format(int depth);

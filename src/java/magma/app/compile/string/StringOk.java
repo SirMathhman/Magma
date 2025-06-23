@@ -20,7 +20,7 @@ public record StringOk<Error>(String value) implements StringResult<Error> {
 
     @Override
     public StringResult<Error> tryAppendResult(final Supplier<StringResult<Error>> other) {
-        return this.appendResult(other.get());
+        return appendResult(other.get());
     }
 
     @Override

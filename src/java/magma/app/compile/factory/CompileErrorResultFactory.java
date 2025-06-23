@@ -39,15 +39,13 @@ public class CompileErrorResultFactory<Node, FormattedError, ErrorList> implemen
 
     @Override
     public NodeResult<Node, FormattedError> fromNodeErrorWithChildren(final String message, final String context, final ErrorList errors) {
-        return new NodeErr<>(this.errorFactory.createErrorWithChildren(message,
-                this.contextFactory.createStringContext(context),
+        return new NodeErr<>(this.errorFactory.createErrorWithChildren(message, this.contextFactory.createStringContext(context),
                 errors));
     }
 
     @Override
     public StringResult<FormattedError> fromStringErrorWithChildren(final String message, final Node context, final ErrorList errors) {
-        return new StringErr<>(this.errorFactory.createErrorWithChildren(message,
-                this.contextFactory.createNodeContext(context),
+        return new StringErr<>(this.errorFactory.createErrorWithChildren(message, this.contextFactory.createNodeContext(context),
                 errors));
     }
 }

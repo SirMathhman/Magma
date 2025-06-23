@@ -28,9 +28,9 @@ public record CompileApplication(Sources sources, Compiler compiler, Targets tar
 
     @Override
     public Option<Error> run() {
-        return this.sources()
+        return sources()
                 .collect()
-                .match(inputs -> CompileApplication.compileAndWrite(inputs, this.compiler(), this.targets()),
+                .match(inputs -> CompileApplication.compileAndWrite(inputs, compiler(), targets()),
                         Some::new);
     }
 }

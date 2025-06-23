@@ -28,28 +28,26 @@ public class Lang<EverythingNode extends DisplayNode & StringNode<EverythingNode
     }
 
     public Rule<EverythingNode, NodeResult<EverythingNode, FormattedError>, StringResult<FormattedError>> createRootSegmentRule() {
-        return new OrRule<>(ListLikes.of(this.createImportRule("package"),
-                this.createImportRule("import"),
-                this.createStructureRule("record"),
-                this.createStructureRule("interface"),
-                this.createStructureRule("class")), this.resultFactory);
+        return new OrRule<>(ListLikes.of(createImportRule("package"),
+                createImportRule("import"),
+                createStructureRule("record"),
+                createStructureRule("interface"),
+                createStructureRule("class")), this.resultFactory);
     }
 
     private Rule<EverythingNode, NodeResult<EverythingNode, FormattedError>, StringResult<FormattedError>> createStructureRule(final String infix) {
         return new InfixRule<>(new StringRule<>("before-keyword", this.nodeFactory, this.resultFactory),
-                infix,
-                new StringRule<>("after-keyword", this.nodeFactory, this.resultFactory),
-                this.resultFactory);
+                infix, new StringRule<>("after-keyword", this.nodeFactory, this.resultFactory), this.resultFactory);
     }
 
     private Rule<EverythingNode, NodeResult<EverythingNode, FormattedError>, StringResult<FormattedError>> createImportRule(final String type) {
         final var destination = new StringRule<>("destination", this.nodeFactory, this.resultFactory);
         final var withParent = new InfixRule<>(new StringRule<>("parent", this.nodeFactory, this.resultFactory),
                 ".",
-                destination,
+                destination, this.resultFactory);
+        final var parent = new OrRule<>(ListLikes.of(withParent, new StringRule<>("value", this.nodeFactory,
+                this.resultFactory)),
                 this.resultFactory);
-        final var parent = new OrRule<>(ListLikes.of(withParent,
-                new StringRule<>("value", this.nodeFactory, this.resultFactory)), this.resultFactory);
 
         return new TypeRule<>(type,
                 new StripRule<>(new PrefixRule<>(type + " ",
@@ -57,22 +55,17 @@ public class Lang<EverythingNode extends DisplayNode & StringNode<EverythingNode
     }
 
     private Rule<EverythingNode, NodeResult<EverythingNode, FormattedError>, StringResult<FormattedError>> createPlaceholderRule() {
-        return new TypeRule<>("placeholder",
-                new StringRule<>("value", this.nodeFactory, this.resultFactory),
-                this.resultFactory);
+        return new TypeRule<>("placeholder", new StringRule<>("value", this.nodeFactory, this.resultFactory), this.resultFactory);
     }
 
     private Rule<EverythingNode, NodeResult<EverythingNode, FormattedError>, StringResult<FormattedError>> createDependencyRule() {
         return new TypeRule<>("dependency",
                 new SuffixRule<>(new InfixRule<>(new StringRule<>("source", this.nodeFactory, this.resultFactory),
-                        " --> ",
-                        new StringRule<>("destination", this.nodeFactory, this.resultFactory),
-                        this.resultFactory), System.lineSeparator(), this.resultFactory),
-                this.resultFactory);
+                        " --> ", new StringRule<>("destination", this.nodeFactory, this.resultFactory), this.resultFactory),
+                        System.lineSeparator(), this.resultFactory), this.resultFactory);
     }
 
     public Rule<EverythingNode, NodeResult<EverythingNode, FormattedError>, StringResult<FormattedError>> createPlantUMLRootSegmentRule() {
-        return new OrRule<>(ListLikes.of(this.createDependencyRule(), this.createPlaceholderRule()),
-                this.resultFactory);
+        return new OrRule<>(ListLikes.of(createDependencyRule(), createPlaceholderRule()), this.resultFactory);
     }
 }
