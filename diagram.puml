@@ -34,6 +34,7 @@ class Compiler
 Compiler --> Result
 Compiler --> FormattedError
 Compiler --> Map
+class ParentStringResultFactory
 class SimpleContextFactory
 SimpleContextFactory --> Context
 SimpleContextFactory --> NodeContext
@@ -47,7 +48,7 @@ InfixRule --> Appending
 class OrRule
 OrRule --> ListLike
 OrRule --> ParentNodeResultFactory
-OrRule --> StringResultFactory
+OrRule --> ParentStringResultFactory
 OrRule --> DisplayNode
 OrRule --> Matching
 class NodeContext
@@ -271,7 +272,7 @@ Main --> Targets
 class ListLike
 ListLike --> Stream
 class TypeRule
-TypeRule --> StringResultFactory
+TypeRule --> ParentStringResultFactory
 TypeRule --> DisplayNode
 TypeRule --> TypedNode
 TypeRule --> Mapping

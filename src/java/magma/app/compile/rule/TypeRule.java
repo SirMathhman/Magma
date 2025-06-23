@@ -1,11 +1,11 @@
 package magma.app.compile.rule;
 
-import magma.app.compile.factory.StringResultFactory;
+import magma.app.compile.factory.ParentStringResultFactory;
 import magma.app.compile.node.DisplayNode;
 import magma.app.compile.node.TypedNode;
 import magma.app.compile.node.result.Mapping;
 
-public final class TypeRule<Node extends TypedNode<Node> & DisplayNode, Error, NodeResult extends Mapping<Node, NodeResult>, StringResult, Factory extends StringResultFactory<Node, StringResult, Error>> implements
+public final class TypeRule<Node extends TypedNode<Node> & DisplayNode, Error, NodeResult extends Mapping<Node, NodeResult>, StringResult, Factory extends ParentStringResultFactory<Node, StringResult, Error>> implements
         Rule<Node, NodeResult, StringResult> {
     private final String type;
     private final Rule<Node, NodeResult, StringResult> rule;

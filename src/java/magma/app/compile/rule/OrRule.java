@@ -2,13 +2,13 @@ package magma.app.compile.rule;
 
 import magma.api.list.ListLike;
 import magma.app.compile.factory.ParentNodeResultFactory;
-import magma.app.compile.factory.StringResultFactory;
+import magma.app.compile.factory.ParentStringResultFactory;
 import magma.app.compile.node.DisplayNode;
 import magma.app.compile.node.result.Matching;
 
 import java.util.function.Function;
 
-public final class OrRule<Node extends DisplayNode, Error, NodeResult extends Matching<Node, Error>, StringResult extends Matching<String, Error>, Errors, Factory extends ParentNodeResultFactory<Node, NodeResult, Errors> & StringResultFactory<Node, StringResult, Errors>> implements
+public final class OrRule<Node extends DisplayNode, Error, NodeResult extends Matching<Node, Error>, StringResult extends Matching<String, Error>, Errors, Factory extends ParentNodeResultFactory<Node, NodeResult, Errors> & ParentStringResultFactory<Node, StringResult, Errors>> implements
         Rule<Node, NodeResult, StringResult> {
     private final ListLike<Rule<Node, NodeResult, StringResult>> rules;
     private final Factory resultFactory;
