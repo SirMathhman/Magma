@@ -4,6 +4,7 @@ import java.io.IOException;*//*
 import java.nio.file.Files;*//*
 import java.nio.file.Paths;*//*
 import java.util.ArrayList;*//*
+import java.util.Collection;*//*
 
 public class Main {
     private Main() {
@@ -23,7 +24,17 @@ public class Main {
     }
 
     private static String compile(final CharSequence input) {
-        final var segments = new ArrayList<String>();*//*
+        final var segments = Main.divide(input);*//*
+
+        final var output = new StringBuilder();*//*
+        for (final var segment : segments)
+            output.append(Main.generatePlaceholder(segment));*//*
+
+        return output.toString();*//*
+    }
+
+    private static Collection<String> divide(final CharSequence input) {
+        final Collection<String> segments = new ArrayList<>();*//*
         var buffer = new StringBuilder();*//*
 
         final var length = input.length();*//*
@@ -36,12 +47,7 @@ public class Main {
             }
         }
         segments.add(buffer.toString());*//*
-
-        final var output = new StringBuilder();*//*
-        for (final var segment : segments)
-            output.append(Main.generatePlaceholder(segment));*//*
-
-        return output.toString();*//*
+        return segments;*//*
     }
 
     private static String generatePlaceholder(final String input) {
