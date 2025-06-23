@@ -275,20 +275,17 @@ public class Main {
         return Main.createStructureRule()
                 .lex(stripped)
                 .flatMap(node -> {
-                    return Main.createBlockRule()
+                    return Main.createStructureRule()
                             .generate(node);
                 })
                 .orElseGet(() -> Main.generatePlaceholder(stripped));
     }
 
-    private static Rule createBlockRule() {
-        return new SuffixRule(new InfixRule(new PlaceholderRule(new StringRule("before-children")),
-                "{",
-                new PlaceholderRule(new StringRule("children"))), "}");
-    }
-
     private static Rule createStructureRule() {
-        return new TypeRule("structure", new StripRule(Main.createBlockRule()));
+        return new TypeRule("structure",
+                new StripRule(new SuffixRule(new InfixRule(new PlaceholderRule(new StringRule("before-children")),
+                        "{",
+                        new PlaceholderRule(new StringRule("children"))), "}")));
     }
 
     private static Collection<String> divide(final CharSequence input) {
