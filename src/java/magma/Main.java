@@ -5,6 +5,7 @@ import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
+import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.RecordComponent;
@@ -492,12 +493,12 @@ public class Main {
     private record OrRule(List<Rule> rules) implements Rule {
         @Override
         public Result<String, FormatError> generate(final Node node) {
-            return Main.disjoin(rules, rule -> rule.generate(node), new NodeContext(node));
+            return Main.or(rules, rule -> rule.generate(node), new NodeContext(node));
         }
 
         @Override
         public Result<Node, FormatError> lex(final String input) {
-            return Main.disjoin(rules, rule -> rule.lex(input), new StringContext(input));
+            return Main.or(rules, rule -> rule.lex(input), new StringContext(input));
         }
     }
 
@@ -776,46 +777,52 @@ public class Main {
                 .lex(input)
                 .flatMapValue(root -> Main.deserialize(JavaRoot.class, root))
                 .mapValue(Main::modifyRoot)
-                .flatMapValue(Main::serialize)
+                .flatMapValue(Main::serializeValue)
                 .flatMapValue(children -> Main.createTSRootRule()
                         .generate(children));
     }
 
-    private static <Value> Result<Node, FormatError> serialize(final Value node) {
+    private static <Value> Result<Node, FormatError> serializeValue(final Value node) {
         final Class<?> clazz = node.getClass();
 
         final var annotation = clazz.getAnnotation(NodeRepr.class);
         Result<Node, FormatError> maybeCurrent = new Ok<>(new MapNode());
         for (final var field : clazz.getDeclaredFields())
-            maybeCurrent = maybeCurrent.flatMapValue(current -> {
-                final var name = field.getName();
-                try {
-                    final var value = field.get(node);
-                    if (value instanceof final List<?> list)
-                        return Main.combine(list, new ArrayList<Node>(), Main::serialize, (objects, node1) -> {
-                                    objects.add(node1);
-                                    return objects;
-                                })
-                                .mapValue(serializedArguments -> {
-                                    return current.withNodeList(name, serializedArguments);
-                                });
-
-                    if (value instanceof final String string)
-                        return new Ok<>(current.withString(name, string));
-
-                    return new Err<>(new CompileError("Unknown type",
-                            new StringContext(value.getClass()
-                                    .getName())));
-                } catch (final IllegalAccessException e) {
-                    return new Err<>(new CompileError("Failed to get field", new StringContext(name)));
-                }
-            });
+            maybeCurrent = maybeCurrent.flatMapValue(current -> Main.serializeField(current, node, field));
 
         return maybeCurrent.mapValue(inner -> inner.retype(annotation.name()));
     }
 
+    private static <Value> Result<Node, FormatError> serializeField(final Node current, final Value node, final Field field) {
+        final var name = field.getName();
+        try {
+            final var value = field.get(node);
+            return Main.serializeFieldValue(current, name, value);
+        } catch (final IllegalAccessException e) {
+            return new Err<>(new CompileError("Failed to get field", new StringContext(name)));
+        }
+    }
+
+    private static Result<Node, FormatError> serializeFieldValue(final Node current, final String name, final Object value) {
+        return switch (value) {
+            case final List<?> list -> Main.serializeValueList(current, name, list);
+            case final String inner -> new Ok<>(current.withString(name, inner));
+            default -> new Err<>(new CompileError("Unknown type",
+                    new StringContext(value.getClass()
+                            .getName())));
+        };
+    }
+
+    private static Result<Node, FormatError> serializeValueList(final Node current, final String name, final Collection<?> list) {
+        return Main.combine(list, new ArrayList<Node>(), Main::serializeValue, (objects, node1) -> {
+                    objects.add(node1);
+                    return objects;
+                })
+                .mapValue(serializedArguments -> current.withNodeList(name, serializedArguments));
+    }
+
     private static <Type> Result<Type, FormatError> deserialize(final Class<Type> clazz, final Node node) {
-        return Main.disjoin(List.<Supplier<Result<Type, FormatError>>>of(() -> Main.deserializeRecord(clazz, node),
+        return Main.or(List.<Supplier<Result<Type, FormatError>>>of(() -> Main.deserializeRecord(clazz, node),
                 () -> Main.deserializeInterface(clazz, node)), Supplier::get, new NodeContext(node));
     }
 
@@ -826,36 +833,34 @@ public class Main {
         final var components = clazz.getRecordComponents();
 
         Result<Tuple<Node, List<Object>>, FormatError> maybeCurrent = new Ok<>(new Tuple<>(node, new ArrayList<>()));
-
         for (final var component : components)
-            maybeCurrent = maybeCurrent.flatMapValue(current -> {
-                return Main.getTupleCompileErrorResult(node, component, current);
-            });
+            maybeCurrent = maybeCurrent.flatMapValue(current -> Main.getTupleCompileErrorResult(component, current));
 
-        return maybeCurrent.flatMapValue(current -> {
-            if (current.left.hasNoProperties()) {
-                final var arguments = current.right;
+        return maybeCurrent.flatMapValue(current -> Main.deserializeRecordComponent(clazz, node, current, components));
+    }
 
-                final var constructorParamTypes = Arrays.stream(components)
-                        .map(RecordComponent::getType)
-                        .toArray(Class<?>[]::new);
+    private static <Type> Result<Type, FormatError> deserializeRecordComponent(final Class<Type> clazz, final Node node, final Tuple<Node, List<Object>> current, final RecordComponent[] components) {
+        if (current.left.hasNoProperties()) {
+            final var arguments = current.right;
 
-                try {
-                    final var constructor = clazz.getDeclaredConstructor(constructorParamTypes);
-                    final var instance = constructor.newInstance(arguments.toArray());
-                    return new Ok<>(instance);
-                } catch (final NoSuchMethodException | InstantiationException | IllegalAccessException |
-                               InvocationTargetException e) {
-                    return new Err<>(new CompileError("Failed to instantiate", new NodeContext(node)));
-                }
+            final var paramTypes = Arrays.stream(components)
+                    .map(RecordComponent::getType)
+                    .toArray(Class<?>[]::new);
+
+            try {
+                final var constructor = clazz.getDeclaredConstructor(paramTypes);
+                final var instance = constructor.newInstance(arguments.toArray());
+                return new Ok<>(instance);
+            } catch (final NoSuchMethodException | InstantiationException | IllegalAccessException |
+                           InvocationTargetException e) {
+                return new Err<>(new CompileError("Failed to instantiate", new NodeContext(node)));
             }
+        }
 
-            final var joined = current.left.streamPropertyNames()
-                    .collect(Collectors.joining(", "));
+        final var joined = current.left.streamPropertyNames()
+                .collect(Collectors.joining(", "));
 
-            return new Err<>(new CompileError("Fields remain: [" + joined + "]", new NodeContext(node)));
-        });
-
+        return new Err<>(new CompileError("Fields remain: [" + joined + "]", new NodeContext(node)));
     }
 
     private static <Type> Result<Type, FormatError> deserializeInterface(final Class<Type> clazz, final Node node) {
@@ -870,7 +875,7 @@ public class Main {
         if (node.hasNoName())
             return new Err<>(new CompileError("Node has no name", new NodeContext(node)));
 
-        return Main.disjoin(Arrays.asList(permittedSubclasses),
+        return Main.or(Arrays.asList(permittedSubclasses),
                         permittedSubclass -> Main.getObjectFormatErrorResult(node, permittedSubclass),
                         new NodeContext(node))
                 .mapValue(clazz::cast);
@@ -890,7 +895,7 @@ public class Main {
         return new Err<>(new CompileError("Node name was not equal to '" + name + "'", new NodeContext(node)));
     }
 
-    private static Result<Tuple<Node, List<Object>>, FormatError> getTupleCompileErrorResult(final Node node, final RecordComponent component, final Tuple<Node, List<Object>> current) {
+    private static Result<Tuple<Node, List<Object>>, FormatError> getTupleCompileErrorResult(final RecordComponent component, final Tuple<Node, List<Object>> current) {
         final var currentNode = current.left;
         final var currentArguments = current.right;
 
@@ -905,10 +910,6 @@ public class Main {
                         .flatMapValue(oldValuesTuple -> Main.getTupleFormatErrorResult(clazz0,
                                 oldValuesTuple,
                                 currentArguments));
-        }
-
-        if (type.isAssignableFrom(Node.class)) {
-
         }
 
         if (type.isAssignableFrom(String.class))
@@ -927,12 +928,10 @@ public class Main {
         for (final var oldValue : oldValuesTuple.right) {
             final Result<?, FormatError> maybeArgument = Main.deserialize(clazz0, oldValue)
                     .mapValue(clazz0::cast);
-            maybeNewValues = maybeNewValues.flatMapValue(newValues -> {
-                return maybeArgument.mapValue(argument -> {
-                    newValues.add(argument);
-                    return newValues;
-                });
-            });
+            maybeNewValues = maybeNewValues.flatMapValue(newValues -> maybeArgument.mapValue(argument -> {
+                newValues.add(argument);
+                return newValues;
+            }));
         }
 
         return maybeNewValues.mapValue(newValues -> {
@@ -966,10 +965,10 @@ public class Main {
     }
 
     private static List<TSStructure> modifyRootSegment(final JavaRootSegment segment) {
-        return switch (segment) {
-            case final JavaStructure structure -> Main.modifyStructure(structure);
-            default -> Collections.emptyList();
-        };
+        if (segment instanceof final JavaStructure structure)
+            return Main.modifyStructure(structure);
+
+        return Collections.emptyList();
     }
 
     private static List<TSStructure> modifyStructure(final JavaStructure structure) {
@@ -984,10 +983,10 @@ public class Main {
     }
 
     private static List<TSStructure> modifyStructureMember(final JavaStructureMember member) {
-        return switch (member) {
-            case final JavaStructure structure -> Main.modifyStructure(structure);
-            default -> Collections.emptyList();
-        };
+        if (member instanceof final JavaStructure structure)
+            return Main.modifyStructure(structure);
+
+        return Collections.emptyList();
     }
 
     private static TSStructure parseStructure(final JavaStructure structure) {
@@ -1040,7 +1039,7 @@ public class Main {
                 new TypeRule("placeholder", new PlaceholderRule(new StringRule("value")))));
     }
 
-    private static <Element, Value> Result<Value, FormatError> disjoin(final List<Element> elements, final Function<Element, Result<Value, FormatError>> mapper, final Context context) {
+    private static <Element, Value> Result<Value, FormatError> or(final Collection<Element> elements, final Function<Element, Result<Value, FormatError>> mapper, final Context context) {
         return elements.stream()
                 .map(mapper)
                 .<Accumulator<Value>>reduce(new ImmutableAccumulator<>(), (accumulator, result) -> {
