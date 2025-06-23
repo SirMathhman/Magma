@@ -21,9 +21,15 @@
         Node merge(Node other);
 
         Stream<Map.Entry<String, String>> streamStrings();
+
+        Node retype(String type);
+
+        boolean is(String type);
     }
 
     private interface Rule {
+        Optional<String> generate(Node node);
+
         Optional<Node> lex(String input);
     }
 
@@ -79,14 +85,16 @@
     }
 
     private static final class MapNode implements Node {
+        private final Optional<String> maybeType;
         private final Map<String, String> strings;
 
-        private MapNode(final Map<String, String> strings) {
+        private MapNode(final Optional<String> maybeType, final Map<String, String> strings) {
+            this.maybeType = maybeType;
             this.strings = strings;
         }
 
         private MapNode() {
-            this(new HashMap<>());
+            this(Optional.empty(), new HashMap<>());
         }
 
         @Override
@@ -113,9 +121,25 @@
             return strings.entrySet()
                     .stream();
         }
+
+        @Override
+        public Node retype(final String type) {
+            return new MapNode(Optional.of(type), strings);
+        }
+
+        @Override
+        public boolean is(final String type) {
+            return maybeType.isPresent() && maybeType.get()
+                    .contentEquals(type);
+        }
     }
 
     private record StringRule(String key) implements Rule {
+        @Override
+        public Optional<String> generate(final Node node) {
+            return node.findString(key);
+        }
+
         @Override
         public Optional<Node> lex(final String input) {
             return Optional.of(new MapNode().withString(key(), input));
@@ -123,6 +147,13 @@
     }
 
     private record InfixRule(Rule leftRule, String infix, Rule rightRule) implements Rule {
+        @Override
+        public Optional<String> generate(final Node node) {
+            return leftRule.generate(node)
+                    .flatMap(leftResult -> rightRule.generate(node)
+                            .map(rightResult -> leftResult + infix + rightResult));
+        }
+
         @Override
         public Optional<Node> lex(final String input) {
             final var index = input.indexOf(infix());
@@ -141,6 +172,12 @@
 
     private record SuffixRule(Rule rule, String suffix) implements Rule {
         @Override
+        public Optional<String> generate(final Node node) {
+            return rule.generate(node)
+                    .map(result -> result + suffix);
+        }
+
+        @Override
         public Optional<Node> lex(final String input) {
             if (!input.endsWith(suffix()))
                 return Optional.empty();
@@ -152,9 +189,29 @@
 
     private record StripRule(Rule rule) implements Rule {
         @Override
+        public Optional<String> generate(final Node node) {
+            return rule.generate(node);
+        }
+
+        @Override
         public Optional<Node> lex(final String input) {
             final var stripped = input.strip();
             return rule.lex(stripped);
+        }
+    }
+
+    private record TypeRule(String type, Rule rule) implements Rule {
+        @Override
+        public Optional<String> generate(final Node node) {
+            if (node.is(type))
+                return rule.generate(node);
+            return Optional.empty();
+        }
+
+        @Override
+        public Optional<Node> lex(final String input) {
+            return rule.lex(input)
+                    .map(node -> node.retype(type));
         }
     }
 
@@ -196,14 +253,15 @@
     }
 
     private static Rule createStructureRule() {
-        return new StripRule(new SuffixRule(new InfixRule(new StringRule("before-content"),
-                "{",
-                new StringRule("content")), "}"));
+        return new TypeRule("structure",
+                new StripRule(new SuffixRule(new InfixRule(new StringRule("before-content"),
+                        "{",
+                        new StringRule("content")), "}")));
     }
 
     private static Optional<String> generate(final Node node) {
-        return Optional.of(Main.generatePlaceholder(node.findString("before-content")
-                .orElse("")) + "{" + Main.generatePlaceholder(node.findString("content")
+        return Optional.of(Main.generatePlaceholder(new StringRule("before-content").generate(node)
+                .orElse("")) + "{" + Main.generatePlaceholder(new StringRule("content").generate(node)
                 .orElse("")) + "}");
     }
 
