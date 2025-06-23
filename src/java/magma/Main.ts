@@ -215,6 +215,19 @@
         }
     }
 
+    private record PlaceholderRule(Rule rule) implements Rule {
+        @Override
+        public Optional<String> generate(final Node node) {
+            return rule.generate(node)
+                    .map(Main::generatePlaceholder);
+        }
+
+        @Override
+        public Optional<Node> lex(final String input) {
+            return rule.lex(input);
+        }
+    }
+
     private Main() {
     }
 
@@ -248,21 +261,21 @@
 
         return Main.createStructureRule()
                 .lex(stripped)
-                .flatMap(Main::generate)
+                .flatMap(node -> {
+                    return Main.createBlockRule()
+                            .generate(node);
+                })
                 .orElseGet(() -> Main.generatePlaceholder(stripped));
     }
 
-    private static Rule createStructureRule() {
-        return new TypeRule("structure",
-                new StripRule(new SuffixRule(new InfixRule(new StringRule("before-content"),
-                        "{",
-                        new StringRule("content")), "}")));
+    private static Rule createBlockRule() {
+        return new SuffixRule(new InfixRule(new PlaceholderRule(new StringRule("before-children")),
+                "{",
+                new PlaceholderRule(new StringRule("children"))), "}");
     }
 
-    private static Optional<String> generate(final Node node) {
-        return Optional.of(Main.generatePlaceholder(new StringRule("before-content").generate(node)
-                .orElse("")) + "{" + Main.generatePlaceholder(new StringRule("content").generate(node)
-                .orElse("")) + "}");
+    private static Rule createStructureRule() {
+        return new TypeRule("structure", new StripRule(Main.createBlockRule()));
     }
 
     private static Collection<String> divide(final CharSequence input) {
