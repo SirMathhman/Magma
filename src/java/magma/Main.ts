@@ -13,10 +13,14 @@
         DivideState enter();
     }
 
-    public interface Node {
+    private interface Node {
         Node withString(String key, String value);
 
         Optional<String> findString(String key);
+
+        Node merge(Node other);
+
+        Stream<Map.Entry<String, String>> streamStrings();
     }
 
     private static class MutableDivideState implements DivideState {
@@ -91,6 +95,20 @@
         public Optional<String> findString(final String key) {
             return Optional.ofNullable(strings.get(key));
         }
+
+        @Override
+        public Node merge(final Node other) {
+            return other.streamStrings()
+                    .<Node>reduce(this,
+                            (node, entry) -> node.withString(entry.getKey(), entry.getValue()),
+                            (_, next) -> next);
+        }
+
+        @Override
+        public Stream<Map.Entry<String, String>> streamStrings() {
+            return strings.entrySet()
+                    .stream();
+        }
     }
 
     private Main() {
@@ -135,9 +153,11 @@
             final var contentStart = withoutEnd.indexOf('{');
             if (0 <= contentStart) {
                 final var beforeContent = withoutEnd.substring(0, contentStart);
+                final var node = new MapNode().withString("before-content", beforeContent);
+
                 final var content = withoutEnd.substring(contentStart + "{".length());
-                return Main.generate(new MapNode().withString("before-content", beforeContent)
-                        .withString("content", content));
+                final var node1 = new MapNode().withString("content", content);
+                return Main.generate(node.merge(node1));
             }
         }
 
