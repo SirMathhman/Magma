@@ -44,16 +44,12 @@ OrRule --> DisplayNode
 OrRule --> Matching
 OrRule --> ParentStringResultFactory
 class ParentStringResultFactory
-class NodeContext
-NodeContext --> DisplayNode
 class PlantUMLJavaLang
 PlantUMLJavaLang --> ErrorSequence
 PlantUMLJavaLang --> ListLikes
 PlantUMLJavaLang --> ResultFactory
-PlantUMLJavaLang --> DisplayNode
+PlantUMLJavaLang --> CompoundNode
 PlantUMLJavaLang --> NodeFactory
-PlantUMLJavaLang --> StringNode
-PlantUMLJavaLang --> TypedNode
 PlantUMLJavaLang --> NodeResult
 PlantUMLJavaLang --> Rule
 PlantUMLJavaLang --> StringResult
@@ -70,10 +66,8 @@ Lang --> ErrorSequence
 Lang --> Streamable
 Lang --> ImmutableAccumulatorFactory
 Lang --> ResultFactory
-Lang --> DisplayNode
+Lang --> CompoundNode
 Lang --> NodeFactory
-Lang --> StringNode
-Lang --> TypedNode
 Lang --> NodeResult
 Lang --> InfixRule
 Lang --> OrRule
@@ -200,7 +194,6 @@ RuleCompiler --> StringOk
 RuleCompiler --> StringResult
 RuleCompiler --> Map
 class StringErr
-class StringContext
 class Context
 class RuleFactory
 class Error
@@ -254,10 +247,8 @@ class JavaLang
 JavaLang --> ErrorSequence
 JavaLang --> ListLikes
 JavaLang --> ResultFactory
-JavaLang --> DisplayNode
+JavaLang --> CompoundNode
 JavaLang --> NodeFactory
-JavaLang --> StringNode
-JavaLang --> TypedNode
 JavaLang --> NodeResult
 JavaLang --> Rule
 JavaLang --> StringResult
