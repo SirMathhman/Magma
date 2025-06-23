@@ -715,7 +715,8 @@ public class Main {
 
     @NodeRepr(name = "structure")
     private record JavaStructure(String name, String modifiers, List<JavaStructureMember> members) implements
-            JavaRootSegment, JavaStructureMember {
+            JavaRootSegment,
+            JavaStructureMember {
     }
 
     private record JavaRoot(List<JavaRootSegment> children) {
@@ -790,7 +791,7 @@ public class Main {
                 final var name = field.getName();
                 try {
                     final var value = field.get(node);
-                    if (value instanceof final List<?> list) {
+                    if (value instanceof final List<?> list)
                         return Main.combine(list, new ArrayList<Node>(), Main::serialize, (objects, node1) -> {
                                     objects.add(node1);
                                     return objects;
@@ -798,11 +799,9 @@ public class Main {
                                 .mapValue(serializedArguments -> {
                                     return current.withNodeList(name, serializedArguments);
                                 });
-                    }
 
-                    if (value instanceof final String string) {
+                    if (value instanceof final String string)
                         return new Ok<>(current.withString(name, string));
-                    }
 
                     return new Err<>(new CompileError("Unknown type",
                             new StringContext(value.getClass()
@@ -968,20 +967,26 @@ public class Main {
 
     private static List<TSStructure> modifyRootSegment(final JavaRootSegment segment) {
         return switch (segment) {
-            case final JavaStructure structure -> {
-                yield structure.members.stream()
-                        .map(Main::modifyStructureMember)
-                        .flatMap(Optional::stream)
-                        .toList();
-            }
+            case final JavaStructure structure -> Main.modifyStructure(structure);
             default -> Collections.emptyList();
         };
     }
 
-    private static Optional<TSStructure> modifyStructureMember(final JavaStructureMember member) {
+    private static List<TSStructure> modifyStructure(final JavaStructure structure) {
+        final var list = structure.members.stream()
+                .map(Main::modifyStructureMember)
+                .flatMap(Collection::stream)
+                .toList();
+
+        final List<TSStructure> copy = new ArrayList<>(list);
+        copy.add(Main.parseStructure(structure));
+        return copy;
+    }
+
+    private static List<TSStructure> modifyStructureMember(final JavaStructureMember member) {
         return switch (member) {
-            case final JavaStructure structure -> Optional.of(Main.parseStructure(structure));
-            default -> Optional.empty();
+            case final JavaStructure structure -> Main.modifyStructure(structure);
+            default -> Collections.emptyList();
         };
     }
 
