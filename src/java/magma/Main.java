@@ -14,24 +14,49 @@ public class Main {
         DivideState advance();
 
         Collection<String> unwrap();
+
+        boolean isLevel();
+
+        DivideState exit();
+
+        DivideState enter();
     }
 
     private static class MutableDivideState implements DivideState {
         private final Collection<String> segments;
+        private int depth;
         private StringBuilder buffer;
 
-        private MutableDivideState(final Collection<String> segments, final StringBuilder buffer) {
+        private MutableDivideState(final Collection<String> segments, final StringBuilder buffer, final int depth) {
             this.segments = new ArrayList<>(segments);
             this.buffer = buffer;
+            this.depth = depth;
         }
 
         private MutableDivideState() {
-            this(new ArrayList<>(), new StringBuilder());
+            this(new ArrayList<>(), new StringBuilder(), 0);
         }
 
         @Override
         public Collection<String> unwrap() {
             return Collections.unmodifiableCollection(segments);
+        }
+
+        @Override
+        public boolean isLevel() {
+            return 0 == depth;
+        }
+
+        @Override
+        public DivideState exit() {
+            depth--;
+            return this;
+        }
+
+        @Override
+        public DivideState enter() {
+            depth++;
+            return this;
         }
 
         @Override
@@ -97,8 +122,12 @@ public class Main {
 
     private static DivideState fold(final DivideState state, final char c) {
         final var appended = state.append(c);
-        if (';' == c)
+        if (';' == c && appended.isLevel())
             return appended.advance();
+        if ('{' == c)
+            return appended.enter();
+        if ('}' == c)
+            return appended.exit();
         return appended;
     }
 
