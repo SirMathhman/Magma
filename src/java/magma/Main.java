@@ -1,7 +1,10 @@
 package magma;
 
 import java.io.IOException;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -10,6 +13,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -45,12 +49,81 @@ public class Main {
         Node withNodeList(String key, List<Node> values);
 
         Optional<List<Node>> findNodeList(String key);
+
+        String display();
     }
 
     private interface Rule {
-        Optional<String> generate(Node node);
+        Result<String, FormatError> generate(Node node);
 
-        Optional<Node> lex(String input);
+        Result<Node, FormatError> lex(String input);
+    }
+
+    private sealed interface Result<Value, Error> permits Ok, Err {
+        <Return> Result<Return, Error> flatMapValue(Function<Value, Result<Return, Error>> mapper);
+
+        <Return> Result<Return, Error> mapValue(Function<Value, Return> mapper);
+
+        <Return> Return match(Function<Value, Return> whenOk, Function<Error, Return> whenErr);
+
+        <Return> Result<Value, Return> mapErr(Function<Error, Return> mapper);
+    }
+
+    private interface Context {
+        String display();
+    }
+
+    private interface Error {
+        String display();
+    }
+
+    private interface Accumulator<T> {
+        boolean hasValue();
+
+        Accumulator<T> withValue(T value);
+
+        Accumulator<T> withError(FormatError error);
+
+        <Return> Return match(Function<T, Return> whenOk, Function<List<FormatError>, Return> whenErr);
+    }
+
+    private interface FormatError extends Error {
+        @Override
+        default String display() {
+            return format(0);
+        }
+
+        String format(int depth);
+    }
+
+    private record StringContext(String value) implements Context {
+        @Override
+        public String display() {
+            return value;
+        }
+    }
+
+    private record NodeContext(Node value) implements Context {
+        @Override
+        public String display() {
+            return value.display();
+        }
+    }
+
+    private record CompileError(String message, Context context, List<FormatError> errors) implements FormatError {
+        private CompileError(final String message, final Context context) {
+            this(message, context, new ArrayList<>());
+        }
+
+        @Override
+        public String format(final int depth) {
+            final var joined = errors.stream()
+                    .map(error -> error.format(depth + 1))
+                    .map(result -> System.lineSeparator() + "\t".repeat(depth) + result)
+                    .collect(Collectors.joining());
+
+            return message + ": " + context.display() + joined;
+        }
     }
 
     private static class MutableDivideState implements DivideState {
@@ -165,33 +238,41 @@ public class Main {
         public Optional<List<Node>> findNodeList(final String key) {
             return Optional.ofNullable(nodeLists.get(key));
         }
+
+        @Override
+        public String display() {
+            return maybeType.toString() + strings.toString() + nodeLists.toString();
+        }
     }
 
     private record StringRule(String key) implements Rule {
         @Override
-        public Optional<String> generate(final Node node) {
-            return node.findString(key);
+        public Result<String, FormatError> generate(final Node node) {
+            return node.findString(key)
+                    .<Result<String, FormatError>>map(Ok::new)
+                    .orElseGet(() -> new Err<>(new CompileError("String '" + key + "' not present",
+                            new NodeContext(node))));
         }
 
         @Override
-        public Optional<Node> lex(final String input) {
-            return Optional.of(new MapNode().withString(key(), input));
+        public Result<Node, FormatError> lex(final String input) {
+            return new Ok<>(new MapNode().withString(key(), input));
         }
     }
 
     private record InfixRule(Rule leftRule, String infix, Rule rightRule) implements Rule {
         @Override
-        public Optional<String> generate(final Node node) {
+        public Result<String, FormatError> generate(final Node node) {
             return leftRule.generate(node)
-                    .flatMap(leftResult -> rightRule.generate(node)
-                            .map(rightResult -> leftResult + infix + rightResult));
+                    .flatMapValue(leftResult -> rightRule.generate(node)
+                            .mapValue(rightResult -> leftResult + infix + rightResult));
         }
 
         @Override
-        public Optional<Node> lex(final String input) {
+        public Result<Node, FormatError> lex(final String input) {
             final var index = input.indexOf(infix());
             if (0 > index)
-                return Optional.empty();
+                return new Err<>(new CompileError("Infix '" + infix + "' not present", new StringContext(input)));
 
             final var beforeContent = input.substring(0, index);
             final var leftResult = leftRule().lex(beforeContent);
@@ -199,21 +280,21 @@ public class Main {
             final var content = input.substring(index + infix().length());
             final var rightResult = rightRule().lex(content);
 
-            return leftResult.flatMap(leftValue -> rightResult.map(leftValue::merge));
+            return leftResult.flatMapValue(leftValue -> rightResult.mapValue(leftValue::merge));
         }
     }
 
     private record SuffixRule(Rule rule, String suffix) implements Rule {
         @Override
-        public Optional<String> generate(final Node node) {
+        public Result<String, FormatError> generate(final Node node) {
             return rule.generate(node)
-                    .map(result -> result + suffix);
+                    .mapValue(result -> result + suffix);
         }
 
         @Override
-        public Optional<Node> lex(final String input) {
+        public Result<Node, FormatError> lex(final String input) {
             if (!input.endsWith(suffix()))
-                return Optional.empty();
+                return new Err<>(new CompileError("Suffix '" + suffix + "' not present", new StringContext(input)));
 
             final var withoutEnd = input.substring(0, input.length() - suffix().length());
             return rule().lex(withoutEnd);
@@ -222,12 +303,12 @@ public class Main {
 
     private record StripRule(Rule rule) implements Rule {
         @Override
-        public Optional<String> generate(final Node node) {
+        public Result<String, FormatError> generate(final Node node) {
             return rule.generate(node);
         }
 
         @Override
-        public Optional<Node> lex(final String input) {
+        public Result<Node, FormatError> lex(final String input) {
             final var stripped = input.strip();
             return rule.lex(stripped);
         }
@@ -235,16 +316,16 @@ public class Main {
 
     private record TypeRule(String type, Rule rule) implements Rule {
         @Override
-        public Optional<String> generate(final Node node) {
+        public Result<String, FormatError> generate(final Node node) {
             if (node.is(type))
                 return rule.generate(node);
-            return Optional.empty();
+            return new Err<>(new CompileError("Type '" + type + "' not present", new NodeContext(node)));
         }
 
         @Override
-        public Optional<Node> lex(final String input) {
+        public Result<Node, FormatError> lex(final String input) {
             return rule.lex(input)
-                    .map(node -> node.retype(type));
+                    .mapValue(node -> node.retype(type));
         }
     }
 
@@ -257,48 +338,53 @@ public class Main {
         }
 
         @Override
-        public Optional<String> generate(final Node node) {
+        public Result<String, FormatError> generate(final Node node) {
             return rule.generate(node)
-                    .map(PlaceholderRule::generatePlaceholder);
+                    .mapValue(PlaceholderRule::generatePlaceholder);
         }
 
         @Override
-        public Optional<Node> lex(final String input) {
+        public Result<Node, FormatError> lex(final String input) {
             return rule.lex(input);
         }
     }
 
     private record OrRule(List<Rule> rules) implements Rule {
         @Override
-        public Optional<String> generate(final Node node) {
-            return apply(rule -> rule.generate(node));
+        public Result<String, FormatError> generate(final Node node) {
+            return apply(rule -> rule.generate(node), new NodeContext(node));
         }
 
-        private <T> Optional<T> apply(final Function<Rule, Optional<T>> mapper) {
+        private <T> Result<T, FormatError> apply(final Function<Rule, Result<T, FormatError>> mapper, final Context context) {
             return rules.stream()
                     .map(mapper)
-                    .flatMap(Optional::stream)
-                    .findFirst();
+                    .<Accumulator<T>>reduce(new ImmutableAccumulator<>(), (accumulator, result) -> {
+                        if (accumulator.hasValue())
+                            return accumulator;
+                        return result.match(accumulator::withValue, accumulator::withError);
+                    }, (_, next) -> next)
+                    .<Result<T, FormatError>>match(Ok::new,
+                            errors -> new Err<>(new CompileError("Invalid combination", context, errors)));
         }
 
         @Override
-        public Optional<Node> lex(final String input) {
-            return apply(rule -> rule.lex(input));
+        public Result<Node, FormatError> lex(final String input) {
+            return apply(rule -> rule.lex(input), new StringContext(input));
         }
     }
 
     private record PrefixRule(String prefix, Rule rule) implements Rule {
         @Override
-        public Optional<String> generate(final Node node) {
+        public Result<String, FormatError> generate(final Node node) {
             return rule.generate(node)
-                    .map(result -> prefix + result);
+                    .mapValue(result -> prefix + result);
         }
 
         @Override
-        public Optional<Node> lex(final String input) {
+        public Result<Node, FormatError> lex(final String input) {
             if (input.startsWith(prefix))
                 return rule.lex(input.substring(prefix.length()));
-            return Optional.empty();
+            return new Err<>(new CompileError("Prefix '" + prefix + "' not present", new StringContext(input)));
         }
     }
 
@@ -327,26 +413,122 @@ public class Main {
             return appended;
         }
 
-        @Override
-        public Optional<String> generate(final Node node) {
-            return Optional.of(node.findNodeList(key())
-                    .orElse(Collections.emptyList())
-                    .stream()
-                    .map(rule()::generate)
-                    .flatMap(Optional::stream)
-                    .collect(Collectors.joining()));
+        private static <Element, Value, Collection> Result<Collection, FormatError> reduce(final java.util.Collection<Element> elements, final Collection initial, final Function<Element, Result<Value, FormatError>> mapper, final BiFunction<Collection, Value, Collection> folder) {
+            return elements.stream()
+                    .map(mapper)
+                    .<Result<Collection, FormatError>>reduce(new Ok<>(initial),
+                            (maybeBuffer, maybeElement) -> maybeBuffer.flatMapValue(buffer -> maybeElement.mapValue(
+                                    value -> folder.apply(buffer, value))),
+                            (_, next) -> next);
         }
 
         @Override
-        public Optional<Node> lex(final String input) {
-            final var oldChildren = DivideRule.divide(input)
-                    .stream()
-                    .map(rule()::lex)
-                    .flatMap(Optional::stream)
-                    .toList();
+        public Result<String, FormatError> generate(final Node node) {
+            final var nodes = node.findNodeList(key())
+                    .orElse(Collections.emptyList());
 
-            final Node node = new MapNode();
-            return Optional.of(node.withNodeList(key(), oldChildren));
+            return DivideRule.reduce(nodes, new StringBuilder(), rule::generate, StringBuilder::append)
+                    .mapValue(StringBuilder::toString);
+        }
+
+        @Override
+        public Result<Node, FormatError> lex(final String input) {
+            return DivideRule.reduce(DivideRule.divide(input), new ArrayList<Node>(), rule::lex, (nodes, node) -> {
+                        nodes.add(node);
+                        return nodes;
+                    })
+                    .mapValue(oldChildren -> {
+                        final Node node = new MapNode();
+                        return node.withNodeList(key, oldChildren);
+                    });
+        }
+    }
+
+    private record Ok<Value, Error>(Value value) implements Result<Value, Error> {
+        @Override
+        public <Return> Result<Return, Error> flatMapValue(final Function<Value, Result<Return, Error>> mapper) {
+            return mapper.apply(value);
+        }
+
+        @Override
+        public <Return> Result<Return, Error> mapValue(final Function<Value, Return> mapper) {
+            return new Ok<>(mapper.apply(value));
+        }
+
+        @Override
+        public <Return> Return match(final Function<Value, Return> whenOk, final Function<Error, Return> whenErr) {
+            return whenOk.apply(value);
+        }
+
+        @Override
+        public <Return> Result<Value, Return> mapErr(final Function<Error, Return> mapper) {
+            return new Ok<>(value);
+        }
+    }
+
+    private record Err<Value, Error>(Error error) implements Result<Value, Error> {
+        @Override
+        public <Return> Result<Return, Error> flatMapValue(final Function<Value, Result<Return, Error>> mapper) {
+            return new Err<>(error);
+        }
+
+        @Override
+        public <Return> Result<Return, Error> mapValue(final Function<Value, Return> mapper) {
+            return new Err<>(error);
+        }
+
+        @Override
+        public <Return> Return match(final Function<Value, Return> whenOk, final Function<Error, Return> whenErr) {
+            return whenErr.apply(error);
+        }
+
+        @Override
+        public <Return> Result<Value, Return> mapErr(final Function<Error, Return> mapper) {
+            return new Err<>(mapper.apply(error));
+        }
+    }
+
+    private record ThrowableError(Throwable throwable) implements Error {
+        @Override
+        public String display() {
+            final var writer = new StringWriter();
+            throwable.printStackTrace(new PrintWriter(writer));
+            return writer.toString();
+        }
+    }
+
+    private record ApplicationError(Error error) implements Error {
+        @Override
+        public String display() {
+            return error.display();
+        }
+    }
+
+    private record ImmutableAccumulator<T>(Optional<T> maybeValue, List<FormatError> errors) implements Accumulator<T> {
+        private ImmutableAccumulator() {
+            this(Optional.empty(), new ArrayList<>());
+        }
+
+        @Override
+        public boolean hasValue() {
+            return maybeValue.isPresent();
+        }
+
+        @Override
+        public Accumulator<T> withValue(final T value) {
+            return new ImmutableAccumulator<>(Optional.of(value), errors);
+        }
+
+        @Override
+        public Accumulator<T> withError(final FormatError error) {
+            errors.add(error);
+            return this;
+        }
+
+        @Override
+        public <Return> Return match(final Function<T, Return> whenOk, final Function<List<FormatError>, Return> whenErr) {
+            return maybeValue.map(whenOk)
+                    .orElseGet(() -> whenErr.apply(errors));
         }
     }
 
@@ -354,25 +536,48 @@ public class Main {
     }
 
     public static void main(final String[] args) {
+        final var source = Paths.get(".", "src", "java", "magma", "Main.java");
+        final var target = source.resolveSibling("Main.ts");
+        final var result = Main.run(source, target);
+        result.ifPresent(error -> System.err.println(error.display()));
+    }
+
+    private static Optional<ApplicationError> run(final Path source, final Path target) {
+        return Main.readString(source)
+                .mapErr(ApplicationError::new)
+                .match(input -> Main.compileAndWrite(target, input), Optional::of);
+    }
+
+    private static Optional<ApplicationError> compileAndWrite(final Path target, final String input) {
+        return Main.compile(input)
+                .mapErr(ApplicationError::new)
+                .match(output -> Main.writeString(target, output)
+                        .map(ApplicationError::new), Optional::of);
+    }
+
+    private static Optional<ThrowableError> writeString(final Path target, final CharSequence output) {
         try {
-            final var source = Paths.get(".", "src", "java", "magma", "Main.java");
-            final var input = Files.readString(source);
-            final var output = Main.compile(input);
-            final var target = source.resolveSibling("Main.ts");
             Files.writeString(target, output);
+            return Optional.empty();
         } catch (final IOException e) {
-            //noinspection CallToPrintStackTrace
-            e.printStackTrace();
+            return Optional.of(new ThrowableError(e));
         }
     }
 
-    private static String compile(final String input) {
+    private static Result<String, ThrowableError> readString(final Path source) {
+        try {
+            return new Ok<>(Files.readString(source));
+        } catch (final IOException e) {
+            return new Err<>(new ThrowableError(e));
+        }
+    }
+
+    private static Result<String, FormatError> compile(final String input) {
         return Main.createJavaRootRule()
                 .lex(input)
-                .map(Main::modify)
-                .flatMap(children -> Main.createTSRootRule()
-                        .generate(children))
-                .orElse("");
+                .mapValue(Main::modify)
+                .flatMapValue(children -> Main.createTSRootRule()
+                        .generate(children));
     }
 
     private static Node modify(final Node children) {
