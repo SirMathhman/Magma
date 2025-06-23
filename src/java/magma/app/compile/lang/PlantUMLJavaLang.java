@@ -11,7 +11,7 @@ import magma.app.compile.node.result.NodeResult;
 import magma.app.compile.rule.Rule;
 import magma.app.compile.string.StringResult;
 
-public class PlantUMLJavaLang<Node extends DisplayNode & StringNode<Node> & TypedNode<Node>, Error> extends Lang<Node, Error, Rule<Node, NodeResult<Node, Error>, StringResult<Error>>> implements
+public class PlantUMLJavaLang<Node extends DisplayNode & StringNode<Node> & TypedNode<Node>, Error> extends Lang<Node, Error> implements
         RuleFactory<Rule<Node, NodeResult<Node, Error>, StringResult<Error>>> {
     public PlantUMLJavaLang(final NodeFactory<Node> nodeFactory, final ResultFactory<Node, NodeResult<Node, Error>, StringResult<Error>, ErrorSequence<Error>> resultFactory) {
         super(resultFactory, nodeFactory);

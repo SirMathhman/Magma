@@ -36,42 +36,47 @@ public class RuleCompiler implements Compiler {
             new SimpleContextFactory<>(),
             new CompileErrorFactory());
 
-    private static final RuleFactory<Rule<EverythingNode, NodeResult<EverythingNode, FormattedError>, StringResult<FormattedError>>> JAVA_LANG = new JavaLang<>(
+    private final RuleFactory<Rule<EverythingNode, NodeResult<EverythingNode, FormattedError>, StringResult<FormattedError>>> JAVA_LANG = new JavaLang<>(
             RuleCompiler.NODE_FACTORY,
             RuleCompiler.RESULTS_FACTORY);
 
-    private static final RuleFactory<Rule<EverythingNode, NodeResult<EverythingNode, FormattedError>, StringResult<FormattedError>>> PLANT_UML_LANG = new PlantUMLJavaLang<>(
+    private final RuleFactory<Rule<EverythingNode, NodeResult<EverythingNode, FormattedError>, StringResult<FormattedError>>> PLANT_UML_LANG = new PlantUMLJavaLang<>(
             RuleCompiler.NODE_FACTORY,
             RuleCompiler.RESULTS_FACTORY);
 
-    private static StringResult<FormattedError> compileEntry(final Map<String, String> inputs) {
+    private static boolean isFunctionalInterface(final String destination) {
+        return ListLikes.of("Consumer", "Function", "Supplier")
+                .contains(destination);
+    }
+
+    private StringResult<FormattedError> compileEntry(final Map<String, String> inputs) {
         StringResult<FormattedError> maybeCompiled = new StringOk<>();
         for (final var source : inputs.entrySet()) {
             final var name = source.getKey();
             final var input = source.getValue();
 
-            maybeCompiled = maybeCompiled.tryAppendResult(() -> RuleCompiler.compile(input, name));
+            maybeCompiled = maybeCompiled.tryAppendResult(() -> compile(input, name));
         }
 
         return maybeCompiled;
     }
 
-    private static StringResult<FormattedError> compile(final CharSequence input, final String name) {
+    private StringResult<FormattedError> compile(final CharSequence input, final String name) {
         final var segments = Divide.divide(input);
         return segments.stream()
                 .<StringResult<FormattedError>>reduce(new StringOk<>(),
-                        (output, segment) -> RuleCompiler.getStringResult(name, output, segment),
+                        (output, segment) -> getStringResult(name, output, segment),
                         (_, next) -> next)
                 .prepend("class " + name + System.lineSeparator());
     }
 
-    private static StringResult<FormattedError> getStringResult(final String name, final StringResult<FormattedError> output, final String segment) {
-        final var tree = RuleCompiler.JAVA_LANG.create()
+    private StringResult<FormattedError> getStringResult(final String name, final StringResult<FormattedError> output, final String segment) {
+        final var tree = JAVA_LANG.create()
                 .lex(segment);
 
         final var generated = (Result<Option<StringResult<FormattedError>>, FormattedError>) switch (tree) {
             case NodeErr(final var error1) -> new Err<>(error1);
-            case NodeOk(final EverythingNode value1) -> new Ok<>(RuleCompiler.transformAndGenerate(name, value1));
+            case NodeOk(final EverythingNode value1) -> new Ok<>(transformAndGenerate(name, value1));
         };
 
         return switch (generated) {
@@ -81,7 +86,7 @@ public class RuleCompiler implements Compiler {
         };
     }
 
-    private static Option<StringResult<FormattedError>> transformAndGenerate(final String name, final EverythingNode destination) {
+    private Option<StringResult<FormattedError>> transformAndGenerate(final String name, final EverythingNode destination) {
         final var node = destination.withString("source", name);
         final var destination1 = node.findString("destination")
                 .orElse("");
@@ -90,24 +95,19 @@ public class RuleCompiler implements Compiler {
             return new None<>();
 
         if (node.is("import"))
-            return new Some<>(RuleCompiler.generate(node.retype("dependency")));
+            return new Some<>(generate(node.retype("dependency")));
         else
             return new None<>();
     }
 
-    private static boolean isFunctionalInterface(final String destination) {
-        return ListLikes.of("Consumer", "Function", "Supplier")
-                .contains(destination);
-    }
-
-    private static StringResult<FormattedError> generate(final EverythingNode node) {
-        return RuleCompiler.PLANT_UML_LANG.create()
+    private StringResult<FormattedError> generate(final EverythingNode node) {
+        return PLANT_UML_LANG.create()
                 .generate(node);
     }
 
     @Override
     public Result<String, FormattedError> compile(final Map<String, String> inputs) {
-        return switch (RuleCompiler.compileEntry(inputs)) {
+        return switch (compileEntry(inputs)) {
             case StringErr(final var error) -> new Err<>(error);
             case StringOk(final var value) -> new Ok<>(value);
         };
