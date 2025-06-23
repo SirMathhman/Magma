@@ -387,11 +387,15 @@ public class Main {
     }
 
     private static Rule createTSRootRule() {
-        return new DivideRule("children", Main.createStructureRule());
+        return Main.Statements(Main.createStructureRule());
     }
 
     private static Rule createJavaRootRule() {
-        return new DivideRule("children", Main.createJavaRootSegmentRule());
+        return Main.Statements(Main.createJavaRootSegmentRule());
+    }
+
+    private static Rule Statements(final Rule rule) {
+        return new DivideRule("children", rule);
     }
 
     private static Rule createJavaRootSegmentRule() {
@@ -409,8 +413,12 @@ public class Main {
                 "class ",
                 new StripRule(new StringRule("name")))));
 
-        return new TypeRule("structure", new StripRule(new SuffixRule(new InfixRule(beforeChildren,
-                        "{",
-                        new PlaceholderRule(new StringRule("children"))), "}")));
+        final var children = Main.Statements(Main.createStructureMemberRule());
+        return new TypeRule("structure",
+                new StripRule(new SuffixRule(new InfixRule(beforeChildren, "{", children), "}")));
+    }
+
+    private static Rule createStructureMemberRule() {
+        return new OrRule(List.of(new StringRule("placeholder")));
     }
 }
