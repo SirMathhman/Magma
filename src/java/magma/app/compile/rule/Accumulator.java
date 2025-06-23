@@ -1,15 +1,13 @@
 package magma.app.compile.rule;
 
-import magma.api.error.list.ErrorSequence;
-
 import java.util.function.Function;
 
-public interface Accumulator<Value, Error> {
-    Accumulator<Value, Error> withValue(Value value);
+public interface Accumulator<Value, Error, Errors> {
+    Accumulator<Value, Error, Errors> withValue(Value value);
 
-    Accumulator<Value, Error> withError(Error error);
+    Accumulator<Value, Error, Errors> withError(Error error);
 
-    <Return> Return match(Function<Value, Return> whenPresent, Function<ErrorSequence<Error>, Return> whenErr);
+    <Return> Return match(Function<Value, Return> whenPresent, Function<Errors, Return> whenErr);
 
     boolean hasValue();
 }

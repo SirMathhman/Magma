@@ -8,6 +8,7 @@ import magma.app.compile.node.NodeFactory;
 import magma.app.compile.node.StringNode;
 import magma.app.compile.node.TypedNode;
 import magma.app.compile.node.result.NodeResult;
+import magma.app.compile.rule.ImmutableAccumulatorFactory;
 import magma.app.compile.rule.InfixRule;
 import magma.app.compile.rule.OrRule;
 import magma.app.compile.rule.PrefixRule;
@@ -28,7 +29,7 @@ class Lang<Node extends DisplayNode & StringNode<Node> & TypedNode<Node>, Error,
     }
 
     Rule<Node, NodeResult<Node, Error>, StringResult<Error>> Or(final ListLike<Rule<Node, NodeResult<Node, Error>, StringResult<Error>>> rules) {
-        return new OrRule<>(rules, resultFactory);
+        return new OrRule<>(rules, resultFactory, new ImmutableAccumulatorFactory<>());
     }
 
     Rule<Node, NodeResult<Node, Error>, StringResult<Error>> String(final String key) {

@@ -9,7 +9,7 @@ import magma.api.option.Some;
 
 import java.util.function.Function;
 
-final class ImmutableAccumulator<Value, Error> implements Accumulator<Value, Error> {
+final class ImmutableAccumulator<Value, Error> implements Accumulator<Value, Error, ErrorSequence<Error>> {
     private final Option<Value> maybeValue;
     private final ErrorList<Error> errors;
 
@@ -23,12 +23,12 @@ final class ImmutableAccumulator<Value, Error> implements Accumulator<Value, Err
     }
 
     @Override
-    public Accumulator<Value, Error> withValue(final Value value) {
+    public Accumulator<Value, Error, ErrorSequence<Error>> withValue(final Value value) {
         return new ImmutableAccumulator<>(new Some<>(value), errors);
     }
 
     @Override
-    public Accumulator<Value, Error> withError(final Error error) {
+    public Accumulator<Value, Error, ErrorSequence<Error>> withError(final Error error) {
         return new ImmutableAccumulator<>(maybeValue, errors.add(error));
     }
 

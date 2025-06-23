@@ -1,45 +1,47 @@
 package magma.app.compile.rule;
 
-import magma.api.error.list.ErrorSequence;
 import magma.api.list.ListLike;
 import magma.app.compile.factory.ResultFactory;
 import magma.app.compile.node.DisplayNode;
 import magma.app.compile.node.result.Matching;
-import magma.app.compile.node.result.NodeResult;
-import magma.app.compile.string.StringResult;
 
 import java.util.function.Function;
 
-public final class OrRule<Node extends DisplayNode, Error> implements Rule<Node, NodeResult<Node, Error>, StringResult<Error>> {
-    private final ListLike<Rule<Node, NodeResult<Node, Error>, StringResult<Error>>> rules;
-    private final ResultFactory<Node, NodeResult<Node, Error>, StringResult<Error>, ErrorSequence<Error>> resultFactory;
+public final class OrRule<Node extends DisplayNode, Error, NodeResult extends Matching<Node, Error>, StringResult extends Matching<String, Error>, Errors> implements
+        Rule<Node, NodeResult, StringResult> {
+    private final ListLike<Rule<Node, NodeResult, StringResult>> rules;
+    private final ResultFactory<Node, NodeResult, StringResult, Errors> resultFactory;
+    private final AccumulatorFactory<Error, Errors> accumulatorFactory;
 
-    public OrRule(final ListLike<Rule<Node, NodeResult<Node, Error>, StringResult<Error>>> rules, final ResultFactory<Node, NodeResult<Node, Error>, StringResult<Error>, ErrorSequence<Error>> resultFactory) {
+    public OrRule(final ListLike<Rule<Node, NodeResult, StringResult>> rules, final ResultFactory<Node, NodeResult, StringResult, Errors> resultFactory, final AccumulatorFactory<Error, Errors> accumulatorFactory) {
         this.rules = rules;
         this.resultFactory = resultFactory;
+        this.accumulatorFactory = accumulatorFactory;
     }
 
     @Override
-    public NodeResult<Node, Error> lex(final String input) {
+    public NodeResult lex(final String input) {
         return or(rule -> rule.lex(input),
                 resultFactory::fromNode,
                 errors -> resultFactory.fromNodeErrorWithChildren("Invalid combination", input, errors));
     }
 
-    private <Value, Result extends Matching<Value, Error>, Return> Return or(final Function<Rule<Node, NodeResult<Node, Error>, StringResult<Error>>, Result> mapper, final Function<Value, Return> whenOk, final Function<ErrorSequence<Error>, Return> whenError) {
+    private <Value, Result extends Matching<Value, Error>, Return> Return or(final Function<Rule<Node, NodeResult, StringResult>, Result> mapper, final Function<Value, Return> whenOk, final Function<Errors, Return> whenError) {
 
         return rules.stream()
-                .<Accumulator<Value, Error>>reduce(new ImmutableAccumulator<>(), (orState, result) -> {
-                    if (orState.hasValue())
-                        return orState;
-                    return mapper.apply(result)
-                            .match(orState::withValue, orState::withError);
-                }, (_, next) -> next)
+                .<Accumulator<Value, Error, Errors>>reduce(accumulatorFactory.createAccumulator(),
+                        (orState, result) -> {
+                            if (orState.hasValue())
+                                return orState;
+                            return mapper.apply(result)
+                                    .match(orState::withValue, orState::withError);
+                        },
+                        (_, next) -> next)
                 .match(whenOk, whenError);
     }
 
     @Override
-    public StringResult<Error> generate(final Node node) {
+    public StringResult generate(final Node node) {
         return or(rule -> rule.generate(node),
                 resultFactory::fromString,
                 errors -> resultFactory.fromStringErrorWithChildren("Invalid combination", node, errors));
