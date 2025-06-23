@@ -48,8 +48,8 @@ public class RuleCompiler implements Compiler {
     }
 
     private StringResult<FormattedError> compile(final CharSequence input, final String name) {
-        final var segments = Divide.divide(input);
-        return segments.stream()
+        return Divide.divide(input)
+                .stream()
                 .<StringResult<FormattedError>>reduce(new StringOk<>(),
                         (output, segment) -> getStringResult(name, output, segment),
                         (_, next) -> next)
@@ -60,19 +60,21 @@ public class RuleCompiler implements Compiler {
         final var tree = sourceRuleFactory.create()
                 .lex(segment);
 
-        final var generated = (Result<Option<StringResult<FormattedError>>, FormattedError>) switch (tree) {
-            case NodeErr(final var error1) -> new Err<>(error1);
-            case NodeOk(final CompoundNode value1) -> new Ok<>(transformAndGenerate(name, value1));
-        };
-
-        return switch (generated) {
-            case Err<Option<StringResult<FormattedError>>, FormattedError>(final var error) -> new StringErr<>(error);
-            case Ok<Option<StringResult<FormattedError>>, FormattedError>(final var value) ->
-                    value instanceof Some(final var result) ? output.appendResult(result) : output;
+        return switch (getRecord(name, tree)) {
+            case Err(final var error) -> new StringErr<>(error);
+            case Ok(final var value) ->
+                    value instanceof Some(final var result) ? output.tryAppendResult(() -> generate(result)) : output;
         };
     }
 
-    private Option<StringResult<FormattedError>> transformAndGenerate(final String name, final CompoundNode destination) {
+    private Result<Option<CompoundNode>, FormattedError> getRecord(final String name, final NodeResult<CompoundNode, FormattedError> tree) {
+        return switch (tree) {
+            case NodeErr(final var error1) -> new Err<>(error1);
+            case NodeOk(final CompoundNode value1) -> new Ok<>(transform(name, value1));
+        };
+    }
+
+    private Option<CompoundNode> transform(final String name, final CompoundNode destination) {
         final var node = destination.withString("source", name);
         final var destination1 = node.findString("destination")
                 .orElse("");
@@ -81,7 +83,7 @@ public class RuleCompiler implements Compiler {
             return new None<>();
 
         if (node.is("import"))
-            return new Some<>(generate(node.retype("dependency")));
+            return new Some<>(node.retype("dependency"));
         else
             return new None<>();
     }
