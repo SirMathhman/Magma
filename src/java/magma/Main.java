@@ -33,6 +33,8 @@ public class Main {
         DivideState enter();
 
         boolean isShallow();
+
+        Optional<Tuple<DivideState, Character>> pop();
     }
 
     private interface Node {
@@ -130,19 +132,20 @@ public class Main {
         }
     }
 
+    private record Tuple<Left, Right>(Left left, Right right) {
+    }
+
     private static class MutableDivideState implements DivideState {
-        private final Collection<String> segments;
-        private int depth;
-        private StringBuilder buffer;
+        private final Collection<String> segments = new ArrayList<>();
+        private final CharSequence input;
+        private final int length;
+        private int depth = 0;
+        private StringBuilder buffer = new StringBuilder();
+        private int index = 0;
 
-        private MutableDivideState(final Collection<String> segments, final StringBuilder buffer) {
-            this.segments = new ArrayList<>(segments);
-            this.buffer = buffer;
-            depth = 0;
-        }
-
-        private MutableDivideState() {
-            this(new ArrayList<>(), new StringBuilder());
+        private MutableDivideState(final CharSequence input) {
+            this.input = input;
+            length = input.length();
         }
 
         @Override
@@ -170,6 +173,17 @@ public class Main {
         @Override
         public boolean isShallow() {
             return 1 == depth;
+        }
+
+        @Override
+        public Optional<Tuple<DivideState, Character>> pop() {
+            if (index < length) {
+                final var c = input.charAt(index);
+                index++;
+                return Optional.of(new Tuple<>(this, c));
+            }
+            else
+                return Optional.empty();
         }
 
         @Override
@@ -415,12 +429,18 @@ public class Main {
 
     private record DivideRule(String key, Rule rule) implements Rule {
         private static Collection<String> divide(final CharSequence input) {
-            final DivideState state = new MutableDivideState();
-            final var length = input.length();
-            var current = state;
-            for (var i = 0; i < length; i++) {
-                final var c = input.charAt(i);
-                current = DivideRule.fold(current, c);
+            DivideState state = new MutableDivideState(input);
+            final var current = state;
+            while (true) {
+                final var maybeNext = state.pop();
+                if (maybeNext.isEmpty())
+                    break;
+
+                final var next = maybeNext.get();
+                state = next.left;
+                final var c = next.right;
+
+                state = DivideRule.fold(state, c);
             }
 
             return current.advance()
@@ -561,6 +581,19 @@ public class Main {
         }
     }
 
+    private static class EmptyRule implements Rule {
+        @Override
+        public Result<String, FormatError> generate(final Node node) {
+            return new Ok<>("");
+        }
+
+        @Override
+        public Result<Node, FormatError> lex(final String input) {
+            return input.isEmpty() ? new Ok<>(new MapNode()) : new Err<>(new CompileError("Not empty",
+                    new StringContext(input)));
+        }
+    }
+
     private Main() {
     }
 
@@ -633,7 +666,7 @@ public class Main {
     }
 
     private static Rule createJavaRootSegmentRule() {
-        return new OrRule(List.of(Main.createLocationRule("package"),
+        return new OrRule(List.of(new StripRule(new EmptyRule()), Main.createLocationRule("package"),
                 Main.createLocationRule("import"),
                 Main.createStructureRule()));
     }
