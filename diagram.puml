@@ -40,9 +40,9 @@ OrRule --> ListLike
 OrRule --> Accumulator
 OrRule --> AccumulatorFactory
 OrRule --> ParentNodeResultFactory
-OrRule --> ParentStringResultFactory
 OrRule --> DisplayNode
 OrRule --> Matching
+OrRule --> ParentStringResultFactory
 class ParentStringResultFactory
 class NodeContext
 NodeContext --> DisplayNode
@@ -232,6 +232,22 @@ class SuffixRule
 SuffixRule --> ParentNodeResultFactory
 SuffixRule --> Appending
 class AccumulatorFactory
+class CompilerBuilder
+CompilerBuilder --> ErrorSequence
+CompilerBuilder --> Context
+CompilerBuilder --> ContextErrorResultFactory
+CompilerBuilder --> SimpleContextFactory
+CompilerBuilder --> CompileErrorFactory
+CompilerBuilder --> ErrorFactory
+CompilerBuilder --> FormattedError
+CompilerBuilder --> ResultFactory
+CompilerBuilder --> JavaLang
+CompilerBuilder --> PlantUMLJavaLang
+CompilerBuilder --> MapNodeFactory
+CompilerBuilder --> CompoundNode
+CompilerBuilder --> NodeFactory
+CompilerBuilder --> NodeResult
+CompilerBuilder --> StringResult
 class CompoundNode
 class ImmutableErrorList
 ImmutableErrorList --> ListLike
@@ -253,26 +269,10 @@ class Ok
 class None
 None --> Predicate
 class Main
-Main --> ErrorSequence
 Main --> PathLikes
 Main --> Application
 Main --> CompileApplication
-Main --> Compiler
-Main --> RuleCompiler
-Main --> Context
-Main --> FormattedError
-Main --> CompileErrorFactory
-Main --> ContextErrorResultFactory
-Main --> ErrorFactory
-Main --> ResultFactory
-Main --> SimpleContextFactory
-Main --> JavaLang
-Main --> PlantUMLJavaLang
-Main --> CompoundNode
-Main --> MapNodeFactory
-Main --> NodeFactory
-Main --> NodeResult
-Main --> StringResult
+Main --> CompilerBuilder
 Main --> PathSources
 Main --> Sources
 Main --> PathTargets
@@ -280,9 +280,9 @@ Main --> Targets
 class ListLike
 ListLike --> Stream
 class TypeRule
-TypeRule --> ParentStringResultFactory
 TypeRule --> DisplayNode
 TypeRule --> TypedNode
 TypeRule --> Mapping
+TypeRule --> ParentStringResultFactory
 
 @enduml
