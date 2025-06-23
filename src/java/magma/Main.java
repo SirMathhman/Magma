@@ -424,11 +424,11 @@ public class Main {
 
         @Override
         public Result<String, FormatError> generate(final Node node) {
-            final var nodes = node.findNodeList(key())
-                    .orElse(Collections.emptyList());
-
-            return DivideRule.reduce(nodes, new StringBuilder(), rule::generate, StringBuilder::append)
-                    .mapValue(StringBuilder::toString);
+            return node.findNodeList(key)
+                    .map(nodes -> DivideRule.reduce(nodes, new StringBuilder(), rule::generate, StringBuilder::append)
+                            .mapValue(StringBuilder::toString))
+                    .orElseGet(() -> new Err<>(new CompileError("Node list '" + key + "' not present",
+                            new NodeContext(node))));
         }
 
         @Override
