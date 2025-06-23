@@ -3,10 +3,14 @@ package magma;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.RecordComponent;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -61,6 +65,14 @@ public class Main {
         String display();
 
         Stream<Map.Entry<String, List<Node>>> streamNodeLists();
+
+        Stream<String> streamPropertyNames();
+
+        Optional<Tuple<Node, String>> removeString(String key);
+
+        boolean hasNoProperties();
+
+        Optional<Tuple<Node, List<Node>>> removeNodeList(String key);
     }
 
     private interface Rule {
@@ -104,6 +116,15 @@ public class Main {
         }
 
         String format(int depth);
+    }
+
+    private sealed interface JavaRootSegment permits Package, Import, Structure {
+    }
+
+    private record Package(String content) implements JavaRootSegment {
+    }
+
+    private record Import(String content) implements JavaRootSegment {
     }
 
     private record StringContext(String value) implements Context {
@@ -295,6 +316,41 @@ public class Main {
         public Stream<Map.Entry<String, List<Node>>> streamNodeLists() {
             return nodeLists.entrySet()
                     .stream();
+        }
+
+        @Override
+        public Stream<String> streamPropertyNames() {
+            return Stream.concat(strings.keySet()
+                            .stream(),
+                    nodeLists.keySet()
+                            .stream());
+        }
+
+        @Override
+        public Optional<Tuple<Node, String>> removeString(final String key) {
+            if (strings.containsKey(key)) {
+                final var copy = new HashMap<>(strings);
+                final var value = copy.remove(key);
+                return Optional.of(new Tuple<>(new MapNode(maybeType, copy, nodeLists), value));
+            }
+
+            return Optional.empty();
+        }
+
+        @Override
+        public boolean hasNoProperties() {
+            return strings.isEmpty() && nodeLists.isEmpty();
+        }
+
+        @Override
+        public Optional<Tuple<Node, List<Node>>> removeNodeList(final String key) {
+            if (nodeLists.containsKey(key)) {
+                final var copy = new HashMap<>(nodeLists);
+                final var value = copy.remove(key);
+                return Optional.of(new Tuple<>(new MapNode(maybeType, strings, copy), value));
+            }
+
+            return Optional.empty();
         }
     }
 
@@ -633,6 +689,12 @@ public class Main {
         }
     }
 
+    private record Structure() implements JavaRootSegment {
+    }
+
+    private record JavaRoot(List<JavaRootSegment> children) {
+    }
+
     private Main() {
     }
 
@@ -690,20 +752,129 @@ public class Main {
     private static Result<String, FormatError> compile(final String input) {
         return Main.createJavaRootRule()
                 .lex(input)
+                .flatMapValue(node -> Main.deserialize(JavaRoot.class, node))
                 .mapValue(Main::modify)
                 .flatMapValue(children -> Main.createTSRootRule()
                         .generate(children));
     }
 
-    private static Node modify(final Node children) {
-        final var oldChildren = children.findNodeList("children")
-                .orElse(Collections.emptyList());
+    private static <Type> Result<Type, FormatError> deserialize(final Class<Type> clazz, final Main.Node node) {
+        if (clazz.isRecord()) {
+            final var components = clazz.getRecordComponents();
 
-        final var newChildren = oldChildren.stream()
-                .filter(child -> child.is("structure"))
-                .toList();
+            Result<Tuple<Main.Node, List<Object>>, FormatError> maybeCurrent = new Ok<>(new Tuple<>(node,
+                    new ArrayList<>()));
 
-        return new MapNode().withNodeList("children", newChildren);
+            for (final var component : components)
+                maybeCurrent = maybeCurrent.flatMapValue(current -> {
+                    return Main.getTupleCompileErrorResult(node, component, current);
+                });
+
+            return maybeCurrent.flatMapValue(current -> {
+                if (current.left.hasNoProperties()) {
+                    final var arguments = current.right;
+
+                    final var constructorParamTypes = Arrays.stream(components)
+                            .map(RecordComponent::getType)
+                            .toArray(Class<?>[]::new);
+
+                    try {
+                        final var constructor = clazz.getDeclaredConstructor(constructorParamTypes);
+                        final var instance = constructor.newInstance(arguments.toArray());
+                        return new Ok<>(instance);
+                    } catch (final NoSuchMethodException | InstantiationException | IllegalAccessException |
+                                   InvocationTargetException e) {
+                        return new Err<>(new CompileError("Failed to instantiate", new NodeContext(node)));
+                    }
+                }
+
+                final var joined = current.left.streamPropertyNames()
+                        .collect(Collectors.joining(", "));
+
+                return new Err<>(new CompileError("Fields remain: [" + joined + "]", new NodeContext(node)));
+            });
+        }
+
+        if (clazz.isInterface()) {
+            final var permittedSubclasses = clazz.getPermittedSubclasses();
+            for (final var permittedSubclass : permittedSubclasses) {
+                final var name = permittedSubclass.getSimpleName();
+                if (node.is(name.toLowerCase()))
+                    return Main.deserialize(permittedSubclass, node)
+                            .mapValue(clazz::cast);
+            }
+        }
+
+        return new Err<>(new CompileError("Cannot instantiate", new NodeContext(node)));
+    }
+
+    private static Result<Tuple<Main.Node, List<Object>>, FormatError> getTupleCompileErrorResult(final Node node, final RecordComponent component, final Tuple<Node, List<Object>> current) {
+        final var currentNode = current.left;
+        final var currentArguments = current.right;
+
+        final var name = component.getName();
+        final Class<?> type = component.getType();
+        final var genericType = component.getGenericType();
+
+        if (type.isAssignableFrom(List.class) && genericType instanceof final ParameterizedType parameterizedType) {
+            final var nodeType = parameterizedType.getActualTypeArguments()[0];
+            if (nodeType instanceof final Class<?> clazz0)
+                return Main.pruneNodeList(currentNode, name)
+                        .flatMapValue(oldValuesTuple -> Main.getTupleFormatErrorResult(clazz0,
+                                oldValuesTuple,
+                                currentArguments));
+        }
+
+        if (type.isAssignableFrom(Node.class)) {
+
+        }
+
+        if (type.isAssignableFrom(String.class))
+            return Main.pruneString(node, name)
+                    .mapValue(pruned -> {
+                        currentArguments.add(pruned.right);
+                        return new Tuple<>(pruned.left, currentArguments);
+                    });
+
+        return new Err<>(new CompileError("?", new StringContext("?")));
+    }
+
+    private static Result<Tuple<Node, List<Object>>, FormatError> getTupleFormatErrorResult(final Class<?> clazz0, final Tuple<Node, List<Node>> oldValuesTuple, final List<Object> currentArguments) {
+        Result<List<Object>, FormatError> maybeNewValues = new Ok<>(new ArrayList<>());
+
+        for (final var oldValue : oldValuesTuple.right) {
+            final Result<?, FormatError> maybeArgument = Main.deserialize(clazz0, oldValue)
+                    .mapValue(clazz0::cast);
+            maybeNewValues = maybeNewValues.flatMapValue(newValues -> {
+                return maybeArgument.mapValue(argument -> {
+                    newValues.add(argument);
+                    return newValues;
+                });
+            });
+        }
+
+        return maybeNewValues.mapValue(newValues -> {
+            currentArguments.add(newValues);
+            return new Tuple<>(oldValuesTuple.left, currentArguments);
+        });
+    }
+
+    private static Result<Tuple<Node, String>, FormatError> pruneString(final Node node, final String key) {
+        return node.removeString(key)
+                .<Result<Tuple<Node, String>, FormatError>>map(Ok::new)
+                .orElseGet(() -> new Err<>(new CompileError("String '" + key + "' not present",
+                        new NodeContext(node))));
+    }
+
+    private static Result<Tuple<Node, List<Node>>, FormatError> pruneNodeList(final Node current, final String name) {
+        return current.removeNodeList(name)
+                .<Result<Tuple<Node, List<Node>>, FormatError>>map(Ok::new)
+                .orElseGet(() -> new Err<>(new CompileError("Node list '" + name + "' not present",
+                        new NodeContext(current))));
+    }
+
+    private static Node modify(final JavaRoot children) {
+        return new MapNode();
     }
 
     private static Rule createTSRootRule() {
@@ -720,8 +891,10 @@ public class Main {
 
     private static Rule createJavaRootSegmentRule() {
         final var structureRule = Main.createStructureRule();
-        return new OrRule(List.of(new StripRule(new EmptyRule()), Main.createLocationRule("package"),
-                Main.createLocationRule("import"), structureRule));
+        return new OrRule(List.of(new StripRule(new EmptyRule()),
+                Main.createLocationRule("package"),
+                Main.createLocationRule("import"),
+                structureRule));
     }
 
     private static Rule createStructureRule() {
