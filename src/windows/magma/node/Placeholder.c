@@ -1,7 +1,7 @@
 #include "Placeholder.h"
 /*
 
-public record Placeholder(String input) implements CType, Header, Value {
+public record Placeholder(String input) implements CType, Header, Value, JavaType {
     public static String generate(final String input) {
         final var replaced = input.replace("start", "start")
                 .replace("end", "end");
@@ -17,6 +17,11 @@ public record Placeholder(String input) implements CType, Header, Value {
     @Override
     public String generateSymbol() {
         return Placeholder.generate(this.input);
+    }
+
+    @Override
+    public CType toCType() {
+        return this;
     }
 }*//*
 */

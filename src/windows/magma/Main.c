@@ -5,20 +5,21 @@
 #include "divide/fold/StatementFolder.h"
 #include "divide/fold/ValuesFolder.h"
 #include "list/ListLike.h"
-#include "node/CPrimitive.h"
-#include "node/CType.h"
+#include "node/CDefinition.h"
 #include "node/Caller.h"
 #include "node/ConstructionHeader.h"
 #include "node/Constructor.h"
 #include "node/DataAccess.h"
-#include "node/Definition.h"
+#include "node/GenericType.h"
 #include "node/Header.h"
 #include "node/Invokable.h"
+#include "node/JavaDefinition.h"
+#include "node/JavaPrimitive.h"
+#include "node/JavaStringType.h"
+#include "node/JavaType.h"
 #include "node/NumberNode.h"
 #include "node/Placeholder.h"
-#include "node/Pointer.h"
 #include "node/StringNode.h"
-#include "node/Struct.h"
 #include "node/Symbol.h"
 #include "node/Value.h"
 #include "../java/io/IOException.h"
@@ -242,7 +243,7 @@
                 final String outputContent = Strings.LINE_SEPARATOR + "\tstruct " + constructor.name() + " this;" + compiledContent + Strings.LINE_SEPARATOR + "\treturn this;";
                 yield new FunctionNode(header, compiledParams, outputContent);
             }
-            case final Definition definition -> {
+            case final CDefinition definition -> {
                 final Header newHeader = definition.mapName(name -> name + "_" + structureName);
                 yield new FunctionNode(newHeader, compiledParams, compiledContent);
             }
@@ -251,7 +252,7 @@
     }
 
     private static Header compileHeader(final String beforeParams) {
-        return Main.compileDefinition(beforeParams)
+        return Main.parseDefinition(beforeParams).map(JavaDefinition::toCDefinition)
                 .<Header>map(value -> value)
                 .or(() -> Main.compileConstructor(beforeParams))
                 .orElseGet((() -> new Placeholder(beforeParams)));
@@ -361,7 +362,8 @@
         final var strip = input.strip();
         if (strip.startsWith("new ")) {
             final var type = strip.substring("new ".length());
-            final var generatedType = Main.parseType(type);
+            final var generatedType = Main.parseType(type)
+                    .toCType();
 
             return Optional.of(new ConstructionHeader(generatedType));
         }
@@ -392,8 +394,8 @@
         if (input.isEmpty())
             return "";
 
-        return Main.compileDefinition(input)
-                .map(Definition::generate)
+        return Main.parseDefinition(input).map(JavaDefinition::toCDefinition)
+                .map(CDefinition::generate)
                 .orElseGet(() -> Placeholder.generate(input));
     }
 
@@ -403,12 +405,12 @@
             return Optional.empty();
 
         final var substring = strip.substring(0, strip.length() - ";".length());
-        return Main.compileDefinition(substring)
-                .map(Definition::generate)
+        return Main.parseDefinition(substring).map(JavaDefinition::toCDefinition)
+                .map(CDefinition::generate)
                 .map(content -> new Tuple<>(Strings.LINE_SEPARATOR + "\t" + content + ";", ""));
     }
 
-    private static Optional<Definition> compileDefinition(final String input) {
+    private static Optional<JavaDefinition> parseDefinition(final String input) {
         final var withoutEnd = input.strip();
         final var nameSeparator = withoutEnd.lastIndexOf(' ');
         if (0 > nameSeparator)
@@ -424,31 +426,31 @@
         final var beforeType = beforeName.substring(0, typeSeparator);
         final var inputType = beforeName.substring(typeSeparator + " ".length());
 
-        return Optional.of(new Definition(beforeType, Main.parseType(inputType), name));
+        return Optional.of(new JavaDefinition(beforeType, Main.parseType(inputType), name));
     }
 
-    private static CType parseType(final String input) {
+    private static JavaType parseType(final String input) {
         final var strip = input.strip();
 
         if ("int".contentEquals(strip))
-            return CPrimitive.Int;
+            return JavaPrimitive.Int;
 
         if ("String".contentEquals(strip))
-            return new Pointer(CPrimitive.Char);
+            return new JavaStringType();
 
         return Main.parseGenericType(strip)
                 .or(() -> Main.parseSymbolType(strip))
                 .orElseGet(() -> new Placeholder(input));
     }
 
-    private static Optional<CType> parseSymbolType(final String input) {
+    private static Optional<JavaType> parseSymbolType(final String input) {
         if (Main.isSymbol(input))
-            return Optional.of(new Struct(input));
+            return Optional.of(new Symbol(input));
         else
             return Optional.empty();
     }
 
-    private static Optional<CType> parseGenericType(final String strip) {
+    private static Optional<JavaType> parseGenericType(final String strip) {
         if (strip.isEmpty() || '>' != strip.charAt(strip.length() - 1))
             return Optional.empty();
 
@@ -459,8 +461,7 @@
 
         final var base = withoutEnd.substring(0, argumentsStart);
         final var arguments = withoutEnd.substring(argumentsStart + "<".length());
-        return Optional.of(new Struct(base + "_" + Main.parseType(arguments)
-                .generateSymbol()));
+        return Optional.of(new GenericType(base, Main.parseType(arguments)));
     }
 
     private static ListLike<String> divideStatements(final CharSequence input) {

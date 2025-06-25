@@ -6,14 +6,15 @@ import magma.divide.fold.Folder;
 import magma.divide.fold.StatementFolder;
 import magma.divide.fold.ValuesFolder;
 import magma.list.ListLike;
+import magma.node.CDefinition;
 import magma.node.Caller;
 import magma.node.ConstructionHeader;
 import magma.node.Constructor;
 import magma.node.DataAccess;
-import magma.node.Definition;
 import magma.node.GenericType;
 import magma.node.Header;
 import magma.node.Invokable;
+import magma.node.JavaDefinition;
 import magma.node.JavaPrimitive;
 import magma.node.JavaStringType;
 import magma.node.JavaType;
@@ -254,7 +255,7 @@ class Main {
                 final String outputContent = Strings.LINE_SEPARATOR + "\tstruct " + constructor.name() + " this;" + compiledContent + Strings.LINE_SEPARATOR + "\treturn this;";
                 yield new FunctionNode(header, compiledParams, outputContent);
             }
-            case final Definition definition -> {
+            case final CDefinition definition -> {
                 final Header newHeader = definition.mapName(name -> name + "_" + structureName);
                 yield new FunctionNode(newHeader, compiledParams, compiledContent);
             }
@@ -263,7 +264,8 @@ class Main {
     }
 
     private static Header compileHeader(final String beforeParams) {
-        return Main.compileDefinition(beforeParams)
+        return Main.parseDefinition(beforeParams)
+                .map(JavaDefinition::toCDefinition)
                 .<Header>map(value -> value)
                 .or(() -> Main.compileConstructor(beforeParams))
                 .orElseGet((() -> new Placeholder(beforeParams)));
@@ -404,8 +406,9 @@ class Main {
         if (input.isEmpty())
             return "";
 
-        return Main.compileDefinition(input)
-                .map(Definition::generate)
+        return Main.parseDefinition(input)
+                .map(JavaDefinition::toCDefinition)
+                .map(CDefinition::generate)
                 .orElseGet(() -> Placeholder.generate(input));
     }
 
@@ -415,12 +418,13 @@ class Main {
             return Optional.empty();
 
         final var substring = strip.substring(0, strip.length() - ";".length());
-        return Main.compileDefinition(substring)
-                .map(Definition::generate)
+        return Main.parseDefinition(substring)
+                .map(JavaDefinition::toCDefinition)
+                .map(CDefinition::generate)
                 .map(content -> new Tuple<>(Strings.LINE_SEPARATOR + "\t" + content + ";", ""));
     }
 
-    private static Optional<Definition> compileDefinition(final String input) {
+    private static Optional<JavaDefinition> parseDefinition(final String input) {
         final var withoutEnd = input.strip();
         final var nameSeparator = withoutEnd.lastIndexOf(' ');
         if (0 > nameSeparator)
@@ -436,10 +440,7 @@ class Main {
         final var beforeType = beforeName.substring(0, typeSeparator);
         final var inputType = beforeName.substring(typeSeparator + " ".length());
 
-        return Optional.of(new Definition(beforeType,
-                Main.parseType(inputType)
-                        .toCType(),
-                name));
+        return Optional.of(new JavaDefinition(beforeType, Main.parseType(inputType), name));
     }
 
     private static JavaType parseType(final String input) {
