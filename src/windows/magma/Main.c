@@ -19,6 +19,7 @@
 /*import java.util.Optional;*/
 /*import java.util.function.Function;*/
 /*import java.util.stream.Collectors;*/
+/*import java.util.stream.IntStream;*/
 /**/struct Main {
 	/*private static final String SEPARATOR *//*=*/ System.lineSeparator();/*
 
@@ -61,7 +62,7 @@
 /*private */struct Main new_Main(/**/) {
 }
 /*public static void */struct main new_main(/*final *//*String[]*/ args) {
-	/*final var rootDirectory */ = /* Paths*/.get(".", "src", "java");/*
+	/*final var rootDirectory */ = Paths.get(".", "src", "java");/*
         try (final var stream = Files.walk(rootDirectory)) {
             final var sources = stream.filter(Files::isRegularFile)
                     .filter(file -> file.toString()
@@ -87,7 +88,7 @@
                 .collect(Collectors.joining(delimiter))*/;
 }
 /*private static String */struct compileRootSegment new_compileRootSegment(/*final */char* input) {
-	/*final var stripped */ = /* input*/.strip();
+	/*final var stripped */ = input.strip();
 	/*if (stripped.startsWith("package "))
             return ""*/;
 	/*if (stripped.startsWith("import "))
@@ -212,7 +213,17 @@
             return Main.compileValue(value) + "." + property;
         }
 
+        final var strip = input.strip();
+        if (Main.isSymbol(strip))
+            return strip;
+
         return Placeholder.generate(input);
+    }
+
+    private static boolean isSymbol(final CharSequence input) {
+        return IntStream.range(0, input.length())
+                .map(input::charAt)
+                .allMatch(Character::isLetter);
     }
 
     private static String compileDefinitionOrPlaceholder(final String input) {

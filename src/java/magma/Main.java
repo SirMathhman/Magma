@@ -21,6 +21,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 class Main {
     private static final String SEPARATOR = System.lineSeparator();
@@ -221,7 +222,17 @@ class Main {
             return Main.compileValue(value) + "." + property;
         }
 
+        final var strip = input.strip();
+        if (Main.isSymbol(strip))
+            return strip;
+
         return Placeholder.generate(input);
+    }
+
+    private static boolean isSymbol(final CharSequence input) {
+        return IntStream.range(0, input.length())
+                .map(input::charAt)
+                .allMatch(Character::isLetter);
     }
 
     private static String compileDefinitionOrPlaceholder(final String input) {
