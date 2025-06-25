@@ -24,8 +24,6 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 class Main {
-    private static final String SEPARATOR = System.lineSeparator();
-
     private Main() {
     }
 
@@ -67,12 +65,15 @@ class Main {
         final var input = Files.readString(source);
         final var output = Main.compileRoot(input);
 
-        final var targetContent = "#include \"" + name + ".h\"" + Main.SEPARATOR + output;
+        final var targetContent = "#include \"" + name + ".h\"" + Strings.LINE_SEPARATOR + output;
         Files.writeString(targetParent.resolve(name + ".c"), targetContent);
 
         final var joined = String.join("_", namespace);
         final var withName = joined + "_" + name;
-        final var headerContent = String.join(Main.SEPARATOR, "#ifndef " + withName, "#define " + withName, "#endif");
+        final var headerContent = String.join(Strings.LINE_SEPARATOR,
+                "#ifndef " + withName,
+                "#define " + withName,
+                "#endif");
 
         Files.writeString(targetParent.resolve(name + ".h"), headerContent);
     }
@@ -98,7 +99,7 @@ class Main {
             return "";
 
         if (stripped.startsWith("import "))
-            return Placeholder.generate(stripped) + Main.SEPARATOR;
+            return Placeholder.generate(stripped) + Strings.LINE_SEPARATOR;
 
         return Main.compileStructure(stripped)
                 .orElseGet(() -> Placeholder.generate(input));
@@ -138,7 +139,7 @@ class Main {
             other.append(compiled.right());
         }
 
-        return Optional.of(Placeholder.generate(beforeKeyword) + "struct " + name + " {" + output + "};" + Main.SEPARATOR + other);
+        return Optional.of(Placeholder.generate(beforeKeyword) + "struct " + name + " {" + output + "};" + Strings.LINE_SEPARATOR + other);
     }
 
     private static Tuple<String, String> compileClassSegment(final String input, final String structureName) {
@@ -170,28 +171,27 @@ class Main {
 
         final var beforeParams = withoutParamEnd.substring(0, paramStart);
         final var inputParams = withoutParamEnd.substring(paramStart + "(".length());
-        final var outputParams = Main.compileAll(inputParams, new ValuesFolder(), Main::compileParameter, ", ");
+        final var compiledParams = Main.compileAll(inputParams, new ValuesFolder(), Main::compileParameter, ", ");
 
         final var oldHeader = Main.compileHeader(beforeParams);
-        final var compiled = Main.compileStatements(content, Main::compileFunctionSegment);
+        final var compiledOutput = Main.compileStatements(content, Main::compileFunctionSegment);
 
-        final Header newHeader;
-        final String outputContent;
-        if (oldHeader instanceof final Constructor constructor) {
-            outputContent = Main.SEPARATOR + "\tstruct " + constructor.name() + " this;" + compiled + Main.SEPARATOR + "\treturn this;";
-            newHeader = oldHeader;
-        }
-        else if (oldHeader instanceof final Definition definition) {
-            outputContent = compiled;
-            newHeader = definition.mapName(name -> name + "_" + structureName);
-        }
-        else {
-            outputContent = compiled;
-            newHeader = oldHeader;
+        final var node = Main.getFunctionNode(structureName, oldHeader, compiledOutput, compiledParams);
+        return Optional.of(new Tuple<>("", node.generate()));
+    }
+
+    private static FunctionNode getFunctionNode(final String structureName, final Header header, final String compiledContent, final String compiledParams) {
+        if (header instanceof final Constructor constructor) {
+            final String outputContent = Strings.LINE_SEPARATOR + "\tstruct " + constructor.name() + " this;" + compiledContent + Strings.LINE_SEPARATOR + "\treturn this;";
+            return new FunctionNode(header, compiledParams, outputContent);
         }
 
-        return Optional.of(new Tuple<>("",
-                newHeader.generate() + "(" + outputParams + ") {" + outputContent + Main.SEPARATOR + "}" + Main.SEPARATOR));
+        if (header instanceof final Definition definition) {
+            final Header newHeader = definition.mapName(name -> name + "_" + structureName);
+            return new FunctionNode(newHeader, compiledParams, compiledContent);
+        }
+
+        return new FunctionNode(header, compiledParams, compiledContent);
     }
 
     private static Header compileHeader(final String beforeParams) {
@@ -222,7 +222,7 @@ class Main {
 
         if (!strip.isEmpty() && ';' == strip.charAt(strip.length() - 1)) {
             final var withoutEnd = strip.substring(0, strip.length() - ";".length());
-            return Main.SEPARATOR + "\t" + Main.compileFunctionSegmentValue(withoutEnd) + ";";
+            return Strings.LINE_SEPARATOR + "\t" + Main.compileFunctionSegmentValue(withoutEnd) + ";";
         }
 
         return Placeholder.generate(input);
@@ -297,7 +297,7 @@ class Main {
         final var substring = strip.substring(0, strip.length() - ";".length());
         return Main.compileDefinition(substring)
                 .map(Definition::generate)
-                .map(content -> new Tuple<>(Main.SEPARATOR + "\t" + content + ";", ""));
+                .map(content -> new Tuple<>(Strings.LINE_SEPARATOR + "\t" + content + ";", ""));
     }
 
     private static Optional<Definition> compileDefinition(final String input) {
