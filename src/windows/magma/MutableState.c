@@ -1,11 +1,9 @@
 #include "MutableState.h"
+/*import java.util.ArrayList;*/
+/*import java.util.Collections;*/
+/*import java.util.List;*/
+/*public class MutableState implements State */{};
 /*
-
-import java.util.ArrayList;*//*
-import java.util.Collections;*//*
-import java.util.List;*//*
-
-public class MutableState implements State {
     private final List<String> segments;
     private StringBuilder buffer;
     private int depth;
@@ -54,5 +52,4 @@ public class MutableState implements State {
         depth--;
         return this;
     }
-}
 */

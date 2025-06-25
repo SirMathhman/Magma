@@ -8,6 +8,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class Main {
+
+    public static final String SEPARATOR = System.lineSeparator();
+
     private Main() {
     }
 
@@ -53,23 +56,34 @@ public class Main {
         for (final var segment : segments)
             output.append(Main.compileRootSegment(segment));
 
-        final var targetContent = "#include \"" + name + ".h\"" + System.lineSeparator() + output;
+        final var targetContent = "#include \"" + name + ".h\"" + Main.SEPARATOR + output;
         Files.writeString(targetParent.resolve(name + ".c"), targetContent);
 
         final var joined = String.join("_", namespace);
         final var withName = joined + "_" + name;
-        final var headerContent = String.join(System.lineSeparator(),
-                "#ifndef " + withName,
-                "#define " + withName,
-                "#endif");
+        final var headerContent = String.join(Main.SEPARATOR, "#ifndef " + withName, "#define " + withName, "#endif");
 
         Files.writeString(targetParent.resolve(name + ".h"), headerContent);
     }
 
     private static String compileRootSegment(final String input) {
-        if (input.strip()
-                .startsWith("package "))
+        final var stripped = input.strip();
+        if (stripped.startsWith("package "))
             return "";
+
+        if (stripped.startsWith("import "))
+            return Main.generatePlaceholder(stripped) + Main.SEPARATOR;
+
+        if (stripped.endsWith("}")) {
+            final var withoutEnd = stripped.substring(0, stripped.length() - "}".length());
+            final var contentStart = withoutEnd.indexOf('{');
+            if (0 <= contentStart) {
+                final var beforeContent = withoutEnd.substring(0, contentStart);
+                final var content = withoutEnd.substring(contentStart + "{".length());
+                return Main.generatePlaceholder(beforeContent) + "{};" + Main.SEPARATOR + Main.generatePlaceholder(
+                        content);
+            }
+        }
 
         return Main.generatePlaceholder(input);
     }
