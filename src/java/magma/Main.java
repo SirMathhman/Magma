@@ -51,7 +51,7 @@ public class Main {
 
         final var output = new StringBuilder();
         for (final var segment : segments)
-            output.append(Main.generatePlaceholder(segment));
+            output.append(Main.compileRootSegment(segment));
 
         final var targetContent = "#include \"" + name + ".h\"" + System.lineSeparator() + output;
         Files.writeString(targetParent.resolve(name + ".c"), targetContent);
@@ -64,6 +64,14 @@ public class Main {
                 "#endif");
 
         Files.writeString(targetParent.resolve(name + ".h"), headerContent);
+    }
+
+    private static String compileRootSegment(final String input) {
+        if (input.strip()
+                .startsWith("package "))
+            return "";
+
+        return Main.generatePlaceholder(input);
     }
 
     private static List<String> divide(final CharSequence input) {

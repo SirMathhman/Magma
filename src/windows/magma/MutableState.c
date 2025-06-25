@@ -1,5 +1,5 @@
 #include "MutableState.h"
-/*package magma;*//*
+/*
 
 import java.util.List;*//*
 

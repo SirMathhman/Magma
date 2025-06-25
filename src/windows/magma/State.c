@@ -1,5 +1,5 @@
 #include "State.h"
-/*package magma;*//*
+/*
 
 import java.util.ArrayList;*//*
 import java.util.Collections;*//*
