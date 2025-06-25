@@ -193,7 +193,16 @@ class Main {
         if ("".contentEquals(strip))
             return "";
 
-        return Main.SEPARATOR + "\t" + Placeholder.generate(strip);
+        if (!strip.isEmpty() && ';' == strip.charAt(strip.length() - 1)) {
+            final var withoutEnd = strip.substring(0, strip.length() - ";".length());
+            return Main.SEPARATOR + "\t" + Main.compileFunctionSegmentValue(withoutEnd) + ";";
+        }
+
+        return Placeholder.generate(input);
+    }
+
+    private static String compileFunctionSegmentValue(final String input) {
+        return Placeholder.generate(input);
     }
 
     private static String compileDefinitionOrPlaceholder(final String input) {

@@ -61,43 +61,42 @@
 /*private */struct Main new_Main(/**/) {
 }
 /*public static void */struct main new_main(/*final *//*String[]*/ args) {
-	/*final var rootDirectory = Paths.get(".", "src", "java");*/
-	/*try (final var stream = Files.walk(rootDirectory)) {
+	/*final var rootDirectory = Paths.get(".", "src", "java")*/;/*
+        try (final var stream = Files.walk(rootDirectory)) {
             final var sources = stream.filter(Files::isRegularFile)
                     .filter(file -> file.toString()
                             .endsWith(".java"))
                     .toList();
 
             Main.runWithSources(rootDirectory, sources);
-        }*/
-	/*catch (final IOException e) {
+        }*//* catch (final IOException e) {
             //noinspection CallToPrintStackTrace
             e.printStackTrace();
         }*/
 }
 /*private static String */struct compileRoot new_compileRoot(/*final *//*CharSequence*/ input) {
-	/*return Main.compileStatements(input, Main::compileRootSegment);*/
+	/*return Main.compileStatements(input, Main::compileRootSegment)*/;
 }
 /*private static String */struct compileStatements new_compileStatements(/*final *//*CharSequence*/ input, /* final Function<String*/, /* String> mapper*/) {
-	/*return Main.compileAll(input, new StatementFolder(), mapper, "");*/
+	/*return Main.compileAll(input, new StatementFolder(), mapper, "")*/;
 }
 /*private static String */struct compileAll new_compileAll(/*final *//*CharSequence*/ input, /*final *//*Folder*/ folder, /* final Function<String*/, /* String> mapper*/, /*final *//*CharSequence*/ delimiter) {
 	/*return Main.divide(input, folder)
                 .stream()
                 .map(mapper)
-                .collect(Collectors.joining(delimiter));*/
+                .collect(Collectors.joining(delimiter))*/;
 }
 /*private static String */struct compileRootSegment new_compileRootSegment(/*final */char* input) {
-	/*final var stripped = input.strip();*/
+	/*final var stripped = input.strip()*/;
 	/*if (stripped.startsWith("package "))
-            return "";*/
+            return ""*/;
 	/*if (stripped.startsWith("import "))
-            return Placeholder.generate(stripped) + Main.SEPARATOR;*/
+            return Placeholder.generate(stripped) + Main.SEPARATOR*/;
 	/*return Main.compileStructure(stripped)
-                .orElseGet(() -> Placeholder.generate(input));*/
+                .orElseGet(() -> Placeholder.generate(input))*/;
 }
-/*private static Optional<String> */struct compileStructure new_compileStructure(/*final */char* stripped) {
-	/*if (!(!stripped.isEmpty() && '*/
+/*private static Optional<String> */struct compileStructure new_compileStructure(/*final */char* stripped) {/*
+        if (!(!stripped.isEmpty() && '*/
 }
 /*".length());*//*
         final var contentStart = withoutEnd.indexOf('{');
@@ -185,7 +184,16 @@
         if ("".contentEquals(strip))
             return "";
 
-        return Main.SEPARATOR + "\t" + Placeholder.generate(strip);
+        if (!strip.isEmpty() && ';' == strip.charAt(strip.length() - 1)) {
+            final var withoutEnd = strip.substring(0, strip.length() - ";".length());
+            return Main.SEPARATOR + "\t" + Main.compileFunctionSegmentValue(withoutEnd) + ";";
+        }
+
+        return Placeholder.generate(input);
+    }
+
+    private static String compileFunctionSegmentValue(final String input) {
+        return Placeholder.generate(input);
     }
 
     private static String compileDefinitionOrPlaceholder(final String input) {
