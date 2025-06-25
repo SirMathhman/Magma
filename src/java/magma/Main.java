@@ -172,18 +172,34 @@ class Main {
         final var inputParams = withoutParamEnd.substring(paramStart + "(".length());
         final var outputParams = Main.compileAll(inputParams, new ValuesFolder(), Main::compileParameter, ", ");
 
-        final var nameSeparator = beforeParams.lastIndexOf(' ');
+        final var outputDefinition = Main.compileDefinition(beforeParams)
+                .<Header>map(value -> value)
+                .or(() -> Main.compileConstructor(beforeParams))
+                .orElseGet((() -> new Placeholder(beforeContent)));
+
+        final var compiled = Main.compileStatements(content, Main::compileFunctionSegment);
+        final String outputContent;
+        if (outputDefinition instanceof final Constructor constructor)
+            outputContent = Main.SEPARATOR + "\tstruct " + constructor.name() + " this;" + compiled + Main.SEPARATOR + "\treturn this;";
+        else
+            outputContent = compiled;
+
+        return Optional.of(new Tuple<>("",
+                outputDefinition.generate() + "(" + outputParams + ") {" + outputContent + Main.SEPARATOR + "}" + Main.SEPARATOR));
+    }
+
+    private static Optional<Constructor> compileConstructor(final String input) {
+        final var nameSeparator = input.lastIndexOf(' ');
         if (0 > nameSeparator)
             return Optional.empty();
 
-        final var beforeName = beforeParams.substring(0, nameSeparator)
-                .strip();
-        final var name = beforeParams.substring(nameSeparator + " ".length())
+        final var beforeName = input.substring(0, nameSeparator)
                 .strip();
 
-        final var outputContent = Main.compileStatements(content, Main::compileFunctionSegment);
-        return Optional.of(new Tuple<>("",
-                Placeholder.generate(beforeName + " ") + "struct " + name + " new_" + name + "(" + outputParams + ") {" + Main.SEPARATOR + "\tstruct " + name + " this;" + outputContent + Main.SEPARATOR + "\treturn this;" + Main.SEPARATOR + "}" + Main.SEPARATOR));
+        final var name = input.substring(nameSeparator + " ".length())
+                .strip();
+
+        return Optional.of(new Constructor(beforeName, name));
     }
 
     private static String compileFunctionSegment(final String input) {
@@ -256,6 +272,7 @@ class Main {
             return "";
 
         return Main.compileDefinition(input)
+                .map(Definition::generate)
                 .orElseGet(() -> Placeholder.generate(input));
     }
 
@@ -266,10 +283,11 @@ class Main {
 
         final var substring = strip.substring(0, strip.length() - ";".length());
         return Main.compileDefinition(substring)
+                .map(Definition::generate)
                 .map(content -> new Tuple<>(Main.SEPARATOR + "\t" + content + ";", ""));
     }
 
-    private static Optional<String> compileDefinition(final String input) {
+    private static Optional<Definition> compileDefinition(final String input) {
         final var withoutEnd = input.strip();
         final var nameSeparator = withoutEnd.lastIndexOf(' ');
         if (0 > nameSeparator)
@@ -284,10 +302,8 @@ class Main {
 
         final var beforeType = beforeName.substring(0, typeSeparator);
         final var inputType = beforeName.substring(typeSeparator + " ".length());
-        final var content = Placeholder.generate(beforeType + " ") + Main.compileType(inputType)
-                .generate() + " " + name;
 
-        return Optional.of(content);
+        return Optional.of(new Definition(beforeType, Main.compileType(inputType), name));
     }
 
     private static CType compileType(final String input) {

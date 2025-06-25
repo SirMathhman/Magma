@@ -5,10 +5,8 @@
 	struct Lists this;
 	return this;
 }
-/*public static <Value> ListLike<Value> */struct empty new_empty() {
-	struct empty this;
+/*public static <Value> */struct ListLike_/*Value*/ empty() {
 	/*return new JavaList<>()*/;
-	return this;
 }
 /*
 */

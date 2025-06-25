@@ -3,12 +3,10 @@
 /*public */struct ValuesFolder {/*
 */};
 /*@Override
-    public State */struct fold new_fold(/*final *//*State*/ state, /*final *//*char*/ c) {
-	struct fold this;
+    public *//*State*/ fold(/*final *//*State*/ state, /*final *//*char*/ c) {
 	/*if (',' */ = /*= c)
             return state*/.advance();
 	/*return state.append(c)*/;
-	return this;
 }
 /*
 */

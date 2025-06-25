@@ -1,6 +1,8 @@
 package magma.type;
 
-public record Placeholder(String input) implements CType {
+import magma.Header;
+
+public record Placeholder(String input) implements CType, Header {
     public static String generate(final String input) {
         final var replaced = input.replace("/*", "start")
                 .replace("*/", "end");

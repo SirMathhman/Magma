@@ -63,8 +63,7 @@
 	struct Main this;
 	return this;
 }
-/*public static void */struct main new_main(/*final *//*String[]*/ args) {
-	struct main this;
+/*public static *//*void*/ main(/*final *//*String[]*/ args) {
 	/*final var rootDirectory */ = Paths.get(".", "src", "java");/*
         try (final var stream = Files.walk(rootDirectory)) {
             final var sources = stream.filter(Files::isRegularFile)
@@ -77,28 +76,20 @@
             //noinspection CallToPrintStackTrace
             e.printStackTrace();
         }*/
-	return this;
 }
-/*private static String */struct compileRoot new_compileRoot(/*final *//*CharSequence*/ input) {
-	struct compileRoot this;
+/*private static */char* compileRoot(/*final *//*CharSequence*/ input) {
 	/*return Main.compileStatements(input, Main::compileRootSegment)*/;
-	return this;
 }
-/*private static String */struct compileStatements new_compileStatements(/*final *//*CharSequence*/ input, /* final Function<String*/, /* String> mapper*/) {
-	struct compileStatements this;
+/*private static */char* compileStatements(/*final *//*CharSequence*/ input, /* final Function<String*/, /* String> mapper*/) {
 	/*return Main.compileAll(input, new StatementFolder(), mapper, "")*/;
-	return this;
 }
-/*private static String */struct compileAll new_compileAll(/*final *//*CharSequence*/ input, /*final *//*Folder*/ folder, /* final Function<String*/, /* String> mapper*/, /*final *//*CharSequence*/ delimiter) {
-	struct compileAll this;
+/*private static */char* compileAll(/*final *//*CharSequence*/ input, /*final *//*Folder*/ folder, /* final Function<String*/, /* String> mapper*/, /*final *//*CharSequence*/ delimiter) {
 	/*return Main.divide(input, folder)
                 .stream()
                 .map(mapper)
                 .collect(Collectors.joining(delimiter))*/;
-	return this;
 }
-/*private static String */struct compileRootSegment new_compileRootSegment(/*final */char* input) {
-	struct compileRootSegment this;
+/*private static */char* compileRootSegment(/*final */char* input) {
 	/*final var stripped */ = input.strip();
 	/*if (stripped.startsWith("package "))
             return ""*/;
@@ -106,12 +97,9 @@
             return Placeholder.generate(stripped) + Main.SEPARATOR*/;
 	/*return Main.compileStructure(stripped)
                 .orElseGet(() -> Placeholder.generate(input))*/;
-	return this;
 }
-/*private static Optional<String> */struct compileStructure new_compileStructure(/*final */char* stripped) {
-	struct compileStructure this;/*
+/*private static */struct Optional_char_ptr compileStructure(/*final */char* stripped) {/*
         if (!(!stripped.isEmpty() && '*/
-	return this;
 }
 /*".length());*//*
         final var contentStart = withoutEnd.indexOf('{');
@@ -177,18 +165,34 @@
         final var inputParams = withoutParamEnd.substring(paramStart + "(".length());
         final var outputParams = Main.compileAll(inputParams, new ValuesFolder(), Main::compileParameter, ", ");
 
-        final var nameSeparator = beforeParams.lastIndexOf(' ');
+        final var outputDefinition = Main.compileDefinition(beforeParams)
+                .<Header>map(value -> value)
+                .or(() -> Main.compileConstructor(beforeParams))
+                .orElseGet((() -> new Placeholder(beforeContent)));
+
+        final var compiled = Main.compileStatements(content, Main::compileFunctionSegment);
+        final String outputContent;
+        if (outputDefinition instanceof final Constructor constructor)
+            outputContent = Main.SEPARATOR + "\tstruct " + constructor.name() + " this;" + compiled + Main.SEPARATOR + "\treturn this;";
+        else
+            outputContent = compiled;
+
+        return Optional.of(new Tuple<>("",
+                outputDefinition.generate() + "(" + outputParams + ") {" + outputContent + Main.SEPARATOR + "}" + Main.SEPARATOR));
+    }
+
+    private static Optional<Constructor> compileConstructor(final String input) {
+        final var nameSeparator = input.lastIndexOf(' ');
         if (0 > nameSeparator)
             return Optional.empty();
 
-        final var beforeName = beforeParams.substring(0, nameSeparator)
-                .strip();
-        final var name = beforeParams.substring(nameSeparator + " ".length())
+        final var beforeName = input.substring(0, nameSeparator)
                 .strip();
 
-        final var outputContent = Main.compileStatements(content, Main::compileFunctionSegment);
-        return Optional.of(new Tuple<>("",
-                Placeholder.generate(beforeName + " ") + "struct " + name + " new_" + name + "(" + outputParams + ") {" + Main.SEPARATOR + "\tstruct " + name + " this;" + outputContent + Main.SEPARATOR + "\treturn this;" + Main.SEPARATOR + "}" + Main.SEPARATOR));
+        final var name = input.substring(nameSeparator + " ".length())
+                .strip();
+
+        return Optional.of(new Constructor(beforeName, name));
     }
 
     private static String compileFunctionSegment(final String input) {
@@ -261,6 +265,7 @@
             return "";
 
         return Main.compileDefinition(input)
+                .map(Definition::generate)
                 .orElseGet(() -> Placeholder.generate(input));
     }
 
@@ -271,10 +276,11 @@
 
         final var substring = strip.substring(0, strip.length() - ";".length());
         return Main.compileDefinition(substring)
+                .map(Definition::generate)
                 .map(content -> new Tuple<>(Main.SEPARATOR + "\t" + content + ";", ""));
     }
 
-    private static Optional<String> compileDefinition(final String input) {
+    private static Optional<Definition> compileDefinition(final String input) {
         final var withoutEnd = input.strip();
         final var nameSeparator = withoutEnd.lastIndexOf(' ');
         if (0 > nameSeparator)
@@ -289,10 +295,8 @@
 
         final var beforeType = beforeName.substring(0, typeSeparator);
         final var inputType = beforeName.substring(typeSeparator + " ".length());
-        final var content = Placeholder.generate(beforeType + " ") + Main.compileType(inputType)
-                .generate() + " " + name;
 
-        return Optional.of(content);
+        return Optional.of(new Definition(beforeType, Main.compileType(inputType), name));
     }
 
     private static CType compileType(final String input) {

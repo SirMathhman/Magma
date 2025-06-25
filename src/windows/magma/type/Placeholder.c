@@ -1,7 +1,8 @@
 #include "Placeholder.h"
+/*import magma.Header;*/
 /*
 
-public record Placeholder(String input) implements CType {
+public record Placeholder(String input) implements CType, Header {
     public static String generate(final String input) {
         final var replaced = input.replace("start", "start")
                 .replace("end", "end");

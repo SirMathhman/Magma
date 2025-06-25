@@ -13,57 +13,41 @@
 	this.depth = 0;
 	return this;
 }
-/*public static State */struct empty new_empty() {
-	struct empty this;
+/*public static *//*State*/ empty() {
 	/*return new MutableState(Lists.empty())*/;
-	return this;
 }
 /*@Override
-    public State */struct append new_append(/*final *//*char*/ c) {
-	struct append this;
+    public *//*State*/ append(/*final *//*char*/ c) {
 	this.buffer = this.buffer + c;
 	/*return this*/;
-	return this;
 }
 /*@Override
-    public State */struct advance new_advance() {
-	struct advance this;
+    public *//*State*/ advance() {
 	this.segments = this.segments.add(this.buffer);
 	this.buffer = "";
 	/*return this*/;
-	return this;
 }
 /*@Override
-    public ListLike<String> */struct unwrap new_unwrap() {
-	struct unwrap this;
+    public */struct ListLike_char_ptr unwrap() {
 	/*return this.segments*/;
-	return this;
 }
 /*@Override
-    public boolean */struct isLevel new_isLevel() {
-	struct isLevel this;
+    public *//*boolean*/ isLevel() {
 	/*return 0 */ = /*= this*/.depth;
-	return this;
 }
 /*@Override
-    public State */struct enter new_enter() {
-	struct enter this;
+    public *//*State*/ enter() {
 	/*this.depth++*/;
 	/*return this*/;
-	return this;
 }
 /*@Override
-    public State */struct exit new_exit() {
-	struct exit this;
+    public *//*State*/ exit() {
 	/*this.depth--*/;
 	/*return this*/;
-	return this;
 }
 /*@Override
-    public boolean */struct isShallow new_isShallow() {
-	struct isShallow this;
+    public *//*boolean*/ isShallow() {
 	/*return 1 */ = /*= this*/.depth;
-	return this;
 }
 /*
 */
