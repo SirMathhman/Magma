@@ -84,7 +84,12 @@ class Main {
     }
 
     private static String compileRoot(final CharSequence input, final List<String> namespace) {
-        return Main.compileStatements(input, segment -> Main.compileRootSegment(segment, namespace));
+        final var segments = Main.divideStatements(input);
+        final var buffer = new StringBuilder();
+        for (final var segment : segments)
+            buffer.append(Main.compileRootSegment(namespace, segment));
+
+        return buffer.toString();
     }
 
     private static String compileStatements(final CharSequence input, final Function<String, String> mapper) {
@@ -98,7 +103,7 @@ class Main {
                 .collect(Collectors.joining(delimiter));
     }
 
-    private static String compileRootSegment(final String input, final List<String> namespace) {
+    private static String compileRootSegment(final List<String> namespace, final String input) {
         final var stripped = input.strip();
         if (stripped.startsWith("package "))
             return "";
