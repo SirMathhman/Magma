@@ -6,7 +6,7 @@
 	return this;
 }
 /*public static <Value> */struct ListLike_Value empty_Lists() {
-	return new_JavaList_(/**/);
+	return new_JavaList_();
 }
 /*
 */

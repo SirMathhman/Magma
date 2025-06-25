@@ -285,17 +285,23 @@ class Main {
         if (0 > argumentsStart)
             return Optional.empty();
 
-        final var callerString = withoutEnd.substring(0, argumentsStart)
-                .strip();
+        final var callerString = withoutEnd.substring(0, argumentsStart);
         final var arguments = withoutEnd.substring(argumentsStart + "(".length());
-        if (!callerString.startsWith("new "))
-            return Optional.empty();
+        return Main.compileCaller(callerString)
+                .map(compiledCaller -> compiledCaller + "(" + Main.compileValue(arguments) + ")");
+    }
 
-        final var type = callerString.substring("new ".length());
-        final var generatedType = Main.parseType(type)
-                .generateSymbol();
+    private static Optional<String> compileCaller(final String input) {
+        final var strip = input.strip();
+        if (strip.startsWith("new ")) {
+            final var type = strip.substring("new ".length());
+            final var generatedType = Main.parseType(type)
+                    .generateSymbol();
 
-        return Optional.of("new_" + generatedType + "(" + Placeholder.generate(arguments) + ")");
+            return Optional.of("new_" + generatedType);
+        }
+
+        return Optional.of(Main.compileValue(input));
     }
 
     private static boolean isNumber(final CharSequence input) {

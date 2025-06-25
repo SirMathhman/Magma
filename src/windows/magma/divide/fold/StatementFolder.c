@@ -13,10 +13,10 @@
     */};
 /*@Override
     public */struct State fold_StatementFolder(/*final */struct State state, /*final */struct char c) {
-	/*final var appended */ = /* state.append(c)*/;
+	/*final var appended */ = state.append(c);
 	/*if ('*/;
-	/*' */ = /*= c && appended.isLevel())
-            return appended.advance()*/;/*
+	/*' */ = /*= c && appended*/.isLevel(/*))
+            return appended.advance(*/);/*
         if ('*/
 }
 /*

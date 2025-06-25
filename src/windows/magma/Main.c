@@ -69,7 +69,7 @@
 	return this;
 }
 /*public static */struct void main_Main(/*final *//*String[]*/ args) {
-	/*final var rootDirectory */ = /* Paths.get(".", "src", "java")*/;/*
+	/*final var rootDirectory */ = Paths.get(".", "src", "java");/*
         try (final var stream = Files.walk(rootDirectory)) {
             final var sources = stream.filter(Files::isRegularFile)
                     .filter(file -> file.toString()
@@ -83,25 +83,25 @@
         }*/
 }
 /*private static */char* compileRoot_Main(/*final */struct CharSequence input) {
-	return /*Main.compileStatements(input, Main::compileRootSegment)*/;
+	return Main.compileStatements(/*input, Main::compileRootSegment*/);
 }
 /*private static */char* compileStatements_Main(/*final */struct CharSequence input, /* final Function<String*/, /* String> mapper*/) {
-	return /*Main.compileAll(input, new StatementFolder(), mapper, "")*/;
+	return Main.compileAll(/*input, new StatementFolder(), mapper, ""*/);
 }
 /*private static */char* compileAll_Main(/*final */struct CharSequence input, /*final */struct Folder folder, /* final Function<String*/, /* String> mapper*/, /*final */struct CharSequence delimiter) {
-	return /*Main.divide(input, folder)
-                .stream()
+	return Main.divide(/*input, folder)
+                */.stream(/*)
                 .map(mapper)
-                .collect(Collectors.joining(delimiter))*/;
+                .collect(Collectors.joining(delimiter*/));
 }
 /*private static */char* compileRootSegment_Main(/*final */char* input) {
-	/*final var stripped */ = /* input.strip()*/;
+	/*final var stripped */ = input.strip();
 	/*if (stripped.startsWith("package "))
             return ""*/;
 	/*if (stripped.startsWith("import "))
             return Placeholder.generate(stripped) + Strings.LINE_SEPARATOR*/;
-	return /*Main.compileStructure(stripped)
-                .orElseGet(() -> Placeholder.generate(input))*/;
+	return Main.compileStructure(/*stripped)
+                */.orElseGet(/*() -> Placeholder.generate(input*/));
 }
 /*private static */struct Optional_char_ptr compileStructure_Main(/*final */char* stripped) {/*
         if (!(!stripped.isEmpty() && '*/
@@ -279,17 +279,23 @@
         if (0 > argumentsStart)
             return Optional.empty();
 
-        final var callerString = withoutEnd.substring(0, argumentsStart)
-                .strip();
+        final var callerString = withoutEnd.substring(0, argumentsStart);
         final var arguments = withoutEnd.substring(argumentsStart + "(".length());
-        if (!callerString.startsWith("new "))
-            return Optional.empty();
+        return Main.compileCaller(callerString)
+                .map(compiledCaller -> compiledCaller + "(" + Main.compileValue(arguments) + ")");
+    }
 
-        final var type = callerString.substring("new ".length());
-        final var generatedType = Main.parseType(type)
-                .generateSymbol();
+    private static Optional<String> compileCaller(final String input) {
+        final var strip = input.strip();
+        if (strip.startsWith("new ")) {
+            final var type = strip.substring("new ".length());
+            final var generatedType = Main.parseType(type)
+                    .generateSymbol();
 
-        return Optional.of("new_" + generatedType + "(" + Placeholder.generate(arguments) + ")");
+            return Optional.of("new_" + generatedType);
+        }
+
+        return Optional.of(Main.compileValue(input));
     }
 
     private static boolean isNumber(final CharSequence input) {
