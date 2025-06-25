@@ -118,12 +118,28 @@ public class Main {
 
         final var compiled = Main.compileStatements(content, Main::compileClassSegment);
         return Optional.of(Placeholder.generatePlaceholder(beforeKeyword) + "struct " + name + " {" + compiled + "};" + Main.SEPARATOR);
-
     }
 
     private static String compileClassSegment(final String input) {
         return Main.compileDefinition(input)
+                .or(() -> Main.compileMethod(input))
                 .orElseGet(() -> Placeholder.generatePlaceholder(input));
+    }
+
+    private static Optional<String> compileMethod(final String input) {
+        final var strip = input.strip();
+        if (strip.endsWith("}")) {
+            final var withoutEnd = strip.substring(0, strip.length() - "}".length());
+            final var contentStart = withoutEnd.indexOf('{');
+            if (0 <= contentStart) {
+                final var beforeContent = withoutEnd.substring(0, contentStart);
+                final var content = withoutEnd.substring(contentStart + "{".length());
+                return Optional.of(Main.SEPARATOR + "\t" + Placeholder.generatePlaceholder(beforeContent) + "{" + Placeholder.generatePlaceholder(
+                        content) + "}");
+            }
+        }
+
+        return Optional.empty();
     }
 
     private static Optional<String> compileDefinition(final String input) {
