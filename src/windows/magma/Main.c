@@ -5,7 +5,6 @@
 #include "divide/fold/StatementFolder.h"
 #include "divide/fold/ValuesFolder.h"
 #include "list/ListLike.h"
-#include "node/CDefinition.h"
 #include "node/CHeader.h"
 #include "node/Caller.h"
 #include "node/ConstructionHeader.h"
@@ -13,15 +12,16 @@
 #include "node/DataAccess.h"
 #include "node/GenericType.h"
 #include "node/Invokable.h"
+#include "node/JavaClassSegment.h"
 #include "node/JavaDefinition.h"
 #include "node/JavaHeader.h"
+#include "node/JavaMethod.h"
 #include "node/JavaPrimitive.h"
 #include "node/JavaStringType.h"
 #include "node/JavaType.h"
 #include "node/NumberNode.h"
 #include "node/Placeholder.h"
 #include "node/StringNode.h"
-#include "node/Struct.h"
 #include "node/Symbol.h"
 #include "node/Value.h"
 #include "../java/io/IOException.h"
@@ -201,12 +201,27 @@
     }
 
     private static Tuple<String, String> compileClassSegment(final String input, final String structureName, final List<String> imports) {
-        return Main.compileField(input)
-                .or(() -> Main.compileMethod(input, structureName, imports))
-                .orElseGet(() -> new Tuple<>(Placeholder.generate(input), ""));
+        final var node = Main.parseField(input)
+                .<JavaClassSegment>map(field -> field)
+                .or(() -> Main.parseMethod(input, imports))
+                .orElseGet(() -> new Placeholder(input));
+
+        return switch (node) {
+            case final JavaDefinition javaDefinition -> {
+                yield new Tuple<>(Strings.LINE_SEPARATOR + "\t" + javaDefinition.toCDefinition()
+                        .generate() + ";", "");
+            }
+            case final JavaMethod javaMethod -> Main.transformAndGenerateMethod(structureName, javaMethod);
+            case final Placeholder placeholder -> new Tuple<>(placeholder.generate(), "");
+        };
     }
 
-    private static Optional<Tuple<String, String>> compileMethod(final String input, final String structureName, final List<String> imports) {
+    private static Tuple<String, String> transformAndGenerateMethod(final String structureName, final JavaMethod method) {
+        final var node = method.toCFunction(structureName);
+        return new Tuple<>("", node.generate());
+    }
+
+    private static Optional<JavaMethod> parseMethod(final String input, final List<String> imports) {
         final var strip = input.strip();
         if (strip.isEmpty() || '}' != strip.charAt(strip.length() - 1))
             return Optional.empty();
@@ -235,26 +250,8 @@
         final var compiledOutput = Main.compileStatements(content,
                 segment -> Main.compileFunctionSegment(segment, imports));
 
-        final var node = Main.attachHeader(structureName, oldHeader, compiledOutput, compiledParams);
-        return Optional.of(new Tuple<>("", node.generate()));
-    }
-
-    private static CFunction attachHeader(final String structureName, final JavaHeader header, final String compiledContent, final String compiledParams) {
-        return switch (header) {
-            case final Constructor constructor -> {
-                final String outputContent = Strings.LINE_SEPARATOR + "\tstruct " + constructor.name() + " this;" + compiledContent + Strings.LINE_SEPARATOR + "\treturn this;";
-                yield new CFunction(new CDefinition(constructor.beforeName(),
-                        new Struct(constructor.name()),
-                        "new_" + constructor.name()), compiledParams, outputContent);
-            }
-            case final JavaDefinition definition -> {
-                final CHeader newHeader = definition.toCDefinition("_" + structureName);
-                yield new CFunction(newHeader, compiledParams, compiledContent);
-            }
-            case final Placeholder placeholder -> {
-                yield new CFunction(placeholder, compiledParams, compiledContent);
-            }
-        };
+        final var method = new JavaMethod(oldHeader, compiledParams, compiledOutput);
+        return Optional.of(method);
     }
 
     private static JavaHeader compileHeader(final String beforeParams) {
@@ -406,16 +403,13 @@
                 .orElseGet(() -> Placeholder.generate(input));
     }
 
-    private static Optional<Tuple<String, String>> compileField(final String input) {
+    private static Optional<JavaDefinition> parseField(final String input) {
         final var strip = input.strip();
         if (strip.isEmpty() || ';' != strip.charAt(strip.length() - 1))
             return Optional.empty();
 
         final var substring = strip.substring(0, strip.length() - ";".length());
-        return Main.parseDefinition(substring)
-                .map(JavaDefinition::toCDefinition)
-                .map(CHeader::generate)
-                .map(content -> new Tuple<>(Strings.LINE_SEPARATOR + "\t" + content + ";", ""));
+        return Main.parseDefinition(substring);
     }
 
     private static Optional<JavaDefinition> parseDefinition(final String input) {

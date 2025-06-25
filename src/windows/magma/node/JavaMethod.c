@@ -1,7 +1,7 @@
-package magma.node;
-
-import magma.CFunction;
-import magma.Strings;
+#include "JavaMethod.h"
+#include "../CFunction.h"
+#include "../Strings.h"
+/*
 
 public record JavaMethod(JavaHeader header, String compiledParams, String compiledContent) implements JavaClassSegment {
     public CFunction toCFunction(final String structureName) {
@@ -21,4 +21,4 @@ public record JavaMethod(JavaHeader header, String compiledParams, String compil
             }
         };
     }
-}
+}*//**/

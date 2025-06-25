@@ -1,7 +1,7 @@
 #include "Placeholder.h"
 /*
 
-public record Placeholder(String input) implements CType, JavaHeader, Value, JavaType, CHeader {
+public record Placeholder(String input) implements CType, JavaHeader, Value, JavaType, CHeader, JavaClassSegment {
     public static String generate(final String input) {
         final var replaced = input.replace("start", "start")
                 .replace("end", "end");

@@ -13,6 +13,7 @@ import magma.node.Constructor;
 import magma.node.DataAccess;
 import magma.node.GenericType;
 import magma.node.Invokable;
+import magma.node.JavaClassSegment;
 import magma.node.JavaDefinition;
 import magma.node.JavaHeader;
 import magma.node.JavaMethod;
@@ -212,17 +213,24 @@ class Main {
     }
 
     private static Tuple<String, String> compileClassSegment(final String input, final String structureName, final List<String> imports) {
-        return Main.compileField(input)
-                .or(() -> Main.compileMethod(input, structureName, imports))
-                .orElseGet(() -> new Tuple<>(Placeholder.generate(input), ""));
+        final var node = Main.parseField(input)
+                .<JavaClassSegment>map(field -> field)
+                .or(() -> Main.parseMethod(input, imports))
+                .orElseGet(() -> new Placeholder(input));
+
+        return switch (node) {
+            case final JavaDefinition javaDefinition -> {
+                yield new Tuple<>(Strings.LINE_SEPARATOR + "\t" + javaDefinition.toCDefinition()
+                        .generate() + ";", "");
+            }
+            case final JavaMethod javaMethod -> Main.transformAndGenerateMethod(structureName, javaMethod);
+            case final Placeholder placeholder -> new Tuple<>(placeholder.generate(), "");
+        };
     }
 
-    private static Optional<Tuple<String, String>> compileMethod(final String input, final String structureName, final List<String> imports) {
-        return Main.parseMethod(input, imports)
-                .map(method -> {
-                    final var node = method.toCFunction(structureName);
-                    return new Tuple<>("", node.generate());
-                });
+    private static Tuple<String, String> transformAndGenerateMethod(final String structureName, final JavaMethod method) {
+        final var node = method.toCFunction(structureName);
+        return new Tuple<>("", node.generate());
     }
 
     private static Optional<JavaMethod> parseMethod(final String input, final List<String> imports) {
@@ -406,16 +414,13 @@ class Main {
                 .orElseGet(() -> Placeholder.generate(input));
     }
 
-    private static Optional<Tuple<String, String>> compileField(final String input) {
+    private static Optional<JavaDefinition> parseField(final String input) {
         final var strip = input.strip();
         if (strip.isEmpty() || ';' != strip.charAt(strip.length() - 1))
             return Optional.empty();
 
         final var substring = strip.substring(0, strip.length() - ";".length());
-        return Main.parseDefinition(substring)
-                .map(JavaDefinition::toCDefinition)
-                .map(CHeader::generate)
-                .map(content -> new Tuple<>(Strings.LINE_SEPARATOR + "\t" + content + ";", ""));
+        return Main.parseDefinition(substring);
     }
 
     private static Optional<JavaDefinition> parseDefinition(final String input) {

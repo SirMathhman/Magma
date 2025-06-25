@@ -1,0 +1,3 @@
+#ifndef magma_node_JavaClassSegment
+#define magma_node_JavaClassSegment
+#endif
