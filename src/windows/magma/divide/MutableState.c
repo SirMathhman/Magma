@@ -8,44 +8,44 @@
 */};
 /*private */struct MutableState new_MutableState(/*final */struct ListLike_char_ptr segments) {
 	/*this.segments = segments;*/
-	/*buffer = "";*/
-	/*depth = 0;*/
+	/*this.buffer = "";*/
+	/*this.depth = 0;*/
 }
 /*public */struct MutableState new_MutableState(/**/) {
 	/*this(Lists.empty());*/
 }
 /*@Override
     public State */struct append new_append(/*final *//*char*/ c) {
-	/*buffer = buffer + c;*/
+	/*this.buffer = this.buffer + c;*/
 	/*return this;*/
 }
 /*@Override
     public State */struct advance new_advance(/**/) {
-	/*segments = segments.add(buffer);*/
-	/*buffer = "";*/
+	/*this.segments = this.segments.add(this.buffer);*/
+	/*this.buffer = "";*/
 	/*return this;*/
 }
 /*@Override
     public ListLike<String> */struct unwrap new_unwrap(/**/) {
-	/*return segments;*/
+	/*return this.segments;*/
 }
 /*@Override
     public boolean */struct isLevel new_isLevel(/**/) {
-	/*return 0 == depth;*/
+	/*return 0 == this.depth;*/
 }
 /*@Override
     public State */struct enter new_enter(/**/) {
-	/*depth++;*/
+	/*this.depth++;*/
 	/*return this;*/
 }
 /*@Override
     public State */struct exit new_exit(/**/) {
-	/*depth--;*/
+	/*this.depth--;*/
 	/*return this;*/
 }
 /*@Override
     public boolean */struct isShallow new_isShallow(/**/) {
-	/*return 1 == depth;*/
+	/*return 1 == this.depth;*/
 }
 /*
 */

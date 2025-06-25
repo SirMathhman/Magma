@@ -12,17 +12,17 @@ public record JavaList<Value>(List<Value> list) implements ListLike<Value> {
 
     @Override
     public ListLike<Value> add(final Value element) {
-        list.add(element);
+        this.list.add(element);
         return this;
     }
 
     @Override
     public Stream<Value> stream() {
-        return list.stream();
+        return this.list.stream();
     }
 
     @Override
     public Iterator<Value> iterator() {
-        return list.iterator();
+        return this.list.iterator();
     }
 }

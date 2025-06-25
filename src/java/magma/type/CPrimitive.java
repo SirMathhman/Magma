@@ -11,11 +11,11 @@ public enum CPrimitive implements CType {
 
     @Override
     public String generate() {
-        return value;
+        return this.value;
     }
 
     @Override
     public String generateSymbol() {
-        return value;
+        return this.value;
     }
 }

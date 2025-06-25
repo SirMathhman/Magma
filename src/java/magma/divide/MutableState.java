@@ -10,8 +10,8 @@ public class MutableState implements State {
 
     private MutableState(final ListLike<String> segments) {
         this.segments = segments;
-        buffer = "";
-        depth = 0;
+        this.buffer = "";
+        this.depth = 0;
     }
 
     public MutableState() {
@@ -20,41 +20,41 @@ public class MutableState implements State {
 
     @Override
     public State append(final char c) {
-        buffer = buffer + c;
+        this.buffer = this.buffer + c;
         return this;
     }
 
     @Override
     public State advance() {
-        segments = segments.add(buffer);
-        buffer = "";
+        this.segments = this.segments.add(this.buffer);
+        this.buffer = "";
         return this;
     }
 
     @Override
     public ListLike<String> unwrap() {
-        return segments;
+        return this.segments;
     }
 
     @Override
     public boolean isLevel() {
-        return 0 == depth;
+        return 0 == this.depth;
     }
 
     @Override
     public State enter() {
-        depth++;
+        this.depth++;
         return this;
     }
 
     @Override
     public State exit() {
-        depth--;
+        this.depth--;
         return this;
     }
 
     @Override
     public boolean isShallow() {
-        return 1 == depth;
+        return 1 == this.depth;
     }
 }

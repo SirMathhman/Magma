@@ -11,12 +11,12 @@ public record Placeholder(String input) implements CType {
 
     @Override
     public String generate() {
-        return Placeholder.generate(input);
+        return Placeholder.generate(this.input);
     }
 
     @Override
     public String generateSymbol() {
-        return Placeholder.generate(input);
+        return Placeholder.generate(this.input);
     }
 }*//*
 */
