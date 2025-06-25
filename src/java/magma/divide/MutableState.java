@@ -1,18 +1,21 @@
-package magma;
+package magma.divide;
+
+import magma.list.ListLike;
+import magma.list.Lists;
 
 public class MutableState implements State {
     private ListLike<String> segments;
     private String buffer;
     private int depth;
 
-    private MutableState(final ListLike<String> segments, final String buffer, final int depth) {
+    private MutableState(final ListLike<String> segments) {
         this.segments = segments;
-        this.buffer = buffer;
-        this.depth = depth;
+        buffer = "";
+        depth = 0;
     }
 
-    MutableState() {
-        this(Lists.empty(), "", 0);
+    public MutableState() {
+        this(Lists.empty());
     }
 
     @Override

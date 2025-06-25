@@ -1,3 +1,0 @@
-#ifndef magma_fold_ValuesFolder
-#define magma_fold_ValuesFolder
-#endif

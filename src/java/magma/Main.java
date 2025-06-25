@@ -1,8 +1,11 @@
 package magma;
 
-import magma.fold.Folder;
-import magma.fold.StatementFolder;
-import magma.fold.ValuesFolder;
+import magma.divide.Folder;
+import magma.divide.MutableState;
+import magma.divide.State;
+import magma.divide.StatementFolder;
+import magma.divide.ValuesFolder;
+import magma.list.ListLike;
 import magma.type.CPrimitive;
 import magma.type.CType;
 import magma.type.Placeholder;
@@ -19,7 +22,7 @@ import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-public class Main {
+class Main {
     private static final String SEPARATOR = System.lineSeparator();
 
     private Main() {
@@ -81,7 +84,7 @@ public class Main {
         return Main.compileAll(input, new StatementFolder(), mapper, "");
     }
 
-    private static String compileAll(final CharSequence input, final Folder folder, final Function<String, String> mapper, final String delimiter) {
+    private static String compileAll(final CharSequence input, final Folder folder, final Function<String, String> mapper, final CharSequence delimiter) {
         return Main.divide(input, folder)
                 .stream()
                 .map(mapper)
@@ -145,14 +148,14 @@ public class Main {
 
     private static Optional<Tuple<String, String>> compileMethod(final String input) {
         final var strip = input.strip();
-        if (strip.endsWith("}")) {
+        if (!strip.isEmpty() && '}' == strip.charAt(strip.length() - 1)) {
             final var withoutEnd = strip.substring(0, strip.length() - "}".length());
             final var contentStart = withoutEnd.indexOf('{');
             if (0 <= contentStart) {
                 final var beforeContent = withoutEnd.substring(0, contentStart)
                         .strip();
                 final var content = withoutEnd.substring(contentStart + "{".length());
-                if (beforeContent.endsWith(")")) {
+                if (!beforeContent.isEmpty() && ')' == beforeContent.charAt(beforeContent.length() - 1)) {
                     final var withoutParamEnd = beforeContent.substring(0, beforeContent.length() - ")".length());
                     final var paramStart = withoutParamEnd.indexOf('(');
                     if (0 <= paramStart) {
@@ -194,9 +197,7 @@ public class Main {
 
         final var substring = strip.substring(0, strip.length() - ";".length());
         return Main.compileDefinition(substring)
-                .map(content -> {
-                    return new Tuple<>(Main.SEPARATOR + "\t" + content + ";", "");
-                });
+                .map(content -> new Tuple<>(Main.SEPARATOR + "\t" + content + ";", ""));
     }
 
     private static Optional<String> compileDefinition(final String input) {

@@ -1,5 +1,6 @@
-#include "State.h"
-/*
+package magma.divide;
+
+import magma.list.ListLike;
 
 public interface State {
     State append(char c);
@@ -15,5 +16,4 @@ public interface State {
     State exit();
 
     boolean isShallow();
-}*//*
-*/
+}
