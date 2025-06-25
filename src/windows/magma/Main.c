@@ -145,11 +145,22 @@ public class Main {
 
     private static String compileType(final String input) {
         final var strip = input.strip();
-        if ("String".contentEquals(strip))
-            return "char*";
 
         if ("int".contentEquals(strip))
             return "int";
+
+        if ("String".contentEquals(strip))
+            return "char*";
+
+        if (strip.endsWith(">")) {
+            final var withoutEnd = strip.substring(0, strip.length() - ">".length());
+            final var argumentsStart = withoutEnd.indexOf('<');
+            if (0 <= argumentsStart) {
+                final var base = withoutEnd.substring(0, argumentsStart);
+                final var arguments = withoutEnd.substring(argumentsStart + "<".length());
+                return base + "_" + Main.compileType(arguments);
+            }
+        }
 
         return Main.generatePlaceholder(input);
     }

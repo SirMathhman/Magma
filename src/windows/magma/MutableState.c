@@ -1,6 +1,6 @@
 #include "MutableState.h"
 /*public */struct MutableState {
-	/*private *//*ListLike<String>*/ segments;
+	/*private */ListLike_char* segments;
 	/*private */char* buffer;
 	/*private */int depth;/*
 
