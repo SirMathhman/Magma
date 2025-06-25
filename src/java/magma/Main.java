@@ -118,8 +118,14 @@ public class Main {
     private static String compileClassSegment(final String input) {
         final var strip = input.strip();
         if (strip.endsWith(";")) {
-            final var withoutEnd = strip.substring(0, strip.length() - ";".length());
-            return "\n\t" + Main.generatePlaceholder(withoutEnd) + ";";
+            final var withoutEnd = strip.substring(0, strip.length() - ";".length())
+                    .strip();
+            final var nameSeparator = withoutEnd.lastIndexOf(' ');
+            if (0 <= nameSeparator) {
+                final var beforeName = withoutEnd.substring(0, nameSeparator);
+                final var name = withoutEnd.substring(nameSeparator + " ".length());
+                return Main.SEPARATOR + "\t" + Main.generatePlaceholder(beforeName) + " " + name + ";";
+            }
         }
 
         return Main.generatePlaceholder(input);
