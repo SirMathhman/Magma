@@ -1,28 +1,28 @@
 #include "Main.h"
-/*import magma.divide.MutableState;*/
-/*import magma.divide.State;*/
-/*import magma.divide.fold.Folder;*/
-/*import magma.divide.fold.StatementFolder;*/
-/*import magma.divide.fold.ValuesFolder;*/
-/*import magma.list.ListLike;*/
-/*import magma.node.CPrimitive;*/
-/*import magma.node.CType;*/
-/*import magma.node.Constructor;*/
-/*import magma.node.Definition;*/
-/*import magma.node.Header;*/
-/*import magma.node.Placeholder;*/
-/*import magma.node.Pointer;*/
-/*import magma.node.Struct;*/
-/*import java.io.IOException;*/
-/*import java.nio.file.Files;*/
-/*import java.nio.file.Path;*/
-/*import java.nio.file.Paths;*/
-/*import java.util.ArrayList;*/
-/*import java.util.List;*/
-/*import java.util.Optional;*/
-/*import java.util.function.Function;*/
-/*import java.util.stream.Collectors;*/
-/*import java.util.stream.IntStream;*/
+#include "magma/divide/MutableState.h"
+#include "magma/divide/State.h"
+#include "magma/divide/fold/Folder.h"
+#include "magma/divide/fold/StatementFolder.h"
+#include "magma/divide/fold/ValuesFolder.h"
+#include "magma/list/ListLike.h"
+#include "magma/node/CPrimitive.h"
+#include "magma/node/CType.h"
+#include "magma/node/Constructor.h"
+#include "magma/node/Definition.h"
+#include "magma/node/Header.h"
+#include "magma/node/Placeholder.h"
+#include "magma/node/Pointer.h"
+#include "magma/node/Struct.h"
+#include "java/io/IOException.h"
+#include "java/nio/file/Files.h"
+#include "java/nio/file/Path.h"
+#include "java/nio/file/Paths.h"
+#include "java/util/ArrayList.h"
+#include "java/util/List.h"
+#include "java/util/Optional.h"
+#include "java/util/function/Function.h"
+#include "java/util/stream/Collectors.h"
+#include "java/util/stream/IntStream.h"
 /**/struct Main {/*
 
     private static void runWithSources(final Path rootDirectory, final Iterable<Path> sources) throws IOException {
@@ -97,9 +97,16 @@
 /*private static */char* compileRootSegment_Main(/*final */char* input) {
 	/*final var stripped */ = input.strip();
 	/*if (stripped.startsWith("package "))
-            return ""*/;
-	/*if (stripped.startsWith("import "))
-            return Placeholder.generate(stripped) + Strings.LINE_SEPARATOR*/;
+            return ""*/;/*
+
+        if (stripped.startsWith("import ")) {
+            final var withoutPrefix = stripped.substring("import ".length());
+            if (!withoutPrefix.isEmpty() && ';' == withoutPrefix.charAt(withoutPrefix.length() - 1)) {
+                final var withoutSuffix = withoutPrefix.substring(0, withoutPrefix.length() - ";".length());
+                final var divisions = withoutSuffix.split("\\.");
+                return "#include \"" + String.join("/", divisions) + ".h\"" + Strings.LINE_SEPARATOR;
+            }
+        }*/
 	return Main.compileStructure(/*stripped)
                 */.orElseGet(/*() -> Placeholder.generate(input*/));
 }

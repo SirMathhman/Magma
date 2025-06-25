@@ -1,5 +1,5 @@
 #include "Folder.h"
-/*import magma.divide.State;*/
+#include "magma/divide/State.h"
 /*
 
 public interface Folder {

@@ -1,5 +1,5 @@
 #include "FunctionNode.h"
-/*import magma.node.Header;*/
+#include "magma/node/Header.h"
 /*
 
 public record FunctionNode(Header header, String params, String content) {

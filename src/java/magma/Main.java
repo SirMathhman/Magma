@@ -101,8 +101,14 @@ class Main {
         if (stripped.startsWith("package "))
             return "";
 
-        if (stripped.startsWith("import "))
-            return Placeholder.generate(stripped) + Strings.LINE_SEPARATOR;
+        if (stripped.startsWith("import ")) {
+            final var withoutPrefix = stripped.substring("import ".length());
+            if (!withoutPrefix.isEmpty() && ';' == withoutPrefix.charAt(withoutPrefix.length() - 1)) {
+                final var withoutSuffix = withoutPrefix.substring(0, withoutPrefix.length() - ";".length());
+                final var divisions = withoutSuffix.split("\\.");
+                return "#include \"" + String.join("/", divisions) + ".h\"" + Strings.LINE_SEPARATOR;
+            }
+        }
 
         return Main.compileStructure(stripped)
                 .orElseGet(() -> Placeholder.generate(input));

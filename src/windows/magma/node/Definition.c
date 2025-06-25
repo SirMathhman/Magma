@@ -1,5 +1,5 @@
 #include "Definition.h"
-/*import java.util.function.Function;*/
+#include "java/util/function/Function.h"
 /*
 
 public record Definition(String beforeType, CType type, String name) implements Header {

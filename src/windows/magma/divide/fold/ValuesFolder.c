@@ -1,5 +1,5 @@
 #include "ValuesFolder.h"
-/*import magma.divide.State;*/
+#include "magma/divide/State.h"
 /*public */struct ValuesFolder {/*
 */};
 /*@Override

@@ -1,5 +1,5 @@
 #include "ListLike.h"
-/*import java.util.stream.Stream;*/
+#include "java/util/stream/Stream.h"
 /*
 
 public interface ListLike<T> extends Iterable<T> {
