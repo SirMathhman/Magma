@@ -11,5 +11,5 @@ public record Struct(String name) implements CType {
     public String generateSymbol() {
         return name;
     }
-}
+}*//*
 */

@@ -19,5 +19,5 @@ public record JavaList<Value>(List<Value> list) implements ListLike<Value> {
     public Stream<Value> stream() {
         return list.stream();
     }
-}
+}*//*
 */

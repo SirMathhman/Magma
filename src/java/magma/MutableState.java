@@ -49,4 +49,9 @@ public class MutableState implements State {
         depth--;
         return this;
     }
+
+    @Override
+    public boolean isShallow() {
+        return 1 == depth;
+    }
 }

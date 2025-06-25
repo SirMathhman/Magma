@@ -13,13 +13,11 @@
 /*import java.util.Optional;*/
 /*import java.util.function.Function;*/
 /*import java.util.stream.Collectors;*/
-/*
-
-public class Main {
-    private static final String SEPARATOR = System.lineSeparator();
+/*public */struct Main {
+	/*private static final String SEPARATOR *//*=*/ System.lineSeparator();/*
 
     private Main() {
-    }
+    }*//*
 
     public static void main(final String[] args) {
         final var rootDirectory = Paths.get(".", "src", "java");
@@ -34,12 +32,12 @@ public class Main {
             //noinspection CallToPrintStackTrace
             e.printStackTrace();
         }
-    }
+    }*//*
 
     private static void runWithSources(final Path rootDirectory, final Iterable<Path> sources) throws IOException {
         for (final var source : sources)
             Main.runWithSource(rootDirectory, source);
-    }
+    }*//*
 
     private static void runWithSource(final Path rootDirectory, final Path source) throws IOException {
         final var fileName = source.getFileName()
@@ -67,18 +65,18 @@ public class Main {
         final var headerContent = String.join(Main.SEPARATOR, "#ifndef " + withName, "#define " + withName, "#endif");
 
         Files.writeString(targetParent.resolve(name + ".h"), headerContent);
-    }
+    }*//*
 
     private static String compileRoot(final CharSequence input) {
         return Main.compileStatements(input, Main::compileRootSegment);
-    }
+    }*//*
 
     private static String compileStatements(final CharSequence input, final Function<String, String> mapper) {
         return Main.divide(input)
                 .stream()
                 .map(mapper)
                 .collect(Collectors.joining());
-    }
+    }*//*
 
     private static String compileRootSegment(final String input) {
         final var stripped = input.strip();
@@ -90,13 +88,15 @@ public class Main {
 
         return Main.compileStructure(stripped)
                 .orElseGet(() -> Placeholder.generatePlaceholder(input));
-    }
+    }*//*
 
     private static Optional<String> compileStructure(final String stripped) {
-        if (!(!stripped.isEmpty() && '}' == stripped.charAt(stripped.length() - 1)))
-            return Optional.empty();
+        if (!(!stripped.isEmpty() && '}*/
+	/*' == stripped.charAt(stripped.length() - 1)))
+            *//*return*/ Optional.empty();/*
 
-        final var withoutEnd = stripped.substring(0, stripped.length() - "}".length());*//*
+        final var withoutEnd = stripped.substring(0, stripped.length() - "*/};
+/*".length());*//*
         final var contentStart = withoutEnd.indexOf('{');
         if (0 > contentStart)
             return Optional.empty();
@@ -195,12 +195,15 @@ public class Main {
         final var appended = mutableState.append(c);
         if (';' == c && appended.isLevel())
             return appended.advance();
+        if ('}' == c && appended.isShallow())
+            return appended.exit()
+                    .advance();
         if ('{' == c)
             return appended.enter();
         if ('}' == c)
             return appended.exit();
         return appended;
-    }
+    }*//*
 
     private static List<String> computeNamespace(final Path relativeParent) {
         final List<String> namespace = new ArrayList<>();
@@ -209,6 +212,6 @@ public class Main {
             namespace.add(relativeParent.getName(i)
                     .toString());
         return namespace;
-    }
+    }*//*
 }
 */

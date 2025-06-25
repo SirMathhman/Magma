@@ -19,5 +19,5 @@ public enum CPrimitive implements CType {
     public String generateSymbol() {
         return value;
     }
-}
+}*//*
 */

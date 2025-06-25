@@ -11,5 +11,5 @@ public record Pointer(CType type) implements CType {
     public String generateSymbol() {
         return type.generateSymbol() + "_ptr";
     }
-}
+}*//*
 */
