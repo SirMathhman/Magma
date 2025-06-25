@@ -218,6 +218,14 @@ class Main {
     }
 
     private static Optional<Tuple<String, String>> compileMethod(final String input, final String structureName, final List<String> imports) {
+        return Main.parseMethod(input, imports)
+                .map(method -> {
+                    final var node = method.toCFunction(structureName);
+                    return new Tuple<>("", node.generate());
+                });
+    }
+
+    private static Optional<JavaMethod> parseMethod(final String input, final List<String> imports) {
         final var strip = input.strip();
         if (strip.isEmpty() || '}' != strip.charAt(strip.length() - 1))
             return Optional.empty();
@@ -246,8 +254,8 @@ class Main {
         final var compiledOutput = Main.compileStatements(content,
                 segment -> Main.compileFunctionSegment(segment, imports));
 
-        final var node = new JavaMethod(oldHeader, compiledParams, compiledOutput).toCFunction(structureName);
-        return Optional.of(new Tuple<>("", node.generate()));
+        final var method = new JavaMethod(oldHeader, compiledParams, compiledOutput);
+        return Optional.of(method);
     }
 
     private static JavaHeader compileHeader(final String beforeParams) {
