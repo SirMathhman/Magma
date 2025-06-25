@@ -1,4 +1,6 @@
-package magma.divide;
+package magma.divide.fold;
+
+import magma.divide.State;
 
 public class ValuesFolder implements Folder {
     @Override

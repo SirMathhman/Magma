@@ -1,10 +1,10 @@
 package magma;
 
-import magma.divide.Folder;
 import magma.divide.MutableState;
 import magma.divide.State;
-import magma.divide.StatementFolder;
-import magma.divide.ValuesFolder;
+import magma.divide.fold.Folder;
+import magma.divide.fold.StatementFolder;
+import magma.divide.fold.ValuesFolder;
 import magma.list.ListLike;
 import magma.type.CPrimitive;
 import magma.type.CType;
