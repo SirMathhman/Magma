@@ -7,6 +7,7 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 public class Main {
@@ -51,10 +52,7 @@ public class Main {
             Files.createDirectories(targetParent);
 
         final var input = Files.readString(source);
-        final var output = Main.divide(input)
-                .stream()
-                .map(Main::compileRootSegment)
-                .collect(Collectors.joining());
+        final var output = Main.compileRoot(input);
 
         final var targetContent = "#include \"" + name + ".h\"" + Main.SEPARATOR + output;
         Files.writeString(targetParent.resolve(name + ".c"), targetContent);
@@ -64,6 +62,17 @@ public class Main {
         final var headerContent = String.join(Main.SEPARATOR, "#ifndef " + withName, "#define " + withName, "#endif");
 
         Files.writeString(targetParent.resolve(name + ".h"), headerContent);
+    }
+
+    private static String compileRoot(final CharSequence input) {
+        return Main.compileStatements(input, Main::compileRootSegment);
+    }
+
+    private static String compileStatements(final CharSequence input, final Function<String, String> mapper) {
+        return Main.divide(input)
+                .stream()
+                .map(mapper)
+                .collect(Collectors.joining());
     }
 
     private static String compileRootSegment(final String input) {
@@ -101,9 +110,14 @@ public class Main {
         final var name = 0 <= implementsIndex ? afterKeyword.substring(0, implementsIndex)
                 .strip() : afterKeyword;
 
-        return Optional.of(Main.generatePlaceholder(beforeKeyword) + "struct " + name + " {" + Main.SEPARATOR + "};" + Main.SEPARATOR + Main.generatePlaceholder(
-                content));
+        return Optional.of(Main.generatePlaceholder(beforeKeyword) + "struct " + name + " {" + Main.SEPARATOR + "};" + Main.SEPARATOR + Main.compileStatements(
+                content,
+                Main::compileClassSegment));
 
+    }
+
+    private static String compileClassSegment(final String input) {
+        return Main.generatePlaceholder(input);
     }
 
     private static ListLike<String> divide(final CharSequence input) {
