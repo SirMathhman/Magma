@@ -254,9 +254,16 @@ class Main {
             final var withoutEnd = strip.substring(0, strip.length() - ")".length());
             final var argumentsStart = withoutEnd.indexOf('(');
             if (0 <= argumentsStart) {
-                final var caller = withoutEnd.substring(0, argumentsStart);
+                final var callerString = withoutEnd.substring(0, argumentsStart)
+                        .strip();
                 final var arguments = withoutEnd.substring(argumentsStart + "(".length());
-                return Placeholder.generate(caller) + "(" + Placeholder.generate(arguments) + ")";
+                if (callerString.startsWith("new ")) {
+                    final var type = callerString.substring("new ".length());
+                    final var generatedType = Main.parseType(type)
+                            .generateSymbol();
+
+                    return "new_" + generatedType + "(" + Placeholder.generate(arguments) + ")";
+                }
             }
         }
 
