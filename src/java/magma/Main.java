@@ -42,7 +42,11 @@ public class Main {
             if (!Files.exists(targetParent))
                 Files.createDirectories(targetParent);
 
-            final var targetContent = "#include \"" + name + ".h\"" + System.lineSeparator();
+            final var input = Files.readString(source)
+                    .replace("/*", "start")
+                    .replace("*/", "end");
+
+            final var targetContent = "#include \"" + name + ".h\"" + System.lineSeparator() + "/*" + input + "*/";
             Files.writeString(targetParent.resolve(name + ".c"), targetContent);
 
             final var joined = String.join("_", namespace);
