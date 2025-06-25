@@ -61,7 +61,7 @@
 /*private */struct Main new_Main(/**/) {
 }
 /*public static void */struct main new_main(/*final *//*String[]*/ args) {
-	/*final var rootDirectory = Paths.get(".", "src", "java")*/;/*
+	/*final var rootDirectory */ = /* Paths*/.get(".", "src", "java");/*
         try (final var stream = Files.walk(rootDirectory)) {
             final var sources = stream.filter(Files::isRegularFile)
                     .filter(file -> file.toString()
@@ -87,7 +87,7 @@
                 .collect(Collectors.joining(delimiter))*/;
 }
 /*private static String */struct compileRootSegment new_compileRootSegment(/*final */char* input) {
-	/*final var stripped = input.strip()*/;
+	/*final var stripped */ = /* input*/.strip();
 	/*if (stripped.startsWith("package "))
             return ""*/;
 	/*if (stripped.startsWith("import "))
@@ -193,6 +193,25 @@
     }
 
     private static String compileFunctionSegmentValue(final String input) {
+        final var valueSeparator = input.indexOf('=');
+        if (0 <= valueSeparator) {
+            final var destination = input.substring(0, valueSeparator);
+            final var source = input.substring(valueSeparator + "=".length());
+            return Main.compileValue(destination) + " = " + Main.compileValue(source);
+        }
+
+        return Placeholder.generate(input);
+    }
+
+    private static String compileValue(final String input) {
+        final var separator = input.lastIndexOf('.');
+        if (0 <= separator) {
+            final var value = input.substring(0, separator);
+            final var property = input.substring(separator + ".".length())
+                    .strip();
+            return Main.compileValue(value) + "." + property;
+        }
+
         return Placeholder.generate(input);
     }
 

@@ -202,6 +202,25 @@ class Main {
     }
 
     private static String compileFunctionSegmentValue(final String input) {
+        final var valueSeparator = input.indexOf('=');
+        if (0 <= valueSeparator) {
+            final var destination = input.substring(0, valueSeparator);
+            final var source = input.substring(valueSeparator + "=".length());
+            return Main.compileValue(destination) + " = " + Main.compileValue(source);
+        }
+
+        return Placeholder.generate(input);
+    }
+
+    private static String compileValue(final String input) {
+        final var separator = input.lastIndexOf('.');
+        if (0 <= separator) {
+            final var value = input.substring(0, separator);
+            final var property = input.substring(separator + ".".length())
+                    .strip();
+            return Main.compileValue(value) + "." + property;
+        }
+
         return Placeholder.generate(input);
     }
 

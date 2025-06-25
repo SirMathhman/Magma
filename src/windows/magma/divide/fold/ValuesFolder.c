@@ -4,8 +4,8 @@
 */};
 /*@Override
     public State */struct fold new_fold(/*final *//*State*/ state, /*final *//*char*/ c) {
-	/*if (',' == c)
-            return state.advance()*/;
+	/*if (',' */ = /*= c)
+            return state*/.advance();
 	/*return state.append(c)*/;
 }
 /*
