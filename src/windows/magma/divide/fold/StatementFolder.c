@@ -3,16 +3,16 @@
 /*public */struct StatementFolder {
 	/*' == c && appended.isShallow())
             return appended.exit()
-                   *//**/ .advance();/*
+                   */struct  .advance();/*
         if ('{' == c)
             return appended.enter();
         if ('}*/
 	/*' == c)
-            *//*return*/ appended.exit();/*
+            */struct return appended.exit();/*
         return appended;*//*
     */};
 /*@Override
-    public *//*State*/ fold(/*final *//*State*/ state, /*final *//*char*/ c) {
+    public */struct State fold(/*final */struct State state, /*final */struct char c) {
 	/*final var appended */ = state.append(c);
 	/*if ('*/;
 	/*' */ = /*= c && appended*/.isLevel())

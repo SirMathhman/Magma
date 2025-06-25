@@ -56,14 +56,14 @@
         Files.writeString(targetParent.resolve(name + ".h"), headerContent);
     }*/
 	/*' == stripped.charAt(stripped.length() - 1)))
-            *//*return*/ Optional.empty();/*
+            */struct return Optional.empty();/*
 
         final var withoutEnd = stripped.substring(0, stripped.length() - "*/};
 /*private */struct Main new_Main() {
 	struct Main this;
 	return this;
 }
-/*public static *//*void*/ main(/*final *//*String[]*/ args) {
+/*public static */struct void main(/*final *//*String[]*/ args) {
 	/*final var rootDirectory */ = Paths.get(".", "src", "java");/*
         try (final var stream = Files.walk(rootDirectory)) {
             final var sources = stream.filter(Files::isRegularFile)
@@ -77,13 +77,13 @@
             e.printStackTrace();
         }*/
 }
-/*private static */char* compileRoot(/*final *//*CharSequence*/ input) {
+/*private static */char* compileRoot(/*final */struct CharSequence input) {
 	/*return Main.compileStatements(input, Main::compileRootSegment)*/;
 }
-/*private static */char* compileStatements(/*final *//*CharSequence*/ input, /* final Function<String*/, /* String> mapper*/) {
+/*private static */char* compileStatements(/*final */struct CharSequence input, /* final Function<String*/, /* String> mapper*/) {
 	/*return Main.compileAll(input, new StatementFolder(), mapper, "")*/;
 }
-/*private static */char* compileAll(/*final *//*CharSequence*/ input, /*final *//*Folder*/ folder, /* final Function<String*/, /* String> mapper*/, /*final *//*CharSequence*/ delimiter) {
+/*private static */char* compileAll(/*final */struct CharSequence input, /*final */struct Folder folder, /* final Function<String*/, /* String> mapper*/, /*final */struct CharSequence delimiter) {
 	/*return Main.divide(input, folder)
                 .stream()
                 .map(mapper)
@@ -296,10 +296,10 @@
         final var beforeType = beforeName.substring(0, typeSeparator);
         final var inputType = beforeName.substring(typeSeparator + " ".length());
 
-        return Optional.of(new Definition(beforeType, Main.compileType(inputType), name));
+        return Optional.of(new Definition(beforeType, Main.parseType(inputType), name));
     }
 
-    private static CType compileType(final String input) {
+    private static CType parseType(final String input) {
         final var strip = input.strip();
 
         if ("int".contentEquals(strip))
@@ -308,11 +308,19 @@
         if ("String".contentEquals(strip))
             return new Pointer(CPrimitive.Char);
 
-        return Main.compileGenericType(strip)
+        return Main.parseGenericType(strip)
+                .or(() -> Main.parseSymbolType(strip))
                 .orElseGet(() -> new Placeholder(input));
     }
 
-    private static Optional<CType> compileGenericType(final String strip) {
+    private static Optional<CType> parseSymbolType(final String input) {
+        if (Main.isSymbol(input))
+            return Optional.of(new Struct(input));
+        else
+            return Optional.empty();
+    }
+
+    private static Optional<CType> parseGenericType(final String strip) {
         if (strip.isEmpty() || '>' != strip.charAt(strip.length() - 1))
             return Optional.empty();
 
@@ -323,7 +331,7 @@
 
         final var base = withoutEnd.substring(0, argumentsStart);
         final var arguments = withoutEnd.substring(argumentsStart + "<".length());
-        return Optional.of(new Struct(base + "_" + Main.compileType(arguments)
+        return Optional.of(new Struct(base + "_" + Main.parseType(arguments)
                 .generateSymbol()));
     }
 

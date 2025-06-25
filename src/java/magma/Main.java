@@ -303,10 +303,10 @@ class Main {
         final var beforeType = beforeName.substring(0, typeSeparator);
         final var inputType = beforeName.substring(typeSeparator + " ".length());
 
-        return Optional.of(new Definition(beforeType, Main.compileType(inputType), name));
+        return Optional.of(new Definition(beforeType, Main.parseType(inputType), name));
     }
 
-    private static CType compileType(final String input) {
+    private static CType parseType(final String input) {
         final var strip = input.strip();
 
         if ("int".contentEquals(strip))
@@ -315,11 +315,19 @@ class Main {
         if ("String".contentEquals(strip))
             return new Pointer(CPrimitive.Char);
 
-        return Main.compileGenericType(strip)
+        return Main.parseGenericType(strip)
+                .or(() -> Main.parseSymbolType(strip))
                 .orElseGet(() -> new Placeholder(input));
     }
 
-    private static Optional<CType> compileGenericType(final String strip) {
+    private static Optional<CType> parseSymbolType(final String input) {
+        if (Main.isSymbol(input))
+            return Optional.of(new Struct(input));
+        else
+            return Optional.empty();
+    }
+
+    private static Optional<CType> parseGenericType(final String strip) {
         if (strip.isEmpty() || '>' != strip.charAt(strip.length() - 1))
             return Optional.empty();
 
@@ -330,7 +338,7 @@ class Main {
 
         final var base = withoutEnd.substring(0, argumentsStart);
         final var arguments = withoutEnd.substring(argumentsStart + "<".length());
-        return Optional.of(new Struct(base + "_" + Main.compileType(arguments)
+        return Optional.of(new Struct(base + "_" + Main.parseType(arguments)
                 .generateSymbol()));
     }
 

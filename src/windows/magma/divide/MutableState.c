@@ -13,16 +13,16 @@
 	this.depth = 0;
 	return this;
 }
-/*public static *//*State*/ empty() {
+/*public static */struct State empty() {
 	/*return new MutableState(Lists.empty())*/;
 }
 /*@Override
-    public *//*State*/ append(/*final *//*char*/ c) {
+    public */struct State append(/*final */struct char c) {
 	this.buffer = this.buffer + c;
 	/*return this*/;
 }
 /*@Override
-    public *//*State*/ advance() {
+    public */struct State advance() {
 	this.segments = this.segments.add(this.buffer);
 	this.buffer = "";
 	/*return this*/;
@@ -32,21 +32,21 @@
 	/*return this.segments*/;
 }
 /*@Override
-    public *//*boolean*/ isLevel() {
+    public */struct boolean isLevel() {
 	/*return 0 */ = /*= this*/.depth;
 }
 /*@Override
-    public *//*State*/ enter() {
+    public */struct State enter() {
 	/*this.depth++*/;
 	/*return this*/;
 }
 /*@Override
-    public *//*State*/ exit() {
+    public */struct State exit() {
 	/*this.depth--*/;
 	/*return this*/;
 }
 /*@Override
-    public *//*boolean*/ isShallow() {
+    public */struct boolean isShallow() {
 	/*return 1 */ = /*= this*/.depth;
 }
 /*
