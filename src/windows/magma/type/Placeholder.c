@@ -2,7 +2,7 @@
 /*
 
 public record Placeholder(String input) implements CType {
-    public static String generatePlaceholder(final String input) {
+    public static String generate(final String input) {
         final var replaced = input.replace("start", "start")
                 .replace("end", "end");
 
@@ -11,12 +11,12 @@ public record Placeholder(String input) implements CType {
 
     @Override
     public String generate() {
-        return Placeholder.generatePlaceholder(input);
+        return Placeholder.generate(input);
     }
 
     @Override
     public String generateSymbol() {
-        return Placeholder.generatePlaceholder(input);
+        return Placeholder.generate(input);
     }
 }*//*
 */

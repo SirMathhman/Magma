@@ -12,10 +12,12 @@
         return appended;*//*
     */};
 /*@Override
-    public State*/ new_fold(/*final *//*State*/ state, /*final *//*char*/ c) {/*
-        final var appended = state.append(c);
-        if (';' == c && appended.isLevel())
-            return appended.advance();
-        if ('*/}
+    public State*/ new_fold(/*final *//*State*/ state, /*final *//*char*/ c) {
+	/*final var appended = state.append(c);*/
+	/*if (';*/
+	/*' == c && appended.isLevel())
+            return appended.advance();*/
+	/*if ('*/
+}
 /*
 }*/

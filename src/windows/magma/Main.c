@@ -1,7 +1,7 @@
 #include "Main.h"
-/*import magma.divide.fold.Folder;*/
 /*import magma.divide.MutableState;*/
 /*import magma.divide.State;*/
+/*import magma.divide.fold.Folder;*/
 /*import magma.divide.fold.StatementFolder;*/
 /*import magma.divide.fold.ValuesFolder;*/
 /*import magma.list.ListLike;*/
@@ -58,47 +58,53 @@
             *//*return*/ Optional.empty();/*
 
         final var withoutEnd = stripped.substring(0, stripped.length() - "*/};
-/*private*/ new_Main(/**/) {/*
-    */}
-/*public static void*/ new_main(/*final *//*String[]*/ args) {/*
-        final var rootDirectory = Paths.get(".", "src", "java");
-        try (final var stream = Files.walk(rootDirectory)) {
+/*private*/ new_Main(/**/) {
+	/**/
+}
+/*public static void*/ new_main(/*final *//*String[]*/ args) {
+	/*final var rootDirectory = Paths.get(".", "src", "java");*/
+	/*try (final var stream = Files.walk(rootDirectory)) {
             final var sources = stream.filter(Files::isRegularFile)
                     .filter(file -> file.toString()
                             .endsWith(".java"))
                     .toList();
 
             Main.runWithSources(rootDirectory, sources);
-        } catch (final IOException e) {
+        }*/
+	/*catch (final IOException e) {
             //noinspection CallToPrintStackTrace
             e.printStackTrace();
-        }
-    */}
-/*private static String*/ new_compileRoot(/*final *//*CharSequence*/ input) {/*
-        return Main.compileStatements(input, Main::compileRootSegment);
-    */}
-/*private static String*/ new_compileStatements(/*final *//*CharSequence*/ input, /* final Function<String*/, /* String> mapper*/) {/*
-        return Main.compileAll(input, new StatementFolder(), mapper, "");
-    */}
-/*private static String*/ new_compileAll(/*final *//*CharSequence*/ input, /*final *//*Folder*/ folder, /* final Function<String*/, /* String> mapper*/, /*final *//*CharSequence*/ delimiter) {/*
-        return Main.divide(input, folder)
+        }*/
+	/**/
+}
+/*private static String*/ new_compileRoot(/*final *//*CharSequence*/ input) {
+	/*return Main.compileStatements(input, Main::compileRootSegment);*/
+	/**/
+}
+/*private static String*/ new_compileStatements(/*final *//*CharSequence*/ input, /* final Function<String*/, /* String> mapper*/) {
+	/*return Main.compileAll(input, new StatementFolder(), mapper, "");*/
+	/**/
+}
+/*private static String*/ new_compileAll(/*final *//*CharSequence*/ input, /*final *//*Folder*/ folder, /* final Function<String*/, /* String> mapper*/, /*final *//*CharSequence*/ delimiter) {
+	/*return Main.divide(input, folder)
                 .stream()
                 .map(mapper)
-                .collect(Collectors.joining(delimiter));
-    */}
-/*private static String*/ new_compileRootSegment(/*final */char* input) {/*
-        final var stripped = input.strip();
-        if (stripped.startsWith("package "))
-            return "";
-
-        if (stripped.startsWith("import "))
-            return Placeholder.generatePlaceholder(stripped) + Main.SEPARATOR;
-
-        return Main.compileStructure(stripped)
-                .orElseGet(() -> Placeholder.generatePlaceholder(input));
-    */}
-/*private static Optional<String>*/ new_compileStructure(/*final */char* stripped) {/*
-        if (!(!stripped.isEmpty() && '*/}
+                .collect(Collectors.joining(delimiter));*/
+	/**/
+}
+/*private static String*/ new_compileRootSegment(/*final */char* input) {
+	/*final var stripped = input.strip();*/
+	/*if (stripped.startsWith("package "))
+            return "";*/
+	/*if (stripped.startsWith("import "))
+            return Placeholder.generate(stripped) + Main.SEPARATOR;*/
+	/*return Main.compileStructure(stripped)
+                .orElseGet(() -> Placeholder.generate(input));*/
+	/**/
+}
+/*private static Optional<String>*/ new_compileStructure(/*final */char* stripped) {
+	/*if (!(!stripped.isEmpty() && '*/
+}
 /*".length());*//*
         final var contentStart = withoutEnd.indexOf('{');
         if (0 > contentStart)
@@ -129,57 +135,64 @@
             other.append(compiled.right());
         }
 
-        return Optional.of(Placeholder.generatePlaceholder(beforeKeyword) + "struct " + name + " {" + output + "};" + Main.SEPARATOR + other);
+        return Optional.of(Placeholder.generate(beforeKeyword) + "struct " + name + " {" + output + "};" + Main.SEPARATOR + other);
     }
 
     private static Tuple<String, String> compileClassSegment(final String input) {
         return Main.compileField(input)
                 .or(() -> Main.compileMethod(input))
-                .orElseGet(() -> new Tuple<>(Placeholder.generatePlaceholder(input), ""));
+                .orElseGet(() -> new Tuple<>(Placeholder.generate(input), ""));
     }
 
     private static Optional<Tuple<String, String>> compileMethod(final String input) {
         final var strip = input.strip();
-        if (!strip.isEmpty() && '}' == strip.charAt(strip.length() - 1)) {
-            final var withoutEnd = strip.substring(0, strip.length() - "}".length());
-            final var contentStart = withoutEnd.indexOf('{');
-            if (0 <= contentStart) {
-                final var beforeContent = withoutEnd.substring(0, contentStart)
-                        .strip();
-                final var content = withoutEnd.substring(contentStart + "{".length());
-                if (!beforeContent.isEmpty() && ')' == beforeContent.charAt(beforeContent.length() - 1)) {
-                    final var withoutParamEnd = beforeContent.substring(0, beforeContent.length() - ")".length());
-                    final var paramStart = withoutParamEnd.indexOf('(');
-                    if (0 <= paramStart) {
-                        final var beforeParams = withoutParamEnd.substring(0, paramStart);
-                        final var inputParams = withoutParamEnd.substring(paramStart + "(".length());
-                        final var outputParams = Main.compileAll(inputParams,
-                                new ValuesFolder(),
-                                Main::compileDefinitionOrPlaceholder,
-                                ", ");
+        if (strip.isEmpty() || '}' != strip.charAt(strip.length() - 1))
+            return Optional.empty();
 
-                        final var nameSeparator = beforeParams.lastIndexOf(' ');
-                        if (0 <= nameSeparator) {
-                            final var beforeName = beforeParams.substring(0, nameSeparator)
-                                    .strip();
-                            final var name = beforeParams.substring(nameSeparator + " ".length())
-                                    .strip();
+        final var withoutEnd = strip.substring(0, strip.length() - "}*//*".length());*//*
+        final var contentStart = withoutEnd.indexOf('{');
+        if (0 > contentStart)
+            return Optional.empty();
 
-                            return Optional.of(new Tuple<>("",
-                                    Placeholder.generatePlaceholder(beforeName) + " new_" + name + "(" + outputParams + ") {" + Placeholder.generatePlaceholder(
-                                            content) + "}" + Main.SEPARATOR));
-                        }
-                    }
-                }
-            }
-        }
+        final var beforeContent = withoutEnd.substring(0, contentStart)
+                .strip();
+        final var content = withoutEnd.substring(contentStart + "{".length());
+        if (beforeContent.isEmpty() || ')' != beforeContent.charAt(beforeContent.length() - 1))
+            return Optional.empty();
 
-        return Optional.empty();
+        final var withoutParamEnd = beforeContent.substring(0, beforeContent.length() - ")".length());
+        final var paramStart = withoutParamEnd.indexOf('(');
+        if (0 > paramStart)
+            return Optional.empty();
+
+        final var beforeParams = withoutParamEnd.substring(0, paramStart);
+        final var inputParams = withoutParamEnd.substring(paramStart + "(".length());
+        final var outputParams = Main.compileAll(inputParams,
+                new ValuesFolder(),
+                Main::compileDefinitionOrPlaceholder,
+                ", ");
+
+        final var nameSeparator = beforeParams.lastIndexOf(' ');
+        if (0 > nameSeparator)
+            return Optional.empty();
+
+        final var beforeName = beforeParams.substring(0, nameSeparator)
+                .strip();
+        final var name = beforeParams.substring(nameSeparator + " ".length())
+                .strip();
+
+        final var outputContent = Main.compileStatements(content, Main::compileFunctionSegment);
+        return Optional.of(new Tuple<>("",
+                Placeholder.generate(beforeName) + " new_" + name + "(" + outputParams + ") {" + outputContent + Main.SEPARATOR + "}" + Main.SEPARATOR));
+    }
+
+    private static String compileFunctionSegment(final String input) {
+        return Main.SEPARATOR + "\t" + Placeholder.generate(input.strip());
     }
 
     private static String compileDefinitionOrPlaceholder(final String input) {
         return Main.compileDefinition(input)
-                .orElseGet(() -> Placeholder.generatePlaceholder(input));
+                .orElseGet(() -> Placeholder.generate(input));
     }
 
     private static Optional<Tuple<String, String>> compileField(final String input) {
@@ -207,7 +220,7 @@
 
         final var beforeType = beforeName.substring(0, typeSeparator);
         final var inputType = beforeName.substring(typeSeparator + " ".length());
-        final var content = Placeholder.generatePlaceholder(beforeType + " ") + Main.compileType(inputType)
+        final var content = Placeholder.generate(beforeType + " ") + Main.compileType(inputType)
                 .generate() + " " + name;
 
         return Optional.of(content);
