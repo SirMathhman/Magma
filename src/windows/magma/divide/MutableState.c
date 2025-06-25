@@ -14,7 +14,7 @@
 	return this;
 }
 /*public static */struct State empty_MutableState() {
-	return new_MutableState(Lists.empty());
+	return new_MutableState(empty_Lists());
 }
 /*@Override
     public */struct State append_MutableState(/*final */struct char c) {

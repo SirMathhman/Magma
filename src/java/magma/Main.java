@@ -329,6 +329,11 @@ class Main {
                     .strip();
             if (Main.isSymbol(property)) {
                 final var child = Main.parseValue(childString, imports);
+                if (child instanceof Symbol(final var callerValue))
+                    if (imports.contains(callerValue)) {
+                        return new Symbol(property + "_" + callerValue);
+                    }
+
                 return new DataAccess(child, property);
             }
         }
@@ -358,9 +363,9 @@ class Main {
         final var callerString = withoutEnd.substring(0, argumentsStart);
         final var argumentsString = withoutEnd.substring(argumentsStart + "(".length());
         return Main.parseCaller(callerString, imports)
-                .map(compiledCaller -> {
+                .map(caller -> {
                     final var argument = Main.parseValue(argumentsString, imports);
-                    return new Invokable(compiledCaller, argument);
+                    return new Invokable(caller, argument);
                 });
     }
 

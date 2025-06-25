@@ -78,7 +78,7 @@
 	return this;
 }
 /*public static */struct void main_Main(/*final *//*String[]*/ args) {
-	/*final var rootDirectory */ = Paths.get(".", "src", "java");/*
+	/*final var rootDirectory */ = get_Paths(".", "src", "java");/*
         try (final var stream = Files.walk(rootDirectory)) {
             final var sources = stream.filter(Files::isRegularFile)
                     .filter(file -> file.toString()
@@ -130,10 +130,10 @@
             return Optional.empty(*/);
 	/*final var withoutSuffix */ = /* withoutPrefix.substring(0, withoutPrefix.length() - "*/;
 	/*".length())*/;
-	/*final List<String> importNamespace */ = new_ArrayList_(Arrays.asList(withoutSuffix.split("\\.")));
+	/*final List<String> importNamespace */ = new_ArrayList_(asList_Arrays(withoutSuffix.split("\\.")));
 	/*final var actualNamespace */ = Main.computeActualNamespace(/*moduleNamespace, importNamespace*/);
 	/*final var generated */ = /* "#include \"" + String.join("/", actualNamespace) + ".h\"" + Strings.LINE_SEPARATOR*/;
-	return Optional.of(new_Tuple_(/*generated, Optional*/.of(actualNamespace.getLast())));
+	return of_Optional(new_Tuple_(/*generated, Optional*/.of(actualNamespace.getLast())));
 }
 /*private static */struct List_char_ptr computeActualNamespace_Main(/*final */struct List_char_ptr moduleNamespace, /*final */struct List_char_ptr importNamespace) {
 	/*Tuple<List<String>, Integer> current */ = new_Tuple_(/*new ArrayList<>(), 0*/);
@@ -288,14 +288,17 @@
         final var strip = input.strip();
         if (strip.startsWith("return ")) {
             final var value = strip.substring("return ".length());
-            return "return " + Main.parseValue(value, imports).generate();
+            return "return " + Main.parseValue(value, imports)
+                    .generate();
         }
 
         final var valueSeparator = input.indexOf('=');
         if (0 <= valueSeparator) {
             final var destination = input.substring(0, valueSeparator);
             final var source = input.substring(valueSeparator + "=".length());
-            return Main.parseValue(destination, imports).generate() + " = " + Main.parseValue(source, imports).generate();
+            return Main.parseValue(destination, imports)
+                    .generate() + " = " + Main.parseValue(source, imports)
+                    .generate();
         }
 
         return Placeholder.generate(input);
@@ -314,6 +317,11 @@
                     .strip();
             if (Main.isSymbol(property)) {
                 final var child = Main.parseValue(childString, imports);
+                if (child instanceof Symbol(final var callerValue))
+                    if (imports.contains(callerValue)) {
+                        return new Symbol(property + "_" + callerValue);
+                    }
+
                 return new DataAccess(child, property);
             }
         }
@@ -343,9 +351,9 @@
         final var callerString = withoutEnd.substring(0, argumentsStart);
         final var argumentsString = withoutEnd.substring(argumentsStart + "(".length());
         return Main.parseCaller(callerString, imports)
-                .map(compiledCaller -> {
+                .map(caller -> {
                     final var argument = Main.parseValue(argumentsString, imports);
-                    return new Invokable(compiledCaller, argument);
+                    return new Invokable(caller, argument);
                 });
     }
 
