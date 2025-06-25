@@ -13,9 +13,9 @@
 	this.depth = 0;
 	return this;
 }
-/*public */struct MutableState new_MutableState() {
-	struct MutableState this;
-	/*this(Lists.empty())*/;
+/*public static State */struct empty new_empty() {
+	struct empty this;
+	/*return new MutableState(Lists.empty())*/;
 	return this;
 }
 /*@Override

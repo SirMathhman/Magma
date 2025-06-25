@@ -14,8 +14,8 @@ public class MutableState implements State {
         this.depth = 0;
     }
 
-    public MutableState() {
-        this(Lists.empty());
+    public static State empty() {
+        return new MutableState(Lists.empty());
     }
 
     @Override

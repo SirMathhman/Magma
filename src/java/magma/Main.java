@@ -323,7 +323,7 @@ class Main {
     }
 
     private static ListLike<String> divide(final CharSequence input, final Folder folder) {
-        final State mutableState = new MutableState();
+        final State mutableState = MutableState.empty();
         final var length = input.length();
         var current = mutableState;
         for (var i = 0; i < length; i++) {
