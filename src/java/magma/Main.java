@@ -249,6 +249,17 @@ class Main {
     }
 
     private static String compileValue(final String input) {
+        final var strip = input.strip();
+        if (!strip.isEmpty() && ')' == strip.charAt(strip.length() - 1)) {
+            final var withoutEnd = strip.substring(0, strip.length() - ")".length());
+            final var argumentsStart = withoutEnd.indexOf('(');
+            if (0 <= argumentsStart) {
+                final var caller = withoutEnd.substring(0, argumentsStart);
+                final var arguments = withoutEnd.substring(argumentsStart + "(".length());
+                return Placeholder.generate(caller) + "(" + Placeholder.generate(arguments) + ")";
+            }
+        }
+
         final var separator = input.lastIndexOf('.');
         if (0 <= separator) {
             final var value = input.substring(0, separator);
@@ -258,7 +269,6 @@ class Main {
                 return Main.compileValue(value) + "." + property;
         }
 
-        final var strip = input.strip();
         if (Main.isSymbol(strip))
             return strip;
 
