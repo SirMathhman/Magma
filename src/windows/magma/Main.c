@@ -243,23 +243,11 @@
     }
 
     private static String compileValue(final String input) {
-        final var strip = input.strip();
-        if (!strip.isEmpty() && ')' == strip.charAt(strip.length() - 1)) {
-            final var withoutEnd = strip.substring(0, strip.length() - ")".length());
-            final var argumentsStart = withoutEnd.indexOf('(');
-            if (0 <= argumentsStart) {
-                final var callerString = withoutEnd.substring(0, argumentsStart)
-                        .strip();
-                final var arguments = withoutEnd.substring(argumentsStart + "(".length());
-                if (callerString.startsWith("new ")) {
-                    final var type = callerString.substring("new ".length());
-                    final var generatedType = Main.parseType(type)
-                            .generateSymbol();
-                    return "new_" + generatedType + "(" + Placeholder.generate(arguments) + ")";
-                }
-            }
-        }
+        final var compiledInvokable = Main.compileInvokable(input);
+        if (compiledInvokable.isPresent())
+            return compiledInvokable.get();
 
+        final var strip = input.strip();
         final var separator = input.lastIndexOf('.');
         if (0 <= separator) {
             final var value = input.substring(0, separator);
@@ -279,6 +267,29 @@
             return strip;
 
         return Placeholder.generate(input);
+    }
+
+    private static Optional<String> compileInvokable(final String input) {
+        final var strip = input.strip();
+        if (strip.isEmpty() || ')' != strip.charAt(strip.length() - 1))
+            return Optional.empty();
+
+        final var withoutEnd = strip.substring(0, strip.length() - ")".length());
+        final var argumentsStart = withoutEnd.indexOf('(');
+        if (0 > argumentsStart)
+            return Optional.empty();
+
+        final var callerString = withoutEnd.substring(0, argumentsStart)
+                .strip();
+        final var arguments = withoutEnd.substring(argumentsStart + "(".length());
+        if (!callerString.startsWith("new "))
+            return Optional.empty();
+
+        final var type = callerString.substring("new ".length());
+        final var generatedType = Main.parseType(type)
+                .generateSymbol();
+
+        return Optional.of("new_" + generatedType + "(" + Placeholder.generate(arguments) + ")");
     }
 
     private static boolean isNumber(final CharSequence input) {
