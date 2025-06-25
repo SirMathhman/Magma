@@ -6,7 +6,6 @@ import magma.divide.fold.Folder;
 import magma.divide.fold.StatementFolder;
 import magma.divide.fold.ValuesFolder;
 import magma.list.ListLike;
-import magma.node.CDefinition;
 import magma.node.CHeader;
 import magma.node.Caller;
 import magma.node.ConstructionHeader;
@@ -16,13 +15,13 @@ import magma.node.GenericType;
 import magma.node.Invokable;
 import magma.node.JavaDefinition;
 import magma.node.JavaHeader;
+import magma.node.JavaMethod;
 import magma.node.JavaPrimitive;
 import magma.node.JavaStringType;
 import magma.node.JavaType;
 import magma.node.NumberNode;
 import magma.node.Placeholder;
 import magma.node.StringNode;
-import magma.node.Struct;
 import magma.node.Symbol;
 import magma.node.Value;
 
@@ -247,26 +246,8 @@ class Main {
         final var compiledOutput = Main.compileStatements(content,
                 segment -> Main.compileFunctionSegment(segment, imports));
 
-        final var node = Main.attachHeader(structureName, oldHeader, compiledOutput, compiledParams);
+        final var node = new JavaMethod(oldHeader, compiledParams, compiledOutput).toCFunction(structureName);
         return Optional.of(new Tuple<>("", node.generate()));
-    }
-
-    private static CFunction attachHeader(final String structureName, final JavaHeader header, final String compiledContent, final String compiledParams) {
-        return switch (header) {
-            case final Constructor constructor -> {
-                final String outputContent = Strings.LINE_SEPARATOR + "\tstruct " + constructor.name() + " this;" + compiledContent + Strings.LINE_SEPARATOR + "\treturn this;";
-                yield new CFunction(new CDefinition(constructor.beforeName(),
-                        new Struct(constructor.name()),
-                        "new_" + constructor.name()), compiledParams, outputContent);
-            }
-            case final JavaDefinition definition -> {
-                final CHeader newHeader = definition.toCDefinition("_" + structureName);
-                yield new CFunction(newHeader, compiledParams, compiledContent);
-            }
-            case final Placeholder placeholder -> {
-                yield new CFunction(placeholder, compiledParams, compiledContent);
-            }
-        };
     }
 
     private static JavaHeader compileHeader(final String beforeParams) {
