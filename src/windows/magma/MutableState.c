@@ -1,8 +1,8 @@
 #include "MutableState.h"
 /*public */struct MutableState {
-	/*private*/ /*ListLike<String>*/ segments;
-	/*private*/ /*String*/ buffer;
-	/*private*/ /*int*/ depth;/*
+	/*private *//*ListLike<String>*/ segments;
+	/*private */char* buffer;
+	/*private */int depth;/*
 
     private MutableState(final ListLike<String> segments, final String buffer, final int depth) {
         this.segments = segments;

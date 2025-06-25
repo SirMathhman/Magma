@@ -140,8 +140,18 @@ public class Main {
 
         final var beforeType = beforeName.substring(0, typeSeparator);
         final var type = beforeName.substring(typeSeparator + " ".length());
-        return Optional.of(Main.SEPARATOR + "\t" + Main.generatePlaceholder(beforeType) + " " + Main.generatePlaceholder(
-                type) + " " + name + ";");
+        return Optional.of(Main.SEPARATOR + "\t" + Main.generatePlaceholder(beforeType + " ") + Main.compileType(type) + " " + name + ";");
+    }
+
+    private static String compileType(final String input) {
+        final var strip = input.strip();
+        if ("String".contentEquals(strip))
+            return "char*";
+
+        if ("int".contentEquals(strip))
+            return "int";
+
+        return Main.generatePlaceholder(input);
     }
 
     private static ListLike<String> divide(final CharSequence input) {
