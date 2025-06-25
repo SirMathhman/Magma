@@ -99,36 +99,49 @@
 /*private static */char* compileRootSegment_Main(/*final */char* input, /*final */struct List_char_ptr namespace) {
 	/*final var stripped */ = input.strip();
 	/*if (stripped.startsWith("package "))
-            return ""*/;/*
-
-        if (stripped.startsWith("import ")) {
-            final var withoutPrefix = stripped.substring("import ".length());
-            if (!withoutPrefix.isEmpty() && ';' == withoutPrefix.charAt(withoutPrefix.length() - 1)) {
-                final var withoutSuffix = withoutPrefix.substring(0, withoutPrefix.length() - ";".length());
-                final List<String> divisions = new ArrayList<>(Arrays.asList(withoutSuffix.split("\\.")));
-                final Collection<String> actualNamespace = new ArrayList<>();
-                final var namespaceSize = namespace.size();
-                final var divisionSize = divisions.size();
-                var truncatedCount = 0;
-                for (var i = 0; i < namespaceSize; i++) {
-                    if (divisionSize >= namespaceSize) {
-                        final var namespaceSegment = namespace.get(i);
-                        final var divisionSegment = divisions.get(i);
-                        if (namespaceSegment.contentEquals(divisionSegment)) {
-                            truncatedCount++;
-                            continue;
-                        }
-                    }
-
-                    actualNamespace.add("..");
-                }
-                actualNamespace.addAll(divisions.subList(truncatedCount, divisions.size()));
-
-                return "#include \"" + String.join("/", actualNamespace) + ".h\"" + Strings.LINE_SEPARATOR;
-            }
+            return ""*/;
+	return Main.compileImport(/*namespace, input)
+                */.or(/*() -> Main.compileStructure(stripped))
+                .orElseGet(() -> Placeholder.generate(input*/));
+}
+/*private static */struct Optional_char_ptr compileImport_Main(/*final */struct List_char_ptr moduleNamespace, /*final */char* input) {
+	/*final var stripped */ = input.strip();
+	/*if (!stripped.startsWith("import "))
+            return Optional.empty()*/;
+	/*final var withoutPrefix */ = stripped.substring("import ".length());
+	/*if (withoutPrefix.isEmpty() || '*/;
+	/*' !*/ = withoutPrefix.charAt(/*withoutPrefix.length() - 1))
+            return Optional.empty(*/);
+	/*final var withoutSuffix */ = /* withoutPrefix.substring(0, withoutPrefix.length() - "*/;
+	/*".length())*/;
+	/*final List<String> importNamespace */ = new_ArrayList_(Arrays.asList(withoutSuffix.split("\\.")));
+	/*final var actualNamespace */ = Main.computeActualNamespace(/*moduleNamespace, importNamespace*/);
+	return Optional.of(/*"#include \"" + String.join("/", actualNamespace) + ".h\"" + Strings.LINE_SEPARATOR*/);
+}
+/*private static */struct Collection_char_ptr computeActualNamespace_Main(/*final */struct List_char_ptr moduleNamespace, /*final */struct List_char_ptr importNamespace) {
+	/*Tuple<Collection<String>, Integer> current */ = new_Tuple_(/*new ArrayList<>(), 0*/);
+	/*final var moduleNamespaceSize */ = moduleNamespace.size();
+	/*final var importNamespaceSize */ = importNamespace.size();
+	/*for (var index */ = 0;
+	/*index < moduleNamespaceSize*/;
+	/*index++)
+            current */ = Main.foldNamespace(/*current, index, moduleNamespace, importNamespace*/);
+	/*current.left()
+                .addAll(importNamespace.subList(current.right(), importNamespaceSize))*/;
+	return current.left();
+}
+/*private static Tuple<Collection<String>, *//*Integer>*/ foldNamespace_Main(/*final Tuple<Collection<String>*/, /* Integer> current*/, /*final */int index, /*final */struct List_char_ptr moduleNamespace, /*final */struct List_char_ptr importNamespace) {
+	/*final var moduleNamespaceSize */ = moduleNamespace.size();
+	/*final var importNamespaceSize */ = importNamespace.size();/*
+        if (importNamespaceSize >= moduleNamespaceSize) {
+            final var namespaceSegment = moduleNamespace.get(index);
+            final var divisionSegment = importNamespace.get(index);
+            if (namespaceSegment.contentEquals(divisionSegment))
+                return new Tuple<>(current.left(), current.right() + 1);
         }*/
-	return Main.compileStructure(/*stripped)
-                */.orElseGet(/*() -> Placeholder.generate(input*/));
+	/*current.left()
+                .add("..")*/;
+	return current;
 }
 /*private static */struct Optional_char_ptr compileStructure_Main(/*final */char* stripped) {/*
         if (!(!stripped.isEmpty() && '*/
