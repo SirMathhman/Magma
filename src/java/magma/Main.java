@@ -6,20 +6,20 @@ import magma.divide.fold.Folder;
 import magma.divide.fold.StatementFolder;
 import magma.divide.fold.ValuesFolder;
 import magma.list.ListLike;
-import magma.node.CPrimitive;
-import magma.node.CType;
 import magma.node.Caller;
 import magma.node.ConstructionHeader;
 import magma.node.Constructor;
 import magma.node.DataAccess;
 import magma.node.Definition;
+import magma.node.GenericType;
 import magma.node.Header;
 import magma.node.Invokable;
+import magma.node.JavaPrimitive;
+import magma.node.JavaStringType;
+import magma.node.JavaType;
 import magma.node.NumberNode;
 import magma.node.Placeholder;
-import magma.node.Pointer;
 import magma.node.StringNode;
-import magma.node.Struct;
 import magma.node.Symbol;
 import magma.node.Value;
 
@@ -330,9 +330,8 @@ class Main {
             if (Main.isSymbol(property)) {
                 final var child = Main.parseValue(childString, imports);
                 if (child instanceof Symbol(final var callerValue))
-                    if (imports.contains(callerValue)) {
+                    if (imports.contains(callerValue))
                         return new Symbol(property + "_" + callerValue);
-                    }
 
                 return new DataAccess(child, property);
             }
@@ -373,7 +372,8 @@ class Main {
         final var strip = input.strip();
         if (strip.startsWith("new ")) {
             final var type = strip.substring("new ".length());
-            final var generatedType = Main.parseType(type);
+            final var generatedType = Main.parseType(type)
+                    .toCType();
 
             return Optional.of(new ConstructionHeader(generatedType));
         }
@@ -436,31 +436,34 @@ class Main {
         final var beforeType = beforeName.substring(0, typeSeparator);
         final var inputType = beforeName.substring(typeSeparator + " ".length());
 
-        return Optional.of(new Definition(beforeType, Main.parseType(inputType), name));
+        return Optional.of(new Definition(beforeType,
+                Main.parseType(inputType)
+                        .toCType(),
+                name));
     }
 
-    private static CType parseType(final String input) {
+    private static JavaType parseType(final String input) {
         final var strip = input.strip();
 
         if ("int".contentEquals(strip))
-            return CPrimitive.Int;
+            return JavaPrimitive.Int;
 
         if ("String".contentEquals(strip))
-            return new Pointer(CPrimitive.Char);
+            return new JavaStringType();
 
         return Main.parseGenericType(strip)
                 .or(() -> Main.parseSymbolType(strip))
                 .orElseGet(() -> new Placeholder(input));
     }
 
-    private static Optional<CType> parseSymbolType(final String input) {
+    private static Optional<JavaType> parseSymbolType(final String input) {
         if (Main.isSymbol(input))
-            return Optional.of(new Struct(input));
+            return Optional.of(new Symbol(input));
         else
             return Optional.empty();
     }
 
-    private static Optional<CType> parseGenericType(final String strip) {
+    private static Optional<JavaType> parseGenericType(final String strip) {
         if (strip.isEmpty() || '>' != strip.charAt(strip.length() - 1))
             return Optional.empty();
 
@@ -471,8 +474,7 @@ class Main {
 
         final var base = withoutEnd.substring(0, argumentsStart);
         final var arguments = withoutEnd.substring(argumentsStart + "<".length());
-        return Optional.of(new Struct(base + "_" + Main.parseType(arguments)
-                .generateSymbol()));
+        return Optional.of(new GenericType(base, Main.parseType(arguments)));
     }
 
     private static ListLike<String> divideStatements(final CharSequence input) {
