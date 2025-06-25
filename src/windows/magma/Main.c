@@ -159,18 +159,23 @@ public class Main {
         if ("String".contentEquals(strip))
             return new Pointer(CPrimitive.Char);
 
-        if (strip.endsWith(">")) {
-            final var withoutEnd = strip.substring(0, strip.length() - ">".length());
-            final var argumentsStart = withoutEnd.indexOf('<');
-            if (0 <= argumentsStart) {
-                final var base = withoutEnd.substring(0, argumentsStart);
-                final var arguments = withoutEnd.substring(argumentsStart + "<".length());
-                return new Struct(base + "_" + Main.compileType(arguments)
-                        .generateSymbol());
-            }
-        }
+        return Main.compileGenericType(strip)
+                .orElseGet(() -> new Placeholder(input));
+    }
 
-        return new Placeholder(input);
+    private static Optional<CType> compileGenericType(final String strip) {
+        if (strip.isEmpty() || '>' != strip.charAt(strip.length() - 1))
+            return Optional.empty();
+
+        final var withoutEnd = strip.substring(0, strip.length() - ">".length());
+        final var argumentsStart = withoutEnd.indexOf('<');
+        if (0 > argumentsStart)
+            return Optional.empty();
+
+        final var base = withoutEnd.substring(0, argumentsStart);
+        final var arguments = withoutEnd.substring(argumentsStart + "<".length());
+        return Optional.of(new Struct(base + "_" + Main.compileType(arguments)
+                .generateSymbol()));
     }
 
     private static ListLike<String> divide(final CharSequence input) {
