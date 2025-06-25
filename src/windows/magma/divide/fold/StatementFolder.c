@@ -13,11 +13,13 @@
     */};
 /*@Override
     public State */struct fold new_fold(/*final *//*State*/ state, /*final *//*char*/ c) {
+	struct fold this;
 	/*final var appended */ = state.append(c);
 	/*if ('*/;
 	/*' */ = /*= c && appended*/.isLevel())
             return appended.advance();/*
         if ('*/
+	return this;
 }
 /*
 }*/

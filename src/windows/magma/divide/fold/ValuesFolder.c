@@ -4,9 +4,11 @@
 */};
 /*@Override
     public State */struct fold new_fold(/*final *//*State*/ state, /*final *//*char*/ c) {
+	struct fold this;
 	/*if (',' */ = /*= c)
             return state*/.advance();
 	/*return state.append(c)*/;
+	return this;
 }
 /*
 */

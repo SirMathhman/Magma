@@ -60,8 +60,11 @@
 
         final var withoutEnd = stripped.substring(0, stripped.length() - "*/};
 /*private */struct Main new_Main() {
+	struct Main this;
+	return this;
 }
 /*public static void */struct main new_main(/*final *//*String[]*/ args) {
+	struct main this;
 	/*final var rootDirectory */ = Paths.get(".", "src", "java");/*
         try (final var stream = Files.walk(rootDirectory)) {
             final var sources = stream.filter(Files::isRegularFile)
@@ -74,20 +77,28 @@
             //noinspection CallToPrintStackTrace
             e.printStackTrace();
         }*/
+	return this;
 }
 /*private static String */struct compileRoot new_compileRoot(/*final *//*CharSequence*/ input) {
+	struct compileRoot this;
 	/*return Main.compileStatements(input, Main::compileRootSegment)*/;
+	return this;
 }
 /*private static String */struct compileStatements new_compileStatements(/*final *//*CharSequence*/ input, /* final Function<String*/, /* String> mapper*/) {
+	struct compileStatements this;
 	/*return Main.compileAll(input, new StatementFolder(), mapper, "")*/;
+	return this;
 }
 /*private static String */struct compileAll new_compileAll(/*final *//*CharSequence*/ input, /*final *//*Folder*/ folder, /* final Function<String*/, /* String> mapper*/, /*final *//*CharSequence*/ delimiter) {
+	struct compileAll this;
 	/*return Main.divide(input, folder)
                 .stream()
                 .map(mapper)
                 .collect(Collectors.joining(delimiter))*/;
+	return this;
 }
 /*private static String */struct compileRootSegment new_compileRootSegment(/*final */char* input) {
+	struct compileRootSegment this;
 	/*final var stripped */ = input.strip();
 	/*if (stripped.startsWith("package "))
             return ""*/;
@@ -95,9 +106,12 @@
             return Placeholder.generate(stripped) + Main.SEPARATOR*/;
 	/*return Main.compileStructure(stripped)
                 .orElseGet(() -> Placeholder.generate(input))*/;
+	return this;
 }
-/*private static Optional<String> */struct compileStructure new_compileStructure(/*final */char* stripped) {/*
+/*private static Optional<String> */struct compileStructure new_compileStructure(/*final */char* stripped) {
+	struct compileStructure this;/*
         if (!(!stripped.isEmpty() && '*/
+	return this;
 }
 /*".length());*//*
         final var contentStart = withoutEnd.indexOf('{');
@@ -174,7 +188,7 @@
 
         final var outputContent = Main.compileStatements(content, Main::compileFunctionSegment);
         return Optional.of(new Tuple<>("",
-                Placeholder.generate(beforeName + " ") + "struct " + name + " new_" + name + "(" + outputParams + ") {" + outputContent + Main.SEPARATOR + "}" + Main.SEPARATOR));
+                Placeholder.generate(beforeName + " ") + "struct " + name + " new_" + name + "(" + outputParams + ") {" + Main.SEPARATOR + "\tstruct " + name + " this;" + outputContent + Main.SEPARATOR + "\treturn this;" + Main.SEPARATOR + "}" + Main.SEPARATOR));
     }
 
     private static String compileFunctionSegment(final String input) {
