@@ -80,8 +80,19 @@ public class Main {
             if (0 <= contentStart) {
                 final var beforeContent = withoutEnd.substring(0, contentStart);
                 final var content = withoutEnd.substring(contentStart + "{".length());
-                return Main.generatePlaceholder(beforeContent) + "{};" + Main.SEPARATOR + Main.generatePlaceholder(
-                        content);
+                final var classIndex = beforeContent.indexOf("class ");
+                if (0 <= classIndex) {
+                    final var beforeKeyword = beforeContent.substring(0, classIndex);
+                    final var afterKeyword = beforeContent.substring(classIndex + "class ".length())
+                            .strip();
+
+                    final var implementsIndex = afterKeyword.indexOf("implements ");
+                    final var name = 0 <= implementsIndex ? afterKeyword.substring(0, implementsIndex)
+                            .strip() : afterKeyword;
+
+                    return Main.generatePlaceholder(beforeKeyword) + "struct " + name + " {" + Main.SEPARATOR + "};" + Main.SEPARATOR + Main.generatePlaceholder(
+                            content);
+                }
             }
         }
 

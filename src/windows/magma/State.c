@@ -1,7 +1,8 @@
 #include "State.h"
 /*import java.util.List;*/
-/*public interface State */{};
 /*
+
+public interface State {
     State append(char c);
 
     State advance();
@@ -13,4 +14,5 @@
     State enter();
 
     State exit();
+}
 */

@@ -2,7 +2,8 @@
 /*import java.util.ArrayList;*/
 /*import java.util.Collections;*/
 /*import java.util.List;*/
-/*public class MutableState implements State */{};
+/*public */struct MutableState {
+};
 /*
     private final List<String> segments;
     private StringBuilder buffer;
