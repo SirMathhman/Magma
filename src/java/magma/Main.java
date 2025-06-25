@@ -132,10 +132,19 @@ public class Main {
             final var withoutEnd = strip.substring(0, strip.length() - "}".length());
             final var contentStart = withoutEnd.indexOf('{');
             if (0 <= contentStart) {
-                final var beforeContent = withoutEnd.substring(0, contentStart);
+                final var beforeContent = withoutEnd.substring(0, contentStart)
+                        .strip();
                 final var content = withoutEnd.substring(contentStart + "{".length());
-                return Optional.of(Main.SEPARATOR + "\t" + Placeholder.generatePlaceholder(beforeContent) + "{" + Placeholder.generatePlaceholder(
-                        content) + "}");
+                if (beforeContent.endsWith(")")) {
+                    final var withoutParamEnd = beforeContent.substring(0, beforeContent.length() - ")".length());
+                    final var paramStart = withoutParamEnd.indexOf('(');
+                    if (0 <= paramStart) {
+                        final var definition = withoutParamEnd.substring(0, paramStart);
+                        final var params = withoutParamEnd.substring(paramStart + "(".length());
+                        return Optional.of(Main.SEPARATOR + "\t" + Placeholder.generatePlaceholder(definition) + "(" + Placeholder.generatePlaceholder(
+                                params) + ") {" + Placeholder.generatePlaceholder(content) + "}");
+                    }
+                }
             }
         }
 

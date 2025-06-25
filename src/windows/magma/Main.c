@@ -15,9 +15,9 @@
 /*import java.util.stream.Collectors;*/
 /*public */struct Main {
 	/*private static final String SEPARATOR *//*=*/ System.lineSeparator();
-	/*private Main() */{/*
+	/*private Main*/(/**/) {/*
     */}
-	/*public static void main(final String[] args) */{/*
+	/*public static void main*/(/*final String[] args*/) {/*
         final var rootDirectory = Paths.get(".", "src", "java");
         try (final var stream = Files.walk(rootDirectory)) {
             final var sources = stream.filter(Files::isRegularFile)
@@ -30,12 +30,14 @@
             //noinspection CallToPrintStackTrace
             e.printStackTrace();
         }
-    */}
-	/*private static void runWithSources(final Path rootDirectory, final Iterable<Path> sources) throws IOException */{/*
+    */}/*
+
+    private static void runWithSources(final Path rootDirectory, final Iterable<Path> sources) throws IOException {
         for (final var source : sources)
             Main.runWithSource(rootDirectory, source);
-    */}
-	/*private static void runWithSource(final Path rootDirectory, final Path source) throws IOException */{/*
+    }*//*
+
+    private static void runWithSource(final Path rootDirectory, final Path source) throws IOException {
         final var fileName = source.getFileName()
                 .toString();
         final var separator = fileName.lastIndexOf('.');
@@ -61,17 +63,17 @@
         final var headerContent = String.join(Main.SEPARATOR, "#ifndef " + withName, "#define " + withName, "#endif");
 
         Files.writeString(targetParent.resolve(name + ".h"), headerContent);
-    */}
-	/*private static String compileRoot(final CharSequence input) */{/*
+    }*/
+	/*private static String compileRoot*/(/*final CharSequence input*/) {/*
         return Main.compileStatements(input, Main::compileRootSegment);
     */}
-	/*private static String compileStatements(final CharSequence input, final Function<String, String> mapper) */{/*
+	/*private static String compileStatements*/(/*final CharSequence input, final Function<String, String> mapper*/) {/*
         return Main.divide(input)
                 .stream()
                 .map(mapper)
                 .collect(Collectors.joining());
     */}
-	/*private static String compileRootSegment(final String input) */{/*
+	/*private static String compileRootSegment*/(/*final String input*/) {/*
         final var stripped = input.strip();
         if (stripped.startsWith("package "))
             return "";
@@ -82,7 +84,7 @@
         return Main.compileStructure(stripped)
                 .orElseGet(() -> Placeholder.generatePlaceholder(input));
     */}
-	/*private static Optional<String> compileStructure(final String stripped) */{/*
+	/*private static Optional<String> compileStructure*/(/*final String stripped*/) {/*
         if (!(!stripped.isEmpty() && '*/}
 	/*' == stripped.charAt(stripped.length() - 1)))
             *//*return*/ Optional.empty();/*
@@ -123,10 +125,19 @@
             final var withoutEnd = strip.substring(0, strip.length() - "}".length());
             final var contentStart = withoutEnd.indexOf('{');
             if (0 <= contentStart) {
-                final var beforeContent = withoutEnd.substring(0, contentStart);
+                final var beforeContent = withoutEnd.substring(0, contentStart)
+                        .strip();
                 final var content = withoutEnd.substring(contentStart + "{".length());
-                return Optional.of(Main.SEPARATOR + "\t" + Placeholder.generatePlaceholder(beforeContent) + "{" + Placeholder.generatePlaceholder(
-                        content) + "}");
+                if (beforeContent.endsWith(")")) {
+                    final var withoutParamEnd = beforeContent.substring(0, beforeContent.length() - ")".length());
+                    final var paramStart = withoutParamEnd.indexOf('(');
+                    if (0 <= paramStart) {
+                        final var definition = withoutParamEnd.substring(0, paramStart);
+                        final var params = withoutParamEnd.substring(paramStart + "(".length());
+                        return Optional.of(Main.SEPARATOR + "\t" + Placeholder.generatePlaceholder(definition) + "(" + Placeholder.generatePlaceholder(
+                                params) + ") {" + Placeholder.generatePlaceholder(content) + "}");
+                    }
+                }
             }
         }
 

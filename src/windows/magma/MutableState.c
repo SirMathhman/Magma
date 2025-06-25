@@ -3,45 +3,45 @@
 	/*private */struct ListLike_char_ptr segments;
 	/*private */char* buffer;
 	/*private */int depth;
-	/*private MutableState(final ListLike<String> segments, final String buffer, final int depth) */{/*
+	/*private MutableState*/(/*final ListLike<String> segments, final String buffer, final int depth*/) {/*
         this.segments = segments;
         this.buffer = buffer;
         this.depth = depth;
     */}
-	/*MutableState() */{/*
+	/*MutableState*/(/**/) {/*
         this(Lists.empty(), "", 0);
     */}
 	/*@Override
-    public State append(final char c) */{/*
+    public State append*/(/*final char c*/) {/*
         buffer = buffer + c;
         return this;
     */}
 	/*@Override
-    public State advance() */{/*
+    public State advance*/(/**/) {/*
         segments = segments.add(buffer);
         buffer = "";
         return this;
     */}
 	/*@Override
-    public ListLike<String> unwrap() */{/*
+    public ListLike<String> unwrap*/(/**/) {/*
         return segments;
     */}
 	/*@Override
-    public boolean isLevel() */{/*
+    public boolean isLevel*/(/**/) {/*
         return 0 == depth;
     */}
 	/*@Override
-    public State enter() */{/*
+    public State enter*/(/**/) {/*
         depth++;
         return this;
     */}
 	/*@Override
-    public State exit() */{/*
+    public State exit*/(/**/) {/*
         depth--;
         return this;
     */}
 	/*@Override
-    public boolean isShallow() */{/*
+    public boolean isShallow*/(/**/) {/*
         return 1 == depth;
     */}/*
 */};
