@@ -185,7 +185,7 @@ class Main {
 
         final var outputContent = Main.compileStatements(content, Main::compileFunctionSegment);
         return Optional.of(new Tuple<>("",
-                Placeholder.generate(beforeName) + " new_" + name + "(" + outputParams + ") {" + outputContent + Main.SEPARATOR + "}" + Main.SEPARATOR));
+                Placeholder.generate(beforeName + " ") + "struct " + name + " new_" + name + "(" + outputParams + ") {" + outputContent + Main.SEPARATOR + "}" + Main.SEPARATOR));
     }
 
     private static String compileFunctionSegment(final String input) {
