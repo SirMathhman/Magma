@@ -188,19 +188,24 @@
         final var segments = Main.divideStatements(content);
 
         final var output = new StringBuilder();
-        final var other = new StringBuilder();
+        final List<JavaMethod> methods = new ArrayList<>();
 
         for (final var segment : segments) {
             final var compiled = Main.compileClassSegment(segment, name, imports);
             output.append(compiled.left());
-            other.append(compiled.right());
+            compiled.right().ifPresent(methods::add);
         }
 
-        final var generated = Placeholder.generate(beforeKeyword) + "struct " + name + " {" + output + "};" + Strings.LINE_SEPARATOR + other;
+        final var joined = methods.stream()
+                .map(method -> method.toCFunction(name))
+                .map(CFunction::generate)
+                .collect(Collectors.joining());
+
+        final var generated = Placeholder.generate(beforeKeyword) + "struct " + name + " {" + output + "};" + Strings.LINE_SEPARATOR + joined;
         return Optional.of(new Tuple<>(generated, Optional.empty()));
     }
 
-    private static Tuple<String, String> compileClassSegment(final String input, final String structureName, final List<String> imports) {
+    private static Tuple<String, Optional<JavaMethod>> compileClassSegment(final String input, final String structureName, final List<String> imports) {
         final var node = Main.parseField(input)
                 .<JavaClassSegment>map(field -> field)
                 .or(() -> Main.parseMethod(input, imports))
@@ -209,16 +214,13 @@
         return switch (node) {
             case final JavaDefinition javaDefinition -> {
                 yield new Tuple<>(Strings.LINE_SEPARATOR + "\t" + javaDefinition.toCDefinition()
-                        .generate() + ";", "");
+                        .generate() + ";", Optional.empty());
             }
-            case final JavaMethod javaMethod -> Main.transformAndGenerateMethod(structureName, javaMethod);
-            case final Placeholder placeholder -> new Tuple<>(placeholder.generate(), "");
+            case final JavaMethod method -> {
+                yield new Tuple<>("", Optional.of(method));
+            }
+            case final Placeholder placeholder -> new Tuple<>(placeholder.generate(), Optional.empty());
         };
-    }
-
-    private static Tuple<String, String> transformAndGenerateMethod(final String structureName, final JavaMethod method) {
-        final var node = method.toCFunction(structureName);
-        return new Tuple<>("", node.generate());
     }
 
     private static Optional<JavaMethod> parseMethod(final String input, final List<String> imports) {
