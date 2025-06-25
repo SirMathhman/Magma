@@ -1,0 +1,3 @@
+#ifndef magma_divide_fold_Folder
+#define magma_divide_fold_Folder
+#endif
