@@ -83,16 +83,13 @@
         }*/
 }
 /*private static */char* compileRoot_Main(/*final */struct CharSequence input) {
-	/*return Main.compileStatements(input, Main::compileRootSegment)*/;
+	return Main.compileStatements(input, Main::compileRootSegment);
 }
 /*private static */char* compileStatements_Main(/*final */struct CharSequence input, /* final Function<String*/, /* String> mapper*/) {
-	/*return Main.compileAll(input, new StatementFolder(), mapper, "")*/;
+	return Main.compileAll(input, new StatementFolder(), mapper, "");
 }
 /*private static */char* compileAll_Main(/*final */struct CharSequence input, /*final */struct Folder folder, /* final Function<String*/, /* String> mapper*/, /*final */struct CharSequence delimiter) {
-	/*return Main.divide(input, folder)
-                .stream()
-                .map(mapper)
-                .collect(Collectors.joining(delimiter))*/;
+	return Main.divide(input, folder).stream().map(mapper).collect(Collectors.joining(delimiter));
 }
 /*private static */char* compileRootSegment_Main(/*final */char* input) {
 	/*final var stripped */ = input.strip();
@@ -100,8 +97,7 @@
             return ""*/;
 	/*if (stripped.startsWith("import "))
             return Placeholder.generate(stripped) + Strings.LINE_SEPARATOR*/;
-	/*return Main.compileStructure(stripped)
-                .orElseGet(() -> Placeholder.generate(input))*/;
+	return Main.compileStructure(stripped).orElseGet(() -> Placeholder.generate(input));
 }
 /*private static */struct Optional_char_ptr compileStructure_Main(/*final */char* stripped) {/*
         if (!(!stripped.isEmpty() && '*/
@@ -226,6 +222,12 @@
     }
 
     private static String compileFunctionSegmentValue(final String input) {
+        final var strip = input.strip();
+        if (strip.startsWith("return ")) {
+            final var value = strip.substring("return ".length());
+            return "return " + Main.compileValue(value);
+        }
+
         final var valueSeparator = input.indexOf('=');
         if (0 <= valueSeparator) {
             final var destination = input.substring(0, valueSeparator);

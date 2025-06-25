@@ -232,6 +232,12 @@ class Main {
     }
 
     private static String compileFunctionSegmentValue(final String input) {
+        final var strip = input.strip();
+        if (strip.startsWith("return ")) {
+            final var value = strip.substring("return ".length());
+            return "return " + Main.compileValue(value);
+        }
+
         final var valueSeparator = input.indexOf('=');
         if (0 <= valueSeparator) {
             final var destination = input.substring(0, valueSeparator);

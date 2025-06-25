@@ -14,40 +14,40 @@
 	return this;
 }
 /*public static */struct State empty_MutableState() {
-	/*return new MutableState(Lists.empty())*/;
+	return /*new MutableState(Lists*/.empty());
 }
 /*@Override
     public */struct State append_MutableState(/*final */struct char c) {
 	this.buffer = this.buffer + c;
-	/*return this*/;
+	return this;
 }
 /*@Override
     public */struct State advance_MutableState() {
 	this.segments = this.segments.add(this.buffer);
 	this.buffer = "";
-	/*return this*/;
+	return this;
 }
 /*@Override
     public */struct ListLike_char_ptr unwrap_MutableState() {
-	/*return this.segments*/;
+	return this.segments;
 }
 /*@Override
     public */struct boolean isLevel_MutableState() {
-	/*return 0 */ = /*= this*/.depth;
+	return /*0 == this*/.depth;
 }
 /*@Override
     public */struct State enter_MutableState() {
 	/*this.depth++*/;
-	/*return this*/;
+	return this;
 }
 /*@Override
     public */struct State exit_MutableState() {
 	/*this.depth--*/;
-	/*return this*/;
+	return this;
 }
 /*@Override
     public */struct boolean isShallow_MutableState() {
-	/*return 1 */ = /*= this*/.depth;
+	return /*1 == this*/.depth;
 }
 /*
 */
