@@ -6,20 +6,22 @@
 #include "divide/fold/ValuesFolder.h"
 #include "list/ListLike.h"
 #include "node/CDefinition.h"
+#include "node/CHeader.h"
 #include "node/Caller.h"
 #include "node/ConstructionHeader.h"
 #include "node/Constructor.h"
 #include "node/DataAccess.h"
 #include "node/GenericType.h"
-#include "node/Header.h"
 #include "node/Invokable.h"
 #include "node/JavaDefinition.h"
+#include "node/JavaHeader.h"
 #include "node/JavaPrimitive.h"
 #include "node/JavaStringType.h"
 #include "node/JavaType.h"
 #include "node/NumberNode.h"
 #include "node/Placeholder.h"
 #include "node/StringNode.h"
+#include "node/Struct.h"
 #include "node/Symbol.h"
 #include "node/Value.h"
 #include "../java/io/IOException.h"
@@ -237,23 +239,27 @@
         return Optional.of(new Tuple<>("", node.generate()));
     }
 
-    private static FunctionNode attachHeader(final String structureName, final Header header, final String compiledContent, final String compiledParams) {
+    private static CFunction attachHeader(final String structureName, final JavaHeader header, final String compiledContent, final String compiledParams) {
         return switch (header) {
             case final Constructor constructor -> {
                 final String outputContent = Strings.LINE_SEPARATOR + "\tstruct " + constructor.name() + " this;" + compiledContent + Strings.LINE_SEPARATOR + "\treturn this;";
-                yield new FunctionNode(header, compiledParams, outputContent);
+                yield new CFunction(new CDefinition(constructor.beforeName(),
+                        new Struct(constructor.name()),
+                        "new_" + constructor.name()), compiledParams, outputContent);
             }
-            case final CDefinition definition -> {
-                final Header newHeader = definition.mapName(name -> name + "_" + structureName);
-                yield new FunctionNode(newHeader, compiledParams, compiledContent);
+            case final JavaDefinition definition -> {
+                final CHeader newHeader = definition.toCDefinition("_" + structureName);
+                yield new CFunction(newHeader, compiledParams, compiledContent);
             }
-            default -> new FunctionNode(header, compiledParams, compiledContent);
+            case final Placeholder placeholder -> {
+                yield new CFunction(placeholder, compiledParams, compiledContent);
+            }
         };
     }
 
-    private static Header compileHeader(final String beforeParams) {
-        return Main.parseDefinition(beforeParams).map(JavaDefinition::toCDefinition)
-                .<Header>map(value -> value)
+    private static JavaHeader compileHeader(final String beforeParams) {
+        return Main.parseDefinition(beforeParams)
+                .<JavaHeader>map(value -> value)
                 .or(() -> Main.compileConstructor(beforeParams))
                 .orElseGet((() -> new Placeholder(beforeParams)));
     }
@@ -394,8 +400,9 @@
         if (input.isEmpty())
             return "";
 
-        return Main.parseDefinition(input).map(JavaDefinition::toCDefinition)
-                .map(CDefinition::generate)
+        return Main.parseDefinition(input)
+                .map(JavaDefinition::toCDefinition)
+                .map(CHeader::generate)
                 .orElseGet(() -> Placeholder.generate(input));
     }
 
@@ -405,8 +412,9 @@
             return Optional.empty();
 
         final var substring = strip.substring(0, strip.length() - ";".length());
-        return Main.parseDefinition(substring).map(JavaDefinition::toCDefinition)
-                .map(CDefinition::generate)
+        return Main.parseDefinition(substring)
+                .map(JavaDefinition::toCDefinition)
+                .map(CHeader::generate)
                 .map(content -> new Tuple<>(Strings.LINE_SEPARATOR + "\t" + content + ";", ""));
     }
 

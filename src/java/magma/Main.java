@@ -7,20 +7,22 @@ import magma.divide.fold.StatementFolder;
 import magma.divide.fold.ValuesFolder;
 import magma.list.ListLike;
 import magma.node.CDefinition;
+import magma.node.CHeader;
 import magma.node.Caller;
 import magma.node.ConstructionHeader;
 import magma.node.Constructor;
 import magma.node.DataAccess;
 import magma.node.GenericType;
-import magma.node.Header;
 import magma.node.Invokable;
 import magma.node.JavaDefinition;
+import magma.node.JavaHeader;
 import magma.node.JavaPrimitive;
 import magma.node.JavaStringType;
 import magma.node.JavaType;
 import magma.node.NumberNode;
 import magma.node.Placeholder;
 import magma.node.StringNode;
+import magma.node.Struct;
 import magma.node.Symbol;
 import magma.node.Value;
 
@@ -249,24 +251,27 @@ class Main {
         return Optional.of(new Tuple<>("", node.generate()));
     }
 
-    private static FunctionNode attachHeader(final String structureName, final Header header, final String compiledContent, final String compiledParams) {
+    private static CFunction attachHeader(final String structureName, final JavaHeader header, final String compiledContent, final String compiledParams) {
         return switch (header) {
             case final Constructor constructor -> {
                 final String outputContent = Strings.LINE_SEPARATOR + "\tstruct " + constructor.name() + " this;" + compiledContent + Strings.LINE_SEPARATOR + "\treturn this;";
-                yield new FunctionNode(header, compiledParams, outputContent);
+                yield new CFunction(new CDefinition(constructor.beforeName(),
+                        new Struct(constructor.name()),
+                        "new_" + constructor.name()), compiledParams, outputContent);
             }
-            case final CDefinition definition -> {
-                final Header newHeader = definition.mapName(name -> name + "_" + structureName);
-                yield new FunctionNode(newHeader, compiledParams, compiledContent);
+            case final JavaDefinition definition -> {
+                final CHeader newHeader = definition.toCDefinition("_" + structureName);
+                yield new CFunction(newHeader, compiledParams, compiledContent);
             }
-            default -> new FunctionNode(header, compiledParams, compiledContent);
+            case final Placeholder placeholder -> {
+                yield new CFunction(placeholder, compiledParams, compiledContent);
+            }
         };
     }
 
-    private static Header compileHeader(final String beforeParams) {
+    private static JavaHeader compileHeader(final String beforeParams) {
         return Main.parseDefinition(beforeParams)
-                .map(JavaDefinition::toCDefinition)
-                .<Header>map(value -> value)
+                .<JavaHeader>map(value -> value)
                 .or(() -> Main.compileConstructor(beforeParams))
                 .orElseGet((() -> new Placeholder(beforeParams)));
     }
@@ -408,7 +413,7 @@ class Main {
 
         return Main.parseDefinition(input)
                 .map(JavaDefinition::toCDefinition)
-                .map(CDefinition::generate)
+                .map(CHeader::generate)
                 .orElseGet(() -> Placeholder.generate(input));
     }
 
@@ -420,7 +425,7 @@ class Main {
         final var substring = strip.substring(0, strip.length() - ";".length());
         return Main.parseDefinition(substring)
                 .map(JavaDefinition::toCDefinition)
-                .map(CDefinition::generate)
+                .map(CHeader::generate)
                 .map(content -> new Tuple<>(Strings.LINE_SEPARATOR + "\t" + content + ";", ""));
     }
 
