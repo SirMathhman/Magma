@@ -3,29 +3,29 @@
 };
 /*
     private ListLike<String> segments;
-    private StringBuilder buffer;
+    private String buffer;
     private int depth;
 
-    private MutableState(final ListLike<String> segments, final StringBuilder buffer, final int depth) {
+    private MutableState(final ListLike<String> segments, final String buffer, final int depth) {
         this.segments = segments;
         this.buffer = buffer;
         this.depth = depth;
     }
 
     MutableState() {
-        this(Lists.empty(), new StringBuilder(), 0);
+        this(Lists.empty(), "", 0);
     }
 
     @Override
     public State append(final char c) {
-        buffer.append(c);
+        buffer = buffer + c;
         return this;
     }
 
     @Override
     public State advance() {
-        segments = segments.add(buffer.toString());
-        buffer = new StringBuilder();
+        segments = segments.add(buffer);
+        buffer = "";
         return this;
     }
 
