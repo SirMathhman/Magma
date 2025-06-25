@@ -75,7 +75,7 @@ public class Main {
     }
 
     private static List<String> divide(final CharSequence input) {
-        final MutableState mutableState = new State();
+        final State mutableState = new MutableState();
         final var length = input.length();
         var current = mutableState;
         for (var i = 0; i < length; i++) {
@@ -87,10 +87,14 @@ public class Main {
                 .unwrap();
     }
 
-    private static MutableState fold(final MutableState mutableState, final char c) {
+    private static State fold(final State mutableState, final char c) {
         final var appended = mutableState.append(c);
-        if (';' == c)
+        if (';' == c && appended.isLevel())
             return appended.advance();
+        if ('{' == c)
+            return appended.enter();
+        if ('}' == c)
+            return appended.exit();
         return appended;
     }
 

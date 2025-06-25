@@ -1,37 +1,17 @@
 package magma;
 
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
-public class State implements MutableState {
-    private final List<String> segments;
-    private StringBuilder buffer;
+public interface State {
+    State append(char c);
 
-    private State(final List<String> segments, final StringBuilder buffer) {
-        this.segments = new ArrayList<>(segments);
-        this.buffer = buffer;
-    }
+    State advance();
 
-    State() {
-        this(new ArrayList<>(), new StringBuilder());
-    }
+    List<String> unwrap();
 
-    @Override
-    public MutableState append(final char c) {
-        buffer.append(c);
-        return this;
-    }
+    boolean isLevel();
 
-    @Override
-    public MutableState advance() {
-        segments.add(buffer.toString());
-        buffer = new StringBuilder();
-        return this;
-    }
+    State enter();
 
-    @Override
-    public List<String> unwrap() {
-        return Collections.unmodifiableList(segments);
-    }
+    State exit();
 }
