@@ -116,17 +116,27 @@ public class Main {
         final var name = 0 <= implementsIndex ? afterKeyword.substring(0, implementsIndex)
                 .strip() : afterKeyword;
 
-        final var compiled = Main.compileStatements(content, Main::compileClassSegment);
-        return Optional.of(Placeholder.generatePlaceholder(beforeKeyword) + "struct " + name + " {" + compiled + "};" + Main.SEPARATOR);
+        final var segments = Main.divide(content);
+
+        final var output = new StringBuilder();
+        final var other = new StringBuilder();
+
+        for (final var segment : segments) {
+            final var compiled = Main.compileClassSegment(segment);
+            output.append(compiled.left());
+            other.append(compiled.right());
+        }
+
+        return Optional.of(Placeholder.generatePlaceholder(beforeKeyword) + "struct " + name + " {" + output + "};" + Main.SEPARATOR + other);
     }
 
-    private static String compileClassSegment(final String input) {
-        return Main.compileDefinition(input)
+    private static Tuple<String, String> compileClassSegment(final String input) {
+        return Main.compileField(input)
                 .or(() -> Main.compileMethod(input))
-                .orElseGet(() -> Placeholder.generatePlaceholder(input));
+                .orElseGet(() -> new Tuple<>(Placeholder.generatePlaceholder(input), ""));
     }
 
-    private static Optional<String> compileMethod(final String input) {
+    private static Optional<Tuple<String, String>> compileMethod(final String input) {
         final var strip = input.strip();
         if (strip.endsWith("}")) {
             final var withoutEnd = strip.substring(0, strip.length() - "}".length());
@@ -149,8 +159,9 @@ public class Main {
                             final var name = beforeParams.substring(nameSeparator + " ".length())
                                     .strip();
 
-                            return Optional.of(Main.SEPARATOR + "\t" + Placeholder.generatePlaceholder(beforeName) + " new_" + name + "(" + Placeholder.generatePlaceholder(
-                                    params) + ") {" + Placeholder.generatePlaceholder(content) + "}");
+                            return Optional.of(new Tuple<>("",
+                                    Placeholder.generatePlaceholder(beforeName) + " new_" + name + "(" + Placeholder.generatePlaceholder(
+                                            params) + ") {" + Placeholder.generatePlaceholder(content) + "}" + Main.SEPARATOR));
                         }
                     }
                 }
@@ -160,7 +171,7 @@ public class Main {
         return Optional.empty();
     }
 
-    private static Optional<String> compileDefinition(final String input) {
+    private static Optional<Tuple<String, String>> compileField(final String input) {
         final var strip = input.strip();
         if (strip.isEmpty() || ';' != strip.charAt(strip.length() - 1))
             return Optional.empty();
@@ -180,9 +191,9 @@ public class Main {
 
         final var beforeType = beforeName.substring(0, typeSeparator);
         final var inputType = beforeName.substring(typeSeparator + " ".length());
-        return Optional.of(Main.SEPARATOR + "\t" + Placeholder.generatePlaceholder(beforeType + " ") + Main.compileType(
+        return Optional.of(new Tuple<>(Main.SEPARATOR + "\t" + Placeholder.generatePlaceholder(beforeType + " ") + Main.compileType(
                         inputType)
-                .generate() + " " + name + ";");
+                .generate() + " " + name + ";", ""));
     }
 
     private static CType compileType(final String input) {

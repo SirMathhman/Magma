@@ -1,6 +1,7 @@
 package magma;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.stream.Stream;
 
@@ -18,5 +19,10 @@ public record JavaList<Value>(List<Value> list) implements ListLike<Value> {
     @Override
     public Stream<Value> stream() {
         return list.stream();
+    }
+
+    @Override
+    public Iterator<Value> iterator() {
+        return list.iterator();
     }
 }

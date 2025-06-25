@@ -14,23 +14,7 @@
 /*import java.util.function.Function;*/
 /*import java.util.stream.Collectors;*/
 /*public */struct Main {
-	/*private static final String SEPARATOR *//*=*/ System.lineSeparator();
-	/*private*/ new_Main(/**/) {/*
-    */}
-	/*public static void*/ new_main(/*final String[] args*/) {/*
-        final var rootDirectory = Paths.get(".", "src", "java");
-        try (final var stream = Files.walk(rootDirectory)) {
-            final var sources = stream.filter(Files::isRegularFile)
-                    .filter(file -> file.toString()
-                            .endsWith(".java"))
-                    .toList();
-
-            Main.runWithSources(rootDirectory, sources);
-        } catch (final IOException e) {
-            //noinspection CallToPrintStackTrace
-            e.printStackTrace();
-        }
-    */}/*
+	/*private static final String SEPARATOR *//*=*/ System.lineSeparator();/*
 
     private static void runWithSources(final Path rootDirectory, final Iterable<Path> sources) throws IOException {
         for (final var source : sources)
@@ -64,16 +48,36 @@
 
         Files.writeString(targetParent.resolve(name + ".h"), headerContent);
     }*/
-	/*private static String*/ new_compileRoot(/*final CharSequence input*/) {/*
+	/*' == stripped.charAt(stripped.length() - 1)))
+            *//*return*/ Optional.empty();/*
+
+        final var withoutEnd = stripped.substring(0, stripped.length() - "*/};
+/*private*/ new_Main(/**/) {/*
+    */}
+/*public static void*/ new_main(/*final String[] args*/) {/*
+        final var rootDirectory = Paths.get(".", "src", "java");
+        try (final var stream = Files.walk(rootDirectory)) {
+            final var sources = stream.filter(Files::isRegularFile)
+                    .filter(file -> file.toString()
+                            .endsWith(".java"))
+                    .toList();
+
+            Main.runWithSources(rootDirectory, sources);
+        } catch (final IOException e) {
+            //noinspection CallToPrintStackTrace
+            e.printStackTrace();
+        }
+    */}
+/*private static String*/ new_compileRoot(/*final CharSequence input*/) {/*
         return Main.compileStatements(input, Main::compileRootSegment);
     */}
-	/*private static String*/ new_compileStatements(/*final CharSequence input, final Function<String, String> mapper*/) {/*
+/*private static String*/ new_compileStatements(/*final CharSequence input, final Function<String, String> mapper*/) {/*
         return Main.divide(input)
                 .stream()
                 .map(mapper)
                 .collect(Collectors.joining());
     */}
-	/*private static String*/ new_compileRootSegment(/*final String input*/) {/*
+/*private static String*/ new_compileRootSegment(/*final String input*/) {/*
         final var stripped = input.strip();
         if (stripped.startsWith("package "))
             return "";
@@ -84,12 +88,8 @@
         return Main.compileStructure(stripped)
                 .orElseGet(() -> Placeholder.generatePlaceholder(input));
     */}
-	/*private static Optional<String>*/ new_compileStructure(/*final String stripped*/) {/*
+/*private static Optional<String>*/ new_compileStructure(/*final String stripped*/) {/*
         if (!(!stripped.isEmpty() && '*/}
-	/*' == stripped.charAt(stripped.length() - 1)))
-            *//*return*/ Optional.empty();/*
-
-        final var withoutEnd = stripped.substring(0, stripped.length() - "*/};
 /*".length());*//*
         final var contentStart = withoutEnd.indexOf('{');
         if (0 > contentStart)
@@ -109,17 +109,27 @@
         final var name = 0 <= implementsIndex ? afterKeyword.substring(0, implementsIndex)
                 .strip() : afterKeyword;
 
-        final var compiled = Main.compileStatements(content, Main::compileClassSegment);
-        return Optional.of(Placeholder.generatePlaceholder(beforeKeyword) + "struct " + name + " {" + compiled + "};" + Main.SEPARATOR);
+        final var segments = Main.divide(content);
+
+        final var output = new StringBuilder();
+        final var other = new StringBuilder();
+
+        for (final var segment : segments) {
+            final var compiled = Main.compileClassSegment(segment);
+            output.append(compiled.left());
+            other.append(compiled.right());
+        }
+
+        return Optional.of(Placeholder.generatePlaceholder(beforeKeyword) + "struct " + name + " {" + output + "};" + Main.SEPARATOR + other);
     }
 
-    private static String compileClassSegment(final String input) {
-        return Main.compileDefinition(input)
+    private static Tuple<String, String> compileClassSegment(final String input) {
+        return Main.compileField(input)
                 .or(() -> Main.compileMethod(input))
-                .orElseGet(() -> Placeholder.generatePlaceholder(input));
+                .orElseGet(() -> new Tuple<>(Placeholder.generatePlaceholder(input), ""));
     }
 
-    private static Optional<String> compileMethod(final String input) {
+    private static Optional<Tuple<String, String>> compileMethod(final String input) {
         final var strip = input.strip();
         if (strip.endsWith("}")) {
             final var withoutEnd = strip.substring(0, strip.length() - "}".length());
@@ -142,8 +152,9 @@
                             final var name = beforeParams.substring(nameSeparator + " ".length())
                                     .strip();
 
-                            return Optional.of(Main.SEPARATOR + "\t" + Placeholder.generatePlaceholder(beforeName) + " new_" + name + "(" + Placeholder.generatePlaceholder(
-                                    params) + ") {" + Placeholder.generatePlaceholder(content) + "}");
+                            return Optional.of(new Tuple<>("",
+                                    Placeholder.generatePlaceholder(beforeName) + " new_" + name + "(" + Placeholder.generatePlaceholder(
+                                            params) + ") {" + Placeholder.generatePlaceholder(content) + "}" + Main.SEPARATOR));
                         }
                     }
                 }
@@ -153,7 +164,7 @@
         return Optional.empty();
     }
 
-    private static Optional<String> compileDefinition(final String input) {
+    private static Optional<Tuple<String, String>> compileField(final String input) {
         final var strip = input.strip();
         if (strip.isEmpty() || ';' != strip.charAt(strip.length() - 1))
             return Optional.empty();
@@ -173,9 +184,9 @@
 
         final var beforeType = beforeName.substring(0, typeSeparator);
         final var inputType = beforeName.substring(typeSeparator + " ".length());
-        return Optional.of(Main.SEPARATOR + "\t" + Placeholder.generatePlaceholder(beforeType + " ") + Main.compileType(
+        return Optional.of(new Tuple<>(Main.SEPARATOR + "\t" + Placeholder.generatePlaceholder(beforeType + " ") + Main.compileType(
                         inputType)
-                .generate() + " " + name + ";");
+                .generate() + " " + name + ";", ""));
     }
 
     private static CType compileType(final String input) {
