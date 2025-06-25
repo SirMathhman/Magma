@@ -67,19 +67,24 @@ public class Main {
         Files.writeString(targetParent.resolve(name + ".h"), headerContent);*//*
     }
 
-    private static ArrayList<String> divide(final String input) {
-        final var segments = new ArrayList<String>();*//*
-        var buffer = new StringBuilder();*//*
-        for (var i = 0;*//* i < input.length();*//* i++) {
+    private static List<String> divide(final CharSequence input) {
+        final MutableState mutableState = new State();*//*
+        final var length = input.length();*//*
+        var current = mutableState;*//*
+        for (var i = 0;*//* i < length;*//* i++) {
             final var c = input.charAt(i);*//*
-            buffer.append(c);*//*
-            if (';*//*' == c) {
-                segments.add(buffer.toString());*//*
-                buffer = new StringBuilder();*//*
-            }
+            current = Main.fold(current, c);*//*
         }
-        segments.add(buffer.toString());*//*
-        return segments;*//*
+
+        return current.advance()
+                .unwrap();*//*
+    }
+
+    private static MutableState fold(final MutableState mutableState, final char c) {
+        final var appended = mutableState.append(c);*//*
+        if (';*//*' == c)
+            return appended.advance();*//*
+        return appended;*//*
     }
 
     private static String generatePlaceholder(final String input) {
