@@ -4,10 +4,10 @@
 #include "../../java/util/List.h"
 /*
 
-public record JavaMethod(JavaHeader header, List<JavaParameter> parameters, String compiledContent) implements JavaClassSegment {
+public record JavaMethod(JavaHeader header, List<JavaParameter> parameters, String compiledContent) implements
+        JavaClassSegment {
     public CFunction toCFunction(final String structureName) {
-        final var newParameters = this.parameters
-                .stream()
+        final var newParameters = this.parameters.stream()
                 .map(JavaParameter::toCParameter)
                 .toList();
 
@@ -15,8 +15,7 @@ public record JavaMethod(JavaHeader header, List<JavaParameter> parameters, Stri
             case final Constructor constructor -> {
                 final String outputContent = Strings.LINE_SEPARATOR + "\tstruct " + constructor.name() + " this;" + this.compiledContent + Strings.LINE_SEPARATOR + "\treturn this;";
                 yield new CFunction(new CDefinition(constructor.beforeName(),
-                        new Struct(constructor.name()),
-                        "new_" + constructor.name()), newParameters, outputContent);
+                        new Struct(constructor.name()), "new_" + constructor.name()), newParameters, outputContent);
             }
             case final JavaDefinition definition -> {
                 final CHeader newHeader = definition.toCDefinition("_" + structureName);

@@ -1,7 +1,9 @@
 #include "JavaDefinition.h"
 /*
 
-public record JavaDefinition(String beforeType, JavaType type, String name) implements JavaHeader, JavaClassSegment, JavaParameter {
+public record JavaDefinition(String beforeType, JavaType type, String name) implements JavaHeader,
+        JavaClassSegment,
+        JavaParameter {
     public CDefinition toCDefinition() {
         return this.toCDefinition("");
     }
@@ -17,6 +19,6 @@ public record JavaDefinition(String beforeType, JavaType type, String name) impl
 
     @Override
     public CParameter toCParameter() {
-        return toCDefinition();
+        return this.toCDefinition();
     }
 }*//**/

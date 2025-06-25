@@ -226,13 +226,10 @@ class Main {
                 .orElseGet(() -> new Placeholder(input));
 
         return switch (node) {
-            case final JavaDefinition javaDefinition -> {
-                yield new Tuple<>(Strings.LINE_SEPARATOR + "\t" + javaDefinition.toCDefinition()
-                        .generate() + ";", Optional.empty());
-            }
-            case final JavaMethod method -> {
-                yield new Tuple<>("", Optional.of(method));
-            }
+            case final JavaDefinition javaDefinition ->
+                    new Tuple<>(Strings.LINE_SEPARATOR + "\t" + javaDefinition.toCDefinition()
+                            .generate() + ";", Optional.empty());
+            case final JavaMethod method -> new Tuple<>("", Optional.of(method));
             case final Placeholder placeholder -> new Tuple<>(placeholder.generate(), Optional.empty());
         };
     }
@@ -311,7 +308,7 @@ class Main {
         final var strip = input.strip();
         if (strip.startsWith("return ")) {
             final var value = strip.substring("return ".length());
-            return "return " + Main.parseValue(value, imports, methods)
+            return "return " + Main.parseValue(value, imports, methods, Optional.empty())
                     .generate();
         }
 
@@ -319,16 +316,16 @@ class Main {
         if (0 <= valueSeparator) {
             final var destination = input.substring(0, valueSeparator);
             final var source = input.substring(valueSeparator + "=".length());
-            return Main.parseValue(destination, imports, methods)
-                    .generate() + " = " + Main.parseValue(source, imports, methods)
+            return Main.parseValue(destination, imports, methods, Optional.empty())
+                    .generate() + " = " + Main.parseValue(source, imports, methods, Optional.empty())
                     .generate();
         }
 
         return Placeholder.generate(input);
     }
 
-    private static Value parseValue(final String input, final List<String> imports, final List<JavaMethod> methods) {
-        final var compiledInvokable = Main.compileInvokable(input, imports, methods);
+    private static Value parseValue(final String input, final List<String> imports, final List<JavaMethod> methods, final Optional<JavaType> expectedType) {
+        final var compiledInvokable = Main.compileInvokable(input, imports, methods, expectedType);
         if (compiledInvokable.isPresent())
             return compiledInvokable.get();
 
@@ -339,7 +336,7 @@ class Main {
             final var property = input.substring(separator + ".".length())
                     .strip();
             if (Main.isSymbol(property)) {
-                final var child = Main.parseValue(childString, imports, methods);
+                final var child = Main.parseValue(childString, imports, methods, expectedType);
                 if (child instanceof Symbol(final var callerValue))
                     if (imports.contains(callerValue))
                         return new Symbol(property + "_" + callerValue);
@@ -360,7 +357,7 @@ class Main {
         return new Placeholder(input);
     }
 
-    private static Optional<Value> compileInvokable(final String input, final List<String> imports, final List<JavaMethod> methods) {
+    private static Optional<Value> compileInvokable(final String input, final List<String> imports, final List<JavaMethod> methods, final Optional<JavaType> expectedType) {
         final var strip = input.strip();
         if (strip.isEmpty() || ')' != strip.charAt(strip.length() - 1))
             return Optional.empty();
@@ -372,24 +369,42 @@ class Main {
 
         final var callerString = withoutEnd.substring(0, argumentsStart);
         final var argumentsString = withoutEnd.substring(argumentsStart + "(".length());
-        return Main.parseCaller(callerString, imports, methods)
+
+        /*
+        Parse and get type of caller, which should be functional.
+        Get return type of functional.
+        Apply template of return type to expected type, creating type argument map.
+        Match type argument map with caller type.
+        Rename caller if symbol.
+         */
+        return Main.parseCaller(callerString, imports, methods, Optional.empty())
                 .map(caller -> {
-                    final var argument = Main.parseValue(argumentsString, imports, methods);
-                    if (caller instanceof ConstructionHeader) {
-                        final var maybeMethod = methods.stream()
-                                .filter(method -> method.isNamed("new"))
-                                .findFirst();
-
-                        if (maybeMethod.isPresent()) {
-                            final var method = maybeMethod.get();
-                        }
-                    }
-
+                    final var argument = Main.parseArgument(imports, methods, caller, argumentsString);
                     return new Invokable(caller, argument);
                 });
     }
 
-    private static Optional<Caller> parseCaller(final String input, final List<String> imports, final List<JavaMethod> methods) {
+    private static Value parseArgument(final List<String> imports, final List<JavaMethod> methods, final Caller caller, final String argumentsString) {
+        if (caller instanceof ConstructionHeader) {
+            final var maybeMethod = methods.stream()
+                    .filter(method -> method.isNamed("new"))
+                    .findFirst();
+
+            if (maybeMethod.isPresent()) {
+                final var method = maybeMethod.get();
+                final var first = method.parameters()
+                        .getFirst();
+                if (first instanceof final JavaDefinition definition) {
+                    final var expectedType = Optional.of(definition.type());
+                    return Main.parseValue(argumentsString, imports, methods, expectedType);
+                }
+            }
+        }
+
+        return Main.parseValue(argumentsString, imports, methods, Optional.empty());
+    }
+
+    private static Optional<Caller> parseCaller(final String input, final List<String> imports, final List<JavaMethod> methods, final Optional<JavaType> expectedType) {
         final var strip = input.strip();
         if (strip.startsWith("new ")) {
             final var type = strip.substring("new ".length());
@@ -397,7 +412,7 @@ class Main {
             return Optional.of(new ConstructionHeader(generatedType));
         }
 
-        return Optional.of(Main.parseValue(input, imports, methods));
+        return Optional.of(Main.parseValue(input, imports, methods, expectedType));
     }
 
     private static boolean isNumber(final CharSequence input) {
