@@ -12,7 +12,7 @@
         return appended;*//*
     */};
 /*@Override
-    public */struct State fold(/*final */struct State state, /*final */struct char c) {
+    public */struct State fold_StatementFolder(/*final */struct State state, /*final */struct char c) {
 	/*final var appended */ = state.append(c);
 	/*if ('*/;
 	/*' */ = /*= c && appended*/.isLevel())

@@ -133,7 +133,7 @@ class Main {
         final var other = new StringBuilder();
 
         for (final var segment : segments) {
-            final var compiled = Main.compileClassSegment(segment);
+            final var compiled = Main.compileClassSegment(segment, name);
             output.append(compiled.left());
             other.append(compiled.right());
         }
@@ -141,13 +141,13 @@ class Main {
         return Optional.of(Placeholder.generate(beforeKeyword) + "struct " + name + " {" + output + "};" + Main.SEPARATOR + other);
     }
 
-    private static Tuple<String, String> compileClassSegment(final String input) {
+    private static Tuple<String, String> compileClassSegment(final String input, final String structureName) {
         return Main.compileField(input)
-                .or(() -> Main.compileMethod(input))
+                .or(() -> Main.compileMethod(input, structureName))
                 .orElseGet(() -> new Tuple<>(Placeholder.generate(input), ""));
     }
 
-    private static Optional<Tuple<String, String>> compileMethod(final String input) {
+    private static Optional<Tuple<String, String>> compileMethod(final String input, final String structureName) {
         final var strip = input.strip();
         if (strip.isEmpty() || '}' != strip.charAt(strip.length() - 1))
             return Optional.empty();
@@ -172,20 +172,33 @@ class Main {
         final var inputParams = withoutParamEnd.substring(paramStart + "(".length());
         final var outputParams = Main.compileAll(inputParams, new ValuesFolder(), Main::compileParameter, ", ");
 
-        final var outputDefinition = Main.compileDefinition(beforeParams)
-                .<Header>map(value -> value)
-                .or(() -> Main.compileConstructor(beforeParams))
-                .orElseGet((() -> new Placeholder(beforeContent)));
-
+        final var oldHeader = Main.compileHeader(beforeParams);
         final var compiled = Main.compileStatements(content, Main::compileFunctionSegment);
+
+        final Header newHeader;
         final String outputContent;
-        if (outputDefinition instanceof final Constructor constructor)
+        if (oldHeader instanceof final Constructor constructor) {
             outputContent = Main.SEPARATOR + "\tstruct " + constructor.name() + " this;" + compiled + Main.SEPARATOR + "\treturn this;";
-        else
+            newHeader = oldHeader;
+        }
+        else if (oldHeader instanceof final Definition definition) {
             outputContent = compiled;
+            newHeader = definition.mapName(name -> name + "_" + structureName);
+        }
+        else {
+            outputContent = compiled;
+            newHeader = oldHeader;
+        }
 
         return Optional.of(new Tuple<>("",
-                outputDefinition.generate() + "(" + outputParams + ") {" + outputContent + Main.SEPARATOR + "}" + Main.SEPARATOR));
+                newHeader.generate() + "(" + outputParams + ") {" + outputContent + Main.SEPARATOR + "}" + Main.SEPARATOR));
+    }
+
+    private static Header compileHeader(final String beforeParams) {
+        return Main.compileDefinition(beforeParams)
+                .<Header>map(value -> value)
+                .or(() -> Main.compileConstructor(beforeParams))
+                .orElseGet((() -> new Placeholder(beforeParams)));
     }
 
     private static Optional<Constructor> compileConstructor(final String input) {

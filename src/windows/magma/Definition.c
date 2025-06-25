@@ -1,6 +1,7 @@
 #include "Definition.h"
 /*import magma.type.CType;*/
 /*import magma.type.Placeholder;*/
+/*import java.util.function.Function;*/
 /*
 
 public record Definition(String beforeType, CType type, String name) implements Header {
@@ -8,5 +9,9 @@ public record Definition(String beforeType, CType type, String name) implements 
     public String generate() {
         return Placeholder.generate(this.beforeType() + " ") + this.type()
                 .generate() + " " + this.name();
+    }
+
+    public Definition mapName(final Function<String, String> mapper) {
+        return new Definition(this.beforeType, this.type, mapper.apply(this.name));
     }
 }*//**/

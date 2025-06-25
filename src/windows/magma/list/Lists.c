@@ -5,7 +5,7 @@
 	struct Lists this;
 	return this;
 }
-/*public static <Value> */struct ListLike_Value empty() {
+/*public static <Value> */struct ListLike_Value empty_Lists() {
 	/*return new JavaList<>()*/;
 }
 /*
