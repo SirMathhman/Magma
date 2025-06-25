@@ -110,13 +110,18 @@ public class Main {
         final var name = 0 <= implementsIndex ? afterKeyword.substring(0, implementsIndex)
                 .strip() : afterKeyword;
 
-        return Optional.of(Main.generatePlaceholder(beforeKeyword) + "struct " + name + " {" + Main.SEPARATOR + "};" + Main.SEPARATOR + Main.compileStatements(
-                content,
-                Main::compileClassSegment));
+        final var compiled = Main.compileStatements(content, Main::compileClassSegment);
+        return Optional.of(Main.generatePlaceholder(beforeKeyword) + "struct " + name + " {" + compiled + "};" + Main.SEPARATOR);
 
     }
 
     private static String compileClassSegment(final String input) {
+        final var strip = input.strip();
+        if (strip.endsWith(";")) {
+            final var withoutEnd = strip.substring(0, strip.length() - ";".length());
+            return "\n\t" + Main.generatePlaceholder(withoutEnd) + ";";
+        }
+
         return Main.generatePlaceholder(input);
     }
 
