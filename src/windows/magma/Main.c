@@ -59,7 +59,6 @@
 
         final var withoutEnd = stripped.substring(0, stripped.length() - "*/};
 /*private */struct Main new_Main(/**/) {
-	/**/
 }
 /*public static void */struct main new_main(/*final *//*String[]*/ args) {
 	/*final var rootDirectory = Paths.get(".", "src", "java");*/
@@ -75,22 +74,18 @@
             //noinspection CallToPrintStackTrace
             e.printStackTrace();
         }*/
-	/**/
 }
 /*private static String */struct compileRoot new_compileRoot(/*final *//*CharSequence*/ input) {
 	/*return Main.compileStatements(input, Main::compileRootSegment);*/
-	/**/
 }
 /*private static String */struct compileStatements new_compileStatements(/*final *//*CharSequence*/ input, /* final Function<String*/, /* String> mapper*/) {
 	/*return Main.compileAll(input, new StatementFolder(), mapper, "");*/
-	/**/
 }
 /*private static String */struct compileAll new_compileAll(/*final *//*CharSequence*/ input, /*final *//*Folder*/ folder, /* final Function<String*/, /* String> mapper*/, /*final *//*CharSequence*/ delimiter) {
 	/*return Main.divide(input, folder)
                 .stream()
                 .map(mapper)
                 .collect(Collectors.joining(delimiter));*/
-	/**/
 }
 /*private static String */struct compileRootSegment new_compileRootSegment(/*final */char* input) {
 	/*final var stripped = input.strip();*/
@@ -100,7 +95,6 @@
             return Placeholder.generate(stripped) + Main.SEPARATOR;*/
 	/*return Main.compileStructure(stripped)
                 .orElseGet(() -> Placeholder.generate(input));*/
-	/**/
 }
 /*private static Optional<String> */struct compileStructure new_compileStructure(/*final */char* stripped) {
 	/*if (!(!stripped.isEmpty() && '*/
@@ -187,7 +181,11 @@
     }
 
     private static String compileFunctionSegment(final String input) {
-        return Main.SEPARATOR + "\t" + Placeholder.generate(input.strip());
+        final var strip = input.strip();
+        if ("".equals(strip))
+            return "";
+
+        return Main.SEPARATOR + "\t" + Placeholder.generate(strip);
     }
 
     private static String compileDefinitionOrPlaceholder(final String input) {

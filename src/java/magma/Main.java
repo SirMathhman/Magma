@@ -189,7 +189,11 @@ class Main {
     }
 
     private static String compileFunctionSegment(final String input) {
-        return Main.SEPARATOR + "\t" + Placeholder.generate(input.strip());
+        final var strip = input.strip();
+        if ("".equals(strip))
+            return "";
+
+        return Main.SEPARATOR + "\t" + Placeholder.generate(strip);
     }
 
     private static String compileDefinitionOrPlaceholder(final String input) {

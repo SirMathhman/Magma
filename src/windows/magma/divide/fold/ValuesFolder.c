@@ -7,7 +7,6 @@
 	/*if (',' == c)
             return state.advance();*/
 	/*return state.append(c);*/
-	/**/
 }
 /*
 */
