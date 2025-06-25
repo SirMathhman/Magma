@@ -191,9 +191,10 @@
         final List<JavaMethod> methods = new ArrayList<>();
 
         for (final var segment : segments) {
-            final var compiled = Main.compileClassSegment(segment, name, imports);
+            final var compiled = Main.compileClassSegment(segment, imports, methods);
             output.append(compiled.left());
-            compiled.right().ifPresent(methods::add);
+            compiled.right()
+                    .ifPresent(methods::add);
         }
 
         final var joined = methods.stream()
@@ -205,10 +206,10 @@
         return Optional.of(new Tuple<>(generated, Optional.empty()));
     }
 
-    private static Tuple<String, Optional<JavaMethod>> compileClassSegment(final String input, final String structureName, final List<String> imports) {
+    private static Tuple<String, Optional<JavaMethod>> compileClassSegment(final String input, final List<String> imports, List<JavaMethod> methods) {
         final var node = Main.parseField(input)
                 .<JavaClassSegment>map(field -> field)
-                .or(() -> Main.parseMethod(input, imports))
+                .or(() -> Main.parseMethod(input, imports, methods))
                 .orElseGet(() -> new Placeholder(input));
 
         return switch (node) {
@@ -223,7 +224,7 @@
         };
     }
 
-    private static Optional<JavaMethod> parseMethod(final String input, final List<String> imports) {
+    private static Optional<JavaMethod> parseMethod(final String input, final List<String> imports, List<JavaMethod> methods) {
         final var strip = input.strip();
         if (strip.isEmpty() || '}' != strip.charAt(strip.length() - 1))
             return Optional.empty();
@@ -250,7 +251,7 @@
 
         final var oldHeader = Main.compileHeader(beforeParams);
         final var compiledOutput = Main.compileStatements(content,
-                segment -> Main.compileFunctionSegment(segment, imports));
+                segment -> Main.compileFunctionSegment(segment, imports, methods));
 
         final var method = new JavaMethod(oldHeader, compiledParams, compiledOutput);
         return Optional.of(method);
@@ -277,24 +278,24 @@
         return Optional.of(new Constructor(beforeName, name));
     }
 
-    private static String compileFunctionSegment(final String input, final List<String> imports) {
+    private static String compileFunctionSegment(final String input, final List<String> imports, List<JavaMethod> methods) {
         final var strip = input.strip();
         if ("".contentEquals(strip))
             return "";
 
         if (!strip.isEmpty() && ';' == strip.charAt(strip.length() - 1)) {
             final var withoutEnd = strip.substring(0, strip.length() - ";".length());
-            return Strings.LINE_SEPARATOR + "\t" + Main.compileFunctionSegmentValue(withoutEnd, imports) + ";";
+            return Strings.LINE_SEPARATOR + "\t" + Main.compileFunctionSegmentValue(withoutEnd, imports, methods) + ";";
         }
 
         return Placeholder.generate(input);
     }
 
-    private static String compileFunctionSegmentValue(final String input, final List<String> imports) {
+    private static String compileFunctionSegmentValue(final String input, final List<String> imports, List<JavaMethod> methods) {
         final var strip = input.strip();
         if (strip.startsWith("return ")) {
             final var value = strip.substring("return ".length());
-            return "return " + Main.parseValue(value, imports)
+            return "return " + Main.parseValue(value, imports, methods)
                     .generate();
         }
 
@@ -302,16 +303,16 @@
         if (0 <= valueSeparator) {
             final var destination = input.substring(0, valueSeparator);
             final var source = input.substring(valueSeparator + "=".length());
-            return Main.parseValue(destination, imports)
-                    .generate() + " = " + Main.parseValue(source, imports)
+            return Main.parseValue(destination, imports, methods)
+                    .generate() + " = " + Main.parseValue(source, imports, methods)
                     .generate();
         }
 
         return Placeholder.generate(input);
     }
 
-    private static Value parseValue(final String input, final List<String> imports) {
-        final var compiledInvokable = Main.compileInvokable(input, imports);
+    private static Value parseValue(final String input, final List<String> imports, List<JavaMethod> methods) {
+        final var compiledInvokable = Main.compileInvokable(input, imports, methods);
         if (compiledInvokable.isPresent())
             return compiledInvokable.get();
 
@@ -322,11 +323,10 @@
             final var property = input.substring(separator + ".".length())
                     .strip();
             if (Main.isSymbol(property)) {
-                final var child = Main.parseValue(childString, imports);
+                final var child = Main.parseValue(childString, imports, methods);
                 if (child instanceof Symbol(final var callerValue))
-                    if (imports.contains(callerValue)) {
+                    if (imports.contains(callerValue))
                         return new Symbol(property + "_" + callerValue);
-                    }
 
                 return new DataAccess(child, property);
             }
@@ -344,7 +344,7 @@
         return new Placeholder(input);
     }
 
-    private static Optional<Value> compileInvokable(final String input, final List<String> imports) {
+    private static Optional<Value> compileInvokable(final String input, final List<String> imports, List<JavaMethod> methods) {
         final var strip = input.strip();
         if (strip.isEmpty() || ')' != strip.charAt(strip.length() - 1))
             return Optional.empty();
@@ -356,14 +356,14 @@
 
         final var callerString = withoutEnd.substring(0, argumentsStart);
         final var argumentsString = withoutEnd.substring(argumentsStart + "(".length());
-        return Main.parseCaller(callerString, imports)
+        return Main.parseCaller(callerString, imports, methods)
                 .map(caller -> {
-                    final var argument = Main.parseValue(argumentsString, imports);
+                    final var argument = Main.parseValue(argumentsString, imports, methods);
                     return new Invokable(caller, argument);
                 });
     }
 
-    private static Optional<Caller> parseCaller(final String input, final List<String> imports) {
+    private static Optional<Caller> parseCaller(final String input, final List<String> imports, List<JavaMethod> methods) {
         final var strip = input.strip();
         if (strip.startsWith("new ")) {
             final var type = strip.substring("new ".length());
@@ -373,7 +373,7 @@
             return Optional.of(new ConstructionHeader(generatedType));
         }
 
-        return Optional.of(Main.parseValue(input, imports));
+        return Optional.of(Main.parseValue(input, imports, methods));
     }
 
     private static boolean isNumber(final CharSequence input) {
