@@ -1,0 +1,3 @@
+#ifndef magma_divide_ValuesFolder
+#define magma_divide_ValuesFolder
+#endif
