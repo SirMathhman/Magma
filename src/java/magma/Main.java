@@ -190,7 +190,7 @@ class Main {
 
     private static String compileFunctionSegment(final String input) {
         final var strip = input.strip();
-        if ("".equals(strip))
+        if ("".contentEquals(strip))
             return "";
 
         return Main.SEPARATOR + "\t" + Placeholder.generate(strip);
