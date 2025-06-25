@@ -27,37 +27,40 @@ public class Main {
     }
 
     private static void runWithSources(final Path rootDirectory, final Iterable<Path> sources) throws IOException {
-        for (final var source : sources) {
-            final var fileName = source.getFileName()
-                    .toString();
-            final var separator = fileName.lastIndexOf('.');
-            final var name = fileName.substring(0, separator);
+        for (final var source : sources)
+            Main.runWithSource(rootDirectory, source);
+    }
 
-            final var relativeParent = rootDirectory.relativize(source.getParent());
-            final var namespace = Main.computeNamespace(relativeParent);
+    private static void runWithSource(final Path rootDirectory, final Path source) throws IOException {
+        final var fileName = source.getFileName()
+                .toString();
+        final var separator = fileName.lastIndexOf('.');
+        final var name = fileName.substring(0, separator);
 
-            final var targetParent = Paths.get(".", "src", "windows")
-                    .resolve(relativeParent);
+        final var relativeParent = rootDirectory.relativize(source.getParent());
+        final var namespace = Main.computeNamespace(relativeParent);
 
-            if (!Files.exists(targetParent))
-                Files.createDirectories(targetParent);
+        final var targetParent = Paths.get(".", "src", "windows")
+                .resolve(relativeParent);
 
-            final var input = Files.readString(source)
-                    .replace("/*", "start")
-                    .replace("*/", "end");
+        if (!Files.exists(targetParent))
+            Files.createDirectories(targetParent);
 
-            final var targetContent = "#include \"" + name + ".h\"" + System.lineSeparator() + "/*" + input + "*/";
-            Files.writeString(targetParent.resolve(name + ".c"), targetContent);
+        final var input = Files.readString(source)
+                .replace("/*", "start")
+                .replace("*/", "end");
 
-            final var joined = String.join("_", namespace);
-            final var withName = joined + "_" + name;
-            final var headerContent = String.join(System.lineSeparator(),
-                    "#ifndef " + withName,
-                    "#define " + withName,
-                    "#endif");
+        final var targetContent = "#include \"" + name + ".h\"" + System.lineSeparator() + "/*" + input + "*/";
+        Files.writeString(targetParent.resolve(name + ".c"), targetContent);
 
-            Files.writeString(targetParent.resolve(name + ".h"), headerContent);
-        }
+        final var joined = String.join("_", namespace);
+        final var withName = joined + "_" + name;
+        final var headerContent = String.join(System.lineSeparator(),
+                "#ifndef " + withName,
+                "#define " + withName,
+                "#endif");
+
+        Files.writeString(targetParent.resolve(name + ".h"), headerContent);
     }
 
     private static List<String> computeNamespace(final Path relativeParent) {
