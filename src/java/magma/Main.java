@@ -8,12 +8,20 @@ import magma.divide.fold.ValuesFolder;
 import magma.list.ListLike;
 import magma.node.CPrimitive;
 import magma.node.CType;
+import magma.node.Caller;
+import magma.node.ConstructionHeader;
 import magma.node.Constructor;
+import magma.node.DataAccess;
 import magma.node.Definition;
 import magma.node.Header;
+import magma.node.Invokable;
+import magma.node.NumberNode;
 import magma.node.Placeholder;
 import magma.node.Pointer;
+import magma.node.StringNode;
 import magma.node.Struct;
+import magma.node.Symbol;
+import magma.node.Value;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -292,20 +300,23 @@ class Main {
         final var strip = input.strip();
         if (strip.startsWith("return ")) {
             final var value = strip.substring("return ".length());
-            return "return " + Main.compileValue(value, imports);
+            return "return " + Main.parseValue(value, imports)
+                    .generate();
         }
 
         final var valueSeparator = input.indexOf('=');
         if (0 <= valueSeparator) {
             final var destination = input.substring(0, valueSeparator);
             final var source = input.substring(valueSeparator + "=".length());
-            return Main.compileValue(destination, imports) + " = " + Main.compileValue(source, imports);
+            return Main.parseValue(destination, imports)
+                    .generate() + " = " + Main.parseValue(source, imports)
+                    .generate();
         }
 
         return Placeholder.generate(input);
     }
 
-    private static String compileValue(final String input, final List<String> imports) {
+    private static Value parseValue(final String input, final List<String> imports) {
         final var compiledInvokable = Main.compileInvokable(input, imports);
         if (compiledInvokable.isPresent())
             return compiledInvokable.get();
@@ -313,26 +324,28 @@ class Main {
         final var strip = input.strip();
         final var separator = input.lastIndexOf('.');
         if (0 <= separator) {
-            final var value = input.substring(0, separator);
+            final var childString = input.substring(0, separator);
             final var property = input.substring(separator + ".".length())
                     .strip();
-            if (Main.isSymbol(property))
-                return Main.compileValue(value, imports) + "." + property;
+            if (Main.isSymbol(property)) {
+                final var child = Main.parseValue(childString, imports);
+                return new DataAccess(child, property);
+            }
         }
 
         if (Main.isSymbol(strip))
-            return strip;
+            return new Symbol(strip);
 
         if (Main.isString(strip))
-            return strip;
+            return new StringNode(strip);
 
         if (Main.isNumber(strip))
-            return strip;
+            return new NumberNode(strip);
 
-        return Placeholder.generate(input);
+        return new Placeholder(input);
     }
 
-    private static Optional<String> compileInvokable(final String input, final List<String> imports) {
+    private static Optional<Value> compileInvokable(final String input, final List<String> imports) {
         final var strip = input.strip();
         if (strip.isEmpty() || ')' != strip.charAt(strip.length() - 1))
             return Optional.empty();
@@ -343,22 +356,24 @@ class Main {
             return Optional.empty();
 
         final var callerString = withoutEnd.substring(0, argumentsStart);
-        final var arguments = withoutEnd.substring(argumentsStart + "(".length());
-        return Main.compileCaller(callerString, imports)
-                .map(compiledCaller -> compiledCaller + "(" + Main.compileValue(arguments, imports) + ")");
+        final var argumentsString = withoutEnd.substring(argumentsStart + "(".length());
+        return Main.parseCaller(callerString, imports)
+                .map(compiledCaller -> {
+                    final var argument = Main.parseValue(argumentsString, imports);
+                    return new Invokable(compiledCaller, argument);
+                });
     }
 
-    private static Optional<String> compileCaller(final String input, final List<String> imports) {
+    private static Optional<Caller> parseCaller(final String input, final List<String> imports) {
         final var strip = input.strip();
         if (strip.startsWith("new ")) {
             final var type = strip.substring("new ".length());
-            final var generatedType = Main.parseType(type)
-                    .generateSymbol();
+            final var generatedType = Main.parseType(type);
 
-            return Optional.of("new_" + generatedType);
+            return Optional.of(new ConstructionHeader(generatedType));
         }
 
-        return Optional.of(Main.compileValue(input, imports));
+        return Optional.of(Main.parseValue(input, imports));
     }
 
     private static boolean isNumber(final CharSequence input) {

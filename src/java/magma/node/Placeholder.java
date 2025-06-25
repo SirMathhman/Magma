@@ -1,6 +1,6 @@
 package magma.node;
 
-public record Placeholder(String input) implements CType, Header {
+public record Placeholder(String input) implements CType, Header, Value {
     public static String generate(final String input) {
         final var replaced = input.replace("/*", "start")
                 .replace("*/", "end");

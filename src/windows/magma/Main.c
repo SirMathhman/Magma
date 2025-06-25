@@ -7,19 +7,26 @@
 #include "list/ListLike.h"
 #include "node/CPrimitive.h"
 #include "node/CType.h"
+#include "node/Caller.h"
+#include "node/ConstructionHeader.h"
 #include "node/Constructor.h"
+#include "node/DataAccess.h"
 #include "node/Definition.h"
 #include "node/Header.h"
+#include "node/Invokable.h"
+#include "node/NumberNode.h"
 #include "node/Placeholder.h"
 #include "node/Pointer.h"
+#include "node/StringNode.h"
 #include "node/Struct.h"
+#include "node/Symbol.h"
+#include "node/Value.h"
 #include "../java/io/IOException.h"
 #include "../java/nio/file/Files.h"
 #include "../java/nio/file/Path.h"
 #include "../java/nio/file/Paths.h"
 #include "../java/util/ArrayList.h"
 #include "../java/util/Arrays.h"
-#include "../java/util/Collection.h"
 #include "../java/util/List.h"
 #include "../java/util/Optional.h"
 #include "../java/util/function/Function.h"
@@ -85,7 +92,16 @@
         }*/
 }
 /*private static */char* compileRoot_Main(/*final */struct CharSequence input, /*final */struct List_char_ptr namespace) {
-	return Main.compileStatements(/*input, segment -> Main*/.compileRootSegment(/*segment, namespace*/));
+	/*final var segments */ = Main.divideStatements(input);
+	/*final var buffer */ = new_StringBuilder();
+	/*final var imports */ = new_ArrayList_char_ptr();/*
+        for (final var segment : segments) {
+            final var compiled = Main.compileRootSegment(segment, namespace, imports);
+            buffer.append(compiled.left());
+            compiled.right()
+                    .ifPresent(imports::add);
+        }*/
+	return buffer.toString();
 }
 /*private static */char* compileStatements_Main(/*final */struct CharSequence input, /* final Function<String*/, /* String> mapper*/) {
 	return Main.compileAll(/*input, new StatementFolder(), mapper, ""*/);
@@ -96,15 +112,15 @@
                 .map(mapper)
                 .collect(Collectors.joining(delimiter*/));
 }
-/*private static */char* compileRootSegment_Main(/*final */char* input, /*final */struct List_char_ptr namespace) {
+/*private static Tuple<String, */struct Optional_/*String>*/ compileRootSegment_Main(/*final */char* input, /*final */struct List_char_ptr namespace, /*final */struct List_char_ptr imports) {
 	/*final var stripped */ = input.strip();
 	/*if (stripped.startsWith("package "))
-            return ""*/;
+            return new Tuple<>("", Optional.empty())*/;
 	return Main.compileImport(/*namespace, input)
-                */.or(/*() -> Main.compileStructure(stripped))
-                .orElseGet(() -> Placeholder.generate(input*/));
+                */.or((/*) -> Main.compileStructure(stripped, imports))
+                .orElseGet(() -> new Tuple<>(Placeholder.generate(input), Optional.empty(*/)));
 }
-/*private static */struct Optional_char_ptr compileImport_Main(/*final */struct List_char_ptr moduleNamespace, /*final */char* input) {
+/*private static Optional<Tuple<String, */struct Optional_/*String>>*/ compileImport_Main(/*final */struct List_char_ptr moduleNamespace, /*final */char* input) {
 	/*final var stripped */ = input.strip();
 	/*if (!stripped.startsWith("import "))
             return Optional.empty()*/;
@@ -116,10 +132,11 @@
 	/*".length())*/;
 	/*final List<String> importNamespace */ = new_ArrayList_(Arrays.asList(withoutSuffix.split("\\.")));
 	/*final var actualNamespace */ = Main.computeActualNamespace(/*moduleNamespace, importNamespace*/);
-	return Optional.of(/*"#include \"" + String.join("/", actualNamespace) + ".h\"" + Strings.LINE_SEPARATOR*/);
+	/*final var generated */ = /* "#include \"" + String.join("/", actualNamespace) + ".h\"" + Strings.LINE_SEPARATOR*/;
+	return Optional.of(new_Tuple_(/*generated, Optional*/.of(actualNamespace.getLast())));
 }
-/*private static */struct Collection_char_ptr computeActualNamespace_Main(/*final */struct List_char_ptr moduleNamespace, /*final */struct List_char_ptr importNamespace) {
-	/*Tuple<Collection<String>, Integer> current */ = new_Tuple_(/*new ArrayList<>(), 0*/);
+/*private static */struct List_char_ptr computeActualNamespace_Main(/*final */struct List_char_ptr moduleNamespace, /*final */struct List_char_ptr importNamespace) {
+	/*Tuple<List<String>, Integer> current */ = new_Tuple_(/*new ArrayList<>(), 0*/);
 	/*final var moduleNamespaceSize */ = moduleNamespace.size();
 	/*final var importNamespaceSize */ = importNamespace.size();
 	/*for (var index */ = 0;
@@ -130,7 +147,7 @@
                 .addAll(importNamespace.subList(current.right(), importNamespaceSize))*/;
 	return current.left();
 }
-/*private static Tuple<Collection<String>, *//*Integer>*/ foldNamespace_Main(/*final Tuple<Collection<String>*/, /* Integer> current*/, /*final */int index, /*final */struct List_char_ptr moduleNamespace, /*final */struct List_char_ptr importNamespace) {
+/*private static Tuple<List<String>, *//*Integer>*/ foldNamespace_Main(/*final Tuple<List<String>*/, /* Integer> current*/, /*final */int index, /*final */struct List_char_ptr moduleNamespace, /*final */struct List_char_ptr importNamespace) {
 	/*final var moduleNamespaceSize */ = moduleNamespace.size();
 	/*final var importNamespaceSize */ = importNamespace.size();/*
         if (importNamespaceSize >= moduleNamespaceSize) {
@@ -143,7 +160,7 @@
                 .add("..")*/;
 	return current;
 }
-/*private static */struct Optional_char_ptr compileStructure_Main(/*final */char* stripped) {/*
+/*private static Optional<Tuple<String, */struct Optional_/*String>>*/ compileStructure_Main(/*final */char* stripped, /*final */struct List_char_ptr imports) {/*
         if (!(!stripped.isEmpty() && '*/
 }
 /*".length());*//*
@@ -171,21 +188,22 @@
         final var other = new StringBuilder();
 
         for (final var segment : segments) {
-            final var compiled = Main.compileClassSegment(segment, name);
+            final var compiled = Main.compileClassSegment(segment, name, imports);
             output.append(compiled.left());
             other.append(compiled.right());
         }
 
-        return Optional.of(Placeholder.generate(beforeKeyword) + "struct " + name + " {" + output + "};" + Strings.LINE_SEPARATOR + other);
+        final var generated = Placeholder.generate(beforeKeyword) + "struct " + name + " {" + output + "};" + Strings.LINE_SEPARATOR + other;
+        return Optional.of(new Tuple<>(generated, Optional.empty()));
     }
 
-    private static Tuple<String, String> compileClassSegment(final String input, final String structureName) {
+    private static Tuple<String, String> compileClassSegment(final String input, final String structureName, final List<String> imports) {
         return Main.compileField(input)
-                .or(() -> Main.compileMethod(input, structureName))
+                .or(() -> Main.compileMethod(input, structureName, imports))
                 .orElseGet(() -> new Tuple<>(Placeholder.generate(input), ""));
     }
 
-    private static Optional<Tuple<String, String>> compileMethod(final String input, final String structureName) {
+    private static Optional<Tuple<String, String>> compileMethod(final String input, final String structureName, final List<String> imports) {
         final var strip = input.strip();
         if (strip.isEmpty() || '}' != strip.charAt(strip.length() - 1))
             return Optional.empty();
@@ -211,7 +229,8 @@
         final var compiledParams = Main.compileAll(inputParams, new ValuesFolder(), Main::compileParameter, ", ");
 
         final var oldHeader = Main.compileHeader(beforeParams);
-        final var compiledOutput = Main.compileStatements(content, Main::compileFunctionSegment);
+        final var compiledOutput = Main.compileStatements(content,
+                segment -> Main.compileFunctionSegment(segment, imports));
 
         final var node = Main.attachHeader(structureName, oldHeader, compiledOutput, compiledParams);
         return Optional.of(new Tuple<>("", node.generate()));
@@ -252,64 +271,66 @@
         return Optional.of(new Constructor(beforeName, name));
     }
 
-    private static String compileFunctionSegment(final String input) {
+    private static String compileFunctionSegment(final String input, final List<String> imports) {
         final var strip = input.strip();
         if ("".contentEquals(strip))
             return "";
 
         if (!strip.isEmpty() && ';' == strip.charAt(strip.length() - 1)) {
             final var withoutEnd = strip.substring(0, strip.length() - ";".length());
-            return Strings.LINE_SEPARATOR + "\t" + Main.compileFunctionSegmentValue(withoutEnd) + ";";
+            return Strings.LINE_SEPARATOR + "\t" + Main.compileFunctionSegmentValue(withoutEnd, imports) + ";";
         }
 
         return Placeholder.generate(input);
     }
 
-    private static String compileFunctionSegmentValue(final String input) {
+    private static String compileFunctionSegmentValue(final String input, final List<String> imports) {
         final var strip = input.strip();
         if (strip.startsWith("return ")) {
             final var value = strip.substring("return ".length());
-            return "return " + Main.compileValue(value);
+            return "return " + Main.parseValue(value, imports).generate();
         }
 
         final var valueSeparator = input.indexOf('=');
         if (0 <= valueSeparator) {
             final var destination = input.substring(0, valueSeparator);
             final var source = input.substring(valueSeparator + "=".length());
-            return Main.compileValue(destination) + " = " + Main.compileValue(source);
+            return Main.parseValue(destination, imports).generate() + " = " + Main.parseValue(source, imports).generate();
         }
 
         return Placeholder.generate(input);
     }
 
-    private static String compileValue(final String input) {
-        final var compiledInvokable = Main.compileInvokable(input);
+    private static Value parseValue(final String input, final List<String> imports) {
+        final var compiledInvokable = Main.compileInvokable(input, imports);
         if (compiledInvokable.isPresent())
             return compiledInvokable.get();
 
         final var strip = input.strip();
         final var separator = input.lastIndexOf('.');
         if (0 <= separator) {
-            final var value = input.substring(0, separator);
+            final var childString = input.substring(0, separator);
             final var property = input.substring(separator + ".".length())
                     .strip();
-            if (Main.isSymbol(property))
-                return Main.compileValue(value) + "." + property;
+            if (Main.isSymbol(property)) {
+                final var child = Main.parseValue(childString, imports);
+                return new DataAccess(child, property);
+            }
         }
 
         if (Main.isSymbol(strip))
-            return strip;
+            return new Symbol(strip);
 
         if (Main.isString(strip))
-            return strip;
+            return new StringNode(strip);
 
         if (Main.isNumber(strip))
-            return strip;
+            return new NumberNode(strip);
 
-        return Placeholder.generate(input);
+        return new Placeholder(input);
     }
 
-    private static Optional<String> compileInvokable(final String input) {
+    private static Optional<Value> compileInvokable(final String input, final List<String> imports) {
         final var strip = input.strip();
         if (strip.isEmpty() || ')' != strip.charAt(strip.length() - 1))
             return Optional.empty();
@@ -320,22 +341,24 @@
             return Optional.empty();
 
         final var callerString = withoutEnd.substring(0, argumentsStart);
-        final var arguments = withoutEnd.substring(argumentsStart + "(".length());
-        return Main.compileCaller(callerString)
-                .map(compiledCaller -> compiledCaller + "(" + Main.compileValue(arguments) + ")");
+        final var argumentsString = withoutEnd.substring(argumentsStart + "(".length());
+        return Main.parseCaller(callerString, imports)
+                .map(compiledCaller -> {
+                    final var argument = Main.parseValue(argumentsString, imports);
+                    return new Invokable(compiledCaller, argument);
+                });
     }
 
-    private static Optional<String> compileCaller(final String input) {
+    private static Optional<Caller> parseCaller(final String input, final List<String> imports) {
         final var strip = input.strip();
         if (strip.startsWith("new ")) {
             final var type = strip.substring("new ".length());
-            final var generatedType = Main.parseType(type)
-                    .generateSymbol();
+            final var generatedType = Main.parseType(type);
 
-            return Optional.of("new_" + generatedType);
+            return Optional.of(new ConstructionHeader(generatedType));
         }
 
-        return Optional.of(Main.compileValue(input));
+        return Optional.of(Main.parseValue(input, imports));
     }
 
     private static boolean isNumber(final CharSequence input) {
