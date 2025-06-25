@@ -6,7 +6,6 @@ import magma.divide.fold.Folder;
 import magma.divide.fold.StatementFolder;
 import magma.divide.fold.ValuesFolder;
 import magma.list.ListLike;
-import magma.node.CHeader;
 import magma.node.Caller;
 import magma.node.ConstructionHeader;
 import magma.node.Constructor;
@@ -17,6 +16,7 @@ import magma.node.JavaClassSegment;
 import magma.node.JavaDefinition;
 import magma.node.JavaHeader;
 import magma.node.JavaMethod;
+import magma.node.JavaParameter;
 import magma.node.JavaPrimitive;
 import magma.node.JavaStringType;
 import magma.node.JavaType;
@@ -25,6 +25,7 @@ import magma.node.Placeholder;
 import magma.node.StringNode;
 import magma.node.Symbol;
 import magma.node.Value;
+import magma.node.Whitespace;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -259,13 +260,16 @@ class Main {
 
         final var beforeParams = withoutParamEnd.substring(0, paramStart);
         final var inputParams = withoutParamEnd.substring(paramStart + "(".length());
-        final var compiledParams = Main.compileAll(inputParams, new ValuesFolder(), Main::compileParameter, ", ");
+        final var parameters = Main.divide(inputParams, new ValuesFolder())
+                .stream()
+                .map(Main::parseParameter)
+                .toList();
 
         final var oldHeader = Main.compileHeader(beforeParams);
         final var compiledOutput = Main.compileStatements(content,
                 segment -> Main.compileFunctionSegment(segment, imports, methods));
 
-        final var method = new JavaMethod(oldHeader, compiledParams, compiledOutput);
+        final var method = new JavaMethod(oldHeader, parameters, compiledOutput);
         return Optional.of(method);
     }
 
@@ -371,6 +375,16 @@ class Main {
         return Main.parseCaller(callerString, imports, methods)
                 .map(caller -> {
                     final var argument = Main.parseValue(argumentsString, imports, methods);
+                    if (caller instanceof ConstructionHeader) {
+                        final var maybeMethod = methods.stream()
+                                .filter(method -> method.isNamed("new"))
+                                .findFirst();
+
+                        if (maybeMethod.isPresent()) {
+                            final var method = maybeMethod.get();
+                        }
+                    }
+
                     return new Invokable(caller, argument);
                 });
     }
@@ -379,9 +393,7 @@ class Main {
         final var strip = input.strip();
         if (strip.startsWith("new ")) {
             final var type = strip.substring("new ".length());
-            final var generatedType = Main.parseType(type)
-                    .toCType();
-
+            final var generatedType = Main.parseType(type);
             return Optional.of(new ConstructionHeader(generatedType));
         }
 
@@ -407,14 +419,13 @@ class Main {
                 .map(input::charAt);
     }
 
-    private static String compileParameter(final String input) {
+    private static JavaParameter parseParameter(final String input) {
         if (input.isEmpty())
-            return "";
+            return new Whitespace();
 
         return Main.parseDefinition(input)
-                .map(JavaDefinition::toCDefinition)
-                .map(CHeader::generate)
-                .orElseGet(() -> Placeholder.generate(input));
+                .<JavaParameter>map(parameter -> parameter)
+                .orElseGet(() -> new Placeholder(input));
     }
 
     private static Optional<JavaDefinition> parseField(final String input) {

@@ -1,8 +1,9 @@
 package magma.node;
 
-public record ConstructionHeader(CType type) implements Caller {
+public record ConstructionHeader(JavaType type) implements Caller {
     @Override
     public String generate() {
-        return "new_" + this.type.generateSymbol();
+        return "new_" + this.type.toCType()
+                .generateSymbol();
     }
 }

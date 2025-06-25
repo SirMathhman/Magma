@@ -1,5 +1,7 @@
 package magma.node;
 
+import java.util.Optional;
+
 public enum JavaPrimitive implements JavaType {
     Int(CPrimitive.Int);
 
@@ -12,5 +14,10 @@ public enum JavaPrimitive implements JavaType {
     @Override
     public CType toCType() {
         return this.value;
+    }
+
+    @Override
+    public Optional<String> findBaseName() {
+        return Optional.empty();
     }
 }
