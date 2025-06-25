@@ -14,16 +14,16 @@
 	return this;
 }
 /*public static */struct State empty_MutableState() {
-	return /*new MutableState(Lists*/.empty());
+	return /*new MutableState(Lists.empty())*/;
 }
 /*@Override
     public */struct State append_MutableState(/*final */struct char c) {
-	this.buffer = this.buffer + c;
+	this.buffer = /* this.buffer + c*/;
 	return this;
 }
 /*@Override
     public */struct State advance_MutableState() {
-	this.segments = this.segments.add(this.buffer);
+	this.segments = /* this.segments.add(this.buffer)*/;
 	this.buffer = "";
 	return this;
 }

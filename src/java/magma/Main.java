@@ -254,7 +254,8 @@ class Main {
             final var value = input.substring(0, separator);
             final var property = input.substring(separator + ".".length())
                     .strip();
-            return Main.compileValue(value) + "." + property;
+            if (Main.isSymbol(property))
+                return Main.compileValue(value) + "." + property;
         }
 
         final var strip = input.strip();
