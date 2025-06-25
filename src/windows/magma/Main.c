@@ -1,73 +1,101 @@
 #include "Main.h"
-/*package magma;
+/*package magma;*//*
 
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.List;
+import java.io.IOException;*//*
+import java.nio.file.Files;*//*
+import java.nio.file.Path;*//*
+import java.nio.file.Paths;*//*
+import java.util.ArrayList;*//*
+import java.util.List;*//*
 
 public class Main {
     private Main() {
     }
 
     public static void main(final String[] args) {
-        final var rootDirectory = Paths.get(".", "src", "java");
+        final var rootDirectory = Paths.get(".", "src", "java");*//*
         try (final var stream = Files.walk(rootDirectory)) {
             final var sources = stream.filter(Files::isRegularFile)
                     .filter(file -> file.toString()
                             .endsWith(".java"))
-                    .toList();
+                    .toList();*//*
 
-            Main.runWithSources(rootDirectory, sources);
+            Main.runWithSources(rootDirectory, sources);*//*
         } catch (final IOException e) {
             //noinspection CallToPrintStackTrace
-            e.printStackTrace();
+            e.printStackTrace();*//*
         }
     }
 
     private static void runWithSources(final Path rootDirectory, final Iterable<Path> sources) throws IOException {
-        for (final var source : sources) {
-            final var fileName = source.getFileName()
-                    .toString();
-            final var separator = fileName.lastIndexOf('.');
-            final var name = fileName.substring(0, separator);
+        for (final var source : sources)
+            Main.runWithSource(rootDirectory, source);*//*
+    }
 
-            final var relativeParent = rootDirectory.relativize(source.getParent());
-            final var namespace = Main.computeNamespace(relativeParent);
+    private static void runWithSource(final Path rootDirectory, final Path source) throws IOException {
+        final var fileName = source.getFileName()
+                .toString();*//*
+        final var separator = fileName.lastIndexOf('.');*//*
+        final var name = fileName.substring(0, separator);*//*
 
-            final var targetParent = Paths.get(".", "src", "windows")
-                    .resolve(relativeParent);
+        final var relativeParent = rootDirectory.relativize(source.getParent());*//*
+        final var namespace = Main.computeNamespace(relativeParent);*//*
 
-            if (!Files.exists(targetParent))
-                Files.createDirectories(targetParent);
+        final var targetParent = Paths.get(".", "src", "windows")
+                .resolve(relativeParent);*//*
 
-            final var input = Files.readString(source)
-                    .replace("start", "start")
-                    .replace("end", "end");
+        if (!Files.exists(targetParent))
+            Files.createDirectories(targetParent);*//*
 
-            final var targetContent = "#include \"" + name + ".h\"" + System.lineSeparator() + "start" + input + "end";
-            Files.writeString(targetParent.resolve(name + ".c"), targetContent);
+        final var input = Files.readString(source);*//*
+        final var segments = Main.divide(input);*//*
 
-            final var joined = String.join("_", namespace);
-            final var withName = joined + "_" + name;
-            final var headerContent = String.join(System.lineSeparator(),
-                    "#ifndef " + withName,
-                    "#define " + withName,
-                    "#endif");
+        final var output = new StringBuilder();*//*
+        for (final var segment : segments)
+            output.append(Main.generatePlaceholder(segment));*//*
 
-            Files.writeString(targetParent.resolve(name + ".h"), headerContent);
+        final var targetContent = "#include \"" + name + ".h\"" + System.lineSeparator() + output;*//*
+        Files.writeString(targetParent.resolve(name + ".c"), targetContent);*//*
+
+        final var joined = String.join("_", namespace);*//*
+        final var withName = joined + "_" + name;*//*
+        final var headerContent = String.join(System.lineSeparator(),
+                "#ifndef " + withName,
+                "#define " + withName,
+                "#endif");*//*
+
+        Files.writeString(targetParent.resolve(name + ".h"), headerContent);*//*
+    }
+
+    private static ArrayList<String> divide(final String input) {
+        final var segments = new ArrayList<String>();*//*
+        var buffer = new StringBuilder();*//*
+        for (var i = 0;*//* i < input.length();*//* i++) {
+            final var c = input.charAt(i);*//*
+            buffer.append(c);*//*
+            if (';*//*' == c) {
+                segments.add(buffer.toString());*//*
+                buffer = new StringBuilder();*//*
+            }
         }
+        segments.add(buffer.toString());*//*
+        return segments;*//*
+    }
+
+    private static String generatePlaceholder(final String input) {
+        final var replaced = input.replace("start", "start")
+                .replace("end", "end");*//*
+
+        return "start" + replaced + "end";*//*
     }
 
     private static List<String> computeNamespace(final Path relativeParent) {
-        final List<String> namespace = new ArrayList<>();
-        final var nameCount = relativeParent.getNameCount();
-        for (var i = 0; i < nameCount; i++)
+        final List<String> namespace = new ArrayList<>();*//*
+        final var nameCount = relativeParent.getNameCount();*//*
+        for (var i = 0;*//* i < nameCount;*//* i++)
             namespace.add(relativeParent.getName(i)
-                    .toString());
-        return namespace;
+                    .toString());*//*
+        return namespace;*//*
     }
 }
 */

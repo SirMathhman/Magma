@@ -46,11 +46,14 @@ public class Main {
         if (!Files.exists(targetParent))
             Files.createDirectories(targetParent);
 
-        final var input = Files.readString(source)
-                .replace("/*", "start")
-                .replace("*/", "end");
+        final var input = Files.readString(source);
+        final var segments = Main.divide(input);
 
-        final var targetContent = "#include \"" + name + ".h\"" + System.lineSeparator() + "/*" + input + "*/";
+        final var output = new StringBuilder();
+        for (final var segment : segments)
+            output.append(Main.generatePlaceholder(segment));
+
+        final var targetContent = "#include \"" + name + ".h\"" + System.lineSeparator() + output;
         Files.writeString(targetParent.resolve(name + ".c"), targetContent);
 
         final var joined = String.join("_", namespace);
@@ -61,6 +64,29 @@ public class Main {
                 "#endif");
 
         Files.writeString(targetParent.resolve(name + ".h"), headerContent);
+    }
+
+    private static List<String> divide(final CharSequence input) {
+        final List<String> segments = new ArrayList<>();
+        var buffer = new StringBuilder();
+        final var length = input.length();
+        for (var i = 0; i < length; i++) {
+            final var c = input.charAt(i);
+            buffer.append(c);
+            if (';' == c) {
+                segments.add(buffer.toString());
+                buffer = new StringBuilder();
+            }
+        }
+        segments.add(buffer.toString());
+        return segments;
+    }
+
+    private static String generatePlaceholder(final String input) {
+        final var replaced = input.replace("/*", "start")
+                .replace("*/", "end");
+
+        return "/*" + replaced + "*/";
     }
 
     private static List<String> computeNamespace(final Path relativeParent) {
