@@ -15,9 +15,9 @@
 /*import java.util.stream.Collectors;*/
 /*public */struct Main {
 	/*private static final String SEPARATOR *//*=*/ System.lineSeparator();
-	/*private Main*/(/**/) {/*
+	/*private*/ new_Main(/**/) {/*
     */}
-	/*public static void main*/(/*final String[] args*/) {/*
+	/*public static void*/ new_main(/*final String[] args*/) {/*
         final var rootDirectory = Paths.get(".", "src", "java");
         try (final var stream = Files.walk(rootDirectory)) {
             final var sources = stream.filter(Files::isRegularFile)
@@ -64,16 +64,16 @@
 
         Files.writeString(targetParent.resolve(name + ".h"), headerContent);
     }*/
-	/*private static String compileRoot*/(/*final CharSequence input*/) {/*
+	/*private static String*/ new_compileRoot(/*final CharSequence input*/) {/*
         return Main.compileStatements(input, Main::compileRootSegment);
     */}
-	/*private static String compileStatements*/(/*final CharSequence input, final Function<String, String> mapper*/) {/*
+	/*private static String*/ new_compileStatements(/*final CharSequence input, final Function<String, String> mapper*/) {/*
         return Main.divide(input)
                 .stream()
                 .map(mapper)
                 .collect(Collectors.joining());
     */}
-	/*private static String compileRootSegment*/(/*final String input*/) {/*
+	/*private static String*/ new_compileRootSegment(/*final String input*/) {/*
         final var stripped = input.strip();
         if (stripped.startsWith("package "))
             return "";
@@ -84,7 +84,7 @@
         return Main.compileStructure(stripped)
                 .orElseGet(() -> Placeholder.generatePlaceholder(input));
     */}
-	/*private static Optional<String> compileStructure*/(/*final String stripped*/) {/*
+	/*private static Optional<String>*/ new_compileStructure(/*final String stripped*/) {/*
         if (!(!stripped.isEmpty() && '*/}
 	/*' == stripped.charAt(stripped.length() - 1)))
             *//*return*/ Optional.empty();/*
@@ -132,10 +132,19 @@
                     final var withoutParamEnd = beforeContent.substring(0, beforeContent.length() - ")".length());
                     final var paramStart = withoutParamEnd.indexOf('(');
                     if (0 <= paramStart) {
-                        final var definition = withoutParamEnd.substring(0, paramStart);
+                        final var beforeParams = withoutParamEnd.substring(0, paramStart);
                         final var params = withoutParamEnd.substring(paramStart + "(".length());
-                        return Optional.of(Main.SEPARATOR + "\t" + Placeholder.generatePlaceholder(definition) + "(" + Placeholder.generatePlaceholder(
-                                params) + ") {" + Placeholder.generatePlaceholder(content) + "}");
+
+                        final var nameSeparator = beforeParams.lastIndexOf(' ');
+                        if (0 <= nameSeparator) {
+                            final var beforeName = beforeParams.substring(0, nameSeparator)
+                                    .strip();
+                            final var name = beforeParams.substring(nameSeparator + " ".length())
+                                    .strip();
+
+                            return Optional.of(Main.SEPARATOR + "\t" + Placeholder.generatePlaceholder(beforeName) + " new_" + name + "(" + Placeholder.generatePlaceholder(
+                                    params) + ") {" + Placeholder.generatePlaceholder(content) + "}");
+                        }
                     }
                 }
             }
