@@ -116,26 +116,32 @@ public class Main {
     }
 
     private static String compileClassSegment(final String input) {
+        return Main.compileDefinition(input)
+                .orElseGet(() -> Main.generatePlaceholder(input));
+    }
+
+    private static Optional<String> compileDefinition(final String input) {
         final var strip = input.strip();
-        if (strip.endsWith(";")) {
-            final var withoutEnd = strip.substring(0, strip.length() - ";".length())
-                    .strip();
-            final var nameSeparator = withoutEnd.lastIndexOf(' ');
-            if (0 <= nameSeparator) {
-                final var beforeName = withoutEnd.substring(0, nameSeparator);
-                final var name = withoutEnd.substring(nameSeparator + " ".length());
+        if (strip.isEmpty() || ';' != strip.charAt(strip.length() - 1))
+            return Optional.empty();
 
-                final var typeSeparator = beforeName.lastIndexOf(' ');
-                if (0 <= typeSeparator) {
-                    final var beforeType = beforeName.substring(0, typeSeparator);
-                    final var type = beforeName.substring(typeSeparator + " ".length());
-                    return Main.SEPARATOR + "\t" + Main.generatePlaceholder(beforeType) + " " + Main.generatePlaceholder(
-                            type) + " " + name + ";";
-                }
-            }
-        }
+        final var withoutEnd = strip.substring(0, strip.length() - ";".length())
+                .strip();
+        final var nameSeparator = withoutEnd.lastIndexOf(' ');
+        if (0 > nameSeparator)
+            return Optional.empty();
 
-        return Main.generatePlaceholder(input);
+        final var beforeName = withoutEnd.substring(0, nameSeparator);
+        final var name = withoutEnd.substring(nameSeparator + " ".length());
+
+        final var typeSeparator = beforeName.lastIndexOf(' ');
+        if (0 > typeSeparator)
+            return Optional.empty();
+
+        final var beforeType = beforeName.substring(0, typeSeparator);
+        final var type = beforeName.substring(typeSeparator + " ".length());
+        return Optional.of(Main.SEPARATOR + "\t" + Main.generatePlaceholder(beforeType) + " " + Main.generatePlaceholder(
+                type) + " " + name + ";");
     }
 
     private static ListLike<String> divide(final CharSequence input) {
