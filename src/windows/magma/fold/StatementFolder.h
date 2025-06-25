@@ -1,0 +1,3 @@
+#ifndef magma_fold_StatementFolder
+#define magma_fold_StatementFolder
+#endif

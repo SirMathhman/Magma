@@ -1,5 +1,8 @@
 package magma;
 
+import magma.fold.Folder;
+import magma.fold.StatementFolder;
+import magma.fold.ValuesFolder;
 import magma.type.CPrimitive;
 import magma.type.CType;
 import magma.type.Placeholder;
@@ -75,10 +78,14 @@ public class Main {
     }
 
     private static String compileStatements(final CharSequence input, final Function<String, String> mapper) {
-        return Main.divide(input)
+        return Main.compileAll(input, new StatementFolder(), mapper, "");
+    }
+
+    private static String compileAll(final CharSequence input, final Folder folder, final Function<String, String> mapper, final String delimiter) {
+        return Main.divide(input, folder)
                 .stream()
                 .map(mapper)
-                .collect(Collectors.joining());
+                .collect(Collectors.joining(delimiter));
     }
 
     private static String compileRootSegment(final String input) {
@@ -116,7 +123,7 @@ public class Main {
         final var name = 0 <= implementsIndex ? afterKeyword.substring(0, implementsIndex)
                 .strip() : afterKeyword;
 
-        final var segments = Main.divide(content);
+        final var segments = Main.divideStatements(content);
 
         final var output = new StringBuilder();
         final var other = new StringBuilder();
@@ -150,7 +157,11 @@ public class Main {
                     final var paramStart = withoutParamEnd.indexOf('(');
                     if (0 <= paramStart) {
                         final var beforeParams = withoutParamEnd.substring(0, paramStart);
-                        final var params = withoutParamEnd.substring(paramStart + "(".length());
+                        final var inputParams = withoutParamEnd.substring(paramStart + "(".length());
+                        final var outputParams = Main.compileAll(inputParams,
+                                new ValuesFolder(),
+                                Main::compileDefinitionOrPlaceholder,
+                                ", ");
 
                         final var nameSeparator = beforeParams.lastIndexOf(' ');
                         if (0 <= nameSeparator) {
@@ -160,8 +171,8 @@ public class Main {
                                     .strip();
 
                             return Optional.of(new Tuple<>("",
-                                    Placeholder.generatePlaceholder(beforeName) + " new_" + name + "(" + Placeholder.generatePlaceholder(
-                                            params) + ") {" + Placeholder.generatePlaceholder(content) + "}" + Main.SEPARATOR));
+                                    Placeholder.generatePlaceholder(beforeName) + " new_" + name + "(" + outputParams + ") {" + Placeholder.generatePlaceholder(
+                                            content) + "}" + Main.SEPARATOR));
                         }
                     }
                 }
@@ -171,13 +182,25 @@ public class Main {
         return Optional.empty();
     }
 
+    private static String compileDefinitionOrPlaceholder(final String input) {
+        return Main.compileDefinition(input)
+                .orElseGet(() -> Placeholder.generatePlaceholder(input));
+    }
+
     private static Optional<Tuple<String, String>> compileField(final String input) {
         final var strip = input.strip();
         if (strip.isEmpty() || ';' != strip.charAt(strip.length() - 1))
             return Optional.empty();
 
-        final var withoutEnd = strip.substring(0, strip.length() - ";".length())
-                .strip();
+        final var substring = strip.substring(0, strip.length() - ";".length());
+        return Main.compileDefinition(substring)
+                .map(content -> {
+                    return new Tuple<>(Main.SEPARATOR + "\t" + content + ";", "");
+                });
+    }
+
+    private static Optional<String> compileDefinition(final String input) {
+        final var withoutEnd = input.strip();
         final var nameSeparator = withoutEnd.lastIndexOf(' ');
         if (0 > nameSeparator)
             return Optional.empty();
@@ -191,9 +214,10 @@ public class Main {
 
         final var beforeType = beforeName.substring(0, typeSeparator);
         final var inputType = beforeName.substring(typeSeparator + " ".length());
-        return Optional.of(new Tuple<>(Main.SEPARATOR + "\t" + Placeholder.generatePlaceholder(beforeType + " ") + Main.compileType(
-                        inputType)
-                .generate() + " " + name + ";", ""));
+        final var content = Placeholder.generatePlaceholder(beforeType + " ") + Main.compileType(inputType)
+                .generate() + " " + name;
+
+        return Optional.of(content);
     }
 
     private static CType compileType(final String input) {
@@ -224,31 +248,21 @@ public class Main {
                 .generateSymbol()));
     }
 
-    private static ListLike<String> divide(final CharSequence input) {
+    private static ListLike<String> divideStatements(final CharSequence input) {
+        return Main.divide(input, new StatementFolder());
+    }
+
+    private static ListLike<String> divide(final CharSequence input, final Folder folder) {
         final State mutableState = new MutableState();
         final var length = input.length();
         var current = mutableState;
         for (var i = 0; i < length; i++) {
             final var c = input.charAt(i);
-            current = Main.fold(current, c);
+            current = folder.fold(current, c);
         }
 
         return current.advance()
                 .unwrap();
-    }
-
-    private static State fold(final State mutableState, final char c) {
-        final var appended = mutableState.append(c);
-        if (';' == c && appended.isLevel())
-            return appended.advance();
-        if ('}' == c && appended.isShallow())
-            return appended.exit()
-                    .advance();
-        if ('{' == c)
-            return appended.enter();
-        if ('}' == c)
-            return appended.exit();
-        return appended;
     }
 
     private static List<String> computeNamespace(final Path relativeParent) {
