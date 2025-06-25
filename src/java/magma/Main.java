@@ -226,13 +226,32 @@ class Main {
         if (Main.isSymbol(strip))
             return strip;
 
+        if (Main.isString(strip))
+            return strip;
+
+        if (Main.isNumber(strip))
+            return strip;
+
         return Placeholder.generate(input);
     }
 
+    private static boolean isNumber(final CharSequence input) {
+        return Main.stream(input)
+                .allMatch(Character::isDigit);
+    }
+
+    private static boolean isString(final CharSequence input) {
+        return !input.isEmpty() && '\"' == input.charAt(0) && '\"' == input.charAt(input.length() - 1);
+    }
+
     private static boolean isSymbol(final CharSequence input) {
-        return IntStream.range(0, input.length())
-                .map(input::charAt)
+        return Main.stream(input)
                 .allMatch(Character::isLetter);
+    }
+
+    private static IntStream stream(final CharSequence input) {
+        return IntStream.range(0, input.length())
+                .map(input::charAt);
     }
 
     private static String compileDefinitionOrPlaceholder(final String input) {

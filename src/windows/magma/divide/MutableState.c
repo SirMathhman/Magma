@@ -8,8 +8,8 @@
 */};
 /*private */struct MutableState new_MutableState(/*final */struct ListLike_char_ptr segments) {
 	this.segments = segments;
-	this.buffer = /* ""*/;
-	this.depth = /* 0*/;
+	this.buffer = "";
+	this.depth = 0;
 }
 /*public */struct MutableState new_MutableState(/**/) {
 	/*this(Lists.empty())*/;
@@ -22,7 +22,7 @@
 /*@Override
     public State */struct advance new_advance(/**/) {
 	this.segments = this.segments.add(this.buffer);
-	this.buffer = /* ""*/;
+	this.buffer = "";
 	/*return this*/;
 }
 /*@Override
