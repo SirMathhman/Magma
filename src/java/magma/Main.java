@@ -1,5 +1,11 @@
 package magma;
 
+import magma.type.CPrimitive;
+import magma.type.CType;
+import magma.type.Placeholder;
+import magma.type.Pointer;
+import magma.type.Struct;
+
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -81,10 +87,10 @@ public class Main {
             return "";
 
         if (stripped.startsWith("import "))
-            return Main.generatePlaceholder(stripped) + Main.SEPARATOR;
+            return Placeholder.generatePlaceholder(stripped) + Main.SEPARATOR;
 
         return Main.compileStructure(stripped)
-                .orElseGet(() -> Main.generatePlaceholder(input));
+                .orElseGet(() -> Placeholder.generatePlaceholder(input));
     }
 
     private static Optional<String> compileStructure(final String stripped) {
@@ -111,13 +117,13 @@ public class Main {
                 .strip() : afterKeyword;
 
         final var compiled = Main.compileStatements(content, Main::compileClassSegment);
-        return Optional.of(Main.generatePlaceholder(beforeKeyword) + "struct " + name + " {" + compiled + "};" + Main.SEPARATOR);
+        return Optional.of(Placeholder.generatePlaceholder(beforeKeyword) + "struct " + name + " {" + compiled + "};" + Main.SEPARATOR);
 
     }
 
     private static String compileClassSegment(final String input) {
         return Main.compileDefinition(input)
-                .orElseGet(() -> Main.generatePlaceholder(input));
+                .orElseGet(() -> Placeholder.generatePlaceholder(input));
     }
 
     private static Optional<String> compileDefinition(final String input) {
@@ -139,18 +145,20 @@ public class Main {
             return Optional.empty();
 
         final var beforeType = beforeName.substring(0, typeSeparator);
-        final var type = beforeName.substring(typeSeparator + " ".length());
-        return Optional.of(Main.SEPARATOR + "\t" + Main.generatePlaceholder(beforeType + " ") + Main.compileType(type) + " " + name + ";");
+        final var inputType = beforeName.substring(typeSeparator + " ".length());
+        return Optional.of(Main.SEPARATOR + "\t" + Placeholder.generatePlaceholder(beforeType + " ") + Main.compileType(
+                        inputType)
+                .generate() + " " + name + ";");
     }
 
-    private static String compileType(final String input) {
+    private static CType compileType(final String input) {
         final var strip = input.strip();
 
         if ("int".contentEquals(strip))
-            return "int";
+            return CPrimitive.Int;
 
         if ("String".contentEquals(strip))
-            return "char*";
+            return new Pointer(CPrimitive.Char);
 
         if (strip.endsWith(">")) {
             final var withoutEnd = strip.substring(0, strip.length() - ">".length());
@@ -158,11 +166,12 @@ public class Main {
             if (0 <= argumentsStart) {
                 final var base = withoutEnd.substring(0, argumentsStart);
                 final var arguments = withoutEnd.substring(argumentsStart + "<".length());
-                return base + "_" + Main.compileType(arguments);
+                return new Struct(base + "_" + Main.compileType(arguments)
+                        .generateSymbol());
             }
         }
 
-        return Main.generatePlaceholder(input);
+        return new Placeholder(input);
     }
 
     private static ListLike<String> divide(final CharSequence input) {
@@ -187,13 +196,6 @@ public class Main {
         if ('}' == c)
             return appended.exit();
         return appended;
-    }
-
-    private static String generatePlaceholder(final String input) {
-        final var replaced = input.replace("/*", "start")
-                .replace("*/", "end");
-
-        return "/*" + replaced + "*/";
     }
 
     private static List<String> computeNamespace(final Path relativeParent) {
