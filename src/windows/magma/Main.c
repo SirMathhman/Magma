@@ -5,11 +5,12 @@
 /*import java.nio.file.Paths;*/
 /*import java.util.ArrayList;*/
 /*import java.util.List;*/
-/*public */struct Main {
-};
+/*import java.util.Optional;*/
+/*import java.util.stream.Collectors;*/
 /*
 
-    public static final String SEPARATOR = System.lineSeparator();
+public class Main {
+    private static final String SEPARATOR = System.lineSeparator();
 
     private Main() {
     }
@@ -50,11 +51,10 @@
             Files.createDirectories(targetParent);
 
         final var input = Files.readString(source);
-        final var segments = Main.divide(input);
-
-        final var output = new StringBuilder();
-        for (final var segment : segments)
-            output.append(Main.compileRootSegment(segment));
+        final var output = Main.divide(input)
+                .stream()
+                .map(Main::compileRootSegment)
+                .collect(Collectors.joining());
 
         final var targetContent = "#include \"" + name + ".h\"" + Main.SEPARATOR + output;
         Files.writeString(targetParent.resolve(name + ".c"), targetContent);
@@ -74,32 +74,39 @@
         if (stripped.startsWith("import "))
             return Main.generatePlaceholder(stripped) + Main.SEPARATOR;
 
-        if (stripped.endsWith("}")) {
-            final var withoutEnd = stripped.substring(0, stripped.length() - "}".length());
-            final var contentStart = withoutEnd.indexOf('{');
-            if (0 <= contentStart) {
-                final var beforeContent = withoutEnd.substring(0, contentStart);
-                final var content = withoutEnd.substring(contentStart + "{".length());
-                final var classIndex = beforeContent.indexOf("class ");
-                if (0 <= classIndex) {
-                    final var beforeKeyword = beforeContent.substring(0, classIndex);
-                    final var afterKeyword = beforeContent.substring(classIndex + "class ".length())
-                            .strip();
-
-                    final var implementsIndex = afterKeyword.indexOf("implements ");
-                    final var name = 0 <= implementsIndex ? afterKeyword.substring(0, implementsIndex)
-                            .strip() : afterKeyword;
-
-                    return Main.generatePlaceholder(beforeKeyword) + "struct " + name + " {" + Main.SEPARATOR + "};" + Main.SEPARATOR + Main.generatePlaceholder(
-                            content);
-                }
-            }
-        }
-
-        return Main.generatePlaceholder(input);
+        return Main.compileStructure(stripped)
+                .orElseGet(() -> Main.generatePlaceholder(input));
     }
 
-    private static List<String> divide(final CharSequence input) {
+    private static Optional<String> compileStructure(final String stripped) {
+        if (!(!stripped.isEmpty() && '}' == stripped.charAt(stripped.length() - 1)))
+            return Optional.empty();
+
+        final var withoutEnd = stripped.substring(0, stripped.length() - "}".length());*//*
+        final var contentStart = withoutEnd.indexOf('{');
+        if (0 > contentStart)
+            return Optional.empty();
+
+        final var beforeContent = withoutEnd.substring(0, contentStart);
+        final var content = withoutEnd.substring(contentStart + "{".length());
+        final var classIndex = beforeContent.indexOf("class ");
+        if (0 > classIndex)
+            return Optional.empty();
+
+        final var beforeKeyword = beforeContent.substring(0, classIndex);
+        final var afterKeyword = beforeContent.substring(classIndex + "class ".length())
+                .strip();
+
+        final var implementsIndex = afterKeyword.indexOf("implements ");
+        final var name = 0 <= implementsIndex ? afterKeyword.substring(0, implementsIndex)
+                .strip() : afterKeyword;
+
+        return Optional.of(Main.generatePlaceholder(beforeKeyword) + "struct " + name + " {" + Main.SEPARATOR + "};" + Main.SEPARATOR + Main.generatePlaceholder(
+                content));
+
+    }
+
+    private static ListLike<String> divide(final CharSequence input) {
         final State mutableState = new MutableState();
         final var length = input.length();
         var current = mutableState;
@@ -138,4 +145,5 @@
                     .toString());
         return namespace;
     }
+}
 */

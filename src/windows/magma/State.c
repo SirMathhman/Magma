@@ -1,5 +1,4 @@
 #include "State.h"
-/*import java.util.List;*/
 /*
 
 public interface State {
@@ -7,7 +6,7 @@ public interface State {
 
     State advance();
 
-    List<String> unwrap();
+    ListLike<String> unwrap();
 
     boolean isLevel();
 

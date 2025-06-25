@@ -1,22 +1,19 @@
 #include "MutableState.h"
-/*import java.util.ArrayList;*/
-/*import java.util.Collections;*/
-/*import java.util.List;*/
 /*public */struct MutableState {
 };
 /*
-    private final List<String> segments;
+    private ListLike<String> segments;
     private StringBuilder buffer;
     private int depth;
 
-    private MutableState(final List<String> segments, final StringBuilder buffer, final int depth) {
-        this.segments = new ArrayList<>(segments);
+    private MutableState(final ListLike<String> segments, final StringBuilder buffer, final int depth) {
+        this.segments = segments;
         this.buffer = buffer;
         this.depth = depth;
     }
 
     MutableState() {
-        this(new ArrayList<>(), new StringBuilder(), 0);
+        this(Lists.empty(), new StringBuilder(), 0);
     }
 
     @Override
@@ -27,14 +24,14 @@
 
     @Override
     public State advance() {
-        segments.add(buffer.toString());
+        segments = segments.add(buffer.toString());
         buffer = new StringBuilder();
         return this;
     }
 
     @Override
-    public List<String> unwrap() {
-        return Collections.unmodifiableList(segments);
+    public ListLike<String> unwrap() {
+        return segments;
     }
 
     @Override
