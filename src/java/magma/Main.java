@@ -170,10 +170,7 @@ class Main {
 
         final var beforeParams = withoutParamEnd.substring(0, paramStart);
         final var inputParams = withoutParamEnd.substring(paramStart + "(".length());
-        final var outputParams = Main.compileAll(inputParams,
-                new ValuesFolder(),
-                Main::compileDefinitionOrPlaceholder,
-                ", ");
+        final var outputParams = Main.compileAll(inputParams, new ValuesFolder(), Main::compileParameter, ", ");
 
         final var nameSeparator = beforeParams.lastIndexOf(' ');
         if (0 > nameSeparator)
@@ -254,7 +251,10 @@ class Main {
                 .map(input::charAt);
     }
 
-    private static String compileDefinitionOrPlaceholder(final String input) {
+    private static String compileParameter(final String input) {
+        if (input.isEmpty())
+            return "";
+
         return Main.compileDefinition(input)
                 .orElseGet(() -> Placeholder.generate(input));
     }

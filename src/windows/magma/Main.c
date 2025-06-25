@@ -59,7 +59,7 @@
             *//*return*/ Optional.empty();/*
 
         final var withoutEnd = stripped.substring(0, stripped.length() - "*/};
-/*private */struct Main new_Main(/**/) {
+/*private */struct Main new_Main() {
 }
 /*public static void */struct main new_main(/*final *//*String[]*/ args) {
 	/*final var rootDirectory */ = Paths.get(".", "src", "java");/*
@@ -161,10 +161,7 @@
 
         final var beforeParams = withoutParamEnd.substring(0, paramStart);
         final var inputParams = withoutParamEnd.substring(paramStart + "(".length());
-        final var outputParams = Main.compileAll(inputParams,
-                new ValuesFolder(),
-                Main::compileDefinitionOrPlaceholder,
-                ", ");
+        final var outputParams = Main.compileAll(inputParams, new ValuesFolder(), Main::compileParameter, ", ");
 
         final var nameSeparator = beforeParams.lastIndexOf(' ');
         if (0 > nameSeparator)
@@ -245,7 +242,10 @@
                 .map(input::charAt);
     }
 
-    private static String compileDefinitionOrPlaceholder(final String input) {
+    private static String compileParameter(final String input) {
+        if (input.isEmpty())
+            return "";
+
         return Main.compileDefinition(input)
                 .orElseGet(() -> Placeholder.generate(input));
     }
