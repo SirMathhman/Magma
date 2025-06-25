@@ -1,5 +1,4 @@
 #include "Placeholder.h"
-/*import magma.Header;*/
 /*
 
 public record Placeholder(String input) implements CType, Header {

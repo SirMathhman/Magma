@@ -1,7 +1,4 @@
-package magma;
-
-import magma.type.CType;
-import magma.type.Placeholder;
+package magma.node;
 
 import java.util.function.Function;
 

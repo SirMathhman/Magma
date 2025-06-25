@@ -1,4 +1,4 @@
-package magma.type;
+package magma.node;
 
 public record Pointer(CType type) implements CType {
     @Override

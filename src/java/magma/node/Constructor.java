@@ -1,6 +1,4 @@
-package magma;
-
-import magma.type.Placeholder;
+package magma.node;
 
 public record Constructor(String beforeName, String name) implements Header {
     @Override

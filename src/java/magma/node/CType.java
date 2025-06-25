@@ -1,4 +1,4 @@
-package magma.type;
+package magma.node;
 
 public interface CType {
     String generate();

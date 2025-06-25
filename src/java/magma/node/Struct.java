@@ -1,4 +1,4 @@
-package magma.type;
+package magma.node;
 
 public record Struct(String name) implements CType {
     @Override

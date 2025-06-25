@@ -5,11 +5,14 @@
 /*import magma.divide.fold.StatementFolder;*/
 /*import magma.divide.fold.ValuesFolder;*/
 /*import magma.list.ListLike;*/
-/*import magma.type.CPrimitive;*/
-/*import magma.type.CType;*/
-/*import magma.type.Placeholder;*/
-/*import magma.type.Pointer;*/
-/*import magma.type.Struct;*/
+/*import magma.node.CPrimitive;*/
+/*import magma.node.CType;*/
+/*import magma.node.Constructor;*/
+/*import magma.node.Definition;*/
+/*import magma.node.Header;*/
+/*import magma.node.Placeholder;*/
+/*import magma.node.Pointer;*/
+/*import magma.node.Struct;*/
 /*import java.io.IOException;*/
 /*import java.nio.file.Files;*/
 /*import java.nio.file.Path;*/
@@ -20,8 +23,7 @@
 /*import java.util.function.Function;*/
 /*import java.util.stream.Collectors;*/
 /*import java.util.stream.IntStream;*/
-/**/struct Main {
-	/*private static final String SEPARATOR *//*=*/ System.lineSeparator();/*
+/**/struct Main {/*
 
     private static void runWithSources(final Path rootDirectory, final Iterable<Path> sources) throws IOException {
         for (final var source : sources)
@@ -46,12 +48,15 @@
         final var input = Files.readString(source);
         final var output = Main.compileRoot(input);
 
-        final var targetContent = "#include \"" + name + ".h\"" + Main.SEPARATOR + output;
+        final var targetContent = "#include \"" + name + ".h\"" + Strings.LINE_SEPARATOR + output;
         Files.writeString(targetParent.resolve(name + ".c"), targetContent);
 
         final var joined = String.join("_", namespace);
         final var withName = joined + "_" + name;
-        final var headerContent = String.join(Main.SEPARATOR, "#ifndef " + withName, "#define " + withName, "#endif");
+        final var headerContent = String.join(Strings.LINE_SEPARATOR,
+                "#ifndef " + withName,
+                "#define " + withName,
+                "#endif");
 
         Files.writeString(targetParent.resolve(name + ".h"), headerContent);
     }*/
@@ -94,7 +99,7 @@
 	/*if (stripped.startsWith("package "))
             return ""*/;
 	/*if (stripped.startsWith("import "))
-            return Placeholder.generate(stripped) + Main.SEPARATOR*/;
+            return Placeholder.generate(stripped) + Strings.LINE_SEPARATOR*/;
 	/*return Main.compileStructure(stripped)
                 .orElseGet(() -> Placeholder.generate(input))*/;
 }
@@ -131,7 +136,7 @@
             other.append(compiled.right());
         }
 
-        return Optional.of(Placeholder.generate(beforeKeyword) + "struct " + name + " {" + output + "};" + Main.SEPARATOR + other);
+        return Optional.of(Placeholder.generate(beforeKeyword) + "struct " + name + " {" + output + "};" + Strings.LINE_SEPARATOR + other);
     }
 
     private static Tuple<String, String> compileClassSegment(final String input, final String structureName) {
@@ -163,32 +168,34 @@
 
         final var beforeParams = withoutParamEnd.substring(0, paramStart);
         final var inputParams = withoutParamEnd.substring(paramStart + "(".length());
-        final var outputParams = Main.compileAll(inputParams, new ValuesFolder(), Main::compileParameter, ", ");
+        final var compiledParams = Main.compileAll(inputParams, new ValuesFolder(), Main::compileParameter, ", ");
 
-        final var oldHeader = Main.compileDefinition(beforeParams)
+        final var oldHeader = Main.compileHeader(beforeParams);
+        final var compiledOutput = Main.compileStatements(content, Main::compileFunctionSegment);
+
+        final var node = Main.attachHeader(structureName, oldHeader, compiledOutput, compiledParams);
+        return Optional.of(new Tuple<>("", node.generate()));
+    }
+
+    private static FunctionNode attachHeader(final String structureName, final Header header, final String compiledContent, final String compiledParams) {
+        return switch (header) {
+            case final Constructor constructor -> {
+                final String outputContent = Strings.LINE_SEPARATOR + "\tstruct " + constructor.name() + " this;" + compiledContent + Strings.LINE_SEPARATOR + "\treturn this;";
+                yield new FunctionNode(header, compiledParams, outputContent);
+            }
+            case final Definition definition -> {
+                final Header newHeader = definition.mapName(name -> name + "_" + structureName);
+                yield new FunctionNode(newHeader, compiledParams, compiledContent);
+            }
+            default -> new FunctionNode(header, compiledParams, compiledContent);
+        };
+    }
+
+    private static Header compileHeader(final String beforeParams) {
+        return Main.compileDefinition(beforeParams)
                 .<Header>map(value -> value)
                 .or(() -> Main.compileConstructor(beforeParams))
-                .orElseGet((() -> new Placeholder(beforeContent)));
-
-        final var compiled = Main.compileStatements(content, Main::compileFunctionSegment);
-
-        final Header newHeader;
-        final String outputContent;
-        if (oldHeader instanceof final Constructor constructor) {
-            outputContent = Main.SEPARATOR + "\tstruct " + constructor.name() + " this;" + compiled + Main.SEPARATOR + "\treturn this;";
-            newHeader = oldHeader;
-        }
-        else if (oldHeader instanceof final Definition definition) {
-            outputContent = compiled;
-            newHeader = definition.mapName(name -> name + "_" + structureName);
-        }
-        else {
-            outputContent = compiled;
-            newHeader = oldHeader;
-        }
-
-        return Optional.of(new Tuple<>("",
-                newHeader.generate() + "(" + outputParams + ") {" + outputContent + Main.SEPARATOR + "}" + Main.SEPARATOR));
+                .orElseGet((() -> new Placeholder(beforeParams)));
     }
 
     private static Optional<Constructor> compileConstructor(final String input) {
@@ -212,7 +219,7 @@
 
         if (!strip.isEmpty() && ';' == strip.charAt(strip.length() - 1)) {
             final var withoutEnd = strip.substring(0, strip.length() - ";".length());
-            return Main.SEPARATOR + "\t" + Main.compileFunctionSegmentValue(withoutEnd) + ";";
+            return Strings.LINE_SEPARATOR + "\t" + Main.compileFunctionSegmentValue(withoutEnd) + ";";
         }
 
         return Placeholder.generate(input);
@@ -287,7 +294,7 @@
         final var substring = strip.substring(0, strip.length() - ";".length());
         return Main.compileDefinition(substring)
                 .map(Definition::generate)
-                .map(content -> new Tuple<>(Main.SEPARATOR + "\t" + content + ";", ""));
+                .map(content -> new Tuple<>(Strings.LINE_SEPARATOR + "\t" + content + ";", ""));
     }
 
     private static Optional<Definition> compileDefinition(final String input) {

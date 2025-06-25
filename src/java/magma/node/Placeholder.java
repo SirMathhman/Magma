@@ -1,6 +1,4 @@
-package magma.type;
-
-import magma.Header;
+package magma.node;
 
 public record Placeholder(String input) implements CType, Header {
     public static String generate(final String input) {

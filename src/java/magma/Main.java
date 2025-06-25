@@ -6,11 +6,14 @@ import magma.divide.fold.Folder;
 import magma.divide.fold.StatementFolder;
 import magma.divide.fold.ValuesFolder;
 import magma.list.ListLike;
-import magma.type.CPrimitive;
-import magma.type.CType;
-import magma.type.Placeholder;
-import magma.type.Pointer;
-import magma.type.Struct;
+import magma.node.CPrimitive;
+import magma.node.CType;
+import magma.node.Constructor;
+import magma.node.Definition;
+import magma.node.Header;
+import magma.node.Placeholder;
+import magma.node.Pointer;
+import magma.node.Struct;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -176,22 +179,22 @@ class Main {
         final var oldHeader = Main.compileHeader(beforeParams);
         final var compiledOutput = Main.compileStatements(content, Main::compileFunctionSegment);
 
-        final var node = Main.getFunctionNode(structureName, oldHeader, compiledOutput, compiledParams);
+        final var node = Main.attachHeader(structureName, oldHeader, compiledOutput, compiledParams);
         return Optional.of(new Tuple<>("", node.generate()));
     }
 
-    private static FunctionNode getFunctionNode(final String structureName, final Header header, final String compiledContent, final String compiledParams) {
-        if (header instanceof final Constructor constructor) {
-            final String outputContent = Strings.LINE_SEPARATOR + "\tstruct " + constructor.name() + " this;" + compiledContent + Strings.LINE_SEPARATOR + "\treturn this;";
-            return new FunctionNode(header, compiledParams, outputContent);
-        }
-
-        if (header instanceof final Definition definition) {
-            final Header newHeader = definition.mapName(name -> name + "_" + structureName);
-            return new FunctionNode(newHeader, compiledParams, compiledContent);
-        }
-
-        return new FunctionNode(header, compiledParams, compiledContent);
+    private static FunctionNode attachHeader(final String structureName, final Header header, final String compiledContent, final String compiledParams) {
+        return switch (header) {
+            case final Constructor constructor -> {
+                final String outputContent = Strings.LINE_SEPARATOR + "\tstruct " + constructor.name() + " this;" + compiledContent + Strings.LINE_SEPARATOR + "\treturn this;";
+                yield new FunctionNode(header, compiledParams, outputContent);
+            }
+            case final Definition definition -> {
+                final Header newHeader = definition.mapName(name -> name + "_" + structureName);
+                yield new FunctionNode(newHeader, compiledParams, compiledContent);
+            }
+            default -> new FunctionNode(header, compiledParams, compiledContent);
+        };
     }
 
     private static Header compileHeader(final String beforeParams) {

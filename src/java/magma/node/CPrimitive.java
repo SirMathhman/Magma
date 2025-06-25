@@ -1,4 +1,4 @@
-package magma.type;
+package magma.node;
 
 public enum CPrimitive implements CType {
     Char("char"), Int("int");
