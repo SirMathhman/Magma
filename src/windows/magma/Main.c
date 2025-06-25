@@ -1,28 +1,30 @@
 #include "Main.h"
-#include "magma/divide/MutableState.h"
-#include "magma/divide/State.h"
-#include "magma/divide/fold/Folder.h"
-#include "magma/divide/fold/StatementFolder.h"
-#include "magma/divide/fold/ValuesFolder.h"
-#include "magma/list/ListLike.h"
-#include "magma/node/CPrimitive.h"
-#include "magma/node/CType.h"
-#include "magma/node/Constructor.h"
-#include "magma/node/Definition.h"
-#include "magma/node/Header.h"
-#include "magma/node/Placeholder.h"
-#include "magma/node/Pointer.h"
-#include "magma/node/Struct.h"
-#include "java/io/IOException.h"
-#include "java/nio/file/Files.h"
-#include "java/nio/file/Path.h"
-#include "java/nio/file/Paths.h"
-#include "java/util/ArrayList.h"
-#include "java/util/List.h"
-#include "java/util/Optional.h"
-#include "java/util/function/Function.h"
-#include "java/util/stream/Collectors.h"
-#include "java/util/stream/IntStream.h"
+#include "divide/MutableState.h"
+#include "divide/State.h"
+#include "divide/fold/Folder.h"
+#include "divide/fold/StatementFolder.h"
+#include "divide/fold/ValuesFolder.h"
+#include "list/ListLike.h"
+#include "node/CPrimitive.h"
+#include "node/CType.h"
+#include "node/Constructor.h"
+#include "node/Definition.h"
+#include "node/Header.h"
+#include "node/Placeholder.h"
+#include "node/Pointer.h"
+#include "node/Struct.h"
+#include "../java/io/IOException.h"
+#include "../java/nio/file/Files.h"
+#include "../java/nio/file/Path.h"
+#include "../java/nio/file/Paths.h"
+#include "../java/util/ArrayList.h"
+#include "../java/util/Arrays.h"
+#include "../java/util/Collection.h"
+#include "../java/util/List.h"
+#include "../java/util/Optional.h"
+#include "../java/util/function/Function.h"
+#include "../java/util/stream/Collectors.h"
+#include "../java/util/stream/IntStream.h"
 /**/struct Main {/*
 
     private static void runWithSources(final Path rootDirectory, final Iterable<Path> sources) throws IOException {
@@ -46,7 +48,7 @@
             Files.createDirectories(targetParent);
 
         final var input = Files.readString(source);
-        final var output = Main.compileRoot(input);
+        final var output = Main.compileRoot(input, namespace);
 
         final var targetContent = "#include \"" + name + ".h\"" + Strings.LINE_SEPARATOR + output;
         Files.writeString(targetParent.resolve(name + ".c"), targetContent);
@@ -82,8 +84,8 @@
             e.printStackTrace();
         }*/
 }
-/*private static */char* compileRoot_Main(/*final */struct CharSequence input) {
-	return Main.compileStatements(/*input, Main::compileRootSegment*/);
+/*private static */char* compileRoot_Main(/*final */struct CharSequence input, /*final */struct List_char_ptr namespace) {
+	return Main.compileStatements(/*input, segment -> Main*/.compileRootSegment(/*segment, namespace*/));
 }
 /*private static */char* compileStatements_Main(/*final */struct CharSequence input, /* final Function<String*/, /* String> mapper*/) {
 	return Main.compileAll(/*input, new StatementFolder(), mapper, ""*/);
@@ -94,7 +96,7 @@
                 .map(mapper)
                 .collect(Collectors.joining(delimiter*/));
 }
-/*private static */char* compileRootSegment_Main(/*final */char* input) {
+/*private static */char* compileRootSegment_Main(/*final */char* input, /*final */struct List_char_ptr namespace) {
 	/*final var stripped */ = input.strip();
 	/*if (stripped.startsWith("package "))
             return ""*/;/*
@@ -103,8 +105,26 @@
             final var withoutPrefix = stripped.substring("import ".length());
             if (!withoutPrefix.isEmpty() && ';' == withoutPrefix.charAt(withoutPrefix.length() - 1)) {
                 final var withoutSuffix = withoutPrefix.substring(0, withoutPrefix.length() - ";".length());
-                final var divisions = withoutSuffix.split("\\.");
-                return "#include \"" + String.join("/", divisions) + ".h\"" + Strings.LINE_SEPARATOR;
+                final List<String> divisions = new ArrayList<>(Arrays.asList(withoutSuffix.split("\\.")));
+                final Collection<String> actualNamespace = new ArrayList<>();
+                final var namespaceSize = namespace.size();
+                final var divisionSize = divisions.size();
+                var truncatedCount = 0;
+                for (var i = 0; i < namespaceSize; i++) {
+                    if (divisionSize >= namespaceSize) {
+                        final var namespaceSegment = namespace.get(i);
+                        final var divisionSegment = divisions.get(i);
+                        if (namespaceSegment.contentEquals(divisionSegment)) {
+                            truncatedCount++;
+                            continue;
+                        }
+                    }
+
+                    actualNamespace.add("..");
+                }
+                actualNamespace.addAll(divisions.subList(truncatedCount, divisions.size()));
+
+                return "#include \"" + String.join("/", actualNamespace) + ".h\"" + Strings.LINE_SEPARATOR;
             }
         }*/
 	return Main.compileStructure(/*stripped)

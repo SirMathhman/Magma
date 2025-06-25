@@ -20,6 +20,8 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Function;
@@ -66,7 +68,7 @@ class Main {
             Files.createDirectories(targetParent);
 
         final var input = Files.readString(source);
-        final var output = Main.compileRoot(input);
+        final var output = Main.compileRoot(input, namespace);
 
         final var targetContent = "#include \"" + name + ".h\"" + Strings.LINE_SEPARATOR + output;
         Files.writeString(targetParent.resolve(name + ".c"), targetContent);
@@ -81,8 +83,8 @@ class Main {
         Files.writeString(targetParent.resolve(name + ".h"), headerContent);
     }
 
-    private static String compileRoot(final CharSequence input) {
-        return Main.compileStatements(input, Main::compileRootSegment);
+    private static String compileRoot(final CharSequence input, final List<String> namespace) {
+        return Main.compileStatements(input, segment -> Main.compileRootSegment(segment, namespace));
     }
 
     private static String compileStatements(final CharSequence input, final Function<String, String> mapper) {
@@ -96,7 +98,7 @@ class Main {
                 .collect(Collectors.joining(delimiter));
     }
 
-    private static String compileRootSegment(final String input) {
+    private static String compileRootSegment(final String input, final List<String> namespace) {
         final var stripped = input.strip();
         if (stripped.startsWith("package "))
             return "";
@@ -105,8 +107,26 @@ class Main {
             final var withoutPrefix = stripped.substring("import ".length());
             if (!withoutPrefix.isEmpty() && ';' == withoutPrefix.charAt(withoutPrefix.length() - 1)) {
                 final var withoutSuffix = withoutPrefix.substring(0, withoutPrefix.length() - ";".length());
-                final var divisions = withoutSuffix.split("\\.");
-                return "#include \"" + String.join("/", divisions) + ".h\"" + Strings.LINE_SEPARATOR;
+                final List<String> divisions = new ArrayList<>(Arrays.asList(withoutSuffix.split("\\.")));
+                final Collection<String> actualNamespace = new ArrayList<>();
+                final var namespaceSize = namespace.size();
+                final var divisionSize = divisions.size();
+                var truncatedCount = 0;
+                for (var i = 0; i < namespaceSize; i++) {
+                    if (divisionSize >= namespaceSize) {
+                        final var namespaceSegment = namespace.get(i);
+                        final var divisionSegment = divisions.get(i);
+                        if (namespaceSegment.contentEquals(divisionSegment)) {
+                            truncatedCount++;
+                            continue;
+                        }
+                    }
+
+                    actualNamespace.add("..");
+                }
+                actualNamespace.addAll(divisions.subList(truncatedCount, divisions.size()));
+
+                return "#include \"" + String.join("/", actualNamespace) + ".h\"" + Strings.LINE_SEPARATOR;
             }
         }
 

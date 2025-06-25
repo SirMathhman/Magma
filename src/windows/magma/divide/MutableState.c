@@ -1,6 +1,6 @@
 #include "MutableState.h"
-#include "magma/list/ListLike.h"
-#include "magma/list/Lists.h"
+#include "../list/ListLike.h"
+#include "../list/Lists.h"
 /*public */struct MutableState {
 	/*private */struct ListLike_char_ptr segments;
 	/*private */char* buffer;

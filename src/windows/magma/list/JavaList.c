@@ -1,8 +1,8 @@
 #include "JavaList.h"
-#include "java/util/ArrayList.h"
-#include "java/util/Iterator.h"
-#include "java/util/List.h"
-#include "java/util/stream/Stream.h"
+#include "../../java/util/ArrayList.h"
+#include "../../java/util/Iterator.h"
+#include "../../java/util/List.h"
+#include "../../java/util/stream/Stream.h"
 /*
 
 public record JavaList<Value>(List<Value> list) implements ListLike<Value> {

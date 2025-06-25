@@ -1,5 +1,5 @@
 #include "State.h"
-#include "magma/list/ListLike.h"
+#include "../list/ListLike.h"
 /*
 
 public interface State {

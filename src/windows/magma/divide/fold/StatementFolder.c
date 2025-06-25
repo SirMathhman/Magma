@@ -1,5 +1,5 @@
 #include "StatementFolder.h"
-#include "magma/divide/State.h"
+#include "../State.h"
 /*public */struct StatementFolder {
 	/*' == c && appended.isShallow())
             return appended.exit()
