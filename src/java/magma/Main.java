@@ -124,7 +124,14 @@ public class Main {
             if (0 <= nameSeparator) {
                 final var beforeName = withoutEnd.substring(0, nameSeparator);
                 final var name = withoutEnd.substring(nameSeparator + " ".length());
-                return Main.SEPARATOR + "\t" + Main.generatePlaceholder(beforeName) + " " + name + ";";
+
+                final var typeSeparator = beforeName.lastIndexOf(' ');
+                if (0 <= typeSeparator) {
+                    final var beforeType = beforeName.substring(0, typeSeparator);
+                    final var type = beforeName.substring(typeSeparator + " ".length());
+                    return Main.SEPARATOR + "\t" + Main.generatePlaceholder(beforeType) + " " + Main.generatePlaceholder(
+                            type) + " " + name + ";";
+                }
             }
         }
 
