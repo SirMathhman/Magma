@@ -1,3 +1,0 @@
-#ifndef magma_divide_MutableState
-#define magma_divide_MutableState
-#endif

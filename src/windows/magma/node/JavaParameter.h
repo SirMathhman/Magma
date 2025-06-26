@@ -1,3 +1,0 @@
-#ifndef magma_node_JavaParameter
-#define magma_node_JavaParameter
-#endif

@@ -1,3 +1,0 @@
-#ifndef magma_node_ConstructionHeader
-#define magma_node_ConstructionHeader
-#endif

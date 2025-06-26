@@ -1,3 +1,0 @@
-#ifndef magma_node_JavaStringType
-#define magma_node_JavaStringType
-#endif
