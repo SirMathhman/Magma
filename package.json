@@ -15,7 +15,7 @@
   "type": "commonjs",
   "main": "index.js",
   "scripts": {
-    "start": "ts-node ./src/node/magma/Main.ts",
+    "start": "tsc ./src/node/magma/Main.ts",
     "dev": "nodemon"
   },
   "devDependencies": {

@@ -3,6 +3,6 @@
     "src",
     "node"
   ],
-  "ext": "js,json,ts",
+  "ext": "ts",
   "exec": "npm run start"
 }
