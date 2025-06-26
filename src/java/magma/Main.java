@@ -23,6 +23,7 @@ import magma.node.JavaType;
 import magma.node.NumberNode;
 import magma.node.Placeholder;
 import magma.node.StringNode;
+import magma.node.Structure;
 import magma.node.Symbol;
 import magma.node.Value;
 import magma.node.Whitespace;
@@ -215,7 +216,7 @@ class Main {
                 .map(CFunction::generate)
                 .collect(Collectors.joining());
 
-        final var generated = Placeholder.generate(beforeKeyword) + "struct " + name + " {" + output + "};" + Strings.LINE_SEPARATOR + joined;
+        final var generated = new Structure(beforeKeyword, name, output.toString()).generate() + joined;
         return Optional.of(new Tuple<>(generated, Optional.empty()));
     }
 
