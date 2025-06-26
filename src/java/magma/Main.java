@@ -5,6 +5,9 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 
 public class Main {
+    private Main() {
+    }
+
     public static void main(final String[] args) {
         try {
             final var targetParent = Paths.get(".", "src", "node", "magma");
