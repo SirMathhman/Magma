@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Stream;
 
+@Actual
 public record JavaList<T>(List<T> list) implements ListLike<T> {
     public JavaList() {
         this(new ArrayList<>());
