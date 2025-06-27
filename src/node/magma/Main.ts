@@ -7,9 +7,11 @@
 /*import java.util.Collections;*/
 /*import java.util.Optional;*/
 /*import java.util.function.Function;*/
+/*import java.util.regex.Pattern;*/
 /*import java.util.stream.Collectors;*/
 /*public*/class Main {
 	/*private static final*/ LINE_SEPARATOR : string = System.lineSeparator(/**/);
+	/*private static final*/ PATTERN : /*Pattern*/ = Pattern.compile(/*"\\n"*/);
 	constructor (/**/) {/*
     */}
 	/*public static*/ main(/*final String[] args*/) : /*void*/ {/*
@@ -49,72 +51,82 @@
         return Main.compileRootSegmentValue(input.strip()) + Main.LINE_SEPARATOR;
     */}
 	/*private static*/ compileRootSegmentValue(/*final String input*/) : string {/*
-        if (!input.isEmpty() && '}' == input.charAt(input.length() - 1)) {
-            final var withoutEnd = input.substring(0, input.length() - "}".length());
-            final var contentStart = withoutEnd.indexOf('{');
-            if (0 <= contentStart) {
-                final var beforeContent = withoutEnd.substring(0, contentStart);
-                final var content = withoutEnd.substring(contentStart + "{".length());
-                final var definition = Main.parseStructureHeader(beforeContent);
-                final String structName;
-                if (definition instanceof final StructureHeader header) {
-                    if (header.annotations().contains("Actual"))
-                        return "";
-
-                    structName = header.name();
-                } else
-                    structName = "?";
-                return definition.generate() + " {" +
-                       Main.compileStatements(content, input1 -> Main.compileStructureSegment(input1, structName)) +
-                       "}";
-            }
-        }
-
-        return Placeholder.generate(input);
+        return Main.compileStructure(input).orElseGet(() -> Placeholder.generate(input));
     */}
+	/*private static*/ compileStructure(/*final String input*/) : Optional<string> {/*
+        if (input.isEmpty() || '}' != input.charAt(input.length() - 1))
+            return Optional.empty();
+
+        final var withoutEnd = input.substring(0, input.length() - "*/}
+	/*".length());*/
+	/*final*/ contentStart : /*var*/ = withoutEnd.indexOf(/*'{'*/);
+	/*if (0 > contentStart)
+            return Optional.empty();*/
+	/*final*/ beforeContent : /*var*/ = withoutEnd.substring(/*0, contentStart*/);
+	/*final var content = withoutEnd.substring(contentStart + "{".length());
+        final var definition = Main.parseStructureHeader(beforeContent);
+        final String structName;
+        if (definition instanceof final StructureHeader header) {
+            if (header.annotations().contains("Actual"))
+                return Optional.of("");
+
+            structName = header.name();
+        } else
+            structName = "?";
+
+        return Optional.of(definition.generate() + " {" +
+                           Main.compileStatements(content, input1 -> Main.compileStructureSegment(input1, structName)) +
+                           "}");
+    }*/
 	/*private static*/ compileStructureSegment(/*final String input, final String structName*/) : string {/*
         final var strip = input.strip();
         return Main.LINE_SEPARATOR + "\t" + Main.compileStructureSegmentValue(strip, structName);
     */}
 	/*private static*/ compileStructureSegmentValue(/*final String input, final String structName*/) : string {/*
-        if (!input.isEmpty() && ';' == input.charAt(input.length() - 1)) {
-            final var withoutEnd = input.substring(0, input.length() - ";".length());
-            final var before = Main.compileStructureStatementValue(withoutEnd).map(result -> result + ";");
-            if (before.isPresent())
-                return before.get();
-        }
-
-        if (!input.isEmpty() && '}' == input.charAt(input.length() - 1)) {
-            final var withoutEnd = input.substring(0, input.length() - "}".length());
-            final var contentStart = withoutEnd.indexOf('{');
-            if (0 <= contentStart) {
-                final var before = withoutEnd.substring(0, contentStart).strip();
-                final var after = withoutEnd.substring(contentStart + "{".length());
-                if (before.endsWith(")")) {
-                    final var withoutParamEnd = before.substring(0, before.length() - ")".length());
-                    final var paramStart = withoutParamEnd.indexOf('(');
-                    if (0 <= paramStart) {
-                        final var definition = withoutParamEnd.substring(0, paramStart);
-                        final var params = withoutParamEnd.substring(paramStart + "(".length());
-                        final var joinedParams = "(" + Placeholder.generate(params) + ")";
-                        return Main.parseMethodHeader(definition, structName).generateWithAfterName(joinedParams) +
-                               " {" + Placeholder.generate(after) + "}";
-                    }
-                }
-            }
-        }
-
-        return Placeholder.generate(input);
+        return Main.compileField(input).or(() -> Main.compileMethod(input, structName))
+                   .orElseGet(() -> Placeholder.generate(input));
     */}
-	/*private static*/ parseMethodHeader(/*final String input, final String structName*/) : /*MethodHeader*/ {/*
+	/*private static*/ compileField(/*final String input*/) : Optional<string> {/*
+        if (input.isEmpty() || ';' != input.charAt(input.length() - 1))
+            return Optional.empty();
+
+        final var withoutEnd = input.substring(0, input.length() - ";".length());
+        return Main.compileStructureStatementValue(withoutEnd).map(result -> result + ";");
+    */}
+	/*private static*/ compileMethod(/*final String input, final CharSequence structName*/) : Optional<string> {/*
+        if (input.isEmpty() || '}' != input.charAt(input.length() - 1))
+            return Optional.empty();
+
+        final var withoutEnd = input.substring(0, input.length() - "*/}
+	/*".length());*/
+	/*final*/ contentStart : /*var*/ = withoutEnd.indexOf(/*'{'*/);
+	/*if (0 > contentStart)
+            return Optional.empty();*/
+	/*final*/ before : /*var*/ = withoutEnd.substring(/*0, contentStart).strip(*/);
+	/*final var after = withoutEnd.substring(contentStart + "{".length());
+        if (before.isEmpty() || ')' != before.charAt(before.length() - 1))
+            return Optional.empty();
+
+        final var withoutParamEnd = before.substring(0, before.length() - ")".length());
+        final var paramStart = withoutParamEnd.indexOf('(');
+        if (0 > paramStart)
+            return Optional.empty();
+
+        final var definition = withoutParamEnd.substring(0, paramStart);
+        final var params = withoutParamEnd.substring(paramStart + "(".length());
+        final var joinedParams = "(" + Placeholder.generate(params) + ")";
+        return Optional.of(Main.parseMethodHeader(definition, structName).generateWithAfterName(joinedParams) + " {" +
+                           Placeholder.generate(after) + "}");
+    }*/
+	/*private static*/ parseMethodHeader(/*final String input, final CharSequence structName*/) : /*MethodHeader*/ {/*
         return Main.parseConstructor(input, structName).orElseGet(() -> Main.parseDefinitionOrPlaceholder(input));
     */}
-	/*private static*/ parseConstructor(/*final String input, final String structName*/) : Optional</*MethodHeader*/> {/*
+	/*private static*/ parseConstructor(/*final String input, final CharSequence structName*/) : Optional</*MethodHeader*/> {/*
         final var strip = input.strip();
         final var index = strip.lastIndexOf(' ');
         if (0 <= index) {
             final var name = strip.substring(index + " ".length()).strip();
-            if (name.equals(structName))
+            if (name.contentEquals(structName))
                 return Optional.of(new Constructor());
         }
 
@@ -131,7 +143,7 @@
     */}
 	/*private static*/ compileValue(/*final String input*/) : string {/*
         final var strip = input.strip();
-        if (strip.endsWith(")")) {
+        if (!strip.isEmpty() && ')' == strip.charAt(strip.length() - 1)) {
             final var substring = strip.substring(0, strip.length() - ")".length());
             final var i = substring.indexOf('(');
             if (0 <= i) {
@@ -159,8 +171,9 @@
 
         return Placeholder.generate(strip);
     */}
-	/*private static*/ isSymbol(/*final String input*/) : /*boolean*/ {/*
-        for (var i = 0; i < input.length(); i++) {
+	/*private static*/ isSymbol(/*final CharSequence input*/) : /*boolean*/ {/*
+        final var length = input.length();
+        for (var i = 0; i < length; i++) {
             final var c = input.charAt(i);
             if (Character.isLetter(c))
                 continue;
@@ -202,7 +215,7 @@
             return "string";
         if ("int".contentEquals(strip))
             return "number";
-        if (strip.endsWith(">")) {
+        if (!strip.isEmpty() && '>' == strip.charAt(strip.length() - 1)) {
             final var withoutEnd = strip.substring(0, strip.length() - ">".length());
             final var start = withoutEnd.indexOf('<');
             if (0 <= start) {
@@ -234,10 +247,10 @@
         } else
             return Optional.of(Main.complete(type, beforeKeyword, afterKeyword, Optional.empty()));
     */}
-	/*private static*/ complete(/*final String type, final String beforeKeyword, final String beforeImplements,
-                                            final Optional<String> maybeImplements*/) : /*StructureHeader*/ {/*
+	/*private static*/ complete(/*final String type, final String beforeKeyword,
+                                            final String beforeImplements, final Optional<String> maybeImplements*/) : /*StructureHeader*/ {/*
         final var strip = beforeImplements.strip();
-        if (strip.endsWith(")")) {
+        if (!strip.isEmpty() && ')' == strip.charAt(strip.length() - 1)) {
             final var withoutEnd = strip.substring(0, strip.length() - ")".length());
             final var contentStart = withoutEnd.indexOf('(');
             if (0 <= contentStart) {
@@ -251,12 +264,13 @@
 	/*private static*/ parseStructureHeaderByAnnotations(/*final String type, final String beforeKeyword,
                                                                      final Optional<String> maybeImplements,
                                                                      final String strip1*/) : /*StructureHeader*/ {/*
-        final var i = beforeKeyword.lastIndexOf('\n');
-        if (0 <= i) {
-            final var annotations = Arrays.stream(beforeKeyword.substring(0, i).strip().split("\\n")).map(String::strip)
-                                          .filter(value -> !value.isEmpty()).map(value -> value.substring(1)).toList();
+        final var index = beforeKeyword.lastIndexOf(System.lineSeparator());
+        if (0 <= index) {
+            final var annotations =
+                    Arrays.stream(Main.PATTERN.split(beforeKeyword.substring(0, index).strip())).map(String::strip)
+                          .filter(value -> !value.isEmpty()).map(value -> value.substring(1)).toList();
 
-            final var substring1 = beforeKeyword.substring(i + "\n".length());
+            final var substring1 = beforeKeyword.substring(index + System.lineSeparator().length());
             return new StructureHeader(type, annotations, substring1, strip1, maybeImplements);
         }
 

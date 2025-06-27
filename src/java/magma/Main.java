@@ -8,10 +8,12 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Optional;
 import java.util.function.Function;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 public class Main {
     private static final String LINE_SEPARATOR = System.lineSeparator();
+    private static final Pattern PATTERN = Pattern.compile("\\n");
 
     private Main() {
     }
@@ -58,28 +60,33 @@ public class Main {
     }
 
     private static String compileRootSegmentValue(final String input) {
-        if (!input.isEmpty() && '}' == input.charAt(input.length() - 1)) {
-            final var withoutEnd = input.substring(0, input.length() - "}".length());
-            final var contentStart = withoutEnd.indexOf('{');
-            if (0 <= contentStart) {
-                final var beforeContent = withoutEnd.substring(0, contentStart);
-                final var content = withoutEnd.substring(contentStart + "{".length());
-                final var definition = Main.parseStructureHeader(beforeContent);
-                final String structName;
-                if (definition instanceof final StructureHeader header) {
-                    if (header.annotations().contains("Actual"))
-                        return "";
+        return Main.compileStructure(input).orElseGet(() -> Placeholder.generate(input));
+    }
 
-                    structName = header.name();
-                } else
-                    structName = "?";
-                return definition.generate() + " {" +
-                       Main.compileStatements(content, input1 -> Main.compileStructureSegment(input1, structName)) +
-                       "}";
-            }
-        }
+    private static Optional<String> compileStructure(final String input) {
+        if (input.isEmpty() || '}' != input.charAt(input.length() - 1))
+            return Optional.empty();
 
-        return Placeholder.generate(input);
+        final var withoutEnd = input.substring(0, input.length() - "}".length());
+        final var contentStart = withoutEnd.indexOf('{');
+        if (0 > contentStart)
+            return Optional.empty();
+
+        final var beforeContent = withoutEnd.substring(0, contentStart);
+        final var content = withoutEnd.substring(contentStart + "{".length());
+        final var definition = Main.parseStructureHeader(beforeContent);
+        final String structName;
+        if (definition instanceof final StructureHeader header) {
+            if (header.annotations().contains("Actual"))
+                return Optional.of("");
+
+            structName = header.name();
+        } else
+            structName = "?";
+
+        return Optional.of(definition.generate() + " {" +
+                           Main.compileStatements(content, input1 -> Main.compileStructureSegment(input1, structName)) +
+                           "}");
     }
 
     private static String compileStructureSegment(final String input, final String structName) {
@@ -88,46 +95,54 @@ public class Main {
     }
 
     private static String compileStructureSegmentValue(final String input, final String structName) {
-        if (!input.isEmpty() && ';' == input.charAt(input.length() - 1)) {
-            final var withoutEnd = input.substring(0, input.length() - ";".length());
-            final var before = Main.compileStructureStatementValue(withoutEnd).map(result -> result + ";");
-            if (before.isPresent())
-                return before.get();
-        }
-
-        if (!input.isEmpty() && '}' == input.charAt(input.length() - 1)) {
-            final var withoutEnd = input.substring(0, input.length() - "}".length());
-            final var contentStart = withoutEnd.indexOf('{');
-            if (0 <= contentStart) {
-                final var before = withoutEnd.substring(0, contentStart).strip();
-                final var after = withoutEnd.substring(contentStart + "{".length());
-                if (before.endsWith(")")) {
-                    final var withoutParamEnd = before.substring(0, before.length() - ")".length());
-                    final var paramStart = withoutParamEnd.indexOf('(');
-                    if (0 <= paramStart) {
-                        final var definition = withoutParamEnd.substring(0, paramStart);
-                        final var params = withoutParamEnd.substring(paramStart + "(".length());
-                        final var joinedParams = "(" + Placeholder.generate(params) + ")";
-                        return Main.parseMethodHeader(definition, structName).generateWithAfterName(joinedParams) +
-                               " {" + Placeholder.generate(after) + "}";
-                    }
-                }
-            }
-        }
-
-        return Placeholder.generate(input);
+        return Main.compileField(input).or(() -> Main.compileMethod(input, structName))
+                   .orElseGet(() -> Placeholder.generate(input));
     }
 
-    private static MethodHeader parseMethodHeader(final String input, final String structName) {
+    private static Optional<String> compileField(final String input) {
+        if (input.isEmpty() || ';' != input.charAt(input.length() - 1))
+            return Optional.empty();
+
+        final var withoutEnd = input.substring(0, input.length() - ";".length());
+        return Main.compileStructureStatementValue(withoutEnd).map(result -> result + ";");
+    }
+
+    private static Optional<String> compileMethod(final String input, final CharSequence structName) {
+        if (input.isEmpty() || '}' != input.charAt(input.length() - 1))
+            return Optional.empty();
+
+        final var withoutEnd = input.substring(0, input.length() - "}".length());
+        final var contentStart = withoutEnd.indexOf('{');
+        if (0 > contentStart)
+            return Optional.empty();
+
+        final var before = withoutEnd.substring(0, contentStart).strip();
+        final var after = withoutEnd.substring(contentStart + "{".length());
+        if (before.isEmpty() || ')' != before.charAt(before.length() - 1))
+            return Optional.empty();
+
+        final var withoutParamEnd = before.substring(0, before.length() - ")".length());
+        final var paramStart = withoutParamEnd.indexOf('(');
+        if (0 > paramStart)
+            return Optional.empty();
+
+        final var definition = withoutParamEnd.substring(0, paramStart);
+        final var params = withoutParamEnd.substring(paramStart + "(".length());
+        final var joinedParams = "(" + Placeholder.generate(params) + ")";
+        return Optional.of(Main.parseMethodHeader(definition, structName).generateWithAfterName(joinedParams) + " {" +
+                           Placeholder.generate(after) + "}");
+    }
+
+    private static MethodHeader parseMethodHeader(final String input, final CharSequence structName) {
         return Main.parseConstructor(input, structName).orElseGet(() -> Main.parseDefinitionOrPlaceholder(input));
     }
 
-    private static Optional<MethodHeader> parseConstructor(final String input, final String structName) {
+    private static Optional<MethodHeader> parseConstructor(final String input, final CharSequence structName) {
         final var strip = input.strip();
         final var index = strip.lastIndexOf(' ');
         if (0 <= index) {
             final var name = strip.substring(index + " ".length()).strip();
-            if (name.equals(structName))
+            if (name.contentEquals(structName))
                 return Optional.of(new Constructor());
         }
 
@@ -146,7 +161,7 @@ public class Main {
 
     private static String compileValue(final String input) {
         final var strip = input.strip();
-        if (strip.endsWith(")")) {
+        if (!strip.isEmpty() && ')' == strip.charAt(strip.length() - 1)) {
             final var substring = strip.substring(0, strip.length() - ")".length());
             final var i = substring.indexOf('(');
             if (0 <= i) {
@@ -175,8 +190,9 @@ public class Main {
         return Placeholder.generate(strip);
     }
 
-    private static boolean isSymbol(final String input) {
-        for (var i = 0; i < input.length(); i++) {
+    private static boolean isSymbol(final CharSequence input) {
+        final var length = input.length();
+        for (var i = 0; i < length; i++) {
             final var c = input.charAt(i);
             if (Character.isLetter(c))
                 continue;
@@ -222,7 +238,7 @@ public class Main {
             return "string";
         if ("int".contentEquals(strip))
             return "number";
-        if (strip.endsWith(">")) {
+        if (!strip.isEmpty() && '>' == strip.charAt(strip.length() - 1)) {
             final var withoutEnd = strip.substring(0, strip.length() - ">".length());
             final var start = withoutEnd.indexOf('<');
             if (0 <= start) {
@@ -258,10 +274,9 @@ public class Main {
     }
 
     private static StructureHeader complete(final String type, final String beforeKeyword,
-                                            final String beforeImplements,
-                                            final Optional<String> maybeImplements) {
+                                            final String beforeImplements, final Optional<String> maybeImplements) {
         final var strip = beforeImplements.strip();
-        if (strip.endsWith(")")) {
+        if (!strip.isEmpty() && ')' == strip.charAt(strip.length() - 1)) {
             final var withoutEnd = strip.substring(0, strip.length() - ")".length());
             final var contentStart = withoutEnd.indexOf('(');
             if (0 <= contentStart) {
@@ -276,12 +291,13 @@ public class Main {
     private static StructureHeader parseStructureHeaderByAnnotations(final String type, final String beforeKeyword,
                                                                      final Optional<String> maybeImplements,
                                                                      final String strip1) {
-        final var i = beforeKeyword.lastIndexOf('\n');
-        if (0 <= i) {
-            final var annotations = Arrays.stream(beforeKeyword.substring(0, i).strip().split("\\n")).map(String::strip)
-                                          .filter(value -> !value.isEmpty()).map(value -> value.substring(1)).toList();
+        final var index = beforeKeyword.lastIndexOf(System.lineSeparator());
+        if (0 <= index) {
+            final var annotations =
+                    Arrays.stream(Main.PATTERN.split(beforeKeyword.substring(0, index).strip())).map(String::strip)
+                          .filter(value -> !value.isEmpty()).map(value -> value.substring(1)).toList();
 
-            final var substring1 = beforeKeyword.substring(i + "\n".length());
+            final var substring1 = beforeKeyword.substring(index + System.lineSeparator().length());
             return new StructureHeader(type, annotations, substring1, strip1, maybeImplements);
         }
 
