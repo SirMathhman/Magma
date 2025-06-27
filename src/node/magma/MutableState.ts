@@ -17,7 +17,7 @@
     */}
 	/*@Override
     public*/ append(/*final char c*/) : State {
-		this.buffer = /*this.buffer + c*/;
+		this.buffer = this.buffer + c;
 		return this;/*
     */}
 	/*@Override
@@ -26,7 +26,7 @@
     */}
 	/*@Override
     public*/ isLevel(/**/) : boolean {
-		return /*0 == this*/.depth;/*
+		return 0 == this.depth;/*
     */}
 	/*@Override
     public*/ enter(/**/) : State {/*
@@ -40,7 +40,7 @@
     */}
 	/*@Override
     public*/ isShallow(/**/) : boolean {
-		return /*1 == this*/.depth;/*
+		return 1 == this.depth;/*
     */}
 	/*@Override
     public*/ pop(/**/) : Optional<Tuple<State, Character>> {

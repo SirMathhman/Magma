@@ -10,7 +10,7 @@
     */}
 	/*@Override
     public*/ generateWithAfterName(/*final String afterName*/) : string {
-		return /*Placeholder.generate(this.value) + afterName*/;/*
+		return Placeholder.generate(/*this.value*/) + afterName;/*
     */}
 	/*public*/ generate(/**/) : string {
 		return this.value;/*

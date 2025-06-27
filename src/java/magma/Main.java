@@ -221,12 +221,11 @@ public class Main {
     }
 
     private static String compileValue(final String input) {
-        final var i = input.indexOf(">=");
-        if (0 <= i) {
-            final var substring = input.substring(0, i);
-            final var substring1 = input.substring(i + ">=".length());
-            return Main.compileValue(substring) + " >= " + Main.compileValue(substring1);
-        }
+        final var maybeOperator = Main.compileOperator(input, ">=").or(() -> Main.compileOperator(input, "=="))
+                                      .or(() -> Main.compileOperator(input, "+"));
+
+        if (maybeOperator.isPresent())
+            return maybeOperator.get();
 
         final var maybeInvocation = Main.compileInvocation(input);
         if (maybeInvocation.isPresent())
@@ -251,6 +250,17 @@ public class Main {
             return strip;
 
         return Placeholder.generate(strip);
+    }
+
+    private static Optional<String> compileOperator(final String input, final String operator) {
+        final var i = input.indexOf(operator);
+        if (0 <= i) {
+            final var substring = input.substring(0, i);
+            final var substring1 = input.substring(i + operator.length());
+            return Optional.of(Main.compileValue(substring) + " " + operator + " " + Main.compileValue(substring1));
+        }
+
+        return Optional.empty();
     }
 
     private static Optional<String> compileInvocation(final String input) {
