@@ -10,7 +10,6 @@
 
 
 
-
 class Main {
 	let LINE_SEPARATOR : string = System.lineSeparator();
 	constructor () {
@@ -165,7 +164,7 @@ class Main {
 			return Optional.empty();
 		return Optional.of(Main.parseMethodHeader(definition, structName).generateWithAfterName(joinedParams) + outputContent);
 	}
-	compileFunctionSegments(substring : string, depth : number) : string {
+	compileFunctionSegments(substring : CharSequence, depth : number) : string {
 		return Main.compileStatements(substring, input => Main.compileFunctionSegment(input, depth));
 	}
 	compileParameter(input : string) : string {
@@ -220,13 +219,16 @@ class Main {
 	functionCompileStatementOrBlock(depth : number, input : string) : string {
 		let withBraces : any = input.strip();/*
         final String compiled;*/
-		if (withBraces.startsWith("{") && withBraces.endsWith("}")){
+		if (Main.isBlock(withBraces)){
 			let compiled1 : any = Main.compileFunctionSegments(withBraces.substring(1, withBraces.length() - 1), depth + 1);
 			compiled = "{" + compiled1 + Main.LINE_SEPARATOR + "\t".repeat(depth) + "}";
 		}
 		else 
 			compiled = Main.compileFunctionSegment(withBraces, depth + 1);
 		return compiled;
+	}
+	isBlock(withBraces : CharSequence) : boolean {
+		return !withBraces.isEmpty() && '{' == withBraces.charAt(0) && '}' == withBraces.charAt(withBraces.length() - 1);
 	}
 	foldConditional(state : State, c : char) : State {
 		let appended : any = state.append(c);
@@ -309,10 +311,8 @@ class Main {
 		let before : any = input.substring(0, arrowIndex).strip();
 		if (!Main.isSymbol(before))
 			return Optional.empty();
-		let after : any = input.substring(arrowIndex + " -  > ".length());/*
-        return Main.compileValue(after).map(afterResult -> {
-            return before + " => " + afterResult;
-        }*//*);*/
+		let after : any = input.substring(arrowIndex + " -  > ".length());
+		return Main.compileValue(after).map(afterResult => before + " => " + afterResult);
 	}
 	compileOperators(input : string) : Optional<string> {
 		return Main.compileOperator(input, " >= ").or(/*(*/) -  > Main.compileOperator(input, /* "==")*/).or(() -  > Main.compileOperator(input, " + ")).or(() -  > Main.compileOperator(input, " < ")).or(() -  > Main.compileOperator(input, " <= ")).or(() -  > Main.compileOperator(input, " || ")).or(() -  > Main.compileOperator(input, " != ")).or(() -  > Main.compileOperator(input, " - ")).or(() -  > Main.compileOperator(input, " && ")).or(() -  > Main.compileOperator(input, " > "));
@@ -430,7 +430,7 @@ class Main {
 		let appended : any = state.append(c);
 		if ('-' == c){
 			let peek : any = appended.peek();
-			if (peek.isPresent() && peek.get().equals('>'))
+			if (peek.filter(value => '>' == value).isPresent())
 				return appended.popAndAppendToOption().orElse(appended);
 		}
 		if ('<' == c || '(' == c)
@@ -481,13 +481,13 @@ class Main {
 	divide(input : CharSequence, foldStatements : BiFunction<State, Character, State>) : ListLike<string> {
 		let current : State = new MutableState(input);/*
         while (true) {
-            final var maybe = current.pop();
-            if (maybe.isEmpty())
+            final var maybe = current.pop().toTuple(new Tuple<>(current, '\0'));
+            if (maybe.left()) {
+                final var tuple = maybe.right();
+                current = tuple.left();
+                current = Main.fold(current, tuple.right(), foldStatements);
+            } else
                 break;
-
-            final var tuple = maybe.get();
-            current = tuple.left();
-            current = Main.fold(current, tuple.right(), foldStatements);
         }*/
 		return current.advance().unwrap();
 	}
@@ -499,26 +499,30 @@ class Main {
 			return Optional.empty();
 		let current : any = state.append('\"');/*
         while (true) {
-            final var maybeTuple = current.popAndAppendToTuple();
+            final var maybeTuple =
+                    current.popAndAppendToTuple().flatMap(tuple -> Main.getObjectOptional(tuple, current));
             if (maybeTuple.isEmpty())
-                break;
-
-            final var tuple = maybeTuple.get();
-            current = tuple.left();
-
-            final var next = tuple.right();
-            if ('\\' == next)
-                current = current.popAndAppendToOption().orElse(current);
-            if ('\"' == next)
                 break;
         }*/
 		return Optional.of(current);
 	}
+	getObjectOptional(tuple : Tuple<State, Character>, current : State) : Optional<State> {
+		let left : any = tuple.left();
+		let next : any = tuple.right();
+		if ('\\' == next)
+			return Optional.of(left.popAndAppendToOption().orElse(current));
+		if ('\"' == next)
+			return Optional.empty();
+		return Optional.of(left);
+	}
 	foldSingleQuotes(state : State, c : char) : Optional<State> {
 		if ('\'' != c)
-			return Optional.empty();
-		return state.append(c).popAndAppendToTuple().flatMap(/*
-                            tuple -> '\\' == tuple.right() ? tuple.left().popAndAppendToOption() : Optional.of(tuple.left())*/).flatMap(/*State::popAndAppendToOption*/);
+			return Optional.empty();/*
+        return state.append(c).popAndAppendToTuple().flatMap(tuple -> {
+            if ('\\' == tuple.right())
+                return tuple.left().popAndAppendToOption();
+            return Optional.of(tuple.left());
+        }*//*).flatMap(State::popAndAppendToOption);*/
 	}
 	foldStatements(state : State, c : char) : State {
 		let appended : any = state.append(c);
