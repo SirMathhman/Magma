@@ -226,6 +226,17 @@ public class Main {
     }
 
     private static Optional<String> compileValue(final String input) {
+        final var arrowIndex = input.indexOf("->");
+        if (0 <= arrowIndex) {
+            final var before = input.substring(0, arrowIndex).strip();
+            if (Main.isSymbol(before)) {
+                final var after = input.substring(arrowIndex + "->".length());
+                return Main.compileValue(after).map(afterResult -> {
+                    return before + " => " + afterResult;
+                });
+            }
+        }
+
         final var maybeOperator = Main.compileOperator(input, ">=").or(() -> Main.compileOperator(input, "=="))
                                       .or(() -> Main.compileOperator(input, "+"))
                                       .or(() -> Main.compileOperator(input, "<"))

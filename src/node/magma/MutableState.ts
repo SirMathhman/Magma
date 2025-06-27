@@ -52,7 +52,7 @@
     */}
 	/*@Override
     public*/ popAndAppendToTuple(/**/) : Optional<Tuple<State, Character>> {
-		return this.pop().map(tuple -  > new Tuple<>(tuple.left().append(tuple.right()), tuple.right()));/*
+		return this.pop().map(tuple => new Tuple<>(tuple.left().append(tuple.right()), tuple.right()));/*
     */}
 	/*@Override
     public*/ popAndAppendToOption(/**/) : Optional<State> {

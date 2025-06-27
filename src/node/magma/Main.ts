@@ -76,7 +76,7 @@
         }*/
 		/*else
           */ structName :  = "?";
-		return Optional.of(/*definition.generate(*/) + " {" + Main.compileStatements(content, input1 -  > Main.compileStructureSegment(input1, /* structName)*/) + "}");/*
+		return Optional.of(/*definition.generate(*/) + " {" + Main.compileStatements(content, input1 => Main.compileStructureSegment(input1, /* structName)*/) + "}");/*
     */}
 	/*private static*/ compileStructureSegment(/*final String input, final CharSequence structName*/) : string {
 		/*final*/ strip : any = input.strip();
@@ -90,7 +90,7 @@
 		if (input.isEmpty() || ';' != input.charAt(input.length() - 1))/*
             return Optional.empty();*/
 		/*final*/ withoutEnd : any = input.substring(0, /* input.length(*/) - ";".length(/*)*/);
-		return mapper.apply(withoutEnd).map(result -  > result + ";");/*
+		return mapper.apply(withoutEnd).map(result => result + ";");/*
     */}
 	/*private static*/ compileMethod(/*final String input, final CharSequence structName*/) : Optional<string> {
 		if (input.isEmpty() || '}' != input.charAt(input.length() - 1))/*
@@ -113,7 +113,7 @@
 		return Optional.of(/*Main.parseMethodHeader(definition, structName).generateWithAfterName(joinedParams*/) + " {" + Main.compileStatements(content, /* Main::compileFunctionSegment) + "}"*/);/*
     */}
 	/*private static*/ compileFunctionSegment(/*final String input*/) : string {
-		return Main.compileConditional(input).or(/*(*/) -  > Main.compileStatement(input, /* Main::compileFunctionStatementValue)*/).map(value -  > System.lineSeparator() + "\t\t" + value).orElseGet(() -  > Placeholder.generate(input));/*
+		return Main.compileConditional(input).or(/*(*/) -  > Main.compileStatement(input, /* Main::compileFunctionStatementValue)*/).map(value => System.lineSeparator() + "\t\t" + value).orElseGet(() -  > Placeholder.generate(input));/*
     */}
 	/*private static*/ compileFunctionStatementValue(/*final String input*/) : Optional<string> {
 		return Main.compileReturn(input).or(/*(*/) -  > Main.compileAssignment(/*input)*/);/*
@@ -182,6 +182,16 @@
 		return Main.compileValue(input).orElseGet(/*(*/) -  > Placeholder.generate(/*input)*/);/*
     */}
 	/*private static*/ compileValue(/*final String input*/) : Optional<string> {
+		/*final*/ arrowIndex : any = input.indexOf(" -  > ");
+		if (0 <= arrowIndex)/* {
+            final var before = input.substring(0, arrowIndex).strip();
+            if (Main.isSymbol(before)) {
+                final var after = input.substring(arrowIndex + "->".length());
+                return Main.compileValue(after).map(afterResult -> {
+                    return before + " => " + afterResult;
+                });
+            }
+        }*/
 		/*final*/ maybeOperator : any = Main.compileOperator(input, " >= ").or(/*(*/) -  > Main.compileOperator(input, /* "==")*/).or(() -  > Main.compileOperator(input, " + ")).or(() -  > Main.compileOperator(input, " < ")).or(() -  > Main.compileOperator(input, " <= ")).or(() -  > Main.compileOperator(input, " || ")).or(() -  > Main.compileOperator(input, " != ")).or(() -  > Main.compileOperator(input, " - ")).or(() -  > Main.compileOperator(input, " && ")).or(() -  > Main.compileOperator(input, " > "));
 		if (maybeOperator.isPresent())/*
             return maybeOperator;*/
@@ -266,7 +276,7 @@
     */}
 	/*private static*/ parseDefinitionOrPlaceholder(/*final String input*/) : Assignable {
 		/*final*/ strip : any = input.strip();
-		return Main.parseDefinition(strip). < Assignable > map(value -  > value).orElseGet(() -  > new Placeholder(strip));/*
+		return Main.parseDefinition(strip). < Assignable > map(value => value).orElseGet(() -  > new Placeholder(strip));/*
     */}
 	/*private static*/ parseDefinition(/*final String strip*/) : Optional<Definition> {
 		/*final*/ separator : any = strip.lastIndexOf(' ');
@@ -439,7 +449,7 @@
             return Optional.empty();*/
 		/*final*/ substring : any = joined.substring(0, /* joined.length(*/) - "(".length(/*)*/);
 		/*final*/ argument : any = tuple.right();
-		return Main.compileCaller(substring).map(caller -  > caller + "(" + Main.compileValues(argument, /* Main::compileValueOrPlaceholder*/) + ")");/*
+		return Main.compileCaller(substring).map(caller => caller + "(" + Main.compileValues(argument, /* Main::compileValueOrPlaceholder*/) + ")");/*
     */}
 	/*private static*/ compileCaller(/*final String input*/) : Optional<string> {
 		/*final*/ strip : any = input.strip();
