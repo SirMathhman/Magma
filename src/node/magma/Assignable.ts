@@ -1,5 +1,5 @@
 
-/*public*/interface Assignable extends MethodHeader {
+interface Assignable extends MethodHeader {
 	/*String generate();*/
 	/**/}
 

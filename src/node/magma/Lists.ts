@@ -1,5 +1,5 @@
 
-/*public*/class Lists {
+class Lists {
 	/*public static <String>*/ empty(/**/) : ListLike<string> {
 		return new JavaList<>();/*
     */}
