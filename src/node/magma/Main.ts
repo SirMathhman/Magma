@@ -92,7 +92,7 @@
         if (Main.isNumber(strip))
             return strip;
 
-        if (strip.startsWith("\"") && strip.endsWith("\""))
+        if (!strip.isEmpty() && '\"' == strip.charAt(0) && '\"' == strip.charAt(strip.length() - 1))
             return strip;
 
         return Main.generatePlaceholder(strip);
