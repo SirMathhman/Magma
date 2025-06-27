@@ -3,9 +3,9 @@
 /*import java.util.Collections;*/
 /*import java.util.List;*/
 /*public */class MutableState /*implements State*/ {
-	/*private final List<String> segments */ = /* new ArrayList<>()*/
-	/*private StringBuilder buffer */ = /* new StringBuilder()*/
-	/*private int depth */ = /* 0*/
+	/*private final List<String>*/ segments = /* new ArrayList<>()*/
+	/*private StringBuilder*/ buffer = /* new StringBuilder()*/
+	/*private int*/ depth = /* 0*/
 	/*@Override
     public State advance() {
         this.segments.add(this.buffer.toString());

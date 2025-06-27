@@ -88,8 +88,16 @@ public class Main {
         return Main.generatePlaceholder(input);
     }
 
-    private static String compileDefinition(final String before) {
-        return Main.generatePlaceholder(before);
+    private static String compileDefinition(final String input) {
+        final var strip = input.strip();
+        final var separator = strip.lastIndexOf(' ');
+        if (0 <= separator) {
+            final var before = strip.substring(0, separator);
+            final var after = strip.substring(separator + " ".length());
+            return Main.generatePlaceholder(before) + " " + after;
+        }
+
+        return Main.generatePlaceholder(strip);
     }
 
     private static String compileStructureHeader(final String input) {
