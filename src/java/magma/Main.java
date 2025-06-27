@@ -10,20 +10,33 @@ public class Main {
     }
 
     public static void main(final String[] args) {
-        try {
-            final var input = Files.readString(Paths.get(".", "src", "java", "magma", "Main.java"));
-            final var segments = Main.divide(input);
+        final var root = Paths.get(".", "src", "java");
+        try (final var stream = Files.walk(root)) {
+            final var sources = stream.filter(path -> path.toString()
+                            .endsWith(".java"))
+                    .toList();
 
-            final var output = new StringBuilder();
-            for (final var segment : segments)
-                output.append(Main.compileRootSegment(segment));
+            for (final var source : sources) {
+                final var relative = root.relativize(source.getParent());
+                final var input = Files.readString(source);
+                final var segments = Main.divide(input);
 
-            final var targetParent = Paths.get(".", "src", "node", "magma");
-            if (!Files.exists(targetParent))
-                Files.createDirectories(targetParent);
+                final var output = new StringBuilder();
+                for (final var segment : segments)
+                    output.append(Main.compileRootSegment(segment));
 
-            final var target = targetParent.resolve("Main.ts");
-            Files.writeString(target, output);
+                final var targetParent = Paths.get(".", "src", "node")
+                        .resolve(relative);
+                if (!Files.exists(targetParent))
+                    Files.createDirectories(targetParent);
+
+                final var fileName = source.getFileName()
+                        .toString();
+                final var separator = fileName.lastIndexOf('.');
+                final var name = fileName.substring(0, separator);
+                final var target = targetParent.resolve(name + ".ts");
+                Files.writeString(target, output);
+            }
         } catch (final IOException e) {
             //noinspection CallToPrintStackTrace
             e.printStackTrace();
