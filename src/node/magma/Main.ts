@@ -15,11 +15,11 @@ class Main {
 	constructor () {
 	}
 	main(args : string[]) : void {
-		let root : any = Paths.get(".", "src", "java");/*
-        Main.collect(root).match(files -> {
-            final var sources = files.stream().filter(path -> path.toString().endsWith(".java")).toList();
+		let root : any = Paths.get(".", "src", "java");
+		let sources : /*-> {
+            final var*/ = /* files.stream().filter(path -> path.toString().endsWith(".java")).toList();
             return Main.runWithSources(sources, root);
-        }*//*, Optional::of).ifPresent(Throwable::printStackTrace);*/
+        }, Optional::of).ifPresent(Throwable::printStackTrace)*/;
 	}
 	collect(root : Path) : Result<List<Path>, IOException> {/*
         try (final var stream = Files.walk(root)) {
@@ -349,8 +349,8 @@ class Main {
 		return appended;
 	}
 	isSymbol(input : CharSequence) : boolean {
-		let length : any = input.length();
-		let i : /*(var*/ = 0;/* i < length;*//* i++) {
+		let length : any = input.length();/*
+        for (var i = 0; i < length; i++) {
             final var c = input.charAt(i);
             if (Character.isLetter(c) || (0 != i && Character.isDigit(c)))
                 continue;
@@ -359,8 +359,8 @@ class Main {
 		return true;
 	}
 	isNumber(input : CharSequence) : boolean {
-		let length : any = input.length();
-		let i : /*(var*/ = 0;/* i < length;*//* i++) {
+		let length : any = input.length();/*
+        for (var i = 0; i < length; i++) {
             final var c = input.charAt(i);
             if (!Character.isDigit(c))
                 return false;
@@ -377,12 +377,12 @@ class Main {
 			return Optional.empty();
 		let beforeName : any = strip.substring(0, separator);
 		let name : any = strip.substring(separator + " ".length());
-		let divisions : any = Main.divide(beforeName, /* Main::foldTypeSeparator*/);/*
-        return divisions.popLast().flatMap(tuple -> {
+		let divisions : any = Main.divide(beforeName, /* Main::foldTypeSeparator*/);
+		return divisions.popLast().flatMap(/*tuple -> {
             final var beforeType = tuple.left().stream().collect(Collectors.joining(" "));
             final var type = tuple.right();
             return Optional.of(new Definition(Lists.empty(), beforeType, name, Main.compileType(type)));
-        }*//*);*/
+        }*/);
 	}
 	foldTypeSeparator(state : State, c : Character) : State {
 		if (' ' == c && state.isLevel())
@@ -478,14 +478,14 @@ class Main {
 		}
 		return new StructureHeader(type, Collections.emptyList(), beforeKeyword, strip1, maybeImplements);
 	}
-	divide(input : CharSequence, foldStatements : BiFunction<State, Character, State>) : ListLike<string> {
+	divide(input : CharSequence, folder : BiFunction<State, Character, State>) : ListLike<string> {
 		let current : State = new MutableState(input);/*
         while (true) {
             final var maybe = current.pop().toTuple(new Tuple<>(current, '\0'));
             if (maybe.left()) {
                 final var tuple = maybe.right();
                 current = tuple.left();
-                current = Main.fold(current, tuple.right(), foldStatements);
+                current = Main.fold(current, tuple.right(), folder);
             } else
                 break;
         }*/
@@ -517,12 +517,12 @@ class Main {
 	}
 	foldSingleQuotes(state : State, c : char) : Optional<State> {
 		if ('\'' != c)
-			return Optional.empty();/*
-        return state.append(c).popAndAppendToTuple().flatMap(tuple -> {
+			return Optional.empty();
+		return state.append(c).popAndAppendToTuple().flatMap(/*tuple -> {
             if ('\\' == tuple.right())
                 return tuple.left().popAndAppendToOption();
             return Optional.of(tuple.left());
-        }*//*).flatMap(State::popAndAppendToOption);*/
+        }*/).flatMap(/*State::popAndAppendToOption*/);
 	}
 	foldStatements(state : State, c : char) : State {
 		let appended : any = state.append(c);
@@ -530,9 +530,9 @@ class Main {
 			return appended.advance();
 		if ('}' == c && appended.isShallow())
 			return appended.exit().advance();
-		if ('{' == c)
+		if ('{' == c || '(' == c)
 			return appended.enter();
-		if ('}' == c)
+		if ('}' == c || ')' == c)
 			return appended.exit();
 		return appended;
 	}

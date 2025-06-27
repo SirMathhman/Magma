@@ -603,15 +603,14 @@ class Main {
         return new StructureHeader(type, Collections.emptyList(), beforeKeyword, strip1, maybeImplements);
     }
 
-    private static ListLike<String> divide(final CharSequence input,
-                                           final BiFunction<State, Character, State> foldStatements) {
+    private static ListLike<String> divide(final CharSequence input, final BiFunction<State, Character, State> folder) {
         State current = new MutableState(input);
         while (true) {
             final var maybe = current.pop().toTuple(new Tuple<>(current, '\0'));
             if (maybe.left()) {
                 final var tuple = maybe.right();
                 current = tuple.left();
-                current = Main.fold(current, tuple.right(), foldStatements);
+                current = Main.fold(current, tuple.right(), folder);
             } else
                 break;
         }
@@ -668,9 +667,9 @@ class Main {
             return appended.advance();
         if ('}' == c && appended.isShallow())
             return appended.exit().advance();
-        if ('{' == c)
+        if ('{' == c || '(' == c)
             return appended.enter();
-        if ('}' == c)
+        if ('}' == c || ')' == c)
             return appended.exit();
         return appended;
     }
