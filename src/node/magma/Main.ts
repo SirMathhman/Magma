@@ -4,97 +4,85 @@
 /*import java.nio.file.Paths;*/
 /*import java.util.List;*/
 /*import java.util.function.Function;*/
-/*public */class Main {/*
-    private Main() {
-    }*//*
-
-    public static void main(final String[] args) {
+/*public */class Main {
+	/*public static final String LINE_SEPARATOR = System.lineSeparator();*/
+	/*private Main() {
+    }*/
+	/*public static void main(final String[] args) {
         final var root = Paths.get(".", "src", "java");
         try (final var stream = Files.walk(root)) {
-            final var sources = stream.filter(path -> path.toString()
-                            .endsWith(".java"))
-                    .toList();
+            final var sources = stream.filter(path -> path.toString().endsWith(".java")).toList();
 
             for (final var source : sources) {
                 final var relative = root.relativize(source.getParent());
                 final var input = Files.readString(source);
-
-                final var string = Main.compileRoot(input);
-
-                final var targetParent = Paths.get(".", "src", "node")
-                        .resolve(relative);
+                final var output = Main.compileRoot(input);
+                final var targetParent = Paths.get(".", "src", "node").resolve(relative);
                 if (!Files.exists(targetParent))
                     Files.createDirectories(targetParent);
 
-                final var fileName = source.getFileName()
-                        .toString();
+                final var fileName = source.getFileName().toString();
                 final var separator = fileName.lastIndexOf('.');
                 final var name = fileName.substring(0, separator);
                 final var target = targetParent.resolve(name + ".ts");
-                Files.writeString(target, string);
+                Files.writeString(target, output);
             }
         } catch (final IOException e) {
             //noinspection CallToPrintStackTrace
             e.printStackTrace();
         }
-    }*//*
-
-    private static String compileRoot(final String input) {
+    }*/
+	/*private static String compileRoot(final String input) {
         return Main.compileStatements(input, Main::compileRootSegment);
-    }*//*
-
-    private static String compileStatements(final String input, final Function<String, String> mapper) {
+    }*/
+	/*private static String compileStatements(final CharSequence input, final Function<String, String> mapper) {
         final var segments = Main.divide(input);
         final var output = new StringBuilder();
         for (final var segment : segments)
             output.append(mapper.apply(segment));
         return output.toString();
-    }*//*
-
-    private static String compileRootSegment(final String input) {
-        return Main.compileRootSegmentValue(input.strip()) + System.lineSeparator();
-    }*//*
-
-    private static String compileRootSegmentValue(final String input) {
-        if (!input.isEmpty() && '}*//*' == input.charAt(input.length() - 1)) {
-            final var withoutEnd = input.substring(0, input.length() - "}*//*".length());*//*
-            final var contentStart = withoutEnd.indexOf('{');
+    }*/
+	/*private static String compileRootSegment(final String input) {
+        return Main.compileRootSegmentValue(input.strip()) + Main.LINE_SEPARATOR;
+    }*/
+	/*private static String compileRootSegmentValue(final String input) {
+        if (!input.isEmpty() && '}*/
+	/*' == input.charAt(input.length() - 1)) {
+            final var withoutEnd = input.substring(0, input.length() - "}*/
+	/*".length());*/
+	/*final var contentStart = withoutEnd.indexOf('{');
             if (0 <= contentStart) {
                 final var beforeContent = withoutEnd.substring(0, contentStart);
                 final var content = withoutEnd.substring(contentStart + "{".length());
-                return Main.compileStructureHeader(beforeContent) + " {" + Main.compileStatements(content,
-                        Main::compileStructureSegment) + "}";
+                return Main.compileStructureHeader(beforeContent) + " {" +
+                       Main.compileStatements(content, Main::compileStructureSegment) + "}";
             }
         }
 
         return Main.generatePlaceholder(input);
-    }*//*
-
-    private static String compileStructureSegment(final String input) {
-        return Main.generatePlaceholder(input);
-    }*//*
-
-    private static String compileStructureHeader(final String input) {
+    }*/
+	/*private static String compileStructureSegment(final String input) {
+        final var strip = input.strip();
+        return Main.LINE_SEPARATOR + "\t" + Main.generatePlaceholder(strip);
+    }*/
+	/*private static String compileStructureHeader(final String input) {
         final var classIndex = input.indexOf("class ");
         if (0 <= classIndex) {
             final var beforeKeyword = input.substring(0, classIndex);
-            final var afterKeyword = input.substring(classIndex + "class ".length())
-                    .strip();
+            final var afterKeyword = input.substring(classIndex + "class ".length()).strip();
             final var implementsIndex = afterKeyword.indexOf("implements ");
             if (0 <= implementsIndex) {
                 final var beforeImplements = afterKeyword.substring(0, implementsIndex);
                 final var afterImplements = afterKeyword.substring(implementsIndex + "implements ".length());
-                return Main.generatePlaceholder(beforeKeyword) + "class " + beforeImplements + Main.generatePlaceholder(
-                        "implements " + afterImplements);
-            }
-            else
+                return Main.generatePlaceholder(beforeKeyword) + "class " + beforeImplements +
+                       Main.generatePlaceholder("implements " + afterImplements);
+            } else
                 return Main.generatePlaceholder(beforeKeyword) + "class " + afterKeyword;
         }
 
         return Main.generatePlaceholder(input);
-    }*//*
-
-    private static List<String> divide(final CharSequence input) {
+    }*/
+	/*private static List<String> divide(final CharSequence input) {
         State current = new MutableState();
         final var length = input.length();
         for (var i = 0; i < length; i++) {
@@ -102,25 +90,23 @@
             current = Main.fold(current, c);
         }
 
-        return current.advance()
-                .unwrap();
-    }*//*
-
-    private static State fold(final State state, final char c) {
+        return current.advance().unwrap();
+    }*/
+	/*private static State fold(final State state, final char c) {
         final var appended = state.append(c);
         if (';' == c && appended.isLevel())
             return appended.advance();
-        if ('}*//*' == c && appended.isShallow())
-            return appended.exit()
-                    .advance();*//*
-        if ('{' == c)
+        if ('}*/
+	/*' == c && appended.isShallow())
+            return appended.exit().advance();*/
+	/*if ('{' == c)
             return appended.enter();
-        if ('}*//*' == c)
-            return appended.exit();*//*
-        return appended;*//*
-    */}
-/*private static String generatePlaceholder(final String input) */ {/*
-        return "stat" + input.replace("stat", "stat")
-                .replace("end", "end") + "end";*//*
-    */}
+        if ('}*/
+	/*' == c)
+            return appended.exit();*/
+	/*return appended;*/
+	/**/}
+/*private static String generatePlaceholder(final String input) */ {
+	/*return "stat" + input.replace("stat", "stat").replace("end", "end") + "end";*/
+	/**/}
 /*}*/

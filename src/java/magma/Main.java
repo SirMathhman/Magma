@@ -7,6 +7,9 @@ import java.util.List;
 import java.util.function.Function;
 
 public class Main {
+
+    public static final String LINE_SEPARATOR = System.lineSeparator();
+
     private Main() {
     }
 
@@ -48,7 +51,7 @@ public class Main {
     }
 
     private static String compileRootSegment(final String input) {
-        return Main.compileRootSegmentValue(input.strip()) + System.lineSeparator();
+        return Main.compileRootSegmentValue(input.strip()) + Main.LINE_SEPARATOR;
     }
 
     private static String compileRootSegmentValue(final String input) {
@@ -67,7 +70,8 @@ public class Main {
     }
 
     private static String compileStructureSegment(final String input) {
-        return Main.generatePlaceholder(input);
+        final var strip = input.strip();
+        return Main.LINE_SEPARATOR + "\t" + Main.generatePlaceholder(strip);
     }
 
     private static String compileStructureHeader(final String input) {
