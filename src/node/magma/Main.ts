@@ -32,7 +32,7 @@ class Main {
 	}
 	private static runWithSource(final root : Path, final source : Path) : Optional<IOException> {
 		final let relative : any = root.relativize(source.getParent());
-		return Main.readString(source).match(input => Main.runWithInput(source, input, relative), arg => Some.new(arg));
+		return JavaFiles.readString(source).match(input => Main.runWithInput(source, input, relative), arg => Some.new(arg));
 	}
 	private static runWithInput(final source : Path, final input : CharSequence, final relative : Path) : Optional<IOException> {
 		final let output : any = Main.compileRoot(input);
@@ -44,35 +44,12 @@ class Main {
 		final let separator : any = fileName.lastIndexOf('.');
 		final let name : any = fileName.substring(0, separator);
 		final let target : any = targetParent.resolve(name + ".ts");
-		return Main.writeString(target, output);
+		return JavaFiles.writeString(target, output);
 	}
 	private static extracted1(final targetParent : Path) : Optional<IOException> {
 		if (!Files.exists(targetParent))
-			return Main.createDirectories(targetParent);
+			return JavaFiles.createDirectories(targetParent);
 		return new None<>();
-	}
-	private static writeString(final path : Path, final output : CharSequence) : Optional<IOException> {/*
-        try {
-            Files.writeString(path, output);
-            return new None<>();
-        }*//* catch (final IOException e) {
-            return new Some<>(e);
-        }*/
-	}
-	private static createDirectories(final path : Path) : Optional<IOException> {/*
-        try {
-            Files.createDirectories(path);
-            return new None<>();
-        }*//* catch (final IOException e) {
-            return new Some<>(e);
-        }*/
-	}
-	private static readString(final source : Path) : Result<string, IOException> {/*
-        try {
-            return new Ok<>(Files.readString(source));
-        }*//* catch (final IOException e) {
-            return new Err<>(e);
-        }*/
 	}
 	private static compileRoot(final input : CharSequence) : string {
 		return Main.compileStatements(input, arg => Main.compileRootSegment(arg));
@@ -143,9 +120,10 @@ class Main {
 		final let definition : any = withParams.substring(0, paramStart);
 		final let params : any = withParams.substring(paramStart + "(".length());
 		final let joinedParams : any = "(" + Main.compileValues(params, arg => Main.compileParameter(arg)) + ")";
-		final let withBraces : any = input.substring(paramEnd + ")".length()).strip();/*
+		final let withBraces : any = input.substring(paramEnd + ")".length()).strip();
+		final let header : any = Main.parseMethodHeader(definition, structName);/*
         final String outputContent;*/
-		if (";".contentEquals(withBraces))
+		if (";".contentEquals(withBraces) || (/*header instanceof final Definition definition1 && definition1.annotations().contains("Actual")*/))
 			outputContent = ";";
 		else 
 			if (!withBraces.isEmpty() && '{' == withBraces.charAt(0) && '}' == withBraces.charAt(withBraces.length() - 1)){
@@ -155,7 +133,7 @@ class Main {
 			}
 		else 
 			return new None<>();
-		return new Some<>(Main.parseMethodHeader(definition, structName).generateWithAfterName(joinedParams) + outputContent);
+		return new Some<>(header.generateWithAfterName(joinedParams) + outputContent);
 	}
 	private static compileFunctionSegments(final substring : CharSequence, final depth : number) : string {
 		return Main.compileStatements(substring, input => Main.compileFunctionSegment(input, depth));

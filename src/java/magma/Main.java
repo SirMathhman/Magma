@@ -39,7 +39,7 @@ class Main {
 
     private static Optional<IOException> runWithSource(final Path root, final Path source) {
         final var relative = root.relativize(source.getParent());
-        return Main.readString(source).match(input -> Main.runWithInput(source, input, relative), Some::new);
+        return JavaFiles.readString(source).match(input -> Main.runWithInput(source, input, relative), Some::new);
     }
 
     private static Optional<IOException> runWithInput(final Path source, final CharSequence input,
@@ -55,39 +55,13 @@ class Main {
         final var separator = fileName.lastIndexOf('.');
         final var name = fileName.substring(0, separator);
         final var target = targetParent.resolve(name + ".ts");
-        return Main.writeString(target, output);
+        return JavaFiles.writeString(target, output);
     }
 
     private static Optional<IOException> extracted1(final Path targetParent) {
         if (!Files.exists(targetParent))
-            return Main.createDirectories(targetParent);
+            return JavaFiles.createDirectories(targetParent);
         return new None<>();
-    }
-
-    private static Optional<IOException> writeString(final Path path, final CharSequence output) {
-        try {
-            Files.writeString(path, output);
-            return new None<>();
-        } catch (final IOException e) {
-            return new Some<>(e);
-        }
-    }
-
-    private static Optional<IOException> createDirectories(final Path path) {
-        try {
-            Files.createDirectories(path);
-            return new None<>();
-        } catch (final IOException e) {
-            return new Some<>(e);
-        }
-    }
-
-    private static Result<String, IOException> readString(final Path source) {
-        try {
-            return new Ok<>(Files.readString(source));
-        } catch (final IOException e) {
-            return new Err<>(e);
-        }
     }
 
     private static String compileRoot(final CharSequence input) {
@@ -184,8 +158,10 @@ class Main {
         final var joinedParams = "(" + Main.compileValues(params, Main::compileParameter) + ")";
 
         final var withBraces = input.substring(paramEnd + ")".length()).strip();
+        final var header = Main.parseMethodHeader(definition, structName);
         final String outputContent;
-        if (";".contentEquals(withBraces))
+        if (";".contentEquals(withBraces) ||
+            (header instanceof final Definition definition1 && definition1.annotations().contains("Actual")))
             outputContent = ";";
         else if (!withBraces.isEmpty() && '{' == withBraces.charAt(0) &&
                  '}' == withBraces.charAt(withBraces.length() - 1)) {
@@ -195,8 +171,7 @@ class Main {
         } else
             return new None<>();
 
-        return new Some<>(
-                Main.parseMethodHeader(definition, structName).generateWithAfterName(joinedParams) + outputContent);
+        return new Some<>(header.generateWithAfterName(joinedParams) + outputContent);
     }
 
     private static String compileFunctionSegments(final CharSequence substring, final int depth) {

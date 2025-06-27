@@ -17,4 +17,33 @@ public class JavaFiles {
             return new Err<>(e);
         }
     }
+
+    @Actual
+    static Optional<IOException> writeString(final Path path, final CharSequence output) {
+        try {
+            Files.writeString(path, output);
+            return new None<>();
+        } catch (final IOException e) {
+            return new Some<>(e);
+        }
+    }
+
+    @Actual
+    static Optional<IOException> createDirectories(final Path path) {
+        try {
+            Files.createDirectories(path);
+            return new None<>();
+        } catch (final IOException e) {
+            return new Some<>(e);
+        }
+    }
+
+    @Actual
+    static Result<String, IOException> readString(final Path source) {
+        try {
+            return new Ok<>(Files.readString(source));
+        } catch (final IOException e) {
+            return new Err<>(e);
+        }
+    }
 }
