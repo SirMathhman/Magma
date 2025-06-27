@@ -380,6 +380,12 @@ public class Main {
             return state.advance();
 
         final var appended = state.append(c);
+        if ('-' == c) {
+            final var peek = appended.peek();
+            if (peek.isPresent() && peek.get().equals('>'))
+                return appended.popAndAppendToOption().orElse(appended);
+        }
+
         if ('<' == c || '(' == c)
             return appended.enter();
         if ('>' == c || ')' == c)

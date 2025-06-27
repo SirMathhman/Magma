@@ -22,4 +22,6 @@ public interface State {
     Optional<Tuple<State, Character>> popAndAppendToTuple();
 
     Optional<State> popAndAppendToOption();
+
+    Optional<Character> peek();
 }

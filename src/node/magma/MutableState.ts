@@ -52,11 +52,18 @@
     */}
 	/*@Override
     public*/ popAndAppendToTuple(/**/) : Optional<Tuple<State, Character>> {
-		return this.pop().map(/*tuple -> new Tuple<>(tuple.left().append(tuple.right())*/, tuple.right(/*)*/));/*
+		return this.pop().map(/*tuple -> new Tuple<>(tuple.left().append(tuple.right()), tuple.right())*/);/*
     */}
 	/*@Override
     public*/ popAndAppendToOption(/**/) : Optional<State> {
 		return this.popAndAppendToTuple().map(/*Tuple::left*/);/*
+    */}
+	/*@Override
+    public*/ peek(/**/) : Optional<Character> {
+		if (/*this.index < this.input.length()*/)/*
+            return Optional.of(this.input.charAt(this.index));*//*
+        else
+            return Optional.empty();*//*
     */}
 	/**/}
 /**/

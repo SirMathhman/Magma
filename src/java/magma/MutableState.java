@@ -72,4 +72,12 @@ public class MutableState implements State {
     public Optional<State> popAndAppendToOption() {
         return this.popAndAppendToTuple().map(Tuple::left);
     }
+
+    @Override
+    public Optional<Character> peek() {
+        if (this.index < this.input.length())
+            return Optional.of(this.input.charAt(this.index));
+        else
+            return Optional.empty();
+    }
 }
