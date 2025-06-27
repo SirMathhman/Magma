@@ -12,5 +12,5 @@ interface State {
 	popAndAppendToTuple() : Optional<Tuple<State, Character>> {}
 	popAndAppendToOption() : Optional<State> {}
 	peek() : Optional<Character> {}
-	/**/}
+	}
 

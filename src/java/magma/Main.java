@@ -73,7 +73,7 @@ public class Main {
 
     private static Optional<String> compileNamespaced(final String input) {
         final var strip = input.strip();
-        if (strip.startsWith("package "))
+        if (strip.startsWith("package ") || strip.startsWith("import "))
             return Optional.of("");
         return Optional.empty();
     }
@@ -110,6 +110,9 @@ public class Main {
     }
 
     private static String compileStructureSegmentValue(final String input, final CharSequence structName) {
+        if (input.isBlank())
+            return "";
+
         return Main.compileStatement(input, Main::compileAssignment).or(() -> Main.compileMethod(input, structName))
                    .orElseGet(() -> Placeholder.generate(input));
     }
@@ -137,8 +140,11 @@ public class Main {
                 final String outputContent;
                 if (";".equals(withBraces))
                     outputContent = "";
+                else if (withBraces.startsWith("{") && withBraces.endsWith("}"))
+                    outputContent = Main.compileStatements(withBraces.substring(1, withBraces.length() - 1),
+                                                           Main::compileFunctionSegment);
                 else
-                    outputContent = Main.compileStatements(withBraces, Main::compileFunctionSegment);
+                    return Optional.empty();
 
                 return Optional.of(
                         Main.parseMethodHeader(definition, structName).generateWithAfterName(joinedParams) + " {" +
@@ -156,6 +162,8 @@ public class Main {
     }
 
     private static String compileFunctionSegment(final String input) {
+        if (input.isBlank())
+            return "";
         return Main.compileConditional(input)
                    .or(() -> Main.compileStatement(input, Main::compileFunctionStatementValue))
                    .map(value -> System.lineSeparator() + "\t\t" + value).orElseGet(() -> Placeholder.generate(input));
@@ -412,8 +420,16 @@ public class Main {
                 return base + "<" + compiled + ">";
             }
         }
+
+        if (strip.endsWith("[]")) {
+            final var slice = strip.substring(0, strip.length() - "[]".length());
+            final var compiled = Main.compileType(slice);
+            return compiled + "[]";
+        }
+
         if (Main.isSymbol(strip))
             return strip;
+
         return Placeholder.generate(strip);
     }
 

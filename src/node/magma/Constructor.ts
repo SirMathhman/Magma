@@ -1,7 +1,6 @@
 
-class Constructor/*implements MethodHeader*/ {
-	generateWithAfterName(afterName : string) : string {/*{
-        return "constructor " + afterName;
-    }*//**/}
-	/**/}
+class Constructor {
+	generateWithAfterName(afterName : string) : string {
+		return "constructor " + afterName;}
+	}
 

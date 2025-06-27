@@ -7,10 +7,6 @@ public record StructureHeader(String type, List<String> annotations, String befo
                               Optional<String> maybeAfterImplements) implements StructureDefinition {
     @Override
     public String generate() {
-        final var generated = this.maybeAfterImplements()
-                                  .map(afterImplements -> Placeholder.generate("implements " + afterImplements))
-                                  .orElse("");
-
-        return this.type + " " + this.name() + generated;
+        return this.type + " " + this.name;
     }
 }

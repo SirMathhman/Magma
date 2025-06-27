@@ -1,4 +1,4 @@
 
 class Tuple<Left, Right> {
-	/**/}
+	}
 
