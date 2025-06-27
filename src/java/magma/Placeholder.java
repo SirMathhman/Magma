@@ -8,7 +8,8 @@ public class Placeholder implements Assignable, StructureDefinition {
     }
 
     static String generate(final String input) {
-        return "/*" + input.replace("/*", "start").replace("*/", "end") + "*/";
+        final var replaced = input.replace("/*", "start").replace("*/", "end");
+        return "/*" + replaced + "*/";
     }
 
     @Override

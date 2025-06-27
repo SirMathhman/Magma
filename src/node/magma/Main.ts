@@ -49,23 +49,23 @@
     */}
 	/*private static*/ compileAll(/*final CharSequence input, final BiFunction<State, Character, State> folder,
                                      final Function<String, String> mapper, final String delimiter*/) : string {
-		return Main.divide(/*input, folder).stream().map(mapper).collect(Collectors.joining(delimiter)*/);/*
+		return Main.divide(/*input, folder*/).stream(/**/).map(/*mapper*/).collect(Collectors.joining(/*delimiter)*/);/*
     */}
 	/*private static*/ compileRootSegment(/*final String input*/) : string {
 		return Main.compileRootSegmentValue(input.strip()) + Main.LINE_SEPARATOR;/*
     */}
 	/*private static*/ compileRootSegmentValue(/*final String input*/) : string {
-		return Main.compileStructure(/*input).orElseGet(() -> Placeholder.generate(input)*/);/*
+		return Main.compileStructure(/*input*/).orElseGet(() -> Placeholder.generate(/*input)*/);/*
     */}
 	/*private static*/ compileStructure(/*final String input*/) : Optional<string> {
-		if (input.isEmpty(/*) || '}' != input.charAt(input.length() - 1*/))/*
+		if (input.isEmpty() || '}' != input.charAt(input.length(/*) - 1*/))/*
             return Optional.empty();*/
-		/*final*/ withoutEnd : any = input.substring(/*0, input.length() - "}".length()*/);
+		/*final*/ withoutEnd : any = input.substring(0, input.length() - "}".length(/*)*/);
 		/*final*/ contentStart : any = withoutEnd.indexOf(/*'{'*/);
 		if (/*0 > contentStart*/)/*
             return Optional.empty();*/
 		/*final*/ beforeContent : any = withoutEnd.substring(/*0, contentStart*/);
-		/*final*/ content : any = withoutEnd.substring(/*contentStart + "{".length()*/);
+		/*final*/ content : any = withoutEnd.substring(contentStart + "{".length(/*)*/);
 		/*final*/ definition : any = Main.parseStructureHeader(/*beforeContent*/);/*
         final String structName;*/
 		if (/*definition instanceof final StructureHeader header*/)/* {
@@ -76,8 +76,8 @@
         }*/
 		/*else
           */ structName :  = "?";
-		return Optional.of(/*definition.generate() + " {" +
-                           Main.compileStatements(content, input1 -> Main.compileStructureSegment(input1, structName)) +
+		return Optional.of(definition.generate() + " {" +
+                           Main.compileStatements(content, input1 -> Main.compileStructureSegment(/*input1, structName)) +
                            "}"*/);/*
     */}
 	/*private static*/ compileStructureSegment(/*final String input, final String structName*/) : string {
@@ -85,44 +85,41 @@
 		return Main.LINE_SEPARATOR + "\t" + Main.compileStructureSegmentValue(/*strip, structName*/);/*
     */}
 	/*private static*/ compileStructureSegmentValue(/*final String input, final CharSequence structName*/) : string {
-		return Main.compileStatement(/*input, Main::compileAssignment).or(() -> Main.compileMethod(input, structName))
-                   .orElseGet(() -> Placeholder.generate(input)*/);/*
+		return Main.compileStatement(/*input, Main::compileAssignment*/).or(() -> Main.compileMethod(/*input, structName)*/).orElseGet(() -> Placeholder.generate(/*input)*/);/*
     */}
 	/*private static*/ compileStatement(/*final String input,
                                                      final Function<String, Optional<String>> mapper*/) : Optional<string> {
-		if (input.isEmpty(/*) || ';' != input.charAt(input.length() - 1*/))/*
+		if (input.isEmpty() || ';' != input.charAt(input.length(/*) - 1*/))/*
             return Optional.empty();*/
-		/*final*/ withoutEnd : any = input.substring(/*0, input.length() - ";".length()*/);
-		return mapper.apply(/*withoutEnd).map(result -> result + ";"*/);/*
+		/*final*/ withoutEnd : any = input.substring(0, input.length() - ";".length(/*)*/);
+		return mapper.apply(/*withoutEnd*/).map(/*result -> result + ";"*/);/*
     */}
 	/*private static*/ compileMethod(/*final String input, final CharSequence structName*/) : Optional<string> {
-		if (input.isEmpty(/*) || '}' != input.charAt(input.length() - 1*/))/*
+		if (input.isEmpty() || '}' != input.charAt(input.length(/*) - 1*/))/*
             return Optional.empty();*/
-		/*final*/ withoutEnd : any = input.substring(/*0, input.length() - "}".length()*/);
+		/*final*/ withoutEnd : any = input.substring(0, input.length() - "}".length(/*)*/);
 		/*final*/ contentStart : any = withoutEnd.indexOf(/*'{'*/);
 		if (/*0 > contentStart*/)/*
             return Optional.empty();*/
-		/*final*/ before : any = withoutEnd.substring(/*0, contentStart).strip(*/);
-		/*final*/ content : any = withoutEnd.substring(/*contentStart + "{".length()*/);
-		if (before.isEmpty(/*) || ')' != before.charAt(before.length() - 1*/))/*
+		/*final*/ before : any = withoutEnd.substring(/*0, contentStart*/).strip(/**/);
+		/*final*/ content : any = withoutEnd.substring(contentStart + "{".length(/*)*/);
+		if (before.isEmpty() || ')' != before.charAt(before.length(/*) - 1*/))/*
             return Optional.empty();*/
-		/*final*/ withoutParamEnd : any = before.substring(/*0, before.length() - ")".length()*/);
+		/*final*/ withoutParamEnd : any = before.substring(0, before.length() - ")".length(/*)*/);
 		/*final*/ paramStart : any = withoutParamEnd.indexOf(/*'('*/);
 		if (/*0 > paramStart*/)/*
             return Optional.empty();*/
 		/*final*/ definition : any = withoutParamEnd.substring(/*0, paramStart*/);
-		/*final*/ params : any = withoutParamEnd.substring(/*paramStart + "(".length()*/);
+		/*final*/ params : any = withoutParamEnd.substring(paramStart + "(".length(/*)*/);
 		/*final*/ joinedParams : any = /*"(" + Placeholder*/.generate(params) + ")";
-		return Optional.of(/*Main.parseMethodHeader(definition, structName).generateWithAfterName(joinedParams) + " {" +
-                           Main.compileStatements(content, Main::compileFunctionSegment) + "}"*/);/*
+		return Optional.of(Main.parseMethodHeader(/*definition, structName*/).generateWithAfterName(joinedParams) + " {" +
+                           Main.compileStatements(/*content, Main::compileFunctionSegment) + "}"*/);/*
     */}
 	/*private static*/ compileFunctionSegment(/*final String input*/) : string {
-		return Main.compileConditional(/*input)
-                   .or(() -> Main.compileStatement(input, Main::compileFunctionStatementValue))
-                   .map(value -> System.lineSeparator() + "\t\t" + value).orElseGet(() -> Placeholder.generate(input)*/);/*
+		return Main.compileConditional(/*input*/).or(() -> Main.compileStatement(/*input, Main::compileFunctionStatementValue)*/).map(value -> System.lineSeparator(/*) + "\t\t" + value*/).orElseGet(() -> Placeholder.generate(/*input)*/);/*
     */}
 	/*private static*/ compileFunctionStatementValue(/*final String input*/) : Optional<string> {
-		return Main.compileReturn(/*input).or(() -> Main.compileAssignment(input)*/);/*
+		return Main.compileReturn(/*input*/).or(() -> Main.compileAssignment(/*input)*/);/*
     */}
 	/*private static*/ compileReturn(/*final String input*/) : Optional<string> {
 		/*final*/ strip : any = input.strip(/**/);
@@ -164,7 +161,7 @@
 		return appended;/*
     */}
 	/*private static*/ parseMethodHeader(/*final String input, final CharSequence structName*/) : MethodHeader {
-		return Main.parseConstructor(/*input, structName).orElseGet(() -> Main.parseDefinitionOrPlaceholder(input)*/);/*
+		return Main.parseConstructor(/*input, structName*/).orElseGet(() -> Main.parseDefinitionOrPlaceholder(/*input)*/);/*
     */}
 	/*private static*/ parseConstructor(/*final String input, final CharSequence structName*/) : Optional<MethodHeader> {
 		/*final*/ strip : any = input.strip(/**/);
@@ -186,29 +183,46 @@
 		return Optional.empty(/**/);/*
     */}
 	/*private static*/ compileValue(/*final String input*/) : string {
-		/*final*/ strip : any = input.strip(/**/);
-		if (/*!strip*/.isEmpty(/*) && ')' == strip.charAt(strip.length() - 1*/))/* {
-            final var substring = strip.substring(0, strip.length() - ")".length());
-            final var i = substring.indexOf('(');
-            if (0 <= i) {
-                final var caller = substring.substring(0, i);
-                final var argument = substring.substring(i + "(".length());
-                return Main.compileValue(caller) + "(" + Placeholder.generate(argument) + ")";
-            }
-        }*/
+		/*final*/ maybeInvocation : any = Main.compileInvocation(/*input*/);
+		if (maybeInvocation.isPresent(/**/))/*
+            return maybeInvocation.get();*/
 		/*final*/ separator : any = input.lastIndexOf(/*'.'*/);
 		if (/*0 <= separator*/)/* {
             final var substring = input.substring(0, separator);
             final var substring1 = input.substring(separator + ".".length()).strip();
             return Main.compileValue(substring) + "." + substring1;
         }*/
+		/*final*/ strip : any = input.strip(/**/);
 		if (Main.isNumber(/*strip*/))/*
             return strip;*/
-		if (/*!strip*/.isEmpty(/*) && '\"' == strip.charAt(0) && '\"' == strip.charAt(strip.length() - 1*/))/*
+		if (/*!strip*/.isEmpty() && '\"' == strip.charAt(0) && '\"' == strip.charAt(strip.length(/*) - 1*/))/*
             return strip;*/
 		if (Main.isSymbol(/*strip*/))/*
             return strip;*/
 		return Placeholder.generate(/*strip*/);/*
+    */}
+	/*private static*/ compileInvocation(/*final String input*/) : Optional<string> {
+		/*final*/ strip : any = input.strip(/**/);
+		if (/*!strip*/.isEmpty() && ')' == strip.charAt(strip.length(/*) - 1*/))/* {
+            final var withoutEnd = strip.substring(0, strip.length() - ")".length());
+
+            return Main.divide(withoutEnd, Main::foldInvocation).popLast().flatMap(tuple -> {
+                final var caller = tuple.left().stream().collect(Collectors.joining());
+                if (caller.endsWith("(")) {
+                    final var substring = caller.substring(0, caller.length() - "(".length());
+                    final var argument = tuple.right();
+                    return Optional.of(Main.compileValue(substring) + "(" + Placeholder.generate(argument) + ")");
+                } else
+                    return Optional.empty();
+            });
+        }*/
+		return Optional.empty(/**/);/*
+    */}
+	/*private static*/ foldInvocation(/*final State state, final char c*/) : State {
+		/*final*/ appended : any = state.append(/*c*/);
+		if (/*'(' == c*/)/*
+            return appended.advance();*/
+		return appended;/*
     */}
 	/*private static*/ isSymbol(/*final CharSequence input*/) : boolean {
 		/*final*/ length : any = input.length(/**/);
@@ -231,14 +245,14 @@
     */}
 	/*private static*/ parseDefinitionOrPlaceholder(/*final String input*/) : Assignable {
 		/*final*/ strip : any = input.strip(/**/);
-		return Main.parseDefinition(/*strip).<Assignable>map(value -> value).orElseGet(() -> new Placeholder(strip)*/);/*
+		return Main.parseDefinition(/*strip*/).<Assignable>map(/*value -> value*/).orElseGet(() -> new Placeholder(/*strip)*/);/*
     */}
 	/*private static*/ parseDefinition(/*final String strip*/) : Optional<Definition> {
 		/*final*/ separator : any = strip.lastIndexOf(/*' '*/);
 		if (/*0 > separator*/)/*
             return Optional.empty();*/
 		/*final*/ beforeName : any = strip.substring(/*0, separator*/);
-		/*final*/ name : any = strip.substring(/*separator + " ".length()*/);
+		/*final*/ name : any = strip.substring(separator + " ".length(/*)*/);
 		/*final*/ divisions : any = Main.divide(/*beforeName, Main::foldTypeSeparator*/);/*
         return divisions.popLast().flatMap(tuple -> {
             final var beforeType = tuple.left().stream().collect(Collectors.joining(" "));
@@ -264,7 +278,7 @@
             return "string";*/
 		if ("int".contentEquals(/*strip*/))/*
             return "number";*/
-		if (/*!strip*/.isEmpty(/*) && '>' == strip.charAt(strip.length() - 1*/))/* {
+		if (/*!strip*/.isEmpty() && '>' == strip.charAt(strip.length(/*) - 1*/))/* {
             final var withoutEnd = strip.substring(0, strip.length() - ">".length());
             final var start = withoutEnd.indexOf('<');
             if (0 <= start) {
@@ -289,17 +303,15 @@
 		return appended;/*
     */}
 	/*private static*/ parseStructureHeader(/*final String input*/) : StructureDefinition {
-		return Main.parseClassHeader(/*input, "class", "class").or(() -> Main.parseClassHeader(input, "record", "class"))
-                   .or(() -> Main.parseClassHeader(input, "interface", "interface"))
-                   .orElseGet(() -> new Placeholder(input)*/);/*
+		return Main.parseClassHeader(/*input, "class", "class"*/).or(() -> Main.parseClassHeader(/*input, "record", "class")*/).or(() -> Main.parseClassHeader(/*input, "interface", "interface")*/).orElseGet(() -> new Placeholder(/*input)*/);/*
     */}
 	/*private static*/ parseClassHeader(/*final String input, final String keyword,
                                                                   final String type*/) : Optional<StructureDefinition> {
 		/*final*/ classIndex : any = input.indexOf(/*keyword + " "*/);
 		if (/*0 > classIndex*/)/*
             return Optional.empty();*/
-		/*final*/ beforeKeyword : any = input.substring(/*0, classIndex).strip(*/);
-		/*final*/ afterKeyword : any = input.substring(/*classIndex + (keyword + " ").length()).strip(*/);
+		/*final*/ beforeKeyword : any = input.substring(/*0, classIndex*/).strip(/**/);
+		/*final*/ afterKeyword : any = input.substring(classIndex +(/*keyword + " "*/).length(/*)*/).strip(/**/);
 		/*final*/ implementsIndex : any = afterKeyword.indexOf(/*"implements "*/);
 		if (/*0 <= implementsIndex*/)/* {
             final var beforeImplements = afterKeyword.substring(0, implementsIndex).strip();
@@ -311,7 +323,7 @@
 	/*private static*/ complete(/*final String type, final String beforeKeyword,
                                             final String beforeImplements, final Optional<String> maybeImplements*/) : StructureHeader {
 		/*final*/ strip : any = beforeImplements.strip(/**/);
-		if (/*!strip*/.isEmpty(/*) && ')' == strip.charAt(strip.length() - 1*/))/* {
+		if (/*!strip*/.isEmpty() && ')' == strip.charAt(strip.length(/*) - 1*/))/* {
             final var withoutEnd = strip.substring(0, strip.length() - ")".length());
             final var contentStart = withoutEnd.indexOf('(');
             if (0 <= contentStart) {
@@ -324,7 +336,7 @@
 	/*private static*/ parseStructureHeaderByAnnotations(/*final String type, final String beforeKeyword,
                                                                      final Optional<String> maybeImplements,
                                                                      final String strip1*/) : StructureHeader {
-		/*final*/ index : any = beforeKeyword.lastIndexOf(/*System.lineSeparator()*/);
+		/*final*/ index : any = beforeKeyword.lastIndexOf(System.lineSeparator(/*)*/);
 		if (/*0 <= index*/)/* {
             final var annotations =
                     Arrays.stream(Pattern.compile("\\n").split(beforeKeyword.substring(0, index).strip()))
@@ -334,7 +346,7 @@
             final var substring1 = beforeKeyword.substring(index + System.lineSeparator().length());
             return new StructureHeader(type, annotations, substring1, strip1, maybeImplements);
         }*/
-		return /*new StructureHeader*/(/*type, Collections.emptyList(), beforeKeyword, strip1, maybeImplements*/);/*
+		return /*new StructureHeader(type, Collections*/.emptyList(/*), beforeKeyword, strip1, maybeImplements*/);/*
     */}
 	/*private static*/ divide(/*final CharSequence input,
                                            final BiFunction<State, Character, State> foldStatements*/) : ListLike<string> {
@@ -348,11 +360,10 @@
             current = tuple.left();
             current = Main.fold(current, tuple.right(), foldStatements);
         }*/
-		return current.advance(/*).unwrap(*/);/*
+		return current.advance(/**/).unwrap(/**/);/*
     */}
 	/*private static*/ fold(/*final State state, final char c, final BiFunction<State, Character, State> folder*/) : State {
-		return Main.foldSingleQuotes(/*state, c).or(() -> Main.foldDoubleQuotes(state, c))
-                   .orElseGet(() -> folder.apply(state, c)*/);/*
+		return Main.foldSingleQuotes(/*state, c*/).or(() -> Main.foldDoubleQuotes(/*state, c)*/).orElseGet(() -> folder.apply(/*state, c)*/);/*
     */}
 	/*private static*/ foldDoubleQuotes(/*final State state, final char c*/) : Optional<State> {
 		if (/*'\"' == c*/)/* {
@@ -379,9 +390,8 @@
 	/*private static*/ foldSingleQuotes(/*final State state, final char c*/) : Optional<State> {
 		if (/*'\'' != c*/)/*
             return Optional.empty();*/
-		return state.append(/*c).popAndAppendToTuple().flatMap(
-                            tuple -> '\\' == tuple.right() ? tuple.left().popAndAppendToOption() : Optional.of(tuple.left()))
-                    .flatMap(State::popAndAppendToOption*/);/*
+		return state.append(/*c*/).popAndAppendToTuple(/**/).flatMap(
+                            tuple -> '\\' == tuple.right() ? tuple.left(/**/).popAndAppendToOption() : Optional.of(tuple.left(/*))*/).flatMap(/*State::popAndAppendToOption*/);/*
     */}
 	/*private static*/ foldStatements(/*final State state, final char c*/) : State {
 		/*final*/ appended : any = state.append(/*c*/);

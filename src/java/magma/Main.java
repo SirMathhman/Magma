@@ -220,16 +220,9 @@ public class Main {
     }
 
     private static String compileValue(final String input) {
-        final var strip = input.strip();
-        if (!strip.isEmpty() && ')' == strip.charAt(strip.length() - 1)) {
-            final var substring = strip.substring(0, strip.length() - ")".length());
-            final var i = substring.indexOf('(');
-            if (0 <= i) {
-                final var caller = substring.substring(0, i);
-                final var argument = substring.substring(i + "(".length());
-                return Main.compileValue(caller) + "(" + Placeholder.generate(argument) + ")";
-            }
-        }
+        final var maybeInvocation = Main.compileInvocation(input);
+        if (maybeInvocation.isPresent())
+            return maybeInvocation.get();
 
         final var separator = input.lastIndexOf('.');
         if (0 <= separator) {
@@ -237,7 +230,7 @@ public class Main {
             final var substring1 = input.substring(separator + ".".length()).strip();
             return Main.compileValue(substring) + "." + substring1;
         }
-
+        final var strip = input.strip();
         if (Main.isNumber(strip))
             return strip;
 
@@ -248,6 +241,32 @@ public class Main {
             return strip;
 
         return Placeholder.generate(strip);
+    }
+
+    private static Optional<String> compileInvocation(final String input) {
+        final var strip = input.strip();
+        if (!strip.isEmpty() && ')' == strip.charAt(strip.length() - 1)) {
+            final var withoutEnd = strip.substring(0, strip.length() - ")".length());
+
+            return Main.divide(withoutEnd, Main::foldInvocation).popLast().flatMap(tuple -> {
+                final var caller = tuple.left().stream().collect(Collectors.joining());
+                if (caller.endsWith("(")) {
+                    final var substring = caller.substring(0, caller.length() - "(".length());
+                    final var argument = tuple.right();
+                    return Optional.of(Main.compileValue(substring) + "(" + Placeholder.generate(argument) + ")");
+                } else
+                    return Optional.empty();
+            });
+        }
+
+        return Optional.empty();
+    }
+
+    private static State foldInvocation(final State state, final char c) {
+        final var appended = state.append(c);
+        if ('(' == c)
+            return appended.advance();
+        return appended;
     }
 
     private static boolean isSymbol(final CharSequence input) {

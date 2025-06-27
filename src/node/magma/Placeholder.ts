@@ -5,7 +5,8 @@
 		this.value = value;/*
     */}
 	/*static*/ generate(/*final String input*/) : string {
-		return /*"start" + input*/.replace(/*"start", "start"*/).replace("*/", "end") + "*/";/*
+		/*final*/ replaced : any = input.replace(/*"start", "start"*/).replace(/*"end", "end"*/);
+		return "/*" + replaced + "*/";/*
     */}
 	/*@Override
     public*/ generateWithAfterName(/*final String afterName*/) : string {

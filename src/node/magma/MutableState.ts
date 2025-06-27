@@ -48,15 +48,15 @@
             return Optional.empty();*/
 		/*final*/ c : any = this.input.charAt(/*this.index*/);/*
         this.index++;*/
-		return Optional.of(/*new Tuple<>(this, c)*/);/*
+		return Optional.of(new Tuple<>(/*this, c)*/);/*
     */}
 	/*@Override
     public*/ popAndAppendToTuple(/**/) : Optional<Tuple<State, Character>> {
-		return this.pop(/*).map(tuple -> new Tuple<>(tuple.left().append(tuple.right()), tuple.right())*/);/*
+		return this.pop(/**/).map(tuple -> new Tuple<>(tuple.left(/**/).append(tuple.right()), tuple.right(/*))*/);/*
     */}
 	/*@Override
     public*/ popAndAppendToOption(/**/) : Optional<State> {
-		return this.popAndAppendToTuple(/*).map(Tuple::left*/);/*
+		return this.popAndAppendToTuple(/**/).map(/*Tuple::left*/);/*
     */}
 	/**/}
 /**/
