@@ -229,6 +229,7 @@ public class Main {
         final var maybeOperator = Main.compileOperator(input, ">=").or(() -> Main.compileOperator(input, "=="))
                                       .or(() -> Main.compileOperator(input, "+"))
                                       .or(() -> Main.compileOperator(input, "<"))
+                                      .or(() -> Main.compileOperator(input, "<="))
                                       .or(() -> Main.compileOperator(input, "||"))
                                       .or(() -> Main.compileOperator(input, "!="))
                                       .or(() -> Main.compileOperator(input, "-"))

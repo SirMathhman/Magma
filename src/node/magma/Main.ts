@@ -162,7 +162,7 @@
 	/*private static*/ parseConstructor(/*final String input, final CharSequence structName*/) : Optional<MethodHeader> {
 		/*final*/ strip : any = input.strip();
 		/*final*/ index : any = strip.lastIndexOf(' ');
-		if (/*0 <= index*/)/* {
+		if (0 <= index)/* {
             final var name = strip.substring(index + " ".length()).strip();
             if (name.contentEquals(structName))
                 return Optional.of(new Constructor());
@@ -171,7 +171,7 @@
     */}
 	/*private static*/ compileAssignment(/*final String input*/) : Optional<string> {
 		/*final*/ separator : any = input.indexOf('=');
-		if (/*0 <= separator*/)/* {
+		if (0 <= separator)/* {
             final var before = input.substring(0, separator);
             final var after = input.substring(separator + "=".length());
             return Optional.of(Main.parseDefinitionOrPlaceholder(before).generate() + " = " +
@@ -183,14 +183,14 @@
 		return Main.compileValue(input).orElseGet(/*() -> Placeholder.generate(input)*/);/*
     */}
 	/*private static*/ compileValue(/*final String input*/) : Optional<string> {
-		/*final*/ maybeOperator : any = Main.compileOperator(input, " >= ").or(/*() -> Main.compileOperator(input, "==")*/).or(/*() -> Main.compileOperator(input, "+")*/).or(/*() -> Main.compileOperator(input, "<")*/).or(/*() -> Main.compileOperator(input, "||")*/).or(/*() -> Main.compileOperator(input, "!=")*/).or(/*() -> Main.compileOperator(input, "-")*/).or(/*() -> Main.compileOperator(input, "&&")*/);
+		/*final*/ maybeOperator : any = Main.compileOperator(input, " >= ").or(/*() -> Main.compileOperator(input, "==")*/).or(/*() -> Main.compileOperator(input, "+")*/).or(/*() -> Main.compileOperator(input, "<")*/).or(/*() -> Main.compileOperator(input, "<=")*/).or(/*() -> Main.compileOperator(input, "||")*/).or(/*() -> Main.compileOperator(input, "!=")*/).or(/*() -> Main.compileOperator(input, "-")*/).or(/*() -> Main.compileOperator(input, "&&")*/);
 		if (maybeOperator.isPresent())/*
             return maybeOperator;*/
 		/*final*/ maybeInvocation : any = Main.compileInvocation(input);
 		if (maybeInvocation.isPresent())/*
             return maybeInvocation;*/
 		/*final*/ separator : any = input.lastIndexOf('.');
-		if (/*0 <= separator*/)/* {
+		if (0 <= separator)/* {
             final var value = input.substring(0, separator);
             final var property = input.substring(separator + ".".length()).strip();
             if (Main.isSymbol(property))
@@ -340,7 +340,7 @@
 		/*final*/ beforeKeyword : any = input.substring(0, classIndex).strip();
 		/*final*/ afterKeyword : any = input.substring(classIndex + (keyword + " ").length()).strip();
 		/*final*/ implementsIndex : any = afterKeyword.indexOf("implements ");
-		if (/*0 <= implementsIndex*/)/* {
+		if (0 <= implementsIndex)/* {
             final var beforeImplements = afterKeyword.substring(0, implementsIndex).strip();
             final var afterImplements = afterKeyword.substring(implementsIndex + "implements ".length()).strip();
             return Optional.of(Main.complete(type, beforeKeyword, beforeImplements, Optional.of(afterImplements)));
@@ -364,7 +364,7 @@
                                                                      final Optional<String> maybeImplements,
                                                                      final String strip1*/) : StructureHeader {
 		/*final*/ index : any = beforeKeyword.lastIndexOf(System.lineSeparator());
-		if (/*0 <= index*/)/* {
+		if (0 <= index)/* {
             final var annotations =
                     Arrays.stream(Pattern.compile("\\n").split(beforeKeyword.substring(0, index).strip()))
                           .map(String::strip).filter(value -> !value.isEmpty()).map(value -> value.substring(1))
