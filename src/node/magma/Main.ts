@@ -183,7 +183,7 @@
 		return Main.compileValue(input).orElseGet(/*() -> Placeholder.generate(input)*/);/*
     */}
 	/*private static*/ compileValue(/*final String input*/) : Optional<string> {
-		/*final*/ maybeOperator : any = Main.compileOperator(input, " >= ").or(/*() -> Main.compileOperator(input, "==")*/).or(/*() -> Main.compileOperator(input, "+")*/).or(/*() -> Main.compileOperator(input, "<")*/).or(/*() -> Main.compileOperator(input, "||")*/).or(/*() -> Main.compileOperator(input, "!=")*/).or(/*() -> Main.compileOperator(input, "-")*/);
+		/*final*/ maybeOperator : any = Main.compileOperator(input, " >= ").or(/*() -> Main.compileOperator(input, "==")*/).or(/*() -> Main.compileOperator(input, "+")*/).or(/*() -> Main.compileOperator(input, "<")*/).or(/*() -> Main.compileOperator(input, "||")*/).or(/*() -> Main.compileOperator(input, "!=")*/).or(/*() -> Main.compileOperator(input, "-")*/).or(/*() -> Main.compileOperator(input, "&&")*/);
 		if (maybeOperator.isPresent())/*
             return maybeOperator;*/
 		/*final*/ maybeInvocation : any = Main.compileInvocation(input);
@@ -280,7 +280,7 @@
         }*//*);*//*
     */}
 	/*private static*/ foldTypeSeparator(/*final State state, final Character c*/) : State {
-		if (/*' ' == c && state.isLevel()*/)/*
+		if (' ' == c && state.isLevel())/*
             return state.advance();*/
 		/*final*/ appended : any = state.append(c);
 		if ('<' == c)/*
@@ -315,7 +315,7 @@
 		return Main.compileAll(input, /* Main::foldValues*/, mapper, ", ");/*
     */}
 	/*private static*/ foldValues(/*final State state, final char c*/) : State {
-		if (/*',' == c && state.isLevel()*/)/*
+		if (',' == c && state.isLevel())/*
             return state.advance();*/
 		/*final*/ appended : any = state.append(c);
 		if ('-' == c)/* {
@@ -421,9 +421,9 @@
     */}
 	/*private static*/ foldStatements(/*final State state, final char c*/) : State {
 		/*final*/ appended : any = state.append(c);
-		if (/*';' == c && appended.isLevel()*/)/*
+		if (';' == c && appended.isLevel())/*
             return appended.advance();*/
-		if (/*'}' == c && appended.isShallow()*/)/*
+		if ('}' == c && appended.isShallow())/*
             return appended.exit().advance();*/
 		if ('{' == c)/*
             return appended.enter();*/
