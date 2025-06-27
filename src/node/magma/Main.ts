@@ -58,10 +58,10 @@
 		return Main.compileStructure(input).orElseGet(/*() -> Placeholder.generate(input)*/);/*
     */}
 	/*private static*/ compileStructure(/*final String input*/) : Optional<string> {
-		if (/*input.isEmpty() || '}' != input.charAt(input.length() - 1)*/)/*
+		if (input.isEmpty() || '}' != input.charAt(input.length() - 1))/*
             return Optional.empty();*/
-		/*final*/ withoutEnd : any = input.substring(0, /* input.length() - "}".length()*/);
-		/*final*/ contentStart : any = withoutEnd.indexOf(/*'{'*/);
+		/*final*/ withoutEnd : any = input.substring(0, /* input.length(*/) - "}".length(/*)*/);
+		/*final*/ contentStart : any = withoutEnd.indexOf('{');
 		if (/*0 > contentStart*/)/*
             return Optional.empty();*/
 		/*final*/ beforeContent : any = withoutEnd.substring(0, contentStart);
@@ -88,24 +88,24 @@
     */}
 	/*private static*/ compileStatement(/*final String input,
                                                      final Function<String, Optional<String>> mapper*/) : Optional<string> {
-		if (/*input.isEmpty() || ';' != input.charAt(input.length() - 1)*/)/*
+		if (input.isEmpty() || ';' != input.charAt(input.length() - 1))/*
             return Optional.empty();*/
-		/*final*/ withoutEnd : any = input.substring(0, /* input.length() - ";".length()*/);
+		/*final*/ withoutEnd : any = input.substring(0, /* input.length(*/) - ";".length(/*)*/);
 		return mapper.apply(withoutEnd).map(/*result -> result + ";"*/);/*
     */}
 	/*private static*/ compileMethod(/*final String input, final CharSequence structName*/) : Optional<string> {
-		if (/*input.isEmpty() || '}' != input.charAt(input.length() - 1)*/)/*
+		if (input.isEmpty() || '}' != input.charAt(input.length() - 1))/*
             return Optional.empty();*/
-		/*final*/ withoutEnd : any = input.substring(0, /* input.length() - "}".length()*/);
-		/*final*/ contentStart : any = withoutEnd.indexOf(/*'{'*/);
+		/*final*/ withoutEnd : any = input.substring(0, /* input.length(*/) - "}".length(/*)*/);
+		/*final*/ contentStart : any = withoutEnd.indexOf('{');
 		if (/*0 > contentStart*/)/*
             return Optional.empty();*/
 		/*final*/ before : any = withoutEnd.substring(0, contentStart).strip();
 		/*final*/ content : any = withoutEnd.substring(contentStart + "{".length());
-		if (/*before.isEmpty() || ')' != before.charAt(before.length() - 1)*/)/*
+		if (before.isEmpty() || ')' != before.charAt(before.length() - 1))/*
             return Optional.empty();*/
-		/*final*/ withoutParamEnd : any = before.substring(0, /* before.length() - ")".length()*/);
-		/*final*/ paramStart : any = withoutParamEnd.indexOf(/*'('*/);
+		/*final*/ withoutParamEnd : any = before.substring(0, /* before.length(*/) - ")".length(/*)*/);
+		/*final*/ paramStart : any = withoutParamEnd.indexOf('(');
 		if (/*0 > paramStart*/)/*
             return Optional.empty();*/
 		/*final*/ definition : any = withoutParamEnd.substring(0, paramStart);
@@ -132,7 +132,7 @@
 		if (/*!strip.startsWith("if")*/)/*
             return Optional.empty();*/
 		/*final*/ slice : any = strip.substring("if".length()).strip();
-		if (/*slice.isEmpty() || '(' != slice.charAt(0)*/)/*
+		if (slice.isEmpty() || '(' != slice.charAt(0))/*
             return Optional.empty();*/
 		/*final*/ substring : any = slice.substring(1);
 		return Main.divide(substring, /* Main::foldConditional*/).popFirst().flatMap(/*Main::compileConditionalSegments*/);/*
@@ -147,9 +147,9 @@
     */}
 	/*private static*/ foldConditional(/*final State state, final char c*/) : State {
 		/*final*/ appended : any = state.append(c);
-		if (/*'(' == c*/)/*
+		if ('(' == c)/*
             return appended.enter();*/
-		if (/*')' == c*/)/* {
+		if (')' == c)/* {
             if (appended.isLevel())
                 return appended.advance();
             return appended.exit();
@@ -161,7 +161,7 @@
     */}
 	/*private static*/ parseConstructor(/*final String input, final CharSequence structName*/) : Optional<MethodHeader> {
 		/*final*/ strip : any = input.strip();
-		/*final*/ index : any = strip.lastIndexOf(/*' '*/);
+		/*final*/ index : any = strip.lastIndexOf(' ');
 		if (/*0 <= index*/)/* {
             final var name = strip.substring(index + " ".length()).strip();
             if (name.contentEquals(structName))
@@ -170,7 +170,7 @@
 		return Optional.empty();/*
     */}
 	/*private static*/ compileAssignment(/*final String input*/) : Optional<string> {
-		/*final*/ separator : any = input.indexOf(/*'='*/);
+		/*final*/ separator : any = input.indexOf('=');
 		if (/*0 <= separator*/)/* {
             final var before = input.substring(0, separator);
             final var after = input.substring(separator + "=".length());
@@ -183,13 +183,13 @@
 		return Main.compileValue(input).orElseGet(/*() -> Placeholder.generate(input)*/);/*
     */}
 	/*private static*/ compileValue(/*final String input*/) : Optional<string> {
-		/*final*/ maybeOperator : any = Main.compileOperator(input, " >= ").or(/*() -> Main.compileOperator(input, "==")*/).or(/*() -> Main.compileOperator(input, "+")*/).or(/*() -> Main.compileOperator(input, "<")*/);
+		/*final*/ maybeOperator : any = Main.compileOperator(input, " >= ").or(/*() -> Main.compileOperator(input, "==")*/).or(/*() -> Main.compileOperator(input, "+")*/).or(/*() -> Main.compileOperator(input, "<")*/).or(/*() -> Main.compileOperator(input, "||")*/).or(/*() -> Main.compileOperator(input, "!=")*/).or(/*() -> Main.compileOperator(input, "-")*/);
 		if (maybeOperator.isPresent())/*
             return maybeOperator;*/
 		/*final*/ maybeInvocation : any = Main.compileInvocation(input);
 		if (maybeInvocation.isPresent())/*
             return maybeInvocation;*/
-		/*final*/ separator : any = input.lastIndexOf(/*'.'*/);
+		/*final*/ separator : any = input.lastIndexOf('.');
 		if (/*0 <= separator*/)/* {
             final var value = input.substring(0, separator);
             final var property = input.substring(separator + ".".length()).strip();
@@ -201,9 +201,15 @@
             return Optional.of(strip);*/
 		if (/*!strip.isEmpty() && '\"' == strip.charAt(0) && '\"' == strip.charAt(strip.length() - 1)*/)/*
             return Optional.of(strip);*/
+		if (Main.isChar(strip))/*
+            return Optional.of(strip);*/
 		if (Main.isSymbol(strip))/*
             return Optional.of(strip);*/
 		return Optional.empty();/*
+    */}
+	/*private static*/ isChar(/*final String strip*/) : boolean {
+		return /*!strip.isEmpty() && '\'' == strip.charAt(0) && '\'' == strip.charAt(strip.length() - 1) &&
+               3 <= strip.length()*/;/*
     */}
 	/*private static*/ compileOperator(/*final String input, final String operator*/) : Optional<string> {
 		/*final*/ i : any = input.indexOf(operator);
@@ -219,21 +225,21 @@
     */}
 	/*private static*/ compileInvocation(/*final String input*/) : Optional<string> {
 		/*final*/ strip : any = input.strip();
-		if (/*strip.isEmpty() || ')' != strip.charAt(strip.length() - 1)*/)/*
+		if (strip.isEmpty() || ')' != strip.charAt(strip.length() - 1))/*
             return Optional.empty();*/
-		/*final*/ withoutEnd : any = strip.substring(0, /* strip.length() - ")".length()*/);
+		/*final*/ withoutEnd : any = strip.substring(0, /* strip.length(*/) - ")".length(/*)*/);
 		return Main.divide(withoutEnd, /* Main::foldInvocation*/).popLast().flatMap(/*Main::handleInvocationSegments*/);/*
     */}
 	/*private static*/ foldInvocation(/*final State state, final char c*/) : State {
 		/*final*/ appended : any = state.append(c);
-		if (/*'(' == c*/)/* {
+		if ('(' == c)/* {
             final var entered = appended.enter();
             if (entered.isShallow())
                 return entered.advance();
             else
                 return entered;
         }*/
-		if (/*')' == c*/)/*
+		if (')' == c)/*
             return appended.exit();*/
 		return appended;/*
     */}
@@ -261,7 +267,7 @@
 		return /*Main.parseDefinition(strip).<Assignable>map(value -> value).orElseGet(() -> new Placeholder(strip))*/;/*
     */}
 	/*private static*/ parseDefinition(/*final String strip*/) : Optional<Definition> {
-		/*final*/ separator : any = strip.lastIndexOf(/*' '*/);
+		/*final*/ separator : any = strip.lastIndexOf(' ');
 		if (/*0 > separator*/)/*
             return Optional.empty();*/
 		/*final*/ beforeName : any = strip.substring(0, separator);
@@ -277,9 +283,9 @@
 		if (/*' ' == c && state.isLevel()*/)/*
             return state.advance();*/
 		/*final*/ appended : any = state.append(c);
-		if (/*'<' == c*/)/*
+		if ('<' == c)/*
             return appended.enter();*/
-		if (/*'>' == c*/)/*
+		if ('>' == c)/*
             return appended.exit();*/
 		return appended;/*
     */}
@@ -312,14 +318,14 @@
 		if (/*',' == c && state.isLevel()*/)/*
             return state.advance();*/
 		/*final*/ appended : any = state.append(c);
-		if (/*'-' == c*/)/* {
+		if ('-' == c)/* {
             final var peek = appended.peek();
             if (peek.isPresent() && peek.get().equals('>'))
                 return appended.popAndAppendToOption().orElse(appended);
         }*/
-		if (/*'<' == c || '(' == c*/)/*
+		if ('<' == c || '(' == c)/*
             return appended.enter();*/
-		if (/*'>' == c || ')' == c*/)/*
+		if ('>' == c || ')' == c)/*
             return appended.exit();*/
 		return appended;/*
     */}
@@ -387,9 +393,9 @@
 		return Main.foldSingleQuotes(state, c).or(/*() -> Main.foldDoubleQuotes(state, c)*/).orElseGet(/*() -> folder.apply(state, c)*/);/*
     */}
 	/*private static*/ foldDoubleQuotes(/*final State state, final char c*/) : Optional<State> {
-		if (/*'\"' != c*/)/*
+		if ('\"' != c)/*
             return Optional.empty();*/
-		/**/ current : any = state.append(/*'\"'*/);/*
+		/**/ current : any = state.append('\"');/*
         while (true) {
             final var maybeTuple = current.popAndAppendToTuple();
             if (maybeTuple.isEmpty())
@@ -408,7 +414,7 @@
 
     */}
 	/*private static*/ foldSingleQuotes(/*final State state, final char c*/) : Optional<State> {
-		if (/*'\'' != c*/)/*
+		if ('\'' != c)/*
             return Optional.empty();*/
 		return state.append(c).popAndAppendToTuple().flatMap(/*
                             tuple -> '\\' == tuple.right() ? tuple.left().popAndAppendToOption() : Optional.of(tuple.left())*/).flatMap(/*State::popAndAppendToOption*/);/*
@@ -419,17 +425,17 @@
             return appended.advance();*/
 		if (/*'}' == c && appended.isShallow()*/)/*
             return appended.exit().advance();*/
-		if (/*'{' == c*/)/*
+		if ('{' == c)/*
             return appended.enter();*/
-		if (/*'}' == c*/)/*
+		if ('}' == c)/*
             return appended.exit();*/
 		return appended;/*
     */}
 	/*private static*/ handleInvocationSegments(/*final Tuple<ListLike<String>, String> tuple*/) : Optional<string> {
 		/*final*/ joined : any = tuple.left().stream().collect(Collectors.joining());
-		if (/*joined.isEmpty() || '(' != joined.charAt(joined.length() - 1)*/)/*
+		if (joined.isEmpty() || '(' != joined.charAt(joined.length() - 1))/*
             return Optional.empty();*/
-		/*final*/ substring : any = joined.substring(0, /* joined.length() - "(".length()*/);
+		/*final*/ substring : any = joined.substring(0, /* joined.length(*/) - "(".length(/*)*/);
 		/*final*/ argument : any = tuple.right();
 		return Main.compileValue(substring).map(/*caller -> caller + "(" + Main.compileValues(argument, Main::compileValueOrPlaceholder) + ")"*/);/*
     */}

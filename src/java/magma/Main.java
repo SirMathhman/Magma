@@ -228,8 +228,10 @@ public class Main {
     private static Optional<String> compileValue(final String input) {
         final var maybeOperator = Main.compileOperator(input, ">=").or(() -> Main.compileOperator(input, "=="))
                                       .or(() -> Main.compileOperator(input, "+"))
-                                      .or(() -> Main.compileOperator(input, "<"));
-
+                                      .or(() -> Main.compileOperator(input, "<"))
+                                      .or(() -> Main.compileOperator(input, "||"))
+                                      .or(() -> Main.compileOperator(input, "!="))
+                                      .or(() -> Main.compileOperator(input, "-"));
         if (maybeOperator.isPresent())
             return maybeOperator;
 
@@ -252,10 +254,18 @@ public class Main {
         if (!strip.isEmpty() && '\"' == strip.charAt(0) && '\"' == strip.charAt(strip.length() - 1))
             return Optional.of(strip);
 
+        if (Main.isChar(strip))
+            return Optional.of(strip);
+
         if (Main.isSymbol(strip))
             return Optional.of(strip);
 
         return Optional.empty();
+    }
+
+    private static boolean isChar(final String strip) {
+        return !strip.isEmpty() && '\'' == strip.charAt(0) && '\'' == strip.charAt(strip.length() - 1) &&
+               3 <= strip.length();
     }
 
     private static Optional<String> compileOperator(final String input, final String operator) {
