@@ -1,5 +1,6 @@
 /*package magma;*/
 /*import java.util.List;*/
+/*import java.util.Optional;*/
 /*public interface State */ {
 	/*State advance();*/
 	/*State append(char c);*/
@@ -8,5 +9,6 @@
 	/*State enter();*/
 	/*State exit();*/
 	/*boolean isShallow();*/
+	/*Optional<Tuple<State, Character>> pop();*/
 	/**/}
 /**/

@@ -119,11 +119,15 @@ public class Main {
     }
 
     private static List<String> divide(final CharSequence input) {
-        State current = new MutableState();
-        final var length = input.length();
-        for (var i = 0; i < length; i++) {
-            final var c = input.charAt(i);
-            current = Main.fold(current, c);
+        State current = new MutableState(input);
+        while (true) {
+            final var maybe = current.pop();
+            if (maybe.isEmpty())
+                break;
+
+            final var tuple = maybe.get();
+            current = tuple.left();
+            current = Main.fold(current, tuple.right());
         }
 
         return current.advance().unwrap();

@@ -3,11 +3,18 @@ package magma;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 
 public class MutableState implements State {
     private final List<String> segments = new ArrayList<>();
+    private final CharSequence input;
     private StringBuilder buffer = new StringBuilder();
     private int depth = 0;
+    private int index = 0;
+
+    public MutableState(final CharSequence input) {
+        this.input = input;
+    }
 
     @Override
     public State advance() {
@@ -47,5 +54,15 @@ public class MutableState implements State {
     @Override
     public boolean isShallow() {
         return 1 == this.depth;
+    }
+
+    @Override
+    public Optional<Tuple<State, Character>> pop() {
+        if (this.index >= this.input.length())
+            return Optional.empty();
+
+        final var c = this.input.charAt(this.index);
+        this.index++;
+        return Optional.of(new Tuple<>(this, c));
     }
 }

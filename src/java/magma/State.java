@@ -1,6 +1,7 @@
 package magma;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface State {
     State advance();
@@ -16,4 +17,6 @@ public interface State {
     State exit();
 
     boolean isShallow();
+
+    Optional<Tuple<State, Character>> pop();
 }
