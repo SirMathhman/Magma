@@ -233,13 +233,25 @@ public class Main {
 
         final var beforeName = strip.substring(0, separator);
         final var name = strip.substring(separator + " ".length());
-        final var typeSeparator = beforeName.lastIndexOf(' ');
-        if (0 > typeSeparator)
-            return Optional.empty();
 
-        final var beforeType = beforeName.substring(0, typeSeparator);
-        final var type = beforeName.substring(typeSeparator + " ".length());
-        return Optional.of(new Definition(beforeType, name, Main.compileType(type)));
+        final var divisions = Main.divide(beforeName, Main::foldTypeSeparator);
+        return divisions.popLast().flatMap(tuple -> {
+            final var beforeType = tuple.left().stream().collect(Collectors.joining(" "));
+            final var type = tuple.right();
+            return Optional.of(new Definition(beforeType, name, Main.compileType(type)));
+        });
+    }
+
+    private static State foldTypeSeparator(final State state, final Character c) {
+        if (' ' == c && state.isLevel())
+            return state.advance();
+
+        final var appended = state.append(c);
+        if ('<' == c)
+            return appended.enter();
+        if ('>' == c)
+            return appended.exit();
+        return appended;
     }
 
     private static String compileType(final String input) {
@@ -266,9 +278,16 @@ public class Main {
     }
 
     private static State foldValues(final State state, final char c) {
-        if (',' == c)
+        if (',' == c && state.isLevel())
             return state.advance();
-        return state.append(c);
+
+
+        final var appended = state.append(c);
+        if ('<' == c)
+            return appended.enter();
+        if ('>' == c)
+            return appended.exit();
+        return appended;
     }
 
     private static StructureDefinition parseStructureHeader(final String input) {

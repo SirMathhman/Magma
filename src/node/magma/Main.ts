@@ -200,12 +200,22 @@
             return Optional.empty();*/
 		/*final*/ beforeName : any = strip.substring(/*0, separator*/);
 		/*final*/ name : any = strip.substring(/*separator + " ".length()*/);
-		/*final*/ typeSeparator : any = beforeName.lastIndexOf(/*' '*/);/*
-        if (0 > typeSeparator)
-            return Optional.empty();*/
-		/*final*/ beforeType : any = beforeName.substring(/*0, typeSeparator*/);
-		/*final*/ type : any = beforeName.substring(/*typeSeparator + " ".length()*/);/*
-        return Optional.of(new Definition(beforeType, name, Main.compileType(type)));*//*
+		/*final*/ divisions : any = Main.divide(/*beforeName, Main::foldTypeSeparator*/);/*
+        return divisions.popLast().flatMap(tuple -> {
+            final var beforeType = tuple.left().stream().collect(Collectors.joining(" "));
+            final var type = tuple.right();
+            return Optional.of(new Definition(beforeType, name, Main.compileType(type)));
+        }*//*);*//*
+    */}
+	/*private static*/ foldTypeSeparator(/*final State state, final Character c*/) : State {
+		/*if*/ ' : /*(''*/ = /*= c && state*/.isLevel(/*))
+            return state.advance(*/);
+		/*final*/ appended : any = state.append(/*c*/);
+		/**/ ('<' : if = /*= c)
+            return appended*/.enter(/**/);
+		/**/ ('>' : if = /*= c)
+            return appended*/.exit(/**/);/*
+        return appended;*//*
     */}
 	/*private static*/ compileType(/*final String input*/) : string {
 		/*final*/ strip : any = input.strip(/**/);/*
@@ -230,9 +240,14 @@
         return Placeholder.generate(strip);*//*
     */}
 	/*private static*/ foldValues(/*final State state, final char c*/) : State {
-		if (',' = /*= c)
-            return state*/.advance(/**/);/*
-        return state.append(c);*//*
+		/**/ (',' : if = /*= c && state*/.isLevel(/*))
+            return state.advance(*/);
+		/*final*/ appended : any = state.append(/*c*/);
+		/**/ ('<' : if = /*= c)
+            return appended*/.enter(/**/);
+		/**/ ('>' : if = /*= c)
+            return appended*/.exit(/**/);/*
+        return appended;*//*
     */}
 	/*private static*/ parseStructureHeader(/*final String input*/) : StructureDefinition {/*
         return Main.parseClassHeader(input, "class", "class").or(() -> Main.parseClassHeader(input, "record", "class"))
@@ -286,7 +301,7 @@
     */}
 	/*private static*/ divide(/*final CharSequence input,
                                            final BiFunction<State, Character, State> foldStatements*/) : ListLike<string> {
-		State current = /*new MutableState*/(/*input*/);/*
+		/**/ current : State = /*new MutableState*/(/*input*/);/*
         while (true) {
             final var maybe = current.pop();
             if (maybe.isEmpty())
@@ -335,13 +350,13 @@
     */}
 	/*private static*/ foldStatements(/*final State state, final char c*/) : State {
 		/*final*/ appended : any = state.append(/*c*/);
-		if (';' = /*= c && appended*/.isLevel(/*))
+		/**/ (';' : if = /*= c && appended*/.isLevel(/*))
             return appended.advance(*/);
-		if ('}' = /*= c && appended*/.isShallow(/*))
+		/**/ ('}' : if = /*= c && appended*/.isShallow(/*))
             return appended.exit().advance(*/);
-		if ('{' = /*= c)
+		/**/ ('{' : if = /*= c)
             return appended*/.enter(/**/);
-		if ('}' = /*= c)
+		/**/ ('}' : if = /*= c)
             return appended*/.exit(/**/);/*
         return appended;*//*
     */}

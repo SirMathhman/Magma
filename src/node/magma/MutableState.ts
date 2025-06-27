@@ -26,7 +26,7 @@
     */}
 	/*@Override
     public*/ isLevel(/**/) : boolean {
-		return 0 = /*= this*/.depth;/*
+		/**/ 0 : return = /*= this*/.depth;/*
     */}
 	/*@Override
     public*/ enter(/**/) : State {/*
@@ -40,10 +40,10 @@
     */}
 	/*@Override
     public*/ isShallow(/**/) : boolean {
-		return 1 = /*= this*/.depth;/*
+		/**/ 1 : return = /*= this*/.depth;/*
     */}
 	/*@Override
-    public Optional<Tuple<State,*/ pop(/**/) : /*Character>>*/ {
+    public*/ pop(/**/) : Optional<Tuple<State, Character>> {
 		/*if*/ > : /*(this.index*/ = this.input.length(/*))
             return Optional.empty(*/);
 		/*final*/ c : any = this.input.charAt(/*this.index*/);/*
@@ -51,7 +51,7 @@
         return Optional.of(new Tuple<>(this, c));*//*
     */}
 	/*@Override
-    public Optional<Tuple<State,*/ popAndAppendToTuple(/**/) : /*Character>>*/ {/*
+    public*/ popAndAppendToTuple(/**/) : Optional<Tuple<State, Character>> {/*
         return this.pop().map(tuple -> new Tuple<>(tuple.left().append(tuple.right()), tuple.right()));*//*
     */}
 	/*@Override
