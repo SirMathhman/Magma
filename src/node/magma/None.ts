@@ -4,41 +4,33 @@
 
 
 class None<T> {
-	/*@Override
-    public void ifPresent*/(final Consumer<T> consumer) {
+	public ifPresent(final consumer : Consumer<T>) : void {
 	}
-	/*@Override
-    public boolean isPresent*/() {
+	public isPresent() : boolean {
 		return false;
 	}
-	/*@Override
-    public Optional<T> or*/(final Supplier<Optional<T>> other) {
+	public or(final other : Supplier<Optional<T>>) : Optional<T> {
 		return other.get();
 	}
-	/*@Override
-    public T orElseGet*/(final Supplier<T> other) {
+	public orElseGet(final other : Supplier<T>) : T {
 		return other.get();
 	}
-	map<R>(final Function<T, R> mapper) : Optional<R> {
+	public map<R>(final mapper : Function<T, R>) : Optional<R> {
 		return new None<>();
 	}
-	flatMap<R>(final Function<T, Optional<R>> mapper) : Optional<R> {
+	public flatMap<R>(final mapper : Function<T, Optional<R>>) : Optional<R> {
 		return new None<>();
 	}
-	/*@Override
-    public T orElse*/(final T other) {
+	public orElse(final other : T) : T {
 		return other;
 	}
-	/*@Override
-    public Optional<T> filter*/(final Predicate<T> predicate) {
+	public filter(final predicate : Predicate<T>) : Optional<T> {
 		return this;
 	}
-	/*@Override
-    public boolean isEmpty*/() {
+	public isEmpty() : boolean {
 		return true;
 	}
-	/*@Override
-    public Tuple<Boolean, T> toTuple*/(final T other) {
+	public toTuple(final other : T) : Tuple<Boolean, T> {
 		return new Tuple<>(false, other);
 	}
 }

@@ -1,7 +1,7 @@
 
 
 class Ok<Value, Error> {
-	match<Return>(final Function<Value, Return> whenOk, final Function<Error, Return> whenErr) : Return {
+	public match<Return>(final whenOk : Function<Value, Return>, final whenErr : Function<Error, Return>) : Return {
 		return whenOk.apply(this.value);
 	}
 }

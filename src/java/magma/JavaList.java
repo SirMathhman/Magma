@@ -43,4 +43,9 @@ public record JavaList<T>(List<T> list) implements ListLike<T> {
     public boolean isEmpty() {
         return this.list.isEmpty();
     }
+
+    @Override
+    public boolean contains(final T element) {
+        return this.list.contains(element);
+    }
 }

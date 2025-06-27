@@ -4,8 +4,10 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.List;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.regex.Pattern;
@@ -22,7 +24,7 @@ class Main {
         JavaFiles.walk(root).match(files -> {
             final var sources = files.stream().filter(path -> path.toString().endsWith(".java")).toList();
             return Main.runWithSources(sources, root);
-        }, value -> new Some<>(value)).ifPresent(Throwable::printStackTrace);
+        }, Some::new).ifPresent(Throwable::printStackTrace);
     }
 
     private static Optional<IOException> runWithSources(final Iterable<Path> sources, final Path root) {
@@ -499,12 +501,45 @@ class Main {
                     final var typeParams = Main.divide(slice, Main::foldValues).stream().map(String::strip)
                                                .filter(value -> !value.isEmpty()).toList();
 
-                    return new Some<>(
-                            new Definition(Lists.empty(), Lists.empty(), name, Main.compileType(type), typeParams));
+                    return Main.assemble(joined, typeParams, name, type);
                 } else
                     return new None<>();
+            }).or(() -> {
+                return Main.assemble(beforeType, Collections.emptyList(), name, type);
             });
+        }).or(() -> {
+            return Main.assemble("", Collections.emptyList(), name, beforeName);
         });
+    }
+
+    private static Optional<Definition> assemble(final String beforeTypeParams, final List<String> typeParams,
+                                                 final String name, final String type) {
+        final var annotationIndex = beforeTypeParams.lastIndexOf('\n');
+        if (0 <= annotationIndex) {
+            final var annotationString = beforeTypeParams.substring(0, annotationIndex);
+            final var modifiersString = beforeTypeParams.substring(annotationIndex + "\n".length());
+            return new Some<>(
+                    new Definition(Main.parseAnnotations(annotationString), Main.parseModifiers(modifiersString), name,
+                                   Main.compileType(type), typeParams));
+        } else {
+            final var modifiers = Main.parseModifiers(beforeTypeParams);
+            return new Some<>(new Definition(Lists.empty(), modifiers, name, Main.compileType(type), typeParams));
+        }
+    }
+
+    private static JavaList<String> parseModifiers(final String joined) {
+        final var list = Main.divide(joined, Main.foldByDelimiter(' ')).stream().map(String::strip)
+                             .filter(value -> !value.isEmpty()).collect(Collectors.toCollection(ArrayList::new));
+
+        return new JavaList<>(list);
+    }
+
+    private static BiFunction<State, Character, State> foldByDelimiter(final char delimiter) {
+        return (state, c) -> {
+            if (c == delimiter)
+                return state.advance();
+            return state.append(c);
+        };
     }
 
     private static State foldTypeSeparator(final State state, final Character c) {
@@ -615,16 +650,19 @@ class Main {
                                                                      final String strip1) {
         final var index = beforeKeyword.lastIndexOf(System.lineSeparator());
         if (0 <= index) {
-            final var annotations =
-                    Arrays.stream(Pattern.compile("\\n").split(beforeKeyword.substring(0, index).strip()))
-                          .map(String::strip).filter(value -> !value.isEmpty()).map(value -> value.substring(1))
-                          .toList();
-
+            final var annotations = Main.parseAnnotations(beforeKeyword.substring(0, index));
             final var substring1 = beforeKeyword.substring(index + System.lineSeparator().length());
             return new StructureHeader(type, annotations, substring1, strip1, maybeImplements);
         }
 
-        return new StructureHeader(type, Collections.emptyList(), beforeKeyword, strip1, maybeImplements);
+        return new StructureHeader(type, Lists.empty(), beforeKeyword, strip1, maybeImplements);
+    }
+
+    private static ListLike<String> parseAnnotations(final String input) {
+        final var copy = Arrays.stream(Pattern.compile("\\n").split(input.strip())).map(String::strip)
+                               .filter(value -> !value.isEmpty()).map(value -> value.substring(1))
+                               .collect(Collectors.toCollection(ArrayList::new));
+        return new JavaList<>(copy);
     }
 
     private static ListLike<String> divide(final CharSequence input, final BiFunction<State, Character, State> folder) {

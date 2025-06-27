@@ -1,6 +1,6 @@
 
 
 interface Result<Value, Error> {
-	match<Return>(Function<Value, Return> whenOk, Function<Error, Return> whenErr) : Return;
+	match<Return>(whenOk : Function<Value, Return>, whenErr : Function<Error, Return>) : Return;
 }
 

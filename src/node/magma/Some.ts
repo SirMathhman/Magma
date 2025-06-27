@@ -4,44 +4,36 @@
 
 
 class Some<T> {
-	/*@Override
-    public void ifPresent*/(final Consumer<T> consumer) {
+	public ifPresent(final consumer : Consumer<T>) : void {
 		consumer.accept(this.value);
 	}
-	/*@Override
-    public boolean isPresent*/() {
+	public isPresent() : boolean {
 		return true;
 	}
-	/*@Override
-    public Optional<T> or*/(final Supplier<Optional<T>> other) {
+	public or(final other : Supplier<Optional<T>>) : Optional<T> {
 		return this;
 	}
-	/*@Override
-    public T orElseGet*/(final Supplier<T> other) {
+	public orElseGet(final other : Supplier<T>) : T {
 		return this.value;
 	}
-	map<R>(final Function<T, R> mapper) : Optional<R> {
+	public map<R>(final mapper : Function<T, R>) : Optional<R> {
 		return new Some<>(mapper.apply(this.value));
 	}
-	flatMap<R>(final Function<T, Optional<R>> mapper) : Optional<R> {
+	public flatMap<R>(final mapper : Function<T, Optional<R>>) : Optional<R> {
 		return mapper.apply(this.value);
 	}
-	/*@Override
-    public T orElse*/(final T other) {
+	public orElse(final other : T) : T {
 		return this.value;
 	}
-	/*@Override
-    public Optional<T> filter*/(final Predicate<T> predicate) {
+	public filter(final predicate : Predicate<T>) : Optional<T> {
 		if (predicate.test(this.value))
 			return this;
 		return new None<>();
 	}
-	/*@Override
-    public boolean isEmpty*/() {
+	public isEmpty() : boolean {
 		return false;
 	}
-	/*@Override
-    public Tuple<Boolean, T> toTuple*/(final T other) {
+	public toTuple(final other : T) : Tuple<Boolean, T> {
 		return new Tuple<>(true, this.value);
 	}
 }

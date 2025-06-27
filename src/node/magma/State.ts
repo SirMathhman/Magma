@@ -1,15 +1,15 @@
 
 interface State {
-	/*State advance*/();
-	/*State append*/(char c);
-	/*ListLike<String> unwrap*/();
-	/*boolean isLevel*/();
-	/*State enter*/();
-	/*State exit*/();
-	/*boolean isShallow*/();
-	/*Optional<Tuple<State, Character>> pop*/();
-	/*Optional<Tuple<State, Character>> popAndAppendToTuple*/();
-	/*Optional<State> popAndAppendToOption*/();
-	/*Optional<Character> peek*/();
+	advance() : State;
+	append(c : char) : State;
+	unwrap() : ListLike<string>;
+	isLevel() : boolean;
+	enter() : State;
+	exit() : State;
+	isShallow() : boolean;
+	pop() : Optional<Tuple<State, Character>>;
+	popAndAppendToTuple() : Optional<Tuple<State, Character>>;
+	popAndAppendToOption() : Optional<State>;
+	peek() : Optional<Character>;
 }
 

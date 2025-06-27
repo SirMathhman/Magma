@@ -1,8 +1,6 @@
 
-
 class StructureHeader {
-	/*@Override
-    public String generate*/() {
+	public generate() : string {
 		return this.type + " " + this.name;
 	}
 }

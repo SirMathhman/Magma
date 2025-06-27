@@ -1,5 +1,5 @@
 
 interface Assignable extends MethodHeader {
-	/*String generate*/();
+	generate() : string;
 }
 

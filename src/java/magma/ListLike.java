@@ -12,4 +12,6 @@ public interface ListLike<T> {
     Optional<Tuple<T, ListLike<T>>> popFirst();
 
     boolean isEmpty();
+
+    boolean contains(T element);
 }
