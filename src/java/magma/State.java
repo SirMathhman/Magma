@@ -8,4 +8,10 @@ public interface State {
     State append(char c);
 
     List<String> unwrap();
+
+    boolean isLevel();
+
+    State enter();
+
+    State exit();
 }

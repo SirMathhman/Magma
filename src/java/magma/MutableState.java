@@ -5,13 +5,9 @@ import java.util.Collections;
 import java.util.List;
 
 public class MutableState implements State {
-    private final List<String> segments;
-    private StringBuilder buffer;
-
-    public MutableState() {
-        this.segments = new ArrayList<>();
-        this.buffer = new StringBuilder();
-    }
+    private final List<String> segments = new ArrayList<>();
+    private StringBuilder buffer = new StringBuilder();
+    private int depth = 0;
 
     @Override
     public State advance() {
@@ -29,5 +25,22 @@ public class MutableState implements State {
     @Override
     public List<String> unwrap() {
         return Collections.unmodifiableList(this.segments);
+    }
+
+    @Override
+    public boolean isLevel() {
+        return 0 == this.depth;
+    }
+
+    @Override
+    public State enter() {
+        this.depth++;
+        return this;
+    }
+
+    @Override
+    public State exit() {
+        this.depth--;
+        return this;
     }
 }
