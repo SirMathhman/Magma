@@ -67,7 +67,7 @@ public class Main {
             }
         }
 
-        return Main.generatePlaceholder(input);
+        return Placeholder.generatePlaceholder(input);
     }
 
     private static String compileStructureSegment(final String input) {
@@ -95,14 +95,15 @@ public class Main {
                     if (0 <= paramStart) {
                         final var definition = withoutParamEnd.substring(0, paramStart);
                         final var params = withoutParamEnd.substring(paramStart + "(".length());
-                        return Main.compileDefinition(definition) + "(" + Main.generatePlaceholder(params) + ") {" +
-                               Main.generatePlaceholder(after) + "}";
+                        final var joinedParams = "(" + Placeholder.generatePlaceholder(params) + ")";
+                        return Main.parseDefinitionOrPlaceholder(definition).generate(joinedParams) + " {" +
+                               Placeholder.generatePlaceholder(after) + "}";
                     }
                 }
             }
         }
 
-        return Main.generatePlaceholder(input);
+        return Placeholder.generatePlaceholder(input);
     }
 
     private static Optional<String> compileStructureStatementValue(final String input) {
@@ -110,7 +111,7 @@ public class Main {
         if (0 <= separator) {
             final var before = input.substring(0, separator);
             final var after = input.substring(separator + "=".length());
-            return Optional.of(Main.compileDefinition(before) + " = " + Main.compileValue(after));
+            return Optional.of(Main.parseDefinitionOrPlaceholder(before) + " = " + Main.compileValue(after));
         }
         return Optional.empty();
     }
@@ -123,7 +124,7 @@ public class Main {
         if (!strip.isEmpty() && '\"' == strip.charAt(0) && '\"' == strip.charAt(strip.length() - 1))
             return strip;
 
-        return Main.generatePlaceholder(strip);
+        return Placeholder.generatePlaceholder(strip);
     }
 
     private static boolean isNumber(final CharSequence input) {
@@ -132,26 +133,29 @@ public class Main {
             final var c = input.charAt(i);
             if (!Character.isDigit(c))
                 return false;
-            continue;
         }
         return true;
     }
 
-    private static String compileDefinition(final String input) {
+    private static MethodHeader parseDefinitionOrPlaceholder(final String input) {
         final var strip = input.strip();
-        final var separator = strip.lastIndexOf(' ');
-        if (0 <= separator) {
-            final var beforeName = strip.substring(0, separator);
-            final var name = strip.substring(separator + " ".length());
-            final var typeSeparator = beforeName.lastIndexOf(' ');
-            if (0 <= typeSeparator) {
-                final var beforeType = beforeName.substring(0, typeSeparator);
-                final var type = beforeName.substring(typeSeparator + " ".length());
-                return Main.generatePlaceholder(beforeType) + " " + name + " : " + Main.compileType(type);
-            }
-        }
+        return Main.compileDefinition(strip).<MethodHeader>map(value -> value).orElseGet(() -> new Placeholder(strip));
+    }
 
-        return Main.generatePlaceholder(strip);
+    private static Optional<Definition> compileDefinition(final String strip) {
+        final var separator = strip.lastIndexOf(' ');
+        if (0 > separator)
+            return Optional.empty();
+
+        final var beforeName = strip.substring(0, separator);
+        final var name = strip.substring(separator + " ".length());
+        final var typeSeparator = beforeName.lastIndexOf(' ');
+        if (0 > typeSeparator)
+            return Optional.empty();
+
+        final var beforeType = beforeName.substring(0, typeSeparator);
+        final var type = beforeName.substring(typeSeparator + " ".length());
+        return Optional.of(new Definition(beforeType, name, Main.compileType(type)));
     }
 
     private static String compileType(final String input) {
@@ -160,7 +164,7 @@ public class Main {
             return "string";
         if ("int".contentEquals(strip))
             return "number";
-        return Main.generatePlaceholder(strip);
+        return Placeholder.generatePlaceholder(strip);
     }
 
     private static String compileStructureHeader(final String input) {
@@ -172,13 +176,13 @@ public class Main {
             if (0 <= implementsIndex) {
                 final var beforeImplements = afterKeyword.substring(0, implementsIndex);
                 final var afterImplements = afterKeyword.substring(implementsIndex + "implements ".length());
-                return Main.generatePlaceholder(beforeKeyword) + "class " + beforeImplements +
-                       Main.generatePlaceholder("implements " + afterImplements);
+                return Placeholder.generatePlaceholder(beforeKeyword) + "class " + beforeImplements +
+                       Placeholder.generatePlaceholder("implements " + afterImplements);
             } else
-                return Main.generatePlaceholder(beforeKeyword) + "class " + afterKeyword;
+                return Placeholder.generatePlaceholder(beforeKeyword) + "class " + afterKeyword;
         }
 
-        return Main.generatePlaceholder(input);
+        return Placeholder.generatePlaceholder(input);
     }
 
     private static ListLike<String> divide(final CharSequence input) {
@@ -219,9 +223,5 @@ public class Main {
         if ('}' == c)
             return appended.exit();
         return appended;
-    }
-
-    private static String generatePlaceholder(final String input) {
-        return "/*" + input.replace("/*", "stat").replace("*/", "end") + "*/";
     }
 }
