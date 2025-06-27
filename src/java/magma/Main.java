@@ -2,14 +2,14 @@ package magma;
 
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Function;
 
 public class Main {
-
-    public static final String LINE_SEPARATOR = System.lineSeparator();
+    private static final String LINE_SEPARATOR = System.lineSeparator();
 
     private Main() {
     }
@@ -19,27 +19,31 @@ public class Main {
         try (final var stream = Files.walk(root)) {
             final var sources = stream.filter(path -> path.toString().endsWith(".java")).toList();
 
-            for (final var source : sources) {
-                final var relative = root.relativize(source.getParent());
-                final var input = Files.readString(source);
-                final var output = Main.compileRoot(input);
-                final var targetParent = Paths.get(".", "src", "node").resolve(relative);
-                if (!Files.exists(targetParent))
-                    Files.createDirectories(targetParent);
-
-                final var fileName = source.getFileName().toString();
-                final var separator = fileName.lastIndexOf('.');
-                final var name = fileName.substring(0, separator);
-                final var target = targetParent.resolve(name + ".ts");
-                Files.writeString(target, output);
-            }
+            Main.runWithSources(sources, root);
         } catch (final IOException e) {
             //noinspection CallToPrintStackTrace
             e.printStackTrace();
         }
     }
 
-    private static String compileRoot(final String input) {
+    private static void runWithSources(final Iterable<Path> sources, final Path root) throws IOException {
+        for (final var source : sources) {
+            final var relative = root.relativize(source.getParent());
+            final var input = Files.readString(source);
+            final var output = Main.compileRoot(input);
+            final var targetParent = Paths.get(".", "src", "node").resolve(relative);
+            if (!Files.exists(targetParent))
+                Files.createDirectories(targetParent);
+
+            final var fileName = source.getFileName().toString();
+            final var separator = fileName.lastIndexOf('.');
+            final var name = fileName.substring(0, separator);
+            final var target = targetParent.resolve(name + ".ts");
+            Files.writeString(target, output);
+        }
+    }
+
+    private static String compileRoot(final CharSequence input) {
         return Main.compileStatements(input, Main::compileRootSegment);
     }
 
@@ -100,9 +104,14 @@ public class Main {
         final var strip = input.strip();
         final var separator = strip.lastIndexOf(' ');
         if (0 <= separator) {
-            final var before = strip.substring(0, separator);
-            final var after = strip.substring(separator + " ".length());
-            return Main.generatePlaceholder(before) + " " + after;
+            final var beforeName = strip.substring(0, separator);
+            final var name = strip.substring(separator + " ".length());
+            final var typeSeparator = beforeName.lastIndexOf(' ');
+            if (0 <= typeSeparator) {
+                final var beforeType = beforeName.substring(0, typeSeparator);
+                final var type = beforeName.substring(typeSeparator + " ".length());
+                return Main.generatePlaceholder(beforeType) + " " + Main.generatePlaceholder(type) + " " + name;
+            }
         }
 
         return Main.generatePlaceholder(strip);
