@@ -3,7 +3,7 @@
 /*import java.nio.file.Files;*/
 /*import java.nio.file.Paths;*/
 /*import java.util.List;*/
-/*public class Main {
+/*public */class Main {/*
     private Main() {
     }
 
@@ -33,10 +33,26 @@
     }
 
     private static String compileRootSegmentValue(final String input) {
-        if (input.endsWith("}")) {
+        if (!input.isEmpty() && '}' == input.charAt(input.length() - 1)) {
             final var withoutEnd = input.substring(0, input.length() - "}".length());
-            return Main.generatePlaceholder(withoutEnd) + "}";*/
-/*}
+            final var contentStart = withoutEnd.indexOf('{');
+            if (0 <= contentStart) {
+                final var beforeContent = withoutEnd.substring(0, contentStart);
+                final var content = withoutEnd.substring(contentStart + "{".length());
+                return Main.compileStructureHeader(beforeContent) + " {" + Main.generatePlaceholder(content) + "}";
+            }
+        }
+
+        return Main.generatePlaceholder(input);
+    }
+
+    private static String compileStructureHeader(final String input) {
+        final var classIndex = input.indexOf("class ");
+        if (0 <= classIndex) {
+            final var beforeKeyword = input.substring(0, classIndex);
+            final var afterKeyword = input.substring(classIndex + "class ".length()).strip();
+            return Main.generatePlaceholder(beforeKeyword) + "class " + afterKeyword;
+        }
 
         return Main.generatePlaceholder(input);
     }
@@ -45,9 +61,9 @@
         State current = new MutableState();
         final var length = input.length();
         for (var i = 0; i < length; i++) {
-            final var c = input.charAt(i);*/
-/*current = Main.fold(current, c);*/
-/*}
+            final var c = input.charAt(i);
+            current = Main.fold(current, c);
+        }
 
         return current.advance()
                 .unwrap();
@@ -58,8 +74,8 @@
         if (';' == c && appended.isLevel())
             return appended.advance();
         if ('{' == c)
-            return appended.enter();*/
-/*if ('}' == c)
+            return appended.enter();
+        if ('}' == c)
             return appended.exit();
         return appended;
     }
