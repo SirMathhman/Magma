@@ -7,7 +7,6 @@ import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-import java.util.Optional;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.regex.Pattern;
@@ -535,7 +534,7 @@ public class Main {
         final var appended = state.append(c);
         if ('-' == c) {
             final var peek = appended.peek();
-            if (peek.isPresent() && peek.get().equals('>'))
+            if (peek.filter(value -> '>' == value).isPresent())
                 return appended.popAndAppendToOption().orElse(appended);
         }
 
@@ -605,13 +604,13 @@ public class Main {
                                            final BiFunction<State, Character, State> foldStatements) {
         State current = new MutableState(input);
         while (true) {
-            final var maybe = current.pop();
-            if (maybe.isEmpty())
+            final var maybe = current.pop().toTuple(new Tuple<>(current, '\0'));
+            if (maybe.left()) {
+                final var tuple = maybe.right();
+                current = tuple.left();
+                current = Main.fold(current, tuple.right(), foldStatements);
+            } else
                 break;
-
-            final var tuple = maybe.get();
-            current = tuple.left();
-            current = Main.fold(current, tuple.right(), foldStatements);
         }
 
         return current.advance().unwrap();
@@ -626,24 +625,29 @@ public class Main {
         if ('\"' != c)
             return Optional.empty();
 
-        var current = state.append('\"');
+        final var current = state.append('\"');
         while (true) {
-            final var maybeTuple = current.popAndAppendToTuple();
+            final var maybeTuple = current.popAndAppendToTuple().flatMap(tuple -> {
+                return Main.getObjectOptional(tuple, current);
+            });
             if (maybeTuple.isEmpty())
-                break;
-
-            final var tuple = maybeTuple.get();
-            current = tuple.left();
-
-            final var next = tuple.right();
-            if ('\\' == next)
-                current = current.popAndAppendToOption().orElse(current);
-            if ('\"' == next)
                 break;
         }
 
         return Optional.of(current);
 
+    }
+
+    private static Optional<State> getObjectOptional(final Tuple<State, Character> tuple, final State current) {
+        final var left = tuple.left();
+
+        final var next = tuple.right();
+        if ('\\' == next)
+            return Optional.of(left.popAndAppendToOption().orElse(current));
+        if ('\"' == next)
+            return Optional.empty();
+
+        return Optional.of(left);
     }
 
     private static Optional<State> foldSingleQuotes(final State state, final char c) {

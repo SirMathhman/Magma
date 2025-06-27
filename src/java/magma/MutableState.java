@@ -1,7 +1,5 @@
 package magma;
 
-import java.util.Optional;
-
 public class MutableState implements State {
     private final CharSequence input;
     private ListLike<String> segments = Lists.empty();

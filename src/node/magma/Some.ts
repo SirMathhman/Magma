@@ -1,0 +1,38 @@
+
+
+
+
+
+class Some<T> {
+	ifPresent(consumer : Consumer<T>) : void {/*
+        consumer.accept(this.value);*/
+	}
+	isPresent() : boolean {
+		return true;
+	}
+	or(other : Supplier<Optional<T>>) : Optional<T> {
+		return this;
+	}
+	orElseGet(other : Supplier<T>) : T {
+		return this.value;
+	}
+	map(mapper : Function<T, R>) : Optional<R> {
+		return new Some<>(mapper.apply(this.value));
+	}
+	flatMap(mapper : Function<T, Optional<R>>) : Optional<R> {
+		return mapper.apply(this.value);
+	}
+	orElse(other : T) : T {
+		return this.value;
+	}
+	filter(predicate : Predicate<T>) : Optional<T> {
+		return /*predicate.test(this.value) ? this : new None<>()*/;
+	}
+	isEmpty() : boolean {
+		return false;
+	}
+	toTuple(other : T) : Tuple<Boolean, T> {
+		return new Tuple<>(true, value);
+	}
+}
+
