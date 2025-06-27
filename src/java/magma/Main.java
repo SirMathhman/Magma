@@ -455,7 +455,7 @@ class Main {
         final var length = input.length();
         for (var i = 0; i < length; i++) {
             final var c = input.charAt(i);
-            if (Character.isLetter(c) || (0 != i && Character.isDigit(c)))
+            if (Character.isLetter(c) || (0 != i && Character.isDigit(c)) || '_' == c)
                 continue;
             return false;
         }

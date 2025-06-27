@@ -90,7 +90,7 @@ class Main {
 		return Main.divide(input, folder).stream().map(mapper).collect(Collectors.joining(delimiter));
 	}
 	compileRootSegment(input : string) : string {
-		return /*Main.compileRootSegmentValue(input.strip()) + Main.LINE_SEPARATOR*/;
+		return Main.compileRootSegmentValue(input.strip()) + Main.LINE_SEPARATOR;
 	}
 	compileRootSegmentValue(input : string) : string {
 		if (input.isBlank())
@@ -121,17 +121,16 @@ class Main {
 		}
 		else 
 			structName = "?";
-		return new Some<>(/*definition.generate(*/) + " {" + Main.compileStatements(content, /* input1 -> Main.compileStructureSegment(input1, structName)) +
-                          Main.LINE_SEPARATOR + "}"*/);
+		return new Some<>(/*definition.generate(*/) + " {" + Main.compileStatements(content, input1 => Main.compileStructureSegment(input1, /* structName)*/) + Main.LINE_SEPARATOR + "}");
 	}
 	compileStructureSegment(input : string, structName : CharSequence) : string {
 		let strip : any = input.strip();
 		if (strip.isEmpty())
 			return "";
-		return /*Main.LINE_SEPARATOR + "\t" + Main.compileStructureSegmentValue(strip, structName)*/;
+		return Main.LINE_SEPARATOR + "\t" + Main.compileStructureSegmentValue(strip, structName);
 	}
 	compileStructureSegmentValue(input : string, structName : CharSequence) : string {
-		return Main.compileStatement(input, input1 => compileAssignment(input1, 1)).or(() -  > Main.compileMethod(input, structName)).orElseGet(() -  > Placeholder.generate(input));
+		return Main.compileStatement(input, input1 => Main.compileAssignment(input1, 1)).or(() -  > Main.compileMethod(input, structName)).orElseGet(() -  > Placeholder.generate(input));
 	}
 	compileStatement(input : string, mapper : Function<string, Optional<string>>) : Optional<string> {
 		if (input.isEmpty() || ';' != input.charAt(input.length() - 1))
@@ -175,7 +174,7 @@ class Main {
 	compileFunctionSegment(input : string, depth : number) : string {
 		if (input.isBlank())
 			return "";
-		return Main.compileConditional(input, depth).or(/*(*/) -  > Main.compileElse(input, /* depth)*/).or(() -  > Main.compileStatement(input, input1 => compileFunctionStatementValue(input1, depth))).map(/*value -> System.lineSeparator(*/) + "\t".repeat(/*depth) + value*/).orElseGet(() -  > Placeholder.generate(input));
+		return Main.compileConditional(input, depth).or(/*(*/) -  > Main.compileElse(input, /* depth)*/).or(() -  > Main.compileStatement(input, input1 => Main.compileFunctionStatementValue(input1, depth))).map(/*value -> System.lineSeparator(*/) + "\t".repeat(/*depth) + value*/).orElseGet(() -  > Placeholder.generate(input));
 	}
 	compileElse(input : string, depth : number) : Optional<string> {
 		let strip : any = input.strip();
@@ -333,7 +332,7 @@ class Main {
 		if (strip.isEmpty() || ')' != strip.charAt(strip.length() - 1))
 			return new None<>();
 		let withoutEnd : any = strip.substring(0, /* strip.length(*/) - ")".length(/*)*/);
-		return Main.divide(withoutEnd, /* Main::foldInvocation*/).popLast().flatMap(tuple => handleInvocationSegments(tuple, depth));
+		return Main.divide(withoutEnd, /* Main::foldInvocation*/).popLast().flatMap(tuple => Main.handleInvocationSegments(tuple, depth));
 	}
 	foldInvocation(state : State, c : char) : State {
 		let appended : any = state.append(c);
@@ -352,7 +351,7 @@ class Main {
 		let length : any = input.length();/*
         for (var i = 0; i < length; i++) {
             final var c = input.charAt(i);
-            if (Character.isLetter(c) || (0 != i && Character.isDigit(c)))
+            if (Character.isLetter(c) || (0 != i && Character.isDigit(c)) || c == '_')
                 continue;
             return false;
         }*/
@@ -542,7 +541,7 @@ class Main {
 			return new None<>();
 		let substring : any = joined.substring(0, /* joined.length(*/) - "(".length(/*)*/);
 		let argument : any = tuple.right();
-		return Main.compileCaller(substring, depth).map(caller => caller + "(" + Main.compileValues(argument, input => compileValueOrPlaceholder(input, depth)) + ")");
+		return Main.compileCaller(substring, depth).map(caller => caller + "(" + Main.compileValues(argument, input => Main.compileValueOrPlaceholder(input, depth)) + ")");
 	}
 	compileCaller(input : string, depth : number) : Optional<string> {
 		let strip : any = input.strip();
