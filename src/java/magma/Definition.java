@@ -6,13 +6,16 @@ public record Definition(ListLike<String> modifiers, String beforeType, String n
         implements Assignable {
     @Override
     public String generateWithAfterName(final String afterName) {
-        final String joinedModifiers;
-        if (this.modifiers.isEmpty())
-            joinedModifiers = "";
-        else
-            joinedModifiers = this.modifiers.stream().map(value -> value + " ").collect(Collectors.joining());
+        final var joinedModifiers = this.getString();
 
         return joinedModifiers + this.name + afterName + " : " + this.type;
+    }
+
+    private String getString() {
+        if (this.modifiers.isEmpty())
+            return "";
+
+        return this.modifiers.stream().map(value -> value + " ").collect(Collectors.joining());
     }
 
     @Override
