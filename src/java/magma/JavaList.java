@@ -39,4 +39,9 @@ public record JavaList<T>(List<T> list) implements ListLike<T> {
         final var first = this.list.removeFirst();
         return Optional.of(new Tuple<>(first, this));
     }
+
+    @Override
+    public boolean isEmpty() {
+        return this.list.isEmpty();
+    }
 }

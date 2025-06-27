@@ -11,4 +11,6 @@ public interface ListLike<T> {
     Optional<Tuple<ListLike<T>, T>> popLast();
 
     Optional<Tuple<T, ListLike<T>>> popFirst();
+
+    boolean isEmpty();
 }

@@ -290,8 +290,13 @@ public class Main {
         if (0 <= separator) {
             final var before = input.substring(0, separator);
             final var after = input.substring(separator + "=".length());
-            return Optional.of(Main.parseDefinitionOrPlaceholder(before).generate() + " = " +
-                               Main.compileValueOrPlaceholder(after));
+            final var assignable = Main.parseDefinitionOrPlaceholder(before);
+            final Assignable assignable1;
+            if (assignable instanceof final Definition definition)
+                assignable1 = definition.withModifier("let");
+            else
+                assignable1 = assignable;
+            return Optional.of(assignable1.generate() + " = " + Main.compileValueOrPlaceholder(after));
         }
         return Optional.empty();
     }
@@ -442,7 +447,7 @@ public class Main {
         return divisions.popLast().flatMap(tuple -> {
             final var beforeType = tuple.left().stream().collect(Collectors.joining(" "));
             final var type = tuple.right();
-            return Optional.of(new Definition(beforeType, name, Main.compileType(type)));
+            return Optional.of(new Definition(Lists.empty(), beforeType, name, Main.compileType(type)));
         });
     }
 
