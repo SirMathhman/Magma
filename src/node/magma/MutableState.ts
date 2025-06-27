@@ -10,13 +10,13 @@
 		this.input = input;/*
     */}
 	/*@Override
-    public*/ advance(/**/) : /*State*/ {
+    public*/ advance(/**/) : State {
 		this.segments = this.segments.add(/*this.buffer*/);
 		this.buffer = "";/*
         return this;*//*
     */}
 	/*@Override
-    public*/ append(/*final char c*/) : /*State*/ {
+    public*/ append(/*final char c*/) : State {
 		this.buffer = this.buffer + c;/*
         return this;*//*
     */}
@@ -25,21 +25,21 @@
         return this.segments;*//*
     */}
 	/*@Override
-    public*/ isLevel(/**/) : /*boolean*/ {
+    public*/ isLevel(/**/) : boolean {
 		return 0 = /*= this*/.depth;/*
     */}
 	/*@Override
-    public*/ enter(/**/) : /*State*/ {/*
+    public*/ enter(/**/) : State {/*
         this.depth++;*//*
         return this;*//*
     */}
 	/*@Override
-    public*/ exit(/**/) : /*State*/ {/*
+    public*/ exit(/**/) : State {/*
         this.depth--;*//*
         return this;*//*
     */}
 	/*@Override
-    public*/ isShallow(/**/) : /*boolean*/ {
+    public*/ isShallow(/**/) : boolean {
 		return 1 = /*= this*/.depth;/*
     */}
 	/*@Override
@@ -55,7 +55,7 @@
         return this.pop().map(tuple -> new Tuple<>(tuple.left().append(tuple.right()), tuple.right()));*//*
     */}
 	/*@Override
-    public*/ popAndAppendToOption(/**/) : Optional</*State*/> {/*
+    public*/ popAndAppendToOption(/**/) : Optional<State> {/*
         return this.popAndAppendToTuple().map(Tuple::left);*//*
     */}
 	/**/}

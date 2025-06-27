@@ -7,6 +7,7 @@ import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Optional;
+import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -51,7 +52,12 @@ public class Main {
     }
 
     private static String compileStatements(final CharSequence input, final Function<String, String> mapper) {
-        return Main.divide(input).stream().map(mapper).collect(Collectors.joining());
+        return Main.compileAll(input, Main::foldStatements, mapper, "");
+    }
+
+    private static String compileAll(final CharSequence input, final BiFunction<State, Character, State> folder,
+                                     final Function<String, String> mapper, final String delimiter) {
+        return Main.divide(input, folder).stream().map(mapper).collect(Collectors.joining(delimiter));
     }
 
     private static String compileRootSegment(final String input) {
@@ -93,7 +99,7 @@ public class Main {
         return Main.LINE_SEPARATOR + "\t" + Main.compileStructureSegmentValue(strip, structName);
     }
 
-    private static String compileStructureSegmentValue(final String input, final String structName) {
+    private static String compileStructureSegmentValue(final String input, final CharSequence structName) {
         return Main.compileField(input).or(() -> Main.compileMethod(input, structName))
                    .orElseGet(() -> Placeholder.generate(input));
     }
@@ -250,10 +256,19 @@ public class Main {
             if (0 <= start) {
                 final var base = withoutEnd.substring(0, start);
                 final var argument = withoutEnd.substring(start + "<".length());
-                return base + "<" + Main.compileType(argument) + ">";
+                final var compiled = Main.compileAll(argument, Main::foldValues, Main::compileType, ", ");
+                return base + "<" + compiled + ">";
             }
         }
+        if (Main.isSymbol(strip))
+            return strip;
         return Placeholder.generate(strip);
+    }
+
+    private static State foldValues(final State state, final char c) {
+        if (',' == c)
+            return state.advance();
+        return state.append(c);
     }
 
     private static StructureDefinition parseStructureHeader(final String input) {
@@ -311,7 +326,8 @@ public class Main {
         return new StructureHeader(type, Collections.emptyList(), beforeKeyword, strip1, maybeImplements);
     }
 
-    private static ListLike<String> divide(final CharSequence input) {
+    private static ListLike<String> divide(final CharSequence input,
+                                           final BiFunction<State, Character, State> foldStatements) {
         State current = new MutableState(input);
         while (true) {
             final var maybe = current.pop();
@@ -320,15 +336,15 @@ public class Main {
 
             final var tuple = maybe.get();
             current = tuple.left();
-            current = Main.fold(current, tuple.right());
+            current = Main.fold(current, tuple.right(), foldStatements);
         }
 
         return current.advance().unwrap();
     }
 
-    private static State fold(final State state, final char c) {
+    private static State fold(final State state, final char c, final BiFunction<State, Character, State> folder) {
         return Main.foldSingleQuotes(state, c).or(() -> Main.foldDoubleQuotes(state, c))
-                   .orElseGet(() -> Main.foldStatements(state, c));
+                   .orElseGet(() -> folder.apply(state, c));
     }
 
     private static Optional<State> foldDoubleQuotes(final State state, final char c) {
