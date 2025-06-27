@@ -2,15 +2,17 @@
   "compilerOptions": {
     "target": "es5",
     "module": "commonjs",
-    "rootDirs": [
-      "./src/node"
-    ],
+    "outDir": "./out/node",
+    "rootDir": "./src/node",
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
     "strict": true,
     "skipLibCheck": true,
     "allowJs": false
   },
+  "include": [
+    "src/node/**/*"
+  ],
   "exclude": [
     "**/*.js",
     "out",

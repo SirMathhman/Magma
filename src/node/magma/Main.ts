@@ -71,9 +71,9 @@
                 final var afterImplements = afterKeyword.substring(implementsIndex + "implements ".length());
                 return Main.generatePlaceholder(beforeKeyword) + "class " + beforeImplements + Main.generatePlaceholder(
                         "implements " + afterImplements);
-            } else {
-                return Main.generatePlaceholder(beforeKeyword) + "class " + afterKeyword;
             }
+            else
+                return Main.generatePlaceholder(beforeKeyword) + "class " + afterKeyword;
         }
 
         return Main.generatePlaceholder(input);
