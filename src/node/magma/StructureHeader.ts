@@ -1,6 +1,6 @@
 /*package magma;*/
 /*import java.util.Optional;*/
-/*StructureHeader*/class StructureHeader/*implements StructureDefinition*/ {
+/*public*/class StructureHeader/*implements StructureDefinition*/ {
 	/*@Override
     public*/ generate(/**/) : string {/*
         final var generated = this.maybeAfterImplements()

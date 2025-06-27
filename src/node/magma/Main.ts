@@ -231,7 +231,7 @@
             final var contentStart = withoutEnd.indexOf('(');
             if (0 <= contentStart) {
                 final var strip1 = withoutEnd.substring(0, contentStart).strip();
-                return new StructureHeader(strip1, strip1, maybeImplements);
+                return new StructureHeader(beforeKeyword, strip1, maybeImplements);
             }
         }
 
