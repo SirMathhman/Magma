@@ -67,7 +67,7 @@ public class Main {
             }
         }
 
-        return Placeholder.generatePlaceholder(input);
+        return Placeholder.generate(input);
     }
 
     private static String compileStructureSegment(final String input) {
@@ -95,15 +95,15 @@ public class Main {
                     if (0 <= paramStart) {
                         final var definition = withoutParamEnd.substring(0, paramStart);
                         final var params = withoutParamEnd.substring(paramStart + "(".length());
-                        final var joinedParams = "(" + Placeholder.generatePlaceholder(params) + ")";
-                        return Main.parseDefinitionOrPlaceholder(definition).generate(joinedParams) + " {" +
-                               Placeholder.generatePlaceholder(after) + "}";
+                        final var joinedParams = "(" + Placeholder.generate(params) + ")";
+                        return Main.parseDefinitionOrPlaceholder(definition).generateWithAfterName(joinedParams) +
+                               " {" + Placeholder.generate(after) + "}";
                     }
                 }
             }
         }
 
-        return Placeholder.generatePlaceholder(input);
+        return Placeholder.generate(input);
     }
 
     private static Optional<String> compileStructureStatementValue(final String input) {
@@ -124,7 +124,7 @@ public class Main {
         if (!strip.isEmpty() && '\"' == strip.charAt(0) && '\"' == strip.charAt(strip.length() - 1))
             return strip;
 
-        return Placeholder.generatePlaceholder(strip);
+        return Placeholder.generate(strip);
     }
 
     private static boolean isNumber(final CharSequence input) {
@@ -164,7 +164,16 @@ public class Main {
             return "string";
         if ("int".contentEquals(strip))
             return "number";
-        return Placeholder.generatePlaceholder(strip);
+        if (strip.endsWith(">")) {
+            final var withoutEnd = strip.substring(0, strip.length() - ">".length());
+            final var start = withoutEnd.indexOf('<');
+            if (0 <= start) {
+                final var base = withoutEnd.substring(0, start);
+                final var argument = withoutEnd.substring(start + "<".length());
+                return base + "<" + Main.compileType(argument) + ">";
+            }
+        }
+        return Placeholder.generate(strip);
     }
 
     private static String compileStructureHeader(final String input) {
@@ -176,13 +185,13 @@ public class Main {
             if (0 <= implementsIndex) {
                 final var beforeImplements = afterKeyword.substring(0, implementsIndex);
                 final var afterImplements = afterKeyword.substring(implementsIndex + "implements ".length());
-                return Placeholder.generatePlaceholder(beforeKeyword) + "class " + beforeImplements +
-                       Placeholder.generatePlaceholder("implements " + afterImplements);
+                return Placeholder.generate(beforeKeyword) + "class " + beforeImplements +
+                       Placeholder.generate("implements " + afterImplements);
             } else
-                return Placeholder.generatePlaceholder(beforeKeyword) + "class " + afterKeyword;
+                return Placeholder.generate(beforeKeyword) + "class " + afterKeyword;
         }
 
-        return Placeholder.generatePlaceholder(input);
+        return Placeholder.generate(input);
     }
 
     private static ListLike<String> divide(final CharSequence input) {
