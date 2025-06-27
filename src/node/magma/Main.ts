@@ -3,9 +3,9 @@
 /*import java.nio.file.Files;*/
 /*import java.nio.file.Path;*/
 /*import java.nio.file.Paths;*/
-/*import java.util.List;*/
 /*import java.util.Optional;*/
 /*import java.util.function.Function;*/
+/*import java.util.stream.Collectors;*/
 /*public */class Main {
 	/*private static final*/ LINE_SEPARATOR : string = /*System.lineSeparator()*/;
 	/*private Main() {
@@ -41,11 +41,7 @@
         return Main.compileStatements(input, Main::compileRootSegment);
     }*/
 	/*private static String compileStatements(final CharSequence input, final Function<String, String> mapper) {
-        final var segments = Main.divide(input);
-        final var output = new StringBuilder();
-        for (final var segment : segments)
-            output.append(mapper.apply(segment));
-        return output.toString();
+        return Main.divide(input).stream().map(mapper).collect(Collectors.joining());
     }*/
 	/*private static String compileRootSegment(final String input) {
         return Main.compileRootSegmentValue(input.strip()) + Main.LINE_SEPARATOR;
@@ -148,7 +144,7 @@
 
         return Main.generatePlaceholder(input);
     }*/
-	/*private static List<String> divide(final CharSequence input) {
+	/*private static ListLike<String> divide(final CharSequence input) {
         State current = new MutableState(input);
         while (true) {
             final var maybe = current.pop();

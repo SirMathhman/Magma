@@ -1,13 +1,10 @@
 package magma;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
 import java.util.Optional;
 
 public class MutableState implements State {
-    private final List<String> segments = new ArrayList<>();
     private final CharSequence input;
+    private ListLike<String> segments = Lists.empty();
     private String buffer = "";
     private int depth = 0;
     private int index = 0;
@@ -17,7 +14,7 @@ public class MutableState implements State {
     }
 
     @Override public State advance() {
-        this.segments.add(this.buffer);
+        this.segments = this.segments.add(this.buffer);
         this.buffer = "";
         return this;
     }
@@ -27,8 +24,8 @@ public class MutableState implements State {
         return this;
     }
 
-    @Override public List<String> unwrap() {
-        return Collections.unmodifiableList(this.segments);
+    @Override public ListLike<String> unwrap() {
+        return this.segments;
     }
 
     @Override public boolean isLevel() {

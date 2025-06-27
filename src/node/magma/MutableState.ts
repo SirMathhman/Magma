@@ -1,11 +1,8 @@
 /*package magma;*/
-/*import java.util.ArrayList;*/
-/*import java.util.Collections;*/
-/*import java.util.List;*/
 /*import java.util.Optional;*/
 /*public */class MutableState /*implements State*/ {
-	/*private final*/ segments : /*List<String>*/ = /*new ArrayList<>()*/;
 	/*private final CharSequence input;*/
+	/*private*/ segments : /*ListLike<String>*/ = /*Lists.empty()*/;
 	/*private*/ buffer : string = "";
 	/*private*/ depth : number = 0;
 	/*private*/ index : number = 0;
@@ -13,7 +10,7 @@
         this.input = input;
     }*/
 	/*@Override public State advance() {
-        this.segments.add(this.buffer);
+        this.segments = this.segments.add(this.buffer);
         this.buffer = "";
         return this;
     }*/
@@ -21,8 +18,8 @@
         this.buffer = this.buffer + c;
         return this;
     }*/
-	/*@Override public List<String> unwrap() {
-        return Collections.unmodifiableList(this.segments);
+	/*@Override public ListLike<String> unwrap() {
+        return this.segments;
     }*/
 	/*@Override public boolean isLevel() {
         return 0 == this.depth;
