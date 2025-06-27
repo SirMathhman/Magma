@@ -1,6 +1,6 @@
 
 /*import java.util.Optional;*/
-/*public*/interface State {
+interface State {
 	/*State advance();*/
 	/*State append(char c);*/
 	/*ListLike<String> unwrap();*/

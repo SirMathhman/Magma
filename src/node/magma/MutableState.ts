@@ -1,6 +1,6 @@
 
 /*import java.util.Optional;*/
-/*public*/class MutableState/*implements State*/ {
+class MutableState/*implements State*/ {
 	/*private final CharSequence input;*/
 	/*private*/ segments : ListLike<string> = Lists.empty();
 	/*private*/ buffer : string = "";

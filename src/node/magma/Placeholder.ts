@@ -1,5 +1,5 @@
 
-/*public*/class Placeholder/*implements Assignable, StructureDefinition*/ {
+class Placeholder/*implements Assignable, StructureDefinition*/ {
 	/*private final String value;*/
 	constructor (/*final String value*/) {
 		this.value = value;/*

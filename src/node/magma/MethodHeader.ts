@@ -1,5 +1,5 @@
 
-/*public*/interface MethodHeader {
+interface MethodHeader {
 	/*String generateWithAfterName(String afterName);*/
 	/**/}
 

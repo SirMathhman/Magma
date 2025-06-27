@@ -1,5 +1,5 @@
 
-/*public*/interface StructureDefinition {
+interface StructureDefinition {
 	/*String generate();*/
 	/**/}
 

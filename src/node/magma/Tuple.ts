@@ -1,4 +1,4 @@
 
-/*public*/class Tuple<Left, Right> {
+class Tuple<Left, Right> {
 	/**/}
 

@@ -10,7 +10,7 @@
 /*import java.util.function.Function;*/
 /*import java.util.regex.Pattern;*/
 /*import java.util.stream.Collectors;*/
-/*public*/class Main {
+class Main {
 	/*private static final*/ LINE_SEPARATOR : string = System.lineSeparator();
 	constructor (/**/) {/*
     */}
