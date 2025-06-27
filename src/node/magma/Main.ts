@@ -48,7 +48,7 @@
 		return Main.compileAll(/*input, Main::foldStatements, mapper, ""*/);/*
     */}
 	/*private static*/ compileAll(/*final CharSequence input, final BiFunction<State, Character, State> folder,
-                                     final Function<String, String> mapper, final String delimiter*/) : string {
+                                     final Function<String, String> mapper, final CharSequence delimiter*/) : string {
 		return /*Main.divide(input, folder).stream().map(mapper).collect(Collectors*/.joining(/*delimiter)*/);/*
     */}
 	/*private static*/ compileRootSegment(/*final String input*/) : string {
@@ -80,7 +80,7 @@
                            Main.compileStatements(content, input1 -> Main*/.compileStructureSegment(/*input1, structName)) +
                            "}"*/);/*
     */}
-	/*private static*/ compileStructureSegment(/*final String input, final String structName*/) : string {
+	/*private static*/ compileStructureSegment(/*final String input, final CharSequence structName*/) : string {
 		/*final*/ strip : any = input.strip(/**/);
 		return /*Main.LINE_SEPARATOR + "\t" + Main*/.compileStructureSegmentValue(/*strip, structName*/);/*
     */}
@@ -134,23 +134,21 @@
     */}
 	/*private static*/ compileConditional(/*final String input*/) : Optional<string> {
 		/*final*/ strip : any = input.strip(/**/);
-		if (strip.startsWith(/*"if"*/))/* {
-            final var slice = strip.substring("if".length()).strip();
-            if (slice.startsWith("(")) {
-                final var substring = slice.substring(1);
-                return Main.divide(substring, Main::foldConditional).popFirst().flatMap(tuple -> {
-                    final var substring1 = tuple.left();
-                    if (substring1.endsWith(")")) {
-                        final var condition = substring1.substring(0, substring1.length() - 1);
-                        final var substring2 = tuple.right().stream().collect(Collectors.joining());
-                        return Optional.of(
-                                "if (" + Main.compileValue(condition) + ")" + Placeholder.generate(substring2));
-                    } else
-                        return Optional.empty();
-                });
-            }
-        }*/
-		return Optional.empty(/**/);/*
+		if (/*!strip*/.startsWith(/*"if"*/))/*
+            return Optional.empty();*/
+		/*final*/ slice : any = /*strip.substring("if"*/.length(/*)*/).strip(/**/);
+		if (/*slice.isEmpty() || '(' != slice*/.charAt(/*0*/))/*
+            return Optional.empty();*/
+		/*final*/ substring : any = slice.substring(/*1*/);
+		return Main.divide(/*substring, Main::foldConditional*/).popFirst(/**/).flatMap(/*Main::compileConditionalSegments*/);/*
+    */}
+	/*private static*/ compileConditionalSegments(/*final Tuple<String, ListLike<String>> tuple*/) : Optional<string> {
+		/*final*/ substring1 : any = tuple.left(/**/);
+		if (/*substring1.isEmpty() || ')' != substring1.charAt(substring1*/.length(/*) - 1*/))/*
+            return Optional.empty();*/
+		/*final*/ condition : any = /*substring1.substring(0, substring1*/.length(/*) - 1*/);
+		/*final*/ substring2 : any = /*tuple.right().stream().collect(Collectors*/.joining(/*)*/);
+		return /*Optional.of("if (" + Main.compileValue(condition) + ")" + Placeholder*/.generate(/*substring2)*/);/*
     */}
 	/*private static*/ foldConditional(/*final State state, final char c*/) : State {
 		/*final*/ appended : any = state.append(/*c*/);
@@ -207,20 +205,10 @@
     */}
 	/*private static*/ compileInvocation(/*final String input*/) : Optional<string> {
 		/*final*/ strip : any = input.strip(/**/);
-		if (/*!strip.isEmpty() && ')' == strip.charAt(strip*/.length(/*) - 1*/))/* {
-            final var withoutEnd = strip.substring(0, strip.length() - ")".length());
-
-            return Main.divide(withoutEnd, Main::foldInvocation).popLast().flatMap(tuple -> {
-                final var caller = tuple.left().stream().collect(Collectors.joining());
-                if (caller.endsWith("(")) {
-                    final var substring = caller.substring(0, caller.length() - "(".length());
-                    final var argument = tuple.right();
-                    return Optional.of(Main.compileValue(substring) + "(" + Placeholder.generate(argument) + ")");
-                } else
-                    return Optional.empty();
-            });
-        }*/
-		return Optional.empty(/**/);/*
+		if (/*strip.isEmpty() || ')' != strip.charAt(strip*/.length(/*) - 1*/))/*
+            return Optional.empty();*/
+		/*final*/ withoutEnd : any = /*strip.substring(0, strip.length() - ")"*/.length(/*)*/);
+		return Main.divide(/*withoutEnd, Main::foldInvocation*/).popLast(/**/).flatMap(/*Main::handleInvocationSegments*/);/*
     */}
 	/*private static*/ foldInvocation(/*final State state, final char c*/) : State {
 		/*final*/ appended : any = state.append(/*c*/);
@@ -373,26 +361,25 @@
                    .orElseGet(() -> folder*/.apply(/*state, c)*/);/*
     */}
 	/*private static*/ foldDoubleQuotes(/*final State state, final char c*/) : Optional<State> {
-		if (/*'\"' == c*/)/* {
-            var current = state.append('\"');
-            while (true) {
-                final var maybeTuple = current.popAndAppendToTuple();
-                if (maybeTuple.isEmpty())
-                    break;
+		if (/*'\"' != c*/)/*
+            return Optional.empty();*/
+		/**/ current : any = state.append(/*'\"'*/);/*
+        while (true) {
+            final var maybeTuple = current.popAndAppendToTuple();
+            if (maybeTuple.isEmpty())
+                break;
 
-                final var tuple = maybeTuple.get();
-                current = tuple.left();
+            final var tuple = maybeTuple.get();
+            current = tuple.left();
 
-                final var next = tuple.right();
-                if ('\\' == next)
-                    current = current.popAndAppendToOption().orElse(current);
-                if ('\"' == next)
-                    break;
-            }
-
-            return Optional.of(current);
+            final var next = tuple.right();
+            if ('\\' == next)
+                current = current.popAndAppendToOption().orElse(current);
+            if ('\"' == next)
+                break;
         }*/
-		return Optional.empty(/**/);/*
+		return Optional.of(/*current*/);/*
+
     */}
 	/*private static*/ foldSingleQuotes(/*final State state, final char c*/) : Optional<State> {
 		if (/*'\'' != c*/)/*
@@ -411,6 +398,14 @@
 		if (/*'}' == c*/)/*
             return appended.exit();*/
 		return appended;/*
+    */}
+	/*private static*/ handleInvocationSegments(/*final Tuple<ListLike<String>, String> tuple*/) : Optional<string> {
+		/*final*/ caller : any = /*tuple.left().stream().collect(Collectors*/.joining(/*)*/);
+		if (/*caller.isEmpty() || '(' != caller.charAt(caller*/.length(/*) - 1*/))/*
+            return Optional.empty();*/
+		/*final*/ substring : any = /*caller.substring(0, caller.length() - "("*/.length(/*)*/);
+		/*final*/ argument : any = tuple.right(/**/);
+		return /*Optional.of(Main.compileValue(substring) + "(" + Placeholder*/.generate(/*argument) + ")"*/);/*
     */}
 	/**/}
 /**/
