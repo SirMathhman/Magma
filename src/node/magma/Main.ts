@@ -129,7 +129,7 @@
     */}
 	/*private static*/ compileConditional(/*final String input*/) : Optional<string> {
 		/*final*/ strip : any = input.strip();
-		if (/*!strip.startsWith("if")*/)/*
+		if (!strip.startsWith("if"))/*
             return Optional.empty();*/
 		/*final*/ slice : any = strip.substring("if".length()).strip();
 		if (slice.isEmpty() || '(' != slice.charAt(0))/*
@@ -197,9 +197,13 @@
                 return Main.compileValue(value).map(result -> result + "." + property);
         }*/
 		/*final*/ strip : any = input.strip();
+		if (strip.startsWith("!"))/* {
+            final var substring = strip.substring(1);
+            return Main.compileValue(substring).map(value -> "!" + value);
+        }*/
 		if (Main.isNumber(strip))/*
             return Optional.of(strip);*/
-		if (/*!strip.isEmpty() && '\"' == strip.charAt(0) && '\"' == strip.charAt(strip.length() - 1)*/)/*
+		if (!strip.isEmpty() && '\"' == strip.charAt(0) && '\"' == strip.charAt(strip.length() - 1))/*
             return Optional.of(strip);*/
 		if (Main.isChar(strip))/*
             return Optional.of(strip);*/
@@ -208,8 +212,7 @@
 		return Optional.empty();/*
     */}
 	/*private static*/ isChar(/*final String strip*/) : boolean {
-		return /*!strip.isEmpty() && '\'' == strip.charAt(0) && '\'' == strip.charAt(strip.length() - 1) &&
-               3 <= strip.length()*/;/*
+		return !strip.isEmpty() && '\'' == strip.charAt(0) && '\'' == strip.charAt(strip.length() - 1) && 3 <= strip.length();/*
     */}
 	/*private static*/ compileOperator(/*final String input, final String operator*/) : Optional<string> {
 		/*final*/ i : any = input.indexOf(operator);
@@ -297,7 +300,7 @@
             return "string";*/
 		if ("int".contentEquals(strip))/*
             return "number";*/
-		if (/*!strip.isEmpty() && '>' == strip.charAt(strip.length() - 1)*/)/* {
+		if (!strip.isEmpty() && '>' == strip.charAt(strip.length() - 1))/* {
             final var withoutEnd = strip.substring(0, strip.length() - ">".length());
             final var start = withoutEnd.indexOf('<');
             if (0 <= start) {
@@ -350,7 +353,7 @@
 	/*private static*/ complete(/*final String type, final String beforeKeyword,
                                             final String beforeImplements, final Optional<String> maybeImplements*/) : StructureHeader {
 		/*final*/ strip : any = beforeImplements.strip();
-		if (/*!strip.isEmpty() && ')' == strip.charAt(strip.length() - 1)*/)/* {
+		if (!strip.isEmpty() && ')' == strip.charAt(strip.length() - 1))/* {
             final var withoutEnd = strip.substring(0, strip.length() - ")".length());
             final var contentStart = withoutEnd.indexOf('(');
             if (0 <= contentStart) {

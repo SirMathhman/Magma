@@ -250,6 +250,11 @@ public class Main {
         }
 
         final var strip = input.strip();
+        if (strip.startsWith("!")) {
+            final var substring = strip.substring(1);
+            return Main.compileValue(substring).map(value -> "!" + value);
+        }
+
         if (Main.isNumber(strip))
             return Optional.of(strip);
 
