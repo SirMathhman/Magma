@@ -71,7 +71,25 @@ public class Main {
 
     private static String compileStructureSegment(final String input) {
         final var strip = input.strip();
-        return Main.LINE_SEPARATOR + "\t" + Main.generatePlaceholder(strip);
+        return Main.LINE_SEPARATOR + "\t" + Main.compileStructureSegmentValue(strip);
+    }
+
+    private static String compileStructureSegmentValue(final String input) {
+        if (!input.isEmpty() && ';' == input.charAt(input.length() - 1)) {
+            final var withoutEnd = input.substring(0, input.length() - ";".length());
+            final var separator = withoutEnd.indexOf('=');
+            if (0 <= separator) {
+                final var before = withoutEnd.substring(0, separator);
+                final var after = withoutEnd.substring(separator + "=".length());
+                return Main.compileDefinition(before) + " = " + Main.generatePlaceholder(after);
+            }
+        }
+
+        return Main.generatePlaceholder(input);
+    }
+
+    private static String compileDefinition(final String before) {
+        return Main.generatePlaceholder(before);
     }
 
     private static String compileStructureHeader(final String input) {

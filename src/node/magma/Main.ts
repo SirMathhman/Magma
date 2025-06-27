@@ -5,7 +5,7 @@
 /*import java.util.List;*/
 /*import java.util.function.Function;*/
 /*public */class Main {
-	/*public static final String LINE_SEPARATOR = System.lineSeparator();*/
+	/*public static final String LINE_SEPARATOR */ = /* System.lineSeparator()*/
 	/*private Main() {
     }*/
 	/*public static void main(final String[] args) {
@@ -63,7 +63,20 @@
     }*/
 	/*private static String compileStructureSegment(final String input) {
         final var strip = input.strip();
-        return Main.LINE_SEPARATOR + "\t" + Main.generatePlaceholder(strip);
+        return Main.LINE_SEPARATOR + "\t" + Main.compileStructureSegmentValue(strip);
+    }*/
+	/*private static String compileStructureSegmentValue(final String input) {
+        if (!input.isEmpty() && input.charAt(input.length() - 1) == ';') {
+            final var withoutEnd = input.substring(0, input.length() - ";".length());
+            final var separator = withoutEnd.indexOf('=');
+            if (0 <= separator) {
+                final var before = withoutEnd.substring(0, separator);
+                final var after = withoutEnd.substring(separator + "=".length());
+                return Main.generatePlaceholder(before) + " = " + Main.generatePlaceholder(after);
+            }
+        }
+
+        return Main.generatePlaceholder(input);
     }*/
 	/*private static String compileStructureHeader(final String input) {
         final var classIndex = input.indexOf("class ");
@@ -97,13 +110,13 @@
         if (';' == c && appended.isLevel())
             return appended.advance();
         if ('}*/
-	/*' == c && appended.isShallow())
-            return appended.exit().advance();*/
+	/*' */ = /*= c && appended.isShallow())
+            return appended.exit().advance()*/
 	/*if ('{' == c)
             return appended.enter();
         if ('}*/
-	/*' == c)
-            return appended.exit();*/
+	/*' */ = /*= c)
+            return appended.exit()*/
 	/*return appended;*/
 	/**/}
 /*private static String generatePlaceholder(final String input) */ {
