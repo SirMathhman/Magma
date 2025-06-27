@@ -21,13 +21,13 @@ public class Main {
 
     public static void main(final String[] args) {
         final var root = Paths.get(".", "src", "java");
-        Main.extracted(root).match(files -> {
+        Main.collect(root).match(files -> {
             final var sources = files.stream().filter(path -> path.toString().endsWith(".java")).toList();
             return Main.runWithSources(sources, root);
         }, Optional::of).ifPresent(Throwable::printStackTrace);
     }
 
-    private static Result<List<Path>, IOException> extracted(final Path root) {
+    private static Result<List<Path>, IOException> collect(final Path root) {
         try (final var stream = Files.walk(root)) {
             return new Ok<>(stream.toList());
         } catch (final IOException e) {

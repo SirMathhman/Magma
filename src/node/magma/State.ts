@@ -1,5 +1,5 @@
 
-/*import java.util.Optional;*/
+
 interface State {
 	advance() : State {}
 	append(c : char) : State {}
