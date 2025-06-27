@@ -1,5 +1,4 @@
 
-
 class MutableState {
 	/*private final CharSequence input;*/
 	let segments : ListLike<string> = Lists.empty();

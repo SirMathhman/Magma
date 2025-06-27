@@ -26,13 +26,15 @@ class Some<T> {
 		return this.value;
 	}
 	filter(predicate : Predicate<T>) : Optional<T> {
-		return /*predicate.test(this.value) ? this : new None<>()*/;
+		if (predicate.test(this.value))
+			return this;
+		return new None<>();
 	}
 	isEmpty() : boolean {
 		return false;
 	}
 	toTuple(other : T) : Tuple<Boolean, T> {
-		return new Tuple<>(true, value);
+		return new Tuple<>(true, this.value);
 	}
 }
 

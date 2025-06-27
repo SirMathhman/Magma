@@ -1,6 +1,5 @@
 
 
-
 interface ListLike<T> {
 	stream() : Stream<T>;
 	add(element : T) : ListLike<T>;

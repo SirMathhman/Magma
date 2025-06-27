@@ -43,7 +43,9 @@ public record Some<T>(T value) implements Optional<T> {
 
     @Override
     public Optional<T> filter(final Predicate<T> predicate) {
-        return predicate.test(this.value) ? this : new None<>();
+        if (predicate.test(this.value))
+            return this;
+        return new None<>();
     }
 
     @Override

@@ -1,5 +1,4 @@
 
-
 interface State {
 	advance() : State;
 	append(c : char) : State;

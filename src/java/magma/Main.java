@@ -12,7 +12,7 @@ import java.util.function.Function;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
-public class Main {
+class Main {
     private static final String LINE_SEPARATOR = System.lineSeparator();
 
     private Main() {
@@ -206,7 +206,7 @@ public class Main {
                 Main.parseMethodHeader(definition, structName).generateWithAfterName(joinedParams) + outputContent);
     }
 
-    private static String compileFunctionSegments(final String substring, final int depth) {
+    private static String compileFunctionSegments(final CharSequence substring, final int depth) {
         return Main.compileStatements(substring, input -> Main.compileFunctionSegment(input, depth));
     }
 
@@ -277,13 +277,18 @@ public class Main {
     private static String functionCompileStatementOrBlock(final int depth, final String input) {
         final var withBraces = input.strip();
         final String compiled;
-        if (withBraces.startsWith("{") && withBraces.endsWith("}")) {
+        if (Main.isBlock(withBraces)) {
             final var compiled1 =
                     Main.compileFunctionSegments(withBraces.substring(1, withBraces.length() - 1), depth + 1);
             compiled = "{" + compiled1 + Main.LINE_SEPARATOR + "\t".repeat(depth) + "}";
         } else
             compiled = Main.compileFunctionSegment(withBraces, depth + 1);
         return compiled;
+    }
+
+    private static boolean isBlock(final CharSequence withBraces) {
+        return !withBraces.isEmpty() && '{' == withBraces.charAt(0) &&
+               '}' == withBraces.charAt(withBraces.length() - 1);
     }
 
     private static State foldConditional(final State state, final char c) {
@@ -386,9 +391,7 @@ public class Main {
             return Optional.empty();
 
         final var after = input.substring(arrowIndex + "->".length());
-        return Main.compileValue(after).map(afterResult -> {
-            return before + " => " + afterResult;
-        });
+        return Main.compileValue(after).map(afterResult -> before + " => " + afterResult);
     }
 
     private static Optional<String> compileOperators(final String input) {
@@ -627,9 +630,8 @@ public class Main {
 
         final var current = state.append('\"');
         while (true) {
-            final var maybeTuple = current.popAndAppendToTuple().flatMap(tuple -> {
-                return Main.getObjectOptional(tuple, current);
-            });
+            final var maybeTuple =
+                    current.popAndAppendToTuple().flatMap(tuple -> Main.getObjectOptional(tuple, current));
             if (maybeTuple.isEmpty())
                 break;
         }
@@ -653,9 +655,11 @@ public class Main {
     private static Optional<State> foldSingleQuotes(final State state, final char c) {
         if ('\'' != c)
             return Optional.empty();
-        return state.append(c).popAndAppendToTuple().flatMap(
-                            tuple -> '\\' == tuple.right() ? tuple.left().popAndAppendToOption() : Optional.of(tuple.left()))
-                    .flatMap(State::popAndAppendToOption);
+        return state.append(c).popAndAppendToTuple().flatMap(tuple -> {
+            if ('\\' == tuple.right())
+                return tuple.left().popAndAppendToOption();
+            return Optional.of(tuple.left());
+        }).flatMap(State::popAndAppendToOption);
     }
 
     private static State foldStatements(final State state, final char c) {
