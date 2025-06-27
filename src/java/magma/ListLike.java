@@ -9,4 +9,6 @@ public interface ListLike<T> {
     ListLike<T> add(T element);
 
     Optional<Tuple<ListLike<T>, T>> popLast();
+
+    Optional<Tuple<T, ListLike<T>>> popFirst();
 }

@@ -30,4 +30,13 @@ public record JavaList<T>(List<T> list) implements ListLike<T> {
         final var last = this.list.removeLast();
         return Optional.of(new Tuple<>(this, last));
     }
+
+    @Override
+    public Optional<Tuple<T, ListLike<T>>> popFirst() {
+        if (this.list.isEmpty())
+            return Optional.empty();
+
+        final var first = this.list.removeFirst();
+        return Optional.of(new Tuple<>(first, this));
+    }
 }

@@ -139,8 +139,42 @@ public class Main {
     }
 
     private static String compileFunctionSegment(final String input) {
-        return Main.compileField(input).map(value -> System.lineSeparator() + "\t\t" + value)
-                   .orElseGet(() -> Placeholder.generate(input));
+        return Main.compileConditional(input).or(() -> Main.compileField(input))
+                   .map(value -> System.lineSeparator() + "\t\t" + value).orElseGet(() -> Placeholder.generate(input));
+    }
+
+    private static Optional<String> compileConditional(final String input) {
+        final var strip = input.strip();
+        if (strip.startsWith("if")) {
+            final var slice = strip.substring("if".length()).strip();
+            if (slice.startsWith("(")) {
+                final var substring = slice.substring(1);
+                return Main.divide(substring, Main::foldConditional).popFirst().flatMap(tuple -> {
+                    final var substring1 = tuple.left();
+                    if (substring1.endsWith(")")) {
+                        final var condition = substring1.substring(0, substring1.length() - 1);
+                        final var substring2 = tuple.right().stream().collect(Collectors.joining());
+                        return Optional.of(
+                                "if (" + Main.compileValue(condition) + ")" + Placeholder.generate(substring2));
+                    } else
+                        return Optional.empty();
+                });
+            }
+        }
+
+        return Optional.empty();
+    }
+
+    private static State foldConditional(final State state, final char c) {
+        final var appended = state.append(c);
+        if ('(' == c)
+            return appended.enter();
+        if (')' == c) {
+            if (appended.isLevel())
+                return appended.advance();
+            return appended.exit();
+        }
+        return appended;
     }
 
     private static MethodHeader parseMethodHeader(final String input, final CharSequence structName) {
