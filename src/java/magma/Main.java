@@ -235,7 +235,7 @@ class Main {
     }
 
     private static Optional<String> compileFunctionStatementValue(final String input) {
-        return Main.compileReturn(input).or(() -> Main.compileAssignment(input));
+        return Main.compileReturn(input).or(() -> Main.compileInvokable(input)).or(() -> Main.compileAssignment(input));
     }
 
     private static Optional<String> compileReturn(final String input) {

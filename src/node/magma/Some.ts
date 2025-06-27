@@ -4,8 +4,8 @@
 
 
 class Some<T> {
-	ifPresent(consumer : Consumer<T>) : void {/*
-        consumer.accept(this.value);*/
+	ifPresent(consumer : Consumer<T>) : void {
+		consumer.accept(this.value);
 	}
 	isPresent() : boolean {
 		return true;

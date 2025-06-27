@@ -16,10 +16,10 @@ class Main {
 	}
 	main(args : string[]) : void {
 		let root : any = Paths.get(".", "src", "java");
-		let sources : /*-> {
-            final var*/ = /* files.stream().filter(path -> path.toString().endsWith(".java")).toList();
+		Main.collect(root).match(/*files -> {
+            final var sources = files.stream().filter(path -> path.toString().endsWith(".java")).toList();
             return Main.runWithSources(sources, root);
-        }, Optional::of).ifPresent(Throwable::printStackTrace)*/;
+        }*/, /* Optional::of*/).ifPresent(/*Throwable::printStackTrace*/);
 	}
 	collect(root : Path) : Result<List<Path>, IOException> {/*
         try (final var stream = Files.walk(root)) {
@@ -187,7 +187,7 @@ class Main {
 			return Optional.empty();
 	}
 	compileFunctionStatementValue(input : string) : Optional<string> {
-		return Main.compileReturn(input).or(/*(*/) -  > Main.compileAssignment(/*input)*/);
+		return Main.compileReturn(input).or(/*(*/) -  > Main.compileInvokable(/*input)*/).or(() -  > Main.compileAssignment(input));
 	}
 	compileReturn(input : string) : Optional<string> {
 		let strip : any = input.strip();
