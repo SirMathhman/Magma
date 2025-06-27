@@ -6,9 +6,8 @@
     public*/ generate(/**/) : string {
 		/*final*/ generated : any = this.maybeAfterImplements(/*)
                                   .map(afterImplements -> Placeholder.generate("implements " + afterImplements))
-                                  .orElse(""*/);/*
-
-        return Placeholder.generate(this.beforeKeyword()) + this.type + " " + this.name() + generated;*//*
+                                  .orElse(""*/);
+		return Placeholder.generate(this.beforeKeyword()) + this.type + " " + this.name() + generated;/*
     */}
 	/**/}
 /**/

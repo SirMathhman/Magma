@@ -100,16 +100,17 @@ public class Main {
     }
 
     private static String compileStructureSegmentValue(final String input, final CharSequence structName) {
-        return Main.compileField(input).or(() -> Main.compileMethod(input, structName))
+        return Main.compileStatement(input, Main::compileAssignment).or(() -> Main.compileMethod(input, structName))
                    .orElseGet(() -> Placeholder.generate(input));
     }
 
-    private static Optional<String> compileField(final String input) {
+    private static Optional<String> compileStatement(final String input,
+                                                     final Function<String, Optional<String>> mapper) {
         if (input.isEmpty() || ';' != input.charAt(input.length() - 1))
             return Optional.empty();
 
         final var withoutEnd = input.substring(0, input.length() - ";".length());
-        return Main.compileStructureStatementValue(withoutEnd).map(result -> result + ";");
+        return mapper.apply(withoutEnd).map(result -> result + ";");
     }
 
     private static Optional<String> compileMethod(final String input, final CharSequence structName) {
@@ -139,8 +140,23 @@ public class Main {
     }
 
     private static String compileFunctionSegment(final String input) {
-        return Main.compileConditional(input).or(() -> Main.compileField(input))
+        return Main.compileConditional(input)
+                   .or(() -> Main.compileStatement(input, Main::compileFunctionStatementValue))
                    .map(value -> System.lineSeparator() + "\t\t" + value).orElseGet(() -> Placeholder.generate(input));
+    }
+
+    private static Optional<String> compileFunctionStatementValue(final String input) {
+        return Main.compileReturn(input).or(() -> Main.compileAssignment(input));
+    }
+
+    private static Optional<String> compileReturn(final String input) {
+        final var strip = input.strip();
+        if (strip.startsWith("return ")) {
+            final var slice = strip.substring("return ".length());
+            return Optional.of("return " + Main.compileValue(slice));
+        }
+
+        return Optional.empty();
     }
 
     private static Optional<String> compileConditional(final String input) {
@@ -193,7 +209,7 @@ public class Main {
         return Optional.empty();
     }
 
-    private static Optional<String> compileStructureStatementValue(final String input) {
+    private static Optional<String> compileAssignment(final String input) {
         final var separator = input.indexOf('=');
         if (0 <= separator) {
             final var before = input.substring(0, separator);

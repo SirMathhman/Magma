@@ -4,15 +4,15 @@
 	constructor (/*final String value*/) {
 		this.value = value;/*
     */}
-	/*static*/ generate(/*final String input*/) : string {/*
-        return "stat" + input.replace("stat", "stat").replace("end", "end") + "end";*//*
+	/*static*/ generate(/*final String input*/) : string {
+		return /*"stat" + input*/.replace(/*"stat", "stat"*/).replace("*/", "end") + "*/";/*
     */}
 	/*@Override
-    public*/ generateWithAfterName(/*final String afterName*/) : string {/*
-        return Placeholder.generate(this.value) + afterName;*//*
+    public*/ generateWithAfterName(/*final String afterName*/) : string {
+		return Placeholder.generate(this.value) + afterName;/*
     */}
-	/*public*/ generate(/**/) : string {/*
-        return this.value;*//*
+	/*public*/ generate(/**/) : string {
+		return this.value;/*
     */}
 	/**/}
 /**/
