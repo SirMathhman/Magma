@@ -6,6 +6,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.List;
 import java.util.Optional;
 import java.util.function.BiFunction;
 import java.util.function.Function;
@@ -20,30 +21,80 @@ public class Main {
 
     public static void main(final String[] args) {
         final var root = Paths.get(".", "src", "java");
-        try (final var stream = Files.walk(root)) {
-            final var sources = stream.filter(path -> path.toString().endsWith(".java")).toList();
+        Main.extracted(root).match(files -> {
+            final var sources = files.stream().filter(path -> path.toString().endsWith(".java")).toList();
+            return Main.runWithSources(sources, root);
+        }, Optional::of).ifPresent(Throwable::printStackTrace);
+    }
 
-            Main.runWithSources(sources, root);
+    private static Result<List<Path>, IOException> extracted(final Path root) {
+        try (final var stream = Files.walk(root)) {
+            return new Ok<>(stream.toList());
         } catch (final IOException e) {
-            //noinspection CallToPrintStackTrace
-            e.printStackTrace();
+            return new Err<>(e);
         }
     }
 
-    private static void runWithSources(final Iterable<Path> sources, final Path root) throws IOException {
+    private static Optional<IOException> runWithSources(final Iterable<Path> sources, final Path root) {
         for (final var source : sources) {
-            final var relative = root.relativize(source.getParent());
-            final var input = Files.readString(source);
-            final var output = Main.compileRoot(input);
-            final var targetParent = Paths.get(".", "src", "node").resolve(relative);
-            if (!Files.exists(targetParent))
-                Files.createDirectories(targetParent);
+            final var maybe = Main.runWithSource(root, source);
+            if (maybe.isPresent())
+                return maybe;
+        }
 
-            final var fileName = source.getFileName().toString();
-            final var separator = fileName.lastIndexOf('.');
-            final var name = fileName.substring(0, separator);
-            final var target = targetParent.resolve(name + ".ts");
-            Files.writeString(target, output);
+        return Optional.empty();
+    }
+
+    private static Optional<IOException> runWithSource(final Path root, final Path source) {
+        final var relative = root.relativize(source.getParent());
+        return Main.readString(source).match(input -> Main.runWithInput(source, input, relative), Optional::of);
+    }
+
+    private static Optional<IOException> runWithInput(final Path source, final CharSequence input,
+                                                      final Path relative) {
+        final var output = Main.compileRoot(input);
+        final var targetParent = Paths.get(".", "src", "node").resolve(relative);
+        return Main.extracted1(targetParent).or(() -> Main.compileAndWrite(source, targetParent, output));
+    }
+
+    private static Optional<IOException> compileAndWrite(final Path source, final Path targetParent,
+                                                         final CharSequence output) {
+        final var fileName = source.getFileName().toString();
+        final var separator = fileName.lastIndexOf('.');
+        final var name = fileName.substring(0, separator);
+        final var target = targetParent.resolve(name + ".ts");
+        return Main.writeString(target, output);
+    }
+
+    private static Optional<IOException> extracted1(final Path targetParent) {
+        if (!Files.exists(targetParent))
+            return Main.createDirectories(targetParent);
+        return Optional.empty();
+    }
+
+    private static Optional<IOException> writeString(final Path path, final CharSequence output) {
+        try {
+            Files.writeString(path, output);
+            return Optional.empty();
+        } catch (final IOException e) {
+            return Optional.of(e);
+        }
+    }
+
+    private static Optional<IOException> createDirectories(final Path path) {
+        try {
+            Files.createDirectories(path);
+            return Optional.empty();
+        } catch (final IOException e) {
+            return Optional.of(e);
+        }
+    }
+
+    private static Result<String, IOException> readString(final Path source) {
+        try {
+            return new Ok<>(Files.readString(source));
+        } catch (final IOException e) {
+            return new Err<>(e);
         }
     }
 
@@ -128,31 +179,31 @@ public class Main {
 
     private static Optional<String> compileMethod(final String input, final CharSequence structName) {
         final var paramEnd = input.indexOf(')');
-        if (0 <= paramEnd) {
-            final var withParams = input.substring(0, paramEnd);
-            final var paramStart = withParams.indexOf('(');
-            if (0 <= paramStart) {
-                final var definition = withParams.substring(0, paramStart);
-                final var params = withParams.substring(paramStart + "(".length());
-                final var joinedParams = "(" + Main.compileValues(params, Main::compileParameter) + ")";
+        if (0 > paramEnd)
+            return Optional.empty();
 
-                final var withBraces = input.substring(paramEnd + ")".length()).strip();
-                final String outputContent;
-                if (";".equals(withBraces))
-                    outputContent = "";
-                else if (withBraces.startsWith("{") && withBraces.endsWith("}"))
-                    outputContent = Main.compileStatements(withBraces.substring(1, withBraces.length() - 1),
-                                                           Main::compileFunctionSegment);
-                else
-                    return Optional.empty();
+        final var withParams = input.substring(0, paramEnd);
+        final var paramStart = withParams.indexOf('(');
+        if (0 > paramStart)
+            return Optional.empty();
 
-                return Optional.of(
-                        Main.parseMethodHeader(definition, structName).generateWithAfterName(joinedParams) + " {" +
-                        outputContent + "}");
-            }
-        }
+        final var definition = withParams.substring(0, paramStart);
+        final var params = withParams.substring(paramStart + "(".length());
+        final var joinedParams = "(" + Main.compileValues(params, Main::compileParameter) + ")";
 
-        return Optional.empty();
+        final var withBraces = input.substring(paramEnd + ")".length()).strip();
+        final String outputContent;
+        if (";".contentEquals(withBraces))
+            outputContent = "";
+        else if (!withBraces.isEmpty() && '{' == withBraces.charAt(0) &&
+                   '}' == withBraces.charAt(withBraces.length() - 1))
+            outputContent = Main.compileStatements(withBraces.substring(1, withBraces.length() - 1),
+                                                   Main::compileFunctionSegment);
+        else
+            return Optional.empty();
+
+        return Optional.of(Main.parseMethodHeader(definition, structName).generateWithAfterName(joinedParams) + " {" +
+                           outputContent + "}");
     }
 
     private static String compileParameter(final String input) {
@@ -250,26 +301,11 @@ public class Main {
     }
 
     private static Optional<String> compileValue(final String input) {
-        final var arrowIndex = input.indexOf("->");
-        if (0 <= arrowIndex) {
-            final var before = input.substring(0, arrowIndex).strip();
-            if (Main.isSymbol(before)) {
-                final var after = input.substring(arrowIndex + "->".length());
-                return Main.compileValue(after).map(afterResult -> {
-                    return before + " => " + afterResult;
-                });
-            }
-        }
+        final var maybeLambda = Main.compileLambda(input);
+        if (maybeLambda.isPresent())
+            return maybeLambda;
 
-        final var maybeOperator = Main.compileOperator(input, ">=").or(() -> Main.compileOperator(input, "=="))
-                                      .or(() -> Main.compileOperator(input, "+"))
-                                      .or(() -> Main.compileOperator(input, "<"))
-                                      .or(() -> Main.compileOperator(input, "<="))
-                                      .or(() -> Main.compileOperator(input, "||"))
-                                      .or(() -> Main.compileOperator(input, "!="))
-                                      .or(() -> Main.compileOperator(input, "-"))
-                                      .or(() -> Main.compileOperator(input, "&&"))
-                                      .or(() -> Main.compileOperator(input, ">"));
+        final var maybeOperator = Main.compileOperators(input);
         if (maybeOperator.isPresent())
             return maybeOperator;
 
@@ -286,7 +322,7 @@ public class Main {
         }
 
         final var strip = input.strip();
-        if (strip.startsWith("!")) {
+        if (!strip.isEmpty() && '!' == strip.charAt(0)) {
             final var substring = strip.substring(1);
             return Main.compileValue(substring).map(value -> "!" + value);
         }
@@ -306,7 +342,30 @@ public class Main {
         return Optional.empty();
     }
 
-    private static boolean isChar(final String strip) {
+    private static Optional<String> compileLambda(final String input) {
+        final var arrowIndex = input.indexOf("->");
+        if (0 > arrowIndex)
+            return Optional.empty();
+
+        final var before = input.substring(0, arrowIndex).strip();
+        if (!Main.isSymbol(before))
+            return Optional.empty();
+
+        final var after = input.substring(arrowIndex + "->".length());
+        return Main.compileValue(after).map(afterResult -> {
+            return before + " => " + afterResult;
+        });
+    }
+
+    private static Optional<String> compileOperators(final String input) {
+        return Main.compileOperator(input, ">=").or(() -> Main.compileOperator(input, "=="))
+                   .or(() -> Main.compileOperator(input, "+")).or(() -> Main.compileOperator(input, "<"))
+                   .or(() -> Main.compileOperator(input, "<=")).or(() -> Main.compileOperator(input, "||"))
+                   .or(() -> Main.compileOperator(input, "!=")).or(() -> Main.compileOperator(input, "-"))
+                   .or(() -> Main.compileOperator(input, "&&")).or(() -> Main.compileOperator(input, ">"));
+    }
+
+    private static boolean isChar(final CharSequence strip) {
         return !strip.isEmpty() && '\'' == strip.charAt(0) && '\'' == strip.charAt(strip.length() - 1) &&
                3 <= strip.length();
     }
@@ -318,11 +377,8 @@ public class Main {
 
         final var leftSlice = input.substring(0, i);
         final var rightSlice = input.substring(i + operator.length());
-        return Main.compileValue(leftSlice).flatMap(left -> {
-            return Main.compileValue(rightSlice).map(right -> {
-                return left + " " + operator + " " + right;
-            });
-        });
+        return Main.compileValue(leftSlice)
+                   .flatMap(left -> Main.compileValue(rightSlice).map(right -> left + " " + operator + " " + right));
     }
 
     private static Optional<String> compileInvokable(final String input) {
@@ -433,7 +489,7 @@ public class Main {
         return Placeholder.generate(strip);
     }
 
-    private static String compileValues(final String input, final Function<String, String> mapper) {
+    private static String compileValues(final CharSequence input, final Function<String, String> mapper) {
         return Main.compileAll(input, Main::foldValues, mapper, ", ");
     }
 
