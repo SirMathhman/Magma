@@ -1,4 +1,5 @@
 /*package magma;*/
+/*import java.util.List;*/
 /*import java.util.Optional;*/
 /*public*/class StructureHeader/*implements StructureDefinition*/ {
 	/*@Override

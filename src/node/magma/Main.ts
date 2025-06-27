@@ -3,6 +3,8 @@
 /*import java.nio.file.Files;*/
 /*import java.nio.file.Path;*/
 /*import java.nio.file.Paths;*/
+/*import java.util.Arrays;*/
+/*import java.util.Collections;*/
 /*import java.util.Optional;*/
 /*import java.util.function.Function;*/
 /*import java.util.stream.Collectors;*/
@@ -54,7 +56,14 @@
                 final var beforeContent = withoutEnd.substring(0, contentStart);
                 final var content = withoutEnd.substring(contentStart + "{".length());
                 final var definition = Main.parseStructureHeader(beforeContent);
-                final var structName = definition instanceof final StructureHeader header ? header.name() : "?";
+                final String structName;
+                if (definition instanceof final StructureHeader header) {
+                    if (header.annotations().contains("Actual"))
+                        return "";
+
+                    structName = header.name();
+                } else
+                    structName = "?";
                 return definition.generate() + " {" +
                        Main.compileStatements(content, input1 -> Main.compileStructureSegment(input1, structName)) +
                        "}";
@@ -231,11 +240,25 @@
             final var contentStart = withoutEnd.indexOf('(');
             if (0 <= contentStart) {
                 final var strip1 = withoutEnd.substring(0, contentStart).strip();
-                return new StructureHeader(beforeKeyword, strip1, maybeImplements);
+                return Main.parseStructureHeaderByAnnotations(beforeKeyword, maybeImplements, strip1);
             }
         }
 
-        return new StructureHeader(beforeKeyword, beforeImplements, maybeImplements);
+        return Main.parseStructureHeaderByAnnotations(beforeKeyword, maybeImplements, beforeImplements);
+    */}
+	/*private static*/ parseStructureHeaderByAnnotations(/*final String beforeKeyword,
+                                                                     final Optional<String> maybeImplements,
+                                                                     final String strip1*/) : /*StructureHeader*/ {/*
+        final var i = beforeKeyword.lastIndexOf('\n');
+        if (0 <= i) {
+            final var annotations = Arrays.stream(beforeKeyword.substring(0, i).strip().split("\\n")).map(String::strip)
+                                          .filter(value -> !value.isEmpty()).map(value -> value.substring(1)).toList();
+
+            final var substring1 = beforeKeyword.substring(i + "\n".length());
+            return new StructureHeader(annotations, substring1, strip1, maybeImplements);
+        }
+
+        return new StructureHeader(Collections.emptyList(), beforeKeyword, strip1, maybeImplements);
     */}
 	/*private static*/ divide(/*final CharSequence input*/) : ListLike<string> {/*
         State current = new MutableState(input);

@@ -1,8 +1,10 @@
 package magma;
 
+import java.util.List;
 import java.util.Optional;
 
-public record StructureHeader(String beforeKeyword, String name, Optional<String> maybeAfterImplements)
+public record StructureHeader(List<String> annotations, String beforeKeyword, String name,
+                              Optional<String> maybeAfterImplements)
         implements StructureDefinition {
     @Override
     public String generate() {

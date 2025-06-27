@@ -2,17 +2,5 @@
 /*import java.util.ArrayList;*/
 /*import java.util.List;*/
 /*import java.util.stream.Stream;*/
-/*@Actual
-public*/class JavaList<T>/*implements ListLike<T>*/ {
-	/*public JavaList*/(/**/) {/*
-        this(new ArrayList<>());
-    */}
-	/*@Override public*/ stream(/**/) : Stream</*T*/> {/*
-        return this.list.stream();
-    */}
-	/*@Override public*/ add(/*final T element*/) : ListLike</*T*/> {/*
-        this.list.add(element);
-        return this;
-    */}
-	/**/}
+
 /**/
