@@ -1,5 +1,5 @@
 
 interface MethodHeader {
-	/*String generateWithAfterName(String afterName);*/
+	generateWithAfterName(afterName : string) : string {}
 	/**/}
 

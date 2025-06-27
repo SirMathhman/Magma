@@ -1,7 +1,7 @@
 
 class Lists {
-	/*public static <String>*/ empty(/**/) : ListLike<string> {
-		return new JavaList<>();/*
-    */}
+	empty() : ListLike<string> {/*{
+        return new JavaList<>();
+    }*//**/}
 	/**/}
 

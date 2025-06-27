@@ -124,29 +124,35 @@ public class Main {
     }
 
     private static Optional<String> compileMethod(final String input, final CharSequence structName) {
-        if (input.isEmpty() || '}' != input.charAt(input.length() - 1))
-            return Optional.empty();
+        final var paramEnd = input.indexOf(')');
+        if (0 <= paramEnd) {
+            final var withParams = input.substring(0, paramEnd);
+            final var paramStart = withParams.indexOf('(');
+            if (0 <= paramStart) {
+                final var definition = withParams.substring(0, paramStart);
+                final var params = withParams.substring(paramStart + "(".length());
+                final var joinedParams = "(" + Main.compileValues(params, Main::compileParameter) + ")";
 
-        final var withoutEnd = input.substring(0, input.length() - "}".length());
-        final var contentStart = withoutEnd.indexOf('{');
-        if (0 > contentStart)
-            return Optional.empty();
+                final var withBraces = input.substring(paramEnd + ")".length()).strip();
+                final String outputContent;
+                if (";".equals(withBraces))
+                    outputContent = "";
+                else
+                    outputContent = Main.compileStatements(withBraces, Main::compileFunctionSegment);
 
-        final var before = withoutEnd.substring(0, contentStart).strip();
-        final var content = withoutEnd.substring(contentStart + "{".length());
-        if (before.isEmpty() || ')' != before.charAt(before.length() - 1))
-            return Optional.empty();
+                return Optional.of(
+                        Main.parseMethodHeader(definition, structName).generateWithAfterName(joinedParams) + " {" +
+                        outputContent + "}");
+            }
+        }
 
-        final var withoutParamEnd = before.substring(0, before.length() - ")".length());
-        final var paramStart = withoutParamEnd.indexOf('(');
-        if (0 > paramStart)
-            return Optional.empty();
+        return Optional.empty();
+    }
 
-        final var definition = withoutParamEnd.substring(0, paramStart);
-        final var params = withoutParamEnd.substring(paramStart + "(".length());
-        final var joinedParams = "(" + Placeholder.generate(params) + ")";
-        return Optional.of(Main.parseMethodHeader(definition, structName).generateWithAfterName(joinedParams) + " {" +
-                           Main.compileStatements(content, Main::compileFunctionSegment) + "}");
+    private static String compileParameter(final String input) {
+        if (input.isBlank())
+            return "";
+        return Main.parseDefinitionOrPlaceholder(input).generate();
     }
 
     private static String compileFunctionSegment(final String input) {

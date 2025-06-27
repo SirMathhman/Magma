@@ -1,12 +1,10 @@
 
 class Definition/*implements Assignable*/ {
-	/*@Override
-    public*/ generateWithAfterName(/*final String afterName*/) : string {
-		return Placeholder.generate(this.beforeType) + " " + this.name + afterName + " : " + this.type;/*
-    */}
-	/*@Override
-    public*/ generate(/**/) : string {
-		return this.generateWithAfterName("");/*
-    */}
+	generateWithAfterName(afterName : string) : string {/*{
+        return this.name + afterName + " : " + this.type;
+    }*//**/}
+	generate() : string {/*{
+        return this.generateWithAfterName("");
+    }*//**/}
 	/**/}
 
