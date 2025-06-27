@@ -7,12 +7,12 @@ public class Placeholder implements MethodHeader {
         this.value = value;
     }
 
-    static String generatePlaceholder(final String input) {
+    static String generate(final String input) {
         return "/*" + input.replace("/*", "stat").replace("*/", "end") + "*/";
     }
 
     @Override
-    public String generate(final String afterName) {
-        return Placeholder.generatePlaceholder(this.value) + afterName;
+    public String generateWithAfterName(final String afterName) {
+        return Placeholder.generate(this.value) + afterName;
     }
 }

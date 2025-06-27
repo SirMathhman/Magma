@@ -2,7 +2,7 @@
 /*import java.util.Optional;*/
 /*public */class MutableState /*implements State*/ {
 	/*private final CharSequence input;*/
-	Definition[beforeType=private, name=segments, type=/*ListLike<String>*/] = /*Lists.empty()*/;
+	Definition[beforeType=private, name=segments, type=ListLike<string>] = /*Lists.empty()*/;
 	Definition[beforeType=private, name=buffer, type=string] = "";
 	Definition[beforeType=private, name=depth, type=number] = 0;
 	Definition[beforeType=private, name=index, type=number] = 0;
@@ -21,7 +21,7 @@
         return this;
     */}
 	/*@Override
-    public*/ unwrap(/**/) : /*ListLike<String>*/ {/*
+    public*/ unwrap(/**/) : ListLike<string> {/*
         return this.segments;
     */}
 	/*@Override
@@ -56,7 +56,7 @@
         return this.pop().map(tuple -> new Tuple<>(tuple.left().append(tuple.right()), tuple.right()));
     */}
 	/*@Override
-    public*/ popAndAppendToOption(/**/) : /*Optional<State>*/ {/*
+    public*/ popAndAppendToOption(/**/) : Optional</*State*/> {/*
         return this.popAndAppendToTuple().map(Tuple::left);
     */}
 	/**/}

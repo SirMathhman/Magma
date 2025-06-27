@@ -58,7 +58,7 @@
             }
         }
 
-        return Placeholder.generatePlaceholder(input);
+        return Placeholder.generate(input);
     */}
 	/*private static*/ compileStructureSegment(/*final String input*/) : string {/*
         final var strip = input.strip();
@@ -84,17 +84,17 @@
                     if (0 <= paramStart) {
                         final var definition = withoutParamEnd.substring(0, paramStart);
                         final var params = withoutParamEnd.substring(paramStart + "(".length());
-                        final var s = "(" + Placeholder.generatePlaceholder(params) + ")";
-                        return Main.parseDefinitionOrPlaceholder(definition).generate(s) + " {" +
-                               Placeholder.generatePlaceholder(after) + "}";
+                        final var joinedParams = "(" + Placeholder.generate(params) + ")";
+                        return Main.parseDefinitionOrPlaceholder(definition).generateWithAfterName(joinedParams) +
+                               " {" + Placeholder.generate(after) + "}";
                     }
                 }
             }
         }
 
-        return Placeholder.generatePlaceholder(input);
+        return Placeholder.generate(input);
     */}
-	/*private static*/ compileStructureStatementValue(/*final String input*/) : /*Optional<String>*/ {/*
+	/*private static*/ compileStructureStatementValue(/*final String input*/) : Optional<string> {/*
         final var separator = input.indexOf('=');
         if (0 <= separator) {
             final var before = input.substring(0, separator);
@@ -111,7 +111,7 @@
         if (!strip.isEmpty() && '\"' == strip.charAt(0) && '\"' == strip.charAt(strip.length() - 1))
             return strip;
 
-        return Placeholder.generatePlaceholder(strip);
+        return Placeholder.generate(strip);
     */}
 	/*private static*/ isNumber(/*final CharSequence input*/) : /*boolean*/ {/*
         final var length = input.length();
@@ -126,7 +126,7 @@
         final var strip = input.strip();
         return Main.compileDefinition(strip).<MethodHeader>map(value -> value).orElseGet(() -> new Placeholder(strip));
     */}
-	/*private static*/ compileDefinition(/*final String strip*/) : /*Optional<Definition>*/ {/*
+	/*private static*/ compileDefinition(/*final String strip*/) : Optional</*Definition*/> {/*
         final var separator = strip.lastIndexOf(' ');
         if (0 > separator)
             return Optional.empty();
@@ -147,7 +147,16 @@
             return "string";
         if ("int".contentEquals(strip))
             return "number";
-        return Placeholder.generatePlaceholder(strip);
+        if (strip.endsWith(">")) {
+            final var withoutEnd = strip.substring(0, strip.length() - ">".length());
+            final var start = withoutEnd.indexOf('<');
+            if (0 <= start) {
+                final var base = withoutEnd.substring(0, start);
+                final var argument = withoutEnd.substring(start + "<".length());
+                return base + "<" + compileType(argument) + ">";
+            }
+        }
+        return Placeholder.generate(strip);
     */}
 	/*private static*/ compileStructureHeader(/*final String input*/) : string {/*
         final var classIndex = input.indexOf("class ");
@@ -158,15 +167,15 @@
             if (0 <= implementsIndex) {
                 final var beforeImplements = afterKeyword.substring(0, implementsIndex);
                 final var afterImplements = afterKeyword.substring(implementsIndex + "implements ".length());
-                return Placeholder.generatePlaceholder(beforeKeyword) + "class " + beforeImplements +
-                       Placeholder.generatePlaceholder("implements " + afterImplements);
+                return Placeholder.generate(beforeKeyword) + "class " + beforeImplements +
+                       Placeholder.generate("implements " + afterImplements);
             } else
-                return Placeholder.generatePlaceholder(beforeKeyword) + "class " + afterKeyword;
+                return Placeholder.generate(beforeKeyword) + "class " + afterKeyword;
         }
 
-        return Placeholder.generatePlaceholder(input);
+        return Placeholder.generate(input);
     */}
-	/*private static*/ divide(/*final CharSequence input*/) : /*ListLike<String>*/ {/*
+	/*private static*/ divide(/*final CharSequence input*/) : ListLike<string> {/*
         State current = new MutableState(input);
         while (true) {
             final var maybe = current.pop();
@@ -183,7 +192,7 @@
 	/*private static*/ fold(/*final State state, final char c*/) : /*State*/ {/*
         return Main.foldSingleQuotes(state, c).orElseGet(() -> Main.foldStatements(state, c));
     */}
-	/*private static*/ foldSingleQuotes(/*final State state, final char c*/) : /*Optional<State>*/ {/*
+	/*private static*/ foldSingleQuotes(/*final State state, final char c*/) : Optional</*State*/> {/*
         if ('\'' != c)
             return Optional.empty();
         return state.append(c).popAndAppendToTuple().flatMap(
