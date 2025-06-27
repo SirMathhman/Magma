@@ -1,14 +1,19 @@
 package magma;
 
+import java.util.List;
 import java.util.stream.Collectors;
 
-public record Definition(ListLike<String> modifiers, String beforeType, String name, String type)
-        implements Assignable {
+public record Definition(ListLike<String> annotations, ListLike<String> modifiers, String name, String type,
+                         List<String> typeParams) implements Assignable {
     @Override
     public String generateWithAfterName(final String afterName) {
+        final String joinedTypeParams;
+        if (this.typeParams.isEmpty())
+            joinedTypeParams = "";
+        else
+            joinedTypeParams = "<" + String.join(", ", this.typeParams) + ">";
         final var joinedModifiers = this.getString();
-
-        return joinedModifiers + this.name + afterName + " : " + this.type;
+        return joinedModifiers + this.name + joinedTypeParams + afterName + " : " + this.type;
     }
 
     private String getString() {
@@ -24,6 +29,6 @@ public record Definition(ListLike<String> modifiers, String beforeType, String n
     }
 
     public Definition withModifier(final String modifier) {
-        return new Definition(this.modifiers.add(modifier), this.beforeType, this.name, this.type);
+        return new Definition(this.annotations, this.modifiers.add(modifier), this.name, this.type, this.typeParams);
     }
 }

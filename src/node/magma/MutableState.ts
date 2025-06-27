@@ -1,53 +1,64 @@
 
 class MutableState {
 	/*private final CharSequence input;*/
-	let segments : ListLike<string> = Lists.empty();
-	let buffer : string = "";
-	let depth : number = 0;
-	let index : number = 0;
-	constructor (input : CharSequence) {
+	private ListLike<String> segments = Lists.empty();
+	private String buffer = "";
+	private int depth = 0;
+	private int index = 0;
+	constructor (final CharSequence input) {
 		this.input = input;
 	}
-	advance() : State {
+	/*@Override
+    public State advance*/() {
 		this.segments = this.segments.add(this.buffer);
 		this.buffer = "";
 		return this;
 	}
-	append(c : char) : State {
+	/*@Override
+    public State append*/(final char c) {
 		this.buffer = this.buffer + c;
 		return this;
 	}
-	unwrap() : ListLike<string> {
+	/*@Override
+    public ListLike<String> unwrap*/() {
 		return this.segments;
 	}
-	isLevel() : boolean {
+	/*@Override
+    public boolean isLevel*/() {
 		return 0 == this.depth;
 	}
-	enter() : State {/*
+	/*@Override
+    public State enter*/() {/*
         this.depth++;*/
 		return this;
 	}
-	exit() : State {/*
+	/*@Override
+    public State exit*/() {/*
         this.depth--;*/
 		return this;
 	}
-	isShallow() : boolean {
+	/*@Override
+    public boolean isShallow*/() {
 		return 1 == this.depth;
 	}
-	pop() : Optional<Tuple<State, Character>> {
+	/*@Override
+    public Optional<Tuple<State, Character>> pop*/() {
 		if (this.index >= this.input.length())
 			return new None<>();
-		let c : any = this.input.charAt(this.index);/*
+		final var c = this.input.charAt(this.index);/*
         this.index++;*/
 		return new Some<>(new Tuple<State, Character>(this, c));
 	}
-	popAndAppendToTuple() : Optional<Tuple<State, Character>> {
+	/*@Override
+    public Optional<Tuple<State, Character>> popAndAppendToTuple*/() {
 		return this.pop().map(tuple => new Tuple<>(tuple.left().append(tuple.right()), tuple.right()));
 	}
-	popAndAppendToOption() : Optional<State> {
+	/*@Override
+    public Optional<State> popAndAppendToOption*/() {
 		return this.popAndAppendToTuple().map(arg => Tuple.left(arg));
 	}
-	peek() : Optional<Character> {
+	/*@Override
+    public Optional<Character> peek*/() {
 		if (this.index < this.input.length())
 			return new Some<>(this.input.charAt(this.index));
 		else 

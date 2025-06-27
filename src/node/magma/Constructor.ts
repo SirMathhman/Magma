@@ -1,6 +1,7 @@
 
 class Constructor {
-	generateWithAfterName(afterName : string) : string {
+	/*@Override
+    public String generateWithAfterName*/(final String afterName) {
 		return "constructor " + afterName;
 	}
 }

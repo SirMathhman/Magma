@@ -1,20 +1,30 @@
 
 
+
 class Definition {
-	generateWithAfterName(afterName : string) : string {
-		let joinedModifiers : any = this.getString();
-		return joinedModifiers + this.name + afterName + " : " + this.type;
+	/*@Override
+    public String generateWithAfterName*/(final String afterName) {/*
+        final String joinedTypeParams;*/
+		if (this.typeParams.isEmpty()){
+			joinedTypeParams = "";
+		}
+		else {
+			joinedTypeParams = " < " + String.join(", ", this.typeParams) + " > ";
+		}
+		final var joinedModifiers = this.getString();
+		return joinedModifiers + this.name + joinedTypeParams + afterName + " : " + this.type;
 	}
-	getString() : string {
+	/*private String getString*/() {
 		if (this.modifiers.isEmpty())
 			return "";
 		return this.modifiers.stream().map(value => value + " ").collect(Collectors.joining());
 	}
-	generate() : string {
+	/*@Override
+    public String generate*/() {
 		return this.generateWithAfterName("");
 	}
-	withModifier(modifier : string) : Definition {
-		return new Definition(this.modifiers.add(modifier), this.beforeType, this.name, this.type);
+	/*public Definition withModifier*/(final String modifier) {
+		return new Definition(this.annotations, this.modifiers.add(modifier), this.name, this.type, this.typeParams);
 	}
 }
 

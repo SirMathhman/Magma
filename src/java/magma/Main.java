@@ -6,7 +6,6 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.List;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.regex.Pattern;
@@ -20,18 +19,10 @@ class Main {
 
     public static void main(final String[] args) {
         final var root = Paths.get(".", "src", "java");
-        Main.collect(root).match(files -> {
+        JavaFiles.walk(root).match(files -> {
             final var sources = files.stream().filter(path -> path.toString().endsWith(".java")).toList();
             return Main.runWithSources(sources, root);
         }, value -> new Some<>(value)).ifPresent(Throwable::printStackTrace);
-    }
-
-    private static Result<List<Path>, IOException> collect(final Path root) {
-        try (final var stream = Files.walk(root)) {
-            return new Ok<>(stream.toList());
-        } catch (final IOException e) {
-            return new Err<>(e);
-        }
     }
 
     private static Optional<IOException> runWithSources(final Iterable<Path> sources, final Path root) {
@@ -46,8 +37,7 @@ class Main {
 
     private static Optional<IOException> runWithSource(final Path root, final Path source) {
         final var relative = root.relativize(source.getParent());
-        return Main.readString(source)
-                   .match(input -> Main.runWithInput(source, input, relative), value -> new Some<>(value));
+        return Main.readString(source).match(input -> Main.runWithInput(source, input, relative), Some::new);
     }
 
     private static Optional<IOException> runWithInput(final Path source, final CharSequence input,
@@ -496,11 +486,24 @@ class Main {
         final var beforeName = strip.substring(0, separator);
         final var name = strip.substring(separator + " ".length());
 
-        final var divisions = Main.divide(beforeName, Main::foldTypeSeparator);
-        return divisions.popLast().flatMap(tuple -> {
+        return Main.divide(beforeName, Main::foldTypeSeparator).popLast().flatMap(tuple -> {
             final var beforeType = tuple.left().stream().collect(Collectors.joining(" "));
             final var type = tuple.right();
-            return new Some<>(new Definition(Lists.empty(), beforeType, name, Main.compileType(type)));
+
+            return Main.divide(beforeType, Main::foldTypeSeparator).popLast().flatMap(typeParamDivisionsTuple -> {
+                final var joined = typeParamDivisionsTuple.left().stream().collect(Collectors.joining(" "));
+                final var typeParamsString = typeParamDivisionsTuple.right().strip();
+
+                if (typeParamsString.startsWith("<") && typeParamsString.endsWith(">")) {
+                    final var slice = typeParamsString.substring(1, typeParamsString.length() - 1);
+                    final var typeParams = Main.divide(slice, Main::foldValues).stream().map(String::strip)
+                                               .filter(value -> !value.isEmpty()).toList();
+
+                    return new Some<>(
+                            new Definition(Lists.empty(), Lists.empty(), name, Main.compileType(type), typeParams));
+                } else
+                    return new None<>();
+            });
         });
     }
 

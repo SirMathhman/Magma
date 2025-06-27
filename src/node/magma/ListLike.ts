@@ -1,10 +1,10 @@
 
 
 interface ListLike<T> {
-	stream() : Stream<T>;
-	add(element : T) : ListLike<T>;
-	popLast() : Optional<Tuple<ListLike<T>, T>>;
-	popFirst() : Optional<Tuple<T, ListLike<T>>>;
-	isEmpty() : boolean;
+	/*Stream<T> stream*/();
+	/*ListLike<T> add*/(T element);
+	/*Optional<Tuple<ListLike<T>, T>> popLast*/();
+	/*Optional<Tuple<T, ListLike<T>>> popFirst*/();
+	/*boolean isEmpty*/();
 }
 

@@ -1,7 +1,7 @@
 
 
 class Err<Value, Error> {
-	match(whenOk : Function<Value, Return>, whenErr : Function<Error, Return>) : Return {
+	match<Return>(final Function<Value, Return> whenOk, final Function<Error, Return> whenErr) : Return {
 		return whenErr.apply(this.error);
 	}
 }

@@ -1,5 +1,5 @@
 
 interface StructureDefinition {
-	generate() : string;
+	/*String generate*/();
 }
 
