@@ -165,8 +165,7 @@ class Main {
 
     private static String compileStructureSegmentValue(final String input, final CharSequence structName) {
         return Main.compileStatement(input, input1 -> Main.compileAssignment(input1, 1))
-                   .or(() -> Main.compileMethod(input, structName))
-                   .orElseGet(() -> Placeholder.generate(input));
+                   .or(() -> Main.compileMethod(input, structName)).orElseGet(() -> Placeholder.generate(input));
     }
 
     private static Optional<String> compileStatement(final String input,
@@ -358,12 +357,20 @@ class Main {
         if (maybeInvocation.isPresent())
             return maybeInvocation;
 
-        final var separator = input.lastIndexOf('.');
-        if (0 <= separator) {
-            final var value = input.substring(0, separator);
-            final var property = input.substring(separator + ".".length()).strip();
+        final var dataSeparator = input.lastIndexOf('.');
+        if (0 <= dataSeparator) {
+            final var value = input.substring(0, dataSeparator);
+            final var property = input.substring(dataSeparator + ".".length()).strip();
             if (Main.isSymbol(property))
                 return Main.compileValue(value, depth).map(result -> result + "." + property);
+        }
+
+        final var methodSeparator = input.lastIndexOf("::");
+        if (0 <= methodSeparator) {
+            final var value = input.substring(0, methodSeparator);
+            final var property = input.substring(methodSeparator + "::".length()).strip();
+            if (Main.isSymbol(property))
+                return Main.compileValue(value, depth).map(result -> "arg => " + result + "." + property + "(arg)");
         }
 
         final var strip = input.strip();
@@ -455,11 +462,15 @@ class Main {
         final var length = input.length();
         for (var i = 0; i < length; i++) {
             final var c = input.charAt(i);
-            if (Character.isLetter(c) || (0 != i && Character.isDigit(c)) || '_' == c)
+            if (Main.isSymbolChar(c, i))
                 continue;
             return false;
         }
         return true;
+    }
+
+    private static boolean isSymbolChar(final char c, final int i) {
+        return Character.isLetter(c) || (0 != i && Character.isDigit(c)) || '_' == c;
     }
 
     private static boolean isNumber(final CharSequence input) {
@@ -684,7 +695,8 @@ class Main {
         return appended;
     }
 
-    private static Optional<String> handleInvocationSegments(final Tuple<ListLike<String>, String> tuple, final int depth) {
+    private static Optional<String> handleInvocationSegments(final Tuple<ListLike<String>, String> tuple,
+                                                             final int depth) {
         final var joined = tuple.left().stream().collect(Collectors.joining());
         if (joined.isEmpty() || '(' != joined.charAt(joined.length() - 1))
             return new None<>();

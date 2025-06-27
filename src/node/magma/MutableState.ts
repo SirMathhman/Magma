@@ -45,7 +45,7 @@ class MutableState {
 		return this.pop().map(tuple => new Tuple<>(tuple.left().append(tuple.right()), tuple.right()));
 	}
 	popAndAppendToOption() : Optional<State> {
-		return this.popAndAppendToTuple().map(/*Tuple::left*/);
+		return this.popAndAppendToTuple().map(arg => Tuple.left(arg));
 	}
 	peek() : Optional<Character> {
 		if (this.index < this.input.length())

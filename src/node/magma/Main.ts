@@ -19,7 +19,7 @@ class Main {
 		Main.collect(root).match(files => {
 			let sources : any = files.stream().filter(path => path.toString().endsWith(".java")).toList();
 			return Main.runWithSources(sources, root);
-		}, value => new Some<>(value)).ifPresent(/*Throwable::printStackTrace*/);
+		}, value => new Some<>(value)).ifPresent(arg => Throwable.printStackTrace(arg));
 	}
 	collect(root : Path) : Result<List<Path>, IOException> {/*
         try (final var stream = Files.walk(root)) {
@@ -81,10 +81,10 @@ class Main {
         }*/
 	}
 	compileRoot(input : CharSequence) : string {
-		return Main.compileStatements(input, /* Main::compileRootSegment*/);
+		return Main.compileStatements(input, arg => Main.compileRootSegment(arg));
 	}
 	compileStatements(input : CharSequence, mapper : Function<string, string>) : string {
-		return Main.compileAll(input, /* Main::foldStatements*/, mapper, "");
+		return Main.compileAll(input, arg => Main.foldStatements(arg), mapper, "");
 	}
 	compileAll(input : CharSequence, folder : BiFunction<State, Character, State>, mapper : Function<string, string>, delimiter : CharSequence) : string {
 		return Main.divide(input, folder).stream().map(mapper).collect(Collectors.joining(delimiter));
@@ -148,7 +148,7 @@ class Main {
 			return new None<>();
 		let definition : any = withParams.substring(0, paramStart);
 		let params : any = withParams.substring(paramStart + "(".length());
-		let joinedParams : any = "(" + Main.compileValues(params, /* Main::compileParameter*/) + ")";
+		let joinedParams : any = "(" + Main.compileValues(params, arg => Main.compileParameter(arg)) + ")";
 		let withBraces : any = input.substring(paramEnd + ")".length()).strip();/*
         final String outputContent;*/
 		if (";".contentEquals(withBraces))
@@ -204,7 +204,7 @@ class Main {
 		if (slice.isEmpty() || '(' != slice.charAt(0))
 			return new None<>();
 		let substring : any = slice.substring(1);
-		return Main.divide(substring, /* Main::foldConditional*/).popFirst().flatMap(tuple => Main.compileConditionalSegments(tuple, depth));
+		return Main.divide(substring, arg => Main.foldConditional(arg)).popFirst().flatMap(tuple => Main.compileConditionalSegments(tuple, depth));
 	}
 	compileConditionalSegments(tuple : Tuple<string, ListLike<string>>, depth : number) : Optional<string> {
 		let substring1 : any = tuple.left();
@@ -280,12 +280,19 @@ class Main {
 		let maybeInvocation : any = Main.compileInvokable(input, depth);
 		if (maybeInvocation.isPresent())
 			return maybeInvocation;
-		let separator : any = input.lastIndexOf('.');
-		if (0 <= separator){
-			let value : any = input.substring(0, separator);
-			let property : any = input.substring(separator + ".".length()).strip();
+		let dataSeparator : any = input.lastIndexOf('.');
+		if (0 <= dataSeparator){
+			let value : any = input.substring(0, dataSeparator);
+			let property : any = input.substring(dataSeparator + ".".length()).strip();
 			if (Main.isSymbol(property))
 				return Main.compileValue(value, depth).map(result => result + "." + property);
+		}
+		let methodSeparator : any = input.lastIndexOf("::");
+		if (0 <= methodSeparator){
+			let value : any = input.substring(0, methodSeparator);
+			let property : any = input.substring(methodSeparator + "::".length()).strip();
+			if (Main.isSymbol(property))
+				return Main.compileValue(value, depth).map(result => "arg => " + result + "." + property + "(arg)");
 		}
 		let strip : any = input.strip();
 		if (!strip.isEmpty() && '!' == strip.charAt(0)){
@@ -332,7 +339,7 @@ class Main {
 		if (strip.isEmpty() || ')' != strip.charAt(strip.length() - 1))
 			return new None<>();
 		let withoutEnd : any = strip.substring(0, /* strip.length(*/) - ")".length(/*)*/);
-		return Main.divide(withoutEnd, /* Main::foldInvocation*/).popLast().flatMap(tuple => Main.handleInvocationSegments(tuple, depth));
+		return Main.divide(withoutEnd, arg => Main.foldInvocation(arg)).popLast().flatMap(tuple => Main.handleInvocationSegments(tuple, depth));
 	}
 	foldInvocation(state : State, c : char) : State {
 		let appended : any = state.append(c);
@@ -351,11 +358,14 @@ class Main {
 		let length : any = input.length();/*
         for (var i = 0; i < length; i++) {
             final var c = input.charAt(i);
-            if (Character.isLetter(c) || (0 != i && Character.isDigit(c)) || c == '_')
+            if (Main.isSymbolChar(c, i))
                 continue;
             return false;
         }*/
 		return true;
+	}
+	isSymbolChar(c : char, i : number) : boolean {
+		return Character.isLetter(c) || (0 != i && Character.isDigit(c)) || '_' == c;
 	}
 	isNumber(input : CharSequence) : boolean {
 		let length : any = input.length();/*
@@ -376,7 +386,7 @@ class Main {
 			return new None<>();
 		let beforeName : any = strip.substring(0, separator);
 		let name : any = strip.substring(separator + " ".length());
-		let divisions : any = Main.divide(beforeName, /* Main::foldTypeSeparator*/);
+		let divisions : any = Main.divide(beforeName, arg => Main.foldTypeSeparator(arg));
 		return divisions.popLast().flatMap(tuple => {
 			let beforeType : any = tuple.left().stream().collect(Collectors.joining(" "));
 			let type : any = tuple.right();
@@ -407,7 +417,7 @@ class Main {
 			if (0 <= start){
 				let base : any = withoutEnd.substring(0, start);
 				let argument : any = withoutEnd.substring(start + " < ".length());
-				let compiled : any = Main.compileValues(argument, /* Main::compileType*/);
+				let compiled : any = Main.compileValues(argument, arg => Main.compileType(arg));
 				return base + " < " + compiled + " > ";
 			}
 		}
@@ -421,7 +431,7 @@ class Main {
 		return Placeholder.generate(strip);
 	}
 	compileValues(input : CharSequence, mapper : Function<string, string>) : string {
-		return Main.compileAll(input, /* Main::foldValues*/, mapper, ", ");
+		return Main.compileAll(input, arg => Main.foldValues(arg), mapper, ", ");
 	}
 	foldValues(state : State, c : char) : State {
 		if (',' == c && state.isLevel())
@@ -471,7 +481,7 @@ class Main {
 	parseStructureHeaderByAnnotations(type : string, beforeKeyword : string, maybeImplements : Optional<string>, strip1 : string) : StructureHeader {
 		let index : any = beforeKeyword.lastIndexOf(System.lineSeparator());
 		if (0 <= index){
-			let annotations : any = Arrays.stream(Pattern.compile("\\n").split(beforeKeyword.substring(0, index).strip())).map(/*String::strip*/).filter(value => !value.isEmpty()).map(value => value.substring(1)).toList();
+			let annotations : any = Arrays.stream(Pattern.compile("\\n").split(beforeKeyword.substring(0, index).strip())).map(arg => String.strip(arg)).filter(value => !value.isEmpty()).map(value => value.substring(1)).toList();
 			let substring1 : any = beforeKeyword.substring(index + System.lineSeparator().length());
 			return new StructureHeader(type, annotations, substring1, strip1, maybeImplements);
 		}
@@ -521,7 +531,7 @@ class Main {
 			if ('\\' == tuple.right())
 				return tuple.left().popAndAppendToOption();
 			return new Some<>(tuple.left());
-		}).flatMap(/*State::popAndAppendToOption*/);
+		}).flatMap(arg => State.popAndAppendToOption(arg));
 	}
 	foldStatements(state : State, c : char) : State {
 		let appended : any = state.append(c);
