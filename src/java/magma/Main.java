@@ -117,7 +117,7 @@ public class Main {
             return Optional.empty();
 
         final var before = withoutEnd.substring(0, contentStart).strip();
-        final var after = withoutEnd.substring(contentStart + "{".length());
+        final var content = withoutEnd.substring(contentStart + "{".length());
         if (before.isEmpty() || ')' != before.charAt(before.length() - 1))
             return Optional.empty();
 
@@ -130,7 +130,11 @@ public class Main {
         final var params = withoutParamEnd.substring(paramStart + "(".length());
         final var joinedParams = "(" + Placeholder.generate(params) + ")";
         return Optional.of(Main.parseMethodHeader(definition, structName).generateWithAfterName(joinedParams) + " {" +
-                           Placeholder.generate(after) + "}");
+                           Main.compileStatements(content, Main::compileFunctionSegment) + "}");
+    }
+
+    private static String compileFunctionSegment(final String input) {
+        return Placeholder.generate(input);
     }
 
     private static MethodHeader parseMethodHeader(final String input, final CharSequence structName) {

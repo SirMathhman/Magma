@@ -6,9 +6,9 @@
     public*/ generate(/**/) : string {/*
         final var generated = this.maybeAfterImplements()
                                   .map(afterImplements -> Placeholder.generate("implements " + afterImplements))
-                                  .orElse("");
+                                  .orElse("");*//*
 
-        return Placeholder.generate(this.beforeKeyword()) + this.type + " " + this.name() + generated;
+        return Placeholder.generate(this.beforeKeyword()) + this.type + " " + this.name() + generated;*//*
     */}
 	/**/}
 /**/
