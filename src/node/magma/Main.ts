@@ -139,11 +139,11 @@
     */}
 	/*private static*/ compileConditionalSegments(/*final Tuple<String, ListLike<String>> tuple*/) : Optional<string> {
 		/*final*/ substring1 : any = tuple.left();
-		if (/*substring1.isEmpty() || ')' != substring1.charAt(substring1.length() - 1)*/)/*
+		if (substring1.isEmpty() || ')' != substring1.charAt(substring1.length() - 1))/*
             return Optional.empty();*/
-		/*final*/ condition : any = /* substring1.substring(0, substring1.length() - 1)*/;
+		/*final*/ condition : any = substring1.substring(0, substring1.length() - 1);
 		/*final*/ substring2 : any = tuple.right().stream().collect(Collectors.joining());
-		return Optional.of("if (" + Main.compileValueOrPlaceholder(condition) + ")" + Placeholder.generate(/*substring2*/));/*
+		return Optional.of("if (" + Main.compileValueOrPlaceholder(condition) + ")" + Placeholder.generate(substring2));/*
     */}
 	/*private static*/ foldConditional(/*final State state, final char c*/) : State {
 		/*final*/ appended : any = state.append(c);
@@ -247,7 +247,7 @@
 		/*final*/ length : any = input.length();
 		/*for*/ i : /*(var*/ = 0;/* i < length;*//* i++) {
             final var c = input.charAt(i);
-            if (Character.isLetter(c))
+            if (Character.isLetter(c) || (0 != i && Character.isDigit(c)))
                 continue;
             return false;
         }*/
@@ -373,7 +373,7 @@
             final var substring1 = beforeKeyword.substring(index + System.lineSeparator().length());
             return new StructureHeader(type, annotations, substring1, strip1, maybeImplements);
         }*/
-		return new StructureHeader(type, Collections.emptyList(), beforeKeyword, /* strip1*/, maybeImplements);/*
+		return new StructureHeader(type, Collections.emptyList(), beforeKeyword, strip1, maybeImplements);/*
     */}
 	/*private static*/ divide(/*final CharSequence input,
                                            final BiFunction<State, Character, State> foldStatements*/) : ListLike<string> {
@@ -437,8 +437,7 @@
             return Optional.empty();*/
 		/*final*/ substring : any = joined.substring(0, /* joined.length(*/) - "(".length(/*)*/);
 		/*final*/ argument : any = tuple.right();
-		return Main.compileCaller(substring).map(/*
-                caller -> caller + "(" + Main.compileValues(argument, Main::compileValueOrPlaceholder) + ")"*/);/*
+		return Main.compileCaller(substring).map(/*caller -> caller + "(" + Main.compileValues(argument, Main::compileValueOrPlaceholder) + ")"*/);/*
     */}
 	/*private static*/ compileCaller(/*final String input*/) : Optional<string> {
 		/*final*/ strip : any = input.strip();
