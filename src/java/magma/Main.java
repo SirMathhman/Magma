@@ -83,6 +83,16 @@ public class Main {
                 return before.get();
         }
 
+        if (!input.isEmpty() && '}' == input.charAt(input.length() - 1)) {
+            final var withoutEnd = input.substring(0, input.length() - "}".length());
+            final var contentStart = withoutEnd.indexOf('{');
+            if (0 <= contentStart) {
+                final var before = withoutEnd.substring(0, contentStart);
+                final var after = withoutEnd.substring(contentStart + "{".length());
+                return Main.generatePlaceholder(before) + "{" + Main.generatePlaceholder(after) + "}";
+            }
+        }
+
         return Main.generatePlaceholder(input);
     }
 
