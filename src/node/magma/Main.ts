@@ -105,9 +105,10 @@
     }*/
 	/*private static String compileType(final String input) {
         final var strip = input.strip();
-        if ("String".equals(strip))
+        if ("String".contentEquals(strip))
             return "string";
-
+        if ("int".contentEquals(strip))
+            return "number";
         return Main.generatePlaceholder(strip);
     }*/
 	/*private static String compileStructureHeader(final String input) {

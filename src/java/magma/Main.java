@@ -121,7 +121,8 @@ public class Main {
         final var strip = input.strip();
         if ("String".contentEquals(strip))
             return "string";
-
+        if ("int".contentEquals(strip))
+            return "number";
         return Main.generatePlaceholder(strip);
     }
 
