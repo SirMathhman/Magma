@@ -11,7 +11,6 @@
 /*import java.util.stream.Collectors;*/
 /*public*/class Main {
 	/*private static final*/ LINE_SEPARATOR : string = System.lineSeparator(/**/);
-	/*private static final*/ PATTERN : /*Pattern*/ = Pattern.compile(/*"\\n"*/);
 	constructor (/**/) {/*
     */}
 	/*public static*/ main(/*final String[] args*/) : /*void*/ {/*
@@ -270,8 +269,9 @@
         final var index = beforeKeyword.lastIndexOf(System.lineSeparator());*//*
         if (0 <= index) {
             final var annotations =
-                    Arrays.stream(Main.PATTERN.split(beforeKeyword.substring(0, index).strip())).map(String::strip)
-                          .filter(value -> !value.isEmpty()).map(value -> value.substring(1)).toList();
+                    Arrays.stream(Pattern.compile("\\n").split(beforeKeyword.substring(0, index).strip()))
+                          .map(String::strip).filter(value -> !value.isEmpty()).map(value -> value.substring(1))
+                          .toList();
 
             final var substring1 = beforeKeyword.substring(index + System.lineSeparator().length());
             return new StructureHeader(type, annotations, substring1, strip1, maybeImplements);
