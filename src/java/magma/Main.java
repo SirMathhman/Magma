@@ -137,13 +137,43 @@ public class Main {
 
     private static String compileValue(final String input) {
         final var strip = input.strip();
+        if (strip.endsWith(")")) {
+            final var substring = strip.substring(0, strip.length() - ")".length());
+            final var i = substring.indexOf('(');
+            if (0 <= i) {
+                final var caller = substring.substring(0, i);
+                final var argument = substring.substring(i + "(".length());
+                return Main.compileValue(caller) + "(" + Placeholder.generate(argument) + ")";
+            }
+        }
+
+        final var separator = input.lastIndexOf('.');
+        if (0 <= separator) {
+            final var substring = input.substring(0, separator);
+            final var substring1 = input.substring(separator + ".".length()).strip();
+            return Main.compileValue(substring) + "." + substring1;
+        }
+
         if (Main.isNumber(strip))
             return strip;
 
         if (!strip.isEmpty() && '\"' == strip.charAt(0) && '\"' == strip.charAt(strip.length() - 1))
             return strip;
 
+        if (Main.isSymbol(strip))
+            return strip;
+
         return Placeholder.generate(strip);
+    }
+
+    private static boolean isSymbol(final String input) {
+        for (var i = 0; i < input.length(); i++) {
+            final var c = input.charAt(i);
+            if (Character.isLetter(c))
+                continue;
+            return false;
+        }
+        return true;
     }
 
     private static boolean isNumber(final CharSequence input) {

@@ -2,7 +2,7 @@
 /*import java.util.Optional;*/
 /*public*/class MutableState/*implements State*/ {
 	/*private final CharSequence input;*/
-	/*private*/ segments : ListLike<string> = /*Lists.empty()*/;
+	/*private*/ segments : ListLike<string> = Lists.empty(/**/);
 	/*private*/ buffer : string = "";
 	/*private*/ depth : number = 0;
 	/*private*/ index : number = 0;

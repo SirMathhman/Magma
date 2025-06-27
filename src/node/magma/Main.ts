@@ -7,7 +7,7 @@
 /*import java.util.function.Function;*/
 /*import java.util.stream.Collectors;*/
 /*public*/class Main {
-	/*private static final*/ LINE_SEPARATOR : string = /*System.lineSeparator()*/;
+	/*private static final*/ LINE_SEPARATOR : string = System.lineSeparator(/**/);
 	constructor (/**/) {/*
     */}
 	/*public static*/ main(/*final String[] args*/) : /*void*/ {/*
@@ -122,13 +122,42 @@
     */}
 	/*private static*/ compileValue(/*final String input*/) : string {/*
         final var strip = input.strip();
+        if (strip.endsWith(")")) {
+            final var substring = strip.substring(0, strip.length() - ")".length());
+            final var i = substring.indexOf('(');
+            if (0 <= i) {
+                final var caller = substring.substring(0, i);
+                final var argument = substring.substring(i + "(".length());
+                return Main.compileValue(caller) + "(" + Placeholder.generate(argument) + ")";
+            }
+        }
+
+        final var separator = input.lastIndexOf('.');
+        if (0 <= separator) {
+            final var substring = input.substring(0, separator);
+            final var substring1 = input.substring(separator + ".".length()).strip();
+            return Main.compileValue(substring) + "." + substring1;
+        }
+
         if (Main.isNumber(strip))
             return strip;
 
         if (!strip.isEmpty() && '\"' == strip.charAt(0) && '\"' == strip.charAt(strip.length() - 1))
             return strip;
 
+        if (Main.isSymbol(strip))
+            return strip;
+
         return Placeholder.generate(strip);
+    */}
+	/*private static*/ isSymbol(/*final String input*/) : /*boolean*/ {/*
+        for (var i = 0; i < input.length(); i++) {
+            final var c = input.charAt(i);
+            if (Character.isLetter(c))
+                continue;
+            return false;
+        }
+        return true;
     */}
 	/*private static*/ isNumber(/*final CharSequence input*/) : /*boolean*/ {/*
         final var length = input.length();
@@ -199,7 +228,7 @@
         final var strip = beforeImplements.strip();
         if (strip.endsWith(")")) {
             final var withoutEnd = strip.substring(0, strip.length() - ")".length());
-            final var contentStart = withoutEnd.indexOf("(");
+            final var contentStart = withoutEnd.indexOf('(');
             if (0 <= contentStart) {
                 final var strip1 = withoutEnd.substring(0, contentStart).strip();
                 return new StructureHeader(strip1, strip1, maybeImplements);
