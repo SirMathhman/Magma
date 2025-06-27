@@ -1,6 +1,6 @@
 /*package magma;*/
 /*public */class Lists {
-	/*public static <String> ListLike<String> empty*/(/**/) {/*
+	/*public static <String>*/ empty : /*ListLike<String>*/(/**/) {/*
         return new JavaList<>();
     */}
 	/**/}

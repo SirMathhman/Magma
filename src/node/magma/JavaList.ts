@@ -6,10 +6,10 @@
 	/*public JavaList*/(/**/) {/*
         this(new ArrayList<>());
     */}
-	/*@Override public Stream<T> stream*/(/**/) {/*
+	/*@Override public*/ stream : /*Stream<T>*/(/**/) {/*
         return this.list.stream();
     */}
-	/*@Override public ListLike<T> add*/(/*final T element*/) {/*
+	/*@Override public*/ add : /*ListLike<T>*/(/*final T element*/) {/*
         this.list.add(element);
         return this;
     */}

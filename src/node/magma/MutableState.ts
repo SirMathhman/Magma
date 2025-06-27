@@ -10,40 +10,40 @@
         this.input = input;
     */}
 	/*@Override
-    public State advance*/(/**/) {/*
+    public*/ advance : /*State*/(/**/) {/*
         this.segments = this.segments.add(this.buffer);
         this.buffer = "";
         return this;
     */}
 	/*@Override
-    public State append*/(/*final char c*/) {/*
+    public*/ append : /*State*/(/*final char c*/) {/*
         this.buffer = this.buffer + c;
         return this;
     */}
 	/*@Override
-    public ListLike<String> unwrap*/(/**/) {/*
+    public*/ unwrap : /*ListLike<String>*/(/**/) {/*
         return this.segments;
     */}
 	/*@Override
-    public boolean isLevel*/(/**/) {/*
+    public*/ isLevel : /*boolean*/(/**/) {/*
         return 0 == this.depth;
     */}
 	/*@Override
-    public State enter*/(/**/) {/*
+    public*/ enter : /*State*/(/**/) {/*
         this.depth++;
         return this;
     */}
 	/*@Override
-    public State exit*/(/**/) {/*
+    public*/ exit : /*State*/(/**/) {/*
         this.depth--;
         return this;
     */}
 	/*@Override
-    public boolean isShallow*/(/**/) {/*
+    public*/ isShallow : /*boolean*/(/**/) {/*
         return 1 == this.depth;
     */}
 	/*@Override
-    public Optional<Tuple<State, Character>> pop*/(/**/) {/*
+    public Optional<Tuple<State,*/ pop : /*Character>>*/(/**/) {/*
         if (this.index >= this.input.length())
             return Optional.empty();
 
@@ -52,11 +52,11 @@
         return Optional.of(new Tuple<>(this, c));
     */}
 	/*@Override
-    public Optional<Tuple<State, Character>> popAndAppendToTuple*/(/**/) {/*
+    public Optional<Tuple<State,*/ popAndAppendToTuple : /*Character>>*/(/**/) {/*
         return this.pop().map(tuple -> new Tuple<>(tuple.left().append(tuple.right()), tuple.right()));
     */}
 	/*@Override
-    public Optional<State> popAndAppendToOption*/(/**/) {/*
+    public*/ popAndAppendToOption : /*Optional<State>*/(/**/) {/*
         return this.popAndAppendToTuple().map(Tuple::left);
     */}
 	/**/}

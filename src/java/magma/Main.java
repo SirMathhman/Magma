@@ -95,7 +95,7 @@ public class Main {
                     if (0 <= paramStart) {
                         final var definition = withoutParamEnd.substring(0, paramStart);
                         final var params = withoutParamEnd.substring(paramStart + "(".length());
-                        return Main.generatePlaceholder(definition) + "(" + Main.generatePlaceholder(params) + ") {" +
+                        return Main.compileDefinition(definition) + "(" + Main.generatePlaceholder(params) + ") {" +
                                Main.generatePlaceholder(after) + "}";
                     }
                 }
