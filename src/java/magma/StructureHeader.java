@@ -11,6 +11,6 @@ public record StructureHeader(String type, List<String> annotations, String befo
                                   .map(afterImplements -> Placeholder.generate("implements " + afterImplements))
                                   .orElse("");
 
-        return Placeholder.generate(this.beforeKeyword()) + this.type + " " + this.name() + generated;
+        return this.type + " " + this.name() + generated;
     }
 }
