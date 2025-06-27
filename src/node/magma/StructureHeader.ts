@@ -3,6 +3,7 @@
 
 class StructureHeader {
 	generate() : string {
-		return this.type + " " + this.name;}
+		return this.type + " " + this.name;
+	}
 }
 

@@ -199,7 +199,7 @@ public class Main {
                    '}' == withBraces.charAt(withBraces.length() - 1)) {
             final var substring = withBraces.substring(1, withBraces.length() - 1);
             final var compiled = Main.compileFunctionSegments(substring, 2);
-            outputContent = " {" + compiled + "}";
+            outputContent = " {" + compiled + Main.LINE_SEPARATOR + "\t}";
         } else
             return Optional.empty();
 
