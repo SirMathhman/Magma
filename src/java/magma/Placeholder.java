@@ -16,7 +16,6 @@ public class Placeholder implements Assignable, StructureDefinition {
         return Placeholder.generate(this.value) + afterName;
     }
 
-    @Override
     public String generate() {
         return this.value;
     }

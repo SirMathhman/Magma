@@ -11,8 +11,7 @@
     public*/ generateWithAfterName(/*final String afterName*/) : string {/*
         return Placeholder.generate(this.value) + afterName;
     */}
-	/*@Override
-    public*/ generate(/**/) : string {/*
+	/*public*/ generate(/**/) : string {/*
         return this.value;
     */}
 	/**/}

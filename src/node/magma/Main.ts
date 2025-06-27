@@ -214,10 +214,12 @@
         return Placeholder.generate(strip);
     */}
 	/*private static*/ parseStructureHeader(/*final String input*/) : /*StructureDefinition*/ {/*
-        return Main.parseClassHeader(input, "class").or(() -> Main.parseClassHeader(input, "record"))
+        return Main.parseClassHeader(input, "class", "class").or(() -> Main.parseClassHeader(input, "record", "class"))
+                   .or(() -> Main.parseClassHeader(input, "interface", "interface"))
                    .orElseGet(() -> new Placeholder(input));
     */}
-	/*private static*/ parseClassHeader(/*final String input, final String keyword*/) : Optional</*StructureDefinition*/> {/*
+	/*private static*/ parseClassHeader(/*final String input, final String keyword,
+                                                                  final String type*/) : Optional</*StructureDefinition*/> {/*
         final var classIndex = input.indexOf(keyword + " ");
         if (0 > classIndex)
             return Optional.empty();
@@ -228,11 +230,11 @@
         if (0 <= implementsIndex) {
             final var beforeImplements = afterKeyword.substring(0, implementsIndex).strip();
             final var afterImplements = afterKeyword.substring(implementsIndex + "implements ".length()).strip();
-            return Optional.of(Main.complete(beforeKeyword, beforeImplements, Optional.of(afterImplements)));
+            return Optional.of(Main.complete(type, beforeKeyword, beforeImplements, Optional.of(afterImplements)));
         } else
-            return Optional.of(Main.complete(beforeKeyword, afterKeyword, Optional.empty()));
+            return Optional.of(Main.complete(type, beforeKeyword, afterKeyword, Optional.empty()));
     */}
-	/*private static*/ complete(/*final String beforeKeyword, final String beforeImplements,
+	/*private static*/ complete(/*final String type, final String beforeKeyword, final String beforeImplements,
                                             final Optional<String> maybeImplements*/) : /*StructureHeader*/ {/*
         final var strip = beforeImplements.strip();
         if (strip.endsWith(")")) {
@@ -240,13 +242,13 @@
             final var contentStart = withoutEnd.indexOf('(');
             if (0 <= contentStart) {
                 final var strip1 = withoutEnd.substring(0, contentStart).strip();
-                return Main.parseStructureHeaderByAnnotations(beforeKeyword, maybeImplements, strip1);
+                return Main.parseStructureHeaderByAnnotations(type, beforeKeyword, maybeImplements, strip1);
             }
         }
 
-        return Main.parseStructureHeaderByAnnotations(beforeKeyword, maybeImplements, beforeImplements);
+        return Main.parseStructureHeaderByAnnotations(type, beforeKeyword, maybeImplements, beforeImplements);
     */}
-	/*private static*/ parseStructureHeaderByAnnotations(/*final String beforeKeyword,
+	/*private static*/ parseStructureHeaderByAnnotations(/*final String type, final String beforeKeyword,
                                                                      final Optional<String> maybeImplements,
                                                                      final String strip1*/) : /*StructureHeader*/ {/*
         final var i = beforeKeyword.lastIndexOf('\n');
@@ -255,10 +257,10 @@
                                           .filter(value -> !value.isEmpty()).map(value -> value.substring(1)).toList();
 
             final var substring1 = beforeKeyword.substring(i + "\n".length());
-            return new StructureHeader(annotations, substring1, strip1, maybeImplements);
+            return new StructureHeader(type, annotations, substring1, strip1, maybeImplements);
         }
 
-        return new StructureHeader(Collections.emptyList(), beforeKeyword, strip1, maybeImplements);
+        return new StructureHeader(type, Collections.emptyList(), beforeKeyword, strip1, maybeImplements);
     */}
 	/*private static*/ divide(/*final CharSequence input*/) : ListLike<string> {/*
         State current = new MutableState(input);

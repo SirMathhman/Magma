@@ -1,5 +1,5 @@
 /*package magma;*/
-public interface StructureDefinition  {
+/*public*/interface StructureDefinition {
 	/*String generate();*/
 	/**/}
 /**/

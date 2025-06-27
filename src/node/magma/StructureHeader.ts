@@ -8,7 +8,7 @@
                                   .map(afterImplements -> Placeholder.generate("implements " + afterImplements))
                                   .orElse("");
 
-        return Placeholder.generate(this.beforeKeyword()) + "class " + this.name() + generated;
+        return Placeholder.generate(this.beforeKeyword()) + this.type + " " + this.name() + generated;
     */}
 	/**/}
 /**/
