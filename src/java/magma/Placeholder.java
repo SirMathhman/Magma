@@ -1,6 +1,6 @@
 package magma;
 
-public class Placeholder implements MethodHeader, StructureDefinition {
+public class Placeholder implements Assignable, StructureDefinition {
     private final String value;
 
     public Placeholder(final String value) {

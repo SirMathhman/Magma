@@ -7,7 +7,7 @@
 /*import java.util.function.Function;*/
 /*import java.util.stream.Collectors;*/
 /*public*/class Main {
-	Definition[beforeType=private static final, name=LINE_SEPARATOR, type=string] = /*System.lineSeparator()*/;
+	/*private static final*/ LINE_SEPARATOR : string = /*System.lineSeparator()*/;
 	constructor (/**/) {/*
     */}
 	/*public static*/ main(/*final String[] args*/) : /*void*/ {/*
@@ -116,7 +116,7 @@
         if (0 <= separator) {
             final var before = input.substring(0, separator);
             final var after = input.substring(separator + "=".length());
-            return Optional.of(Main.parseDefinitionOrPlaceholder(before) + " = " + Main.compileValue(after));
+            return Optional.of(Main.parseDefinitionOrPlaceholder(before).generate() + " = " + Main.compileValue(after));
         }
         return Optional.empty();
     */}
@@ -139,9 +139,9 @@
         }
         return true;
     */}
-	/*private static*/ parseDefinitionOrPlaceholder(/*final String input*/) : /*MethodHeader*/ {/*
+	/*private static*/ parseDefinitionOrPlaceholder(/*final String input*/) : /*Assignable*/ {/*
         final var strip = input.strip();
-        return Main.parseDefinition(strip).<MethodHeader>map(value -> value).orElseGet(() -> new Placeholder(strip));
+        return Main.parseDefinition(strip).<Assignable>map(value -> value).orElseGet(() -> new Placeholder(strip));
     */}
 	/*private static*/ parseDefinition(/*final String strip*/) : Optional</*Definition*/> {/*
         final var separator = strip.lastIndexOf(' ');
@@ -197,10 +197,10 @@
 	/*private static*/ complete(/*final String beforeKeyword, final String beforeImplements,
                                             final Optional<String> maybeImplements*/) : /*StructureHeader*/ {/*
         final var strip = beforeImplements.strip();
-        if(strip.endsWith(")")) {
+        if (strip.endsWith(")")) {
             final var withoutEnd = strip.substring(0, strip.length() - ")".length());
-            final var contentStart = withoutEnd.indexOf("(".toString());
-            if(contentStart >= 0) {
+            final var contentStart = withoutEnd.indexOf("(");
+            if (0 <= contentStart) {
                 final var strip1 = withoutEnd.substring(0, contentStart).strip();
                 return new StructureHeader(strip1, strip1, maybeImplements);
             }

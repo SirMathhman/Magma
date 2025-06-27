@@ -130,7 +130,7 @@ public class Main {
         if (0 <= separator) {
             final var before = input.substring(0, separator);
             final var after = input.substring(separator + "=".length());
-            return Optional.of(Main.parseDefinitionOrPlaceholder(before) + " = " + Main.compileValue(after));
+            return Optional.of(Main.parseDefinitionOrPlaceholder(before).generate() + " = " + Main.compileValue(after));
         }
         return Optional.empty();
     }
@@ -156,9 +156,9 @@ public class Main {
         return true;
     }
 
-    private static MethodHeader parseDefinitionOrPlaceholder(final String input) {
+    private static Assignable parseDefinitionOrPlaceholder(final String input) {
         final var strip = input.strip();
-        return Main.parseDefinition(strip).<MethodHeader>map(value -> value).orElseGet(() -> new Placeholder(strip));
+        return Main.parseDefinition(strip).<Assignable>map(value -> value).orElseGet(() -> new Placeholder(strip));
     }
 
     private static Optional<Definition> parseDefinition(final String strip) {
@@ -221,7 +221,7 @@ public class Main {
         final var strip = beforeImplements.strip();
         if (strip.endsWith(")")) {
             final var withoutEnd = strip.substring(0, strip.length() - ")".length());
-            final var contentStart = withoutEnd.indexOf("(");
+            final var contentStart = withoutEnd.indexOf('(');
             if (0 <= contentStart) {
                 final var strip1 = withoutEnd.substring(0, contentStart).strip();
                 return new StructureHeader(strip1, strip1, maybeImplements);

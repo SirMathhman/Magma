@@ -2,10 +2,10 @@
 /*import java.util.Optional;*/
 /*public*/class MutableState/*implements State*/ {
 	/*private final CharSequence input;*/
-	Definition[beforeType=private, name=segments, type=ListLike<string>] = /*Lists.empty()*/;
-	Definition[beforeType=private, name=buffer, type=string] = "";
-	Definition[beforeType=private, name=depth, type=number] = 0;
-	Definition[beforeType=private, name=index, type=number] = 0;
+	/*private*/ segments : ListLike<string> = /*Lists.empty()*/;
+	/*private*/ buffer : string = "";
+	/*private*/ depth : number = 0;
+	/*private*/ index : number = 0;
 	constructor (/*final CharSequence input*/) {/*
         this.input = input;
     */}
