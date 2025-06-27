@@ -39,8 +39,8 @@ class MutableState {
 		return this.popAndAppendToTuple().map(/*Tuple::left*/);}
 	peek() : Optional<Character> {
 		if (this.index < this.input.length())
-			return Optional.of(this.input.charAt(this.index));/*
-        else
-            return Optional.empty();*/}
+			return Optional.of(this.input.charAt(this.index));
+		else 
+			return Optional.empty();}
 }
 

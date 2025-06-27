@@ -220,10 +220,19 @@ public class Main {
     private static String compileFunctionSegment(final String input, final int depth) {
         if (input.isBlank())
             return "";
-        return Main.compileConditional(input, depth)
+        return Main.compileConditional(input, depth).or(() -> Main.compileElse(input, depth))
                    .or(() -> Main.compileStatement(input, Main::compileFunctionStatementValue))
                    .map(value -> System.lineSeparator() + "\t".repeat(depth) + value)
                    .orElseGet(() -> Placeholder.generate(input));
+    }
+
+    private static Optional<String> compileElse(final String input, final int depth) {
+        final var strip = input.strip();
+        if (strip.startsWith("else")) {
+            final var substring = strip.substring("else".length());
+            return Optional.of("else " + Main.functionCompileStatementOrBlock(depth, substring));
+        } else
+            return Optional.empty();
     }
 
     private static Optional<String> compileFunctionStatementValue(final String input) {
@@ -254,13 +263,20 @@ public class Main {
                    .flatMap(tuple -> Main.compileConditionalSegments(tuple, depth));
     }
 
-    private static Optional<String> compileConditionalSegments(final Tuple<String, ListLike<String>> tuple, final int depth) {
+    private static Optional<String> compileConditionalSegments(final Tuple<String, ListLike<String>> tuple,
+                                                               final int depth) {
         final var substring1 = tuple.left();
         if (substring1.isEmpty() || ')' != substring1.charAt(substring1.length() - 1))
             return Optional.empty();
 
         final var condition = substring1.substring(0, substring1.length() - 1);
-        final var withBraces = tuple.right().stream().collect(Collectors.joining()).strip();
+        final var joined = tuple.right().stream().collect(Collectors.joining());
+        final var compiled = Main.functionCompileStatementOrBlock(depth, joined);
+        return Optional.of("if (" + Main.compileValueOrPlaceholder(condition) + ")" + compiled);
+    }
+
+    private static String functionCompileStatementOrBlock(final int depth, final String input) {
+        final var withBraces = input.strip();
         final String compiled;
         if (withBraces.startsWith("{") && withBraces.endsWith("}")) {
             final var compiled1 =
@@ -268,8 +284,7 @@ public class Main {
             compiled = "{" + compiled1 + Main.LINE_SEPARATOR + "\t".repeat(depth) + "}";
         } else
             compiled = Main.compileFunctionSegment(withBraces, depth + 1);
-
-        return Optional.of("if (" + Main.compileValueOrPlaceholder(condition) + ")" + compiled);
+        return compiled;
     }
 
     private static State foldConditional(final State state, final char c) {

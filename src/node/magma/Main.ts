@@ -103,7 +103,8 @@ class Main {
 				return Optional.of("");
 			structName = header.name();
 		}
-		let structName :  = "?";
+		else 
+			structName = "?";
 		return Optional.of(/*definition.generate(*/) + " {" + Main.compileStatements(content, /* input1 -> Main.compileStructureSegment(input1, structName)) +
                            Main.LINE_SEPARATOR + "}"*/);}
 	compileStructureSegment(input : string, structName : CharSequence) : string {
@@ -132,17 +133,18 @@ class Main {
 		let withBraces : any = input.substring(paramEnd + ")".length()).strip();/*
         final String outputContent;*/
 		if (";".contentEquals(withBraces))
-			outputContent = ";";/*
-        else if (!withBraces.isEmpty() && '{' == withBraces.charAt(0) &&
-                   '}' == withBraces.charAt(withBraces.length() - 1)) {
-            final var substring = withBraces.substring(1, withBraces.length() - 1);
-            final var compiled = Main.compileFunctionSegments(substring, 2);
-            outputContent = " {" + compiled + "}";
-        }*//* else
-            return Optional.empty();*/
+			outputContent = ";";
+		else 
+			if (!withBraces.isEmpty() && '{' == withBraces.charAt(0) && '}' == withBraces.charAt(withBraces.length() - 1)){
+				let substring : any = withBraces.substring(1, withBraces.length() - 1);
+				let compiled : any = Main.compileFunctionSegments(substring, 2);
+				outputContent = " {" + compiled + "}";
+			}
+		else 
+			return Optional.empty();
 		return Optional.of(Main.parseMethodHeader(definition, structName).generateWithAfterName(joinedParams) + outputContent);}
 	compileFunctionSegments(substring : string, depth : number) : string {
-		return Main.compileStatements(substring, input => compileFunctionSegment(input, depth));}
+		return Main.compileStatements(substring, input => Main.compileFunctionSegment(input, depth));}
 	compileParameter(input : string) : string {
 		if (input.isBlank())
 			return "";
@@ -150,7 +152,15 @@ class Main {
 	compileFunctionSegment(input : string, depth : number) : string {
 		if (input.isBlank())
 			return "";
-		return Main.compileConditional(input, depth).or(/*(*/) -  > Main.compileStatement(input, /* Main::compileFunctionStatementValue)*/).map(/*value -> System.lineSeparator(*/) + "\t".repeat(/*depth) + value*/).orElseGet(() -  > Placeholder.generate(input));}
+		return Main.compileConditional(input, depth).or(/*(*/) -  > Main.compileElse(input, /* depth)*/).or(() -  > Main.compileStatement(input, /* Main::compileFunctionStatementValue*/)).map(/*value -> System.lineSeparator(*/) + "\t".repeat(/*depth) + value*/).orElseGet(() -  > Placeholder.generate(input));}
+	compileElse(input : string, depth : number) : Optional<string> {
+		let strip : any = input.strip();
+		if (strip.startsWith("else")){
+			let substring : any = strip.substring("else".length());
+			return Optional.of("else " + Main.functionCompileStatementOrBlock(depth, substring));
+		}
+		else 
+			return Optional.empty();}
 	compileFunctionStatementValue(input : string) : Optional<string> {
 		return Main.compileReturn(input).or(/*(*/) -  > Main.compileAssignment(/*input)*/);}
 	compileReturn(input : string) : Optional<string> {
@@ -168,21 +178,25 @@ class Main {
 		if (slice.isEmpty() || '(' != slice.charAt(0))
 			return Optional.empty();
 		let substring : any = slice.substring(1);
-		return Main.divide(substring, /* Main::foldConditional*/).popFirst().flatMap(tuple => compileConditionalSegments(tuple, depth));}
+		return Main.divide(substring, /* Main::foldConditional*/).popFirst().flatMap(tuple => Main.compileConditionalSegments(tuple, depth));}
 	compileConditionalSegments(tuple : Tuple<string, ListLike<string>>, depth : number) : Optional<string> {
 		let substring1 : any = tuple.left();
 		if (substring1.isEmpty() || ')' != substring1.charAt(substring1.length() - 1))
 			return Optional.empty();
 		let condition : any = substring1.substring(0, substring1.length() - 1);
-		let withBraces : any = tuple.right().stream().collect(Collectors.joining()).strip();/*
+		let joined : any = tuple.right().stream().collect(Collectors.joining());
+		let compiled : any = Main.functionCompileStatementOrBlock(depth, joined);
+		return Optional.of("if (" + Main.compileValueOrPlaceholder(condition) + ")" + compiled);}
+	functionCompileStatementOrBlock(depth : number, input : string) : string {
+		let withBraces : any = input.strip();/*
         final String compiled;*/
 		if (withBraces.startsWith("{") && withBraces.endsWith("}")){
 			let compiled1 : any = Main.compileFunctionSegments(withBraces.substring(1, withBraces.length() - 1), depth + 1);
-			compiled = "{" + compiled1 + LINE_SEPARATOR + "\t".repeat(depth) + "}";
-		}/* else {
-            compiled = Main.compileFunctionSegment(withBraces, depth + 1);
-        }*/
-		return Optional.of("if (" + Main.compileValueOrPlaceholder(condition) + ")" + compiled);}
+			compiled = "{" + compiled1 + Main.LINE_SEPARATOR + "\t".repeat(depth) + "}";
+		}
+		else 
+			compiled = Main.compileFunctionSegment(withBraces, depth + 1);
+		return compiled;}
 	foldConditional(state : State, c : char) : State {
 		let appended : any = state.append(c);
 		if ('(' == c)
@@ -213,7 +227,8 @@ class Main {
             final Assignable assignable1;*/
 			if (/*assignable instanceof final Definition definition*/)
 				assignable1 = definition.withModifier("let");
-			let assignable1 :  = assignable;
+			else 
+				assignable1 = assignable;
 			return Optional.of(/*assignable1.generate(*/) + " = " + Main.compileValueOrPlaceholder(/*after)*/);
 		}
 		return Optional.empty();}
@@ -283,9 +298,9 @@ class Main {
 		if ('(' == c){
 			let entered : any = appended.enter();
 			if (entered.isShallow())
-				return entered.advance();/*
-            else
-                return entered;*/
+				return entered.advance();
+			else 
+				return entered;
 		}
 		if (')' == c)
 			return appended.exit();
@@ -386,8 +401,9 @@ class Main {
 			let beforeImplements : any = afterKeyword.substring(0, implementsIndex).strip();
 			let afterImplements : any = afterKeyword.substring(implementsIndex + "implements ".length()).strip();
 			return Optional.of(Main.complete(type, beforeKeyword, beforeImplements, Optional.of(afterImplements)));
-		}/* else
-            return Optional.of(Main.complete(type, beforeKeyword, afterKeyword, Optional.empty()));*/}
+		}
+		else 
+			return Optional.of(Main.complete(type, beforeKeyword, afterKeyword, Optional.empty()));}
 	complete(type : string, beforeKeyword : string, beforeImplements : string, maybeImplements : Optional<string>) : StructureHeader {
 		let strip : any = beforeImplements.strip();
 		if (!strip.isEmpty() && ')' == strip.charAt(strip.length() - 1)){
