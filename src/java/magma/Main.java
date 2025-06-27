@@ -110,9 +110,17 @@ public class Main {
             if (0 <= typeSeparator) {
                 final var beforeType = beforeName.substring(0, typeSeparator);
                 final var type = beforeName.substring(typeSeparator + " ".length());
-                return Main.generatePlaceholder(beforeType) + " " + Main.generatePlaceholder(type) + " " + name;
+                return Main.generatePlaceholder(beforeType) + " " + name + " : " + Main.compileType(type);
             }
         }
+
+        return Main.generatePlaceholder(strip);
+    }
+
+    private static String compileType(final String input) {
+        final var strip = input.strip();
+        if ("String".contentEquals(strip))
+            return "string";
 
         return Main.generatePlaceholder(strip);
     }

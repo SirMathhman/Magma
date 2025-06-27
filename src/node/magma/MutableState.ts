@@ -4,11 +4,11 @@
 /*import java.util.List;*/
 /*import java.util.Optional;*/
 /*public */class MutableState /*implements State*/ {
-	/*private final*/ /*List<String>*/ segments = /* new ArrayList<>()*/;
+	/*private final*/ segments : /*List<String>*/ = /* new ArrayList<>()*/;
 	/*private final CharSequence input;*/
-	/*private*/ /*StringBuilder*/ buffer = /* new StringBuilder()*/;
-	/*private*/ /*int*/ depth = /* 0*/;
-	/*private*/ /*int*/ index = /* 0*/;
+	/*private*/ buffer : /*StringBuilder*/ = /* new StringBuilder()*/;
+	/*private*/ depth : /*int*/ = /* 0*/;
+	/*private*/ index : /*int*/ = /* 0*/;
 	/*public MutableState(final CharSequence input) {
         this.input = input;
     }*/
