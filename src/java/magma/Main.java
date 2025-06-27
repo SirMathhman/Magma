@@ -153,7 +153,7 @@ public class Main {
         final var strip = input.strip();
         if (strip.startsWith("return ")) {
             final var slice = strip.substring("return ".length());
-            return Optional.of("return " + Main.compileValue(slice));
+            return Optional.of("return " + Main.compileValueOrPlaceholder(slice));
         }
 
         return Optional.empty();
@@ -179,7 +179,7 @@ public class Main {
 
         final var condition = substring1.substring(0, substring1.length() - 1);
         final var substring2 = tuple.right().stream().collect(Collectors.joining());
-        return Optional.of("if (" + Main.compileValue(condition) + ")" + Placeholder.generate(substring2));
+        return Optional.of("if (" + Main.compileValueOrPlaceholder(condition) + ")" + Placeholder.generate(substring2));
     }
 
     private static State foldConditional(final State state, final char c) {
@@ -215,52 +215,60 @@ public class Main {
         if (0 <= separator) {
             final var before = input.substring(0, separator);
             final var after = input.substring(separator + "=".length());
-            return Optional.of(Main.parseDefinitionOrPlaceholder(before).generate() + " = " + Main.compileValue(after));
+            return Optional.of(Main.parseDefinitionOrPlaceholder(before).generate() + " = " +
+                               Main.compileValueOrPlaceholder(after));
         }
         return Optional.empty();
     }
 
-    private static String compileValue(final String input) {
+    private static String compileValueOrPlaceholder(final String input) {
+        return Main.compileValue(input).orElseGet(() -> Placeholder.generate(input));
+    }
+
+    private static Optional<String> compileValue(final String input) {
         final var maybeOperator = Main.compileOperator(input, ">=").or(() -> Main.compileOperator(input, "=="))
                                       .or(() -> Main.compileOperator(input, "+"));
 
         if (maybeOperator.isPresent())
-            return maybeOperator.get();
+            return maybeOperator;
 
         final var maybeInvocation = Main.compileInvocation(input);
         if (maybeInvocation.isPresent())
-            return maybeInvocation.get();
+            return maybeInvocation;
 
         final var separator = input.lastIndexOf('.');
         if (0 <= separator) {
             final var value = input.substring(0, separator);
             final var property = input.substring(separator + ".".length()).strip();
             if (Main.isSymbol(property))
-                return Main.compileValue(value) + "." + property;
+                return Main.compileValue(value).map(result -> result + "." + property);
         }
 
         final var strip = input.strip();
         if (Main.isNumber(strip))
-            return strip;
+            return Optional.of(strip);
 
         if (!strip.isEmpty() && '\"' == strip.charAt(0) && '\"' == strip.charAt(strip.length() - 1))
-            return strip;
+            return Optional.of(strip);
 
         if (Main.isSymbol(strip))
-            return strip;
+            return Optional.of(strip);
 
-        return Placeholder.generate(strip);
+        return Optional.empty();
     }
 
     private static Optional<String> compileOperator(final String input, final String operator) {
         final var i = input.indexOf(operator);
-        if (0 <= i) {
-            final var substring = input.substring(0, i);
-            final var substring1 = input.substring(i + operator.length());
-            return Optional.of(Main.compileValue(substring) + " " + operator + " " + Main.compileValue(substring1));
-        }
+        if (0 > i)
+            return Optional.empty();
 
-        return Optional.empty();
+        final var leftSlice = input.substring(0, i);
+        final var rightSlice = input.substring(i + operator.length());
+        return Main.compileValue(leftSlice).flatMap(left -> {
+            return Main.compileValue(rightSlice).map(right -> {
+                return left + " " + operator + " " + right;
+            });
+        });
     }
 
     private static Optional<String> compileInvocation(final String input) {
@@ -498,12 +506,12 @@ public class Main {
     }
 
     private static Optional<String> handleInvocationSegments(final Tuple<ListLike<String>, String> tuple) {
-        final var caller = tuple.left().stream().collect(Collectors.joining());
-        if (caller.isEmpty() || '(' != caller.charAt(caller.length() - 1))
+        final var joined = tuple.left().stream().collect(Collectors.joining());
+        if (joined.isEmpty() || '(' != joined.charAt(joined.length() - 1))
             return Optional.empty();
 
-        final var substring = caller.substring(0, caller.length() - "(".length());
+        final var substring = joined.substring(0, joined.length() - "(".length());
         final var argument = tuple.right();
-        return Optional.of(Main.compileValue(substring) + "(" + Placeholder.generate(argument) + ")");
+        return Main.compileValue(substring).map(caller -> caller + "(" + Placeholder.generate(argument) + ")");
     }
 }
