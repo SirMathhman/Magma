@@ -8,7 +8,7 @@ import java.util.Optional;
 public class MutableState implements State {
     private final List<String> segments = new ArrayList<>();
     private final CharSequence input;
-    private StringBuilder buffer = new StringBuilder();
+    private String buffer = "";
     private int depth = 0;
     private int index = 0;
 
@@ -17,13 +17,13 @@ public class MutableState implements State {
     }
 
     @Override public State advance() {
-        this.segments.add(this.buffer.toString());
-        this.buffer = new StringBuilder();
+        this.segments.add(this.buffer);
+        this.buffer = "";
         return this;
     }
 
     @Override public State append(final char c) {
-        this.buffer.append(c);
+        this.buffer = this.buffer + c;
         return this;
     }
 

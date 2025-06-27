@@ -92,6 +92,9 @@
         if (Main.isNumber(strip))
             return strip;
 
+        if (strip.startsWith("\"") && strip.endsWith("\""))
+            return strip;
+
         return Main.generatePlaceholder(strip);
     }*/
 	/*private static boolean isNumber(final CharSequence input) {

@@ -6,19 +6,19 @@
 /*public */class MutableState /*implements State*/ {
 	/*private final*/ segments : /*List<String>*/ = /*new ArrayList<>()*/;
 	/*private final CharSequence input;*/
-	/*private*/ buffer : /*StringBuilder*/ = /*new StringBuilder()*/;
+	/*private*/ buffer : string = "";
 	/*private*/ depth : number = 0;
 	/*private*/ index : number = 0;
 	/*public MutableState(final CharSequence input) {
         this.input = input;
     }*/
 	/*@Override public State advance() {
-        this.segments.add(this.buffer.toString());
-        this.buffer = new StringBuilder();
+        this.segments.add(this.buffer);
+        this.buffer = "";
         return this;
     }*/
 	/*@Override public State append(final char c) {
-        this.buffer.append(c);
+        this.buffer = this.buffer + c;
         return this;
     }*/
 	/*@Override public List<String> unwrap() {
