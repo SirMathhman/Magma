@@ -159,7 +159,7 @@ class Main {
 			if (!withBraces.isEmpty() && '{' == withBraces.charAt(0) && '}' == withBraces.charAt(withBraces.length() - 1)){
 				let substring : any = withBraces.substring(1, withBraces.length() - 1);
 				let compiled : any = Main.compileFunctionSegments(substring, 2);
-				outputContent = " {" + compiled + "\n\t}";
+				outputContent = " {" + compiled + Main.LINE_SEPARATOR + "\t}";
 			}
 		else 
 			return Optional.empty();
