@@ -46,7 +46,7 @@
     public Optional<Tuple<State,*/ pop(/**/) : /*Character>>*/ {
 		/*if*/ > : /*(this.index*/ = this.input.length(/*))
             return Optional.empty(*/);
-		/*final*/ c : /*var*/ = this.input.charAt(/*this.index*/);/*
+		/*final*/ c : any = this.input.charAt(/*this.index*/);/*
         this.index++;*//*
         return Optional.of(new Tuple<>(this, c));*//*
     */}

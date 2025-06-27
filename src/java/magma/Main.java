@@ -238,6 +238,8 @@ public class Main {
 
     private static String compileType(final String input) {
         final var strip = input.strip();
+        if ("var".contentEquals(strip))
+            return "any";
         if ("String".contentEquals(strip))
             return "string";
         if ("int".contentEquals(strip))
