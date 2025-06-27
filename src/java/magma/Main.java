@@ -13,27 +13,21 @@ public class Main {
     public static void main(final String[] args) {
         final var root = Paths.get(".", "src", "java");
         try (final var stream = Files.walk(root)) {
-            final var sources = stream.filter(path -> path.toString()
-                            .endsWith(".java"))
-                    .toList();
+            final var sources = stream.filter(path -> path.toString().endsWith(".java")).toList();
 
             for (final var source : sources) {
                 final var relative = root.relativize(source.getParent());
                 final var input = Files.readString(source);
-
-                final var string = Main.compileRoot(input);
-
-                final var targetParent = Paths.get(".", "src", "node")
-                        .resolve(relative);
+                final var output = Main.compileRoot(input);
+                final var targetParent = Paths.get(".", "src", "node").resolve(relative);
                 if (!Files.exists(targetParent))
                     Files.createDirectories(targetParent);
 
-                final var fileName = source.getFileName()
-                        .toString();
+                final var fileName = source.getFileName().toString();
                 final var separator = fileName.lastIndexOf('.');
                 final var name = fileName.substring(0, separator);
                 final var target = targetParent.resolve(name + ".ts");
-                Files.writeString(target, string);
+                Files.writeString(target, output);
             }
         } catch (final IOException e) {
             //noinspection CallToPrintStackTrace
@@ -45,7 +39,7 @@ public class Main {
         return Main.compileStatements(input, Main::compileRootSegment);
     }
 
-    private static String compileStatements(final String input, final Function<String, String> mapper) {
+    private static String compileStatements(final CharSequence input, final Function<String, String> mapper) {
         final var segments = Main.divide(input);
         final var output = new StringBuilder();
         for (final var segment : segments)
@@ -64,8 +58,8 @@ public class Main {
             if (0 <= contentStart) {
                 final var beforeContent = withoutEnd.substring(0, contentStart);
                 final var content = withoutEnd.substring(contentStart + "{".length());
-                return Main.compileStructureHeader(beforeContent) + " {" + Main.compileStatements(content,
-                        Main::compileStructureSegment) + "}";
+                return Main.compileStructureHeader(beforeContent) + " {" +
+                       Main.compileStatements(content, Main::compileStructureSegment) + "}";
             }
         }
 
@@ -80,16 +74,14 @@ public class Main {
         final var classIndex = input.indexOf("class ");
         if (0 <= classIndex) {
             final var beforeKeyword = input.substring(0, classIndex);
-            final var afterKeyword = input.substring(classIndex + "class ".length())
-                    .strip();
+            final var afterKeyword = input.substring(classIndex + "class ".length()).strip();
             final var implementsIndex = afterKeyword.indexOf("implements ");
             if (0 <= implementsIndex) {
                 final var beforeImplements = afterKeyword.substring(0, implementsIndex);
                 final var afterImplements = afterKeyword.substring(implementsIndex + "implements ".length());
-                return Main.generatePlaceholder(beforeKeyword) + "class " + beforeImplements + Main.generatePlaceholder(
-                        "implements " + afterImplements);
-            }
-            else
+                return Main.generatePlaceholder(beforeKeyword) + "class " + beforeImplements +
+                       Main.generatePlaceholder("implements " + afterImplements);
+            } else
                 return Main.generatePlaceholder(beforeKeyword) + "class " + afterKeyword;
         }
 
@@ -104,8 +96,7 @@ public class Main {
             current = Main.fold(current, c);
         }
 
-        return current.advance()
-                .unwrap();
+        return current.advance().unwrap();
     }
 
     private static State fold(final State state, final char c) {
@@ -113,8 +104,7 @@ public class Main {
         if (';' == c && appended.isLevel())
             return appended.advance();
         if ('}' == c && appended.isShallow())
-            return appended.exit()
-                    .advance();
+            return appended.exit().advance();
         if ('{' == c)
             return appended.enter();
         if ('}' == c)
@@ -123,7 +113,6 @@ public class Main {
     }
 
     private static String generatePlaceholder(final String input) {
-        return "/*" + input.replace("/*", "stat")
-                .replace("*/", "end") + "*/";
+        return "/*" + input.replace("/*", "stat").replace("*/", "end") + "*/";
     }
 }
