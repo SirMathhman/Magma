@@ -1,15 +1,18 @@
 /*package magma;*/
 /*import java.util.List;*/
 /*public interface State */ {/*
-    State advance();
+    State advance();*//*
 
-    State append(char c);
+    State append(char c);*//*
 
-    List<String> unwrap();
+    List<String> unwrap();*//*
 
-    boolean isLevel();
+    boolean isLevel();*//*
 
-    State enter();
+    State enter();*//*
 
-    State exit();
+    State exit();*//*
+
+    boolean isShallow();*//*
 */}
+/**/

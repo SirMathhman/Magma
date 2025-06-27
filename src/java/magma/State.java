@@ -14,4 +14,6 @@ public interface State {
     State enter();
 
     State exit();
+
+    boolean isShallow();
 }
