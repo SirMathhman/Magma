@@ -183,7 +183,7 @@
 		return Main.compileValue(input).orElseGet(/*() -> Placeholder.generate(input)*/);/*
     */}
 	/*private static*/ compileValue(/*final String input*/) : Optional<string> {
-		/*final*/ maybeOperator : any = Main.compileOperator(input, " >= ").or(/*() -> Main.compileOperator(input, "==")*/).or(/*() -> Main.compileOperator(input, "+")*/);
+		/*final*/ maybeOperator : any = Main.compileOperator(input, " >= ").or(/*() -> Main.compileOperator(input, "==")*/).or(/*() -> Main.compileOperator(input, "+")*/).or(/*() -> Main.compileOperator(input, "<")*/);
 		if (maybeOperator.isPresent())/*
             return maybeOperator;*/
 		/*final*/ maybeInvocation : any = Main.compileInvocation(input);

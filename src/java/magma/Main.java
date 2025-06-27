@@ -227,7 +227,8 @@ public class Main {
 
     private static Optional<String> compileValue(final String input) {
         final var maybeOperator = Main.compileOperator(input, ">=").or(() -> Main.compileOperator(input, "=="))
-                                      .or(() -> Main.compileOperator(input, "+"));
+                                      .or(() -> Main.compileOperator(input, "+"))
+                                      .or(() -> Main.compileOperator(input, "<"));
 
         if (maybeOperator.isPresent())
             return maybeOperator;
