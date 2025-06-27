@@ -31,8 +31,16 @@ public class Main {
     }
 
     private static String compileRootSegment(final String input) {
-        final var strip = input.strip();
-        return Main.generatePlaceholder(strip) + System.lineSeparator();
+        return Main.compileRootSegmentValue(input.strip()) + System.lineSeparator();
+    }
+
+    private static String compileRootSegmentValue(final String input) {
+        if (input.endsWith("}")) {
+            final var withoutEnd = input.substring(0, input.length() - "}".length());
+            return Main.generatePlaceholder(withoutEnd) + "}";
+        }
+
+        return Main.generatePlaceholder(input);
     }
 
     private static List<String> divide(final CharSequence input) {

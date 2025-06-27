@@ -14,7 +14,7 @@
 
             final var output = new StringBuilder();
             for (final var segment : segments)
-                output.append(compileRootSegment(segment));
+                output.append(Main.compileRootSegment(segment));
 
             final var targetParent = Paths.get(".", "src", "node", "magma");
             if (!Files.exists(targetParent))
@@ -28,19 +28,26 @@
         }
     }
 
-    private static String compileRootSegment(String input) {
-        final var strip = input.strip();
+    private static String compileRootSegment(final String input) {
+        return Main.compileRootSegmentValue(input.strip()) + System.lineSeparator();
+    }
 
-        return Main.generatePlaceholder(strip) + System.lineSeparator();
+    private static String compileRootSegmentValue(final String input) {
+        if (input.endsWith("}")) {
+            final var withoutEnd = input.substring(0, input.length() - "}".length());
+            return Main.generatePlaceholder(withoutEnd) + "}";*/
+/*}
+
+        return Main.generatePlaceholder(input);
     }
 
     private static List<String> divide(final CharSequence input) {
         State current = new MutableState();
         final var length = input.length();
         for (var i = 0; i < length; i++) {
-            final var c = input.charAt(i);
-            current = Main.fold(current, c);
-        }
+            final var c = input.charAt(i);*/
+/*current = Main.fold(current, c);*/
+/*}
 
         return current.advance()
                 .unwrap();
@@ -51,8 +58,8 @@
         if (';' == c && appended.isLevel())
             return appended.advance();
         if ('{' == c)
-            return appended.enter();
-        if ('}' == c)
+            return appended.enter();*/
+/*if ('}' == c)
             return appended.exit();
         return appended;
     }
@@ -61,4 +68,4 @@
         return "stat" + input.replace("stat", "stat")
                 .replace("end", "end") + "end";
     }
-}*/
+*/}
