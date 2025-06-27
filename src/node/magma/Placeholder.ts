@@ -1,8 +1,8 @@
 /*package magma;*/
 /*public*/class Placeholder/*implements Assignable, StructureDefinition*/ {
 	/*private final String value;*/
-	constructor (/*final String value*/) {/*
-        this.value = value;*//*
+	constructor (/*final String value*/) {
+	this.value = value;/*
     */}
 	/*static*/ generate(/*final String input*/) : string {/*
         return "stat" + input.replace("stat", "stat").replace("end", "end") + "end";*//*

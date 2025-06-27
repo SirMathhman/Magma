@@ -3,10 +3,10 @@
 /*import java.util.Optional;*/
 /*public*/class StructureHeader/*implements StructureDefinition*/ {
 	/*@Override
-    public*/ generate(/**/) : string {/*
-        final var generated = this.maybeAfterImplements()
+    public*/ generate(/**/) : string {
+	/*final*/ generated : /*var*/ = this.maybeAfterImplements(/*)
                                   .map(afterImplements -> Placeholder.generate("implements " + afterImplements))
-                                  .orElse("");*//*
+                                  .orElse(""*/);/*
 
         return Placeholder.generate(this.beforeKeyword()) + this.type + " " + this.name() + generated;*//*
     */}

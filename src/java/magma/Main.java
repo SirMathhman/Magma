@@ -133,7 +133,8 @@ public class Main {
     }
 
     private static String compileFunctionSegment(final String input) {
-        return Placeholder.generate(input);
+        return Main.compileField(input).map(value -> System.lineSeparator() + "\t" + value)
+                   .orElseGet(() -> Placeholder.generate(input));
     }
 
     private static MethodHeader parseMethodHeader(final String input, final CharSequence structName) {

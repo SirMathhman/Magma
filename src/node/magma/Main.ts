@@ -13,8 +13,8 @@
 	/*private static final*/ LINE_SEPARATOR : string = System.lineSeparator(/**/);
 	constructor (/**/) {/*
     */}
-	/*public static*/ main(/*final String[] args*/) : /*void*/ {/*
-        final var root = Paths.get(".", "src", "java");*//*
+	/*public static*/ main(/*final String[] args*/) : /*void*/ {
+	/*final*/ root : /*var*/ = Paths.get(/*".", "src", "java"*/);/*
         try (final var stream = Files.walk(root)) {
             final var sources = stream.filter(path -> path.toString().endsWith(".java")).toList();
 
@@ -52,80 +52,75 @@
 	/*private static*/ compileRootSegmentValue(/*final String input*/) : string {/*
         return Main.compileStructure(input).orElseGet(() -> Placeholder.generate(input));*//*
     */}
-	/*private static*/ compileStructure(/*final String input*/) : Optional<string> {/*
-        if (input.isEmpty() || '}' != input.charAt(input.length() - 1))
-            return Optional.empty();*//*
-
-        final var withoutEnd = input.substring(0, input.length() - "}".length());*//*
-        final var contentStart = withoutEnd.indexOf('{');*//*
+	/*private static*/ compileStructure(/*final String input*/) : Optional<string> {
+	/*if (input.isEmpty() ||*/ ! : /*'}'*/ = input.charAt(/*input.length() - 1))
+            return Optional.empty(*/);
+	/*final*/ withoutEnd : /*var*/ = input.substring(/*0, input.length() - "}".length()*/);
+	/*final*/ contentStart : /*var*/ = withoutEnd.indexOf(/*'{'*/);/*
         if (0 > contentStart)
-            return Optional.empty();*//*
-
-        final var beforeContent = withoutEnd.substring(0, contentStart);*//*
-        final var content = withoutEnd.substring(contentStart + "{".length());*//*
-        final var definition = Main.parseStructureHeader(beforeContent);*//*
+            return Optional.empty();*/
+	/*final*/ beforeContent : /*var*/ = withoutEnd.substring(/*0, contentStart*/);
+	/*final*/ content : /*var*/ = withoutEnd.substring(/*contentStart + "{".length()*/);
+	/*final*/ definition : /*var*/ = Main.parseStructureHeader(/*beforeContent*/);/*
         final String structName;*//*
         if (definition instanceof final StructureHeader header) {
             if (header.annotations().contains("Actual"))
                 return Optional.of("");
 
             structName = header.name();
-        }*//* else
-            structName = "?";*//*
+        }*/
+	/*else
+          */ structName : /**/ = "?";/*
 
         return Optional.of(definition.generate() + " {" +
                            Main.compileStatements(content, input1 -> Main.compileStructureSegment(input1, structName)) +
                            "}");*//*
     */}
-	/*private static*/ compileStructureSegment(/*final String input, final String structName*/) : string {/*
-        final var strip = input.strip();*//*
+	/*private static*/ compileStructureSegment(/*final String input, final String structName*/) : string {
+	/*final*/ strip : /*var*/ = input.strip(/**/);/*
         return Main.LINE_SEPARATOR + "\t" + Main.compileStructureSegmentValue(strip, structName);*//*
     */}
 	/*private static*/ compileStructureSegmentValue(/*final String input, final String structName*/) : string {/*
         return Main.compileField(input).or(() -> Main.compileMethod(input, structName))
                    .orElseGet(() -> Placeholder.generate(input));*//*
     */}
-	/*private static*/ compileField(/*final String input*/) : Optional<string> {/*
-        if (input.isEmpty() || ';' != input.charAt(input.length() - 1))
-            return Optional.empty();*//*
-
-        final var withoutEnd = input.substring(0, input.length() - ";".length());*//*
+	/*private static*/ compileField(/*final String input*/) : Optional<string> {
+	/*if (input.isEmpty() ||*/ ! : /*';'*/ = input.charAt(/*input.length() - 1))
+            return Optional.empty(*/);
+	/*final*/ withoutEnd : /*var*/ = input.substring(/*0, input.length() - ";".length()*/);/*
         return Main.compileStructureStatementValue(withoutEnd).map(result -> result + ";");*//*
     */}
-	/*private static*/ compileMethod(/*final String input, final CharSequence structName*/) : Optional<string> {/*
-        if (input.isEmpty() || '}' != input.charAt(input.length() - 1))
-            return Optional.empty();*//*
-
-        final var withoutEnd = input.substring(0, input.length() - "}".length());*//*
-        final var contentStart = withoutEnd.indexOf('{');*//*
+	/*private static*/ compileMethod(/*final String input, final CharSequence structName*/) : Optional<string> {
+	/*if (input.isEmpty() ||*/ ! : /*'}'*/ = input.charAt(/*input.length() - 1))
+            return Optional.empty(*/);
+	/*final*/ withoutEnd : /*var*/ = input.substring(/*0, input.length() - "}".length()*/);
+	/*final*/ contentStart : /*var*/ = withoutEnd.indexOf(/*'{'*/);/*
         if (0 > contentStart)
-            return Optional.empty();*//*
-
-        final var before = withoutEnd.substring(0, contentStart).strip();*//*
-        final var content = withoutEnd.substring(contentStart + "{".length());*//*
-        if (before.isEmpty() || ')' != before.charAt(before.length() - 1))
-            return Optional.empty();*//*
-
-        final var withoutParamEnd = before.substring(0, before.length() - ")".length());*//*
-        final var paramStart = withoutParamEnd.indexOf('(');*//*
+            return Optional.empty();*/
+	/*final*/ before : /*var*/ = withoutEnd.substring(/*0, contentStart).strip(*/);
+	/*final*/ content : /*var*/ = withoutEnd.substring(/*contentStart + "{".length()*/);
+	/*if (before.isEmpty() ||*/ ! : /*')'*/ = before.charAt(/*before.length() - 1))
+            return Optional.empty(*/);
+	/*final*/ withoutParamEnd : /*var*/ = before.substring(/*0, before.length() - ")".length()*/);
+	/*final*/ paramStart : /*var*/ = withoutParamEnd.indexOf(/*'('*/);/*
         if (0 > paramStart)
-            return Optional.empty();*//*
-
-        final var definition = withoutParamEnd.substring(0, paramStart);*//*
-        final var params = withoutParamEnd.substring(paramStart + "(".length());*//*
-        final var joinedParams = "(" + Placeholder.generate(params) + ")";*//*
+            return Optional.empty();*/
+	/*final*/ definition : /*var*/ = withoutParamEnd.substring(/*0, paramStart*/);
+	/*final*/ params : /*var*/ = withoutParamEnd.substring(/*paramStart + "(".length()*/);
+	/*final*/ joinedParams : /*var*/ = /*"(" + Placeholder*/.generate(params) + ")";/*
         return Optional.of(Main.parseMethodHeader(definition, structName).generateWithAfterName(joinedParams) + " {" +
                            Main.compileStatements(content, Main::compileFunctionSegment) + "}");*//*
     */}
 	/*private static*/ compileFunctionSegment(/*final String input*/) : string {/*
-        return Placeholder.generate(input);*//*
+        return Main.compileField(input).map(value -> System.lineSeparator() + "\t" + value)
+                   .orElseGet(() -> Placeholder.generate(input));*//*
     */}
 	/*private static*/ parseMethodHeader(/*final String input, final CharSequence structName*/) : /*MethodHeader*/ {/*
         return Main.parseConstructor(input, structName).orElseGet(() -> Main.parseDefinitionOrPlaceholder(input));*//*
     */}
-	/*private static*/ parseConstructor(/*final String input, final CharSequence structName*/) : Optional</*MethodHeader*/> {/*
-        final var strip = input.strip();*//*
-        final var index = strip.lastIndexOf(' ');*//*
+	/*private static*/ parseConstructor(/*final String input, final CharSequence structName*/) : Optional</*MethodHeader*/> {
+	/*final*/ strip : /*var*/ = input.strip(/**/);
+	/*final*/ index : /*var*/ = strip.lastIndexOf(/*' '*/);/*
         if (0 <= index) {
             final var name = strip.substring(index + " ".length()).strip();
             if (name.contentEquals(structName))
@@ -134,8 +129,8 @@
 
         return Optional.empty();*//*
     */}
-	/*private static*/ compileStructureStatementValue(/*final String input*/) : Optional<string> {/*
-        final var separator = input.indexOf('=');*//*
+	/*private static*/ compileStructureStatementValue(/*final String input*/) : Optional<string> {
+	/*final*/ separator : /*var*/ = input.indexOf(/*'='*/);/*
         if (0 <= separator) {
             final var before = input.substring(0, separator);
             final var after = input.substring(separator + "=".length());
@@ -143,8 +138,8 @@
         }*//*
         return Optional.empty();*//*
     */}
-	/*private static*/ compileValue(/*final String input*/) : string {/*
-        final var strip = input.strip();*//*
+	/*private static*/ compileValue(/*final String input*/) : string {
+	/*final*/ strip : /*var*/ = input.strip(/**/);/*
         if (!strip.isEmpty() && ')' == strip.charAt(strip.length() - 1)) {
             final var substring = strip.substring(0, strip.length() - ")".length());
             final var i = substring.indexOf('(');
@@ -153,9 +148,8 @@
                 final var argument = substring.substring(i + "(".length());
                 return Main.compileValue(caller) + "(" + Placeholder.generate(argument) + ")";
             }
-        }*//*
-
-        final var separator = input.lastIndexOf('.');*//*
+        }*/
+	/*final*/ separator : /*var*/ = input.lastIndexOf(/*'.'*/);/*
         if (0 <= separator) {
             final var substring = input.substring(0, separator);
             final var substring1 = input.substring(separator + ".".length()).strip();
@@ -163,19 +157,18 @@
         }*//*
 
         if (Main.isNumber(strip))
-            return strip;*//*
-
-        if (!strip.isEmpty() && '\"' == strip.charAt(0) && '\"' == strip.charAt(strip.length() - 1))
-            return strip;*//*
+            return strip;*/
+	/*if (!strip.isEmpty()*/ '\"' : /*&&*/ = /*= strip*/.charAt(0) && '\"' == strip.charAt(strip.length() - 1))
+            return strip;/*
 
         if (Main.isSymbol(strip))
             return strip;*//*
 
         return Placeholder.generate(strip);*//*
     */}
-	/*private static*/ isSymbol(/*final CharSequence input*/) : /*boolean*/ {/*
-        final var length = input.length();*//*
-        for (var i = 0;*//* i < length;*//* i++) {
+	/*private static*/ isSymbol(/*final CharSequence input*/) : /*boolean*/ {
+	/*final*/ length : /*var*/ = input.length(/**/);
+	/*for*/ i : /*(var*/ = 0;/* i < length;*//* i++) {
             final var c = input.charAt(i);
             if (Character.isLetter(c))
                 continue;
@@ -183,36 +176,34 @@
         }*//*
         return true;*//*
     */}
-	/*private static*/ isNumber(/*final CharSequence input*/) : /*boolean*/ {/*
-        final var length = input.length();*//*
-        for (var i = 0;*//* i < length;*//* i++) {
+	/*private static*/ isNumber(/*final CharSequence input*/) : /*boolean*/ {
+	/*final*/ length : /*var*/ = input.length(/**/);
+	/*for*/ i : /*(var*/ = 0;/* i < length;*//* i++) {
             final var c = input.charAt(i);
             if (!Character.isDigit(c))
                 return false;
         }*//*
         return true;*//*
     */}
-	/*private static*/ parseDefinitionOrPlaceholder(/*final String input*/) : /*Assignable*/ {/*
-        final var strip = input.strip();*//*
+	/*private static*/ parseDefinitionOrPlaceholder(/*final String input*/) : /*Assignable*/ {
+	/*final*/ strip : /*var*/ = input.strip(/**/);/*
         return Main.parseDefinition(strip).<Assignable>map(value -> value).orElseGet(() -> new Placeholder(strip));*//*
     */}
-	/*private static*/ parseDefinition(/*final String strip*/) : Optional</*Definition*/> {/*
-        final var separator = strip.lastIndexOf(' ');*//*
+	/*private static*/ parseDefinition(/*final String strip*/) : Optional</*Definition*/> {
+	/*final*/ separator : /*var*/ = strip.lastIndexOf(/*' '*/);/*
         if (0 > separator)
-            return Optional.empty();*//*
-
-        final var beforeName = strip.substring(0, separator);*//*
-        final var name = strip.substring(separator + " ".length());*//*
-        final var typeSeparator = beforeName.lastIndexOf(' ');*//*
+            return Optional.empty();*/
+	/*final*/ beforeName : /*var*/ = strip.substring(/*0, separator*/);
+	/*final*/ name : /*var*/ = strip.substring(/*separator + " ".length()*/);
+	/*final*/ typeSeparator : /*var*/ = beforeName.lastIndexOf(/*' '*/);/*
         if (0 > typeSeparator)
-            return Optional.empty();*//*
-
-        final var beforeType = beforeName.substring(0, typeSeparator);*//*
-        final var type = beforeName.substring(typeSeparator + " ".length());*//*
+            return Optional.empty();*/
+	/*final*/ beforeType : /*var*/ = beforeName.substring(/*0, typeSeparator*/);
+	/*final*/ type : /*var*/ = beforeName.substring(/*typeSeparator + " ".length()*/);/*
         return Optional.of(new Definition(beforeType, name, Main.compileType(type)));*//*
     */}
-	/*private static*/ compileType(/*final String input*/) : string {/*
-        final var strip = input.strip();*//*
+	/*private static*/ compileType(/*final String input*/) : string {
+	/*final*/ strip : /*var*/ = input.strip(/**/);/*
         if ("String".contentEquals(strip))
             return "string";*//*
         if ("int".contentEquals(strip))
@@ -234,14 +225,13 @@
                    .orElseGet(() -> new Placeholder(input));*//*
     */}
 	/*private static*/ parseClassHeader(/*final String input, final String keyword,
-                                                                  final String type*/) : Optional</*StructureDefinition*/> {/*
-        final var classIndex = input.indexOf(keyword + " ");*//*
+                                                                  final String type*/) : Optional</*StructureDefinition*/> {
+	/*final*/ classIndex : /*var*/ = input.indexOf(/*keyword + " "*/);/*
         if (0 > classIndex)
-            return Optional.empty();*//*
-
-        final var beforeKeyword = input.substring(0, classIndex).strip();*//*
-        final var afterKeyword = input.substring(classIndex + (keyword + " ").length()).strip();*//*
-        final var implementsIndex = afterKeyword.indexOf("implements ");*//*
+            return Optional.empty();*/
+	/*final*/ beforeKeyword : /*var*/ = input.substring(/*0, classIndex).strip(*/);
+	/*final*/ afterKeyword : /*var*/ = input.substring(/*classIndex + (keyword + " ").length()).strip(*/);
+	/*final*/ implementsIndex : /*var*/ = afterKeyword.indexOf(/*"implements "*/);/*
         if (0 <= implementsIndex) {
             final var beforeImplements = afterKeyword.substring(0, implementsIndex).strip();
             final var afterImplements = afterKeyword.substring(implementsIndex + "implements ".length()).strip();
@@ -250,8 +240,8 @@
             return Optional.of(Main.complete(type, beforeKeyword, afterKeyword, Optional.empty()));*//*
     */}
 	/*private static*/ complete(/*final String type, final String beforeKeyword,
-                                            final String beforeImplements, final Optional<String> maybeImplements*/) : /*StructureHeader*/ {/*
-        final var strip = beforeImplements.strip();*//*
+                                            final String beforeImplements, final Optional<String> maybeImplements*/) : /*StructureHeader*/ {
+	/*final*/ strip : /*var*/ = beforeImplements.strip(/**/);/*
         if (!strip.isEmpty() && ')' == strip.charAt(strip.length() - 1)) {
             final var withoutEnd = strip.substring(0, strip.length() - ")".length());
             final var contentStart = withoutEnd.indexOf('(');
@@ -265,8 +255,8 @@
     */}
 	/*private static*/ parseStructureHeaderByAnnotations(/*final String type, final String beforeKeyword,
                                                                      final Optional<String> maybeImplements,
-                                                                     final String strip1*/) : /*StructureHeader*/ {/*
-        final var index = beforeKeyword.lastIndexOf(System.lineSeparator());*//*
+                                                                     final String strip1*/) : /*StructureHeader*/ {
+	/*final*/ index : /*var*/ = beforeKeyword.lastIndexOf(/*System.lineSeparator()*/);/*
         if (0 <= index) {
             final var annotations =
                     Arrays.stream(Pattern.compile("\\n").split(beforeKeyword.substring(0, index).strip()))
@@ -279,8 +269,8 @@
 
         return new StructureHeader(type, Collections.emptyList(), beforeKeyword, strip1, maybeImplements);*//*
     */}
-	/*private static*/ divide(/*final CharSequence input*/) : ListLike<string> {/*
-        State current = new MutableState(input);*//*
+	/*private static*/ divide(/*final CharSequence input*/) : ListLike<string> {
+	State current = /*new MutableState*/(/*input*/);/*
         while (true) {
             final var maybe = current.pop();
             if (maybe.isEmpty())
@@ -320,23 +310,23 @@
 
         return Optional.empty();*//*
     */}
-	/*private static*/ foldSingleQuotes(/*final State state, final char c*/) : Optional</*State*/> {/*
-        if ('\'' != c)
-            return Optional.empty();*//*
-        return state.append(c).popAndAppendToTuple().flatMap(
-                            tuple -> '\\' == tuple.right() ? tuple.left().popAndAppendToOption() : Optional.of(tuple.left()))
-                    .flatMap(State::popAndAppendToOption);*//*
+	/*private static*/ foldSingleQuotes(/*final State state, final char c*/) : Optional</*State*/> {
+	/*if*/ ! : /*('\''*/ = /*c)
+            return Optional*/.empty(/**/);
+	/*return state.append(c).popAndAppendToTuple().flatMap(
+                            tuple*/ '\\' : /*->*/ = /*= tuple*/.right(/*) ? tuple.left().popAndAppendToOption() : Optional.of(tuple.left()))
+                    .flatMap(State::popAndAppendToOption*/);/*
     */}
-	/*private static*/ foldStatements(/*final State state, final char c*/) : /*State*/ {/*
-        final var appended = state.append(c);*//*
-        if (';' == c && appended.isLevel())
-            return appended.advance();*//*
-        if ('}' == c && appended.isShallow())
-            return appended.exit().advance();*//*
-        if ('{' == c)
-            return appended.enter();*//*
-        if ('}' == c)
-            return appended.exit();*//*
+	/*private static*/ foldStatements(/*final State state, final char c*/) : /*State*/ {
+	/*final*/ appended : /*var*/ = state.append(/*c*/);
+	if (';' = /*= c && appended*/.isLevel(/*))
+            return appended.advance(*/);
+	if ('}' = /*= c && appended*/.isShallow(/*))
+            return appended.exit().advance(*/);
+	if ('{' = /*= c)
+            return appended*/.enter(/**/);
+	if ('}' = /*= c)
+            return appended*/.exit(/**/);/*
         return appended;*//*
     */}
 	/**/}
