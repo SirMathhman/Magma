@@ -6,9 +6,9 @@
 /*import java.util.Optional;*/
 /*import java.util.function.Function;*/
 /*import java.util.stream.Collectors;*/
-/*public */class Main {
+/*public*/class Main {
 	Definition[beforeType=private static final, name=LINE_SEPARATOR, type=string] = /*System.lineSeparator()*/;
-	/*private Main*/(/**/) {/*
+	constructor (/**/) {/*
     */}
 	/*public static*/ main(/*final String[] args*/) : /*void*/ {/*
         final var root = Paths.get(".", "src", "java");
@@ -53,18 +53,21 @@
             if (0 <= contentStart) {
                 final var beforeContent = withoutEnd.substring(0, contentStart);
                 final var content = withoutEnd.substring(contentStart + "{".length());
-                return Main.compileStructureHeader(beforeContent) + " {" +
-                       Main.compileStatements(content, Main::compileStructureSegment) + "}";
+                final var definition = Main.parseStructureHeader(beforeContent);
+                final var structName = definition instanceof final StructureHeader header ? header.name() : "?";
+                return definition.generate() + " {" +
+                       Main.compileStatements(content, input1 -> Main.compileStructureSegment(input1, structName)) +
+                       "}";
             }
         }
 
         return Placeholder.generate(input);
     */}
-	/*private static*/ compileStructureSegment(/*final String input*/) : string {/*
+	/*private static*/ compileStructureSegment(/*final String input, final String structName*/) : string {/*
         final var strip = input.strip();
-        return Main.LINE_SEPARATOR + "\t" + Main.compileStructureSegmentValue(strip);
+        return Main.LINE_SEPARATOR + "\t" + Main.compileStructureSegmentValue(strip, structName);
     */}
-	/*private static*/ compileStructureSegmentValue(/*final String input*/) : string {/*
+	/*private static*/ compileStructureSegmentValue(/*final String input, final String structName*/) : string {/*
         if (!input.isEmpty() && ';' == input.charAt(input.length() - 1)) {
             final var withoutEnd = input.substring(0, input.length() - ";".length());
             final var before = Main.compileStructureStatementValue(withoutEnd).map(result -> result + ";");
@@ -85,7 +88,7 @@
                         final var definition = withoutParamEnd.substring(0, paramStart);
                         final var params = withoutParamEnd.substring(paramStart + "(".length());
                         final var joinedParams = "(" + Placeholder.generate(params) + ")";
-                        return Main.parseDefinitionOrPlaceholder(definition).generateWithAfterName(joinedParams) +
+                        return Main.parseMethodHeader(definition, structName).generateWithAfterName(joinedParams) +
                                " {" + Placeholder.generate(after) + "}";
                     }
                 }
@@ -93,6 +96,20 @@
         }
 
         return Placeholder.generate(input);
+    */}
+	/*private static*/ parseMethodHeader(/*final String input, final String structName*/) : /*MethodHeader*/ {/*
+        return Main.parseConstructor(input, structName).orElseGet(() -> Main.parseDefinitionOrPlaceholder(input));
+    */}
+	/*private static*/ parseConstructor(/*final String input, final String structName*/) : Optional</*MethodHeader*/> {/*
+        final var strip = input.strip();
+        final var index = strip.lastIndexOf(' ');
+        if (0 <= index) {
+            final var name = strip.substring(index + " ".length()).strip();
+            if (name.equals(structName))
+                return Optional.of(new Constructor());
+        }
+
+        return Optional.empty();
     */}
 	/*private static*/ compileStructureStatementValue(/*final String input*/) : Optional<string> {/*
         final var separator = input.indexOf('=');
@@ -124,9 +141,9 @@
     */}
 	/*private static*/ parseDefinitionOrPlaceholder(/*final String input*/) : /*MethodHeader*/ {/*
         final var strip = input.strip();
-        return Main.compileDefinition(strip).<MethodHeader>map(value -> value).orElseGet(() -> new Placeholder(strip));
+        return Main.parseDefinition(strip).<MethodHeader>map(value -> value).orElseGet(() -> new Placeholder(strip));
     */}
-	/*private static*/ compileDefinition(/*final String strip*/) : Optional</*Definition*/> {/*
+	/*private static*/ parseDefinition(/*final String strip*/) : Optional</*Definition*/> {/*
         final var separator = strip.lastIndexOf(' ');
         if (0 > separator)
             return Optional.empty();
@@ -153,27 +170,26 @@
             if (0 <= start) {
                 final var base = withoutEnd.substring(0, start);
                 final var argument = withoutEnd.substring(start + "<".length());
-                return base + "<" + compileType(argument) + ">";
+                return base + "<" + Main.compileType(argument) + ">";
             }
         }
         return Placeholder.generate(strip);
     */}
-	/*private static*/ compileStructureHeader(/*final String input*/) : string {/*
+	/*private static*/ parseStructureHeader(/*final String input*/) : /*StructureDefinition*/ {/*
         final var classIndex = input.indexOf("class ");
         if (0 <= classIndex) {
-            final var beforeKeyword = input.substring(0, classIndex);
+            final var beforeKeyword = input.substring(0, classIndex).strip();
             final var afterKeyword = input.substring(classIndex + "class ".length()).strip();
             final var implementsIndex = afterKeyword.indexOf("implements ");
             if (0 <= implementsIndex) {
-                final var beforeImplements = afterKeyword.substring(0, implementsIndex);
-                final var afterImplements = afterKeyword.substring(implementsIndex + "implements ".length());
-                return Placeholder.generate(beforeKeyword) + "class " + beforeImplements +
-                       Placeholder.generate("implements " + afterImplements);
+                final var beforeImplements = afterKeyword.substring(0, implementsIndex).strip();
+                final var afterImplements = afterKeyword.substring(implementsIndex + "implements ".length()).strip();
+                return new StructureHeader(beforeKeyword, beforeImplements, Optional.of(afterImplements));
             } else
-                return Placeholder.generate(beforeKeyword) + "class " + afterKeyword;
+                return new StructureHeader(beforeKeyword, afterKeyword, Optional.empty());
         }
 
-        return Placeholder.generate(input);
+        return new Placeholder(input);
     */}
 	/*private static*/ divide(/*final CharSequence input*/) : ListLike<string> {/*
         State current = new MutableState(input);

@@ -1,6 +1,6 @@
 /*package magma;*/
 /*import java.util.Optional;*/
-/*public interface State */ {
+public interface State  {
 	/*State advance();*/
 	/*State append(char c);*/
 	/*ListLike<String> unwrap();*/

@@ -62,20 +62,23 @@ public class Main {
             if (0 <= contentStart) {
                 final var beforeContent = withoutEnd.substring(0, contentStart);
                 final var content = withoutEnd.substring(contentStart + "{".length());
-                return Main.compileStructureHeader(beforeContent) + " {" +
-                       Main.compileStatements(content, Main::compileStructureSegment) + "}";
+                final var definition = Main.parseStructureHeader(beforeContent);
+                final var structName = definition instanceof final StructureHeader header ? header.name() : "?";
+                return definition.generate() + " {" +
+                       Main.compileStatements(content, input1 -> Main.compileStructureSegment(input1, structName)) +
+                       "}";
             }
         }
 
         return Placeholder.generate(input);
     }
 
-    private static String compileStructureSegment(final String input) {
+    private static String compileStructureSegment(final String input, final String structName) {
         final var strip = input.strip();
-        return Main.LINE_SEPARATOR + "\t" + Main.compileStructureSegmentValue(strip);
+        return Main.LINE_SEPARATOR + "\t" + Main.compileStructureSegmentValue(strip, structName);
     }
 
-    private static String compileStructureSegmentValue(final String input) {
+    private static String compileStructureSegmentValue(final String input, final String structName) {
         if (!input.isEmpty() && ';' == input.charAt(input.length() - 1)) {
             final var withoutEnd = input.substring(0, input.length() - ";".length());
             final var before = Main.compileStructureStatementValue(withoutEnd).map(result -> result + ";");
@@ -96,7 +99,7 @@ public class Main {
                         final var definition = withoutParamEnd.substring(0, paramStart);
                         final var params = withoutParamEnd.substring(paramStart + "(".length());
                         final var joinedParams = "(" + Placeholder.generate(params) + ")";
-                        return Main.parseDefinitionOrPlaceholder(definition).generateWithAfterName(joinedParams) +
+                        return Main.parseMethodHeader(definition, structName).generateWithAfterName(joinedParams) +
                                " {" + Placeholder.generate(after) + "}";
                     }
                 }
@@ -104,6 +107,22 @@ public class Main {
         }
 
         return Placeholder.generate(input);
+    }
+
+    private static MethodHeader parseMethodHeader(final String input, final String structName) {
+        return Main.parseConstructor(input, structName).orElseGet(() -> Main.parseDefinitionOrPlaceholder(input));
+    }
+
+    private static Optional<MethodHeader> parseConstructor(final String input, final String structName) {
+        final var strip = input.strip();
+        final var index = strip.lastIndexOf(' ');
+        if (0 <= index) {
+            final var name = strip.substring(index + " ".length()).strip();
+            if (name.equals(structName))
+                return Optional.of(new Constructor());
+        }
+
+        return Optional.empty();
     }
 
     private static Optional<String> compileStructureStatementValue(final String input) {
@@ -139,10 +158,10 @@ public class Main {
 
     private static MethodHeader parseDefinitionOrPlaceholder(final String input) {
         final var strip = input.strip();
-        return Main.compileDefinition(strip).<MethodHeader>map(value -> value).orElseGet(() -> new Placeholder(strip));
+        return Main.parseDefinition(strip).<MethodHeader>map(value -> value).orElseGet(() -> new Placeholder(strip));
     }
 
-    private static Optional<Definition> compileDefinition(final String strip) {
+    private static Optional<Definition> parseDefinition(final String strip) {
         final var separator = strip.lastIndexOf(' ');
         if (0 > separator)
             return Optional.empty();
@@ -176,22 +195,21 @@ public class Main {
         return Placeholder.generate(strip);
     }
 
-    private static String compileStructureHeader(final String input) {
+    private static StructureDefinition parseStructureHeader(final String input) {
         final var classIndex = input.indexOf("class ");
         if (0 <= classIndex) {
-            final var beforeKeyword = input.substring(0, classIndex);
+            final var beforeKeyword = input.substring(0, classIndex).strip();
             final var afterKeyword = input.substring(classIndex + "class ".length()).strip();
             final var implementsIndex = afterKeyword.indexOf("implements ");
             if (0 <= implementsIndex) {
-                final var beforeImplements = afterKeyword.substring(0, implementsIndex);
-                final var afterImplements = afterKeyword.substring(implementsIndex + "implements ".length());
-                return Placeholder.generate(beforeKeyword) + "class " + beforeImplements +
-                       Placeholder.generate("implements " + afterImplements);
+                final var beforeImplements = afterKeyword.substring(0, implementsIndex).strip();
+                final var afterImplements = afterKeyword.substring(implementsIndex + "implements ".length()).strip();
+                return new StructureHeader(beforeKeyword, beforeImplements, Optional.of(afterImplements));
             } else
-                return Placeholder.generate(beforeKeyword) + "class " + afterKeyword;
+                return new StructureHeader(beforeKeyword, afterKeyword, Optional.empty());
         }
 
-        return Placeholder.generate(input);
+        return new Placeholder(input);
     }
 
     private static ListLike<String> divide(final CharSequence input) {

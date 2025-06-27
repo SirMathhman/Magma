@@ -1,6 +1,6 @@
 package magma;
 
-public class Placeholder implements MethodHeader {
+public class Placeholder implements MethodHeader, StructureDefinition {
     private final String value;
 
     public Placeholder(final String value) {
@@ -14,5 +14,10 @@ public class Placeholder implements MethodHeader {
     @Override
     public String generateWithAfterName(final String afterName) {
         return Placeholder.generate(this.value) + afterName;
+    }
+
+    @Override
+    public String generate() {
+        return this.value;
     }
 }

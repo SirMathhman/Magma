@@ -1,7 +1,7 @@
 /*package magma;*/
-/*public */class Placeholder /*implements MethodHeader*/ {
+/*public*/class Placeholder/*implements MethodHeader, StructureDefinition*/ {
 	/*private final String value;*/
-	/*public Placeholder*/(/*final String value*/) {/*
+	constructor (/*final String value*/) {/*
         this.value = value;
     */}
 	/*static*/ generate(/*final String input*/) : string {/*
@@ -10,6 +10,10 @@
 	/*@Override
     public*/ generateWithAfterName(/*final String afterName*/) : string {/*
         return Placeholder.generate(this.value) + afterName;
+    */}
+	/*@Override
+    public*/ generate(/**/) : string {/*
+        return this.value;
     */}
 	/**/}
 /**/

@@ -1,5 +1,5 @@
 /*package magma;*/
-/*public interface MethodHeader */ {
+public interface MethodHeader  {
 	/*String generateWithAfterName(String afterName);*/
 	/**/}
 /**/
