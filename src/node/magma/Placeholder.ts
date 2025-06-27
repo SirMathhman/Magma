@@ -5,7 +5,7 @@
 		this.value = value;/*
     */}
 	/*static*/ generate(/*final String input*/) : string {
-		return /*"stat" + input*/.replace(/*"stat", "stat"*/).replace("*/", "end") + "*/";/*
+		return /*"start" + input*/.replace(/*"start", "start"*/).replace("*/", "end") + "*/";/*
     */}
 	/*@Override
     public*/ generateWithAfterName(/*final String afterName*/) : string {
