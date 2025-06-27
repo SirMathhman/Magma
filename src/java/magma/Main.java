@@ -16,7 +16,7 @@ public class Main {
 
             final var output = new StringBuilder();
             for (final var segment : segments)
-                output.append(Main.generatePlaceholder(segment));
+                output.append(Main.compileRootSegment(segment));
 
             final var targetParent = Paths.get(".", "src", "node", "magma");
             if (!Files.exists(targetParent))
@@ -28,6 +28,11 @@ public class Main {
             //noinspection CallToPrintStackTrace
             e.printStackTrace();
         }
+    }
+
+    private static String compileRootSegment(final String input) {
+        final var strip = input.strip();
+        return Main.generatePlaceholder(strip) + System.lineSeparator();
     }
 
     private static List<String> divide(final CharSequence input) {
