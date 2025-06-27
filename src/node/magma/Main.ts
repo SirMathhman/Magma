@@ -57,27 +57,27 @@
         if (input.isEmpty() || '}' != input.charAt(input.length() - 1))
             return Optional.empty();*//*
 
-        final var withoutEnd = input.substring(0, input.length() - "*/}
-	/*".length());*/
-	/*final*/ contentStart : /*var*/ = withoutEnd.indexOf(/*'{'*/);
-	/*if (0 > contentStart)
-            return Optional.empty();*/
-	/*final*/ beforeContent : /*var*/ = withoutEnd.substring(/*0, contentStart*/);
-	/*final var content = withoutEnd.substring(contentStart + "{".length());
-        final var definition = Main.parseStructureHeader(beforeContent);
-        final String structName;
+        final var withoutEnd = input.substring(0, input.length() - "}".length());*//*
+        final var contentStart = withoutEnd.indexOf('{');*//*
+        if (0 > contentStart)
+            return Optional.empty();*//*
+
+        final var beforeContent = withoutEnd.substring(0, contentStart);*//*
+        final var content = withoutEnd.substring(contentStart + "{".length());*//*
+        final var definition = Main.parseStructureHeader(beforeContent);*//*
+        final String structName;*//*
         if (definition instanceof final StructureHeader header) {
             if (header.annotations().contains("Actual"))
                 return Optional.of("");
 
             structName = header.name();
-        } else
-            structName = "?";
+        }*//* else
+            structName = "?";*//*
 
         return Optional.of(definition.generate() + " {" +
                            Main.compileStatements(content, input1 -> Main.compileStructureSegment(input1, structName)) +
-                           "}");
-    }*/
+                           "}");*//*
+    */}
 	/*private static*/ compileStructureSegment(/*final String input, final String structName*/) : string {/*
         final var strip = input.strip();*//*
         return Main.LINE_SEPARATOR + "\t" + Main.compileStructureSegmentValue(strip, structName);*//*
@@ -90,34 +90,34 @@
         if (input.isEmpty() || ';' != input.charAt(input.length() - 1))
             return Optional.empty();*//*
 
-        final var withoutEnd = input.substring(0, input.length() - ";*//*".length());*//*
-        return Main.compileStructureStatementValue(withoutEnd).map(result -> result + ";*//*");*//*
+        final var withoutEnd = input.substring(0, input.length() - ";".length());*//*
+        return Main.compileStructureStatementValue(withoutEnd).map(result -> result + ";");*//*
     */}
 	/*private static*/ compileMethod(/*final String input, final CharSequence structName*/) : Optional<string> {/*
         if (input.isEmpty() || '}' != input.charAt(input.length() - 1))
             return Optional.empty();*//*
 
-        final var withoutEnd = input.substring(0, input.length() - "*/}
-	/*".length());*/
-	/*final*/ contentStart : /*var*/ = withoutEnd.indexOf(/*'{'*/);
-	/*if (0 > contentStart)
-            return Optional.empty();*/
-	/*final*/ before : /*var*/ = withoutEnd.substring(/*0, contentStart).strip(*/);
-	/*final var content = withoutEnd.substring(contentStart + "{".length());
+        final var withoutEnd = input.substring(0, input.length() - "}".length());*//*
+        final var contentStart = withoutEnd.indexOf('{');*//*
+        if (0 > contentStart)
+            return Optional.empty();*//*
+
+        final var before = withoutEnd.substring(0, contentStart).strip();*//*
+        final var content = withoutEnd.substring(contentStart + "{".length());*//*
         if (before.isEmpty() || ')' != before.charAt(before.length() - 1))
-            return Optional.empty();
+            return Optional.empty();*//*
 
-        final var withoutParamEnd = before.substring(0, before.length() - ")".length());
-        final var paramStart = withoutParamEnd.indexOf('(');
+        final var withoutParamEnd = before.substring(0, before.length() - ")".length());*//*
+        final var paramStart = withoutParamEnd.indexOf('(');*//*
         if (0 > paramStart)
-            return Optional.empty();
+            return Optional.empty();*//*
 
-        final var definition = withoutParamEnd.substring(0, paramStart);
-        final var params = withoutParamEnd.substring(paramStart + "(".length());
-        final var joinedParams = "(" + Placeholder.generate(params) + ")";
+        final var definition = withoutParamEnd.substring(0, paramStart);*//*
+        final var params = withoutParamEnd.substring(paramStart + "(".length());*//*
+        final var joinedParams = "(" + Placeholder.generate(params) + ")";*//*
         return Optional.of(Main.parseMethodHeader(definition, structName).generateWithAfterName(joinedParams) + " {" +
-                           Main.compileStatements(content, Main::compileFunctionSegment) + "}");
-    }*/
+                           Main.compileStatements(content, Main::compileFunctionSegment) + "}");*//*
+    */}
 	/*private static*/ compileFunctionSegment(/*final String input*/) : string {/*
         return Placeholder.generate(input);*//*
     */}
@@ -294,7 +294,31 @@
         return current.advance().unwrap();*//*
     */}
 	/*private static*/ fold(/*final State state, final char c*/) : /*State*/ {/*
-        return Main.foldSingleQuotes(state, c).orElseGet(() -> Main.foldStatements(state, c));*//*
+        return Main.foldSingleQuotes(state, c).or(() -> Main.foldDoubleQuotes(state, c))
+                   .orElseGet(() -> Main.foldStatements(state, c));*//*
+    */}
+	/*private static*/ foldDoubleQuotes(/*final State state, final char c*/) : Optional</*State*/> {/*
+        if ('\"' == c) {
+            var current = state.append('\"');
+            while (true) {
+                final var maybeTuple = current.popAndAppendToTuple();
+                if (maybeTuple.isEmpty())
+                    break;
+
+                final var tuple = maybeTuple.get();
+                current = tuple.left();
+
+                final var next = tuple.right();
+                if ('\\' == next)
+                    current = current.popAndAppendToOption().orElse(current);
+                if ('\"' == next)
+                    break;
+            }
+
+            return Optional.of(current);
+        }*//*
+
+        return Optional.empty();*//*
     */}
 	/*private static*/ foldSingleQuotes(/*final State state, final char c*/) : Optional</*State*/> {/*
         if ('\'' != c)

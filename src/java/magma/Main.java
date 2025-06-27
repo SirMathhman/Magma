@@ -324,7 +324,32 @@ public class Main {
     }
 
     private static State fold(final State state, final char c) {
-        return Main.foldSingleQuotes(state, c).orElseGet(() -> Main.foldStatements(state, c));
+        return Main.foldSingleQuotes(state, c).or(() -> Main.foldDoubleQuotes(state, c))
+                   .orElseGet(() -> Main.foldStatements(state, c));
+    }
+
+    private static Optional<State> foldDoubleQuotes(final State state, final char c) {
+        if ('\"' == c) {
+            var current = state.append('\"');
+            while (true) {
+                final var maybeTuple = current.popAndAppendToTuple();
+                if (maybeTuple.isEmpty())
+                    break;
+
+                final var tuple = maybeTuple.get();
+                current = tuple.left();
+
+                final var next = tuple.right();
+                if ('\\' == next)
+                    current = current.popAndAppendToOption().orElse(current);
+                if ('\"' == next)
+                    break;
+            }
+
+            return Optional.of(current);
+        }
+
+        return Optional.empty();
     }
 
     private static Optional<State> foldSingleQuotes(final State state, final char c) {
