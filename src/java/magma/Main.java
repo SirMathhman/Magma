@@ -233,7 +233,8 @@ public class Main {
                                       .or(() -> Main.compileOperator(input, "||"))
                                       .or(() -> Main.compileOperator(input, "!="))
                                       .or(() -> Main.compileOperator(input, "-"))
-                                      .or(() -> Main.compileOperator(input, "&&"));
+                                      .or(() -> Main.compileOperator(input, "&&"))
+                                      .or(() -> Main.compileOperator(input, ">"));
         if (maybeOperator.isPresent())
             return maybeOperator;
 
