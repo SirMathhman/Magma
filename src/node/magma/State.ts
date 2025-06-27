@@ -10,5 +10,7 @@
 	/*State exit();*/
 	/*boolean isShallow();*/
 	/*Optional<Tuple<State, Character>> pop();*/
+	/*Optional<Tuple<State, Character>> popAndAppendToTuple();*/
+	/*Optional<State> popAndAppendToOption();*/
 	/**/}
 /**/

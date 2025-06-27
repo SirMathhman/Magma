@@ -3,6 +3,7 @@
 /*import java.nio.file.Files;*/
 /*import java.nio.file.Paths;*/
 /*import java.util.List;*/
+/*import java.util.Optional;*/
 /*import java.util.function.Function;*/
 /*public */class Main {
 	/*public static final String*/ LINE_SEPARATOR = /* System.lineSeparator()*/
@@ -46,11 +47,9 @@
         return Main.compileRootSegmentValue(input.strip()) + Main.LINE_SEPARATOR;
     }*/
 	/*private static String compileRootSegmentValue(final String input) {
-        if (!input.isEmpty() && '}*/
-	/*' == input.charAt(input.length() - 1)) {
-            final var withoutEnd = input.substring(0, input.length() - "}*/
-	/*".length());*/
-	/*final var contentStart = withoutEnd.indexOf('{');
+        if (!input.isEmpty() && '}' == input.charAt(input.length() - 1)) {
+            final var withoutEnd = input.substring(0, input.length() - "}".length());
+            final var contentStart = withoutEnd.indexOf('{');
             if (0 <= contentStart) {
                 final var beforeContent = withoutEnd.substring(0, contentStart);
                 final var content = withoutEnd.substring(contentStart + "{".length());
@@ -121,20 +120,29 @@
         return current.advance().unwrap();
     }*/
 	/*private static State fold(final State state, final char c) {
+        return Main.foldSingleQuotes(state, c).orElseGet(() -> Main.foldStatements(state, c));
+    }*/
+	/*private static Optional<State> foldSingleQuotes(final State state, final char c) {
+        if ('\'' != c)
+            return Optional.empty();
+        return state.append(c).popAndAppendToTuple().flatMap(
+                            tuple -> '\\' == tuple.right() ? tuple.left().popAndAppendToOption() : Optional.of(tuple.left()))
+                    .flatMap(State::popAndAppendToOption);
+    }*/
+	/*private static State foldStatements(final State state, final char c) {
         final var appended = state.append(c);
         if (';' == c && appended.isLevel())
             return appended.advance();
-        if ('}*/
-	/*'*/ = /*= c && appended.isShallow())
-            return appended.exit().advance()*/
-	/*if ('{' == c)
+        if ('}' == c && appended.isShallow())
+            return appended.exit().advance();
+        if ('{' == c)
             return appended.enter();
-        if ('}*/
-	/*'*/ = /*= c)
-            return appended.exit()*/
-	/*return appended;*/
+        if ('}' == c)
+            return appended.exit();
+        return appended;
+    }*/
+	/*private static String generatePlaceholder(final String input) {
+        return "stat" + input.replace("stat", "stat").replace("end", "end") + "end";
+    }*/
 	/**/}
-/*private static String generatePlaceholder(final String input) */ {
-	/*return "stat" + input.replace("stat", "stat").replace("end", "end") + "end";*/
-	/**/}
-/*}*/
+/**/

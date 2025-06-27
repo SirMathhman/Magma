@@ -19,4 +19,8 @@ public interface State {
     boolean isShallow();
 
     Optional<Tuple<State, Character>> pop();
+
+    Optional<Tuple<State, Character>> popAndAppendToTuple();
+
+    Optional<State> popAndAppendToOption();
 }

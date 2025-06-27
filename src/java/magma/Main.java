@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.List;
+import java.util.Optional;
 import java.util.function.Function;
 
 public class Main {
@@ -134,6 +135,18 @@ public class Main {
     }
 
     private static State fold(final State state, final char c) {
+        return Main.foldSingleQuotes(state, c).orElseGet(() -> Main.foldStatements(state, c));
+    }
+
+    private static Optional<State> foldSingleQuotes(final State state, final char c) {
+        if ('\'' != c)
+            return Optional.empty();
+        return state.append(c).popAndAppendToTuple().flatMap(
+                            tuple -> '\\' == tuple.right() ? tuple.left().popAndAppendToOption() : Optional.of(tuple.left()))
+                    .flatMap(State::popAndAppendToOption);
+    }
+
+    private static State foldStatements(final State state, final char c) {
         final var appended = state.append(c);
         if (';' == c && appended.isLevel())
             return appended.advance();
