@@ -1,5 +1,5 @@
 
 interface MethodHeader {
-	generateWithAfterName(afterName : string) : string {}
-	}
+	generateWithAfterName(afterName : string) : string;
+}
 

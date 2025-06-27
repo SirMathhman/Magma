@@ -10,5 +10,5 @@ class Placeholder {
 		return Placeholder.generate(this.value) + afterName;}
 	generate() : string {
 		return this.value;}
-	}
+}
 

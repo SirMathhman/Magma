@@ -152,18 +152,18 @@ public class Main {
 
         return Optional.of(definition.generate() + " {" +
                            Main.compileStatements(content, input1 -> Main.compileStructureSegment(input1, structName)) +
-                           "}");
+                           Main.LINE_SEPARATOR + "}");
     }
 
     private static String compileStructureSegment(final String input, final CharSequence structName) {
         final var strip = input.strip();
+        if (strip.isEmpty())
+            return "";
+
         return Main.LINE_SEPARATOR + "\t" + Main.compileStructureSegmentValue(strip, structName);
     }
 
     private static String compileStructureSegmentValue(final String input, final CharSequence structName) {
-        if (input.isBlank())
-            return "";
-
         return Main.compileStatement(input, Main::compileAssignment).or(() -> Main.compileMethod(input, structName))
                    .orElseGet(() -> Placeholder.generate(input));
     }
@@ -194,16 +194,17 @@ public class Main {
         final var withBraces = input.substring(paramEnd + ")".length()).strip();
         final String outputContent;
         if (";".contentEquals(withBraces))
-            outputContent = "";
+            outputContent = ";";
         else if (!withBraces.isEmpty() && '{' == withBraces.charAt(0) &&
-                   '}' == withBraces.charAt(withBraces.length() - 1))
-            outputContent = Main.compileStatements(withBraces.substring(1, withBraces.length() - 1),
-                                                   Main::compileFunctionSegment);
-        else
+                   '}' == withBraces.charAt(withBraces.length() - 1)) {
+            final var substring = withBraces.substring(1, withBraces.length() - 1);
+            final var compiled = Main.compileStatements(substring, Main::compileFunctionSegment);
+            outputContent = " {" + compiled + "}";
+        } else
             return Optional.empty();
 
-        return Optional.of(Main.parseMethodHeader(definition, structName).generateWithAfterName(joinedParams) + " {" +
-                           outputContent + "}");
+        return Optional.of(
+                Main.parseMethodHeader(definition, structName).generateWithAfterName(joinedParams) + outputContent);
     }
 
     private static String compileParameter(final String input) {

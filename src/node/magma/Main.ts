@@ -105,13 +105,14 @@ class Main {
             structName = header.name();
         }*/
 		let structName :  = "?";
-		return Optional.of(/*definition.generate(*/) + " {" + Main.compileStatements(content, input1 => Main.compileStructureSegment(input1, /* structName)*/) + "}");}
+		return Optional.of(/*definition.generate(*/) + " {" + Main.compileStatements(content, /* input1 -> Main.compileStructureSegment(input1, structName)) +
+                           Main.LINE_SEPARATOR + "}"*/);}
 	compileStructureSegment(input : string, structName : CharSequence) : string {
 		let strip : any = input.strip();
+		if (strip.isEmpty())/*
+            return "";*/
 		return /*Main.LINE_SEPARATOR + "\t" + Main.compileStructureSegmentValue(strip, structName)*/;}
 	compileStructureSegmentValue(input : string, structName : CharSequence) : string {
-		if (input.isBlank())/*
-            return "";*/
 		return Main.compileStatement(input, /* Main::compileAssignment*/).or(/*(*/) -  > Main.compileMethod(input, /* structName)*/).orElseGet(() -  > Placeholder.generate(input));}
 	compileStatement(input : string, mapper : Function<string, Optional<string>>) : Optional<string> {
 		if (input.isEmpty() || ';' != input.charAt(input.length() - 1))/*
@@ -132,14 +133,15 @@ class Main {
 		let withBraces : any = input.substring(paramEnd + ")".length()).strip();/*
         final String outputContent;*/
 		if (";".contentEquals(withBraces))/*
-            outputContent = "";*/
-		let '{' : /*&&*/ = /*= withBraces.charAt(0) &&
-                   '}' == withBraces.charAt(withBraces.length() - 1))
-            outputContent = Main.compileStatements(withBraces.substring(1, withBraces.length() - 1),
-                                                   Main::compileFunctionSegment)*/;/*
-        else
+            outputContent = ";";*//*
+        else if (!withBraces.isEmpty() && '{' == withBraces.charAt(0) &&
+                   '}' == withBraces.charAt(withBraces.length() - 1)) {
+            final var substring = withBraces.substring(1, withBraces.length() - 1);
+            final var compiled = Main.compileStatements(substring, Main::compileFunctionSegment);
+            outputContent = " {" + compiled + "}";
+        }*//* else
             return Optional.empty();*/
-		return Optional.of(Main.parseMethodHeader(definition, structName).generateWithAfterName(joinedParams) + " {" + outputContent + "}");}
+		return Optional.of(Main.parseMethodHeader(definition, structName).generateWithAfterName(joinedParams) + outputContent);}
 	compileParameter(input : string) : string {
 		if (input.isBlank())/*
             return "";*/
@@ -465,5 +467,5 @@ class Main {
             return Optional.of("new " + Main.compileType(substring));
         }*/
 		return Main.compileValue(strip);}
-	}
+}
 

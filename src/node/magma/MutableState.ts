@@ -42,5 +42,5 @@ class MutableState {
             return Optional.of(this.input.charAt(this.index));*//*
         else
             return Optional.empty();*/}
-	}
+}
 
