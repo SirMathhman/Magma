@@ -7,7 +7,7 @@
 /*import java.util.Optional;*/
 /*import java.util.function.Function;*/
 /*public */class Main {
-	/*private static final*/ LINE_SEPARATOR : string = /* System.lineSeparator()*/;
+	/*private static final*/ LINE_SEPARATOR : string = /*System.lineSeparator()*/;
 	/*private Main() {
     }*/
 	/*public static void main(final String[] args) {
@@ -83,9 +83,26 @@
         if (0 <= separator) {
             final var before = input.substring(0, separator);
             final var after = input.substring(separator + "=".length());
-            return Optional.of(Main.compileDefinition(before) + " = " + Main.generatePlaceholder(after));
+            return Optional.of(Main.compileDefinition(before) + " = " + Main.compileValue(after));
         }
         return Optional.empty();
+    }*/
+	/*private static String compileValue(final String input) {
+        final var strip = input.strip();
+        if (Main.isNumber(strip))
+            return strip;
+
+        return Main.generatePlaceholder(strip);
+    }*/
+	/*private static boolean isNumber(final CharSequence input) {
+        final var length = input.length();
+        for (var i = 0; i < length; i++) {
+            final var c = input.charAt(i);
+            if (!Character.isDigit(c))
+                return false;
+            continue;
+        }
+        return true;
     }*/
 	/*private static String compileDefinition(final String input) {
         final var strip = input.strip();
