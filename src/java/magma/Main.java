@@ -257,8 +257,15 @@ public class Main {
 
     private static State foldInvocation(final State state, final char c) {
         final var appended = state.append(c);
-        if ('(' == c)
-            return appended.advance();
+        if ('(' == c) {
+            final var entered = appended.enter();
+            if (entered.isShallow())
+                return entered.advance();
+            else
+                return entered;
+        }
+        if (')' == c)
+            return appended.exit();
         return appended;
     }
 
