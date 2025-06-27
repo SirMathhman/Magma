@@ -7,17 +7,17 @@
 	/*private*/ depth : number = 0;
 	/*private*/ index : number = 0;
 	constructor (/*final CharSequence input*/) {
-	this.input = input;/*
+		this.input = input;/*
     */}
 	/*@Override
     public*/ advance(/**/) : /*State*/ {
-	this.segments = this.segments.add(/*this.buffer*/);
-	this.buffer = "";/*
+		this.segments = this.segments.add(/*this.buffer*/);
+		this.buffer = "";/*
         return this;*//*
     */}
 	/*@Override
     public*/ append(/*final char c*/) : /*State*/ {
-	this.buffer = this.buffer + c;/*
+		this.buffer = this.buffer + c;/*
         return this;*//*
     */}
 	/*@Override
@@ -26,7 +26,7 @@
     */}
 	/*@Override
     public*/ isLevel(/**/) : /*boolean*/ {
-	return 0 = /*= this*/.depth;/*
+		return 0 = /*= this*/.depth;/*
     */}
 	/*@Override
     public*/ enter(/**/) : /*State*/ {/*
@@ -40,13 +40,13 @@
     */}
 	/*@Override
     public*/ isShallow(/**/) : /*boolean*/ {
-	return 1 = /*= this*/.depth;/*
+		return 1 = /*= this*/.depth;/*
     */}
 	/*@Override
     public Optional<Tuple<State,*/ pop(/**/) : /*Character>>*/ {
-	/*if*/ > : /*(this.index*/ = this.input.length(/*))
+		/*if*/ > : /*(this.index*/ = this.input.length(/*))
             return Optional.empty(*/);
-	/*final*/ c : /*var*/ = this.input.charAt(/*this.index*/);/*
+		/*final*/ c : /*var*/ = this.input.charAt(/*this.index*/);/*
         this.index++;*//*
         return Optional.of(new Tuple<>(this, c));*//*
     */}

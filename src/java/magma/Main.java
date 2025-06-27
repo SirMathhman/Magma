@@ -133,7 +133,7 @@ public class Main {
     }
 
     private static String compileFunctionSegment(final String input) {
-        return Main.compileField(input).map(value -> System.lineSeparator() + "\t" + value)
+        return Main.compileField(input).map(value -> System.lineSeparator() + "\t\t" + value)
                    .orElseGet(() -> Placeholder.generate(input));
     }
 

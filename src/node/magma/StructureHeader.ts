@@ -4,7 +4,7 @@
 /*public*/class StructureHeader/*implements StructureDefinition*/ {
 	/*@Override
     public*/ generate(/**/) : string {
-	/*final*/ generated : /*var*/ = this.maybeAfterImplements(/*)
+		/*final*/ generated : /*var*/ = this.maybeAfterImplements(/*)
                                   .map(afterImplements -> Placeholder.generate("implements " + afterImplements))
                                   .orElse(""*/);/*
 
