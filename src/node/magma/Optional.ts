@@ -4,12 +4,6 @@
 
 
 interface Optional<T> {
-	of(value : T) : Optional<T> {
-		return new Some<>(value);
-	}
-	empty() : Optional<T> {
-		return new None<>();
-	}
 	ifPresent(consumer : Consumer<T>) : void;
 	isPresent() : boolean;
 	or(other : Supplier<Optional<T>>) : Optional<T>;

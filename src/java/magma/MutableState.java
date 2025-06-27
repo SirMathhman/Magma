@@ -54,11 +54,11 @@ public class MutableState implements State {
     @Override
     public Optional<Tuple<State, Character>> pop() {
         if (this.index >= this.input.length())
-            return Optional.empty();
+            return new None<>();
 
         final var c = this.input.charAt(this.index);
         this.index++;
-        return Optional.of(new Tuple<>(this, c));
+        return new Some<>(new Tuple<State, Character>(this, c));
     }
 
     @Override
@@ -74,8 +74,8 @@ public class MutableState implements State {
     @Override
     public Optional<Character> peek() {
         if (this.index < this.input.length())
-            return Optional.of(this.input.charAt(this.index));
+            return new Some<>(this.input.charAt(this.index));
         else
-            return Optional.empty();
+            return new None<>();
     }
 }

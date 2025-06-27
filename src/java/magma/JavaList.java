@@ -24,19 +24,19 @@ public record JavaList<T>(List<T> list) implements ListLike<T> {
     @Override
     public Optional<Tuple<ListLike<T>, T>> popLast() {
         if (this.list.isEmpty())
-            return Optional.empty();
+            return new None<>();
 
         final var last = this.list.removeLast();
-        return Optional.of(new Tuple<>(this, last));
+        return new Some<>(new Tuple<ListLike<T>, T>(this, last));
     }
 
     @Override
     public Optional<Tuple<T, ListLike<T>>> popFirst() {
         if (this.list.isEmpty())
-            return Optional.empty();
+            return new None<>();
 
         final var first = this.list.removeFirst();
-        return Optional.of(new Tuple<>(first, this));
+        return new Some<>(new Tuple<T, ListLike<T>>(first, this));
     }
 
     @Override

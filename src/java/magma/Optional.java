@@ -6,14 +6,6 @@ import java.util.function.Predicate;
 import java.util.function.Supplier;
 
 public interface Optional<T> {
-    static <T> Optional<T> of(final T value) {
-        return new Some<>(value);
-    }
-
-    static <T> Optional<T> empty() {
-        return new None<>();
-    }
-
     void ifPresent(Consumer<T> consumer);
 
     boolean isPresent();
