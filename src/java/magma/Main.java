@@ -226,10 +226,12 @@ public class Main {
 
         final var separator = input.lastIndexOf('.');
         if (0 <= separator) {
-            final var substring = input.substring(0, separator);
-            final var substring1 = input.substring(separator + ".".length()).strip();
-            return Main.compileValue(substring) + "." + substring1;
+            final var value = input.substring(0, separator);
+            final var property = input.substring(separator + ".".length()).strip();
+            if (Main.isSymbol(property))
+                return Main.compileValue(value) + "." + property;
         }
+
         final var strip = input.strip();
         if (Main.isNumber(strip))
             return strip;

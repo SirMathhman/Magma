@@ -17,7 +17,7 @@
     */}
 	/*@Override
     public*/ append(/*final char c*/) : State {
-		this.buffer = this.buffer + c;
+		this.buffer = /*this.buffer + c*/;
 		return this;/*
     */}
 	/*@Override
@@ -44,15 +44,15 @@
     */}
 	/*@Override
     public*/ pop(/**/) : Optional<Tuple<State, Character>> {
-		if (this.index >= this.input.length(/**/))/*
+		if (/*this.index >= this*/.input.length(/**/))/*
             return Optional.empty();*/
 		/*final*/ c : any = this.input.charAt(/*this.index*/);/*
         this.index++;*/
-		return Optional.of(new Tuple<>(/*this, c)*/);/*
+		return /*Optional.of(new Tuple<>*/(/*this, c)*/);/*
     */}
 	/*@Override
     public*/ popAndAppendToTuple(/**/) : Optional<Tuple<State, Character>> {
-		return this.pop(/**/).map(tuple -> new Tuple<>(tuple.left(/**/).append(tuple.right()), tuple.right(/*))*/);/*
+		return /*this.pop().map(tuple -> new Tuple<>(tuple.left().append(tuple.right()), tuple*/.right(/*))*/);/*
     */}
 	/*@Override
     public*/ popAndAppendToOption(/**/) : Optional<State> {
