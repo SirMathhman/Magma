@@ -362,13 +362,17 @@ public class Main {
             if (0 <= start) {
                 final var base = withoutEnd.substring(0, start);
                 final var argument = withoutEnd.substring(start + "<".length());
-                final var compiled = Main.compileAll(argument, Main::foldValues, Main::compileType, ", ");
+                final var compiled = Main.compileValues(argument, Main::compileType);
                 return base + "<" + compiled + ">";
             }
         }
         if (Main.isSymbol(strip))
             return strip;
         return Placeholder.generate(strip);
+    }
+
+    private static String compileValues(final String input, final Function<String, String> mapper) {
+        return Main.compileAll(input, Main::foldValues, mapper, ", ");
     }
 
     private static State foldValues(final State state, final char c) {
@@ -512,6 +516,7 @@ public class Main {
 
         final var substring = joined.substring(0, joined.length() - "(".length());
         final var argument = tuple.right();
-        return Main.compileValue(substring).map(caller -> caller + "(" + Placeholder.generate(argument) + ")");
+        return Main.compileValue(substring)
+                   .map(caller -> caller + "(" + Main.compileValues(argument, Main::compileValueOrPlaceholder) + ")");
     }
 }

@@ -5,12 +5,12 @@
 		this.value = value;/*
     */}
 	/*static*/ generate(/*final String input*/) : string {
-		/*final*/ replaced : any = input.replace(/*"start", "start"*/).replace(/*"end", "end"*/);
+		/*final*/ replaced : any = input.replace("/*", "start").replace("*/", "end");
 		return "/*" + replaced + "*/";/*
     */}
 	/*@Override
     public*/ generateWithAfterName(/*final String afterName*/) : string {
-		return Placeholder.generate(/*this.value*/) + afterName;/*
+		return Placeholder.generate(this.value) + afterName;/*
     */}
 	/*public*/ generate(/**/) : string {
 		return this.value;/*

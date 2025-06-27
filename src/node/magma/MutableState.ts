@@ -2,7 +2,7 @@
 /*import java.util.Optional;*/
 /*public*/class MutableState/*implements State*/ {
 	/*private final CharSequence input;*/
-	/*private*/ segments : ListLike<string> = Lists.empty(/**/);
+	/*private*/ segments : ListLike<string> = Lists.empty();
 	/*private*/ buffer : string = "";
 	/*private*/ depth : number = 0;
 	/*private*/ index : number = 0;
@@ -11,7 +11,7 @@
     */}
 	/*@Override
     public*/ advance(/**/) : State {
-		this.segments = this.segments.add(/*this.buffer*/);
+		this.segments = this.segments.add(this.buffer);
 		this.buffer = "";
 		return this;/*
     */}
@@ -44,19 +44,19 @@
     */}
 	/*@Override
     public*/ pop(/**/) : Optional<Tuple<State, Character>> {
-		if (this.index >= this.input.length(/**/))/*
+		if (this.index >= this.input.length())/*
             return Optional.empty();*/
-		/*final*/ c : any = this.input.charAt(/*this.index*/);/*
+		/*final*/ c : any = this.input.charAt(this.index);/*
         this.index++;*/
-		return Optional.of(/*new Tuple<>(this, c)*/);/*
+		return Optional.of(/*new Tuple<>(this*/, /* c)*/);/*
     */}
 	/*@Override
     public*/ popAndAppendToTuple(/**/) : Optional<Tuple<State, Character>> {
-		return this.pop(/**/).map(/*tuple -> new Tuple<>(tuple.left().append(tuple.right()), tuple.right())*/);/*
+		return this.pop().map(/*tuple -> new Tuple<>(tuple.left().append(tuple.right()), tuple.right())*/);/*
     */}
 	/*@Override
     public*/ popAndAppendToOption(/**/) : Optional<State> {
-		return this.popAndAppendToTuple(/**/).map(/*Tuple::left*/);/*
+		return this.popAndAppendToTuple().map(/*Tuple::left*/);/*
     */}
 	/**/}
 /**/
