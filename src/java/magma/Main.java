@@ -221,6 +221,13 @@ public class Main {
     }
 
     private static String compileValue(final String input) {
+        final var i = input.indexOf(">=");
+        if (0 <= i) {
+            final var substring = input.substring(0, i);
+            final var substring1 = input.substring(i + ">=".length());
+            return Main.compileValue(substring) + " >= " + Main.compileValue(substring1);
+        }
+
         final var maybeInvocation = Main.compileInvocation(input);
         if (maybeInvocation.isPresent())
             return maybeInvocation.get();

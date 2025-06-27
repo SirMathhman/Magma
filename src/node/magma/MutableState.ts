@@ -44,7 +44,7 @@
     */}
 	/*@Override
     public*/ pop(/**/) : Optional<Tuple<State, Character>> {
-		if (/*this.index >= this*/.input.length(/**/))/*
+		if (this.index >= this.input.length(/**/))/*
             return Optional.empty();*/
 		/*final*/ c : any = this.input.charAt(/*this.index*/);/*
         this.index++;*/

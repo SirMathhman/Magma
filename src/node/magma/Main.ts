@@ -181,6 +181,12 @@
 		return Optional.empty(/**/);/*
     */}
 	/*private static*/ compileValue(/*final String input*/) : string {
+		/*final*/ i : any = /*input.indexOf("*/ >= /*".toString())*/;
+		if (i >= 0)/* {
+            final var substring = input.substring(0, i);
+            final var substring1 = input.substring(i + ">=".length());
+            return compileValue(substring) + " >= " + compileValue(substring1);
+        }*/
 		/*final*/ maybeInvocation : any = Main.compileInvocation(/*input*/);
 		if (maybeInvocation.isPresent(/**/))/*
             return maybeInvocation.get();*/
@@ -211,11 +217,10 @@
 		/*final*/ appended : any = state.append(/*c*/);
 		if (/*'(' == c*/)/* {
             final var entered = appended.enter();
-            if (entered.isShallow()) {
+            if (entered.isShallow())
                 return entered.advance();
-            } else {
+            else
                 return entered;
-            }
         }*/
 		if (/*')' == c*/)/*
             return appended.exit();*/
