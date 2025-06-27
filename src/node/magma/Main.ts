@@ -6,7 +6,7 @@
 /*import java.util.Optional;*/
 /*import java.util.function.Function;*/
 /*public */class Main {
-	/*public static final String*/ LINE_SEPARATOR = /* System.lineSeparator()*/
+	/*public static final String*/ LINE_SEPARATOR = /* System.lineSeparator()*/;
 	/*private Main() {
     }*/
 	/*public static void main(final String[] args) {
@@ -67,15 +67,21 @@
 	/*private static String compileStructureSegmentValue(final String input) {
         if (!input.isEmpty() && ';' == input.charAt(input.length() - 1)) {
             final var withoutEnd = input.substring(0, input.length() - ";".length());
-            final var separator = withoutEnd.indexOf('=');
-            if (0 <= separator) {
-                final var before = withoutEnd.substring(0, separator);
-                final var after = withoutEnd.substring(separator + "=".length());
-                return Main.compileDefinition(before) + " = " + Main.generatePlaceholder(after);
-            }
+            final var before = Main.compileStructureStatementValue(withoutEnd).map(result -> result + ";");
+            if (before.isPresent())
+                return before.get();
         }
 
         return Main.generatePlaceholder(input);
+    }*/
+	/*private static Optional<String> compileStructureStatementValue(final String input) {
+        final var separator = input.indexOf('=');
+        if (0 <= separator) {
+            final var before = input.substring(0, separator);
+            final var after = input.substring(separator + "=".length());
+            return Optional.of(Main.compileDefinition(before) + " = " + Main.generatePlaceholder(after));
+        }
+        return Optional.empty();
     }*/
 	/*private static String compileDefinition(final String input) {
         final var strip = input.strip();
