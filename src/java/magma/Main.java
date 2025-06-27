@@ -67,7 +67,15 @@ public class Main {
             final var beforeKeyword = input.substring(0, classIndex);
             final var afterKeyword = input.substring(classIndex + "class ".length())
                     .strip();
-            return Main.generatePlaceholder(beforeKeyword) + "class " + afterKeyword;
+            final var implementsIndex = afterKeyword.indexOf("implements ");
+            if (0 <= implementsIndex) {
+                final var beforeImplements = afterKeyword.substring(0, implementsIndex);
+                final var afterImplements = afterKeyword.substring(implementsIndex + "implements ".length());
+                return Main.generatePlaceholder(beforeKeyword) + "class " + beforeImplements + Main.generatePlaceholder(
+                        "implements " + afterImplements);
+            }
+            else
+                return Main.generatePlaceholder(beforeKeyword) + "class " + afterKeyword;
         }
 
         return Main.generatePlaceholder(input);

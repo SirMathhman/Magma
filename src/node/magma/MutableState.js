@@ -3,7 +3,7 @@
 /*import java.util.ArrayList;*/
 /*import java.util.Collections;*/
 /*import java.util.List;*/
-/*public */ var MutableState = /** @class */ (function () {
+/*public */ var MutableState /*implements State*/ = /** @class */ (function () {
     function MutableState() {
     }
     return MutableState;

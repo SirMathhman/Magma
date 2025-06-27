@@ -2,7 +2,7 @@
 /*import java.util.ArrayList;*/
 /*import java.util.Collections;*/
 /*import java.util.List;*/
-/*public */class MutableState implements State {/*
+/*public */class MutableState /*implements State*/ {/*
     private final List<String> segments = new ArrayList<>();
     private StringBuilder buffer = new StringBuilder();
     private int depth = 0;
