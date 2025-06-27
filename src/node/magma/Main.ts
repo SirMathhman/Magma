@@ -16,10 +16,10 @@ class Main {
 	}
 	main(args : string[]) : void {
 		let root : any = Paths.get(".", "src", "java");
-		Main.collect(root).match(/*files -> {
-            final var sources = files.stream().filter(path -> path.toString().endsWith(".java")).toList();
-            return Main.runWithSources(sources, root);
-        }*/, value => new Some<>(value)).ifPresent(/*Throwable::printStackTrace*/);
+		Main.collect(root).match(files => {
+			let sources : any = files.stream().filter(path => path.toString().endsWith(".java")).toList();
+			return Main.runWithSources(sources, root);
+		}, value => new Some<>(value)).ifPresent(/*Throwable::printStackTrace*/);
 	}
 	collect(root : Path) : Result<List<Path>, IOException> {/*
         try (final var stream = Files.walk(root)) {
@@ -131,7 +131,7 @@ class Main {
 		return /*Main.LINE_SEPARATOR + "\t" + Main.compileStructureSegmentValue(strip, structName)*/;
 	}
 	compileStructureSegmentValue(input : string, structName : CharSequence) : string {
-		return Main.compileStatement(input, /* Main::compileAssignment*/).or(/*(*/) -  > Main.compileMethod(input, /* structName)*/).orElseGet(() -  > Placeholder.generate(input));
+		return Main.compileStatement(input, input1 => compileAssignment(input1, 1)).or(() -  > Main.compileMethod(input, structName)).orElseGet(() -  > Placeholder.generate(input));
 	}
 	compileStatement(input : string, mapper : Function<string, Optional<string>>) : Optional<string> {
 		if (input.isEmpty() || ';' != input.charAt(input.length() - 1))
@@ -175,25 +175,25 @@ class Main {
 	compileFunctionSegment(input : string, depth : number) : string {
 		if (input.isBlank())
 			return "";
-		return Main.compileConditional(input, depth).or(/*(*/) -  > Main.compileElse(input, /* depth)*/).or(() -  > Main.compileStatement(input, /* Main::compileFunctionStatementValue*/)).map(/*value -> System.lineSeparator(*/) + "\t".repeat(/*depth) + value*/).orElseGet(() -  > Placeholder.generate(input));
+		return Main.compileConditional(input, depth).or(/*(*/) -  > Main.compileElse(input, /* depth)*/).or(() -  > Main.compileStatement(input, input1 => compileFunctionStatementValue(input1, depth))).map(/*value -> System.lineSeparator(*/) + "\t".repeat(/*depth) + value*/).orElseGet(() -  > Placeholder.generate(input));
 	}
 	compileElse(input : string, depth : number) : Optional<string> {
 		let strip : any = input.strip();
 		if (strip.startsWith("else")){
 			let substring : any = strip.substring("else".length());
-			return new Some<>("else " + Main.functionCompileStatementOrBlock(depth, substring));
+			return new Some<>("else " + Main.compileBlockOrStatement(depth, substring));
 		}
 		else 
 			return new None<>();
 	}
-	compileFunctionStatementValue(input : string) : Optional<string> {
-		return Main.compileReturn(input).or(/*(*/) -  > Main.compileInvokable(/*input)*/).or(() -  > Main.compileAssignment(input));
+	compileFunctionStatementValue(input : string, depth : number) : Optional<string> {
+		return Main.compileReturn(input, depth).or(/*(*/) -  > Main.compileInvokable(input, /* depth)*/).or(() -  > Main.compileAssignment(input, depth));
 	}
-	compileReturn(input : string) : Optional<string> {
+	compileReturn(input : string, depth : number) : Optional<string> {
 		let strip : any = input.strip();
 		if (strip.startsWith("return ")){
 			let slice : any = strip.substring("return ".length());
-			return new Some<>("return " + Main.compileValueOrPlaceholder(slice));
+			return new Some<>("return " + Main.compileValueOrPlaceholder(slice, depth));
 		}
 		return new None<>();
 	}
@@ -213,19 +213,18 @@ class Main {
 			return new None<>();
 		let condition : any = substring1.substring(0, substring1.length() - 1);
 		let joined : any = tuple.right().stream().collect(Collectors.joining());
-		let compiled : any = Main.functionCompileStatementOrBlock(depth, joined);
-		return new Some<>("if (" + Main.compileValueOrPlaceholder(condition) + ")" + compiled);
+		let compiled : any = Main.compileBlockOrStatement(depth, joined);
+		return new Some<>("if (" + Main.compileValueOrPlaceholder(condition, depth) + ")" + compiled);
 	}
-	functionCompileStatementOrBlock(depth : number, input : string) : string {
-		let withBraces : any = input.strip();/*
-        final String compiled;*/
-		if (Main.isBlock(withBraces)){
-			let compiled1 : any = Main.compileFunctionSegments(withBraces.substring(1, withBraces.length() - 1), depth + 1);
-			compiled = "{" + compiled1 + Main.LINE_SEPARATOR + "\t".repeat(depth) + "}";
-		}
-		else 
-			compiled = Main.compileFunctionSegment(withBraces, depth + 1);
-		return compiled;
+	compileBlockOrStatement(depth : number, input : string) : string {
+		return Main.compileBlock(depth, input).orElseGet(/*(*/) -  > Main.compileFunctionSegment(input.strip(), /* depth + 1)*/);
+	}
+	compileBlock(depth : number, input : string) : Optional<string> {
+		if (!Main.isBlock(input.strip()))
+			return new None<>();
+		let compiled1 : any = Main.compileFunctionSegments(input.strip().substring(1, input.strip().length() - 1), depth + 1);
+		let compiled : string = "{" + compiled1 + Main.LINE_SEPARATOR + "\t".repeat(depth) + "}";
+		return new Some<>(compiled);
 	}
 	isBlock(withBraces : CharSequence) : boolean {
 		return !withBraces.isEmpty() && '{' == withBraces.charAt(0) && '}' == withBraces.charAt(withBraces.length() - 1);
@@ -254,7 +253,7 @@ class Main {
 		}
 		return new None<>();
 	}
-	compileAssignment(input : string) : Optional<string> {
+	compileAssignment(input : string, depth : number) : Optional<string> {
 		let separator : any = input.indexOf('=');
 		if (0 <= separator){
 			let before : any = input.substring(0, separator);
@@ -265,21 +264,21 @@ class Main {
 				assignable1 = definition.withModifier("let");
 			else 
 				assignable1 = assignable;
-			return new Some<>(/*assignable1.generate(*/) + " = " + Main.compileValueOrPlaceholder(/*after)*/);
+			return new Some<>(/*assignable1.generate(*/) + " = " + Main.compileValueOrPlaceholder(after, /* depth)*/);
 		}
 		return new None<>();
 	}
-	compileValueOrPlaceholder(input : string) : string {
-		return Main.compileValue(input).orElseGet(/*(*/) -  > Placeholder.generate(/*input)*/);
+	compileValueOrPlaceholder(input : string, depth : number) : string {
+		return Main.compileValue(input, depth).orElseGet(/*(*/) -  > Placeholder.generate(/*input)*/);
 	}
-	compileValue(input : string) : Optional<string> {
-		let maybeLambda : any = Main.compileLambda(input);
+	compileValue(input : string, depth : number) : Optional<string> {
+		let maybeLambda : any = Main.compileLambda(input, depth);
 		if (maybeLambda.isPresent())
 			return maybeLambda;
-		let maybeOperator : any = Main.compileOperators(input);
+		let maybeOperator : any = Main.compileOperators(input, depth);
 		if (maybeOperator.isPresent())
 			return maybeOperator;
-		let maybeInvocation : any = Main.compileInvokable(input);
+		let maybeInvocation : any = Main.compileInvokable(input, depth);
 		if (maybeInvocation.isPresent())
 			return maybeInvocation;
 		let separator : any = input.lastIndexOf('.');
@@ -287,12 +286,12 @@ class Main {
 			let value : any = input.substring(0, separator);
 			let property : any = input.substring(separator + ".".length()).strip();
 			if (Main.isSymbol(property))
-				return Main.compileValue(value).map(result => result + "." + property);
+				return Main.compileValue(value, depth).map(result => result + "." + property);
 		}
 		let strip : any = input.strip();
 		if (!strip.isEmpty() && '!' == strip.charAt(0)){
 			let substring : any = strip.substring(1);
-			return Main.compileValue(substring).map(value => "!" + value);
+			return Main.compileValue(substring, depth).map(value => "!" + value);
 		}
 		if (Main.isNumber(strip))
 			return new Some<>(strip);
@@ -304,7 +303,7 @@ class Main {
 			return new Some<>(strip);
 		return new None<>();
 	}
-	compileLambda(input : string) : Optional<string> {
+	compileLambda(input : string, depth : number) : Optional<string> {
 		let arrowIndex : any = input.indexOf(" -  > ");
 		if (0 > arrowIndex)
 			return new None<>();
@@ -312,28 +311,29 @@ class Main {
 		if (!Main.isSymbol(before))
 			return new None<>();
 		let after : any = input.substring(arrowIndex + " -  > ".length());
-		return Main.compileValue(after).map(afterResult => before + " => " + afterResult);
+		return Main.compileBlock(depth, after).or(/*(*/) -  > Main.compileValue(after, /* depth))
+                   .map(afterResult -> before + " => " + afterResult*/);
 	}
-	compileOperators(input : string) : Optional<string> {
-		return Main.compileOperator(input, " >= ").or(/*(*/) -  > Main.compileOperator(input, /* "==")*/).or(() -  > Main.compileOperator(input, " + ")).or(() -  > Main.compileOperator(input, " < ")).or(() -  > Main.compileOperator(input, " <= ")).or(() -  > Main.compileOperator(input, " || ")).or(() -  > Main.compileOperator(input, " != ")).or(() -  > Main.compileOperator(input, " - ")).or(() -  > Main.compileOperator(input, " && ")).or(() -  > Main.compileOperator(input, " > "));
+	compileOperators(input : string, depth : number) : Optional<string> {
+		return Main.compileOperator(input, " >= ", depth).or(/*(*/) -  > Main.compileOperator(input, " == ", /* depth)*/).or(() -  > Main.compileOperator(input, " + ", depth)).or(() -  > Main.compileOperator(input, " < ", depth)).or(() -  > Main.compileOperator(input, " <= ", depth)).or(() -  > Main.compileOperator(input, " || ", depth)).or(() -  > Main.compileOperator(input, " != ", depth)).or(() -  > Main.compileOperator(input, " - ", depth)).or(() -  > Main.compileOperator(input, " && ", depth)).or(() -  > Main.compileOperator(input, " > ", depth));
 	}
 	isChar(strip : CharSequence) : boolean {
 		return !strip.isEmpty() && '\'' == strip.charAt(0) && '\'' == strip.charAt(strip.length() - 1) && 3 <= strip.length();
 	}
-	compileOperator(input : string, operator : string) : Optional<string> {
+	compileOperator(input : string, operator : string, depth : number) : Optional<string> {
 		let i : any = input.indexOf(operator);
 		if (0 > i)
 			return new None<>();
 		let leftSlice : any = input.substring(0, i);
 		let rightSlice : any = input.substring(i + operator.length());
-		return Main.compileValue(leftSlice).flatMap(left => Main.compileValue(rightSlice).map(right => left + " " + operator + " " + right));
+		return Main.compileValue(leftSlice, depth).flatMap(left => Main.compileValue(rightSlice, depth).map(right => left + " " + operator + " " + right));
 	}
-	compileInvokable(input : string) : Optional<string> {
+	compileInvokable(input : string, depth : number) : Optional<string> {
 		let strip : any = input.strip();
 		if (strip.isEmpty() || ')' != strip.charAt(strip.length() - 1))
 			return new None<>();
 		let withoutEnd : any = strip.substring(0, /* strip.length(*/) - ")".length(/*)*/);
-		return Main.divide(withoutEnd, /* Main::foldInvocation*/).popLast().flatMap(/*Main::handleInvocationSegments*/);
+		return Main.divide(withoutEnd, /* Main::foldInvocation*/).popLast().flatMap(tuple => handleInvocationSegments(tuple, depth));
 	}
 	foldInvocation(state : State, c : char) : State {
 		let appended : any = state.append(c);
@@ -378,11 +378,11 @@ class Main {
 		let beforeName : any = strip.substring(0, separator);
 		let name : any = strip.substring(separator + " ".length());
 		let divisions : any = Main.divide(beforeName, /* Main::foldTypeSeparator*/);
-		return divisions.popLast().flatMap(/*tuple -> {
-            final var beforeType = tuple.left().stream().collect(Collectors.joining(" "));
-            final var type = tuple.right();
-            return new Some<>(new Definition(Lists.empty(), beforeType, name, Main.compileType(type)));
-        }*/);
+		return divisions.popLast().flatMap(tuple => {
+			let beforeType : any = tuple.left().stream().collect(Collectors.joining(" "));
+			let type : any = tuple.right();
+			return new Some<>(new Definition(Lists.empty(), beforeType, name, Main.compileType(type)));
+		});
 	}
 	foldTypeSeparator(state : State, c : Character) : State {
 		if (' ' == c && state.isLevel())
@@ -518,11 +518,11 @@ class Main {
 	foldSingleQuotes(state : State, c : char) : Optional<State> {
 		if ('\'' != c)
 			return new None<>();
-		return state.append(c).popAndAppendToTuple().flatMap(/*tuple -> {
-            if ('\\' == tuple.right())
-                return tuple.left().popAndAppendToOption();
-            return new Some<>(tuple.left());
-        }*/).flatMap(/*State::popAndAppendToOption*/);
+		return state.append(c).popAndAppendToTuple().flatMap(tuple => {
+			if ('\\' == tuple.right())
+				return tuple.left().popAndAppendToOption();
+			return new Some<>(tuple.left());
+		}).flatMap(/*State::popAndAppendToOption*/);
 	}
 	foldStatements(state : State, c : char) : State {
 		let appended : any = state.append(c);
@@ -536,21 +536,21 @@ class Main {
 			return appended.exit();
 		return appended;
 	}
-	handleInvocationSegments(tuple : Tuple<ListLike<string>, string>) : Optional<string> {
+	handleInvocationSegments(tuple : Tuple<ListLike<string>, string>, depth : number) : Optional<string> {
 		let joined : any = tuple.left().stream().collect(Collectors.joining());
 		if (joined.isEmpty() || '(' != joined.charAt(joined.length() - 1))
 			return new None<>();
 		let substring : any = joined.substring(0, /* joined.length(*/) - "(".length(/*)*/);
 		let argument : any = tuple.right();
-		return Main.compileCaller(substring).map(caller => caller + "(" + Main.compileValues(argument, /* Main::compileValueOrPlaceholder*/) + ")");
+		return Main.compileCaller(substring, depth).map(caller => caller + "(" + Main.compileValues(argument, input => compileValueOrPlaceholder(input, depth)) + ")");
 	}
-	compileCaller(input : string) : Optional<string> {
+	compileCaller(input : string, depth : number) : Optional<string> {
 		let strip : any = input.strip();
 		if (strip.startsWith("new ")){
 			let substring : any = strip.substring("new ".length());
 			return new Some<>("new " + Main.compileType(substring));
 		}
-		return Main.compileValue(strip);
+		return Main.compileValue(strip, depth);
 	}
 }
 

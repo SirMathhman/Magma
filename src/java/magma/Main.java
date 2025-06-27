@@ -164,7 +164,8 @@ class Main {
     }
 
     private static String compileStructureSegmentValue(final String input, final CharSequence structName) {
-        return Main.compileStatement(input, Main::compileAssignment).or(() -> Main.compileMethod(input, structName))
+        return Main.compileStatement(input, input1 -> Main.compileAssignment(input1, 1))
+                   .or(() -> Main.compileMethod(input, structName))
                    .orElseGet(() -> Placeholder.generate(input));
     }
 
@@ -221,7 +222,7 @@ class Main {
         if (input.isBlank())
             return "";
         return Main.compileConditional(input, depth).or(() -> Main.compileElse(input, depth))
-                   .or(() -> Main.compileStatement(input, Main::compileFunctionStatementValue))
+                   .or(() -> Main.compileStatement(input, input1 -> Main.compileFunctionStatementValue(input1, depth)))
                    .map(value -> System.lineSeparator() + "\t".repeat(depth) + value)
                    .orElseGet(() -> Placeholder.generate(input));
     }
@@ -230,20 +231,21 @@ class Main {
         final var strip = input.strip();
         if (strip.startsWith("else")) {
             final var substring = strip.substring("else".length());
-            return new Some<>("else " + Main.functionCompileStatementOrBlock(depth, substring));
+            return new Some<>("else " + Main.compileBlockOrStatement(depth, substring));
         } else
             return new None<>();
     }
 
-    private static Optional<String> compileFunctionStatementValue(final String input) {
-        return Main.compileReturn(input).or(() -> Main.compileInvokable(input)).or(() -> Main.compileAssignment(input));
+    private static Optional<String> compileFunctionStatementValue(final String input, final int depth) {
+        return Main.compileReturn(input, depth).or(() -> Main.compileInvokable(input, depth))
+                   .or(() -> Main.compileAssignment(input, depth));
     }
 
-    private static Optional<String> compileReturn(final String input) {
+    private static Optional<String> compileReturn(final String input, final int depth) {
         final var strip = input.strip();
         if (strip.startsWith("return ")) {
             final var slice = strip.substring("return ".length());
-            return new Some<>("return " + Main.compileValueOrPlaceholder(slice));
+            return new Some<>("return " + Main.compileValueOrPlaceholder(slice, depth));
         }
 
         return new None<>();
@@ -271,20 +273,23 @@ class Main {
 
         final var condition = substring1.substring(0, substring1.length() - 1);
         final var joined = tuple.right().stream().collect(Collectors.joining());
-        final var compiled = Main.functionCompileStatementOrBlock(depth, joined);
-        return new Some<>("if (" + Main.compileValueOrPlaceholder(condition) + ")" + compiled);
+        final var compiled = Main.compileBlockOrStatement(depth, joined);
+        return new Some<>("if (" + Main.compileValueOrPlaceholder(condition, depth) + ")" + compiled);
     }
 
-    private static String functionCompileStatementOrBlock(final int depth, final String input) {
-        final var withBraces = input.strip();
-        final String compiled;
-        if (Main.isBlock(withBraces)) {
-            final var compiled1 =
-                    Main.compileFunctionSegments(withBraces.substring(1, withBraces.length() - 1), depth + 1);
-            compiled = "{" + compiled1 + Main.LINE_SEPARATOR + "\t".repeat(depth) + "}";
-        } else
-            compiled = Main.compileFunctionSegment(withBraces, depth + 1);
-        return compiled;
+    private static String compileBlockOrStatement(final int depth, final String input) {
+        return Main.compileBlock(depth, input).orElseGet(() -> Main.compileFunctionSegment(input.strip(), depth + 1));
+    }
+
+    private static Optional<String> compileBlock(final int depth, final String input) {
+        if (!Main.isBlock(input.strip()))
+            return new None<>();
+
+        final var compiled1 =
+                Main.compileFunctionSegments(input.strip().substring(1, input.strip().length() - 1), depth + 1);
+        final String compiled = "{" + compiled1 + Main.LINE_SEPARATOR + "\t".repeat(depth) + "}";
+        return new Some<>(compiled);
+
     }
 
     private static boolean isBlock(final CharSequence withBraces) {
@@ -320,7 +325,7 @@ class Main {
         return new None<>();
     }
 
-    private static Optional<String> compileAssignment(final String input) {
+    private static Optional<String> compileAssignment(final String input, final int depth) {
         final var separator = input.indexOf('=');
         if (0 <= separator) {
             final var before = input.substring(0, separator);
@@ -331,25 +336,25 @@ class Main {
                 assignable1 = definition.withModifier("let");
             else
                 assignable1 = assignable;
-            return new Some<>(assignable1.generate() + " = " + Main.compileValueOrPlaceholder(after));
+            return new Some<>(assignable1.generate() + " = " + Main.compileValueOrPlaceholder(after, depth));
         }
         return new None<>();
     }
 
-    private static String compileValueOrPlaceholder(final String input) {
-        return Main.compileValue(input).orElseGet(() -> Placeholder.generate(input));
+    private static String compileValueOrPlaceholder(final String input, final int depth) {
+        return Main.compileValue(input, depth).orElseGet(() -> Placeholder.generate(input));
     }
 
-    private static Optional<String> compileValue(final String input) {
-        final var maybeLambda = Main.compileLambda(input);
+    private static Optional<String> compileValue(final String input, final int depth) {
+        final var maybeLambda = Main.compileLambda(input, depth);
         if (maybeLambda.isPresent())
             return maybeLambda;
 
-        final var maybeOperator = Main.compileOperators(input);
+        final var maybeOperator = Main.compileOperators(input, depth);
         if (maybeOperator.isPresent())
             return maybeOperator;
 
-        final var maybeInvocation = Main.compileInvokable(input);
+        final var maybeInvocation = Main.compileInvokable(input, depth);
         if (maybeInvocation.isPresent())
             return maybeInvocation;
 
@@ -358,13 +363,13 @@ class Main {
             final var value = input.substring(0, separator);
             final var property = input.substring(separator + ".".length()).strip();
             if (Main.isSymbol(property))
-                return Main.compileValue(value).map(result -> result + "." + property);
+                return Main.compileValue(value, depth).map(result -> result + "." + property);
         }
 
         final var strip = input.strip();
         if (!strip.isEmpty() && '!' == strip.charAt(0)) {
             final var substring = strip.substring(1);
-            return Main.compileValue(substring).map(value -> "!" + value);
+            return Main.compileValue(substring, depth).map(value -> "!" + value);
         }
 
         if (Main.isNumber(strip))
@@ -382,7 +387,7 @@ class Main {
         return new None<>();
     }
 
-    private static Optional<String> compileLambda(final String input) {
+    private static Optional<String> compileLambda(final String input, final int depth) {
         final var arrowIndex = input.indexOf("->");
         if (0 > arrowIndex)
             return new None<>();
@@ -392,15 +397,18 @@ class Main {
             return new None<>();
 
         final var after = input.substring(arrowIndex + "->".length());
-        return Main.compileValue(after).map(afterResult -> before + " => " + afterResult);
+        return Main.compileBlock(depth, after).or(() -> Main.compileValue(after, depth))
+                   .map(afterResult -> before + " => " + afterResult);
     }
 
-    private static Optional<String> compileOperators(final String input) {
-        return Main.compileOperator(input, ">=").or(() -> Main.compileOperator(input, "=="))
-                   .or(() -> Main.compileOperator(input, "+")).or(() -> Main.compileOperator(input, "<"))
-                   .or(() -> Main.compileOperator(input, "<=")).or(() -> Main.compileOperator(input, "||"))
-                   .or(() -> Main.compileOperator(input, "!=")).or(() -> Main.compileOperator(input, "-"))
-                   .or(() -> Main.compileOperator(input, "&&")).or(() -> Main.compileOperator(input, ">"));
+    private static Optional<String> compileOperators(final String input, final int depth) {
+        return Main.compileOperator(input, ">=", depth).or(() -> Main.compileOperator(input, "==", depth))
+                   .or(() -> Main.compileOperator(input, "+", depth)).or(() -> Main.compileOperator(input, "<", depth))
+                   .or(() -> Main.compileOperator(input, "<=", depth))
+                   .or(() -> Main.compileOperator(input, "||", depth))
+                   .or(() -> Main.compileOperator(input, "!=", depth)).or(() -> Main.compileOperator(input, "-", depth))
+                   .or(() -> Main.compileOperator(input, "&&", depth))
+                   .or(() -> Main.compileOperator(input, ">", depth));
     }
 
     private static boolean isChar(final CharSequence strip) {
@@ -408,24 +416,25 @@ class Main {
                3 <= strip.length();
     }
 
-    private static Optional<String> compileOperator(final String input, final String operator) {
+    private static Optional<String> compileOperator(final String input, final String operator, final int depth) {
         final var i = input.indexOf(operator);
         if (0 > i)
             return new None<>();
 
         final var leftSlice = input.substring(0, i);
         final var rightSlice = input.substring(i + operator.length());
-        return Main.compileValue(leftSlice)
-                   .flatMap(left -> Main.compileValue(rightSlice).map(right -> left + " " + operator + " " + right));
+        return Main.compileValue(leftSlice, depth).flatMap(
+                left -> Main.compileValue(rightSlice, depth).map(right -> left + " " + operator + " " + right));
     }
 
-    private static Optional<String> compileInvokable(final String input) {
+    private static Optional<String> compileInvokable(final String input, final int depth) {
         final var strip = input.strip();
         if (strip.isEmpty() || ')' != strip.charAt(strip.length() - 1))
             return new None<>();
 
         final var withoutEnd = strip.substring(0, strip.length() - ")".length());
-        return Main.divide(withoutEnd, Main::foldInvocation).popLast().flatMap(Main::handleInvocationSegments);
+        return Main.divide(withoutEnd, Main::foldInvocation).popLast()
+                   .flatMap(tuple -> Main.handleInvocationSegments(tuple, depth));
     }
 
     private static State foldInvocation(final State state, final char c) {
@@ -675,24 +684,27 @@ class Main {
         return appended;
     }
 
-    private static Optional<String> handleInvocationSegments(final Tuple<ListLike<String>, String> tuple) {
+    private static Optional<String> handleInvocationSegments(final Tuple<ListLike<String>, String> tuple, final int depth) {
         final var joined = tuple.left().stream().collect(Collectors.joining());
         if (joined.isEmpty() || '(' != joined.charAt(joined.length() - 1))
             return new None<>();
 
         final var substring = joined.substring(0, joined.length() - "(".length());
         final var argument = tuple.right();
-        return Main.compileCaller(substring)
-                   .map(caller -> caller + "(" + Main.compileValues(argument, Main::compileValueOrPlaceholder) + ")");
+        return Main.compileCaller(substring, depth).map(caller -> caller + "(" + Main.compileValues(argument,
+                                                                                                    input -> Main.compileValueOrPlaceholder(
+                                                                                                            input,
+                                                                                                            depth)) +
+                                                                  ")");
     }
 
-    private static Optional<String> compileCaller(final String input) {
+    private static Optional<String> compileCaller(final String input, final int depth) {
         final var strip = input.strip();
         if (strip.startsWith("new ")) {
             final var substring = strip.substring("new ".length());
             return new Some<>("new " + Main.compileType(substring));
         }
 
-        return Main.compileValue(strip);
+        return Main.compileValue(strip, depth);
     }
 }
