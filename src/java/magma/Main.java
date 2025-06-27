@@ -237,7 +237,7 @@ public class Main {
         if (maybeOperator.isPresent())
             return maybeOperator;
 
-        final var maybeInvocation = Main.compileInvocation(input);
+        final var maybeInvocation = Main.compileInvokable(input);
         if (maybeInvocation.isPresent())
             return maybeInvocation;
 
@@ -284,7 +284,7 @@ public class Main {
         });
     }
 
-    private static Optional<String> compileInvocation(final String input) {
+    private static Optional<String> compileInvokable(final String input) {
         final var strip = input.strip();
         if (strip.isEmpty() || ')' != strip.charAt(strip.length() - 1))
             return Optional.empty();
@@ -534,7 +534,17 @@ public class Main {
 
         final var substring = joined.substring(0, joined.length() - "(".length());
         final var argument = tuple.right();
-        return Main.compileValue(substring)
+        return Main.compileCaller(substring)
                    .map(caller -> caller + "(" + Main.compileValues(argument, Main::compileValueOrPlaceholder) + ")");
+    }
+
+    private static Optional<String> compileCaller(final String input) {
+        final var strip = input.strip();
+        if (strip.startsWith("new ")) {
+            final var substring = strip.substring("new ".length());
+            return Optional.of("new " + Main.compileType(substring));
+        }
+
+        return Main.compileValue(strip);
     }
 }

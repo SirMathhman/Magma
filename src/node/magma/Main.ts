@@ -186,7 +186,7 @@
 		/*final*/ maybeOperator : any = Main.compileOperator(input, " >= ").or(/*() -> Main.compileOperator(input, "==")*/).or(/*() -> Main.compileOperator(input, "+")*/).or(/*() -> Main.compileOperator(input, "<")*/).or(/*() -> Main.compileOperator(input, "<=")*/).or(/*() -> Main.compileOperator(input, "||")*/).or(/*() -> Main.compileOperator(input, "!=")*/).or(/*() -> Main.compileOperator(input, "-")*/).or(/*() -> Main.compileOperator(input, "&&")*/);
 		if (maybeOperator.isPresent())/*
             return maybeOperator;*/
-		/*final*/ maybeInvocation : any = Main.compileInvocation(input);
+		/*final*/ maybeInvocation : any = Main.compileInvokable(input);
 		if (maybeInvocation.isPresent())/*
             return maybeInvocation;*/
 		/*final*/ separator : any = input.lastIndexOf('.');
@@ -223,7 +223,7 @@
             });
         }*//*);*//*
     */}
-	/*private static*/ compileInvocation(/*final String input*/) : Optional<string> {
+	/*private static*/ compileInvokable(/*final String input*/) : Optional<string> {
 		/*final*/ strip : any = input.strip();
 		if (strip.isEmpty() || ')' != strip.charAt(strip.length() - 1))/*
             return Optional.empty();*/
@@ -373,11 +373,11 @@
             final var substring1 = beforeKeyword.substring(index + System.lineSeparator().length());
             return new StructureHeader(type, annotations, substring1, strip1, maybeImplements);
         }*/
-		return /*new StructureHeader(type, Collections.emptyList(), beforeKeyword, strip1, maybeImplements)*/;/*
+		return new StructureHeader(type, Collections.emptyList(), beforeKeyword, /* strip1*/, maybeImplements);/*
     */}
 	/*private static*/ divide(/*final CharSequence input,
                                            final BiFunction<State, Character, State> foldStatements*/) : ListLike<string> {
-		/**/ current : State = /* new MutableState(input)*/;/*
+		/**/ current : State = new MutableState(input);/*
         while (true) {
             final var maybe = current.pop();
             if (maybe.isEmpty())
@@ -437,7 +437,16 @@
             return Optional.empty();*/
 		/*final*/ substring : any = joined.substring(0, /* joined.length(*/) - "(".length(/*)*/);
 		/*final*/ argument : any = tuple.right();
-		return Main.compileValue(substring).map(/*caller -> caller + "(" + Main.compileValues(argument, Main::compileValueOrPlaceholder) + ")"*/);/*
+		return Main.compileCaller(substring).map(/*
+                caller -> caller + "(" + Main.compileValues(argument, Main::compileValueOrPlaceholder) + ")"*/);/*
+    */}
+	/*private static*/ compileCaller(/*final String input*/) : Optional<string> {
+		/*final*/ strip : any = input.strip();
+		if (strip.startsWith("new "))/* {
+            final var substring = strip.substring("new ".length());
+            return Optional.of("new " + Main.compileType(substring));
+        }*/
+		return Main.compileValue(strip);/*
     */}
 	/**/}
 /**/
