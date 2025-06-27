@@ -1,4 +1,4 @@
-/*package magma;*/
+
 /*public*/class Placeholder/*implements Assignable, StructureDefinition*/ {
 	/*private final String value;*/
 	constructor (/*final String value*/) {
@@ -16,4 +16,4 @@
 		return this.value;/*
     */}
 	/**/}
-/**/
+

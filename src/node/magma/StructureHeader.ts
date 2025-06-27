@@ -1,4 +1,4 @@
-/*package magma;*/
+
 /*import java.util.List;*/
 /*import java.util.Optional;*/
 /*public*/class StructureHeader/*implements StructureDefinition*/ {
@@ -8,4 +8,4 @@
 		return Placeholder.generate(this.beforeKeyword()) + this.type + " " + this.name() + generated;/*
     */}
 	/**/}
-/**/
+

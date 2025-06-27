@@ -1,4 +1,4 @@
-/*package magma;*/
+
 /*import java.util.Optional;*/
 /*public*/interface State {
 	/*State advance();*/
@@ -13,4 +13,4 @@
 	/*Optional<State> popAndAppendToOption();*/
 	/*Optional<Character> peek();*/
 	/**/}
-/**/
+

@@ -1,4 +1,4 @@
-/*package magma;*/
+
 /*import java.io.IOException;*/
 /*import java.nio.file.Files;*/
 /*import java.nio.file.Path;*/
@@ -55,7 +55,15 @@
 		return /*Main.compileRootSegmentValue(input.strip()) + Main.LINE_SEPARATOR*/;/*
     */}
 	/*private static*/ compileRootSegmentValue(/*final String input*/) : string {
-		return Main.compileStructure(input).orElseGet(/*(*/) -  > Placeholder.generate(/*input)*/);/*
+		if (input.isBlank())/*
+            return "";*/
+		return Main.compileNamespaced(input).or(/*(*/) -  > Main.compileStructure(/*input)*/).orElseGet(() -  > Placeholder.generate(input));/*
+    */}
+	/*private static*/ compileNamespaced(/*final String input*/) : Optional<string> {
+		/*final*/ strip : any = input.strip();
+		if (strip.startsWith("package "))/*
+            return Optional.of("");*/
+		return Optional.empty();/*
     */}
 	/*private static*/ compileStructure(/*final String input*/) : Optional<string> {
 		if (input.isEmpty() || '}' != input.charAt(input.length() - 1))/*
@@ -460,4 +468,4 @@
 		return Main.compileValue(strip);/*
     */}
 	/**/}
-/**/
+

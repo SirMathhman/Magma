@@ -65,7 +65,17 @@ public class Main {
     }
 
     private static String compileRootSegmentValue(final String input) {
-        return Main.compileStructure(input).orElseGet(() -> Placeholder.generate(input));
+        if (input.isBlank())
+            return "";
+        return Main.compileNamespaced(input).or(() -> Main.compileStructure(input))
+                   .orElseGet(() -> Placeholder.generate(input));
+    }
+
+    private static Optional<String> compileNamespaced(final String input) {
+        final var strip = input.strip();
+        if (strip.startsWith("package "))
+            return Optional.of("");
+        return Optional.empty();
     }
 
     private static Optional<String> compileStructure(final String input) {

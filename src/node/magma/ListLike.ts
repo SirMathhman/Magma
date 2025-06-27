@@ -1,4 +1,4 @@
-/*package magma;*/
+
 /*import java.util.Optional;*/
 /*import java.util.stream.Stream;*/
 /*public*/interface ListLike<T> {
@@ -7,4 +7,4 @@
 	/*Optional<Tuple<ListLike<T>, T>> popLast();*/
 	/*Optional<Tuple<T, ListLike<T>>> popFirst();*/
 	/**/}
-/**/
+

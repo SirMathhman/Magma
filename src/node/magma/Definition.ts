@@ -1,4 +1,4 @@
-/*package magma;*/
+
 /*public*/class Definition/*implements Assignable*/ {
 	/*@Override
     public*/ generateWithAfterName(/*final String afterName*/) : string {
@@ -9,4 +9,4 @@
 		return this.generateWithAfterName("");/*
     */}
 	/**/}
-/**/
+
