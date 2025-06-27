@@ -198,7 +198,7 @@ public class Main {
         else if (!withBraces.isEmpty() && '{' == withBraces.charAt(0) &&
                    '}' == withBraces.charAt(withBraces.length() - 1)) {
             final var substring = withBraces.substring(1, withBraces.length() - 1);
-            final var compiled = Main.compileStatements(substring, Main::compileFunctionSegment);
+            final var compiled = Main.compileFunctionSegments(substring, 2);
             outputContent = " {" + compiled + "}";
         } else
             return Optional.empty();
@@ -207,18 +207,23 @@ public class Main {
                 Main.parseMethodHeader(definition, structName).generateWithAfterName(joinedParams) + outputContent);
     }
 
+    private static String compileFunctionSegments(final String substring, final int depth) {
+        return Main.compileStatements(substring, input -> Main.compileFunctionSegment(input, depth));
+    }
+
     private static String compileParameter(final String input) {
         if (input.isBlank())
             return "";
         return Main.parseDefinitionOrPlaceholder(input).generate();
     }
 
-    private static String compileFunctionSegment(final String input) {
+    private static String compileFunctionSegment(final String input, final int depth) {
         if (input.isBlank())
             return "";
-        return Main.compileConditional(input)
+        return Main.compileConditional(input, depth)
                    .or(() -> Main.compileStatement(input, Main::compileFunctionStatementValue))
-                   .map(value -> System.lineSeparator() + "\t\t" + value).orElseGet(() -> Placeholder.generate(input));
+                   .map(value -> System.lineSeparator() + "\t".repeat(depth) + value)
+                   .orElseGet(() -> Placeholder.generate(input));
     }
 
     private static Optional<String> compileFunctionStatementValue(final String input) {
@@ -235,7 +240,7 @@ public class Main {
         return Optional.empty();
     }
 
-    private static Optional<String> compileConditional(final String input) {
+    private static Optional<String> compileConditional(final String input, final int depth) {
         final var strip = input.strip();
         if (!strip.startsWith("if"))
             return Optional.empty();
@@ -245,17 +250,26 @@ public class Main {
             return Optional.empty();
 
         final var substring = slice.substring(1);
-        return Main.divide(substring, Main::foldConditional).popFirst().flatMap(Main::compileConditionalSegments);
+        return Main.divide(substring, Main::foldConditional).popFirst()
+                   .flatMap(tuple -> Main.compileConditionalSegments(tuple, depth));
     }
 
-    private static Optional<String> compileConditionalSegments(final Tuple<String, ListLike<String>> tuple) {
+    private static Optional<String> compileConditionalSegments(final Tuple<String, ListLike<String>> tuple, final int depth) {
         final var substring1 = tuple.left();
         if (substring1.isEmpty() || ')' != substring1.charAt(substring1.length() - 1))
             return Optional.empty();
 
         final var condition = substring1.substring(0, substring1.length() - 1);
-        final var substring2 = tuple.right().stream().collect(Collectors.joining());
-        return Optional.of("if (" + Main.compileValueOrPlaceholder(condition) + ")" + Placeholder.generate(substring2));
+        final var withBraces = tuple.right().stream().collect(Collectors.joining()).strip();
+        final String compiled;
+        if (withBraces.startsWith("{") && withBraces.endsWith("}")) {
+            final var compiled1 =
+                    Main.compileFunctionSegments(withBraces.substring(1, withBraces.length() - 1), depth + 1);
+            compiled = "{" + compiled1 + Main.LINE_SEPARATOR + "\t".repeat(depth) + "}";
+        } else
+            compiled = Main.compileFunctionSegment(withBraces, depth + 1);
+
+        return Optional.of("if (" + Main.compileValueOrPlaceholder(condition) + ")" + compiled);
     }
 
     private static State foldConditional(final State state, final char c) {
