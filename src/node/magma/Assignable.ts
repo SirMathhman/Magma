@@ -1,5 +1,5 @@
 
-interface Assignable extends MethodHeader permits Definition, Placeholder {
+interface Assignable extends MethodHeader  {
 	generate() : string;
 }
 

@@ -618,13 +618,24 @@ class Main {
 
         final var beforeKeyword = input.substring(0, classIndex).strip();
         final var afterKeyword = input.substring(classIndex + (keyword + " ").length()).strip();
+
+        final var permitsIndex = afterKeyword.indexOf("permits");
+        if (0 <= permitsIndex) {
+            final var substring = afterKeyword.substring(0, permitsIndex);
+            return Main.getStructureDefinitionSome(type, beforeKeyword, substring);
+        }
+        return Main.getStructureDefinitionSome(type, beforeKeyword, afterKeyword);
+    }
+
+    private static Some<StructureDefinition> getStructureDefinitionSome(final String type, final String beforeKeyword,
+                                                                        final String afterKeyword) {
         final var implementsIndex = afterKeyword.indexOf("implements ");
         if (0 <= implementsIndex) {
             final var beforeImplements = afterKeyword.substring(0, implementsIndex).strip();
             final var afterImplements = afterKeyword.substring(implementsIndex + "implements ".length()).strip();
-            return new Some<>(Main.complete(type, beforeKeyword, beforeImplements, new Some<String>(afterImplements)));
+            return new Some<>(Main.complete(type, beforeKeyword, beforeImplements, new Some<>(afterImplements)));
         } else
-            return new Some<>(Main.complete(type, beforeKeyword, afterKeyword, new None<String>()));
+            return new Some<>(Main.complete(type, beforeKeyword, afterKeyword, new None<>()));
     }
 
     private static StructureHeader complete(final String type, final String beforeKeyword,

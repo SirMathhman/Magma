@@ -1,5 +1,5 @@
 
-interface MethodHeader permits Assignable, Constructor {
+interface MethodHeader  {
 	generateWithAfterName(afterName : string) : string;
 }
 

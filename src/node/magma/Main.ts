@@ -481,14 +481,22 @@ class Main {
 			return new None();
 		beforeKeyword : any = input.substring(0, classIndex).strip();
 		afterKeyword : any = input.substring(classIndex + (keyword + " ").length()).strip();
+		permitsIndex : any = afterKeyword.indexOf("permits".toString());
+		if (permitsIndex >= 0){
+			substring : any = afterKeyword.substring(0, permitsIndex);
+			return getStructureDefinitionSome(type, beforeKeyword, substring);
+		}
+		return getStructureDefinitionSome(type, beforeKeyword, afterKeyword);
+	}
+	getStructureDefinitionSome(type : string, beforeKeyword : string, afterKeyword : string) : Some<StructureDefinition> {
 		implementsIndex : any = afterKeyword.indexOf("implements ");
 		if (0 <= implementsIndex){
 			beforeImplements : any = afterKeyword.substring(0, implementsIndex).strip();
 			afterImplements : any = afterKeyword.substring(implementsIndex + "implements ".length()).strip();
-			return new Some(Main.complete(type, beforeKeyword, beforeImplements, new Some<string>(afterImplements)));
+			return new Some(Main.complete(type, beforeKeyword, beforeImplements, new Some(afterImplements)));
 		}
 		else 
-			return new Some(Main.complete(type, beforeKeyword, afterKeyword, new None<string>()));
+			return new Some(Main.complete(type, beforeKeyword, afterKeyword, new None()));
 	}
 	complete(type : string, beforeKeyword : string, beforeImplements : string, maybeImplements : Optional<string>) : StructureHeader {
 		strip : any = beforeImplements.strip();
