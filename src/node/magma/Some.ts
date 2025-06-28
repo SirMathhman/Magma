@@ -17,7 +17,7 @@ class Some<T> {
 		return this.value;
 	}
 	map<R>(mapper : Function<T, R>) : Optional<R> {
-		return new Some<>(mapper.apply(this.value));
+		return new Some(mapper.apply(this.value));
 	}
 	flatMap<R>(mapper : Function<T, Optional<R>>) : Optional<R> {
 		return mapper.apply(this.value);
@@ -28,13 +28,13 @@ class Some<T> {
 	filter(predicate : Predicate<T>) : Optional<T> {
 		if (predicate.test(this.value))
 			return this;
-		return new None<>();
+		return new None();
 	}
 	isEmpty() : boolean {
 		return false;
 	}
 	toTuple(other : T) : Tuple<Boolean, T> {
-		return new Tuple<>(true, this.value);
+		return new Tuple(true, this.value);
 	}
 }
 

@@ -36,22 +36,22 @@ class MutableState {
 	}
 	pop() : Optional<Tuple<State, Character>> {
 		if (this.index >= this.input.length())
-			return new None<>();
+			return new None();
 		let c : any = this.input.charAt(this.index);/*
         this.index++;*/
-		return new Some<>(new Tuple<State, Character>(this, c));
+		return new Some(new Tuple<State, Character>(this, c));
 	}
 	popAndAppendToTuple() : Optional<Tuple<State, Character>> {
-		return this.pop().map(tuple => new Tuple<>(tuple.left().append(tuple.right()), tuple.right()));
+		return this.pop().map(tuple => new Tuple(tuple.left().append(tuple.right()), tuple.right()));
 	}
 	popAndAppendToOption() : Optional<State> {
 		return this.popAndAppendToTuple().map(arg => Tuple.left(arg));
 	}
 	peek() : Optional<Character> {
 		if (this.index < this.input.length())
-			return new Some<>(this.input.charAt(this.index));
+			return new Some(this.input.charAt(this.index));
 		else 
-			return new None<>();
+			return new None();
 	}
 }
 

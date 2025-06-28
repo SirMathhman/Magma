@@ -488,8 +488,9 @@ class Main {
 
                 if (typeParamsString.startsWith("<") && typeParamsString.endsWith(">")) {
                     final var slice = typeParamsString.substring(1, typeParamsString.length() - 1);
-                    final var typeParams = Main.divide(slice, Main::foldValues).stream().map(String::strip)
-                                               .filter(value -> !value.isEmpty()).toList();
+                    final var typeParams =
+                            Main.divideValues(slice).stream().map(String::strip).filter(value -> !value.isEmpty())
+                                .toList();
 
                     return Main.assemble(joined, typeParams, name, type);
                 } else
@@ -558,8 +559,15 @@ class Main {
             if (0 <= start) {
                 final var base = withoutEnd.substring(0, start);
                 final var argument = withoutEnd.substring(start + "<".length());
-                final var compiled = Main.compileValues(argument, Main::compileType);
-                return base + "<" + compiled + ">";
+                final var list =
+                        Main.divideValues(argument).stream().map(String::strip).filter(value -> !value.isEmpty())
+                            .toList();
+                if (list.isEmpty())
+                    return base;
+                else {
+                    final var compiled = list.stream().map(Main::compileType).collect(Collectors.joining(", "));
+                    return base + "<" + compiled + ">";
+                }
             }
         }
 
@@ -573,6 +581,10 @@ class Main {
             return strip;
 
         return Placeholder.generate(strip);
+    }
+
+    private static ListLike<String> divideValues(final String argument) {
+        return Main.divide(argument, Main::foldValues);
     }
 
     private static String compileValues(final CharSequence input, final Function<String, String> mapper) {

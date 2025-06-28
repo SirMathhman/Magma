@@ -16,10 +16,10 @@ class None<T> {
 		return other.get();
 	}
 	map<R>(mapper : Function<T, R>) : Optional<R> {
-		return new None<>();
+		return new None();
 	}
 	flatMap<R>(mapper : Function<T, Optional<R>>) : Optional<R> {
-		return new None<>();
+		return new None();
 	}
 	orElse(other : T) : T {
 		return other;
@@ -31,7 +31,7 @@ class None<T> {
 		return true;
 	}
 	toTuple(other : T) : Tuple<Boolean, T> {
-		return new Tuple<>(false, other);
+		return new Tuple(false, other);
 	}
 }
 
