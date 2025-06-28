@@ -2,9 +2,8 @@
 
 
 
-
-class Some<T> {Some[value=]
-	constructor (Some[value=]) {Some[value=]
+class Some<T> {
+	constructor () {
 	}
 	isPresent() : boolean {
 	}

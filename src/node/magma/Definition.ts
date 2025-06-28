@@ -1,14 +1,14 @@
 
-class Definition {Some[value=
+class Definition {
 	modifiers : ListLike<Some[value=]>;
 	typeParams : ListLike<Some[value=]>;
 	name : string;
-	type : string;]
-	constructor (Some[value=, modifiers : ListLike<Some[value=]>, typeParams : ListLike<Some[value=]>, name : string, type : string]) {Some[value=
+	type : string;
+	constructor (, modifiers : ListLike<Some[value=]>, typeParams : ListLike<Some[value=]>, name : string, type : string) {
 		this.modifiers = modifiers;
 		this.typeParams = typeParams;
 		this.name = name;
-		this.type = type;]
+		this.type = type;
 	}
 	getJoinedTypeParams() : string {
 		else 

@@ -93,7 +93,7 @@ class Main {
             (newHeader instanceof final Definition definition1 && definition1.annotations().contains("Actual"))*/)
 		else 
 			if (/*!withBraces.isEmpty() && '{' == withBraces.charAt(0) &&
-                   '}' == withBraces.charAt(withBraces.length() - 1)*/)
+                 '}' == withBraces.charAt(withBraces.length() - 1)*/)
 		else 
 			return /*new None<>()*/;
 		return /*new Some<>(newHeader.generateWithAfterName(joinedParams) + outputContent)*/;

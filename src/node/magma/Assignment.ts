@@ -1,8 +1,8 @@
 
-class Assignment {Some[value=
-	value : string;]
-	constructor (Some[value=, value : string]) {Some[value=
-		this.value = value;]
+class Assignment {
+	value : string;
+	constructor (, value : string) {
+		this.value = value;
 	}
 	mapAssignable() : Assignment {
 	}

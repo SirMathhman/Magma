@@ -2,7 +2,6 @@
 
 
 
-
 interface Optional<T> {
 	isPresent() : boolean;
 	or() : Optional<Some[value=]>;

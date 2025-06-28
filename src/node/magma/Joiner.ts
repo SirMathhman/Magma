@@ -1,5 +1,5 @@
-class Joiner {Some[value=]
-	constructor (Some[value=]) {Some[value=]
+class Joiner {
+	constructor () {
 	}
 	createInitial() : Optional<Some[value=]> {
 	}

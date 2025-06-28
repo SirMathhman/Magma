@@ -2,9 +2,8 @@
 
 
 
-
-class None<T> {Some[value=]
-	constructor (Some[value=]) {None[]
+class None<T> {
+	constructor () {
 	}
 	isPresent() : boolean {
 	}

@@ -116,9 +116,10 @@ class Main {
             else {
                 final var joinedParameters = parameters.stream().map(Parameter::generate)
                                                        .map(result -> Main.LINE_SEPARATOR + "\t" + result + ";")
-                                                       .collect(new Joiner());
+                                                       .collect(new Joiner()).orElse("");
 
-                final var constructorParams = parameters.stream().map(Parameter::generate).collect(new Joiner(", "));
+                final var constructorParams =
+                        parameters.stream().map(Parameter::generate).collect(new Joiner(", ")).orElse("");
 
                 final var names = parameters.stream().<Optional<String>>map(parameter -> {
                     if (parameter instanceof final Definition definition1)
@@ -127,8 +128,9 @@ class Main {
                         return new None<>();
                 }).flatMap(Optional::stream).collect(new ListCollector<String>());
 
-                final var joinedNames = names.stream().map(name -> "\n\t\tthis." + name + " = " + name + ";")
-                                             .collect(new Joiner());
+                final var joinedNames =
+                        names.stream().map(name -> "\n\t\tthis." + name + " = " + name + ";").collect(new Joiner())
+                             .orElse("");
 
                 joined = joinedParameters + "\n\tconstructor (" + constructorParams + ") {" + joinedNames + "\n\t}";
             }
@@ -187,7 +189,7 @@ class Main {
             (newHeader instanceof final Definition definition1 && definition1.annotations().contains("Actual")))
             outputContent = ";";
         else if (!withBraces.isEmpty() && '{' == withBraces.charAt(0) &&
-                 '}' == withBraces.charAt(withBraces.length() - 1)) {
+                   '}' == withBraces.charAt(withBraces.length() - 1)) {
             final var substring = withBraces.substring(1, withBraces.length() - 1);
             final var compiled = Main.compileFunctionSegments(substring, 2);
             outputContent = " {" + compiled + Main.LINE_SEPARATOR + "\t}";

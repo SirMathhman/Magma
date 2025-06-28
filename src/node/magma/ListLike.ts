@@ -1,4 +1,3 @@
-
 interface ListLike<T> {
 	add() : ListLike<Some[value=]>;
 	popLast() : Optional<Some[value=]>;
