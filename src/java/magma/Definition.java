@@ -8,13 +8,16 @@ public record Definition(ListLike<String> annotations, ListLike<String> modifier
                          String type) implements Assignable {
     @Override
     public String generateWithAfterName(final String afterName) {
-        final String joinedTypeParams;
-        if (this.typeParams.isEmpty())
-            joinedTypeParams = "";
-        else
-            joinedTypeParams = "<" + String.join(", ", this.typeParams) + ">";
+        final var joinedTypeParams = this.getJoinedTypeParams();
         final var joinedModifiers = this.getString();
         return joinedModifiers + this.name + joinedTypeParams + afterName + " : " + this.type;
+    }
+
+    private String getJoinedTypeParams() {
+        if (this.typeParams.isEmpty())
+            return "";
+        else
+            return "<" + String.join(", ", this.typeParams) + ">";
     }
 
     private String getString() {

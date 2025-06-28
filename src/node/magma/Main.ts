@@ -481,12 +481,12 @@ class Main {
 			return new None();
 		beforeKeyword : any = input.substring(0, classIndex).strip();
 		afterKeyword : any = input.substring(classIndex + (keyword + " ").length()).strip();
-		permitsIndex : any = afterKeyword.indexOf("permits".toString());
-		if (permitsIndex >= 0){
+		permitsIndex : any = afterKeyword.indexOf("permits");
+		if (0 <= permitsIndex){
 			substring : any = afterKeyword.substring(0, permitsIndex);
-			return getStructureDefinitionSome(type, beforeKeyword, substring);
+			return Main.getStructureDefinitionSome(type, beforeKeyword, substring);
 		}
-		return getStructureDefinitionSome(type, beforeKeyword, afterKeyword);
+		return Main.getStructureDefinitionSome(type, beforeKeyword, afterKeyword);
 	}
 	getStructureDefinitionSome(type : string, beforeKeyword : string, afterKeyword : string) : Some<StructureDefinition> {
 		implementsIndex : any = afterKeyword.indexOf("implements ");

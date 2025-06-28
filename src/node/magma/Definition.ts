@@ -3,14 +3,16 @@
 
 
 class Definition {
-	generateWithAfterName(afterName : string) : string {/*
-        final String joinedTypeParams;*/
-		if (this.typeParams.isEmpty())
-			joinedTypeParams = "";
-		else 
-			joinedTypeParams = " < " + String.join(", ", this.typeParams) + " > ";
+	generateWithAfterName(afterName : string) : string {
+		joinedTypeParams : any = this.getJoinedTypeParams();
 		joinedModifiers : any = this.getString();
 		return joinedModifiers + this.name + joinedTypeParams + afterName + " : " + this.type;
+	}
+	getJoinedTypeParams() : string {
+		if (this.typeParams.isEmpty())
+			return "";
+		else 
+			return " < " + String.join(", ", this.typeParams) + " > ";
 	}
 	getString() : string {
 		if (this.modifiers.isEmpty())
