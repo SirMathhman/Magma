@@ -114,8 +114,13 @@ class Main {
                 return new Some<>("");
 
             structName = header.name();
-            joined = header.parameters().stream().map(Parameter::generate)
-                           .map(result -> Main.LINE_SEPARATOR + "\t" + result + ";").collect(Collectors.joining());
+            final var joinedParameters = header.parameters().stream().map(Parameter::generate)
+                                               .map(result -> Main.LINE_SEPARATOR + "\t" + result + ";")
+                                               .collect(Collectors.joining());
+
+            final var constructorParams =
+                    header.parameters().stream().map(Parameter::generate).collect(Collectors.joining(", "));
+            joined = joinedParameters + "\n\tconstructor (" + constructorParams + ") {\n\t}";
         } else {
             structName = "?";
             joined = "";

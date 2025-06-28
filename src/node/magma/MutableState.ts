@@ -1,5 +1,7 @@
 
 class MutableState {
+	constructor () {
+	}
 	/*private final CharSequence input;*/
 	segments : ListLike<string> = Lists.empty();
 	buffer : string = "";

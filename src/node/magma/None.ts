@@ -5,6 +5,8 @@
 
 class None<T> {
 	;
+	constructor () {
+	}
 	ifPresent(consumer : Consumer<T>) : void {
 	}
 	isPresent() : boolean {

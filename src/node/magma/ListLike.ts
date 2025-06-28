@@ -1,6 +1,8 @@
 
 
 interface ListLike<T> {
+	constructor () {
+	}
 	stream() : Stream<T>;
 	add(element : T) : ListLike<T>;
 	popLast() : Optional<Tuple<ListLike<T>, T>>;

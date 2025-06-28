@@ -5,6 +5,8 @@
 
 class Some<T> {
 	value : T;
+	constructor (value : T) {
+	}
 	ifPresent(consumer : Consumer<T>) : void {
 		consumer.accept(this.value);
 	}

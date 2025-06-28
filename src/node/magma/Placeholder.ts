@@ -1,5 +1,7 @@
 
 class Placeholder {
+	constructor () {
+	}
 	/*private final String value;*/
 	constructor (value : string) {
 		this.value = value;

@@ -4,6 +4,8 @@
 
 
 interface Optional<T> {
+	constructor () {
+	}
 	ifPresent(consumer : Consumer<T>) : void;
 	isPresent() : boolean;
 	or(other : Supplier<Optional<T>>) : Optional<T>;

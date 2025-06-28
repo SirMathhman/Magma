@@ -12,6 +12,8 @@
 
 
 class Main {
+	constructor () {
+	}
 	LINE_SEPARATOR : string = System.lineSeparator();
 	constructor () {
 	}
@@ -90,7 +92,9 @@ class Main {
 			if (header.annotations().contains("Actual"))
 				return new Some("");
 			structName = header.name();
-			joined = header.parameters().stream().map(arg => Parameter.generate(arg)).map(result => LINE_SEPARATOR + "\t" + result + ";").collect(Collectors.joining());
+			let joinedParameters : any = header.parameters().stream().map(arg => Parameter.generate(arg)).map(result => Main.LINE_SEPARATOR + "\t" + result + ";").collect(Collectors.joining());
+			let constructorParams : any = header.parameters().stream().map(arg => Parameter.generate(arg)).collect(Collectors.joining(", "));
+			joined = joinedParameters + "\n\tconstructor (" + constructorParams + ") {\n\t}";
 		}
 		else {
 			structName = "?";

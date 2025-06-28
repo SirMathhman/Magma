@@ -8,6 +8,8 @@ class Definition {
 	typeParams : List<string>;
 	name : string;
 	type : string;
+	constructor (annotations : ListLike<string>, modifiers : ListLike<string>, typeParams : List<string>, name : string, type : string) {
+	}
 	generateWithAfterName(afterName : string) : string {
 		let joinedTypeParams : any = this.getJoinedTypeParams();
 		let joinedModifiers : any = this.getString();
