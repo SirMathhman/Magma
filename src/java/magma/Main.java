@@ -309,12 +309,7 @@ class Main {
             final var before = input.substring(0, separator);
             final var after = input.substring(separator + "=".length());
             final var assignable = Main.parseDefinitionOrPlaceholder(before);
-            final Assignable assignable1;
-            if (assignable instanceof final Definition definition)
-                assignable1 = definition.withModifier("let");
-            else
-                assignable1 = assignable;
-            return new Some<>(assignable1.generate() + " = " + Main.compileValueOrPlaceholder(after, depth));
+            return new Some<>(assignable.generate() + " = " + Main.compileValueOrPlaceholder(after, depth));
         }
         return new None<>();
     }

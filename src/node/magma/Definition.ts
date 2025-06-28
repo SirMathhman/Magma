@@ -9,7 +9,7 @@ class Definition {
 			joinedTypeParams = "";
 		else 
 			joinedTypeParams = " < " + String.join(", ", this.typeParams) + " > ";
-		let joinedModifiers : any = this.getString();
+		joinedModifiers : any = this.getString();
 		return joinedModifiers + this.name + joinedTypeParams + afterName + " : " + this.type;
 	}
 	getString() : string {
