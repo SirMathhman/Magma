@@ -3,6 +3,7 @@
 
 
 
+
 class None<T> {
 	;
 	constructor () {
@@ -35,6 +36,9 @@ class None<T> {
 	}
 	toTuple(other : T) : Tuple<Boolean, T> {
 		return new Tuple(false, other);
+	}
+	stream() : Stream<T> {
+		return Stream.empty();
 	}
 }
 

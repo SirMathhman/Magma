@@ -9,6 +9,11 @@ class Definition {
 	name : string;
 	type : string;
 	constructor (annotations : ListLike<string>, modifiers : ListLike<string>, typeParams : List<string>, name : string, type : string) {
+		this.annotations = annotations;
+		this.modifiers = modifiers;
+		this.typeParams = typeParams;
+		this.name = name;
+		this.type = type;
 	}
 	generateWithAfterName(afterName : string) : string {
 		let joinedTypeParams : any = this.getJoinedTypeParams();

@@ -3,6 +3,7 @@
 
 
 
+
 interface Optional<T> {
 	constructor () {
 	}
@@ -16,5 +17,6 @@ interface Optional<T> {
 	filter(predicate : Predicate<T>) : Optional<T>;
 	isEmpty() : boolean;
 	toTuple(other : T) : Tuple<Boolean, T>;
+	stream() : Stream<T>;
 }
 

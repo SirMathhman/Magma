@@ -3,9 +3,11 @@
 
 
 
+
 class Some<T> {
 	value : T;
 	constructor (value : T) {
+		this.value = value;
 	}
 	ifPresent(consumer : Consumer<T>) : void {
 		consumer.accept(this.value);
@@ -38,6 +40,9 @@ class Some<T> {
 	}
 	toTuple(other : T) : Tuple<Boolean, T> {
 		return new Tuple(true, this.value);
+	}
+	stream() : Stream<T> {
+		return Stream.of(value);
 	}
 }
 

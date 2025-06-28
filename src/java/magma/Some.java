@@ -4,6 +4,7 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
+import java.util.stream.Stream;
 
 public record Some<T>(T value) implements Optional<T> {
     @Override
@@ -56,5 +57,10 @@ public record Some<T>(T value) implements Optional<T> {
     @Override
     public Tuple<Boolean, T> toTuple(final T other) {
         return new Tuple<>(true, this.value);
+    }
+
+    @Override
+    public Stream<T> stream() {
+        return Stream.of(this.value);
     }
 }

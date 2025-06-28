@@ -120,7 +120,18 @@ class Main {
 
             final var constructorParams =
                     header.parameters().stream().map(Parameter::generate).collect(Collectors.joining(", "));
-            joined = joinedParameters + "\n\tconstructor (" + constructorParams + ") {\n\t}";
+
+            final var names = header.parameters().stream().<Optional<String>>map(parameter -> {
+                if (parameter instanceof final Definition definition1)
+                    return new Some<>(definition1.name());
+                else
+                    return new None<>();
+            }).flatMap(Optional::stream).toList();
+
+            final var joinedNames =
+                    names.stream().map(name -> "\n\t\tthis." + name + " = " + name + ";").collect(Collectors.joining());
+
+            joined = joinedParameters + "\n\tconstructor (" + constructorParams + ") {" + joinedNames + "\n\t}";
         } else {
             structName = "?";
             joined = "";

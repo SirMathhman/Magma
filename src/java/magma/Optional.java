@@ -4,6 +4,7 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
+import java.util.stream.Stream;
 
 public interface Optional<T> {
     void ifPresent(Consumer<T> consumer);
@@ -25,4 +26,6 @@ public interface Optional<T> {
     boolean isEmpty();
 
     Tuple<Boolean, T> toTuple(T other);
+
+    Stream<T> stream();
 }

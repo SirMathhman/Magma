@@ -4,6 +4,7 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
+import java.util.stream.Stream;
 
 public record None<T>() implements Optional<T> {
     @Override
@@ -53,5 +54,10 @@ public record None<T>() implements Optional<T> {
     @Override
     public Tuple<Boolean, T> toTuple(final T other) {
         return new Tuple<>(false, other);
+    }
+
+    @Override
+    public Stream<T> stream() {
+        return Stream.empty();
     }
 }
