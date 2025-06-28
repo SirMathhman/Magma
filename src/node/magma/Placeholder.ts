@@ -1,14 +1,14 @@
 
 class Placeholder {
 	/*private final String value;*/
-	constructor (final value : string) {
+	constructor (value : string) {
 		this.value = value;
 	}
-	generate(final input : string) : string {
-		final let replaced : any = input.replace("/*", "start").replace("*/", "end");
+	generate(input : string) : string {
+		let replaced : any = input.replace("/*", "start").replace("*/", "end");
 		return "/*" + replaced + "*/";
 	}
-	generateWithAfterName(final afterName : string) : string {
+	generateWithAfterName(afterName : string) : string {
 		return Placeholder.generate(this.value) + afterName;
 	}
 	generate() : string {

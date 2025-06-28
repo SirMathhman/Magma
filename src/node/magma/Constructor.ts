@@ -1,6 +1,6 @@
 
 class Constructor {
-	generateWithAfterName(final afterName : string) : string {
+	generateWithAfterName(afterName : string) : string {
 		return "constructor " + afterName;
 	}
 }

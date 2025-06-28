@@ -1,11 +1,11 @@
 
 class MutableState {
 	/*private final CharSequence input;*/
-	private let segments : ListLike<string> = Lists.empty();
-	private let buffer : string = "";
-	private let depth : number = 0;
-	private let index : number = 0;
-	constructor (final input : CharSequence) {
+	let segments : ListLike<string> = Lists.empty();
+	let buffer : string = "";
+	let depth : number = 0;
+	let index : number = 0;
+	constructor (input : CharSequence) {
 		this.input = input;
 	}
 	advance() : State {
@@ -13,7 +13,7 @@ class MutableState {
 		this.buffer = "";
 		return this;
 	}
-	append(final c : char) : State {
+	append(c : char) : State {
 		this.buffer = this.buffer + c;
 		return this;
 	}
@@ -37,7 +37,7 @@ class MutableState {
 	pop() : Optional<Tuple<State, Character>> {
 		if (this.index >= this.input.length())
 			return new None<>();
-		final let c : any = this.input.charAt(this.index);/*
+		let c : any = this.input.charAt(this.index);/*
         this.index++;*/
 		return new Some<>(new Tuple<State, Character>(this, c));
 	}

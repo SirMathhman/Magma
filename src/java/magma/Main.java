@@ -192,6 +192,7 @@ class Main {
     private static String compileParameter(final String input) {
         if (input.isBlank())
             return "";
+
         return Main.parseDefinitionOrPlaceholder(input).generate();
     }
 
@@ -463,7 +464,10 @@ class Main {
 
     private static Assignable parseDefinitionOrPlaceholder(final String input) {
         final var strip = input.strip();
-        return Main.parseDefinition(strip).<Assignable>map(value -> value).orElseGet(() -> new Placeholder(strip));
+        return Main.parseDefinition(strip).<Assignable>map(value -> {
+            final var newModifiers = Lists.<String>empty();
+            return new Definition(value.annotations(), newModifiers, value.typeParams(), value.name(), value.type());
+        }).orElseGet(() -> new Placeholder(strip));
     }
 
     private static Optional<Definition> parseDefinition(final String strip) {
