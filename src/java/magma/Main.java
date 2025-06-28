@@ -108,17 +108,22 @@ class Main {
         final var content = withoutEnd.substring(contentStart + "{".length());
         final var definition = Main.parseStructureHeader(beforeContent);
         final String structName;
+        final String joined;
         if (definition instanceof final StructureHeader header) {
             if (header.annotations().contains("Actual"))
                 return new Some<>("");
 
             structName = header.name();
-        } else
+            joined = header.parameters().stream().map(Parameter::generate)
+                           .map(result -> Main.LINE_SEPARATOR + "\t" + result + ";").collect(Collectors.joining());
+        } else {
             structName = "?";
+            joined = "";
+        }
 
-        return new Some<>(definition.generate() + " {" +
-                          Main.compileStatements(content, input1 -> Main.compileStructureSegment(input1, structName)) +
-                          Main.LINE_SEPARATOR + "}");
+        final var compiled =
+                Main.compileStatements(content, input1 -> Main.compileStructureSegment(input1, structName));
+        return new Some<>(definition.generate() + " {" + joined + compiled + Main.LINE_SEPARATOR + "}");
     }
 
     private static String compileStructureSegment(final String input, final CharSequence structName) {
@@ -155,7 +160,7 @@ class Main {
 
         final var definition = withParams.substring(0, paramStart);
         final var params = withParams.substring(paramStart + "(".length());
-        final var joinedParams = "(" + Main.compileValues(params, Main::compileParameter) + ")";
+        final var joinedParams = "(" + Main.compileParameters(params) + ")";
 
         final var withBraces = input.substring(paramEnd + ")".length()).strip();
         final var oldHeader = Main.parseMethodHeader(definition, structName);
@@ -176,6 +181,10 @@ class Main {
         return new Some<>(newHeader.generateWithAfterName(joinedParams) + outputContent);
     }
 
+    private static String compileParameters(final CharSequence params) {
+        return Main.compileValues(params, input -> Main.parseParameter(input).generate());
+    }
+
     private static MethodHeader modifyMethodHeader(final MethodHeader header) {
         return switch (header) {
             case final Definition definition -> definition.mapModifiers(oldModifiers -> {
@@ -189,11 +198,11 @@ class Main {
         return Main.compileStatements(substring, input -> Main.compileFunctionSegment(input, depth));
     }
 
-    private static String compileParameter(final String input) {
+    private static Parameter parseParameter(final String input) {
         if (input.isBlank())
-            return "";
+            return new Whitespace();
 
-        return Main.parseDefinitionOrPlaceholder(input).generate();
+        return Main.parseDefinitionOrPlaceholder(input);
     }
 
     private static String compileFunctionSegment(final String input, final int depth) {
@@ -584,12 +593,12 @@ class Main {
         return Placeholder.generate(strip);
     }
 
-    private static ListLike<String> divideValues(final String argument) {
+    private static ListLike<String> divideValues(final CharSequence argument) {
         return Main.divide(argument, Main::foldValues);
     }
 
     private static String compileValues(final CharSequence input, final Function<String, String> mapper) {
-        return Main.compileAll(input, Main::foldValues, mapper, ", ");
+        return Main.divideValues(input).stream().map(mapper).collect(Collectors.joining(", "));
     }
 
     private static State foldValues(final State state, final char c) {
@@ -611,13 +620,15 @@ class Main {
     }
 
     private static StructureDefinition parseStructureHeader(final String input) {
-        return Main.parseClassHeader(input, "class", "class").or(() -> Main.parseClassHeader(input, "record", "class"))
-                   .or(() -> Main.parseClassHeader(input, "interface", "interface"))
+        return Main.parseStructureHeaderWithKeyword(input, "class", "class")
+                   .or(() -> Main.parseStructureHeaderWithKeyword(input, "record", "class"))
+                   .or(() -> Main.parseStructureHeaderWithKeyword(input, "interface", "interface"))
                    .orElseGet(() -> new Placeholder(input));
     }
 
-    private static Optional<StructureDefinition> parseClassHeader(final String input, final String keyword,
-                                                                  final String type) {
+    private static Optional<StructureDefinition> parseStructureHeaderWithKeyword(final String input,
+                                                                                 final String keyword,
+                                                                                 final String type) {
         final var classIndex = input.indexOf(keyword + " ");
         if (0 > classIndex)
             return new None<>();
@@ -652,24 +663,29 @@ class Main {
             final var contentStart = withoutEnd.indexOf('(');
             if (0 <= contentStart) {
                 final var strip1 = withoutEnd.substring(0, contentStart).strip();
-                return Main.parseStructureHeaderByAnnotations(type, beforeKeyword, maybeImplements, strip1);
+                final var substring = withoutEnd.substring(contentStart + "(".length());
+                final ListLike<Parameter> parameters =
+                        new JavaList<>(Main.divideValues(substring).stream().map(Main::parseParameter).toList());
+                return Main.parseStructureHeaderByAnnotations(type, beforeKeyword, maybeImplements, strip1, parameters);
             }
         }
 
-        return Main.parseStructureHeaderByAnnotations(type, beforeKeyword, maybeImplements, beforeImplements);
+        return Main.parseStructureHeaderByAnnotations(type, beforeKeyword, maybeImplements, beforeImplements,
+                                                      Lists.empty());
     }
 
     private static StructureHeader parseStructureHeaderByAnnotations(final String type, final String beforeKeyword,
                                                                      final Optional<String> maybeImplements,
-                                                                     final String strip1) {
+                                                                     final String strip1,
+                                                                     final ListLike<Parameter> parameters) {
         final var index = beforeKeyword.lastIndexOf(System.lineSeparator());
         if (0 <= index) {
             final var annotations = Main.parseAnnotations(beforeKeyword.substring(0, index));
             final var substring1 = beforeKeyword.substring(index + System.lineSeparator().length());
-            return new StructureHeader(type, annotations, substring1, strip1, maybeImplements);
+            return new StructureHeader(type, annotations, substring1, strip1, maybeImplements, parameters);
         }
 
-        return new StructureHeader(type, Lists.empty(), beforeKeyword, strip1, maybeImplements);
+        return new StructureHeader(type, Lists.empty(), beforeKeyword, strip1, maybeImplements, parameters);
     }
 
     private static ListLike<String> parseAnnotations(final String input) {

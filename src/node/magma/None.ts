@@ -4,6 +4,7 @@
 
 
 class None<T> {
+	;
 	ifPresent(consumer : Consumer<T>) : void {
 	}
 	isPresent() : boolean {

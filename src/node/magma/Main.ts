@@ -84,15 +84,20 @@ class Main {
 		let beforeContent : any = withoutEnd.substring(0, contentStart);
 		let content : any = withoutEnd.substring(contentStart + "{".length());
 		let definition : any = Main.parseStructureHeader(beforeContent);/*
-        final String structName;*/
+        final String structName;*//*
+        final String joined;*/
 		if (/*definition instanceof final StructureHeader header*/){
 			if (header.annotations().contains("Actual"))
 				return new Some("");
 			structName = header.name();
+			joined = header.parameters().stream().map(arg => Parameter.generate(arg)).map(result => LINE_SEPARATOR + "\t" + result + ";").collect(Collectors.joining());
 		}
-		else 
+		else {
 			structName = "?";
-		return new Some(/*definition.generate(*/) + " {" + Main.compileStatements(content, input1 => Main.compileStructureSegment(input1, /* structName)*/) + Main.LINE_SEPARATOR + "}");
+			joined = "";
+		}
+		let compiled : any = Main.compileStatements(content, input1 => Main.compileStructureSegment(input1, structName));
+		return new Some(definition.generate() + " {" + joined + compiled + Main.LINE_SEPARATOR + "}");
 	}
 	compileStructureSegment(input : string, structName : CharSequence) : string {
 		let strip : any = input.strip();
@@ -119,7 +124,7 @@ class Main {
 			return new None();
 		let definition : any = withParams.substring(0, paramStart);
 		let params : any = withParams.substring(paramStart + "(".length());
-		let joinedParams : any = "(" + Main.compileValues(params, arg => Main.compileParameter(arg)) + ")";
+		let joinedParams : any = "(" + Main.compileParameters(params) + ")";
 		let withBraces : any = input.substring(paramEnd + ")".length()).strip();
 		let oldHeader : any = Main.parseMethodHeader(definition, structName);
 		let newHeader : any = Main.modifyMethodHeader(oldHeader);/*
@@ -137,6 +142,9 @@ class Main {
 			return new None();
 		return new Some(newHeader.generateWithAfterName(joinedParams) + outputContent);
 	}
+	compileParameters(params : CharSequence) : string {
+		return Main.compileValues(params, input => Main.parseParameter(input).generate());
+	}
 	modifyMethodHeader(header : MethodHeader) : MethodHeader {/*
         return switch (header) {
             case final Definition definition -> definition.mapModifiers(oldModifiers -> {
@@ -148,10 +156,10 @@ class Main {
 	compileFunctionSegments(substring : CharSequence, depth : number) : string {
 		return Main.compileStatements(substring, input => Main.compileFunctionSegment(input, depth));
 	}
-	compileParameter(input : string) : string {
+	parseParameter(input : string) : Parameter {
 		if (input.isBlank())
-			return "";
-		return Main.parseDefinitionOrPlaceholder(input).generate();
+			return new Whitespace();
+		return Main.parseDefinitionOrPlaceholder(input);
 	}
 	compileFunctionSegment(input : string, depth : number) : string {
 		if (input.isBlank())
@@ -457,11 +465,11 @@ class Main {
 			return strip;
 		return Placeholder.generate(strip);
 	}
-	divideValues(argument : string) : ListLike<string> {
+	divideValues(argument : CharSequence) : ListLike<string> {
 		return Main.divide(argument, arg => Main.foldValues(arg));
 	}
 	compileValues(input : CharSequence, mapper : Function<string, string>) : string {
-		return Main.compileAll(input, arg => Main.foldValues(arg), mapper, ", ");
+		return Main.divideValues(input).stream().map(mapper).collect(Collectors.joining(", "));
 	}
 	foldValues(state : State, c : char) : State {
 		if (',' == c && state.isLevel())
@@ -479,9 +487,9 @@ class Main {
 		return appended;
 	}
 	parseStructureHeader(input : string) : StructureDefinition {
-		return Main.parseClassHeader(input, "class", "class").or(/*(*/) -  > Main.parseClassHeader(input, "record", /* "class")*/).or(() -  > Main.parseClassHeader(input, "interface", "interface")).orElseGet(() -  > new Placeholder(input));
+		return Main.parseStructureHeaderWithKeyword(input, "class", "class").or(/*(*/) -  > Main.parseStructureHeaderWithKeyword(input, "record", /* "class")*/).or(() -  > Main.parseStructureHeaderWithKeyword(input, "interface", "interface")).orElseGet(() -  > new Placeholder(input));
 	}
-	parseClassHeader(input : string, keyword : string, type : string) : Optional<StructureDefinition> {
+	parseStructureHeaderWithKeyword(input : string, keyword : string, type : string) : Optional<StructureDefinition> {
 		let classIndex : any = input.indexOf(keyword + " ");
 		if (0 > classIndex)
 			return new None();
@@ -511,19 +519,21 @@ class Main {
 			let contentStart : any = withoutEnd.indexOf('(');
 			if (0 <= contentStart){
 				let strip1 : any = withoutEnd.substring(0, contentStart).strip();
-				return Main.parseStructureHeaderByAnnotations(type, beforeKeyword, maybeImplements, strip1);
+				let substring : any = withoutEnd.substring(contentStart + "(".length());
+				let parameters : ListLike<Parameter> = new JavaList(Main.divideValues(substring).stream().map(arg => Main.parseParameter(arg)).toList());
+				return Main.parseStructureHeaderByAnnotations(type, beforeKeyword, maybeImplements, strip1, parameters);
 			}
 		}
-		return Main.parseStructureHeaderByAnnotations(type, beforeKeyword, maybeImplements, beforeImplements);
+		return Main.parseStructureHeaderByAnnotations(type, beforeKeyword, maybeImplements, beforeImplements, Lists.empty());
 	}
-	parseStructureHeaderByAnnotations(type : string, beforeKeyword : string, maybeImplements : Optional<string>, strip1 : string) : StructureHeader {
+	parseStructureHeaderByAnnotations(type : string, beforeKeyword : string, maybeImplements : Optional<string>, strip1 : string, parameters : ListLike<Parameter>) : StructureHeader {
 		let index : any = beforeKeyword.lastIndexOf(System.lineSeparator());
 		if (0 <= index){
 			let annotations : any = Main.parseAnnotations(beforeKeyword.substring(0, index));
 			let substring1 : any = beforeKeyword.substring(index + System.lineSeparator().length());
-			return new StructureHeader(type, annotations, substring1, strip1, maybeImplements);
+			return new StructureHeader(type, annotations, substring1, strip1, maybeImplements, parameters);
 		}
-		return new StructureHeader(type, Lists.empty(), beforeKeyword, strip1, maybeImplements);
+		return new StructureHeader(type, Lists.empty(), beforeKeyword, strip1, maybeImplements, parameters);
 	}
 	parseAnnotations(input : string) : ListLike<string> {
 		let copy : any = Arrays.stream(Pattern.compile("\\n").split(input.strip())).map(arg => String.strip(arg)).filter(value => !value.isEmpty()).map(value => value.substring(1)).collect(Collectors.toCollection(arg => ArrayList.new(arg)));

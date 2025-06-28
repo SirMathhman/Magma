@@ -1,5 +1,5 @@
 
-interface Assignable extends MethodHeader  {
+interface Assignable extends MethodHeader, Parameter  {
 	generate() : string;
 }
 

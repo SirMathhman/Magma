@@ -4,6 +4,7 @@
 
 
 class Some<T> {
+	value : T;
 	ifPresent(consumer : Consumer<T>) : void {
 		consumer.accept(this.value);
 	}

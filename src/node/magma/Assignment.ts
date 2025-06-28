@@ -1,6 +1,8 @@
 
 
 class Assignment {
+	assignable : Assignable;
+	value : string;
 	generate() : string {
 		return this.assignable().generate() + " = " + this.value();
 	}
