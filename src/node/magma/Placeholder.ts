@@ -4,14 +4,14 @@ class Placeholder {
 	constructor (final value : string) {
 		this.value = value;
 	}
-	static generate(final input : string) : string {
+	generate(final input : string) : string {
 		final let replaced : any = input.replace("/*", "start").replace("*/", "end");
 		return "/*" + replaced + "*/";
 	}
-	public generateWithAfterName(final afterName : string) : string {
+	generateWithAfterName(final afterName : string) : string {
 		return Placeholder.generate(this.value) + afterName;
 	}
-	public generate() : string {
+	generate() : string {
 		return this.value;
 	}
 }

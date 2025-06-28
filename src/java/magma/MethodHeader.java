@@ -1,5 +1,5 @@
 package magma;
 
-interface MethodHeader {
+sealed interface MethodHeader permits Assignable, Constructor {
     String generateWithAfterName(String afterName);
 }

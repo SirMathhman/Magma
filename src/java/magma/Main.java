@@ -158,10 +158,12 @@ class Main {
         final var joinedParams = "(" + Main.compileValues(params, Main::compileParameter) + ")";
 
         final var withBraces = input.substring(paramEnd + ")".length()).strip();
-        final var header = Main.parseMethodHeader(definition, structName);
+        final var oldHeader = Main.parseMethodHeader(definition, structName);
+        final var newHeader = Main.modifyMethodHeader(oldHeader);
+
         final String outputContent;
         if (";".contentEquals(withBraces) ||
-            (header instanceof final Definition definition1 && definition1.annotations().contains("Actual")))
+            (newHeader instanceof final Definition definition1 && definition1.annotations().contains("Actual")))
             outputContent = ";";
         else if (!withBraces.isEmpty() && '{' == withBraces.charAt(0) &&
                  '}' == withBraces.charAt(withBraces.length() - 1)) {
@@ -171,7 +173,16 @@ class Main {
         } else
             return new None<>();
 
-        return new Some<>(header.generateWithAfterName(joinedParams) + outputContent);
+        return new Some<>(newHeader.generateWithAfterName(joinedParams) + outputContent);
+    }
+
+    private static MethodHeader modifyMethodHeader(final MethodHeader header) {
+        return switch (header) {
+            case final Definition definition -> definition.mapModifiers(oldModifiers -> {
+                return Lists.empty();
+            });
+            default -> header;
+        };
     }
 
     private static String compileFunctionSegments(final CharSequence substring, final int depth) {
@@ -494,11 +505,11 @@ class Main {
             final var annotationString = beforeTypeParams.substring(0, annotationIndex);
             final var modifiersString = beforeTypeParams.substring(annotationIndex + "\n".length());
             return new Some<>(
-                    new Definition(Main.parseAnnotations(annotationString), Main.parseModifiers(modifiersString), name,
-                                   Main.compileType(type), typeParams));
+                    new Definition(Main.parseAnnotations(annotationString), Main.parseModifiers(modifiersString),
+                                   typeParams, name, Main.compileType(type)));
         } else {
             final var modifiers = Main.parseModifiers(beforeTypeParams);
-            return new Some<>(new Definition(Lists.empty(), modifiers, name, Main.compileType(type), typeParams));
+            return new Some<>(new Definition(Lists.empty(), modifiers, typeParams, name, Main.compileType(type)));
         }
     }
 

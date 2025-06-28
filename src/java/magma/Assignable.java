@@ -1,5 +1,5 @@
 package magma;
 
-interface Assignable extends MethodHeader {
+sealed interface Assignable extends MethodHeader permits Definition, Placeholder {
     String generate();
 }

@@ -2,7 +2,7 @@
 class Lists {
 	constructor () {
 	}
-	public static empty<String>() : ListLike<string> {
+	empty<String>() : ListLike<string> {
 		return new JavaList<>();
 	}
 }

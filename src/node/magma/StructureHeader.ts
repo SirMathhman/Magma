@@ -1,6 +1,6 @@
 
 class StructureHeader {
-	public generate() : string {
+	generate() : string {
 		return this.type + " " + this.name;
 	}
 }

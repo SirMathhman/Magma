@@ -1,10 +1,11 @@
 package magma;
 
 import java.util.List;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
-public record Definition(ListLike<String> annotations, ListLike<String> modifiers, String name, String type,
-                         List<String> typeParams) implements Assignable {
+public record Definition(ListLike<String> annotations, ListLike<String> modifiers, List<String> typeParams, String name,
+                         String type) implements Assignable {
     @Override
     public String generateWithAfterName(final String afterName) {
         final String joinedTypeParams;
@@ -29,6 +30,10 @@ public record Definition(ListLike<String> annotations, ListLike<String> modifier
     }
 
     public Definition withModifier(final String modifier) {
-        return new Definition(this.annotations, this.modifiers.add(modifier), this.name, this.type, this.typeParams);
+        return new Definition(this.annotations, this.modifiers.add(modifier), this.typeParams, this.name, this.type);
+    }
+
+    public Definition mapModifiers(final Function<ListLike<String>, ListLike<String>> mapper) {
+        return new Definition(this.annotations, mapper.apply(this.modifiers), this.typeParams, this.name, this.type);
     }
 }

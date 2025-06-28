@@ -1,6 +1,6 @@
 package magma;
 
-public class Placeholder implements Assignable, StructureDefinition {
+public non-sealed class Placeholder implements Assignable, StructureDefinition {
     private final String value;
 
     public Placeholder(final String value) {

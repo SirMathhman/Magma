@@ -1,8 +1,9 @@
 
 
 
+
 class Definition {
-	public generateWithAfterName(final afterName : string) : string {/*
+	generateWithAfterName(final afterName : string) : string {/*
         final String joinedTypeParams;*/
 		if (this.typeParams.isEmpty())
 			joinedTypeParams = "";
@@ -11,16 +12,19 @@ class Definition {
 		final let joinedModifiers : any = this.getString();
 		return joinedModifiers + this.name + joinedTypeParams + afterName + " : " + this.type;
 	}
-	private getString() : string {
+	getString() : string {
 		if (this.modifiers.isEmpty())
 			return "";
 		return this.modifiers.stream().map(value => value + " ").collect(Collectors.joining());
 	}
-	public generate() : string {
+	generate() : string {
 		return this.generateWithAfterName("");
 	}
-	public withModifier(final modifier : string) : Definition {
-		return new Definition(this.annotations, this.modifiers.add(modifier), this.name, this.type, this.typeParams);
+	withModifier(final modifier : string) : Definition {
+		return new Definition(this.annotations, this.modifiers.add(modifier), this.typeParams, this.name, this.type);
+	}
+	mapModifiers(final mapper : Function<ListLike<string>, ListLike<string>>) : Definition {
+		return new Definition(this.annotations, mapper.apply(this.modifiers), this.typeParams, this.name, this.type);
 	}
 }
 
