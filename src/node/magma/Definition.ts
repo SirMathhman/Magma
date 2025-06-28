@@ -4,8 +4,8 @@
 
 class Definition {
 	generateWithAfterName(afterName : string) : string {
-		joinedTypeParams : any = this.getJoinedTypeParams();
-		joinedModifiers : any = this.getString();
+		let joinedTypeParams : any = this.getJoinedTypeParams();
+		let joinedModifiers : any = this.getString();
 		return joinedModifiers + this.name + joinedTypeParams + afterName + " : " + this.type;
 	}
 	getJoinedTypeParams() : string {

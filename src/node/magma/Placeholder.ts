@@ -5,7 +5,7 @@ class Placeholder {
 		this.value = value;
 	}
 	generate(input : string) : string {
-		replaced : any = input.replace("/*", "start").replace("*/", "end");
+		let replaced : any = input.replace("/*", "start").replace("*/", "end");
 		return "/*" + replaced + "*/";
 	}
 	generateWithAfterName(afterName : string) : string {

@@ -130,7 +130,7 @@ class Main {
     }
 
     private static String compileStructureSegmentValue(final String input, final CharSequence structName) {
-        return Main.compileStatement(input, input1 -> Main.compileAssignment(input1, 1))
+        return Main.compileStatement(input, input1 -> Main.parseAssignment(input1, 1).map(Assignment::generate))
                    .or(() -> Main.compileMethod(input, structName)).orElseGet(() -> Placeholder.generate(input));
     }
 
@@ -216,7 +216,13 @@ class Main {
 
     private static Optional<String> compileFunctionStatementValue(final String input, final int depth) {
         return Main.compileReturn(input, depth).or(() -> Main.compileInvokable(input, depth))
-                   .or(() -> Main.compileAssignment(input, depth));
+                   .or(() -> Main.parseAssignment(input, depth).map(assignment -> {
+                       return assignment.mapAssignable(assignable -> {
+                           if (assignable instanceof final Definition definition)
+                               return definition.withModifier("let");
+                           return assignable;
+                       });
+                   }).map(Assignment::generate));
     }
 
     private static Optional<String> compileReturn(final String input, final int depth) {
@@ -303,13 +309,13 @@ class Main {
         return new None<>();
     }
 
-    private static Optional<String> compileAssignment(final String input, final int depth) {
+    private static Optional<Assignment> parseAssignment(final String input, final int depth) {
         final var separator = input.indexOf('=');
         if (0 <= separator) {
             final var before = input.substring(0, separator);
             final var after = input.substring(separator + "=".length());
             final var assignable = Main.parseDefinitionOrPlaceholder(before);
-            return new Some<>(assignable.generate() + " = " + Main.compileValueOrPlaceholder(after, depth));
+            return new Some<>(new Assignment(assignable, Main.compileValueOrPlaceholder(after, depth)));
         }
         return new None<>();
     }

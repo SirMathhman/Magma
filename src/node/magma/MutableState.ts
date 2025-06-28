@@ -37,7 +37,7 @@ class MutableState {
 	pop() : Optional<Tuple<State, Character>> {
 		if (this.index >= this.input.length())
 			return new None();
-		c : any = this.input.charAt(this.index);/*
+		let c : any = this.input.charAt(this.index);/*
         this.index++;*/
 		return new Some(new Tuple<State, Character>(this, c));
 	}
