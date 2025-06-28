@@ -1,7 +1,5 @@
 
 interface State {
-	constructor () {
-	}
 	advance() : State;
 	append(c : char) : State;
 	unwrap() : ListLike<string>;

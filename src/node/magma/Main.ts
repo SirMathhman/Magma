@@ -9,10 +9,7 @@
 
 
 
-
 class Main {
-	constructor () {
-	}
 	LINE_SEPARATOR : string = System.lineSeparator();
 	constructor () {
 	}
@@ -91,16 +88,22 @@ class Main {
 			if (header.annotations().contains("Actual"))
 				return new Some("");
 			structName = header.name();
-			let joinedParameters : any = header.parameters().stream().map(arg => Parameter.generate(arg)).map(result => Main.LINE_SEPARATOR + "\t" + result + ";").collect(Collectors.joining());
-			let constructorParams : any = header.parameters().stream().map(arg => Parameter.generate(arg)).collect(Collectors.joining(", "));
-			let names : any = header.parameters().stream(). < Optional < String >  > map(parameter => {
-				if (/*parameter instanceof final Definition definition1*/)
-					return new Some(definition1.name());
-				else 
-					return new None();
-			}).flatMap(arg => Optional.stream(arg)).toList();
-			let joinedNames : any = names.stream().map(name => "\n\t\tthis." + name + " = " + name + ";").collect(Collectors.joining());
-			joined = joinedParameters + "\n\tconstructor (" + constructorParams + ") {" + joinedNames + "\n\t}";
+			let parameters : any = header.parameters();
+			if (!parameters.isEmpty()){
+				let joinedParameters : any = parameters.stream().map(arg => Parameter.generate(arg)).map(result => Main.LINE_SEPARATOR + "\t" + result + ";").collect(Collectors.joining());
+				let constructorParams : any = parameters.stream().map(arg => Parameter.generate(arg)).collect(Collectors.joining(", "));
+				let names : any = parameters.stream(). < Optional < String >  > map(parameter => {
+					if (/*parameter instanceof final Definition definition1*/)
+						return new Some(definition1.name());
+					else 
+						return new None();
+				}).flatMap(arg => Optional.stream(arg)).toList();
+				let joinedNames : any = names.stream().map(name => "\n\t\tthis." + name + " = " + name + ";").collect(Collectors.joining());
+				joined = joinedParameters + "\n\tconstructor (" + constructorParams + ") {" + joinedNames + "\n\t}";
+			}
+			else {
+				joined = "";
+			}
 		}
 		else {
 			structName = "?";

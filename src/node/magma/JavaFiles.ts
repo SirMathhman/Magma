@@ -6,8 +6,6 @@
 class JavaFiles {
 	constructor () {
 	}
-	constructor () {
-	}
 	walk(root : Path) : Result<List<Path>, IOException>;
 	writeString(path : Path, output : CharSequence) : Optional<IOException>;
 	createDirectories(path : Path) : Optional<IOException>;

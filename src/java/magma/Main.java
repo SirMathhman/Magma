@@ -112,24 +112,29 @@ class Main {
                 return new Some<>("");
 
             structName = header.name();
-            final var joinedParameters = header.parameters().stream().map(Parameter::generate)
-                                               .map(result -> Main.LINE_SEPARATOR + "\t" + result + ";")
-                                               .collect(Collectors.joining());
+            final var parameters = header.parameters();
+            if (parameters.isEmpty())
+                joined = "";
+            else {
+                final var joinedParameters = parameters.stream().map(Parameter::generate)
+                                                       .map(result -> Main.LINE_SEPARATOR + "\t" + result + ";")
+                                                       .collect(Collectors.joining());
 
-            final var constructorParams =
-                    header.parameters().stream().map(Parameter::generate).collect(Collectors.joining(", "));
+                final var constructorParams =
+                        parameters.stream().map(Parameter::generate).collect(Collectors.joining(", "));
 
-            final var names = header.parameters().stream().<Optional<String>>map(parameter -> {
-                if (parameter instanceof final Definition definition1)
-                    return new Some<>(definition1.name());
-                else
-                    return new None<>();
-            }).flatMap(Optional::stream).toList();
+                final var names = parameters.stream().<Optional<String>>map(parameter -> {
+                    if (parameter instanceof final Definition definition1)
+                        return new Some<>(definition1.name());
+                    else
+                        return new None<>();
+                }).flatMap(Optional::stream).toList();
 
-            final var joinedNames =
-                    names.stream().map(name -> "\n\t\tthis." + name + " = " + name + ";").collect(Collectors.joining());
+                final var joinedNames = names.stream().map(name -> "\n\t\tthis." + name + " = " + name + ";")
+                                             .collect(Collectors.joining());
 
-            joined = joinedParameters + "\n\tconstructor (" + constructorParams + ") {" + joinedNames + "\n\t}";
+                joined = joinedParameters + "\n\tconstructor (" + constructorParams + ") {" + joinedNames + "\n\t}";
+            }
         } else {
             structName = "?";
             joined = "";
