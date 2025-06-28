@@ -1,14 +1,13 @@
 
 
 
-
 class Definition {
 	annotations : ListLike<string>;
 	modifiers : ListLike<string>;
-	typeParams : List<string>;
+	typeParams : ListLike<string>;
 	name : string;
 	type : string;
-	constructor (annotations : ListLike<string>, modifiers : ListLike<string>, typeParams : List<string>, name : string, type : string) {
+	constructor (annotations : ListLike<string>, modifiers : ListLike<string>, typeParams : ListLike<string>, name : string, type : string) {
 		this.annotations = annotations;
 		this.modifiers = modifiers;
 		this.typeParams = typeParams;
@@ -24,7 +23,7 @@ class Definition {
 		if (this.typeParams.isEmpty())
 			return "";
 		else 
-			return " < " + String.join(", ", this.typeParams) + " > ";
+			return " < " + this.typeParams.stream().collect(Collectors.joining(", ")) + " > ";
 	}
 	getString() : string {
 		if (this.modifiers.isEmpty())

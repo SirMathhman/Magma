@@ -42,7 +42,7 @@ class Some<T> {
 		return new Tuple(true, this.value);
 	}
 	stream() : Stream<T> {
-		return Stream.of(value);
+		return Stream.of(this.value);
 	}
 }
 

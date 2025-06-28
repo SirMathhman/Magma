@@ -10,7 +10,6 @@
 
 
 
-
 class Main {
 	constructor () {
 	}
@@ -399,19 +398,19 @@ class Main {
 				let typeParamsString : any = typeParamDivisionsTuple.right().strip();
 				if (typeParamsString.startsWith(" < ") && typeParamsString.endsWith(" > ")){
 					let slice : any = typeParamsString.substring(1, typeParamsString.length() - 1);
-					let typeParams : any = Main.divideValues(slice).stream().map(arg => String.strip(arg)).filter(value => !value.isEmpty()).toList();
+					let typeParams : any = new JavaList(Main.divideValues(slice).stream().map(arg => String.strip(arg)).filter(value => !value.isEmpty()).toList());
 					return Main.assemble(joined, typeParams, name, type);
 				}
 				else 
 					return new None();
 			}).or(/*() -> {
-                return Main.assemble(beforeType, Collections.emptyList(), name, type);
+                return Main.assemble(beforeType, Lists.empty(), name, type);
             }*/);
 		}).or(/*() -> {
-            return Main.assemble("", Collections.emptyList(), name, beforeName);
+            return Main.assemble("", Lists.empty(), name, beforeName);
         }*/);
 	}
-	assemble(beforeTypeParams : string, typeParams : List<string>, name : string, type : string) : Optional<Definition> {
+	assemble(beforeTypeParams : string, typeParams : ListLike<string>, name : string, type : string) : Optional<Definition> {
 		let annotationIndex : any = beforeTypeParams.lastIndexOf('\n');
 		if (0 <= annotationIndex){
 			let annotationString : any = beforeTypeParams.substring(0, annotationIndex);

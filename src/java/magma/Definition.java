@@ -1,11 +1,10 @@
 package magma;
 
-import java.util.List;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-public record Definition(ListLike<String> annotations, ListLike<String> modifiers, List<String> typeParams, String name,
-                         String type) implements Assignable {
+public record Definition(ListLike<String> annotations, ListLike<String> modifiers, ListLike<String> typeParams,
+                         String name, String type) implements Assignable {
     @Override
     public String generateWithAfterName(final String afterName) {
         final var joinedTypeParams = this.getJoinedTypeParams();
@@ -17,7 +16,7 @@ public record Definition(ListLike<String> annotations, ListLike<String> modifier
         if (this.typeParams.isEmpty())
             return "";
         else
-            return "<" + String.join(", ", this.typeParams) + ">";
+            return "<" + this.typeParams.stream().collect(Collectors.joining(", ")) + ">";
     }
 
     private String getString() {

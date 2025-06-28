@@ -6,8 +6,6 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.regex.Pattern;
@@ -514,22 +512,22 @@ class Main {
 
                 if (typeParamsString.startsWith("<") && typeParamsString.endsWith(">")) {
                     final var slice = typeParamsString.substring(1, typeParamsString.length() - 1);
-                    final var typeParams =
+                    final var typeParams = new JavaList<>(
                             Main.divideValues(slice).stream().map(String::strip).filter(value -> !value.isEmpty())
-                                .toList();
+                                .toList());
 
                     return Main.assemble(joined, typeParams, name, type);
                 } else
                     return new None<>();
             }).or(() -> {
-                return Main.assemble(beforeType, Collections.emptyList(), name, type);
+                return Main.assemble(beforeType, Lists.empty(), name, type);
             });
         }).or(() -> {
-            return Main.assemble("", Collections.emptyList(), name, beforeName);
+            return Main.assemble("", Lists.empty(), name, beforeName);
         });
     }
 
-    private static Optional<Definition> assemble(final String beforeTypeParams, final List<String> typeParams,
+    private static Optional<Definition> assemble(final String beforeTypeParams, final ListLike<String> typeParams,
                                                  final String name, final String type) {
         final var annotationIndex = beforeTypeParams.lastIndexOf('\n');
         if (0 <= annotationIndex) {
