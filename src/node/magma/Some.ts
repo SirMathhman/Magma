@@ -3,46 +3,29 @@
 
 
 
-
-class Some<T> {
-	value : T;
-	constructor (value : T) {
-		this.value = value;
-	}
-	ifPresent(consumer : Consumer<T>) : void {
-		consumer.accept(this.value);
+class Some<T> {Some[value=]
+	constructor (Some[value=]) {Some[value=]
 	}
 	isPresent() : boolean {
-		return true;
 	}
-	or(other : Supplier<Optional<T>>) : Optional<T> {
-		return this;
+	or() : Optional<Some[value=]> {
 	}
-	orElseGet(other : Supplier<T>) : T {
-		return this.value;
+	orElseGet() : T {
 	}
-	map<R>(mapper : Function<T, R>) : Optional<R> {
-		return new Some(mapper.apply(this.value));
+	map<Some[value=]>() : Optional<Some[value=]> {
 	}
-	flatMap<R>(mapper : Function<T, Optional<R>>) : Optional<R> {
-		return mapper.apply(this.value);
+	flatMap<Some[value=]>() : Optional<Some[value=]> {
 	}
-	orElse(other : T) : T {
-		return this.value;
+	orElse() : T {
 	}
-	filter(predicate : Predicate<T>) : Optional<T> {
-		if (predicate.test(this.value))
-			return this;
-		return new None();
+	filter() : Optional<Some[value=]> {
+		return /*new None<>()*/;
 	}
 	isEmpty() : boolean {
-		return false;
 	}
-	toTuple(other : T) : Tuple<Boolean, T> {
-		return new Tuple(true, this.value);
+	toTuple() : Tuple<Some[value=, T]> {
 	}
-	stream() : Stream<T> {
-		return Stream.of(this.value);
+	stream() : Stream<Some[value=]> {
 	}
 }
 

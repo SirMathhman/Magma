@@ -4,12 +4,10 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
+
 
 class Main {
     private static final String LINE_SEPARATOR = System.lineSeparator();
@@ -72,7 +70,7 @@ class Main {
 
     private static String compileAll(final CharSequence input, final BiFunction<State, Character, State> folder,
                                      final Function<String, String> mapper, final CharSequence delimiter) {
-        return Main.divide(input, folder).stream().map(mapper).collect(Collectors.joining(delimiter));
+        return Main.divide(input, folder).stream().map(mapper).collect(new Joiner(delimiter)).orElse("");
     }
 
     private static String compileRootSegment(final String input) {
@@ -118,20 +116,19 @@ class Main {
             else {
                 final var joinedParameters = parameters.stream().map(Parameter::generate)
                                                        .map(result -> Main.LINE_SEPARATOR + "\t" + result + ";")
-                                                       .collect(Collectors.joining());
+                                                       .collect(new Joiner());
 
-                final var constructorParams =
-                        parameters.stream().map(Parameter::generate).collect(Collectors.joining(", "));
+                final var constructorParams = parameters.stream().map(Parameter::generate).collect(new Joiner(", "));
 
                 final var names = parameters.stream().<Optional<String>>map(parameter -> {
                     if (parameter instanceof final Definition definition1)
                         return new Some<>(definition1.name());
                     else
                         return new None<>();
-                }).flatMap(Optional::stream).toList();
+                }).flatMap(Optional::stream).collect(new ListCollector<String>());
 
                 final var joinedNames = names.stream().map(name -> "\n\t\tthis." + name + " = " + name + ";")
-                                             .collect(Collectors.joining());
+                                             .collect(new Joiner());
 
                 joined = joinedParameters + "\n\tconstructor (" + constructorParams + ") {" + joinedNames + "\n\t}";
             }
@@ -284,7 +281,7 @@ class Main {
             return new None<>();
 
         final var condition = substring1.substring(0, substring1.length() - 1);
-        final var joined = tuple.right().stream().collect(Collectors.joining());
+        final var joined = tuple.right().stream().collect(new Joiner()).orElse("");
         final var compiled = Main.compileBlockOrStatement(depth, joined);
         return new Some<>("if (" + Main.compileValueOrPlaceholder(condition, depth) + ")" + compiled);
     }
@@ -508,18 +505,18 @@ class Main {
         final var name = strip.substring(separator + " ".length());
 
         return Main.divide(beforeName, Main::foldTypeSeparator).popLast().flatMap(tuple -> {
-            final var beforeType = tuple.left().stream().collect(Collectors.joining(" "));
+            final var beforeType = tuple.left().stream().collect(new Joiner(" ")).orElse("");
             final var type = tuple.right();
 
             return Main.divide(beforeType, Main::foldTypeSeparator).popLast().flatMap(typeParamDivisionsTuple -> {
-                final var joined = typeParamDivisionsTuple.left().stream().collect(Collectors.joining(" "));
+                final var joined = typeParamDivisionsTuple.left().stream().collect(new Joiner(" ")).orElse("");
                 final var typeParamsString = typeParamDivisionsTuple.right().strip();
 
                 if (typeParamsString.startsWith("<") && typeParamsString.endsWith(">")) {
                     final var slice = typeParamsString.substring(1, typeParamsString.length() - 1);
-                    final var typeParams = new JavaList<>(
+                    final var typeParams =
                             Main.divideValues(slice).stream().map(String::strip).filter(value -> !value.isEmpty())
-                                .toList());
+                                .collect(new ListCollector<String>());
 
                     return Main.assemble(joined, typeParams, name, type);
                 } else
@@ -547,11 +544,9 @@ class Main {
         }
     }
 
-    private static JavaList<String> parseModifiers(final String joined) {
-        final var list = Main.divide(joined, Main.foldByDelimiter(' ')).stream().map(String::strip)
-                             .filter(value -> !value.isEmpty()).collect(Collectors.toCollection(ArrayList::new));
-
-        return new JavaList<>(list);
+    private static ListLike<String> parseModifiers(final String joined) {
+        return Main.divide(joined, Main.foldByDelimiter(' ')).stream().map(String::strip)
+                   .filter(value -> !value.isEmpty()).collect(new ListCollector<String>());
     }
 
     private static BiFunction<State, Character, State> foldByDelimiter(final char delimiter) {
@@ -590,11 +585,11 @@ class Main {
                 final var argument = withoutEnd.substring(start + "<".length());
                 final var list =
                         Main.divideValues(argument).stream().map(String::strip).filter(value -> !value.isEmpty())
-                            .toList();
+                            .collect(new ListCollector<String>());
                 if (list.isEmpty())
                     return base;
                 else {
-                    final var compiled = list.stream().map(Main::compileType).collect(Collectors.joining(", "));
+                    final var compiled = list.stream().map(Main::compileType).collect(new Joiner(", "));
                     return base + "<" + compiled + ">";
                 }
             }
@@ -617,7 +612,7 @@ class Main {
     }
 
     private static String compileValues(final CharSequence input, final Function<String, String> mapper) {
-        return Main.divideValues(input).stream().map(mapper).collect(Collectors.joining(", "));
+        return Main.divideValues(input).stream().map(mapper).collect(new Joiner(", ")).orElse("");
     }
 
     private static State foldValues(final State state, final char c) {
@@ -683,8 +678,8 @@ class Main {
             if (0 <= contentStart) {
                 final var strip1 = withoutEnd.substring(0, contentStart).strip();
                 final var substring = withoutEnd.substring(contentStart + "(".length());
-                final ListLike<Parameter> parameters =
-                        new JavaList<>(Main.divideValues(substring).stream().map(Main::parseParameter).toList());
+                final ListLike<Parameter> parameters = Main.divideValues(substring).stream().map(Main::parseParameter)
+                                                           .collect(new ListCollector<Parameter>());
                 return Main.parseStructureHeaderByAnnotations(type, beforeKeyword, maybeImplements, strip1, parameters);
             }
         }
@@ -708,10 +703,9 @@ class Main {
     }
 
     private static ListLike<String> parseAnnotations(final String input) {
-        final var copy = Arrays.stream(Pattern.compile("\\n").split(input.strip())).map(String::strip)
-                               .filter(value -> !value.isEmpty()).map(value -> value.substring(1))
-                               .collect(Collectors.toCollection(ArrayList::new));
-        return new JavaList<>(copy);
+        return Stream.fromArray(Pattern.compile("\\n").split(input.strip())).map(String::strip)
+                     .filter(value -> !value.isEmpty()).map(value -> value.substring(1))
+                     .collect(new ListCollector<String>());
     }
 
     private static ListLike<String> divide(final CharSequence input, final BiFunction<State, Character, State> folder) {
@@ -787,7 +781,7 @@ class Main {
 
     private static Optional<String> handleInvocationSegments(final Tuple<ListLike<String>, String> tuple,
                                                              final int depth) {
-        final var joined = tuple.left().stream().collect(Collectors.joining());
+        final var joined = tuple.left().stream().collect(new Joiner()).orElse("");
         if (joined.isEmpty() || '(' != joined.charAt(joined.length() - 1))
             return new None<>();
 

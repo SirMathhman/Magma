@@ -1,57 +1,41 @@
-
 class MutableState {
-	/*private final CharSequence input;*/
-	segments : ListLike<string> = Lists.empty();
+	segments : ListLike<Some[value=]> = /* Lists.empty()*/;
 	buffer : string = "";
 	depth : number = 0;
 	index : number = 0;
-	constructor (input : CharSequence) {
-		this.input = input;
+	constructor () {
 	}
 	advance() : State {
-		this.segments = this.segments.add(this.buffer);
 		this.buffer = "";
 		return this;
 	}
-	append(c : char) : State {
-		this.buffer = this.buffer + c;
+	append() : State {
 		return this;
 	}
-	unwrap() : ListLike<string> {
-		return this.segments;
+	unwrap() : ListLike<Some[value=]> {
 	}
 	isLevel() : boolean {
-		return 0 == this.depth;
 	}
-	enter() : State {/*
-        this.depth++;*/
+	enter() : State {
 		return this;
 	}
-	exit() : State {/*
-        this.depth--;*/
+	exit() : State {
 		return this;
 	}
 	isShallow() : boolean {
-		return 1 == this.depth;
 	}
-	pop() : Optional<Tuple<State, Character>> {
-		if (this.index >= this.input.length())
-			return new None();
-		let c : any = this.input.charAt(this.index);/*
+	pop() : Optional<Some[value=]> {
+		c : any = /* this.input.charAt(this.index)*/;/*
         this.index++;*/
-		return new Some(new Tuple<State, Character>(this, c));
+		return /*new Some<>(new Tuple<State, Character>(this, c))*/;
 	}
-	popAndAppendToTuple() : Optional<Tuple<State, Character>> {
-		return this.pop().map(tuple => new Tuple(tuple.left().append(tuple.right()), tuple.right()));
+	popAndAppendToTuple() : Optional<Some[value=]> {
 	}
-	popAndAppendToOption() : Optional<State> {
-		return this.popAndAppendToTuple().map(arg => Tuple.left(arg));
+	popAndAppendToOption() : Optional<Some[value=]> {
 	}
-	peek() : Optional<Character> {
-		if (this.index < this.input.length())
-			return new Some(this.input.charAt(this.index));
+	peek() : Optional<Some[value=]> {
 		else 
-			return new None();
+			return /*new None<>()*/;
 	}
 }
 

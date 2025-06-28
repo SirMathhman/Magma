@@ -1,11 +1,9 @@
 
-
 interface ListLike<T> {
-	stream() : Stream<T>;
-	add(element : T) : ListLike<T>;
-	popLast() : Optional<Tuple<ListLike<T>, T>>;
-	popFirst() : Optional<Tuple<T, ListLike<T>>>;
+	add() : ListLike<Some[value=]>;
+	popLast() : Optional<Some[value=]>;
+	popFirst() : Optional<Some[value=]>;
 	isEmpty() : boolean;
-	contains(element : T) : boolean;
+	contains() : boolean;
 }
 

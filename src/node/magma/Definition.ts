@@ -1,43 +1,27 @@
 
-
-
-class Definition {
-	annotations : ListLike<string>;
-	modifiers : ListLike<string>;
-	typeParams : ListLike<string>;
+class Definition {Some[value=
+	modifiers : ListLike<Some[value=]>;
+	typeParams : ListLike<Some[value=]>;
 	name : string;
-	type : string;
-	constructor (annotations : ListLike<string>, modifiers : ListLike<string>, typeParams : ListLike<string>, name : string, type : string) {
-		this.annotations = annotations;
+	type : string;]
+	constructor (Some[value=, modifiers : ListLike<Some[value=]>, typeParams : ListLike<Some[value=]>, name : string, type : string]) {Some[value=
 		this.modifiers = modifiers;
 		this.typeParams = typeParams;
 		this.name = name;
-		this.type = type;
-	}
-	generateWithAfterName(afterName : string) : string {
-		let joinedTypeParams : any = this.getJoinedTypeParams();
-		let joinedModifiers : any = this.getString();
-		return joinedModifiers + this.name + joinedTypeParams + afterName + " : " + this.type;
+		this.type = type;]
 	}
 	getJoinedTypeParams() : string {
-		if (this.typeParams.isEmpty())
-			return "";
 		else 
-			return " < " + this.typeParams.stream().collect(Collectors.joining(", ")) + " > ";
+			return " < " + this.typeParams.stream().collect(new Joiner(", ")) + " > ";
 	}
 	getString() : string {
-		if (this.modifiers.isEmpty())
-			return "";
-		return this.modifiers.stream().map(value => value + " ").collect(Collectors.joining());
+		return /*this.modifiers.stream().map(value -> value + " ").collect(new Joiner()).orElse("")*/;
 	}
 	generate() : string {
-		return this.generateWithAfterName("");
 	}
-	withModifier(modifier : string) : Definition {
-		return new Definition(this.annotations, this.modifiers.add(modifier), this.typeParams, this.name, this.type);
+	withModifier() : Definition {
 	}
-	mapModifiers(mapper : Function<ListLike<string>, ListLike<string>>) : Definition {
-		return new Definition(this.annotations, mapper.apply(this.modifiers), this.typeParams, this.name, this.type);
+	mapModifiers() : Definition {
 	}
 }
 

@@ -2,7 +2,6 @@ package magma;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Stream;
 
 @Actual
 public record JavaList<T>(List<T> list) implements ListLike<T> {
@@ -12,7 +11,7 @@ public record JavaList<T>(List<T> list) implements ListLike<T> {
 
     @Override
     public Stream<T> stream() {
-        return this.list.stream();
+        return new HeadedStream<>(new RangeHead(this.list.size())).map(this.list::get);
     }
 
     @Override

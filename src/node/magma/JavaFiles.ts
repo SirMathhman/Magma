@@ -2,13 +2,22 @@
 
 
 
-
 class JavaFiles {
-	constructor () {
+	walk() : Result<Some[value=, IOException]> {/* catch (final IOException e) {
+            return new Err<>(e);
+        }*/
 	}
-	walk(root : Path) : Result<List<Path>, IOException>;
-	writeString(path : Path, output : CharSequence) : Optional<IOException>;
-	createDirectories(path : Path) : Optional<IOException>;
-	readString(source : Path) : Result<string, IOException>;
+	writeString(, output : CharSequence) : Optional<Some[value=]> {/* catch (final IOException e) {
+            return new Some<>(e);
+        }*/
+	}
+	createDirectories() : Optional<Some[value=]> {/* catch (final IOException e) {
+            return new Some<>(e);
+        }*/
+	}
+	readString() : Result<Some[value=, IOException]> {/* catch (final IOException e) {
+            return new Err<>(e);
+        }*/
+	}
 }
 

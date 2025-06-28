@@ -3,18 +3,16 @@
 
 
 
-
 interface Optional<T> {
-	ifPresent(consumer : Consumer<T>) : void;
 	isPresent() : boolean;
-	or(other : Supplier<Optional<T>>) : Optional<T>;
-	orElseGet(other : Supplier<T>) : T;
-	map<R>(mapper : Function<T, R>) : Optional<R>;
-	flatMap<R>(mapper : Function<T, Optional<R>>) : Optional<R>;
-	orElse(other : T) : T;
-	filter(predicate : Predicate<T>) : Optional<T>;
+	or() : Optional<Some[value=]>;
+	orElseGet() : T;
+	map() : Optional<Some[value=]>;
+	flatMap() : Optional<Some[value=]>;
+	orElse() : T;
+	filter() : Optional<Some[value=]>;
 	isEmpty() : boolean;
-	toTuple(other : T) : Tuple<Boolean, T>;
-	stream() : Stream<T>;
+	toTuple() : Tuple<Some[value=, T]>;
+	stream() : Stream<Some[value=]>;
 }
 

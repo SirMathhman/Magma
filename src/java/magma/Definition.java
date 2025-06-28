@@ -1,7 +1,7 @@
 package magma;
 
 import java.util.function.Function;
-import java.util.stream.Collectors;
+
 
 public record Definition(ListLike<String> annotations, ListLike<String> modifiers, ListLike<String> typeParams,
                          String name, String type) implements Assignable {
@@ -16,14 +16,14 @@ public record Definition(ListLike<String> annotations, ListLike<String> modifier
         if (this.typeParams.isEmpty())
             return "";
         else
-            return "<" + this.typeParams.stream().collect(Collectors.joining(", ")) + ">";
+            return "<" + this.typeParams.stream().collect(new Joiner(", ")) + ">";
     }
 
     private String getString() {
         if (this.modifiers.isEmpty())
             return "";
 
-        return this.modifiers.stream().map(value -> value + " ").collect(Collectors.joining());
+        return this.modifiers.stream().map(value -> value + " ").collect(new Joiner()).orElse("");
     }
 
     @Override

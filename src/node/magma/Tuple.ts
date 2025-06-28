@@ -1,10 +1,7 @@
-
-class Tuple<Left, Right> {
-	left : Left;
-	right : Right;
-	constructor (left : Left, right : Right) {
-		this.left = left;
-		this.right = right;
+class Tuple<Left, Right> {Some[value=
+	right : Right;]
+	constructor (Some[value=, right : Right]) {Some[value=
+		this.right = right;]
 	}
 }
 

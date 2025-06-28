@@ -3,42 +3,28 @@
 
 
 
-
-class None<T> {
-	;
-	constructor () {
-	}
-	ifPresent(consumer : Consumer<T>) : void {
+class None<T> {Some[value=]
+	constructor (Some[value=]) {None[]
 	}
 	isPresent() : boolean {
-		return false;
 	}
-	or(other : Supplier<Optional<T>>) : Optional<T> {
-		return other.get();
+	or() : Optional<Some[value=]> {
 	}
-	orElseGet(other : Supplier<T>) : T {
-		return other.get();
+	orElseGet() : T {
 	}
-	map<R>(mapper : Function<T, R>) : Optional<R> {
-		return new None();
+	map<Some[value=]>() : Optional<Some[value=]> {
 	}
-	flatMap<R>(mapper : Function<T, Optional<R>>) : Optional<R> {
-		return new None();
+	flatMap<Some[value=]>() : Optional<Some[value=]> {
 	}
-	orElse(other : T) : T {
-		return other;
+	orElse() : T {
 	}
-	filter(predicate : Predicate<T>) : Optional<T> {
-		return this;
+	filter() : Optional<Some[value=]> {
 	}
 	isEmpty() : boolean {
-		return true;
 	}
-	toTuple(other : T) : Tuple<Boolean, T> {
-		return new Tuple(false, other);
+	toTuple() : Tuple<Some[value=, T]> {
 	}
-	stream() : Stream<T> {
-		return Stream.empty();
+	stream() : Stream<Some[value=]> {
 	}
 }
 

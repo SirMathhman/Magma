@@ -1,5 +1,3 @@
-
 interface StructureDefinition {
-	generate() : string;
 }
 
