@@ -28,7 +28,11 @@ public class Main {
     }
 
     private static String compile(final CharSequence input) {
-        return Main.divide(input).map(Main::generatePlaceholder).collect(Collectors.joining());
+        return Main.divide(input)
+                   .map(String::strip)
+                   .map(Main::generatePlaceholder)
+                   .map(result -> result + System.lineSeparator())
+                   .collect(Collectors.joining());
     }
 
     private static Stream<String> divide(final CharSequence input) {
