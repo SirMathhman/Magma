@@ -71,11 +71,16 @@ public class Main {
     }
 
     private static Stream<String> divide(final CharSequence input) {
-        final DivideState state = new MutableDivideState();
-        final var length = input.length();
-        var current = state;
-        for (var i = 0; i < length; i++) {
-            final var c = input.charAt(i);
+        final DivideState initial = ;
+        var current = initial;
+        while (true) {
+            final var maybePopped = initial.pop();
+            if (maybePopped.isEmpty()) break;
+
+            final var popped = maybePopped.get();
+            current = popped.left();
+
+            final var c = popped.right();
             current = Main.fold(current, c);
         }
 
