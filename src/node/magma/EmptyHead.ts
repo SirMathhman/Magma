@@ -1,3 +1,0 @@
-class EmptyHead<T> {
-}
-

@@ -1,4 +1,0 @@
-
-interface Result<Value, Error> {
-}
-

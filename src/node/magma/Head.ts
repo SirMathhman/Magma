@@ -1,3 +1,0 @@
-interface Head<T> {
-}
-
