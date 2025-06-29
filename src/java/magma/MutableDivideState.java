@@ -10,7 +10,7 @@ public class MutableDivideState implements DivideState {
     private int depth = 0;
 
     public MutableDivideState() {
-        this.segments = new ArrayList<>(new ArrayList<String>());
+        this.segments = new ArrayList<>(new ArrayList<>());
         this.buffer = new StringBuilder();
     }
 
