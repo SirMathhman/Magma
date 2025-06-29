@@ -28,10 +28,23 @@ public class Main {
 
     private static String compile(final CharSequence input) {
         return Main.divide(input)
-                   .map(String::strip)
-                   .map(Main::generatePlaceholder)
+                   .map(Main::compileRootSegment)
                    .map(result -> result + System.lineSeparator())
                    .collect(Collectors.joining());
+    }
+
+    private static String compileRootSegment(final String input) {
+        final var strip = input.strip();
+        if (!strip.isEmpty() && '}' == strip.charAt(strip.length() - 1)) {
+            final var withoutEnd = strip.substring(0, strip.length() - "}".length());
+            final var contentStart = withoutEnd.indexOf('{');
+            if (0 <= contentStart) {
+                final var beforeContent = withoutEnd.substring(0, contentStart);
+                final var content = withoutEnd.substring(contentStart + "{".length());
+                return Main.generatePlaceholder(beforeContent) + "{" + Main.generatePlaceholder(content) + "}";
+            }
+        }
+        return Main.generatePlaceholder(strip);
     }
 
     private static Stream<String> divide(final CharSequence input) {
