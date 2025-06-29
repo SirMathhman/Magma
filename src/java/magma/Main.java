@@ -2,20 +2,26 @@ package magma;
 
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Optional;
+import java.util.stream.Collector;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class Main {
+    private static final String LINE_SEPARATOR = System.lineSeparator();
+
     private Main() {
     }
 
     public static void main(final String[] args) {
         try {
-            final var input = Files.readString(Paths.get(".", "src", "java", "magma", "Main.java"));
+            final var source = Paths.get(".", "src", "java", "magma", "Main.java");
+            final var input = Files.readString(source);
 
             final var targetParent = Paths.get(".", "src", "node", "magma");
-            if (!Files.exists(targetParent)) Files.createDirectories(targetParent);
+            Main.ensureDirectories(targetParent);
 
             final var target = targetParent.resolve("Main.ts");
             final var output = Main.compile(input);
@@ -26,25 +32,42 @@ public class Main {
         }
     }
 
+    private static void ensureDirectories(final Path targetParent) throws IOException {
+        if (!Files.exists(targetParent)) Files.createDirectories(targetParent);
+    }
+
     private static String compile(final CharSequence input) {
+        final Collector<CharSequence, ?, String> collector = Collectors.joining();
         return Main.divide(input)
                    .map(Main::compileRootSegment)
-                   .map(result -> result + System.lineSeparator())
-                   .collect(Collectors.joining());
+                   .map(result -> result + Main.LINE_SEPARATOR)
+                   .collect(collector);
     }
 
     private static String compileRootSegment(final String input) {
+        return Main.compileStructure(input).orElseGet(() -> {
+            final var stripped = input.strip();
+            return Main.generatePlaceholder(stripped);
+        });
+    }
+
+    private static Optional<String> compileStructure(final String input) {
         final var strip = input.strip();
-        if (!strip.isEmpty() && '}' == strip.charAt(strip.length() - 1)) {
-            final var withoutEnd = strip.substring(0, strip.length() - "}".length());
-            final var contentStart = withoutEnd.indexOf('{');
-            if (0 <= contentStart) {
-                final var beforeContent = withoutEnd.substring(0, contentStart);
-                final var content = withoutEnd.substring(contentStart + "{".length());
-                return Main.generatePlaceholder(beforeContent) + "{" + Main.generatePlaceholder(content) + "}";
-            }
-        }
-        return Main.generatePlaceholder(strip);
+        final var inputLength = strip.length();
+        if (strip.isEmpty() || '}' != strip.charAt(inputLength - 1)) return Optional.empty();
+        final var suffixLength = "}".length();
+        final var withoutEnd = strip.substring(0, inputLength - suffixLength);
+
+        final var contentStart = withoutEnd.indexOf('{');
+        if (0 > contentStart) return Optional.empty();
+        final var beforeContent = withoutEnd.substring(0, contentStart);
+
+        final var infixLength = "{".length();
+        final var content = withoutEnd.substring(contentStart + infixLength);
+
+        final var genBeforeContent = Main.generatePlaceholder(beforeContent);
+        final var genContent = Main.generatePlaceholder(content);
+        return Optional.of(genBeforeContent + "{" + genContent + "}");
     }
 
     private static Stream<String> divide(final CharSequence input) {
