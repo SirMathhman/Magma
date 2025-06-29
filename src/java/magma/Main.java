@@ -15,8 +15,7 @@ public class Main {
             final var input = Files.readString(Paths.get(".", "src", "java", "magma", "Main.java"));
 
             final var targetParent = Paths.get(".", "src", "node", "magma");
-            if (!Files.exists(targetParent))
-                Files.createDirectories(targetParent);
+            if (!Files.exists(targetParent)) Files.createDirectories(targetParent);
 
             final var target = targetParent.resolve("Main.ts");
             final var output = Main.compile(input);
@@ -49,14 +48,10 @@ public class Main {
 
     private static DivideState fold(final DivideState state, final char c) {
         final var appended = state.append(c);
-        if (';' == c && appended.isLevel())
-            return appended.advance();
-        if ('{' == c)
-            return appended.enter();
-        if ('}' == c)
-            return appended.exit();
-        else
-            return appended;
+        if (';' == c && appended.isLevel()) return appended.advance();
+        if ('{' == c) return appended.enter();
+        if ('}' == c) return appended.exit();
+        else return appended;
     }
 
     private static String generatePlaceholder(final String input) {
