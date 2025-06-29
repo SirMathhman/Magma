@@ -3,9 +3,13 @@
 import java.io.IOException;*//*
 import java.nio.file.Files;*//*
 import java.nio.file.Paths;*//*
-import java.util.ArrayList;*//*
+import java.util.stream.Collectors;*//*
+import java.util.stream.Stream;*//*
 
 public class Main {
+    private Main() {
+    }
+
     public static void main(final String[] args) {
         try {
             final var input = Files.readString(Paths.get(".", "src", "java", "magma", "Main.java"));*//*
@@ -23,24 +27,28 @@ public class Main {
         }
     }
 
-    private static String compile(final String input) {
-        final var segments = new ArrayList<String>();*//*
-        var buffer = new StringBuilder();*//*
-        for (var i = 0;*//* i < input.length();*//* i++) {
+    private static String compile(final CharSequence input) {
+        return Main.divide(input).map(Main::generatePlaceholder).collect(Collectors.joining());*//*
+    }
+
+    private static Stream<String> divide(final CharSequence input) {
+        final DivideState state = new MutableDivideState();*//*
+        final var length = input.length();*//*
+        var current = state;*//*
+        for (var i = 0;*//* i < length;*//* i++) {
             final var c = input.charAt(i);*//*
-            buffer.append(c);*//*
-            if (';*//*' == c) {
-                segments.add(buffer.toString());*//*
-                buffer = new StringBuilder();*//*
-            }
+            current = Main.fold(current, c);*//*
         }
-        segments.add(buffer.toString());*//*
 
-        final var output = new StringBuilder();*//*
-        for (final var segment : segments)
-            output.append(generatePlaceholder(segment));*//*
+        return current.advance().stream();*//*
+    }
 
-        return output.toString();*//*
+    private static DivideState fold(final DivideState state, final char c) {
+        final var appended = state.append(c);*//*
+        if (';*//*' == c)
+            return appended.advance();*//*
+        else
+            return appended;*//*
     }
 
     private static String generatePlaceholder(final String input) {
