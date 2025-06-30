@@ -10,6 +10,7 @@ import magma.rule.SplitRule;
 import magma.rule.StringRule;
 import magma.rule.StripRule;
 import magma.rule.SuffixRule;
+import magma.rule.TypeRule;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -120,7 +121,7 @@ class Main {
 
     private static Node joinContent(final Node node) {
         final var content = node.findString("name").orElse("") + " " + node.findString("more").orElse("");
-        return node.withString("content", content);
+        return node.retype("class").withString("content", content);
     }
 
     private static Rule createRecordHeaderRule() {
@@ -132,12 +133,12 @@ class Main {
         return SplitRule.First(modifiers, "record ", afterKeyword);
     }
 
-    private static Rule createClassHeaderRule(final String keyword) {
-        return SplitRule.Last(new StringRule("discard"), keyword + " ", new StringRule("content"));
+    private static Rule createClassHeaderRule(final String type) {
+        return new TypeRule(type, SplitRule.Last(new StringRule("discard"), type + " ", new StringRule("content")));
     }
 
     private static Rule createHeaderRule(final String type) {
-        return new PrefixRule(type + " ", new StringRule("content"));
+        return new TypeRule(type, new PrefixRule(type + " ", new StringRule("content")));
     }
 
     private static Node modifyImport(final String parent, final Node child1) {

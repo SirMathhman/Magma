@@ -12,7 +12,7 @@ public record TypeRule(String type, Rule rule) implements Rule {
 
     @Override
     public Optional<String> generate(final Node node) {
-        if (node.is(this.type)) return Optional.empty();
-        return this.rule.generate(node);
+        if (node.is(this.type)) return this.rule.generate(node);
+        return Optional.empty();
     }
 }

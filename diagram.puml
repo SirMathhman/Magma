@@ -63,6 +63,7 @@ Main <-- SplitRule
 Main <-- StringRule
 Main <-- StripRule
 Main <-- SuffixRule
+Main <-- TypeRule
 Main <-- IOException
 Main <-- Files
 Main <-- Path
