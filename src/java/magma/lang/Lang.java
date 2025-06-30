@@ -11,14 +11,13 @@ import magma.rule.StringRule;
 import magma.rule.StripRule;
 import magma.rule.SuffixRule;
 import magma.rule.TypeRule;
+import magma.string.Strings;
 import magma.string.result.StringResult;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class Lang {
-    public static final String LINE_SEPARATOR = System.lineSeparator();
-
     private Lang() {}
 
     public static Rule<EverythingNode, NodeResult<EverythingNode>, StringResult> createPlantRootRule() {
@@ -27,7 +26,7 @@ public class Lang {
 
     private static Rule<EverythingNode, NodeResult<EverythingNode>, StringResult> createPlantRootSegmentRule() {
         final var options = new OrRule(List.of(Lang.createDependencyRule(), Lang.createPlantStructureRule()));
-        return new SuffixRule(options, Lang.LINE_SEPARATOR);
+        return new SuffixRule(options, Strings.LINE_SEPARATOR);
     }
 
     public static Rule<EverythingNode, NodeResult<EverythingNode>, StringResult> createJavaRootSegmentRule() {

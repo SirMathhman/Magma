@@ -12,6 +12,7 @@ import magma.result.Ok;
 import magma.result.Result;
 import magma.rule.DivideRule;
 import magma.rule.Rule;
+import magma.string.Strings;
 import magma.string.result.StringErr;
 import magma.string.result.StringResult;
 
@@ -45,7 +46,7 @@ class Main {
 
         return Main.runWithSources(sources).match(output -> {
             final var target = Paths.get(".", "diagram.puml");
-            final var joined = String.join(Lang.LINE_SEPARATOR, output);
+            final var joined = String.join(Strings.LINE_SEPARATOR, output);
             return Main.writeString(target, joined).map(ThrowableError::new).map(ApplicationError::new);
         }, Optional::of);
     }
@@ -75,7 +76,7 @@ class Main {
 
     private static Result<String, Error> runWithSources(final Iterable<Path> files) {
         final var pre = Stream.of("@startuml", "skinparam linetype ortho")
-                              .map(value -> value + Lang.LINE_SEPARATOR)
+                              .map(value -> value + Strings.LINE_SEPARATOR)
                               .collect(Collectors.joining());
 
         Result<String, Error> outputRootSegments = new Ok<>(pre);

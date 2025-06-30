@@ -1,7 +1,10 @@
 package magma.error;
 
+import magma.string.Strings;
+
 import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public record CompileError(String message, List<CompileError> errors) implements Error {
     public CompileError(final String message) {
@@ -10,6 +13,11 @@ public record CompileError(String message, List<CompileError> errors) implements
 
     @Override
     public String display() {
-        return this.message;
+        final var joined = this.errors.stream()
+                                      .map(CompileError::display)
+                                      .map(value -> Strings.LINE_SEPARATOR + "\t" + value)
+                                      .collect(Collectors.joining());
+
+        return this.message + joined;
     }
 }
