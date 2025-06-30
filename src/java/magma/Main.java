@@ -24,7 +24,7 @@ import java.util.stream.Collector;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-public class Main {
+class Main {
     private static final String LINE_SEPARATOR = System.lineSeparator();
 
     private Main() {}
