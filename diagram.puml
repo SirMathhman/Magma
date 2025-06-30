@@ -2,29 +2,29 @@
 skinparam linetype ortho
 class PrefixRule
 
-PrefixRule <-- Node
+PrefixRule <-- EverythingNode
 PrefixRule <-- Optional
 class PrefixRule implements Rule
 class StripRule
 
-StripRule <-- Node
+StripRule <-- EverythingNode
 StripRule <-- Optional
 class StripRule implements Rule
 class OrRule
 
-OrRule <-- Node
+OrRule <-- EverythingNode
 OrRule <-- List
 OrRule <-- Optional
 class OrRule implements Rule
 class TypeRule
 
-TypeRule <-- Node
+TypeRule <-- TypedNode
 TypeRule <-- Optional
-class TypeRule implements Rule
+class TypeRule<Node extends TypedNode<Node>> implements Rule
 class StringRule
 
 StringRule <-- MapNode
-StringRule <-- Node
+StringRule <-- EverythingNode
 StringRule <-- Optional
 class StringRule implements Rule
 class Splitter
@@ -38,7 +38,7 @@ Locator <-- Optional
 interface Locator
 class SuffixRule
 
-SuffixRule <-- Node
+SuffixRule <-- EverythingNode
 SuffixRule <-- Optional
 class SuffixRule implements Rule
 class DivideRule
@@ -47,7 +47,7 @@ DivideRule <-- Tuple
 DivideRule <-- DivideState
 DivideRule <-- MutableDivideState
 DivideRule <-- MapNode
-DivideRule <-- Node
+DivideRule <-- EverythingNode
 DivideRule <-- Collections
 DivideRule <-- Optional
 DivideRule <-- Collectors
@@ -56,7 +56,7 @@ class DivideRule implements Rule
 class SplitRule
 
 SplitRule <-- Tuple
-SplitRule <-- Node
+SplitRule <-- EverythingNode
 SplitRule <-- FirstLocator
 SplitRule <-- LastLocator
 SplitRule <-- InfixSplitter
@@ -79,7 +79,7 @@ class Main
 
 Main <-- Lang
 Main <-- MapNode
-Main <-- Node
+Main <-- EverythingNode
 Main <-- DivideRule
 Main <-- Rule
 Main <-- IOException
@@ -94,13 +94,6 @@ Main <-- Set
 Main <-- Collector
 Main <-- Collectors
 class Main
-class Node
-
-Node <-- Tuple
-Node <-- List
-Node <-- Optional
-Node <-- Stream
-interface Node
 class MutableDivideState
 
 MutableDivideState <-- Tuple
@@ -111,7 +104,7 @@ MutableDivideState <-- Stream
 class MutableDivideState implements DivideState
 class Lang
 
-Lang <-- Node
+Lang <-- EverythingNode
 Lang <-- DivideRule
 Lang <-- OrRule
 Lang <-- PrefixRule
@@ -124,6 +117,16 @@ Lang <-- TypeRule
 Lang <-- ArrayList
 Lang <-- List
 class Lang
+class EverythingNode
+
+EverythingNode <-- Tuple
+EverythingNode <-- List
+EverythingNode <-- Optional
+EverythingNode <-- Stream
+interface EverythingNode implements TypedNode
+class TypedNode
+
+interface TypedNode<Node>
 class InfixSplitter
 
 InfixSplitter <-- Tuple
@@ -147,5 +150,5 @@ MapNode <-- List
 MapNode <-- Map
 MapNode <-- Optional
 MapNode <-- Stream
-class MapNode implements Node
+class MapNode implements EverythingNode
 @enduml

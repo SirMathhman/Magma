@@ -1,8 +1,8 @@
 package magma;
 
 import magma.lang.Lang;
+import magma.node.EverythingNode;
 import magma.node.MapNode;
-import magma.node.Node;
 import magma.rule.DivideRule;
 import magma.rule.Rule;
 
@@ -68,27 +68,27 @@ class Main {
         }).orElse("");
     }
 
-    private static Rule<Node> createJavaRootRule() {
+    private static Rule<EverythingNode> createJavaRootRule() {
         return new DivideRule("children", Lang.createJavaRootSegmentRule());
     }
 
-    private static Node modify(final String parent, final Node root) {
+    private static EverythingNode modify(final String parent, final EverythingNode root) {
         final var newChildren = root.findNodeList("children")
                                     .orElse(Collections.emptyList())
                                     .stream()
                                     .map(child -> Main.modifyRootSegment(parent, child))
                                     .toList();
 
-        final Node node = new MapNode();
+        final EverythingNode node = new MapNode();
         return node.withNodeList("children", newChildren);
     }
 
-    private static Node modifyRootSegment(final String parent, final Node node) {
+    private static EverythingNode modifyRootSegment(final String parent, final EverythingNode node) {
         if (node.is("import")) return Main.modifyImport(parent, node);
         return Main.modifyStructure(node);
     }
 
-    private static Node modifyStructure(final Node structure) {
+    private static EverythingNode modifyStructure(final EverythingNode structure) {
         final var maybeBase = structure.findString("base").map(value -> " implements " + value).orElse("");
         final var name = structure.findString("name").orElse("");
         if (structure.is("record")) return structure.retype("class").withString("content", name + maybeBase);
@@ -96,7 +96,7 @@ class Main {
         return structure.withString("content", name + maybeBase);
     }
 
-    private static Node modifyImport(final String parent, final Node child1) {
+    private static EverythingNode modifyImport(final String parent, final EverythingNode child1) {
         return child1.retype("dependency").withString("parent", parent);
     }
 }

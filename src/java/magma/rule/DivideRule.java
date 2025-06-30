@@ -3,15 +3,15 @@ package magma.rule;
 import magma.api.Tuple;
 import magma.divide.DivideState;
 import magma.divide.MutableDivideState;
+import magma.node.EverythingNode;
 import magma.node.MapNode;
-import magma.node.Node;
 
 import java.util.Collections;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-public record DivideRule(String key, Rule<Node> rule) implements Rule<Node> {
+public record DivideRule(String key, Rule<EverythingNode> rule) implements Rule<EverythingNode> {
     private static Stream<String> divide(final CharSequence input) {
         var current = new Tuple<>(true, (DivideState) new MutableDivideState(input));
         while (current.left()) {
@@ -43,13 +43,13 @@ public record DivideRule(String key, Rule<Node> rule) implements Rule<Node> {
     }
 
     @Override
-    public Optional<Node> lex(final String input) {
+    public Optional<EverythingNode> lex(final String input) {
         final var children = DivideRule.divide(input).map(this.rule::lex).flatMap(Optional::stream).toList();
         return Optional.of(new MapNode().withNodeList(this.key, children));
     }
 
     @Override
-    public Optional<String> generate(final Node node) {
+    public Optional<String> generate(final EverythingNode node) {
         return Optional.of(node.findNodeList(this.key)
                                .orElse(Collections.emptyList())
                                .stream()

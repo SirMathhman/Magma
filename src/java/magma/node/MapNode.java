@@ -8,9 +8,9 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Stream;
 
-public final class MapNode implements Node {
+public final class MapNode implements EverythingNode {
     private final Map<String, String> strings;
-    private final Map<String, List<Node>> nodeLists;
+    private final Map<String, List<EverythingNode>> nodeLists;
     private Optional<String> type;
 
     public MapNode() {
@@ -29,7 +29,7 @@ public final class MapNode implements Node {
     }
 
     @Override
-    public Node withString(final String key, final String value) {
+    public EverythingNode withString(final String key, final String value) {
         this.strings.put(key, value);
         return this;
     }
@@ -41,8 +41,8 @@ public final class MapNode implements Node {
     }
 
     @Override
-    public Node merge(final Node other) {
-        return other.streamStrings().<Node>reduce(this, (node, tuple) -> {
+    public EverythingNode merge(final EverythingNode other) {
+        return other.streamStrings().<EverythingNode>reduce(this, (node, tuple) -> {
             final var key = tuple.left();
             final var value = tuple.right();
             return node.withString(key, value);
@@ -50,7 +50,7 @@ public final class MapNode implements Node {
     }
 
     @Override
-    public Node retype(final String type) {
+    public EverythingNode retype(final String type) {
         this.type = Optional.of(type);
         return this;
     }
@@ -61,13 +61,13 @@ public final class MapNode implements Node {
     }
 
     @Override
-    public Node withNodeList(final String key, final List<Node> values) {
+    public EverythingNode withNodeList(final String key, final List<EverythingNode> values) {
         this.nodeLists.put(key, values);
         return this;
     }
 
     @Override
-    public Optional<List<Node>> findNodeList(final String key) {
+    public Optional<List<EverythingNode>> findNodeList(final String key) {
         return Optional.ofNullable(this.nodeLists.get(key));
     }
 }
