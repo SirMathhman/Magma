@@ -6,19 +6,19 @@ import magma.node.MapNode;
 import magma.node.result.NodeResult;
 import magma.rule.DivideRule;
 import magma.rule.Rule;
+import magma.rule.StringOk;
+import magma.string.result.StringErr;
 import magma.string.result.StringResult;
 
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
-import java.util.List;
 import java.util.Set;
 import java.util.stream.Collector;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 class Main {
     private Main() {}
@@ -44,9 +44,12 @@ class Main {
         return asString.endsWith(".java");
     }
 
-    private static Collection<String> runWithSources(final Iterable<Path> files) throws IOException {
-        final var pre = List.of("@startuml", "skinparam linetype ortho");
-        final Collection<String> outputRootSegments = new ArrayList<>(pre);
+    private static String runWithSources(final Iterable<Path> files) throws IOException {
+        final var pre = Stream.of("@startuml", "skinparam linetype ortho")
+                              .map(value -> value + Lang.LINE_SEPARATOR)
+                              .collect(Collectors.joining());
+
+        StringResult outputRootSegments = new StringOk(pre);
         for (final var source : files) {
             final var input = Files.readString(source);
 
@@ -55,21 +58,21 @@ class Main {
             final var parent = fileName.substring(0, separator);
 
             final var output = Main.compile(input, parent);
-            outputRootSegments.add("class " + parent);
-            outputRootSegments.add(output);
+            outputRootSegments = outputRootSegments.appendResult(output);
         }
 
-        outputRootSegments.add("@enduml");
-        return outputRootSegments;
+        return outputRootSegments.appendSlice("@enduml");
     }
 
-    private static String compile(final String input, final String parent) {
-        final Rule<EverythingNode, NodeResult<EverythingNode>, StringResult> everythingNodeRule = Main.createJavaRootRule();
-        return everythingNodeRule.lex(input).toOptional().flatMap(root -> {
+    private static StringResult compile(final String input, final String parent) {
+        final Rule<EverythingNode, NodeResult<EverythingNode>, StringResult> everythingNodeRule =
+                Main.createJavaRootRule();
+        return everythingNodeRule.lex(input).match(root -> {
             final var newChildren = Main.modify(parent, root);
-            final Rule<EverythingNode, NodeResult<EverythingNode>, StringResult> everythingNodeRule1 = Lang.createPlantRootRule();
-            return everythingNodeRule1.generate(newChildren).toOptional();
-        }).orElse("");
+            final Rule<EverythingNode, NodeResult<EverythingNode>, StringResult> everythingNodeRule1 =
+                    Lang.createPlantRootRule();
+            return everythingNodeRule1.generate(newChildren);
+        }, StringErr::new);
     }
 
     private static Rule<EverythingNode, NodeResult<EverythingNode>, StringResult> createJavaRootRule() {

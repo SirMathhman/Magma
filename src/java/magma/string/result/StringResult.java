@@ -9,4 +9,6 @@ public interface StringResult {
     StringResult appendResult(StringResult other);
 
     StringResult prepend(String other);
+
+    String appendSlice(String slice);
 }
