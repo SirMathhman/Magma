@@ -33,6 +33,6 @@ public record StringOk(String value) implements StringResult {
 
     @Override
     public <Return> Return match(final Function<String, Return> whenOk, final Function<CompileError, Return> whenErr) {
-        return null;
+        return whenOk.apply(this.value);
     }
 }

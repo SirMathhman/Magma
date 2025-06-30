@@ -1,11 +1,10 @@
 package magma.string.result;
 
-import magma.error.CompileError;
+import magma.result.Matchable;
 
 import java.util.Optional;
-import java.util.function.Function;
 
-public interface StringResult {
+public interface StringResult extends Matchable<String> {
     @Deprecated
     Optional<String> toOptional();
 
@@ -14,6 +13,4 @@ public interface StringResult {
     StringResult prepend(String other);
 
     StringResult appendSlice(String slice);
-
-    <Return> Return match(Function<String, Return> whenOk, Function<CompileError, Return> whenErr);
 }
