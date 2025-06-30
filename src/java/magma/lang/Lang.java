@@ -30,7 +30,8 @@ public class Lang {
     }
 
     public static Rule<EverythingNode, NodeResult<EverythingNode>, StringResult> createJavaRootSegmentRule() {
-        final var rules = new ArrayList<>(List.of(Lang.createImportRule(), Lang.getTypeRule(), new StringRule("value")));
+        final var rules = new ArrayList<>(List.of(Lang.createImportRule(), Lang.getTypeRule(),
+                                                  new TypeRule<>("placeholder", new StringRule("value"))));
         return new OrRule(rules);
     }
 

@@ -89,17 +89,21 @@ class Main {
         return Main.readString(source)
                    .mapErr(ThrowableError::new)
                    .<Error>mapErr(ApplicationError::new)
-                   .flatMapValue(input -> {
-                       final var fileName = source.getFileName().toString();
-                       final var separator = fileName.lastIndexOf('.');
-                       final var parent = fileName.substring(0, separator);
+                   .flatMapValue(input -> Main.runWithInput(maybeCurrent, source, input));
+    }
 
-                       return maybeCurrent.flatMapValue(current -> {
-                           return Main.compile(input, parent).match(output -> {
-                               return new Ok<>(current + output);
-                           }, compileError -> new Err<>(new ApplicationError(compileError)));
-                       });
-                   });
+    private static Result<String, Error> runWithInput(final Result<String, Error> maybeCurrent,
+                                                      final Path source,
+                                                      final String input) {
+        final var fileName = source.getFileName().toString();
+        final var separator = fileName.lastIndexOf('.');
+        final var parent = fileName.substring(0, separator);
+
+        return maybeCurrent.flatMapValue(current -> {
+            return Main.compile(input, parent).match(output -> {
+                return new Ok<>(current + output);
+            }, compileError -> new Err<>(new ApplicationError(compileError)));
+        });
     }
 
     private static Result<String, IOException> readString(final Path source) {
@@ -129,6 +133,7 @@ class Main {
         final var newChildren = root.findNodeList("children")
                                     .orElse(Collections.emptyList())
                                     .stream()
+                                    .filter(node -> !node.is("placeholder"))
                                     .map(child -> Main.modifyRootSegment(parent, child))
                                     .toList();
 

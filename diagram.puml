@@ -1,67 +1,213 @@
 @startuml
 skinparam linetype ortho
-class PrefixRule
-
+PrefixRule <-- CompileError
+PrefixRule <-- EverythingNode
+PrefixRule <-- NodeErr
+PrefixRule <-- NodeResult
+PrefixRule <-- StringErr
+PrefixRule <-- StringResult
+PrefixRule <-- Optional
+class PrefixRule implements Rule
+StripRule <-- EverythingNode
+StripRule <-- NodeResult
+StripRule <-- StringResult
+class StripRule implements Rule
+OrRule <-- CompileError
+OrRule <-- EverythingNode
+OrRule <-- NodeErr
+OrRule <-- NodeOk
+OrRule <-- NodeResult
+OrRule <-- Matchable
+OrRule <-- StringErr
+OrRule <-- StringResult
+OrRule <-- ArrayList
+OrRule <-- List
+OrRule <-- Optional
+OrRule <-- Function
+class OrRule implements Rule
+TypeRule <-- CompileError
+TypeRule <-- TypedNode
+TypeRule <-- NodeResult
+TypeRule <-- StringErr
+TypeRule <-- StringResult
+TypeRule <-- Optional
+class TypeRule<Node extends TypedNode<Node>> implements Rule
+StringRule <-- CompileError
+StringRule <-- EverythingNode
+StringRule <-- MapNode
+StringRule <-- NodeErr
+StringRule <-- NodeOk
+StringRule <-- NodeResult
+StringRule <-- StringErr
+StringRule <-- StringResult
+StringRule <-- Optional
+class StringRule implements Rule
+CompileError <-- Strings
+CompileError <-- Collections
+CompileError <-- List
+CompileError <-- Collectors
 class CompileError
-
-class StripRule
-
-class OrRule
-
-class TypeRule
-
-class StringRule
-
-class Splitter
-
+Splitter <-- Tuple
+Splitter <-- Optional
+interface Splitter
+StringErr <-- CompileError
+StringErr <-- Optional
+StringErr <-- Function
 class StringErr
-
+class ApplicationError
+NodeListErr <-- CompileError
+NodeListErr <-- EverythingNode
 class NodeListErr
-
-class SuffixRule
-
-class DivideRule
-
-class SplitRule
-
-class FirstLocator
-
-class NodeListResult
-
-class EverythingNode
-
-class TypedNode
-
-class InfixSplitter
-
-class Tuple
-
-class DivideState
-
+SuffixRule <-- EverythingNode
+SuffixRule <-- NodeErr
+SuffixRule <-- NodeResult
+SuffixRule <-- StringResult
+class SuffixRule implements Rule
+DivideRule <-- Tuple
+DivideRule <-- DivideState
+DivideRule <-- MutableDivideState
+DivideRule <-- EverythingNode
+DivideRule <-- NodeListOk
+DivideRule <-- NodeListResult
+DivideRule <-- NodeResult
+DivideRule <-- StringResult
+DivideRule <-- Collections
+DivideRule <-- Stream
+class DivideRule implements Rule
+SplitRule <-- Tuple
+SplitRule <-- CompileError
+SplitRule <-- EverythingNode
+SplitRule <-- NodeErr
+SplitRule <-- NodeOk
+SplitRule <-- NodeResult
+SplitRule <-- FirstLocator
+SplitRule <-- LastLocator
+SplitRule <-- InfixSplitter
+SplitRule <-- Splitter
+SplitRule <-- StringErr
+SplitRule <-- StringResult
+SplitRule <-- Optional
+class SplitRule implements Rule
+FirstLocator <-- Optional
+class FirstLocator implements Locator
+ThrowableError <-- PrintWriter
+ThrowableError <-- StringWriter
+class ThrowableError
+Matchable <-- CompileError
+Matchable <-- Function
+interface Matchable<Value>
+NodeListResult <-- EverythingNode
+interface NodeListResult
+EverythingNode <-- Tuple
+EverythingNode <-- List
+EverythingNode <-- Optional
+EverythingNode <-- Stream
+interface EverythingNode implements TypedNode
+interface TypedNode<Node>
+InfixSplitter <-- Tuple
+InfixSplitter <-- Locator
+InfixSplitter <-- Optional
+class InfixSplitter implements Splitter
+class Tuple<Left, Right>
+DivideState <-- Tuple
+DivideState <-- Optional
+DivideState <-- Stream
+interface DivideState
+NodeListOk <-- EverythingNode
+NodeListOk <-- MapNode
+NodeListOk <-- ArrayList
+NodeListOk <-- List
+NodeListOk <-- Function
 class NodeListOk
-
-class NodeResult
-
-class NodeErr
-
+class Strings
+interface Error
+NodeResult <-- Matchable
+NodeResult <-- Optional
+NodeResult <-- Function
+interface NodeResult<Node> implements Matchable
+Result <-- Function
+interface Result<Value, Error>
+NodeErr <-- CompileError
+NodeErr <-- EverythingNode
+NodeErr <-- Optional
+NodeErr <-- Function
+class NodeErr<Node> implements NodeResult
+StringOk <-- CompileError
+StringOk <-- StringResult
+StringOk <-- Optional
+StringOk <-- Function
 class StringOk
-
-class NodeOk
-
-class Locator
-
-class LastLocator
-
-class Rule
-
+Err <-- Function
+class Err<Value, Error> implements Result
+NodeOk <-- CompileError
+NodeOk <-- Optional
+NodeOk <-- Function
+class NodeOk<Node> implements NodeResult
+Locator <-- Optional
+interface Locator
+LastLocator <-- Optional
+class LastLocator implements Locator
+interface Rule<Node, NodeResult, StringResult>
+Main <-- ApplicationError
+Main <-- Error
+Main <-- ThrowableError
+Main <-- Lang
+Main <-- EverythingNode
+Main <-- MapNode
+Main <-- NodeResult
+Main <-- Err
+Main <-- Ok
+Main <-- Result
+Main <-- DivideRule
+Main <-- Rule
+Main <-- Strings
+Main <-- StringErr
+Main <-- StringResult
+Main <-- IOException
+Main <-- Files
+Main <-- Path
+Main <-- Paths
+Main <-- Collection
+Main <-- Collections
+Main <-- List
+Main <-- Optional
+Main <-- Set
+Main <-- Collector
+Main <-- Collectors
+Main <-- Stream
 class Main
-
-class MutableDivideState
-
+MutableDivideState <-- Tuple
+MutableDivideState <-- ArrayList
+MutableDivideState <-- List
+MutableDivideState <-- Optional
+MutableDivideState <-- Stream
+class MutableDivideState implements DivideState
+Lang <-- EverythingNode
+Lang <-- NodeResult
+Lang <-- DivideRule
+Lang <-- OrRule
+Lang <-- PrefixRule
+Lang <-- Rule
+Lang <-- SplitRule
+Lang <-- StringRule
+Lang <-- StripRule
+Lang <-- SuffixRule
+Lang <-- TypeRule
+Lang <-- Strings
+Lang <-- StringResult
+Lang <-- ArrayList
+Lang <-- List
 class Lang
-
-class StringResult
-
-class MapNode
-
+Ok <-- Function
+class Ok<Value, Error> implements Result
+StringResult <-- Matchable
+StringResult <-- Optional
+interface StringResult implements Matchable
+MapNode <-- Tuple
+MapNode <-- HashMap
+MapNode <-- List
+MapNode <-- Map
+MapNode <-- Optional
+MapNode <-- Stream
+class MapNode implements EverythingNode
 @enduml
