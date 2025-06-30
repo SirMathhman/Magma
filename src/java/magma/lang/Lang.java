@@ -10,6 +10,7 @@ import magma.rule.StripRule;
 import magma.rule.SuffixRule;
 import magma.rule.TypeRule;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class Lang {
@@ -27,7 +28,15 @@ public class Lang {
     }
 
     public static Rule createJavaRootSegmentRule() {
-        return new OrRule(List.of(Lang.createImportRule(), Lang.createStructureRule()));
+        final var header = (Rule) new OrRule(
+                List.of(Lang.createClassHeaderRule("class"), Lang.createClassHeaderRule("interface"),
+                        Lang.createRecordHeaderRule()));
+
+
+        final var rules = new ArrayList<>(List.of(Lang.createImportRule()));
+        rules.add(Lang.getTypeRule(header));
+
+        return new OrRule(rules);
     }
 
     private static Rule createImportRule() {
@@ -36,19 +45,14 @@ public class Lang {
                 new SuffixRule(new PrefixRule("import ", SplitRule.Last(new StringRule("discard"), ".", child)), ";")));
     }
 
-    private static Rule createStructureRule() {
-        final var header = Lang.createStructureHeaderRule();
+    private static Rule getTypeRule(final Rule header) {
         final Rule content = new StringRule("content");
-        return new TypeRule("structure", new StripRule(new SuffixRule(SplitRule.First(header, "{", content), "}")));
+        return new StripRule(new SuffixRule(SplitRule.First(header, "{", content), "}"));
     }
 
     private static Rule createPlantStructureRule() {
-        return new OrRule(List.of(Lang.createTypedPlantStructureRule("class"), Lang.createTypedPlantStructureRule("interface")));
-    }
-
-    private static Rule createStructureHeaderRule() {
         return new OrRule(
-                List.of(Lang.createClassHeaderRule("class"), Lang.createClassHeaderRule("interface"), Lang.createRecordHeaderRule()));
+                List.of(Lang.createTypedPlantStructureRule("class"), Lang.createTypedPlantStructureRule("interface")));
     }
 
     private static Rule createRecordHeaderRule() {
@@ -57,15 +61,16 @@ public class Lang {
         final Rule params = new StringRule("params");
         final var withParams = SplitRule.First(name, "(", params);
         final var afterKeyword = SplitRule.First(withParams, ")", new StringRule("more"));
-        return SplitRule.First(modifiers, "record ", afterKeyword);
+        return new TypeRule("record", SplitRule.First(modifiers, "record ", afterKeyword));
     }
 
     private static Rule createClassHeaderRule(final String type) {
-        return new TypeRule(type, SplitRule.Last(new StringRule("discard"), type + " ", new StringRule("content")));
+        return new TypeRule(type,
+                            SplitRule.Last(new StringRule("discard"), type + " ", new StringRule("before-content")));
     }
 
     private static Rule createTypedPlantStructureRule(final String type) {
-        return new TypeRule(type, new PrefixRule(type + " ", new StringRule("content")));
+        return new TypeRule(type, new PrefixRule(type + " ", new StringRule("before-content")));
     }
 
     private static Rule createDependencyRule() {

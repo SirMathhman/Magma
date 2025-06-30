@@ -84,14 +84,14 @@ class Main {
 
     private static Node modifyRootSegment(final String parent, final Node node) {
         if (node.is("import")) return Main.modifyImport(parent, node);
-        if (node.is("structure")) return Main.modifyStructure(node);
+        if (node.is("record")) return Main.modifyStructure(node);
         return node;
     }
 
     private static Node modifyStructure(final Node header) {
         if (header.is("record")) {
             final var content = header.findString("name").orElse("") + " " + header.findString("more").orElse("");
-            return header.retype("class").withString("content", content);
+            return header.retype("class").withString("before-content", content);
         }
 
         return header;
