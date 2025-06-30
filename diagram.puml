@@ -11,16 +11,19 @@ Main --> Paths
 Main --> ArrayList
 Main --> Collection
 Main --> List
+Main --> Optional
 Main --> Set
 Main --> Collector
 Main --> Collectors
 Main --> Stream
+class Main 
 class MutableDivideState
 MutableDivideState --> Tuple
 MutableDivideState --> ArrayList
 MutableDivideState --> List
 MutableDivideState --> Optional
 MutableDivideState --> Stream
+class MutableDivideState implements DivideState 
 class Tuple
 class DivideState
 DivideState --> Tuple

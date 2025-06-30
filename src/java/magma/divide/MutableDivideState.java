@@ -12,6 +12,7 @@ public class MutableDivideState implements DivideState {
     private final List<String> segments;
     private int index;
     private StringBuilder buffer;
+    private int depth = 0;
 
     public MutableDivideState(final CharSequence input) {
         this.input = input;
@@ -45,6 +46,23 @@ public class MutableDivideState implements DivideState {
         final var slice = this.buffer.toString();
         this.segments.add(slice);
         this.buffer = new StringBuilder();
+        return this;
+    }
+
+    @Override
+    public boolean isLevel() {
+        return 0 == this.depth;
+    }
+
+    @Override
+    public DivideState enter() {
+        this.depth++;
+        return this;
+    }
+
+    @Override
+    public DivideState exit() {
+        this.depth--;
         return this;
     }
 }

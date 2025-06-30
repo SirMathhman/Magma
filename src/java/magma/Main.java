@@ -11,6 +11,7 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collector;
 import java.util.stream.Collectors;
@@ -64,19 +65,42 @@ public class Main {
     private static List<String> compile(final CharSequence input, final String parent) {
         final var segments = Main.divide(input).toList();
         final List<String> output = new ArrayList<>();
-        for (final var segment : segments) Main.compileRootSegment(segment, output, parent);
+        for (final var segment : segments) Main.compileRootSegment(segment, parent).ifPresent(output::add);
         return output;
     }
 
-    private static void compileRootSegment(final String input, final Collection<String> output, final String parent) {
+    private static Optional<String> compileRootSegment(final String input, final String parent) {
+        return Main.compileImport(input, parent).or(() -> Main.compileClass(input));
+    }
+
+    private static Optional<String> compileClass(final String input) {
+        final var strip = input.strip();
+        final var stripLength = strip.length();
+        if (strip.isEmpty() || '}' != strip.charAt(stripLength - 1)) return Optional.empty();
+        final var suffixLength = "}".length();
+        final var substring = strip.substring(0, stripLength - suffixLength);
+
+        final var i = substring.indexOf('{');
+        if (0 > i) return Optional.empty();
+        final var header = substring.substring(0, i);
+        final var classIndex = header.indexOf("class ");
+
+        if (0 <= classIndex) {
+            final var slice = header.substring(classIndex);
+            return Optional.of(slice);
+        }
+        return Optional.empty();
+    }
+
+    private static Optional<String> compileImport(final String input, final String parent) {
         final var strip = input.strip();
 
         final var length = strip.length();
-        if (strip.isEmpty() || ';' != strip.charAt(length - 1)) return;
+        if (strip.isEmpty() || ';' != strip.charAt(length - 1)) return Optional.empty();
         final var suffixLength = ";".length();
         final var substring = strip.substring(0, length - suffixLength);
 
-        if (!substring.startsWith("import ")) return;
+        if (!substring.startsWith("import ")) return Optional.empty();
         final var prefixLength = "import ".length();
 
         final var substring1 = substring.substring(prefixLength);
@@ -84,8 +108,10 @@ public class Main {
         if (0 <= separator) {
             final var infixLength = ".".length();
             final var child = substring1.substring(separator + infixLength);
-            output.add(parent + " --> " + child);
+            return Optional.of(parent + " --> " + child);
         }
+
+        return Optional.empty();
     }
 
     private static Stream<String> divide(final CharSequence input) {
@@ -112,7 +138,9 @@ public class Main {
 
     private static DivideState fold(final DivideState current, final char next) {
         final var appended = current.append(next);
-        if (';' == next) return appended.advance();
+        if (';' == next && appended.isLevel()) return appended.advance();
+        if ('{' == next) return appended.enter();
+        if ('}' == next) return appended.exit();
         return appended;
     }
 }
