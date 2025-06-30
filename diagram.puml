@@ -12,17 +12,23 @@ StripRule <-- EverythingNode
 StripRule <-- NodeResult
 StripRule <-- StringResult
 class StripRule implements Rule
+MutableAccumulator <-- CompileError
+MutableAccumulator <-- ArrayList
+MutableAccumulator <-- List
+MutableAccumulator <-- Optional
+MutableAccumulator <-- Function
+class MutableAccumulator<Node> implements Accumulator
 OrRule <-- CompileError
 OrRule <-- EverythingNode
 OrRule <-- NodeErr
 OrRule <-- NodeOk
 OrRule <-- NodeResult
 OrRule <-- Matchable
+OrRule <-- Accumulator
+OrRule <-- MutableAccumulator
 OrRule <-- StringErr
 OrRule <-- StringResult
-OrRule <-- ArrayList
 OrRule <-- List
-OrRule <-- Optional
 OrRule <-- Function
 class OrRule implements Rule
 TypeRule <-- CompileError
@@ -200,6 +206,10 @@ Lang <-- List
 class Lang
 Ok <-- Function
 class Ok<Value, Error> implements Result
+Accumulator <-- CompileError
+Accumulator <-- List
+Accumulator <-- Function
+interface Accumulator<Node>
 StringResult <-- Matchable
 StringResult <-- Optional
 interface StringResult implements Matchable

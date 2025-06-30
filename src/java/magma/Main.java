@@ -99,11 +99,7 @@ class Main {
         final var separator = fileName.lastIndexOf('.');
         final var parent = fileName.substring(0, separator);
 
-        return maybeCurrent.flatMapValue(current -> {
-            return Main.compile(input, parent).match(output -> {
-                return new Ok<>(current + output);
-            }, compileError -> new Err<>(new ApplicationError(compileError)));
-        });
+        return maybeCurrent.flatMapValue(current -> Main.compile(input, parent).match(output -> new Ok<>(current + output), compileError -> new Err<>(new ApplicationError(compileError))));
     }
 
     private static Result<String, IOException> readString(final Path source) {

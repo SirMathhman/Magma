@@ -58,7 +58,7 @@ public final class SplitRule implements Rule<EverythingNode, NodeResult<Everythi
     @Override
     public NodeResult<EverythingNode> lex(final String input) {
         return this.lex0(input).<NodeResult<EverythingNode>>map(NodeOk::new).orElseGet(
-                () -> new NodeErr<EverythingNode>(new CompileError(this.getClass().getName(), input)));
+                () -> new NodeErr<>(new CompileError(this.getClass().getName(), input)));
     }
 
     @Override
