@@ -2,217 +2,64 @@
 skinparam linetype ortho
 class PrefixRule
 
-PrefixRule <-- EverythingNode
-PrefixRule <-- NodeErr
-PrefixRule <-- NodeOk
-PrefixRule <-- NodeResult
-PrefixRule <-- StringErr
-PrefixRule <-- StringResult
-PrefixRule <-- Optional
-class PrefixRule implements Rule
 class StripRule
 
-StripRule <-- EverythingNode
-StripRule <-- NodeResult
-StripRule <-- StringResult
-class StripRule implements Rule
 class OrRule
 
-OrRule <-- EverythingNode
-OrRule <-- NodeErr
-OrRule <-- NodeOk
-OrRule <-- NodeResult
-OrRule <-- StringErr
-OrRule <-- StringResult
-OrRule <-- List
-OrRule <-- Optional
-class OrRule implements Rule
 class TypeRule
 
-TypeRule <-- TypedNode
-TypeRule <-- NodeErr
-TypeRule <-- NodeOk
-TypeRule <-- NodeResult
-TypeRule <-- StringErr
-TypeRule <-- StringResult
-TypeRule <-- Optional
-class TypeRule<Node extends TypedNode<Node>> implements Rule
 class StringRule
 
-StringRule <-- EverythingNode
-StringRule <-- MapNode
-StringRule <-- NodeErr
-StringRule <-- NodeOk
-StringRule <-- NodeResult
-StringRule <-- StringErr
-StringRule <-- StringResult
-StringRule <-- Optional
-class StringRule implements Rule
 class Splitter
 
-Splitter <-- Tuple
-Splitter <-- Optional
-interface Splitter
 class StringErr
 
-StringErr <-- Optional
-class StringErr implements StringResult
+class NodeListErr
+
 class SuffixRule
 
-SuffixRule <-- EverythingNode
-SuffixRule <-- NodeErr
-SuffixRule <-- NodeOk
-SuffixRule <-- NodeResult
-SuffixRule <-- StringErr
-SuffixRule <-- StringResult
-SuffixRule <-- Optional
-class SuffixRule implements Rule
 class DivideRule
 
-DivideRule <-- Tuple
-DivideRule <-- DivideState
-DivideRule <-- MutableDivideState
-DivideRule <-- EverythingNode
-DivideRule <-- MapNode
-DivideRule <-- NodeErr
-DivideRule <-- NodeOk
-DivideRule <-- NodeResult
-DivideRule <-- StringErr
-DivideRule <-- StringResult
-DivideRule <-- Collections
-DivideRule <-- Optional
-DivideRule <-- Collectors
-DivideRule <-- Stream
-class DivideRule implements Rule
 class SplitRule
 
-SplitRule <-- Tuple
-SplitRule <-- EverythingNode
-SplitRule <-- NodeErr
-SplitRule <-- NodeOk
-SplitRule <-- NodeResult
-SplitRule <-- FirstLocator
-SplitRule <-- LastLocator
-SplitRule <-- InfixSplitter
-SplitRule <-- Splitter
-SplitRule <-- StringErr
-SplitRule <-- StringResult
-SplitRule <-- Optional
-class SplitRule implements Rule
 class FirstLocator
 
-FirstLocator <-- Optional
-class FirstLocator implements Locator
+class NodeListResult
+
 class EverythingNode
 
-EverythingNode <-- Tuple
-EverythingNode <-- List
-EverythingNode <-- Optional
-EverythingNode <-- Stream
-interface EverythingNode implements TypedNode
 class TypedNode
 
-interface TypedNode<Node>
 class InfixSplitter
 
-InfixSplitter <-- Tuple
-InfixSplitter <-- Locator
-InfixSplitter <-- Optional
-class InfixSplitter implements Splitter
 class Tuple
 
-class Tuple<Left, Right>
 class DivideState
 
-DivideState <-- Tuple
-DivideState <-- Optional
-DivideState <-- Stream
-interface DivideState
+class NodeListOk
+
 class NodeResult
 
-NodeResult <-- Optional
-interface NodeResult<Node>
 class NodeErr
 
-NodeErr <-- Optional
-class NodeErr<Node> implements NodeResult
 class StringOk
 
-StringOk <-- StringResult
-StringOk <-- Optional
-class StringOk
 class NodeOk
 
-NodeOk <-- Optional
-class NodeOk<Node> implements NodeResult
 class Locator
 
-Locator <-- Optional
-interface Locator
 class LastLocator
 
-LastLocator <-- Optional
-class LastLocator implements Locator
 class Rule
 
-interface Rule<Node, NodeResult, StringResult>
 class Main
 
-Main <-- Lang
-Main <-- EverythingNode
-Main <-- MapNode
-Main <-- NodeResult
-Main <-- DivideRule
-Main <-- Rule
-Main <-- StringResult
-Main <-- IOException
-Main <-- Files
-Main <-- Path
-Main <-- Paths
-Main <-- ArrayList
-Main <-- Collection
-Main <-- Collections
-Main <-- List
-Main <-- Set
-Main <-- Collector
-Main <-- Collectors
-class Main
 class MutableDivideState
 
-MutableDivideState <-- Tuple
-MutableDivideState <-- ArrayList
-MutableDivideState <-- List
-MutableDivideState <-- Optional
-MutableDivideState <-- Stream
-class MutableDivideState implements DivideState
 class Lang
 
-Lang <-- EverythingNode
-Lang <-- NodeResult
-Lang <-- DivideRule
-Lang <-- OrRule
-Lang <-- PrefixRule
-Lang <-- Rule
-Lang <-- SplitRule
-Lang <-- StringRule
-Lang <-- StripRule
-Lang <-- SuffixRule
-Lang <-- TypeRule
-Lang <-- StringResult
-Lang <-- ArrayList
-Lang <-- List
-class Lang
 class StringResult
 
-StringResult <-- Optional
-interface StringResult
 class MapNode
 
-MapNode <-- Tuple
-MapNode <-- HashMap
-MapNode <-- List
-MapNode <-- Map
-MapNode <-- Optional
-MapNode <-- Stream
-class MapNode implements EverythingNode
 @enduml

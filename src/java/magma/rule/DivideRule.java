@@ -4,19 +4,16 @@ import magma.api.Tuple;
 import magma.divide.DivideState;
 import magma.divide.MutableDivideState;
 import magma.node.EverythingNode;
-import magma.node.MapNode;
-import magma.node.result.NodeErr;
-import magma.node.result.NodeOk;
+import magma.node.result.NodeListOk;
+import magma.node.result.NodeListResult;
 import magma.node.result.NodeResult;
-import magma.string.result.StringErr;
 import magma.string.result.StringResult;
 
 import java.util.Collections;
-import java.util.Optional;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-public record DivideRule(String key, Rule<EverythingNode, NodeResult<EverythingNode>, StringResult> rule) implements Rule<EverythingNode, NodeResult<EverythingNode>, StringResult> {
+public record DivideRule(String key, Rule<EverythingNode, NodeResult<EverythingNode>, StringResult> rule)
+        implements Rule<EverythingNode, NodeResult<EverythingNode>, StringResult> {
     private static Stream<String> divide(final CharSequence input) {
         var current = new Tuple<>(true, (DivideState) new MutableDivideState(input));
         while (current.left()) {
@@ -47,31 +44,20 @@ public record DivideRule(String key, Rule<EverythingNode, NodeResult<EverythingN
         return appended;
     }
 
-    private Optional<EverythingNode> lex0(final CharSequence input) {
-        final var children = DivideRule.divide(input)
-                                       .map(input1 -> this.rule.lex(input1).toOptional())
-                                       .flatMap(Optional::stream)
-                                       .toList();
-
-        return Optional.of(new MapNode().withNodeList(this.key, children));
-    }
-
-    private Optional<String> generate0(final EverythingNode node) {
-        return Optional.of(node.findNodeList(this.key)
-                               .orElse(Collections.emptyList())
-                               .stream()
-                               .map(node1 -> this.rule.generate(node1).toOptional())
-                               .flatMap(Optional::stream)
-                               .collect(Collectors.joining()));
-    }
-
     @Override
     public NodeResult<EverythingNode> lex(final String input) {
-        return this.lex0(input).<NodeResult<EverythingNode>>map(NodeOk::new).orElseGet(NodeErr::new);
+        return DivideRule.divide(input)
+                         .map(this.rule::lex)
+                         .reduce(new NodeListOk(), NodeListResult::add, (_, next) -> next)
+                         .toNode(this.key);
     }
 
     @Override
     public StringResult generate(final EverythingNode node) {
-        return this.generate0(node).<StringResult>map(StringOk::new).orElseGet(StringErr::new);
+        return node.findNodeList(this.key)
+                   .orElse(Collections.emptyList())
+                   .stream()
+                   .map(this.rule::generate)
+                   .reduce(new StringOk(), StringResult::appendResult, (_, next) -> next);
     }
 }
