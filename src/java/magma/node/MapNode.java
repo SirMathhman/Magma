@@ -3,17 +3,20 @@ package magma.node;
 import magma.api.Tuple;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Stream;
 
 public final class MapNode implements Node {
     private final Map<String, String> strings;
+    private final Map<String, List<Node>> nodeLists;
     private Optional<String> type;
 
     public MapNode() {
         this.type = Optional.empty();
         this.strings = new HashMap<>();
+        this.nodeLists = new HashMap<>();
     }
 
     @Override
@@ -55,5 +58,16 @@ public final class MapNode implements Node {
     @Override
     public boolean is(final String type) {
         return this.type.isPresent() && this.type.get().contentEquals(type);
+    }
+
+    @Override
+    public Node withNodeList(final String key, final List<Node> values) {
+        this.nodeLists.put(key, values);
+        return this;
+    }
+
+    @Override
+    public Optional<List<Node>> findNodeList(final String key) {
+        return Optional.ofNullable(this.nodeLists.get(key));
     }
 }

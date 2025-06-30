@@ -1,17 +1,10 @@
 package magma;
 
-import magma.api.Tuple;
-import magma.divide.DivideState;
-import magma.divide.MutableDivideState;
+import magma.lang.Lang;
+import magma.node.MapNode;
 import magma.node.Node;
-import magma.rule.OrRule;
-import magma.rule.PrefixRule;
+import magma.rule.DivideRule;
 import magma.rule.Rule;
-import magma.rule.SplitRule;
-import magma.rule.StringRule;
-import magma.rule.StripRule;
-import magma.rule.SuffixRule;
-import magma.rule.TypeRule;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -19,16 +12,13 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
-import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collector;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 class Main {
-    private static final String LINE_SEPARATOR = System.lineSeparator();
-
     private Main() {}
 
     public static void main(final String[] args) {
@@ -39,7 +29,7 @@ class Main {
 
             final var outputRootSegments = Main.runWithSources(files);
             final var target = Paths.get(".", "diagram.puml");
-            final var joined = String.join(Main.LINE_SEPARATOR, outputRootSegments);
+            final var joined = String.join(Lang.LINE_SEPARATOR, outputRootSegments);
             Files.writeString(target, joined);
         } catch (final IOException e) {
             //noinspection CallToPrintStackTrace
@@ -71,52 +61,31 @@ class Main {
         return outputRootSegments;
     }
 
-    private static String compile(final CharSequence input, final String parent) {
-        final var oldChildren =
-                Main.divide(input).map(Main.createJavaRootSegmentRule()::lex).flatMap(Optional::stream).toList();
+    private static String compile(final String input, final String parent) {
+        return Main.createJavaRootRule().lex(input).flatMap(root -> {
+            final var newChildren = Main.modify(parent, root);
+            return Lang.createPlantRootRule().generate(newChildren);
+        }).orElse("");
+    }
 
-        final var newChildren = oldChildren.stream().map(child -> Main.modifyRootSegment(parent, child)).toList();
-        return newChildren.stream()
-                          .map(Main.createPlantRootSegmentRule()::generate)
-                          .flatMap(Optional::stream)
-                          .collect(Collectors.joining());
+    private static Rule createJavaRootRule() {
+        return new DivideRule("children", Lang.createJavaRootSegmentRule());
+    }
+
+    private static Node modify(final String parent, final Node root) {
+        final var newChildren = root.findNodeList("children")
+                                    .orElse(Collections.emptyList())
+                                    .stream()
+                                    .map(child -> Main.modifyRootSegment(parent, child))
+                                    .toList();
+
+        return new MapNode().withNodeList("children", newChildren);
     }
 
     private static Node modifyRootSegment(final String parent, final Node node) {
         if (node.is("import")) return Main.modifyImport(parent, node);
         if (node.is("structure")) return Main.modifyStructure(node);
         return node;
-    }
-
-    private static Rule createPlantRootSegmentRule() {
-        final var options = new OrRule(List.of(Main.createDependencyRule(), Main.createPlantStructureRule()));
-        return new SuffixRule(options, Main.LINE_SEPARATOR);
-    }
-
-    private static Rule createJavaRootSegmentRule() {
-        return new OrRule(List.of(Main.createImportRule(), Main.createDependencyRule()));
-    }
-
-    private static Rule createImportRule() {
-        final Rule child = new StringRule("child");
-        return new TypeRule("import", new StripRule(
-                new SuffixRule(new PrefixRule("import ", SplitRule.Last(new StringRule("discard"), ".", child)), ";")));
-    }
-
-    private static Rule createStructureRule() {
-        final var header = Main.createStructureHeaderRule();
-        final Rule content = new StringRule("content");
-        return new TypeRule("structure", new StripRule(new SuffixRule(SplitRule.First(header, "{", content), "}")));
-    }
-
-    private static Rule createPlantStructureRule() {
-        return new OrRule(
-                List.of(Main.createTypedPlantStructureRule("class"), Main.createTypedPlantStructureRule("interface")));
-    }
-
-    private static Rule createStructureHeaderRule() {
-        return new OrRule(List.of(Main.createClassHeaderRule("class"), Main.createClassHeaderRule("interface"),
-                                  Main.createRecordHeaderRule()));
     }
 
     private static Node modifyStructure(final Node header) {
@@ -128,58 +97,7 @@ class Main {
         return header;
     }
 
-    private static Rule createRecordHeaderRule() {
-        final Rule modifiers = new StringRule("modifiers");
-        final Rule name = new StringRule("name");
-        final Rule params = new StringRule("params");
-        final var withParams = SplitRule.First(name, "(", params);
-        final var afterKeyword = SplitRule.First(withParams, ")", new StringRule("more"));
-        return SplitRule.First(modifiers, "record ", afterKeyword);
-    }
-
-    private static Rule createClassHeaderRule(final String type) {
-        return new TypeRule(type, SplitRule.Last(new StringRule("discard"), type + " ", new StringRule("content")));
-    }
-
-    private static Rule createTypedPlantStructureRule(final String type) {
-        return new TypeRule(type, new PrefixRule(type + " ", new StringRule("content")));
-    }
-
     private static Node modifyImport(final String parent, final Node child1) {
         return child1.retype("dependency").withString("parent", parent);
-    }
-
-    private static Rule createDependencyRule() {
-        return SplitRule.First(new StringRule("parent"), " <-- ", new StringRule("child"));
-    }
-
-    private static Stream<String> divide(final CharSequence input) {
-        var current = new Tuple<>(true, (DivideState) new MutableDivideState(input));
-        while (current.left()) {
-            final var right = current.right();
-            current = Main.fold(right);
-        }
-
-        return current.right().advance().stream();
-    }
-
-    private static Tuple<Boolean, DivideState> fold(final DivideState state) {
-        final var maybeNextTuple = state.pop();
-        if (maybeNextTuple.isEmpty()) return new Tuple<>(false, state);
-
-        final var nextTuple = maybeNextTuple.get();
-        final var nextState = nextTuple.left();
-        final var next = nextTuple.right();
-
-        final var folded = Main.fold(nextState, next);
-        return new Tuple<>(true, folded);
-    }
-
-    private static DivideState fold(final DivideState current, final char next) {
-        final var appended = current.append(next);
-        if (';' == next && appended.isLevel()) return appended.advance();
-        if ('{' == next) return appended.enter();
-        if ('}' == next) return appended.exit();
-        return appended;
     }
 }

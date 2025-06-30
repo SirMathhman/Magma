@@ -33,6 +33,17 @@ class SuffixRule
 
 SuffixRule <-- Node
 SuffixRule <-- Optional
+class DivideRule
+
+DivideRule <-- Tuple
+DivideRule <-- DivideState
+DivideRule <-- MutableDivideState
+DivideRule <-- MapNode
+DivideRule <-- Node
+DivideRule <-- Collections
+DivideRule <-- Optional
+DivideRule <-- Collectors
+DivideRule <-- Stream
 class SplitRule
 
 SplitRule <-- Tuple
@@ -54,193 +65,26 @@ Rule <-- Node
 Rule <-- Optional
 class Main
 
-Main <-- Tuple
-Main <-- DivideState
-Main <-- MutableDivideState
+Main <-- Lang
+Main <-- MapNode
 Main <-- Node
-Main <-- OrRule
-Main <-- PrefixRule
+Main <-- DivideRule
 Main <-- Rule
-Main <-- SplitRule
-Main <-- StringRule
-Main <-- StripRule
-Main <-- SuffixRule
-Main <-- TypeRule
 Main <-- IOException
 Main <-- Files
 Main <-- Path
 Main <-- Paths
 Main <-- ArrayList
 Main <-- Collection
+Main <-- Collections
 Main <-- List
-Main <-- Optional
 Main <-- Set
 Main <-- Collector
 Main <-- Collectors
-Main <-- Stream
-
-
-class Main {
-    private static final String LINE_SEPARATOR = System.lineSeparator();
-
-    private Main() {}
-
-    public static void main(final String[] args) {
-        final var root = Paths.get(".", "src", "java");
-        try (final var stream = Files.walk(root)) {
-            final Collector<Path, ?, Set<Path>> setCollector = Collectors.toSet();
-            final var files = stream.filter(Files::isRegularFile).filter(Main::isJavaFile).collect(setCollector);
-
-            final var outputRootSegments = Main.runWithSources(files);
-            final var target = Paths.get(".", "diagram.puml");
-            final var joined = String.join(Main.LINE_SEPARATOR, outputRootSegments);
-            Files.writeString(target, joined);
-        } catch (final IOException e) {
-            //noinspection CallToPrintStackTrace
-            e.printStackTrace();
-        }
-    }
-
-    private static boolean isJavaFile(final Path file) {
-        final var asString = file.toString();
-        return asString.endsWith(".java");
-    }
-
-    private static Collection<String> runWithSources(final Iterable<Path> files) throws IOException {
-        final var pre = List.of("@startuml", "skinparam linetype ortho");
-        final Collection<String> outputRootSegments = new ArrayList<>(pre);
-        for (final var source : files) {
-            final var input = Files.readString(source);
-
-            final var fileName = source.getFileName().toString();
-            final var separator = fileName.lastIndexOf('.');
-            final var parent = fileName.substring(0, separator);
-
-            final var output = Main.compile(input, parent);
-            outputRootSegments.add("class " + parent);
-            outputRootSegments.add(output);
-        }
-
-        outputRootSegments.add("@enduml");
-        return outputRootSegments;
-    }
-
-    private static String compile(final CharSequence input, final String parent) {
-        final var oldChildren =
-                Main.divide(input).map(Main.createJavaRootSegmentRule()::lex).flatMap(Optional::stream).toList();
-
-        final var newChildren = oldChildren.stream().map(child -> Main.modifyRootSegment(parent, child)).toList();
-        return newChildren.stream()
-                          .map(Main.createPlantRootSegmentRule()::generate)
-                          .flatMap(Optional::stream)
-                          .collect(Collectors.joining());
-    }
-
-    private static Node modifyRootSegment(final String parent, final Node node) {
-        if (node.is("import")) return Main.modifyImport(parent, node);
-        if (node.is("structure")) return Main.modifyStructure(node);
-        return node;
-    }
-
-    private static Rule createPlantRootSegmentRule() {
-        final var options = new OrRule(List.of(Main.createDependencyRule(), Main.createPlantStructureRule()));
-        return new SuffixRule(options, Main.LINE_SEPARATOR);
-    }
-
-    private static Rule createJavaRootSegmentRule() {
-        return new OrRule(List.of(Main.createImportRule(), Main.createDependencyRule()));
-    }
-
-    private static Rule createImportRule() {
-        final Rule child = new StringRule("child");
-        return new TypeRule("import", new StripRule(
-                new SuffixRule(new PrefixRule("import ", SplitRule.Last(new StringRule("discard"), ".", child)), ";")));
-    }
-
-    private static Rule createStructureRule() {
-        final var header = Main.createStructureHeaderRule();
-        final Rule content = new StringRule("content");
-        return new TypeRule("structure", new StripRule(new SuffixRule(SplitRule.First(header, "{", content), "}")));
-    }
-
-    private static Rule createPlantStructureRule() {
-        return new OrRule(
-                List.of(Main.createTypedPlantStructureRule("class"), Main.createTypedPlantStructureRule("interface")));
-    }
-
-    private static Rule createStructureHeaderRule() {
-        return new OrRule(List.of(Main.createClassHeaderRule("class"), Main.createClassHeaderRule("interface"),
-                                  Main.createRecordHeaderRule()));
-    }
-
-    private static Node modifyStructure(final Node header) {
-        if (header.is("record")) {
-            final var content = header.findString("name").orElse("") + " " + header.findString("more").orElse("");
-            return header.retype("class").withString("content", content);
-        }
-
-        return header;
-    }
-
-    private static Rule createRecordHeaderRule() {
-        final Rule modifiers = new StringRule("modifiers");
-        final Rule name = new StringRule("name");
-        final Rule params = new StringRule("params");
-        final var withParams = SplitRule.First(name, "(", params);
-        final var afterKeyword = SplitRule.First(withParams, ")", new StringRule("more"));
-        return SplitRule.First(modifiers, "record ", afterKeyword);
-    }
-
-    private static Rule createClassHeaderRule(final String type) {
-        return new TypeRule(type, SplitRule.Last(new StringRule("discard"), type + " ", new StringRule("content")));
-    }
-
-    private static Rule createTypedPlantStructureRule(final String type) {
-        return new TypeRule(type, new PrefixRule(type + " ", new StringRule("content")));
-    }
-
-    private static Node modifyImport(final String parent, final Node child1) {
-        return child1.retype("dependency").withString("parent", parent);
-    }
-
-    private static Rule createDependencyRule() {
-        return SplitRule.First(new StringRule("parent"), " <-- ", new StringRule("child"));
-    }
-
-    private static Stream<String> divide(final CharSequence input) {
-        var current = new Tuple<>(true, (DivideState) new MutableDivideState(input));
-        while (current.left()) {
-            final var right = current.right();
-            current = Main.fold(right);
-        }
-
-        return current.right().advance().stream();
-    }
-
-    private static Tuple<Boolean, DivideState> fold(final DivideState state) {
-        final var maybeNextTuple = state.pop();
-        if (maybeNextTuple.isEmpty()) return new Tuple<>(false, state);
-
-        final var nextTuple = maybeNextTuple.get();
-        final var nextState = nextTuple.left();
-        final var next = nextTuple.right();
-
-        final var folded = Main.fold(nextState, next);
-        return new Tuple<>(true, folded);
-    }
-
-    private static DivideState fold(final DivideState current, final char next) {
-        final var appended = current.append(next);
-        if (';' == next && appended.isLevel()) return appended.advance();
-        if ('{' == next) return appended.enter();
-        if ('}' == next) return appended.exit();
-        return appended;
-    }
-}
-
 class Node
 
 Node <-- Tuple
+Node <-- List
 Node <-- Optional
 Node <-- Stream
 class MutableDivideState
@@ -250,6 +94,18 @@ MutableDivideState <-- ArrayList
 MutableDivideState <-- List
 MutableDivideState <-- Optional
 MutableDivideState <-- Stream
+class Lang
+
+Lang <-- DivideRule
+Lang <-- OrRule
+Lang <-- PrefixRule
+Lang <-- Rule
+Lang <-- SplitRule
+Lang <-- StringRule
+Lang <-- StripRule
+Lang <-- SuffixRule
+Lang <-- TypeRule
+Lang <-- List
 class InfixSplitter
 
 InfixSplitter <-- Tuple
@@ -266,6 +122,7 @@ class MapNode
 
 MapNode <-- Tuple
 MapNode <-- HashMap
+MapNode <-- List
 MapNode <-- Map
 MapNode <-- Optional
 MapNode <-- Stream
