@@ -1,8 +1,10 @@
 package magma.string.result;
 
+import magma.error.CompileError;
+
 import java.util.Optional;
 
-public class StringErr implements StringResult {
+public record StringErr(CompileError error) implements StringResult {
     @Override
     public Optional<String> toOptional() {
         return Optional.empty();

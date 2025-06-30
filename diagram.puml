@@ -2,6 +2,8 @@
 skinparam linetype ortho
 class PrefixRule
 
+class CompileError
+
 class StripRule
 
 class OrRule

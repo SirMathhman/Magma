@@ -1,6 +1,7 @@
 package magma.rule;
 
 import magma.api.Tuple;
+import magma.error.CompileError;
 import magma.node.EverythingNode;
 import magma.node.result.NodeErr;
 import magma.node.result.NodeOk;
@@ -56,11 +57,12 @@ public final class SplitRule implements Rule<EverythingNode, NodeResult<Everythi
 
     @Override
     public NodeResult<EverythingNode> lex(final String input) {
-        return this.lex0(input).<NodeResult<EverythingNode>>map(NodeOk::new).orElseGet(NodeErr::new);
+        return this.lex0(input).<NodeResult<EverythingNode>>map(NodeOk::new).orElseGet(
+                () -> new NodeErr<EverythingNode>(new CompileError()));
     }
 
     @Override
     public StringResult generate(final EverythingNode node) {
-        return this.generate0(node).<StringResult>map(StringOk::new).orElseGet(StringErr::new);
+        return this.generate0(node).<StringResult>map(StringOk::new).orElseGet(() -> new StringErr(new CompileError()));
     }
 }

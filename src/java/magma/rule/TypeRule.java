@@ -1,5 +1,6 @@
 package magma.rule;
 
+import magma.error.CompileError;
 import magma.node.TypedNode;
 import magma.node.result.NodeErr;
 import magma.node.result.NodeOk;
@@ -21,11 +22,12 @@ public record TypeRule<Node extends TypedNode<Node>>(String type, Rule<Node, Nod
 
     @Override
     public NodeResult<Node> lex(final String input) {
-        return this.lex0(input).<NodeResult<Node>>map(NodeOk::new).orElseGet(NodeErr::new);
+        return this.lex0(input).<NodeResult<Node>>map(NodeOk::new).orElseGet(
+                () -> new NodeErr<Node>(new CompileError()));
     }
 
     @Override
     public StringResult generate(final Node node) {
-        return this.generate0(node).<StringResult>map(StringOk::new).orElseGet(StringErr::new);
+        return this.generate0(node).<StringResult>map(StringOk::new).orElseGet(() -> new StringErr(new CompileError()));
     }
 }

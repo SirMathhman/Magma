@@ -1,5 +1,6 @@
 package magma.rule;
 
+import magma.error.CompileError;
 import magma.node.EverythingNode;
 import magma.node.MapNode;
 import magma.node.result.NodeErr;
@@ -22,11 +23,12 @@ public record StringRule(String key) implements Rule<EverythingNode, NodeResult<
 
     @Override
     public NodeResult<EverythingNode> lex(final String input) {
-        return this.lex0(input).<NodeResult<EverythingNode>>map(NodeOk::new).orElseGet(NodeErr::new);
+        return this.lex0(input).<NodeResult<EverythingNode>>map(NodeOk::new).orElseGet(
+                () -> new NodeErr<EverythingNode>(new CompileError()));
     }
 
     @Override
     public StringResult generate(final EverythingNode node) {
-        return this.generate0(node).<StringResult>map(StringOk::new).orElseGet(StringErr::new);
+        return this.generate0(node).<StringResult>map(StringOk::new).orElseGet(() -> new StringErr(new CompileError()));
     }
 }
