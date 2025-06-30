@@ -85,8 +85,8 @@ public class Main {
     }
 
     private static Rule createImportRule() {
-        return new StripRule(
-                new SuffixRule(new PrefixRule("import ", new FirstRule(".", new StringRule("child"))), ";"));
+        final var child = new StringRule("child");
+        return new StripRule(new SuffixRule(new PrefixRule("import ", new FirstRule(".", child)), ";"));
     }
 
     private static Optional<String> compileStructure(final String input) {
