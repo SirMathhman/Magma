@@ -79,25 +79,36 @@ class Main {
     }
 
     private static Optional<String> compileRootSegment(final String input, final String parent) {
-        return Main.createImportRule()
+        return Main.createJavaRootSegmentRule()
                    .lex(input)
-                   .map(child1 -> Main.modifyImport(parent, child1))
-                   .map(node -> Main.createDependencyRule().generate(node).orElse(""))
-                   .or(() -> Main.compileStructure(input)
-                                 .map(Main::modifyStructureHeader)
-                                 .flatMap(result -> Main.createPlantStructureRule().generate(result)));
+                   .map(node -> Main.modifyRootSegment(parent, node))
+                   .flatMap(node -> Main.createPlantRootSegmentRule().generate(node));
+    }
+
+    private static Node modifyRootSegment(final String parent, final Node node) {
+        if (node.is("import")) return Main.modifyImport(parent, node);
+        if (node.is("structure")) return Main.modifyStructure(node);
+        return node;
+    }
+
+    private static OrRule createPlantRootSegmentRule() {
+        return new OrRule(List.of(Main.createDependencyRule(), Main.createPlantStructureRule()));
+    }
+
+    private static OrRule createJavaRootSegmentRule() {
+        return new OrRule(List.of(Main.createImportRule(), Main.createDependencyRule()));
     }
 
     private static Rule createImportRule() {
         final Rule child = new StringRule("child");
-        return new StripRule(
-                new SuffixRule(new PrefixRule("import ", SplitRule.Last(new StringRule("discard"), ".", child)), ";"));
+        return new TypeRule("import", new StripRule(
+                new SuffixRule(new PrefixRule("import ", SplitRule.Last(new StringRule("discard"), ".", child)), ";")));
     }
 
-    private static Optional<Node> compileStructure(final String input) {
-        return new StripRule(
-                new SuffixRule(SplitRule.First(Main.createStructureHeaderRule(), "{", new StringRule("content")), "}")).lex(
-                input);
+    private static Rule createStructureRule() {
+        final var header = Main.createStructureHeaderRule();
+        final Rule content = new StringRule("content");
+        return new TypeRule("structure", new StripRule(new SuffixRule(SplitRule.First(header, "{", content), "}")));
     }
 
     private static Rule createPlantStructureRule() {
@@ -110,7 +121,7 @@ class Main {
                                   Main.createRecordHeaderRule()));
     }
 
-    private static Node modifyStructureHeader(final Node header) {
+    private static Node modifyStructure(final Node header) {
         if (header.is("record")) {
             final var content = header.findString("name").orElse("") + " " + header.findString("more").orElse("");
             return header.retype("class").withString("content", content);
@@ -137,7 +148,7 @@ class Main {
     }
 
     private static Node modifyImport(final String parent, final Node child1) {
-        return child1.withString("parent", parent);
+        return child1.retype("dependency").withString("parent", parent);
     }
 
     private static Rule createDependencyRule() {

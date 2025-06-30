@@ -20,16 +20,8 @@ StringRule <-- Optional
 class Splitter
 Splitter <-- Tuple
 Splitter <-- Optional
-interface 
-    Optional<Tuple<String, String>> split(String input);
-
-    String join(String left, String right);
-
 class Locator
 Locator <-- Optional
-interface 
-    Optional<Integer> locate(String input, String infix);
-
 class SuffixRule
 SuffixRule <-- Node
 SuffixRule <-- Optional
@@ -41,77 +33,13 @@ SplitRule <-- LastLocator
 SplitRule <-- InfixSplitter
 SplitRule <-- Splitter
 SplitRule <-- Optional
-class 
-    private final Rule leftRule;
-    private final Rule rightRule;
-    private final Splitter splitter;
-
-    private SplitRule(final Rule leftRule, final Rule rightRule, final Splitter splitter) {
-        this.leftRule = leftRule;
-        this.rightRule = rightRule;
-        this.splitter = splitter;
-    }
-
-    public static Rule Last(final Rule leftRule, final String infix, final Rule rightRule) {
-        return new SplitRule(leftRule, rightRule, new InfixSplitter(infix, new LastLocator()));
-    }
-
-    public static Rule First(final Rule leftRule, final String infix, final Rule rightRule) {
-        return new SplitRule(leftRule, rightRule, new InfixSplitter(infix, new FirstLocator()));
-    }
-
-    @Override
-    public Optional<Node> lex(final String input) {
-        return this.splitter.split(input).flatMap(this::lexWithTuple);
-    }
-
-    @Override
-    public Optional<String> generate(final Node node) {
-        return this.leftRule.generate(node).flatMap(leftResult -> {
-            final var generated = this.rightRule.generate(node);
-            return generated.map(rightResult -> this.splitter.join(leftResult, rightResult));
-        });
-    }
-
-    private Optional<Node> lexWithTuple(final Tuple<String, String> tuple) {
-        final var leftSlice = tuple.left();
-        final var rightSlice = tuple.right();
-
-        return this.leftRule.lex(leftSlice).flatMap(leftResult -> {
-            final var rightResult = this.rightRule.lex(rightSlice);
-            return rightResult.map(leftResult::merge);
-        });
-    }
-
-
 class FirstLocator
 FirstLocator <-- Optional
-class 
-    @Override
-    public Optional<Integer> locate(final String input, final String infix) {
-        final var index = input.indexOf(infix);
-        if (-1 == index) return Optional.empty();
-        return Optional.of(index);
-    }
-
 class LastLocator
 LastLocator <-- Optional
-class 
-    @Override
-    public Optional<Integer> locate(final String input, final String infix) {
-        final var index = input.lastIndexOf(infix);
-        if (-1 == index) return Optional.empty();
-        return Optional.of(index);
-    }
-
 class Rule
 Rule <-- Node
 Rule <-- Optional
-interface 
-    Optional<Node> lex(String input);
-
-    Optional<String> generate(Node node);
-
 class Main
 Main <-- Tuple
 Main <-- DivideState
@@ -137,7 +65,9 @@ Main <-- Set
 Main <-- Collector
 Main <-- Collectors
 Main <-- Stream
-class 
+
+
+class Main {
     private static final String LINE_SEPARATOR = System.lineSeparator();
 
     private Main() {}
@@ -190,25 +120,36 @@ class
     }
 
     private static Optional<String> compileRootSegment(final String input, final String parent) {
-        return Main.createImportRule()
+        return Main.createJavaRootSegmentRule()
                    .lex(input)
-                   .map(child1 -> Main.modifyImport(parent, child1))
-                   .map(node -> Main.createDependencyRule().generate(node).orElse(""))
-                   .or(() -> Main.compileStructure(input)
-                                 .map(Main::modifyStructureHeader)
-                                 .flatMap(result -> Main.createPlantStructureRule().generate(result)));
+                   .map(node -> Main.modifyRootSegment(parent, node))
+                   .flatMap(node -> Main.createPlantRootSegmentRule().generate(node));
+    }
+
+    private static Node modifyRootSegment(final String parent, final Node node) {
+        if (node.is("import")) return Main.modifyImport(parent, node);
+        if (node.is("structure")) return Main.modifyStructure(node);
+        return node;
+    }
+
+    private static OrRule createPlantRootSegmentRule() {
+        return new OrRule(List.of(Main.createDependencyRule(), Main.createPlantStructureRule()));
+    }
+
+    private static OrRule createJavaRootSegmentRule() {
+        return new OrRule(List.of(Main.createImportRule(), Main.createDependencyRule()));
     }
 
     private static Rule createImportRule() {
         final Rule child = new StringRule("child");
-        return new StripRule(
-                new SuffixRule(new PrefixRule("import ", SplitRule.Last(new StringRule("discard"), ".", child)), ";"));
+        return new TypeRule("import", new StripRule(
+                new SuffixRule(new PrefixRule("import ", SplitRule.Last(new StringRule("discard"), ".", child)), ";")));
     }
 
-    private static Optional<Node> compileStructure(final String input) {
-        return new StripRule(
-                new SuffixRule(SplitRule.First(Main.createStructureHeaderRule(), "{", new StringRule("content")), "}")).lex(
-                input);
+    private static Rule createStructureRule() {
+        final var header = Main.createStructureHeaderRule();
+        final Rule content = new StringRule("content");
+        return new TypeRule("structure", new StripRule(new SuffixRule(SplitRule.First(header, "{", content), "}")));
     }
 
     private static Rule createPlantStructureRule() {
@@ -221,7 +162,7 @@ class
                                   Main.createRecordHeaderRule()));
     }
 
-    private static Node modifyStructureHeader(final Node header) {
+    private static Node modifyStructure(final Node header) {
         if (header.is("record")) {
             final var content = header.findString("name").orElse("") + " " + header.findString("more").orElse("");
             return header.retype("class").withString("content", content);
@@ -248,7 +189,7 @@ class
     }
 
     private static Node modifyImport(final String parent, final Node child1) {
-        return child1.withString("parent", parent);
+        return child1.retype("dependency").withString("parent", parent);
     }
 
     private static Rule createDependencyRule() {
@@ -284,191 +225,31 @@ class
         if ('}' == next) return appended.exit();
         return appended;
     }
+}
 
 class Node
 Node <-- Tuple
 Node <-- Optional
 Node <-- Stream
-interface 
-    Stream<Tuple<String, String>> streamStrings();
-
-    Node withString(String key, String value);
-
-    Optional<String> findString(String key);
-
-    Node merge(Node other);
-
-    Node retype(String type);
-
-    boolean is(String type);
-
 class MutableDivideState
 MutableDivideState <-- Tuple
 MutableDivideState <-- ArrayList
 MutableDivideState <-- List
 MutableDivideState <-- Optional
 MutableDivideState <-- Stream
-class 
-    private final CharSequence input;
-    private final List<String> segments;
-    private int index;
-    private StringBuilder buffer;
-    private int depth = 0;
-
-    public MutableDivideState(final CharSequence input) {
-        this.input = input;
-        this.index = 0;
-        this.segments = new ArrayList<>();
-        this.buffer = new StringBuilder();
-    }
-
-    @Override
-    public Stream<String> stream() {
-        return this.segments.stream();
-    }
-
-    @Override
-    public Optional<Tuple<DivideState, Character>> pop() {
-        if (this.index < this.input.length()) {
-            final var c = this.input.charAt(this.index);
-            this.index = this.index + 1;
-            return Optional.of(new Tuple<>(this, c));
-        } else return Optional.empty();
-    }
-
-    @Override
-    public DivideState append(final char c) {
-        this.buffer.append(c);
-        return this;
-    }
-
-    @Override
-    public DivideState advance() {
-        final var slice = this.buffer.toString();
-        this.segments.add(slice);
-        this.buffer = new StringBuilder();
-        return this;
-    }
-
-    @Override
-    public boolean isLevel() {
-        return 0 == this.depth;
-    }
-
-    @Override
-    public DivideState enter() {
-        this.depth++;
-        return this;
-    }
-
-    @Override
-    public DivideState exit() {
-        this.depth--;
-        return this;
-    }
-
 class InfixSplitter
 InfixSplitter <-- Tuple
 InfixSplitter <-- Locator
 InfixSplitter <-- Optional
-class 
-    private final String infix;
-    private final Locator locator;
-
-    public InfixSplitter(final String infix, final Locator locator) {
-        this.infix = infix;
-        this.locator = locator;
-    }
-
-    @Override
-    public Optional<Tuple<String, String>> split(final String input) {
-        return this.locator.locate(input, this.infix).flatMap(index -> {
-            final var infixLength = this.infix.length();
-            final var leftSlice = input.substring(0, index);
-            final var rightSlice = input.substring(index + infixLength);
-            return Optional.of(new Tuple<>(leftSlice, rightSlice));
-        });
-    }
-
-    @Override
-    public String join(final String left, final String right) {
-        return left + this.infix + right;
-    }
-
 class Tuple
 class DivideState
 DivideState <-- Tuple
 DivideState <-- Optional
 DivideState <-- Stream
-interface 
-    Stream<String> stream();
-
-    Optional<Tuple<DivideState, Character>> pop();
-
-    DivideState append(char c);
-
-    DivideState advance();
-
-    boolean isLevel();
-
-    DivideState enter();
-
-    DivideState exit();
-
 class MapNode
 MapNode <-- Tuple
 MapNode <-- HashMap
 MapNode <-- Map
 MapNode <-- Optional
 MapNode <-- Stream
-class 
-    private final Map<String, String> strings;
-    private Optional<String> type;
-
-    public MapNode() {
-        this.type = Optional.empty();
-        this.strings = new HashMap<>();
-    }
-
-    @Override
-    public Stream<Tuple<String, String>> streamStrings() {
-        return this.strings.entrySet().stream().map(entry -> {
-            final var key = entry.getKey();
-            final var value = entry.getValue();
-            return new Tuple<>(key, value);
-        });
-    }
-
-    @Override
-    public Node withString(final String key, final String value) {
-        this.strings.put(key, value);
-        return this;
-    }
-
-    @Override
-    public Optional<String> findString(final String key) {
-        final var maybeValue = this.strings.get(key);
-        return Optional.ofNullable(maybeValue);
-    }
-
-    @Override
-    public Node merge(final Node other) {
-        return other.streamStrings().<Node>reduce(this, (node, tuple) -> {
-            final var key = tuple.left();
-            final var value = tuple.right();
-            return node.withString(key, value);
-        }, (_, next) -> next);
-    }
-
-    @Override
-    public Node retype(final String type) {
-        this.type = Optional.of(type);
-        return this;
-    }
-
-    @Override
-    public boolean is(final String type) {
-        return this.type.isPresent() && this.type.get().contentEquals(type);
-    }
-
 @enduml
