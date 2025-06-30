@@ -41,15 +41,16 @@ public class Lang {
 
     private static Rule<EverythingNode> createImportRule() {
         final Rule<EverythingNode> child = new StringRule("child");
-        return new TypeRule<EverythingNode>("import", new StripRule(
+        return new TypeRule<>("import", new StripRule(
                 new SuffixRule(new PrefixRule("import ", SplitRule.Last(new StringRule("discard"), ".", child)), ";")));
     }
 
     private static Rule<EverythingNode> getTypeRule(final Rule<EverythingNode> header) {
         final Rule<EverythingNode> content = new StringRule("content");
-        final var header1 = new OrRule(List.of(SplitRule.Last(header, " extends ", Lang.createTypeRule()), header));
+        final Rule<EverythingNode>
+                header1 = new OrRule(List.of(SplitRule.Last(header, " extends ", Lang.createTypeRule()), header));
 
-        final var anImplements =
+        final Rule<EverythingNode> anImplements =
                 new OrRule(List.of(SplitRule.Last(header1, "implements", Lang.createTypeRule()), header1));
 
         return new StripRule(new SuffixRule(SplitRule.First(anImplements, "{", content), "}"));
@@ -71,16 +72,15 @@ public class Lang {
         final Rule<EverythingNode> params = new StringRule("params");
         final var withParams = SplitRule.First(name, "(", params);
         final var afterKeyword = SplitRule.First(withParams, ")", new StringRule("more"));
-        return new TypeRule<EverythingNode>("record", SplitRule.First(modifiers, "record ", afterKeyword));
+        return new TypeRule<>("record", SplitRule.First(modifiers, "record ", afterKeyword));
     }
 
     private static Rule<EverythingNode> createClassHeaderRule(final String type) {
-        return new TypeRule<EverythingNode>(type, SplitRule.Last(new StringRule("discard"), type + " ",
-                                                                 new StripRule(new StringRule("name"))));
+        return new TypeRule<>(type, SplitRule.Last(new StringRule("discard"), type + " ", new StripRule(new StringRule("name"))));
     }
 
     private static Rule<EverythingNode> createTypedPlantStructureRule(final String type) {
-        return new TypeRule<EverythingNode>(type, new PrefixRule(type + " ", new StringRule("content")));
+        return new TypeRule<>(type, new PrefixRule(type + " ", new StringRule("content")));
     }
 
     private static Rule<EverythingNode> createDependencyRule() {
