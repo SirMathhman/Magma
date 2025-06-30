@@ -86,9 +86,8 @@ class Main {
 
     private static Rule createImportRule() {
         final var child = new StringRule("child");
-        return new StripRule(new SuffixRule(new PrefixRule("import ",
-                                                           SplitRule.Last(new StringRule("discard"), ".",
-                                                                          child)), ";"));
+        return new StripRule(
+                new SuffixRule(new PrefixRule("import ", SplitRule.Last(new StringRule("discard"), ".", child)), ";"));
     }
 
     private static Optional<String> compileStructure(final String input) {
@@ -106,29 +105,27 @@ class Main {
     }
 
     private static Optional<String> compileStructureHeader(final String header) {
-        return Main.createClassHeaderRule().lex(header)
+        return Main.createClassHeaderRule()
+                   .lex(header)
                    .map(Main::generateClassHeader)
                    .or(() -> Main.compileRecordHeader(header));
     }
 
     private static Optional<String> compileRecordHeader(final String header) {
-        final var classIndex = header.indexOf("record ");
-        if (0 > classIndex) return Optional.empty();
+        return Main.createRecordHeaderRule().lex(header).map(Main::generateRecordHeader);
+    }
 
-        final var infixLength = "record ".length();
-        final var slice = header.substring(classIndex + infixLength);
+    private static String generateRecordHeader(final Node node) {
+        return "class " + node.findString("name").orElse("") + " " + node.findString("more").orElse("");
+    }
 
-        final var paramEndIndex = slice.indexOf(')');
-        if (0 > paramEndIndex) return Optional.empty();
-
-        final var paramEndLength = ")".length();
-        final var substring1 = slice.substring(0, paramEndIndex);
-
-        final var more = slice.substring(paramEndIndex + paramEndLength).strip();
-        final var i = substring1.indexOf('(');
-        if (0 > i) return Optional.empty();
-        final var name = substring1.substring(0, i);
-        return Optional.of("class " + name + " " + more);
+    private static Rule createRecordHeaderRule() {
+        final var modifiers = new StringRule("modifiers");
+        final var name = new StringRule("name");
+        final var params = new StringRule("params");
+        final var withParams = SplitRule.First(name, "(", params);
+        final var afterKeyword = SplitRule.First(withParams, ")", new StringRule("more"));
+        return SplitRule.First(modifiers, "record ", afterKeyword);
     }
 
     private static Rule createClassHeaderRule() {
