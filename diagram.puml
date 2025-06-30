@@ -93,6 +93,7 @@ SplitRule <-- StringErr
 SplitRule <-- StringResult
 SplitRule <-- Optional
 class SplitRule implements Rule
+interface FormatError extends Error
 FirstLocator <-- Optional
 class FirstLocator implements Locator
 ThrowableError <-- PrintWriter
