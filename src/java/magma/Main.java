@@ -109,7 +109,7 @@ public class Main {
         if (0 <= separator) {
             final var infixLength = ".".length();
             final var child = substring1.substring(separator + infixLength);
-            return Optional.of(parent + " --> " + child);
+            return Optional.of(parent + " <-- " + child);
         }
 
         return Optional.empty();
