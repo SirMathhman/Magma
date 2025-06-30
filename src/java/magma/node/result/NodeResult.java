@@ -10,4 +10,6 @@ public interface NodeResult<Node> {
     Optional<Node> toOptional();
 
     <Return> Return match(Function<Node, Return> whenPresent, Function<CompileError, Return> whenErr);
+
+    NodeResult<Node> map(Function<Node, Node> mapper);
 }
