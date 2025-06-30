@@ -126,19 +126,14 @@ class Main {
     }
 
     private static String compile(final CharSequence input, final String parent) {
-        final var segments = Main.divide(input).toList();
-        var buffer = new StringBuilder();
-        for (final var segment : segments)
-            buffer = Main.compileRootSegment(segment, parent).map(buffer::append).orElse(buffer);
+        final var oldChildren =
+                Main.divide(input).map(Main.createJavaRootSegmentRule()::lex).flatMap(Optional::stream).toList();
 
-        return buffer.toString();
-    }
-
-    private static Optional<String> compileRootSegment(final String input, final String parent) {
-        return Main.createJavaRootSegmentRule()
-                   .lex(input)
-                   .map(node -> Main.modifyRootSegment(parent, node))
-                   .flatMap(node -> Main.createPlantRootSegmentRule().generate(node));
+        final var newChildren = oldChildren.stream().map(child -> Main.modifyRootSegment(parent, child)).toList();
+        return newChildren.stream()
+                          .map(Main.createPlantRootSegmentRule()::generate)
+                          .flatMap(Optional::stream)
+                          .collect(Collectors.joining());
     }
 
     private static Node modifyRootSegment(final String parent, final Node node) {
