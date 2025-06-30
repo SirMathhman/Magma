@@ -97,10 +97,9 @@ class Main {
         final var suffixLength = "}".length();
         final var substring = strip.substring(0, stripLength - suffixLength);
 
-        final var i = substring.indexOf('{');
-        if (0 > i) return Optional.empty();
-        final var header = substring.substring(0, i);
-
+        final var contentStart = substring.indexOf('{');
+        if (0 > contentStart) return Optional.empty();
+        final var header = substring.substring(0, contentStart);
         return Main.compileStructureHeader(header);
     }
 
@@ -113,15 +112,14 @@ class Main {
                                   .lex(header)
                                   .map(node -> Main.generateClassHeader(node, "interface"));
                    })
-                   .or(() -> Main.compileRecordHeader(header));
+                   .or(() -> Main.createRecordHeaderRule()
+                                 .lex(header)
+                                 .map(node -> Main.generateClassHeader(Main.joinContent(node), "class")));
     }
 
-    private static Optional<String> compileRecordHeader(final String header) {
-        return Main.createRecordHeaderRule().lex(header).map(Main::generateRecordHeader);
-    }
-
-    private static String generateRecordHeader(final Node node) {
-        return "class " + node.findString("name").orElse("") + " " + node.findString("more").orElse("");
+    private static Node joinContent(final Node node) {
+        final var content = node.findString("name").orElse("") + " " + node.findString("more").orElse("");
+        return node.withString("content", content);
     }
 
     private static Rule createRecordHeaderRule() {
