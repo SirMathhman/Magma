@@ -9,7 +9,7 @@ import magma.string.result.StringResult;
 
 import java.util.Optional;
 
-public record PrefixRule(String prefix, Rule<EverythingNode> rule) implements Rule<EverythingNode> {
+public record PrefixRule(String prefix, Rule<EverythingNode, NodeResult<EverythingNode>, StringResult> rule) implements Rule<EverythingNode, NodeResult<EverythingNode>, StringResult> {
     private Optional<EverythingNode> lex0(final String input) {
         if (!input.startsWith(this.prefix)) return Optional.empty();
         final var prefixLength = this.prefix.length();

@@ -9,7 +9,7 @@ import magma.string.result.StringResult;
 
 import java.util.Optional;
 
-public record TypeRule<Node extends TypedNode<Node>>(String type, Rule<Node> rule) implements Rule<Node> {
+public record TypeRule<Node extends TypedNode<Node>>(String type, Rule<Node, NodeResult<Node>, StringResult> rule) implements Rule<Node, NodeResult<Node>, StringResult> {
     private Optional<Node> lex0(final String input) {
         return this.rule.lex(input).toOptional().map(node -> node.retype(this.type));
     }

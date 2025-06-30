@@ -9,7 +9,7 @@ import magma.string.result.StringResult;
 
 import java.util.Optional;
 
-public record SuffixRule(Rule<EverythingNode> rule, String suffix) implements Rule<EverythingNode> {
+public record SuffixRule(Rule<EverythingNode, NodeResult<EverythingNode>, StringResult> rule, String suffix) implements Rule<EverythingNode, NodeResult<EverythingNode>, StringResult> {
     private Optional<EverythingNode> lex0(final String input) {
         final var length = input.length();
         if (!input.endsWith(this.suffix)) return Optional.empty();

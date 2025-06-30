@@ -9,7 +9,7 @@ import magma.string.result.StringResult;
 
 import java.util.Optional;
 
-public record StripRule(Rule<EverythingNode> rule) implements Rule<EverythingNode> {
+public record StripRule(Rule<EverythingNode, NodeResult<EverythingNode>, StringResult> rule) implements Rule<EverythingNode, NodeResult<EverythingNode>, StringResult> {
     private Optional<EverythingNode> lex0(final String input) {
         final var strip = input.strip();
         return this.rule.lex(strip).toOptional();

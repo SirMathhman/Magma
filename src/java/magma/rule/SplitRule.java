@@ -14,22 +14,22 @@ import magma.string.result.StringResult;
 
 import java.util.Optional;
 
-public final class SplitRule implements Rule<EverythingNode> {
-    private final Rule<EverythingNode> leftRule;
-    private final Rule<EverythingNode> rightRule;
+public final class SplitRule implements Rule<EverythingNode, NodeResult<EverythingNode>, StringResult> {
+    private final Rule<EverythingNode, NodeResult<EverythingNode>, StringResult> leftRule;
+    private final Rule<EverythingNode, NodeResult<EverythingNode>, StringResult> rightRule;
     private final Splitter splitter;
 
-    private SplitRule(final Rule<EverythingNode> leftRule, final Rule<EverythingNode> rightRule, final Splitter splitter) {
+    private SplitRule(final Rule<EverythingNode, NodeResult<EverythingNode>, StringResult> leftRule, final Rule<EverythingNode, NodeResult<EverythingNode>, StringResult> rightRule, final Splitter splitter) {
         this.leftRule = leftRule;
         this.rightRule = rightRule;
         this.splitter = splitter;
     }
 
-    public static Rule<EverythingNode> Last(final Rule<EverythingNode> leftRule, final String infix, final Rule<EverythingNode> rightRule) {
+    public static Rule<EverythingNode, NodeResult<EverythingNode>, StringResult> Last(final Rule<EverythingNode, NodeResult<EverythingNode>, StringResult> leftRule, final String infix, final Rule<EverythingNode, NodeResult<EverythingNode>, StringResult> rightRule) {
         return new SplitRule(leftRule, rightRule, new InfixSplitter(infix, new LastLocator()));
     }
 
-    public static Rule<EverythingNode> First(final Rule<EverythingNode> leftRule, final String infix, final Rule<EverythingNode> rightRule) {
+    public static Rule<EverythingNode, NodeResult<EverythingNode>, StringResult> First(final Rule<EverythingNode, NodeResult<EverythingNode>, StringResult> leftRule, final String infix, final Rule<EverythingNode, NodeResult<EverythingNode>, StringResult> rightRule) {
         return new SplitRule(leftRule, rightRule, new InfixSplitter(infix, new FirstLocator()));
     }
 

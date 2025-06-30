@@ -159,16 +159,16 @@ LastLocator <-- Optional
 class LastLocator implements Locator
 class Rule
 
-Rule <-- NodeResult
-Rule <-- StringResult
-interface Rule<Node>
+interface Rule<Node, NodeResult, StringResult>
 class Main
 
 Main <-- Lang
 Main <-- EverythingNode
 Main <-- MapNode
+Main <-- NodeResult
 Main <-- DivideRule
 Main <-- Rule
+Main <-- StringResult
 Main <-- IOException
 Main <-- Files
 Main <-- Path
@@ -192,6 +192,7 @@ class MutableDivideState implements DivideState
 class Lang
 
 Lang <-- EverythingNode
+Lang <-- NodeResult
 Lang <-- DivideRule
 Lang <-- OrRule
 Lang <-- PrefixRule
@@ -201,6 +202,7 @@ Lang <-- StringRule
 Lang <-- StripRule
 Lang <-- SuffixRule
 Lang <-- TypeRule
+Lang <-- StringResult
 Lang <-- ArrayList
 Lang <-- List
 class Lang

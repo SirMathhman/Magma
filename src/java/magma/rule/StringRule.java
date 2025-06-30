@@ -10,7 +10,7 @@ import magma.string.result.StringResult;
 
 import java.util.Optional;
 
-public record StringRule(String key) implements Rule<EverythingNode> {
+public record StringRule(String key) implements Rule<EverythingNode, NodeResult<EverythingNode>, StringResult> {
     private Optional<EverythingNode> lex0(final String input) {
         final var node = new MapNode().withString(this.key, input);
         return Optional.of(node);

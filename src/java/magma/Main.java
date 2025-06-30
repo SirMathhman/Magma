@@ -3,8 +3,10 @@ package magma;
 import magma.lang.Lang;
 import magma.node.EverythingNode;
 import magma.node.MapNode;
+import magma.node.result.NodeResult;
 import magma.rule.DivideRule;
 import magma.rule.Rule;
+import magma.string.result.StringResult;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -62,15 +64,15 @@ class Main {
     }
 
     private static String compile(final String input, final String parent) {
-        final Rule<EverythingNode> everythingNodeRule = Main.createJavaRootRule();
+        final Rule<EverythingNode, NodeResult<EverythingNode>, StringResult> everythingNodeRule = Main.createJavaRootRule();
         return everythingNodeRule.lex(input).toOptional().flatMap(root -> {
             final var newChildren = Main.modify(parent, root);
-            final Rule<EverythingNode> everythingNodeRule1 = Lang.createPlantRootRule();
+            final Rule<EverythingNode, NodeResult<EverythingNode>, StringResult> everythingNodeRule1 = Lang.createPlantRootRule();
             return everythingNodeRule1.generate(newChildren).toOptional();
         }).orElse("");
     }
 
-    private static Rule<EverythingNode> createJavaRootRule() {
+    private static Rule<EverythingNode, NodeResult<EverythingNode>, StringResult> createJavaRootRule() {
         return new DivideRule("children", Lang.createJavaRootSegmentRule());
     }
 

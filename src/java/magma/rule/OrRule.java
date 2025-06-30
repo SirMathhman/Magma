@@ -10,7 +10,7 @@ import magma.string.result.StringResult;
 import java.util.List;
 import java.util.Optional;
 
-public record OrRule(List<Rule<EverythingNode>> rules) implements Rule<EverythingNode> {
+public record OrRule(List<Rule<EverythingNode, NodeResult<EverythingNode>, StringResult>> rules) implements Rule<EverythingNode, NodeResult<EverythingNode>, StringResult> {
     private Optional<EverythingNode> lex0(final String input) {
         return this.rules.stream().map(rule -> rule.lex(input).toOptional()).flatMap(Optional::stream).findFirst();
     }
