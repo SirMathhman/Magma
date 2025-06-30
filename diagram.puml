@@ -4,6 +4,7 @@ class StringRule
 StringRule <-- MapNode
 StringRule <-- Node
 StringRule <-- Optional
+class StringRule implements Rule
 class Rule
 Rule <-- Node
 Rule <-- Optional
@@ -12,6 +13,7 @@ Main <-- Tuple
 Main <-- DivideState
 Main <-- MutableDivideState
 Main <-- Node
+Main <-- Rule
 Main <-- StringRule
 Main <-- IOException
 Main <-- Files
@@ -35,6 +37,7 @@ MutableDivideState <-- Optional
 MutableDivideState <-- Stream
 class MutableDivideState implements DivideState 
 class Tuple
+class Tuple<Left, Right> 
 class DivideState
 DivideState <-- Tuple
 DivideState <-- Optional

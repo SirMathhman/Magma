@@ -73,10 +73,10 @@ public class Main {
     }
 
     private static Optional<String> compileRootSegment(final String input, final String parent) {
-        return Main.compileImport(input, parent).or(() -> Main.compileClass(input));
+        return Main.compileImport(input, parent).or(() -> Main.compileStructure(input));
     }
 
-    private static Optional<String> compileClass(final String input) {
+    private static Optional<String> compileStructure(final String input) {
         final var strip = input.strip();
         final var stripLength = strip.length();
         if (strip.isEmpty() || '}' != strip.charAt(stripLength - 1)) return Optional.empty();
@@ -86,14 +86,41 @@ public class Main {
         final var i = substring.indexOf('{');
         if (0 > i) return Optional.empty();
         final var header = substring.substring(0, i);
-        final var classIndex = header.indexOf("class ");
 
-        if (0 <= classIndex) {
-            final var infixLength = "class ".length();
-            final var slice = header.substring(classIndex + infixLength);
-            return Optional.of("class " + slice);
-        }
-        return Optional.empty();
+        return Main.compileStructureHeader(header);
+    }
+
+    private static Optional<String> compileStructureHeader(final String header) {
+        return Main.compileClassHeader(header).or(() -> Main.compileRecordHeader(header));
+    }
+
+    private static Optional<String> compileRecordHeader(final String header) {
+        final var classIndex = header.indexOf("record ");
+        if (0 > classIndex) return Optional.empty();
+
+        final var infixLength = "record ".length();
+        final var slice = header.substring(classIndex + infixLength);
+
+        final var paramEndIndex = slice.indexOf(')');
+        if (0 > paramEndIndex) return Optional.empty();
+
+        final var paramEndLength = ")".length();
+        final var substring1 = slice.substring(0, paramEndIndex);
+
+        final var i = substring1.indexOf('(');
+        if (0 > i) return Optional.empty();
+        final var substring2 = substring1.substring(0, i);
+        final var substring = slice.substring(paramEndIndex + paramEndLength).strip();
+        return Optional.of("class " + substring2 + " " + substring);
+    }
+
+    private static Optional<String> compileClassHeader(final String header) {
+        final var classIndex = header.indexOf("class ");
+        if (0 > classIndex) return Optional.empty();
+
+        final var infixLength = "class ".length();
+        final var slice = header.substring(classIndex + infixLength);
+        return Optional.of("class " + slice);
     }
 
     private static Optional<String> compileImport(final String input, final String parent) {
@@ -109,7 +136,7 @@ public class Main {
 
         final var substring1 = substring.substring(prefixLength);
         return Main.getString(substring1, ".", new StringRule("child"))
-                   .map(child1 -> Main.getParent(parent, child1))
+                   .map(child1 -> Main.modifyImport(parent, child1))
                    .map(Main::generate);
     }
 
@@ -122,7 +149,7 @@ public class Main {
         return rightRule.lex(rightSlice);
     }
 
-    private static Node getParent(final String parent, final Node child1) {
+    private static Node modifyImport(final String parent, final Node child1) {
         return child1.withString("parent", parent);
     }
 
