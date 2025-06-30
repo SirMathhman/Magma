@@ -4,7 +4,7 @@ import magma.api.Tuple;
 import magma.divide.DivideState;
 import magma.divide.MutableDivideState;
 import magma.node.Node;
-import magma.rule.FirstRule;
+import magma.rule.LastRule;
 import magma.rule.PrefixRule;
 import magma.rule.Rule;
 import magma.rule.StringRule;
@@ -86,7 +86,7 @@ class Main {
 
     private static Rule createImportRule() {
         final var child = new StringRule("child");
-        return new StripRule(new SuffixRule(new PrefixRule("import ", new FirstRule(".", child)), ";"));
+        return new StripRule(new SuffixRule(new PrefixRule("import ", new LastRule(new StringRule("discard"), ".", child)), ";"));
     }
 
     private static Optional<String> compileStructure(final String input) {
@@ -122,15 +122,15 @@ class Main {
         final var paramEndLength = ")".length();
         final var substring1 = slice.substring(0, paramEndIndex);
 
+        final var more = slice.substring(paramEndIndex + paramEndLength).strip();
         final var i = substring1.indexOf('(');
         if (0 > i) return Optional.empty();
-        final var substring2 = substring1.substring(0, i);
-        final var substring = slice.substring(paramEndIndex + paramEndLength).strip();
-        return Optional.of("class " + substring2 + " " + substring);
+        final var name = substring1.substring(0, i);
+        return Optional.of("class " + name + " " + more);
     }
 
     private static Rule createClassHeaderRule() {
-        return new FirstRule("class ", new StringRule("slice"));
+        return new LastRule(new StringRule("discard"), "class ", new StringRule("slice"));
     }
 
     private static String generateClassHeader(final Node node) {
