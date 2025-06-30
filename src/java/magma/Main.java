@@ -4,8 +4,10 @@ import magma.api.Tuple;
 import magma.divide.DivideState;
 import magma.divide.MutableDivideState;
 import magma.node.Node;
-import magma.rule.Rule;
+import magma.rule.FirstRule;
+import magma.rule.PrefixRule;
 import magma.rule.StringRule;
+import magma.rule.SuffixRule;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -126,27 +128,11 @@ public class Main {
     private static Optional<String> compileImport(final String input, final String parent) {
         final var strip = input.strip();
 
-        final var length = strip.length();
-        if (strip.isEmpty() || ';' != strip.charAt(length - 1)) return Optional.empty();
-        final var suffixLength = ";".length();
-        final var substring = strip.substring(0, length - suffixLength);
-
-        if (!substring.startsWith("import ")) return Optional.empty();
-        final var prefixLength = "import ".length();
-
-        final var substring1 = substring.substring(prefixLength);
-        return Main.getString(substring1, ".", new StringRule("child"))
-                   .map(child1 -> Main.modifyImport(parent, child1))
-                   .map(Main::generate);
-    }
-
-    private static Optional<Node> getString(final String input, final String infix, final Rule rightRule) {
-        final var separator = input.lastIndexOf(infix);
-        if (0 > separator) return Optional.empty();
-
-        final var infixLength = infix.length();
-        final var rightSlice = input.substring(separator + infixLength);
-        return rightRule.lex(rightSlice);
+        return new SuffixRule(new PrefixRule("import ", new FirstRule(".", new StringRule("child"))), ";").lex(strip)
+                                                                                                          .map(child1 -> Main.modifyImport(
+                                                                                                                  parent,
+                                                                                                                  child1))
+                                                                                                          .map(Main::generate);
     }
 
     private static Node modifyImport(final String parent, final Node child1) {

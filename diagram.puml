@@ -1,5 +1,13 @@
 @startuml
 skinparam linetype ortho
+class PrefixRule
+PrefixRule <-- Node
+PrefixRule <-- Optional
+class PrefixRule implements Rule
+class SuffixRule
+SuffixRule <-- Node
+SuffixRule <-- Optional
+class SuffixRule implements Rule
 class StringRule
 StringRule <-- MapNode
 StringRule <-- Node
@@ -13,8 +21,10 @@ Main <-- Tuple
 Main <-- DivideState
 Main <-- MutableDivideState
 Main <-- Node
-Main <-- Rule
+Main <-- FirstRule
+Main <-- PrefixRule
 Main <-- StringRule
+Main <-- SuffixRule
 Main <-- IOException
 Main <-- Files
 Main <-- Path
@@ -36,6 +46,10 @@ MutableDivideState <-- List
 MutableDivideState <-- Optional
 MutableDivideState <-- Stream
 class MutableDivideState implements DivideState 
+class FirstRule
+FirstRule <-- Node
+FirstRule <-- Optional
+class FirstRule implements Rule
 class Tuple
 class Tuple<Left, Right> 
 class DivideState
