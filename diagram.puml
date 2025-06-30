@@ -16,7 +16,6 @@ Main --> Set
 Main --> Collector
 Main --> Collectors
 Main --> Stream
-class Main 
 class MutableDivideState
 MutableDivideState --> Tuple
 MutableDivideState --> ArrayList

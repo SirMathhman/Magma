@@ -86,8 +86,9 @@ public class Main {
         final var classIndex = header.indexOf("class ");
 
         if (0 <= classIndex) {
-            final var slice = header.substring(classIndex);
-            return Optional.of(slice);
+            final var infixLength = "class ".length();
+            final var slice = header.substring(classIndex + infixLength);
+            return Optional.of("class " + slice);
         }
         return Optional.empty();
     }
