@@ -105,9 +105,14 @@ class Main {
     }
 
     private static Optional<String> compileStructureHeader(final String header) {
-        return Main.createClassHeaderRule()
+        return Main.createClassHeaderRule("class")
                    .lex(header)
-                   .map(Main::generateClassHeader)
+                   .map(node -> Main.generateClassHeader(node, "class"))
+                   .or(() -> {
+                       return Main.createClassHeaderRule("interface")
+                                  .lex(header)
+                                  .map(node -> Main.generateClassHeader(node, "interface"));
+                   })
                    .or(() -> Main.compileRecordHeader(header));
     }
 
@@ -128,12 +133,12 @@ class Main {
         return SplitRule.First(modifiers, "record ", afterKeyword);
     }
 
-    private static Rule createClassHeaderRule() {
-        return SplitRule.Last(new StringRule("discard"), "class ", new StringRule("slice"));
+    private static Rule createClassHeaderRule(final String keyword) {
+        return SplitRule.Last(new StringRule("discard"), keyword + " ", new StringRule("content"));
     }
 
-    private static String generateClassHeader(final Node node) {
-        return "class " + node.findString("slice").orElse("");
+    private static String generateClassHeader(final Node node, final String type) {
+        return type + " " + node.findString("content").orElse("");
     }
 
     private static Node modifyImport(final String parent, final Node child1) {

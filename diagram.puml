@@ -16,8 +16,10 @@ class StringRule  implements Rule
 class Splitter
 Splitter <-- Tuple
 Splitter <-- Optional
+interface Splitter 
 class Locator
 Locator <-- Optional
+interface Locator 
 class SuffixRule
 SuffixRule <-- Node
 SuffixRule <-- Optional
@@ -40,6 +42,7 @@ class LastLocator implements Locator
 class Rule
 Rule <-- Node
 Rule <-- Optional
+interface Rule 
 class Main
 Main <-- Tuple
 Main <-- DivideState
@@ -67,6 +70,7 @@ class Node
 Node <-- Tuple
 Node <-- Optional
 Node <-- Stream
+interface Node 
 class MutableDivideState
 MutableDivideState <-- Tuple
 MutableDivideState <-- ArrayList
@@ -85,6 +89,7 @@ class DivideState
 DivideState <-- Tuple
 DivideState <-- Optional
 DivideState <-- Stream
+interface DivideState 
 class MapNode
 MapNode <-- Tuple
 MapNode <-- HashMap
