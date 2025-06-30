@@ -65,7 +65,8 @@ class Main {
         final Rule<EverythingNode> everythingNodeRule = Main.createJavaRootRule();
         return everythingNodeRule.lex(input).toOptional().flatMap(root -> {
             final var newChildren = Main.modify(parent, root);
-            return Lang.createPlantRootRule().generate(newChildren);
+            final Rule<EverythingNode> everythingNodeRule1 = Lang.createPlantRootRule();
+            return everythingNodeRule1.generate(newChildren).toOptional();
         }).orElse("");
     }
 

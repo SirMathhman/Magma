@@ -9,6 +9,8 @@ import magma.rule.locate.FirstLocator;
 import magma.rule.locate.LastLocator;
 import magma.rule.split.InfixSplitter;
 import magma.rule.split.Splitter;
+import magma.string.result.StringErr;
+import magma.string.result.StringResult;
 
 import java.util.Optional;
 
@@ -35,10 +37,9 @@ public final class SplitRule implements Rule<EverythingNode> {
         return this.splitter.split(input).flatMap(this::lexWithTuple);
     }
 
-    @Override
-    public Optional<String> generate(final EverythingNode node) {
-        return this.leftRule.generate(node).flatMap(leftResult -> {
-            final var generated = this.rightRule.generate(node);
+    private Optional<String> generate0(final EverythingNode node) {
+        return this.leftRule.generate(node).toOptional().flatMap(leftResult -> {
+            final var generated = this.rightRule.generate(node).toOptional();
             return generated.map(rightResult -> this.splitter.join(leftResult, rightResult));
         });
     }
@@ -56,5 +57,10 @@ public final class SplitRule implements Rule<EverythingNode> {
     @Override
     public NodeResult<EverythingNode> lex(final String input) {
         return this.lex0(input).<NodeResult<EverythingNode>>map(NodeOk::new).orElseGet(() -> new NodeErr<>());
+    }
+
+    @Override
+    public StringResult generate(final EverythingNode node) {
+        return this.generate0(node).<StringResult>map(StringOk::new).orElseGet(StringErr::new);
     }
 }

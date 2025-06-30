@@ -4,6 +4,8 @@ import magma.node.EverythingNode;
 import magma.node.result.NodeErr;
 import magma.node.result.NodeOk;
 import magma.node.result.NodeResult;
+import magma.string.result.StringErr;
+import magma.string.result.StringResult;
 
 import java.util.Optional;
 
@@ -13,13 +15,17 @@ public record StripRule(Rule<EverythingNode> rule) implements Rule<EverythingNod
         return this.rule.lex(strip).toOptional();
     }
 
-    @Override
-    public Optional<String> generate(final EverythingNode node) {
-        return this.rule.generate(node);
+    private Optional<String> generate0(final EverythingNode node) {
+        return this.rule.generate(node).toOptional();
     }
 
     @Override
     public NodeResult<EverythingNode> lex(final String input) {
         return this.lex0(input).<NodeResult<EverythingNode>>map(NodeOk::new).orElseGet(() -> new NodeErr<>());
+    }
+
+    @Override
+    public StringResult generate(final EverythingNode node) {
+        return this.generate0(node).<StringResult>map(StringOk::new).orElseGet(StringErr::new);
     }
 }

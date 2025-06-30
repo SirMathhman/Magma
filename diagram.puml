@@ -6,6 +6,8 @@ PrefixRule <-- EverythingNode
 PrefixRule <-- NodeErr
 PrefixRule <-- NodeOk
 PrefixRule <-- NodeResult
+PrefixRule <-- StringErr
+PrefixRule <-- StringResult
 PrefixRule <-- Optional
 class PrefixRule implements Rule
 class StripRule
@@ -14,6 +16,8 @@ StripRule <-- EverythingNode
 StripRule <-- NodeErr
 StripRule <-- NodeOk
 StripRule <-- NodeResult
+StripRule <-- StringErr
+StripRule <-- StringResult
 StripRule <-- Optional
 class StripRule implements Rule
 class OrRule
@@ -22,6 +26,8 @@ OrRule <-- EverythingNode
 OrRule <-- NodeErr
 OrRule <-- NodeOk
 OrRule <-- NodeResult
+OrRule <-- StringErr
+OrRule <-- StringResult
 OrRule <-- List
 OrRule <-- Optional
 class OrRule implements Rule
@@ -31,6 +37,8 @@ TypeRule <-- TypedNode
 TypeRule <-- NodeErr
 TypeRule <-- NodeOk
 TypeRule <-- NodeResult
+TypeRule <-- StringErr
+TypeRule <-- StringResult
 TypeRule <-- Optional
 class TypeRule<Node extends TypedNode<Node>> implements Rule
 class StringRule
@@ -40,6 +48,8 @@ StringRule <-- MapNode
 StringRule <-- NodeErr
 StringRule <-- NodeOk
 StringRule <-- NodeResult
+StringRule <-- StringErr
+StringRule <-- StringResult
 StringRule <-- Optional
 class StringRule implements Rule
 class Splitter
@@ -47,12 +57,18 @@ class Splitter
 Splitter <-- Tuple
 Splitter <-- Optional
 interface Splitter
+class StringErr
+
+StringErr <-- Optional
+class StringErr implements StringResult
 class SuffixRule
 
 SuffixRule <-- EverythingNode
 SuffixRule <-- NodeErr
 SuffixRule <-- NodeOk
 SuffixRule <-- NodeResult
+SuffixRule <-- StringErr
+SuffixRule <-- StringResult
 SuffixRule <-- Optional
 class SuffixRule implements Rule
 class DivideRule
@@ -65,6 +81,8 @@ DivideRule <-- MapNode
 DivideRule <-- NodeErr
 DivideRule <-- NodeOk
 DivideRule <-- NodeResult
+DivideRule <-- StringErr
+DivideRule <-- StringResult
 DivideRule <-- Collections
 DivideRule <-- Optional
 DivideRule <-- Collectors
@@ -81,6 +99,8 @@ SplitRule <-- FirstLocator
 SplitRule <-- LastLocator
 SplitRule <-- InfixSplitter
 SplitRule <-- Splitter
+SplitRule <-- StringErr
+SplitRule <-- StringResult
 SplitRule <-- Optional
 class SplitRule implements Rule
 class FirstLocator
@@ -120,6 +140,11 @@ class NodeErr
 
 NodeErr <-- Optional
 class NodeErr<Node> implements NodeResult
+class StringOk
+
+StringOk <-- StringResult
+StringOk <-- Optional
+class StringOk
 class NodeOk
 
 NodeOk <-- Optional
@@ -135,7 +160,7 @@ class LastLocator implements Locator
 class Rule
 
 Rule <-- NodeResult
-Rule <-- Optional
+Rule <-- StringResult
 interface Rule<Node>
 class Main
 
@@ -179,6 +204,10 @@ Lang <-- TypeRule
 Lang <-- ArrayList
 Lang <-- List
 class Lang
+class StringResult
+
+StringResult <-- Optional
+interface StringResult
 class MapNode
 
 MapNode <-- Tuple

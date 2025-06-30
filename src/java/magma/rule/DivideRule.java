@@ -8,6 +8,8 @@ import magma.node.MapNode;
 import magma.node.result.NodeErr;
 import magma.node.result.NodeOk;
 import magma.node.result.NodeResult;
+import magma.string.result.StringErr;
+import magma.string.result.StringResult;
 
 import java.util.Collections;
 import java.util.Optional;
@@ -50,12 +52,11 @@ public record DivideRule(String key, Rule<EverythingNode> rule) implements Rule<
         return Optional.of(new MapNode().withNodeList(this.key, children));
     }
 
-    @Override
-    public Optional<String> generate(final EverythingNode node) {
+    private Optional<String> generate0(final EverythingNode node) {
         return Optional.of(node.findNodeList(this.key)
                                .orElse(Collections.emptyList())
                                .stream()
-                               .map(this.rule::generate)
+                               .map(node1 -> this.rule.generate(node1).toOptional())
                                .flatMap(Optional::stream)
                                .collect(Collectors.joining()));
     }
@@ -63,5 +64,10 @@ public record DivideRule(String key, Rule<EverythingNode> rule) implements Rule<
     @Override
     public NodeResult<EverythingNode> lex(final String input) {
         return this.lex0(input).<NodeResult<EverythingNode>>map(NodeOk::new).orElseGet(() -> new NodeErr<>());
+    }
+
+    @Override
+    public StringResult generate(final EverythingNode node) {
+        return this.generate0(node).<StringResult>map(StringOk::new).orElseGet(StringErr::new);
     }
 }

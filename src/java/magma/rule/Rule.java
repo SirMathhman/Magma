@@ -1,11 +1,10 @@
 package magma.rule;
 
 import magma.node.result.NodeResult;
-
-import java.util.Optional;
+import magma.string.result.StringResult;
 
 public interface Rule<Node> {
     NodeResult<Node> lex(String input);
 
-    Optional<String> generate(Node node);
+    StringResult generate(Node node);
 }

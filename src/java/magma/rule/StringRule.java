@@ -5,6 +5,8 @@ import magma.node.MapNode;
 import magma.node.result.NodeErr;
 import magma.node.result.NodeOk;
 import magma.node.result.NodeResult;
+import magma.string.result.StringErr;
+import magma.string.result.StringResult;
 
 import java.util.Optional;
 
@@ -14,13 +16,17 @@ public record StringRule(String key) implements Rule<EverythingNode> {
         return Optional.of(node);
     }
 
-    @Override
-    public Optional<String> generate(final EverythingNode node) {
+    private Optional<String> generate0(final EverythingNode node) {
         return node.findString(this.key);
     }
 
     @Override
     public NodeResult<EverythingNode> lex(final String input) {
         return this.lex0(input).<NodeResult<EverythingNode>>map(NodeOk::new).orElseGet(() -> new NodeErr<>());
+    }
+
+    @Override
+    public StringResult generate(final EverythingNode node) {
+        return this.generate0(node).<StringResult>map(StringOk::new).orElseGet(StringErr::new);
     }
 }
