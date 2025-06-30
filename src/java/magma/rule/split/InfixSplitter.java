@@ -23,4 +23,9 @@ public class InfixSplitter implements Splitter {
             return Optional.of(new Tuple<>(leftSlice, rightSlice));
         });
     }
+
+    @Override
+    public String join(final String left, final String right) {
+        return left + this.infix + right;
+    }
 }

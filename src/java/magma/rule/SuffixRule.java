@@ -13,4 +13,9 @@ public record SuffixRule(Rule rule, String suffix) implements Rule {
         final var substring = input.substring(0, length - suffixLength);
         return this.rule().lex(substring);
     }
+
+    @Override
+    public Optional<String> generate(final Node node) {
+        return this.rule.generate(node).map(result -> this.suffix + result);
+    }
 }

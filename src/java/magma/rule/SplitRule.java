@@ -33,6 +33,14 @@ public final class SplitRule implements Rule {
         return this.splitter.split(input).flatMap(this::lexWithTuple);
     }
 
+    @Override
+    public Optional<String> generate(final Node node) {
+        return this.leftRule.generate(node).flatMap(leftResult -> {
+            final var generated = this.rightRule.generate(node);
+            return generated.map(rightResult -> this.splitter.join(leftResult, rightResult));
+        });
+    }
+
     private Optional<Node> lexWithTuple(final Tuple<String, String> tuple) {
         final var leftSlice = tuple.left();
         final var rightSlice = tuple.right();

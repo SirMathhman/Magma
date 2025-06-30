@@ -80,7 +80,7 @@ class Main {
         return Main.createImportRule()
                    .lex(input)
                    .map(child1 -> Main.modifyImport(parent, child1))
-                   .map(Main::generate)
+                   .map(node -> Main.createDependencyRule().generate(node).orElse(""))
                    .or(() -> Main.compileStructure(input));
     }
 
@@ -106,15 +106,15 @@ class Main {
     private static Optional<String> compileStructureHeader(final String header) {
         return Main.createClassHeaderRule("class")
                    .lex(header)
-                   .map(node -> Main.generateClassHeader(node, "class"))
+                   .map(node -> Main.generateClassHeader("class", node))
                    .or(() -> {
                        return Main.createClassHeaderRule("interface")
                                   .lex(header)
-                                  .map(node -> Main.generateClassHeader(node, "interface"));
+                                  .map(node -> Main.generateClassHeader("interface", node));
                    })
                    .or(() -> Main.createRecordHeaderRule()
                                  .lex(header)
-                                 .map(node -> Main.generateClassHeader(Main.joinContent(node), "class")));
+                                 .map(node -> Main.generateClassHeader("class", Main.joinContent(node))));
     }
 
     private static Node joinContent(final Node node) {
@@ -135,7 +135,7 @@ class Main {
         return SplitRule.Last(new StringRule("discard"), keyword + " ", new StringRule("content"));
     }
 
-    private static String generateClassHeader(final Node node, final String type) {
+    private static String generateClassHeader(final String type, final Node node) {
         return type + " " + node.findString("content").orElse("");
     }
 
@@ -143,8 +143,8 @@ class Main {
         return child1.withString("parent", parent);
     }
 
-    private static String generate(final Node node) {
-        return node.findString("parent").orElse("") + " <-- " + node.findString("child").orElse("");
+    private static Rule createDependencyRule() {
+        return SplitRule.First(new StringRule("parent"), " <-- ", new StringRule("child"));
     }
 
     private static Stream<String> divide(final CharSequence input) {

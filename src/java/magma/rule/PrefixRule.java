@@ -13,4 +13,9 @@ public record PrefixRule(String prefix, Rule rule) implements Rule {
         final var substring1 = input.substring(prefixLength);
         return this.rule().lex(substring1);
     }
+
+    @Override
+    public Optional<String> generate(final Node node) {
+        return this.rule.generate(node).map(result -> this.prefix + result);
+    }
 }

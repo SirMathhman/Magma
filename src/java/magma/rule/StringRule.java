@@ -11,4 +11,9 @@ public record StringRule(String key) implements Rule {
         final var node = new MapNode().withString(this.key, input);
         return Optional.of(node);
     }
+
+    @Override
+    public Optional<String> generate(final Node node) {
+        return node.findString(this.key);
+    }
 }
