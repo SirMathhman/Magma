@@ -7,4 +7,5 @@ Main --> Paths
 Main --> ArrayList
 Main --> Collection
 Main --> List
+Main --> Stream
 @enduml

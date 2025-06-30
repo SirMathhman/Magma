@@ -6,7 +6,7 @@ import java.util.stream.Stream;
 public interface DivideState {
     Stream<String> stream();
 
-    Optional<Character> pop();
+    Optional<Tuple<DivideState, Character>> pop();
 
     DivideState append(char c);
 

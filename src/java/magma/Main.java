@@ -63,16 +63,25 @@ public class Main {
     }
 
     private static Stream<String> compile(final DivideState state) {
-        var current = state;
-        while (true) {
-            final var maybePopped = current.pop();
-            if (maybePopped.isEmpty()) break;
-
-            final var popped = maybePopped.get();
-            current = Main.fold(current, popped);
+        var current = new Tuple<>(true, state);
+        while (current.left()) {
+            final var right = current.right();
+            current = Main.fold(right);
         }
 
-        return current.advance().stream();
+        return current.right().advance().stream();
+    }
+
+    private static Tuple<Boolean, DivideState> fold(final DivideState state) {
+        final var maybeNextTuple = state.pop();
+        if (maybeNextTuple.isEmpty()) return new Tuple<>(false, state);
+
+        final var nextTuple = maybeNextTuple.get();
+        final var nextState = nextTuple.left();
+        final var next = nextTuple.right();
+
+        final var folded = Main.fold(nextState, next);
+        return new Tuple<>(true, folded);
     }
 
     private static DivideState fold(final DivideState current, final char next) {

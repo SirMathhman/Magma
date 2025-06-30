@@ -5,7 +5,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Stream;
 
-public class MutableDivideState implements DivideState {
+class MutableDivideState implements DivideState {
     private final CharSequence input;
     private final List<String> segments;
     private int index;
@@ -24,11 +24,11 @@ public class MutableDivideState implements DivideState {
     }
 
     @Override
-    public Optional<Character> pop() {
+    public Optional<Tuple<DivideState, Character>> pop() {
         if (this.index < this.input.length()) {
             final var c = this.input.charAt(this.index);
             this.index = this.index + 1;
-            return Optional.of(c);
+            return Optional.of(new Tuple<>(this, c));
         } else return Optional.empty();
     }
 
