@@ -3,32 +3,43 @@ skinparam linetype ortho
 class PrefixRule
 
 PrefixRule <-- EverythingNode
+PrefixRule <-- NodeErr
+PrefixRule <-- NodeOk
+PrefixRule <-- NodeResult
 PrefixRule <-- Optional
 class PrefixRule implements Rule
 class StripRule
 
 StripRule <-- EverythingNode
+StripRule <-- NodeErr
+StripRule <-- NodeOk
+StripRule <-- NodeResult
 StripRule <-- Optional
 class StripRule implements Rule
 class OrRule
 
 OrRule <-- EverythingNode
+OrRule <-- NodeErr
+OrRule <-- NodeOk
+OrRule <-- NodeResult
 OrRule <-- List
 OrRule <-- Optional
 class OrRule implements Rule
 class TypeRule
 
 TypeRule <-- TypedNode
+TypeRule <-- NodeErr
+TypeRule <-- NodeOk
+TypeRule <-- NodeResult
 TypeRule <-- Optional
 class TypeRule<Node extends TypedNode<Node>> implements Rule
-class NodeOk
-
-NodeOk <-- Optional
-class NodeOk<Node> implements NodeResult
 class StringRule
 
 StringRule <-- EverythingNode
 StringRule <-- MapNode
+StringRule <-- NodeErr
+StringRule <-- NodeOk
+StringRule <-- NodeResult
 StringRule <-- Optional
 class StringRule implements Rule
 class Splitter
@@ -39,6 +50,9 @@ interface Splitter
 class SuffixRule
 
 SuffixRule <-- EverythingNode
+SuffixRule <-- NodeErr
+SuffixRule <-- NodeOk
+SuffixRule <-- NodeResult
 SuffixRule <-- Optional
 class SuffixRule implements Rule
 class DivideRule
@@ -48,6 +62,9 @@ DivideRule <-- DivideState
 DivideRule <-- MutableDivideState
 DivideRule <-- EverythingNode
 DivideRule <-- MapNode
+DivideRule <-- NodeErr
+DivideRule <-- NodeOk
+DivideRule <-- NodeResult
 DivideRule <-- Collections
 DivideRule <-- Optional
 DivideRule <-- Collectors
@@ -57,6 +74,9 @@ class SplitRule
 
 SplitRule <-- Tuple
 SplitRule <-- EverythingNode
+SplitRule <-- NodeErr
+SplitRule <-- NodeOk
+SplitRule <-- NodeResult
 SplitRule <-- FirstLocator
 SplitRule <-- LastLocator
 SplitRule <-- InfixSplitter
@@ -100,6 +120,10 @@ class NodeErr
 
 NodeErr <-- Optional
 class NodeErr<Node> implements NodeResult
+class NodeOk
+
+NodeOk <-- Optional
+class NodeOk<Node> implements NodeResult
 class Locator
 
 Locator <-- Optional
@@ -110,6 +134,7 @@ LastLocator <-- Optional
 class LastLocator implements Locator
 class Rule
 
+Rule <-- NodeResult
 Rule <-- Optional
 interface Rule<Node>
 class Main

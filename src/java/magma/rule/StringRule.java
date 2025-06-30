@@ -2,6 +2,9 @@ package magma.rule;
 
 import magma.node.EverythingNode;
 import magma.node.MapNode;
+import magma.node.result.NodeErr;
+import magma.node.result.NodeOk;
+import magma.node.result.NodeResult;
 
 import java.util.Optional;
 

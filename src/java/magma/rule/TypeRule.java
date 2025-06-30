@@ -1,6 +1,9 @@
 package magma.rule;
 
 import magma.node.TypedNode;
+import magma.node.result.NodeErr;
+import magma.node.result.NodeOk;
+import magma.node.result.NodeResult;
 
 import java.util.Optional;
 

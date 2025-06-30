@@ -2,6 +2,9 @@ package magma.rule;
 
 import magma.api.Tuple;
 import magma.node.EverythingNode;
+import magma.node.result.NodeErr;
+import magma.node.result.NodeOk;
+import magma.node.result.NodeResult;
 import magma.rule.locate.FirstLocator;
 import magma.rule.locate.LastLocator;
 import magma.rule.split.InfixSplitter;

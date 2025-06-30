@@ -1,4 +1,4 @@
-package magma.rule;
+package magma.node.result;
 
 import java.util.Optional;
 
