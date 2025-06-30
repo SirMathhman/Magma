@@ -1,5 +1,9 @@
 package magma;
 
+import magma.api.Tuple;
+import magma.divide.DivideState;
+import magma.divide.MutableDivideState;
+
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -85,11 +89,7 @@ public class Main {
     }
 
     private static Stream<String> divide(final CharSequence input) {
-        return Main.compile(new MutableDivideState(input));
-    }
-
-    private static Stream<String> compile(final DivideState state) {
-        var current = new Tuple<>(true, state);
+        var current = new Tuple<>(true, (DivideState) new MutableDivideState(input));
         while (current.left()) {
             final var right = current.right();
             current = Main.fold(right);
