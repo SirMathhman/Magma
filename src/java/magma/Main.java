@@ -83,7 +83,9 @@ class Main {
                    .lex(input)
                    .map(child1 -> Main.modifyImport(parent, child1))
                    .map(node -> Main.createDependencyRule().generate(node).orElse(""))
-                   .or(() -> Main.compileStructure(input));
+                   .or(() -> Main.compileStructure(input)
+                                 .map(Main::modifyStructureHeader)
+                                 .flatMap(result -> Main.createPlantStructureRule().generate(result)));
     }
 
     private static Rule createImportRule() {
@@ -92,7 +94,7 @@ class Main {
                 new SuffixRule(new PrefixRule("import ", SplitRule.Last(new StringRule("discard"), ".", child)), ";"));
     }
 
-    private static Optional<String> compileStructure(final String input) {
+    private static Optional<Node> compileStructure(final String input) {
         final var strip = input.strip();
         final var stripLength = strip.length();
         if (strip.isEmpty() || '}' != strip.charAt(stripLength - 1)) return Optional.empty();
@@ -102,14 +104,7 @@ class Main {
         final var contentStart = substring.indexOf('{');
         if (0 > contentStart) return Optional.empty();
         final var header = substring.substring(0, contentStart);
-        return Main.compileStructureHeader(header);
-    }
-
-    private static Optional<String> compileStructureHeader(final String header) {
-        return Main.createStructureHeaderRule()
-                   .lex(header)
-                   .map(Main::modifyStructureHeader)
-                   .flatMap(result -> Main.createPlantStructureRule().generate(result));
+        return Main.createStructureHeaderRule().lex(header);
     }
 
     private static Rule createPlantStructureRule() {
