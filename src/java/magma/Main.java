@@ -3,6 +3,8 @@ package magma;
 import magma.api.Tuple;
 import magma.divide.DivideState;
 import magma.divide.MutableDivideState;
+import magma.node.MapNode;
+import magma.node.Node;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -109,10 +111,14 @@ public class Main {
         if (0 <= separator) {
             final var infixLength = ".".length();
             final var child = substring1.substring(separator + infixLength);
-            return Optional.of(parent + " <-- " + child);
+            return Optional.of(Main.getValue(new MapNode().withString("parent", parent).withString("child", child)));
         }
 
         return Optional.empty();
+    }
+
+    private static String getValue(final Node node) {
+        return node.find("parent").orElse("") + " <-- " + node.find("child").orElse("");
     }
 
     private static Stream<String> divide(final CharSequence input) {

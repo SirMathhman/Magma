@@ -4,6 +4,8 @@ class Main
 Main <-- Tuple
 Main <-- DivideState
 Main <-- MutableDivideState
+Main <-- MapNode
+Main <-- Node
 Main <-- IOException
 Main <-- Files
 Main <-- Path
@@ -16,6 +18,8 @@ Main <-- Set
 Main <-- Collector
 Main <-- Collectors
 Main <-- Stream
+class Node
+Node <-- Optional
 class MutableDivideState
 MutableDivideState <-- Tuple
 MutableDivideState <-- ArrayList
@@ -28,4 +32,9 @@ class DivideState
 DivideState <-- Tuple
 DivideState <-- Optional
 DivideState <-- Stream
+class MapNode
+MapNode <-- HashMap
+MapNode <-- Map
+MapNode <-- Optional
+class MapNode implements Node 
 @enduml
