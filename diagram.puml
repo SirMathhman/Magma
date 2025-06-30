@@ -12,13 +12,14 @@ StripRule <-- EverythingNode
 StripRule <-- NodeResult
 StripRule <-- StringResult
 class StripRule implements Rule
-MutableAccumulator <-- CompileError
+MutableAccumulator <-- FormatError
 MutableAccumulator <-- ArrayList
 MutableAccumulator <-- List
 MutableAccumulator <-- Optional
 MutableAccumulator <-- Function
 class MutableAccumulator<Node> implements Accumulator
 OrRule <-- CompileError
+OrRule <-- FormatError
 OrRule <-- EverythingNode
 OrRule <-- NodeErr
 OrRule <-- NodeOk
@@ -56,12 +57,12 @@ class CompileError
 Splitter <-- Tuple
 Splitter <-- Optional
 interface Splitter
-StringErr <-- CompileError
+StringErr <-- FormatError
 StringErr <-- Optional
 StringErr <-- Function
 class StringErr
 class ApplicationError
-NodeListErr <-- CompileError
+NodeListErr <-- FormatError
 NodeListErr <-- EverythingNode
 class NodeListErr
 SuffixRule <-- EverythingNode
@@ -126,7 +127,7 @@ NodeListOk <-- Function
 class NodeListOk
 class Strings
 interface Error
-NodeResult <-- CompileError
+NodeResult <-- FormatError
 NodeResult <-- Matchable
 NodeResult <-- Optional
 NodeResult <-- Function
@@ -134,18 +135,19 @@ interface NodeResult<Node> implements Matchable
 Result <-- Function
 interface Result<Value, Error> implements Matchable
 NodeErr <-- CompileError
+NodeErr <-- FormatError
 NodeErr <-- EverythingNode
 NodeErr <-- Optional
 NodeErr <-- Function
 class NodeErr<Node> implements NodeResult
-StringOk <-- CompileError
+StringOk <-- FormatError
 StringOk <-- StringResult
 StringOk <-- Optional
 StringOk <-- Function
 class StringOk
 Err <-- Function
 class Err<Value, Error> implements Result
-NodeOk <-- CompileError
+NodeOk <-- FormatError
 NodeOk <-- Optional
 NodeOk <-- Function
 class NodeOk<Node> implements NodeResult
@@ -206,11 +208,11 @@ Lang <-- List
 class Lang
 Ok <-- Function
 class Ok<Value, Error> implements Result
-Accumulator <-- CompileError
+Accumulator <-- FormatError
 Accumulator <-- List
 Accumulator <-- Function
 interface Accumulator<Node>
-StringResult <-- CompileError
+StringResult <-- FormatError
 StringResult <-- Matchable
 StringResult <-- Optional
 interface StringResult implements Matchable

@@ -1,12 +1,12 @@
 package magma.node.result;
 
-import magma.error.CompileError;
+import magma.error.FormatError;
 import magma.result.Matchable;
 
 import java.util.Optional;
 import java.util.function.Function;
 
-public interface NodeResult<Node> extends Matchable<Node, CompileError> {
+public interface NodeResult<Node> extends Matchable<Node, FormatError> {
     @Deprecated
     Optional<Node> toOptional();
 

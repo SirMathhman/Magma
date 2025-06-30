@@ -1,6 +1,6 @@
 package magma.rule;
 
-import magma.error.CompileError;
+import magma.error.FormatError;
 import magma.string.result.StringResult;
 
 import java.util.Optional;
@@ -32,7 +32,7 @@ public record StringOk(String value) implements StringResult {
     }
 
     @Override
-    public <Return> Return match(final Function<String, Return> whenOk, final Function<CompileError, Return> whenErr) {
+    public <Return> Return match(final Function<String, Return> whenOk, final Function<FormatError, Return> whenErr) {
         return whenOk.apply(this.value);
     }
 }

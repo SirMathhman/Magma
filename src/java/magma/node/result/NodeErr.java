@@ -1,12 +1,13 @@
 package magma.node.result;
 
 import magma.error.CompileError;
+import magma.error.FormatError;
 import magma.node.EverythingNode;
 
 import java.util.Optional;
 import java.util.function.Function;
 
-public record NodeErr<Node>(CompileError error) implements NodeResult<Node> {
+public record NodeErr<Node>(FormatError error) implements NodeResult<Node> {
     public static NodeResult<EverythingNode> create(final String message, final String input) {
         return new NodeErr<>(new CompileError(message, input));
     }
@@ -18,7 +19,7 @@ public record NodeErr<Node>(CompileError error) implements NodeResult<Node> {
 
     @Override
     public <Return> Return match(final Function<Node, Return> whenPresent,
-                                 final Function<CompileError, Return> whenErr) {
+                                 final Function<FormatError, Return> whenErr) {
         return whenErr.apply(this.error);
     }
 

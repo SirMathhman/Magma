@@ -1,6 +1,6 @@
 package magma.node.result;
 
-import magma.error.CompileError;
+import magma.error.FormatError;
 
 import java.util.Optional;
 import java.util.function.Function;
@@ -13,7 +13,7 @@ public record NodeOk<Node>(Node node) implements NodeResult<Node> {
 
     @Override
     public <Return> Return match(final Function<Node, Return> whenPresent,
-                                 final Function<CompileError, Return> whenErr) {
+                                 final Function<FormatError, Return> whenErr) {
         return whenPresent.apply(this.node);
     }
 

@@ -1,11 +1,11 @@
 package magma.string.result;
 
-import magma.error.CompileError;
+import magma.error.FormatError;
 import magma.result.Matchable;
 
 import java.util.Optional;
 
-public interface StringResult extends Matchable<String, CompileError> {
+public interface StringResult extends Matchable<String, FormatError> {
     @Deprecated
     Optional<String> toOptional();
 

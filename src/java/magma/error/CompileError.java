@@ -6,7 +6,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
-public record CompileError(String message, String input, List<CompileError> errors) implements FormatError {
+public record CompileError(String message, String input, List<FormatError> errors) implements FormatError {
     public CompileError(final String message, final String input) {
         this(message, input, Collections.emptyList());
     }

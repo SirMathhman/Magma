@@ -1,11 +1,11 @@
 package magma.string.result;
 
-import magma.error.CompileError;
+import magma.error.FormatError;
 
 import java.util.Optional;
 import java.util.function.Function;
 
-public record StringErr(CompileError error) implements StringResult {
+public record StringErr(FormatError error) implements StringResult {
     @Override
     public Optional<String> toOptional() {
         return Optional.empty();
@@ -27,7 +27,7 @@ public record StringErr(CompileError error) implements StringResult {
     }
 
     @Override
-    public <Return> Return match(final Function<String, Return> whenOk, final Function<CompileError, Return> whenErr) {
+    public <Return> Return match(final Function<String, Return> whenOk, final Function<FormatError, Return> whenErr) {
         return whenErr.apply(this.error);
     }
 }
