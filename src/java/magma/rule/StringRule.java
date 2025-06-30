@@ -6,8 +6,7 @@ import magma.node.MapNode;
 import java.util.Optional;
 
 public record StringRule(String key) implements Rule<EverythingNode> {
-    @Override
-    public Optional<EverythingNode> lex(final String input) {
+    private Optional<EverythingNode> lex0(final String input) {
         final var node = new MapNode().withString(this.key, input);
         return Optional.of(node);
     }
@@ -15,5 +14,10 @@ public record StringRule(String key) implements Rule<EverythingNode> {
     @Override
     public Optional<String> generate(final EverythingNode node) {
         return node.findString(this.key);
+    }
+
+    @Override
+    public NodeResult<EverythingNode> lex(final String input) {
+        return this.lex0(input).<NodeResult<EverythingNode>>map(NodeOk::new).orElseGet(() -> new NodeErr<>());
     }
 }

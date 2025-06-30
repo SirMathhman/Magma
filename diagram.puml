@@ -21,10 +21,14 @@ class TypeRule
 TypeRule <-- TypedNode
 TypeRule <-- Optional
 class TypeRule<Node extends TypedNode<Node>> implements Rule
+class NodeOk
+
+NodeOk <-- Optional
+class NodeOk<Node> implements NodeResult
 class StringRule
 
-StringRule <-- MapNode
 StringRule <-- EverythingNode
+StringRule <-- MapNode
 StringRule <-- Optional
 class StringRule implements Rule
 class Splitter
@@ -32,10 +36,6 @@ class Splitter
 Splitter <-- Tuple
 Splitter <-- Optional
 interface Splitter
-class Locator
-
-Locator <-- Optional
-interface Locator
 class SuffixRule
 
 SuffixRule <-- EverythingNode
@@ -46,8 +46,8 @@ class DivideRule
 DivideRule <-- Tuple
 DivideRule <-- DivideState
 DivideRule <-- MutableDivideState
-DivideRule <-- MapNode
 DivideRule <-- EverythingNode
+DivideRule <-- MapNode
 DivideRule <-- Collections
 DivideRule <-- Optional
 DivideRule <-- Collectors
@@ -67,6 +67,43 @@ class FirstLocator
 
 FirstLocator <-- Optional
 class FirstLocator implements Locator
+class EverythingNode
+
+EverythingNode <-- Tuple
+EverythingNode <-- List
+EverythingNode <-- Optional
+EverythingNode <-- Stream
+interface EverythingNode implements TypedNode
+class TypedNode
+
+interface TypedNode<Node>
+class InfixSplitter
+
+InfixSplitter <-- Tuple
+InfixSplitter <-- Locator
+InfixSplitter <-- Optional
+class InfixSplitter implements Splitter
+class Tuple
+
+class Tuple<Left, Right>
+class DivideState
+
+DivideState <-- Tuple
+DivideState <-- Optional
+DivideState <-- Stream
+interface DivideState
+class NodeResult
+
+NodeResult <-- Optional
+interface NodeResult<Node>
+class NodeErr
+
+NodeErr <-- Optional
+class NodeErr<Node> implements NodeResult
+class Locator
+
+Locator <-- Optional
+interface Locator
 class LastLocator
 
 LastLocator <-- Optional
@@ -78,8 +115,8 @@ interface Rule<Node>
 class Main
 
 Main <-- Lang
-Main <-- MapNode
 Main <-- EverythingNode
+Main <-- MapNode
 Main <-- DivideRule
 Main <-- Rule
 Main <-- IOException
@@ -117,31 +154,6 @@ Lang <-- TypeRule
 Lang <-- ArrayList
 Lang <-- List
 class Lang
-class EverythingNode
-
-EverythingNode <-- Tuple
-EverythingNode <-- List
-EverythingNode <-- Optional
-EverythingNode <-- Stream
-interface EverythingNode implements TypedNode
-class TypedNode
-
-interface TypedNode<Node>
-class InfixSplitter
-
-InfixSplitter <-- Tuple
-InfixSplitter <-- Locator
-InfixSplitter <-- Optional
-class InfixSplitter implements Splitter
-class Tuple
-
-class Tuple<Left, Right>
-class DivideState
-
-DivideState <-- Tuple
-DivideState <-- Optional
-DivideState <-- Stream
-interface DivideState
 class MapNode
 
 MapNode <-- Tuple

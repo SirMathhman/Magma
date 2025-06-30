@@ -28,8 +28,7 @@ public final class SplitRule implements Rule<EverythingNode> {
         return new SplitRule(leftRule, rightRule, new InfixSplitter(infix, new FirstLocator()));
     }
 
-    @Override
-    public Optional<EverythingNode> lex(final String input) {
+    private Optional<EverythingNode> lex0(final String input) {
         return this.splitter.split(input).flatMap(this::lexWithTuple);
     }
 
@@ -45,10 +44,14 @@ public final class SplitRule implements Rule<EverythingNode> {
         final var leftSlice = tuple.left();
         final var rightSlice = tuple.right();
 
-        return this.leftRule.lex(leftSlice).flatMap(leftResult -> {
-            final var rightResult = this.rightRule.lex(rightSlice);
+        return this.leftRule.lex(leftSlice).toOptional().flatMap(leftResult -> {
+            final var rightResult = this.rightRule.lex(rightSlice).toOptional();
             return rightResult.map(leftResult::merge);
         });
     }
 
+    @Override
+    public NodeResult<EverythingNode> lex(final String input) {
+        return this.lex0(input).<NodeResult<EverythingNode>>map(NodeOk::new).orElseGet(() -> new NodeErr<>());
+    }
 }

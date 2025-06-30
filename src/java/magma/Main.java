@@ -62,7 +62,8 @@ class Main {
     }
 
     private static String compile(final String input, final String parent) {
-        return Main.createJavaRootRule().lex(input).flatMap(root -> {
+        final Rule<EverythingNode> everythingNodeRule = Main.createJavaRootRule();
+        return everythingNodeRule.lex(input).toOptional().flatMap(root -> {
             final var newChildren = Main.modify(parent, root);
             return Lang.createPlantRootRule().generate(newChildren);
         }).orElse("");
