@@ -32,7 +32,7 @@ public class Lang {
     public static Rule<EverythingNode, NodeResult<EverythingNode>, StringResult> createJavaRootSegmentRule() {
         final var header = (Rule<EverythingNode, NodeResult<EverythingNode>, StringResult>) new OrRule(
                 List.of(Lang.createClassHeaderRule("class"), Lang.createClassHeaderRule("interface"),
-                        Lang.createRecordHeaderRule()));
+                        Lang.createRecordHeaderRule(), new StringRule("value")));
 
 
         final var rules = new ArrayList<>(List.of(Lang.createImportRule()));
@@ -48,8 +48,8 @@ public class Lang {
 
     private static Rule<EverythingNode, NodeResult<EverythingNode>, StringResult> getTypeRule(final Rule<EverythingNode, NodeResult<EverythingNode>, StringResult> header) {
         final Rule<EverythingNode, NodeResult<EverythingNode>, StringResult> content = new StringRule("content");
-        final Rule<EverythingNode, NodeResult<EverythingNode>, StringResult>
-                header1 = new OrRule(List.of(SplitRule.Last(header, " extends ", Lang.createTypeRule()), header));
+        final Rule<EverythingNode, NodeResult<EverythingNode>, StringResult> header1 =
+                new OrRule(List.of(SplitRule.Last(header, " extends ", Lang.createTypeRule()), header));
 
         final Rule<EverythingNode, NodeResult<EverythingNode>, StringResult> anImplements =
                 new OrRule(List.of(SplitRule.Last(header1, "implements", Lang.createTypeRule()), header1));
@@ -69,7 +69,8 @@ public class Lang {
 
     private static Rule<EverythingNode, NodeResult<EverythingNode>, StringResult> createRecordHeaderRule() {
         final Rule<EverythingNode, NodeResult<EverythingNode>, StringResult> modifiers = new StringRule("modifiers");
-        final Rule<EverythingNode, NodeResult<EverythingNode>, StringResult> name = new StripRule(new StringRule("name"));
+        final Rule<EverythingNode, NodeResult<EverythingNode>, StringResult> name =
+                new StripRule(new StringRule("name"));
         final Rule<EverythingNode, NodeResult<EverythingNode>, StringResult> params = new StringRule("params");
         final var withParams = SplitRule.First(name, "(", params);
         final var afterKeyword = SplitRule.First(withParams, ")", new StringRule("more"));
@@ -77,7 +78,8 @@ public class Lang {
     }
 
     private static Rule<EverythingNode, NodeResult<EverythingNode>, StringResult> createClassHeaderRule(final String type) {
-        return new TypeRule<>(type, SplitRule.Last(new StringRule("discard"), type + " ", new StripRule(new StringRule("name"))));
+        return new TypeRule<>(type, SplitRule.Last(new StringRule("discard"), type + " ",
+                                                   new StripRule(new StringRule("name"))));
     }
 
     private static Rule<EverythingNode, NodeResult<EverythingNode>, StringResult> createTypedPlantStructureRule(final String type) {
