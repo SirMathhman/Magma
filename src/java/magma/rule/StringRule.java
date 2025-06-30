@@ -1,6 +1,7 @@
 package magma.rule;
 
 import magma.error.CompileError;
+import magma.error.FormatError;
 import magma.node.EverythingNode;
 import magma.node.MapNode;
 import magma.node.result.NodeErr;
@@ -11,7 +12,7 @@ import magma.string.result.StringResult;
 
 import java.util.Optional;
 
-public record StringRule(String key) implements Rule<EverythingNode, NodeResult<EverythingNode>, StringResult> {
+public record StringRule(String key) implements Rule<EverythingNode, NodeResult<EverythingNode>, StringResult<FormatError>> {
     private Optional<EverythingNode> lex0(final String input) {
         final var node = new MapNode().withString(this.key, input);
         return Optional.of(node);
@@ -28,8 +29,8 @@ public record StringRule(String key) implements Rule<EverythingNode, NodeResult<
     }
 
     @Override
-    public StringResult generate(final EverythingNode node) {
-        return this.generate0(node).<StringResult>map(StringOk::new).orElseGet(() -> new StringErr(new CompileError(
-                this.getClass().getName(), "?")));
+    public StringResult<FormatError> generate(final EverythingNode node) {
+        return this.generate0(node).<StringResult<FormatError>>map(StringOk::new).orElseGet(() -> new StringErr<>(
+                new CompileError(this.getClass().getName(), "?")));
     }
 }

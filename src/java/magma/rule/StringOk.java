@@ -6,7 +6,7 @@ import magma.string.result.StringResult;
 import java.util.Optional;
 import java.util.function.Function;
 
-public record StringOk(String value) implements StringResult {
+public record StringOk(String value) implements StringResult<FormatError> {
     public StringOk() {
         this("");
     }
@@ -17,27 +17,27 @@ public record StringOk(String value) implements StringResult {
     }
 
     @Override
-    public StringResult appendResult(final StringResult other) {
+    public StringResult<FormatError> appendResult(final StringResult<FormatError> other) {
         return other.prependSlice(this.value);
     }
 
     @Override
-    public StringResult prependSlice(final String other) {
+    public StringResult<FormatError> prependSlice(final String other) {
         return new StringOk(other + this.value);
     }
 
     @Override
-    public StringResult appendSlice(final String slice) {
+    public StringResult<FormatError> appendSlice(final String slice) {
         return new StringOk(this.value + slice);
     }
 
     @Override
-    public StringResult flatMap(final Function<String, StringResult> mapper) {
+    public StringResult<FormatError> flatMap(final Function<String, StringResult<FormatError>> mapper) {
         return mapper.apply(this.value);
     }
 
     @Override
-    public StringResult map(final Function<String, String> mapper) {
+    public StringResult<FormatError> map(final Function<String, String> mapper) {
         return new StringOk(mapper.apply(this.value));
     }
 

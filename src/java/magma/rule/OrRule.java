@@ -1,5 +1,6 @@
 package magma.rule;
 
+import magma.compile.result.ResultFactory;
 import magma.error.CompileError;
 import magma.error.FormatError;
 import magma.node.EverythingNode;
@@ -9,14 +10,13 @@ import magma.node.result.NodeResult;
 import magma.result.Matchable;
 import magma.rule.accumulate.Accumulator;
 import magma.rule.accumulate.MutableAccumulator;
-import magma.string.result.StringErr;
 import magma.string.result.StringResult;
 
 import java.util.List;
 import java.util.function.Function;
 
-public record OrRule(List<Rule<EverythingNode, NodeResult<EverythingNode>, StringResult>> rules)
-        implements Rule<EverythingNode, NodeResult<EverythingNode>, StringResult> {
+public record OrRule(List<Rule<EverythingNode, NodeResult<EverythingNode>, StringResult<FormatError>>> rules)
+        implements Rule<EverythingNode, NodeResult<EverythingNode>, StringResult<FormatError>> {
 
     private static <Value, Result extends Matchable<Value, FormatError>> Accumulator<Value> fold(final Accumulator<Value> accumulator,
                                                                                                  final Result result) {
@@ -31,16 +31,16 @@ public record OrRule(List<Rule<EverythingNode, NodeResult<EverythingNode>, Strin
                            new CompileError("No valid combination present", input, errors)));
     }
 
-    private <Value, Result extends Matchable<Value, FormatError>> Accumulator<Value> or(final Function<Rule<EverythingNode, NodeResult<EverythingNode>, StringResult>, Result> mapper) {
+    private <Value, Result extends Matchable<Value, FormatError>> Accumulator<Value> or(final Function<Rule<EverythingNode, NodeResult<EverythingNode>, StringResult<FormatError>>, Result> mapper) {
         return this.rules.stream()
                          .map(mapper)
                          .<Accumulator<Value>>reduce(new MutableAccumulator<>(), OrRule::fold, (_, next) -> next);
     }
 
     @Override
-    public StringResult generate(final EverythingNode node) {
+    public StringResult<FormatError> generate(final EverythingNode node) {
         return this.or(rule -> rule.generate(node))
-                   .<StringResult>match(StringOk::new, errors -> StringErr.createWithChildren(
+                   .<StringResult<FormatError>>match(StringOk::new, errors -> ResultFactory.createWithChildren(
                            "No valid combination present", node, errors));
     }
 }

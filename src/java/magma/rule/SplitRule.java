@@ -1,6 +1,7 @@
 package magma.rule;
 
 import magma.api.Tuple;
+import magma.error.FormatError;
 import magma.node.EverythingNode;
 import magma.node.result.NodeErr;
 import magma.node.result.NodeResult;
@@ -10,28 +11,28 @@ import magma.rule.split.InfixSplitter;
 import magma.rule.split.Splitter;
 import magma.string.result.StringResult;
 
-public final class SplitRule implements Rule<EverythingNode, NodeResult<EverythingNode>, StringResult> {
-    private final Rule<EverythingNode, NodeResult<EverythingNode>, StringResult> leftRule;
-    private final Rule<EverythingNode, NodeResult<EverythingNode>, StringResult> rightRule;
+public final class SplitRule implements Rule<EverythingNode, NodeResult<EverythingNode>, StringResult<FormatError>> {
+    private final Rule<EverythingNode, NodeResult<EverythingNode>, StringResult<FormatError>> leftRule;
+    private final Rule<EverythingNode, NodeResult<EverythingNode>, StringResult<FormatError>> rightRule;
     private final Splitter splitter;
 
-    private SplitRule(final Rule<EverythingNode, NodeResult<EverythingNode>, StringResult> leftRule,
-                      final Rule<EverythingNode, NodeResult<EverythingNode>, StringResult> rightRule,
+    private SplitRule(final Rule<EverythingNode, NodeResult<EverythingNode>, StringResult<FormatError>> leftRule,
+                      final Rule<EverythingNode, NodeResult<EverythingNode>, StringResult<FormatError>> rightRule,
                       final Splitter splitter) {
         this.leftRule = leftRule;
         this.rightRule = rightRule;
         this.splitter = splitter;
     }
 
-    public static Rule<EverythingNode, NodeResult<EverythingNode>, StringResult> Last(final Rule<EverythingNode, NodeResult<EverythingNode>, StringResult> leftRule,
-                                                                                      final String infix,
-                                                                                      final Rule<EverythingNode, NodeResult<EverythingNode>, StringResult> rightRule) {
+    public static Rule<EverythingNode, NodeResult<EverythingNode>, StringResult<FormatError>> Last(final Rule<EverythingNode, NodeResult<EverythingNode>, StringResult<FormatError>> leftRule,
+                                                                                                   final String infix,
+                                                                                                   final Rule<EverythingNode, NodeResult<EverythingNode>, StringResult<FormatError>> rightRule) {
         return new SplitRule(leftRule, rightRule, new InfixSplitter(infix, new LastLocator()));
     }
 
-    public static Rule<EverythingNode, NodeResult<EverythingNode>, StringResult> First(final Rule<EverythingNode, NodeResult<EverythingNode>, StringResult> leftRule,
-                                                                                       final String infix,
-                                                                                       final Rule<EverythingNode, NodeResult<EverythingNode>, StringResult> rightRule) {
+    public static Rule<EverythingNode, NodeResult<EverythingNode>, StringResult<FormatError>> First(final Rule<EverythingNode, NodeResult<EverythingNode>, StringResult<FormatError>> leftRule,
+                                                                                                    final String infix,
+                                                                                                    final Rule<EverythingNode, NodeResult<EverythingNode>, StringResult<FormatError>> rightRule) {
         return new SplitRule(leftRule, rightRule, new InfixSplitter(infix, new FirstLocator()));
     }
 
@@ -53,7 +54,7 @@ public final class SplitRule implements Rule<EverythingNode, NodeResult<Everythi
     }
 
     @Override
-    public StringResult generate(final EverythingNode node) {
+    public StringResult<FormatError> generate(final EverythingNode node) {
         return this.leftRule.generate(node).flatMap(leftResult -> {
             final var generated = this.rightRule.generate(node);
             return generated.map(rightResult -> this.splitter.join(leftResult, rightResult));

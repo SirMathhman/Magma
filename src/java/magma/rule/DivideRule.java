@@ -3,6 +3,7 @@ package magma.rule;
 import magma.api.Tuple;
 import magma.divide.DivideState;
 import magma.divide.MutableDivideState;
+import magma.error.FormatError;
 import magma.node.EverythingNode;
 import magma.node.result.NodeListOk;
 import magma.node.result.NodeListResult;
@@ -12,8 +13,8 @@ import magma.string.result.StringResult;
 import java.util.Collections;
 import java.util.stream.Stream;
 
-public record DivideRule(String key, Rule<EverythingNode, NodeResult<EverythingNode>, StringResult> rule)
-        implements Rule<EverythingNode, NodeResult<EverythingNode>, StringResult> {
+public record DivideRule(String key, Rule<EverythingNode, NodeResult<EverythingNode>, StringResult<FormatError>> rule)
+        implements Rule<EverythingNode, NodeResult<EverythingNode>, StringResult<FormatError>> {
     private static Stream<String> divide(final CharSequence input) {
         var current = new Tuple<>(true, (DivideState) new MutableDivideState(input));
         while (current.left()) {
@@ -53,11 +54,11 @@ public record DivideRule(String key, Rule<EverythingNode, NodeResult<EverythingN
     }
 
     @Override
-    public StringResult generate(final EverythingNode node) {
+    public StringResult<FormatError> generate(final EverythingNode node) {
         return node.findNodeList(this.key)
                    .orElse(Collections.emptyList())
                    .stream()
                    .map(this.rule::generate)
-                   .reduce(new StringOk(), StringResult::appendResult, (_, next) -> next);
+                   .<StringResult<FormatError>>reduce(new StringOk(), StringResult::appendResult, (_, next) -> next);
     }
 }
