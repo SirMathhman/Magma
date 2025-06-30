@@ -4,7 +4,7 @@ import magma.node.Node;
 
 import java.util.Optional;
 
-public record SuffixRule(Rule rule, String suffix) implements Rule {
+public record SuffixRule(Rule<Node> rule, String suffix) implements Rule<Node> {
     @Override
     public Optional<Node> lex(final String input) {
         final var length = input.length();

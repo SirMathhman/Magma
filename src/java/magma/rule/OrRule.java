@@ -5,7 +5,7 @@ import magma.node.Node;
 import java.util.List;
 import java.util.Optional;
 
-public record OrRule(List<Rule> rules) implements Rule {
+public record OrRule(List<Rule<Node>> rules) implements Rule<Node> {
     @Override
     public Optional<Node> lex(final String input) {
         return this.rules.stream().map(rule -> rule.lex(input)).flatMap(Optional::stream).findFirst();

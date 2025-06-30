@@ -9,22 +9,22 @@ import magma.rule.split.Splitter;
 
 import java.util.Optional;
 
-public final class SplitRule implements Rule {
-    private final Rule leftRule;
-    private final Rule rightRule;
+public final class SplitRule implements Rule<Node> {
+    private final Rule<Node> leftRule;
+    private final Rule<Node> rightRule;
     private final Splitter splitter;
 
-    private SplitRule(final Rule leftRule, final Rule rightRule, final Splitter splitter) {
+    private SplitRule(final Rule<Node> leftRule, final Rule<Node> rightRule, final Splitter splitter) {
         this.leftRule = leftRule;
         this.rightRule = rightRule;
         this.splitter = splitter;
     }
 
-    public static Rule Last(final Rule leftRule, final String infix, final Rule rightRule) {
+    public static Rule<Node> Last(final Rule<Node> leftRule, final String infix, final Rule<Node> rightRule) {
         return new SplitRule(leftRule, rightRule, new InfixSplitter(infix, new LastLocator()));
     }
 
-    public static Rule First(final Rule leftRule, final String infix, final Rule rightRule) {
+    public static Rule<Node> First(final Rule<Node> leftRule, final String infix, final Rule<Node> rightRule) {
         return new SplitRule(leftRule, rightRule, new InfixSplitter(infix, new FirstLocator()));
     }
 

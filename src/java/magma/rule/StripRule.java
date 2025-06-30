@@ -4,7 +4,7 @@ import magma.node.Node;
 
 import java.util.Optional;
 
-public record StripRule(Rule rule) implements Rule {
+public record StripRule(Rule<Node> rule) implements Rule<Node> {
     @Override
     public Optional<Node> lex(final String input) {
         final var strip = input.strip();

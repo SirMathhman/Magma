@@ -11,7 +11,7 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-public record DivideRule(String key, Rule rule) implements Rule {
+public record DivideRule(String key, Rule<Node> rule) implements Rule<Node> {
     private static Stream<String> divide(final CharSequence input) {
         var current = new Tuple<>(true, (DivideState) new MutableDivideState(input));
         while (current.left()) {

@@ -4,7 +4,7 @@ import magma.node.Node;
 
 import java.util.Optional;
 
-public record PrefixRule(String prefix, Rule rule) implements Rule {
+public record PrefixRule(String prefix, Rule<Node> rule) implements Rule<Node> {
     @Override
     public Optional<Node> lex(final String input) {
         if (!input.startsWith(this.prefix)) return Optional.empty();

@@ -4,29 +4,29 @@ class PrefixRule
 
 PrefixRule <-- Node
 PrefixRule <-- Optional
-class PrefixRule  implements Rule 
+class PrefixRule  implements Rule<Node> 
 class StripRule
 
 StripRule <-- Node
 StripRule <-- Optional
-class StripRule  implements Rule 
+class StripRule  implements Rule<Node> 
 class OrRule
 
 OrRule <-- Node
 OrRule <-- List
 OrRule <-- Optional
-class OrRule  implements Rule 
+class OrRule  implements Rule<Node> 
 class TypeRule
 
 TypeRule <-- Node
 TypeRule <-- Optional
-class TypeRule  implements Rule 
+class TypeRule  implements Rule<Node> 
 class StringRule
 
 StringRule <-- MapNode
 StringRule <-- Node
 StringRule <-- Optional
-class StringRule  implements Rule 
+class StringRule  implements Rule<Node> 
 class Splitter
 
 Splitter <-- Tuple
@@ -40,7 +40,7 @@ class SuffixRule
 
 SuffixRule <-- Node
 SuffixRule <-- Optional
-class SuffixRule  implements Rule 
+class SuffixRule  implements Rule<Node> 
 class DivideRule
 
 DivideRule <-- Tuple
@@ -52,7 +52,7 @@ DivideRule <-- Collections
 DivideRule <-- Optional
 DivideRule <-- Collectors
 DivideRule <-- Stream
-class DivideRule  implements Rule 
+class DivideRule  implements Rule<Node> 
 class SplitRule
 
 SplitRule <-- Tuple
@@ -62,7 +62,7 @@ SplitRule <-- LastLocator
 SplitRule <-- InfixSplitter
 SplitRule <-- Splitter
 SplitRule <-- Optional
-class SplitRule implements Rule 
+class SplitRule implements Rule<Node> 
 class FirstLocator
 
 FirstLocator <-- Optional
@@ -73,9 +73,8 @@ LastLocator <-- Optional
 class LastLocator implements Locator 
 class Rule
 
-Rule <-- Node
 Rule <-- Optional
-interface Rule 
+interface Rule<Node> 
 class Main
 
 Main <-- Lang
@@ -112,6 +111,7 @@ MutableDivideState <-- Stream
 class MutableDivideState implements DivideState 
 class Lang
 
+Lang <-- Node
 Lang <-- DivideRule
 Lang <-- OrRule
 Lang <-- PrefixRule

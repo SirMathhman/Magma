@@ -4,7 +4,7 @@ import magma.node.Node;
 
 import java.util.Optional;
 
-public record TypeRule(String type, Rule rule) implements Rule {
+public record TypeRule(String type, Rule<Node> rule) implements Rule<Node> {
     @Override
     public Optional<Node> lex(final String input) {
         return this.rule.lex(input).map(node -> node.retype(this.type));

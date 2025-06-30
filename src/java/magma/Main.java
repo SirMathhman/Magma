@@ -68,7 +68,7 @@ class Main {
         }).orElse("");
     }
 
-    private static Rule createJavaRootRule() {
+    private static Rule<Node> createJavaRootRule() {
         return new DivideRule("children", Lang.createJavaRootSegmentRule());
     }
 
@@ -79,7 +79,8 @@ class Main {
                                     .map(child -> Main.modifyRootSegment(parent, child))
                                     .toList();
 
-        return new MapNode().withNodeList("children", newChildren);
+        final Node node = new MapNode();
+        return node.withNodeList("children", newChildren);
     }
 
     private static Node modifyRootSegment(final String parent, final Node node) {
