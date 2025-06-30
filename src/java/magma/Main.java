@@ -85,7 +85,7 @@ class Main {
     }
 
     private static Rule createImportRule() {
-        final var child = new StringRule("child");
+        final Rule child = new StringRule("child");
         return new StripRule(
                 new SuffixRule(new PrefixRule("import ", SplitRule.Last(new StringRule("discard"), ".", child)), ";"));
     }
@@ -106,15 +106,16 @@ class Main {
     private static Optional<String> compileStructureHeader(final String header) {
         return Main.createClassHeaderRule("class")
                    .lex(header)
-                   .map(node -> Main.generateClassHeader("class", node))
+                   .map(node -> Main.createHeaderRule("class").generate(node).orElse(""))
                    .or(() -> {
                        return Main.createClassHeaderRule("interface")
                                   .lex(header)
-                                  .map(node -> Main.generateClassHeader("interface", node));
+                                  .map(node -> Main.createHeaderRule("interface").generate(node).orElse(""));
                    })
-                   .or(() -> Main.createRecordHeaderRule()
-                                 .lex(header)
-                                 .map(node -> Main.generateClassHeader("class", Main.joinContent(node))));
+                   .or(() -> Main.createRecordHeaderRule().lex(header).map(node -> {
+                       final Node node1 = Main.joinContent(node);
+                       return Main.createHeaderRule("class").generate(node1).orElse("");
+                   }));
     }
 
     private static Node joinContent(final Node node) {
@@ -123,9 +124,9 @@ class Main {
     }
 
     private static Rule createRecordHeaderRule() {
-        final var modifiers = new StringRule("modifiers");
-        final var name = new StringRule("name");
-        final var params = new StringRule("params");
+        final Rule modifiers = new StringRule("modifiers");
+        final Rule name = new StringRule("name");
+        final Rule params = new StringRule("params");
         final var withParams = SplitRule.First(name, "(", params);
         final var afterKeyword = SplitRule.First(withParams, ")", new StringRule("more"));
         return SplitRule.First(modifiers, "record ", afterKeyword);
@@ -135,8 +136,8 @@ class Main {
         return SplitRule.Last(new StringRule("discard"), keyword + " ", new StringRule("content"));
     }
 
-    private static String generateClassHeader(final String type, final Node node) {
-        return type + " " + node.findString("content").orElse("");
+    private static Rule createHeaderRule(final String type) {
+        return new PrefixRule(type, new StringRule("content"));
     }
 
     private static Node modifyImport(final String parent, final Node child1) {
