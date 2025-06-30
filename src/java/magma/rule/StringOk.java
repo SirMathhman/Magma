@@ -18,17 +18,27 @@ public record StringOk(String value) implements StringResult {
 
     @Override
     public StringResult appendResult(final StringResult other) {
-        return other.prepend(this.value);
+        return other.prependSlice(this.value);
     }
 
     @Override
-    public StringResult prepend(final String other) {
+    public StringResult prependSlice(final String other) {
         return new StringOk(other + this.value);
     }
 
     @Override
     public StringResult appendSlice(final String slice) {
         return new StringOk(this.value + slice);
+    }
+
+    @Override
+    public StringResult flatMap(final Function<String, StringResult> mapper) {
+        return mapper.apply(this.value);
+    }
+
+    @Override
+    public StringResult map(final Function<String, String> mapper) {
+        return new StringOk(mapper.apply(this.value));
     }
 
     @Override

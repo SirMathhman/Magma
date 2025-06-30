@@ -1,19 +1,12 @@
 package magma.rule;
 
-import magma.error.CompileError;
 import magma.node.TypedNode;
 import magma.node.result.NodeResult;
 import magma.string.result.StringErr;
 import magma.string.result.StringResult;
 
-import java.util.Optional;
-
-public record TypeRule<Node extends TypedNode<Node>>(String type, Rule<Node, NodeResult<Node>, StringResult> rule) implements Rule<Node, NodeResult<Node>, StringResult> {
-
-    private Optional<String> generate0(final Node node) {
-        if (node.is(this.type)) return this.rule.generate(node).toOptional();
-        return Optional.empty();
-    }
+public record TypeRule<Node extends TypedNode<Node>>(String type, Rule<Node, NodeResult<Node>, StringResult> rule)
+        implements Rule<Node, NodeResult<Node>, StringResult> {
 
     @Override
     public NodeResult<Node> lex(final String input) {
@@ -22,7 +15,7 @@ public record TypeRule<Node extends TypedNode<Node>>(String type, Rule<Node, Nod
 
     @Override
     public StringResult generate(final Node node) {
-        return this.generate0(node).<StringResult>map(StringOk::new).orElseGet(() -> new StringErr(new CompileError(
-                this.getClass().getName(), "?")));
+        if (node.is(this.type)) return this.rule.generate(node);
+        return StringErr.create("Type '" + this.type + "' not present", node);
     }
 }

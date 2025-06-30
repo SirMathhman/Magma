@@ -1,7 +1,6 @@
 package magma.rule;
 
 import magma.api.Tuple;
-import magma.error.CompileError;
 import magma.node.EverythingNode;
 import magma.node.result.NodeErr;
 import magma.node.result.NodeResult;
@@ -9,10 +8,7 @@ import magma.rule.locate.FirstLocator;
 import magma.rule.locate.LastLocator;
 import magma.rule.split.InfixSplitter;
 import magma.rule.split.Splitter;
-import magma.string.result.StringErr;
 import magma.string.result.StringResult;
-
-import java.util.Optional;
 
 public final class SplitRule implements Rule<EverythingNode, NodeResult<EverythingNode>, StringResult> {
     private final Rule<EverythingNode, NodeResult<EverythingNode>, StringResult> leftRule;
@@ -39,13 +35,6 @@ public final class SplitRule implements Rule<EverythingNode, NodeResult<Everythi
         return new SplitRule(leftRule, rightRule, new InfixSplitter(infix, new FirstLocator()));
     }
 
-    private Optional<String> generate0(final EverythingNode node) {
-        return this.leftRule.generate(node).toOptional().flatMap(leftResult -> {
-            final var generated = this.rightRule.generate(node).toOptional();
-            return generated.map(rightResult -> this.splitter.join(leftResult, rightResult));
-        });
-    }
-
     private NodeResult<EverythingNode> lexWithTuple(final Tuple<String, String> tuple) {
         final var leftSlice = tuple.left();
         final var rightSlice = tuple.right();
@@ -65,8 +54,9 @@ public final class SplitRule implements Rule<EverythingNode, NodeResult<Everythi
 
     @Override
     public StringResult generate(final EverythingNode node) {
-        return this.generate0(node)
-                   .<StringResult>map(StringOk::new)
-                   .orElseGet(() -> new StringErr(new CompileError(this.getClass().getName(), "?")));
+        return this.leftRule.generate(node).flatMap(leftResult -> {
+            final var generated = this.rightRule.generate(node);
+            return generated.map(rightResult -> this.splitter.join(leftResult, rightResult));
+        });
     }
 }

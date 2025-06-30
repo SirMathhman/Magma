@@ -1,12 +1,9 @@
 @startuml
 skinparam linetype ortho
-PrefixRule <-- CompileError
 PrefixRule <-- EverythingNode
 PrefixRule <-- NodeErr
 PrefixRule <-- NodeResult
-PrefixRule <-- StringErr
 PrefixRule <-- StringResult
-PrefixRule <-- Optional
 class PrefixRule implements Rule
 StripRule <-- EverythingNode
 StripRule <-- NodeResult
@@ -32,12 +29,10 @@ OrRule <-- StringResult
 OrRule <-- List
 OrRule <-- Function
 class OrRule implements Rule
-TypeRule <-- CompileError
 TypeRule <-- TypedNode
 TypeRule <-- NodeResult
 TypeRule <-- StringErr
 TypeRule <-- StringResult
-TypeRule <-- Optional
 class TypeRule<Node extends TypedNode<Node>> implements Rule
 StringRule <-- CompileError
 StringRule <-- EverythingNode
@@ -57,7 +52,11 @@ class CompileError
 Splitter <-- Tuple
 Splitter <-- Optional
 interface Splitter
+StringErr <-- CompileError
 StringErr <-- FormatError
+StringErr <-- EverythingNode
+StringErr <-- TypedNode
+StringErr <-- List
 StringErr <-- Optional
 StringErr <-- Function
 class StringErr
@@ -82,7 +81,6 @@ DivideRule <-- Collections
 DivideRule <-- Stream
 class DivideRule implements Rule
 SplitRule <-- Tuple
-SplitRule <-- CompileError
 SplitRule <-- EverythingNode
 SplitRule <-- NodeErr
 SplitRule <-- NodeResult
@@ -90,9 +88,7 @@ SplitRule <-- FirstLocator
 SplitRule <-- LastLocator
 SplitRule <-- InfixSplitter
 SplitRule <-- Splitter
-SplitRule <-- StringErr
 SplitRule <-- StringResult
-SplitRule <-- Optional
 class SplitRule implements Rule
 interface FormatError extends Error
 FirstLocator <-- Optional
@@ -215,6 +211,7 @@ interface Accumulator<Node>
 StringResult <-- FormatError
 StringResult <-- Matchable
 StringResult <-- Optional
+StringResult <-- Function
 interface StringResult implements Matchable
 MapNode <-- Tuple
 MapNode <-- HashMap
