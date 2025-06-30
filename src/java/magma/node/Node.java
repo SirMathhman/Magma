@@ -13,4 +13,8 @@ public interface Node {
     Optional<String> findString(String key);
 
     Node merge(Node other);
+
+    Node retype(String type);
+
+    boolean is(String type);
 }

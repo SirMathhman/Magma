@@ -137,7 +137,7 @@ class Main {
     }
 
     private static Rule createHeaderRule(final String type) {
-        return new PrefixRule(type, new StringRule("content"));
+        return new PrefixRule(type + " ", new StringRule("content"));
     }
 
     private static Node modifyImport(final String parent, final Node child1) {

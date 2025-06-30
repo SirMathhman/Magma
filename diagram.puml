@@ -8,6 +8,15 @@ class StripRule
 StripRule <-- Node
 StripRule <-- Optional
 class StripRule  implements Rule 
+class OrRule
+OrRule <-- Node
+OrRule <-- List
+OrRule <-- Optional
+class OrRule  implements Rule 
+class TypeRule
+TypeRule <-- Node
+TypeRule <-- Optional
+class TypeRule  implements Rule 
 class StringRule
 StringRule <-- MapNode
 StringRule <-- Node

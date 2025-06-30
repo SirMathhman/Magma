@@ -9,8 +9,10 @@ import java.util.stream.Stream;
 
 public final class MapNode implements Node {
     private final Map<String, String> strings;
+    private Optional<String> type;
 
     public MapNode() {
+        this.type = Optional.empty();
         this.strings = new HashMap<>();
     }
 
@@ -42,5 +44,16 @@ public final class MapNode implements Node {
             final var value = tuple.right();
             return node.withString(key, value);
         }, (_, next) -> next);
+    }
+
+    @Override
+    public Node retype(final String type) {
+        this.type = Optional.of(type);
+        return this;
+    }
+
+    @Override
+    public boolean is(final String type) {
+        return this.type.isPresent() && this.type.get().contentEquals(type);
     }
 }
