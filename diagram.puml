@@ -1,11 +1,24 @@
 @startuml
 skinparam linetype ortho
+class MutableDivideState
+MutableDivideState --> ArrayList
+MutableDivideState --> List
+MutableDivideState --> Optional
+MutableDivideState --> Stream
+class DivideState
+DivideState --> Optional
+DivideState --> Stream
 class Main
 Main --> IOException
 Main --> Files
+Main --> Path
 Main --> Paths
 Main --> ArrayList
 Main --> Collection
 Main --> List
+Main --> Set
+Main --> Collector
+Main --> Collectors
 Main --> Stream
+class Tuple
 @enduml
