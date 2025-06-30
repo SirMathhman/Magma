@@ -15,6 +15,8 @@ import java.util.List;
 public class Lang {
     public static final String LINE_SEPARATOR = System.lineSeparator();
 
+    private Lang() {}
+
     public static Rule createPlantRootRule() {
         return new DivideRule("children", Lang.createPlantRootSegmentRule());
     }
