@@ -36,7 +36,6 @@ public class Lang {
 
         final var rules = new ArrayList<>(List.of(Lang.createImportRule()));
         rules.add(Lang.getTypeRule(header));
-
         return new OrRule(rules);
     }
 
@@ -48,7 +47,14 @@ public class Lang {
 
     private static Rule<Node> getTypeRule(final Rule<Node> header) {
         final Rule<Node> content = new StringRule("content");
-        return new StripRule(new SuffixRule(SplitRule.First(header, "{", content), "}"));
+        return new StripRule(new SuffixRule(SplitRule.First(
+                new OrRule(List.of(SplitRule.Last(header, "implements", Lang.createTypeRule()), header)), "{", content),
+                                            "}"));
+    }
+
+    private static Rule<Node> createTypeRule() {
+        return new StripRule(
+                new SuffixRule(SplitRule.First(new StringRule("base"), "<", new StringRule("value")), ">"));
     }
 
     private static Rule<Node> createPlantStructureRule() {
@@ -58,7 +64,7 @@ public class Lang {
 
     private static Rule<Node> createRecordHeaderRule() {
         final Rule<Node> modifiers = new StringRule("modifiers");
-        final Rule<Node> name = new StringRule("name");
+        final Rule<Node> name = new StripRule(new StringRule("name"));
         final Rule<Node> params = new StringRule("params");
         final var withParams = SplitRule.First(name, "(", params);
         final var afterKeyword = SplitRule.First(withParams, ")", new StringRule("more"));
@@ -66,12 +72,12 @@ public class Lang {
     }
 
     private static Rule<Node> createClassHeaderRule(final String type) {
-        return new TypeRule(type,
-                            SplitRule.Last(new StringRule("discard"), type + " ", new StringRule("before-content")));
+        return new TypeRule(type, SplitRule.Last(new StringRule("discard"), type + " ",
+                                                 new StripRule(new StringRule("name"))));
     }
 
     private static Rule<Node> createTypedPlantStructureRule(final String type) {
-        return new TypeRule(type, new PrefixRule(type + " ", new StringRule("before-content")));
+        return new TypeRule(type, new PrefixRule(type + " ", new StringRule("content")));
     }
 
     private static Rule<Node> createDependencyRule() {
