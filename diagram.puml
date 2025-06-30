@@ -13,12 +13,8 @@ class PrefixRule implements Rule
 class StripRule
 
 StripRule <-- EverythingNode
-StripRule <-- NodeErr
-StripRule <-- NodeOk
 StripRule <-- NodeResult
-StripRule <-- StringErr
 StripRule <-- StringResult
-StripRule <-- Optional
 class StripRule implements Rule
 class OrRule
 

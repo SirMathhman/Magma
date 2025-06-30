@@ -21,7 +21,7 @@ public record TypeRule<Node extends TypedNode<Node>>(String type, Rule<Node, Nod
 
     @Override
     public NodeResult<Node> lex(final String input) {
-        return this.lex0(input).<NodeResult<Node>>map(NodeOk::new).orElseGet(() -> new NodeErr<>());
+        return this.lex0(input).<NodeResult<Node>>map(NodeOk::new).orElseGet(NodeErr::new);
     }
 
     @Override

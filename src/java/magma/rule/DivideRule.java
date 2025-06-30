@@ -47,8 +47,12 @@ public record DivideRule(String key, Rule<EverythingNode, NodeResult<EverythingN
         return appended;
     }
 
-    private Optional<EverythingNode> lex0(final String input) {
-        final var children = DivideRule.divide(input).map(input1 -> this.rule.lex(input1).toOptional()).flatMap(Optional::stream).toList();
+    private Optional<EverythingNode> lex0(final CharSequence input) {
+        final var children = DivideRule.divide(input)
+                                       .map(input1 -> this.rule.lex(input1).toOptional())
+                                       .flatMap(Optional::stream)
+                                       .toList();
+
         return Optional.of(new MapNode().withNodeList(this.key, children));
     }
 
@@ -63,7 +67,7 @@ public record DivideRule(String key, Rule<EverythingNode, NodeResult<EverythingN
 
     @Override
     public NodeResult<EverythingNode> lex(final String input) {
-        return this.lex0(input).<NodeResult<EverythingNode>>map(NodeOk::new).orElseGet(() -> new NodeErr<>());
+        return this.lex0(input).<NodeResult<EverythingNode>>map(NodeOk::new).orElseGet(NodeErr::new);
     }
 
     @Override

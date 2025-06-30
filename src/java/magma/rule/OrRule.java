@@ -21,7 +21,7 @@ public record OrRule(List<Rule<EverythingNode, NodeResult<EverythingNode>, Strin
 
     @Override
     public NodeResult<EverythingNode> lex(final String input) {
-        return this.lex0(input).<NodeResult<EverythingNode>>map(NodeOk::new).orElseGet(() -> new NodeErr<>());
+        return this.lex0(input).<NodeResult<EverythingNode>>map(NodeOk::new).orElseGet(NodeErr::new);
     }
 
     @Override
