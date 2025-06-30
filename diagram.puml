@@ -84,7 +84,6 @@ SplitRule <-- Tuple
 SplitRule <-- CompileError
 SplitRule <-- EverythingNode
 SplitRule <-- NodeErr
-SplitRule <-- NodeOk
 SplitRule <-- NodeResult
 SplitRule <-- FirstLocator
 SplitRule <-- LastLocator
@@ -99,9 +98,8 @@ class FirstLocator implements Locator
 ThrowableError <-- PrintWriter
 ThrowableError <-- StringWriter
 class ThrowableError
-Matchable <-- CompileError
 Matchable <-- Function
-interface Matchable<Value>
+interface Matchable<Value, Error>
 NodeListResult <-- EverythingNode
 interface NodeListResult
 EverythingNode <-- Tuple
@@ -127,12 +125,13 @@ NodeListOk <-- Function
 class NodeListOk
 class Strings
 interface Error
+NodeResult <-- CompileError
 NodeResult <-- Matchable
 NodeResult <-- Optional
 NodeResult <-- Function
 interface NodeResult<Node> implements Matchable
 Result <-- Function
-interface Result<Value, Error>
+interface Result<Value, Error> implements Matchable
 NodeErr <-- CompileError
 NodeErr <-- EverythingNode
 NodeErr <-- Optional
@@ -210,6 +209,7 @@ Accumulator <-- CompileError
 Accumulator <-- List
 Accumulator <-- Function
 interface Accumulator<Node>
+StringResult <-- CompileError
 StringResult <-- Matchable
 StringResult <-- Optional
 interface StringResult implements Matchable

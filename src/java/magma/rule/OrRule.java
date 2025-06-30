@@ -24,11 +24,16 @@ public record OrRule(List<Rule<EverythingNode, NodeResult<EverythingNode>, Strin
                            new CompileError("No valid combination present", input, errors)));
     }
 
-    private <Value, Result extends Matchable<Value>> Accumulator<Value> or(final Function<Rule<EverythingNode, NodeResult<EverythingNode>, StringResult>, Result> mapper) {
-        return this.rules.stream().map(mapper).< Accumulator<Value> >reduce(new MutableAccumulator<>(), (accumulator, result) -> {
-            if (accumulator.isPresent()) return accumulator;
-            return result.match(accumulator::withValue, accumulator::withError);
-        }, (_, next) -> next);
+    private <Value, Result extends Matchable<Value, CompileError>> Accumulator<Value> or(final Function<Rule<EverythingNode, NodeResult<EverythingNode>, StringResult>, Result> mapper) {
+        return this.rules.stream()
+                         .map(mapper)
+                         .<Accumulator<Value>>reduce(new MutableAccumulator<>(), OrRule::fold, (_, next) -> next);
+    }
+
+    private static <Value, Result extends Matchable<Value, CompileError>> Accumulator<Value> fold(final Accumulator<Value> accumulator,
+                                                                                                  final Result result) {
+        if (accumulator.isPresent()) return accumulator;
+        return result.match(accumulator::withValue, accumulator::withError);
     }
 
     @Override

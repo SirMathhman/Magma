@@ -26,4 +26,9 @@ public record NodeErr<Node>(CompileError error) implements NodeResult<Node> {
     public NodeResult<Node> map(final Function<Node, Node> mapper) {
         return new NodeErr<>(this.error);
     }
+
+    @Override
+    public NodeResult<Node> flatMap(final Function<Node, NodeResult<Node>> mapper) {
+        return this;
+    }
 }

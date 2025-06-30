@@ -28,4 +28,9 @@ public class InfixSplitter implements Splitter {
     public String join(final String left, final String right) {
         return left + this.infix + right;
     }
+
+    @Override
+    public String createMessage() {
+        return "Infix '" + this.infix + "' not present";
+    }
 }

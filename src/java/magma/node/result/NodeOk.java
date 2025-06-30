@@ -21,4 +21,9 @@ public record NodeOk<Node>(Node node) implements NodeResult<Node> {
     public NodeResult<Node> map(final Function<Node, Node> mapper) {
         return new NodeOk<>(mapper.apply(this.node));
     }
+
+    @Override
+    public NodeResult<Node> flatMap(final Function<Node, NodeResult<Node>> mapper) {
+        return mapper.apply(this.node);
+    }
 }

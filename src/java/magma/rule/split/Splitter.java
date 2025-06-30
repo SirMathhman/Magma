@@ -8,4 +8,6 @@ public interface Splitter {
     Optional<Tuple<String, String>> split(String input);
 
     String join(String left, String right);
+
+    String createMessage();
 }
