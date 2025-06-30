@@ -4,6 +4,7 @@ import magma.api.Tuple;
 import magma.divide.DivideState;
 import magma.divide.MutableDivideState;
 import magma.node.Node;
+import magma.rule.OrRule;
 import magma.rule.PrefixRule;
 import magma.rule.Rule;
 import magma.rule.SplitRule;
@@ -105,23 +106,29 @@ class Main {
     }
 
     private static Optional<String> compileStructureHeader(final String header) {
-        return Main.createClassHeaderRule("class")
+        return Main.createStructureHeaderRule()
                    .lex(header)
-                   .map(node -> Main.createHeaderRule("class").generate(node).orElse(""))
-                   .or(() -> {
-                       return Main.createClassHeaderRule("interface")
-                                  .lex(header)
-                                  .map(node -> Main.createHeaderRule("interface").generate(node).orElse(""));
-                   })
-                   .or(() -> Main.createRecordHeaderRule().lex(header).map(node -> {
-                       final Node node1 = Main.joinContent(node);
-                       return Main.createHeaderRule("class").generate(node1).orElse("");
-                   }));
+                   .map(Main::modifyStructureHeader)
+                   .flatMap(result -> Main.createPlantStructureRule().generate(result));
     }
 
-    private static Node joinContent(final Node node) {
-        final var content = node.findString("name").orElse("") + " " + node.findString("more").orElse("");
-        return node.retype("class").withString("content", content);
+    private static Rule createPlantStructureRule() {
+        return new OrRule(
+                List.of(Main.createTypedPlantStructureRule("class"), Main.createTypedPlantStructureRule("interface")));
+    }
+
+    private static Rule createStructureHeaderRule() {
+        return new OrRule(List.of(Main.createClassHeaderRule("class"), Main.createClassHeaderRule("interface"),
+                                  Main.createRecordHeaderRule()));
+    }
+
+    private static Node modifyStructureHeader(final Node header) {
+        if (header.is("record")) {
+            final var content = header.findString("name").orElse("") + " " + header.findString("more").orElse("");
+            return header.retype("class").withString("content", content);
+        }
+
+        return header;
     }
 
     private static Rule createRecordHeaderRule() {
@@ -137,7 +144,7 @@ class Main {
         return new TypeRule(type, SplitRule.Last(new StringRule("discard"), type + " ", new StringRule("content")));
     }
 
-    private static Rule createHeaderRule(final String type) {
+    private static Rule createTypedPlantStructureRule(final String type) {
         return new TypeRule(type, new PrefixRule(type + " ", new StringRule("content")));
     }
 

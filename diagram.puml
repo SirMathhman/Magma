@@ -3,25 +3,20 @@ skinparam linetype ortho
 class PrefixRule
 PrefixRule <-- Node
 PrefixRule <-- Optional
-class PrefixRule  implements Rule 
 class StripRule
 StripRule <-- Node
 StripRule <-- Optional
-class StripRule  implements Rule 
 class OrRule
 OrRule <-- Node
 OrRule <-- List
 OrRule <-- Optional
-class OrRule  implements Rule 
 class TypeRule
 TypeRule <-- Node
 TypeRule <-- Optional
-class TypeRule  implements Rule 
 class StringRule
 StringRule <-- MapNode
 StringRule <-- Node
 StringRule <-- Optional
-class StringRule  implements Rule 
 class Splitter
 Splitter <-- Tuple
 Splitter <-- Optional
@@ -32,7 +27,6 @@ interface Locator
 class SuffixRule
 SuffixRule <-- Node
 SuffixRule <-- Optional
-class SuffixRule  implements Rule 
 class SplitRule
 SplitRule <-- Tuple
 SplitRule <-- Node
@@ -57,6 +51,7 @@ Main <-- Tuple
 Main <-- DivideState
 Main <-- MutableDivideState
 Main <-- Node
+Main <-- OrRule
 Main <-- PrefixRule
 Main <-- Rule
 Main <-- SplitRule
@@ -94,7 +89,6 @@ InfixSplitter <-- Locator
 InfixSplitter <-- Optional
 class InfixSplitter implements Splitter 
 class Tuple
-class Tuple<Left, Right>  
 class DivideState
 DivideState <-- Tuple
 DivideState <-- Optional
