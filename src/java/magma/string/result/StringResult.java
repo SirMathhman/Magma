@@ -1,6 +1,9 @@
 package magma.string.result;
 
+import magma.error.CompileError;
+
 import java.util.Optional;
+import java.util.function.Function;
 
 public interface StringResult {
     @Deprecated
@@ -10,5 +13,7 @@ public interface StringResult {
 
     StringResult prepend(String other);
 
-    String appendSlice(String slice);
+    StringResult appendSlice(String slice);
+
+    <Return> Return match(Function<String, Return> whenOk, Function<CompileError, Return> whenErr);
 }

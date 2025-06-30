@@ -1,12 +1,17 @@
 package magma;
 
+import magma.error.ApplicationError;
+import magma.error.Error;
+import magma.error.ThrowableError;
 import magma.lang.Lang;
 import magma.node.EverythingNode;
 import magma.node.MapNode;
 import magma.node.result.NodeResult;
+import magma.result.Err;
+import magma.result.Ok;
+import magma.result.Result;
 import magma.rule.DivideRule;
 import magma.rule.Rule;
-import magma.rule.StringOk;
 import magma.string.result.StringErr;
 import magma.string.result.StringResult;
 
@@ -14,7 +19,10 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Collection;
 import java.util.Collections;
+import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collector;
 import java.util.stream.Collectors;
@@ -24,18 +32,39 @@ class Main {
     private Main() {}
 
     public static void main(final String[] args) {
+        Main.collect()
+            .mapErr(ThrowableError::new)
+            .<Error>mapErr(ApplicationError::new)
+            .match(Main::runWithFiles, Optional::of)
+            .ifPresent(error -> System.err.println(error.display()));
+    }
+
+    private static Optional<Error> runWithFiles(final Collection<Path> files) {
+        final Collector<Path, ?, Set<Path>> setCollector = Collectors.toSet();
+        final var sources = files.stream().filter(Files::isRegularFile).filter(Main::isJavaFile).collect(setCollector);
+
+        return Main.runWithSources(sources).match(output -> {
+            final var target = Paths.get(".", "diagram.puml");
+            final var joined = String.join(Lang.LINE_SEPARATOR, output);
+            return Main.writeString(target, joined).map(ThrowableError::new).map(ApplicationError::new);
+        }, Optional::of);
+    }
+
+    private static Optional<IOException> writeString(final Path target, final CharSequence output) {
+        try {
+            Files.writeString(target, output);
+            return Optional.empty();
+        } catch (final IOException e) {
+            return Optional.of(e);
+        }
+    }
+
+    private static Result<List<Path>, IOException> collect() {
         final var root = Paths.get(".", "src", "java");
         try (final var stream = Files.walk(root)) {
-            final Collector<Path, ?, Set<Path>> setCollector = Collectors.toSet();
-            final var files = stream.filter(Files::isRegularFile).filter(Main::isJavaFile).collect(setCollector);
-
-            final var outputRootSegments = Main.runWithSources(files);
-            final var target = Paths.get(".", "diagram.puml");
-            final var joined = String.join(Lang.LINE_SEPARATOR, outputRootSegments);
-            Files.writeString(target, joined);
+            return new Ok<>(stream.toList());
         } catch (final IOException e) {
-            //noinspection CallToPrintStackTrace
-            e.printStackTrace();
+            return new Err<>(e);
         }
     }
 
@@ -44,24 +73,40 @@ class Main {
         return asString.endsWith(".java");
     }
 
-    private static String runWithSources(final Iterable<Path> files) throws IOException {
+    private static Result<String, Error> runWithSources(final Iterable<Path> files) {
         final var pre = Stream.of("@startuml", "skinparam linetype ortho")
                               .map(value -> value + Lang.LINE_SEPARATOR)
                               .collect(Collectors.joining());
 
-        StringResult outputRootSegments = new StringOk(pre);
-        for (final var source : files) {
-            final var input = Files.readString(source);
+        Result<String, Error> outputRootSegments = new Ok<>(pre);
+        for (final var source : files) outputRootSegments = Main.runWithSource(outputRootSegments, source);
 
-            final var fileName = source.getFileName().toString();
-            final var separator = fileName.lastIndexOf('.');
-            final var parent = fileName.substring(0, separator);
+        return outputRootSegments.mapValue(value -> value + "@enduml");
+    }
 
-            final var output = Main.compile(input, parent);
-            outputRootSegments = outputRootSegments.appendResult(output);
+    private static Result<String, Error> runWithSource(final Result<String, Error> maybeCurrent, final Path source) {
+        return Main.readString(source)
+                   .mapErr(ThrowableError::new)
+                   .<Error>mapErr(ApplicationError::new)
+                   .flatMapValue(input -> {
+                       final var fileName = source.getFileName().toString();
+                       final var separator = fileName.lastIndexOf('.');
+                       final var parent = fileName.substring(0, separator);
+
+                       return maybeCurrent.flatMapValue(current -> {
+                           return Main.compile(input, parent).match(output -> {
+                               return new Ok<>(current + output);
+                           }, compileError -> new Err<>(new ApplicationError(compileError)));
+                       });
+                   });
+    }
+
+    private static Result<String, IOException> readString(final Path source) {
+        try {
+            return new Ok<>(Files.readString(source));
+        } catch (final IOException e) {
+            return new Err<>(e);
         }
-
-        return outputRootSegments.appendSlice("@enduml");
     }
 
     private static StringResult compile(final String input, final String parent) {
