@@ -18,7 +18,7 @@ public final class MapNode implements Node {
     }
 
     @Override
-    public Optional<String> find(final String key) {
+    public Optional<String> findString(final String key) {
         final var maybeValue = this.strings.get(key);
         return Optional.ofNullable(maybeValue);
     }

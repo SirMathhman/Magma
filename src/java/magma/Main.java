@@ -104,7 +104,9 @@ class Main {
     }
 
     private static Optional<String> compileStructureHeader(final String header) {
-        return Main.compileClassHeader(header).or(() -> Main.compileRecordHeader(header));
+        return Main.createClassHeaderRule().lex(header)
+                   .map(Main::generateClassHeader)
+                   .or(() -> Main.compileRecordHeader(header));
     }
 
     private static Optional<String> compileRecordHeader(final String header) {
@@ -127,13 +129,12 @@ class Main {
         return Optional.of("class " + substring2 + " " + substring);
     }
 
-    private static Optional<String> compileClassHeader(final String header) {
-        final var classIndex = header.indexOf("class ");
-        if (0 > classIndex) return Optional.empty();
+    private static Rule createClassHeaderRule() {
+        return new FirstRule("class ", new StringRule("slice"));
+    }
 
-        final var infixLength = "class ".length();
-        final var slice = header.substring(classIndex + infixLength);
-        return Optional.of("class " + slice);
+    private static String generateClassHeader(final Node node) {
+        return "class " + node.findString("slice").orElse("");
     }
 
     private static Node modifyImport(final String parent, final Node child1) {
@@ -141,7 +142,7 @@ class Main {
     }
 
     private static String generate(final Node node) {
-        return node.find("parent").orElse("") + " <-- " + node.find("child").orElse("");
+        return node.findString("parent").orElse("") + " <-- " + node.findString("child").orElse("");
     }
 
     private static Stream<String> divide(final CharSequence input) {
