@@ -3,8 +3,9 @@ package magma;
 import magma.api.Tuple;
 import magma.divide.DivideState;
 import magma.divide.MutableDivideState;
-import magma.node.MapNode;
 import magma.node.Node;
+import magma.rule.Rule;
+import magma.rule.StringRule;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -107,17 +108,22 @@ public class Main {
         final var prefixLength = "import ".length();
 
         final var substring1 = substring.substring(prefixLength);
-        final var separator = substring1.lastIndexOf('.');
-        if (0 <= separator) {
-            final var infixLength = ".".length();
-            final var child = substring1.substring(separator + infixLength);
-            final var node = new MapNode().withString("parent", parent).withString("child", child);
+        return Main.getString(substring1, ".", new StringRule("child"))
+                   .map(child1 -> Main.getParent(parent, child1))
+                   .map(Main::generate);
+    }
 
-            final var generated = Main.generate(node);
-            return Optional.of(generated);
-        }
+    private static Optional<Node> getString(final String input, final String infix, final Rule rightRule) {
+        final var separator = input.lastIndexOf(infix);
+        if (0 > separator) return Optional.empty();
 
-        return Optional.empty();
+        final var infixLength = infix.length();
+        final var rightSlice = input.substring(separator + infixLength);
+        return rightRule.lex(rightSlice);
+    }
+
+    private static Node getParent(final String parent, final Node child1) {
+        return child1.withString("parent", parent);
     }
 
     private static String generate(final Node node) {

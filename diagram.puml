@@ -1,11 +1,18 @@
 @startuml
 skinparam linetype ortho
+class StringRule
+StringRule <-- MapNode
+StringRule <-- Node
+StringRule <-- Optional
+class Rule
+Rule <-- Node
+Rule <-- Optional
 class Main
 Main <-- Tuple
 Main <-- DivideState
 Main <-- MutableDivideState
-Main <-- MapNode
 Main <-- Node
+Main <-- StringRule
 Main <-- IOException
 Main <-- Files
 Main <-- Path
