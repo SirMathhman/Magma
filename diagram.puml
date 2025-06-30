@@ -25,6 +25,7 @@ class SuffixRule implements Rule
 class SplitRule
 SplitRule <-- Tuple
 SplitRule <-- Node
+SplitRule <-- LastLocator
 SplitRule <-- InfixSplitter
 SplitRule <-- Splitter
 SplitRule <-- Optional
@@ -40,9 +41,9 @@ Main <-- Tuple
 Main <-- DivideState
 Main <-- MutableDivideState
 Main <-- Node
-Main <-- SplitRule
 Main <-- PrefixRule
 Main <-- Rule
+Main <-- SplitRule
 Main <-- StringRule
 Main <-- StripRule
 Main <-- SuffixRule

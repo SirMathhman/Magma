@@ -86,7 +86,9 @@ class Main {
 
     private static Rule createImportRule() {
         final var child = new StringRule("child");
-        return new StripRule(new SuffixRule(new PrefixRule("import ", new SplitRule(new StringRule("discard"), ".", child)), ";"));
+        return new StripRule(new SuffixRule(new PrefixRule("import ",
+                                                           SplitRule.Last(new StringRule("discard"), ".",
+                                                                          child)), ";"));
     }
 
     private static Optional<String> compileStructure(final String input) {
@@ -130,7 +132,7 @@ class Main {
     }
 
     private static Rule createClassHeaderRule() {
-        return new SplitRule(new StringRule("discard"), "class ", new StringRule("slice"));
+        return SplitRule.Last(new StringRule("discard"), "class ", new StringRule("slice"));
     }
 
     private static String generateClassHeader(final Node node) {

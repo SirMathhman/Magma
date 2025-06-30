@@ -2,6 +2,7 @@ package magma.rule;
 
 import magma.api.Tuple;
 import magma.node.Node;
+import magma.rule.locate.LastLocator;
 import magma.rule.split.InfixSplitter;
 import magma.rule.split.Splitter;
 
@@ -12,10 +13,14 @@ public final class SplitRule implements Rule {
     private final Rule rightRule;
     private final Splitter splitter;
 
-    public SplitRule(final Rule leftRule, final String infix, final Rule rightRule) {
+    private SplitRule(final Rule leftRule, final Rule rightRule, final Splitter splitter) {
         this.leftRule = leftRule;
         this.rightRule = rightRule;
-        this.splitter = new InfixSplitter(infix);
+        this.splitter = splitter;
+    }
+
+    public static Rule Last(final Rule leftRule, final String infix, final Rule rightRule) {
+        return new SplitRule(leftRule, rightRule, new InfixSplitter(infix, new LastLocator()));
     }
 
     @Override
