@@ -1,31 +1,40 @@
 @startuml
 skinparam linetype ortho
 class PrefixRule
+
 PrefixRule <-- Node
 PrefixRule <-- Optional
 class StripRule
+
 StripRule <-- Node
 StripRule <-- Optional
 class OrRule
+
 OrRule <-- Node
 OrRule <-- List
 OrRule <-- Optional
 class TypeRule
+
 TypeRule <-- Node
 TypeRule <-- Optional
 class StringRule
+
 StringRule <-- MapNode
 StringRule <-- Node
 StringRule <-- Optional
 class Splitter
+
 Splitter <-- Tuple
 Splitter <-- Optional
 class Locator
+
 Locator <-- Optional
 class SuffixRule
+
 SuffixRule <-- Node
 SuffixRule <-- Optional
 class SplitRule
+
 SplitRule <-- Tuple
 SplitRule <-- Node
 SplitRule <-- FirstLocator
@@ -34,13 +43,17 @@ SplitRule <-- InfixSplitter
 SplitRule <-- Splitter
 SplitRule <-- Optional
 class FirstLocator
+
 FirstLocator <-- Optional
 class LastLocator
+
 LastLocator <-- Optional
 class Rule
+
 Rule <-- Node
 Rule <-- Optional
 class Main
+
 Main <-- Tuple
 Main <-- DivideState
 Main <-- MutableDivideState
@@ -105,18 +118,20 @@ class Main {
 
             final var output = Main.compile(input, parent);
             outputRootSegments.add("class " + parent);
-            outputRootSegments.addAll(output);
+            outputRootSegments.add(output);
         }
 
         outputRootSegments.add("@enduml");
         return outputRootSegments;
     }
 
-    private static List<String> compile(final CharSequence input, final String parent) {
+    private static String compile(final CharSequence input, final String parent) {
         final var segments = Main.divide(input).toList();
-        final List<String> output = new ArrayList<>();
-        for (final var segment : segments) Main.compileRootSegment(segment, parent).ifPresent(output::add);
-        return output;
+        var buffer = new StringBuilder();
+        for (final var segment : segments)
+            buffer = Main.compileRootSegment(segment, parent).map(buffer::append).orElse(buffer);
+
+        return buffer.toString();
     }
 
     private static Optional<String> compileRootSegment(final String input, final String parent) {
@@ -132,11 +147,12 @@ class Main {
         return node;
     }
 
-    private static OrRule createPlantRootSegmentRule() {
-        return new OrRule(List.of(Main.createDependencyRule(), Main.createPlantStructureRule()));
+    private static Rule createPlantRootSegmentRule() {
+        final var options = new OrRule(List.of(Main.createDependencyRule(), Main.createPlantStructureRule()));
+        return new SuffixRule(options, Main.LINE_SEPARATOR);
     }
 
-    private static OrRule createJavaRootSegmentRule() {
+    private static Rule createJavaRootSegmentRule() {
         return new OrRule(List.of(Main.createImportRule(), Main.createDependencyRule()));
     }
 
@@ -228,25 +244,31 @@ class Main {
 }
 
 class Node
+
 Node <-- Tuple
 Node <-- Optional
 Node <-- Stream
 class MutableDivideState
+
 MutableDivideState <-- Tuple
 MutableDivideState <-- ArrayList
 MutableDivideState <-- List
 MutableDivideState <-- Optional
 MutableDivideState <-- Stream
 class InfixSplitter
+
 InfixSplitter <-- Tuple
 InfixSplitter <-- Locator
 InfixSplitter <-- Optional
 class Tuple
+
 class DivideState
+
 DivideState <-- Tuple
 DivideState <-- Optional
 DivideState <-- Stream
 class MapNode
+
 MapNode <-- Tuple
 MapNode <-- HashMap
 MapNode <-- Map

@@ -64,18 +64,20 @@ class Main {
 
             final var output = Main.compile(input, parent);
             outputRootSegments.add("class " + parent);
-            outputRootSegments.addAll(output);
+            outputRootSegments.add(output);
         }
 
         outputRootSegments.add("@enduml");
         return outputRootSegments;
     }
 
-    private static List<String> compile(final CharSequence input, final String parent) {
+    private static String compile(final CharSequence input, final String parent) {
         final var segments = Main.divide(input).toList();
-        final List<String> output = new ArrayList<>();
-        for (final var segment : segments) Main.compileRootSegment(segment, parent).ifPresent(output::add);
-        return output;
+        var buffer = new StringBuilder();
+        for (final var segment : segments)
+            buffer = Main.compileRootSegment(segment, parent).map(buffer::append).orElse(buffer);
+
+        return buffer.toString();
     }
 
     private static Optional<String> compileRootSegment(final String input, final String parent) {
@@ -91,11 +93,12 @@ class Main {
         return node;
     }
 
-    private static OrRule createPlantRootSegmentRule() {
-        return new OrRule(List.of(Main.createDependencyRule(), Main.createPlantStructureRule()));
+    private static Rule createPlantRootSegmentRule() {
+        final var options = new OrRule(List.of(Main.createDependencyRule(), Main.createPlantStructureRule()));
+        return new SuffixRule(options, Main.LINE_SEPARATOR);
     }
 
-    private static OrRule createJavaRootSegmentRule() {
+    private static Rule createJavaRootSegmentRule() {
         return new OrRule(List.of(Main.createImportRule(), Main.createDependencyRule()));
     }
 
