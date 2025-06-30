@@ -30,14 +30,14 @@ public class Lang {
     }
 
     public static Rule<EverythingNode, NodeResult<EverythingNode>, StringResult> createJavaRootSegmentRule() {
-        final var header = (Rule<EverythingNode, NodeResult<EverythingNode>, StringResult>) new OrRule(
-                List.of(Lang.createClassHeaderRule("class"), Lang.createClassHeaderRule("interface"),
-                        Lang.createRecordHeaderRule(), new StringRule("value")));
-
-
-        final var rules = new ArrayList<>(List.of(Lang.createImportRule()));
-        rules.add(Lang.getTypeRule(header));
+        final var rules = new ArrayList<>(List.of(Lang.createImportRule(), Lang.getTypeRule(), new StringRule("value")));
         return new OrRule(rules);
+    }
+
+    private static Rule<EverythingNode, NodeResult<EverythingNode>, StringResult> getTypeRule() {
+        return Lang.getTypeRule(new OrRule(
+                List.of(Lang.createClassHeaderRule("class"), Lang.createClassHeaderRule("interface"),
+                        Lang.createRecordHeaderRule())));
     }
 
     private static Rule<EverythingNode, NodeResult<EverythingNode>, StringResult> createImportRule() {
