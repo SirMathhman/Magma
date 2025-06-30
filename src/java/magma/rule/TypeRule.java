@@ -23,6 +23,6 @@ public record TypeRule<Node extends TypedNode<Node>>(String type, Rule<Node, Nod
     @Override
     public StringResult generate(final Node node) {
         return this.generate0(node).<StringResult>map(StringOk::new).orElseGet(() -> new StringErr(new CompileError(
-                this.getClass().getName())));
+                this.getClass().getName(), "?")));
     }
 }

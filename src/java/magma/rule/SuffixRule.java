@@ -10,7 +10,7 @@ public record SuffixRule(Rule<EverythingNode, NodeResult<EverythingNode>, String
     @Override
     public NodeResult<EverythingNode> lex(final String input) {
         final var length = input.length();
-        if (!input.endsWith(this.suffix)) return NodeErr.create("Suffix '" + this.suffix + "' not present");
+        if (!input.endsWith(this.suffix)) return NodeErr.create("Suffix '" + this.suffix + "' not present", input);
 
         final var suffixLength = this.suffix.length();
         final var substring = input.substring(0, length - suffixLength);

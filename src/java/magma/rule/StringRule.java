@@ -24,12 +24,12 @@ public record StringRule(String key) implements Rule<EverythingNode, NodeResult<
     @Override
     public NodeResult<EverythingNode> lex(final String input) {
         return this.lex0(input).<NodeResult<EverythingNode>>map(NodeOk::new).orElseGet(
-                () -> new NodeErr<EverythingNode>(new CompileError(this.getClass().getName())));
+                () -> new NodeErr<EverythingNode>(new CompileError(this.getClass().getName(), input)));
     }
 
     @Override
     public StringResult generate(final EverythingNode node) {
         return this.generate0(node).<StringResult>map(StringOk::new).orElseGet(() -> new StringErr(new CompileError(
-                this.getClass().getName())));
+                this.getClass().getName(), "?")));
     }
 }

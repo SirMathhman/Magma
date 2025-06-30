@@ -52,13 +52,13 @@ public record OrRule(List<Rule<EverythingNode, NodeResult<EverythingNode>, Strin
                              return result.match(accumulator::withValue, accumulator::withError);
                          }, (_, next) -> next)
                          .<NodeResult<EverythingNode>>match(NodeOk::new, errors -> new NodeErr<>(
-                                 new CompileError("No valid combination present", errors)));
+                                 new CompileError("No valid combination present", "?", errors)));
     }
 
     @Override
     public StringResult generate(final EverythingNode node) {
         return this.generate0(node)
                    .<StringResult>map(StringOk::new)
-                   .orElseGet(() -> new StringErr(new CompileError(this.getClass().getName())));
+                   .orElseGet(() -> new StringErr(new CompileError(this.getClass().getName(), "?")));
     }
 }

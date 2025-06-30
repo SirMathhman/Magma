@@ -7,8 +7,8 @@ import java.util.Optional;
 import java.util.function.Function;
 
 public record NodeErr<Node>(CompileError error) implements NodeResult<Node> {
-    public static NodeResult<EverythingNode> create(final String message) {
-        return new NodeErr<>(new CompileError(message));
+    public static NodeResult<EverythingNode> create(final String message, final String input) {
+        return new NodeErr<>(new CompileError(message, input));
     }
 
     @Override
