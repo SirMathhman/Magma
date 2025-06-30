@@ -95,16 +95,9 @@ class Main {
     }
 
     private static Optional<Node> compileStructure(final String input) {
-        final var strip = input.strip();
-        final var stripLength = strip.length();
-        if (strip.isEmpty() || '}' != strip.charAt(stripLength - 1)) return Optional.empty();
-        final var suffixLength = "}".length();
-        final var substring = strip.substring(0, stripLength - suffixLength);
-
-        final var contentStart = substring.indexOf('{');
-        if (0 > contentStart) return Optional.empty();
-        final var header = substring.substring(0, contentStart);
-        return Main.createStructureHeaderRule().lex(header);
+        return new StripRule(
+                new SuffixRule(SplitRule.First(Main.createStructureHeaderRule(), "{", new StringRule("content")), "}")).lex(
+                input);
     }
 
     private static Rule createPlantStructureRule() {
