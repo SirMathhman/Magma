@@ -6,6 +6,7 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.stream.Stream;
 
 public class Main {
     private static final String LINE_SEPARATOR = System.lineSeparator();
@@ -16,9 +17,8 @@ public class Main {
         try {
             final var source = Paths.get(".", "src", "java", "magma", "Main.java");
             final var input = Files.readString(source);
-            final var segments = Main.divide(input);
+            final var output = Main.compile(input);
             final var target = Paths.get(".", "diagram.puml");
-            final var output = Main.compile(segments);
             final var pre = List.of("@startuml", "skinparam linetype ortho", "class Main");
             final Collection<String> outputRootSegments = new ArrayList<>(pre);
             outputRootSegments.addAll(output);
@@ -32,7 +32,8 @@ public class Main {
         }
     }
 
-    private static List<String> compile(final Iterable<String> segments) {
+    private static List<String> compile(final CharSequence input) {
+        final var segments = Main.divide(input).toList();
         final List<String> output = new ArrayList<>();
         for (final var segment : segments) Main.compileRootSegment(segment, output);
         return output;
@@ -57,19 +58,26 @@ public class Main {
         }
     }
 
-    private static List<String> divide(final CharSequence input) {
-        final List<String> segments = new ArrayList<>();
-        var buffer = new StringBuilder();
-        final var length = input.length();
-        for (var i = 0; i < length; i++) {
-            final var c = input.charAt(i);
-            buffer.append(c);
-            if (';' == c) {
-                segments.add(buffer.toString());
-                buffer = new StringBuilder();
-            }
+    private static Stream<String> divide(final CharSequence input) {
+        return Main.compile(new MutableDivideState(input));
+    }
+
+    private static Stream<String> compile(final DivideState state) {
+        var current = state;
+        while (true) {
+            final var maybePopped = current.pop();
+            if (maybePopped.isEmpty()) break;
+
+            final var popped = maybePopped.get();
+            current = Main.fold(current, popped);
         }
-        segments.add(buffer.toString());
-        return segments;
+
+        return current.advance().stream();
+    }
+
+    private static DivideState fold(final DivideState current, final char next) {
+        final var appended = current.append(next);
+        if (';' == next) return appended.advance();
+        return appended;
     }
 }
