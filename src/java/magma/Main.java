@@ -111,13 +111,16 @@ public class Main {
         if (0 <= separator) {
             final var infixLength = ".".length();
             final var child = substring1.substring(separator + infixLength);
-            return Optional.of(Main.getValue(new MapNode().withString("parent", parent).withString("child", child)));
+            final var node = new MapNode().withString("parent", parent).withString("child", child);
+
+            final var generated = Main.generate(node);
+            return Optional.of(generated);
         }
 
         return Optional.empty();
     }
 
-    private static String getValue(final Node node) {
+    private static String generate(final Node node) {
         return node.find("parent").orElse("") + " <-- " + node.find("child").orElse("");
     }
 

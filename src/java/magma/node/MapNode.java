@@ -7,10 +7,8 @@ import java.util.Optional;
 public final class MapNode implements Node {
     private final Map<String, String> strings;
 
-    public MapNode(final Map<String, String> strings) {this.strings = strings;}
-
     public MapNode() {
-        this(new HashMap<>());
+        this.strings = new HashMap<>();
     }
 
     @Override
@@ -21,6 +19,7 @@ public final class MapNode implements Node {
 
     @Override
     public Optional<String> find(final String key) {
-        return Optional.ofNullable(this.strings.get(key));
+        final var maybeValue = this.strings.get(key);
+        return Optional.ofNullable(maybeValue);
     }
 }
