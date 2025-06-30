@@ -26,11 +26,12 @@ public record PrefixRule(String prefix, Rule<EverythingNode, NodeResult<Everythi
     @Override
     public NodeResult<EverythingNode> lex(final String input) {
         return this.lex0(input).<NodeResult<EverythingNode>>map(NodeOk::new).orElseGet(
-                () -> new NodeErr<EverythingNode>(new CompileError()));
+                () -> new NodeErr<EverythingNode>(new CompileError(this.getClass().getName())));
     }
 
     @Override
     public StringResult generate(final EverythingNode node) {
-        return this.generate0(node).<StringResult>map(StringOk::new).orElseGet(() -> new StringErr(new CompileError()));
+        return this.generate0(node).<StringResult>map(StringOk::new).orElseGet(() -> new StringErr(new CompileError(
+                this.getClass().getName())));
     }
 }

@@ -23,11 +23,12 @@ public record TypeRule<Node extends TypedNode<Node>>(String type, Rule<Node, Nod
     @Override
     public NodeResult<Node> lex(final String input) {
         return this.lex0(input).<NodeResult<Node>>map(NodeOk::new).orElseGet(
-                () -> new NodeErr<Node>(new CompileError()));
+                () -> new NodeErr<Node>(new CompileError(this.getClass().getName())));
     }
 
     @Override
     public StringResult generate(final Node node) {
-        return this.generate0(node).<StringResult>map(StringOk::new).orElseGet(() -> new StringErr(new CompileError()));
+        return this.generate0(node).<StringResult>map(StringOk::new).orElseGet(() -> new StringErr(new CompileError(
+                this.getClass().getName())));
     }
 }
