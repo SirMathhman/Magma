@@ -6,7 +6,9 @@ import magma.divide.MutableDivideState;
 import magma.node.Node;
 import magma.rule.FirstRule;
 import magma.rule.PrefixRule;
+import magma.rule.Rule;
 import magma.rule.StringRule;
+import magma.rule.StripRule;
 import magma.rule.SuffixRule;
 
 import java.io.IOException;
@@ -75,7 +77,16 @@ public class Main {
     }
 
     private static Optional<String> compileRootSegment(final String input, final String parent) {
-        return Main.compileImport(input, parent).or(() -> Main.compileStructure(input));
+        return Main.createImportRule()
+                   .lex(input)
+                   .map(child1 -> Main.modifyImport(parent, child1))
+                   .map(Main::generate)
+                   .or(() -> Main.compileStructure(input));
+    }
+
+    private static Rule createImportRule() {
+        return new StripRule(
+                new SuffixRule(new PrefixRule("import ", new FirstRule(".", new StringRule("child"))), ";"));
     }
 
     private static Optional<String> compileStructure(final String input) {
@@ -123,16 +134,6 @@ public class Main {
         final var infixLength = "class ".length();
         final var slice = header.substring(classIndex + infixLength);
         return Optional.of("class " + slice);
-    }
-
-    private static Optional<String> compileImport(final String input, final String parent) {
-        final var strip = input.strip();
-
-        return new SuffixRule(new PrefixRule("import ", new FirstRule(".", new StringRule("child"))), ";").lex(strip)
-                                                                                                          .map(child1 -> Main.modifyImport(
-                                                                                                                  parent,
-                                                                                                                  child1))
-                                                                                                          .map(Main::generate);
     }
 
     private static Node modifyImport(final String parent, final Node child1) {

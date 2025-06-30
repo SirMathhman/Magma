@@ -4,6 +4,10 @@ class PrefixRule
 PrefixRule <-- Node
 PrefixRule <-- Optional
 class PrefixRule implements Rule
+class StripRule
+StripRule <-- Node
+StripRule <-- Optional
+class StripRule implements Rule
 class SuffixRule
 SuffixRule <-- Node
 SuffixRule <-- Optional
@@ -23,7 +27,9 @@ Main <-- MutableDivideState
 Main <-- Node
 Main <-- FirstRule
 Main <-- PrefixRule
+Main <-- Rule
 Main <-- StringRule
+Main <-- StripRule
 Main <-- SuffixRule
 Main <-- IOException
 Main <-- Files
