@@ -8,19 +8,30 @@ class StripRule
 StripRule <-- Node
 StripRule <-- Optional
 class StripRule implements Rule
-class SuffixRule
-SuffixRule <-- Node
-SuffixRule <-- Optional
-class SuffixRule implements Rule
-class LastRule
-LastRule <-- Node
-LastRule <-- Optional
-class LastRule implements Rule
 class StringRule
 StringRule <-- MapNode
 StringRule <-- Node
 StringRule <-- Optional
 class StringRule implements Rule
+class Splitter
+Splitter <-- Tuple
+Splitter <-- Optional
+class Locator
+Locator <-- Optional
+class SuffixRule
+SuffixRule <-- Node
+SuffixRule <-- Optional
+class SuffixRule implements Rule
+class SplitRule
+SplitRule <-- Tuple
+SplitRule <-- Node
+SplitRule <-- InfixSplitter
+SplitRule <-- Splitter
+SplitRule <-- Optional
+class SplitRule implements Rule 
+class LastLocator
+LastLocator <-- Optional
+class LastLocator implements Locator 
 class Rule
 Rule <-- Node
 Rule <-- Optional
@@ -29,7 +40,7 @@ Main <-- Tuple
 Main <-- DivideState
 Main <-- MutableDivideState
 Main <-- Node
-Main <-- LastRule
+Main <-- SplitRule
 Main <-- PrefixRule
 Main <-- Rule
 Main <-- StringRule
@@ -58,6 +69,12 @@ MutableDivideState <-- List
 MutableDivideState <-- Optional
 MutableDivideState <-- Stream
 class MutableDivideState implements DivideState 
+class InfixSplitter
+InfixSplitter <-- Tuple
+InfixSplitter <-- LastLocator
+InfixSplitter <-- Locator
+InfixSplitter <-- Optional
+class InfixSplitter implements Splitter 
 class Tuple
 class Tuple<Left, Right> 
 class DivideState

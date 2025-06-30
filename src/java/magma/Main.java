@@ -4,9 +4,9 @@ import magma.api.Tuple;
 import magma.divide.DivideState;
 import magma.divide.MutableDivideState;
 import magma.node.Node;
-import magma.rule.LastRule;
 import magma.rule.PrefixRule;
 import magma.rule.Rule;
+import magma.rule.SplitRule;
 import magma.rule.StringRule;
 import magma.rule.StripRule;
 import magma.rule.SuffixRule;
@@ -86,7 +86,7 @@ class Main {
 
     private static Rule createImportRule() {
         final var child = new StringRule("child");
-        return new StripRule(new SuffixRule(new PrefixRule("import ", new LastRule(new StringRule("discard"), ".", child)), ";"));
+        return new StripRule(new SuffixRule(new PrefixRule("import ", new SplitRule(new StringRule("discard"), ".", child)), ";"));
     }
 
     private static Optional<String> compileStructure(final String input) {
@@ -130,7 +130,7 @@ class Main {
     }
 
     private static Rule createClassHeaderRule() {
-        return new LastRule(new StringRule("discard"), "class ", new StringRule("slice"));
+        return new SplitRule(new StringRule("discard"), "class ", new StringRule("slice"));
     }
 
     private static String generateClassHeader(final Node node) {
