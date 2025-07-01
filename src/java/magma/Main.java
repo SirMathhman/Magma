@@ -4,7 +4,8 @@ import magma.error.ApplicationError;
 import magma.error.Error;
 import magma.error.FormatError;
 import magma.error.ThrowableError;
-import magma.lang.Lang;
+import magma.lang.JavaLang;
+import magma.lang.PlantLang;
 import magma.node.EverythingNode;
 import magma.node.MapNode;
 import magma.node.result.NodeResult;
@@ -117,13 +118,13 @@ class Main {
         return everythingNodeRule.lex(input).match(root -> {
             final var newChildren = Main.modify(parent, root);
             final Rule<EverythingNode, NodeResult<EverythingNode>, StringResult<FormatError>> everythingNodeRule1 =
-                    Lang.createPlantRootRule();
+                    PlantLang.createPlantRootRule();
             return everythingNodeRule1.generate(newChildren);
         }, StringErr::new);
     }
 
     private static Rule<EverythingNode, NodeResult<EverythingNode>, StringResult<FormatError>> createJavaRootRule() {
-        return new DivideRule("children", Lang.createJavaRootSegmentRule());
+        return new DivideRule("children", JavaLang.createJavaRootSegmentRule());
     }
 
     private static EverythingNode modify(final String parent, final EverythingNode root) {
