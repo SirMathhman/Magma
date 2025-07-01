@@ -19,7 +19,7 @@ import magma.string.result.StringResult;
 import java.util.List;
 
 public class JavaLang {
-    private static final ResultFactory<StringResult<FormatError>> FACTORY = ResultFactoryImpl.createResultFactory();
+    private static final ResultFactory<EverythingNode, StringResult<FormatError>> FACTORY = ResultFactoryImpl.get();
 
     private JavaLang() {}
 
@@ -41,7 +41,7 @@ public class JavaLang {
     private static Rule<EverythingNode, NodeResult<EverythingNode>, StringResult<FormatError>> createStructureHeaderRule(
             final String type) {
         final Rule<EverythingNode, NodeResult<EverythingNode>, StringResult<FormatError>> name =
-                new StripRule(new IdentifierRule(new StringRule("name")));
+                new StripRule(new IdentifierRule<EverythingNode>(new StringRule("name"), ResultFactoryImpl.get()));
 
         final var withTypeParameters =
                 new SuffixRule(SplitRule.First(name, "<", new StringRule("type-parameters")), ">");

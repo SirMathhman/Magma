@@ -8,11 +8,11 @@ public final class TypeRule<Node extends TypedNode<Node>, StringResult>
         implements Rule<Node, NodeResult<Node>, StringResult> {
     private final String type;
     private final Rule<Node, NodeResult<Node>, StringResult> rule;
-    private final ResultFactory<StringResult> factory;
+    private final ResultFactory<Node, StringResult> factory;
 
     public TypeRule(final String type,
                     final Rule<Node, NodeResult<Node>, StringResult> rule,
-                    final ResultFactory<StringResult> factory) {
+                    final ResultFactory<Node, StringResult> factory) {
         this.type = type;
         this.rule = rule;
         this.factory = factory;
@@ -26,6 +26,6 @@ public final class TypeRule<Node extends TypedNode<Node>, StringResult>
     @Override
     public StringResult generate(final Node node) {
         if (node.is(this.type)) return this.rule.generate(node);
-        return this.factory.create("Type '" + this.type + "' not present", node);
+        return this.factory.createStringError("Type '" + this.type + "' not present", node);
     }
 }

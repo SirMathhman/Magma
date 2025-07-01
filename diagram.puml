@@ -101,6 +101,7 @@ StripRule <-- NodeResult
 StripRule <-- StringResult
 class StripRule implements Rule
 TypeRule <-- ResultFactory
+TypeRule <-- EverythingNode
 TypeRule <-- TypedNode
 TypeRule <-- NodeResult
 class TypeRule<Node extends TypedNode<Node>, StringResult> implements Rule
@@ -148,10 +149,9 @@ class ThrowableError
 Matchable <-- Function
 interface Matchable<Value, Error>
 ResultFactory <-- FormatError
-ResultFactory <-- EverythingNode
-ResultFactory <-- TypedNode
+ResultFactory <-- NodeResult
 ResultFactory <-- List
-interface ResultFactory<StringResult>
+interface ResultFactory<Node, StringResult>
 InfixSplitter <-- Tuple
 InfixSplitter <-- Locator
 InfixSplitter <-- Optional
@@ -176,7 +176,8 @@ class Err<Value, Error> implements Result
 ResultFactoryImpl <-- CompileError
 ResultFactoryImpl <-- FormatError
 ResultFactoryImpl <-- EverythingNode
-ResultFactoryImpl <-- TypedNode
+ResultFactoryImpl <-- NodeErr
+ResultFactoryImpl <-- NodeResult
 ResultFactoryImpl <-- StringErr
 ResultFactoryImpl <-- StringResult
 ResultFactoryImpl <-- List
@@ -203,13 +204,12 @@ PlantLang <-- List
 class PlantLang
 Locator <-- Optional
 interface Locator
+IdentifierRule <-- ResultFactory
 IdentifierRule <-- FormatError
-IdentifierRule <-- EverythingNode
-IdentifierRule <-- NodeErr
 IdentifierRule <-- NodeResult
 IdentifierRule <-- StringResult
 IdentifierRule <-- IntStream
-class IdentifierRule implements Rule
+class IdentifierRule<Node> implements Rule
 Main <-- ApplicationError
 Main <-- Error
 Main <-- FormatError

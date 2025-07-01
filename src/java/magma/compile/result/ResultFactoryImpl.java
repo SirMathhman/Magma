@@ -3,29 +3,36 @@ package magma.compile.result;
 import magma.error.CompileError;
 import magma.error.FormatError;
 import magma.node.EverythingNode;
-import magma.node.TypedNode;
+import magma.node.result.NodeErr;
+import magma.node.result.NodeResult;
 import magma.string.result.StringErr;
 import magma.string.result.StringResult;
 
 import java.util.List;
 
-public class ResultFactoryImpl implements ResultFactory<StringResult<FormatError>> {
+public class ResultFactoryImpl implements ResultFactory<EverythingNode, StringResult<FormatError>> {
     private ResultFactoryImpl() {
     }
 
-    public static ResultFactory<StringResult<FormatError>> createResultFactory() {
+    public static ResultFactory<EverythingNode, StringResult<FormatError>> get() {
         return new ResultFactoryImpl();
     }
 
+
     @Override
-    public <Node extends TypedNode<Node>> StringResult<FormatError> create(final String message, final Node node) {
-        return new StringErr<>(new CompileError(message, node.toString()));
+    public StringResult<FormatError> createStringError(final String message, final EverythingNode everythingNode) {
+        return new StringErr<>(new CompileError(message, everythingNode.toString()));
     }
 
     @Override
-    public StringResult<FormatError> createWithChildren(final String message,
-                                                        final EverythingNode node,
-                                                        final List<FormatError> errors) {
-        return new StringErr<>(new CompileError(message, node.toString(), errors));
+    public StringResult<FormatError> createStringErrorWithChildren(final String message,
+                                                                   final EverythingNode context,
+                                                                   final List<FormatError> errors) {
+        return new StringErr<>(new CompileError(message, context.toString(), errors));
+    }
+
+    @Override
+    public NodeResult<EverythingNode> createNodeError(final String message, final String context) {
+        return new NodeErr<>(new CompileError(message, context));
     }
 }

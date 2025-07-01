@@ -36,7 +36,7 @@ public class PlantLang {
     private static Rule<EverythingNode, NodeResult<EverythingNode>, StringResult<FormatError>> createTypedPlantStructureRule(
             final String type) {
         return new TypeRule<>(type, new PrefixRule(type + " ", new StringRule("content")),
-                              ResultFactoryImpl.createResultFactory());
+                              ResultFactoryImpl.get());
     }
 
     private static Rule<EverythingNode, NodeResult<EverythingNode>, StringResult<FormatError>> createDependencyRule() {

@@ -40,7 +40,7 @@ public record OrRule(List<Rule<EverythingNode, NodeResult<EverythingNode>, Strin
     @Override
     public StringResult<FormatError> generate(final EverythingNode node) {
         return this.or(rule -> rule.generate(node))
-                   .match(StringOk::new, errors -> ResultFactoryImpl.createResultFactory().createWithChildren(
+                   .match(StringOk::new, errors -> ResultFactoryImpl.get().createStringErrorWithChildren(
                            "No valid combination present", node, errors));
     }
 }
