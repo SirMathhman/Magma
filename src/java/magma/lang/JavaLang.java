@@ -49,13 +49,15 @@ public class JavaLang {
         final Rule<EverythingNode, NodeResult<EverythingNode>, StringResult<FormatError>> params =
                 new StringRule("params");
 
-        final var withParams = SplitRule.First(name, "(", params);
+        final var name1 = new OrRule(List.of(new StripRule(
+                new SuffixRule(SplitRule.First(name, "<", new StringRule("type-parameters")), ">")), name));
+        final var withParams = SplitRule.First(name1, "(", params);
         final var afterKeyword = SplitRule.First(withParams, ")", new StringRule("more"));
-        final var rightRule = new OrRule(List.of(afterKeyword, name));
+        final var rightRule = new OrRule(List.of(afterKeyword, name1));
         final var header = SplitRule.First(modifiers, type + " ", rightRule);
 
         final Rule<EverythingNode, NodeResult<EverythingNode>, StringResult<FormatError>> header1 =
-                new OrRule(List.of(SplitRule.Last(header, " extends ", JavaLang.createTypeRule()), header));
+                new OrRule(List.of(SplitRule.Last(header, "extends ", JavaLang.createTypeRule()), header));
         return new OrRule(List.of(SplitRule.Last(header1, "implements", JavaLang.createTypeRule()), header1));
     }
 
