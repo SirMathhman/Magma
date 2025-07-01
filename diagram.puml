@@ -122,12 +122,12 @@ class ApplicationError
 NodeListErr <-- FormatError
 class NodeListErr<Node> implements NodeListResult
 DivideRule <-- Tuple
+DivideRule <-- ResultFactory
+DivideRule <-- ResultFactoryImpl
 DivideRule <-- DivideState
 DivideRule <-- MutableDivideState
 DivideRule <-- FormatError
 DivideRule <-- EverythingNode
-DivideRule <-- MapNodeFactory
-DivideRule <-- NodeListOk
 DivideRule <-- NodeListResult
 DivideRule <-- NodeResult
 DivideRule <-- StringResult
@@ -143,8 +143,9 @@ class ThrowableError
 Matchable <-- Function
 interface Matchable<Value, Error>
 ResultFactory <-- FormatError
+ResultFactory <-- EverythingNode
+ResultFactory <-- NodeListResult
 ResultFactory <-- NodeResult
-ResultFactory <-- StringResult
 ResultFactory <-- List
 interface ResultFactory<Node, StringResult>
 InfixSplitter <-- Tuple
@@ -170,7 +171,10 @@ class Err<Value, Error> implements Result
 ResultFactoryImpl <-- CompileError
 ResultFactoryImpl <-- FormatError
 ResultFactoryImpl <-- EverythingNode
+ResultFactoryImpl <-- MapNodeFactory
 ResultFactoryImpl <-- NodeErr
+ResultFactoryImpl <-- NodeListOk
+ResultFactoryImpl <-- NodeListResult
 ResultFactoryImpl <-- NodeOk
 ResultFactoryImpl <-- NodeResult
 ResultFactoryImpl <-- StringOk

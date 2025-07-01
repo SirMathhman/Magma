@@ -1,12 +1,12 @@
 package magma.rule;
 
 import magma.api.Tuple;
+import magma.compile.result.ResultFactory;
+import magma.compile.result.ResultFactoryImpl;
 import magma.divide.DivideState;
 import magma.divide.MutableDivideState;
 import magma.error.FormatError;
 import magma.node.EverythingNode;
-import magma.node.factory.MapNodeFactory;
-import magma.node.result.NodeListOk;
 import magma.node.result.NodeListResult;
 import magma.node.result.NodeResult;
 import magma.string.result.StringResult;
@@ -14,8 +14,17 @@ import magma.string.result.StringResult;
 import java.util.Collections;
 import java.util.stream.Stream;
 
-public record DivideRule(String key, Rule<EverythingNode, NodeResult<EverythingNode>, StringResult<FormatError>> rule)
-        implements Rule<EverythingNode, NodeResult<EverythingNode>, StringResult<FormatError>> {
+public final class DivideRule implements Rule<EverythingNode, NodeResult<EverythingNode>, StringResult<FormatError>> {
+    private final String key;
+    private final Rule<EverythingNode, NodeResult<EverythingNode>, StringResult<FormatError>> rule;
+    private final ResultFactory<EverythingNode, StringResult<FormatError>> resultFactory;
+
+    public DivideRule(final String key, final Rule<EverythingNode, NodeResult<EverythingNode>, StringResult<FormatError>> rule) {
+        this.key = key;
+        this.rule = rule;
+        this.resultFactory = ResultFactoryImpl.get();
+    }
+
     private static Stream<String> divide(final CharSequence input) {
         var current = new Tuple<>(true, (DivideState) new MutableDivideState(input));
         while (current.left()) {
@@ -50,7 +59,7 @@ public record DivideRule(String key, Rule<EverythingNode, NodeResult<EverythingN
     public NodeResult<EverythingNode> lex(final String input) {
         return DivideRule.divide(input)
                          .map(this.rule::lex)
-                         .<NodeListResult<EverythingNode>>reduce(new NodeListOk<EverythingNode>(new MapNodeFactory()), NodeListResult::add, (_, next) -> next)
+                         .reduce(this.resultFactory.createNodeList(), NodeListResult::add, (_, next) -> next)
                          .toNode(this.key);
     }
 
@@ -60,6 +69,6 @@ public record DivideRule(String key, Rule<EverythingNode, NodeResult<EverythingN
                    .orElse(Collections.emptyList())
                    .stream()
                    .map(this.rule::generate)
-                   .<StringResult<FormatError>>reduce(new StringOk(), StringResult::appendResult, (_, next) -> next);
+                   .reduce(this.resultFactory.createString(), StringResult::appendResult, (_, next) -> next);
     }
 }

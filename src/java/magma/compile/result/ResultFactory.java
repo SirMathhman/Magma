@@ -1,11 +1,15 @@
 package magma.compile.result;
 
 import magma.error.FormatError;
+import magma.node.EverythingNode;
+import magma.node.result.NodeListResult;
 import magma.node.result.NodeResult;
 
 import java.util.List;
 
 public interface ResultFactory<Node, StringResult> {
+    NodeListResult<EverythingNode> createNodeList();
+
     StringResult createStringError(String message, Node node);
 
     StringResult createStringErrorWithChildren(String message, Node context, List<FormatError> errors);
@@ -17,4 +21,6 @@ public interface ResultFactory<Node, StringResult> {
     NodeResult<Node> createNode(Node node);
 
     StringResult createString(String value);
+
+    StringResult createString();
 }

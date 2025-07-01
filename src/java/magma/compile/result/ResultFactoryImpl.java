@@ -3,7 +3,10 @@ package magma.compile.result;
 import magma.error.CompileError;
 import magma.error.FormatError;
 import magma.node.EverythingNode;
+import magma.node.factory.MapNodeFactory;
 import magma.node.result.NodeErr;
+import magma.node.result.NodeListOk;
+import magma.node.result.NodeListResult;
 import magma.node.result.NodeOk;
 import magma.node.result.NodeResult;
 import magma.rule.StringOk;
@@ -20,6 +23,10 @@ public class ResultFactoryImpl implements ResultFactory<EverythingNode, StringRe
         return new ResultFactoryImpl();
     }
 
+    @Override
+    public NodeListResult<EverythingNode> createNodeList() {
+        return new NodeListOk<>(new MapNodeFactory());
+    }
 
     @Override
     public StringResult<FormatError> createStringError(final String message, final EverythingNode everythingNode) {
@@ -53,5 +60,10 @@ public class ResultFactoryImpl implements ResultFactory<EverythingNode, StringRe
     @Override
     public StringResult<FormatError> createString(final String value) {
         return new StringOk(value);
+    }
+
+    @Override
+    public StringResult<FormatError> createString() {
+        return new StringOk("");
     }
 }
