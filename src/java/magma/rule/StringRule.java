@@ -9,11 +9,11 @@ import magma.string.result.StringResult;
 public final class StringRule<Node extends NodeWithStrings<Node>, Error>
         implements Rule<Node, NodeResult<Node, Error, StringResult<Error>>, StringResult<Error>> {
     private final String key;
-    private final ResultFactory<Node, Error, StringResult<Error>> resultFactory;
+    private final ResultFactory<Node, Error, StringResult<Error>, NodeResult<Node, Error, StringResult<Error>>> resultFactory;
     private final NodeFactory<Node> nodeFactory;
 
     public StringRule(final String key,
-                      final ResultFactory<Node, Error, StringResult<Error>> resultFactory,
+                      final ResultFactory<Node, Error, StringResult<Error>, NodeResult<Node, Error, StringResult<Error>>> resultFactory,
                       final NodeFactory<Node> nodeFactory) {
         this.key = key;
         this.resultFactory = resultFactory;

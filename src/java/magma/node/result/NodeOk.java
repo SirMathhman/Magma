@@ -23,7 +23,7 @@ public record NodeOk<Node, Error>(Node node) implements NodeResult<Node, Error, 
 
     @Override
     public NodeResult<Node, Error, StringResult<Error>> mapErr(final String message, final String context,
-                                                               final ResultFactory<Node, Error, StringResult<Error>> factory) {
+                                                               final ResultFactory<Node, Error, StringResult<Error>, NodeResult<Node, Error, StringResult<Error>>> factory) {
         return this;
     }
 }

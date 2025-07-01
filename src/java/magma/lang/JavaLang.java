@@ -19,7 +19,7 @@ import magma.string.result.StringResult;
 import java.util.List;
 
 public class JavaLang {
-    private static final ResultFactory<EverythingNode, FormatError, StringResult<FormatError>> FACTORY = ResultFactoryImpl.get();
+    private static final ResultFactory<EverythingNode, FormatError, StringResult<FormatError>, NodeResult<EverythingNode, FormatError, StringResult<FormatError>>> FACTORY = ResultFactoryImpl.get();
 
     private JavaLang() {}
 

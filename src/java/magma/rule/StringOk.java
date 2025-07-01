@@ -2,14 +2,9 @@ package magma.rule;
 
 import magma.string.result.StringResult;
 
-import java.util.Optional;
 import java.util.function.Function;
 
 public record StringOk<FormatError>(String value) implements StringResult<FormatError> {
-    @Override
-    public Optional<String> toOptional() {
-        return Optional.of(this.value);
-    }
 
     @Override
     public StringResult<FormatError> appendResult(final StringResult<FormatError> other) {

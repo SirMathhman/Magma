@@ -12,12 +12,12 @@ public final class SplitRule<Node extends MergingNode<Node>, Error>
     private final Rule<Node, NodeResult<Node, Error, StringResult<Error>>, StringResult<Error>> leftRule;
     private final Rule<Node, NodeResult<Node, Error, StringResult<Error>>, StringResult<Error>> rightRule;
     private final Splitter splitter;
-    private final ResultFactory<Node, Error, StringResult<Error>> factory;
+    private final ResultFactory<Node, Error, StringResult<Error>, NodeResult<Node, Error, StringResult<Error>>> factory;
 
     public SplitRule(final Rule<Node, NodeResult<Node, Error, StringResult<Error>>, StringResult<Error>> leftRule,
                      final Rule<Node, NodeResult<Node, Error, StringResult<Error>>, StringResult<Error>> rightRule,
                      final Splitter splitter,
-                     final ResultFactory<Node, Error, StringResult<Error>> factory) {
+                     final ResultFactory<Node, Error, StringResult<Error>, NodeResult<Node, Error, StringResult<Error>>> factory) {
         this.leftRule = leftRule;
         this.rightRule = rightRule;
         this.splitter = splitter;

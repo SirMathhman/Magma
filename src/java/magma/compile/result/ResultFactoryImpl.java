@@ -15,11 +15,11 @@ import magma.string.result.StringResult;
 
 import java.util.List;
 
-public class ResultFactoryImpl implements ResultFactory<EverythingNode, FormatError, StringResult<FormatError>> {
+public class ResultFactoryImpl implements ResultFactory<EverythingNode, FormatError, StringResult<FormatError>, NodeResult<EverythingNode, FormatError, StringResult<FormatError>>> {
     private ResultFactoryImpl() {
     }
 
-    public static ResultFactory<EverythingNode, FormatError, StringResult<FormatError>> get() {
+    public static ResultFactory<EverythingNode, FormatError, StringResult<FormatError>, NodeResult<EverythingNode, FormatError, StringResult<FormatError>>> get() {
         return new ResultFactoryImpl();
     }
 

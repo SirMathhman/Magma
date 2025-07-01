@@ -7,11 +7,11 @@ import magma.string.result.StringResult;
 public final class SuffixRule<Node, Error> implements Rule<Node, NodeResult<Node, Error, StringResult<Error>>, StringResult<Error>> {
     private final Rule<Node, NodeResult<Node, Error, StringResult<Error>>, StringResult<Error>> rule;
     private final String suffix;
-    private final ResultFactory<Node, Error, StringResult<Error>> factory;
+    private final ResultFactory<Node, Error, StringResult<Error>, NodeResult<Node, Error, StringResult<Error>>> factory;
 
     public SuffixRule(final Rule<Node, NodeResult<Node, Error, StringResult<Error>>, StringResult<Error>> rule,
                       final String suffix,
-                      final ResultFactory<Node, Error, StringResult<Error>> factory) {
+                      final ResultFactory<Node, Error, StringResult<Error>, NodeResult<Node, Error, StringResult<Error>>> factory) {
         this.rule = rule;
         this.suffix = suffix;
         this.factory = factory;

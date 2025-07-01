@@ -14,10 +14,10 @@ import java.util.function.Function;
 
 public final class OrRule<Node, Error> implements Rule<Node, NodeResult<Node, Error, StringResult<Error>>, StringResult<Error>> {
     private final List<Rule<Node, NodeResult<Node, Error, StringResult<Error>>, StringResult<Error>>> rules;
-    private final ResultFactory<Node, Error, StringResult<Error>> factory;
+    private final ResultFactory<Node, Error, StringResult<Error>, NodeResult<Node, Error, StringResult<Error>>> factory;
 
     public OrRule(final List<Rule<Node, NodeResult<Node, Error, StringResult<Error>>, StringResult<Error>>> rules,
-                  final ResultFactory<Node, Error, StringResult<Error>> factory) {
+                  final ResultFactory<Node, Error, StringResult<Error>, NodeResult<Node, Error, StringResult<Error>>> factory) {
         this.rules = new ArrayList<>(rules);
         this.factory = factory;
     }

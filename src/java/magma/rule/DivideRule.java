@@ -16,11 +16,11 @@ public final class DivideRule<Node extends NodeWithNodeLists<Node>, Error>
         implements Rule<Node, NodeResult<Node, Error, StringResult<Error>>, StringResult<Error>> {
     private final String key;
     private final Rule<Node, NodeResult<Node, Error, StringResult<Error>>, StringResult<Error>> rule;
-    private final ResultFactory<Node, Error, StringResult<Error>> resultFactory;
+    private final ResultFactory<Node, Error, StringResult<Error>, NodeResult<Node, Error, StringResult<Error>>> resultFactory;
 
     public DivideRule(final String key,
                       final Rule<Node, NodeResult<Node, Error, StringResult<Error>>, StringResult<Error>> rule,
-                      final ResultFactory<Node, Error, StringResult<Error>> resultFactory) {
+                      final ResultFactory<Node, Error, StringResult<Error>, NodeResult<Node, Error, StringResult<Error>>> resultFactory) {
         this.key = key;
         this.rule = rule;
         this.resultFactory = resultFactory;

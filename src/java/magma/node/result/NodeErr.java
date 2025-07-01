@@ -26,7 +26,7 @@ public record NodeErr<Node, Error>(Error error) implements NodeResult<Node, Erro
     @Override
     public NodeResult<Node, Error, StringResult<Error>> mapErr(final String message,
                                                                final String context,
-                                                               final ResultFactory<Node, Error, StringResult<Error>> factory) {
+                                                               final ResultFactory<Node, Error, StringResult<Error>, NodeResult<Node, Error, StringResult<Error>>> factory) {
         return factory.createNodeErrorWithChildren(message, context, List.of(this.error));
     }
 }

@@ -72,7 +72,6 @@ NodeWithStrings <-- Tuple
 NodeWithStrings <-- Optional
 NodeWithStrings <-- Stream
 interface NodeWithStrings<Node>
-NodeResult <-- ResultFactory
 NodeResult <-- Matchable
 NodeResult <-- Function
 interface NodeResult<Node, Error, StringResult> implements Matchable
@@ -86,7 +85,6 @@ MutableDivideState <-- Optional
 MutableDivideState <-- Stream
 class MutableDivideState
 StringResult <-- Matchable
-StringResult <-- Optional
 StringResult <-- Function
 interface StringResult<Error> implements Matchable
 MapNode <-- Tuple
@@ -102,8 +100,8 @@ StripRule <-- StringResult
 class StripRule<Node, Error> implements Rule
 TypeRule <-- ResultFactory
 TypeRule <-- TypedNode
-TypeRule <-- NodeResult
-class TypeRule<Node extends TypedNode<Node>, Error, StringResult> implements Rule
+TypeRule <-- MapNodeResult
+class TypeRule<Node extends TypedNode<Node>, Error, NodeResult extends MapNodeResult<Node, Error, StringResult, NodeResult>, StringResult> implements Rule
 StringRule <-- ResultFactory
 StringRule <-- NodeWithStrings
 StringRule <-- NodeFactory
@@ -115,7 +113,6 @@ CompileError <-- Collections
 CompileError <-- List
 CompileError <-- Collectors
 class CompileError
-StringErr <-- Optional
 StringErr <-- Function
 class StringErr<Error> implements StringResult
 class ApplicationError
@@ -141,9 +138,8 @@ class ThrowableError
 Matchable <-- Function
 interface Matchable<Value, Error>
 ResultFactory <-- NodeListResult
-ResultFactory <-- NodeResult
 ResultFactory <-- List
-interface ResultFactory<Node, Error, StringResult>
+interface ResultFactory<Node, Error, StringResult, NodeResult>
 InfixSplitter <-- Tuple
 InfixSplitter <-- Locator
 InfixSplitter <-- Optional
@@ -157,7 +153,6 @@ NodeErr <-- List
 NodeErr <-- Function
 class NodeErr<Node, Error> implements NodeResult
 StringOk <-- StringResult
-StringOk <-- Optional
 StringOk <-- Function
 class StringOk<FormatError> implements StringResult
 Err <-- Function
@@ -203,6 +198,9 @@ IdentifierRule <-- NodeResult
 IdentifierRule <-- StringResult
 IdentifierRule <-- IntStream
 class IdentifierRule<Node, Error> implements Rule
+MapNodeResult <-- ResultFactory
+MapNodeResult <-- Function
+interface MapNodeResult<Node, Error, StringResult, S>
 Main <-- ResultFactoryImpl
 Main <-- ApplicationError
 Main <-- Error
