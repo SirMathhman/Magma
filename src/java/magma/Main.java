@@ -152,7 +152,10 @@ class Main {
     private static EverythingNode modifyStructure(final EverythingNode structure) {
         final var name = structure.findString("name").orElse("");
 
-        final var maybeBase = structure.findString("base").map(value -> " implements " + value).orElse("");
+        final var maybeBase = structure.findString("base")
+                                       .or(() -> structure.findString("value"))
+                                       .map(value -> " implements " + value)
+                                       .orElse("");
         final var content = name + maybeBase;
 
         if (structure.is("record")) return structure.retype("class").withString("content", content);

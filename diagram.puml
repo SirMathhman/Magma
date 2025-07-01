@@ -75,16 +75,16 @@ NodeResult <-- ResultFactory
 NodeResult <-- Matchable
 interface NodeResult implements Matchable
 NodeContext <-- EverythingNode
-class NodeContext
+class NodeContext implements  Context 
 LastLocator <-- Optional
-class LastLocator
+class LastLocator implements  Locator 
 interface Rule
 MutableDivideState <-- Tuple
 MutableDivideState <-- ArrayList
 MutableDivideState <-- List
 MutableDivideState <-- Optional
 MutableDivideState <-- Stream
-class MutableDivideState
+class MutableDivideState implements  DivideState 
 StringResult <-- Matchable
 interface StringResult implements Matchable
 MapNode <-- Tuple
@@ -93,10 +93,10 @@ MapNode <-- List
 MapNode <-- Map
 MapNode <-- Optional
 MapNode <-- Stream
-class MapNode
+class MapNode implements  EverythingNode 
 StringResultFactory <-- List
 interface StringResultFactory
-class StringContext
+class StringContext implements  Context 
 interface NodeFactory
 class StripRule implements Rule
 TypeRule <-- StringResultFactory
@@ -116,10 +116,10 @@ CompileError <-- ArrayList
 CompileError <-- Collections
 CompileError <-- List
 CompileError <-- Collectors
-class CompileError
+class CompileError implements  FormatError 
 StringErr <-- Function
 class StringErr implements StringResult
-class ApplicationError
+class ApplicationError implements  Error 
 class NodeListErr implements NodeListResult
 DivideRule <-- Tuple
 DivideRule <-- NodeResultFactory
@@ -132,19 +132,19 @@ DivideRule <-- ConcatStringResult
 DivideRule <-- Collections
 DivideRule <-- Stream
 class DivideRule implements Rule
-interface FormatError
+interface FormatError implements Error 
 FirstLocator <-- Optional
-class FirstLocator
+class FirstLocator implements  Locator 
 ThrowableError <-- PrintWriter
 ThrowableError <-- StringWriter
-class ThrowableError
+class ThrowableError implements  Error 
 Matchable <-- Function
 interface Matchable
 interface ResultFactory implements NodeResultFactory
 InfixSplitter <-- Tuple
 InfixSplitter <-- Locator
 InfixSplitter <-- Optional
-class InfixSplitter
+class InfixSplitter implements  Splitter 
 class Strings
 Result <-- Function
 interface Result implements Matchable
