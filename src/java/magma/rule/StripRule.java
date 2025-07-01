@@ -1,19 +1,18 @@
 package magma.rule;
 
 import magma.error.FormatError;
-import magma.node.EverythingNode;
 import magma.node.result.NodeResult;
 import magma.string.result.StringResult;
 
-public record StripRule(Rule<EverythingNode, NodeResult<EverythingNode>, StringResult<FormatError>> rule)
-        implements Rule<EverythingNode, NodeResult<EverythingNode>, StringResult<FormatError>> {
+public record StripRule<Node>(Rule<Node, NodeResult<Node>, StringResult<FormatError>> rule)
+        implements Rule<Node, NodeResult<Node>, StringResult<FormatError>> {
     @Override
-    public NodeResult<EverythingNode> lex(final String input) {
+    public NodeResult<Node> lex(final String input) {
         return this.rule.lex(input.strip());
     }
 
     @Override
-    public StringResult<FormatError> generate(final EverythingNode node) {
+    public StringResult<FormatError> generate(final Node node) {
         return this.rule.generate(node);
     }
 }

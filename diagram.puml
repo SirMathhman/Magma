@@ -3,12 +3,11 @@ skinparam linetype ortho
 MapNodeFactory <-- EverythingNode
 MapNodeFactory <-- MapNode
 class MapNodeFactory implements NodeFactory
-PrefixRule <-- ResultFactoryImpl
+PrefixRule <-- ResultFactory
 PrefixRule <-- FormatError
-PrefixRule <-- EverythingNode
 PrefixRule <-- NodeResult
 PrefixRule <-- StringResult
-class PrefixRule implements Rule
+class PrefixRule<Node> implements Rule
 MutableAccumulator <-- FormatError
 MutableAccumulator <-- ArrayList
 MutableAccumulator <-- List
@@ -30,6 +29,18 @@ class OrRule<Node> implements Rule
 Splitter <-- Tuple
 Splitter <-- Optional
 interface Splitter
+CommonLang <-- ResultFactoryImpl
+CommonLang <-- FormatError
+CommonLang <-- EverythingNode
+CommonLang <-- NodeResult
+CommonLang <-- Rule
+CommonLang <-- SplitRule
+CommonLang <-- FirstLocator
+CommonLang <-- LastLocator
+CommonLang <-- InfixSplitter
+CommonLang <-- StringResult
+class CommonLang
+interface MergingNode<Node>
 SuffixRule <-- ResultFactory
 SuffixRule <-- FormatError
 SuffixRule <-- NodeResult
@@ -37,16 +48,13 @@ SuffixRule <-- StringResult
 SuffixRule <-- Objects
 class SuffixRule<Node> implements Rule
 SplitRule <-- Tuple
-SplitRule <-- ResultFactoryImpl
+SplitRule <-- ResultFactory
 SplitRule <-- FormatError
-SplitRule <-- EverythingNode
+SplitRule <-- MergingNode
 SplitRule <-- NodeResult
-SplitRule <-- FirstLocator
-SplitRule <-- LastLocator
-SplitRule <-- InfixSplitter
 SplitRule <-- Splitter
 SplitRule <-- StringResult
-class SplitRule implements Rule
+class SplitRule<Node extends MergingNode<Node>> implements Rule
 NodeWithNodeLists <-- List
 NodeWithNodeLists <-- Optional
 interface NodeWithNodeLists<Node>
@@ -95,10 +103,9 @@ MapNode <-- Stream
 class MapNode
 interface NodeFactory<Node>
 StripRule <-- FormatError
-StripRule <-- EverythingNode
 StripRule <-- NodeResult
 StripRule <-- StringResult
-class StripRule implements Rule
+class StripRule<Node> implements Rule
 TypeRule <-- ResultFactory
 TypeRule <-- TypedNode
 TypeRule <-- NodeResult
@@ -193,7 +200,6 @@ PlantLang <-- DivideRule
 PlantLang <-- OrRule
 PlantLang <-- PrefixRule
 PlantLang <-- Rule
-PlantLang <-- SplitRule
 PlantLang <-- StringRule
 PlantLang <-- SuffixRule
 PlantLang <-- TypeRule
@@ -256,7 +262,6 @@ JavaLang <-- IdentifierRule
 JavaLang <-- OrRule
 JavaLang <-- PrefixRule
 JavaLang <-- Rule
-JavaLang <-- SplitRule
 JavaLang <-- StringRule
 JavaLang <-- StripRule
 JavaLang <-- SuffixRule

@@ -9,7 +9,6 @@ import magma.rule.DivideRule;
 import magma.rule.OrRule;
 import magma.rule.PrefixRule;
 import magma.rule.Rule;
-import magma.rule.SplitRule;
 import magma.rule.StringRule;
 import magma.rule.SuffixRule;
 import magma.rule.TypeRule;
@@ -38,14 +37,15 @@ public class PlantLang {
 
     private static Rule<EverythingNode, NodeResult<EverythingNode>, StringResult<FormatError>> createTypedPlantStructureRule(
             final String type) {
-        return new TypeRule<>(type, new PrefixRule(type + " ", new StringRule<EverythingNode>("content", ResultFactoryImpl.get(),
-                                                                                              new MapNodeFactory())),
+        return new TypeRule<>(type, new PrefixRule<EverythingNode>(type + " ", new StringRule<EverythingNode>("content", ResultFactoryImpl.get(),
+                                                                                                              new MapNodeFactory()),
+                                                                   ResultFactoryImpl.get()),
                               ResultFactoryImpl.get());
     }
 
     private static Rule<EverythingNode, NodeResult<EverythingNode>, StringResult<FormatError>> createDependencyRule() {
-        return SplitRule.First(new StringRule<EverythingNode>("parent", ResultFactoryImpl.get(), new MapNodeFactory()), " <-- ", new StringRule<EverythingNode>("child",
-                                                                                                                                                                ResultFactoryImpl.get(),
-                                                                                                                                                                new MapNodeFactory()));
+        return CommonLang.First(new StringRule<EverythingNode>("parent", ResultFactoryImpl.get(), new MapNodeFactory()), " <-- ", new StringRule<EverythingNode>("child",
+                                                                                                                                                                 ResultFactoryImpl.get(),
+                                                                                                                                                                 new MapNodeFactory()));
     }
 }

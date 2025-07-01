@@ -1,18 +1,27 @@
 package magma.rule;
 
-import magma.compile.result.ResultFactoryImpl;
+import magma.compile.result.ResultFactory;
 import magma.error.FormatError;
-import magma.node.EverythingNode;
 import magma.node.result.NodeResult;
 import magma.string.result.StringResult;
 
-public record PrefixRule(String prefix, Rule<EverythingNode, NodeResult<EverythingNode>, StringResult<FormatError>> rule)
-        implements Rule<EverythingNode, NodeResult<EverythingNode>, StringResult<FormatError>> {
+public final class PrefixRule<Node> implements Rule<Node, NodeResult<Node>, StringResult<FormatError>> {
+    private final String prefix;
+    private final Rule<Node, NodeResult<Node>, StringResult<FormatError>> rule;
+    private final ResultFactory<Node, StringResult<FormatError>> resultFactory;
+
+    public PrefixRule(final String prefix,
+                      final Rule<Node, NodeResult<Node>, StringResult<FormatError>> rule,
+                      final ResultFactory<Node, StringResult<FormatError>> resultFactory) {
+        this.prefix = prefix;
+        this.rule = rule;
+        this.resultFactory = resultFactory;
+    }
 
     @Override
-    public NodeResult<EverythingNode> lex(final String input) {
+    public NodeResult<Node> lex(final String input) {
         if (!input.startsWith(this.prefix))
-            return ResultFactoryImpl.get().createNodeError("Prefix '" + this.prefix + "' not present", input);
+            return this.resultFactory.createNodeError("Prefix '" + this.prefix + "' not present", input);
         final var prefixLength = this.prefix.length();
 
         final var slice = input.substring(prefixLength);
@@ -20,7 +29,7 @@ public record PrefixRule(String prefix, Rule<EverythingNode, NodeResult<Everythi
     }
 
     @Override
-    public StringResult<FormatError> generate(final EverythingNode node) {
+    public StringResult<FormatError> generate(final Node node) {
         return this.rule.generate(node).prependSlice(this.prefix);
     }
 }
