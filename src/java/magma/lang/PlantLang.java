@@ -21,31 +21,30 @@ public class PlantLang {
     private PlantLang() {}
 
     public static Rule<EverythingNode, NodeResult<EverythingNode>, StringResult<FormatError>> createPlantRootRule() {
-        return new DivideRule<EverythingNode>("children", PlantLang.createPlantRootSegmentRule(), ResultFactoryImpl.get());
+        return new DivideRule<>("children", PlantLang.createPlantRootSegmentRule(), ResultFactoryImpl.get());
     }
 
     private static Rule<EverythingNode, NodeResult<EverythingNode>, StringResult<FormatError>> createPlantRootSegmentRule() {
-        final var options = new OrRule<EverythingNode>(List.of(PlantLang.createDependencyRule(), PlantLang.createPlantStructureRule()),
-                                                       ResultFactoryImpl.get());
-        return new SuffixRule<EverythingNode>(options, Strings.LINE_SEPARATOR, ResultFactoryImpl.get());
+        final var options = new OrRule<>(List.of(PlantLang.createDependencyRule(), PlantLang.createPlantStructureRule()),
+                                         ResultFactoryImpl.get());
+        return new SuffixRule<>(options, Strings.LINE_SEPARATOR, ResultFactoryImpl.get());
     }
 
     private static Rule<EverythingNode, NodeResult<EverythingNode>, StringResult<FormatError>> createPlantStructureRule() {
-        return new OrRule<EverythingNode>(List.of(PlantLang.createTypedPlantStructureRule("class"), PlantLang.createTypedPlantStructureRule("interface")),
-                                          ResultFactoryImpl.get());
+        return new OrRule<>(List.of(PlantLang.createTypedPlantStructureRule("class"), PlantLang.createTypedPlantStructureRule("interface")),
+                            ResultFactoryImpl.get());
     }
 
     private static Rule<EverythingNode, NodeResult<EverythingNode>, StringResult<FormatError>> createTypedPlantStructureRule(
             final String type) {
-        return new TypeRule<>(type, new PrefixRule<EverythingNode>(type + " ", new StringRule<EverythingNode>("content", ResultFactoryImpl.get(),
-                                                                                                              new MapNodeFactory()),
-                                                                   ResultFactoryImpl.get()),
+        return new TypeRule<>(type, new PrefixRule<>(type + " ",
+                                                     new StringRule<>("content", ResultFactoryImpl.get(), new MapNodeFactory()),
+                                                     ResultFactoryImpl.get()),
                               ResultFactoryImpl.get());
     }
 
     private static Rule<EverythingNode, NodeResult<EverythingNode>, StringResult<FormatError>> createDependencyRule() {
-        return CommonLang.First(new StringRule<EverythingNode>("parent", ResultFactoryImpl.get(), new MapNodeFactory()), " <-- ", new StringRule<EverythingNode>("child",
-                                                                                                                                                                 ResultFactoryImpl.get(),
-                                                                                                                                                                 new MapNodeFactory()));
+        return CommonLang.First(new StringRule<>("parent", ResultFactoryImpl.get(), new MapNodeFactory()), " <-- ",
+                                new StringRule<>("child", ResultFactoryImpl.get(), new MapNodeFactory()));
     }
 }

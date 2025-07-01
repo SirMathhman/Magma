@@ -9,8 +9,8 @@ import magma.rule.accumulate.Accumulator;
 import magma.rule.accumulate.MutableAccumulator;
 import magma.string.result.StringResult;
 
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 import java.util.function.Function;
 
 public final class OrRule<Node> implements Rule<Node, NodeResult<Node>, StringResult<FormatError>> {
@@ -19,7 +19,7 @@ public final class OrRule<Node> implements Rule<Node, NodeResult<Node>, StringRe
 
     public OrRule(final List<Rule<Node, NodeResult<Node>, StringResult<FormatError>>> rules,
                   final ResultFactory<Node, StringResult<FormatError>> factory) {
-        this.rules = rules;
+        this.rules = new ArrayList<>(rules);
         this.factory = factory;
     }
 
@@ -50,25 +50,4 @@ public final class OrRule<Node> implements Rule<Node, NodeResult<Node>, StringRe
                           errors -> this.factory.createStringErrorWithChildren("No valid combination present", node,
                                                                                errors));
     }
-
-    public List<Rule<Node, NodeResult<Node>, StringResult<FormatError>>> rules() {return this.rules;}
-
-    @Override
-    public boolean equals(final Object obj) {
-        if (obj == this) return true;
-        if (null == obj || obj.getClass() != this.getClass()) return false;
-        final var that = (OrRule<Node>) obj;
-        return Objects.equals(this.rules, that.rules);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(this.rules);
-    }
-
-    @Override
-    public String toString() {
-        return "OrRule[" + "rules=" + this.rules + ']';
-    }
-
 }

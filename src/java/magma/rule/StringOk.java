@@ -7,10 +7,6 @@ import java.util.Optional;
 import java.util.function.Function;
 
 public record StringOk(String value) implements StringResult<FormatError> {
-    public StringOk() {
-        this("");
-    }
-
     @Override
     public Optional<String> toOptional() {
         return Optional.of(this.value);

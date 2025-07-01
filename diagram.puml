@@ -22,8 +22,8 @@ OrRule <-- Matchable
 OrRule <-- Accumulator
 OrRule <-- MutableAccumulator
 OrRule <-- StringResult
+OrRule <-- ArrayList
 OrRule <-- List
-OrRule <-- Objects
 OrRule <-- Function
 class OrRule<Node> implements Rule
 Splitter <-- Tuple
@@ -45,7 +45,6 @@ SuffixRule <-- ResultFactory
 SuffixRule <-- FormatError
 SuffixRule <-- NodeResult
 SuffixRule <-- StringResult
-SuffixRule <-- Objects
 class SuffixRule<Node> implements Rule
 SplitRule <-- Tuple
 SplitRule <-- ResultFactory
@@ -224,6 +223,7 @@ Main <-- JavaLang
 Main <-- PlantLang
 Main <-- EverythingNode
 Main <-- MapNode
+Main <-- NodeWithNodeLists
 Main <-- NodeResult
 Main <-- Err
 Main <-- Ok

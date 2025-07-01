@@ -24,91 +24,79 @@ public class JavaLang {
     private JavaLang() {}
 
     public static Rule<EverythingNode, NodeResult<EverythingNode>, StringResult<FormatError>> createJavaRootSegmentRule() {
-        return new OrRule<EverythingNode>(List.of(JavaLang.createNamespaceRule("package"), JavaLang.createNamespaceRule("import"),
-                                                  JavaLang.createStructureRule("class"), JavaLang.createStructureRule("interface"),
-                                                  JavaLang.createStructureRule("record")), ResultFactoryImpl.get());
+        return new OrRule<>(List.of(JavaLang.createNamespaceRule("package"), JavaLang.createNamespaceRule("import"),
+                                    JavaLang.createStructureRule("class"), JavaLang.createStructureRule("interface"),
+                                    JavaLang.createStructureRule("record")), ResultFactoryImpl.get());
     }
 
     private static Rule<EverythingNode, NodeResult<EverythingNode>, StringResult<FormatError>> createStructureRule(final String type) {
         final var anImplements = JavaLang.createStructureHeaderRule(type);
 
         final Rule<EverythingNode, NodeResult<EverythingNode>, StringResult<FormatError>> content =
-                new StringRule<EverythingNode>("content", ResultFactoryImpl.get(), new MapNodeFactory());
-        return new TypeRule<>(type, new StripRule<EverythingNode>(new SuffixRule<EverythingNode>(
-                CommonLang.First(anImplements, "{", content), "}",
-                ResultFactoryImpl.get())),
+                new StringRule<>("content", ResultFactoryImpl.get(), new MapNodeFactory());
+        return new TypeRule<>(type, new StripRule<>(
+                new SuffixRule<>(CommonLang.First(anImplements, "{", content), "}", ResultFactoryImpl.get())),
                               JavaLang.FACTORY);
     }
 
     private static Rule<EverythingNode, NodeResult<EverythingNode>, StringResult<FormatError>> createStructureHeaderRule(
             final String type) {
-        final Rule<EverythingNode, NodeResult<EverythingNode>, StringResult<FormatError>> name =
-                new StripRule<EverythingNode>(new IdentifierRule<EverythingNode>(new StringRule<EverythingNode>("name", ResultFactoryImpl.get(),
-                                                                                                                new MapNodeFactory()), ResultFactoryImpl.get()));
+        final Rule<EverythingNode, NodeResult<EverythingNode>, StringResult<FormatError>> name = new StripRule<>(
+                new IdentifierRule<>(new StringRule<>("name", ResultFactoryImpl.get(), new MapNodeFactory()),
+                                     ResultFactoryImpl.get()));
 
-        final var withTypeParameters =
-                new SuffixRule<EverythingNode>(
-                        CommonLang.First(name, "<", new StringRule<EverythingNode>("type-parameters",
-                                                                                   ResultFactoryImpl.get(),
-                                                                                   new MapNodeFactory())), ">",
-                        ResultFactoryImpl.get());
+        final var withTypeParameters = new SuffixRule<>(CommonLang.First(name, "<", new StringRule<>("type-parameters",
+                                                                                                     ResultFactoryImpl.get(),
+                                                                                                     new MapNodeFactory())),
+                                                        ">", ResultFactoryImpl.get());
         final Rule<EverythingNode, NodeResult<EverythingNode>, StringResult<FormatError>>
-                maybeWithTypeParams = new OrRule<EverythingNode>(List.of(new StripRule<EverythingNode>(withTypeParameters), name),
-                                                                 ResultFactoryImpl.get());
+                maybeWithTypeParams =
+                new OrRule<>(List.of(new StripRule<>(withTypeParameters), name), ResultFactoryImpl.get());
 
         final Rule<EverythingNode, NodeResult<EverythingNode>, StringResult<FormatError>>
-                params = new StringRule<EverythingNode>("params", ResultFactoryImpl.get(), new MapNodeFactory());
+                params = new StringRule<>("params", ResultFactoryImpl.get(), new MapNodeFactory());
         final var withParameters =
-                CommonLang.First(CommonLang.First(maybeWithTypeParams, "(", params), ")", new StringRule<EverythingNode>("more",
-                                                                                                                         ResultFactoryImpl.get(),
-                                                                                                                         new MapNodeFactory()));
+                CommonLang.First(CommonLang.First(maybeWithTypeParams, "(", params), ")",
+                                 new StringRule<>("more", ResultFactoryImpl.get(), new MapNodeFactory()));
         final Rule<EverythingNode, NodeResult<EverythingNode>, StringResult<FormatError>>
-                maybeWithParameters = new OrRule<EverythingNode>(List.of(withParameters, maybeWithTypeParams), ResultFactoryImpl.get());
+                maybeWithParameters = new OrRule<>(List.of(withParameters, maybeWithTypeParams), ResultFactoryImpl.get());
 
         final var withSuperClass = CommonLang.Last(maybeWithParameters, "extends ", JavaLang.createTypeRule());
         final Rule<EverythingNode, NodeResult<EverythingNode>, StringResult<FormatError>>
-                maybeWithSuperClass = new OrRule<EverythingNode>(List.of(withSuperClass, maybeWithParameters), ResultFactoryImpl.get());
+                maybeWithSuperClass = new OrRule<>(List.of(withSuperClass, maybeWithParameters), ResultFactoryImpl.get());
 
         final var withImplementing = CommonLang.Last(maybeWithSuperClass, "implements", JavaLang.createTypeRule());
         final Rule<EverythingNode, NodeResult<EverythingNode>, StringResult<FormatError>>
-                maybeWithImplements = new OrRule<EverythingNode>(List.of(withImplementing, maybeWithSuperClass),
-                                                                 ResultFactoryImpl.get());
+                maybeWithImplements = new OrRule<>(List.of(withImplementing, maybeWithSuperClass), ResultFactoryImpl.get());
 
         final Rule<EverythingNode, NodeResult<EverythingNode>, StringResult<FormatError>> modifiers =
-                new StringRule<EverythingNode>("modifiers", ResultFactoryImpl.get(), new MapNodeFactory());
+                new StringRule<>("modifiers", ResultFactoryImpl.get(), new MapNodeFactory());
         return CommonLang.First(modifiers, type + " ", maybeWithImplements);
     }
 
     private static Rule<EverythingNode, NodeResult<EverythingNode>, StringResult<FormatError>> createNamespaceRule(final String type) {
         final Rule<EverythingNode, NodeResult<EverythingNode>, StringResult<FormatError>> child =
-                new StringRule<EverythingNode>("child", ResultFactoryImpl.get(), new MapNodeFactory());
+                new StringRule<>("child", ResultFactoryImpl.get(), new MapNodeFactory());
 
-        final var discard = new OrRule<EverythingNode>(List.of(CommonLang.Last(new StringRule<EverythingNode>("discard",
-                                                                                                              ResultFactoryImpl.get(),
-                                                                                                              new MapNodeFactory()), ".", child), child),
-                                                       ResultFactoryImpl.get());
-        return new TypeRule<>(type, new StripRule<EverythingNode>(new SuffixRule<EverythingNode>(new PrefixRule<EverythingNode>(type + " ", discard,
-                                                                                                                                ResultFactoryImpl.get()), ";",
-                                                                                                 ResultFactoryImpl.get())),
+        final var discard = new OrRule<>(
+                List.of(CommonLang.Last(new StringRule<>("discard", ResultFactoryImpl.get(), new MapNodeFactory()), ".",
+                                        child), child), ResultFactoryImpl.get());
+        return new TypeRule<>(type, new StripRule<>(
+                new SuffixRule<>(new PrefixRule<>(type + " ", discard, ResultFactoryImpl.get()), ";", ResultFactoryImpl.get())),
                               JavaLang.FACTORY);
     }
 
     private static Rule<EverythingNode, NodeResult<EverythingNode>, StringResult<FormatError>> createTypeRule() {
-        return new OrRule<EverythingNode>(List.of(JavaLang.createGenericRule(),
-                                                  new TypeRule<>("identifier", new StringRule<EverythingNode>("value",
-                                                                                                              ResultFactoryImpl.get(),
-                                                                                                              new MapNodeFactory()), JavaLang.FACTORY)),
-                                          ResultFactoryImpl.get());
+        return new OrRule<>(List.of(JavaLang.createGenericRule(),
+                                    new TypeRule<>("identifier", new StringRule<>("value", ResultFactoryImpl.get(), new MapNodeFactory()),
+                                                   JavaLang.FACTORY)), ResultFactoryImpl.get());
     }
 
     private static Rule<EverythingNode, NodeResult<EverythingNode>, StringResult<FormatError>> createGenericRule() {
-        return new TypeRule<>("generic", new StripRule<EverythingNode>(
-                new SuffixRule<EverythingNode>(
-                        CommonLang.First(new StringRule<EverythingNode>("base", ResultFactoryImpl.get(),
-                                                                        new MapNodeFactory()), "<", new StringRule<EverythingNode>("value",
-                                                                                                                                                         ResultFactoryImpl.get(),
-                                                                                                                                                         new MapNodeFactory())), ">",
-                        ResultFactoryImpl.get())),
+        return new TypeRule<>("generic", new StripRule<>(new SuffixRule<>(
+                CommonLang.First(new StringRule<>("base", ResultFactoryImpl.get(), new MapNodeFactory()), "<",
+                                 new StringRule<>("value", ResultFactoryImpl.get(), new MapNodeFactory())), ">",
+                ResultFactoryImpl.get())),
                               JavaLang.FACTORY);
     }
 }

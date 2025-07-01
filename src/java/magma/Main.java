@@ -9,6 +9,7 @@ import magma.lang.JavaLang;
 import magma.lang.PlantLang;
 import magma.node.EverythingNode;
 import magma.node.MapNode;
+import magma.node.NodeWithNodeLists;
 import magma.node.result.NodeResult;
 import magma.result.Err;
 import magma.result.Ok;
@@ -128,10 +129,10 @@ class Main {
     }
 
     private static Rule<EverythingNode, NodeResult<EverythingNode>, StringResult<FormatError>> createJavaRootRule() {
-        return new DivideRule<EverythingNode>("children", JavaLang.createJavaRootSegmentRule(), ResultFactoryImpl.get());
+        return new DivideRule<>("children", JavaLang.createJavaRootSegmentRule(), ResultFactoryImpl.get());
     }
 
-    private static EverythingNode modify(final String parent, final EverythingNode root) {
+    private static EverythingNode modify(final String parent, final NodeWithNodeLists<EverythingNode> root) {
         final var newChildren = root.findNodeList("children")
                                     .orElse(Collections.emptyList())
                                     .stream()

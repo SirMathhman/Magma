@@ -10,13 +10,13 @@ public final class NodeListOk<Node extends NodeWithNodeLists<Node>> implements N
     private final List<Node> list;
     private final NodeFactory<Node> nodeFactory;
 
-    public NodeListOk(final List<Node> list, final NodeFactory<Node> nodeFactory) {
+    private NodeListOk(final List<Node> list, final NodeFactory<Node> nodeFactory) {
         this.list = list;
         this.nodeFactory = nodeFactory;
     }
 
-    public NodeListOk(final NodeFactory<Node> factory) {
-        this(new ArrayList<>(), factory);
+    public NodeListOk(final NodeFactory<Node> nodeFactory) {
+        this(new ArrayList<>(), nodeFactory);
     }
 
     @Override
