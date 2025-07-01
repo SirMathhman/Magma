@@ -73,8 +73,14 @@ public class JavaLang {
     }
 
     private static Rule<EverythingNode, NodeResult<EverythingNode>, StringResult<FormatError>> createTypeRule() {
-        return new StripRule(
-                new SuffixRule(SplitRule.First(new StringRule("base"), "<", new StringRule("value")), ">"));
+        return new OrRule(
+                List.of(JavaLang.createGenericRule(), new TypeRule<>("identifier", new StringRule("value"),
+                                                                     JavaLang.FACTORY)));
     }
 
+    private static Rule<EverythingNode, NodeResult<EverythingNode>, StringResult<FormatError>> createGenericRule() {
+        return new TypeRule<>("generic", new StripRule(
+                new SuffixRule(SplitRule.First(new StringRule("base"), "<", new StringRule("value")), ">")),
+                              JavaLang.FACTORY);
+    }
 }
