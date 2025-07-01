@@ -51,9 +51,6 @@ NodeWithNodeLists <-- List
 NodeWithNodeLists <-- Optional
 interface NodeWithNodeLists<Node>
 interface NodeListResult<Node>
-EverythingNode <-- Tuple
-EverythingNode <-- Optional
-EverythingNode <-- Stream
 interface EverythingNode implements TypedNode
 interface TypedNode<Node>
 class Tuple<Left, Right>
@@ -67,6 +64,10 @@ NodeListOk <-- ArrayList
 NodeListOk <-- List
 class NodeListOk<Node extends NodeWithNodeLists<Node>> implements NodeListResult
 interface Error
+NodeWithStrings <-- Tuple
+NodeWithStrings <-- Optional
+NodeWithStrings <-- Stream
+interface NodeWithStrings<Node>
 NodeResult <-- FormatError
 NodeResult <-- Matchable
 NodeResult <-- Optional
@@ -102,17 +103,13 @@ TypeRule <-- ResultFactory
 TypeRule <-- TypedNode
 TypeRule <-- NodeResult
 class TypeRule<Node extends TypedNode<Node>, StringResult> implements Rule
-StringRule <-- CompileError
+StringRule <-- ResultFactory
 StringRule <-- FormatError
-StringRule <-- EverythingNode
-StringRule <-- MapNode
-StringRule <-- NodeErr
-StringRule <-- NodeOk
+StringRule <-- NodeWithStrings
+StringRule <-- NodeFactory
 StringRule <-- NodeResult
-StringRule <-- StringErr
 StringRule <-- StringResult
-StringRule <-- Optional
-class StringRule implements Rule
+class StringRule<NOde extends NodeWithStrings<NOde>> implements Rule
 CompileError <-- Strings
 CompileError <-- Collections
 CompileError <-- List
@@ -147,6 +144,7 @@ Matchable <-- Function
 interface Matchable<Value, Error>
 ResultFactory <-- FormatError
 ResultFactory <-- NodeResult
+ResultFactory <-- StringResult
 ResultFactory <-- List
 interface ResultFactory<Node, StringResult>
 InfixSplitter <-- Tuple
@@ -173,7 +171,9 @@ ResultFactoryImpl <-- CompileError
 ResultFactoryImpl <-- FormatError
 ResultFactoryImpl <-- EverythingNode
 ResultFactoryImpl <-- NodeErr
+ResultFactoryImpl <-- NodeOk
 ResultFactoryImpl <-- NodeResult
+ResultFactoryImpl <-- StringOk
 ResultFactoryImpl <-- StringErr
 ResultFactoryImpl <-- StringResult
 ResultFactoryImpl <-- List
@@ -185,6 +185,7 @@ class NodeOk<Node> implements NodeResult
 PlantLang <-- ResultFactoryImpl
 PlantLang <-- FormatError
 PlantLang <-- EverythingNode
+PlantLang <-- MapNodeFactory
 PlantLang <-- NodeResult
 PlantLang <-- DivideRule
 PlantLang <-- OrRule
@@ -246,6 +247,7 @@ JavaLang <-- ResultFactory
 JavaLang <-- ResultFactoryImpl
 JavaLang <-- FormatError
 JavaLang <-- EverythingNode
+JavaLang <-- MapNodeFactory
 JavaLang <-- NodeResult
 JavaLang <-- IdentifierRule
 JavaLang <-- OrRule

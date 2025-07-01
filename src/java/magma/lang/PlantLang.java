@@ -3,6 +3,7 @@ package magma.lang;
 import magma.compile.result.ResultFactoryImpl;
 import magma.error.FormatError;
 import magma.node.EverythingNode;
+import magma.node.factory.MapNodeFactory;
 import magma.node.result.NodeResult;
 import magma.rule.DivideRule;
 import magma.rule.OrRule;
@@ -37,11 +38,14 @@ public class PlantLang {
 
     private static Rule<EverythingNode, NodeResult<EverythingNode>, StringResult<FormatError>> createTypedPlantStructureRule(
             final String type) {
-        return new TypeRule<>(type, new PrefixRule(type + " ", new StringRule("content")),
+        return new TypeRule<>(type, new PrefixRule(type + " ", new StringRule<EverythingNode>("content", ResultFactoryImpl.get(),
+                                                                                              new MapNodeFactory())),
                               ResultFactoryImpl.get());
     }
 
     private static Rule<EverythingNode, NodeResult<EverythingNode>, StringResult<FormatError>> createDependencyRule() {
-        return SplitRule.First(new StringRule("parent"), " <-- ", new StringRule("child"));
+        return SplitRule.First(new StringRule<EverythingNode>("parent", ResultFactoryImpl.get(), new MapNodeFactory()), " <-- ", new StringRule<EverythingNode>("child",
+                                                                                                                                                                ResultFactoryImpl.get(),
+                                                                                                                                                                new MapNodeFactory()));
     }
 }

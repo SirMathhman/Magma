@@ -4,7 +4,9 @@ import magma.error.CompileError;
 import magma.error.FormatError;
 import magma.node.EverythingNode;
 import magma.node.result.NodeErr;
+import magma.node.result.NodeOk;
 import magma.node.result.NodeResult;
+import magma.rule.StringOk;
 import magma.string.result.StringErr;
 import magma.string.result.StringResult;
 
@@ -41,5 +43,15 @@ public class ResultFactoryImpl implements ResultFactory<EverythingNode, StringRe
                                                                   final String context,
                                                                   final List<FormatError> errors) {
         return new NodeErr<>(new CompileError(message, context, errors));
+    }
+
+    @Override
+    public NodeResult<EverythingNode> createNode(final EverythingNode everythingNode) {
+        return new NodeOk<>(everythingNode);
+    }
+
+    @Override
+    public StringResult<FormatError> createString(final String value) {
+        return new StringOk(value);
     }
 }

@@ -1,36 +1,37 @@
 package magma.rule;
 
-import magma.error.CompileError;
+import magma.compile.result.ResultFactory;
 import magma.error.FormatError;
-import magma.node.EverythingNode;
-import magma.node.MapNode;
-import magma.node.result.NodeErr;
-import magma.node.result.NodeOk;
+import magma.node.NodeWithStrings;
+import magma.node.factory.NodeFactory;
 import magma.node.result.NodeResult;
-import magma.string.result.StringErr;
 import magma.string.result.StringResult;
 
-import java.util.Optional;
+public final class StringRule<NOde extends NodeWithStrings<NOde>>
+        implements Rule<NOde, NodeResult<NOde>, StringResult<FormatError>> {
+    private final String key;
+    private final ResultFactory<NOde, StringResult<FormatError>> resultFactory;
+    private final NodeFactory<NOde> nodeFactory;
 
-public record StringRule(String key) implements Rule<EverythingNode, NodeResult<EverythingNode>, StringResult<FormatError>> {
-    private Optional<EverythingNode> lex0(final String input) {
-        final var node = new MapNode().withString(this.key, input);
-        return Optional.of(node);
-    }
-
-    private Optional<String> generate0(final EverythingNode node) {
-        return node.findString(this.key);
-    }
-
-    @Override
-    public NodeResult<EverythingNode> lex(final String input) {
-        return this.lex0(input).<NodeResult<EverythingNode>>map(NodeOk::new).orElseGet(
-                () -> new NodeErr<>(new CompileError(this.getClass().getName(), input)));
+    public StringRule(final String key,
+                      final ResultFactory<NOde, StringResult<FormatError>> resultFactory,
+                      final NodeFactory<NOde> nodeFactory) {
+        this.key = key;
+        this.resultFactory = resultFactory;
+        this.nodeFactory = nodeFactory;
     }
 
     @Override
-    public StringResult<FormatError> generate(final EverythingNode node) {
-        return this.generate0(node).<StringResult<FormatError>>map(StringOk::new).orElseGet(() -> new StringErr<>(
-                new CompileError(this.getClass().getName(), "?")));
+    public NodeResult<NOde> lex(final String input) {
+        final var node = this.nodeFactory.createNode().withString(this.key, input);
+        return this.resultFactory.createNode(node);
+    }
+
+    @Override
+    public StringResult<FormatError> generate(final NOde node) {
+        return node.findString(this.key)
+                   .map(this.resultFactory::createString)
+                   .orElseGet(
+                           () -> this.resultFactory.createStringError("String '" + this.key + "' not present", node));
     }
 }
