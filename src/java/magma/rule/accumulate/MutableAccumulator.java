@@ -1,17 +1,15 @@
 package magma.rule.accumulate;
 
-import magma.error.FormatError;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Function;
 
-public final class MutableAccumulator<Node> implements Accumulator<Node> {
+public final class MutableAccumulator<Node, Error> implements Accumulator<Node, Error> {
     private final Optional<Node> maybeValue;
-    private final List<FormatError> errors;
+    private final List<Error> errors;
 
-    private MutableAccumulator(final Optional<Node> maybeValue, final List<FormatError> errors) {
+    private MutableAccumulator(final Optional<Node> maybeValue, final List<Error> errors) {
         this.maybeValue = maybeValue;
         this.errors = errors;
     }
@@ -26,19 +24,18 @@ public final class MutableAccumulator<Node> implements Accumulator<Node> {
     }
 
     @Override
-    public Accumulator<Node> withValue(final Node value) {
+    public Accumulator<Node, Error> withValue(final Node value) {
         return new MutableAccumulator<>(Optional.of(value), this.errors);
     }
 
     @Override
-    public Accumulator<Node> withError(final FormatError error) {
+    public Accumulator<Node, Error> withError(final Error error) {
         this.errors.add(error);
         return this;
     }
 
     @Override
-    public <Return> Return match(final Function<Node, Return> whenOk,
-                                 final Function<List<FormatError>, Return> whenErr) {
+    public <Return> Return match(final Function<Node, Return> whenOk, final Function<List<Error>, Return> whenErr) {
         return this.maybeValue.map(whenOk).orElseGet(() -> whenErr.apply(this.errors));
     }
 }

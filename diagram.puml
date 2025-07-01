@@ -4,18 +4,15 @@ MapNodeFactory <-- EverythingNode
 MapNodeFactory <-- MapNode
 class MapNodeFactory implements NodeFactory
 PrefixRule <-- ResultFactory
-PrefixRule <-- FormatError
 PrefixRule <-- NodeResult
 PrefixRule <-- StringResult
-class PrefixRule<Node> implements Rule
-MutableAccumulator <-- FormatError
+class PrefixRule<Node, Error> implements Rule
 MutableAccumulator <-- ArrayList
 MutableAccumulator <-- List
 MutableAccumulator <-- Optional
 MutableAccumulator <-- Function
-class MutableAccumulator<Node> implements Accumulator
+class MutableAccumulator<Node, Error> implements Accumulator
 OrRule <-- ResultFactory
-OrRule <-- FormatError
 OrRule <-- NodeOk
 OrRule <-- NodeResult
 OrRule <-- Matchable
@@ -25,7 +22,7 @@ OrRule <-- StringResult
 OrRule <-- ArrayList
 OrRule <-- List
 OrRule <-- Function
-class OrRule<Node> implements Rule
+class OrRule<Node, Error> implements Rule
 Splitter <-- Tuple
 Splitter <-- Optional
 interface Splitter
@@ -42,21 +39,20 @@ CommonLang <-- StringResult
 class CommonLang
 interface MergingNode<Node>
 SuffixRule <-- ResultFactory
-SuffixRule <-- FormatError
 SuffixRule <-- NodeResult
 SuffixRule <-- StringResult
-class SuffixRule<Node> implements Rule
+class SuffixRule<Node, Error> implements Rule
 SplitRule <-- Tuple
 SplitRule <-- ResultFactory
-SplitRule <-- FormatError
 SplitRule <-- MergingNode
 SplitRule <-- NodeResult
 SplitRule <-- Splitter
 SplitRule <-- StringResult
-class SplitRule<Node extends MergingNode<Node>> implements Rule
+class SplitRule<Node extends MergingNode<Node>, Error> implements Rule
 NodeWithNodeLists <-- List
 NodeWithNodeLists <-- Optional
 interface NodeWithNodeLists<Node>
+NodeListResult <-- StringResult
 interface NodeListResult<Node, Error>
 interface EverythingNode implements TypedNode
 interface TypedNode<Node>
@@ -65,20 +61,21 @@ DivideState <-- Tuple
 DivideState <-- Optional
 DivideState <-- Stream
 interface DivideState
-NodeListOk <-- FormatError
 NodeListOk <-- NodeWithNodeLists
 NodeListOk <-- NodeFactory
+NodeListOk <-- StringResult
 NodeListOk <-- ArrayList
 NodeListOk <-- List
-class NodeListOk<Node extends NodeWithNodeLists<Node>> implements NodeListResult
+class NodeListOk<Node extends NodeWithNodeLists<Node>, Error> implements NodeListResult
 interface Error
 NodeWithStrings <-- Tuple
 NodeWithStrings <-- Optional
 NodeWithStrings <-- Stream
 interface NodeWithStrings<Node>
+NodeResult <-- ResultFactory
 NodeResult <-- Matchable
 NodeResult <-- Function
-interface NodeResult<Node, Error> implements Matchable
+interface NodeResult<Node, Error, StringResult> implements Matchable
 LastLocator <-- Optional
 class LastLocator
 interface Rule<Node, NodeResult, StringResult>
@@ -100,22 +97,19 @@ MapNode <-- Optional
 MapNode <-- Stream
 class MapNode
 interface NodeFactory<Node>
-StripRule <-- FormatError
 StripRule <-- NodeResult
 StripRule <-- StringResult
-class StripRule<Node> implements Rule
+class StripRule<Node, Error> implements Rule
 TypeRule <-- ResultFactory
-TypeRule <-- FormatError
 TypeRule <-- TypedNode
 TypeRule <-- NodeResult
-class TypeRule<Node extends TypedNode<Node>, StringResult> implements Rule
+class TypeRule<Node extends TypedNode<Node>, Error, StringResult> implements Rule
 StringRule <-- ResultFactory
-StringRule <-- FormatError
 StringRule <-- NodeWithStrings
 StringRule <-- NodeFactory
 StringRule <-- NodeResult
 StringRule <-- StringResult
-class StringRule<NOde extends NodeWithStrings<NOde>> implements Rule
+class StringRule<Node extends NodeWithStrings<Node>, Error> implements Rule
 CompileError <-- Strings
 CompileError <-- Collections
 CompileError <-- List
@@ -125,8 +119,8 @@ StringErr <-- Optional
 StringErr <-- Function
 class StringErr<Error> implements StringResult
 class ApplicationError
-NodeListErr <-- FormatError
-class NodeListErr<Node> implements NodeListResult
+NodeListErr <-- StringResult
+class NodeListErr<Node, error> implements NodeListResult
 DivideRule <-- Tuple
 DivideRule <-- ResultFactory
 DivideRule <-- DivideState
@@ -157,11 +151,11 @@ class InfixSplitter
 class Strings
 Result <-- Function
 interface Result<Value, Error> implements Matchable
-NodeErr <-- CompileError
-NodeErr <-- FormatError
+NodeErr <-- ResultFactory
+NodeErr <-- StringResult
 NodeErr <-- List
 NodeErr <-- Function
-class NodeErr<Node> implements NodeResult
+class NodeErr<Node, Error> implements NodeResult
 StringOk <-- StringResult
 StringOk <-- Optional
 StringOk <-- Function
@@ -182,6 +176,8 @@ ResultFactoryImpl <-- StringErr
 ResultFactoryImpl <-- StringResult
 ResultFactoryImpl <-- List
 class ResultFactoryImpl implements ResultFactory
+NodeOk <-- ResultFactory
+NodeOk <-- StringResult
 NodeOk <-- Function
 class NodeOk<Node, Error> implements NodeResult
 PlantLang <-- ResultFactoryImpl
@@ -203,11 +199,10 @@ class PlantLang
 Locator <-- Optional
 interface Locator
 IdentifierRule <-- ResultFactory
-IdentifierRule <-- FormatError
 IdentifierRule <-- NodeResult
 IdentifierRule <-- StringResult
 IdentifierRule <-- IntStream
-class IdentifierRule<Node> implements Rule
+class IdentifierRule<Node, Error> implements Rule
 Main <-- ResultFactoryImpl
 Main <-- ApplicationError
 Main <-- Error
@@ -242,10 +237,9 @@ Main <-- Stream
 class Main
 Ok <-- Function
 class Ok<Value, Error> implements Result
-Accumulator <-- FormatError
 Accumulator <-- List
 Accumulator <-- Function
-interface Accumulator<Node>
+interface Accumulator<Node, Error>
 JavaLang <-- ResultFactory
 JavaLang <-- ResultFactoryImpl
 JavaLang <-- FormatError

@@ -20,22 +20,22 @@ import java.util.List;
 public class PlantLang {
     private PlantLang() {}
 
-    public static Rule<EverythingNode, NodeResult<EverythingNode, FormatError>, StringResult<FormatError>> createPlantRootRule() {
+    public static Rule<EverythingNode, NodeResult<EverythingNode, FormatError, StringResult<FormatError>>, StringResult<FormatError>> createPlantRootRule() {
         return new DivideRule<>("children", PlantLang.createPlantRootSegmentRule(), ResultFactoryImpl.get());
     }
 
-    private static Rule<EverythingNode, NodeResult<EverythingNode, FormatError>, StringResult<FormatError>> createPlantRootSegmentRule() {
+    private static Rule<EverythingNode, NodeResult<EverythingNode, FormatError, StringResult<FormatError>>, StringResult<FormatError>> createPlantRootSegmentRule() {
         final var options = new OrRule<>(List.of(PlantLang.createDependencyRule(), PlantLang.createPlantStructureRule()),
                                          ResultFactoryImpl.get());
         return new SuffixRule<>(options, Strings.LINE_SEPARATOR, ResultFactoryImpl.get());
     }
 
-    private static Rule<EverythingNode, NodeResult<EverythingNode, FormatError>, StringResult<FormatError>> createPlantStructureRule() {
+    private static Rule<EverythingNode, NodeResult<EverythingNode, FormatError, StringResult<FormatError>>, StringResult<FormatError>> createPlantStructureRule() {
         return new OrRule<>(List.of(PlantLang.createTypedPlantStructureRule("class"), PlantLang.createTypedPlantStructureRule("interface")),
                             ResultFactoryImpl.get());
     }
 
-    private static Rule<EverythingNode, NodeResult<EverythingNode, FormatError>, StringResult<FormatError>> createTypedPlantStructureRule(
+    private static Rule<EverythingNode, NodeResult<EverythingNode, FormatError, StringResult<FormatError>>, StringResult<FormatError>> createTypedPlantStructureRule(
             final String type) {
         return new TypeRule<>(type, new PrefixRule<>(type + " ",
                                                      new StringRule<>("content", ResultFactoryImpl.get(), new MapNodeFactory()),
@@ -43,7 +43,7 @@ public class PlantLang {
                               ResultFactoryImpl.get());
     }
 
-    private static Rule<EverythingNode, NodeResult<EverythingNode, FormatError>, StringResult<FormatError>> createDependencyRule() {
+    private static Rule<EverythingNode, NodeResult<EverythingNode, FormatError, StringResult<FormatError>>, StringResult<FormatError>> createDependencyRule() {
         return CommonLang.First(new StringRule<>("parent", ResultFactoryImpl.get(), new MapNodeFactory()), " <-- ",
                                 new StringRule<>("child", ResultFactoryImpl.get(), new MapNodeFactory()));
     }

@@ -1,7 +1,9 @@
 package magma.node.result;
 
-public interface NodeListResult<Node, Error> {
-    NodeListResult<Node, Error> add(NodeResult<Node, Error> other);
+import magma.string.result.StringResult;
 
-    NodeResult<Node, Error> toNode(String key);
+public interface NodeListResult<Node, Error> {
+    NodeListResult<Node, Error> add(NodeResult<Node, Error, StringResult<Error>> other);
+
+    NodeResult<Node, Error, StringResult<Error>> toNode(String key);
 }

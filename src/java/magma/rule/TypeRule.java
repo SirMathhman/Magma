@@ -1,27 +1,28 @@
 package magma.rule;
 
 import magma.compile.result.ResultFactory;
-import magma.error.FormatError;
 import magma.node.TypedNode;
 import magma.node.result.NodeResult;
 
-public final class TypeRule<Node extends TypedNode<Node>, StringResult>
-        implements Rule<Node, NodeResult<Node, FormatError>, StringResult> {
+public final class TypeRule<Node extends TypedNode<Node>, Error, StringResult>
+        implements Rule<Node, NodeResult<Node, Error, StringResult>, StringResult> {
     private final String type;
-    private final Rule<Node, NodeResult<Node, FormatError>, StringResult> rule;
-    private final ResultFactory<Node, FormatError, StringResult> factory;
+    private final Rule<Node, NodeResult<Node, Error, StringResult>, StringResult> rule;
+    private final ResultFactory<Node, Error, StringResult> factory;
 
     public TypeRule(final String type,
-                    final Rule<Node, NodeResult<Node, FormatError>, StringResult> rule,
-                    final ResultFactory<Node, FormatError, StringResult> factory) {
+                    final Rule<Node, NodeResult<Node, Error, StringResult>, StringResult> rule,
+                    final ResultFactory<Node, Error, StringResult> factory) {
         this.type = type;
         this.rule = rule;
         this.factory = factory;
     }
 
     @Override
-    public NodeResult<Node, FormatError> lex(final String input) {
-        return this.rule.lex(input).mapValue(node -> node.retype(this.type)).mapErr("Type '" + this.type + "' cannot be assigned", input);
+    public NodeResult<Node, Error, StringResult> lex(final String input) {
+        return this.rule.lex(input)
+                        .mapValue(node -> node.retype(this.type))
+                        .mapErr("Type '" + this.type + "' cannot be assigned", input, this.factory);
     }
 
     @Override

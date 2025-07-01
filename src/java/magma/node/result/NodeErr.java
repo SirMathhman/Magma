@@ -1,31 +1,32 @@
 package magma.node.result;
 
-import magma.error.CompileError;
-import magma.error.FormatError;
+import magma.compile.result.ResultFactory;
+import magma.string.result.StringResult;
 
 import java.util.List;
 import java.util.function.Function;
 
-public record NodeErr<Node>(FormatError error) implements NodeResult<Node, FormatError> {
+public record NodeErr<Node, Error>(Error error) implements NodeResult<Node, Error, StringResult<Error>> {
 
     @Override
-    public <Return> Return match(final Function<Node, Return> whenPresent,
-                                 final Function<FormatError, Return> whenErr) {
+    public <Return> Return match(final Function<Node, Return> whenPresent, final Function<Error, Return> whenErr) {
         return whenErr.apply(this.error);
     }
 
     @Override
-    public NodeResult<Node, FormatError> mapValue(final Function<Node, Node> mapper) {
+    public NodeResult<Node, Error, StringResult<Error>> mapValue(final Function<Node, Node> mapper) {
         return new NodeErr<>(this.error);
     }
 
     @Override
-    public NodeResult<Node, FormatError> flatMap(final Function<Node, NodeResult<Node, FormatError>> mapper) {
+    public NodeResult<Node, Error, StringResult<Error>> flatMap(final Function<Node, NodeResult<Node, Error, StringResult<Error>>> mapper) {
         return this;
     }
 
     @Override
-    public NodeResult<Node, FormatError> mapErr(final String message, final String context) {
-        return new NodeErr<>(new CompileError(message, context, List.of(this.error)));
+    public NodeResult<Node, Error, StringResult<Error>> mapErr(final String message,
+                                                               final String context,
+                                                               final ResultFactory<Node, Error, StringResult<Error>> factory) {
+        return factory.createNodeErrorWithChildren(message, context, List.of(this.error));
     }
 }

@@ -1,13 +1,16 @@
 package magma.node.result;
 
+import magma.compile.result.ResultFactory;
 import magma.result.Matchable;
 
 import java.util.function.Function;
 
-public interface NodeResult<Node, Error> extends Matchable<Node, Error> {
-    NodeResult<Node, Error> mapValue(Function<Node, Node> mapper);
+public interface NodeResult<Node, Error, StringResult> extends Matchable<Node, Error> {
+    NodeResult<Node, Error, StringResult> mapValue(Function<Node, Node> mapper);
 
-    NodeResult<Node, Error> flatMap(Function<Node, NodeResult<Node, Error>> mapper);
+    NodeResult<Node, Error, StringResult> flatMap(Function<Node, NodeResult<Node, Error, StringResult>> mapper);
 
-    NodeResult<Node, Error> mapErr(String message, String context);
+    NodeResult<Node, Error, StringResult> mapErr(String message,
+                                                 String context,
+                                                 ResultFactory<Node, Error, StringResult> factory);
 }

@@ -41,29 +41,30 @@ public class ResultFactoryImpl implements ResultFactory<EverythingNode, FormatEr
     }
 
     @Override
-    public NodeResult<EverythingNode, FormatError> createNodeError(final String message, final String context) {
+    public NodeResult<EverythingNode, FormatError, StringResult<FormatError>> createNodeError(final String message,
+                                                                                              final String context) {
         return new NodeErr<>(new CompileError(message, context));
     }
 
     @Override
-    public NodeResult<EverythingNode, FormatError> createNodeErrorWithChildren(final String message,
-                                                                               final String context,
-                                                                               final List<FormatError> errors) {
+    public NodeResult<EverythingNode, FormatError, StringResult<FormatError>> createNodeErrorWithChildren(final String message,
+                                                                                                          final String context,
+                                                                                                          final List<FormatError> errors) {
         return new NodeErr<>(new CompileError(message, context, errors));
     }
 
     @Override
-    public NodeResult<EverythingNode, FormatError> createNode(final EverythingNode everythingNode) {
+    public NodeResult<EverythingNode, FormatError, StringResult<FormatError>> createNode(final EverythingNode everythingNode) {
         return new NodeOk<>(everythingNode);
     }
 
     @Override
     public StringResult<FormatError> createString(final String value) {
-        return new StringOk<FormatError>(value);
+        return new StringOk<>(value);
     }
 
     @Override
     public StringResult<FormatError> createString() {
-        return new StringOk<FormatError>("");
+        return new StringOk<>("");
     }
 }

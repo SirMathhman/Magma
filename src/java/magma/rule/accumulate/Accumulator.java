@@ -1,16 +1,14 @@
 package magma.rule.accumulate;
 
-import magma.error.FormatError;
-
 import java.util.List;
 import java.util.function.Function;
 
-public interface Accumulator<Node> {
+public interface Accumulator<Node, Error> {
     boolean isPresent();
 
-    Accumulator<Node> withValue(Node value);
+    Accumulator<Node, Error> withValue(Node value);
 
-    Accumulator<Node> withError(FormatError error);
+    Accumulator<Node, Error> withError(Error error);
 
-    <Return> Return match(Function<Node, Return> whenOk, Function<List<FormatError>, Return> whenErr);
+    <Return> Return match(Function<Node, Return> whenOk, Function<List<Error>, Return> whenErr);
 }
