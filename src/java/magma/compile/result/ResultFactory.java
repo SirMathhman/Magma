@@ -5,7 +5,7 @@ import magma.node.result.NodeListResult;
 import java.util.List;
 
 public interface ResultFactory<Node, Error, StringResult, NodeResult> {
-    NodeListResult<Node, Error> createNodeList();
+    NodeListResult<NodeResult> createNodeList();
 
     StringResult createStringError(String message, Node node);
 
@@ -19,5 +19,5 @@ public interface ResultFactory<Node, Error, StringResult, NodeResult> {
 
     StringResult createString(String value);
 
-    StringResult createString();
+    StringResult createEmptyString();
 }

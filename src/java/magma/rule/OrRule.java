@@ -1,23 +1,21 @@
 package magma.rule;
 
 import magma.compile.result.ResultFactory;
-import magma.node.result.NodeOk;
-import magma.node.result.NodeResult;
 import magma.result.Matchable;
 import magma.rule.accumulate.Accumulator;
 import magma.rule.accumulate.MutableAccumulator;
-import magma.string.result.StringResult;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Function;
 
-public final class OrRule<Node, Error> implements Rule<Node, NodeResult<Node, Error, StringResult<Error>>, StringResult<Error>> {
-    private final List<Rule<Node, NodeResult<Node, Error, StringResult<Error>>, StringResult<Error>>> rules;
-    private final ResultFactory<Node, Error, StringResult<Error>, NodeResult<Node, Error, StringResult<Error>>> factory;
+public final class OrRule<Node, Error, StringResult extends Matchable<String, Error>, NodeResult extends Matchable<Node, Error>>
+        implements Rule<Node, NodeResult, StringResult> {
+    private final List<Rule<Node, NodeResult, StringResult>> rules;
+    private final ResultFactory<Node, Error, StringResult, NodeResult> factory;
 
-    public OrRule(final List<Rule<Node, NodeResult<Node, Error, StringResult<Error>>, StringResult<Error>>> rules,
-                  final ResultFactory<Node, Error, StringResult<Error>, NodeResult<Node, Error, StringResult<Error>>> factory) {
+    public OrRule(final List<Rule<Node, NodeResult, StringResult>> rules,
+                  final ResultFactory<Node, Error, StringResult, NodeResult> factory) {
         this.rules = new ArrayList<>(rules);
         this.factory = factory;
     }
@@ -29,14 +27,14 @@ public final class OrRule<Node, Error> implements Rule<Node, NodeResult<Node, Er
     }
 
     @Override
-    public NodeResult<Node, Error, StringResult<Error>> lex(final String input) {
+    public NodeResult lex(final String input) {
         return this.or(rule -> rule.lex(input))
-                   .match(NodeOk::new,
+                   .match(this.factory::createNode,
                           errors -> this.factory.createNodeErrorWithChildren("No valid combination present", input,
                                                                              errors));
     }
 
-    private <Value, Result extends Matchable<Value, Error>> Accumulator<Value, Error> or(final Function<Rule<Node, NodeResult<Node, Error, StringResult<Error>>, StringResult<Error>>, Result> mapper) {
+    private <Value, Result extends Matchable<Value, Error>> Accumulator<Value, Error> or(final Function<Rule<Node, NodeResult, StringResult>, Result> mapper) {
         return this.rules.stream()
                          .map(mapper)
                          .<Accumulator<Value, Error>>reduce(new MutableAccumulator<>(), OrRule::fold,
@@ -44,9 +42,9 @@ public final class OrRule<Node, Error> implements Rule<Node, NodeResult<Node, Er
     }
 
     @Override
-    public StringResult<Error> generate(final Node node) {
+    public StringResult generate(final Node node) {
         return this.or(rule -> rule.generate(node))
-                   .match(StringOk::new,
+                   .match(this.factory::createString,
                           errors -> this.factory.createStringErrorWithChildren("No valid combination present", node,
                                                                                errors));
     }

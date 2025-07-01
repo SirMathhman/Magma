@@ -4,25 +4,21 @@ MapNodeFactory <-- EverythingNode
 MapNodeFactory <-- MapNode
 class MapNodeFactory implements NodeFactory
 PrefixRule <-- ResultFactory
-PrefixRule <-- NodeResult
-PrefixRule <-- StringResult
-class PrefixRule<Node, Error> implements Rule
+PrefixRule <-- ConcatStringResult
+class PrefixRule<Node, Error, StringResult extends ConcatStringResult<StringResult>, NodeResult> implements Rule
 MutableAccumulator <-- ArrayList
 MutableAccumulator <-- List
 MutableAccumulator <-- Optional
 MutableAccumulator <-- Function
 class MutableAccumulator<Node, Error> implements Accumulator
 OrRule <-- ResultFactory
-OrRule <-- NodeOk
-OrRule <-- NodeResult
 OrRule <-- Matchable
 OrRule <-- Accumulator
 OrRule <-- MutableAccumulator
-OrRule <-- StringResult
 OrRule <-- ArrayList
 OrRule <-- List
 OrRule <-- Function
-class OrRule<Node, Error> implements Rule
+class OrRule<Node, Error, StringResult extends Matchable<String, Error>, NodeResult extends Matchable<Node, Error>> implements Rule
 Splitter <-- Tuple
 Splitter <-- Optional
 interface Splitter
@@ -39,21 +35,20 @@ CommonLang <-- StringResult
 class CommonLang
 interface MergingNode<Node>
 SuffixRule <-- ResultFactory
-SuffixRule <-- NodeResult
-SuffixRule <-- StringResult
-class SuffixRule<Node, Error> implements Rule
+SuffixRule <-- ConcatStringResult
+class SuffixRule<Node, Error, NodeResult, StringResult extends ConcatStringResult<StringResult>> implements Rule
 SplitRule <-- Tuple
 SplitRule <-- ResultFactory
 SplitRule <-- MergingNode
-SplitRule <-- NodeResult
+SplitRule <-- MapNodeResult
 SplitRule <-- Splitter
-SplitRule <-- StringResult
-class SplitRule<Node extends MergingNode<Node>, Error> implements Rule
+SplitRule <-- MappingStringResult
+class SplitRule<Node extends MergingNode<Node>, Error, StringResult extends MappingStringResult<StringResult>, NodeResult extends MapNodeResult<NodeResult, Node, Error, StringResult>> implements Rule
 NodeWithNodeLists <-- List
 NodeWithNodeLists <-- Optional
 interface NodeWithNodeLists<Node>
-NodeListResult <-- StringResult
-interface NodeListResult<Node, Error>
+interface ConcatStringResult<Self>
+interface NodeListResult<NodeResult>
 interface EverythingNode implements TypedNode
 interface TypedNode<Node>
 class Tuple<Left, Right>
@@ -73,7 +68,6 @@ NodeWithStrings <-- Optional
 NodeWithStrings <-- Stream
 interface NodeWithStrings<Node>
 NodeResult <-- Matchable
-NodeResult <-- Function
 interface NodeResult<Node, Error, StringResult> implements Matchable
 LastLocator <-- Optional
 class LastLocator
@@ -85,7 +79,6 @@ MutableDivideState <-- Optional
 MutableDivideState <-- Stream
 class MutableDivideState
 StringResult <-- Matchable
-StringResult <-- Function
 interface StringResult<Error> implements Matchable
 MapNode <-- Tuple
 MapNode <-- HashMap
@@ -95,19 +88,17 @@ MapNode <-- Optional
 MapNode <-- Stream
 class MapNode
 interface NodeFactory<Node>
-StripRule <-- NodeResult
-StripRule <-- StringResult
-class StripRule<Node, Error> implements Rule
+class StripRule<Node, StringResult, NodeResult> implements Rule
 TypeRule <-- ResultFactory
 TypeRule <-- TypedNode
 TypeRule <-- MapNodeResult
-class TypeRule<Node extends TypedNode<Node>, Error, NodeResult extends MapNodeResult<Node, Error, StringResult, NodeResult>, StringResult> implements Rule
+class TypeRule<Node extends TypedNode<Node>, Error, NodeResult extends MapNodeResult<NodeResult, Node, Error, StringResult>, StringResult> implements Rule
+MappingStringResult <-- Function
+interface MappingStringResult<Self>
 StringRule <-- ResultFactory
 StringRule <-- NodeWithStrings
 StringRule <-- NodeFactory
-StringRule <-- NodeResult
-StringRule <-- StringResult
-class StringRule<Node extends NodeWithStrings<Node>, Error> implements Rule
+class StringRule<Node extends NodeWithStrings<Node>, Error, NodeResult, StringResult> implements Rule
 CompileError <-- Strings
 CompileError <-- Collections
 CompileError <-- List
@@ -124,11 +115,10 @@ DivideRule <-- DivideState
 DivideRule <-- MutableDivideState
 DivideRule <-- NodeWithNodeLists
 DivideRule <-- NodeListResult
-DivideRule <-- NodeResult
-DivideRule <-- StringResult
+DivideRule <-- ConcatStringResult
 DivideRule <-- Collections
 DivideRule <-- Stream
-class DivideRule<Node extends NodeWithNodeLists<Node>, Error> implements Rule
+class DivideRule<Node extends NodeWithNodeLists<Node>, Error, StringResult extends ConcatStringResult<StringResult>, NodeResult> implements Rule
 interface FormatError
 FirstLocator <-- Optional
 class FirstLocator
@@ -194,13 +184,11 @@ class PlantLang
 Locator <-- Optional
 interface Locator
 IdentifierRule <-- ResultFactory
-IdentifierRule <-- NodeResult
-IdentifierRule <-- StringResult
 IdentifierRule <-- IntStream
-class IdentifierRule<Node, Error> implements Rule
+class IdentifierRule<Node, Error, NodeResult, StringResult> implements Rule
 MapNodeResult <-- ResultFactory
 MapNodeResult <-- Function
-interface MapNodeResult<Node, Error, StringResult, S>
+interface MapNodeResult<Self, Node, Error, StringResult>
 Main <-- ResultFactoryImpl
 Main <-- ApplicationError
 Main <-- Error

@@ -6,21 +6,20 @@ import magma.divide.DivideState;
 import magma.divide.MutableDivideState;
 import magma.node.NodeWithNodeLists;
 import magma.node.result.NodeListResult;
-import magma.node.result.NodeResult;
-import magma.string.result.StringResult;
+import magma.string.result.ConcatStringResult;
 
 import java.util.Collections;
 import java.util.stream.Stream;
 
-public final class DivideRule<Node extends NodeWithNodeLists<Node>, Error>
-        implements Rule<Node, NodeResult<Node, Error, StringResult<Error>>, StringResult<Error>> {
+public final class DivideRule<Node extends NodeWithNodeLists<Node>, Error, StringResult extends ConcatStringResult<StringResult>, NodeResult>
+        implements Rule<Node, NodeResult, StringResult> {
     private final String key;
-    private final Rule<Node, NodeResult<Node, Error, StringResult<Error>>, StringResult<Error>> rule;
-    private final ResultFactory<Node, Error, StringResult<Error>, NodeResult<Node, Error, StringResult<Error>>> resultFactory;
+    private final Rule<Node, NodeResult, StringResult> rule;
+    private final ResultFactory<Node, Error, StringResult, NodeResult> resultFactory;
 
     public DivideRule(final String key,
-                      final Rule<Node, NodeResult<Node, Error, StringResult<Error>>, StringResult<Error>> rule,
-                      final ResultFactory<Node, Error, StringResult<Error>, NodeResult<Node, Error, StringResult<Error>>> resultFactory) {
+                      final Rule<Node, NodeResult, StringResult> rule,
+                      final ResultFactory<Node, Error, StringResult, NodeResult> resultFactory) {
         this.key = key;
         this.rule = rule;
         this.resultFactory = resultFactory;
@@ -57,7 +56,7 @@ public final class DivideRule<Node extends NodeWithNodeLists<Node>, Error>
     }
 
     @Override
-    public NodeResult<Node, Error, StringResult<Error>> lex(final String input) {
+    public NodeResult lex(final String input) {
         return DivideRule.divide(input)
                          .map(this.rule::lex)
                          .reduce(this.resultFactory.createNodeList(), NodeListResult::add, (_, next) -> next)
@@ -65,11 +64,11 @@ public final class DivideRule<Node extends NodeWithNodeLists<Node>, Error>
     }
 
     @Override
-    public StringResult<Error> generate(final Node node) {
+    public StringResult generate(final Node node) {
         return node.findNodeList(this.key)
                    .orElse(Collections.emptyList())
                    .stream()
                    .map(this.rule::generate)
-                   .reduce(this.resultFactory.createString(), StringResult::appendResult, (_, next) -> next);
+                   .reduce(this.resultFactory.createEmptyString(), ConcatStringResult::appendResult, (_, next) -> next);
     }
 }

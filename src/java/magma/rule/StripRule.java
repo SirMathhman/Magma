@@ -1,17 +1,14 @@
 package magma.rule;
 
-import magma.node.result.NodeResult;
-import magma.string.result.StringResult;
-
-public record StripRule<Node, Error>(Rule<Node, NodeResult<Node, Error, StringResult<Error>>, StringResult<Error>> rule)
-        implements Rule<Node, NodeResult<Node, Error, StringResult<Error>>, StringResult<Error>> {
+public record StripRule<Node, StringResult, NodeResult>(Rule<Node, NodeResult, StringResult> rule)
+        implements Rule<Node, NodeResult, StringResult> {
     @Override
-    public NodeResult<Node, Error, StringResult<Error>> lex(final String input) {
+    public NodeResult lex(final String input) {
         return this.rule.lex(input.strip());
     }
 
     @Override
-    public StringResult<Error> generate(final Node node) {
+    public StringResult generate(final Node node) {
         return this.rule.generate(node);
     }
 }

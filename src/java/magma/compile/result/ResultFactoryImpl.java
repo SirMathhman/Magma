@@ -24,7 +24,7 @@ public class ResultFactoryImpl implements ResultFactory<EverythingNode, FormatEr
     }
 
     @Override
-    public NodeListResult<EverythingNode, FormatError> createNodeList() {
+    public NodeListResult<NodeResult<EverythingNode, FormatError, StringResult<FormatError>>> createNodeList() {
         return new NodeListOk<>(new MapNodeFactory());
     }
 
@@ -64,7 +64,7 @@ public class ResultFactoryImpl implements ResultFactory<EverythingNode, FormatEr
     }
 
     @Override
-    public StringResult<FormatError> createString() {
+    public StringResult<FormatError> createEmptyString() {
         return new StringOk<>("");
     }
 }

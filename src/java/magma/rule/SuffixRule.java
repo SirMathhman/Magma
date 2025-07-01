@@ -1,24 +1,24 @@
 package magma.rule;
 
 import magma.compile.result.ResultFactory;
-import magma.node.result.NodeResult;
-import magma.string.result.StringResult;
+import magma.string.result.ConcatStringResult;
 
-public final class SuffixRule<Node, Error> implements Rule<Node, NodeResult<Node, Error, StringResult<Error>>, StringResult<Error>> {
-    private final Rule<Node, NodeResult<Node, Error, StringResult<Error>>, StringResult<Error>> rule;
+public final class SuffixRule<Node, Error, NodeResult, StringResult extends ConcatStringResult<StringResult>>
+        implements Rule<Node, NodeResult, StringResult> {
+    private final Rule<Node, NodeResult, StringResult> rule;
     private final String suffix;
-    private final ResultFactory<Node, Error, StringResult<Error>, NodeResult<Node, Error, StringResult<Error>>> factory;
+    private final ResultFactory<Node, Error, StringResult, NodeResult> factory;
 
-    public SuffixRule(final Rule<Node, NodeResult<Node, Error, StringResult<Error>>, StringResult<Error>> rule,
+    public SuffixRule(final Rule<Node, NodeResult, StringResult> rule,
                       final String suffix,
-                      final ResultFactory<Node, Error, StringResult<Error>, NodeResult<Node, Error, StringResult<Error>>> factory) {
+                      final ResultFactory<Node, Error, StringResult, NodeResult> factory) {
         this.rule = rule;
         this.suffix = suffix;
         this.factory = factory;
     }
 
     @Override
-    public NodeResult<Node, Error, StringResult<Error>> lex(final String input) {
+    public NodeResult lex(final String input) {
         final var length = input.length();
         if (!input.endsWith(this.suffix))
             return this.factory.createNodeError("Suffix '" + this.suffix + "' not present", input);
@@ -29,7 +29,7 @@ public final class SuffixRule<Node, Error> implements Rule<Node, NodeResult<Node
     }
 
     @Override
-    public StringResult<Error> generate(final Node node) {
+    public StringResult generate(final Node node) {
         return this.rule.generate(node).appendSlice(this.suffix);
     }
 }

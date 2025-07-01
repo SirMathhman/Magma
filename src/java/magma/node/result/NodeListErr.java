@@ -2,9 +2,9 @@ package magma.node.result;
 
 import magma.string.result.StringResult;
 
-public record NodeListErr<Node, error>(error error) implements NodeListResult<Node, error> {
+public record NodeListErr<Node, error>(error error) implements NodeListResult<NodeResult<Node, error, StringResult<error>>> {
     @Override
-    public NodeListResult<Node, error> add(final NodeResult<Node, error, StringResult<error>> other) {
+    public NodeListResult<NodeResult<Node, error, StringResult<error>>> add(final NodeResult<Node, error, StringResult<error>> other) {
         return new NodeListErr<>(this.error);
     }
 

@@ -7,7 +7,7 @@ import magma.string.result.StringResult;
 import java.util.ArrayList;
 import java.util.List;
 
-public final class NodeListOk<Node extends NodeWithNodeLists<Node>, Error> implements NodeListResult<Node, Error> {
+public final class NodeListOk<Node extends NodeWithNodeLists<Node>, Error> implements NodeListResult<NodeResult<Node, Error, StringResult<Error>>> {
     private final List<Node> list;
     private final NodeFactory<Node> nodeFactory;
 
@@ -21,7 +21,7 @@ public final class NodeListOk<Node extends NodeWithNodeLists<Node>, Error> imple
     }
 
     @Override
-    public NodeListResult<Node, Error> add(final NodeResult<Node, Error, StringResult<Error>> other) {
+    public NodeListResult<NodeResult<Node, Error, StringResult<Error>>> add(final NodeResult<Node, Error, StringResult<Error>> other) {
         return other.match(node -> {
             this.list.add(node);
             return this;
