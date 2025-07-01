@@ -15,11 +15,8 @@ MutableAccumulator <-- List
 MutableAccumulator <-- Optional
 MutableAccumulator <-- Function
 class MutableAccumulator<Node> implements Accumulator
-OrRule <-- ResultFactoryImpl
-OrRule <-- CompileError
+OrRule <-- ResultFactory
 OrRule <-- FormatError
-OrRule <-- EverythingNode
-OrRule <-- NodeErr
 OrRule <-- NodeOk
 OrRule <-- NodeResult
 OrRule <-- Matchable
@@ -27,8 +24,9 @@ OrRule <-- Accumulator
 OrRule <-- MutableAccumulator
 OrRule <-- StringResult
 OrRule <-- List
+OrRule <-- Objects
 OrRule <-- Function
-class OrRule implements Rule
+class OrRule<Node> implements Rule
 Splitter <-- Tuple
 Splitter <-- Optional
 interface Splitter

@@ -11,4 +11,6 @@ public interface ResultFactory<Node, StringResult> {
     StringResult createStringErrorWithChildren(String message, Node context, List<FormatError> errors);
 
     NodeResult<Node> createNodeError(String message, String context);
+
+    NodeResult<Node> createNodeErrorWithChildren(String message, String context, List<FormatError> errors);
 }

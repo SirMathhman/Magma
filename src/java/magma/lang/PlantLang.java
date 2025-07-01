@@ -25,12 +25,14 @@ public class PlantLang {
     }
 
     private static Rule<EverythingNode, NodeResult<EverythingNode>, StringResult<FormatError>> createPlantRootSegmentRule() {
-        final var options = new OrRule(List.of(PlantLang.createDependencyRule(), PlantLang.createPlantStructureRule()));
+        final var options = new OrRule<EverythingNode>(List.of(PlantLang.createDependencyRule(), PlantLang.createPlantStructureRule()),
+                                                       ResultFactoryImpl.get());
         return new SuffixRule<EverythingNode>(options, Strings.LINE_SEPARATOR, ResultFactoryImpl.get());
     }
 
     private static Rule<EverythingNode, NodeResult<EverythingNode>, StringResult<FormatError>> createPlantStructureRule() {
-        return new OrRule(List.of(PlantLang.createTypedPlantStructureRule("class"), PlantLang.createTypedPlantStructureRule("interface")));
+        return new OrRule<EverythingNode>(List.of(PlantLang.createTypedPlantStructureRule("class"), PlantLang.createTypedPlantStructureRule("interface")),
+                                          ResultFactoryImpl.get());
     }
 
     private static Rule<EverythingNode, NodeResult<EverythingNode>, StringResult<FormatError>> createTypedPlantStructureRule(

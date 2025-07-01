@@ -35,4 +35,11 @@ public class ResultFactoryImpl implements ResultFactory<EverythingNode, StringRe
     public NodeResult<EverythingNode> createNodeError(final String message, final String context) {
         return new NodeErr<>(new CompileError(message, context));
     }
+
+    @Override
+    public NodeResult<EverythingNode> createNodeErrorWithChildren(final String message,
+                                                                  final String context,
+                                                                  final List<FormatError> errors) {
+        return new NodeErr<>(new CompileError(message, context, errors));
+    }
 }
