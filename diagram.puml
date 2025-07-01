@@ -58,10 +58,9 @@ DivideState <-- Stream
 interface DivideState
 NodeListOk <-- NodeWithNodeLists
 NodeListOk <-- NodeFactory
-NodeListOk <-- StringResult
 NodeListOk <-- ArrayList
 NodeListOk <-- List
-class NodeListOk<Node extends NodeWithNodeLists<Node>, Error> implements NodeListResult
+class NodeListOk<Node extends NodeWithNodeLists<Node>, Error, S> implements NodeListResult
 interface Error
 NodeWithStrings <-- Tuple
 NodeWithStrings <-- Optional
@@ -107,8 +106,7 @@ class CompileError
 StringErr <-- Function
 class StringErr<Error> implements StringResult
 class ApplicationError
-NodeListErr <-- StringResult
-class NodeListErr<Node, error> implements NodeListResult
+class NodeListErr<Node, Error, StringResult> implements NodeListResult
 DivideRule <-- Tuple
 DivideRule <-- ResultFactory
 DivideRule <-- DivideState
@@ -138,10 +136,9 @@ class Strings
 Result <-- Function
 interface Result<Value, Error> implements Matchable
 NodeErr <-- ResultFactory
-NodeErr <-- StringResult
 NodeErr <-- List
 NodeErr <-- Function
-class NodeErr<Node, Error> implements NodeResult
+class NodeErr<Node, Error, StringResult> implements NodeResult
 StringOk <-- StringResult
 StringOk <-- Function
 class StringOk<FormatError> implements StringResult
@@ -162,9 +159,8 @@ ResultFactoryImpl <-- StringResult
 ResultFactoryImpl <-- List
 class ResultFactoryImpl implements ResultFactory
 NodeOk <-- ResultFactory
-NodeOk <-- StringResult
 NodeOk <-- Function
-class NodeOk<Node, Error> implements NodeResult
+class NodeOk<Node, Error, StringResult> implements NodeResult
 PlantLang <-- ResultFactoryImpl
 PlantLang <-- FormatError
 PlantLang <-- EverythingNode
