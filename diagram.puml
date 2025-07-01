@@ -1,7 +1,8 @@
 @startuml
 skinparam linetype ortho
+MapNodeFactory <-- EverythingNode
 MapNodeFactory <-- MapNode
-class MapNodeFactory
+class MapNodeFactory implements NodeFactory
 PrefixRule <-- FormatError
 PrefixRule <-- EverythingNode
 PrefixRule <-- NodeErr
@@ -92,8 +93,7 @@ MapNode <-- Map
 MapNode <-- Optional
 MapNode <-- Stream
 class MapNode
-NodeFactory <-- MapNode
-interface NodeFactory
+interface NodeFactory<Node>
 StripRule <-- FormatError
 StripRule <-- EverythingNode
 StripRule <-- NodeResult

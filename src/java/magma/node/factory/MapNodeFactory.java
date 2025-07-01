@@ -1,10 +1,11 @@
 package magma.node.factory;
 
+import magma.node.EverythingNode;
 import magma.node.MapNode;
 
-public class MapNodeFactory implements NodeFactory {
+public class MapNodeFactory implements NodeFactory<EverythingNode> {
     @Override
-    public MapNode createNode() {
+    public EverythingNode createNode() {
         return new MapNode();
     }
 }

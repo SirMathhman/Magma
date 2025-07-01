@@ -9,9 +9,9 @@ import java.util.List;
 
 public final class NodeListOk implements NodeListResult<EverythingNode> {
     private final List<EverythingNode> list;
-    private final NodeFactory nodeFactory;
+    private final NodeFactory<EverythingNode> nodeFactory;
 
-    public NodeListOk(final List<EverythingNode> list, final NodeFactory nodeFactory) {
+    public NodeListOk(final List<EverythingNode> list, final NodeFactory<EverythingNode> nodeFactory) {
         this.list = list;
         this.nodeFactory = nodeFactory;
     }

@@ -1,7 +1,5 @@
 package magma.node.factory;
 
-import magma.node.MapNode;
-
-public interface NodeFactory {
-    MapNode createNode();
+public interface NodeFactory<Node> {
+    Node createNode();
 }
