@@ -2,6 +2,7 @@ package magma.compile.result;
 
 import magma.error.CompileError;
 import magma.error.FormatError;
+import magma.error.context.StringContext;
 import magma.node.EverythingNode;
 import magma.node.factory.MapNodeFactory;
 import magma.node.result.NodeErr;
@@ -30,27 +31,27 @@ public class ResultFactoryImpl implements ResultFactory<EverythingNode, FormatEr
 
     @Override
     public StringResult<FormatError> createStringError(final String message, final EverythingNode everythingNode) {
-        return new StringErr<>(new CompileError(message, everythingNode.display()));
+        return new StringErr<>(new CompileError(message, new NodeContext(everythingNode)));
     }
 
     @Override
     public StringResult<FormatError> createStringErrorWithChildren(final String message,
                                                                    final EverythingNode context,
                                                                    final List<FormatError> errors) {
-        return new StringErr<>(new CompileError(message, context.display(), errors));
+        return new StringErr<>(new CompileError(message, new NodeContext(context), errors));
     }
 
     @Override
     public NodeResult<EverythingNode, FormatError, StringResult<FormatError>> createNodeError(final String message,
                                                                                               final String context) {
-        return new NodeErr<>(new CompileError(message, context));
+        return new NodeErr<>(new CompileError(message, new StringContext(context)));
     }
 
     @Override
     public NodeResult<EverythingNode, FormatError, StringResult<FormatError>> createNodeErrorWithChildren(final String message,
                                                                                                           final String context,
                                                                                                           final List<FormatError> errors) {
-        return new NodeErr<>(new CompileError(message, context, errors));
+        return new NodeErr<>(new CompileError(message, new StringContext(context), errors));
     }
 
     @Override

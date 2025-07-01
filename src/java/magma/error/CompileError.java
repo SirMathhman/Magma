@@ -1,14 +1,26 @@
 package magma.error;
 
+import magma.error.context.Context;
 import magma.string.Strings;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
-public record CompileError(String message, String input, List<FormatError> errors) implements FormatError {
-    public CompileError(final String message, final String input) {
-        this(message, input, Collections.emptyList());
+public final class CompileError implements FormatError {
+    private final String message;
+    private final Context context;
+    private final List<FormatError> errors;
+
+    public CompileError(final String message, final Context context, final List<FormatError> errors) {
+        this.message = message;
+        this.context = context;
+        this.errors = new ArrayList<>(errors);
+    }
+
+    public CompileError(final String message, final Context context) {
+        this(message, context, Collections.emptyList());
     }
 
     @Override
@@ -18,6 +30,6 @@ public record CompileError(String message, String input, List<FormatError> error
                                       .map(value -> Strings.LINE_SEPARATOR + "\t".repeat(depth) + value)
                                       .collect(Collectors.joining());
 
-        return this.message + ": " + this.input + joined;
+        return this.message + ": " + this.context.display() + joined;
     }
 }

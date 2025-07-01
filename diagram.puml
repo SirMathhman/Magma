@@ -20,6 +20,7 @@ OrRule <-- ArrayList
 OrRule <-- List
 OrRule <-- Function
 class OrRule implements Rule
+interface Context
 Splitter <-- Tuple
 Splitter <-- Optional
 interface Splitter
@@ -93,6 +94,7 @@ MapNode <-- Stream
 class MapNode
 StringResultFactory <-- List
 interface StringResultFactory
+class StringContext
 interface NodeFactory
 class StripRule implements Rule
 TypeRule <-- StringResultFactory
@@ -106,7 +108,9 @@ StringRule <-- StringResultFactory
 StringRule <-- NodeWithStrings
 StringRule <-- NodeFactory
 class StringRule implements Rule
+CompileError <-- Context
 CompileError <-- Strings
+CompileError <-- ArrayList
 CompileError <-- Collections
 CompileError <-- List
 CompileError <-- Collectors
@@ -140,6 +144,9 @@ InfixSplitter <-- Locator
 InfixSplitter <-- Optional
 class InfixSplitter
 class Strings
+NodeContext <-- Context
+NodeContext <-- EverythingNode
+class NodeContext
 Result <-- Function
 interface Result implements Matchable
 NodeErr <-- ResultFactory
@@ -153,6 +160,7 @@ Err <-- Function
 class Err implements Result
 ResultFactoryImpl <-- CompileError
 ResultFactoryImpl <-- FormatError
+ResultFactoryImpl <-- StringContext
 ResultFactoryImpl <-- EverythingNode
 ResultFactoryImpl <-- MapNodeFactory
 ResultFactoryImpl <-- NodeErr
