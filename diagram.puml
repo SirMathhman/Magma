@@ -33,6 +33,9 @@ CommonLang <-- LastLocator
 CommonLang <-- InfixSplitter
 CommonLang <-- StringResult
 class CommonLang
+NodeResultFactory <-- NodeListResult
+NodeResultFactory <-- List
+interface NodeResultFactory<Node, Error, NodeResult>
 interface MergingNode<Node>
 SuffixRule <-- ResultFactory
 SuffixRule <-- ConcatStringResult
@@ -87,6 +90,8 @@ MapNode <-- Map
 MapNode <-- Optional
 MapNode <-- Stream
 class MapNode
+StringResultFactory <-- List
+interface StringResultFactory<Node, Error, StringResult>
 interface NodeFactory<Node>
 class StripRule<Node, StringResult, NodeResult> implements Rule
 TypeRule <-- ResultFactory
@@ -95,10 +100,11 @@ TypeRule <-- MapNodeResult
 class TypeRule<Node extends TypedNode<Node>, Error, NodeResult extends MapNodeResult<NodeResult, Node, ResultFactory<Node, Error, StringResult, NodeResult>>, StringResult> implements Rule
 MappingStringResult <-- Function
 interface MappingStringResult<Self>
-StringRule <-- ResultFactory
+StringRule <-- NodeResultFactory
+StringRule <-- StringResultFactory
 StringRule <-- NodeWithStrings
 StringRule <-- NodeFactory
-class StringRule<Node extends NodeWithStrings<Node>, Error, NodeResult, StringResult> implements Rule
+class StringRule<Node extends NodeWithStrings<Node>, Error, NodeResult, StringResult, ResultFactory extends NodeResultFactory<Node, Error, NodeResult> & StringResultFactory<Node, Error, StringResult>> implements Rule
 CompileError <-- Strings
 CompileError <-- Collections
 CompileError <-- List
@@ -126,9 +132,7 @@ ThrowableError <-- StringWriter
 class ThrowableError
 Matchable <-- Function
 interface Matchable<Value, Error>
-ResultFactory <-- NodeListResult
-ResultFactory <-- List
-interface ResultFactory<Node, Error, StringResult, NodeResult>
+interface ResultFactory<Node, Error, StringResult, NodeResult> implements NodeResultFactory
 InfixSplitter <-- Tuple
 InfixSplitter <-- Locator
 InfixSplitter <-- Optional
