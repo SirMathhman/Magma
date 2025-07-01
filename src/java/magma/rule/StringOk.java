@@ -1,12 +1,11 @@
 package magma.rule;
 
-import magma.error.FormatError;
 import magma.string.result.StringResult;
 
 import java.util.Optional;
 import java.util.function.Function;
 
-public record StringOk(String value) implements StringResult<FormatError> {
+public record StringOk<FormatError>(String value) implements StringResult<FormatError> {
     @Override
     public Optional<String> toOptional() {
         return Optional.of(this.value);
@@ -19,12 +18,12 @@ public record StringOk(String value) implements StringResult<FormatError> {
 
     @Override
     public StringResult<FormatError> prependSlice(final String other) {
-        return new StringOk(other + this.value);
+        return new StringOk<>(other + this.value);
     }
 
     @Override
     public StringResult<FormatError> appendSlice(final String slice) {
-        return new StringOk(this.value + slice);
+        return new StringOk<>(this.value + slice);
     }
 
     @Override
@@ -34,7 +33,7 @@ public record StringOk(String value) implements StringResult<FormatError> {
 
     @Override
     public StringResult<FormatError> map(final Function<String, String> mapper) {
-        return new StringOk(mapper.apply(this.value));
+        return new StringOk<>(mapper.apply(this.value));
     }
 
     @Override

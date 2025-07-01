@@ -118,17 +118,17 @@ class Main {
     }
 
     private static StringResult<FormatError> compile(final String input, final String parent) {
-        final Rule<EverythingNode, NodeResult<EverythingNode>, StringResult<FormatError>> everythingNodeRule =
+        final Rule<EverythingNode, NodeResult<EverythingNode, FormatError>, StringResult<FormatError>> everythingNodeRule =
                 Main.createJavaRootRule();
         return everythingNodeRule.lex(input).match(root -> {
             final var newChildren = Main.modify(parent, root);
-            final Rule<EverythingNode, NodeResult<EverythingNode>, StringResult<FormatError>> everythingNodeRule1 =
+            final Rule<EverythingNode, NodeResult<EverythingNode, FormatError>, StringResult<FormatError>> everythingNodeRule1 =
                     PlantLang.createPlantRootRule();
             return everythingNodeRule1.generate(newChildren);
         }, StringErr::new);
     }
 
-    private static Rule<EverythingNode, NodeResult<EverythingNode>, StringResult<FormatError>> createJavaRootRule() {
+    private static Rule<EverythingNode, NodeResult<EverythingNode, FormatError>, StringResult<FormatError>> createJavaRootRule() {
         return new DivideRule<>("children", JavaLang.createJavaRootSegmentRule(), ResultFactoryImpl.get());
     }
 

@@ -6,18 +6,18 @@ import magma.node.result.NodeResult;
 
 import java.util.List;
 
-public interface ResultFactory<Node, StringResult> {
+public interface ResultFactory<Node, Error, StringResult> {
     NodeListResult<Node> createNodeList();
 
     StringResult createStringError(String message, Node node);
 
-    StringResult createStringErrorWithChildren(String message, Node context, List<FormatError> errors);
+    StringResult createStringErrorWithChildren(String message, Node context, List<Error> errors);
 
-    NodeResult<Node> createNodeError(String message, String context);
+    NodeResult<Node, FormatError> createNodeError(String message, String context);
 
-    NodeResult<Node> createNodeErrorWithChildren(String message, String context, List<FormatError> errors);
+    NodeResult<Node, FormatError> createNodeErrorWithChildren(String message, String context, List<Error> errors);
 
-    NodeResult<Node> createNode(Node node);
+    NodeResult<Node, FormatError> createNode(Node node);
 
     StringResult createString(String value);
 

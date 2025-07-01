@@ -5,21 +5,21 @@ import magma.error.FormatError;
 import magma.node.result.NodeResult;
 import magma.string.result.StringResult;
 
-public final class SuffixRule<Node> implements Rule<Node, NodeResult<Node>, StringResult<FormatError>> {
-    private final Rule<Node, NodeResult<Node>, StringResult<FormatError>> rule;
+public final class SuffixRule<Node> implements Rule<Node, NodeResult<Node, FormatError>, StringResult<FormatError>> {
+    private final Rule<Node, NodeResult<Node, FormatError>, StringResult<FormatError>> rule;
     private final String suffix;
-    private final ResultFactory<Node, StringResult<FormatError>> factory;
+    private final ResultFactory<Node, FormatError, StringResult<FormatError>> factory;
 
-    public SuffixRule(final Rule<Node, NodeResult<Node>, StringResult<FormatError>> rule,
+    public SuffixRule(final Rule<Node, NodeResult<Node, FormatError>, StringResult<FormatError>> rule,
                       final String suffix,
-                      final ResultFactory<Node, StringResult<FormatError>> factory) {
+                      final ResultFactory<Node, FormatError, StringResult<FormatError>> factory) {
         this.rule = rule;
         this.suffix = suffix;
         this.factory = factory;
     }
 
     @Override
-    public NodeResult<Node> lex(final String input) {
+    public NodeResult<Node, FormatError> lex(final String input) {
         final var length = input.length();
         if (!input.endsWith(this.suffix))
             return this.factory.createNodeError("Suffix '" + this.suffix + "' not present", input);

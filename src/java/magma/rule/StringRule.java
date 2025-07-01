@@ -8,13 +8,13 @@ import magma.node.result.NodeResult;
 import magma.string.result.StringResult;
 
 public final class StringRule<NOde extends NodeWithStrings<NOde>>
-        implements Rule<NOde, NodeResult<NOde>, StringResult<FormatError>> {
+        implements Rule<NOde, NodeResult<NOde, FormatError>, StringResult<FormatError>> {
     private final String key;
-    private final ResultFactory<NOde, StringResult<FormatError>> resultFactory;
+    private final ResultFactory<NOde, FormatError, StringResult<FormatError>> resultFactory;
     private final NodeFactory<NOde> nodeFactory;
 
     public StringRule(final String key,
-                      final ResultFactory<NOde, StringResult<FormatError>> resultFactory,
+                      final ResultFactory<NOde, FormatError, StringResult<FormatError>> resultFactory,
                       final NodeFactory<NOde> nodeFactory) {
         this.key = key;
         this.resultFactory = resultFactory;
@@ -22,7 +22,7 @@ public final class StringRule<NOde extends NodeWithStrings<NOde>>
     }
 
     @Override
-    public NodeResult<NOde> lex(final String input) {
+    public NodeResult<NOde, FormatError> lex(final String input) {
         final var node = this.nodeFactory.createNode().withString(this.key, input);
         return this.resultFactory.createNode(node);
     }

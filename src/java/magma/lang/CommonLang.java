@@ -14,15 +14,15 @@ import magma.string.result.StringResult;
 class CommonLang {
     private CommonLang() {}
 
-    public static Rule<EverythingNode, NodeResult<EverythingNode>, StringResult<FormatError>> Last(final Rule<EverythingNode, NodeResult<EverythingNode>, StringResult<FormatError>> leftRule,
-                                                                                                   final String infix,
-                                                                                                   final Rule<EverythingNode, NodeResult<EverythingNode>, StringResult<FormatError>> rightRule) {
+    public static Rule<EverythingNode, NodeResult<EverythingNode, FormatError>, StringResult<FormatError>> Last(final Rule<EverythingNode, NodeResult<EverythingNode, FormatError>, StringResult<FormatError>> leftRule,
+                                                                                                                final String infix,
+                                                                                                                final Rule<EverythingNode, NodeResult<EverythingNode, FormatError>, StringResult<FormatError>> rightRule) {
         return new SplitRule<>(leftRule, rightRule, new InfixSplitter(infix, new LastLocator()), ResultFactoryImpl.get());
     }
 
-    public static Rule<EverythingNode, NodeResult<EverythingNode>, StringResult<FormatError>> First(final Rule<EverythingNode, NodeResult<EverythingNode>, StringResult<FormatError>> leftRule,
-                                                                                                    final String infix,
-                                                                                                    final Rule<EverythingNode, NodeResult<EverythingNode>, StringResult<FormatError>> rightRule) {
+    public static Rule<EverythingNode, NodeResult<EverythingNode, FormatError>, StringResult<FormatError>> First(final Rule<EverythingNode, NodeResult<EverythingNode, FormatError>, StringResult<FormatError>> leftRule,
+                                                                                                                 final String infix,
+                                                                                                                 final Rule<EverythingNode, NodeResult<EverythingNode, FormatError>, StringResult<FormatError>> rightRule) {
         return new SplitRule<>(leftRule, rightRule, new InfixSplitter(infix, new FirstLocator()), ResultFactoryImpl.get());
     }
 }

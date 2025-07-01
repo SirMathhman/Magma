@@ -57,6 +57,7 @@ class SplitRule<Node extends MergingNode<Node>> implements Rule
 NodeWithNodeLists <-- List
 NodeWithNodeLists <-- Optional
 interface NodeWithNodeLists<Node>
+NodeListResult <-- FormatError
 interface NodeListResult<Node>
 interface EverythingNode implements TypedNode
 interface TypedNode<Node>
@@ -65,6 +66,7 @@ DivideState <-- Tuple
 DivideState <-- Optional
 DivideState <-- Stream
 interface DivideState
+NodeListOk <-- FormatError
 NodeListOk <-- NodeWithNodeLists
 NodeListOk <-- NodeFactory
 NodeListOk <-- ArrayList
@@ -75,11 +77,9 @@ NodeWithStrings <-- Tuple
 NodeWithStrings <-- Optional
 NodeWithStrings <-- Stream
 interface NodeWithStrings<Node>
-NodeResult <-- FormatError
 NodeResult <-- Matchable
-NodeResult <-- Optional
 NodeResult <-- Function
-interface NodeResult<Node> implements Matchable
+interface NodeResult<Node, Error> implements Matchable
 LastLocator <-- Optional
 class LastLocator
 interface Rule<Node, NodeResult, StringResult>
@@ -106,6 +106,7 @@ StripRule <-- NodeResult
 StripRule <-- StringResult
 class StripRule<Node> implements Rule
 TypeRule <-- ResultFactory
+TypeRule <-- FormatError
 TypeRule <-- TypedNode
 TypeRule <-- NodeResult
 class TypeRule<Node extends TypedNode<Node>, StringResult> implements Rule
@@ -151,7 +152,7 @@ ResultFactory <-- FormatError
 ResultFactory <-- NodeListResult
 ResultFactory <-- NodeResult
 ResultFactory <-- List
-interface ResultFactory<Node, StringResult>
+interface ResultFactory<Node, Error, StringResult>
 InfixSplitter <-- Tuple
 InfixSplitter <-- Locator
 InfixSplitter <-- Optional
@@ -162,14 +163,12 @@ interface Result<Value, Error> implements Matchable
 NodeErr <-- CompileError
 NodeErr <-- FormatError
 NodeErr <-- List
-NodeErr <-- Optional
 NodeErr <-- Function
 class NodeErr<Node> implements NodeResult
-StringOk <-- FormatError
 StringOk <-- StringResult
 StringOk <-- Optional
 StringOk <-- Function
-class StringOk implements StringResult
+class StringOk<FormatError> implements StringResult
 Err <-- Function
 class Err<Value, Error> implements Result
 ResultFactoryImpl <-- CompileError
@@ -187,7 +186,6 @@ ResultFactoryImpl <-- StringResult
 ResultFactoryImpl <-- List
 class ResultFactoryImpl implements ResultFactory
 NodeOk <-- FormatError
-NodeOk <-- Optional
 NodeOk <-- Function
 class NodeOk<Node> implements NodeResult
 PlantLang <-- ResultFactoryImpl

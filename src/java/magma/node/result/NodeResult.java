@@ -1,18 +1,13 @@
 package magma.node.result;
 
-import magma.error.FormatError;
 import magma.result.Matchable;
 
-import java.util.Optional;
 import java.util.function.Function;
 
-public interface NodeResult<Node> extends Matchable<Node, FormatError> {
-    @Deprecated
-    Optional<Node> toOptional();
+public interface NodeResult<Node, Error> extends Matchable<Node, Error> {
+    NodeResult<Node, Error> mapValue(Function<Node, Node> mapper);
 
-    NodeResult<Node> mapValue(Function<Node, Node> mapper);
+    NodeResult<Node, Error> flatMap(Function<Node, NodeResult<Node, Error>> mapper);
 
-    NodeResult<Node> flatMap(Function<Node, NodeResult<Node>> mapper);
-
-    NodeResult<Node> mapErr(String message, String context);
+    NodeResult<Node, Error> mapErr(String message, String context);
 }

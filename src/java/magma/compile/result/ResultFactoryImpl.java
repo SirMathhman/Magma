@@ -15,11 +15,11 @@ import magma.string.result.StringResult;
 
 import java.util.List;
 
-public class ResultFactoryImpl implements ResultFactory<EverythingNode, StringResult<FormatError>> {
+public class ResultFactoryImpl implements ResultFactory<EverythingNode, FormatError, StringResult<FormatError>> {
     private ResultFactoryImpl() {
     }
 
-    public static ResultFactory<EverythingNode, StringResult<FormatError>> get() {
+    public static ResultFactory<EverythingNode, FormatError, StringResult<FormatError>> get() {
         return new ResultFactoryImpl();
     }
 
@@ -41,29 +41,29 @@ public class ResultFactoryImpl implements ResultFactory<EverythingNode, StringRe
     }
 
     @Override
-    public NodeResult<EverythingNode> createNodeError(final String message, final String context) {
+    public NodeResult<EverythingNode, FormatError> createNodeError(final String message, final String context) {
         return new NodeErr<>(new CompileError(message, context));
     }
 
     @Override
-    public NodeResult<EverythingNode> createNodeErrorWithChildren(final String message,
-                                                                  final String context,
-                                                                  final List<FormatError> errors) {
+    public NodeResult<EverythingNode, FormatError> createNodeErrorWithChildren(final String message,
+                                                                               final String context,
+                                                                               final List<FormatError> errors) {
         return new NodeErr<>(new CompileError(message, context, errors));
     }
 
     @Override
-    public NodeResult<EverythingNode> createNode(final EverythingNode everythingNode) {
+    public NodeResult<EverythingNode, FormatError> createNode(final EverythingNode everythingNode) {
         return new NodeOk<>(everythingNode);
     }
 
     @Override
     public StringResult<FormatError> createString(final String value) {
-        return new StringOk(value);
+        return new StringOk<FormatError>(value);
     }
 
     @Override
     public StringResult<FormatError> createString() {
-        return new StringOk("");
+        return new StringOk<FormatError>("");
     }
 }

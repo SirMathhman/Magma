@@ -1,5 +1,6 @@
 package magma.node.result;
 
+import magma.error.FormatError;
 import magma.node.NodeWithNodeLists;
 import magma.node.factory.NodeFactory;
 
@@ -20,7 +21,7 @@ public final class NodeListOk<Node extends NodeWithNodeLists<Node>> implements N
     }
 
     @Override
-    public NodeListResult<Node> add(final NodeResult<Node> other) {
+    public NodeListResult<Node> add(final NodeResult<Node, FormatError> other) {
         return other.match(node -> {
             this.list.add(node);
             return this;
@@ -28,7 +29,7 @@ public final class NodeListOk<Node extends NodeWithNodeLists<Node>> implements N
     }
 
     @Override
-    public NodeResult<Node> toNode(final String key) {
+    public NodeResult<Node, FormatError> toNode(final String key) {
         return new NodeOk<>(this.nodeFactory.createNode().withNodeList(key, this.list));
     }
 }

@@ -9,23 +9,23 @@ import magma.rule.split.Splitter;
 import magma.string.result.StringResult;
 
 public final class SplitRule<Node extends MergingNode<Node>>
-        implements Rule<Node, NodeResult<Node>, StringResult<FormatError>> {
-    private final Rule<Node, NodeResult<Node>, StringResult<FormatError>> leftRule;
-    private final Rule<Node, NodeResult<Node>, StringResult<FormatError>> rightRule;
+        implements Rule<Node, NodeResult<Node, FormatError>, StringResult<FormatError>> {
+    private final Rule<Node, NodeResult<Node, FormatError>, StringResult<FormatError>> leftRule;
+    private final Rule<Node, NodeResult<Node, FormatError>, StringResult<FormatError>> rightRule;
     private final Splitter splitter;
-    private final ResultFactory<Node, StringResult<FormatError>> factory;
+    private final ResultFactory<Node, FormatError, StringResult<FormatError>> factory;
 
-    public SplitRule(final Rule<Node, NodeResult<Node>, StringResult<FormatError>> leftRule,
-                     final Rule<Node, NodeResult<Node>, StringResult<FormatError>> rightRule,
+    public SplitRule(final Rule<Node, NodeResult<Node, FormatError>, StringResult<FormatError>> leftRule,
+                     final Rule<Node, NodeResult<Node, FormatError>, StringResult<FormatError>> rightRule,
                      final Splitter splitter,
-                     final ResultFactory<Node, StringResult<FormatError>> factory) {
+                     final ResultFactory<Node, FormatError, StringResult<FormatError>> factory) {
         this.leftRule = leftRule;
         this.rightRule = rightRule;
         this.splitter = splitter;
         this.factory = factory;
     }
 
-    private NodeResult<Node> lexWithTuple(final Tuple<String, String> tuple) {
+    private NodeResult<Node, FormatError> lexWithTuple(final Tuple<String, String> tuple) {
         final var leftSlice = tuple.left();
         final var rightSlice = tuple.right();
 
@@ -36,7 +36,7 @@ public final class SplitRule<Node extends MergingNode<Node>>
     }
 
     @Override
-    public NodeResult<Node> lex(final String input) {
+    public NodeResult<Node, FormatError> lex(final String input) {
         return this.splitter.split(input).map(this::lexWithTuple).orElseGet(() -> {
             final String message = this.splitter.createMessage();
             return this.factory.createNodeError(message, input);

@@ -13,12 +13,12 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Function;
 
-public final class OrRule<Node> implements Rule<Node, NodeResult<Node>, StringResult<FormatError>> {
-    private final List<Rule<Node, NodeResult<Node>, StringResult<FormatError>>> rules;
-    private final ResultFactory<Node, StringResult<FormatError>> factory;
+public final class OrRule<Node> implements Rule<Node, NodeResult<Node, FormatError>, StringResult<FormatError>> {
+    private final List<Rule<Node, NodeResult<Node, FormatError>, StringResult<FormatError>>> rules;
+    private final ResultFactory<Node, FormatError, StringResult<FormatError>> factory;
 
-    public OrRule(final List<Rule<Node, NodeResult<Node>, StringResult<FormatError>>> rules,
-                  final ResultFactory<Node, StringResult<FormatError>> factory) {
+    public OrRule(final List<Rule<Node, NodeResult<Node, FormatError>, StringResult<FormatError>>> rules,
+                  final ResultFactory<Node, FormatError, StringResult<FormatError>> factory) {
         this.rules = new ArrayList<>(rules);
         this.factory = factory;
     }
@@ -30,14 +30,14 @@ public final class OrRule<Node> implements Rule<Node, NodeResult<Node>, StringRe
     }
 
     @Override
-    public NodeResult<Node> lex(final String input) {
+    public NodeResult<Node, FormatError> lex(final String input) {
         return this.or(rule -> rule.lex(input))
                    .match(NodeOk::new,
                           errors -> this.factory.createNodeErrorWithChildren("No valid combination present", input,
                                                                              errors));
     }
 
-    private <Value, Result extends Matchable<Value, FormatError>> Accumulator<Value> or(final Function<Rule<Node, NodeResult<Node>, StringResult<FormatError>>, Result> mapper) {
+    private <Value, Result extends Matchable<Value, FormatError>> Accumulator<Value> or(final Function<Rule<Node, NodeResult<Node, FormatError>, StringResult<FormatError>>, Result> mapper) {
         return this.rules.stream()
                          .map(mapper)
                          .<Accumulator<Value>>reduce(new MutableAccumulator<>(), OrRule::fold, (_, next) -> next);

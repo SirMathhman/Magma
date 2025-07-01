@@ -7,12 +7,12 @@ import magma.string.result.StringResult;
 
 import java.util.stream.IntStream;
 
-public final class IdentifierRule<Node> implements Rule<Node, NodeResult<Node>, StringResult<FormatError>> {
-    private final Rule<Node, NodeResult<Node>, StringResult<FormatError>> rule;
-    private final ResultFactory<Node, StringResult<FormatError>> factory;
+public final class IdentifierRule<Node> implements Rule<Node, NodeResult<Node, FormatError>, StringResult<FormatError>> {
+    private final Rule<Node, NodeResult<Node, FormatError>, StringResult<FormatError>> rule;
+    private final ResultFactory<Node, FormatError, StringResult<FormatError>> factory;
 
-    public IdentifierRule(final Rule<Node, NodeResult<Node>, StringResult<FormatError>> rule,
-                          final ResultFactory<Node, StringResult<FormatError>> factory) {
+    public IdentifierRule(final Rule<Node, NodeResult<Node, FormatError>, StringResult<FormatError>> rule,
+                          final ResultFactory<Node, FormatError, StringResult<FormatError>> factory) {
         this.rule = rule;
         this.factory = factory;
     }
@@ -22,7 +22,7 @@ public final class IdentifierRule<Node> implements Rule<Node, NodeResult<Node>, 
     }
 
     @Override
-    public NodeResult<Node> lex(final String input) {
+    public NodeResult<Node, FormatError> lex(final String input) {
         if (IdentifierRule.isIdentifier(input)) return this.rule.lex(input);
         else
             return this.factory.createNodeError("Not an identifier", input);
