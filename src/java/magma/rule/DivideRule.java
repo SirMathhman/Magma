@@ -1,7 +1,8 @@
 package magma.rule;
 
 import magma.api.Tuple;
-import magma.compile.result.ResultFactory;
+import magma.compile.result.NodeResultFactory;
+import magma.compile.result.StringResultFactory;
 import magma.divide.DivideState;
 import magma.divide.MutableDivideState;
 import magma.node.NodeWithNodeLists;
@@ -11,15 +12,15 @@ import magma.string.result.ConcatStringResult;
 import java.util.Collections;
 import java.util.stream.Stream;
 
-public final class DivideRule<Node extends NodeWithNodeLists<Node>, Error, StringResult extends ConcatStringResult<StringResult>, NodeResult>
+public final class DivideRule<Node extends NodeWithNodeLists<Node>, Error, StringResult extends ConcatStringResult<StringResult>, NodeResult, ResultFactory extends NodeResultFactory<Node, Error, NodeResult> & StringResultFactory<Node, Error, StringResult>>
         implements Rule<Node, NodeResult, StringResult> {
     private final String key;
     private final Rule<Node, NodeResult, StringResult> rule;
-    private final ResultFactory<Node, Error, StringResult, NodeResult> resultFactory;
+    private final ResultFactory resultFactory;
 
     public DivideRule(final String key,
                       final Rule<Node, NodeResult, StringResult> rule,
-                      final ResultFactory<Node, Error, StringResult, NodeResult> resultFactory) {
+                      final ResultFactory resultFactory) {
         this.key = key;
         this.rule = rule;
         this.resultFactory = resultFactory;

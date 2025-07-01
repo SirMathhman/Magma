@@ -1,6 +1,7 @@
 package magma.rule;
 
-import magma.compile.result.ResultFactory;
+import magma.compile.result.NodeResultFactory;
+import magma.compile.result.StringResultFactory;
 import magma.result.Matchable;
 import magma.rule.accumulate.Accumulator;
 import magma.rule.accumulate.MutableAccumulator;
@@ -9,13 +10,12 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Function;
 
-public final class OrRule<Node, Error, StringResult extends Matchable<String, Error>, NodeResult extends Matchable<Node, Error>>
+public final class OrRule<Node, Error, StringResult extends Matchable<String, Error>, NodeResult extends Matchable<Node, Error>, ResultFactory extends NodeResultFactory<Node, Error, NodeResult> & StringResultFactory<Node, Error, StringResult>>
         implements Rule<Node, NodeResult, StringResult> {
     private final List<Rule<Node, NodeResult, StringResult>> rules;
-    private final ResultFactory<Node, Error, StringResult, NodeResult> factory;
+    private final ResultFactory factory;
 
-    public OrRule(final List<Rule<Node, NodeResult, StringResult>> rules,
-                  final ResultFactory<Node, Error, StringResult, NodeResult> factory) {
+    public OrRule(final List<Rule<Node, NodeResult, StringResult>> rules, final ResultFactory factory) {
         this.rules = new ArrayList<>(rules);
         this.factory = factory;
     }

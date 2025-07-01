@@ -1,16 +1,15 @@
 package magma.rule;
 
-import magma.compile.result.ResultFactory;
+import magma.compile.result.NodeResultFactory;
 
 import java.util.stream.IntStream;
 
-public final class IdentifierRule<Node, Error, NodeResult, StringResult>
+public final class IdentifierRule<Node, Error, NodeResult, StringResult, Factory extends NodeResultFactory<Node, Error, NodeResult>>
         implements Rule<Node, NodeResult, StringResult> {
     private final Rule<Node, NodeResult, StringResult> rule;
-    private final ResultFactory<Node, Error, StringResult, NodeResult> factory;
+    private final Factory factory;
 
-    public IdentifierRule(final Rule<Node, NodeResult, StringResult> rule,
-                          final ResultFactory<Node, Error, StringResult, NodeResult> factory) {
+    public IdentifierRule(final Rule<Node, NodeResult, StringResult> rule, final Factory factory) {
         this.rule = rule;
         this.factory = factory;
     }

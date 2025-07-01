@@ -1,23 +1,23 @@
 package magma.rule;
 
 import magma.api.Tuple;
-import magma.compile.result.ResultFactory;
+import magma.compile.result.NodeResultFactory;
 import magma.node.MergingNode;
 import magma.node.result.MapNodeResult;
 import magma.rule.split.Splitter;
 import magma.string.result.MappingStringResult;
 
-public final class SplitRule<Node extends MergingNode<Node>, Error, StringResult extends MappingStringResult<StringResult>, NodeResult extends MapNodeResult<NodeResult, Node, ResultFactory<Node, Error, StringResult, NodeResult>>>
+public final class SplitRule<Node extends MergingNode<Node>, Error, StringResult extends MappingStringResult<StringResult>, NodeResult extends MapNodeResult<NodeResult, Node, ResultFactory>, ResultFactory extends NodeResultFactory<Node, Error, NodeResult>>
         implements Rule<Node, NodeResult, StringResult> {
     private final Rule<Node, NodeResult, StringResult> leftRule;
     private final Rule<Node, NodeResult, StringResult> rightRule;
     private final Splitter splitter;
-    private final ResultFactory<Node, Error, StringResult, NodeResult> factory;
+    private final ResultFactory factory;
 
     public SplitRule(final Rule<Node, NodeResult, StringResult> leftRule,
                      final Rule<Node, NodeResult, StringResult> rightRule,
                      final Splitter splitter,
-                     final ResultFactory<Node, Error, StringResult, NodeResult> factory) {
+                     final ResultFactory factory) {
         this.leftRule = leftRule;
         this.rightRule = rightRule;
         this.splitter = splitter;

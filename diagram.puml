@@ -3,22 +3,23 @@ skinparam linetype ortho
 MapNodeFactory <-- EverythingNode
 MapNodeFactory <-- MapNode
 class MapNodeFactory implements NodeFactory
-PrefixRule <-- ResultFactory
+PrefixRule <-- NodeResultFactory
 PrefixRule <-- ConcatStringResult
-class PrefixRule<Node, Error, StringResult extends ConcatStringResult<StringResult>, NodeResult> implements Rule
+class PrefixRule<Node, Error, StringResult extends ConcatStringResult<StringResult>, NodeResult, Factory extends NodeResultFactory<Node, Error, NodeResult>> implements Rule
 MutableAccumulator <-- ArrayList
 MutableAccumulator <-- List
 MutableAccumulator <-- Optional
 MutableAccumulator <-- Function
 class MutableAccumulator<Node, Error> implements Accumulator
-OrRule <-- ResultFactory
+OrRule <-- NodeResultFactory
+OrRule <-- StringResultFactory
 OrRule <-- Matchable
 OrRule <-- Accumulator
 OrRule <-- MutableAccumulator
 OrRule <-- ArrayList
 OrRule <-- List
 OrRule <-- Function
-class OrRule<Node, Error, StringResult extends Matchable<String, Error>, NodeResult extends Matchable<Node, Error>> implements Rule
+class OrRule<Node, Error, StringResult extends Matchable<String, Error>, NodeResult extends Matchable<Node, Error>, ResultFactory extends NodeResultFactory<Node, Error, NodeResult> & StringResultFactory<Node, Error, StringResult>> implements Rule
 Splitter <-- Tuple
 Splitter <-- Optional
 interface Splitter
@@ -37,16 +38,16 @@ NodeResultFactory <-- NodeListResult
 NodeResultFactory <-- List
 interface NodeResultFactory<Node, Error, NodeResult>
 interface MergingNode<Node>
-SuffixRule <-- ResultFactory
+SuffixRule <-- NodeResultFactory
 SuffixRule <-- ConcatStringResult
-class SuffixRule<Node, Error, NodeResult, StringResult extends ConcatStringResult<StringResult>> implements Rule
+class SuffixRule<Node, Error, NodeResult, StringResult extends ConcatStringResult<StringResult>, Factory extends NodeResultFactory<Node, Error, NodeResult>> implements Rule
 SplitRule <-- Tuple
-SplitRule <-- ResultFactory
+SplitRule <-- NodeResultFactory
 SplitRule <-- MergingNode
 SplitRule <-- MapNodeResult
 SplitRule <-- Splitter
 SplitRule <-- MappingStringResult
-class SplitRule<Node extends MergingNode<Node>, Error, StringResult extends MappingStringResult<StringResult>, NodeResult extends MapNodeResult<NodeResult, Node, ResultFactory<Node, Error, StringResult, NodeResult>>> implements Rule
+class SplitRule<Node extends MergingNode<Node>, Error, StringResult extends MappingStringResult<StringResult>, NodeResult extends MapNodeResult<NodeResult, Node, ResultFactory>, ResultFactory extends NodeResultFactory<Node, Error, NodeResult>> implements Rule
 NodeWithNodeLists <-- List
 NodeWithNodeLists <-- Optional
 interface NodeWithNodeLists<Node>
@@ -115,7 +116,8 @@ class StringErr<Error> implements StringResult
 class ApplicationError
 class NodeListErr<Node, Error, StringResult> implements NodeListResult
 DivideRule <-- Tuple
-DivideRule <-- ResultFactory
+DivideRule <-- NodeResultFactory
+DivideRule <-- StringResultFactory
 DivideRule <-- DivideState
 DivideRule <-- MutableDivideState
 DivideRule <-- NodeWithNodeLists
@@ -123,7 +125,7 @@ DivideRule <-- NodeListResult
 DivideRule <-- ConcatStringResult
 DivideRule <-- Collections
 DivideRule <-- Stream
-class DivideRule<Node extends NodeWithNodeLists<Node>, Error, StringResult extends ConcatStringResult<StringResult>, NodeResult> implements Rule
+class DivideRule<Node extends NodeWithNodeLists<Node>, Error, StringResult extends ConcatStringResult<StringResult>, NodeResult, ResultFactory extends NodeResultFactory<Node, Error, NodeResult> & StringResultFactory<Node, Error, StringResult>> implements Rule
 interface FormatError
 FirstLocator <-- Optional
 class FirstLocator
@@ -184,9 +186,9 @@ PlantLang <-- List
 class PlantLang
 Locator <-- Optional
 interface Locator
-IdentifierRule <-- ResultFactory
+IdentifierRule <-- NodeResultFactory
 IdentifierRule <-- IntStream
-class IdentifierRule<Node, Error, NodeResult, StringResult> implements Rule
+class IdentifierRule<Node, Error, NodeResult, StringResult, Factory extends NodeResultFactory<Node, Error, NodeResult>> implements Rule
 MapNodeResult <-- Function
 interface MapNodeResult<Self, Node, Factory>
 Main <-- ResultFactoryImpl

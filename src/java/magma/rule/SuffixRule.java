@@ -1,17 +1,15 @@
 package magma.rule;
 
-import magma.compile.result.ResultFactory;
+import magma.compile.result.NodeResultFactory;
 import magma.string.result.ConcatStringResult;
 
-public final class SuffixRule<Node, Error, NodeResult, StringResult extends ConcatStringResult<StringResult>>
+public final class SuffixRule<Node, Error, NodeResult, StringResult extends ConcatStringResult<StringResult>, Factory extends NodeResultFactory<Node, Error, NodeResult>>
         implements Rule<Node, NodeResult, StringResult> {
     private final Rule<Node, NodeResult, StringResult> rule;
     private final String suffix;
-    private final ResultFactory<Node, Error, StringResult, NodeResult> factory;
+    private final Factory factory;
 
-    public SuffixRule(final Rule<Node, NodeResult, StringResult> rule,
-                      final String suffix,
-                      final ResultFactory<Node, Error, StringResult, NodeResult> factory) {
+    public SuffixRule(final Rule<Node, NodeResult, StringResult> rule, final String suffix, final Factory factory) {
         this.rule = rule;
         this.suffix = suffix;
         this.factory = factory;
