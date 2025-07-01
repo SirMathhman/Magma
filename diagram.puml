@@ -160,6 +160,22 @@ NodeOk <-- FormatError
 NodeOk <-- Optional
 NodeOk <-- Function
 class NodeOk<Node> implements NodeResult
+PlantLang <-- ResultFactoryImpl
+PlantLang <-- FormatError
+PlantLang <-- EverythingNode
+PlantLang <-- NodeResult
+PlantLang <-- DivideRule
+PlantLang <-- OrRule
+PlantLang <-- PrefixRule
+PlantLang <-- Rule
+PlantLang <-- SplitRule
+PlantLang <-- StringRule
+PlantLang <-- SuffixRule
+PlantLang <-- TypeRule
+PlantLang <-- Strings
+PlantLang <-- StringResult
+PlantLang <-- List
+class PlantLang
 Locator <-- Optional
 interface Locator
 LastLocator <-- Optional
@@ -169,7 +185,8 @@ Main <-- ApplicationError
 Main <-- Error
 Main <-- FormatError
 Main <-- ThrowableError
-Main <-- Lang
+Main <-- JavaLang
+Main <-- PlantLang
 Main <-- EverythingNode
 Main <-- MapNode
 Main <-- NodeResult
@@ -200,24 +217,6 @@ MutableDivideState <-- List
 MutableDivideState <-- Optional
 MutableDivideState <-- Stream
 class MutableDivideState implements DivideState
-Lang <-- ResultFactoryImpl
-Lang <-- FormatError
-Lang <-- EverythingNode
-Lang <-- NodeResult
-Lang <-- DivideRule
-Lang <-- OrRule
-Lang <-- PrefixRule
-Lang <-- Rule
-Lang <-- SplitRule
-Lang <-- StringRule
-Lang <-- StripRule
-Lang <-- SuffixRule
-Lang <-- TypeRule
-Lang <-- Strings
-Lang <-- StringResult
-Lang <-- ArrayList
-Lang <-- List
-class Lang
 Ok <-- Function
 class Ok<Value, Error> implements Result
 Accumulator <-- FormatError
@@ -235,4 +234,20 @@ MapNode <-- Map
 MapNode <-- Optional
 MapNode <-- Stream
 class MapNode implements EverythingNode
+JavaLang <-- ResultFactory
+JavaLang <-- ResultFactoryImpl
+JavaLang <-- FormatError
+JavaLang <-- EverythingNode
+JavaLang <-- NodeResult
+JavaLang <-- OrRule
+JavaLang <-- PrefixRule
+JavaLang <-- Rule
+JavaLang <-- SplitRule
+JavaLang <-- StringRule
+JavaLang <-- StripRule
+JavaLang <-- SuffixRule
+JavaLang <-- TypeRule
+JavaLang <-- StringResult
+JavaLang <-- List
+class JavaLang
 @enduml

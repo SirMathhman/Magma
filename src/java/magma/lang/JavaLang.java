@@ -23,18 +23,28 @@ public class JavaLang {
     private JavaLang() {}
 
     public static Rule<EverythingNode, NodeResult<EverythingNode>, StringResult<FormatError>> createJavaRootSegmentRule() {
-        return new OrRule(
-                List.of(JavaLang.createImportRule(), JavaLang.getTypeRule(), JavaLang.createPlaceholderRule()));
+        return new OrRule(List.of(JavaLang.createImportRule(), JavaLang.createStructureRule("class"),
+                                  JavaLang.createStructureRule("interface"), JavaLang.createStructureRule("record"),
+                                  JavaLang.createPlaceholderRule()));
     }
 
     private static Rule<EverythingNode, NodeResult<EverythingNode>, StringResult<FormatError>> createPlaceholderRule() {
         return new TypeRule<>("placeholder", new StringRule("value"), JavaLang.factory);
     }
 
-    private static Rule<EverythingNode, NodeResult<EverythingNode>, StringResult<FormatError>> getTypeRule() {
-        return JavaLang.getTypeRule(new OrRule(
-                List.of(JavaLang.createClassHeaderRule("class"), JavaLang.createClassHeaderRule("interface"),
-                        JavaLang.createRecordHeaderRule())));
+    private static Rule<EverythingNode, NodeResult<EverythingNode>, StringResult<FormatError>> createStructureRule(final String type) {
+        final var header = JavaLang.createStructureHeaderRule(type);
+
+        final Rule<EverythingNode, NodeResult<EverythingNode>, StringResult<FormatError>> content =
+                new StringRule("content");
+
+        final Rule<EverythingNode, NodeResult<EverythingNode>, StringResult<FormatError>> header1 =
+                new OrRule(List.of(SplitRule.Last(header, " extends ", JavaLang.createTypeRule()), header));
+
+        final Rule<EverythingNode, NodeResult<EverythingNode>, StringResult<FormatError>> anImplements =
+                new OrRule(List.of(SplitRule.Last(header1, "implements", JavaLang.createTypeRule()), header1));
+
+        return new StripRule(new SuffixRule(SplitRule.First(anImplements, "{", content), "}"));
     }
 
     private static Rule<EverythingNode, NodeResult<EverythingNode>, StringResult<FormatError>> createImportRule() {
@@ -45,33 +55,26 @@ public class JavaLang {
                               JavaLang.factory);
     }
 
-    private static Rule<EverythingNode, NodeResult<EverythingNode>, StringResult<FormatError>> getTypeRule(final Rule<EverythingNode, NodeResult<EverythingNode>, StringResult<FormatError>> header) {
-        final Rule<EverythingNode, NodeResult<EverythingNode>, StringResult<FormatError>> content =
-                new StringRule("content");
-        final Rule<EverythingNode, NodeResult<EverythingNode>, StringResult<FormatError>> header1 =
-                new OrRule(List.of(SplitRule.Last(header, " extends ", JavaLang.createTypeRule()), header));
-
-        final Rule<EverythingNode, NodeResult<EverythingNode>, StringResult<FormatError>> anImplements =
-                new OrRule(List.of(SplitRule.Last(header1, "implements", JavaLang.createTypeRule()), header1));
-
-        return new StripRule(new SuffixRule(SplitRule.First(anImplements, "{", content), "}"));
-    }
-
     private static Rule<EverythingNode, NodeResult<EverythingNode>, StringResult<FormatError>> createTypeRule() {
         return new StripRule(
                 new SuffixRule(SplitRule.First(new StringRule("base"), "<", new StringRule("value")), ">"));
     }
 
-    private static Rule<EverythingNode, NodeResult<EverythingNode>, StringResult<FormatError>> createRecordHeaderRule() {
+    private static Rule<EverythingNode, NodeResult<EverythingNode>, StringResult<FormatError>> createStructureHeaderRule(
+            final String type) {
         final Rule<EverythingNode, NodeResult<EverythingNode>, StringResult<FormatError>> modifiers =
                 new StringRule("modifiers");
+
         final Rule<EverythingNode, NodeResult<EverythingNode>, StringResult<FormatError>> name =
                 new StripRule(new StringRule("name"));
+
         final Rule<EverythingNode, NodeResult<EverythingNode>, StringResult<FormatError>> params =
                 new StringRule("params");
+
         final var withParams = SplitRule.First(name, "(", params);
         final var afterKeyword = SplitRule.First(withParams, ")", new StringRule("more"));
-        return new TypeRule<>("record", SplitRule.First(modifiers, "record ", afterKeyword), JavaLang.factory);
+        return new TypeRule<>(type, SplitRule.First(modifiers, type + " ", new OrRule(List.of(afterKeyword, name))),
+                              JavaLang.factory);
     }
 
     private static Rule<EverythingNode, NodeResult<EverythingNode>, StringResult<FormatError>> createClassHeaderRule(
