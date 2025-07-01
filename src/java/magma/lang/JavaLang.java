@@ -24,13 +24,9 @@ public class JavaLang {
     private JavaLang() {}
 
     public static Rule<EverythingNode, NodeResult<EverythingNode>, StringResult<FormatError>> createJavaRootSegmentRule() {
-        return new OrRule(List.of(JavaLang.createImportRule(), JavaLang.createStructureRule("class"),
-                                  JavaLang.createStructureRule("interface"), JavaLang.createStructureRule("record"),
-                                  JavaLang.createPlaceholderRule()));
-    }
-
-    private static Rule<EverythingNode, NodeResult<EverythingNode>, StringResult<FormatError>> createPlaceholderRule() {
-        return new TypeRule<>("placeholder", new StringRule("value"), JavaLang.FACTORY);
+        return new OrRule(List.of(JavaLang.createNamespaceRule("package"), JavaLang.createNamespaceRule("import"),
+                                  JavaLang.createStructureRule("class"), JavaLang.createStructureRule("interface"),
+                                  JavaLang.createStructureRule("record")));
     }
 
     private static Rule<EverythingNode, NodeResult<EverythingNode>, StringResult<FormatError>> createStructureRule(final String type) {
@@ -62,12 +58,13 @@ public class JavaLang {
         return new OrRule(List.of(SplitRule.Last(header1, "implements", JavaLang.createTypeRule()), header1));
     }
 
-    private static Rule<EverythingNode, NodeResult<EverythingNode>, StringResult<FormatError>> createImportRule() {
+    private static Rule<EverythingNode, NodeResult<EverythingNode>, StringResult<FormatError>> createNamespaceRule(
+            final String type) {
         final Rule<EverythingNode, NodeResult<EverythingNode>, StringResult<FormatError>> child =
                 new StringRule("child");
 
-        return new TypeRule<>("import", new StripRule(
-                new SuffixRule(new PrefixRule("import ", SplitRule.Last(new StringRule("discard"), ".", child)), ";")),
+        return new TypeRule<>(type, new StripRule(
+                new SuffixRule(new PrefixRule(type + " ", SplitRule.Last(new StringRule("discard"), ".", child)), ";")),
                               JavaLang.FACTORY);
     }
 
