@@ -20,6 +20,11 @@ public final class MapNode implements EverythingNode {
     }
 
     @Override
+    public String toString() {
+        return "MapNode{" + "nodeLists=" + this.nodeLists + ", type=" + this.type + ", strings=" + this.strings + '}';
+    }
+
+    @Override
     public Stream<Tuple<String, String>> streamStrings() {
         return this.strings.entrySet().stream().map(entry -> {
             final var key = entry.getKey();
