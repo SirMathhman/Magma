@@ -5,6 +5,7 @@ import magma.compile.result.ResultFactoryImpl;
 import magma.error.FormatError;
 import magma.node.EverythingNode;
 import magma.node.result.NodeResult;
+import magma.rule.IdentifierRule;
 import magma.rule.OrRule;
 import magma.rule.PrefixRule;
 import magma.rule.Rule;
@@ -46,7 +47,7 @@ public class JavaLang {
                 new StringRule("modifiers");
 
         final Rule<EverythingNode, NodeResult<EverythingNode>, StringResult<FormatError>> name =
-                new StripRule(new StringRule("name"));
+                new StripRule(new IdentifierRule(new StringRule("name")));
 
         final Rule<EverythingNode, NodeResult<EverythingNode>, StringResult<FormatError>> params =
                 new StringRule("params");

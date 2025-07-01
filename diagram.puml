@@ -16,7 +16,6 @@ MutableAccumulator <-- ArrayList
 MutableAccumulator <-- List
 MutableAccumulator <-- Optional
 MutableAccumulator <-- Function
-class MutableAccumulator<Node> implements Accumulator
 OrRule <-- ResultFactoryImpl
 OrRule <-- CompileError
 OrRule <-- FormatError
@@ -34,7 +33,6 @@ class OrRule implements Rule
 TypeRule <-- ResultFactory
 TypeRule <-- TypedNode
 TypeRule <-- NodeResult
-class TypeRule<Node implements Rule
 StringRule <-- CompileError
 StringRule <-- FormatError
 StringRule <-- EverythingNode
@@ -56,7 +54,6 @@ Splitter <-- Optional
 interface Splitter
 StringErr <-- Optional
 StringErr <-- Function
-class StringErr<Error> implements StringResult
 class ApplicationError
 NodeListErr <-- FormatError
 NodeListErr <-- EverythingNode
@@ -90,32 +87,25 @@ SplitRule <-- InfixSplitter
 SplitRule <-- Splitter
 SplitRule <-- StringResult
 class SplitRule implements Rule
-interface FormatError extends Error
 FirstLocator <-- Optional
-class FirstLocator implements Locator
 ThrowableError <-- PrintWriter
 ThrowableError <-- StringWriter
 class ThrowableError
 Matchable <-- Function
-interface Matchable<Value, Error>
 NodeListResult <-- EverythingNode
 interface NodeListResult
 ResultFactory <-- FormatError
 ResultFactory <-- EverythingNode
 ResultFactory <-- TypedNode
 ResultFactory <-- List
-interface ResultFactory<StringResult>
 EverythingNode <-- Tuple
 EverythingNode <-- List
 EverythingNode <-- Optional
 EverythingNode <-- Stream
 interface EverythingNode implements TypedNode
-interface TypedNode<Node>
 InfixSplitter <-- Tuple
 InfixSplitter <-- Locator
 InfixSplitter <-- Optional
-class InfixSplitter implements Splitter
-class Tuple<Left, Right>
 DivideState <-- Tuple
 DivideState <-- Optional
 DivideState <-- Stream
@@ -132,22 +122,18 @@ NodeResult <-- FormatError
 NodeResult <-- Matchable
 NodeResult <-- Optional
 NodeResult <-- Function
-interface NodeResult<Node> implements Matchable
 Result <-- Function
-interface Result<Value, Error> implements Matchable
 NodeErr <-- CompileError
 NodeErr <-- FormatError
 NodeErr <-- EverythingNode
 NodeErr <-- Optional
 NodeErr <-- Function
-class NodeErr<Node> implements NodeResult
 StringOk <-- FormatError
 StringOk <-- StringResult
 StringOk <-- Optional
 StringOk <-- Function
 class StringOk implements StringResult
 Err <-- Function
-class Err<Value, Error> implements Result
 ResultFactoryImpl <-- CompileError
 ResultFactoryImpl <-- FormatError
 ResultFactoryImpl <-- EverythingNode
@@ -159,7 +145,6 @@ class ResultFactoryImpl implements ResultFactory
 NodeOk <-- FormatError
 NodeOk <-- Optional
 NodeOk <-- Function
-class NodeOk<Node> implements NodeResult
 PlantLang <-- ResultFactoryImpl
 PlantLang <-- FormatError
 PlantLang <-- EverythingNode
@@ -178,9 +163,13 @@ PlantLang <-- List
 class PlantLang
 Locator <-- Optional
 interface Locator
+IdentifierRule <-- FormatError
+IdentifierRule <-- EverythingNode
+IdentifierRule <-- NodeErr
+IdentifierRule <-- NodeResult
+IdentifierRule <-- StringResult
+class IdentifierRule implements Rule
 LastLocator <-- Optional
-class LastLocator implements Locator
-interface Rule<Node, NodeResult, StringResult>
 Main <-- ApplicationError
 Main <-- Error
 Main <-- FormatError
@@ -216,29 +205,25 @@ MutableDivideState <-- ArrayList
 MutableDivideState <-- List
 MutableDivideState <-- Optional
 MutableDivideState <-- Stream
-class MutableDivideState implements DivideState
 Ok <-- Function
-class Ok<Value, Error> implements Result
 Accumulator <-- FormatError
 Accumulator <-- List
 Accumulator <-- Function
-interface Accumulator<Node>
 StringResult <-- Matchable
 StringResult <-- Optional
 StringResult <-- Function
-interface StringResult<Error> implements Matchable
 MapNode <-- Tuple
 MapNode <-- HashMap
 MapNode <-- List
 MapNode <-- Map
 MapNode <-- Optional
 MapNode <-- Stream
-class MapNode implements EverythingNode
 JavaLang <-- ResultFactory
 JavaLang <-- ResultFactoryImpl
 JavaLang <-- FormatError
 JavaLang <-- EverythingNode
 JavaLang <-- NodeResult
+JavaLang <-- IdentifierRule
 JavaLang <-- OrRule
 JavaLang <-- PrefixRule
 JavaLang <-- Rule
