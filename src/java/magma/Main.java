@@ -118,12 +118,12 @@ class Main {
     }
 
     private static StringResult<FormatError> compile(final String input, final String parent) {
-        final Rule<EverythingNode, NodeResult<EverythingNode, FormatError, StringResult<FormatError>>, StringResult<FormatError>> everythingNodeRule =
-                Main.createJavaRootRule();
+        final Rule<EverythingNode, NodeResult<EverythingNode, FormatError, StringResult<FormatError>>, StringResult<FormatError>>
+                everythingNodeRule = Main.createJavaRootRule();
         return everythingNodeRule.lex(input).match(root -> {
             final var newChildren = Main.modify(parent, root);
-            final Rule<EverythingNode, NodeResult<EverythingNode, FormatError, StringResult<FormatError>>, StringResult<FormatError>> everythingNodeRule1 =
-                    PlantLang.createPlantRootRule();
+            final Rule<EverythingNode, NodeResult<EverythingNode, FormatError, StringResult<FormatError>>, StringResult<FormatError>>
+                    everythingNodeRule1 = PlantLang.createPlantRootRule();
             return everythingNodeRule1.generate(newChildren);
         }, StringErr::new);
     }
@@ -151,10 +151,9 @@ class Main {
 
     private static EverythingNode modifyStructure(final EverythingNode structure) {
         final var name = structure.findString("name").orElse("");
-        final var typeParameters = structure.findString("type-parameters").map(value -> "<" + value + ">").orElse("");
 
         final var maybeBase = structure.findString("base").map(value -> " implements " + value).orElse("");
-        final var content = name + typeParameters + maybeBase;
+        final var content = name + maybeBase;
 
         if (structure.is("record")) return structure.retype("class").withString("content", content);
         return structure.withString("content", content);
