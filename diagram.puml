@@ -1,16 +1,13 @@
 @startuml
 skinparam linetype ortho
+MapNodeFactory <-- MapNode
+class MapNodeFactory
 PrefixRule <-- FormatError
 PrefixRule <-- EverythingNode
 PrefixRule <-- NodeErr
 PrefixRule <-- NodeResult
 PrefixRule <-- StringResult
 class PrefixRule implements Rule
-StripRule <-- FormatError
-StripRule <-- EverythingNode
-StripRule <-- NodeResult
-StripRule <-- StringResult
-class StripRule implements Rule
 MutableAccumulator <-- FormatError
 MutableAccumulator <-- ArrayList
 MutableAccumulator <-- List
@@ -31,6 +28,77 @@ OrRule <-- StringResult
 OrRule <-- List
 OrRule <-- Function
 class OrRule implements Rule
+Splitter <-- Tuple
+Splitter <-- Optional
+interface Splitter
+SuffixRule <-- FormatError
+SuffixRule <-- EverythingNode
+SuffixRule <-- NodeErr
+SuffixRule <-- NodeResult
+SuffixRule <-- StringResult
+class SuffixRule implements Rule
+SplitRule <-- Tuple
+SplitRule <-- FormatError
+SplitRule <-- EverythingNode
+SplitRule <-- NodeErr
+SplitRule <-- NodeResult
+SplitRule <-- FirstLocator
+SplitRule <-- LastLocator
+SplitRule <-- InfixSplitter
+SplitRule <-- Splitter
+SplitRule <-- StringResult
+class SplitRule implements Rule
+interface NodeListResult<Node>
+EverythingNode <-- Tuple
+EverythingNode <-- List
+EverythingNode <-- Optional
+EverythingNode <-- Stream
+interface EverythingNode implements TypedNode
+interface TypedNode<Node>
+class Tuple<Left, Right>
+DivideState <-- Tuple
+DivideState <-- Optional
+DivideState <-- Stream
+interface DivideState
+NodeListOk <-- EverythingNode
+NodeListOk <-- MapNodeFactory
+NodeListOk <-- NodeFactory
+NodeListOk <-- ArrayList
+NodeListOk <-- List
+class NodeListOk implements NodeListResult
+interface Error
+NodeResult <-- FormatError
+NodeResult <-- Matchable
+NodeResult <-- Optional
+NodeResult <-- Function
+interface NodeResult<Node> implements Matchable
+LastLocator <-- Optional
+class LastLocator
+interface Rule<Node, NodeResult, StringResult>
+MutableDivideState <-- Tuple
+MutableDivideState <-- ArrayList
+MutableDivideState <-- List
+MutableDivideState <-- Optional
+MutableDivideState <-- Stream
+class MutableDivideState
+StringResult <-- Matchable
+StringResult <-- Optional
+StringResult <-- Function
+interface StringResult<Error> implements Matchable
+MapNode <-- Tuple
+MapNode <-- HashMap
+MapNode <-- List
+MapNode <-- Map
+MapNode <-- Optional
+MapNode <-- Stream
+class MapNode
+NodeFactory <-- MapNode
+interface NodeFactory
+StripRule <-- FormatError
+StripRule <-- EverythingNode
+StripRule <-- NodeResult
+StripRule <-- StringResult
+class StripRule implements Rule
 TypeRule <-- ResultFactory
 TypeRule <-- TypedNode
 TypeRule <-- NodeResult
@@ -51,22 +119,12 @@ CompileError <-- Collections
 CompileError <-- List
 CompileError <-- Collectors
 class CompileError
-Splitter <-- Tuple
-Splitter <-- Optional
-interface Splitter
 StringErr <-- Optional
 StringErr <-- Function
 class StringErr<Error> implements StringResult
 class ApplicationError
 NodeListErr <-- FormatError
-NodeListErr <-- EverythingNode
-class NodeListErr
-SuffixRule <-- FormatError
-SuffixRule <-- EverythingNode
-SuffixRule <-- NodeErr
-SuffixRule <-- NodeResult
-SuffixRule <-- StringResult
-class SuffixRule implements Rule
+class NodeListErr<Node> implements NodeListResult
 DivideRule <-- Tuple
 DivideRule <-- DivideState
 DivideRule <-- MutableDivideState
@@ -79,17 +137,6 @@ DivideRule <-- StringResult
 DivideRule <-- Collections
 DivideRule <-- Stream
 class DivideRule implements Rule
-SplitRule <-- Tuple
-SplitRule <-- FormatError
-SplitRule <-- EverythingNode
-SplitRule <-- NodeErr
-SplitRule <-- NodeResult
-SplitRule <-- FirstLocator
-SplitRule <-- LastLocator
-SplitRule <-- InfixSplitter
-SplitRule <-- Splitter
-SplitRule <-- StringResult
-class SplitRule implements Rule
 interface FormatError
 FirstLocator <-- Optional
 class FirstLocator
@@ -98,41 +145,16 @@ ThrowableError <-- StringWriter
 class ThrowableError
 Matchable <-- Function
 interface Matchable<Value, Error>
-NodeListResult <-- EverythingNode
-interface NodeListResult
 ResultFactory <-- FormatError
 ResultFactory <-- EverythingNode
 ResultFactory <-- TypedNode
 ResultFactory <-- List
 interface ResultFactory<StringResult>
-EverythingNode <-- Tuple
-EverythingNode <-- List
-EverythingNode <-- Optional
-EverythingNode <-- Stream
-interface EverythingNode implements TypedNode
-interface TypedNode<Node>
 InfixSplitter <-- Tuple
 InfixSplitter <-- Locator
 InfixSplitter <-- Optional
 class InfixSplitter
-class Tuple<Left, Right>
-DivideState <-- Tuple
-DivideState <-- Optional
-DivideState <-- Stream
-interface DivideState
-NodeListOk <-- EverythingNode
-NodeListOk <-- MapNode
-NodeListOk <-- ArrayList
-NodeListOk <-- List
-NodeListOk <-- Function
-class NodeListOk
 class Strings
-interface Error
-NodeResult <-- FormatError
-NodeResult <-- Matchable
-NodeResult <-- Optional
-NodeResult <-- Function
-interface NodeResult<Node> implements Matchable
 Result <-- Function
 interface Result<Value, Error> implements Matchable
 NodeErr <-- CompileError
@@ -186,9 +208,6 @@ IdentifierRule <-- NodeResult
 IdentifierRule <-- StringResult
 IdentifierRule <-- IntStream
 class IdentifierRule implements Rule
-LastLocator <-- Optional
-class LastLocator
-interface Rule<Node, NodeResult, StringResult>
 Main <-- ApplicationError
 Main <-- Error
 Main <-- FormatError
@@ -219,29 +238,12 @@ Main <-- Collector
 Main <-- Collectors
 Main <-- Stream
 class Main
-MutableDivideState <-- Tuple
-MutableDivideState <-- ArrayList
-MutableDivideState <-- List
-MutableDivideState <-- Optional
-MutableDivideState <-- Stream
-class MutableDivideState
 Ok <-- Function
 class Ok<Value, Error> implements Result
 Accumulator <-- FormatError
 Accumulator <-- List
 Accumulator <-- Function
 interface Accumulator<Node>
-StringResult <-- Matchable
-StringResult <-- Optional
-StringResult <-- Function
-interface StringResult<Error> implements Matchable
-MapNode <-- Tuple
-MapNode <-- HashMap
-MapNode <-- List
-MapNode <-- Map
-MapNode <-- Optional
-MapNode <-- Stream
-class MapNode
 JavaLang <-- ResultFactory
 JavaLang <-- ResultFactoryImpl
 JavaLang <-- FormatError

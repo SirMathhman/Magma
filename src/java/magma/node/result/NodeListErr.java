@@ -1,16 +1,15 @@
 package magma.node.result;
 
 import magma.error.FormatError;
-import magma.node.EverythingNode;
 
-public record NodeListErr(FormatError error) implements NodeListResult {
+public record NodeListErr<Node>(FormatError error) implements NodeListResult<Node> {
     @Override
-    public NodeListResult add(final NodeResult<EverythingNode> other) {
-        return new NodeListErr(this.error);
+    public NodeListResult<Node> add(final NodeResult<Node> other) {
+        return new NodeListErr<>(this.error);
     }
 
     @Override
-    public NodeResult<EverythingNode> toNode(final String key) {
+    public NodeResult<Node> toNode(final String key) {
         return new NodeErr<>(this.error);
     }
 }

@@ -49,7 +49,7 @@ public record DivideRule(String key, Rule<EverythingNode, NodeResult<EverythingN
     public NodeResult<EverythingNode> lex(final String input) {
         return DivideRule.divide(input)
                          .map(this.rule::lex)
-                         .reduce(new NodeListOk(), NodeListResult::add, (_, next) -> next)
+                         .<NodeListResult<EverythingNode>>reduce(new NodeListOk(), NodeListResult::add, (_, next) -> next)
                          .toNode(this.key);
     }
 
