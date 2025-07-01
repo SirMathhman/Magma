@@ -101,7 +101,10 @@ class Main {
         final var separator = fileName.lastIndexOf('.');
         final var parent = fileName.substring(0, separator);
 
-        return maybeCurrent.flatMapValue(current -> Main.compile(input, parent).match(output -> new Ok<>(current + output), compileError -> new Err<>(new ApplicationError(compileError))));
+        return maybeCurrent.flatMapValue(current -> Main.compile(input, parent)
+                                                        .match(output -> new Ok<>(current + output),
+                                                               compileError -> new Err<>(
+                                                                       new ApplicationError(compileError))));
     }
 
     private static Result<String, IOException> readString(final Path source) {
@@ -145,11 +148,14 @@ class Main {
     }
 
     private static EverythingNode modifyStructure(final EverythingNode structure) {
-        final var maybeBase = structure.findString("base").map(value -> " implements " + value).orElse("");
         final var name = structure.findString("name").orElse("");
-        if (structure.is("record")) return structure.retype("class").withString("content", name + maybeBase);
+        final var typeParameters = structure.findString("type-parameters").map(value -> "<" + value + ">").orElse("");
 
-        return structure.withString("content", name + maybeBase);
+        final var maybeBase = structure.findString("base").map(value -> " implements " + value).orElse("");
+        final var content = name + typeParameters + maybeBase;
+
+        if (structure.is("record")) return structure.retype("class").withString("content", content);
+        return structure.withString("content", content);
     }
 
     private static EverythingNode modifyImport(final String parent, final EverythingNode child1) {
