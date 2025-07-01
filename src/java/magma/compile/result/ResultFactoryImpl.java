@@ -30,14 +30,14 @@ public class ResultFactoryImpl implements ResultFactory<EverythingNode, FormatEr
 
     @Override
     public StringResult<FormatError> createStringError(final String message, final EverythingNode everythingNode) {
-        return new StringErr<>(new CompileError(message, everythingNode.toString()));
+        return new StringErr<>(new CompileError(message, everythingNode.display()));
     }
 
     @Override
     public StringResult<FormatError> createStringErrorWithChildren(final String message,
                                                                    final EverythingNode context,
                                                                    final List<FormatError> errors) {
-        return new StringErr<>(new CompileError(message, context.toString(), errors));
+        return new StringErr<>(new CompileError(message, context.display(), errors));
     }
 
     @Override

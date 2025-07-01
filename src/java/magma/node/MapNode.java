@@ -75,4 +75,9 @@ public final class MapNode implements EverythingNode {
     public Optional<List<EverythingNode>> findNodeList(final String key) {
         return Optional.ofNullable(this.nodeLists.get(key));
     }
+
+    @Override
+    public String display() {
+        return this.toString();
+    }
 }
