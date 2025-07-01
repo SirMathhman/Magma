@@ -1,6 +1,5 @@
-package magma.compile.result;
+package magma.error.context;
 
-import magma.error.context.Context;
 import magma.node.EverythingNode;
 
 public record NodeContext(EverythingNode context) implements Context {

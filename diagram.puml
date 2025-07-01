@@ -74,6 +74,8 @@ interface NodeWithStrings
 NodeResult <-- ResultFactory
 NodeResult <-- Matchable
 interface NodeResult implements Matchable
+NodeContext <-- EverythingNode
+class NodeContext
 LastLocator <-- Optional
 class LastLocator
 interface Rule
@@ -144,9 +146,6 @@ InfixSplitter <-- Locator
 InfixSplitter <-- Optional
 class InfixSplitter
 class Strings
-NodeContext <-- Context
-NodeContext <-- EverythingNode
-class NodeContext
 Result <-- Function
 interface Result implements Matchable
 NodeErr <-- ResultFactory
@@ -160,6 +159,7 @@ Err <-- Function
 class Err implements Result
 ResultFactoryImpl <-- CompileError
 ResultFactoryImpl <-- FormatError
+ResultFactoryImpl <-- NodeContext
 ResultFactoryImpl <-- StringContext
 ResultFactoryImpl <-- EverythingNode
 ResultFactoryImpl <-- MapNodeFactory

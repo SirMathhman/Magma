@@ -2,6 +2,7 @@ package magma.compile.result;
 
 import magma.error.CompileError;
 import magma.error.FormatError;
+import magma.error.context.NodeContext;
 import magma.error.context.StringContext;
 import magma.node.EverythingNode;
 import magma.node.factory.MapNodeFactory;
