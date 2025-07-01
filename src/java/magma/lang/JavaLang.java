@@ -34,7 +34,8 @@ public class JavaLang {
 
         final Rule<EverythingNode, NodeResult<EverythingNode>, StringResult<FormatError>> content =
                 new StringRule("content");
-        return new TypeRule<>(type, new StripRule(new SuffixRule(SplitRule.First(anImplements, "{", content), "}")),
+        return new TypeRule<>(type, new StripRule(new SuffixRule<EverythingNode>(SplitRule.First(anImplements, "{", content), "}",
+                                                                                 ResultFactoryImpl.get())),
                               JavaLang.FACTORY);
     }
 
@@ -44,7 +45,8 @@ public class JavaLang {
                 new StripRule(new IdentifierRule<EverythingNode>(new StringRule("name"), ResultFactoryImpl.get()));
 
         final var withTypeParameters =
-                new SuffixRule(SplitRule.First(name, "<", new StringRule("type-parameters")), ">");
+                new SuffixRule<EverythingNode>(SplitRule.First(name, "<", new StringRule("type-parameters")), ">",
+                                               ResultFactoryImpl.get());
         final Rule<EverythingNode, NodeResult<EverythingNode>, StringResult<FormatError>>
                 maybeWithTypeParams = new OrRule(List.of(new StripRule(withTypeParameters), name));
 
@@ -73,7 +75,8 @@ public class JavaLang {
                 new StringRule("child");
 
         final var discard = new OrRule(List.of(SplitRule.Last(new StringRule("discard"), ".", child), child));
-        return new TypeRule<>(type, new StripRule(new SuffixRule(new PrefixRule(type + " ", discard), ";")),
+        return new TypeRule<>(type, new StripRule(new SuffixRule<EverythingNode>(new PrefixRule(type + " ", discard), ";",
+                                                                                 ResultFactoryImpl.get())),
                               JavaLang.FACTORY);
     }
 
@@ -84,7 +87,8 @@ public class JavaLang {
 
     private static Rule<EverythingNode, NodeResult<EverythingNode>, StringResult<FormatError>> createGenericRule() {
         return new TypeRule<>("generic", new StripRule(
-                new SuffixRule(SplitRule.First(new StringRule("base"), "<", new StringRule("value")), ">")),
+                new SuffixRule<EverythingNode>(SplitRule.First(new StringRule("base"), "<", new StringRule("value")), ">",
+                                               ResultFactoryImpl.get())),
                               JavaLang.FACTORY);
     }
 }

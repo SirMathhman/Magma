@@ -26,7 +26,7 @@ public class PlantLang {
 
     private static Rule<EverythingNode, NodeResult<EverythingNode>, StringResult<FormatError>> createPlantRootSegmentRule() {
         final var options = new OrRule(List.of(PlantLang.createDependencyRule(), PlantLang.createPlantStructureRule()));
-        return new SuffixRule(options, Strings.LINE_SEPARATOR);
+        return new SuffixRule<EverythingNode>(options, Strings.LINE_SEPARATOR, ResultFactoryImpl.get());
     }
 
     private static Rule<EverythingNode, NodeResult<EverythingNode>, StringResult<FormatError>> createPlantStructureRule() {

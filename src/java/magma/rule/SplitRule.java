@@ -1,9 +1,9 @@
 package magma.rule;
 
 import magma.api.Tuple;
+import magma.compile.result.ResultFactoryImpl;
 import magma.error.FormatError;
 import magma.node.EverythingNode;
-import magma.node.result.NodeErr;
 import magma.node.result.NodeResult;
 import magma.rule.locate.FirstLocator;
 import magma.rule.locate.LastLocator;
@@ -50,7 +50,10 @@ public final class SplitRule implements Rule<EverythingNode, NodeResult<Everythi
     public NodeResult<EverythingNode> lex(final String input) {
         return this.splitter.split(input)
                             .map(this::lexWithTuple)
-                            .orElseGet(() -> NodeErr.create(this.splitter.createMessage(), input));
+                            .orElseGet(() -> {
+                                final String message = this.splitter.createMessage();
+                                return ResultFactoryImpl.get().createNodeError(message, input);
+                            });
     }
 
     @Override

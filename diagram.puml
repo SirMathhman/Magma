@@ -3,9 +3,9 @@ skinparam linetype ortho
 MapNodeFactory <-- EverythingNode
 MapNodeFactory <-- MapNode
 class MapNodeFactory implements NodeFactory
+PrefixRule <-- ResultFactoryImpl
 PrefixRule <-- FormatError
 PrefixRule <-- EverythingNode
-PrefixRule <-- NodeErr
 PrefixRule <-- NodeResult
 PrefixRule <-- StringResult
 class PrefixRule implements Rule
@@ -32,16 +32,16 @@ class OrRule implements Rule
 Splitter <-- Tuple
 Splitter <-- Optional
 interface Splitter
+SuffixRule <-- ResultFactory
 SuffixRule <-- FormatError
-SuffixRule <-- EverythingNode
-SuffixRule <-- NodeErr
 SuffixRule <-- NodeResult
 SuffixRule <-- StringResult
-class SuffixRule implements Rule
+SuffixRule <-- Objects
+class SuffixRule<Node> implements Rule
 SplitRule <-- Tuple
+SplitRule <-- ResultFactoryImpl
 SplitRule <-- FormatError
 SplitRule <-- EverythingNode
-SplitRule <-- NodeErr
 SplitRule <-- NodeResult
 SplitRule <-- FirstLocator
 SplitRule <-- LastLocator
@@ -101,7 +101,6 @@ StripRule <-- NodeResult
 StripRule <-- StringResult
 class StripRule implements Rule
 TypeRule <-- ResultFactory
-TypeRule <-- EverythingNode
 TypeRule <-- TypedNode
 TypeRule <-- NodeResult
 class TypeRule<Node extends TypedNode<Node>, StringResult> implements Rule
@@ -161,7 +160,6 @@ Result <-- Function
 interface Result<Value, Error> implements Matchable
 NodeErr <-- CompileError
 NodeErr <-- FormatError
-NodeErr <-- EverythingNode
 NodeErr <-- List
 NodeErr <-- Optional
 NodeErr <-- Function

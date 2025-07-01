@@ -2,17 +2,12 @@ package magma.node.result;
 
 import magma.error.CompileError;
 import magma.error.FormatError;
-import magma.node.EverythingNode;
 
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Function;
 
 public record NodeErr<Node>(FormatError error) implements NodeResult<Node> {
-    public static NodeResult<EverythingNode> create(final String message, final String input) {
-        return new NodeErr<>(new CompileError(message, input));
-    }
-
     @Override
     public Optional<Node> toOptional() {
         return Optional.empty();
