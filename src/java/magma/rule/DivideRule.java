@@ -5,6 +5,7 @@ import magma.divide.DivideState;
 import magma.divide.MutableDivideState;
 import magma.error.FormatError;
 import magma.node.EverythingNode;
+import magma.node.factory.MapNodeFactory;
 import magma.node.result.NodeListOk;
 import magma.node.result.NodeListResult;
 import magma.node.result.NodeResult;
@@ -49,7 +50,7 @@ public record DivideRule(String key, Rule<EverythingNode, NodeResult<EverythingN
     public NodeResult<EverythingNode> lex(final String input) {
         return DivideRule.divide(input)
                          .map(this.rule::lex)
-                         .<NodeListResult<EverythingNode>>reduce(new NodeListOk(), NodeListResult::add, (_, next) -> next)
+                         .<NodeListResult<EverythingNode>>reduce(new NodeListOk<EverythingNode>(new MapNodeFactory()), NodeListResult::add, (_, next) -> next)
                          .toNode(this.key);
     }
 

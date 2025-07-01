@@ -1,35 +1,34 @@
 package magma.node.result;
 
-import magma.node.EverythingNode;
-import magma.node.factory.MapNodeFactory;
+import magma.node.NodeWithNodeLists;
 import magma.node.factory.NodeFactory;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public final class NodeListOk implements NodeListResult<EverythingNode> {
-    private final List<EverythingNode> list;
-    private final NodeFactory<EverythingNode> nodeFactory;
+public final class NodeListOk<Node extends NodeWithNodeLists<Node>> implements NodeListResult<Node> {
+    private final List<Node> list;
+    private final NodeFactory<Node> nodeFactory;
 
-    public NodeListOk(final List<EverythingNode> list, final NodeFactory<EverythingNode> nodeFactory) {
+    public NodeListOk(final List<Node> list, final NodeFactory<Node> nodeFactory) {
         this.list = list;
         this.nodeFactory = nodeFactory;
     }
 
-    public NodeListOk() {
-        this(new ArrayList<>(), new MapNodeFactory());
+    public NodeListOk(final NodeFactory<Node> factory) {
+        this(new ArrayList<>(), factory);
     }
 
     @Override
-    public NodeListResult<EverythingNode> add(final NodeResult<EverythingNode> other) {
-        return other.match(everythingNode -> {
-            this.list.add(everythingNode);
+    public NodeListResult<Node> add(final NodeResult<Node> other) {
+        return other.match(node -> {
+            this.list.add(node);
             return this;
         }, NodeListErr::new);
     }
 
     @Override
-    public NodeResult<EverythingNode> toNode(final String key) {
+    public NodeResult<Node> toNode(final String key) {
         return new NodeOk<>(this.nodeFactory.createNode().withNodeList(key, this.list));
     }
 }

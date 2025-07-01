@@ -49,9 +49,11 @@ SplitRule <-- InfixSplitter
 SplitRule <-- Splitter
 SplitRule <-- StringResult
 class SplitRule implements Rule
+NodeWithNodeLists <-- List
+NodeWithNodeLists <-- Optional
+interface NodeWithNodeLists<Node>
 interface NodeListResult<Node>
 EverythingNode <-- Tuple
-EverythingNode <-- List
 EverythingNode <-- Optional
 EverythingNode <-- Stream
 interface EverythingNode implements TypedNode
@@ -61,12 +63,11 @@ DivideState <-- Tuple
 DivideState <-- Optional
 DivideState <-- Stream
 interface DivideState
-NodeListOk <-- EverythingNode
-NodeListOk <-- MapNodeFactory
+NodeListOk <-- NodeWithNodeLists
 NodeListOk <-- NodeFactory
 NodeListOk <-- ArrayList
 NodeListOk <-- List
-class NodeListOk implements NodeListResult
+class NodeListOk<Node extends NodeWithNodeLists<Node>> implements NodeListResult
 interface Error
 NodeResult <-- FormatError
 NodeResult <-- Matchable
@@ -130,6 +131,7 @@ DivideRule <-- DivideState
 DivideRule <-- MutableDivideState
 DivideRule <-- FormatError
 DivideRule <-- EverythingNode
+DivideRule <-- MapNodeFactory
 DivideRule <-- NodeListOk
 DivideRule <-- NodeListResult
 DivideRule <-- NodeResult
