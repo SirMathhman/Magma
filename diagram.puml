@@ -16,6 +16,7 @@ MutableAccumulator <-- ArrayList
 MutableAccumulator <-- List
 MutableAccumulator <-- Optional
 MutableAccumulator <-- Function
+class MutableAccumulator implements Accumulator
 OrRule <-- ResultFactoryImpl
 OrRule <-- CompileError
 OrRule <-- FormatError
@@ -33,6 +34,7 @@ class OrRule implements Rule
 TypeRule <-- ResultFactory
 TypeRule <-- TypedNode
 TypeRule <-- NodeResult
+class TypeRule implements Rule
 StringRule <-- CompileError
 StringRule <-- FormatError
 StringRule <-- EverythingNode
@@ -54,6 +56,7 @@ Splitter <-- Optional
 interface Splitter
 StringErr <-- Optional
 StringErr <-- Function
+class StringErr implements StringResult
 class ApplicationError
 NodeListErr <-- FormatError
 NodeListErr <-- EverythingNode
@@ -87,25 +90,32 @@ SplitRule <-- InfixSplitter
 SplitRule <-- Splitter
 SplitRule <-- StringResult
 class SplitRule implements Rule
+interface FormatError
 FirstLocator <-- Optional
+class FirstLocator
 ThrowableError <-- PrintWriter
 ThrowableError <-- StringWriter
 class ThrowableError
 Matchable <-- Function
+interface Matchable
 NodeListResult <-- EverythingNode
 interface NodeListResult
 ResultFactory <-- FormatError
 ResultFactory <-- EverythingNode
 ResultFactory <-- TypedNode
 ResultFactory <-- List
+interface ResultFactory
 EverythingNode <-- Tuple
 EverythingNode <-- List
 EverythingNode <-- Optional
 EverythingNode <-- Stream
 interface EverythingNode implements TypedNode
+interface TypedNode
 InfixSplitter <-- Tuple
 InfixSplitter <-- Locator
 InfixSplitter <-- Optional
+class InfixSplitter
+class Tuple
 DivideState <-- Tuple
 DivideState <-- Optional
 DivideState <-- Stream
@@ -122,18 +132,23 @@ NodeResult <-- FormatError
 NodeResult <-- Matchable
 NodeResult <-- Optional
 NodeResult <-- Function
+interface NodeResult implements Matchable
 Result <-- Function
+interface Result implements Matchable
 NodeErr <-- CompileError
 NodeErr <-- FormatError
 NodeErr <-- EverythingNode
+NodeErr <-- List
 NodeErr <-- Optional
 NodeErr <-- Function
+class NodeErr implements NodeResult
 StringOk <-- FormatError
 StringOk <-- StringResult
 StringOk <-- Optional
 StringOk <-- Function
 class StringOk implements StringResult
 Err <-- Function
+class Err implements Result
 ResultFactoryImpl <-- CompileError
 ResultFactoryImpl <-- FormatError
 ResultFactoryImpl <-- EverythingNode
@@ -145,6 +160,7 @@ class ResultFactoryImpl implements ResultFactory
 NodeOk <-- FormatError
 NodeOk <-- Optional
 NodeOk <-- Function
+class NodeOk implements NodeResult
 PlantLang <-- ResultFactoryImpl
 PlantLang <-- FormatError
 PlantLang <-- EverythingNode
@@ -170,6 +186,8 @@ IdentifierRule <-- NodeResult
 IdentifierRule <-- StringResult
 class IdentifierRule implements Rule
 LastLocator <-- Optional
+class LastLocator
+interface Rule
 Main <-- ApplicationError
 Main <-- Error
 Main <-- FormatError
@@ -205,19 +223,24 @@ MutableDivideState <-- ArrayList
 MutableDivideState <-- List
 MutableDivideState <-- Optional
 MutableDivideState <-- Stream
+class MutableDivideState
 Ok <-- Function
+class Ok implements Result
 Accumulator <-- FormatError
 Accumulator <-- List
 Accumulator <-- Function
+interface Accumulator
 StringResult <-- Matchable
 StringResult <-- Optional
 StringResult <-- Function
+interface StringResult implements Matchable
 MapNode <-- Tuple
 MapNode <-- HashMap
 MapNode <-- List
 MapNode <-- Map
 MapNode <-- Optional
 MapNode <-- Stream
+class MapNode
 JavaLang <-- ResultFactory
 JavaLang <-- ResultFactoryImpl
 JavaLang <-- FormatError

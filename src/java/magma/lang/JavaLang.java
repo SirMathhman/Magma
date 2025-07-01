@@ -67,15 +67,14 @@ public class JavaLang {
         final Rule<EverythingNode, NodeResult<EverythingNode>, StringResult<FormatError>> child =
                 new StringRule("child");
 
-        return new TypeRule<>(type, new StripRule(
-                new SuffixRule(new PrefixRule(type + " ", SplitRule.Last(new StringRule("discard"), ".", child)), ";")),
+        final var discard = new OrRule(List.of(SplitRule.Last(new StringRule("discard"), ".", child), child));
+        return new TypeRule<>(type, new StripRule(new SuffixRule(new PrefixRule(type + " ", discard), ";")),
                               JavaLang.FACTORY);
     }
 
     private static Rule<EverythingNode, NodeResult<EverythingNode>, StringResult<FormatError>> createTypeRule() {
-        return new OrRule(
-                List.of(JavaLang.createGenericRule(), new TypeRule<>("identifier", new StringRule("value"),
-                                                                     JavaLang.FACTORY)));
+        return new OrRule(List.of(JavaLang.createGenericRule(),
+                                  new TypeRule<>("identifier", new StringRule("value"), JavaLang.FACTORY)));
     }
 
     private static Rule<EverythingNode, NodeResult<EverythingNode>, StringResult<FormatError>> createGenericRule() {
