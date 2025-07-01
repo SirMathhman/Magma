@@ -12,11 +12,13 @@ public interface ResultFactory<Node, Error, StringResult> {
 
     StringResult createStringErrorWithChildren(String message, Node context, List<Error> errors);
 
-    NodeResult<Node, Error, magma.string.result.StringResult<Error>> createNodeError(String message, String context);
+    NodeResult<Node, Error, StringResult> createNodeError(String message, String context);
 
-    NodeResult<Node, Error, magma.string.result.StringResult<Error>> createNodeErrorWithChildren(String message, String context, List<Error> errors);
+    NodeResult<Node, Error, StringResult> createNodeErrorWithChildren(String message,
+                                                                      String context,
+                                                                      List<Error> errors);
 
-    NodeResult<Node, Error, magma.string.result.StringResult<Error>> createNode(Node node);
+    NodeResult<Node, Error, StringResult> createNode(Node node);
 
     StringResult createString(String value);
 
