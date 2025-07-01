@@ -18,12 +18,17 @@ public record NodeOk<Node>(Node node) implements NodeResult<Node> {
     }
 
     @Override
-    public NodeResult<Node> map(final Function<Node, Node> mapper) {
+    public NodeResult<Node> mapValue(final Function<Node, Node> mapper) {
         return new NodeOk<>(mapper.apply(this.node));
     }
 
     @Override
     public NodeResult<Node> flatMap(final Function<Node, NodeResult<Node>> mapper) {
         return mapper.apply(this.node);
+    }
+
+    @Override
+    public NodeResult<Node> mapErr(final String message, final String context) {
+        return this;
     }
 }

@@ -20,7 +20,7 @@ public final class TypeRule<Node extends TypedNode<Node>, StringResult>
 
     @Override
     public NodeResult<Node> lex(final String input) {
-        return this.rule.lex(input).map(node -> node.retype(this.type));
+        return this.rule.lex(input).mapValue(node -> node.retype(this.type)).mapErr("Type '" + this.type + "' cannot be assigned", input);
     }
 
     @Override

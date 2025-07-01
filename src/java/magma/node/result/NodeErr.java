@@ -4,6 +4,7 @@ import magma.error.CompileError;
 import magma.error.FormatError;
 import magma.node.EverythingNode;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.function.Function;
 
@@ -24,12 +25,17 @@ public record NodeErr<Node>(FormatError error) implements NodeResult<Node> {
     }
 
     @Override
-    public NodeResult<Node> map(final Function<Node, Node> mapper) {
+    public NodeResult<Node> mapValue(final Function<Node, Node> mapper) {
         return new NodeErr<>(this.error);
     }
 
     @Override
     public NodeResult<Node> flatMap(final Function<Node, NodeResult<Node>> mapper) {
         return this;
+    }
+
+    @Override
+    public NodeResult<Node> mapErr(final String message, final String context) {
+        return new NodeErr<>(new CompileError(message, context, List.of(this.error)));
     }
 }

@@ -10,7 +10,9 @@ public interface NodeResult<Node> extends Matchable<Node, FormatError> {
     @Deprecated
     Optional<Node> toOptional();
 
-    NodeResult<Node> map(Function<Node, Node> mapper);
+    NodeResult<Node> mapValue(Function<Node, Node> mapper);
 
     NodeResult<Node> flatMap(Function<Node, NodeResult<Node>> mapper);
+
+    NodeResult<Node> mapErr(String message, String context);
 }

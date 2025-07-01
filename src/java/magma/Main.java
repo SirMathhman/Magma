@@ -131,7 +131,7 @@ class Main {
         final var newChildren = root.findNodeList("children")
                                     .orElse(Collections.emptyList())
                                     .stream()
-                                    .filter(node -> !node.is("placeholder"))
+                                    .filter(node -> !node.is("placeholder") && !node.is("package"))
                                     .map(child -> Main.modifyRootSegment(parent, child))
                                     .toList();
 

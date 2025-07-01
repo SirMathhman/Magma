@@ -42,7 +42,7 @@ public final class SplitRule implements Rule<EverythingNode, NodeResult<Everythi
 
         return this.leftRule.lex(leftSlice).flatMap(leftResult -> {
             final var rightResult = this.rightRule.lex(rightSlice);
-            return rightResult.map(leftResult::merge);
+            return rightResult.mapValue(leftResult::merge);
         });
     }
 
