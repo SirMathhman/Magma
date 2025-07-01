@@ -40,25 +40,27 @@ public class JavaLang {
 
     private static Rule<EverythingNode, NodeResult<EverythingNode>, StringResult<FormatError>> createStructureHeaderRule(
             final String type) {
-        final Rule<EverythingNode, NodeResult<EverythingNode>, StringResult<FormatError>> modifiers =
-                new StringRule("modifiers");
-
         final Rule<EverythingNode, NodeResult<EverythingNode>, StringResult<FormatError>> name =
                 new StripRule(new IdentifierRule(new StringRule("name")));
 
-        final Rule<EverythingNode, NodeResult<EverythingNode>, StringResult<FormatError>> params =
-                new StringRule("params");
+        final var withTypeParameters =
+                new SuffixRule(SplitRule.First(name, "<", new StringRule("type-parameters")), ">");
+        final var maybeWithTypeParameters = new OrRule(List.of(new StripRule(withTypeParameters), name));
 
-        final var name1 = new OrRule(List.of(new StripRule(
-                new SuffixRule(SplitRule.First(name, "<", new StringRule("type-parameters")), ">")), name));
-        final var withParams = SplitRule.First(name1, "(", params);
-        final var afterKeyword = SplitRule.First(withParams, ")", new StringRule("more"));
-        final var rightRule = new OrRule(List.of(afterKeyword, name1));
-        final var header = SplitRule.First(modifiers, type + " ", rightRule);
+        final var params = new StringRule("params");
+        final var withParameters =
+                SplitRule.First(SplitRule.First(maybeWithTypeParameters, "(", params), ")", new StringRule("more"));
+        final var maybeWithParameters = new OrRule(List.of(withParameters, maybeWithTypeParameters));
 
-        final Rule<EverythingNode, NodeResult<EverythingNode>, StringResult<FormatError>> header1 =
-                new OrRule(List.of(SplitRule.Last(header, "extends ", JavaLang.createTypeRule()), header));
-        return new OrRule(List.of(SplitRule.Last(header1, "implements", JavaLang.createTypeRule()), header1));
+        final var withSuperClass = SplitRule.Last(maybeWithParameters, "extends ", JavaLang.createTypeRule());
+        final var maybeWithSuperClass = new OrRule(List.of(withSuperClass, maybeWithParameters));
+
+        final var withImplementing = SplitRule.Last(maybeWithSuperClass, "implements", JavaLang.createTypeRule());
+        final var maybeWithImplementing = new OrRule(List.of(withImplementing, maybeWithSuperClass));
+
+        final Rule<EverythingNode, NodeResult<EverythingNode>, StringResult<FormatError>> modifiers =
+                new StringRule("modifiers");
+        return SplitRule.First(modifiers, type + " ", maybeWithImplementing);
     }
 
     private static Rule<EverythingNode, NodeResult<EverythingNode>, StringResult<FormatError>> createNamespaceRule(final String type) {
