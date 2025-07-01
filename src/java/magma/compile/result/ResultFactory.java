@@ -1,14 +1,13 @@
 package magma.compile.result;
 
 import magma.error.FormatError;
-import magma.node.EverythingNode;
 import magma.node.result.NodeListResult;
 import magma.node.result.NodeResult;
 
 import java.util.List;
 
 public interface ResultFactory<Node, StringResult> {
-    NodeListResult<EverythingNode> createNodeList();
+    NodeListResult<Node> createNodeList();
 
     StringResult createStringError(String message, Node node);
 

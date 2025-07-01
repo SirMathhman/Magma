@@ -1,5 +1,6 @@
 package magma;
 
+import magma.compile.result.ResultFactoryImpl;
 import magma.error.ApplicationError;
 import magma.error.Error;
 import magma.error.FormatError;
@@ -127,7 +128,7 @@ class Main {
     }
 
     private static Rule<EverythingNode, NodeResult<EverythingNode>, StringResult<FormatError>> createJavaRootRule() {
-        return new DivideRule("children", JavaLang.createJavaRootSegmentRule());
+        return new DivideRule<EverythingNode>("children", JavaLang.createJavaRootSegmentRule(), ResultFactoryImpl.get());
     }
 
     private static EverythingNode modify(final String parent, final EverythingNode root) {

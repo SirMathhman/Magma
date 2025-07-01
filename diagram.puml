@@ -123,17 +123,16 @@ NodeListErr <-- FormatError
 class NodeListErr<Node> implements NodeListResult
 DivideRule <-- Tuple
 DivideRule <-- ResultFactory
-DivideRule <-- ResultFactoryImpl
 DivideRule <-- DivideState
 DivideRule <-- MutableDivideState
 DivideRule <-- FormatError
-DivideRule <-- EverythingNode
+DivideRule <-- NodeWithNodeLists
 DivideRule <-- NodeListResult
 DivideRule <-- NodeResult
 DivideRule <-- StringResult
 DivideRule <-- Collections
 DivideRule <-- Stream
-class DivideRule implements Rule
+class DivideRule<Node extends NodeWithNodeLists<Node>> implements Rule
 interface FormatError
 FirstLocator <-- Optional
 class FirstLocator
@@ -143,7 +142,6 @@ class ThrowableError
 Matchable <-- Function
 interface Matchable<Value, Error>
 ResultFactory <-- FormatError
-ResultFactory <-- EverythingNode
 ResultFactory <-- NodeListResult
 ResultFactory <-- NodeResult
 ResultFactory <-- List
@@ -211,6 +209,7 @@ IdentifierRule <-- NodeResult
 IdentifierRule <-- StringResult
 IdentifierRule <-- IntStream
 class IdentifierRule<Node> implements Rule
+Main <-- ResultFactoryImpl
 Main <-- ApplicationError
 Main <-- Error
 Main <-- FormatError

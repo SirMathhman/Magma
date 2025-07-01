@@ -22,7 +22,7 @@ public class PlantLang {
     private PlantLang() {}
 
     public static Rule<EverythingNode, NodeResult<EverythingNode>, StringResult<FormatError>> createPlantRootRule() {
-        return new DivideRule("children", PlantLang.createPlantRootSegmentRule());
+        return new DivideRule<EverythingNode>("children", PlantLang.createPlantRootSegmentRule(), ResultFactoryImpl.get());
     }
 
     private static Rule<EverythingNode, NodeResult<EverythingNode>, StringResult<FormatError>> createPlantRootSegmentRule() {
