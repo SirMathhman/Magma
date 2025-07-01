@@ -45,22 +45,27 @@ public class JavaLang {
 
         final var withTypeParameters =
                 new SuffixRule(SplitRule.First(name, "<", new StringRule("type-parameters")), ">");
-        final var maybeWithTypeParameters = new OrRule(List.of(new StripRule(withTypeParameters), name));
+        final Rule<EverythingNode, NodeResult<EverythingNode>, StringResult<FormatError>>
+                maybeWithTypeParams = new OrRule(List.of(new StripRule(withTypeParameters), name));
 
-        final var params = new StringRule("params");
+        final Rule<EverythingNode, NodeResult<EverythingNode>, StringResult<FormatError>>
+                params = new StringRule("params");
         final var withParameters =
-                SplitRule.First(SplitRule.First(maybeWithTypeParameters, "(", params), ")", new StringRule("more"));
-        final var maybeWithParameters = new OrRule(List.of(withParameters, maybeWithTypeParameters));
+                SplitRule.First(SplitRule.First(maybeWithTypeParams, "(", params), ")", new StringRule("more"));
+        final Rule<EverythingNode, NodeResult<EverythingNode>, StringResult<FormatError>>
+                maybeWithParameters = new OrRule(List.of(withParameters, maybeWithTypeParams));
 
         final var withSuperClass = SplitRule.Last(maybeWithParameters, "extends ", JavaLang.createTypeRule());
-        final var maybeWithSuperClass = new OrRule(List.of(withSuperClass, maybeWithParameters));
+        final Rule<EverythingNode, NodeResult<EverythingNode>, StringResult<FormatError>>
+                maybeWithSuperClass = new OrRule(List.of(withSuperClass, maybeWithParameters));
 
         final var withImplementing = SplitRule.Last(maybeWithSuperClass, "implements", JavaLang.createTypeRule());
-        final var maybeWithImplementing = new OrRule(List.of(withImplementing, maybeWithSuperClass));
+        final Rule<EverythingNode, NodeResult<EverythingNode>, StringResult<FormatError>>
+                maybeWithImplements = new OrRule(List.of(withImplementing, maybeWithSuperClass));
 
         final Rule<EverythingNode, NodeResult<EverythingNode>, StringResult<FormatError>> modifiers =
                 new StringRule("modifiers");
-        return SplitRule.First(modifiers, type + " ", maybeWithImplementing);
+        return SplitRule.First(modifiers, type + " ", maybeWithImplements);
     }
 
     private static Rule<EverythingNode, NodeResult<EverythingNode>, StringResult<FormatError>> createNamespaceRule(final String type) {

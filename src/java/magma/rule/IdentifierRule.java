@@ -6,21 +6,19 @@ import magma.node.result.NodeErr;
 import magma.node.result.NodeResult;
 import magma.string.result.StringResult;
 
+import java.util.stream.IntStream;
+
 public record IdentifierRule(Rule<EverythingNode, NodeResult<EverythingNode>, StringResult<FormatError>> rule)
         implements Rule<EverythingNode, NodeResult<EverythingNode>, StringResult<FormatError>> {
     @Override
     public NodeResult<EverythingNode> lex(final String input) {
-        if (this.isIdentifier(input)) return this.rule.lex(input);
-        else return NodeErr.create("Not an identifier", input);
+        if (IdentifierRule.isIdentifier(input)) return this.rule.lex(input);
+        else
+            return NodeErr.create("Not an identifier", input);
     }
 
-    private boolean isIdentifier(final String input) {
-        for (var i = 0; i < input.length(); i++) {
-            final var c = input.charAt(i);
-            if (Character.isLetter(c)) continue;
-            return false;
-        }
-        return true;
+    private static boolean isIdentifier(final CharSequence input) {
+        return IntStream.range(0, input.length()).map(input::charAt).allMatch(Character::isLetter);
     }
 
     @Override

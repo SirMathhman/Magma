@@ -18,6 +18,8 @@ import magma.string.result.StringResult;
 import java.util.List;
 
 public class PlantLang {
+    private PlantLang() {}
+
     public static Rule<EverythingNode, NodeResult<EverythingNode>, StringResult<FormatError>> createPlantRootRule() {
         return new DivideRule("children", PlantLang.createPlantRootSegmentRule());
     }

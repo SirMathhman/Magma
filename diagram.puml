@@ -184,6 +184,7 @@ IdentifierRule <-- EverythingNode
 IdentifierRule <-- NodeErr
 IdentifierRule <-- NodeResult
 IdentifierRule <-- StringResult
+IdentifierRule <-- IntStream
 class IdentifierRule implements Rule
 LastLocator <-- Optional
 class LastLocator
