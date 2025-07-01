@@ -17,7 +17,7 @@ MutableAccumulator <-- List
 MutableAccumulator <-- Optional
 MutableAccumulator <-- Function
 class MutableAccumulator<Node> implements Accumulator
-OrRule <-- ResultFactory
+OrRule <-- ResultFactoryImpl
 OrRule <-- CompileError
 OrRule <-- FormatError
 OrRule <-- EverythingNode
@@ -32,11 +32,9 @@ OrRule <-- List
 OrRule <-- Function
 class OrRule implements Rule
 TypeRule <-- ResultFactory
-TypeRule <-- FormatError
 TypeRule <-- TypedNode
 TypeRule <-- NodeResult
-TypeRule <-- StringResult
-class TypeRule<Node extends TypedNode<Node>> implements Rule
+class TypeRule<Node implements Rule
 StringRule <-- CompileError
 StringRule <-- FormatError
 StringRule <-- EverythingNode
@@ -102,14 +100,11 @@ Matchable <-- Function
 interface Matchable<Value, Error>
 NodeListResult <-- EverythingNode
 interface NodeListResult
-ResultFactory <-- CompileError
 ResultFactory <-- FormatError
 ResultFactory <-- EverythingNode
 ResultFactory <-- TypedNode
-ResultFactory <-- StringErr
-ResultFactory <-- StringResult
 ResultFactory <-- List
-class ResultFactory
+interface ResultFactory<StringResult>
 EverythingNode <-- Tuple
 EverythingNode <-- List
 EverythingNode <-- Optional
@@ -153,6 +148,14 @@ StringOk <-- Function
 class StringOk implements StringResult
 Err <-- Function
 class Err<Value, Error> implements Result
+ResultFactoryImpl <-- CompileError
+ResultFactoryImpl <-- FormatError
+ResultFactoryImpl <-- EverythingNode
+ResultFactoryImpl <-- TypedNode
+ResultFactoryImpl <-- StringErr
+ResultFactoryImpl <-- StringResult
+ResultFactoryImpl <-- List
+class ResultFactoryImpl implements ResultFactory
 NodeOk <-- FormatError
 NodeOk <-- Optional
 NodeOk <-- Function
@@ -197,6 +200,7 @@ MutableDivideState <-- List
 MutableDivideState <-- Optional
 MutableDivideState <-- Stream
 class MutableDivideState implements DivideState
+Lang <-- ResultFactoryImpl
 Lang <-- FormatError
 Lang <-- EverythingNode
 Lang <-- NodeResult

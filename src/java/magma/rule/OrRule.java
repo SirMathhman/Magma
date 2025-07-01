@@ -1,6 +1,6 @@
 package magma.rule;
 
-import magma.compile.result.ResultFactory;
+import magma.compile.result.ResultFactoryImpl;
 import magma.error.CompileError;
 import magma.error.FormatError;
 import magma.node.EverythingNode;
@@ -40,7 +40,7 @@ public record OrRule(List<Rule<EverythingNode, NodeResult<EverythingNode>, Strin
     @Override
     public StringResult<FormatError> generate(final EverythingNode node) {
         return this.or(rule -> rule.generate(node))
-                   .<StringResult<FormatError>>match(StringOk::new, errors -> ResultFactory.createWithChildren(
+                   .match(StringOk::new, errors -> ResultFactoryImpl.createResultFactory().createWithChildren(
                            "No valid combination present", node, errors));
     }
 }

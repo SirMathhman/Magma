@@ -1,5 +1,6 @@
 package magma.lang;
 
+import magma.compile.result.ResultFactoryImpl;
 import magma.error.FormatError;
 import magma.node.EverythingNode;
 import magma.node.result.NodeResult;
@@ -32,7 +33,8 @@ public class Lang {
 
     public static Rule<EverythingNode, NodeResult<EverythingNode>, StringResult<FormatError>> createJavaRootSegmentRule() {
         final var rules = new ArrayList<>(List.of(Lang.createImportRule(), Lang.getTypeRule(),
-                                                  new TypeRule<>("placeholder", new StringRule("value"))));
+                                                  new TypeRule<>("placeholder", new StringRule("value"),
+                                                                 ResultFactoryImpl.createResultFactory())));
         return new OrRule(rules);
     }
 
@@ -45,7 +47,8 @@ public class Lang {
     private static Rule<EverythingNode, NodeResult<EverythingNode>, StringResult<FormatError>> createImportRule() {
         final Rule<EverythingNode, NodeResult<EverythingNode>, StringResult<FormatError>> child = new StringRule("child");
         return new TypeRule<>("import", new StripRule(
-                new SuffixRule(new PrefixRule("import ", SplitRule.Last(new StringRule("discard"), ".", child)), ";")));
+                new SuffixRule(new PrefixRule("import ", SplitRule.Last(new StringRule("discard"), ".", child)), ";")),
+                              ResultFactoryImpl.createResultFactory());
     }
 
     private static Rule<EverythingNode, NodeResult<EverythingNode>, StringResult<FormatError>> getTypeRule(final Rule<EverythingNode, NodeResult<EverythingNode>, StringResult<FormatError>> header) {
@@ -76,16 +79,19 @@ public class Lang {
         final Rule<EverythingNode, NodeResult<EverythingNode>, StringResult<FormatError>> params = new StringRule("params");
         final var withParams = SplitRule.First(name, "(", params);
         final var afterKeyword = SplitRule.First(withParams, ")", new StringRule("more"));
-        return new TypeRule<>("record", SplitRule.First(modifiers, "record ", afterKeyword));
+        return new TypeRule<>("record", SplitRule.First(modifiers, "record ", afterKeyword),
+                              ResultFactoryImpl.createResultFactory());
     }
 
     private static Rule<EverythingNode, NodeResult<EverythingNode>, StringResult<FormatError>> createClassHeaderRule(final String type) {
         return new TypeRule<>(type, SplitRule.Last(new StringRule("discard"), type + " ",
-                                                   new StripRule(new StringRule("name"))));
+                                                   new StripRule(new StringRule("name"))),
+                              ResultFactoryImpl.createResultFactory());
     }
 
     private static Rule<EverythingNode, NodeResult<EverythingNode>, StringResult<FormatError>> createTypedPlantStructureRule(final String type) {
-        return new TypeRule<>(type, new PrefixRule(type + " ", new StringRule("content")));
+        return new TypeRule<>(type, new PrefixRule(type + " ", new StringRule("content")),
+                              ResultFactoryImpl.createResultFactory());
     }
 
     private static Rule<EverythingNode, NodeResult<EverythingNode>, StringResult<FormatError>> createDependencyRule() {

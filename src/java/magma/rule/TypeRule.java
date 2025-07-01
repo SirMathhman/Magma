@@ -1,13 +1,22 @@
 package magma.rule;
 
 import magma.compile.result.ResultFactory;
-import magma.error.FormatError;
 import magma.node.TypedNode;
 import magma.node.result.NodeResult;
-import magma.string.result.StringResult;
 
-public record TypeRule<Node extends TypedNode<Node>>(String type, Rule<Node, NodeResult<Node>, StringResult<FormatError>> rule)
-        implements Rule<Node, NodeResult<Node>, StringResult<FormatError>> {
+public final class TypeRule<Node extends TypedNode<Node>, StringResult>
+        implements Rule<Node, NodeResult<Node>, StringResult> {
+    private final String type;
+    private final Rule<Node, NodeResult<Node>, StringResult> rule;
+    private final ResultFactory<StringResult> factory;
+
+    public TypeRule(final String type,
+                    final Rule<Node, NodeResult<Node>, StringResult> rule,
+                    final ResultFactory<StringResult> factory) {
+        this.type = type;
+        this.rule = rule;
+        this.factory = factory;
+    }
 
     @Override
     public NodeResult<Node> lex(final String input) {
@@ -15,8 +24,8 @@ public record TypeRule<Node extends TypedNode<Node>>(String type, Rule<Node, Nod
     }
 
     @Override
-    public StringResult<FormatError> generate(final Node node) {
+    public StringResult generate(final Node node) {
         if (node.is(this.type)) return this.rule.generate(node);
-        return ResultFactory.create("Type '" + this.type + "' not present", node);
+        return this.factory.create("Type '" + this.type + "' not present", node);
     }
 }
