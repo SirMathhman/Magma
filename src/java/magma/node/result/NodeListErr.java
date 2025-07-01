@@ -2,9 +2,9 @@ package magma.node.result;
 
 import magma.error.FormatError;
 
-public record NodeListErr<Node>(FormatError error) implements NodeListResult<Node> {
+public record NodeListErr<Node>(FormatError error) implements NodeListResult<Node, FormatError> {
     @Override
-    public NodeListResult<Node> add(final NodeResult<Node, FormatError> other) {
+    public NodeListResult<Node, FormatError> add(final NodeResult<Node, FormatError> other) {
         return new NodeListErr<>(this.error);
     }
 

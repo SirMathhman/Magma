@@ -4,7 +4,6 @@ import magma.api.Tuple;
 import magma.compile.result.ResultFactory;
 import magma.divide.DivideState;
 import magma.divide.MutableDivideState;
-import magma.error.FormatError;
 import magma.node.NodeWithNodeLists;
 import magma.node.result.NodeListResult;
 import magma.node.result.NodeResult;
@@ -13,15 +12,15 @@ import magma.string.result.StringResult;
 import java.util.Collections;
 import java.util.stream.Stream;
 
-public final class DivideRule<Node extends NodeWithNodeLists<Node>>
-        implements Rule<Node, NodeResult<Node, FormatError>, StringResult<FormatError>> {
+public final class DivideRule<Node extends NodeWithNodeLists<Node>, Error>
+        implements Rule<Node, NodeResult<Node, Error>, StringResult<Error>> {
     private final String key;
-    private final Rule<Node, NodeResult<Node, FormatError>, StringResult<FormatError>> rule;
-    private final ResultFactory<Node, FormatError, StringResult<FormatError>> resultFactory;
+    private final Rule<Node, NodeResult<Node, Error>, StringResult<Error>> rule;
+    private final ResultFactory<Node, Error, StringResult<Error>> resultFactory;
 
     public DivideRule(final String key,
-                      final Rule<Node, NodeResult<Node, FormatError>, StringResult<FormatError>> rule,
-                      final ResultFactory<Node, FormatError, StringResult<FormatError>> resultFactory) {
+                      final Rule<Node, NodeResult<Node, Error>, StringResult<Error>> rule,
+                      final ResultFactory<Node, Error, StringResult<Error>> resultFactory) {
         this.key = key;
         this.rule = rule;
         this.resultFactory = resultFactory;
@@ -58,7 +57,7 @@ public final class DivideRule<Node extends NodeWithNodeLists<Node>>
     }
 
     @Override
-    public NodeResult<Node, FormatError> lex(final String input) {
+    public NodeResult<Node, Error> lex(final String input) {
         return DivideRule.divide(input)
                          .map(this.rule::lex)
                          .reduce(this.resultFactory.createNodeList(), NodeListResult::add, (_, next) -> next)
@@ -66,7 +65,7 @@ public final class DivideRule<Node extends NodeWithNodeLists<Node>>
     }
 
     @Override
-    public StringResult<FormatError> generate(final Node node) {
+    public StringResult<Error> generate(final Node node) {
         return node.findNodeList(this.key)
                    .orElse(Collections.emptyList())
                    .stream()

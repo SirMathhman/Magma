@@ -57,8 +57,7 @@ class SplitRule<Node extends MergingNode<Node>> implements Rule
 NodeWithNodeLists <-- List
 NodeWithNodeLists <-- Optional
 interface NodeWithNodeLists<Node>
-NodeListResult <-- FormatError
-interface NodeListResult<Node>
+interface NodeListResult<Node, Error>
 interface EverythingNode implements TypedNode
 interface TypedNode<Node>
 class Tuple<Left, Right>
@@ -132,14 +131,13 @@ DivideRule <-- Tuple
 DivideRule <-- ResultFactory
 DivideRule <-- DivideState
 DivideRule <-- MutableDivideState
-DivideRule <-- FormatError
 DivideRule <-- NodeWithNodeLists
 DivideRule <-- NodeListResult
 DivideRule <-- NodeResult
 DivideRule <-- StringResult
 DivideRule <-- Collections
 DivideRule <-- Stream
-class DivideRule<Node extends NodeWithNodeLists<Node>> implements Rule
+class DivideRule<Node extends NodeWithNodeLists<Node>, Error> implements Rule
 interface FormatError
 FirstLocator <-- Optional
 class FirstLocator
@@ -148,7 +146,6 @@ ThrowableError <-- StringWriter
 class ThrowableError
 Matchable <-- Function
 interface Matchable<Value, Error>
-ResultFactory <-- FormatError
 ResultFactory <-- NodeListResult
 ResultFactory <-- NodeResult
 ResultFactory <-- List
@@ -185,9 +182,8 @@ ResultFactoryImpl <-- StringErr
 ResultFactoryImpl <-- StringResult
 ResultFactoryImpl <-- List
 class ResultFactoryImpl implements ResultFactory
-NodeOk <-- FormatError
 NodeOk <-- Function
-class NodeOk<Node> implements NodeResult
+class NodeOk<Node, Error> implements NodeResult
 PlantLang <-- ResultFactoryImpl
 PlantLang <-- FormatError
 PlantLang <-- EverythingNode

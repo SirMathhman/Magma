@@ -24,7 +24,7 @@ public class ResultFactoryImpl implements ResultFactory<EverythingNode, FormatEr
     }
 
     @Override
-    public NodeListResult<EverythingNode> createNodeList() {
+    public NodeListResult<EverythingNode, FormatError> createNodeList() {
         return new NodeListOk<>(new MapNodeFactory());
     }
 

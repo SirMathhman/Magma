@@ -7,7 +7,7 @@ import magma.node.factory.NodeFactory;
 import java.util.ArrayList;
 import java.util.List;
 
-public final class NodeListOk<Node extends NodeWithNodeLists<Node>> implements NodeListResult<Node> {
+public final class NodeListOk<Node extends NodeWithNodeLists<Node>> implements NodeListResult<Node, FormatError> {
     private final List<Node> list;
     private final NodeFactory<Node> nodeFactory;
 
@@ -21,7 +21,7 @@ public final class NodeListOk<Node extends NodeWithNodeLists<Node>> implements N
     }
 
     @Override
-    public NodeListResult<Node> add(final NodeResult<Node, FormatError> other) {
+    public NodeListResult<Node, FormatError> add(final NodeResult<Node, FormatError> other) {
         return other.match(node -> {
             this.list.add(node);
             return this;
