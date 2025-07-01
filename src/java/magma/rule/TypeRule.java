@@ -4,7 +4,7 @@ import magma.compile.result.ResultFactory;
 import magma.node.TypedNode;
 import magma.node.result.MapNodeResult;
 
-public final class TypeRule<Node extends TypedNode<Node>, Error, NodeResult extends MapNodeResult<NodeResult, Node, Error, StringResult>, StringResult>
+public final class TypeRule<Node extends TypedNode<Node>, Error, NodeResult extends MapNodeResult<NodeResult, Node, ResultFactory<Node, Error, StringResult, NodeResult>>, StringResult>
         implements Rule<Node, NodeResult, StringResult> {
     private final String type;
     private final Rule<Node, NodeResult, StringResult> rule;

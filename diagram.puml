@@ -43,7 +43,7 @@ SplitRule <-- MergingNode
 SplitRule <-- MapNodeResult
 SplitRule <-- Splitter
 SplitRule <-- MappingStringResult
-class SplitRule<Node extends MergingNode<Node>, Error, StringResult extends MappingStringResult<StringResult>, NodeResult extends MapNodeResult<NodeResult, Node, Error, StringResult>> implements Rule
+class SplitRule<Node extends MergingNode<Node>, Error, StringResult extends MappingStringResult<StringResult>, NodeResult extends MapNodeResult<NodeResult, Node, ResultFactory<Node, Error, StringResult, NodeResult>>> implements Rule
 NodeWithNodeLists <-- List
 NodeWithNodeLists <-- Optional
 interface NodeWithNodeLists<Node>
@@ -66,6 +66,7 @@ NodeWithStrings <-- Tuple
 NodeWithStrings <-- Optional
 NodeWithStrings <-- Stream
 interface NodeWithStrings<Node>
+NodeResult <-- ResultFactory
 NodeResult <-- Matchable
 interface NodeResult<Node, Error, StringResult> implements Matchable
 LastLocator <-- Optional
@@ -91,7 +92,7 @@ class StripRule<Node, StringResult, NodeResult> implements Rule
 TypeRule <-- ResultFactory
 TypeRule <-- TypedNode
 TypeRule <-- MapNodeResult
-class TypeRule<Node extends TypedNode<Node>, Error, NodeResult extends MapNodeResult<NodeResult, Node, Error, StringResult>, StringResult> implements Rule
+class TypeRule<Node extends TypedNode<Node>, Error, NodeResult extends MapNodeResult<NodeResult, Node, ResultFactory<Node, Error, StringResult, NodeResult>>, StringResult> implements Rule
 MappingStringResult <-- Function
 interface MappingStringResult<Self>
 StringRule <-- ResultFactory
@@ -182,9 +183,8 @@ interface Locator
 IdentifierRule <-- ResultFactory
 IdentifierRule <-- IntStream
 class IdentifierRule<Node, Error, NodeResult, StringResult> implements Rule
-MapNodeResult <-- ResultFactory
 MapNodeResult <-- Function
-interface MapNodeResult<Self, Node, Error, StringResult>
+interface MapNodeResult<Self, Node, Factory>
 Main <-- ResultFactoryImpl
 Main <-- ApplicationError
 Main <-- Error

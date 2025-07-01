@@ -7,7 +7,7 @@ import magma.node.result.MapNodeResult;
 import magma.rule.split.Splitter;
 import magma.string.result.MappingStringResult;
 
-public final class SplitRule<Node extends MergingNode<Node>, Error, StringResult extends MappingStringResult<StringResult>, NodeResult extends MapNodeResult<NodeResult, Node, Error, StringResult>>
+public final class SplitRule<Node extends MergingNode<Node>, Error, StringResult extends MappingStringResult<StringResult>, NodeResult extends MapNodeResult<NodeResult, Node, ResultFactory<Node, Error, StringResult, NodeResult>>>
         implements Rule<Node, NodeResult, StringResult> {
     private final Rule<Node, NodeResult, StringResult> leftRule;
     private final Rule<Node, NodeResult, StringResult> rightRule;
