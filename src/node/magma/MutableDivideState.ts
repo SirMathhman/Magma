@@ -1,4 +1,4 @@
-/*public class MutableDivideState implements DivideState */{
+export class MutableDivideState implements DivideState {
 	/*private final Collection<String> segments = new ArrayList<>();*/
 	/*private StringBuilder buffer = new StringBuilder();*/
 	/*private int depth = 0;*/
@@ -33,7 +33,7 @@
     }*/
 	/*@Override
     public boolean isShallow() {
-        return 1 == depth;
+        return 1 == this.depth;
     }*/
 	/**/
 }/**/

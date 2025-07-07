@@ -1,4 +1,4 @@
-/*public class Main */{
+export class Main {
 	/*public static final String LINE_SEPARATOR = System.lineSeparator();*/
 	/*private Main() {}*/
 	/*public static void main(final String[] args) {
@@ -49,16 +49,28 @@
 }/*private static Optional<String> compileSuffix(final String input, final String suffix) */{
 	/*if (!input.endsWith(suffix)) return Optional.empty();*/
 	/*final var withoutEnd = input.substring(0, input.length() - suffix.length());*/
-	/*return Main.compileInfix(withoutEnd, "{");
+	/*return Main.compileInfix(withoutEnd, "{", (beforeContent1, content1) -> Optional.of(
+                Main.compileClassHeader(beforeContent1) + "{" +
+                Main.compileStatements(content1, Main::compileClassSegments) + Main.LINE_SEPARATOR + "}"));
     }*/
-	/*private static Optional<String> compileInfix(final String withoutEnd, final String infix) {
+	/*private static Optional<String> compileInfix(final String withoutEnd,
+                                                 final String infix,
+                                                 final BiFunction<String, String, Optional<String>> mapper) {
         final var contentStart = withoutEnd.indexOf(infix);
         if (0 > contentStart) return Optional.empty();
 
         final var beforeContent = withoutEnd.substring(0, contentStart);
         final var content = withoutEnd.substring(contentStart + infix.length());
-        return Optional.of(Main.generatePlaceholder(beforeContent) + "{" +
-                           Main.compileStatements(content, Main::compileClassSegments) + Main.LINE_SEPARATOR + "}");
+        return mapper.apply(beforeContent, content);
+    }*/
+	/*private static String compileClassHeader(final String input) {
+        return Main.compileInfix(input, "class ", (modifiers, s2) -> {
+            final var stripped = modifiers.strip();
+            final String newModifiers;
+            if ("public".contentEquals(stripped)) newModifiers = "export ";
+            else newModifiers = "";
+            return Optional.of(newModifiers + "class " + s2);
+        }).orElseGet(() -> Main.generatePlaceholder(input));
     }*/
 	/*private static String compileClassSegments(final String input) {
         return Main.LINE_SEPARATOR + "\t" + Main.generatePlaceholder(input.strip());
