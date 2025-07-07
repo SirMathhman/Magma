@@ -6,9 +6,13 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 public class Main {
+
+    public static final String LINE_SEPARATOR = System.lineSeparator();
+
     private Main() {}
 
     public static void main(final String[] args) {
@@ -39,11 +43,16 @@ public class Main {
 
         final var target = targetParent.resolve(name + ".ts");
         final var input = Files.readString(source);
+        final var csq = Main.compileStatements(input, Main::compileRootSegment);
+        Files.writeString(target, csq);
+    }
+
+    private static String compileStatements(final String input, final Function<String, String> mapper) {
         final var segments = Main.divide(input);
         final var output = new StringBuilder();
-        for (final var segment : segments) output.append(Main.compileRootSegment(segment));
+        for (final var segment : segments) output.append(mapper.apply(segment));
         final var csq = output.toString();
-        Files.writeString(target, csq);
+        return csq;
     }
 
     private static String compileRootSegment(final String input) {
@@ -69,7 +78,12 @@ public class Main {
 
         final var beforeContent = withoutEnd.substring(0, contentStart);
         final var content = withoutEnd.substring(contentStart + infix.length());
-        return Optional.of(Main.generatePlaceholder(beforeContent) + "{" + Main.generatePlaceholder(content) + "}");
+        return Optional.of(Main.generatePlaceholder(beforeContent) + "{" +
+                           Main.compileStatements(content, Main::compileClassSegments) + Main.LINE_SEPARATOR + "}");
+    }
+
+    private static String compileClassSegments(final String input) {
+        return Main.LINE_SEPARATOR + "\t" + Main.generatePlaceholder(input.strip());
     }
 
     private static List<String> divide(final CharSequence input) {
@@ -85,6 +99,7 @@ public class Main {
     private static DivideState fold(final DivideState state, final char c) {
         final var appended = state.append(c);
         if (';' == c && appended.isLevel()) return appended.advance();
+        if ('}' == c && appended.isShallow()) return appended.advance().exit();
         if ('{' == c) return appended.enter();
         if ('}' == c) return appended.exit();
         return appended;
