@@ -44,7 +44,7 @@ public class Main {
         Files.writeString(target, Main.compile(input));
     }
 
-    private static String compile(final String input) {
+    private static String compile(final CharSequence input) {
         final var segments = Main.divide(input);
 
         final var output = new StringBuilder();
@@ -53,7 +53,7 @@ public class Main {
         return output.toString();
     }
 
-    private static List<String> divide(final String input) {
+    private static List<String> divide(final CharSequence input) {
         DivideState current = new MutableDivideState();
         for (var i = 0; i < input.length(); i++) {
             final var c = input.charAt(i);
