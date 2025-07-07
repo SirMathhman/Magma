@@ -11,4 +11,7 @@
     DivideState enter(); *//* 
 
     DivideState exit(); *//* 
+
+    boolean isShallow(); *//* 
  */}
+/*  */

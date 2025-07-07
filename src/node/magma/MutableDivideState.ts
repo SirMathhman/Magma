@@ -10,34 +10,40 @@
     public DivideState append(final char c) {
         this.buffer.append(c);
         return this;
-    }
+    } *//* 
 
     @Override
     public DivideState advance() {
         this.segments.add(this.buffer.toString());
         this.buffer = new StringBuilder();
         return this;
-    }
+    } *//* 
 
     @Override
     public Stream<String> stream() {
         return this.segments.stream();
-    }
+    } *//* 
 
     @Override
     public boolean isLevel() {
         return 0 == this.depth;
-    }
+    } *//* 
 
     @Override
     public DivideState enter() {
         this.depth++;
         return this;
-    }
+    } *//* 
 
     @Override
     public DivideState exit() {
         this.depth--;
         return this;
-    }
+    } *//* 
+
+    @Override
+    public boolean isShallow() {
+        return 1 == depth;
+    } *//* 
  */}
+/*  */
