@@ -4,6 +4,8 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.stream.Collectors;
 
 public class Main {
@@ -36,7 +38,31 @@ public class Main {
         if (!Files.exists(targetParent)) Files.createDirectories(targetParent);
 
         final var target = targetParent.resolve(name + ".ts");
-        final var replaced = Files.readString(source).replace("/*", "start").replace("*/", "end");
-        Files.writeString(target, "/*" + replaced + "*/");
+        final var input = Files.readString(source);
+        final var segments = Main.divide(input);
+        final var output = new StringBuilder();
+        for (final var segment : segments) output.append(Main.generatePlaceholder(segment));
+        final var csq = output.toString();
+        Files.writeString(target, csq);
+    }
+
+    private static List<String> divide(final CharSequence input) {
+        final List<String> segments = new ArrayList<>();
+        var buffer = new StringBuilder();
+        for (var i = 0; i < input.length(); i++) {
+            final var c = input.charAt(i);
+            buffer.append(c);
+            if (';' == c) {
+                segments.add(buffer.toString());
+                buffer = new StringBuilder();
+            }
+        }
+        segments.add(buffer.toString());
+        return segments;
+    }
+
+    private static String generatePlaceholder(final String input) {
+        final var replaced = input.replace("/*", "start").replace("*/", "end");
+        return "/*" + replaced + "*/";
     }
 }
