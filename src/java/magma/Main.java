@@ -11,8 +11,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class Main {
-
-    public static final String LINE_SEPARATOR = System.lineSeparator();
+    private static final String LINE_SEPARATOR = System.lineSeparator();
 
     private Main() {}
 
@@ -100,11 +99,57 @@ public class Main {
         final var substring1 = substring.substring(0, i).strip();
         final var substring2 = substring.substring(i + "{".length());
         return Optional.of(Main.generatePlaceholder(substring1) + "{" +
-                           Main.compileStatements(substring2, Main::compileClassSegment) + "}");
+                           Main.compileStatements(substring2, Main::compileClassSegment) + Main.LINE_SEPARATOR + "}");
     }
 
     private static String compileClassSegment(final String input) {
-        return Main.LINE_SEPARATOR + "\t" + Main.generatePlaceholder(input.strip());
+        return Main.LINE_SEPARATOR + "\t" + Main.compileClassSegmentValue(input.strip());
+    }
+
+    private static String compileClassSegmentValue(final String input) {
+        return Main.compileMethod(input).orElseGet(() -> Main.generatePlaceholder(input));
+    }
+
+    private static Optional<String> compileMethod(final String input) {
+        if (input.isEmpty() || '}' != input.charAt(input.length() - 1)) return Optional.empty();
+        final var substring = input.substring(0, input.length() - "}".length());
+
+        final var i = substring.indexOf('{');
+        if (0 > i) return Optional.empty();
+        final var substring1 = substring.substring(0, i).strip();
+        final var substring2 = substring.substring(i + "{".length());
+        return Optional.of(Main.generatePlaceholder(substring1) + "{" +
+                           Main.compileStatements(substring2, input1 -> Main.compileFunctionSegment(input1, 2)) +
+                           Main.LINE_SEPARATOR + "\t}");
+    }
+
+    private static String compileFunctionSegment(final String input, final int depth) {
+        final var strip = input.strip();
+        if (strip.isEmpty()) return "";
+        return Main.LINE_SEPARATOR + "\t".repeat(depth) + Main.compileFunctionSegmentValue(strip, depth);
+    }
+
+    private static String compileFunctionSegmentValue(final String input, final int depth) {
+        return Main.compileBlock(input, depth).orElseGet(() -> Main.generatePlaceholder(input));
+    }
+
+    private static Optional<String> compileBlock(final String input, final int depth) {
+        if (input.isEmpty() || '}' != input.charAt(input.length() - 1)) return Optional.empty();
+        final var substring = input.substring(0, input.length() - "}".length());
+        final var i = substring.indexOf('{');
+
+        if (0 > i) return Optional.empty();
+        final var substring1 = substring.substring(0, i).strip();
+        final var substring2 = substring.substring(i + "{".length()).strip();
+        final var generated =
+                Main.generatePlaceholder(substring1) + "{" + Main.compileFunctionSegments(depth, substring2) +
+                Main.LINE_SEPARATOR + "\t".repeat(depth) + "}";
+        return Optional.of(generated);
+
+    }
+
+    private static String compileFunctionSegments(final int depth, final CharSequence input) {
+        return Main.compileStatements(input, segment -> Main.compileFunctionSegment(segment, depth + 1));
     }
 
     private static String generatePlaceholder(final String input) {
