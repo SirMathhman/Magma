@@ -6,7 +6,6 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 public class Main {
     private Main() {}
@@ -41,23 +40,25 @@ public class Main {
         final var input = Files.readString(source);
         final var segments = Main.divide(input);
         final var output = new StringBuilder();
-        for (final var segment : segments) output.append(Main.generatePlaceholder(segment));
+        for (final var segment : segments) output.append(Main.compileRootSegment(segment));
         final var csq = output.toString();
         Files.writeString(target, csq);
     }
 
-    private static List<String> divide(final CharSequence input) {
-        return Main.getStrings(input, new MutableDivideState()).toList();
+    private static String compileRootSegment(final String input) {
+        final var strip = input.strip();
+        if (strip.startsWith("package ") || strip.startsWith("import ")) return "";
+        return Main.generatePlaceholder(strip);
     }
 
-    private static Stream<String> getStrings(final CharSequence input, final DivideState state) {
-        var current = state;
+    private static List<String> divide(final CharSequence input) {
+        var current = (DivideState) new MutableDivideState();
         for (var i = 0; i < input.length(); i++) {
             final var c = input.charAt(i);
             current = Main.fold(current, c);
         }
 
-        return current.advance().stream();
+        return current.advance().stream().toList();
     }
 
     private static DivideState fold(final DivideState state, final char c) {
