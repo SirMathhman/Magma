@@ -1,14 +1,14 @@
 /* import java.util.stream.Stream; */
 /* public interface DivideState */{/* 
-    DivideState append(char c);
+    DivideState append(char c); *//* 
 
-    DivideState advance();
+    DivideState advance(); *//* 
 
-    Stream<String> stream();
+    Stream<String> stream(); *//* 
 
-    boolean isLevel();
+    boolean isLevel(); *//* 
 
-    DivideState enter();
+    DivideState enter(); *//* 
 
-    DivideState exit();
+    DivideState exit(); *//* 
  */}

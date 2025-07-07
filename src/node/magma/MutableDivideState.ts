@@ -2,9 +2,9 @@
 /* import java.util.Collection; */
 /* import java.util.stream.Stream; */
 /* public class MutableDivideState implements DivideState */{/* 
-    private final Collection<String> segments = new ArrayList<>(new ArrayList<>());
-    private StringBuilder buffer = new StringBuilder();
-    private int depth = 0;
+    private final Collection<String> segments = new ArrayList<>(new ArrayList<>()); *//* 
+    private StringBuilder buffer = new StringBuilder(); *//* 
+    private int depth = 0; *//* 
 
     @Override
     public DivideState append(final char c) {
