@@ -61,14 +61,19 @@ public class Main {
     }
 
     private static Optional<String> compileClass(final String strip) {
-        return Main.compileSuffix(strip, "}");
+        return Main.compileSuffix(strip, "}", Main::getString);
     }
 
-    private static Optional<String> compileSuffix(final String input, final String suffix) {
+    private static Optional<String> compileSuffix(final String input,
+                                                  final String suffix,
+                                                  final Function<String, Optional<String>> mapper) {
         if (!input.endsWith(suffix)) return Optional.empty();
-
         final var withoutEnd = input.substring(0, input.length() - suffix.length());
-        return Main.compileInfix(withoutEnd, "{", (beforeContent1, content1) -> Optional.of(
+        return mapper.apply(withoutEnd);
+    }
+
+    private static Optional<String> getString(final String input) {
+        return Main.compileInfix(input, "{", (beforeContent1, content1) -> Optional.of(
                 Main.compileClassHeader(beforeContent1) + "{" +
                 Main.compileStatements(content1, Main::compileClassSegment) + Main.LINE_SEPARATOR + "}"));
     }
@@ -102,7 +107,8 @@ public class Main {
     }
 
     private static String compileClassSegmentValue(final String input) {
-        return Main.generatePlaceholder(input);
+        return Main.compileSuffix(input, ";", s -> Optional.of(Main.generatePlaceholder(s) + ";"))
+                   .orElseGet(() -> Main.generatePlaceholder(input));
     }
 
     private static List<String> divide(final CharSequence input) {

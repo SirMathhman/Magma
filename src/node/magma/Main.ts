@@ -1,5 +1,5 @@
 export class Main {
-	/*private static final String LINE_SEPARATOR = System.lineSeparator();*/
+	/*private static final String LINE_SEPARATOR = System.lineSeparator()*/;
 	/*private Main() {}*/
 	/*public static void main(final String[] args) {
         final var sourceDirectory = Paths.get(".", "src", "java");
@@ -43,12 +43,17 @@ export class Main {
     }*/
 	/*private static Optional<String> compileClass(final String strip) {
         return Main.compileSuffix(strip, "}*/
-	/*");*/
+	/*", Main::getString)*/;
 	/**/
-}/*private static Optional<String> compileSuffix(final String input, final String suffix) */{
-	/*if (!input.endsWith(suffix)) return Optional.empty();*/
-	/*final var withoutEnd = input.substring(0, input.length() - suffix.length());*/
-	/*return Main.compileInfix(withoutEnd, "{", (beforeContent1, content1) -> Optional.of(
+}/*private static Optional<String> compileSuffix(final String input,
+                                                  final String suffix,
+                                                  final Function<String, Optional<String>> mapper) */{
+	/*if (!input.endsWith(suffix)) return Optional.empty()*/;
+	/*final var withoutEnd = input.substring(0, input.length() - suffix.length())*/;
+	/*return mapper.apply(withoutEnd)*/;
+	/**/
+}/*private static Optional<String> getString(final String input) */{
+	/*return Main.compileInfix(input, "{", (beforeContent1, content1) -> Optional.of(
                 Main.compileClassHeader(beforeContent1) + "{" +
                 Main.compileStatements(content1, Main::compileClassSegment) + Main.LINE_SEPARATOR + "}"));
     }*/
@@ -77,7 +82,8 @@ export class Main {
         return Main.LINE_SEPARATOR + "\t" + Main.compileClassSegmentValue(input.strip());
     }*/
 	/*private static String compileClassSegmentValue(final String input) {
-        return Main.generatePlaceholder(input);
+        return Main.compileSuffix(input, ";", s -> Optional.of(Main.generatePlaceholder(s) + ";"))
+                   .orElseGet(() -> Main.generatePlaceholder(input));
     }*/
 	/*private static List<String> divide(final CharSequence input) {
         var current = (DivideState) new MutableDivideState();
@@ -92,14 +98,14 @@ export class Main {
         final var appended = state.append(c);
         if (';' == c && appended.isLevel()) return appended.advance();
         if ('}*/
-	/*' == c && appended.isShallow()) return appended.advance().exit();*/
+	/*' == c && appended.isShallow()) return appended.advance().exit()*/;
 	/*if ('{' == c) return appended.enter();
         if ('}*/
-	/*' == c) return appended.exit();*/
-	/*return appended;*/
+	/*' == c) return appended.exit()*/;
+	/*return appended*/;
 	/**/
 }/*private static String generatePlaceholder(final String input) */{
-	/*final var replaced = input.replace("start", "start").replace("end", "end");*/
-	/*return "start" + replaced + "end";*/
+	/*final var replaced = input.replace("start", "start").replace("end", "end")*/;
+	/*return "start" + replaced + "end"*/;
 	/**/
 }/*}*/
