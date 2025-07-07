@@ -73,7 +73,21 @@ public class Main {
     private static String compileRootSegment(final String input) {
         final var strip = input.strip();
         if (strip.startsWith("package ")) return "";
-        return Main.generatePlaceholder(strip) + System.lineSeparator();
+        return Main.getString(strip) + System.lineSeparator();
+    }
+
+    private static String getString(final String input) {
+        if (!input.isEmpty() && '}' == input.charAt(input.length() - 1)) {
+            final var substring = input.substring(0, input.length() - "}".length());
+            final var i = substring.indexOf('{');
+            if (0 <= i) {
+                final var substring1 = substring.substring(0, i).strip();
+                final var substring2 = substring.substring(i + "{".length());
+                return Main.generatePlaceholder(substring1) + "{" + Main.generatePlaceholder(substring2) + "}";
+            }
+        }
+
+        return Main.generatePlaceholder(input);
     }
 
     private static String generatePlaceholder(final String input) {

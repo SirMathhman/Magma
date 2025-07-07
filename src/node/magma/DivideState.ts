@@ -1,5 +1,5 @@
 /* import java.util.stream.Stream; */
-/* public interface DivideState {
+/* public interface DivideState */{/* 
     DivideState append(char c);
 
     DivideState advance();
@@ -11,4 +11,4 @@
     DivideState enter();
 
     DivideState exit();
-} */
+ */}
