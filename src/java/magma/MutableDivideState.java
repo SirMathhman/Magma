@@ -1,17 +1,13 @@
 package magma;
 
 import java.util.ArrayList;
-import java.util.List;
+import java.util.Collection;
 import java.util.stream.Stream;
 
 public class MutableDivideState implements DivideState {
-    private final List<String> segments;
-    private StringBuilder buffer;
-
-    public MutableDivideState() {
-        this.segments = new ArrayList<>();
-        this.buffer = new StringBuilder();
-    }
+    private final Collection<String> segments = new ArrayList<>();
+    private StringBuilder buffer = new StringBuilder();
+    private int depth = 0;
 
     @Override
     public Stream<String> stream() {
@@ -28,6 +24,23 @@ public class MutableDivideState implements DivideState {
     public DivideState advance() {
         this.segments.add(this.buffer.toString());
         this.buffer = new StringBuilder();
+        return this;
+    }
+
+    @Override
+    public boolean isLevel() {
+        return 0 == this.depth;
+    }
+
+    @Override
+    public DivideState enter() {
+        this.depth++;
+        return this;
+    }
+
+    @Override
+    public DivideState exit() {
+        this.depth--;
         return this;
     }
 }
