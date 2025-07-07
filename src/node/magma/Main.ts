@@ -4,7 +4,6 @@ import java.io.IOException;*//*
 import java.nio.file.Files;*//*
 import java.nio.file.Path;*//*
 import java.nio.file.Paths;*//*
-import java.util.ArrayList;*//*
 import java.util.List;*//*
 import java.util.stream.Collectors;*//*
 import java.util.stream.Stream;*//*
@@ -52,10 +51,10 @@ public class Main {
     }
 
     private static Stream<String> getStrings(final CharSequence input, final DivideState state) {
-        final var current = state;*//*
+        var current = state;*//*
         for (var i = 0;*//* i < input.length();*//* i++) {
             final var c = input.charAt(i);*//*
-            Main.fold(current, c);*//*
+            current = Main.fold(current, c);*//*
         }
 
         return current.advance().stream();*//*
