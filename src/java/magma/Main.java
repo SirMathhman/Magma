@@ -49,7 +49,6 @@ public class Main {
 
         final var output = new StringBuilder();
         for (final var segment : segments) output.append(Main.compileRootSegment(segment));
-
         return output.toString();
     }
 
@@ -65,7 +64,9 @@ public class Main {
 
     private static DivideState fold(final DivideState state, final char c) {
         final var appended = state.append(c);
-        if (';' == c) return appended.advance();
+        if (';' == c && appended.isLevel()) return appended.advance();
+        if ('{' == c) return appended.enter();
+        if ('}' == c) return appended.exit();
         return appended;
     }
 

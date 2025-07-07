@@ -1,29 +1,43 @@
 /* import java.util.ArrayList; */
-/* import java.util.List; */
+/* import java.util.Collection; */
 /* import java.util.stream.Stream; */
 /* public class MutableDivideState implements DivideState {
-    private final List<String> segments; */
-/* private StringBuilder buffer; */
-/* MutableDivideState() {
-        this.segments = new ArrayList<>(new ArrayList<String>()); */
-/* this.buffer = new StringBuilder(); */
-/* }
+    private final Collection<String> segments = new ArrayList<>(new ArrayList<>());
+    private StringBuilder buffer = new StringBuilder();
+    private int depth = 0;
 
     @Override
     public DivideState append(final char c) {
-        this.buffer.append(c); */
-/* return this; */
-/* }
+        this.buffer.append(c);
+        return this;
+    }
 
     @Override
     public DivideState advance() {
-        this.segments.add(this.buffer.toString()); */
-/* this.buffer = new StringBuilder(); */
-/* return this; */
-/* }
+        this.segments.add(this.buffer.toString());
+        this.buffer = new StringBuilder();
+        return this;
+    }
 
     @Override
     public Stream<String> stream() {
-        return this.segments.stream(); */
-/* }
+        return this.segments.stream();
+    }
+
+    @Override
+    public boolean isLevel() {
+        return 0 == this.depth;
+    }
+
+    @Override
+    public DivideState enter() {
+        this.depth++;
+        return this;
+    }
+
+    @Override
+    public DivideState exit() {
+        this.depth--;
+        return this;
+    }
 } */
