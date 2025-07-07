@@ -7,6 +7,7 @@ import java.nio.file.Paths;*//*
 import java.util.ArrayList;*//*
 import java.util.List;*//*
 import java.util.stream.Collectors;*//*
+import java.util.stream.Stream;*//*
 
 public class Main {
     private Main() {}
@@ -47,18 +48,23 @@ public class Main {
     }
 
     private static List<String> divide(final CharSequence input) {
-        final List<String> segments = new ArrayList<>();*//*
-        var buffer = new StringBuilder();*//*
+        return Main.getStrings(input, new MutableDivideState()).toList();*//*
+    }
+
+    private static Stream<String> getStrings(final CharSequence input, final DivideState state) {
+        final var current = state;*//*
         for (var i = 0;*//* i < input.length();*//* i++) {
             final var c = input.charAt(i);*//*
-            buffer.append(c);*//*
-            if (';*//*' == c) {
-                segments.add(buffer.toString());*//*
-                buffer = new StringBuilder();*//*
-            }
+            Main.fold(current, c);*//*
         }
-        segments.add(buffer.toString());*//*
-        return segments;*//*
+
+        return current.advance().stream();*//*
+    }
+
+    private static DivideState fold(final DivideState state, final char c) {
+        final var appended = state.append(c);*//*
+        if (';*//*' == c) return appended.advance();*//*
+        return appended;*//*
     }
 
     private static String generatePlaceholder(final String input) {
