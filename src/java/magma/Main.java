@@ -4,7 +4,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.ArrayList;
+import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -45,22 +45,28 @@ public class Main {
     }
 
     private static String compile(final String input) {
-        final var segments = new ArrayList<String>();
-        var buffer = new StringBuilder();
-        for (var i = 0; i < input.length(); i++) {
-            final var c = input.charAt(i);
-            buffer.append(c);
-            if (';' == c) {
-                segments.add(buffer.toString());
-                buffer = new StringBuilder();
-            }
-        }
-        segments.add(buffer.toString());
+        final var segments = Main.divide(input);
 
         final var output = new StringBuilder();
         for (final var segment : segments) output.append(Main.compileRootSegment(segment));
 
         return output.toString();
+    }
+
+    private static List<String> divide(final String input) {
+        DivideState current = new MutableDivideState();
+        for (var i = 0; i < input.length(); i++) {
+            final var c = input.charAt(i);
+            current = Main.fold(current, c);
+        }
+
+        return current.advance().stream().toList();
+    }
+
+    private static DivideState fold(final DivideState state, final char c) {
+        final var appended = state.append(c);
+        if (';' == c) return appended.advance();
+        return appended;
     }
 
     private static String compileRootSegment(final String input) {
