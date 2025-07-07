@@ -11,8 +11,7 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 public class Main {
-
-    public static final String LINE_SEPARATOR = System.lineSeparator();
+    private static final String LINE_SEPARATOR = System.lineSeparator();
 
     private Main() {}
 
@@ -48,12 +47,11 @@ public class Main {
         Files.writeString(target, csq);
     }
 
-    private static String compileStatements(final String input, final Function<String, String> mapper) {
+    private static String compileStatements(final CharSequence input, final Function<String, String> mapper) {
         final var segments = Main.divide(input);
         final var output = new StringBuilder();
         for (final var segment : segments) output.append(mapper.apply(segment));
-        final var csq = output.toString();
-        return csq;
+        return output.toString();
     }
 
     private static String compileRootSegment(final String input) {
@@ -72,7 +70,7 @@ public class Main {
         final var withoutEnd = input.substring(0, input.length() - suffix.length());
         return Main.compileInfix(withoutEnd, "{", (beforeContent1, content1) -> Optional.of(
                 Main.compileClassHeader(beforeContent1) + "{" +
-                Main.compileStatements(content1, Main::compileClassSegments) + Main.LINE_SEPARATOR + "}"));
+                Main.compileStatements(content1, Main::compileClassSegment) + Main.LINE_SEPARATOR + "}"));
     }
 
     private static Optional<String> compileInfix(final String withoutEnd,
@@ -87,17 +85,24 @@ public class Main {
     }
 
     private static String compileClassHeader(final String input) {
-        return Main.compileInfix(input, "class ", (modifiers, s2) -> {
-            final var stripped = modifiers.strip();
-            final String newModifiers;
-            if ("public".contentEquals(stripped)) newModifiers = "export ";
-            else newModifiers = "";
-            return Optional.of(newModifiers + "class " + s2);
-        }).orElseGet(() -> Main.generatePlaceholder(input));
+        return Main.compileInfix(input, "class ", Main::compileModifiers)
+                   .orElseGet(() -> Main.generatePlaceholder(input));
     }
 
-    private static String compileClassSegments(final String input) {
-        return Main.LINE_SEPARATOR + "\t" + Main.generatePlaceholder(input.strip());
+    private static Optional<String> compileModifiers(final String modifiers, final String s2) {
+        final var stripped = modifiers.strip();
+        final String newModifiers;
+        if ("public".contentEquals(stripped)) newModifiers = "export ";
+        else newModifiers = "";
+        return Optional.of(newModifiers + "class " + s2);
+    }
+
+    private static String compileClassSegment(final String input) {
+        return Main.LINE_SEPARATOR + "\t" + Main.compileClassSegmentValue(input.strip());
+    }
+
+    private static String compileClassSegmentValue(final String input) {
+        return Main.generatePlaceholder(input);
     }
 
     private static List<String> divide(final CharSequence input) {
