@@ -11,6 +11,9 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class Main {
+
+    public static final String LINE_SEPARATOR = System.lineSeparator();
+
     private Main() {}
 
     public static void main(final String[] args) {
@@ -80,7 +83,7 @@ public class Main {
     private static String compileRootSegment(final String input) {
         final var strip = input.strip();
         if (strip.startsWith("package ")) return "";
-        return Main.compileRootSegmentValue(strip) + System.lineSeparator();
+        return Main.compileRootSegmentValue(strip) + Main.LINE_SEPARATOR;
     }
 
     private static String compileRootSegmentValue(final String input) {
@@ -101,7 +104,7 @@ public class Main {
     }
 
     private static String compileClassSegment(final String input) {
-        return Main.generatePlaceholder(input);
+        return Main.LINE_SEPARATOR + "\t" + Main.generatePlaceholder(input.strip());
     }
 
     private static String generatePlaceholder(final String input) {

@@ -7,10 +7,10 @@
 /* import java.util.function.Function; */
 /* import java.util.stream.Collectors; */
 /* import java.util.stream.Stream; */
-/* public class Main */{/* 
-    private Main() {} *//* 
-
-    public static void main(final String[] args) {
+/* public class Main */{
+	/* public static final String LINE_SEPARATOR = System.lineSeparator(); */
+	/* private Main() {} */
+	/* public static void main(final String[] args) {
         final var rootDirectory = Paths.get(".", "src", "java");
         try (final var stream = Files.walk(rootDirectory)) {
             Main.runWithSources(rootDirectory, stream);
@@ -18,17 +18,15 @@
             //noinspection CallToPrintStackTrace
             e.printStackTrace();
         }
-    } *//* 
-
-    private static void runWithSources(final Path rootDirectory, final Stream<Path> stream) throws IOException {
+    } */
+	/* private static void runWithSources(final Path rootDirectory, final Stream<Path> stream) throws IOException {
         final var sources = stream.filter(Files::isRegularFile)
                                   .filter(path -> path.toString().endsWith(".java"))
                                   .collect(Collectors.toSet());
 
         for (final var source : sources) Main.runWithSource(rootDirectory, source);
-    } *//* 
-
-    private static void runWithSource(final Path rootDirectory, final Path source) throws IOException {
+    } */
+	/* private static void runWithSource(final Path rootDirectory, final Path source) throws IOException {
         final var relative = rootDirectory.relativize(source.getParent());
 
         final var targetParent = Paths.get(".", "src", "node").resolve(relative);
@@ -41,21 +39,18 @@
         final var target = targetParent.resolve(name + ".ts");
         final var input = Files.readString(source);
         Files.writeString(target, Main.compile(input));
-    } *//* 
-
-    private static String compile(final CharSequence input) {
+    } */
+	/* private static String compile(final CharSequence input) {
         return Main.compileStatements(input, Main::compileRootSegment);
-    } *//* 
-
-    private static String compileStatements(final CharSequence input, final Function<String, String> mapper) {
+    } */
+	/* private static String compileStatements(final CharSequence input, final Function<String, String> mapper) {
         final var segments = Main.divide(input);
 
         final var output = new StringBuilder();
         for (final var segment : segments) output.append(mapper.apply(segment));
         return output.toString();
-    } *//* 
-
-    private static List<String> divide(final CharSequence input) {
+    } */
+	/* private static List<String> divide(final CharSequence input) {
         DivideState current = new MutableDivideState();
         for (var i = 0; i < input.length(); i++) {
             final var c = input.charAt(i);
@@ -63,41 +58,44 @@
         }
 
         return current.advance().stream().toList();
-    } *//* 
-
-    private static DivideState fold(final DivideState state, final char c) {
+    } */
+	/* private static DivideState fold(final DivideState state, final char c) {
         final var appended = state.append(c);
         if (';' == c && appended.isLevel()) return appended.advance();
-        if ('} *//* ' == c && appended.isShallow()) return appended.exit().advance(); *//* 
-        if ('{' == c) return appended.enter();
-        if ('} *//* ' == c) return appended.exit(); *//* 
-        return appended; *//* 
-     */}
-/* private static String compileRootSegment(final String input) */{/* 
-        final var strip = input.strip(); *//* 
-        if (strip.startsWith("package ")) return ""; *//* 
-        return Main.compileRootSegmentValue(strip) + System.lineSeparator(); *//* 
-     */}
-/* private static String compileRootSegmentValue(final String input) */{/* 
-        return Main.compileStructure(input).orElseGet(() -> Main.generatePlaceholder(input)); *//* 
-     */}
-/* private static Optional<String> compileStructure(final String input) */{/* 
-        if (input.isEmpty() || ' */}
+        if ('} */
+	/* ' == c && appended.isShallow()) return appended.exit().advance(); */
+	/* if ('{' == c) return appended.enter();
+        if ('} */
+	/* ' == c) return appended.exit(); */
+	/* return appended; */
+	/*  */}
+/* private static String compileRootSegment(final String input) */{
+	/* final var strip = input.strip(); */
+	/* if (strip.startsWith("package ")) return ""; */
+	/* return Main.compileRootSegmentValue(strip) + Main.LINE_SEPARATOR; */
+	/*  */}
+/* private static String compileRootSegmentValue(final String input) */{
+	/* return Main.compileStructure(input).orElseGet(() -> Main.generatePlaceholder(input)); */
+	/*  */}
+/* private static Optional<String> compileStructure(final String input) */{
+	/* if (input.isEmpty() || ' */}
 /* ' != input.charAt(input.length() - 1)) return Optional.empty(); */
 /* final var substring = input.substring(0, input.length() - "}".length());
 
         final var i = substring.indexOf('{'); */
 /* if (0 > i) return Optional.empty(); */
 /* final var substring1 = substring.substring(0, i).strip(); */
-/* final var substring2 = substring.substring(i + " */{/* ".length()); *//* 
-        return Optional.of(Main.generatePlaceholder(substring1) + "{" +
-                           Main.compileStatements(substring2, Main::compileClassSegment) + "} *//* "); *//* 
-     */}
-/* private static String compileClassSegment(final String input) */{/* 
-        return Main.generatePlaceholder(input); *//* 
-     */}
-/* private static String generatePlaceholder(final String input) */{/* 
-        final var replaced = input.replace("start", "start").replace("end", "end"); *//* 
-        return "start " + replaced + " end"; *//* 
-     */}
+/* final var substring2 = substring.substring(i + " */{
+	/* ".length()); */
+	/* return Optional.of(Main.generatePlaceholder(substring1) + "{" +
+                           Main.compileStatements(substring2, Main::compileClassSegment) + "} */
+	/* "); */
+	/*  */}
+/* private static String compileClassSegment(final String input) */{
+	/* return Main.LINE_SEPARATOR + "\t" + Main.generatePlaceholder(input.strip()); */
+	/*  */}
+/* private static String generatePlaceholder(final String input) */{
+	/* final var replaced = input.replace("start", "start").replace("end", "end"); */
+	/* return "start " + replaced + " end"; */
+	/*  */}
 /* } */
