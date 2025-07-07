@@ -1,4 +1,4 @@
-/*public class MutableDivideState implements DivideState {
+/*public class MutableDivideState implements DivideState */{/*
     private final Collection<String> segments = new ArrayList<>();
     private StringBuilder buffer = new StringBuilder();
     private int depth = 0;
@@ -37,4 +37,4 @@
         this.depth--;
         return this;
     }
-}*/
+*/}

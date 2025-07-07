@@ -1,4 +1,4 @@
-/*public interface DivideState {
+/*public interface DivideState */{/*
     Stream<String> stream();
 
     DivideState append(char c);
@@ -10,4 +10,4 @@
     DivideState enter();
 
     DivideState exit();
-}*/
+*/}

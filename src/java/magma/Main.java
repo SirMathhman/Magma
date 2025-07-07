@@ -5,6 +5,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 public class Main {
@@ -48,7 +49,27 @@ public class Main {
     private static String compileRootSegment(final String input) {
         final var strip = input.strip();
         if (strip.startsWith("package ") || strip.startsWith("import ")) return "";
-        return Main.generatePlaceholder(strip);
+        return Main.compileClass(strip).orElseGet(() -> Main.generatePlaceholder(strip));
+    }
+
+    private static Optional<String> compileClass(final String strip) {
+        return Main.compileSuffix(strip, "}");
+    }
+
+    private static Optional<String> compileSuffix(final String input, final String suffix) {
+        if (!input.endsWith(suffix)) return Optional.empty();
+
+        final var withoutEnd = input.substring(0, input.length() - suffix.length());
+        return Main.compileInfix(withoutEnd, "{");
+    }
+
+    private static Optional<String> compileInfix(final String withoutEnd, final String infix) {
+        final var contentStart = withoutEnd.indexOf(infix);
+        if (0 > contentStart) return Optional.empty();
+
+        final var beforeContent = withoutEnd.substring(0, contentStart);
+        final var content = withoutEnd.substring(contentStart + infix.length());
+        return Optional.of(Main.generatePlaceholder(beforeContent) + "{" + Main.generatePlaceholder(content) + "}");
     }
 
     private static List<String> divide(final CharSequence input) {
