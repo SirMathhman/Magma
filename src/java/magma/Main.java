@@ -74,19 +74,22 @@ public class Main {
     }
 
     private static List<String> divide(final CharSequence input) {
-        DivideState current = new MutableDivideState(input);
-        while (true) {
-            final var maybePopped = current.pop();
-            if(maybePopped.isEmpty()) break;
+        Tuple<Boolean, DivideState> current = new Tuple<>(true, new MutableDivideState(input));
+        while (current.left()) current = Main.foldDecorated(current);
 
-            final var popped = maybePopped.get();
-            current = Main.fold(popped.left(), popped.right());
-        }
-
-        return current.advance().stream().toList();
+        return current.right().advance().stream().toList();
     }
 
-    private static DivideState fold(final DivideState state, final char c) {
+    private static Tuple<Boolean, DivideState> foldDecorated(final Tuple<Boolean, DivideState> current) {
+        final var currentState = current.right();
+        final var maybePopped = currentState.pop();
+        if (maybePopped.isEmpty()) return new Tuple<>(false, currentState);
+
+        final var popped = maybePopped.get();
+        return new Tuple<>(true, Main.foldStatement(popped.left(), popped.right()));
+    }
+
+    private static DivideState foldStatement(final DivideState state, final char c) {
         final var appended = state.append(c);
         if (';' == c && appended.isLevel()) return appended.advance();
         if ('{' == c) return appended.enter();
