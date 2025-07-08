@@ -70,10 +70,13 @@
     }
 
     private static List<String> divide(final CharSequence input) {
-        DivideState current = new MutableDivideState();
-        for (var i = 0; i < input.length(); i++) {
-            final var c = input.charAt(i);
-            current = Main.fold(current, c);
+        DivideState current = new MutableDivideState(input);
+        while (true) {
+            final var maybePopped = current.pop();
+            if(maybePopped.isEmpty()) break;
+
+            final var popped = maybePopped.get();
+            current = Main.fold(popped.left(), popped.right());
         }
 
         return current.advance().stream().toList();

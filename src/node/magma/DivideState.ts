@@ -1,3 +1,4 @@
+/*import java.util.Optional;*/
 /*import java.util.stream.Stream;*/
 /*public interface DivideState */{/*
     Stream<String> stream();
@@ -11,4 +12,6 @@
     DivideState enter();
 
     DivideState exit();
+
+    Optional<Tuple<DivideState, Character>> pop();
 */}
