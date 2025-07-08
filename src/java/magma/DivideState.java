@@ -8,4 +8,10 @@ public interface DivideState {
     DivideState advance();
 
     DivideState append(char c);
+
+    boolean isLevel();
+
+    DivideState enter();
+
+    DivideState exit();
 }
