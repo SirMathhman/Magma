@@ -86,11 +86,20 @@ public class Main {
         final var oldModifiers = input.substring(0, i).strip();
         final var name = input.substring(i + "class ".length());
 
+        return Main.getString(new MapNode().withString("modifiers", oldModifiers).withString("name", name));
+    }
+
+    private static Optional<String> getString(final Node node) {
         final String newModifiers;
-        if ("public".contentEquals(oldModifiers)) newModifiers = "export ";
+        if ("public".contentEquals(node.findString("modifiers").orElse(""))) newModifiers = "export ";
         else newModifiers = "";
 
-        return Optional.of(newModifiers + "class " + name);
+        final String name = node.findString("name").orElse("");
+        return Optional.of(Main.getValue(new MapNode().withString("modifiers", newModifiers).withString("name", name)));
+    }
+
+    private static String getValue(final Node node) {
+        return node.findString("modifiers").orElse("") + "class " + node.findString("name").orElse("");
     }
 
     private static List<String> divide(final CharSequence input) {
