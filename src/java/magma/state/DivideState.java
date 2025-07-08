@@ -1,4 +1,6 @@
-package magma;
+package magma.state;
+
+import magma.Tuple;
 
 import java.util.Optional;
 import java.util.stream.Stream;

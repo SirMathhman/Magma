@@ -1,4 +1,6 @@
-package magma;
+package magma.state;
+
+import magma.Tuple;
 
 import java.util.ArrayList;
 import java.util.Collection;
