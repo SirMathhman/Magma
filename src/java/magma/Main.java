@@ -11,6 +11,7 @@ import java.util.Optional;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 public class Main {
     private static final String LINE_SEPARATOR = System.lineSeparator();
@@ -132,13 +133,33 @@ public class Main {
     }
 
     private static String compileValue(final String input) {
+        return Main.compileInvokable(input)
+                   .or(() -> Main.compileAccess(input))
+                   .or(() -> Main.compileSymbol(input))
+                   .orElseGet(() -> Main.generatePlaceholder(input));
+    }
+
+    private static Optional<String> compileSymbol(final String input) {
+        final var strip = input.strip();
+        if (Main.isSymbol(strip)) return Optional.of(strip);
+        else return Optional.empty();
+    }
+
+    private static boolean isSymbol(final String input) {
+        return IntStream.range(0, input.length()).map(input::codePointAt).allMatch(Character::isLetter);
+    }
+
+    private static Optional<String> compileAccess(final String input) {
+        return Main.compileLast(input, ".", (s, s2) -> Optional.of(Main.compileValue(s) + "." + s2));
+    }
+
+    private static Optional<String> compileInvokable(final String input) {
         return Main.compileSuffix(input.strip(), ")", withoutEnd -> Main.compileFirst(withoutEnd, "(",
                                                                                       (s, s2) -> Optional.of(
                                                                                               Main.compileValue(s) +
                                                                                               "(" +
                                                                                               Main.generatePlaceholder(
-                                                                                                      s2) + ")")))
-                   .orElseGet(() -> Main.generatePlaceholder(input));
+                                                                                                      s2) + ")")));
     }
 
     private static String compileDefinition(final String input) {

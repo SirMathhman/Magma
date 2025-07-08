@@ -1,5 +1,5 @@
 export class Main {
-	private static readonly LINE_SEPARATOR : string = /*System.lineSeparator*/(/**/);
+	private static readonly LINE_SEPARATOR : string = System.lineSeparator(/**/);
 	/*private Main() {}*/
 	/*public static void main(final String[] args) {
         final var sourceDirectory = Paths.get(".", "src", "java");
@@ -49,7 +49,7 @@ export class Main {
                                                   final String suffix,
                                                   final Function<String, Optional<String>> mapper) */{
 	/*if (!input.endsWith(suffix)) return Optional.empty()*/;
-	readonly withoutEnd : /*var*/ = /*input.substring*/(/*0, input.length() - suffix.length()*/);
+	readonly withoutEnd : /*var*/ = input.substring(/*0, input.length() - suffix.length()*/);
 	/*return mapper.apply(withoutEnd)*/;
 	/**/
 }/*private static Optional<String> getString(final String input) */{
@@ -101,13 +101,31 @@ export class Main {
                    .orElseGet(() -> Main.generatePlaceholder(input));
     }*/
 	/*private static String compileValue(final String input) {
+        return Main.compileInvokable(input)
+                   .or(() -> Main.compileAccess(input))
+                   .or(() -> Main.compileSymbol(input))
+                   .orElseGet(() -> Main.generatePlaceholder(input));
+    }*/
+	/*private static Optional<String> compileSymbol(final String input) {
+        final var strip = input.strip();
+        if (Main.isSymbol(strip)) return Optional.of(strip);
+        else return Optional.empty();
+    }*/
+	/*private static boolean isSymbol(final String input) {
+        return IntStream.range(0, input.length())
+                .map(input::codePointAt)
+                        .allMatch(Character::isLetter);
+    }*/
+	/*private static Optional<String> compileAccess(final String input) {
+        return Main.compileLast(input, ".", (s, s2) -> Optional.of(Main.compileValue(s) + "." + s2));
+    }*/
+	/*private static Optional<String> compileInvokable(final String input) {
         return Main.compileSuffix(input.strip(), ")", withoutEnd -> Main.compileFirst(withoutEnd, "(",
                                                                                       (s, s2) -> Optional.of(
                                                                                               Main.compileValue(s) +
                                                                                               "(" +
                                                                                               Main.generatePlaceholder(
-                                                                                                      s2) + ")")))
-                   .orElseGet(() -> Main.generatePlaceholder(input));
+                                                                                                      s2) + ")")));
     }*/
 	/*private static String compileDefinition(final String input) {
         return Main.compileLast(input.strip(), " ", (beforeName, name) -> Main.compileLast(beforeName.strip(), " ",
@@ -166,14 +184,14 @@ export class Main {
         final var appended = state.append(c);
         if (';' == c && appended.isLevel()) return appended.advance();
         if ('}*/
-	/*' */ = /*= c && appended.isShallow*/(/*)) return appended.advance().exit(*/);
+	/*' */ = /*= c && appended*/.isShallow(/*)) return appended.advance().exit(*/);
 	/*if ('{' == c) return appended.enter();
         if ('}*/
-	/*' */ = /*= c) return appended.exit*/(/**/);
+	/*' */ = /*= c) return appended*/.exit(/**/);
 	/*return appended*/;
 	/**/
 }/*private static String generatePlaceholder(final String input) */{
-	readonly replaced : /*var*/ = /*input.replace*/(/*"start", "start").replace("end", "end"*/);
+	readonly replaced : /*var*/ = input.replace(/*"start", "start").replace("end", "end"*/);
 	/*return "start" + replaced + "end"*/;
 	/**/
 }/*}*/
