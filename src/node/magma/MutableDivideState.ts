@@ -1,6 +1,6 @@
 export class MutableDivideState implements DivideState {
-	private readonly segments : /*Collection<String>*/ = /*new ArrayList<>*/(/**/);
-	private buffer : /*StringBuilder*/ = /*new StringBuilder*/(/**/);
+	private readonly segments : /*Collection<String>*/ = /*new ArrayList<>*/();
+	private buffer : /*StringBuilder*/ = /*new StringBuilder*/();
 	private depth : /*int*/ = /* 0*/;
 	/*@Override
     public Stream<String> stream() {

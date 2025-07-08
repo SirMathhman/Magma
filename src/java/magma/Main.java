@@ -158,8 +158,14 @@ public class Main {
                                                                                       (s, s2) -> Optional.of(
                                                                                               Main.compileValue(s) +
                                                                                               "(" +
-                                                                                              Main.generatePlaceholder(
+                                                                                              Main.compileArguments(
                                                                                                       s2) + ")")));
+    }
+
+    private static String compileArguments(final String input) {
+        final var strip = input.strip();
+        if (strip.isEmpty()) return "";
+        return Main.generatePlaceholder(strip);
     }
 
     private static String compileDefinition(final String input) {

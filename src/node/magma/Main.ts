@@ -1,5 +1,5 @@
 export class Main {
-	private static readonly LINE_SEPARATOR : string = System.lineSeparator(/**/);
+	private static readonly LINE_SEPARATOR : string = System.lineSeparator();
 	/*private Main() {}*/
 	/*public static void main(final String[] args) {
         final var sourceDirectory = Paths.get(".", "src", "java");
@@ -112,9 +112,7 @@ export class Main {
         else return Optional.empty();
     }*/
 	/*private static boolean isSymbol(final String input) {
-        return IntStream.range(0, input.length())
-                .map(input::codePointAt)
-                        .allMatch(Character::isLetter);
+        return IntStream.range(0, input.length()).map(input::codePointAt).allMatch(Character::isLetter);
     }*/
 	/*private static Optional<String> compileAccess(final String input) {
         return Main.compileLast(input, ".", (s, s2) -> Optional.of(Main.compileValue(s) + "." + s2));
@@ -124,8 +122,13 @@ export class Main {
                                                                                       (s, s2) -> Optional.of(
                                                                                               Main.compileValue(s) +
                                                                                               "(" +
-                                                                                              Main.generatePlaceholder(
+                                                                                              Main.compileArguments(
                                                                                                       s2) + ")")));
+    }*/
+	/*private static String compileArguments(final String input) {
+        final var strip = input.strip();
+        if (strip.isEmpty()) return "";
+        return Main.generatePlaceholder(strip);
     }*/
 	/*private static String compileDefinition(final String input) {
         return Main.compileLast(input.strip(), " ", (beforeName, name) -> Main.compileLast(beforeName.strip(), " ",
@@ -187,7 +190,7 @@ export class Main {
 	/*' */ = /*= c && appended*/.isShallow(/*)) return appended.advance().exit(*/);
 	/*if ('{' == c) return appended.enter();
         if ('}*/
-	/*' */ = /*= c) return appended*/.exit(/**/);
+	/*' */ = /*= c) return appended*/.exit();
 	/*return appended*/;
 	/**/
 }/*private static String generatePlaceholder(final String input) */{
