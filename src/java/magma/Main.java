@@ -127,7 +127,17 @@ public class Main {
 
     private static String compileClassStatementValue(final String input) {
         return Main.compileFirst(input, "=", (definition, value) -> Optional.of(
-                           Main.compileDefinition(definition) + " = " + Main.generatePlaceholder(value.strip())))
+                           Main.compileDefinition(definition) + " = " + Main.compileValue(value)))
+                   .orElseGet(() -> Main.generatePlaceholder(input));
+    }
+
+    private static String compileValue(final String input) {
+        return Main.compileSuffix(input.strip(), ")", withoutEnd -> Main.compileFirst(withoutEnd, "(",
+                                                                                      (s, s2) -> Optional.of(
+                                                                                              Main.compileValue(s) +
+                                                                                              "(" +
+                                                                                              Main.generatePlaceholder(
+                                                                                                      s2) + ")")))
                    .orElseGet(() -> Main.generatePlaceholder(input));
     }
 

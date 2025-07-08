@@ -1,5 +1,5 @@
 export class Main {
-	private static readonly LINE_SEPARATOR : string = /*System.lineSeparator()*/;
+	private static readonly LINE_SEPARATOR : string = /*System.lineSeparator*/(/**/);
 	/*private Main() {}*/
 	/*public static void main(final String[] args) {
         final var sourceDirectory = Paths.get(".", "src", "java");
@@ -49,7 +49,7 @@ export class Main {
                                                   final String suffix,
                                                   final Function<String, Optional<String>> mapper) */{
 	/*if (!input.endsWith(suffix)) return Optional.empty()*/;
-	readonly withoutEnd : /*var*/ = /*input.substring(0, input.length() - suffix.length())*/;
+	readonly withoutEnd : /*var*/ = /*input.substring*/(/*0, input.length() - suffix.length()*/);
 	/*return mapper.apply(withoutEnd)*/;
 	/**/
 }/*private static Optional<String> getString(final String input) */{
@@ -97,7 +97,16 @@ export class Main {
     }*/
 	/*private static String compileClassStatementValue(final String input) {
         return Main.compileFirst(input, "=", (definition, value) -> Optional.of(
-                           Main.compileDefinition(definition) + " = " + Main.generatePlaceholder(value.strip())))
+                           Main.compileDefinition(definition) + " = " + Main.compileValue(value)))
+                   .orElseGet(() -> Main.generatePlaceholder(input));
+    }*/
+	/*private static String compileValue(final String input) {
+        return Main.compileSuffix(input.strip(), ")", withoutEnd -> Main.compileFirst(withoutEnd, "(",
+                                                                                      (s, s2) -> Optional.of(
+                                                                                              Main.compileValue(s) +
+                                                                                              "(" +
+                                                                                              Main.generatePlaceholder(
+                                                                                                      s2) + ")")))
                    .orElseGet(() -> Main.generatePlaceholder(input));
     }*/
 	/*private static String compileDefinition(final String input) {
@@ -157,14 +166,14 @@ export class Main {
         final var appended = state.append(c);
         if (';' == c && appended.isLevel()) return appended.advance();
         if ('}*/
-	/*' */ = /*= c && appended.isShallow()) return appended.advance().exit()*/;
+	/*' */ = /*= c && appended.isShallow*/(/*)) return appended.advance().exit(*/);
 	/*if ('{' == c) return appended.enter();
         if ('}*/
-	/*' */ = /*= c) return appended.exit()*/;
+	/*' */ = /*= c) return appended.exit*/(/**/);
 	/*return appended*/;
 	/**/
 }/*private static String generatePlaceholder(final String input) */{
-	readonly replaced : /*var*/ = /*input.replace("start", "start").replace("end", "end")*/;
+	readonly replaced : /*var*/ = /*input.replace*/(/*"start", "start").replace("end", "end"*/);
 	/*return "start" + replaced + "end"*/;
 	/**/
 }/*}*/
