@@ -1,7 +1,7 @@
 /*import java.util.ArrayList;*/
 /*import java.util.Collection;*/
 /*import java.util.stream.Stream;*/
-/*public class MutableDivideState implements DivideState {
+/*public class MutableDivideState implements DivideState */{/*
     private final Collection<String> segments = new ArrayList<>();
     private int depth = 0;
     private StringBuilder buffer = new StringBuilder();
@@ -26,7 +26,7 @@
 
     @Override
     public boolean isLevel() {
-        return 0 == depth;
+        return 0 == this.depth;
     }
 
     @Override
@@ -40,4 +40,4 @@
         this.depth--;
         return this;
     }
-}*/
+*/}

@@ -3,8 +3,11 @@
 /*import java.nio.file.Path;*/
 /*import java.nio.file.Paths;*/
 /*import java.util.List;*/
+/*import java.util.Optional;*/
 /*import java.util.stream.Collectors;*/
 /*public class Main {
+    private static final String LINE_SEPARATOR = System.lineSeparator();
+
     private Main() {}
 
     public static void main(final String[] args) {
@@ -49,7 +52,21 @@
     private static String compileRootSegment(final String input) {
         final var strip = input.strip();
         if (strip.startsWith("package ")) return "";
-        return Main.generatePlaceholder(strip) + System.lineSeparator();
+        return Main.compileClass(input).orElseGet(() -> Main.generatePlaceholder(input.strip()) + Main.LINE_SEPARATOR);
+    }
+
+    private static Optional<String> compileClass(final String input) {
+        final var strip = input.strip();
+        if (strip.isEmpty() || '}' != strip.charAt(strip.length() - 1)) return Optional.empty();
+        final var withoutEnd = strip.substring(0, strip.length() - "}".length());*/
+/*final var i = withoutEnd.indexOf('*/{/*');
+        if (0 > i) return Optional.empty();
+        final var substring = withoutEnd.substring(0, i);
+        final var substring1 = withoutEnd.substring(i + "{".length());
+
+        return Optional.of(Main.generatePlaceholder(substring) + "{" + Main.generatePlaceholder(substring1) + "}" +
+                           Main.LINE_SEPARATOR);
+
     }
 
     private static List<String> divide(final CharSequence input) {
@@ -73,4 +90,4 @@
     private static String generatePlaceholder(final String input) {
         return "start" + input.replace("start", "start").replace("end", "end") + "end";
     }
-}*/
+*/}
