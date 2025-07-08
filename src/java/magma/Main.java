@@ -92,17 +92,14 @@ public class Main {
                                                  final BiFunction<String, String, Optional<Integer>> locator,
                                                  final String infix,
                                                  final BiFunction<String, String, Optional<String>> mapper) {
-        return Main.getString(withoutEnd, locator, infix, s -> Main.lexString("left", s),
-                              s -> Main.lexString("right", s), node -> node.findString("left")
-                                                                           .flatMap(left -> node.findString("right")
-                                                                                                .flatMap(
+        return Main.getString(withoutEnd, locator, infix, s -> new StringRule("left").lex(s),
+                              s -> new StringRule("right").lex(s), node -> new StringRule("left").generate(node)
+                                                                                                 .flatMap(left -> new StringRule(
+                                                                                                         "right").generate(node)
+                                                                                                                          .flatMap(
                                                                                                         right -> mapper.apply(
                                                                                                                 left,
                                                                                                                 right))));
-    }
-
-    private static Optional<Node> lexString(final String key, final String input) {
-        return Optional.of(new MapNode().withString(key, input));
     }
 
     private static Optional<String> getString(final String input,
@@ -116,7 +113,7 @@ public class Main {
             final var rightString = input.substring(index + infix.length());
             return leftMapper.apply(leftString)
                              .flatMap(leftResult -> rightMapper.apply(rightString).map(leftResult::merge));
-        }).flatMap(completer::apply);
+        }).flatMap(completer);
     }
 
     private static Optional<Integer> findFirst(final String input, final String infix) {
@@ -139,7 +136,8 @@ public class Main {
     }
 
     private static String generate(final Node node) {
-        return node.findString("modifiers").orElse("") + "class " + node.findString("name").orElse("");
+        return new StringRule("modifiers").generate(node).orElse("") + "class " + new StringRule(
+                "name").generate(node).orElse("");
     }
 
     private static String compileClassSegment(final String input, final String structName) {

@@ -69,24 +69,13 @@ export class Main {
                                                  final BiFunction<String, String, Optional<Integer>> locator,
                                                  final String infix,
                                                  final BiFunction<String, String, Optional<String>> mapper) {
-        return getString(withoutEnd, locator, infix, new Function<String, Optional<Node>>() {
-            @Override
-            public Optional<Node> apply(String s) {
-                return Optional.of(new MapNode().withString("left", s));
-            }
-        }, new Function<String, Optional<Node>>() {
-            @Override
-            public Optional<Node> apply(String s) {
-                return Optional.of(new MapNode().withString("right", s));
-            }
-        }, new Function<Node, Optional<String>>() {
-            @Override
-            public Optional<String> apply(Node node) {
-                return node.findString("left").flatMap(left -> node.findString("right").flatMap(right -> {
-                    return mapper.apply(left, right);
-                }));
-            }
-        });
+        return Main.getString(withoutEnd, locator, infix, s -> new StringRule("left").lex(s),
+                              s -> new StringRule("right").lex(s), node -> node.findString("left")
+                                                                               .flatMap(left -> node.findString("right")
+                                                                                                .flatMap(
+                                                                                                        right -> mapper.apply(
+                                                                                                                left,
+                                                                                                                right))));
     }*/
 	/*private static Optional<String> getString*/(/*final String input,
                                               final BiFunction<String, String, Optional<Integer>> locator,
@@ -99,7 +88,7 @@ export class Main {
             final var rightString = input.substring(index + infix.length());
             return leftMapper.apply(leftString)
                              .flatMap(leftResult -> rightMapper.apply(rightString).map(leftResult::merge));
-        }).flatMap(completer::apply);
+        }).flatMap(completer);
     }*/
 	/*private static Optional<Integer> findFirst*/(/*final String input, final String infix) {
         final var index = input.indexOf(infix);
