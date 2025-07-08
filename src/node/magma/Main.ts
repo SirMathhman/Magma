@@ -69,11 +69,37 @@ export class Main {
                                                  final BiFunction<String, String, Optional<Integer>> locator,
                                                  final String infix,
                                                  final BiFunction<String, String, Optional<String>> mapper) {
-        return locator.apply(withoutEnd, infix).flatMap(index -> {
-            final var beforeContent = withoutEnd.substring(0, index);
-            final var content = withoutEnd.substring(index + infix.length());
-            return mapper.apply(beforeContent, content);
+        return getString(withoutEnd, locator, infix, new Function<String, Optional<Node>>() {
+            @Override
+            public Optional<Node> apply(String s) {
+                return Optional.of(new MapNode().withString("left", s));
+            }
+        }, new Function<String, Optional<Node>>() {
+            @Override
+            public Optional<Node> apply(String s) {
+                return Optional.of(new MapNode().withString("right", s));
+            }
+        }, new Function<Node, Optional<String>>() {
+            @Override
+            public Optional<String> apply(Node node) {
+                return node.findString("left").flatMap(left -> node.findString("right").flatMap(right -> {
+                    return mapper.apply(left, right);
+                }));
+            }
         });
+    }*/
+	/*private static Optional<String> getString*/(/*final String input,
+                                              final BiFunction<String, String, Optional<Integer>> locator,
+                                              final String infix,
+                                              final Function<String, Optional<Node>> leftMapper,
+                                              final Function<String, Optional<Node>> rightMapper,
+                                              final Function<Node, Optional<String>> completer) {
+        return locator.apply(input, infix).flatMap(index -> {
+            final var leftString = input.substring(0, index);
+            final var rightString = input.substring(index + infix.length());
+            return leftMapper.apply(leftString)
+                             .flatMap(leftResult -> rightMapper.apply(rightString).map(leftResult::merge));
+        }).flatMap(completer::apply);
     }*/
 	/*private static Optional<Integer> findFirst*/(/*final String input, final String infix) {
         final var index = input.indexOf(infix);
