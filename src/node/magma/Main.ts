@@ -1,3 +1,6 @@
+/*import magma.rule.InfixRule;*/
+/*import magma.rule.Rule;*/
+/*import magma.rule.StringRule;*/
 /*import magma.state.DivideState;*/
 /*import magma.state.MutableDivideState;*/
 /*import java.io.IOException;*/
@@ -76,26 +79,25 @@ export class Main {/*
     }
 
     private static Optional<String> compileClassHeader(final String input) {
-        final var i = input.indexOf("class ");
-        if (0 > i) return Optional.empty();
-
-        final var oldModifiers = input.substring(0, i).strip();
-        final var name = input.substring(i + "class ".length());
-
-        return Main.getString(new MapNode().withString("modifiers", oldModifiers).withString("name", name));
+        return Main.createClassHeaderRule().lex(input).map(Main::modifyClassHeader).map(Main::generateClassHeader);
     }
 
-    private static Optional<String> getString(final Node node) {
+    private static Rule createClassHeaderRule() {
+        return new InfixRule(new StringRule("modifiers"), "class ", new StringRule("name"));
+    }
+
+    private static Node modifyClassHeader(final Node node) {
         final String newModifiers;
         if ("public".contentEquals(node.findString("modifiers").orElse(""))) newModifiers = "export ";
-        else newModifiers = "";
+        else
+            newModifiers = "";
 
         final String name = node.findString("name").orElse("");
-        return Optional.of(Main.getValue(new MapNode().withString("modifiers", newModifiers).withString("name", name)));
+        return new MapNode().withString("modifiers", newModifiers).withString("name", name);
     }
 
-    private static String getValue(final Node node) {
-        return node.findString("modifiers").orElse("") + "class " + node.findString("name").orElse("");
+    private static String generateClassHeader(final Node node) {
+        return Main.createClassHeaderRule().generate(node).orElse("");
     }
 
     private static List<String> divide(final CharSequence input) {
