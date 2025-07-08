@@ -107,7 +107,13 @@ public class Main {
     }
 
     private static String compileClassSegmentValue(final String input) {
-        return Main.compileSuffix(input, ";", s -> Optional.of(Main.generatePlaceholder(s) + ";"))
+        return Main.compileSuffix(input, ";", s -> Optional.of(Main.compileClassStatementValue(s) + ";"))
+                   .orElseGet(() -> Main.generatePlaceholder(input));
+    }
+
+    private static String compileClassStatementValue(final String input) {
+        return Main.compileInfix(input, "=", (definition, value) -> Optional.of(
+                           Main.generatePlaceholder(definition.strip()) + " = " + Main.generatePlaceholder(value.strip())))
                    .orElseGet(() -> Main.generatePlaceholder(input));
     }
 

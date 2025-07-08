@@ -1,5 +1,5 @@
 export class Main {
-	/*private static final String LINE_SEPARATOR = System.lineSeparator()*/;
+	/*private static final String LINE_SEPARATOR*/ = /*System.lineSeparator()*/;
 	/*private Main() {}*/
 	/*public static void main(final String[] args) {
         final var sourceDirectory = Paths.get(".", "src", "java");
@@ -49,7 +49,7 @@ export class Main {
                                                   final String suffix,
                                                   final Function<String, Optional<String>> mapper) */{
 	/*if (!input.endsWith(suffix)) return Optional.empty()*/;
-	/*final var withoutEnd = input.substring(0, input.length() - suffix.length())*/;
+	/*final var withoutEnd*/ = /*input.substring(0, input.length() - suffix.length())*/;
 	/*return mapper.apply(withoutEnd)*/;
 	/**/
 }/*private static Optional<String> getString(final String input) */{
@@ -82,7 +82,12 @@ export class Main {
         return Main.LINE_SEPARATOR + "\t" + Main.compileClassSegmentValue(input.strip());
     }*/
 	/*private static String compileClassSegmentValue(final String input) {
-        return Main.compileSuffix(input, ";", s -> Optional.of(Main.generatePlaceholder(s) + ";"))
+        return Main.compileSuffix(input, ";", s -> Optional.of(Main.compileClassStatementValue(s) + ";"))
+                   .orElseGet(() -> Main.generatePlaceholder(input));
+    }*/
+	/*private static String compileClassStatementValue(final String input) {
+        return Main.compileInfix(input, "=", (definition, value) -> Optional.of(
+                           Main.generatePlaceholder(definition.strip()) + " = " + Main.generatePlaceholder(value.strip())))
                    .orElseGet(() -> Main.generatePlaceholder(input));
     }*/
 	/*private static List<String> divide(final CharSequence input) {
@@ -98,14 +103,14 @@ export class Main {
         final var appended = state.append(c);
         if (';' == c && appended.isLevel()) return appended.advance();
         if ('}*/
-	/*' == c && appended.isShallow()) return appended.advance().exit()*/;
+	/*'*/ = /*= c && appended.isShallow()) return appended.advance().exit()*/;
 	/*if ('{' == c) return appended.enter();
         if ('}*/
-	/*' == c) return appended.exit()*/;
+	/*'*/ = /*= c) return appended.exit()*/;
 	/*return appended*/;
 	/**/
 }/*private static String generatePlaceholder(final String input) */{
-	/*final var replaced = input.replace("start", "start").replace("end", "end")*/;
+	/*final var replaced*/ = /*input.replace("start", "start").replace("end", "end")*/;
 	/*return "start" + replaced + "end"*/;
 	/**/
 }/*}*/
