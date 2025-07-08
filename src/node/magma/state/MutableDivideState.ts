@@ -3,7 +3,7 @@
 /*import java.util.Collection;*/
 /*import java.util.Optional;*/
 /*import java.util.stream.Stream;*/
-/*public class MutableDivideState implements DivideState */{/*
+export class MutableDivideState implements DivideState {/*
     private final Collection<String> segments = new ArrayList<>();
     private final CharSequence input;
     private int depth = 0;

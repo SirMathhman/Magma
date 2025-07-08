@@ -7,7 +7,7 @@
 /*import java.util.List;*/
 /*import java.util.Optional;*/
 /*import java.util.stream.Collectors;*/
-/*public class Main */{/*
+export class Main {/*
     private static final String LINE_SEPARATOR = System.lineSeparator();
 
     private Main() {}
@@ -66,10 +66,25 @@
         if (0 > i) return Optional.empty();
         final var substring = withoutEnd.substring(0, i);
         final var substring1 = withoutEnd.substring(i + "{".length());
+        return Optional.of(
+                Main.compileClassHeaderOrPlaceholder(substring) + "{" + Main.generatePlaceholder(substring1) + "}" +
+                Main.LINE_SEPARATOR);
+    }
 
-        return Optional.of(Main.generatePlaceholder(substring) + "{" + Main.generatePlaceholder(substring1) + "}" +
-                           Main.LINE_SEPARATOR);
+    private static String compileClassHeaderOrPlaceholder(final String input) {
+        return Main.compileClassHeader(input).orElseGet(() -> Main.generatePlaceholder(input));
+    }
 
+    private static Optional<String> compileClassHeader(final String input) {
+        final var i = input.indexOf("class ");
+        if (0 > i) return Optional.empty();
+
+        final var substring = input.substring(0, i).strip();
+        final var substring1 = input.substring(i + "class ".length());
+        final String aPublic;
+        if ("public".contentEquals(substring)) aPublic = "export ";
+        else aPublic = "";
+        return Optional.of(aPublic + "class " + substring1);
     }
 
     private static List<String> divide(final CharSequence input) {
