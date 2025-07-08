@@ -73,24 +73,36 @@ public class Main {
     }
 
     private static Optional<String> getString(final String input) {
-        return Main.compileInfix(input, "{", (beforeContent1, content1) -> Optional.of(
+        return Main.compileFirst(input, "{", (beforeContent1, content1) -> Optional.of(
                 Main.compileClassHeader(beforeContent1) + "{" +
                 Main.compileStatements(content1, Main::compileClassSegment) + Main.LINE_SEPARATOR + "}"));
     }
 
-    private static Optional<String> compileInfix(final String withoutEnd,
+    private static Optional<String> compileFirst(final String withoutEnd,
                                                  final String infix,
                                                  final BiFunction<String, String, Optional<String>> mapper) {
-        final var contentStart = withoutEnd.indexOf(infix);
-        if (0 > contentStart) return Optional.empty();
+        return Main.compileInfix(withoutEnd, Main::findFirst, infix, mapper);
+    }
 
-        final var beforeContent = withoutEnd.substring(0, contentStart);
-        final var content = withoutEnd.substring(contentStart + infix.length());
-        return mapper.apply(beforeContent, content);
+    private static Optional<String> compileInfix(final String withoutEnd,
+                                                 final BiFunction<String, String, Optional<Integer>> locator,
+                                                 final String infix,
+                                                 final BiFunction<String, String, Optional<String>> mapper) {
+        return locator.apply(withoutEnd, infix).flatMap(index -> {
+            final var beforeContent = withoutEnd.substring(0, index);
+            final var content = withoutEnd.substring(index + infix.length());
+            return mapper.apply(beforeContent, content);
+        });
+    }
+
+    private static Optional<Integer> findFirst(final String input, final String infix) {
+        final var index = input.indexOf(infix);
+        if (0 > index) return Optional.empty();
+        return Optional.of(index);
     }
 
     private static String compileClassHeader(final String input) {
-        return Main.compileInfix(input, "class ", Main::compileModifiers)
+        return Main.compileFirst(input, "class ", Main::compileModifiers)
                    .orElseGet(() -> Main.generatePlaceholder(input));
     }
 
@@ -112,9 +124,26 @@ public class Main {
     }
 
     private static String compileClassStatementValue(final String input) {
-        return Main.compileInfix(input, "=", (definition, value) -> Optional.of(
-                           Main.generatePlaceholder(definition.strip()) + " = " + Main.generatePlaceholder(value.strip())))
+        return Main.compileFirst(input, "=", (definition, value) -> Optional.of(
+                           Main.compileDefinition(definition) + " = " + Main.generatePlaceholder(value.strip())))
                    .orElseGet(() -> Main.generatePlaceholder(input));
+    }
+
+    private static String compileDefinition(final String input) {
+        return Main.compileLast(input.strip(), " ", (s, s2) -> Optional.of(Main.generatePlaceholder(s) + " " + s2))
+                   .orElseGet(() -> Main.generatePlaceholder(input));
+    }
+
+    private static Optional<String> compileLast(final String input,
+                                                final String infix,
+                                                final BiFunction<String, String, Optional<String>> mapper) {
+        return Main.compileInfix(input, Main::findLast, infix, mapper);
+    }
+
+    private static Optional<Integer> findLast(final String input, final String infix) {
+        final var index = input.lastIndexOf(infix);
+        if (-1 == index) return Optional.empty();
+        return Optional.of(index);
     }
 
     private static List<String> divide(final CharSequence input) {

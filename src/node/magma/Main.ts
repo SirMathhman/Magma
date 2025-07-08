@@ -1,5 +1,5 @@
 export class Main {
-	/*private static final String LINE_SEPARATOR*/ = /*System.lineSeparator()*/;
+	/*private static final String*/ LINE_SEPARATOR = /*System.lineSeparator()*/;
 	/*private Main() {}*/
 	/*public static void main(final String[] args) {
         final var sourceDirectory = Paths.get(".", "src", "java");
@@ -49,26 +49,36 @@ export class Main {
                                                   final String suffix,
                                                   final Function<String, Optional<String>> mapper) */{
 	/*if (!input.endsWith(suffix)) return Optional.empty()*/;
-	/*final var withoutEnd*/ = /*input.substring(0, input.length() - suffix.length())*/;
+	/*final var*/ withoutEnd = /*input.substring(0, input.length() - suffix.length())*/;
 	/*return mapper.apply(withoutEnd)*/;
 	/**/
 }/*private static Optional<String> getString(final String input) */{
-	/*return Main.compileInfix(input, "{", (beforeContent1, content1) -> Optional.of(
+	/*return Main.compileFirst(input, "{", (beforeContent1, content1) -> Optional.of(
                 Main.compileClassHeader(beforeContent1) + "{" +
                 Main.compileStatements(content1, Main::compileClassSegment) + Main.LINE_SEPARATOR + "}"));
     }*/
-	/*private static Optional<String> compileInfix(final String withoutEnd,
+	/*private static Optional<String> compileFirst(final String withoutEnd,
                                                  final String infix,
                                                  final BiFunction<String, String, Optional<String>> mapper) {
-        final var contentStart = withoutEnd.indexOf(infix);
-        if (0 > contentStart) return Optional.empty();
-
-        final var beforeContent = withoutEnd.substring(0, contentStart);
-        final var content = withoutEnd.substring(contentStart + infix.length());
-        return mapper.apply(beforeContent, content);
+        return Main.compileInfix(withoutEnd, Main::findFirst, infix, mapper);
+    }*/
+	/*private static Optional<String> compileInfix(final String withoutEnd,
+                                                 final BiFunction<String, String, Optional<Integer>> locator,
+                                                 final String infix,
+                                                 final BiFunction<String, String, Optional<String>> mapper) {
+        return locator.apply(withoutEnd, infix).flatMap(index -> {
+            final var beforeContent = withoutEnd.substring(0, index);
+            final var content = withoutEnd.substring(index + infix.length());
+            return mapper.apply(beforeContent, content);
+        });
+    }*/
+	/*private static Optional<Integer> findFirst(final String input, final String infix) {
+        final var index = input.indexOf(infix);
+        if (0 > index) return Optional.empty();
+        return Optional.of(index);
     }*/
 	/*private static String compileClassHeader(final String input) {
-        return Main.compileInfix(input, "class ", Main::compileModifiers)
+        return Main.compileFirst(input, "class ", Main::compileModifiers)
                    .orElseGet(() -> Main.generatePlaceholder(input));
     }*/
 	/*private static Optional<String> compileModifiers(final String modifiers, final String s2) {
@@ -86,9 +96,23 @@ export class Main {
                    .orElseGet(() -> Main.generatePlaceholder(input));
     }*/
 	/*private static String compileClassStatementValue(final String input) {
-        return Main.compileInfix(input, "=", (definition, value) -> Optional.of(
-                           Main.generatePlaceholder(definition.strip()) + " = " + Main.generatePlaceholder(value.strip())))
+        return Main.compileFirst(input, "=", (definition, value) -> Optional.of(
+                           Main.compileDefinition(definition) + " = " + Main.generatePlaceholder(value.strip())))
                    .orElseGet(() -> Main.generatePlaceholder(input));
+    }*/
+	/*private static String compileDefinition(final String input) {
+        return Main.compileLast(input.strip(), " ", (s, s2) -> Optional.of(Main.generatePlaceholder(s) + " " + s2))
+                   .orElseGet(() -> Main.generatePlaceholder(input));
+    }*/
+	/*private static Optional<String> compileLast(final String input,
+                                                final String infix,
+                                                final BiFunction<String, String, Optional<String>> mapper) {
+        return Main.compileInfix(input, Main::findLast, infix, mapper);
+    }*/
+	/*private static Optional<Integer> findLast(final String input, final String infix) {
+        final var index = input.lastIndexOf(infix);
+        if (-1 == index) return Optional.empty();
+        return Optional.of(index);
     }*/
 	/*private static List<String> divide(final CharSequence input) {
         var current = (DivideState) new MutableDivideState();
@@ -103,14 +127,14 @@ export class Main {
         final var appended = state.append(c);
         if (';' == c && appended.isLevel()) return appended.advance();
         if ('}*/
-	/*'*/ = /*= c && appended.isShallow()) return appended.advance().exit()*/;
+	/*' */ = /*= c && appended.isShallow()) return appended.advance().exit()*/;
 	/*if ('{' == c) return appended.enter();
         if ('}*/
-	/*'*/ = /*= c) return appended.exit()*/;
+	/*' */ = /*= c) return appended.exit()*/;
 	/*return appended*/;
 	/**/
 }/*private static String generatePlaceholder(final String input) */{
-	/*final var replaced*/ = /*input.replace("start", "start").replace("end", "end")*/;
+	/*final var*/ replaced = /*input.replace("start", "start").replace("end", "end")*/;
 	/*return "start" + replaced + "end"*/;
 	/**/
 }/*}*/
