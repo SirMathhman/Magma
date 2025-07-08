@@ -130,8 +130,10 @@ public class Main {
     }
 
     private static String compileDefinition(final String input) {
-        return Main.compileLast(input.strip(), " ", (s, s2) -> Optional.of(Main.generatePlaceholder(s) + " " + s2))
-                   .orElseGet(() -> Main.generatePlaceholder(input));
+        return Main.compileLast(input.strip(), " ", (beforeName, name) -> {
+            return Main.compileLast(beforeName.strip(), " ", (beforeType, type) -> Optional.of(
+                    Main.generatePlaceholder(beforeType) + " " + Main.generatePlaceholder(type) + " " + name));
+        }).orElseGet(() -> Main.generatePlaceholder(input));
     }
 
     private static Optional<String> compileLast(final String input,

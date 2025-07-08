@@ -1,5 +1,5 @@
 export class Main {
-	/*private static final String*/ LINE_SEPARATOR = /*System.lineSeparator()*/;
+	/*private static final*/ /*String*/ LINE_SEPARATOR = /*System.lineSeparator()*/;
 	/*private Main() {}*/
 	/*public static void main(final String[] args) {
         final var sourceDirectory = Paths.get(".", "src", "java");
@@ -49,7 +49,7 @@ export class Main {
                                                   final String suffix,
                                                   final Function<String, Optional<String>> mapper) */{
 	/*if (!input.endsWith(suffix)) return Optional.empty()*/;
-	/*final var*/ withoutEnd = /*input.substring(0, input.length() - suffix.length())*/;
+	/*final*/ /*var*/ withoutEnd = /*input.substring(0, input.length() - suffix.length())*/;
 	/*return mapper.apply(withoutEnd)*/;
 	/**/
 }/*private static Optional<String> getString(final String input) */{
@@ -101,8 +101,15 @@ export class Main {
                    .orElseGet(() -> Main.generatePlaceholder(input));
     }*/
 	/*private static String compileDefinition(final String input) {
-        return Main.compileLast(input.strip(), " ", (s, s2) -> Optional.of(Main.generatePlaceholder(s) + " " + s2))
-                   .orElseGet(() -> Main.generatePlaceholder(input));
+        return Main.compileLast(input.strip(), " ", (beforeName, name) -> {
+            return Main.compileLast(beforeName.strip(), " ", new BiFunction<String, String, Optional<String>>() {
+                @Override
+                public Optional<String> apply(final String beforeType, final String type) {
+                    return Optional.of(
+                            Main.generatePlaceholder(beforeType) + " " + Main.generatePlaceholder(type) + " " + name);
+                }
+            });
+        }).orElseGet(() -> Main.generatePlaceholder(input));
     }*/
 	/*private static Optional<String> compileLast(final String input,
                                                 final String infix,
@@ -134,7 +141,7 @@ export class Main {
 	/*return appended*/;
 	/**/
 }/*private static String generatePlaceholder(final String input) */{
-	/*final var*/ replaced = /*input.replace("start", "start").replace("end", "end")*/;
+	/*final*/ /*var*/ replaced = /*input.replace("start", "start").replace("end", "end")*/;
 	/*return "start" + replaced + "end"*/;
 	/**/
 }/*}*/
