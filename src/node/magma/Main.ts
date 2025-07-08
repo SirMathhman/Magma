@@ -79,12 +79,14 @@ export class Main {/*
         final var i = input.indexOf("class ");
         if (0 > i) return Optional.empty();
 
-        final var substring = input.substring(0, i).strip();
-        final var substring1 = input.substring(i + "class ".length());
-        final String aPublic;
-        if ("public".contentEquals(substring)) aPublic = "export ";
-        else aPublic = "";
-        return Optional.of(aPublic + "class " + substring1);
+        final var oldModifiers = input.substring(0, i).strip();
+        final var name = input.substring(i + "class ".length());
+
+        final String newModifiers;
+        if ("public".contentEquals(oldModifiers)) newModifiers = "export ";
+        else newModifiers = "";
+
+        return Optional.of(newModifiers + "class " + name);
     }
 
     private static List<String> divide(final CharSequence input) {
