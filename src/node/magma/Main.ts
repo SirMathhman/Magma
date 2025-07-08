@@ -1,7 +1,7 @@
 export class Main {
 	private static readonly LINE_SEPARATOR : string = System.lineSeparator();
-	/*private Main() {}*/
-	/*public static void main(final String[] args) {
+	/*private Main*/(/*) {}*/
+	/*public static void main*/(/*final String[] args) {
         final var sourceDirectory = Paths.get(".", "src", "java");
         try (final var stream = Files.walk(sourceDirectory)) {
             final var sources = stream.filter(Files::isRegularFile)
@@ -14,10 +14,10 @@ export class Main {
             e.printStackTrace();
         }
     }*/
-	/*private static void runWithSources(final Path sourceDirectory, final Iterable<Path> sources) throws IOException {
+	/*private static void runWithSources*/(/*final Path sourceDirectory, final Iterable<Path> sources) throws IOException {
         for (final var source : sources) Main.runWithSource(sourceDirectory, source);
     }*/
-	/*private static void runWithSource(final Path sourceDirectory, final Path source) throws IOException {
+	/*private static void runWithSource*/(/*final Path sourceDirectory, final Path source) throws IOException {
         final var relativeParent = sourceDirectory.relativize(source.getParent());
         final var fileName = source.getFileName().toString();
         final var separator = fileName.lastIndexOf('.');
@@ -30,39 +30,42 @@ export class Main {
         final var csq = Main.compileStatements(input, Main::compileRootSegment);
         Files.writeString(target, csq);
     }*/
-	/*private static String compileStatements(final CharSequence input, final Function<String, String> mapper) {
+	/*private static String compileStatements*/(/*final CharSequence input, final Function<String, String> mapper) {
         final var segments = Main.divide(input);
         final var output = new StringBuilder();
         for (final var segment : segments) output.append(mapper.apply(segment));
         return output.toString();
     }*/
-	/*private static String compileRootSegment(final String input) {
+	/*private static String compileRootSegment*/(/*final String input) {
         final var strip = input.strip();
         if (strip.startsWith("package ") || strip.startsWith("import ")) return "";
         return Main.compileClass(strip).orElseGet(() -> Main.generatePlaceholder(strip));
     }*/
-	/*private static Optional<String> compileClass(final String strip) {
+	/*private static Optional<String> compileClass*/(/*final String strip) {
         return Main.compileSuffix(strip, "}*/
 	/*", Main::getString)*/;
-	/**/
+	/*
+    */
 }/*private static Optional<String> compileSuffix(final String input,
                                                   final String suffix,
                                                   final Function<String, Optional<String>> mapper) */{
 	/*if (!input.endsWith(suffix)) return Optional.empty()*/;
 	readonly withoutEnd : /*var*/ = input.substring(/*0, input.length() - suffix.length()*/);
 	/*return mapper.apply(withoutEnd)*/;
-	/**/
+	/*
+    */
 }/*private static Optional<String> getString(final String input) */{
-	/*return Main.compileFirst(input, "{", (beforeContent1, content1) -> Optional.of(
+	/*return Main.compileFirst*/(/*input, "{", (beforeContent1, content1) -> Optional.of(
                 Main.compileClassHeader(beforeContent1) + "{" +
-                Main.compileStatements(content1, Main::compileClassSegment) + Main.LINE_SEPARATOR + "}"));
+                Main.compileStatements(content1, input1 -> Main.compileClassSegment(input1, "?")) + Main.LINE_SEPARATOR +
+                "}"));
     }*/
-	/*private static Optional<String> compileFirst(final String withoutEnd,
+	/*private static Optional<String> compileFirst*/(/*final String withoutEnd,
                                                  final String infix,
                                                  final BiFunction<String, String, Optional<String>> mapper) {
         return Main.compileInfix(withoutEnd, Main::findFirst, infix, mapper);
     }*/
-	/*private static Optional<String> compileInfix(final String withoutEnd,
+	/*private static Optional<String> compileInfix*/(/*final String withoutEnd,
                                                  final BiFunction<String, String, Optional<Integer>> locator,
                                                  final String infix,
                                                  final BiFunction<String, String, Optional<String>> mapper) {
@@ -72,52 +75,65 @@ export class Main {
             return mapper.apply(beforeContent, content);
         });
     }*/
-	/*private static Optional<Integer> findFirst(final String input, final String infix) {
+	/*private static Optional<Integer> findFirst*/(/*final String input, final String infix) {
         final var index = input.indexOf(infix);
         if (0 > index) return Optional.empty();
         return Optional.of(index);
     }*/
-	/*private static String compileClassHeader(final String input) {
+	/*private static String compileClassHeader*/(/*final String input) {
         return Main.compileFirst(input, "class ", Main::compileModifiers)
                    .orElseGet(() -> Main.generatePlaceholder(input));
     }*/
-	/*private static Optional<String> compileModifiers(final String modifiers, final String s2) {
+	/*private static Optional<String> compileModifiers*/(/*final String modifiers, final String s2) {
         final var stripped = modifiers.strip();
         final String newModifiers;
         if ("public".contentEquals(stripped)) newModifiers = "export ";
         else newModifiers = "";
         return Optional.of(newModifiers + "class " + s2);
     }*/
-	/*private static String compileClassSegment(final String input) {
-        return Main.LINE_SEPARATOR + "\t" + Main.compileClassSegmentValue(input.strip());
+	/*private static String compileClassSegment*/(/*final String input, final String structName) {
+        return Main.LINE_SEPARATOR + "\t" + Main.compileClassSegmentValue(input, structName);
     }*/
-	/*private static String compileClassSegmentValue(final String input) {
-        return Main.compileSuffix(input, ";", s -> Optional.of(Main.compileClassStatementValue(s) + ";"))
+	/*private static String compileClassSegmentValue*/(/*final String input, final String structName) {
+        return Main.compileSuffix(input.strip(), ";", s -> Optional.of(Main.compileClassStatementValue(s) + ";"))
+                   .or(() -> Main.compileMethod(input, structName))
                    .orElseGet(() -> Main.generatePlaceholder(input));
     }*/
-	/*private static String compileClassStatementValue(final String input) {
+	/*private static Optional<String> compileMethod*/(/*final String input, final String structName) {
+        return Main.compileFirst(input, "(", (header, s2) -> Optional.of(
+                Main.compileMethodHeader(header.strip(), structName) + "(" + Main.generatePlaceholder(s2)));
+    }*/
+	/*private static String compileMethodHeader*/(/*final String input, final String structName) {
+        return Main.compileLast(input.strip(), " ", (s, name) -> {
+            if (name.contentEquals(structName)) return Optional.of(Main.generatePlaceholder(s) + " constructor");
+            else return Optional.empty();
+        }).orElseGet(() -> {
+            return Main.generatePlaceholder(input);
+        });
+    }*/
+	/*private static String compileClassStatementValue*/(/*final String input) {
         return Main.compileFirst(input, "=", (definition, value) -> Optional.of(
                            Main.compileDefinition(definition) + " = " + Main.compileValue(value)))
                    .orElseGet(() -> Main.generatePlaceholder(input));
     }*/
-	/*private static String compileValue(final String input) {
+	/*private static String compileValue*/(/*final String input) {
         return Main.compileInvokable(input)
                    .or(() -> Main.compileAccess(input))
                    .or(() -> Main.compileSymbol(input))
                    .orElseGet(() -> Main.generatePlaceholder(input));
     }*/
-	/*private static Optional<String> compileSymbol(final String input) {
+	/*private static Optional<String> compileSymbol*/(/*final String input) {
         final var strip = input.strip();
         if (Main.isSymbol(strip)) return Optional.of(strip);
         else return Optional.empty();
     }*/
-	/*private static boolean isSymbol(final String input) {
+	/*private static boolean isSymbol*/(/*final String input) {
         return IntStream.range(0, input.length()).map(input::codePointAt).allMatch(Character::isLetter);
     }*/
-	/*private static Optional<String> compileAccess(final String input) {
+	/*private static Optional<String> compileAccess*/(/*final String input) {
         return Main.compileLast(input, ".", (s, s2) -> Optional.of(Main.compileValue(s) + "." + s2));
     }*/
-	/*private static Optional<String> compileInvokable(final String input) {
+	/*private static Optional<String> compileInvokable*/(/*final String input) {
         return Main.compileSuffix(input.strip(), ")", withoutEnd -> Main.compileFirst(withoutEnd, "(",
                                                                                       (s, s2) -> Optional.of(
                                                                                               Main.compileValue(s) +
@@ -125,12 +141,12 @@ export class Main {
                                                                                               Main.compileArguments(
                                                                                                       s2) + ")")));
     }*/
-	/*private static String compileArguments(final String input) {
+	/*private static String compileArguments*/(/*final String input) {
         final var strip = input.strip();
         if (strip.isEmpty()) return "";
         return Main.generatePlaceholder(strip);
     }*/
-	/*private static String compileDefinition(final String input) {
+	/*private static String compileDefinition*/(/*final String input) {
         return Main.compileLast(input.strip(), " ", (beforeName, name) -> Main.compileLast(beforeName.strip(), " ",
                                                                                            (modifiersString, type) -> Main.getString(
                                                                                                    name,
@@ -138,7 +154,7 @@ export class Main {
                                                                                                    type)))
                    .orElseGet(() -> Main.generatePlaceholder(input));
     }*/
-	/*private static Optional<String> getString(final String name, final String modifiersString, final String type) {
+	/*private static Optional<String> getString*/(/*final String name, final String modifiersString, final String type) {
         final var oldModifiers = Arrays.stream(modifiersString.split(" "))
                                        .map(String::strip)
                                        .filter(value -> !value.isEmpty())
@@ -147,16 +163,16 @@ export class Main {
         final var joined = newModifiers.stream().map(value -> value + " ").collect(Collectors.joining());
         return Optional.of(joined + name + " : " + Main.compileType(type));
     }*/
-	/*private static String compileType(final String input) {
+	/*private static String compileType*/(/*final String input) {
         final var strip = input.strip();
         if ("String".contentEquals(strip)) return "string";
 
         return Main.generatePlaceholder(strip);
     }*/
-	/*private static List<String> replaceModifiers(final Collection<String> oldModifiers) {
+	/*private static List<String> replaceModifiers*/(/*final Collection<String> oldModifiers) {
         return oldModifiers.stream().map(Main::retainModifier).flatMap(Optional::stream).toList();
     }*/
-	/*private static Optional<String> retainModifier(final String modifier) {
+	/*private static Optional<String> retainModifier*/(/*final String modifier) {
         return switch (modifier) {
             case "private" -> Optional.of("private");
             case "static" -> Optional.of("static");
@@ -164,17 +180,17 @@ export class Main {
             default -> Optional.empty();
         };
     }*/
-	/*private static Optional<String> compileLast(final String input,
+	/*private static Optional<String> compileLast*/(/*final String input,
                                                 final String infix,
                                                 final BiFunction<String, String, Optional<String>> mapper) {
         return Main.compileInfix(input, Main::findLast, infix, mapper);
     }*/
-	/*private static Optional<Integer> findLast(final String input, final String infix) {
+	/*private static Optional<Integer> findLast*/(/*final String input, final String infix) {
         final var index = input.lastIndexOf(infix);
         if (-1 == index) return Optional.empty();
         return Optional.of(index);
     }*/
-	/*private static List<String> divide(final CharSequence input) {
+	/*private static List<String> divide*/(/*final CharSequence input) {
         var current = (DivideState) new MutableDivideState();
         for (var i = 0; i < input.length(); i++) {
             final var c = input.charAt(i);
@@ -183,18 +199,20 @@ export class Main {
 
         return current.advance().stream().toList();
     }*/
-	/*private static DivideState fold(final DivideState state, final char c) {
+	/*private static DivideState fold*/(/*final DivideState state, final char c) {
         final var appended = state.append(c);
         if (';' == c && appended.isLevel()) return appended.advance();
         if ('}*/
 	/*' */ = /*= c && appended*/.isShallow(/*)) return appended.advance().exit(*/);
-	/*if ('{' == c) return appended.enter();
+	/*if*/(/*'{' == c) return appended.enter();
         if ('}*/
 	/*' */ = /*= c) return appended*/.exit();
 	/*return appended*/;
-	/**/
+	/*
+    */
 }/*private static String generatePlaceholder(final String input) */{
 	readonly replaced : /*var*/ = input.replace(/*"start", "start").replace("end", "end"*/);
 	/*return "start" + replaced + "end"*/;
-	/**/
+	/*
+    */
 }/*}*/

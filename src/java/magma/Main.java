@@ -78,7 +78,8 @@ public class Main {
     private static Optional<String> getString(final String input) {
         return Main.compileFirst(input, "{", (beforeContent1, content1) -> Optional.of(
                 Main.compileClassHeader(beforeContent1) + "{" +
-                Main.compileStatements(content1, Main::compileClassSegment) + Main.LINE_SEPARATOR + "}"));
+                Main.compileStatements(content1, input1 -> Main.compileClassSegment(input1, "?")) + Main.LINE_SEPARATOR +
+                "}"));
     }
 
     private static Optional<String> compileFirst(final String withoutEnd,
@@ -117,13 +118,28 @@ public class Main {
         return Optional.of(newModifiers + "class " + s2);
     }
 
-    private static String compileClassSegment(final String input) {
-        return Main.LINE_SEPARATOR + "\t" + Main.compileClassSegmentValue(input.strip());
+    private static String compileClassSegment(final String input, final String structName) {
+        return Main.LINE_SEPARATOR + "\t" + Main.compileClassSegmentValue(input, structName);
     }
 
-    private static String compileClassSegmentValue(final String input) {
-        return Main.compileSuffix(input, ";", s -> Optional.of(Main.compileClassStatementValue(s) + ";"))
+    private static String compileClassSegmentValue(final String input, final String structName) {
+        return Main.compileSuffix(input.strip(), ";", s -> Optional.of(Main.compileClassStatementValue(s) + ";"))
+                   .or(() -> Main.compileMethod(input, structName))
                    .orElseGet(() -> Main.generatePlaceholder(input));
+    }
+
+    private static Optional<String> compileMethod(final String input, final String structName) {
+        return Main.compileFirst(input, "(", (header, s2) -> Optional.of(
+                Main.compileMethodHeader(header.strip(), structName) + "(" + Main.generatePlaceholder(s2)));
+    }
+
+    private static String compileMethodHeader(final String input, final String structName) {
+        return Main.compileLast(input.strip(), " ", (s, name) -> {
+            if (name.contentEquals(structName)) return Optional.of(Main.generatePlaceholder(s) + " constructor");
+            else return Optional.empty();
+        }).orElseGet(() -> {
+            return Main.generatePlaceholder(input);
+        });
     }
 
     private static String compileClassStatementValue(final String input) {
