@@ -50,10 +50,10 @@ public class Main {
     }
 
     private static List<String> divide(final CharSequence input) {
-        final var current = new MutableDivideState();*//*
+        DivideState current = new MutableDivideState();*//*
         for (var i = 0;*//* i < input.length();*//* i++) {
             final var c = input.charAt(i);*//*
-            Main.fold(current, c);*//*
+            current = Main.fold(current, c);*//*
         }
 
         return current.advance().stream().toList();*//*
