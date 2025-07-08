@@ -4,6 +4,8 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.BiFunction;
@@ -130,10 +132,35 @@ public class Main {
     }
 
     private static String compileDefinition(final String input) {
-        return Main.compileLast(input.strip(), " ", (beforeName, name) -> {
-            return Main.compileLast(beforeName.strip(), " ", (beforeType, type) -> Optional.of(
-                    Main.generatePlaceholder(beforeType) + " " + Main.generatePlaceholder(type) + " " + name));
-        }).orElseGet(() -> Main.generatePlaceholder(input));
+        return Main.compileLast(input.strip(), " ", (beforeName, name) -> Main.compileLast(beforeName.strip(), " ",
+                                                                                           (modifiersString, type) -> Main.getString(
+                                                                                                   name,
+                                                                                                   modifiersString,
+                                                                                                   type)))
+                   .orElseGet(() -> Main.generatePlaceholder(input));
+    }
+
+    private static Optional<String> getString(final String name, final String modifiersString, final String type) {
+        final var oldModifiers = Arrays.stream(modifiersString.split(" "))
+                                       .map(String::strip)
+                                       .filter(value -> !value.isEmpty())
+                                       .collect(Collectors.toSet());
+        final var newModifiers = Main.replaceModifiers(oldModifiers);
+        final var joined = newModifiers.stream().map(value -> value + " ").collect(Collectors.joining());
+        return Optional.of(joined + name + " : " + Main.generatePlaceholder(type));
+    }
+
+    private static List<String> replaceModifiers(final Collection<String> oldModifiers) {
+        return oldModifiers.stream().map(Main::retainModifier).flatMap(Optional::stream).toList();
+    }
+
+    private static Optional<String> retainModifier(final String modifier) {
+        return switch (modifier) {
+            case "private" -> Optional.of("private");
+            case "static" -> Optional.of("static");
+            case "final" -> Optional.of("readonly");
+            default -> Optional.empty();
+        };
     }
 
     private static Optional<String> compileLast(final String input,
