@@ -1,5 +1,5 @@
 export class Main {
-	private static readonly LINE_SEPARATOR : /*String*/ = /*System.lineSeparator()*/;
+	private static readonly LINE_SEPARATOR : string = /*System.lineSeparator()*/;
 	/*private Main() {}*/
 	/*public static void main(final String[] args) {
         final var sourceDirectory = Paths.get(".", "src", "java");
@@ -115,7 +115,13 @@ export class Main {
                                        .collect(Collectors.toSet());
         final var newModifiers = Main.replaceModifiers(oldModifiers);
         final var joined = newModifiers.stream().map(value -> value + " ").collect(Collectors.joining());
-        return Optional.of(joined + name + " : " + Main.generatePlaceholder(type));
+        return Optional.of(joined + name + " : " + Main.compileType(type));
+    }*/
+	/*private static String compileType(final String input) {
+        final var strip = input.strip();
+        if ("String".contentEquals(strip)) return "string";
+
+        return Main.generatePlaceholder(strip);
     }*/
 	/*private static List<String> replaceModifiers(final Collection<String> oldModifiers) {
         return oldModifiers.stream().map(Main::retainModifier).flatMap(Optional::stream).toList();

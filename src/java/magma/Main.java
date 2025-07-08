@@ -147,7 +147,14 @@ public class Main {
                                        .collect(Collectors.toSet());
         final var newModifiers = Main.replaceModifiers(oldModifiers);
         final var joined = newModifiers.stream().map(value -> value + " ").collect(Collectors.joining());
-        return Optional.of(joined + name + " : " + Main.generatePlaceholder(type));
+        return Optional.of(joined + name + " : " + Main.compileType(type));
+    }
+
+    private static String compileType(final String input) {
+        final var strip = input.strip();
+        if ("String".contentEquals(strip)) return "string";
+
+        return Main.generatePlaceholder(strip);
     }
 
     private static List<String> replaceModifiers(final Collection<String> oldModifiers) {
