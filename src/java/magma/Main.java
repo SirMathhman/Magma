@@ -78,8 +78,8 @@ public class Main {
     private static Optional<String> getString(final String input) {
         return Main.compileFirst(input, "{", (beforeContent1, content1) -> Optional.of(
                 Main.compileClassHeader(beforeContent1) + "{" +
-                Main.compileStatements(content1, input1 -> Main.compileClassSegment(input1, "?")) + Main.LINE_SEPARATOR +
-                "}"));
+                Main.compileStatements(content1, input1 -> Main.compileClassSegment(input1, "?")) +
+                Main.LINE_SEPARATOR + "}"));
     }
 
     private static Optional<String> compileFirst(final String withoutEnd,
@@ -110,12 +110,16 @@ public class Main {
                    .orElseGet(() -> Main.generatePlaceholder(input));
     }
 
-    private static Optional<String> compileModifiers(final String modifiers, final String s2) {
+    private static Optional<String> compileModifiers(final String modifiers, final String name) {
         final var stripped = modifiers.strip();
         final String newModifiers;
         if ("public".contentEquals(stripped)) newModifiers = "export ";
         else newModifiers = "";
-        return Optional.of(newModifiers + "class " + s2);
+        return Optional.of(Main.generate(new MapNode().withString("name", name).withString("modifiers", newModifiers)));
+    }
+
+    private static String generate(final Node node) {
+        return node.findString("modifiers").orElse("") + "class " + node.findString("name").orElse("");
     }
 
     private static String compileClassSegment(final String input, final String structName) {
