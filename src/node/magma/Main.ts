@@ -7,7 +7,7 @@
 /*import java.util.List;*/
 /*import java.util.Optional;*/
 /*import java.util.stream.Collectors;*/
-/*public class Main {
+/*public class Main */{/*
     private static final String LINE_SEPARATOR = System.lineSeparator();
 
     private Main() {}
@@ -60,8 +60,9 @@
     private static Optional<String> compileClass(final String input) {
         final var strip = input.strip();
         if (strip.isEmpty() || '}' != strip.charAt(strip.length() - 1)) return Optional.empty();
-        final var withoutEnd = strip.substring(0, strip.length() - "}".length());*/
-/*final var i = withoutEnd.indexOf('*/{/*');
+        final var withoutEnd = strip.substring(0, strip.length() - "}".length());
+
+        final var i = withoutEnd.indexOf('{');
         if (0 > i) return Optional.empty();
         final var substring = withoutEnd.substring(0, i);
         final var substring1 = withoutEnd.substring(i + "{".length());
@@ -73,18 +74,35 @@
 
     private static List<String> divide(final CharSequence input) {
         Tuple<Boolean, DivideState> current = new Tuple<>(true, new MutableDivideState(input));
-        while (current.left()) current = Main.foldDecorated(current);
+        while (current.left()) current = Main.foldAsTuple(current);
 
         return current.right().advance().stream().toList();
     }
 
-    private static Tuple<Boolean, DivideState> foldDecorated(final Tuple<Boolean, DivideState> current) {
+    private static Tuple<Boolean, DivideState> foldAsTuple(final Tuple<Boolean, DivideState> current) {
         final var currentState = current.right();
         final var maybePopped = currentState.pop();
         if (maybePopped.isEmpty()) return new Tuple<>(false, currentState);
 
         final var popped = maybePopped.get();
-        return new Tuple<>(true, Main.foldStatement(popped.left(), popped.right()));
+        return new Tuple<>(true, Main.foldDecorated(popped.left(), popped.right()));
+    }
+
+    private static DivideState foldDecorated(final DivideState state, final char c) {
+        return Main.foldSingleQuotes(state, c).orElseGet(() -> Main.foldStatement(state, c));
+    }
+
+    private static Optional<DivideState> foldSingleQuotes(final DivideState state, final char c) {
+        if ('\'' != c) return Optional.empty();
+        final var append = state.append('\'');
+        return append.popAndAppendToTuple()
+                     .flatMap(Main::foldEscapeInSingleQuotes)
+                     .flatMap(DivideState::popAndAppendToOptional);
+    }
+
+    private static Optional<DivideState> foldEscapeInSingleQuotes(final Tuple<DivideState, Character> tuple) {
+        if ('\\' == tuple.right()) return tuple.left().popAndAppendToOptional();
+        return Optional.of(tuple.left());
     }
 
     private static DivideState foldStatement(final DivideState state, final char c) {
