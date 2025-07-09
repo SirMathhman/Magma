@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.List;
 import java.util.stream.Collectors;
 
 public class Main {
@@ -39,6 +40,32 @@ public class Main {
 
         final var target = targetParent.resolve(name + ".ts");
         final var input = Files.readString(source);
-        Files.writeString(target, "/*" + input.replace("/*", "start").replace("*/", "end") + "*/");
+
+        final var segments = Main.divide(input);
+
+        final var output = new StringBuilder();
+        for (final var segment : segments) output.append(Main.generatePlaceholder(segment));
+
+        Files.writeString(target, output.toString());
+    }
+
+    private static List<String> divide(final CharSequence input) {
+        DivideState state = new MutableDivideState();
+        for (var i = 0; i < input.length(); i++) {
+            final var c = input.charAt(i);
+            state = Main.fold(state, c);
+        }
+
+        return state.advance().stream().toList();
+    }
+
+    private static DivideState fold(final DivideState divideState, final char c) {
+        final var divideState1 = divideState.append(c);
+        if (';' == c) return divideState1.advance();
+        else return divideState1;
+    }
+
+    private static String generatePlaceholder(final String input) {
+        return "/*" + input.replace("/*", "start").replace("*/", "end") + "*/";
     }
 }
