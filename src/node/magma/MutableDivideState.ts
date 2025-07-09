@@ -1,10 +1,17 @@
 /*import java.util.ArrayList;*/
 /*import java.util.Collection;*/
+/*import java.util.Optional;*/
 /*import java.util.stream.Stream;*/
 /*class MutableDivideState implements DivideState {
     private final Collection<String> segments = new ArrayList<>();
+    private final CharSequence input;
+    private int index = 0;
     private StringBuilder buffer = new StringBuilder();
     private int depth = 0;
+
+    MutableDivideState(final CharSequence input) {
+        this.input = input;
+    }
 
     @Override
     public DivideState advance() {
@@ -40,4 +47,12 @@
         this.depth--;
         return this;
     }
-}*/
+
+    @Override
+    public Optional<Tuple<DivideState, Character>> pop() {
+        if (this.index >= this.input.length()) return Optional.empty();
+        final var c = this.input.charAt(this.index);
+        this.index++;
+        return Optional.of(new Tuple<>(this, c));
+    }
+*/}

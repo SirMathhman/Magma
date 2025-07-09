@@ -52,17 +52,25 @@ public class Main {
     private static String compileRootSegment(final String input) {
         final var stripped = input.strip();
         if (stripped.startsWith("package ")) return "";
+        if (!stripped.isEmpty() && '}' == stripped.charAt(stripped.length() - 1)) {
+            final var withoutEnd = stripped.substring(0, stripped.length() - "}".length());
+            return Main.generatePlaceholder(withoutEnd) + "}";
+        }
+
         return Main.generatePlaceholder(stripped) + System.lineSeparator();
     }
 
     private static List<String> divide(final CharSequence input) {
-        DivideState state = new MutableDivideState();
-        for (var i = 0; i < input.length(); i++) {
-            final var c = input.charAt(i);
-            state = Main.fold(state, c);
-        }
+        Tuple<Boolean, DivideState> state = new Tuple<>(true, new MutableDivideState(input));
+        while (state.left()) state = Main.foldAsState(state);
+        return state.right().advance().stream().toList();
+    }
 
-        return state.advance().stream().toList();
+    private static Tuple<Boolean, DivideState> foldAsState(final Tuple<Boolean, DivideState> state) {
+        final var maybePopped = state.right().pop();
+        if (maybePopped.isEmpty()) return new Tuple<>(false, state.right());
+        final var popped = maybePopped.get();
+        return new Tuple<>(true, Main.fold(popped.left(), popped.right()));
     }
 
     private static DivideState fold(final DivideState state, final char c) {
