@@ -44,9 +44,15 @@ public class Main {
         final var segments = Main.divide(input);
 
         final var output = new StringBuilder();
-        for (final var segment : segments) output.append(Main.generatePlaceholder(segment));
+        for (final var segment : segments) output.append(Main.compileRootSegment(segment));
 
         Files.writeString(target, output.toString());
+    }
+
+    private static String compileRootSegment(final String input) {
+        final var stripped = input.strip();
+        if (stripped.startsWith("package ")) return "";
+        return Main.generatePlaceholder(stripped) + System.lineSeparator();
     }
 
     private static List<String> divide(final CharSequence input) {
