@@ -1,4 +1,4 @@
-package magma;
+/*package magma;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -24,7 +24,7 @@ public class Main {
     }
 
     private static void runWithSources(final Path sourceDirectory, final Iterable<Path> sources) throws IOException {
-        for (final var source : sources) Main.runWithSource(sourceDirectory, source);
+        for (final var source : sources) {Main.runWithSource(sourceDirectory, source);}
     }
 
     private static void runWithSource(final Path sourceDirectory, final Path source) throws IOException {
@@ -39,6 +39,7 @@ public class Main {
 
         final var target = targetParent.resolve(name + ".ts");
         final var input = Files.readString(source);
-        Files.writeString(target, "/*" + input.replace("/*", "start").replace("*/", "end") + "*/");
+        Files.writeString(target, "start" + input.replace("start", "start").replace("end", "end") + "end");
     }
 }
+*/
