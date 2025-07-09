@@ -4,7 +4,6 @@ import java.io.IOException;*//*
 import java.nio.file.Files;*//*
 import java.nio.file.Path;*//*
 import java.nio.file.Paths;*//*
-import java.util.ArrayList;*//*
 import java.util.List;*//*
 import java.util.stream.Collectors;*//*
 
@@ -51,18 +50,19 @@ public class Main {
     }
 
     private static List<String> divide(final CharSequence input) {
-        final List<String> segments = new ArrayList<>();*//*
-        var buffer = new StringBuilder();*//*
+        DivideState state = new MutableDivideState();*//*
         for (var i = 0;*//* i < input.length();*//* i++) {
             final var c = input.charAt(i);*//*
-            buffer.append(c);*//*
-            if (';*//*' == c) {
-                segments.add(buffer.toString());*//*
-                buffer = new StringBuilder();*//*
-            }
+            state = Main.fold(state, c);*//*
         }
-        segments.add(buffer.toString());*//*
-        return segments;*//*
+
+        return state.advance().stream().toList();*//*
+    }
+
+    private static DivideState fold(final DivideState divideState, final char c) {
+        final var divideState1 = divideState.append(c);*//*
+        if (';*//*' == c) return divideState1.advance();*//*
+        else return divideState1;*//*
     }
 
     private static String generatePlaceholder(final String input) {

@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.stream.Stream;
 
-public class MutableDivideState implements DivideState {
+class MutableDivideState implements DivideState {
     private final Collection<String> segments = new ArrayList<>();
     private StringBuilder buffer = new StringBuilder();
 
