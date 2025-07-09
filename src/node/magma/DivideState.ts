@@ -14,4 +14,8 @@
     DivideState exit();
 
     Optional<Tuple<DivideState, Character>> pop();
+
+    Optional<Tuple<DivideState, Character>> popAndAppendToTuple();
+
+    Optional<DivideState> popAndAppendToOption();
 */}

@@ -5,6 +5,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 public class Main {
@@ -70,10 +71,26 @@ public class Main {
         final var maybePopped = state.right().pop();
         if (maybePopped.isEmpty()) return new Tuple<>(false, state.right());
         final var popped = maybePopped.get();
-        return new Tuple<>(true, Main.fold(popped.left(), popped.right()));
+        return new Tuple<>(true, Main.foldDecorated(popped));
     }
 
-    private static DivideState fold(final DivideState state, final char c) {
+    private static DivideState foldDecorated(final Tuple<DivideState, Character> popped) {
+        final var state = popped.left();
+        final var c = popped.right();
+        return Main.foldSingleQuotes(state, c).orElseGet(() -> Main.foldStatement(state, c));
+    }
+
+    private static Optional<DivideState> foldSingleQuotes(final DivideState state, final char c) {
+        if ('\'' != c) return Optional.empty();
+        return state.popAndAppendToTuple().flatMap(Main::foldEscape).flatMap(DivideState::popAndAppendToOption);
+    }
+
+    private static Optional<DivideState> foldEscape(final Tuple<DivideState, Character> tuple) {
+        if ('\\' == tuple.right()) return tuple.left().popAndAppendToOption();
+        return Optional.of(tuple.left());
+    }
+
+    private static DivideState foldStatement(final DivideState state, final char c) {
         final var appended = state.append(c);
         if (';' == c && appended.isLevel()) return appended.advance();
         if ('{' == c) return appended.enter();

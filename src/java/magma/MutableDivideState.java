@@ -58,4 +58,17 @@ class MutableDivideState implements DivideState {
         this.index++;
         return Optional.of(new Tuple<>(this, c));
     }
+
+    @Override
+    public Optional<Tuple<DivideState, Character>> popAndAppendToTuple() {
+        return this.pop().map(tuple -> {
+            final var appended = tuple.left().append(tuple.right());
+            return new Tuple<>(appended, tuple.right());
+        });
+    }
+
+    @Override
+    public Optional<DivideState> popAndAppendToOption() {
+        return this.popAndAppendToTuple().map(Tuple::left);
+    }
 }
