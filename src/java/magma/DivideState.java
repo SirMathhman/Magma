@@ -8,4 +8,10 @@ public interface DivideState {
     DivideState append(char c);
 
     Stream<String> stream();
+
+    boolean isLevel();
+
+    DivideState enter();
+
+    DivideState exit();
 }

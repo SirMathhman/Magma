@@ -65,10 +65,12 @@ public class Main {
         return state.advance().stream().toList();
     }
 
-    private static DivideState fold(final DivideState divideState, final char c) {
-        final var divideState1 = divideState.append(c);
-        if (';' == c) return divideState1.advance();
-        else return divideState1;
+    private static DivideState fold(final DivideState state, final char c) {
+        final var appended = state.append(c);
+        if (';' == c && appended.isLevel()) return appended.advance();
+        if ('{' == c) return appended.enter();
+        if ('}' == c) return appended.exit();
+        return appended;
     }
 
     private static String generatePlaceholder(final String input) {

@@ -7,6 +7,7 @@ import java.util.stream.Stream;
 class MutableDivideState implements DivideState {
     private final Collection<String> segments = new ArrayList<>();
     private StringBuilder buffer = new StringBuilder();
+    private int depth = 0;
 
     @Override
     public DivideState advance() {
@@ -24,5 +25,22 @@ class MutableDivideState implements DivideState {
     @Override
     public Stream<String> stream() {
         return this.segments.stream();
+    }
+
+    @Override
+    public boolean isLevel() {
+        return 0 == this.depth;
+    }
+
+    @Override
+    public DivideState enter() {
+        this.depth++;
+        return this;
+    }
+
+    @Override
+    public DivideState exit() {
+        this.depth--;
+        return this;
     }
 }
