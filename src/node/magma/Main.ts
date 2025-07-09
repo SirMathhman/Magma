@@ -24,7 +24,7 @@ public class Main {
     }
 
     private static void runWithSources(final Path sourceDirectory, final Iterable<Path> sources) throws IOException {
-        for (final var source : sources) {Main.runWithSource(sourceDirectory, source);}
+        for (final var source : sources) Main.runWithSource(sourceDirectory, source);
     }
 
     private static void runWithSource(final Path sourceDirectory, final Path source) throws IOException {
