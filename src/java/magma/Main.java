@@ -54,17 +54,19 @@ public class Main {
     private static String compileRootSegment(final String input) {
         final var stripped = input.strip();
         if (stripped.startsWith("package ")) return "";
-        if (!stripped.isEmpty() && '}' == stripped.charAt(stripped.length() - 1)) {
-            final var withoutEnd = stripped.substring(0, stripped.length() - "}".length());
-            final var index = withoutEnd.indexOf('{');
-            if (0 <= index) {
-                final var beforeContent = withoutEnd.substring(0, index);
-                final var content = withoutEnd.substring(index + "{".length());
-                return Main.generatePlaceholder(beforeContent) + "{" + Main.generatePlaceholder(content) + "}";
-            }
-        }
+        return Main.compileClass(stripped).orElseGet(() -> Main.generatePlaceholder(stripped) + System.lineSeparator());
+    }
 
-        return Main.generatePlaceholder(stripped) + System.lineSeparator();
+    private static Optional<String> compileClass(final String stripped) {
+        if (stripped.isEmpty() || '}' != stripped.charAt(stripped.length() - 1)) return Optional.empty();
+        final var withoutEnd = stripped.substring(0, stripped.length() - "}".length());
+
+        final var index = withoutEnd.indexOf('{');
+        if (0 > index) return Optional.empty();
+        final var beforeContent = withoutEnd.substring(0, index);
+        final var content = withoutEnd.substring(index + "{".length());
+
+        return Optional.of(Main.generatePlaceholder(beforeContent) + "{" + Main.generatePlaceholder(content) + "}");
     }
 
     private static List<String> divide(final CharSequence input) {
