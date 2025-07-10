@@ -28,14 +28,10 @@
 	}
 	public static main(args : string[]) : void {
 		const sourceDirectory = Paths.get(".", "src", "java");
-		Main.walk(sourceDirectory).match(/*files -> {
-            final var sources = files.stream()
-                                     .filter(Files::isRegularFile)
-                                     .filter(path -> path.toString().endsWith(".java"))
-                                     .collect(Collectors.toSet());
-
-            return Main.runWithSources(sourceDirectory, sources);
-        }*/, /* Optional::of*/).ifPresent(/*Throwable::printStackTrace*/);
+		Main.walk(sourceDirectory).match(files => {
+			const sources = files.stream().filter(/*Files::isRegularFile*/).filter(/*path -> path*/.toString().endsWith(".java")).collect(Collectors.toSet());
+			/*return Main*/.runWithSources(sourceDirectory, sources);
+		}, /* Optional::of*/).ifPresent(/*Throwable::printStackTrace*/);
 	}
 	/*private static Result<Set<Path>, IOException> walk(final Path sourceDirectory) {
         try (final var stream = Files.walk(sourceDirectory)) {
@@ -55,10 +51,10 @@
 		const separator = fileName.lastIndexOf(/*'.'*/);
 		const name = fileName.substring(/*0*/, separator);
 		const target = targetParent.resolve(/*name + ".ts"*/);
-		/*return Main*/.readString(source).match(/*input -> {
-            final var output = Main.compileStatements(input, Main::compileRootSegment);
-            return Main.writeString(target, output);
-        }*/, /* Optional::of*/);
+		/*return Main*/.readString(source).match(input => {
+			const output = Main.compileStatements(input, /* Main::compileRootSegment*/);
+			/*return Main*/.writeString(target, output);
+		}, /* Optional::of*/);
 	}
 	/*private static Result<String, IOException> readString(final Path source) {
         try {
@@ -134,23 +130,26 @@
 		/*if (withBraces.isEmpty() || '{' != withBraces.charAt(0) || '}' != withBraces.charAt(withBraces.length() - 1))
             return Optional*/.empty();
 		const content = withBraces.substring(/*1*/, /* withBraces.length() - 1*/).strip();
-		/*return maybeHeader*/.flatMap(/*header -> {
-            final var outputParams = "(" + Main.compileParameters(params) + ")";
-            return Optional.of(header.generateWithAfterName(outputParams) + " {" +
-                               Main.compileStatements(content, Main::compileFunctionSegment) + Main.createIndent(1) +
-                               "}");
-        }*/);
+		/*return maybeHeader*/.flatMap(header => {
+			const outputParams = "(" + Main.compileParameters(params) + ")";
+			/*return Optional*/.of(/*
+                    header.generateWithAfterName(outputParams) + " {" + Main.compileFunctionSegments(content, 2) +
+                    Main.createIndent(1) + "}"*/);
+		});
 	}
-	private static compileFunctionSegment(input : string) : string {
+	private static compileFunctionSegments(content : stringdepth : int) : string {
+		/*return Main*/.compileStatements(content, /*input -> Main*/.compileFunctionSegment(input, depth));
+	}
+	private static compileFunctionSegment(input : stringdepth : int) : string {
 		const stripped = input.strip();
 		/*if (stripped.isEmpty()) return ""*/;
-		/*return Main.createIndent(2) + Main*/.compileFunctionSegmentValue(stripped);
+		/*return Main.createIndent(depth) + Main*/.compileFunctionSegmentValue(stripped, depth);
 	}
-	private static compileFunctionSegmentValue(input : string) : string {
-		/*return Main*/.compileStatement(input, /* Main::compileFunctionStatementValue*/).orElseGet(/*() -> Placeholder*/.wrap(input));
+	private static compileFunctionSegmentValue(input : stringdepth : int) : string {
+		/*return Main*/.compileStatement(input, /*input1 -> Main*/.compileFunctionStatementValue(/*input1*/, depth)).orElseGet(/*() -> Placeholder*/.wrap(input));
 	}
-	private static compileFunctionStatementValue(input : string) : string {
-		/*return Main*/.parseAssignment(input).map(/*Main::transformStatementAssignment*/).map(/*Assignment::generate*/).or(/*() -> Main*/.compileInvokable(input)).orElseGet(/*() -> Placeholder*/.wrap(input));
+	private static compileFunctionStatementValue(input : stringdepth : int) : string {
+		/*return Main*/.parseAssignment(input, depth).map(/*Main::transformStatementAssignment*/).map(/*Assignment::generate*/).or(/*() -> Main*/.compileInvokable(input, depth)).orElseGet(/*() -> Placeholder*/.wrap(input));
 	}
 	private static transformStatementAssignment(assignment : Assignment) : Assignment {
 		/*return assignment*/.mapDefinition(/*Main::transformStatementDefinable*/);
@@ -200,18 +199,18 @@
 		/*return Main*/.lexModifiers(substring).map(/*Constructor::new*/);
 	}
 	private static compileFieldValue(input : string) : string {
-		/*return Main*/.parseAssignment(input).map(/*assignment -> Main*/.transformAssignment(assignment, /* Main::transformFieldModifier*/)).map(/*Assignment::generate*/).orElseGet(/*() -> Placeholder*/.wrap(input));
+		/*return Main*/.parseAssignment(input, /* 1*/).map(/*assignment -> Main*/.transformAssignment(assignment, /* Main::transformFieldModifier*/)).map(/*Assignment::generate*/).orElseGet(/*() -> Placeholder*/.wrap(input));
 	}
 	private static transformAssignment(assignment : Assignment/*
                                                   final Function<String*//* Optional<String>> mapper*/) : Assignment {
 		/*return assignment*/.mapDefinition(/*definition -> Main*/.transformDefinable(definition, mapper));
 	}
-	private static parseAssignment(input : string) : /*Optional<Assignment>*/ {
+	private static parseAssignment(input : stringdepth : int) : /*Optional<Assignment>*/ {
 		const index = input.indexOf(/*'='*/);
 		/*if (0 > index) return Optional*/.empty();
 		const definition = input.substring(/*0*/, index);
 		const valueString = input.substring(/*index + "="*/.length());
-		/*return Main*/.parseDefinition(definition).flatMap(/*definable -> Main*/.compileValue(valueString).map(/*value -> new Assignment*/(definable, value)));
+		/*return Main*/.parseDefinition(definition).flatMap(/*definable -> Main*/.compileValue(valueString, depth).map(/*value -> new Assignment*/(definable, value)));
 	}
 	private static transformDefinable(definable : Definable/*
                                                 final Function<String*//* Optional<String>> transformer*/) : Definable {
@@ -226,11 +225,25 @@
                                                    final Function<String*//* Optional<String>> transformer*/) : /*List<String>*/ {
 		/*return modifiers*/.stream().map(transformer).flatMap(/*Optional::stream*/).collect(Collectors.toList());
 	}
-	private static compileValueOrPlaceholder(input : string) : string {
-		/*return Main*/.compileValue(input).orElseGet(/*() -> Placeholder*/.wrap(input));
+	private static compileValueOrPlaceholder(input : stringdepth : int) : string {
+		/*return Main*/.compileValue(input, depth).orElseGet(/*() -> Placeholder*/.wrap(input));
 	}
-	private static compileValue(input : string) : /*Optional<String>*/ {
-		/*return Main*/.compileInvokable(input).or(/*() -> Main*/.compileDataAccess(input)).or(/*() -> Main*/.compileIdentifier(input)).or(/*() -> Main*/.compileString(input));
+	private static compileValue(input : stringdepth : int) : /*Optional<String>*/ {
+		/*return Main*/.compileInvokable(input, depth).or(/*() -> Main*/.compileDataAccess(input, depth)).or(/*() -> Main*/.compileIdentifier(input)).or(/*() -> Main*/.compileString(input)).or(/*() -> Main*/.compileLambda(input, depth));
+	}
+	private static compileLambda(input : stringdepth : int) : /*Optional<String>*/ {
+		const i = input.indexOf("->");
+		/*if (0 <= i) {
+            final var parameters = input.substring(0, i).strip();
+            final var withBraces = input.substring(i + "->".length()).strip();
+            if (withBraces.startsWith("{") && withBraces.endsWith("}")) {
+                final var substring = withBraces.substring(1, withBraces.length() - 1);
+                return Optional.of(
+                        parameters + " => {" + Main.compileFunctionSegments(substring, depth + 1) + Main.createIndent(depth) +
+                        "}");
+            }
+        }*/
+		/*return Optional*/.empty();
 	}
 	private static compileString(input : string) : /*Optional<String>*/ {
 		const strip = input.strip();
@@ -246,15 +259,15 @@
 	private static isSymbol(input : CharSequence) : boolean {
 		/*return IntStream*/.range(/*0*/, input.length()).mapToObj(/*input::charAt*/).allMatch(/*Character::isLetter*/);
 	}
-	private static compileDataAccess(input : string) : /*Optional<String>*/ {
+	private static compileDataAccess(input : stringdepth : int) : /*Optional<String>*/ {
 		const index = input.lastIndexOf(/*'.'*/);
 		/*if (0 > index) return Optional*/.empty();
 		const parent = input.substring(/*0*/, index);
 		const property = input.substring(/*index + "."*/.length()).strip();
 		/*if (!Main.isSymbol(property)) return Optional*/.empty();
-		/*return Optional*/.of(/*Main.compileValueOrPlaceholder(parent) + "." + property*/);
+		/*return Optional*/.of(/*Main.compileValueOrPlaceholder(parent, depth) + "." + property*/);
 	}
-	private static compileInvokable(input : string) : /*Optional<String>*/ {
+	private static compileInvokable(input : stringdepth : int) : /*Optional<String>*/ {
 		const strip = input.strip();
 		/*if (!(!strip.isEmpty() && ')' == strip.charAt(strip.length() - 1))) return Optional*/.empty();
 		const slice = strip.substring(/*0*/, /*strip.length() - ")"*/.length());
@@ -263,8 +276,9 @@
 		const withEnd = String.join("", divisions);
 		/*if (withEnd.isEmpty() || '(' != withEnd.charAt(withEnd.length() - 1)) return Optional*/.empty();
 		const withoutEnd = withEnd.substring(/*0*/, /*withEnd.length() - "("*/.length());
-		/*return Optional*/.of(/*Main.compileValueOrPlaceholder(withoutEnd) + "(" +
-                           Main.compileValues(argumentsString, Main::compileValueOrPlaceholder) + ")"*/);
+		/*return Optional*/.of(/*Main.compileValueOrPlaceholder(withoutEnd, depth) + "(" +
+                           Main.compileValues(argumentsString, input1 -> Main.compileValueOrPlaceholder(input1, depth)) +
+                           ")"*/);
 	}
 	private static foldInvocationStart(state : DivideStatec : char) : DivideState {
 		const appended = state.append(c);
@@ -294,10 +308,10 @@
 		/*if (0 > typeSeparator) return Optional*/.empty();
 		const beforeType = beforeName.substring(/*0*/, typeSeparator);
 		const typeString = beforeName.substring(/*typeSeparator + " "*/.length());
-		/*return Main*/.lexModifiers(beforeType).flatMap(/*modifiers -> {
-            final var type = Main.compileType(typeString);
-            return Optional.of(new Definition(modifiers, name, Optional.of(type)));
-        }*/);
+		/*return Main*/.lexModifiers(beforeType).flatMap(modifiers => {
+			const type = Main.compileType(typeString);
+			/*return Optional*/.of(/*new Definition*/(modifiers, name, Optional.of(type)));
+		});
 	}
 	private static lexModifiers(modifiers : string) : /*Optional<List<String>>*/ {
 		/*Optional<List<String>> maybeList = Optional*/.of(/*new ArrayList<>*/());
@@ -308,10 +322,10 @@
 		const stripped : string = modifier.strip();
 		/*if (!Main.isSymbol(stripped)) return Optional*/.empty();
 		/*if (stripped.isEmpty()) return maybeList*/;
-		/*return maybeList*/.map(/*list -> {
-            list.add(stripped);
-            return list;
-        }*/);
+		/*return maybeList*/.map(list => {
+			list.add(stripped);
+			/*return list*/;
+		});
 	}
 	private static transformFieldModifier(modifier : CharSequence) : /*Optional<String>*/ {
 		/*if ("private".contentEquals(modifier)) return Optional*/.of("private");

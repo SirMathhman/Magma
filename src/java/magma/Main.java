@@ -168,29 +168,33 @@ public class Main {
         final var content = withBraces.substring(1, withBraces.length() - 1).strip();
         return maybeHeader.flatMap(header -> {
             final var outputParams = "(" + Main.compileParameters(params) + ")";
-            return Optional.of(header.generateWithAfterName(outputParams) + " {" +
-                               Main.compileStatements(content, Main::compileFunctionSegment) + Main.createIndent(1) +
-                               "}");
+            return Optional.of(
+                    header.generateWithAfterName(outputParams) + " {" + Main.compileFunctionSegments(content, 2) +
+                    Main.createIndent(1) + "}");
         });
     }
 
-    private static String compileFunctionSegment(final String input) {
+    private static String compileFunctionSegments(final String content, final int depth) {
+        return Main.compileStatements(content, input -> Main.compileFunctionSegment(input, depth));
+    }
+
+    private static String compileFunctionSegment(final String input, final int depth) {
         final var stripped = input.strip();
         if (stripped.isEmpty()) return "";
 
-        return Main.createIndent(2) + Main.compileFunctionSegmentValue(stripped);
+        return Main.createIndent(depth) + Main.compileFunctionSegmentValue(stripped, depth);
     }
 
-    private static String compileFunctionSegmentValue(final String input) {
-        return Main.compileStatement(input, Main::compileFunctionStatementValue)
+    private static String compileFunctionSegmentValue(final String input, final int depth) {
+        return Main.compileStatement(input, input1 -> Main.compileFunctionStatementValue(input1, depth))
                    .orElseGet(() -> Placeholder.wrap(input));
     }
 
-    private static String compileFunctionStatementValue(final String input) {
-        return Main.parseAssignment(input)
+    private static String compileFunctionStatementValue(final String input, final int depth) {
+        return Main.parseAssignment(input, depth)
                    .map(Main::transformStatementAssignment)
                    .map(Assignment::generate)
-                   .or(() -> Main.compileInvokable(input))
+                   .or(() -> Main.compileInvokable(input, depth))
                    .orElseGet(() -> Placeholder.wrap(input));
     }
 
@@ -254,7 +258,7 @@ public class Main {
     }
 
     private static String compileFieldValue(final String input) {
-        return Main.parseAssignment(input)
+        return Main.parseAssignment(input, 1)
                    .map(assignment -> Main.transformAssignment(assignment, Main::transformFieldModifier))
                    .map(Assignment::generate)
                    .orElseGet(() -> Placeholder.wrap(input));
@@ -265,13 +269,14 @@ public class Main {
         return assignment.mapDefinition(definition -> Main.transformDefinable(definition, mapper));
     }
 
-    private static Optional<Assignment> parseAssignment(final String input) {
+    private static Optional<Assignment> parseAssignment(final String input, final int depth) {
         final var index = input.indexOf('=');
         if (0 > index) return Optional.empty();
         final var definition = input.substring(0, index);
         final var valueString = input.substring(index + "=".length());
         return Main.parseDefinition(definition)
-                   .flatMap(definable -> Main.compileValue(valueString).map(value -> new Assignment(definable, value)));
+                   .flatMap(definable -> Main.compileValue(valueString, depth)
+                                             .map(value -> new Assignment(definable, value)));
     }
 
     private static Definable transformDefinable(final Definable definable,
@@ -290,15 +295,31 @@ public class Main {
         return modifiers.stream().map(transformer).flatMap(Optional::stream).collect(Collectors.toList());
     }
 
-    private static String compileValueOrPlaceholder(final String input) {
-        return Main.compileValue(input).orElseGet(() -> Placeholder.wrap(input));
+    private static String compileValueOrPlaceholder(final String input, final int depth) {
+        return Main.compileValue(input, depth).orElseGet(() -> Placeholder.wrap(input));
     }
 
-    private static Optional<String> compileValue(final String input) {
-        return Main.compileInvokable(input)
-                   .or(() -> Main.compileDataAccess(input))
+    private static Optional<String> compileValue(final String input, final int depth) {
+        return Main.compileInvokable(input, depth)
+                   .or(() -> Main.compileDataAccess(input, depth))
                    .or(() -> Main.compileIdentifier(input))
-                   .or(() -> Main.compileString(input));
+                   .or(() -> Main.compileString(input))
+                   .or(() -> Main.compileLambda(input, depth));
+    }
+
+    private static Optional<String> compileLambda(final String input, final int depth) {
+        final var i = input.indexOf("->");
+        if (0 <= i) {
+            final var parameters = input.substring(0, i).strip();
+            final var withBraces = input.substring(i + "->".length()).strip();
+            if (withBraces.startsWith("{") && withBraces.endsWith("}")) {
+                final var substring = withBraces.substring(1, withBraces.length() - 1);
+                return Optional.of(
+                        parameters + " => {" + Main.compileFunctionSegments(substring, depth + 1) + Main.createIndent(depth) +
+                        "}");
+            }
+        }
+        return Optional.empty();
     }
 
     private static Optional<String> compileString(final String input) {
@@ -318,17 +339,17 @@ public class Main {
         return IntStream.range(0, input.length()).mapToObj(input::charAt).allMatch(Character::isLetter);
     }
 
-    private static Optional<String> compileDataAccess(final String input) {
+    private static Optional<String> compileDataAccess(final String input, final int depth) {
         final var index = input.lastIndexOf('.');
         if (0 > index) return Optional.empty();
         final var parent = input.substring(0, index);
         final var property = input.substring(index + ".".length()).strip();
 
         if (!Main.isSymbol(property)) return Optional.empty();
-        return Optional.of(Main.compileValueOrPlaceholder(parent) + "." + property);
+        return Optional.of(Main.compileValueOrPlaceholder(parent, depth) + "." + property);
     }
 
-    private static Optional<String> compileInvokable(final String input) {
+    private static Optional<String> compileInvokable(final String input, final int depth) {
         final var strip = input.strip();
         if (!(!strip.isEmpty() && ')' == strip.charAt(strip.length() - 1))) return Optional.empty();
         final var slice = strip.substring(0, strip.length() - ")".length());
@@ -339,8 +360,9 @@ public class Main {
 
         if (withEnd.isEmpty() || '(' != withEnd.charAt(withEnd.length() - 1)) return Optional.empty();
         final var withoutEnd = withEnd.substring(0, withEnd.length() - "(".length());
-        return Optional.of(Main.compileValueOrPlaceholder(withoutEnd) + "(" +
-                           Main.compileValues(argumentsString, Main::compileValueOrPlaceholder) + ")");
+        return Optional.of(Main.compileValueOrPlaceholder(withoutEnd, depth) + "(" +
+                           Main.compileValues(argumentsString, input1 -> Main.compileValueOrPlaceholder(input1, depth)) +
+                           ")");
     }
 
     private static DivideState foldInvocationStart(final DivideState state, final char c) {
