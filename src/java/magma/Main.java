@@ -8,6 +8,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -114,7 +115,8 @@ public class Main {
         final var withBraces = substring1.substring(i1 + ")".length()).strip();
 
         final var maybeHeader = Main.compileDefinition(headerString)
-                                    .map(Main::modifyDefinition)
+                                    .map(definition -> Main.modifyDefinition(definition,
+                                                                             Main::transformDefinedModifier))
                                     .<Header>map(value -> value)
                                     .or(() -> Main.compileConstructor(headerString));
         if (withBraces.isEmpty() || '{' != withBraces.charAt(0) || '}' != withBraces.charAt(withBraces.length() - 1))
@@ -144,7 +146,13 @@ public class Main {
         final var stripped = input.strip();
         if (stripped.isEmpty()) return "";
 
-        return Main.compileAll(input, input1 -> Main.parseDefinable(input1).generate(), Main::foldValue);
+        return Main.compileAll(input, input1 -> Main.transformDefinable(Main.parseDefinable(input1),
+                                                                        Main::transformParameterModifier).generate(),
+                               Main::foldValue);
+    }
+
+    private static Optional<String> transformParameterModifier(final String s) {
+        return Optional.empty();
     }
 
     private static DivideState foldValue(final DivideState state, final char c) {
@@ -171,22 +179,27 @@ public class Main {
         final var definition = input.substring(0, index);
         final var value = input.substring(index + "=".length());
         final var definable = Main.parseDefinable(definition);
-        final var definable1 = Main.modifyDefinable(definable);
+        final var definable1 = Main.transformDefinable(definable, Main::transformDefinedModifier);
         return Optional.of(definable1.generate() + " = " + Main.compileValue(value));
     }
 
-    private static Definable modifyDefinable(final Definable definable) {
+    private static Definable transformDefinable(final Definable definable,
+                                                final Function<String, Optional<String>> transformer) {
         final Definable definable1;
-        if (definable instanceof final Definition definition1) definable1 = Main.modifyDefinition(definition1);
-        else
-            definable1 = definable;
+        if (definable instanceof final Definition definition1)
+            definable1 = Main.modifyDefinition(definition1, transformer);
+        else definable1 = definable;
         return definable1;
     }
 
-    private static Definition modifyDefinition(final Definition definition) {
-        return definition.mapModifiers(modifiers -> {
-            return modifiers.stream().map(Main::transforModifier).flatMap(Optional::stream).collect(Collectors.toSet());
-        });
+    private static Definition modifyDefinition(final Definition definition,
+                                               final Function<String, Optional<String>> transformer) {
+        return definition.mapModifiers(modifiers -> Main.transformModifiers(modifiers, transformer));
+    }
+
+    private static Set<String> transformModifiers(final Collection<String> modifiers,
+                                                  final Function<String, Optional<String>> transformer) {
+        return modifiers.stream().map(transformer).flatMap(Optional::stream).collect(Collectors.toSet());
     }
 
     private static String compileValue(final String input) {
@@ -264,7 +277,7 @@ public class Main {
                      .collect(Collectors.toSet());
     }
 
-    private static Optional<String> transforModifier(final CharSequence modifier) {
+    private static Optional<String> transformDefinedModifier(final CharSequence modifier) {
         if ("private".contentEquals(modifier)) return Optional.of("private");
         if ("public".contentEquals(modifier)) return Optional.of("public");
         if ("static".contentEquals(modifier)) return Optional.of("static");

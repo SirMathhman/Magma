@@ -2,13 +2,13 @@
 /*import java.util.function.Function;*/
 /*import java.util.stream.Collectors;*/
 /*public record Definition(Collection<String> modifiers, String name, String type) implements Header, Definable */ {
-	static generateModifiers(final newModifiers : /*Collection<String>*/) : string {
+	static generateModifiers(newModifiers : /*Collection<String>*/) : string {
 		/*return newModifiers.stream().map(value -> value + " ").collect(Collectors.joining());*/
 	}
 	public generate() : string {
 		/*return this.generateWithAfterName("");*/
 	}
-	public generateWithAfterName(final afterName : string) : string {
+	public generateWithAfterName(afterName : string) : string {
 		/*final var joinedModifiers = Definition.generateModifiers(this.modifiers());*/
 		/*return joinedModifiers + this.name() + afterName + " : " + this.type();*/
 	}

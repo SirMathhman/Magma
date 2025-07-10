@@ -6,6 +6,7 @@
 /*import java.util.Collection;*/
 /*import java.util.List;*/
 /*import java.util.Optional;*/
+/*import java.util.Set;*/
 /*import java.util.function.BiFunction;*/
 /*import java.util.function.Function;*/
 /*import java.util.stream.Collectors;*/
@@ -14,7 +15,7 @@
 	private static readonly LINE_SEPARATOR : string = System.lineSeparator();
 	private constructor() {
 	}
-	static public main(final args : /*String[]*/) : void {
+	static public main(args : /*String[]*/) : void {
 		/*final var sourceDirectory = Paths.get(".", "src", "java");*/
 		/*try (final var stream = Files.walk(sourceDirectory)) {
             final var sources = stream.filter(Files::isRegularFile)
@@ -47,10 +48,10 @@
         final var output = Main.compileStatements(input, Main::compileRootSegment);
         Files.writeString(target, output);
     }*/
-	private static compileStatements(final input : /*CharSequence*//* final Function<String*//* String> mapper*/) : string {
+	private static compileStatements(input : /*CharSequence*//* final Function<String*//* String> mapper*/) : string {
 		/*return Main.compileAll(input, mapper, Main::foldStatement);*/
 	}
-	private static compileAll(final input : /*CharSequence*//*
+	private static compileAll(input : /*CharSequence*//*
                                      final Function<String*//* String> mapper*//*
                                      final BiFunction<DivideState*//* Character*//* DivideState> folder*/) : string {
 		/*final var segments = Main.divide(input, folder);*/
@@ -58,13 +59,13 @@
 		/*for (final var segment : segments) output.append(mapper.apply(segment));*/
 		/*return output.toString();*/
 	}
-	private static compileRootSegment(final input : string) : string {
+	private static compileRootSegment(input : string) : string {
 		/*final var stripped = input.strip();*/
 		/*if (stripped.startsWith("package ")) return "";*/
 		/*return Main.compileClass(stripped)
                    .orElseGet(() -> Placeholder.generatePlaceholder(stripped) + Main.LINE_SEPARATOR);*/
 	}
-	private static compileClass(final stripped : string) : /*Optional<String>*/ {
+	private static compileClass(stripped : string) : /*Optional<String>*/ {
 		/*if (stripped.isEmpty() || '}' != stripped.charAt(stripped.length() - 1)) return Optional.empty();*/
 		/*final var withoutEnd = stripped.substring(0, stripped.length() - "}".length());*/
 		/*final var index = withoutEnd.indexOf('{');*/
@@ -74,20 +75,20 @@
 		/*return Optional.of(Main.compileClassHeader(beforeContent) + " {" +
                            Main.compileStatements(content, Main::compileClassSegment) + "}");*/
 	}
-	private static compileClassSegment(final input : string) : string {
+	private static compileClassSegment(input : string) : string {
 		/*return Main.LINE_SEPARATOR + "\t" + Main.compileClassSegmentValue(input.strip());*/
 	}
-	private static compileClassSegmentValue(final input : string) : string {
+	private static compileClassSegmentValue(input : string) : string {
 		/*return Main.compileField(input)
                    .or(() -> Main.compileMethod(input))
                    .orElseGet(() -> Placeholder.generatePlaceholder(input));*/
 	}
-	private static compileField(final input : string) : /*Optional<String>*/ {
+	private static compileField(input : string) : /*Optional<String>*/ {
 		/*if (input.isEmpty() || ';' != input.charAt(input.length() - 1)) return Optional.empty();*/
 		/*final var slice = input.substring(0, input.length() - ";".length());*/
 		/*return Optional.of(Main.compileFieldValue(slice) + ";");*/
 	}
-	private static compileMethod(final input : string) : /*Optional<String>*/ {
+	private static compileMethod(input : string) : /*Optional<String>*/ {
 		/*final var i = input.indexOf('(');*/
 		/*if (0 > i) return Optional.empty();*/
 		/*final var headerString = input.substring(0, i).strip();*/
@@ -97,7 +98,8 @@
 		/*final var params = substring1.substring(0, i1);*/
 		/*final var withBraces = substring1.substring(i1 + ")".length()).strip();*/
 		/*final var maybeHeader = Main.compileDefinition(headerString)
-                                    .map(Main::modifyDefinition)
+                                    .map(definition -> Main.modifyDefinition(definition,
+                                                                             Main::transformDefinedModifier))
                                     .<Header>map(value -> value)
                                     .or(() -> Main.compileConstructor(headerString));*/
 		/*if (withBraces.isEmpty() || '{' != withBraces.charAt(0) || '}' != withBraces.charAt(withBraces.length() - 1))
@@ -111,24 +113,29 @@
         }*/
 		/*);*/
 	}
-	private static compileFunctionSegment(final input : string) : string {
+	private static compileFunctionSegment(input : string) : string {
 		/*final var stripped = input.strip();*/
 		/*if (stripped.isEmpty()) return "";*/
 		/*return Main.createIndent(2) + Placeholder.generatePlaceholder(stripped);*/
 	}
-	private static createIndent(final depth : /*int*/) : string {
+	private static createIndent(depth : /*int*/) : string {
 		/*return Main.LINE_SEPARATOR + "\t".repeat(depth);*/
 	}
-	private static compileParameters(final input : string) : string {
+	private static compileParameters(input : string) : string {
 		/*final var stripped = input.strip();*/
 		/*if (stripped.isEmpty()) return "";*/
-		/*return Main.compileAll(input, input1 -> Main.parseDefinable(input1).generate(), Main::foldValue);*/
+		/*return Main.compileAll(input, input1 -> Main.transformDefinable(Main.parseDefinable(input1),
+                                                                        Main::transformParameterModifier).generate(),
+                               Main::foldValue);*/
 	}
-	private static foldValue(final state : /*DivideState*/final c : /*char*/) : /*DivideState*/ {
+	private static transformParameterModifier(s : string) : /*Optional<String>*/ {
+		/*return Optional.empty();*/
+	}
+	private static foldValue(state : /*DivideState*/c : /*char*/) : /*DivideState*/ {
 		/*if (',' == c) return state.advance();*/
 		/*return state.append(c);*/
 	}
-	private static compileConstructor(final header : string) : /*Optional<Constructor>*/ {
+	private static compileConstructor(header : string) : /*Optional<Constructor>*/ {
 		/*final var i2 = header.lastIndexOf(' ');*/
 		/*if (0 <= i2) {
             final var substring = header.substring(0, i2);
@@ -137,53 +144,56 @@
         }*/
 		/*else return Optional.empty();*/
 	}
-	private static compileFieldValue(final input : string) : string {
+	private static compileFieldValue(input : string) : string {
 		/*return Main.compileAssignment(input).orElseGet(() -> Placeholder.generatePlaceholder(input));*/
 	}
-	private static compileAssignment(final input : string) : /*Optional<String>*/ {
+	private static compileAssignment(input : string) : /*Optional<String>*/ {
 		/*final var index = input.indexOf('=');*/
 		/*if (0 > index) return Optional.empty();*/
 		/*final var definition = input.substring(0, index);*/
 		/*final var value = input.substring(index + "=".length());*/
 		/*final var definable = Main.parseDefinable(definition);*/
-		/*final var definable1 = Main.modifyDefinable(definable);*/
+		/*final var definable1 = Main.transformDefinable(definable, Main::transformDefinedModifier);*/
 		/*return Optional.of(definable1.generate() + " = " + Main.compileValue(value));*/
 	}
-	private static modifyDefinable(final definable : /*Definable*/) : /*Definable*/ {
+	private static transformDefinable(definable : /*Definable*//*
+                                                final Function<String*//* Optional<String>> transformer*/) : /*Definable*/ {
 		/*final Definable definable1;*/
-		/*if (definable instanceof final Definition definition1) definable1 = Main.modifyDefinition(definition1);*/
-		/*else
-            definable1 = definable;*/
+		/*if (definable instanceof final Definition definition1)
+            definable1 = Main.modifyDefinition(definition1, transformer);*/
+		/*else definable1 = definable;*/
 		/*return definable1;*/
 	}
-	private static modifyDefinition(final definition : /*Definition*/) : /*Definition*/ {
-		/*return definition.mapModifiers(modifiers -> {
-            return modifiers.stream().map(Main::transforModifier).flatMap(Optional::stream).collect(Collectors.toSet());
-        }*/
-		/*);*/
+	private static modifyDefinition(definition : /*Definition*//*
+                                               final Function<String*//* Optional<String>> transformer*/) : /*Definition*/ {
+		/*return definition.mapModifiers(modifiers -> Main.transformModifiers(modifiers, transformer));*/
 	}
-	private static compileValue(final input : string) : string {
+	private static transformModifiers(modifiers : /*Collection<String>*//*
+                                                  final Function<String*//* Optional<String>> transformer*/) : /*Set<String>*/ {
+		/*return modifiers.stream().map(transformer).flatMap(Optional::stream).collect(Collectors.toSet());*/
+	}
+	private static compileValue(input : string) : string {
 		/*return Main.compileInvokable(input)
                    .or(() -> Main.compileDataAccess(input))
                    .or(() -> Main.compileSymbol(input))
                    .orElseGet(() -> Placeholder.generatePlaceholder(input));*/
 	}
-	private static compileSymbol(final input : string) : /*Optional<String>*/ {
+	private static compileSymbol(input : string) : /*Optional<String>*/ {
 		/*final var strip = input.strip();*/
 		/*if (Main.isSymbol(strip)) return Optional.of(strip);*/
 		/*else return Optional.empty();*/
 	}
-	private static isSymbol(final input : /*CharSequence*/) : /*boolean*/ {
+	private static isSymbol(input : /*CharSequence*/) : /*boolean*/ {
 		/*return IntStream.range(0, input.length()).mapToObj(input::charAt).allMatch(Character::isLetter);*/
 	}
-	private static compileDataAccess(final input : string) : /*Optional<String>*/ {
+	private static compileDataAccess(input : string) : /*Optional<String>*/ {
 		/*final var i = input.lastIndexOf('.');*/
 		/*if (0 > i) return Optional.empty();*/
 		/*final var substring = input.substring(0, i);*/
 		/*final var substring1 = input.substring(i + ".".length());*/
 		/*return Optional.of(Main.compileValue(substring) + "." + substring1);*/
 	}
-	private static compileInvokable(final input : string) : /*Optional<String>*/ {
+	private static compileInvokable(input : string) : /*Optional<String>*/ {
 		/*final var strip = input.strip();*/
 		/*if (!(!strip.isEmpty() && ')' == strip.charAt(strip.length() - 1))) return Optional.empty();*/
 		/*final var slice = strip.substring(0, strip.length() - ")".length());*/
@@ -193,16 +203,16 @@
 		/*final var substring1 = slice.substring(i + "(".length());*/
 		/*return Optional.of(Main.compileValue(substring) + "(" + Main.compileArguments(substring1) + ")");*/
 	}
-	private static compileArguments(final input : string) : string {
+	private static compileArguments(input : string) : string {
 		/*final var strip = input.strip();*/
 		/*if (strip.isEmpty()) return "";*/
 		/*return Placeholder.generatePlaceholder(strip);*/
 	}
-	private static parseDefinable(final input : string) : /*Definable*/ {
+	private static parseDefinable(input : string) : /*Definable*/ {
 		/*final var beforeType = Main.compileDefinition(input);*/
 		/*return beforeType.<Definable>map(value -> value).orElseGet(() -> new Placeholder(input));*/
 	}
-	private static compileDefinition(final input : string) : /*Optional<Definition>*/ {
+	private static compileDefinition(input : string) : /*Optional<Definition>*/ {
 		/*final var strip = input.strip();*/
 		/*final var nameSeparator = strip.lastIndexOf(' ');*/
 		/*if (0 > nameSeparator) return Optional.empty();*/
@@ -216,26 +226,26 @@
 		/*final var type = Main.compileType(typeString);*/
 		/*return Optional.of(new Definition(newModifiers, name, type));*/
 	}
-	private static lexModifiers(final modifiers : string) : /*Collection<String>*/ {
+	private static lexModifiers(modifiers : string) : /*Collection<String>*/ {
 		/*return Arrays.stream(modifiers.split(" "))
                      .map(String::strip)
                      .filter(value -> !value.isEmpty())
                      .collect(Collectors.toSet());*/
 	}
-	private static transforModifier(final modifier : /*CharSequence*/) : /*Optional<String>*/ {
+	private static transformDefinedModifier(modifier : /*CharSequence*/) : /*Optional<String>*/ {
 		/*if ("private".contentEquals(modifier)) return Optional.of("private");*/
 		/*if ("public".contentEquals(modifier)) return Optional.of("public");*/
 		/*if ("static".contentEquals(modifier)) return Optional.of("static");*/
 		/*if ("final".contentEquals(modifier)) return Optional.of("readonly");*/
 		/*return Optional.empty();*/
 	}
-	private static compileType(final input : string) : string {
+	private static compileType(input : string) : string {
 		/*final var strip = input.strip();*/
 		/*if ("String".contentEquals(strip)) return "string";*/
 		/*if ("void".contentEquals(strip)) return "void";*/
 		/*return Placeholder.generatePlaceholder(strip);*/
 	}
-	private static compileClassHeader(final input : string) : string {
+	private static compileClassHeader(input : string) : string {
 		/*final var index = input.indexOf("class ");*/
 		/*if (0 <= index) {
             final var beforeKeyword = input.substring(0, index);
@@ -244,13 +254,13 @@
         }*/
 		/*return Placeholder.generatePlaceholder(input);*/
 	}
-	private static divide(final input : /*CharSequence*//*
+	private static divide(input : /*CharSequence*//*
                                        final BiFunction<DivideState*//* Character*//* DivideState> folder*/) : /*List<String>*/ {
 		/*final var state = Main.foldEarly(new MutableDivideState(input), DivideState::pop,
                                          popped -> new Tuple<>(true, Main.foldDecorated(popped, folder)));*/
 		/*return state.right().advance().stream().toList();*/
 	}
-	private static foldEarly(final initial : /*DivideState*//*
+	private static foldEarly(initial : /*DivideState*//*
                                                          final Function<DivideState*//* Optional<Tuple<DivideState*//* Character>>> mapper*//*
                                                          final Function<Tuple<DivideState*//* Character>*//* Tuple<Boolean*//* DivideState>> folder*/) : /*DivideState>*/ {
 		/*Tuple<Boolean, DivideState> tuple = new Tuple<>(true, initial);*/
@@ -260,7 +270,7 @@
         }*/
 		/*return tuple;*/
 	}
-	private static foldEarlyElement(final state : /*DivideState*//*
+	private static foldEarlyElement(state : /*DivideState*//*
                                                                 final Function<DivideState*//* Optional<Tuple<DivideState*//* Character>>> mapper*//*
                                                                 final Function<Tuple<DivideState*//* Character>*//* Tuple<Boolean*//* DivideState>> folder*/) : /*DivideState>*/ {
 		/*final var maybePopped = mapper.apply(state);*/
@@ -276,7 +286,7 @@
                    .or(() -> Main.foldDoubleQuotes(state, c))
                    .orElseGet(() -> folder.apply(state, c));*/
 	}
-	private static foldDoubleQuotes(final state : /*DivideState*/final c : /*char*/) : /*Optional<DivideState>*/ {
+	private static foldDoubleQuotes(state : /*DivideState*/c : /*char*/) : /*Optional<DivideState>*/ {
 		/*if ('\"' != c) return Optional.empty();*/
 		/*return Optional.of(
                 Main.foldEarly(state.append('\"'), DivideState::popAndAppendToTuple, Main::foldInDoubleQuotes).right());*/
@@ -288,7 +298,7 @@
 		/*if ('\"' == next) return new Tuple<>(false, nextAppended);*/
 		/*return new Tuple<>(true, nextAppended);*/
 	}
-	private static foldSingleQuotes(final state : /*DivideState*/final c : /*char*/) : /*Optional<DivideState>*/ {
+	private static foldSingleQuotes(state : /*DivideState*/c : /*char*/) : /*Optional<DivideState>*/ {
 		/*if ('\'' != c) return Optional.empty();*/
 		/*return state.append(c)
                     .popAndAppendToTuple()
@@ -299,7 +309,7 @@
 		/*if ('\\' == tuple.right()) return tuple.left().popAndAppendToOption();*/
 		/*return Optional.of(tuple.left());*/
 	}
-	private static foldStatement(final state : /*DivideState*/final c : /*char*/) : /*DivideState*/ {
+	private static foldStatement(state : /*DivideState*/c : /*char*/) : /*DivideState*/ {
 		/*final var appended = state.append(c);*/
 		/*if (';' == c && appended.isLevel()) return appended.advance();*/
 		/*if ('}' == c && appended.isShallow()) return appended.advance().exit();*/
