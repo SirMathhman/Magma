@@ -7,7 +7,7 @@
 /*import java.util.function.BiFunction;*/
 /*import java.util.function.Function;*/
 /*import java.util.stream.Collectors;*/
-export class Main {/*
+/*public */class Main {/*
     private Main() {}
 
     public static void main(final String[] args) {
@@ -59,25 +59,19 @@ export class Main {/*
         if (stripped.isEmpty() || '}' != stripped.charAt(stripped.length() - 1)) return Optional.empty();
         final var withoutEnd = stripped.substring(0, stripped.length() - "}".length());
 
-        return Main.compileInfix(withoutEnd, "{", (beforeContent, content) -> Optional.of(
-                Main.compileClassHeader(beforeContent) + " {" + Main.generatePlaceholder(content) + "}"));
+        return Main.compileInfix(withoutEnd, (beforeContent, content) -> Optional.of(
+                Main.compileClassHeader(beforeContent) + " {" + Main.generatePlaceholder(content) + "}"), "{");
     }
 
     private static String compileClassHeader(final String input) {
-        return Main.compileInfix(input, "class ", (oldModifiers, name) -> Optional.of(
-                           Main.compileModifiers(oldModifiers) + "class " + name.strip()))
+        return Main.compileInfix(input, (oldModifiers, name) -> Optional.of(
+                           Main.generatePlaceholder(oldModifiers) + "class " + name.strip()), "class ")
                    .orElseGet(() -> Main.generatePlaceholder(input));
     }
 
-    private static String compileModifiers(final String oldModifiers) {
-        final var stripped = oldModifiers.strip();
-        if ("public".contentEquals(stripped)) return "export ";
-        return "";
-    }
-
     private static Optional<String> compileInfix(final String input,
-                                                 final String infix,
-                                                 final BiFunction<String, String, Optional<String>> mapper) {
+                                                 final BiFunction<String, String, Optional<String>> mapper,
+                                                 final String infix) {
         final var index = input.indexOf(infix);
         if (0 > index) return Optional.empty();
         final var beforeKeyword = input.substring(0, index);

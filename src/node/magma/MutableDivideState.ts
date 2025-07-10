@@ -2,7 +2,7 @@
 /*import java.util.Collection;*/
 /*import java.util.Optional;*/
 /*import java.util.stream.Stream;*/
-class MutableDivideState implements DivideState {/*
+/**/class MutableDivideState implements DivideState {/*
     private final Collection<String> segments = new ArrayList<>();
     private final CharSequence input;
     private int index = 0;

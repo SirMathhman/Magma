@@ -68,14 +68,8 @@ public class Main {
 
     private static String compileClassHeader(final String input) {
         return Main.compileInfix(input, "class ", (oldModifiers, name) -> Optional.of(
-                           Main.compileModifiers(oldModifiers) + "class " + name.strip()))
+                           Main.generatePlaceholder(oldModifiers) + "class " + name.strip()))
                    .orElseGet(() -> Main.generatePlaceholder(input));
-    }
-
-    private static String compileModifiers(final String oldModifiers) {
-        final var stripped = oldModifiers.strip();
-        if ("public".contentEquals(stripped)) return "export ";
-        return "";
     }
 
     private static Optional<String> compileInfix(final String input,
