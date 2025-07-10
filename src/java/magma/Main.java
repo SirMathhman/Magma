@@ -54,16 +54,14 @@ public class Main {
     }
 
     private static String compileStatements(final CharSequence input, final Function<String, String> mapper) {
-        return Main.compileAll(input, mapper, Main::foldStatement);
+        return Main.compileAll(input, mapper, Main::foldStatement, "");
     }
 
     private static String compileAll(final CharSequence input,
                                      final Function<String, String> mapper,
-                                     final BiFunction<DivideState, Character, DivideState> folder) {
-        final var segments = Main.divide(input, folder);
-        final var output = new StringBuilder();
-        for (final var segment : segments) output.append(mapper.apply(segment));
-        return output.toString();
+                                     final BiFunction<DivideState, Character, DivideState> folder,
+                                     final String delimiter) {
+        return Main.divide(input, folder).stream().map(mapper).collect(Collectors.joining(delimiter));
     }
 
     private static String compileRootSegment(final String input) {
@@ -182,7 +180,7 @@ public class Main {
 
         return Main.compileAll(input, input1 -> Main.transformDefinable(Main.parseDefinable(input1),
                                                                         Main::transformParameterModifier).generate(),
-                               Main::foldValue);
+                               Main::foldValue, "");
     }
 
     private static Optional<String> transformParameterModifier(final String s) {
@@ -274,15 +272,14 @@ public class Main {
         final var i = slice.indexOf('(');
         if (0 > i) return Optional.empty();
         final var substring = slice.substring(0, i);
-        final var substring1 = slice.substring(i + "(".length());
+        final var argumentsString = slice.substring(i + "(".length());
 
-        return Optional.of(Main.compileValue(substring) + "(" + Main.compileArguments(substring1) + ")");
+        return Optional.of(
+                Main.compileValue(substring) + "(" + Main.compileValues(argumentsString, Main::compileValue) + ")");
     }
 
-    private static String compileArguments(final String input) {
-        final var strip = input.strip();
-        if (strip.isEmpty()) return "";
-        return Placeholder.wrap(strip);
+    private static String compileValues(final CharSequence input, final Function<String, String> mapper) {
+        return Main.compileAll(input, mapper, Main::foldValue, ", ");
     }
 
     private static Definable parseDefinable(final String input) {

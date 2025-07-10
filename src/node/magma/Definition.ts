@@ -11,7 +11,7 @@
 		/*return this.generateWithAfterName("")*/;
 	}
 	public generateWithAfterName(afterName : string) : string {
-		const joinedModifiers = Definition.generateModifiers(/*this.modifiers()*/);
+		const joinedModifiers = Definition.generateModifiers(this.modifiers());
 		/*return joinedModifiers + this.name() + afterName + this.maybeType.map(value -> " : " + value).orElse("")*/;
 	}
 	public mapModifiers(/*final Function<Collection<String>*//* Collection<String>> mapper*/) : Definition {
