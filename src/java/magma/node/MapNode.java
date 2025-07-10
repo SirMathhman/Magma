@@ -7,6 +7,10 @@ import java.util.Optional;
 public final class MapNode implements Node {
     private final Map<String, String> strings = new HashMap<>();
 
+    public static Node createMapNode(final String value) {
+        return new MapNode().withString("value", value);
+    }
+
     @Override
     public Optional<String> findString(final String key) {
         return Optional.ofNullable(this.strings.get(key));
