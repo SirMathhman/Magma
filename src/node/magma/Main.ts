@@ -72,37 +72,38 @@
         return Main.LINE_SEPARATOR + "\t" + Main.compileClassSegmentValue(input.strip());
     }*/
 	private static compileClassSegmentValue : string(/*final String input*/)/* {
-        if (!input.isEmpty() && ';' == input.charAt(input.length() - 1)) {
-            final var slice = input.substring(0, input.length() - ";".length());
-            return Main.compileClassStatementValue(slice) + ";";
-        }
-
+        return Main.compileField(input)
+                   .or(() -> Main.compileMethod(input))
+                   .orElseGet(() -> Main.generatePlaceholder(input));
+    }*/
+	private static compileField : /*Optional<String>*/(/*final String input*/)/* {
+        if (input.isEmpty() || ';' != input.charAt(input.length() - 1)) return Optional.empty();
+        final var slice = input.substring(0, input.length() - ";".length());
+        return Optional.of(Main.compileFieldValue(slice) + ";");
+    }*/
+	private static compileMethod : /*Optional<String>*/(/*final String input*/)/* {
         final var i = input.indexOf('(');
-        if (0 <= i) {
-            final var header = input.substring(0, i).strip();
-            final var substring1 = input.substring(i + "(".length());
-            final var i1 = substring1.indexOf(')');
-            if (0 <= i1) {
-                final var substring2 = substring1.substring(0, i1);
-                final var substring3 = substring1.substring(i1 + ")".length());
-                final var maybeDefinition = Main.compileDefinition(header).or(() -> Main.compileConstructor(header));
-                if (maybeDefinition.isPresent())
-                    return maybeDefinition.get() + "(" + Main.generatePlaceholder(substring2) + ")" +
-                           Main.generatePlaceholder(substring3);
-            }
-        }
+        if (0 > i) return Optional.empty();
+        final var headerString = input.substring(0, i).strip();
+        final var substring1 = input.substring(i + "(".length());
 
-        return Main.generatePlaceholder(input);
+        final var i1 = substring1.indexOf(')');
+        if (0 > i1) return Optional.empty();
+        final var substring2 = substring1.substring(0, i1);
+        final var substring3 = substring1.substring(i1 + ")".length());
+
+        final var maybeHeader = Main.compileDefinition(headerString).or(() -> Main.compileConstructor(headerString));
+        return maybeHeader.map(header -> header + "(" + Main.generatePlaceholder(substring2) + ")" +
+                                         Main.generatePlaceholder(substring3));
     }*/
 	private static compileConstructor : /*Optional<String>*/(/*final String header*/)/* {
         final var i2 = header.lastIndexOf(' ');
         if (0 <= i2) {
             final var substring = header.substring(0, i2);
-            final var substring4 = header.substring(i2 + " ".length());
             return Optional.of(Main.compileModifiers(substring) + "constructor");
         } else return Optional.empty();
     }*/
-	private static compileClassStatementValue : string(/*final String input*/)/* {
+	private static compileFieldValue : string(/*final String input*/)/* {
         final var index = input.indexOf('=');
         if (0 <= index) {
             final var definition = input.substring(0, index);
@@ -178,9 +179,7 @@
 
         final Collection<String> newModifiers = new ArrayList<>();
         for (final var oldModifier : oldModifiers) Main.foldModifier(oldModifier).ifPresent(newModifiers::add);
-
-        final var joinedModifiers = newModifiers.stream().map(value -> value + " ").collect(Collectors.joining());
-        return joinedModifiers;
+        return newModifiers.stream().map(value -> value + " ").collect(Collectors.joining());
     }*/
 	private static foldModifier : /*Optional<String>*/(/*final CharSequence modifier*/)/* {
         if ("private".contentEquals(modifier)) return Optional.of("private");
