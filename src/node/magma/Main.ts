@@ -51,7 +51,7 @@ export class Main {
 	/*private static String compileRootSegment(final String input) {
         final var stripped = input.strip();
         if (stripped.startsWith("package ")) return "";
-        return Main.compileClass(stripped).orElseGet(() -> PlaceholderRule.wrap(stripped) + Main.LINE_SEPARATOR);
+        return Main.compileClass(stripped).orElseGet(() -> Main.generatePlaceholder(stripped) + Main.LINE_SEPARATOR);
     }*/
 	/*private static Optional<String> compileClass(final String input) {
         return Main.compileSuffix(input, "}", withoutEnd -> Main.compileInfix(withoutEnd, "{",
@@ -68,12 +68,11 @@ export class Main {
         return Main.LINE_SEPARATOR + "\t" + Main.compileClassStatementValue(stripped);
     }*/
 	/*private static String compileClassStatementValue(final String input) {
-        return Main.compileSuffix(input, ";",
-                                  slice1 -> Main.createClassStatementRule().generate(MapNode.createMapNode(slice1)))
-                   .orElseGet(() -> PlaceholderRule.wrap(input));
+        return Main.compileSuffix(input, ";", slice1 -> Main.generate(MapNode.createMapNode(slice1)))
+                   .orElseGet(() -> Main.generatePlaceholder(input));
     }*/
-	/*private static SuffixRule createClassStatementRule() {
-        return new SuffixRule(new PlaceholderRule(new StringRule("value")), ";");
+	/*private static Optional<String> generate(final Node node) {
+        return Optional.of(node.findStringOrEmpty("value")).map(Main::generatePlaceholder).map(value -> value + ";");
     }*/
 	/*private static Optional<String> compileSuffix(final String input,
                                                   final String suffix,
@@ -85,7 +84,7 @@ export class Main {
 	/*private static String compileClassHeader(final String input) {
         return Main.compileInfix(input, "class ", (oldModifiers, name) -> Optional.of(
                            Main.compileModifiers(oldModifiers) + "class " + name.strip()))
-                   .orElseGet(() -> PlaceholderRule.wrap(input));
+                   .orElseGet(() -> Main.generatePlaceholder(input));
     }*/
 	/*private static String compileModifiers(final String oldModifiers) {
         final var stripped = oldModifiers.strip();
@@ -162,5 +161,8 @@ export class Main {
         if ('{' == c) return appended.enter();
         if ('}' == c) return appended.exit();
         return appended;
+    }*/
+	/*private static String generatePlaceholder(final String input) {
+        return "start" + input.replace("start", "start").replace("end", "end") + "end";
     }*/
 }/**/

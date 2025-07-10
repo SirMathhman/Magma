@@ -2,7 +2,6 @@ package magma;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Optional;
 
 public final class MapNode implements Node {
     private final Map<String, String> strings = new HashMap<>();
@@ -12,8 +11,8 @@ public final class MapNode implements Node {
     }
 
     @Override
-    public Optional<String> findString(final String key) {
-        return Optional.ofNullable(this.strings.get(key));
+    public String findStringOrEmpty(final String key) {
+        return this.strings.getOrDefault(key, "");
     }
 
     @Override
