@@ -70,7 +70,8 @@ public class Main {
     private static String compileRootSegment(final String input) {
         final var stripped = input.strip();
         if (stripped.startsWith("package ")) return "";
-        return Main.compileClass(stripped).orElseGet(() -> Main.generatePlaceholder(stripped) + Main.LINE_SEPARATOR);
+        return Main.compileClass(stripped)
+                   .orElseGet(() -> Placeholder.generatePlaceholder(stripped) + Main.LINE_SEPARATOR);
     }
 
     private static Optional<String> compileClass(final String stripped) {
@@ -93,7 +94,7 @@ public class Main {
     private static String compileClassSegmentValue(final String input) {
         return Main.compileField(input)
                    .or(() -> Main.compileMethod(input))
-                   .orElseGet(() -> Main.generatePlaceholder(input));
+                   .orElseGet(() -> Placeholder.generatePlaceholder(input));
     }
 
     private static Optional<String> compileField(final String input) {
@@ -132,7 +133,7 @@ public class Main {
         final var stripped = input.strip();
         if (stripped.isEmpty()) return "";
 
-        return Main.createIndent(2) + Main.generatePlaceholder(stripped);
+        return Main.createIndent(2) + Placeholder.generatePlaceholder(stripped);
     }
 
     private static String createIndent(final int depth) {
@@ -143,7 +144,7 @@ public class Main {
         final var stripped = input.strip();
         if (stripped.isEmpty()) return "";
 
-        return Main.compileAll(input, Main::compileDefinitionOrPlaceholder, Main::foldValue);
+        return Main.compileAll(input, input1 -> Main.parseDefinitionOrPlaceholder(input1).generate(), Main::foldValue);
     }
 
     private static DivideState foldValue(final DivideState state, final char c) {
@@ -165,17 +166,17 @@ public class Main {
         if (0 <= index) {
             final var definition = input.substring(0, index);
             final var value = input.substring(index + "=".length());
-            return Main.compileDefinitionOrPlaceholder(definition) + " = " + Main.compileValue(value);
+            return Main.parseDefinitionOrPlaceholder(definition).generate() + " = " + Main.compileValue(value);
         }
 
-        return Main.generatePlaceholder(input);
+        return Placeholder.generatePlaceholder(input);
     }
 
     private static String compileValue(final String input) {
         return Main.compileInvokable(input)
                    .or(() -> Main.compileDataAccess(input))
                    .or(() -> Main.compileSymbol(input))
-                   .orElseGet(() -> Main.generatePlaceholder(input));
+                   .orElseGet(() -> Placeholder.generatePlaceholder(input));
     }
 
     private static Optional<String> compileSymbol(final String input) {
@@ -212,12 +213,12 @@ public class Main {
     private static String compileArguments(final String input) {
         final var strip = input.strip();
         if (strip.isEmpty()) return "";
-        return Main.generatePlaceholder(strip);
+        return Placeholder.generatePlaceholder(strip);
     }
 
-    private static String compileDefinitionOrPlaceholder(final String input) {
+    private static Definable parseDefinitionOrPlaceholder(final String input) {
         final var beforeType = Main.compileDefinition(input);
-        return beforeType.map(Definition::generate).orElseGet(() -> Main.generatePlaceholder(input));
+        return beforeType.<Definable>map(value -> value).orElseGet(() -> new Placeholder(input));
     }
 
     private static Optional<Definition> compileDefinition(final String input) {
@@ -261,7 +262,7 @@ public class Main {
         final var strip = input.strip();
         if ("String".contentEquals(strip)) return "string";
         if ("void".contentEquals(strip)) return "void";
-        return Main.generatePlaceholder(strip);
+        return Placeholder.generatePlaceholder(strip);
     }
 
     private static String compileClassHeader(final String input) {
@@ -269,10 +270,10 @@ public class Main {
         if (0 <= index) {
             final var beforeKeyword = input.substring(0, index);
             final var afterKeyword = input.substring(index + "class ".length()).strip();
-            return Main.generatePlaceholder(beforeKeyword) + "class " + afterKeyword;
+            return Placeholder.generatePlaceholder(beforeKeyword) + "class " + afterKeyword;
         }
 
-        return Main.generatePlaceholder(input);
+        return Placeholder.generatePlaceholder(input);
     }
 
     private static List<String> divide(final CharSequence input,
@@ -346,9 +347,5 @@ public class Main {
         if ('{' == c) return appended.enter();
         if ('}' == c) return appended.exit();
         return appended;
-    }
-
-    private static String generatePlaceholder(final String input) {
-        return "/*" + input.replace("/*", "start").replace("*/", "end") + "*/";
     }
 }

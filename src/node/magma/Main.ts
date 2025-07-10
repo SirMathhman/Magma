@@ -62,7 +62,8 @@
 	private static compileRootSegment(readonly input : string) : string {
 		/*final var stripped = input.strip();*/
 		/*if (stripped.startsWith("package ")) return "";*/
-		/*return Main.compileClass(stripped).orElseGet(() -> Main.generatePlaceholder(stripped) + Main.LINE_SEPARATOR);*/
+		/*return Main.compileClass(stripped)
+                   .orElseGet(() -> Placeholder.generatePlaceholder(stripped) + Main.LINE_SEPARATOR);*/
 	}
 	private static compileClass(readonly stripped : string) : /*Optional<String>*/ {
 		/*if (stripped.isEmpty() || '}' != stripped.charAt(stripped.length() - 1)) return Optional.empty();*/
@@ -80,7 +81,7 @@
 	private static compileClassSegmentValue(readonly input : string) : string {
 		/*return Main.compileField(input)
                    .or(() -> Main.compileMethod(input))
-                   .orElseGet(() -> Main.generatePlaceholder(input));*/
+                   .orElseGet(() -> Placeholder.generatePlaceholder(input));*/
 	}
 	private static compileField(readonly input : string) : /*Optional<String>*/ {
 		/*if (input.isEmpty() || ';' != input.charAt(input.length() - 1)) return Optional.empty();*/
@@ -113,7 +114,7 @@
 	private static compileFunctionSegment(readonly input : string) : string {
 		/*final var stripped = input.strip();*/
 		/*if (stripped.isEmpty()) return "";*/
-		/*return Main.createIndent(2) + Main.generatePlaceholder(stripped);*/
+		/*return Main.createIndent(2) + Placeholder.generatePlaceholder(stripped);*/
 	}
 	private static createIndent(readonly depth : /*int*/) : string {
 		/*return Main.LINE_SEPARATOR + "\t".repeat(depth);*/
@@ -121,7 +122,7 @@
 	private static compileParameters(readonly input : string) : string {
 		/*final var stripped = input.strip();*/
 		/*if (stripped.isEmpty()) return "";*/
-		/*return Main.compileAll(input, Main::compileDefinitionOrPlaceholder, Main::foldValue);*/
+		/*return Main.compileAll(input, input1 -> Main.parseDefinitionOrPlaceholder(input1).generate(), Main::foldValue);*/
 	}
 	private static foldValue(readonly state : /*DivideState*/readonly c : /*char*/) : /*DivideState*/ {
 		/*if (',' == c) return state.advance();*/
@@ -141,15 +142,15 @@
 		/*if (0 <= index) {
             final var definition = input.substring(0, index);
             final var value = input.substring(index + "=".length());
-            return Main.compileDefinitionOrPlaceholder(definition) + " = " + Main.compileValue(value);
+            return Main.parseDefinitionOrPlaceholder(definition).generate() + " = " + Main.compileValue(value);
         }*/
-		/*return Main.generatePlaceholder(input);*/
+		/*return Placeholder.generatePlaceholder(input);*/
 	}
 	private static compileValue(readonly input : string) : string {
 		/*return Main.compileInvokable(input)
                    .or(() -> Main.compileDataAccess(input))
                    .or(() -> Main.compileSymbol(input))
-                   .orElseGet(() -> Main.generatePlaceholder(input));*/
+                   .orElseGet(() -> Placeholder.generatePlaceholder(input));*/
 	}
 	private static compileSymbol(readonly input : string) : /*Optional<String>*/ {
 		/*final var strip = input.strip();*/
@@ -179,11 +180,11 @@
 	private static compileArguments(readonly input : string) : string {
 		/*final var strip = input.strip();*/
 		/*if (strip.isEmpty()) return "";*/
-		/*return Main.generatePlaceholder(strip);*/
+		/*return Placeholder.generatePlaceholder(strip);*/
 	}
-	private static compileDefinitionOrPlaceholder(readonly input : string) : string {
+	private static parseDefinitionOrPlaceholder(readonly input : string) : /*Definable*/ {
 		/*final var beforeType = Main.compileDefinition(input);*/
-		/*return beforeType.map(Definition::generate).orElseGet(() -> Main.generatePlaceholder(input));*/
+		/*return beforeType.<Definable>map(value -> value).orElseGet(() -> new Placeholder(input));*/
 	}
 	private static compileDefinition(readonly input : string) : /*Optional<Definition>*/ {
 		/*final var strip = input.strip();*/
@@ -218,16 +219,16 @@
 		/*final var strip = input.strip();*/
 		/*if ("String".contentEquals(strip)) return "string";*/
 		/*if ("void".contentEquals(strip)) return "void";*/
-		/*return Main.generatePlaceholder(strip);*/
+		/*return Placeholder.generatePlaceholder(strip);*/
 	}
 	private static compileClassHeader(readonly input : string) : string {
 		/*final var index = input.indexOf("class ");*/
 		/*if (0 <= index) {
             final var beforeKeyword = input.substring(0, index);
             final var afterKeyword = input.substring(index + "class ".length()).strip();
-            return Main.generatePlaceholder(beforeKeyword) + "class " + afterKeyword;
+            return Placeholder.generatePlaceholder(beforeKeyword) + "class " + afterKeyword;
         }*/
-		/*return Main.generatePlaceholder(input);*/
+		/*return Placeholder.generatePlaceholder(input);*/
 	}
 	private static divide(readonly input : /*CharSequence*//*
                                        final BiFunction<DivideState*//* Character*//* DivideState> folder*/) : /*List<String>*/ {
@@ -291,8 +292,5 @@
 		/*if ('{' == c) return appended.enter();*/
 		/*if ('}' == c) return appended.exit();*/
 		/*return appended;*/
-	}
-	private static generatePlaceholder(readonly input : string) : string {
-		/*return "start" + input.replace("start", "start").replace("end", "end") + "end";*/
 	}
 	/**/}/**/

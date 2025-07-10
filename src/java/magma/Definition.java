@@ -3,7 +3,7 @@ package magma;
 import java.util.Collection;
 import java.util.stream.Collectors;
 
-public record Definition(Collection<String> newModifiers, String name, String type) implements Header {
+public record Definition(Collection<String> newModifiers, String name, String type) implements Header, Definable {
     static String generateModifiers(final Collection<String> newModifiers) {
         return newModifiers.stream().map(value -> value + " ").collect(Collectors.joining());
     }
