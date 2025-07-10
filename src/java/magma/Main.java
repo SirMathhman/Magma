@@ -103,17 +103,22 @@ public class Main {
 
         final var i1 = substring1.indexOf(')');
         if (0 > i1) return Optional.empty();
-        final var substring2 = substring1.substring(0, i1);
+        final var params = substring1.substring(0, i1);
         final var withBraces = substring1.substring(i1 + ")".length()).strip();
 
-        final var maybeHeader = Main.compileDefinition(headerString).or(() -> Main.compileConstructor(headerString));
+        final var maybeHeader = Main.compileDefinition(headerString)
+                                    .<Header>map(value -> value)
+                                    .or(() -> Main.compileConstructor(headerString));
         if (withBraces.isEmpty() || '{' != withBraces.charAt(0) || '}' != withBraces.charAt(withBraces.length() - 1))
             return Optional.empty();
 
         final var content = withBraces.substring(1, withBraces.length() - 1).strip();
-        return maybeHeader.flatMap(header -> Optional.of(header + "(" + Main.compileParameters(substring2) + "){" +
-                                                         Main.compileStatements(content, Main::compileFunctionSegment) +
-                                                         Main.createIndent(1) + "}"));
+        return maybeHeader.flatMap(header -> {
+            final var outputParams = "(" + Main.compileParameters(params) + ")";
+            return Optional.of(header.generateWithAfterName(outputParams) + " {" +
+                               Main.compileStatements(content, Main::compileFunctionSegment) + Main.createIndent(1) +
+                               "}");
+        });
     }
 
     private static String compileFunctionSegment(final String input) {
@@ -133,11 +138,12 @@ public class Main {
         return Main.generatePlaceholder(stripped);
     }
 
-    private static Optional<String> compileConstructor(final String header) {
+    private static Optional<Constructor> compileConstructor(final String header) {
         final var i2 = header.lastIndexOf(' ');
         if (0 <= i2) {
             final var substring = header.substring(0, i2);
-            return Optional.of(Main.compileModifiers(substring) + "constructor");
+            final var newModifiers = Main.lexModifiers(substring);
+            return Optional.of(new Constructor(newModifiers));
         } else return Optional.empty();
     }
 
@@ -198,10 +204,10 @@ public class Main {
 
     private static String compileDefinitionOrPlaceholder(final String input) {
         final var beforeType = Main.compileDefinition(input);
-        return beforeType.orElseGet(() -> Main.generatePlaceholder(input));
+        return beforeType.map(Definition::generate).orElseGet(() -> Main.generatePlaceholder(input));
     }
 
-    private static Optional<String> compileDefinition(final String input) {
+    private static Optional<Definition> compileDefinition(final String input) {
         final var strip = input.strip();
         final var nameSeparator = strip.lastIndexOf(' ');
 
@@ -212,13 +218,15 @@ public class Main {
         final var typeSeparator = beforeName.lastIndexOf(' ');
         if (0 > typeSeparator) return Optional.empty();
         final var beforeType = beforeName.substring(0, typeSeparator);
-        final var type = beforeName.substring(typeSeparator + " ".length());
+        final var typeString = beforeName.substring(typeSeparator + " ".length());
 
-        final var joinedModifiers = Main.compileModifiers(beforeType);
-        return Optional.of(joinedModifiers + name + " : " + Main.compileType(type));
+        final var newModifiers = Main.lexModifiers(beforeType);
+        final var type = Main.compileType(typeString);
+
+        return Optional.of(new Definition(newModifiers, name, type));
     }
 
-    private static String compileModifiers(final String modifiers) {
+    private static Collection<String> lexModifiers(final String modifiers) {
         final var oldModifiers = Arrays.stream(modifiers.split(" "))
                                        .map(String::strip)
                                        .filter(value -> !value.isEmpty())
@@ -226,7 +234,7 @@ public class Main {
 
         final Collection<String> newModifiers = new ArrayList<>();
         for (final var oldModifier : oldModifiers) Main.foldModifier(oldModifier).ifPresent(newModifiers::add);
-        return newModifiers.stream().map(value -> value + " ").collect(Collectors.joining());
+        return newModifiers;
     }
 
     private static Optional<String> foldModifier(final CharSequence modifier) {
