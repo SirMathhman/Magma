@@ -10,7 +10,7 @@
 /*import java.util.function.Function;*/
 /*import java.util.stream.Collectors;*/
 /*public */class Main {
-	private static readonly LINE_SEPARATOR : string = /* System.lineSeparator()*/;
+	private static readonly LINE_SEPARATOR : string = /*System.lineSeparator*/(/**/);
 	/*private Main() {}*/
 	/*public static void main(final String[] args) {
         final var sourceDirectory = Paths.get(".", "src", "java");
@@ -82,10 +82,24 @@
         if (0 <= index) {
             final var definition = input.substring(0, index);
             final var value = input.substring(index + "=".length());
-            return Main.compileDefinitionOrPlaceholder(definition) + " = " + Main.generatePlaceholder(value);
+            return Main.compileDefinitionOrPlaceholder(definition) + " = " + Main.compileValue(value);
         }
 
         return Main.generatePlaceholder(input);
+    }*/
+	/*private static String compileValue(final String input) {
+        final var strip = input.strip();
+        if (strip.endsWith(")")) {
+            final var slice = strip.substring(0, strip.length() - ")".length());
+            final var i = slice.indexOf("(");
+            if (0 <= i) {
+                final var substring = slice.substring(0, i);
+                final var substring1 = slice.substring(i + "(".length());
+                return Main.generatePlaceholder(substring) + "(" + Main.generatePlaceholder(substring1) + ")";
+            }
+        }
+
+        return Main.generatePlaceholder(strip);
     }*/
 	/*private static String compileDefinitionOrPlaceholder(final String input) {
         final var beforeType = Main.compileDefinition(input);

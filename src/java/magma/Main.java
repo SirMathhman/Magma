@@ -95,10 +95,27 @@ public class Main {
         if (0 <= index) {
             final var definition = input.substring(0, index);
             final var value = input.substring(index + "=".length());
-            return Main.compileDefinitionOrPlaceholder(definition) + " = " + Main.generatePlaceholder(value);
+            return Main.compileDefinitionOrPlaceholder(definition) + " = " + Main.compileValue(value);
         }
 
         return Main.generatePlaceholder(input);
+    }
+
+    private static String compileValue(final String input) {
+        return Main.compileInvokable(input).orElseGet(() -> Main.generatePlaceholder(input));
+    }
+
+    private static Optional<String> compileInvokable(final String input) {
+        final var strip = input.strip();
+        if (!(!strip.isEmpty() && ')' == strip.charAt(strip.length() - 1))) return Optional.empty();
+        final var slice = strip.substring(0, strip.length() - ")".length());
+
+        final var i = slice.indexOf('(');
+        if (0 > i) return Optional.empty();
+        final var substring = slice.substring(0, i);
+        final var substring1 = slice.substring(i + "(".length());
+
+        return Optional.of(Main.generatePlaceholder(substring) + "(" + Main.generatePlaceholder(substring1) + ")");
     }
 
     private static String compileDefinitionOrPlaceholder(final String input) {
