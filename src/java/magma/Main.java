@@ -76,7 +76,38 @@ public class Main {
     }
 
     private static String compileClassSegment(final String input) {
-        return Main.LINE_SEPARATOR + "\t" + Main.generatePlaceholder(input.strip());
+        return Main.LINE_SEPARATOR + "\t" + Main.compileClassSegmentValue(input.strip());
+    }
+
+    private static String compileClassSegmentValue(final String input) {
+        if (input.endsWith(";")) {
+            final var slice = input.substring(0, input.length() - ";".length());
+            return Main.compileClassStatementValue(slice) + ";";
+        }
+        return Main.generatePlaceholder(input);
+    }
+
+    private static String compileClassStatementValue(final String input) {
+        final var index = input.indexOf('=');
+        if (0 <= index) {
+            final var definition = input.substring(0, index);
+            final var value = input.substring(index + "=".length());
+            return Main.compileDefinition(definition) + " = " + Main.generatePlaceholder(value);
+        }
+
+        return Main.generatePlaceholder(input);
+    }
+
+    private static String compileDefinition(final String input) {
+        final var strip = input.strip();
+        final var nameSeparator = strip.lastIndexOf(' ');
+        if (0 <= nameSeparator) {
+            final var substring = strip.substring(0, nameSeparator);
+            final var name = strip.substring(nameSeparator + " ".length());
+            return Main.generatePlaceholder(substring) + " " + name;
+        }
+
+        return Main.generatePlaceholder(strip);
     }
 
     private static String compileClassHeader(final String input) {

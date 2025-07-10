@@ -7,7 +7,7 @@
 /*import java.util.function.Function;*/
 /*import java.util.stream.Collectors;*/
 /*public */class Main {
-	/*private static final String LINE_SEPARATOR = System.lineSeparator();*/
+	/*private static final String*/ LINE_SEPARATOR = /* System.lineSeparator()*/;
 	/*private Main() {}*/
 	/*public static void main(final String[] args) {
         final var sourceDirectory = Paths.get(".", "src", "java");
@@ -43,7 +43,6 @@
     }*/
 	/*private static String compileStatements(final CharSequence input, final Function<String, String> mapper) {
         final var segments = Main.divide(input);
-
         final var output = new StringBuilder();
         for (final var segment : segments) output.append(mapper.apply(segment));
         return output.toString();
@@ -66,7 +65,35 @@
                            Main.compileStatements(content, Main::compileClassSegment) + "}");
     }*/
 	/*private static String compileClassSegment(final String input) {
-        return Main.LINE_SEPARATOR + "\t" + Main.generatePlaceholder(input.strip());
+        return Main.LINE_SEPARATOR + "\t" + Main.compileClassSegmentValue(input.strip());
+    }*/
+	/*private static String compileClassSegmentValue(final String input) {
+        if (input.endsWith(";")) {
+            final var slice = input.substring(0, input.length() - ";".length());
+            return Main.compileClassStatementValue(slice) + ";";
+        }
+        return Main.generatePlaceholder(input);
+    }*/
+	/*private static String compileClassStatementValue(final String input) {
+        final var index = input.indexOf('=');
+        if (0 <= index) {
+            final var definition = input.substring(0, index);
+            final var value = input.substring(index + "=".length());
+            return Main.compileDefinition(definition) + " = " + Main.generatePlaceholder(value);
+        }
+
+        return Main.generatePlaceholder(input);
+    }*/
+	/*private static String compileDefinition(final String input) {
+        final var strip = input.strip();
+        final var nameSeparator = strip.lastIndexOf(' ');
+        if (0 <= nameSeparator) {
+            final var substring = strip.substring(0, nameSeparator);
+            final var name = strip.substring(nameSeparator + " ".length());
+            return Main.generatePlaceholder(substring) + " " + name;
+        }
+
+        return Main.generatePlaceholder(strip);
     }*/
 	/*private static String compileClassHeader(final String input) {
         final var index = input.indexOf("class ");
