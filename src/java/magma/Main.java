@@ -17,7 +17,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
@@ -159,7 +158,7 @@ public class Main {
         final var params = substring1.substring(0, i1);
         final var withBraces = substring1.substring(i1 + ")".length()).strip();
 
-        final var maybeHeader = Main.compileDefinition(headerString)
+        final var maybeHeader = Main.parseDefinition(headerString)
                                     .map(definition -> Main.modifyDefinition(definition, Main::transformFieldModifier))
                                     .<Header>map(value -> value)
                                     .or(() -> Main.compileConstructor(headerString));
@@ -188,8 +187,10 @@ public class Main {
     }
 
     private static String compileFunctionStatementValue(final String input) {
-        return Main.compileInvokable(input).or(
-                                              () -> Main.parseAssignment(input).map(Main::transformStatementAssignment).map(Assignment::generate))
+        return Main.parseAssignment(input)
+                   .map(Main::transformStatementAssignment)
+                   .map(Assignment::generate)
+                   .or(() -> Main.compileInvokable(input))
                    .orElseGet(() -> Placeholder.wrap(input));
     }
 
@@ -247,11 +248,9 @@ public class Main {
 
     private static Optional<Constructor> compileConstructor(final String header) {
         final var i2 = header.lastIndexOf(' ');
-        if (0 <= i2) {
-            final var substring = header.substring(0, i2);
-            final var newModifiers = Main.lexModifiers(substring);
-            return Optional.of(new Constructor(newModifiers));
-        } else return Optional.empty();
+        if (0 > i2) return Optional.empty();
+        final var substring = header.substring(0, i2);
+        return Main.lexModifiers(substring).map(Constructor::new);
     }
 
     private static String compileFieldValue(final String input) {
@@ -270,10 +269,10 @@ public class Main {
         final var index = input.indexOf('=');
         if (0 > index) return Optional.empty();
         final var definition = input.substring(0, index);
-        final var value = input.substring(index + "=".length());
-        final var definable = Main.parseDefinable(definition);
-        final var s = Main.compileValue(value);
-        return Optional.of(new Assignment(definable, s));
+        final var valueString = input.substring(index + "=".length());
+        return Main.parseDefinition(definition).flatMap(definable -> {
+            return Main.compileValue(valueString).map(value -> new Assignment(definable, value));
+        });
     }
 
     private static Definable transformDefinable(final Definable definable,
@@ -292,12 +291,15 @@ public class Main {
         return modifiers.stream().map(transformer).flatMap(Optional::stream).collect(Collectors.toList());
     }
 
-    private static String compileValue(final String input) {
+    private static String compileValueOrPlaceholder(final String input) {
+        return Main.compileValue(input).orElseGet(() -> Placeholder.wrap(input));
+    }
+
+    private static Optional<String> compileValue(final String input) {
         return Main.compileInvokable(input)
                    .or(() -> Main.compileDataAccess(input))
                    .or(() -> Main.compileIdentifier(input))
-                   .or(() -> Main.compileString(input))
-                   .orElseGet(() -> Placeholder.wrap(input));
+                   .or(() -> Main.compileString(input));
     }
 
     private static Optional<String> compileString(final String input) {
@@ -324,7 +326,7 @@ public class Main {
         final var property = input.substring(index + ".".length()).strip();
 
         if (!Main.isSymbol(property)) return Optional.empty();
-        return Optional.of(Main.compileValue(parent) + "." + property);
+        return Optional.of(Main.compileValueOrPlaceholder(parent) + "." + property);
     }
 
     private static Optional<String> compileInvokable(final String input) {
@@ -338,8 +340,8 @@ public class Main {
 
         if (withEnd.isEmpty() || '(' != withEnd.charAt(withEnd.length() - 1)) return Optional.empty();
         final var withoutEnd = withEnd.substring(0, withEnd.length() - "(".length());
-        return Optional.of(
-                Main.compileValue(withoutEnd) + "(" + Main.compileValues(argumentsString, Main::compileValue) + ")");
+        return Optional.of(Main.compileValueOrPlaceholder(withoutEnd) + "(" +
+                           Main.compileValues(argumentsString, Main::compileValueOrPlaceholder) + ")");
     }
 
     private static DivideState foldInvocationStart(final DivideState state, final char c) {
@@ -358,11 +360,11 @@ public class Main {
     }
 
     private static Definable parseDefinable(final String input) {
-        final var beforeType = Main.compileDefinition(input);
+        final var beforeType = Main.parseDefinition(input);
         return beforeType.<Definable>map(value -> value).orElseGet(() -> new Placeholder(input));
     }
 
-    private static Optional<Definition> compileDefinition(final String input) {
+    private static Optional<Definition> parseDefinition(final String input) {
         final var strip = input.strip();
         final var nameSeparator = strip.lastIndexOf(' ');
 
@@ -375,13 +377,20 @@ public class Main {
         final var beforeType = beforeName.substring(0, typeSeparator);
         final var typeString = beforeName.substring(typeSeparator + " ".length());
 
-        final var newModifiers = Main.lexModifiers(beforeType);
-        final var type = Main.compileType(typeString);
-        return Optional.of(new Definition(newModifiers, name, Optional.of(type)));
+        return Main.lexModifiers(beforeType).flatMap(modifiers -> {
+            final var type = Main.compileType(typeString);
+            return Optional.of(new Definition(modifiers, name, Optional.of(type)));
+        });
     }
 
-    private static Collection<String> lexModifiers(final String modifiers) {
-        return Arrays.stream(modifiers.split(" ")).map(String::strip).filter(value -> !value.isEmpty()).toList();
+    private static Optional<List<String>> lexModifiers(final String modifiers) {
+        final List<String> list = new ArrayList<>();
+        for (final String s : modifiers.split(" ")) {
+            final String value = s.strip();
+            if (!Main.isSymbol(value)) return Optional.empty();
+            if (!value.isEmpty()) list.add(value);
+        }
+        return Optional.of(list);
     }
 
     private static Optional<String> transformFieldModifier(final CharSequence modifier) {

@@ -7,13 +7,15 @@
 	static generateModifiers(newModifiers : /*Collection<String>*/) : string {
 		/*return newModifiers*/.stream().map(/*value -> value + " "*/).collect(Collectors.joining());
 	}
-	public generate() : string {
-		/*return this*/.generateWithAfterName("");
-	}
-	public generateWithAfterName(afterName : string) : string {
-		/*final var joinedModifiers = Definition*/.generateModifiers(this.modifiers());
-		/*return joinedModifiers + this.name() + afterName + this*/.maybeType.map(/*value -> " : " + value*/).orElse("");
-	}
+	/*@Override
+    public String generate() {
+        return this.generateWithAfterName("");
+    }*/
+	/*@Override
+    public String generateWithAfterName(final String afterName) {
+        final var joinedModifiers = Definition.generateModifiers(this.modifiers());
+        return joinedModifiers + this.name() + afterName + this.maybeType.map(value -> " : " + value).orElse("");
+    }*/
 	public mapModifiers(/*final Function<Collection<String>*//* Collection<String>> mapper*/) : Definition {
 		/*return new Definition*/(mapper.apply(this.modifiers), this.name, this.maybeType);
 	}

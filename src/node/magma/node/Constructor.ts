@@ -1,9 +1,11 @@
 /*import java.util.Collection;*/
 /*public record Constructor(Collection<String> modifiers) implements Header */ {
-	public generate() : string {
-		/*return Definition.generateModifiers(this.modifiers()) + "constructor"*/;
-	}
-	public generateWithAfterName(afterName : string) : string {
-		/*return this.generate() + afterName*/;
-	}
+	/*@Override
+    public String generate() {
+        return Definition.generateModifiers(this.modifiers()) + "constructor";
+    }*/
+	/*@Override
+    public String generateWithAfterName(final String afterName) {
+        return this.generate() + afterName;
+    }*/
 	/**/}/**/
