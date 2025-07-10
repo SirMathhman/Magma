@@ -289,6 +289,11 @@ public class Main {
         final var strip = input.strip();
         if ("String".contentEquals(strip)) return "string";
         if ("void".contentEquals(strip)) return "void";
+        if (strip.endsWith("[]")) {
+            final var slice = strip.substring(0, strip.length() - "[]".length());
+            return Main.compileType(slice) + "[]";
+        }
+
         return Placeholder.generatePlaceholder(strip);
     }
 
