@@ -8,7 +8,6 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
-import java.util.Set;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -197,9 +196,9 @@ public class Main {
         return definition.mapModifiers(modifiers -> Main.transformModifiers(modifiers, transformer));
     }
 
-    private static Set<String> transformModifiers(final Collection<String> modifiers,
-                                                  final Function<String, Optional<String>> transformer) {
-        return modifiers.stream().map(transformer).flatMap(Optional::stream).collect(Collectors.toSet());
+    private static List<String> transformModifiers(final Collection<String> modifiers,
+                                                   final Function<String, Optional<String>> transformer) {
+        return modifiers.stream().map(transformer).flatMap(Optional::stream).collect(Collectors.toList());
     }
 
     private static String compileValue(final String input) {
@@ -271,10 +270,7 @@ public class Main {
     }
 
     private static Collection<String> lexModifiers(final String modifiers) {
-        return Arrays.stream(modifiers.split(" "))
-                     .map(String::strip)
-                     .filter(value -> !value.isEmpty())
-                     .collect(Collectors.toSet());
+        return Arrays.stream(modifiers.split(" ")).map(String::strip).filter(value -> !value.isEmpty()).toList();
     }
 
     private static Optional<String> transformDefinedModifier(final CharSequence modifier) {

@@ -6,7 +6,6 @@
 /*import java.util.Collection;*/
 /*import java.util.List;*/
 /*import java.util.Optional;*/
-/*import java.util.Set;*/
 /*import java.util.function.BiFunction;*/
 /*import java.util.function.Function;*/
 /*import java.util.stream.Collectors;*/
@@ -15,7 +14,7 @@
 	private static readonly LINE_SEPARATOR : string = System.lineSeparator();
 	private constructor() {
 	}
-	static public main(args : string[]) : void {
+	public static main(args : string[]) : void {
 		/*final var sourceDirectory = Paths.get(".", "src", "java");*/
 		/*try (final var stream = Files.walk(sourceDirectory)) {
             final var sources = stream.filter(Files::isRegularFile)
@@ -169,8 +168,8 @@
 		/*return definition.mapModifiers(modifiers -> Main.transformModifiers(modifiers, transformer));*/
 	}
 	private static transformModifiers(modifiers : /*Collection<String>*//*
-                                                  final Function<String*//* Optional<String>> transformer*/) : /*Set<String>*/ {
-		/*return modifiers.stream().map(transformer).flatMap(Optional::stream).collect(Collectors.toSet());*/
+                                                   final Function<String*//* Optional<String>> transformer*/) : /*List<String>*/ {
+		/*return modifiers.stream().map(transformer).flatMap(Optional::stream).collect(Collectors.toList());*/
 	}
 	private static compileValue(input : string) : string {
 		/*return Main.compileInvokable(input)
@@ -227,10 +226,7 @@
 		/*return Optional.of(new Definition(newModifiers, name, type));*/
 	}
 	private static lexModifiers(modifiers : string) : /*Collection<String>*/ {
-		/*return Arrays.stream(modifiers.split(" "))
-                     .map(String::strip)
-                     .filter(value -> !value.isEmpty())
-                     .collect(Collectors.toSet());*/
+		/*return Arrays.stream(modifiers.split(" ")).map(String::strip).filter(value -> !value.isEmpty()).toList();*/
 	}
 	private static transformDefinedModifier(modifier : /*CharSequence*/) : /*Optional<String>*/ {
 		/*if ("private".contentEquals(modifier)) return Optional.of("private");*/
