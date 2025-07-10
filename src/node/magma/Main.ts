@@ -8,7 +8,7 @@
 /*import java.util.function.Function;*/
 /*import java.util.stream.Collectors;*/
 export class Main {
-	/*private static final String LINE_SEPARATOR = System.lineSeparator()*/;
+	/*private static final String LINE_SEPARATOR = System.lineSeparator();*/
 	/*private Main() {}*/
 	/*public static void main(final String[] args) {
         final var sourceDirectory = Paths.get(".", "src", "java");
@@ -53,30 +53,18 @@ export class Main {
         if (stripped.startsWith("package ")) return "";
         return Main.compileClass(stripped).orElseGet(() -> Main.generatePlaceholder(stripped) + Main.LINE_SEPARATOR);
     }*/
-	/*private static Optional<String> compileClass(final String input) {
-        return Main.compileSuffix(input, "}", withoutEnd -> Main.compileInfix(withoutEnd, "{",
-                                                                              (beforeContent, content) -> Optional.of(
-                                                                                      Main.compileClassHeader(
-                                                                                              beforeContent) + " {" +
-                                                                                      Main.compileStatements(content,
-                                                                                                             Main::compileClassStatement) +
-                                                                                      Main.LINE_SEPARATOR + "}")));
+	/*private static Optional<String> compileClass(final String stripped) {
+        if (stripped.isEmpty() || '}' != stripped.charAt(stripped.length() - 1)) return Optional.empty();
+        final var withoutEnd = stripped.substring(0, stripped.length() - "}".length());
+
+        return Main.compileInfix(withoutEnd, "{", (beforeContent, content) -> Optional.of(
+                Main.compileClassHeader(beforeContent) + " {" +
+                Main.compileStatements(content, Main::compileClassStatement) + Main.LINE_SEPARATOR + "}"));
     }*/
 	/*private static String compileClassStatement(final String input) {
         final var stripped = input.strip();
         if (stripped.isEmpty()) return "";
-        return Main.LINE_SEPARATOR + "\t" + Main.compileClassStatementValue(stripped);
-    }*/
-	/*private static String compileClassStatementValue(final String input) {
-        return Main.compileSuffix(input, ";", slice1 -> Optional.of(Main.generatePlaceholder(slice1) + ";"))
-                   .orElseGet(() -> Main.generatePlaceholder(input));
-    }*/
-	/*private static Optional<String> compileSuffix(final String input,
-                                                  final String suffix,
-                                                  final Function<String, Optional<String>> mapper) {
-        if (!input.endsWith(suffix)) return Optional.empty();
-        final var slice = input.substring(0, input.length() - suffix.length());
-        return mapper.apply(slice);
+        return Main.LINE_SEPARATOR + "\t" + Main.generatePlaceholder(stripped);
     }*/
 	/*private static String compileClassHeader(final String input) {
         return Main.compileInfix(input, "class ", (oldModifiers, name) -> Optional.of(
