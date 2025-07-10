@@ -88,6 +88,20 @@ public class Main {
             final var slice = input.substring(0, input.length() - ";".length());
             return Main.compileClassStatementValue(slice) + ";";
         }
+
+        final var i = input.indexOf('(');
+        if (0 <= i) {
+            final var substring = input.substring(0, i);
+            final var substring1 = input.substring(i + "(".length());
+            final var i1 = substring1.indexOf(')');
+            if (0 <= i1) {
+                final var substring2 = substring1.substring(0, i1);
+                final var substring3 = substring1.substring(i1 + ")".length());
+                return Main.generatePlaceholder(substring) + "(" + Main.generatePlaceholder(substring2) + ")" +
+                       Main.generatePlaceholder(substring3);
+            }
+        }
+
         return Main.generatePlaceholder(input);
     }
 
