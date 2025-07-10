@@ -117,7 +117,10 @@ public class Main {
     }
 
     private static String compileFunctionSegment(final String input) {
-        return Main.createIndent(2) + Main.generatePlaceholder(input.strip());
+        final var stripped = input.strip();
+        if (stripped.isEmpty()) return "";
+
+        return Main.createIndent(2) + Main.generatePlaceholder(stripped);
     }
 
     private static String createIndent(final int depth) {
