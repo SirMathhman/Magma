@@ -7,7 +7,7 @@
 /*import java.util.function.Function;*/
 /*import java.util.stream.Collectors;*/
 /*public */class Main {
-	/*private static final*/ LINE_SEPARATOR : /*String*/ = /* System.lineSeparator()*/;
+	/*private static final*/ LINE_SEPARATOR : string = /* System.lineSeparator()*/;
 	/*private Main() {}*/
 	/*public static void main(final String[] args) {
         final var sourceDirectory = Paths.get(".", "src", "java");
@@ -101,7 +101,13 @@
         final var beforeType = beforeName.substring(0, typeSeparator);
         final var type = beforeName.substring(typeSeparator + " ".length());
 
-        return Optional.of(Main.generatePlaceholder(beforeType) + " " + name + " : " + Main.generatePlaceholder(type));
+        return Optional.of(Main.generatePlaceholder(beforeType) + " " + name + " : " + Main.compileType(type));
+    }*/
+	/*private static String compileType(final String input) {
+        final var strip = input.strip();
+        if ("String".contentEquals(strip)) return "string";
+
+        return Main.generatePlaceholder(strip);
     }*/
 	/*private static String compileClassHeader(final String input) {
         final var index = input.indexOf("class ");
