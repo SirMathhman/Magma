@@ -4,7 +4,6 @@ import magma.divide.DivideState;
 import magma.divide.MutableDivideState;
 import magma.node.MapNode;
 import magma.rule.PlaceholderRule;
-import magma.rule.Rule;
 import magma.rule.StringRule;
 import magma.rule.SuffixRule;
 
@@ -93,7 +92,7 @@ public class Main {
                    .orElseGet(() -> PlaceholderRule.wrap(input));
     }
 
-    private static Rule createClassStatementRule() {
+    private static SuffixRule createClassStatementRule() {
         return new SuffixRule(new PlaceholderRule(new StringRule("value")), ";");
     }
 

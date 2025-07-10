@@ -2,7 +2,6 @@
 /*import magma.divide.MutableDivideState;*/
 /*import magma.node.MapNode;*/
 /*import magma.rule.PlaceholderRule;*/
-/*import magma.rule.Rule;*/
 /*import magma.rule.StringRule;*/
 /*import magma.rule.SuffixRule;*/
 /*import java.io.IOException;*/
@@ -79,7 +78,7 @@ export class Main {
                                   slice1 -> Main.createClassStatementRule().generate(MapNode.createMapNode(slice1)))
                    .orElseGet(() -> PlaceholderRule.wrap(input));
     }*/
-	/*private static Rule createClassStatementRule() {
+	/*private static SuffixRule createClassStatementRule() {
         return new SuffixRule(new PlaceholderRule(new StringRule("value")), ";");
     }*/
 	/*private static Optional<String> compileSuffix(final String input,
