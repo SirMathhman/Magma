@@ -1,3 +1,14 @@
+/*import magma.divide.DivideState;*/
+/*import magma.divide.MutableDivideState;*/
+/*import magma.node.Assignment;*/
+/*import magma.node.Constructor;*/
+/*import magma.node.Definable;*/
+/*import magma.node.Definition;*/
+/*import magma.node.Header;*/
+/*import magma.node.Placeholder;*/
+/*import magma.result.Err;*/
+/*import magma.result.Ok;*/
+/*import magma.result.Result;*/
 /*import java.io.IOException;*/
 /*import java.nio.file.Files;*/
 /*import java.nio.file.Path;*/
@@ -6,6 +17,7 @@
 /*import java.util.Collection;*/
 /*import java.util.List;*/
 /*import java.util.Optional;*/
+/*import java.util.Set;*/
 /*import java.util.function.BiFunction;*/
 /*import java.util.function.Function;*/
 /*import java.util.stream.Collectors;*/
@@ -16,43 +28,76 @@
 	}
 	public static main(args : string[]) : void {
 		const sourceDirectory = Paths.get(".", "src", "java");
-		/*try (final var stream = Files.walk(sourceDirectory)) {
-            final var sources = stream.filter(Files::isRegularFile)
-                                      .filter(path -> path.toString().endsWith(".java"))
-                                      .collect(Collectors.toSet());
+		/*Main.walk(sourceDirectory).match(files -> {
+            final var sources = files.stream()
+                                     .filter(Files::isRegularFile)
+                                     .filter(path -> path.toString().endsWith(".java"))
+                                     .collect(Collectors.toSet());
 
-            Main.runWithSources(sourceDirectory, sources);
+            return Main.runWithSources(sourceDirectory, sources);
+        }*/
+		/*, Optional::of).ifPresent(Throwable::printStackTrace)*/;
+	}
+	private static walk(sourceDirectory : Path) : /*IOException>*/ {
+		/*try (final var stream = Files.walk(sourceDirectory)) {
+            return new Ok<>(stream.collect(Collectors.toSet()));
         }*/
 		/*catch (final IOException e) {
-            //noinspection CallToPrintStackTrace
-            e.printStackTrace();
+            return new Err<>(e);
         }*/
 	}
-	/*private static void runWithSources(final Path sourceDirectory, final Iterable<Path> sources) throws IOException {
-        for (final var source : sources) Main.runWithSource(sourceDirectory, source);
-    }*/
-	/*private static void runWithSource(final Path sourceDirectory, final Path source) throws IOException {
-        final var relativeParent = sourceDirectory.relativize(source.getParent());
-
-        final var targetParent = Paths.get(".", "src", "node").resolve(relativeParent);
-        if (!Files.exists(targetParent)) Files.createDirectories(targetParent);
-
-        final var fileName = source.getFileName().toString();
-        final var separator = fileName.lastIndexOf('.');
-        final var name = fileName.substring(0, separator);
-
-        final var target = targetParent.resolve(name + ".ts");
-        final var input = Files.readString(source);
-
-        final var output = Main.compileStatements(input, Main::compileRootSegment);
-        Files.writeString(target, output);
-    }*/
+	private static runWithSources(sourceDirectory : Pathsources : /*Collection<Path>*/) : /*Optional<IOException>*/ {
+		/*return sources.stream()
+                      .map(source -> Main.runWithSource(sourceDirectory, source))
+                      .flatMap(Optional::stream)
+                      .findFirst()*/;
+	}
+	private static runWithSource(sourceDirectory : Pathsource : Path) : /*Optional<IOException>*/ {
+		const relativeParent = sourceDirectory.relativize(source.getParent());
+		const targetParent = Paths.get(".", "src", /* "node")*/.resolve(relativeParent);
+		/*if (!Files.exists(targetParent)) return Main.createDirectories(targetParent)*/;
+		const fileName = source.getFileName(/*)*/.toString();
+		const separator = fileName.lastIndexOf(/*'*/.');
+		const name = fileName.substring(/*0*/, separator);
+		const target = targetParent.resolve(/*name + "*/.ts");
+		/*return Main.readString(source).match(input -> {
+            final var output = Main.compileStatements(input, Main::compileRootSegment);
+            return Main.writeString(target, output);
+        }*/
+		/*, Optional::of)*/;
+	}
+	private static readString(source : Path) : /*IOException>*/ {
+		/*try {
+            return new Ok<>(Files.readString(source));
+        }*/
+		/*catch (final IOException e) {
+            return new Err<>(e);
+        }*/
+	}
+	private static writeString(path : Pathcontent : CharSequence) : /*Optional<IOException>*/ {
+		/*try {
+            Files.writeString(path, content);
+            return Optional.empty();
+        }*/
+		/*catch (final IOException e) {
+            return Optional.of(e);
+        }*/
+	}
+	private static createDirectories(directory : Path) : /*Optional<IOException>*/ {
+		/*try {
+            Files.createDirectories(directory);
+            return Optional.empty();
+        }*/
+		/*catch (final IOException e) {
+            return Optional.of(e);
+        }*/
+	}
 	private static compileStatements(input : CharSequence/* final Function<String*//* String> mapper*/) : string {
 		/*return Main.compileAll(input, mapper, Main::foldStatement, "")*/;
 	}
 	private static compileAll(input : CharSequence/*
                                      final Function<String*//* String> mapper*//*
-                                     final BiFunction<DivideState*//* Character*//* DivideState> folder*/delimiter : string) : string {
+                                     final BiFunction<DivideState*//* Character*//* DivideState> folder*/delimiter : CharSequence) : string {
 		/*return Main.divide(input, folder).stream().map(mapper).collect(Collectors.joining(delimiter))*/;
 	}
 	private static compileRootSegment(input : string) : string {
@@ -127,11 +172,11 @@
 	}
 	private static transformStatementDefinable(definable : Definable) : Definable {
 		/*if (!(definable instanceof final Definition definition)) return definable*/;
-		/*return definition.mapModifiers(Main::transformStatementModifiers).mapType(type -> {
-            if ("var".contentEquals(type)) return Optional.empty();
-            else return Optional.of(type);
-        }*/
-		/*)*/;
+		/*return definition.mapModifiers(Main::transformStatementModifiers).mapType(Main::removeVar)*/;
+	}
+	private static removeVar(type : string) : /*Optional<String>*/ {
+		/*if ("var".contentEquals(type)) return Optional.empty()*/;
+		/*else return Optional.of(type)*/;
 	}
 	private static transformStatementModifiers(modifiers : /*Collection<String>*/) : /*List<String>*/ {
 		const newModifiers = Main.transformModifiers(modifiers, /* Main::transformFunctionModifier*/);
@@ -139,7 +184,7 @@
 		/*newModifiers.add("let")*/;
 		/*return newModifiers*/;
 	}
-	private static transformFunctionModifier(modifier : string) : /*Optional<String>*/ {
+	private static transformFunctionModifier(modifier : CharSequence) : /*Optional<String>*/ {
 		/*if ("final".contentEquals(modifier)) return Optional.of("const")*/;
 		/*return Optional.empty()*/;
 	}

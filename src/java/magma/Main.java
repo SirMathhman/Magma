@@ -1,5 +1,17 @@
 package magma;
 
+import magma.divide.DivideState;
+import magma.divide.MutableDivideState;
+import magma.node.Assignment;
+import magma.node.Constructor;
+import magma.node.Definable;
+import magma.node.Definition;
+import magma.node.Header;
+import magma.node.Placeholder;
+import magma.result.Err;
+import magma.result.Ok;
+import magma.result.Result;
+
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -8,6 +20,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -20,37 +33,72 @@ public class Main {
 
     public static void main(final String[] args) {
         final var sourceDirectory = Paths.get(".", "src", "java");
-        try (final var stream = Files.walk(sourceDirectory)) {
-            final var sources = stream.filter(Files::isRegularFile)
-                                      .filter(path -> path.toString().endsWith(".java"))
-                                      .collect(Collectors.toSet());
+        Main.walk(sourceDirectory).match(files -> {
+            final var sources = files.stream()
+                                     .filter(Files::isRegularFile)
+                                     .filter(path -> path.toString().endsWith(".java"))
+                                     .collect(Collectors.toSet());
 
-            Main.runWithSources(sourceDirectory, sources);
+            return Main.runWithSources(sourceDirectory, sources);
+        }, Optional::of).ifPresent(Throwable::printStackTrace);
+    }
+
+    private static Result<Set<Path>, IOException> walk(final Path sourceDirectory) {
+        try (final var stream = Files.walk(sourceDirectory)) {
+            return new Ok<>(stream.collect(Collectors.toSet()));
         } catch (final IOException e) {
-            //noinspection CallToPrintStackTrace
-            e.printStackTrace();
+            return new Err<>(e);
         }
     }
 
-    private static void runWithSources(final Path sourceDirectory, final Iterable<Path> sources) throws IOException {
-        for (final var source : sources) Main.runWithSource(sourceDirectory, source);
+    private static Optional<IOException> runWithSources(final Path sourceDirectory, final Collection<Path> sources) {
+        return sources.stream()
+                      .map(source -> Main.runWithSource(sourceDirectory, source))
+                      .flatMap(Optional::stream)
+                      .findFirst();
     }
 
-    private static void runWithSource(final Path sourceDirectory, final Path source) throws IOException {
+    private static Optional<IOException> runWithSource(final Path sourceDirectory, final Path source) {
         final var relativeParent = sourceDirectory.relativize(source.getParent());
 
         final var targetParent = Paths.get(".", "src", "node").resolve(relativeParent);
-        if (!Files.exists(targetParent)) Files.createDirectories(targetParent);
+        if (!Files.exists(targetParent)) return Main.createDirectories(targetParent);
 
         final var fileName = source.getFileName().toString();
         final var separator = fileName.lastIndexOf('.');
         final var name = fileName.substring(0, separator);
 
         final var target = targetParent.resolve(name + ".ts");
-        final var input = Files.readString(source);
+        return Main.readString(source).match(input -> {
+            final var output = Main.compileStatements(input, Main::compileRootSegment);
+            return Main.writeString(target, output);
+        }, Optional::of);
+    }
 
-        final var output = Main.compileStatements(input, Main::compileRootSegment);
-        Files.writeString(target, output);
+    private static Result<String, IOException> readString(final Path source) {
+        try {
+            return new Ok<>(Files.readString(source));
+        } catch (final IOException e) {
+            return new Err<>(e);
+        }
+    }
+
+    private static Optional<IOException> writeString(final Path path, final CharSequence content) {
+        try {
+            Files.writeString(path, content);
+            return Optional.empty();
+        } catch (final IOException e) {
+            return Optional.of(e);
+        }
+    }
+
+    private static Optional<IOException> createDirectories(final Path directory) {
+        try {
+            Files.createDirectories(directory);
+            return Optional.empty();
+        } catch (final IOException e) {
+            return Optional.of(e);
+        }
     }
 
     private static String compileStatements(final CharSequence input, final Function<String, String> mapper) {
@@ -60,7 +108,7 @@ public class Main {
     private static String compileAll(final CharSequence input,
                                      final Function<String, String> mapper,
                                      final BiFunction<DivideState, Character, DivideState> folder,
-                                     final String delimiter) {
+                                     final CharSequence delimiter) {
         return Main.divide(input, folder).stream().map(mapper).collect(Collectors.joining(delimiter));
     }
 
@@ -151,10 +199,12 @@ public class Main {
 
     private static Definable transformStatementDefinable(final Definable definable) {
         if (!(definable instanceof final Definition definition)) return definable;
-        return definition.mapModifiers(Main::transformStatementModifiers).mapType(type -> {
-            if ("var".contentEquals(type)) return Optional.empty();
-            else return Optional.of(type);
-        });
+        return definition.mapModifiers(Main::transformStatementModifiers).mapType(Main::removeVar);
+    }
+
+    private static Optional<String> removeVar(final String type) {
+        if ("var".contentEquals(type)) return Optional.empty();
+        else return Optional.of(type);
     }
 
     private static List<String> transformStatementModifiers(final Collection<String> modifiers) {
@@ -165,7 +215,7 @@ public class Main {
         return newModifiers;
     }
 
-    private static Optional<String> transformFunctionModifier(final String modifier) {
+    private static Optional<String> transformFunctionModifier(final CharSequence modifier) {
         if ("final".contentEquals(modifier)) return Optional.of("const");
         return Optional.empty();
     }

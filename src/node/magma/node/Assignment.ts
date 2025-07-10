@@ -1,11 +1,11 @@
 /*import java.util.function.Function;*/
 /*public record Assignment(Definable definition, String value) */ {
-	Assignment constructor(/*final Function<Definable*//* Definable> mapper*/) {
+	public mapDefinition(/*final Function<Definable*//* Definable> mapper*/) : Assignment {
 		const definition1 = this.definition;
 		const definable2 = mapper.apply(/*definition1*/);
 		/*return new Assignment(definable2, this.value())*/;
 	}
-	String constructor() {
+	public generate() : string {
 		let " : /*+*/ = /*" + this*/.value();
 	}
 	/**/}/**/

@@ -1,3 +1,4 @@
+/*import magma.Tuple;*/
 /*import java.util.Optional;*/
 /*import java.util.stream.Stream;*/
 /*public interface DivideState */ {

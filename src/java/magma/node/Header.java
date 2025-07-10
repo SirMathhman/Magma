@@ -1,4 +1,4 @@
-package magma;
+package magma.node;
 
 public interface Header {
     String generate();

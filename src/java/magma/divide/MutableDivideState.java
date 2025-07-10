@@ -1,18 +1,20 @@
-package magma;
+package magma.divide;
+
+import magma.Tuple;
 
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Optional;
 import java.util.stream.Stream;
 
-class MutableDivideState implements DivideState {
+public class MutableDivideState implements DivideState {
     private final Collection<String> segments = new ArrayList<>();
     private final CharSequence input;
     private int index = 0;
     private StringBuilder buffer = new StringBuilder();
     private int depth = 0;
 
-    MutableDivideState(final CharSequence input) {
+    public MutableDivideState(final CharSequence input) {
         this.input = input;
     }
 

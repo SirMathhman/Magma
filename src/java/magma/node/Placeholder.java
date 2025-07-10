@@ -1,7 +1,7 @@
-package magma;
+package magma.node;
 
 public record Placeholder(String value) implements Definable {
-    static String wrap(final String input) {
+    public static String wrap(final String input) {
         return "/*" + input.replace("/*", "start").replace("*/", "end") + "*/";
     }
 
