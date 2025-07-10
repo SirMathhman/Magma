@@ -16,6 +16,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
@@ -187,9 +188,8 @@ public class Main {
     }
 
     private static String compileFunctionStatementValue(final String input) {
-        return Main.parseAssignment(input)
-                   .map(Main::transformStatementAssignment)
-                   .map(Assignment::generate)
+        return Main.compileInvokable(input).or(
+                                              () -> Main.parseAssignment(input).map(Main::transformStatementAssignment).map(Assignment::generate))
                    .orElseGet(() -> Placeholder.wrap(input));
     }
 
@@ -332,13 +332,25 @@ public class Main {
         if (!(!strip.isEmpty() && ')' == strip.charAt(strip.length() - 1))) return Optional.empty();
         final var slice = strip.substring(0, strip.length() - ")".length());
 
-        final var i = slice.indexOf('(');
-        if (0 > i) return Optional.empty();
-        final var substring = slice.substring(0, i);
-        final var argumentsString = slice.substring(i + "(".length());
+        final var divisions = Main.divide(slice, Main::foldInvocationStart);
+        final var argumentsString = divisions.removeLast();
+        final var withEnd = String.join("", divisions);
 
+        if (withEnd.isEmpty() || '(' != withEnd.charAt(withEnd.length() - 1)) return Optional.empty();
+        final var withoutEnd = withEnd.substring(0, withEnd.length() - "(".length());
         return Optional.of(
-                Main.compileValue(substring) + "(" + Main.compileValues(argumentsString, Main::compileValue) + ")");
+                Main.compileValue(withoutEnd) + "(" + Main.compileValues(argumentsString, Main::compileValue) + ")");
+    }
+
+    private static DivideState foldInvocationStart(final DivideState state, final char c) {
+        final var appended = state.append(c);
+        if ('(' == c) {
+            final var enter = appended.enter();
+            if (enter.isShallow()) return enter.advance();
+            else return enter;
+        }
+        if (')' == c) return appended.exit();
+        return appended;
     }
 
     private static String compileValues(final CharSequence input, final Function<String, String> mapper) {
@@ -407,7 +419,7 @@ public class Main {
                                        final BiFunction<DivideState, Character, DivideState> folder) {
         final var state = Main.foldEarly(new MutableDivideState(input), DivideState::pop,
                                          popped -> new Tuple<>(true, Main.foldDecorated(popped, folder)));
-        return state.right().advance().stream().toList();
+        return state.right().advance().stream().collect(Collectors.toCollection(ArrayList::new));
     }
 
     private static Tuple<Boolean, DivideState> foldEarly(final DivideState initial,

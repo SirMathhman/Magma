@@ -3,6 +3,6 @@
 		/*return "start" + input.replace("start", "start").replace("end", "end") + "end"*/;
 	}
 	public generate() : string {
-		/*return Placeholder.wrap(this.value)*/;
+		/*return Placeholder*/.wrap(this.value);
 	}
 	/**/}/**/
