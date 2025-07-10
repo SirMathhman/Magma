@@ -2,12 +2,15 @@
 /*import java.nio.file.Files;*/
 /*import java.nio.file.Path;*/
 /*import java.nio.file.Paths;*/
+/*import java.util.ArrayList;*/
+/*import java.util.Arrays;*/
+/*import java.util.Collection;*/
 /*import java.util.List;*/
 /*import java.util.Optional;*/
 /*import java.util.function.Function;*/
 /*import java.util.stream.Collectors;*/
 /*public */class Main {
-	/*private static final*/ LINE_SEPARATOR : string = /* System.lineSeparator()*/;
+	private static readonly LINE_SEPARATOR : string = /* System.lineSeparator()*/;
 	/*private Main() {}*/
 	/*public static void main(final String[] args) {
         final var sourceDirectory = Paths.get(".", "src", "java");
@@ -101,7 +104,20 @@
         final var beforeType = beforeName.substring(0, typeSeparator);
         final var type = beforeName.substring(typeSeparator + " ".length());
 
-        return Optional.of(Main.generatePlaceholder(beforeType) + " " + name + " : " + Main.compileType(type));
+        final var oldModifiers = Arrays.stream(beforeType.split(" "))
+                                       .map(String::strip)
+                                       .filter(value -> !value.isEmpty())
+                                       .collect(Collectors.toSet());
+
+        final Collection<String> newModifiers = new ArrayList<>();
+        for (final var oldModifier : oldModifiers) {
+            if ("private".contentEquals(oldModifier)) newModifiers.add("private");
+            if ("static".contentEquals(oldModifier)) newModifiers.add("static");
+            if ("final".contentEquals(oldModifier)) newModifiers.add("readonly");
+        }
+
+        final var joinedModifiers = newModifiers.stream().map(value -> value + " ").collect(Collectors.joining());
+        return Optional.of(joinedModifiers + name + " : " + Main.compileType(type));
     }*/
 	/*private static String compileType(final String input) {
         final var strip = input.strip();
