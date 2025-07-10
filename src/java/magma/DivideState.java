@@ -1,6 +1,4 @@
-package magma.divide;
-
-import magma.Tuple;
+package magma;
 
 import java.util.Optional;
 import java.util.stream.Stream;

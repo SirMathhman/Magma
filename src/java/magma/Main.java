@@ -1,12 +1,5 @@
 package magma;
 
-import magma.divide.DivideState;
-import magma.divide.MutableDivideState;
-import magma.node.MapNode;
-import magma.rule.PlaceholderRule;
-import magma.rule.StringRule;
-import magma.rule.SuffixRule;
-
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
