@@ -60,8 +60,8 @@
     }
 
     private static List<String> divide(final CharSequence input) {
-        final var state =
-                Main.foldEarly(new MutableDivideState(input), DivideState::pop, Main::getBooleanDivideStateTuple);
+        final var state = Main.foldEarly(new MutableDivideState(input), DivideState::pop,
+                                         popped -> new Tuple<>(true, Main.foldDecorated(popped)));
         return state.right().advance().stream().toList();
     }
 
@@ -83,10 +83,6 @@
         if (maybePopped.isEmpty()) return new Tuple<>(false, state);
         final var popped = maybePopped.get();
         return folder.apply(popped);
-    }
-
-    private static Tuple<Boolean, DivideState> getBooleanDivideStateTuple(final Tuple<DivideState, Character> popped) {
-        return new Tuple<>(true, Main.foldDecorated(popped));
     }
 
     private static DivideState foldDecorated(final Tuple<DivideState, Character> popped) {
