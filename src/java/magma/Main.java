@@ -243,7 +243,15 @@ public class Main {
         return Main.compileInvokable(input)
                    .or(() -> Main.compileDataAccess(input))
                    .or(() -> Main.compileIdentifier(input))
+                   .or(() -> Main.compileString(input))
                    .orElseGet(() -> Placeholder.wrap(input));
+    }
+
+    private static Optional<String> compileString(final String input) {
+        final var strip = input.strip();
+        if (!strip.isEmpty() && '\"' == strip.charAt(0) && '\"' == input.charAt(input.length() - 1))
+            return Optional.of(strip);
+        else return Optional.empty();
     }
 
     private static Optional<String> compileIdentifier(final String input) {

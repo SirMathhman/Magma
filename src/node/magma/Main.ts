@@ -15,7 +15,7 @@
 	private constructor() {
 	}
 	public static main(args : string[]) : void {
-		const sourceDirectory = Paths.get(/*"*/.", /* "src"*/, /* "java"*/);
+		const sourceDirectory = Paths.get(".", "src", "java");
 		/*try (final var stream = Files.walk(sourceDirectory)) {
             final var sources = stream.filter(Files::isRegularFile)
                                       .filter(path -> path.toString().endsWith(".java"))
@@ -87,7 +87,7 @@
 		const i = input.indexOf(/*'('*/);
 		/*if (0 > i) return Optional.empty()*/;
 		const headerString = input.substring(/*0*/, /* i)*/.strip();
-		const substring1 = input.substring(/*i + "*/(/*"*/.length());
+		const substring1 = input.substring(/*i + "*/(".length());
 		const i1 = /*substring1*/.indexOf(/*')'*/);
 		/*if (0 > i1) return Optional.empty()*/;
 		const params = /*substring1*/.substring(/*0*/, /* i1*/);
@@ -205,7 +205,14 @@
 		/*return Main.compileInvokable(input)
                    .or(() -> Main.compileDataAccess(input))
                    .or(() -> Main.compileIdentifier(input))
+                   .or(() -> Main.compileString(input))
                    .orElseGet(() -> Placeholder.wrap(input))*/;
+	}
+	private static compileString(input : string) : /*Optional<String>*/ {
+		const strip = input.strip();
+		let '\"' : /*&&*/ = /*= strip*/.charAt(/*0) && '\"' == input*/.charAt(input.length() - 1))
+            return Optional.of(strip);
+		/*else return Optional.empty()*/;
 	}
 	private static compileIdentifier(input : string) : /*Optional<String>*/ {
 		const strip = input.strip();
@@ -229,7 +236,7 @@
 		const i = slice.indexOf(/*'('*/);
 		/*if (0 > i) return Optional.empty()*/;
 		const substring = slice.substring(/*0*/, i);
-		const argumentsString = slice.substring(/*i + "*/(/*"*/.length());
+		const argumentsString = slice.substring(/*i + "*/(".length());
 		/*return Optional.of(
                 Main.compileValue(substring) + "(" + Main.compileValues(argumentsString, Main::compileValue) + ")")*/;
 	}
@@ -275,7 +282,7 @@
 		/*return Main.compileIdentifier(input).orElseGet(() -> Placeholder.wrap(input))*/;
 	}
 	private static compileClassHeader(input : string) : string {
-		const index = input.indexOf(/*"class "*/);
+		const index = input.indexOf("class ");
 		/*if (0 <= index) {
             final var beforeKeyword = input.substring(0, index);
             final var afterKeyword = input.substring(index + "class ".length()).strip();
