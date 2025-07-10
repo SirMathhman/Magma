@@ -68,15 +68,17 @@
     private static Tuple<Boolean, DivideState> foldEarly(final DivideState initial,
                                                          final Function<DivideState, Optional<Tuple<DivideState, Character>>> mapper,
                                                          final Function<Tuple<DivideState, Character>, Tuple<Boolean, DivideState>> folder) {
-        Tuple<Boolean, DivideState> state = new Tuple<>(true, initial);
-        while (state.left()) state = Main.foldEarlyElement(state, mapper, folder);
-        return state;
+        Tuple<Boolean, DivideState> tuple = new Tuple<>(true, initial);
+        while (tuple.left()) {
+            final var state = tuple.right();
+            tuple = Main.foldEarlyElement(state, mapper, folder);
+        }
+        return tuple;
     }
 
-    private static Tuple<Boolean, DivideState> foldEarlyElement(final Tuple<Boolean, DivideState> tuple,
+    private static Tuple<Boolean, DivideState> foldEarlyElement(final DivideState state,
                                                                 final Function<DivideState, Optional<Tuple<DivideState, Character>>> mapper,
                                                                 final Function<Tuple<DivideState, Character>, Tuple<Boolean, DivideState>> folder) {
-        final var state = tuple.right();
         final var maybePopped = mapper.apply(state);
         if (maybePopped.isEmpty()) return new Tuple<>(false, state);
         final var popped = maybePopped.get();
