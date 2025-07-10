@@ -1,7 +1,9 @@
 package magma;
 
-public interface Node {
-    Node withString(String key, String value);
+import java.util.Optional;
 
-    String findStringOrEmpty(String key);
+public interface Node {
+    Optional<String> findString(String key);
+
+    Node withString(String key, String value);
 }

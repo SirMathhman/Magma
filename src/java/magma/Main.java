@@ -60,7 +60,7 @@ public class Main {
     private static String compileRootSegment(final String input) {
         final var stripped = input.strip();
         if (stripped.startsWith("package ")) return "";
-        return Main.compileClass(stripped).orElseGet(() -> Main.generatePlaceholder(stripped) + Main.LINE_SEPARATOR);
+        return Main.compileClass(stripped).orElseGet(() -> PlaceholderRule.wrap(stripped) + Main.LINE_SEPARATOR);
     }
 
     private static Optional<String> compileClass(final String input) {
@@ -80,12 +80,13 @@ public class Main {
     }
 
     private static String compileClassStatementValue(final String input) {
-        return Main.compileSuffix(input, ";", slice1 -> Main.generate(MapNode.createMapNode(slice1)))
-                   .orElseGet(() -> Main.generatePlaceholder(input));
+        return Main.compileSuffix(input, ";",
+                                  slice1 -> Main.createClassStatementRule().generate(MapNode.createMapNode(slice1)))
+                   .orElseGet(() -> PlaceholderRule.wrap(input));
     }
 
-    private static Optional<String> generate(final Node node) {
-        return Optional.of(node.findStringOrEmpty("value")).map(Main::generatePlaceholder).map(value -> value + ";");
+    private static SuffixRule createClassStatementRule() {
+        return new SuffixRule(new PlaceholderRule(new StringRule("value")), ";");
     }
 
     private static Optional<String> compileSuffix(final String input,
@@ -99,7 +100,7 @@ public class Main {
     private static String compileClassHeader(final String input) {
         return Main.compileInfix(input, "class ", (oldModifiers, name) -> Optional.of(
                            Main.compileModifiers(oldModifiers) + "class " + name.strip()))
-                   .orElseGet(() -> Main.generatePlaceholder(input));
+                   .orElseGet(() -> PlaceholderRule.wrap(input));
     }
 
     private static String compileModifiers(final String oldModifiers) {
@@ -187,9 +188,5 @@ public class Main {
         if ('{' == c) return appended.enter();
         if ('}' == c) return appended.exit();
         return appended;
-    }
-
-    private static String generatePlaceholder(final String input) {
-        return "/*" + input.replace("/*", "start").replace("*/", "end") + "*/";
     }
 }
