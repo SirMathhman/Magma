@@ -239,7 +239,7 @@ public class Main {
     private static String compileType(final String input) {
         final var strip = input.strip();
         if ("String".contentEquals(strip)) return "string";
-
+        if ("void".contentEquals(strip)) return "void";
         return Main.generatePlaceholder(strip);
     }
 

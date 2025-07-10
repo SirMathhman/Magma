@@ -14,7 +14,7 @@
 	private static readonly LINE_SEPARATOR : string = System.lineSeparator();
 	private constructor(){
 	}
-	static main : /*void*/(/*final String[] args*/){
+	static main : void(/*final String[] args*/){
 		/*final var sourceDirectory = Paths.get(".", "src", "java");*/
 		/*try (final var stream = Files.walk(sourceDirectory)) {
             final var sources = stream.filter(Files::isRegularFile)
@@ -199,6 +199,7 @@
 	private static compileType : string(/*final String input*/){
 		/*final var strip = input.strip();*/
 		/*if ("String".contentEquals(strip)) return "string";*/
+		/*if ("void".contentEquals(strip)) return "void";*/
 		/*return Main.generatePlaceholder(strip);*/
 	}
 	private static compileClassHeader : string(/*final String input*/){
