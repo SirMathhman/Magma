@@ -66,7 +66,18 @@ public class Main {
         final var beforeContent = withoutEnd.substring(0, index);
         final var content = withoutEnd.substring(index + "{".length());
 
-        return Optional.of(Main.generatePlaceholder(beforeContent) + "{" + Main.generatePlaceholder(content) + "}");
+        return Optional.of(Main.compileClassHeader(beforeContent) + " {" + Main.generatePlaceholder(content) + "}");
+    }
+
+    private static String compileClassHeader(final String input) {
+        final var index = input.indexOf("class ");
+        if (0 <= index) {
+            final var beforeKeyword = input.substring(0, index);
+            final var afterKeyword = input.substring(index + "class ".length()).strip();
+            return Main.generatePlaceholder(beforeKeyword) + "class " + afterKeyword;
+        }
+
+        return Main.generatePlaceholder(input);
     }
 
     private static List<String> divide(final CharSequence input) {

@@ -1,6 +1,6 @@
 /*import java.util.Optional;*/
 /*import java.util.stream.Stream;*/
-/*public interface DivideState */{/*
+/*public interface DivideState */ {/*
     DivideState advance();
 
     DivideState append(char c);
