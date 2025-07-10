@@ -9,7 +9,7 @@
 		/*return this.generateWithAfterName("")*/;
 	}
 	public generateWithAfterName(afterName : string) : string {
-		readonly joinedModifiers : /*var*/ = Definition.generateModifiers(/*this.modifiers()*/);
+		const joinedModifiers : /*var*/ = Definition.generateModifiers(/*this.modifiers()*/);
 		/*return joinedModifiers + this.name() + afterName + " : " + this.type()*/;
 	}
 	public mapModifiers(/*final Function<Collection<String>*//* Collection<String>> mapper*/) : /*Definition*/ {

@@ -15,7 +15,7 @@
 	private constructor() {
 	}
 	public static main(args : string[]) : void {
-		readonly sourceDirectory : /*var*/ = Paths.get(/*".", "src", "java"*/);
+		const sourceDirectory : /*var*/ = Paths.get(/*".", "src", "java"*/);
 		/*try (final var stream = Files.walk(sourceDirectory)) {
             final var sources = stream.filter(Files::isRegularFile)
                                       .filter(path -> path.toString().endsWith(".java"))
@@ -53,23 +53,23 @@
 	private static compileAll(input : /*CharSequence*//*
                                      final Function<String*//* String> mapper*//*
                                      final BiFunction<DivideState*//* Character*//* DivideState> folder*/) : string {
-		readonly segments : /*var*/ = Main.divide(/*input, folder*/);
-		readonly output : /*var*/ = /*new StringBuilder*/();
+		const segments : /*var*/ = Main.divide(/*input, folder*/);
+		const output : /*var*/ = /*new StringBuilder*/();
 		/*for (final var segment : segments) output.append(mapper.apply(segment))*/;
 		/*return output.toString()*/;
 	}
 	private static compileRootSegment(input : string) : string {
-		readonly stripped : /*var*/ = input.strip();
+		const stripped : /*var*/ = input.strip();
 		/*if (stripped.startsWith("package ")) return ""*/;
 		/*return Main.compileClass(stripped).orElseGet(() -> Placeholder.wrap(stripped) + Main.LINE_SEPARATOR)*/;
 	}
 	private static compileClass(stripped : string) : /*Optional<String>*/ {
-		! : /*'}'*/ = stripped.charAt(/*stripped.length() - 1)) return Optional.empty(*/);
-		readonly withoutEnd : /*var*/ = stripped.substring(/*0, stripped.length() - "}".length()*/);
-		readonly index : /*var*/ = withoutEnd.indexOf(/*'{'*/);
+		let ! : /*'}'*/ = stripped.charAt(/*stripped.length() - 1)) return Optional.empty(*/);
+		const withoutEnd : /*var*/ = stripped.substring(/*0, stripped.length() - "}".length()*/);
+		const index : /*var*/ = withoutEnd.indexOf(/*'{'*/);
 		/*if (0 > index) return Optional.empty()*/;
-		readonly beforeContent : /*var*/ = withoutEnd.substring(/*0, index*/);
-		readonly content : /*var*/ = withoutEnd.substring(/*index + "{".length()*/);
+		const beforeContent : /*var*/ = withoutEnd.substring(/*0, index*/);
+		const content : /*var*/ = withoutEnd.substring(/*index + "{".length()*/);
 		/*return Optional.of(Main.compileClassHeader(beforeContent) + " {" +
                            Main.compileStatements(content, Main::compileClassSegment) + "}")*/;
 	}
@@ -82,27 +82,26 @@
                    .orElseGet(() -> Placeholder.wrap(input))*/;
 	}
 	private static compileStatement(input : string/* final Function<String*//* String> mapper*/) : /*Optional<String>*/ {
-		! : /*';'*/ = input.charAt(/*input.length() - 1)) return Optional.empty(*/);
-		readonly slice : /*var*/ = input.substring(/*0, input.length() - ";".length()*/);
+		let ! : /*';'*/ = input.charAt(/*input.length() - 1)) return Optional.empty(*/);
+		const slice : /*var*/ = input.substring(/*0, input.length() - ";".length()*/);
 		/*return Optional.of(mapper.apply(slice) + ";")*/;
 	}
 	private static compileMethod(input : string) : /*Optional<String>*/ {
-		readonly i : /*var*/ = input.indexOf(/*'('*/);
+		const i : /*var*/ = input.indexOf(/*'('*/);
 		/*if (0 > i) return Optional.empty()*/;
-		readonly headerString : /*var*/ = input.substring(/*0, i).strip(*/);
-		readonly substring1 : /*var*/ = input.substring(/*i + "(".length()*/);
-		readonly i1 : /*var*/ = /*substring1*/.indexOf(/*')'*/);
+		const headerString : /*var*/ = input.substring(/*0, i).strip(*/);
+		const substring1 : /*var*/ = input.substring(/*i + "(".length()*/);
+		const i1 : /*var*/ = /*substring1*/.indexOf(/*')'*/);
 		/*if (0 > i1) return Optional.empty()*/;
-		readonly params : /*var*/ = /*substring1*/.substring(/*0, i1*/);
-		readonly withBraces : /*var*/ = /*substring1*/.substring(/*i1 + ")".length()).strip(*/);
-		readonly maybeHeader : /*var*/ = Main.compileDefinition(/*headerString)
-                                    .map(definition -> Main.modifyDefinition(definition,
-                                                                             Main::transformDefinedModifier))
+		const params : /*var*/ = /*substring1*/.substring(/*0, i1*/);
+		const withBraces : /*var*/ = /*substring1*/.substring(/*i1 + ")".length()).strip(*/);
+		const maybeHeader : /*var*/ = Main.compileDefinition(/*headerString)
+                                    .map(definition -> Main.modifyDefinition(definition, Main::transformFieldModifier))
                                     .<Header>map(value -> value)
                                     .or(() -> Main.compileConstructor(headerString)*/);
-		! : /*'{'*/ = withBraces.charAt(/*0) || '}' != withBraces.charAt(withBraces.length() - 1))
+		let ! : /*'{'*/ = withBraces.charAt(/*0) || '}' != withBraces.charAt(withBraces.length() - 1))
             return Optional.empty(*/);
-		readonly content : /*var*/ = withBraces.substring(/*1, withBraces.length() - 1).strip(*/);
+		const content : /*var*/ = withBraces.substring(/*1, withBraces.length() - 1).strip(*/);
 		/*return maybeHeader.flatMap(header -> {
             final var outputParams = "(" + Main.compileParameters(params) + ")";
             return Optional.of(header.generateWithAfterName(outputParams) + " {" +
@@ -112,7 +111,7 @@
 		/*)*/;
 	}
 	private static compileFunctionSegment(input : string) : string {
-		readonly stripped : /*var*/ = input.strip();
+		const stripped : /*var*/ = input.strip();
 		/*if (stripped.isEmpty()) return ""*/;
 		/*return Main.createIndent(2) + Main.compileFunctionSegmentValue(stripped)*/;
 	}
@@ -121,13 +120,33 @@
                    .orElseGet(() -> Placeholder.wrap(input))*/;
 	}
 	private static compileFunctionStatementValue(input : string) : string {
-		/*return Main.compileAssignment(input).orElseGet(() -> Placeholder.wrap(input))*/;
+		/*return Main.parseAssignment(input)
+                   .map(Main::transformStatementAssignment)
+                   .map(Assignment::generate)
+                   .orElseGet(() -> Placeholder.wrap(input))*/;
+	}
+	private static transformStatementAssignment(assignment : /*Assignment*/) : /*Assignment*/ {
+		/*return assignment.mapDefinition(Main::transformStatementDefinable)*/;
+	}
+	private static transformStatementDefinable(definition : /*Definable*/) : /*Definable*/ {
+		/*if (!(definition instanceof final Definition definition1)) return definition*/;
+		/*return definition1.mapModifiers(Main::transformStatementModifiers)*/;
+	}
+	private static transformStatementModifiers(modifiers : /*Collection<String>*/) : /*List<String>*/ {
+		const newModifiers : /*var*/ = Main.transformModifiers(/*modifiers, Main::transformFunctionModifier*/);
+		/*if (newModifiers.contains("const")) return newModifiers*/;
+		/*newModifiers.add("let")*/;
+		/*return newModifiers*/;
+	}
+	private static transformFunctionModifier(modifier : string) : /*Optional<String>*/ {
+		/*if ("final".contentEquals(modifier)) return Optional.of("const")*/;
+		/*return Optional.empty()*/;
 	}
 	private static createIndent(depth : /*int*/) : string {
 		/*return Main.LINE_SEPARATOR + "\t".repeat(depth)*/;
 	}
 	private static compileParameters(input : string) : string {
-		readonly stripped : /*var*/ = input.strip();
+		const stripped : /*var*/ = input.strip();
 		/*if (stripped.isEmpty()) return ""*/;
 		/*return Main.compileAll(input, input1 -> Main.transformDefinable(Main.parseDefinable(input1),
                                                                         Main::transformParameterModifier).generate(),
@@ -141,7 +160,7 @@
 		/*return state.append(c)*/;
 	}
 	private static compileConstructor(header : string) : /*Optional<Constructor>*/ {
-		readonly i2 : /*var*/ = header.lastIndexOf(/*' '*/);
+		const i2 : /*var*/ = header.lastIndexOf(/*' '*/);
 		/*if (0 <= i2) {
             final var substring = header.substring(0, i2);
             final var newModifiers = Main.lexModifiers(substring);
@@ -150,23 +169,28 @@
 		/*else return Optional.empty()*/;
 	}
 	private static compileFieldValue(input : string) : string {
-		/*return Main.compileAssignment(input).orElseGet(() -> Placeholder.wrap(input))*/;
+		/*return Main.parseAssignment(input)
+                   .map(assignment -> Main.transformAssignment(assignment, Main::transformFieldModifier))
+                   .map(Assignment::generate)
+                   .orElseGet(() -> Placeholder.wrap(input))*/;
 	}
-	private static compileAssignment(input : string) : /*Optional<String>*/ {
-		readonly index : /*var*/ = input.indexOf(/*'='*/);
+	private static transformAssignment(assignment : /*Assignment*//*
+                                                  final Function<String*//* Optional<String>> mapper*/) : /*Assignment*/ {
+		/*return assignment.mapDefinition(definition -> Main.transformDefinable(definition, mapper))*/;
+	}
+	private static parseAssignment(input : string) : /*Optional<Assignment>*/ {
+		const index : /*var*/ = input.indexOf(/*'='*/);
 		/*if (0 > index) return Optional.empty()*/;
-		readonly definition : /*var*/ = input.substring(/*0, index*/);
-		readonly value : /*var*/ = input.substring(/*index + "=".length()*/);
-		readonly definable : /*var*/ = Main.parseDefinable(/*definition*/);
-		readonly definable1 : /*var*/ = Main.transformDefinable(/*definable, Main::transformDefinedModifier*/);
-		" : /*+*/ = /*" + Main*/.compileValue(/*value)*/);
+		const definition : /*var*/ = input.substring(/*0, index*/);
+		const value : /*var*/ = input.substring(/*index + "=".length()*/);
+		const definable : /*var*/ = Main.parseDefinable(/*definition*/);
+		const s : /*var*/ = Main.compileValue(/*value*/);
+		/*return Optional.of(new Assignment(definable, s))*/;
 	}
 	private static transformDefinable(definable : /*Definable*//*
                                                 final Function<String*//* Optional<String>> transformer*/) : /*Definable*/ {
-		/*final Definable definable1*/;
-		readonly definable1 : /*definition1)*/ = Main.modifyDefinition(/*definition1, transformer*/);
-		/*else definable1 */ = definable;
-		/*return definable1*/;
+		/*if (definable instanceof final Definition definition) return Main.modifyDefinition(definition, transformer)*/;
+		/*return definable*/;
 	}
 	private static modifyDefinition(definition : /*Definition*//*
                                                final Function<String*//* Optional<String>> transformer*/) : /*Definition*/ {
@@ -183,7 +207,7 @@
                    .orElseGet(() -> Placeholder.wrap(input))*/;
 	}
 	private static compileSymbol(input : string) : /*Optional<String>*/ {
-		readonly strip : /*var*/ = input.strip();
+		const strip : /*var*/ = input.strip();
 		/*if (Main.isSymbol(strip)) return Optional.of(strip)*/;
 		/*else return Optional.empty()*/;
 	}
@@ -191,49 +215,49 @@
 		/*return IntStream.range(0, input.length()).mapToObj(input::charAt).allMatch(Character::isLetter)*/;
 	}
 	private static compileDataAccess(input : string) : /*Optional<String>*/ {
-		readonly i : /*var*/ = input.lastIndexOf(/*'.'*/);
+		const i : /*var*/ = input.lastIndexOf(/*'.'*/);
 		/*if (0 > i) return Optional.empty()*/;
-		readonly substring : /*var*/ = input.substring(/*0, i*/);
-		readonly substring1 : /*var*/ = input.substring(/*i + ".".length()*/);
+		const substring : /*var*/ = input.substring(/*0, i*/);
+		const substring1 : /*var*/ = input.substring(/*i + ".".length()*/);
 		/*return Optional.of(Main.compileValue(substring) + "." + substring1)*/;
 	}
 	private static compileInvokable(input : string) : /*Optional<String>*/ {
-		readonly strip : /*var*/ = input.strip();
-		')' : /*&&*/ = /*= strip*/.charAt(/*strip.length() - 1))) return Optional.empty(*/);
-		readonly slice : /*var*/ = strip.substring(/*0, strip.length() - ")".length()*/);
-		readonly i : /*var*/ = slice.indexOf(/*'('*/);
+		const strip : /*var*/ = input.strip();
+		let ')' : /*&&*/ = /*= strip*/.charAt(/*strip.length() - 1))) return Optional.empty(*/);
+		const slice : /*var*/ = strip.substring(/*0, strip.length() - ")".length()*/);
+		const i : /*var*/ = slice.indexOf(/*'('*/);
 		/*if (0 > i) return Optional.empty()*/;
-		readonly substring : /*var*/ = slice.substring(/*0, i*/);
-		readonly substring1 : /*var*/ = slice.substring(/*i + "(".length()*/);
+		const substring : /*var*/ = slice.substring(/*0, i*/);
+		const substring1 : /*var*/ = slice.substring(/*i + "(".length()*/);
 		/*return Optional.of(Main.compileValue(substring) + "(" + Main.compileArguments(substring1) + ")")*/;
 	}
 	private static compileArguments(input : string) : string {
-		readonly strip : /*var*/ = input.strip();
+		const strip : /*var*/ = input.strip();
 		/*if (strip.isEmpty()) return ""*/;
 		/*return Placeholder.wrap(strip)*/;
 	}
 	private static parseDefinable(input : string) : /*Definable*/ {
-		readonly beforeType : /*var*/ = Main.compileDefinition(/*input*/);
+		const beforeType : /*var*/ = Main.compileDefinition(/*input*/);
 		/*return beforeType.<Definable>map(value -> value).orElseGet(() -> new Placeholder(input))*/;
 	}
 	private static compileDefinition(input : string) : /*Optional<Definition>*/ {
-		readonly strip : /*var*/ = input.strip();
-		readonly nameSeparator : /*var*/ = strip.lastIndexOf(/*' '*/);
+		const strip : /*var*/ = input.strip();
+		const nameSeparator : /*var*/ = strip.lastIndexOf(/*' '*/);
 		/*if (0 > nameSeparator) return Optional.empty()*/;
-		readonly beforeName : /*var*/ = strip.substring(/*0, nameSeparator).strip(*/);
-		readonly name : /*var*/ = strip.substring(/*nameSeparator + " ".length()*/);
-		readonly typeSeparator : /*var*/ = beforeName.lastIndexOf(/*' '*/);
+		const beforeName : /*var*/ = strip.substring(/*0, nameSeparator).strip(*/);
+		const name : /*var*/ = strip.substring(/*nameSeparator + " ".length()*/);
+		const typeSeparator : /*var*/ = beforeName.lastIndexOf(/*' '*/);
 		/*if (0 > typeSeparator) return Optional.empty()*/;
-		readonly beforeType : /*var*/ = beforeName.substring(/*0, typeSeparator*/);
-		readonly typeString : /*var*/ = beforeName.substring(/*typeSeparator + " ".length()*/);
-		readonly newModifiers : /*var*/ = Main.lexModifiers(/*beforeType*/);
-		readonly type : /*var*/ = Main.compileType(/*typeString*/);
+		const beforeType : /*var*/ = beforeName.substring(/*0, typeSeparator*/);
+		const typeString : /*var*/ = beforeName.substring(/*typeSeparator + " ".length()*/);
+		const newModifiers : /*var*/ = Main.lexModifiers(/*beforeType*/);
+		const type : /*var*/ = Main.compileType(/*typeString*/);
 		/*return Optional.of(new Definition(newModifiers, name, type))*/;
 	}
 	private static lexModifiers(modifiers : string) : /*Collection<String>*/ {
 		/*return Arrays.stream(modifiers.split(" ")).map(String::strip).filter(value -> !value.isEmpty()).toList()*/;
 	}
-	private static transformDefinedModifier(modifier : /*CharSequence*/) : /*Optional<String>*/ {
+	private static transformFieldModifier(modifier : /*CharSequence*/) : /*Optional<String>*/ {
 		/*if ("private".contentEquals(modifier)) return Optional.of("private")*/;
 		/*if ("public".contentEquals(modifier)) return Optional.of("public")*/;
 		/*if ("static".contentEquals(modifier)) return Optional.of("static")*/;
@@ -241,7 +265,7 @@
 		/*return Optional.empty()*/;
 	}
 	private static compileType(input : string) : string {
-		readonly strip : /*var*/ = input.strip();
+		const strip : /*var*/ = input.strip();
 		/*if ("String".contentEquals(strip)) return "string"*/;
 		/*if ("void".contentEquals(strip)) return "void"*/;
 		/*if (strip.endsWith("[]")) {
@@ -251,7 +275,7 @@
 		/*return Placeholder.wrap(strip)*/;
 	}
 	private static compileClassHeader(input : string) : string {
-		readonly index : /*var*/ = input.indexOf(/*"class "*/);
+		const index : /*var*/ = input.indexOf(/*"class "*/);
 		/*if (0 <= index) {
             final var beforeKeyword = input.substring(0, index);
             final var afterKeyword = input.substring(index + "class ".length()).strip();
@@ -261,14 +285,14 @@
 	}
 	private static divide(input : /*CharSequence*//*
                                        final BiFunction<DivideState*//* Character*//* DivideState> folder*/) : /*List<String>*/ {
-		readonly state : /*var*/ = Main.foldEarly(/*new MutableDivideState(input), DivideState::pop,
+		const state : /*var*/ = Main.foldEarly(/*new MutableDivideState(input), DivideState::pop,
                                          popped -> new Tuple<>(true, Main.foldDecorated(popped, folder))*/);
 		/*return state.right().advance().stream().toList()*/;
 	}
 	private static foldEarly(initial : /*DivideState*//*
                                                          final Function<DivideState*//* Optional<Tuple<DivideState*//* Character>>> mapper*//*
                                                          final Function<Tuple<DivideState*//* Character>*//* Tuple<Boolean*//* DivideState>> folder*/) : /*DivideState>*/ {
-		tuple : /*DivideState>*/ = /*new Tuple<>*/(/*true, initial*/);
+		let tuple : /*DivideState>*/ = /*new Tuple<>*/(/*true, initial*/);
 		/*while (tuple.left()) {
             final var state = tuple.right();
             tuple = Main.foldEarlyElement(state, mapper, folder);
@@ -278,33 +302,33 @@
 	private static foldEarlyElement(state : /*DivideState*//*
                                                                 final Function<DivideState*//* Optional<Tuple<DivideState*//* Character>>> mapper*//*
                                                                 final Function<Tuple<DivideState*//* Character>*//* Tuple<Boolean*//* DivideState>> folder*/) : /*DivideState>*/ {
-		readonly maybePopped : /*var*/ = mapper.apply(/*state*/);
+		const maybePopped : /*var*/ = mapper.apply(/*state*/);
 		/*if (maybePopped.isEmpty()) return new Tuple<>(false, state)*/;
-		readonly popped : /*var*/ = maybePopped.get();
+		const popped : /*var*/ = maybePopped.get();
 		/*return folder.apply(popped)*/;
 	}
 	private static foldDecorated(/*final Tuple<DivideState*//* Character> popped*//*
                                              final BiFunction<DivideState*//* Character*//* DivideState> folder*/) : /*DivideState*/ {
-		readonly state : /*var*/ = popped.left();
-		readonly c : /*var*/ = popped.right();
+		const state : /*var*/ = popped.left();
+		const c : /*var*/ = popped.right();
 		/*return Main.foldSingleQuotes(state, c)
                    .or(() -> Main.foldDoubleQuotes(state, c))
                    .orElseGet(() -> folder.apply(state, c))*/;
 	}
 	private static foldDoubleQuotes(state : /*DivideState*/c : /*char*/) : /*Optional<DivideState>*/ {
-		! : /*('\"'*/ = /*c) return Optional*/.empty();
+		let ! : /*('\"'*/ = /*c) return Optional*/.empty();
 		/*return Optional.of(
                 Main.foldEarly(state.append('\"'), DivideState::popAndAppendToTuple, Main::foldInDoubleQuotes).right())*/;
 	}
 	private static foldInDoubleQuotes(/*final Tuple<DivideState*//* Character> popped*/) : /*DivideState>*/ {
-		readonly nextAppended : /*var*/ = popped.left();
-		readonly next : /*var*/ = popped.right();
+		const nextAppended : /*var*/ = popped.left();
+		const next : /*var*/ = popped.right();
 		/*if ('\\' */ = /*= next) return new Tuple<>*/(/*true, nextAppended.popAndAppendToOption().orElse(nextAppended)*/);
 		/*if ('\"' */ = /*= next) return new Tuple<>*/(/*false, nextAppended*/);
 		/*return new Tuple<>(true, nextAppended)*/;
 	}
 	private static foldSingleQuotes(state : /*DivideState*/c : /*char*/) : /*Optional<DivideState>*/ {
-		! : /*('\''*/ = /*c) return Optional*/.empty();
+		let ! : /*('\''*/ = /*c) return Optional*/.empty();
 		/*return state.append(c)
                     .popAndAppendToTuple()
                     .flatMap(Main::foldEscape)
@@ -315,7 +339,7 @@
 		/*return Optional.of(tuple.left())*/;
 	}
 	private static foldStatement(state : /*DivideState*/c : /*char*/) : /*DivideState*/ {
-		readonly appended : /*var*/ = state.append(/*c*/);
+		const appended : /*var*/ = state.append(/*c*/);
 		/*if (';' */ = /*= c && appended*/.isLevel(/*)) return appended.advance(*/);
 		/*if ('}' */ = /*= c && appended*/.isShallow(/*)) return appended.advance().exit(*/);
 		/*if ('{' */ = /*= c) return appended*/.enter();

@@ -113,8 +113,7 @@ public class Main {
         final var withBraces = substring1.substring(i1 + ")".length()).strip();
 
         final var maybeHeader = Main.compileDefinition(headerString)
-                                    .map(definition -> Main.modifyDefinition(definition,
-                                                                             Main::transformDefinedModifier))
+                                    .map(definition -> Main.modifyDefinition(definition, Main::transformFieldModifier))
                                     .<Header>map(value -> value)
                                     .or(() -> Main.compileConstructor(headerString));
         if (withBraces.isEmpty() || '{' != withBraces.charAt(0) || '}' != withBraces.charAt(withBraces.length() - 1))
@@ -142,7 +141,32 @@ public class Main {
     }
 
     private static String compileFunctionStatementValue(final String input) {
-        return Main.compileAssignment(input).orElseGet(() -> Placeholder.wrap(input));
+        return Main.parseAssignment(input)
+                   .map(Main::transformStatementAssignment)
+                   .map(Assignment::generate)
+                   .orElseGet(() -> Placeholder.wrap(input));
+    }
+
+    private static Assignment transformStatementAssignment(final Assignment assignment) {
+        return assignment.mapDefinition(Main::transformStatementDefinable);
+    }
+
+    private static Definable transformStatementDefinable(final Definable definition) {
+        if (!(definition instanceof final Definition definition1)) return definition;
+        return definition1.mapModifiers(Main::transformStatementModifiers);
+    }
+
+    private static List<String> transformStatementModifiers(final Collection<String> modifiers) {
+        final var newModifiers = Main.transformModifiers(modifiers, Main::transformFunctionModifier);
+        if (newModifiers.contains("const")) return newModifiers;
+
+        newModifiers.add("let");
+        return newModifiers;
+    }
+
+    private static Optional<String> transformFunctionModifier(final String modifier) {
+        if ("final".contentEquals(modifier)) return Optional.of("const");
+        return Optional.empty();
     }
 
     private static String createIndent(final int depth) {
@@ -177,26 +201,31 @@ public class Main {
     }
 
     private static String compileFieldValue(final String input) {
-        return Main.compileAssignment(input).orElseGet(() -> Placeholder.wrap(input));
+        return Main.parseAssignment(input)
+                   .map(assignment -> Main.transformAssignment(assignment, Main::transformFieldModifier))
+                   .map(Assignment::generate)
+                   .orElseGet(() -> Placeholder.wrap(input));
     }
 
-    private static Optional<String> compileAssignment(final String input) {
+    private static Assignment transformAssignment(final Assignment assignment,
+                                                  final Function<String, Optional<String>> mapper) {
+        return assignment.mapDefinition(definition -> Main.transformDefinable(definition, mapper));
+    }
+
+    private static Optional<Assignment> parseAssignment(final String input) {
         final var index = input.indexOf('=');
         if (0 > index) return Optional.empty();
         final var definition = input.substring(0, index);
         final var value = input.substring(index + "=".length());
         final var definable = Main.parseDefinable(definition);
-        final var definable1 = Main.transformDefinable(definable, Main::transformDefinedModifier);
-        return Optional.of(definable1.generate() + " = " + Main.compileValue(value));
+        final var s = Main.compileValue(value);
+        return Optional.of(new Assignment(definable, s));
     }
 
     private static Definable transformDefinable(final Definable definable,
                                                 final Function<String, Optional<String>> transformer) {
-        final Definable definable1;
-        if (definable instanceof final Definition definition1)
-            definable1 = Main.modifyDefinition(definition1, transformer);
-        else definable1 = definable;
-        return definable1;
+        if (definable instanceof final Definition definition) return Main.modifyDefinition(definition, transformer);
+        return definable;
     }
 
     private static Definition modifyDefinition(final Definition definition,
@@ -281,7 +310,7 @@ public class Main {
         return Arrays.stream(modifiers.split(" ")).map(String::strip).filter(value -> !value.isEmpty()).toList();
     }
 
-    private static Optional<String> transformDefinedModifier(final CharSequence modifier) {
+    private static Optional<String> transformFieldModifier(final CharSequence modifier) {
         if ("private".contentEquals(modifier)) return Optional.of("private");
         if ("public".contentEquals(modifier)) return Optional.of("public");
         if ("static".contentEquals(modifier)) return Optional.of("static");

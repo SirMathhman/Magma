@@ -35,8 +35,8 @@
 		/*return this*/;
 	}
 	public pop() : /*Character>>*/ {
-		> : /*(this.index*/ = this.input.length(/*)) return Optional.empty(*/);
-		readonly c : /*var*/ = this.input.charAt(/*this.index*/);
+		let > : /*(this.index*/ = this.input.length(/*)) return Optional.empty(*/);
+		const c : /*var*/ = this.input.charAt(/*this.index*/);
 		/*this.index++*/;
 		/*return Optional.of(new Tuple<>(this, c))*/;
 	}
