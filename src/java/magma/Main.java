@@ -270,9 +270,8 @@ public class Main {
         if (0 > index) return Optional.empty();
         final var definition = input.substring(0, index);
         final var valueString = input.substring(index + "=".length());
-        return Main.parseDefinition(definition).flatMap(definable -> {
-            return Main.compileValue(valueString).map(value -> new Assignment(definable, value));
-        });
+        return Main.parseDefinition(definition)
+                   .flatMap(definable -> Main.compileValue(valueString).map(value -> new Assignment(definable, value)));
     }
 
     private static Definable transformDefinable(final Definable definable,
