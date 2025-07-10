@@ -11,46 +11,46 @@
 	/*MutableDivideState(final CharSequence input) {
         this.input = input;
     }*/
-	advance() : /*DivideState*/ {
+	public advance() : /*DivideState*/ {
 		/*this.segments.add(this.buffer.toString());*/
 		/*this.buffer = new StringBuilder();*/
 		/*return this;*/
 	}
-	append(readonly c : /*char*/) : /*DivideState*/ {
+	public append(final c : /*char*/) : /*DivideState*/ {
 		/*this.buffer.append(c);*/
 		/*return this;*/
 	}
-	stream() : /*Stream<String>*/ {
+	public stream() : /*Stream<String>*/ {
 		/*return this.segments.stream();*/
 	}
-	isLevel() : /*boolean*/ {
+	public isLevel() : /*boolean*/ {
 		/*return 0 == this.depth;*/
 	}
-	enter() : /*DivideState*/ {
+	public enter() : /*DivideState*/ {
 		/*this.depth++;*/
 		/*return this;*/
 	}
-	exit() : /*DivideState*/ {
+	public exit() : /*DivideState*/ {
 		/*this.depth--;*/
 		/*return this;*/
 	}
-	pop() : /*Character>>*/ {
+	public pop() : /*Character>>*/ {
 		/*if (this.index >= this.input.length()) return Optional.empty();*/
 		/*final var c = this.input.charAt(this.index);*/
 		/*this.index++;*/
 		/*return Optional.of(new Tuple<>(this, c));*/
 	}
-	popAndAppendToTuple() : /*Character>>*/ {
+	public popAndAppendToTuple() : /*Character>>*/ {
 		/*return this.pop().map(tuple -> {
             final var appended = tuple.left().append(tuple.right());
             return new Tuple<>(appended, tuple.right());
         }*/
 		/*);*/
 	}
-	popAndAppendToOption() : /*Optional<DivideState>*/ {
+	public popAndAppendToOption() : /*Optional<DivideState>*/ {
 		/*return this.popAndAppendToTuple().map(Tuple::left);*/
 	}
-	isShallow() : /*boolean*/ {
+	public isShallow() : /*boolean*/ {
 		/*return 1 == this.depth;*/
 	}
 	/**/}/**/

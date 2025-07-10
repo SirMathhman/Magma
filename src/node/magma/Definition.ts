@@ -1,14 +1,18 @@
 /*import java.util.Collection;*/
+/*import java.util.function.Function;*/
 /*import java.util.stream.Collectors;*/
-/*public record Definition(Collection<String> newModifiers, String name, String type) implements Header, Definable */ {
-	static generateModifiers(readonly newModifiers : /*Collection<String>*/) : string {
+/*public record Definition(Collection<String> modifiers, String name, String type) implements Header, Definable */ {
+	static generateModifiers(final newModifiers : /*Collection<String>*/) : string {
 		/*return newModifiers.stream().map(value -> value + " ").collect(Collectors.joining());*/
 	}
-	generate() : string {
+	public generate() : string {
 		/*return this.generateWithAfterName("");*/
 	}
-	generateWithAfterName(readonly afterName : string) : string {
-		/*final var joinedModifiers = Definition.generateModifiers(this.newModifiers());*/
+	public generateWithAfterName(final afterName : string) : string {
+		/*final var joinedModifiers = Definition.generateModifiers(this.modifiers());*/
 		/*return joinedModifiers + this.name() + afterName + " : " + this.type();*/
+	}
+	public mapModifiers(/*final Function<Collection<String>*//* Collection<String>> mapper*/) : /*Definition*/ {
+		/*return new Definition(mapper.apply(this.modifiers), this.name, this.type);*/
 	}
 	/**/}/**/

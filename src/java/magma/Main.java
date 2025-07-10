@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
@@ -115,6 +114,7 @@ public class Main {
         final var withBraces = substring1.substring(i1 + ")".length()).strip();
 
         final var maybeHeader = Main.compileDefinition(headerString)
+                                    .map(Main::modifyDefinition)
                                     .<Header>map(value -> value)
                                     .or(() -> Main.compileConstructor(headerString));
         if (withBraces.isEmpty() || '{' != withBraces.charAt(0) || '}' != withBraces.charAt(withBraces.length() - 1))
@@ -144,7 +144,7 @@ public class Main {
         final var stripped = input.strip();
         if (stripped.isEmpty()) return "";
 
-        return Main.compileAll(input, input1 -> Main.parseDefinitionOrPlaceholder(input1).generate(), Main::foldValue);
+        return Main.compileAll(input, input1 -> Main.parseDefinable(input1).generate(), Main::foldValue);
     }
 
     private static DivideState foldValue(final DivideState state, final char c) {
@@ -162,14 +162,31 @@ public class Main {
     }
 
     private static String compileFieldValue(final String input) {
-        final var index = input.indexOf('=');
-        if (0 <= index) {
-            final var definition = input.substring(0, index);
-            final var value = input.substring(index + "=".length());
-            return Main.parseDefinitionOrPlaceholder(definition).generate() + " = " + Main.compileValue(value);
-        }
+        return Main.compileAssignment(input).orElseGet(() -> Placeholder.generatePlaceholder(input));
+    }
 
-        return Placeholder.generatePlaceholder(input);
+    private static Optional<String> compileAssignment(final String input) {
+        final var index = input.indexOf('=');
+        if (0 > index) return Optional.empty();
+        final var definition = input.substring(0, index);
+        final var value = input.substring(index + "=".length());
+        final var definable = Main.parseDefinable(definition);
+        final var definable1 = Main.modifyDefinable(definable);
+        return Optional.of(definable1.generate() + " = " + Main.compileValue(value));
+    }
+
+    private static Definable modifyDefinable(final Definable definable) {
+        final Definable definable1;
+        if (definable instanceof final Definition definition1) definable1 = Main.modifyDefinition(definition1);
+        else
+            definable1 = definable;
+        return definable1;
+    }
+
+    private static Definition modifyDefinition(final Definition definition) {
+        return definition.mapModifiers(modifiers -> {
+            return modifiers.stream().map(Main::transforModifier).flatMap(Optional::stream).collect(Collectors.toSet());
+        });
     }
 
     private static String compileValue(final String input) {
@@ -216,7 +233,7 @@ public class Main {
         return Placeholder.generatePlaceholder(strip);
     }
 
-    private static Definable parseDefinitionOrPlaceholder(final String input) {
+    private static Definable parseDefinable(final String input) {
         final var beforeType = Main.compileDefinition(input);
         return beforeType.<Definable>map(value -> value).orElseGet(() -> new Placeholder(input));
     }
@@ -241,18 +258,15 @@ public class Main {
     }
 
     private static Collection<String> lexModifiers(final String modifiers) {
-        final var oldModifiers = Arrays.stream(modifiers.split(" "))
-                                       .map(String::strip)
-                                       .filter(value -> !value.isEmpty())
-                                       .collect(Collectors.toSet());
-
-        final Collection<String> newModifiers = new ArrayList<>();
-        for (final var oldModifier : oldModifiers) Main.foldModifier(oldModifier).ifPresent(newModifiers::add);
-        return newModifiers;
+        return Arrays.stream(modifiers.split(" "))
+                     .map(String::strip)
+                     .filter(value -> !value.isEmpty())
+                     .collect(Collectors.toSet());
     }
 
-    private static Optional<String> foldModifier(final CharSequence modifier) {
+    private static Optional<String> transforModifier(final CharSequence modifier) {
         if ("private".contentEquals(modifier)) return Optional.of("private");
+        if ("public".contentEquals(modifier)) return Optional.of("public");
         if ("static".contentEquals(modifier)) return Optional.of("static");
         if ("final".contentEquals(modifier)) return Optional.of("readonly");
         return Optional.empty();
