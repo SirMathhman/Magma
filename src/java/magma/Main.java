@@ -6,7 +6,6 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
 import java.util.Optional;
-import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -62,24 +61,23 @@ public class Main {
         if (stripped.isEmpty() || '}' != stripped.charAt(stripped.length() - 1)) return Optional.empty();
         final var withoutEnd = stripped.substring(0, stripped.length() - "}".length());
 
-        return Main.compileInfix(withoutEnd, "{", (beforeContent, content) -> Optional.of(
-                Main.compileClassHeader(beforeContent) + " {" + Main.generatePlaceholder(content) + "}"));
+        final var index = withoutEnd.indexOf('{');
+        if (0 > index) return Optional.empty();
+        final var beforeContent = withoutEnd.substring(0, index);
+        final var content = withoutEnd.substring(index + "{".length());
+
+        return Optional.of(Main.compileClassHeader(beforeContent) + " {" + Main.generatePlaceholder(content) + "}");
     }
 
     private static String compileClassHeader(final String input) {
-        return Main.compileInfix(input, "class ", (oldModifiers, name) -> Optional.of(
-                           Main.generatePlaceholder(oldModifiers) + "class " + name.strip()))
-                   .orElseGet(() -> Main.generatePlaceholder(input));
-    }
+        final var index = input.indexOf("class ");
+        if (0 <= index) {
+            final var beforeKeyword = input.substring(0, index);
+            final var afterKeyword = input.substring(index + "class ".length()).strip();
+            return Main.generatePlaceholder(beforeKeyword) + "class " + afterKeyword;
+        }
 
-    private static Optional<String> compileInfix(final String input,
-                                                 final String infix,
-                                                 final BiFunction<String, String, Optional<String>> mapper) {
-        final var index = input.indexOf(infix);
-        if (0 > index) return Optional.empty();
-        final var beforeKeyword = input.substring(0, index);
-        final var afterKeyword = input.substring(index + infix.length());
-        return mapper.apply(beforeKeyword, afterKeyword);
+        return Main.generatePlaceholder(input);
     }
 
     private static List<String> divide(final CharSequence input) {
