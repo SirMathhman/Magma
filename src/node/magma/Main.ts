@@ -68,8 +68,11 @@ export class Main {
         return Main.LINE_SEPARATOR + "\t" + Main.compileClassStatementValue(stripped);
     }*/
 	/*private static String compileClassStatementValue(final String input) {
-        return Main.compileSuffix(input, ";", slice1 -> Optional.of(Main.generatePlaceholder(slice1) + ";"))
+        return Main.compileSuffix(input, ";", slice1 -> Main.generate(MapNode.createMapNode(slice1)))
                    .orElseGet(() -> Main.generatePlaceholder(input));
+    }*/
+	/*private static Optional<String> generate(final Node node) {
+        return Optional.of(node.findStringOrEmpty("value")).map(Main::generatePlaceholder).map(value -> value + ";");
     }*/
 	/*private static Optional<String> compileSuffix(final String input,
                                                   final String suffix,
