@@ -12,7 +12,7 @@
 /*import java.util.stream.IntStream;*/
 /*public */class Main {
 	private static readonly LINE_SEPARATOR : string = System.lineSeparator();
-	private constructor(/**/)/* {}*/
+	private constructor()/* {}*/
 	static main : /*void*/(/*final String[] args*/)/* {
         final var sourceDirectory = Paths.get(".", "src", "java");
         try (final var stream = Files.walk(sourceDirectory)) {
@@ -93,8 +93,13 @@
         final var substring3 = substring1.substring(i1 + ")".length());
 
         final var maybeHeader = Main.compileDefinition(headerString).or(() -> Main.compileConstructor(headerString));
-        return maybeHeader.map(header -> header + "(" + Main.generatePlaceholder(substring2) + ")" +
-                                         Main.generatePlaceholder(substring3));
+        return maybeHeader.map(
+                header -> header + "(" + Main.compileParameters(substring2) + ")" + Main.generatePlaceholder(substring3));
+    }*/
+	private static compileParameters : string(/*final String input*/)/* {
+        final var stripped = input.strip();
+        if (stripped.isEmpty()) return "";
+        return Main.generatePlaceholder(stripped);
     }*/
 	private static compileConstructor : /*Optional<String>*/(/*final String header*/)/* {
         final var i2 = header.lastIndexOf(' ');

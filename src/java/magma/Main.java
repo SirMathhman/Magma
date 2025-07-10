@@ -107,8 +107,14 @@ public class Main {
         final var substring3 = substring1.substring(i1 + ")".length());
 
         final var maybeHeader = Main.compileDefinition(headerString).or(() -> Main.compileConstructor(headerString));
-        return maybeHeader.map(header -> header + "(" + Main.generatePlaceholder(substring2) + ")" +
-                                         Main.generatePlaceholder(substring3));
+        return maybeHeader.map(
+                header -> header + "(" + Main.compileParameters(substring2) + ")" + Main.generatePlaceholder(substring3));
+    }
+
+    private static String compileParameters(final String input) {
+        final var stripped = input.strip();
+        if (stripped.isEmpty()) return "";
+        return Main.generatePlaceholder(stripped);
     }
 
     private static Optional<String> compileConstructor(final String header) {
